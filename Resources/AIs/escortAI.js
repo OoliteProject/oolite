@@ -68,17 +68,16 @@ this.aiStarted = function() {
 						reconsider: 5
 				},
 				{
-						condition: ai.conditionHasMothership,
-						behaviour: ai.behaviourEscortMothership,
-						reconsider: 60
-				},
-				/* Don't have a mothership */
-				{
 						condition: ai.conditionWitchspaceEntryRequested,
 						behaviour: ai.behaviourEnterWitchspace,
 						reconsider: 15
 				},
-				/* And it's not because they've recently jumped out */
+				{
+						condition: ai.conditionIsEscorting,
+						behaviour: ai.behaviourEscortMothership,
+						reconsider: 60
+				},
+				/* Don't have a mothership */
 				{
 						condition: ai.conditionFriendlyStationNearby,
 						configuration: ai.configurationSetNearbyFriendlyStationForDocking,

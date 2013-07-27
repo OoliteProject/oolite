@@ -2962,7 +2962,7 @@ static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp)
 	}
 
 	GET_THIS_SHIP(thisEnt);
-	if (EXPECT_NOT(argc == 0 || (argc > 0 && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !OOJSEntityGetEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &hole)))))
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && !JSVAL_IS_NULL(OOJS_ARGV[0]) && (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !OOJSEntityGetEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &hole)))))
 	{
 		[thisEnt enterPlayerWormhole];
 	}

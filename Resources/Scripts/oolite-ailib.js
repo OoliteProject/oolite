@@ -530,7 +530,7 @@ AILib.prototype.conditionInCombat = function()
 /* Ships being attacked are firing back */
 AILib.prototype.conditionInCombatWithHostiles = function()
 {
-		if (this.isFighting(ship) && this.isAggressive(this.ship.target))
+		if (this.isFighting(this.ship) && this.isAggressive(this.ship.target))
 		{
 				return true;
 		}
@@ -1210,6 +1210,20 @@ AILib.prototype.conditionAllEscortsInFlight = function()
 						return false;
 				}
 		}
+		// if just exited witchspace, escorts might not have rejoined escort
+		// group yet.
+		if (!this.ship.group)
+		{
+				return true; 
+		}
+		for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+		{
+				if (this.ship.group.ships[i].status != "STATUS_IN_FLIGHT")
+				{
+						return false;
+				}
+		}
+
 		return true;
 }
 
@@ -1225,6 +1239,11 @@ AILib.prototype.conditionCanScoopCargo = function()
 
 AILib.prototype.conditionCargoIsProfitableHere = function()
 {
+		/* TODO: in the Mainly X systems, it's not impossible for
+		 * PLENTIFUL_GOODS to generate a hold which is profitable in that
+		 * system, and SCARCE_GOODS not to do so. Cargo should never be
+		 * profitable in its origin system. */
+
 		if (!system.mainStation)
 		{
 				return false;
@@ -1315,6 +1334,17 @@ AILib.prototype.conditionIsEscorting = function()
 		}
 		if (this.ship.group.leader.escortGroup && this.ship.group.leader.escortGroup.containsShip(this.ship))
 		{
+				if (this.ship.group.leader.status == "STATUS_ENTERING_WITCHSPACE")
+				{
+						var hole = this.getParameter("oolite_witchspaceWormhole");
+						if (hole == null || hole.expiryTime < clock.seconds)
+						{
+								// has been left behind
+								this.configurationLeaveEscortGroup();
+								this.setParameter("oolite_witchspaceWormhole",false);
+								return false;
+						}
+				}
 				return true;
 		}
 		return false;
@@ -1620,6 +1650,19 @@ AILib.prototype.behaviourEnterWitchspace = function()
 		}
 		else if (wormhole)
 		{
+
+				handlers.playerWillEnterWitchspace = function()
+				{
+						var wormhole = this.getParameter("oolite_witchspaceWormhole");
+						if (wormhole != null)
+						{
+								this.ship.enterWormhole(wormhole);
+						} 
+						else
+						{
+								this.ship.enterWormhole();
+						}
+				}
 				this.ship.destination = wormhole.position;
 				this.ship.desiredRange = 0;
 				this.ship.desiredSpeed = this.ship.maxSpeed;
@@ -3147,6 +3190,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 		}
 		handlers.shipWillEnterWormhole = function()
 		{
+				this.setParameter("oolite_witchspaceWormhole",null);
 				this.applyHandlers({});
 		}
 		handlers.shipExitedWormhole = function()
@@ -3178,7 +3222,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 		handlers.playerWillEnterWitchspace = function()
 		{
 				var wormhole = this.getParameter("oolite_witchspaceWormhole");
-				if (wormhole != null)
+				if (wormhole != null && wormhole.isWormhole)
 				{
 						this.ship.enterWormhole(wormhole);
 				} 

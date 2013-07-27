@@ -689,9 +689,10 @@
 	}
 	
 	// We now have no escorts..
+
 	[_escortGroup release];
 	_escortGroup = nil;
-	
+
 }
 
 
