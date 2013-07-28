@@ -697,8 +697,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	_compassUpdated = NO;
 	
 	// tight loop, we assume dialArray doesn't change in mid-draw.
-	NSInteger i;
-	for (i = [dialArray count] - 1; i >= 0; i--)
+	NSUInteger i, nDials = [dialArray count];
+	for (i = 0; i < nDials; i++)
 	{
 		sCurrentDrawItem = [dialArray oo_arrayAtIndex:i];
 		[self drawHUDItem:[sCurrentDrawItem oo_dictionaryAtIndex:WIDGET_INFO]];
