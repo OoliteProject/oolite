@@ -138,23 +138,27 @@ this.aiStarted = function() {
 						/* Look for more loot */
 						falsebranch: [
 								{
-										preconfiguration: ai.configurationForgetCargoDemand,
-										condition: ai.conditionScannerContainsPirateVictims,
-										configuration: ai.configurationAcquireScannedTarget,
+										condition: ai.conditionIsGroupLeader,
 										truebranch: [
 												{
-														condition: ai.conditionCombatOddsGood,
-														behaviour: ai.behaviourRobTarget,
-														reconsider: 5
-												}
+														preconfiguration: ai.configurationForgetCargoDemand,
+														condition: ai.conditionScannerContainsPirateVictims,
+														configuration: ai.configurationAcquireScannedTarget,
+														truebranch: [
+																{
+																		condition: ai.conditionCombatOddsGood,
+																		behaviour: ai.behaviourRobTarget,
+																		reconsider: 5
+																}
+														]
+												},
+												{
+														/* move to a position on one of the space lanes, preferring lane 1 */
+														configuration: ai.configurationSetDestinationToPirateLurk,
+														behaviour: ai.behaviourApproachDestination,
+														reconsider: 30
+												},
 										]
-								},
-								/* move to a position on one of the space lanes, preferring lane 1 */
-								{
-										condition: ai.conditionIsGroupLeader,
-										configuration: ai.configurationSetDestinationToPirateLurk,
-										behaviour: ai.behaviourApproachDestination,
-										reconsider: 30
 								},
 								{
 										behaviour: ai.behaviourFollowGroupLeader,

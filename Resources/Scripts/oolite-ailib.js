@@ -504,7 +504,7 @@ AILib.prototype.conditionInCombat = function()
 		}
 		if (this.ship.group != null)
 		{
-				for (var i = 0 ; i < this.ship.group.length ; i++)
+				for (var i = 0 ; i < this.ship.group.count ; i++)
 				{
 						if (this.isFighting(this.ship.group.ships[i]))
 						{
@@ -514,7 +514,7 @@ AILib.prototype.conditionInCombat = function()
 		}
 		if (this.ship.escortGroup != null)
 		{
-				for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
+				for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
 				{
 						if (this.isFighting(this.ship.escortGroup.ships[i]))
 						{
@@ -541,10 +541,16 @@ AILib.prototype.conditionInCombatWithHostiles = function()
 				{
 						return true;
 				}
+				else
+				{
+						// this is safe to do mid-loop as dts is a copy of the
+						// actual defense target list
+						this.ship.removeDefenseTarget(dts[i]);
+				}
 		}
 		if (this.ship.group != null)
 		{
-				for (var i = 0 ; i < this.ship.group.length ; i++)
+				for (var i = 0 ; i < this.ship.group.count ; i++)
 				{
 						if (this.isFighting(this.ship.group.ships[i]) && this.isAggressive(this.ship.group.ships[i].target))
 						{
@@ -554,7 +560,7 @@ AILib.prototype.conditionInCombatWithHostiles = function()
 		}
 		if (this.ship.escortGroup != null)
 		{
-				for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
+				for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
 				{
 						if (this.isFighting(this.ship.escortGroup.ships[i]) && this.isAggressive(this.ship.escortGroup.ships[i].target))
 						{
@@ -950,7 +956,7 @@ AILib.prototype.conditionCargoDemandsMet = function()
 
 				if (demand == 0)
 				{
-						return false; // no demand made, so it can't have been met
+						return true; // no demand made
 				}
 				if (demand <= seen)
 				{
@@ -2080,48 +2086,46 @@ AILib.prototype.behaviourRobTarget = function()
 				demand = (hascargo/20)*(8-system.info.government)*(1+Math.random()); 
 				// between 5% and 80% of cargo
 				demand = Math.ceil(demand); // round it up so there's always at least 1
-				demand = 2+(demand%10); //
-				/* 
-				// since cargo dumping detection uses checkScanner, this doesn't work
-				// for any substantial volume of cargo. Consider reinstating if
-				// increasing the max-count on checkScanner doesn't break things
 
 				var maxdemand = 0;
 				var gc = 1;
 				if (!this.ship.group)
 				{
-				if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
-				{
-				maxdemand = this.ship.cargoSpaceAvailable;
-				}
+						if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+						{
+								maxdemand = this.ship.cargoSpaceAvailable;
+						}
 				}
 				else
 				{
-				gc = this.ship.group.ships.length;
-				for (var i = 0; i < gc ; i++)
-				{
-				var ship = this.ship.group.ships[i];
-				if (ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
-				{
-				maxdemand += ship.cargoSpaceAvailable;
-				}
-				}
+						gc = this.ship.group.ships.length;
+						for (var i = 0; i < gc ; i++)
+						{
+								var ship = this.ship.group.ships[i];
+								if (ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+								{
+										maxdemand += ship.cargoSpaceAvailable;
+								}
+								else
+								{
+										gc--; // this ship can't help scoop
+								}
+						}
 				}
 				if (demand > maxdemand)
 				{
-				demand = maxdemand; // don't ask for more than we can carry
+						demand = maxdemand; // don't ask for more than we can carry
 				}
 				while (demand > gc * 5)
 				{
-				// asking for more than 5TC each probably means there
-				// won't be time to pick it all up anyway
-				demand = Math.ceil(demand/2);
+						// asking for more than 5TC each probably means there
+						// won't be time to pick it all up anyway
+						demand = Math.ceil(demand/2);
 				}
 				if (demand < 2)
 				{
-				demand = 2;
+						demand = 2;
 				}
-				*/
 
 				/* Record our demand with the group leader */
 				if (this.ship.group && this.ship.group.leader)
@@ -2148,6 +2152,7 @@ AILib.prototype.behaviourRobTarget = function()
 		this.responsesAddStandard(handlers);
 		this.applyHandlers(handlers);
 		this.ship.performAttack();
+		this.ship.requestHelpFromGroup();
 }
 
 
@@ -2377,9 +2382,14 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 		}
 		/* Iff the ship does not currently have a target, select a new one
 		 * from the defense target list. */
-		if (this.ship.target && this.ship.target.isInSpace)
+		if (this.ship.target)
 		{
-				return;
+				if (this.ship.target.isInSpace)
+				{
+						return;
+				}
+				this.ship.removeDefenseTarget(this.ship.target);
+				this.ship.target = null;
 		}
 		var dts = this.ship.defenseTargets
 		for (var i = 0; i < dts.length ; i++)
@@ -2392,7 +2402,7 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 		}
 		if (this.ship.group != null)
 		{
-				for (var i = 0 ; i < this.ship.group.length ; i++)
+				for (var i = 0 ; i < this.ship.group.count ; i++)
 				{
 						if (this.ship.group.ships[i] != this.ship)
 						{
@@ -2406,7 +2416,7 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 		}
 		if (this.ship.escortGroup != null)
 		{
-				for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
+				for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
 				{
 						if (this.ship.escortGroup.ships[i] != this.ship)
 						{
@@ -2456,9 +2466,14 @@ AILib.prototype.configurationAcquireHostileCombatTarget = function()
 		}
 		/* Iff the ship does not currently have a target, select a new one
 		 * from the defense target list. */
-		if (this.ship.target && this.ship.target.isInSpace && this.isAggressive(this.ship.target))
+		if (this.ship.target)
 		{
-				return;
+				if (this.ship.target.isInSpace && this.isAggressive(this.ship.target))
+				{
+						return;
+				}
+				this.ship.removeDefenseTarget(this.ship.target);
+				this.ship.target = null;
 		}
 		var dts = this.ship.defenseTargets
 		for (var i = 0; i < dts.length ; i++)
@@ -2471,7 +2486,7 @@ AILib.prototype.configurationAcquireHostileCombatTarget = function()
 		}
 		if (this.ship.group != null)
 		{
-				for (var i = 0 ; i < this.ship.group.length ; i++)
+				for (var i = 0 ; i < this.ship.group.count ; i++)
 				{
 						if (this.ship.group.ships[i] != this.ship)
 						{
@@ -2485,7 +2500,7 @@ AILib.prototype.configurationAcquireHostileCombatTarget = function()
 		}
 		if (this.ship.escortGroup != null)
 		{
-				for (var i = 0 ; i < this.ship.escortGroup.length ; i++)
+				for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
 				{
 						if (this.ship.escortGroup.ships[i] != this.ship)
 						{
@@ -3136,6 +3151,10 @@ AILib.prototype.responsesAddStandard = function(handlers)
 		handlers.helpRequestReceived = function(ally, enemy)
 		{
 				this.ship.addDefenseTarget(enemy);
+				if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+				{
+						this.ship.fireECM();
+				}
 				if (!this.ship.hasHostileTarget)
 				{
 						this.reconsiderNow();

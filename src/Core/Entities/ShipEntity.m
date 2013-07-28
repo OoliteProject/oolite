@@ -8593,6 +8593,39 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (void) checkScannerIgnoringUnpowered
+{
+	Entity* scan;
+	n_scanned_ships = 0;
+	//
+	scan = z_previous;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_previous;	// skip non-ships
+	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
+	{
+		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
+		{
+			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
+			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
+		}
+		scan = scan->z_previous;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_previous;
+	}
+	//
+	scan = z_next;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_next;	// skip non-ships
+	while ((scan)&&(scan->position.z < position.z + scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
+	{
+		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
+		{
+			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
+			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
+		}
+		scan = scan->z_next;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_next;	// skip non-ships
+	}
+	//
+	scanned_ships[n_scanned_ships] = nil;	// terminate array
+}
+
+
 - (ShipEntity**) scannedShips
 {
 	scanned_ships[n_scanned_ships] = nil;	// terminate array
@@ -11006,7 +11039,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[cargo removeObjectAtIndex:0];
 			[self broadcastAIMessage:@"CARGO_DUMPED"]; // goes only to 16 nearby ships in range, but that should be enough.
 			unsigned i;
-			// broadcastAIMessage just ran checkScanner, so don't need to do it again
+			// only send script event to powered entities
+			[self checkScannerIgnoringUnpowered];
 			for (i = 0; i < n_scanned_ships ; i++)
 			{
 				ShipEntity* other = scanned_ships[i];
@@ -11356,7 +11390,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[self setStatus:STATUS_BEING_SCOOPED];
 	[self addTarget:other];
 	[self setOwner:other];
-	[self checkScanner]; // should we make this an all rather than first 16? - CIM
+	// should we make this an all rather than first 16? - CIM
+	// made it ignore other cargopods and similar at least. - CIM 28/7/2013
+	[self checkScannerIgnoringUnpowered]; 
 	unsigned i;
 	ShipEntity *scooper;
 	for (i = 0; i < n_scanned_ships ; i++)
@@ -11516,7 +11552,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// probably already happened, but some may have acquired it
 	// after the scooping started, and they might get stuck in a scooping
 	// attempt as a result
-	[self checkScanner]; // should we make this an all rather than first 16? - CIM
+	[self checkScannerIgnoringUnpowered];
 	unsigned i;
 	ShipEntity *scooper;
 	for (i = 0; i < n_scanned_ships ; i++)

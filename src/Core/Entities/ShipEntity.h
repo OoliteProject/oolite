@@ -904,6 +904,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
  -----------------------------------------*/
 
 - (void) checkScanner;
+- (void) checkScannerIgnoringUnpowered;
 - (ShipEntity**) scannedShips;
 - (int) numberOfScannedShips;
 

@@ -747,7 +747,7 @@
 
 - (void) broadcastDistressMessageWithDumping:(BOOL)dumpCargo
 {
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	DESTROY(_foundTarget);
 	
 	ShipEntity	*aggressor_ship = (ShipEntity*)[self primaryAggressor];
@@ -967,7 +967,7 @@
 	ShipEntity			*ship = nil;
 	
 	//-- Locates the nearest merchantman in range.
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	
 	found_d2 = scannerRange * scannerRange;
 	DESTROY(_foundTarget);
@@ -999,7 +999,7 @@
 	unsigned			n_found, i;
 	
 	//-- Locates one of the merchantman in range.
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	ShipEntity*		ids_found[n_scanned_ships];
 	
 	n_found = 0;
@@ -1207,7 +1207,7 @@
 	ShipEntity			*escort = nil;
 	ShipEntity			*target = nil;
 	
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	for (i = 0; (i < n_scanned_ships)&&(missile == nil); i++)
 	{
 		ShipEntity *thing = scanned_ships[i];
@@ -1859,7 +1859,7 @@
 {
 	//-- Locates the nearest suitable formation leader in range --//
 	DESTROY(_foundTarget);
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	unsigned i;
 	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
