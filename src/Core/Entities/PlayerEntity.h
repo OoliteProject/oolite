@@ -63,7 +63,7 @@ typedef enum
 typedef enum
 {
 	#include "OOGalacticHyperspaceBehaviour.tbl"
-	
+
 	GALACTIC_HYPERSPACE_MAX					= GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES
 } OOGalacticHyperspaceBehaviour;
 
@@ -102,7 +102,7 @@ enum
 	GUI_ROW_OPTIONS_QUIT,
 #endif
 	GUI_ROW_OPTIONS_END_OF_LIST,
-	
+
 	STATUS_EQUIPMENT_FIRST_ROW 			= 10,
 	STATUS_EQUIPMENT_MAX_ROWS 			= 8,
 
@@ -113,11 +113,11 @@ enum
 	GUI_ROW_MARKET_KEY					= 1,
 	GUI_ROW_MARKET_START				= 2,
 	GUI_ROW_MARKET_CASH					= 20,
-	GUI_ROW_INTERFACES_HEADING    = 1,
-	GUI_ROW_INTERFACES_START      = 3,
+	GUI_ROW_INTERFACES_HEADING			= 1,
+	GUI_ROW_INTERFACES_START			= 3,
 	GUI_MAX_ROWS_INTERFACES				= 12,
 	GUI_ROW_INTERFACES_DETAIL			= GUI_ROW_INTERFACES_START + GUI_MAX_ROWS_INTERFACES + 1,
-	GUI_ROW_NO_INTERFACES         = 3
+	GUI_ROW_NO_INTERFACES				= 3
 
 };
 #if GUI_FIRST_ROW() < 0
@@ -155,7 +155,7 @@ enum
 	GUI_ROW_GAMEOPTIONS_STICKMAPPER,
 	GUI_ROW_GAMEOPTIONS_SPACER3,
 	GUI_ROW_GAMEOPTIONS_BACK,
-	
+
 	GUI_ROW_GAMEOPTIONS_END_OF_LIST
 };
 #if GUI_FIRST_ROW() < 0
@@ -261,10 +261,10 @@ typedef enum
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
 	float					occlusion_dial;
-	
+
 	Random_Seed				found_system_seed;
 	int						ship_trade_in_factor;
-	
+
 	NSDictionary			*worldScripts;
 	NSDictionary			*worldScriptsRequiringTickle;
 	NSMutableDictionary		*mission_variables;
@@ -274,82 +274,82 @@ typedef enum
 	BOOL					_missionWithCallback;
 	BOOL					_missionAllowInterrupt;
 	OOGUIScreenID			_missionExitScreen;
-	
+
 	NSString				*specialCargo;
-	
+
 	NSMutableArray			*commLog;
 
 	NSMutableArray			*eqScripts;
-	
+
 	NSDictionary			*_missionOverlayDescriptor;
 	NSDictionary			*_missionBackgroundDescriptor;
 	OOGUIBackgroundSpecial	_missionBackgroundSpecial;
 	NSDictionary			*_equipScreenBackgroundDescriptor;
 	NSString				*_missionScreenID;
-	
+
 	BOOL					found_equipment;
-	
+
 	NSMutableDictionary		*reputation;
-	
+
 	unsigned				max_passengers;
 	NSMutableArray			*passengers;
 	NSMutableDictionary		*passenger_record;
 
 	NSMutableArray			*parcels;
 	NSMutableDictionary		*parcel_record;
-	
+
 	NSMutableArray			*contracts;
 	NSMutableDictionary		*contract_record;
-	
+
 	NSMutableDictionary		*shipyard_record;
-	
+
 	NSMutableDictionary		*missionDestinations;
 
 	double					script_time;
 	double					script_time_check;
 	double					script_time_interval;
 	NSString				*lastTextKey;
-	
+
 	double					ship_clock;
 	double					ship_clock_adjust;
-	
+
 	double					fps_check_time;
 	int						fps_counter;
 	double					last_fps_check_time;
-	
+
 	NSString				*planetSearchString;
-	
+
 	OOMatrix				playerRotMatrix;
-	
+
 	BOOL					showingLongRangeChart;
-	
+
 	// For OO-GUI based save screen
 	NSString				*commanderNameString;
 	NSMutableArray			*cdrDetailArray;
 	int						currentPage;
 	BOOL					pollControls;
-// ...end save screen   
+// ...end save screen
 
 	StationEntity			*dockedStation;
-	
+
 /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
  * stations. Could possibly overload use of 'dockedStation' instead
  * but that needs futher investigation to ensure it doesn't break anything. */
-	StationEntity			*targetDockStation; 
-	
+	StationEntity			*targetDockStation;
+
 	HeadUpDisplay			*hud;
-	
+
 	GLfloat					roll_delta, pitch_delta, yaw_delta;
 	GLfloat					launchRoll;
-	
+
 	GLfloat					forward_shield, aft_shield;
 	OOTimeDelta				forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
 	GLfloat					weapon_energy_use, weapon_reload_time;
-	
+
 	OOWeaponFacing			chosen_weapon_facing;   // for purchasing weapons
-	
+
 	double					ecm_start_time;
-	
+
 	OOGUIScreenID			gui_screen;
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;
@@ -357,35 +357,35 @@ typedef enum
 	OOMissileStatus			missile_status;
 	NSUInteger				activeMissile;
 	NSUInteger				primedEquipment;
-	
+
 	OOCargoQuantity			current_cargo;
-	
+
 	NSPoint					cursor_coordinates;
 	OOTimeDelta				witchspaceCountdown;
-	
+
 	// player commander data
 	NSString				*_commanderName;
 	NSPoint					galaxy_coordinates;
-	
+
 	Random_Seed				galaxy_seed;
-	
-	OOCreditsQuantity		credits;	
+
+	OOCreditsQuantity		credits;
 	OOGalaxyID				galaxy_number;
-	
+
 	NSMutableArray			*shipCommodityData;
-	
+
 	ShipEntity				*missile_entity[PLAYER_MAX_MISSILES];	// holds the actual missile entities or equivalents
 	OOUniversalID			_dockTarget;	// used by the escape pod code
-	
+
 	int						legalStatus;	// legalStatus both is and isn't an OOCreditsQuantity, because of quantum.
 	int						market_rnd;
 	unsigned				ship_kills;
-	
+
 	OOCompassMode			compassMode;
 	OOWeakReference		*compassTarget;
-	
+
 	GLfloat					fuel_leak_rate;
-	
+
 	// keys!
 	NSDictionary   *keyconfig_settings;
 
@@ -395,164 +395,179 @@ typedef enum
 	OOKeyCode				key_pitch_back;
 	OOKeyCode				key_yaw_left;
 	OOKeyCode				key_yaw_right;
-	
+
+	OOKeyCode				key_view_forward; 		// && undock
+	OOKeyCode				key_view_aft;			// && options menu
+	OOKeyCode				key_view_port;			// && equipment screen
+	OOKeyCode				key_view_starboard;		// && interfaces screen
+
+	OOKeyCode				key_gui_screen_status;
+	OOKeyCode				key_gui_chart_screens;
+	OOKeyCode				key_gui_system_data;
+	OOKeyCode				key_gui_market;
+
+	OOKeyCode				key_gui_arrow_left;
+	OOKeyCode				key_gui_arrow_right;
+	OOKeyCode				key_gui_arrow_up;
+	OOKeyCode				key_gui_arrow_down;
+
 	OOKeyCode				key_increase_speed;
 	OOKeyCode				key_decrease_speed;
 	OOKeyCode				key_inject_fuel;
-	
+
 	OOKeyCode				key_fire_lasers;
 	OOKeyCode				key_launch_missile;
 	OOKeyCode				key_next_missile;
 	OOKeyCode				key_ecm;
-	
+
 	OOKeyCode				key_prime_equipment;
 	OOKeyCode				key_activate_equipment;
 #if FEATURE_REQUEST_5496
 	OOKeyCode				key_mode_equipment;
 #endif
-	
+
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;
 	OOKeyCode				key_target_incoming_missile;
 	OOKeyCode				key_ident_system;
-	
+
 	OOKeyCode				key_scanner_zoom;
 	OOKeyCode				key_scanner_unzoom;
-	
+
 	OOKeyCode				key_launch_escapepod;
 	OOKeyCode				key_energy_bomb;
-	
+
 	OOKeyCode				key_galactic_hyperspace;
 	OOKeyCode				key_hyperspace;
 	OOKeyCode				key_jumpdrive;
-	
+
 	OOKeyCode				key_dump_cargo;
 	OOKeyCode				key_rotate_cargo;
-	
+
 	OOKeyCode				key_autopilot;
 	OOKeyCode				key_autodock;
-	
+
 	OOKeyCode				key_snapshot;
 	OOKeyCode				key_docking_music;
-	
+
 	OOKeyCode				key_advanced_nav_array;
 	OOKeyCode				key_map_home;
 	OOKeyCode				key_map_info;
-	
+
 	OOKeyCode				key_pausebutton;
 	OOKeyCode				key_show_fps;
 	OOKeyCode				key_mouse_control;
 	OOKeyCode				key_hud_toggle;
-	
+
 	OOKeyCode				key_comms_log;
 	OOKeyCode				key_prev_compass_mode;
 	OOKeyCode				key_next_compass_mode;
-	
+
 	OOKeyCode				key_cloaking_device;
-	
+
 	OOKeyCode				key_contract_info;
-	
+
 	OOKeyCode				key_next_target;
 	OOKeyCode				key_previous_target;
-	
+
 	OOKeyCode				key_custom_view;
-	
+
 	OOKeyCode				key_docking_clearance_request;
-	
+
 #ifndef NDEBUG
 	OOKeyCode				key_dump_target_state;
 #endif
 
 	OOKeyCode				key_weapons_online_toggle;
-	
+
 	// save-file
 	NSString				*save_path;
-	
+
 	// position of viewports
 	Vector					forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
 	Vector					_sysInfoLight;
-	
+
 	// trumbles
 	NSUInteger				trumbleCount;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
-	
+
 	// smart zoom
 	GLfloat					scanner_zoom_rate;
-	
+
 	// target memory
 	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
 	int						target_memory_index;
-	
+
 	// custom view points
 	Quaternion				customViewQuaternion;
 	OOMatrix				customViewMatrix;
 	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
 	NSString				*customViewDescription;
-	
-	
+
+
 	// docking reports
 	NSMutableString			*dockingReport;
-	
+
 	// Woo, flags.
 	unsigned				suppressTargetLost: 1,		// smart target lst reports
 							scoopsActive: 1,			// smart fuelscoops
-	
+
 							scoopOverride: 1,			//scripted to just be on, ignoring normal rules
 							game_over: 1,
 							finished: 1,
 							bomb_detonated: 1,
 							autopilot_engaged: 1,
-	
+
 							afterburner_engaged: 1,
 							afterburnerSoundLooping: 1,
-	
+
 							hyperspeed_engaged: 1,
 							travelling_at_hyperspeed: 1,
 							hyperspeed_locked: 1,
-	
+
 							ident_engaged: 1,
-	
+
 							galactic_witchjump: 1,
-	
+
 							ecm_in_operation: 1,
-	
+
 							show_info_flag: 1,
-	
+
 							showDemoShips: 1,
-	
+
 							rolling, pitching, yawing: 1,
 							using_mining_laser: 1,
-	
+
 							mouse_control_on: 1,
-	
+
 							isSpeechOn: 1,
-	
+
 							keyboardRollOverride: 1,   // Handle keyboard roll...
-							keyboardPitchOverride: 1,  // ...and pitch override separately - (fix for BUG #17490)  
+							keyboardPitchOverride: 1,  // ...and pitch override separately - (fix for BUG #17490)
 							keyboardYawOverride: 1,
 							waitingForStickCallback: 1,
-							
+
 							weapons_online: 1,
-							
+
 							launchingMissile: 1,
 							replacingMissile: 1;
 #if OOLITE_ESPEAK
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
 #endif
-  
+
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
-	NSArray					*stickFunctions; 
-	
+	NSArray					*stickFunctions;
+
 	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
-	
+
 	NSArray					*_customViews;
 	NSUInteger				_customViewIndex;
-	
+
 	OODockingClearanceStatus dockingClearanceStatus;
-	
+
 	NSMutableArray			*scannedWormholes;
 	WormholeEntity			*wormhole;
 
@@ -788,7 +803,7 @@ typedef enum
 - (BOOL) isSpeechOn;
 
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
- 
+
 - (void) getFined;
 - (void) adjustTradeInFactorBy:(int)value;
 - (int) tradeInFactor;

@@ -6,6 +6,21 @@
 	key_yaw_left				= ",";
 	key_yaw_right				= ".";
 
+	key_view_forward			= "1";
+	key_view_aft				= "2";
+	key_view_port				= "3";
+	key_view_starboard			= "4";
+
+	key_gui_screen_status		= "5";
+	key_gui_chart_screens		= "6";
+	key_gui_system_data			= "7";
+	key_gui_market				= "8";
+
+	key_gui_arrow_left			= 253;
+	key_gui_arrow_right			= 252;
+	key_gui_arrow_up			= 255;
+	key_gui_arrow_down			= 254;
+
 	key_increase_speed			= "w";
 	key_decrease_speed			= "s";
 	key_inject_fuel				= "i";
