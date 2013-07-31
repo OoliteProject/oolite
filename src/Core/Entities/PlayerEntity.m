@@ -8679,8 +8679,14 @@ static NSString *last_outfitting_key=nil;
 {
 	// 5% of value of ships wear + correction for missing subentities.
 	OOCreditsQuantity shipValue = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
+
+	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
+	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
+	double			renovationFactor = [shipyardInfo oo_doubleForKey:KEY_RENOVATION_MULTIPLIER defaultValue:1.0];
+
 	double costs = 0.005 * (100 - ship_trade_in_factor) * shipValue;
 	costs += 0.01 * shipValue * [self missingSubEntitiesAdjustment];
+	costs *= renovationFactor;
 	return cunningFee(costs, 0.05);
 }
 

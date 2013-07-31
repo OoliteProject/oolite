@@ -118,6 +118,7 @@ enum
 #define KEY_EQUIPMENT_STARBOARD_WEAPON		@"starboard_weapon_type"
 #define KEY_EQUIPMENT_EXTRAS				@"extras"
 #define KEY_WEAPON_FACINGS					@"weapon_facings"
+#define KEY_RENOVATION_MULTIPLIER					@"renovation_multiplier"
 
 #define SHIPYARD_KEY_ID						@"id"
 #define SHIPYARD_KEY_SHIPDATA_KEY			@"shipdata_key"
