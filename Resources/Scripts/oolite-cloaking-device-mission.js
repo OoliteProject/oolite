@@ -40,7 +40,16 @@ this.description	= "Cloaking device mission in galaxy 5.";
 this.version		= "1.77.1";
 
 
-this.shipWillExitWitchspace = function ()
+this.startUp = function ()
+{
+	if (missionVariables.cloak !== null)
+	{	
+		// save time by deleting unused handlers
+		delete this.systemWillPopulate;
+	}
+}
+
+this.systemWillPopulate = function ()
 {
 	// If we're in galaxy 5...
 	if (galaxyNumber === 4)
@@ -62,9 +71,17 @@ this.shipWillExitWitchspace = function ()
 			if (missionVariables.cloakcounter > 6 && system.countShipsWithRole("asp-cloaked") === 0)
 			{
 				// Then trigger the ambush!
-				system.addShips("asp-cloaked", 1);
-				system.addShips("asp-pirate", 2);
-			}
+				system.setPopulator("oolite-cloaking-device-mission",
+				{
+					priority: 50,
+					location: "WITCHPOINT",
+					callback: function(pos)
+					{
+						system.addShips("asp-cloaked", 1, pos, 0);
+						system.addShips("asp-pirate", 2, pos, 2E3);
+					}
+				});
+			}								 
 		}
 	}
 };

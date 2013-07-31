@@ -48,7 +48,7 @@ this.systemWillPopulate = function()
 		// in this order.
 		system.setPopulator("oolite-nav-buoy",
 												{
-														priority: 1,
+														priority: 5,
 														location: "COORDINATES",
 														coordinates: system.mainStation.position.add(system.mainStation.vectorForward.multiply(10E3)),
 														callback: function(pos) {
@@ -61,7 +61,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-witch-buoy",
 												{
-														priority: 2,
+														priority: 10,
 														location: "COORDINATES",
 														coordinates: [0,0,0],
 														callback: function(pos) {
@@ -149,7 +149,7 @@ this.systemWillPopulate = function()
 		/* Add traders */
 		system.setPopulator("oolite-route1-traders",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: traders,
 														callback: function(pos) {
@@ -160,7 +160,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route2-traders",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_PS",
 														groupCount: pstraders,
 														callback: function(pos) {
@@ -187,7 +187,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route1-pirates",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: pirates,
 														callback: this._addPirates
@@ -195,7 +195,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route2-pirates",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_PS",
 														groupCount: pspirates,
 														callback: this._addPirates
@@ -226,7 +226,7 @@ this.systemWillPopulate = function()
 		}
 		system.setPopulator("oolite-route1-hunters",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: hunters,
 														callback: addHunter
@@ -234,7 +234,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route2-hunters",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_PS",
 														groupCount: hunters,
 														callback: function(pos) {
@@ -247,7 +247,7 @@ this.systemWillPopulate = function()
 		/* Add thargoids */
 		system.setPopulator("oolite-route1-thargoids",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: thargoids,
 														callback: function(pos) {
@@ -274,7 +274,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route1-asteroids",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														locationSeed: 51728,
 														groupCount: clusters,
@@ -283,7 +283,7 @@ this.systemWillPopulate = function()
 												});
 		system.setPopulator("oolite-route2-asteroids",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_PS",
 														locationSeed: 82715,
 														groupCount: psclusters,
@@ -414,9 +414,10 @@ this.systemWillRepopulate = function()
 		}
 
 		// Thargoid invasions
-		if (Math.random() < 0.01)
+		// TODO: Need to think more about how new thargoids get added in.
+		if (Math.random() < 0.001)
 		{
-				system.addShips("thargoid",1,[0,0,0],7500);
+				system.addShips("thargoid",1,system.planet.position.multiply(0.5),7500);
 		}
 
 }
