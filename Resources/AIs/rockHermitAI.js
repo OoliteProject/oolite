@@ -32,6 +32,8 @@ this.version = "1.79";
 this.aiStarted = function() {
 		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
+	ai.setCommunicationsRole("station");
+
 		ai.setPriorities([
 				/* Fight */
 				{

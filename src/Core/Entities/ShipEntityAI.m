@@ -773,9 +773,12 @@
 			[self performFlee];
 		}
 		
-		// tell it!
-		if (ship->isPlayer)
+		// tell it! (only plist AIs send comms here; JS AIs are
+		// expected to handle their own)
+		if (ship->isPlayer && ![[[self getAI] name] isEqualToString:@"nullAI.plist"])
 		{
+			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
+
 			if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
 			{
 				[self sendExpandedMessage:@"[beg-for-mercy]" toShip:ship];

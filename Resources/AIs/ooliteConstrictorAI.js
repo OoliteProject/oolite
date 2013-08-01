@@ -30,40 +30,42 @@ this.name = "Oolite Constrictor AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-		ai.setPriorities([
-				/* Fight */
+	ai.setCommunicationsRole("pirate");
+
+	ai.setPriorities([
+		/* Fight */
+		{
+			preconfiguration: function() 
+			{
+				if (this.ship.script._checkDistance)
 				{
-						preconfiguration: function() 
-						{
-								if (this.ship.script._checkDistance)
-								{
-										this.ship.script._checkDistance();
-								}
-						},
-						condition: ai.conditionLosingCombat,
-						behaviour: ai.behaviourFleeCombat,
-						reconsider: 5
-				},
-				{
-						condition: ai.conditionInCombat,
-						configuration: ai.configurationAcquireCombatTarget,
-						behaviour: ai.behaviourDestroyCurrentTarget,
-						reconsider: 5
-				},
-				/* Stop following me! */
-				{
-						condition: ai.conditionPlayerNearby,
-						configuration: ai.configurationAcquirePlayerAsTarget,
-						behaviour: ai.behaviourDestroyCurrentTarget,
-						reconsider: 5
-				},
-				/* Return to witchpoint */
-				{
-						configuration: ai.configurationSetDestinationToWitchpoint,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 5
+					this.ship.script._checkDistance();
 				}
-		]);
+			},
+			condition: ai.conditionLosingCombat,
+			behaviour: ai.behaviourFleeCombat,
+			reconsider: 5
+		},
+		{
+			condition: ai.conditionInCombat,
+			configuration: ai.configurationAcquireCombatTarget,
+			behaviour: ai.behaviourDestroyCurrentTarget,
+			reconsider: 5
+		},
+		/* Stop following me! */
+		{
+			condition: ai.conditionPlayerNearby,
+			configuration: ai.configurationAcquirePlayerAsTarget,
+			behaviour: ai.behaviourDestroyCurrentTarget,
+			reconsider: 5
+		},
+		/* Return to witchpoint */
+		{
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 5
+		}
+	]);
 }

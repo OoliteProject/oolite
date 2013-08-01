@@ -592,6 +592,16 @@
 		"Leave %H now or be destroyed.",
 		"%H Police. Offending ship targeted. Moving to intercept."
 	);
+
+	// comms message templates for priority AI
+	"oolite-comms-makePirateDemand" = "Your cargo or your life, [oolite_entityName]. [oolite_demandSize] barrels and we'll let you go."; // TODO: variety
+	"oolite-comms-acceptPirateDemand" = "[beg-for-mercy]";
+	"oolite-comms-makeDistressCall" = "[distress-call]";
+	"oolite-comms-markForFines" = "[police-warning]";
+	"oolite-comms-distressResponseAggressor" = "[police-attack-warning]";
+	"oolite-comms-offenceDetected" = "[police-attack-warning]";
+
+
 	// /general docking
 	"docking-welcome" =
 	(

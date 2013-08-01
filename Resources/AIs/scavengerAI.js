@@ -30,63 +30,64 @@ this.name = "Oolite Scavenger AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
+	ai.setCommunicationsRole("scavenger");
 
-		ai.setPriorities([
-				/* Fight */
-				{
-						condition: ai.conditionInCombat,
-						behaviour: ai.behaviourFleeCombat,
-						reconsider: 5
-				},
-				/* Is there any loot? */
-				{
-						preconfiguration: ai.configurationCheckScanner,
-						condition: ai.conditionScannerContainsSalvageForMe,
-						configuration: ai.configurationAcquireScannedTarget,
-						behaviour: ai.behaviourCollectSalvage,
-						reconsider: 20
-				},
-				/* Branch for mining ships: if we can usefully mine asteroids, do so */
-				{
-						condition: ai.conditionScannerContainsMiningOpportunity,
-						configuration: ai.configurationAcquireScannedTarget,
-						behaviour: ai.behaviourMineTarget,
-						reconsider: 20
-				},
-				/* No loot and no safe way to make some; return to base */
-				{
-						condition: ai.conditionHomeStationNearby,
-						configuration: ai.configurationSetHomeStationForDocking,
-						behaviour: ai.behaviourDockWithStation,
-						reconsider: 30
-				},
-				{
-						condition: ai.conditionHomeStationExists,
-						configuration: ai.configurationSetDestinationToHomeStation,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				},
-				/* Or at least return to somewhere */
-				{
-						condition: ai.conditionFriendlyStationNearby,
-						configuration: ai.configurationSetNearbyFriendlyStationForDocking,
-						behaviour: ai.behaviourDockWithStation,
-						reconsider: 30
-				},
-				{
-						condition: ai.conditionFriendlyStationExists,
-						configuration: ai.configurationSetDestinationToNearestFriendlyStation,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				},
-				{
-						// stuck and no friendly stations
-						configuration: ai.configurationSetDestinationToWitchpoint,
-						// TODO: behaviour search for wormholes
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				}
-		]);
+	ai.setPriorities([
+		/* Fight */
+		{
+			condition: ai.conditionInCombat,
+			behaviour: ai.behaviourFleeCombat,
+			reconsider: 5
+		},
+		/* Is there any loot? */
+		{
+			preconfiguration: ai.configurationCheckScanner,
+			condition: ai.conditionScannerContainsSalvageForMe,
+			configuration: ai.configurationAcquireScannedTarget,
+			behaviour: ai.behaviourCollectSalvage,
+			reconsider: 20
+		},
+		/* Branch for mining ships: if we can usefully mine asteroids, do so */
+		{
+			condition: ai.conditionScannerContainsMiningOpportunity,
+			configuration: ai.configurationAcquireScannedTarget,
+			behaviour: ai.behaviourMineTarget,
+			reconsider: 20
+		},
+		/* No loot and no safe way to make some; return to base */
+		{
+			condition: ai.conditionHomeStationNearby,
+			configuration: ai.configurationSetHomeStationForDocking,
+			behaviour: ai.behaviourDockWithStation,
+			reconsider: 30
+		},
+		{
+			condition: ai.conditionHomeStationExists,
+			configuration: ai.configurationSetDestinationToHomeStation,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		},
+		/* Or at least return to somewhere */
+		{
+			condition: ai.conditionFriendlyStationNearby,
+			configuration: ai.configurationSetNearbyFriendlyStationForDocking,
+			behaviour: ai.behaviourDockWithStation,
+			reconsider: 30
+		},
+		{
+			condition: ai.conditionFriendlyStationExists,
+			configuration: ai.configurationSetDestinationToNearestFriendlyStation,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		},
+		{
+			// stuck and no friendly stations
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			// TODO: behaviour search for wormholes
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		}
+	]);
 }

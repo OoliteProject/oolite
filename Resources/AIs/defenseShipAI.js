@@ -30,60 +30,62 @@ this.name = "Oolite Defense Ship AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+
+	ai.setCommunicationsRole("defenseShip");
 
 
-		ai.setPriorities([
-				/* Fight */
-				{
-						condition: ai.conditionLosingCombat,
-						behaviour: ai.behaviourFleeCombat,
-						reconsider: 5
-				},
-				{
-						condition: ai.conditionInCombat,
-						configuration: ai.configurationAcquireCombatTarget,
-						behaviour: ai.behaviourRepelCurrentTarget,
-						reconsider: 5
-				},
-				{
-						condition: ai.conditionMothershipIsAttackingHostileTarget,
-						configuration: ai.configurationAcquireCombatTarget,
-						behaviour: ai.behaviourRepelCurrentTarget,
-						reconsider: 5
-				},
-				/* Battle is over; return to base */
-				{
-						condition: ai.conditionHomeStationNearby,
-						configuration: ai.configurationSetHomeStationForDocking,
-						behaviour: ai.behaviourDockWithStation,
-						reconsider: 30
-				},
-				{
-						condition: ai.conditionHomeStationExists,
-						configuration: ai.configurationSetDestinationToHomeStation,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				},
-				/* Or at least return to somewhere */
-				{
-						condition: ai.conditionFriendlyStationNearby,
-						configuration: ai.configurationSetNearbyFriendlyStationForDocking,
-						behaviour: ai.behaviourDockWithStation,
-						reconsider: 30
-				},
-				{
-						condition: ai.conditionFriendlyStationExists,
-						configuration: ai.configurationSetDestinationToNearestFriendlyStation,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				},
-				{
-						// stuck and no friendly stations
-						configuration: ai.configurationSetDestinationToWitchpoint,
-						// TODO: behaviour search for wormholes
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				}
-		]);
+	ai.setPriorities([
+		/* Fight */
+		{
+			condition: ai.conditionLosingCombat,
+			behaviour: ai.behaviourFleeCombat,
+			reconsider: 5
+		},
+		{
+			condition: ai.conditionInCombat,
+			configuration: ai.configurationAcquireCombatTarget,
+			behaviour: ai.behaviourRepelCurrentTarget,
+			reconsider: 5
+		},
+		{
+			condition: ai.conditionMothershipIsAttackingHostileTarget,
+			configuration: ai.configurationAcquireCombatTarget,
+			behaviour: ai.behaviourRepelCurrentTarget,
+			reconsider: 5
+		},
+		/* Battle is over; return to base */
+		{
+			condition: ai.conditionHomeStationNearby,
+			configuration: ai.configurationSetHomeStationForDocking,
+			behaviour: ai.behaviourDockWithStation,
+			reconsider: 30
+		},
+		{
+			condition: ai.conditionHomeStationExists,
+			configuration: ai.configurationSetDestinationToHomeStation,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		},
+		/* Or at least return to somewhere */
+		{
+			condition: ai.conditionFriendlyStationNearby,
+			configuration: ai.configurationSetNearbyFriendlyStationForDocking,
+			behaviour: ai.behaviourDockWithStation,
+			reconsider: 30
+		},
+		{
+			condition: ai.conditionFriendlyStationExists,
+			configuration: ai.configurationSetDestinationToNearestFriendlyStation,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		},
+		{
+			// stuck and no friendly stations
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			// TODO: behaviour search for wormholes
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		}
+	]);
 }

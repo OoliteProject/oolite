@@ -30,44 +30,44 @@ this.name = "Oolite Main Station AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-		ai.setParameter("oolite_flag_listenForDistressCall",true);
-		ai.setParameter("oolite_flag_markOffenders",true);
-		ai.setParameter("oolite_stationPatrolRole","police-station-patrol");
+	ai.setParameter("oolite_flag_listenForDistressCall",true);
+	ai.setParameter("oolite_flag_markOffenders",true);
+	ai.setParameter("oolite_stationPatrolRole","police-station-patrol");
 
-		ai.setCommunication("oolite_distressResponseAggressor","This is protected space, [p1]. Acts of aggression will not be tolerated!");
+	ai.setCommunicationsRole("station");
 
-		ai.setPriorities([
-				/* Fight */
-				{
-						preconfiguration: ai.configurationStationValidateTarget,
-						condition: ai.conditionInCombat,
-						behaviour: ai.behaviourStationLaunchDefenseShips,
-						reconsider: 5
-				},
-				/* Respond to distress calls */
-				{
-						condition: ai.conditionHasReceivedDistressCall,
-						behaviour: ai.behaviourStationRespondToDistressCall,
-						reconsider: 20
-				},
-				/* Scan */
-				{
-						preconfiguration: ai.configurationCheckScanner,
-						condition: ai.conditionScannerContainsSalvage,
-						behaviour: ai.behaviourStationLaunchSalvager,
-						reconsider: 60 // long delay to avoid launching too many at once
-				},
-				{
-						notcondition: ai.conditionScannerContainsPatrol,
-						behaviour: ai.behaviourStationLaunchPatrol,
-						reconsider: 60
-				},
-				{
-						configuration: ai.configurationStationReduceAlertLevel,
-						behaviour: ai.behaviourStationManageTraffic,
-						reconsider: 60
-				}
-		]);
+	ai.setPriorities([
+		/* Fight */
+		{
+			preconfiguration: ai.configurationStationValidateTarget,
+			condition: ai.conditionInCombat,
+			behaviour: ai.behaviourStationLaunchDefenseShips,
+			reconsider: 5
+		},
+		/* Respond to distress calls */
+		{
+			condition: ai.conditionHasReceivedDistressCall,
+			behaviour: ai.behaviourStationRespondToDistressCall,
+			reconsider: 20
+		},
+		/* Scan */
+		{
+			preconfiguration: ai.configurationCheckScanner,
+			condition: ai.conditionScannerContainsSalvage,
+			behaviour: ai.behaviourStationLaunchSalvager,
+			reconsider: 60 // long delay to avoid launching too many at once
+		},
+		{
+			notcondition: ai.conditionScannerContainsPatrol,
+			behaviour: ai.behaviourStationLaunchPatrol,
+			reconsider: 60
+		},
+		{
+			configuration: ai.configurationStationReduceAlertLevel,
+			behaviour: ai.behaviourStationManageTraffic,
+			reconsider: 60
+		}
+	]);
 }

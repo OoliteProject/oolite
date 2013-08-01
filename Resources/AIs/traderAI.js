@@ -30,127 +30,122 @@ this.name = "Oolite Trader AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-		ai.setParameter("oolite_flag_sendsDistressCalls",true);
+	ai.setParameter("oolite_flag_sendsDistressCalls",true);
 
-		/* Communications currently for debugging purposes. Need to either
-		 * be removed or given a much bigger set of phrases to choose from
-		 * before 1.79 */
-		ai.setCommunication("oolite_selectedStation","Heading for [p1]");
-		ai.setCommunication("oolite_selectedWitchspaceDestination","Prepare for witchspace jump to [p1]");
-		ai.setCommunication("oolite_agreeingToDumpCargo","Take our cargo but please let us go!");
+	ai.setCommunicationsRole("trader");
 
 
-		ai.setPriorities([
+	ai.setPriorities([
+		{
+			condition: ai.conditionLosingCombat,
+			truebranch: [
 				{
-						condition: ai.conditionLosingCombat,
-						truebranch: [
-								{
-										condition: ai.conditionPiratesCanBePaidOff,
-										behaviour: ai.behaviourPayOffPirates,
-										reconsider: 5
-								},
-								{
-										behaviour: ai.behaviourFleeCombat,
-										reconsider: 5
-								}
-						]
-				},
-				{ 
-						condition: ai.conditionInCombat,
-						configuration: ai.configurationAcquireCombatTarget,
-						// not required to destroy target, just to get it to leave
-						behaviour: ai.behaviourRepelCurrentTarget,
-						reconsider: 5
+					condition: ai.conditionPiratesCanBePaidOff,
+					behaviour: ai.behaviourPayOffPirates,
+					reconsider: 5
 				},
 				{
-						condition: ai.conditionCargoIsProfitableHere,
-						// branch to head for station
-						truebranch: [
-								{
-										condition: ai.conditionHasSelectedStation,
-										truebranch: [
-												{
-														condition: ai.conditionSelectedStationNearby,
-														configuration: ai.configurationSetSelectedStationForDocking,
-														behaviour: ai.behaviourDockWithStation,
-														reconsider: 30
-												},
-												{
-														condition: ai.conditionSelectedStationNearMainPlanet,
-														truebranch: [
-																{
-																		notcondition: ai.conditionMainPlanetNearby,
-																		configuration: ai.configurationSetDestinationToMainPlanet,
-																		behaviour: ai.behaviourApproachDestination,
-																		reconsider: 30
-																}
-														]
-												},
-												// either the station isn't near the planet, or we are
-												{
-														configuration: ai.configurationSetDestinationToSelectedStation,
-														behaviour: ai.behaviourApproachDestination,
-														reconsider: 30
-												}
-										],
-										falsebranch: [
-												{
-														configuration: ai.configurationSelectRandomTradeStation,
-														behaviour: ai.behaviourReconsider
-												}
-										]
-								}
-						],
-						// jump to another system if possible, sunskim if not
-						falsebranch: [
-								{
-										condition: ai.conditionCanWitchspaceOut,
-										configuration: ai.configurationSelectWitchspaceDestination,
-										behaviour: ai.behaviourEnterWitchspace,
-										reconsider: 20
-								},
-								{
-										condition: ai.conditionReadyToSunskim,
-										configuration: ai.configurationSetDestinationToSunskimEnd,
-										behaviour: ai.behaviourSunskim,
-										reconsider: 20
-								},
-								{
-										condition: ai.conditionSunskimPossible,
-										configuration: ai.configurationSetDestinationToSunskimStart,
-										behaviour: ai.behaviourApproachDestination,
-										reconsider: 30
-								}
-						]
-				}, // end of cargoprofitable true/false branches
-				{
-						// if we're here, the cargo isn't profitable, and we can't
-						// witchspace out or sunskim
-						condition: ai.conditionInInterstellarSpace,
-						configuration: ai.configurationSetDestinationToWitchpoint,
-						// TODO: behaviour search for wormholes
-						behaviour: ai.behaviourApproachDestination
-				},
-				{
-						condition: ai.conditionFriendlyStationNearby,
-						configuration: ai.configurationSetNearbyFriendlyStationForDocking,
-						behaviour: ai.behaviourDockWithStation,
-						reconsider: 30
-				},
-				{
-						condition: ai.conditionFriendlyStationExists,
-						configuration: ai.configurationSetDestinationToNearestFriendlyStation,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				},
-				{
-						// stuck and no friendly stations
-						configuration: ai.configurationSetDestinationToWitchpoint,
-						// TODO: behaviour search for wormholes
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
+					behaviour: ai.behaviourFleeCombat,
+					reconsider: 5
 				}
-		]);
+			]
+		},
+		{ 
+			condition: ai.conditionInCombat,
+			configuration: ai.configurationAcquireCombatTarget,
+			// not required to destroy target, just to get it to leave
+			behaviour: ai.behaviourRepelCurrentTarget,
+			reconsider: 5
+		},
+		{
+			condition: ai.conditionCargoIsProfitableHere,
+			// branch to head for station
+			truebranch: [
+				{
+					condition: ai.conditionHasSelectedStation,
+					truebranch: [
+						{
+							condition: ai.conditionSelectedStationNearby,
+							configuration: ai.configurationSetSelectedStationForDocking,
+							behaviour: ai.behaviourDockWithStation,
+							reconsider: 30
+						},
+						{
+							condition: ai.conditionSelectedStationNearMainPlanet,
+							truebranch: [
+								{
+									notcondition: ai.conditionMainPlanetNearby,
+									configuration: ai.configurationSetDestinationToMainPlanet,
+									behaviour: ai.behaviourApproachDestination,
+									reconsider: 30
+								}
+							]
+						},
+						// either the station isn't near the planet, or we are
+						{
+							configuration: ai.configurationSetDestinationToSelectedStation,
+							behaviour: ai.behaviourApproachDestination,
+							reconsider: 30
+						}
+					],
+					falsebranch: [
+						{
+							configuration: ai.configurationSelectRandomTradeStation,
+							behaviour: ai.behaviourReconsider
+						}
+					]
+				}
+			],
+			// jump to another system if possible, sunskim if not
+			falsebranch: [
+				{
+					condition: ai.conditionCanWitchspaceOut,
+					configuration: ai.configurationSelectWitchspaceDestination,
+					behaviour: ai.behaviourEnterWitchspace,
+					reconsider: 20
+				},
+				{
+					condition: ai.conditionReadyToSunskim,
+					configuration: ai.configurationSetDestinationToSunskimEnd,
+					behaviour: ai.behaviourSunskim,
+					reconsider: 20
+				},
+				{
+					condition: ai.conditionSunskimPossible,
+					configuration: ai.configurationSetDestinationToSunskimStart,
+					behaviour: ai.behaviourApproachDestination,
+					reconsider: 30
+				}
+			]
+		}, // end of cargoprofitable true/false branches
+		{
+			// if we're here, the cargo isn't profitable, and we can't
+			// witchspace out or sunskim
+			condition: ai.conditionInInterstellarSpace,
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			// TODO: behaviour search for wormholes
+			behaviour: ai.behaviourApproachDestination
+		},
+		{
+			condition: ai.conditionFriendlyStationNearby,
+			configuration: ai.configurationSetNearbyFriendlyStationForDocking,
+			behaviour: ai.behaviourDockWithStation,
+			reconsider: 30
+		},
+		{
+			condition: ai.conditionFriendlyStationExists,
+			configuration: ai.configurationSetDestinationToNearestFriendlyStation,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		},
+		{
+			// stuck and no friendly stations
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			// TODO: behaviour search for wormholes
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		}
+	]);
 }

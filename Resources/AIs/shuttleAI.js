@@ -30,59 +30,59 @@ this.name = "Oolite Shuttle AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-		ai.setParameter("oolite_flag_sendsDistressCalls",true);
-		ai.setParameter("oolite_flag_allowPlanetaryLanding",true);
+	ai.setParameter("oolite_flag_sendsDistressCalls",true);
+	ai.setParameter("oolite_flag_allowPlanetaryLanding",true);
 
-		ai.setCommunication("oolite_landingOnPlanet","Commencing final approach to %N spaceport");
+	ai.setCommunicationsRole("shuttle");
 
-		ai.setPriorities([
+	ai.setPriorities([
+		{
+			condition: ai.conditionInCombat,
+			behaviour: ai.behaviourFleeCombat
+		},
+		{
+			condition: ai.conditionHasSelectedStation,
+			truebranch: [
 				{
-						condition: ai.conditionInCombat,
-						behaviour: ai.behaviourFleeCombat
+					condition: ai.conditionSelectedStationNearby,
+					configuration: ai.configurationSetSelectedStationForDocking,
+					behaviour: ai.behaviourDockWithStation,
+					reconsider: 30
 				},
 				{
-						condition: ai.conditionHasSelectedStation,
-						truebranch: [
-								{
-										condition: ai.conditionSelectedStationNearby,
-										configuration: ai.configurationSetSelectedStationForDocking,
-										behaviour: ai.behaviourDockWithStation,
-										reconsider: 30
-								},
-								{
-										configuration: ai.configurationSetDestinationToSelectedStation,
-										behaviour: ai.behaviourApproachDestination,
-										reconsider: 30
-								}
-						]
-				},
-				{
-						condition: ai.conditionHasSelectedPlanet,
-						truebranch: [
-								{
-										preconfiguration: ai.configurationSetDestinationToSelectedPlanet,
-										condition: ai.conditionNearDestination,
-										behaviour: ai.behaviourLandOnPlanet
-								},
-								{
-										behaviour: ai.behaviourApproachDestination,
-										reconsider: 30
-								}
-						]
-				},
-				/* TODO: need to try to hitchhike out! */
-				{
-						condition: ai.conditionInInterstellarSpace,
-						configuration: ai.configurationSetDestinationToWitchpoint,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				},
-				{
-						configuration: ai.configurationSelectShuttleDestination,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 1
+					configuration: ai.configurationSetDestinationToSelectedStation,
+					behaviour: ai.behaviourApproachDestination,
+					reconsider: 30
 				}
-		]);
+			]
+		},
+		{
+			condition: ai.conditionHasSelectedPlanet,
+			truebranch: [
+				{
+					preconfiguration: ai.configurationSetDestinationToSelectedPlanet,
+					condition: ai.conditionNearDestination,
+					behaviour: ai.behaviourLandOnPlanet
+				},
+				{
+					behaviour: ai.behaviourApproachDestination,
+					reconsider: 30
+				}
+			]
+		},
+		/* TODO: need to try to hitchhike out! */
+		{
+			condition: ai.conditionInInterstellarSpace,
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		},
+		{
+			configuration: ai.configurationSelectShuttleDestination,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 1
+		}
+	]);
 }
