@@ -1209,7 +1209,7 @@ static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, settings");
 		return NO;
 	}
-	if (argc < 2)
+	if (argc < 2 || JSVAL_IS_NULL(OOJS_ARGV[1]))
 	{
 		// clearing
 		[UNIVERSE setPopulatorSetting:key to:nil];
