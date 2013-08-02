@@ -45,6 +45,7 @@ this.aiStarted = function() {
 			reconsider: 5
 		},
 		{
+			label: "Cargo demands met?",
 			condition: ai.conditionCargoDemandsMet,
 			/* Let them go if they've dropped enough cargo and stop firing back */
 			truebranch: [
@@ -100,6 +101,7 @@ this.aiStarted = function() {
 			reconsider: 15
 		},
 		{
+			label: "Enough loot?",
 			condition: ai.conditionGroupHasEnoughLoot,
 			/* Find a station to dock at */
 			truebranch: [
@@ -146,6 +148,7 @@ this.aiStarted = function() {
 							configuration: ai.configurationAcquireScannedTarget,
 							truebranch: [
 								{
+									label: "Check odds",
 									condition: ai.conditionCombatOddsGood,
 									behaviour: ai.behaviourRobTarget,
 									reconsider: 5
@@ -154,6 +157,7 @@ this.aiStarted = function() {
 						},
 						{
 							/* move to a position on one of the space lanes, preferring lane 1 */
+							label: "Lurk",
 							configuration: ai.configurationSetDestinationToPirateLurk,
 							behaviour: ai.behaviourApproachDestination,
 							reconsider: 30

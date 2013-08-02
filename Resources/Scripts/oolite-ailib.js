@@ -233,19 +233,22 @@ this.AILib = function(ship)
 					return;
 				}
 			}
-			var recv = clock.adjustedSeconds - lastCommHeard;
-			if (priority == 3)
-			{
-				if (recv < 10 || send < 10)
-				{
-					return;
-				}
-			}
 			else
 			{
-				if (recv < 60 || send < 60)
+				var recv = clock.adjustedSeconds - lastCommHeard;
+				if (priority == 3)
 				{
-					return;
+					if (recv < 10 || send < 10)
+					{
+						return;
+					}
+				}
+				else
+				{
+					if (recv < 60 || send < 60)
+					{
+						return;
+					}
 				}
 			}
 		}
@@ -257,6 +260,11 @@ this.AILib = function(ship)
 			{
 				this.ship.commsMessage(message);
 				lastCommSent = clock.adjustedSeconds;
+			}
+			else
+			{
+				// this is for debugging: ordinarily this is legitimate
+				log(this.name,"Empty message for "+key);
 			}
 		}
 	}
@@ -435,17 +443,20 @@ AILib.prototype.cruiseSpeed = function()
 AILib.prototype.entityCommsParams = function(entity)
 {
 	var params = {};
-	if (entity.isShip)
+	if (entity)
 	{
-		// TODO: extend the ship object so more precise names can be
-		// returned?
-		params["oolite_entityClass"] = entity.name; //ship.shipClassName;
-		params["oolite_entityName"] = entity.displayName; // ship.shipName;
-	}
-	else if (entity.name)
-	{
-		params["oolite_entityClass"] = entity.name;
-		params["oolite_entityName"] = entity.name;
+		if (entity.isShip)
+		{
+			// TODO: extend the ship object so more precise names can be
+			// returned?
+			params["oolite_entityClass"] = entity.name; //ship.shipClassName;
+			params["oolite_entityName"] = entity.displayName; // ship.shipName;
+		}
+		else if (entity.name)
+		{
+			params["oolite_entityClass"] = entity.name;
+			params["oolite_entityName"] = entity.name;
+		}
 	}
 	return params;
 }
@@ -557,7 +568,7 @@ AILib.prototype.conditionCombatOddsGood = function()
 		{
 			them += this.ship.target.group.count - 1;
 		}
-		if (this.ship.target.escortGroup)
+		if (this.ship.target.escortGroup && this.ship.target.escortGroup != this.ship.target.group)
 		{
 			them += this.ship.target.escortGroup.count - 1;
 		}
@@ -1584,6 +1595,7 @@ AILib.prototype.behaviourAvoidCascadeExplosion = function()
 			if (this.ship.defenseTargets.length > 0 && this.ship.defenseTargets[0].scanClass == "CLASS_MINE")
 			{
 				// if the mine is still visible, conventional fleeing works
+				this.communicate("oolite_quiriumCascade",{},3);
 				this.ship.target = this.ship.defenseTargets[0];
 				this.ship.desiredRange = 30000;
 				this.ship.performFlee();
@@ -1646,6 +1658,7 @@ AILib.prototype.behaviourCollectSalvage = function()
 	this.responsesAddStandard(handlers);
 	handlers.shipScoopedOther = function(other)
 	{
+		this.communicate("oolite_scoopedCargo",{"oolite_goodsDescription":other.commodity},4);
 		this.setParameter("oolite_cargoDropped",null);
 		this.reconsiderNow();
 	}
@@ -1664,7 +1677,7 @@ AILib.prototype.behaviourDestroyCurrentTarget = function()
 	if (this.ship.target && !this.ship.hasHostileTarget)
 	{
 		// entering attack mode
-		this.communicate("oolite_beginningAttack",this.entityCommsParams(this.ship.target),2);
+		this.communicate("oolite_beginningAttack",this.entityCommsParams(this.ship.target),3);
 	}
 	else
 	{
@@ -1712,6 +1725,7 @@ AILib.prototype.behaviourDockWithStation = function()
 		}
 		// else fall through
 	case "HOLD_POSITION":
+		this.communicate("oolite_dockingWait",{},4);
 		this.ship.destination = this.ship.target.position;
 		this.ship.performFaceDestination();
 		// and will reconsider in a little bit
@@ -1792,6 +1806,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 	{
 		handlers.shipWitchspaceBlocked = function(blocker)
 		{
+			this.communicate("oolite_witchspaceBlocked",this.entityCommsParams(blocker),3);
 			this.ship.setDestination = blocker.position;
 			this.ship.setDesiredRange = 30000;
 			this.ship.setDesiredSpeed = this.cruiseSpeed();
@@ -1849,6 +1864,11 @@ AILib.prototype.behaviourEnterWitchspace = function()
 AILib.prototype.behaviourEscortMothership = function()
 {
 	var handlers = {};
+	if (this.ship.group.leader)
+	{
+		this.communicate("oolite_escortFormation",this.entityCommsParams(this.ship.group.leader),4);
+	}
+
 	this.responsesAddStandard(handlers);
 	this.responsesAddEscort(handlers);
 	this.applyHandlers(handlers);
@@ -1917,10 +1937,20 @@ AILib.prototype.behaviourFleeCombat = function()
 		var dts = this.ship.defenseTargets;
 		for (var i = 0 ; i < dts.length ; i++)
 		{
-			this.ship.position.distanceTo(dts[i]) < 25600;
-			this.ship.target = dts[i];
-			break;
+			if (this.ship.position.distanceTo(dts[i]) < 25600 && this.isFighting(dts[i]))
+			{
+				this.ship.target = dts[i];
+				break;
+			}
 		}
+	}
+	if (this.getParameter("oolite_lastFleeing") != null)
+	{
+		this.communicate("oolite_continueFleeing",this.entityCommsParams(this.ship.target),4);
+	}
+	else
+	{
+		this.communicate("oolite_startFleeing",this.entityCommsParams(this.ship.target),3);
 	}
 	this.setParameter("oolite_lastFleeing",this.ship.target);
 	this.ship.desiredRange = this.ship.scannerRange;
@@ -1990,6 +2020,7 @@ AILib.prototype.behaviourLeaveVicinityOfTarget = function()
 	var handlers = {};
 	this.responsesAddStandard(handlers);
 	this.applyHandlers(handlers);
+	this.communicate("oolite_leaveVicinity",this.entityCommsParams(this.ship.target),3);
 	this.ship.performFlyToRangeFromDestination();
 }
 
@@ -1999,6 +2030,7 @@ AILib.prototype.behaviourMineTarget = function()
 	var handlers = {};
 	this.responsesAddStandard(handlers);
 	this.applyHandlers(handlers);
+	this.communicate("oolite_mining",{},4);
 	this.ship.performMining();
 }
 
@@ -2029,7 +2061,7 @@ AILib.prototype.behaviourOfferToEscort = function()
 AILib.prototype.behaviourPayOffPirates = function()
 {
 	this.ship.dumpCargo(this.ship.AIScript.oolite_intership.cargodemand);
-	this.communicate("oolite_agreeingToDumpCargo",{"oolite_demandSize":this.ship.AIScript.oolite_intership.cargodemand},2);
+	this.communicate("oolite_agreeingToDumpCargo",{"oolite_demandSize":this.ship.AIScript.oolite_intership.cargodemand},1);
 	delete this.ship.AIScript.oolite_intership.cargodemand;
 	this.ship.AIScript.oolite_intership.cargodemandpaid = true;
 	this.behaviourFleeCombat();
@@ -2098,6 +2130,10 @@ AILib.prototype.behaviourRepelCurrentTarget = function()
 		{
 			// entering attack mode
 			this.communicate("oolite_beginningAttack",this.entityCommsParams(this.ship.target),3);
+		}
+		else if (this.ship.target)
+		{
+			this.communicate("oolite_continuingAttack",this.entityCommsParams(this.ship.target),4);
 		}
 		this.ship.performAttack();
 	}
@@ -2321,6 +2357,7 @@ AILib.prototype.behaviourStationLaunchDefenseShips = function()
 	{
 		this.alertCondition = 3;
 		this.ship.launchDefenseShip();
+		this.communicate("oolite_launchDefenseShips",this.entityCommsParams(this.ship.target),3);
 		this.ship.requestHelpFromGroup();
 	}
 	var handlers = {};
@@ -2349,6 +2386,7 @@ AILib.prototype.behaviourStationLaunchMiner = function()
 			}
 		}
 	}
+	this.communicate("oolite_launchMiner",this.entityCommsParams(this.ship.target),3);
 	this.ship.launchMiner();
 }
 
@@ -2374,7 +2412,7 @@ AILib.prototype.behaviourStationLaunchPatrol = function()
 			}
 		}
 	}
-
+	this.communicate("oolite_launchPatrol",this.entityCommsParams(this.ship.target),3);
 	this.ship.launchPatrol();
 }
 
@@ -2385,6 +2423,7 @@ AILib.prototype.behaviourStationLaunchSalvager = function()
 	{
 		this.alertCondition--;
 	}
+	this.communicate("oolite_launchSalvager",this.entityCommsParams(this.ship.target),3);
 	this.ship.launchScavenger();
 	
 	var handlers = {};
@@ -2398,7 +2437,7 @@ AILib.prototype.behaviourStationManageTraffic = function()
 	var handlers = {};
 	this.responsesAddStation(handlers);
 	this.applyHandlers(handlers);
-	if (this.ship.hasNPCTraffic)
+	if (this.ship.hasNPCTraffic && (!system.sun || !system.sun.isGoingNova))
 	{
 		if (Math.random() < 0.3) 
 		{
@@ -3147,10 +3186,12 @@ AILib.prototype.responsesAddStandard = function(handlers)
 			this.ship.fireECM();
 			this.ship.addDefenseTarget(missile);
 			this.ship.addDefenseTarget(whom);
-			// but don't reconsider immediately
+			// but don't reconsider immediately, because the ECM will
+			// probably get it
 		}
 		else
 		{
+			this.communicate("oolite_incomingMissile",this.entityCommsParams(whom),3);
 			this.ship.addDefenseTarget(missile);
 			this.ship.addDefenseTarget(whom);
 			var tmp = this.ship.target;
@@ -3184,6 +3225,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 		}
 		if (this.ship.defenseTargets.indexOf(whom) < 0)
 		{
+			this.communicate("oolite_newAssailiant",this.entityCommsParams(whom),3);
 			this.ship.addDefenseTarget(whom);
 			this.reconsiderNow();
 		}
@@ -3192,6 +3234,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 			// else we know about this attacker already
 			if (this.ship.energy * 4 < this.ship.maxEnergy)
 			{
+				this.communicate("oolite_attackLowEnergy",this.entityCommsParams(whom),2);
 				// but at low energy still reconsider
 				this.reconsiderNow();
 				this.ship.requestHelpFromGroup();
@@ -3202,6 +3245,8 @@ AILib.prototype.responsesAddStandard = function(handlers)
 			if (!this.isAggressive(this.ship.target))
 			{
 				// if our current target is running away, switch targets
+				this.communicate("oolite_switchTarget",this.entityCommsParams(whom),4);
+
 				this.ship.target = whom;
 			}
 			else if (this.ship.target.target != this.ship)
@@ -3210,6 +3255,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 				if (Math.random() < 0.2)
 				{
 					// occasionally switch
+					this.communicate("oolite_switchTarget",this.entityCommsParams(whom),4);
 					this.ship.target = whom;
 				}
 			}
@@ -3255,6 +3301,7 @@ AILib.prototype.responsesAddStandard = function(handlers)
 			if (this.ship.target.target != ally && this.ship.target != ally.target)
 			{
 				// not already helping, go for it...
+				this.communicate("oolite_startHelping",this.entityCommsParams(enemy),4);
 				this.ship.target = enemy;
 				this.reconsiderNow();
 			}
@@ -3322,6 +3369,14 @@ AILib.prototype.responsesAddStandard = function(handlers)
 	{
 		if (this.getParameter("oolite_flag_markOffenders")) 
 		{
+			if (attacker.bounty & 7 == 7)
+			{
+				this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),2);
+			}
+			else
+			{
+				this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),4);
+			}
 			attacker.setBounty(attacker.bounty | 7,"seen by police");
 			this.ship.addDefenseTarget(attacker);
 			this.reconsiderNow();
@@ -3340,6 +3395,32 @@ AILib.prototype.responsesAddStandard = function(handlers)
 		this.setParameter("oolite_witchspaceWormhole",hole);
 		this.reconsiderNow();
 	}
+	handlers.shipAttackedOther = function(other)
+	{
+		this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
+	}
+	handlers.shipFiredMissile = function(missile,target)
+	{
+		this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
+	}
+	handlers.shipKilledOther = function(other)
+	{
+		this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
+	}
+	handlers.shipLaunchedEscapePod = function()
+	{
+		this.communicate("oolite_eject",{},1);
+	}
+	handlers.escortAccepted = function(escort)
+	{
+		this.communicate("oolite_escortAccepted",this.entityCommsParams(escort),2);
+	}
+	handlers.shipAcceptedEscort = function(mother)
+	{
+		this.communicate("oolite_escortMotherAccepted",this.entityCommsParams(mother),2);
+	}
+
+
 	// TODO: more event handlers
 }
 
@@ -3378,6 +3459,11 @@ AILib.prototype.responsesAddEscort = function(handlers)
 			}
 		}
 		this.ship.addDefenseTarget(enemy);
+		if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+		{
+			this.ship.fireECM();
+			return;
+		}
 		if (!this.ship.hasHostileTarget)
 		{
 			this.reconsiderNow();
@@ -3507,7 +3593,18 @@ AILib.prototype.responsesAddStation = function(handlers)
 				}
 			}
 		}
-
+		handlers.shipAttackedOther = function(other)
+		{
+			this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
+		}
+		handlers.shipFiredMissile = function(missile,target)
+		{
+			this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
+		}
+		handlers.shipKilledOther = function(other)
+		{
+			this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
+		}
 	};
 
 	handlers.shipTargetLost = function(target)
@@ -3518,6 +3615,11 @@ AILib.prototype.responsesAddStation = function(handlers)
 	handlers.helpRequestReceived = function(ally, enemy)
 	{
 		this.ship.addDefenseTarget(enemy);
+		if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+		{
+			this.ship.fireECM();
+			return;
+		}
 		if (!this.ship.alertCondition == 3)
 		{
 			this.ship.target = enemy;
@@ -3829,9 +3931,8 @@ this.startUp = function()
 {
 	// initial definition is just essential communications for now
 	this.$commsSettings = { 
-		generic: { 
+		trader: { 
 			generic: { 
-				oolite_makePirateDemand: "[oolite-comms-makePirateDemand]",
 				oolite_acceptPirateDemand: "[oolite-comms-acceptPirateDemand]",
 				oolite_makeDistressCall: "[oolite-comms-makeDistressCall]"
 			} 
@@ -3842,13 +3943,38 @@ this.startUp = function()
 				oolite_distressResponseAggressor: "[oolite-comms-distressResponseAggressor]",
 				oolite_offenceDetected: "[oolite-comms-offenceDetected]",
 			}
+		},
+		pirate: {
+			generic: {
+				oolite_makePirateDemand: "[oolite-comms-makePirateDemand]",
+			}
+		},
+		thargoid: {
+			generic: {
+				oolite_continuingAttack: "[thargoid-curses]"
+			}
 		}
 	};
 
 	/* These are temporary for testing. Remove before release... */
+	this.$commsSettings.generic = {generic:{}};
 	this.$commsSettings.generic.generic.oolite_continuingAttack = "I've got the [oolite_entityClass]";
 	this.$commsSettings.generic.generic.oolite_beginningAttack = "Die, [oolite_entityClass]!";
-
+	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
+	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
+	this.$commsSettings.pirate.generic.oolite_hitTarget = "Where's the cargo, [oolite_entityClass]?";
+	this.$commsSettings.generic.generic.oolite_friendlyFire = "Watch where you're shooting, [oolite_entityClass]!";
+	this.$commsSettings.generic.generic.oolite_eject = "Condition critical! I'm bailing out...";
+	this.$commsSettings.generic.generic.oolite_firedMissile = "Dodge this for a bit, [oolite_entityClass].";
+	this.$commsSettings.generic.generic.oolite_incomingMissile = "Help! Help! Missile!";
+	this.$commsSettings.generic.generic.oolite_startHelping = "Hold on! I'm on them.";
+	this.$commsSettings.generic.generic.oolite_switchTarget = "I'll get the [oolite_entityClass].";
+	this.$commsSettings.generic.generic.oolite_newAssailant = "Where did that [oolite_entityClass] come from?";
+	this.$commsSettings.generic.generic.oolite_startFleeing = "I can't take this much longer! I'm getting out of here.";
+	this.$commsSettings.generic.generic.oolite_continueFleeing = "I can't shake them!";
+	this.$commsSettings.generic.generic.oolite_dockingWait = "Bored now.";
+	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
+	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
 }
 
 
@@ -3874,6 +4000,9 @@ this._setCommunication = function(role, personality, key, value)
  * role+"generic"
  * "generic"+"generic"
  * A return value of "" means no communication is set.
+ *
+ * TODO: need a way to define particular roles or personalities *not*
+ * to fallback to generic
  */
 this._getCommunication = function(role, personality, key)
 {

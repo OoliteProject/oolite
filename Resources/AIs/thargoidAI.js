@@ -30,41 +30,44 @@ this.name = "Oolite Thargoid AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-		ai.setPriorities([
-				/* Fight */
-				{
-						condition: ai.conditionCascadeDetected,
-						behaviour: ai.behaviourAvoidCascadeExplosion,
-						reconsider: 5
-				},
-				{
-						condition: ai.conditionHasNonThargoidTarget,
-						behaviour: ai.behaviourDestroyCurrentTarget,
-						reconsider: 5
-				},
-				/* Check for targets */
-				{
-						preconfiguration: ai.configurationCheckScanner,
-						condition: ai.conditionScannerContainsNonThargoid,
-						configuration: ai.configurationAcquireScannedTarget,
-						behaviour: ai.behaviourDestroyCurrentTarget,
-						reconsider: 1
-				},
-				/* No targets */
-				/* Interstellar space is straightforward */
-				{
-						condition: ai.conditionInInterstellarSpace,
-						configuration: ai.configurationSetDestinationToWitchpoint,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 20
-				},
-				/* Otherwise, look for targets. Mission: harass shipping. */
-				{
-						configuration: ai.configurationSetDestinationToPirateLurk,
-						behaviour: ai.behaviourApproachDestination,
-						reconsider: 30
-				}
-		]);
+	ai.setCommunicationsRole("thargoid");
+	ai.setCommunicationsPersonality("thargoid");
+
+	ai.setPriorities([
+		/* Fight */
+		{
+			condition: ai.conditionCascadeDetected,
+			behaviour: ai.behaviourAvoidCascadeExplosion,
+			reconsider: 5
+		},
+		{
+			condition: ai.conditionHasNonThargoidTarget,
+			behaviour: ai.behaviourDestroyCurrentTarget,
+			reconsider: 5
+		},
+		/* Check for targets */
+		{
+			preconfiguration: ai.configurationCheckScanner,
+			condition: ai.conditionScannerContainsNonThargoid,
+			configuration: ai.configurationAcquireScannedTarget,
+			behaviour: ai.behaviourDestroyCurrentTarget,
+			reconsider: 1
+		},
+		/* No targets */
+		/* Interstellar space is straightforward */
+		{
+			condition: ai.conditionInInterstellarSpace,
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 20
+		},
+		/* Otherwise, look for targets. Mission: harass shipping. */
+		{
+			configuration: ai.configurationSetDestinationToPirateLurk,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		}
+	]);
 }
