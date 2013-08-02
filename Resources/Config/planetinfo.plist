@@ -15,8 +15,6 @@
 		star_count_multiplier = 5;
 		nebula_count_multiplier = 1;
 		
-		corona_flare = 0.075;
-		
 		// Default docking clearance requirement for main stations.
 		stations_require_docking_clearance = no;
 	};

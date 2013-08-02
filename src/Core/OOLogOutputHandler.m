@@ -28,7 +28,6 @@ SOFTWARE.
 
 
 #define OOLOG_POISON_NSLOG 0
-#define DLOPEN_NO_WARN
 
 #import "OOLogOutputHandler.h"
 #import "OOLogging.h"

@@ -39,7 +39,7 @@
 #import "OOConstToJSString.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOFilteringEnumerator.h"
-
+#import "OOJSPopulatorDefinition.h"
 
 static JSObject *sSystemPrototype;
 
@@ -74,6 +74,7 @@ static JSBool SystemAddGroup(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp);
@@ -123,6 +124,7 @@ enum
 	kSystem_name,					// name, string, read/write
 	kSystem_planets,				// planets in system, array of Planet, read-only
 	kSystem_population,				// population, integer, read/write
+	kSystem_populatorSettings,				// populator settings, dictionary, read-only
 	kSystem_productivity,			// productivity, integer, read/write
 	kSystem_pseudoRandom100,		// constant-per-system pseudorandom number in [0..100), integer, read-only
 	kSystem_pseudoRandom256,		// constant-per-system pseudorandom number in [0..256), integer, read-only
@@ -152,6 +154,7 @@ static JSPropertySpec sSystemProperties[] =
 	{ "name",					kSystem_name,					OOJS_PROP_READWRITE_CB },
 	{ "planets",				kSystem_planets,				OOJS_PROP_READONLY_CB },
 	{ "population",				kSystem_population,				OOJS_PROP_READWRITE_CB },
+	{ "populatorSettings",				kSystem_populatorSettings,				OOJS_PROP_READONLY_CB },
 	{ "productivity",			kSystem_productivity,			OOJS_PROP_READWRITE_CB },
 	{ "pseudoRandom100",		kSystem_pseudoRandom100,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandom256",		kSystem_pseudoRandom256,		OOJS_PROP_READONLY_CB },
@@ -180,6 +183,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "filteredEntities",				SystemFilteredEntities,				2 },
 	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
+	{ "setPopulator",				SystemSetPopulator,				2 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,			1 },
 	{ "shipsWithRole",					SystemShipsWithRole,				1 },
 	
@@ -286,6 +290,10 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 
 		case kSystem_breakPattern:
 			*value = OOJSValueFromBOOL([UNIVERSE witchspaceBreakPattern]);
+			return YES;
+
+		case kSystem_populatorSettings:
+			*value = OOJSValueFromNativeObject(context, [UNIVERSE getPopulatorSettings]);
 			return YES;
 	}
 	
@@ -934,7 +942,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	Vector				where;
+	HPVector				where;
 	NSString			*role = nil;
 	int32				count;
 	NSString			*coordScheme = nil;
@@ -970,7 +978,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, uintN argc, js
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	Vector				where;
+	HPVector				where;
 	NSString			*role = nil;
 	int32				count;
 	NSString			*coordScheme = nil;
@@ -1006,7 +1014,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, uintN argc, j
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
-	Vector				where;
+	HPVector				where;
 	jsdouble			radius;
 	NSString			*role = nil;
 	int32				count;
@@ -1152,7 +1160,7 @@ static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
-	Vector         where;
+	HPVector         where;
 	
 	uintN				consumed = 0;
 
@@ -1182,6 +1190,72 @@ static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_EXIT
 }
 
+static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString *key;
+	NSMutableDictionary *settings;
+	JSObject			*params = NULL;
+
+	if (argc < 1) 
+	{
+		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"string (key), object (settings)");
+		return NO;
+	}
+	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, settings");
+		return NO;
+	}
+	if (argc < 2 || JSVAL_IS_NULL(OOJS_ARGV[1]))
+	{
+		// clearing
+		[UNIVERSE setPopulatorSetting:key to:nil];
+	}
+	else
+	{
+		// adding
+		if (!JS_ValueToObject(context, OOJS_ARGV[1], &params))
+		{
+			OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, settings");
+			return NO;
+		}
+		jsval				callback = JSVAL_NULL;
+		if (JS_GetProperty(context, params, "callback", &callback) == JS_FALSE || JSVAL_IS_VOID(callback))
+		{
+			OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"settings must have a 'callback' property.");
+			return NO;
+		}
+
+		OOJSPopulatorDefinition *populator = [[OOJSPopulatorDefinition alloc] init];
+		[populator setCallback:callback];
+
+		settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
+		[settings setObject:populator forKey:@"callbackObj"];
+
+		jsval				coords = JSVAL_NULL;
+		if (JS_GetProperty(context, params, "coordinates", &coords) != JS_FALSE && !JSVAL_IS_VOID(coords))
+		{
+			Vector coordinates = kZeroVector;
+			if (JSValueToVector(context, coords, &coordinates))
+			{
+				// convert vector in NS-storable form
+				[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:coordinates.x],[NSNumber numberWithFloat:coordinates.y],[NSNumber numberWithFloat:coordinates.z],nil] forKey:@"coordinates"];
+			}
+		}
+
+		[populator release];
+
+		[UNIVERSE setPopulatorSetting:key to:settings];
+	}	
+
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
 // *** Helper functions ***
 
 // Shared implementation of addShips() and addGroup().
@@ -1192,7 +1266,7 @@ static JSBool SystemAddShipsOrGroup(JSContext *context, uintN argc, jsval *vp, B
 	NSString			*role = nil;
 	int32				count = 0;
 	uintN				consumed = 0;
-	Vector				where;
+	HPVector				where;
 	double				radius = NSNotFound;	// a negative value means 
 	id					result = nil;
 	
@@ -1405,8 +1479,8 @@ static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo
 	*r = (id)relativeTo;
 	float				d1, d2;
 	
-	d1 = distance2(ea->position, r->position);
-	d2 = distance2(eb->position, r->position);
+	d1 = HPdistance2(ea->position, r->position);
+	d2 = HPdistance2(eb->position, r->position);
 	
 	if (d1 < d2)  return NSOrderedAscending;
 	else if (d1 > d2)  return NSOrderedDescending;

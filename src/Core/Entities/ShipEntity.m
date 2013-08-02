@@ -91,8 +91,6 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 
 
-#define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
-
 #define USEMASC 1
 
 
@@ -146,7 +144,7 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 - (void) addSubEntity:(Entity<OOSubEntity> *) subent;
 
 - (void) refreshEscortPositions;
-- (Vector) coordinatesForEscortPosition:(unsigned)idx;
+- (HPVector) coordinatesForEscortPosition:(unsigned)idx;
 
 - (void) addSubentityToCollisionRadius:(Entity<OOSubEntity> *) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
@@ -364,8 +362,19 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
 	
 	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
+	
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
+	
+	// exhaust emissive color
+	OORGBAComponents defaultExhaustEmissiveColorComponents; // pale blue is exhaust default color
+	defaultExhaustEmissiveColorComponents.r = 0.7f;
+	defaultExhaustEmissiveColorComponents.g = 0.9f;
+	defaultExhaustEmissiveColorComponents.b = 1.0f;
+	defaultExhaustEmissiveColorComponents.a = 0.9f;
+	color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"exhaust_emissive_color"]];
+	if (color == nil)  color = [OOColor colorWithRGBAComponents:defaultExhaustEmissiveColorComponents];
+	[self setExhaustEmissiveColor:color];
 	
 	[self clearSubEntities];
 	[self setUpSubEntities];
@@ -772,7 +781,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict
 {
 	OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:subentDict];
-	[flasher setPosition:[subentDict oo_vectorForKey:@"position"]];
+	[flasher setPosition:[subentDict oo_hpvectorForKey:@"position"]];
 	[self addSubEntity:flasher];
 	return YES;
 }
@@ -782,7 +791,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 {
 	ShipEntity			*subentity = nil;
 	NSString			*subentKey = nil;
-	Vector				subPosition;
+	HPVector				subPosition;
 	Quaternion			subOrientation;
 	
 	subentKey = [subentDict oo_stringForKey:@"subentity_key"];
@@ -804,7 +813,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		return NO;
 	}
 	
-	subPosition = [subentDict oo_vectorForKey:@"position"];
+	subPosition = vectorToHPVector([subentDict oo_vectorForKey:@"position"]);
 	subOrientation = [subentDict oo_quaternionForKey:@"orientation"];
 	
 	[subentity setPosition:subPosition];
@@ -932,6 +941,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(roleSet);
 	DESTROY(primaryRole);
 	DESTROY(laser_color);
+	DESTROY(exhaust_emissive_color);
 	DESTROY(scanner_display_color1);
 	DESTROY(scanner_display_color2);
 	DESTROY(script);
@@ -993,7 +1003,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		if ([self behaviour] == BEHAVIOUR_TRACK_AS_TURRET)  subtype = @"(turret)";
 		else  subtype = @"(subentity)";
 		
-		return [NSString stringWithFormat:@"\"%@\" position: %@ %@", [self name], VectorDescription([self position]), subtype];
+		return [NSString stringWithFormat:@"\"%@\" position: %@ %@", [self name], HPVectorDescription([self position]), subtype];
 	}
 }
 
@@ -1189,11 +1199,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (BoundingBox)findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
+- (BoundingBox)findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
-	return [[self mesh] findBoundingBoxRelativeToPosition:opv
+	// HPVect: check that this conversion doesn't lose needed precision
+	return [[self mesh] findBoundingBoxRelativeToPosition:HPVectorToVector(opv)
 													basis:_i :_j :_k
-											 selfPosition:position
+										 selfPosition:HPVectorToVector(position)
 												selfBasis:v_right :v_up :v_forward];
 }
 
@@ -1210,22 +1221,22 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat) doesHitLine:(Vector)v0 :(Vector)v1
+- (GLfloat) doesHitLine:(HPVector)v0 :(HPVector)v1
 {
-	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
-	Vector u1 = vector_between(position, v1);
+	Vector u0 = HPVectorToVector(HPvector_between(position, v0));	// relative to origin of model / octree
+	Vector u1 = HPVectorToVector(HPvector_between(position, v1));
 	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
 	return [octree isHitByLine:w0 :w1];
 }
 
 
-- (GLfloat) doesHitLine:(Vector)v0 :(Vector)v1 :(ShipEntity **)hitEntity
+- (GLfloat) doesHitLine:(HPVector)v0 :(HPVector)v1 :(ShipEntity **)hitEntity
 {
 	if (hitEntity)
 		hitEntity[0] = (ShipEntity*)nil;
-	Vector u0 = vector_between(position, v0);	// relative to origin of model / octree
-	Vector u1 = vector_between(position, v1);
+	Vector u0 = HPVectorToVector(HPvector_between(position, v0));	// relative to origin of model / octree
+	Vector u1 = HPVectorToVector(HPvector_between(position, v1));
 	Vector w0 = make_vector(dot_product(u0, v_right), dot_product(u0, v_up), dot_product(u0, v_forward));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, v_right), dot_product(u1, v_up), dot_product(u1, v_forward));
 	GLfloat hit_distance = [octree isHitByLine:w0 :w1];
@@ -1239,10 +1250,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	ShipEntity		*se = nil;
 	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		Vector p0 = [se absolutePositionForSubentity];
+		HPVector p0 = [se absolutePositionForSubentity];
 		Triangle ijk = [se absoluteIJKForSubentity];
-		u0 = vector_between(p0, v0);
-		u1 = vector_between(p0, v1);
+		u0 = HPVectorToVector(HPvector_between(p0, v0));
+		u1 = HPVectorToVector(HPvector_between(p0, v1));
 		w0 = resolveVectorInIJK(u0, ijk);
 		w1 = resolveVectorInIJK(u1, ijk);
 		
@@ -1261,10 +1272,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (GLfloat)doesHitLine:(Vector)v0 :(Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k
+- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i :(Vector)j :(Vector)k
 {
-	Vector u0 = vector_between(o, v0);	// relative to origin of model / octree
-	Vector u1 = vector_between(o, v1);
+	Vector u0 = HPVectorToVector(HPvector_between(o, v0));	// relative to origin of model / octree
+	Vector u1 = HPVectorToVector(HPvector_between(o, v1));
 	Vector w0 = make_vector(dot_product(u0, i), dot_product(u0, j), dot_product(u0, k));	// in ijk vectors
 	Vector w1 = make_vector(dot_product(u1, j), dot_product(u1, j), dot_product(u1, k));
 	return [octree isHitByLine:w0 :w1];
@@ -1308,9 +1319,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (Vector)absoluteTractorPosition
+- (HPVector)absoluteTractorPosition
 {
-	return vector_add(position, quaternion_rotate_vector([self normalOrientation], tractor_position));
+	return HPvector_add(position, vectorToHPVector(quaternion_rotate_vector([self normalOrientation], tractor_position)));
 }
 
 
@@ -1507,7 +1518,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	while (_pendingEscortCount > 0 && ([self isThargoid] || currentEscortCount < _maxEscortCount))
 	{
 		 // The following line adds escort 1 in position 1, etc... up to MAX_ESCORTS.
-		Vector ex_pos = [self coordinatesForEscortPosition:currentEscortCount];
+		HPVector ex_pos = [self coordinatesForEscortPosition:currentEscortCount];
 		
 		ShipEntity *escorter = nil;
 		
@@ -1709,12 +1720,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Octree		*prime_octree = prime->octree;
 	Octree		*other_octree = other->octree;
 	
-	Vector		prime_position = [prime absolutePositionForSubentity];
+	HPVector		prime_position = [prime absolutePositionForSubentity];
 	Triangle	prime_ijk = [prime absoluteIJKForSubentity];
-	Vector		other_position = [other absolutePositionForSubentity];
+	HPVector		other_position = [other absolutePositionForSubentity];
 	Triangle	other_ijk = [other absoluteIJKForSubentity];
 
-	Vector		relative_position_of_other = resolveVectorInIJK(vector_between(prime_position, other_position), prime_ijk);
+	Vector		relative_position_of_other = resolveVectorInIJK(HPVectorToVector(HPvector_between(prime_position, other_position)), prime_ijk);
 	Triangle	relative_ijk_of_other;
 	relative_ijk_of_other.v[0] = resolveVectorInIJK(other_ijk.v[0], prime_ijk);
 	relative_ijk_of_other.v[1] = resolveVectorInIJK(other_ijk.v[1], prime_ijk);
@@ -1793,15 +1804,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// in update we check if close contacts have gone out of touch range (origin within our collision_radius)
 		// here we check if something has come within that range
-		Vector			otherPos = [otherShip position];
+		HPVector			otherPos = [otherShip position];
 		OOUniversalID	otherID = [otherShip universalID];
 		NSString		*other_key = [NSString stringWithFormat:@"%d", otherID];
 		
 		if (![closeContactsInfo objectForKey:other_key] &&
-			distance2(position, otherPos) < collision_radius * collision_radius)
+			HPdistance2(position, otherPos) < collision_radius * collision_radius)
 		{
 			// calculate position with respect to our own position and orientation
-			Vector	dpos = vector_between(position, otherPos);
+			Vector	dpos = HPVectorToVector(HPvector_between(position, otherPos));
 			Vector  rpos = make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
 			[closeContactsInfo setObject:[NSString stringWithFormat:@"%f %f %f", rpos.x, rpos.y, rpos.z] forKey: other_key];
 			
@@ -1831,7 +1842,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BoundingBox)findSubentityBoundingBox
 {
-	return [[self mesh] findSubentityBoundingBoxWithPosition:position rotMatrix:rotMatrix];
+	return [[self mesh] findSubentityBoundingBoxWithPosition:HPVectorToVector(position) rotMatrix:rotMatrix];
 }
 
 
@@ -1861,7 +1872,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	if (!subent)  return;
 	
-	double distance = magnitude([subent position]) + [subent findCollisionRadius];
+	double distance = HPmagnitude([subent position]) + [subent findCollisionRadius];
 	if ([subent isKindOfClass:[ShipEntity class]])	// Solid subentity
 	{
 		if (distance > collision_radius)
@@ -1981,10 +1992,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				ShipEntity* other = [UNIVERSE entityForUniversalID:[other_key intValue]];
 				if ((other != nil) && (other->isShip))
 				{
-					if (distance2(position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
+					if (HPdistance2(position, other->position) > collision_radius * collision_radius)	// moved beyond our sphere!
 					{
 						// calculate position with respect to our own position and orientation
-						Vector	dpos = vector_between(position, other->position);
+						Vector	dpos = HPVectorToVector(HPvector_between(position, other->position));
 						Vector  pos1 = make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
 						Vector	pos0 = {0, 0, 0};
 						ScanVectorFromString([closeContactsInfo objectForKey: other_key], &pos0);
@@ -2064,7 +2075,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (sun != nil)
 		{
 			// set the ambient temperature here
-			double  sun_zd = magnitude2(vector_between(position, [sun position]));	// square of distance
+			double  sun_zd = HPdistance2(position, [sun position]);	// square of distance
 			double  sun_cr = sun->collision_radius;
 			double	alt1 = sun_cr * sun_cr / sun_zd;
 			external_temp = SUN_TEMPERATURE * alt1;
@@ -2249,9 +2260,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		flightYaw = 0.0;
 		[self applyAttitudeChanges:delta_t];
-		GLfloat range2 = 0.1 * distance2(position, destination) / (collision_radius * collision_radius);
+		GLfloat range2 = 0.1 * HPdistance2(position, destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
-		position = vector_add(position, vector_multiply_scalar(velocity, range2 * delta_t));
+		position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(velocity, range2 * delta_t)));
 	}
 	else
 	{
@@ -2888,7 +2899,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				JSContext			*JScontext = OOJSAcquireContext();
 				BOOL OK;
-				JSBool allow_addition;
+				JSBool allow_addition = false;
 				jsval result;
 				jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, self) , OOJSValueFromNativeObject(JScontext, context)};
 				
@@ -3584,13 +3595,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		velocity.z += moment * dv.z;
 		// acceleration = force / mass
 		// force proportional to distance (spring rule)
-		Vector dp = vector_between(position, destination);
+		HPVector dp = HPvector_between(position, destination);
 		moment = delta_t * 0.5 * tf;
 		velocity.x += moment * dp.x;
 		velocity.y += moment * dp.y;
 		velocity.z += moment * dp.z;
 		// force inversely proportional to distance
-		GLfloat d2 = magnitude2(dp);
+		GLfloat d2 = HPmagnitude2(dp);
 		moment = (d2 > 0.0)? delta_t * 5.0 * tf / d2 : 0.0;
 		if (d2 > 0.0)
 		{
@@ -5075,7 +5086,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return;
 	}
 		  
-	if (distance(position, [planet position]) + [self collisionRadius] < [planet radius])
+	if (HPdistance(position, [planet position]) + [self collisionRadius] < [planet radius])
 	{
 		// we have landed. (completely disappeared inside planet)
 		[self landOnPlanet:planet];
@@ -5286,12 +5297,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		aim = [self ballTrackLeadingTarget:delta_t atTarget:turret_target];
 		if (aim > -1.0) // potential target
 		{
-			Vector p = vector_subtract([turret_target position], [turret_owner position]);
+			HPVector p = HPvector_subtract([turret_target position], [turret_owner position]);
 			double cr = [turret_owner collisionRadius];
 			
 			if (aim > .95)
 			{
-				[self fireTurretCannon:magnitude(p) - cr];
+				[self fireTurretCannon:HPmagnitude(p) - cr];
 			}
 			return;
 		}
@@ -5314,12 +5325,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				aim = [self ballTrackLeadingTarget:delta_t atTarget:target];
 				if (aim > -1.0)
 				{ // tracking...
-					Vector p = vector_subtract([target position], [turret_owner position]);
+					HPVector p = HPvector_subtract([target position], [turret_owner position]);
 					double cr = [turret_owner collisionRadius];
 		
 					if (aim > .95)
 					{ // fire!
-						[self fireTurretCannon:magnitude(p) - cr];
+						[self fireTurretCannon:HPmagnitude(p) - cr];
 					}
 					return;
 				}
@@ -5340,22 +5351,22 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_fly_thru_navpoints:(double) delta_t
 {
 	int navpoint_plus_index = (next_navpoint_index + 1) % number_of_navpoints;
-	Vector d1 = navpoints[next_navpoint_index];		// head for this one
-	Vector d2 = navpoints[navpoint_plus_index];	// but be facing this one
+	HPVector d1 = navpoints[next_navpoint_index];		// head for this one
+	HPVector d2 = navpoints[navpoint_plus_index];	// but be facing this one
 	
-	Vector rel = vector_between(d1, position);	// vector from d1 to position 
-	Vector ref = vector_between(d2, d1);		// vector from d2 to d1
-	ref = vector_normal(ref);
+	HPVector rel = HPvector_between(d1, position);	// vector from d1 to position 
+	HPVector ref = HPvector_between(d2, d1);		// vector from d2 to d1
+	ref = HPvector_normal(ref);
 	
-	Vector xp = make_vector(ref.y * rel.z - ref.z * rel.y, ref.z * rel.x - ref.x * rel.z, ref.x * rel.y - ref.y * rel.x);	
+	HPVector xp = make_HPvector(ref.y * rel.z - ref.z * rel.y, ref.z * rel.x - ref.x * rel.z, ref.x * rel.y - ref.y * rel.x);	
 	
 	GLfloat v0 = 0.0;
 	
-	GLfloat	r0 = dot_product(rel, ref);	// proportion of rel in direction ref
+	GLfloat	r0 = HPdot_product(rel, ref);	// proportion of rel in direction ref
 	
 	// if r0 is negative then we're the wrong side of things
 	
-	GLfloat	r1 = magnitude(xp);	// distance of position from line
+	GLfloat	r1 = HPmagnitude(xp);	// distance of position from line
 	
 	BOOL in_cone = (r0 > 0.5 * r1);
 	
@@ -5364,7 +5375,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 		r1 *= 2.0;
 	
-	GLfloat dist2 = magnitude2(rel);
+	GLfloat dist2 = HPmagnitude2(rel);
 	
 	if (dist2 < desired_range * desired_range)
 	{
@@ -5384,7 +5395,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		success_factor = dist2;
 
 		// set destination spline point from r1 and ref
-		destination = make_vector(d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
+		destination = make_HPvector(d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
 
 		// do the actual piloting!!
 		//
@@ -5601,29 +5612,29 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 #ifndef NDEBUG
 - (void) drawDebugStuff
 {
-	
+	// HPVect: imprecise here - needs camera relative
 	if (0 && reportAIMessages)
 	{
-		OODebugDrawPoint(destination, [OOColor blueColor]);
-		OODebugDrawColoredLine([self position], destination, [OOColor colorWithWhite:0.15 alpha:1.0]);
+		OODebugDrawPoint(HPVectorToVector(destination), [OOColor blueColor]);
+		OODebugDrawColoredLine(HPVectorToVector([self position]), HPVectorToVector(destination), [OOColor colorWithWhite:0.15 alpha:1.0]);
 		
 		Entity *pTarget = [self primaryTarget];
 		if (pTarget != nil)
 		{
-			OODebugDrawPoint([pTarget position], [OOColor redColor]);
-			OODebugDrawColoredLine([self position], [pTarget position], [OOColor colorWithRed:0.2 green:0.0 blue:0.0 alpha:1.0]);
+			OODebugDrawPoint(HPVectorToVector([pTarget position]), [OOColor redColor]);
+			OODebugDrawColoredLine(HPVectorToVector([self position]), HPVectorToVector([pTarget position]), [OOColor colorWithRed:0.2 green:0.0 blue:0.0 alpha:1.0]);
 		}
 		
 		Entity *sTarget = [self targetStation];
 		if (sTarget != pTarget && [sTarget isStation])
 		{
-			OODebugDrawPoint([sTarget position], [OOColor cyanColor]);
+			OODebugDrawPoint(HPVectorToVector([sTarget position]), [OOColor cyanColor]);
 		}
 		
 		Entity *fTarget = [self foundTarget];
 		if (fTarget != nil && fTarget != pTarget && fTarget != sTarget)
 		{
-			OODebugDrawPoint([fTarget position], [OOColor magentaColor]);
+			OODebugDrawPoint(HPVectorToVector([fTarget position]), [OOColor magentaColor]);
 		}
 	}
 }
@@ -5643,7 +5654,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ([self status] == STATUS_ACTIVE)
 	{
-		Vector abspos = position;  // STATUS_ACTIVE means it is in control of its own orientation
+/*		Vector abspos = position;  // STATUS_ACTIVE means it is in control of its own orientation
 		Entity		*last = nil;
 		Entity		*father = [self owner]; 
 		OOMatrix	r_mat;
@@ -5655,14 +5666,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			last = father;
 			if (![last isSubEntity]) break;
 			father = [father owner];
-		}
+			} */
+		HPVector abspos = [self absolutePositionForSubentity];
 		
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);
-		GLTranslateOOVector(abspos);
+		// HPVect: need to make camera-relative
+		GLTranslateOOVector(HPVectorToVector(abspos));
 	}
 	else
 	{
-		GLTranslateOOVector(position);
+		// HPVect: need to make camera-relative
+		GLTranslateOOVector(HPVectorToVector(position));
 	}
 	
 	GLMultOOMatrix(rotMatrix);
@@ -5991,10 +6005,10 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		}
 		[previousCondition oo_setFloat:desired_range forKey:@"desired_range"];
 		[previousCondition oo_setFloat:desired_speed forKey:@"desired_speed"];
-		[previousCondition oo_setVector:destination forKey:@"destination"];
+		[previousCondition oo_setHPVector:destination forKey:@"destination"];
 		
 		destination = [prox_ship position];
-		destination = OOVectorInterpolate(position, [prox_ship position], 0.5);		// point between us and them
+		destination = OOHPVectorInterpolate(position, [prox_ship position], 0.5);		// point between us and them
 		
 		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
 		
@@ -6013,7 +6027,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	_primaryTarget =	[[previousCondition objectForKey:@"primaryTarget"] weakRetain];
 	desired_range =	[previousCondition oo_floatForKey:@"desired_range"];
 	desired_speed =	[previousCondition oo_floatForKey:@"desired_speed"];
-	destination =	[previousCondition oo_vectorForKey:@"destination"];
+	destination =	[previousCondition oo_hpvectorForKey:@"destination"];
 
 	[previousCondition release];
 	previousCondition = nil;
@@ -6192,7 +6206,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		return;
 	
 	// check vectors
-	Vector vdiff = vector_between(position, other->position);
+	Vector vdiff = HPVectorToVector(HPvector_between(position, other->position));
 	GLfloat d_forward = dot_product(vdiff, v_forward);
 	GLfloat d_up = dot_product(vdiff, v_up);
 	GLfloat d_right = dot_product(vdiff, v_right);
@@ -6210,8 +6224,8 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		if ((prox)&&(prox != other))
 		{
 			// check which subtends the greatest angle
-			GLfloat sa_prox = prox->collision_radius * prox->collision_radius / distance2(position, prox->position);
-			GLfloat sa_other = other->collision_radius *  other->collision_radius / distance2(position, other->position);
+			GLfloat sa_prox = prox->collision_radius * prox->collision_radius / HPdistance2(position, prox->position);
+			GLfloat sa_other = other->collision_radius *  other->collision_radius / HPdistance2(position, other->position);
 			if (sa_prox < sa_other)  return;
 		}
 	}
@@ -6617,9 +6631,9 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 }
 
 
-static float SurfaceDistanceSqaredV(Vector reference, Entity<OOStellarBody> *stellar)
+static float SurfaceDistanceSqaredV(HPVector reference, Entity<OOStellarBody> *stellar)
 {
-	float centerDistance = magnitude2(vector_subtract([stellar position], reference));
+	float centerDistance = HPmagnitude2(HPvector_subtract([stellar position], reference));
 	float r = [stellar radius];
 	/*	1.35: empirical value used to help determine proximity when non-nested
 			planets are close to each other
@@ -6636,7 +6650,7 @@ static float SurfaceDistanceSqared(Entity *reference, Entity<OOStellarBody> *ste
 
 NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
-	Vector p = [(ShipEntity*) context position];
+	HPVector p = [(ShipEntity*) context position];
 	OOPlanetEntity* e1 = i1;
 	OOPlanetEntity* e2 = i2;
 	
@@ -6659,7 +6673,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	*/
 	OOPlanetEntity *planet = nil, *bestPlanet = nil;
 	float bestRange = INFINITY;
-	Vector myPosition = [self position];
+	HPVector myPosition = [self position];
 	
 	// valgrind complains about this line here. Might be compiler/GNUstep bug? 
 	// should we go back to a traditional enumerator? - CIM
@@ -6744,7 +6758,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	float			cr = [nearest radius];
 	float			cr2 = cr * cr;
 	OOAegisStatus	result = AEGIS_NONE;
-	float			d2 = magnitude2(vector_subtract([nearest position], [self position]));
+	float			d2 = HPmagnitude2(HPvector_subtract([nearest position], [self position]));
 	float 		sd2 = SCANNER_MAX_RANGE2 * 10.0f;
 
 	// check if nearing a surface
@@ -6770,7 +6784,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	StationEntity	*the_station = [UNIVERSE station];
 	if (the_station)
 	{
-		sd2 = magnitude2(vector_subtract([the_station position], [self position]));
+		sd2 = HPmagnitude2(HPvector_subtract([the_station position], [self position]));
 	}
 	if (sd2 < SCANNER_MAX_RANGE2 * 4.0f) // double scanner range
 	{
@@ -6790,7 +6804,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		// are we also close to the main planet?
 		OOPlanetEntity *mainPlanet = [UNIVERSE planet];
-		d2 = magnitude2(vector_subtract([mainPlanet position], [self position]));
+		d2 = HPmagnitude2(HPvector_subtract([mainPlanet position], [self position]));
 		cr2 = [mainPlanet radius];
 		cr2 *= cr2;	
 		if (d2 < cr2 * 9.0f)
@@ -7562,7 +7576,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		for (i = 0; i < [targets count]; i++)
 		{
 			Entity *e2 = [targets objectAtIndex:i];
-			Vector p2 = vector_subtract([e2 position], [self position]);
+			Vector p2 = [self vectorTo:e2];
 			double ecr = [e2 collisionRadius];
 			double d = (magnitude(p2) - ecr) / range;
 			// base damage within defined range, inverse-square falloff outside
@@ -7617,7 +7631,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		for (i = 0; i < [targets count]; i++)
 		{
 			Entity *e2 = [targets objectAtIndex:i];
-			Vector p2 = vector_subtract([e2 position], position);
+			Vector p2 = [self vectorTo:e2];
 			double ecr = [e2 collisionRadius];
 			double d = (magnitude(p2) - ecr) * 2.6; // 2.6 is a correction constant to stay in limits of the old code.
 			double damage = (d > 0) ? weapon_damage * desired_range / (d * d) : weapon_damage;
@@ -7638,7 +7652,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			ShipEntity *e2 = (ShipEntity*)[targets objectAtIndex:i];
 			if ([e2 isShip])
 			{
-				Vector p2 = vector_subtract([e2 position], position);
+				Vector p2 = [self vectorTo:e2];
 				double ecr = [e2 collisionRadius];
 				double d2 = magnitude2(p2) - ecr * ecr;
 				while (d2 <= 0.0)
@@ -7745,7 +7759,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	Entity<OOSubEntity>	*se = nil;
 	foreach (se, [self subEntities])
 	{
-		[se setPosition:vector_multiply_scalar([se position], factor)];
+		[se setPosition:HPvector_multiply_scalar([se position], factor)];
 		[se rescaleBy:factor];
 	}
 	
@@ -7763,7 +7777,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if (parent != nil)
 	{
 		ShipEntity *this_ship = [self retain];
-		Vector this_pos = [self absolutePositionForSubentity];
+		HPVector this_pos = [self absolutePositionForSubentity];
 		
 		// remove this ship from its parent's subentity list
 		[parent subEntityDied:self];
@@ -7777,7 +7791,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 	}
 	
-	Vector xposition = position;
+	HPVector xposition = position;
 	NSUInteger i;
 	Vector v;
 	Quaternion q;
@@ -7891,7 +7905,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 						{
 							ShipEntity* container = [jetsam objectAtIndex:i];
-							Vector  rpos = xposition;
+							HPVector  rpos = xposition;
 							Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 							rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
 							rpos.x += (ranrot_rand() % 7) - 3;
@@ -7932,7 +7946,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							ShipEntity* rock = [UNIVERSE newShipWithRole:debrisRole];   // retain count = 1
 							if (rock)
 							{
-								Vector  rpos = xposition;
+								HPVector  rpos = xposition;
 								int  r_speed = [rock maxFlightSpeed] > 0 ? 20.0 * [rock maxFlightSpeed] : 10;
 								int cr = (collision_radius > 10 * rock->collision_radius) ? collision_radius : 3 * rock->collision_radius;
 								rpos.x += (ranrot_rand() % cr) - cr/2;
@@ -7968,7 +7982,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							ShipEntity* rock = [UNIVERSE newShipWithRole:debrisRole];   // retain count = 1
 							if (rock)
 							{
-								Vector  rpos = xposition;
+								HPVector  rpos = xposition;
 								int  r_speed = [rock maxFlightSpeed] > 0 ? 20.0 * [rock maxFlightSpeed] : 20;
 								int cr = (collision_radius > 10 * rock->collision_radius) ? collision_radius : 3 * rock->collision_radius;
 								rpos.x += (ranrot_rand() % cr) - cr/2;
@@ -8018,7 +8032,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[wreck rescaleBy: scale_factor];
 							
 							Vector r1 = [octree randomPoint];
-							Vector rpos = vector_add(quaternion_rotate_vector([self normalOrientation], r1), xposition);
+							HPVector rpos = HPvector_add(vectorToHPVector(quaternion_rotate_vector([self normalOrientation], r1)), xposition);
 							[wreck setPosition:rpos];
 							
 							[wreck setVelocity:[self velocity]];
@@ -8053,7 +8067,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				ShipEntity* plate = [UNIVERSE newShipWithRole:@"alloy"];   // retain count = 1
 				if (plate)
 				{
-					Vector  rpos = xposition;
+					HPVector  rpos = xposition;
 					Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 					rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
 					rpos.x += (ranrot_rand() % 7) - 3;
@@ -8222,7 +8236,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector i = vector_right_from_quaternion(q);
 	Vector j = vector_up_from_quaternion(q);
 	Vector k = vector_forward_from_quaternion(q);
-	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition:kZeroVector InVectors:i :j :k];
+	BoundingBox arbb = [ship findBoundingBoxRelativeToPosition:kZeroHPVector InVectors:i :j :k];
 	Vector result = kZeroVector;
 	switch ([padAlign characterAtIndex:0])
 	{
@@ -8269,7 +8283,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) becomeLargeExplosion:(double)factor
 {
-	Vector xposition = position;
+	HPVector xposition = position;
 	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
 	OOCargoQuantity cargo_to_go;
 	
@@ -8322,7 +8336,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (Ranrot() % 100 < cargo_chance)  //  10% chance of any given piece of cargo surviving decompression
 			{
 				ShipEntity *container = [[cargo objectAtIndex:0] retain];
-				Vector  rpos = xposition;
+				HPVector  rpos = xposition;
 				Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
 				rpos.x += (ranrot_rand() % 7) - 3;
@@ -8497,7 +8511,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		if (scan->isShip)
 		{
-			distance2_scanned_ships[n_scanned_ships] = distance2(position, scan->position);
+			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
@@ -8509,7 +8523,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		if (scan->isShip)
 		{
-			distance2_scanned_ships[n_scanned_ships] = distance2(position, scan->position);
+			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
@@ -8837,32 +8851,32 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (Vector) destination
+- (HPVector) destination
 {
 	return destination;
 }
 
-- (Vector) coordinates
+- (HPVector) coordinates
 {
 	return coordinates;
 }
 
-- (void) setCoordinate:(Vector) coord // The name "setCoordinates" is already used by AI scripting.
+- (void) setCoordinate:(HPVector) coord // The name "setCoordinates" is already used by AI scripting.
 {
 	coordinates = coord;
 }
 
-- (Vector) distance_six: (GLfloat) dist
+- (HPVector) distance_six: (GLfloat) dist
 {
-	Vector six = position;
+	HPVector six = position;
 	six.x -= dist * v_forward.x;	six.y -= dist * v_forward.y;	six.z -= dist * v_forward.z;
 	return six;
 }
 
 
-- (Vector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset
+- (HPVector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset
 {
-	Vector twelve = position;
+	HPVector twelve = position;
 	twelve.x += dist * v_up.x;	twelve.y += dist * v_up.y;	twelve.z += dist * v_up.z;
 	twelve.x += offset * v_right.x;	twelve.y += offset * v_right.y;	twelve.z += offset * v_right.z;
 	return twelve;
@@ -8879,8 +8893,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (!target)
 		return;
 
-	vector_to_target = target->position;
-	vector_to_target.x -= position.x;	vector_to_target.y -= position.y;	vector_to_target.z -= position.z;
+	vector_to_target = [self vectorTo:target];
 	//
 	GLfloat range2 =		magnitude2(vector_to_target);
 	GLfloat	targetRadius =	0.75 * target->collision_radius;
@@ -8912,12 +8925,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	Vector		vector_to_target;
 	Vector		axis_to_track_by;
-	Vector		my_position = position;  // position relative to parent
+	HPVector		my_position = [self absolutePositionForSubentity];
 	Vector		my_aim = vector_forward_from_quaternion(orientation);
 	Vector		my_ref = reference;
 	double		aim_cos, ref_cos;
 	Vector		leading = [target velocity];
-	Entity		*last = nil;
+
+/*	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	
@@ -8929,11 +8943,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		last = father;
 		if (![last isSubEntity]) break;
 		father = [father owner];
-	}
+		}*/
 
 	if (target)
 	{
-		vector_to_target = vector_subtract([target position], my_position);
+		vector_to_target = HPVectorToVector(HPvector_subtract([target position], my_position));
 		if (magnitude(vector_to_target) > weaponRange * 1.01)
 		{
 			return -2.0; // out of range
@@ -9057,7 +9071,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	GLfloat  d_forward, d_up, d_right;
 	
-	Vector  relPos = vector_subtract(target->position, position);
+	Vector  relPos = [self vectorTo:target];
 	
 	double	range2 = magnitude2(relPos);
 
@@ -9274,7 +9288,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	GLfloat  d_forward, d_up, d_right;
 	
-	Vector  relPos = vector_subtract(target->position, position);
+	Vector  relPos = [self vectorTo:target];
 	double	range2 = magnitude2(relPos);
 
 	if (range2 > SCANNER_MAX_RANGE2)
@@ -9393,7 +9407,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	stick_pitch = 0.0;
 	stick_yaw = 0.0;
 
-	relPos = vector_subtract(target->position, position);
+	relPos = [self vectorTo:target];
 	
 	// Adjust missile course by taking into account target's velocity and missile
 	// accuracy. Modification on original code contributed by Cmdr James.
@@ -9504,7 +9518,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		reversePlayer = -1;
 	}
 
-	relPos = vector_subtract(destination, position);
+	relPos = HPVectorToVector(HPvector_subtract(destination, position));
 	double range2 = magnitude2(relPos);
 	double desired_range2 = desired_range*desired_range;
 	
@@ -9647,7 +9661,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat) rangeToDestination
 {
-	return distance(position, destination);
+	return HPdistance(position, destination);
 }
 
 
@@ -9685,14 +9699,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		_defenseTargets = [[OOWeakSet alloc] init];
 	}
 	
-	[_defenseTargets addObject:[target weakSelf]];
+	[_defenseTargets addObject:target];
 	return YES;
 }
 
 
 - (BOOL) isDefenseTarget:(Entity *)target
 {
-	return [_defenseTargets containsObject:[target weakSelf]];
+	return [_defenseTargets containsObject:target];
 }
 
 
@@ -9705,22 +9719,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) removeDefenseTarget:(Entity *)target
 {
-	[_defenseTargets removeObject:[target weakSelf]];
+	[_defenseTargets removeObject:target];
 }
 
 
 - (double) rangeToPrimaryTarget
 {
-	double dist;
-	Vector delta;
-	Entity  *target = [self primaryTarget];
-	if (target == nil)   // leave now!
-		return 0.0;
-	delta = vector_subtract(target->position, position);
-	dist = magnitude(delta);
-	dist -= target->collision_radius;
-	dist -= collision_radius;
-	return dist;
+	return [self rangeToSecondaryTarget:[self primaryTarget]];
 }
 
 
@@ -9730,7 +9735,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector delta;
 	if (target == nil)   // leave now!
 		return 0.0;
-	delta = vector_subtract(target->position, position);
+	delta = HPVectorToVector(HPvector_subtract(target->position, position));
 	dist = magnitude(delta);
 	dist -= target->collision_radius;
 	dist -= collision_radius;
@@ -9748,7 +9753,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	ShipEntity  *ship_target = (ShipEntity *)target;
 
-	delta = vector_subtract(position, target->position);
+	delta = HPVectorToVector(HPvector_subtract(position, target->position));
 	
 	return dot_product(vector_normal(delta), ship_target->v_forward);
 }
@@ -9825,7 +9830,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;	// 3/4 of the time you can't see from a lit place into a darker place
 	}
 	radius = target->collision_radius;
-	rel_pos = vector_subtract(target->position, position);
+	rel_pos = [self vectorTo:target];
 	d2 = magnitude2(rel_pos);
 	urp = vector_normal_or_zbasis(rel_pos);
 	
@@ -10061,24 +10066,26 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;
 	if ([[self rootShipEntity] isPlayer] && ![PLAYER weaponsOnline])
 		return NO;
-	
-	Vector		origin = position;
+
+	Vector		vel;	
+	HPVector		origin = [self absolutePositionForSubentity];
+		/* position;
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
-	Vector		vel;
+
 	
 	while ((father)&&(father != last) && (father != NO_TARGET))
 	{
 		r_mat = [father drawRotationMatrix];
-		origin = vector_add(OOVectorMultiplyMatrix(origin, r_mat), [father position]);
+		origin = HPvector_add(OOHPVectorMultiplyMatrix(origin, r_mat), [father position]);
 		last = father;
 		if (![last isSubEntity]) break;
 		father = [father owner];
-	}
+	}*/
 	
 	vel = vector_forward_from_quaternion(orientation);		// Facing
-	origin = vector_add(origin, vector_multiply_scalar(vel, collision_radius + 0.5));	// Start just outside collision sphere
+	origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(vel, collision_radius + 0.5)));	// Start just outside collision sphere
 	vel = vector_multiply_scalar(vel, TURRET_SHOT_SPEED);	// Shot velocity
 	
 	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
@@ -10106,9 +10113,25 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (void) setExhaustEmissiveColor:(OOColor *) color
+{
+	if (color)
+	{
+		[exhaust_emissive_color release];
+		exhaust_emissive_color = [color retain];
+	}
+}
+
+
 - (OOColor *)laserColor
 {
 	return [[laser_color retain] autorelease];
+}
+
+
+- (OOColor *)exhaustEmissiveColor
+{
+	return [[exhaust_emissive_color retain] autorelease];
 }
 
 
@@ -10155,7 +10178,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			
 			[shot setRange:hitAtRange];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
-			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hitAtRange));
+			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hitAtRange)));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
@@ -10172,7 +10195,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			victim = [parent primaryTarget];
 			
 			Vector shotDirection = vector_forward_from_quaternion([shot orientation]);
-			Vector victimDirection = vector_normal(vector_subtract([victim position], [parent position]));
+			Vector victimDirection = vector_normal(HPVectorToVector(HPvector_subtract([victim position], [parent position])));
 			if (dot_product(shotDirection, victimDirection) > 0.995)	// Within 84.26 degrees
 			{
 				[victim setPrimaryAggressor:parent];
@@ -10234,7 +10257,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double			range_limit2 = weaponRange*weaponRange;
 	Vector			r_pos;
 	
-	r_pos = vector_normal_or_zbasis(vector_subtract(my_target->position, position));
+	r_pos = vector_normal_or_zbasis([self vectorTo:my_target]);
 
 	Quaternion		q_laser = quaternion_rotation_between(r_pos, kBasisZVector);
 
@@ -10277,7 +10300,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 			[shot setRange:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
-			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
+			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
@@ -10358,7 +10381,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 			[shot setRange:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
-			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
+			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
 			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
 		}
 	}
@@ -10375,7 +10398,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				 * without having their target actually targeted. Though in those
 				 * circumstances they shouldn't be missing their first shot
 				 * anyway. */
-				if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal(vector_subtract([victim position],[self position]))) > 0.995)
+				if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal([self vectorTo:victim])) > 0.995)
 				{
 					/* plausibly aimed at target. Allows reaction before attacker
 					 * actually hits. But we need to be able to distinguish in AI
@@ -10442,7 +10465,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		randf() * (boundingBox.max.y - boundingBox.min.y) + boundingBox.min.y,
 		randf() * boundingBox.max.z + boundingBox.min.z	// rear section only
 	};
-	Vector origin = vector_add(position, quaternion_rotate_vector([self normalOrientation], offset));
+	HPVector origin = HPvector_add(position, vectorToHPVector(quaternion_rotate_vector([self normalOrientation], offset)));
 
 	float	w = boundingBox.max.x - boundingBox.min.x;
 	float	h = boundingBox.max.y - boundingBox.min.y;
@@ -10450,7 +10473,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	float	sz = m * (1 + randf() + randf());	// half minimum dimension on average
 	
-	Vector vel = vector_multiply_scalar(vector_subtract(origin, position), 2.0);
+	Vector vel = vector_multiply_scalar(HPVectorToVector(HPvector_subtract(origin, position)), 2.0);
 	
 	OOColor *color = [OOColor colorWithHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0];
 	
@@ -10477,7 +10500,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOWeaponFacing)direction
 {
 	Vector  vel, rt;
-	Vector  origin = position;
+	HPVector  origin = position;
 	double  start = collision_radius + 0.5;
 
 	speed += flightSpeed;
@@ -10525,13 +10548,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if (vector_equal(plasmaPortOffset, kZeroVector))
 	{
-		origin = vector_add(origin, vector_multiply_scalar(vel, start)); // no WeaponOffset defined
+		origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(vel, start))); // no WeaponOffset defined
 	}
 	else
 	{
-		origin = vector_add(origin, quaternion_rotate_vector([self normalOrientation], plasmaPortOffset));
+		origin = HPvector_add(origin, vectorToHPVector(quaternion_rotate_vector([self normalOrientation], plasmaPortOffset)));
 	}
-	origin = vector_add(origin, vector_multiply_scalar(rt, offset)); // With 'offset > 0' we get a twin-cannon.
+	origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(rt, offset))); // With 'offset > 0' we get a twin-cannon.
 	
 	vel = vector_multiply_scalar(vel, speed);
 	
@@ -10653,7 +10676,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	vel = vector_add(vel, vector_multiply_scalar(v_forward, flightSpeed + throw_speed));
 	
 	Quaternion q1 = [self normalOrientation];
-	Vector origin = vector_add(position, quaternion_rotate_vector(q1, start));
+	HPVector origin = HPvector_add(position, vectorToHPVector(quaternion_rotate_vector(q1, start)));
 	
 	if (isPlayer) [missile setScanClass: CLASS_MISSILE];
 	
@@ -10793,12 +10816,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double  start = collision_radius + bomb->collision_radius;
 	Quaternion  random_direction;
 	Vector  vel;
-	Vector  rpos;
+	HPVector  rpos;
 	double random_roll =	randf() - 0.5;  //  -0.5 to +0.5
 	double random_pitch = 	randf() - 0.5;  //  -0.5 to +0.5
 	quaternion_set_random(&random_direction);
 	
-	rpos = vector_subtract([self position], vector_multiply_scalar(v_forward, start));
+	rpos = HPvector_subtract([self position], vectorToHPVector(vector_multiply_scalar(v_forward, start)));
 	
 	double  eject_speed = -800.0;
 	vel = vector_multiply_scalar(v_forward, [self flightSpeed] + eject_speed);
@@ -10934,7 +10957,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	Quaternion  jetto_orientation = kIdentityQuaternion;
 	Vector  vel, v_eject, v_eject_normal;
-	Vector  rpos = position;
+	HPVector  rpos = position;
 	double jetto_roll =	0;
 	double jetto_pitch = 0;
 	
@@ -10957,7 +10980,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	v_eject = quaternion_rotate_vector([self normalOrientation], start);
-	rpos = vector_add(rpos, v_eject);
+	rpos = HPvector_add(rpos, vectorToHPVector(v_eject));
 	v_eject = vector_normal(v_eject);
 	v_eject_normal = v_eject;
 	
@@ -11039,7 +11062,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BOOL) collideWithShip:(ShipEntity *)other
 {
-	Vector  loc;
+	HPVector  hploc;
+	Vector loc;
 	double  dam1, dam2;
 	
 	if (!other)
@@ -11048,7 +11072,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity* otherParent = [other parentEntity];
 	BOOL otherIsStation = other == [UNIVERSE station];
 	// calculate line of centers using centres
-	loc = vector_normal_or_zbasis(vector_subtract([other absolutePositionForSubentity], position));
+	hploc = HPvector_normal_or_zbasis(HPvector_subtract([other absolutePositionForSubentity], position));
+	loc = HPVectorToVector(hploc);
+
 	
 	if ([self canScoop:other])
 	{
@@ -11103,7 +11129,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (v2b < -1.0f)  return NO;
 		else
 		{
-			position = vector_subtract(position, loc);	// adjust self position
+			position = HPvector_subtract(position, hploc);	// adjust self position
 			v = kZeroVector;	// go for the 1m/s solution
 		}
 	}
@@ -11169,12 +11195,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		float t = 10.0 * [UNIVERSE getTimeDelta];	// 10 ticks
 		
-		Vector pos1a = vector_add([self position], vector_multiply_scalar(loc, t * v1a));
+		HPVector pos1a = HPvector_add([self position], vectorToHPVector(vector_multiply_scalar(loc, t * v1a)));
 		[self setPosition:pos1a];
 		
 		if (!otherIsStation)
 		{
-			Vector pos2a = vector_add([other position], vector_multiply_scalar(loc, t * v2b));
+			HPVector pos2a = HPvector_add([other position], vectorToHPVector(vector_multiply_scalar(loc, t * v2b)));
 			[other setPosition:pos2a];
 		}
 	}
@@ -11230,10 +11256,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if ([other isStation])						return NO;
 
-	Vector  loc = vector_between(position, [other position]);
+	HPVector  loc = HPvector_between(position, [other position]);
 	
-	if (dot_product(v_forward, loc) < 0.0f)		return NO;  // Must be in front of us
-	if ([self isPlayer] && dot_product(v_up, loc) > 0.0f)  return NO;  // player has to scoop on underside, give more flexibility to NPCs
+	if (dot_product(v_forward, HPVectorToVector(loc)) < 0.0f)		return NO;  // Must be in front of us
+	if ([self isPlayer] && dot_product(v_up, HPVectorToVector(loc)) > 0.0f)  return NO;  // player has to scoop on underside, give more flexibility to NPCs
 	
 	return YES;
 }
@@ -11800,7 +11826,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			there's a nova in the works, the AI asked us not to, or we're in
 			interstellar space.
 		*/
-		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
+		// now handled by system repopulator
+//		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
 	}
 
 	// MKW 2011.02.27 - Moved here from ShipEntityAI so escorts reliably follow
@@ -11856,10 +11883,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	}
 	
-	position = [UNIVERSE getWitchspaceExitPosition];
-	position.x += v1.x * d1; // randomise exit position
-	position.y += v1.y * d1;
-	position.z += v1.z * d1;
+	HPVector exitposition = [UNIVERSE getWitchspaceExitPosition];
+	exitposition.x += v1.x * d1; // randomise exit position
+	exitposition.y += v1.y * d1;
+	exitposition.z += v1.z * d1;
+	[self setPosition:exitposition];
 	[self witchspaceLeavingEffects];
 }
 
@@ -11976,14 +12004,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) setDestination:(Vector) dest
+- (void) setDestination:(HPVector) dest
 {
 	destination = dest;
 	frustration = 0.0;	// new destination => no frustration!
 }
 
 
-- (void) setEscortDestination:(Vector) dest
+- (void) setEscortDestination:(HPVector) dest
 {
 	destination = dest; // don't reset frustration for escorts.
 }
@@ -12124,7 +12152,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (Vector) coordinatesForEscortPosition:(unsigned)idx
+- (HPVector) coordinatesForEscortPosition:(unsigned)idx
 {
 	/*
 		This function causes problems with Thargoids: their missiles (aka Thargons) are automatically
@@ -12138,7 +12166,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// Kludge: return the same last escort position if we have escorts above MAX_ESCORTS...
 	idx = MIN(idx, (unsigned)(MAX_ESCORTS - 1));
 	
-	return vector_add(self->position, quaternion_rotate_vector([self normalOrientation], _escortPositions[idx]));
+	return HPvector_add(self->position, vectorToHPVector(quaternion_rotate_vector([self normalOrientation], _escortPositions[idx])));
 }
 
 
@@ -12257,7 +12285,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	for (i = 0; i < station_count; i++)
 	{
 		thing = (StationEntity *)my_entities[i];
-		range2 = distance2(position, thing->position);
+		range2 = HPdistance2(position, thing->position);
 		if (range2 < nearest2 && (includeHostiles || ![thing isHostileTo:self]))
 		{
 			station = thing;
@@ -12352,6 +12380,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (NSDictionary *) dockingInstructions
+{
+	return dockingInstructions;
+}
+
+
 - (void) broadcastThargoidDestroyed
 {
 	[[UNIVERSE findShipsMatchingPredicate:HasRolePredicate
@@ -12374,7 +12408,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 	// Select police units in scanner range
 	if ([entity scanClass] == CLASS_POLICE &&
-		distance2([victim position], [entity position]) < SCANNER_MAX_RANGE2)
+		HPdistance2([victim position], [entity position]) < SCANNER_MAX_RANGE2)
 	{
 		return YES;
 	}
@@ -12422,7 +12456,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	if (!other_ship || !message_text) return;
 	if (!crew && !unpilotedOverride) return;
 	
-	double d2 = distance2(position, [other_ship position]);
+	double d2 = HPdistance2(position, [other_ship position]);
 	if (d2 > scannerRange * scannerRange)
 		return;					// out of comms range
 
@@ -12449,7 +12483,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	[lastRadioMessage autorelease];
 	lastRadioMessage = [message_text retain];
 
-	double d2 = distance2(position, [other_ship position]);
+	double d2 = HPdistance2(position, [other_ship position]);
 	if (d2 > scannerRange * scannerRange)
 	{
 		// out of comms range
@@ -12506,7 +12540,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	}
 	
 	PlayerEntity *player = PLAYER; // make sure that the player always receives a message when in range
-	if (distance2(position, [player position]) < SCANNER_MAX_RANGE2)
+	if (HPdistance2(position, [player position]) < SCANNER_MAX_RANGE2)
 	{
 		[self setCommsMessageColor];
 		[player receiveCommsMessage:expandedMessage from:self];
@@ -12602,7 +12636,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (BoundingBox) findBoundingBoxRelativeTo:(Entity *)other InVectors:(Vector) _i :(Vector) _j :(Vector) _k
 {
-	Vector  opv = other ? other->position : position;
+	HPVector  opv = other ? other->position : position;
 	return [self findBoundingBoxRelativeToPosition:opv InVectors:_i :_j :_k];
 }
 
@@ -12658,8 +12692,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	for (i = 0; (i < ship_count)&&(result == NO_TARGET) ; i++)
 	{
 		ShipEntity* ship = my_entities[i];
-		Vector delta = vector_between(position, ship->position);
-		GLfloat d2 = magnitude2(delta);
+		HPVector delta = HPvector_between(position, ship->position);
+		GLfloat d2 = HPmagnitude2(delta);
 		if (![ship isPlayer] || ![PLAYER isDocked])
 		{ // player doesn't block if docked
 			if ((k * [ship mass] > d2)&&(d2 < SCANNER_MAX_RANGE2))	// if you go off scanner from a blocker - it ceases to block
@@ -12806,8 +12840,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	id target = [self primaryTarget];
 	if (target == nil)  target = @"<none>";
 	OOLog(@"dumpState.shipEntity", @"Target: %@", target);
-	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
-	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
+	OOLog(@"dumpState.shipEntity", @"Destination: %@", HPVectorDescription(destination));
+	OOLog(@"dumpState.shipEntity", @"Other destination: %@", HPVectorDescription(coordinates));
 	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);
 	OOLog(@"dumpState.shipEntity", @"Desired speed: %g", desired_speed);
 	OOLog(@"dumpState.shipEntity", @"Thrust: %g", thrust);

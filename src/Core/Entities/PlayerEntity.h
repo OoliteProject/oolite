@@ -744,6 +744,8 @@ typedef enum
 
 - (void) setGuiToStatusScreen;
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
+- (NSString *) primedEquipmentName:(NSInteger)offset;
+- (NSUInteger) primedEquipmentCount;
 - (NSArray *) cargoList;
 - (NSArray *) cargoListForScripting;
 - (void) setGuiToSystemDataScreen;
@@ -834,8 +836,8 @@ typedef enum
 - (NSString *)customViewDescription;
 - (void)resetCustomView;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
-- (Vector) viewpointPosition;
-- (Vector) breakPatternPosition;
+- (HPVector) viewpointPosition;
+- (HPVector) breakPatternPosition;
 - (Vector) viewpointOffset;
 - (Vector) viewpointOffsetAft;
 - (Vector) viewpointOffsetForward;

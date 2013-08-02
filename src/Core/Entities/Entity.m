@@ -39,8 +39,6 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "NSObjectOOExtensions.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.Entity"
-
 #ifndef NDEBUG
 uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;
@@ -58,6 +56,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 @interface Entity (OOPrivate)
 
 - (BOOL) checkLinkedLists;
+- (void) updateCameraRelativePosition;
 
 @end
 
@@ -73,7 +72,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 	orientation = kIdentityQuaternion;
 	rotMatrix = kIdentityMatrix;
-	position = kZeroVector;
+	position = kZeroHPVector;
 	
 	no_draw_distance = 100000.0;  //  10 km
 	
@@ -114,7 +113,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", VectorDescription([self position]), OOStringFromScanClass([self scanClass]), OOStringFromEntityStatus([self status])];
+	return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", HPVectorDescription([self position]), OOStringFromScanClass([self scanClass]), OOStringFromEntityStatus([self status])];
 }
 
 
@@ -593,48 +592,66 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (Vector) position
+- (HPVector) position
 {
 	return position;
 }
 
+- (Vector) cameraRelativePosition
+{
+	return cameraRelativePosition;
+}
+
 
 // Exposed to uniform bindings.
+// so needs to remain at OpenGL precision levels
 - (Vector) relativePosition
 {
-	return vector_subtract([self position], [PLAYER position]);
+	return HPVectorToVector(HPvector_subtract([self position], [PLAYER position]));
+}
+
+- (Vector) vectorTo:(Entity *)entity
+{
+	return HPVectorToVector(HPvector_subtract([entity position], [self position]));
 }
 
 
-- (void) setPosition:(Vector) posn
+- (void) setPosition:(HPVector) posn
 {
 	position = posn;
+	[self updateCameraRelativePosition];
 }
 
 
-- (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z
+- (void) setPositionX:(OOHPScalar)x y:(OOHPScalar)y z:(OOHPScalar)z
 {
 	position.x = x;
 	position.y = y;
 	position.z = z;
+	[self updateCameraRelativePosition];
+}
+
+- (void) updateCameraRelativePosition
+{
+	cameraRelativePosition = HPVectorToVector(HPvector_subtract([self absolutePositionForSubentity],[PLAYER viewpointPosition]));
 }
 
 
-- (Vector) absolutePositionForSubentity
+- (HPVector) absolutePositionForSubentity
 {
-	return [self absolutePositionForSubentityOffset:kZeroVector];
+	return [self absolutePositionForSubentityOffset:kZeroHPVector];
 }
 
 
-- (Vector) absolutePositionForSubentityOffset:(Vector) offset
+- (HPVector) absolutePositionForSubentityOffset:(HPVector) offset
 {
-	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, rotMatrix));
+	HPVector		abspos = HPvector_add(position, OOHPVectorMultiplyMatrix(offset, rotMatrix));
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
 	
 	while (father != nil && father != last)
 	{
-		abspos = vector_add(OOVectorMultiplyMatrix(abspos, [father drawRotationMatrix]), [father position]);
+		abspos = HPvector_add(OOHPVectorMultiplyMatrix(abspos, [father drawRotationMatrix]), [father position]);
 		last = father;
 		if (![last isSubEntity]) break;
 		father = [father owner];
@@ -818,8 +835,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) moveForward:(double)amount
 {
-	Vector forward = vector_multiply_scalar(vector_forward_from_quaternion(orientation), amount);
-	position = vector_add(position, forward);
+	HPVector forward = HPvector_multiply_scalar(HPvector_forward_from_quaternion(orientation), amount);
+	position = HPvector_add(position, forward);
 	distanceTravelled += amount;
 }
 
@@ -839,14 +856,14 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (OOMatrix) transformationMatrix
 {
 	OOMatrix result = rotMatrix;
-	return OOMatrixTranslate(result, position);
+	return OOMatrixHPTranslate(result, position);
 }
 
 
 - (OOMatrix) drawTransformationMatrix
 {
 	OOMatrix result = rotMatrix;
-	return OOMatrixTranslate(result, position);
+	return OOMatrixHPTranslate(result, position);
 }
 
 
@@ -882,25 +899,28 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			zero_distance = [[self owner] zeroDistance];
 			cam_zero_distance = [[self owner] camZeroDistance];
+			[self updateCameraRelativePosition];
 		}
 		else
 		{
-			zero_distance = distance2(PLAYER->position, position);
-			cam_zero_distance = distance2([PLAYER viewpointPosition], position);
+			zero_distance = HPdistance2(PLAYER->position, position);
+			cam_zero_distance = HPdistance2([PLAYER viewpointPosition], position);
+			[self updateCameraRelativePosition];
 		}
 	}
 	else
 	{
-		zero_distance = magnitude2(position);
+		zero_distance = HPmagnitude2(position);
 		cam_zero_distance = zero_distance;
+		cameraRelativePosition = HPVectorToVector(position);
 	}
 	
 	if ([self status] != STATUS_COCKPIT_DISPLAY)
 	{
-		position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
+		position = HPvector_add(position, HPvector_multiply_scalar(vectorToHPVector(velocity), delta_t));
 	}
 
-	hasMoved = !vector_equal(position, lastPosition);
+	hasMoved = !HPvector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
 	lastOrientation = orientation;
@@ -961,7 +981,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
 	OOLog(@"dumpState.entity", @"Scan class: %@", OOStringFromScanClass(scanClass));
 	OOLog(@"dumpState.entity", @"Status: %@", OOStringFromEntityStatus([self status]));
-	OOLog(@"dumpState.entity", @"Position: %@", VectorDescription(position));
+	OOLog(@"dumpState.entity", @"Position: %@", HPVectorDescription(position));
 	OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(orientation));
 	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
 	OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
@@ -1026,7 +1046,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	NSString *result = [self descriptionForObjDumpBasic];
 	
-	result = [result stringByAppendingFormat:@" range: %g (visible: %@)", distance([self position], [PLAYER position]), [self isVisible] ? @"yes" : @"no"];
+	result = [result stringByAppendingFormat:@" range: %g (visible: %@)", HPdistance([self position], [PLAYER position]), [self isVisible] ? @"yes" : @"no"];
 	
 	return result;
 }

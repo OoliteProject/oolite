@@ -62,11 +62,12 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation);
 OOINLINE OOMatrix OOMatrixForTranslation(Vector v) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixForTranslationComponents(OOScalar dx, OOScalar dy, OOScalar dz) INLINE_CONST_FUNC;
 
-OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos) CONST_FUNC;
+OOMatrix OOMatrixForBillboard(HPVector bbPos, HPVector eyePos) CONST_FUNC;
 
 
 /* Matrix transformations */
 OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixHPTranslate(OOMatrix m, HPVector offset) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, OOScalar dx, OOScalar dy, OOScalar dz) INLINE_CONST_FUNC;
 
 OOINLINE OOMatrix OOMatrixScale(OOMatrix m, OOScalar sx, OOScalar sy, OOScalar sz) INLINE_CONST_FUNC;
@@ -86,6 +87,7 @@ OOINLINE bool OOMatrixIsIdentity(OOMatrix m) INLINE_CONST_FUNC;
 /* Matrix multiplication */
 OOMatrix OOMatrixMultiply(OOMatrix a, OOMatrix b) CONST_FUNC;
 Vector OOVectorMultiplyMatrix(Vector v, OOMatrix m) CONST_FUNC;
+HPVector OOHPVectorMultiplyMatrix(HPVector v, OOMatrix m) CONST_FUNC;
 
 
 /* Extraction */
@@ -237,6 +239,11 @@ OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, OOScalar dx, OOScalar 
 OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset)
 {
 	return OOMatrixTranslateComponents(m, offset.x, offset.y, offset.z);
+}
+
+OOINLINE OOMatrix OOMatrixHPTranslate(OOMatrix m, HPVector offset)
+{
+	return OOMatrixTranslateComponents(m, (OOScalar)offset.x, (OOScalar)offset.y, (OOScalar)offset.z);
 }
 
 

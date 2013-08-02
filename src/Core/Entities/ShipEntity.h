@@ -186,7 +186,7 @@ typedef enum
 	Vector					v_forward, v_up, v_right;	// unit vectors derived from the direction faced
 	
 	// variables which are controlled by AI
-	Vector					destination;				// for flying to/from a set point
+	HPVector					destination;				// for flying to/from a set point
 
 	GLfloat					desired_range;				// range to which to journey/scan
 	GLfloat					desired_speed;				// speed at which to travel
@@ -211,6 +211,7 @@ typedef enum
 	NSDictionary			*dockingInstructions;
 	
 	OOColor					*laser_color;
+	OOColor					*exhaust_emissive_color;
 	OOColor					*scanner_display_color1;
 	OOColor					*scanner_display_color2;
 	
@@ -303,7 +304,7 @@ typedef enum
 	
 	// AI stuff
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position
-	Vector					coordinates;				// for flying to/from a set point
+	HPVector					coordinates;				// for flying to/from a set point
 	Vector					reference;					// a direction vector of magnitude 1 (* turrets *)
 	
 	NSUInteger				_subIdx;					// serialisation index - used only if this ship is a subentity
@@ -376,7 +377,7 @@ typedef enum
 	unsigned				n_scanned_ships;
 	
 	// advanced navigation
-	Vector					navpoints[32];
+	HPVector					navpoints[32];
 	unsigned				next_navpoint_index;
 	unsigned				number_of_navpoints;
 	
@@ -490,13 +491,13 @@ typedef enum
 - (float) volume;
 
 // octree collision hunting
-- (GLfloat)doesHitLine:(Vector)v0 :(Vector)v1;
-- (GLfloat)doesHitLine:(Vector)v0 :(Vector)v1 :(ShipEntity**)hitEntity;
-- (GLfloat)doesHitLine:(Vector)v0 :(Vector)v1 withPosition:(Vector)o andIJK:(Vector)i :(Vector)j :(Vector)k;	// for subentities
+- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1;
+- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1 :(ShipEntity**)hitEntity;
+- (GLfloat)doesHitLine:(HPVector)v0 :(HPVector)v1 withPosition:(HPVector)o andIJK:(Vector)i :(Vector)j :(Vector)k;	// for subentities
 
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv InVectors:(Vector)i :(Vector)j :(Vector)k;
+- (BoundingBox) findBoundingBoxRelativeToPosition:(HPVector)opv InVectors:(Vector)i :(Vector)j :(Vector)k;
 
-- (Vector)absoluteTractorPosition;
+- (HPVector)absoluteTractorPosition;
 
 // beacons // definitions now in <OOBeaconEntity> protocol
 /*- (NSString *) beaconCode;
@@ -938,11 +939,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (GLfloat) rangeToDestination;
 - (double) trackDestination:(double) delta_t :(BOOL) retreat;
 
-- (void) setCoordinate:(Vector)coord;
-- (Vector) coordinates;
-- (Vector) destination;
-- (Vector) distance_six: (GLfloat) dist;
-- (Vector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset;
+- (void) setCoordinate:(HPVector)coord;
+- (HPVector) coordinates;
+- (HPVector) destination;
+- (HPVector) distance_six: (GLfloat) dist;
+- (HPVector) distance_twelve: (GLfloat) dist withOffset:(GLfloat)offset;
 
 - (void) setEvasiveJink:(GLfloat) z;
 - (void) evasiveAction:(double) delta_t;
@@ -967,7 +968,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireStarboardWeapon:(double)range;
 - (BOOL) fireTurretCannon:(double)range;
 - (void) setLaserColor:(OOColor *)color;
+- (void) setExhaustEmissiveColor:(OOColor *)color;
 - (OOColor *)laserColor;
+- (OOColor *)exhaustEmissiveColor;
 - (BOOL) fireSubentityLaserShot:(double)range;
 - (BOOL) fireDirectLaserShot:(double)range;
 - (BOOL) fireDirectLaserDefensiveShot;
@@ -1028,8 +1031,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) switchLightsOff;
 - (BOOL) lightsActive;
 
-- (void) setDestination:(Vector) dest;
-- (void) setEscortDestination:(Vector) dest;
+- (void) setDestination:(HPVector) dest;
+- (void) setEscortDestination:(HPVector) dest;
 
 - (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort;
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship;
@@ -1043,6 +1046,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) landOnPlanet:(OOPlanetEntity *)planet;
 
 - (void) abortDocking;
+- (NSDictionary *) dockingInstructions;
 
 - (void) broadcastThargoidDestroyed;
 

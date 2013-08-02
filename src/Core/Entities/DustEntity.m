@@ -52,7 +52,6 @@ MA 02110-1301, USA.
 
 @end
 
-
 #if OO_SHADERS
 enum
 {
@@ -151,6 +150,10 @@ enum
 
 - (void) update:(OOTimeDelta) delta_t
 {
+	// [self setPosition:position];
+	HPVector c_pos = [PLAYER viewpointPosition];
+	cameraRelativePosition = make_vector((OOScalar)-fmod(c_pos.x,DUST_SCALE),(OOScalar)-fmod(c_pos.y,DUST_SCALE),(OOScalar)-fmod(c_pos.z,DUST_SCALE));
+
 #if OO_SHADERS
 	if (EXPECT_NOT(shaderMode == kShaderModeUnknown))  [self checkShaderMode];
 	
@@ -158,12 +161,9 @@ enum
 	if (shaderMode == kShaderModeOn)  return;
 #endif
 	
-	PlayerEntity* player = PLAYER;
-	assert(player != nil);
-	
 	zero_distance = 0.0;
 			
-	Vector offset = [player position];
+	Vector offset = vector_flip(cameraRelativePosition);
 	GLfloat  half_scale = DUST_SCALE * 0.50;
 	int vi;
 	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
@@ -228,10 +228,12 @@ enum
 	return shader;
 }
 
-
 - (Vector) offsetPlayerPosition
 {
-	return vector_subtract([PLAYER position], make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
+	// used as shader uniform, so needs to be low precision
+	HPVector c_pos = [PLAYER viewpointPosition];
+	Vector offset = make_vector((OOScalar)fmod(c_pos.x,DUST_SCALE),(OOScalar)fmod(c_pos.y,DUST_SCALE),(OOScalar)fmod(c_pos.z,DUST_SCALE));
+	return vector_subtract(offset, make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
 }
 
 

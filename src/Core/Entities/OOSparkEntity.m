@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 
 @implementation OOSparkEntity
 
-- (id) initWithPosition:(Vector)pos
+- (id) initWithPosition:(HPVector)pos
 			   velocity:(Vector)vel
 			   duration:(OOTimeDelta)duration
 				   size:(float)size

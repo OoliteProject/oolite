@@ -46,19 +46,19 @@ MA 02110-1301, USA.
 	GLfloat					sun_specular[4];
 	
 	GLfloat					discColor[4];
-	GLfloat					innerCoronaColor[4];
-	GLfloat					middleCoronaColor[4];
 	GLfloat					outerCoronaColor[4];
 	
-	GLfloat					cor4k, lim4k;
-	GLfloat					cor8k, lim8k;
 	GLfloat					cor16k, lim16k;
 	
 	double					corona_speed_factor;		// multiply delta_t by this before adding it to corona_stage
 	double					corona_stage;				// 0.0 -> 1.0
 	GLfloat					rvalue[SUN_CORONA_SAMPLES];	// stores random values for adjusting colors in the corona
 	float					corona_blending;
-	
+
+	GLuint         sunTriangles[3240*3];
+	GLfloat sunVertices[1801*3];
+	GLfloat sunColors[1801*4];
+
 	OOTimeDelta				_novaCountdown;
 	OOTimeDelta				_novaExpansionTimer;
 	float					_novaExpansionRate;
@@ -79,6 +79,7 @@ MA 02110-1301, USA.
 - (BOOL) goneNova;
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
 
-- (void) drawUnconditionally;
+- (void) drawStarGlare;
+
 
 @end

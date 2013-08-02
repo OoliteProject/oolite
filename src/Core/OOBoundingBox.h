@@ -55,6 +55,7 @@ OOINLINE void bounding_box_get_dimensions(BoundingBox bb, GLfloat *xSize, GLfloa
 OOINLINE Vector OOBoundingBoxCenter(BoundingBox bb) INLINE_CONST_FUNC;
 
 Vector OORandomPositionInBoundingBox(BoundingBox bb);
+HPVector OOHPRandomPositionInBoundingBox(BoundingBox bb);
 
 
 

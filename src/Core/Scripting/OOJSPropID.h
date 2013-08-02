@@ -38,3 +38,4 @@ MA 02110-1301, USA.
 #define OOJSID(str) ({ static jsid idCache = JSID_VOID; if (EXPECT_NOT(idCache == JSID_VOID)) OOJSInitJSIDCachePRIVATE(""str, &idCache); idCache; })
 #endif
 void OOJSInitJSIDCachePRIVATE(const char *name, jsid *idCache);
+

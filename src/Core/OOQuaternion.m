@@ -80,6 +80,11 @@ Vector vector_forward_from_quaternion(Quaternion quat)
 	else  return make_vector(0.0f, 0.0f, 1.0f);
 }
 
+HPVector HPvector_forward_from_quaternion(Quaternion quat)
+{
+	// HPVect: profile this later
+	return vectorToHPVector(vector_forward_from_quaternion(quat));
+}
 
 Vector vector_up_from_quaternion(Quaternion quat)
 {
@@ -347,6 +352,22 @@ NSString *QuaternionDescription(Quaternion quaternion)
 
 
 Vector quaternion_rotate_vector(Quaternion q, Vector v)
+{
+	Quaternion				qv;
+	
+	qv.w = 0.0f - q.x * v.x - q.y * v.y - q.z * v.z;
+	qv.x = -q.w * v.x + q.y * v.z - q.z * v.y;
+	qv.y = -q.w * v.y + q.z * v.x - q.x * v.z;
+	qv.z = -q.w * v.z + q.x * v.y - q.y * v.x;
+	
+	v.x = qv.w * -q.x + qv.x * -q.w + qv.y * -q.z - qv.z * -q.y;
+	v.y = qv.w * -q.y + qv.y * -q.w + qv.z * -q.x - qv.x * -q.z;
+	v.z = qv.w * -q.z + qv.z * -q.w + qv.x * -q.y - qv.y * -q.x;
+	
+	return v;
+}
+
+HPVector quaternion_rotate_HPvector(Quaternion q, HPVector v)
 {
 	Quaternion				qv;
 	

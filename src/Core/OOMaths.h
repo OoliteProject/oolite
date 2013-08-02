@@ -66,6 +66,8 @@ typedef GLfloat OOScalar;
 typedef float OOScalar;
 #endif
 
+typedef double OOHPScalar;
+
 
 #ifndef M_PI
 	#define	M_PI		3.14159265358979323846	/* pi */
@@ -119,6 +121,7 @@ typedef float OOScalar;
 
 #include "OOFastArithmetic.h"
 #include "OOVector.h"
+#include "OOHPVector.h"
 #include "OOQuaternion.h"
 #include "OOMatrix.h"
 

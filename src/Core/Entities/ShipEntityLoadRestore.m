@@ -97,9 +97,9 @@ static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *con
 	[result setObject:updatedShipInfo forKey:KEY_SHIPDATA_OVERRIDES];
 	if (deletes != nil)  [result setObject:deletes forKey:KEY_SHIPDATA_DELETES];
 	
-	if (!vector_equal([self position], kZeroVector))
+	if (!HPvector_equal([self position], kZeroHPVector))
 	{
-		[result oo_setVector:[self position] forKey:KEY_POSITION];
+		[result oo_setHPVector:[self position] forKey:KEY_POSITION];
 	}
 	if (!quaternion_equal([self normalOrientation], kIdentityQuaternion))
 	{
@@ -203,7 +203,7 @@ static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *con
 	}
 	
 	// The following stuff is deliberately set up the same way even if using role fallback.
-	[ship setPosition:[dict oo_vectorForKey:KEY_POSITION]];
+	[ship setPosition:[dict oo_hpvectorForKey:KEY_POSITION]];
 	[ship setNormalOrientation:[dict oo_quaternionForKey:KEY_ORIENTATION]];
 	
 	float energyLevel = [dict oo_floatForKey:KEY_ENERGY_LEVEL defaultValue:1.0f];

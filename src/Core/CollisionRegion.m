@@ -34,9 +34,9 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 
 
-static BOOL positionIsWithinRegion(Vector position, CollisionRegion *region);
-static BOOL sphereIsWithinRegion(Vector position, GLfloat rad, CollisionRegion *region);
-static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region);
+static BOOL positionIsWithinRegion(HPVector position, CollisionRegion *region);
+static BOOL sphereIsWithinRegion(HPVector position, GLfloat rad, CollisionRegion *region);
+static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region);
 
 
 @implementation CollisionRegion
@@ -74,7 +74,7 @@ static int crid_counter = 1;
 }
 
 
-- (id) initAtLocation:(Vector)locn withRadius:(GLfloat)rad withinRegion:(CollisionRegion *)otherRegion
+- (id) initAtLocation:(HPVector)locn withRadius:(GLfloat)rad withinRegion:(CollisionRegion *)otherRegion
 {
 	if ((self = [self init]))
 	{
@@ -109,7 +109,7 @@ static int crid_counter = 1;
 }
 
 
-- (void) addSubregionAtPosition:(Vector)pos withRadius:(GLfloat)rad
+- (void) addSubregionAtPosition:(HPVector)pos withRadius:(GLfloat)rad
 {
 	// check if this can be fitted within any of the subregions
 	//
@@ -139,12 +139,12 @@ static int crid_counter = 1;
 
 // update routines to check if a position is within the radius or within its borders
 //
-static BOOL positionIsWithinRegion(Vector position, CollisionRegion *region)
+static BOOL positionIsWithinRegion(HPVector position, CollisionRegion *region)
 {
 	if (region == nil)  return NO;
 	if (region->isUniverse)  return YES;
 	
-	Vector loc = region->location;
+	HPVector loc = region->location;
 	GLfloat r1 = region->radius;
 	
 	 if ((position.x < loc.x - r1)||(position.x > loc.x + r1)||
@@ -158,12 +158,12 @@ static BOOL positionIsWithinRegion(Vector position, CollisionRegion *region)
 }
 
 
-static BOOL sphereIsWithinRegion(Vector position, GLfloat rad, CollisionRegion *region)
+static BOOL sphereIsWithinRegion(HPVector position, GLfloat rad, CollisionRegion *region)
 {
 	if (region == nil)  return NO;
 	if (region->isUniverse)  return YES;
 	
-	Vector loc = region->location;
+	HPVector loc = region->location;
 	GLfloat r1 = region->radius;
 	
 	 if ((position.x - rad < loc.x - r1)||(position.x + rad > loc.x + r1)||
@@ -177,12 +177,12 @@ static BOOL sphereIsWithinRegion(Vector position, GLfloat rad, CollisionRegion *
 }
 
 
-static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
+static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region)
 {
 	if (region == nil)  return NO;
 	if (region->isUniverse)  return YES;
 	
-	Vector loc = region->location;
+	HPVector loc = region->location;
 	GLfloat r1 = region->radius + region->border_radius;
 	
 	 if ((position.x < loc.x - r1)||(position.x > loc.x + r1)||
@@ -229,7 +229,7 @@ static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 
 - (BOOL) checkEntity:(Entity *)ent
 {
-	Vector position = ent->position;
+	HPVector position = ent->position;
 	
 	// check subregions
 	CollisionRegion *sub = nil;
@@ -264,7 +264,7 @@ static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 	// According to Shark, when this was in Universe this was where Oolite spent most time!
 	//
 	Entity		*e1, *e2;
-	Vector		p1, p2;
+	HPVector		p1;
 	double		dist2, r1, r2, r0, min_dist2;
 	unsigned	i;
 	Entity		*entities_to_test[n_entities];
@@ -323,10 +323,9 @@ static BOOL positionIsWithinBorders(Vector position, CollisionRegion *region)
 		{
 			checks_this_tick++;
 			
-			p2 = vector_subtract(e2->position, p1);
 			r2 = e2->collision_radius;
 			r0 = r1 + r2;
-			dist2 = magnitude2(p2);
+			dist2 = HPdistance2(e2->position, p1);
 			min_dist2 = r0 * r0;
 			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
 			{
@@ -451,15 +450,15 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 //		return NO;	// things already /in/ shade can't shade things more.
 	//
 	// check projected sizes of discs
-	GLfloat d2_sun = distance2(e1->position, the_sun->position);
-	GLfloat d2_e2sun = distance2(e2->position, the_sun->position);
+	GLfloat d2_sun = HPdistance2(e1->position, the_sun->position);
+	GLfloat d2_e2sun = HPdistance2(e2->position, the_sun->position);
 	if (d2_e2sun > d2_sun)
 	{
 		// you are nearer the sun than the potential occluder, so it can't shade you
 		return NO;
 	}
 	
-	GLfloat d2_e2 = distance2( e1->position, e2->position);
+	GLfloat d2_e2 = HPdistance2( e1->position, e2->position);
 	GLfloat cr_sun = the_sun->collision_radius;
 	
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
@@ -475,13 +474,13 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	// find the difference between the angles subtended by occluder and sun
 	float theta_diff = asin(cr_e2 / sqrt(d2_e2)) - asin(cr_sun / sqrt(d2_sun));
 	
-	Vector p_sun = the_sun->position;
-	Vector p_e2 = e2->position;
-	Vector p_e1 = e1->position;
-	Vector v_sun = vector_subtract(p_sun, p_e1);
+	HPVector p_sun = the_sun->position;
+	HPVector p_e2 = e2->position;
+	HPVector p_e1 = e1->position;
+	Vector v_sun = HPVectorToVector(HPvector_subtract(p_sun, p_e1));
 	v_sun = vector_normal_or_zbasis(v_sun);
 	
-	Vector v_e2 = vector_subtract(p_e2, p_e1);
+	Vector v_e2 = HPVectorToVector(HPvector_subtract(p_e2, p_e1));
 	v_e2 = vector_normal_or_xbasis(v_e2);
 	
 	float phi = acos(dot_product(v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint

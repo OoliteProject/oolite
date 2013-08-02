@@ -2,6 +2,7 @@
 	GLOBAL =
 	{
 		ENTER = (performIdle); 
+		START_TUMBLING = (performBuoyTumble); 
 		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
 		UPDATE = ("pauseAI: 3600"); 
 	}; 

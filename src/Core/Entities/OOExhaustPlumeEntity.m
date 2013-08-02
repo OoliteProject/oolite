@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ShipEntity.h"
 #import "Universe.h"
 #import "OOMacroOpenGL.h"
+#import "PlayerEntity.h"
 
 #import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
@@ -73,7 +74,7 @@ static OOTexture *sPlumeTexture = nil;
 	if ((self = [super init]))
 	{
 		[self setOwner:ship];
-		Vector pos = { [definition oo_floatAtIndex:0], [definition oo_floatAtIndex:1], [definition oo_floatAtIndex:2] };
+		HPVector pos = { [definition oo_floatAtIndex:0], [definition oo_floatAtIndex:1], [definition oo_floatAtIndex:2] };
 		[self setPosition:pos];
 		Vector scale = { [definition oo_floatAtIndex:3], [definition oo_floatAtIndex:4], [definition oo_floatAtIndex:5] };
 		_exhaustScale = scale;
@@ -111,7 +112,9 @@ static OOTexture *sPlumeTexture = nil;
 		_trackTime = now;
 	}
 
-	GLfloat ex_emissive[4]	= {0.7f, 0.9, 1.0f, 0.9f * kOverallAlpha};   // pale blue
+	//GLfloat ex_emissive[4]	= {0.7f, 0.9, 1.0f, 0.9f * kOverallAlpha};   // pale blue - old definition
+	GLfloat ex_emissive[4];
+	[[ship exhaustEmissiveColor] getRed:&ex_emissive[0] green:&ex_emissive[1] blue:&ex_emissive[2] alpha:&ex_emissive[3]];
 	const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2};
 	const GLfloat c1[8] = { 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2, 0.0, M_SQRT1_2};
 	
@@ -147,7 +150,7 @@ static OOTexture *sPlumeTexture = nil;
 	if ((int)(ranrot_rand() % 25) < dam - 75)
 		flare_factor = 0.0;
 	
-	Vector currentPos = ship->position;
+	HPVector currentPos = ship->position;
 	Vector vfwd = [ship forwardVector];
 	GLfloat	spd = 0.5 * [ship flightSpeed];
 	vfwd = vector_multiply_scalar(vfwd, spd);
@@ -156,7 +159,7 @@ static OOTexture *sPlumeTexture = nil;
 	vi = master_i;
 	vj = [ship upVector];
 	vk = [ship forwardVector];
-	zero.position = make_vector(currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
+	zero.position = make_HPvector(currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
 								currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
 								currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
 	
@@ -335,6 +338,23 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	
 	OOGL(glPopMatrix());	// restore absolute positioning
 	OOGL(glPushMatrix());	// avoid stack underflow
+//	GLTranslateOOVector(vector_flip([self cameraRelativePosition]));
+	HPVector cam = [PLAYER viewpointPosition];
+	for (unsigned n=0;n<34*3;n++)
+	{
+		switch (n%3) 
+		{
+		case 0: // x coordinates
+			_glVertices[n] = (GLfloat)(_vertices[n] - cam.x);
+			break;
+		case 1: // y coordinates
+			_glVertices[n] = (GLfloat)(_vertices[n] - cam.y);
+			break;
+		case 2: // z coordinates
+			_glVertices[n] = (GLfloat)(_vertices[n] - cam.z);
+			break;
+		}
+	}
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
@@ -349,7 +369,7 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	OOGL(glShadeModel(GL_SMOOTH));
 	
 	OOGL(glEnableClientState(GL_COLOR_ARRAY));
-	OOGL(glVertexPointer(3, GL_FLOAT, 0, _vertices));
+	OOGL(glVertexPointer(3, GL_FLOAT, 0, _glVertices));
 	OOGL(glColorPointer(4, GL_FLOAT, 0, _exhaustBaseColors));
 
 	double intpart, dphase = 1.0-modf((double)[UNIVERSE getTime]*2.5,&intpart);
@@ -451,7 +471,11 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	ShipEntity *ship = [self owner];
 	
 	// Absolute position of self
-	Vector framePos = OOVectorMultiplyMatrix([self position], [ship drawTransformationMatrix]);
+	// normally this would use the transformation matrix, but that
+	// introduces inaccuracies
+	// so just use the rotation matrix, then translate using HPVectors
+	HPVector framePos = OOHPVectorMultiplyMatrix([self position], [ship drawRotationMatrix]);
+	framePos = HPvector_add(framePos,[ship position]);
 	Frame frame = { [UNIVERSE getTime], framePos, [ship normalOrientation], [ship upVector] };
 	
 	_track[_nextFrame] = frame;
@@ -496,7 +520,7 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	// interpolate
 	double f1 = 1.0 - f0;
 	
-	Vector posn;
+	HPVector posn;
 	posn.x =	f0 * frame_zero.position.x + f1 * frame_one.position.x;
 	posn.y =	f0 * frame_zero.position.y + f1 * frame_one.position.y;
 	posn.z =	f0 * frame_zero.position.z + f1 * frame_one.position.z;
@@ -526,7 +550,7 @@ GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	_track[_nextFrame] = frame;
 	_nextFrame = (_nextFrame + 1) % kExhaustFrameCount;*/
 	_nextFrame = 0;
-	Vector framePos = OOVectorMultiplyMatrix([self position], [[self owner] drawTransformationMatrix]);
+	HPVector framePos = OOHPVectorMultiplyMatrix([self position], [[self owner] drawTransformationMatrix]);
 	uint8_t i;
 	for (i = 0; i < kExhaustFrameCount; i++)
 	{

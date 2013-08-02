@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 static JSObject *sVectorPrototype;
 
 
-static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, Vector *outVector, NSString *method)  NONNULL_FUNC;
+static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, HPVector *outVector, NSString *method)  NONNULL_FUNC;
 
 
 static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
@@ -161,12 +161,12 @@ JSObject *JSVectorWithVector(JSContext *context, Vector vector)
 	OOJS_PROFILE_ENTER
 	
 	JSObject				*result = NULL;
-	Vector					*private = NULL;
+	HPVector					*private = NULL;
 	
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NULL;
 	
-	*private = vector;
+	*private = vectorToHPVector(vector);
 	
 	result = JS_NewObject(context, &sVectorClass, sVectorPrototype, NULL);
 	if (result != NULL)
@@ -199,6 +199,49 @@ BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)
 	OOJS_PROFILE_EXIT
 }
 
+JSObject *JSVectorWithHPVector(JSContext *context, HPVector vector)
+{
+	OOJS_PROFILE_ENTER
+	
+	JSObject				*result = NULL;
+	HPVector					*private = NULL;
+	
+	private = malloc(sizeof *private);
+	if (EXPECT_NOT(private == NULL))  return NULL;
+	
+	*private = vector;
+	
+	result = JS_NewObject(context, &sVectorClass, sVectorPrototype, NULL);
+	if (result != NULL)
+	{
+		if (EXPECT_NOT(!JS_SetPrivate(context, result, private)))  result = NULL;
+	}
+	
+	if (EXPECT_NOT(result == NULL)) free(private);
+	
+	return result;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+BOOL HPVectorToJSValue(JSContext *context, HPVector vector, jsval *outValue)
+{
+	OOJS_PROFILE_ENTER
+	
+	JSObject				*object = NULL;
+	
+	assert(outValue != NULL);
+	
+	object = JSVectorWithHPVector(context, vector);
+	if (EXPECT_NOT(object == NULL)) return NO;
+	
+	*outValue = OBJECT_TO_JSVAL(object);
+	return YES;
+	
+	OOJS_PROFILE_EXIT
+}
+
 
 BOOL NSPointToVectorJSValue(JSContext *context, NSPoint point, jsval *outValue)
 {
@@ -206,11 +249,20 @@ BOOL NSPointToVectorJSValue(JSContext *context, NSPoint point, jsval *outValue)
 }
 
 
-BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
+BOOL JSValueToHPVector(JSContext *context, jsval value, HPVector *outVector)
 {
 	if (EXPECT_NOT(!JSVAL_IS_OBJECT(value)))  return NO;
 	
 	return JSObjectGetVector(context, JSVAL_TO_OBJECT(value), outVector);
+}
+
+BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
+{
+	if (EXPECT_NOT(!JSVAL_IS_OBJECT(value)))  return NO;
+	HPVector tmp = kZeroHPVector;
+	BOOL result = JSObjectGetVector(context, JSVAL_TO_OBJECT(value), &tmp);
+	*outVector = HPVectorToVector(tmp);
+	return result;
 }
 
 
@@ -275,13 +327,13 @@ static VectorStatistics sVectorConversionStats;
 #endif
 
 
-BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVector)
+BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, HPVector *outVector)
 {
 	OOJS_PROFILE_ENTER
 	
 	assert(outVector != NULL);
 	
-	Vector					*private = NULL;
+	HPVector					*private = NULL;
 	jsuint					arrayLength;
 	jsval					arrayX, arrayY, arrayZ;
 	jsdouble				x, y, z;
@@ -318,7 +370,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 					JS_ValueToNumber(context, arrayZ, &z))
 				{
 					COUNT(arrayCount);
-					*outVector = make_vector(x, y, z);
+					*outVector = make_HPvector(x, y, z);
 					return YES;
 				}
 			}
@@ -344,7 +396,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 	if (JS_InstanceOf(context, vectorObj, &sVectorClass, NULL))
 	{
 		COUNT(protoCount);
-		*outVector = kZeroVector;
+		*outVector = kZeroHPVector;
 		return YES;
 	}
 	
@@ -355,7 +407,7 @@ BOOL JSObjectGetVector(JSContext *context, JSObject *vectorObj, Vector *outVecto
 }
 
 
-static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, Vector *outVector, NSString *method)
+static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, HPVector *outVector, NSString *method)
 {
 	if (EXPECT(JSObjectGetVector(context, vectorObj, outVector)))  return YES;
 	
@@ -367,9 +419,15 @@ static BOOL GetThisVector(JSContext *context, JSObject *vectorObj, Vector *outVe
 
 BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 {
+	return JSVectorSetHPVector(context,vectorObj,vectorToHPVector(vector));
+}
+
+
+BOOL JSVectorSetHPVector(JSContext *context, JSObject *vectorObj, HPVector vector)
+{
 	OOJS_PROFILE_ENTER
 	
-	Vector					*private = NULL;
+	HPVector					*private = NULL;
 	
 	if (EXPECT_NOT(vectorObj == NULL))  return NO;
 	
@@ -392,7 +450,7 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector)
 }
 
 
-static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed, BOOL permitNumberList)
+static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed, BOOL permitNumberList)
 {
 	OOJS_PROFILE_ENTER
 	
@@ -424,7 +482,7 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[2], &z) || isnan(z)))  return NO;
 	
 	// We got our three numbers.
-	*outVector = make_vector(x, y, z);
+	*outVector = make_HPvector(x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 3;
 	
 	return YES;
@@ -434,7 +492,7 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 
 
 // EMMSTRAN: remove outConsumed, since it can only be 1 except in failure (constructor is an exception, but it uses VectorFromArgumentListNoErrorInternal() directly).
-BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)
+BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed)
 {
 	if (VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO))  return YES;
 	else
@@ -447,7 +505,7 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
-BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)
+BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed)
 {
 	return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO);
 }
@@ -461,8 +519,8 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_PROFILE_ENTER
 	
-	Vector				vector;
-	GLfloat				fValue;
+	HPVector				vector;
+	OOHPScalar				fValue;
 	
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
 	
@@ -497,7 +555,7 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	OOJS_PROFILE_ENTER
 	
-	Vector				vector;
+	HPVector				vector;
 	jsdouble			dval;
 	
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &vector)))  return NO;
@@ -526,7 +584,7 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsid propID,
 			return NO;
 	}
 	
-	return JSVectorSetVector(context, this, vector);
+	return JSVectorSetHPVector(context, this, vector);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -552,8 +610,8 @@ static JSBool VectorConstruct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					vector = kZeroVector;
-	Vector					*private = NULL;
+	HPVector					vector = kZeroHPVector;
+	HPVector					*private = NULL;
 	JSObject				*this = NULL;
 	
 	private = malloc(sizeof *private);
@@ -595,11 +653,11 @@ static JSBool VectorToString(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	Vector					thisv;
+	HPVector					thisv;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toString"))) return NO;
 	
-	OOJS_RETURN_OBJECT(VectorDescription(thisv));
+	OOJS_RETURN_OBJECT(HPVectorDescription(thisv));
 	
 	OOJS_NATIVE_EXIT
 }
@@ -610,7 +668,7 @@ static JSBool VectorToSource(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	Vector					thisv;
+	HPVector					thisv;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toSource"))) return NO;
 	
@@ -626,14 +684,14 @@ static JSBool VectorAdd(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv, result;
+	HPVector					thisv, thatv, result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"add"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"add", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = vector_add(thisv, thatv);
+	result = HPvector_add(thisv, thatv);
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -644,14 +702,14 @@ static JSBool VectorSubtract(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv, result;
+	HPVector					thisv, thatv, result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"subtract"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"subtract", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = vector_subtract(thisv, thatv);
+	result = HPvector_subtract(thisv, thatv);
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -662,13 +720,13 @@ static JSBool VectorDistanceTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv;
+	HPVector					thisv, thatv;
 	GLfloat					result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"distanceTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"distanceTo", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = distance(thisv, thatv);
+	result = HPdistance(thisv, thatv);
 	
 	OOJS_RETURN_DOUBLE(result);
 	
@@ -681,13 +739,13 @@ static JSBool VectorSquaredDistanceTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv;
+	HPVector					thisv, thatv;
 	GLfloat					result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"squaredDistanceTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"squaredDistanceTo", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = distance2(thisv, thatv);
+	result = HPdistance2(thisv, thatv);
 	
 	OOJS_RETURN_DOUBLE(result);
 	
@@ -700,15 +758,15 @@ static JSBool VectorMultiply(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, result;
+	HPVector					thisv, result;
 	double					scalar;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"multiply"))) return NO;
 	if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"multiply", argc, OOJS_ARGV, &scalar, NULL)))  return NO;
 	
-	result = vector_multiply_scalar(thisv, scalar);
+	result = HPvector_multiply_scalar(thisv, scalar);
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -719,13 +777,13 @@ static JSBool VectorDot(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv;
+	HPVector					thisv, thatv;
 	GLfloat					result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"dot"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"dot", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = dot_product(thisv, thatv);
+	result = HPdot_product(thisv, thatv);
 	
 	OOJS_RETURN_DOUBLE(result);
 	
@@ -738,13 +796,13 @@ static JSBool VectorAngleTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv;
+	HPVector					thisv, thatv;
 	GLfloat					result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"angleTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"angleTo", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = dot_product(vector_normal(thisv), vector_normal(thatv));
+	result = HPdot_product(HPvector_normal(thisv), HPvector_normal(thatv));
 	if (result > 1.0f) result = 1.0f;
 	if (result < -1.0f) result = -1.0f;
 	// for identical vectors the dot_product sometimes returnes a value > 1.0 because of rounding errors, resulting
@@ -762,14 +820,14 @@ static JSBool VectorCross(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv, result;
+	HPVector					thisv, thatv, result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"cross"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"cross", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
-	result = true_cross_product(thisv, thatv);
+	result = HPtrue_cross_product(thisv, thatv);
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -780,7 +838,7 @@ static JSBool VectorTripleProduct(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv, theotherv;
+	HPVector					thisv, thatv, theotherv;
 	GLfloat					result;
 	uintN					consumed;
 	jsval					*argv = OOJS_ARGV;
@@ -791,7 +849,7 @@ static JSBool VectorTripleProduct(JSContext *context, uintN argc, jsval *vp)
 	argv += consumed;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"tripleProduct", argc, argv, &theotherv, NULL)))  return NO;
 	
-	result = triple_product(thisv, thatv, theotherv);
+	result = HPtriple_product(thisv, thatv, theotherv);
 	
 	OOJS_RETURN_DOUBLE(result);
 	
@@ -804,13 +862,13 @@ static JSBool VectorDirection(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, result;
+	HPVector					thisv, result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"direction"))) return NO;
 	
-	result = vector_normal(thisv);
+	result = HPvector_normal(thisv);
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -821,12 +879,12 @@ static JSBool VectorMagnitude(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv;
+	HPVector					thisv;
 	GLfloat					result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"magnitude"))) return NO;
 	
-	result = magnitude(thisv);
+	result = HPmagnitude(thisv);
 	
 	OOJS_RETURN_DOUBLE(result);
 	
@@ -839,12 +897,12 @@ static JSBool VectorSquaredMagnitude(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv;
+	HPVector					thisv;
 	GLfloat					result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"squaredMagnitude"))) return NO;
 	
-	result = magnitude2(thisv);
+	result = HPmagnitude2(thisv);
 	
 	OOJS_RETURN_DOUBLE(result);
 	
@@ -857,7 +915,7 @@ static JSBool VectorRotationTo(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, thatv;
+	HPVector					thisv, thatv;
 	double					limit;
 	BOOL					gotLimit;
 	Quaternion				result;
@@ -876,8 +934,8 @@ static JSBool VectorRotationTo(JSContext *context, uintN argc, jsval *vp)
 	}
 	else gotLimit = NO;
 	
-	if (gotLimit)  result = quaternion_limited_rotation_between(thisv, thatv, limit);
-	else  result = quaternion_rotation_between(thisv, thatv);
+	if (gotLimit)  result = quaternion_limited_rotation_between(HPVectorToVector(thisv), HPVectorToVector(thatv), limit);
+	else  result = quaternion_rotation_between(HPVectorToVector(thisv), HPVectorToVector(thatv));
 	
 	OOJS_RETURN_QUATERNION(result);
 	
@@ -890,15 +948,15 @@ static JSBool VectorRotateBy(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv, result;
+	HPVector					thisv, result;
 	Quaternion				q;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"rotateBy"))) return NO;
 	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Vector3D", @"rotateBy", argc, OOJS_ARGV, &q, NULL)))  return NO;
 	
-	result = quaternion_rotate_vector(q, thisv);
+	result = quaternion_rotate_HPvector(q, thisv);
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_PROFILE_EXIT
 }
@@ -909,7 +967,7 @@ static JSBool VectorToArray(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					thisv;
+	HPVector					thisv;
 	JSObject				*result = NULL;
 	jsval					nVal;
 	
@@ -942,9 +1000,9 @@ static JSBool VectorToCoordinateSystem(JSContext *context, uintN argc, jsval *vp
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	Vector				thisv;
+	HPVector				thisv;
 	NSString			*coordScheme = nil;
-	Vector				result;
+	HPVector				result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"toCoordinateSystem"))) return NO;
 	
@@ -959,7 +1017,7 @@ static JSBool VectorToCoordinateSystem(JSContext *context, uintN argc, jsval *vp
 	result = [UNIVERSE legacyPositionFrom:thisv asCoordinateSystem:coordScheme];
 	OOJS_END_FULL_NATIVE
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -970,9 +1028,9 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, uintN argc, jsval *
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	Vector				thisv;
+	HPVector				thisv;
 	NSString			*coordScheme = nil;
-	Vector				result;
+	HPVector				result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"fromCoordinateSystem"))) return NO;
 	
@@ -988,7 +1046,7 @@ static JSBool VectorFromCoordinateSystem(JSContext *context, uintN argc, jsval *
 	result = [UNIVERSE coordinatesFromCoordinateSystemString:arg];
 	OOJS_END_FULL_NATIVE
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -1002,9 +1060,9 @@ static JSBool VectorStaticInterpolate(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_PROFILE_ENTER
 	
-	Vector					av, bv;
+	HPVector					av, bv;
 	double					interp;
-	Vector					result;
+	HPVector					result;
 	uintN					consumed;
 	uintN					inArgc = argc;
 	jsval					*argv = OOJS_ARGV;
@@ -1021,9 +1079,9 @@ static JSBool VectorStaticInterpolate(JSContext *context, uintN argc, jsval *vp)
 	if (EXPECT_NOT(argc < 1))  goto INSUFFICIENT_ARGUMENTS;
 	if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"interpolate", argc, argv, &interp, NULL)))  return NO;
 	
-	result = OOVectorInterpolate(av, bv, interp);
+	result = OOHPVectorInterpolate(av, bv, interp);
 	
-	OOJS_RETURN_VECTOR(result);
+	OOJS_RETURN_HPVECTOR(result);
 	
 INSUFFICIENT_ARGUMENTS:
 	OOJSReportBadArguments(context, @"Vector3D", @"interpolate", inArgc, inArgv, 
@@ -1044,7 +1102,7 @@ static JSBool VectorStaticRandom(JSContext *context, uintN argc, jsval *vp)
 	
 	if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV, &maxLength, NULL))  maxLength = 1.0;
 	
-	OOJS_RETURN_VECTOR(OOVectorRandomSpatial(maxLength));
+	OOJS_RETURN_HPVECTOR(OOHPVectorRandomSpatial(maxLength));
 	
 	OOJS_PROFILE_EXIT
 }
@@ -1059,7 +1117,7 @@ static JSBool VectorStaticRandomDirection(JSContext *context, uintN argc, jsval 
 	
 	if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV, &scale, NULL))  scale = 1.0;
 	
-	OOJS_RETURN_VECTOR(vector_multiply_scalar(OORandomUnitVector(), scale));
+	OOJS_RETURN_HPVECTOR(HPvector_multiply_scalar(OORandomUnitHPVector(), scale));
 	
 	OOJS_PROFILE_EXIT
 }
@@ -1074,7 +1132,7 @@ static JSBool VectorStaticRandomDirectionAndLength(JSContext *context, uintN arg
 	
 	if (argc == 0 || !OOJSArgumentListGetNumberNoError(context, argc, OOJS_ARGV, &maxLength, NULL))  maxLength = 1.0;
 	
-	OOJS_RETURN_VECTOR(OOVectorRandomRadial(maxLength));
+	OOJS_RETURN_HPVECTOR(OOHPVectorRandomRadial(maxLength));
 	
 	OOJS_PROFILE_EXIT
 }

@@ -1520,7 +1520,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	yString = [tokens objectAtIndex:4];
 	zString = [tokens objectAtIndex:5];
 
-	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	HPVector posn = make_HPvector( [xString floatValue], [yString floatValue], [zString floatValue]);
 
 	int number = [numberString intValue];
 	if (number < 1)
@@ -1562,7 +1562,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	yString = [tokens objectAtIndex:4];
 	zString = [tokens objectAtIndex:5];
 
-	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	HPVector posn = make_HPvector( [xString floatValue], [yString floatValue], [zString floatValue]);
 
 	int number = [numberString intValue];
 	if (number < 1)
@@ -1597,7 +1597,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	GLfloat y = [[tokens objectAtIndex:4] floatValue];
 	GLfloat z = [[tokens objectAtIndex:5] floatValue];
 	GLfloat r = [[tokens objectAtIndex:6] floatValue];
-	Vector posn = make_vector( x, y, z);
+	HPVector posn = make_HPvector( x, y, z);
 
 	if (number < 1)
 	{
@@ -2260,14 +2260,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"planet",planetKey);
 	}
 	
-	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
+	HPVector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
 		OOLog(kOOLogDebugAddPlanet, @"planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
 	else
 	{
-		ScanVectorFromString(positionString, &posn);
+		ScanHPVectorFromString(positionString, &posn);
 		OOLog(kOOLogDebugAddPlanet, @"planet position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
 	[planet setPosition: posn];
@@ -2310,14 +2310,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"moon",moonKey);
 	}
-	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
+	HPVector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
 		OOLog(kOOLogDebugAddPlanet, @"moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
 	else
 	{
-		ScanVectorFromString(positionString, &posn);
+		ScanHPVectorFromString(positionString, &posn);
 		OOLog(kOOLogDebugAddPlanet, @"moon position (%.2f %.2f %.2f) derived from %@", posn.x, posn.y, posn.z, positionString);
 	}
 	[planet setPosition: posn];
@@ -2604,7 +2604,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", ship);
 		[ship setOrientation: model_q];
-		[ship setPosition: model_p0];
+		[ship setPosition: vectorToHPVector(model_p0)];
 		[UNIVERSE setMainLightPosition:(Vector){ DEMO_LIGHT_POSITION }]; // set light origin
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship switchAITo: @"nullAI.plist"];
@@ -2639,7 +2639,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", doppelganger);
 		[doppelganger setOrientation: model_q];
-		[doppelganger setPosition: model_p0];
+		[doppelganger setPosition: vectorToHPVector(model_p0)];
 		[UNIVERSE setMainLightPosition:(Vector){ DEMO_LIGHT_POSITION }]; // set light origin
 		[doppelganger setScanClass: CLASS_NO_DRAW];
 		[doppelganger switchAITo: @"nullAI.plist"];
@@ -2728,7 +2728,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #endif
 		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);
 		[doppelganger setOrientation: model_q];
-		[doppelganger setPosition: model_p0];
+		// HPVect: mission screen coordinates are small enough that we don't need high-precision for calculations
+		[doppelganger setPosition: vectorToHPVector(model_p0)];
 		/* MKW - add rotation based on current time 
 		 *     - necessary to duplicate the rotation already performed in PlanetEntity.m since we reset the orientation above. */
 		int		deltaT = floor(fmod([self clockTimeAdjusted], 86400));

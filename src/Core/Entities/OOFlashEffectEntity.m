@@ -44,7 +44,7 @@ static OOTexture *sFlashTexture = nil;
 @interface OOFlashEffectEntity (Private)
 
 // Designated initializer.
-- (id) initWithPosition:(Vector)pos size:(float)size color:(OOColor *)color duration:(float)duration;
+- (id) initWithPosition:(HPVector)pos size:(float)size color:(OOColor *)color duration:(float)duration;
 
 + (void) resetGraphicsState;
 
@@ -55,7 +55,7 @@ static OOTexture *sFlashTexture = nil;
 
 @implementation OOFlashEffectEntity
 
-- (id) initExplosionFlashWithPosition:(Vector)pos velocity:(Vector)vel size:(float)size
+- (id) initExplosionFlashWithPosition:(HPVector)pos velocity:(Vector)vel size:(float)size
 {
 	if ((self = [self initWithPosition:pos size:size color:[OOColor whiteColor] duration:kExplosionFlashDuration]))
 	{
@@ -66,7 +66,7 @@ static OOTexture *sFlashTexture = nil;
 }
 
 
-- (id) initLaserFlashWithPosition:(Vector)pos velocity:(Vector)vel color:(OOColor *)color
+- (id) initLaserFlashWithPosition:(HPVector)pos velocity:(Vector)vel color:(OOColor *)color
 {
 	if ((self = [self initWithPosition:pos size:kLaserFlashInitialSize color:color duration:kLaserFlashDuration]))
 	{
@@ -82,13 +82,13 @@ static OOTexture *sFlashTexture = nil;
 }
 
 
-+ (instancetype) laserFlashWithPosition:(Vector)pos velocity:(Vector)vel color:(OOColor *)color
++ (instancetype) laserFlashWithPosition:(HPVector)pos velocity:(Vector)vel color:(OOColor *)color
 {
 	return [[[self alloc] initLaserFlashWithPosition:pos velocity:vel color:color] autorelease];
 }
 
 
-- (id) initWithPosition:(Vector)pos size:(float)size color:(OOColor *)color duration:(float)duration
+- (id) initWithPosition:(HPVector)pos size:(float)size color:(OOColor *)color duration:(float)duration
 {
 	if ((self = [super initWithDiameter:size]))
 	{

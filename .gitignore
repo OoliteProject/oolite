@@ -26,3 +26,5 @@ obj.spk.dbg
 DebugOXP/requires.plist
 AddOns/
 
+# Debug output
+/core

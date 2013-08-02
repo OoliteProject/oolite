@@ -172,6 +172,7 @@ SOFTWARE.
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (Vector) oo_vectorForKey:(id)key defaultValue:(Vector)value;
+- (HPVector) oo_hpvectorForKey:(id)key defaultValue:(HPVector)value;
 - (Quaternion) oo_quaternionForKey:(id)key defaultValue:(Quaternion)value;
 #endif
 
@@ -215,6 +216,8 @@ SOFTWARE.
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 // Default: kZeroVector
 - (Vector) oo_vectorForKey:(id)key;
+// Default: kZeroHPVector
+- (HPVector) oo_hpvectorForKey:(id)key;
 // Default: kIdentityQuaternion
 - (Quaternion) oo_quaternionForKey:(id)key;
 #endif
@@ -327,6 +330,7 @@ SOFTWARE.
 - (void) oo_setBool:(BOOL)value forKey:(id)key;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (void) oo_setVector:(Vector)value forKey:(id)key;
+- (void) oo_setHPVector:(HPVector)value forKey:(id)key;
 - (void) oo_setQuaternion:(Quaternion)value forKey:(id)key;
 #endif
 
@@ -379,9 +383,11 @@ double OONonNegativeDoubleFromObject(id object, double defaultValue);
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 //	These take strings, dictionaries or arrays.
 Vector OOVectorFromObject(id object, Vector defaultValue);
+HPVector OOHPVectorFromObject(id object, HPVector defaultValue);
 Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue);
 
 NSDictionary *OOPropertyListFromVector(Vector value);
+NSDictionary *OOPropertyListFromHPVector(HPVector value);
 NSDictionary *OOPropertyListFromQuaternion(Quaternion value);
 #endif
 

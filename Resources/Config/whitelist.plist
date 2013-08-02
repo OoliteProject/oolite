@@ -115,6 +115,7 @@
 		"setCoordinatesFromPosition",
 		"performFaceDestination",
 		"performTumble",
+		"performBuoyTumble",
 		"fightOrFleeMissile",
 		"setCourseToPlanet",
 		"setTakeOffFromPlanet",
@@ -335,6 +336,7 @@
 		"drawMissileDisplay:",
 		"drawStatusLight:",
 		"drawClock:",
+		"drawPrimedEquipment:",
 		"drawWeaponsOfflineText:",
 		"drawFPSInfoCounter:"
 	);

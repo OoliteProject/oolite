@@ -37,17 +37,12 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 
-#define kOOLogUnconvertedNSLog @"unclassified.SunEntity"
-
 
 @interface OOSunEntity (Private)
 
-- (void) drawActiveCoronaWithInnerRadius:(float)inner_radius
-								   width:(float)width
-									step:(float)step
-							   zDistance:(float)z_distance
-								   color:(GLfloat[4])color
-									  rv:(int)rv;
+- (void) calculateGLArrays:(GLfloat)inner_radius width:(GLfloat)width zDistance:(GLfloat)z_distance;
+- (void) drawOpaqueParts;
+- (void) drawTranslucentParts;
 
 @end
 
@@ -111,15 +106,7 @@ MA 02110-1301, USA.
 		blended with main corona. This produces something vaguely like a bloom
 		effect.
 	*/
-	hue += hue_drift;
-	color = [OOColor colorWithHue:hue saturation:sat * 0.1f brightness:(bri + 2.0)/3.0 alpha:0.25f];
-	[color getRed:&innerCoronaColor[0] green:&innerCoronaColor[1] blue:&innerCoronaColor[2] alpha:&innerCoronaColor[3]];
-	
-	hue += hue_drift;
-	color = [OOColor colorWithHue:hue saturation:sat * 0.1f brightness:bri alpha:0.25f];
-	[color getRed:&middleCoronaColor[0] green:&middleCoronaColor[1] blue:&middleCoronaColor[2] alpha:&middleCoronaColor[3]];
-	
-	hue += hue_drift;
+	hue += hue_drift * 3;
 	// saturation = 1 would shift white to red
 	color = [OOColor colorWithHue:hue saturation:OOClamp_0_1_f(sat*1.0f) brightness:bri * 0.75f alpha:0.45f];
 	[color getRed:&outerCoronaColor[0] green:&outerCoronaColor[1] blue:&outerCoronaColor[2] alpha:&outerCoronaColor[3]];
@@ -159,6 +146,48 @@ MA 02110-1301, USA.
 	// set up the radius properties
 	[self changeSunProperty:@"sun_radius" withDictionary:dict];
 	
+	unsigned k = 0;
+	for (unsigned i=0 ; i < 360 ; i++)
+	{
+		unsigned j = (i+1)%360;
+// disc
+		sunTriangles[k++] = 0;
+		sunTriangles[k++] = 1+i;
+		sunTriangles[k++] = 1+j;
+	}
+	for (unsigned i=0 ; i < 360 ; i++)
+	{
+		unsigned j = (i+1)%360;
+// ring 1
+		sunTriangles[k++] = 1+i;
+		sunTriangles[k++] = 1+j;
+		sunTriangles[k++] = 361+i;
+		sunTriangles[k++] = 1+j;
+		sunTriangles[k++] = 361+i;
+		sunTriangles[k++] = 361+j;
+// ring 2
+		sunTriangles[k++] = 361+i;
+		sunTriangles[k++] = 361+j;
+		sunTriangles[k++] = 721+i;
+		sunTriangles[k++] = 361+j;
+		sunTriangles[k++] = 721+i;
+		sunTriangles[k++] = 721+j;
+// ring 3
+		sunTriangles[k++] = 721+i;
+		sunTriangles[k++] = 721+j;
+		sunTriangles[k++] = 1081+i;
+		sunTriangles[k++] = 721+j;
+		sunTriangles[k++] = 1081+i;
+		sunTriangles[k++] = 1081+j;
+// ring 4
+		sunTriangles[k++] = 1081+i;
+		sunTriangles[k++] = 1081+j;
+		sunTriangles[k++] = 1441+i;
+		sunTriangles[k++] = 1081+j;
+		sunTriangles[k++] = 1441+i;
+		sunTriangles[k++] = 1441+j;
+	}
+
 	return self;
 }
 
@@ -171,7 +200,7 @@ MA 02110-1301, USA.
 
 - (NSString*) descriptionComponents
 {
-	NSString *result = [NSString stringWithFormat:@"ID: %u position: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), 0.001 * [self radius]];
+	NSString *result = [NSString stringWithFormat:@"ID: %u position: %@ radius: %.3fkm", [self universalID], HPVectorDescription([self position]), 0.001 * [self radius]];
 	if ([self goneNova])
 	{
 		result = [result stringByAppendingString:@" (gone nova)"];
@@ -249,7 +278,8 @@ MA 02110-1301, USA.
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
 				_novaExpansionTimer += delta_t;
-				[self setRadius: collision_radius + delta_t * _novaExpansionRate];
+				NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate], @"sun_radius", [NSNumber numberWithFloat:0.3], @"corona_flare", [NSNumber numberWithFloat:0.05], @"corona_hues", nil];
+				[self changeSunProperty:@"sun_radius" withDictionary:dict];
 			}
 			else
 			{
@@ -280,34 +310,56 @@ MA 02110-1301, USA.
 			}
 		}
 	}
+
 }
 
 
 
-// TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if (![UNIVERSE breakPatternHide] && !translucent)  [self drawUnconditionally];
+	if (![UNIVERSE breakPatternHide])
+	{
+		if (translucent)
+		{
+			// nothing...
+		}
+		else
+		{
+			[self drawOpaqueParts];
+			/* Despite the side effects, we have to draw the translucent
+			 * parts on the opaque pass. Planets, at long range, aren't
+			 * depth-buffered. So if the translucent parts are drawn on the
+			 * translucent pass, they appear in front of planets they are
+			 * actually behind. Telabe in G3 is a good one to test with if
+			 * you have any clever ideas.
+			 *
+			 * - CIM 8/7/2013 */
+			[self drawTranslucentParts];
+		}
+	}
 }
 
 
-- (void) drawUnconditionally
+- (void) drawOpaqueParts
 {
-	int subdivideLevel = 2;		// 4 is probably the maximum!
-	
 	float sqrt_zero_distance = sqrt(cam_zero_distance);
-	float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
-	float drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
-	
-	if (cam_zero_distance > 0.0)
-	{
-		subdivideLevel = 2 + floor(drawRatio2);
-		if (subdivideLevel > 4)
-			subdivideLevel = 4;
-	}
+
 	OO_ENTER_OPENGL();
 	
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+
+	if ([UNIVERSE reducedDetail])
+	{	
+		int subdivideLevel = 2;		// 4 is probably the maximum!
+		float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
+		float drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
+	
+		if (cam_zero_distance > 0.0)
+		{
+			subdivideLevel = 2 + floor(drawRatio2);
+			if (subdivideLevel > 4)
+				subdivideLevel = 4;
+		}
 	
 	/*
 	 
@@ -318,53 +370,42 @@ MA 02110-1301, USA.
 	distances.
 	 
 	*/
-	BOOL ignoreDepthBuffer = cam_zero_distance > collision_radius * collision_radius * 25;
+		BOOL ignoreDepthBuffer = cam_zero_distance > collision_radius * collision_radius * 25;
 	
-	int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
-	
-	// Close enough not to draw flat?
-	if (ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
-	
-	OOGL(glDisable(GL_BLEND));
-	OOGL(glColor3fv(discColor));
-	
-	// FIXME: use vertex arrays
-	OOGLBEGIN(GL_TRIANGLE_FAN);
+		int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
+
+		// Close enough not to draw flat?
+		if (ignoreDepthBuffer)  OOGL(glDisable(GL_DEPTH_TEST));
+		
+		OOGL(glColor3fv(discColor));
+		// FIXME: use vertex arrays
+		OOGL(glDisable(GL_BLEND));
+		OOGLBEGIN(GL_TRIANGLE_FAN);
 		GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
-	OOGLEND();
+		OOGLEND();
+		OOGL(glEnable(GL_BLEND));
+
+		if (ignoreDepthBuffer)  OOGL(glEnable(GL_DEPTH_TEST)); 
 	
-	OOGL(glEnable(GL_BLEND));
-	if (ignoreDepthBuffer)  OOGL(glEnable(GL_DEPTH_TEST));
-	
-	if (![UNIVERSE reducedDetail])
+	}
+	else
 	{
-		if (cam_zero_distance < lim4k)
-		{
-			[self drawActiveCoronaWithInnerRadius:collision_radius
-											width:cor4k
-											 step:steps
-										zDistance:sqrt_zero_distance
-											color:innerCoronaColor
-											   rv:6];
-		}
-		if (cam_zero_distance < lim8k)
-		{
-			[self drawActiveCoronaWithInnerRadius:collision_radius
-											width:cor8k
-											 step:steps
-										zDistance:sqrt_zero_distance
-											color:middleCoronaColor
-											   rv:3];
-		}
-		if (cam_zero_distance < lim16k)
-		{
-			[self drawActiveCoronaWithInnerRadius:collision_radius
+		[self calculateGLArrays:collision_radius
 											width:cor16k
-											 step:steps
-										zDistance:sqrt_zero_distance
-											color:outerCoronaColor
-											   rv:0];
-		}
+									zDistance:sqrt_zero_distance];
+		OOGL(glDisable(GL_BLEND));
+		OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
+		
+		OOGL(glEnableClientState(GL_COLOR_ARRAY));
+		OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
+		
+		OOGL(glDrawElements(GL_TRIANGLES, 3*360, GL_UNSIGNED_INT, sunTriangles));
+
+		OOGL(glDisableClientState(GL_COLOR_ARRAY));
+		OOGL(glEnable(GL_BLEND));
+		OOGLEND();
+
+		
 	}
 	
 	OOVerifyOpenGLState();
@@ -372,77 +413,185 @@ MA 02110-1301, USA.
 }
 
 
-- (void) drawActiveCoronaWithInnerRadius:(float)inner_radius
-								   width:(float)width
-									step:(float)step
-							   zDistance:(float)z_distance
-								   color:(GLfloat[4])color
-									  rv:(int)rv
+- (void) drawTranslucentParts
 {
-	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
-	
-	GLfloat outer_radius = inner_radius + width;
-	
-	NSRange activity = { 0.34, 1.0 };
-	
-	GLfloat				si, ci;
-	GLfloat				s0, c0, s1, c1;
-	
-	GLfloat				r = inner_radius;
-	GLfloat				c = outer_radius;
-	GLfloat				z = z_distance;
-	GLfloat				x = sqrt(z * z - r * r);
-	
-	GLfloat				r1 = r * x / z;
-	GLfloat				z1 = r * r / z;
-	
-	GLfloat				r0 = c * x / z;
-	GLfloat				z0 = c * r / z;
-	
-	GLfloat				rv0, rv1, rv2;
-	GLfloat				pt0, pt1;
-	
-	unsigned short		i;
-	GLfloat				theta = 0.0f, delta;
-	
-	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
-	pt0=(1.0 - corona_stage) * corona_blending;
-	pt1=corona_stage * corona_blending;
+	if ([UNIVERSE reducedDetail]) 
+	{
+		return;
+	}
 	
 	OO_ENTER_OPENGL();
 	
-	OOGLBEGIN(GL_TRIANGLE_STRIP);
-		for (i = 0; i < 360; i += step)
+	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
+
+	OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
+
+	OOGL(glEnableClientState(GL_COLOR_ARRAY));
+	OOGL(glColorPointer(4, GL_FLOAT, 0, sunColors));
+	OOGL(glDrawElements(GL_TRIANGLES, 24*360, GL_UNSIGNED_INT, sunTriangles+(3*360)));
+
+	OOGL(glDisableClientState(GL_COLOR_ARRAY));
+
+	OOGLEND();
+
+
+}
+
+- (void) calculateGLArrays:(GLfloat)inner_radius width:(GLfloat)width zDistance:(GLfloat)z_distance
+{
+//	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
+	
+	GLfloat activity[8] = {0.84, 0.74, 0.64, 0.54, 
+												 0.3 , 0.4 , 0.7 , 0.8};
+	
+	GLfloat				si, ci;
+	GLfloat				rv0, rv1, rv2, c0, c1, c2;
+	GLfloat				pt0, pt1; 
+	
+	unsigned short		i, j, k;
+	GLfloat				theta = 0.0f, delta;
+	delta = M_PI / 180.0f;	// Convert step from degrees to radians
+	pt0=(1.0 - corona_stage) * corona_blending;
+	pt1=corona_stage * corona_blending;
+
+	sunVertices[0] = 0.0;
+	sunVertices[1] = 0.0;
+	sunVertices[2] = 0.0;
+	k = 3;
+	for (j = 0 ; j <= 4 ; j++)
+	{
+		GLfloat r = inner_radius;
+		switch (j) {
+		case 4:
+			r += width;
+			break;
+		case 3:
+			r += width/1.5;
+			break;
+		case 2:
+			r += width/3.0;
+			break;
+		case 1:
+			r += width/15.0;
+			break;
+		}
+		theta = 0.0;
+		for (i = 0 ; i < 360 ; i++)
 		{
+			GLfloat rm = 1.0;
+			if (j >= 1 && j < 4)
+			{
+				rm = 1.0 + ((0.04/j)*(pt0 * (rvalue[i]+rvalue[i+1]+rvalue[i+2]) + pt1 * (rvalue[i+360]+rvalue[i+361]+rvalue[i+362])))/3;
+			}
+			GLfloat z = r * r * rm * rm / z_distance;
 			si = sin(theta);
 			ci = cos(theta);
 			theta += delta;
-			
-			rv0 = pt0 * rvalue[i + rv] + pt1 * rvalue[i + rv + 360];
-			rv1 = pt0 * rvalue[i + rv + 1] + pt1 * rvalue[i + rv + 361];
-			rv2 = pt0 * rvalue[i + rv + 2] + pt1 * rvalue[i + rv + 362];
-
-			s1 = r1 * si;
-			c1 = r1 * ci;
-			glColor4f(color[0] * (activity.location + rv0*activity.length), color[1] * (activity.location + rv1*activity.length), color[2] * (activity.location + rv2*activity.length), color[3]);
-			glVertex3f(s1, c1, -z1);
-
-			s0 = r0 * si;
-			c0 = r0 * ci;
-			glColor4f(color[0], color[1], color[2], 0);
-			glVertex3f(s0, c0, -z0);
+			sunVertices[k++] = si * r * rm;
+			sunVertices[k++] = ci * r * rm;
+			sunVertices[k++] = -z;
 		}
+		theta += delta/2.0;
+	}
+
+	GLfloat blackColor[4] = {0.0,0.0,0.0,0.0};
+	k=0;
+	sunColors[k++] = discColor[0];
+	sunColors[k++] = discColor[1];
+	sunColors[k++] = discColor[2];
+	sunColors[k++] = discColor[3];
+	for (j = 0 ; j <= 4 ; j++)
+	{
+		GLfloat *color;
+		GLfloat alpha;
+		switch (j) {
+		case 4:
+			color = blackColor;
+			alpha = 0.0;
+			break;
+		case 3:
+			color = outerCoronaColor;
+			alpha = 0.1;
+			break;
+		case 2:
+			color = outerCoronaColor;
+			alpha = 0.6;
+			break;
+		case 1:
+			color = discColor;
+			alpha = 0.95;
+			break;
+		case 0:
+			color = discColor;
+			alpha = 1.0;
+			break;
+		}
+		for (i = 0 ; i < 360 ; i++)
+		{
+			if (j == 0) 
+			{
+				sunColors[k++] = color[0];
+				sunColors[k++] = color[1];
+				sunColors[k++] = color[2];
+				sunColors[k++] = 1.0;
+			}
+			else
+			{
+				rv0 = pt0 * rvalue[i] + pt1 * rvalue[i + 360];
+				rv1 = pt0 * rvalue[i + 1] + pt1 * rvalue[i + 361];
+				rv2 = pt0 * rvalue[i + 2] + pt1 * rvalue[i + 362];
+				c0 = color[0] * (activity[j-1] + rv0*activity[j+3]);
+				c1 = color[1] * (activity[j-1] + rv1*activity[j+3]);
+				c2 = color[2] * (activity[j-1] + rv2*activity[j+3]);
+				if (c1 > c2 && c1 > c0)
+				{
+					c1 = fmaxf(c0,c2);
+				}
+
+				sunColors[k++] = c0;
+				sunColors[k++] = c1;
+				sunColors[k++] = c2;
+				sunColors[k++] = alpha;
+			}	
+		}
+	}
+}
+
+
+- (void) drawStarGlare
+{
+	OO_ENTER_OPENGL();
+
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
-		rv0 = pt0 * rvalue[rv] + pt1 * rvalue[360 + rv];
-		rv1 = pt0 * rvalue[1 + rv] + pt1 * rvalue[361 + rv];
-		rv2 = pt0 * rvalue[2 + rv] + pt1 * rvalue[362 + rv];
-		
-		glColor4f(color[0] * (activity.location + rv0*activity.length), color[1] * (activity.location + rv1*activity.length), color[2] * (activity.location + rv2*activity.length), color[3]);
-		glVertex3f(0.0, r1, -z1);	//repeat the zero value to close
-		glColor4f(color[0], color[1], color[2], 0);
-		glVertex3f(0.0, r0, -z0);	//repeat the zero value to close
+	float sqrt_zero_distance = sqrt(cam_zero_distance);
+	double alt = sqrt_zero_distance - collision_radius;
+	if (EXPECT_NOT(alt < 0))
+	{
+		return;
+	}
+	double corona = cor16k/1.5;
+	if (corona > alt)
+	{
+		double alpha = 1-(alt/corona);
+		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
+		NSSize		siz =	[[UNIVERSE gui]	size];
+		GLfloat z = [[UNIVERSE gameView] display_z];
+		OOGL(glColor4fv(glareColor));
+
+		OOGLBEGIN(GL_QUADS);
+		glVertex3f(siz.width, siz.height, z);
+		glVertex3f(siz.width, -siz.height, z);
+		glVertex3f(-siz.width, -siz.height, z);
+		glVertex3f(-siz.width, siz.height, z);
+		OOGLEND();
+
+	}
+	
+
 	OOGLEND();
 }
+
 
 
 - (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict
@@ -523,21 +672,16 @@ MA 02110-1301, USA.
 - (void) setRadius:(GLfloat) rad
 {
 	collision_radius = rad;
-	cor4k =		rad * 4 / 100;
-	lim4k =		cor4k	* cor4k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
-	
-	cor8k =		rad * 8 / 100;
-	lim8k =		cor8k	* cor8k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 	
 	cor16k =	rad * rad * 16 / 10000000;
 	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 }
 
 
-- (void) setPosition:(Vector) posn
+- (void) setPosition:(HPVector) posn
 {
 	[super setPosition: posn];
-	[UNIVERSE setMainLightPosition: posn];
+	[UNIVERSE setMainLightPosition: HPVectorToVector(posn)];
 }
 
 

@@ -128,7 +128,7 @@ typedef enum
 - (Vector) virtualPortDimensions;
 - (DockEntity*) playerReservedDock;
 
-- (Vector) beaconPosition;
+- (HPVector) beaconPosition;
 
 - (float) equipmentPriceFactor;
 
@@ -226,4 +226,4 @@ typedef enum
 
 
 
-NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation);
+NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation);

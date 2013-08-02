@@ -46,7 +46,9 @@
 
 
 // Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
+#if OO_USE_CUSTOM_LOAD_SAVE
 #define COMMAND_MODIFIER_KEY		"Ctrl"
+#endif
 
 
 static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
@@ -567,6 +569,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	// Remember the savegame target, run js startUp.
 	[self completeSetUpAndSetTarget:NO];
+	// run initial system population
+	[UNIVERSE populateNormalSpace];
 	
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];

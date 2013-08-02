@@ -99,11 +99,11 @@ MA 02110-1301, USA.
 }
 
 
-- (Vector) beaconPosition
+- (HPVector) beaconPosition
 {
 	double buoy_distance = 10000.0;				// distance from station entrance
 	Vector v_f = vector_forward_from_quaternion([self orientation]);
-	Vector result = vector_add([self position], vector_multiply_scalar(v_f, buoy_distance));
+	HPVector result = HPvector_add([self position], vectorToHPVector(vector_multiply_scalar(v_f, buoy_distance)));
 	
 	return result;
 }
@@ -458,14 +458,13 @@ MA 02110-1301, USA.
 }
 
 
-NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation)
+NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation)
 {
 	NSMutableDictionary *acc = [NSMutableDictionary dictionaryWithCapacity:8];
-	[acc setObject:[NSString stringWithFormat:@"%.2f %.2f %.2f", coords.x, coords.y, coords.z] forKey:@"destination"];
+	[acc oo_setHPVector:coords forKey:@"destination"];
 	[acc oo_setFloat:speed forKey:@"speed"];
 	[acc oo_setFloat:range forKey:@"range"];
 	[acc setObject:[[station weakRetain] autorelease] forKey:@"station"];
-	[acc oo_setInteger:[station universalID] forKey:@"station_id"]; // TODO: remove
 	[acc oo_setBool:match_rotation forKey:@"match_rotation"];
 	if (ai_message)
 	{
@@ -2365,7 +2364,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 {
 	NSMutableArray		*flags = nil;
 	NSString			*flagsString = nil;
-	NSString			*alertString = nil;
+	NSString			*alertString = @"*** ERROR: UNKNOWN ALERT LEVEL ***";
 	
 	[super dumpSelfState];
 	
@@ -2382,9 +2381,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		case STATION_ALERT_LEVEL_RED:
 			alertString = @"red";
 			break;
-		
-		default:
-			alertString = @"*** ERROR: UNKNOWN ALERT LEVEL ***";
 	}
 	
 	OOLog(@"dumpState.stationEntity", @"Alert level: %@", alertString);
@@ -2419,7 +2415,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, Vector coords, f
 		unsigned		i = 1;
 		while ((ship = [onHoldEnum nextObject]))
 		{
-			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i++, [ship displayName], distance([self position], [ship position]), [ship primaryRole]);
+			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i++, [ship displayName], HPdistance([self position], [ship position]), [ship primaryRole]);
 		}
 		OOLogOutdent();
 	}

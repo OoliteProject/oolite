@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 #define OctreeDebugLog(format, ...) do { if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE_LOGGING))  OOLog(@"octree.debug", format, ## __VA_ARGS__); } while (0)
 #else
 #define OctreeDebugLog(...) do {} while (0)
-#define OctreeDebugLog(...) do {} while (0)
 #endif
 
 
@@ -967,7 +966,7 @@ static void SetNode_slow(OOOctreeBuilder *self, uint32_t index, int value)
 */
 - (BOOL) suppressClangStuff
 {
-	return &_stateStack;
+	return &_stateStack && 0;
 }
 #endif
 

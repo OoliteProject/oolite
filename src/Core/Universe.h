@@ -118,6 +118,7 @@ enum
 #define KEY_EQUIPMENT_STARBOARD_WEAPON		@"starboard_weapon_type"
 #define KEY_EQUIPMENT_EXTRAS				@"extras"
 #define KEY_WEAPON_FACINGS					@"weapon_facings"
+#define KEY_RENOVATION_MULTIPLIER					@"renovation_multiplier"
 
 #define SHIPYARD_KEY_ID						@"id"
 #define SHIPYARD_KEY_SHIPDATA_KEY			@"shipdata_key"
@@ -144,6 +145,8 @@ enum
 
 #define MIN_DISTANCE_TO_BUOY			750.0f // don't add ships within this distance
 #define MIN_DISTANCE_TO_BUOY2			(MIN_DISTANCE_TO_BUOY * MIN_DISTANCE_TO_BUOY)
+
+#define SYSTEM_REPOPULATION_INTERVAL 20.0f;
 
 #ifndef OO_LOCALIZATION_TOOLS
 #define OO_LOCALIZATION_TOOLS	1
@@ -257,6 +260,10 @@ enum
 	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
 	
+	NSMutableDictionary		*populatorSettings;
+	OOTimeDelta		next_repopulation;
+	NSString		*system_repopulator;
+
 	NSArray					*closeSystems;
 	
 	BOOL					strict;
@@ -339,6 +346,11 @@ enum
 - (void) setUpWitchspace;
 - (void) setUpWitchspaceBetweenSystem:(Random_Seed)s1 andSystem:(Random_Seed)s2;
 - (void) setUpSpace;
+- (void) populateNormalSpace;
+- (void) clearSystemPopulator;
+- (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
+- (NSDictionary *) getPopulatorSettings;
+- (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
 - (void) setLighting;
 - (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;
@@ -346,22 +358,22 @@ enum
 
 - (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI;
 - (void) addShipWithRole:(NSString *) desc nearRouteOneAt:(double) route_fraction;
-- (Vector) coordinatesForPosition:(Vector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar;
-- (NSString *) expressPosition:(Vector) pos inCoordinateSystem:(NSString *) system;
-- (Vector) legacyPositionFrom:(Vector) pos asCoordinateSystem:(NSString *) system;
-- (Vector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z;
-- (BOOL) addShipWithRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
-- (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
-- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system;
-- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(Vector) pos withCoordinateSystem:(NSString *) system withinRadius:(GLfloat) radius;
+- (HPVector) coordinatesForPosition:(HPVector) pos withCoordinateSystem:(NSString *) system returningScalar:(GLfloat*) my_scalar;
+- (NSString *) expressPosition:(HPVector) pos inCoordinateSystem:(NSString *) system;
+- (HPVector) legacyPositionFrom:(HPVector) pos asCoordinateSystem:(NSString *) system;
+- (HPVector) coordinatesFromCoordinateSystemString:(NSString *) system_x_y_z;
+- (BOOL) addShipWithRole:(NSString *) desc nearPosition:(HPVector) pos withCoordinateSystem:(NSString *) system;
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc atPosition:(HPVector) pos withCoordinateSystem:(NSString *) system;
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(HPVector) pos withCoordinateSystem:(NSString *) system;
+- (BOOL) addShips:(int) howMany withRole:(NSString *) desc nearPosition:(HPVector) pos withCoordinateSystem:(NSString *) system withinRadius:(GLfloat) radius;
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc intoBoundingBox:(BoundingBox) bbox;
 - (BOOL) spawnShip:(NSString *) shipdesc;
 - (void) witchspaceShipWithPrimaryRole:(NSString *)role;
 - (ShipEntity *) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
 
-- (OOVisualEffectEntity *) addVisualEffectAt:(Vector)pos withKey:(NSString *)key;
-- (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius;
-- (NSArray *) addShipsAt:(Vector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
+- (OOVisualEffectEntity *) addVisualEffectAt:(HPVector)pos withKey:(NSString *)key;
+- (ShipEntity *) addShipAt:(HPVector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius;
+- (NSArray *) addShipsAt:(HPVector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
 - (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
@@ -370,7 +382,7 @@ enum
 - (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship;
 - (GLfloat) safeWitchspaceExitDistance;
 
-- (void) setUpBreakPattern:(Vector)pos orientation:(Quaternion)q forDocking:(BOOL)forDocking;
+- (void) setUpBreakPattern:(HPVector)pos orientation:(Quaternion)q forDocking:(BOOL)forDocking;
 - (BOOL) witchspaceBreakPattern;
 - (void) setWitchspaceBreakPattern:(BOOL)newValue;
 
@@ -464,9 +476,9 @@ enum
 
 - (ShipEntity *) makeDemoShipWithRole:(NSString *)role spinning:(BOOL)spinning;
 
-- (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
-- (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
-- (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
+- (BOOL) isVectorClearFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(HPVector) p2;
+- (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(HPVector) p2;
+- (HPVector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(HPVector) p2;
 
 - (ShipEntity *) firstShipHitByLaserFromShip:(ShipEntity *)srcEntity inDirection:(OOWeaponFacing)direction offset:(Vector)offset gettingRangeFound:(GLfloat*)range_ptr;
 - (Entity *) firstEntityTargetedByPlayer;
@@ -634,13 +646,13 @@ enum
 
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
-- (Vector) getWitchspaceExitPosition;
-- (Vector) randomizeFromSeedAndGetWitchspaceExitPosition;
-- (Vector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed;
+- (HPVector) getWitchspaceExitPosition;
+- (HPVector) randomizeFromSeedAndGetWitchspaceExitPosition;
+- (HPVector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed;
 - (Quaternion) getWitchspaceExitRotation;
 
-- (Vector) getSunSkimStartPositionForShip:(ShipEntity*) ship;
-- (Vector) getSunSkimEndPositionForShip:(ShipEntity*) ship;
+- (HPVector) getSunSkimStartPositionForShip:(ShipEntity*) ship;
+- (HPVector) getSunSkimEndPositionForShip:(ShipEntity*) ship;
 
 - (NSArray*) listBeaconsWithCode:(NSString*) code;
 
@@ -742,6 +754,7 @@ OOINLINE Universe *OOGetUniverse(void)
 #define DESC_PLURAL(key,count)	(OOLookUpPluralDescriptionPRIV(key "", count))
 
 // Not for direct use.
+NSComparisonResult populatorPrioritySort(id a, id b, void *context);
 NSString *OOLookUpDescriptionPRIV(NSString *key);
 NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count);
 

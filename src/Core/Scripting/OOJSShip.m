@@ -115,6 +115,9 @@ static JSBool ShipPerformScriptedAttackAI(JSContext *context, uintN argc, jsval 
 static JSBool ShipPerformStop(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp);
 
+static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp);
+
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
 static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp, ShipEntity *thisEnt, BOOL fromShaders);
 
@@ -168,11 +171,13 @@ enum
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_destination,			// flight destination, Vector, read/write
 	kShip_displayName,			// name displayed on screen, string, read/write
+	kShip_dockingInstructions,			// name displayed on screen, string, read/write
 	kShip_energyRechargeRate,	// energy recharge rate, float, read-only
 	kShip_entityPersonality,	// per-ship random number, int, read-only
 	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
 	kShip_escortGroup,			// group, ShipGroup, read-only
 	kShip_escorts,				// deployed escorts, array of Ship, read-only
+	kShip_exhaustEmissiveColor,	// exhaust emissive color, array, read/write
 	kShip_extraCargo,				// cargo space increase granted by large cargo bay, int, read-only
 	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read/write
 	kShip_fuel,					// fuel, float, read/write
@@ -290,12 +295,14 @@ static JSPropertySpec sShipProperties[] =
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "destination",			kShip_destination,			OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
+	{ "dockingInstructions",	kShip_dockingInstructions,	OOJS_PROP_READONLY_CB },
 	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
 	{ "escortGroup",			kShip_escortGroup,			OOJS_PROP_READONLY_CB },
-	{ "extraCargo",			kShip_extraCargo,			OOJS_PROP_READONLY_CB },
+	{ "exhaustEmissiveColor",	kShip_exhaustEmissiveColor,	OOJS_PROP_READWRITE_CB },
+	{ "extraCargo",				kShip_extraCargo,			OOJS_PROP_READONLY_CB },
 	{ "forwardWeapon",			kShip_forwardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "fuel",					kShip_fuel,					OOJS_PROP_READWRITE_CB },
 	{ "fuelChargeRate",			kShip_fuelChargeRate,		OOJS_PROP_READONLY_CB },
@@ -433,6 +440,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 1},
+	{ "requestDockingInstructions", ShipRequestDockingInstructions, 0},
+	{ "recallDockingInstructions", ShipRecallDockingInstructions, 0},
 	{ "restoreSubEntities",		ShipRestoreSubEntities,		0 },
 	{ "__runLegacyScriptActions", ShipRunLegacyScriptActions, 2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
@@ -691,7 +700,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return YES;
 
 		case kShip_extraCargo:
-			*value = INT_TO_JSVAL([entity extraCargo]);
+			return JS_NewNumberValue(context, [entity extraCargo], value);
 			return YES;
 		
 		case kShip_commodity:
@@ -722,7 +731,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity desiredSpeed], value);
 			
 		case kShip_destination:
-			return VectorToJSValue(context, [entity destination], value);
+			return HPVectorToJSValue(context, [entity destination], value);
 		
 		case kShip_maxEscorts:
 			return JS_NewNumberValue(context, [entity maxEscortCount], value);
@@ -827,7 +836,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity missileLoadTime], value);
 		
 		case kShip_savedCoordinates:
-			return VectorToJSValue(context, [entity coordinates], value);
+			return HPVectorToJSValue(context,[entity coordinates], value);
 		
 		case kShip_equipment:
 			result = [entity equipmentListForScripting];
@@ -884,12 +893,20 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity contractListForScripting];
 			break;
 			
+  	case kShip_dockingInstructions:
+			result = [entity dockingInstructions];
+			break;
+
 		case kShip_scannerDisplayColor1:
 			result = [[entity scannerDisplayColor1] normalizedArray];
 			break;
 			
 		case kShip_scannerDisplayColor2:
 			result = [[entity scannerDisplayColor2] normalizedArray];
+			break;
+			
+		case kShip_exhaustEmissiveColor:
+			result = [[entity exhaustEmissiveColor] normalizedArray];
 			break;
 			
 		case kShip_maxThrust:
@@ -968,6 +985,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	int32						iValue;
 	JSBool						bValue;
 	Vector						vValue;
+	HPVector						hpvValue;
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
 	BOOL exists;
@@ -1204,11 +1222,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 		case kShip_destination:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
 			
-			if (JSValueToVector(context, *value, &vValue))
+			if (JSValueToHPVector(context, *value, &hpvValue))
 			{
 				// use setEscortDestination rather than setDestination as
 				// scripted amendments shouldn't necessarily reset frustration
-				[entity setEscortDestination:vValue];
+				[entity setEscortDestination:hpvValue];
 				return YES;
 			}
 			break;
@@ -1234,9 +1252,9 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 		
 		case kShip_savedCoordinates:
-			if (JSValueToVector(context, *value, &vValue))
+			if (JSValueToHPVector(context, *value, &hpvValue))
 			{
-				[entity setCoordinate:vValue];
+				[entity setCoordinate:hpvValue];
 				return YES;
 			}
 			break;
@@ -1255,6 +1273,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			if (colorForScript != nil || JSVAL_IS_NULL(*value))
 			{
 				[entity setScannerDisplayColor2:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kShip_exhaustEmissiveColor:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setExhaustEmissiveColor:colorForScript];
 				return YES;
 			}
 			break;
@@ -2999,6 +3026,34 @@ static JSBool ShipPerformTumble(JSContext *context, uintN argc, jsval *vp)
 	[thisEnt performTumble];
 	
 	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt requestDockingCoordinates];
+	
+	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+	[thisEnt recallDockingInstructions];
+	
+	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
 	
 	OOJS_PROFILE_EXIT
 }

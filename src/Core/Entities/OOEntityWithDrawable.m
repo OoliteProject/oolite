@@ -97,19 +97,19 @@ MA 02110-1301, USA.
 			// http://aegidian.org/bb/viewtopic.php?f=3&t=13619 - CIM
 			if (cam_zero_distance > (clipradius+1000)*(clipradius+1000))
 			{
-				if (![UNIVERSE viewFrustumIntersectsSphereAt:position withRadius:clipradius])
+				if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:clipradius])
 				{
 					return;
 				}
 			}
 		} 
-		else 
+		else // is subentity
 		{
 			// don't bother with frustum culling within 1km, as above - CIM
 			if (cam_zero_distance > (collision_radius+1000)*(collision_radius+1000))
 			{
 				// check correct sub-entity position
-				if (![UNIVERSE viewFrustumIntersectsSphereAt:[self absolutePositionForSubentity] withRadius:[self collisionRadius]])
+				if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:[self collisionRadius]])
 				{
 					return;
 				}

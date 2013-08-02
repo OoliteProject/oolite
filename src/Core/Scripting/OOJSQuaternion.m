@@ -652,7 +652,7 @@ static JSBool QuaternionRotate(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	Quaternion				thisq;
-	Vector					axis;
+	HPVector					axis;
 	double					angle;
 	uintN					consumed;
 	jsval					*argv = OOJS_ARGV;
@@ -664,7 +664,7 @@ static JSBool QuaternionRotate(JSContext *context, uintN argc, jsval *vp)
 	if (argc > 0)
 	{
 		if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Quaternion", @"rotate", argc, argv, &angle, NULL)))  return NO;
-		quaternion_rotate_about_axis(&thisq, axis, angle);
+		quaternion_rotate_about_axis(&thisq, HPVectorToVector(axis), angle);
 	}
 	// Else no angle specified, so don't rotate and pass value through unchanged.
 	

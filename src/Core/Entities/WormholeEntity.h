@@ -78,7 +78,7 @@ typedef enum
 
 - (BOOL) suckInShip:(ShipEntity *) ship;
 - (void) disgorgeShips;
-- (void) setExitPosition:(Vector)pos;
+- (void) setExitPosition:(HPVector)pos;
 
 - (Random_Seed) origin;
 - (Random_Seed) destination;

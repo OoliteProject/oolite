@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 }
 
 + (instancetype) explosionFlashFromEntity:(Entity *)entity;
-+ (instancetype) laserFlashWithPosition:(Vector)position velocity:(Vector)vel color:(OOColor *)color;
++ (instancetype) laserFlashWithPosition:(HPVector)position velocity:(Vector)vel color:(OOColor *)color;
 
 + (void) setUpTexture;
 

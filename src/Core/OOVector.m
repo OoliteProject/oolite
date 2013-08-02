@@ -104,4 +104,30 @@ Vector OORandomPositionInBoundingBox(BoundingBox bb)
 	result.z = bb.min.z + randf() * (bb.max.z - bb.min.z);
 	return result;
 }
+
+// only need high precision versions of these
+/*Vector OORandomPositionInCylinder(Vector centre1, OOScalar exclusion1, Vector centre2, OOScalar exclusion2, OOScalar radius)
+{
+	OOScalar exc12 = exclusion1*exclusion1;
+	OOScalar exc22 = exclusion2*exclusion2;
+	Vector result;
+	do
+	{
+		result = vector_add(OOVectorInterpolate(centre1,centre2,randf()),OOVectorRandomSpatial(radius));
+	}
+	while(distance2(result,centre1)<exc12 || distance2(result,centre2)<exc22);
+	return result;
+}
+
+Vector OORandomPositionInShell(Vector centre, OOScalar inner, OOScalar outer)
+{
+	Vector result;
+	OOScalar inner2 = inner*inner;
+	do
+	{
+		result = vector_add(centre,OOVectorRandomSpatial(outer));
+	} while(distance2(result,centre)<inner2);
+	return result;
+	}*/
+
 #endif

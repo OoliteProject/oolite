@@ -460,6 +460,7 @@
 	universe.findSystems.badDistance		= $error;
 	
 	universe.populate						= no;				// “Populating a system with…” message when generating a star system
+	universe.populate.error						= yes;
 	universe.populate.witchspace			= inherit;
 	universe.setup.badStation				= $scriptError;		// Message generated if the main station turns out not to be a station (for instance, this could happen if a non-station ship had the role coriolis).
 	universe.maxEntitiesDump				= no;				// Dumps all entities when universe is full (Can be quite verbose)

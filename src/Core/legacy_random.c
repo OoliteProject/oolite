@@ -122,14 +122,14 @@ RANROTSeed MakeRanrotSeed(unsigned seed)
 	RanrotWithSeed(&result);
 	RanrotWithSeed(&result);
 	RanrotWithSeed(&result);
-	
+
 	return result;
 }
 
 
 RANROTSeed RanrotSeedFromRNGSeed(RNG_Seed seed)
 {
-	return MakeRanrotSeed(rnd_seed.a * 0x1000000 + rnd_seed.b * 0x10000 + rnd_seed.c * 0x100 + rnd_seed.d);
+	return MakeRanrotSeed(seed.a * 0x1000000 + seed.b * 0x10000 + seed.c * 0x100 + seed.d);
 }
 
 

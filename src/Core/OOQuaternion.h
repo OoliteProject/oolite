@@ -75,6 +75,8 @@ Vector vector_forward_from_quaternion(Quaternion quat) CONST_FUNC;
 Vector vector_up_from_quaternion(Quaternion quat) CONST_FUNC;
 Vector vector_right_from_quaternion(Quaternion quat) CONST_FUNC;
 
+HPVector HPvector_forward_from_quaternion(Quaternion quat) CONST_FUNC;
+
 void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *outUp, Vector *outForward);
 
 /* produce a quaternion representing an angle between two vectors. Assumes the vectors are normalized. */
@@ -98,6 +100,7 @@ NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"
 
 
 Vector quaternion_rotate_vector(Quaternion q, Vector vector) CONST_FUNC;
+HPVector quaternion_rotate_HPvector(Quaternion q, HPVector vector) CONST_FUNC;
 
 
 

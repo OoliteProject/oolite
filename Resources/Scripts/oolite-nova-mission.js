@@ -53,6 +53,7 @@ this._cleanUp = function ()
 	// this.shipExitedWitchspace is still needed after the nova mission.
 	delete this.shipWillEnterWitchspace;
 	delete this.shipWillExitWitchspace;
+	delete this.systemWillPopulate;
 	delete this.missionScreenOpportunity;
 	delete this.shipLaunchedEscapePod;
 	delete this.shipLaunchedFromStation;
@@ -115,40 +116,54 @@ this._blowUpAllStations = function ()
 this._flareUp = function ()
 {
 	system.info.corona_hues = 1;
-	// This flare up (0.25 to 0.5 flare) will last between 10 and 30 seconds
-	this._flareChange(0.25 + Math.random() * 0.25, this._flareDown, Math.random() * 20 + 10);
+	// This flare up (0.3 to 0.5 flare) will last between 10 and 30 seconds
+	this._flareTarget = 0.3 + Math.random() * 0.2;
+	this._flareCallback = addFrameCallback(this._flareTransition.bind(this));
+	this._flareChange(this._flareDown, Math.random() * 20 + 10);
 };
 
 
 this._flareDown = function ()
 {
 	system.info.corona_hues = 0.8;
-	// This quiet moment (0.1 to 0.2 flare) will last between 30 seconds and 2 minutes
-	this._flareChange(0.1 + Math.random() * 0.1, this._flareUp, Math.random() * 90 + 30);
+	// This quiet moment (0.1 to 0.25 flare) will last between 30 seconds and 2 minutes
+	this._flareTarget = 0.1 + Math.random() * 0.15;
+	this._flareCallback = addFrameCallback(this._flareTransition.bind(this));
+	this._flareChange(this._flareUp, Math.random() * 90 + 30);
 };
 
 
-this._flareChange = function (toValue, callFunc, callDelay, pass)
+this._flareChange = function (callFunc, callDelay)
 {
 	this.flareTimer.stop();
 	delete this.flareTimer;
-	pass = pass || 0;
-	if (pass < 5)
-	{
-		var f = system.info.corona_flare; 
-		system.info.corona_flare = ((f < toValue) ? (toValue * 1.5 + f) : (toValue + f * 1.5)) / 2.5;
-		this.flareTimer = new Timer(this, function ()
-		{
-			this._flareChange(toValue, callFunc, callDelay, ++pass);
-		}, 0.25);
-	}
-	else 
-	{
-		system.info.corona_flare = toValue;
-		this.flareTimer = new Timer(this, callFunc, callDelay);
-	}
+	this.flareTimer = new Timer(this, callFunc, callDelay);
 };
 
+
+this._flareTransition = function(delta)
+{
+		var current = system.info.corona_flare;
+		if (current < this._flareTarget)
+		{
+				current += delta/10;
+		}
+		else
+		{
+				current -= delta/10;
+		}
+		system.info.corona_flare = current;
+		if (this._flareTarget > 0.375 && current > this._flareTarget)
+		{
+				removeFrameCallback(this._flareCallback);
+				delete this._flareCallback;
+		}
+		else if (this._flareTarget < 0.375 && current < this._flareTarget)
+		{
+				removeFrameCallback(this._flareCallback);
+				delete this._flareCallback;
+		}
+}
 
 /**** Event handlers ****/
 
@@ -291,9 +306,36 @@ this.shipWillEnterWitchspace = function ()
 };
 
 
-this.shipWillExitWitchspace = function ()  // call this as soon as possible so other scripts can see it will go nova.
+this.shipWillExitWitchspace = function ()  
 {
-	if (!missionVariables.nova && galaxyNumber === 3)
+	if (missionVariables.nova === "NOVA_ESCAPE_HERO")
+	{
+		missionVariables.nova = "NOVA_ESCAPED_SYSTEM";
+	}
+	else if (missionVariables.nova === "TWO_HRS_TO_ZERO")
+	{
+		// the populator has started the nova mission
+		player.ship.fuelLeakRate = 25;
+		this.willGoNova = true;
+		player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
+		system.info.market = "none";
+		this.buoyLoaded = false;  // w-bouy is not in system yet.
+		if (this.novaMissionTimer)
+		{
+			this.novaMissionTimer.start();
+		}
+		else
+		{
+			this.novaMissionTimer = new Timer(this, this._sendShipsAwayForMission, 5, 30);
+		}
+	}
+};
+
+
+this.systemWillPopulate = function() // call this as soon as possible so other scripts can see it will go nova.
+{
+	// make sure we don't increment the count when reloading a savegame
+	if (!missionVariables.nova && galaxyNumber === 3 && player.ship.status != "STATUS_DOCKED")
 	{
 		if (missionVariables.novacount !== null) // " !== undefined" always returns true for missionVariables!
 		{
@@ -302,29 +344,21 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 		if (player.ship.equipmentStatus("EQ_GAL_DRIVE") === "EQUIPMENT_OK" && missionVariables.novacount > 3 && !missionVariables.nova && !system.isInterstellarSpace)
 		{
 			missionVariables.nova = "TWO_HRS_TO_ZERO";
-			player.ship.fuelLeakRate = 25;
 			system.sun.goNova(7200);
-			this.willGoNova = true;
-			player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
-			system.info.market = "none";
-			this.buoyLoaded = false;  // w-bouy is not in system yet.
-
-			if (this.novaMissionTimer)
-			{
-				this.novaMissionTimer.start();
-			}
-			else
-			{
-				this.novaMissionTimer = new Timer(this, this._sendShipsAwayForMission, 5, 30);
-			}
+			/* the main populator script might have run first. If so, remove
+			 * the ships it added. If it runs after, it'll notice the
+			 * impending nova and not add these lines in the first place */
+			system.setPopulator("oolite-route1-traders",null);
+			system.setPopulator("oolite-route2-traders",null);
+			system.setPopulator("oolite-route1-pirates",null);
+			system.setPopulator("oolite-route2-pirates",null);
+			system.setPopulator("oolite-route1-hunters",null);
+			system.setPopulator("oolite-route2-hunters",null);
+			system.setPopulator("oolite-route1-thargoids",null);
+			system.setPopulator("oolite-offlane-hermit",null);
 		}
 	}
-	if (missionVariables.nova === "NOVA_ESCAPE_HERO")
-	{
-		missionVariables.nova = "NOVA_ESCAPED_SYSTEM";
-	}
-};
-
+}
 
 this.shipLaunchedFromStation = function ()
 {
@@ -343,6 +377,11 @@ this.shipExitedWitchspace = function ()
 		{
 			this.flareTimer.stop();
 			delete this.flareTimer;
+		}
+		if (this._flareCallback)
+		{
+				removeFrameCallback(this._flareCallback);
+				delete this._flareCallback;
 		}
 
 		if (system.sun.isGoingNova || system.sun.hasGoneNova)

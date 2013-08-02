@@ -37,7 +37,9 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 
 
+#if DEBUG_GRAPHVIZ
 #define NSMakeRange(loc, len) ((NSRange){loc, len})
+#endif
 
 
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";
@@ -103,6 +105,18 @@ BOOL ScanVectorFromString(NSString *xyzString, Vector *outVector)
 	}
 }
 
+BOOL ScanHPVectorFromString(NSString *xyzString, HPVector *outVector)
+{
+	Vector scanVector;
+	assert(outVector != NULL);
+	BOOL result = ScanVectorFromString(xyzString, &scanVector);
+	if (!result)
+	{
+		return NO;
+	}
+	*outVector = vectorToHPVector(scanVector);
+	return YES;
+}
 
 BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion)
 {

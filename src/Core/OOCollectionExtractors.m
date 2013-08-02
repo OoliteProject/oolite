@@ -559,6 +559,11 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 	return OOVectorFromObject([self objectForKey:key], value);
 }
 
+- (HPVector) oo_hpvectorForKey:(id)key defaultValue:(HPVector)value
+{
+	return OOHPVectorFromObject([self objectForKey:key], value);
+}
+
 
 - (Quaternion) oo_quaternionForKey:(id)key defaultValue:(Quaternion)value
 {
@@ -717,6 +722,11 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 - (Vector) oo_vectorForKey:(id)key
 {
 	return [self oo_vectorForKey:key defaultValue:kZeroVector];
+}
+
+- (HPVector) oo_hpvectorForKey:(id)key
+{
+	return [self oo_hpvectorForKey:key defaultValue:kZeroHPVector];
 }
 
 
@@ -1119,6 +1129,10 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 	[self setObject:OOPropertyListFromVector(value) forKey:key];
 }
 
+- (void) oo_setHPVector:(HPVector)value forKey:(id)key
+{
+	[self setObject:OOPropertyListFromHPVector(value) forKey:key];
+}
 
 - (void) oo_setQuaternion:(Quaternion)value forKey:(id)key
 {
@@ -1411,6 +1425,40 @@ Vector OOVectorFromObject(id object, Vector defaultValue)
 	return result;
 }
 
+HPVector OOHPVectorFromObject(id object, HPVector defaultValue)
+{
+	HPVector				result = defaultValue;
+	NSDictionary		*dict = nil;
+	
+	if ([object isKindOfClass:[NSString class]])
+	{
+		// This will only write result if a valid vector is found, and will write an error message otherwise.
+		ScanHPVectorFromString(object, &result);
+	}
+	else if ([object isKindOfClass:[NSArray class]] && [object count] == 3)
+	{
+		result.x = [object oo_doubleAtIndex:0];
+		result.y = [object oo_doubleAtIndex:1];
+		result.z = [object oo_doubleAtIndex:2];
+	}
+	else if ([object isKindOfClass:[NSDictionary class]])
+	{
+		dict = object;
+		// Require at least one of the keys x, y, or z
+		if ([dict objectForKey:@"x"] != nil ||
+			[dict objectForKey:@"y"] != nil ||
+			[dict objectForKey:@"z"] != nil)
+		{
+			// Note: uses 0 for unknown components rather than components of defaultValue.
+			result.x = [dict oo_doubleForKey:@"x" defaultValue:0.0];
+			result.y = [dict oo_doubleForKey:@"y" defaultValue:0.0];
+			result.z = [dict oo_doubleForKey:@"z" defaultValue:0.0];
+		}
+	}
+	
+	return result;
+}
+
 
 Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue)
 {
@@ -1456,6 +1504,15 @@ NSDictionary *OOPropertyListFromVector(Vector value)
 			[NSNumber numberWithFloat:value.x], @"x",
 			[NSNumber numberWithFloat:value.y], @"y",
 			[NSNumber numberWithFloat:value.z], @"z",
+			nil];
+}
+
+NSDictionary *OOPropertyListFromHPVector(HPVector value)
+{
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+			[NSNumber numberWithDouble:value.x], @"x",
+			[NSNumber numberWithDouble:value.y], @"y",
+			[NSNumber numberWithDouble:value.z], @"z",
 			nil];
 }
 

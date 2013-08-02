@@ -663,6 +663,10 @@
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
 		1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */; };
+		1AD8522517947BD600CBE743 /* OOHPVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD8522317947BD600CBE743 /* OOHPVector.h */; };
+		1AD8522617947BD600CBE743 /* OOHPVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD8522417947BD600CBE743 /* OOHPVector.m */; };
+		1AD8522E17947C9500CBE743 /* OOJSPopulatorDefinition.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD8522C17947C9400CBE743 /* OOJSPopulatorDefinition.h */; };
+		1AD8522F17947C9500CBE743 /* OOJSPopulatorDefinition.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD8522D17947C9500CBE743 /* OOJSPopulatorDefinition.m */; };
 		1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA564710CD68D800E891B8 /* OOStellarBody.h */; };
 		1ADA8AB30F42DBA80001BEC9 /* OODeepCopy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */; };
 		1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */; };
@@ -1347,6 +1351,7 @@
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
 		1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OldSchoolPropertyListWriting.m; sourceTree = "<group>"; };
+		1A0730E817888C44008A1829 /* oolite-warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "oolite-warnings.xcconfig"; path = "src/Cocoa/oolite-warnings.xcconfig"; sourceTree = "<group>"; };
 		1A0942C712D7C011003B6273 /* OOJSFrameCallbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSFrameCallbacks.h; sourceTree = "<group>"; };
 		1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSFrameCallbacks.m; sourceTree = "<group>"; };
 		1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-dust.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
@@ -1971,6 +1976,10 @@
 		1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLStateManager.m; sourceTree = "<group>"; };
 		1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-32.exp"; path = "src/Cocoa/exports-debug-32.exp"; sourceTree = "<group>"; };
 		1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-64.exp"; path = "src/Cocoa/exports-debug-64.exp"; sourceTree = "<group>"; };
+		1AD8522317947BD600CBE743 /* OOHPVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOHPVector.h; sourceTree = "<group>"; };
+		1AD8522417947BD600CBE743 /* OOHPVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOHPVector.m; sourceTree = "<group>"; };
+		1AD8522C17947C9400CBE743 /* OOJSPopulatorDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPopulatorDefinition.h; sourceTree = "<group>"; };
+		1AD8522D17947C9500CBE743 /* OOJSPopulatorDefinition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPopulatorDefinition.m; sourceTree = "<group>"; };
 		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
 		1ADA564710CD68D800E891B8 /* OOStellarBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStellarBody.h; sourceTree = "<group>"; };
 		1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODeepCopy.h; sourceTree = "<group>"; };
@@ -2731,6 +2740,8 @@
 				1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */,
 				1A38E9E11603C7A500EE19F1 /* OOJSInterfaceDefinition.h */,
 				1A38E9E21603C7A500EE19F1 /* OOJSInterfaceDefinition.m */,
+				1AD8522C17947C9400CBE743 /* OOJSPopulatorDefinition.h */,
+				1AD8522D17947C9500CBE743 /* OOJSPopulatorDefinition.m */,
 			);
 			name = JavaScript;
 			sourceTree = "<group>";
@@ -3109,6 +3120,8 @@
 				1A9404920BAF4582005F6CF3 /* OOMaths.h */,
 				1A9404A10BAF462D005F6CF3 /* OOVector.h */,
 				1A9404A20BAF462D005F6CF3 /* OOVector.m */,
+				1AD8522317947BD600CBE743 /* OOHPVector.h */,
+				1AD8522417947BD600CBE743 /* OOHPVector.m */,
 				1A9405360BAF4FA6005F6CF3 /* OOMatrix.h */,
 				1A9405370BAF4FA6005F6CF3 /* OOMatrix.m */,
 				1A94057D0BAF52AD005F6CF3 /* OOQuaternion.h */,
@@ -3167,11 +3180,12 @@
 			isa = PBXGroup;
 			children = (
 				1A9407BF0BAF7032005F6CF3 /* GNUmakefile */,
-				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
-				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
-				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */,
+				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */,
+				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
+				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
+				1A0730E817888C44008A1829 /* oolite-warnings.xcconfig */,
 				1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */,
 				1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */,
 				1A1B24C313293ED2007A0940 /* exports-release.exp */,
@@ -3578,6 +3592,8 @@
 				1A401F8815E7AF7B004CDF95 /* OOPrimaryWindow.h in Headers */,
 				1A38E9E31603C7A500EE19F1 /* OOJSInterfaceDefinition.h in Headers */,
 				1AAEE9DA161F7523003A5A1E /* OOStringExpander.h in Headers */,
+				1AD8522517947BD600CBE743 /* OOHPVector.h in Headers */,
+				1AD8522E17947C9500CBE743 /* OOJSPopulatorDefinition.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4056,6 +4072,8 @@
 				1A38E9E41603C7A500EE19F1 /* OOJSInterfaceDefinition.m in Sources */,
 				1AAEE9DB161F7523003A5A1E /* OOStringExpander.m in Sources */,
 				1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */,
+				1AD8522617947BD600CBE743 /* OOHPVector.m in Sources */,
+				1AD8522F17947C9500CBE743 /* OOJSPopulatorDefinition.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4131,7 +4149,6 @@
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
@@ -4181,7 +4198,6 @@
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
@@ -4245,7 +4261,6 @@
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
 				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
 				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";

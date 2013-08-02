@@ -1,20 +1,8 @@
+#include "oolite-warnings.xcconfig"
+
 ARCHS									= x86_64
 SDKROOT									= macosx10.8
 
 MACOSX_DEPLOYMENT_TARGET				= 10.6
 
 GCC_VERSION								= com.apple.compilers.llvm.clang.1_0
-
-
-
-// The vast majority of format warnings in 32-bit will be using %l{diux} for
-// NS[U]Integer, which is perfectly safe. It's possible suppressing this will
-// miss some real bugs, but not too likely, and casting everywhere is too ugly.
-OO_ARCH_WARNING_FLAGS					=
-OO_ARCH_WARNING_FLAGS[arch=i386]		= -Wno-format
-
-OO_LOTS_OF_WARNINGS						= -Wall -Wextra -Wshorten-64-to-32
-OO_WARNING_EXCEPTIONS					= -Wno-unused-parameter -Wno-missing-field-initializers
-OO_WARNING_NO_ERROR						= -Wno-error=shorten-64-to-32 -Wno-error=deprecated-declarations -Wno-error=semicolon-before-method-body
-
-OO_WARNING_FLAGS						= $OO_LOTS_OF_WARNINGS $OO_WARNING_EXCEPTIONS $OO_WARNING_NO_ERROR $OO_ARCH_WARNING_FLAGS

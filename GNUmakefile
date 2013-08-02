@@ -235,6 +235,7 @@ OOLITE_MATHS_FILES = \
     CollisionRegion.m \
     OOMeshToOctreeConverter.m \
     Octree.m \
+    OOHPVector.m \
     OOMatrix.m \
     OOQuaternion.m \
     OOVector.m \
@@ -283,6 +284,7 @@ OOLITE_SCRIPTING_FILES = \
     OOJSPlanet.m \
     OOJSPlayer.m \
     OOJSPlayerShip.m \
+    OOJSPopulatorDefinition.m \
     OOJSQuaternion.m \
     OOJSScript.m \
     OOJSShip.m \
