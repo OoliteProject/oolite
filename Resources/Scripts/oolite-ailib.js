@@ -1658,7 +1658,7 @@ AILib.prototype.behaviourCollectSalvage = function()
 	this.responsesAddStandard(handlers);
 	handlers.shipScoopedOther = function(other)
 	{
-		this.communicate("oolite_scoopedCargo",{"oolite_goodsDescription":other.commodity},4);
+		this.communicate("oolite_scoopedCargo",{"oolite_goodsDescription":displayNameForCommodity(other.commodity)},4);
 		this.setParameter("oolite_cargoDropped",null);
 		this.reconsiderNow();
 	}
@@ -3949,9 +3949,9 @@ this.startUp = function()
 				oolite_makePirateDemand: "[oolite-comms-makePirateDemand]",
 			}
 		},
-		thargoid: {
-			generic: {
-				oolite_continuingAttack: "[thargoid-curses]"
+		_thargoid: {
+			thargoid: {
+				oolite_continuingAttack: "[thargoid_curses]"
 			}
 		}
 	};
@@ -4001,8 +4001,7 @@ this._setCommunication = function(role, personality, key, value)
  * "generic"+"generic"
  * A return value of "" means no communication is set.
  *
- * TODO: need a way to define particular roles or personalities *not*
- * to fallback to generic
+ * Roles or personalities starting with _ do not fall back to generic
  */
 this._getCommunication = function(role, personality, key)
 {
@@ -4010,17 +4009,26 @@ this._getCommunication = function(role, personality, key)
 	{
 		return this.$commsSettings[role][personality][key];
 	}
-	if (this.$commsSettings["generic"] && this.$commsSettings["generic"][personality] && this.$commsSettings["generic"][personality][key] && this.$commsSettings["generic"][personality][key] != "")
+	if (role.charAt(0) != "_")
 	{
-		return this.$commsSettings["generic"][personality][key];
+		if (this.$commsSettings["generic"] && this.$commsSettings["generic"][personality] && this.$commsSettings["generic"][personality][key] && this.$commsSettings["generic"][personality][key] != "")
+		{
+			return this.$commsSettings["generic"][personality][key];
+		}
 	}
-	if (this.$commsSettings[role] && this.$commsSettings[role]["generic"] && this.$commsSettings[role]["generic"][key] && this.$commsSettings[role]["generic"][key] != "")
+	if (personality.charAt(0) != "_")
 	{
-		return this.$commsSettings[role]["generic"][key];
+		if (this.$commsSettings[role] && this.$commsSettings[role]["generic"] && this.$commsSettings[role]["generic"][key] && this.$commsSettings[role]["generic"][key] != "")
+		{
+			return this.$commsSettings[role]["generic"][key];
+		}
 	}
-	if (this.$commsSettings["generic"] && this.$commsSettings["generic"]["generic"] && this.$commsSettings["generic"]["generic"][key] && this.$commsSettings["generic"]["generic"][key] != "")
+	if (role.charAt(0) != "_" && personality.charAt(0) != "_")
 	{
-		return this.$commsSettings["generic"]["generic"][key];
+		if (this.$commsSettings["generic"] && this.$commsSettings["generic"]["generic"] && this.$commsSettings["generic"]["generic"][key] && this.$commsSettings["generic"]["generic"][key] != "")
+		{
+			return this.$commsSettings["generic"]["generic"][key];
+		} 
 	}
 	return "";
 }

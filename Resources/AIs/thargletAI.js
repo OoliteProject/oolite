@@ -30,50 +30,53 @@ this.name = "Oolite Tharglet AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-		ai.setPriorities([
-				/* Check for mothership */
+	ai.setCommunicationsRole("_thargoid");
+	ai.setCommunicationsPersonality("tharglet");
+
+	ai.setPriorities([
+		/* Check for mothership */
+		{
+			condition: ai.conditionHasMothership,
+			truebranch: [
 				{
-						condition: ai.conditionHasMothership,
-						truebranch: [
-								{
-										condition: ai.conditionGroupIsSeparated,
-										configuration: ai.configurationLeaveEscortGroup,
-										behaviour: ai.behaviourReconsider
-								},
-								{
-										condition: ai.conditionCascadeDetected,
-										behaviour: ai.behaviourAvoidCascadeExplosion,
-										reconsider: 5
-								},
-								{
-										condition: ai.conditionMothershipInCombat,
-										configuration: ai.configurationAcquireOffensiveEscortTarget,
-										behaviour: ai.behaviourDestroyCurrentTarget,
-										reconsider: 5
-								},
-								{
-										behaviour: ai.behaviourEscortMothership,
-										reconsider: 5
-								}
-						],
-						falsebranch: [
-								{
-										preconfiguration: ai.configurationCheckScanner,
-										condition: ai.conditionScannerContainsReadyThargoidMothership,
-										behaviour: ai.behaviourOfferToEscort,
-										reconsider: 5
-								},
-								{
-										condition: ai.conditionIsActiveThargon,
-										behaviour: ai.behaviourBecomeInactiveThargon,
-										reconsider: 10
-								},
-								{
-										behaviour: ai.behaviourTumble
-								}
-						]
+					condition: ai.conditionGroupIsSeparated,
+					configuration: ai.configurationLeaveEscortGroup,
+					behaviour: ai.behaviourReconsider
+				},
+				{
+					condition: ai.conditionCascadeDetected,
+					behaviour: ai.behaviourAvoidCascadeExplosion,
+					reconsider: 5
+				},
+				{
+					condition: ai.conditionMothershipInCombat,
+					configuration: ai.configurationAcquireOffensiveEscortTarget,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 5
+				},
+				{
+					behaviour: ai.behaviourEscortMothership,
+					reconsider: 5
 				}
-		]);
+			],
+			falsebranch: [
+				{
+					preconfiguration: ai.configurationCheckScanner,
+					condition: ai.conditionScannerContainsReadyThargoidMothership,
+					behaviour: ai.behaviourOfferToEscort,
+					reconsider: 5
+				},
+				{
+					condition: ai.conditionIsActiveThargon,
+					behaviour: ai.behaviourBecomeInactiveThargon,
+					reconsider: 10
+				},
+				{
+					behaviour: ai.behaviourTumble
+				}
+			]
+		}
+	]);
 }
