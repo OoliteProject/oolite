@@ -3930,7 +3930,8 @@ AILib.prototype.waypointsStationPatrol = function()
 this.startUp = function()
 {
 	// initial definition is just essential communications for now
-	this.$commsSettings = { 
+	this.$commsSettings = {};
+	this._setCommunications({
 		trader: { 
 			generic: { 
 				oolite_acceptPirateDemand: "[oolite-comms-acceptPirateDemand]",
@@ -3954,7 +3955,7 @@ this.startUp = function()
 				oolite_continuingAttack: "[thargoid_curses]"
 			}
 		}
-	};
+	});
 
 	/* These are temporary for testing. Remove before release... */
 	this.$commsSettings.generic = {generic:{}};
@@ -3978,20 +3979,6 @@ this.startUp = function()
 }
 
 
-/* Set a communication for the specified role, personality and comms
- * key. "generic" is used as a fallback role and personality. */
-this._setCommunication = function(role, personality, key, value)
-{
-	if (!this.$commsSettings[role])
-	{
-		this.$commsSettings[role] = {};
-	}
-	if (!this.$commsSettings[role][personality])
-	{
-		this.$commsSettings[role][personality] = {};
-	}
-	this.$commsSettings[role][personality][key] = value;
-}
 
 
 /* Search through communications from most specific to least specific.
@@ -4031,4 +4018,55 @@ this._getCommunication = function(role, personality, key)
 		} 
 	}
 	return "";
+}
+
+
+/* Returns the available personalities for a particular role */
+this._getCommunicationPersonalities = function(role)
+{
+	if (!this.$commsSettings[role])
+	{
+		return [];
+	}
+	else
+	{
+		return Object.keys(this.$commsSettings[role]);
+	}
+}
+
+
+/* Set a communication for the specified role, personality and comms
+ * key. "generic" is used as a fallback role and personality. */
+this._setCommunication = function(role, personality, key, value)
+{
+	if (!this.$commsSettings[role])
+	{
+		this.$commsSettings[role] = {};
+	}
+	if (!this.$commsSettings[role][personality])
+	{
+		this.$commsSettings[role][personality] = {};
+	}
+	this.$commsSettings[role][personality][key] = value;
+}
+
+
+/* Bulk setting of communications */
+this._setCommunications = function(obj)
+{
+	var roles = Object.keys(obj);
+	for (var i = 0; i<roles.length ; i++)
+	{
+		var personalities = Object.keys(obj[roles[i]]);
+		for (var j = 0; j<personalities.length ; j++)
+		{
+			var keys = Object.keys(obj[roles[i]][personalities[j]]);
+			for (var k = 0; k<keys.length ; k++)
+			{
+				var val = obj[roles[i]][personalities[j]][keys[k]];
+				this._setCommunication(roles[i],personalities[j],keys[k],val);
+			}
+		}
+	}
+
 }
