@@ -2304,7 +2304,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			if (targetIDs[i] != primary)
 			{
 				Entity *secondary = [UNIVERSE entityForUniversalID:targetIDs[i]];
-				if (secondary != nil && HPdistance2([secondary position],[player position]) <= SCANNER_MAX_RANGE2)
+				if (secondary != nil && [secondary zeroDistance] <= SCANNER_MAX_RANGE2)
 				{
 					hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO);	
 				}			
