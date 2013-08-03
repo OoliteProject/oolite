@@ -1483,6 +1483,10 @@ static GLfloat		sBaseMass = 0.0;
 	[shipyard_record release];
 	shipyard_record = [[NSMutableDictionary alloc] init];
 	
+	[target_memory release];
+	target_memory = [[NSMutableArray alloc] initWithCapacity:PLAYER_TARGET_MEMORY_SIZE];
+	[self clearTargetMemory]; // also does first-time initialisation
+
 	[self setMissionOverlayDescriptor:nil];
 	[self setMissionBackgroundDescriptor:nil];
 	[self setMissionBackgroundSpecial:nil];
@@ -1745,6 +1749,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(hud);
 	DESTROY(commLog);
 	DESTROY(keyconfig_settings);
+	DESTROY(target_memory);
 	
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
@@ -8999,41 +9004,31 @@ static NSString *last_outfitting_key=nil;
 		assert ([self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
 		[self addScannedWormhole:(WormholeEntity*)targetEntity];
 	}
-	
-	if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"])
+	// wormholes don't go in target memory
+	else if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"] && targetEntity != nil)
 	{
-		int i = 0;
-		BOOL foundSlot = NO;
-		// if targeted previously use that memory space
-		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+		OOWeakReference *targetRef = [targetEntity weakSelf];
+		NSUInteger i = [target_memory indexOfObject:targetRef];
+		// if already in target memory, preserve that and just change the index
+		if (i != NSNotFound)
 		{
-			if ([[self primaryTarget] universalID] == target_memory[i])
-			{
-				target_memory_index = i;
-				foundSlot = YES;
-				break;
-			}
-		}
-		
-		if (!foundSlot)
+			target_memory_index = i;
+		}		
+		else
 		{
+			i = [target_memory indexOfObject:[NSNull null]];
 			// find and use a blank space in memory
-			for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+			if (i != NSNotFound)
 			{
-				if (target_memory[target_memory_index] == NO_TARGET)
-				{
-					target_memory[target_memory_index] = [[self primaryTarget] universalID];
-					foundSlot = YES;
-					break;
-				}
-				target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
+				[target_memory replaceObjectAtIndex:i withObject:targetRef];
+				target_memory_index = i;
 			}
-		}
-		if (!foundSlot)
-		{
-			// use the next memory space
-			target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
-			target_memory[target_memory_index] = [[self primaryTarget] universalID];
+			else
+			{
+				// use the next memory space
+				target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
+				[target_memory replaceObjectAtIndex:target_memory_index withObject:targetRef];
+			}
 		}
 	}
 	
@@ -9064,13 +9059,23 @@ static NSString *last_outfitting_key=nil;
 - (void) clearTargetMemory
 {
 	int i = 0;
+	int j = [target_memory count];
 	for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
-		target_memory[i] = NO_TARGET;
+	{
+		if (j > i)
+		{
+			[target_memory replaceObjectAtIndex:i withObject:[NSNull null]];
+		}
+		else
+		{
+			[target_memory addObject:[NSNull null]];
+		}
+	}
 	target_memory_index = 0;
 }
 
 
-- (int *) targetMemory
+- (NSMutableArray *) targetMemory
 {
 	return target_memory;
 }
@@ -9083,41 +9088,45 @@ static NSString *last_outfitting_key=nil;
 		target_memory_index += delta;
 		while (target_memory_index < 0)  target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
 		while (target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)  target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
-		
-		int targ_id = target_memory[target_memory_index];
-		ShipEntity *potential_target = [UNIVERSE entityForUniversalID: targ_id];
-		
-		if ((potential_target)&&(potential_target->isShip))
+		id targ_id = [target_memory objectAtIndex:target_memory_index];
+		if ([targ_id isProxy])
 		{
-			if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked]))
+			ShipEntity *potential_target = [(OOWeakReference *)targ_id weakRefUnderlyingObject];
+		
+			if ((potential_target)&&(potential_target->isShip))
 			{
-				[super addTarget:potential_target];
-				if (missile_status != MISSILE_STATUS_SAFE)
+				if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked]))
 				{
-					if( [missile_entity[activeMissile] isMissile])
+					[super addTarget:potential_target];
+					if (missile_status != MISSILE_STATUS_SAFE)
 					{
-						[missile_entity[activeMissile] addTarget:potential_target];
-						missile_status = MISSILE_STATUS_TARGET_LOCKED;
-						[self printIdentLockedOnForMissile:YES];
+						if( [missile_entity[activeMissile] isMissile])
+						{
+							[missile_entity[activeMissile] addTarget:potential_target];
+							missile_status = MISSILE_STATUS_TARGET_LOCKED;
+							[self printIdentLockedOnForMissile:YES];
+						}
+						else
+						{
+							missile_status = MISSILE_STATUS_ARMED;
+							[self playIdentLockedOn];
+							[self printIdentLockedOnForMissile:NO];
+						}
 					}
 					else
 					{
-						missile_status = MISSILE_STATUS_ARMED;
-						[self playIdentLockedOn];
+						ident_engaged = YES;
 						[self printIdentLockedOnForMissile:NO];
 					}
+					[self playTargetSwitched];
+					return YES;
 				}
-				else
-				{
-					ident_engaged = YES;
-					[self printIdentLockedOnForMissile:NO];
-				}
-				[self playTargetSwitched];
-				return YES;
+			}
+			else
+			{
+				[target_memory replaceObjectAtIndex:target_memory_index withObject:[NSNull null]];
 			}
 		}
-		else
-			target_memory[target_memory_index] = NO_TARGET;	// tidy up
 	}
 	
 	[self playNoTargetInMemory];

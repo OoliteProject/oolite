@@ -2297,17 +2297,26 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	{
 		// needs target memory to be working in addition to any other equipment
 		// this item may be bound to
-		int *targetIDs = [player targetMemory];
-		OOUniversalID primary = [[player primaryTarget] universalID];
+		NSMutableArray *targetMemory = [player targetMemory];
+		ShipEntity *primary = [player primaryTarget];
 		for (unsigned i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
 		{
-			if (targetIDs[i] != primary)
+			id sec_id = [targetMemory objectAtIndex:i];
+			// isProxy = weakref ; not = NSNull (in this case...)
+			// can't use isKindOfClass because that throws
+			// NSInvalidArgumentException when called on a weakref
+			// with a dropped object.
+			// TODO: fix OOWeakReference so isKindOfClass works
+			if (sec_id != nil && [sec_id isProxy])
 			{
-				Entity *secondary = [UNIVERSE entityForUniversalID:targetIDs[i]];
-				if (secondary != nil && [secondary zeroDistance] <= SCANNER_MAX_RANGE2)
+				ShipEntity *secondary = [(OOWeakReference *)sec_id weakRefUnderlyingObject];
+				if (secondary != nil && secondary != primary)
 				{
-					hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO);	
-				}			
+					if ([secondary zeroDistance] <= SCANNER_MAX_RANGE2)
+					{
+						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO);	
+					}			
+				}
 			}
 		}
 	}

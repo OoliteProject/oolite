@@ -481,7 +481,7 @@ typedef enum
 	
 	// target memory
 	// TODO: this should use weakrefs
-	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
+	NSMutableArray  		*target_memory;
 	int						target_memory_index;
 	
 	// custom view points
@@ -817,7 +817,7 @@ typedef enum
 - (void) setScoopsActive;
 
 - (void) clearTargetMemory;
-- (int *) targetMemory;
+- (NSMutableArray *) targetMemory;
 - (BOOL) moveTargetMemoryBy:(int)delta;
 
 - (void) printIdentLockedOnForMissile:(BOOL)missile;
