@@ -43,7 +43,7 @@ this.AILib = function(ship)
 		value: ship,
 		writable: false,
 		enumerable: true,
-		configurable: false
+		configurable: true
 	});
 
 
@@ -208,7 +208,16 @@ this.AILib = function(ship)
 		 * be set here. */
 		handlers.aiAwoken = function()
 		{
-			_reconsider.call(this);
+			if (this.ship)
+			{
+				_reconsider.call(this);
+			}
+		}
+		/* This handler must always exist for a priority AI, and must
+		 * be set here. */
+		handlers.shipDied = function()
+		{
+			this.cleanup();
 		}
 
 		// step 2: go through the keys in handlers and put those handlers
@@ -219,6 +228,24 @@ this.AILib = function(ship)
 			this.ship.AIScript[activeHandlers[i]] = handlers[[activeHandlers[i]]].bind(this);
 		}
 
+	}
+
+
+	/* Do not call this. It is called automatically on ship death */
+	this.cleanup = function()
+	{
+		// break links to disconnect this from GC roots a little sooner
+		delete this.ship.AIScript.oolite_priorityai;
+		this.ship.AIScriptWakeTime = 0;
+		delete this.ship.AIScript.aiAwoken;
+		Object.defineProperty(this,	"ship", {
+			value: ship,
+			writable: true,
+			enumerable: true,
+			configurable: true
+		});
+		delete this.ship;
+		delete this.parameters; // might contain entities
 	}
 
 
@@ -1751,7 +1778,7 @@ AILib.prototype.behaviourDestroyCurrentTarget = function()
 	{
 		if (this.ship.scanClass != "CLASS_THARGOID" && this.ship.target.scanClass != "CLASS_THARGOID" && this.ship.target.target.scanClass == "CLASS_THARGOID")
 		{
-			this.respondToThargoids(this.ship.target.target,false);
+			this.respondToThargoids(this.ship.target.target,true);
 			this.ship.performAttack();
 			return;
 		}
@@ -2194,7 +2221,7 @@ AILib.prototype.behaviourRepelCurrentTarget = function()
 	{
 		if (this.ship.scanClass != "CLASS_THARGOID" && this.ship.target.scanClass != "CLASS_THARGOID" && this.ship.target.target.scanClass == "CLASS_THARGOID")
 		{
-			this.respondToThargoids(this.ship.target.target,false);
+			this.respondToThargoids(this.ship.target.target,true);
 			this.ship.performAttack();
 			return;
 		}
