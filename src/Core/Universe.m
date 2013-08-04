@@ -6094,6 +6094,20 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		{
 			[my_entities[i] release];	// explicitly release each one
 		}
+		/* Garbage collection is going to result in a significant pause
+		 * when it happens. Doing it here is better than doing it in the
+		 * middle of the update when it might slow a function into the
+		 * timelimiter through no fault of its own. JS_MaybeGC will only
+		 * run a GC when it's necessary. - CIM: 4/8/2013
+		 */
+		update_stage = @"JS Garbage Collection";
+		OOLog(@"universe.profile.update", @"%@", update_stage); 
+		JSContext *context = OOJSAcquireContext(); 
+		JS_MaybeGC(context);
+		OOJSRelinquishContext(context);
+		update_stage = @"JS Garbage Collection Done";
+		OOLog(@"universe.profile.update", @"%@", update_stage); 
+
 	}
 	else
 	{
@@ -6108,6 +6122,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 #if NEW_PLANETS
 	[self prunePreloadingPlanetMaterials];
 #endif
+
 	OOLog(@"universe.profile.update",@"Update complete");
 }
 

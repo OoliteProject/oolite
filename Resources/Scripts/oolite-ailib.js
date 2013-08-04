@@ -186,7 +186,10 @@ this.AILib = function(ship)
 	/* Resets the reconsideration timer. */
 	function _resetReconsideration(delay)
 	{
-		this.ship.AIScriptWakeTime = clock.adjustedSeconds + delay;
+		if (this.ship)
+		{
+			this.ship.AIScriptWakeTime = clock.adjustedSeconds + delay;
+		}
 	};
 
 
@@ -231,11 +234,12 @@ this.AILib = function(ship)
 	}
 
 
-	/* Do not call this. It is called automatically on ship death */
+	/* Do not call this directly. It is bcalled automatically on ship death */
 	this.cleanup = function()
 	{
 		// break links to disconnect this from GC roots a little sooner
 		delete this.ship.AIScript.oolite_priorityai;
+		this.applyHandlers({});
 		this.ship.AIScriptWakeTime = 0;
 		delete this.ship.AIScript.aiAwoken;
 		Object.defineProperty(this,	"ship", {
