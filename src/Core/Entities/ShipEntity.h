@@ -89,7 +89,7 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 #define AIMS_AGGRESSOR_SWITCHED_TARGET	@"AGGRESSOR_SWITCHED_TARGET"
 
 // number of vessels considered when scanning around
-#define MAX_SCAN_NUMBER					16
+#define MAX_SCAN_NUMBER					32
 
 #define BASELINE_SHIELD_LEVEL			128.0f			// Max shield level with no boosters.
 #define INITIAL_SHOT_TIME				100.0
