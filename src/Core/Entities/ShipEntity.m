@@ -6454,6 +6454,12 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (BOOL)isTurret
+{
+	return behaviour == BEHAVIOUR_TRACK_AS_TURRET;
+}
+
+
 - (BOOL)isPirateVictim
 {
 	return [UNIVERSE roleIsPirateVictim:[self primaryRole]];

@@ -215,6 +215,7 @@ enum
 	kShip_isPolice,				// is police, boolean, read-only
 	kShip_isRock,				// is a rock (hermits included), boolean, read-only
 	kShip_isThargoid,			// is thargoid, boolean, read-only
+	kShip_isTurret,			    // is turret, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isWeapon,				// is missile or mine, boolean, read-only
 	kShip_laserHeatLevel,			// active laser temperature, float, read-only
@@ -344,6 +345,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isRock",					kShip_isRock,				OOJS_PROP_READONLY_CB },
 	{ "isBoulder",				kShip_isBoulder,			OOJS_PROP_READWRITE_CB },
 	{ "isThargoid",				kShip_isThargoid,			OOJS_PROP_READONLY_CB },
+	{ "isTurret",				kShip_isTurret,				OOJS_PROP_READONLY_CB },
 	{ "isTrader",				kShip_isTrader,				OOJS_PROP_READONLY_CB },
 	{ "isWeapon",				kShip_isWeapon,				OOJS_PROP_READONLY_CB },
 	{ "laserHeatLevel",			kShip_laserHeatLevel,		OOJS_PROP_READONLY_CB },
@@ -805,6 +807,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			*value = OOJSValueFromBOOL([entity isThargoid]);
 			return YES;
 			
+		case kShip_isTurret:
+			*value = OOJSValueFromBOOL([entity isTurret]);
+			return YES;
+
 		case kShip_isTrader:
 			*value = OOJSValueFromBOOL([entity isTrader]);
 			return YES;

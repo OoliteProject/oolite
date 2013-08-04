@@ -716,6 +716,7 @@ typedef enum
 - (BOOL)isWeapon;		// isMissile || isWeapon
 - (BOOL)isEscort;		// Primary role is "escort" or "wingman"
 - (BOOL)isShuttle;		// Primary role is "shuttle"
+- (BOOL)isTurret;		// Behaviour is BEHAVIOUR_TRACK_AS_TURRET
 - (BOOL)isPirateVictim;	// Primary role is listed in pirate-victim-roles.plist
 - (BOOL)isUnpiloted;	// Has unpiloted = yes in its shipdata.plist entry
 
