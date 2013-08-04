@@ -600,6 +600,8 @@
 	"oolite-comms-markForFines" = "[police-warning]";
 	"oolite-comms-distressResponseAggressor" = "[police-attack-warning]";
 	"oolite-comms-offenceDetected" = "[police-attack-warning]";
+	"oolite-comms-thanksForHelp" = "[thanks-for-assist]";
+	"oolite-comms-police-thanksForHelp" = "[police-thanks-for-assist]";
 
 
 	// /general docking

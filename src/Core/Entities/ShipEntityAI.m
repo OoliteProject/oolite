@@ -940,6 +940,7 @@
 		{
 			ShipEntity *currentShip = [self primaryTarget];
 			[[currentShip getAI] message:[NSString stringWithFormat:@"%@ %d %d", AIMS_AGGRESSOR_SWITCHED_TARGET, universalID, [[self primaryAggressor] universalID]]];
+			[currentShip doScriptEvent:OOJSID("shipAttackerDistracted") withArgument:[self primaryAggressor]];
 		}
 		
 		// okay, so let's now target the aggressor

@@ -33,7 +33,7 @@ this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
 	ai.setCommunicationsRole("escort");
-
+	ai.setParameter("oolite_flag_scanIgnoresUnpowered",true);
 
 	ai.setPriorities([
 		{

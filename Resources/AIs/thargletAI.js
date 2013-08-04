@@ -35,6 +35,8 @@ this.aiStarted = function() {
 	ai.setCommunicationsRole("_thargoid");
 	ai.setCommunicationsPersonality("tharglet");
 
+	ai.setParameter("oolite_flag_scanIgnoresUnpowered",true);
+
 	ai.setPriorities([
 		/* Check for mothership */
 		{

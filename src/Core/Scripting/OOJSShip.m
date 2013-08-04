@@ -3286,9 +3286,24 @@ static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	ShipEntity *thisEnt = nil;
+	JSBool	onlyCheckPowered = NO;
+	
 	GET_THIS_SHIP(thisEnt);
+	
+	if (argc > 0 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[0], &onlyCheckPowered)))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"checkScanner", argc, OOJS_ARGV, nil, @"boolean");
+		return NO;
+	}
 
-	[thisEnt checkScanner];
+	if (onlyCheckPowered)
+	{
+		[thisEnt checkScannerIgnoringUnpowered];
+	}
+	else
+	{
+		[thisEnt checkScanner];
+	}
 	ShipEntity **scannedShips = [thisEnt scannedShips];
 	unsigned num = [thisEnt numberOfScannedShips];
 	NSMutableArray *scanResult = [NSMutableArray array];
