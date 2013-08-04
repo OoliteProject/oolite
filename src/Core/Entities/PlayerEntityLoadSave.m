@@ -571,7 +571,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self completeSetUpAndSetTarget:NO];
 	// run initial system population
 	[UNIVERSE populateNormalSpace];
-	
+	// might as well start off with a collected JS environment
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
+
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading

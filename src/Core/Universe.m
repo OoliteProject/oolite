@@ -6094,19 +6094,32 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		{
 			[my_entities[i] release];	// explicitly release each one
 		}
-		/* Garbage collection is going to result in a significant pause
-		 * when it happens. Doing it here is better than doing it in the
-		 * middle of the update when it might slow a function into the
-		 * timelimiter through no fault of its own. JS_MaybeGC will only
-		 * run a GC when it's necessary. - CIM: 4/8/2013
+		/* Garbage collection is going to result in a significant
+		 * pause when it happens. Doing it here is better than doing
+		 * it in the middle of the update when it might slow a
+		 * function into the timelimiter through no fault of its
+		 * own. JS_MaybeGC will only run a GC when it's
+		 * necessary. Merely checking is not significant in terms of
+		 * time. - CIM: 4/8/2013
 		 */
 		update_stage = @"JS Garbage Collection";
 		OOLog(@"universe.profile.update", @"%@", update_stage); 
+#ifndef NDEBUG
 		JSContext *context = OOJSAcquireContext(); 
-		JS_MaybeGC(context);
+		uint32 gcbytes1 = JS_GetGCParameter(JS_GetRuntime(context),JSGC_BYTES);
 		OOJSRelinquishContext(context);
-		update_stage = @"JS Garbage Collection Done";
-		OOLog(@"universe.profile.update", @"%@", update_stage); 
+#endif
+		[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:NO];
+#ifndef NDEBUG
+		context = OOJSAcquireContext(); 
+		uint32 gcbytes2 = JS_GetGCParameter(JS_GetRuntime(context),JSGC_BYTES);
+		OOJSRelinquishContext(context);
+		if (gcbytes2 < gcbytes1)
+		{
+			OOLog(@"universe.profile.jsgc",@"Unplanned JS Garbage Collection from %d to %d",gcbytes1,gcbytes2);
+		}
+#endif
+
 
 	}
 	else

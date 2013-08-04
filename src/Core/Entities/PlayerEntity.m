@@ -5303,7 +5303,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self setGuiToStatusScreen];
 	}
 	[[OOCacheManager sharedCache] flush];
-	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity];
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
 	
 	// When a mission screen is started, any on-screen message is removed immediately.
 	[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// also displays docking reports first.
@@ -5828,6 +5828,11 @@ static GLfloat		sBaseMass = 0.0;
 			[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
 		}
 	}
+
+	/* there's going to be a slight pause at this stage anyway;
+	 * there's also going to be a lot of stale ship scripts. Force a
+	 * garbage collection while we have chance. - CIM */
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
 
 	flightSpeed = wormhole ? [wormhole exitSpeed] : fmin(maxFlightSpeed,50.0f);
 	[wormhole release];	// OK even if nil
