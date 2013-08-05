@@ -3088,19 +3088,21 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		//       to the following condition.
 		if (colourFromScannerColour)
 		{
-			GLfloat *base_col;
 			if ([target isShip])
 			{
 				ShipEntity *ship = (ShipEntity *)target;
 				BOOL isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
-				base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
+				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]],alpha);
 			}
 			else if ([target isVisualEffect])
 			{
 				OOVisualEffectEntity *vis = (OOVisualEffectEntity *)target;
-				base_col = [vis scannerDisplayColorForShip:flash :[vis scannerDisplayColor1] :[vis scannerDisplayColor2]];
+				GLColorWithOverallAlpha([vis scannerDisplayColorForShip:flash :[vis scannerDisplayColor1] :[vis scannerDisplayColor2]],alpha);
 			}
-			GLColorWithOverallAlpha(base_col, alpha);
+			else
+			{
+				GLColorWithOverallAlpha(green_color, alpha);
+			}
 		}
 		else
 		{
