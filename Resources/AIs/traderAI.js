@@ -33,6 +33,7 @@ this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
 	ai.setParameter("oolite_flag_sendsDistressCalls",true);
+	ai.setParameter("oolite_flag_surrendersEarly",true);
 
 	ai.setCommunicationsRole("trader");
 

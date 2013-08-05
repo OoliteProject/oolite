@@ -32,7 +32,8 @@ this.version = "1.79";
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
 
-	ai.setCommunicationsRole("pirate");
+	ai.setCommunicationsRole("_constrictor");
+	ai.setParameter("oolite_flag_surrendersLate",true);
 
 	ai.setPriorities([
 		/* Fight */
@@ -46,7 +47,7 @@ this.aiStarted = function() {
 			},
 			condition: ai.conditionLosingCombat,
 			behaviour: ai.behaviourFleeCombat,
-			reconsider: 5
+			reconsider: 20
 		},
 		{
 			condition: ai.conditionInCombat,

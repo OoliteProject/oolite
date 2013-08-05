@@ -81,7 +81,7 @@ this.aiStarted = function() {
 			reconsider: 1
 		},
 		{
-			condition: ai.conditionScannerContainsHuntableOffender,
+			condition: ai.conditionScannerContainsSeriousOffender,
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 1

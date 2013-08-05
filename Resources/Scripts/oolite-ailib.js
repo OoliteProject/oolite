@@ -732,13 +732,27 @@ AILib.prototype.conditionCascadeDetected = function()
 
 AILib.prototype.conditionCombatOddsTerrible = function()
 {
-	return this.oddsAssessment() < 0.375;
+	if (this.getParameter("oolite_flag_surrendersEarly"))
+	{
+		return this.oddsAssessment() < 0.75;
+	}
+	else
+	{
+		return this.oddsAssessment() < 0.375;
+	}
 }
 
 
 AILib.prototype.conditionCombatOddsBad = function()
 {
-	return this.oddsAssessment() < 0.75;
+	if (this.getParameter("oolite_flag_surrendersLate"))
+	{
+		return this.oddsAssessment() < 0.375;
+	}
+	else
+	{
+		return this.oddsAssessment() < 0.75;
+	}
 }
 
 
@@ -1342,6 +1356,15 @@ AILib.prototype.conditionScannerContainsFugitive = function()
 }
 
 AILib.prototype.conditionScannerContainsHuntableOffender = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		var threshold = this.fineThreshold() / 2;
+		return s.isInSpace && s.bounty > threshold && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK"; 
+	});
+}
+
+
+AILib.prototype.conditionScannerContainsSeriousOffender = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
 		var threshold = this.fineThreshold();

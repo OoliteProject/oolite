@@ -67,8 +67,15 @@ this.aiStarted = function() {
 		{
 			condition: ai.conditionScannerContainsHuntableOffender,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
-			reconsider: 1
+			truebranch: [
+				/* if we require bounty hunters to have actual *good*
+				 * odds they'll never shoot anything */
+				{
+					notcondition: ai.conditionCombatOddsBad,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 1
+				}
+			]
 		},
 		/* What about loot? */
 		{
