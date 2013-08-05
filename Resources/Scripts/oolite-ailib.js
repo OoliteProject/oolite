@@ -4520,11 +4520,18 @@ this._threatAssessment = function(ship,full)
 		if (ship.scanClass == "CLASS_THARGOID")
 		{
 			assessment *= 1.5;
+			if (ship.hasRole("thargoid-mothership"))
+			{
+				assessment += 2.5;
+			}
 		}
 		else
 		{
-			// safety factor for ships we don't know the capabilities of
-			assessment += 1; 
+			if (ship.weaponFacings > 0)
+			{
+				// safety factor for ships we don't know the capabilities of
+				assessment += 1; 
+			}
 		}
 	}
 
