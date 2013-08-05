@@ -2577,41 +2577,46 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([other isKindOfClass:[ShipEntity class]])
 	{
 		source = other;
-		
-		ShipEntity *hunter = (ShipEntity *)other;
-		//if we are in the same group, then we have to be careful about how we handle things
-		if ([self isPolice] && [hunter isPolice]) 
+
+		// JSAIs handle friendly fire themselves
+		if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
 		{
-			//police never get into a fight with each other
-			return;
-		}
 		
-		OOShipGroup *group = [self group];
-		
-		if (group != nil && group == [hunter group]) 
-		{
-			//we are in the same group, do we forgive you?
-			//criminals are less likely to forgive
-			if (randf() < (0.8 - (bounty/100))) 
+			ShipEntity *hunter = (ShipEntity *)other;
+			//if we are in the same group, then we have to be careful about how we handle things
+			if ([self isPolice] && [hunter isPolice]) 
 			{
-				//it was an honest mistake, lets get on with it
+				//police never get into a fight with each other
 				return;
 			}
+		
+			OOShipGroup *group = [self group];
+		
+			if (group != nil && group == [hunter group]) 
+			{
+				//we are in the same group, do we forgive you?
+				//criminals are less likely to forgive
+				if (randf() < (0.8 - (bounty/100))) 
+				{
+					//it was an honest mistake, lets get on with it
+					return;
+				}
 			
-			ShipEntity *groupLeader = [group leader];
-			if (hunter == groupLeader)
-			{
-				//oops we were attacked by our leader, desert him
-				[group removeShip:self];
-			}
-			else 
-			{
-				//evict them from our group
-				[group removeShip:hunter];
+				ShipEntity *groupLeader = [group leader];
+				if (hunter == groupLeader)
+				{
+					//oops we were attacked by our leader, desert him
+					[group removeShip:self];
+				}
+				else 
+				{
+					//evict them from our group
+					[group removeShip:hunter];
 				
-				[groupLeader setFoundTarget:other];
-				[groupLeader setPrimaryAggressor:hunter];
-				[groupLeader respondToAttackFrom:from becauseOf:other];
+					[groupLeader setFoundTarget:other];
+					[groupLeader setPrimaryAggressor:hunter];
+					[groupLeader respondToAttackFrom:from becauseOf:other];
+				}
 			}
 		}
 	}
@@ -2619,6 +2624,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		source = from;
 	}	
+	
 	[self doScriptEvent:OOJSID("shipBeingAttacked") withArgument:source andReactToAIMessage:@"ATTACKED"];
 	if ([source isShip]) [(ShipEntity *)source doScriptEvent:OOJSID("shipAttackedOther") withArgument:self];
 }
@@ -11677,48 +11683,52 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[self respondToAttackFrom:ent becauseOf:hunter];
 		}
 
-		// additionally, tell our group we've been attacked
 		OOShipGroup *group = [self group];
-		if (group != nil && group != [hunter group] && !(iAmTheLaw || uAreTheLaw))
+		// JSAIs manage group notifications themselves
+		if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
 		{
-			if ([self isTrader] || [self isEscort])
+			// additionally, tell our group we've been attacked
+			if (group != nil && group != [hunter group] && !(iAmTheLaw || uAreTheLaw))
 			{
-				ShipEntity *groupLeader = [group leader];
-				if (groupLeader != self)
+				if ([self isTrader] || [self isEscort])
 				{
-					[groupLeader setFoundTarget:hunter];
-					[groupLeader setPrimaryAggressor:hunter];
-					[groupLeader respondToAttackFrom:ent becauseOf:hunter];
-					//unsetting group leader for carriers can break stuff
-				}
-			}
-			if ([self isPirate])
-			{
-				NSEnumerator		*groupEnum = nil;
-				ShipEntity			*otherPirate = nil;
-				
-				for (groupEnum = [group mutationSafeEnumerator]; (otherPirate = [groupEnum nextObject]); )
-				{
-					if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
+					ShipEntity *groupLeader = [group leader];
+					if (groupLeader != self)
 					{
-						[otherPirate setFoundTarget:hunter];
-						[otherPirate setPrimaryAggressor:hunter];
-						[otherPirate respondToAttackFrom:ent becauseOf:hunter];
+						[groupLeader setFoundTarget:hunter];
+						[groupLeader setPrimaryAggressor:hunter];
+						[groupLeader respondToAttackFrom:ent becauseOf:hunter];
+						//unsetting group leader for carriers can break stuff
 					}
 				}
-			}
-			else if (iAmTheLaw)
-			{
-				NSEnumerator		*groupEnum = nil;
-				ShipEntity			*otherPolice = nil;
-				
-				for (groupEnum = [group mutationSafeEnumerator]; (otherPolice = [groupEnum nextObject]); )
+				if ([self isPirate])
 				{
-					if (otherPolice != self)
+					NSEnumerator		*groupEnum = nil;
+					ShipEntity			*otherPirate = nil;
+				
+					for (groupEnum = [group mutationSafeEnumerator]; (otherPirate = [groupEnum nextObject]); )
 					{
-						[otherPolice setFoundTarget:hunter];
-						[otherPolice setPrimaryAggressor:hunter];
-						[otherPolice respondToAttackFrom:ent becauseOf:hunter];
+						if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
+						{
+							[otherPirate setFoundTarget:hunter];
+							[otherPirate setPrimaryAggressor:hunter];
+							[otherPirate respondToAttackFrom:ent becauseOf:hunter];
+						}
+					}
+				}
+				else if (iAmTheLaw)
+				{
+					NSEnumerator		*groupEnum = nil;
+					ShipEntity			*otherPolice = nil;
+				
+					for (groupEnum = [group mutationSafeEnumerator]; (otherPolice = [groupEnum nextObject]); )
+					{
+						if (otherPolice != self)
+						{
+							[otherPolice setFoundTarget:hunter];
+							[otherPolice setPrimaryAggressor:hunter];
+							[otherPolice respondToAttackFrom:ent becauseOf:hunter];
+						}
 					}
 				}
 			}

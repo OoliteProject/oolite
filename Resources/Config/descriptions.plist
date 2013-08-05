@@ -596,6 +596,7 @@
 	// comms message templates for priority AI
 	"oolite-comms-makePirateDemand" = "Your cargo or your life, [oolite_entityName]. [oolite_demandSize] barrels and we'll let you go."; // TODO: variety
 	"oolite-comms-acceptPirateDemand" = "[beg-for-mercy]";
+	"oolite-comms-surrender" = "[beg-for-mercy]";
 	"oolite-comms-makeDistressCall" = "[distress-call]";
 	// this one needs targeting to avoid confusion
 	"oolite-comms-markForFines" = (

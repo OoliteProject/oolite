@@ -105,7 +105,6 @@ this.aiStarted = function() {
 			condition: ai.conditionGroupHasEnoughLoot,
 			/* Find a station to dock at */
 			truebranch: [
-				/* TODO */
 				{
 					condition: ai.conditionIsGroupLeader,
 					truebranch: [
@@ -122,6 +121,25 @@ this.aiStarted = function() {
 							reconsider: 30
 						},
 						{
+							condition: ai.conditionHasSelectedPlanet,
+							truebranch: [
+								{
+									preconfiguration: ai.configurationSetDestinationToSelectedPlanet,
+									condition: ai.conditionNearDestination,
+									behaviour: ai.behaviourLandOnPlanet
+								},
+								{
+									behaviour: ai.behaviourApproachDestination,
+									reconsider: 30
+								}
+							]
+						},
+						{
+							condition: ai.conditionPlanetExists,
+							configuration: ai.configurationSelectPlanet,
+							behaviour: ai.behaviourReconsider
+						},
+						{
 							condition: ai.conditionCanWitchspaceOut,
 							configuration: ai.configurationSelectWitchspaceDestination,
 							behaviour: ai.behaviourEnterWitchspace,
@@ -129,7 +147,7 @@ this.aiStarted = function() {
 						}
 					]
 				},
-				/* Once the group leader has docked, another one gets
+				/* Once the group leader has docked or landed, another one gets
 				 * appointed, and they can decide what to do next */
 				{
 					behaviour: ai.behaviourFollowGroupLeader,

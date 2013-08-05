@@ -515,6 +515,19 @@ AILib.prototype.friendlyStation = function(station)
 	{
 		return false;
 	}
+	// this will do until we have a proper friendliness system for stations
+	if (this.ship.primaryRole == "pirate" && station.bounty == 0)
+	{
+		return false;
+	}
+	if (this.ship.scanClass == "CLASS_THARGOID" && station.scanClass != "CLASS_THARGOID")
+	{
+		return false;
+	}
+	if (station.scanClass == "CLASS_THARGOID" && this.ship.scanClass != "CLASS_THARGOID")
+	{
+		return false;
+	}
 	return (station.target != this.ship || !station.hasHostileTarget);
 }
 
@@ -579,6 +592,80 @@ AILib.prototype.noteDistraction = function(whom)
 }
 
 
+AILib.prototype.oddsAssessment = function()
+{
+	if (!this.ship.target)
+	{
+		return 10;
+	}
+	var us = 0;
+	var them = 0;
+	var i = 0;
+	var ship;
+	us += this.threatAssessment(this.ship,true)
+	if (this.ship.group)
+	{
+		for (i = 0; i < this.ship.group.ships.length ; i++)
+		{
+			ship = this.ship.group.ships[i]
+			if (ship != this.ship && ship.position.distanceTo(this.ship.target) < this.ship.scannerRange)
+			{
+				us += this.threatAssessment(ship,true);
+			}
+		}
+		if (this.ship.group.leader && this.ship.group.leader.group != this.ship.group)
+		{
+			// don't want escorts running off early
+			for (i = 0; i < this.ship.group.leader.group.ships.length ; i++)
+			{
+				ship = this.ship.group.leader.group.ships[i];
+				if (ship != this.ship && ship.position.distanceTo(this.ship.target) < this.ship.scannerRange)
+				{
+					us += this.threatAssessment(ship,true);
+				}
+			}
+		}
+	}
+	if (this.ship.escortGroup && this.ship.escortGroup != this.ship.group) 
+	{
+		for (i = 0; i < this.ship.escortGroup.ships.length ; i++)
+		{
+			ship = this.ship.escortGroup.ships[i];
+			if (ship != this.ship && ship.position.distanceTo(this.ship.target) < this.ship.scannerRange)
+			{
+				us += this.threatAssessment(ship,true);
+			}
+		}
+	}
+
+	them += this.threatAssessment(this.ship.target,false)
+	if (this.ship.target.group)
+	{
+		for (i = 0; i < this.ship.target.group.ships.length ; i++)
+		{
+			ship = this.ship.target.group.ships[i]
+			if (ship != this.ship.target && ship.position.distanceTo(this.ship) < this.ship.scannerRange)
+			{
+				them += this.threatAssessment(ship,false);
+			}
+		}
+	}
+	if (this.ship.target.escortGroup && this.ship.target.escortGroup != this.ship.target.group) 
+	{
+		for (i = 0; i < this.ship.target.escortGroup.ships.length ; i++)
+		{
+			ship = this.ship.target.escortGroup.ships[i]
+			if (ship != this.ship.target && ship.position.distanceTo(this.ship) < this.ship.scannerRange)
+			{
+				them += this.threatAssessment(ship,false);
+			}
+		}
+	}
+		
+	return us/them;
+}
+
+
 /* Be very careful with 'passon' parameter to avoid infinite loops */
 AILib.prototype.respondToThargoids = function(whom,passon)
 {
@@ -613,13 +700,9 @@ AILib.prototype.respondToThargoids = function(whom,passon)
 }
 
 
-AILib.prototype.threatAssessment = function(ship)
+AILib.prototype.threatAssessment = function(ship,full)
 {
-	if (ship.isPlayer)
-	{
-		return 2;
-	}
-	return 1; // TODO: actually assess ships threat levels
+	return worldScripts["oolite-libPriorityAI"]._threatAssessment(ship,full);
 }
 
 /* ****************** Condition functions ************** */
@@ -647,36 +730,27 @@ AILib.prototype.conditionCascadeDetected = function()
 }
 
 
+AILib.prototype.conditionCombatOddsTerrible = function()
+{
+	return this.oddsAssessment() < 0.375;
+}
+
+
+AILib.prototype.conditionCombatOddsBad = function()
+{
+	return this.oddsAssessment() < 0.75;
+}
+
+
 AILib.prototype.conditionCombatOddsGood = function()
 {
-	// TODO: this should consider what the ships are, somehow
-	var us = 1;
-	if (this.ship.group)
-	{
-		us += this.ship.group.count - 1;
-	}
-	if (this.ship.escortGroup)
-	{
-		us += this.ship.escortGroup.count - 1;
-	}
+	return this.oddsAssessment() >= 1.5;
+}
 
-	var them = 1;
-	if (!this.ship.target)
-	{
-		return false;
-	}
-	else
-	{
-		if (this.ship.target.group)
-		{
-			them += this.ship.target.group.count - 1;
-		}
-		if (this.ship.target.escortGroup && this.ship.target.escortGroup != this.ship.target.group)
-		{
-			them += this.ship.target.escortGroup.count - 1;
-		}
-	}
-	return us >= them;
+
+AILib.prototype.conditionCombatOddsExcellent = function()
+{
+	return this.oddsAssessment() >= 3.0;
 }
 
 
@@ -783,7 +857,10 @@ AILib.prototype.conditionLosingCombat = function()
 	if (this.ship.energy == this.ship.maxEnergy)
 	{
 		// forget previous defeats
-		this.setParameter("oolite_lastFleeing",null);
+		if (!this.conditionCombatOddsTerrible())
+		{
+			this.setParameter("oolite_lastFleeing",null);
+		}
 	}
 	if (!this.conditionInCombat()) 
 	{
@@ -821,7 +898,31 @@ AILib.prototype.conditionLosingCombat = function()
 	{
 		return true;
 	}
-	// TODO: add some reassessment of odds based on group size
+	if (this.ship.energy < this.ship.maxEnergy/2)
+	{
+		if (this.conditionCombatOddsBad())
+		{
+			// outnumbered; losing earlier
+			return true;
+		}
+	}
+	if (this.conditionCombatOddsTerrible())
+	{
+		if (!this.ship.isFleeing)
+		{
+			if (this.ship.group && this.ship.group.leader && this.ship.group.leader == this.ship)
+			{
+				this.communicate("oolite_groupIsOutnumbered",{},2);
+			}
+			else
+			{
+				this.communicate("oolite_groupIsOutnumbered",{},4);
+			}
+		}
+		// badly outnumbered; losing
+		return true;
+	}
+
 	return false; // not losing yet
 }
 
@@ -2046,7 +2147,10 @@ AILib.prototype.behaviourFleeCombat = function()
 			this.setParameter("oolite_cascadeDetected",null);
 		}
 	}
-	this.ship.target = this.ship.AIPrimaryAggressor;
+	if (this.ship.AIPrimaryAggressor && this.ship.AIPrimaryAggressor.isInSpace && this.ship.AIPrimaryAggressor.position.distanceTo(this.ship) < this.ship.scannerRange)
+	{
+		this.ship.target = this.ship.AIPrimaryAggressor;
+	}
 	if (!this.ship.target || this.ship.position.distanceTo(this.ship.target) > 25600)
 	{
 		var dts = this.ship.defenseTargets;
@@ -2063,11 +2167,14 @@ AILib.prototype.behaviourFleeCombat = function()
 	{
 		this.communicate("oolite_continueFleeing",this.entityCommsParams(this.ship.target),4);
 	}
-	else
+	else if (this.ship.energy < this.ship.maxEnergy / 4)
 	{
 		this.communicate("oolite_startFleeing",this.entityCommsParams(this.ship.target),3);
 	}
-	this.setParameter("oolite_lastFleeing",this.ship.target);
+	if (this.ship.target)
+	{
+		this.setParameter("oolite_lastFleeing",this.ship.target);
+	}
 	this.ship.desiredRange = this.ship.scannerRange;
 	this.ship.performFlee();
 }
@@ -2076,11 +2183,11 @@ AILib.prototype.behaviourFleeCombat = function()
 /* Follow the group leader in a less organised way than escorting them */
 AILib.prototype.behaviourFollowGroupLeader = function()
 {
-	var handlers = {};
-	this.responsesAddStandard(handlers);
-	this.applyHandlers(handlers);
 	if (!this.ship.group || !this.ship.group.leader)
 	{
+		var handlers = {};
+		this.responsesAddStandard(handlers);
+		this.applyHandlers(handlers);
 		this.ship.performIdle();
 	}
 	else
@@ -2088,7 +2195,7 @@ AILib.prototype.behaviourFollowGroupLeader = function()
 		this.ship.destination = this.ship.group.leader.position;
 		this.ship.desiredRange = 2000+Math.random()*2000;
 		this.ship.desiredSpeed = this.ship.maxSpeed;
-		this.ship.performFlyToRangeFromDestination();
+		this.behaviourApproachDestination();
 	}
 }
 
@@ -2105,10 +2212,7 @@ AILib.prototype.behaviourGuardTarget = function()
 	}
 	this.ship.desiredSpeed = this.cruiseSpeed();
 	this.ship.desiredRange = 2500;
-	var handlers = {};
-	this.responsesAddStandard(handlers);
-	this.applyHandlers(handlers);
-	this.ship.performFlyToRangeFromDestination();
+	this.behaviourApproachDestination();
 }
 
 
@@ -2132,11 +2236,8 @@ AILib.prototype.behaviourLeaveVicinityOfTarget = function()
 	this.ship.destination = this.ship.target.position;
 	this.ship.desiredRange = 27500;
 	this.ship.desiredSpeed = this.ship.maxSpeed;
-	var handlers = {};
-	this.responsesAddStandard(handlers);
-	this.applyHandlers(handlers);
 	this.communicate("oolite_leaveVicinity",this.entityCommsParams(this.ship.target),3);
-	this.ship.performFlyToRangeFromDestination();
+	this.behaviourApproachDestination();
 }
 
 
@@ -2806,6 +2907,13 @@ AILib.prototype.configurationCheckScanner = function()
 /*** Navigation configuration ***/
 
 
+AILib.prototype.configurationSelectPlanet = function()
+{
+	var possibles = system.planets;
+	this.setParameter("oolite_selectedPlanet",possibles[Math.floor(Math.random()*possibles.length)]);
+}
+
+
 AILib.prototype.configurationSelectRandomTradeStation = function()
 {
 	var stations = system.stations;
@@ -3384,6 +3492,10 @@ AILib.prototype.responsesAddStandard = function(handlers)
 		{
 			this.broadcastDistressMessage();
 		}
+		if (this.ship.isFleeing)
+		{
+			this.communicate("oolite_surrender",{},3);
+		}
 		if ((whom.scanClass == "CLASS_THARGOID") && (this.ship.scanClass != "CLASS_THARGOID") && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
 		{
 			if (this.respondToThargoids(whom,true))
@@ -3432,7 +3544,8 @@ AILib.prototype.responsesAddStandard = function(handlers)
 			}
 			else
 			{
-				if (this.threatAssessment(whom) > this.threatAssessment(this.ship.target) * (1+Math.random()))
+				// tend to switch to the more dangerous one
+				if (this.threatAssessment(whom,true) > this.threatAssessment(this.ship.target,true) * (1+Math.random()))
 				{
 					this.noteDistraction(whom);
 					this.ship.target = whom;
@@ -4145,7 +4258,8 @@ this.startUp = function()
 	this._setCommunications({
 		generic: {
 			generic: {
-				oolite_thanksForHelp: "[oolite-comms-thanksForHelp]"
+				oolite_thanksForHelp: "[oolite-comms-thanksForHelp]",
+				oolite_surrender: "[oolite-comms-surrender]"
 			}
 		},
 		trader: { 
@@ -4189,7 +4303,9 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_switchTarget = "I'll get the [oolite_entityClass].";
 	this.$commsSettings.generic.generic.oolite_newAssailant = "Where did that [oolite_entityClass] come from?";
 	this.$commsSettings.generic.generic.oolite_startFleeing = "I can't take this much longer! I'm getting out of here.";
-	this.$commsSettings.generic.generic.oolite_continueFleeing = "I can't shake them!";
+	this.$commsSettings.generic.generic.oolite_continueFleeing = "I'm still not clear. Someone please help!";
+	this.$commsSettings.generic.generic.oolite_groupIsOutnumbered = "Please, let us go!";
+	this.$commsSettings.pirate.generic.oolite_groupIsOutnumbered = "Argh! They're tougher than they looked. Break off the attack!";
 	this.$commsSettings.generic.generic.oolite_dockingWait = "Bored now.";
 	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
 	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
@@ -4286,4 +4402,146 @@ this._setCommunications = function(obj)
 		}
 	}
 
+}
+
+
+this._threatAssessment = function(ship,full)
+{
+	// there's a ship
+	var assessment = 1; 
+	// slightly tune for speed (+/- 0.1 for most ships)
+	assessment += (ship.maxSpeed-300)/1000; 
+	if (ship.maxSpeed < 200)
+	{
+		assessment += (ship.maxSpeed-200)/500; 
+	}
+	// tune for max energy 
+	/* FIXME: at the moment this means NPCs can detect other NPCs shield
+	 * boosters, since they're implemented as extra energy */
+	assessment += (ship.maxEnergy-200)/1000; 
+	// a bit extra for missiles
+	if (ship.missileCapacity > 2)
+	{
+		assessment += 0.5;
+	}
+	else
+	{
+		assessment += ship.missileCapacity/5;
+	}
+	// if the ship is in our group or currently fighting, we can
+	// determine more about it. (simplified to avoid having to track a
+	// *lot* of visibility data)
+	if (full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3))
+	{
+		// pilot skill
+		if (ship.isPlayer)
+		{
+			assessment += Math.pow(Math.min(player.score,6400),0.33)/10;
+		}
+		else
+		{
+			assessment += ship.accuracy/10;
+		}
+		// weapons
+		if (!ship.forwardWeapon)
+		{
+			// if ship has single subent forward laser, this -1 gets
+			// cancelled out
+			assessment -= 1;
+		}
+		else
+		{
+			assessment += this._threatSubAssessmentWeapon(ship.forwardWeapon.equipmentKey);
+		}
+		if (ship.aftWeapon)
+		{
+			assessment += 1+this._threatSubAssessmentWeapon(ship.aftWeapon.equipmentKey);
+		}
+		if (ship.portWeapon)
+		{
+			assessment += 0.2+this._threatSubAssessmentWeapon(ship.portWeapon.equipmentKey);
+		}
+		if (ship.starboardWeapon)
+		{
+			assessment += 0.2+this._threatSubAssessmentWeapon(ship.starboardWeapon.equipmentKey);
+		}
+		if (ship.subEntities)
+		{
+			for (var i = 0; i < ship.subEntities.length ; i++)
+			{
+				if (ship.subEntities[i].forwardWeapon)
+				{
+					assessment += 1+this._threatSubAssessmentWeapon(ship.subEntities[i].forwardWeapon);
+				}
+				else if (ship.subEntities[i].isTurret)
+				{
+					/* TODO: consider making ship combat behaviour try to
+					 * stay at long range from enemies with turrets. Then
+					 * we could perhaps reduce this bonus a bit. */
+					assessment++;
+				}
+			}
+		}
+		if (ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+		{
+			assessment += 0.5;
+		}
+		if (ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
+		{
+			assessment += 0.5;
+		}
+	} // end if full stats available
+	else 
+	{
+		// thargoid ships should be counted as tougher
+		if (ship.scanClass == "CLASS_THARGOID")
+		{
+			assessment *= 1.5;
+		}
+		else
+		{
+			// safety factor for ships we don't know the capabilities of
+			assessment += 1; 
+		}
+	}
+
+	// (mostly) ignore fleeing ships
+	if (ship.isFleeing)
+	{
+		assessment /= 5;
+	}
+	if (assessment < 0.1)
+	{
+		assessment = 0.1;
+	}
+	return assessment;
+}
+
+
+this._threatSubAssessmentWeapon = function(weapon)
+{
+	if (weapon == "EQ_WEAPON_PULSE_LASER")
+	{
+		return 0;
+	}
+	else if (weapon == "EQ_WEAPON_BEAM_LASER")
+	{
+		return 0.33;
+	}
+	else if (weapon == "EQ_WEAPON_MILITARY_LASER")
+	{
+		return 1;
+	}
+	else if (weapon == "EQ_WEAPON_THARGOID_LASER")
+	{
+		return 1;
+	}
+	else if (weapon == "EQ_WEAPON_MINING_LASER")
+	{
+		return -0.5;
+	}
+	else // not known
+	{
+		return 0;
+	}
 }
