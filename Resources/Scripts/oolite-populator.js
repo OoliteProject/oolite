@@ -125,14 +125,14 @@ this.systemWillPopulate = function()
 		var trdanger = 0;
 		var rate = 0;
 		// if either local or remote end is more dangerous than
-		// Communist, reduce trader frequency
-		if (local.government < 4)
+		// Democratic, reduce trader frequency
+		if (local.government < 6)
 		{
-			trdanger = (4-local.government)*5;
+			trdanger = (6-local.government)*2.5;
 		}
-		if (system.info.government < 4)
+		if (system.info.government < 6)
 		{
-			trdanger += (4-system.info.government)*5;
+			trdanger += (6-system.info.government)*2.5;
 		}
 		// good economic match: one every 30 minutes if safe
 		if (ecomatch > 0)
@@ -171,9 +171,9 @@ this.systemWillPopulate = function()
 	/* Pirate rates next, based partly on trader rates */
 
 	// local independent pirate packs
-	var pindependents = (1-system.info.government/12)*traders/4; 
+	var pindependents = (1-system.info.government/12)*traders; 
 	// organised pirate packs led by increasingly bigger freighters
-	var lrate = 3/2; var mrate = 3/4; var hrate = 1/3;
+	var lrate = 3/5; var mrate = 3/10; var hrate = 1/10;
 	var pflight = 0;
 	var pfmedium = 0;
 	var pfheavy = 0;
@@ -247,7 +247,7 @@ this.systemWillPopulate = function()
 						factor++;
 					}
 				}
-				// only half generated there go out to raid
+				// only half generated there go out to raid 
 				factor = 1/(factor*2); 
 				var rlight = 0;
 				var rmedium = 0;
@@ -273,7 +273,8 @@ this.systemWillPopulate = function()
 						}
 					}
 				}
-				pflight += rlight; pflightremote += rlight;
+				// light groups much less likely to jump systems
+				pflight += rlight/3; pflightremote += rlight/3;
 				pfmedium += rmedium; pfmediumremote += rmedium;
 				pfheavy += rheavy; pfheavyremote += rheavy;
 				this.$repopulatorFrequencyIncoming.pirateLightPacks[local.systemID] = rlight;
@@ -402,7 +403,7 @@ this.systemWillPopulate = function()
 	var interceptors = 0;
 	if (system.info.techlevel >= 9)
 	{
-		interceptors += pfmediumremote + pfheavyremote*2;
+		interceptors += pflightremote/2 + pfmediumremote + pfheavyremote*2;
 	}
 
 	this.$repopulatorFrequencyOutgoing.PolicePacks = police;
@@ -471,18 +472,12 @@ this.systemWillPopulate = function()
 	function randomise(count)
 	{
 		count = count*(0.5+0.5*(Math.random()+Math.random()));
-		if (count >= 1)
+		var r = Math.floor(count);
+		if (Math.random() < count-r)
 		{
-			return Math.round(count);
+			r++;
 		}
-		else if (Math.random() < count)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
+		return r;
 	}
 
 	// traders
@@ -584,8 +579,8 @@ this.systemWillPopulate = function()
 						});
 
 	// pirates
-	// 2/3 to lane 1, 1/6 to each of other lanes
-	initial = pindependents * ((l1length*2/3)/600000) * (1.0-0.05*system.info.government) * 2/3;
+	// 2/3 to lane 1 (with higher governmental attrition), 1/6 to each of other lanes
+	initial = pindependents * ((l1length*2/3)/600000) * (1.0-0.1*system.info.government) * 2/3;
 	system.setPopulator("oolite-pirate-independent-route1",
 						{
 							priority: 10,
@@ -630,7 +625,7 @@ this.systemWillPopulate = function()
 	system.setPopulator("oolite-pirate-light-remote",
 						{
 							priority: 10,
-							location: "WITCHPOINT",
+							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addLightPirateRemote.bind(this)
 						});
@@ -654,7 +649,7 @@ this.systemWillPopulate = function()
 	system.setPopulator("oolite-pirate-medium-remote",
 						{
 							priority: 10,
-							location: "WITCHPOINT",
+							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addMediumPirateRemote.bind(this)
 						});
@@ -680,7 +675,7 @@ this.systemWillPopulate = function()
 	system.setPopulator("oolite-pirate-heavy-remote",
 						{
 							priority: 10,
-							location: "WITCHPOINT",
+							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addHeavyPirateRemote.bind(this)
 						});
@@ -1050,7 +1045,7 @@ this._addHeavyHunter = function(pos)
 
 this._addIndependentPirate = function(pos)
 {
-	var size = Math.floor(Math.random()*3)+Math.floor(Math.random()*3)+2;
+	var size = Math.floor(Math.random()*3)+Math.floor(Math.random()*3)+1;
 	var pg = system.addGroup("pirate",size,pos,2.5E3);
 	for (var i=0;i<pg.ships.length;i++)
 	{
@@ -1097,19 +1092,19 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 	var group = new ShipGroup("pirate pack",lead[0]);
 	lead[0].group = group;
 //	lead[0].switchAI("pirateFreighterAI.js"); // TODO: write AI
-	for (var i = Math.floor(lf*(Math.random()+Math.random())); i > 0; i--)
+	for (var i = Math.floor(lf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
 		this._addPirateAssistant("pirate-fighter-light",lead[0]);
 	}
-	for (var i = Math.floor(mf*(Math.random()+Math.random())); i > 0; i--)
+	for (var i = Math.floor(mf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
 		this._addPirateAssistant("pirate-fighter-medium",lead[0]);
 	}
-	for (var i = Math.floor(hf*(Math.random()+Math.random())); i > 0; i--)
+	for (var i = Math.floor(hf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
 		this._addPirateAssistant("pirate-fighter-heavy",lead[0]);
 	}
-	for (var i = Math.floor(thug*(Math.random()+Math.random())); i > 0; i--)
+	for (var i = Math.floor(thug+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
 		this._addPirateAssistant("pirate-interceptor",lead[0]);
 	}
@@ -1118,7 +1113,7 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 
 this._addLightPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-light",3,1,0,1);
+	var lead = this._addPiratePack(pos,"pirate-freighter-light",2,1,-1,0);
 	lead.AIScript.oolite_intership.source_system = system.ID;
 	lead.AIScript.oolite_intership.dest_system = system.ID;
 }
@@ -1126,7 +1121,7 @@ this._addLightPirateLocal = function(pos)
 
 this._addLightPirateRemote = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-light",3,1,0,1);
+	var lead = this._addPiratePack(pos,"pirate-freighter-light",2,1,-1,0);
 	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
 	lead.AIScript.oolite_intership.dest_system = system.ID;
@@ -1135,7 +1130,7 @@ this._addLightPirateRemote = function(pos)
 
 this._addMediumPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-medium",4,3,1,2);
+	var lead = this._addPiratePack(pos,"pirate-freighter-medium",3,2,0,1);
 	lead.AIScript.oolite_intership.source_system = system.ID;
 	lead.AIScript.oolite_intership.dest_system = system.ID;
 }
@@ -1143,7 +1138,7 @@ this._addMediumPirateLocal = function(pos)
 
 this._addMediumPirateRemote = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-medium",4,3,1,2);
+	var lead = this._addPiratePack(pos,"pirate-freighter-medium",3,2,0,1);
 	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
 	lead.AIScript.oolite_intership.dest_system = system.ID;
@@ -1152,7 +1147,7 @@ this._addMediumPirateRemote = function(pos)
 
 this._addHeavyPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-heavy",5,4,3,3);
+	var lead = this._addPiratePack(pos,"pirate-freighter-heavy",4,4,2,2);
 	lead.AIScript.oolite_intership.source_system = system.ID;
 	lead.AIScript.oolite_intership.dest_system = system.ID;
 }
@@ -1160,7 +1155,7 @@ this._addHeavyPirateLocal = function(pos)
 
 this._addHeavyPirateRemote = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-heavy",5,4,3,3);
+	var lead = this._addPiratePack(pos,"pirate-freighter-heavy",4,4,2,2);
 	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
 	lead.AIScript.oolite_intership.dest_system = system.ID;
@@ -1187,7 +1182,7 @@ this._addPolicePatrol = function(pos)
 
 this._addInterceptors = function(pos)
 {
-	var h = system.addGroup("interceptor",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+2,pos,2E3);
+	var h = system.addGroup("interceptor",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+1+Math.ceil(system.info.techlevel/6),pos,2E3);
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
@@ -1315,14 +1310,14 @@ this._weightedNearbyTradeSystem = function()
 		var trdanger = 0;
 		var rate = 0;
 		// if either local or remote end is more dangerous than
-		// Communist, reduce trader frequency
-		if (local.government < 4)
+		// Democratic, reduce trader frequency
+		if (local.government < 6)
 		{
-			trdanger = (4-local.government)*5;
+			trdanger = (6-local.government)*2.5;
 		}
-		if (system.info.government < 4)
+		if (system.info.government < 6)
 		{
-			trdanger += (4-system.info.government)*5;
+			trdanger += (6-system.info.government)*2.5;
 		}
 		if (ecomatch > 0)
 		{
