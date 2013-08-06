@@ -1561,6 +1561,18 @@ AILib.prototype.conditionCanScoopCargo = function()
 
 AILib.prototype.conditionCargoIsProfitableHere = function()
 {
+	/* TODO: this should be handled in the trader AI itself rather
+	 * than using this condition. This is a temporary hack to test
+	 * other bits */
+	if (this.ship.AIScript.oolite_intership.dest_system && this.ship.AIScript.oolite_intership.dest_system == system.ID)
+	{
+		return true;
+	}
+	if (this.ship.AIScript.oolite_intership.source_system && this.ship.AIScript.oolite_intership.source_system == system.ID)
+	{
+		return false;
+	}
+
 	/* TODO: in the Mainly X systems, it's not impossible for
 	 * PLENTIFUL_GOODS to generate a hold which is profitable in that
 	 * system, and SCARCE_GOODS not to do so. Cargo should never be
@@ -3698,9 +3710,9 @@ AILib.prototype.responsesAddStandard = function(handlers)
 	{
 		if (this.getParameter("oolite_flag_markOffenders")) 
 		{
-			if (attacker.bounty & 7 == 7)
+			if (attacker.bounty & 7 != 7)
 			{
-				this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),2);
+				this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),3);
 			}
 			else
 			{
