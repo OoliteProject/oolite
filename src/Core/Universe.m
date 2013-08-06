@@ -1180,7 +1180,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) populateNormalSpace
 {	
-	NSDictionary		*systeminfo = [self generateSystemData:system_seed useCache:NO];
+	/* Need to take a copy of this dictionary because the populator
+	 * functions may ask for a different system info object, which
+	 * will invalidate the cache, taking this object with it... 
+	 * CIM: 6/8/2013 */
+	NSDictionary		*systeminfo = [NSDictionary dictionaryWithDictionary:[self generateSystemData:system_seed useCache:NO]];
 	BOOL sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	// check for nova
 	if (sunGoneNova)
@@ -1266,12 +1270,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 {
 	NSArray *blocks = [populatorSettings allValues];
 	NSEnumerator *enumerator = [[blocks sortedArrayUsingFunction:populatorPrioritySort context:nil] objectEnumerator];
-	NSDictionary *populator;
-	HPVector location;
+	NSDictionary *populator = nil;
+	HPVector location = kZeroHPVector;
 	unsigned i, locationSeed, groupCount, rndvalue;
-	RANROTSeed rndcache, rndlocal;
-	NSString *locationCode;
-	OOJSPopulatorDefinition *pdef;
+	RANROTSeed rndcache = RANROTGetFullSeed();
+	RANROTSeed rndlocal = RANROTGetFullSeed();
+	NSString *locationCode = nil;
+	OOJSPopulatorDefinition *pdef = nil;
 	while ((populator = [enumerator nextObject]))
 	{
 		// for now, the "deterministic" setting does nothing
@@ -1340,100 +1345,124 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 - (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
 {
 	HPVector result = kZeroHPVector;
-	if ([code isEqualToString:@"WITCHPOINT"])
+	if ([code isEqualToString:@"WITCHPOINT"] || sun == nil || planet == nil)
 	{
 		result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
 	}
 	// past this point, can assume non-nil sun, planet
-	else if ([code isEqualToString:@"LANE_WP"])
-	{
-		result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[planet position],[planet radius]*3,LANE_WIDTH);
-	}
-	else if ([code isEqualToString:@"LANE_WS"])
-	{
-		result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[sun position],[sun radius]*3,LANE_WIDTH);
-	}
-	else if ([code isEqualToString:@"LANE_PS"])
-	{
-		result = OORandomPositionInCylinder([planet position],[planet radius]*3,[sun position],[sun radius]*3,LANE_WIDTH);
-	}
-	else if ([code isEqualToString:@"STATION_AEGIS"])
-	{
-		do 
-		{
-			result = OORandomPositionInShell([[self station] position],[[self station] collisionRadius]*1.2,SCANNER_MAX_RANGE*2.0);
-		} while(HPdistance2(result,[planet position])<[planet radius]*[planet radius]*1.5);
-		// loop to make sure not generated too close to the planet's surface
-	}
-	else if ([code isEqualToString:@"PLANET_ORBIT_LOW"])
-	{
-		result = OORandomPositionInShell([planet position],[planet radius]*1.1,[planet radius]*2.0);
-	}
-	else if ([code isEqualToString:@"PLANET_ORBIT"])
-	{
-		result = OORandomPositionInShell([planet position],[planet radius]*2.0,[planet radius]*4.0);
-	}
-	else if ([code isEqualToString:@"PLANET_ORBIT_HIGH"])
-	{
-		result = OORandomPositionInShell([planet position],[planet radius]*4.0,[planet radius]*8.0);
-	}
-	else if ([code isEqualToString:@"STAR_ORBIT_LOW"])
-	{
-		result = OORandomPositionInShell([sun position],[sun radius]*1.1,[sun radius]*2.0);
-	}
-	else if ([code isEqualToString:@"STAR_ORBIT"])
-	{
-		result = OORandomPositionInShell([sun position],[sun radius]*2.0,[sun radius]*4.0);
-	}
-	else if ([code isEqualToString:@"STAR_ORBIT_HIGH"])
-	{
-		result = OORandomPositionInShell([sun position],[sun radius]*4.0,[sun radius]*8.0);
-	}
-	else if ([code isEqualToString:@"TRIANGLE"])
-	{
-		do {
-			// pick random point in triangle by algorithm at
-			// http://adamswaab.wordpress.com/2009/12/11/random-point-in-a-triangle-barycentric-coordinates/
-			// simplified by using the origin as A
-			OOScalar r = randf();
-			OOScalar s = randf();
-			if (r+s >= 1)
-			{
-				r = 1-r;
-				s = 1-s;
-			}
-			result = HPvector_add(HPvector_multiply_scalar([planet position],r),HPvector_multiply_scalar([sun position],s));
-		}
-		// make sure at least 3 radii from vertices
-		while(HPdistance2(result,[sun position]) < [sun radius]*[sun radius]*9.0 || HPdistance2(result,[planet position]) < [planet radius]*[planet radius]*9.0 || HPmagnitude2(result) < SCANNER_MAX_RANGE2 * 9.0);
-	}
-	else if ([code isEqualToString:@"INNER_SYSTEM"])
-	{
-		do {
-			result = OORandomPositionInShell([sun position],[sun radius]*3.0,HPdistance([sun position],[planet position]));
-			result = OOProjectHPVectorToPlane(result,kZeroHPVector,HPcross_product([sun position],[planet position]));
-			result = HPvector_add(result,OOHPVectorRandomSpatial([planet radius]));
-    // projection to plane could bring back too close to sun
-		} while (HPdistance2(result,[sun position]) < [sun radius]*[sun radius]*9.0);
-	}
-	else if ([code isEqualToString:@"INNER_SYSTEM_OFFPLANE"])
-	{
-		result = OORandomPositionInShell([sun position],[sun radius]*3.0,HPdistance([sun position],[planet position]));
-	}
-	else if ([code isEqualToString:@"OUTER_SYSTEM"])
-	{
-		result = OORandomPositionInShell([sun position],HPdistance([sun position],[planet position]),10000000); // no more than 10^7 metres from sun
-		result = OOProjectHPVectorToPlane(result,kZeroHPVector,HPcross_product([sun position],[planet position]));
-		result = HPvector_add(result,OOHPVectorRandomSpatial(0.01*HPdistance(result,[sun position]))); // within 1% of plane
-	}
-	else if ([code isEqualToString:@"OUTER_SYSTEM_OFFPLANE"])
-	{
-		result = OORandomPositionInShell([sun position],HPdistance([sun position],[planet position]),10000000); // no more than 10^7 metres from sun
-	}
 	else
-	{
-		OOLog(kOOLogUniversePopulateError,@"Named populator region %@ is not implemented, falling back to WITCHPOINT",code); 
-		result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
+	{ 
+		if ([code isEqualToString:@"LANE_WPS"])
+		{	
+			// pick position on one of the lanes, weighted by lane length
+			double l1 = HPmagnitude([planet position]);
+			double l2 = HPmagnitude(HPvector_subtract([sun position],[planet position]));
+			double l3 = HPmagnitude([sun position]);
+			double total = l1+l2+l3;
+			float choice = randf();
+			if (choice < l1/total)
+			{
+				return [self locationByCode:@"LANE_WP" withSun:sun andPlanet:planet];
+			}
+			else if (choice < (l1+l2)/total)
+			{
+				return [self locationByCode:@"LANE_PS" withSun:sun andPlanet:planet];
+			}
+			else
+			{
+				return [self locationByCode:@"LANE_WS" withSun:sun andPlanet:planet];
+			}
+		}
+		else if ([code isEqualToString:@"LANE_WP"])
+		{
+			result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[planet position],[planet radius]*3,LANE_WIDTH);
+		}
+		else if ([code isEqualToString:@"LANE_WS"])
+		{
+			result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[sun position],[sun radius]*3,LANE_WIDTH);
+		}
+		else if ([code isEqualToString:@"LANE_PS"])
+		{
+			result = OORandomPositionInCylinder([planet position],[planet radius]*3,[sun position],[sun radius]*3,LANE_WIDTH);
+		}
+		else if ([code isEqualToString:@"STATION_AEGIS"])
+		{
+			do 
+			{
+				result = OORandomPositionInShell([[self station] position],[[self station] collisionRadius]*1.2,SCANNER_MAX_RANGE*2.0);
+			} while(HPdistance2(result,[planet position])<[planet radius]*[planet radius]*1.5);
+			// loop to make sure not generated too close to the planet's surface
+		}
+		else if ([code isEqualToString:@"PLANET_ORBIT_LOW"])
+		{
+			result = OORandomPositionInShell([planet position],[planet radius]*1.1,[planet radius]*2.0);
+		}
+		else if ([code isEqualToString:@"PLANET_ORBIT"])
+		{
+			result = OORandomPositionInShell([planet position],[planet radius]*2.0,[planet radius]*4.0);
+		}
+		else if ([code isEqualToString:@"PLANET_ORBIT_HIGH"])
+		{
+			result = OORandomPositionInShell([planet position],[planet radius]*4.0,[planet radius]*8.0);
+		}
+		else if ([code isEqualToString:@"STAR_ORBIT_LOW"])
+		{
+			result = OORandomPositionInShell([sun position],[sun radius]*1.1,[sun radius]*2.0);
+		}
+		else if ([code isEqualToString:@"STAR_ORBIT"])
+		{
+			result = OORandomPositionInShell([sun position],[sun radius]*2.0,[sun radius]*4.0);
+		}
+		else if ([code isEqualToString:@"STAR_ORBIT_HIGH"])
+		{
+			result = OORandomPositionInShell([sun position],[sun radius]*4.0,[sun radius]*8.0);
+		}
+		else if ([code isEqualToString:@"TRIANGLE"])
+		{
+			do {
+				// pick random point in triangle by algorithm at
+				// http://adamswaab.wordpress.com/2009/12/11/random-point-in-a-triangle-barycentric-coordinates/
+				// simplified by using the origin as A
+				OOScalar r = randf();
+				OOScalar s = randf();
+				if (r+s >= 1)
+				{
+					r = 1-r;
+					s = 1-s;
+				}
+				result = HPvector_add(HPvector_multiply_scalar([planet position],r),HPvector_multiply_scalar([sun position],s));
+			}
+			// make sure at least 3 radii from vertices
+			while(HPdistance2(result,[sun position]) < [sun radius]*[sun radius]*9.0 || HPdistance2(result,[planet position]) < [planet radius]*[planet radius]*9.0 || HPmagnitude2(result) < SCANNER_MAX_RANGE2 * 9.0);
+		}
+		else if ([code isEqualToString:@"INNER_SYSTEM"])
+		{
+			do {
+				result = OORandomPositionInShell([sun position],[sun radius]*3.0,HPdistance([sun position],[planet position]));
+				result = OOProjectHPVectorToPlane(result,kZeroHPVector,HPcross_product([sun position],[planet position]));
+				result = HPvector_add(result,OOHPVectorRandomSpatial([planet radius]));
+				// projection to plane could bring back too close to sun
+			} while (HPdistance2(result,[sun position]) < [sun radius]*[sun radius]*9.0);
+		}
+		else if ([code isEqualToString:@"INNER_SYSTEM_OFFPLANE"])
+		{
+			result = OORandomPositionInShell([sun position],[sun radius]*3.0,HPdistance([sun position],[planet position]));
+		}
+		else if ([code isEqualToString:@"OUTER_SYSTEM"])
+		{
+			result = OORandomPositionInShell([sun position],HPdistance([sun position],[planet position]),10000000); // no more than 10^7 metres from sun
+			result = OOProjectHPVectorToPlane(result,kZeroHPVector,HPcross_product([sun position],[planet position]));
+			result = HPvector_add(result,OOHPVectorRandomSpatial(0.01*HPdistance(result,[sun position]))); // within 1% of plane
+		}
+		else if ([code isEqualToString:@"OUTER_SYSTEM_OFFPLANE"])
+		{
+			result = OORandomPositionInShell([sun position],HPdistance([sun position],[planet position]),10000000); // no more than 10^7 metres from sun
+		}
+		else
+		{
+			OOLog(kOOLogUniversePopulateError,@"Named populator region %@ is not implemented, falling back to WITCHPOINT",code); 
+			result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
+		}
 	}
 	return result;
 }
