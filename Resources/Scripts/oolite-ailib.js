@@ -50,6 +50,7 @@ this.AILib = function(ship)
 	this.ship.AIScript.oolite_intership = {};
 	this.ship.AIScript.oolite_priorityai = this;
 	var activeHandlers = [];
+	var handlerCache = {};
 	var priorityList = null;
 	var parameters = {};
 	var lastCommSent = 0;
@@ -57,20 +58,41 @@ this.AILib = function(ship)
 	var commsRole = "generic";
 	var commsPersonality = "generic";
 	var waypointgenerator = null;
+	
+	/* Cache variables used by utility functions */
+	var condmet = true;
+	var logging = false;
 
 	/* Private utility functions. Cannot be called from external code */
 
+	// event handlers which must not be overridden
+	function _handlerAIAwoken()
+	{
+		if (this.ship)
+		{
+			_reconsider.call(this);
+		}
+	}
+
+
+	function _handlerShipDied()
+	{
+		{
+			this.cleanup();
+		}
+	}
+
+
 	/* Considers a priority list, potentially recursively */
 	function _reconsiderList(priorities) {
-		var l = priorities.length;
-		for (var i = 0; i < l; i++)
+		logging = this.getParameter("oolite_flag_behaviourLogging")
+		for (var i = 0; i < priorities.length; i++)
 		{
-			var priority = priorities[i];
-			if (this.getParameter("oolite_flag_behaviourLogging"))
+			if (logging)
 			{
-				if (priority.label) 
+				if (priorities[i].label) 
 				{
-					log(this.ship.name,"Considering: "+priority.label);
+					log(this.ship.name,"Considering: "+priorities[i].label);
 				}
 				else
 				{
@@ -79,56 +101,56 @@ this.AILib = function(ship)
 			}
 			// always call the preconfiguration function at this point
 			// to set up condition parameters
-			if (priority.preconfiguration)
+			if (priorities[i].preconfiguration)
 			{
-				priority.preconfiguration.call(this);
+				priorities[i].preconfiguration.call(this);
 			}
 			// allow inverted conditions
-			var condmet = true;
-			if (priority.notcondition)
+			condmet = true;
+			if (priorities[i].notcondition)
 			{
-				condmet = !priority.notcondition.call(this);
+				 condmet = !priorities[i].notcondition.call(this);
 			}
-			else if (priority.condition)
+			else if (priorities[i].condition)
 			{
-				condmet = priority.condition.call(this);
+				condmet = priorities[i].condition.call(this);
 			}
 			// absent condition is always true
 			if (condmet)
 			{
-				if (this.getParameter("oolite_flag_behaviourLogging"))
+				if (logging)
 				{
 					log(this.ship.name,"Conditions met");
 				}
 
 				// always call the configuration function at this point
-				if (priority.configuration)
+				if (priorities[i].configuration)
 				{
-					priority.configuration.call(this);
+					priorities[i].configuration.call(this);
 				}
 				// this is what we're doing
-				if (priority.behaviour) 
+				if (priorities[i].behaviour) 
 				{
-					if (this.getParameter("oolite_flag_behaviourLogging"))
+					if (logging)
 					{
 						log(this.ship.name,"Executing behaviour");
 					}
 
-					if (priority.reconsider) 
+					if (priorities[i].reconsider) 
 					{
-						_resetReconsideration.call(this,priority.reconsider);
+						_resetReconsideration.call(this,priorities[i].reconsider);
 					}
-					return priority.behaviour;
+					return priorities[i].behaviour;
 				}
 				// otherwise this is what we might be doing
-				if (priority.truebranch)
+				if (priorities[i].truebranch)
 				{
-					if (this.getParameter("oolite_flag_behaviourLogging"))
+					if (logging)
 					{
 						log(this.ship.name,"Entering truebranch");
 					}
 
-					var branch = _reconsiderList.call(this,priority.truebranch);
+					var branch = _reconsiderList.call(this,priorities[i].truebranch);
 					if (branch != null)
 					{
 						return branch;
@@ -138,14 +160,14 @@ this.AILib = function(ship)
 			}
 			else
 			{
-				if (priority.falsebranch)
+				if (priorities[i].falsebranch)
 				{
-					if (this.getParameter("oolite_flag_behaviourLogging"))
+					if (logging)
 					{
 						log(this.ship.name,"Entering falsebranch");
 					}
 
-					var branch = _reconsiderList.call(this,priority.falsebranch);
+					var branch = _reconsiderList.call(this,priorities[i].falsebranch);
 					if (branch != null)
 					{
 						return branch;
@@ -154,13 +176,14 @@ this.AILib = function(ship)
 				}
 			}
 		}
-		if (this.getParameter("oolite_flag_behaviourLogging"))
+		if (this.getParameter(logging))
 		{
 			log(this.ship.name,"Exiting branch");
 		}
 
 		return null; // nothing in the list is usable, so return
 	};
+
 
 	/* Only call this from aiAwoken to avoid loops */
 	function _reconsider() {
@@ -198,29 +221,32 @@ this.AILib = function(ship)
 	/* These privileged functions interface with the private functions
 	 * and variables. Do not override them. */
 
+	/* The simple implementation of this function requires a lot of
+	 * creation and destruction of function objects, which aggravates
+	 * the garbage collector. We avoid this where possible by keeping
+	 * a cache (pre-binding) of the handler objects, and only
+	 * replacing those which have changed. This requires the functions
+	 * to be stored where possible as this. variables (or
+	 * this.prototype. variables) */
 	this.applyHandlers = function(handlers)
 	{
+		/* This handler must always exist for a priority AI, and must
+		 * be set here. */
+		handlers.aiAwoken = _handlerAIAwoken;
+		/* This handler must always exist for a priority AI, and must
+		 * be set here. */
+		handlers.shipDied = _handlerShipDied;
+
 		// step 1: go through activeHandlers, and delete those
-		// functions from this.ship.AIScript
+		// functions from this.ship.AIScript that aren't in the new
+		// handler list
 		for (var i=0; i < activeHandlers.length ; i++)
 		{
-			delete this.ship.AIScript[activeHandlers[i]];
-		}
-
-		/* This handler must always exist for a priority AI, and must
-		 * be set here. */
-		handlers.aiAwoken = function()
-		{
-			if (this.ship)
+			if (handlerCache[activeHandlers[i]] != handlers[activeHandlers[i]])
 			{
-				_reconsider.call(this);
+				delete this.ship.AIScript[activeHandlers[i]];
+				delete handlerCache[activeHandlers[i]];
 			}
-		}
-		/* This handler must always exist for a priority AI, and must
-		 * be set here. */
-		handlers.shipDied = function()
-		{
-			this.cleanup();
 		}
 
 		// step 2: go through the keys in handlers and put those handlers
@@ -228,7 +254,19 @@ this.AILib = function(ship)
 		activeHandlers = Object.keys(handlers);
 		for (var i=0; i < activeHandlers.length ; i++)
 		{
-			this.ship.AIScript[activeHandlers[i]] = handlers[[activeHandlers[i]]].bind(this);
+			// unset or not deleted in step 1
+			if (!this.ship.AIScript[activeHandlers[i]])
+			{
+				handlerCache[activeHandlers[i]] = handlers[activeHandlers[i]];
+				if(handlers[activeHandlers[i]])
+				{
+					this.ship.AIScript[activeHandlers[i]] = handlers[activeHandlers[i]].bind(this);
+				}
+				else
+				{
+					log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had an invalid entry for handler "+activeHandlers[i]+". Skipped.");
+				}
+			}
 		}
 
 	}
@@ -1716,47 +1754,7 @@ AILib.prototype.behaviourApproachDestination = function()
 	var handlers = {};
 	this.responsesAddStandard(handlers);
 
-	handlers.shipAchievedDesiredRange = function() 
-	{
-		var waypoints = this.getParameter("oolite_waypoints");
-		if (waypoints != null)
-		{
-			if (waypoints.length > 0)
-			{
-				waypoints.pop();
-				if (waypoints.length == 0)
-				{
-					waypoints = null;
-				}
-				this.setParameter("oolite_waypoints",waypoints);
-			}
-		}
-		else
-		{
-			var patrol = this.getParameter("oolite_waypoint");
-			if (patrol != null && this.ship.destination.distanceTo(patrol) < 1000+this.getParameter("oolite_waypointRange"))
-			{
-				// finished patrol to waypoint
-				// clear route
-				this.communicate("oolite_waypointReached",{},3);
-				this.setParameter("oolite_waypoint",null);
-				this.setParameter("oolite_waypointRange",null);
-				if (this.getParameter("oolite_flag_patrolStation"))
-				{
-					if (this.ship.group)
-					{
-						var station = this.ship.group.leader;
-						if (station != null && station.isStation)
-						{
-							this.communicate("oolite_patrolReportIn",this.entityCommsParams(station),4);
-							this.ship.patrolReportIn(station);
-						}
-					}
-				}
-			}
-		}
-		this.reconsiderNow();
-	};
+	handlers.shipAchievedDesiredRange = this.responseComponent_standard_shipAchievedDesiredRange;
 
 	var waypoints = this.getParameter("oolite_waypoints");
 	if (waypoints != null)
@@ -1883,12 +1881,7 @@ AILib.prototype.behaviourCollectSalvage = function()
 {
 	var handlers = {};
 	this.responsesAddStandard(handlers);
-	handlers.shipScoopedOther = function(other)
-	{
-		this.communicate("oolite_scoopedCargo",{"oolite_goodsDescription":displayNameForCommodity(other.commodity)},4);
-		this.setParameter("oolite_cargoDropped",null);
-		this.reconsiderNow();
-	}
+	handlers.shipScoopedOther = this.responseComponent_standard_shipScoopedOther;
 	this.applyHandlers(handlers);
 	this.ship.performCollect();
 }
@@ -1992,18 +1985,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 	else if (wormhole)
 	{
 
-		handlers.playerWillEnterWitchspace = function()
-		{
-			var wormhole = this.getParameter("oolite_witchspaceWormhole");
-			if (wormhole != null)
-			{
-				this.ship.enterWormhole(wormhole);
-			} 
-			else
-			{
-				this.ship.enterWormhole();
-			}
-		}
+		handlers.playerWillEnterWitchspace = this.responseComponent_trackPlayer_playerWillEnterWitchspace;
 		this.ship.destination = wormhole.position;
 		this.ship.desiredRange = 0;
 		this.ship.desiredSpeed = this.ship.maxSpeed;
@@ -2017,42 +1999,13 @@ AILib.prototype.behaviourEnterWitchspace = function()
 	{
 		// look for wormholes out of here
 		// no systems in range
-		handlers.wormholeSuggested = function(hole)
-		{
-			this.ship.destination = hole.position;
-			this.ship.desiredRange = 0;
-			this.ship.desiredSpeed = this.ship.maxSpeed;
-			this.ship.performFlyToRangeFromDestination();
-			this.setParameter("oolite_witchspaceWormhole",hole);
-			// don't reconsider
-		}
-		handlers.playerWillEnterWitchspace = function()
-		{
-			var wormhole = this.getParameter("oolite_witchspaceWormhole");
-			if (wormhole != null)
-			{
-				this.ship.enterWormhole(wormhole);
-			} 
-			else
-			{
-				this.ship.enterWormhole();
-			}
-		}
+		handlers.playerWillEnterWitchspace = this.responseComponent_trackPlayer_playerWillEnterWitchspace;
 		this.applyHandlers(handlers);
 		return;
 	}
 	else
 	{
-		handlers.shipWitchspaceBlocked = function(blocker)
-		{
-			this.communicate("oolite_witchspaceBlocked",this.entityCommsParams(blocker),3);
-			this.ship.setDestination = blocker.position;
-			this.ship.setDesiredRange = 30000;
-			this.ship.setDesiredSpeed = this.cruiseSpeed();
-			this.ship.performFlyToRangeFromDestination();
-			this.setParameter("oolite_witchspaceEntry",null);
-			// no reconsidering yet
-		}
+		handlers.shipWitchspaceBlocked = this.responseComponent_standard_shipWitchspaceBlocked;
 		// set up the handlers before trying it
 		this.applyHandlers(handlers);
 		
@@ -3425,330 +3378,28 @@ AILib.prototype.configurationStationValidateTarget = function()
 
 AILib.prototype.responsesAddStandard = function(handlers) 
 {
-	handlers.commsMessageReceived = function(message)
-	{
-		this.noteCommsHeard();
-	}
-	handlers.cascadeWeaponDetected = function(weapon)
-	{
-		this.ship.clearDefenseTargets();
-		this.ship.addDefenseTarget(weapon);
-		this.setParameter("oolite_cascadeDetected",weapon.position);
-		this.ship.target = weapon;
-		this.ship.performFlee();
-		this.reconsiderNow();
-	};
-
-	handlers.shipAttackedWithMissile = function(missile,whom)
-	{
-		if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
-		{
-			this.broadcastDistressMessage();
-		}
-		if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-		{
-			this.ship.fireECM();
-			this.ship.addDefenseTarget(missile);
-			this.ship.addDefenseTarget(whom);
-			// but don't reconsider immediately, because the ECM will
-			// probably get it
-		}
-		else
-		{
-			this.communicate("oolite_incomingMissile",this.entityCommsParams(whom),3);
-			this.ship.addDefenseTarget(missile);
-			this.ship.addDefenseTarget(whom);
-			var tmp = this.ship.target;
-			this.ship.target = whom;
-			this.ship.requestHelpFromGroup();
-			this.ship.target = tmp;
-			this.reconsiderNow();
-		}
-	};
-
-	handlers.shipAttackerDistracted = function(whom)
-	{
-		if (this.ship.scanClass != "CLASS_THARGOID" && whom.scanClass == "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
-		{
-			// frying pan, fire
-			if (this.respondToThargoids(whom,false))
-			{
-				this.reconsiderNow();
-				return;
-			}
-		}
-
-		var last = this.getParameter("oolite_lastAssist");
-		if (last != whom)
-		{
-			this.communicate("oolite_thanksForHelp",this.entityCommsParams(whom),1);
-			if (this.ship.scanClass == "CLASS_POLICE")
-			{
-				if (whom.scanClass != "CLASS_POLICE" && whom.scanClass != "CLASS_THARGOID" && whom.bounty > 0)
-				{
-					whom.setBounty(whom.bounty*4/5,"assisting police");
-				}
-			}
-			this.setParameter("oolite_lastAssist",whom);
-		}
-		this.reconsiderNow();
-	};
-
-	handlers.shipBeingAttacked = function(whom)
-	{
-		if (whom.target != this.ship && whom != player.ship)
-		{
-			// was accidental
-			if (this.allied(whom,this.ship))
-			{
-				this.communicate("oolite_friendlyFire",this.entityCommsParams(whom),3);
-				// ignore it
-				return;
-			}
-			if (Math.random() > 0.1)
-			{
-				// usually ignore it anyway
-				return;
-			}
-		}
-		if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
-		{
-			this.broadcastDistressMessage();
-		}
-		if (this.ship.isFleeing)
-		{
-			this.communicate("oolite_surrender",{},3);
-		}
-		if ((whom.scanClass == "CLASS_THARGOID") && (this.ship.scanClass != "CLASS_THARGOID") && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
-		{
-			if (this.respondToThargoids(whom,true))
-			{
-				this.reconsiderNow();
-				return;
-			}
-		}
-		if (whom.scanClass != "CLASS_THARGOID" && this.ship.target && this.ship.target.scanClass == "CLASS_THARGOID")
-		{
-			// now is not a good time. Everything is friendly fire right now...
-			return;
-		}
-		if (this.ship.defenseTargets.indexOf(whom) < 0)
-		{
-			this.communicate("oolite_newAssailiant",this.entityCommsParams(whom),3);
-			this.ship.addDefenseTarget(whom);
-		}
-		else 
-		{
-			// else we know about this attacker already
-			if (this.ship.energy * 4 < this.ship.maxEnergy)
-			{
-				this.communicate("oolite_attackLowEnergy",this.entityCommsParams(whom),2);
-				// but at low energy still reconsider
-				this.ship.requestHelpFromGroup();
-			}
-		}
-		if (this.ship.hasHostileTarget)
-		{
-			if (!this.isAggressive(this.ship.target))
-			{
-				// if our current target is running away, switch targets
-				this.noteDistraction(whom);
-				this.ship.target = whom;
-			}
-			else if (this.ship.target.target != this.ship)
-			{
-				// if our current target isn't aiming at us
-				if (Math.random() < 0.2)
-				{
-					// occasionally switch
-					this.noteDistraction(whom);
-					this.ship.target = whom;
-				}
-			}
-			else
-			{
-				// tend to switch to the more dangerous one
-				if (this.threatAssessment(whom,true) > this.threatAssessment(this.ship.target,true) * (1+Math.random()))
-				{
-					this.noteDistraction(whom);
-					this.ship.target = whom;
-				}
-			}
-		}
-
-		if (this.ship.escortGroup != null)
-		{
-			this.ship.requestHelpFromGroup();
-		}
-		this.reconsiderNow();
-	};
-	handlers.shipBeingAttackedUnsuccessfully = function(whom)
-	{
-		if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
-		{
-			this.broadcastDistressMessage();
-		}
-		if (this.ship.defenseTargets.indexOf(whom) < 0)
-		{
-			this.ship.addDefenseTarget(whom);
-			this.reconsiderNow();
-		}
-	};
-	handlers.shipTargetLost = function(target)
-	{
-		this.reconsiderNow();
-	};
-	// overridden for escorts
-	handlers.helpRequestReceived = function(ally, enemy)
-	{
-		if (this.allied(this.ship,enemy))
-		{
-			return;
-		}
-		this.ship.addDefenseTarget(enemy);
-		if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-		{
-			this.ship.fireECM();
-		}
-		if (enemy.scanClass == "CLASS_THARGOID" && this.ship.scanClass != "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
-		{
-			if (this.respondToThargoids(enemy,false))
-			{
-				this.reconsiderNow();
-				return; // not in a combat mode
-			}
-		}
-
-		if (!this.ship.hasHostileTarget)
-		{
-			this.reconsiderNow();
-			return; // not in a combat mode
-		}
-		if (ally.energy / ally.maxEnergy < this.ship.energy / this.ship.maxEnergy)
-		{
-			// not in worse shape than ally
-			if (this.ship.target.target != ally && this.ship.target != ally.target)
-			{
-				// not already helping, go for it...
-				this.communicate("oolite_startHelping",this.entityCommsParams(enemy),4);
-				this.ship.target = enemy;
-				this.reconsiderNow();
-			}
-		}
-	}
-	handlers.cargoDumpedNearby = function(cargo,ship)
-	{
-		if (this.getParameter("oolite_flag_watchForCargo"))
-		{
-			var previously = this.getParameter("oolite_cargoDropped");
-			if (previously == null)
-			{
-				previously = 0;
-			}
-			previously++;
-			this.setParameter("oolite_cargoDropped",previously);
-		}
-	}
-	handlers.approachingPlanetSurface = function()
-	{
-		if (this.getParameter("oolite_flag_allowPlanetaryLanding"))
-		{
-			this.ship.desiredSpeed = this.ship.maxSpeed / 4;
-			this.ship.performLandOnPlanet();
-			this.ship.AIScriptWakeTime = 0; // cancel reconsiderations
-			this.applyHandlers({}); // cancel interruptions
-			this.communicate("oolite_landingOnPlanet",{},4);
-		}
-		else
-		{
-			this.reconsiderNow();
-		}
-	}
-	handlers.shipLaunchedFromStation = function(station)
-	{
-		// clear the station
-		this.ship.destination = station.position;
-		this.ship.desiredSpeed = this.cruiseSpeed();
-		this.ship.desiredRange = 15000;
-		this.ship.performFlyToRangeFromDestination();
-	}
-	handlers.shipWillEnterWormhole = function()
-	{
-		this.setParameter("oolite_witchspaceWormhole",null);
-		this.applyHandlers({});
-	}
-	handlers.shipExitedWormhole = function()
-	{
-		this.ship.AIScript.oolite_intership = {};
-		//						this.reconsiderNow();
-	}
-
-	handlers.distressMessageReceived = function(aggressor, sender)
-	{
-		if (this.getParameter("oolite_flag_listenForDistressCall") != true)
-		{
-			return;
-		}
-		this.setParameter("oolite_distressAggressor",aggressor);
-		this.setParameter("oolite_distressSender",sender);
-		this.setParameter("oolite_distressTimestamp",clock.adjustedSeconds);
-		this.reconsiderNow();
-	}
-	handlers.offenceCommittedNearby = function(attacker, victim)
-	{
-		if (this.getParameter("oolite_flag_markOffenders")) 
-		{
-			if (attacker.bounty & 7 == 7)
-			{
-				this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),2);
-			}
-			else
-			{
-				this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),4);
-			}
-			attacker.setBounty(attacker.bounty | 7,"seen by police");
-			this.ship.addDefenseTarget(attacker);
-			this.reconsiderNow();
-		}
-	}
-	handlers.playerWillEnterWitchspace = function()
-	{
-		var wormhole = this.getParameter("oolite_witchspaceWormhole");
-		if (wormhole != null && wormhole.isWormhole)
-		{
-			this.ship.enterWormhole(wormhole);
-		} 
-	}
-	handlers.wormholeSuggested = function(hole)
-	{
-		this.setParameter("oolite_witchspaceWormhole",hole);
-		this.reconsiderNow();
-	}
-	handlers.shipAttackedOther = function(other)
-	{
-		this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
-	}
-	handlers.shipFiredMissile = function(missile,target)
-	{
-		this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
-	}
-	handlers.shipKilledOther = function(other)
-	{
-		this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
-	}
-	handlers.shipLaunchedEscapePod = function()
-	{
-		this.communicate("oolite_eject",{},1);
-	}
-	handlers.escortAccepted = function(escort)
-	{
-		this.communicate("oolite_escortAccepted",this.entityCommsParams(escort),2);
-	}
-	handlers.shipAcceptedEscort = function(mother)
-	{
-		this.communicate("oolite_escortMotherAccepted",this.entityCommsParams(mother),2);
-	}
-
+	handlers.approachingPlanetSurface = this.responseComponent_standard_approachingPlanetSurface;
+	handlers.cargoDumpedNearby = this.responseComponent_standard_cargoDumpedNearby;
+	handlers.cascadeWeaponDetected = this.responseComponent_standard_cascadeWeaponDetected;
+	handlers.commsMessageReceived = this.responseComponent_standard_commsMessageReceived;
+	handlers.distressMessageReceived = this.responseComponent_standard_distressMessageReceived;
+	handlers.escortAccepted = this.responseComponent_standard_escortAccepted;
+	handlers.helpRequestReceived = this.responseComponent_standard_helpRequestReceived;
+	handlers.offenceCommittedNearby = this.responseComponent_standard_offenceCommittedNearby;
+	handlers.playerWillEnterWitchspace = this.responseComponent_standard_playerWillEnterWitchspace;
+	handlers.shipAcceptedEscort = this.responseComponent_standard_shipAcceptedEscort;
+	handlers.shipAttackedOther = this.responseComponent_standard_shipAttackedOther;
+	handlers.shipAttackedWithMissile = this.responseComponent_standard_shipAttackedWithMissile;
+	handlers.shipAttackerDistracted = this.responseComponent_standard_shipAttackerDistracted;
+	handlers.shipBeingAttacked = this.responseComponent_standard_shipBeingAttacked;
+	handlers.shipBeingAttackedUnsuccessfully = this.responseComponent_standard_shipBeingAttackedUnsuccessfully;
+	handlers.shipFiredMissile = this.responseComponent_standard_shipFiredMissile;
+	handlers.shipKilledOther = this.responseComponent_standard_shipKilledOther;
+	handlers.shipLaunchedEscapePod = this.responseComponent_standard_shipLaunchedEscapePod;
+	handlers.shipLaunchedFromStation = this.responseComponent_standard_shipLaunchedFromStation;
+	handlers.shipTargetLost = this.responseComponent_standard_shipTargetLost;
+	handlers.shipWillEnterWormhole = this.responseComponent_standard_shipWillEnterWormhole;
+	handlers.wormholeSuggested = this.responseComponent_standard_wormholeSuggested;
 
 	// TODO: more event handlers
 }
@@ -3756,357 +3407,873 @@ AILib.prototype.responsesAddStandard = function(handlers)
 /* Additional handlers for use while docking */
 AILib.prototype.responsesAddDocking = function(handlers) 
 {
-	handlers.stationWithdrewDockingClearance = function()
-	{
-		this.setParameter("oolite_dockingStation",null);
-		this.reconsiderNow();
-	};
-	
-	handlers.shipAchievedDesiredRange = function()
-	{
-		var message = this.ship.dockingInstructions.ai_message;
-		if (message == "APPROACH" || message == "BACK_OFF" || message == "APPROACH_COORDINATES")
-		{
-			this.reconsiderNow();
-		}
-	};
+	handlers.stationWithdrewDockingClearance = this.responseComponent_docking_stationWithdrewDockingClearance;
+	handlers.shipAchievedDesiredRange = this.responseComponent_docking_shipAchievedDesiredRange;
 }
 
 /* Override of standard handlers for use while escorting */
 AILib.prototype.responsesAddEscort = function(handlers) 
 {
-	handlers.helpRequestReceived = function(ally, enemy)
-	{
-		if (this.allied(this.ship,enemy))
-		{
-			return;
-		}
-		this.ship.addDefenseTarget(enemy);
-		if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-		{
-			this.ship.fireECM();
-		}
-		if (enemy.scanClass == "CLASS_THARGOID" && this.ship.scanClass != "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
-		{
-			if (this.respondToThargoids(enemy,false))
-			{
-				this.reconsiderNow();
-				return;
-			}
-		}
-
-		// always help the leader
-		if (ally == this.ship.group.leader)
-		{
-			if (!this.ship.target || this.ship.target.target != ally)
-			{
-				this.ship.target = enemy;
-				this.reconsiderNow();
-				return;
-			}
-		}
-		this.ship.addDefenseTarget(enemy);
-		if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-		{
-			this.ship.fireECM();
-			return;
-		}
-		if (!this.ship.hasHostileTarget)
-		{
-			this.reconsiderNow();
-			return; // not in a combat mode
-		}
-		if (ally.energy / ally.maxEnergy < this.ship.energy / this.ship.maxEnergy)
-		{
-			// not in worse shape than ally
-			if (this.ship.target.target != ally && this.ship.target != ally.target)
-			{
-				// not already helping, go for it...
-				this.ship.target = enemy;
-				this.reconsiderNow();
-			}
-		}
-	}
-	handlers.escortDock = function()
-	{
-		this.reconsiderNow();
-	}
-
+	handlers.helpRequestReceived = this.responseComponent_escort_helpRequestReceived;
+	handlers.escortDock = this.responseComponent_escort_escortDock;
 }
 
 /* Additional handlers for scooping */
 AILib.prototype.responsesAddScooping = function(handlers)
 {
-	handlers.shipAchievedDesiredRange = function()
-	{
-		this.reconsiderNow();
-	}
-	handlers.shipScoopedFuel = function()
-	{
-		if (this.ship.fuel == 7)
-		{
-			this.reconsiderNow();
-		}
-	}
+	handlers.shipAchievedDesiredRange = this.responseComponent_scooping_shipAchievedDesiredRange
+	handlers.shipScoopedFuel = this.responseComponent_scooping_shipScoopedFuel;
 }
 
 // shorter list than before
 AILib.prototype.responsesAddStation = function(handlers) 
 {
-	handlers.commsMessageReceived = function(message)
-	{
-		this.noteCommsHeard();
-	}
-	handlers.cascadeWeaponDetected = function(weapon)
-	{
-		this.ship.alertCondition = 3;
-		this.reconsiderNow();
-	};
-
-	handlers.shipAttackedWithMissile = function(missile,whom)
-	{
-		this.ship.alertCondition = 3;
-		if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-		{
-			this.ship.fireECM();
-			this.ship.addDefenseTarget(missile);
-			this.ship.addDefenseTarget(whom);
-			// but don't reconsider immediately
-		}
-		else
-		{
-			this.ship.addDefenseTarget(missile);
-			this.ship.addDefenseTarget(whom);
-			var tmp = this.ship.target;
-			this.ship.target = whom;
-			this.ship.requestHelpFromGroup();
-			this.ship.target = tmp;
-			this.reconsiderNow();
-		}
-	};
-	
-	handlers.shipBeingAttacked = function(whom)
-	{
-		if (!whom) 
-		{
-			this.reconsiderNow();
-			return;
-		}
-		if (whom.target != this.ship && whom != player.ship)
-		{
-			// was accidental
-			if (this.allied(whom,this.ship))
-			{
-				this.communicate("oolite_friendlyFire",this.entityCommsParams(whom),4);
-				// ignore it
-				return;
-			}
-			if (Math.random() > 0.1)
-			{
-				// usually ignore it anyway
-				return;
-			}
-		}
-		this.ship.alertCondition = 3;
-		if (this.ship.defenseTargets.indexOf(whom) < 0)
-		{
-			this.ship.addDefenseTarget(whom);
-			this.reconsiderNow();
-		}
-		else 
-		{
-			// else we know about this attacker already
-			if (this.ship.energy * 4 < this.ship.maxEnergy)
-			{
-				// but at low energy still reconsider
-				this.reconsiderNow();
-				this.ship.requestHelpFromGroup();
-			}
-		}
-		if (this.ship.hasHostileTarget)
-		{
-			if (!this.isAggressive(this.ship.target))
-			{
-				// if our current target is running away, switch targets
-				this.ship.target = whom;
-			}
-			else if (this.ship.target.target != this.ship)
-			{
-				// if our current target isn't aiming at us
-				if (Math.random() < 0.2)
-				{
-					// occasionally switch
-					this.ship.target = whom;
-				}
-			}
-		}
-		handlers.shipAttackedOther = function(other)
-		{
-			this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
-		}
-		handlers.shipFiredMissile = function(missile,target)
-		{
-			this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
-		}
-		handlers.shipKilledOther = function(other)
-		{
-			this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
-		}
-	};
-
-	handlers.shipTargetLost = function(target)
-	{
-		this.reconsiderNow();
-	};
-
-	handlers.helpRequestReceived = function(ally, enemy)
-	{
-		this.ship.addDefenseTarget(enemy);
-		if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-		{
-			this.ship.fireECM();
-			return;
-		}
-		if (!this.ship.alertCondition == 3)
-		{
-			this.ship.target = enemy;
-			this.reconsiderNow();
-			return; // not in a combat mode
-		}
-		this.ship.target = enemy;
-	}
-
-	handlers.distressMessageReceived = function(aggressor, sender)
-	{
-		if (this.getParameter("oolite_flag_listenForDistressCall") != true)
-		{
-			return;
-		}
-		this.setParameter("oolite_distressAggressor",aggressor);
-		this.setParameter("oolite_distressSender",sender);
-		this.setParameter("oolite_distressTimestamp",clock.adjustedSeconds);
-		this.reconsiderNow();
-	}
-	handlers.offenceCommittedNearby = function(attacker, victim)
-	{
-		if (this.getParameter("oolite_flag_markOffenders")) 
-		{
-			attacker.setBounty(attacker.bounty | 7,"seen by police");
-			this.ship.addDefenseTarget(attacker);
-			if (this.ship.alertCondition < 3)
-			{
-				this.ship.alertCondition = 3;
-				this.ship.target = attacker;
-			}
-			this.reconsiderNow();
-		}
-	}
+	handlers.cascadeWeaponDetected = this.responseComponent_station_cascadeWeaponDetected;
+	handlers.commsMessageReceived = this.responseComponent_station_commsMessageReceived;
+	handlers.distressMessageReceived = this.responseComponent_station_distressMessageReceived;
+	handlers.helpRequestReceived = this.responseComponent_station_helpRequestReceived;
+	handlers.offenceCommittedNearby = this.responseComponent_station_offenceCommittedNearby;
+	handlers.shipAttackedOther = this.responseComponent_station_shipAttackedOther;
+	handlers.shipAttackedWithMissile = this.responseComponent_station_shipAttackedWithMissile;
+	handlers.shipBeingAttacked = this.responseComponent_station_shipBeingAttacked;
+	handlers.shipFiredMissile = this.responseComponent_station_shipFiredMissile;
+	handlers.shipKilledOther = this.responseComponent_station_shipKilledOther;
+	handlers.shipTargetLost = this.responseComponent_station_shipTargetLost;
 }
 
 
 AILib.prototype.responsesAddMissile = function(handlers) {
-	handlers.commsMessageReceived = function(message)
-	{
-		this.noteCommsHeard();
-	}
+	handlers.commsMessageReceived = this.responseComponent_missile_commsMessageReceived;
+	handlers.shipHitByECM = this.responseComponent_missile_shipHitByECM;
+	handlers.shipTargetCloaked = this.responseComponent_missile_shipTargetCloaked;
+	handlers.shipTargetLost = this.responseComponent_missile_shipTargetLost;
+	handlers.shipAchievedDesiredRange = this.responseComponent_missile_shipAchievedDesiredRange;
+}
 
-	handlers.shipHitByECM = function()
-	{
-		if (this.ship.scriptInfo.oolite_missile_ecmResponse)
-		{
-			var fn = this.ship.scriptInfo.oolite_missile_ecmResponse;
-			if (this.ship.AIScript[fn])
-			{
-				this.ship.AIScript[fn]();
-				this.reconsiderNow();
-				return;
-			}
-			if (this.ship.script[fn])
-			{
-				this.ship.script[fn]();
-				this.reconsiderNow();
-				return;
-			}
-		}
 
-		/* This section for the hardheads should be an ECM
-		 * response function, and that is used in the default
-		 * shipdata.plist, but for compatibility with older OXPs
-		 * it's also hardcoded here for now.
-		 *
-		 * OXPs wanting to overrule this for hardheads can set a
-		 * response function to do so.
-		 */
-		if (this.ship.primaryRole == "EQ_HARDENED_MISSILE")
-		{
-			if (Math.random() < 0.1) //10% chance per pulse
-			{
-				if (Math.random() < 0.5)
-				{
-					// 50% chance responds by detonation
-					this.ship.AIScript.shipAchievedDesiredRange();
-					return;
-				}
-				// otherwise explode as normal below
-			}
-			else // 90% chance unaffected
-			{
-				return;
-			}
-		}
+/* ******************* Response components *********************** */
 
-		this.ship.explode();
-	}
-	handlers.shipTargetCloaked = function()
+/* Response components. These are standard response component
+ * functions which can be passed by reference to save on variable
+ * destruction/creation */
+
+
+AILib.prototype.responseComponent_standard_approachingPlanetSurface = function()
+{
+	if (this.getParameter("oolite_flag_allowPlanetaryLanding"))
 	{
-		this.setParameter("oolite_interceptCoordinates",this.ship.target.position);
-		this.setParameter("oolite_interceptTarget",this.ship.target);
-		// stops performIntercept sending AchievedDesiredRange
-		this.ship.performIdle();
+		this.ship.desiredSpeed = this.ship.maxSpeed / 4;
+		this.ship.performLandOnPlanet();
+		this.ship.AIScriptWakeTime = 0; // cancel reconsiderations
+		this.applyHandlers({}); // cancel interruptions
+		this.communicate("oolite_landingOnPlanet",{},4);
 	}
-	handlers.shipTargetLost = function()
+	else
 	{
 		this.reconsiderNow();
 	}
-	handlers.shipAchievedDesiredRange = function()
+}
+
+
+AILib.prototype.responseComponent_standard_cargoDumpedNearby = function(cargo,ship)
+{
+	if (this.getParameter("oolite_flag_watchForCargo"))
 	{
-		if (this.ship.scriptInfo.oolite_missile_detonation)
+		var previously = this.getParameter("oolite_cargoDropped");
+		if (previously == null)
 		{
-			var fn = this.ship.scriptInfo.oolite_missile_detonation;
-			if (this.ship.AIScript[fn])
-			{
-				this.ship.AIScript[fn]();
-				this.reconsiderNow();
-				return;
-			}
-			if (this.ship.script[fn])
-			{
-				this.ship.script[fn]();
-				this.reconsiderNow();
-				return;
-			}
+			previously = 0;
 		}
-		/* Defaults to standard missile settings, in case they're
-		 * not specified in scriptInfo */
-		var blastpower = 170;
-		var blastradius = 32.5;
-		var blastshaping = 0.25;
-		if (this.ship.scriptInfo.oolite_missile_blastPower)
-		{
-			blastpower = this.ship.scriptInfo.oolite_missile_blastPower;
-		}
-		if (this.ship.scriptInfo.oolite_missile_blastRadius)
-		{
-			blastradius = this.ship.scriptInfo.oolite_missile_blastRadius;
-		}
-		if (this.ship.scriptInfo.oolite_missile_blastShaping)
-		{
-			blastshaping = this.ship.scriptInfo.oolite_missile_blastShaping;
-		}
-		this.ship.dealEnergyDamage(blastpower,blastradius,blastshaping);
-		this.ship.explode();
+		previously++;
+		this.setParameter("oolite_cargoDropped",previously);
 	}
 }
+
+
+AILib.prototype.responseComponent_standard_cascadeWeaponDetected = function(weapon)
+{
+	this.ship.clearDefenseTargets();
+	this.ship.addDefenseTarget(weapon);
+	this.setParameter("oolite_cascadeDetected",weapon.position);
+	this.ship.target = weapon;
+	this.ship.performFlee();
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_standard_commsMessageReceived = function(message)
+{
+	this.noteCommsHeard();
+}
+
+
+AILib.prototype.responseComponent_standard_distressMessageReceived = function(aggressor, sender)
+{
+	if (this.getParameter("oolite_flag_listenForDistressCall") != true)
+	{
+		return;
+	}
+	this.setParameter("oolite_distressAggressor",aggressor);
+	this.setParameter("oolite_distressSender",sender);
+	this.setParameter("oolite_distressTimestamp",clock.adjustedSeconds);
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_standard_escortAccepted = function(escort)
+{
+	this.communicate("oolite_escortAccepted",this.entityCommsParams(escort),2);
+}
+
+
+// overridden for escorts
+AILib.prototype.responseComponent_standard_helpRequestReceived = function(ally, enemy)
+{
+	if (this.allied(this.ship,enemy))
+	{
+		return;
+	}
+	this.ship.addDefenseTarget(enemy);
+	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	{
+		this.ship.fireECM();
+	}
+	if (enemy.scanClass == "CLASS_THARGOID" && this.ship.scanClass != "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
+	{
+		if (this.respondToThargoids(enemy,false))
+		{
+			this.reconsiderNow();
+			return; // not in a combat mode
+		}
+	}
+
+	if (!this.ship.hasHostileTarget)
+	{
+		this.reconsiderNow();
+		return; // not in a combat mode
+	}
+	if (ally.energy / ally.maxEnergy < this.ship.energy / this.ship.maxEnergy)
+	{
+		// not in worse shape than ally
+		if (this.ship.target.target != ally && this.ship.target != ally.target)
+		{
+			// not already helping, go for it...
+			this.communicate("oolite_startHelping",this.entityCommsParams(enemy),4);
+			this.ship.target = enemy;
+			this.reconsiderNow();
+		}
+	}
+}
+
+
+AILib.prototype.responseComponent_standard_offenceCommittedNearby = function(attacker, victim)
+{
+	if (this.getParameter("oolite_flag_markOffenders")) 
+	{
+		if (attacker.bounty & 7 == 7)
+		{
+			this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),2);
+		}
+		else
+		{
+			this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),4);
+		}
+		attacker.setBounty(attacker.bounty | 7,"seen by police");
+		this.ship.addDefenseTarget(attacker);
+		this.reconsiderNow();
+	}
+}
+
+
+AILib.prototype.responseComponent_standard_playerWillEnterWitchspace = function()
+{
+	var wormhole = this.getParameter("oolite_witchspaceWormhole");
+	if (wormhole != null && wormhole.isWormhole)
+	{
+		this.ship.enterWormhole(wormhole);
+	} 
+}
+
+
+AILib.prototype.responseComponent_standard_shipAcceptedEscort = function(mother)
+{
+	this.communicate("oolite_escortMotherAccepted",this.entityCommsParams(mother),2);
+}
+
+
+// not always applied
+AILib.prototype.responseComponent_standard_shipAchievedDesiredRange = function() 
+{
+	var waypoints = this.getParameter("oolite_waypoints");
+	if (waypoints != null)
+	{
+		if (waypoints.length > 0)
+		{
+			waypoints.pop();
+			if (waypoints.length == 0)
+			{
+				waypoints = null;
+			}
+			this.setParameter("oolite_waypoints",waypoints);
+		}
+	}
+	else
+	{
+		var patrol = this.getParameter("oolite_waypoint");
+		if (patrol != null && this.ship.destination.distanceTo(patrol) < 1000+this.getParameter("oolite_waypointRange"))
+		{
+			// finished patrol to waypoint
+			// clear route
+			this.communicate("oolite_waypointReached",{},3);
+			this.setParameter("oolite_waypoint",null);
+			this.setParameter("oolite_waypointRange",null);
+			if (this.getParameter("oolite_flag_patrolStation"))
+			{
+				if (this.ship.group)
+				{
+					var station = this.ship.group.leader;
+					if (station != null && station.isStation)
+					{
+						this.communicate("oolite_patrolReportIn",this.entityCommsParams(station),4);
+						this.ship.patrolReportIn(station);
+					}
+				}
+			}
+		}
+	}
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_standard_shipAttackedOther = function(other)
+{
+	this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
+}
+
+
+AILib.prototype.responseComponent_standard_shipAttackedWithMissile = function(missile,whom)
+{
+	if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+	{
+		this.broadcastDistressMessage();
+	}
+	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	{
+		this.ship.fireECM();
+		this.ship.addDefenseTarget(missile);
+		this.ship.addDefenseTarget(whom);
+		// but don't reconsider immediately, because the ECM will
+		// probably get it
+	}
+	else
+	{
+		this.communicate("oolite_incomingMissile",this.entityCommsParams(whom),3);
+		this.ship.addDefenseTarget(missile);
+		this.ship.addDefenseTarget(whom);
+		var tmp = this.ship.target;
+		this.ship.target = whom;
+		this.ship.requestHelpFromGroup();
+		this.ship.target = tmp;
+		this.reconsiderNow();
+	}
+}
+
+
+AILib.prototype.responseComponent_standard_shipAttackerDistracted = function(whom)
+{
+	if (this.ship.scanClass != "CLASS_THARGOID" && whom.scanClass == "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
+	{
+		// frying pan, fire
+		if (this.respondToThargoids(whom,false))
+		{
+			this.reconsiderNow();
+			return;
+		}
+	}
+
+	var last = this.getParameter("oolite_lastAssist");
+	if (last != whom)
+	{
+		this.communicate("oolite_thanksForHelp",this.entityCommsParams(whom),1);
+		if (this.ship.scanClass == "CLASS_POLICE")
+		{
+			if (whom.scanClass != "CLASS_POLICE" && whom.scanClass != "CLASS_THARGOID" && whom.bounty > 0)
+			{
+				whom.setBounty(whom.bounty*4/5,"assisting police");
+			}
+		}
+		this.setParameter("oolite_lastAssist",whom);
+	}
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
+{
+	if (whom.target != this.ship && whom != player.ship)
+	{
+		// was accidental
+		if (this.allied(whom,this.ship))
+		{
+			this.communicate("oolite_friendlyFire",this.entityCommsParams(whom),3);
+			// ignore it
+			return;
+		}
+		if (Math.random() > 0.1)
+		{
+			// usually ignore it anyway
+			return;
+		}
+	}
+	if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+	{
+		this.broadcastDistressMessage();
+	}
+	if (this.ship.isFleeing)
+	{
+		this.communicate("oolite_surrender",{},3);
+	}
+	if ((whom.scanClass == "CLASS_THARGOID") && (this.ship.scanClass != "CLASS_THARGOID") && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
+	{
+		if (this.respondToThargoids(whom,true))
+		{
+			this.reconsiderNow();
+			return;
+		}
+	}
+	if (whom.scanClass != "CLASS_THARGOID" && this.ship.target && this.ship.target.scanClass == "CLASS_THARGOID")
+	{
+		// now is not a good time. Everything is friendly fire right now...
+		return;
+	}
+	if (this.ship.defenseTargets.indexOf(whom) < 0)
+	{
+		this.communicate("oolite_newAssailiant",this.entityCommsParams(whom),3);
+		this.ship.addDefenseTarget(whom);
+	}
+	else 
+	{
+		// else we know about this attacker already
+		if (this.ship.energy * 4 < this.ship.maxEnergy)
+		{
+			this.communicate("oolite_attackLowEnergy",this.entityCommsParams(whom),2);
+			// but at low energy still reconsider
+			this.ship.requestHelpFromGroup();
+		}
+	}
+	if (this.ship.hasHostileTarget)
+	{
+		if (!this.isAggressive(this.ship.target))
+		{
+			// if our current target is running away, switch targets
+			this.noteDistraction(whom);
+			this.ship.target = whom;
+		}
+		else if (this.ship.target.target != this.ship)
+		{
+			// if our current target isn't aiming at us
+			if (Math.random() < 0.2)
+			{
+				// occasionally switch
+				this.noteDistraction(whom);
+				this.ship.target = whom;
+			}
+		}
+		else
+		{
+			// tend to switch to the more dangerous one
+			if (this.threatAssessment(whom,true) > this.threatAssessment(this.ship.target,true) * (1+Math.random()))
+			{
+				this.noteDistraction(whom);
+				this.ship.target = whom;
+			}
+		}
+	}
+
+	if (this.ship.escortGroup != null)
+	{
+		this.ship.requestHelpFromGroup();
+	}
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_standard_shipBeingAttackedUnsuccessfully = function(whom)
+{
+	if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+	{
+		this.broadcastDistressMessage();
+	}
+	if (this.ship.defenseTargets.indexOf(whom) < 0)
+	{
+		this.ship.addDefenseTarget(whom);
+		this.reconsiderNow();
+	}
+}
+
+
+AILib.prototype.responseComponent_standard_shipFiredMissile = function(missile,target)
+{
+	this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
+}
+
+
+AILib.prototype.responseComponent_standard_shipKilledOther = function(other)
+{
+	this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
+}
+
+
+AILib.prototype.responseComponent_standard_shipLaunchedEscapePod = function()
+{
+	this.communicate("oolite_eject",{},1);
+}
+
+
+AILib.prototype.responseComponent_standard_shipLaunchedFromStation = function(station)
+{
+	// clear the station
+	this.ship.destination = station.position;
+	this.ship.desiredSpeed = this.cruiseSpeed();
+	this.ship.desiredRange = 15000;
+	this.ship.performFlyToRangeFromDestination();
+}
+
+
+AILib.prototype.responseComponent_standard_shipScoopedOther = function(other)
+{
+	this.communicate("oolite_scoopedCargo",{"oolite_goodsDescription":displayNameForCommodity(other.commodity)},4);
+	this.setParameter("oolite_cargoDropped",null);
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_standard_shipTargetLost = function(target)
+{
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_standard_shipWillEnterWormhole = function()
+{
+	this.setParameter("oolite_witchspaceWormhole",null);
+	this.applyHandlers({});
+}
+
+
+AILib.prototype.responseComponent_standard_shipWitchspaceBlocked = function(blocker)
+{
+	this.communicate("oolite_witchspaceBlocked",this.entityCommsParams(blocker),3);
+	this.ship.setDestination = blocker.position;
+	this.ship.setDesiredRange = 30000;
+	this.ship.setDesiredSpeed = this.cruiseSpeed();
+	this.ship.performFlyToRangeFromDestination();
+	this.setParameter("oolite_witchspaceEntry",null);
+	// no reconsidering yet
+}
+
+
+AILib.prototype.responseComponent_standard_wormholeSuggested = function(hole)
+{
+	this.ship.destination = hole.position;
+	this.ship.desiredRange = 0;
+	this.ship.desiredSpeed = this.ship.maxSpeed;
+	this.ship.performFlyToRangeFromDestination();
+	this.setParameter("oolite_witchspaceWormhole",hole);
+	// don't reconsider
+}
+
+/* Missile response components */
+
+AILib.prototype.responseComponent_missile_commsMessageReceived = function(message)
+{
+	this.noteCommsHeard();
+}
+
+
+AILib.prototype.responseComponent_missile_shipHitByECM = function()
+{
+	if (this.ship.scriptInfo.oolite_missile_ecmResponse)
+	{
+		var fn = this.ship.scriptInfo.oolite_missile_ecmResponse;
+		if (this.ship.AIScript[fn])
+		{
+			this.ship.AIScript[fn]();
+			this.reconsiderNow();
+			return;
+		}
+		if (this.ship.script[fn])
+		{
+			this.ship.script[fn]();
+			this.reconsiderNow();
+			return;
+		}
+	}
+
+	/* This section for the hardheads should be an ECM
+	 * response function, and that is used in the default
+	 * shipdata.plist, but for compatibility with older OXPs
+	 * it's also hardcoded here for now.
+	 *
+	 * OXPs wanting to overrule this for hardheads can set a
+	 * response function to do so.
+	 */
+	if (this.ship.primaryRole == "EQ_HARDENED_MISSILE")
+	{
+		if (Math.random() < 0.1) //10% chance per pulse
+		{
+			if (Math.random() < 0.5)
+			{
+				// 50% chance responds by detonation
+				this.ship.AIScript.shipAchievedDesiredRange();
+				return;
+			}
+			// otherwise explode as normal below
+		}
+		else // 90% chance unaffected
+		{
+			return;
+		}
+	}
+
+	this.ship.explode();
+}
+
+
+AILib.prototype.responseComponent_missile_shipTargetCloaked = function()
+{
+	this.setParameter("oolite_interceptCoordinates",this.ship.target.position);
+	this.setParameter("oolite_interceptTarget",this.ship.target);
+	// stops performIntercept sending AchievedDesiredRange
+	this.ship.performIdle();
+}
+
+
+AILib.prototype.responseComponent_missile_shipTargetLost = function()
+{
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_missile_shipAchievedDesiredRange = function()
+{
+	if (this.ship.scriptInfo.oolite_missile_detonation)
+	{
+		var fn = this.ship.scriptInfo.oolite_missile_detonation;
+		if (this.ship.AIScript[fn])
+		{
+			this.ship.AIScript[fn]();
+			this.reconsiderNow();
+			return;
+		}
+		if (this.ship.script[fn])
+		{
+			this.ship.script[fn]();
+			this.reconsiderNow();
+			return;
+		}
+	}
+	/* Defaults to standard missile settings, in case they're
+	 * not specified in scriptInfo */
+	var blastpower = 170;
+	var blastradius = 32.5;
+	var blastshaping = 0.25;
+	if (this.ship.scriptInfo.oolite_missile_blastPower)
+	{
+		blastpower = this.ship.scriptInfo.oolite_missile_blastPower;
+	}
+	if (this.ship.scriptInfo.oolite_missile_blastRadius)
+	{
+		blastradius = this.ship.scriptInfo.oolite_missile_blastRadius;
+	}
+	if (this.ship.scriptInfo.oolite_missile_blastShaping)
+	{
+		blastshaping = this.ship.scriptInfo.oolite_missile_blastShaping;
+	}
+	this.ship.dealEnergyDamage(blastpower,blastradius,blastshaping);
+	this.ship.explode();
+}
+
+
+/* Station response components */
+
+AILib.prototype.responseComponent_station_commsMessageReceived = function(message)
+{
+	this.noteCommsHeard();
+}
+
+
+AILib.prototype.responseComponent_station_cascadeWeaponDetected = function(weapon)
+{
+	this.ship.alertCondition = 3;
+	this.reconsiderNow();
+};
+
+
+AILib.prototype.responseComponent_station_shipAttackedWithMissile = function(missile,whom)
+{
+	this.ship.alertCondition = 3;
+	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	{
+		this.ship.fireECM();
+		this.ship.addDefenseTarget(missile);
+		this.ship.addDefenseTarget(whom);
+		// but don't reconsider immediately
+	}
+	else
+	{
+		this.ship.addDefenseTarget(missile);
+		this.ship.addDefenseTarget(whom);
+		var tmp = this.ship.target;
+		this.ship.target = whom;
+		this.ship.requestHelpFromGroup();
+		this.ship.target = tmp;
+		this.reconsiderNow();
+	}
+};
+
+
+AILib.prototype.responseComponent_station_shipBeingAttacked = function(whom)
+{
+	if (!whom) 
+	{
+		this.reconsiderNow();
+		return;
+	}
+	if (whom.target != this.ship && whom != player.ship)
+	{
+		// was accidental
+		if (this.allied(whom,this.ship))
+		{
+			this.communicate("oolite_friendlyFire",this.entityCommsParams(whom),4);
+			// ignore it
+			return;
+		}
+		if (Math.random() > 0.1)
+		{
+			// usually ignore it anyway
+			return;
+		}
+	}
+	this.ship.alertCondition = 3;
+	if (this.ship.defenseTargets.indexOf(whom) < 0)
+	{
+		this.ship.addDefenseTarget(whom);
+		this.reconsiderNow();
+	}
+	else 
+	{
+		// else we know about this attacker already
+		if (this.ship.energy * 4 < this.ship.maxEnergy)
+		{
+			// but at low energy still reconsider
+			this.reconsiderNow();
+			this.ship.requestHelpFromGroup();
+		}
+	}
+	if (this.ship.hasHostileTarget)
+	{
+		if (!this.isAggressive(this.ship.target))
+		{
+			// if our current target is running away, switch targets
+			this.ship.target = whom;
+		}
+		else if (this.ship.target.target != this.ship)
+		{
+			// if our current target isn't aiming at us
+			if (Math.random() < 0.2)
+			{
+				// occasionally switch
+				this.ship.target = whom;
+			}
+		}
+	}
+}
+
+
+AILib.prototype.responseComponent_station_shipAttackedOther = function(other)
+{
+	this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
+}
+
+
+AILib.prototype.responseComponent_station_shipFiredMissile = function(missile,target)
+{
+	this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
+}
+
+
+AILib.prototype.responseComponent_station_shipKilledOther = function(other)
+{
+	this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
+}
+
+
+AILib.prototype.responseComponent_station_shipTargetLost = function(target)
+{
+	this.reconsiderNow();
+};
+
+
+AILib.prototype.responseComponent_station_helpRequestReceived = function(ally, enemy)
+{
+	this.ship.addDefenseTarget(enemy);
+	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	{
+		this.ship.fireECM();
+		return;
+	}
+	if (!this.ship.alertCondition == 3)
+	{
+		this.ship.target = enemy;
+		this.reconsiderNow();
+		return; // not in a combat mode
+	}
+	this.ship.target = enemy;
+}
+
+
+AILib.prototype.responseComponent_station_distressMessageReceived = function(aggressor, sender)
+{
+	if (this.getParameter("oolite_flag_listenForDistressCall") != true)
+	{
+		return;
+	}
+	this.setParameter("oolite_distressAggressor",aggressor);
+	this.setParameter("oolite_distressSender",sender);
+	this.setParameter("oolite_distressTimestamp",clock.adjustedSeconds);
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_station_offenceCommittedNearby = function(attacker, victim)
+{
+	if (this.getParameter("oolite_flag_markOffenders")) 
+	{
+		attacker.setBounty(attacker.bounty | 7,"seen by police");
+		this.ship.addDefenseTarget(attacker);
+		if (this.ship.alertCondition < 3)
+		{
+			this.ship.alertCondition = 3;
+			this.ship.target = attacker;
+		}
+		this.reconsiderNow();
+	}
+}
+
+
+/* Non-standard response components */
+
+AILib.prototype.responseComponent_docking_shipAchievedDesiredRange = function()
+{
+	var message = this.ship.dockingInstructions.ai_message;
+	if (message == "APPROACH" || message == "BACK_OFF" || message == "APPROACH_COORDINATES")
+	{
+		this.reconsiderNow();
+	}
+}
+
+
+AILib.prototype.responseComponent_docking_stationWithdrewDockingClearance = function()
+{
+	this.setParameter("oolite_dockingStation",null);
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_escort_escortDock = function()
+{
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_escort_helpRequestReceived = function(ally,enemy)
+{
+	if (this.allied(this.ship,enemy))
+	{
+		return;
+	}
+	this.ship.addDefenseTarget(enemy);
+	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	{
+		this.ship.fireECM();
+	}
+	if (enemy.scanClass == "CLASS_THARGOID" && this.ship.scanClass != "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
+	{
+		if (this.respondToThargoids(enemy,false))
+		{
+			this.reconsiderNow();
+			return;
+		}
+	}
+
+	// always help the leader
+	if (ally == this.ship.group.leader)
+	{
+		if (!this.ship.target || this.ship.target.target != ally)
+		{
+			this.ship.target = enemy;
+			this.reconsiderNow();
+			return;
+		}
+	}
+	this.ship.addDefenseTarget(enemy);
+	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	{
+		this.ship.fireECM();
+		return;
+	}
+	if (!this.ship.hasHostileTarget)
+	{
+		this.reconsiderNow();
+		return; // not in a combat mode
+	}
+	if (ally.energy / ally.maxEnergy < this.ship.energy / this.ship.maxEnergy)
+	{
+		// not in worse shape than ally
+		if (this.ship.target.target != ally && this.ship.target != ally.target)
+		{
+			// not already helping, go for it...
+			this.ship.target = enemy;
+			this.reconsiderNow();
+		}
+	}
+}
+
+
+AILib.prototype.responseComponent_scooping_shipAchievedDesiredRange = function()
+{
+	this.reconsiderNow();
+}
+
+
+AILib.prototype.responseComponent_scooping_shipScoopedFuel = function()
+{
+	if (this.ship.fuel == 7)
+	{
+		this.reconsiderNow();
+	}
+}
+
+
+AILib.prototype.responseComponent_trackPlayer_playerWillEnterWitchspace = function()
+{
+	var wormhole = this.getParameter("oolite_witchspaceWormhole");
+	if (wormhole != null)
+	{
+		this.ship.enterWormhole(wormhole);
+	} 
+	else
+	{
+		this.ship.enterWormhole();
+	}
+}
+
+
+
+
+
+
 
 
 /* ******************* Waypoint generators *********************** */
