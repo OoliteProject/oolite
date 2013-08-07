@@ -2328,7 +2328,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		qf.x *= delta_t;
 		qf.y *= delta_t;
 		qf.z *= delta_t;
-		orientation = quaternion_multiply(qf, orientation);
+		[self setOrientation:quaternion_multiply(qf, orientation)];
 	}
 	
 	//	reset totalBoundingBox
