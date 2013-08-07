@@ -2071,7 +2071,7 @@ AILib.prototype.behaviourDockWithStation = function()
 		this.reconsiderNow();
 		break;
 	case "TRY_AGAIN_LATER":
-		if (this.distanceTo(this.ship.target) < 10000)
+		if (this.distance(this.ship.target) < 10000)
 		{
 			this.ship.destination = this.ship.target.position;
 			this.ship.desiredRange = 12500;
