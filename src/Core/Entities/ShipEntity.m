@@ -2367,10 +2367,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		break;
 
 	case BEHAVIOUR_IDLE :
-		if ([self isSubEntity])
-		{
-			applyThrust = NO;
-		}
 		[self behaviour_idle: delta_t];
 		break;
 
