@@ -105,6 +105,7 @@ SOFTWARE.
 - (BOOL) debuggerConnected;
 
 - (void) dumpMemoryStatistics;
+- (size_t) dumpJSMemoryStatistics;
 
 - (void) setTCPIgnoresDroppedPackets:(BOOL)flag;
 - (BOOL) TCPIgnoresDroppedPackets;
