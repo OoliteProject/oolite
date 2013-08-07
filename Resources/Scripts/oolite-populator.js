@@ -1087,6 +1087,7 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 	}
 	else
 	{
+		log(this.name,"Tried to add "+leader+" but no ships of that role found");
 		var lead = system.addShips("pirate",1,pos,0);		
 	}
 	lead[0].setBounty(60+system.government+Math.floor(Math.random()*8),"setup actions");
@@ -1119,12 +1120,14 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 	{
 		lead[0].forwardWeapon = "EQ_WEAPON_BEAM_LASER";
 	}
+	// next line is temporary for debugging!
+	lead[0].displayName = lead[0].name + " - FLAGSHIP";
 	return lead[0];
 }
 
 this._addLightPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-light",2,1,-1,0);
+	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0);
 	lead.AIScript.oolite_intership.source_system = system.ID;
 	lead.AIScript.oolite_intership.dest_system = system.ID;
 }
@@ -1132,7 +1135,8 @@ this._addLightPirateLocal = function(pos)
 
 this._addLightPirateRemote = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-light",2,1,-1,0);
+	pos.z = pos.z % 100000;
+	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0);
 	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
 	lead.AIScript.oolite_intership.dest_system = system.ID;
@@ -1141,7 +1145,7 @@ this._addLightPirateRemote = function(pos)
 
 this._addMediumPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-medium",3,2,0,1);
+	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1);
 	lead.AIScript.oolite_intership.source_system = system.ID;
 	lead.AIScript.oolite_intership.dest_system = system.ID;
 }
@@ -1149,7 +1153,8 @@ this._addMediumPirateLocal = function(pos)
 
 this._addMediumPirateRemote = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-medium",3,2,0,1);
+	pos.z = pos.z % 100000;
+	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1);
 	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
 	lead.AIScript.oolite_intership.dest_system = system.ID;
@@ -1158,7 +1163,7 @@ this._addMediumPirateRemote = function(pos)
 
 this._addHeavyPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-heavy",4,4,2,2);
+	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2);
 	lead.AIScript.oolite_intership.source_system = system.ID;
 	lead.AIScript.oolite_intership.dest_system = system.ID;
 }
@@ -1166,7 +1171,8 @@ this._addHeavyPirateLocal = function(pos)
 
 this._addHeavyPirateRemote = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-freighter-heavy",4,4,2,2);
+	pos.z = pos.z % 100000;
+	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2);
 	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
 	lead.AIScript.oolite_intership.dest_system = system.ID;
