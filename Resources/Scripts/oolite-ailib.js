@@ -895,7 +895,7 @@ AILib.prototype.conditionInCombat = function()
 		var gs = this.ship.group.ships;
 		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.isFighting(gs[i]))
+			if (this.isFighting(gs[i]) && this.distance(gs[i]) < this.scannerRange)
 			{
 				this.__cache.conditionInCombat = true;
 				return true;
@@ -907,7 +907,7 @@ AILib.prototype.conditionInCombat = function()
 		var gs = this.ship.escortGroup.ships;
 		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.isFighting(gs[i]))
+			if (this.isFighting(gs[i]) && this.distance(gs[i]) < this.scannerRange)
 			{
 				this.__cache.conditionInCombat = true;
 				return true;
