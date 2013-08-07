@@ -986,6 +986,7 @@ this._addSmuggler = function(pos)
 		this._setFuel(t[0]);
 		t[0].AIScript.oolite_intership.dest_system = system.ID;
 		t[0].setCargoType("ILLEGAL_GOODS");
+		t[0].awardEquipment("EQ_FUEL_INJECTION"); // smugglers always have injectors
 	}
 }
 
@@ -1107,6 +1108,16 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 	for (var i = Math.floor(thug+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
 		this._addPirateAssistant("pirate-interceptor",lead[0]);
+	}
+	lead[0].awardEquipment("EQ_SHIELD_BOOSTER");
+	lead[0].awardEquipment("EQ_ECM");
+	if (lead[0].aftWeapon != "EQ_WEAPON_MILITARY_LASER")
+	{
+		lead[0].aftWeapon = "EQ_WEAPON_BEAM_LASER";
+	}
+	if (lead[0].forwardWeapon != "EQ_WEAPON_MILITARY_LASER")
+	{
+		lead[0].forwardWeapon = "EQ_WEAPON_BEAM_LASER";
 	}
 	return lead[0];
 }
