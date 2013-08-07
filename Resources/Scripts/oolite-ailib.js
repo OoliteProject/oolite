@@ -410,7 +410,7 @@ this.AILib = function(ship)
 	{
 		priorityList = priorities;
 		this.applyHandlers({});
-		this.reconsiderNow();
+		_resetReconsideration.call(this,Math.random());
 	}
 
 
