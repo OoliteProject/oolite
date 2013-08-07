@@ -79,6 +79,7 @@ static JSBool ConsoleDisplayMessagesInClass(JSContext *context, uintN argc, jsva
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleWriteLogMarker(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleWriteMemoryStats(JSContext *context, uintN argc, jsval *vp);
+static JSBool ConsoleWriteJSMemoryStats(JSContext *context, uintN argc, jsval *vp);
 static JSBool ConsoleGarbageCollect(JSContext *context, uintN argc, jsval *vp);
 #if DEBUG
 static JSBool ConsoleDumpNamedRoots(JSContext *context, uintN argc, jsval *vp);
@@ -205,6 +206,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
 	{ "writeLogMarker",					ConsoleWriteLogMarker,				0 },
 	{ "writeMemoryStats",				ConsoleWriteMemoryStats,			0 },
+	{ "writeJSMemoryStats",				ConsoleWriteJSMemoryStats,			0 },
 	{ "garbageCollect",					ConsoleGarbageCollect,				0 },
 #if DEBUG
 	{ "dumpNamedRoots",					ConsoleDumpNamedRoots,				0 },
@@ -892,6 +894,21 @@ static JSBool ConsoleWriteMemoryStats(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 	[[OODebugMonitor sharedDebugMonitor] dumpMemoryStatistics];
+	OOJS_END_FULL_NATIVE
+	
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// function writeJSMemoryStats() : void
+static JSBool ConsoleWriteJSMemoryStats(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOJS_BEGIN_FULL_NATIVE(context)
+	[[OODebugMonitor sharedDebugMonitor] dumpJSMemoryStatistics];
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;

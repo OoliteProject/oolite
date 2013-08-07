@@ -2790,7 +2790,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
+- (OOWeaponType) weaponTypeIDForFacing:(OOWeaponFacing)facing
 {
 	OOWeaponType weaponType = WEAPON_NONE;
 
@@ -2828,6 +2828,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				break;
 		}
 	}
+	return weaponType;
+}
+
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
+{
+	OOWeaponType weaponType = [self weaponTypeIDForFacing:facing];
+
 	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
 }
 
