@@ -47,6 +47,10 @@ this.AILib = function(ship)
 	});
 
 
+	this.__cache = {}; // short-term cache
+	this.__ltcache = {}; // long-term cache
+	this.__ltcachestart = clock.adjustedSeconds+60;
+	this.scannerRange = this.ship.scannerRange; // cached
 	this.ship.AIScript.oolite_intership = {};
 	this.ship.AIScript.oolite_priorityai = this;
 	var activeHandlers = [];
@@ -86,7 +90,8 @@ this.AILib = function(ship)
 	/* Considers a priority list, potentially recursively */
 	function _reconsiderList(priorities) {
 		logging = this.getParameter("oolite_flag_behaviourLogging")
-		for (var i = 0; i < priorities.length; i++)
+		var pl = priorities.length;
+		for (var i = 0; i < pl; i++)
 		{
 			if (logging)
 			{
@@ -191,7 +196,13 @@ this.AILib = function(ship)
 		{
 			return;
 		}
-		this.__cache = {}; // clear cache
+		this.__cache = { }; // clear short-term cache
+		// maybe clear long-term cache
+		if (this.__ltcachestart < clock.adjustedSeconds)
+		{
+			this.__ltcache = {};
+			this.__ltcachestart = clock.adjustedSeconds + 60;
+		}
 		var newBehaviour = _reconsiderList.call(this,priorityList);
 		if (newBehaviour == null) {
 			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had all priorities fail. All priority based AIs should end with an unconditional entry.");
@@ -207,12 +218,16 @@ this.AILib = function(ship)
 	};
 
 
-	/* Resets the reconsideration timer. */
+	/* Resets the reconsideration timer. (Can't make it later) */
 	function _resetReconsideration(delay)
 	{
 		if (this.ship)
 		{
-			this.ship.AIScriptWakeTime = clock.adjustedSeconds + delay;
+			var newwake = clock.adjustedSeconds + delay;
+			if (this.ship.AIScriptWakeTime > newwake || this.ship.AIScriptWakeTime == 0)
+			{
+				this.ship.AIScriptWakeTime = newwake;
+			}
 		}
 	};
 
@@ -326,6 +341,10 @@ this.AILib = function(ship)
 		var template = worldScripts["oolite-libPriorityAI"]._getCommunication(commsRole,commsPersonality,key);
 		if (template != "")
 		{
+			if (params.isShip)
+			{
+				params = this.entityCommsParams(params);
+			}
 			var message = expandDescription(template,params);
 			if (message != "")
 			{
@@ -366,7 +385,7 @@ this.AILib = function(ship)
 	/* Requests reconsideration of behaviour ahead of schedule. */
 	this.reconsiderNow = function() 
 	{
-		_resetReconsideration.call(this,0.05);
+		_resetReconsideration.call(this,0.5);
 	}
 
 
@@ -416,38 +435,41 @@ AILib.prototype.name = this.name;
 AILib.prototype.allied = function(ship1,ship2)
 {
 	// ships in same group
-	if (ship1.group && ship1.group.containsShip(ship2))
+	var g1 = ship1.group;
+	if (g1 && g1.containsShip(ship2))
 	{
 		return true;
 	}
-	if (ship1.group && ship1.group.leader)
+	if (g1 && g1.leader)
 	{
 		// ship1 is escort of ship in same group as ship2
-		if (ship1.group.leader.group && ship1.group.leader.group.containsShip(ship2))
+		if (g1.leader.group && g1.leader.group.containsShip(ship2))
 		{
 			return true;
 		}
 	}
 	// or in reverse, ship2 is the escort
-	if (ship2.group && ship2.group.leader)
+	var g2 = ship2.group;
+	if (g2 && g2.leader)
 	{
 		// ship2 is escort of ship in same group as ship1
-		if (ship2.group.leader.group && ship2.group.leader.group.containsShip(ship1))
+		if (g2.leader.group && g2.leader.group.containsShip(ship1))
 		{
 			return true;
 		}
 	}
 	// ship1 is escort of a ship, ship2 is escort of a ship, both
 	// those ships are in the same group
-	if (ship1.group && ship1.group.leader && ship2.group && ship2.group.leader && ship1.group.leader.group && ship1.group.leader.group.containsShip(ship2.group.leader))
+	if (g1 && g2 && g1.leader && g2.leader && g1.leader.group && g1.leader.group.containsShip(g2.leader))
 	{
 		return true;
 	}
-	if (ship1.scanClass == ship2.scanClass)
+
+	// all thargoids are allied with each other
+	// all police are allied with each other
+	if (ship1.scanClass == "CLASS_THARGOID" || ship1.scanClass == "CLASS_POLICE")
 	{
-		// all thargoids are allied with each other
-		// all police are allied with each other
-		if (ship1.scanClass == "CLASS_THARGOID" || ship1.scanClass == "CLASS_POLICE")
+		if (ship1.scanClass == ship2.scanClass)
 		{
 			return true;
 		}
@@ -462,7 +484,7 @@ AILib.prototype.broadcastDistressMessage = function()
 	this.ship.broadcastDistressMessage();
 	if (this.ship.AIPrimaryAggressor)
 	{
-		this.communicate("oolite_makeDistressCall",this.entityCommsParams(this.ship.AIPrimaryAggressor),2);
+		this.communicate("oolite_makeDistressCall",this.ship.AIPrimaryAggressor,2);
 	}
 }
 
@@ -474,7 +496,10 @@ AILib.prototype.checkScannerWithPredicate = function(predicate)
 	{
 		return false;
 	}
-	for (var i = 0 ; i < scan.length ; i++)
+	var sl = scan.length; 
+	// scan upwards; lower indices tend to be closer, though this is
+	// not guaranteed
+	for (var i = 0 ; i < sl ; i++)
 	{
 		if (predicate.call(this,scan[i]))
 		{
@@ -488,34 +513,48 @@ AILib.prototype.checkScannerWithPredicate = function(predicate)
 
 AILib.prototype.cruiseSpeed = function()
 {
+	if (this.__ltcache.cruiseSpeed)
+	{
+		return this.__ltcache.cruiseSpeed;
+	}
 	var cruise = this.ship.maxSpeed * 0.8;
+	var ignore = this.ship.maxSpeed / 4;
 	if (this.ship.group)
 	{
-		for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.ship.group.ships[i].maxSpeed >= this.ship.maxSpeed/4)
-			{
-				if (cruise > this.ship.group.ships[i].maxSpeed)
-				{
-					cruise = this.ship.group.ships[i].maxSpeed;
-				}
+			var spd = gs[i].maxSpeed;
+			if (spd >= ignore && cruise > spd)
+			{	
+				cruise = spd;
 			}
 		}
 	}
 	if (this.ship.escortGroup)
 	{
-		for (var i = 0 ; i < this.ship.escortGroup.ships.length ; i++)
+		var gs = this.ship.escortGroup.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.ship.escortGroup.ships[i].maxSpeed >= this.ship.maxSpeed/4)
+			var spd = gs[i].maxSpeed;
+			if (spd >= ignore && cruise > spd)
 			{
-				if (cruise > this.ship.escortGroup.ships[i].maxSpeed)
-				{
-					cruise = this.ship.escortGroup.ships[i].maxSpeed;
-				}
+				cruise = spd;
 			}
 		}
 	}
+	this.__ltcache.cruiseSpeed = cruise;
 	return cruise;
+}
+
+
+AILib.prototype.distance = function(entity)
+{
+	if (this.__cache.position === undefined)
+	{
+		this.__cache.position = this.ship.position;
+	}
+	return this.__cache.position.distanceTo(entity);
 }
 
 
@@ -550,6 +589,10 @@ AILib.prototype.fineThreshold = function()
 
 AILib.prototype.friendlyStation = function(station)
 {
+	if (!station)
+	{
+		return false;
+	}
 	if (station.isMainStation && this.ship.bounty > this.fineThreshold())
 	{
 		return false;
@@ -573,22 +616,30 @@ AILib.prototype.friendlyStation = function(station)
 
 AILib.prototype.homeStation = function() 
 {
+	if (this.__ltcache.homeStation !== undefined)
+	{
+		return this.__ltcache.homeStation;
+	}
 	// home station might be the owner of the ship, or might just
 	// be a group member
 	if (this.ship.owner && this.ship.owner.isStation && this.friendlyStation(this.ship.owner))
 	{
+		this.__ltcache.homeStation = this.ship.owner;
 		return this.ship.owner;
 	}
 	if (this.ship.group)
 	{
-		for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1 ; i >= 0  ; i--)
 		{
-			if (this.ship.group.ships[i] != this.ship && this.ship.group.ships[i].isStation && this.friendlyStation(this.ship.group.ships[i].isStation))
+			if (gs[i] != this.ship && gs[i].isStation && this.friendlyStation(gs[i]))
 			{
-				return this.ship.group.ships[i];
+				this.__ltcache.homeStation = gs[i];
+				return gs[i];
 			}
 		}
 	}
+	this.__ltcache.homeStation = null;
 	return null;
 }
 
@@ -637,7 +688,8 @@ AILib.prototype.oddsAssessment = function()
 	{
 		return this.__cache.oddsAssessment;
 	}
-	if (!this.ship.target)
+	var target = this.ship.target;
+	if (!target)
 	{
 		return 10;
 	}
@@ -646,59 +698,66 @@ AILib.prototype.oddsAssessment = function()
 	var i = 0;
 	var ship;
 	us += this.threatAssessment(this.ship,true)
-	if (this.ship.group)
+	var group;
+	if ((group = this.ship.group))
 	{
-		for (i = 0; i < this.ship.group.ships.length ; i++)
+		var gs = group.ships;
+		for (i = gs.length-1; i >= 0 ; i--)
 		{
-			ship = this.ship.group.ships[i]
-			if (ship != this.ship && ship.position.distanceTo(this.ship.target) < this.ship.scannerRange)
+			ship = gs[i]
+			if (ship != this.ship && ship.position.distanceTo(target) < this.scannerRange)
 			{
 				us += this.threatAssessment(ship,true);
 			}
 		}
-		if (this.ship.group.leader && this.ship.group.leader.group != this.ship.group)
+		if (group.leader && group.leader.group != group)
 		{
+			gs = group.leader.group.ships;
 			// don't want escorts running off early
-			for (i = 0; i < this.ship.group.leader.group.ships.length ; i++)
+			for (i = gs.length-1; i >= 0 ; i--)
 			{
-				ship = this.ship.group.leader.group.ships[i];
-				if (ship != this.ship && ship.position.distanceTo(this.ship.target) < this.ship.scannerRange)
+				ship = gs[i];
+				if (ship != this.ship && ship.position.distanceTo(target) < this.scannerRange)
 				{
 					us += this.threatAssessment(ship,true);
 				}
 			}
 		}
 	}
-	if (this.ship.escortGroup && this.ship.escortGroup != this.ship.group) 
+	var egroup;
+	if ((egroup = this.ship.escortGroup) && egroup != this.ship.group) 
 	{
-		for (i = 0; i < this.ship.escortGroup.ships.length ; i++)
+		var gs = egroup.ships;
+		for (i = gs.length-1 ; i >= 0 ; i--)
 		{
-			ship = this.ship.escortGroup.ships[i];
-			if (ship != this.ship && ship.position.distanceTo(this.ship.target) < this.ship.scannerRange)
+			ship = gs[i];
+			if (ship != this.ship && ship.position.distanceTo(target) < this.scannerRange)
 			{
 				us += this.threatAssessment(ship,true);
 			}
 		}
 	}
 
-	them += this.threatAssessment(this.ship.target,false)
-	if (this.ship.target.group)
+	them += this.threatAssessment(target,false)
+	if (target.group)
 	{
-		for (i = 0; i < this.ship.target.group.ships.length ; i++)
+		var gs = target.group.ships;
+		for (i = gs.length - 1 ; i >= 0 ; i--)
 		{
-			ship = this.ship.target.group.ships[i]
-			if (ship != this.ship.target && ship.position.distanceTo(this.ship) < this.ship.scannerRange)
+			ship = gs[i]
+			if (ship != target && this.distance(ship) < this.scannerRange)
 			{
 				them += this.threatAssessment(ship,false);
 			}
 		}
 	}
-	if (this.ship.target.escortGroup && this.ship.target.escortGroup != this.ship.target.group) 
+	if (target.escortGroup && target.escortGroup != target.group) 
 	{
-		for (i = 0; i < this.ship.target.escortGroup.ships.length ; i++)
+		var gs = target.escortGroup.ships;
+		for (i = gs.length - 1 ; i >= 0 ; i--)
 		{
-			ship = this.ship.target.escortGroup.ships[i]
-			if (ship != this.ship.target && ship.position.distanceTo(this.ship) < this.ship.scannerRange)
+			ship = gs[i]
+			if (ship != target && this.distance(ship) < this.scannerRange)
 			{
 				them += this.threatAssessment(ship,false);
 			}
@@ -727,7 +786,7 @@ AILib.prototype.respondToThargoids = function(whom,passon)
 		if (passon)
 		{
 			this.ship.requestHelpFromGroup(); // tell the rest!
-			this.communicate("oolite_thargoidAttack",this.entityCommsParams(whom),2);
+			this.communicate("oolite_thargoidAttack",whom,2);
 		}
 	}
 	var dts = this.ship.defenseTargets;
@@ -763,7 +822,7 @@ AILib.prototype.conditionCascadeDetected = function()
 	var cpos = this.getParameter("oolite_cascadeDetected");
 	if (cpos != null)
 	{
-		if (cpos.distanceTo(this.ship) < this.ship.scannerRange)
+		if (this.distance(cpos) < this.scannerRange)
 		{
 			return true;
 		}
@@ -825,7 +884,7 @@ AILib.prototype.conditionInCombat = function()
 	var dts = this.ship.defenseTargets;
 	for (var i=dts.length-1; i >= 0; i--)
 	{
-		if (this.isFighting(dts[i]) && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (this.isFighting(dts[i]) && this.distance(dts[i]) < this.scannerRange)
 		{
 			this.__cache.conditionInCombat = true;
 			return true;
@@ -870,7 +929,7 @@ AILib.prototype.conditionInCombatWithHostiles = function()
 	var dts = this.ship.defenseTargets;
 	for (var i=dts.length-1; i >= 0; i--)
 	{
-		if (this.isAggressive(dts[i]) && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (this.isAggressive(dts[i]) && this.distance(dts[i]) < this.scannerRange)
 		{
 			return true;
 		}
@@ -938,7 +997,7 @@ AILib.prototype.conditionLosingCombat = function()
 		return false;
 	}
 	var lastThreat = this.getParameter("oolite_lastFleeing");
-	if (lastThreat != null && this.ship.position.distanceTo(lastThreat) < 25600)
+	if (lastThreat != null && this.distance(lastThreat) < 25600)
 	{
 		// the thing that attacked us is still nearby
 		return true;
@@ -955,7 +1014,7 @@ AILib.prototype.conditionLosingCombat = function()
 		{
 			return true;
 		}
-		if (dts[i].scanClass == "CLASS_MINE" && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (dts[i].scanClass == "CLASS_MINE" && this.distance(dts[i]) < this.scannerRange)
 		{
 			return true;
 		}
@@ -969,7 +1028,7 @@ AILib.prototype.conditionLosingCombat = function()
 	{
 		return true;
 	}
-	if (en * 2 < maxEn)
+	if (en * 2 < maxen)
 	{
 		if (this.conditionCombatOddsBad())
 		{
@@ -1005,7 +1064,7 @@ AILib.prototype.conditionMothershipInCombat = function()
 		var leader = this.ship.group.leader;
 		if (leader && leader != this.ship)
 		{
-			if (leader.position.distanceTo(this.ship) > this.ship.scannerRange)
+			if (this.distance(leader) > this.scannerRange)
 			{
 				return false; // can't tell
 			}
@@ -1039,7 +1098,7 @@ AILib.prototype.conditionMothershipIsAttacking = function()
 	if (this.ship.group && this.ship.group.leader != this.ship)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.target && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (leader.target && this.isFighting(leader) && this.distance(leader.target) < this.scannerRange)
 		{
 			return true;
 		}
@@ -1053,7 +1112,7 @@ AILib.prototype.conditionMothershipIsAttackingHostileTarget = function()
 	if (this.ship.group && this.ship.group.leader != this.ship)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.target && this.isFighting(leader) && this.isAggressive(leader.target) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (leader.target && this.isFighting(leader) && this.isAggressive(leader.target) && this.distance(leader.target) < this.scannerRange)
 		{
 			return true;
 		}
@@ -1066,14 +1125,14 @@ AILib.prototype.conditionMothershipUnderAttack = function()
 	if (this.ship.group && this.ship.group.leader != this.ship)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.target && leader.target.target == leader && leader.target.hasHostileTarget && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (leader.target && leader.target.target == leader && leader.target.hasHostileTarget && this.distance(leader.target) < this.scannerRange)
 		{
 			return true;
 		}
 		var dts = leader.defenseTargets;
 		for (var i = 0 ; i < dts.length ; i++)
 		{
-			if (dts[i].target == leader && dts[i].hasHostileTarget && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+			if (dts[i].target == leader && dts[i].hasHostileTarget && this.distance(dts[i]) < this.scannerRange)
 			{
 				return true;
 			}
@@ -1126,7 +1185,7 @@ AILib.prototype.conditionFriendlyStationNearby = function()
 		{
 			// this is not a very good check for friendliness, but
 			// it will have to do for now
-			if (station.position.distanceTo(this.ship) < this.ship.scannerRange)
+			if (this.distance(station) < this.scannerRange)
 			{
 				return true;
 			}
@@ -1142,14 +1201,15 @@ AILib.prototype.conditionGroupIsSeparated = function()
 	{
 		return false;
 	}
-	if (this.ship.group.leader.isStation)
+	var leader = this.ship.group.leader;
+	if (leader.isStation)
 	{
 		// can get 2x as far from station
-		return (this.ship.position.distanceTo(this.ship.group.leader) > this.ship.scannerRange * 2);
+		return (this.distance(leader) > this.scannerRange * 2);
 	}
 	else
 	{
-		return (this.ship.position.distanceTo(this.ship.group.leader) > this.ship.scannerRange);
+		return (this.distance(leader) > this.scannerRange);
 	}
 }
 
@@ -1192,7 +1252,7 @@ AILib.prototype.conditionHomeStationNearby = function()
 	{
 		return false;
 	}
-	return this.ship.position.distanceTo(home) < this.ship.scannerRange;
+	return this.distance(home) < this.scannerRange;
 }
 
 
@@ -1208,7 +1268,7 @@ AILib.prototype.conditionMainPlanetNearby = function()
 	{
 		return false;
 	}
-	if (this.ship.position.distanceTo(system.mainPlanet) < system.mainPlanet.radius * 4)
+	if (this.distance(system.mainPlanet) < system.mainPlanet.radius * 4)
 	{
 		return true;
 	}
@@ -1218,26 +1278,26 @@ AILib.prototype.conditionMainPlanetNearby = function()
 
 AILib.prototype.conditionNearDestination = function()
 {
-	return (this.ship.destination.distanceTo(this.ship) < this.ship.desiredRange);
+	return (this.distance(this.ship.destination) < this.ship.desiredRange);
 }
 
 
 AILib.prototype.conditionPlayerNearby = function()
 {
-	return this.ship.position.distanceTo(player.ship) < this.ship.scannerRange;
+	return this.distance(player.ship) < this.scannerRange;
 }
 
 
 AILib.prototype.conditionReadyToSunskim = function()
 {
-	return (system.sun && this.ship.position.distanceTo(system.sun) < system.sun.radius * 1.15);
+	return (system.sun && this.distance(system.sun) < system.sun.radius * 1.15);
 }
 
 
 AILib.prototype.conditionSelectedStationNearby = function()
 {
 	var station = this.getParameter("oolite_selectedStation");
-	if (station && station.position.distanceTo(this.ship) < this.ship.scannerRange)
+	if (station && this.distance(station) < this.scannerRange)
 	{
 		return true;
 	}
@@ -1521,24 +1581,28 @@ AILib.prototype.conditionScannerContainsSalvage = function()
 
 AILib.prototype.conditionScannerContainsSalvageForGroup = function()
 {
-	var maxspeed = 0;
-	if (this.conditionCanScoopCargo())
+	if (!this.__ltcache.conditionScannerContainsSalvageForGroup)
 	{
-		maxspeed = this.ship.maxSpeed;
-	}
-	if (this.ship.group)
-	{
-		var gs = this.ship.group.ships;
-		for (var i = gs.length-1; i >= 0 ; i--)
+		var maxspeed = 0;
+		if (this.conditionCanScoopCargo())
 		{
-			if (gs[i].cargoSpaceAvailable > 0 && gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" && gs[i].maxSpeed > maxspeed)
+			maxspeed = this.ship.maxSpeed;
+		}
+		if (this.ship.group)
+		{
+			var gs = this.ship.group.ships;
+			for (var i = gs.length-1; i >= 0 ; i--)
 			{
-				maxspeed = gs[i].maxSpeed;
+				if (gs[i].cargoSpaceAvailable > 0 && gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" && gs[i].maxSpeed > maxspeed)
+				{
+					maxspeed = gs[i].maxSpeed;
+				}
 			}
 		}
+		this.__ltcache.conditionScannerContainsSalvageForGroup = maxspeed;
 	}
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < maxspeed; 
+		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.__ltcache.conditionScannerContainsSalvageForGroup; 
 	});
 }
 
@@ -1589,9 +1653,10 @@ AILib.prototype.conditionAllEscortsInFlight = function()
 	{
 		return true; // there are no escorts not in flight
 	}
-	for (var i = 0 ; i < this.ship.escortGroup.ships.length ; i++)
+	var gs = this.ship.escortGroup.ships;
+	for (var i = gs.length-1 ; i >= 0 ; i--)
 	{
-		if (this.ship.escortGroup.ships[i].status != "STATUS_IN_FLIGHT")
+		if (gs[i].status != "STATUS_IN_FLIGHT")
 		{
 			return false;
 		}
@@ -1602,9 +1667,10 @@ AILib.prototype.conditionAllEscortsInFlight = function()
 	{
 		return true; 
 	}
-	for (var i = 0 ; i < this.ship.group.ships.length ; i++)
+	var gs = this.ship.group.ships;
+	for (var i = gs.length-1 ; i >= 0 ; i--)
 	{
-		if (this.ship.group.ships[i].status != "STATUS_IN_FLIGHT")
+		if (gs[i].status != "STATUS_IN_FLIGHT")
 		{
 			return false;
 		}
@@ -1640,22 +1706,31 @@ AILib.prototype.conditionCargoIsProfitableHere = function()
 	{
 		return false;
 	}
-	if (this.ship.cargoSpaceUsed == 0)
+
+	if (this.__ltcache.conditionCargoIsProfitableHere == undefined)
 	{
-		return false;
+		if (this.ship.cargoSpaceUsed == 0)
+		{
+			this.__ltcache.conditionCargoIsProfitableHere = false;
+		}
+		else
+		{
+			var cargo = this.ship.cargoList;
+			var profit = 0;
+			var multiplier = (system.info.economy <= 3)?-1:1;
+			var market = system.mainStation.market;
+			for (var i = cargo.length-1 ; i >= 0 ; i--)
+			{
+				var commodity = cargo[i].commodity;
+				var quantity = cargo[i].quantity;
+				var adjust = market[commodity].marketEcoAdjustPrice * multiplier * quantity / market[commodity].marketMaskPrice;
+				profit += adjust;
+			}
+			
+			this.__ltcache.conditionCargoIsProfitableHere = (profit >= 0);
+		}
 	}
-	var cargo = this.ship.cargoList;
-	var profit = 0;
-	var multiplier = (system.info.economy <= 3)?-1:1;
-	var market = system.mainStation.market;
-	for (var i = cargo.length-1 ; i >= 0 ; i--)
-	{
-		var commodity = cargo[i].commodity;
-		var quantity = cargo[i].quantity;
-		var adjust = market[commodity].marketEcoAdjustPrice * multiplier * quantity / market[commodity].marketMaskPrice;
-		profit += adjust;
-	}
-	return (profit >= 0);
+	return this.__ltcache.conditionCargoIsProfitableHere;
 }
 
 
@@ -1689,7 +1764,7 @@ AILib.prototype.conditionHasReceivedDistressCall = function()
 	var sender = this.getParameter("oolite_distressSender");
 	var ts = this.getParameter("oolite_distressTimestamp");
 
-	if (aggressor == null || !aggressor.isInSpace || sender == null || !sender.isInSpace || sender.position.distanceTo(this.ship) > this.ship.scannerRange || ts+30 < clock.adjustedSeconds)
+	if (aggressor == null || !aggressor.isInSpace || sender == null || !sender.isInSpace || this.distance(sender) > this.scannerRange || ts+30 < clock.adjustedSeconds)
 	{
 		// no, or it has expired
 		this.setParameter("oolite_distressAggressor",null);
@@ -1725,9 +1800,10 @@ AILib.prototype.conditionIsEscorting = function()
 	{
 		return false;
 	}
-	if (this.ship.group.leader.escortGroup && this.ship.group.leader.escortGroup.containsShip(this.ship))
+	var leader = this.ship.group.leader;
+	if (leader.escortGroup && leader.escortGroup.containsShip(this.ship))
 	{
-		if (this.ship.group.leader.status == "STATUS_ENTERING_WITCHSPACE")
+		if (leader.status == "STATUS_ENTERING_WITCHSPACE")
 		{
 			var hole = this.getParameter("oolite_witchspaceWormhole");
 			if (hole == null || hole.expiryTime < clock.seconds)
@@ -1803,7 +1879,7 @@ AILib.prototype.behaviourApproachDestination = function()
 			// the selected planet can't block
 			if (blocker.isSun || this.getParameter("oolite_selectedPlanet") != blocker)
 			{
-				if (this.ship.position.distanceTo(blocker) < blocker.radius * 3)
+				if (this.distance(blocker) < blocker.radius * 3)
 				{
 					if (waypoints == null)
 					{
@@ -1817,7 +1893,7 @@ AILib.prototype.behaviourApproachDestination = function()
 		}
 		else if (blocker.isShip)
 		{
-			if (this.ship.position.distanceTo(blocker) < 25600)
+			if (this.distance(blocker) < 25600)
 			{
 				if (!blocker.group || !blocker.group.leader == this.ship)
 				{
@@ -1939,14 +2015,17 @@ AILib.prototype.behaviourDestroyCurrentTarget = function()
 	}
 
 
-	if (this.ship.target && !this.ship.hasHostileTarget)
+	if (this.ship.target)
 	{
-		// entering attack mode
-		this.communicate("oolite_beginningAttack",this.entityCommsParams(this.ship.target),3);
-	}
-	else if (this.ship.target)
-	{
-		this.communicate("oolite_continuingAttack",this.entityCommsParams(this.ship.target),4);
+		if (!this.ship.hasHostileTarget)
+		{
+			// entering attack mode
+			this.communicate("oolite_beginningAttack",this.ship.target,3);
+		}
+		else 
+		{
+			this.communicate("oolite_continuingAttack",this.ship.target,4);
+		}
 	}
 	this.ship.performAttack();
 }
@@ -1980,7 +2059,7 @@ AILib.prototype.behaviourDockWithStation = function()
 		this.reconsiderNow();
 		break;
 	case "TRY_AGAIN_LATER":
-		if (this.ship.target.position.distanceTo(this.ship) < 10000)
+		if (this.distanceTo(this.ship.target) < 10000)
 		{
 			this.ship.destination = this.ship.target.position;
 			this.ship.desiredRange = 12500;
@@ -2091,7 +2170,7 @@ AILib.prototype.behaviourEscortMothership = function()
 	var handlers = {};
 	if (this.ship.group.leader)
 	{
-		this.communicate("oolite_escortFormation",this.entityCommsParams(this.ship.group.leader),4);
+		this.communicate("oolite_escortFormation",this.ship.group.leader,4);
 	}
 
 	this.responsesAddStandard(handlers);
@@ -2110,7 +2189,7 @@ AILib.prototype.behaviourFineCurrentTarget = function()
 	
 	if (this.ship.scanClass == "CLASS_POLICE" && this.ship.target)
 	{
-		this.communicate("oolite_markForFines",this.entityCommsParams(this.ship.target),1);
+		this.communicate("oolite_markForFines",this.ship.target,1);
 		
 		this.ship.markTargetForFines();
 	}
@@ -2156,16 +2235,17 @@ AILib.prototype.behaviourFleeCombat = function()
 			this.setParameter("oolite_cascadeDetected",null);
 		}
 	}
-	if (this.ship.AIPrimaryAggressor && this.ship.AIPrimaryAggressor.isInSpace && this.ship.AIPrimaryAggressor.position.distanceTo(this.ship) < this.ship.scannerRange)
+	var aggressor = this.ship.AIPrimaryAggressor;
+	if (aggressor && aggressor.isInSpace && this.distance(aggressor) < this.scannerRange)
 	{
-		this.ship.target = this.ship.AIPrimaryAggressor;
+		this.ship.target = aggressor;
 	}
-	if (!this.ship.target || this.ship.position.distanceTo(this.ship.target) > 25600)
+	if (!this.ship.target || this.distance(this.ship.target) > this.scannerRange)
 	{
 		var dts = this.ship.defenseTargets;
 		for (var i = 0 ; i < dts.length ; i++)
 		{
-			if (this.ship.position.distanceTo(dts[i]) < 25600 && this.isFighting(dts[i]))
+			if (this.distance(dts[i]) < this.scannerRange && this.isFighting(dts[i]))
 			{
 				this.ship.target = dts[i];
 				break;
@@ -2174,17 +2254,17 @@ AILib.prototype.behaviourFleeCombat = function()
 	}
 	if (this.getParameter("oolite_lastFleeing") != null)
 	{
-		this.communicate("oolite_continueFleeing",this.entityCommsParams(this.ship.target),4);
+		this.communicate("oolite_continueFleeing",this.ship.target,4);
 	}
 	else if (this.ship.energy < this.ship.maxEnergy / 4)
 	{
-		this.communicate("oolite_startFleeing",this.entityCommsParams(this.ship.target),3);
+		this.communicate("oolite_startFleeing",this.ship.target,3);
 	}
 	if (this.ship.target)
 	{
 		this.setParameter("oolite_lastFleeing",this.ship.target);
 	}
-	this.ship.desiredRange = this.ship.scannerRange;
+	this.ship.desiredRange = this.scannerRange;
 	this.ship.performFlee();
 }
 
@@ -2245,7 +2325,7 @@ AILib.prototype.behaviourLeaveVicinityOfTarget = function()
 	this.ship.destination = this.ship.target.position;
 	this.ship.desiredRange = 27500;
 	this.ship.desiredSpeed = this.ship.maxSpeed;
-	this.communicate("oolite_leaveVicinity",this.entityCommsParams(this.ship.target),3);
+	this.communicate("oolite_leaveVicinity",this.ship.target,3);
 	this.behaviourApproachDestination();
 }
 
@@ -2325,7 +2405,8 @@ AILib.prototype.behaviourRepelCurrentTarget = function()
 	var handlers = {};
 	this.responsesAddStandard(handlers);
 	this.applyHandlers(handlers);
-	if (!this.ship.target || !this.ship.target.isValid || !this.ship.target.isShip)
+	var target = this.ship.target
+	if (!target || !target.isValid || !target.isShip)
 	{
 		this.reconsiderNow();
 		return;
@@ -2333,17 +2414,16 @@ AILib.prototype.behaviourRepelCurrentTarget = function()
 
 	if (this.getParameter("oolite_flag_noSpecialThargoidReaction") != null)
 	{
-		if (this.ship.scanClass != "CLASS_THARGOID" && this.ship.target.scanClass != "CLASS_THARGOID" && this.ship.target.target.scanClass == "CLASS_THARGOID")
+		if (this.ship.scanClass != "CLASS_THARGOID" && target.scanClass != "CLASS_THARGOID" && target.target.scanClass == "CLASS_THARGOID")
 		{
-			this.respondToThargoids(this.ship.target.target,true);
+			this.respondToThargoids(target.target,true);
 			this.ship.performAttack();
 			return;
 		}
 	}
 
-	if (!this.isAggressive(this.ship.target))
+	if (!this.isAggressive(target))
 	{
-		var target = this.ship.target;
 		// repelling succeeded
 		if (this.ship.escortGroup)
 		{
@@ -2365,11 +2445,11 @@ AILib.prototype.behaviourRepelCurrentTarget = function()
 		if (!this.ship.hasHostileTarget)
 		{
 			// entering attack mode
-			this.communicate("oolite_beginningAttack",this.entityCommsParams(this.ship.target),3);
+			this.communicate("oolite_beginningAttack",target,3);
 		}
 		else if (this.ship.target)
 		{
-			this.communicate("oolite_continuingAttack",this.entityCommsParams(this.ship.target),4);
+			this.communicate("oolite_continuingAttack",target,4);
 		}
 		this.ship.performAttack();
 	}
@@ -2391,12 +2471,12 @@ AILib.prototype.behaviourRespondToDistressCall = function()
 			sender = aggressor;
 			aggressor = tmp;
 		}
-		if (aggressor.position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (this.distance(aggressor) < this.scannerRange)
 		{
 			this.ship.target = aggressor;
 			this.ship.performAttack();
 			this.reconsiderNow();
-			this.communicate("oolite_distressResponseAggressor",this.entityCommsParams(aggressor),2);
+			this.communicate("oolite_distressResponseAggressor",aggressor,2);
 		}
 		else
 		{ // we can't actually see what's attacking the sender yet
@@ -2405,7 +2485,7 @@ AILib.prototype.behaviourRespondToDistressCall = function()
 			this.ship.desiredSpeed = 7 * this.ship.maxSpeed; // use injectors if possible
 			this.ship.performFlyToRangeFromDestination();
 			// and when we next reconsider, hopefully the aggressor will be on the scanner
-			this.communicate("oolite_distressResponseSender",this.entityCommsParams(sender),2);
+			this.communicate("oolite_distressResponseSender",sender,2);
 		}
 	}
 	var handlers = {};
@@ -2593,7 +2673,7 @@ AILib.prototype.behaviourStationLaunchDefenseShips = function()
 	{
 		this.alertCondition = 3;
 		this.ship.launchDefenseShip();
-		this.communicate("oolite_launchDefenseShips",this.entityCommsParams(this.ship.target),3);
+		this.communicate("oolite_launchDefenseShips",this.ship.target,3);
 		this.ship.requestHelpFromGroup();
 	}
 	var handlers = {};
@@ -2622,7 +2702,7 @@ AILib.prototype.behaviourStationLaunchMiner = function()
 			}
 		}
 	}
-	this.communicate("oolite_launchMiner",this.entityCommsParams(this.ship.target),3);
+	this.communicate("oolite_launchMiner",this.ship.target,3);
 	this.ship.launchMiner();
 }
 
@@ -2648,7 +2728,7 @@ AILib.prototype.behaviourStationLaunchPatrol = function()
 			}
 		}
 	}
-	this.communicate("oolite_launchPatrol",this.entityCommsParams(this.ship.target),3);
+	this.communicate("oolite_launchPatrol",this.ship.target,3);
 	this.ship.launchPatrol();
 }
 
@@ -2659,7 +2739,7 @@ AILib.prototype.behaviourStationLaunchSalvager = function()
 	{
 		this.alertCondition--;
 	}
-	this.communicate("oolite_launchSalvager",this.entityCommsParams(this.ship.target),3);
+	this.communicate("oolite_launchSalvager",this.ship.target,3);
 	this.ship.launchScavenger();
 	
 	var handlers = {};
@@ -2701,17 +2781,17 @@ AILib.prototype.behaviourStationRespondToDistressCall = function()
 		sender = aggressor;
 		aggressor = tmp;
 	}
-	if (aggressor.position.distanceTo(this.ship) < this.ship.scannerRange)
+	if (this.distance(aggressor) < this.scannerRange)
 	{
 		this.ship.target = aggressor;
 		this.ship.alertCondition = 3;
 		this.ship.launchDefenseShip();
-		this.communicate("oolite_distressResponseAggressor",this.entityCommsParams(aggressor),2);
+		this.communicate("oolite_distressResponseAggressor",aggressor,2);
 		this.ship.requestHelpFromGroup();
 	}
 	else
 	{
-		this.communicate("oolite_distressResponseSender",this.entityCommsParams(sender),3);
+		this.communicate("oolite_distressResponseSender",sender,3);
 	}
 
 	var handlers = {};
@@ -2754,14 +2834,16 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 	}
 	var dts = this.ship.defenseTargets
 	var dtsl = dts.length; // we need to iterate up this time
-	var scan = this.ship.scannerRange;
-	var pos = this.ship.position;
+	var scan = this.scannerRange;
 	for (var i = 0; i < dtsl ; i++)
 	{
-		if (pos.distanceTo(dts[i]) < scan)
+		if (this.distance(dts[i]) < scan)
 		{
-			this.ship.target = dts[i];
-			return;
+			if (!dts[i].isCloaked)
+			{
+				this.ship.target = dts[i];
+				return;
+			}
 		}
 		else
 		{
@@ -2775,7 +2857,7 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 		{
 			if (gs[i] != this.ship)
 			{
-				if (this.isFighting(gs[i]) && pos.distanceTo(gs[i].target) < scan)
+				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan)
 				{
 					this.ship.target = gs[i].target;
 					return;
@@ -2790,7 +2872,7 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 		{
 			if (gs[i] != this.ship)
 			{
-				if (this.isFighting(gs[i]) && pos.distanceTo(gs[i].target) < scan)
+				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan)
 				{
 					this.ship.target = gs[i].target;
 					return;
@@ -2806,7 +2888,7 @@ AILib.prototype.configurationAcquireDefensiveEscortTarget = function()
 	if (this.ship.group && this.ship.group.leader)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.target && leader.target.target == leader && this.isFighting(leader) && leader.target.position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (this.isFighting(leader) && leader.target.target == leader && this.distance(leader.target) < this.scannerRange)
 		{
 			this.ship.target = leader.target;
 		}
@@ -2815,9 +2897,12 @@ AILib.prototype.configurationAcquireDefensiveEscortTarget = function()
 			var dts = leader.defenseTargets;
 			for (var i = 0 ; i < dts.length ; i++)
 			{
-				if (dts[i].target == leader && this.isAggressive(dts[i]) && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+				if (dts[i].target == leader && this.isAggressive(dts[i]) && this.distance(dts[i]) < this.scannerRange)
 				{
-					this.ship.target = dts[i];
+					if (!dts[i].isCloaked)
+					{
+						this.ship.target = dts[i];
+					}
 				}
 			}
 		}
@@ -2848,21 +2933,25 @@ AILib.prototype.configurationAcquireHostileCombatTarget = function()
 	var dts = this.ship.defenseTargets
 	for (var i = 0; i < dts.length ; i++)
 	{
-		if (dts[i].position.distanceTo(this.ship) < this.ship.scannerRange && this.isAggressive(dts[i]))
+		if (this.distance(dts[i]) < this.scannerRange && this.isAggressive(dts[i]))
 		{
-			this.ship.target = dts[0];
-			return;
+			if (!dts[i].isCloaked)
+			{
+				this.ship.target = dts[0];
+				return;
+			}
 		}
 	}
 	if (this.ship.group != null)
 	{
-		for (var i = 0 ; i < this.ship.group.count ; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.ship.group.ships[i] != this.ship)
+			if (gs[i] != this.ship)
 			{
-				if (this.ship.group.ships[i].target && this.isFighting(this.ship.group.ships[i]) && this.ship.group.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange && this.isAggressive(this.ship.group.ships[i].target))
+				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < this.scannerRange && this.isAggressive(gs[i].target))
 				{
-					this.ship.target = this.ship.group.ships[i].target;
+					this.ship.target = gs[i].target;
 					return;
 				}
 			}
@@ -2870,13 +2959,14 @@ AILib.prototype.configurationAcquireHostileCombatTarget = function()
 	}
 	if (this.ship.escortGroup != null)
 	{
-		for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
+		var gs = this.ship.escortGroup.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.ship.escortGroup.ships[i] != this.ship)
+			if (gs[i] != this.ship)
 			{
-				if (this.ship.escortGroup.ships[i].target && this.isFighting(this.ship.escortGroup.ships[i]) && this.ship.escortGroup.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange && this.isAggressive(this.ship.escortGroup.ships[i].target))
+				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < this.scannerRange && this.isAggressive(gs[i].target))
 				{
-					this.ship.target = this.ship.escortGroup.ships[i].target;
+					this.ship.target = gs[i].target;
 					return;
 				}
 			}
@@ -2887,12 +2977,20 @@ AILib.prototype.configurationAcquireHostileCombatTarget = function()
 
 AILib.prototype.configurationAcquireOffensiveEscortTarget = function()
 {
-	if (this.ship.group && this.ship.group.leader && this.ship.group.leader.target && this.ship.group.leader.hasHostileTarget)
-	{
-		if (this.ship.position.distanceTo(this.ship.group.leader.target) < this.ship.scannerRange)
+	if (this.ship.group && this.ship.group.leader)
+	{ 
+		var leader = this.ship.group.leader;
+		var lt;
+		if ((lt = leader.target) && leader.hasHostileTarget)
 		{
-			this.ship.target = this.ship.group.leader.target;
-			this.ship.addDefenseTarget(this.ship.target);
+			if (this.distance(lt) < this.scannerRange)
+			{
+				if (!lt.isCloaked)
+				{
+					this.ship.target = lt;
+					this.ship.addDefenseTarget(lt);
+				}
+			}
 		}
 	}
 }
@@ -2955,7 +3053,7 @@ AILib.prototype.configurationSelectRandomTradeStation = function()
 		}
 	}
 	var friendlies = 0;
-	for (var i = 0 ; i < stations.length ; i++)
+	for (var i = stations.length -1 ; i >= 0 ; i++)
 	{
 		var station = stations[i];
 		if (this.friendlyStation(station))
@@ -2970,7 +3068,7 @@ AILib.prototype.configurationSelectRandomTradeStation = function()
 		}
 	}
 	this.setParameter("oolite_selectedStation",chosenStation);
-	this.communicate("oolite_selectedStation",this.entityCommsParams(chosenStation),4);
+	this.communicate("oolite_selectedStation",chosenStation,4);
 }
 
 
@@ -2983,7 +3081,7 @@ AILib.prototype.configurationSelectShuttleDestination = function()
 	{
 		var possible = possibles[i];
 		// travel at least a little way
-		var distance = possible.position.distanceTo(this.ship);
+		var distance = this.distance(possible);
 		if (distance > possible.collisionRadius + 10000)
 		{
 			// must be friendly destination and not moving too fast
@@ -3056,7 +3154,7 @@ AILib.prototype.configurationSetDestinationToNearestFriendlyStation = function()
 		var station = stations[i];
 		if (this.friendlyStation(station))
 		{
-			var distance = station.position.distanceTo(this.ship);
+			var distance = this.distance(station);
 			if (distance < threshold)
 			{
 				threshold = distance;
@@ -3272,7 +3370,7 @@ AILib.prototype.configurationSetNearbyFriendlyStationForDocking = function()
 		{
 			// this is not a very good check for friendliness, but
 			// it will have to do for now
-			if (station.position.distanceTo(this.ship) < this.ship.scannerRange)
+			if (this.distance(station) < this.scannerRange)
 			{
 				this.setParameter("oolite_dockingStation",station)
 				return;
@@ -3284,9 +3382,10 @@ AILib.prototype.configurationSetNearbyFriendlyStationForDocking = function()
 
 AILib.prototype.configurationSetHomeStationForDocking = function()
 {
-	if (this.ship.owner && this.ship.owner.isStation && this.friendlyStation(this.ship.owner))
+	var station = this.homeStation();
+	if (station)
 	{
-		this.setParameter("oolite_dockingStation",this.ship.owner)
+		this.setParameter("oolite_dockingStation",station)
 		return;
 	}
 }
@@ -3403,7 +3502,7 @@ AILib.prototype.configurationStationValidateTarget = function()
 {
 	if (this.ship.target)
 	{
-		if(this.ship.position.distanceTo(this.ship.target) > this.ship.scannerRange)
+		if(this.distance(this.ship.target) > this.scannerRange)
 		{
 			// station behaviour does not generally validate target
 			this.ship.target = null;
@@ -3565,7 +3664,7 @@ AILib.prototype.responseComponent_standard_distressMessageReceived = function(ag
 
 AILib.prototype.responseComponent_standard_escortAccepted = function(escort)
 {
-	this.communicate("oolite_escortAccepted",this.entityCommsParams(escort),2);
+	this.communicate("oolite_escortAccepted",escort,2);
 }
 
 
@@ -3577,7 +3676,7 @@ AILib.prototype.responseComponent_standard_helpRequestReceived = function(ally, 
 		return;
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
 		this.ship.fireECM();
 	}
@@ -3601,7 +3700,7 @@ AILib.prototype.responseComponent_standard_helpRequestReceived = function(ally, 
 		if (this.ship.target.target != ally && this.ship.target != ally.target)
 		{
 			// not already helping, go for it...
-			this.communicate("oolite_startHelping",this.entityCommsParams(enemy),4);
+			this.communicate("oolite_startHelping",enemy,4);
 			this.ship.target = enemy;
 			this.reconsiderNow();
 		}
@@ -3615,11 +3714,11 @@ AILib.prototype.responseComponent_standard_offenceCommittedNearby = function(att
 	{
 		if (attacker.bounty & 7 == 7)
 		{
-			this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),2);
+			this.communicate("oolite_offenceDetected",attacker,2);
 		}
 		else
 		{
-			this.communicate("oolite_offenceDetected",this.entityCommsParams(attacker),4);
+			this.communicate("oolite_offenceDetected",attacker,4);
 		}
 		attacker.setBounty(attacker.bounty | 7,"seen by police");
 		this.ship.addDefenseTarget(attacker);
@@ -3640,7 +3739,7 @@ AILib.prototype.responseComponent_standard_playerWillEnterWitchspace = function(
 
 AILib.prototype.responseComponent_standard_shipAcceptedEscort = function(mother)
 {
-	this.communicate("oolite_escortMotherAccepted",this.entityCommsParams(mother),2);
+	this.communicate("oolite_escortMotherAccepted",mother,2);
 }
 
 
@@ -3677,7 +3776,7 @@ AILib.prototype.responseComponent_standard_shipAchievedDesiredRange = function()
 					var station = this.ship.group.leader;
 					if (station != null && station.isStation)
 					{
-						this.communicate("oolite_patrolReportIn",this.entityCommsParams(station),4);
+						this.communicate("oolite_patrolReportIn",station,4);
 						this.ship.patrolReportIn(station);
 					}
 				}
@@ -3690,7 +3789,7 @@ AILib.prototype.responseComponent_standard_shipAchievedDesiredRange = function()
 
 AILib.prototype.responseComponent_standard_shipAttackedOther = function(other)
 {
-	this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
+	this.communicate("oolite_hitTarget",other,4);
 }
 
 
@@ -3710,7 +3809,7 @@ AILib.prototype.responseComponent_standard_shipAttackedWithMissile = function(mi
 	}
 	else
 	{
-		this.communicate("oolite_incomingMissile",this.entityCommsParams(whom),3);
+		this.communicate("oolite_incomingMissile",whom,3);
 		this.ship.addDefenseTarget(missile);
 		this.ship.addDefenseTarget(whom);
 		var tmp = this.ship.target;
@@ -3737,7 +3836,7 @@ AILib.prototype.responseComponent_standard_shipAttackerDistracted = function(who
 	var last = this.getParameter("oolite_lastAssist");
 	if (last != whom)
 	{
-		this.communicate("oolite_thanksForHelp",this.entityCommsParams(whom),1);
+		this.communicate("oolite_thanksForHelp",whom,1);
 		if (this.ship.scanClass == "CLASS_POLICE")
 		{
 			if (whom.scanClass != "CLASS_POLICE" && whom.scanClass != "CLASS_THARGOID" && whom.bounty > 0)
@@ -3753,12 +3852,12 @@ AILib.prototype.responseComponent_standard_shipAttackerDistracted = function(who
 
 AILib.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 {
-	if (whom.target != this.ship && whom != player.ship)
+	if (whom.target != this.ship && !whom.isPlayer)
 	{
 		// was accidental
 		if (this.allied(whom,this.ship))
 		{
-			this.communicate("oolite_friendlyFire",this.entityCommsParams(whom),3);
+			this.communicate("oolite_friendlyFire",whom,3);
 			// ignore it
 			return;
 		}
@@ -3791,7 +3890,7 @@ AILib.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
 	{
-		this.communicate("oolite_newAssailiant",this.entityCommsParams(whom),3);
+		this.communicate("oolite_newAssailiant",whom,3);
 		this.ship.addDefenseTarget(whom);
 	}
 	else 
@@ -3799,7 +3898,7 @@ AILib.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 		// else we know about this attacker already
 		if (this.ship.energy * 4 < this.ship.maxEnergy)
 		{
-			this.communicate("oolite_attackLowEnergy",this.entityCommsParams(whom),2);
+			this.communicate("oolite_attackLowEnergy",whom,2);
 			// but at low energy still reconsider
 			this.ship.requestHelpFromGroup();
 		}
@@ -3857,13 +3956,13 @@ AILib.prototype.responseComponent_standard_shipBeingAttackedUnsuccessfully = fun
 
 AILib.prototype.responseComponent_standard_shipFiredMissile = function(missile,target)
 {
-	this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
+	this.communicate("oolite_firedMissile",target,4);
 }
 
 
 AILib.prototype.responseComponent_standard_shipKilledOther = function(other)
 {
-	this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
+	this.communicate("oolite_killedTarget",other,3);
 }
 
 
@@ -3906,7 +4005,7 @@ AILib.prototype.responseComponent_standard_shipWillEnterWormhole = function()
 
 AILib.prototype.responseComponent_standard_shipWitchspaceBlocked = function(blocker)
 {
-	this.communicate("oolite_witchspaceBlocked",this.entityCommsParams(blocker),3);
+	this.communicate("oolite_witchspaceBlocked",blocker,3);
 	this.ship.setDestination = blocker.position;
 	this.ship.setDesiredRange = 30000;
 	this.ship.setDesiredSpeed = this.cruiseSpeed();
@@ -4088,7 +4187,7 @@ AILib.prototype.responseComponent_station_shipBeingAttacked = function(whom)
 		// was accidental
 		if (this.allied(whom,this.ship))
 		{
-			this.communicate("oolite_friendlyFire",this.entityCommsParams(whom),4);
+			this.communicate("oolite_friendlyFire",whom,4);
 			// ignore it
 			return;
 		}
@@ -4136,19 +4235,19 @@ AILib.prototype.responseComponent_station_shipBeingAttacked = function(whom)
 
 AILib.prototype.responseComponent_station_shipAttackedOther = function(other)
 {
-	this.communicate("oolite_hitTarget",this.entityCommsParams(other),4);
+	this.communicate("oolite_hitTarget",other,4);
 }
 
 
 AILib.prototype.responseComponent_station_shipFiredMissile = function(missile,target)
 {
-	this.communicate("oolite_firedMissile",this.entityCommsParams(target),4);
+	this.communicate("oolite_firedMissile",target,4);
 }
 
 
 AILib.prototype.responseComponent_station_shipKilledOther = function(other)
 {
-	this.communicate("oolite_killedTarget",this.entityCommsParams(other),3);
+	this.communicate("oolite_killedTarget",other,3);
 }
 
 
@@ -4161,7 +4260,7 @@ AILib.prototype.responseComponent_station_shipTargetLost = function(target)
 AILib.prototype.responseComponent_station_helpRequestReceived = function(ally, enemy)
 {
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
 		this.ship.fireECM();
 		return;
@@ -4237,7 +4336,7 @@ AILib.prototype.responseComponent_escort_helpRequestReceived = function(ally,ene
 		return;
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
 		this.ship.fireECM();
 	}
@@ -4261,7 +4360,7 @@ AILib.prototype.responseComponent_escort_helpRequestReceived = function(ally,ene
 		}
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && enemy.position.distanceTo(this.ship) < this.ship.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
 		this.ship.fireECM();
 		return;
@@ -4370,7 +4469,7 @@ AILib.prototype.waypointsSpacelanePatrol = function()
 			choice = "SUN";
 		}
 	}
-	else if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < this.ship.scannerRange * this.ship.scannerRange * 4)
+	else if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < this.scannerRange * this.scannerRange * 4)
 	{
 		// on lane 1
 		if (Math.random() < 0.5)
@@ -4467,7 +4566,7 @@ AILib.prototype.waypointsStationPatrol = function()
 	var waypoint = waypoints[0];
 	for (var i=0;i<=3;i++)
 	{
-		if (this.ship.position.distanceTo(waypoints[i]) < 500)
+		if (this.distance(waypoints[i]) < 500)
 		{
 			waypoint = waypoints[(i+1)%4];
 			break;
@@ -4640,148 +4739,6 @@ this._setCommunications = function(obj)
 
 this._threatAssessment = function(ship,full)
 {
-	// there's a ship
-	var assessment = 1; 
-	// slightly tune for speed (+/- 0.1 for most ships)
-	assessment += (ship.maxSpeed-300)/1000; 
-	if (ship.maxSpeed < 200)
-	{
-		assessment += (ship.maxSpeed-200)/500; 
-	}
-	// tune for max energy 
-	/* FIXME: at the moment this means NPCs can detect other NPCs shield
-	 * boosters, since they're implemented as extra energy */
-	assessment += (ship.maxEnergy-200)/1000; 
-	// a bit extra for missiles
-	if (ship.missileCapacity > 2)
-	{
-		assessment += 0.5;
-	}
-	else
-	{
-		assessment += ship.missileCapacity/5;
-	}
-	// if the ship is in our group or currently fighting, we can
-	// determine more about it. (simplified to avoid having to track a
-	// *lot* of visibility data)
-	if (full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3))
-	{
-		// pilot skill
-		if (ship.isPlayer)
-		{
-			assessment += Math.pow(Math.min(player.score,6400),0.33)/10;
-		}
-		else
-		{
-			assessment += ship.accuracy/10;
-		}
-		// weapons
-		if (!ship.forwardWeapon)
-		{
-			// if ship has single subent forward laser, this -1 gets
-			// cancelled out
-			assessment -= 1;
-		}
-		else
-		{
-			assessment += this._threatSubAssessmentWeapon(ship.forwardWeapon.equipmentKey);
-		}
-		if (ship.aftWeapon)
-		{
-			assessment += 1+this._threatSubAssessmentWeapon(ship.aftWeapon.equipmentKey);
-		}
-		if (ship.portWeapon)
-		{
-			assessment += 0.2+this._threatSubAssessmentWeapon(ship.portWeapon.equipmentKey);
-		}
-		if (ship.starboardWeapon)
-		{
-			assessment += 0.2+this._threatSubAssessmentWeapon(ship.starboardWeapon.equipmentKey);
-		}
-		if (ship.subEntities)
-		{
-			for (var i = 0; i < ship.subEntities.length ; i++)
-			{
-				if (ship.subEntities[i].forwardWeapon)
-				{
-					assessment += 1+this._threatSubAssessmentWeapon(ship.subEntities[i].forwardWeapon);
-				}
-				else if (ship.subEntities[i].isTurret)
-				{
-					/* TODO: consider making ship combat behaviour try to
-					 * stay at long range from enemies with turrets. Then
-					 * we could perhaps reduce this bonus a bit. */
-					assessment++;
-				}
-			}
-		}
-		if (ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
-		{
-			assessment += 0.5;
-		}
-		if (ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
-		{
-			assessment += 0.5;
-		}
-	} // end if full stats available
-	else 
-	{
-		// thargoid ships should be counted as tougher
-		if (ship.scanClass == "CLASS_THARGOID")
-		{
-			assessment *= 1.5;
-			if (ship.hasRole("thargoid-mothership"))
-			{
-				assessment += 2.5;
-			}
-		}
-		else
-		{
-			if (ship.weaponFacings > 0)
-			{
-				// safety factor for ships we don't know the capabilities of
-				assessment += 1; 
-			}
-		}
-	}
-
-	// (mostly) ignore fleeing ships
-	if (ship.isFleeing)
-	{
-		assessment /= 5;
-	}
-	if (assessment < 0.1)
-	{
-		assessment = 0.1;
-	}
-	return assessment;
-}
-
-
-this._threatSubAssessmentWeapon = function(weapon)
-{
-	if (weapon == "EQ_WEAPON_PULSE_LASER")
-	{
-		return 0;
-	}
-	else if (weapon == "EQ_WEAPON_BEAM_LASER")
-	{
-		return 0.33;
-	}
-	else if (weapon == "EQ_WEAPON_MILITARY_LASER")
-	{
-		return 1;
-	}
-	else if (weapon == "EQ_WEAPON_THARGOID_LASER")
-	{
-		return 1;
-	}
-	else if (weapon == "EQ_WEAPON_MINING_LASER")
-	{
-		return -0.5;
-	}
-	else // not known
-	{
-		return 0;
-	}
+	full = full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3);
+	return ship.threatAssessment(full);
 }

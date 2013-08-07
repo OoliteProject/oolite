@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "OORoleSet.h"
 #import "OOJSPlayer.h"
+#import "PlayerEntityScriptMethods.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
@@ -124,6 +125,9 @@ static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsva
 static JSBool ShipCheckCourseToDestination(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetSafeCourseToDestination(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp);
+static double ShipThreatAssessmentWeapon(OOWeaponType wt);
+
 static JSBool ShipSetCargoType(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL explode);
@@ -482,6 +486,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "spawn",					ShipSpawn,					1 },
 	// spawnOne() is defined in the prefix script.
 	{ "switchAI",				ShipSwitchAI,				1 },
+	{ "threatAssessment",		ShipThreatAssessment,		1 },
 	{ "throwSpark",				ShipThrowSpark,				0 },
 	{ "updateEscortFormation",	ShipUpdateEscortFormation,	0 },
 	{ 0 }
@@ -3320,6 +3325,176 @@ static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp)
 	OOJS_RETURN_OBJECT(scanResult);
 
 	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	JSBool	fullCheck = NO;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	if (argc > 0 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[0], &fullCheck)))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"threatAssessment", argc, OOJS_ARGV, nil, @"boolean");
+		return NO;
+	}
+	// start with 1 per ship
+	double assessment = 1;
+	// +/- 0.1 for speed, larger subtraction for very slow ships
+	GLfloat maxspeed = [thisEnt maxFlightSpeed];
+	assessment += (maxspeed-300)/1000;
+	if (maxspeed < 200)
+	{
+		assessment += (maxspeed-200)/500;
+	}
+	
+	/* FIXME: at the moment this means NPCs can detect other NPCs shield
+	 * boosters, since they're implemented as extra energy */
+	assessment += ([thisEnt maxEnergy]-200)/1000; 
+	
+	// add on some for missiles. Mostly ignore 3rd and subsequent
+	// missiles: either they can be ECMd or the first two are already
+	// too many.
+	if ([thisEnt missileCapacity] > 2)
+	{
+		assessment += 0.5;
+	}
+	else
+	{
+		assessment += ((double)[thisEnt missileCapacity])/5.0;
+	}
+
+	if (fullCheck)
+	{
+		// consider pilot skill
+		if ([thisEnt isPlayer])
+		{
+			double score = (double)[PLAYER score];
+			if (score > 6400) 
+			{
+				score = 6400;
+			}
+			assessment += pow(score,0.33)/10;
+		}
+		else
+		{
+			assessment += [thisEnt accuracy]/10;
+		}
+
+		// check lasers
+		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD];
+		if (wt == WEAPON_NONE)
+		{
+			assessment -= 1;
+		}
+		else
+		{
+			assessment += ShipThreatAssessmentWeapon(wt);
+		}
+		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_AFT];
+		if (wt != WEAPON_NONE)
+		{
+			assessment += 1 + ShipThreatAssessmentWeapon(wt);
+		}
+		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_PORT];
+		if (wt != WEAPON_NONE)
+		{
+			assessment += 0.2 + ShipThreatAssessmentWeapon(wt);
+		}
+		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_STARBOARD];
+		if (wt != WEAPON_NONE)
+		{
+			assessment += 0.2 + ShipThreatAssessmentWeapon(wt);
+		}
+
+		NSEnumerator	*subEnum = [thisEnt shipSubEntityEnumerator];
+		ShipEntity		*se = nil;
+		while ((se = [subEnum nextObject]))
+		{
+			if ([se isTurret])
+			{
+				/* TODO: consider making ship combat behaviour try to
+				 * stay at long range from enemies with turrets. Then
+				 * we could perhaps reduce this bonus a bit. */
+				assessment += 1; 
+			}
+		}
+
+		// combat-related secondary equipment
+		if ([thisEnt hasECM])
+		{
+			assessment += 0.5;
+		}
+		if ([thisEnt hasFuelInjection])
+		{
+			assessment += 0.5;
+		}
+
+	}
+	else
+	{
+		// consider thargoids dangerous
+		if ([thisEnt isThargoid])
+		{
+			assessment *= 1.5;
+			if ([thisEnt hasRole:@"thargoid-mothership"])
+			{
+				assessment += 2.5;
+			}
+		}
+		else
+		{
+			// consider that armed ships might have a trick or two
+			if ([thisEnt weaponFacings] != 0)
+			{
+				assessment += 1;
+			}
+		}
+	}
+
+	// mostly ignore fleeing ships as threats
+	if ([thisEnt behaviour] == BEHAVIOUR_FLEE_TARGET || [thisEnt behaviour] == BEHAVIOUR_FLEE_EVASIVE_ACTION)
+	{
+		assessment *= 0.2;
+	}
+	else if ([thisEnt isPlayer] && ![(PlayerEntity*)thisEnt weaponsOnline])
+	{
+		assessment *= 0.2;
+	}
+	
+	// don't go too low.
+	if (assessment < 0.1)
+	{
+		assessment = 0.1;
+	}
+
+	OOJS_RETURN_DOUBLE(assessment);
+
+	OOJS_PROFILE_EXIT
+}
+
+static double ShipThreatAssessmentWeapon(OOWeaponType wt)
+{
+	switch (wt)
+	{
+	case WEAPON_NONE:
+		return -1;
+	case WEAPON_PULSE_LASER:
+		return 0;
+	case WEAPON_BEAM_LASER:
+		return 0.33;
+	case WEAPON_MINING_LASER:
+		return -0.5;
+	case WEAPON_MILITARY_LASER:
+	case WEAPON_THARGOID_LASER:
+		return 1.0;
+	default:
+		return 0;
+	}
 }
 
 
