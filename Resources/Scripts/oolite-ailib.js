@@ -3065,7 +3065,7 @@ AILib.prototype.configurationSelectRandomTradeStation = function()
 		}
 	}
 	var friendlies = 0;
-	for (var i = stations.length -1 ; i >= 0 ; i++)
+	for (var i = stations.length -1 ; i >= 0 ; i--)
 	{
 		var station = stations[i];
 		if (this.friendlyStation(station))
