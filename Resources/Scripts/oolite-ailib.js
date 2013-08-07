@@ -191,6 +191,7 @@ this.AILib = function(ship)
 		{
 			return;
 		}
+		this.__cache = {}; // clear cache
 		var newBehaviour = _reconsiderList.call(this,priorityList);
 		if (newBehaviour == null) {
 			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had all priorities fail. All priority based AIs should end with an unconditional entry.");
@@ -632,6 +633,10 @@ AILib.prototype.noteDistraction = function(whom)
 
 AILib.prototype.oddsAssessment = function()
 {
+	if (this.__cache.oddsAssessment)
+	{
+		return this.__cache.oddsAssessment;
+	}
 	if (!this.ship.target)
 	{
 		return 10;
@@ -699,8 +704,8 @@ AILib.prototype.oddsAssessment = function()
 			}
 		}
 	}
-		
-	return us/them;
+	this.__cache.oddsAssessment = us/them;		
+	return this.__cache.oddsAssessment;
 }
 
 
@@ -808,39 +813,49 @@ AILib.prototype.conditionCombatOddsExcellent = function()
 
 AILib.prototype.conditionInCombat = function()
 {
+	if (this.__cache.conditionInCombat !== undefined)
+	{
+		return this.__cache.conditionInCombat;
+	}
 	if (this.isFighting(this.ship))
 	{
+		this.__cache.conditionInCombat = true;
 		return true;
 	}
 	var dts = this.ship.defenseTargets;
-	for (var i=0; i < dts.length; i++)
+	for (var i=dts.length-1; i >= 0; i--)
 	{
-		if (dts[i].position.squaredDistanceTo(this.ship) < this.ship.scannerRange * this.ship.scannerRange && this.isFighting(dts[i]))
+		if (this.isFighting(dts[i]) && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
 		{
+			this.__cache.conditionInCombat = true;
 			return true;
 		}
 	}
 	if (this.ship.group != null)
 	{
-		for (var i = 0 ; i < this.ship.group.count ; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.isFighting(this.ship.group.ships[i]))
+			if (this.isFighting(gs[i]))
 			{
+				this.__cache.conditionInCombat = true;
 				return true;
 			}
 		}
 	}
 	if (this.ship.escortGroup != null)
 	{
-		for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
+		var gs = this.ship.escortGroup.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.isFighting(this.ship.escortGroup.ships[i]))
+			if (this.isFighting(gs[i]))
 			{
+				this.__cache.conditionInCombat = true;
 				return true;
 			}
 		}
 	}
-	
+	this.__cache.conditionInCombat = false;
 	delete this.ship.AIScript.oolite_intership.cargodemandpaid;
 	return false;
 }
@@ -853,9 +868,9 @@ AILib.prototype.conditionInCombatWithHostiles = function()
 		return true;
 	}
 	var dts = this.ship.defenseTargets;
-	for (var i=0; i < dts.length; i++)
+	for (var i=dts.length-1; i >= 0; i--)
 	{
-		if (this.isAggressive(dts[i]) && dts[i].position.squaredDistanceTo(this.ship) < this.ship.scannerRange * this.ship.scannerRange)
+		if (this.isAggressive(dts[i]) && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
 		{
 			return true;
 		}
@@ -868,9 +883,10 @@ AILib.prototype.conditionInCombatWithHostiles = function()
 	}
 	if (this.ship.group != null)
 	{
-		for (var i = 0 ; i < this.ship.group.count ; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.isFighting(this.ship.group.ships[i]) && this.isAggressive(this.ship.group.ships[i].target))
+			if (this.isFighting(gs[i]) && this.isAggressive(gs[i].target))
 			{
 				return true;
 			}
@@ -878,9 +894,10 @@ AILib.prototype.conditionInCombatWithHostiles = function()
 	}
 	if (this.ship.escortGroup != null)
 	{
-		for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
+		var gs = this.ship.escortGroup.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.isFighting(this.ship.escortGroup.ships[i]) && this.isAggressive(this.ship.escortGroup.ships[i].target))
+			if (this.isFighting(gs[i]) && this.isAggressive(gs[i].target))
 			{
 				return true;
 			}
@@ -906,7 +923,9 @@ AILib.prototype.conditionLosingCombat = function()
 			this.setParameter("oolite_cascadeDetected",null);
 		}
 	}
-	if (this.ship.energy == this.ship.maxEnergy)
+	var en = this.ship.energy;
+	var maxen = this.ship.maxEnergy; 
+	if (en == maxen)
 	{
 		// forget previous defeats
 		if (!this.conditionCombatOddsTerrible())
@@ -924,19 +943,19 @@ AILib.prototype.conditionLosingCombat = function()
 		// the thing that attacked us is still nearby
 		return true;
 	}
-	if (this.ship.energy * 4 < this.ship.maxEnergy)
+	if (en * 4 < maxen)
 	{
 		// TODO: adjust threshold based on group odds
 		return true; // losing if less than 1/4 energy
 	}
 	var dts = this.ship.defenseTargets;
-	for (var i = 0 ; i < dts.length ; i++)
+	for (var i = dts.length-1 ; i >= 0 ; i--)
 	{
 		if (dts[i].scanClass == "CLASS_MISSILE" && dts[i].target == this.ship)
 		{
 			return true;
 		}
-		if (dts[i].scanClass == "CLASS_MINE")
+		if (dts[i].scanClass == "CLASS_MINE" && dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
 		{
 			return true;
 		}
@@ -950,7 +969,7 @@ AILib.prototype.conditionLosingCombat = function()
 	{
 		return true;
 	}
-	if (this.ship.energy < this.ship.maxEnergy/2)
+	if (en * 2 < maxEn)
 	{
 		if (this.conditionCombatOddsBad())
 		{
@@ -978,38 +997,40 @@ AILib.prototype.conditionLosingCombat = function()
 	return false; // not losing yet
 }
 
+
 AILib.prototype.conditionMothershipInCombat = function()
 {
-	if (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship)
+	if (this.ship.group)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.position.distanceTo(this.ship) > this.ship.scannerRange)
+		if (leader && leader != this.ship)
 		{
-			return false; // can't tell
-		}
-		if (this.isFighting(leader))
-		{
-			return true;
-		}
-		if (leader.target && leader.target.target == leader && leader.target.hasHostileTarget)
-		{
-			return true;
-		}
-		var dts = leader.defenseTargets;
-		for (var i = 0 ; i < dts.length ; i++)
-		{
-			if (dts[i].target == leader && dts[i].hasHostileTarget)
+			if (leader.position.distanceTo(this.ship) > this.ship.scannerRange)
+			{
+				return false; // can't tell
+			}
+			if (this.isFighting(leader))
 			{
 				return true;
 			}
+			var ltarget = leader.target;
+			if (ltarget && ltarget.target == leader && ltarget.hasHostileTarget)
+			{
+				return true;
+			}
+			var dts = leader.defenseTargets;
+			for (var i = dts.length-1 ; i >= 0 ; i--)
+			{
+				if (dts[i].target == leader && dts[i].hasHostileTarget)
+				{
+					return true;
+				}
+			}
+			return false;
 		}
-		return false;
 	}
-	else
-	{
-		// no mothership
-		return false;
-	}
+	// no mothership
+	return false;
 }
 
 
@@ -1197,7 +1218,7 @@ AILib.prototype.conditionMainPlanetNearby = function()
 
 AILib.prototype.conditionNearDestination = function()
 {
-	return (this.ship.destination.squaredDistanceTo(this.ship) < this.ship.desiredRange * this.ship.desiredRange);
+	return (this.ship.destination.distanceTo(this.ship) < this.ship.desiredRange);
 }
 
 
@@ -1327,12 +1348,13 @@ AILib.prototype.conditionGroupHasEnoughLoot = function()
 	}
 	else
 	{
-		for (var i = 0; i < this.ship.group.ships.length; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1; i >= 0 ; i--)
 		{
-			used += this.ship.group.ships[i].cargoSpaceUsed;
-			if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+			used += gs[i].cargoSpaceUsed;
+			if (gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
 			{
-				available += this.ship.group.ships[i].cargoSpaceAvailable;
+				available += gs[i].cargoSpaceAvailable;
 			}
 		}
 	}
@@ -1371,8 +1393,12 @@ AILib.prototype.conditionPiratesCanBePaidOff = function()
 
 AILib.prototype.conditionScannerContainsEscapePods = function()
 {
+	if (!this.conditionCanScoopCargo())
+	{
+		return false;
+	}
 	return this.checkScannerWithPredicate(function(s) { 
-		return  s.primaryRole == "escape-capsule" && s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.ship.maxSpeed && this.conditionCanScoopCargo(); 
+		return  s.primaryRole == "escape-capsule" && s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.ship.maxSpeed; 
 	});
 }
 
@@ -1502,12 +1528,12 @@ AILib.prototype.conditionScannerContainsSalvageForGroup = function()
 	}
 	if (this.ship.group)
 	{
-		for (var i = 0; i < this.ship.group.ships.length ; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1; i >= 0 ; i--)
 		{
-			var ship = this.ship.group.ships[i];
-			if (ship.cargoSpaceAvailable > 0 && ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" && ship.maxSpeed > maxspeed)
+			if (gs[i].cargoSpaceAvailable > 0 && gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" && gs[i].maxSpeed > maxspeed)
 			{
-				maxspeed = ship.maxSpeed;
+				maxspeed = gs[i].maxSpeed;
 			}
 		}
 	}
@@ -1589,10 +1615,16 @@ AILib.prototype.conditionAllEscortsInFlight = function()
 
 AILib.prototype.conditionCanScoopCargo = function()
 {
+	if (this.__cache.conditionCanScoopCargo !== undefined)
+	{
+		return this.__cache.conditionCanScoopCargo;
+	}
 	if (this.ship.cargoSpaceAvailable == 0 || this.ship.equipmentStatus("EQ_FUEL_SCOOPS") != "EQUIPMENT_OK")
 	{
+		this.__cache.conditionCanScoopCargo = false;
 		return false;
 	}
+	this.__cache.conditionCanScoopCargo = true;
 	return true;
 }
 
@@ -1615,11 +1647,12 @@ AILib.prototype.conditionCargoIsProfitableHere = function()
 	var cargo = this.ship.cargoList;
 	var profit = 0;
 	var multiplier = (system.info.economy <= 3)?-1:1;
-	for (var i = 0 ; i < cargo.length ; i++)
+	var market = system.mainStation.market;
+	for (var i = cargo.length-1 ; i >= 0 ; i--)
 	{
 		var commodity = cargo[i].commodity;
 		var quantity = cargo[i].quantity;
-		var adjust = system.mainStation.market[commodity].marketEcoAdjustPrice * multiplier * quantity / system.mainStation.market[commodity].marketMaskPrice;
+		var adjust = market[commodity].marketEcoAdjustPrice * multiplier * quantity / market[commodity].marketMaskPrice;
 		profit += adjust;
 	}
 	return (profit >= 0);
@@ -2697,45 +2730,54 @@ AILib.prototype.behaviourStationRespondToDistressCall = function()
 
 AILib.prototype.configurationAcquireCombatTarget = function()
 {
-	if (this.ship.target && this.allied(this.ship,this.ship.target))
+	var target = this.ship.target;
+	if (target && this.allied(this.ship,target))
 	{
 		// don't shoot at allies even if they have ended up as a target...
-		this.ship.removeDefenseTarget(this.ship.target);
+		this.ship.removeDefenseTarget(target);
 		this.ship.target = null;
 	}
-	if (this.ship.target && this.ship.target.scanClass == "CLASS_CARGO")
+	if (target && target.scanClass == "CLASS_CARGO")
 	{
 		this.ship.target = null;
 	}
 	/* Iff the ship does not currently have a target, select a new one
 	 * from the defense target list. */
-	if (this.ship.target)
+	if (target)
 	{
-		if (this.ship.target.isInSpace)
+		if (target.isInSpace)
 		{
 			return;
 		}
-		this.ship.removeDefenseTarget(this.ship.target);
+		this.ship.removeDefenseTarget(target);
 		this.ship.target = null;
 	}
 	var dts = this.ship.defenseTargets
-	for (var i = 0; i < dts.length ; i++)
+	var dtsl = dts.length; // we need to iterate up this time
+	var scan = this.ship.scannerRange;
+	var pos = this.ship.position;
+	for (var i = 0; i < dtsl ; i++)
 	{
-		if (dts[i].position.distanceTo(this.ship) < this.ship.scannerRange)
+		if (pos.distanceTo(dts[i]) < scan)
 		{
-			this.ship.target = dts[0];
+			this.ship.target = dts[i];
 			return;
+		}
+		else
+		{
+			this.ship.removeDefenseTarget(dts[i]);
 		}
 	}
 	if (this.ship.group != null)
 	{
-		for (var i = 0 ; i < this.ship.group.count ; i++)
+		var gs = this.ship.group.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.ship.group.ships[i] != this.ship)
+			if (gs[i] != this.ship)
 			{
-				if (this.ship.group.ships[i].target && this.isFighting(this.ship.group.ships[i]) && this.ship.group.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
+				if (this.isFighting(gs[i]) && pos.distanceTo(gs[i].target) < scan)
 				{
-					this.ship.target = this.ship.group.ships[i].target;
+					this.ship.target = gs[i].target;
 					return;
 				}
 			}
@@ -2743,13 +2785,14 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 	}
 	if (this.ship.escortGroup != null)
 	{
-		for (var i = 0 ; i < this.ship.escortGroup.count ; i++)
+		var gs = this.ship.escortGroup.ships;
+		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
-			if (this.ship.escortGroup.ships[i] != this.ship)
+			if (gs[i] != this.ship)
 			{
-				if (this.ship.escortGroup.ships[i].target && this.isFighting(this.ship.escortGroup.ships[i]) && this.ship.escortGroup.ships[i].target.position.distanceTo(this.ship) < this.ship.scannerRange)
+				if (this.isFighting(gs[i]) && pos.distanceTo(gs[i].target) < scan)
 				{
-					this.ship.target = this.ship.escortGroup.ships[i].target;
+					this.ship.target = gs[i].target;
 					return;
 				}
 			}
