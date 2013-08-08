@@ -8,6 +8,7 @@
 (
 	"player",
 	"trader",
+	"trader-smuggler",
 	"shuttle",
 	
 	// Known trader-like roles from pre-1.70 plug-ins

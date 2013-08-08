@@ -1038,6 +1038,21 @@ this._addMediumHunter = function(pos)
 		}
 		this._setFuel(t[0]);
 		t[0].destinationSystem = system.ID;
+
+		var group = new ShipGroup("hunter group",t[0]);
+		t[0].group = group;
+
+		var hs = system.addShips("hunter",1+Math.floor(Math.random()*4),pos,3E3);
+		for (var i = 0; i<hs.length; i++)
+		{
+			hs[i].group = group;
+			group.addShip(hs[i]);
+			hs[i].bounty = 0;
+			hs[i].fuel = 7;
+			hs[i].homeSystem = t[0].homeSystem;
+			hs[i].destinationSystem = t[0].destinationSystem;
+		}
+
 	}
 }
 
@@ -1062,6 +1077,20 @@ this._addHeavyHunter = function(pos)
 		}
 		this._setFuel(t[0]);
 		t[0].destinationSystem = system.ID;
+
+		var group = new ShipGroup("hunter group",t[0]);
+		t[0].group = group;
+
+		var hs = system.addShips("hunter",1+Math.floor(Math.random()*4)+Math.floor(Math.random()*4),pos,3E3);
+		for (var i = 0; i<hs.length; i++)
+		{
+			hs[i].group = group;
+			group.addShip(hs[i]);
+			hs[i].bounty = 0;
+			hs[i].fuel = 7;
+			hs[i].homeSystem = t[0].homeSystem;
+			hs[i].destinationSystem = t[0].destinationSystem;
+		}
 	}
 }
 
