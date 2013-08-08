@@ -36,6 +36,16 @@ this.aiStarted = function() {
 	ai.setParameter("oolite_flag_surrendersEarly",true);
 
 	ai.setCommunicationsRole("trader");
+	// same AI works for freighters, couriers and smugglers with minimal
+	// modification
+	if (this.ship.primaryRole == "trader-smuggler")
+	{
+		ai.setParameter("oolite_flag_fleesPreemptively",true);
+	}
+	else if (this.ship.primaryRole == "trader-courier")
+	{
+		ai.setParameter("oolite_flag_noDockingUntilDestination",true);
+	}
 
 
 	ai.setPriorities([
@@ -102,8 +112,8 @@ this.aiStarted = function() {
 			// jump to another system if possible, sunskim if not
 			falsebranch: [
 				{
-					condition: ai.conditionCanWitchspaceOut,
-					configuration: ai.configurationSelectWitchspaceDestination,
+					preconfiguration: ai.configurationSelectWitchspaceDestinationOutbound,
+					condition: ai.conditionCanWitchspaceOnRoute,
 					behaviour: ai.behaviourEnterWitchspace,
 					reconsider: 20
 				},

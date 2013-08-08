@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 "use strict";
 
+// this is the AI version for a local patrol 
 this.name = "Oolite Bounty Hunter AI";
 this.version = "1.79";
 
@@ -55,6 +56,16 @@ this.aiStarted = function() {
 			condition: ai.conditionHasReceivedDistressCall,
 			behaviour: ai.behaviourRespondToDistressCall,
 			reconsider: 20
+		},
+		/* Regroup if necessary, but act relatively
+		 * independently. Bounty hunters are not like police
+		 * patrols. */
+		{
+			preconfiguration: ai.configurationAppointGroupLeader,
+			condition: ai.conditionGroupIsSeparated,
+			configuration: ai.configurationSetDestinationToGroupLeader,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 15
 		},
 		/* Check for profitable targets */
 		{
@@ -91,18 +102,70 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourEnterWitchspace,
 			reconsider: 20
 		},
-		/* Nothing interesting here. Patrol for a bit */
 		{
-			condition: ai.conditionHasWaypoint,
-			configuration: ai.configurationSetDestinationToWaypoint,
-			behaviour: ai.behaviourApproachDestination,
-			reconsider: 30
-		},
-		/* No patrol route set up. Make one */
-		{
-			configuration: ai.configurationSetWaypoint,
-			behaviour: ai.behaviourApproachDestination,
-			reconsider: 30
+			condition: ai.conditionIsGroupLeader,
+			truebranch: [
+				/* Nothing interesting here. Patrol for a bit. Patrol
+				 * until away from planet; on return to planet,
+				 * dock */
+				{
+					condition: ai.conditionHasWaypoint,
+					configuration: ai.configurationSetDestinationToWaypoint,
+					behaviour: ai.behaviourApproachDestination,
+					reconsider: 30
+				},
+				{
+					condition: ai.conditionHasSelectedStation,
+					truebranch: [
+						{
+							condition: ai.conditionSelectedStationNearby,
+							configuration: ai.configurationSetSelectedStationForDocking,
+							behaviour: ai.behaviourDockWithStation,
+							reconsider: 30
+						},
+						{
+							condition: ai.conditionSelectedStationNearMainPlanet,
+							truebranch: [
+								{
+									notcondition: ai.conditionMainPlanetNearby,
+									configuration: ai.configurationSetDestinationToMainPlanet,
+									behaviour: ai.behaviourApproachDestination,
+									reconsider: 30
+								}
+							]
+						},
+						// either the station isn't near the planet, or we are
+						{
+							configuration: ai.configurationSetDestinationToSelectedStation,
+							behaviour: ai.behaviourApproachDestination,
+							reconsider: 30
+						}
+					]
+				},
+				{
+					condition: ai.conditionMainPlanetNearby,
+					truebranch: [
+						{
+							condition: ai.conditionPatrolIsOver,
+							configuration: ai.configurationSelectRandomTradeStation,
+							behaviour: ai.behaviourReconsider
+						}
+					]
+				},
+				/* No patrol route set up. Make one */
+				{
+					configuration: ai.configurationSetWaypoint,
+					behaviour: ai.behaviourApproachDestination,
+					reconsider: 30
+				}
+			],
+			/* then follow the group leader */
+			falsebranch: [
+				{
+					behaviour: ai.behaviourFollowGroupLeader,
+					reconsider: 15
+				}
+			],
 		}
-	]);
+		]);
 }

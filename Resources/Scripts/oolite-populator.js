@@ -922,9 +922,9 @@ this._addFreighter = function(pos)
 		{
 			t[0].bounty = 0;
 		}
-		t[0].AIScript.oolite_intership.source_system = this._weightedNearbyTradeSystem();
+		t[0].homeSystem = this._weightedNearbyTradeSystem();
 		this._setFuel(t[0]);
-		t[0].AIScript.oolite_intership.dest_system = system.ID;
+		t[0].destinationSystem = system.ID;
 		t[0].setCargoType("SCARCE_GOODS");
 	}
 }
@@ -941,6 +941,16 @@ this._addCourier = function(pos)
 		var t = system.addShips("trader",1,pos,0);
 	}
 	t[0].bounty = 0;
+	t[0].heatInsulation = 6;
+	if (t.escortGroup)
+	{
+		var gs = t.escortGroup.ships;
+		for (var i=gs.length=1; i>=0; i++)
+		{
+			gs[i].heatInsulation = 6;
+			gs[i].bounty = 0;
+		}
+	}
 	return t;
 }
 
@@ -951,9 +961,9 @@ this._addCourierShort = function(pos)
 	if (t[0])
 	{
 		// don't need to worry at this stage where it came from before that
-		t[0].AIScript.oolite_intership.source_system = this._nearbySystem(7);
+		t[0].homeSystem = this._nearbySystem(7);
 		this._setFuel(t[0]);
-		t[0].AIScript.oolite_intership.dest_system = system.ID;
+		t[0].destinationSystem = system.ID;
 		t[0].setCargoType("SCARCE_GOODS");
 	}
 }
@@ -965,9 +975,9 @@ this._addCourierLong = function(pos)
 	if (t[0])
 	{
 		// don't need to worry at this stage where it came from before that
-		t[0].AIScript.oolite_intership.source_system = this._nearbySystem(7);
+		t[0].homeSystem = this._nearbySystem(7);
 		this._setFuel(t[0]);
-		t[0].AIScript.oolite_intership.dest_system = this._nearbySystem(25);
+		t[0].destinationSystem = this._nearbySystem(25);
 		t[0].setCargoType("SCARCE_GOODS");
 	}
 }
@@ -986,9 +996,9 @@ this._addSmuggler = function(pos)
 	if (t[0])
 	{
 		t[0].bounty = Math.ceil(Math.random()*20);
-		t[0].AIScript.oolite_intership.source_system = this._nearbySystem(7);
+		t[0].homeSystem = this._nearbySystem(7);
 		this._setFuel(t[0]);
-		t[0].AIScript.oolite_intership.dest_system = system.ID;
+		t[0].destinationSystem = system.ID;
 		t[0].setCargoType("ILLEGAL_GOODS");
 		t[0].awardEquipment("EQ_FUEL_INJECTION"); // smugglers always have injectors
 	}
@@ -1001,8 +1011,8 @@ this._addLightHunter = function(pos)
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
-		h.ships[i].AIScript.oolite_intership.source_system = system.ID;
-		h.ships[i].AIScript.oolite_intership.dest_system = system.ID;
+		h.ships[i].homeSystem = system.ID;
+		h.ships[i].destinationSystem = system.ID;
 		h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
 	}
 }
@@ -1021,9 +1031,13 @@ this._addMediumHunter = function(pos)
 	if (t[0])
 	{
 		t[0].bounty = 0;
-		t[0].AIScript.oolite_intership.source_system = this._nearbySafeSystem(6);
+		var s = this._nearbySafeSystem(6);
+		if (s)
+		{
+			t[0].homeSystem = s;
+		}
 		this._setFuel(t[0]);
-		t[0].AIScript.oolite_intership.dest_system = system.ID;
+		t[0].destinationSystem = system.ID;
 	}
 }
 
@@ -1041,9 +1055,13 @@ this._addHeavyHunter = function(pos)
 	if (t[0])
 	{
 		t[0].bounty = 0;
-		t[0].AIScript.oolite_intership.source_system = this._nearbySafeSystem(2);
+		var s = this._nearbySafeSystem(2);
+		if (s)
+		{
+			t[0].homeSystem = s;
+		}
 		this._setFuel(t[0]);
-		t[0].AIScript.oolite_intership.dest_system = system.ID;
+		t[0].destinationSystem = system.ID;
 	}
 }
 
@@ -1136,8 +1154,8 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 this._addLightPirateLocal = function(pos)
 {
 	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0);
-	lead.AIScript.oolite_intership.source_system = system.ID;
-	lead.AIScript.oolite_intership.dest_system = system.ID;
+	lead.homeSystem = system.ID;
+	lead.destinationSystem = system.ID;
 }
 
 
@@ -1145,17 +1163,17 @@ this._addLightPirateRemote = function(pos)
 {
 	pos.z = pos.z % 100000;
 	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0);
-	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
+	lead.homeSystem = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
-	lead.AIScript.oolite_intership.dest_system = system.ID;
+	lead.destinationSystem = system.ID;
 }
 
 
 this._addMediumPirateLocal = function(pos)
 {
 	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1);
-	lead.AIScript.oolite_intership.source_system = system.ID;
-	lead.AIScript.oolite_intership.dest_system = system.ID;
+	lead.homeSystem = system.ID;
+	lead.destinationSystem = system.ID;
 }
 
 
@@ -1163,17 +1181,17 @@ this._addMediumPirateRemote = function(pos)
 {
 	pos.z = pos.z % 100000;
 	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1);
-	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
+	lead.homeSystem = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
-	lead.AIScript.oolite_intership.dest_system = system.ID;
+	lead.destinationSystem = system.ID;
 }
 
 
 this._addHeavyPirateLocal = function(pos)
 {
 	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2);
-	lead.AIScript.oolite_intership.source_system = system.ID;
-	lead.AIScript.oolite_intership.dest_system = system.ID;
+	lead.homeSystem = system.ID;
+	lead.destinationSystem = system.ID;
 }
 
 
@@ -1181,9 +1199,9 @@ this._addHeavyPirateRemote = function(pos)
 {
 	pos.z = pos.z % 100000;
 	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2);
-	lead.AIScript.oolite_intership.source_system = this._nearbyDangerousSystem(system.info.government-1);
+	lead.homeSystem = this._nearbyDangerousSystem(system.info.government-1);
 	this._setFuel(lead);
-	lead.AIScript.oolite_intership.dest_system = system.ID;
+	lead.destinationSystem = system.ID;
 }
 
 
@@ -1198,8 +1216,8 @@ this._addPolicePatrol = function(pos)
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
-		h.ships[i].AIScript.oolite_intership.source_system = system.ID;
-		h.ships[i].AIScript.oolite_intership.dest_system = system.ID;
+		h.ships[i].homeSystem = system.ID;
+		h.ships[i].destinationSystem = system.ID;
 		h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
 	}
 }
@@ -1212,8 +1230,8 @@ this._addInterceptors = function(pos)
 	{
 		h.ships[i].bounty = 0;
 		// h.ships[i].switchAI("policeWitchpointPatrolAI.js");
-		h.ships[i].AIScript.oolite_intership.source_system = system.ID;
-		h.ships[i].AIScript.oolite_intership.dest_system = system.ID;
+		h.ships[i].homeSystem = system.ID;
+		h.ships[i].destinationSystem = system.ID;
 		h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
 	}
 }
@@ -1254,13 +1272,13 @@ this._roleExists = function(role)
 
 this._setFuel = function(ship)
 {
-	if (ship.AIScript.oolite_intership.source_system)
+	if (ship.homeSystem != system.ID)
 	{
-		ship.fuel = 7-system.info.distanceToSystem(System.infoForSystem(galaxyNumber,ship.AIScript.oolite_intership.source_system));
+		ship.fuel = 7-system.info.distanceToSystem(System.infoForSystem(galaxyNumber,ship.homeSystem));
 	}
-	else
+	else 
 	{
-		ship.fuel = 0.2;
+		ship.fuel = 7;
 	}
 }
 

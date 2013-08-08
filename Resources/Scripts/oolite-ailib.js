@@ -91,6 +91,10 @@ this.AILib = function(ship)
 	function _reconsiderList(priorities) {
 		logging = this.getParameter("oolite_flag_behaviourLogging")
 		var pl = priorities.length;
+		if (logging)
+		{
+			log(this.ship.name,"Considering branch with "+pl+" entries");
+		}
 		for (var i = 0; i < pl; i++)
 		{
 			if (logging)
@@ -385,7 +389,7 @@ this.AILib = function(ship)
 	/* Requests reconsideration of behaviour ahead of schedule. */
 	this.reconsiderNow = function() 
 	{
-		_resetReconsideration.call(this,0.5);
+		_resetReconsideration.call(this,0.1);
 	}
 
 
@@ -519,9 +523,14 @@ AILib.prototype.cruiseSpeed = function()
 	}
 	var cruise = this.ship.maxSpeed * 0.8;
 	var ignore = this.ship.maxSpeed / 4;
+	var grouped = false;
 	if (this.ship.group)
 	{
 		var gs = this.ship.group.ships;
+		if (gs.length > 1) 
+		{
+			grouped = true;
+		}
 		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
 			var spd = gs[i].maxSpeed;
@@ -534,6 +543,10 @@ AILib.prototype.cruiseSpeed = function()
 	if (this.ship.escortGroup)
 	{
 		var gs = this.ship.escortGroup.ships;
+		if (gs.length > 1) 
+		{
+			grouped = true;
+		}
 		for (var i = gs.length-1 ; i >= 0 ; i--)
 		{
 			var spd = gs[i].maxSpeed;
@@ -542,6 +555,11 @@ AILib.prototype.cruiseSpeed = function()
 				cruise = spd;
 			}
 		}
+	}
+	if (!grouped)
+	{
+		// not in a group, so don't need to slow down for others to catch up
+		cruise = this.ship.maxSpeed;
 	}
 	this.__ltcache.cruiseSpeed = cruise;
 	return cruise;
@@ -806,6 +824,42 @@ AILib.prototype.respondToThargoids = function(whom,passon)
 }
 
 
+AILib.prototype.setWitchspaceRouteTo = function(dest) 
+{
+	if (!dest)
+	{
+		return this.configurationSelectWitchspaceDestination();
+	}
+	if (dest == system.ID)
+	{
+		this.setParameter("oolite_witchspaceDestination",-1);
+		return;
+	}
+	var info = System.infoForSystem(galaxyNumber,dest);
+	if (system.info.distanceToSystem(info) < this.ship.fuel)
+	{
+		this.setParameter("oolite_witchspaceDestination",dest);
+		return;
+	}
+	else
+	{
+		var route = system.info.routeToSystem(info);
+		if (!route)
+		{
+			this.setParameter("oolite_witchspaceDestination",-1);
+			return;
+		}
+		var next = route.route[1];
+		if (system.info.distanceToSystem(System.infoForSystem(galaxyNumber,next)) < this.ship.fuel)
+		{
+			this.setParameter("oolite_witchspaceDestination",next);
+			return;
+		}
+		this.setParameter("oolite_witchspaceDestination",null);
+	}
+}
+
+
 AILib.prototype.threatAssessment = function(ship,full)
 {
 	return worldScripts["oolite-libPriorityAI"]._threatAssessment(ship,full);
@@ -1000,6 +1054,12 @@ AILib.prototype.conditionLosingCombat = function()
 	{
 		return false;
 	}
+	if (this.getParameter("oolite_flag_fleesPreemptively") && this.ship.fuel > 0 && this.ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
+	{
+		// ships of this behaviour will run away from anything if they
+		// still have fuel
+		return true;
+	}
 	var lastThreat = this.getParameter("oolite_lastFleeing");
 	if (lastThreat != null && this.distance(lastThreat) < 25600)
 	{
@@ -1151,6 +1211,21 @@ AILib.prototype.conditionMothershipUnderAttack = function()
 
 
 /*** Navigation-related conditions ***/
+
+
+AILib.prototype.conditionCanWitchspaceOnRoute = function()
+{
+	if (!this.ship.hasHyperspaceMotor)
+	{
+		return false;
+	}
+	var dest = this.getParameter("oolite_witchspaceDestination");
+	if (dest == null || dest == -1)
+	{
+		return false;
+	}
+	return (system.info.distanceToSystem(System.infoForSystem(galaxyNumber,dest)) <= this.ship.fuel);
+}
 
 
 AILib.prototype.conditionCanWitchspaceOut = function()
@@ -1701,22 +1776,24 @@ AILib.prototype.conditionCanScoopCargo = function()
 
 AILib.prototype.conditionCargoIsProfitableHere = function()
 {
-	/* TODO: this should be handled in the trader AI itself rather
-     * than using this condition. This is a temporary hack to test
-     * other bits */
-    if (this.ship.AIScript.oolite_intership.dest_system && this.ship.AIScript.oolite_intership.dest_system == system.ID)
+	// cargo is always considered profitable in the designated
+	// destination system (assume they have a prepared buyer)
+    if (this.ship.destinationSystem && this.ship.destinationSystem == system.ID)
 	{
         return true;
 	}
-	if (this.ship.AIScript.oolite_intership.source_system && this.ship.AIScript.oolite_intership.source_system == system.ID)
+	// cargo is never considered profitable in the designated source
+	// system (or you could get ships launching and immediately
+	// redocking)
+	if (this.ship.homeSystem && this.ship.homeSystem == system.ID)
 	{
 		return false;
 	}
-
-	/* TODO: in the Mainly X systems, it's not impossible for
-	 * PLENTIFUL_GOODS to generate a hold which is profitable in that
-	 * system, and SCARCE_GOODS not to do so. Cargo should never be
-	 * profitable in its origin system. */
+	// and allow ships to be given multi-system trips if wanted
+	if (this.getParameter("oolite_flag_noDockingUntilDestination"))
+	{
+		return false;
+	}
 
 	if (!system.mainStation)
 	{
@@ -1854,6 +1931,12 @@ AILib.prototype.conditionMissileOutOfFuel = function()
 		range = this.ship.scriptInfo.oolite_missile_range;
 	}
 	return range < this.ship.distanceTravelled;
+}
+
+
+AILib.prototype.conditionPatrolIsOver = function()
+{
+	return this.ship.distanceTravelled > 200000;
 }
 
 
@@ -3155,6 +3238,20 @@ AILib.prototype.configurationSelectWitchspaceDestination = function()
 	var selected = possible[Math.floor(Math.random()*possible.length)];
 	this.setParameter("oolite_witchspaceDestination",selected.systemID);
 	this.communicate("oolite_selectedWitchspaceDestination",{"oolite_witchspaceDestination":selected.name},4);
+}
+
+
+AILib.prototype.configurationSelectWitchspaceDestinationInbound = function()
+{
+	var dest = this.ship.homeSystem;
+	this.setWitchspaceRouteTo(dest);
+}
+
+
+AILib.prototype.configurationSelectWitchspaceDestinationOutbound = function()
+{
+	var dest = this.ship.destinationSystem;
+	this.setWitchspaceRouteTo(dest);
 }
 
 
