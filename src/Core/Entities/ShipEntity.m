@@ -643,6 +643,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 	
 	[self setShipScript:[shipDict oo_stringForKey:@"script"]];
+
+	home_system = [UNIVERSE currentSystemID];
+	destination_system = [UNIVERSE currentSystemID];
 	
 	return YES;
 	
@@ -7091,6 +7094,30 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	[_lastAegisLock release];
 	_lastAegisLock = [lastAegisLock weakRetain];
+}
+
+
+- (OOSystemID) homeSystem
+{
+	return home_system;
+}
+
+
+- (OOSystemID) destinationSystem
+{
+	return destination_system;
+}
+
+
+- (void) setHomeSystem:(OOSystemID)s
+{
+	home_system = s;
+}
+
+
+- (void) setDestinationSystem:(OOSystemID)s
+{
+	destination_system = s;
 }
 
 

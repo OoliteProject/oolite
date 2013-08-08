@@ -185,6 +185,7 @@ enum
 	kShip_desiredRange,			// desired Range, double, read/write
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_destination,			// flight destination, Vector, read/write
+	kShip_destinationSystem,	// destination system, number, read/write
 	kShip_displayName,			// name displayed on screen, string, read/write
 	kShip_dockingInstructions,			// name displayed on screen, string, read/write
 	kShip_energyRechargeRate,	// energy recharge rate, float, read-only
@@ -203,6 +204,7 @@ enum
 	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only
 	kShip_heading,				// forwardVector of a ship, read-only
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
+	kShip_homeSystem,			// home system, number, read/write
 	kShip_isBeacon,				// is beacon, boolean, read-only
 	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
 	kShip_isCargo,				// contains cargo, boolean, read-only
@@ -315,6 +317,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "desiredRange",			kShip_desiredRange,			OOJS_PROP_READWRITE_CB },
 	{ "desiredSpeed",			kShip_desiredSpeed,			OOJS_PROP_READWRITE_CB },
 	{ "destination",			kShip_destination,			OOJS_PROP_READWRITE_CB },
+	{ "destinationSystem",		kShip_destinationSystem,	OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
 	{ "dockingInstructions",	kShip_dockingInstructions,	OOJS_PROP_READONLY_CB },
 	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
@@ -333,6 +336,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		OOJS_PROP_READONLY_CB },
 	{ "heatInsulation",			kShip_heatInsulation,		OOJS_PROP_READWRITE_CB },
 	{ "heading",				kShip_heading,				OOJS_PROP_READONLY_CB },
+	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
 	{ "isBeacon",				kShip_isBeacon,				OOJS_PROP_READONLY_CB },
 	{ "isCloaked",				kShip_isCloaked,			OOJS_PROP_READWRITE_CB },
 	{ "isCargo",				kShip_isCargo,				OOJS_PROP_READONLY_CB },
@@ -799,6 +803,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_AIScriptWakeTime:
 			return JS_NewNumberValue(context, [entity shipAIScriptWakeTime], value);
 			break;
+
+		case kShip_destinationSystem:
+			return JS_NewNumberValue(context, [entity destinationSystem], value);
+			break;
+
+		case kShip_homeSystem:
+			return JS_NewNumberValue(context, [entity homeSystem], value);
+			break;
 			
 		case kShip_isPirate:
 			*value = OOJSValueFromBOOL([entity isPirate]);
@@ -1158,6 +1170,24 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			{
 				if (iValue < 0)  iValue = 0;
 				[entity setBounty:iValue withReason:kOOLegalStatusReasonByScript];
+				return YES;
+			}
+			break;
+
+		case kShip_destinationSystem:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < 0)  iValue = 0;
+				[entity setDestinationSystem:iValue];
+				return YES;
+			}
+			break;
+
+		case kShip_homeSystem:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < 0)  iValue = 0;
+				[entity setHomeSystem:iValue];
 				return YES;
 			}
 			break;

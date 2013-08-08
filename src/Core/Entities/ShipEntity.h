@@ -345,7 +345,8 @@ typedef enum
 	int					_missed_shots;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
-	
+	OOSystemID				home_system; 
+	OOSystemID				destination_system; 
 	
 	double					messageTime;				// counts down the seconds a radio message is active for
 	
@@ -760,6 +761,12 @@ typedef enum
 - (void) forceAegisCheck;
 - (BOOL) withinStationAegis;
 - (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
+
+- (OOSystemID) homeSystem;
+- (OOSystemID) destinationSystem;
+- (void) setHomeSystem:(OOSystemID)s;
+- (void) setDestinationSystem:(OOSystemID)s;
+
 
 - (NSArray*) crew;
 - (void) setCrew:(NSArray *)crewArray;
