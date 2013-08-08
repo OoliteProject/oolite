@@ -592,6 +592,25 @@
 		"Leave %H now or be destroyed.",
 		"%H Police. Offending ship targeted. Moving to intercept."
 	);
+
+	// comms message templates for priority AI
+	"oolite-comms-makePirateDemand" = "Your cargo or your life, [oolite_entityName]. [oolite_demandSize] barrels and we'll let you go."; // TODO: variety
+	"oolite-comms-acceptPirateDemand" = "[beg-for-mercy]";
+	"oolite-comms-surrender" = "[beg-for-mercy]";
+	"oolite-comms-makeDistressCall" = "[distress-call]";
+	// this one needs targeting to avoid confusion
+	"oolite-comms-markForFines" = (
+		"[oolite_entityName], this is %H Police. You have been scanned and will face penalties if you choose to dock here.",
+		"[oolite_entityName], this is %H Police. Fines will be imposed if you dock here.",
+		"This is the police. Docking at %H will require legal compensation for your offences, [oolite_entityName].",
+		"This is the police. %H Station will fine you for your offences when you dock, [oolite_entityName]."
+	);
+	"oolite-comms-distressResponseAggressor" = "[police-attack-warning]";
+	"oolite-comms-offenceDetected" = "[police-attack-warning]";
+	"oolite-comms-thanksForHelp" = "[thanks-for-assist]";
+	"oolite-comms-police-thanksForHelp" = "[police-thanks-for-assist]";
+
+
 	// /general docking
 	"docking-welcome" =
 	(

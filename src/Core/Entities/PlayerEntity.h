@@ -747,7 +747,7 @@ typedef enum
 - (NSString *) primedEquipmentName:(NSInteger)offset;
 - (NSUInteger) primedEquipmentCount;
 - (NSArray *) cargoList;
-- (NSArray *) cargoListForScripting;
+//- (NSArray *) cargoListForScripting; // now in ShipEntity
 - (void) setGuiToSystemDataScreen;
 - (NSDictionary *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;

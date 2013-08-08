@@ -243,6 +243,8 @@ enum
 	NSDictionary			*autoAIMap;				// Default AIs for roles from autoAImap.plist.
 	NSDictionary			*screenBackgrounds;		// holds filenames for various screens backgrounds, loaded at initialisation
 	
+	NSDictionary      *cargoPods; // template cargo pods
+
 	Random_Seed				galaxy_seed;
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
@@ -351,6 +353,7 @@ enum
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
+- (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (void) setLighting;
 - (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;
@@ -436,6 +439,8 @@ enum
 - (int) legalStatusOfCommodity:(NSString *)commodity;
 - (int) legalStatusOfManifest:(NSArray *)manifest;
 
+- (ShipEntity *) reifyCargoPod:(ShipEntity *)cargoObj;
+- (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj;
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce;
 - (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many;

@@ -491,7 +491,6 @@ MA 02110-1301, USA.
 			sunVertices[k++] = ci * r * rm;
 			sunVertices[k++] = -z;
 		}
-		theta += delta/2.0;
 	}
 
 	GLfloat blackColor[4] = {0.0,0.0,0.0,0.0};

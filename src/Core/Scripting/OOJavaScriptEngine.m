@@ -453,7 +453,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	[[NSNotificationCenter defaultCenter] postNotificationName:kOOJavaScriptEngineDidResetNotification object:self];
 	OOJSRelinquishContext(context);
 	
-	[self garbageCollectionOpportunity];
+	[self garbageCollectionOpportunity:YES];
 	return YES;
 }
 
@@ -517,14 +517,17 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 
-- (void) garbageCollectionOpportunity
+- (void) garbageCollectionOpportunity:(BOOL)force
 {
 	JSContext *context = OOJSAcquireContext();
-#ifndef NDEBUG
-	JS_GC(context);
-#else
-	JS_MaybeGC(context);
-#endif
+	if (force)
+	{
+		JS_GC(context);
+	}
+	else
+	{
+		JS_MaybeGC(context);
+	}
 	OOJSRelinquishContext(context);
 }
 

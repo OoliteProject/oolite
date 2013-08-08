@@ -16,15 +16,15 @@
 
 {
 	"asteroid"			= "dumbAI.plist";
-	"escort"			= "escortAI.plist";
-	"hunter"			= "route1patrolAI.plist";
-	"interceptor"		= "route1patrolAI.plist";
-	"miner"				= "minerAI.plist";
-	"pirate"			= "pirateAI.plist";
-	"police"			= "route1patrolAI.plist";
-	"trader"			= "route1traderAI.plist";
-	"scavenger"			= "scavengerAI.plist";
-	"shuttle"			= "fallingShuttleAI.plist";
-	"sunskim-trader"	= "route2sunskimAI.plist";
-	"wingman"			= "escortAI.plist";
+	"escort"			= "escortAI.js";
+	"hunter"			= "bountyHunterAI.js";
+	"interceptor"		= "policeAI.js";
+	"miner"				= "scavengerAI.js";
+	"pirate"			= "pirateAI.js";
+	"police"			= "policeAI.js";
+	"trader"			= "traderAI.js";
+	"scavenger"			= "scavengerAI.js";
+	"shuttle"			= "shuttleAI.js";
+	"sunskim-trader"	= "traderAI.js";
+	"wingman"			= "policeAI.js";
 }

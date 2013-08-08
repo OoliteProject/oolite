@@ -466,6 +466,7 @@
 	universe.maxEntitiesDump				= no;				// Dumps all entities when universe is full (Can be quite verbose)
 	
 	universe.profile = no;
+	universe.profile.jsgc = yes; // TODO: "= inherit"
 	universe.profile.update = inherit;
 	universe.profile.draw = inherit;
 

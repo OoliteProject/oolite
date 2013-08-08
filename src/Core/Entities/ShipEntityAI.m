@@ -43,6 +43,8 @@
 #import "OOConstToString.h"
 #import "OOConstToJSString.h"
 #import "OOCollectionExtractors.h"
+#import "ResourceManager.h"
+
 
 
 @interface ShipEntity (OOAIPrivate)
@@ -250,13 +252,57 @@
 
 - (void) setAITo:(NSString *)aiString
 {
-	[[self getAI] setStateMachine:aiString];
+	if ([aiString hasSuffix:@".plist"])
+	{
+		[[self getAI] setStateMachine:aiString withJSScript:@"nullAI.js"];
+		[self setAIScript:@"nullAI.js"];
+	}
+	else if ([aiString hasSuffix:@".js"])
+	{
+		[[self getAI] setStateMachine:@"nullAI.plist" withJSScript:aiString];
+		[self setAIScript:aiString];
+	}
+	else
+	{
+		NSString *path = [ResourceManager pathForFileNamed:[aiString stringByAppendingString:@".js"] inFolder:@"AIs"];
+		if (path == nil) // no js, use plist
+		{
+			[self setAITo:[aiString stringByAppendingString:@".plist"]];
+		}
+		else
+		{
+			[self setAITo:[aiString stringByAppendingString:@".js"]];
+		}
+	}
+}
+
+
+- (void) setAIScript:(NSString *)aiString
+{
+	NSMutableDictionary		*properties = nil;
+	
+	properties = [NSMutableDictionary dictionary];
+	[properties setObject:self forKey:@"ship"];
+	
+	[aiScript autorelease];
+	aiScript = [OOScript jsAIScriptFromFileNamed:aiString properties:properties];
+	if (aiScript == nil)
+	{
+		OOLog(@"ai.load.failed.unknownAI",@"Unable to load JS AI %@",aiString);
+		aiScript = [OOScript jsAIScriptFromFileNamed:@"nullAI.js" properties:properties];
+	}
+	else
+	{
+		aiScriptWakeTime = 0;
+		[self doScriptEvent:OOJSID("aiStarted")];
+	}
+	[aiScript retain];
 }
 
 
 - (void) switchAITo:(NSString *)aiString
 {
-	[[self getAI] setStateMachine:aiString];
+	[self setAITo:aiString];
 	[[self getAI] clearStack];
 }
 
@@ -643,9 +689,10 @@
 	}
 	
 	// We now have no escorts..
+
 	[_escortGroup release];
 	_escortGroup = nil;
-	
+
 }
 
 
@@ -695,8 +742,12 @@
 - (void) broadcastDistressMessage
 {
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
-	
-	[self checkScanner];
+	[self broadcastDistressMessageWithDumping:YES];
+}	
+
+- (void) broadcastDistressMessageWithDumping:(BOOL)dumpCargo
+{
+	[self checkScannerIgnoringUnpowered];
 	DESTROY(_foundTarget);
 	
 	ShipEntity	*aggressor_ship = (ShipEntity*)[self primaryAggressor];
@@ -716,15 +767,18 @@
 		ShipEntity*	ship = scanned_ships[i];
 
     // dump cargo if energy is low
-		if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
+		if (dumpCargo && !is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
 		{
 			[self ejectCargo];
 			[self performFlee];
 		}
 		
-		// tell it!
-		if (ship->isPlayer)
+		// tell it! (only plist AIs send comms here; JS AIs are
+		// expected to handle their own)
+		if (ship->isPlayer && ![[[self getAI] name] isEqualToString:@"nullAI.plist"])
 		{
+			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
+
 			if (!is_buoy && [self primaryAggressor] == ship && energy < 0.375 * maxEnergy)
 			{
 				[self sendExpandedMessage:@"[beg-for-mercy]" toShip:ship];
@@ -886,6 +940,7 @@
 		{
 			ShipEntity *currentShip = [self primaryTarget];
 			[[currentShip getAI] message:[NSString stringWithFormat:@"%@ %d %d", AIMS_AGGRESSOR_SWITCHED_TARGET, universalID, [[self primaryAggressor] universalID]]];
+			[currentShip doScriptEvent:OOJSID("shipAttackerDistracted") withArgument:[self primaryAggressor]];
 		}
 		
 		// okay, so let's now target the aggressor
@@ -916,7 +971,7 @@
 	ShipEntity			*ship = nil;
 	
 	//-- Locates the nearest merchantman in range.
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	
 	found_d2 = scannerRange * scannerRange;
 	DESTROY(_foundTarget);
@@ -948,7 +1003,7 @@
 	unsigned			n_found, i;
 	
 	//-- Locates one of the merchantman in range.
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	ShipEntity*		ids_found[n_scanned_ships];
 	
 	n_found = 0;
@@ -1156,7 +1211,7 @@
 	ShipEntity			*escort = nil;
 	ShipEntity			*target = nil;
 	
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	for (i = 0; (i < n_scanned_ships)&&(missile == nil); i++)
 	{
 		ShipEntity *thing = scanned_ships[i];
@@ -1602,27 +1657,13 @@
 - (void) ejectCargo
 {
 	unsigned i;
-	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
+	int cargo_to_go = 0.1 * [self maxAvailableCargoSpace];
+	while (cargo_to_go > 15)
 	{
-		NSArray *jetsam;
-		int cargo_to_go = 0.1 * [self maxAvailableCargoSpace];
-		while (cargo_to_go > 15)
-		{
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		}
-		
-		jetsam = [UNIVERSE getContainersOfGoods:cargo_to_go scarce:cargo_flag == CARGO_FLAG_FULL_SCARCE];
-		
-		if (cargo == nil)
-		{
-			cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo];
-		}
-		
-		[cargo addObjectsFromArray:jetsam];
-		cargo_flag = CARGO_FLAG_CANISTERS;
+		cargo_to_go = ranrot_rand() % cargo_to_go;
 	}
 	[self dumpCargo];
-	for (i = 1; i < [cargo count]; i++)
+	for (i = 1; i < cargo_to_go; i++)
 	{
 		[self performSelector:@selector(dumpCargo) withObject:nil afterDelay:0.75 * i];	// drop 3 canisters per 2 seconds
 	}
@@ -1707,7 +1748,7 @@
 	// now we're just a bunch of alien artefacts!
 	scanClass = CLASS_CARGO;
 	reportAIMessages = NO;
-	[shipAI setStateMachine:@"dumbAI.plist"];
+	[self setAITo:@"dumbAI.plist"];
 	DESTROY(_primaryTarget);
 	[self setSpeed: 0.0];
 	[self setGroup:nil];
@@ -1822,7 +1863,7 @@
 {
 	//-- Locates the nearest suitable formation leader in range --//
 	DESTROY(_foundTarget);
-	[self checkScanner];
+	[self checkScannerIgnoringUnpowered];
 	unsigned i;
 	GLfloat	found_d2 = scannerRange * scannerRange;
 	for (i = 0; i < n_scanned_ships; i++)
@@ -1846,7 +1887,7 @@
 		if ([self hasPrimaryRole:@"wingman"])
 		{
 			// become free-lance police :)
-			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
+			[self setAITo:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
 			[self setPrimaryRole:@"police"]; // other wingman can now select this ship as leader.
 		}
 	}
@@ -2675,6 +2716,7 @@
 
 
 @implementation ShipEntity (OOAIPrivate)
+
 
 - (void) checkFoundTarget
 {

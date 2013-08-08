@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ProxyPlayerEntity.h"
 #import "HeadUpDisplay.h"
 
+#import "ShipEntityAI.h"
 #import "Universe.h"
 #import "AI.h"
 #import "OOColor.h"
@@ -1886,7 +1887,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	[ship setRoll: M_PI/10.0];
 	[ship setPitch: M_PI/25.0];
 	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
-	[[ship getAI] setStateMachine: @"nullAI.plist"];
+	[ship setAITo: @"nullAI.plist"];
 	id subEntStatus = [shipData objectForKey:@"subentities_status"];
 	// show missing subentities if there's a subentities_status key
 	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];

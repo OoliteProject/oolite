@@ -413,10 +413,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			// - MKW 2011.03.10	
 			if (!_misjump)  [ship setBounty:[ship bounty]/2 withReason:kOOLegalStatusReasonNewSystem];	// adjust legal status for new system
 			
-			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
+			// now the cargo is defined in advance, this is unnecessary
+/*			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 			{
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
-			}
+				}*/
 			
 			if (time_passed < 2.0)
 			{
@@ -433,8 +434,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			}
 			[ship setSpeed:[self exitSpeed]]; // all ships from this wormhole have same velocity
 
-			
-			// Should probably pass the wormhole, but they have no JS representation
+			// awaken JS-based AIs
+			[ship doScriptEvent:OOJSID("aiStarted")];
+
+			// Wormholes now have a JS representation, so we could provide it
+			// but is it worth it for the exit wormhole?
 			[ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
 		
 			// update the ships's position

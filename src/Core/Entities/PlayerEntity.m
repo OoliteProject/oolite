@@ -1624,6 +1624,8 @@ static GLfloat		sBaseMass = 0.0;
 	entity_personality = ranrot_rand() & 0x7FFF;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
+	[UNIVERSE setSystemTo:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
+
 	
 	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
 	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
@@ -2572,9 +2574,10 @@ static GLfloat		sBaseMass = 0.0;
 - (void) resetAutopilotAI
 {
 	AI *myAI = [self getAI];
+	// JSAI: will need changing if dockingAI.js written
 	if (![[myAI name] isEqualToString:PLAYER_DOCKING_AI_NAME])
 	{
-		[myAI setStateMachine:PLAYER_DOCKING_AI_NAME];
+		[self setAITo:PLAYER_DOCKING_AI_NAME ];
 	}
 	[myAI clearAllData];
 	[myAI setState:@"GLOBAL"];
@@ -5305,7 +5308,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self setGuiToStatusScreen];
 	}
 	[[OOCacheManager sharedCache] flush];
-	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity];
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
 	
 	// When a mission screen is started, any on-screen message is removed immediately.
 	[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// also displays docking reports first.
@@ -5830,6 +5833,11 @@ static GLfloat		sBaseMass = 0.0;
 			[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
 		}
 	}
+
+	/* there's going to be a slight pause at this stage anyway;
+	 * there's also going to be a lot of stale ship scripts. Force a
+	 * garbage collection while we have chance. - CIM */
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
 
 	flightSpeed = wormhole ? [wormhole exitSpeed] : fmin(maxFlightSpeed,50.0f);
 	[wormhole release];	// OK even if nil
