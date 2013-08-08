@@ -660,6 +660,10 @@ AILib.prototype.isFighting = function(ship)
 	{
 		return ship.alertCondition == 3 && ship.target;
 	}
+	else if (ship.isPlayer)
+	{
+		return !ship.isFleeing; // have to assume aggressive
+	}
 	return ship && ship.hasHostileTarget;
 }
 
