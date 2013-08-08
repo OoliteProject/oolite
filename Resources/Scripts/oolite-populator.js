@@ -125,14 +125,14 @@ this.systemWillPopulate = function()
 		var trdanger = 0;
 		var rate = 0;
 		// if either local or remote end is more dangerous than
-		// Democratic, reduce trader frequency
-		if (local.government < 6)
+		// Communist, reduce trader frequency
+		if (local.government < 4)
 		{
-			trdanger = (6-local.government)*2.5;
+			trdanger = (4-local.government)*2.5;
 		}
-		if (system.info.government < 6)
+		if (system.info.government < 4)
 		{
-			trdanger += (6-system.info.government)*2.5;
+			trdanger += (4-system.info.government)*2.5;
 		}
 		// good economic match: one every 30 minutes if safe
 		if (ecomatch > 0)
@@ -173,7 +173,7 @@ this.systemWillPopulate = function()
 	// local independent pirate packs
 	var pindependents = (1-system.info.government/12)*traders; 
 	// organised pirate packs led by increasingly bigger freighters
-	var lrate = 3/5; var mrate = 3/10; var hrate = 1/10;
+	var lrate = 3/5; var mrate = 3/8; var hrate = 1/8;
 	var pflight = 0;
 	var pfmedium = 0;
 	var pfheavy = 0;
@@ -189,7 +189,7 @@ this.systemWillPopulate = function()
 			pfmedium += mrate;
 			if (system.info.government < 2)
 			{
-				pflight += lrate;
+				pflight += lrate*2;
 				pfmedium += mrate;
 				pfheavy += hrate;
 				if (system.info.government < 1)
@@ -224,7 +224,7 @@ this.systemWillPopulate = function()
 		}
 		if (found)
 		{
-			this.$repopulatorFrequencyIncoming.pirateLightPacksReturn = pflight/2;
+			this.$repopulatorFrequencyIncoming.pirateLightPacksReturn = pflight/6; // (light packs 1/3 chance of jumping out)
 			this.$repopulatorFrequencyIncoming.pirateMediumPacksReturn = pfmedium/2;
 			this.$repopulatorFrequencyIncoming.pirateHeavyPacksReturn = pfheavy/2;
 		}
@@ -374,7 +374,6 @@ this.systemWillPopulate = function()
 				}
 			}
 		}
-
 	}
 	else
 	{
@@ -471,7 +470,7 @@ this.systemWillPopulate = function()
 
 	function randomise(count)
 	{
-		count = count*(0.5+0.5*(Math.random()+Math.random()));
+		count = count*(0.25+0.75*(Math.random()+Math.random()));
 		var r = Math.floor(count);
 		if (Math.random() < count-r)
 		{
@@ -919,6 +918,10 @@ this._addFreighter = function(pos)
 				t[0].switchAI("opportunistAI.js");
 			} */ // TODO: this AI
 		}
+		else
+		{
+			t[0].bounty = 0;
+		}
 		t[0].AIScript.oolite_intership.source_system = this._weightedNearbyTradeSystem();
 		this._setFuel(t[0]);
 		t[0].AIScript.oolite_intership.dest_system = system.ID;
@@ -937,6 +940,7 @@ this._addCourier = function(pos)
 	{
 		var t = system.addShips("trader",1,pos,0);
 	}
+	t[0].bounty = 0;
 	return t;
 }
 
@@ -1047,6 +1051,10 @@ this._addHeavyHunter = function(pos)
 this._addIndependentPirate = function(pos)
 {
 	var size = Math.floor(Math.random()*3)+Math.floor(Math.random()*3)+1;
+	if (size > 8-system.government)
+	{
+		size = 1+Math.floor(Math.random()*size);
+	}
 	var pg = system.addGroup("pirate",size,pos,2.5E3);
 	for (var i=0;i<pg.ships.length;i++)
 	{
@@ -1096,15 +1104,15 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 //	lead[0].switchAI("pirateFreighterAI.js"); // TODO: write AI
 	for (var i = Math.floor(lf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
-		this._addPirateAssistant("pirate-fighter-light",lead[0]);
+		this._addPirateAssistant("pirate-light-fighter",lead[0]);
 	}
 	for (var i = Math.floor(mf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
-		this._addPirateAssistant("pirate-fighter-medium",lead[0]);
+		this._addPirateAssistant("pirate-medium-fighter",lead[0]);
 	}
 	for (var i = Math.floor(hf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
-		this._addPirateAssistant("pirate-fighter-heavy",lead[0]);
+		this._addPirateAssistant("pirate-heavy-fighter",lead[0]);
 	}
 	for (var i = Math.floor(thug+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
@@ -1327,14 +1335,14 @@ this._weightedNearbyTradeSystem = function()
 		var trdanger = 0;
 		var rate = 0;
 		// if either local or remote end is more dangerous than
-		// Democratic, reduce trader frequency
-		if (local.government < 6)
+		// Communist, reduce trader frequency
+		if (local.government < 4)
 		{
-			trdanger = (6-local.government)*2.5;
+			trdanger = (4-local.government)*2.5;
 		}
-		if (system.info.government < 6)
+		if (system.info.government < 4)
 		{
-			trdanger += (6-system.info.government)*2.5;
+			trdanger += (4-system.info.government)*2.5;
 		}
 		if (ecomatch > 0)
 		{
