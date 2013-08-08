@@ -251,8 +251,12 @@
 			}
 		);
 		energy_recharge_rate = 3;
-		escort_ship = "cobramk1";
-		escorts = 6;
+		escort_roles = (
+			{ role = "escort"; min = -2; max = 2; },
+			{ role = "escort-medium"; min = 0; max = 4; },
+			{ role = "escort-heavy"; min = -4; max = 2; },
+			{ role = ""; min = 0; max = 2; } // spare slots for wandering escorts
+		);
 		exhaust = ("-9.8 5.6 -78.5 10.0 10.0 2.0", "9.8 5.6 -78.5 10.0 10.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
@@ -277,7 +281,7 @@
 		missiles = 7;
 		model = "anaconda_redux.dat";
 		name = "Anaconda";
-		roles = "trader(0.5) trader-courier(0.1) pirate-heavy-freighter(0.05)";
+		roles = "trader(0.5) trader-courier(0.1)";
 		scoop_position = "0.0 -30.0 -60";
 		thrust = 14;
 		view_position_aft = "0.0 -4.0 -80.0";
@@ -289,6 +293,18 @@
 		weapon_position_forward = "0.0 -4.0 85.0";
 		weapon_position_port = "-37.5 -4.0 -40.0";
 		weapon_position_starboard = "37.5 -4.0 -40.0";
+	};
+	"oolite_template_anaconda-pirate" =
+	{
+		like_ship = "oolite_template_anaconda";
+		is_template = 1;
+		aft_weapon_type = "WEAPON_BEAM_LASER";
+		escort_roles = (
+			{ role = "pirate-light-fighter"; min = 2; max = 2; },
+			{ role = "pirate-medium-fighter"; min = 2; max = 2; }
+		);
+		forward_weapon_type = "WEAPON_BEAM_LASER";
+		roles = "pirate-heavy-freighter(0.05)";
 	};
 	"oolite_template_anaconda-player" =
 	{
@@ -586,7 +602,12 @@
 			}
 		);
 		energy_recharge_rate = 3;
-		escorts = 4;
+		escort_roles = (
+			{ "role" = "escort"; min = 1; max = 3; },
+			{ "role" = "escort-medium"; min = -2; max = 2; },
+			{ "role" = "escort-heavy"; min = -3; max = 1; },
+			{ "role" = ""; min = 0; max = 2; },
+		);
 		exhaust = ("0.0 3.67 -56.0 16.0 16.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
@@ -606,7 +627,7 @@
 		missiles = 4;
 		model = "boa_redux.dat";
 		name = "Boa";
-		roles = "trader pirate-medium-freighter(0.25) pirate-heavy-freighter";
+		roles = "trader";
 		scoop_position = "0.0 -16.0 -19";
 		thrust = 36;
 		view_position_aft = "0.0 20.5 -50.75";
@@ -618,6 +639,16 @@
 		weapon_position_forward = "0.0 8.0 57.5";
 		weapon_position_port = "-16.25 8.0 11.0";
 		weapon_position_starboard = "16.25 8.0 11.0";
+	};
+	"oolite_template_boa-pirate" =
+	{
+		like_ship = "oolite_template_boa";
+		is_template = 1;
+		escort_roles = (
+			{ "role" = "pirate-medium-fighter"; min = 2; max = 2; }
+		);
+		forward_weapon_type = "WEAPON_BEAM_LASER";
+		roles = "pirate-medium-freighter(0.25) pirate-heavy-freighter";
 	};
 	"oolite_template_boa-player" = 
 	{
@@ -697,7 +728,12 @@
 			}
 		);
 		energy_recharge_rate = 3.2;
-		escorts = 4;
+		escort_roles = (
+			{ "role" = "escort"; min = 1; max = 2; },
+			{ "role" = "escort-medium"; min = 1; max = 2; },
+			{ "role" = "escort-heavy"; min = -2; max = 2; },
+			{ "role" = ""; min = 0; max = 2; },
+		);
 		exhaust = ("9.75 1.5 -57.5 9.0 9.0 1.5", "-9.75 1.5 -57.5 9.0 9.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
@@ -717,7 +753,7 @@
 		missiles = 5;
 		model = "boa2_redux.dat";
 		name = "Boa Class Cruiser";
-		roles = "trader(0.25) trader-courier(0.05) pirate-heavy-freighter(0.2)";
+		roles = "trader(0.25) trader-courier(0.05)";
 		scoop_position = "0.0 -20.0 -10.0";
 		thrust = 40;
 		view_position_aft = "0.0 22.875 -47.375";
@@ -729,6 +765,15 @@
 		weapon_position_forward = "0.0 8.0 57.5";
 		weapon_position_port = "-16.25 1.75 0.0";
 		weapon_position_starboard = "16.25 1.75 0.0";
+	};
+	"oolite_template_boa-mk2-pirate" =
+	{
+		like_ship = "oolite_template_boa-mk2";
+		is_template = 1;
+		escort_roles = (
+			{ "role" = "pirate-heavy-fighter"; min = 2; max = 2; }
+		);
+		roles = " pirate-heavy-freighter(0.2)";
 	};
 	"oolite_template_boa-mk2-player" = 
 	{
@@ -2008,7 +2053,10 @@
 		is_template = 1;
 		ai_type = "pirateAI.js";
 		energy_recharge_rate = 3.5;
-		escorts = 2;
+		escort_roles = (
+			{ "role" = "pirate-light-fighter"; min = 1; max = 1; },
+			{ "role" = "pirate-medium-fighter"; min = 1; max = 1; },
+		);
 		has_ecm = 0.75;
 		has_shield_booster = 0.85;
 		materials =
@@ -2028,7 +2076,11 @@
 	{
 		like_ship = "oolite_template_python";
 		is_template = 1;
-		escorts = 2;
+		escort_roles = (
+			{ "role" = "escort"; min = 0; max = 2; },
+			{ "role" = "escort-medium"; min = -2; max = 2; },
+			{ "role" = ""; min = 0; max = 2; }
+		);
 		has_escape_pod = yes;
 		materials =
 		{
@@ -2689,6 +2741,10 @@
 	{
 		like_ship = "oolite_template_anaconda";
 	};
+	"anaconda-pirate" = // Added in 1.79
+	{
+		like_ship = "oolite_template_anaconda-pirate";
+	};
 	"anaconda-player" =
 	{
 		like_ship = "oolite_template_anaconda-player";
@@ -2739,6 +2795,10 @@
 	{
 		like_ship = "oolite_template_boa";
 	};
+	"boa-pirate" = // Added in 1.79
+	{
+		like_ship = "oolite_template_boa-pirate";
+	};
 	"boa-player" =
 	{
 		like_ship = "oolite_template_boa-player";
@@ -2746,6 +2806,10 @@
 	"boa-mk2" =
 	{
 		like_ship = "oolite_template_boa-mk2";
+	};
+	"boa-mk2-pirate" = // Added in 1.79
+	{
+		like_ship = "oolite_template_boa-mk2-pirate";
 	};
 	"boa-mk2-player" =
 	{

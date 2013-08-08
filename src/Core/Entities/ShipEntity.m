@@ -145,6 +145,8 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 
 - (void) refreshEscortPositions;
 - (HPVector) coordinatesForEscortPosition:(unsigned)idx;
+- (void) setUpMixedEscorts;
+- (void) setUpOneEscort:(ShipEntity *)escorter inGroup:(OOShipGroup *)escortGroup withRole:(NSString *)escortRole atPosition:(HPVector)ex_pos andCount:(uint8_t)currentEscortCount;
 
 - (void) addSubentityToCollisionRadius:(Entity<OOSubEntity> *) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
@@ -606,6 +608,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	//  escorts
 	_maxEscortCount = MIN([shipDict oo_unsignedCharForKey:@"escorts" defaultValue:0], (uint8_t)MAX_ESCORTS);
 	_pendingEscortCount = _maxEscortCount;
+	if (_pendingEscortCount == 0 && [shipDict oo_arrayForKey:@"escort_roles" defaultValue:nil] != nil)
+	{
+		// mostly ignored by setUpMixedEscorts, but needs to be high
+		// enough that it doesn't end up at zero (e.g. by governmental
+		// reductions in [Universe addShipAt]
+		_pendingEscortCount = MAX_ESCORTS;
+	}
+
 	
 	// beacons
 	[self setBeaconCode:[shipDict oo_stringForKey:@"beacon"]];
@@ -1462,15 +1472,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (void) setUpEscorts
 {
-	NSString		*defaultRole = @"escort";
-	NSString		*escortRole = nil;
-	NSString		*escortShipKey = nil;
-	NSString		*autoAI = nil;
-	NSString		*pilotRole = nil;
-	NSDictionary	*autoAIMap = nil;
-	NSDictionary	*escortShipDict = nil;
-	AI				*escortAI = nil;
-	
 	// Ensure that we do not try to create escorts if we are an escort ship ourselves.
 	// This could lead to circular reference memory overflows (e.g. "boa-mk2" trying to create 4 "boa-mk2"
 	// escorts or the case of two ships specifying eachother as escorts) - Nikos 20090510
@@ -1480,6 +1481,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 				@"Ship %@ requested escorts, when it is an escort ship itself. Avoiding possible circular reference overflow by ignoring escort setup.", self);
 		return;
 	}
+
+	if ([shipinfoDictionary objectForKey:@"escort_roles"] != nil)
+	{
+		[self setUpMixedEscorts];
+		return;
+	}
+
+	NSString        *defaultRole = @"escort";
+	NSString		*escortRole = nil;
+	NSString		*escortShipKey = nil;
 	
 	if (_pendingEscortCount == 0)  return;
 	
@@ -1519,23 +1530,18 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		{
 			escortShipKey = nil;
 		}
+		else
+		{
+			escortRole = [NSString stringWithFormat:@"[%@]",escortShipKey];
+		}
 	}
-	
+
 	OOShipGroup *escortGroup = [self escortGroup];
 	if ([self group] == nil)
 	{
 		[self setGroup:escortGroup]; // should probably become a copy of the escortGroup post NMSR.
 	}
 	[escortGroup setLeader:self];
-	
-	if ([self isPolice])
-	{
-		pilotRole = @"police"; // police are always insured.
-	}
-	else
-	{
-		pilotRole = bounty ? @"pirate" : @"hunter"; // hunters have insurancies, pirates not.
-	}
 	
 	[self refreshEscortPositions];
 	
@@ -1548,96 +1554,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		ShipEntity *escorter = nil;
 		
-		if (escortShipKey)
-		{
-			escorter = [UNIVERSE newShipWithName:escortShipKey];	// retained
-		}
-		else
-		{
-			escorter = [UNIVERSE newShipWithRole:escortRole];	// retained
-		}
+		escorter = [UNIVERSE newShipWithRole:escortRole];	// retained
 		
 		if (escorter == nil)  break;
-		
-		double dd = escorter->collision_radius;
-		
-		if (EXPECT(currentEscortCount < (uint8_t)MAX_ESCORTS))
-		{
-			// spread them around a little randomly
-			ex_pos.x += dd * 6.0 * (randf() - 0.5);
-			ex_pos.y += dd * 6.0 * (randf() - 0.5);
-			ex_pos.z += dd * 6.0 * (randf() - 0.5);
-		}
-		else
-		{
-			// Thargoid armada(!) Add more distance between the 'escorts'.
-			ex_pos.x += dd * 12.0 * (randf() - 0.5);
-			ex_pos.y += dd * 12.0 * (randf() - 0.5);
-			ex_pos.z += dd * 12.0 * (randf() - 0.5);
-		}
-		
-		[escorter setPosition:ex_pos];	// minimise lollipop flash
-		
-		if ([escorter crew] == nil)
-		{
-			[escorter setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: pilotRole
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
-		}
-		
-		[escorter setPrimaryRole:defaultRole];	//for mothership
-		// in case this hasn't yet been set, make sure escorts get a real scan class
-		// shouldn't happen very often, but is possible
-		if (scanClass == CLASS_NOT_SET)
-		{
-			scanClass = CLASS_NEUTRAL;
-		}
-		[escorter setScanClass:scanClass];		// you are the same as I
-		
-		if ([self bounty] == 0)  [escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];	// Avoid dirty escorts for clean mothers
-		
-		// find the right autoAI.
-		escortShipDict = [escorter shipInfoDictionary];
-		autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
-		autoAI = [autoAIMap oo_stringForKey:defaultRole];
-		if (autoAI==nil) // no 'wingman' defined in autoAImap?
-		{
-			autoAI = [autoAIMap oo_stringForKey:@"escort" defaultValue:@"nullAI.plist"];
-		}
-		
-		escortAI = [escorter getAI];
-		
-		// Let the populator decide which AI to use, unless we have a working alternative AI & we specify auto_ai = NO !
-		if ( ((escortShipKey || escortRole) && [escortShipDict oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
-			|| ([[escortAI name] isEqualToString: @"nullAI.plist"] && ![autoAI isEqualToString:@"nullAI.plist"]) )
-		{
-			[escorter switchAITo:autoAI];
-		}
-		
-		[UNIVERSE addEntity:escorter]; 	// STATUS_IN_FLIGHT, AI state GLOBAL
-		
-		[escorter setGroup:escortGroup];
-		[escorter setOwner:self];	// mark self as group leader
-		
-		if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
-		if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
-				cruiseSpeed = [escorter maxFlightSpeed] * 0.99;  // adapt patrolSpeed to the slowest escort but ignore the very slow ones.
-		
-		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
-		[escorter doScriptEvent:OOJSID("spawnedAsEscort") withArgument:self];
-		
-		if (bounty)
-		{
-			int extra = 1 | (ranrot_rand() & 15);
-			// if mothership is offender, make sure escorter is too.
-			[escorter markAsOffender:extra withReason:kOOLegalStatusReasonSetup];
-		}
-		else
-		{
-			// otherwise force the escort to be clean
-			[escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];
-		}
-		[escorter release];
+		[self setUpOneEscort:escorter inGroup:escortGroup withRole:escortRole atPosition:ex_pos andCount:currentEscortCount];
 		_pendingEscortCount--;
 		currentEscortCount = [escortGroup count] - 1;
 	}
@@ -1645,6 +1565,184 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	_pendingEscortCount = 0;
 }
 
+
+- (void) setUpMixedEscorts
+{
+	NSArray *escortRoles = [shipinfoDictionary oo_arrayForKey:@"escort_roles" defaultValue:nil];
+	if (escortRoles == nil)
+	{
+		OOLogWARN(@"eship.setUp.escortShipRoles", 
+				  @"Ship %@ has bad escort_roles definition.", self);
+		return;
+	}
+	NSEnumerator				*edefEnumerator = nil;
+	NSDictionary				*escortDefinition = nil;
+	NSDictionary		*systeminfo = nil;
+	OOGovernmentID		government;
+
+	systeminfo = [UNIVERSE generateSystemData:[UNIVERSE systemSeed]];
+ 	government = [systeminfo oo_unsignedCharForKey:KEY_GOVERNMENT];
+
+	OOShipGroup *escortGroup = [self escortGroup];
+	if ([self group] == nil)
+	{
+		[self setGroup:escortGroup]; // should probably become a copy of the escortGroup post NMSR.
+	}
+	[escortGroup setLeader:self];
+	_maxEscortCount = MAX_ESCORTS;
+	[self refreshEscortPositions];
+	
+	uint8_t currentEscortCount = [escortGroup count] - 1;	// always at least 0
+	
+	_maxEscortCount = 0;
+	int8_t i = 0;
+	for (edefEnumerator = [escortRoles objectEnumerator]; (escortDefinition = [edefEnumerator nextObject]); )
+	{
+		if (currentEscortCount >= MAX_ESCORTS)
+		{
+			break;
+		}
+		// int rather than uint because, at least for min, there is a
+		// use to giving a negative value
+		int8_t min = [escortDefinition oo_intForKey:@"min" defaultValue:0];
+		int8_t max = [escortDefinition oo_intForKey:@"max" defaultValue:2];
+		NSString *escortRole = [escortDefinition oo_stringForKey:@"role" defaultValue:@"escort"];
+		int8_t desired = max;
+		if (min < desired)
+		{
+			for (i = min ; i < max ; i++)
+			{
+				if (Ranrot()%11 < government+2)
+				{
+					desired--;
+				}
+			}
+		}
+		for (i = 0; i < desired; i++)
+		{
+			if (currentEscortCount >= MAX_ESCORTS)
+			{
+				break;
+			}
+			if (![escortRole isEqualToString:@""])
+			{
+				HPVector ex_pos = [self coordinatesForEscortPosition:currentEscortCount];
+				ShipEntity *escorter = [UNIVERSE newShipWithRole:escortRole];	// retained
+				if (escorter == nil)
+				{
+					break;
+				}
+				[self setUpOneEscort:escorter inGroup:escortGroup withRole:escortRole atPosition:ex_pos andCount:currentEscortCount];
+			}
+			currentEscortCount++;
+			_maxEscortCount++;
+		}
+	}
+	// done assigning escorts
+	_pendingEscortCount = 0;
+}
+
+
+- (void) setUpOneEscort:(ShipEntity *)escorter inGroup:(OOShipGroup *)escortGroup withRole:(NSString *)escortRole atPosition:(HPVector)ex_pos andCount:(uint8_t)currentEscortCount
+{
+	NSString		*autoAI = nil;
+	NSString		*pilotRole = nil;
+	NSDictionary	*autoAIMap = nil;
+	NSDictionary	*escortShipDict = nil;
+	AI				*escortAI = nil; 
+	NSString		*defaultRole = @"escort";
+
+	if ([self isPolice])
+	{
+		defaultRole = @"wingman";
+		pilotRole = @"police"; // police are always insured.
+	}
+	else
+	{
+		pilotRole = bounty ? @"pirate" : @"hunter"; // hunters have insurancies, pirates not.
+	}
+	
+	double dd = escorter->collision_radius;
+		
+	if (EXPECT(currentEscortCount < (uint8_t)MAX_ESCORTS))
+	{
+		// spread them around a little randomly
+		ex_pos.x += dd * 6.0 * (randf() - 0.5);
+		ex_pos.y += dd * 6.0 * (randf() - 0.5);
+		ex_pos.z += dd * 6.0 * (randf() - 0.5);
+	}
+	else
+	{
+		// Thargoid armada(!) Add more distance between the 'escorts'.
+		ex_pos.x += dd * 12.0 * (randf() - 0.5);
+		ex_pos.y += dd * 12.0 * (randf() - 0.5);
+		ex_pos.z += dd * 12.0 * (randf() - 0.5);
+	}
+		
+	[escorter setPosition:ex_pos];	// minimise lollipop flash
+		
+	if ([escorter crew] == nil)
+	{
+		[escorter setCrew:[NSArray arrayWithObject:
+									   [OOCharacter randomCharacterWithRole: pilotRole
+														  andOriginalSystem: [UNIVERSE systemSeed]]]];
+	}
+		
+	[escorter setPrimaryRole:defaultRole];	//for mothership
+	// in case this hasn't yet been set, make sure escorts get a real scan class
+	// shouldn't happen very often, but is possible
+	if (scanClass == CLASS_NOT_SET)
+	{
+		scanClass = CLASS_NEUTRAL;
+	}
+	[escorter setScanClass:scanClass];		// you are the same as I
+		
+	if ([self bounty] == 0)  [escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];	// Avoid dirty escorts for clean mothers
+		
+	// find the right autoAI.
+	escortShipDict = [escorter shipInfoDictionary];
+	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+	autoAI = [autoAIMap oo_stringForKey:defaultRole];
+	if (autoAI==nil) // no 'wingman' defined in autoAImap?
+	{
+		autoAI = [autoAIMap oo_stringForKey:@"escort" defaultValue:@"nullAI.plist"];
+	}
+		
+	escortAI = [escorter getAI];
+		
+	// Let the populator decide which AI to use, unless we have a working alternative AI & we specify auto_ai = NO !
+	if ( (escortRole && [escortShipDict oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
+		 || ([[escortAI name] isEqualToString: @"nullAI.plist"] && ![autoAI isEqualToString:@"nullAI.plist"]) )
+	{
+		[escorter switchAITo:autoAI];
+	}
+		
+	[UNIVERSE addEntity:escorter]; 	// STATUS_IN_FLIGHT, AI state GLOBAL
+		
+	[escorter setGroup:escortGroup];
+	[escorter setOwner:self];	// mark self as group leader
+		
+	if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
+	if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
+		cruiseSpeed = [escorter maxFlightSpeed] * 0.99;  // adapt patrolSpeed to the slowest escort but ignore the very slow ones.
+		
+	[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
+	[escorter doScriptEvent:OOJSID("spawnedAsEscort") withArgument:self];
+		
+	if (bounty)
+	{
+		int extra = 1 | (ranrot_rand() & 15);
+		// if mothership is offender, make sure escorter is too.
+		[escorter markAsOffender:extra withReason:kOOLegalStatusReasonSetup];
+	}
+	else
+	{
+		// otherwise force the escort to be clean
+		[escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];
+	}
+	[escorter release];
+	
+}
 
 - (NSString *)shipDataKey
 {
