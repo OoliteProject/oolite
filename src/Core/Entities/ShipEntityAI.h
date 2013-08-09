@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 - (void) enterPlayerWormhole;
 
 - (void) wormholeEscorts;
+- (void) wormholeEntireGroup;
 
 - (BOOL) suggestEscortTo:(ShipEntity *)mother;
 

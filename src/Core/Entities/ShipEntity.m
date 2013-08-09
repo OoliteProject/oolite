@@ -1719,18 +1719,26 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		[escorter switchAITo:autoAI];
 	}
-		
-	[UNIVERSE addEntity:escorter]; 	// STATUS_IN_FLIGHT, AI state GLOBAL
-		
+
 	[escorter setGroup:escortGroup];
 	[escorter setOwner:self];	// mark self as group leader
-		
+
+	
+	if ([self status] == STATUS_DOCKED)
+	{
+		[[self owner] addShipToLaunchQueue:escorter withPriority:NO];
+	}
+	else
+	{
+		[UNIVERSE addEntity:escorter]; 	// STATUS_IN_FLIGHT, AI state GLOBAL
+		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
+		[escorter doScriptEvent:OOJSID("spawnedAsEscort") withArgument:self];
+	}
+	
 	if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
 	if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
 		cruiseSpeed = [escorter maxFlightSpeed] * 0.99;  // adapt patrolSpeed to the slowest escort but ignore the very slow ones.
 		
-	[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
-	[escorter doScriptEvent:OOJSID("spawnedAsEscort") withArgument:self];
 		
 	if (bounty)
 	{
@@ -12085,16 +12093,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return; // has already entered a different wormhole
 	}
-
-	if (replacing && ![[UNIVERSE sun] willGoNova] && [UNIVERSE sun] != nil)
-	{
-		/*	Add a new ship to maintain quantities of standard ships, unless
-			there's a nova in the works, the AI asked us not to, or we're in
-			interstellar space.
-		*/
-		// now handled by system repopulator
-//		[UNIVERSE witchspaceShipWithPrimaryRole:[self primaryRole]];
-	}
+	// Replacement ships now handled by system repopulator
 
 	// MKW 2011.02.27 - Moved here from ShipEntityAI so escorts reliably follow
 	//                  mother in all wormhole cases, not just when the ship

@@ -65,7 +65,6 @@ this.AILib = function(ship)
 	
 	/* Cache variables used by utility functions */
 	var condmet = true;
-	var logging = false;
 
 	/* Private utility functions. Cannot be called from external code */
 
@@ -89,7 +88,7 @@ this.AILib = function(ship)
 
 	/* Considers a priority list, potentially recursively */
 	function _reconsiderList(priorities) {
-		logging = this.getParameter("oolite_flag_behaviourLogging")
+		var logging = this.getParameter("oolite_flag_behaviourLogging");
 		var pl = priorities.length;
 		if (logging)
 		{
@@ -311,6 +310,20 @@ this.AILib = function(ship)
 	}
 
 
+	this.clearHandlers = function()
+	{
+		// delete all handlers to allow rebinding
+		activeHandlers = Object.keys(handlerCache);
+		for (var i=0; i < activeHandlers.length ; i++)
+		{
+			delete this.ship.AIScript[activeHandlers[i]];
+		}
+		handlerCache = {};
+		delete this.ship.AIScript.aiAwoken;
+		delete this.ship.AIScript.shipDied;
+	}
+
+
 	this.communicate = function(key,params,priority)
 	{
 		if (priority > 1)
@@ -413,6 +426,7 @@ this.AILib = function(ship)
 	this.setPriorities = function(priorities) 
 	{
 		priorityList = priorities;
+		this.clearHandlers();
 		this.applyHandlers({});
 		_resetReconsideration.call(this,Math.random());
 	}
@@ -925,6 +939,29 @@ AILib.prototype.conditionCombatOddsGood = function()
 AILib.prototype.conditionCombatOddsExcellent = function()
 {
 	return this.oddsAssessment() >= 3.0;
+}
+
+
+// group has taken too many losses
+AILib.prototype.conditionGroupAttritionReached = function()
+{
+	var group;
+	if (!(group = this.ship.group))
+	{
+		return false;
+	}
+	var cgp = this.getParameter("oolite_groupPower");
+	if (!cgp)
+	{
+		this.setParameter("oolite_groupPower",group.count);
+		return false;
+	}
+	if (group.count > cgp)
+	{
+		this.setParameter("oolite_groupPower",group.count);
+		return false;
+	}
+	return group.count < cgp*0.75;
 }
 
 
@@ -1615,6 +1652,14 @@ AILib.prototype.conditionScannerContainsNonThargoid = function()
 }
 
 
+AILib.prototype.conditionScannerContainsPirateLeader = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		return s.group && s.group.leader == s && (s.primaryRole.match(/pirate-.*-freighter/));
+	});
+}
+
+
 AILib.prototype.conditionScannerContainsPirateVictims = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
@@ -1776,23 +1821,27 @@ AILib.prototype.conditionCanScoopCargo = function()
 
 AILib.prototype.conditionCargoIsProfitableHere = function()
 {
-	// cargo is always considered profitable in the designated
-	// destination system (assume they have a prepared buyer)
-    if (this.ship.destinationSystem && this.ship.destinationSystem == system.ID)
+	// only consider these values if the ship has a route defined
+	if (this.ship.homeSystem != this.ship.destinationSystem)
 	{
-        return true;
-	}
-	// cargo is never considered profitable in the designated source
-	// system (or you could get ships launching and immediately
-	// redocking)
-	if (this.ship.homeSystem && this.ship.homeSystem == system.ID)
-	{
-		return false;
-	}
-	// and allow ships to be given multi-system trips if wanted
-	if (this.getParameter("oolite_flag_noDockingUntilDestination"))
-	{
-		return false;
+		// cargo is always considered profitable in the designated
+		// destination system (assume they have a prepared buyer)
+		if (this.ship.destinationSystem && this.ship.destinationSystem == system.ID)
+		{
+			return true;
+		}
+		// cargo is never considered profitable in the designated source
+		// system (or you could get ships launching and immediately
+		// redocking)
+		if (this.ship.homeSystem && this.ship.homeSystem == system.ID)
+		{
+			return false;
+		}
+		// and allow ships to be given multi-system trips if wanted
+		if (this.getParameter("oolite_flag_noDockingUntilDestination"))
+		{
+			return false;
+		}
 	}
 
 	if (!system.mainStation)
@@ -2192,6 +2241,12 @@ AILib.prototype.behaviourEnterWitchspace = function()
 	{
 		// the wormhole we were trying for has expired
 		this.setParameter("oolite_witchspaceWormhole",null);
+		if (this.ship.group && this.ship.group.leader && this.ship.group.leader.status == "STATUS_ENTERING_WITCHSPACE")
+		{
+			// left behind, so leave group
+			this.ship.group.removeShip(this.ship);
+			this.ship.group = null;
+		}
 	}
 	else if (wormhole)
 	{
@@ -2241,6 +2296,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 			// if it doesn't, we'll get blocked
 			if (result)
 			{
+				this.ship.notifyGroupOfWormhole();
 				this.setParameter("oolite_witchspaceEntry",null);
 			}
 		}
@@ -2401,6 +2457,17 @@ AILib.prototype.behaviourGuardTarget = function()
 	this.ship.desiredSpeed = this.cruiseSpeed();
 	this.ship.desiredRange = 2500;
 	this.behaviourApproachDestination();
+}
+
+
+AILib.prototype.behaviourJoinTargetGroup = function()
+{
+	if (this.ship.target && this.ship.target.group)
+	{
+		this.ship.target.group.addShip(this.ship);
+		this.ship.group = this.ship.target.group;
+	}
+	this.ship.performIdle();
 }
 
 
@@ -3235,23 +3302,36 @@ AILib.prototype.configurationSelectWitchspaceDestination = function()
 		return;
 	}
 	var possible = system.info.systemsInRange(this.ship.fuel);
-	var selected = possible[Math.floor(Math.random()*possible.length)];
-	this.setParameter("oolite_witchspaceDestination",selected.systemID);
-	this.communicate("oolite_selectedWitchspaceDestination",{"oolite_witchspaceDestination":selected.name},4);
+	if (possible.length > 0)
+	{
+		var selected = possible[Math.floor(Math.random()*possible.length)];
+		this.setParameter("oolite_witchspaceDestination",selected.systemID);
+		this.communicate("oolite_selectedWitchspaceDestination",{"oolite_witchspaceDestination":selected.name},4);
+	}
+	else
+	{
+		this.setParameter("oolite_witchspaceDestination",null);
+	}
 }
 
 
 AILib.prototype.configurationSelectWitchspaceDestinationInbound = function()
 {
-	var dest = this.ship.homeSystem;
-	this.setWitchspaceRouteTo(dest);
+	if (this.ship.homeSystem == this.ship.destinationSystem)
+	{
+		return this.configurationSelectWitchspaceDestination();
+	}
+	this.setWitchspaceRouteTo(this.ship.homeSystem);
 }
 
 
 AILib.prototype.configurationSelectWitchspaceDestinationOutbound = function()
 {
-	var dest = this.ship.destinationSystem;
-	this.setWitchspaceRouteTo(dest);
+	if (this.ship.homeSystem == this.ship.destinationSystem)
+	{
+		return this.configurationSelectWitchspaceDestination();
+	}
+	this.setWitchspaceRouteTo(this.ship.destinationSystem);
 }
 
 
@@ -4526,10 +4606,175 @@ AILib.prototype.responseComponent_trackPlayer_playerWillEnterWitchspace = functi
 
 
 
+/* ******************* Templates *************************** */
+
+/* Templates. Common AI priority list fragments which may be useful to
+ * multiple AIs. These functions take no parameters and return a
+ * list. This can either be used straightforwardly as a truebranch or
+ * falsebranch value, or appended to a list using Array.concat() */
+
+AILib.prototype.templateLeadPirateMission = function()
+{
+	return [
+		{
+			preconfiguration: this.configurationForgetCargoDemand,
+			condition: this.conditionScannerContainsPirateVictims,
+			configuration: this.configurationAcquireScannedTarget,
+			truebranch: [
+				{
+					label: "Check odds",
+					condition: this.conditionCombatOddsGood,
+					behaviour: this.behaviourRobTarget,
+					reconsider: 5
+				}
+			]
+		},
+		{
+			/* move to a position on one of the space lanes, preferring lane 1 */
+			label: "Lurk",
+			configuration: this.configurationSetDestinationToPirateLurk,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 30
+		},
+	];
+}
 
 
+AILib.prototype.templateReturnToBase = function()
+{
+	return [
+		{
+			condition: this.conditionHasSelectedStation,
+			truebranch: [
+				{
+					condition: this.conditionSelectedStationNearby,
+					configuration: this.configurationSetSelectedStationForDocking,
+					behaviour: this.behaviourDockWithStation,
+					reconsider: 30
+				},
+				{
+					condition: this.conditionSelectedStationNearMainPlanet,
+					truebranch: [
+						{
+							notcondition: this.conditionMainPlanetNearby,
+							configuration: this.configurationSetDestinationToMainPlanet,
+							behaviour: this.behaviourApproachDestination,
+							reconsider: 30
+						}
+					]
+				},
+				// either the station isn't near the planet, or we are
+				{
+					configuration: this.configurationSetDestinationToSelectedStation,
+					behaviour: this.behaviourApproachDestination,
+					reconsider: 30
+				}
+			],
+			falsebranch: [
+				{
+					configuration: this.configurationSelectRandomTradeStation,
+					behaviour: this.behaviourReconsider
+				}
+			]
+		}
+	];
 
 
+}
+
+
+AILib.prototype.templateReturnToBaseOrPlanet = function()
+{
+	return [
+		{
+			condition: this.conditionFriendlyStationNearby,
+			configuration: this.configurationSetNearbyFriendlyStationForDocking,
+			behaviour: this.behaviourDockWithStation,
+			reconsider: 30
+		},
+		{
+			condition: this.conditionFriendlyStationExists,
+			configuration: this.configurationSetDestinationToNearestFriendlyStation,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 30
+		},
+		{
+			condition: this.conditionHasSelectedPlanet,
+			truebranch: [
+				{
+					preconfiguration: this.configurationSetDestinationToSelectedPlanet,
+					condition: this.conditionNearDestination,
+					behaviour: this.behaviourLandOnPlanet
+				},
+				{
+					behaviour: this.behaviourApproachDestination,
+					reconsider: 30
+				}
+			]
+		},
+		{
+			condition: this.conditionPlanetExists,
+			configuration: this.configurationSelectPlanet,
+			behaviour: this.behaviourReconsider
+		},
+		{
+			condition: this.conditionCanWitchspaceOut,
+			configuration: this.configurationSelectWitchspaceDestination,
+			behaviour: this.behaviourEnterWitchspace,
+			reconsider: 20
+		}
+	];
+}
+
+
+AILib.prototype.templateWitchspaceJumpInbound = function()
+{
+	return [
+		{
+			preconfiguration: this.configurationSelectWitchspaceDestinationInbound,
+			condition: this.conditionCanWitchspaceOnRoute,
+			behaviour: this.behaviourEnterWitchspace,
+			reconsider: 20
+		},
+		{
+			condition: this.conditionReadyToSunskim,
+			configuration: this.configurationSetDestinationToSunskimEnd,
+			behaviour: this.behaviourSunskim,
+			reconsider: 20
+		},
+		{
+			condition: this.conditionSunskimPossible,
+			configuration: this.configurationSetDestinationToSunskimStart,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 30
+		}
+	];
+}
+
+
+AILib.prototype.templateWitchspaceJumpOutbound = function()
+{
+	return [
+		{
+			preconfiguration: this.configurationSelectWitchspaceDestinationOutbound,
+			condition: this.conditionCanWitchspaceOnRoute,
+			behaviour: this.behaviourEnterWitchspace,
+			reconsider: 20
+		},
+		{
+			condition: this.conditionReadyToSunskim,
+			configuration: this.configurationSetDestinationToSunskimEnd,
+			behaviour: this.behaviourSunskim,
+			reconsider: 20
+		},
+		{
+			condition: this.conditionSunskimPossible,
+			configuration: this.configurationSetDestinationToSunskimStart,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 30
+		}
+	];
+}
 
 /* ******************* Waypoint generators *********************** */
 
@@ -4537,7 +4782,7 @@ AILib.prototype.responseComponent_trackPlayer_playerWillEnterWitchspace = functi
  * the next waypoint for the ship. Ideally ships should either
  * reach that waypoint or formally give up on it before asking for
  * the next one, but the generator shouldn't assume that unless
- * it's one written specifically for a particular AI. */
+ * it's one written specifically for a particular AI . */
 
 AILib.prototype.waypointsSpacelanePatrol = function()
 {

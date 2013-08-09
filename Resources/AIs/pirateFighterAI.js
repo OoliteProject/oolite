@@ -1,8 +1,9 @@
 /*
 
-pirateAI.js
+pirateFighterAI.js
 
-Priority-based AI for pirates
+Priority-based AI for pirate fighters (guards and extra capacity for
+organised pirate gangs)
 
 Oolite
 Copyright © 2004-2013 Giles C Williams and contributors
@@ -26,7 +27,7 @@ MA 02110-1301, USA.
 
 "use strict";
 
-this.name = "Oolite Pirate AI";
+this.name = "Oolite Pirate Fighter AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
@@ -66,6 +67,11 @@ this.aiStarted = function() {
 			]
 		},
 		{
+			condition: ai.conditionWitchspaceEntryRequested,
+			behaviour: ai.behaviourEnterWitchspace,
+			reconsider: 15
+		},
+		{
 			preconfiguration: ai.configurationCheckScanner,
 			condition: ai.conditionScannerContainsSalvageForGroup,
 			truebranch: [
@@ -89,45 +95,32 @@ this.aiStarted = function() {
 		{
 			condition: ai.conditionScannerContainsHunters,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourLeaveVicinityOfTarget,
-			reconsider: 20
+			truebranch: [
+				{
+					condition: ai.conditionCombatOddsExcellent,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 10
+				},
+				{
+					behaviour: ai.behaviourLeaveVicinityOfTarget,
+					reconsider: 20
+				}
+			]
 		},
-		/* Regroup if necessary */
+		/* Follow leader */
 		{
-			preconfiguration: ai.configurationAppointGroupLeader,
-			condition: ai.conditionGroupIsSeparated,
+			condition: ai.conditionHasMothership,
 			configuration: ai.configurationSetDestinationToGroupLeader,
 			behaviour: ai.behaviourApproachDestination,
 			reconsider: 15
 		},
+		/* Find a new leader, or return to base */
 		{
-			label: "Enough loot?",
-			condition: ai.conditionGroupHasEnoughLoot,
-			/* Find a station to dock at */
-			truebranch: [
-				{
-					condition: ai.conditionIsGroupLeader,
-					truebranch: ai.templateReturnToBaseOrPlanet()
-				},
-				/* Once the group leader has docked or landed, another one gets
-				 * appointed, and they can decide what to do next */
-				{
-					behaviour: ai.behaviourFollowGroupLeader,
-					reconsider: 15
-				}
-
-			],
-			/* Look for more loot */
-			falsebranch: [
-				{
-					condition: ai.conditionIsGroupLeader,
-					truebranch: ai.templateLeadPirateMission()
-				},
-				{
-					behaviour: ai.behaviourFollowGroupLeader,
-					reconsider: 15
-				}
-			]
+			condition: ai.conditionScannerContainsPirateLeader,
+			configuration: ai.configurationAcquireScannedTarget,
+			behaviour: ai.behaviourJoinTargetGroup,
+			reconsider: 10,
+			falsebranch: ai.templateReturnToBaseOrPlanet()
 		},
 		{
 			// full of loot, but stuck in system and no friendly stations

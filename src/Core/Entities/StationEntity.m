@@ -1358,10 +1358,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	BOOL			trader = [role isEqualToString:@"trader"];
 	BOOL			sunskimmer = ([role isEqualToString:@"sunskim-trader"]);
 	ShipEntity		*ship = nil;
-	NSString		*defaultRole = @"escort";
-	NSString		*escortRole = nil;
-	NSString		*escortShipKey = nil;
-	NSDictionary	*traderDict = nil;
 
 	if((trader && (randf() < 0.1)) || sunskimmer) 
 	{
@@ -1383,7 +1379,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	if (ship)
 	{
-		traderDict = [ship shipInfoDictionary];
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: role
@@ -1422,64 +1417,9 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		unsigned escorts = [ship pendingEscortCount];
 		if(escorts > 0)
 		{
-			escortRole = [traderDict oo_stringForKey:@"escort_role" defaultValue:nil];
-			if (escortRole == nil)
-				escortRole = [traderDict oo_stringForKey:@"escort-role" defaultValue:defaultRole];
-			if (![escortRole isEqualToString: defaultRole])
-			{
-				if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
-				{
-					escortRole = defaultRole;
-				}
-			}
-			
-			escortShipKey = [traderDict oo_stringForKey:@"escort_ship" defaultValue:nil];
-			if (escortShipKey == nil)
-				escortShipKey = [traderDict oo_stringForKey:@"escort-ship"];
-			
-			if (escortShipKey != nil)
-			{
-				if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
-				{
-					escortShipKey = nil;
-				}
-			}
-				
-			while (escorts--)
-			{
-				ShipEntity  *escort_ship;
-
-				if (escortShipKey)
-				{
-					escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
-				}
-				else
-				{
-					escort_ship = [UNIVERSE newShipWithRole:escortRole];	// retained
-				}
-				
-				if (escort_ship && [self fitsInDock:escort_ship])
-				{
-					if (![escort_ship crew] && ![escort_ship isUnpiloted])
-						[escort_ship setCrew:[NSArray arrayWithObject:
-							[OOCharacter randomCharacterWithRole: @"hunter"
-							andOriginalSystem: [UNIVERSE systemSeed]]]];
-							
-					[escort_ship setScanClass: [ship scanClass]];
-					[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
-					[escort_ship setPrimaryRole:@"escort"];					
-					if ((sunskimmer || trader) && [escort_ship heatInsulation] < [ship heatInsulation]) 
-							[escort_ship setHeatInsulation:[ship heatInsulation]];
-
-					[escort_ship setGroup:escortGroup];
-					[escort_ship setOwner:ship];
-					
-					[escort_ship switchAITo:@"escortAI.js"];
-					[self addShipToLaunchQueue:escort_ship withPriority:NO];
-					
-				}
-				[escort_ship release];
-			}
+			[ship setOwner:self]; // makes escorts get added to station launch queue
+			[ship setUpEscorts];
+			[ship setOwner:ship];
 		}
 		
 		[ship setPendingEscortCount:0];

@@ -102,6 +102,7 @@ static JSBool ShipBroadcastDistressMessage(JSContext *context, uintN argc, jsval
 static JSBool ShipOfferToEscort(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipMarkTargetForFines(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipNotifyGroupOfWormhole(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipThrowSpark(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool ShipPerformAttack(JSContext *context, uintN argc, jsval *vp);
@@ -450,6 +451,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "getShaders",				ShipGetShaders,				0 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "markTargetForFines",				ShipMarkTargetForFines,				0 },
+	{ "notifyGroupOfWormhole",		ShipNotifyGroupOfWormhole,		0 },
 	{ "offerToEscort",				ShipOfferToEscort,				1 },
 	{ "patrolReportIn", ShipPatrolReportIn, 1},
   { "performAttack",		ShipPerformAttack, 		0 },
@@ -3017,6 +3019,21 @@ static JSBool ShipEnterWormhole(JSContext *context, uintN argc, jsval *vp)
 
 		[thisEnt enterWormhole:(WormholeEntity*)hole];
 	}
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipNotifyGroupOfWormhole(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	GET_THIS_SHIP(thisEnt);
+
+	[thisEnt wormholeEntireGroup];
 
 	OOJS_RETURN_VOID;
 	

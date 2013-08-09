@@ -73,63 +73,9 @@ this.aiStarted = function() {
 		{
 			condition: ai.conditionCargoIsProfitableHere,
 			// branch to head for station
-			truebranch: [
-				{
-					condition: ai.conditionHasSelectedStation,
-					truebranch: [
-						{
-							condition: ai.conditionSelectedStationNearby,
-							configuration: ai.configurationSetSelectedStationForDocking,
-							behaviour: ai.behaviourDockWithStation,
-							reconsider: 30
-						},
-						{
-							condition: ai.conditionSelectedStationNearMainPlanet,
-							truebranch: [
-								{
-									notcondition: ai.conditionMainPlanetNearby,
-									configuration: ai.configurationSetDestinationToMainPlanet,
-									behaviour: ai.behaviourApproachDestination,
-									reconsider: 30
-								}
-							]
-						},
-						// either the station isn't near the planet, or we are
-						{
-							configuration: ai.configurationSetDestinationToSelectedStation,
-							behaviour: ai.behaviourApproachDestination,
-							reconsider: 30
-						}
-					],
-					falsebranch: [
-						{
-							configuration: ai.configurationSelectRandomTradeStation,
-							behaviour: ai.behaviourReconsider
-						}
-					]
-				}
-			],
+			truebranch: ai.templateReturnToBase(),
 			// jump to another system if possible, sunskim if not
-			falsebranch: [
-				{
-					preconfiguration: ai.configurationSelectWitchspaceDestinationOutbound,
-					condition: ai.conditionCanWitchspaceOnRoute,
-					behaviour: ai.behaviourEnterWitchspace,
-					reconsider: 20
-				},
-				{
-					condition: ai.conditionReadyToSunskim,
-					configuration: ai.configurationSetDestinationToSunskimEnd,
-					behaviour: ai.behaviourSunskim,
-					reconsider: 20
-				},
-				{
-					condition: ai.conditionSunskimPossible,
-					configuration: ai.configurationSetDestinationToSunskimStart,
-					behaviour: ai.behaviourApproachDestination,
-					reconsider: 30
-				}
-			]
+			falsebranch: ai.templateWitchspaceJumpOutbound()
 		}, // end of cargoprofitable true/false branches
 		{
 			// if we're here, the cargo isn't profitable, and we can't

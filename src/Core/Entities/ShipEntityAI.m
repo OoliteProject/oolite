@@ -147,7 +147,6 @@
 - (void) performHyperSpaceExit;
 - (void) performHyperSpaceExitWithoutReplacing;
 - (void) wormholeGroup;
-- (void) wormholeEntireGroup;
 
 - (void) commsMessage:(NSString *)valueString;
 - (void) commsMessageByUnpiloted:(NSString *)valueString;
@@ -693,6 +692,13 @@
 	[_escortGroup release];
 	_escortGroup = nil;
 
+}
+
+
+- (void) wormholeEntireGroup
+{
+	[self wormholeGroup];
+	[self wormholeEscorts];
 }
 
 
@@ -1632,13 +1638,6 @@
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:@"wormholeGroup"];
 		[ship doScriptEvent:OOJSID("wormholeSuggested") withArgument:whole];
 	}
-}
-
-
-- (void) wormholeEntireGroup
-{
-	[self wormholeGroup];
-	[self wormholeEscorts];
 }
 
 
