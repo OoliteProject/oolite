@@ -1120,21 +1120,26 @@ this._addPirateAssistant = function(role,lead)
 	{
 		var asst = system.addShips("pirate",1,lead.position,4E3);
 	}
-	asst[0].setBounty(20+system.government+Math.floor(Math.random()*12),"setup actions");
-	asst[0].group = lead.group;
-	lead.group.addShip(asst[0]);
-/*	if (role == "pirate-interceptor")
+	asst[0].homeSystem = lead.homeSystem;
+	asst[0].destinationSystem = lead.destinationSystem;
+	if (role == "pirate-interceptor")
 	{
 		asst[0].switchAI("pirateInterceptorAI.js");
+		asst[0].setBounty(50+system.government+Math.floor(Math.random()*36),"setup actions");
+		// interceptors not actually part of group: they just get the
+		// same destinations
 	}
 	else
-	{ */
+	{ 
+		asst[0].group = lead.group;
+		lead.group.addShip(asst[0]);
 		asst[0].switchAI("pirateFighterAI.js");
-//	}
+		asst[0].setBounty(20+system.government+Math.floor(Math.random()*12),"setup actions");
+	}
 }
 
 
-this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
+this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination)
 {
 	if (this._roleExists(leader))
 	{
@@ -1146,6 +1151,9 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 		var lead = system.addShips("pirate",1,pos,0);		
 	}
 	lead[0].setBounty(60+system.government+Math.floor(Math.random()*8),"setup actions");
+	lead[0].homeSystem = home;
+	lead[0].destinationSystem = destination;
+
 	var group = new ShipGroup("pirate pack",lead[0]);
 	lead[0].group = group;
 	for (var i = Math.floor(lf+(0.5+Math.random()-Math.random())); i > 0; i--)
@@ -1176,76 +1184,65 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug)
 	}
 	// next line is temporary for debugging!
 	lead[0].displayName = lead[0].name + " - FLAGSHIP";
+	this._setFuel(lead[0]);
+	lead[0].switchAI("pirateFreighterAI.js");
 	return lead[0];
 }
 
 this._addLightPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0);
-	lead.homeSystem = system.ID;
-	lead.destinationSystem = system.ID;
-	lead.switchAI("pirateFreighterAI.js"); 
+	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0,system.ID,system.ID);
 }
 
 
 this._addLightPirateRemote = function(pos)
 {
 	pos.z = pos.z % 100000;
-	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0);
-	lead.homeSystem = this._nearbyDangerousSystem(system.info.government-1);
-	this._setFuel(lead);
-	lead.destinationSystem = system.ID;
-	lead.switchAI("pirateFreighterAI.js"); 
+	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0,this._nearbyDangerousSystem(system.info.government-1),system.ID);
 }
 
 
 this._addLightPirateOutbound = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0);
-	lead.destinationSystem = this._nearbySafeSystem(system.info.government+1);
-	lead.fuel = 7
-	lead.homeSystem = system.ID;
-	lead.switchAI("pirateFreighterAI.js"); 
+	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0,system.ID,this._nearbySafeSystem(system.info.government+1));
 }
 
 
 this._addMediumPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1);
-	lead.homeSystem = system.ID;
-	lead.destinationSystem = system.ID;
-	lead.switchAI("pirateFreighterAI.js"); 
+	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1,system.ID,system.ID);
 }
 
 
 this._addMediumPirateRemote = function(pos)
 {
 	pos.z = pos.z % 100000;
-	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1);
-	lead.homeSystem = this._nearbyDangerousSystem(system.info.government-1);
-	this._setFuel(lead);
-	lead.destinationSystem = system.ID;
-	lead.switchAI("pirateFreighterAI.js"); 
+	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1,this._nearbyDangerousSystem(Math.min(system.info.government-1,3)),system.ID);
+}
+
+
+this._addMediumPirateOutbound = function(pos)
+{
+	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1,system.ID,this._nearbySafeSystem(system.info.government+1));
 }
 
 
 this._addHeavyPirateLocal = function(pos)
 {
-	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2);
-	lead.homeSystem = system.ID;
-	lead.destinationSystem = system.ID;
-	lead.switchAI("pirateFreighterAI.js"); 
+	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2,system.ID,system.ID);
 }
 
 
 this._addHeavyPirateRemote = function(pos)
 {
 	pos.z = pos.z % 100000;
-	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2);
-	lead.homeSystem = this._nearbyDangerousSystem(system.info.government-1);
-	this._setFuel(lead);
-	lead.destinationSystem = system.ID;
-	lead.switchAI("pirateFreighterAI.js"); 
+	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2,this._nearbyDangerousSystem(Math.min(system.info.government-1,1)),system.ID);
+}
+
+
+this._addHeavyPirateOutbound = function(pos)
+{
+	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2,system.ID,this._nearbySafeSystem(system.info.government+1));
 }
 
 

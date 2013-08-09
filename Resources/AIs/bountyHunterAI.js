@@ -51,6 +51,12 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 5
 		},
+		/* Follow leader to witchspace */
+		{
+			condition: ai.conditionWitchspaceEntryRequested,
+			behaviour: ai.behaviourEnterWitchspace,
+			reconsider: 15
+		},
 		/* Check for distress calls */
 		{
 			condition: ai.conditionHasReceivedDistressCall,

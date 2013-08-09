@@ -126,11 +126,11 @@ this.aiStarted = function() {
 		specific = [
 			{
 				condition: ai.conditionGroupHasEnoughLoot,
-				truebranch: ai.templateWitchspaceJumpOutbound()
+				truebranch: ai.templateWitchspaceJumpInbound()
 			},
 			{
 				condition: ai.conditionGroupAttritionReached,
-				truebranch: ai.templateWitchspaceJumpOutbound()
+				truebranch: ai.templateWitchspaceJumpInbound()
 			},
 			{
 				condition: ai.conditionInInterstellarSpace,

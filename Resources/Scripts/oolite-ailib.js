@@ -409,6 +409,8 @@ this.AILib = function(ship)
 	this.setCommunicationsRole = function(role)
 	{
 		commsRole = role;
+		// TODO: if personality is generic, pick a new one from the
+		// allowed list. If possible use the same as the group leader.
 	}
 
 
@@ -514,14 +516,22 @@ AILib.prototype.checkScannerWithPredicate = function(predicate)
 	{
 		return false;
 	}
+	// if current target matches, use that
+	if (this.ship.target && predicate.call(this,this.ship.target))
+	{
+		this.setParameter("oolite_scanResultSpecific",this.ship.target);
+		return true;
+	}
 	var sl = scan.length; 
-	// scan upwards; lower indices tend to be closer, though this is
-	// not guaranteed
+	// use a random offset so if several ships make the same scan
+	// they don't all pick the same target
+	var offset = Math.floor(Math.random()*sl);
 	for (var i = 0 ; i < sl ; i++)
 	{
-		if (predicate.call(this,scan[i]))
+		var io = (i+offset)%sl;
+		if (predicate.call(this,scan[io]))
 		{
-			this.setParameter("oolite_scanResultSpecific",scan[i]);
+			this.setParameter("oolite_scanResultSpecific",scan[io]);
 			return true;
 		}
 	}
@@ -630,7 +640,7 @@ AILib.prototype.friendlyStation = function(station)
 		return false;
 	}
 	// this will do until we have a proper friendliness system for stations
-	if (this.ship.primaryRole == "pirate" && station.bounty == 0)
+	if (this.ship.primaryRole.match(/^pirate/) && station.bounty == 0)
 	{
 		return false;
 	}
@@ -1616,7 +1626,7 @@ AILib.prototype.conditionScannerContainsSeriousOffender = function()
 AILib.prototype.conditionScannerContainsHunters = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.primaryRole == "hunter" || s.scanClass == "CLASS_POLICE" || (s.isStation && s.isMainStation);
+		return (s.primaryRole && s.primaryRole.match(/^hunter/)) || s.scanClass == "CLASS_POLICE" || (s.isStation && s.isMainStation);
 	});
 }
 
@@ -4617,6 +4627,7 @@ AILib.prototype.templateLeadPirateMission = function()
 {
 	return [
 		{
+			label: "Pirate mission",
 			preconfiguration: this.configurationForgetCargoDemand,
 			condition: this.conditionScannerContainsPirateVictims,
 			configuration: this.configurationAcquireScannedTarget,
@@ -4644,6 +4655,7 @@ AILib.prototype.templateReturnToBase = function()
 {
 	return [
 		{
+			label: "Return to base",
 			condition: this.conditionHasSelectedStation,
 			truebranch: [
 				{
@@ -4687,6 +4699,7 @@ AILib.prototype.templateReturnToBaseOrPlanet = function()
 {
 	return [
 		{
+			label: "Return to base or planet",
 			condition: this.conditionFriendlyStationNearby,
 			configuration: this.configurationSetNearbyFriendlyStationForDocking,
 			behaviour: this.behaviourDockWithStation,
@@ -4731,6 +4744,7 @@ AILib.prototype.templateWitchspaceJumpInbound = function()
 {
 	return [
 		{
+			label: "Jump inbound",
 			preconfiguration: this.configurationSelectWitchspaceDestinationInbound,
 			condition: this.conditionCanWitchspaceOnRoute,
 			behaviour: this.behaviourEnterWitchspace,
@@ -4756,6 +4770,7 @@ AILib.prototype.templateWitchspaceJumpOutbound = function()
 {
 	return [
 		{
+			label: "Jump outbound",
 			preconfiguration: this.configurationSelectWitchspaceDestinationOutbound,
 			condition: this.conditionCanWitchspaceOnRoute,
 			behaviour: this.behaviourEnterWitchspace,
