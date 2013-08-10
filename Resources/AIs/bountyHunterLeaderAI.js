@@ -1,8 +1,8 @@
 /*
 
-bountyHunterAI.js
+bountyHunterLeaderAI.js
 
-Priority-based AI for bounty hunters
+Priority-based AI for bounty hunter leaders
 
 Oolite
 Copyright © 2004-2013 Giles C Williams and contributors
@@ -26,8 +26,7 @@ MA 02110-1301, USA.
 
 "use strict";
 
-// this is the AI version for a local patrol or an assistant
-this.name = "Oolite Bounty Hunter AI";
+this.name = "Oolite Bounty Hunter Leader AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
@@ -38,7 +37,7 @@ this.aiStarted = function() {
 
 	ai.setCommunicationsRole("hunter");
 
-	ai.setPriorities([
+	var common = [
 		/* Fight */
 		{
 			condition: ai.conditionLosingCombat,
@@ -51,27 +50,11 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 5
 		},
-		/* Follow leader to witchspace */
-		{
-			condition: ai.conditionWitchspaceEntryRequested,
-			behaviour: ai.behaviourEnterWitchspace,
-			reconsider: 15
-		},
 		/* Check for distress calls */
 		{
 			condition: ai.conditionHasReceivedDistressCall,
 			behaviour: ai.behaviourRespondToDistressCall,
 			reconsider: 20
-		},
-		/* Regroup if necessary, but act relatively
-		 * independently. Bounty hunters are not like police
-		 * patrols. */
-		{
-			preconfiguration: ai.configurationAppointGroupLeader,
-			condition: ai.conditionGroupIsSeparated,
-			configuration: ai.configurationSetDestinationToGroupLeader,
-			behaviour: ai.behaviourApproachDestination,
-			reconsider: 15
 		},
 		/* Check for profitable targets */
 		{
@@ -100,24 +83,61 @@ this.aiStarted = function() {
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourCollectSalvage,
 			reconsider: 20
-		},
-		/* Check we're in a real system */
-		{
-			condition: ai.conditionInInterstellarSpace,
-			configuration: ai.configurationSelectWitchspaceDestination,
-			behaviour: ai.behaviourEnterWitchspace,
-			reconsider: 20
-		},
-		{
-			condition: ai.conditionIsGroupLeader,
-			truebranch: ai.templateLeadHuntingMission(),
-			/* then follow the group leader */
-			falsebranch: [
-				{
-					behaviour: ai.behaviourFollowGroupLeader,
-					reconsider: 15
-				}
-			],
 		}
-	]);
+	];
+	var specific;
+	if (this.ship.homeSystem == this.ship.destinationSystem)
+	{
+		// local patrol
+		specific = [
+			{
+				condition: ai.conditionGroupAttritionReached,
+				truebranch: ai.templateReturnToBase(),
+				falsebranch: ai.templateLeadHuntingMission()
+			}
+		];
+	}
+	else if (this.ship.homeSystem == system.ID && this.ship.fuel == 7)
+	{
+		// jump to destination system, taking group
+		specific = ai.templateWitchspaceJumpOutbound().concat(ai.templateReturnToBase());
+	}
+	else if (this.ship.homeSystem == system.ID)
+	{
+		// if not at full fuel, we're probably returning home. Or
+		// something went wrong when trying to enter witchspace that
+		// needed injectors to fix.
+		specific = ai.templateReturnToBase();
+	}
+	else
+	{
+		// patrol for a little bit, or until lose too many fighters,
+		// then jump home or return to base (unlike pirates, docking
+		// at local stations is okay if it's possible)
+		specific = [
+			{
+				condition: ai.conditionGroupAttritionReached,
+				truebranch: ai.templateWitchspaceJumpInbound()
+			},
+			{
+				condition: ai.conditionInInterstellarSpace,
+				truebranch: ai.templateWitchspaceJumpInbound(),
+				falsebranch: ai.templateLeadHuntingMission()
+			}
+		];
+	}
+
+	var fallback = [
+		{
+			// stuck in system and no friendly stations
+			configuration: ai.configurationSetDestinationToWitchpoint,
+			// TODO: behaviour search for wormholes
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 30
+		}
+	];
+
+	var priorities = common.concat(specific).concat(fallback);
+	ai.setPriorities(priorities);
+
 }

@@ -90,6 +90,10 @@ this.AILib = function(ship)
 	function _reconsiderList(priorities) {
 		var logging = this.getParameter("oolite_flag_behaviourLogging");
 		var pl = priorities.length;
+		if (pl == 0)
+		{
+			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had a branch with no entries. This may be caused by a template function not being executed during priority set up.");
+		}
 		if (logging)
 		{
 			log(this.ship.name,"Considering branch with "+pl+" entries");
@@ -560,7 +564,7 @@ AILib.prototype.cruiseSpeed = function()
 			var spd = gs[i].maxSpeed;
 			if (spd >= ignore && cruise > spd)
 			{	
-				cruise = spd;
+				cruise = spd*0.95;
 			}
 		}
 	}
@@ -4622,6 +4626,62 @@ AILib.prototype.responseComponent_trackPlayer_playerWillEnterWitchspace = functi
  * multiple AIs. These functions take no parameters and return a
  * list. This can either be used straightforwardly as a truebranch or
  * falsebranch value, or appended to a list using Array.concat() */
+
+AILib.prototype.templateLeadHuntingMission = function()
+{
+	return [
+		{
+			condition: this.conditionHasWaypoint,
+			configuration: this.configurationSetDestinationToWaypoint,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 30
+		},
+		{
+			condition: this.conditionHasSelectedStation,
+			truebranch: [
+				{
+					condition: this.conditionSelectedStationNearby,
+					configuration: this.configurationSetSelectedStationForDocking,
+					behaviour: this.behaviourDockWithStation,
+					reconsider: 30
+				},
+				{
+					condition: this.conditionSelectedStationNearMainPlanet,
+					truebranch: [
+						{
+							notcondition: this.conditionMainPlanetNearby,
+							configuration: this.configurationSetDestinationToMainPlanet,
+							behaviour: this.behaviourApproachDestination,
+							reconsider: 30
+						}
+					]
+				},
+				// either the station isn't near the planet, or we are
+				{
+					configuration: this.configurationSetDestinationToSelectedStation,
+					behaviour: this.behaviourApproachDestination,
+					reconsider: 30
+				}
+			]
+		},
+		{
+			condition: this.conditionMainPlanetNearby,
+			truebranch: [
+				{
+					condition: this.conditionPatrolIsOver,
+					configuration: this.configurationSelectRandomTradeStation,
+					behaviour: this.behaviourReconsider
+				}
+			]
+		},
+		/* No patrol route set up. Make one */
+		{
+			configuration: this.configurationSetWaypoint,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 30
+		}
+	];
+}
 
 AILib.prototype.templateLeadPirateMission = function()
 {

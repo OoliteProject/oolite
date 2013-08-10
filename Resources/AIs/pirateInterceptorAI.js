@@ -90,7 +90,7 @@ this.aiStarted = function() {
 		// jump to destination system independently of freighters
 		// (since interceptors are just added *with* them, not to
 		// their group)
-		specific = ai.templateWitchspaceJumpOutbound().concat(ai.templateReturnToBaseOrPlanet);
+		specific = ai.templateWitchspaceJumpOutbound().concat(ai.templateReturnToBaseOrPlanet());
 	}
 	else if (this.ship.homeSystem == system.ID)
 	{

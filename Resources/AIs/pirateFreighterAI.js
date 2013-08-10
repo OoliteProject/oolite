@@ -109,7 +109,7 @@ this.aiStarted = function() {
 	else if (this.ship.homeSystem == system.ID && this.ship.fuel == 7)
 	{
 		// jump to destination system, taking group
-		specific = ai.templateWitchspaceJumpOutbound().concat(ai.templateReturnToBaseOrPlanet);
+		specific = ai.templateWitchspaceJumpOutbound().concat(ai.templateReturnToBaseOrPlanet());
 	}
 	else if (this.ship.homeSystem == system.ID)
 	{

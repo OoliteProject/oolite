@@ -18,8 +18,8 @@
 	"asteroid"			= "dumbAI.plist";
 	"escort"			= "escortAI.js";
 	"hunter"			= "bountyHunterAI.js";
-	"hunter-medium"		= "bountyHunterAI.js";
-	"hunter-heavy"		= "bountyHunterAI.js";
+	"hunter-medium"		= "bountyHunterLeaderAI.js";
+	"hunter-heavy"		= "bountyHunterLeaderAI.js";
 	"interceptor"		= "policeAI.js";
 	"miner"				= "scavengerAI.js";
 	"pirate"			= "pirateAI.js";
