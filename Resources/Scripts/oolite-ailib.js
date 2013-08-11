@@ -2944,21 +2944,7 @@ AILib.prototype.behaviourStationManageTraffic = function()
 	var handlers = {};
 	this.responsesAddStation(handlers);
 	this.applyHandlers(handlers);
-	if (this.ship.hasNPCTraffic && (!system.sun || !system.sun.isGoingNova))
-	{
-		if (Math.random() < 0.3) 
-		{
-			var trader = this.ship.launchShipWithRole("trader");
-			trader.setCargoType("PLENTIFUL_GOODS");
-		}
-		if (Math.random() < 0.1)
-		{
-			this.ship.launchShuttle();
-		}
-		
-		// TODO: integrate with system repopulator rather than just
-		// launching ships at random
-	}
+	// does nothing special in this state, just waits around being a station
 }
 
 

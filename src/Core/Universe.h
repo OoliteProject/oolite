@@ -145,6 +145,8 @@ enum
 #define MIN_DISTANCE_TO_BUOY			750.0f // don't add ships within this distance
 #define MIN_DISTANCE_TO_BUOY2			(MIN_DISTANCE_TO_BUOY * MIN_DISTANCE_TO_BUOY)
 
+// if this is changed, also change oolite-populator.js
+// once this number has been in a stable release, cannot easily be changed
 #define SYSTEM_REPOPULATION_INTERVAL 20.0f;
 
 #ifndef OO_LOCALIZATION_TOOLS
