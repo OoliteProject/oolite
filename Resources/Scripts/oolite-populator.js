@@ -905,9 +905,12 @@ this.novaSystemWillPopulate = function()
 
 /* Ship addition functions */
 
+/* These functions use this._addShips/_addGroup so "pos" can either be
+ * a coordinate or a station, to simplify ship addition */
+
 this._addFreighter = function(pos)
 {
-	var t = system.addShips("trader",1,pos,0);
+	var t = this._addShips("trader",1,pos,0);
 	if (t[0])
 	{
 		if (Math.random() < 0.1)
@@ -922,10 +925,19 @@ this._addFreighter = function(pos)
 		{
 			t[0].bounty = 0;
 		}
-		t[0].homeSystem = this._weightedNearbyTradeSystem();
-		this._setFuel(t[0]);
-		t[0].destinationSystem = system.ID;
-		t[0].setCargoType("SCARCE_GOODS");
+		if (pos.isStation)
+		{
+			t[0].homeSystem = system.ID;
+			t[0].destinationSystem = this._weightedNearbyTradeSystem();
+			t[0].setCargoType("PLENTIFUL_GOODS");
+		}
+		else
+		{
+			t[0].homeSystem = this._weightedNearbyTradeSystem();
+			this._setFuel(t[0]);
+			t[0].destinationSystem = system.ID;
+			t[0].setCargoType("SCARCE_GOODS");
+		}
 	}
 }
 
@@ -934,11 +946,11 @@ this._addCourier = function(pos)
 {
 	if (this._roleExists("trader-courier"))
 	{
-		var t = system.addShips("trader-courier",1,pos,0);
+		var t = this._addShips("trader-courier",1,pos,0);
 	}
 	else
 	{
-		var t = system.addShips("trader",1,pos,0);
+		var t = this._addShips("trader",1,pos,0);
 	}
 	t[0].bounty = 0;
 	t[0].heatInsulation = 6;
@@ -961,10 +973,19 @@ this._addCourierShort = function(pos)
 	if (t[0])
 	{
 		// don't need to worry at this stage where it came from before that
-		t[0].homeSystem = this._nearbySystem(7);
-		this._setFuel(t[0]);
-		t[0].destinationSystem = system.ID;
-		t[0].setCargoType("SCARCE_GOODS");
+		if (pos.isStation)
+		{
+			t[0].destinationSystem = this._nearbySystem(7);
+			t[0].homeSystem = system.ID;
+			t[0].setCargoType("PLENTIFUL_GOODS");
+		}
+		else
+		{
+			t[0].homeSystem = this._nearbySystem(7);
+			this._setFuel(t[0]);
+			t[0].destinationSystem = system.ID;
+			t[0].setCargoType("SCARCE_GOODS");
+		}
 	}
 }
 
@@ -974,11 +995,20 @@ this._addCourierLong = function(pos)
 	var t = this._addCourier(pos);
 	if (t[0])
 	{
-		// don't need to worry at this stage where it came from before that
-		t[0].homeSystem = this._nearbySystem(7);
-		this._setFuel(t[0]);
-		t[0].destinationSystem = this._nearbySystem(25);
-		t[0].setCargoType("SCARCE_GOODS");
+		if (pos.isStation)
+		{
+			t[0].destinationSystem = this._nearbySystem(25);
+			t[0].homeSystem = system.ID;
+			t[0].setCargoType("PLENTIFUL_GOODS");
+		}
+		else
+		{
+			// don't need to worry at this stage where it came from before that
+			t[0].homeSystem = this._nearbySystem(7);
+			this._setFuel(t[0]);
+			t[0].destinationSystem = this._nearbySystem(25);
+			t[0].setCargoType("SCARCE_GOODS");
+		}
 	}
 }
 
@@ -987,18 +1017,26 @@ this._addSmuggler = function(pos)
 {
 	if (this._roleExists("trader-smuggler"))
 	{
-		var t = system.addShips("trader-smuggler",1,pos,0);
+		var t = this._addShips("trader-smuggler",1,pos,0);
 	}
 	else
 	{
-		var t = system.addShips("trader",1,pos,0);
+		var t = this._addShips("trader",1,pos,0);
 	}
 	if (t[0])
 	{
 		t[0].bounty = Math.ceil(Math.random()*20);
-		t[0].homeSystem = this._nearbySystem(7);
-		this._setFuel(t[0]);
-		t[0].destinationSystem = system.ID;
+		if (pos.isStation)
+		{
+			t[0].destinationSystem = this._nearbySystem(7);
+			t[0].homeSystem = system.ID;
+		}
+		else
+		{
+			t[0].homeSystem = this._nearbySystem(7);
+			this._setFuel(t[0]);
+			t[0].destinationSystem = system.ID;
+		}
 		t[0].setCargoType("ILLEGAL_GOODS");
 		t[0].awardEquipment("EQ_FUEL_INJECTION"); // smugglers always have injectors
 	}
@@ -1007,20 +1045,13 @@ this._addSmuggler = function(pos)
 
 this._addLightHunter = function(pos)
 {
-	var h = system.addGroup("hunter",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+2,pos,2E3);
+	var h = this._addGroup("hunter",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+2,pos,2E3);
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
-		h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
 	}
-}
-
-
-this._addMediumHunterLocal = function(pos)
-{
-	this._addHunterPack(pos,system.ID,system.ID,"hunter-heavy");
 }
 
 
@@ -1030,16 +1061,9 @@ this._addMediumHunterRemote = function(pos)
 }
 
 
-// tmp for testing
 this._addMediumHunterOutbound = function(pos)
 {
 	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-medium");
-}
-
-
-this._addHeavyHunterLocal = function(pos)
-{
-	this._addHunterPack(pos,system.ID,system.ID,"hunter-medium");
 }
 
 
@@ -1049,7 +1073,6 @@ this._addHeavyHunterRemote = function(pos)
 }
 
 
-// tmp for testing
 this._addHeavyHunterOutbound = function(pos)
 {
 	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-heavy");
@@ -1060,11 +1083,11 @@ this._addHunterPack = function(pos,home,dest,role)
 {
 	if (this._roleExists(role))
 	{
-		var t = system.addShips(role,1,pos,0);
+		var t = this._addShips(role,1,pos,0);
 	}
 	else
 	{
-		var t = system.addShips("hunter",1,pos,0);
+		var t = this._addShips("hunter",1,pos,0);
 	}
 	if (t[0])
 	{
@@ -1076,7 +1099,7 @@ this._addHunterPack = function(pos,home,dest,role)
 		var group = new ShipGroup("hunter group",t[0]);
 		t[0].group = group;
 
-		var hs = system.addShips("hunter",1+Math.floor(Math.random()*4)+Math.floor(Math.random()*4),pos,3E3);
+		var hs = this._addShips("hunter",1+Math.floor(Math.random()*4)+Math.floor(Math.random()*4),pos,3E3);
 		for (var i = 0; i<hs.length; i++)
 		{
 			hs[i].group = group;
@@ -1098,7 +1121,7 @@ this._addIndependentPirate = function(pos)
 	{
 		size = 1+Math.floor(Math.random()*size);
 	}
-	var pg = system.addGroup("pirate",size,pos,2.5E3);
+	var pg = this._addGroup("pirate",size,pos,2.5E3);
 	for (var i=0;i<pg.ships.length;i++)
 	{
 		pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
@@ -1106,15 +1129,15 @@ this._addIndependentPirate = function(pos)
 }
 
 
-this._addPirateAssistant = function(role,lead)
+this._addPirateAssistant = function(role,lead,pos)
 {
 	if (this._roleExists(role))
 	{
-		var asst = system.addShips(role,1,lead.position,4E3);
+		var asst = this._addShips(role,1,pos,4E3);
 	}
 	else
 	{
-		var asst = system.addShips("pirate",1,lead.position,4E3);
+		var asst = this._addShips("pirate",1,pos,4E3);
 	}
 	asst[0].homeSystem = lead.homeSystem;
 	asst[0].destinationSystem = lead.destinationSystem;
@@ -1139,12 +1162,12 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination)
 {
 	if (this._roleExists(leader))
 	{
-		var lead = system.addShips(leader,1,pos,0);		
+		var lead = this._addShips(leader,1,pos,0);		
 	}
 	else
 	{
 		log(this.name,"Tried to add "+leader+" but no ships of that role found");
-		var lead = system.addShips("pirate",1,pos,0);		
+		var lead = this._addShips("pirate",1,pos,0);		
 	}
 	lead[0].setBounty(60+system.government+Math.floor(Math.random()*8),"setup actions");
 	lead[0].homeSystem = home;
@@ -1154,19 +1177,19 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination)
 	lead[0].group = group;
 	for (var i = Math.floor(lf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
-		this._addPirateAssistant("pirate-light-fighter",lead[0]);
+		this._addPirateAssistant("pirate-light-fighter",lead[0],pos);
 	}
 	for (var i = Math.floor(mf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
-		this._addPirateAssistant("pirate-medium-fighter",lead[0]);
+		this._addPirateAssistant("pirate-medium-fighter",lead[0],pos);
 	}
 	for (var i = Math.floor(hf+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
-		this._addPirateAssistant("pirate-heavy-fighter",lead[0]);
+		this._addPirateAssistant("pirate-heavy-fighter",lead[0],pos);
 	}
 	for (var i = Math.floor(thug+(0.5+Math.random()-Math.random())); i > 0; i--)
 	{
-		this._addPirateAssistant("pirate-interceptor",lead[0]);
+		this._addPirateAssistant("pirate-interceptor",lead[0],pos);
 	}
 	lead[0].awardEquipment("EQ_SHIELD_BOOSTER");
 	lead[0].awardEquipment("EQ_ECM");
@@ -1254,7 +1277,7 @@ this._addPolicePatrol = function(pos)
 	{
 		role = "interceptor";
 	}
-	var h = system.addGroup(role,Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+2,pos,2E3);
+	var h = this._addGroup(role,Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+2,pos,2E3);
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
@@ -1267,7 +1290,7 @@ this._addPolicePatrol = function(pos)
 
 this._addInterceptors = function(pos)
 {
-	var h = system.addGroup("interceptor",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+1+Math.ceil(system.info.techlevel/6),pos,2E3);
+	var h = this._addGroup("interceptor",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+1+Math.ceil(system.info.techlevel/6),pos,2E3);
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
@@ -1281,13 +1304,13 @@ this._addInterceptors = function(pos)
 
 this._addThargoidScout = function(pos)
 {
-	system.addShips("thargoid",1,pos,0);
+	this._addShips("thargoid",1,pos,0);
 }
 
 
 this._addThargoidStrike = function(pos)
 {
-	system.addShips("thargoid",Math.floor(5+Math.random()*4),pos,10E3);
+	this._addShips("thargoid",Math.floor(5+Math.random()*4),pos,10E3);
 }
 
 /* Utility functions */
@@ -1324,6 +1347,91 @@ this._setFuel = function(ship)
 	}
 }
 
+this._addShips = function(role,num,pos,spread)
+{
+	if (pos.isStation)
+	{
+		var result = [];
+		for (var i = 0 ; i < num ; i++)
+		{
+			result.push(pos.launchShipWithRole(role));
+		}
+		return result;
+	}
+	else if (pos.isPlanet)
+	{
+		var result = system.addShips(role,num,pos,spread);
+		this._repositionForLaunch(pos,result);
+		return result;
+	}
+	else
+	{
+		return system.addShips(role,num,pos,spread);
+	}
+}
+
+this._addGroup = function(role,num,pos,spread)
+{
+	if (pos.isStation)
+	{
+		var group = new ShipGroup;
+		for (var i = 0 ; i < num ; i++)
+		{
+			var ship = pos.launchShipWithRole(role);
+			ship.group = group;
+			group.addShip(ship);
+		}
+		return group;
+	}
+	else if (pos.isPlanet)
+	{
+		var result = system.addGroup(role,num,pos,spread);
+		this._repositionForLaunch(pos,result.ships);
+		return result;
+	}
+	else
+	{
+		return system.addGroup(role,num,pos,spread);
+	}
+}
+
+
+this._repositionForLaunch = function(planet,ships)
+{
+	var launchvector;
+	var launchpos;
+	if (planet != system.mainPlanet)
+	{
+		launchvector = Vector3D.randomDirection();
+	}
+	else
+	{
+		if (system.sun.position.subtract(planet.position).dot(system.mainStation.position.subtract(planet.position)) < 0)
+		{
+			// sun and station on opposite sides of planet; best sneak
+			// vector probably the cross product
+			launchvector = system.sun.position.subtract(planet.position).cross(system.mainStation.position.subtract(planet.position)).direction();
+		}
+		else
+		{
+			// sun and station on same side of planet; best sneak
+			// vector probably the negative normalisation of the
+			// average
+			launchvector = system.sun.position.subtract(planet.position).direction().add(system.mainStation.position.subtract(planet.position).direction()).direction().multiply(-1);
+		}
+	}
+	launchpos = planet.position.add(launchvector.multiply(planet.radius+125));
+	for (var i=ships.length -1 ; i >= 0 ; i--)
+	{
+		var cross = launchvector.cross(Vector3D.randomDirection()).multiply(15000); // perpendicular to surface
+		launchvector = launchpos.add(cross).direction();
+		launchpos = planet.position.add(launchvector.multiply(planet.radius+250));
+		ships[i].position = launchpos;
+		ships[i].orientation = launchvector.rotationTo([0, 0, 1]);
+		ships[i].velocity = ships[i].vectorForward.multiply(ships[i].maxSpeed);
+	}
+}
+
 /* System selectors */
 
 this._nearbySystem = function(range)
@@ -1340,10 +1448,10 @@ this._nearbySystem = function(range)
 this._nearbyDangerousSystem = function(gov)
 {
 	var poss = this.$populatorVeryLocals;
+	var id = system.ID;
 	if (poss.length > 0)
 	{
 		var found = 0;
-		var id = system.ID
 		for (var i = 0 ; i < poss.length ; i++)
 		{
 			if (poss[i].government <= gov)
@@ -1363,10 +1471,10 @@ this._nearbyDangerousSystem = function(gov)
 this._nearbySafeSystem = function(gov)
 {
 	var poss = this.$populatorVeryLocals;
+	var id = system.ID;
 	if (poss.length > 0)
 	{
 		var found = 0;
-		var id = system.ID
 		for (var i = 0 ; i < poss.length ; i++)
 		{
 			if (poss[i].government >= gov)

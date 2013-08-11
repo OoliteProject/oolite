@@ -2031,7 +2031,7 @@ AILib.prototype.behaviourApproachDestination = function()
 	if (waypoints != null)
 	{
 		this.ship.destination = waypoints[waypoints.length-1];
-		this.ship.desiredRange = 1000;
+		this.ship.desiredRange = 100;
 	}
 	var blocker = this.ship.checkCourseToDestination();
 	if (blocker)
@@ -2041,7 +2041,18 @@ AILib.prototype.behaviourApproachDestination = function()
 			// the selected planet can't block
 			if (blocker.isSun || this.getParameter("oolite_selectedPlanet") != blocker)
 			{
-				if (this.distance(blocker) < blocker.radius * 3)
+				var dist = this.distance(blocker);
+				if (dist < blocker.radius * 1.3)
+				{
+					if (waypoints == null)
+					{
+						waypoints = [];
+					}
+					waypoints.push(this.ship.position.subtract(blocker.position.subtract(this.ship.position)));
+					this.ship.destination = waypoints[waypoints.length-1];
+					this.ship.desiredRange = 100;
+				}
+				else if (this.distance(blocker) < blocker.radius * 3)
 				{
 					if (waypoints == null)
 					{
@@ -2049,7 +2060,7 @@ AILib.prototype.behaviourApproachDestination = function()
 					}
 					waypoints.push(this.ship.getSafeCourseToDestination());
 					this.ship.destination = waypoints[waypoints.length-1];
-					this.ship.desiredRange = 1000;
+					this.ship.desiredRange = 100;
 				}
 			}
 		}
@@ -2066,7 +2077,7 @@ AILib.prototype.behaviourApproachDestination = function()
 					}
 					waypoints.push(this.ship.getSafeCourseToDestination());
 					this.ship.destination = waypoints[waypoints.length-1];
-					this.ship.desiredRange = 1000;
+					this.ship.desiredRange = 100;
 				}
 			}
 		}
@@ -2293,7 +2304,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 		// wait for escorts to launch
 		if (!this.conditionAllEscortsInFlight())
 		{
-			this.ship.destination = this.ship.position;
+			this.ship.destination = this.ship.position.add(this.ship.vectorForward.multiply(30000));
 			this.ship.desiredRange = 10000;
 			this.ship.desiredSpeed = this.cruiseSpeed();
 			if (this.ship.checkCourseToDestination())
@@ -2321,7 +2332,7 @@ AILib.prototype.behaviourEnterWitchspace = function()
 				this.communicate("oolite_engageWitchspaceDrive",{},4);
 				this.setParameter("oolite_witchspaceEntry",clock.seconds + 15);
 			}
-			this.ship.destination = this.ship.position;
+			this.ship.destination = this.ship.position.add(this.ship.vectorForward.multiply(30000));
 			this.ship.desiredRange = 10000;
 			this.ship.desiredSpeed = this.cruiseSpeed();
 			if (this.ship.checkCourseToDestination())
@@ -2451,7 +2462,7 @@ AILib.prototype.behaviourFollowGroupLeader = function()
 	else
 	{
 		this.ship.destination = this.ship.group.leader.position;
-		this.ship.desiredRange = 2000+Math.random()*2000;
+		this.ship.desiredRange = 500+Math.random()*1000;
 		this.ship.desiredSpeed = this.ship.maxSpeed;
 		this.behaviourApproachDestination();
 	}
@@ -3444,34 +3455,44 @@ AILib.prototype.configurationSetDestinationToPirateLurk = function()
 	}
 	else
 	{
-		var code = "WITCHPOINT";
-		var p = this.ship.position;
-		// if already on a lane, stay on it
-		if (p.z < system.mainPlanet.position.z && ((p.x * p.x) + (p.y * p.y)) < this.scannerRange * this.scannerRange * 4)
+		if (this.distance(system.sun) > system.sun.radius*3 && this.distance(system.mainPlanet) > system.mainPlanet.radius * 3)
 		{
-			lurk = p;
+			var p = this.ship.position;
+			// if already on a lane, stay on it
+			if (p.z < (system.mainPlanet.position.z - system.mainPlanet.radius*2) && ((p.x * p.x) + (p.y * p.y)) < this.scannerRange * this.scannerRange * 4)
+			{
+				lurk = p;
+			}
+			else if (p.subtract(system.mainPlanet).direction().dot(p.subtract(system.sun).direction()) < -0.9)
+			{
+				lurk = p;
+			}
+			else if (p.direction().dot(system.sun.position.direction()) > 0.9)
+			{
+				lurk = p;
+			}
 		}
-		else if (p.subtract(system.mainPlanet).dot(p.subtract(system.sun)) < -0.9)
+		if (lurk == null)
 		{
-			lurk = p;
-		}
-		else if (p.dot(system.sun.position) > 0.9)
-		{
-			lurk = p;
-		}
-		else // not on a lane, so pick somewhere at random
-		{
+			// not on a lane, or too close to a sun/planet
+			var code;
 			var choice = Math.random();
-			if (choice < 0.8)
+			if (choice < 0.7)
 			{
 				code = "LANE_WP";
 			}
-			else
+			else if (choice < 0.8)
 			{
 				code = "LANE_PS";
 			}
-			// code = "LANE_WS"? "WITCHPOINT"? 
-			// what about other locations in less policed systems?
+			else if (choice < 0.9)
+			{
+				code = "LANE_WS";
+			}
+			else
+			{
+				code = "WITCHPOINT";
+			}
 			lurk = system.locationFromCode(code);
 		}
 		this.setParameter("oolite_pirateLurk",lurk);
