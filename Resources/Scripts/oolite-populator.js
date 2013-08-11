@@ -548,7 +548,7 @@ this.systemWillPopulate = function()
 							priority: 10,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
-							callback: this._addMediumHunter.bind(this)
+							callback: this._addMediumHunterRemote.bind(this)
 						});
 	initial = hmedium * l3length/900000 * (2/3) * 1/3;
 	system.setPopulator("oolite-hunters-medium-route3",
@@ -556,7 +556,7 @@ this.systemWillPopulate = function()
 							priority: 10,
 							location: "LANE_WS",
 							groupCount: randomise(initial),
-							callback: this._addMediumHunter.bind(this)
+							callback: this._addMediumHunterRemote.bind(this)
 						});
 
 	initial = hheavy * l1length/900000 * (2/3) * 2/3;
@@ -565,7 +565,7 @@ this.systemWillPopulate = function()
 							priority: 10,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
-							callback: this._addHeavyHunter.bind(this)
+							callback: this._addHeavyHunterRemote.bind(this)
 						});
 
 	initial = hheavy * l3length/900000 * (2/3) * 1/3;
@@ -574,7 +574,7 @@ this.systemWillPopulate = function()
 							priority: 10,
 							location: "LANE_WS",
 							groupCount: randomise(initial),
-							callback: this._addHeavyHunter.bind(this)
+							callback: this._addHeavyHunterRemote.bind(this)
 						});
 
 	// pirates
@@ -1018,50 +1018,49 @@ this._addLightHunter = function(pos)
 }
 
 
-this._addMediumHunter = function(pos)
+this._addMediumHunterLocal = function(pos)
 {
-	if (this._roleExists("hunter-medium"))
-	{
-		var t = system.addShips("hunter-medium",1,pos,0);
-	}
-	else
-	{
-		var t = system.addShips("hunter",1,pos,0);
-	}
-	if (t[0])
-	{
-		t[0].bounty = 0;
-		var s = this._nearbySafeSystem(6);
-		if (s)
-		{
-			t[0].homeSystem = s;
-		}
-		this._setFuel(t[0]);
-		t[0].destinationSystem = system.ID;
-
-		var group = new ShipGroup("hunter group",t[0]);
-		t[0].group = group;
-
-		var hs = system.addShips("hunter",1+Math.floor(Math.random()*4),pos,3E3);
-		for (var i = 0; i<hs.length; i++)
-		{
-			hs[i].group = group;
-			group.addShip(hs[i]);
-			hs[i].bounty = 0;
-			hs[i].fuel = 7;
-			hs[i].homeSystem = t[0].homeSystem;
-			hs[i].destinationSystem = t[0].destinationSystem;
-		}
-
-	}
+	this._addHunterPack(pos,system.ID,system.ID,"hunter-heavy");
 }
 
 
-this._addHeavyHunter = function(pos)
+this._addMediumHunterRemote = function(pos)
 {
-	if (this._roleExists("hunter-heavy"))
+	this._addHunterPack(pos,this._nearbySafeSystem(2),system.ID,"hunter-heavy");
+}
+
+
+// tmp for testing
+this._addMediumHunterOutbound = function(pos)
+{
+	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-medium");
+}
+
+
+this._addHeavyHunterLocal = function(pos)
+{
+	this._addHunterPack(pos,system.ID,system.ID,"hunter-medium");
+}
+
+
+this._addHeavyHunterRemote = function(pos)
+{
+	this._addHunterPack(pos,this._nearbySafeSystem(2),system.ID,"hunter-medium");
+}
+
+
+// tmp for testing
+this._addHeavyHunterOutbound = function(pos)
+{
+	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-heavy");
+}
+
+
+this._addHunterPack = function(pos,home,dest,role)
+{
+	if (this._roleExists(role))
 	{
-		var t = system.addShips("hunter-heavy",1,pos,0);
+		var t = system.addShips(role,1,pos,0);
 	}
 	else
 	{
@@ -1070,14 +1069,10 @@ this._addHeavyHunter = function(pos)
 	if (t[0])
 	{
 		t[0].bounty = 0;
-		var s = this._nearbySafeSystem(2);
-		if (s)
-		{
-			t[0].homeSystem = s;
-		}
+		t[0].homeSystem = home;
 		this._setFuel(t[0]);
-		t[0].destinationSystem = system.ID;
-
+		t[0].destinationSystem = dest;
+		
 		var group = new ShipGroup("hunter group",t[0]);
 		t[0].group = group;
 
@@ -1091,6 +1086,7 @@ this._addHeavyHunter = function(pos)
 			hs[i].homeSystem = t[0].homeSystem;
 			hs[i].destinationSystem = t[0].destinationSystem;
 		}
+		t[0].switchAI("bountyHunterLeaderAI.js");
 	}
 }
 
@@ -1202,6 +1198,8 @@ this._addLightPirateRemote = function(pos)
 }
 
 
+// tmp for testing (needs adjusting to simulate planetary launch *or*
+// use a suitable friendly station)
 this._addLightPirateOutbound = function(pos)
 {
 	var lead = this._addPiratePack(pos,"pirate-light-freighter",2,1,-1,0,system.ID,this._nearbySafeSystem(system.info.government+1));
@@ -1220,7 +1218,8 @@ this._addMediumPirateRemote = function(pos)
 	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1,this._nearbyDangerousSystem(Math.min(system.info.government-1,3)),system.ID);
 }
 
-
+// tmp for testing (needs adjusting to simulate planetary launch *or*
+// use a suitable friendly station)
 this._addMediumPirateOutbound = function(pos)
 {
 	var lead = this._addPiratePack(pos,"pirate-medium-freighter",3,2,0,1,system.ID,this._nearbySafeSystem(system.info.government+1));
@@ -1240,6 +1239,8 @@ this._addHeavyPirateRemote = function(pos)
 }
 
 
+// tmp for testing (needs adjusting to simulate planetary launch *or*
+// use a suitable friendly station)
 this._addHeavyPirateOutbound = function(pos)
 {
 	var lead = this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2,system.ID,this._nearbySafeSystem(system.info.government+1));
