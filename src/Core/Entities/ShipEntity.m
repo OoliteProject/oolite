@@ -9391,19 +9391,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	double reverse = (retreat)? -1.0: 1.0;
 
-	double min_d = 0.004;
+	double min_d = 0.004; // ~= 40m at 10km
 	int max_factor = 8;
 	double r_max_factor = 0.125;
-	if (!retreat && accuracy >= COMBAT_AI_TRACKS_CLOSER && magnitude(relPos) > COMBAT_OUT_RANGE_FACTOR * weaponRange)
+	if (!retreat && accuracy >= COMBAT_AI_TRACKS_CLOSER)
 	{ 
-// greater precision at long range (unhelpful at short range with high
-// relative angular speed)
+		// much greater precision in combat
 		if (max_flight_pitch > 1.0)
 		{
 			max_factor = floor(max_flight_pitch/0.125);
 			r_max_factor = 1.0/max_factor;
 		}
-		min_d = 0.0004; // 10 times more precision
+		min_d = 0.0004; // 10 times more precision ~= 4m at 10km
 		max_factor *= 3;
 		r_max_factor /= 3.0;
 	}
