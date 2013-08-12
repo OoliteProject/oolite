@@ -35,11 +35,16 @@ this.aiStarted = function() {
 	ai.setParameter("oolite_flag_listenForDistressCall",true);
 	ai.setParameter("oolite_flag_markOffenders",true);
 
-	if (this.ship.primaryRole == "police-station-patrol") // TODO: some way to determine whether this ship should launch as station patrol
+	if (this.ship.primaryRole == "police-station-patrol") 
 	{
 		ai.setParameter("oolite_leaderRole","police-station-patrol");
 		ai.setWaypointGenerator(ai.waypointsStationPatrol);
 		ai.setParameter("oolite_flag_patrolStation",true);
+	}
+	else if (this.ship.primaryRole == "police-witchpoint-patrol") 
+	{
+		ai.setParameter("oolite_leaderRole","police-witchpoint-patrol");
+		ai.setWaypointGenerator(ai.waypointsWitchpointPatrol);
 	}
 	else
 	{
@@ -118,6 +123,10 @@ this.aiStarted = function() {
 					behaviour: ai.behaviourApproachDestination,
 					reconsider: 30
 				},
+				{
+					condition: ai.conditionPatrolIsOver,
+					truebranch: ai.templateReturnToBase()
+				},
 				/* No patrol route set up. Make one */
 				{
 					configuration: ai.configurationSetWaypoint,
@@ -138,6 +147,15 @@ this.aiStarted = function() {
 							configuration: ai.configurationSetDestinationToWaypoint,
 							behaviour: ai.behaviourApproachDestination,
 							reconsider: 30
+						},
+						{
+							condition: ai.conditionPatrolIsOver,
+							truebranch: [
+								{
+									condition: ai.conditionMainPlanetNearby,
+									truebranch: ai.templateReturnToBase()
+								}
+							]
 						},
 						/* No patrol route set up. Make one */
 						{

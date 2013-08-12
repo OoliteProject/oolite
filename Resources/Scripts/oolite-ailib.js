@@ -362,7 +362,7 @@ this.AILib = function(ship)
 		var template = worldScripts["oolite-libPriorityAI"]._getCommunication(commsRole,commsPersonality,key);
 		if (template != "")
 		{
-			if (params.isShip)
+			if (params && params.isShip)
 			{
 				params = this.entityCommsParams(params);
 			}
@@ -5016,6 +5016,39 @@ AILib.prototype.waypointsStationPatrol = function()
 	this.setParameter("oolite_waypointRange",100);
 
 }
+
+
+AILib.prototype.waypointsWitchpointPatrol = function()
+{
+	if (this.ship.distanceTravelled > system.mainPlanet.position.z + 200000)
+	{
+		this.setParameter("oolite_waypoint",system.mainStation.position);
+		this.setParameter("oolite_waypointRange",10000);
+	}
+	else
+	{
+		var waypoints = [
+			new Vector3D(15E3,0,5E3),
+			new Vector3D(0,15E3,-5E3),
+			new Vector3D(-15E3,0,5E3),
+			new Vector3D(0,-15E3,-5E3)
+		];
+		
+		var waypoint = waypoints[0];
+		for (var i=0;i<=3;i++)
+		{
+			if (this.distance(waypoints[i]) < 500)
+			{
+				waypoint = waypoints[(i+1)%4];
+				break;
+			}
+		}
+		this.setParameter("oolite_waypoint",waypoint);
+		this.setParameter("oolite_waypointRange",100);
+	}
+
+}
+
 
 /* ********** Communications data ****************/
 

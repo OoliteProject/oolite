@@ -1550,10 +1550,11 @@ this._addInterceptors = function(pos)
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
-		// h.ships[i].switchAI("policeWitchpointPatrolAI.js");
+		h.ships[i].primaryRole = "police-witchpoint-patrol";
+		h.ships[i].maxEscorts = 16;
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
-		h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
+		h.ships[i].switchAI("policeAI.js");
 	}
 }
 
