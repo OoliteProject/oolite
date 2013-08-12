@@ -3935,7 +3935,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return;
 	}
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
+
 	desired_speed = max_available_speed;
+
 	ShipEntity*	target = [self primaryTarget];
 
 	if (desired_speed > maxFlightSpeed)
@@ -4117,7 +4119,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
-	desired_speed = max_available_speed;
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
 
@@ -4758,7 +4759,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			destination = [target distance_twelve:1250 withOffset:0];
 		}
 	}
-	
+
 	pitching_over = NO; // in case it's set from elsewhere
 	double confidenceFactor = [self trackDestination:delta_t :NO];
 	
@@ -4856,7 +4857,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
-	double	back_off_range = weaponRange * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
+	double	back_off_range = 10000 * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	double target_speed = [target speed];
 	double aspect = [self approachAspectToPrimaryTarget];
 
@@ -4864,16 +4865,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (range < back_off_range)
 		{
-			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTarget] == self || aspect > 0.8 || aim_tolerance*range > COMBAT_AI_CONFIDENCE_FACTOR)
+			if (accuracy < COMBAT_AI_IS_SMART || ([target primaryTarget] == self && aspect > 0.8) || aim_tolerance*range > COMBAT_AI_CONFIDENCE_FACTOR)
 			{
 				if (accuracy >= COMBAT_AI_FLEES_BETTER && aspect > 0.8)
 				{
-					desired_speed = fmax(target_speed * 1.05, 0.8 * maxFlightSpeed);
+					desired_speed = fmax(target_speed * 1.25, 0.8 * maxFlightSpeed);
 					// stay at high speed if might be taking return fire
 				}
 				else
 				{
 					desired_speed = fmax(target_speed * 1.05, 0.25 * maxFlightSpeed);   // within the weapon's range match speed
+
 				}
 			}
 			else
@@ -4883,9 +4885,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		else
 		{
-			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTarget] == self || range > weaponRange)
+			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTarget] == self || range > weaponRange / 2.0)
 			{
-				desired_speed = fmax(target_speed * 1.25, maxFlightSpeed);
+				desired_speed = fmax(target_speed * 1.5, maxFlightSpeed);
 			}
 			else
 			{ // smart, and not being shot at right now - slow down to attack
@@ -4895,14 +4897,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				}
 				else
 				{
-					desired_speed = fmax(1.05 * target_speed, 0.5 * maxFlightSpeed);
+					desired_speed = fmax(1.25 * target_speed, 0.5 * maxFlightSpeed);
 				}
 			}
 		}
 	}
 	else
 	{
-		desired_speed = max_available_speed; // use afterburner to approach
+		desired_speed = fmax(maxFlightSpeed,fmin(3.0 * target_speed, max_available_speed)); // possibly use afterburner to approach
 	}
 
 
