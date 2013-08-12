@@ -2275,7 +2275,7 @@ NSDictionary *OOJSDictionaryFromStringTable(JSContext *context, jsval tableValue
 	id							objKey = nil;
 	id							objValue = nil;
 	
-	if (EXPECT_NOT(!JS_ValueToObject(context, tableValue, &tableObject)))
+	if (EXPECT_NOT(JSVAL_IS_NULL(tableValue) || !JS_ValueToObject(context, tableValue, &tableObject)))
 	{
 		return nil;
 	}
