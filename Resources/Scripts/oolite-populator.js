@@ -1574,19 +1574,19 @@ this._addThargoidStrike = function(pos)
 
 this._debug = function(msg)
 {
-	log("universe.populator.information",msg);
+	log("universe.populate.information",msg);
 }
 
 
 this._debugP = function(gtype,ct)
 {
-	log("universe.populator.information",gtype+": "+ct);
+	log("universe.populate.information",gtype+": "+ct);
 }
 
 
 this._debugR = function(msg)
 {
-	log("universe.populator.repopulate",msg);
+	log("universe.populate.repopulate",msg);
 }
 
 
