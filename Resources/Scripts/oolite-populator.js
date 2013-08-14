@@ -1357,6 +1357,10 @@ this._addIndependentPirate = function(pos)
 	for (var i=0;i<pg.ships.length;i++)
 	{
 		pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
+		if (!pos.isStation && !pos.isPlanet)
+		{
+			pg.ships[i].setCargoType("PIRATE_GOODS");
+		}
 	}
 }
 
@@ -1442,6 +1446,22 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 	else
 	{
 		this._setReturnFuel(lead[0]);
+	}
+	if (lead[0].escortGroup)
+	{
+		var eg = lead[0].escortGroup.ships;
+		for (var i = 0; i < eg.length; i++)
+		{
+			if (eg[i] != lead[0])
+			{
+				// ensure freighter escorts have a bounty
+				eg[i].bounty |= 3+Math.floor(Math.random()*12);
+			}
+		}
+	}
+	if (!pos.isStation && !pos.isPlanet)
+	{
+		lead[0].setCargoType("PIRATE_GOODS");
 	}
 	lead[0].switchAI("pirateFreighterAI.js");
 	return lead[0];

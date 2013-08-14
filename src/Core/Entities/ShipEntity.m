@@ -7582,8 +7582,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if (cargo_flag != flag)
 	{
 		cargo_flag = flag;
-		NSArray *newCargo;
-		unsigned num;
+		NSArray *newCargo = nil;
+		unsigned num = 0;
 		if (likely_cargo > 0)
 		{
 			num = likely_cargo * (0.5+randf());
@@ -7604,33 +7604,36 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			 * thousands of pods - even if they are semi-virtual - for some
 			 * massive OXP ship */
 		}
-		switch (cargo_flag)
+		if (num > 0)
 		{
-		case CARGO_FLAG_FULL_UNIFORM:
-			newCargo = [UNIVERSE getContainersOfCommodity:[shipinfoDictionary oo_stringForKey:@"cargo_carried"] :num];
-			break;
-			// TODO: PLENTIFUL AND SCARCE shouldn't contain illegal goods
-		case CARGO_FLAG_FULL_PLENTIFUL:
-			newCargo = [UNIVERSE getContainersOfGoods:num scarce:NO];
-			break;
-		case CARGO_FLAG_FULL_SCARCE:
-			newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES];
-			break;
-		case CARGO_FLAG_FULL_MEDICAL:
-			newCargo = [UNIVERSE getContainersOfCommodity:@"Narcotics" :num];
-			break;
-		case CARGO_FLAG_FULL_CONTRABAND:
-			// TODO: mixed contraband
-			newCargo = [UNIVERSE getContainersOfCommodity:@"Firearms" :num];
-			break;
-		case CARGO_FLAG_PIRATE:
-			newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % num) scarce:YES];
-			break;
-		case CARGO_FLAG_FULL_PASSENGERS:
-			// TODO: allow passengers to survive
-		case CARGO_FLAG_NONE:
-		default:
-			break;
+			switch (cargo_flag)
+			{
+			case CARGO_FLAG_FULL_UNIFORM:
+				newCargo = [UNIVERSE getContainersOfCommodity:[shipinfoDictionary oo_stringForKey:@"cargo_carried"] :num];
+				break;
+				// TODO: PLENTIFUL AND SCARCE shouldn't contain illegal goods
+			case CARGO_FLAG_FULL_PLENTIFUL:
+				newCargo = [UNIVERSE getContainersOfGoods:num scarce:NO];
+				break;
+			case CARGO_FLAG_FULL_SCARCE:
+				newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES];
+				break;
+			case CARGO_FLAG_FULL_MEDICAL:
+				newCargo = [UNIVERSE getContainersOfCommodity:@"Narcotics" :num];
+				break;
+			case CARGO_FLAG_FULL_CONTRABAND:
+				// TODO: mixed contraband
+				newCargo = [UNIVERSE getContainersOfCommodity:@"Firearms" :num];
+				break;
+			case CARGO_FLAG_PIRATE:
+				newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % num) scarce:YES];
+				break;
+			case CARGO_FLAG_FULL_PASSENGERS:
+				// TODO: allow passengers to survive
+			case CARGO_FLAG_NONE:
+			default:
+				break;
+			}
 		}
 		[self setCargo:newCargo];
 	}
