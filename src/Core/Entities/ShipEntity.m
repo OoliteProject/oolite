@@ -10055,13 +10055,20 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (GLfloat) currentAimTolerance
 {
 	GLfloat basic_aim = aim_tolerance;
-	if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
-	{ // deadly shots
-		basic_aim /= 5.0;
-	}
+	GLfloat best_cos = 0.99999; // ~45m in 10km (track won't go better than 40)
 	if (accuracy >= COMBAT_AI_ISNT_AWFUL)
-	{ // if missing, aim better!
+	{ 
+		// better general targeting
+		best_cos = 0.999999; // ~14m in 10km (track won't go better than 10)
+		// if missing, aim better!
 		basic_aim /= 1.0 + ((GLfloat)[self missedShots] / 4.0);
+	}
+	if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
+	{ 
+		// deadly shots
+		best_cos = 0.9999999; // ~4m in 10km (track won't go better than 4)
+		// and start with extremely good aim circle
+		basic_aim /= 5.0;
 	}
 	if (currentWeaponFacing == WEAPON_FACING_AFT && accuracy < COMBAT_AI_ISNT_AWFUL)
 	{ // bad shots with aft lasers
@@ -10079,11 +10086,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 	}
 	GLfloat max_cos = sqrt(1-(basic_aim * basic_aim / 100000000.0));
-	if (max_cos < 0.9999999)
+
+	if (max_cos < best_cos)
 	{
 		return max_cos;
 	}
-	return 0.9999999;
+	return best_cos;
 }
 
 
