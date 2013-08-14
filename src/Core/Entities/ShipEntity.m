@@ -1058,7 +1058,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	accuracy = new_accuracy;
 	pitch_tolerance = 0.01 * (85.0f + accuracy);
 // especially against small targets, less good pilots will waste some shots
-	aim_tolerance = 190.0 - (18.0f * accuracy);
+	aim_tolerance = 240.0 - (18.0f * accuracy);
 
 	if (accuracy >= COMBAT_AI_ISNT_AWFUL && missile_load_time < 0.1)
 	{
@@ -9394,17 +9394,31 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double min_d = 0.004; // ~= 40m at 10km
 	int max_factor = 8;
 	double r_max_factor = 0.125;
-	if (!retreat && accuracy >= COMBAT_AI_TRACKS_CLOSER)
-	{ 
-		// much greater precision in combat
-		if (max_flight_pitch > 1.0)
-		{
-			max_factor = floor(max_flight_pitch/0.125);
-			r_max_factor = 1.0/max_factor;
+	if (!retreat)
+	{	
+		if (accuracy >= COMBAT_AI_TRACKS_CLOSER)
+		{ 
+			// much greater precision in combat
+			if (max_flight_pitch > 1.0)
+			{
+				max_factor = floor(max_flight_pitch/0.125);
+				r_max_factor = 1.0/max_factor;
+			}
+			min_d = 0.0004; // 10 times more precision ~= 4m at 10km
+			max_factor *= 3;
+			r_max_factor /= 3.0;
 		}
-		min_d = 0.0004; // 10 times more precision ~= 4m at 10km
-		max_factor *= 3;
-		r_max_factor /= 3.0;
+		else if (accuracy >= COMBAT_AI_ISNT_AWFUL)
+		{
+			// slowly improve precision to target, but only if missing
+			min_d -= 0.0001 * [self missedShots];
+			if (min_d < 0.001)
+			{
+				min_d = 0.001;
+				max_factor *= 2;
+				r_max_factor /= 2.0;
+			}
+		}
 	}
 
 	d_right		=   dot_product(relPos, v_right);
@@ -9482,7 +9496,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			}
 			if (fabs(d_up) < fabs(stick_pitch) * delta_t) 
 			{
-				stick_pitch = fabs(d_up) / delta_t * (stick_pitch<0 ? -1 : 1);
+				stick_pitch = fabs(d_up) / delta_t * (stick_pitch<0 ? -0.9 : 0.9);
 			}
 		}
 
@@ -10044,7 +10058,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	if (accuracy >= COMBAT_AI_ISNT_AWFUL)
 	{ // if missing, aim better!
-		basic_aim /= 1.0 + ((GLfloat)[self missedShots] / 2.0);
+		basic_aim /= 1.0 + ((GLfloat)[self missedShots] / 4.0);
 	}
 	if (currentWeaponFacing == WEAPON_FACING_AFT && accuracy < COMBAT_AI_ISNT_AWFUL)
 	{ // bad shots with aft lasers
@@ -10062,11 +10076,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 	}
 	GLfloat max_cos = sqrt(1-(basic_aim * basic_aim / 100000000.0));
-	if (max_cos < 0.99999)
+	if (max_cos < 0.9999999)
 	{
 		return max_cos;
 	}
-	return 0.99999;
+	return 0.9999999;
 }
 
 
@@ -10125,10 +10139,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat aim = [self currentAimTolerance];
 	if (dq > aim*aim) return YES;
 
-	// cosine of half of half angle subtended by target (mostly they'll
+	// cosine of 1/3 of half angle subtended by target (mostly they'll
 	// fire sooner anyway due to currentAimTolerance, but this should
 	// almost always be a solid hit)
-	astq = sqrt(1.0 - radius * radius / (d2 * 4));	
+	astq = sqrt(1.0 - radius * radius / (d2 * 9));	
 
 	return (fabs(dq) >= astq);
 }
@@ -10448,11 +10462,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	else
 	{
-		if (randf() * COMBAT_AI_TRACKS_CLOSER < [parent accuracy])
-		{
-			[self adjustMissedShots:+1];
-			// makes future shots more careful until the next hit
-		}
+		[self adjustMissedShots:+1];
+
 		// see ATTACKER_MISSED section of main entity laser routine
 		if (![parent isCloaked])
 		{
@@ -10651,6 +10662,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	else
 	{
+		[self adjustMissedShots:+1];
+
 		// shot missed
 		if (![self isCloaked])
 		{
