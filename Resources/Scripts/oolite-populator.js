@@ -1261,7 +1261,10 @@ this._addSmuggler = function(pos)
 			t[0].destinationSystem = system.ID;
 		}
 		t[0].setCargoType("ILLEGAL_GOODS");
-		t[0].awardEquipment("EQ_FUEL_INJECTION"); // smugglers always have injectors
+		if (t[0].autoWeapons)
+		{
+			t[0].awardEquipment("EQ_FUEL_INJECTION"); // smugglers always have injectors
+		}
 		this._setWeapons(t[0],1.2); // rarely good weapons
 		this._setEscortWeapons(t[0]);
 	}
@@ -1457,8 +1460,11 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 	{
 		this._addPirateAssistant("pirate-interceptor",lead[0],pos);
 	}
-	lead[0].awardEquipment("EQ_SHIELD_BOOSTER");
-	lead[0].awardEquipment("EQ_ECM");
+	if (t[0].autoWeapons)
+	{
+		lead[0].awardEquipment("EQ_SHIELD_BOOSTER");
+		lead[0].awardEquipment("EQ_ECM");
+	}
 	this._setWeapons(lead[0],2.8); // usually give aft laser
 	// next line is temporary for debugging!
 	lead[0].displayName = lead[0].name + " - FLAGSHIP";
