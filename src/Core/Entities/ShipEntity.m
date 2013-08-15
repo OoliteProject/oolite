@@ -287,7 +287,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	military_jammer_active = NO;
 	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:YES]; // Nikos - switched passive cloak default to YES 20120523
 	cloakAutomatic = [shipDict oo_boolForKey:@"cloak_automatic" defaultValue:YES];
-	
+
 	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
@@ -7196,6 +7196,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (BOOL) hasAutoAI
 {
 	return 	[[self shipInfoDictionary] oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES];
+}
+
+
+- (BOOL) hasAutoWeapons
+{
+	return 	[[self shipInfoDictionary] oo_fuzzyBooleanForKey:@"auto_weapons" defaultValue:NO];
 }
 
 

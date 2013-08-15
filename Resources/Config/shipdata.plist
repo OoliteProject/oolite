@@ -49,6 +49,7 @@
 		aft_eject_position = "0.0 -4.5 -23.0";
 		ai_type = "scavengerAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -186,6 +187,7 @@
 		aft_weapon_type = "WEAPON_PULSE_LASER";
 		ai_type = "traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -296,7 +298,8 @@
 	};
 	"oolite_template_anaconda-pirate" =
 	{
-		like_ship = "oolite_template_anaconda";
+//		like_ship = "oolite_template_anaconda";
+		like_ship = "anaconda"; // will switch to the template after 1.80
 		is_template = 1;
 		aft_weapon_type = "WEAPON_BEAM_LASER";
 		escort_roles = (
@@ -318,6 +321,7 @@
 		aft_eject_position = "0.0 -8.0 -21.5";
 		ai_type = "pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -537,6 +541,7 @@
 		aft_weapon_type = "WEAPON_BEAM_LASER";
 		ai_type = "traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -642,7 +647,8 @@
 	};
 	"oolite_template_boa-pirate" =
 	{
-		like_ship = "oolite_template_boa";
+//		like_ship = "oolite_template_boa";
+		like_ship = "boa"; // will switch to the template after 1.80
 		is_template = 1;
 		escort_roles = (
 			{ "role" = "pirate-medium-fighter"; min = 2; max = 2; }
@@ -663,6 +669,7 @@
 		aft_weapon_type = "WEAPON_BEAM_LASER";
 		ai_type = "traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -768,7 +775,8 @@
 	};
 	"oolite_template_boa-mk2-pirate" =
 	{
-		like_ship = "oolite_template_boa-mk2";
+//		like_ship = "oolite_template_boa-mk2";
+		like_ship = "boa-mk2"; // will switch to the template after 1.80
 		is_template = 1;
 		escort_roles = (
 			{ "role" = "pirate-heavy-fighter"; min = 2; max = 2; }
@@ -914,6 +922,7 @@
 		aft_eject_position = "0.0 15.5 -33.0";
 		ai_type = "traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1058,6 +1067,7 @@
 		aft_eject_position = "0.0 7.5 -21.0";
 		ai_type = "traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1518,6 +1528,7 @@
 		aft_eject_position = "0.0 3.0 -38.0";
 		ai_type = "pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1630,6 +1641,7 @@
 		aft_eject_position = "0.0 4.5 -11.0";
 		ai_type = "pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("0.0 0.0 -20.0 5.0 4.0 1.0");
@@ -1707,6 +1719,7 @@
 		aft_eject_position = "0.0 7.5 -16.5";
 		ai_type = "pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		exhaust = ("-7.5 0.0 -35.58 4.0 4.0 1.0", "7.5 0.0 -35.58 4.0 4.0 1.0");
@@ -1741,6 +1754,7 @@
 		aft_eject_position = "0.0 5.5 -17.0";
 		ai_type = "pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 0.0 -27.5 10.0 8.0 1.0");
@@ -1814,6 +1828,7 @@
 		aft_eject_position = "0.0 5.75 -8.0";
 		ai_type = "pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1950,6 +1965,7 @@
 		aft_eject_position = "0.0 15.5 -50.0";
 		ai_type = "traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -2247,6 +2263,7 @@
 		aft_eject_position = "0.0 7.5 -18.0";
 		ai_type = "pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.0 8.0 6.0 1.0");

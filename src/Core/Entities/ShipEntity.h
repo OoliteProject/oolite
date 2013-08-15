@@ -541,6 +541,7 @@ typedef enum
 - (Vector) forwardWeaponOffset;
 - (Vector) portWeaponOffset;
 - (Vector) starboardWeaponOffset;
+- (BOOL) hasAutoWeapons;
 
 - (BOOL) isFrangible;
 - (BOOL) suppressFlightNotifications;

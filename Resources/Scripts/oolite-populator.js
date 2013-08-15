@@ -1159,6 +1159,7 @@ this._addFreighter = function(pos)
 			t[0].destinationSystem = system.ID;
 			t[0].setCargoType("SCARCE_GOODS");
 		}
+		this._setEscortWeapons(t[0]);
 	}
 }
 
@@ -1184,6 +1185,7 @@ this._addCourier = function(pos)
 			gs[i].bounty = 0;
 		}
 	}
+	this._setEscortWeapons(t[0]);
 	return t;
 }
 
@@ -1260,6 +1262,8 @@ this._addSmuggler = function(pos)
 		}
 		t[0].setCargoType("ILLEGAL_GOODS");
 		t[0].awardEquipment("EQ_FUEL_INJECTION"); // smugglers always have injectors
+		this._setWeapons(t[0],1.2); // rarely good weapons
+		this._setEscortWeapons(t[0]);
 	}
 }
 
@@ -1272,6 +1276,7 @@ this._addLightHunter = function(pos)
 		h.ships[i].bounty = 0;
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
+		this._setWeapons(h.ships[i],1.5); // mixed weapons
 	}
 }
 
@@ -1340,6 +1345,17 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			hs[i].fuel = 7;
 			hs[i].homeSystem = t[0].homeSystem;
 			hs[i].destinationSystem = t[0].destinationSystem;
+			this._setWeapons(hs[i],1.5); // mixed weapons
+		}
+		if (role == "hunter-heavy")
+		{
+			// occasionally give heavy hunters aft lasers
+			this._setWeapons(t[0],2.2);
+		}
+		else
+		{
+			// usually ensure medium hunters have beam lasers
+			this._setWeapons(t[0],1.9);
 		}
 		t[0].switchAI("bountyHunterLeaderAI.js");
 	}
@@ -1360,6 +1376,7 @@ this._addIndependentPirate = function(pos)
 		if (!pos.isStation && !pos.isPlanet)
 		{
 			pg.ships[i].setCargoType("PIRATE_GOODS");
+			this._setWeapons(pg.ships[i],1.3); // rarely well-armed
 		}
 	}
 }
@@ -1383,6 +1400,7 @@ this._addPirateAssistant = function(role,lead,pos)
 		asst[0].setBounty(50+system.government+Math.floor(Math.random()*36),"setup actions");
 		// interceptors not actually part of group: they just get the
 		// same destinations
+		this._setWeapons(asst[0],2.3); // heavily armed
 	}
 	else
 	{ 
@@ -1390,6 +1408,18 @@ this._addPirateAssistant = function(role,lead,pos)
 		lead.group.addShip(asst[0]);
 		asst[0].switchAI("pirateFighterAI.js");
 		asst[0].setBounty(20+system.government+Math.floor(Math.random()*12),"setup actions");
+		if (role == "pirate-light-fighter")
+		{
+			this._setWeapons(asst[0],1.2); // basic fighters
+		}
+		else if (role == "pirate-medium-fighter")
+		{
+			this._setWeapons(asst[0],1.8); // often beam weapons
+		}
+		else if (role == "pirate-heavy-fighter")
+		{
+			this._setWeapons(asst[0],2.05); // very rarely aft lasers
+		}
 	}
 }
 
@@ -1429,14 +1459,7 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 	}
 	lead[0].awardEquipment("EQ_SHIELD_BOOSTER");
 	lead[0].awardEquipment("EQ_ECM");
-	if (lead[0].aftWeapon != "EQ_WEAPON_MILITARY_LASER")
-	{
-		lead[0].aftWeapon = "EQ_WEAPON_BEAM_LASER";
-	}
-	if (lead[0].forwardWeapon != "EQ_WEAPON_MILITARY_LASER")
-	{
-		lead[0].forwardWeapon = "EQ_WEAPON_BEAM_LASER";
-	}
+	this._setWeapons(lead[0],2.8); // usually give aft laser
 	// next line is temporary for debugging!
 	lead[0].displayName = lead[0].name + " - FLAGSHIP";
 	if (returning)
@@ -1463,6 +1486,7 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 	{
 		lead[0].setCargoType("PIRATE_GOODS");
 	}
+	this._setEscortWeapons(lead[0]);
 	lead[0].switchAI("pirateFreighterAI.js");
 	return lead[0];
 }
@@ -1617,6 +1641,109 @@ this._roleExists = function(role)
 		return true;
 	}
 	return false;
+}
+
+
+/* Run _setWeapons on the escort group */
+this._setEscortWeapons = function(mothership)
+{
+	if (!mothership.escortGroup)
+	{
+		return;
+	}
+	var eg = mothership.escortGroup.ships;
+	for (var i = eg.length-1 ; i >= 0 ; i--)
+	{
+		var ship = eg[i];
+		if (ship == mothership)
+		{
+			continue;
+		}
+		if (!ship.autoWeapons)
+		{
+			continue;
+		}
+		var pr = ship.primaryRole;
+		if (pr == "escort" || pr == "pirate-light-fighter")
+		{
+			this._setWeapons(ship,1.3); // usually lightly armed as escorts
+		}
+		else if (pr == "escort-medium" || pr == "pirate-medium-fighter")
+		{
+			this._setWeapons(ship,1.8); // usually heavily armed as escorts
+		}
+		else if (pr == "escort-heavy" || pr == "pirate-heavy-fighter")
+		{
+			this._setWeapons(ship,2.05); // rarely have an aft laser
+		}
+	}
+}
+
+
+/* Levels:
+ * <= 1: FP
+ *    2: FB
+ *    3: FB, AB (rare in core)
+ *    4: FM, AB (not used in core)
+ * >= 5: FM, AM (not used in core)
+ * Fractional levels may be one or other (e.g. 2.2 = 80% 2, 20% 3)
+ * Side weapons unchanged
+ */
+this._setWeapons = function(ship,level)
+{
+	if (!ship.autoWeapons)
+	{
+		// default is not to change anything
+		return false;
+	}
+	var fwent = ship;
+	if (ship.forwardWeapon == null)
+	{
+		var se = ship.subEntities;
+		for (var i=0;i<se.length;i++)
+		{
+			if (se[i].forwardWeapon != null)
+			{
+				if (fwent != ship)
+				{
+					return false; // auto_weapons doesn't work on ships with MFLs
+				}
+				fwent = se[i];
+			}
+		}
+	}
+	var choice = Math.floor(level);
+	if (level-Math.floor(level) > Math.random())
+	{
+		choice++;
+	}
+	if (choice <= 1)
+	{
+		fwent.forwardWeapon = "EQ_WEAPON_PULSE_LASER";
+		ship.aftWeapon = null;
+	}
+	else if (choice == 2)
+	{
+		fwent.forwardWeapon = "EQ_WEAPON_BEAM_LASER";
+		ship.aftWeapon = null;
+	}
+	else if (choice == 3)
+	{
+		fwent.forwardWeapon = "EQ_WEAPON_BEAM_LASER";
+		ship.aftWeapon = "EQ_WEAPON_BEAM_LASER";
+	}
+	else if (choice == 4)
+	{
+		fwent.forwardWeapon = "EQ_WEAPON_MILITARY_LASER";
+		ship.aftWeapon = "EQ_WEAPON_BEAM_LASER";
+	}
+	else if (choice >= 5)
+	{
+		fwent.forwardWeapon = "EQ_WEAPON_MILITARY_LASER";
+		ship.aftWeapon = "EQ_WEAPON_MILITARY_LASER";
+	}
+//	log(this.name,"Set "+fwent.forwardWeapon+"/"+ship.aftWeapon+" for "+ship.name+" ("+ship.primaryRole+")");
+	return true;
 }
 
 

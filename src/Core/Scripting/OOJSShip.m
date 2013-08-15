@@ -168,6 +168,7 @@ enum
 	kShip_AIFoundTarget,		// AI "found target", entity, read/write
 	kShip_AIPrimaryAggressor,	// AI "primary aggressor", entity, read/write
 	kShip_autoAI,				// bool, read-only, auto_ai from shipdata
+	kShip_autoWeapons,			// bool, read-only, auto_weapons from shipdata
 	kShip_beaconCode,			// beacon code, string, read/write
 	kShip_boundingBox,			// boundingBox, vector, read-only
 	kShip_bounty,				// bounty, unsigned int, read/write
@@ -299,6 +300,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "AIFoundTarget",			kShip_AIFoundTarget,		OOJS_PROP_READWRITE_CB },
 	{ "AIPrimaryAggressor",		kShip_AIPrimaryAggressor,	OOJS_PROP_READWRITE_CB },
 	{ "autoAI",					kShip_autoAI,				OOJS_PROP_READONLY_CB },
+	{ "autoWeapons",			kShip_autoWeapons,			OOJS_PROP_READONLY_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
 	{ "boundingBox",			kShip_boundingBox,			OOJS_PROP_READONLY_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
@@ -583,6 +585,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_autoAI:
 			*value = OOJSValueFromBOOL([entity hasAutoAI]);
+			return YES;
+
+		case kShip_autoWeapons:
+			*value = OOJSValueFromBOOL([entity hasAutoWeapons]);
 			return YES;
 		
 		case kShip_accuracy:
