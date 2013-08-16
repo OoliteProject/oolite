@@ -41,6 +41,13 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourFleeCombat,
 			reconsider: 5
 		},
+		/* Don't hang around near hostile stations */
+		{
+			condition: ai.conditionHostileStationNearby,
+			configuration: ai.configurationSetDestinationToNearestHostileStation,
+			behaviour: ai.behaviourLeaveVicinityOfDestination,
+			reconsider: 20
+		},
 		/* Is there any loot? */
 		{
 			preconfiguration: ai.configurationCheckScanner,

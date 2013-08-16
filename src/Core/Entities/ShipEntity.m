@@ -6544,7 +6544,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (BOOL)isPirate
 {
-	return [self hasPrimaryRole:@"pirate"];
+	return [[self primaryRole] hasPrefix:@"pirate"];
 }
 
 

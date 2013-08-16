@@ -78,6 +78,7 @@ enum
 {
 	// Property IDs
 	kStation_alertCondition,
+	kStation_allegiance,
 	kStation_allowsAutoDocking,
 	kStation_allowsFastDocking,
 	kStation_breakPattern,
@@ -100,6 +101,7 @@ static JSPropertySpec sStationProperties[] =
 {
 	// JS name						ID									flags
 	{ "alertCondition",				kStation_alertCondition,			OOJS_PROP_READWRITE_CB },
+	{ "allegiance",					kStation_allegiance,				OOJS_PROP_READWRITE_CB },
 	{ "allowsAutoDocking",			kStation_allowsAutoDocking,			OOJS_PROP_READWRITE_CB },
 	{ "allowsFastDocking",			kStation_allowsFastDocking,			OOJS_PROP_READWRITE_CB },
 	{ "breakPattern",				kStation_breakPattern,				OOJS_PROP_READWRITE_CB },
@@ -237,6 +239,13 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 		case kStation_alertCondition:
 			*value = INT_TO_JSVAL([entity alertLevel]);
 			return YES;
+
+		case kStation_allegiance:
+		{
+			NSString *result = [entity allegiance];
+			*value = OOJSValueFromNativeObject(context, result);
+			return YES;
+		}
 			
 		case kStation_requiresDockingClearance:
 			*value = OOJSValueFromBOOL([entity requiresDockingClearance]);
@@ -307,6 +316,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 	JSBool						bValue;
 	int32						iValue;
 	jsdouble					fValue;
+	NSString					*sValue = nil;
 	
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
 	if (entity == nil)  return YES;
@@ -328,6 +338,16 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 				return YES;
 			}
 			break;
+
+		case kStation_allegiance:
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+				[entity setAllegiance:sValue];
+				return YES;
+			}
+			break;
+
 			
 		case kStation_requiresDockingClearance:
 			if (JS_ValueToBoolean(context, *value, &bValue))

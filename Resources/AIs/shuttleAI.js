@@ -43,6 +43,12 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourFleeCombat
 		},
 		{
+			condition: ai.conditionHostileStationNearby,
+			configuration: ai.configurationSetDestinationToNearestHostileStation,
+			behaviour: ai.behaviourLeaveVicinityOfDestination,
+			reconsider: 20
+		},
+		{
 			condition: ai.conditionHasSelectedStation,
 			truebranch: [
 				{

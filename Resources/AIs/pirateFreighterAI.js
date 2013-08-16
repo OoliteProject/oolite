@@ -75,6 +75,13 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourCollectSalvage,
 			reconsider: 20
 		},
+		/* Stay away from dangerous stations */
+		{
+			condition: ai.conditionHostileStationNearby,
+			configuration: ai.configurationSetDestinationToNearestHostileStation,
+			behaviour: ai.behaviourLeaveVicinityOfDestination,
+			reconsider: 20
+		},
 		/* Are there hunters about? Avoid, or destroy if safe to do so. */
 		{
 			condition: ai.conditionScannerContainsHunters,

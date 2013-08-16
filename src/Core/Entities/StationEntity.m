@@ -656,6 +656,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 {
 	DESTROY(_shipsOnHold);
 	DESTROY(localMarket);
+	DESTROY(allegiance);
 //	DESTROY(localPassengers);
 //	DESTROY(localContracts);
 	DESTROY(localShipyard);
@@ -700,6 +701,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:(maxFlightSpeed == 0)]; // carriers default to NO
 	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
+	allegiance = [dict oo_stringForKey:@"allegiance"];
 	
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.
@@ -1305,6 +1307,19 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 {
 	// Stop damage if main station
 	if (self != [UNIVERSE station])  [super takeHeatDamage:amount];
+}
+
+
+- (NSString *) allegiance
+{
+	return allegiance;
+}
+
+
+- (void) setAllegiance:(NSString *)newAllegiance
+{
+	[allegiance release];
+	allegiance = [newAllegiance copy];
 }
 
 

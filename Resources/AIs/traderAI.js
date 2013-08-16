@@ -71,6 +71,12 @@ this.aiStarted = function() {
 			reconsider: 5
 		},
 		{
+			condition: ai.conditionHostileStationNearby,
+			configuration: ai.configurationSetDestinationToNearestHostileStation,
+			behaviour: ai.behaviourLeaveVicinityOfDestination,
+			reconsider: 20
+		},
+		{
 			condition: ai.conditionCargoIsProfitableHere,
 			// branch to head for station
 			truebranch: ai.templateReturnToBase(),
