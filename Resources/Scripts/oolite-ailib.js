@@ -1757,6 +1757,14 @@ AILib.prototype.conditionScannerContainsSalvageForMe = function()
 }
 
 
+AILib.prototype.conditionScannerContainsShipAttackingPirate = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		return s.target && s.hasHostileTarget && s.target.primaryRole.match(/^pirate/);
+	});
+}
+
+
 AILib.prototype.conditionScannerContainsShipNeedingEscort = function()
 {
 	if (this.ship.bounty == 0)

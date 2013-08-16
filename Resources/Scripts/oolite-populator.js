@@ -1460,7 +1460,7 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 	{
 		this._addPirateAssistant("pirate-interceptor",lead[0],pos);
 	}
-	if (t[0].autoWeapons)
+	if (lead[0].autoWeapons)
 	{
 		lead[0].awardEquipment("EQ_SHIELD_BOOSTER");
 		lead[0].awardEquipment("EQ_ECM");

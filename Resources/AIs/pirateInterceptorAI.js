@@ -60,6 +60,12 @@ this.aiStarted = function() {
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 20 
+		},
+		{
+			condition: ai.conditionScannerContainsShipAttackingPirate,
+			configuration: ai.configurationAcquireScannedTarget,
+			behaviour: ai.behaviourDestroyCurrentTarget,
+			reconsider: 20 
 		}
 	];
 
