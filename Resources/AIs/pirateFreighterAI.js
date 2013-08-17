@@ -78,7 +78,7 @@ this.aiStarted = function() {
 		/* Stay away from dangerous stations */
 		{
 			condition: ai.conditionHostileStationNearby,
-			configuration: ai.configurationSetDestinationToNearestHostileStation,
+			configuration: ai.configurationSetDestinationToNearestStation,
 			behaviour: ai.behaviourLeaveVicinityOfDestination,
 			reconsider: 20
 		},

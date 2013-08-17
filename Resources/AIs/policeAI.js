@@ -48,12 +48,13 @@ this.aiStarted = function() {
 	}
 	else
 	{
+		// chasing a bandit well off the spacelane is almost as good
+		// as destroying them
 		ai.setParameter("oolite_leaderRole","police");
 		ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 	}
 
 	ai.setParameter("oolite_escortRole","wingman");
-	/* Needs to use existing entries in descriptions.plist */
 
 	ai.setCommunicationsRole("police");
 

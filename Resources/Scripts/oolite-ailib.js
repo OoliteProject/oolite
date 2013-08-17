@@ -210,6 +210,10 @@ this.AILib = function(ship)
 			this.__ltcache = {};
 			this.__ltcachestart = clock.adjustedSeconds + 60;
 		}
+		if (!this.__ltcache.nearestStation)
+		{
+			this.__ltcache.nearestStation = this.ship.findNearestStation();
+		}
 		var newBehaviour = _reconsiderList.call(this,priorityList);
 		if (newBehaviour == null) {
 			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had all priorities fail. All priority based AIs should end with an unconditional entry.");
@@ -635,7 +639,7 @@ AILib.prototype.fineThreshold = function()
 
 AILib.prototype.friendlyStation = function(station)
 {
-	if (!station)
+	if (!station || !station.isInSpace)
 	{
 		return false;
 	}
@@ -714,7 +718,7 @@ AILib.prototype.homeStation = function()
 // be an exact negation
 AILib.prototype.hostileStation = function(station)
 {
-	if (!station)
+	if (!station || !station.isInSpace)
 	{
 		return false;
 	}
@@ -761,6 +765,16 @@ AILib.prototype.isAggressive = function(ship)
 		return !ship.isFleeing;
 	}
 	return ship && ship.hasHostileTarget && !ship.isFleeing && !ship.isDerelict;
+}
+
+
+AILib.prototype.isEscaping = function(ship)
+{
+	if (ai.getParameter("oolite_flag_continueUnlikelyPursuits") != null)
+	{
+		return false;
+	}
+	return !this.isAggressive(ship) && this.distance(ship) > 15000 && ship.speed > this.ship.maxSpeed && ship.speed > this.ship.speed;
 }
 
 
@@ -989,6 +1003,10 @@ AILib.prototype.stationAllegiance = function(station)
 					break;
 				}
 			}
+		}
+		if (allegiance == "neutral" && system.mainStation.position.distanceTo(station) < 51200)
+		{
+			allegiance = "galcop"; // neutral stations in aegis
 		}
 		// cache default value
 		station.allegiance = allegiance;
@@ -1276,25 +1294,10 @@ AILib.prototype.conditionLosingCombat = function()
 		// badly outnumbered; losing
 		return true;
 	}
-	// if there is a hostile station nearby, probably best to leave
-	var ss = system.stations;
-	for (var i = 0; i < ss.length ; i++)
+	if (this.__ltcache.nearestStation && this.distance(this.__ltcache.nearestStation) < 51200 && this.hostileStation(this.__ltcache.nearestStation))
 	{
-		if (ss[i].isMainStation)
-		{
-			// avoid aegis entirely
-			if (this.distance(ss[i]) < 51200 && this.hostileStation(ss[i]))
-			{
-				return true;
-			}
-		}
-		else
-		{
-			if (this.distance(ss[i]) < this.scannerRange && this.hostileStation(ss[i]))
-			{
-				return true;
-			}
-		}
+		// if there is a hostile station nearby, probably best to leave
+		return true;
 	}
 
 	return false; // not losing yet
@@ -1426,8 +1429,6 @@ AILib.prototype.conditionFriendlyStationExists = function()
 		var station = stations[i];
 		if (this.friendlyStation(station))
 		{
-			// this is not a very good check for friendliness, but
-			// it will have to do for now
 			return true;
 		}
 	}
@@ -1436,21 +1437,7 @@ AILib.prototype.conditionFriendlyStationExists = function()
 
 AILib.prototype.conditionFriendlyStationNearby = function()
 {
-	var stations = system.stations;
-	for (var i = 0 ; i < stations.length ; i++)
-	{
-		var station = stations[i];
-		if (this.friendlyStation(station))
-		{
-			// this is not a very good check for friendliness, but
-			// it will have to do for now
-			if (this.distance(station) < this.scannerRange)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
+	return this.friendlyStation(this.__ltcache.nearestStation) && this.distance(this.__ltcache.nearestStation) < 25600;
 }
 
 
@@ -1517,20 +1504,7 @@ AILib.prototype.conditionHomeStationNearby = function()
 
 AILib.prototype.conditionHostileStationNearby = function()
 {
-	var stations = system.stations;
-	for (var i = 0 ; i < stations.length ; i++)
-	{
-		var station = stations[i];
-		if (this.hostileStation(station))
-		{
-			// stand well back
-			if (this.distance(station) < 51200)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
+	return this.hostileStation(this.__ltcache.nearestStation) && this.distance(this.__ltcache.nearestStation) < 51200;
 }
 
 
@@ -2344,17 +2318,23 @@ AILib.prototype.behaviourDestroyCurrentTarget = function()
 		}
 	}
 
+	
+	/* This doesn't work: ships which are removed from the list
+	 * because they're unreachable then end up being reselected the
+	 * next time the ship scans for targets. */
+	/*
 	if (this.getParameter("oolite_flag_continueUnlikelyPursuits") == null)
 	{
 		if (this.ship.target)
 		{
-			if (!this.isAggressive(this.ship.target) && this.distance(this.ship.target) > 15000 && this.ship.target.speed > this.ship.maxSpeed && this.ship.target.speed > this.ship.speed)
+			if (this.isEscaping(this.ship.target))
 			{
 				this.ship.removeDefenseTarget(this.ship.target);
 				this.ship.target = null;
 			}
 		}
 	}
+	*/
 
 	if (this.ship.target)
 	{
@@ -3531,6 +3511,59 @@ AILib.prototype.configurationSelectWitchspaceDestinationOutbound = function()
 
 /*** Destination configuration ***/
 
+
+AILib.prototype.configurationSetDestinationToHomeStation = function()
+{
+	var home = this.homeStation();
+	if (home != null)
+	{
+		this.ship.destination = home.position;
+		this.ship.desiredRange = 15000;
+		this.ship.desiredSpeed = this.cruiseSpeed();
+	}
+	else
+	{
+		this.ship.destination = this.ship.position;
+		this.ship.desiredRange = 0;
+	}
+}
+
+
+AILib.prototype.configurationSetDestinationToGroupLeader = function()
+{
+	if (!this.ship.group || !this.ship.group.leader)
+	{
+		this.ship.destination = this.ship.position;
+	}
+	else
+	{
+		this.ship.destination = this.ship.group.leader.position;
+	}
+	this.ship.desiredRange = 2000;
+	this.ship.desiredSpeed = this.ship.maxSpeed;
+}
+
+
+AILib.prototype.configurationSetDestinationToMainPlanet = function()
+{
+	if (system.mainPlanet)
+	{
+		this.ship.destination = system.mainPlanet.position;
+		this.ship.desiredRange = system.mainPlanet.radius * 3;
+		this.ship.desiredSpeed = this.cruiseSpeed();
+	}
+}
+
+
+AILib.prototype.configurationSetDestinationToMainStation = function()
+{
+	this.ship.destination = system.mainStation.position;
+	this.ship.desiredRange = 15000;
+
+	this.ship.desiredSpeed = this.cruiseSpeed();
+}
+
+
 AILib.prototype.configurationSetDestinationToNearestFriendlyStation = function()
 {
 	var stations = system.stations;
@@ -3595,12 +3628,11 @@ AILib.prototype.configurationSetDestinationToNearestHostileStation = function()
 }
 
 
-AILib.prototype.configurationSetDestinationToHomeStation = function()
+AILib.prototype.configurationSetDestinationToNearestStation = function()
 {
-	var home = this.homeStation();
-	if (home != null)
+	if (this.__ltcache.nearestStation)
 	{
-		this.ship.destination = home.position;
+		this.ship.destination = this.__ltcache.nearestStation.position;
 		this.ship.desiredRange = 15000;
 		this.ship.desiredSpeed = this.cruiseSpeed();
 	}
@@ -3609,41 +3641,6 @@ AILib.prototype.configurationSetDestinationToHomeStation = function()
 		this.ship.destination = this.ship.position;
 		this.ship.desiredRange = 0;
 	}
-}
-
-
-AILib.prototype.configurationSetDestinationToGroupLeader = function()
-{
-	if (!this.ship.group || !this.ship.group.leader)
-	{
-		this.ship.destination = this.ship.position;
-	}
-	else
-	{
-		this.ship.destination = this.ship.group.leader.position;
-	}
-	this.ship.desiredRange = 2000;
-	this.ship.desiredSpeed = this.ship.maxSpeed;
-}
-
-
-AILib.prototype.configurationSetDestinationToMainPlanet = function()
-{
-	if (system.mainPlanet)
-	{
-		this.ship.destination = system.mainPlanet.position;
-		this.ship.desiredRange = system.mainPlanet.radius * 3;
-		this.ship.desiredSpeed = this.cruiseSpeed();
-	}
-}
-
-
-AILib.prototype.configurationSetDestinationToMainStation = function()
-{
-	this.ship.destination = system.mainStation.position;
-	this.ship.desiredRange = 15000;
-
-	this.ship.desiredSpeed = this.cruiseSpeed();
 }
 
 
@@ -3791,19 +3788,12 @@ AILib.prototype.configurationSetWaypoint = function()
 
 AILib.prototype.configurationSetNearbyFriendlyStationForDocking = function()
 {
-	var stations = system.stations;
-	for (var i = 0 ; i < stations.length ; i++)
+	if (this.friendlyStation(this.__ltcache.nearestStation))
 	{
-		var station = stations[i];
-		if (this.friendlyStation(station))
+		if (this.distance(this.__ltcache.nearestStation) < this.scannerRange)
 		{
-			// this is not a very good check for friendliness, but
-			// it will have to do for now
-			if (this.distance(station) < this.scannerRange)
-			{
-				this.setParameter("oolite_dockingStation",station)
-				return;
-			}
+			this.setParameter("oolite_dockingStation",this.__ltcache.nearestStation)
+			return;
 		}
 	}
 }

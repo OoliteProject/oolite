@@ -88,7 +88,7 @@ this.aiStarted = function() {
 		/* Stay out of the way of hunters */
 		{
 			condition: ai.conditionHostileStationNearby,
-			configuration: ai.configurationSetDestinationToNearestHostileStation,
+			configuration: ai.configurationSetDestinationToNearestStation,
 			behaviour: ai.behaviourLeaveVicinityOfDestination,
 			reconsider: 20
 		},

@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOMesh.h"
 #import "OOConstToString.h"
+#import "OOEntityFilterPredicate.h"
 
 
 static JSObject *sShipPrototype;
@@ -85,6 +86,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSelectNewMissile(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipFireMissile(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipFindNearestStation(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetBounty(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetCargo(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetMaterials(JSContext *context, uintN argc, jsval *vp);
@@ -448,6 +450,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "explode",				ShipExplode,				0 },
 	{ "fireECM",				ShipFireECM,				0 },
 	{ "fireMissile",			ShipFireMissile,			0 },
+	{ "findNearestStation",		ShipFindNearestStation,		0 },
 	{ "getMaterials",			ShipGetMaterials,			0 },
 	{ "getSafeCourseToDestination",		ShipGetSafeCourseToDestination,		0 },
 	{ "getShaders",				ShipGetShaders,				0 },
@@ -2479,6 +2482,30 @@ static JSBool ShipFireMissile(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_NATIVE_EXIT
 }
+
+
+// findNearestStation
+static JSBool ShipFindNearestStation(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity			*thisEnt = nil;
+	StationEntity		*result = nil;
+	NSArray				*stations = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	
+	OOJS_BEGIN_FULL_NATIVE(context)
+	stations = [UNIVERSE findShipsMatchingPredicate:IsStationPredicate parameter:NULL inRange:-1 ofEntity:thisEnt];
+	OOJS_END_FULL_NATIVE
+
+	result = [stations objectAtIndex:0];
+	
+	OOJS_RETURN_OBJECT(result);
+	
+	OOJS_NATIVE_EXIT
+}
+
 
 // setBounty(amount, reason)
 static JSBool ShipSetBounty(JSContext *context, uintN argc, jsval *vp)
