@@ -203,7 +203,7 @@ this.AILib = function(ship)
 		{
 			return;
 		}
-		this.__cache = { }; // clear short-term cache
+		this.__cache = {}; // clear short-term cache
 		// maybe clear long-term cache
 		if (this.__ltcachestart < clock.adjustedSeconds)
 		{
@@ -664,12 +664,12 @@ AILib.prototype.friendlyStation = function(station)
 		return false;
 	}
 	// galcop stations likely to be hostile to certain ships
-	if (allegiance == "galcop" && this.ship.bounty > this.fineThreshold() || this.ship.isPirate)
+	if (allegiance == "galcop" && (this.ship.bounty > this.fineThreshold() || this.ship.isPirate))
 	{
 		return false;
 	}
 	// pirate stations hostile to bounty-free ships
-	if (allegiance == "pirate" && this.ship.bounty == 0 || this.ship.isPirateVictim)
+	if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
 	{
 		return false;
 	}
@@ -683,7 +683,6 @@ AILib.prototype.friendlyStation = function(station)
 	{
 		return false;
 	}
-
 	return (station.target != this.ship || !station.hasHostileTarget);
 }
 
@@ -743,12 +742,12 @@ AILib.prototype.hostileStation = function(station)
 		return true;
 	}
 	// galcop stations likely to be hostile to certain ships
-	if (allegiance == "galcop" && this.ship.bounty > this.fineThreshold() || this.ship.isPirate)
+	if (allegiance == "galcop" && (this.ship.bounty > this.fineThreshold() || this.ship.isPirate))
 	{
 		return true;
 	}
 	// pirate stations hostile to bounty-free ships
-	if (allegiance == "pirate" && this.ship.bounty == 0 || this.ship.isPirateVictim)
+	if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
 	{
 		return true;
 	}
@@ -1299,6 +1298,7 @@ AILib.prototype.conditionLosingCombat = function()
 		// badly outnumbered; losing
 		return true;
 	}
+
 	if (!this.getParameter("oolite_flag_fightsNearHostileStations"))
 	{
 		if (this.__ltcache.oolite_nearestStation && this.distance(this.__ltcache.oolite_nearestStation) < 51200 && this.hostileStation(this.__ltcache.oolite_nearestStation))
@@ -1431,15 +1431,21 @@ AILib.prototype.conditionCanWitchspaceOut = function()
 
 AILib.prototype.conditionFriendlyStationExists = function()
 {
+	if (this.__cache.oolite_friendlyStationExists !== undefined)
+	{
+		return this.__cache.oolite_friendlyStationExists;
+	}
 	var stations = system.stations;
 	for (var i = 0 ; i < stations.length ; i++)
 	{
 		var station = stations[i];
 		if (this.friendlyStation(station))
 		{
+			this.__cache.oolite_friendlyStationExists = true;
 			return true;
 		}
 	}
+	this.__cache.oolite_friendlyStationExists = false;
 	return false;
 }
 
@@ -3410,7 +3416,6 @@ AILib.prototype.configurationSelectPlanet = function()
 AILib.prototype.configurationSelectRandomTradeStation = function()
 {
 	var stations = system.stations;
-	var threshold = 1E16;
 	var chosenStation = null;
 	if (this.ship.bounty == 0)
 	{
@@ -4999,6 +5004,7 @@ AILib.prototype.templateReturnToBase = function()
 			],
 			falsebranch: [
 				{
+					condition: this.conditionFriendlyStationExists,
 					configuration: this.configurationSelectRandomTradeStation,
 					behaviour: this.behaviourReconsider
 				}
