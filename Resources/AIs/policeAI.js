@@ -34,6 +34,7 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_flag_listenForDistressCall",true);
 	ai.setParameter("oolite_flag_markOffenders",true);
+	ai.setParameter("oolite_flag_fightsNearHostileStations",true);
 
 	if (this.ship.primaryRole == "police-station-patrol") 
 	{

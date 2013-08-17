@@ -633,10 +633,15 @@ AILib.prototype.entityCommsParams = function(entity)
 
 AILib.prototype.fineThreshold = function()
 {
-	return 50 - (system.info.government * 7);
+	if (!this.__ltcache.fineThreshold)
+	{
+		this.__ltcache.fineThreshold = 50 - (system.info.government * 6);
+	}
+	return this.__ltcache.fineThreshold;
 }
 
 
+// May need to move this and hostileStation to native code for efficiency
 AILib.prototype.friendlyStation = function(station)
 {
 	if (!station || !station.isInSpace)
@@ -1294,10 +1299,13 @@ AILib.prototype.conditionLosingCombat = function()
 		// badly outnumbered; losing
 		return true;
 	}
-	if (this.__ltcache.nearestStation && this.distance(this.__ltcache.nearestStation) < 51200 && this.hostileStation(this.__ltcache.nearestStation))
+	if (!this.getParameter("oolite_flag_fightsNearHostileStations"))
 	{
-		// if there is a hostile station nearby, probably best to leave
-		return true;
+		if (this.__ltcache.nearestStation && this.distance(this.__ltcache.nearestStation) < 51200 && this.hostileStation(this.__ltcache.nearestStation))
+		{
+			// if there is a hostile station nearby, probably best to leave
+			return true;
+		}
 	}
 
 	return false; // not losing yet
@@ -2592,6 +2600,34 @@ AILib.prototype.behaviourFleeCombat = function()
 	if (this.ship.target)
 	{
 		this.setParameter("oolite_lastFleeing",this.ship.target);
+	}
+	
+	if (!this.__ltcache.considerWitchspaceFlee)
+	{
+		if (!this.getParameter("oolite_flag_neverFleeToWitchspace"))
+		{
+			this.__ltcache.considerWitchspaceFlee = (this.ship.hasHyperspaceMotor && (system.isInterstellarSpace && this.ship.fuel > 0) || (system.ID != this.ship.homeSystem && system.info.systemsInRange(this.ship.fuel).length > 0))?1:-1;
+		}
+		else
+		{
+			this.__ltcache.considerWitchspaceFlee = -1;
+		}
+	}
+
+	if (this.__ltcache.considerWitchspaceFlee == 1)
+	{
+		if (!this.__ltcache.considerWitchspaceFlee)
+		{
+			this.__ltcache.witchspaceflee = clock.seconds + 15;
+		}
+		if (this.__ltcache.witchspaceflee < clock.seconds)
+		{
+			if (this.ship.exitSystem())
+			{
+				this.ship.notifyGroupOfWormhole();
+				delete this.__ltcache.witchspaceflee;
+			}
+		}
 	}
 	this.ship.desiredRange = this.scannerRange;
 	this.ship.performFlee();
@@ -4255,7 +4291,14 @@ AILib.prototype.responseComponent_standard_shipAttackerDistracted = function(who
 	var last = this.getParameter("oolite_lastAssist");
 	if (last != whom)
 	{
-		this.communicate("oolite_thanksForHelp",whom,1);
+		if (whom.isPlayer)
+		{
+			this.communicate("oolite_thanksForHelp",whom,1);
+		}
+		else
+		{
+			this.communicate("oolite_thanksForHelp",whom,3);
+		}
 		if (this.ship.scanClass == "CLASS_POLICE")
 		{
 			if (whom.scanClass != "CLASS_POLICE" && whom.scanClass != "CLASS_THARGOID" && whom.bounty > 0)

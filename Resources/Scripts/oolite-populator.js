@@ -1249,6 +1249,10 @@ this._addSmuggler = function(pos)
 	if (t[0])
 	{
 		t[0].bounty = Math.ceil(Math.random()*20);
+		if (t[0].bounty > t[0].cargoSpaceCapacity * 2)
+		{
+			t[0].bounty = t[0].cargoSpaceCapacity * 2;
+		}
 		if (pos.isStation)
 		{
 			t[0].destinationSystem = this._nearbySystem(7);

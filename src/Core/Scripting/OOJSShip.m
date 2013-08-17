@@ -2499,7 +2499,7 @@ static JSBool ShipFindNearestStation(JSContext *context, uintN argc, jsval *vp)
 	stations = [UNIVERSE findShipsMatchingPredicate:IsStationPredicate parameter:NULL inRange:-1 ofEntity:thisEnt];
 	OOJS_END_FULL_NATIVE
 
-	result = [stations objectAtIndex:0];
+	result = [stations oo_objectAtIndex:0 defaultValue:nil];
 	
 	OOJS_RETURN_OBJECT(result);
 	
