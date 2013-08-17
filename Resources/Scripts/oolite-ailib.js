@@ -210,9 +210,9 @@ this.AILib = function(ship)
 			this.__ltcache = {};
 			this.__ltcachestart = clock.adjustedSeconds + 60;
 		}
-		if (!this.__ltcache.nearestStation)
+		if (!this.__ltcache.oolite_nearestStation)
 		{
-			this.__ltcache.nearestStation = this.ship.findNearestStation();
+			this.__ltcache.oolite_nearestStation = this.ship.findNearestStation();
 		}
 		var newBehaviour = _reconsiderList.call(this,priorityList);
 		if (newBehaviour == null) {
@@ -549,9 +549,9 @@ AILib.prototype.checkScannerWithPredicate = function(predicate)
 
 AILib.prototype.cruiseSpeed = function()
 {
-	if (this.__ltcache.cruiseSpeed)
+	if (this.__ltcache.oolite_cruiseSpeed)
 	{
-		return this.__ltcache.cruiseSpeed;
+		return this.__ltcache.oolite_cruiseSpeed;
 	}
 	var cruise = this.ship.maxSpeed * 0.8;
 	var ignore = this.ship.maxSpeed / 4;
@@ -593,18 +593,18 @@ AILib.prototype.cruiseSpeed = function()
 		// not in a group, so don't need to slow down for others to catch up
 		cruise = this.ship.maxSpeed;
 	}
-	this.__ltcache.cruiseSpeed = cruise;
+	this.__ltcache.oolite_cruiseSpeed = cruise;
 	return cruise;
 }
 
 
 AILib.prototype.distance = function(entity)
 {
-	if (this.__cache.position === undefined)
+	if (this.__cache.oolite_position === undefined)
 	{
-		this.__cache.position = this.ship.position;
+		this.__cache.oolite_position = this.ship.position;
 	}
-	return this.__cache.position.distanceTo(entity);
+	return this.__cache.oolite_position.distanceTo(entity);
 }
 
 
@@ -633,11 +633,11 @@ AILib.prototype.entityCommsParams = function(entity)
 
 AILib.prototype.fineThreshold = function()
 {
-	if (!this.__ltcache.fineThreshold)
+	if (!this.__ltcache.oolite_fineThreshold)
 	{
-		this.__ltcache.fineThreshold = 50 - (system.info.government * 6);
+		this.__ltcache.oolite_fineThreshold = 50 - (system.info.government * 6);
 	}
-	return this.__ltcache.fineThreshold;
+	return this.__ltcache.oolite_fineThreshold;
 }
 
 
@@ -690,15 +690,15 @@ AILib.prototype.friendlyStation = function(station)
 
 AILib.prototype.homeStation = function() 
 {
-	if (this.__ltcache.homeStation !== undefined)
+	if (this.__ltcache.oolite_homeStation !== undefined)
 	{
-		return this.__ltcache.homeStation;
+		return this.__ltcache.oolite_homeStation;
 	}
 	// home station might be the owner of the ship, or might just
 	// be a group member
 	if (this.ship.owner && this.ship.owner.isStation && this.friendlyStation(this.ship.owner))
 	{
-		this.__ltcache.homeStation = this.ship.owner;
+		this.__ltcache.oolite_homeStation = this.ship.owner;
 		return this.ship.owner;
 	}
 	if (this.ship.group)
@@ -708,12 +708,12 @@ AILib.prototype.homeStation = function()
 		{
 			if (gs[i] != this.ship && gs[i].isStation && this.friendlyStation(gs[i]))
 			{
-				this.__ltcache.homeStation = gs[i];
+				this.__ltcache.oolite_homeStation = gs[i];
 				return gs[i];
 			}
 		}
 	}
-	this.__ltcache.homeStation = null;
+	this.__ltcache.oolite_homeStation = null;
 	return null;
 }
 
@@ -817,9 +817,9 @@ AILib.prototype.noteDistraction = function(whom)
 
 AILib.prototype.oddsAssessment = function()
 {
-	if (this.__cache.oddsAssessment)
+	if (this.__cache.oolite_oddsAssessment)
 	{
-		return this.__cache.oddsAssessment;
+		return this.__cache.oolite_oddsAssessment;
 	}
 	var target = this.ship.target;
 	if (!target)
@@ -896,8 +896,8 @@ AILib.prototype.oddsAssessment = function()
 			}
 		}
 	}
-	this.__cache.oddsAssessment = us/them;		
-	return this.__cache.oddsAssessment;
+	this.__cache.oolite_oddsAssessment = us/them;		
+	return this.__cache.oolite_oddsAssessment;
 }
 
 
@@ -1113,13 +1113,13 @@ AILib.prototype.conditionGroupAttritionReached = function()
 
 AILib.prototype.conditionInCombat = function()
 {
-	if (this.__cache.conditionInCombat !== undefined)
+	if (this.__cache.oolite_conditionInCombat !== undefined)
 	{
-		return this.__cache.conditionInCombat;
+		return this.__cache.oolite_conditionInCombat;
 	}
 	if (this.isFighting(this.ship))
 	{
-		this.__cache.conditionInCombat = true;
+		this.__cache.oolite_conditionInCombat = true;
 		return true;
 	}
 	var dts = this.ship.defenseTargets;
@@ -1127,7 +1127,7 @@ AILib.prototype.conditionInCombat = function()
 	{
 		if (this.isFighting(dts[i]) && this.distance(dts[i]) < this.scannerRange)
 		{
-			this.__cache.conditionInCombat = true;
+			this.__cache.oolite_conditionInCombat = true;
 			return true;
 		}
 	}
@@ -1138,7 +1138,7 @@ AILib.prototype.conditionInCombat = function()
 		{
 			if (this.isFighting(gs[i]) && this.distance(gs[i]) < this.scannerRange)
 			{
-				this.__cache.conditionInCombat = true;
+				this.__cache.oolite_conditionInCombat = true;
 				return true;
 			}
 		}
@@ -1150,12 +1150,12 @@ AILib.prototype.conditionInCombat = function()
 		{
 			if (this.isFighting(gs[i]) && this.distance(gs[i]) < this.scannerRange)
 			{
-				this.__cache.conditionInCombat = true;
+				this.__cache.oolite_conditionInCombat = true;
 				return true;
 			}
 		}
 	}
-	this.__cache.conditionInCombat = false;
+	this.__cache.oolite_conditionInCombat = false;
 	delete this.ship.AIScript.oolite_intership.cargodemandpaid;
 	return false;
 }
@@ -1301,7 +1301,7 @@ AILib.prototype.conditionLosingCombat = function()
 	}
 	if (!this.getParameter("oolite_flag_fightsNearHostileStations"))
 	{
-		if (this.__ltcache.nearestStation && this.distance(this.__ltcache.nearestStation) < 51200 && this.hostileStation(this.__ltcache.nearestStation))
+		if (this.__ltcache.oolite_nearestStation && this.distance(this.__ltcache.oolite_nearestStation) < 51200 && this.hostileStation(this.__ltcache.oolite_nearestStation))
 		{
 			// if there is a hostile station nearby, probably best to leave
 			return true;
@@ -1445,7 +1445,7 @@ AILib.prototype.conditionFriendlyStationExists = function()
 
 AILib.prototype.conditionFriendlyStationNearby = function()
 {
-	return this.friendlyStation(this.__ltcache.nearestStation) && this.distance(this.__ltcache.nearestStation) < 25600;
+	return this.friendlyStation(this.__ltcache.oolite_nearestStation) && this.distance(this.__ltcache.oolite_nearestStation) < 25600;
 }
 
 
@@ -1512,7 +1512,7 @@ AILib.prototype.conditionHomeStationNearby = function()
 
 AILib.prototype.conditionHostileStationNearby = function()
 {
-	return this.hostileStation(this.__ltcache.nearestStation) && this.distance(this.__ltcache.nearestStation) < 51200;
+	return this.hostileStation(this.__ltcache.oolite_nearestStation) && this.distance(this.__ltcache.oolite_nearestStation) < 51200;
 }
 
 
@@ -1850,7 +1850,7 @@ AILib.prototype.conditionScannerContainsSalvage = function()
 
 AILib.prototype.conditionScannerContainsSalvageForGroup = function()
 {
-	if (!this.__ltcache.conditionScannerContainsSalvageForGroup)
+	if (!this.__ltcache.oolite_conditionScannerContainsSalvageForGroup)
 	{
 		var maxspeed = 0;
 		if (this.conditionCanScoopCargo())
@@ -1868,10 +1868,10 @@ AILib.prototype.conditionScannerContainsSalvageForGroup = function()
 				}
 			}
 		}
-		this.__ltcache.conditionScannerContainsSalvageForGroup = maxspeed;
+		this.__ltcache.oolite_conditionScannerContainsSalvageForGroup = maxspeed;
 	}
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.__ltcache.conditionScannerContainsSalvageForGroup; 
+		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.__ltcache.oolite_conditionScannerContainsSalvageForGroup; 
 	});
 }
 
@@ -1958,16 +1958,16 @@ AILib.prototype.conditionAllEscortsInFlight = function()
 
 AILib.prototype.conditionCanScoopCargo = function()
 {
-	if (this.__cache.conditionCanScoopCargo !== undefined)
+	if (this.__cache.oolite_conditionCanScoopCargo !== undefined)
 	{
-		return this.__cache.conditionCanScoopCargo;
+		return this.__cache.oolite_conditionCanScoopCargo;
 	}
 	if (this.ship.cargoSpaceAvailable == 0 || this.ship.equipmentStatus("EQ_FUEL_SCOOPS") != "EQUIPMENT_OK")
 	{
-		this.__cache.conditionCanScoopCargo = false;
+		this.__cache.oolite_conditionCanScoopCargo = false;
 		return false;
 	}
-	this.__cache.conditionCanScoopCargo = true;
+	this.__cache.oolite_conditionCanScoopCargo = true;
 	return true;
 }
 
@@ -2002,11 +2002,11 @@ AILib.prototype.conditionCargoIsProfitableHere = function()
 		return false;
 	}
 
-	if (this.__ltcache.conditionCargoIsProfitableHere == undefined)
+	if (this.__ltcache.oolite_conditionCargoIsProfitableHere == undefined)
 	{
 		if (this.ship.cargoSpaceUsed == 0)
 		{
-			this.__ltcache.conditionCargoIsProfitableHere = false;
+			this.__ltcache.oolite_conditionCargoIsProfitableHere = false;
 		}
 		else
 		{
@@ -2022,10 +2022,10 @@ AILib.prototype.conditionCargoIsProfitableHere = function()
 				profit += adjust;
 			}
 			
-			this.__ltcache.conditionCargoIsProfitableHere = (profit >= 0);
+			this.__ltcache.oolite_conditionCargoIsProfitableHere = (profit >= 0);
 		}
 	}
-	return this.__ltcache.conditionCargoIsProfitableHere;
+	return this.__ltcache.oolite_conditionCargoIsProfitableHere;
 }
 
 
@@ -2328,7 +2328,7 @@ AILib.prototype.behaviourDestroyCurrentTarget = function()
 
 	
 	/* This doesn't work: ships which are removed from the list
-	 * because they're unreachable then end up being reselected the
+	 * because they're unreachable then just end up being reselected the
 	 * next time the ship scans for targets. */
 	/*
 	if (this.getParameter("oolite_flag_continueUnlikelyPursuits") == null)
@@ -2602,30 +2602,30 @@ AILib.prototype.behaviourFleeCombat = function()
 		this.setParameter("oolite_lastFleeing",this.ship.target);
 	}
 	
-	if (!this.__ltcache.considerWitchspaceFlee)
+	if (!this.__ltcache.oolite_considerWitchspaceFlee)
 	{
 		if (!this.getParameter("oolite_flag_neverFleeToWitchspace"))
 		{
-			this.__ltcache.considerWitchspaceFlee = (this.ship.hasHyperspaceMotor && (system.isInterstellarSpace && this.ship.fuel > 0) || (system.ID != this.ship.homeSystem && system.info.systemsInRange(this.ship.fuel).length > 0))?1:-1;
+			this.__ltcache.oolite_considerWitchspaceFlee = (this.ship.hasHyperspaceMotor && (system.isInterstellarSpace && this.ship.fuel > 0) || (system.ID != this.ship.homeSystem && system.info.systemsInRange(this.ship.fuel).length > 0))?1:-1;
 		}
 		else
 		{
-			this.__ltcache.considerWitchspaceFlee = -1;
+			this.__ltcache.oolite_considerWitchspaceFlee = -1;
 		}
 	}
 
-	if (this.__ltcache.considerWitchspaceFlee == 1)
+	if (this.__ltcache.oolite_considerWitchspaceFlee == 1)
 	{
-		if (!this.__ltcache.considerWitchspaceFlee)
+		if (!this.__ltcache.oolite_considerWitchspaceFlee)
 		{
-			this.__ltcache.witchspaceflee = clock.seconds + 15;
+			this.__ltcache.oolite_witchspaceflee = clock.seconds + 15;
 		}
-		if (this.__ltcache.witchspaceflee < clock.seconds)
+		if (this.__ltcache.oolite_witchspaceflee < clock.seconds)
 		{
 			if (this.ship.exitSystem())
 			{
 				this.ship.notifyGroupOfWormhole();
-				delete this.__ltcache.witchspaceflee;
+				delete this.__ltcache.oolite_witchspaceflee;
 			}
 		}
 	}
@@ -3666,9 +3666,9 @@ AILib.prototype.configurationSetDestinationToNearestHostileStation = function()
 
 AILib.prototype.configurationSetDestinationToNearestStation = function()
 {
-	if (this.__ltcache.nearestStation)
+	if (this.__ltcache.oolite_nearestStation)
 	{
-		this.ship.destination = this.__ltcache.nearestStation.position;
+		this.ship.destination = this.__ltcache.oolite_nearestStation.position;
 		this.ship.desiredRange = 15000;
 		this.ship.desiredSpeed = this.cruiseSpeed();
 	}
@@ -3824,11 +3824,11 @@ AILib.prototype.configurationSetWaypoint = function()
 
 AILib.prototype.configurationSetNearbyFriendlyStationForDocking = function()
 {
-	if (this.friendlyStation(this.__ltcache.nearestStation))
+	if (this.friendlyStation(this.__ltcache.oolite_nearestStation))
 	{
-		if (this.distance(this.__ltcache.nearestStation) < this.scannerRange)
+		if (this.distance(this.__ltcache.oolite_nearestStation) < this.scannerRange)
 		{
-			this.setParameter("oolite_dockingStation",this.__ltcache.nearestStation)
+			this.setParameter("oolite_dockingStation",this.__ltcache.oolite_nearestStation)
 			return;
 		}
 	}
