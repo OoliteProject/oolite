@@ -262,6 +262,7 @@ enum
 	OOPlanetEntity			*cachedPlanet;
 	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
+	NSMutableSet			*allStations;
 	
 	NSMutableDictionary		*populatorSettings;
 	OOTimeDelta		next_repopulation;
@@ -403,6 +404,7 @@ enum
 - (OOPlanetEntity *) planet;
 - (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
+- (NSArray *) stations; // includes main station
 
 // Turn main station into just another station, for blowUpStation.
 - (void) unMagicMainStation;

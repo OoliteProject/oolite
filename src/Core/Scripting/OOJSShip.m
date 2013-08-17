@@ -2491,15 +2491,23 @@ static JSBool ShipFindNearestStation(JSContext *context, uintN argc, jsval *vp)
 	
 	ShipEntity			*thisEnt = nil;
 	StationEntity		*result = nil;
-	NSArray				*stations = nil;
 
 	GET_THIS_SHIP(thisEnt);
-	
-	OOJS_BEGIN_FULL_NATIVE(context)
-	stations = [UNIVERSE findShipsMatchingPredicate:IsStationPredicate parameter:NULL inRange:-1 ofEntity:thisEnt];
-	OOJS_END_FULL_NATIVE
 
-	result = [stations oo_objectAtIndex:0 defaultValue:nil];
+	double				sdist, distance = 1E32;
+	
+	NSEnumerator		*statEnum = [[UNIVERSE stations] objectEnumerator];
+	StationEntity		*se = nil;
+	while ((se = [statEnum nextObject]))
+	{
+		sdist = HPdistance2([thisEnt position],[se position]);
+
+		if (sdist < distance)
+		{
+			distance = sdist;
+			result = se;
+		}
+	}
 	
 	OOJS_RETURN_OBJECT(result);
 	

@@ -264,12 +264,7 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			break;
 			
 		case kSystem_stations:
-			/* Optimise? This may be called enough times that it's worth
-			 * having a list of stations cached and edited on station
-			 * creation/destruction, as we do for planets - CIM 13/7/2013 */
-			OOJS_BEGIN_FULL_NATIVE(context)
-			result = [UNIVERSE findShipsMatchingPredicate:IsStationPredicate parameter:NULL inRange:-1 ofEntity:nil];
-			OOJS_END_FULL_NATIVE
+			result = [UNIVERSE stations];
 			handled = YES;
 			break;
 

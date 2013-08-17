@@ -261,6 +261,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	gSharedUniverse = self;
 	
 	allPlanets = [[NSMutableArray alloc] init];
+	allStations = [[NSMutableSet alloc] init];
 	
 	OOCPUInfoInit();
 	[OOJoystickManager sharedStickHandler];
@@ -412,6 +413,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[gameView release];
 	[populatorSettings release];
 	[system_repopulator release];
+	[allPlanets release];
+	[allStations release];
 	
 	[localPlanetInfoOverrides release];
 	[activeWormholes release];				
@@ -2591,19 +2594,21 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) setDockingClearanceProtocolActive:(BOOL)newValue
 {
-	NSUInteger		i;
 	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
-	NSArray			*allStations = [self findShipsMatchingPredicate:IsStationPredicate
-											parameter:NULL
-											inRange:-1
-											ofEntity:nil];
-								   
-	for (i = 0; i < [allStations count]; i++)
+	NSEnumerator	*statEnum = [allStations objectEnumerator]; 
+	StationEntity	*station = nil;
+
+	/* CIM: picking a random ship type which can take the same primary
+	 * role as the station to determine whether it has no set docking
+	 * clearance requirements seems unlikely to work entirely
+	 * correctly. To be fixed. */
+						   
+	while ((station = [statEnum nextObject]))
 	{
-		NSString	*stationKey = [registry randomShipKeyForRole:[[allStations objectAtIndex:i] primaryRole]];
+		NSString	*stationKey = [registry randomShipKeyForRole:[station primaryRole]];
 		if (![[[registry shipInfoForKey:stationKey] allKeys] containsObject:@"requires_docking_clearance"])
 		{
-			[[allStations objectAtIndex:i] setRequiresDockingClearance:!!newValue];
+			[station setRequiresDockingClearance:!!newValue];
 		}
 	}
 	
@@ -2760,6 +2765,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (NSArray *) planets
 {
 	return allPlanets;
+}
+
+
+- (NSArray *) stations
+{
+	return [allStations allObjects];
 }
 
 
@@ -4584,6 +4595,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		{
 			[[se getAI] setOwner:se];
 			[[se getAI] setState:@"GLOBAL"];
+			if ([entity isStation])
+			{
+				[allStations addObject:entity];
+			}
 		}
 		
 		return YES;
@@ -4601,7 +4616,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			there may be things pointing to it but not retaining it.
 		*/
 		[entitiesDeadThisUpdate addObject:entity];
-		
+		if ([entity isStation])
+		{
+			[allStations removeObject:entity];
+		}
 		return [self doRemoveEntity:entity];
 	}
 	return NO;
