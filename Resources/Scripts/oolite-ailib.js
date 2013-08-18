@@ -1222,6 +1222,11 @@ AILib.prototype.conditionLosingCombat = function()
 			this.setParameter("oolite_cascadeDetected",null);
 		}
 	}
+	if (!this.conditionInCombat()) 
+	{
+		this.setParameter("oolite_lastFleeing",null);
+		return false;
+	}
 	var en = this.ship.energy;
 	var maxen = this.ship.maxEnergy; 
 	if (en == maxen)
@@ -1231,10 +1236,6 @@ AILib.prototype.conditionLosingCombat = function()
 		{
 			this.setParameter("oolite_lastFleeing",null);
 		}
-	}
-	if (!this.conditionInCombat()) 
-	{
-		return false;
 	}
 	if (this.getParameter("oolite_flag_fleesPreemptively") && this.ship.fuel > 0 && this.ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
 	{
@@ -2610,9 +2611,9 @@ AILib.prototype.behaviourFleeCombat = function()
 	
 	if (!this.__ltcache.oolite_considerWitchspaceFlee)
 	{
-		if (!this.getParameter("oolite_flag_neverFleeToWitchspace"))
+		if (this.getParameter("oolite_flag_neverFleeToWitchspace") == null)
 		{
-			this.__ltcache.oolite_considerWitchspaceFlee = (this.ship.hasHyperspaceMotor && (system.isInterstellarSpace && this.ship.fuel > 0) || (system.ID != this.ship.homeSystem && system.info.systemsInRange(this.ship.fuel).length > 0))?1:-1;
+			this.__ltcache.oolite_considerWitchspaceFlee = (this.ship.hasHyperspaceMotor && ((system.isInterstellarSpace && this.ship.fuel > 0) || (system.ID != this.ship.homeSystem && system.info.systemsInRange(this.ship.fuel).length > 0)))?1:-1;
 		}
 		else
 		{
@@ -2622,7 +2623,7 @@ AILib.prototype.behaviourFleeCombat = function()
 
 	if (this.__ltcache.oolite_considerWitchspaceFlee == 1)
 	{
-		if (!this.__ltcache.oolite_considerWitchspaceFlee)
+		if (!this.__ltcache.oolite_witchspaceflee)
 		{
 			this.__ltcache.oolite_witchspaceflee = clock.seconds + 15;
 		}
@@ -2635,6 +2636,7 @@ AILib.prototype.behaviourFleeCombat = function()
 			}
 		}
 	}
+
 	this.ship.desiredRange = this.scannerRange;
 	this.ship.performFlee();
 }
