@@ -13360,6 +13360,64 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
+- (OOAlertCondition) realAlertCondition
+{
+	if ([self status] == STATUS_DOCKED) 
+	{
+		return ALERT_CONDITION_DOCKED;
+	}
+	if ([self hasHostileTarget])
+	{
+		return ALERT_CONDITION_RED;
+	}
+	else
+	{
+		NSEnumerator *sEnum = [_defenseTargets objectEnumerator];
+		ShipEntity *ship = nil;
+		double scanrange2 = scannerRange * scannerRange;
+		while ((ship = [sEnum nextObject]))
+		{
+			if ([ship hasHostileTarget] || ([ship isPlayer] && [PLAYER weaponsOnline]))
+			{
+				if (HPdistance2([ship position],position) < scanrange2)
+				{
+					return ALERT_CONDITION_RED;
+				}
+			}
+		}
+		if (_group)
+		{
+			sEnum = [_group objectEnumerator];
+			while ((ship = [sEnum nextObject]))
+			{
+				if ([ship hasHostileTarget] || ([ship isPlayer] && [PLAYER weaponsOnline]))
+				{
+					if (HPdistance2([ship position],position) < scanrange2)
+					{
+						return ALERT_CONDITION_RED;
+					}
+				}
+			}
+		}
+		if (_escortGroup && _group != _escortGroup)
+		{
+			sEnum = [_escortGroup objectEnumerator];
+			while ((ship = [sEnum nextObject]))
+			{
+				if ([ship hasHostileTarget] || ([ship isPlayer] && [PLAYER weaponsOnline]))
+				{
+					if (HPdistance2([ship position],position) < scanrange2)
+					{
+						return ALERT_CONDITION_RED;
+					}
+				}
+			}
+		}
+	}
+	return ALERT_CONDITION_YELLOW;
+}
+
+
 // Exposed to AI and scripts.
 - (void) doNothing
 {

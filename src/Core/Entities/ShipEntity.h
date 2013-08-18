@@ -722,6 +722,8 @@ typedef enum
 - (BOOL)isPirateVictim;	// Primary role is listed in pirate-victim-roles.plist
 - (BOOL)isUnpiloted;	// Has unpiloted = yes in its shipdata.plist entry
 
+- (OOAlertCondition) alertCondition; // quick calc for shaders
+- (OOAlertCondition) realAlertCondition; // full calculation for scripting
 - (BOOL) hasHostileTarget;
 - (BOOL) isHostileTo:(Entity *)entity;
 

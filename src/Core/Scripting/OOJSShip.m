@@ -169,6 +169,7 @@ enum
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_AIFoundTarget,		// AI "found target", entity, read/write
 	kShip_AIPrimaryAggressor,	// AI "primary aggressor", entity, read/write
+	kShip_alertCondition,		// number 0-3, read-only, combat alert level
 	kShip_autoAI,				// bool, read-only, auto_ai from shipdata
 	kShip_autoWeapons,			// bool, read-only, auto_weapons from shipdata
 	kShip_beaconCode,			// beacon code, string, read/write
@@ -301,6 +302,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "AIState",				kShip_AIState,				OOJS_PROP_READWRITE_CB },
 	{ "AIFoundTarget",			kShip_AIFoundTarget,		OOJS_PROP_READWRITE_CB },
 	{ "AIPrimaryAggressor",		kShip_AIPrimaryAggressor,	OOJS_PROP_READWRITE_CB },
+	{ "alertCondition",			kShip_alertCondition,		OOJS_PROP_READONLY_CB },
 	{ "autoAI",					kShip_autoAI,				OOJS_PROP_READONLY_CB },
 	{ "autoWeapons",			kShip_autoWeapons,			OOJS_PROP_READONLY_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
@@ -586,6 +588,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity primaryAggressor];
 			break;
 		
+		case kShip_alertCondition:
+			return JS_NewNumberValue(context, [entity realAlertCondition], value);
+
 		case kShip_autoAI:
 			*value = OOJSValueFromBOOL([entity hasAutoAI]);
 			return YES;

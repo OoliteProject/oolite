@@ -784,11 +784,7 @@ AILib.prototype.isEscaping = function(ship)
 
 AILib.prototype.isFighting = function(ship)
 {
-	if (ship.isStation)
-	{
-		return ship.alertCondition == 3 && ship.target;
-	}
-	else if (ship.isPlayer)
+	if (ship.isPlayer)
 	{
 		return !ship.isFleeing; // have to assume aggressive
 	}
@@ -1116,6 +1112,13 @@ AILib.prototype.conditionInCombat = function()
 	{
 		return this.__cache.oolite_conditionInCombat;
 	}
+	this.__cache.oolite_conditionInCombat = (this.ship.alertCondition==3);
+	if (!this.__cache.oolite_conditionInCombat)
+	{
+		delete this.ship.AIScript.oolite_intership.cargodemandpaid;
+	}
+	return this.__cache.oolite_conditionInCombat;
+/*
 	if (this.isFighting(this.ship))
 	{
 		this.__cache.oolite_conditionInCombat = true;
@@ -1157,6 +1160,7 @@ AILib.prototype.conditionInCombat = function()
 	this.__cache.oolite_conditionInCombat = false;
 	delete this.ship.AIScript.oolite_intership.cargodemandpaid;
 	return false;
+*/
 }
 
 /* Ships being attacked are firing back */
