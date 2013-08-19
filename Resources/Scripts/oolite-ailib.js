@@ -3245,7 +3245,7 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 		{
 			if (gs[i] != this.ship)
 			{
-				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan)
+				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
 					return;
@@ -3260,7 +3260,7 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 		{
 			if (gs[i] != this.ship)
 			{
-				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan)
+				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
 					return;
