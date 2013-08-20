@@ -263,6 +263,7 @@ enum
 	NSMutableDictionary		*populatorSettings;
 	OOTimeDelta		next_repopulation;
 	NSString		*system_repopulator;
+	BOOL			deterministic_population;
 
 	NSArray					*closeSystems;
 	
@@ -348,6 +349,7 @@ enum
 - (void) setUpSpace;
 - (void) populateNormalSpace;
 - (void) clearSystemPopulator;
+- (BOOL) deterministicPopulation;
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
@@ -399,6 +401,7 @@ enum
 - (OOPlanetEntity *) planet;
 - (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
+- (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position;
 
 // Turn main station into just another station, for blowUpStation.
 - (void) unMagicMainStation;

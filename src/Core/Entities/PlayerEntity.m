@@ -788,8 +788,8 @@ static GLfloat		sBaseMass = 0.0;
 	//custom view no.
 	[result oo_setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
 
-	//local market
-	if ([dockedStation localMarket])  [result setObject:[dockedStation localMarket] forKey:@"localMarket"];
+	//local market for main station
+	if ([[UNIVERSE station] localMarket])  [result setObject:[[UNIVERSE station] localMarket] forKey:@"localMarket"];
 
 	// strict UNIVERSE?
 	if ([UNIVERSE strict])
@@ -815,6 +815,14 @@ static GLfloat		sBaseMass = 0.0;
 		[wormholeDicts addObject:[wh getDict]];
 	}
 	[result setObject:wormholeDicts forKey:@"wormholes"];
+
+	// docked station
+	[result setObject:[dockedStation primaryRole] forKey:@"docked_station_role"];
+	HPVector dpos = [dockedStation position];
+	[result setObject:[NSNumber numberWithDouble:dpos.x] forKey:@"docked_station_position_x"];
+	[result setObject:[NSNumber numberWithDouble:dpos.y] forKey:@"docked_station_position_y"];
+	[result setObject:[NSNumber numberWithDouble:dpos.z] forKey:@"docked_station_position_z"];
+	[result setObject:[dockedStation localMarket] forKey:@"docked_station_market"];
 
 	// create checksum
 	clear_checksum();
@@ -6692,7 +6700,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			dockedStation = [UNIVERSE station];
 		}
-		canLoadOrSave = (dockedStation == [UNIVERSE station] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
+		canLoadOrSave = ((dockedStation == [UNIVERSE station] || [dockedStation allowsSaving]) && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
 	}
 	
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));

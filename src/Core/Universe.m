@@ -119,7 +119,7 @@ Universe *gSharedUniverse = nil;
 
 
 static BOOL MaintainLinkedLists(Universe* uni);
-
+OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range);
 
 static OOComparisonResult compareName(id dict1, id dict2, void * context);
 static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
@@ -1262,6 +1262,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
+- (BOOL) deterministicPopulation
+{
+	return deterministic_population;
+}
+
+
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
 {
 	NSArray *blocks = [populatorSettings allValues];
@@ -1275,7 +1281,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	OOJSPopulatorDefinition *pdef = nil;
 	while ((populator = [enumerator nextObject]))
 	{
-		// for now, the "deterministic" setting does nothing
+		deterministic_population = [populator oo_boolForKey:@"deterministic" defaultValue:NO];
 
 		locationSeed = [populator oo_unsignedIntForKey:@"locationSeed" defaultValue:0];
 		groupCount = [populator oo_unsignedIntForKey:@"groupCount" defaultValue:1];
@@ -1300,6 +1306,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 					rndvalue = RanrotWithSeed(&rndlocal);
 					// ...for iteration (63647 is nothing special, just a largish prime)
 					RANROTSetFullSeed(MakeRanrotSeed(rndvalue+(i*63647)));
+				}
+				else
+				{
+					// not fixed coordinates and not seeded RNG; can't
+					// be deterministic
+					deterministic_population = false;
 				}
 				if (sun == nil || planet == nil)
 				{
@@ -2720,6 +2732,30 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 												   parameter:nil];
 	}
 	return cachedStation;
+}
+
+
+- (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position;
+{
+	if ([role isEqualToString:@""])
+	{
+		return nil;
+	}
+
+	float range = 10000; // allow a little variation in position
+	unsigned i;
+
+	// TODO: once the branch with cached station lists is merged in,
+	// use that list rather than the full entity list!
+	for (i = 0; i < n_entities; i++)
+	{
+		Entity *e = sortedEntities[i];
+		if ([e isStation] && EntityInRange(position, e, range) && [[(StationEntity *)e primaryRole] isEqualToString:role])
+		{
+			return (StationEntity *)e;
+		}
+	}
+	return nil;
 }
 
 
