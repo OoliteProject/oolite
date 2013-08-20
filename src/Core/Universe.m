@@ -1333,6 +1333,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[pdef runCallback:location];
 		}
 	}
+	// nothing is deterministic once the populator is done
+	deterministic_population = NO;
 }
 
 

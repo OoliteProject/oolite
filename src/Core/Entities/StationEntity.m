@@ -2288,7 +2288,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 - (BOOL) allowsSaving
 {
-	return allowsSaving;
+	// fixed stations only, not carriers!
+	return allowsSaving && ([self maxFlightSpeed] == 0);
 }
 
 
