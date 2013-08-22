@@ -3493,15 +3493,16 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		{
 			assessment += 1 + ShipThreatAssessmentWeapon(wt);
 		}
+		// port and starboard weapons less important
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_PORT];
 		if (wt != WEAPON_NONE)
 		{
-			assessment += 0.2 + ShipThreatAssessmentWeapon(wt);
+			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_STARBOARD];
 		if (wt != WEAPON_NONE)
 		{
-			assessment += 0.2 + ShipThreatAssessmentWeapon(wt);
+			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
 
 		NSEnumerator	*subEnum = [thisEnt shipSubEntityEnumerator];

@@ -2918,6 +2918,12 @@ AILib.prototype.behaviourRobTarget = function()
 		demand = (hascargo/20);
 		demand = demand * (1+Math.random()+(8-system.info.government)/8);
 		// between 5% and 15% of cargo
+		if (this.conditionCombatOddsExcellent())
+		{
+			// if we have overwhelming force, can get away with demanding more
+			demand *= 1.5+Math.random();
+			// between 7.5% and 37.5% of cargo
+		}
 		demand = Math.ceil(demand); // round it up so there's always at least 1
 
 		var maxdemand = 0;
