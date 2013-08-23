@@ -600,6 +600,10 @@ AILib.prototype.cruiseSpeed = function()
 
 AILib.prototype.distance = function(entity)
 {
+	if (!entity)
+	{
+		return 0;
+	}
 	if (this.__cache.oolite_position === undefined)
 	{
 		this.__cache.oolite_position = this.ship.position;
@@ -788,7 +792,7 @@ AILib.prototype.isFighting = function(ship)
 	{
 		return !ship.isFleeing; // have to assume aggressive
 	}
-	return ship && ship.hasHostileTarget;
+	return ship && ship.target && ship.hasHostileTarget;
 }
 
 
@@ -2400,9 +2404,9 @@ AILib.prototype.behaviourDockWithStation = function()
 		this.reconsiderNow();
 		break;
 	case "TRY_AGAIN_LATER":
-		if (this.distance(this.ship.target) < 10000)
+		if (this.distance(station) < 10000)
 		{
-			this.ship.destination = this.ship.target.position;
+			this.ship.destination = station.position;
 			this.ship.desiredRange = 12500;
 			this.ship.desiredSpeed = this.cruiseSpeed();
 			this.ship.performFlyToRangeFromDestination();
@@ -2411,7 +2415,7 @@ AILib.prototype.behaviourDockWithStation = function()
 		// else fall through
 	case "HOLD_POSITION":
 		this.communicate("oolite_dockingWait",{},4);
-		this.ship.destination = this.ship.target.position;
+		this.ship.destination = station.position;
 		this.ship.performFaceDestination();
 		// and will reconsider in a little bit
 		break;
@@ -4380,6 +4384,11 @@ AILib.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 			// usually ignore it anyway
 			return;
 		}
+	}
+	if (this.ship.target == this.getParameter("oolite_dockingStation"))
+	{
+		// don't get confused and shoot the station!
+		this.ship.target = null;
 	}
 	if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
 	{
