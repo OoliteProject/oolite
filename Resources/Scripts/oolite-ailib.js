@@ -3279,6 +3279,24 @@ AILib.prototype.configurationAcquireCombatTarget = function()
 
 AILib.prototype.configurationAcquireDefensiveEscortTarget = function()
 {
+	if (this.ship.target && this.allied(this.ship,this.ship.target))
+	{
+		// don't shoot at allies even if they have ended up as a target...
+		this.ship.removeDefenseTarget(this.ship.target);
+		this.ship.target = null;
+	}
+	/* Preserve current target if still fighting (leader can send help
+	 * request if needed) */
+	if (this.ship.target)
+	{
+		if (this.ship.target.isInSpace && this.isAggressive(this.ship.target))
+		{
+			return;
+		}
+		this.ship.removeDefenseTarget(this.ship.target);
+		this.ship.target = null;
+	}
+
 	if (this.ship.group && this.ship.group.leader)
 	{
 		var leader = this.ship.group.leader;
@@ -3371,6 +3389,23 @@ AILib.prototype.configurationAcquireHostileCombatTarget = function()
 
 AILib.prototype.configurationAcquireOffensiveEscortTarget = function()
 {
+	if (this.ship.target && this.allied(this.ship,this.ship.target))
+	{
+		// don't shoot at allies even if they have ended up as a target...
+		this.ship.removeDefenseTarget(this.ship.target);
+		this.ship.target = null;
+	}
+	/* Preserve current target if still fighting */
+	if (this.ship.target)
+	{
+		if (this.ship.target.isInSpace && this.isAggressive(this.ship.target))
+		{
+			return;
+		}
+		this.ship.removeDefenseTarget(this.ship.target);
+		this.ship.target = null;
+	}
+
 	if (this.ship.group && this.ship.group.leader)
 	{ 
 		var leader = this.ship.group.leader;
@@ -4285,8 +4320,8 @@ AILib.prototype.responseComponent_standard_shipAttackedWithMissile = function(mi
 		this.ship.addDefenseTarget(missile);
 		this.ship.addDefenseTarget(whom);
 		var tmp = this.ship.target;
-		this.ship.target = whom;
-		this.ship.requestHelpFromGroup();
+		this.ship.target = missile;
+		this.ship.requestHelpFromGroup(); // anyone got an ECM?
 		this.ship.target = tmp;
 		this.reconsiderNow();
 	}
