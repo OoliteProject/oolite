@@ -1799,7 +1799,7 @@
 		ai_type = "missileAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
-		exhaust = ("0.0 0.0 -3.5 2.0 2.0 2.0");
+		exhaust = ("0.0 0.0 -3.5 2.0 2.0 0.75");
 		forward_weapon_type = "WEAPON_NONE";
 		is_template = 1;
 		max_energy = 5;
