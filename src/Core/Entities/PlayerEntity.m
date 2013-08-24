@@ -5184,6 +5184,10 @@ static GLfloat		sBaseMass = 0.0;
 	[self moveForward:100.0];
 	
 	flightSpeed = 160.0f;
+	velocity = kZeroVector;
+	flightRoll = 0.0;
+	flightPitch = 0.0;
+	flightYaw = 0.0;
 	[[UNIVERSE messageGUI] clear];		// No messages for the dead.
 	[self suppressTargetLost];			// No target lost messages when dead.
 	[self playGameOver];
@@ -8672,6 +8676,11 @@ static NSString *last_outfitting_key=nil;
 
 - (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other
 {
+	if ([self status] == STATUS_DEAD || [self status] == STATUS_DOCKED)
+	{
+		// only when in flight
+		return;
+	}
 	[UNIVERSE addCommsMessage:[NSString stringWithFormat:@"%@:\n %@", [other displayName], message_text] forCount:4.5];
 	[super receiveCommsMessage:message_text from:other];
 }
