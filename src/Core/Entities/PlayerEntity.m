@@ -2363,10 +2363,40 @@ static GLfloat		sBaseMass = 0.0;
 		-- Ahruman 20070802
 	 */
 	OOAlertCondition cond = [self alertCondition];
+	OOTimeAbsolute t = [UNIVERSE getTime];
 	if (cond != lastScriptAlertCondition)
 	{
 		ShipScriptEventNoCx(self, "alertConditionChanged", INT_TO_JSVAL(cond), INT_TO_JSVAL(lastScriptAlertCondition));
 		lastScriptAlertCondition = cond;
+	}
+	/* Update heuristic assessment of whether player is fleeing */
+	if (cond == ALERT_CONDITION_DOCKED || cond == ALERT_CONDITION_GREEN || (cond == ALERT_CONDITION_YELLOW && energy == maxEnergy))
+	{
+		fleeing_status = PLAYER_FLEEING_NONE;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_UNLIKELY && (energy > maxEnergy*0.6 || cond != ALERT_CONDITION_RED))
+	{
+		fleeing_status = PLAYER_FLEEING_NONE;
+	}
+	else if ((fleeing_status == PLAYER_FLEEING_MAYBE || fleeing_status == PLAYER_FLEEING_UNLIKELY) && cargo_dump_time > last_shot_time)
+	{
+		fleeing_status = PLAYER_FLEEING_CARGO;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_MAYBE && last_shot_time + 10 > t)
+	{
+		fleeing_status = PLAYER_FLEEING_NONE;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_LIKELY && last_shot_time + 10 > t)
+	{
+		fleeing_status = PLAYER_FLEEING_UNLIKELY;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_NONE && cond == ALERT_CONDITION_RED && last_shot_time + 10 < t && flightSpeed > 0.75*maxFlightSpeed)
+	{
+		fleeing_status = PLAYER_FLEEING_MAYBE;
+	}
+	else if ((fleeing_status == PLAYER_FLEEING_MAYBE || fleeing_status == PLAYER_FLEEING_CARGO) && cond == ALERT_CONDITION_RED && last_shot_time + 10 < t && flightSpeed > 0.75*maxFlightSpeed && energy < maxEnergy * 0.5 && (forward_shield < [self maxForwardShieldLevel]*0.25 || aft_shield < [self maxAftShieldLevel]*0.25))
+	{
+		fleeing_status = PLAYER_FLEEING_LIKELY;
 	}
 }
 
@@ -3987,6 +4017,12 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	return alertCondition;
+}
+
+
+- (OOPlayerFleeingStatus) fleeingStatus
+{
+	return fleeing_status;
 }
 
 /////////////////////////////////////////////////////////////////////

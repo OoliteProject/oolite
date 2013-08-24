@@ -325,7 +325,8 @@ typedef enum
 	// derived variables
 	float					weapon_recharge_rate;		// time between shots
 	int						shot_counter;				// number of shots fired
-	double					cargo_dump_time;			// time cargo was last dumped
+	OOTimeAbsolute			cargo_dump_time;			// time cargo was last dumped
+	OOTimeAbsolute			last_shot_time;				// time shot was last fired
 	
 	NSMutableArray			*cargo;						// cargo containers go in here
 	

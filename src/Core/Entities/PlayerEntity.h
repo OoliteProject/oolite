@@ -195,6 +195,16 @@ typedef enum
 } OOMissileStatus;
 
 
+typedef enum
+{
+	PLAYER_FLEEING_UNLIKELY = -1,
+	PLAYER_FLEEING_NONE = 0,
+	PLAYER_FLEEING_MAYBE = 1,
+	PLAYER_FLEEING_CARGO = 2,
+	PLAYER_FLEEING_LIKELY = 3
+} OOPlayerFleeingStatus;
+
+
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -354,6 +364,7 @@ typedef enum
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;
 	OOAlertCondition		lastScriptAlertCondition;
+	OOPlayerFleeingStatus	fleeing_status;
 	OOMissileStatus			missile_status;
 	NSUInteger				activeMissile;
 	NSUInteger				primedEquipment;
@@ -704,6 +715,7 @@ typedef enum
 - (int) alertFlags;
 - (void) setAlertFlag:(int)flag to:(BOOL)value;
 - (OOAlertCondition) alertCondition;
+- (OOPlayerFleeingStatus) fleeingStatus;
 
 - (BOOL) mountMissile:(ShipEntity *)missile;
 - (BOOL) mountMissileWithRole:(NSString *)role;

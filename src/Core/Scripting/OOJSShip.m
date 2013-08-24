@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "OORoleSet.h"
 #import "OOJSPlayer.h"
+#import "PlayerEntity.h"
 #import "PlayerEntityScriptMethods.h"
 #import "OOShipGroup.h"
 #import "OOShipRegistry.h"
@@ -875,7 +876,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_isFleeing:
 			if ([entity isPlayer])
 			{
-				*value = OOJSValueFromBOOL(![(PlayerEntity*)entity weaponsOnline]);
+				*value = OOJSValueFromBOOL([(PlayerEntity*)entity fleeingStatus] >= PLAYER_FLEEING_CARGO);
 			}
 			else
 			{

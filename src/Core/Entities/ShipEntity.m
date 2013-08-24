@@ -10630,6 +10630,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector			vel = vector_multiply_scalar(v_forward, flightSpeed);
 	Vector			laserPortOffset = kZeroVector;
 
+	last_shot_time = [UNIVERSE getTime];
+
 	switch (direction)
 	{
 		case WEAPON_FACING_FORWARD:
