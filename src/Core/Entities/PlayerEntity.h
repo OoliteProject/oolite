@@ -273,6 +273,7 @@ typedef enum
 	NSString				*missionChoice;
 	BOOL					_missionWithCallback;
 	BOOL					_missionAllowInterrupt;
+	BOOL					_missionTextEntry;
 	OOGUIScreenID			_missionExitScreen;
 	
 	NSString				*specialCargo;

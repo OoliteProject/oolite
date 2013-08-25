@@ -1870,6 +1870,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (void) setMissionChoiceByTextEntry:(BOOL)enable
+{
+	_missionTextEntry = enable;
+}
+
+
 - (void) setMissionChoices:(NSString *)choicesKey	// choicesKey is a key for a dictionary of
 {													// choices/choice phrases in missiontext.plist and also..
 	NSDictionary *choicesDict = [[UNIVERSE missiontext] oo_dictionaryForKey:choicesKey];
@@ -2407,6 +2413,24 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (void) refreshMissionScreenTextEntry
+{
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSUInteger end_row = 21;
+	if ([[self hud] isHidden]) 
+	{
+		end_row = 27;
+	}
+
+	[gui setText:[NSString stringWithFormat:DESC(@"mission-screen-text-prompt-@"), [gameView typedString]] forRow:end_row align:GUI_ALIGN_LEFT];
+	[gui setColor:[OOColor cyanColor] forRow:end_row];
+	
+	[gui setShowTextCursor:YES];
+	[gui setCurrentRow:end_row];
+}
+
+
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -2422,10 +2446,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[gui clear];
 		[gui setTitle: missionTitle ? missionTitle : DESC(@"mission-information")];
 		
-		[gui setText:DESC(@"press-space-commander") forRow:end_row align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor yellowColor] forRow:end_row];
-		[gui setKey:@"spacebar" forRow:end_row];
-		
+		if (!_missionTextEntry)
+		{
+			[gui setText:DESC(@"press-space-commander") forRow:end_row align:GUI_ALIGN_CENTER];
+			[gui setColor:[OOColor yellowColor] forRow:end_row];
+			[gui setKey:@"spacebar" forRow:end_row];
+			[gui setShowTextCursor:NO];
+		}
+		else
+		{
+			[self refreshMissionScreenTextEntry];
+		}
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		
 		[gui setForegroundTextureDescriptor:[self missionOverlayDescriptorOrDefault]];
@@ -2435,7 +2466,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		BOOL overridden = ([self missionBackgroundDescriptor] != nil);
 		[gui setBackgroundTextureSpecial:[self missionBackgroundSpecial] withBackground:!overridden];
 		
-		[gui setShowTextCursor:NO];
+
 	}
 	/* ends */
 

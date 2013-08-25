@@ -631,16 +631,28 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		if (messageKey != nil)  [player addMissionText:messageKey];
 	}
 	
-	NSDictionary *choices = GetParameterDictionary(context, params, "choices");
-	if (choices == nil)
+	JSBool textEntry = NO;
+	if (JS_GetProperty(context, params, "textEntry", &value) && !JSVAL_IS_VOID(value))
 	{
-		[player setMissionChoices:GetParameterString(context, params, "choicesKey")];
+		JS_ValueToBoolean(context, value, &allowInterrupt);
 	}
-	else 
+	if (textEntry)
 	{
-		[player setMissionChoicesDictionary:choices];		
+		[player setMissionChoiceByTextEntry:YES];
 	}
-
+	else
+	{
+		[player setMissionChoiceByTextEntry:YES];
+		NSDictionary *choices = GetParameterDictionary(context, params, "choices");
+		if (choices == nil)
+		{
+			[player setMissionChoices:GetParameterString(context, params, "choicesKey")];
+		}
+		else 
+		{
+			[player setMissionChoicesDictionary:choices];		
+		}
+	}
 
 	NSString *firstKey = GetParameterString(context, params, "initialChoicesKey");
 	if (firstKey != nil)

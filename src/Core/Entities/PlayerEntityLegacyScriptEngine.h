@@ -201,6 +201,7 @@ typedef enum
 - (void) addMissionText: (NSString *)textKey;
 - (void) addLiteralMissionText: (NSString *)text;
 
+- (void) setMissionChoiceByTextEntry:(BOOL)enable;
 - (void) setMissionChoices:(NSString *)choicesKey;	// choicesKey is a key for a dictionary of
 													// choices/choice phrases in missiontext.plist and also..
 - (void) setMissionChoicesDictionary:(NSDictionary *)choicesDict;
@@ -249,6 +250,7 @@ typedef enum
 - (void) setMissionScreenID:(NSString *)msid;
 - (NSString *) missionScreenID;
 - (void) setGuiToMissionScreen;
+- (void) refreshMissionScreenTextEntry;
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback;
 - (void) doMissionCallback;
 - (void) endMissionScreenAndNoteOpportunity;
