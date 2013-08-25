@@ -621,7 +621,10 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:[UNIVERSE getSystemName:[self target_system_seed]] forKey:@"target_system_name"];
 	
 	[result setObject:[self commanderName] forKey:@"player_name"];
-	
+	[result setObject:[self lastsaveName] forKey:@"player_save_name"];
+	[result setObject:[self shipUniqueName] forKey:@"ship_unique_name"];
+	[result setObject:[self shipClassName] forKey:@"ship_class_name"];
+
 	/*
 		BUG: GNUstep truncates integer values to 32 bits when loading XML plists.
 		Workaround: store credits as a double. 53 bits of precision ought to
@@ -896,7 +899,12 @@ static GLfloat		sBaseMass = 0.0;
 	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
 	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
 	
-	[self setCommanderName:[dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME]];
+	NSString *cname = [dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME];
+	[self setCommanderName:cname];
+	[self setLastsaveName:[dict oo_stringForKey:@"player_save_name" defaultValue:cname]];
+
+	[self setShipUniqueName:[dict oo_stringForKey:@"ship_unique_name" defaultValue:@""]];
+	[self setShipClassName:[dict oo_stringForKey:@"ship_class_name" defaultValue:[shipDict oo_stringForKey:@"name"]]];
 	
 	[shipCommodityData autorelease];
 	shipCommodityData = [[dict oo_arrayForKey:@"shipCommodityData" defaultValue:shipCommodityData] copy];
@@ -1528,6 +1536,7 @@ static GLfloat		sBaseMass = 0.0;
 	// Most of this is probably also set more than once
 	
 	[self setCommanderName:PLAYER_DEFAULT_NAME];
+	[self setLastsaveName:PLAYER_DEFAULT_NAME];
 	
 	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
 	galaxy_seed				= gal_seed;
@@ -1782,6 +1791,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(_equipScreenBackgroundDescriptor);
 	
 	DESTROY(_commanderName);
+	DESTROY(_lastsaveName);
 	DESTROY(shipCommodityData);
 	
 	DESTROY(specialCargo);
@@ -5894,7 +5904,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	// GUI stuff
 	{
-		NSString			*shipName = displayName;
+		NSString			*shipName = [self displayName];
 		NSString			*legal_desc = nil, *rating_desc = nil,
 							*alert_desc = nil, *fuel_desc = nil,
 							*credits_desc = nil;
@@ -9529,11 +9539,25 @@ else _dockTarget = NO_TARGET;
 }
 
 
+- (NSString *) lastsaveName
+{
+	return _lastsaveName;
+}
+
+
 - (void) setCommanderName:(NSString *)value
 {
 	NSParameterAssert(value != nil);
 	[_commanderName autorelease];
 	_commanderName = [value copy];
+}
+
+
+- (void) setLastsaveName:(NSString *)value
+{
+	NSParameterAssert(value != nil);
+	[_lastsaveName autorelease];
+	_lastsaveName = [value copy];
 }
 
 

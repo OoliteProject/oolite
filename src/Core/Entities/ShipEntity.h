@@ -298,6 +298,8 @@ typedef enum
 	AI						*shipAI;					// ship's AI system
 	
 	NSString				*name;						// descriptive name
+	NSString				*shipUniqueName;			// uniqish name e.g. "Terror of Lave"
+	NSString				*shipClassName;				// e.g. "Cobra III"
 	NSString				*displayName;				// name shown on screen
 	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
 	NSString				*primaryRole;				// "Main" role of the ship.
@@ -686,8 +688,12 @@ typedef enum
 - (void) setMaxEscortCount:(uint8_t)newCount;
 
 - (NSString *) name;
+- (NSString *) shipUniqueName;
+- (NSString *) shipClassName;
 - (NSString *) displayName;
 - (void) setName:(NSString *)inName;
+- (void) setShipUniqueName:(NSString *)inName;
+- (void) setShipClassName:(NSString *)inName;
 - (void) setDisplayName:(NSString *)inName;
 - (NSString *) identFromShip:(ShipEntity*) otherShip; // name displayed to other ships
 

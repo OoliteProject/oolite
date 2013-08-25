@@ -91,7 +91,7 @@ enum
 	kPlayer_credits,				// credit balance, float, read/write
 	kPlayer_dockingClearanceStatus,	// docking clearance status, string, read only
 	kPlayer_legalStatus,			// legalStatus, string, read-only
-	kPlayer_name,					// Player name, string, read-only
+	kPlayer_name,					// Player name, string, read/write
 	kPlayer_parcelReputation,	// reputation for parcel contracts, integer, read-only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read-only
 	kPlayer_rank,					// rank, string, read-only
@@ -114,7 +114,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "credits",				kPlayer_credits,			OOJS_PROP_READWRITE_CB },
 	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
 	{ "legalStatus",			kPlayer_legalStatus,		OOJS_PROP_READONLY_CB },
-	{ "name",					kPlayer_name,				OOJS_PROP_READONLY_CB },
+	{ "name",					kPlayer_name,				OOJS_PROP_READWRITE_CB },
 	{ "parcelReputation",	kPlayer_parcelReputation,	OOJS_PROP_READONLY_CB },
 	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
 	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
@@ -278,9 +278,19 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	int32						iValue;
+	NSString					*sValue;
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kPlayer_name:
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+				[player setCommanderName:sValue];
+				return YES;
+			}
+			break;
+
 		case kPlayer_score:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{

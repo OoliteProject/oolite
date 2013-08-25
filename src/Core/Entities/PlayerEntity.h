@@ -366,6 +366,7 @@ typedef enum
 	
 	// player commander data
 	NSString				*_commanderName;
+	NSString				*_lastsaveName;
 	NSPoint					galaxy_coordinates;
 	
 	Random_Seed				galaxy_seed;
@@ -572,6 +573,8 @@ typedef enum
 
 - (NSString *) commanderName;
 - (void) setCommanderName:(NSString *)value;
+- (NSString *) lastsaveName;
+- (void) setLastsaveName:(NSString *)value;
 
 - (BOOL) isDocked;
 

@@ -2162,6 +2162,10 @@ static NSMutableDictionary *currentShipyard = nil;
 	// set up subentities from scratch; new ship could carry more or fewer than the old one
 	[self setUpSubEntities];
 
+	// clear old ship names
+	[self setShipClassName:[shipDict oo_stringForKey:@"name"]];
+	[self setShipUniqueName:@""];
+
 }
 
 @end
