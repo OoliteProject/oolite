@@ -1872,7 +1872,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionChoiceByTextEntry:(BOOL)enable
 {
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	_missionTextEntry = enable;
+	[gameView resetTypedString];
 }
 
 
@@ -2428,6 +2430,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	[gui setShowTextCursor:YES];
 	[gui setCurrentRow:end_row];
+
 }
 
 

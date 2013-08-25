@@ -7410,6 +7410,7 @@ static NSString *last_outfitting_key=nil;
 	OOJSInterfaceDefinition *definition = [interfaces objectForKey:key];
 	if (definition)
 	{
+		[[UNIVERSE gameView] clearKeys];
 		[definition runCallback:key];
 	}
 	else

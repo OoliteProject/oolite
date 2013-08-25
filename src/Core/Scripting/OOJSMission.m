@@ -611,6 +611,20 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		[player clearMissionScreenID];
 	}
 
+	JSBool textEntry = NO;
+	if (JS_GetProperty(context, params, "textEntry", &value) && !JSVAL_IS_VOID(value))
+	{
+		JS_ValueToBoolean(context, value, &textEntry);
+	}
+	if (textEntry)
+	{
+		[player setMissionChoiceByTextEntry:YES];
+	}
+	else
+	{
+		[player setMissionChoiceByTextEntry:NO];
+	}
+
 	// Start the mission screen.
 	sCallbackFunction = function;
 	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(sCallbackFunction)];
@@ -631,18 +645,8 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 		if (messageKey != nil)  [player addMissionText:messageKey];
 	}
 	
-	JSBool textEntry = NO;
-	if (JS_GetProperty(context, params, "textEntry", &value) && !JSVAL_IS_VOID(value))
+	if (!textEntry)
 	{
-		JS_ValueToBoolean(context, value, &allowInterrupt);
-	}
-	if (textEntry)
-	{
-		[player setMissionChoiceByTextEntry:YES];
-	}
-	else
-	{
-		[player setMissionChoiceByTextEntry:YES];
 		NSDictionary *choices = GetParameterDictionary(context, params, "choices");
 		if (choices == nil)
 		{
