@@ -1146,19 +1146,27 @@ this._addFreighter = function(pos)
 		{
 			t[0].bounty = 0;
 		}
+		var goods;
 		if (pos.isStation)
 		{
 			t[0].homeSystem = system.ID;
 			t[0].destinationSystem = this._weightedNearbyTradeSystem();
-			t[0].setCargoType("PLENTIFUL_GOODS");
+			goods = "PLENTIFUL_GOODS";
 		}
 		else
 		{
 			t[0].homeSystem = this._weightedNearbyTradeSystem();
 			this._setFuel(t[0]);
 			t[0].destinationSystem = system.ID;
-			t[0].setCargoType("SCARCE_GOODS");
+			goods = "SCARCE_GOODS";
 		}
+		// crude, but compatible with the approach in previous versions
+		if (t[0].name.match(/medical/i)) 
+		{
+			goods = "MEDICAL_GOODS";
+		}
+		t[0].setCargoType(goods);
+
 		this._setEscortWeapons(t[0]);
 	}
 }
@@ -1383,7 +1391,14 @@ this._addIndependentPirate = function(pos)
 		if (!pos.isStation && !pos.isPlanet)
 		{
 			pg.ships[i].setCargoType("PIRATE_GOODS");
-			this._setWeapons(pg.ships[i],1.3); // rarely well-armed
+			if (pg.ships[i].hasHyperspaceMotor)
+			{
+				this._setWeapons(pg.ships[i],1.75); // bigger ones sometimes well-armed
+			}
+			else
+			{
+				this._setWeapons(pg.ships[i],1.3); // rarely well-armed
+			}
 		}
 	}
 }

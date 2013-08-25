@@ -7629,22 +7629,20 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			case CARGO_FLAG_FULL_UNIFORM:
 				newCargo = [UNIVERSE getContainersOfCommodity:[shipinfoDictionary oo_stringForKey:@"cargo_carried"] :num];
 				break;
-				// TODO: PLENTIFUL AND SCARCE shouldn't contain illegal goods
 			case CARGO_FLAG_FULL_PLENTIFUL:
-				newCargo = [UNIVERSE getContainersOfGoods:num scarce:NO];
+				newCargo = [UNIVERSE getContainersOfGoods:num scarce:NO legal:YES];
 				break;
 			case CARGO_FLAG_FULL_SCARCE:
-				newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES];
+				newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES legal:YES];
 				break;
 			case CARGO_FLAG_FULL_MEDICAL:
 				newCargo = [UNIVERSE getContainersOfCommodity:@"Narcotics" :num];
 				break;
 			case CARGO_FLAG_FULL_CONTRABAND:
-				// TODO: mixed contraband
-				newCargo = [UNIVERSE getContainersOfCommodity:@"Firearms" :num];
+				newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES legal:NO];
 				break;
 			case CARGO_FLAG_PIRATE:
-				newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % num) scarce:YES];
+				newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % num) scarce:YES legal:NO];
 				break;
 			case CARGO_FLAG_FULL_PASSENGERS:
 				// TODO: allow passengers to survive

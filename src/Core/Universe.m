@@ -3278,7 +3278,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce
+- (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal
 {
 	/*	build list of goods allocating 0..100 for each based on how much of
 		each quantity there is. Use a ratio of n x 100/64 for plentiful goods;
@@ -3307,6 +3307,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		{
 			if (q < 64)  q = 64 - q;
 			else  q = 0;
+		}
+		// legal YES restricts (almost) only to legal goods
+		// legal NO allows illegal goods, but not necessarily a full hold
+		if (legal && [self legalStatusOfCommodity:[[commodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME]] > 0)
+		{
+			q &= 1; // keep a very small chance, sometimes
 		}
 		if (q > 64) q = 64;
 		q *= 100;   q/= 64;

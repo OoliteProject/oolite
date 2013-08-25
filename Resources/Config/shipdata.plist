@@ -122,7 +122,7 @@
 		has_scoop = yes;
 		hud = "hud-small.plist";
 		is_template = 1;
-		likely_cargo = 1;
+		likely_cargo = 2;
 		max_cargo = 5;
 		max_energy = 85;
 		max_flight_pitch = 2;
@@ -1139,7 +1139,7 @@
 		has_scoop = 0.95;
 		hud = "hud-small.plist";
 		is_template = 1;
-		likely_cargo = 5;
+		likely_cargo = 10;
 		max_cargo = 10;
 		max_energy = 150;
 		max_flight_pitch = 1.2;
@@ -1605,7 +1605,7 @@
 		has_shield_enhancer = 0.5;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 2;
+		likely_cargo = 8;
 		max_cargo = 12;
 		max_energy = 150;
 		max_flight_pitch = 1;
@@ -1650,7 +1650,7 @@
 		has_scoop = yes;
 		has_shield_booster = 0.4;
 		is_template = 1;
-		likely_cargo = 1;
+		likely_cargo = 3;
 		max_cargo = 3;
 		max_energy = 250;
 		max_flight_pitch = 1.5;
@@ -1763,7 +1763,7 @@
 		has_scoop = 0.95;
 		has_shield_booster = 0.25;
 		is_template = 1;
-		likely_cargo = 1;
+		likely_cargo = 3;
 		max_cargo = 4;
 		max_energy = 240;
 		max_flight_pitch = 1.4;
@@ -1901,7 +1901,7 @@
 		has_shield_booster = 0.5;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 2;
+		likely_cargo = 5;
 		max_cargo = 7;
 		max_energy = 240;
 		max_flight_pitch = 1.5;
@@ -1937,7 +1937,7 @@
 		like_ship = "oolite_template_moray";
 		is_template = 1;
 		ai_type = "traderAI.js";
-		likely_cargo = 7;
+		likely_cargo = 15;
 		max_cargo = 22;
 		materials =
 		{
