@@ -440,6 +440,7 @@
 		1A572FCC0D84B640003D4A26 /* oolite-global-prefix.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */; };
 		1A572FCD0D84B640003D4A26 /* oolite-thargoid-warship.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */; };
 		1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */; };
+		1A59FF4217CA26D6000BF0E0 /* oolite-populator.js in Sources */ = {isa = PBXBuildFile; fileRef = 1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */; };
 		1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5AA3220C0098AF0029C78A /* OOOpenGL.m */; };
 		1A5ABE6B15FBC86F006C97DC /* oolite-default-effect-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A5ABE6A15FBC833006C97DC /* oolite-default-effect-script.js */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
@@ -1736,6 +1737,7 @@
 		1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-global-prefix.js"; sourceTree = "<group>"; };
 		1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-thargoid-warship.js"; sourceTree = "<group>"; };
 		1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "oolite-constrictor-AI.plist"; sourceTree = "<group>"; };
+		1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-populator.js"; sourceTree = "<group>"; };
 		1A5AA3220C0098AF0029C78A /* OOOpenGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = OOOpenGL.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		1A5ABE6A15FBC833006C97DC /* oolite-default-effect-script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-default-effect-script.js"; sourceTree = "<group>"; };
 		1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConstToString.h; sourceTree = "<group>"; };
@@ -2599,13 +2601,9 @@
 		1A34912C0BC25EBC00802DA7 /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
-				1A572FB80D84B640003D4A26 /* oolite-nova-mission.js */,
-				1A572FB90D84B640003D4A26 /* oolite-thargoid-plans-mission.js */,
-				1A572FBA0D84B640003D4A26 /* oolite-trumbles-mission.js */,
-				1A5ABE6A15FBC833006C97DC /* oolite-default-effect-script.js */,
-				1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */,
-				1A572FBB0D84B640003D4A26 /* oolite-default-ship-script.js */,
 				1A572FBC0D84B640003D4A26 /* oolite-cloaking-device-mission.js */,
+				1A572FC00D84B640003D4A26 /* oolite-cloaking-device-pod.js */,
+				1A572FBF0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js */,
 				1AB23F06165A5A7700642977 /* oolite-conditions.js */,
 				1A572FBD0D84B640003D4A26 /* oolite-constrictor.js */,
 				1A572FBE0D84B640003D4A26 /* oolite-constrictor-hunt-mission.js */,
@@ -2614,11 +2612,16 @@
 				1A02B4C11643DF6B0013749D /* oolite-contracts-helpers.js */,
 				1A38E9E51603C7ED00EE19F1 /* oolite-contracts-parcels.js */,
 				1A02B4C21643DF6B0013749D /* oolite-contracts-passengers.js */,
-				1A572FBF0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js */,
-				1A572FC00D84B640003D4A26 /* oolite-cloaking-device-pod.js */,
+				1A5ABE6A15FBC833006C97DC /* oolite-default-effect-script.js */,
+				1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */,
+				1A572FBB0D84B640003D4A26 /* oolite-default-ship-script.js */,
 				1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */,
 				1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */,
+				1A572FB80D84B640003D4A26 /* oolite-nova-mission.js */,
+				1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */,
+				1A572FB90D84B640003D4A26 /* oolite-thargoid-plans-mission.js */,
 				1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */,
+				1A572FBA0D84B640003D4A26 /* oolite-trumbles-mission.js */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
@@ -4074,6 +4077,7 @@
 				1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */,
 				1AD8522617947BD600CBE743 /* OOHPVector.m in Sources */,
 				1AD8522F17947C9500CBE743 /* OOJSPopulatorDefinition.m in Sources */,
+				1A59FF4217CA26D6000BF0E0 /* oolite-populator.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
