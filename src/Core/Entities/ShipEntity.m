@@ -2291,6 +2291,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if (energy > maxEnergy)
 			{
 				energy = maxEnergy;
+				[self doScriptEvent:OOJSID("shipEnergyBecameFull")];
 				[shipAI message:@"ENERGY_FULL"];
 			}
 		}
