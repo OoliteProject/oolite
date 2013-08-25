@@ -7,6 +7,7 @@
 	"oolite-contracts-helpers.js",
 	"oolite-contracts-parcels.js",
 	"oolite-contracts-passengers.js",
+	"oolite-registership.js",
 
   /* Missions */
 	"oolite-constrictor-hunt-mission.js",
