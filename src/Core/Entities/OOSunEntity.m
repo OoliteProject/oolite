@@ -403,7 +403,6 @@ MA 02110-1301, USA.
 
 		OOGL(glDisableClientState(GL_COLOR_ARRAY));
 		OOGL(glEnable(GL_BLEND));
-		OOGLEND();
 
 		
 	}
@@ -431,8 +430,6 @@ MA 02110-1301, USA.
 	OOGL(glDrawElements(GL_TRIANGLES, 24*360, GL_UNSIGNED_INT, sunTriangles+(3*360)));
 
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-	OOGLEND();
 
 
 }
@@ -587,9 +584,6 @@ MA 02110-1301, USA.
 		OOGLEND();
 
 	}
-	
-
-	OOGLEND();
 }
 
 
