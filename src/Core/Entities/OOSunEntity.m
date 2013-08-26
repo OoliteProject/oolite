@@ -403,7 +403,6 @@ MA 02110-1301, USA.
 
 		OOGL(glDisableClientState(GL_COLOR_ARRAY));
 		OOGL(glEnable(GL_BLEND));
-		OOGLEND();
 
 		
 	}
@@ -431,8 +430,6 @@ MA 02110-1301, USA.
 	OOGL(glDrawElements(GL_TRIANGLES, 24*360, GL_UNSIGNED_INT, sunTriangles+(3*360)));
 
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-
-	OOGLEND();
 
 
 }
@@ -481,7 +478,7 @@ MA 02110-1301, USA.
 			GLfloat rm = 1.0;
 			if (j >= 1 && j < 4)
 			{
-				rm = 0.98 + (0.04*(pt0 * (rvalue[i]+rvalue[i+1]+rvalue[i+2]) + pt1 * (rvalue[i+360]+rvalue[i+361]+rvalue[i+362])))/3;
+				rm = 1.0 + ((0.04/j)*(pt0 * (rvalue[i]+rvalue[i+1]+rvalue[i+2]) + pt1 * (rvalue[i+360]+rvalue[i+361]+rvalue[i+362])))/3;
 			}
 			GLfloat z = r * r * rm * rm / z_distance;
 			si = sin(theta);
@@ -586,9 +583,6 @@ MA 02110-1301, USA.
 		OOGLEND();
 
 	}
-	
-
-	OOGLEND();
 }
 
 

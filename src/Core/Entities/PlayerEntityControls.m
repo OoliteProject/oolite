@@ -145,6 +145,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollAutopilotControls:(double) delta_t;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
+- (void) pollMissionInterruptControls;
 - (void) handleMissionCallback;
 - (void) setGuiToMissionEndScreen;
 - (void) switchToThisView:(OOViewID)viewDirection;
@@ -1567,6 +1568,10 @@ static NSTimeInterval	time_last_frame;
 		[gameView setStringInput: gvStringInputAlpha];
 	}
 	else if (gui_screen == GUI_SCREEN_SAVE)
+	{
+		[gameView setStringInput: gvStringInputAll];
+	}
+	else if (gui_screen == GUI_SCREEN_MISSION && _missionTextEntry)
 	{
 		[gameView setStringInput: gvStringInputAll];
 	}
@@ -3515,7 +3520,27 @@ static BOOL autopilot_pause;
 			{
 				end_row = 27;
 			}
-			if ([[gui keyForRow:end_row] isEqual:@"spacebar"])
+			if (_missionTextEntry)
+			{
+				[self refreshMissionScreenTextEntry];
+				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
+				{
+					[self setMissionChoice:[gameView typedString]];
+					[[OOMusicController sharedController] stopMissionMusic];
+					[self playDismissedMissionScreen];
+					
+					[self handleMissionCallback];
+					
+					[self checkScript];
+					selectPressed = YES;
+				}
+				else
+				{
+					selectPressed = NO;
+					[self pollMissionInterruptControls];
+				}
+			}
+			else if ([[gui keyForRow:end_row] isEqual:@"spacebar"])
 			{
 				if ([gameView isDown:32])	//  '<space>'
 				{
@@ -3531,18 +3556,7 @@ static BOOL autopilot_pause;
 				else
 				{
 					spacePressed = NO;
-					if (_missionAllowInterrupt)
-					{
-						[self pollGuiScreenControls];
-						if (gui_screen != GUI_SCREEN_MISSION)
-						{
-							if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
-							{
-								[UNIVERSE removeDemoShips];
-							}
-							[self endMissionScreenAndNoteOpportunity];
-						}
-					}
+					[self pollMissionInterruptControls];
 				}
 			}
 			else
@@ -3571,24 +3585,30 @@ static BOOL autopilot_pause;
 				else
 				{
 					selectPressed = NO;
-					if (_missionAllowInterrupt)
-					{
-						[self pollGuiScreenControls];
-						if (gui_screen != GUI_SCREEN_MISSION)
-						{
-							if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
-							{
-								[UNIVERSE removeDemoShips];
-							}
-							[self endMissionScreenAndNoteOpportunity];
-						}
-					}
+					[self pollMissionInterruptControls];
 				}
 			}
 			break;
 			
 		default:
 			break;
+	}
+}
+
+
+- (void) pollMissionInterruptControls
+{
+	if (_missionAllowInterrupt)
+	{
+		[self pollGuiScreenControls];
+		if (gui_screen != GUI_SCREEN_MISSION)
+		{
+			if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
+			{
+				[UNIVERSE removeDemoShips];
+			}
+			[self endMissionScreenAndNoteOpportunity];
+		}
 	}
 }
 

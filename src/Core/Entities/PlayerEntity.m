@@ -621,7 +621,10 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:[UNIVERSE getSystemName:[self target_system_seed]] forKey:@"target_system_name"];
 	
 	[result setObject:[self commanderName] forKey:@"player_name"];
-	
+	[result setObject:[self lastsaveName] forKey:@"player_save_name"];
+	[result setObject:[self shipUniqueName] forKey:@"ship_unique_name"];
+	[result setObject:[self shipClassName] forKey:@"ship_class_name"];
+
 	/*
 		BUG: GNUstep truncates integer values to 32 bits when loading XML plists.
 		Workaround: store credits as a double. 53 bits of precision ought to
@@ -788,8 +791,8 @@ static GLfloat		sBaseMass = 0.0;
 	//custom view no.
 	[result oo_setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
 
-	//local market
-	if ([dockedStation localMarket])  [result setObject:[dockedStation localMarket] forKey:@"localMarket"];
+	//local market for main station
+	if ([[UNIVERSE station] localMarket])  [result setObject:[[UNIVERSE station] localMarket] forKey:@"localMarket"];
 
 	// strict UNIVERSE?
 	if ([UNIVERSE strict])
@@ -815,6 +818,14 @@ static GLfloat		sBaseMass = 0.0;
 		[wormholeDicts addObject:[wh getDict]];
 	}
 	[result setObject:wormholeDicts forKey:@"wormholes"];
+
+	// docked station
+	[result setObject:[dockedStation primaryRole] forKey:@"docked_station_role"];
+	HPVector dpos = [dockedStation position];
+	[result setObject:[NSNumber numberWithDouble:dpos.x] forKey:@"docked_station_position_x"];
+	[result setObject:[NSNumber numberWithDouble:dpos.y] forKey:@"docked_station_position_y"];
+	[result setObject:[NSNumber numberWithDouble:dpos.z] forKey:@"docked_station_position_z"];
+	[result setObject:[dockedStation localMarket] forKey:@"docked_station_market"];
 
 	// create checksum
 	clear_checksum();
@@ -888,7 +899,12 @@ static GLfloat		sBaseMass = 0.0;
 	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
 	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
 	
-	[self setCommanderName:[dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME]];
+	NSString *cname = [dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME];
+	[self setCommanderName:cname];
+	[self setLastsaveName:[dict oo_stringForKey:@"player_save_name" defaultValue:cname]];
+
+	[self setShipUniqueName:[dict oo_stringForKey:@"ship_unique_name" defaultValue:@""]];
+	[self setShipClassName:[dict oo_stringForKey:@"ship_class_name" defaultValue:[shipDict oo_stringForKey:@"name"]]];
 	
 	[shipCommodityData autorelease];
 	shipCommodityData = [[dict oo_arrayForKey:@"shipCommodityData" defaultValue:shipCommodityData] copy];
@@ -1483,6 +1499,10 @@ static GLfloat		sBaseMass = 0.0;
 	[shipyard_record release];
 	shipyard_record = [[NSMutableDictionary alloc] init];
 	
+	[target_memory release];
+	target_memory = [[NSMutableArray alloc] initWithCapacity:PLAYER_TARGET_MEMORY_SIZE];
+	[self clearTargetMemory]; // also does first-time initialisation
+
 	[self setMissionOverlayDescriptor:nil];
 	[self setMissionBackgroundDescriptor:nil];
 	[self setMissionBackgroundSpecial:nil];
@@ -1516,6 +1536,7 @@ static GLfloat		sBaseMass = 0.0;
 	// Most of this is probably also set more than once
 	
 	[self setCommanderName:PLAYER_DEFAULT_NAME];
+	[self setLastsaveName:PLAYER_DEFAULT_NAME];
 	
 	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
 	galaxy_seed				= gal_seed;
@@ -1747,6 +1768,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(hud);
 	DESTROY(commLog);
 	DESTROY(keyconfig_settings);
+	DESTROY(target_memory);
 	
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
@@ -1771,6 +1793,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(_equipScreenBackgroundDescriptor);
 	
 	DESTROY(_commanderName);
+	DESTROY(_lastsaveName);
 	DESTROY(shipCommodityData);
 	
 	DESTROY(specialCargo);
@@ -5929,7 +5952,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	// GUI stuff
 	{
-		NSString			*shipName = displayName;
+		NSString			*shipName = [self displayName];
 		NSString			*legal_desc = nil, *rating_desc = nil,
 							*alert_desc = nil, *fuel_desc = nil,
 							*credits_desc = nil;
@@ -6735,7 +6758,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			dockedStation = [UNIVERSE station];
 		}
-		canLoadOrSave = (dockedStation == [UNIVERSE station] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
+		canLoadOrSave = ((dockedStation == [UNIVERSE station] || [dockedStation allowsSaving]) && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
 	}
 	
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));
@@ -7435,6 +7458,7 @@ static NSString *last_outfitting_key=nil;
 	OOJSInterfaceDefinition *definition = [interfaces objectForKey:key];
 	if (definition)
 	{
+		[[UNIVERSE gameView] clearKeys];
 		[definition runCallback:key];
 	}
 	else
@@ -8732,8 +8756,14 @@ static NSString *last_outfitting_key=nil;
 {
 	// 5% of value of ships wear + correction for missing subentities.
 	OOCreditsQuantity shipValue = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
+
+	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
+	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
+	double			renovationFactor = [shipyardInfo oo_doubleForKey:KEY_RENOVATION_MULTIPLIER defaultValue:1.0];
+
 	double costs = 0.005 * (100 - ship_trade_in_factor) * shipValue;
 	costs += 0.01 * shipValue * [self missingSubEntitiesAdjustment];
+	costs *= renovationFactor;
 	return cunningFee(costs, 0.05);
 }
 
@@ -9046,41 +9076,31 @@ static NSString *last_outfitting_key=nil;
 		assert ([self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
 		[self addScannedWormhole:(WormholeEntity*)targetEntity];
 	}
-	
-	if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"])
+	// wormholes don't go in target memory
+	else if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"] && targetEntity != nil)
 	{
-		int i = 0;
-		BOOL foundSlot = NO;
-		// if targeted previously use that memory space
-		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+		OOWeakReference *targetRef = [targetEntity weakSelf];
+		NSUInteger i = [target_memory indexOfObject:targetRef];
+		// if already in target memory, preserve that and just change the index
+		if (i != NSNotFound)
 		{
-			if ([[self primaryTarget] universalID] == target_memory[i])
-			{
-				target_memory_index = i;
-				foundSlot = YES;
-				break;
-			}
-		}
-		
-		if (!foundSlot)
+			target_memory_index = i;
+		}		
+		else
 		{
+			i = [target_memory indexOfObject:[NSNull null]];
 			// find and use a blank space in memory
-			for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+			if (i != NSNotFound)
 			{
-				if (target_memory[target_memory_index] == NO_TARGET)
-				{
-					target_memory[target_memory_index] = [[self primaryTarget] universalID];
-					foundSlot = YES;
-					break;
-				}
-				target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
+				[target_memory replaceObjectAtIndex:i withObject:targetRef];
+				target_memory_index = i;
 			}
-		}
-		if (!foundSlot)
-		{
-			// use the next memory space
-			target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
-			target_memory[target_memory_index] = [[self primaryTarget] universalID];
+			else
+			{
+				// use the next memory space
+				target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
+				[target_memory replaceObjectAtIndex:target_memory_index withObject:targetRef];
+			}
 		}
 	}
 	
@@ -9111,11 +9131,26 @@ static NSString *last_outfitting_key=nil;
 - (void) clearTargetMemory
 {
 	int i = 0;
+	int j = [target_memory count];
 	for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
-		target_memory[i] = NO_TARGET;
+	{
+		if (j > i)
+		{
+			[target_memory replaceObjectAtIndex:i withObject:[NSNull null]];
+		}
+		else
+		{
+			[target_memory addObject:[NSNull null]];
+		}
+	}
 	target_memory_index = 0;
 }
 
+
+- (NSMutableArray *) targetMemory
+{
+	return target_memory;
+}
 
 - (BOOL) moveTargetMemoryBy:(int)delta
 {
@@ -9125,41 +9160,45 @@ static NSString *last_outfitting_key=nil;
 		target_memory_index += delta;
 		while (target_memory_index < 0)  target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
 		while (target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)  target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
-		
-		int targ_id = target_memory[target_memory_index];
-		ShipEntity *potential_target = [UNIVERSE entityForUniversalID: targ_id];
-		
-		if ((potential_target)&&(potential_target->isShip))
+		id targ_id = [target_memory objectAtIndex:target_memory_index];
+		if ([targ_id isProxy])
 		{
-			if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked]))
+			ShipEntity *potential_target = [(OOWeakReference *)targ_id weakRefUnderlyingObject];
+		
+			if ((potential_target)&&(potential_target->isShip))
 			{
-				[super addTarget:potential_target];
-				if (missile_status != MISSILE_STATUS_SAFE)
+				if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked]))
 				{
-					if( [missile_entity[activeMissile] isMissile])
+					[super addTarget:potential_target];
+					if (missile_status != MISSILE_STATUS_SAFE)
 					{
-						[missile_entity[activeMissile] addTarget:potential_target];
-						missile_status = MISSILE_STATUS_TARGET_LOCKED;
-						[self printIdentLockedOnForMissile:YES];
+						if( [missile_entity[activeMissile] isMissile])
+						{
+							[missile_entity[activeMissile] addTarget:potential_target];
+							missile_status = MISSILE_STATUS_TARGET_LOCKED;
+							[self printIdentLockedOnForMissile:YES];
+						}
+						else
+						{
+							missile_status = MISSILE_STATUS_ARMED;
+							[self playIdentLockedOn];
+							[self printIdentLockedOnForMissile:NO];
+						}
 					}
 					else
 					{
-						missile_status = MISSILE_STATUS_ARMED;
-						[self playIdentLockedOn];
+						ident_engaged = YES;
 						[self printIdentLockedOnForMissile:NO];
 					}
+					[self playTargetSwitched];
+					return YES;
 				}
-				else
-				{
-					ident_engaged = YES;
-					[self printIdentLockedOnForMissile:NO];
-				}
-				[self playTargetSwitched];
-				return YES;
+			}
+			else
+			{
+				[target_memory replaceObjectAtIndex:target_memory_index withObject:[NSNull null]];
 			}
 		}
-		else
-			target_memory[target_memory_index] = NO_TARGET;	// tidy up
 	}
 	
 	[self playNoTargetInMemory];
@@ -9554,11 +9593,25 @@ else _dockTarget = NO_TARGET;
 }
 
 
+- (NSString *) lastsaveName
+{
+	return _lastsaveName;
+}
+
+
 - (void) setCommanderName:(NSString *)value
 {
 	NSParameterAssert(value != nil);
 	[_commanderName autorelease];
 	_commanderName = [value copy];
+}
+
+
+- (void) setLastsaveName:(NSString *)value
+{
+	NSParameterAssert(value != nil);
+	[_lastsaveName autorelease];
+	_lastsaveName = [value copy];
 }
 
 

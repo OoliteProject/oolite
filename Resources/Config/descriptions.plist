@@ -1309,7 +1309,8 @@
 	
 	// Mission screen
 	"mission-information"			= "Mission Information";
-	
+	"mission-screen-text-prompt-@"	= "> %@";	
+
 	// Game Over screen
 	"gameoverscreen-escape-pod"		= "Life Support Failure!";
 	"gameoverscreen-score-@"		= "Score: %@, [credits_number] ₢";

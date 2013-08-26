@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 		[self setDialAftShield:1.0f];
 		[self setDialFuelScoopStatus:[self hasScoop] ? SCOOP_STATUS_OKAY : SCOOP_STATUS_NOT_INSTALLED];
 		[self setCompassMode:[self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"] ? COMPASS_MODE_PLANET : COMPASS_MODE_BASIC];
+		[self setTradeInFactor:95];
 	}
 	
 	return self;
@@ -58,6 +59,8 @@ MA 02110-1301, USA.
 	[self setDialIdentEngaged:[player dialIdentEngaged]];
 	[self setAlertCondition:[player alertCondition]];
 	[self setTrumbleCount:[player trumbleCount]];
+	[self setTradeInFactor:[player tradeInFactor]];
+
 }
 
 
@@ -187,6 +190,19 @@ MA 02110-1301, USA.
 {
 	_trumbleCount = value;
 }
+
+
+- (void) setTradeInFactor:(int)tif
+{
+	_tradeInFactor = tif;
+}
+
+
+- (int) tradeInFactor
+{
+	return _tradeInFactor;
+}
+
 
 
 // If you're here to add more properties, don't forget to update -copyValuesFromPlayer:.

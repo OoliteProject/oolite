@@ -82,7 +82,7 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive);
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText);
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom);
 
 
@@ -129,6 +129,7 @@ enum
 - (void) drawAltitudeBar:(NSDictionary *)info;
 - (void) drawMissileDisplay:(NSDictionary *)info;
 - (void) drawTargetReticle:(NSDictionary *)info;
+- (void) drawSecondaryTargetReticle:(NSDictionary *)info;
 - (void) drawStatusLight:(NSDictionary *)info;
 - (void) drawDirectionCue:(NSDictionary *)info;
 - (void) drawClock:(NSDictionary *)info;
@@ -695,8 +696,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	_compassUpdated = NO;
 	
 	// tight loop, we assume dialArray doesn't change in mid-draw.
-	NSInteger i;
-	for (i = [dialArray count] - 1; i >= 0; i--)
+	NSUInteger i, nDials = [dialArray count];
+	for (i = 0; i < nDials; i++)
 	{
 		sCurrentDrawItem = [dialArray oo_arrayAtIndex:i];
 		[self drawHUDItem:[sCurrentDrawItem oo_dictionaryAtIndex:WIDGET_INFO]];
@@ -2276,8 +2277,48 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if ([PLAYER primaryTarget] != nil)
 	{
-		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive);
+		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES);
 		[self drawDirectionCue:info];
+	}
+	// extra feature if extra equipment installed
+	if ([PLAYER hasEquipmentItem:@"EQ_INTEGRATED_TARGETING_SYSTEM"])
+	{
+		[self drawSecondaryTargetReticle:info];
+	}
+}
+
+
+- (void) drawSecondaryTargetReticle:(NSDictionary *)info
+{
+	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha * 0.4;
+	
+	PlayerEntity *player = PLAYER;
+	if ([player hasEquipmentItem:@"EQ_TARGET_MEMORY"])
+	{
+		// needs target memory to be working in addition to any other equipment
+		// this item may be bound to
+		NSMutableArray *targetMemory = [player targetMemory];
+		ShipEntity *primary = [player primaryTarget];
+		for (unsigned i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+		{
+			id sec_id = [targetMemory objectAtIndex:i];
+			// isProxy = weakref ; not = NSNull (in this case...)
+			// can't use isKindOfClass because that throws
+			// NSInvalidArgumentException when called on a weakref
+			// with a dropped object.
+			// TODO: fix OOWeakReference so isKindOfClass works
+			if (sec_id != nil && [sec_id isProxy])
+			{
+				ShipEntity *secondary = [(OOWeakReference *)sec_id weakRefUnderlyingObject];
+				if (secondary != nil && secondary != primary)
+				{
+					if ([secondary zeroDistance] <= SCANNER_MAX_RANGE2)
+					{
+						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO);	
+					}			
+				}
+			}
+		}
 	}
 }
 
@@ -2877,7 +2918,7 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive)
+static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText)
 {
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
@@ -2985,6 +3026,9 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	// draw the reticle
 	float range = sqrt(target->zero_distance) - target->collision_radius;
 	
+	int flash = (int)([UNIVERSE getTime] * 4);
+	flash &= 1;
+
 	// Draw reticle cyan for Wormholes
 	if ([target isWormhole])
 	{
@@ -2996,38 +3040,41 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		BOOL			isTargeted = NO;
 		GLfloat			probabilityAccuracy;
 		
-		// Only if target is within player's weapon range, we mind for reticle accuracy
-		if (range < [player1 weaponRange])
+		if (propertiesReticleTargetSensitive != nil)
 		{
-			// After MAX_ACCURACY_RANGE km start decreasing high accuracy probability by ACCURACY_PROBABILITY_DECREASE_FACTOR%
-			if (range > MAX_ACCURACY_RANGE)   
+			// Only if target is within player's weapon range, we mind for reticle accuracy
+			if (range < [player1 weaponRange])
 			{
-				// Every one second re-evaluate accuracy
-				if ([UNIVERSE getTime] > [propertiesReticleTargetSensitive oo_doubleForKey:@"timeLastAccuracyProbabilityCalculation"] + 1) 
+				// After MAX_ACCURACY_RANGE km start decreasing high accuracy probability by ACCURACY_PROBABILITY_DECREASE_FACTOR%
+				if (range > MAX_ACCURACY_RANGE)   
 				{
-					probabilityAccuracy = 1-(range-MAX_ACCURACY_RANGE)*ACCURACY_PROBABILITY_DECREASE_FACTOR; 
-					// Make sure probability does not go below a minimum
-					probabilityAccuracy = probabilityAccuracy < MIN_PROBABILITY_ACCURACY ? MIN_PROBABILITY_ACCURACY : probabilityAccuracy;
-					[propertiesReticleTargetSensitive setObject:[NSNumber numberWithBool:((randf() < probabilityAccuracy) ? YES : NO)] forKey:@"isAccurate"];
+					// Every one second re-evaluate accuracy
+					if ([UNIVERSE getTime] > [propertiesReticleTargetSensitive oo_doubleForKey:@"timeLastAccuracyProbabilityCalculation"] + 1) 
+					{
+						probabilityAccuracy = 1-(range-MAX_ACCURACY_RANGE)*ACCURACY_PROBABILITY_DECREASE_FACTOR; 
+						// Make sure probability does not go below a minimum
+						probabilityAccuracy = probabilityAccuracy < MIN_PROBABILITY_ACCURACY ? MIN_PROBABILITY_ACCURACY : probabilityAccuracy;
+						[propertiesReticleTargetSensitive setObject:[NSNumber numberWithBool:((randf() < probabilityAccuracy) ? YES : NO)] forKey:@"isAccurate"];
 			
-					// Store the time the last accuracy probability has been performed
-					[propertiesReticleTargetSensitive setObject:[NSNumber numberWithDouble:[UNIVERSE getTime]] forKey:@"timeLastAccuracyProbabilityCalculation"];
-				}			
-				if ([propertiesReticleTargetSensitive oo_boolForKey:@"isAccurate"])
+						// Store the time the last accuracy probability has been performed
+						[propertiesReticleTargetSensitive setObject:[NSNumber numberWithDouble:[UNIVERSE getTime]] forKey:@"timeLastAccuracyProbabilityCalculation"];
+					}			
+					if ([propertiesReticleTargetSensitive oo_boolForKey:@"isAccurate"])
+					{
+						// high accuracy reticle
+						isTargeted = ([UNIVERSE firstEntityTargetedByPlayerPrecisely] == target);
+					}
+					else
+					{
+						// low accuracy reticle
+						isTargeted = ([UNIVERSE firstEntityTargetedByPlayer] == target);
+					}
+				}
+				else
 				{
 					// high accuracy reticle
 					isTargeted = ([UNIVERSE firstEntityTargetedByPlayerPrecisely] == target);
 				}
-				else
-				{
-					// low accuracy reticle
-					isTargeted = ([UNIVERSE firstEntityTargetedByPlayer] == target);
-				}
-			}
-			else
-			{
-				// high accuracy reticle
-				isTargeted = ([UNIVERSE firstEntityTargetedByPlayerPrecisely] == target);
 			}
 		}
 		
@@ -3039,13 +3086,34 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		//       'isTargeted' is initialised to FALSE. Only if target is within the player's weapon range,
 		//       it might change value. Therefore, it is not necessary to add '&& range < [player1 weaponRange]'
 		//       to the following condition.
-		if (reticleTargetSensitive && isTargeted)
+		if (colourFromScannerColour)
 		{
-			GLColorWithOverallAlpha(red_color, alpha);
+			if ([target isShip])
+			{
+				ShipEntity *ship = (ShipEntity *)target;
+				BOOL isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
+				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]],alpha);
+			}
+			else if ([target isVisualEffect])
+			{
+				OOVisualEffectEntity *vis = (OOVisualEffectEntity *)target;
+				GLColorWithOverallAlpha([vis scannerDisplayColorForShip:flash :[vis scannerDisplayColor1] :[vis scannerDisplayColor2]],alpha);
+			}
+			else
+			{
+				GLColorWithOverallAlpha(green_color, alpha);
+			}
 		}
 		else
 		{
-			GLColorWithOverallAlpha(green_color, alpha);
+			if (reticleTargetSensitive && isTargeted)
+			{
+				GLColorWithOverallAlpha(red_color, alpha);
+			}
+			else
+			{
+				GLColorWithOverallAlpha(green_color, alpha);
+			}
 		}
 	}
 	OOGLBEGIN(GL_LINES);
@@ -3062,23 +3130,25 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		glVertex2f(-rs0,-rs0);	glVertex2f(-rs2,-rs0);
 	OOGLEND();
 	
-	// add text for reticle here
-	range *= 0.001f;
-	if (range < 0.001f) range = 0.0f;	// avoids the occasional -0.001 km distance.
-	NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
-	float line_height = rdist * ONE_SIXTYFOURTH;
-	NSString*	info = [NSString stringWithFormat:@"%0.3f km", range];
-	if (legal_desc != nil) info = [NSString stringWithFormat:@"%@ (%@)", info, legal_desc];
-	// no need to set colour here
-	OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
-	OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
-	
-	if ([target isWormhole])
+	if (showText)
 	{
-		// Note: No break statements in the following switch() since every case
-		//       falls through to the next.  Cases arranged in reverse order.
-		switch([(WormholeEntity *)target scanInfo])
+		// add text for reticle here
+		range *= 0.001f;
+		if (range < 0.001f) range = 0.0f;	// avoids the occasional -0.001 km distance.
+		NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
+		float line_height = rdist * ONE_SIXTYFOURTH;
+		NSString*	info = [NSString stringWithFormat:@"%0.3f km", range];
+		if (legal_desc != nil) info = [NSString stringWithFormat:@"%@ (%@)", info, legal_desc];
+		// no need to set colour here
+		OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
+		OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
+	
+		if ([target isWormhole])
 		{
+			// Note: No break statements in the following switch() since every case
+			//       falls through to the next.  Cases arranged in reverse order.
+			switch([(WormholeEntity *)target scanInfo])
+			{
 			case WH_SCANINFO_SHIP:
 				// TOOD: Render anything on the HUD for this?
 			case WH_SCANINFO_DESTINATION:
@@ -3101,6 +3171,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 			case WH_SCANINFO_SCANNED:
 			case WH_SCANINFO_NONE:
 				break;
+			}
 		}
 	}
 	

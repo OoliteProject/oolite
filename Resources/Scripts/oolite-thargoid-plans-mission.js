@@ -39,41 +39,6 @@ this.copyright		= "© 2008-2013 the Oolite team.";
 this.version		= "1.77.1";
 
 
-this._setUpShips = function ()
-{
-	function addThargoids()
-	{
-		this._waveCount++; // 5 loops of adding in the legacy script with a script timer.
-		if (this._waveCount > 5)
-		{
-			this._thargoidTimer.stop();
-			return;
-		}
-		if (system.countShipsWithRole("thargoid") < 2)
-		{
-			system.addShipsToRoute("thargoid", 1, 0.33);
-			system.addShipsToRoute("thargoid", 1, 0.66);
-		}
-		if (system.countShipsWithRole("thargoid") < 5 && Math.random() < 0.5)
-		{
-			system.addShips("thargoid", 1);
-		}
-	}
-	
-	if (missionVariables.thargplans === "RUNNING" && galaxyNumber === 2)
-	{
-		if (this._thargoidTimer)
-		{
-			this._thargoidTimer.start();
-		}
-		else
-		{
-			this._thargoidTimer = new Timer(this, addThargoids, 10, 10);
-		}
-	}
-};
-
-
 this._cleanUp = function ()
 {
 	/*	After the mission is complete, it's good 
@@ -87,8 +52,8 @@ this._cleanUp = function ()
 		the gaming experience as smooth as possible.
 	*/
 	delete this.missionScreenOpportunity;
-	delete this.shipLaunchedFromStation;
-	delete this.shipExitedWitchspace;
+	delete this.systemWillPopulate;
+	delete this.systemWillRepopulate;
 };
 
 
@@ -96,7 +61,6 @@ this._cleanUp = function ()
 
 this.startUp = function ()
 {
-	this._waveCount = 0;  // should be zero on the first launch after a reset.
 	if (missionVariables.thargplans === "MISSION_COMPLETE")
 	{
 		this._cleanUp();
@@ -170,14 +134,55 @@ this.missionScreenOpportunity = function ()
 };
 
 
-this.shipLaunchedFromStation = function ()
+this.systemWillPopulate = function()
 {
-	this._setUpShips();
-};
+	if (missionVariables.thargplans === "RUNNING" && galaxyNumber === 2)
+	{
+		system.setPopulator("oolite-thargoidplans-mission-a",
+		{
+			priority: 50,
+			location: "LANE_WP",
+			groupCount: 2,
+			callback: function(pos)
+			{
+				system.addShips("thargoid", 1, pos, 0);
+			}
+		});
+		system.setPopulator("oolite-thargoidplans-mission-b",
+		{
+			priority: 50,
+			location: "WITCHPOINT",
+			groupCount: 1,
+			callback: function(pos)
+			{
+				system.addShips("thargoid", 1, pos, 0);
+			}
+		});
+		this._waveCount = 0;
+		this._ambushCount = 0;
 
+		// bring a few extra thargoids in shortly after arrival
+		this.systemWillRepopulate = function()
+		{
+			if (this._waveCount <= 4)
+			{
+				if (Math.random() < 0.5 && this._ambushCount < 2)
+				{		
+					this._ambushCount++;
+					system.addShips("thargoid", 1);
+				}
+			}
+			else
+			{
+				delete this.systemWillRepopulate;
+			}
+			this._waveCount++;
+		}
 
-this.shipExitedWitchspace = function ()
-{
-	this._waveCount = 0;
-	this._setUpShips();
-};
+	}
+	else
+	{
+		delete this.systemWillRepopulate;
+	}
+}
+

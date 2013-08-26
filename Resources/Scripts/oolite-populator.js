@@ -49,7 +49,7 @@ this.systemWillPopulate = function()
 	// in this order.
 	system.setPopulator("oolite-nav-buoy",
 						{
-							priority: 1,
+							priority: 5,
 							location: "COORDINATES",
 							coordinates: system.mainStation.position.add(system.mainStation.vectorForward.multiply(10E3)),
 							callback: function(pos) {
@@ -62,7 +62,7 @@ this.systemWillPopulate = function()
 
 	system.setPopulator("oolite-witch-buoy",
 						{
-							priority: 2,
+							priority: 10,
 							location: "COORDINATES",
 							coordinates: [0,0,0],
 							callback: function(pos) {
@@ -72,6 +72,69 @@ this.systemWillPopulate = function()
 							},
 							deterministic: true
 						});
+
+		/* Add asteroids */
+		var clusters = 2*(1+Math.floor(system.scrambledPseudoRandomNumber(51728)*4));
+		var psclusters = 1+(clusters/2);
+		clusters = clusters-psclusters;
+		
+		var addRockCluster = function(pos) 
+		{
+				var size = 1+Math.floor(system.scrambledPseudoRandomNumber(Math.floor(pos.x))*11);
+				var hermit = (system.scrambledPseudoRandomNumber(Math.floor(pos.y))*31) <= size;
+				var rocks = system.addShips("asteroid",size,pos,25E3);
+				// don't add rock hermits if the sun is about to explode
+				if (hermit && !system.sun.isGoingNova) 
+				{
+						var rh = system.addShips("rockhermit",1,pos,0)[0];
+						rh.scanClass = "CLASS_ROCK";
+				}
+		}
+
+		system.setPopulator("oolite-route1-asteroids",
+												{
+														priority: 20,
+														location: "LANE_WP",
+														locationSeed: 51728,
+														groupCount: clusters,
+														callback: addRockCluster,
+														deterministic: true
+												});
+		system.setPopulator("oolite-route2-asteroids",
+												{
+														priority: 20,
+														location: "LANE_PS",
+														locationSeed: 82715,
+														groupCount: psclusters,
+														callback: addRockCluster,
+														deterministic: true
+												});
+
+	/* To ensure there's at least one hermit, for smugglers to dock at */
+	system.setPopulator("oolite-offlane-hermit",
+						{
+							priority: 99, // make sure all other core population is done
+							location: "PLANET_ORBIT_HIGH",
+							locationSeed: 71258,
+							groupCount: 1,
+							callback: function(pos) {
+								if (system.countShipsWithPrimaryRole("rockhermit")==0) {
+									var rh = system.addShips("rockhermit",1,pos,0)[0];
+									rh.scanClass = "CLASS_ROCK";
+									// just the hermit, no other rocks
+								}
+							},
+							deterministic: true
+						});
+
+
+	/* Mainly for nova mission. If the nova script runs first, then
+	 * this is set and we stop here. If this script runs first, the
+	 * nova mission populator removes the entries this script adds. */
+	if (system.sun.isGoingNova)
+	{
+		return;
+	}
 
 
 	/* Calculate numbers of major groups */
@@ -510,14 +573,14 @@ this.systemWillPopulate = function()
 	}
 	system.setPopulator("oolite-freighters",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addFreighter.bind(this)
 						});
 	system.setPopulator("oolite-freighters-docking",
 						{
-							priority: 10,
+							priority: 40,
 							location: "STATION_AEGIS",
 							groupCount: randomise(initial/10),
 							callback: this._addFreighter.bind(this)
@@ -525,7 +588,7 @@ this.systemWillPopulate = function()
 	initial = couriers/2 * (l1length/600000);
 	system.setPopulator("oolite-couriers-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addCourierShort.bind(this)
@@ -533,7 +596,7 @@ this.systemWillPopulate = function()
 	initial = couriers/2 * (l3length/600000);
 	system.setPopulator("oolite-couriers-route3",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WS",
 							groupCount: randomise(initial),
 							callback: this._addCourierLong.bind(this)
@@ -541,7 +604,7 @@ this.systemWillPopulate = function()
 	initial = smugglers * (l1length/600000);
 	system.setPopulator("oolite-smugglers",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addSmuggler.bind(this)
@@ -552,7 +615,7 @@ this.systemWillPopulate = function()
 	initial = hlight * 5/6 * (l1length*2 / 900000) * (1.0-0.1*(7-system.info.government));
 	system.setPopulator("oolite-hunters-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addLightHunter.bind(this)
@@ -560,7 +623,7 @@ this.systemWillPopulate = function()
 	initial = hlight * 1/6 * (trilength / 900000) * (1.0-0.1*(7-system.info.government));
 	system.setPopulator("oolite-hunters-triangle",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WPS",
 							groupCount: randomise(initial),
 							callback: this._addLightHunter.bind(this)
@@ -568,7 +631,7 @@ this.systemWillPopulate = function()
 	initial = hmedium * l1length/900000 * (2/3) * 2/3;
 	system.setPopulator("oolite-hunters-medium-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addMediumHunterRemote.bind(this)
@@ -576,7 +639,7 @@ this.systemWillPopulate = function()
 	initial = hmedium * l3length/900000 * (2/3) * 1/3;
 	system.setPopulator("oolite-hunters-medium-route3",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WS",
 							groupCount: randomise(initial),
 							callback: this._addMediumHunterRemote.bind(this)
@@ -585,7 +648,7 @@ this.systemWillPopulate = function()
 	initial = hheavy * l1length/900000 * (2/3) * 2/3;
 	system.setPopulator("oolite-hunters-heavy-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addHeavyHunterRemote.bind(this)
@@ -594,7 +657,7 @@ this.systemWillPopulate = function()
 	initial = hheavy * l3length/900000 * (2/3) * 1/3;
 	system.setPopulator("oolite-hunters-heavy-route3",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WS",
 							groupCount: randomise(initial),
 							callback: this._addHeavyHunterRemote.bind(this)
@@ -605,7 +668,7 @@ this.systemWillPopulate = function()
 	initial = pindependents * ((l1length*2/3)/600000) * (1.0-0.1*system.info.government) * 2/3;
 	system.setPopulator("oolite-pirate-independent-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addIndependentPirate.bind(this)
@@ -613,7 +676,7 @@ this.systemWillPopulate = function()
 	initial = pindependents * ((l2length*2/3)/600000) * (1.0-0.05*system.info.government) / 6;
 	system.setPopulator("oolite-pirate-independent-route2",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_PS",
 							groupCount: randomise(initial),
 							callback: this._addIndependentPirate.bind(this)
@@ -621,7 +684,7 @@ this.systemWillPopulate = function()
 	initial = pindependents * ((l3length*2/3)/600000) * (1.0-0.05*system.info.government) / 6;
 	system.setPopulator("oolite-pirate-independent-route3",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WS",
 							groupCount: randomise(initial),
 							callback: this._addIndependentPirate.bind(this)
@@ -631,14 +694,14 @@ this.systemWillPopulate = function()
 	initial = pflight - pflightremote; // domestic source
 	system.setPopulator("oolite-pirate-light-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial*3/4),
 							callback: this._addLightPirateLocal.bind(this)
 						});
 	system.setPopulator("oolite-pirate-light-triangle",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WPS",
 							groupCount: randomise(initial*1/4),
 							callback: this._addLightPirateLocal.bind(this)
@@ -646,7 +709,7 @@ this.systemWillPopulate = function()
 	initial = pflightremote; // other system
 	system.setPopulator("oolite-pirate-light-remote",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addLightPirateRemote.bind(this)
@@ -655,14 +718,14 @@ this.systemWillPopulate = function()
 	initial = pfmedium - pfmediumremote; // domestic source
 	system.setPopulator("oolite-pirate-medium-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial*3/4),
 							callback: this._addMediumPirateLocal.bind(this)
 						});
 	system.setPopulator("oolite-pirate-medium-triangle",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WPS",
 							groupCount: randomise(initial*1/4),
 							callback: this._addMediumPirateLocal.bind(this)
@@ -670,7 +733,7 @@ this.systemWillPopulate = function()
 	initial = pfmediumremote; // other system
 	system.setPopulator("oolite-pirate-medium-remote",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addMediumPirateRemote.bind(this)
@@ -679,7 +742,7 @@ this.systemWillPopulate = function()
 	initial = pfheavy - pfheavyremote; // domestic source
 	system.setPopulator("oolite-pirate-heavy-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial*3/4),
 							callback: this._addHeavyPirateLocal.bind(this)
@@ -687,7 +750,7 @@ this.systemWillPopulate = function()
 
 	system.setPopulator("oolite-pirate-heavy-triangle",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WPS",
 							groupCount: randomise(initial*1/4),
 							callback: this._addHeavyPirateLocal.bind(this)
@@ -696,7 +759,7 @@ this.systemWillPopulate = function()
 	initial = pfheavyremote; // other system
 	system.setPopulator("oolite-pirate-heavy-remote",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addHeavyPirateRemote.bind(this)
@@ -707,7 +770,7 @@ this.systemWillPopulate = function()
 	initial = police * 5/6 * (l1length*2 / 900000) * (1.0-0.1*(7-system.info.government));
 	system.setPopulator("oolite-police-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addPolicePatrol.bind(this)
@@ -716,7 +779,7 @@ this.systemWillPopulate = function()
 	initial = police * 1/6 * (trilength / 900000) * (1.0-0.1*(7-system.info.government));
 	system.setPopulator("oolite-police-triangle",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WPS",
 							groupCount: randomise(initial),
 							callback: this._addPolicePatrol.bind(this)
@@ -727,7 +790,7 @@ this.systemWillPopulate = function()
 	// half on way or returning
 	system.setPopulator("oolite-interceptors-route1",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addInterceptors.bind(this)
@@ -736,7 +799,7 @@ this.systemWillPopulate = function()
 	// half on station
 	system.setPopulator("oolite-interceptors-witchpoint",
 						{
-							priority: 10,
+							priority: 40,
 							location: "WITCHPOINT",
 							groupCount: randomise(initial),
 							callback: this._addInterceptors.bind(this)
@@ -745,7 +808,7 @@ this.systemWillPopulate = function()
 	// thargoids
 	system.setPopulator("oolite-thargoid-scouts",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WPS",
 							groupCount: randomise(thargoids),
 							callback: this._addThargoidScout.bind(this)
@@ -753,7 +816,7 @@ this.systemWillPopulate = function()
 
 	system.setPopulator("oolite-thargoid-strike",
 						{
-							priority: 10,
+							priority: 40,
 							location: "LANE_WPS",
 							groupCount: randomise(thargoidstrike),
 							callback: this._addThargoidStrike.bind(this)
@@ -791,66 +854,7 @@ this.systemWillPopulate = function()
 	this._debugP("Thargoid (SC)",pset["oolite-thargoid-scouts"].groupCount);
 	this._debugP("Thargoid (ST)",pset["oolite-thargoid-strike"].groupCount);
 
-
-
-
-
-
-
-
 	// and the initial ships are done...
-	
-	/* Add asteroids */
-	var clusters = 2*(1+Math.floor(system.scrambledPseudoRandomNumber(51728)*4));
-	var psclusters = 1+(clusters/2);
-	clusters = clusters-psclusters;
-	
-	var addRockCluster = function(pos) 
-	{
-		var size = 1+Math.floor(system.scrambledPseudoRandomNumber(Math.floor(pos.x))*11);
-		var hermit = (system.scrambledPseudoRandomNumber(Math.floor(pos.y))*31) <= size;
-		var rocks = system.addShips("asteroid",size,pos,25E3);
-		if (hermit) 
-		{
-			var rh = system.addShips("rockhermit",1,pos,0)[0];
-			rh.scanClass = "CLASS_ROCK";
-		}
-	}
-
-	system.setPopulator("oolite-route1-asteroids",
-						{
-							priority: 10,
-							location: "LANE_WP",
-							locationSeed: 51728,
-							groupCount: clusters,
-							callback: addRockCluster,
-							deterministic: true
-						});
-	system.setPopulator("oolite-route2-asteroids",
-						{
-							priority: 10,
-							location: "LANE_PS",
-							locationSeed: 82715,
-							groupCount: psclusters,
-							callback: addRockCluster,
-							deterministic: true
-						});
-	/* To ensure there's at least one hermit, for pirates to dock at */
-	system.setPopulator("oolite-offlane-hermit",
-						{
-							priority: 99, // make sure all other core population is done
-							location: "PLANET_ORBIT_HIGH",
-							locationSeed: 71258,
-							groupCount: 1,
-							callback: function(pos) {
-								if (system.countShipsWithPrimaryRole("rockhermit")==0) {
-									var rh = system.addShips("rockhermit",1,pos,0)[0];
-									rh.scanClass = "CLASS_ROCK";
-									// just the hermit, no other rocks
-								}
-							},
-							deterministic: true
-						});
 
 }
 

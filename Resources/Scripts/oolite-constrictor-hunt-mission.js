@@ -45,8 +45,7 @@ this._cleanUp = function ()
 	// Remove event handlers.
 	delete this.guiScreenChanged;
 	delete this.missionScreenOpportunity;
-	delete this.shipExitedWitchspace;
-	delete this.shipLaunchedFromStation;
+	delete this.systemWillPopulate;
 };
 
 
@@ -165,17 +164,24 @@ this.missionScreenOpportunity = function ()
 };
 
 
-this.shipExitedWitchspace = this.shipLaunchedFromStation = function ()
+this.systemWillPopulate = function()
 {
 	if (galaxyNumber === 1 &&
 		system.ID === 193 &&
-		missionVariables.conhunt === "STAGE_1" &&
-		system.countShipsWithRole("constrictor") === 0)
+		missionVariables.conhunt === "STAGE_1")
 	{
-		var constrictor = system.addShips("constrictor", 1);
-		constrictor[0].bounty = 250; // Ensure a bounty, in case it was missing in a custom shipdata.plist.
-		// Attach script here and not in shipdata, so that like_ship copies of the constrictor have no mission script,
-		// only the version used for the mission will have the script now.
-		constrictor[0].setScript("oolite-constrictor.js");
+		system.setPopulator("oolite-constrictor-mission",
+			{
+				priority: 50,
+				location: "WITCHPOINT",
+				callback: function(pos)
+				{
+					var constrictor = system.addShips("constrictor", 1, pos, 0);
+					constrictor[0].bounty = 250; // Ensure a bounty, in case it was missing in a custom shipdata.plist.
+					// Attach script here and not in shipdata, so that like_ship copies of the constrictor have no mission script,
+					// only the version used for the mission will have the script now.
+					constrictor[0].setScript("oolite-constrictor.js");
+				}
+			});
 	}
 };

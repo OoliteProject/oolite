@@ -268,6 +268,8 @@ enum
 	kShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
 	kShip_scriptedMisjumpRange,  // 0..1 range of next misjump, float, read/write
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
+	kShip_shipClassName,		// ship type name, string, read/write
+	kShip_shipUniqueName,		// uniqish name, string, read/write
 	kShip_speed,				// current flight speed, double, read-only
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
@@ -402,6 +404,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "scriptedMisjump",		kShip_scriptedMisjump,		OOJS_PROP_READWRITE_CB },
 	{ "scriptedMisjumpRange",		kShip_scriptedMisjumpRange,		OOJS_PROP_READWRITE_CB },
 	{ "scriptInfo",				kShip_scriptInfo,			OOJS_PROP_READONLY_CB },
+	{ "shipClassName",			kShip_shipClassName,		OOJS_PROP_READWRITE_CB },
+	{ "shipUniqueName",				kShip_shipUniqueName,				OOJS_PROP_READWRITE_CB },
 	{ "speed",					kShip_speed,				OOJS_PROP_READONLY_CB },
 	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "subEntities",			kShip_subEntities,			OOJS_PROP_READONLY_CB },
@@ -559,6 +563,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_displayName:
 			result = [entity displayName];
+			break;
+
+		case kShip_shipUniqueName:
+			result = [entity shipUniqueName];
+			break;
+
+		case kShip_shipClassName:
+			result = [entity shipClassName];
 			break;
 		
 		case kShip_roles:
@@ -1110,6 +1122,25 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_shipUniqueName:
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+				[entity setShipUniqueName:sValue];
+				return YES;
+			}
+			break;
+
+		case kShip_shipClassName:
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+				[entity setShipClassName:sValue];
+				return YES;
+			}
+			break;
+
 		
 		case kShip_primaryRole:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
