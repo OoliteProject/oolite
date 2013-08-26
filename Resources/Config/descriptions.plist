@@ -607,8 +607,18 @@
 	);
 	"oolite-comms-distressResponseAggressor" = "[police-attack-warning]";
 	"oolite-comms-offenceDetected" = "[police-attack-warning]";
-	"oolite-comms-thanksForHelp" = "[thanks-for-assist]";
-	"oolite-comms-police-thanksForHelp" = "[police-thanks-for-assist]";
+	"oolite-comms-thanksForHelp" = 
+	(	
+		"Thank you for the assistance, [oolite_entityName].",
+		"Thanks, [oolite_entityName]!",
+		"%R bless you, [oolite_entityName]!",
+		"Oh thank you, [oolite_entityName]! Help at last!"
+	);
+	"oolite-comms-police-thanksForHelp" = 
+	(
+		"Thank you for the assistance, [oolite_entityName].",
+		"%H Police thank you for your assistance, [oolite_entityName]."
+	);
 
 
 	// /general docking

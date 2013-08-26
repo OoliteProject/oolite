@@ -622,8 +622,15 @@ AILib.prototype.entityCommsParams = function(entity)
 		{
 			// TODO: extend the ship object so more precise names can be
 			// returned?
-			params["oolite_entityClass"] = entity.name; //ship.shipClassName;
-			params["oolite_entityName"] = entity.displayName; // ship.shipName;
+			params["oolite_entityClass"] = entity.shipClassName; 
+			if (entity.shipUniqueName != "")
+			{
+				params["oolite_entityName"] = entity.shipUniqueName;
+			}
+			else
+			{
+				params["oolite_entityName"] = entity.displayName;
+			}
 		}
 		else if (entity.name)
 		{
@@ -5405,14 +5412,14 @@ this.startUp = function()
 
 	/* These are temporary for testing. Remove before release... */
 	this.$commsSettings.generic.generic.oolite_continuingAttack = "I've got the [oolite_entityClass]";
-	this.$commsSettings.generic.generic.oolite_beginningAttack = "Die, [oolite_entityClass]!";
+	this.$commsSettings.generic.generic.oolite_beginningAttack = "Die, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
 	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
-	this.$commsSettings.pirate.generic.oolite_hitTarget = "Where's the cargo, [oolite_entityClass]?";
-	this.$commsSettings.generic.generic.oolite_friendlyFire = "Watch where you're shooting, [oolite_entityClass]!";
+	this.$commsSettings.pirate.generic.oolite_hitTarget = "Where's the cargo, [oolite_entityName]?";
+	this.$commsSettings.generic.generic.oolite_friendlyFire = "Watch where you're shooting, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_eject = "Condition critical! I'm bailing out...";
 	this.$commsSettings.generic.generic.oolite_thargoidAttack = "%N! A thargoid warship!";
-	this.$commsSettings.generic.generic.oolite_firedMissile = "Dodge this for a bit, [oolite_entityClass].";
+	this.$commsSettings.generic.generic.oolite_firedMissile = "Dodge this for a bit, [oolite_entityName].";
 	this.$commsSettings.generic.generic.oolite_incomingMissile = "Help! Help! Missile!";
 	this.$commsSettings.generic.generic.oolite_startHelping = "Hold on! I'm on them.";
 	this.$commsSettings.generic.generic.oolite_switchTarget = "I'll get the [oolite_entityClass].";

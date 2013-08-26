@@ -7701,7 +7701,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				newCargo = [UNIVERSE getContainersOfGoods:num scarce:YES legal:NO];
 				break;
 			case CARGO_FLAG_PIRATE:
-				newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % num) scarce:YES legal:NO];
+				newCargo = [UNIVERSE getContainersOfGoods:(Ranrot() % (1+num/2)) scarce:YES legal:NO];
 				break;
 			case CARGO_FLAG_FULL_PASSENGERS:
 				// TODO: allow passengers to survive
