@@ -43,6 +43,8 @@ this.systemWillPopulate = function()
 {
 
 	/* Priority range 0-99 used by Oolite default populator */
+	// anything added here with priority > 20 will be cancelled by the
+	// nova mission populator if necessary
 
 	/* Add navigation buoys */
 	// for the compass to work properly, the buoys need to be added first,

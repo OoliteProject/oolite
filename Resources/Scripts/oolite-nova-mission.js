@@ -348,14 +348,18 @@ this.systemWillPopulate = function() // call this as soon as possible so other s
 			/* the main populator script might have run first. If so, remove
 			 * the ships it added. If it runs after, it'll notice the
 			 * impending nova and not add these lines in the first place */
-			system.setPopulator("oolite-route1-traders",null);
-			system.setPopulator("oolite-route2-traders",null);
-			system.setPopulator("oolite-route1-pirates",null);
-			system.setPopulator("oolite-route2-pirates",null);
-			system.setPopulator("oolite-route1-hunters",null);
-			system.setPopulator("oolite-route2-hunters",null);
-			system.setPopulator("oolite-route1-thargoids",null);
-			system.setPopulator("oolite-offlane-hermit",null);
+			var populator = system.populatorSettings;
+			var keys = Object.keys(populator);
+			var key;
+			while (key = keys.shift())
+			{
+				if (key.match(/^oolite-/) && populator[key].priority > 20)
+				{
+					// remove it
+					system.setPopulator(key,null);
+				}
+			}
+
 		}
 	}
 }
