@@ -147,5 +147,18 @@
 	"oolite-contracts-cargo-command-unavailable" = "(insufficient resources)";
 	"oolite-contracts-cargo-command-quit" = "Exit cargo transport contracts";
 
+	// Ship registration
+	"oolite-registership-interface-title" = "Edit ship registration";
+	"oolite-registership-interface-summary" = "Edit your ship registration information. Ensure that your ship name and commander name are correct and up-to-date.";
+	"oolite-registership-interface-category" = "[interfaces-category-ship-systems]";
+
+	"oolite-registership-title-part1" = "Enter Personal Name";
+	"oolite-registership-instructions-part1" = "Please enter the name you would like to be addressed by and press 'Enter'. Traditionally, pilots of independent ships may be addressed with the honorific 'Commander'.\n\nFor example, if you enter 'Jameson' here, you may be addressed as 'Jameson' or 'Commander Jameson'.\n\nThe name you have currently registered is [commander_name]. To keep this name, press 'Enter'.";
+
+	"oolite-registership-title-part2" = "Register Ship Name";
+	"oolite-registership-instructions-part2" = "Please enter your ship's new name. Registering a name here is important to distinguish your ship from others of the same type.\n\nFor example, if you enter 'Pride of %H' here, your ship will be registered as '[commander_shipname]: Pride of %H'\n\nYour ship is currently registered as '[commander_shipdisplayname]'. To keep this name, press 'Enter' now.";
+
+	"oolite-registership-title-part3" = "Thank you for completing registration";
+	"oolite-registership-instructions-part3" = "Thank you. Your selected personal name and new ship name have been recorded, and will be transmitted to public ship registries in the next daily feed.\n\nIf at any point you wish to change either your own name or that of your ship, you may do so by docking at any Galactice Cooperative station, returning to this interface and entering the new data.";
 
 }

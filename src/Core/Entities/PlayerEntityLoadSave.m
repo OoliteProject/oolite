@@ -126,7 +126,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
 	if ([[UNIVERSE gameController] inFullScreenMode])
 	{
-		[self setGuiToSaveCommanderScreen:self.commanderName];
+		[self setGuiToSaveCommanderScreen:self.lastsaveName];
 	}
 	else
 	{
@@ -134,7 +134,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 #else
 	// Other platforms: use custom interface all the time.
-	[self setGuiToSaveCommanderScreen:[self commanderName]];
+	[self setGuiToSaveCommanderScreen:[self lastsaveName]];
 #endif
 }
 
@@ -144,12 +144,12 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	NSString		*tmp_name = nil;
 	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
 	
-	tmp_name = [self commanderName];
+	tmp_name = [self lastsaveName];
 	tmp_path = save_path;
 	
 	ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("AUTO_SAVE"));
 	
-	NSString *saveName = [self commanderName];
+	NSString *saveName = [self lastsaveName];
 	NSString *autosaveSuffix = DESC(@"autosave-commander-suffix");
 	
 	if (![saveName hasSuffix:autosaveSuffix])
@@ -158,7 +158,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	NSString *savePath = [dir stringByAppendingPathComponent:[saveName stringByAppendingString:@".oolite-save"]];
 	
-	[self setCommanderName:saveName];
+	[self setLastsaveName:saveName];
 	
 	@try
 	{
@@ -174,7 +174,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[save_path autorelease];
 		save_path = [tmp_path copy];
 	}
-	[self setCommanderName:tmp_name];
+	[self setLastsaveName:tmp_name];
 }
 
 
@@ -306,7 +306,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			[self showCommanderShip: idx];
 			if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] oo_boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
-				commanderNameString = [[cdrDetailArray oo_dictionaryAtIndex:idx] oo_stringForKey:@"player_name"];
+				commanderNameString = [[cdrDetailArray oo_dictionaryAtIndex:idx] oo_stringForKey:@"player_save_name" defaultValue:[[cdrDetailArray oo_dictionaryAtIndex:idx] oo_stringForKey:@"player_name"]];
 			else
 				commanderNameString = [gameView typedString];
 		}
@@ -559,6 +559,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	[self setEntityPersonalityInt:PersonalityForCommanderDict(fileDic)];
 	
+	// dockedStation is always the main station at this point;
+	// localMarket always refers to the main station (system) market
 	if (![dockedStation localMarket])
 	{
 		NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
@@ -571,8 +573,29 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self completeSetUpAndSetTarget:NO];
 	// run initial system population
 	[UNIVERSE populateNormalSpace];
+
 	// might as well start off with a collected JS environment
 	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
+	
+	// read saved position vector and primary role, check for an
+	// appropriate station at those coordinates, if found, switch
+	// docked station to that one.
+	HPVector dockedPos = kZeroHPVector;
+	dockedPos.x = [fileDic oo_doubleForKey:@"docked_station_position_x"];
+	dockedPos.y = [fileDic oo_doubleForKey:@"docked_station_position_y"];
+	dockedPos.z = [fileDic oo_doubleForKey:@"docked_station_position_z"];
+	NSString *dockedRole = [fileDic oo_stringForKey:@"docked_station_role" defaultValue:@""];
+	StationEntity *saveStation = [UNIVERSE stationWithRole:dockedRole andPosition:dockedPos];
+	if (saveStation != nil && [saveStation allowsSaving])
+	{
+		dockedStation = saveStation;
+		position = [saveStation position];
+		if ([UNIVERSE station] != saveStation)
+		{
+			NSArray *secondaryMarket = [fileDic oo_arrayForKey:@"docked_station_market"];
+			if (secondaryMarket != nil)  [dockedStation setLocalMarket:secondaryMarket];
+		}
+	}
 
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
@@ -613,7 +636,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	sPanel.allowedFileTypes = [NSArray arrayWithObject:@"oolite-save"];
 	sPanel.canSelectHiddenExtension = YES;
-	sPanel.nameFieldStringValue = self.commanderName;
+	sPanel.nameFieldStringValue = self.lastsaveName;
 	
 	if ([sPanel runModal] == NSOKButton)
 	{
@@ -625,7 +648,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		
 		ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("STANDARD_SAVE"));
 		
-		self.commanderName = newName;
+		self.lastsaveName = newName;
 		[self writePlayerToPath:path];
 	}
 	[self setGuiToStatusScreen];
@@ -679,7 +702,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("STANDARD_SAVE"));
 	
-	[self setCommanderName:cdrName];
+	[self setLastsaveName:cdrName];
 	
 	[self writePlayerToPath:savePath];
 }
@@ -913,11 +936,11 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 		{
 			NSString *ratingDesc = OODisplayRatingStringFromKillCount([cdr oo_unsignedIntForKey:@"ship_kills"]);
 			[gui setArray:[NSArray arrayWithObjects:
-				[NSString stringWithFormat:@" %@ ",[cdr oo_stringForKey:@"player_name"]],
+				[NSString stringWithFormat:@" %@ ",[cdr oo_stringForKey:@"player_save_name" defaultValue:[cdr oo_stringForKey:@"player_name"]]],
 				[NSString stringWithFormat:@" %@ ",ratingDesc],
 				nil]
 				   forRow:row];
-			if ([[self commanderName] isEqualToString:[cdr oo_stringForKey:@"player_name"]])
+			if ([[self lastsaveName] isEqualToString:[cdr oo_stringForKey:@"player_save_name" defaultValue:[cdr oo_stringForKey:@"player_name"]]])
 			{
 				highlightRowOnPage = row;
 			}
@@ -1093,7 +1116,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	unsigned i;
 	for (i=0; i < [cdrDetailArray count]; i++)
 	{
-		NSString *currentName = [[cdrDetailArray oo_dictionaryAtIndex: i] oo_stringForKey:@"player_name"];
+		NSString *currentName = [[cdrDetailArray oo_dictionaryAtIndex: i] oo_stringForKey:@"player_save_name" defaultValue:[[cdrDetailArray oo_dictionaryAtIndex: i] oo_stringForKey:@"player_name"]];
 		if([cdrName compare: currentName] == NSOrderedSame)
 		{
 			return i;

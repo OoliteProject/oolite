@@ -273,6 +273,7 @@ typedef enum
 	NSString				*missionChoice;
 	BOOL					_missionWithCallback;
 	BOOL					_missionAllowInterrupt;
+	BOOL					_missionTextEntry;
 	OOGUIScreenID			_missionExitScreen;
 	
 	NSString				*specialCargo;
@@ -365,6 +366,7 @@ typedef enum
 	
 	// player commander data
 	NSString				*_commanderName;
+	NSString				*_lastsaveName;
 	NSPoint					galaxy_coordinates;
 	
 	Random_Seed				galaxy_seed;
@@ -480,7 +482,8 @@ typedef enum
 	GLfloat					scanner_zoom_rate;
 	
 	// target memory
-	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
+	// TODO: this should use weakrefs
+	NSMutableArray  		*target_memory;
 	int						target_memory_index;
 	
 	// custom view points
@@ -570,6 +573,8 @@ typedef enum
 
 - (NSString *) commanderName;
 - (void) setCommanderName:(NSString *)value;
+- (NSString *) lastsaveName;
+- (void) setLastsaveName:(NSString *)value;
 
 - (BOOL) isDocked;
 
@@ -816,6 +821,7 @@ typedef enum
 - (void) setScoopsActive;
 
 - (void) clearTargetMemory;
+- (NSMutableArray *) targetMemory;
 - (BOOL) moveTargetMemoryBy:(int)delta;
 
 - (void) printIdentLockedOnForMissile:(BOOL)missile;

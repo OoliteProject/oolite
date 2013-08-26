@@ -341,8 +341,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[name autorelease];
 	name = [[shipDict oo_stringForKey:@"name" defaultValue:@"?"] copy];
 	
+	[shipUniqueName autorelease];
+	shipUniqueName = [[shipDict oo_stringForKey:@"ship_name" defaultValue:@""] copy];
+
+	[shipClassName autorelease];
+	shipClassName = [[shipDict oo_stringForKey:@"ship_class_name" defaultValue:name] copy];
+
 	[displayName autorelease];
-	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
+	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:nil] copy];
 	
 	// Load the model (must be before subentities)
 	NSString *modelName = [shipDict oo_stringForKey:@"model"];
@@ -944,6 +950,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(shipAI);
 	DESTROY(cargo);
 	DESTROY(name);
+	DESTROY(shipUniqueName);
+	DESTROY(shipClassName);
 	DESTROY(displayName);
 	DESTROY(roleSet);
 	DESTROY(primaryRole);
@@ -2331,6 +2339,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if (energy > maxEnergy)
 			{
 				energy = maxEnergy;
+				[self doScriptEvent:OOJSID("shipEnergyBecameFull")];
 				[shipAI message:@"ENERGY_FULL"];
 			}
 		}
@@ -2368,7 +2377,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		qf.x *= delta_t;
 		qf.y *= delta_t;
 		qf.z *= delta_t;
-		orientation = quaternion_multiply(qf, orientation);
+		[self setOrientation:quaternion_multiply(qf, orientation)];
 	}
 	
 	//	reset totalBoundingBox
@@ -6302,9 +6311,45 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (NSString *) shipUniqueName
+{
+	return shipUniqueName;
+}
+
+
+- (NSString *) shipClassName
+{
+	return shipClassName;
+}
+
+
 - (NSString *) displayName
 {
-	if (displayName == nil)  return name;
+	if (displayName == nil || [displayName length] == 0)  
+	{
+		if ([shipUniqueName length] == 0)
+		{
+			if (shipClassName == nil)
+			{
+				return name;
+			}
+			else 
+			{
+				return shipClassName;
+			}
+		}
+		else
+		{
+			if (shipClassName == nil)
+			{
+				return [NSString stringWithFormat:@"%@: %@",name,shipUniqueName];
+			}
+			else
+			{
+				return [NSString stringWithFormat:@"%@: %@",shipClassName,shipUniqueName];
+			}
+		}
+	}
 	return displayName;
 }
 
@@ -6313,6 +6358,20 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 {
 	[name release];
 	name = [inName copy];
+}
+
+
+- (void) setShipUniqueName:(NSString *)inName
+{
+	[shipUniqueName release];
+	shipUniqueName = [inName copy];
+}
+
+
+- (void) setShipClassName:(NSString *)inName
+{
+	[shipClassName release];
+	shipClassName = [inName copy];
 }
 
 
@@ -6329,7 +6388,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	{
 		return DESC(@"unknown-target");
 	}
-	return displayName;
+	return [self displayName];
 }
 
 
@@ -12980,7 +13039,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 	OOLog(@"dumpState.shipEntity", @"Type: %@", [self shipDataKey]);
 	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
-	OOLog(@"dumpState.shipEntity", @"Display Name: %@", displayName);
+	OOLog(@"dumpState.shipEntity", @"Display Name: %@", [self displayName]);
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", [self roleSet]);
 	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);

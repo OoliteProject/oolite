@@ -118,6 +118,7 @@ enum
 #define KEY_EQUIPMENT_STARBOARD_WEAPON		@"starboard_weapon_type"
 #define KEY_EQUIPMENT_EXTRAS				@"extras"
 #define KEY_WEAPON_FACINGS					@"weapon_facings"
+#define KEY_RENOVATION_MULTIPLIER					@"renovation_multiplier"
 
 #define SHIPYARD_KEY_ID						@"id"
 #define SHIPYARD_KEY_SHIPDATA_KEY			@"shipdata_key"
@@ -264,6 +265,7 @@ enum
 	NSMutableDictionary		*populatorSettings;
 	OOTimeDelta		next_repopulation;
 	NSString		*system_repopulator;
+	BOOL			deterministic_population;
 
 	NSArray					*closeSystems;
 	
@@ -349,6 +351,7 @@ enum
 - (void) setUpSpace;
 - (void) populateNormalSpace;
 - (void) clearSystemPopulator;
+- (BOOL) deterministicPopulation;
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
@@ -401,6 +404,7 @@ enum
 - (OOPlanetEntity *) planet;
 - (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
+- (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position;
 
 // Turn main station into just another station, for blowUpStation.
 - (void) unMagicMainStation;

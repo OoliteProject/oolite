@@ -221,6 +221,20 @@ MA 02110-1301, USA.
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);	// V-sync on by default.
 
+
+	/* Multisampling significantly improves graphics quality with
+	 * basically no extra programming effort on our part, especially
+	 * for curved surfaces like the planet, but is also expensive - in
+	 * the worst case the entire scene must be rendered four
+	 * times. For now it can be a hidden setting. If early testing
+	 * doesn't give any problems (other than speed on low-end graphics
+	 * cards) a game options entry might be useful. - CIM, 24 Aug 2013*/
+	if ([prefs oo_boolForKey:@"anti-aliasing" defaultValue:NO])
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+	}
+
 	OOLog(@"display.mode.list", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
@@ -250,6 +264,10 @@ MA 02110-1301, USA.
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+			// and if it's this bad, forget even trying to multisample!
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+
 			[self createSurface];
 			
 			if (surface == NULL)

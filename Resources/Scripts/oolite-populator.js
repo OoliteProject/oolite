@@ -48,7 +48,7 @@ this.systemWillPopulate = function()
 		// in this order.
 		system.setPopulator("oolite-nav-buoy",
 												{
-														priority: 1,
+														priority: 5,
 														location: "COORDINATES",
 														coordinates: system.mainStation.position.add(system.mainStation.vectorForward.multiply(10E3)),
 														callback: function(pos) {
@@ -61,7 +61,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-witch-buoy",
 												{
-														priority: 2,
+														priority: 10,
 														location: "COORDINATES",
 														coordinates: [0,0,0],
 														callback: function(pos) {
@@ -72,6 +72,50 @@ this.systemWillPopulate = function()
 														deterministic: true
 												});
 
+		/* Add asteroids */
+		var clusters = 2*(1+Math.floor(system.scrambledPseudoRandomNumber(51728)*4));
+		var psclusters = 1+(clusters/2);
+		clusters = clusters-psclusters;
+		
+		var addRockCluster = function(pos) 
+		{
+				var size = 1+Math.floor(system.scrambledPseudoRandomNumber(Math.floor(pos.x))*11);
+				var hermit = (system.scrambledPseudoRandomNumber(Math.floor(pos.y))*31) <= size;
+				var rocks = system.addShips("asteroid",size,pos,25E3);
+				// don't add rock hermits if the sun is about to explode
+				if (hermit && !system.sun.isGoingNova) 
+				{
+						var rh = system.addShips("rockhermit",1,pos,0)[0];
+						rh.scanClass = "CLASS_ROCK";
+				}
+		}
+
+		system.setPopulator("oolite-route1-asteroids",
+												{
+														priority: 20,
+														location: "LANE_WP",
+														locationSeed: 51728,
+														groupCount: clusters,
+														callback: addRockCluster,
+														deterministic: true
+												});
+		system.setPopulator("oolite-route2-asteroids",
+												{
+														priority: 20,
+														location: "LANE_PS",
+														locationSeed: 82715,
+														groupCount: psclusters,
+														callback: addRockCluster,
+														deterministic: true
+												});
+
+		/* Mainly for nova mission. If the nova script runs first, then
+		 * this is set and we stop here. If this script runs first, the
+		 * nova mission populator removes the entries this script adds. */
+		if (system.sun.isGoingNova)
+		{
+				return;
+		}
 
 		/* Calculate numbers of major groups */
 		var gov = system.info.government; // 0=anarchy, 7=corporate
@@ -149,7 +193,7 @@ this.systemWillPopulate = function()
 		/* Add traders */
 		system.setPopulator("oolite-route1-traders",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: traders,
 														callback: function(pos) {
@@ -160,7 +204,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route2-traders",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_PS",
 														groupCount: pstraders,
 														callback: function(pos) {
@@ -187,7 +231,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route1-pirates",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: pirates,
 														callback: this._addPirates
@@ -195,7 +239,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route2-pirates",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_PS",
 														groupCount: pspirates,
 														callback: this._addPirates
@@ -229,7 +273,7 @@ this.systemWillPopulate = function()
 		}
 		system.setPopulator("oolite-route1-hunters",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: hunters,
 														callback: addHunter
@@ -237,7 +281,7 @@ this.systemWillPopulate = function()
 
 		system.setPopulator("oolite-route2-hunters",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_PS",
 														groupCount: hunters,
 														callback: function(pos) {
@@ -248,7 +292,7 @@ this.systemWillPopulate = function()
 		/* Add thargoids */
 		system.setPopulator("oolite-route1-thargoids",
 												{
-														priority: 10,
+														priority: 20,
 														location: "LANE_WP",
 														groupCount: thargoids,
 														callback: function(pos) {
@@ -256,42 +300,8 @@ this.systemWillPopulate = function()
 														}
 												});
 		
-		/* Add asteroids */
-		var clusters = 2*(1+Math.floor(system.scrambledPseudoRandomNumber(51728)*4));
-		var psclusters = 1+(clusters/2);
-		clusters = clusters-psclusters;
-		
-		var addRockCluster = function(pos) 
-		{
-				var size = 1+Math.floor(system.scrambledPseudoRandomNumber(Math.floor(pos.x))*11);
-				var hermit = (system.scrambledPseudoRandomNumber(Math.floor(pos.y))*31) <= size;
-				var rocks = system.addShips("asteroid",size,pos,25E3);
-				if (hermit) 
-				{
-						var rh = system.addShips("rockhermit",1,pos,0)[0];
-						rh.scanClass = "CLASS_ROCK";
-				}
-		}
 
-		system.setPopulator("oolite-route1-asteroids",
-												{
-														priority: 10,
-														location: "LANE_WP",
-														locationSeed: 51728,
-														groupCount: clusters,
-														callback: addRockCluster,
-														deterministic: true
-												});
-		system.setPopulator("oolite-route2-asteroids",
-												{
-														priority: 10,
-														location: "LANE_PS",
-														locationSeed: 82715,
-														groupCount: psclusters,
-														callback: addRockCluster,
-														deterministic: true
-												});
-		/* To ensure there's at least one hermit, for pirates to dock at */
+		/* To ensure there's at least one hermit, for ships avoiding the main station to dock at */
 		system.setPopulator("oolite-offlane-hermit",
 												{
 														priority: 99, // make sure all other core population is done
@@ -410,9 +420,10 @@ this.systemWillRepopulate = function()
 		}
 
 		// Thargoid invasions
-		if (Math.random() < 0.01)
+		// TODO: Need to think more about how new thargoids get added in.
+		if (Math.random() < 0.001)
 		{
-				system.addShips("thargoid",1,[0,0,0],7500);
+				system.addShips("thargoid",1,system.planet.position.multiply(0.5),7500);
 		}
 
 }

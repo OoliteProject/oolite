@@ -99,6 +99,7 @@ typedef enum
 							requiresDockingClearance: 1,
 							interstellarUndockingAllowed: 1,
 							allowsFastDocking: 1,
+							allowsSaving: 1,
 							allowsAutoDocking: 1,
 							hasBreakPattern: 1;
 }
@@ -210,6 +211,9 @@ typedef enum
 
 - (BOOL) allowsAutoDocking;
 - (void) setAllowsAutoDocking:(BOOL)newValue;
+
+- (BOOL) allowsSaving;
+// no setting this after station creation
 
 - (NSString *) marketOverrideName;
 - (BOOL) isRotatingStation;

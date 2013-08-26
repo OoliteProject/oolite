@@ -53,6 +53,7 @@ this._cleanUp = function ()
 	// this.shipExitedWitchspace is still needed after the nova mission.
 	delete this.shipWillEnterWitchspace;
 	delete this.shipWillExitWitchspace;
+	delete this.systemWillPopulate;
 	delete this.missionScreenOpportunity;
 	delete this.shipLaunchedEscapePod;
 	delete this.shipLaunchedFromStation;
@@ -305,9 +306,36 @@ this.shipWillEnterWitchspace = function ()
 };
 
 
-this.shipWillExitWitchspace = function ()  // call this as soon as possible so other scripts can see it will go nova.
+this.shipWillExitWitchspace = function ()  
 {
-	if (!missionVariables.nova && galaxyNumber === 3)
+	if (missionVariables.nova === "NOVA_ESCAPE_HERO")
+	{
+		missionVariables.nova = "NOVA_ESCAPED_SYSTEM";
+	}
+	else if (missionVariables.nova === "TWO_HRS_TO_ZERO")
+	{
+		// the populator has started the nova mission
+		player.ship.fuelLeakRate = 25;
+		this.willGoNova = true;
+		player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
+		system.info.market = "none";
+		this.buoyLoaded = false;  // w-bouy is not in system yet.
+		if (this.novaMissionTimer)
+		{
+			this.novaMissionTimer.start();
+		}
+		else
+		{
+			this.novaMissionTimer = new Timer(this, this._sendShipsAwayForMission, 5, 30);
+		}
+	}
+};
+
+
+this.systemWillPopulate = function() // call this as soon as possible so other scripts can see it will go nova.
+{
+	// make sure we don't increment the count when reloading a savegame
+	if (!missionVariables.nova && galaxyNumber === 3 && player.ship.status != "STATUS_DOCKED")
 	{
 		if (missionVariables.novacount !== null) // " !== undefined" always returns true for missionVariables!
 		{
@@ -316,29 +344,21 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 		if (player.ship.equipmentStatus("EQ_GAL_DRIVE") === "EQUIPMENT_OK" && missionVariables.novacount > 3 && !missionVariables.nova && !system.isInterstellarSpace)
 		{
 			missionVariables.nova = "TWO_HRS_TO_ZERO";
-			player.ship.fuelLeakRate = 25;
 			system.sun.goNova(7200);
-			this.willGoNova = true;
-			player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
-			system.info.market = "none";
-			this.buoyLoaded = false;  // w-bouy is not in system yet.
-
-			if (this.novaMissionTimer)
-			{
-				this.novaMissionTimer.start();
-			}
-			else
-			{
-				this.novaMissionTimer = new Timer(this, this._sendShipsAwayForMission, 5, 30);
-			}
+			/* the main populator script might have run first. If so, remove
+			 * the ships it added. If it runs after, it'll notice the
+			 * impending nova and not add these lines in the first place */
+			system.setPopulator("oolite-route1-traders",null);
+			system.setPopulator("oolite-route2-traders",null);
+			system.setPopulator("oolite-route1-pirates",null);
+			system.setPopulator("oolite-route2-pirates",null);
+			system.setPopulator("oolite-route1-hunters",null);
+			system.setPopulator("oolite-route2-hunters",null);
+			system.setPopulator("oolite-route1-thargoids",null);
+			system.setPopulator("oolite-offlane-hermit",null);
 		}
 	}
-	if (missionVariables.nova === "NOVA_ESCAPE_HERO")
-	{
-		missionVariables.nova = "NOVA_ESCAPED_SYSTEM";
-	}
-};
-
+}
 
 this.shipLaunchedFromStation = function ()
 {

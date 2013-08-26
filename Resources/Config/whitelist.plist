@@ -429,7 +429,8 @@
 		"dialFuelScoopStatus",
 		"compassMode",
 		"dialIdentEngaged",
-		"trumbleCount"
+		"trumbleCount",
+		"tradeInFactor"
 	);
 
 	shader_visual_effect_binding_methods = 

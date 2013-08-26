@@ -709,6 +709,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	allowsAutoDocking = [dict oo_boolForKey:@"allows_auto_docking" defaultValue:YES];
 	
+	allowsSaving = [UNIVERSE deterministicPopulation];
+
 	interstellarUndockingAllowed = [dict oo_boolForKey:@"interstellar_undocking" defaultValue:NO];
 	
 	double unitime = [UNIVERSE getTime];
@@ -2291,6 +2293,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 - (void) setAllowsAutoDocking:(BOOL)newValue
 {
 	allowsAutoDocking = !!newValue; // Ensure yes or no
+}
+
+
+- (BOOL) allowsSaving
+{
+	// fixed stations only, not carriers!
+	return allowsSaving && ([self maxFlightSpeed] == 0);
 }
 
 
