@@ -1787,6 +1787,28 @@ AILib.prototype.conditionScannerContainsHunters = function()
 }
 
 
+AILib.prototype.conditionScannerContainsLoneVictim = function()
+{
+	var scan = this.getParameter("oolite_scanResults");
+	var others = 0;
+	var target = null;
+	for (var i = scan.length-1 ; i >= 0 ; i--)
+	{
+		if (!this.allied(this.ship,scan[i]) && scan[i].isPirateVictim && scan[i].cargoSpaceCapacity > 0)
+		{
+			target = scan[i];
+			others++;
+		}
+	}
+	if (others == 1)
+	{
+		this.setParameter("oolite_scanResultSpecific",target);
+		return true;
+	}
+	return false;
+}
+
+
 AILib.prototype.conditionScannerContainsMiningOpportunity = function()
 {
 	// if hold full, no

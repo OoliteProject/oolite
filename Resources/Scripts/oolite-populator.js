@@ -1140,18 +1140,6 @@ this._addFreighter = function(pos)
 	var t = this._addShips("trader",1,pos,0);
 	if (t[0])
 	{
-		if (Math.random() < 0.1)
-		{
-			t[0].bounty = Math.ceil(Math.random()*20);
-/*			if (Math.random() < 0.5)
-			{
-				t[0].switchAI("opportunistAI.js");
-			} */ // TODO: this AI
-		}
-		else
-		{
-			t[0].bounty = 0;
-		}
 		var goods;
 		if (pos.isStation)
 		{
@@ -1170,6 +1158,23 @@ this._addFreighter = function(pos)
 		if (t[0].name.match(/medical/i)) 
 		{
 			goods = "MEDICAL_GOODS";
+		}
+		else
+		{
+			// medical ships always clean
+			if (Math.random() < 0.1)
+			{
+				t[0].bounty = Math.ceil(Math.random()*20);
+				if (Math.random() < 0.5)
+				{
+					t[0].switchAI("traderOpportunistAI.js");
+					goods = "PIRATE_GOODS";
+				} 
+			}
+			else
+			{
+				t[0].bounty = 0;
+			}
 		}
 		t[0].setCargoType(goods);
 
