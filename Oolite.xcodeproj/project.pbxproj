@@ -440,7 +440,6 @@
 		1A572FCC0D84B640003D4A26 /* oolite-global-prefix.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */; };
 		1A572FCD0D84B640003D4A26 /* oolite-thargoid-warship.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */; };
 		1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */; };
-		1A59FF4217CA26D6000BF0E0 /* oolite-populator.js in Sources */ = {isa = PBXBuildFile; fileRef = 1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */; };
 		1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5AA3220C0098AF0029C78A /* OOOpenGL.m */; };
 		1A5ABE6B15FBC86F006C97DC /* oolite-default-effect-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A5ABE6A15FBC833006C97DC /* oolite-default-effect-script.js */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
@@ -592,6 +591,8 @@
 		1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */; };
 		1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */; settings = {COMPILER_FLAGS = "$OO_MATHS_OPTS -ffast-math"; }; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
+		1AAADFBC17CB25960032C68B /* oolite-populator.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */; };
+		1AAADFBE17CB25A90032C68B /* oolite-registership.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AAADFBD17CB25A30032C68B /* oolite-registership.js */; };
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
 		1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */; };
 		1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */; };
@@ -1243,7 +1244,9 @@
 				1A572FCA0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js in Copy Scripts */,
 				1A572FCB0D84B640003D4A26 /* oolite-cloaking-device-pod.js in Copy Scripts */,
 				1A572FCC0D84B640003D4A26 /* oolite-global-prefix.js in Copy Scripts */,
+				1AAADFBC17CB25960032C68B /* oolite-populator.js in Copy Scripts */,
 				1A572FCD0D84B640003D4A26 /* oolite-thargoid-warship.js in Copy Scripts */,
+				1AAADFBE17CB25A90032C68B /* oolite-registership.js in Copy Scripts */,
 			);
 			name = "Copy Scripts";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1898,6 +1901,7 @@
 		1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetTextureGenerator.m; sourceTree = "<group>"; };
 		1AA82C810CC10E3D0023B797 /* OOJSWorldScripts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWorldScripts.h; sourceTree = "<group>"; };
 		1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSWorldScripts.m; sourceTree = "<group>"; };
+		1AAADFBD17CB25A30032C68B /* oolite-registership.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-registership.js"; sourceTree = "<group>"; };
 		1AAB9A960D779F3C00A9F424 /* OOCocoa.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCocoa.m; sourceTree = "<group>"; };
 		1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMapTextureLoader.h; sourceTree = "<group>"; };
 		1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMapTextureLoader.m; sourceTree = "<group>"; };
@@ -2619,6 +2623,7 @@
 				1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */,
 				1A572FB80D84B640003D4A26 /* oolite-nova-mission.js */,
 				1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */,
+				1AAADFBD17CB25A30032C68B /* oolite-registership.js */,
 				1A572FB90D84B640003D4A26 /* oolite-thargoid-plans-mission.js */,
 				1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */,
 				1A572FBA0D84B640003D4A26 /* oolite-trumbles-mission.js */,
@@ -4077,7 +4082,6 @@
 				1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */,
 				1AD8522617947BD600CBE743 /* OOHPVector.m in Sources */,
 				1AD8522F17947C9500CBE743 /* OOJSPopulatorDefinition.m in Sources */,
-				1A59FF4217CA26D6000BF0E0 /* oolite-populator.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
