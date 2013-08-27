@@ -241,19 +241,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsid propID,
 			return YES;
 
 		case kEntity_isInSpace:
-			switch ([entity status])
-			{
-			case STATUS_IN_FLIGHT:
-			case STATUS_DOCKING:
-			case STATUS_LAUNCHING:
-			case STATUS_WITCHSPACE_COUNTDOWN:
-			case STATUS_BEING_SCOOPED:
-			case STATUS_EFFECT:
-				*value = JSVAL_TRUE;
-				break;
-			default:
-				*value = JSVAL_FALSE;
-			}
+			*value = OOJSValueFromBOOL([entity isInSpace]);
 			return YES;
 		
 		case kEntity_isShip:
