@@ -3493,6 +3493,20 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		assessment += ((double)[thisEnt missileCapacity])/5.0;
 	}
 
+	/* Turret count is public knowledge */
+	NSEnumerator	*subEnum = [thisEnt shipSubEntityEnumerator];
+	ShipEntity		*se = nil;
+	while ((se = [subEnum nextObject]))
+	{
+		if ([se isTurret])
+		{
+			/* TODO: consider making ship combat behaviour try to
+			 * stay at long range from enemies with turrets. Then
+			 * we could perhaps reduce this bonus a bit. */
+			assessment += 1; 
+		}
+	}
+
 	if (fullCheck)
 	{
 		// consider pilot skill
@@ -3504,6 +3518,7 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 				score = 6400;
 			}
 			assessment += pow(score,0.33)/10;
+			// 0 - 1.8
 		}
 		else
 		{
@@ -3537,19 +3552,6 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
 
-		NSEnumerator	*subEnum = [thisEnt shipSubEntityEnumerator];
-		ShipEntity		*se = nil;
-		while ((se = [subEnum nextObject]))
-		{
-			if ([se isTurret])
-			{
-				/* TODO: consider making ship combat behaviour try to
-				 * stay at long range from enemies with turrets. Then
-				 * we could perhaps reduce this bonus a bit. */
-				assessment += 1; 
-			}
-		}
-
 		// combat-related secondary equipment
 		if ([thisEnt hasECM])
 		{
@@ -3575,9 +3577,14 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		else
 		{
 			// consider that armed ships might have a trick or two
-			if ([thisEnt weaponFacings] != 0)
+			if ([thisEnt weaponFacings] == 1)
 			{
-				assessment += 1;
+				assessment += 0.25;
+			}
+			else
+			{
+				// and more than one trick if they can mount multiple lasers
+				assessment += 0.75;
 			}
 		}
 	}
@@ -3587,7 +3594,7 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 	{
 		assessment *= 0.2;
 	}
-	else if ([thisEnt isPlayer] && ![(PlayerEntity*)thisEnt weaponsOnline])
+	else if ([thisEnt isPlayer] && [(PlayerEntity*)thisEnt fleeingStatus] >= PLAYER_FLEEING_CARGO)
 	{
 		assessment *= 0.2;
 	}
