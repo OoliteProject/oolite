@@ -441,7 +441,12 @@ MA 02110-1301, USA.
 {		
 	int			corridor_distance[] =	{	-1,	1,	3,	5,	7,	9,	11,	12,	12};
 	int			corridor_offset[] =		{	0,	0,	0,	0,	0,	0,	1,	3,	12};
-	int			corridor_speed[] =		{	48,	48,	48,	48,	36,	48,	64,	128, 512};	// how fast to approach the next point
+	/* Eric's improvements to the docking flight code seem to have
+	 * made it safer to go quite a bit faster here. With the increased
+	 * numbers of ships which might need to dock at the main station,
+	 * faster docking will help avoid massive queues. Previous speed
+	 * was mostly 48 - CIM: 27/8/2013*/
+	int			corridor_speed[] =		{	96,	96,	128,	128,	96,	128,	128,	256,	512};	// how fast to approach the next point
 	int			corridor_range[] =		{	24,	12,	6,	4,	4,	6,	15,	38,	96};	// how close you have to get to the target point
 	int			corridor_rotate[] =		{	1,	1,	1,	1,	0,	0,	0,	0,	0};		// whether to match the station rotation
 	int			corridor_count = 9;
