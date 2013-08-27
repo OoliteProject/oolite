@@ -7,7 +7,6 @@ ehthumbs.db
 Icon?
 
 # Xcode cruft
-build/
 project.xcworkspace/
 xcuserdata/
 *.mode1
@@ -17,3 +16,15 @@ xcuserdata/
 
 # Used for downloaded code
 deps/Cocoa-deps/sparkle
+
+
+# Build products
+build/
+oolite.app
+obj.spk
+obj.spk.dbg
+DebugOXP/requires.plist
+AddOns/
+
+# Debug output
+/core
