@@ -37,6 +37,12 @@ Changes between Oolite 1.77 and Oolite 1.77.1:
 * Sort save-game list alphabetically
 * Slightly lengthen deadlines on parcel contracts to avoid impossible ones
 * Prevent docking with dead stations
+* Fix memory leaks.
+* Remove "performBroadside" AI command
+* Fix scanner display bug
+* Display correct key in 'pause' message
+* Fix rotational_velocity for subentities
+* Fix shipEnergyBecameFull event to fire as documented
 
 -------------------------------------------------------------------------------
 

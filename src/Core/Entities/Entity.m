@@ -1065,6 +1065,24 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL) isInSpace
+{
+	switch ([self status])
+	{
+	case STATUS_IN_FLIGHT:
+	case STATUS_DOCKING:
+	case STATUS_LAUNCHING:
+	case STATUS_WITCHSPACE_COUNTDOWN:
+	case STATUS_BEING_SCOOPED:
+	case STATUS_EFFECT:
+	case STATUS_ACTIVE:
+		return YES;
+	default:
+		return NO;
+	}
+}
+
+
 - (BOOL) isImmuneToBreakPatternHide
 {
 	return isImmuneToBreakPatternHide;

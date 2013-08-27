@@ -269,6 +269,7 @@ enum OOScanClass
 - (double) findCollisionRadius;
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent;
 - (BOOL) isVisible;
+- (BOOL) isInSpace;
 - (BOOL) isImmuneToBreakPatternHide;
 
 // For shader bindings.

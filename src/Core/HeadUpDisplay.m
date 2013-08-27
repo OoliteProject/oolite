@@ -2312,7 +2312,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				ShipEntity *secondary = [(OOWeakReference *)sec_id weakRefUnderlyingObject];
 				if (secondary != nil && secondary != primary)
 				{
-					if ([secondary zeroDistance] <= SCANNER_MAX_RANGE2)
+					if ([secondary zeroDistance] <= SCANNER_MAX_RANGE2 && [secondary isInSpace])
 					{
 						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO);	
 					}			
