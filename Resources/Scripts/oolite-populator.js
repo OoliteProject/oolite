@@ -251,6 +251,7 @@ this.systemWillPopulate = function()
 	var pflightremote = 0;
 	var pfmediumremote = 0;
 	var pfheavyremote = 0;
+	// rates of organised packs go up as government reduces
 	if (system.info.government < 6)
 	{
 		pflight += lrate;
@@ -260,17 +261,24 @@ this.systemWillPopulate = function()
 			pfmedium += mrate;
 			if (system.info.government < 2)
 			{
+				// additional boost for independent packs in Feudal
+				pindependents *= 1.2;
 				pflight += lrate*2;
 				pfmedium += mrate;
 				pfheavy += hrate;
 				if (system.info.government < 1)
 				{
+					pindependents *= 1.2;
 					pflight *= 1.5;
 					pfmedium *= 1.5;
 					pfheavy *= 2;
 				}
 			}
 		}
+	}
+	while (pindependents > 10)
+	{
+		pindependents *= 0.5;
 	}
 	this.$repopulatorFrequencyOutgoing.pirateIndependents = pindependents;
 	this.$repopulatorFrequencyOutgoing.pirateLightPacks = pflight;
@@ -667,7 +675,7 @@ this.systemWillPopulate = function()
 
 	// pirates
 	// 2/3 to lane 1 (with higher governmental attrition), 1/6 to each of other lanes
-	initial = pindependents * ((l1length*2/3)/600000) * (1.0-0.1*system.info.government) * 2/3;
+	initial = pindependents * ((l1length*2/3)/600000) * (1.0-0.05*system.info.government) * 5/6;
 	system.setPopulator("oolite-pirate-independent-route1",
 						{
 							priority: 40,
@@ -675,7 +683,7 @@ this.systemWillPopulate = function()
 							groupCount: randomise(initial),
 							callback: this._addIndependentPirate.bind(this)
 						});
-	initial = pindependents * ((l2length*2/3)/600000) * (1.0-0.05*system.info.government) / 6;
+	initial = pindependents * ((l2length*2/3)/600000) * (1.0-0.05*system.info.government) / 12;
 	system.setPopulator("oolite-pirate-independent-route2",
 						{
 							priority: 40,
@@ -683,7 +691,7 @@ this.systemWillPopulate = function()
 							groupCount: randomise(initial),
 							callback: this._addIndependentPirate.bind(this)
 						});
-	initial = pindependents * ((l3length*2/3)/600000) * (1.0-0.05*system.info.government) / 6;
+	initial = pindependents * ((l3length*2/3)/600000) * (1.0-0.05*system.info.government) / 12;
 	system.setPopulator("oolite-pirate-independent-route3",
 						{
 							priority: 40,
@@ -786,6 +794,13 @@ this.systemWillPopulate = function()
 							groupCount: randomise(initial),
 							callback: this._addPolicePatrol.bind(this)
 						});
+	system.setPopulator("oolite-police-stationpatrol",
+						{
+							priority: 40,
+							location: "STATION_AEGIS",
+							callback: this._addPoliceStationPatrol.bind(this)
+						});
+	
 
 	// interceptors
 	initial = interceptors / 2;
@@ -899,55 +914,85 @@ this.systemWillRepopulate = function()
 	// pirates
 	if (Math.random() < this.$repopulatorFrequencyIncoming.pirateLightPacks)
 	{
-		this._debugR("Incoming light pirate");
-		this._addLightPirateRemote(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("pirate-light-freighter") < 6)
+		{
+			this._debugR("Incoming light pirate");
+			this._addLightPirateRemote(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.pirateLightPacksReturn)
 	{
-		this._debugR("Returning light pirate");
-		this._addLightPirateReturn(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("pirate-light-freighter") < 6)
+		{
+			this._debugR("Returning light pirate");
+			this._addLightPirateReturn(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.pirateMediumPacks)
 	{
-		this._debugR("Incoming medium pirate");
-		this._addMediumPirateRemote(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("pirate-medium-freighter") < 4)
+		{
+			this._debugR("Incoming medium pirate");
+			this._addMediumPirateRemote(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.pirateMediumPacksReturn)
 	{
-		this._debugR("Returning medium pirate");
-		this._addMediumPirateReturn(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("pirate-medium-freighter") < 4)
+		{
+			this._debugR("Returning medium pirate");
+			this._addMediumPirateReturn(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.pirateHeavyPacks)
 	{
-		this._debugR("Incoming heavy pirate");
-		this._addHeavyPirateRemote(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("pirate-heavy-freighter") < 2)
+		{
+			this._debugR("Incoming heavy pirate");
+			this._addHeavyPirateRemote(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.pirateHeavyPacksReturn)
 	{
-		this._debugR("Returning heavy pirate");
-		this._addHeavyPirateReturn(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("pirate-heavy-freighter") < 2)
+		{
+			this._debugR("Returning heavy pirate");
+			this._addHeavyPirateReturn(this._wormholePos());
+		}
 	}
 
 	// hunters
 	if (Math.random() < this.$repopulatorFrequencyIncoming.hunterMediumPacks)
 	{
-		this._debugR("Incoming medium hunter");
-		this._addMediumHunterRemote(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("hunter-medium") < 5)
+		{
+			this._debugR("Incoming medium hunter");
+			this._addMediumHunterRemote(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.hunterMediumPacksReturn)
 	{
-		this._debugR("Returning medium hunter");
-		this._addMediumHunterReturn(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("hunter-medium") < 5)
+		{
+			this._debugR("Returning medium hunter");
+			this._addMediumHunterReturn(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.hunterHeavyPacks)
 	{
-		this._debugR("Incoming heavy hunter");
-		this._addHeavyHunterRemote(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("hunter-heavy") < 3)
+		{
+			this._debugR("Incoming heavy hunter");
+			this._addHeavyHunterRemote(this._wormholePos());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyIncoming.hunterHeavyPacksReturn)
 	{
-		this._debugR("Returning heavy hunter");
-		this._addHeavyHunterReturn(this._wormholePos());
+		if (system.countShipsWithPrimaryRole("hunter-heavy") < 3)
+		{
+			this._debugR("Returning heavy hunter");
+			this._addHeavyHunterReturn(this._wormholePos());
+		}
 	}
 
 	// thargoids (do not appear at normal witchpoint)
@@ -991,75 +1036,102 @@ this.systemWillRepopulate = function()
 	// pirates
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.pirateIndependents)
 	{
-		this._debugR("Launching pirates");
-		this._addIndependentPirate(this._pirateLaunch());
+		if (system.countShipsWithPrimaryRole("pirate") < 40)
+		{
+			this._debugR("Launching pirates");
+			this._addIndependentPirate(this._pirateLaunch());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.pirateLightPacks)
 	{
-		this._debugR("Launching light pirate");
-		if (Math.random() < 0.83) // light pirates rarely jump
+		if (system.countShipsWithPrimaryRole("pirate-light-freighter") < 6)
 		{
-			this._addLightPirateLocal(this._pirateLaunch());
-		}
-		else
-		{
-			this._addLightPirateOutbound(this._pirateLaunch());
+			this._debugR("Launching light pirate");
+			if (Math.random() < 0.83) // light pirates rarely jump
+			{
+				this._addLightPirateLocal(this._pirateLaunch());
+			}
+			else
+			{
+				this._addLightPirateOutbound(this._pirateLaunch());
+			}
 		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.pirateMediumPacks)
 	{
-		this._debugR("Launching medium pirate");
-		if (Math.random() < 0.5)
+		if (system.countShipsWithPrimaryRole("pirate-medium-freighter") < 4)
 		{
-			this._addMediumPirateLocal(this._pirateLaunch());
-		}
-		else
-		{
-			this._addMediumPirateOutbound(this._pirateLaunch());
+			this._debugR("Launching medium pirate");
+			if (Math.random() < 0.5)
+			{
+				this._addMediumPirateLocal(this._pirateLaunch());
+			}
+			else
+			{
+				this._addMediumPirateOutbound(this._pirateLaunch());
+			}
 		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.pirateHeavyPacks)
 	{
-		this._debugR("Launching heavy pirate");
-		if (Math.random() < 0.5)
+		if (system.countShipsWithPrimaryRole("pirate-heavy-freighter") < 2)
 		{
-			this._addHeavyPirateLocal(this._pirateLaunch());
-		}
-		else
-		{
-			this._addHeavyPirateOutbound(this._pirateLaunch());
+			this._debugR("Launching heavy pirate");
+			if (Math.random() < 0.5)
+			{
+				this._addHeavyPirateLocal(this._pirateLaunch());
+			}
+			else
+			{
+				this._addHeavyPirateOutbound(this._pirateLaunch());
+			}
 		}
 	}
 
 	// hunters
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.hunterLightPacks)
 	{
-		this._debugR("Launching light hunter");
-		this._addLightHunter(system.mainStation);
+		if (system.countShipsWithPrimaryRole("hunter") < 30)
+		{
+			this._debugR("Launching light hunter");
+			this._addLightHunter(this._hunterLaunch());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.hunterMediumPacks)
 	{
-		this._debugR("Launching medium hunter");
-		// outbound falls back to local if no systems in range
-		this._addMediumHunterOutbound(system.mainStation);
+		if (system.countShipsWithPrimaryRole("hunter-medium") < 6)
+		{
+			this._debugR("Launching medium hunter");
+			// outbound falls back to local if no systems in range
+			this._addMediumHunterOutbound(this._hunterLaunch());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.hunterHeavyPacks)
 	{
-		this._debugR("Launching heavy hunter");
-		// outbound falls back to local if no systems in range
-		this._addHeavyHunterOutbound(system.mainStation);
+		if (system.countShipsWithPrimaryRole("hunter-heavy") < 3)
+		{
+			this._debugR("Launching heavy hunter");
+			// outbound falls back to local if no systems in range
+			this._addHeavyHunterOutbound(this._hunterLaunch());
+		}
 	}
 	
 	// police
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.policePacks)
 	{
-		this._debugR("Launching police patrol");
-		this._addPolicePatrol(system.mainStation);
+		if (system.countShipsWithPrimaryRole("police") < 30)
+		{
+			this._debugR("Launching police patrol");
+			this._addPolicePatrol(this._policeLaunch());
+		}
 	}
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.policeInterceptors)
 	{
-		this._debugR("Launching police interception patrol");
-		this._addInterceptors(system.mainStation);
+		if (system.countShipsWithPrimaryRole("police-witchpoint-patrol") < 30)
+		{
+			this._debugR("Launching police interception patrol");
+			this._addInterceptors(this._policeLaunch());
+		}
 	}
 
 	/* Generic traffic */
@@ -1303,6 +1375,7 @@ this._addLightHunter = function(pos)
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
 		this._setWeapons(h.ships[i],1.5); // mixed weapons
+		this._setSkill(h.ships[i],-1); // if they were any good, they'd have signed on with a proper hunting pack
 	}
 }
 
@@ -1383,6 +1456,7 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			// usually ensure medium hunters have beam lasers
 			this._setWeapons(t[0],1.9);
 		}
+		this._setSkill(t[0],3); // likely to be good pilot
 		t[0].switchAI("bountyHunterLeaderAI.js");
 	}
 }
@@ -1390,15 +1464,18 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 
 this._addIndependentPirate = function(pos)
 {
-	var size = Math.floor(Math.random()*3)+Math.floor(Math.random()*3)+1;
-	if (size > 8-system.government)
+	// a group < 3 in size is probably too small to actually attack anyone
+	// mostly 2-6 groups
+	var size = Math.floor(Math.random()*3)+Math.floor(Math.random()*3)+2;
+	if (size > 8-system.info.government)
 	{
+		// in the safer systems may have lost some ships already, though
 		size = 1+Math.floor(Math.random()*size);
 	}
 	var pg = this._addGroup("pirate",size,pos,2.5E3);
-	for (var i=0;i<pg.ships.length;i++)
+	for (var i=0;i<size;i++)
 	{
-		pg.ships[i].setBounty(20+system.government+size+Math.floor(Math.random()*8),"setup actions");
+		pg.ships[i].setBounty(20+system.info.government+size+Math.floor(Math.random()*8),"setup actions");
 		if (!pos.isStation && !pos.isPlanet)
 		{
 			pg.ships[i].setCargoType("PIRATE_GOODS");
@@ -1410,6 +1487,9 @@ this._addIndependentPirate = function(pos)
 			{
 				this._setWeapons(pg.ships[i],1.3); // rarely well-armed
 			}
+			// in the safer systems, rarely highly skilled (the
+			// skilled ones go elsewhere)
+			this._setSkill(pg.ships[i],4-system.info.government);
 		}
 	}
 }
@@ -1496,8 +1576,7 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 		lead[0].awardEquipment("EQ_ECM");
 	}
 	this._setWeapons(lead[0],2.8); // usually give aft laser
-	// next line is temporary for debugging!
-	lead[0].displayName = lead[0].name + " - FLAGSHIP";
+	this._setSkill(lead[0],3); // likely to be good pilot
 	if (returning)
 	{
 		this._setFuel(lead[0]);
@@ -1624,6 +1703,23 @@ this._addPolicePatrol = function(pos)
 }
 
 
+this._addPoliceStationPatrol = function(pos)
+{
+	var role = "police";
+	if (9+Math.random()*6 < system.info.techLevel)
+	{
+		role = "interceptor";
+	}
+	var p = system.addShips(role,1,pos,0)[0];
+	p.primaryRole = "police-station-patrol";
+	p.group = system.mainStation.group;
+	p.group.addShip(p);
+	p.switchAI("policeAI.js");
+	p.bounty = 0;
+	p.maxEscorts = 16;
+}
+
+
 this._addInterceptors = function(pos)
 {
 	var h = this._addGroup("interceptor",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+1+Math.ceil(system.info.techlevel/6),pos,2E3);
@@ -1635,6 +1731,8 @@ this._addInterceptors = function(pos)
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
 		h.ships[i].switchAI("policeAI.js");
+		// only +1 as core already gives police ships better AI
+		this._setSkill(h.ships[i],1);
 	}
 }
 
@@ -1647,7 +1745,12 @@ this._addThargoidScout = function(pos)
 
 this._addThargoidStrike = function(pos)
 {
-	this._addShips("thargoid",Math.floor(5+Math.random()*4),pos,10E3);
+	var thargs = this._addShips("thargoid",Math.floor(5+Math.random()*4),pos,10E3);
+	for (var i = 0; i < thargs.length ; i++)
+	{
+		// raiding parties have better pilots
+		this._setSkill(thargs[i],1);
+	}
 }
 
 /* Utility functions */
@@ -1780,6 +1883,26 @@ this._setWeapons = function(ship,level)
 	}
 //	log(this.name,"Set "+fwent.forwardWeapon+"/"+ship.aftWeapon+" for "+ship.name+" ("+ship.primaryRole+")");
 	return true;
+}
+
+
+this._setSkill = function(ship,bias)
+{
+	if (ship.autoWeapons && ship.accuracy < 5 && bias != 0)
+	{
+		// shift skill towards end of accuracy range
+		var target = 4.99;
+		if (bias < 0)
+		{
+			target = -5;
+		}
+		var acc = ship.accuracy;
+		for (var i=Math.abs(bias) ; i > 0 ; i--)
+		{
+			acc += (target-acc)*Math.random();
+		}
+		ship.accuracy = acc;
+	}
 }
 
 
@@ -2023,9 +2146,12 @@ this._tradeStation = function(usemain)
 	}
 	var stats = system.stations;
 	var stat = system.stations[Math.floor(Math.random()*stats.length)];
-	if (stat.hasNPCTraffic && stat.bounty == 0 && stat.maxSpeed == 0)
+	if (stat.hasNPCTraffic)
 	{
-		return stat;
+		if (stat.allegiance == "neutral" || stat.allegiance == "galcop" || stat.allegiance != "chaotic")
+		{
+			return stat;
+		}
 	}
 	return system.mainStation;
 }
@@ -2035,9 +2161,44 @@ this._pirateLaunch = function()
 {
 	var stats = system.stations;
 	var stat = system.stations[Math.floor(Math.random()*stats.length)];
-	if (stat.hasNPCTraffic && stat.bounty > 0 && stat.maxSpeed == 0)
+	if (stat.hasNPCTraffic)
 	{
-		return stat;
+		if (stat.allegiance == "pirate" || stat.allegiance == "chaotic")
+		{
+			return stat;
+		}
 	}
 	return system.mainPlanet;
+}
+
+
+// station for launching hunters
+this._hunterLaunch = function()
+{
+	var stats = system.stations;
+	var stat = system.stations[Math.floor(Math.random()*stats.length)];
+	if (stat.hasNPCTraffic)
+	{
+		if (stat.allegiance == "hunter" || stat.allegiance == "galcop")
+		{
+			return stat;
+		}
+	}
+	return system.mainStation;
+}
+
+
+// station for launching police
+this._policeLaunch = function()
+{
+	var stats = system.stations;
+	var stat = system.stations[Math.floor(Math.random()*stats.length)];
+	if (stat.hasNPCTraffic)
+	{
+		if (stat.allegiance == "galcop")
+		{
+			return stat;
+		}
+	}
+	return system.mainStation;
 }

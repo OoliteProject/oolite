@@ -128,7 +128,7 @@ this.aiStarted = function() {
 	else
 	{
 		// pirate work, until enough cargo gathered or lose too many
-		// fighters, then jump home if we're in witchspace, just jump
+		// fighters, then jump home. if we're in witchspace, just jump
 		// home immediately!
 		specific = [
 			{

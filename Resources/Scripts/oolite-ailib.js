@@ -267,7 +267,7 @@ this.AILib = function(ship)
 		// step 1: go through activeHandlers, and delete those
 		// functions from this.ship.AIScript that aren't in the new
 		// handler list
-		for (var i=0; i < activeHandlers.length ; i++)
+		for (var i=activeHandlers.length-1; i >= 0 ; i--)
 		{
 			if (handlerCache[activeHandlers[i]] != handlers[activeHandlers[i]])
 			{
@@ -279,7 +279,7 @@ this.AILib = function(ship)
 		// step 2: go through the keys in handlers and put those handlers
 		// into this.ship.AIScript and the keys into activeHandlers
 		activeHandlers = Object.keys(handlers);
-		for (var i=0; i < activeHandlers.length ; i++)
+		for (var i=activeHandlers.length-1; i >= 0 ; i--)
 		{
 			// unset or not deleted in step 1
 			if (!this.ship.AIScript[activeHandlers[i]])
@@ -299,7 +299,7 @@ this.AILib = function(ship)
 	}
 
 
-	/* Do not call this directly. It is bcalled automatically on ship death */
+	/* Do not call this directly. It is called automatically on ship death */
 	this.cleanup = function()
 	{
 		// break links to disconnect this from GC roots a little sooner
@@ -659,40 +659,44 @@ AILib.prototype.friendlyStation = function(station)
 	{
 		return false;
 	}
-	var allegiance = this.stationAllegiance(station);
-	// thargoid stations unfriendly to non-thargoid and vice versa
-	if (allegiance == "thargoid" && this.ship.scanClass != "CLASS_THARGOID")
+	// home station always friendly unless actually shooting at you
+	if (station != this.__ltcache.oolite_homeStation)
 	{
-		return false;
-	}
-	if (allegiance != "thargoid" && this.ship.scanClass == "CLASS_THARGOID")
-	{
-		return false;
-	}
-	// hunter stations attack any ship without bounty
-	if (allegiance == "hunter" && this.ship.bounty > 0)
-	{
-		return false;
-	}
-	// galcop stations likely to be hostile to certain ships
-	if (allegiance == "galcop" && (this.ship.bounty > this.fineThreshold() || this.ship.isPirate))
-	{
-		return false;
-	}
-	// pirate stations hostile to bounty-free ships
-	if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
-	{
-		return false;
-	}
-	// pirates won't dock at neutral stations
-	if (allegiance == "neutral" && this.ship.isPirate)
-	{
-		return false;
-	}
-	// restricted stations never count as friendly: AI must use custom routines
-	if (allegiance == "restricted")
-	{
-		return false;
+		var allegiance = this.stationAllegiance(station);
+		// thargoid stations unfriendly to non-thargoid and vice versa
+		if (allegiance == "thargoid" && this.ship.scanClass != "CLASS_THARGOID")
+		{
+			return false;
+		}
+		if (allegiance != "thargoid" && this.ship.scanClass == "CLASS_THARGOID")
+		{
+			return false;
+		}
+		// hunter stations attack any ship without bounty
+		if (allegiance == "hunter" && this.ship.bounty > 0)
+		{
+			return false;
+		}
+		// galcop stations likely to be hostile to certain ships
+		if (allegiance == "galcop" && (this.ship.bounty > this.fineThreshold() || this.ship.isPirate))
+		{
+			return false;
+		}
+		// pirate stations hostile to bounty-free ships
+		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
+		{
+			return false;
+		}
+		// pirates won't dock at neutral stations
+		if (allegiance == "neutral" && this.ship.isPirate)
+		{
+			return false;
+		}
+		// restricted+private stations never count as friendly: AI must use custom routines
+		if (allegiance == "restricted" || allegiance == "private")
+		{
+			return false;
+		}
 	}
 	return (station.target != this.ship || !station.hasHostileTarget);
 }
@@ -737,38 +741,43 @@ AILib.prototype.hostileStation = function(station)
 	{
 		return false;
 	}
-	var allegiance = this.stationAllegiance(station);
-	// thargoid stations unfriendly to non-thargoid and vice versa
-	if (allegiance == "thargoid" && this.ship.scanClass != "CLASS_THARGOID")
+	// home station not hostile unless actually shooting at you
+	if (station != this.__ltcache.oolite_homeStation)
 	{
-		return true;
+
+		var allegiance = this.stationAllegiance(station);
+		// thargoid stations unfriendly to non-thargoid and vice versa
+		if (allegiance == "thargoid" && this.ship.scanClass != "CLASS_THARGOID")
+		{
+			return true;
+		}
+		if (allegiance != "thargoid" && this.ship.scanClass == "CLASS_THARGOID")
+		{
+			return true;
+		}
+		// hunter stations attack any ship without bounty
+		if (allegiance == "hunter" && this.ship.bounty > 0)
+		{
+			return true;
+		}
+		// galcop stations likely to be hostile to certain ships
+		if (allegiance == "galcop" && (this.ship.bounty > this.fineThreshold() || this.ship.isPirate))
+		{
+			return true;
+		}
+		// pirate stations hostile to bounty-free ships
+		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
+		{
+			return true;
+		}
+		// neutral, chaotic and private stations don't count as unfriendly
+		// restricted stations should always be considered unfriendly
+		if (allegiance == "restricted")
+		{
+			return true;
+		}
+		
 	}
-	if (allegiance != "thargoid" && this.ship.scanClass == "CLASS_THARGOID")
-	{
-		return true;
-	}
-	// hunter stations attack any ship without bounty
-	if (allegiance == "hunter" && this.ship.bounty > 0)
-	{
-		return true;
-	}
-	// galcop stations likely to be hostile to certain ships
-	if (allegiance == "galcop" && (this.ship.bounty > this.fineThreshold() || this.ship.isPirate))
-	{
-		return true;
-	}
-	// pirate stations hostile to bounty-free ships
-	if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
-	{
-		return true;
-	}
-	// neutral, chaotic and private stations don't count as unfriendly
-	// restricted stations should always be considered unfriendly
-	if (allegiance == "restricted")
-	{
-		return true;
-	}
-	
 	return (station.target == this.ship && station.hasHostileTarget);
 }
 
@@ -3110,6 +3119,10 @@ AILib.prototype.behaviourMissileSelfDestruct = function() {
 
 AILib.prototype.behaviourStationLaunchDefenseShips = function() 
 {
+	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	{
+		return;
+	}
 	if (this.ship.target && this.isAggressive(this.ship.target))
 	{
 		this.alertCondition = 3;
@@ -3125,6 +3138,10 @@ AILib.prototype.behaviourStationLaunchDefenseShips = function()
 
 AILib.prototype.behaviourStationLaunchMiner = function() 
 {
+	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	{
+		return;
+	}
 	if (this.alertCondition > 1)
 	{
 		this.alertCondition--;
@@ -3150,6 +3167,10 @@ AILib.prototype.behaviourStationLaunchMiner = function()
 
 AILib.prototype.behaviourStationLaunchPatrol = function() 
 {
+	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	{
+		return;
+	}
 	if (this.alertCondition > 1)
 	{
 		this.alertCondition--;
@@ -3176,6 +3197,10 @@ AILib.prototype.behaviourStationLaunchPatrol = function()
 
 AILib.prototype.behaviourStationLaunchSalvager = function() 
 {
+	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	{
+		return;
+	}
 	if (this.alertCondition > 1)
 	{
 		this.alertCondition--;
@@ -3200,6 +3225,10 @@ AILib.prototype.behaviourStationManageTraffic = function()
 
 AILib.prototype.behaviourStationRespondToDistressCall = function() 
 {
+	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	{
+		return;
+	}
 	var aggressor = this.getParameter("oolite_distressAggressor");
 	var sender = this.getParameter("oolite_distressSender");
 	if (sender.bounty > aggressor.bounty)
@@ -4024,6 +4053,17 @@ AILib.prototype.configurationLeaveEscortGroup = function()
 			this.ship.group.removeShip(this.ship);
 			this.ship.group = null;
 		}
+	}
+}
+
+
+// remote controlled ships get same accuracy as lead ship
+AILib.prototype.configurationSetRemoteControl = function()
+{
+	var group = this.ship.group;
+	if (group && group.leader)
+	{
+		this.ship.accuracy = group.leader.accuracy;
 	}
 }
 

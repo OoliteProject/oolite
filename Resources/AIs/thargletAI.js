@@ -43,6 +43,7 @@ this.aiStarted = function() {
 			condition: ai.conditionHasMothership,
 			truebranch: [
 				{
+					preconfiguration: ai.configurationSetRemoteControl,
 					condition: ai.conditionGroupIsSeparated,
 					configuration: ai.configurationLeaveEscortGroup,
 					behaviour: ai.behaviourReconsider
