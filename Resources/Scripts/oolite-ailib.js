@@ -509,6 +509,11 @@ AILib.prototype.allied = function(ship1,ship2)
 
 AILib.prototype.broadcastDistressMessage = function()
 {
+	if (this.__ltcache.oolite_sentDistressMessage)
+	{
+		return;
+	}
+	this.__ltcache.oolite_sentDistressMessage = true;
 	this.ship.broadcastDistressMessage();
 	if (this.ship.AIPrimaryAggressor)
 	{
@@ -4235,6 +4240,13 @@ AILib.prototype.responseComponent_standard_distressMessageReceived = function(ag
 	{
 		return;
 	}
+	if (this.ship.scanClass == "CLASS_POLICE" || (this.ship.isStation && this.ship.allegiance == "galcop"))
+	{
+		if (this.distance(aggressor) < this.scannerRange)
+		{
+			aggressor.bounty |= 8;
+		}
+	}
 	this.setParameter("oolite_distressAggressor",aggressor);
 	this.setParameter("oolite_distressSender",sender);
 	this.setParameter("oolite_distressTimestamp",clock.adjustedSeconds);
@@ -4375,7 +4387,7 @@ AILib.prototype.responseComponent_standard_shipAttackedOther = function(other)
 
 AILib.prototype.responseComponent_standard_shipAttackedWithMissile = function(missile,whom)
 {
-	if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+	if (this.getParameter("oolite_flag_sendsDistressCalls"))
 	{
 		this.broadcastDistressMessage();
 	}
@@ -4459,7 +4471,7 @@ AILib.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 		// don't get confused and shoot the station!
 		this.ship.target = null;
 	}
-	if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+	if (this.getParameter("oolite_flag_sendsDistressCalls"))
 	{
 		this.broadcastDistressMessage();
 	}
@@ -4534,7 +4546,7 @@ AILib.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 
 AILib.prototype.responseComponent_standard_shipBeingAttackedUnsuccessfully = function(whom)
 {
-	if (!this.ship.hasHostileTarget && this.getParameter("oolite_flag_sendsDistressCalls"))
+	if (this.getParameter("oolite_flag_sendsDistressCalls"))
 	{
 		this.broadcastDistressMessage();
 	}
@@ -4872,6 +4884,13 @@ AILib.prototype.responseComponent_station_distressMessageReceived = function(agg
 	if (this.getParameter("oolite_flag_listenForDistressCall") != true)
 	{
 		return;
+	}
+	if (this.ship.scanClass == "CLASS_POLICE" || (this.ship.isStation && this.ship.allegiance == "galcop"))
+	{
+		if (this.distance(aggressor) < this.scannerRange)
+		{
+			aggressor.bounty |= 8;
+		}
 	}
 	this.setParameter("oolite_distressAggressor",aggressor);
 	this.setParameter("oolite_distressSender",sender);

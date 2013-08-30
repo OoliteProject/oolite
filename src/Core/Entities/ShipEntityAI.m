@@ -806,10 +806,16 @@
 			// we only can send distressMessages to ships that are known to have a "ACCEPT_DISTRESS_CALL" reaction
 			// in their AI, or they might react wrong on the added found_target.
 
-			// FIXME: this test only works with core AIs
-			if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])
+			// ship must have a plist AI for this next bit. JS AIs
+			// should already have done something sensible on
+			// distressMessageReceived
+			if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
 			{
-				[ship acceptDistressMessageFrom:self];
+				// FIXME: this test only works with core AIs
+				if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])
+				{
+					[ship acceptDistressMessageFrom:self];
+				}
 			}
 		}
 	}
