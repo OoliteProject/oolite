@@ -31,7 +31,7 @@ this.name = "Oolite Trader Opportunist AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_sendsDistressCalls",true);
 

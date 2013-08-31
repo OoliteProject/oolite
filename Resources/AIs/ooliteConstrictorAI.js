@@ -30,7 +30,7 @@ this.name = "Oolite Constrictor AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setCommunicationsRole("_constrictor");
 	ai.setParameter("oolite_flag_surrendersLate",true);

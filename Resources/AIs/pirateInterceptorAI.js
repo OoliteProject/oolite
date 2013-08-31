@@ -30,7 +30,7 @@ this.name = "Oolite Pirate Interceptor AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-	this.ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	this.ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_surrendersLate",true);
 

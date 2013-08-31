@@ -30,7 +30,7 @@ this.name = "Oolite Tharglet AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-	var ai = new worldScripts["oolite-libPriorityAI"].AILib(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setCommunicationsRole("_thargoid");
 	ai.setCommunicationsPersonality("tharglet");
