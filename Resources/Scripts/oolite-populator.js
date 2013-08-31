@@ -222,19 +222,19 @@ this.systemWillPopulate = function()
 
 		second = seconds[i];
 		// couriers are non-mirrored
-		rate = (60/(10+((14-local.techlevel)*5)))/second.length;
+		rate = (20/(10+((14-local.techlevel)*5)))/second.length;
 		this.$repopulatorFrequencyIncoming.traderCouriers += rate;
 		couriers += rate;
 		// smugglers are non-mirrored
-		rate = (60/(10+(local.techlevel*5)))/second.length;
+		rate = (20/(10+(local.techlevel*5)))/second.length;
 		this.$repopulatorFrequencyIncoming.traderSmugglers += rate;
 		smugglers += rate;
 	}
 	// and outgoing rates for smugglers/couriers. Don't need to
 	// specify destination since all rates are equal
-	rate = 60/(10+((14-system.info.techlevel)*5));
+	rate = 20/(10+((14-system.info.techlevel)*5));
 	this.$repopulatorFrequencyOutgoing.traderCouriers = rate;
-	rate = (60/(10+(system.info.techlevel*5)))/locals.length;
+	rate = (20/(10+(system.info.techlevel*5)))/locals.length;
 	this.$repopulatorFrequencyOutgoing.traderSmugglers = rate;
 
 	var traders = freighters+couriers+smugglers;
@@ -1234,7 +1234,7 @@ this._addFreighter = function(pos)
 		else
 		{
 			// medical ships always clean
-			if (Math.random() < 0.1)
+			if (Math.random() < 0.05)
 			{
 				t[0].bounty = Math.ceil(Math.random()*20);
 				if (Math.random() < 0.5)
@@ -1966,6 +1966,10 @@ this._addShips = function(role,num,pos,spread)
 	}
 	else
 	{
+		if (pos.z === undefined)
+		{
+			log(this.name,"Unexpected populator position "+pos+" for "+role+". Please report this error.");
+		}
 		return system.addShips(role,num,pos,spread);
 	}
 }
