@@ -2,7 +2,8 @@
 
 pirateInterceptorAI.js
 
-Priority-based AI for pirate interceptors (fly defense for 
+Priority-based AI for pirate interceptors (fly defense for other
+pirates)
 
 Oolite
 Copyright © 2004-2013 Giles C Williams and contributors
@@ -48,24 +49,40 @@ this.aiStarted = function() {
 		},
 		{
 			condition: ai.conditionInCombat,
-			configuration: ai.configurationAcquireCombatTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
-			reconsider: 10
+			truebranch: [
+				{
+					/* If supplies are low, flee */
+					condition: ai.conditionLowSupplies,
+					behaviour: ai.behaviourFleeCombat,
+					reconsider: 5
+				},
+				{
+					configuration: ai.configurationAcquireCombatTarget,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 10
+				}
+			]
 		},
 		{
-			/* don't check odds first, make sure we get at least a little
-			 * weapons fire */
-			preconfiguration: ai.configurationCheckScanner,
-			condition: ai.conditionScannerContainsHunters,
-			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
-			reconsider: 20 
-		},
-		{
-			condition: ai.conditionScannerContainsShipAttackingPirate,
-			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
-			reconsider: 20 
+			/* If supplies are low, return to base */
+			condition: ai.conditionLowSupplies,
+			falsebranch: [
+				{
+					/* don't check odds first, make sure we get at
+					 * least a little weapons fire */
+					preconfiguration: ai.configurationCheckScanner,
+					condition: ai.conditionScannerContainsHunters,
+					configuration: ai.configurationAcquireScannedTarget,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 20 
+				},
+				{
+					condition: ai.conditionScannerContainsShipAttackingPirate,
+					configuration: ai.configurationAcquireScannedTarget,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 20 
+				}
+			]
 		}
 	];
 

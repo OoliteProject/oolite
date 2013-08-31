@@ -1514,6 +1514,10 @@ this._addPirateAssistant = function(role,lead,pos)
 		// interceptors not actually part of group: they just get the
 		// same destinations
 		this._setWeapons(asst[0],2.3); // heavily armed
+		if (asst[0].autoWeapons)
+		{
+			asst[0].awardEquipment("EQ_FUEL_INJECTION"); // interceptors always have injectors
+		}
 	}
 	else
 	{ 

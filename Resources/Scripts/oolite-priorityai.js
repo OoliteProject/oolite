@@ -1342,6 +1342,33 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 }
 
 
+PriorityAIController.prototype.conditionLowSupplies = function()
+{
+	if (this.__ltcache.oolite_conditionLowSupplies !== undefined)
+	{
+		return this.__ltcache.oolite_conditionLowSupplies;
+	}
+	// out of missiles
+	if (this.ship.missileCapacity > 0 && this.ship.missiles.length == 0)
+	{
+		log(this.ship.name,"Missiles low");
+		this.__ltcache.oolite_conditionLowSupplies = true;
+		return true;
+	}
+	// or fuel for injectors is low
+	if (this.ship.fuel < 3.5 && this.ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
+	{
+		log(this.ship.name,"Fuel low");
+		this.__ltcache.oolite_conditionLowSupplies = true;
+		return true;
+	}
+	log(this.ship.name,"Supplies okay");
+	// TODO: when NPC systems damage is added, check for that here
+	this.__ltcache.oolite_conditionLowSupplies = false;
+	return false;
+}
+
+
 PriorityAIController.prototype.conditionMothershipInCombat = function()
 {
 	if (this.ship.group)
@@ -2212,7 +2239,7 @@ PriorityAIController.prototype.conditionMissileOutOfFuel = function()
 
 PriorityAIController.prototype.conditionPatrolIsOver = function()
 {
-	return this.ship.distanceTravelled > 200000;
+	return this.ship.distanceTravelled > 200000 || this.conditionLowSupplies();
 }
 
 
