@@ -408,6 +408,7 @@ enum
 - (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
 - (NSArray *) stations; // includes main station
+- (NSArray *) wormholes; 
 - (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position;
 
 // Turn main station into just another station, for blowUpStation.

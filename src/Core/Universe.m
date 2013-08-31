@@ -2812,6 +2812,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (NSArray *) wormholes
+{
+	return activeWormholes;
+}
+
+
 - (void) unMagicMainStation
 {
 	StationEntity *theStation = [self station];
