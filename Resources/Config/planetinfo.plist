@@ -42,6 +42,15 @@
 	*/
 	//shield_charge_energybank_threshold = 0.75;
 	
+	/* The sun colour affects the lighting on the start up ship
+	 * parade. Therefore, give the initial system a neutral lighting
+	 * colour. */
+	"0 7" = 
+	{
+		// Lave
+		sun_color = "1.0 1.0 1.0";
+	};
+
 	/*	Worlds with "pink oceans" or "vast oceans" according to system
 		description. "Unusual oceans" are ignored.
 		In theory, oceans could also be "ancient", "great", "funny", "weird",

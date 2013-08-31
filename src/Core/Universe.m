@@ -898,6 +898,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	HPVector				stationPos;
 	
 	Vector				vf;
+	id			dict_object;
 	
 	NSDictionary		*systeminfo = [self generateSystemData:system_seed useCache:NO];
 	unsigned			techlevel = [systeminfo oo_unsignedIntForKey:KEY_TECHLEVEL];
@@ -943,7 +944,16 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	// pick a main sequence colour
 
-	bgcolor = [OOColor colorWithHue:h1 saturation:0.75*randf() brightness:0.65+randf()/5.0 alpha:1.0];
+	dict_object=[systeminfo objectForKey:@"sun_color"];
+	if (dict_object!=nil) 
+	{
+		bgcolor = [OOColor colorWithDescription:dict_object];
+	}
+	else
+	{
+		bgcolor = [OOColor colorWithHue:h1 saturation:0.75*randf() brightness:0.65+randf()/5.0 alpha:1.0];
+	}
+
 	pale_bgcolor = [bgcolor blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
 	[thing release];
 	/*--*/
@@ -977,7 +987,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	double		sunDistanceModifier;
 	double		safeDistance;
 	int			posIterator=0;
-	id			dict_object;
 	Quaternion  q_sun;
 	HPVector		sunPos;
 	
