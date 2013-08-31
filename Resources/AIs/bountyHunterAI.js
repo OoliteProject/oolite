@@ -102,13 +102,6 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourCollectSalvage,
 			reconsider: 20
 		},
-		/* Check we're in a real system */
-		{
-			condition: ai.conditionInInterstellarSpace,
-			configuration: ai.configurationSelectWitchspaceDestination,
-			behaviour: ai.behaviourEnterWitchspace,
-			reconsider: 20
-		},
 		{
 			condition: ai.conditionIsGroupLeader,
 			truebranch: ai.templateLeadHuntingMission(),
@@ -120,5 +113,5 @@ this.aiStarted = function() {
 				}
 			],
 		}
-	]);
+	].concat(ai.templateWitchspaceJumpAnywhere()));
 }

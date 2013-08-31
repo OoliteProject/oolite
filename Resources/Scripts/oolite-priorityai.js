@@ -1626,6 +1626,22 @@ PriorityAIController.prototype.conditionSunskimPossible = function()
 }
 
 
+PriorityAIController.prototype.conditionWormholeNearby = function()
+{
+	var holes = system.wormholes;
+	for (var i=holes.length-1; i >= 0 ; i--)
+	{
+		var hole = holes[i];
+		if (hole.expiryTime > clock.adjustedSeconds && this.distance(hole) < this.scannerRange)
+		{
+			this.__cache.oolite_wormholeNearby = hole;
+			return true;
+		}
+	}
+	return false;
+}
+
+
 /*** Pirate conditions ***/
 
 
@@ -3124,7 +3140,7 @@ PriorityAIController.prototype.behaviourMissileSelfDestruct = function() {
 
 PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function() 
 {
-	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	if (system.sun && (system.sun.isGoingNova || system.sun.hasGoneNova))
 	{
 		return;
 	}
@@ -3143,7 +3159,7 @@ PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function()
 
 PriorityAIController.prototype.behaviourStationLaunchMiner = function() 
 {
-	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	if (system.sun && (system.sun.isGoingNova || system.sun.hasGoneNova))
 	{
 		return;
 	}
@@ -3172,7 +3188,7 @@ PriorityAIController.prototype.behaviourStationLaunchMiner = function()
 
 PriorityAIController.prototype.behaviourStationLaunchPatrol = function() 
 {
-	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	if (system.sun && (system.sun.isGoingNova || system.sun.hasGoneNova))
 	{
 		return;
 	}
@@ -3202,7 +3218,7 @@ PriorityAIController.prototype.behaviourStationLaunchPatrol = function()
 
 PriorityAIController.prototype.behaviourStationLaunchSalvager = function() 
 {
-	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	if (system.sun && (system.sun.isGoingNova || system.sun.hasGoneNova))
 	{
 		return;
 	}
@@ -3230,7 +3246,7 @@ PriorityAIController.prototype.behaviourStationManageTraffic = function()
 
 PriorityAIController.prototype.behaviourStationRespondToDistressCall = function() 
 {
-	if (system.sun.isGoingNova || system.sun.hasGoneNova)
+	if (system.sun && (system.sun.isGoingNova || system.sun.hasGoneNova))
 	{
 		return;
 	}
@@ -3795,6 +3811,29 @@ PriorityAIController.prototype.configurationSetDestinationToNearestStation = fun
 	{
 		this.ship.destination = this.ship.position;
 		this.ship.desiredRange = 0;
+	}
+}
+
+PriorityAIController.prototype.configurationSetDestinationToNearestWormhole = function()
+{
+	var dist = 1E16;
+	var holes = system.wormholes;
+	this.ship.desiredRange = 0;
+	this.ship.desiredSpeed = this.ship.maxSpeed;
+	for (var i=holes.length-1; i >= 0 ; i--)
+	{
+		var hole = holes[i];
+		var hdist = this.distance(hole);
+		if (hole.expiryTime > clock.adjustedSeconds && hdist < dist)
+		{
+			this.ship.destination = hole.position;
+			dist = hdist;
+		}
+	}
+	if (dist >= 1E15)
+	{
+		this.ship.destination = this.ship.position;
+		this.ship.desiredRange = 1000;
 	}
 }
 
@@ -5035,6 +5074,10 @@ PriorityAIController.prototype.templateLeadHuntingMission = function()
 {
 	return [
 		{
+			condition: this.conditionInInterstellarSpace,
+			truebranch: this.templateWitchspaceJumpAnywhere()
+		},
+		{
 			condition: this.conditionHasWaypoint,
 			configuration: this.configurationSetDestinationToWaypoint,
 			behaviour: this.behaviourApproachDestination,
@@ -5205,6 +5248,34 @@ PriorityAIController.prototype.templateReturnToBaseOrPlanet = function()
 }
 
 
+PriorityAIController.prototype.templateWitchspaceJumpAnywhere = function()
+{
+	return [
+		{
+			label: "Wormhole search",
+			condition: this.conditionWormholeNearby,
+			configuration: this.configurationSetDestinationToNearestWormhole,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 30
+		},
+		/* Short reconsiders on next two so wormholes aren't missed */
+		{
+			label: "No wormholes nearby",
+			condition: this.conditionCanWitchspaceOut,
+			configuration: this.configurationSelectWitchspaceDestination,
+			behaviour: this.behaviourEnterWitchspace,
+			reconsider: 10
+		},
+		{
+			label: "Lurk around witchpoint",
+			configuration: this.configurationSetDestinationToWitchpoint,
+			behaviour: this.behaviourApproachDestination,
+			reconsider: 10
+		}
+	];
+}
+
+
 PriorityAIController.prototype.templateWitchspaceJumpInbound = function()
 {
 	return [
@@ -5255,6 +5326,7 @@ PriorityAIController.prototype.templateWitchspaceJumpOutbound = function()
 		}
 	];
 }
+
 
 /* ******************* Waypoint generators *********************** */
 

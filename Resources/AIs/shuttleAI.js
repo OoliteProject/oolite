@@ -81,9 +81,7 @@ this.aiStarted = function() {
 		/* TODO: need to try to hitchhike out! */
 		{
 			condition: ai.conditionInInterstellarSpace,
-			configuration: ai.configurationSetDestinationToWitchpoint,
-			behaviour: ai.behaviourApproachDestination,
-			reconsider: 30
+			truebranch: ai.templateWitchspaceJumpAnywhere()
 		},
 		{
 			configuration: ai.configurationSelectShuttleDestination,

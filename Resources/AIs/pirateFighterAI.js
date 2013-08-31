@@ -121,14 +121,7 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourJoinTargetGroup,
 			reconsider: 10,
 			falsebranch: ai.templateReturnToBaseOrPlanet()
-		},
-		{
-			// full of loot, but stuck in system and no friendly stations
-			configuration: ai.configurationSetDestinationToWitchpoint,
-			// TODO: behaviour search for wormholes
-			behaviour: ai.behaviourApproachDestination,
-			reconsider: 30
 		}
-	]);
+	].concat(ai.templateWitchspaceJumpAnywhere()));
 
 }

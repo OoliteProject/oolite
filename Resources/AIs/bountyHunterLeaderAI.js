@@ -128,15 +128,7 @@ this.aiStarted = function() {
 		];
 	}
 
-	var fallback = [
-		{
-			// stuck in system and no friendly stations
-			configuration: ai.configurationSetDestinationToWitchpoint,
-			// TODO: behaviour search for wormholes
-			behaviour: ai.behaviourApproachDestination,
-			reconsider: 30
-		}
-	];
+	var fallback = ai.templateWitchspaceJumpAnywhere();
 
 	var priorities = common.concat(specific).concat(fallback);
 	ai.setPriorities(priorities);

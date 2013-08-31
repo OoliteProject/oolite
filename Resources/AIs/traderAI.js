@@ -102,13 +102,6 @@ this.aiStarted = function() {
 			configuration: ai.configurationSetDestinationToNearestFriendlyStation,
 			behaviour: ai.behaviourApproachDestination,
 			reconsider: 30
-		},
-		{
-			// stuck and no friendly stations
-			configuration: ai.configurationSetDestinationToWitchpoint,
-			// TODO: behaviour search for wormholes
-			behaviour: ai.behaviourApproachDestination,
-			reconsider: 30
 		}
-	]);
+	].concat(ai.templateWitchspaceJumpAnywhere()));
 }
