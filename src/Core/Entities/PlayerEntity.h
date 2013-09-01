@@ -477,6 +477,7 @@ typedef enum
 	// trumbles
 	NSUInteger				trumbleCount;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
+	float					_trumbleAppetiteAccumulator;
 	
 	// smart zoom
 	GLfloat					scanner_zoom_rate;
@@ -810,7 +811,10 @@ typedef enum
 - (NSUInteger) trumbleCount;
 // loading and saving trumbleCount
 - (id) trumbleValue;
-- (void) setTrumbleValueFrom:(NSObject*) trumbleValue;
+- (void) setTrumbleValueFrom:(NSObject *)trumbleValue;
+
+- (float) trumbleAppetiteAccumulator;
+- (void) setTrumbleAppetiteAccumulator:(float)value;
 
 - (void) mungChecksumWithNSString:(NSString *)str;
 
