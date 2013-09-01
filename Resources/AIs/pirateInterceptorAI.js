@@ -34,9 +34,19 @@ this.aiStarted = function() {
 	this.ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_surrendersLate",true);
+	ai.setParameter("oolite_flag_fightsNearHostileStations",true);
 
 	// to hunt the hunters, go where they go
-	ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
+	var searchalgorithm = ai.conditionScannerContainsHunters;
+	if (this.ship.primaryRole == "pirate-aegis-raider")
+	{
+		searchalgorithm = ai.conditionScannerContainsCleanShip;
+		ai.setWaypointGenerator(ai.waypointsStationPatrol);
+	}
+	else
+	{
+		ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
+	}
 
 	ai.setCommunicationsRole("pirate");
 	
@@ -71,7 +81,7 @@ this.aiStarted = function() {
 					/* don't check odds first, make sure we get at
 					 * least a little weapons fire */
 					preconfiguration: ai.configurationCheckScanner,
-					condition: ai.conditionScannerContainsHunters,
+					condition: searchalgorithm, // varied by role above
 					configuration: ai.configurationAcquireScannedTarget,
 					behaviour: ai.behaviourDestroyCurrentTarget,
 					reconsider: 20 

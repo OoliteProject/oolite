@@ -241,6 +241,15 @@ this.systemWillPopulate = function()
 	
 	/* Pirate rates next, based partly on trader rates */
 
+	if (system.info.government == 0 && system.info.techlevel < 8)
+	{
+		this.$repopulatorFrequencyOutgoing.pirateAegisRaiders = 1/(8-system.info.techlevel);
+	}
+	else
+	{
+		this.$repopulatorFrequencyOutgoing.pirateAegisRaiders = 0;
+	}
+
 	// local independent pirate packs
 	var pindependents = (1-system.info.government/12)*traders; 
 	// organised pirate packs led by increasingly bigger freighters
@@ -1087,6 +1096,10 @@ this.systemWillRepopulate = function()
 			}
 		}
 	}
+	if (Math.random() < this.$repopulatorFrequencyOutgoing.pirateAegisRaiders)
+	{
+		this._addAegisRaiders();
+	}
 
 	// hunters
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.hunterLightPacks)
@@ -1230,6 +1243,7 @@ this._addFreighter = function(pos)
 		if (t[0].name.match(/medical/i)) 
 		{
 			goods = "MEDICAL_GOODS";
+			t[0].bounty = 0;
 		}
 		else
 		{
@@ -1686,6 +1700,27 @@ this._addHeavyPirateOutbound = function(pos)
 this._addHeavyPirateReturn = function(pos)
 {
 	return this._addPiratePack(pos,"pirate-heavy-freighter",4,4,2,2,system.ID,this._nearbySafeSystem(system.info.government+1),true);
+}
+
+
+this._addAegisRaiders = function()
+{
+	var g = this._addGroup("pirate-aegis-raider",3+Math.floor(Math.random()*5),system.mainPlanet,3E3);
+	var gs = g.ships;
+	for (var i=0; i < gs.length ; i++)
+	{
+		gs[i].setBounty(50+system.government+Math.floor(Math.random()*36),"setup actions")
+		this._setWeapons(gs[i],2.7); // very heavily armed
+		this._setSkill(gs[i],3); // boost combat skill
+		if (gs[i].autoWeapons)
+		{
+			// raiders need the best equipment
+			gs[i].awardEquipment("EQ_FUEL_INJECTION"); 
+			gs[i].awardEquipment("EQ_SHIELD_BOOSTER"); 
+			gs[i].awardEquipment("EQ_ECM"); 
+			gs[i].fuel = 7;
+		}
+	}
 }
 
 

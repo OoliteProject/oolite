@@ -1042,6 +1042,10 @@ PriorityAIController.prototype.stationAllegiance = function(station)
 
 PriorityAIController.prototype.threatAssessment = function(ship,full)
 {
+	if (ship.isStation && this.getParameter("oolite_flag_fightsNearHostileStations"))
+	{
+		return 1; // mostly ignore stations in assessment
+	}
 	return worldScripts["oolite-libPriorityAI"]._threatAssessment(ship,full);
 }
 
@@ -1785,6 +1789,14 @@ PriorityAIController.prototype.conditionPiratesCanBePaidOff = function()
 
 
 /*** Scanner conditions ***/
+
+
+PriorityAIController.prototype.conditionScannerContainsCleanShip = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		return (s.scanClass == "CLASS_NEUTRAL" || s.scanClass == "CLASS_POLICE") && s.bounty == 0; 
+	});
+}
 
 
 PriorityAIController.prototype.conditionScannerContainsEscapePods = function()
@@ -3170,10 +3182,14 @@ PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function()
 	}
 	if (this.ship.target && this.isAggressive(this.ship.target))
 	{
-		this.alertCondition = 3;
+		this.ship.alertCondition = 3;
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_launchDefenseShips",this.ship.target,3);
 		this.ship.requestHelpFromGroup();
+	}
+	else if (this.ship.alertCondition > 1)
+	{
+		this.ship.alertCondition--;
 	}
 	var handlers = {};
 	this.responsesAddStation(handlers);
@@ -3187,9 +3203,9 @@ PriorityAIController.prototype.behaviourStationLaunchMiner = function()
 	{
 		return;
 	}
-	if (this.alertCondition > 1)
+	if (this.ship.alertCondition > 1)
 	{
-		this.alertCondition--;
+		this.ship.alertCondition--;
 	}
 	var handlers = {};
 	this.responsesAddStation(handlers);
@@ -3216,9 +3232,9 @@ PriorityAIController.prototype.behaviourStationLaunchPatrol = function()
 	{
 		return;
 	}
-	if (this.alertCondition > 1)
+	if (this.ship.alertCondition > 1)
 	{
-		this.alertCondition--;
+		this.ship.alertCondition--;
 	}
 	var handlers = {};
 	this.responsesAddStation(handlers);
@@ -3246,9 +3262,9 @@ PriorityAIController.prototype.behaviourStationLaunchSalvager = function()
 	{
 		return;
 	}
-	if (this.alertCondition > 1)
+	if (this.ship.alertCondition > 1)
 	{
-		this.alertCondition--;
+		this.ship.alertCondition--;
 	}
 	this.communicate("oolite_launchSalvager",this.ship.target,3);
 	this.ship.launchScavenger();
@@ -5466,7 +5482,7 @@ PriorityAIController.prototype.waypointsSpacelanePatrol = function()
 PriorityAIController.prototype.waypointsStationPatrol = function()
 {
 	var station = null;
-	if (this.ship.group)
+	if (this.ship.group && this.ship.group.leader && this.ship.group.leader.isStation)
 	{
 		station = this.ship.group.leader;
 	}
