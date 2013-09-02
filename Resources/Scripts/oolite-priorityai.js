@@ -3081,6 +3081,7 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 		}
 		var commsparams = this.entityCommsParams(target);
 		commsparams["oolite_demandSize"] = demand;
+		this.ship.performAttack(); // must be before the comms message
 		this.communicate("oolite_makePirateDemand",commsparams,1);
 		this.ship.requestHelpFromGroup();
 		// prevents choosing this ship twice in a row
@@ -4307,8 +4308,16 @@ PriorityAIController.prototype.responseComponent_standard_cascadeWeaponDetected 
 }
 
 
-PriorityAIController.prototype.responseComponent_standard_commsMessageReceived = function(message)
+PriorityAIController.prototype.responseComponent_standard_commsMessageReceived = function(message,sender)
 {
+	/* If the sender is hostile to us, and we're not obviously in
+	 * combat, attack the sender: deals with pirate demand case */
+	if (sender.target == this.ship && !this.ship.hasHostileTarget && sender.hasHostileTarget)
+	{
+		this.ship.target = sender;
+		this.ship.performAttack();
+		this.reconsiderNow();
+	}
 	this.noteCommsHeard();
 }
 
@@ -4614,6 +4623,13 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 			}
 		}
 	}
+	// TODO: a rep for not accepting surrenders should have an effect here
+	else if (whom.isPlayer && !this.ship.AIScript.oolite_intership.cargodemand && !this.ship.AIScript.oolite_intership.cargodemandpaid)
+	{
+		// don't need to check here: most AIs won't check if a cargo
+		// demand exists, so setting it is harmless
+		this.ship.AIScript.oolite_intership.cargodemand = Math.ceil(this.ship.cargoSpaceCapacity / 15);
+	}
 
 	if (this.ship.escortGroup != null)
 	{
@@ -4634,6 +4650,12 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttackedUnsuc
 		this.ship.addDefenseTarget(whom);
 		this.reconsiderNow();
 	}
+	// TODO: a rep for not accepting surrenders should have an effect here
+	if (!this.ship.hasHostileTarget && whom.isPlayer && !this.ship.AIScript.oolite_intership.cargodemand && !this.ship.AIScript.oolite_intership.cargodemandpaid)
+	{
+		this.ship.AIScript.oolite_intership.cargodemand = Math.ceil(this.ship.cargoSpaceCapacity / 15);
+	}
+
 }
 
 
@@ -5624,6 +5646,7 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_dockingWait = "Bored now.";
 	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
 	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
+	this.$commsSettings.generic.generic.oolite_agreeingToDumpCargo = "Have it! But please let us go!";
 }
 
 
