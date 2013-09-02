@@ -2436,6 +2436,7 @@
 		exhaust = ("12.5 0.0 -27.5 6.0 6.0 1.5", "-12.5 0.0 -27.5 6.0 6.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_ecm = yes;
+		has_escape_pod = yes;
 		is_template = 1;
 		laser_color = "magentaColor";
 		max_energy = 180;
@@ -2555,6 +2556,7 @@
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		fuel = 160;
 		has_ecm = yes;
+		has_escape_pod = yes;
 		has_fuel_injection = yes;
 		is_template = 1;
 		laser_color = "magentaColor";

@@ -1246,7 +1246,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 - (BOOL) hasHostileTarget
 {
-	return [super hasHostileTarget] || ([self primaryTarget] != nil && (alertLevel == STATION_ALERT_LEVEL_YELLOW) || (alertLevel == STATION_ALERT_LEVEL_RED));
+	return [super hasHostileTarget] || ([self primaryTarget] != nil && ((alertLevel == STATION_ALERT_LEVEL_YELLOW) || (alertLevel == STATION_ALERT_LEVEL_RED)));
 }
 
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
@@ -1597,9 +1597,18 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	if (![defense_ship crew])
 	{
-		[defense_ship setCrew:[NSArray arrayWithObject:
-			[OOCharacter randomCharacterWithRole: @"hunter"
-			andOriginalSystem: [UNIVERSE systemSeed]]]];
+		if ([defense_ship isPolice])
+		{
+			[defense_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: @"police"
+				 andOriginalSystem: [UNIVERSE systemSeed]]]];
+		}
+		else
+		{
+			[defense_ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: @"hunter"
+				 andOriginalSystem: [UNIVERSE systemSeed]]]];
+		}
 	}
 				
 	[defense_ship setOwner: self];
@@ -1662,7 +1671,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		if (![scavenger_ship crew])
 			[scavenger_ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: @"hunter"
+				[OOCharacter randomCharacterWithRole: @"miner"
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		scavengers_launched++;
