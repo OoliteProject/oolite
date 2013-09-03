@@ -11320,7 +11320,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector	start;
 	
 	// players get to see their old ship sailing forth, while NPCs run away more efficiently!
-	double  eject_speed = EXPECT([jetto crew] && ![jetto isPlayer]) ? 60.0 : 20.0;
+	// cargo is ejected at higher speed from any ship
+	double  eject_speed = EXPECT_NOT([jetto crew] && [jetto isPlayer]) ? 20.0 : 100.0;
 	double  eject_reaction = -eject_speed * [jetto mass] / [self mass];
 	double	jcr = jetto->collision_radius;
 	

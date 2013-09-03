@@ -1727,7 +1727,7 @@ this._addAegisRaiders = function()
 this._addPolicePatrol = function(pos)
 {
 	var role = "police";
-	if (9+Math.random()*6 < system.info.techLevel)
+	if (9+Math.random()*6 < system.info.techlevel)
 	{
 		role = "interceptor";
 	}
@@ -1745,7 +1745,7 @@ this._addPolicePatrol = function(pos)
 this._addPoliceStationPatrol = function(pos)
 {
 	var role = "police";
-	if (9+Math.random()*6 < system.info.techLevel)
+	if (9+Math.random()*6 < system.info.techlevel)
 	{
 		role = "interceptor";
 	}

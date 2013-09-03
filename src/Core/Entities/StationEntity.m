@@ -1489,8 +1489,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			[self noteLostTarget];
 			return [NSArray array];
 		}
-		
-		if ((Ranrot() & 7) + 6 <= techlevel)
+		/* this is more likely to give interceptors than the
+		 * equivalent populator function: save them for defense
+		 * ships */
+		if ((Ranrot() & 3) + 9 < techlevel)
 		{
 			police_ship = [UNIVERSE newShipWithRole:@"interceptor"];   // retain count = 1
 		}
