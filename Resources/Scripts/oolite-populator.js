@@ -1238,6 +1238,11 @@ this._addFreighter = function(pos)
 			this._setFuel(t[0]);
 			t[0].destinationSystem = system.ID;
 			goods = "SCARCE_GOODS";
+			if (Math.random()*8 > system.info.government)
+			{
+				// may have used some missiles already
+				this._setMissiles(t[0],-1);
+			}
 		}
 		// crude, but compatible with the approach in previous versions
 		if (t[0].name.match(/medical/i)) 
@@ -1251,11 +1256,21 @@ this._addFreighter = function(pos)
 			if (Math.random() < 0.05)
 			{
 				t[0].bounty = Math.ceil(Math.random()*20);
+				// half of the offender traders are a bit more sinister
 				if (Math.random() < 0.5)
 				{
 					t[0].switchAI("traderOpportunistAI.js");
 					goods = "PIRATE_GOODS";
 				} 
+				var eg = t[0].escortGroup.ships;
+				for (var i = 0; i < eg.length; i++)
+				{
+					if (eg[i] != t[0])
+					{
+						// ensure offender escorts have a bounty
+						eg[i].bounty |= 3+Math.floor(Math.random()*12);
+					}
+				}
 			}
 			else
 			{
@@ -1376,6 +1391,16 @@ this._addSmuggler = function(pos)
 		}
 		this._setWeapons(t[0],1.2); // rarely good weapons
 		this._setEscortWeapons(t[0]);
+		var eg = t[0].escortGroup.ships;
+		for (var i = 0; i < eg.length; i++)
+		{
+			if (eg[i] != t[0])
+			{
+				// ensure smuggler escorts have a bounty
+				eg[i].bounty |= 3+Math.floor(Math.random()*12);
+			}
+		}
+
 	}
 }
 
@@ -1443,7 +1468,16 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 	{
 		t[0].bounty = 0;
 		t[0].homeSystem = home;
-		this._setFuel(t[0]);
+		if (returning)
+		{
+			this._setMissiles(t[0],-1);
+			this._setReturnFuel(t[0]);
+		}
+		else
+		{
+			this._setFuel(t[0]);
+		}
+
 		t[0].destinationSystem = dest;
 		
 		var group = new ShipGroup("hunter group",t[0]);
@@ -1459,6 +1493,10 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			hs[i].homeSystem = t[0].homeSystem;
 			hs[i].destinationSystem = t[0].destinationSystem;
 			this._setWeapons(hs[i],1.5); // mixed weapons
+			if (returning)
+			{
+				this._setMissiles(hs[i],-1);
+			}
 		}
 		if (role == "hunter-heavy")
 		{
@@ -1504,6 +1542,13 @@ this._addIndependentPirate = function(pos)
 			// in the safer systems, rarely highly skilled (the
 			// skilled ones go elsewhere)
 			this._setSkill(pg.ships[i],4-system.info.government);
+			if (pos.z) // not if freshly launching
+			{
+				if (Math.random()*16 < system.info.government)
+				{
+					this._setMissiles(pg.ships[i],-1);
+				}
+			}
 		}
 	}
 }
@@ -1597,11 +1642,17 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 	this._setSkill(lead[0],3); // likely to be good pilot
 	if (returning)
 	{
-		this._setFuel(lead[0]);
+		this._setMissiles(lead[0],-1);
+		this._setReturnFuel(lead[0]);
 	}
 	else
 	{
-		this._setReturnFuel(lead[0]);
+		if (thug > 0)
+		{
+			// medium and especially heavy may have better missiles
+			this._setMissiles(lead[0],thug-0.5);
+		}
+		this._setFuel(lead[0]);
 	}
 	if (lead[0].escortGroup)
 	{
@@ -1738,6 +1789,11 @@ this._addPolicePatrol = function(pos)
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
 		h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
+		if (system.info.techlevel >= 14)
+		{
+			this._setMissiles(h.ships[i],1);
+		}
+
 	}
 }
 
@@ -1756,6 +1812,11 @@ this._addPoliceStationPatrol = function(pos)
 	p.switchAI("policeAI.js");
 	p.bounty = 0;
 	p.maxEscorts = 16;
+	if (system.info.techlevel >= 14)
+	{
+		this._setMissiles(p,1);
+	}
+
 }
 
 
@@ -1772,6 +1833,11 @@ this._addInterceptors = function(pos)
 		h.ships[i].switchAI("policeAI.js");
 		// only +1 as core already gives police ships better AI
 		this._setSkill(h.ships[i],1);
+
+		if (system.info.techlevel >= 14)
+		{
+			this._setMissiles(h.ships[i],1);
+		}
 	}
 }
 
@@ -1941,6 +2007,31 @@ this._setSkill = function(ship,bias)
 			acc += (target-acc)*Math.random();
 		}
 		ship.accuracy = acc;
+	}
+}
+
+
+/* Bias:
+ * +N = N 50% chances that each normal missile converted to hardened
+ * -N = N 50% chances that each normal missile removed
+ */
+this._setMissiles = function(ship,bias)
+{
+	if (ship.autoWeapons)
+	{
+		var chance = Math.pow(0.5,Math.abs(bias));
+		for (var i = ship.missiles.length -1 ; i >= 0 ; i--)
+		{
+			if (ship.missiles[i].primaryRole == "EQ_MISSILE" && chance < Math.random())
+			{
+				ship.removeEquipment("EQ_MISSILE");
+				if (bias > 0)
+				{
+					ship.awardEquipment("EQ_HARDENED_MISSILE");
+				}
+			}
+		}
+
 	}
 }
 
@@ -2191,7 +2282,7 @@ this._tradeStation = function(usemain)
 	var stat = system.stations[Math.floor(Math.random()*stats.length)];
 	if (stat.hasNPCTraffic)
 	{
-		if (stat.allegiance == "neutral" || stat.allegiance == "galcop" || stat.allegiance != "chaotic")
+		if (stat.allegiance == "neutral" || stat.allegiance == "galcop" || stat.allegiance == "chaotic")
 		{
 			return stat;
 		}

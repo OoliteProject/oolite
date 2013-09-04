@@ -1135,6 +1135,23 @@ PriorityAIController.prototype.conditionGroupAttritionReached = function()
 }
 
 
+PriorityAIController.prototype.conditionGroupSuppliesLow = function()
+{
+	var group;
+	if (!(group = this.ship.group))
+	{
+		return this.ship.damageAssessment() > 0;
+	}
+	var assessment = 0;
+	var gs = group.ships;
+	for (var i = gs.length-1; i >= 0; i--)
+	{
+		assessment += gs[i].damageAssessment();
+	}
+	return (assessment > gs.length / 2); // over half ships have low supplies
+}
+
+
 PriorityAIController.prototype.conditionInCombat = function()
 {
 	if (this.__cache.oolite_conditionInCombat !== undefined)
@@ -1292,6 +1309,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 	{
 		if (dts[i].scanClass == "CLASS_MISSILE" && dts[i].target == this.ship)
 		{
+			this.ship.target = dts[i]; // specifically flee the missile
 			return true;
 		}
 		if (dts[i].scanClass == "CLASS_MINE" && this.distance(dts[i]) < this.scannerRange)
@@ -1343,30 +1361,6 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 	}
 
 	return false; // not losing yet
-}
-
-
-PriorityAIController.prototype.conditionLowSupplies = function()
-{
-	if (this.__ltcache.oolite_conditionLowSupplies !== undefined)
-	{
-		return this.__ltcache.oolite_conditionLowSupplies;
-	}
-	// out of missiles
-	if (this.ship.missileCapacity > 0 && this.ship.missiles.length == 0)
-	{
-		this.__ltcache.oolite_conditionLowSupplies = true;
-		return true;
-	}
-	// or fuel for injectors is low
-	if (this.ship.fuel < 3.5 && this.ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
-	{
-		this.__ltcache.oolite_conditionLowSupplies = true;
-		return true;
-	}
-	// TODO: when NPC systems damage is added, check for that here
-	this.__ltcache.oolite_conditionLowSupplies = false;
-	return false;
 }
 
 
@@ -1456,6 +1450,17 @@ PriorityAIController.prototype.conditionMothershipUnderAttack = function()
 	{
 		return false;
 	}
+}
+
+
+PriorityAIController.prototype.conditionSuppliesLow = function()
+{
+	if (this.__ltcache.oolite_conditionSuppliesLow !== undefined)
+	{
+		return this.__ltcache.oolite_conditionSuppliesLow;
+	}
+	this.__ltcache.oolite_conditionSuppliesLow = (this.ship.damageAssessment() > 0);
+	return this.__ltcache.oolite_conditionSuppliesLow;
 }
 
 
@@ -1758,11 +1763,18 @@ PriorityAIController.prototype.conditionGroupHasEnoughLoot = function()
 			}
 		}
 	}
-	if (available < used || available == 0)
+	var threshold = 0.33; // normally retreat at 2/3 hold
+	if (this.conditionGroupAttritionReached())
 	{
-		/* Over half-full. This will do for now. TODO: cutting
-		 * losses if group is taking damage, losing ships, running
-		 * low on consumables, etc. */
+		threshold += 0.25; // if losing ships, take off a 1/4 of hold space
+	}
+	if (this.conditionGroupSuppliesLow())
+	{
+		threshold += 0.25; // if running out of supplies, take off a 1/4 of hold space
+	} 
+
+	if (available < (available+used)*threshold || available == 0)
+	{
 		return true;
 	}
 	return false;
@@ -2248,7 +2260,7 @@ PriorityAIController.prototype.conditionMissileOutOfFuel = function()
 
 PriorityAIController.prototype.conditionPatrolIsOver = function()
 {
-	return this.ship.distanceTravelled > 200000 || this.conditionLowSupplies();
+	return this.ship.distanceTravelled > 200000 || this.conditionSuppliesLow();
 }
 
 
@@ -4661,6 +4673,13 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttackedUnsuc
 
 PriorityAIController.prototype.responseComponent_standard_shipFiredMissile = function(missile,target)
 {
+	// spread missiles out between targets
+	if (this.ship.defenseTargets.length > 1)
+	{
+		this.ship.removeDefenseTarget(target);
+		this.ship.target = null;
+		this.reconsiderNow();
+	}
 	this.communicate("oolite_firedMissile",target,4);
 }
 

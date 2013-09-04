@@ -62,7 +62,7 @@ this.aiStarted = function() {
 			truebranch: [
 				{
 					/* If supplies are low, flee */
-					condition: ai.conditionLowSupplies,
+					condition: ai.conditionSuppliesLow,
 					behaviour: ai.behaviourFleeCombat,
 					reconsider: 5
 				},
@@ -75,7 +75,7 @@ this.aiStarted = function() {
 		},
 		{
 			/* If supplies are low, return to base */
-			condition: ai.conditionLowSupplies,
+			condition: ai.conditionSuppliesLow,
 			falsebranch: [
 				{
 					/* don't check odds first, make sure we get at

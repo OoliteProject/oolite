@@ -130,6 +130,7 @@ static JSBool ShipCheckCourseToDestination(JSContext *context, uintN argc, jsval
 static JSBool ShipGetSafeCourseToDestination(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipDamageAssessment(JSContext *context, uintN argc, jsval *vp);
 static double ShipThreatAssessmentWeapon(OOWeaponType wt);
 
 static JSBool ShipSetCargoType(JSContext *context, uintN argc, jsval *vp);
@@ -444,6 +445,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "checkScanner",		ShipCheckScanner,		0 },
 	{ "clearDefenseTargets",	ShipClearDefenseTargets,	0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
+	{ "damageAssessment",		ShipDamageAssessment,		0 },
 	{ "dealEnergyDamage",		ShipDealEnergyDamage,		2 },
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
 	{ "dockEscorts",			ShipDockEscorts,			0 },
@@ -3451,6 +3453,38 @@ static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp)
 
 	OOJS_PROFILE_EXIT
 }
+
+
+/* 0 = no significant damage or consumable loss, higher numbers mean some */
+static JSBool ShipDamageAssessment(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	NSUInteger	assessment = 0;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	// if could have missiles but doesn't, consumables low
+	if ([thisEnt missileCapacity] > 0 && [[thisEnt missilesList] count] == 0)
+	{
+		assessment++;
+	}
+	// if has injectors but fuel is low, consumables low
+	// if no injectors, not a problem
+	if ([thisEnt hasFuelInjection] && [thisEnt fuel] < 35)
+	{
+		assessment++;
+	}
+
+	/* TODO: when NPC equipment can be damaged in combat, assess this
+	 * here */
+
+	OOJS_RETURN_INT(assessment);
+
+	OOJS_PROFILE_EXIT
+}
+
 
 
 static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
