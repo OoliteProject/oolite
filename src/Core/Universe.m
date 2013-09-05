@@ -2746,7 +2746,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position;
+- (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position
 {
 	if ([role isEqualToString:@""])
 	{
