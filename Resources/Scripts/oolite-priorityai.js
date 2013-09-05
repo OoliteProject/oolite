@@ -1293,6 +1293,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 		// still have fuel
 		return true;
 	}
+	
 	var lastThreat = this.getParameter("oolite_lastFleeing");
 	if (lastThreat != null && this.distance(lastThreat) < 25600)
 	{
@@ -2958,6 +2959,13 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 		else if (this.ship.target)
 		{
 			this.communicate("oolite_continuingAttack",target,4);
+		}
+		if (this.ship.energy == this.ship.maxEnergy && this.getParameter("oolite_flag_escortsCoverRetreat") && this.ship.escortGroup.count > 1)
+		{
+			// if has escorts, and is not yet taking damage, run and let
+			// the escorts take them on
+			this.ship.performFlee();
+			return;
 		}
 		this.ship.performAttack();
 	}
@@ -4667,7 +4675,12 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttackedUnsuc
 	{
 		this.ship.AIScript.oolite_intership.cargodemand = Math.ceil(this.ship.cargoSpaceCapacity / 15);
 	}
-
+	if (!this.ship.hasHostileTarget)
+	{
+		this.ship.target = whom;
+		this.ship.performAttack();
+		this.ship.requestHelpFromGroup();
+	}
 }
 
 
@@ -4693,6 +4706,13 @@ PriorityAIController.prototype.responseComponent_standard_shipKilledOther = func
 PriorityAIController.prototype.responseComponent_standard_shipLaunchedEscapePod = function()
 {
 	this.communicate("oolite_eject",{},1);
+	if (this.getParameter("oolite_selfDestructAbandonedShip") == true)
+	{
+		if (!this.ship.script.__oolite_self_destruct)
+		{
+			this.ship.script.__oolite_self_destruct = new Timer(this.ship.script,function(){this.ship.explode()},10);
+		}
+	}
 }
 
 
@@ -5083,7 +5103,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 	// always help the leader
 	if (ally == this.ship.group.leader)
 	{
-		if (!this.ship.target || this.ship.target.target != ally)
+		if (!this.ship.target || !this.ship.hasHostileTarget || this.ship.target.target != ally)
 		{
 			this.ship.target = enemy;
 			this.reconsiderNow();
@@ -5098,6 +5118,8 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 	}
 	if (!this.ship.hasHostileTarget)
 	{
+		this.ship.target = enemy;
+		this.ship.performAttack();
 		this.reconsiderNow();
 		return; // not in a combat mode
 	}

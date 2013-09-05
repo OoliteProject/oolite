@@ -33,7 +33,10 @@ this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setCommunicationsRole("defenseShip");
-
+	if (this.ship.scanClass == "CLASS_POLICE")
+	{
+		ai.setParameter("oolite_selfDestructAbandonedShip",true);
+	}
 
 	ai.setPriorities([
 		/* Fight */

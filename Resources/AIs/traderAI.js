@@ -34,6 +34,7 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_flag_sendsDistressCalls",true);
 	ai.setParameter("oolite_flag_surrendersEarly",true);
+	ai.setParameter("oolite_flag_escortsCoverRetreat",true);
 
 	ai.setCommunicationsRole("trader");
 	// same AI works for freighters, couriers and smugglers with minimal
