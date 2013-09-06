@@ -95,6 +95,7 @@ enum
 	kPlayer_parcelReputation,	// reputation for parcel contracts, integer, read-only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read-only
 	kPlayer_rank,					// rank, string, read-only
+	kPlayer_roleWeights,			// role weights, array, read-only
 	kPlayer_score,					// kill count, integer, read/write
 	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
 };
@@ -118,6 +119,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "parcelReputation",	kPlayer_parcelReputation,	OOJS_PROP_READONLY_CB },
 	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
 	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
+	{ "roleWeights",			kPlayer_roleWeights,		OOJS_PROP_READONLY_CB },
 	{ "score",					kPlayer_score,				OOJS_PROP_READWRITE_CB },
 	{ "trumbleCount",			kPlayer_trumbleCount,		OOJS_PROP_READONLY_CB },
 	{ 0 }
@@ -256,6 +258,10 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kPlayer_bounty:
 			*value = INT_TO_JSVAL([player legalStatus]);
 			return YES;
+
+		case kPlayer_roleWeights:
+			result = [player roleWeights];
+			break;
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerProperties);

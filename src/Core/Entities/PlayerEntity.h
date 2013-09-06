@@ -315,7 +315,8 @@ typedef enum
 	NSMutableDictionary		*shipyard_record;
 	
 	NSMutableDictionary		*missionDestinations;
-
+	NSMutableArray			*roleWeights;
+	
 	double					script_time;
 	double					script_time_check;
 	double					script_time_interval;
@@ -753,6 +754,8 @@ typedef enum
 - (void) setJumpType:(BOOL)isGalacticJump;
 
 - (BOOL) takeInternalDamage;
+
+- (NSMutableArray *) roleWeights;
 
 - (void) loseTargetStatus;
 

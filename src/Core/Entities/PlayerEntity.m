@@ -733,6 +733,9 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	if (primedEquipment < [eqScripts count]) [result setObject:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0] forKey:@"primed_equipment"];
 	
+	// roles
+	[result setObject:roleWeights forKey:@"role_weights"];
+
 	// reputation
 	[result setObject:reputation forKey:@"reputation"];
 	
@@ -1133,6 +1136,28 @@ static GLfloat		sBaseMass = 0.0;
 	ship_clock = [dict oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START];
 	fps_check_time = ship_clock;
 	
+	// role weights
+	[roleWeights release];
+	roleWeights = [[dict oo_arrayForKey:@"role_weights"] mutableCopy];
+	if (roleWeights == nil)
+	{
+		NSUInteger rc = 16;
+		if (ship_kills > 6400)
+		{
+			rc = 64;
+		}
+		else if (ship_kills > 128)
+		{
+			rc = 32;
+		}
+		roleWeights = [[NSMutableArray alloc] initWithCapacity:rc];
+		while (rc-- > 0)
+		{
+			[roleWeights addObject:@"player-unknown"];
+		}
+	}
+
+
 	// mission_variables
 	[mission_variables release];
 	mission_variables = [[dict oo_dictionaryForKey:@"mission_variables"] mutableCopy];
@@ -1456,6 +1481,12 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
 	[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
 	
+	roleWeights = [[NSMutableArray alloc] initWithCapacity:16];
+	for (i = 0 ; i < 16 ; i++)
+	{
+		[roleWeights addObject:@"player-unknown"];
+	}
+
 	energy					= 256;
 	weapon_temp				= 0.0f;
 	forward_weapon_temp		= 0.0f;
@@ -1779,6 +1810,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(lastTextKey);
 	
 	DESTROY(reputation);
+	DESTROY(roleWeights);
 	DESTROY(passengers);
 	DESTROY(passenger_record);
 	DESTROY(contracts);
@@ -3669,6 +3701,12 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	return commLog;
+}
+
+
+- (NSMutableArray *) roleWeights
+{
+	return roleWeights;
 }
 
 
