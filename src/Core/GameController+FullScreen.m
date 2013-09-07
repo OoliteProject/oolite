@@ -71,13 +71,11 @@ MA 02110-1301, USA.
 	if ([OOMacSystemStandardFullScreenController shouldUseSystemStandardFullScreenController])
 	{
 		fullScreenController = [[OOMacSystemStandardFullScreenController alloc] initWithGameView:gameView];
-		if (fullScreenController != nil)  OOLog(@"display.fullScreen.temp", @"Selecting modern full-screen controller.");
 	}
 #endif
 	
 	if (fullScreenController == nil)
 	{
-		OOLog(@"display.fullScreen.temp", @"Selecting Snow Leopard full-screen controller.");
 		fullScreenController = [[OOMacSnowLeopardFullScreenController alloc] initWithGameView:gameView];
 	}
 #endif
