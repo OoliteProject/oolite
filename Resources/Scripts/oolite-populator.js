@@ -38,6 +38,14 @@ this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
 this.version		= "1.79";
 
+
+this.startUp = function()
+{
+	// for translations
+	this.$medicalReg = new RegExp(expandDescription("[medical-word]"),"i");
+}
+
+
 /* Basic system population */
 this.systemWillPopulate = function() 
 {
@@ -1245,7 +1253,8 @@ this._addFreighter = function(pos)
 			}
 		}
 		// crude, but compatible with the approach in previous versions
-		if (t[0].name.match(/medical/i)) 
+		// and now translatable
+		if (t[0].name.match(this.$medicalReg)) 
 		{
 			goods = "MEDICAL_GOODS";
 			t[0].bounty = 0;

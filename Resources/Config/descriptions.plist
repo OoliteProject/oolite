@@ -1337,6 +1337,7 @@
 	"adjusting-word"				= " (adjusting)";
 	"strict-play-enabled"			= "OXP loading disabled";
 	"unrestricted-play-enabled"		= "OXP loading enabled";
+	"medical-word"					= "medical"; // For determining which morays are medical
 	"human-word"					= "human"; // Important – only lower case characters here!
 	"human-colonial-description%0"	= "Human Colonial";
 	"human-colonial-description%1"	= "Human Colonials";
