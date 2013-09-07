@@ -2207,6 +2207,21 @@ static NSMutableDictionary *currentShipyard = nil;
 	[self setShipClassName:[shipDict oo_stringForKey:@"name"]];
 	[self setShipUniqueName:@""];
 
+	// new ship, so lose some memory of actions
+	// new ship, so lose some memory of player actions
+	if (ship_kills >= 6400)
+	{
+		[self clearRolesFromPlayer:0.1];
+	}
+	else if (ship_kills >= 2560)
+	{
+		[self clearRolesFromPlayer:0.25];
+	}
+	else
+	{
+		[self clearRolesFromPlayer:0.5];
+	}	
+
 }
 
 @end

@@ -58,6 +58,7 @@ static JSBool PlayerDecreaseParcelReputation(JSContext *context, uintN argc, jsv
 static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerSetPlayerRole(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sPlayerClass =
@@ -140,6 +141,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
 	{ "replaceShip",					PlayerReplaceShip,					1 },
 	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
+	{ "setPlayerRole",					PlayerSetPlayerRole,		1 },
 	{ 0 }
 };
 
@@ -609,5 +611,36 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 	}
 	return OK;
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+// setPlayerRole (role-key : String [, index : Number])
+static JSBool PlayerSetPlayerRole(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString				*role = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+	uint32 index = 0;
+
+	if (argc > 0)  role = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (role == nil)
+	{
+		OOJSReportBadArguments(context, @"Player", @"setPlayerRole", MIN(argc, 1U), OOJS_ARGV, nil, @"string (role) [, number (index)");
+		return NO;
+	}
+
+	if (argc > 1)
+	{
+		if (JS_ValueToECMAUint32(context,OOJS_ARGV[1],&index))
+		{
+			[player addRoleToPlayer:role inSlot:index];
+			return YES;
+		}
+	}
+	[player addRoleToPlayer:role];
+	return YES;
+
 	OOJS_NATIVE_EXIT
 }

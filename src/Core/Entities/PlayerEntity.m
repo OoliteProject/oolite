@@ -5059,11 +5059,25 @@ static GLfloat		sBaseMass = 0.0;
 	[self setDockTarget:[UNIVERSE station]];	// we're docking at the main station, if there is one
 	
 	[self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:escapePod];	// no player.ship properties should be available to script
-	
+
 	// reset legal status
 	[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
 	bounty = 0;
-	
+
+	// new ship, so lose some memory of player actions
+	if (ship_kills >= 6400)
+	{
+		[self clearRolesFromPlayer:0.1];
+	}
+	else if (ship_kills >= 2560)
+	{
+		[self clearRolesFromPlayer:0.25];
+	}
+	else
+	{
+		[self clearRolesFromPlayer:0.5];
+	}	
+
 	// reset trumbles
 	if (trumbleCount != 0)  trumbleCount = 1;
 	
@@ -5868,6 +5882,22 @@ static GLfloat		sBaseMass = 0.0;
 			[passengers replaceObjectAtIndex:i withObject:passenger_info];
 		}
 	}
+
+	// clear a lot of memory of player actions
+	if (ship_kills >= 6400)
+	{
+		[self clearRolesFromPlayer:0.25];
+	}
+	else if (ship_kills >= 2560)
+	{
+		[self clearRolesFromPlayer:0.5];
+	}
+	else
+	{
+		[self clearRolesFromPlayer:0.9];
+	}	
+	[roleWeightFlags removeAllObjects];
+	[roleSystemList removeAllObjects];
 	
 	[self removeEquipmentItem:@"EQ_GAL_DRIVE"];
 	
@@ -6151,6 +6181,14 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setWitchspaceBreakPattern:YES];
 	[self playExitWitchspace];
+	if ([self currentSystemID] >= 0)
+	{
+		if (![roleSystemList containsObject:[NSNumber numberWithInt:[self currentSystemID]]])
+		{
+			// going somewhere new?
+			[self clearRoleFromPlayer:NO];
+		}
+	}
 	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
 }
