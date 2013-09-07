@@ -736,6 +736,12 @@ static GLfloat		sBaseMass = 0.0;
 	// roles
 	[result setObject:roleWeights forKey:@"role_weights"];
 
+	// role information
+	[result setObject:roleWeightFlags forKey:@"role_weight_flags"];
+
+	// role information
+	[result setObject:roleSystemList forKey:@"role_system_memory"];
+
 	// reputation
 	[result setObject:reputation forKey:@"reputation"];
 	
@@ -1157,6 +1163,18 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 
+	roleWeightFlags = [[dict oo_dictionaryForKey:@"role_weight_Flags"] mutableCopy];
+	if (roleWeightFlags == nil)
+	{
+		roleWeightFlags = [[NSMutableDictionary alloc] init];
+	}
+
+	roleSystemList = [[dict oo_arrayForKey:@"role_system_memory"] mutableCopy];
+	if (roleSystemList == nil)
+	{
+		roleSystemList = [[NSMutableArray alloc] initWithCapacity:32];
+	}
+
 
 	// mission_variables
 	[mission_variables release];
@@ -1486,6 +1504,9 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[roleWeights addObject:@"player-unknown"];
 	}
+	roleWeightFlags = [[NSMutableDictionary alloc] init];
+
+	roleSystemList = [[NSMutableArray alloc] initWithCapacity:32];
 
 	energy					= 256;
 	weapon_temp				= 0.0f;
@@ -1811,6 +1832,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	DESTROY(reputation);
 	DESTROY(roleWeights);
+	DESTROY(roleWeightFlags);
+	DESTROY(roleSystemList);
 	DESTROY(passengers);
 	DESTROY(passenger_record);
 	DESTROY(contracts);
@@ -3710,6 +3733,149 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) addRoleForAggression:(ShipEntity *)victim
+{
+	if ([victim isUnpiloted] || [victim isHulk] || [victim hasHostileTarget] || [[victim primaryAggressor] isPlayer])
+	{
+		return;
+	}
+	NSString *role = nil;
+	if ([victim bounty] > 0)
+	{
+		role = @"hunter";
+	}
+	else if ([victim isPirateVictim])
+	{
+		role = @"pirate";
+	}
+	else if ([[victim primaryRole] hasPrefix:@"hunter"] || [victim scanClass] == CLASS_POLICE)
+	{
+		role = @"pirate-interceptor";
+	}
+	if (role == nil)
+	{
+		return;
+	}
+	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
+	times++;
+	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	if ((times & (times-1)) == 0) // is power of 2
+	{
+		[self addRoleToPlayer:role];
+	}
+}
+
+
+- (void) addRoleForMining
+{
+	NSString *role = @"miner";
+	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
+	times++;
+	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	if ((times & (times-1)) == 0) // is power of 2
+	{
+		[self addRoleToPlayer:role];
+	}
+}
+
+
+- (void) addRoleToPlayer:(NSString *)role
+{
+	NSUInteger slot = Ranrot() & ([self maxPlayerRoles]-1);
+	[self addRoleToPlayer:role inSlot:slot];
+}
+
+
+- (void) addRoleToPlayer:(NSString *)role inSlot:(NSUInteger)slot
+{
+	if (slot >= [self maxPlayerRoles])
+	{
+		slot = [self maxPlayerRoles];
+	}
+	if (slot > [roleWeights count])
+	{
+		[roleWeights addObject:role];
+	}
+	else
+	{
+		[roleWeights replaceObjectAtIndex:slot withObject:role];
+	}
+}
+
+
+- (void) clearRoleFromPlayer:(BOOL)includingLongRange
+{
+	NSUInteger slot = Ranrot() % [roleWeights count];
+	if (!includingLongRange)
+	{
+		NSString *role = [roleWeights objectAtIndex:slot];
+		if ([role hasSuffix:@"+"])
+		{
+			return;
+		}
+	}
+	[roleWeights replaceObjectAtIndex:slot withObject:@"player-unknown"];
+}
+
+
+- (void) clearRolesFromPlayer:(float)chance
+{
+	NSUInteger i;
+	for (i = [roleWeights count]-1; i >= 0; i--)
+	{
+		if (randf() < chance)
+		{
+			[roleWeights replaceObjectAtIndex:i withObject:@"player-unknown"];
+		}
+	}
+}
+
+
+- (NSUInteger) maxPlayerRoles
+{
+	if (ship_kills >= 6400)
+	{
+		return 64;
+	}
+	else if (ship_kills >= 128)
+	{
+		return 32;
+	}
+	else
+	{
+		return 16;
+	}
+}
+
+
+- (void) updateSystemMemory
+{
+	OOSystemID sys = [self currentSystemID];
+	if (sys < 0)
+	{
+		return;
+	}
+	NSUInteger memory = 4;
+	if (ship_kills >= 6400)
+	{
+		memory = 32;
+	}
+	else if (ship_kills >= 256)
+	{
+		memory = 16;
+	}
+	else if (ship_kills >= 64)
+	{
+		memory = 8;
+	}
+	if ([roleSystemList count] >= memory)
+	{
+		[roleSystemList removeObjectAtIndex:0];
+	}
+	[roleSystemList addObject:[NSNumber numberWithInt:sys]];
+}
+
+
 - (Entity *) compassTarget
 {
 	Entity *result = [compassTarget weakRefUnderlyingObject];
@@ -5432,7 +5598,12 @@ static GLfloat		sBaseMass = 0.0;
 	if (station == [UNIVERSE station])
 	{
 		// 'leaving with those guns were you sir?'
+		OOCreditsQuantity oldbounty = [self bounty];
 		[self markAsOffender:[UNIVERSE legalStatusOfManifest:shipCommodityData] withReason:kOOLegalStatusReasonIllegalExports];
+		if ([self bounty] > oldbounty)
+		{
+			[self addRoleToPlayer:@"trader-smuggler"];
+		}
 	}
 	OOGUIScreenID	oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MAIN;
@@ -5810,6 +5981,33 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
+
+	[self updateSystemMemory];
+	if ([roleWeightFlags objectForKey:@"bought-legal"])
+	{
+		[self addRoleToPlayer:@"trader"];
+		if ([self maxAvailableCargoSpace] - [self availableCargoSpace] > 20 || [self availableCargoSpace] == 0)
+		{
+			if ([UNIVERSE legalStatusOfManifest:shipCommodityData] == 0)
+			{
+				[self addRoleToPlayer:@"trader"];
+			}
+		}
+	}
+	if ([roleWeightFlags objectForKey:@"bought-illegal"])
+	{
+		[self addRoleToPlayer:@"trader-smuggler"];
+		if ([self maxAvailableCargoSpace] - [self availableCargoSpace] > 20 || [self availableCargoSpace] == 0)
+		{
+			NSUInteger legality = [UNIVERSE legalStatusOfManifest:shipCommodityData];
+			if (legality >= 20 || legality >= [self maxAvailableCargoSpace])
+			{
+				[self addRoleToPlayer:@"trader-smuggler"];
+			}
+		}
+	}
+	[roleWeightFlags removeAllObjects];
+
 	[self noteCompassLostTarget];
 	if ([self scriptedMisjump]) 
 	{
@@ -8429,6 +8627,14 @@ static NSString *last_outfitting_key=nil;
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
 	
 	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:purchase], [NSNumber numberWithUnsignedLongLong:pricePerUnit], nil]];
+	if ([UNIVERSE legalStatusOfCommodity:[market_commodity objectAtIndex:MARKET_NAME]] > 0)
+	{
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-illegal"];
+	}
+	else
+	{
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-legal"];
+	}
 	
 	return YES;
 }

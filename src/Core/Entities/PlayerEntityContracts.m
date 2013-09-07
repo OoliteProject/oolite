@@ -196,7 +196,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-okay-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				
+				[self addRoleToPlayer:@"trader-courier+"];
+
 				[passengers removeObjectAtIndex:i--];
 				[self increasePassengerReputation];
 			}
@@ -209,7 +210,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-late-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				
+				[self addRoleToPlayer:@"trader-courier+"];
+
 				[passengers removeObjectAtIndex:i--];
 			}
 		}
@@ -254,6 +256,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				[result appendFormatLine:DESC(@"parcel-delivered-okay-@-@"), parcel_name, OOIntCredits(fee)];
 				
 				[parcels removeObjectAtIndex:i--];
+				[self addRoleToPlayer:@"trader-courier+"];
+
 				[self increaseParcelReputation];
 			}
 			else
@@ -265,7 +269,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"parcel-delivered-late-@-@"), parcel_name, OOIntCredits(fee)];
-				
+				[self addRoleToPlayer:@"trader-courier+"];
 				[parcels removeObjectAtIndex:i--];
 			}
 		}
@@ -323,6 +327,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 					// credits += fee + premium;
 					// not any more: all contracts initially awarded by JS, so fee
 					// is now all that needs to be paid - CIM
+
+					if ([UNIVERSE legalStatusOfCommodity:[commodityInfo objectAtIndex:MARKET_NAME]] > 0)
+					{
+						[self addRoleToPlayer:@"trader-smuggler"];
+					}
+					else
+					{
+						[self addRoleToPlayer:@"trader"];
+					}
 					
 					credits += fee;
 					[result appendFormatLine:DESC(@"cargo-delivered-okay-@-@"), contract_cargo_desc, OOCredits(fee)];
@@ -350,6 +363,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 						int payment = percent_delivered * (fee) / 100.0;
 						credits += payment;
 						
+						if ([UNIVERSE legalStatusOfCommodity:[commodityInfo objectAtIndex:MARKET_NAME]] > 0)
+						{
+							[self addRoleToPlayer:@"trader-smuggler"];
+						}
+						else
+						{
+							[self addRoleToPlayer:@"trader"];
+						}
+
 						[result appendFormatLine:DESC(@"cargo-delivered-short-@-@-d"), contract_cargo_desc, OOCredits(payment), shortfall];
 						
 						[contracts removeObjectAtIndex:i--];
@@ -1000,6 +1022,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// extra checks, just in case.
 	if ([passengers count] >= max_passengers || [passenger_record objectForKey:Name] != nil) return NO;
 		
+	[self addRoleToPlayer:@"trader-courier+"];
+
 	[passengers addObject:passenger_info];
 	[passenger_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
 	return YES;
@@ -1043,6 +1067,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	
 	// extra checks, just in case.
 	if ([parcel_record objectForKey:Name] != nil) return NO;
+
+	if ([parcels count] == 0)
+	{
+		[self addRoleToPlayer:@"trader-courier+"];
+	}
 		
 	[parcels addObject:parcel_info];
 	[parcel_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
@@ -1125,6 +1154,17 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 
 	current_cargo = [self cargoQuantityOnBoard];
+
+	if ([UNIVERSE legalStatusOfCommodity:[manifest_commodity objectAtIndex:MARKET_NAME]] > 0)
+	{
+		[self addRoleToPlayer:@"trader-smuggler"];
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-illegal"];
+	}
+	else
+	{
+		[self addRoleToPlayer:@"trader"];
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-legal"];
+	}
 
 	[contracts addObject:cargo_info];
 	[contract_record setObject:[NSNumber numberWithDouble:eta] forKey:cargo_ID];

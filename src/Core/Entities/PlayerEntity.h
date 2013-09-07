@@ -316,6 +316,8 @@ typedef enum
 	
 	NSMutableDictionary		*missionDestinations;
 	NSMutableArray			*roleWeights;
+	NSMutableDictionary		*roleWeightFlags;
+	NSMutableArray			*roleSystemList;
 	
 	double					script_time;
 	double					script_time_check;
@@ -756,6 +758,14 @@ typedef enum
 - (BOOL) takeInternalDamage;
 
 - (NSMutableArray *) roleWeights;
+- (void) addRoleForAggression:(ShipEntity *)victim;
+- (void) addRoleForMining;
+- (void) addRoleToPlayer:(NSString *)role;
+- (void) addRoleToPlayer:(NSString *)role inSlot:(NSUInteger)slot;
+- (void) clearRoleFromPlayer:(BOOL)includingLongRange;
+- (void) clearRolesFromPlayer:(float)chance;
+- (NSUInteger) maxPlayerRoles;
+- (void) updateSystemMemory;
 
 - (void) loseTargetStatus;
 

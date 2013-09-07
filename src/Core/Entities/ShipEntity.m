@@ -8275,6 +8275,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					if (!noRocks && (being_mined || randf() < 0.20))
 					{
+						if ([[self primaryAggressor] isPlayer])
+						{
+							[PLAYER addRoleForMining];
+						}
 						NSUInteger n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
 						
 						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"boulder"];
@@ -10528,6 +10532,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		[self adjustMissedShots:-1];
 		
+		if ([self isPlayer])
+		{
+			[PLAYER addRoleForAggression:victim];
+		}
+
 		ShipEntity *subent = [victim subEntityTakingDamage];
 		if (subent != nil && [victim isFrangible])
 		{
@@ -10559,6 +10568,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			Vector victimDirection = vector_normal(HPVectorToVector(HPvector_subtract([victim position], [parent position])));
 			if (dot_product(shotDirection, victimDirection) > 0.995)	// Within 84.26 degrees
 			{
+				if ([self isPlayer])
+				{
+					[PLAYER addRoleForAggression:victim];
+				}
 				[victim setPrimaryAggressor:parent];
 				[victim setFoundTarget:parent];
 				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
@@ -10721,6 +10734,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (victim != nil)
 	{
 		[self adjustMissedShots:-1];
+		if ([self isPlayer])
+		{
+			[PLAYER addRoleForAggression:victim];
+		}
 		
 		/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
 			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
@@ -10770,11 +10787,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					 * from ATTACKED so that ships in combat aren't bothered by
 					 * amateurs. So should only respond to ATTACKER_MISSED if not
 					 * already fighting */
+					if ([self isPlayer])
+					{
+						[PLAYER addRoleForAggression:victim];
+					}
 					[victim setPrimaryAggressor:self];
 					[victim setFoundTarget:self];
 					[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
 					[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
-
 				}
 			}
 		}
