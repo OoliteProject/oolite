@@ -932,7 +932,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 	/* JSAI: JS-based AIs handle their own traffic either alone or 
 	 * in conjunction with the system repopulator */
-	if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
+	if (![self hasNewAI])
 	{
 		// begin launch of shuttles, traders, patrols
 		if ((docked_shuttles > 0)&&(!isRockHermit))
@@ -1265,18 +1265,21 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	if (self == [UNIVERSE station] && !isFriend)
 	{
 		//...get angry
-
 		BOOL isEnergyMine = [ent isCascadeWeapon];
-		unsigned b=isEnergyMine ? 96 : 64;
-		if ([(ShipEntity*)other bounty] >= b)	//already a hardened criminal?
+
+		// JSAIs might ignore friendly fire from conventional weapons
+		if ([self hasNewAI] || isEnergyMine)
 		{
-			b *= 1.5; //bigger bounty!
+			unsigned b=isEnergyMine ? 96 : 64;
+			if ([(ShipEntity*)other bounty] >= b)	//already a hardened criminal?
+			{
+				b *= 1.5; //bigger bounty!
+			}
+			[(ShipEntity*)other markAsOffender:b withReason:kOOLegalStatusReasonAttackedMainStation];
+			[self setPrimaryAggressor:other];
+			[self setFoundTarget:other];
+			[self launchPolice];
 		}
-		[(ShipEntity*)other markAsOffender:b withReason:kOOLegalStatusReasonAttackedMainStation];
-		
-		[self setPrimaryAggressor:other];
-		[self setFoundTarget:other];
-		[self launchPolice];
 
 		if (isEnergyMine) //don't blow up!
 		{

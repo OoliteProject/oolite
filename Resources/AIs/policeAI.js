@@ -58,9 +58,10 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_escortRole","wingman");
 
+	ai.setParameter("oolite_friendlyRoles",["oolite-trader","oolite-bounty-hunter","oolite-scavenger","oolite-shuttle"]);
+
 	ai.setCommunicationsRole("police");
 
-	// TODO: return to base after long patrols
 	ai.setPriorities([
 		/* Fight */
 		{

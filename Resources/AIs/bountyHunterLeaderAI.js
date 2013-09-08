@@ -38,6 +38,8 @@ this.aiStarted = function() {
 
 	ai.setCommunicationsRole("hunter");
 
+	ai.setParameter("oolite_friendlyRoles",["oolite-bounty-hunter"]);
+
 	var common = [
 		/* Fight */
 		{

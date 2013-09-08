@@ -2697,7 +2697,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		source = other;
 
 		// JSAIs handle friendly fire themselves
-		if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
+		if (![self hasNewAI])
 		{
 		
 			ShipEntity *hunter = (ShipEntity *)other;
@@ -5264,6 +5264,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (![planet isPlanet]) 
 	{
 		behaviour = BEHAVIOUR_IDLE;
+		aiScriptWakeTime = 1; // reconsider JSAI
 		[shipAI message:@"NO_PLANET_NEARBY"];
 		return;
 	}
@@ -6597,13 +6598,13 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (BOOL)isTrader
 {
-	return isPlayer || [self hasPrimaryRole:@"trader"];
+	return [UNIVERSE role:[self primaryRole] isInCategory:@"oolite-trader"];
 }
 
 
 - (BOOL)isPirate
 {
-	return [[self primaryRole] hasPrefix:@"pirate"];
+	return [UNIVERSE role:[self primaryRole] isInCategory:@"oolite-pirate"];
 }
 
 
@@ -6627,13 +6628,13 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (BOOL)isEscort
 {
-	return [self hasPrimaryRole:@"escort"] || [self hasPrimaryRole:@"wingman"] || [self hasPrimaryRole:@"EQ_THARGON"];
+	return [UNIVERSE role:[self primaryRole] isInCategory:@"oolite-escort"];
 }
 
 
 - (BOOL)isShuttle
 {
-	return [self hasPrimaryRole:@"shuttle"];
+	return [UNIVERSE role:[self primaryRole] isInCategory:@"oolite-shuttle"];
 }
 
 
@@ -7267,6 +7268,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (BOOL) hasAutoAI
 {
 	return 	[[self shipInfoDictionary] oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES];
+}
+
+
+- (BOOL) hasNewAI
+{
+	return [[[self getAI] name] isEqualToString:@"nullAI.plist"];
 }
 
 
@@ -11948,7 +11955,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 		OOShipGroup *group = [self group];
 		// JSAIs manage group notifications themselves
-		if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
+		if (![self hasNewAI])
 		{
 			// additionally, tell our group we've been attacked
 			if (group != nil && group != [hunter group] && !(iAmTheLaw || uAreTheLaw))
@@ -12000,7 +12007,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// if I'm a copper and you're not, then mark the other as an offender!
 		if (iAmTheLaw && !uAreTheLaw)
 		{
-			[hunter markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
+			// JSAI's can choose not to do this for friendly fire purposes
+			if (![self hasNewAI]) 
+			{
+				[hunter markAsOffender:64 withReason:kOOLegalStatusReasonAttackedPolice];
+			}
 		}
 
 		if ((group != nil && [hunter group] == group) || (iAmTheLaw && uAreTheLaw))
@@ -12587,11 +12598,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	idleEscorts = [NSMutableSet set];
 	for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 	{
-		if (![[[escort getAI] name] isEqualToString:@"interceptAI.plist"] && ![[[escort getAI] name] isEqualToString:@"nullAI.plist"])
+		if (![[[escort getAI] name] isEqualToString:@"interceptAI.plist"] && ![escort hasNewAI])
 		{
 			[idleEscorts addObject:escort];
 		}
-		else if ([[[escort getAI] name] isEqualToString:@"nullAI.plist"])
+		else if ([escort hasNewAI])
 		{
 			// JS-based escorts get a help request
 			[escort doScriptEvent:OOJSID("helpRequestReceived") withArgument:self andArgument:[self primaryTarget]];
@@ -12639,7 +12650,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if ([escort owner] == self)  [escort setOwner:escort];
 		if(target && [target isStation]) [escort setTargetStation:target];
 		// JSAI: handles own delay
-		if (![[[escort getAI] name] isEqualToString:@"nullAI.plist"])
+		if (![escort hasNewAI])
 		{
 			[escort setAITo:@"dockingAI.plist"];
 			[ai setState:@"ABORT" afterDelay:delay + 0.25];

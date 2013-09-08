@@ -36,6 +36,8 @@ this.aiStarted = function() {
 
 	ai.setCommunicationsRole("pirate");
 
+	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);
+
 	// combat and looting behaviour same at all stages
 	var common = [
 		/* Combat */

@@ -46,7 +46,6 @@ this.PriorityAIController = function(ship)
 		configurable: true
 	});
 
-
 	this.__cache = {}; // short-term cache
 	this.__ltcache = {}; // long-term cache
 	this.__ltcachestart = clock.adjustedSeconds+60;
@@ -62,6 +61,7 @@ this.PriorityAIController = function(ship)
 	var commsRole = "generic";
 	var commsPersonality = "generic";
 	var waypointgenerator = null;
+	this.playerRole = this.playerRoleAssessment();
 	
 	/* Cache variables used by utility functions */
 	var condmet = true;
@@ -688,7 +688,7 @@ PriorityAIController.prototype.friendlyStation = function(station)
 			return false;
 		}
 		// pirate stations hostile to bounty-free ships
-		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
+		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.shipInRoleCategory(this.ship,"oolite-pirate-victim")))
 		{
 			return false;
 		}
@@ -771,7 +771,7 @@ PriorityAIController.prototype.hostileStation = function(station)
 			return true;
 		}
 		// pirate stations hostile to bounty-free ships
-		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.ship.isPirateVictim))
+		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.shipInRoleGroup(this.ship,"oolite-pirate-victim")))
 		{
 			return true;
 		}
@@ -784,6 +784,38 @@ PriorityAIController.prototype.hostileStation = function(station)
 		
 	}
 	return (station.target == this.ship && station.hasHostileTarget);
+}
+
+
+PriorityAIController.prototype.ignorePlayerFriendlyFire = function()
+{
+	var whom = player.ship;
+	if (whom.target == this.ship)
+	{
+		return false; // was probably intentional
+	}
+	// don't trust ships with opposite legal status
+	if ((this.ship.bounty==0)==(whom.bounty==0))
+	{
+		// player could have meant to do that
+		if (!this.getParameter("oolite_playerFriendlyFireAlready"))
+		{
+			var friendlyRoles = this.getParameter("oolite_friendlyRoles");
+			if (Array.isArray(friendlyRoles))
+			{
+				for (var i=friendlyRoles.length-1;i>=0;i--)
+				{
+					if (this.shipInRoleCategory(whom,friendlyRoles[i]))
+					{
+						// only allow one!
+						this.setParameter("oolite_playerFriendlyFireAlready",true);
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -921,6 +953,45 @@ PriorityAIController.prototype.oddsAssessment = function()
 }
 
 
+PriorityAIController.prototype.playerRoleAssessment = function()
+{
+	/* For the player, we pick one entry of their role array at
+	 * random when first asked, then preserve it. Group members
+	 * will take the role their group leader has set, and keep it
+	 * until they get a group leader with different opinions. */
+	var role = null;
+	// grab role assessment from current group leader
+	var leader = null;
+	if (this.ship.group && (leader = this.ship.group.leader) && leader.AIScript.oolite_intership)
+	{
+		// if leader hasn't decided on a role, make them do so
+		if (leader.AIScript.oolite_intership.oolite_player_role === undefined)
+		{
+			leader.AIScript.oolite_intership.oolite_player_role = player.roleWeights[Math.floor(Math.random()*player.roleWeights.length)];
+		}
+			role = leader.AIScript.oolite_intership.oolite_player_role;
+		// save leader's decision
+		this.ship.AIScript.oolite_intership.oolite_player_role = role;
+	}
+	else
+	// group leader does not exist or does not have useful AI
+	{ 
+		// already decided what the player's role is
+		if (this.ship.AIScript.oolite_intership.oolite_player_role !== undefined)
+		{
+			role = this.ship.AIScript.oolite_intership.oolite_player_role;
+		}
+		else
+		{
+			role = player.roleWeights[Math.floor(Math.random()*player.roleWeights.length)];
+			this.ship.AIScript.oolite_intership.oolite_player_role = role; // save decision
+		}
+	}
+
+	this.playerRole = role;
+}
+
+
 /* Be very careful with 'passon' parameter to avoid infinite loops */
 PriorityAIController.prototype.respondToThargoids = function(whom,passon)
 {
@@ -987,6 +1058,26 @@ PriorityAIController.prototype.setWitchspaceRouteTo = function(dest)
 			return;
 		}
 		this.setParameter("oolite_witchspaceDestination",null);
+	}
+}
+
+
+/* Check role category membership allowing for player role assessment */
+PriorityAIController.prototype.shipInRoleCategory = function(ship,category) 
+{
+	if (ship.isPlayer)
+	{
+		// recheck every so often in case we change groups
+		if (this.__ltcache.oolite_shipInRoleCategory === undefined)
+		{
+			this.__ltcache.oolite_shipInRoleCategory = 1;
+			this.playerRoleAssessment();
+		}
+		return Ship.roleIsInCategory(this.playerRole,category);
+	}
+	else  // NPCs are easier!
+	{
+		return Ship.roleIsInCategory(ship.primaryRole,category);
 	}
 }
 
@@ -1861,7 +1952,7 @@ PriorityAIController.prototype.conditionScannerContainsSeriousOffender = functio
 PriorityAIController.prototype.conditionScannerContainsHunters = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
-		return (s.primaryRole && s.primaryRole.match(/^hunter/)) || s.scanClass == "CLASS_POLICE" || (s.isStation && s.isMainStation);
+		return (s.primaryRole && this.shipInRoleCategory(s,"oolite-bounty-hunter")) || s.scanClass == "CLASS_POLICE" || (s.isStation && s.isMainStation);
 	});
 }
 
@@ -1873,7 +1964,7 @@ PriorityAIController.prototype.conditionScannerContainsLoneVictim = function()
 	var target = null;
 	for (var i = scan.length-1 ; i >= 0 ; i--)
 	{
-		if (!this.allied(this.ship,scan[i]) && scan[i].isPirateVictim && scan[i].cargoSpaceCapacity > 0)
+		if (!this.allied(this.ship,scan[i]) && this.shipInRoleCategory(scan[i],"oolite-pirate-victim") && scan[i].cargoSpaceCapacity > 0)
 		{
 			target = scan[i];
 			others++;
@@ -1922,7 +2013,7 @@ PriorityAIController.prototype.conditionScannerContainsNonThargoid = function()
 PriorityAIController.prototype.conditionScannerContainsPirateLeader = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.group && s.group.leader == s && (s.primaryRole.match(/^pirate-.*-freighter$/));
+		return s.group && s.group.leader == s && this.shipInRoleCategory(s,"oolite-pirate-leader");
 	});
 }
 
@@ -1934,7 +2025,7 @@ PriorityAIController.prototype.conditionScannerContainsPirateVictims = function(
 		// is a pirate victim
 		// has some cargo on board
 		// hasn't already paid up
-		return s != lpv && s.isPirateVictim && s.cargoSpaceUsed > 0 && (!s.AIScript || !s.AIScript.oolite_intership || !s.AIScript.oolite_intership.cargodemandpaid);
+		return s != lpv && this.shipInRoleCategory(s,"oolite-pirate-victim") && s.cargoSpaceUsed > 0 && (!s.AIScript || !s.AIScript.oolite_intership || !s.AIScript.oolite_intership.cargodemandpaid);
 	});
 }
 
@@ -4410,8 +4501,24 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 
 PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby = function(attacker, victim)
 {
+	if (this.ship == victim) return; // other handlers can get this one
 	if (this.getParameter("oolite_flag_markOffenders")) 
 	{
+		if (!attacker.isPlayer && attacker.target != victim)
+		{
+			// ignore friendly fire if they were aiming at a pirate
+			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-pirate"))
+			{
+				// but we might go after the pirate ourselves in a bit
+				this.ship.addDefenseTarget(attacker.target);
+				return;
+			}
+		}
+		else if (attacker.isPlayer && this.ignorePlayerFriendlyFire())
+		{
+			this.communicate("oolite_friendlyFire",attacker,3);
+			return;
+		}
 		if (attacker.bounty & 7 != 7)
 		{
 			this.communicate("oolite_offenceDetected",attacker,3);
@@ -4556,22 +4663,47 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackerDistracted
 	this.reconsiderNow();
 }
 
+this.shipBountyChanged = function(delta,reason)
+{
+	log(this.name,delta+" for "+reason);
+}
 
 PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 {
-	if (whom.target != this.ship && !whom.isPlayer)
+	if (whom.target != this.ship)
 	{
-		// was accidental
-		if (this.allied(whom,this.ship))
+		if (!whom.isPlayer)
 		{
-			this.communicate("oolite_friendlyFire",whom,3);
-			// ignore it
+			// was accidental
+			if (this.allied(whom,this.ship))
+			{
+				this.communicate("oolite_friendlyFire",whom,3);
+				// ignore it
+				return;
+			}
+			if (Math.random() > 0.1)
+			{
+				// usually ignore it anyway as we know they didn't mean to
+				return;
+			}
+		}
+		// only ignore the player's friendly fire if already in combat
+		else if (this.conditionInCombat() && this.ignorePlayerFriendlyFire())
+		{
+			// always send warning communication
+			this.communicate("oolite_friendlyFire",whom,1);
 			return;
 		}
-		if (Math.random() > 0.1)
+	}
+	if (this.getParameter("oolite_flag_markOffenders"))
+	{
+		if (this.ship.scanClass == "CLASS_POLICE")
 		{
-			// usually ignore it anyway
-			return;
+			whom.setBounty(whom.bounty | 15,"attacked police");
+		}
+		else if (this.ship == system.mainStation)
+		{
+			whom.setBounty(whom.bounty | 63,"attacked main station");
 		}
 	}
 	if (this.ship.target == this.getParameter("oolite_dockingStation"))
@@ -5029,7 +5161,7 @@ PriorityAIController.prototype.responseComponent_station_distressMessageReceived
 	{
 		if (this.distance(aggressor) < this.scannerRange)
 		{
-			aggressor.bounty |= 8;
+			aggressor.setBounty(aggressor.bounty | 8,"attacked innocent");
 		}
 	}
 	this.setParameter("oolite_distressAggressor",aggressor);
@@ -5041,8 +5173,24 @@ PriorityAIController.prototype.responseComponent_station_distressMessageReceived
 
 PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby = function(attacker, victim)
 {
+	if (this.ship == victim) return; // other handlers can get this one
 	if (this.getParameter("oolite_flag_markOffenders")) 
 	{
+		if (!attacker.isPlayer && attacker.target != victim)
+		{
+			// ignore friendly fire if they were aiming at a pirate
+			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-pirate"))
+			{
+				// but we might go after the pirate ourselves in a bit
+				this.ship.addDefenseTarget(attacker.target);
+				return;
+			}
+		}
+		else if (attacker.isPlayer && this.ignorePlayerFriendlyFire())
+		{
+			this.communicate("oolite_friendlyFire",attacker,3);
+			return;
+		}
 		attacker.setBounty(attacker.bounty | 7,"seen by police");
 		this.ship.addDefenseTarget(attacker);
 		if (this.ship.alertCondition < 3)

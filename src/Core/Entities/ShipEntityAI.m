@@ -781,7 +781,7 @@
 		
 		// tell it! (only plist AIs send comms here; JS AIs are
 		// expected to handle their own)
-		if (ship->isPlayer && ![[[self getAI] name] isEqualToString:@"nullAI.plist"])
+		if (ship->isPlayer && ![self hasNewAI])
 		{
 			[ship doScriptEvent:OOJSID("distressMessageReceived") withArgument:aggressor_ship andArgument:self];
 
@@ -809,7 +809,7 @@
 			// ship must have a plist AI for this next bit. JS AIs
 			// should already have done something sensible on
 			// distressMessageReceived
-			if (![[[self getAI] name] isEqualToString:@"nullAI.plist"])
+			if (![self hasNewAI])
 			{
 				// FIXME: this test only works with core AIs
 				if (ship->isStation || [ship hasPrimaryRole:@"police"] || [ship hasPrimaryRole:@"hunter"])

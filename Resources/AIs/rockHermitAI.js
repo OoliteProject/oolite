@@ -30,29 +30,31 @@ this.name = "Oolite Rock Hermit AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setCommunicationsRole("station");
 
-		ai.setPriorities([
-				/* Fight */
-				{
-						preconfiguration: ai.configurationStationValidateTarget,
-						condition: ai.conditionInCombat,
-						behaviour: ai.behaviourStationLaunchDefenseShips,
-						reconsider: 5
-				},
-				/* Scan */
-				{
-						preconfiguration: ai.configurationCheckScanner,
-						condition: ai.conditionScannerContainsRocks,
-						behaviour: ai.behaviourStationLaunchMiner,
-						reconsider: 60
-				},
-				{
-						configuration: ai.configurationStationReduceAlertLevel,
-						behaviour: ai.behaviourStationManageTraffic,
-						reconsider: 60
-				}
-		]);
+	ai.setParameter("oolite_friendlyRoles",["oolite-scavenger"]);
+
+	ai.setPriorities([
+		/* Fight */
+		{
+			preconfiguration: ai.configurationStationValidateTarget,
+			condition: ai.conditionInCombat,
+			behaviour: ai.behaviourStationLaunchDefenseShips,
+			reconsider: 5
+		},
+		/* Scan */
+		{
+			preconfiguration: ai.configurationCheckScanner,
+			condition: ai.conditionScannerContainsRocks,
+			behaviour: ai.behaviourStationLaunchMiner,
+			reconsider: 60
+		},
+		{
+			configuration: ai.configurationStationReduceAlertLevel,
+			behaviour: ai.behaviourStationManageTraffic,
+			reconsider: 60
+		}
+	]);
 }

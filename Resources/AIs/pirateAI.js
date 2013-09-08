@@ -36,6 +36,7 @@ this.aiStarted = function() {
 
 	ai.setCommunicationsRole("pirate");
 
+	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);
 
 	ai.setPriorities([
 		/* Combat */

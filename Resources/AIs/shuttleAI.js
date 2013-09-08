@@ -37,6 +37,8 @@ this.aiStarted = function() {
 
 	ai.setCommunicationsRole("shuttle");
 
+	ai.setParameter("oolite_friendlyRoles",["oolite-pirate-victim"]);
+
 	ai.setPriorities([
 		{
 			condition: ai.conditionInCombat,

@@ -1,9 +1,12 @@
 /* List of roles in various groupings. Used to determine initial
  * reactions of ships to each other, among other things. Roles may be
  * in more than one grouping.
+ *
+ * player-unknown should probably *only* be in oolite-pirate-victim
  */ 
 {
-	/* Equivalent in function to the pirate-victim-roles.plist */
+	/* Roles which pirates think might have tasty cargo. Equivalent in
+	 * function to the pirate-victim-roles.plist */
 	"oolite-pirate-victim" = (
 		"player", // for old AIs
 		"player-unknown", // for new AIs
@@ -29,12 +32,14 @@
 		"sunskim-trader"
 	);
 
+
 	/* Roles used by bounty hunters */
 	"oolite-bounty-hunter" = (
 		"hunter",
 		"hunter-medium",
 		"hunter-heavy"
 	);
+
 
 	/* Roles that often attack pirates */
 	"oolite-pirate-enemy" = (
@@ -47,6 +52,7 @@
 		"police-witchpoint-patrol"
 	);
 
+
 	/* Roles used by pirates */
 	"oolite-pirate" = (
 		"pirate",
@@ -56,13 +62,57 @@
 		"pirate-light-freighter",
 		"pirate-medium-freighter",
 		"pirate-heavy-freighter",
-		"pirate-interceptor"
+		"pirate-aegis-raider",
+		"pirate-interceptor",
+	);
+	
+
+	/* Pirate leaders */
+	"oolite-pirate-leader" = (
+		"pirate-light-freighter",
+		"pirate-medium-freighter",
+		"pirate-heavy-freighter"
+	);
+
+
+	/* Roles considered to be traders. Player, player-unknown
+	 * intentionally excluded. */
+	"oolite-trader" = (
+		"trader",
+		"trader-courier",
+		"trader-courier+",
+		"trader-smuggler"
 	);
 
 	/* Roles used by couriers */
 	"oolite-courier" = (
 		"trader-courier",
-		"trader-courier+", // player equivalent role
+		"trader-courier+" // player equivalent role
+	);
+
+
+	/* Roles used by shuttles */
+	"oolite-shuttle" = (
+		"shuttle"
+	);
+
+
+	/* Roles used by escort ships. Ships must have one of these roles
+	 * and a scanClass matching the mothership's scanClass to be
+	 * accepted as an escort. */
+	"oolite-escort" = (
+		"escort",
+		"escort-medium",
+		"escort-heavy",
+		"wingman",
+		"EQ_THARGON"
+	);
+
+	/* Roles used by miner/scavenger ships */
+	"oolite-scavenger" = (
+		"miner",
+		"rockhermit",
+		"scavenger"
 	);
 
 }

@@ -48,6 +48,7 @@ this.aiStarted = function() {
 		ai.setParameter("oolite_flag_noDockingUntilDestination",true);
 	}
 
+	ai.setParameter("oolite_friendlyRoles",["oolite-trader"]);
 
 	ai.setPriorities([
 		{

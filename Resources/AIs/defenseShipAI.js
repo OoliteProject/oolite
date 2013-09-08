@@ -35,7 +35,9 @@ this.aiStarted = function() {
 	ai.setCommunicationsRole("defenseShip");
 	if (this.ship.scanClass == "CLASS_POLICE")
 	{
+		ai.setParameter("oolite_friendlyRoles",["oolite-trader","oolite-bounty-hunter","oolite-scavenger","oolite-shuttle"]);
 		ai.setParameter("oolite_selfDestructAbandonedShip",true);
+		ai.setParameter("oolite_flag_markOffenders",true);
 	}
 
 	ai.setPriorities([

@@ -38,6 +38,8 @@ this.aiStarted = function() {
 
 	ai.setCommunicationsRole("station");
 
+	ai.setParameter("oolite_friendlyRoles",["oolite-trader","oolite-bounty-hunter","oolite-scavenger","oolite-shuttle"]);
+
 	ai.setPriorities([
 		/* Fight */
 		{
