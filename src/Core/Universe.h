@@ -241,7 +241,8 @@ enum
 	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentData;			// holds data on available equipment, loaded at initialisation
-	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
+//	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
+	NSDictionary			*roleCategories;		// Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist
 	NSDictionary			*autoAIMap;				// Default AIs for roles from autoAImap.plist.
 	NSDictionary			*screenBackgrounds;		// holds filenames for various screens backgrounds, loaded at initialisation
 	
@@ -385,6 +386,7 @@ enum
 - (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
+- (BOOL) role:(NSString *)role isInCategory:(NSString *)category;
 
 - (void) forceWitchspaceEntries;
 - (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship;

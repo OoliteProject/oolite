@@ -1,0 +1,68 @@
+/* List of roles in various groupings. Used to determine initial
+ * reactions of ships to each other, among other things. Roles may be
+ * in more than one grouping.
+ */ 
+{
+	/* Equivalent in function to the pirate-victim-roles.plist */
+	"oolite-pirate-victim" = (
+		"player", // for old AIs
+		"player-unknown", // for new AIs
+		"trader",
+		"trader-smuggler",
+		"shuttle",
+		
+		// Known trader-like roles from pre-1.70 plug-ins
+		"delta",
+		"gemini",
+		"starseeker",
+		"liner",
+		"strelka",
+		"trident",
+		"coachwhip",
+		"coral",
+		"moraytransport",
+		"woma",
+		"fueltransport",
+		"att1",
+		"impfreighter",
+		"imptanker",
+		"sunskim-trader"
+	);
+
+	/* Roles used by bounty hunters */
+	"oolite-bounty-hunter" = (
+		"hunter",
+		"hunter-medium",
+		"hunter-heavy"
+	);
+
+	/* Roles that often attack pirates */
+	"oolite-pirate-enemy" = (
+		"hunter",
+		"hunter-medium",
+		"hunter-heavy",
+		"interceptor",
+		"police",
+		"police-station-patrol",
+		"police-witchpoint-patrol"
+	);
+
+	/* Roles used by pirates */
+	"oolite-pirate" = (
+		"pirate",
+		"pirate-light-fighter",
+		"pirate-medium-fighter",
+		"pirate-heavy-fighter",
+		"pirate-light-freighter",
+		"pirate-medium-freighter",
+		"pirate-heavy-freighter",
+		"pirate-interceptor"
+	);
+
+	/* Roles used by couriers */
+	"oolite-courier" = (
+		"trader-courier",
+		"trader-courier+", // player equivalent role
+	);
+
+}

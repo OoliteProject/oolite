@@ -6,25 +6,9 @@
 */
 
 (
-	"player",
-	"trader",
-	"trader-smuggler",
-	"shuttle",
-	
-	// Known trader-like roles from pre-1.70 plug-ins
-	"delta",
-	"gemini",
-	"starseeker",
-	"liner",
-	"strelka",
-	"trident",
-	"coachwhip",
-	"coral",
-	"moraytransport",
-	"woma",
-	"fueltransport",
-	"att1",
-	"impfreighter",
-	"imptanker",
-	"sunskim-trader"
+/* This file is deprecated. Pirate victim roles should be added to the
+ * role-categories.plist file in the "oolite-pirate-victim" entry.
+ *
+ * Entries placed in this file by OXPs will still be read.
+ */
 )

@@ -2460,7 +2460,18 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (BOOL) roleIsPirateVictim:(NSString *)role
 {
-	return [pirateVictimRoles containsObject:role];
+	return [self role:role isInCategory:@"oolite-pirate-victim"];
+}
+
+
+- (BOOL) role:(NSString *)role isInCategory:(NSString *)category
+{
+	NSSet *categoryInfo = [roleCategories objectForKey:category];
+	if (categoryInfo == nil)
+	{
+		return NO;
+	}
+	return [categoryInfo containsObject:role];
 }
 
 
@@ -9502,9 +9513,10 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	[screenBackgrounds autorelease];
 	screenBackgrounds = [[ResourceManager dictionaryFromFilesNamed:@"screenbackgrounds.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	[pirateVictimRoles autorelease];
-	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
+
+	// role-categories.plist and pirate-victim-roles.plist
+	[roleCategories autorelease];
+	roleCategories = [[ResourceManager roleCategoriesDictionary] retain];
 	
 	[autoAIMap autorelease];
 	autoAIMap = [[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] retain];

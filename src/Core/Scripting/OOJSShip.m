@@ -141,6 +141,7 @@ static JSBool ShipSetMaterialsInternal(JSContext *context, uintN argc, jsval *vp
 static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipStaticKeys(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipStaticRoles(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipStaticRoleIsInCategory(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sShipClass =
@@ -514,10 +515,11 @@ static JSFunctionSpec sShipMethods[] =
 
 static JSFunctionSpec sShipStaticMethods[] =
 {
-	// JS name					Function					min args
-	{ "keys",		ShipStaticKeys,				0 },
-	{ "keysForRole",		ShipStaticKeysForRole,				1 },
-	{ "roles",		ShipStaticRoles,				0 },
+	// JS name				Function						min args
+	{ "keys",				ShipStaticKeys,					0 },
+	{ "keysForRole",		ShipStaticKeysForRole,			1 },
+	{ "roleIsInCategory",	ShipStaticRoleIsInCategory,		2 },
+	{ "roles",				ShipStaticRoles,				0 },
 	{ 0 }
 };
 
@@ -3697,6 +3699,28 @@ static JSBool ShipStaticKeysForRole(JSContext *context, uintN argc, jsval *vp)
 
 	OOJS_NATIVE_EXIT
 }
+
+
+static JSBool ShipStaticRoleIsInCategory(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context);
+
+	if (argc > 1)
+	{
+		NSString *role = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		NSString *category = OOStringFromJSValue(context, OOJS_ARGV[1]);
+
+		OOJS_RETURN_BOOL([UNIVERSE role:role isInCategory:category]);		
+	}
+	else
+	{
+		OOJSReportBadArguments(context, @"Ship", @"roleIsInCategory", MIN(argc, 2U), OOJS_ARGV, nil, @"role, category");
+		return NO;
+	}
+
+	OOJS_NATIVE_EXIT
+}
+
 
 static JSBool ShipStaticRoles(JSContext *context, uintN argc, jsval *vp)
 {
