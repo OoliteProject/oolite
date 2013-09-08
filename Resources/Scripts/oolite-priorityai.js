@@ -2023,9 +2023,9 @@ PriorityAIController.prototype.conditionScannerContainsPirateVictims = function(
 	var lpv = this.getParameter("oolite_lastPirateVictim");
 	return this.checkScannerWithPredicate(function(s) { 
 		// is a pirate victim
-		// has some cargo on board
+		// can carry cargo
 		// hasn't already paid up
-		return s != lpv && this.shipInRoleCategory(s,"oolite-pirate-victim") && s.cargoSpaceUsed > 0 && (!s.AIScript || !s.AIScript.oolite_intership || !s.AIScript.oolite_intership.cargodemandpaid);
+		return s != lpv && this.shipInRoleCategory(s,"oolite-pirate-victim") && s.cargoSpaceCapacity > 0 && (!s.AIScript || !s.AIScript.oolite_intership || !s.AIScript.oolite_intership.cargodemandpaid);
 	});
 }
 
