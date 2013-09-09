@@ -316,8 +316,9 @@ typedef enum
 	
 	NSMutableDictionary		*missionDestinations;
 	NSMutableArray			*roleWeights;
+	// temporary flags for role actions taking multiple steps, cleared on jump
 	NSMutableDictionary		*roleWeightFlags;
-	NSMutableArray			*roleSystemList;
+	NSMutableArray			*roleSystemList; // list of recently visited sysids
 	
 	double					script_time;
 	double					script_time_check;
@@ -777,6 +778,8 @@ typedef enum
 - (NSUInteger) primedEquipmentCount;
 - (NSArray *) cargoList;
 //- (NSArray *) cargoListForScripting; // now in ShipEntity
+- (unsigned) legalStatusOfCargoList;
+
 - (void) setGuiToSystemDataScreen;
 - (NSDictionary *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;

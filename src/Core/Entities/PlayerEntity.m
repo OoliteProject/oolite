@@ -6013,26 +6013,34 @@ static GLfloat		sBaseMass = 0.0;
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
 
 	[self updateSystemMemory];
+	NSUInteger legality = [self legalStatusOfCargoList];
+	OOCargoQuantity maxSpace = [self maxAvailableCargoSpace];
+	OOCargoQuantity availSpace = [self availableCargoSpace];
 	if ([roleWeightFlags objectForKey:@"bought-legal"])
 	{
-		[self addRoleToPlayer:@"trader"];
-		if ([self maxAvailableCargoSpace] - [self availableCargoSpace] > 20 || [self availableCargoSpace] == 0)
+		if (maxSpace != availSpace)
 		{
-			if ([UNIVERSE legalStatusOfManifest:shipCommodityData] == 0)
+			[self addRoleToPlayer:@"trader"];
+			if (maxSpace - availSpace > 20 || availSpace == 0)
 			{
-				[self addRoleToPlayer:@"trader"];
+				if (legality == 0)
+				{
+					[self addRoleToPlayer:@"trader"];
+				}
 			}
 		}
 	}
 	if ([roleWeightFlags objectForKey:@"bought-illegal"])
 	{
-		[self addRoleToPlayer:@"trader-smuggler"];
-		if ([self maxAvailableCargoSpace] - [self availableCargoSpace] > 20 || [self availableCargoSpace] == 0)
+		if (maxSpace != availSpace && legality > 0)
 		{
-			NSUInteger legality = [UNIVERSE legalStatusOfManifest:shipCommodityData];
-			if (legality >= 20 || legality >= [self maxAvailableCargoSpace])
+			[self addRoleToPlayer:@"trader-smuggler"];
+			if (maxSpace - availSpace > 20 || availSpace == 0)
 			{
-				[self addRoleToPlayer:@"trader-smuggler"];
+				if (legality >= 20 || legality >= maxSpace)
+				{
+					[self addRoleToPlayer:@"trader-smuggler"];
+				}
 			}
 		}
 	}
@@ -6473,6 +6481,24 @@ static GLfloat		sBaseMass = 0.0;
 	}
 
 	return [[list copy] autorelease];	// return an immutable copy
+}
+
+
+- (unsigned) legalStatusOfCargoList
+{
+	NSArray *list = [self cargoListForScripting];
+	NSDictionary *entry = nil;
+	unsigned penalty = 0;
+	NSString *commodity = nil;
+	OOCargoQuantity amount;
+
+	foreach (entry, list)
+	{
+		commodity = [[shipCommodityData oo_arrayAtIndex:StringToCommodityType([entry oo_stringForKey:@"commodity"])] oo_stringAtIndex:MARKET_NAME];
+		amount = [entry oo_intForKey:@"quantity"];
+		penalty += [UNIVERSE legalStatusOfCommodity:commodity] * amount;
+	}
+	return penalty;
 }
 
 

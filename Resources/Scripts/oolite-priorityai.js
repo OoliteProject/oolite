@@ -4663,10 +4663,6 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackerDistracted
 	this.reconsiderNow();
 }
 
-this.shipBountyChanged = function(delta,reason)
-{
-	log(this.name,delta+" for "+reason);
-}
 
 PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = function(whom)
 {
