@@ -8,7 +8,12 @@ VER_REV     := $(shell echo "${VERSION}" | cut -d '.' -f 3)
 VER_REV     := $(if ${VER_REV},${VER_REV},0)
 VER_DATE	:= $(shell date +%y%m%d)
 # VER_GITREV: Make sure git is in the command path
-VER_GITREV	:= $(shell git rev-parse --short=10 HEAD)
+# VER_GITREV is the count of commits since the establishment of the repository on github. Used
+# as replacement for SVN incremental revision number, since we require the version number to be
+# of format X.X.X.X.
+# VER_GITHASH are the first ten digits of the actual hash of the commit being built.
+VER_GITREV	:= $(shell git rev-list --count HEAD)
+VER_GITHASH	:= $(shell git rev-parse --short=10 HEAD)
 VER         := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITREV}-${VER_DATE}")
 BUILDTIME   := $(shell date "+%Y.%m.%d %H:%M")
 DEB_BUILDTIME   := $(shell date "+%a, %d %b %Y %H:%M:%S %z")
@@ -191,7 +196,8 @@ ${NSISVERSIONS}:
 	@echo "!define VER_MAJ ${VER_MAJ}" >> $@
 	@echo "!define VER_MIN ${VER_MIN}" >> $@
 	@echo "!define VER_REV ${VER_REV}" >> $@
-	@echo "!define SVNREV ${SVNREVISION}" >> $@
+	@echo "!define VER_GITREV ${VER_GITREV}" >> $@
+	@echo "!define VER_GITHASH ${VER_GITHASH}" >> $@
 	@echo "!define VERSION ${VER}" >> $@
 	@echo "!define BUILDTIME \"${BUILDTIME}\"" >> $@
 
