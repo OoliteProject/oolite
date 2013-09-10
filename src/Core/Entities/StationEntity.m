@@ -756,8 +756,21 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		return NO;
 	}
-	// and now check for docks
+
 	NSEnumerator	*subEnum = nil;
+
+#ifndef NDEBUG
+	ShipEntity *subEntity = nil;
+	for (subEnum = [self shipSubEntityEnumerator]; (subEntity = [subEnum nextObject]); )
+	{
+		if ([subEntity isStation])
+		{
+			OOLog(@"setup.ship.badType.subentities",@"Subentity %@ (%@) of station %@ is itself a StationEntity. This is an internal error - please report it. ",subEntity,[subEntity shipDataKey],[self displayName]);
+		}
+	}
+#endif
+
+	// and now check for docks
 	DockEntity		*sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
@@ -1131,7 +1144,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	}
 
 	OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
-			  [ship displayName], [ship primaryRole], [self displayName]);
+			  [ship displayName], [ship primaryRole], self);
 	return NO;
 }	
 

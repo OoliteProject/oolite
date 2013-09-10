@@ -3115,7 +3115,19 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (ShipEntity *) newSubentityWithName:(NSString *)shipKey
+{
+	return [self newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES];
+}
+
+
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy
+{
+	return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:NO];
+}
+
+
+- (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity
 {
 	OOJS_PROFILE_ENTER
 	
@@ -3125,10 +3137,18 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipDict == nil)  return nil;
 	
-	volatile Class shipClass = [self shipClassForShipDictionary:shipDict];
-	if (usePlayerProxy && shipClass == [ShipEntity class])
+	volatile Class shipClass = nil;
+	if (isSubentity)
 	{
-		shipClass = [ProxyPlayerEntity class];
+		shipClass = [ShipEntity class];
+	}
+	else
+	{
+		shipClass = [self shipClassForShipDictionary:shipDict];
+		if (usePlayerProxy && shipClass == [ShipEntity class])
+		{
+			shipClass = [ProxyPlayerEntity class];
+		}
 	}
 	
 	@try
