@@ -803,7 +803,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 	else 
 	{
-		subentity = [UNIVERSE newShipWithName:subentKey];
+		subentity = [UNIVERSE newSubentityWithName:subentKey];
 	}
 	if (subentity == nil) {
 		OOLog(@"setup.ship.badEntry.subentities",@"Failed to set up entity %@",subentKey);
