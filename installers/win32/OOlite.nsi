@@ -10,9 +10,9 @@
 ; and it's too much work to try to dynamically edit this file
 !include /NONFATAL "OoliteVersions.nsh"
 
-!ifndef SVNREV
-!warning "No SVN Revision supplied"
-!define SVNREV 0
+!ifndef VER_GITREV
+!warning "No GIT Revision supplied"
+!define VER_GITREV 0
 !endif
 !ifndef VERSION
 !warning "No Version information supplied"
@@ -49,10 +49,10 @@ SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "${OUTDIR}\OoliteInstall-${VER}${EXTVER}.exe"
+OutFile "${OUTDIR}\OoliteInstall-${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITHASH}${EXTVER}.exe"
 BrandingText "(C) 2003-2013 Giles Williams, Jens Ayton and contributors"
 Name "Oolite"
-Caption "Oolite ${VER}${EXTVER} Setup"
+Caption "Oolite ${VER}${EXTVER} (git ${VER_GITHASH}) Setup"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -68,17 +68,19 @@ InstProgressFlags smooth
 AutoCloseWindow false
 SetOverwrite on
 
+
 VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
 VIAddVersionKey "LegalCopyright" "© 2003-2013 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
 !ifdef SNAPSHOT
-VIAddVersionKey "SVN Revision" "${SVNREV}"
+VIAddVersionKey "GIT Revision" "${VER_GITHASH}"
 !endif
 !ifdef BUILDTIME
 VIAddVersionKey "Build Time" "${BUILDTIME}"
 !endif
 VIProductVersion "${VER}"
+
 
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP ".\OoliteInstallerHeaderBitmap_ModernUI.bmp"
