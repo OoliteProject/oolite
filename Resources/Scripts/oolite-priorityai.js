@@ -794,6 +794,16 @@ PriorityAIController.prototype.ignorePlayerFriendlyFire = function()
 	{
 		return false; // was probably intentional
 	}
+	if (this.getParameter("oolite_lastAssist") == whom)
+	{
+		// player has helped this ship in this fight so is probably on the same side.
+		if (Math.random() < 0.5)
+		{
+			// don't forgive too often
+			this.setParameter("oolite_lastAssist",null);
+		}
+		return true;
+	}
 	// don't trust ships with opposite legal status
 	if ((this.ship.bounty==0)==(whom.bounty==0))
 	{
@@ -4686,8 +4696,8 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 		// only ignore the player's friendly fire if already in combat
 		else if (this.conditionInCombat() && this.ignorePlayerFriendlyFire())
 		{
-			// always send warning communication
-			this.communicate("oolite_friendlyFire",whom,1);
+			// send warning communication
+			this.communicate("oolite_friendlyFire",whom,2);
 			return;
 		}
 	}
@@ -5054,18 +5064,27 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 		this.reconsiderNow();
 		return;
 	}
-	if (whom.target != this.ship && whom != player.ship)
+	if (whom.target != this.ship)
 	{
-		// was accidental
-		if (this.allied(whom,this.ship))
+		if (!whom.isPlayer)
 		{
-			this.communicate("oolite_friendlyFire",whom,4);
-			// ignore it
-			return;
+			// was accidental
+			if (this.allied(whom,this.ship))
+			{
+				this.communicate("oolite_friendlyFire",whom,4);
+				// ignore it
+				return;
+			}
+			if (Math.random() > 0.1)
+			{
+				// usually ignore it anyway
+				return;
+			}
 		}
-		if (Math.random() > 0.1)
+		else if (this.ship.alertCondition > 1 && this.ignorePlayerFriendlyFire())
 		{
-			// usually ignore it anyway
+			// send warning communication
+			this.communicate("oolite_friendlyFire",whom,2);
 			return;
 		}
 	}
