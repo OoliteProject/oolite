@@ -253,8 +253,8 @@
 {
 	if ([aiString hasSuffix:@".plist"])
 	{
-		[[self getAI] setStateMachine:aiString withJSScript:@"nullAI.js"];
-		[self setAIScript:@"nullAI.js"];
+		[[self getAI] setStateMachine:aiString withJSScript:@"oolite-nullAI.js"];
+		[self setAIScript:@"oolite-nullAI.js"];
 	}
 	else if ([aiString hasSuffix:@".js"])
 	{
@@ -288,7 +288,7 @@
 	if (aiScript == nil)
 	{
 		OOLog(@"ai.load.failed.unknownAI",@"Unable to load JS AI %@",aiString);
-		aiScript = [OOScript jsAIScriptFromFileNamed:@"nullAI.js" properties:properties];
+		aiScript = [OOScript jsAIScriptFromFileNamed:@"oolite-nullAI.js" properties:properties];
 	}
 	else
 	{

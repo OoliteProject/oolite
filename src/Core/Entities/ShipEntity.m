@@ -2054,7 +2054,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[pod setTemperature:[self randomEjectaTemperatureWithMaxFactor:0.9]];
 		[pod setCommodity:[UNIVERSE commodityForName:@"Slaves"] andAmount:1];
 		[pod setCrew:podCrew];
-		[pod switchAITo:@"shuttleAI.js"];
+		[pod switchAITo:@"oolite-shuttleAI.js"];
 		[self dumpItem:pod];	// CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
 		[pod release]; //release
 	}

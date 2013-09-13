@@ -1419,7 +1419,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			}
 			else
 			{
-// JSAI: not needed - traderAI.js handles exiting if full fuel and plentiful cargo
+// JSAI: not needed - oolite-traderAI.js handles exiting if full fuel and plentiful cargo
 //				[ship switchAITo:@"exitingTraderAI.plist"];
 				if([ship fuel] == 0) [ship setFuel:70];
 //				if ([ship hasRole:@"sunskim-trader"]) [UNIVERSE makeSunSkimmer:ship andSetAI:NO];
@@ -1521,7 +1521,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			[police_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			if ([police_ship heatInsulation] < [self heatInsulation])
 				[police_ship setHeatInsulation:[self heatInsulation]];
-			[police_ship switchAITo:@"defenseShipAI.js"];
+			[police_ship switchAITo:@"oolite-defenseShipAI.js"];
 			[self addShipToLaunchQueue:police_ship withPriority:YES];
 			defenders_launched++;
 			[result addObject:police_ship];
@@ -1548,7 +1548,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	NSString	*defense_ship_key = nil,
 				*defense_ship_role = nil,
 				*default_defense_ship_role = nil;
-	NSString	*defense_ship_ai = @"defenseShipAI.js";
+	NSString	*defense_ship_ai = @"oolite-defenseShipAI.js";
 	
 	OOTechLevelID	techlevel;
 	
@@ -1684,7 +1684,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if ([scavenger_ship heatInsulation] < [self heatInsulation])
 			[scavenger_ship setHeatInsulation:[self heatInsulation]];
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-		[scavenger_ship switchAITo:@"scavengerAI.js"];
+		[scavenger_ship switchAITo:@"oolite-scavengerAI.js"];
 		[self addShipToLaunchQueue:scavenger_ship withPriority:NO];
 		[scavenger_ship autorelease];
 	}
@@ -1732,7 +1732,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if ([miner_ship heatInsulation] < [self heatInsulation])
 			[miner_ship setHeatInsulation:[self heatInsulation]];
 		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-		[miner_ship switchAITo:@"scavengerAI.js"];
+		[miner_ship switchAITo:@"oolite-scavengerAI.js"];
 		[self addShipToLaunchQueue:miner_ship withPriority:NO];
 		[miner_ship autorelease];
 	}
@@ -1831,7 +1831,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		docked_shuttles--;
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-		[shuttle_ship switchAITo:@"shuttleAI.js"];
+		[shuttle_ship switchAITo:@"oolite-shuttleAI.js"];
 		[self addShipToLaunchQueue:shuttle_ship withPriority:NO];
 		
 		[shuttle_ship autorelease];
@@ -1862,7 +1862,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 				
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
-		[escort_ship switchAITo:@"escortAI.js"];
+		[escort_ship switchAITo:@"oolite-escortAI.js"];
 		[self addShipToLaunchQueue:escort_ship withPriority:NO];
 		
 	}
@@ -1916,7 +1916,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			[patrol_ship setPrimaryRole:@"police-station-patrol"];
 			[patrol_ship setBounty:0 withReason:kOOLegalStatusReasonSetup];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
-			[patrol_ship switchAITo:@"policeAI.js"];
+			[patrol_ship switchAITo:@"oolite-policeAI.js"];
 			[self addShipToLaunchQueue:patrol_ship withPriority:NO];
 			[self acceptPatrolReportFrom:patrol_ship];
 			[patrol_ship autorelease];

@@ -2171,7 +2171,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 			else
 			{
-				[ship switchAITo:@"traderAI.js"];
+				[ship switchAITo:@"oolite-traderAI.js"];
 			}
 			
 			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
@@ -2324,7 +2324,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				}
 				else
 				{
-					[ship switchAITo:@"traderAI.js"];
+					[ship switchAITo:@"oolite-traderAI.js"];
 				}
 			}
 			else if ([role isEqual:@"pirate"])
@@ -8174,7 +8174,7 @@ static NSDictionary	*sCachedSystemData = nil;
 
 - (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI
 {
-	if (setAI) [ship switchAITo:@"traderAI.js"];	// perfectly acceptable for both route 2 & 3
+	if (setAI) [ship switchAITo:@"oolite-traderAI.js"];	// perfectly acceptable for both route 2 & 3
 	[ship setFuel:(Ranrot()&31)];
 	// slow ships need extra insulation or they will burn up when sunskimming. (Tested at biggest sun in G3: Aenqute)
 	float minInsulation = 1000 / [ship maxFlightSpeed] + 1;

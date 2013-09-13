@@ -47,7 +47,7 @@
 	"oolite_template_adder" =
 	{
 		aft_eject_position = "0.0 -4.5 -23.0";
-		ai_type = "scavengerAI.js";
+		ai_type = "oolite-scavengerAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -185,7 +185,7 @@
 	{
 		aft_eject_position = "0.0 -20.0 -67.0";
 		aft_weapon_type = "WEAPON_PULSE_LASER";
-		ai_type = "traderAI.js";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -319,7 +319,7 @@
 	};
 	"oolite_template_asp" = {
 		aft_eject_position = "0.0 -8.0 -21.5";
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -539,7 +539,7 @@
 	{
 		aft_eject_position = "0.0 -15.0 -50.5";
 		aft_weapon_type = "WEAPON_BEAM_LASER";
-		ai_type = "traderAI.js";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -667,7 +667,7 @@
 	{
 		aft_eject_position = "0.0 -18.75 -50.75";
 		aft_weapon_type = "WEAPON_BEAM_LASER";
-		ai_type = "traderAI.js";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -920,7 +920,7 @@
 	"oolite_template_cobra3" = 
 	{
 		aft_eject_position = "0.0 15.5 -33.0";
-		ai_type = "traderAI.js";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -1044,7 +1044,7 @@
 	{
 		like_ship = "oolite_template_cobra3";
 		is_template = 1;
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		bounty = 50;
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		has_ecm = 0.1;
@@ -1065,7 +1065,7 @@
 	};
 	"oolite_template_cobramk1" = {
 		aft_eject_position = "0.0 7.5 -21.0";
-		ai_type = "traderAI.js";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -1167,7 +1167,7 @@
 	{
 		like_ship = "oolite_template_cobramk1";
 		is_template = 1;
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		energy_recharge_rate = 3.75; // equivalent of Extra Energy Unit
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_fuel_injection = 0.25;
@@ -1184,7 +1184,7 @@
 	{
 		like_ship = "oolite_template_cobramk1";
 		is_template = 1;
-		ai_type = "scavengerAI.js";
+		ai_type = "oolite-scavengerAI.js";
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
 		materials =
@@ -1202,7 +1202,7 @@
 	"oolite_template_constrictor" =
 	{
 		aft_eject_position = "0.0 5.5 -19.0";
-		ai_type = "ooliteConstrictorAI.js";
+		ai_type = "oolite-constrictorAI.js";
 		bounty = 250;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
@@ -1238,7 +1238,7 @@
 	};
 	"oolite_template_coriolis-station" = 
 	{
-		ai_type = "stationAI.js";
+		ai_type = "oolite-stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1400,7 +1400,7 @@
 	};
 	"oolite_template_dodecahedron-station" =
 	{
-		ai_type = "stationAI.js";
+		ai_type = "oolite-stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1449,7 +1449,7 @@
 	{
 		like_ship = "oolite_template_missile";
 		is_template = 1;
-		ai_type = "missileAI.js";
+		ai_type = "oolite-missileAI.js";
 		name = "ECM Hardened Missile";
 		script_info = 
 		{
@@ -1464,7 +1464,7 @@
 	};
 	"oolite_template_escape-capsule" = {
 		aft_eject_position = "0.0 0.0 -2.0";
-		ai_type = "shuttleAI.js";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_SLAVES";
 		energy_recharge_rate = 2;
 		exhaust =
@@ -1526,7 +1526,7 @@
 	};
 	"oolite_template_ferdelance" = {
 		aft_eject_position = "0.0 3.0 -38.0";
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -1639,7 +1639,7 @@
 	"oolite_template_gecko" =
 	{
 		aft_eject_position = "0.0 4.5 -11.0";
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -1670,7 +1670,7 @@
 	};
 	"oolite_template_icosahedron-station" = 
 	{
-		ai_type = "stationAI.js";
+		ai_type = "oolite-stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1717,7 +1717,7 @@
 	"oolite_template_krait" = 
 	{
 		aft_eject_position = "0.0 7.5 -16.5";
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -1752,7 +1752,7 @@
 	};
 	"oolite_template_mamba" = {
 		aft_eject_position = "0.0 5.5 -17.0";
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -1796,7 +1796,7 @@
 	};
 	"oolite_template_missile" = 
 	{
-		ai_type = "missileAI.js";
+		ai_type = "oolite-missileAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
 		exhaust = ("0.0 0.0 -3.5 2.0 2.0 0.75");
@@ -1826,7 +1826,7 @@
 	"oolite_template_moray" = 
 	{
 		aft_eject_position = "0.0 5.75 -8.0";
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -1936,7 +1936,7 @@
 	{
 		like_ship = "oolite_template_moray";
 		is_template = 1;
-		ai_type = "traderAI.js";
+		ai_type = "oolite-traderAI.js";
 		likely_cargo = 15;
 		max_cargo = 22;
 		materials =
@@ -1963,7 +1963,7 @@
 	"oolite_template_python" = 
 	{
 		aft_eject_position = "0.0 15.5 -50.0";
-		ai_type = "traderAI.js";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -2067,7 +2067,7 @@
 	{
 		like_ship = "oolite_template_python";
 		is_template = 1;
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		energy_recharge_rate = 3.5;
 		escort_roles = (
 			{ "role" = "pirate-light-fighter"; min = 1; max = 1; },
@@ -2106,7 +2106,7 @@
 	};
 	"oolite_template_qbomb" = 
 	{
-		ai_type = "qbombAI.js";
+		ai_type = "oolite-qbombAI.js";
 		energy_recharge_rate = 0;
 		is_template = 1;
 		max_energy = 10;
@@ -2120,7 +2120,7 @@
 	};
 	"oolite_template_rock-hermit" = 
 	{
-		ai_type = "rockHermitAI.js";
+		ai_type = "oolite-rockHermitAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
 		"equipment_price_factor" = 4.5;
@@ -2230,7 +2230,7 @@
 	};
 	"oolite_template_shuttle" = {
 		aft_eject_position = "0.0 0 -18.0";
-		ai_type = "nullAI.plist";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 1;
 		exhaust = (
@@ -2261,7 +2261,7 @@
 	};
 	"oolite_template_sidewinder" = {
 		aft_eject_position = "0.0 7.5 -18.0";
-		ai_type = "pirateAI.js";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
@@ -2330,7 +2330,7 @@
 	};
 	"oolite_template_tharglet" = 
 	{
-		ai_type = "thargletAI.js";
+		ai_type = "oolite-thargletAI.js";
 		bounty = 50;
 		cargo_type = "CARGO_THARGOID";
 		energy_recharge_rate = 3;
@@ -2359,7 +2359,7 @@
 	{
 		aft_eject_position = "0.0 0.0 -20.5";
 		aft_weapon_type = "WEAPON_THARGOID_LASER";
-		ai_type = "thargoidAI.js";
+		ai_type = "oolite-thargoidAI.js";
 		bounty = 100;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
@@ -2388,7 +2388,7 @@
 	"oolite_template_transporter" = 
 	{
 		aft_eject_position = "0.0 5.5 -18.0";
-		ai_type = "nullAI.plist";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 1.5", "-6.125 -0.75 -17.5 3.0 3.0 1.5");
@@ -2417,7 +2417,7 @@
 	{
 		like_ship = "oolite_template_transporter";
 		is_template = 1;
-		ai_type = "scavengerAI.js";
+		ai_type = "oolite-scavengerAI.js";
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
 		materials =
@@ -2430,7 +2430,7 @@
 	"oolite_template_viper" = 
 	{
 		aft_eject_position = "0.0 6.5 -28.0";
-		ai_type = "policeAI.js";
+		ai_type = "oolite-policeAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("12.5 0.0 -27.5 6.0 6.0 1.5", "-12.5 0.0 -27.5 6.0 6.0 1.5");
@@ -2545,7 +2545,7 @@
 	"oolite_template_viper-interceptor" = 
 	{
 		aft_eject_position = "0.0 10.5 -22.0";
-		ai_type = "policeAI.js";
+		ai_type = "oolite-policeAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 6;
 		exhaust = (
@@ -2676,7 +2676,7 @@
 	"oolite_template_worm" = 
 	{
 		aft_eject_position = "0.0 5.0 -9.5";
-		ai_type = "nullAI.plist";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.5 7.0 6.0 1.5");
@@ -2705,7 +2705,7 @@
 	{
 		like_ship = "oolite_template_worm";
 		is_template = 1;
-		ai_type = "scavengerAI.js";
+		ai_type = "oolite-scavengerAI.js";
 		energy_recharge_rate = 1.85;
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
