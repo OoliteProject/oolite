@@ -2145,6 +2145,19 @@ PriorityAIController.prototype.conditionScannerContainsThargoidMothership = func
 }
 
 
+PriorityAIController.prototype.conditionScannerContainsUnspreadMissile = function()
+{
+	if (!this.getParameter("oolite_flag_autoSpreadMissiles"))
+	{
+		return false;
+	}
+	return this.checkScannerWithPredicate(function(s) { 
+		var target = this.ship.target;
+		return (s.scanClass == "CLASS_MISSILE") && s.target == target && s.owner == this.ship.owner && this.distance(s) < 500 && this.distance(target) > s.position.distanceTo(target);
+	});
+}
+
+
 /*** State conditions ***/
 
 
@@ -2796,20 +2809,23 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 			this.setParameter("oolite_cascadeDetected",null);
 		}
 	}
-	var aggressor = this.ship.AIPrimaryAggressor;
-	if (aggressor && aggressor.isInSpace && this.distance(aggressor) < this.scannerRange)
-	{
-		this.ship.target = aggressor;
-	}
 	if (!this.ship.target || this.distance(this.ship.target) > this.scannerRange)
 	{
-		var dts = this.ship.defenseTargets;
-		for (var i = 0 ; i < dts.length ; i++)
+		var aggressor = this.ship.AIPrimaryAggressor;
+		if (aggressor && aggressor.isInSpace && this.distance(aggressor) < this.scannerRange)
 		{
-			if (this.distance(dts[i]) < this.scannerRange && this.isFighting(dts[i]))
+			this.ship.target = aggressor;
+		}
+		else
+		{
+			var dts = this.ship.defenseTargets;
+			for (var i = 0 ; i < dts.length ; i++)
 			{
-				this.ship.target = dts[i];
-				break;
+				if (this.distance(dts[i]) < this.scannerRange && this.isFighting(dts[i]))
+				{
+					this.ship.target = dts[i];
+					break;
+				}
 			}
 		}
 	}
@@ -3845,6 +3861,24 @@ PriorityAIController.prototype.configurationSelectWitchspaceDestinationOutbound 
 /*** Destination configuration ***/
 
 
+PriorityAIController.prototype.configurationMissileAdjustSpread = function()
+{
+	var near = this.getParameter("oolite_scanResultSpecific");
+	if (!near)
+	{
+		this.ship.destination = this.ship.target.position;
+		this.ship.desiredRange = 100;
+		this.ship.desiredSpeed = this.ship.maxFlightSpeed;
+	}
+	else
+	{
+		this.ship.destination = near.position.add(Vector3D.randomDirection(20));
+		this.ship.desiredRange = 1000;
+		this.ship.desiredSpeed = this.ship.maxFlightSpeed;
+	}
+}
+
+
 PriorityAIController.prototype.configurationSetDestinationToHomeStation = function()
 {
 	var home = this.homeStation();
@@ -4629,10 +4663,19 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackedWithMissil
 		this.communicate("oolite_incomingMissile",whom,3);
 		this.ship.addDefenseTarget(missile);
 		this.ship.addDefenseTarget(whom);
-		var tmp = this.ship.target;
-		this.ship.target = missile;
-		this.ship.requestHelpFromGroup(); // anyone got an ECM?
-		this.ship.target = tmp;
+		if (this.ship.target && this.ship.target.scanClass == "CLASS_MISSILE")
+		{
+			// keep fleeing first missile
+			var tmp = this.ship.target;
+			this.ship.target = missile;
+			this.ship.requestHelpFromGroup(); // anyone got an ECM?
+			this.ship.target = tmp;
+		}
+		else
+		{
+			this.ship.target = missile;
+			this.ship.requestHelpFromGroup(); // anyone got an ECM?
+		}
 		this.reconsiderNow();
 	}
 }

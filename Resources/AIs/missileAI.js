@@ -30,47 +30,61 @@ this.name = "Oolite Missile AI";
 this.version = "1.79";
 
 this.aiStarted = function() {
-		var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
+	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
-		ai.setPriorities([
-				{
-						condition: ai.conditionMissileOutOfFuel,
-						behaviour: ai.behaviourMissileSelfDestruct
-				},
-				{
-						condition: ai.conditionHasTarget,
-						behaviour: ai.behaviourMissileInterceptTarget,
-						reconsider: 5
-				},
-				/* If target cloaks, go to last known location */
-				{
-						condition: ai.conditionHasInterceptCoordinates,
-						behaviour: ai.behaviourMissileInterceptCoordinates,
-						reconsider: 1
-				},
-				/* Target lost. Self-destruct */
-				{
-						behaviour: ai.behaviourMissileSelfDestruct
-				}
-		]);
+	/* This is probably too effective for standard missile AI, but
+	 * might be worth setting separately on ships that use missile
+	 * swarms as their main weapon. It makes the missiles avoid each
+	 * other a bit, so that the detonation of the first missile won't
+	 * destroy the remainder. */
+	// ai.setParameter("oolite_flag_autoSpreadMissiles",true);
+
+	ai.setPriorities([
+		{
+			condition: ai.conditionMissileOutOfFuel,
+			behaviour: ai.behaviourMissileSelfDestruct
+		},
+		{
+			preconfiguration: ai.configurationCheckScanner,
+			condition: ai.conditionScannerContainsUnspreadMissile,
+			configuration: ai.configurationMissileAdjustSpread,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 2
+		},
+		{
+			condition: ai.conditionHasTarget,
+			behaviour: ai.behaviourMissileInterceptTarget,
+			reconsider: 5
+		},
+		/* If target cloaks, go to last known location */
+		{
+			condition: ai.conditionHasInterceptCoordinates,
+			behaviour: ai.behaviourMissileInterceptCoordinates,
+			reconsider: 1
+		},
+		/* Target lost. Self-destruct */
+		{
+			behaviour: ai.behaviourMissileSelfDestruct
+		}
+	]);
 }
 
 /* ECM response function */
 this._ecmProofMissileResponse = function()
 {
-		if (Math.random() < 0.1) //10% chance per pulse
+	if (Math.random() < 0.1) //10% chance per pulse
+	{
+		if (Math.random() < 0.5)
 		{
-				if (Math.random() < 0.5)
-				{
-						// 50% chance responds by detonation
-						this.ship.AIScript.shipAchievedDesiredRange();
-						return;
-				}
-				// otherwise explode as normal below
+			// 50% chance responds by detonation
+			this.ship.AIScript.shipAchievedDesiredRange();
+			return;
 		}
-		else // 90% chance unaffected
-		{
-				return;
-		}	
-		this.ship.explode();
+		// otherwise explode as normal below
+	}
+	else // 90% chance unaffected
+	{
+		return;
+	}	
+	this.ship.explode();
 }
