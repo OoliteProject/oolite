@@ -5981,6 +5981,11 @@ this.startUp = function()
 				oolite_makePirateDemand: "[oolite-comms-makePirateDemand]",
 			}
 		},
+		assassin: {
+			generic: {
+				oolite_beginningAttack: "[oolite-comms-contractAttack]",
+			}
+		},
 		_thargoid: {
 			thargoid: {
 				oolite_continuingAttack: "[thargoid_curses]"

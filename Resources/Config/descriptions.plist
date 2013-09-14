@@ -594,6 +594,7 @@
 	);
 
 	// comms message templates for priority AI
+	"oolite-comms-contractAttack" = "You picked the wrong client, [oolite_entityName]!"; // TODO: variety
 	"oolite-comms-makePirateDemand" = "Your cargo or your life, [oolite_entityName]. [oolite_demandSize] barrels and we'll let you go."; // TODO: variety
 	"oolite-comms-acceptPirateDemand" = "[beg-for-mercy]";
 	"oolite-comms-surrender" = "[beg-for-mercy]";
