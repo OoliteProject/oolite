@@ -6510,7 +6510,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	for (i = 0; i < [contracts_array count]; i++)
 	{
-		NSMutableDictionary	*contract = [NSMutableDictionary dictionaryWithCapacity:4];
+		NSMutableDictionary	*contract = [NSMutableDictionary dictionaryWithCapacity:10];
 		NSDictionary		*dict = [contracts_array oo_dictionaryAtIndex:i];
 		if (forCargo)
 		{
@@ -6522,6 +6522,7 @@ static GLfloat		sBaseMass = 0.0;
 		else
 		{
 			[contract setObject:[dict oo_stringForKey:PASSENGER_KEY_NAME] forKey:PASSENGER_KEY_NAME];
+			[contract setObject:[NSNumber numberWithUnsignedInt:[dict oo_unsignedIntForKey:CONTRACT_KEY_RISK]] forKey:CONTRACT_KEY_RISK]; 
 		}
 		
 		OOSystemID 	planet = [dict oo_intForKey:CONTRACT_KEY_DESTINATION];

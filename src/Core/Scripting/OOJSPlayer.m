@@ -391,7 +391,7 @@ static JSBool PlayerIncreaseContractReputation(JSContext *context, uintN argc, j
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() increaseContractReputation];
+	[OOPlayerForScripting() increaseContractReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -403,7 +403,7 @@ static JSBool PlayerDecreaseContractReputation(JSContext *context, uintN argc, j
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() decreaseContractReputation];
+	[OOPlayerForScripting() decreaseContractReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -415,7 +415,7 @@ static JSBool PlayerIncreaseParcelReputation(JSContext *context, uintN argc, jsv
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() increaseParcelReputation];
+	[OOPlayerForScripting() increaseParcelReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -427,7 +427,7 @@ static JSBool PlayerDecreaseParcelReputation(JSContext *context, uintN argc, jsv
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() decreaseParcelReputation];
+	[OOPlayerForScripting() decreaseParcelReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -439,7 +439,7 @@ static JSBool PlayerIncreasePassengerReputation(JSContext *context, uintN argc, 
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() increasePassengerReputation];
+	[OOPlayerForScripting() increasePassengerReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -451,7 +451,7 @@ static JSBool PlayerDecreasePassengerReputation(JSContext *context, uintN argc, 
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() decreasePassengerReputation];
+	[OOPlayerForScripting() decreasePassengerReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT

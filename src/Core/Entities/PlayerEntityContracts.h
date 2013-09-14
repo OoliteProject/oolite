@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #define CONTRACT_KEY_ARRIVAL_TIME		@"arrival_time"
 #define CONTRACT_KEY_FEE				@"fee"
 #define CONTRACT_KEY_PREMIUM			@"premium"
+#define CONTRACT_KEY_RISK				@"risk"
 
 #define MAX_CONTRACT_REP			70
 
@@ -70,16 +71,16 @@ MA 02110-1301, USA.
 - (NSDictionary *) reputation;
 
 - (int) passengerReputation;
-- (void) increasePassengerReputation;
-- (void) decreasePassengerReputation;
+- (void) increasePassengerReputation:(unsigned)amount;
+- (void) decreasePassengerReputation:(unsigned)amount;
 
 - (int) parcelReputation;
-- (void) increaseParcelReputation;
-- (void) decreaseParcelReputation;
+- (void) increaseParcelReputation:(unsigned)amount;
+- (void) decreaseParcelReputation:(unsigned)amount;
 
 - (int) contractReputation;
-- (void) increaseContractReputation;
-- (void) decreaseContractReputation;
+- (void) increaseContractReputation:(unsigned)amount;
+- (void) decreaseContractReputation:(unsigned)amount;
 
 - (void) erodeReputation;
 - (void) normaliseReputation;
@@ -90,9 +91,9 @@ MA 02110-1301, USA.
 //- (BOOL) pickFromGuiContractsScreen;
 //- (void) highlightSystemFromGuiContractsScreen;
 
-- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee advance:(double)advance;	// for js scripting
+- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee advance:(double)advance risk:(unsigned)risk;	// for js scripting
 - (BOOL) removePassenger:(NSString*)Name;	// for js scripting
-- (BOOL) addParcel:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting
+- (BOOL) addParcel:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee premium:(double)premium risk:(unsigned)risk;	// for js scripting
 - (BOOL) removeParcel:(NSString*)Name;	// for js scripting
 - (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee premium:(double)premium;	// for js scripting.
 - (BOOL) removeContract:(NSString*)commodity destination:(unsigned)destination;	// for js scripting
