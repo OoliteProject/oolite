@@ -178,6 +178,8 @@ this.systemWillPopulate = function()
 	this._debug("G"+(galaxyNumber+1)+": "+system.info.name);
 	this._debug("Hub count: "+locals.length+" ("+verylocals.length+")");
 
+	var bottleneck = this._systemIsBottleneck(locals,seconds);
+
 	/* Calculate trader hourly rates first, as most other rates depend
 	 * on them */
 	var freighters = 0; // standard trade ships
@@ -231,6 +233,10 @@ this.systemWillPopulate = function()
 		second = seconds[i];
 		// couriers are non-mirrored
 		rate = (20/(10+((14-local.techlevel)*5)))/second.length;
+		if (bottleneck)
+		{
+			couriers *= 1.5; // simulate long-range routes
+		}
 		this.$repopulatorFrequencyIncoming.traderCouriers += rate;
 		couriers += rate;
 		// smugglers are non-mirrored
@@ -503,49 +509,22 @@ this.systemWillPopulate = function()
 
 	this.$repopulatorFrequencyOutgoing.policePacks = police;
 	this.$repopulatorFrequencyOutgoing.policeInterceptors = interceptors;
-	
+
+	/* Assassin numbers */
+	var assassins = couriers*(Math.random()+Math.random());
+	if (bottleneck)
+	{
+		assassins += couriers;
+	}
+	assassins = assassins * 2/(system.info.government+1);
+	this.$repopulatorFrequencyOutgoing.assassins = assassins;
+
+	/* Thargoid numbers */
+
 	// more common in isolated systems with low hubcount
 	var thargoids = this.$repopulatorFrequencyIncoming.thargoidScouts = 1/(locals.length+5);
 	// larger strike forces try to disrupt bottleneck systems
-	var thargoidstrike = this.$repopulatorFrequencyIncoming.thargoidStrikes = 0;
-	if (locals.length > 0)
-	{
-		// Oresrati's bottleneck status is undefined. The Thargoids
-		// don't bother striking at it routinely.
-		var connectionset = [locals[0].systemID];
-		var sofar = 0;
-		do 
-		{
-			sofar = connectionset.length;
-			for (j = 0; j < seconds.length ; j++)
-			{
-				// if the connected set doesn't already contain this system
-				if (connectionset.indexOf(locals[j].systemID) == -1)
-				{
-					var second = seconds[j];
-					for (k = 0; k < second.length ; k++)
-					{
-						// if the connected set contains a system
-						// connected to the system being tested
-						if (connectionset.indexOf(second[k].systemID) > -1)
-						{
-							// add this system to the connection set
-							connectionset.push(locals[j].systemID);
-							break;
-						}
-					}
-				}
-			}
-		} 
-		while (connectionset.length > sofar);
-		// if we didn't add any more, we've connected all we can.
-		if (connectionset.length < locals.length)
-		{
-			// there are still some disconnected, so this is a
-			// bottleneck system
-			thargoidstrike = this.$repopulatorFrequencyIncoming.thargoidStrikes = 0.02;
-		}
-	}
+	var thargoidstrike = this.$repopulatorFrequencyIncoming.thargoidStrikes = bottleneck ? 0.02 : 0;
 
 	/* Current repopulator frequencies are in groups/hour. Need to
 	 * convert to groups/20 seconds */
@@ -791,6 +770,16 @@ this.systemWillPopulate = function()
 							groupCount: randomise(initial),
 							callback: this._addHeavyPirateRemote.bind(this)
 						});
+	// assassins
+	initial = assassins;
+	system.setPopulator("oolite-assassins",
+						{
+							priority: 40,
+							location: "WITCHPOINT",
+							groupCount: randomise(initial),
+							callback: this._addAssassin.bind(this)
+						});
+	
 
 	// police
 	// 5/6 go route 1, and back. 
@@ -881,6 +870,7 @@ this.systemWillPopulate = function()
 	this._debugP("Pirates (H1)",pset["oolite-pirate-heavy-route1"].groupCount);
 	this._debugP("Pirates (HT)",pset["oolite-pirate-heavy-triangle"].groupCount);
 	this._debugP("Pirates (HR)",pset["oolite-pirate-heavy-remote"].groupCount);
+	this._debugP("Assassins (WP)",pset["oolite-assassins"].groupCount);
 	this._debugP("Police (1)",pset["oolite-police-route1"].groupCount);
 	this._debugP("Police (T)",pset["oolite-police-triangle"].groupCount);
 	this._debugP("Police (I1)",pset["oolite-interceptors-route1"].groupCount);
@@ -1137,6 +1127,16 @@ this.systemWillRepopulate = function()
 		}
 	}
 	
+	// assassins
+	if (Math.random() < this.$repopulatorFrequencyOutgoing.assassins)
+	{
+		if (system.countShipsWithPrimaryRole("assassin-medium")+system.countShipsWithPrimaryRole("assassin-heavy") < 30)
+		{
+			this._debugR("Launching assassin");
+			this._addAssassin(this._tradeStation(false));
+		}
+	}
+
 	// police
 	if (Math.random() < this.$repopulatorFrequencyOutgoing.policePacks)
 	{
@@ -1784,6 +1784,59 @@ this._addAegisRaiders = function()
 }
 
 
+this._addAssassin = function(pos)
+{
+	var role = "assassin-light";
+	var extra = 0;
+	var ws = 2;
+	var g = system.info.goverment+2;
+	if (Math.random() > g / 10)
+	{
+		role = "assassin-medium";
+		extra = 2;
+		ws = 2.5;
+		if (Math.random() > g / 5)
+		{
+			role = "assassin-heavy";
+			ws = 2.8;
+			extra = 4;
+		}
+	}
+	var main = this._addShips(role,1,pos,0)[0];
+	if (main.autoWeapons)
+	{
+		main.awardEquipment("EQ_FUEL_INJECTION");
+		main.awardEquipment("EQ_ECM");
+		if (2+Math.random() < ws)
+		{
+			main.awardEquipment("EQ_SHIELD_BOOSTER"); 
+		}
+		main.fuel = 7;
+		this._setWeapons(main,ws);
+		this._setSkill(main,extra);
+	}
+	main.bounty = Math.floor(Math.random()*10);
+	if (extras > 0)
+	{
+		var g = new ShipGroup("assassin group",main);
+		main.group = g;
+		var extras = this._addShips("assassin-light",extra,pos,3E3);
+		for (var i=0;i<extra;i++)
+		{
+			extras[i].group = g;
+			g.addShip(extras[i]);
+			if (extras[i].autoWeapons)
+			{
+				extras[i].awardEquipment("EQ_FUEL_INJECTION");
+				extras[i].fuel = 7;
+				this._setWeapons(extras[i],1.8);
+			}
+			extras[i].bounty = 1+Math.floor(Math.random()*5);
+		}
+	}
+}
+
+
 this._addPolicePatrol = function(pos)
 {
 	var role = "police";
@@ -2227,6 +2280,50 @@ this._nearbySafeSystem = function(gov)
 		}
 	}
 	return id;
+}
+
+
+this._systemIsBottleneck = function(locals,seconds)
+{
+	if (locals.length > 0)
+	{
+		// Oresrati's bottleneck status is undefined. The Thargoids
+		// don't bother striking at it routinely.
+		var connectionset = [locals[0].systemID];
+		var sofar = 0;
+		do 
+		{
+			sofar = connectionset.length;
+			for (var j = 0; j < seconds.length ; j++)
+			{
+				// if the connected set doesn't already contain this system
+				if (connectionset.indexOf(locals[j].systemID) == -1)
+				{
+					var second = seconds[j];
+					for (var k = 0; k < second.length ; k++)
+					{
+						// if the connected set contains a system
+						// connected to the system being tested
+						if (connectionset.indexOf(second[k].systemID) > -1)
+						{
+							// add this system to the connection set
+							connectionset.push(locals[j].systemID);
+							break;
+						}
+					}
+				}
+			}
+		} 
+		while (connectionset.length > sofar);
+		// if we didn't add any more, we've connected all we can.
+		if (connectionset.length < locals.length)
+		{
+			// there are still some disconnected, so this is a
+			// bottleneck system
+			return true;
+		}
+	}
+	return false;
 }
 
 

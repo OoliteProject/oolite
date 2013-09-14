@@ -406,7 +406,7 @@
 		missiles = 1;
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
-		roles = "trader-courier hunter-medium(0.75) hunter-heavy(0.75) pirate-medium-fighter(0.5) pirate-heavy-fighter(0.5) pirate-interceptor pirate-aegis-raider escort-heavy asp-pirate";
+		roles = "trader-courier hunter-medium(0.75) hunter-heavy(0.75) pirate-medium-fighter(0.5) pirate-heavy-fighter(0.5) pirate-interceptor pirate-aegis-raider escort-heavy assassin-heavy asp-pirate";
 		scoop_position = "0.0 -5.0 -15";
 		smooth = yes;
 		thrust = 50;
@@ -1038,7 +1038,7 @@
 		{
 			"cobra3_redux.png" = { diffuse_map = "cobra3_redux1.png"; };
 		};
-		roles = "pirate-light-freighter pirate-medium-freighter(0.2) trader(0.375) hunter-heavy escort-heavy(0.25) hermit-ship sunskim-trader cobra3-alternate";
+		roles = "pirate-light-freighter pirate-medium-freighter(0.2) trader(0.375) hunter-heavy escort-heavy(0.25) hermit-ship sunskim-trader cobra3-alternate assassin-medium";
 	};
 	"oolite_template_cobra3-pirate" =
 	{
@@ -1150,7 +1150,7 @@
 		missiles = 1;
 		model = "cobra1_redux.dat";
 		name = "Cobra Mark I";
-		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort-light(0.25)";
+		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort-light(0.25) assassin-light";
 		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		view_position_aft = "0.0 3.75 -27.5";
@@ -1616,7 +1616,7 @@
 		missiles = 2;
 		model = "ferdelance_redux.dat";
 		name = "Fer-de-Lance";
-		roles = "trader-freighter(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy";
+		roles = "trader-freighter(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
 		scoop_position = "0.0 -8.0 -14";
 		thrust = 36;
 		view_position_aft = "0.0 5.0 -32.5";
@@ -1741,7 +1741,7 @@
 		missiles = 0;
 		model = "krait_redux.dat";
 		name = "Krait";
-		roles = "pirate pirate-light-fighter(0.75) hunter(0.5) escort(0.25)";
+		roles = "pirate pirate-light-fighter(0.75) hunter(0.5) escort(0.25) assassin-light";
 		scoop_position = "0.0 -2.0 -3";
 		thrust = 35;
 		weapon_facings = 1;
@@ -1912,7 +1912,7 @@
 		missiles = 2;
 		model = "moray_redux.dat";
 		name = "Moray Star Boat";
-		roles = "trader(0.5) trader-courier(0.25) trader-smuggler hunter-medium pirate-medium-fighter pirate-interceptor(0.25) pirate(0.5) pirate-light-freighter(0.5) escort-medium(0.25)";
+		roles = "trader(0.5) trader-courier(0.25) trader-smuggler hunter-medium pirate-medium-fighter pirate-interceptor(0.25) pirate(0.5) pirate-light-freighter(0.5) escort-medium(0.25) assassin-light";
 		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
 		view_position_aft = "0.0 8.875 5.5";

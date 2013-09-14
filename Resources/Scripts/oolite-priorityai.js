@@ -1750,6 +1750,12 @@ PriorityAIController.prototype.conditionSelectedStationNearMainPlanet = function
 }
 
 
+PriorityAIController.prototype.conditionStationNearby = function()
+{
+	return this.distance(this.__ltcache.oolite_nearestStation) < this.scannerRange*2;
+}
+
+
 PriorityAIController.prototype.conditionSunskimPossible = function()
 {
 	return (system.sun && 
@@ -1905,11 +1911,32 @@ PriorityAIController.prototype.conditionPiratesCanBePaidOff = function()
 /*** Scanner conditions ***/
 
 
+PriorityAIController.prototype.conditionScannerContainsAssassinationTarget = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		return s.primaryRole == "escape-capsule"; 
+	});
+}
+
+
 PriorityAIController.prototype.conditionScannerContainsCleanShip = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
 		return (s.scanClass == "CLASS_NEUTRAL" || s.scanClass == "CLASS_POLICE") && s.bounty == 0; 
 	});
+}
+
+
+PriorityAIController.prototype.conditionScannerContainsCourier = function()
+{
+	if (this.checkScannerWithPredicate(function(s) { 
+		return (this.shipInRoleCategory(s,"oolite-courier"));
+	}))
+	{
+		return true;
+	}
+	// TODO: check for player ship carrying high-risk contracts
+	return false;
 }
 
 
@@ -2305,6 +2332,22 @@ PriorityAIController.prototype.conditionHasReceivedDistressCall = function()
 		return false;
 	}
 	return true;
+}
+
+
+PriorityAIController.prototype.conditionHasRememberedTarget = function()
+{
+	var rt = this.getParameter("oolite_rememberedTarget");
+
+	if (rt != null && (rt.isInSpace || rt.status == "STATUS_ENTERING_WITCHSPACE"))
+	{
+		return true;
+	} 
+	else
+	{
+		this.setParameter("oolite_rememberedTarget",null);
+		return false;
+	}
 }
 
 
@@ -2872,6 +2915,46 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 
 	this.ship.desiredRange = this.scannerRange;
 	this.ship.performFlee();
+}
+
+
+/* Follow a ship, including to witchspace */
+PriorityAIController.prototype.behaviourFollowCurrentTarget = function()
+{
+	if (this.ship.target)
+	{
+		var rt = this.ship.target;
+	}
+	else
+	{
+		var rt = this.getParameter("oolite_rememberedTarget");
+	}
+
+	this.ship.destination = rt.position;
+	if (rt.status == "STATUS_ENTERING_WITCHSPACE")
+	{
+		var pos = rt.position;
+		var ws = system.wormholes;
+		// most likely to be most recent
+		for (var i=ws.length-1; i>=0; i--)
+		{
+			if (ws[i].position.distanceTo(pos) < 100)
+			{
+				this.setParameter("oolite_witchspaceWormhole",ws[i]);
+				this.setParameter("oolite_rememberedTarget",null);
+				break;
+			}
+		}
+
+		this.ship.desiredRange = 0; // use wormhole
+	}
+	else
+	{
+		this.setParameter("oolite_rememberedTarget",rt);
+		this.ship.desiredRange = 500+Math.random()*1000;
+	}
+	this.ship.desiredSpeed = this.ship.maxSpeed;
+	this.behaviourApproachDestination();
 }
 
 
@@ -4348,7 +4431,6 @@ PriorityAIController.prototype.responsesAddStandard = function(handlers)
 	handlers.escortAccepted = this.responseComponent_standard_escortAccepted;
 	handlers.helpRequestReceived = this.responseComponent_standard_helpRequestReceived;
 	handlers.offenceCommittedNearby = this.responseComponent_standard_offenceCommittedNearby;
-	handlers.playerWillEnterWitchspace = this.responseComponent_standard_playerWillEnterWitchspace;
 	handlers.shipAcceptedEscort = this.responseComponent_standard_shipAcceptedEscort;
 	handlers.shipAttackedOther = this.responseComponent_standard_shipAttackedOther;
 	handlers.shipAttackedWithMissile = this.responseComponent_standard_shipAttackedWithMissile;
@@ -4359,9 +4441,20 @@ PriorityAIController.prototype.responsesAddStandard = function(handlers)
 	handlers.shipKilledOther = this.responseComponent_standard_shipKilledOther;
 	handlers.shipLaunchedEscapePod = this.responseComponent_standard_shipLaunchedEscapePod;
 	handlers.shipLaunchedFromStation = this.responseComponent_standard_shipLaunchedFromStation;
-	handlers.shipTargetLost = this.responseComponent_standard_shipTargetLost;
 	handlers.shipWillEnterWormhole = this.responseComponent_standard_shipWillEnterWormhole;
 	handlers.wormholeSuggested = this.responseComponent_standard_wormholeSuggested;
+
+	// slightly different settings if pursuing to witchspace expected
+	if (!this.getParameter("oolite_flag_witchspacePursuit"))
+	{
+		handlers.shipTargetLost = this.responseComponent_standard_shipTargetLost;
+		handlers.playerWillEnterWitchspace = this.responseComponent_standard_playerWillEnterWitchspace;
+	}
+	else
+	{
+		handlers.playerWillEnterWitchspace = this.responseComponent_trackPlayer_playerWillEnterWitchspace;
+		handlers.shipTargetLost = this.responseComponent_expectWitchspace_shipTargetLost;
+	}
 
 	// TODO: more event handlers
 }
@@ -5339,6 +5432,29 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 			this.reconsiderNow();
 		}
 	}
+}
+
+
+PriorityAIController.prototype.responseComponent_expectWitchspace_shipTargetLost = function(target)
+{
+	if (!target)
+	{
+		target = this.getParameter("oolite_rememberedTarget");
+	}
+	if (target) {
+		var pos = target.position;
+		var ws = system.wormholes;
+		// most likely to be most recent
+		for (var i=ws.length-1; i>=0; i--)
+		{
+			if (ws[i].position.distanceTo(pos) < 100)
+			{
+				this.setParameter("oolite_witchspaceWormhole",ws[i]);
+				break;
+			}
+		}
+	}
+	this.reconsiderNow();
 }
 
 

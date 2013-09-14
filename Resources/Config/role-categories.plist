@@ -97,6 +97,14 @@
 	);
 
 
+	/* Roles used by assassins */
+	"oolite-assassin" = (
+		"assassin-light",
+		"assassin-medium",
+		"assassin-heavy"
+	);
+
+
 	/* Roles used by escort ships. Ships must have one of these roles
 	 * and a scanClass matching the mothership's scanClass to be
 	 * accepted as an escort. */
