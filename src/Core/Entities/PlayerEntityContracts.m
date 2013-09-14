@@ -198,8 +198,8 @@ static unsigned RepForRisk(unsigned risk);
 				[result appendFormatLine:DESC(@"passenger-delivered-okay-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
 				[self addRoleToPlayer:@"trader-courier+"];
 
-				[passengers removeObjectAtIndex:i--];
 				[self increasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+				[passengers removeObjectAtIndex:i--];
 			}
 			else
 			{
@@ -222,8 +222,8 @@ static unsigned RepForRisk(unsigned risk);
 				// we've run out of time!
 				[result appendFormatLine:DESC(@"passenger-failed-@"), passenger_name];
 				
-				[passengers removeObjectAtIndex:i--];
 				[self decreasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+				[passengers removeObjectAtIndex:i--];
 			}
 		}
 	}
@@ -255,10 +255,10 @@ static unsigned RepForRisk(unsigned risk);
 				
 				[result appendFormatLine:DESC(@"parcel-delivered-okay-@-@"), parcel_name, OOIntCredits(fee)];
 				
+				[self increaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+
 				[parcels removeObjectAtIndex:i--];
 				[self addRoleToPlayer:@"trader-courier+"];
-
-				[self increaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 			}
 			else
 			{
@@ -280,8 +280,8 @@ static unsigned RepForRisk(unsigned risk);
 				// we've run out of time!
 				[result appendFormatLine:DESC(@"parcel-failed-@"), parcel_name];
 				
-				[parcels removeObjectAtIndex:i--];
 				[self decreaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+				[parcels removeObjectAtIndex:i--];
 			}
 		}
 	}
@@ -569,7 +569,7 @@ for (unsigned i=0;i<amount;i++)
 	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 	
 	if (unknown > 0)
-		unknown = MAX_CONTRACT_REP - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (((2*unknown)+(market_rnd % unknown))/3);
 	else
 		unknown = MAX_CONTRACT_REP;
 	
@@ -887,7 +887,7 @@ for (unsigned i=0;i<amount;i++)
 	// extra checks, just in case.
 	if ([parcel_record objectForKey:Name] != nil) return NO;
 
-	if ([parcels count] == 0)
+	if ([parcels count] == 0 || risk > 0)
 	{
 		[self addRoleToPlayer:@"trader-courier+"];
 	}

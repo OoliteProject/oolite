@@ -1373,7 +1373,7 @@
 	"parcel-delivered-okay-@-@" = "You deliver %@, and are paid %@.\n";
 	"parcel-delivered-late-@-@" = "You have arrived late to deliver %@, and are only paid %@.\n";
 	"parcel-failed-@"			= "You have failed to deliver %@ on time, and will not be paid.\n";
-	"parcel-description"  = 
+	"parcel-description-safe"  = 
 	(	
 			"Videos of [34] [35]",
 			"Data backups",
@@ -1381,6 +1381,29 @@
 			"Licensing forms",
 			"Recipes for [30] [33]"
 	);
+	"parcel-description-cautious"  = 
+	(	
+			"Legal records",
+			"Medical data",
+			"Coded documents",
+			"Mineral surveys",
+			"Press recordings"
+	);
+	"parcel-description-dangerous"  = 
+	(	
+			"Trial exhibits",
+			"Corporate research",
+			"Prototype technology",
+			"Weapon designs",
+			"Diplomatic cases"
+	);
+	// 9:2:1 to safe
+	"parcel-description-risk0" = ("[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-dangerous]");
+	// 2:5:2
+	"parcel-description-risk1" = ("[parcel-description-safe]","[parcel-description-safe]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-dangerous]","[parcel-description-dangerous]");
+	// 1:2:9
+	"parcel-description-risk2" = ("[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-safe]");
+
 
 	"cargo-delivered-okay-@-@"		= "Droids unload the %@ and you are paid %@.";
 	"cargo-delivered-short-@-@-d"	= "Droids unload the %@, but you are only paid %@ as there is a %d percent shortfall.";

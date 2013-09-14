@@ -87,6 +87,10 @@
 	"oolite-contracts-parcels-command-next" = "Next contract";
 	"oolite-contracts-parcels-command-list" = "List all contracts";
 	"oolite-contracts-parcels-command-accept" = "Accept delivery contract";
+	"oolite-contracts-parcels-command-unavailable-both" = "(looking for more experienced courier)";
+	"oolite-contracts-parcels-command-unavailable-rep" = "(looking for more reliable courier)";
+	"oolite-contracts-parcels-command-unavailable-kills" = "(looking for courier with more combat experience)";
+
 	"oolite-contracts-parcels-command-quit" = "Exit parcel delivery contracts";
 
 	// Passenger delivery contracts (oolite-contracts-passengers.js)

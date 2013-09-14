@@ -772,6 +772,50 @@ this.systemWillPopulate = function()
 						});
 	// assassins
 	initial = assassins;
+	if (system.info.government < 3)
+	{
+		// if carrying high-risk contracts through dangerous systems,
+		// especially bottlenecks, add some more assassins
+		// specifically waiting for the player
+		var cs = ship.parcels;
+		for (var i = cs.length-1; i >= 0 ; i--)
+		{
+			if (bottleneck)
+			{
+				if (cs[i].risk == 1 && Math.random() < 0.1)
+				{
+					initial++;
+				} 
+				if (cs[i].risk == 2 && Math.random() < 0.5)
+				{
+					initial++;
+				}
+			}
+			else if (cs[i].destination == system.ID)
+			{
+				initial += Math.random()*cs[i].risk;
+			}
+		}
+		cs = ship.passengers;
+		for (i = cs.length-1; i >= 0 ; i--)
+		{
+			if (bottleneck)
+			{
+				if (cs[i].risk == 1 && Math.random() < 0.1)
+				{
+					initial++;
+				} 
+				if (cs[i].risk == 2 && Math.random() < 0.5)
+				{
+					initial++;
+				}
+			}
+			else if (cs[i].destination == system.ID)
+			{
+				initial += Math.random()*cs[i].risk;
+			}
+		}
+	}
 	system.setPopulator("oolite-assassins",
 						{
 							priority: 40,
@@ -1789,7 +1833,7 @@ this._addAssassin = function(pos)
 	var role = "assassin-light";
 	var extra = 0;
 	var ws = 2;
-	var g = system.info.goverment+2;
+	var g = system.info.government+2;
 	if (Math.random() > g / 10)
 	{
 		role = "assassin-medium";
@@ -1816,7 +1860,8 @@ this._addAssassin = function(pos)
 		this._setSkill(main,extra);
 	}
 	main.bounty = Math.floor(Math.random()*10);
-	if (extras > 0)
+	main.switchAI("oolite-assassinAI.js");
+	if (extra > 0)
 	{
 		var g = new ShipGroup("assassin group",main);
 		main.group = g;
@@ -1832,6 +1877,7 @@ this._addAssassin = function(pos)
 				this._setWeapons(extras[i],1.8);
 			}
 			extras[i].bounty = 1+Math.floor(Math.random()*5);
+			extras[i].switchAI("oolite-assassinAI.js");
 		}
 	}
 }

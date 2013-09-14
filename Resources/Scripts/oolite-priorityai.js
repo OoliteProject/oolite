@@ -1072,6 +1072,37 @@ PriorityAIController.prototype.setWitchspaceRouteTo = function(dest)
 }
 
 
+PriorityAIController.prototype.shipHasRiskyContracts = function(ship) 
+{
+	var cs = ship.parcels;
+	for (var i = cs.length-1; i >= 0 ; i--)
+	{
+		if (cs[i].risk == 1 && Math.random() < 0.1)
+		{
+			return true;
+		} 
+		if (cs[i].risk == 2 && Math.random() < 0.5)
+		{
+			return true;
+		}
+	}
+	cs = ship.passengers;
+	for (i = cs.length-1; i >= 0 ; i--)
+	{
+		if (cs[i].risk == 1 && Math.random() < 0.1)
+		{
+			return true;
+		} 
+		if (cs[i].risk == 2 && Math.random() < 0.5)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
 /* Check role category membership allowing for player role assessment */
 PriorityAIController.prototype.shipInRoleCategory = function(ship,category) 
 {
@@ -1929,14 +1960,9 @@ PriorityAIController.prototype.conditionScannerContainsCleanShip = function()
 
 PriorityAIController.prototype.conditionScannerContainsCourier = function()
 {
-	if (this.checkScannerWithPredicate(function(s) { 
-		return (this.shipInRoleCategory(s,"oolite-courier"));
-	}))
-	{
-		return true;
-	}
-	// TODO: check for player ship carrying high-risk contracts
-	return false;
+	return (this.checkScannerWithPredicate(function(s) { 
+		return (this.shipInRoleCategory(s,"oolite-courier")) || (s.isPlayer && this.shipHasRiskyContracts(s));
+	}));
 }
 
 
@@ -3754,7 +3780,7 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 	{ 
 		var leader = this.ship.group.leader;
 		var lt;
-		if ((lt = leader.target) && leader.hasHostileTarget)
+		if ((lt = leader.target) && lt.isShip && leader.hasHostileTarget)
 		{
 			if (this.distance(lt) < this.scannerRange)
 			{
