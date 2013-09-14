@@ -44,6 +44,8 @@ MA 02110-1301, USA.
 #define CONTRACT_KEY_FEE				@"fee"
 #define CONTRACT_KEY_PREMIUM			@"premium"
 
+#define MAX_CONTRACT_REP			70
+
 #define GUI_ROW_PASSENGERS_LABELS	1
 #define GUI_ROW_PASSENGERS_START	2
 #define GUI_ROW_CARGO_LABELS		8
@@ -80,6 +82,7 @@ MA 02110-1301, USA.
 - (void) decreaseContractReputation;
 
 - (void) erodeReputation;
+- (void) normaliseReputation;
 
 - (void) addMessageToReport:(NSString*) report;
 

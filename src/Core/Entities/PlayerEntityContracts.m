@@ -493,11 +493,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
 
 	if (unknown > 0)
-		unknown = 7 - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (market_rnd % unknown);
 	else
-		unknown = 7;
+		unknown = MAX_CONTRACT_REP;
 	
-	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -MAX_CONTRACT_REP to +MAX_CONTRACT_REP
 }
 
 
@@ -511,7 +511,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		// shift a bean from bad to unknown
 		bad--;
-		if (unknown < 7)
+		if (unknown < MAX_CONTRACT_REP)
 			unknown++;
 	}
 	else
@@ -519,7 +519,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to good
 		if (unknown > 0)
 			unknown--;
-		if (good < 7)
+		if (good < MAX_CONTRACT_REP)
 			good++;
 	}
 	[reputation oo_setInteger:good		forKey:PASSAGE_GOOD_KEY];
@@ -538,7 +538,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		// shift a bean from good to bad
 		good--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	else
@@ -546,7 +546,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to bad
 		if (unknown > 0)
 			unknown--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	[reputation oo_setInteger:good		forKey:PASSAGE_GOOD_KEY];
@@ -562,11 +562,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 	
 	if (unknown > 0)
-		unknown = 7 - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (market_rnd % unknown);
 	else
-		unknown = 7;
+		unknown = MAX_CONTRACT_REP;
 	
-	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -MAX_CONTRACT_REP to +MAX_CONTRACT_REP
 }
 
 
@@ -580,7 +580,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		// shift a bean from bad to unknown
 		bad--;
-		if (unknown < 7)
+		if (unknown < MAX_CONTRACT_REP)
 			unknown++;
 	}
 	else
@@ -588,7 +588,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to good
 		if (unknown > 0)
 			unknown--;
-		if (good < 7)
+		if (good < MAX_CONTRACT_REP)
 			good++;
 	}
 	[reputation oo_setInteger:good		forKey:PARCEL_GOOD_KEY];
@@ -607,7 +607,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		// shift a bean from good to bad
 		good--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	else
@@ -615,7 +615,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to bad
 		if (unknown > 0)
 			unknown--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	[reputation oo_setInteger:good		forKey:PARCEL_GOOD_KEY];
@@ -631,11 +631,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
 	
 	if (unknown > 0)
-		unknown = 7 - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (market_rnd % unknown);
 	else
-		unknown = 7;
+		unknown = MAX_CONTRACT_REP;
 	
-	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -MAX_CONTRACT_REP to +MAX_CONTRACT_REP
 }
 
 
@@ -649,7 +649,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		// shift a bean from bad to unknown
 		bad--;
-		if (unknown < 7)
+		if (unknown < MAX_CONTRACT_REP)
 			unknown++;
 	}
 	else
@@ -657,7 +657,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to good
 		if (unknown > 0)
 			unknown--;
-		if (good < 7)
+		if (good < MAX_CONTRACT_REP)
 			good++;
 	}
 	[reputation oo_setInteger:good		forKey:CONTRACTS_GOOD_KEY];
@@ -676,7 +676,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	{
 		// shift a bean from good to bad
 		good--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	else
@@ -684,7 +684,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to bad
 		if (unknown > 0)
 			unknown--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	[reputation oo_setInteger:good		forKey:CONTRACTS_GOOD_KEY];
@@ -705,7 +705,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int pl_bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
 	int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 	
-	if (c_unknown < 7)
+	if (c_unknown < MAX_CONTRACT_REP)
 	{
 		if (c_bad > 0)
 			c_bad--;
@@ -717,7 +717,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		c_unknown++;
 	}
 	
-	if (p_unknown < 7)
+	if (p_unknown < MAX_CONTRACT_REP)
 	{
 		if (p_bad > 0)
 			p_bad--;
@@ -729,7 +729,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		p_unknown++;
 	}
 
-	if (pl_unknown < 7)
+	if (pl_unknown < MAX_CONTRACT_REP)
 	{
 		if (pl_bad > 0)
 			pl_bad--;
@@ -752,6 +752,57 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	[reputation setObject:[NSNumber numberWithInt:pl_unknown]	forKey:PARCEL_UNKNOWN_KEY];
 	
 }
+
+
+/* Update reputation levels in case of change in MAX_CONTRACT_REP */
+- (void) normaliseReputation
+{
+	int c_good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
+	int c_bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
+	int c_unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
+	int p_good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
+	int p_bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
+	int p_unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
+	int pl_good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
+	int pl_bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
+	int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+
+	int c = c_good + c_bad + c_unknown;
+	if (c != MAX_CONTRACT_REP)
+	{
+		c_good = c_good * MAX_CONTRACT_REP / c;
+		c_bad = c_bad * MAX_CONTRACT_REP / c;
+		c_unknown = MAX_CONTRACT_REP - c_good - c_bad;
+	}
+
+	int p = p_good + p_bad + p_unknown;
+	if (p != MAX_CONTRACT_REP)
+	{
+		p_good = p_good * MAX_CONTRACT_REP / p;
+		p_bad = p_bad * MAX_CONTRACT_REP / p;
+		p_unknown = MAX_CONTRACT_REP - p_good - p_bad;
+	}
+	
+	int pl = pl_good + pl_bad + pl_unknown;
+	if (pl != MAX_CONTRACT_REP)
+	{
+		pl_good = pl_good * MAX_CONTRACT_REP / pl;
+		pl_bad = pl_bad * MAX_CONTRACT_REP / pl;
+		pl_unknown = MAX_CONTRACT_REP - pl_good - pl_bad;
+	}
+
+	[reputation setObject:[NSNumber numberWithInt:c_good]		forKey:CONTRACTS_GOOD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:c_bad]		forKey:CONTRACTS_BAD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:c_unknown]	forKey:CONTRACTS_UNKNOWN_KEY];
+	[reputation setObject:[NSNumber numberWithInt:p_good]		forKey:PASSAGE_GOOD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:p_bad]		forKey:PASSAGE_BAD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:p_unknown]	forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_good]		forKey:PARCEL_GOOD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_bad]		forKey:PARCEL_BAD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_unknown]	forKey:PARCEL_UNKNOWN_KEY];
+	
+}
+
 
 /*
 - (void) setGuiToContractsScreen

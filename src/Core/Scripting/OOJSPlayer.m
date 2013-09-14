@@ -240,17 +240,16 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kPlayer_trumbleCount:
 			return JS_NewNumberValue(context, [player trumbleCount], value);
 			
+			/* For compatibility with previous versions, these are on
+			 * a -7 to +7 scale */
 		case kPlayer_contractReputation:
-			*value = INT_TO_JSVAL([player contractReputation]);
-			return YES;
+			return JS_NewNumberValue(context, ((float)[player contractReputation])/10.0, value);
 			
 		case kPlayer_passengerReputation:
-			*value = INT_TO_JSVAL([player passengerReputation]);
-			return YES;
+			return JS_NewNumberValue(context, ((float)[player passengerReputation])/10.0, value);
 
 		case kPlayer_parcelReputation:
-			*value = INT_TO_JSVAL([player parcelReputation]);
-			return YES;
+			return JS_NewNumberValue(context, ((float)[player parcelReputation])/10.0, value);
 			
 		case kPlayer_dockingClearanceStatus:
 			// EMMSTRAN: OOConstToJSString-ify this.

@@ -749,11 +749,11 @@ static GLfloat		sBaseMass = 0.0;
 	int pGood = [reputation oo_intForKey:PARCEL_GOOD_KEY];
 	int pBad = [reputation oo_intForKey:PARCEL_BAD_KEY];
 	int pUnknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
-	if (pGood+pBad+pUnknown != 7)
+	if (pGood+pBad+pUnknown != MAX_CONTRACT_REP)
 	{
 		[reputation oo_setInteger:0 forKey:PARCEL_GOOD_KEY];
 		[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
-		[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
+		[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PARCEL_UNKNOWN_KEY];
 	}
 
 	// passengers
@@ -982,7 +982,8 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation release];
 	reputation = [[dict oo_dictionaryForKey:@"reputation"] mutableCopy];
 	if (reputation == nil)  reputation = [[NSMutableDictionary alloc] init];
-	
+	[self normaliseReputation];
+
 	// passengers and contracts
 	[parcels release];
 	[parcel_record release];
@@ -1491,13 +1492,13 @@ static GLfloat		sBaseMass = 0.0;
 	reputation = [[NSMutableDictionary alloc] initWithCapacity:6];
 	[reputation oo_setInteger:0 forKey:CONTRACTS_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:CONTRACTS_BAD_KEY];
-	[reputation oo_setInteger:7 forKey:CONTRACTS_UNKNOWN_KEY];
+	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:CONTRACTS_UNKNOWN_KEY];
 	[reputation oo_setInteger:0 forKey:PASSAGE_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:PASSAGE_BAD_KEY];
-	[reputation oo_setInteger:7 forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PASSAGE_UNKNOWN_KEY];
 	[reputation oo_setInteger:0 forKey:PARCEL_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
-	[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
+	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PARCEL_UNKNOWN_KEY];
 	
 	roleWeights = [[NSMutableArray alloc] initWithCapacity:16];
 	for (i = 0 ; i < 16 ; i++)
