@@ -601,6 +601,8 @@ static void PlayTrumbleSqueal(void);
 		if (selectedCargopod)
 		{
 			// feed
+			float trumbleAppetiteAccumulator = [player trumbleAppetiteAccumulator];
+			
 			trumbleAppetiteAccumulator += hunger;
 			hunger = 0.0;
 			discomfort -= mostYummy * 0.5;
@@ -621,6 +623,8 @@ static void PlayTrumbleSqueal(void);
 				{
 					readyToSpawn = YES;
 				}
+				
+				[player setTrumbleAppetiteAccumulator:trumbleAppetiteAccumulator];
 			}
 		}
 	}

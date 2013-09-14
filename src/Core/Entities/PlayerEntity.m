@@ -9127,7 +9127,7 @@ static NSString *last_outfitting_key=nil;
 
 - (void) setUpTrumbles
 {
-	NSMutableString* trumbleDigrams = [NSMutableString stringWithCapacity:256];
+	NSMutableString *trumbleDigrams = [NSMutableString stringWithCapacity:256];
 	unichar	xchar = (unichar)0;
 	unichar digramchars[2];
 
@@ -9156,7 +9156,7 @@ static NSString *last_outfitting_key=nil;
 	
 	trumbleCount = 0;
 	
-	trumbleAppetiteAccumulator = 0.0f;
+	[self setTrumbleAppetiteAccumulator:0.0f];
 }
 
 
@@ -9332,6 +9332,18 @@ static NSString *last_outfitting_key=nil;
 	trumbleHash = munge_checksum(trumbleCount);
 	
 	[[NSUserDefaults standardUserDefaults]  setInteger:trumbleHash forKey:namekey];
+}
+
+
+- (float) trumbleAppetiteAccumulator
+{
+	return _trumbleAppetiteAccumulator;
+}
+
+
+- (void) setTrumbleAppetiteAccumulator:(float)value
+{
+	_trumbleAppetiteAccumulator = value;
 }
 
 

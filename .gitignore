@@ -22,7 +22,9 @@ deps/Cocoa-deps/sparkle
 build/
 oolite.app
 obj.spk
+obj.win.spk
 obj.spk.dbg
+obj.win.spk.dbg
 DebugOXP/requires.plist
 AddOns/
 

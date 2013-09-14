@@ -126,7 +126,7 @@ MA 02110-1301, USA.
 	scanClass = CLASS_NO_DRAW;
 	
 	[self setSunColor:sun_color];
-	
+		
 	corona_blending=OOClamp_0_1_f([dict oo_floatForKey:@"corona_hues" defaultValue:1.0f]);
 	corona_speed_factor=[dict oo_floatForKey:@"corona_shimmer" defaultValue:-1.0];
 	if(corona_speed_factor<0)

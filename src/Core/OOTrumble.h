@@ -66,9 +66,8 @@ enum trumble_mouth
 	TRUMBLE_MOUTH_NORMAL
 };
 
-float	trumbleAppetiteAccumulator;
 
-@interface OOTrumble : NSObject
+@interface OOTrumble: NSObject
 {
 @private
 	PlayerEntity			*player;	// owning entity (not retained)
@@ -115,12 +114,12 @@ float	trumbleAppetiteAccumulator;
 	BOOL					readyToSpawn;
 }
 
-- (id) initForPlayer:(PlayerEntity*) p1;
-- (id) initForPlayer:(PlayerEntity*) p1 digram:(NSString*) digramString;
+- (id) initForPlayer:(PlayerEntity *)p1;
+- (id) initForPlayer:(PlayerEntity *)p1 digram:(NSString*) digramString;
 
-- (void) setupForPlayer:(PlayerEntity*) p1 digram:(NSString*) digramString;
+- (void) setupForPlayer:(PlayerEntity *)p1 digram:(NSString*) digramString;
 
-- (void) spawnFrom:(OOTrumble*) parentTrumble;
+- (void) spawnFrom:(OOTrumble *)parentTrumble;
 
 - (void) calcGrowthRate;
 
@@ -159,7 +158,7 @@ float	trumbleAppetiteAccumulator;
 - (void) updateSleep:(double) delta_t;
 - (void) updateSpawn:(double) delta_t;
 
-- (NSDictionary*) dictionary;
-- (void) setFromDictionary:(NSDictionary*) dict;
+- (NSDictionary *)dictionary;
+- (void) setFromDictionary:(NSDictionary *)dict;
 
 @end

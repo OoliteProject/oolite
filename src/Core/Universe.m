@@ -905,6 +905,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	HPVector				stationPos;
 	
 	Vector				vf;
+	id			dict_object;
 	
 	NSDictionary		*systeminfo = [self generateSystemData:system_seed useCache:NO];
 	unsigned			techlevel = [systeminfo oo_unsignedIntForKey:KEY_TECHLEVEL];
@@ -950,7 +951,16 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	// pick a main sequence colour
 
-	bgcolor = [OOColor colorWithHue:h1 saturation:0.75*randf() brightness:0.65+randf()/5.0 alpha:1.0];
+	dict_object=[systeminfo objectForKey:@"sun_color"];
+	if (dict_object!=nil) 
+	{
+		bgcolor = [OOColor colorWithDescription:dict_object];
+	}
+	else
+	{
+		bgcolor = [OOColor colorWithHue:h1 saturation:0.75*randf() brightness:0.65+randf()/5.0 alpha:1.0];
+	}
+
 	pale_bgcolor = [bgcolor blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
 	[thing release];
 	/*--*/
@@ -984,7 +994,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	double		sunDistanceModifier;
 	double		safeDistance;
 	int			posIterator=0;
-	id			dict_object;
 	Quaternion  q_sun;
 	HPVector		sunPos;
 	
@@ -2759,7 +2768,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position;
+- (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position
 {
 	if ([role isEqualToString:@""])
 	{
@@ -3140,7 +3149,19 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (ShipEntity *) newSubentityWithName:(NSString *)shipKey
+{
+	return [self newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES];
+}
+
+
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy
+{
+	return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:NO];
+}
+
+
+- (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity
 {
 	OOJS_PROFILE_ENTER
 	
@@ -3150,10 +3171,18 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipDict == nil)  return nil;
 	
-	volatile Class shipClass = [self shipClassForShipDictionary:shipDict];
-	if (usePlayerProxy && shipClass == [ShipEntity class])
+	volatile Class shipClass = nil;
+	if (isSubentity)
 	{
-		shipClass = [ProxyPlayerEntity class];
+		shipClass = [ShipEntity class];
+	}
+	else
+	{
+		shipClass = [self shipClassForShipDictionary:shipDict];
+		if (usePlayerProxy && shipClass == [ShipEntity class])
+		{
+			shipClass = [ProxyPlayerEntity class];
+		}
 	}
 	
 	@try

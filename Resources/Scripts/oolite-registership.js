@@ -40,12 +40,15 @@ this.version		= "1.79";
 
 this.startUp = this.shipWillExitWitchspace = function()
 {
-	system.mainStation.setInterface("oolite-registership",{
-		title: expandMissionText("oolite-registership-interface-title"),
-		category: expandMissionText("oolite-registership-interface-category"),
-		summary: expandMissionText("oolite-registership-interface-summary"),
-		callback: this._registerShip.bind(this)
-	});
+	if (system.mainStation)
+	{
+		system.mainStation.setInterface("oolite-registership",{
+			title: expandMissionText("oolite-registership-interface-title"),
+			category: expandMissionText("oolite-registership-interface-category"),
+			summary: expandMissionText("oolite-registership-interface-summary"),
+			callback: this._registerShip.bind(this)
+		});
+	}
 }
 
 
