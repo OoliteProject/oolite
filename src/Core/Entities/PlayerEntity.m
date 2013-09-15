@@ -1146,21 +1146,20 @@ static GLfloat		sBaseMass = 0.0;
 	// role weights
 	[roleWeights release];
 	roleWeights = [[dict oo_arrayForKey:@"role_weights"] mutableCopy];
+	NSUInteger rc = [self maxPlayerRoles];
 	if (roleWeights == nil)
 	{
-		NSUInteger rc = 16;
-		if (ship_kills > 6400)
-		{
-			rc = 64;
-		}
-		else if (ship_kills > 128)
-		{
-			rc = 32;
-		}
 		roleWeights = [[NSMutableArray alloc] initWithCapacity:rc];
 		while (rc-- > 0)
 		{
 			[roleWeights addObject:@"player-unknown"];
+		}
+	}
+	else
+	{
+		if ([roleWeights count] > rc)
+		{
+			[roleWeights removeObjectsInRange:(NSRange) {rc,[roleWeights count]-rc}];
 		}
 	}
 
@@ -1500,8 +1499,8 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
 	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PARCEL_UNKNOWN_KEY];
 	
-	roleWeights = [[NSMutableArray alloc] initWithCapacity:16];
-	for (i = 0 ; i < 16 ; i++)
+	roleWeights = [[NSMutableArray alloc] initWithCapacity:8];
+	for (i = 0 ; i < 8 ; i++)
 	{
 		[roleWeights addObject:@"player-unknown"];
 	}
@@ -3749,7 +3748,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		role = @"pirate";
 	}
-	else if ([[victim primaryRole] hasPrefix:@"hunter"] || [victim scanClass] == CLASS_POLICE)
+	else if ([UNIVERSE role:[self primaryRole] isInCategory:@"oolite-hunter"] || [victim scanClass] == CLASS_POLICE)
 	{
 		role = @"pirate-interceptor";
 	}
@@ -3810,7 +3809,8 @@ static GLfloat		sBaseMass = 0.0;
 	if (!includingLongRange)
 	{
 		NSString *role = [roleWeights objectAtIndex:slot];
-		if ([role hasSuffix:@"+"])
+		// long range roles cleared at 1/2 normal rate
+		if ([role hasSuffix:@"+"] && randf() > 0.5)
 		{
 			return;
 		}
@@ -3836,15 +3836,15 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (ship_kills >= 6400)
 	{
-		return 64;
+		return 32;
 	}
 	else if (ship_kills >= 128)
 	{
-		return 32;
+		return 16;
 	}
 	else
 	{
-		return 16;
+		return 8;
 	}
 }
 

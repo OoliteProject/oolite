@@ -37,6 +37,7 @@ this.aiStarted = function() {
 	ai.setCommunicationsRole("assassin");
 
 	ai.setParameter("oolite_flag_witchspacePursuit",true);
+	ai.setParameter("oolite_flag_surrendersLate",true);
 
 	ai.setPriorities([
 		/* Fight */

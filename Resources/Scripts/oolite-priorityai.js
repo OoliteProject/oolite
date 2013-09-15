@@ -544,8 +544,13 @@ PriorityAIController.prototype.checkScannerWithPredicate = function(predicate)
 		var io = (i+offset)%sl;
 		if (predicate.call(this,scan[io]))
 		{
-			this.setParameter("oolite_scanResultSpecific",scan[io]);
-			return true;
+			// stops ships near the witchpoint beginning an attack on the player
+			// before they've even got ship control back
+			if (scan[io].status != "STATUS_EXITING_WITCHSPACE")
+			{
+				this.setParameter("oolite_scanResultSpecific",scan[io]);
+				return true;
+			}
 		}
 	}
 	return false;
@@ -1178,7 +1183,14 @@ PriorityAIController.prototype.threatAssessment = function(ship,full)
 	{
 		return 1; // mostly ignore stations in assessment
 	}
-	return worldScripts["oolite-libPriorityAI"]._threatAssessment(ship,full);
+	var ta = worldScripts["oolite-libPriorityAI"]._threatAssessment(ship,full);
+	if (!full && ship.isPlayer && ship.alertCondition < 3 && this.playerRole != "player-unknown")
+	{
+		// we haven't already added on the player's skill bonus, but
+		// the player is somewhat known
+		ta += Math.pow(player.score,0.33)/10;
+	}
+	return ta;
 }
 
 /* ****************** Condition functions ************** */
@@ -2656,6 +2668,7 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 		{
 			// entering attack mode
 			this.communicate("oolite_beginningAttack",this.ship.target,3);
+			this.ship.requestHelpFromGroup();
 		}
 		else 
 		{
@@ -2996,9 +3009,10 @@ PriorityAIController.prototype.behaviourFollowGroupLeader = function()
 	}
 	else
 	{
-		this.ship.destination = this.ship.group.leader.position;
+		var gl = this.ship.group.leader;
+		this.ship.destination = gl.position.add(gl.vectorForward.multiply(gl.speed*10));
 		this.ship.desiredRange = 500+Math.random()*1000;
-		this.ship.desiredSpeed = this.ship.maxSpeed;
+		this.ship.desiredSpeed = Math.min(this.ship.maxSpeed,gl.speed*1.5);
 		this.behaviourApproachDestination();
 	}
 }
@@ -3181,6 +3195,7 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 		{
 			// entering attack mode
 			this.communicate("oolite_beginningAttack",target,3);
+			this.ship.requestHelpFromGroup();
 		}
 		else if (this.ship.target)
 		{

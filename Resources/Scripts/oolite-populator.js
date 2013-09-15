@@ -777,7 +777,7 @@ this.systemWillPopulate = function()
 		// if carrying high-risk contracts through dangerous systems,
 		// especially bottlenecks, add some more assassins
 		// specifically waiting for the player
-		var cs = ship.parcels;
+		var cs = player.ship.parcels;
 		for (var i = cs.length-1; i >= 0 ; i--)
 		{
 			if (bottleneck)
@@ -793,10 +793,12 @@ this.systemWillPopulate = function()
 			}
 			else if (cs[i].destination == system.ID)
 			{
+				// if you're going to intercept, waiting in the
+				// destination system for the package isn't a bad idea
 				initial += Math.random()*cs[i].risk;
 			}
 		}
-		cs = ship.passengers;
+		cs = player.ship.passengers;
 		for (i = cs.length-1; i >= 0 ; i--)
 		{
 			if (bottleneck)
@@ -1837,13 +1839,12 @@ this._addAssassin = function(pos)
 	if (Math.random() > g / 10)
 	{
 		role = "assassin-medium";
-		extra = 2;
+		extra = 1;
 		ws = 2.5;
 		if (Math.random() > g / 5)
 		{
 			role = "assassin-heavy";
 			ws = 2.8;
-			extra = 4;
 		}
 	}
 	var main = this._addShips(role,1,pos,0)[0];
@@ -1865,8 +1866,15 @@ this._addAssassin = function(pos)
 	{
 		var g = new ShipGroup("assassin group",main);
 		main.group = g;
-		var extras = this._addShips("assassin-light",extra,pos,3E3);
-		for (var i=0;i<extra;i++)
+		if (role == "assassin-heavy")
+		{
+			var extras = this._addShips("assassin-medium",2,pos,3E3);
+		}
+		else
+		{
+			var extras = this._addShips("assassin-light",2,pos,3E3);
+		}
+		for (var i=0;i<2;i++)
 		{
 			extras[i].group = g;
 			g.addShip(extras[i]);
