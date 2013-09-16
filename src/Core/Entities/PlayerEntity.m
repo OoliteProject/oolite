@@ -3740,7 +3740,11 @@ static GLfloat		sBaseMass = 0.0;
 		return;
 	}
 	NSString *role = nil;
-	if ([victim bounty] > 0)
+	if ([[victim primaryRole] isEqualToString:@"escape-capsule"])
+	{
+		role = @"assassin-player";
+	}
+	else if ([victim bounty] > 0)
 	{
 		role = @"hunter";
 	}

@@ -80,9 +80,7 @@ this.PriorityAIController = function(ship)
 
 	function _handlerShipDied()
 	{
-		{
-			this.cleanup();
-		}
+		this.cleanup();
 	}
 
 
@@ -1252,7 +1250,7 @@ PriorityAIController.prototype.conditionCombatOddsGood = function()
 
 PriorityAIController.prototype.conditionCombatOddsExcellent = function()
 {
-	return this.oddsAssessment() >= 3.0;
+	return this.oddsAssessment() >= 5.0;
 }
 
 
@@ -3281,8 +3279,8 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 		if (this.conditionCombatOddsExcellent())
 		{
 			// if we have overwhelming force, can get away with demanding more
-			demand *= 1.5+Math.random();
-			// between 7.5% and 37.5% of cargo
+			demand *= 1+Math.random();
+			// between 5% and 30% of cargo
 		}
 		demand = Math.ceil(demand); // round it up so there's always at least 1
 
@@ -4901,6 +4899,31 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 	if (this.ship.isFleeing)
 	{
 		this.communicate("oolite_surrender",{},3);
+		if (whom.isPlayer && this.ship.AIScript.oolite_intership.cargodemandpaid && this.ship.energy < 16)
+		{
+			/* Firing on surrendered traders means you're probably
+			 * trying to kill them rather than rob them. Prefer
+			 * replacing pirate roles. */
+			if (!this.__ltcache.oolite_assassinPlayer)
+			{
+				this.__ltcache.oolite_assassinPlayer = true;
+				var pws = player.roleWeights;
+				var found = false;
+				for (var i=pws.length-1;i>=0;i--)
+				{
+					if (pws[i] == "pirate")
+					{
+						player.setPlayerRole("assassin-player",i);
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+				{
+					player.setPlayerRole("assassin-player");
+				}
+			}
+		}
 	}
 	if ((whom.scanClass == "CLASS_THARGOID") && (this.ship.scanClass != "CLASS_THARGOID") && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
 	{
@@ -4963,7 +4986,18 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 	{
 		// don't need to check here: most AIs won't check if a cargo
 		// demand exists, so setting it is harmless
-		this.ship.AIScript.oolite_intership.cargodemand = Math.ceil(this.ship.cargoSpaceCapacity / 15);
+		if (this.shipInRoleCategory(whom,"oolite-pirate"))
+		{
+			this.ship.AIScript.oolite_intership.cargodemand = Math.ceil(this.ship.cargoSpaceCapacity / 10);
+		}
+		else if (this.shipInRoleCategory(whom,"oolite-assassin"))
+		{
+			this.ship.AIScript.oolite_intership.cargodemand = Math.ceil(this.ship.cargoSpaceCapacity / 20); // worth a try
+		}
+		else
+		{
+			this.ship.AIScript.oolite_intership.cargodemand = Math.ceil(this.ship.cargoSpaceCapacity / 15);
+		}
 	}
 
 	if (this.ship.escortGroup != null)

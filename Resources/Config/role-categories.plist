@@ -101,7 +101,8 @@
 	"oolite-assassin" = (
 		"assassin-light",
 		"assassin-medium",
-		"assassin-heavy"
+		"assassin-heavy",
+		"assassin-player"
 	);
 
 
