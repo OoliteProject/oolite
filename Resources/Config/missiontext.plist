@@ -120,6 +120,10 @@
 	"oolite-contracts-passengers-command-list" = "List all contracts";
 	"oolite-contracts-passengers-command-accept" = "Accept transport contract";
 	"oolite-contracts-passengers-command-unavailable" = "(no free passenger cabins)";
+	"oolite-contracts-passengers-command-unavailable-both" = "(looking for more experienced carrier)";
+	"oolite-contracts-passengers-command-unavailable-rep" = "(looking for more reliable carrier)";
+	"oolite-contracts-passengers-command-unavailable-kills" = "(looking for carrier with more combat experience)";
+
 	"oolite-contracts-passengers-command-quit" = "Exit passenger transport contracts";
 
 	// Cargo delivery contracts (oolite-contracts-cargo.js)

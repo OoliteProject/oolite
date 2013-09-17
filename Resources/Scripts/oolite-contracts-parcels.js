@@ -340,14 +340,14 @@ this._initialiseParcelContractsForSystem = function()
 			prudence = (2*Math.random())-1;
 		}
 		var desperation = (Math.random()*(0.5+parcel.risk)) * (1+1/(Math.max(0.5,dtime-(routeToDestination.time * 3600))));
-		var competency = (routeToDestination.route.length-1)*(1+(parcel.risk*2));
+		var competency = Math.max(50,(routeToDestination.route.length-1)*(1+(parcel.risk*2)));
 		if(parcel.risk == 0)
 		{
 			competency -= 10;
 		}
-		parcel.payment = Math.floor(parcel.payment * (1+(0.2*prudence)));
+		parcel.payment = Math.floor(parcel.payment * (1+(0.4*prudence)));
 		parcel.payment += (parcel.risk * 200);
-		parcel.skill = competency + 10*(prudence-desperation);
+		parcel.skill = competency + 20*(prudence-desperation);
 		
 
 		// add parcel to contract list
@@ -501,11 +501,12 @@ this._parcelContractSummaryPage = function()
 		// needs to be aligned left to line up with the heading
 		options["01_CONTRACT_"+i] = { text: optionText, alignment: "LEFT" };
 		
-		// if there doesn't appear to be sufficient time remaining
+		// if the player isn't good enough
 		if (parcel.skill > playerrep)
 		{
 			options["01_CONTRACT_"+i].color = "darkGrayColor";
 		}
+		// if there doesn't appear to be sufficient time remaining
 		else if (this.$helper._timeRemainingSeconds(parcel) < this.$helper._timeEstimateSeconds(parcel))
 		{
 			options["01_CONTRACT_"+i].color = "orangeColor";

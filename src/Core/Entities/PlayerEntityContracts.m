@@ -494,7 +494,7 @@ static unsigned RepForRisk(unsigned risk);
 	int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
 
 	if (unknown > 0)
-		unknown = MAX_CONTRACT_REP - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (((2*unknown)+(market_rnd % unknown))/3);
 	else
 		unknown = MAX_CONTRACT_REP;
 	
@@ -644,7 +644,7 @@ for (unsigned i=0;i<amount;i++)
 	int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
 	
 	if (unknown > 0)
-		unknown = MAX_CONTRACT_REP - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (((2*unknown)+(market_rnd % unknown))/3);
 	else
 		unknown = MAX_CONTRACT_REP;
 	
@@ -787,7 +787,11 @@ for (unsigned i=0;i<amount;i++)
 	int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 
 	int c = c_good + c_bad + c_unknown;
-	if (c != MAX_CONTRACT_REP)
+	if (c == 0)
+	{
+		c_unknown = MAX_CONTRACT_REP;
+	}
+	else if (c != MAX_CONTRACT_REP)
 	{
 		c_good = c_good * MAX_CONTRACT_REP / c;
 		c_bad = c_bad * MAX_CONTRACT_REP / c;
@@ -795,7 +799,11 @@ for (unsigned i=0;i<amount;i++)
 	}
 
 	int p = p_good + p_bad + p_unknown;
-	if (p != MAX_CONTRACT_REP)
+	if (p == 0)
+	{
+		p_unknown = MAX_CONTRACT_REP;
+	}
+	else if (p != MAX_CONTRACT_REP)
 	{
 		p_good = p_good * MAX_CONTRACT_REP / p;
 		p_bad = p_bad * MAX_CONTRACT_REP / p;
@@ -803,7 +811,11 @@ for (unsigned i=0;i<amount;i++)
 	}
 	
 	int pl = pl_good + pl_bad + pl_unknown;
-	if (pl != MAX_CONTRACT_REP)
+	if (pl == 0)
+	{
+		pl_unknown = MAX_CONTRACT_REP;
+	}
+	else if (pl != MAX_CONTRACT_REP)
 	{
 		pl_good = pl_good * MAX_CONTRACT_REP / pl;
 		pl_bad = pl_bad * MAX_CONTRACT_REP / pl;

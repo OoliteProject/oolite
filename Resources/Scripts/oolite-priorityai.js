@@ -412,6 +412,15 @@ this.PriorityAIController = function(ship)
 	}
 
 
+	this.reconsiderIn = function(delta)
+	{
+		if (delta >= 0.1)
+		{
+			_resetReconsideration.call(this,delta);
+		}
+	}
+
+
 	this.setCommunicationsRole = function(role)
 	{
 		commsRole = role;
@@ -548,6 +557,11 @@ PriorityAIController.prototype.checkScannerWithPredicate = function(predicate)
 			{
 				this.setParameter("oolite_scanResultSpecific",scan[io]);
 				return true;
+			}
+			else
+			{
+				// something's coming out; reconsider sooner
+				this.reconsiderIn(5);
 			}
 		}
 	}
