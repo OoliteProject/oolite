@@ -1860,7 +1860,7 @@ this._addAssassin = function(pos)
 		this._setWeapons(main,ws);
 		this._setSkill(main,extra);
 	}
-	main.bounty = Math.floor(Math.random()*10);
+//	main.bounty = 1+Math.floor(Math.random()*10);
 	main.switchAI("oolite-assassinAI.js");
 	if (extra > 0)
 	{
@@ -1884,7 +1884,7 @@ this._addAssassin = function(pos)
 				extras[i].fuel = 7;
 				this._setWeapons(extras[i],1.8);
 			}
-			extras[i].bounty = 1+Math.floor(Math.random()*5);
+//			extras[i].bounty = 1+Math.floor(Math.random()*5);
 			extras[i].switchAI("oolite-assassinAI.js");
 		}
 	}

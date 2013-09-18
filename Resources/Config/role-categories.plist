@@ -124,4 +124,37 @@
 		"scavenger"
 	);
 
+	/* Roles the police are more likely to side with in a clean v
+	 * clean fight */
+	"oolite-police-like" = (
+		"trader",
+		"trader-courier",
+		"trader-courier+",
+		"shuttle",
+		"miner",
+		"hunter",
+		"hunter-medium",
+		"hunter-heavy"
+	);
+
+	/* Roles the police are less likely to side with in a clean v
+	 * clean fight */
+	"oolite-police-dislike" = (
+		"pirate",
+		"pirate-light-fighter",
+		"pirate-medium-fighter",
+		"pirate-heavy-fighter",
+		"pirate-light-freighter",
+		"pirate-medium-freighter",
+		"pirate-heavy-freighter",
+		"pirate-aegis-raider",
+		"pirate-interceptor",
+		"assassin-light",
+		"assassin-medium",
+		"assassin-heavy",
+		"assassin-player"
+	);
+
+
+
 }

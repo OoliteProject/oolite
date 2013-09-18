@@ -996,7 +996,7 @@ PriorityAIController.prototype.playerRoleAssessment = function()
 		{
 			leader.AIScript.oolite_intership.oolite_player_role = player.roleWeights[Math.floor(Math.random()*player.roleWeights.length)];
 		}
-			role = leader.AIScript.oolite_intership.oolite_player_role;
+		role = leader.AIScript.oolite_intership.oolite_player_role;
 		// save leader's decision
 		this.ship.AIScript.oolite_intership.oolite_player_role = role;
 	}
@@ -1014,8 +1014,9 @@ PriorityAIController.prototype.playerRoleAssessment = function()
 			this.ship.AIScript.oolite_intership.oolite_player_role = role; // save decision
 		}
 	}
-
 	this.playerRole = role;
+	log(this.ship.displayName,this.playerRole);
+
 }
 
 
@@ -4692,14 +4693,30 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby = function(attacker, victim)
 {
 	if (this.ship == victim) return; // other handlers can get this one
+	if (this.distance(attacker) > this.scannerRange) return; // can't mark what you can't see
 	if (this.getParameter("oolite_flag_markOffenders")) 
 	{
+		if (attacker.bounty == 0 && victim.bounty == 0)
+		{
+			if ((this.shipInRoleCategory(victim,"oolite-police-dislike") && !this.shipInRoleCategory(attacker,"oolite-police-dislike")) ||
+				(this.shipInRoleCategory(attacker,"oolite-police-like") && !this.shipInRoleCategory(victim,"oolite-police-like")))
+			{
+				if (victim.hasHostileTarget)
+				{
+					// they're both fighting; it's likely that the
+					// attacker is fighting in self-defence; so swap them
+					var tmp = victim;
+					victim = attacker;
+					attacker = tmp;
+				}
+			}
+		}
 		if (!attacker.isPlayer && attacker.target != victim)
 		{
-			// ignore friendly fire if they were aiming at a pirate
-			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-pirate"))
+			// ignore friendly fire if they were aiming at a pirate/assassin
+			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
 			{
-				// but we might go after the pirate ourselves in a bit
+				// but we might go after the pirate/assassin ourselves in a bit
 				this.ship.addDefenseTarget(attacker.target);
 				return;
 			}
@@ -4709,6 +4726,7 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 			this.communicate("oolite_friendlyFire",attacker,3);
 			return;
 		}
+
 		if (attacker.bounty & 7 != 7)
 		{
 			this.communicate("oolite_offenceDetected",attacker,3);
@@ -5414,14 +5432,30 @@ PriorityAIController.prototype.responseComponent_station_distressMessageReceived
 PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby = function(attacker, victim)
 {
 	if (this.ship == victim) return; // other handlers can get this one
+	if (this.distance(attacker) > this.scannerRange) return; // can't mark what you can't see
 	if (this.getParameter("oolite_flag_markOffenders")) 
 	{
+		if (attacker.bounty == 0 && victim.bounty == 0)
+		{
+			if ((this.shipInRoleCategory(victim,"oolite-police-dislike") && !this.shipInRoleCategory(attacker,"oolite-police-dislike")) ||
+				(this.shipInRoleCategory(attacker,"oolite-police-like") && !this.shipInRoleCategory(victim,"oolite-police-like")))
+			{
+				if (victim.hasHostileTarget)
+				{
+					// they're both fighting; it's likely that the
+					// attacker is fighting in self-defence; so swap them
+					var tmp = victim;
+					victim = attacker;
+					attacker = tmp;
+				}
+			}
+		}
 		if (!attacker.isPlayer && attacker.target != victim)
 		{
-			// ignore friendly fire if they were aiming at a pirate
-			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-pirate"))
+			// ignore friendly fire if they were aiming at a pirate/assassin
+			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
 			{
-				// but we might go after the pirate ourselves in a bit
+				// but we might go after the pirate/assassin ourselves in a bit
 				this.ship.addDefenseTarget(attacker.target);
 				return;
 			}
