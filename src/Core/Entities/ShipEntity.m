@@ -8156,7 +8156,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	int speed_low = 200;
 
 	NSArray *jetsam = nil;  // this will contain the stuff to get thrown out
-	unsigned cargo_chance = 10;
+	unsigned cargo_chance = 70;
 	jetsam = [NSArray arrayWithArray:cargo];   // what the ship is carrying
 	[cargo removeAllObjects];   // dispense with it!
 	unsigned limit = 15;
@@ -8167,6 +8167,18 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 		{
+			// a higher chance of getting at least a couple of bits of cargo out
+			if (cargo_chance > 10)
+			{
+				if (EXPECT_NOT([self isPlayer]))
+				{
+					cargo_chance -= 20;
+				}
+				else
+				{
+					cargo_chance -= 30;
+				}
+			}
 			limit--;
 			ShipEntity* cargoObj = [jetsam objectAtIndex:i];
 			ShipEntity* container = [UNIVERSE reifyCargoPod:cargoObj];
