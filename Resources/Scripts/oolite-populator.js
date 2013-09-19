@@ -1904,7 +1904,10 @@ this._addPolicePatrol = function(pos)
 		h.ships[i].bounty = 0;
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
-		h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
+		if (h.ships[i].AIScript.oolite_intership)
+		{
+			h.ships[i].AIScript.oolite_intership.initial_group = h.ships.length;
+		}
 		if (system.info.techlevel >= 14)
 		{
 			this._setMissiles(h.ships[i],1);

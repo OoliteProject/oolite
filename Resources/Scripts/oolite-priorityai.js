@@ -469,6 +469,10 @@ PriorityAIController.prototype.name = this.name;
 
 PriorityAIController.prototype.allied = function(ship1,ship2)
 {
+	if (!ship1.isShip || !ship2.isShip)
+	{
+		return false;
+	}
 	// ships in same group
 	var g1 = ship1.group;
 	if (g1 && g1.containsShip(ship2))
@@ -1015,8 +1019,6 @@ PriorityAIController.prototype.playerRoleAssessment = function()
 		}
 	}
 	this.playerRole = role;
-	log(this.ship.displayName,this.playerRole);
-
 }
 
 
@@ -2215,6 +2217,14 @@ PriorityAIController.prototype.conditionScannerContainsShipNeedingEscort = funct
 }
 
 
+PriorityAIController.prototype.conditionScannerContainsSuspiciousShip = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		return (s.primaryRole && this.shipInRoleCategory(s,"oolite-police-dislike"));
+	});
+}
+
+
 PriorityAIController.prototype.conditionScannerContainsThargoidMothership = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
@@ -2342,6 +2352,13 @@ PriorityAIController.prototype.conditionCargoIsProfitableHere = function()
 	}
 	return this.__ltcache.oolite_conditionCargoIsProfitableHere;
 }
+
+
+PriorityAIController.prototype.conditionCoinFlip = function()
+{
+	return (Math.random() < 0.5);
+}
+
 
 
 PriorityAIController.prototype.conditionGroupLeaderIsStation = function()
@@ -2983,22 +3000,32 @@ PriorityAIController.prototype.behaviourFollowCurrentTarget = function()
 	}
 
 	this.ship.destination = rt.position;
+
 	if (rt.status == "STATUS_ENTERING_WITCHSPACE")
 	{
-		var pos = rt.position;
-		var ws = system.wormholes;
-		// most likely to be most recent
-		for (var i=ws.length-1; i>=0; i--)
+		if (ai.getParameter("oolite_flag_witchspacePursuit"))
 		{
-			if (ws[i].position.distanceTo(pos) < 100)
+			var pos = rt.position;
+			var ws = system.wormholes;
+			// most likely to be most recent
+			for (var i=ws.length-1; i>=0; i--)
 			{
-				this.setParameter("oolite_witchspaceWormhole",ws[i]);
-				this.setParameter("oolite_rememberedTarget",null);
-				break;
+				if (ws[i].position.distanceTo(pos) < 100)
+				{
+					this.setParameter("oolite_witchspaceWormhole",ws[i]);
+					this.setParameter("oolite_rememberedTarget",null);
+					break;
+				}
 			}
-		}
 
-		this.ship.desiredRange = 0; // use wormhole
+			this.ship.desiredRange = 0; // use wormhole
+		}
+		else
+		{
+			this.ship.destination = this.ship.position;
+			this.ship.target = null;
+			this.ship.setParameter("oolite_rememberedTarget",null);
+		}
 	}
 	else
 	{
@@ -4227,6 +4254,18 @@ PriorityAIController.prototype.configurationSetDestinationToPirateLurk = functio
 }
 
 
+PriorityAIController.prototype.configurationSetDestinationToScannedTarget = function()
+{
+	var ship = this.getParameter("oolite_scanResultSpecific");
+	if (ship && ship.isShip)
+	{
+		this.ship.destination = ship.position;
+		this.ship.desiredRange = 4000;
+		this.ship.desiredSpeed = this.cruiseSpeed();
+	}
+}
+
+
 PriorityAIController.prototype.configurationSetDestinationToSelectedPlanet = function()
 {
 	var planet = this.getParameter("oolite_selectedPlanet");
@@ -4919,7 +4958,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 			whom.setBounty(whom.bounty | 63,"attacked main station");
 		}
 	}
-	if (this.ship.target == this.getParameter("oolite_dockingStation"))
+	if (this.ship.target && !this.ship.hasHostileTarget)
 	{
 		// don't get confused and shoot the station!
 		this.ship.target = null;

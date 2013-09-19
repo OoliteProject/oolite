@@ -145,6 +145,20 @@ this.aiStarted = function() {
 					/* The group leader leads the patrol */
 					condition: ai.conditionIsGroupLeader,
 					truebranch: [
+						{
+							/* Sometimes follow, sometimes not */
+							label: "Consider following suspicious?",
+							condition: ai.conditionCoinFlip,
+							truebranch: [
+								/* Suspicious characters */
+								{
+									condition: ai.conditionScannerContainsSuspiciousShip,
+									configuration: ai.configurationSetDestinationToScannedTarget,
+									behaviour: ai.behaviourApproachDestination,
+									reconsider: 20
+								}
+							]
+						},
 						/* Nothing interesting here. Patrol for a bit */
 						{
 							condition: ai.conditionHasWaypoint,
