@@ -73,6 +73,7 @@ MA 02110-1301, USA.
 #import "OORingEffectEntity.h"
 #import "OOLightParticleEntity.h"
 #import "OOFlashEffectEntity.h"
+#import "OOExplosionCloudEntity.h"
 
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
@@ -347,6 +348,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	// Preload particle effect textures:
 	[OOLightParticleEntity setUpTexture];
 	[OOFlashEffectEntity setUpTexture];
+	[OOExplosionCloudEntity setUpTexture];
 	
 	player = [PlayerEntity sharedPlayer];
 	[player deferredInit];

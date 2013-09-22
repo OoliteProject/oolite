@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #define kGrowthRateFactor			150.0f	// if average flashSize is 80 then this is 12000
 #define kMinExplosionGrowth			600.0f
 #define kLaserFlashInitialSize		1.0f
-
+#define kExplosionFlashAlpha		0.5f
 
 static OOTexture *sFlashTexture = nil;
 
@@ -60,6 +60,7 @@ static OOTexture *sFlashTexture = nil;
 	if ((self = [self initWithPosition:pos size:size color:[OOColor whiteColor] duration:kExplosionFlashDuration]))
 	{
 		_growthRate = fmax(_growthRate, kMinExplosionGrowth);
+		_alpha = kExplosionFlashAlpha;
 		[self setVelocity:vel];
 	}
 	return self;
@@ -71,6 +72,7 @@ static OOTexture *sFlashTexture = nil;
 	if ((self = [self initWithPosition:pos size:kLaserFlashInitialSize color:color duration:kLaserFlashDuration]))
 	{
 		[self setVelocity:vel];
+		_alpha = 1.0f;
 	}
 	return self;
 }
@@ -114,7 +116,7 @@ static OOTexture *sFlashTexture = nil;
 	
 	// Fade in and out.
 	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
-	_colorComponents[3] = (lifeTime < tf) ? (lifeTime / tf) : (_duration - lifeTime) / tf1;
+	_colorComponents[3] = _alpha * ((lifeTime < tf) ? (lifeTime / tf) : (_duration - lifeTime) / tf1);
 	
 	// Disappear as necessary.
 	if (lifeTime > _duration)  [UNIVERSE removeEntity:self];

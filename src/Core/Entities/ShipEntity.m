@@ -70,6 +70,7 @@ MA 02110-1301, USA.
 #import "OOECMBlastEntity.h"
 #import "OOPlasmaShotEntity.h"
 #import "OOFlashEffectEntity.h"
+#import "OOExplosionCloudEntity.h"
 #import "ProxyPlayerEntity.h"
 #import "OOLaserShotEntity.h"
 #import "OOQuiriumCascadeEntity.h"
@@ -7888,9 +7889,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (add_debris)
 			{
 				// 1. fast sparks
-				[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
+//				[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
 				 // 2. slow clouds
-				[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
+				[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self]];			
+//				[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
 			}
 			// 3. flash
 			[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];

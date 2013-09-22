@@ -182,6 +182,7 @@ OOLITE_ENTITY_FILES = \
     OOPlasmaShotEntity.m \
     OOPlasmaBurstEntity.m \
     OOFlashEffectEntity.m \
+    OOExplosionCloudEntity.m \
     ShipEntityLoadRestore.m \
     OOLaserShotEntity.m \
     OOQuiriumCascadeEntity.m \

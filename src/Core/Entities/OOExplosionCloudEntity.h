@@ -1,8 +1,8 @@
 /*
 
-OOFlashEffectEntity.h
+OOExplosionCloudEntity.h
 
-Flashes during explosions and laser hits - not to be confused with flashers.
+Cloud effect during explosions
 
 
 Oolite
@@ -25,19 +25,16 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#import "OOParticleSystem.h"
 
 
-@interface OOFlashEffectEntity: OOLightParticleEntity
+@interface OOExplosionCloudEntity: OOParticleSystem
 {
 @private
-	float				_duration;
 	float				_growthRate;
-	float				_alpha;
 }
 
-+ (instancetype) explosionFlashFromEntity:(Entity *)entity;
-+ (instancetype) laserFlashWithPosition:(HPVector)position velocity:(Vector)vel color:(OOColor *)color;
++ (instancetype) explosionCloudFromEntity:(Entity *)entity;
 
 + (void) setUpTexture;
 
