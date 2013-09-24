@@ -499,6 +499,15 @@ this.systemWillPopulate = function()
 		police = traders + pirates;
 	}
 	police = police / 3;
+	if (system.info.government <= 1)
+	{
+		// no police patrols away from the station - add more bounty
+		// hunters instead
+		hlight += police;
+		hunters += police;
+		this.$repopulatorFrequencyOutgoing.hunterLightPacks = hlight;
+		police = 0;
+	}
 	/* high-tech systems will send interceptor wings out specifically
 	 * to deal with incoming heavy pirate packs */
 	var interceptors = 0;
