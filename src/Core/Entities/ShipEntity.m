@@ -7677,6 +7677,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 		}
 	}
+
+	// and a visual sign of the explosion
+	// "fireball" explosion effect
+	[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSize:range*3.0]];
+
 }
 
 
@@ -7888,11 +7893,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			
 			if (add_debris)
 			{
-				// 1. fast sparks
-//				[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
-				 // 2. slow clouds
-				[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self]];			
-//				[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
+				if ((scanClass == CLASS_CARGO && ![self isHulk]) || scanClass == CLASS_MISSILE || scanClass == CLASS_MINE)
+				{
+					// "burst" explosion effect for small explosions
+					// 1. fast sparks
+					[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
+					// 2. slow clouds
+					[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
+				}
+				else
+				{
+					// "fireball" explosion effect
+					[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self]];								
+				}
 			}
 			// 3. flash
 			[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];

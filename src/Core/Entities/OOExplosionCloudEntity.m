@@ -55,6 +55,11 @@ static OOTexture *sCloudTexture2 = nil;
 	GLfloat baseColor[4] = {1.0,1.0,1.0,1.0};
 	_growthRate = kGrowthRateFactor * size;
 
+	if (magnitude2(vel) > 1000000)
+	{
+		vel = vector_multiply_scalar(vector_normal(vel),1000);
+	}
+
 	if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size*0.8 maxSpeed:size*1.2 duration:kExplosionCloudDuration baseColor:baseColor]))
 	{
 		for (i=0;i<count;i++) 
@@ -82,6 +87,12 @@ static OOTexture *sCloudTexture2 = nil;
 + (instancetype) explosionCloudFromEntity:(Entity *)entity
 {
 	return [[[self alloc] initExplosionCloudWithPosition:[entity position] velocity:[entity velocity] size:[entity collisionRadius]*2.5] autorelease];
+}
+
+
++ (instancetype) explosionCloudFromEntity:(Entity *)entity withSize:(float)size
+{
+	return [[[self alloc] initExplosionCloudWithPosition:[entity position] velocity:[entity velocity] size:size] autorelease];
 }
 
 
@@ -128,17 +139,11 @@ static OOTexture *sCloudTexture2 = nil;
 }
 
 
-- (OOTexture *) texture:(NSUInteger)idx
+- (OOTexture *) texture
 {
-	if (sCloudTexture1 == nil)  [OOExplosionCloudEntity	setUpTexture];
-	if (idx < _count/5)
-	{
-		return sCloudTexture1;
-	}
-	else
-	{
-		return sCloudTexture2;
-	}
+	// TODO: some way to vary cloud textures
+	if (sCloudTexture2 == nil)  [OOExplosionCloudEntity	setUpTexture];
+	return sCloudTexture2;
 }
 
 

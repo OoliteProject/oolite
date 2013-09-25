@@ -2644,7 +2644,7 @@
 		model = "wreck1.dat";
 		name = "Wreckage";
 		roles = "wreckage";
-		scan_class = "CLASS_CARGO";
+		scan_class = "CLASS_NO_DRAW";
 		thrust = 0;
 		counts_as_kill = false;
 	};

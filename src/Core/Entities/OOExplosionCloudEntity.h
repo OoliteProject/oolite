@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 }
 
 + (instancetype) explosionCloudFromEntity:(Entity *)entity;
++ (instancetype) explosionCloudFromEntity:(Entity *)entity withSize:(float) size;
 
 + (void) setUpTexture;
 

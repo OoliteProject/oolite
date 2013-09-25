@@ -64,7 +64,7 @@ enum
 			   duration:(OOTimeDelta)duration
 			  baseColor:(GLfloat[4])baseColor;
 
-- (OOTexture *) texture:(NSUInteger)idx;
+- (OOTexture *) texture;
 
 @end
 

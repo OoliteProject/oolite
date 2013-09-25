@@ -142,9 +142,6 @@ do { \
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
 
-	OOTexture *tex = nil;
-	OOTexture *lastTex = nil;
-	
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
@@ -153,6 +150,7 @@ do { \
 	OOGL(glEnable(GL_TEXTURE_2D));
 	OOGL(glEnable(GL_BLEND));
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+	[[self texture] apply];
 	
 	HPVector		viewPosition = [PLAYER viewpointPosition];
 	HPVector		selfPosition = [self position];
@@ -171,12 +169,6 @@ do { \
 		OOGLBEGIN(GL_QUADS);
 		for (i = 0; i < count; i++)
 		{
-			OOTexture *tex = [self texture:i];
-			if (tex != lastTex)
-			{
-				lastTex = tex;
-				[tex apply];
-			}
 			glColor4fv(particleColor[i]);
 			DrawQuadForView(particlePosition[i].x, particlePosition[i].y, particlePosition[i].z, particleSize[i]);
 		}
@@ -200,13 +192,6 @@ do { \
 			
 			for (i = 0; i < count; i++)
 			{
-				OOTexture *tex = [self texture:i];
-				if (tex != lastTex)
-				{
-					lastTex = tex;
-					[tex apply];
-				}
-
 				OOGL(glPushMatrix());
 				GLTranslateOOVector(particlePosition[i]);
 				GLMultOOMatrix(bbMatrix);
@@ -257,7 +242,7 @@ do { \
 	return YES;
 }
 
-- (OOTexture *) texture:(NSUInteger)idx
+- (OOTexture *) texture
 {
 	return [OOLightParticleEntity defaultParticleTexture];
 }
