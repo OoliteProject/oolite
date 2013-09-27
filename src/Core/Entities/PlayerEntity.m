@@ -3150,6 +3150,10 @@ static GLfloat		sBaseMass = 0.0;
 - (HPVector) viewpointPosition
 {
 	HPVector		viewpoint = position;
+	if (showDemoShips)
+	{
+		viewpoint = kZeroHPVector;
+	}
 	Vector		offset = [self viewpointOffset];
 	
 	// FIXME: this ought to be done with matrix or quaternion functions.
