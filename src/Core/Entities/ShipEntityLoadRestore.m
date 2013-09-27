@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOShipGroup.h"
 #import "OOEquipmentType.h"
 #import "AI.h"
+#import "ShipEntityAI.h"
 
 
 #define KEY_SHIP_KEY				@"ship_key"
@@ -154,7 +155,16 @@ static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *con
 	// FIXME: AI.
 	// Eric: I think storing the AI name should be enough. On entering a wormhole, the stack is cleared so there are no preserved AI states.
 	// Also the AI restarts itself with the GLOBAL state, so no need to store any old state. 
-	[result setObject:[[self getAI] name] forKey:KEY_AI];
+	if ([[[self getAI] name] isEqualToString:@"nullAI.plist"])
+	{
+		// might be a JS version
+		[result setObject:[[self getAI] associatedJS] forKey:KEY_AI];
+		// if there isn't, loading nullAI.js will load nullAI.plist anyway
+	}
+	else
+	{
+		[result setObject:[[self getAI] name] forKey:KEY_AI];
+	}
 	
 	return result;
 }
@@ -187,7 +197,7 @@ static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *con
 		ship = [[[shipClass alloc] initWithKey:shipKey definition:mergedData] autorelease];
 		
 		// FIXME: restore AI.
-		[[ship getAI] setStateMachine:[dict oo_stringForKey:KEY_AI defaultValue:@"nullAI.plist"]];
+		[ship setAITo:[dict oo_stringForKey:KEY_AI defaultValue:@"nullAI.plist"]];
 		
 		[ship setPrimaryRole:[dict oo_stringForKey:KEY_PRIMARY_ROLE]];
 	

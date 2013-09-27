@@ -2,6 +2,9 @@
   /* General */
 	"oolite-populator.js",
 
+  /* AI Construction libraries */
+	"oolite-priorityai.js",
+
   /* Interfaces */
 	"oolite-contracts-cargo.js",
 	"oolite-contracts-helpers.js",

@@ -69,6 +69,7 @@ static JSBool SystemShipsWithRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemEntitiesWithScanClass(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemFilteredEntities(JSContext *context, uintN argc, jsval *vp);
 
+static JSBool SystemLocationFromCode(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroup(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
@@ -130,6 +131,8 @@ enum
 	kSystem_pseudoRandom256,		// constant-per-system pseudorandom number in [0..256), integer, read-only
 	kSystem_pseudoRandomNumber,		// constant-per-system pseudorandom number in [0..1), double, read-only
 	kSystem_sun,					// system's sun, Planet, read-only
+	kSystem_stations,     // list of dockable entities, read-only
+	kSystem_wormholes,     // list of active entry wormholes, read-only
 	kSystem_techLevel,				// tech level ID, integer, read/write
 };
 
@@ -159,6 +162,8 @@ static JSPropertySpec sSystemProperties[] =
 	{ "pseudoRandom100",		kSystem_pseudoRandom100,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandom256",		kSystem_pseudoRandom256,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandomNumber",		kSystem_pseudoRandomNumber,		OOJS_PROP_READONLY_CB },
+	{ "stations",					kSystem_stations,					OOJS_PROP_READONLY_CB },
+	{ "wormholes",					kSystem_wormholes,					OOJS_PROP_READONLY_CB },
 	{ "sun",					kSystem_sun,					OOJS_PROP_READONLY_CB },
 	{ "techLevel",				kSystem_techLevel,				OOJS_PROP_READWRITE_CB },
 	{ 0 }
@@ -181,6 +186,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "countShipsWithRole",				SystemCountShipsWithRole,			1 },
 	{ "entitiesWithScanClass",			SystemEntitiesWithScanClass,		1 },
 	{ "filteredEntities",				SystemFilteredEntities,				2 },
+	{ "locationFromCode",				SystemLocationFromCode,				1 },
 	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
 	{ "setPopulator",				SystemSetPopulator,				2 },
@@ -259,6 +265,16 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			handled = YES;
 			break;
 			
+		case kSystem_stations:
+			result = [UNIVERSE stations];
+			handled = YES;
+			break;
+
+		case kSystem_wormholes:
+			result = [UNIVERSE wormholes];
+			handled = YES;
+			break;
+
 		case kSystem_allShips:
 			OOJS_BEGIN_FULL_NATIVE(context)
 			result = [UNIVERSE findShipsMatchingPredicate:JSEntityIsJavaScriptSearchablePredicate parameter:NULL inRange:-1 ofEntity:nil];
@@ -846,6 +862,39 @@ static JSBool SystemFilteredEntities(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_RETURN_OBJECT(result);
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+// locationFromCode(populator_named_region : String)
+static JSBool SystemLocationFromCode(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString			*code = nil;
+	if (argc > 0)  
+	{
+		code = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (EXPECT_NOT(code == nil))
+	{
+		OOJSReportBadArguments(context, @"System", @"locationFromCode", argc, OOJS_ARGV, nil, @"location code");
+		return NO;
+	}
+	OOSunEntity *sun = [UNIVERSE sun];
+	OOPlanetEntity *planet = [UNIVERSE planet];
+	HPVector position = kZeroHPVector;
+	if (sun == nil || planet == nil)
+	{
+		position = [UNIVERSE locationByCode:@"WITCHPOINT" withSun:nil andPlanet:nil];
+	}
+	else
+	{
+		position = [UNIVERSE locationByCode:code withSun:sun andPlanet:planet];
+	}
+
+	OOJS_RETURN_HPVECTOR(position);
+
 	OOJS_NATIVE_EXIT
 }
 

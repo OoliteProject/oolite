@@ -146,6 +146,8 @@ enum
 #define MIN_DISTANCE_TO_BUOY			750.0f // don't add ships within this distance
 #define MIN_DISTANCE_TO_BUOY2			(MIN_DISTANCE_TO_BUOY * MIN_DISTANCE_TO_BUOY)
 
+// if this is changed, also change oolite-populator.js
+// once this number has been in a stable release, cannot easily be changed
 #define SYSTEM_REPOPULATION_INTERVAL 20.0f;
 
 #ifndef OO_LOCALIZATION_TOOLS
@@ -239,10 +241,13 @@ enum
 	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentData;			// holds data on available equipment, loaded at initialisation
-	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
+//	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
+	NSDictionary			*roleCategories;		// Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist
 	NSDictionary			*autoAIMap;				// Default AIs for roles from autoAImap.plist.
 	NSDictionary			*screenBackgrounds;		// holds filenames for various screens backgrounds, loaded at initialisation
 	
+	NSDictionary      *cargoPods; // template cargo pods
+
 	Random_Seed				galaxy_seed;
 	Random_Seed				system_seed;
 	Random_Seed				target_system_seed;
@@ -259,6 +264,7 @@ enum
 	OOPlanetEntity			*cachedPlanet;
 	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
+	NSMutableSet			*allStations;
 	
 	NSMutableDictionary		*populatorSettings;
 	OOTimeDelta		next_repopulation;
@@ -353,6 +359,7 @@ enum
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
+- (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 - (void) setLighting;
 - (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;
@@ -379,6 +386,7 @@ enum
 - (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
+- (BOOL) role:(NSString *)role isInCategory:(NSString *)category;
 
 - (void) forceWitchspaceEntries;
 - (void) addWitchspaceJumpEffectForShip:(ShipEntity *)ship;
@@ -401,6 +409,8 @@ enum
 - (OOPlanetEntity *) planet;
 - (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
+- (NSArray *) stations; // includes main station
+- (NSArray *) wormholes; 
 - (StationEntity *) stationWithRole:(NSString *)role andPosition:(HPVector)position;
 
 // Turn main station into just another station, for blowUpStation.
@@ -441,7 +451,9 @@ enum
 - (int) legalStatusOfCommodity:(NSString *)commodity;
 - (int) legalStatusOfManifest:(NSArray *)manifest;
 
-- (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce;
+- (ShipEntity *) reifyCargoPod:(ShipEntity *)cargoObj;
+- (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj;
+- (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
 - (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many;
 - (void) fillCargopodWithRandomCargo:(ShipEntity *)cargopod;

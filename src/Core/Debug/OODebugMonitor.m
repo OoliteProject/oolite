@@ -622,6 +622,16 @@ typedef struct
 	 SizeString(totalTextureDataSize),
 	 SizeString(visibleTextureDataSize)];
 	
+	totalSize += [self dumpJSMemoryStatistics];
+	
+	[self writeMemStat:@"Total: %@", SizeString(totalSize)];
+	
+	OOLogOutdent();
+}
+
+
+- (size_t) dumpJSMemoryStatistics
+{
 	JSContext *context = OOJSAcquireContext();
 	
 	JSRuntime *runtime = JS_GetRuntime(context);
@@ -632,11 +642,7 @@ typedef struct
 	OOJSRelinquishContext(context);
 	
 	[self writeMemStat:@"JavaScript heap: %@ (limit %@, %u collections to date)", SizeString(jsSize), SizeString(jsMax), jsGCCount];
-	totalSize += jsSize;
-	
-	[self writeMemStat:@"Total: %@", SizeString(totalSize)];
-	
-	OOLogOutdent();
+	return jsSize;
 }
 
 

@@ -50,15 +50,17 @@ MA 02110-1301, USA.
 	OOTimeAbsolute		nextThinkTime;
 	OOTimeDelta			thinkTimeInterval;
 	
+	NSString      *jsScript;
 }
 
 + (AI *) currentlyRunningAI;
 + (NSString *) currentlyRunningAIDescription;
 
 - (NSString *) name;
+- (NSString *) associatedJS;
 - (NSString *) state;
 
-- (void) setStateMachine:(NSString *)smName;
+- (void) setStateMachine:(NSString *)smName withJSScript:(NSString *)script;
 - (void) setState:(NSString *)stateName;
 
 - (void) setStateMachine:(NSString *)smName afterDelay:(NSTimeInterval)delay;

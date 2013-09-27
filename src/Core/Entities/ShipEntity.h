@@ -89,7 +89,7 @@ OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
 #define AIMS_AGGRESSOR_SWITCHED_TARGET	@"AGGRESSOR_SWITCHED_TARGET"
 
 // number of vessels considered when scanning around
-#define MAX_SCAN_NUMBER					16
+#define MAX_SCAN_NUMBER					32
 
 #define BASELINE_SHIELD_LEVEL			128.0f			// Max shield level with no boosters.
 #define INITIAL_SHOT_TIME				100.0
@@ -206,6 +206,8 @@ typedef enum
 	
 	//scripting
 	OOJSScript				*script;
+	OOJSScript				*aiScript;
+	OOTimeAbsolute    aiScriptWakeTime;
 	
 	//docking instructions
 	NSDictionary			*dockingInstructions;
@@ -325,7 +327,8 @@ typedef enum
 	// derived variables
 	float					weapon_recharge_rate;		// time between shots
 	int						shot_counter;				// number of shots fired
-	double					cargo_dump_time;			// time cargo was last dumped
+	OOTimeAbsolute			cargo_dump_time;			// time cargo was last dumped
+	OOTimeAbsolute			last_shot_time;				// time shot was last fired
 	
 	NSMutableArray			*cargo;						// cargo containers go in here
 	
@@ -345,7 +348,8 @@ typedef enum
 	int					_missed_shots;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
-	
+	OOSystemID				home_system; 
+	OOSystemID				destination_system; 
 	
 	double					messageTime;				// counts down the seconds a radio message is active for
 	
@@ -448,9 +452,13 @@ typedef enum
 - (void) setAI:(AI *)ai;
 - (AI *) getAI;
 - (BOOL) hasAutoAI;
+- (BOOL) hasNewAI;
 - (void) setShipScript:(NSString *)script_name;
 - (void) removeScript;
 - (OOScript *) shipScript;
+- (OOScript *) shipAIScript;
+- (OOTimeAbsolute) shipAIScriptWakeTime;
+- (void) setAIScriptWakeTime:(OOTimeAbsolute) t;
 - (double) frustration;
 - (void) setLaunchDelay:(double)delay;
 
@@ -537,6 +545,7 @@ typedef enum
 - (Vector) forwardWeaponOffset;
 - (Vector) portWeaponOffset;
 - (Vector) starboardWeaponOffset;
+- (BOOL) hasAutoWeapons;
 
 - (BOOL) isFrangible;
 - (BOOL) suppressFlightNotifications;
@@ -717,9 +726,12 @@ typedef enum
 - (BOOL)isWeapon;		// isMissile || isWeapon
 - (BOOL)isEscort;		// Primary role is "escort" or "wingman"
 - (BOOL)isShuttle;		// Primary role is "shuttle"
+- (BOOL)isTurret;		// Behaviour is BEHAVIOUR_TRACK_AS_TURRET
 - (BOOL)isPirateVictim;	// Primary role is listed in pirate-victim-roles.plist
 - (BOOL)isUnpiloted;	// Has unpiloted = yes in its shipdata.plist entry
 
+- (OOAlertCondition) alertCondition; // quick calc for shaders
+- (OOAlertCondition) realAlertCondition; // full calculation for scripting
 - (BOOL) hasHostileTarget;
 - (BOOL) isHostileTo:(Entity *)entity;
 
@@ -727,6 +739,7 @@ typedef enum
 - (NSUInteger) defenseTargetCount;
 - (NSArray *) allDefenseTargets;
 - (NSEnumerator *) defenseTargetEnumerator;
+- (void) validateDefenseTargets;
 - (BOOL) addDefenseTarget:(Entity *)target;
 - (BOOL) isDefenseTarget:(Entity *)target;
 - (void) removeDefenseTarget:(Entity *)target;
@@ -760,6 +773,12 @@ typedef enum
 - (BOOL) withinStationAegis;
 - (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
 
+- (OOSystemID) homeSystem;
+- (OOSystemID) destinationSystem;
+- (void) setHomeSystem:(OOSystemID)s;
+- (void) setDestinationSystem:(OOSystemID)s;
+
+
 - (NSArray*) crew;
 - (void) setCrew:(NSArray *)crewArray;
 
@@ -791,6 +810,7 @@ typedef enum
 
 - (int) legalStatus;
 
+- (BOOL) isTemplateCargoPod;
 - (void) setUpCargoType:(NSString *)cargoString;
 - (void) setCommodity:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
 - (void) setCommodityForPod:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount;
@@ -801,6 +821,7 @@ typedef enum
 - (OOCargoQuantity) availableCargoSpace;
 - (OOCargoQuantity) cargoQuantityOnBoard;
 - (OOCargoType) cargoType;
+- (NSArray *) cargoListForScripting;
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *)some_cargo;
 - (BOOL) showScoopMessage;
@@ -809,6 +830,7 @@ typedef enum
 - (NSArray *) parcelListForScripting;
 - (NSArray *) contractListForScripting;
 - (NSArray *) equipmentListForScripting;
+- (OOWeaponType) weaponTypeIDForFacing:(OOWeaponFacing)facing;
 - (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing;
 - (NSArray *) missilesList;
 
@@ -902,6 +924,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
  -----------------------------------------*/
 
 - (void) checkScanner;
+- (void) checkScannerIgnoringUnpowered;
 - (ShipEntity**) scannedShips;
 - (int) numberOfScannedShips;
 
@@ -1067,6 +1090,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other;
 - (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride;
 
+- (BOOL) markedForFines;
 - (BOOL) markForFines;
 
 - (BOOL) isMining;

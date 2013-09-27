@@ -195,6 +195,16 @@ typedef enum
 } OOMissileStatus;
 
 
+typedef enum
+{
+	PLAYER_FLEEING_UNLIKELY = -1,
+	PLAYER_FLEEING_NONE = 0,
+	PLAYER_FLEEING_MAYBE = 1,
+	PLAYER_FLEEING_CARGO = 2,
+	PLAYER_FLEEING_LIKELY = 3
+} OOPlayerFleeingStatus;
+
+
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -305,7 +315,11 @@ typedef enum
 	NSMutableDictionary		*shipyard_record;
 	
 	NSMutableDictionary		*missionDestinations;
-
+	NSMutableArray			*roleWeights;
+	// temporary flags for role actions taking multiple steps, cleared on jump
+	NSMutableDictionary		*roleWeightFlags;
+	NSMutableArray			*roleSystemList; // list of recently visited sysids
+	
 	double					script_time;
 	double					script_time_check;
 	double					script_time_interval;
@@ -355,6 +369,7 @@ typedef enum
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;
 	OOAlertCondition		lastScriptAlertCondition;
+	OOPlayerFleeingStatus	fleeing_status;
 	OOMissileStatus			missile_status;
 	NSUInteger				activeMissile;
 	NSUInteger				primedEquipment;
@@ -710,6 +725,7 @@ typedef enum
 - (int) alertFlags;
 - (void) setAlertFlag:(int)flag to:(BOOL)value;
 - (OOAlertCondition) alertCondition;
+- (OOPlayerFleeingStatus) fleeingStatus;
 
 - (BOOL) mountMissile:(ShipEntity *)missile;
 - (BOOL) mountMissileWithRole:(NSString *)role;
@@ -743,6 +759,16 @@ typedef enum
 
 - (BOOL) takeInternalDamage;
 
+- (NSMutableArray *) roleWeights;
+- (void) addRoleForAggression:(ShipEntity *)victim;
+- (void) addRoleForMining;
+- (void) addRoleToPlayer:(NSString *)role;
+- (void) addRoleToPlayer:(NSString *)role inSlot:(NSUInteger)slot;
+- (void) clearRoleFromPlayer:(BOOL)includingLongRange;
+- (void) clearRolesFromPlayer:(float)chance;
+- (NSUInteger) maxPlayerRoles;
+- (void) updateSystemMemory;
+
 - (void) loseTargetStatus;
 
 - (void) docked;
@@ -752,7 +778,9 @@ typedef enum
 - (NSString *) primedEquipmentName:(NSInteger)offset;
 - (NSUInteger) primedEquipmentCount;
 - (NSArray *) cargoList;
-- (NSArray *) cargoListForScripting;
+//- (NSArray *) cargoListForScripting; // now in ShipEntity
+- (unsigned) legalStatusOfCargoList;
+
 - (void) setGuiToSystemDataScreen;
 - (NSDictionary *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;

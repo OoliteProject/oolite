@@ -82,7 +82,7 @@ MA 02110-1301, USA.
 - (void) removeGCObjectRoot:(JSObject **)rootPtr;
 - (void) removeGCValueRoot:(jsval *)rootPtr;
 
-- (void) garbageCollectionOpportunity;
+- (void) garbageCollectionOpportunity:(BOOL)force;
 
 - (BOOL) showErrorLocations;
 - (void) setShowErrorLocations:(BOOL)value;

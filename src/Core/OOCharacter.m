@@ -216,7 +216,7 @@ MA 02110-1301, USA.
 	BOOL		specialSetUpDone = NO;
 	
 	role = [role lowercaseString];
-	if ([role isEqual:@"pirate"])
+	if ([role hasPrefix:@"pirate"])
 	{
 		// determine legalStatus for a completely random character
 		int sins = 0x08 | (genSeed.a & genSeed.b);
@@ -232,7 +232,7 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	else if ([role isEqual:@"trader"])
+	else if ([role hasPrefix:@"trader"])
 	{
 		[self setLegalStatus: 0];	// clean
 
@@ -254,7 +254,7 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	else if ([role isEqual:@"hunter"])
+	else if ([role hasPrefix:@"hunter"])
 	{
 		[self setLegalStatus:0];	// clean
 		int insurance_index = gen_rnd_number() & 0x03;
@@ -263,7 +263,7 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	else if ([role isEqual:@"police"])
+	else if ([role hasPrefix:@"police"])
 	{
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:125];

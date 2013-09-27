@@ -568,7 +568,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-		[shuttle_ship switchAITo:@"risingShuttleAI.plist"];
+		[shuttle_ship switchAITo:@"oolite-shuttleAI.js"];
 		[UNIVERSE addEntity:shuttle_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 		_shuttlesOnGround--;
 		_lastLaunchTime = [UNIVERSE getTime];

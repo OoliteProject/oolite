@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 //	AI methods also used in other code.
 
 - (void) setAITo:(NSString *)aiString;
+- (void) setAIScript:(NSString *)aiString;
 - (void) switchAITo:(NSString *)aiString;
 
 - (void) scanForHostiles;
@@ -44,6 +45,7 @@ MA 02110-1301, USA.
 - (void) enterPlayerWormhole;
 
 - (void) wormholeEscorts;
+- (void) wormholeEntireGroup;
 
 - (BOOL) suggestEscortTo:(ShipEntity *)mother;
 
@@ -66,6 +68,7 @@ MA 02110-1301, USA.
 - (void) performTumble;
 
 - (void) broadcastDistressMessage;
+- (void) broadcastDistressMessageWithDumping:(BOOL)dumpCargo;
 
 - (void) requestDockingCoordinates;
 - (void) recallDockingInstructions;

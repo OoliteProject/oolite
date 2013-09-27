@@ -76,6 +76,8 @@ typedef enum
 	BOOL					hasPatrolShips;
 	
 	OOUniversalID			planet;
+
+	NSString				*allegiance;
 	
 	NSMutableArray			*localMarket;
 //	NSMutableArray			*localPassengers;
@@ -136,6 +138,9 @@ typedef enum
 - (void) setPlanet:(OOPlanetEntity *)planet;
 
 - (OOPlanetEntity *) planet;
+
+- (void) setAllegiance:(NSString *)newAllegiance;
+- (NSString *)allegiance;
 
 - (unsigned) countOfDockedContractors;
 - (unsigned) countOfDockedPolice;
