@@ -6398,7 +6398,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
 	OOWeaponType weaponType = WEAPON_NONE;
 	

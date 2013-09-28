@@ -951,23 +951,23 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 			
 		case kShip_currentWeapon:
-			result = [entity weaponTypeForFacing:[entity currentWeaponFacing]];
+			result = [entity weaponTypeForFacing:[entity currentWeaponFacing] strict:YES];
 			break;
 		
 		case kShip_forwardWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD strict:YES];
 			break;
 		
 		case kShip_aftWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT strict:YES];
 			break;
 		
 		case kShip_portWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT strict:YES];
 			break;
 		
 		case kShip_starboardWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD strict:YES];
 			break;
 		
 		case kShip_laserHeatLevel:
@@ -3562,7 +3562,7 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		}
 
 		// check lasers
-		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD];
+		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD strict:NO];
 		if (wt == WEAPON_NONE)
 		{
 			assessment -= 1;
@@ -3571,18 +3571,18 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		{
 			assessment += ShipThreatAssessmentWeapon(wt);
 		}
-		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_AFT];
+		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_AFT strict:NO];
 		if (wt != WEAPON_NONE)
 		{
 			assessment += 1 + ShipThreatAssessmentWeapon(wt);
 		}
 		// port and starboard weapons less important
-		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_PORT];
+		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_PORT strict:NO];
 		if (wt != WEAPON_NONE)
 		{
 			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
-		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_STARBOARD];
+		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_STARBOARD strict:NO];
 		if (wt != WEAPON_NONE)
 		{
 			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;

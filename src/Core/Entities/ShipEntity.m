@@ -283,7 +283,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		port_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"port_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	if (weapon_facings & WEAPON_FACING_STARBOARD)
 		starboard_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"starboard_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	
+
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
 	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:YES]; // Nikos - switched passive cloak default to YES 20120523
@@ -2909,7 +2909,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOWeaponType) weaponTypeIDForFacing:(OOWeaponFacing)facing
+- (OOWeaponType) weaponTypeIDForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
 	OOWeaponType weaponType = WEAPON_NONE;
 
@@ -2919,8 +2919,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			case WEAPON_FACING_FORWARD:
 				weaponType = forward_weapon_type;
-				// if no forward weapon, see if subentities have forward weapons, return the first one found.
-				if (weaponType == WEAPON_NONE)
+				// if no forward weapon, and not carrying out a strict check, see if subentities have forward weapons, return the first one found.
+				if (weaponType == WEAPON_NONE && !strict)
 				{
 					NSEnumerator	*subEntEnum = [self shipSubEntityEnumerator];
 					ShipEntity		*subEntity = nil;
@@ -2950,9 +2950,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return weaponType;
 }
 
-- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
-	OOWeaponType weaponType = [self weaponTypeIDForFacing:facing];
+	OOWeaponType weaponType = [self weaponTypeIDForFacing:facing strict:strict];
 
 	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
 }
@@ -4964,7 +4964,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// need to dodge sooner if in aft sights
 		if ([target behaviour] != BEHAVIOUR_FLEE_TARGET && [target behaviour] != BEHAVIOUR_FLEE_EVASIVE_ACTION)
 		{
-			if ((aspect > 0.99999 && [target weaponTypeForFacing:WEAPON_FACING_FORWARD] != WEAPON_NONE) || (aspect < -0.999 && [target weaponTypeForFacing:WEAPON_FACING_AFT] != WEAPON_NONE)) 
+			if ((aspect > 0.99999 && [target weaponTypeForFacing:WEAPON_FACING_FORWARD strict:NO] != WEAPON_NONE) || (aspect < -0.999 && [target weaponTypeForFacing:WEAPON_FACING_AFT strict:NO] != WEAPON_NONE)) 
 			{
 				frustration = 0.0;
 				behaviour = BEHAVIOUR_EVASIVE_ACTION;

@@ -830,8 +830,8 @@ typedef enum
 - (NSArray *) parcelListForScripting;
 - (NSArray *) contractListForScripting;
 - (NSArray *) equipmentListForScripting;
-- (OOWeaponType) weaponTypeIDForFacing:(OOWeaponFacing)facing;
-- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing;
+- (OOWeaponType) weaponTypeIDForFacing:(OOWeaponFacing)facing strict:(BOOL)strict;
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict;
 - (NSArray *) missilesList;
 
 - (OOCargoFlag) cargoFlag;
