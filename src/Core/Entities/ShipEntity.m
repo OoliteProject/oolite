@@ -3955,7 +3955,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		double target_speed = [target speed];
 		if (desired_speed > target_speed * 3.0)
 		{
-			desired_speed = target_speed * 3.0; // don't overuse the injectors
+			desired_speed = maxFlightSpeed; // don't overuse the injectors
 		}
 	}
 
@@ -4087,7 +4087,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		double target_speed = [target speed];
 		if (desired_speed > target_speed)
 		{
-			desired_speed = target_speed; // don't overuse the injectors
+			desired_speed = maxFlightSpeed; // don't overuse the injectors
 		}
 	}
 	
@@ -5019,7 +5019,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		double target_speed = [target speed];
 		if (desired_speed > target_speed * 2.0)
 		{
-			desired_speed = target_speed * 2.0; // don't overuse the injectors
+			desired_speed = maxFlightSpeed; // don't overuse the injectors
 		}
 	}
 	else if (desired_speed < maxFlightSpeed * 0.5)
