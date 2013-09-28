@@ -47,6 +47,8 @@ MA 02110-1301, USA.
 - (NSComparisonResult) compareBeaconCodeWith:(Entity <OOBeaconEntity>*) other;
 - (NSString *) beaconCode;
 - (void) setBeaconCode:(NSString *)bcode;
+- (NSString *) beaconLabel;
+- (void) setBeaconLabel:(NSString *)blabel;
 - (BOOL) isBeacon;
 - (id <OOHUDBeaconIcon>) beaconDrawable;
 - (Entity <OOBeaconEntity> *) prevBeacon;

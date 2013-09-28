@@ -3904,6 +3904,21 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (NSString *) compassTargetLabel
+{
+	if (compassMode != COMPASS_MODE_BEACONS)
+	{
+		return @"";
+	}
+	Entity *target = [self compassTarget];
+	if (target)
+	{
+		return [(Entity <OOBeaconEntity> *)target beaconLabel];
+	}
+	return @"";
+}
+
+
 - (OOCompassMode) compassMode
 {
 	return compassMode;

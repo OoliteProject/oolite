@@ -192,6 +192,16 @@
 			width		= 10;
 			height		= 10;
 		},
+		{	// compass beacon/waypoint ID, x and y give the location, the size defines the character size
+			equipment_required 	= "EQ_ADVANCED_COMPASS";
+			selector		= "drawASCTarget:";
+			height		= 12;
+			width		= 12;
+			x		= 144;
+			y		= 0;
+			y_origin	= -1;
+			align = 1;
+		},
 		{	// weapons systems offline text, x and y give the location, the size defines the character size
 			height		= 8;
 			selector	= "drawWeaponsOfflineText:";

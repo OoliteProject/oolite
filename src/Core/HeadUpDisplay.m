@@ -134,6 +134,7 @@ enum
 - (void) drawDirectionCue:(NSDictionary *)info;
 - (void) drawClock:(NSDictionary *)info;
 - (void) drawPrimedEquipmentText:(NSDictionary *)info;
+- (void) drawASCTarget:(NSDictionary *)info;
 - (void) drawWeaponsOfflineText:(NSDictionary *)info;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
@@ -2539,6 +2540,44 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
+- (void) drawASCTarget:(NSDictionary *)info
+{
+	if ([PLAYER status] == STATUS_DOCKED || [PLAYER compassMode] != COMPASS_MODE_BEACONS)
+	{
+		// Can't have compass target when docked, and only needed in beacon mode
+		return;
+	}
+	
+	GLfloat				itemColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+
+	NSInteger x = useDefined(cached.x, ASCTARGET_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	NSInteger y = useDefined(cached.y, ASCTARGET_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	
+	NSSize size =
+	{
+		.width = useDefined(cached.width, ASCTARGET_DISPLAY_WIDTH),
+		.height = useDefined(cached.height, ASCTARGET_DISPLAY_HEIGHT)
+	};
+
+	GetRGBAArrayFromInfo(info, itemColor);
+	itemColor[3] *= overallAlpha;
+
+	OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
+	if ([info oo_intForKey:@"align"] == 1)
+	{
+		OODrawStringAligned([PLAYER compassTargetLabel], x, y, z1, size,YES);
+	}
+	else
+	{
+		OODrawStringAligned([PLAYER compassTargetLabel], x, y, z1, size,NO);
+	}
+	
+}
+
+
 - (void) drawWeaponsOfflineText:(NSDictionary *)info
 {
 	if (![PLAYER weaponsOnline])
@@ -3287,8 +3326,14 @@ void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
 
 void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
+	OODrawStringAligned(text,x,y,z,siz,NO);
+}
+
+
+void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
+{
 	GLfloat			cx = x;
-	NSUInteger		i, length;
+	NSInteger		i, length;
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
 	
@@ -3300,12 +3345,17 @@ void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 	data = [sEncodingCoverter convertString:text];
 	length = [data length];
 	bytes = [data bytes];
+
+	if (EXPECT_NOT(rightAlign))
+	{
+		cx -= OORectFromString(text, 0.0f, 0.0f, siz).size.width;
+	}
 	
 	OOGLBEGIN(GL_QUADS);
-		for (i = 0; i < length; i++)
-		{
-			cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
-		}
+	for (i = 0; i < length; i++)
+	{
+		cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
+	}
 	OOGLEND();
 	
 	[OOTexture applyNone];

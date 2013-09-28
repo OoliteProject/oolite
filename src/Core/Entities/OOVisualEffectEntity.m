@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 #import "ResourceManager.h"
 #import "OOStringParsing.h"
+#import "OOStringExpander.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOConstToJSString.h"
@@ -144,6 +145,7 @@ MA 02110-1301, USA.
 	_shaderVector2 = kZeroVector;
 
 	[self setBeaconCode:[effectDict oo_stringForKey:@"beacon"]];
+	[self setBeaconLabel:[effectDict oo_stringForKey:@"beacon_label" defaultValue:[self beaconCode]]];
 
 	scriptInfo = [[effectDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	[self setScript:[effectDict oo_stringForKey:@"script"]];
@@ -164,6 +166,7 @@ MA 02110-1301, USA.
 	DESTROY(scriptInfo);
 	DESTROY(script);
 	DESTROY(_beaconCode);
+	DESTROY(_beaconLabel);
 	DESTROY(_beaconDrawable);
 
 	[super dealloc];
@@ -770,10 +773,30 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	}
 }
 
+
+- (NSString *) beaconLabel
+{
+	return _beaconLabel;
+}
+
+
+- (void) setBeaconLabel:(NSString *)blabel
+{
+	if ([blabel length] == 0)  blabel = nil;
+	
+	if (_beaconLabel != blabel)
+	{
+		[_beaconLabel release];
+		_beaconLabel = [OOExpand(blabel) retain];
+	}
+}
+
+
 - (BOOL) isBeacon
 {
 	return [self beaconCode] != nil;
 }
+
 
 - (id <OOHUDBeaconIcon>) beaconDrawable
 {

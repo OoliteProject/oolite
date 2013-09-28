@@ -337,6 +337,7 @@
 		"drawStatusLight:",
 		"drawClock:",
 		"drawPrimedEquipment:",
+		"drawASCTarget:",
 		"drawWeaponsOfflineText:",
 		"drawFPSInfoCounter:"
 	);

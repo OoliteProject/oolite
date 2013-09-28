@@ -701,6 +701,7 @@ typedef enum
 
 - (Entity *) compassTarget;
 - (void) setCompassTarget:(Entity *)value;
+- (NSString *) compassTargetLabel;
 
 - (OOCompassMode) compassMode;
 - (void) setCompassMode:(OOCompassMode)value;
