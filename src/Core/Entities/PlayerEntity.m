@@ -3829,8 +3829,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) clearRolesFromPlayer:(float)chance
 {
-	NSUInteger i;
-	for (i = [roleWeights count]-1; i >= 0; i--)
+	NSUInteger i, count=[roleWeights count];
+	for (i = 0; i < count; i++)
 	{
 		if (randf() < chance)
 		{
