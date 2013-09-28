@@ -292,26 +292,26 @@ MA 02110-1301, USA.
 		if (ship_distance > SCANNER_MAX_RANGE)
 		{
 			// too far away - don't claim a docking slot by not putting on approachlist for now.
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO);
 		}
 
 		[self addShipToShipsOnApproach: ship];
 		
 		if (ship_distance < 1000.0 + [station collisionRadius] + ship->collision_radius)	// too close - back off
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], 0, 5000, @"BACK_OFF", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 5000, @"BACK_OFF", nil, NO);
 		
 		float dot = HPdot_product(launchVector, delta);
 		if (dot < 0) // approaching from the wrong side of the station - construct a vector to the side of the station.
 		{
 			HPVector approachVector = HPcross_product(HPvector_normal(delta), launchVector);
 			approachVector = HPcross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
-			return OOMakeDockingInstructions(station, OOHPVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , 0, 1000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, OOHPVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , [ship maxFlightSpeed], 1000, @"APPROACH", nil, NO);
 		}
 		
 		if (ship_distance > 12500.0)
 		{
 			// long way off - approach more closely
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], 0, 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO);
 		}
 	}
 	
@@ -441,7 +441,12 @@ MA 02110-1301, USA.
 {		
 	int			corridor_distance[] =	{	-1,	1,	3,	5,	7,	9,	11,	12,	12};
 	int			corridor_offset[] =		{	0,	0,	0,	0,	0,	0,	1,	3,	12};
-	int			corridor_speed[] =		{	48,	48,	48,	48,	36,	48,	64,	128, 512};	// how fast to approach the next point
+	/* Eric's improvements to the docking flight code seem to have
+	 * made it safer to go quite a bit faster here. With the increased
+	 * numbers of ships which might need to dock at the main station,
+	 * faster docking will help avoid massive queues. Previous speed
+	 * was mostly 48 - CIM: 27/8/2013*/
+	int			corridor_speed[] =		{	96,	96,	128,	128,	96,	128,	128,	256,	512};	// how fast to approach the next point
 	int			corridor_range[] =		{	24,	12,	6,	4,	4,	6,	15,	38,	96};	// how close you have to get to the target point
 	int			corridor_rotate[] =		{	1,	1,	1,	1,	0,	0,	0,	0,	0};		// whether to match the station rotation
 	int			corridor_count = 9;

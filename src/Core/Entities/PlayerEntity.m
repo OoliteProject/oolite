@@ -733,6 +733,15 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	if (primedEquipment < [eqScripts count]) [result setObject:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0] forKey:@"primed_equipment"];
 	
+	// roles
+	[result setObject:roleWeights forKey:@"role_weights"];
+
+	// role information
+	[result setObject:roleWeightFlags forKey:@"role_weight_flags"];
+
+	// role information
+	[result setObject:roleSystemList forKey:@"role_system_memory"];
+
 	// reputation
 	[result setObject:reputation forKey:@"reputation"];
 	
@@ -740,11 +749,11 @@ static GLfloat		sBaseMass = 0.0;
 	int pGood = [reputation oo_intForKey:PARCEL_GOOD_KEY];
 	int pBad = [reputation oo_intForKey:PARCEL_BAD_KEY];
 	int pUnknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
-	if (pGood+pBad+pUnknown != 7)
+	if (pGood+pBad+pUnknown != MAX_CONTRACT_REP)
 	{
 		[reputation oo_setInteger:0 forKey:PARCEL_GOOD_KEY];
 		[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
-		[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
+		[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PARCEL_UNKNOWN_KEY];
 	}
 
 	// passengers
@@ -973,7 +982,8 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation release];
 	reputation = [[dict oo_dictionaryForKey:@"reputation"] mutableCopy];
 	if (reputation == nil)  reputation = [[NSMutableDictionary alloc] init];
-	
+	[self normaliseReputation];
+
 	// passengers and contracts
 	[parcels release];
 	[parcel_record release];
@@ -1133,6 +1143,39 @@ static GLfloat		sBaseMass = 0.0;
 	ship_clock = [dict oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START];
 	fps_check_time = ship_clock;
 	
+	// role weights
+	[roleWeights release];
+	roleWeights = [[dict oo_arrayForKey:@"role_weights"] mutableCopy];
+	NSUInteger rc = [self maxPlayerRoles];
+	if (roleWeights == nil)
+	{
+		roleWeights = [[NSMutableArray alloc] initWithCapacity:rc];
+		while (rc-- > 0)
+		{
+			[roleWeights addObject:@"player-unknown"];
+		}
+	}
+	else
+	{
+		if ([roleWeights count] > rc)
+		{
+			[roleWeights removeObjectsInRange:(NSRange) {rc,[roleWeights count]-rc}];
+		}
+	}
+
+	roleWeightFlags = [[dict oo_dictionaryForKey:@"role_weight_Flags"] mutableCopy];
+	if (roleWeightFlags == nil)
+	{
+		roleWeightFlags = [[NSMutableDictionary alloc] init];
+	}
+
+	roleSystemList = [[dict oo_arrayForKey:@"role_system_memory"] mutableCopy];
+	if (roleSystemList == nil)
+	{
+		roleSystemList = [[NSMutableArray alloc] initWithCapacity:32];
+	}
+
+
 	// mission_variables
 	[mission_variables release];
 	mission_variables = [[dict oo_dictionaryForKey:@"mission_variables"] mutableCopy];
@@ -1448,14 +1491,23 @@ static GLfloat		sBaseMass = 0.0;
 	reputation = [[NSMutableDictionary alloc] initWithCapacity:6];
 	[reputation oo_setInteger:0 forKey:CONTRACTS_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:CONTRACTS_BAD_KEY];
-	[reputation oo_setInteger:7 forKey:CONTRACTS_UNKNOWN_KEY];
+	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:CONTRACTS_UNKNOWN_KEY];
 	[reputation oo_setInteger:0 forKey:PASSAGE_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:PASSAGE_BAD_KEY];
-	[reputation oo_setInteger:7 forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PASSAGE_UNKNOWN_KEY];
 	[reputation oo_setInteger:0 forKey:PARCEL_GOOD_KEY];
 	[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
-	[reputation oo_setInteger:7 forKey:PARCEL_UNKNOWN_KEY];
+	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PARCEL_UNKNOWN_KEY];
 	
+	roleWeights = [[NSMutableArray alloc] initWithCapacity:8];
+	for (i = 0 ; i < 8 ; i++)
+	{
+		[roleWeights addObject:@"player-unknown"];
+	}
+	roleWeightFlags = [[NSMutableDictionary alloc] init];
+
+	roleSystemList = [[NSMutableArray alloc] initWithCapacity:32];
+
 	energy					= 256;
 	weapon_temp				= 0.0f;
 	forward_weapon_temp		= 0.0f;
@@ -1641,6 +1693,8 @@ static GLfloat		sBaseMass = 0.0;
 	entity_personality = ranrot_rand() & 0x7FFF;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
+	[UNIVERSE setSystemTo:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
+
 	
 	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
 	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
@@ -1777,6 +1831,9 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(lastTextKey);
 	
 	DESTROY(reputation);
+	DESTROY(roleWeights);
+	DESTROY(roleWeightFlags);
+	DESTROY(roleSystemList);
 	DESTROY(passengers);
 	DESTROY(passenger_record);
 	DESTROY(contracts);
@@ -2384,10 +2441,40 @@ static GLfloat		sBaseMass = 0.0;
 		-- Ahruman 20070802
 	 */
 	OOAlertCondition cond = [self alertCondition];
+	OOTimeAbsolute t = [UNIVERSE getTime];
 	if (cond != lastScriptAlertCondition)
 	{
 		ShipScriptEventNoCx(self, "alertConditionChanged", INT_TO_JSVAL(cond), INT_TO_JSVAL(lastScriptAlertCondition));
 		lastScriptAlertCondition = cond;
+	}
+	/* Update heuristic assessment of whether player is fleeing */
+	if (cond == ALERT_CONDITION_DOCKED || cond == ALERT_CONDITION_GREEN || (cond == ALERT_CONDITION_YELLOW && energy == maxEnergy))
+	{
+		fleeing_status = PLAYER_FLEEING_NONE;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_UNLIKELY && (energy > maxEnergy*0.6 || cond != ALERT_CONDITION_RED))
+	{
+		fleeing_status = PLAYER_FLEEING_NONE;
+	}
+	else if ((fleeing_status == PLAYER_FLEEING_MAYBE || fleeing_status == PLAYER_FLEEING_UNLIKELY) && cargo_dump_time > last_shot_time)
+	{
+		fleeing_status = PLAYER_FLEEING_CARGO;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_MAYBE && last_shot_time + 10 > t)
+	{
+		fleeing_status = PLAYER_FLEEING_NONE;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_LIKELY && last_shot_time + 10 > t)
+	{
+		fleeing_status = PLAYER_FLEEING_UNLIKELY;
+	}
+	else if (fleeing_status == PLAYER_FLEEING_NONE && cond == ALERT_CONDITION_RED && last_shot_time + 10 < t && flightSpeed > 0.75*maxFlightSpeed)
+	{
+		fleeing_status = PLAYER_FLEEING_MAYBE;
+	}
+	else if ((fleeing_status == PLAYER_FLEEING_MAYBE || fleeing_status == PLAYER_FLEEING_CARGO) && cond == ALERT_CONDITION_RED && last_shot_time + 10 < t && flightSpeed > 0.75*maxFlightSpeed && energy < maxEnergy * 0.5 && (forward_shield < [self maxForwardShieldLevel]*0.25 || aft_shield < [self maxAftShieldLevel]*0.25))
+	{
+		fleeing_status = PLAYER_FLEEING_LIKELY;
 	}
 }
 
@@ -2590,9 +2677,10 @@ static GLfloat		sBaseMass = 0.0;
 - (void) resetAutopilotAI
 {
 	AI *myAI = [self getAI];
+	// JSAI: will need changing if oolite-dockingAI.js written
 	if (![[myAI name] isEqualToString:PLAYER_DOCKING_AI_NAME])
 	{
-		[myAI setStateMachine:PLAYER_DOCKING_AI_NAME];
+		[self setAITo:PLAYER_DOCKING_AI_NAME ];
 	}
 	[myAI clearAllData];
 	[myAI setState:@"GLOBAL"];
@@ -3643,6 +3731,160 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (NSMutableArray *) roleWeights
+{
+	return roleWeights;
+}
+
+
+- (void) addRoleForAggression:(ShipEntity *)victim
+{
+	if ([victim isUnpiloted] || [victim isHulk] || [victim hasHostileTarget] || [[victim primaryAggressor] isPlayer])
+	{
+		return;
+	}
+	NSString *role = nil;
+	if ([[victim primaryRole] isEqualToString:@"escape-capsule"])
+	{
+		role = @"assassin-player";
+	}
+	else if ([victim bounty] > 0)
+	{
+		role = @"hunter";
+	}
+	else if ([victim isPirateVictim])
+	{
+		role = @"pirate";
+	}
+	else if ([UNIVERSE role:[self primaryRole] isInCategory:@"oolite-hunter"] || [victim scanClass] == CLASS_POLICE)
+	{
+		role = @"pirate-interceptor";
+	}
+	if (role == nil)
+	{
+		return;
+	}
+	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
+	times++;
+	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	if ((times & (times-1)) == 0) // is power of 2
+	{
+		[self addRoleToPlayer:role];
+	}
+}
+
+
+- (void) addRoleForMining
+{
+	NSString *role = @"miner";
+	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
+	times++;
+	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	if ((times & (times-1)) == 0) // is power of 2
+	{
+		[self addRoleToPlayer:role];
+	}
+}
+
+
+- (void) addRoleToPlayer:(NSString *)role
+{
+	NSUInteger slot = Ranrot() & ([self maxPlayerRoles]-1);
+	[self addRoleToPlayer:role inSlot:slot];
+}
+
+
+- (void) addRoleToPlayer:(NSString *)role inSlot:(NSUInteger)slot
+{
+	if (slot >= [self maxPlayerRoles])
+	{
+		slot = [self maxPlayerRoles];
+	}
+	if (slot > [roleWeights count])
+	{
+		[roleWeights addObject:role];
+	}
+	else
+	{
+		[roleWeights replaceObjectAtIndex:slot withObject:role];
+	}
+}
+
+
+- (void) clearRoleFromPlayer:(BOOL)includingLongRange
+{
+	NSUInteger slot = Ranrot() % [roleWeights count];
+	if (!includingLongRange)
+	{
+		NSString *role = [roleWeights objectAtIndex:slot];
+		// long range roles cleared at 1/2 normal rate
+		if ([role hasSuffix:@"+"] && randf() > 0.5)
+		{
+			return;
+		}
+	}
+	[roleWeights replaceObjectAtIndex:slot withObject:@"player-unknown"];
+}
+
+
+- (void) clearRolesFromPlayer:(float)chance
+{
+	NSUInteger i;
+	for (i = [roleWeights count]-1; i >= 0; i--)
+	{
+		if (randf() < chance)
+		{
+			[roleWeights replaceObjectAtIndex:i withObject:@"player-unknown"];
+		}
+	}
+}
+
+
+- (NSUInteger) maxPlayerRoles
+{
+	if (ship_kills >= 6400)
+	{
+		return 32;
+	}
+	else if (ship_kills >= 128)
+	{
+		return 16;
+	}
+	else
+	{
+		return 8;
+	}
+}
+
+
+- (void) updateSystemMemory
+{
+	OOSystemID sys = [self currentSystemID];
+	if (sys < 0)
+	{
+		return;
+	}
+	NSUInteger memory = 4;
+	if (ship_kills >= 6400)
+	{
+		memory = 32;
+	}
+	else if (ship_kills >= 256)
+	{
+		memory = 16;
+	}
+	else if (ship_kills >= 64)
+	{
+		memory = 8;
+	}
+	if ([roleSystemList count] >= memory)
+	{
+		[roleSystemList removeObjectAtIndex:0];
+	}
+	[roleSystemList addObject:[NSNumber numberWithInt:sys]];
+}
+
+
 - (Entity *) compassTarget
 {
 	Entity *result = [compassTarget weakRefUnderlyingObject];
@@ -4011,6 +4253,12 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	return alertCondition;
+}
+
+
+- (OOPlayerFleeingStatus) fleeingStatus
+{
+	return fleeing_status;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -4820,11 +5068,25 @@ static GLfloat		sBaseMass = 0.0;
 	[self setDockTarget:[UNIVERSE station]];	// we're docking at the main station, if there is one
 	
 	[self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:escapePod];	// no player.ship properties should be available to script
-	
+
 	// reset legal status
 	[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
 	bounty = 0;
-	
+
+	// new ship, so lose some memory of player actions
+	if (ship_kills >= 6400)
+	{
+		[self clearRolesFromPlayer:0.1];
+	}
+	else if (ship_kills >= 2560)
+	{
+		[self clearRolesFromPlayer:0.25];
+	}
+	else
+	{
+		[self clearRolesFromPlayer:0.5];
+	}	
+
 	// reset trumbles
 	if (trumbleCount != 0)  trumbleCount = 1;
 	
@@ -5172,6 +5434,10 @@ static GLfloat		sBaseMass = 0.0;
 	[self moveForward:100.0];
 	
 	flightSpeed = 160.0f;
+	velocity = kZeroVector;
+	flightRoll = 0.0;
+	flightPitch = 0.0;
+	flightYaw = 0.0;
 	[[UNIVERSE messageGUI] clear];		// No messages for the dead.
 	[self suppressTargetLost];			// No target lost messages when dead.
 	[self playGameOver];
@@ -5327,7 +5593,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self setGuiToStatusScreen];
 	}
 	[[OOCacheManager sharedCache] flush];
-	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity];
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
 	
 	// When a mission screen is started, any on-screen message is removed immediately.
 	[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// also displays docking reports first.
@@ -5355,7 +5621,12 @@ static GLfloat		sBaseMass = 0.0;
 	if (station == [UNIVERSE station])
 	{
 		// 'leaving with those guns were you sir?'
+		OOCreditsQuantity oldbounty = [self bounty];
 		[self markAsOffender:[UNIVERSE legalStatusOfManifest:shipCommodityData] withReason:kOOLegalStatusReasonIllegalExports];
+		if ([self bounty] > oldbounty)
+		{
+			[self addRoleToPlayer:@"trader-smuggler"];
+		}
 	}
 	OOGUIScreenID	oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MAIN;
@@ -5620,6 +5891,22 @@ static GLfloat		sBaseMass = 0.0;
 			[passengers replaceObjectAtIndex:i withObject:passenger_info];
 		}
 	}
+
+	// clear a lot of memory of player actions
+	if (ship_kills >= 6400)
+	{
+		[self clearRolesFromPlayer:0.25];
+	}
+	else if (ship_kills >= 2560)
+	{
+		[self clearRolesFromPlayer:0.5];
+	}
+	else
+	{
+		[self clearRolesFromPlayer:0.9];
+	}	
+	[roleWeightFlags removeAllObjects];
+	[roleSystemList removeAllObjects];
 	
 	[self removeEquipmentItem:@"EQ_GAL_DRIVE"];
 	
@@ -5733,6 +6020,41 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
+
+	[self updateSystemMemory];
+	NSUInteger legality = [self legalStatusOfCargoList];
+	OOCargoQuantity maxSpace = [self maxAvailableCargoSpace];
+	OOCargoQuantity availSpace = [self availableCargoSpace];
+	if ([roleWeightFlags objectForKey:@"bought-legal"])
+	{
+		if (maxSpace != availSpace)
+		{
+			[self addRoleToPlayer:@"trader"];
+			if (maxSpace - availSpace > 20 || availSpace == 0)
+			{
+				if (legality == 0)
+				{
+					[self addRoleToPlayer:@"trader"];
+				}
+			}
+		}
+	}
+	if ([roleWeightFlags objectForKey:@"bought-illegal"])
+	{
+		if (maxSpace != availSpace && legality > 0)
+		{
+			[self addRoleToPlayer:@"trader-smuggler"];
+			if (maxSpace - availSpace > 20 || availSpace == 0)
+			{
+				if (legality >= 20 || legality >= maxSpace)
+				{
+					[self addRoleToPlayer:@"trader-smuggler"];
+				}
+			}
+		}
+	}
+	[roleWeightFlags removeAllObjects];
+
 	[self noteCompassLostTarget];
 	if ([self scriptedMisjump]) 
 	{
@@ -5853,6 +6175,11 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 
+	/* there's going to be a slight pause at this stage anyway;
+	 * there's also going to be a lot of stale ship scripts. Force a
+	 * garbage collection while we have chance. - CIM */
+	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
+
 	flightSpeed = wormhole ? [wormhole exitSpeed] : fmin(maxFlightSpeed,50.0f);
 	[wormhole release];	// OK even if nil
 	wormhole = nil;
@@ -5871,6 +6198,14 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setWitchspaceBreakPattern:YES];
 	[self playExitWitchspace];
+	if ([self currentSystemID] >= 0)
+	{
+		if (![roleSystemList containsObject:[NSNumber numberWithInt:[self currentSystemID]]])
+		{
+			// going somewhere new?
+			[self clearRoleFromPlayer:NO];
+		}
+	}
 	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
 }
@@ -6158,6 +6493,24 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (unsigned) legalStatusOfCargoList
+{
+	NSArray *list = [self cargoListForScripting];
+	NSDictionary *entry = nil;
+	unsigned penalty = 0;
+	NSString *commodity = nil;
+	OOCargoQuantity amount;
+
+	foreach (entry, list)
+	{
+		commodity = [[shipCommodityData oo_arrayAtIndex:StringToCommodityType([entry oo_stringForKey:@"commodity"])] oo_stringAtIndex:MARKET_NAME];
+		amount = [entry oo_intForKey:@"quantity"];
+		penalty += [UNIVERSE legalStatusOfCommodity:commodity] * amount;
+	}
+	return penalty;
+}
+
+
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo
 {
 	NSMutableArray		*result = [NSMutableArray array];
@@ -6165,7 +6518,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	for (i = 0; i < [contracts_array count]; i++)
 	{
-		NSMutableDictionary	*contract = [NSMutableDictionary dictionaryWithCapacity:4];
+		NSMutableDictionary	*contract = [NSMutableDictionary dictionaryWithCapacity:10];
 		NSDictionary		*dict = [contracts_array oo_dictionaryAtIndex:i];
 		if (forCargo)
 		{
@@ -6177,6 +6530,7 @@ static GLfloat		sBaseMass = 0.0;
 		else
 		{
 			[contract setObject:[dict oo_stringForKey:PASSENGER_KEY_NAME] forKey:PASSENGER_KEY_NAME];
+			[contract setObject:[NSNumber numberWithUnsignedInt:[dict oo_unsignedIntForKey:CONTRACT_KEY_RISK]] forKey:CONTRACT_KEY_RISK]; 
 		}
 		
 		OOSystemID 	planet = [dict oo_intForKey:CONTRACT_KEY_DESTINATION];
@@ -8347,6 +8701,14 @@ static NSString *last_outfitting_key=nil;
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
 	
 	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:purchase], [NSNumber numberWithUnsignedLongLong:pricePerUnit], nil]];
+	if ([UNIVERSE legalStatusOfCommodity:[market_commodity objectAtIndex:MARKET_NAME]] > 0)
+	{
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-illegal"];
+	}
+	else
+	{
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-legal"];
+	}
 	
 	return YES;
 }
@@ -8656,6 +9018,11 @@ static NSString *last_outfitting_key=nil;
 
 - (void) receiveCommsMessage:(NSString *) message_text from:(ShipEntity *) other
 {
+	if ([self status] == STATUS_DEAD || [self status] == STATUS_DOCKED)
+	{
+		// only when in flight
+		return;
+	}
 	[UNIVERSE addCommsMessage:[NSString stringWithFormat:@"%@:\n %@", [other displayName], message_text] forCount:4.5];
 	[super receiveCommsMessage:message_text from:other];
 }

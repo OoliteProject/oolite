@@ -58,6 +58,7 @@ static JSBool PlayerDecreaseParcelReputation(JSContext *context, uintN argc, jsv
 static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerSetPlayerRole(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sPlayerClass =
@@ -95,6 +96,7 @@ enum
 	kPlayer_parcelReputation,	// reputation for parcel contracts, integer, read-only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read-only
 	kPlayer_rank,					// rank, string, read-only
+	kPlayer_roleWeights,			// role weights, array, read-only
 	kPlayer_score,					// kill count, integer, read/write
 	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
 };
@@ -118,6 +120,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "parcelReputation",	kPlayer_parcelReputation,	OOJS_PROP_READONLY_CB },
 	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
 	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
+	{ "roleWeights",			kPlayer_roleWeights,		OOJS_PROP_READONLY_CB },
 	{ "score",					kPlayer_score,				OOJS_PROP_READWRITE_CB },
 	{ "trumbleCount",			kPlayer_trumbleCount,		OOJS_PROP_READONLY_CB },
 	{ 0 }
@@ -138,6 +141,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
 	{ "replaceShip",					PlayerReplaceShip,					1 },
 	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
+	{ "setPlayerRole",					PlayerSetPlayerRole,		1 },
 	{ 0 }
 };
 
@@ -236,17 +240,16 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kPlayer_trumbleCount:
 			return JS_NewNumberValue(context, [player trumbleCount], value);
 			
+			/* For compatibility with previous versions, these are on
+			 * a -7 to +7 scale */
 		case kPlayer_contractReputation:
-			*value = INT_TO_JSVAL([player contractReputation]);
-			return YES;
+			return JS_NewNumberValue(context, ((float)[player contractReputation])/10.0, value);
 			
 		case kPlayer_passengerReputation:
-			*value = INT_TO_JSVAL([player passengerReputation]);
-			return YES;
+			return JS_NewNumberValue(context, ((float)[player passengerReputation])/10.0, value);
 
 		case kPlayer_parcelReputation:
-			*value = INT_TO_JSVAL([player parcelReputation]);
-			return YES;
+			return JS_NewNumberValue(context, ((float)[player parcelReputation])/10.0, value);
 			
 		case kPlayer_dockingClearanceStatus:
 			// EMMSTRAN: OOConstToJSString-ify this.
@@ -256,6 +259,10 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kPlayer_bounty:
 			*value = INT_TO_JSVAL([player legalStatus]);
 			return YES;
+
+		case kPlayer_roleWeights:
+			result = [player roleWeights];
+			break;
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerProperties);
@@ -384,7 +391,7 @@ static JSBool PlayerIncreaseContractReputation(JSContext *context, uintN argc, j
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() increaseContractReputation];
+	[OOPlayerForScripting() increaseContractReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -396,7 +403,7 @@ static JSBool PlayerDecreaseContractReputation(JSContext *context, uintN argc, j
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() decreaseContractReputation];
+	[OOPlayerForScripting() decreaseContractReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -408,7 +415,7 @@ static JSBool PlayerIncreaseParcelReputation(JSContext *context, uintN argc, jsv
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() increaseParcelReputation];
+	[OOPlayerForScripting() increaseParcelReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -420,7 +427,7 @@ static JSBool PlayerDecreaseParcelReputation(JSContext *context, uintN argc, jsv
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() decreaseParcelReputation];
+	[OOPlayerForScripting() decreaseParcelReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -432,7 +439,7 @@ static JSBool PlayerIncreasePassengerReputation(JSContext *context, uintN argc, 
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() increasePassengerReputation];
+	[OOPlayerForScripting() increasePassengerReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -444,7 +451,7 @@ static JSBool PlayerDecreasePassengerReputation(JSContext *context, uintN argc, 
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	[OOPlayerForScripting() decreasePassengerReputation];
+	[OOPlayerForScripting() decreasePassengerReputation:1];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
@@ -603,5 +610,36 @@ static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsva
 	}
 	return OK;
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+// setPlayerRole (role-key : String [, index : Number])
+static JSBool PlayerSetPlayerRole(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString				*role = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+	uint32 index = 0;
+
+	if (argc > 0)  role = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (role == nil)
+	{
+		OOJSReportBadArguments(context, @"Player", @"setPlayerRole", MIN(argc, 1U), OOJS_ARGV, nil, @"string (role) [, number (index)");
+		return NO;
+	}
+
+	if (argc > 1)
+	{
+		if (JS_ValueToECMAUint32(context,OOJS_ARGV[1],&index))
+		{
+			[player addRoleToPlayer:role inSlot:index];
+			return YES;
+		}
+	}
+	[player addRoleToPlayer:role];
+	return YES;
+
 	OOJS_NATIVE_EXIT
 }

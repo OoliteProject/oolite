@@ -62,6 +62,8 @@ this.$passengerPageOverlay = "";
  * 
  * and optionally, the following parameters:
  *
+ * skill:       the skill level required by the client (default 0)
+ * risk:        the risk level of the contract (0-2, default 0)
  * advance:     the payment for taking the passenger onboard (default 0)
  * route:       a route object generated with system.info.routeToSystem
  *              describing the route between the source and destination 
@@ -74,49 +76,57 @@ this.$passengerPageOverlay = "";
  */
 this._addPassengerToSystem = function(passenger)
 {
-		if (!system.mainStation)
-		{
-				log(this.name,"Contracts require a main station");
-				return false;
-		}
-		if (!passenger.name || passenger.name.length > 40)
-		{
-				log(this.name,"Rejected passenger: name missing or too long");
-				return false;
-		}
-		if (passenger.destination < 0 || passenger.destination > 255)
-		{
-				log(this.name,"Rejected passenger: destination missing or invalid");
-				return false;
-		}
-		if (passenger.deadline <= clock.adjustedSeconds)
-		{
-				log(this.name,"Rejected passenger: deadline invalid");
-				return false;
-		}
-		if (passenger.payment < 0)
-		{
-				log(this.name,"Rejected passenger: payment invalid");
-				return false;
-		}
+	if (!system.mainStation)
+	{
+		log(this.name,"Contracts require a main station");
+		return false;
+	}
+	if (!passenger.name || passenger.name.length > 40)
+	{
+		log(this.name,"Rejected passenger: name missing or too long");
+		return false;
+	}
+	if (passenger.destination < 0 || passenger.destination > 255)
+	{
+		log(this.name,"Rejected passenger: destination missing or invalid");
+		return false;
+	}
+	if (passenger.deadline <= clock.adjustedSeconds)
+	{
+		log(this.name,"Rejected passenger: deadline invalid");
+		return false;
+	}
+	if (passenger.payment < 0)
+	{
+		log(this.name,"Rejected passenger: payment invalid");
+		return false;
+	}
+	if (!passenger.route)
+	{
+		var destinationInfo = System.infoForSystem(galaxyNumber,passenger.destination);
+		passenger.route = system.info.routeToSystem(destinationInfo);
 		if (!passenger.route)
 		{
-				var destinationInfo = System.infoForSystem(galaxyNumber,passenger.destination);
-				passenger.route = system.info.routeToSystem(destinationInfo);
-				if (!passenger.route)
-				{
-						log(this.name,"Rejected passenger: route invalid");
-						return false;
-				}
+			log(this.name,"Rejected passenger: route invalid");
+			return false;
 		}
-		if (!passenger.advance)
-		{
-				passenger.advance = 0;
-		}
+	}
+	if (!passenger.advance)
+	{
+		passenger.advance = 0;
+	}
+	if (!passenger.risk)
+	{
+		passenger.risk = 0;
+	}
+	if (!passenger.skill)
+	{
+		passenger.skill = 0;
+	}
 
-		this.$passengers.push(passenger);
-		this._updateMainStationInterfacesList();
-		return true;
+	this.$passengers.push(passenger);
+	this._updateMainStationInterfacesList();
+	return true;
 }
 
 
@@ -209,114 +219,130 @@ this._resetViews = function()
 // initialise a new passenger contract list for the current system
 this._initialisePassengerContractsForSystem = function() 
 {
-		// clear list
-		this.$passengers = [];
+	// clear list
+	this.$passengers = [];
 
-		// this is not the same algorithm as in 1.76, but should give
-		// similar results more efficiently.
+	// no point in generating too many, but generally want 5 or more
+	// some of them will be discarded later
+	var numContracts = Math.floor(5*Math.random()+5*Math.random()+5*Math.random()+(player.passengerReputation*Math.random()));
+	if (player.passengerReputation >= 0 && numContracts < 5)
+	{
+		numContracts += 5;
+	}
+	if (numContracts > 16)
+	{
+		numContracts = 16;
+	}
+	else if (numContracts < 0)
+	{
+		numContracts = 0;
+	}
 
-		// no point in generating too many, but generally want 5 or more
-		// some of them will be discarded later
-		var numContracts = Math.floor(5*Math.random()+5*Math.random()+5*Math.random()+(player.passengerReputation*Math.random()));
-		if (player.passengerReputation >= 0 && numContracts < 5)
+	// some of these possible contracts may be discarded later on
+
+	for (var i = 0; i < numContracts; i++)
+	{
+		var passenger = new Object;
+
+		// pick a random system to take the passenger to
+		var destination = Math.floor(Math.random()*256);
+
+		// discard if chose the current system
+		if (destination === system.ID) 
 		{
-				numContracts += 5;
+			continue;
 		}
-		if (numContracts > 16)
-		{
-				numContracts = 16;
+
+		// get the SystemInfo object for the destination
+		var destinationInfo = System.infoForSystem(galaxyNumber,destination);
+
+		var daysUntilDeparture = 1+(Math.random()*(7+player.passengerReputation-destinationInfo.government));
+		if (daysUntilDeparture <= 0)
+		{ 
+			// loses some more contracts if reputation negative
+			continue;
 		}
-		else if (numContracts < 0)
-		{
-				numContracts = 0;
-		}
-
-		// some of these possible contracts may be discarded later on
-
-		for (var i = 0; i < numContracts; i++)
-		{
-				var passenger = new Object;
-
-				// pick a random system to take the passenger to
-				var destination = Math.floor(Math.random()*256);
-
-				// discard if chose the current system
-				if (destination === system.ID) 
-				{
-						continue;
-				}
-
-				// get the SystemInfo object for the destination
-				var destinationInfo = System.infoForSystem(galaxyNumber,destination);
-
-				var daysUntilDeparture = 1+(Math.random()*(7+player.passengerReputation-destinationInfo.government));
-				if (daysUntilDeparture <= 0)
-				{ 
-						// loses some more contracts if reputation negative
-						continue;
-				}
-				
-				// check that a route to the destination exists
-				var routeToDestination = system.info.routeToSystem(destinationInfo);
-
-				// if the system cannot be reached, ignore this contract
-				if (!routeToDestination)
-				{
-						continue;
-				}
 		
-				// we now have a valid destination, so generate the rest of
-				// the parcel details
+		// check that a route to the destination exists
+		var routeToDestination = system.info.routeToSystem(destinationInfo);
 
-				passenger.destination = destination;
-				// we'll need this again later, and route calculation is slow
-				passenger.route = routeToDestination;
-				
-				if (Math.random() < 0.5) // 50% local inhabitant
-				{
-						passenger.species = system.info.inhabitant;
-				}
-				else // 50% random species (which will be 50%ish human)
-				{
-						passenger.species = System.infoForSystem(galaxyNumber,Math.floor(Math.random()*256)).inhabitant;
-				}
-
-				if (passenger.species.match(new RegExp(expandDescription("[human-word]"),"i")))
-				{
-						passenger.name = expandDescription("%R ")+expandDescription("[nom]");
-				}
-				else
-				{
-						passenger.name = randomName()+" "+randomName();
-				}
-
-				// time allowed for delivery is time taken by "fewest jumps"
-				// route, plus timer above. Higher reputation makes longer
-				// times available.
-				passenger.deadline = clock.adjustedSeconds + Math.floor(daysUntilDeparture*86400)+(passenger.route.time*3600);
-
-				// total payment is:
-				passenger.payment = Math.floor(
-						// payment per hop (higher at rep 6+)
-						5 * Math.pow(routeToDestination.route.length-1, player.passengerReputation > 5 ? 2.65 : 2.5) +
-						// payment by route length
-						routeToDestination.distance * (8+(Math.random()*8)) +
-						// premium for delivery to more dangerous systems
-						(5 * (7-destinationInfo.government) * (7-destinationInfo.government))
-				);
-				passenger.payment -= (passenger.payment % 20); // must be multiple of 20
-
-				passenger.advance = passenger.payment / 5; // 20% up front
-				passenger.payment -= passenger.advance;
-
-				// add parcel to contract list
-				this._addPassengerToSystem(passenger);
+		// if the system cannot be reached, ignore this contract
+		if (!routeToDestination)
+		{
+			continue;
 		}
+		
+		// we now have a valid destination, so generate the rest of
+		// the parcel details
+
+		passenger.destination = destination;
+		// we'll need this again later, and route calculation is slow
+		passenger.route = routeToDestination;
+		
+		if (Math.random() < 0.5) // 50% local inhabitant
+		{
+			passenger.species = system.info.inhabitant;
+		}
+		else // 50% random species (which will be 50%ish human)
+		{
+			passenger.species = System.infoForSystem(galaxyNumber,Math.floor(Math.random()*256)).inhabitant;
+		}
+
+		if (passenger.species.match(new RegExp(expandDescription("[human-word]"),"i")))
+		{
+			passenger.name = expandDescription("%R ")+expandDescription("[nom]");
+		}
+		else
+		{
+			passenger.name = randomName()+" "+randomName();
+		}
+
+		passenger.risk = Math.floor(Math.random()*3);
+		passenger.species = expandDescription("[passenger-description-risk"+passenger.risk+"]")+" "+passenger.species;
+
+		// time allowed for delivery is time taken by "fewest jumps"
+		// route, plus timer above. Higher reputation makes longer
+		// times available.
+		var dtime = Math.floor(daysUntilDeparture*86400)+(passenger.route.time*3600);
+		passenger.deadline = clock.adjustedSeconds + dtime;
+		if (passenger.risk < 2 && destinationInfo.government <= 1 && Math.random() < 0.5)
+		{
+			passenger.risk++;
+		}
+		
+		// total payment is:
+		passenger.payment = Math.floor(
+			// payment per hop (higher at rep > 5)
+			5 * Math.pow(routeToDestination.route.length-1, (passenger.risk*0.2) + (player.passengerReputation > 5 ? 2.45 : 2.3)) +
+				// payment by route length
+				routeToDestination.distance * (8+(Math.random()*8)) +
+				// premium for delivery to more dangerous systems
+				(5 * (7-destinationInfo.government) * (7-destinationInfo.government))
+		);
+		passenger.payment *= (Math.random()+Math.random()+Math.random()+Math.random())/2;
+
+		var prudence = (2*Math.random())-1;
+		var desperation = (Math.random()*(0.5+passenger.risk)) * (1+1/(Math.max(0.5,dtime-(routeToDestination.time * 3600))));
+		var competency = Math.max(50,(routeToDestination.route.length-1)*(1+(passenger.risk*2)));
+		if(passenger.risk == 0)
+		{
+			competency -= 10;
+		}
+		passenger.payment = Math.floor(passenger.payment * (1+(0.4*prudence)));
+		passenger.payment += (passenger.risk * 200);
+		passenger.skill = competency + 20*(prudence-desperation);
+
+		passenger.advance = Math.min(passenger.payment*0.9,Math.max(0,Math.floor(passenger.payment * (0.05 + (0.1*desperation) + (0.02*player.passengerReputation))))); // some% up front
+		passenger.payment -= passenger.advance;
+
+		// add passenger to contract list
+		this._addPassengerToSystem(passenger);
+	}
 
 }
 
 
-// this should be called every time the contents of this.$parcels
+// this should be called every time the contents of this.$passengers
 // changes, as it updates the summary of the interface entry.
 this._updateMainStationInterfacesList = function()
 {
@@ -420,246 +446,267 @@ this._passengerContractsDisplay = function(summary) {
 // display the mission screen for the summary page
 this._passengerContractSummaryPage = function()
 {
-		// column 'tab stops'
-		var columns = [12,18,23,28];
+	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.passengerReputation);
 
-		// column header line
-		var headline = expandMissionText("oolite-contracts-passengers-column-name");
-		// pad to correct length to give a table-like layout
-		headline += this.$helper._paddingText(headline,columns[0]);
-		headline += expandMissionText("oolite-contracts-passengers-column-destination");
-		headline += this.$helper._paddingText(headline,columns[1]);
-		headline += expandMissionText("oolite-contracts-passengers-column-within");
-		headline += this.$helper._paddingText(headline,columns[2]);
-		headline += expandMissionText("oolite-contracts-passengers-column-advance");
-		headline += this.$helper._paddingText(headline,columns[3]);
-		headline += expandMissionText("oolite-contracts-passengers-column-fee");
-		// required because of way choices are displayed.
-		headline = " "+headline;
+	// column 'tab stops'
+	var columns = [12,18,23,28];
 
-		// setting options dynamically; one contract per line
-		var options = new Object;
-		var i;
-		for (i=0; i<this.$passengers.length; i++)
-		{
-				// temp variable to simplify following code
-				var passenger = this.$passengers[i];
-				// write the passenger description, padded to line up with the headers
-				var optionText = passenger.name;
-				optionText += this.$helper._paddingText(optionText, columns[0]);
-				optionText += System.infoForSystem(galaxyNumber, passenger.destination).name;
-				optionText += this.$helper._paddingText(optionText, columns[1]);
-				optionText += this.$helper._timeRemaining(passenger);
-				optionText += this.$helper._paddingText(optionText, columns[2]);
-				// right-align the fee so that the credits signs line up
-				var priceText = formatCredits(passenger.advance,false,true);
-				priceText = this.$helper._paddingText(priceText, 3)+priceText;
-				optionText += priceText
-				optionText += this.$helper._paddingText(optionText, columns[3]);
-				// right-align the fee so that the credits signs line up
-				priceText = formatCredits(passenger.payment,false,true);
-				priceText = this.$helper._paddingText(priceText, 3)+priceText;
-				optionText += priceText
-				
-				// need to pad the number in the key to maintain alphabetical order
-				var istr = i;
-				if (i < 10)
-				{
-						istr = "0"+i;
-				}
-				// needs to be aligned left to line up with the heading
-				options["01_CONTRACT_"+istr] = { text: optionText, alignment: "LEFT" };
+	// column header line
+	var headline = expandMissionText("oolite-contracts-passengers-column-name");
+	// pad to correct length to give a table-like layout
+	headline += this.$helper._paddingText(headline,columns[0]);
+	headline += expandMissionText("oolite-contracts-passengers-column-destination");
+	headline += this.$helper._paddingText(headline,columns[1]);
+	headline += expandMissionText("oolite-contracts-passengers-column-within");
+	headline += this.$helper._paddingText(headline,columns[2]);
+	headline += expandMissionText("oolite-contracts-passengers-column-advance");
+	headline += this.$helper._paddingText(headline,columns[3]);
+	headline += expandMissionText("oolite-contracts-passengers-column-fee");
+	// required because of way choices are displayed.
+	headline = " "+headline;
 
-				// if there's no space for extra passengers
-				if (player.ship.passengerCapacity <= player.ship.passengerCount)
-				{
-						options["01_CONTRACT_"+istr].color = "darkGrayColor";
-				}
-				// if there doesn't appear to be sufficient time remaining
-				else if (this.$helper._timeRemainingSeconds(passenger) < this.$helper._timeEstimateSeconds(passenger))
-				{
-						options["01_CONTRACT_"+istr].color = "orangeColor";
-				}
-		}
-		// if we've come from the detail screen, make sure the last
-		// contract shown there is selected here
-		var icstr = this.$contractIndex;
-		if (icstr < 10)
-		{
-				icstr = "0"+this.$contractIndex;
-		}
-		var initialChoice = "01_CONTRACT_"+icstr;
-		// unless we don't have any space left
-		if (player.ship.passengerCapacity <= player.ship.passengerCount)
-		{
-				initialChoice = "06_EXIT";
-		}
-
-		// next, an empty string gives an unselectable row
-		options["02_SPACER"] = ""; 
-
-		// numbered 06 to match the option of the same function in the other branch
-		options["06_EXIT"] = expandMissionText("oolite-contracts-passengers-command-quit");
+	// setting options dynamically; one contract per line
+	var options = new Object;
+	var i;
+	for (i=0; i<this.$passengers.length; i++)
+	{
+		// temp variable to simplify following code
+		var passenger = this.$passengers[i];
+		// write the passenger description, padded to line up with the headers
+		var optionText = passenger.name;
+		optionText += this.$helper._paddingText(optionText, columns[0]);
+		optionText += System.infoForSystem(galaxyNumber, passenger.destination).name;
+		optionText += this.$helper._paddingText(optionText, columns[1]);
+		optionText += this.$helper._timeRemaining(passenger);
+		optionText += this.$helper._paddingText(optionText, columns[2]);
+		// right-align the fee so that the credits signs line up
+		var priceText = formatCredits(passenger.advance,false,true);
+		priceText = this.$helper._paddingText(priceText, 3)+priceText;
+		optionText += priceText
+		optionText += this.$helper._paddingText(optionText, columns[3]);
+		// right-align the fee so that the credits signs line up
+		priceText = formatCredits(passenger.payment,false,true);
+		priceText = this.$helper._paddingText(priceText, 3)+priceText;
+		optionText += priceText
 		
-		// now need to add further spacing to fill the remaining rows, or
-		// the options will end up at the bottom of the screen.
-		var rowsToFill = 21;
-		if (player.ship.hudHidden)
+		// need to pad the number in the key to maintain alphabetical order
+		var istr = i;
+		if (i < 10)
 		{
-				rowsToFill = 27;
+			istr = "0"+i;
 		}
+		// needs to be aligned left to line up with the heading
+		options["01_CONTRACT_"+istr] = { text: optionText, alignment: "LEFT" };
 
-		for (i = 4 + this.$passengers.length; i < rowsToFill ; i++)
+		// if there's no space for extra passengers or the player isn't good enough
+		if (passenger.skill > playerrep || player.ship.passengerCapacity <= player.ship.passengerCount)
 		{
-				// each key needs to be unique at this stage.
-				options["07_SPACER_"+i] = ""; 
+			options["01_CONTRACT_"+istr].color = "darkGrayColor";
 		}
+		// if there doesn't appear to be sufficient time remaining
+		else if (this.$helper._timeRemainingSeconds(passenger) < this.$helper._timeEstimateSeconds(passenger))
+		{
+			options["01_CONTRACT_"+istr].color = "orangeColor";
+		}
+	}
+	// if we've come from the detail screen, make sure the last
+	// contract shown there is selected here
+	var icstr = this.$contractIndex;
+	if (icstr < 10)
+	{
+		icstr = "0"+this.$contractIndex;
+	}
+	var initialChoice = "01_CONTRACT_"+icstr;
+	// unless we don't have any space left
+	if (player.ship.passengerCapacity <= player.ship.passengerCount)
+	{
+		initialChoice = "06_EXIT";
+	}
 
-		var missionConfig = {titleKey: "oolite-contracts-passengers-title-summary",
-												 message: headline,
-												 allowInterrupt: true,
-												 screenID: "oolite-contracts-passengers-summary",
-												 exitScreen: "GUI_SCREEN_INTERFACES",
-												 choices: options,
-												 initialChoicesKey: initialChoice}; 
-		if (this.$passengerSummaryPageBackground != "") {
-				missionConfig.background = this.$passengerSummaryPageBackground;
-		}
-		if (this.$passengerPageOverlay != "") {
-				missionConfig.overlay = this.$passengerPageOverlay;
-		}
+	// next, an empty string gives an unselectable row
+	options["02_SPACER"] = ""; 
 
-		// now run the mission screen
-		mission.runScreen(missionConfig, this._processPassengerChoice, this);
-		
+	// numbered 06 to match the option of the same function in the other branch
+	options["06_EXIT"] = expandMissionText("oolite-contracts-passengers-command-quit");
+	
+	// now need to add further spacing to fill the remaining rows, or
+	// the options will end up at the bottom of the screen.
+	var rowsToFill = 21;
+	if (player.ship.hudHidden)
+	{
+		rowsToFill = 27;
+	}
+
+	for (i = 4 + this.$passengers.length; i < rowsToFill ; i++)
+	{
+		// each key needs to be unique at this stage.
+		options["07_SPACER_"+i] = ""; 
+	}
+
+	var missionConfig = {titleKey: "oolite-contracts-passengers-title-summary",
+						 message: headline,
+						 allowInterrupt: true,
+						 screenID: "oolite-contracts-passengers-summary",
+						 exitScreen: "GUI_SCREEN_INTERFACES",
+						 choices: options,
+						 initialChoicesKey: initialChoice}; 
+	if (this.$passengerSummaryPageBackground != "") {
+		missionConfig.background = this.$passengerSummaryPageBackground;
+	}
+	if (this.$passengerPageOverlay != "") {
+		missionConfig.overlay = this.$passengerPageOverlay;
+	}
+
+	// now run the mission screen
+	mission.runScreen(missionConfig, this._processPassengerChoice, this);
+	
 }
 
 
 // display the mission screen for the contract detail page
 this._passengerContractSinglePage = function()
 {
-		// temp variable to simplify code
-		var passenger = this.$passengers[this.$contractIndex];
+	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.passengerReputation);
 
-		// This mission screen uses the long range chart as a backdrop.
-		// This means that the first 18 lines are taken up by the chart,
-		// and we can't put text there without overwriting the chart.
-		// We therefore need to hide the player's HUD, to get the full 27
-		// lines.
+	// temp variable to simplify code
+	var passenger = this.$passengers[this.$contractIndex];
 
-		if (!player.ship.hudHidden)
-		{
-				this.$suspendedHUD = true; // note that we hid it, for later
-				player.ship.hudHidden = true;
-		}
+	// This mission screen uses the long range chart as a backdrop.
+	// This means that the first 18 lines are taken up by the chart,
+	// and we can't put text there without overwriting the chart.
+	// We therefore need to hide the player's HUD, to get the full 27
+	// lines.
 
-		// We also set the player's witchspace destination temporarily
-		// so we need to store the old one in a variable to reset it later
-		this.$suspendedDestination = player.ship.targetSystem;
+	if (!player.ship.hudHidden)
+	{
+		this.$suspendedHUD = true; // note that we hid it, for later
+		player.ship.hudHidden = true;
+	}
 
-		// That done, we can set the player's destination so the map looks
-		// right.
-		player.ship.targetSystem = passenger.destination;
+	// We also set the player's witchspace destination temporarily
+	// so we need to store the old one in a variable to reset it later
+	this.$suspendedDestination = player.ship.targetSystem;
 
-		// start with 18 blank lines, since we don't want to overlap the chart
-		var message = new Array(18).join("\n");
-		
-		message += expandMissionText("oolite-contracts-passengers-long-description",{
-				"oolite-contracts-passengers-longdesc-name": passenger.name,
-				"oolite-contracts-passengers-longdesc-species": passenger.species,
-				"oolite-contracts-passengers-longdesc-destination": this.$helper._systemName(passenger.destination),
-				"oolite-contracts-passengers-longdesc-deadline": this.$helper._timeRemaining(passenger),
-				"oolite-contracts-passengers-longdesc-time": this.$helper._timeEstimate(passenger),
-				"oolite-contracts-passengers-longdesc-payment": formatCredits(passenger.payment,false,true),
-				"oolite-contracts-passengers-longdesc-advance": formatCredits(passenger.advance,false,true)
-		});
+	// That done, we can set the player's destination so the map looks
+	// right.
+	player.ship.targetSystem = passenger.destination;
 
-		// use a special background
-		var backgroundSpecial = "LONG_RANGE_CHART";
-		
-		// the available options will vary quite a bit, so this rather
-		// than a choicesKey in missiontext.plist
-		var options = new Object;
-		// this is the only option which is always available
-		options["06_EXIT"] = expandMissionText("oolite-contracts-passengers-command-quit");
-		
-		// if the player has a spare cabin
-		if (player.ship.passengerCapacity > player.ship.passengerCount)
-		{
-				options["05_ACCEPT"] = { 
-						text: expandMissionText("oolite-contracts-passengers-command-accept") 
-				};
-				
-				// if there's not much time left, change the option colour as a warning!
-				if (this.$helper._timeRemainingSeconds(passenger) < this.$helper._timeEstimateSeconds(passenger))
-				{
-						options["05_ACCEPT"].color = "orangeColor";
-				}
-		}
-		else
-		{
-				options["05_UNAVAILABLE"] = {
-						text: expandMissionText("oolite-contracts-passengers-command-unavailable"),
-						color: "darkGrayColor",
-						unselectable: true
-				};
-		}
+	// start with 18 blank lines, since we don't want to overlap the chart
+	var message = new Array(18).join("\n");
+	
+	message += expandMissionText("oolite-contracts-passengers-long-description",{
+		"oolite-contracts-passengers-longdesc-name": passenger.name,
+		"oolite-contracts-passengers-longdesc-species": passenger.species,
+		"oolite-contracts-passengers-longdesc-destination": this.$helper._systemName(passenger.destination),
+		"oolite-contracts-passengers-longdesc-deadline": this.$helper._timeRemaining(passenger),
+		"oolite-contracts-passengers-longdesc-time": this.$helper._timeEstimate(passenger),
+		"oolite-contracts-passengers-longdesc-payment": formatCredits(passenger.payment,false,true),
+		"oolite-contracts-passengers-longdesc-advance": formatCredits(passenger.advance,false,true)
+	});
 
-		// if the ship has a working advanced nav array, can switch
-		// between 'quickest' and 'shortest' routes
-		// (and also upgrade the special background)
-		if (player.ship.equipmentStatus("EQ_ADVANCED_NAVIGATIONAL_ARRAY") === "EQUIPMENT_OK")
-		{
-				backgroundSpecial = this.$routeMode;
-				if (this.$routeMode === "LONG_RANGE_CHART_SHORTEST")
-				{
-						options["01_MODE"] = expandMissionText("oolite-contracts-passengers-command-ana-quickest");
-				}
-				else
-				{
-						options["01_MODE"] = expandMissionText("oolite-contracts-passengers-command-ana-shortest");
-				}
-		}
-		// if there's more than one, need options for forward, back, and listing
-		if (this.$passengers.length > 1)
-		{
-				options["02_BACK"] = expandMissionText("oolite-contracts-passengers-command-back");
-				options["03_NEXT"] = expandMissionText("oolite-contracts-passengers-command-next");
-				options["04_LIST"] = expandMissionText("oolite-contracts-passengers-command-list");
-		}
-		else
-		{
-				// if not, we may need to set a different choice
-				// we never want 05_ACCEPT to end up selected initially
-				if (this.$lastChoice === "02_BACK" || this.$lastChoice === "03_NEXT" || this.$lastChoice === "04_LIST")
-				{
-						this.$lastChoice = "06_EXIT";
-				}
-		}
-
-		var title = expandMissionText("oolite-contracts-passengers-title-detail",{
-				"oolite-contracts-passengers-title-detail-number": this.$contractIndex+1,
-				"oolite-contracts-passengers-title-detail-total": this.$passengers.length
-		});
-
-		// finally, after all that setup, actually create the mission screen
-
-		var missionConfig = {
-				title: title,
-				message: message,
-				allowInterrupt: true,
-				screenID: "oolite-contracts-passengers-details",
-				exitScreen: "GUI_SCREEN_INTERFACES",
-				backgroundSpecial: backgroundSpecial,
-				choices: options,
-				initialChoicesKey: this.$lastChoice
+	// use a special background
+	var backgroundSpecial = "LONG_RANGE_CHART";
+	
+	// the available options will vary quite a bit, so this rather
+	// than a choicesKey in missiontext.plist
+	var options = new Object;
+	// this is the only option which is always available
+	options["06_EXIT"] = expandMissionText("oolite-contracts-passengers-command-quit");
+	
+	// if the player has a spare cabin
+	if (player.ship.passengerCapacity <= player.ship.passengerCount)
+	{
+		options["05_UNAVAILABLE"] = {
+			text: expandMissionText("oolite-contracts-passengers-command-unavailable"),
+			color: "darkGrayColor",
+			unselectable: true
 		};
-
-		if (this.$passengerPageOverlay != "") {
-				missionConfig.overlay = this.$passengerPageOverlay;
+	} 
+	else if (playerrep >= passenger.skill)
+	{
+		options["05_ACCEPT"] = { 
+			text: expandMissionText("oolite-contracts-passengers-command-accept") 
+		};
+		
+		// if there's not much time left, change the option colour as a warning!
+		if (this.$helper._timeRemainingSeconds(passenger) < this.$helper._timeEstimateSeconds(passenger))
+		{
+			options["05_ACCEPT"].color = "orangeColor";
 		}
+	}
+	else
+	{
+		var utype = "both";
+		if (player.passengerReputation*10 >= passenger.skill)
+		{
+			utype = "kills";
+		}
+		else if (Math.sqrt(player.score) >= passenger.skill)
+		{
+			utype = "rep";
+		}
+		options["05_UNAVAILABLE"] = {
+			text: expandMissionText("oolite-contracts-passengers-command-unavailable-"+utype),
+			color: "darkGrayColor",
+			unselectable: true
+		};
+	}
 
-		mission.runScreen(missionConfig,this._processPassengerChoice, this);
+	// if the ship has a working advanced nav array, can switch
+	// between 'quickest' and 'shortest' routes
+	// (and also upgrade the special background)
+	if (player.ship.equipmentStatus("EQ_ADVANCED_NAVIGATIONAL_ARRAY") === "EQUIPMENT_OK")
+	{
+		backgroundSpecial = this.$routeMode;
+		if (this.$routeMode === "LONG_RANGE_CHART_SHORTEST")
+		{
+			options["01_MODE"] = expandMissionText("oolite-contracts-passengers-command-ana-quickest");
+		}
+		else
+		{
+			options["01_MODE"] = expandMissionText("oolite-contracts-passengers-command-ana-shortest");
+		}
+	}
+	// if there's more than one, need options for forward, back, and listing
+	if (this.$passengers.length > 1)
+	{
+		options["02_BACK"] = expandMissionText("oolite-contracts-passengers-command-back");
+		options["03_NEXT"] = expandMissionText("oolite-contracts-passengers-command-next");
+		options["04_LIST"] = expandMissionText("oolite-contracts-passengers-command-list");
+	}
+	else
+	{
+		// if not, we may need to set a different choice
+		// we never want 05_ACCEPT to end up selected initially
+		if (this.$lastChoice === "02_BACK" || this.$lastChoice === "03_NEXT" || this.$lastChoice === "04_LIST")
+		{
+			this.$lastChoice = "06_EXIT";
+		}
+	}
+
+	var title = expandMissionText("oolite-contracts-passengers-title-detail",{
+		"oolite-contracts-passengers-title-detail-number": this.$contractIndex+1,
+		"oolite-contracts-passengers-title-detail-total": this.$passengers.length
+	});
+
+	// finally, after all that setup, actually create the mission screen
+
+	var missionConfig = {
+		title: title,
+		message: message,
+		allowInterrupt: true,
+		screenID: "oolite-contracts-passengers-details",
+		exitScreen: "GUI_SCREEN_INTERFACES",
+		backgroundSpecial: backgroundSpecial,
+		choices: options,
+		initialChoicesKey: this.$lastChoice
+	};
+
+	if (this.$passengerPageOverlay != "") {
+		missionConfig.overlay = this.$passengerPageOverlay;
+	}
+
+	mission.runScreen(missionConfig,this._processPassengerChoice, this);
 
 }
 

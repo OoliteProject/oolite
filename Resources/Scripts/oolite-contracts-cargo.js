@@ -277,7 +277,7 @@ this._initialiseCargoContractsForSystem = function()
 						attempts++;
 						var commodity = commodities[Math.floor(Math.random()*commodities.length)];
 						// sub-tc contracts only available for top rep
-						if (system.mainStation.market[commodity].quantityUnit != 0 && player.contractReputation != 7) 
+						if (system.mainStation.market[commodity].quantityUnit != 0 && player.contractReputation < 6.5) 
 						{
 						} 
 						// ignore commodities with 0 availability here

@@ -592,6 +592,36 @@
 		"Leave %H now or be destroyed.",
 		"%H Police. Offending ship targeted. Moving to intercept."
 	);
+
+	// comms message templates for priority AI
+	"oolite-comms-contractAttack" = "You picked the wrong client, [oolite_entityName]!"; // TODO: variety
+	"oolite-comms-makePirateDemand" = "Your cargo or your life, [oolite_entityName]. [oolite_demandSize] barrels and we'll let you go."; // TODO: variety
+	"oolite-comms-acceptPirateDemand" = "[beg-for-mercy]";
+	"oolite-comms-surrender" = "[beg-for-mercy]";
+	"oolite-comms-makeDistressCall" = "[distress-call]";
+	// this one needs targeting to avoid confusion
+	"oolite-comms-markForFines" = (
+		"[oolite_entityName], this is %H Police. You have been scanned and will face penalties if you choose to dock here.",
+		"[oolite_entityName], this is %H Police. Fines will be imposed if you dock here.",
+		"This is the police. Docking at %H will require legal compensation for your offences, [oolite_entityName].",
+		"This is the police. %H Station will fine you for your offences when you dock, [oolite_entityName]."
+	);
+	"oolite-comms-distressResponseAggressor" = "[police-attack-warning]";
+	"oolite-comms-offenceDetected" = "[police-attack-warning]";
+	"oolite-comms-thanksForHelp" = 
+	(	
+		"Thank you for the assistance, [oolite_entityName].",
+		"Thanks, [oolite_entityName]!",
+		"%R bless you, [oolite_entityName]!",
+		"Oh thank you, [oolite_entityName]! Help at last!"
+	);
+	"oolite-comms-police-thanksForHelp" = 
+	(
+		"Thank you for the assistance, [oolite_entityName].",
+		"%H Police thank you for your assistance, [oolite_entityName]."
+	);
+
+
 	// /general docking
 	"docking-welcome" =
 	(
@@ -1308,6 +1338,7 @@
 	"adjusting-word"				= " (adjusting)";
 	"strict-play-enabled"			= "OXP loading disabled";
 	"unrestricted-play-enabled"		= "OXP loading enabled";
+	"medical-word"					= "medical"; // For determining which morays are medical
 	"human-word"					= "human"; // Important – only lower case characters here!
 	"human-colonial-description%0"	= "Human Colonial";
 	"human-colonial-description%1"	= "Human Colonials";
@@ -1339,10 +1370,46 @@
 	"passenger-delivered-late-@-@-@" = "%@ pays you %@ for eventually delivering them to %@.\n";
 	"passenger-failed-@"			= "%@ leaves your ship, annoyed that you have wasted so much of their time.\n";
 
+
+	"passenger-description-safe"  = 
+	(	
+		"cheerful",
+		"calm",
+		"friendly",
+		"relaxed",
+		"nonchalant",
+		"bored"
+	);
+	"passenger-description-cautious"  = 
+	(	
+		"nervous",
+		"shy",
+		"reserved",
+		"hesitant",
+		"concerned",
+		"timid"
+	);
+	"passenger-description-dangerous"  = 
+	(	
+		"worried",
+		"furious",
+		"distressed",
+		"ferocious",
+		"troubled",
+		"volatile"
+	);
+	// 9:2:1
+	"passenger-description-risk0" = ("[passenger-description-safe]","[passenger-description-safe]","[passenger-description-safe]","[passenger-description-safe]","[passenger-description-safe]","[passenger-description-safe]","[passenger-description-safe]","[passenger-description-safe]","[passenger-description-safe]","[passenger-description-cautious]","[passenger-description-cautious]","[passenger-description-dangerous]");
+	// 2:5:2
+	"passenger-description-risk1" = ("[passenger-description-safe]","[passenger-description-safe]","[passenger-description-cautious]","[passenger-description-cautious]","[passenger-description-cautious]","[passenger-description-cautious]","[passenger-description-cautious]","[passenger-description-dangerous]","[passenger-description-dangerous]");
+	// 1:2:9
+	"passenger-description-risk2" = ("[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-cautious]","[passenger-description-cautious]","[passenger-description-safe]");
+
+
 	"parcel-delivered-okay-@-@" = "You deliver %@, and are paid %@.\n";
 	"parcel-delivered-late-@-@" = "You have arrived late to deliver %@, and are only paid %@.\n";
 	"parcel-failed-@"			= "You have failed to deliver %@ on time, and will not be paid.\n";
-	"parcel-description"  = 
+	"parcel-description-safe"  = 
 	(	
 			"Videos of [34] [35]",
 			"Data backups",
@@ -1350,6 +1417,29 @@
 			"Licensing forms",
 			"Recipes for [30] [33]"
 	);
+	"parcel-description-cautious"  = 
+	(	
+			"Legal records",
+			"Medical data",
+			"Coded documents",
+			"Mineral surveys",
+			"Press recordings"
+	);
+	"parcel-description-dangerous"  = 
+	(	
+			"Trial exhibits",
+			"Corporate research",
+			"Prototype technology",
+			"Weapon designs",
+			"Diplomatic cases"
+	);
+	// 9:2:1 to safe
+	"parcel-description-risk0" = ("[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-safe]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-dangerous]");
+	// 2:5:2
+	"parcel-description-risk1" = ("[parcel-description-safe]","[parcel-description-safe]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-dangerous]","[parcel-description-dangerous]");
+	// 1:2:9
+	"parcel-description-risk2" = ("[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-dangerous]","[parcel-description-cautious]","[parcel-description-cautious]","[parcel-description-safe]");
+
 
 	"cargo-delivered-okay-@-@"		= "Droids unload the %@ and you are paid %@.";
 	"cargo-delivered-short-@-@-d"	= "Droids unload the %@, but you are only paid %@ as there is a %d percent shortfall.";

@@ -128,3 +128,9 @@ this._soundFailure = function()
 		sound.sound = "[contract-rejected]";
 		sound.play();
 }
+
+// player skill calculation
+this._playerSkill = function(rep)
+{
+	return ((rep*10) + (Math.min(70,Math.sqrt(player.score))))/2;
+}

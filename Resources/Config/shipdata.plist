@@ -47,8 +47,9 @@
 	"oolite_template_adder" =
 	{
 		aft_eject_position = "0.0 -4.5 -23.0";
-		ai_type = "scavengerAI.plist";
+		ai_type = "oolite-scavengerAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -121,7 +122,7 @@
 		has_scoop = yes;
 		hud = "hud-small.plist";
 		is_template = 1;
-		likely_cargo = 1;
+		likely_cargo = 2;
 		max_cargo = 5;
 		max_energy = 85;
 		max_flight_pitch = 2;
@@ -132,7 +133,7 @@
 		missiles = 1;
 		model = "adder_redux.dat";
 		name = "Adder";
-		roles = "hunter scavenger shuttle hermit-ship";
+		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate-independent(0.2) scavenger shuttle hermit-ship";
 		scoop_position = "0.0 -2.0 -7.5";
 		thrust = 30;
 		view_position_aft = "0.0 2.5  -22.5";
@@ -184,8 +185,9 @@
 	{
 		aft_eject_position = "0.0 -20.0 -67.0";
 		aft_weapon_type = "WEAPON_PULSE_LASER";
-		ai_type = "route1traderAI.plist";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -251,8 +253,12 @@
 			}
 		);
 		energy_recharge_rate = 3;
-		escort_ship = "cobramk1";
-		escorts = 6;
+		escort_roles = (
+			{ role = "escort"; min = -2; max = 2; },
+			{ role = "escort-medium"; min = 0; max = 4; },
+			{ role = "escort-heavy"; min = -4; max = 2; },
+			{ role = ""; min = 0; max = 2; } // spare slots for wandering escorts
+		);
 		exhaust = ("-9.8 5.6 -78.5 10.0 10.0 2.0", "9.8 5.6 -78.5 10.0 10.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
@@ -261,8 +267,13 @@
 		has_scoop = 0.95;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 7;
-		max_cargo = 750;
+		likely_cargo = 125;
+		/* generating 750 TC for NPCs is a waste of time. Assume the
+		 * rest of the theoretical space is passenger cabins, special
+		 * cargoes, etc. TODO?: actually put the passenger cabins in
+		 * and bring this value back up to the real 750 TC
+		 */
+		max_cargo = 250;
 		max_energy = 500;
 		max_flight_pitch = 0.4;
 		max_flight_roll = 0.75;
@@ -272,7 +283,7 @@
 		missiles = 7;
 		model = "anaconda_redux.dat";
 		name = "Anaconda";
-		roles = "trader";
+		roles = "trader(0.5) trader-courier(0.1)";
 		scoop_position = "0.0 -30.0 -60";
 		thrust = 14;
 		view_position_aft = "0.0 -4.0 -80.0";
@@ -285,17 +296,32 @@
 		weapon_position_port = "-37.5 -4.0 -40.0";
 		weapon_position_starboard = "37.5 -4.0 -40.0";
 	};
+	"oolite_template_anaconda-pirate" =
+	{
+//		like_ship = "oolite_template_anaconda";
+		like_ship = "anaconda"; // will switch to the template after 1.80
+		is_template = 1;
+		aft_weapon_type = "WEAPON_BEAM_LASER";
+		escort_roles = (
+			{ role = "pirate-light-fighter"; min = 2; max = 2; },
+			{ role = "pirate-medium-fighter"; min = 2; max = 2; }
+		);
+		forward_weapon_type = "WEAPON_BEAM_LASER";
+		roles = "pirate-heavy-freighter(0.05)";
+	};
 	"oolite_template_anaconda-player" =
 	{
 		like_ship = "oolite_template_anaconda";
 		is_template = 1;
+		max_cargo = 750;
 		missiles = 3;
 		roles = "player";
 	};
 	"oolite_template_asp" = {
 		aft_eject_position = "0.0 -8.0 -21.5";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -380,7 +406,7 @@
 		missiles = 1;
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
-		roles = "hunter pirate asp-pirate";
+		roles = "trader-courier hunter-medium(0.75) hunter-heavy(0.75) pirate-medium-fighter(0.5) pirate-heavy-fighter(0.5) pirate-interceptor pirate-aegis-raider escort-heavy assassin-heavy asp-pirate";
 		scoop_position = "0.0 -5.0 -15";
 		smooth = yes;
 		thrust = 50;
@@ -513,8 +539,9 @@
 	{
 		aft_eject_position = "0.0 -15.0 -50.5";
 		aft_weapon_type = "WEAPON_BEAM_LASER";
-		ai_type = "route1traderAI.plist";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -580,7 +607,12 @@
 			}
 		);
 		energy_recharge_rate = 3;
-		escorts = 4;
+		escort_roles = (
+			{ "role" = "escort"; min = 1; max = 3; },
+			{ "role" = "escort-medium"; min = -2; max = 2; },
+			{ "role" = "escort-heavy"; min = -3; max = 1; },
+			{ "role" = ""; min = 0; max = 2; },
+		);
 		exhaust = ("0.0 3.67 -56.0 16.0 16.0 2.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
@@ -589,7 +621,7 @@
 		has_scoop = 0.75;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 12;
+		likely_cargo = 100;
 		max_cargo = 125;
 		max_energy = 450;
 		max_flight_pitch = 1;
@@ -613,6 +645,17 @@
 		weapon_position_port = "-16.25 8.0 11.0";
 		weapon_position_starboard = "16.25 8.0 11.0";
 	};
+	"oolite_template_boa-pirate" =
+	{
+//		like_ship = "oolite_template_boa";
+		like_ship = "boa"; // will switch to the template after 1.80
+		is_template = 1;
+		escort_roles = (
+			{ "role" = "pirate-medium-fighter"; min = 2; max = 2; }
+		);
+		forward_weapon_type = "WEAPON_BEAM_LASER";
+		roles = "pirate-medium-freighter(0.25) pirate-heavy-freighter";
+	};
 	"oolite_template_boa-player" = 
 	{
 		like_ship = "oolite_template_boa";
@@ -624,8 +667,9 @@
 	{
 		aft_eject_position = "0.0 -18.75 -50.75";
 		aft_weapon_type = "WEAPON_BEAM_LASER";
-		ai_type = "route1traderAI.plist";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -691,7 +735,12 @@
 			}
 		);
 		energy_recharge_rate = 3.2;
-		escorts = 4;
+		escort_roles = (
+			{ "role" = "escort"; min = 1; max = 2; },
+			{ "role" = "escort-medium"; min = 1; max = 2; },
+			{ "role" = "escort-heavy"; min = -2; max = 2; },
+			{ "role" = ""; min = 0; max = 2; },
+		);
 		exhaust = ("9.75 1.5 -57.5 9.0 9.0 1.5", "-9.75 1.5 -57.5 9.0 9.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
@@ -700,7 +749,7 @@
 		has_scoop = yes;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 15;
+		likely_cargo = 125;
 		max_cargo = 175;
 		max_energy = 525;
 		max_flight_pitch = 1;
@@ -711,7 +760,7 @@
 		missiles = 5;
 		model = "boa2_redux.dat";
 		name = "Boa Class Cruiser";
-		roles = "trader sunskim-trader";
+		roles = "trader(0.25) trader-courier(0.05)";
 		scoop_position = "0.0 -20.0 -10.0";
 		thrust = 40;
 		view_position_aft = "0.0 22.875 -47.375";
@@ -723,6 +772,16 @@
 		weapon_position_forward = "0.0 8.0 57.5";
 		weapon_position_port = "-16.25 1.75 0.0";
 		weapon_position_starboard = "16.25 1.75 0.0";
+	};
+	"oolite_template_boa-mk2-pirate" =
+	{
+//		like_ship = "oolite_template_boa-mk2";
+		like_ship = "boa-mk2"; // will switch to the template after 1.80
+		is_template = 1;
+		escort_roles = (
+			{ "role" = "pirate-heavy-fighter"; min = 2; max = 2; }
+		);
+		roles = " pirate-heavy-freighter(0.2)";
 	};
 	"oolite_template_boa-mk2-player" = 
 	{
@@ -861,8 +920,9 @@
 	"oolite_template_cobra3" = 
 	{
 		aft_eject_position = "0.0 15.5 -33.0";
-		ai_type = "route1traderAI.plist";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -935,7 +995,7 @@
 		has_escape_pod = 0.95;
 		has_scoop = 0.95;
 		is_template = 1;
-		likely_cargo = 3;
+		likely_cargo = 15;
 		max_cargo = 20;
 		max_energy = 256;
 		max_flight_pitch = 1;
@@ -962,44 +1022,39 @@
 	"oolite_template_cobra3-trader" =
 	{
 		like_ship = "oolite_template_cobra3";
-		energy_recharge_rate = 2;
 		is_template = 1;
-		max_energy = 150;
 		max_flight_speed = 300;
 		thrust = 30;
-		roles = "trader scavenger sunskim-trader";
+		roles = "trader(0.375) trader-courier(0.2) trader-smuggler(0.75) hunter-medium(0.5) pirate-heavy-fighter pirate-interceptor(0.25) pirate-aegis-raider(0.2) scavenger sunskim-trader";
 	};
 	"oolite_template_cobra3-alternate" =
 	{
 		like_ship = "oolite_template_cobra3";
-		energy_recharge_rate = 3;
 		has_ecm = 0.95;
 		is_template = 1;
 		max_cargo = 35;
-		max_energy = 250;
-		max_flight_speed = 320;
+		max_flight_speed = 300;
 		materials =
 		{
 			"cobra3_redux.png" = { diffuse_map = "cobra3_redux1.png"; };
 		};
-		roles = "hunter pirate trader hermit-ship sunskim-trader cobra3-alternate";
+		roles = "pirate-light-freighter pirate-medium-freighter(0.2) trader(0.375) hunter-heavy escort-heavy(0.25) hermit-ship sunskim-trader cobra3-alternate assassin-medium";
 	};
 	"oolite_template_cobra3-pirate" =
 	{
 		like_ship = "oolite_template_cobra3";
 		is_template = 1;
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		bounty = 50;
-		energy_recharge_rate = 3;
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		has_ecm = 0.1;
 		has_escape_pod = 0.85;
 		has_scoop = yes;
 		has_shield_booster = 0.25;
-		max_cargo = 5;
-		max_energy = 250;
+		max_cargo = 20;
+		max_flight_speed = 300;
 		missiles = 1;
-		roles = "pirate hunter";
+		roles = "pirate(0.25) pirate-medium-fighter(0.5)";
 	};
 	"oolite_template_cobra3-player" =
 	{
@@ -1010,8 +1065,9 @@
 	};
 	"oolite_template_cobramk1" = {
 		aft_eject_position = "0.0 7.5 -21.0";
-		ai_type = "route1traderAI.plist";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1083,7 +1139,7 @@
 		has_scoop = 0.95;
 		hud = "hud-small.plist";
 		is_template = 1;
-		likely_cargo = 2;
+		likely_cargo = 10;
 		max_cargo = 10;
 		max_energy = 150;
 		max_flight_pitch = 1.2;
@@ -1094,7 +1150,7 @@
 		missiles = 1;
 		model = "cobra1_redux.dat";
 		name = "Cobra Mark I";
-		roles = "pirate hunter scavenger trader hermit-ship";
+		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort-light(0.25) assassin-light";
 		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		view_position_aft = "0.0 3.75 -27.5";
@@ -1111,8 +1167,8 @@
 	{
 		like_ship = "oolite_template_cobramk1";
 		is_template = 1;
-		ai_type = "pirateAI.plist";
-		energy_recharge_rate = 3.75;
+		ai_type = "oolite-pirateAI.js";
+		energy_recharge_rate = 3.75; // equivalent of Extra Energy Unit
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_fuel_injection = 0.25;
 		has_shield_booster = 0.25;
@@ -1121,14 +1177,14 @@
 		{
 			"cobra1_redux.png" = { diffuse_map = "cobra1_redux1.png"; };
 		};
-		roles = "pirate";
+		roles = "pirate(0.25) pirate-light-freighter(0.5) escort-heavy(0.5) escort-medium(0.25)";
 		thrust = 30;
 	};
 	"oolite_template_cobramk1-miner" = 
 	{
 		like_ship = "oolite_template_cobramk1";
 		is_template = 1;
-		ai_type = "minerAI.plist";
+		ai_type = "oolite-scavengerAI.js";
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
 		materials =
@@ -1146,7 +1202,7 @@
 	"oolite_template_constrictor" =
 	{
 		aft_eject_position = "0.0 5.5 -19.0";
-		ai_type = "oolite-constrictor-AI.plist";
+		ai_type = "oolite-constrictorAI.js";
 		bounty = 250;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
@@ -1182,7 +1238,7 @@
 	};
 	"oolite_template_coriolis-station" = 
 	{
-		ai_type = "stationAI.plist";
+		ai_type = "oolite-stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1344,7 +1400,7 @@
 	};
 	"oolite_template_dodecahedron-station" =
 	{
-		ai_type = "stationAI.plist";
+		ai_type = "oolite-stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1393,13 +1449,22 @@
 	{
 		like_ship = "oolite_template_missile";
 		is_template = 1;
-		ai_type = "hardMissileAI.plist";
+		ai_type = "oolite-missileAI.js";
 		name = "ECM Hardened Missile";
+		script_info = 
+		{
+			oolite_missile_blastPower = 170;
+			oolite_missile_blastRadius = 32.5;
+			oolite_missile_blastShaping = 0.25;
+			oolite_missile_ecmResponse = "_ecmProofMissileResponse";				
+			oolite_missile_proximity = 25;
+			oolite_missile_range = 30000;
+		};
 		roles = "missile EQ_HARDENED_MISSILE";
 	};
 	"oolite_template_escape-capsule" = {
 		aft_eject_position = "0.0 0.0 -2.0";
-		ai_type = "homeAI.plist";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_SLAVES";
 		energy_recharge_rate = 2;
 		exhaust =
@@ -1461,8 +1526,9 @@
 	};
 	"oolite_template_ferdelance" = {
 		aft_eject_position = "0.0 3.0 -38.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1539,7 +1605,7 @@
 		has_shield_enhancer = 0.5;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 2;
+		likely_cargo = 8;
 		max_cargo = 12;
 		max_energy = 150;
 		max_flight_pitch = 1;
@@ -1550,7 +1616,7 @@
 		missiles = 2;
 		model = "ferdelance_redux.dat";
 		name = "Fer-de-Lance";
-		roles = "pirate hunter";
+		roles = "trader-freighter(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
 		scoop_position = "0.0 -8.0 -14";
 		thrust = 36;
 		view_position_aft = "0.0 5.0 -32.5";
@@ -1573,8 +1639,9 @@
 	"oolite_template_gecko" =
 	{
 		aft_eject_position = "0.0 4.5 -11.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("0.0 0.0 -20.0 5.0 4.0 1.0");
@@ -1583,7 +1650,7 @@
 		has_scoop = yes;
 		has_shield_booster = 0.4;
 		is_template = 1;
-		likely_cargo = 1;
+		likely_cargo = 3;
 		max_cargo = 3;
 		max_energy = 250;
 		max_flight_pitch = 1.5;
@@ -1593,7 +1660,7 @@
 		missiles = 1;
 		model = "gecko_redux.dat";
 		name = "Gecko";
-		roles = "pirate";
+		roles = "hunter(0.75) pirate-light-fighter(0.5) pirate-medium-fighter(0.75) pirate(0.5) escort(0.25) escort-medium(0.5) escort-heavy";
 		scoop_position = "0.0 -5.0 -9";
 		thrust = 45;
 		weapon_facings = 1;
@@ -1603,7 +1670,7 @@
 	};
 	"oolite_template_icosahedron-station" = 
 	{
-		ai_type = "stationAI.plist";
+		ai_type = "oolite-stationAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1650,8 +1717,9 @@
 	"oolite_template_krait" = 
 	{
 		aft_eject_position = "0.0 7.5 -16.5";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		exhaust = ("-7.5 0.0 -35.58 4.0 4.0 1.0", "7.5 0.0 -35.58 4.0 4.0 1.0");
@@ -1673,7 +1741,7 @@
 		missiles = 0;
 		model = "krait_redux.dat";
 		name = "Krait";
-		roles = "pirate hunter";
+		roles = "pirate pirate-light-fighter(0.75) hunter(0.5) escort(0.25) assassin-light";
 		scoop_position = "0.0 -2.0 -3";
 		thrust = 35;
 		weapon_facings = 1;
@@ -1684,17 +1752,18 @@
 	};
 	"oolite_template_mamba" = {
 		aft_eject_position = "0.0 5.5 -17.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 0.0 -27.5 10.0 8.0 1.0");
-		forward_weapon_type = "WEAPON_BEAM_LASER";
+		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hyperspace_motor = no;
 		has_scoop = 0.95;
 		has_shield_booster = 0.25;
 		is_template = 1;
-		likely_cargo = 1;
+		likely_cargo = 3;
 		max_cargo = 4;
 		max_energy = 240;
 		max_flight_pitch = 1.4;
@@ -1704,7 +1773,7 @@
 		missiles = 0;
 		model = "mamba_redux.dat";
 		name = "Mamba";
-		roles = "pirate";
+		roles = "pirate pirate-light-fighter(0.5) hunter";
 		scoop_position = "0.0 -2.0 -3";
 		thrust = 32;
 		weapon_facings = 1;
@@ -1716,20 +1785,21 @@
 	"oolite_template_mamba-escort" =
 	{
 		like_ship = "oolite_template_mamba";
+		forward_weapon_type = "WEAPON_BEAM_LASER";
 		is_template = 1;
 		materials =
 		{
 			"mamba_redux.png" = { diffuse_map = "mamba_redux1.png"; };
 		};
 		name = "Mamba Escort";
-		roles = "escort";
+		roles = "pirate-light-fighter(0.5) escort escort-medium(0.25)";
 	};
 	"oolite_template_missile" = 
 	{
-		ai_type = "missileAI.plist";
+		ai_type = "oolite-missileAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
-		exhaust = ("0.0 0.0 -3.5 2.0 2.0 2.0");
+		exhaust = ("0.0 0.0 -3.5 2.0 2.0 0.75");
 		forward_weapon_type = "WEAPON_NONE";
 		is_template = 1;
 		max_energy = 5;
@@ -1741,6 +1811,14 @@
 		name = "Missile";
 		roles = "missile EQ_MISSILE";
 		scan_class = "CLASS_MISSILE";
+		script_info = 
+		{
+			oolite_missile_blastPower = 170;
+			oolite_missile_blastRadius = 32.5;
+			oolite_missile_blastShaping = 0.25;
+			oolite_missile_proximity = 25;
+			oolite_missile_range = 30000;
+		};
 		thrust = 250;
 		unpiloted = yes;
 		weapon_energy = 4500;
@@ -1748,8 +1826,9 @@
 	"oolite_template_moray" = 
 	{
 		aft_eject_position = "0.0 5.75 -8.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1822,7 +1901,7 @@
 		has_shield_booster = 0.5;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 2;
+		likely_cargo = 5;
 		max_cargo = 7;
 		max_energy = 240;
 		max_flight_pitch = 1.5;
@@ -1833,7 +1912,7 @@
 		missiles = 2;
 		model = "moray_redux.dat";
 		name = "Moray Star Boat";
-		roles = "pirate";
+		roles = "trader(0.5) trader-courier(0.25) trader-smuggler hunter-medium pirate-medium-fighter pirate-interceptor(0.25) pirate(0.5) pirate-light-freighter(0.5) escort-medium(0.25) assassin-light";
 		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
 		view_position_aft = "0.0 8.875 5.5";
@@ -1857,15 +1936,15 @@
 	{
 		like_ship = "oolite_template_moray";
 		is_template = 1;
-		ai_type = "route1traderAI.plist";
-		likely_cargo = 7;
+		ai_type = "oolite-traderAI.js";
+		likely_cargo = 15;
 		max_cargo = 22;
 		materials =
 		{
 			"moray_redux.png" = { diffuse_map = "moray_redux1.png"; };
 		};
 		name = "Moray Medical Boat";
-		roles = "trader sunskim-trader";
+		roles = "trader(0.5) sunskim-trader";
 		weapon_facings = 1;
 	};
 	"oolite_template_morayMED-player" =
@@ -1884,8 +1963,9 @@
 	"oolite_template_python" = 
 	{
 		aft_eject_position = "0.0 15.5 -50.0";
-		ai_type = "route1traderAI.plist";
+		ai_type = "oolite-traderAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views =
 		(
@@ -1959,7 +2039,7 @@
 		has_shield_booster = 0.75;
 		hud = "hud.plist";
 		is_template = 1;
-		likely_cargo = 10;
+		likely_cargo = 75;
 		max_cargo = 100;
 		max_energy = 450;
 		max_flight_pitch = 0.8;
@@ -1970,7 +2050,7 @@
 		missiles = 2;
 		model = "python_redux.dat";
 		name = "Python";
-		roles = "trader pirate";
+		roles = "trader(0.5) trader-smuggler(0.2) pirate(0.2) pirate-light-freighter(0.2)";
 		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
 		view_position_aft = "0.0 15.0 -49.5";
@@ -1987,16 +2067,19 @@
 	{
 		like_ship = "oolite_template_python";
 		is_template = 1;
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		energy_recharge_rate = 3.5;
-		escorts = 2;
+		escort_roles = (
+			{ "role" = "pirate-light-fighter"; min = 1; max = 1; },
+			{ "role" = "pirate-medium-fighter"; min = 1; max = 1; },
+		);
 		has_ecm = 0.75;
 		has_shield_booster = 0.85;
 		materials =
 		{
 			"python_redux.png" = { diffuse_map = "python_redux2.png"; };
 		};
-		roles = "pirate blackdog";
+		roles = "pirate-medium-freighter pirate-heavy-freighter(0.25) blackdog";
 	};
 	"oolite_template_python-player" = 
 	{
@@ -2009,7 +2092,11 @@
 	{
 		like_ship = "oolite_template_python";
 		is_template = 1;
-		escorts = 2;
+		escort_roles = (
+			{ "role" = "escort"; min = 0; max = 2; },
+			{ "role" = "escort-medium"; min = -2; max = 2; },
+			{ "role" = ""; min = 0; max = 2; }
+		);
 		has_escape_pod = yes;
 		materials =
 		{
@@ -2019,7 +2106,7 @@
 	};
 	"oolite_template_qbomb" = 
 	{
-		ai_type = "timebombAI.plist";
+		ai_type = "oolite-qbombAI.js";
 		energy_recharge_rate = 0;
 		is_template = 1;
 		max_energy = 10;
@@ -2033,7 +2120,7 @@
 	};
 	"oolite_template_rock-hermit" = 
 	{
-		ai_type = "rockHermitAI.plist";
+		ai_type = "oolite-rockHermitAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
 		"equipment_price_factor" = 4.5;
@@ -2143,7 +2230,7 @@
 	};
 	"oolite_template_shuttle" = {
 		aft_eject_position = "0.0 0 -18.0";
-		ai_type = "nullAI.plist";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 1;
 		exhaust = (
@@ -2174,8 +2261,9 @@
 	};
 	"oolite_template_sidewinder" = {
 		aft_eject_position = "0.0 7.5 -18.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
+		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.0 8.0 6.0 1.0");
@@ -2190,7 +2278,7 @@
 		missiles = 0;
 		model = "sidewinder_redux.dat";
 		name = "Sidewinder Scout Ship";
-		roles = "pirate hunter";
+		roles = "pirate(0.75) pirate-light-fighter(0.25) hunter";
 		thrust = 37;
 		weapon_facings = 1;
 		weapon_position_aft = "0.0 -6.5 -17.5";
@@ -2205,7 +2293,7 @@
 		energy_recharge_rate = 2.5;
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		max_flight_pitch = 1.8;
-		roles = "escort hunter";
+		roles = "escort escort-medium(0.5)";
 	};
 	"oolite_template_splinter" = 
 	{
@@ -2242,7 +2330,7 @@
 	};
 	"oolite_template_tharglet" = 
 	{
-		ai_type = "thargletAI.plist";
+		ai_type = "oolite-thargletAI.js";
 		bounty = 50;
 		cargo_type = "CARGO_THARGOID";
 		energy_recharge_rate = 3;
@@ -2271,7 +2359,7 @@
 	{
 		aft_eject_position = "0.0 0.0 -20.5";
 		aft_weapon_type = "WEAPON_THARGOID_LASER";
-		ai_type = "thargoidAI.plist";
+		ai_type = "oolite-thargoidAI.js";
 		bounty = 100;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
@@ -2300,7 +2388,7 @@
 	"oolite_template_transporter" = 
 	{
 		aft_eject_position = "0.0 5.5 -18.0";
-		ai_type = "nullAI.plist";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 1.5", "-6.125 -0.75 -17.5 3.0 3.0 1.5");
@@ -2329,7 +2417,7 @@
 	{
 		like_ship = "oolite_template_transporter";
 		is_template = 1;
-		ai_type = "minerAI.plist";
+		ai_type = "oolite-scavengerAI.js";
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
 		materials =
@@ -2342,12 +2430,13 @@
 	"oolite_template_viper" = 
 	{
 		aft_eject_position = "0.0 6.5 -28.0";
-		ai_type = "route1patrolAI.plist";
+		ai_type = "oolite-policeAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("12.5 0.0 -27.5 6.0 6.0 1.5", "-12.5 0.0 -27.5 6.0 6.0 1.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_ecm = yes;
+		has_escape_pod = yes;
 		is_template = 1;
 		laser_color = "magentaColor";
 		max_energy = 180;
@@ -2456,7 +2545,7 @@
 	"oolite_template_viper-interceptor" = 
 	{
 		aft_eject_position = "0.0 10.5 -22.0";
-		ai_type = "route1patrolAI.plist";
+		ai_type = "oolite-policeAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 6;
 		exhaust = (
@@ -2467,6 +2556,7 @@
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		fuel = 160;
 		has_ecm = yes;
+		has_escape_pod = yes;
 		has_fuel_injection = yes;
 		is_template = 1;
 		laser_color = "magentaColor";
@@ -2586,7 +2676,7 @@
 	"oolite_template_worm" = 
 	{
 		aft_eject_position = "0.0 5.0 -9.5";
-		ai_type = "nullAI.plist";
+		ai_type = "oolite-shuttleAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.5 7.0 6.0 1.5");
@@ -2615,7 +2705,7 @@
 	{
 		like_ship = "oolite_template_worm";
 		is_template = 1;
-		ai_type = "minerAI.plist";
+		ai_type = "oolite-scavengerAI.js";
 		energy_recharge_rate = 1.85;
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
@@ -2670,6 +2760,10 @@
 	{
 		like_ship = "oolite_template_anaconda";
 	};
+	"anaconda-pirate" = // Added in 1.79
+	{
+		like_ship = "oolite_template_anaconda-pirate";
+	};
 	"anaconda-player" =
 	{
 		like_ship = "oolite_template_anaconda-player";
@@ -2720,6 +2814,10 @@
 	{
 		like_ship = "oolite_template_boa";
 	};
+	"boa-pirate" = // Added in 1.79
+	{
+		like_ship = "oolite_template_boa-pirate";
+	};
 	"boa-player" =
 	{
 		like_ship = "oolite_template_boa-player";
@@ -2727,6 +2825,10 @@
 	"boa-mk2" =
 	{
 		like_ship = "oolite_template_boa-mk2";
+	};
+	"boa-mk2-pirate" = // Added in 1.79
+	{
+		like_ship = "oolite_template_boa-mk2-pirate";
 	};
 	"boa-mk2-player" =
 	{
@@ -3042,6 +3144,13 @@
 		/* Special entity definitions required by Oolite. There should be
 		 * no need to override these by OXP. */
 
+	"oolite-cargopod-virtual" =
+	{
+			/* Used to pack holds without requiring massive allocation of
+			 * cargo data. */
+			like_ship = "oolite_template_barrel";
+			roles = "oolite-template-cargopod";
+	};
 	"oolite-dock-virtual" =
 	{ 
 			/* Used for virtual docks for stations without a defined dock

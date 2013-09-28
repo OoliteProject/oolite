@@ -172,13 +172,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (BOOL) doRemoveEntity:(Entity *)entity;
 - (void) preloadSounds;
 - (void) setUpSettings;
+- (void) setUpCargoPods;
 - (void) setUpInitialUniverse;
 - (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
 
 - (void) resetSystemDataCache;
 
 - (void) populateSpaceFromActiveWormholes;
-- (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
 
@@ -262,6 +262,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	gSharedUniverse = self;
 	
 	allPlanets = [[NSMutableArray alloc] init];
+	allStations = [[NSMutableSet alloc] init];
 	
 	OOCPUInfoInit();
 	[OOJoystickManager sharedStickHandler];
@@ -350,6 +351,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[OOFlashEffectEntity setUpTexture];
 	[OOExplosionCloudEntity setUpTexture];
 	
+	// set up cargopod templates
+	[self setUpCargoPods];
+
 	player = [PlayerEntity sharedPlayer];
 	[player deferredInit];
 	[self addEntity:player];
@@ -411,12 +415,15 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[gameView release];
 	[populatorSettings release];
 	[system_repopulator release];
+	[allPlanets release];
+	[allStations release];
 	
 	[localPlanetInfoOverrides release];
 	[activeWormholes release];				
 	[characterPool release];
 	[universeRegion release];
-	
+	[cargoPods release];
+
 	DESTROY(_firstBeacon);
 	DESTROY(_lastBeacon);
 	
@@ -2170,11 +2177,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 			if ([ship hasRole:@"sunskim-trader"] && randf() < 0.25) // select 1/4 of the traders suitable for sunskimming.
 			{
+				[ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 				[self makeSunSkimmer:ship andSetAI:YES];
 			}
 			else
 			{
-				[ship switchAITo:@"route1traderAI.plist"];
+				[ship switchAITo:@"oolite-traderAI.js"];
 			}
 			
 			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
@@ -2322,11 +2330,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
 				if ([ship hasRole:@"sunskim-trader"] && randf() < 0.25) 
 				{
+					[ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 					[self makeSunSkimmer:ship andSetAI:YES];
 				}
 				else
 				{
-					[ship switchAITo:@"route1traderAI.plist"];
+					[ship switchAITo:@"oolite-traderAI.js"];
 				}
 			}
 			else if ([role isEqual:@"pirate"])
@@ -2462,7 +2471,18 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (BOOL) roleIsPirateVictim:(NSString *)role
 {
-	return [pirateVictimRoles containsObject:role];
+	return [self role:role isInCategory:@"oolite-pirate-victim"];
+}
+
+
+- (BOOL) role:(NSString *)role isInCategory:(NSString *)category
+{
+	NSSet *categoryInfo = [roleCategories objectForKey:category];
+	if (categoryInfo == nil)
+	{
+		return NO;
+	}
+	return [categoryInfo containsObject:role];
 }
 
 
@@ -2610,19 +2630,21 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) setDockingClearanceProtocolActive:(BOOL)newValue
 {
-	NSUInteger		i;
 	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
-	NSArray			*allStations = [self findShipsMatchingPredicate:IsStationPredicate
-											parameter:NULL
-											inRange:-1
-											ofEntity:nil];
-								   
-	for (i = 0; i < [allStations count]; i++)
+	NSEnumerator	*statEnum = [allStations objectEnumerator]; 
+	StationEntity	*station = nil;
+
+	/* CIM: picking a random ship type which can take the same primary
+	 * role as the station to determine whether it has no set docking
+	 * clearance requirements seems unlikely to work entirely
+	 * correctly. To be fixed. */
+						   
+	while ((station = [statEnum nextObject]))
 	{
-		NSString	*stationKey = [registry randomShipKeyForRole:[[allStations objectAtIndex:i] primaryRole]];
+		NSString	*stationKey = [registry randomShipKeyForRole:[station primaryRole]];
 		if (![[[registry shipInfoForKey:stationKey] allKeys] containsObject:@"requires_docking_clearance"])
 		{
-			[[allStations objectAtIndex:i] setRequiresDockingClearance:!!newValue];
+			[station setRequiresDockingClearance:!!newValue];
 		}
 	}
 	
@@ -2803,6 +2825,18 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (NSArray *) planets
 {
 	return allPlanets;
+}
+
+
+- (NSArray *) stations
+{
+	return [allStations allObjects];
+}
+
+
+- (NSArray *) wormholes
+{
+	return activeWormholes;
 }
 
 
@@ -3297,7 +3331,40 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce
+/* Converts template cargo pods to real ones */
+- (ShipEntity *) reifyCargoPod:(ShipEntity *)cargoObj
+{
+	if ([cargoObj isTemplateCargoPod])
+	{
+		return [UNIVERSE cargoPodFromTemplate:cargoObj];
+	}
+	else
+	{
+		return cargoObj;
+	}
+}
+
+
+- (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj
+{
+	ShipEntity *container = nil;
+	// this is a template container, so we need to make a real one
+	OOCommodityType co_type = [cargoObj commodityType];
+	OOCargoQuantity co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
+	if (randf() < 0.5) // stops OXP monopolising pods for commodities
+	{
+		container = [UNIVERSE newShipWithRole: [UNIVERSE symbolicNameForCommodity:co_type]]; 
+	}
+	if (container == nil)
+	{
+		container = [UNIVERSE newShipWithRole:@"cargopod"]; 
+	}
+	[container setCommodity:co_type andAmount:co_amount];
+	return container;
+}
+
+
+- (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal
 {
 	/*	build list of goods allocating 0..100 for each based on how much of
 		each quantity there is. Use a ratio of n x 100/64 for plentiful goods;
@@ -3311,11 +3378,27 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	unsigned i;
 	for (i = 0; i < commodityCount; i++)
 	{
+		/* NOTE: There's an oddity here in that commodityData is not
+		 * actually used anywhere for trading - the main station market is
+		 * [[UNIVERSE station] localMarket] and is accessed that way in
+		 * flight. So the quantities generated by this function don't
+		 * actually match the local visible market at all, but an
+		 * invisible market with the same distribution. This is perhaps a
+		 * good thing, since it stops the player manipulating cargo
+		 * generation by selectively buying and selling at the main
+		 * station, but it can give somewhat odd results, especially with
+		 * the highly variable Narcotics. - CIM */
 		OOCargoQuantity q = [[commodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
 		if (scarce)
 		{
 			if (q < 64)  q = 64 - q;
 			else  q = 0;
+		}
+		// legal YES restricts (almost) only to legal goods
+		// legal NO allows illegal goods, but not necessarily a full hold
+		if (legal && [self legalStatusOfCommodity:[[commodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME]] > 0)
+		{
+			q &= 1; // keep a very small chance, sometimes
 		}
 		if (q > 64) q = 64;
 		q *= 100;   q/= 64;
@@ -3325,48 +3408,31 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	// quantities is now used to determine which good get into the containers
 	for (i = 0; i < how_many; i++)
 	{
-		ShipEntity* container = [self newShipWithRole:@"cargopod"];	// retained
+		OOCommodityType co_type = COMMODITY_FOOD;
 		
-		// look for a pre-set filling
-		OOCommodityType co_type = [container commodityType];
-		OOCargoQuantity co_amount = [container commodityAmount];
-		
-		if ((co_type == COMMODITY_UNDEFINED || co_amount == 0) && [container cargoType] != CARGO_SCRIPTED_ITEM)
+		int qr=0;
+		if(total_quantity)
 		{
-			// choose a random filling
-			// select a random point in the histogram
-			int qr=0;
-			if(total_quantity)
-				qr = Ranrot() % total_quantity;
-			
-			co_type = 0;
+			qr = 1+(Ranrot() % total_quantity);
+			co_type = COMMODITY_FOOD;
 			while (qr > 0)
 			{
 				NSAssert((NSUInteger)co_type < commodityCount, @"Commodity type index out of range.");
 				qr -= quantities[co_type++];
 			}
 			co_type--;
-			
-			co_amount = [self getRandomAmountOfCommodity:co_type];
-			
-			if (randf() < 0.5) // only half of the time to prevent an oxp from monopolising a pod for a commodity.
-			{
-				ShipEntity* special_container = [self newShipWithRole: [self symbolicNameForCommodity:co_type]];
-				if (special_container)
-				{
-					[container release];
-					container = special_container;
-				}
-			}
 		}
+
+		ShipEntity *container = [cargoPods objectForKey:[NSNumber numberWithInt:co_type]];
 		
-		// into the barrel it goes...
 		if (container != nil)
 		{
-			[container setScanClass: CLASS_CARGO];
-			[container setCommodity:co_type andAmount:co_amount];
 			[accumulator addObject:container];
-			[container release];	// released
+		}
+		else
+		{
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %d.", co_type);
+
 		}
 	}
 	return [NSArray arrayWithArray:accumulator];	
@@ -3379,36 +3445,25 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many
+- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_much
 {
-	NSMutableArray	*accumulator = [NSMutableArray arrayWithCapacity:how_many];
+	NSMutableArray	*accumulator = [NSMutableArray arrayWithCapacity:how_much];
 	OOCommodityType	commodity_type = [self commodityForName:commodity_name];
 	if (commodity_type == COMMODITY_UNDEFINED)  return [NSArray array]; // empty array
-	OOCargoQuantity	commodity_units = [self unitsForCommodity:commodity_type];
-	OOCargoQuantity	how_much = how_many;
 	
 	while (how_much > 0)
 	{
-		ShipEntity		*container = [self newShipWithRole: commodity_name];	// try the commodity name first
-		if (!container)  container = [self newShipWithRole:@"cargopod"];
-		OOCargoQuantity	amount = 1;
-		if (commodity_units != 0)
-			amount += Ranrot() & (15 * commodity_units);
-		if (amount > how_much)
-			amount = how_much;
-		// into the barrel it goes...
+		ShipEntity *container = [cargoPods objectForKey:[NSNumber numberWithInt:commodity_type]];
 		if (container)
 		{
-			[container setScanClass: CLASS_CARGO];
-			[container setCommodity:commodity_type andAmount:amount];
 			[accumulator addObject:container];
-			[container release];
 		}
 		else
 		{
-			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@.", commodity_name);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %d.", commodity_type);
 		}
-		how_much -= amount;
+
+		how_much--;
 	}
 	return [NSArray arrayWithArray:accumulator];	
 }
@@ -4632,6 +4687,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		{
 			[[se getAI] setOwner:se];
 			[[se getAI] setState:@"GLOBAL"];
+			if ([entity isStation])
+			{
+				[allStations addObject:entity];
+			}
 		}
 		
 		return YES;
@@ -4649,7 +4708,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			there may be things pointing to it but not retaining it.
 		*/
 		[entitiesDeadThisUpdate addObject:entity];
-		
+		if ([entity isStation])
+		{
+			[allStations removeObject:entity];
+		}
 		return [self doRemoveEntity:entity];
 	}
 	return NO;
@@ -6171,6 +6233,33 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		{
 			[my_entities[i] release];	// explicitly release each one
 		}
+		/* Garbage collection is going to result in a significant
+		 * pause when it happens. Doing it here is better than doing
+		 * it in the middle of the update when it might slow a
+		 * function into the timelimiter through no fault of its
+		 * own. JS_MaybeGC will only run a GC when it's
+		 * necessary. Merely checking is not significant in terms of
+		 * time. - CIM: 4/8/2013
+		 */
+		update_stage = @"JS Garbage Collection";
+		OOLog(@"universe.profile.update", @"%@", update_stage); 
+#ifndef NDEBUG
+		JSContext *context = OOJSAcquireContext(); 
+		uint32 gcbytes1 = JS_GetGCParameter(JS_GetRuntime(context),JSGC_BYTES);
+		OOJSRelinquishContext(context);
+#endif
+		[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:NO];
+#ifndef NDEBUG
+		context = OOJSAcquireContext(); 
+		uint32 gcbytes2 = JS_GetGCParameter(JS_GetRuntime(context),JSGC_BYTES);
+		OOJSRelinquishContext(context);
+		if (gcbytes2 < gcbytes1)
+		{
+			OOLog(@"universe.profile.jsgc",@"Unplanned JS Garbage Collection from %d to %d",gcbytes1,gcbytes2);
+		}
+#endif
+
+
 	}
 	else
 	{
@@ -6185,6 +6274,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 #if NEW_PLANETS
 	[self prunePreloadingPlanetMaterials];
 #endif
+
 	OOLog(@"universe.profile.update",@"Update complete");
 }
 
@@ -8115,7 +8205,8 @@ static NSDictionary	*sCachedSystemData = nil;
 
 - (void) makeSunSkimmer:(ShipEntity *) ship andSetAI:(BOOL)setAI
 {
-	if (setAI) [ship switchAITo:@"route2sunskimAI.plist"];	// perfectly acceptable for both route 2 & 3
+	if (setAI) [ship switchAITo:@"oolite-traderAI.js"];	// perfectly acceptable for both route 2 & 3
+	[ship setFuel:(Ranrot()&31)];
 	// slow ships need extra insulation or they will burn up when sunskimming. (Tested at biggest sun in G3: Aenqute)
 	float minInsulation = 1000 / [ship maxFlightSpeed] + 1;
 	if ([ship heatInsulation] < minInsulation) [ship setHeatInsulation:minInsulation];
@@ -9453,9 +9544,10 @@ Entity *gOOJSPlayerIfStale = nil;
 	
 	[screenBackgrounds autorelease];
 	screenBackgrounds = [[ResourceManager dictionaryFromFilesNamed:@"screenbackgrounds.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	[pirateVictimRoles autorelease];
-	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
+
+	// role-categories.plist and pirate-victim-roles.plist
+	[roleCategories autorelease];
+	roleCategories = [[ResourceManager roleCategoriesDictionary] retain];
 	
 	[autoAIMap autorelease];
 	autoAIMap = [[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -9466,6 +9558,23 @@ Entity *gOOJSPlayerIfStale = nil;
 	[OOEquipmentType loadEquipment];
 }
 
+
+- (void) setUpCargoPods
+{
+	NSMutableDictionary *tmp = [[NSMutableDictionary alloc] initWithCapacity:(1 + COMMODITY_ALIEN_ITEMS - COMMODITY_FOOD)];
+	OOCommodityType type;
+	for (type = COMMODITY_FOOD ; type <= COMMODITY_ALIEN_ITEMS ; type++)
+	{
+		ShipEntity *container = [self newShipWithRole:@"oolite-template-cargopod"];
+		[container setScanClass:CLASS_CARGO];
+		[container setCommodity:type andAmount:1];
+		[tmp setObject:container forKey:[NSNumber numberWithInt:type]];
+		[container release];
+	}
+	[cargoPods release];
+	cargoPods = [[NSDictionary alloc] initWithDictionary:tmp];
+	[tmp release];
+}
 
 - (void) verifyEntitySessionIDs
 {

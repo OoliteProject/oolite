@@ -16,15 +16,27 @@
 
 {
 	"asteroid"			= "dumbAI.plist";
-	"escort"			= "escortAI.plist";
-	"hunter"			= "route1patrolAI.plist";
-	"interceptor"		= "route1patrolAI.plist";
-	"miner"				= "minerAI.plist";
-	"pirate"			= "pirateAI.plist";
-	"police"			= "route1patrolAI.plist";
-	"trader"			= "route1traderAI.plist";
-	"scavenger"			= "scavengerAI.plist";
-	"shuttle"			= "fallingShuttleAI.plist";
-	"sunskim-trader"	= "route2sunskimAI.plist";
-	"wingman"			= "escortAI.plist";
+	"escort"			= "oolite-escortAI.js";
+	"hunter"			= "oolite-bountyHunterAI.js";
+	"hunter-medium"		= "oolite-bountyHunterLeaderAI.js";
+	"hunter-heavy"		= "oolite-bountyHunterLeaderAI.js";
+	"interceptor"		= "oolite-policeAI.js";
+	"miner"				= "oolite-scavengerAI.js";
+	"pirate"			= "oolite-pirateAI.js";
+	"pirate-aegis-raider"	= "oolite-pirateInterceptorAI.js";
+	"pirate-interceptor"	= "oolite-pirateInterceptorAI.js";
+	"pirate-light-fighter"	= "oolite-pirateAI.js";
+	"pirate-medium-fighter"	= "oolite-pirateAI.js";
+	"pirate-heavy-fighter"	= "oolite-pirateAI.js";
+	"pirate-light-freighter"	= "oolite-pirateFreighterAI.js";
+	"pirate-medium-freighter"	= "oolite-pirateFreighterAI.js";
+	"pirate-heavy-freighter"	= "oolite-pirateFreighterAI.js";
+	"police"			= "oolite-policeAI.js";
+	"trader"			= "oolite-traderAI.js";
+	"trader-courier"	= "oolite-traderAI.js";
+	"trader-smuggler"	= "oolite-traderAI.js";
+	"scavenger"			= "oolite-scavengerAI.js";
+	"shuttle"			= "oolite-shuttleAI.js";
+	"sunskim-trader"	= "oolite-traderAI.js";
+	"wingman"			= "oolite-policeAI.js";
 }

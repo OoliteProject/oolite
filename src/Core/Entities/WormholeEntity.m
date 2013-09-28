@@ -369,9 +369,17 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 				Quaternion	q1;
 				quaternion_set_random(&q1);
 				double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
-				if (abs(d1) < min_d1)	// no closer than 750m to edge of buoy
-					d1 += ((d1 > 0.0)? min_d1: -min_d1);
 				Vector		v1 = vector_forward_from_quaternion(q1);
+				if (dot_product(v1,kBasisZVector) < -0.99)
+				{
+					// a bit more safe distance if right behind the buoy
+					min_d1 *= 3.0;
+				}
+
+				if (abs(d1) < min_d1)	// no closer than 750m to edge of buoy
+				{
+					d1 += ((d1 > 0.0)? min_d1: -min_d1);
+				}
 				position.x += v1.x * d1; // randomise exit position
 				position.y += v1.y * d1;
 				position.z += v1.z * d1;
@@ -413,10 +421,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			// - MKW 2011.03.10	
 			if (!_misjump)  [ship setBounty:[ship bounty]/2 withReason:kOOLegalStatusReasonNewSystem];	// adjust legal status for new system
 			
-			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
+			// now the cargo is defined in advance, this is unnecessary
+/*			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
 			{
 				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
-			}
+				}*/
 			
 			if (time_passed < 2.0)
 			{
@@ -433,8 +442,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			}
 			[ship setSpeed:[self exitSpeed]]; // all ships from this wormhole have same velocity
 
-			
-			// Should probably pass the wormhole, but they have no JS representation
+			// awaken JS-based AIs
+			[ship doScriptEvent:OOJSID("aiStarted")];
+
+			// Wormholes now have a JS representation, so we could provide it
+			// but is it worth it for the exit wormhole?
 			[ship doScriptEvent:OOJSID("shipExitedWormhole") andReactToAIMessage:@"EXITED WITCHSPACE"];
 		
 			// update the ships's position

@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ProxyPlayerEntity.h"
 #import "HeadUpDisplay.h"
 
+#import "ShipEntityAI.h"
 #import "Universe.h"
 #import "AI.h"
 #import "OOColor.h"
@@ -48,7 +49,7 @@ MA 02110-1301, USA.
 
 
 static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
-
+static unsigned RepForRisk(unsigned risk);
 
 @interface PlayerEntity (ContractsPrivate)
 
@@ -195,9 +196,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-okay-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				
+				[self addRoleToPlayer:@"trader-courier+"];
+
+				[self increasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[passengers removeObjectAtIndex:i--];
-				[self increasePassengerReputation];
 			}
 			else
 			{
@@ -208,7 +210,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-late-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				
+				[self addRoleToPlayer:@"trader-courier+"];
+
 				[passengers removeObjectAtIndex:i--];
 			}
 		}
@@ -219,8 +222,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				// we've run out of time!
 				[result appendFormatLine:DESC(@"passenger-failed-@"), passenger_name];
 				
+				[self decreasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[passengers removeObjectAtIndex:i--];
-				[self decreasePassengerReputation];
 			}
 		}
 	}
@@ -252,8 +255,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				
 				[result appendFormatLine:DESC(@"parcel-delivered-okay-@-@"), parcel_name, OOIntCredits(fee)];
 				
+				[self increaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
+
 				[parcels removeObjectAtIndex:i--];
-				[self increaseParcelReputation];
+				[self addRoleToPlayer:@"trader-courier+"];
 			}
 			else
 			{
@@ -264,7 +269,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"parcel-delivered-late-@-@"), parcel_name, OOIntCredits(fee)];
-				
+				[self addRoleToPlayer:@"trader-courier+"];
 				[parcels removeObjectAtIndex:i--];
 			}
 		}
@@ -275,8 +280,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				// we've run out of time!
 				[result appendFormatLine:DESC(@"parcel-failed-@"), parcel_name];
 				
+				[self decreaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[parcels removeObjectAtIndex:i--];
-				[self decreaseParcelReputation];
 			}
 		}
 	}
@@ -322,13 +327,23 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 					// credits += fee + premium;
 					// not any more: all contracts initially awarded by JS, so fee
 					// is now all that needs to be paid - CIM
+
+					if ([UNIVERSE legalStatusOfCommodity:[commodityInfo objectAtIndex:MARKET_NAME]] > 0)
+					{
+						[self addRoleToPlayer:@"trader-smuggler"];
+					}
+					else
+					{
+						[self addRoleToPlayer:@"trader"];
+					}
 					
 					credits += fee;
 					[result appendFormatLine:DESC(@"cargo-delivered-okay-@-@"), contract_cargo_desc, OOCredits(fee)];
 					
 					[contracts removeObjectAtIndex:i--];
 					// repute++
-					[self increaseContractReputation];
+					// +10 as cargo contracts don't have risk modifiers
+					[self increaseContractReputation:10];
 				}
 				else
 				{
@@ -349,6 +364,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 						int payment = percent_delivered * (fee) / 100.0;
 						credits += payment;
 						
+						if ([UNIVERSE legalStatusOfCommodity:[commodityInfo objectAtIndex:MARKET_NAME]] > 0)
+						{
+							[self addRoleToPlayer:@"trader-smuggler"];
+						}
+						else
+						{
+							[self addRoleToPlayer:@"trader"];
+						}
+
 						[result appendFormatLine:DESC(@"cargo-delivered-short-@-@-d"), contract_cargo_desc, OOCredits(payment), shortfall];
 						
 						[contracts removeObjectAtIndex:i--];
@@ -368,7 +392,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 				[contracts removeObjectAtIndex:i--];
 				// repute--
-				[self decreaseContractReputation];
+				[self decreaseContractReputation:10];
 			}
 		}
 		else
@@ -380,7 +404,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				
 				[contracts removeObjectAtIndex:i--];
 				// repute--
-				[self decreaseContractReputation];
+				[self decreaseContractReputation:10];
 			}
 		}
 	}
@@ -470,25 +494,27 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
 
 	if (unknown > 0)
-		unknown = 7 - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (((2*unknown)+(market_rnd % unknown))/3);
 	else
-		unknown = 7;
+		unknown = MAX_CONTRACT_REP;
 	
-	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -MAX_CONTRACT_REP to +MAX_CONTRACT_REP
 }
 
 
-- (void) increasePassengerReputation
+- (void) increasePassengerReputation:(unsigned)amount
 {
 	int good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
 	int bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
 	int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
 	
+	for (unsigned i=0;i<amount;i++)
+	{
 	if (bad > 0)
 	{
 		// shift a bean from bad to unknown
 		bad--;
-		if (unknown < 7)
+		if (unknown < MAX_CONTRACT_REP)
 			unknown++;
 	}
 	else
@@ -496,8 +522,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to good
 		if (unknown > 0)
 			unknown--;
-		if (good < 7)
+		if (good < MAX_CONTRACT_REP)
 			good++;
+	}
 	}
 	[reputation oo_setInteger:good		forKey:PASSAGE_GOOD_KEY];
 	[reputation oo_setInteger:bad		forKey:PASSAGE_BAD_KEY];
@@ -505,17 +532,19 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
-- (void) decreasePassengerReputation
+- (void) decreasePassengerReputation:(unsigned)amount
 {
 	int good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
 	int bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
 	int unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
 	
+for (unsigned i=0;i<amount;i++)
+	{
 	if (good > 0)
 	{
 		// shift a bean from good to bad
 		good--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	else
@@ -523,8 +552,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to bad
 		if (unknown > 0)
 			unknown--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
+	}
 	}
 	[reputation oo_setInteger:good		forKey:PASSAGE_GOOD_KEY];
 	[reputation oo_setInteger:bad		forKey:PASSAGE_BAD_KEY];
@@ -539,25 +569,27 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 	
 	if (unknown > 0)
-		unknown = 7 - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (((2*unknown)+(market_rnd % unknown))/3);
 	else
-		unknown = 7;
+		unknown = MAX_CONTRACT_REP;
 	
-	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -MAX_CONTRACT_REP to +MAX_CONTRACT_REP
 }
 
 
-- (void) increaseParcelReputation
+- (void) increaseParcelReputation:(unsigned)amount
 {
 	int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
 	int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
 	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
-	
+
+		for (unsigned i=0;i<amount;i++)
+	{
 	if (bad > 0)
 	{
 		// shift a bean from bad to unknown
 		bad--;
-		if (unknown < 7)
+		if (unknown < MAX_CONTRACT_REP)
 			unknown++;
 	}
 	else
@@ -565,8 +597,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to good
 		if (unknown > 0)
 			unknown--;
-		if (good < 7)
+		if (good < MAX_CONTRACT_REP)
 			good++;
+	}
 	}
 	[reputation oo_setInteger:good		forKey:PARCEL_GOOD_KEY];
 	[reputation oo_setInteger:bad		forKey:PARCEL_BAD_KEY];
@@ -574,17 +607,19 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
-- (void) decreaseParcelReputation
+- (void) decreaseParcelReputation:(unsigned)amount
 {
 	int good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
 	int bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
 	int unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 	
+	for (unsigned i=0;i<amount;i++)
+	{
 	if (good > 0)
 	{
 		// shift a bean from good to bad
 		good--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	else
@@ -592,8 +627,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to bad
 		if (unknown > 0)
 			unknown--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
+	}
 	}
 	[reputation oo_setInteger:good		forKey:PARCEL_GOOD_KEY];
 	[reputation oo_setInteger:bad		forKey:PARCEL_BAD_KEY];
@@ -608,25 +644,27 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
 	
 	if (unknown > 0)
-		unknown = 7 - (market_rnd % unknown);
+		unknown = MAX_CONTRACT_REP - (((2*unknown)+(market_rnd % unknown))/3);
 	else
-		unknown = 7;
+		unknown = MAX_CONTRACT_REP;
 	
-	return (good + unknown - 3 * bad) / 2;	// return a number from -7 to +7
+	return (good + unknown - 3 * bad) / 2;	// return a number from -MAX_CONTRACT_REP to +MAX_CONTRACT_REP
 }
 
 
-- (void) increaseContractReputation
+- (void) increaseContractReputation:(unsigned)amount
 {
 	int good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
 	int bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
 	int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
 	
+	for (unsigned i=0;i<amount;i++)
+	{
 	if (bad > 0)
 	{
 		// shift a bean from bad to unknown
 		bad--;
-		if (unknown < 7)
+		if (unknown < MAX_CONTRACT_REP)
 			unknown++;
 	}
 	else
@@ -634,8 +672,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to good
 		if (unknown > 0)
 			unknown--;
-		if (good < 7)
+		if (good < MAX_CONTRACT_REP)
 			good++;
+	}
 	}
 	[reputation oo_setInteger:good		forKey:CONTRACTS_GOOD_KEY];
 	[reputation oo_setInteger:bad		forKey:CONTRACTS_BAD_KEY];
@@ -643,17 +682,19 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
-- (void) decreaseContractReputation
+- (void) decreaseContractReputation:(unsigned)amount
 {
 	int good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
 	int bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
 	int unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
 	
+	for (unsigned i=0;i<amount;i++)
+	{
 	if (good > 0)
 	{
 		// shift a bean from good to bad
 		good--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
 	}
 	else
@@ -661,8 +702,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		// shift a bean from unknown to bad
 		if (unknown > 0)
 			unknown--;
-		if (bad < 7)
+		if (bad < MAX_CONTRACT_REP)
 			bad++;
+	}
 	}
 	[reputation oo_setInteger:good		forKey:CONTRACTS_GOOD_KEY];
 	[reputation oo_setInteger:bad		forKey:CONTRACTS_BAD_KEY];
@@ -682,7 +724,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	int pl_bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
 	int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
 	
-	if (c_unknown < 7)
+	if (c_unknown < MAX_CONTRACT_REP)
 	{
 		if (c_bad > 0)
 			c_bad--;
@@ -694,7 +736,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		c_unknown++;
 	}
 	
-	if (p_unknown < 7)
+	if (p_unknown < MAX_CONTRACT_REP)
 	{
 		if (p_bad > 0)
 			p_bad--;
@@ -706,7 +748,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		p_unknown++;
 	}
 
-	if (pl_unknown < 7)
+	if (pl_unknown < MAX_CONTRACT_REP)
 	{
 		if (pl_bad > 0)
 			pl_bad--;
@@ -730,275 +772,88 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	
 }
 
-/*
-- (void) setGuiToContractsScreen
+
+/* Update reputation levels in case of change in MAX_CONTRACT_REP */
+- (void) normaliseReputation
 {
-	NSUInteger		i;
-	NSMutableArray	*row_info = [NSMutableArray arrayWithCapacity:5];
-	OOGUIScreenID	oldScreen = gui_screen;
-	
-	GuiDisplayGen	*gui = [UNIVERSE gui];
-	gui_screen = GUI_SCREEN_CONTRACTS;
-	BOOL			guiChanged = (oldScreen != gui_screen);
-	
-	// set up initial markets if there are none
-	StationEntity* the_station = [UNIVERSE station];
-	if (![the_station localPassengers])
-		[the_station setLocalPassengers:[NSMutableArray arrayWithArray:[UNIVERSE passengersForLocalSystemAtTime:ship_clock]]];
-	if (![the_station localContracts])
-		[the_station setLocalContracts:[NSMutableArray arrayWithArray:[UNIVERSE contractsForLocalSystemAtTime:ship_clock]]];
-		
-	NSMutableArray* passenger_market = [the_station localPassengers];
-	NSMutableArray* contract_market = [the_station localContracts];
-	
-	// remove passenger contracts that the player has already agreed to or done
-	for (i = 0; i < [passenger_market count]; i++)
+	int c_good = [reputation oo_intForKey:CONTRACTS_GOOD_KEY];
+	int c_bad = [reputation oo_intForKey:CONTRACTS_BAD_KEY];
+	int c_unknown = [reputation oo_intForKey:CONTRACTS_UNKNOWN_KEY];
+	int p_good = [reputation oo_intForKey:PASSAGE_GOOD_KEY];
+	int p_bad = [reputation oo_intForKey:PASSAGE_BAD_KEY];
+	int p_unknown = [reputation oo_intForKey:PASSAGE_UNKNOWN_KEY];
+	int pl_good = [reputation oo_intForKey:PARCEL_GOOD_KEY];
+	int pl_bad = [reputation oo_intForKey:PARCEL_BAD_KEY];
+	int pl_unknown = [reputation oo_intForKey:PARCEL_UNKNOWN_KEY];
+
+	int c = c_good + c_bad + c_unknown;
+	if (c == 0)
 	{
-		NSDictionary* info = [passenger_market oo_dictionaryAtIndex:i];
-		NSString* p_name = [info oo_stringForKey:PASSENGER_KEY_NAME];
-		if ([passenger_record objectForKey:p_name])
-			[passenger_market removeObjectAtIndex:i--];
+		c_unknown = MAX_CONTRACT_REP;
+	}
+	else if (c != MAX_CONTRACT_REP)
+	{
+		c_good = c_good * MAX_CONTRACT_REP / c;
+		c_bad = c_bad * MAX_CONTRACT_REP / c;
+		c_unknown = MAX_CONTRACT_REP - c_good - c_bad;
 	}
 
-	// remove cargo contracts that the player has already agreed to or done
-	for (i = 0; i < [contract_market count]; i++)
+	int p = p_good + p_bad + p_unknown;
+	if (p == 0)
 	{
-		NSDictionary* info = [contract_market oo_dictionaryAtIndex:i];
-		NSString* cid = [info oo_stringForKey:CARGO_KEY_ID];
-		if ([contract_record objectForKey:cid])
-			[contract_market removeObjectAtIndex:i--];
+		p_unknown = MAX_CONTRACT_REP;
 	}
-		
-	// if there are more than 5 contracts remove cargo contracts that are larger than the space available or cost more than can be afforded
-	for (i = 0; ([contract_market count] > 5) && (i < [contract_market count]); i++)
+	else if (p != MAX_CONTRACT_REP)
 	{
-		NSDictionary	*info = [contract_market objectAtIndex:i];
-		OOCargoQuantity	cargoSpaceRequired = [info oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
-		OOMassUnit		cargoUnits = [UNIVERSE unitsForCommodity:[info oo_intForKey:CARGO_KEY_TYPE]];
-		
-		if (EXPECT_NOT(cargoUnits == UNITS_KILOGRAMS || cargoUnits == UNITS_GRAMS))
-		{
-			// Let's calculate the exact space requirement for non-ton units
-			// We're using int math, so 99/100 equals 0
-			
-			OOCargoQuantity		existingQty = [[[self shipCommodityData] objectAtIndex:[info oo_intForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
-			OOCargoQuantity		usedCargoSpace;
-			if (cargoUnits == UNITS_KILOGRAMS)
-			{
-				usedCargoSpace = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + existingQty) / KILOGRAMS_PER_POD;
-				cargoSpaceRequired = (((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / KILOGRAMS_PER_POD) - usedCargoSpace;
-			}
-			else	// UNITS_GRAMS
-			{
-				usedCargoSpace = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + existingQty) / GRAMS_PER_POD;
-				cargoSpaceRequired = (((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / GRAMS_PER_POD) - usedCargoSpace;
-			}		
-		}
-				
-		float premium = [info oo_floatForKey:CONTRACT_KEY_PREMIUM];
-		if ((cargoSpaceRequired > [self availableCargoSpace])||(premium * 10 > credits)) 
-		{
-			[contract_market removeObjectAtIndex:i--];
-		}
-	}
-		
-	// GUI stuff
-	{
-		NSUInteger passengerCount = MIN([passenger_market count], 5U);
-		NSUInteger contractCount = MIN([contract_market count], 5U);
-		
-		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"@-contracts-title"),[UNIVERSE getSystemName:system_seed]]];
-		
-		OOGUITabSettings tab_stops;
-		tab_stops[0] = 0;
-		tab_stops[1] = 160;
-		tab_stops[2] = 240;
-		tab_stops[3] = -410;
-		tab_stops[4] = -476;
-		
-		[gui setTabStops:tab_stops];
-		
-		[row_info addObject:DESC(@"contracts-passenger-name")];
-		[row_info addObject:DESC(@"contracts-to")];
-		[row_info addObject:DESC(@"contracts-within")];
-		[row_info addObject:DESC(@"contracts-passenger-advance")];
-		[row_info addObject:DESC(@"contracts-passenger-fee")];
-		
-		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_PASSENGERS_LABELS];
-		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_LABELS];
-		
-		for (i = 0; i < passengerCount; i++)
-		{
-			NSDictionary	*passengerInfo = [passenger_market oo_dictionaryAtIndex:i];
-			NSString		*Name = [passengerInfo oo_stringForKey:PASSENGER_KEY_NAME];
-			if([Name length] >27)	Name =[[Name substringToIndex:25] stringByAppendingString:@"..."];
-			int eta = [passengerInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
-			int etd = [passengerInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock;
-			[row_info removeAllObjects];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",Name]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:eta]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_PREMIUM]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passengerInfo oo_stringForKey:CONTRACT_KEY_FEE]]];
-			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_START + i];
-			if (max_passengers > [passengers count] && (((eta - etd) / 4) + etd >= 0))
-			{
-				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_PASSENGERS_START + i];
-				if (etd > 0)
-					[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
-				else
-					[gui setColor:[OOColor orangeColor] forRow:GUI_ROW_PASSENGERS_START + i];
-			}
-			else
-			{
-				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_PASSENGERS_START + i];
-				[gui setColor:[OOColor grayColor] forRow:GUI_ROW_PASSENGERS_START + i];
-			}
-		}
-		
-		[row_info removeAllObjects];
-		[row_info addObject:DESC(@"contracts-cargo-cargotype")];
-		[row_info addObject:DESC(@"contracts-to")];
-		[row_info addObject:DESC(@"contracts-within")];
-		[row_info addObject:DESC(@"contracts-cargo-premium")];
-		[row_info addObject:DESC(@"contracts-cargo-pays")];
-		
-		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_CARGO_LABELS];
-		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_LABELS];
-		
-		for (i = 0; i < contractCount; i++)
-		{
-			NSDictionary		*contractInfo = [contract_market oo_dictionaryAtIndex:i];
-			OOCargoQuantity		cargoSpaceRequired = [contractInfo oo_unsignedIntForKey:CARGO_KEY_AMOUNT];
-			OOMassUnit			cargoUnits = [UNIVERSE unitsForCommodity:[contractInfo oo_intForKey:CARGO_KEY_TYPE]];
-			if (EXPECT_NOT(cargoUnits == UNITS_KILOGRAMS || cargoUnits == UNITS_GRAMS))
-			{
-				// Let's calculate the exact space requirement for non-ton units
-				// We're using int math, so 99/100 equals 0
-				
-				OOCargoQuantity		existingQty = [[[self shipCommodityData] objectAtIndex:[contractInfo oo_intForKey:CARGO_KEY_TYPE]] oo_intAtIndex:MARKET_QUANTITY];
-				OOCargoQuantity		usedCargoSpace;
-				if (cargoUnits == UNITS_KILOGRAMS)
-				{
-					usedCargoSpace = ((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + existingQty) / KILOGRAMS_PER_POD;
-					cargoSpaceRequired = (((KILOGRAMS_PER_POD - MAX_KILOGRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / KILOGRAMS_PER_POD) - usedCargoSpace;
-				}
-				else	// UNITS_GRAMS
-				{
-					usedCargoSpace = ((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + existingQty) / GRAMS_PER_POD;
-					cargoSpaceRequired = (((GRAMS_PER_POD - MAX_GRAMS_IN_SAFE - 1) + cargoSpaceRequired + existingQty) / GRAMS_PER_POD) - usedCargoSpace;
-				}		
-			}
-			
-			float premium = [contractInfo oo_floatForKey:CONTRACT_KEY_PREMIUM];
-			int eta = [contractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
-			int etd = [contractInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock;
-			[row_info removeAllObjects];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CARGO_KEY_DESCRIPTION]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:eta]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CONTRACT_KEY_PREMIUM]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contractInfo oo_stringForKey:CONTRACT_KEY_FEE]]];
-			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_START + i];
-			
-			if ((cargoSpaceRequired <= [self availableCargoSpace]) && (premium * 10 <= credits) && (((eta - etd) / 4) + etd >= 0))
-			{
-				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
-				if (etd > 0)
-					[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
-				else
-					[gui setColor:[OOColor orangeColor] forRow:GUI_ROW_CARGO_START + i];
-			}
-			else
-			{
-				[gui setKey:GUI_KEY_SKIP forRow:GUI_ROW_CARGO_START + i];
-				[gui setColor:[OOColor grayColor] forRow:GUI_ROW_CARGO_START + i];
-			}
-		}
-		
-		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace], [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
-		
-		for (i = GUI_ROW_CARGO_START + contractCount; i < GUI_ROW_MARKET_CASH; i++)
-		{
-			[gui setText:@"" forRow:i];
-			[gui setColor:[OOColor greenColor] forRow:i];
-		}
-		
-		[gui setSelectableRange:NSMakeRange(GUI_ROW_PASSENGERS_START, GUI_ROW_CARGO_START + contractCount)];
-		if ([[gui selectedRowKey] isEqual:GUI_KEY_SKIP])
-			[gui setFirstSelectableRow];
-		
-		NSDictionary	*selectedContractInfo = nil;
-		
-		if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < (int)(GUI_ROW_PASSENGERS_START + passengerCount)))
-		{
-			selectedContractInfo = [passenger_market oo_dictionaryAtIndex:[gui selectedRow] - GUI_ROW_PASSENGERS_START];
-		}
-		if (([gui selectedRow] >= GUI_ROW_CARGO_START)&&([gui selectedRow] < (int)(GUI_ROW_CARGO_START + contractCount)))
-		{
-			selectedContractInfo = [contract_market oo_dictionaryAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
-		}
-		
-		if (selectedContractInfo != nil)
-		{
-			NSString		*longText = [selectedContractInfo oo_stringForKey:CONTRACT_KEY_LONG_DESCRIPTION];
-			
-			// recalculate time to depart, could be out of sync with ship clock otherwise.
-			NSString		*etaString;
-			int				etd = [selectedContractInfo oo_doubleForKey:CONTRACT_KEY_DEPARTURE_TIME] - ship_clock;
-			if (etd > 0)
-			{
-				etaString = [NSString stringWithFormat:
-							DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), @"",
-							[UNIVERSE shortTimeDescription:etd], [UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock)]];
-			}
-			else
-			{
-				etaString = [NSString stringWithFormat:
-							DESC(@"contracts-@-you-will-need-to-arrive-within-@-time"), @"",
-							[UNIVERSE shortTimeDescription:([selectedContractInfo oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock)]];
-			}
-							
-			longText = [NSString stringWithFormat:longText, etaString];
-			
-			[gui addLongText:longText startingAtRow:GUI_ROW_CONTRACT_INFO_START align:GUI_ALIGN_LEFT];		
-		}
-		
-		[gui setShowTextCursor:NO];
+		p_good = p_good * MAX_CONTRACT_REP / p;
+		p_bad = p_bad * MAX_CONTRACT_REP / p;
+		p_unknown = MAX_CONTRACT_REP - p_good - p_bad;
 	}
 	
-	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
-	
-	if (guiChanged)
+	int pl = pl_good + pl_bad + pl_unknown;
+	if (pl == 0)
 	{
-		[gui setForegroundTextureKey:@"docked_overlay"];	// has to be docked!
-		
-		NSDictionary *descriptor = [UNIVERSE screenTextureDescriptorForKey:@"contracts"];
-		if (descriptor == nil)  descriptor = [UNIVERSE screenTextureDescriptorForKey:@"market"];
-		[gui setBackgroundTextureDescriptor:descriptor];
-		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+		pl_unknown = MAX_CONTRACT_REP;
 	}
+	else if (pl != MAX_CONTRACT_REP)
+	{
+		pl_good = pl_good * MAX_CONTRACT_REP / pl;
+		pl_bad = pl_bad * MAX_CONTRACT_REP / pl;
+		pl_unknown = MAX_CONTRACT_REP - pl_good - pl_bad;
+	}
+
+	[reputation setObject:[NSNumber numberWithInt:c_good]		forKey:CONTRACTS_GOOD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:c_bad]		forKey:CONTRACTS_BAD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:c_unknown]	forKey:CONTRACTS_UNKNOWN_KEY];
+	[reputation setObject:[NSNumber numberWithInt:p_good]		forKey:PASSAGE_GOOD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:p_bad]		forKey:PASSAGE_BAD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:p_unknown]	forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_good]		forKey:PARCEL_GOOD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_bad]		forKey:PARCEL_BAD_KEY];
+	[reputation setObject:[NSNumber numberWithInt:pl_unknown]	forKey:PARCEL_UNKNOWN_KEY];
+	
 }
-*/
 
 
-- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee advance:(double)advance
+- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee advance:(double)advance risk:(unsigned)risk
 {
 	NSDictionary* passenger_info = [NSDictionary dictionaryWithObjectsAndKeys:
-		Name,																	PASSENGER_KEY_NAME,
-		[NSNumber numberWithInt:start],											CONTRACT_KEY_START,
-		[NSNumber numberWithInt:Destination],									CONTRACT_KEY_DESTINATION,
+		Name,											PASSENGER_KEY_NAME,
+		[NSNumber numberWithInt:start],					CONTRACT_KEY_START,
+		[NSNumber numberWithInt:Destination],			CONTRACT_KEY_DESTINATION,
 		[NSNumber numberWithDouble:[PLAYER clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
-		[NSNumber numberWithDouble:eta],										CONTRACT_KEY_ARRIVAL_TIME,
-		[NSNumber numberWithDouble:fee],										CONTRACT_KEY_FEE,
-		[NSNumber numberWithDouble:advance],												CONTRACT_KEY_PREMIUM,
+		[NSNumber numberWithDouble:eta],				CONTRACT_KEY_ARRIVAL_TIME,
+		[NSNumber numberWithDouble:fee],				CONTRACT_KEY_FEE,
+		[NSNumber numberWithDouble:advance],			CONTRACT_KEY_PREMIUM,
+		[NSNumber numberWithUnsignedInt:risk],			CONTRACT_KEY_RISK,
+
 		NULL];
 	
 	// extra checks, just in case.
 	if ([passengers count] >= max_passengers || [passenger_record objectForKey:Name] != nil) return NO;
 		
+	[self addRoleToPlayer:@"trader-courier+"];
+
 	[passengers addObject:passenger_info];
 	[passenger_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
 	return YES;
@@ -1028,20 +883,26 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
-- (BOOL) addParcel:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee
+- (BOOL) addParcel:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee premium:(double)premium risk:(unsigned)risk
 {
 	NSDictionary* parcel_info = [NSDictionary dictionaryWithObjectsAndKeys:
-		Name,																	PASSENGER_KEY_NAME,
-		[NSNumber numberWithInt:start],											CONTRACT_KEY_START,
-		[NSNumber numberWithInt:Destination],									CONTRACT_KEY_DESTINATION,
+		Name,											PASSENGER_KEY_NAME,
+		[NSNumber numberWithInt:start],					CONTRACT_KEY_START,
+		[NSNumber numberWithInt:Destination],			CONTRACT_KEY_DESTINATION,
 		[NSNumber numberWithDouble:[PLAYER clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
-		[NSNumber numberWithDouble:eta],										CONTRACT_KEY_ARRIVAL_TIME,
-		[NSNumber numberWithDouble:fee],										CONTRACT_KEY_FEE,
-		[NSNumber numberWithInt:0],												CONTRACT_KEY_PREMIUM,
+		[NSNumber numberWithDouble:eta],				CONTRACT_KEY_ARRIVAL_TIME,
+		[NSNumber numberWithDouble:fee],				CONTRACT_KEY_FEE,
+		[NSNumber numberWithDouble:premium],			CONTRACT_KEY_PREMIUM,
+		[NSNumber numberWithUnsignedInt:risk],			CONTRACT_KEY_RISK,
 		NULL];
 	
 	// extra checks, just in case.
 	if ([parcel_record objectForKey:Name] != nil) return NO;
+
+	if ([parcels count] == 0 || risk > 0)
+	{
+		[self addRoleToPlayer:@"trader-courier+"];
+	}
 		
 	[parcels addObject:parcel_info];
 	[parcel_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
@@ -1124,6 +985,17 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 
 	current_cargo = [self cargoQuantityOnBoard];
+
+	if ([UNIVERSE legalStatusOfCommodity:[manifest_commodity objectAtIndex:MARKET_NAME]] > 0)
+	{
+		[self addRoleToPlayer:@"trader-smuggler"];
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-illegal"];
+	}
+	else
+	{
+		[self addRoleToPlayer:@"trader"];
+		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-legal"];
+	}
 
 	[contracts addObject:cargo_info];
 	[contract_record setObject:[NSNumber numberWithDouble:eta] forKey:cargo_ID];
@@ -1886,7 +1758,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	[ship setRoll: M_PI/10.0];
 	[ship setPitch: M_PI/25.0];
 	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
-	[[ship getAI] setStateMachine: @"nullAI.plist"];
+	[ship setAITo: @"nullAI.plist"];
 	id subEntStatus = [shipData objectForKey:@"subentities_status"];
 	// show missing subentities if there's a subentities_status key
 	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];
@@ -2166,7 +2038,35 @@ static NSMutableDictionary *currentShipyard = nil;
 	[self setShipClassName:[shipDict oo_stringForKey:@"name"]];
 	[self setShipUniqueName:@""];
 
+	// new ship, so lose some memory of actions
+	// new ship, so lose some memory of player actions
+	if (ship_kills >= 6400)
+	{
+		[self clearRolesFromPlayer:0.1];
+	}
+	else if (ship_kills >= 2560)
+	{
+		[self clearRolesFromPlayer:0.25];
+	}
+	else
+	{
+		[self clearRolesFromPlayer:0.5];
+	}	
+
 }
 
 @end
 
+static unsigned RepForRisk(unsigned risk)
+{
+	switch (risk)
+	{
+	case 0:
+		return 1;
+	case 1:
+		return 2;
+	case 2:
+	default:
+		return 4;
+	}
+}

@@ -356,6 +356,7 @@
 	shipData.load.warning.turret.badFireRate = inherit;
 	shipData.load.warning.turret.badWeaponRange = inherit;
 	shipData.load.warning.turret.badWeaponEnergy = inherit;
+	shipData.load.roleCategories = no;
 	shipData.translateSubentity				= no;
 	shipData.translateSubentity.flasher		= inherit;
 	shipData.translateSubentity.standard	= inherit;
@@ -464,6 +465,7 @@
 	universe.maxEntitiesDump				= no;				// Dumps all entities when universe is full (Can be quite verbose)
 	
 	universe.profile = no;
+	universe.profile.jsgc = inherit;
 	universe.profile.update = inherit;
 	universe.profile.draw = inherit;
 

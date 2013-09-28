@@ -33,7 +33,7 @@
 	{
 		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 80000.0", checkCourseToDestination, checkForNormalSpace);
 		RESTARTED = (setCourseToPlanet, "setDesiredRangeTo: 80000.0", checkCourseToDestination, checkForNormalSpace);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_TARGETS");
 		ATTACKED = (setTargetToPrimaryAggressor, deployEscorts, "setStateTo: ATTACK_SHIP");
@@ -46,7 +46,7 @@
 	"HEAD_FOR_WITCHPOINT" =
 	{
 		ENTER = (setCourseToWitchpoint, "setDesiredRangeTo: 15000.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_TARGETS");
 		ATTACKED = (setTargetToPrimaryAggressor, deployEscorts, "setStateTo: ATTACK_SHIP");

@@ -61,6 +61,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
 + (void) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (void) logPaths;
++ (void) mergeRoleCategories:(NSDictionary *)catData intoDictionary:(NSMutableDictionary *)category;
 
 @end
 
@@ -832,6 +833,54 @@ static NSString *LogClassKeyRoot(NSString *key)
 	if (dict != nil)  [logControl addEntriesFromDictionary:dict];
 	
 	return logControl;
+}
+
+
++ (NSDictionary *) roleCategoriesDictionary
+{
+	NSMutableDictionary *roleCategories = [NSMutableDictionary dictionaryWithCapacity:16];
+
+	NSString *path = nil;
+	NSString *configPath = nil;
+	NSDictionary *categories = nil;
+	
+	NSEnumerator *pathEnum = [self pathEnumerator];
+	while ((path = [pathEnum nextObject]))
+	{
+		configPath = [[path stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"role-categories.plist"];
+		categories = OODictionaryFromFile(configPath);
+		if (categories != nil)
+		{
+			[ResourceManager mergeRoleCategories:categories intoDictionary:roleCategories];
+		}
+	}
+	
+	/* If the old pirate-victim-roles files exist, merge them in */
+	NSArray *pirateVictims = [ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES];
+	[ResourceManager mergeRoleCategories:[NSDictionary dictionaryWithObject:pirateVictims forKey:@"oolite-pirate-victim"] intoDictionary:roleCategories];
+
+	return [[roleCategories copy] autorelease];
+}
+
+
++ (void) mergeRoleCategories:(NSDictionary *)catData intoDictionary:(NSMutableDictionary *)categories
+{
+	NSEnumerator *enumerator = [catData keyEnumerator];
+	NSMutableSet *contents = nil;
+	NSArray *catDataEntry = nil;
+	NSString *key;
+	while ((key = [enumerator nextObject])) {
+		contents = [categories objectForKey:key];
+		if (contents == nil)
+		{
+			contents = [NSMutableSet setWithCapacity:16];
+			[categories setObject:contents forKey:key];
+		}
+		catDataEntry = [catData oo_arrayForKey:key];
+		OOLog(@"shipData.load.roleCategories",@"Adding %d entries for category %@",[catDataEntry count],key);
+		[contents addObjectsFromArray:catDataEntry];
+	}
 }
 
 
