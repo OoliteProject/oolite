@@ -12,9 +12,9 @@
 			alpha		= 1.0;
 			selector	= "drawScanner:";
 			x		= 0;
-			y		= 60;
+			y		= 68;
 			y_origin	= -1;
-			height		= 72.0;
+			height		= 64.0;
 			width		= 288.0;
 			rgb_color	= (1.0, 0.0, 0.0);
 		},
@@ -22,7 +22,7 @@
 			alpha		= 1.0;
 			selector	= "drawScannerZoomIndicator:";
 			x		= 108;
-			y		= 24;
+			y		= 32;
 			y_origin	= -1;
 		},
 		//{	// stick sensitivity indicator
@@ -37,7 +37,7 @@
 			alpha		= 1.0;
 			selector	= "drawCompass:";
 			x		= 132;
-			y		= 24;
+			y		= 32;
 			y_origin	= -1;
 			rgb_color	= (0.0, 0.0, 1.0);
 		},
@@ -45,7 +45,7 @@
 			alpha		= 1.0;
 			selector	= "drawAegis:";
 			x		= -132;
-			y		= 24;
+			y		= 32;
 			y_origin	= -1;
 		},
 		{	// fuel scoop status
@@ -173,7 +173,7 @@
 			selector	= "drawStatusLight:";
 			width		= 8;
 			x		= -108;
-			y		= 24;
+			y		= 32;
 			y_origin	= -1;
 		},
 		{	// ship's clock, x and y give the location, the size defines the character size
@@ -181,7 +181,7 @@
 			selector	= "drawClock:";
 			width		= 12;
 			x		= -48;
-			y		= 6;
+			y		= 18;
 			y_origin	= -1;
 		},
 		{	// primed equipment, x and y give the location, the size defines the character size, n_bars is the number of items to show (default 1)
@@ -198,7 +198,7 @@
 			height		= 12;
 			width		= 12;
 			x		= 144;
-			y		= 0;
+			y		= 4;
 			y_origin	= -1;
 			align = 1;
 		},
