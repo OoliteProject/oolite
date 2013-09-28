@@ -2842,6 +2842,18 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (void) unMagicMainStation
 {
+	/*	During the demo screens, the player must remain docked in order for the
+		UI to work. This means either enforcing invulnerability or launching
+		the player when the station is destroyed even if on the "new game Y/N"
+		screen.
+		
+		The latter is a) weirder and b) harder. If your OXP relies on being
+		able to destroy the main station before the game has even started,
+		your OXP sucks.
+	*/
+	OOEntityStatus playerStatus = [PLAYER status];
+	if (playerStatus == STATUS_START_GAME)  return;
+	
 	StationEntity *theStation = [self station];
 	if (theStation != nil)  theStation->isExplicitlyNotMainStation = YES;
 	cachedStation = nil;
