@@ -72,6 +72,7 @@ enum
 {
 	// Property IDs
 	kVisualEffect_beaconCode,
+	kVisualEffect_beaconLabel,
 	kVisualEffect_dataKey,
 	kVisualEffect_hullHeatLevel,
 	kVisualEffect_isBreakPattern,
@@ -99,6 +100,7 @@ static JSPropertySpec sVisualEffectProperties[] =
 {
 	// JS name						ID									flags
 	{ "beaconCode",	   kVisualEffect_beaconCode,	  OOJS_PROP_READWRITE_CB },
+	{ "beaconLabel",   kVisualEffect_beaconLabel,	  OOJS_PROP_READWRITE_CB },
 	{ "dataKey",	     kVisualEffect_dataKey,	      OOJS_PROP_READONLY_CB },
 	{ "isBreakPattern",	kVisualEffect_isBreakPattern,	OOJS_PROP_READWRITE_CB },
 	{ "scaleX", kVisualEffect_scaleX, OOJS_PROP_READWRITE_CB },
@@ -211,6 +213,10 @@ static JSBool VisualEffectGetProperty(JSContext *context, JSObject *this, jsid p
 	{
 		case kVisualEffect_beaconCode:
 			result = [entity beaconCode];
+			break;
+
+		case kVisualEffect_beaconLabel:
+			result = [entity beaconLabel];
 			break;
 
 		case kVisualEffect_dataKey:
@@ -343,6 +349,15 @@ static JSBool VisualEffectSetProperty(JSContext *context, JSObject *this, jsid p
 				}
 			}
 			return YES;
+			break;
+
+		case kVisualEffect_beaconLabel:
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+				[entity setBeaconLabel:sValue];
+				return YES;
+			}
 			break;
 
 		case kVisualEffect_isBreakPattern:

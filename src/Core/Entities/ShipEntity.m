@@ -1393,6 +1393,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		DESTROY(_beaconDrawable);
 	}
+	// if not blanking code and label is currently blank, default label to code
+	if (bcode != nil && (_beaconLabel == nil || [_beaconLabel length] == 0))
+	{
+		[self setBeaconLabel:bcode];
+	}
 }
 
 

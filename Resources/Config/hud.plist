@@ -52,7 +52,7 @@
 			alpha		= 0.75;
 			selector	= "drawScoopStatus:";
 			x		= -132;
-			y		= 88;
+			y		= 92;
 			y_origin	= -1;
 		},
 		{	// speed bar, can draw a surround 2 units out from the dial size specified
