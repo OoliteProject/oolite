@@ -366,7 +366,7 @@
 		}
 	}
 
-	// ship has no launch	docks specified; just use the last one
+	// ship has no launch docks specified; just use the last one
 	if (sub != nil)
 	{
 		[sub launchShip:ship];

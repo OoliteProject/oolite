@@ -1524,13 +1524,14 @@ static NSMutableDictionary *currentShipyard = nil;
 	// remove ships that the player has already bought
 	for (i = 0; i < [shipyard count]; i++)
 	{
-		NSDictionary* info = (NSDictionary *)[shipyard objectAtIndex:i];
-		NSString* ship_id = [info oo_stringForKey:SHIPYARD_KEY_ID];
-		if ([shipyard_record objectForKey:ship_id])
+		NSString *shipID = [[shipyard oo_dictionaryAtIndex:i] oo_stringForKey:SHIPYARD_KEY_ID];
+		if ([shipyard_record objectForKey:shipID])
+		{
 			[shipyard removeObjectAtIndex:i--];
+		}
 	}
 	
-	if (currentShipyard) [currentShipyard release];
+	[currentShipyard release];
 	currentShipyard = [[NSMutableDictionary alloc] initWithCapacity:[shipyard count]];
 
 	for (i = 0; i < [shipyard count]; i++)

@@ -866,11 +866,11 @@ static NSString *LogClassKeyRoot(NSString *key)
 
 + (void) mergeRoleCategories:(NSDictionary *)catData intoDictionary:(NSMutableDictionary *)categories
 {
-	NSEnumerator *enumerator = [catData keyEnumerator];
 	NSMutableSet *contents = nil;
 	NSArray *catDataEntry = nil;
 	NSString *key;
-	while ((key = [enumerator nextObject])) {
+	foreachkey(key, catData)
+	{
 		contents = [categories objectForKey:key];
 		if (contents == nil)
 		{

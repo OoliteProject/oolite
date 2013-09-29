@@ -1017,8 +1017,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	}
 	[gui setColor: [OOColor yellowColor] forRow: CDRDESCROW];
 
-	if (![cdr oo_boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
-		return;
+	if (![cdr oo_boolForKey:@"isSavedGame"])  return;	// don't show things that aren't saved games
 	
 	if ([self dockedStation] == nil)  [self setDockedAtMainStation];
 	

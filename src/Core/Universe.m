@@ -3450,13 +3450,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many
+- (NSArray *) getContainersOfDrugs:(OOCargoQuantity)how_many
 {
 	return [self getContainersOfCommodity:@"Narcotics" :how_many];	
 }
 
 
-- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_much
+- (NSArray *) getContainersOfCommodity:(NSString *)commodity_name :(OOCargoQuantity)how_much
 {
 	NSMutableArray	*accumulator = [NSMutableArray arrayWithCapacity:how_much];
 	OOCommodityType	commodity_type = [self commodityForName:commodity_name];

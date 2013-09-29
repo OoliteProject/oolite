@@ -690,7 +690,7 @@ static GLfloat		sBaseMass = 0.0;
 		[result oo_setInteger:OLD_ENERGY_UNIT_NORMAL forKey:@"energy_unit"];
 	}
 	
-	NSMutableArray* missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
+	NSMutableArray *missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
 	
 	for (i = 0; i < (int)max_missiles; i++)
 	{
@@ -1646,7 +1646,7 @@ static GLfloat		sBaseMass = 0.0;
 	cursor_coordinates		= galaxy_coordinates;
 	
 	scripted_misjump		= NO;
-	_scriptedMisjumpRange = 0.5;
+	_scriptedMisjumpRange	= 0.5;
 	scoopOverride			= NO;
 	
 	forward_shield			= [self maxForwardShieldLevel];
@@ -1884,7 +1884,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	// The player ship always belongs to the current session.
 	return [UNIVERSE sessionID];
-}
+} 
 
 
 - (void) warnAboutHostiles
@@ -3305,13 +3305,12 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-//			dial routines = all return 0.0 .. 1.0 or -1.0 .. 1.0
-
 - (void) setDockedAtMainStation
 {
 	[self setDockedStation:[UNIVERSE station]];
 	if (_dockedStation != nil)  [self setStatus:STATUS_DOCKED];
 }
+
 
 - (StationEntity *) dockedStation
 {

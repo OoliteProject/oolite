@@ -7214,19 +7214,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 }
 
-- (void) setLaunchDelay:(double) delay
+- (void) setLaunchDelay:(double)delay
 {
 	launch_delay = delay;
 }
 
 
-- (NSArray*) crew
+- (NSArray *) crew
 {
 	return crew;
 }
 
 
-- (void) setCrew: (NSArray*) crewArray
+- (void) setCrew:(NSArray *)crewArray
 {
 	if (isUnpiloted) 
 	{
@@ -7236,19 +7236,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		crew = nil;
 		return;
 	}
-	//do not set to hulk here when crew is nill (or 0).  Some things like missiles have no crew.
+	//do not set to hulk here when crew is nil (or 0).  Some things like missiles have no crew.
 	[crew autorelease];
 	crew = [crewArray copy];
 }
 
 
-- (void) setStateMachine:(NSString *) ai_desc
+- (void) setStateMachine:(NSString *)smName
 {
-	[self setAITo:ai_desc];
+	[self setAITo:smName];
 }
 
 
-- (void) setAI:(AI *) ai
+- (void) setAI:(AI *)ai
 {
 	[ai retain];
 	if (shipAI)
