@@ -53,15 +53,15 @@
 			y = -184;
 		},
 		{ /* ship's clock, x and y give the location, the size defines the character size */
-			height = 12;
+			height = 10;
 			selector = "drawClock:";
-			width = 12;
-			x = -48;
-			y = -172;
+			width = 10;
+			x = -194;
+			y = -170;
 		},
 		{	// primed equipment, x and y give the location, the size defines the character size, n_bars is the number of items to show (default 1)
 			selector	= "drawPrimedEquipment:";
-			x = -48;
+			x = -194;
 			y = -160;
 			width		= 10;
 			height		= 10;

@@ -2266,7 +2266,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			glVertex3i(x , y + siz.height, z1);
 		OOGLEND();
 		GLColorWithOverallAlpha(green_color, alpha);
-		OODrawString([PLAYER dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
+		OODrawString([PLAYER dialTargetName], x + sp, y - 1, z1, NSMakeSize(siz.width, siz.height));
 	}
 	
 }
