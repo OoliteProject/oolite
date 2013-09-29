@@ -18,6 +18,12 @@ xcuserdata/
 deps/Cocoa-deps/sparkle
 
 
+# Submodules in master, but not in this branch
+deps/libogg
+deps/libvorbis
+deps/mozilla
+
+
 # Build products
 build/
 oolite.app
