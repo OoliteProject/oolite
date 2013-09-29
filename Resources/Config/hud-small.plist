@@ -246,8 +246,25 @@
 			width = 8;
 		}
 	);
-	message_gui = {};	// resets the default settings
-	comm_log_gui = {};	// resets the default settings
+	message_gui = {
+		width = 216;
+		height = 112;
+		x = 0;
+		y = -104;
+		row_height = 14;
+	};
+	comm_log_gui = {
+		alpha = "0.75";
+		width = 180;
+		height = 140;
+		x = 100;
+		y = -72;
+		y_origin = 1;
+		row_height = 10;
+		permanent = no;
+		automatic = yes;
+		background_rgba = "0.0 0.05 0.45 0.5";		
+	};
 	overall_alpha	= 0.75;
 	reticle_target_sensitive = no;
 	cloak_indicator_on_status_light = yes;
