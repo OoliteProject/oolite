@@ -3192,10 +3192,10 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!switching_equipship_screens)
 			{
-				if (!dockedStation)  dockedStation = [UNIVERSE station];
+				if ([self dockedStation] == nil)  [self setDockedAtMainStation];
 				OOGUIScreenID oldScreen = gui_screen;
 				
-				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[dockedStation hasShipyard])
+				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP) && [[self dockedStation] hasShipyard])
 				{
 					[gameView clearKeys];
 					[self noteGUIWillChangeTo:GUI_SCREEN_SHIPYARD];
@@ -3436,12 +3436,14 @@ static BOOL autopilot_pause;
 {
 	// FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and -[StationEntity becomeExplosion]) -- Ahruman 20080308
 	[UNIVERSE setUpUniverseFromStation]; // player pre-launch
-	if (!dockedStation)  dockedStation = [UNIVERSE station];
+	if ([self dockedStation] == nil)  [self setDockedAtMainStation];
 	
-	if (dockedStation == [UNIVERSE station] && [UNIVERSE autoSaveNow] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova])) [self autosavePlayer];
-	// autosave at the second launch after load / restart
-	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
-	[self leaveDock:dockedStation];
+	StationEntity *dockedStation = [self dockedStation];
+	if (dockedStation == [UNIVERSE station] && [UNIVERSE autoSaveNow] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]))
+	{
+		[self autosavePlayer];
+	}
+	[self launchFromStation];
 }
 
 
@@ -3665,7 +3667,7 @@ static BOOL autopilot_pause;
 		[self setGuiToEquipShipScreen:0];
 		break;
 	case GUI_SCREEN_SHIPYARD:
-		if ([dockedStation hasShipyard])
+		if ([[self dockedStation] hasShipyard])
 		{
 			[self noteGUIWillChangeTo:GUI_SCREEN_SHIPYARD];
 			[self setGuiToShipyardScreen:0];

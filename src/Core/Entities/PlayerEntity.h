@@ -345,7 +345,7 @@ typedef enum
 	BOOL					pollControls;
 // ...end save screen   
 
-	StationEntity			*dockedStation;
+	OOWeakReference			*_dockedStation;
 	
 /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
  * stations. Could possibly overload use of 'dockedStation' instead

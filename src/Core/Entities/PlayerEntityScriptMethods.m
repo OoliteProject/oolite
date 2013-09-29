@@ -62,19 +62,19 @@ MA 02110-1301, USA.
 
 - (NSString *) dockedStationName
 {
-	return [(ShipEntity *)dockedStation name];
+	return [[self dockedStation] name];
 }
 
 
 - (NSString *) dockedStationDisplayName
 {
-	return [(ShipEntity *)dockedStation displayName];
+	return [[self dockedStation] displayName];
 }
 
 
 - (BOOL) dockedAtMainStation
 {
-	return [self status] == STATUS_DOCKED && dockedStation == [UNIVERSE station];
+	return [self status] == STATUS_DOCKED && [self dockedStation] == [UNIVERSE station];
 }
 
 

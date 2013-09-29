@@ -539,10 +539,11 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[UNIVERSE setUpSpace];
 	[UNIVERSE setAutoSaveNow:NO];
 	
-	[self setStatus:STATUS_DOCKED];
+	[self setDockedAtMainStation];
+	StationEntity *dockedStation = [self dockedStation];
+	
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
-	dockedStation = [UNIVERSE station];
 	if (dockedStation)
 	{
 		position = [dockedStation position];
@@ -1019,7 +1020,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	if (![cdr oo_boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
 		return;
 	
-	if(!dockedStation)  dockedStation = [UNIVERSE station];
+	if ([self dockedStation] == nil)  [self setDockedAtMainStation];
 	
 	// Display the commander's ship.
 	NSString			*shipDesc = [cdr oo_stringForKey:@"ship_desc"];

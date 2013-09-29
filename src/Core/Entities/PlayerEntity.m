@@ -139,6 +139,9 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) noteCompassLostTarget;
 
+// Dumb setter; callers are responsible for sanity.
+- (void) setDockedStation:(StationEntity *)station;
+
 @end
 
 
@@ -277,10 +280,12 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) unloadCargoPods
 {
+	NSAssert([self isDocked], @"Cannot unload cargo pods unless docked.");
+	
 	/* loads commodities from the cargo pods onto the ship's manifest */
 	NSUInteger i;
-	NSMutableArray* localMarket = [dockedStation localMarket];
-	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
+	NSMutableArray *localMarket = [[self dockedStation] localMarket];
+	NSMutableArray *manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
 	
 	// copy the quantities in ShipCommodityData to the manifest
 	// (was: zero the quantities in the manifest, making a mutable array of mutable arrays)
@@ -594,6 +599,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSDictionary *) commanderDataDictionary
 {
+	NSAssert([self isDocked], @"Cannot create commander data dictionary unless docked.");
+	
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
 	
 	[result setObject:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"written_by_version"];
@@ -819,16 +826,17 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
 
 	// wormhole information
-	NSMutableArray * wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
-	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
-	WormholeEntity * wh;
-	while ((wh = (WormholeEntity*)[wormholes nextObject]))
+	NSMutableArray *wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
+	NSEnumerator *wormholes = [scannedWormholes objectEnumerator];
+	WormholeEntity *wh;
+	foreach(wh, wormholes)
 	{
 		[wormholeDicts addObject:[wh getDict]];
 	}
 	[result setObject:wormholeDicts forKey:@"wormholes"];
 
 	// docked station
+	StationEntity *dockedStation = [self dockedStation];
 	[result setObject:[dockedStation primaryRole] forKey:@"docked_station_role"];
 	HPVector dpos = [dockedStation position];
 	[result setObject:[NSNumber numberWithDouble:dpos.x] forKey:@"docked_station_position_x"];
@@ -1434,7 +1442,7 @@ static GLfloat		sBaseMass = 0.0;
 		*/
 		
 		// set up STATUS_DEAD
-		dockedStation = nil;	// needed for STATUS_DEAD
+		[self setDockedStation:nil];	// needed for STATUS_DEAD
 		[self setStatus:STATUS_DEAD];
 		OOLog(@"script.javascript.init.error", @"Scheduling new JavaScript reset.");
 		shot_time = kDeadResetTime - 0.02f;	// schedule reinit 20 milliseconds from now.
@@ -1651,7 +1659,7 @@ static GLfloat		sBaseMass = 0.0;
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_GRANTED;
 	targetDockStation = nil;
 	
-	dockedStation = [UNIVERSE station];
+	[self setDockedStation:[UNIVERSE station]];
 	
 	[commLog release];
 	commLog = nil;
@@ -1717,7 +1725,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) completeSetUpAndSetTarget:(BOOL)setTarget
 {
 	[OOSoundSource stopAll];
-	dockedStation = [UNIVERSE station];
+	[self setDockedStation:[UNIVERSE station]];
 	[self setLastAegisLock:[UNIVERSE planet]];
 		
 	// If loading from a savegame don't reset the targetted system.
@@ -3301,13 +3309,20 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) setDockedAtMainStation
 {
-	dockedStation = [UNIVERSE station];
-	[self setStatus:STATUS_DOCKED];
+	[self setDockedStation:[UNIVERSE station]];
+	if (_dockedStation != nil)  [self setStatus:STATUS_DOCKED];
 }
 
 - (StationEntity *) dockedStation
 {
-	return dockedStation;
+	return [_dockedStation weakRefUnderlyingObject];
+}
+
+
+- (void) setDockedStation:(StationEntity *)station
+{
+	[_dockedStation release];
+	_dockedStation = [station weakRetain];
 }
 
 
@@ -5479,10 +5494,11 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) enterDock:(StationEntity *)station
 {
+	NSParameterAssert(station != nil);
 	if ([self status] == STATUS_DEAD)  return;
 	
 	[self setStatus:STATUS_DOCKING];
-	dockedStation = station;
+	[self setDockedStation:station];
 	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
 	
 	ident_engaged = NO;
@@ -5514,6 +5530,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) docked
 {
+	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation == nil)
 	{
 		[self setStatus:STATUS_IN_FLIGHT];
@@ -5603,6 +5620,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) leaveDock:(StationEntity *)station
 {
 	if (station == nil)  return;
+	NSParameterAssert(station == [self dockedStation]);
 	
 	// ensure we've not left keyboard entry on
 	[[UNIVERSE gameView] allowStringInput: NO];
@@ -5668,7 +5686,7 @@ static GLfloat		sBaseMass = 0.0;
 	flightRoll = 0; // don't spin when showing the break pattern.
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:YES];
 
-	dockedStation = nil;
+	[self setDockedStation:nil];
 	
 	suppressAegisMessages = YES;
 	[self checkForAegis];
@@ -6234,9 +6252,9 @@ static GLfloat		sBaseMass = 0.0;
 	// Both system_seed & target_system_seed are != nil at all times when this function is called.
 	
 	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_seed];
-	if ([self isDocked] && dockedStation != [UNIVERSE station])
+	if ([self isDocked] && [self dockedStation] != [UNIVERSE station])
 	{
-		systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [dockedStation displayName]];
+		systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [[self dockedStation] displayName]];
 	}
 
 	targetSystemName =	[UNIVERSE getSystemName:target_system_seed];
@@ -7064,11 +7082,8 @@ static GLfloat		sBaseMass = 0.0;
 
 	if ([self status] == STATUS_DOCKED)
 	{
-		if (dockedStation == nil)
-		{
-			dockedStation = [UNIVERSE station];
-		}
-		canLoadOrSave = ((dockedStation == [UNIVERSE station] || [dockedStation allowsSaving]) && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
+		if ([self dockedStation] == nil)  [self setDockedAtMainStation];
+		canLoadOrSave = (([self dockedStation] == [UNIVERSE station] || [[self dockedStation] allowsSaving]) && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
 	}
 	
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));
@@ -7244,6 +7259,7 @@ static NSString *last_outfitting_key=nil;
 	double priceFactor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] oo_intForKey:KEY_TECHLEVEL];
 
+	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation)
 	{
 		priceFactor = [dockedStation equipmentPriceFactor];
@@ -7603,7 +7619,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	
 	// build an array of available interfaces
-	NSDictionary *interfaces = [dockedStation localInterfaces];
+	NSDictionary *interfaces = [[self dockedStation] localInterfaces];
 	NSArray		*interfaceKeys = [interfaces keysSortedByValueUsingSelector:@selector(interfaceCompare:)]; // sorts by category, then title
 	int i;
 	
@@ -7691,7 +7707,7 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui setShowTextCursor:NO];
 
-		NSString *desc = [NSString stringWithFormat:DESC(@"interfaces-for-ship-@-and-station-@"), [self displayName], [dockedStation displayName]];
+		NSString *desc = [NSString stringWithFormat:DESC(@"interfaces-for-ship-@-and-station-@"), [self displayName], [[self dockedStation] displayName]];
 		[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_INTERFACES_HEADING];
 		[gui setText:desc forRow:GUI_ROW_INTERFACES_HEADING];
 
@@ -7733,7 +7749,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if (interfaceKey && ![interfaceKey hasPrefix:@"More:"])
 	{
-		NSDictionary *interfaces = [dockedStation localInterfaces];
+		NSDictionary *interfaces = [[self dockedStation] localInterfaces];
 		OOJSInterfaceDefinition *definition = [interfaces objectForKey:interfaceKey];
 		if (definition)
 		{
@@ -7764,7 +7780,7 @@ static NSString *last_outfitting_key=nil;
 		return;
 	}
 
-	NSDictionary *interfaces = [dockedStation localInterfaces];
+	NSDictionary *interfaces = [[self dockedStation] localInterfaces];
 	OOJSInterfaceDefinition *definition = [interfaces objectForKey:key];
 	if (definition)
 	{
@@ -8044,6 +8060,7 @@ static NSString *last_outfitting_key=nil;
 		price = [self renovationCosts];
 	}
 	
+	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation)
 	{
 		priceFactor = [dockedStation equipmentPriceFactor];
@@ -8469,12 +8486,9 @@ static NSString *last_outfitting_key=nil;
 
 - (NSMutableArray *) localMarket
 {
-	StationEntity			*station = nil;
-	NSMutableArray 			*localMarket = nil;
-	
-	if ([self isDocked])  station = dockedStation;
-	else  station = [UNIVERSE station];
-	localMarket = [station localMarket];
+	StationEntity *station = [self dockedStation];
+	if (station == nil)  station = [UNIVERSE station];
+	NSMutableArray *localMarket = [station localMarket];
 	if (localMarket == nil)  localMarket = [station initialiseLocalMarketWithRandomFactor:market_rnd];
 	
 	return localMarket;
@@ -8529,6 +8543,7 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
+		StationEntity *dockedStation = [self dockedStation];
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
 			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
@@ -9802,7 +9817,7 @@ static NSString *last_outfitting_key=nil;
 	OOScript		*theScript;
 
 	// Check for the presence of report messages first.
-	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
+	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] > 0 && [self isDocked] && ![[self dockedStation] suppressArrivalReports])
 	{
 		[self setGuiToDockingReportScreen];	// go here instead!
 		[[UNIVERSE messageGUI] clear];
@@ -9980,7 +9995,7 @@ else _dockTarget = NO_TARGET;
 	// Sanity check
 	if (isDockedStatus)
 	{
-		if (dockedStation == nil)
+		if ([self dockedStation] == nil)
 		{
 			//there are a number of possible current statuses, not just STATUS_DOCKED
 			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is nil; treating as not docked. %@", OOStringFromEntityStatus([self status]), @"This is an internal error, please report it.");
@@ -9990,7 +10005,7 @@ else _dockTarget = NO_TARGET;
 	}
 	else
 	{
-		if (dockedStation != nil && [self status] != STATUS_LAUNCHING)
+		if ([self dockedStation] != nil && [self status] != STATUS_LAUNCHING)
 		{
 			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is not nil; treating as docked. %@", OOStringFromEntityStatus([self status]), @"This is an internal error, please report it.");
 			[self setStatus:STATUS_DOCKED];

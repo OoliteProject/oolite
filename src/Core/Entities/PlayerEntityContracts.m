@@ -160,7 +160,7 @@ static unsigned RepForRisk(unsigned risk);
 
 - (NSString *) checkPassengerContracts	// returns messages from any passengers whose status have changed
 {
-	if (dockedStation != [UNIVERSE station])	// only drop off passengers or fulfil contracts at main station
+	if ([self dockedStation] != [UNIVERSE station])	// only drop off passengers or fulfil contracts at main station
 		return nil;
 	
 	// check escape pods...
@@ -1502,23 +1502,24 @@ static NSMutableDictionary *currentShipyard = nil;
 	unsigned		i;
 	
 	// set up initial market if there is none
-	StationEntity	*the_station;
-	OOTechLevelID	station_tl;
+	OOTechLevelID stationTechLevel;
+	StationEntity *station = [self dockedStation];
 	
-	if (dockedStation)
+	if (station != nil)
 	{
-		the_station  = dockedStation;
-		station_tl = [dockedStation equivalentTechLevel];
+		stationTechLevel = [station equivalentTechLevel];
 	}
 	else
 	{
-		the_station  = [UNIVERSE station];
-		station_tl = NSNotFound;
+		station  = [UNIVERSE station];
+		stationTechLevel = NSNotFound;
 	}
-	if (![the_station localShipyard])
-		[the_station setLocalShipyard:[UNIVERSE shipsForSaleForSystem:system_seed withTL:station_tl atTime:ship_clock]];
+	if ([station localShipyard] == nil)
+	{
+		[station setLocalShipyard:[UNIVERSE shipsForSaleForSystem:system_seed withTL:stationTechLevel atTime:ship_clock]];
+	}
 		
-	NSMutableArray* shipyard = [the_station localShipyard];
+	NSMutableArray *shipyard = [station localShipyard];
 		
 	// remove ships that the player has already bought
 	for (i = 0; i < [shipyard count]; i++)
@@ -1731,9 +1732,7 @@ static NSMutableDictionary *currentShipyard = nil;
 
 - (void) showShipyardModel:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality
 {
-	ShipEntity		*ship;
-		
-	if (shipKey == nil || dockedStation == nil)  return;
+	if (shipKey == nil || [self dockedStation] == nil)  return;
 	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipData == nil)  return;
 	
@@ -1745,7 +1744,7 @@ static NSMutableDictionary *currentShipyard = nil;
 		[demoShip release];
 	}
 	
-	ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
+	ShipEntity *ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
 	if (personality != ENTITY_PERSONALITY_INVALID)  [ship setEntityPersonalityInt:personality];
 	[ship wasAddedToUniverse];
 	
@@ -1875,7 +1874,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	[shipyard_record setObject:[self shipDataKey] forKey:[shipInfo objectForKey:SHIPYARD_KEY_ID]];
 	
 	// remove the ship from the localShipyard
-	[[dockedStation localShipyard] removeObjectAtIndex:selectedRow - GUI_ROW_SHIPYARD_START];
+	[[[self dockedStation] localShipyard] removeObjectAtIndex:selectedRow - GUI_ROW_SHIPYARD_START];
 	
 	// perform the transformation
 	NSDictionary* cmdr_dict = [self commanderDataDictionary];	// gather up all the info

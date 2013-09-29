@@ -1015,6 +1015,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) dockedTechLevel_number
 {
+	StationEntity *dockedStation = [self dockedStation];
 	if (!dockedStation) 
 	{
 		return [self systemTechLevel_number];
@@ -2175,8 +2176,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	// ensure autosave is ready for the next unscripted launch
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
-	if ([self status] == STATUS_DOCKING) [self setStatus:STATUS_DOCKED]; // needed here to prevent the normal update from continuing with docking.
-	[self leaveDock:dockedStation];
+	if ([self status] == STATUS_DOCKING)  [self setStatus:STATUS_DOCKED]; // needed here to prevent the normal update from continuing with docking.
+	[self leaveDock:[self dockedStation]];
 }
 
 
