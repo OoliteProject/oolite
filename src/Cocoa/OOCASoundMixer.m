@@ -51,7 +51,7 @@ static OOSoundMixer *sSingleton = nil;
 
 
 #ifndef NDEBUG
-id <OOCASoundDebugMonitor> gOOCASoundDebugMonitor = nil;
+static id <OOCASoundDebugMonitor> gOOCASoundDebugMonitor = nil;
 
 void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
 {

@@ -1,5 +1,6 @@
 #import "OOCocoa.h"
 #import "OOLoggingExtended.h"
+#import "OODebugFlags.h"
 
 
 #ifndef NDEBUG
