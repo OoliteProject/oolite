@@ -565,6 +565,8 @@
 		1A9406840BAF66D6005F6CF3 /* OOVoxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406820BAF66D6005F6CF3 /* OOVoxel.h */; };
 		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
+		1A9438CF17F84C560011F80B /* OOExplosionCloudEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9438CD17F84C560011F80B /* OOExplosionCloudEntity.h */; };
+		1A9438D017F84C560011F80B /* OOExplosionCloudEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9438CE17F84C560011F80B /* OOExplosionCloudEntity.m */; };
 		1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */; };
 		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
@@ -1869,6 +1871,8 @@
 		1A9406830BAF66D6005F6CF3 /* OOVoxel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOVoxel.m; sourceTree = "<group>"; };
 		1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTriangle.h; sourceTree = "<group>"; };
 		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; usesTabs = 0; xcLanguageSpecificationIdentifier = xcode.lang.make; };
+		1A9438CD17F84C560011F80B /* OOExplosionCloudEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExplosionCloudEntity.h; sourceTree = "<group>"; };
+		1A9438CE17F84C560011F80B /* OOExplosionCloudEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOExplosionCloudEntity.m; sourceTree = "<group>"; };
 		1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = delayedReactToAttackAI.plist; sourceTree = "<group>"; };
 		1A9533890C02089E004EBB58 /* material-defaults.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "material-defaults.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A95338A0C02089E004EBB58 /* planetinfo.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = planetinfo.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
@@ -2866,26 +2870,28 @@
 		1A817DCA106D44D900AA2F97 /* Particles */ = {
 			isa = PBXGroup;
 			children = (
-				1A4DF35112FDF0410027F43D /* OOParticleSystem.h */,
-				1A4DF35212FDF0410027F43D /* OOParticleSystem.m */,
-				1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */,
-				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
-				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
-				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
-				1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */,
-				1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */,
-				1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */,
-				1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */,
-				1A817D9E106D3FF000AA2F97 /* OOPlasmaBurstEntity.h */,
-				1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */,
+				1A9438CD17F84C560011F80B /* OOExplosionCloudEntity.h */,
+				1A9438CE17F84C560011F80B /* OOExplosionCloudEntity.m */,
 				1A817DC1106D443B00AA2F97 /* OOFlashEffectEntity.h */,
 				1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */,
+				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
+				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
 				1AE7324E12F75D470045513D /* OOLaserShotEntity.h */,
 				1AE7324F12F75D470045513D /* OOLaserShotEntity.m */,
+				1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */,
+				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
+				1A4DF35112FDF0410027F43D /* OOParticleSystem.h */,
+				1A4DF35212FDF0410027F43D /* OOParticleSystem.m */,
+				1A817D9E106D3FF000AA2F97 /* OOPlasmaBurstEntity.h */,
+				1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */,
+				1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */,
+				1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */,
 				1A97D77212FDB6610009D74A /* OOQuiriumCascadeEntity.h */,
 				1A97D77312FDB6610009D74A /* OOQuiriumCascadeEntity.m */,
 				1A4DF25912FDC4420027F43D /* OORingEffectEntity.h */,
 				1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */,
+				1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */,
+				1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */,
 			);
 			name = Particles;
 			sourceTree = "<group>";
@@ -3602,6 +3608,7 @@
 				1AAEE9DA161F7523003A5A1E /* OOStringExpander.h in Headers */,
 				1AD8522517947BD600CBE743 /* OOHPVector.h in Headers */,
 				1AD8522E17947C9500CBE743 /* OOJSPopulatorDefinition.h in Headers */,
+				1A9438CF17F84C560011F80B /* OOExplosionCloudEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4082,6 +4089,7 @@
 				1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */,
 				1AD8522617947BD600CBE743 /* OOHPVector.m in Sources */,
 				1AD8522F17947C9500CBE743 /* OOJSPopulatorDefinition.m in Sources */,
+				1A9438D017F84C560011F80B /* OOExplosionCloudEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
