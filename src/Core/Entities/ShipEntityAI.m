@@ -1659,8 +1659,7 @@
 
 - (void) ejectCargo
 {
-	unsigned i;
-	int cargo_to_go = 0.1 * [self maxAvailableCargoSpace];
+	OOCargoQuantity i, cargo_to_go = 0.1 * [self maxAvailableCargoSpace];
 	while (cargo_to_go > 15)
 	{
 		cargo_to_go = ranrot_rand() % cargo_to_go;

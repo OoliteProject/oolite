@@ -3371,11 +3371,10 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		reverse the probabilities for scarce goods.
 	*/
 	NSMutableArray  *accumulator = [NSMutableArray arrayWithCapacity:how_many];
-	NSUInteger		commodityCount = [commodityData count];
+	NSUInteger		i, commodityCount = [commodityData count];
 	OOCargoQuantity quantities[commodityCount];
 	OOCargoQuantity total_quantity = 0;
 	
-	unsigned i;
 	for (i = 0; i < commodityCount; i++)
 	{
 		/* NOTE: There's an oddity here in that commodityData is not
@@ -3431,7 +3430,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		}
 		else
 		{
-			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %d.", co_type);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %ld.", co_type);
 
 		}
 	}
@@ -3460,7 +3459,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		}
 		else
 		{
-			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %d.", commodity_type);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %ld.", commodity_type);
 		}
 
 		how_much--;

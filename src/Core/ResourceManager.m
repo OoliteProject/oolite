@@ -878,7 +878,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 			[categories setObject:contents forKey:key];
 		}
 		catDataEntry = [catData oo_arrayForKey:key];
-		OOLog(@"shipData.load.roleCategories",@"Adding %d entries for category %@",[catDataEntry count],key);
+		OOLog(@"shipData.load.roleCategories", @"Adding %ld entries for category %@", (unsigned long)[catDataEntry count], key);
 		[contents addObjectsFromArray:catDataEntry];
 	}
 }
