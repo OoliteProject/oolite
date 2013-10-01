@@ -8,6 +8,10 @@
 			equipment_required 	= "EQ_SCANNER_SHOW_MISSILE_TARGET";
 			selector		= "drawTargetReticle:";
 		},
+		{	// Waypoint display
+			equipment_required 	= "EQ_ADVANCED_COMPASS";
+			selector		= "drawWaypoints:";
+		},
 		{	// scanner
 			alpha		= 1.0;
 			selector	= "drawScanner:";

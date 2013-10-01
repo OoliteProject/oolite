@@ -313,6 +313,7 @@
 	(
 		"drawTrumbles:",
 		"drawTargetReticle:",
+		"drawWaypoints:",
 		"drawScanner:",
 		"drawScannerZoomIndicator:",
 		"drawStickSensitivityIndicator:",

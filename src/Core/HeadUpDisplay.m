@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "OOVisualEffectEntity.h"
 #import "OOQuiriumCascadeEntity.h"
+#import "OOWaypointEntity.h"
 #import "Universe.h"
 #import "OOTrumble.h"
 #import "OOColor.h"
@@ -83,6 +84,7 @@ static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat am
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText);
+static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected);
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom);
 
 
@@ -130,6 +132,7 @@ enum
 - (void) drawMissileDisplay:(NSDictionary *)info;
 - (void) drawTargetReticle:(NSDictionary *)info;
 - (void) drawSecondaryTargetReticle:(NSDictionary *)info;
+- (void) drawWaypoints:(NSDictionary *)info;
 - (void) drawStatusLight:(NSDictionary *)info;
 - (void) drawDirectionCue:(NSDictionary *)info;
 - (void) drawClock:(NSDictionary *)info;
@@ -2324,6 +2327,21 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
+- (void) drawWaypoints:(NSDictionary *)info
+{
+	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+	
+	NSEnumerator *waypoints = [[UNIVERSE currentWaypoints] objectEnumerator];
+	OOWaypointEntity *waypoint = nil;
+	Entity *compass = [PLAYER compassTarget];
+	while ((waypoint = [waypoints nextObject]))
+	{
+		hudDrawWaypoint(waypoint, PLAYER, z1, alpha, waypoint==compass);
+	}
+
+}
+
+
 - (void) drawStatusLight:(NSDictionary *)info
 {
 	int					x, y;
@@ -3213,6 +3231,106 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 			}
 		}
 	}
+	
+	OOGL(glPopMatrix());
+}
+
+
+static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected)
+{
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	{
+		return;
+	}
+	
+	OOMatrix		back_mat;
+	Quaternion		back_q = [player1 orientation];
+	back_q.w = -back_q.w;   // invert
+	Vector			v1 = vector_up_from_quaternion(back_q);
+	Vector			p1;
+	
+	// either close enough that single precision is fine or far enough
+	// away that precision is irrelevant
+	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
+	
+	GLfloat			rdist = magnitude(p1);
+	GLfloat			rsize = rdist * ONE_SIXTYFOURTH;
+	
+	GLfloat			rs0 = rsize;
+	GLfloat			rs2 = rsize * 0.50;
+
+	OOGL(glPushMatrix());
+	
+	/* TODO: A lot of this code is common with
+	 * drawTargetReticle. Split out to separate function */
+
+	// deal with view directions
+	Vector view_dir, view_up = kBasisYVector;
+	switch ([UNIVERSE viewDirection])
+	{
+		default:
+		case VIEW_FORWARD:
+			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
+			break;
+			
+		case VIEW_AFT:
+			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
+			quaternion_rotate_about_axis(&back_q, v1, M_PI);
+			break;
+			
+		case VIEW_PORT:
+			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+			quaternion_rotate_about_axis(&back_q, v1, 0.5 * M_PI);
+			break;
+			
+		case VIEW_STARBOARD:
+			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+			quaternion_rotate_about_axis(&back_q, v1, -0.5 * M_PI);
+			break;
+			
+		case VIEW_CUSTOM:
+			view_dir = [player1 customViewForwardVector];
+			view_up = [player1 customViewUpVector];
+			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
+			break;
+	}
+	OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+	
+	back_mat = OOMatrixForQuaternionRotation(back_q);
+	
+	// rotate the view
+	GLMultOOMatrix([player1 rotationMatrix]);
+	// translate the view
+	OOGL(glTranslatef(p1.x, p1.y, p1.z));
+	//rotate to face player1
+	GLMultOOMatrix(back_mat);
+	// draw the waypoint
+	
+	if (selected)
+	{
+		GLColorWithOverallAlpha(blue_color, alpha);
+	}
+	else
+	{
+		GLColorWithOverallAlpha(blue_color, alpha*0.25);
+	}
+
+	OOGLBEGIN(GL_LINES);
+		glVertex2f(rs0,rs2);	glVertex2f(rs2,rs2);
+		glVertex2f(rs2,rs0);	glVertex2f(rs2,rs2);
+
+		glVertex2f(-rs0,rs2);	glVertex2f(-rs2,rs2);
+		glVertex2f(-rs2,rs0);	glVertex2f(-rs2,rs2);
+
+		glVertex2f(-rs0,-rs2);	glVertex2f(-rs2,-rs2);
+		glVertex2f(-rs2,-rs0);	glVertex2f(-rs2,-rs2);
+
+		glVertex2f(rs0,-rs2);	glVertex2f(rs2,-rs2);
+		glVertex2f(rs2,-rs0);	glVertex2f(rs2,-rs2);
+
+//		glVertex2f(0,-rs2);	glVertex2f(0,rs2);
+//		glVertex2f(rs2,0);	glVertex2f(-rs2,0);
+	OOGLEND();
 	
 	OOGL(glPopMatrix());
 }

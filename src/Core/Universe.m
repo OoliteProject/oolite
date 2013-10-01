@@ -65,6 +65,7 @@ MA 02110-1301, USA.
 #import "DustEntity.h"
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
+#import "OOWaypointEntity.h"
 #import "OOSunEntity.h"
 #import "WormholeEntity.h"
 #import "OOBreakPatternEntity.h"
@@ -341,6 +342,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
+
+	waypoints = [[NSMutableDictionary alloc] init];
 	
 	[self setUpSettings];
 	
@@ -426,6 +429,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 	DESTROY(_firstBeacon);
 	DESTROY(_lastBeacon);
+	DESTROY(waypoints);
 	
 	unsigned i;
 	for (i = 0; i < 256; i++)  [system_names[i] release];
@@ -2944,6 +2948,33 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (NSDictionary *) currentWaypoints
+{
+	return waypoints;
+}
+
+
+- (void) defineWaypoint:(NSDictionary *)definition forKey:(NSString *)key
+{
+	OOWaypointEntity *waypoint = nil;
+	waypoint = [waypoints objectForKey:key];
+	if (waypoint != nil)
+	{
+		[self removeEntity:waypoint];
+		[waypoints removeObjectForKey:key];
+	}
+	if (definition != nil)
+	{
+		waypoint = [OOWaypointEntity waypointWithDictionary:definition];
+		if (waypoint != nil)
+		{
+			[self addEntity:waypoint];
+			[waypoints setObject:waypoint forKey:key];
+		}
+	}
+}
+
+
 - (GLfloat *) skyClearColor
 {
 	return skyClearColor;
@@ -4550,6 +4581,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	{
 		ShipEntity *se = nil;
 		OOVisualEffectEntity *ve = nil;
+		OOWaypointEntity *wp = nil;
 		
 		if (![entity validForAddToUniverse])  return NO;
 		
@@ -4636,6 +4668,14 @@ static BOOL MaintainLinkedLists(Universe *uni)
 				if ([ve isBeacon])
 				{
 					[self setNextBeacon:ve];
+				}
+			}
+			else if ([entity isWaypoint])
+			{
+				wp = (OOWaypointEntity *)entity;
+				if ([wp isBeacon])
+				{
+					[self setNextBeacon:wp];
 				}
 			}
 		}
@@ -4766,6 +4806,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	closeSystems = nil;
 	
 	[self resetBeacons];
+	[waypoints removeAllObjects];
 	
 	no_update = updating;	// restore drawing
 }
@@ -9860,6 +9901,16 @@ Entity *gOOJSPlayerIfStale = nil;
 		{
 			ShipEntity *se = (ShipEntity*)entity;
 			[self clearBeacon:se];
+		}
+		if ([entity isWaypoint])
+		{
+			OOWaypointEntity *wp = (OOWaypointEntity*)entity;
+			[self clearBeacon:wp];
+		}
+		if ([entity isVisualEffect])
+		{
+			OOVisualEffectEntity *ve = (OOVisualEffectEntity*)entity;
+			[self clearBeacon:ve];
 		}
 		
 		if ([entity isWormhole])

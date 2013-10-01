@@ -194,6 +194,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL) isWaypoint
+{
+	return NO;
+}
+
+
 - (BOOL) validForAddToUniverse
 {
 	NSUInteger mySessionID = [self sessionID];

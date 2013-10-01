@@ -187,7 +187,8 @@ OOLITE_ENTITY_FILES = \
     OOLaserShotEntity.m \
     OOQuiriumCascadeEntity.m \
     OORingEffectEntity.m \
-    OOVisualEffectEntity.m 
+    OOVisualEffectEntity.m \
+    OOWaypointEntity.m 
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
     OODrawable.m \

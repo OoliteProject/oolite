@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 	Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
 	OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity, 
-	DockEntity, OOJSScript;
+	DockEntity, OOJSScript, OOWaypointEntity;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -195,7 +195,8 @@ enum
 	
 	OOWeakReference			*_firstBeacon,
 							*_lastBeacon;
-	
+	NSMutableDictionary		*waypoints;
+
 	GLfloat					skyClearColor[4];
 	
 	NSString				*currentMessage;
@@ -423,6 +424,9 @@ enum
 - (Entity <OOBeaconEntity> *) lastBeacon;
 - (void) setNextBeacon:(Entity <OOBeaconEntity> *) beaconShip;
 - (void) clearBeacon:(Entity <OOBeaconEntity> *) beaconShip;
+
+- (NSDictionary *) currentWaypoints;
+- (void) defineWaypoint:(NSDictionary *)definition forKey:(NSString *)key;
 
 - (GLfloat *) skyClearColor;
 // Note: the alpha value is also air resistance!

@@ -171,6 +171,7 @@ enum OOScanClass
 - (BOOL) isWormhole;
 - (BOOL) isEffect;
 - (BOOL) isVisualEffect;
+- (BOOL) isWaypoint;
 
 - (BOOL) validForAddToUniverse;
 - (void) addToLinkedLists;
@@ -286,6 +287,25 @@ enum OOScanClass
 
 @end
 
+@protocol OOHUDBeaconIcon;
+
+// Methods that must be supported by entities with beacons, regardless of type.
+@protocol OOBeaconEntity
+
+- (NSComparisonResult) compareBeaconCodeWith:(Entity <OOBeaconEntity>*) other;
+- (NSString *) beaconCode;
+- (void) setBeaconCode:(NSString *)bcode;
+- (NSString *) beaconLabel;
+- (void) setBeaconLabel:(NSString *)blabel;
+- (BOOL) isBeacon;
+- (id <OOHUDBeaconIcon>) beaconDrawable;
+- (Entity <OOBeaconEntity> *) prevBeacon;
+- (Entity <OOBeaconEntity> *) nextBeacon;
+- (void) setPrevBeacon:(Entity <OOBeaconEntity> *)beaconShip;
+- (void) setNextBeacon:(Entity <OOBeaconEntity> *)beaconShip;
+- (BOOL) isJammingScanning;
+
+@end
 
 
 enum

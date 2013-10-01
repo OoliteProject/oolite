@@ -76,6 +76,7 @@ static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemSetWaypoint(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp);
@@ -189,7 +190,8 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "locationFromCode",				SystemLocationFromCode,				1 },
 	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
-	{ "setPopulator",				SystemSetPopulator,				2 },
+	{ "setPopulator",					SystemSetPopulator,					2 },
+	{ "setWaypoint",					SystemSetWaypoint,					2 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,			1 },
 	{ "shipsWithRole",					SystemShipsWithRole,				1 },
 	
@@ -1298,6 +1300,49 @@ static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp)
 		[populator release];
 
 		[UNIVERSE setPopulatorSetting:key to:settings];
+	}	
+
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool SystemSetWaypoint(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString *key;
+	NSMutableDictionary *settings;
+
+	if (argc < 1) 
+	{
+		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"string (key), object (definition)");
+		return NO;
+	}
+	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, definition");
+		return NO;
+	}
+	if (argc < 2 || JSVAL_IS_NULL(OOJS_ARGV[1]))
+	{
+		// clearing
+		[UNIVERSE defineWaypoint:nil forKey:key];
+	}
+	else
+	{
+		// adding
+		if (!JSVAL_IS_OBJECT(OOJS_ARGV[1]) || JSVAL_IS_NULL(OOJS_ARGV[1]))
+		{
+			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, definition");
+			return NO;
+		}
+
+		settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
+
+		[UNIVERSE defineWaypoint:settings forKey:key];
 	}	
 
 	OOJS_RETURN_VOID;

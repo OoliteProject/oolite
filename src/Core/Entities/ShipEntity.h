@@ -511,14 +511,6 @@ typedef enum
 - (HPVector)absoluteTractorPosition;
 
 // beacons // definitions now in <OOBeaconEntity> protocol
-/*- (NSString *) beaconCode;
-- (void) setBeaconCode:(NSString *)bcode;
-- (BOOL) isBeacon;
-- (id <OOHUDBeaconIcon>) beaconDrawable;
-- (ShipEntity *) prevBeacon;
-- (ShipEntity *) nextBeacon;
-- (void) setPrevBeacon:(ShipEntity*) beaconShip;
-- (void) setNextBeacon:(ShipEntity*) beaconShip; */
 
 - (void) setIsBoulder:(BOOL)flag;
 - (BOOL) isBoulder;

@@ -1,8 +1,9 @@
 /*
 
-OOEntityWithDrawable.h
+OOWaypoint.h
 
-Abstract intermediate class for entities which use an OODrawable to render.
+A waypoint for the HUD
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -26,27 +27,23 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@class OODrawable;
-
-// Methods that must be supported by subentities, regardless of type.
-@protocol OOSubEntity
-
-- (void) rescaleBy:(GLfloat)factor;
-
-// Separate drawing path for subentities of ships.
-- (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
-
-@end
-
-
-
-@interface OOEntityWithDrawable: Entity
+@interface OOWaypointEntity: Entity <OOBeaconEntity>
 {
 @private
-	OODrawable				*drawable;
+	OOScalar				_size;
+
+	NSString				*_beaconCode;
+	NSString				*_beaconLabel;
+	OOWeakReference			*_prevBeacon;
+	OOWeakReference			*_nextBeacon;
+	id <OOHUDBeaconIcon>	_beaconDrawable;
 }
 
-- (OODrawable *)drawable;
-- (void)setDrawable:(OODrawable *)drawable;
++ (instancetype) waypointWithDictionary:(NSDictionary *)info;
+
+- (id) initWithDictionary:(NSDictionary *)info;
+
+- (OOScalar) size;
+- (void) setSize:(OOScalar)newSize;
 
 @end

@@ -1753,7 +1753,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
-	
+
 	[self resetHud];
 	[hud setHidden:NO];
 	

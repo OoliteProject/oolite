@@ -399,7 +399,7 @@ typedef enum
 	unsigned				ship_kills;
 	
 	OOCompassMode			compassMode;
-	OOWeakReference		*compassTarget;
+	OOWeakReference			*compassTarget;
 	
 	GLfloat					fuel_leak_rate;
 	
