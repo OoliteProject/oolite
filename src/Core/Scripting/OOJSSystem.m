@@ -1357,8 +1357,6 @@ static JSBool SystemSetWaypoint(JSContext *context, uintN argc, jsval *vp)
 		[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithDouble:position.x],[NSNumber numberWithDouble:position.y],[NSNumber numberWithDouble:position.z],nil] forKey:@"position"];
 		[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithDouble:orientation.w],[NSNumber numberWithDouble:orientation.x],[NSNumber numberWithDouble:orientation.y],[NSNumber numberWithDouble:orientation.z],nil] forKey:@"orientation"];
 
-		OOLog(@"waypoint.debug",@"%@",settings);
-
 		[UNIVERSE defineWaypoint:settings forKey:key];
 	}	
 
