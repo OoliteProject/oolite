@@ -299,10 +299,11 @@ OOLITE_SCRIPTING_FILES = \
     OOJSSystem.m \
     OOJSSystemInfo.m \
     OOJSTimer.m \
-		OOJSVisualEffect.m \
+	OOJSVisualEffect.m \
     OOJSVector.m \
     OOJSWorldScripts.m \
-		OOJSWormhole.m \
+	OOJSWormhole.m \
+	OOJSWaypoint.m \
     OOLegacyScriptWhitelist.m \
     OOPListScript.m \
     OOScript.m \

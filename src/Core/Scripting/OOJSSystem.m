@@ -27,6 +27,7 @@
 #import "OOJavaScriptEngine.h"
 
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 #import "OOJSEntity.h"
 #import "OOJSPlayer.h"
 #import "Universe.h"
@@ -191,7 +192,7 @@ static JSFunctionSpec sSystemMethods[] =
 	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
 	{ "setPopulator",					SystemSetPopulator,					2 },
-	{ "setWaypoint",					SystemSetWaypoint,					2 },
+	{ "setWaypoint",					SystemSetWaypoint,					4 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,			1 },
 	{ "shipsWithRole",					SystemShipsWithRole,				1 },
 	
@@ -1314,19 +1315,21 @@ static JSBool SystemSetWaypoint(JSContext *context, uintN argc, jsval *vp)
 
 	NSString *key;
 	NSMutableDictionary *settings;
+	HPVector position;
+	Quaternion orientation;
 
 	if (argc < 1) 
 	{
-		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"string (key), object (definition)");
+		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, position, orientation, definition");
 		return NO;
 	}
 	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (key == nil)
 	{
-		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, definition");
+		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, position, orientation, definition");
 		return NO;
 	}
-	if (argc < 2 || JSVAL_IS_NULL(OOJS_ARGV[1]))
+	if (argc < 4 || JSVAL_IS_NULL(OOJS_ARGV[3]))
 	{
 		// clearing
 		[UNIVERSE defineWaypoint:nil forKey:key];
@@ -1334,13 +1337,27 @@ static JSBool SystemSetWaypoint(JSContext *context, uintN argc, jsval *vp)
 	else
 	{
 		// adding
-		if (!JSVAL_IS_OBJECT(OOJS_ARGV[1]) || JSVAL_IS_NULL(OOJS_ARGV[1]))
+		if (!JSValueToHPVector(context, OOJS_ARGV[1], &position))
 		{
-			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, definition");
+			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 2U), OOJS_ARGV, NULL, @"key, position, orientation, definition");
 			return NO;
 		}
+		if (!JSValueToQuaternion(context, OOJS_ARGV[2], &orientation))
+		{
+			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 3U), OOJS_ARGV, NULL, @"key, position, orientation, definition");
+			return NO;
+		}
+		if (!JSVAL_IS_OBJECT(OOJS_ARGV[3]) || JSVAL_IS_NULL(OOJS_ARGV[3]))
+		{
+			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 4U), OOJS_ARGV, NULL, @"key, position, orientation, definition");
+			return NO;
+		}
+		
+		settings = [[OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[3])) mutableCopy] autorelease];
+		[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithDouble:position.x],[NSNumber numberWithDouble:position.y],[NSNumber numberWithDouble:position.z],nil] forKey:@"position"];
+		[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithDouble:orientation.w],[NSNumber numberWithDouble:orientation.x],[NSNumber numberWithDouble:orientation.y],[NSNumber numberWithDouble:orientation.z],nil] forKey:@"orientation"];
 
-		settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
+		OOLog(@"waypoint.debug",@"%@",settings);
 
 		[UNIVERSE defineWaypoint:settings forKey:key];
 	}	
