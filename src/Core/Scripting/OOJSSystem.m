@@ -134,8 +134,10 @@ enum
 	kSystem_pseudoRandomNumber,		// constant-per-system pseudorandom number in [0..1), double, read-only
 	kSystem_sun,					// system's sun, Planet, read-only
 	kSystem_stations,     // list of dockable entities, read-only
-	kSystem_wormholes,     // list of active entry wormholes, read-only
 	kSystem_techLevel,				// tech level ID, integer, read/write
+	kSystem_waypoints,     // dictionary of current player waypoints, read-only
+	kSystem_wormholes,     // list of active entry wormholes, read-only
+
 };
 
 
@@ -165,9 +167,10 @@ static JSPropertySpec sSystemProperties[] =
 	{ "pseudoRandom256",		kSystem_pseudoRandom256,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandomNumber",		kSystem_pseudoRandomNumber,		OOJS_PROP_READONLY_CB },
 	{ "stations",					kSystem_stations,					OOJS_PROP_READONLY_CB },
-	{ "wormholes",					kSystem_wormholes,					OOJS_PROP_READONLY_CB },
 	{ "sun",					kSystem_sun,					OOJS_PROP_READONLY_CB },
 	{ "techLevel",				kSystem_techLevel,				OOJS_PROP_READWRITE_CB },
+	{ "waypoints",					kSystem_waypoints,					OOJS_PROP_READONLY_CB },
+	{ "wormholes",					kSystem_wormholes,					OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -270,6 +273,11 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			
 		case kSystem_stations:
 			result = [UNIVERSE stations];
+			handled = YES;
+			break;
+
+		case kSystem_waypoints:
+			result = [UNIVERSE currentWaypoints];
 			handled = YES;
 			break;
 
