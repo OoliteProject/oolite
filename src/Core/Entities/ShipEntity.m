@@ -3939,7 +3939,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
-	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	if (range > scannerRange || [self primaryTarget] == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4011,7 +4011,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	double  range = [self rangeToPrimaryTarget];
 	ShipEntity*	target = [self primaryTarget];
-	if (range > SCANNER_MAX_RANGE || target == nil)
+	if (range > scannerRange || target == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4331,7 +4331,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
 
-	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	if (range > scannerRange || [self primaryTarget] == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4433,7 +4433,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (range > SCANNER_MAX_RANGE)
+		if (range > scannerRange)
 		{
 			[self noteLostTargetAndGoIdle];
 			return;
@@ -4535,7 +4535,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		return;
 	}
-	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	if (range > scannerRange || [self primaryTarget] == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4578,7 +4578,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		return;
 	}
-	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	if (range > scannerRange || [self primaryTarget] == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4606,7 +4606,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	float	max_available_speed = maxFlightSpeed;
 
-	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	if (range > scannerRange || [self primaryTarget] == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4617,7 +4617,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else 
 	{
-		if (range > weaponRange || range > SCANNER_MAX_RANGE * 0.8)
+		if (range > weaponRange || range > scannerRange * 0.8)
 		{
 			desired_speed = max_available_speed;
 		}
@@ -4684,7 +4684,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		return;
 	}
-	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	if (range > scannerRange || [self primaryTarget] == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4800,7 +4800,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_attack_mining_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if ([self primaryTarget] == nil || range > SCANNER_MAX_RANGE) 
+	if ([self primaryTarget] == nil || range > scannerRange) 
 	{
 		[self noteLostTargetAndGoIdle];
 		desired_speed = maxFlightSpeed * 0.375;
@@ -4856,7 +4856,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (range > SCANNER_MAX_RANGE)
+		if (range > scannerRange)
 		{
 			[self noteLostTargetAndGoIdle];
 			return;
@@ -5060,7 +5060,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_running_defense:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if (range > SCANNER_MAX_RANGE || [self primaryTarget] == nil)
+	if (range > scannerRange || [self primaryTarget] == nil)
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -7011,6 +7011,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	float			cr2 = cr * cr;
 	OOAegisStatus	result = AEGIS_NONE;
 	float			d2 = HPmagnitude2(HPvector_subtract([nearest position], [self position]));
+	// not scannerRange: aegis shouldn't depend on that
 	float 		sd2 = SCANNER_MAX_RANGE2 * 10.0f;
 
 	// check if nearing a surface
@@ -7038,6 +7039,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		sd2 = HPmagnitude2(HPvector_subtract([the_station position], [self position]));
 	}
+	// again, notional scanner range is intentional
 	if (sd2 < SCANNER_MAX_RANGE2 * 4.0f) // double scanner range
 	{
 		result = AEGIS_IN_DOCKING_RANGE;
@@ -7945,6 +7947,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) dealEnergyDamage:(GLfloat) baseDamage atRange:(GLfloat) range withBias:(GLfloat) velocityBias
 {
+	// this is limited to the player's scanner range
 	GLfloat maxRange = fmin(range * sqrt(baseDamage), SCANNER_MAX_RANGE);
 	
 	OOLog(@"missile.damage.calc", @"Range: %f | Damage: %f | MaxRange: %f",range,baseDamage,maxRange);
@@ -8009,6 +8012,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 // Exposed to AI
 - (void) dealEnergyDamageWithinDesiredRange
 {
+	// not over scannerRange
 	NSArray* targets = [UNIVERSE entitiesWithinRange:(desired_range < SCANNER_MAX_RANGE ? desired_range : SCANNER_MAX_RANGE) ofEntity:self];
 	if ([targets count] > 0)
 	{
@@ -8513,6 +8517,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 // Exposed to AI
 - (void) broadcastEnergyBlastImminent
 {
+	// anyone further away than typical scanner range probably doesn't need to hear
 	NSArray* targets = [UNIVERSE entitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
 	if ([targets count] > 0)
 	{
@@ -8836,12 +8841,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	n_scanned_ships = 0;
 	//
 	scan = z_previous;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_previous;	// skip non-ships
+	GLfloat scannerRange2 = scannerRange * scannerRange;
 	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
-			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
 		scan = scan->z_previous;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_previous;
@@ -8853,7 +8859,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
-			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
 		scan = scan->z_next;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_next;	// skip non-ships
@@ -8868,13 +8874,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Entity* scan;
 	n_scanned_ships = 0;
 	//
+	GLfloat scannerRange2 = scannerRange * scannerRange;
 	scan = z_previous;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_previous;	// skip non-ships
 	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
-			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
 		scan = scan->z_previous;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_previous;
@@ -8886,7 +8893,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
-			if (distance2_scanned_ships[n_scanned_ships] < SCANNER_MAX_RANGE2)
+			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
 		scan = scan->z_next;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_next;	// skip non-ships
@@ -9437,7 +9444,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	double	range2 = magnitude2(relPos);
 
-	if (range2 > SCANNER_MAX_RANGE2)
+	if (range2 > scannerRange * scannerRange)
 	{
 		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
@@ -9666,7 +9673,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Vector  relPos = [self vectorTo:target];
 	double	range2 = magnitude2(relPos);
 
-	if (range2 > SCANNER_MAX_RANGE2)
+	if (range2 > scannerRange * scannerRange)
 	{
 		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
@@ -12306,6 +12313,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	while (abs(d1) < min_d1)
 	{
+		// not scannerRange - has no effect on witchspace exit
 		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	}
 	
@@ -12715,7 +12723,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			my_entities[station_count++] = [uni_entities[i] retain];		//	retained
 	//
 	StationEntity *thing = nil, *station = nil;
-	double range2, nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x scanner range (25600 km), squared.
+	double range2, nearest2 = SCANNER_MAX_RANGE2 * 1000000.0; // 1000x typical scanner range (25600 km), squared.
 	for (i = 0; i < station_count; i++)
 	{
 		thing = (StationEntity *)my_entities[i];
@@ -12840,7 +12848,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		return YES;
 	}
 	
-	// Select police units in scanner range
+	// Select police units in typical scanner range
 	if ([entity scanClass] == CLASS_POLICE &&
 		HPdistance2([victim position], [entity position]) < SCANNER_MAX_RANGE2)
 	{
@@ -12974,6 +12982,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	}
 	
 	PlayerEntity *player = PLAYER; // make sure that the player always receives a message when in range
+	// SCANNER_MAX_RANGE2 because it's the player's scanner range
+	// which is important
 	if (HPdistance2(position, [player position]) < SCANNER_MAX_RANGE2)
 	{
 		[self setCommsMessageColor];
@@ -13130,7 +13140,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		GLfloat d2 = HPmagnitude2(delta);
 		if (![ship isPlayer] || ![PLAYER isDocked])
 		{ // player doesn't block if docked
-			if ((k * [ship mass] > d2)&&(d2 < SCANNER_MAX_RANGE2))	// if you go off scanner from a blocker - it ceases to block
+			if ((k * [ship mass] > d2)&&(d2 < SCANNER_MAX_RANGE2))	// if you go off (typical) scanner from a blocker - it ceases to block
 				result = [ship universalID];
 		}
 	}

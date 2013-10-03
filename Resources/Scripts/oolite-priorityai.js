@@ -1422,7 +1422,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 	var cascade = this.getParameter("oolite_cascadeDetected");
 	if (cascade != null)
 	{
-		if (cascade.distanceTo(this.ship) < 25600)
+		if (cascade.distanceTo(this.ship) < this.scannerRange)
 		{
 			return true;
 		}
@@ -1454,7 +1454,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 	}
 	
 	var lastThreat = this.getParameter("oolite_lastFleeing");
-	if (lastThreat != null && this.distance(lastThreat) < 25600)
+	if (lastThreat != null && this.distance(lastThreat) < this.scannerRange)
 	{
 		// the thing that attacked us is still nearby
 		return true;
@@ -1674,7 +1674,7 @@ PriorityAIController.prototype.conditionFriendlyStationExists = function()
 
 PriorityAIController.prototype.conditionFriendlyStationNearby = function()
 {
-	return this.friendlyStation(this.__ltcache.oolite_nearestStation) && this.distance(this.__ltcache.oolite_nearestStation) < 25600;
+	return this.friendlyStation(this.__ltcache.oolite_nearestStation) && this.distance(this.__ltcache.oolite_nearestStation) < this.scannerRange;
 }
 
 
@@ -2553,7 +2553,7 @@ PriorityAIController.prototype.behaviourApproachDestination = function()
 		}
 		else if (blocker.isShip)
 		{
-			if (this.distance(blocker) < 25600)
+			if (this.distance(blocker) < this.scannerRange)
 			{
 				if (!blocker.group || !blocker.group.leader == this.ship)
 				{
@@ -2584,7 +2584,7 @@ PriorityAIController.prototype.behaviourAvoidCascadeExplosion = function()
 	var cascade = this.getParameter("oolite_cascadeDetected");
 	if (cascade != null)
 	{
-		if (cascade.distanceTo(this.ship) < 25600)
+		if (cascade.distanceTo(this.ship) < this.scannerRange)
 		{
 			if (this.ship.defenseTargets.length > 0 && this.ship.defenseTargets[0].scanClass == "CLASS_MINE")
 			{
@@ -2893,7 +2893,7 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 	var cascade = this.getParameter("oolite_cascadeDetected");
 	if (cascade != null)
 	{
-		if (cascade.distanceTo(this.ship) < 25600)
+		if (cascade.distanceTo(this.ship) < this.scannerRange)
 		{
 			if (this.ship.defenseTargets.length > 0 && this.ship.defenseTargets[0].scanClass == "CLASS_MINE")
 			{
