@@ -128,10 +128,12 @@
 			We have reports of Oolite hanging when using Gallium3D on AMD R600/R700 family GPUs with
 			shaders enabled. As a stopgap, we forcibly disable shaders on affected systems.
 			See http://aegidian.org/bb/viewtopic.php?f=9&t=9416
+			https://github.com/OoliteProject/oolite/issues/54 confirms reports that this is fixed in more modern drivers, so adding version match for the older Mesa versions
 		*/
 		
 		match =
 		{
+			version = "2.* Mesa 7.*";
 			vendor = "X\\.Org";
 			renderer = "Gallium .*(?:AMD|AT[Ii]) R[A-Za-z]?[67]\\d{2}(?!\\d)";
 		};
