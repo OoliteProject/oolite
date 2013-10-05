@@ -4243,6 +4243,13 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+// used by Javascript and the distinction is important for NPCs
+- (OOAlertCondition) realAlertCondition
+{
+	return [self alertCondition];
+}
+
+
 - (OOAlertCondition) alertCondition
 {
 	OOAlertCondition old_alert_condition = alertCondition;
