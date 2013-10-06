@@ -1800,12 +1800,21 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint			cursor_coordinates = [player cursor_coordinates];
 	Random_Seed		galaxy_seed = [player galaxy_seed];
-	
+	OOLongRangeChartMode chart_mode = [player longRangeChartMode];
+	if (![player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	{
+		chart_mode = OOLRC_MODE_NORMAL;
+	}
+
 	double fuel = 35.0 * [player dialFuel];
 	
 	// get a list of systems marked as contract destinations
-	NSDictionary		*markedDestinations = [player markedDestinations];
-	
+	NSDictionary	*markedDestinations = [player markedDestinations];
+	NSDictionary	*systemData = nil;
+	NSUInteger		systemParameter;
+	GLfloat			r, g, b;
+	BOOL			noNova;
+
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	
 	NSPoint		star, cu;
@@ -1925,22 +1934,78 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// draw stars
 	//
 	OOGL(glColor4f(1.0f, 1.0f, 1.0f, alpha));
-	OOGLBEGIN(GL_QUADS);
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
+		systemData = [UNIVERSE generateSystemData:g_seed];
+		noNova = ![systemData oo_boolForKey:@"sun_gone_nova"];
+		switch (chart_mode)
+		{
+		case OOLRC_MODE_ECONOMY:
+			if (EXPECT(noNova))
+			{
+				systemParameter = [systemData oo_unsignedIntForKey:KEY_ECONOMY];
+				r = 0.5;
+				g = 0.3 + (0.1 * (GLfloat)systemParameter);
+				b = 1.0 - (0.1 * (GLfloat)systemParameter);
+			}
+			else
+			{
+				r = g = b = 0.3;
+			}
+			break;
+		case OOLRC_MODE_GOVERNMENT:
+			if (EXPECT(noNova))
+			{
+				systemParameter = [systemData oo_unsignedIntForKey:KEY_GOVERNMENT];
+				r = 1.0 - (0.1 * (GLfloat)systemParameter);
+				g = 0.3 + (0.1 * (GLfloat)systemParameter);
+				b = 0.1;
+			}
+			else
+			{
+				r = g = b = 0.3;
+			}
+			break;
+		case OOLRC_MODE_TECHLEVEL:
+			if (EXPECT(noNova))
+			{
+				systemParameter = [systemData oo_unsignedIntForKey:KEY_TECHLEVEL];				
+				r = 0.6;
+				g = b = 0.20 + (0.05 * (GLfloat)systemParameter);
+			}
+			else
+			{
+				r = g = b = 0.3;
+			}			
+			break;
+		case OOLRC_MODE_NORMAL:
+			if (EXPECT(noNova))
+			{
+				r = g = b = 1.0;
+			}
+			else
+			{
+				r = 1.0;
+				g = 0.2;
+				b = 0.0;
+			}
+			break;
+		}
+		OOGL(glColor4f(r, g, b, alpha));
 		
 		star.x = (float)(g_seed.d * hscale + hoffset);
 		star.y = (float)(g_seed.b * vscale + voffset);
 		
 		float sz = (4.0f + 0.5f * (0x03 | (g_seed.f & 0x0f))) / 7.0f;
-		
+		OOGLBEGIN(GL_QUADS);
 		glVertex3f(x + star.x, y + star.y + sz, z);
 		glVertex3f(x + star.x + sz,	y + star.y, z);
 		glVertex3f(x + star.x, y + star.y - sz, z);
 		glVertex3f(x + star.x - sz,	y + star.y, z);
+		OOGLEND();
 	}
-	OOGLEND();
+
 		
 	// draw found stars and captions
 	//

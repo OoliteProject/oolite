@@ -1475,6 +1475,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
+	longRangeChartMode = OOLRC_MODE_NORMAL;
 	
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];
@@ -9889,6 +9890,18 @@ static NSString *last_outfitting_key=nil;
 - (NSPoint) galacticHyperspaceFixedCoords
 {
 	return galacticHyperspaceFixedCoords;
+}
+
+
+- (OOLongRangeChartMode) longRangeChartMode
+{
+	return longRangeChartMode;
+}
+
+
+- (void) setLongRangeChartMode:(OOLongRangeChartMode) mode
+{
+	longRangeChartMode = mode;
 }
 
 

@@ -78,6 +78,13 @@ enum
 	kOOGalacticHyperspaceBehaviourDefault	= GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN
 };
 
+typedef enum
+{
+	OOLRC_MODE_NORMAL = 0,
+	OOLRC_MODE_ECONOMY = 1,
+	OOLRC_MODE_GOVERNMENT = 2,
+	OOLRC_MODE_TECHLEVEL = 3
+} OOLongRangeChartMode;
 
 // OO_RESOLUTION_OPTION: true if full screen resolution can be changed.
 #if OOLITE_MAC_OS_X && OOLITE_64_BIT
@@ -567,6 +574,8 @@ typedef enum
 	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
 	
+	OOLongRangeChartMode	longRangeChartMode;
+
 	NSArray					*_customViews;
 	NSUInteger				_customViewIndex;
 	
@@ -914,6 +923,9 @@ typedef enum
 - (void) setGalacticHyperspaceFixedCoords:(NSPoint)point;
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
+
+- (OOLongRangeChartMode) longRangeChartMode;
+- (void) setLongRangeChartMode:(OOLongRangeChartMode) mode;
 
 - (BOOL) scoopOverride;
 - (void) setScoopOverride:(BOOL)newValue;

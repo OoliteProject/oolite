@@ -106,7 +106,7 @@ static BOOL				gammaControlPressed;
 #endif
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
-//static BOOL				queryPressed;
+static BOOL				queryPressed;
 static BOOL				spacePressed;
 static BOOL				switching_chart_screens;
 static BOOL				switching_status_screens;
@@ -1599,7 +1599,28 @@ static NSTimeInterval	time_last_frame;
 					pling_pressed = NO;
 				}
 			}
-			
+
+			if ([gameView isDown:key_contract_info])   // '?' toggle chart colours
+			{
+				if (!queryPressed)
+				{
+					OOLongRangeChartMode mode = [self longRangeChartMode];
+					if (mode != OOLRC_MODE_TECHLEVEL)
+					{
+						[self setLongRangeChartMode:mode+1];
+					}
+					else
+					{
+						[self setLongRangeChartMode:OOLRC_MODE_NORMAL];
+					}
+				}
+				queryPressed = YES;
+			}
+			else
+			{
+				queryPressed = NO;
+			}
+
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
 				if ([[gameView typedString] length] > 0)
