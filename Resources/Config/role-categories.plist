@@ -134,7 +134,8 @@
 		"miner",
 		"hunter",
 		"hunter-medium",
-		"hunter-heavy"
+		"hunter-heavy",
+		"escape-capsule"
 	);
 
 	/* Roles the police are less likely to side with in a clean v

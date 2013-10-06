@@ -297,7 +297,7 @@ this.PriorityAIController = function(ship)
 	}
 
 
-	/* Do not call this directly. It is called automatically on ship death */
+	/* Do not call this directly. It is called automatically on ship death. Deliberately not documented. */
 	this.cleanup = function()
 	{
 		// break links to disconnect this from GC roots a little sooner
@@ -6272,7 +6272,7 @@ this._setCommunications = function(obj)
 
 }
 
-
+/* Intentionally not documented */
 this._threatAssessment = function(ship,full)
 {
 	full = full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3);
