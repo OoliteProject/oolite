@@ -315,6 +315,23 @@
 			width		= 9;
 		}
 	);
+	multi_function_displays = (
+		{
+			width = 216;
+			height = 132;
+			x = -156;
+			y = -72;
+			y_origin = 1;
+			mfd_number = 0;
+		},
+		{
+			width = 216;
+			height = 132;
+			x = 156;
+			y = -72;
+			y_origin = 1;
+		}
+	);
 	message_gui = {
 		width = 216;
 		height = 132;

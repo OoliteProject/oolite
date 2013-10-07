@@ -1195,7 +1195,15 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
 	}
-	
+
+	// multi-function displays
+	[multiFunctionDisplayText release];
+	multiFunctionDisplayText = [[NSMutableDictionary alloc] init];
+
+	[multiFunctionDisplaySettings release];
+	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
+
+
 	/*	entity_personality for scripts and shaders. If undefined, we fall back
 		to old behaviour of using a random value each time game is loaded (set
 		up in -setUp). Saving of entity_personality was added in 1.74.
@@ -1476,6 +1484,12 @@ static GLfloat		sBaseMass = 0.0;
 	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
 	longRangeChartMode = OOLRC_MODE_NORMAL;
+
+	[multiFunctionDisplayText release];
+	multiFunctionDisplayText = [[NSMutableDictionary alloc] init];
+
+	[multiFunctionDisplaySettings release];
+	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
 	
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];
@@ -3382,6 +3396,7 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setScannerZoom:scannerZoom];
 		[hud setCompassActive:wasCompassActive];
 		[hud setHidden:wasHidden];
+		activeMFD = 0;
 	}
 	
 	return YES;
@@ -4117,6 +4132,21 @@ static GLfloat		sBaseMass = 0.0;
 	if (result == nil)  result = DESC(@"unknown-target");
 	
 	return result;
+}
+
+
+- (NSString *) multiFunctionText:(NSUInteger)i
+{
+	return @"This is a test\nof the MFD code\nTo see if it\nworks.";
+#ifdef FINISHED_OTHER_BITS_OF_MFDS	
+	NSString *key = [multiFunctionDisplaySettings oo_stringAtIndex:i defaultValue:nil];
+	if (key == nil)
+	{
+		return nil;
+	}
+	NSString *text = [multiFunctionDisplayText oo_stringForKey:key defaultValue:nil];
+	return text;
+#endif
 }
 
 

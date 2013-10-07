@@ -167,8 +167,12 @@ MA 02110-1301, USA.
 #define SCOOPSTATUS_WIDTH			16.0
 #define SCOOPSTATUS_HEIGHT			16.0
 
+#define MFD_TEXT_WIDTH			10
+#define MFD_TEXT_HEIGHT			10
+
 #define DIALS_KEY				@"dials"
 #define LEGENDS_KEY				@"legends"
+#define MFDS_KEY				@"multi_function_displays"
 #define X_KEY					@"x"
 #define Y_KEY					@"y"
 #define X_ORIGIN_KEY			@"x_origin"
@@ -214,6 +218,7 @@ MA 02110-1301, USA.
 @private
 	NSMutableArray		*legendArray;
 	NSMutableArray		*dialArray;
+	NSMutableArray		*mfdArray;
 	
 	// zoom level
 	GLfloat				scanner_zoom;
@@ -283,6 +288,7 @@ MA 02110-1301, USA.
 
 - (void) addLegend:(NSDictionary *)info;
 - (void) addDial:(NSDictionary *)info;
+- (void) addMFD:(NSDictionary *)info;
 
 - (void) renderHUD;
 

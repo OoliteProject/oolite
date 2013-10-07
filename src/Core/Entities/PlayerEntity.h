@@ -360,7 +360,10 @@ typedef enum
 	StationEntity			*targetDockStation; 
 	
 	HeadUpDisplay			*hud;
-	
+	NSMutableDictionary		*multiFunctionDisplayText;
+	NSMutableArray			*multiFunctionDisplaySettings;
+	NSUInteger				activeMFD;
+
 	GLfloat					roll_delta, pitch_delta, yaw_delta;
 	GLfloat					launchRoll;
 	
@@ -654,6 +657,8 @@ typedef enum
 - (HeadUpDisplay *) hud;
 - (BOOL) switchHudTo:(NSString *)hudFileName;
 - (void) resetHud;
+
+- (NSString *) multiFunctionText:(NSUInteger) index;
 
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;

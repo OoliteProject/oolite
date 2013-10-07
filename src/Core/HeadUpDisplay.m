@@ -103,6 +103,7 @@ enum
 - (void) drawCrosshairs;
 - (void) drawLegends;
 - (void) drawDials;
+- (void) drawMFDs;
 
 - (void) drawLegend:(NSDictionary *)info;
 - (void) drawHUDItem:(NSDictionary *)info;
@@ -139,6 +140,7 @@ enum
 - (void) drawPrimedEquipmentText:(NSDictionary *)info;
 - (void) drawASCTarget:(NSDictionary *)info;
 - (void) drawWeaponsOfflineText:(NSDictionary *)info;
+- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
 - (void) drawStickSenitivityIndicator:(NSDictionary *)info;
@@ -214,6 +216,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
+	mfdArray = [[NSMutableArray alloc] initWithCapacity:4]; // alloc retains
 	
 	// populate arrays
 	NSArray *dials = [hudinfo oo_arrayForKey:DIALS_KEY];
@@ -238,6 +241,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		[self addLegend:[legends oo_dictionaryAtIndex:i]];
 	}
+
+	NSArray *mfds = [hudinfo oo_arrayForKey:MFDS_KEY];
+	for (i = 0; i < [mfds count]; i++)
+	{
+		[self addMFD:[mfds oo_dictionaryAtIndex:i]];
+	}
+
 	
 	hudHidden = NO;
 	
@@ -623,6 +633,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
+- (void) addMFD:(NSDictionary *)info
+{
+	struct CachedInfo cache;
+	prefetchData(info, &cache);
+	[mfdArray addObject:[NSArray arrayWithObjects:info, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)],nil]];
+}
+
 /*
 	SLOW_CODE
 	As of 2012-09-13 (r5320), HUD rendering is taking 25%-30% of rendering time,
@@ -669,6 +686,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 	
 	[self drawDials];
+	[self drawMFDs];
 	OOCheckOpenGLErrors(@"After drawing HUD");
 	
 	OOVerifyOpenGLState();
@@ -717,6 +735,22 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// We always need to check the mass lock status. It's normally checked inside drawScanner,
 	// but if drawScanner wasn't called, we can check mass lock explicitly.
 	if (!_scannerUpdated)  [self checkMassLock];
+}
+
+
+- (void) drawMFDs
+{
+	NSUInteger i, nMFDs = [mfdArray count];
+	NSString *text = nil;
+	for (i = 0; i < nMFDs; i++)
+	{
+		text = [PLAYER multiFunctionText:i];
+		if (text != nil)
+		{
+			sCurrentDrawItem = [mfdArray oo_arrayAtIndex:i];
+			[self drawMultiFunctionDisplay:[sCurrentDrawItem oo_dictionaryAtIndex:WIDGET_INFO] withText:text];
+		}
+	}
 }
 
 
@@ -2856,6 +2890,62 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	// position the watermark string on the top right hand corner of the game window and right-align it
 	OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
 						MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, z1, NSMakeSize(10,10));
+}
+
+
+- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text
+{
+	PlayerEntity		*player1 = PLAYER;
+	struct CachedInfo	cached;
+	NSInteger			i, x, y;
+	NSSize				siz;
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	{
+		return;
+	}
+	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+	
+	// TODO: reduce alpha for non-selected MFDs
+	GLfloat mfd_color[4] =		{0.0, 1.0, 0.0, 0.8*alpha};
+	
+	[self drawSurround:info color:mfd_color];
+
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	x = cached.x + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = cached.y + [[UNIVERSE gameView] y_offset] * cached.y0;
+	
+	siz.width = useDefined(cached.width / 20, MFD_TEXT_WIDTH);
+	siz.height = useDefined(cached.height / 10, MFD_TEXT_HEIGHT);
+
+	GLfloat x0 = (GLfloat)(x - cached.width/2);
+	GLfloat y0 = (GLfloat)(y + cached.height/2);
+	GLfloat x1 = (GLfloat)(x + cached.width/2);
+	GLfloat y1 = (GLfloat)(y - cached.height/2);
+	GLColorWithOverallAlpha(mfd_color, alpha*0.3);
+	OOGLBEGIN(GL_QUADS);
+		glVertex3f(x0-2,y0+2,z1);
+		glVertex3f(x0-2,y1-2,z1);
+		glVertex3f(x1+2,y1-2,z1);
+		glVertex3f(x1+2,y0+2,z1);
+	OOGLEND();
+
+	NSString *line = nil;
+	NSArray *lines = [text componentsSeparatedByString:@"\n"];
+	// text at full opacity
+	GLColorWithOverallAlpha(mfd_color, alpha);
+	for (i = 0; i < 10 ; i++)
+	{
+		line = [lines oo_stringAtIndex:i defaultValue:nil];
+		if (line != nil)
+		{
+			y0 -= siz.height;
+			OODrawString(line, x0, y0, z1, siz);
+		}
+		else
+		{
+			break;
+		}
+	}
 }
 
 //---------------------------------------------------------------------//
