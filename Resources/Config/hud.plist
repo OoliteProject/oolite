@@ -7,6 +7,7 @@
 		{	// Targeting enhancement
 			equipment_required 	= "EQ_SCANNER_SHOW_MISSILE_TARGET";
 			selector		= "drawTargetReticle:";
+			// reticle_scale = 0.015625 /* 1/64 is default */
 		},
 		{	// Waypoint display
 			equipment_required 	= "EQ_ADVANCED_COMPASS";

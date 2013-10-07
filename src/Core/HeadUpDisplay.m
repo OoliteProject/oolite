@@ -83,7 +83,7 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText);
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info);
 static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected);
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom);
 
@@ -2281,7 +2281,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if ([PLAYER primaryTarget] != nil)
 	{
-		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES);
+		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES, info);
 		[self drawDirectionCue:info];
 	}
 	// extra feature if extra equipment installed
@@ -2318,7 +2318,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				{
 					if ([secondary zeroDistance] <= SCANNER_MAX_RANGE2 && [secondary isInSpace])
 					{
-						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO);	
+						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO, info);	
 					}			
 				}
 			}
@@ -2975,11 +2975,13 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText)
+static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info)
 {
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
 	
+	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
+
 	if (target == nil || player1 == nil)  return;
 
 	if ([target isShip])
@@ -3032,8 +3034,8 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	GLfloat			rdist = magnitude(p1);
 	GLfloat			rsize = [target collisionRadius];
 	
-	if (rsize < rdist * ONE_SIXTYFOURTH)
-		rsize = rdist * ONE_SIXTYFOURTH;
+	if (rsize < rdist * scale)
+		rsize = rdist * scale;
 	
 	GLfloat			rs0 = rsize;
 	GLfloat			rs2 = rsize * 0.50;
@@ -3192,8 +3194,8 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		// add text for reticle here
 		range *= 0.001f;
 		if (range < 0.001f) range = 0.0f;	// avoids the occasional -0.001 km distance.
-		NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
-		float line_height = rdist * ONE_SIXTYFOURTH;
+		NSSize textsize = NSMakeSize(rdist * scale, rdist * scale);
+		float line_height = rdist * scale;
 		NSString*	info = [NSString stringWithFormat:@"%0.3f km", range];
 		if (legal_desc != nil) info = [NSString stringWithFormat:@"%@ (%@)", info, legal_desc];
 		// no need to set colour here
