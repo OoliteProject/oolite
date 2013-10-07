@@ -3196,11 +3196,11 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		if (range < 0.001f) range = 0.0f;	// avoids the occasional -0.001 km distance.
 		NSSize textsize = NSMakeSize(rdist * scale, rdist * scale);
 		float line_height = rdist * scale;
-		NSString*	info = [NSString stringWithFormat:@"%0.3f km", range];
-		if (legal_desc != nil) info = [NSString stringWithFormat:@"%@ (%@)", info, legal_desc];
+		NSString*	infoline = [NSString stringWithFormat:@"%0.3f km", range];
+		if (legal_desc != nil) infoline = [NSString stringWithFormat:@"%@ (%@)", infoline, legal_desc];
 		// no need to set colour here
 		OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
-		OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
+		OODrawString(infoline, rs0, 0.5 * rs2 - line_height, 0, textsize);
 	
 		if ([target isWormhole])
 		{
