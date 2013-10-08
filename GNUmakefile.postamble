@@ -32,18 +32,18 @@ after-all::
 	$(CP) $(CP_FLAGS) Resources/Config $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/Scripts $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/Shaders $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Images $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Models $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Music $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Sounds $(PROGDIR)/Resources
-	$(CP) $(CP_FLAGS) Resources/Binary/Textures $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) ../oolite-binary-resources/Binary/Images $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) ../oolite-binary-resources/Binary/Models $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) ../oolite-binary-resources/Binary/Music $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) ../oolite-binary-resources/Binary/Sounds $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) ../oolite-binary-resources/Binary/Textures $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
 ifeq ($(ESPEAK),yes)
     ifeq ($(GNUSTEP_HOST_OS),mingw32)
 		$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
     else
         ifeq ($(use_deps),yes)
-			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+			$(CP) $(CP_FLAGS) ../oolite-sdl-dependencies/espeak-data $(PROGDIR)/Resources
         endif
     endif
 endif

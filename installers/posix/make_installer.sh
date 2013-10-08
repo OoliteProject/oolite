@@ -80,25 +80,25 @@ cd installers/
 tar zcf ../${setup_root}/freedesktop.tar.gz FreeDesktop/ --exclude .svn
 
 echo "Packing $cpu_architecture architecture library dependencies..."
-cd ../deps/Linux-deps/${cpu_architecture}/
-tar zcf ../../../${setup_root}/oolite.deps.tar.gz lib/ --exclude .svn
+cd ../../oolite-linux-dependencies/${cpu_architecture}/
+tar zcf ../../oolite/${setup_root}/oolite.deps.tar.gz lib/ --exclude .svn
 
 echo "Packing documentation..."
-cd ../../../Doc/
+cd ../../oolite/Doc/
 tar cf ../${setup_root}/oolite.doc.tar AdviceForNewCommanders.pdf OoliteReadMe.pdf OoliteRS.pdf CHANGELOG.TXT
-cd ../deps/Linux-deps/
-tar rf ../../${setup_root}/oolite.doc.tar README.TXT
-gzip ../../${setup_root}/oolite.doc.tar
+cd ../../oolite-linux-dependencies/
+tar rf ../oolite/${setup_root}/oolite.doc.tar README.TXT
+gzip ../oolite/${setup_root}/oolite.doc.tar
 
 echo "Packing wrapper scripts and startup README..."
-tar zcf ../../${setup_root}/oolite.wrap.tar.gz oolite.src oolite-update.src 
+tar zcf ../oolite/${setup_root}/oolite.wrap.tar.gz oolite.src oolite-update.src 
 
 echo "Packing GNUstep DTDs..."
-cd ../Cross-platform-deps/
-tar zcf ../../${setup_root}/oolite.dtd.tar.gz DTDs --exclude .svn
+cd ../oolite-sdl-dependencies/
+tar zcf ../oolite/${setup_root}/oolite.dtd.tar.gz DTDs --exclude .svn
 
 echo "Copying setup script..."
-cd ../../installers/posix/
+cd ../oolite/installers/posix/
 cat setup.header > ../../${oolite_app}/setup
 if [ $trunk ] 
 then
