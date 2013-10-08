@@ -55,7 +55,7 @@ else
   
   if [ "$build_submode" = "test" ]
   then
-    release_mode="-beta"   # Here is the right place to define if this is "-test", "-beta", "-rc1", etc.
+    release_mode="-test"   # Here is the right place to define if this is "-test", "-beta", "-rc1", etc.
   fi
 fi
 oolite_app=oolite.app
