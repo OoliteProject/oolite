@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 
+#import "StationEntity.h"
 
 @implementation PlayerEntity (ScriptMethods)
 
