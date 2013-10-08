@@ -3359,7 +3359,8 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL 			wasHidden = NO;
 	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
-	
+	int				i;
+
 	if (!hudFileName)  return NO;
 	
 	// is the HUD in the process of being rendered? If yes, set it to defer state and abort the switching now
@@ -3397,6 +3398,11 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setCompassActive:wasCompassActive];
 		[hud setHidden:wasHidden];
 		activeMFD = 0;
+		[multiFunctionDisplaySettings removeAllObjects];
+		for (i = [hud mfdCount]-1 ; i >= 0 ; i--)
+		{
+			[multiFunctionDisplaySettings addObject:[NSNull null]];
+		}
 	}
 	
 	return YES;
@@ -4137,8 +4143,6 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSString *) multiFunctionText:(NSUInteger)i
 {
-	return @"This is a test\nof the MFD code\nTo see if it\nworks.";
-#ifdef FINISHED_OTHER_BITS_OF_MFDS	
 	NSString *key = [multiFunctionDisplaySettings oo_stringAtIndex:i defaultValue:nil];
 	if (key == nil)
 	{
@@ -4146,7 +4150,40 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	NSString *text = [multiFunctionDisplayText oo_stringForKey:key defaultValue:nil];
 	return text;
-#endif
+}
+
+
+- (void) setMultiFunctionText:(NSString *)text forKey:(NSString *)key
+{
+	if (text != nil)
+	{
+		[multiFunctionDisplayText setObject:text forKey:key];
+	}
+	else
+	{
+		[multiFunctionDisplayText removeObjectForKey:key];
+	}
+}
+
+
+- (BOOL) setMultiFunctionDisplay:(NSUInteger)index toKey:(NSString *)key
+{
+	if (index < [hud mfdCount])
+	{
+		if (key == nil)
+		{
+			[multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[NSNull null]];
+		}
+		else
+		{
+			[multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:key];
+		}
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
 }
 
 

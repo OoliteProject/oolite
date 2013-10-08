@@ -640,6 +640,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	[mfdArray addObject:[NSArray arrayWithObjects:info, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)],nil]];
 }
 
+
+- (NSUInteger) mfdCount
+{
+	return [mfdArray count];
+}
+
 /*
 	SLOW_CODE
 	As of 2012-09-13 (r5320), HUD rendering is taking 25%-30% of rendering time,

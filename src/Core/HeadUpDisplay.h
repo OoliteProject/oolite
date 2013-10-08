@@ -290,6 +290,8 @@ MA 02110-1301, USA.
 - (void) addDial:(NSDictionary *)info;
 - (void) addMFD:(NSDictionary *)info;
 
+- (NSUInteger) mfdCount;
+
 - (void) renderHUD;
 
 - (void) refreshLastTransmitter;

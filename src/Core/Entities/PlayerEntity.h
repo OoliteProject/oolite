@@ -659,6 +659,8 @@ typedef enum
 - (void) resetHud;
 
 - (NSString *) multiFunctionText:(NSUInteger) index;
+- (void) setMultiFunctionText:(NSString *)text forKey:(NSString *)key;
+- (BOOL) setMultiFunctionDisplay:(NSUInteger) index toKey:(NSString *)key;
 
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;
