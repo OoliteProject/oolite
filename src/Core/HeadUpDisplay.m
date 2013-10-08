@@ -140,7 +140,7 @@ enum
 - (void) drawPrimedEquipmentText:(NSDictionary *)info;
 - (void) drawASCTarget:(NSDictionary *)info;
 - (void) drawWeaponsOfflineText:(NSDictionary *)info;
-- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text;
+- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
 - (void) drawStickSenitivityIndicator:(NSDictionary *)info;
@@ -754,7 +754,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		if (text != nil)
 		{
 			sCurrentDrawItem = [mfdArray oo_arrayAtIndex:i];
-			[self drawMultiFunctionDisplay:[sCurrentDrawItem oo_dictionaryAtIndex:WIDGET_INFO] withText:text];
+			[self drawMultiFunctionDisplay:[sCurrentDrawItem oo_dictionaryAtIndex:WIDGET_INFO] withText:text asIndex:i];
 		}
 	}
 }
@@ -2899,7 +2899,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text
+- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index;
 {
 	PlayerEntity		*player1 = PLAYER;
 	struct CachedInfo	cached;
@@ -2912,8 +2912,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 	
 	// TODO: reduce alpha for non-selected MFDs
-	GLfloat mfd_color[4] =		{0.0, 1.0, 0.0, 0.8*alpha};
-	
+	GLfloat mfd_color[4] =		{0.0, 1.0, 0.0, 0.9*alpha};
+	if (index != [player1 activeMFD])
+	{
+		mfd_color[3] *= 0.75;
+	}
 	[self drawSurround:info color:mfd_color];
 
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];

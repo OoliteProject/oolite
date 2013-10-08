@@ -491,6 +491,9 @@ typedef enum
 #endif
 
 	OOKeyCode				key_weapons_online_toggle;
+
+	OOKeyCode				key_cycle_mfd;
+	OOKeyCode				key_switch_mfd;
 	
 	// save-file
 	NSString				*save_path;
@@ -661,6 +664,9 @@ typedef enum
 - (NSString *) multiFunctionText:(NSUInteger) index;
 - (void) setMultiFunctionText:(NSString *)text forKey:(NSString *)key;
 - (BOOL) setMultiFunctionDisplay:(NSUInteger) index toKey:(NSString *)key;
+- (void) cycleMultiFunctionDisplay:(NSUInteger) index;
+- (void) selectNextMultiFunctionDisplay;
+- (NSUInteger) activeMFD;
 
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;

@@ -65,6 +65,9 @@
 	// in 1.79 or later, cycles long range chart highlight mode
 	key_contract_info			= "?";
 
+	key_cycle_mfd				= ";";
+	key_switch_mfd				= ":";
+
 	key_next_target				= "+";
 	key_previous_target			= "-";
 

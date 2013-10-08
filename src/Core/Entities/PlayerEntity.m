@@ -4159,9 +4159,15 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[multiFunctionDisplayText setObject:text forKey:key];
 	}
-	else
+	else if (key != nil)
 	{
 		[multiFunctionDisplayText removeObjectForKey:key];
+		// and blank any MFDs currently using it
+		NSUInteger index;
+		while ((index = [multiFunctionDisplaySettings indexOfObject:key]) != NSNotFound)
+		{
+			[multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[NSNull null]];
+		}
 	}
 }
 
@@ -4184,6 +4190,47 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		return NO;
 	}
+}
+
+
+- (void) cycleMultiFunctionDisplay:(NSUInteger) index
+{
+	NSArray *keys = [multiFunctionDisplayText allKeys];
+	if ([keys count] == 0)
+	{
+		[self setMultiFunctionDisplay:index toKey:nil];
+		return;
+	}
+	id current = [multiFunctionDisplaySettings objectAtIndex:index];
+	if (current == [NSNull null])
+	{
+		[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:0]];
+	}
+	else
+	{
+		NSUInteger cIndex = [keys indexOfObject:current];
+		if (cIndex == NSNotFound || cIndex + 1 >= [keys count])
+		{
+			[self setMultiFunctionDisplay:index toKey:nil];
+		}
+		else 
+		{
+			[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:(cIndex+1)]];
+		}
+	}
+}
+
+
+- (void) selectNextMultiFunctionDisplay
+{
+	activeMFD = (activeMFD + 1) % [[self hud] mfdCount];
+	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"mfd-d-selected") ,activeMFD + 1] forCount:3.0 ];
+}
+
+
+- (NSUInteger) activeMFD
+{
+	return activeMFD;
 }
 
 
