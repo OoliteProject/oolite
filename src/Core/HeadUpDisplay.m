@@ -2923,7 +2923,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	x = cached.x + [[UNIVERSE gameView] x_offset] * cached.x0;
 	y = cached.y + [[UNIVERSE gameView] y_offset] * cached.y0;
 	
-	siz.width = useDefined(cached.width / 20, MFD_TEXT_WIDTH);
+	siz.width = useDefined(cached.width / 15, MFD_TEXT_WIDTH);
 	siz.height = useDefined(cached.height / 10, MFD_TEXT_HEIGHT);
 
 	GLfloat x0 = (GLfloat)(x - cached.width/2);
@@ -2948,7 +2948,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		if (line != nil)
 		{
 			y0 -= siz.height;
-			OODrawString(line, x0, y0, z1, siz);
+			// all lines must be shorter than the size of the MFD
+			if (OORectFromString(line, 0.0f, 0.0f, siz).size.width <= cached.width)
+			{
+				OODrawString(line, x0, y0, z1, siz);
+			}
 		}
 		else
 		{

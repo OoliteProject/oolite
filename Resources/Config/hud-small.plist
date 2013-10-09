@@ -253,9 +253,9 @@
 	multi_function_displays = (
 		{
 			width = 174;
-			height = 134;
+			height = 116;
 			x = -100;
-			y = -72;
+			y = -62;
 			y_origin = 1;
 		}
 	);
@@ -269,9 +269,9 @@
 	comm_log_gui = {
 		alpha = "0.75";
 		width = 180;
-		height = 140;
+		height = 120;
 		x = 100;
-		y = -72;
+		y = -62;
 		y_origin = 1;
 		row_height = 10;
 		permanent = no;

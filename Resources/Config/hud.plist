@@ -317,14 +317,14 @@
 	);
 	multi_function_displays = (
 		{
-			width = 216;
+			width = 198;
 			height = 132;
 			x = -156;
 			y = -72;
 			y_origin = 1;
 		},
 		{
-			width = 216;
+			width = 198;
 			height = 132;
 			x = 156;
 			y = -72;
