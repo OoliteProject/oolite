@@ -250,6 +250,15 @@
 			width = 8;
 		}
 	);
+	multi_function_displays = (
+		{
+			width = 174;
+			height = 134;
+			x = -100;
+			y = -72;
+			y_origin = 1;
+		}
+	);
 	message_gui = {
 		width = 216;
 		height = 112;

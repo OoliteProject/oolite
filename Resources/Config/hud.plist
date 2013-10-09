@@ -322,7 +322,6 @@
 			x = -156;
 			y = -72;
 			y_origin = 1;
-			mfd_number = 0;
 		},
 		{
 			width = 216;

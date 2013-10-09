@@ -867,6 +867,14 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSUInteger	i;
 	
+	// multi-function displays
+	// must be reset before ship setup
+	[multiFunctionDisplayText release];
+	multiFunctionDisplayText = [[NSMutableDictionary alloc] init];
+
+	[multiFunctionDisplaySettings release];
+	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
+
 	[[UNIVERSE gameView] resetTypedString];
 	
 	// Required keys
@@ -1196,14 +1204,6 @@ static GLfloat		sBaseMass = 0.0;
 		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
 	}
 
-	// multi-function displays
-	[multiFunctionDisplayText release];
-	multiFunctionDisplayText = [[NSMutableDictionary alloc] init];
-
-	[multiFunctionDisplaySettings release];
-	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
-
-
 	/*	entity_personality for scripts and shaders. If undefined, we fall back
 		to old behaviour of using a random value each time game is loaded (set
 		up in -setUp). Saving of entity_personality was added in 1.74.
@@ -1481,16 +1481,16 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setAutoCommLog:YES];
 	[UNIVERSE setPermanentCommLog:NO];
 	
-	[self switchHudTo:@"hud.plist"];	
-	scanner_zoom_rate = 0.0f;
-	longRangeChartMode = OOLRC_MODE_NORMAL;
-
 	[multiFunctionDisplayText release];
 	multiFunctionDisplayText = [[NSMutableDictionary alloc] init];
 
 	[multiFunctionDisplaySettings release];
 	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
-	
+
+	[self switchHudTo:@"hud.plist"];	
+	scanner_zoom_rate = 0.0f;
+	longRangeChartMode = OOLRC_MODE_NORMAL;
+
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];
 	
