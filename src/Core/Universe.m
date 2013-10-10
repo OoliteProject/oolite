@@ -178,8 +178,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) setUpInitialUniverse;
 - (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
 
-- (void) resetSystemDataCache;
-
 - (void) populateSpaceFromActiveWormholes;
 
 - (NSString *)chooseStringForKey:(NSString *)key inDictionary:(NSDictionary *)dictionary;
@@ -7145,6 +7143,10 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	if (!useCache)
 	{
 		[self resetSystemDataCache];
+	}
+	else
+	{
+		
 	}
 	if (sCachedSystemData == nil)
 	{

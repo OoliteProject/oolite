@@ -876,7 +876,9 @@ static GLfloat		sBaseMass = 0.0;
 	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
 
 	[[UNIVERSE gameView] resetTypedString];
-	
+	// must do this on game load now caches an entire chart
+	[UNIVERSE resetSystemDataCache];
+
 	// Required keys
 	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
@@ -6008,6 +6010,9 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
+	// clear system data cache for old galaxy
+	[UNIVERSE resetSystemDataCache];
+
 	// remove any contracts and parcels for the old galaxy
 	if (contracts)
 		[contracts removeAllObjects];

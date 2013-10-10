@@ -605,6 +605,8 @@ enum
 - (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache;
 - (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
+- (void) resetSystemDataCache;
+
 - (BOOL) inInterstellarSpace;
 
 - (void)setObject:(id)object forKey:(NSString *)key forPlanetKey:(NSString *)planetKey;
