@@ -4174,6 +4174,16 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL) setMultiFunctionDisplay:(NSUInteger)index toKey:(NSString *)key
 {
+	if (index >= [hud mfdCount])
+	{
+		// is first inactive display
+		index = [multiFunctionDisplaySettings indexOfObject:[NSNull null]];
+		if (index == NSNotFound)
+		{
+			return NO;
+		}
+	}
+
 	if (index < [hud mfdCount])
 	{
 		if (key == nil)

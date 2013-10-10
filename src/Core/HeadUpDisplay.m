@@ -2904,7 +2904,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	PlayerEntity		*player1 = PLAYER;
 	struct CachedInfo	cached;
 	NSInteger			i, x, y;
-	NSSize				siz;
+	NSSize				siz, tmpsiz;
 	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
 	{
 		return;
@@ -2948,10 +2948,18 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		if (line != nil)
 		{
 			y0 -= siz.height;
-			// all lines must be shorter than the size of the MFD
-			if (OORectFromString(line, 0.0f, 0.0f, siz).size.width <= cached.width)
+			// all lines should be shorter than the size of the MFD
+			GLfloat textwidth = OORectFromString(line, 0.0f, 0.0f, siz).size.width;
+			if (textwidth <= cached.width)
 			{
 				OODrawString(line, x0, y0, z1, siz);
+			}
+			else
+			{
+				// compress it so it fits
+				tmpsiz.height = siz.height;
+				tmpsiz.width = siz.width * cached.width / textwidth;
+				OODrawString(line, x0, y0, z1, tmpsiz);
 			}
 		}
 		else
