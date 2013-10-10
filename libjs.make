@@ -11,7 +11,7 @@
 
 include config.make
 
-LIBJS_SRC_DIR                    = ../spidermonkey-ff4/js/src
+LIBJS_SRC_DIR                    = deps/mozilla/js/src
 LIBJS_CONFIG_FLAGS               = --disable-shared-js
 LIBJS_CONFIG_FLAGS               += --enable-threadsafe
 LIBJS_CONFIG_FLAGS               += --with-system-nspr

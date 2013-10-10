@@ -32,9 +32,9 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     endif
 else
     ifeq ($(debug),yes)
-        LIBJS_ROOT               = ../spidermonkey-ff4/js/src/build-debug
+        LIBJS_ROOT               = deps/mozilla/js/src/build-debug
     else
-        LIBJS_ROOT               = ../spidermonkey-ff4/js/src/build-release
+        LIBJS_ROOT               = deps/mozilla/js/src/build-release
     endif
     LIBJS_INC_DIR                = $(LIBJS_ROOT)/dist/include
     LIBJS_LIB_DIR                = $(LIBJS_ROOT)/dist/lib
