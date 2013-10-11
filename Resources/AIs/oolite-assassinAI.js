@@ -88,7 +88,8 @@ this.aiStarted = function() {
 					],
 					falsebranch: [
 						{
-							configuration: ai.configurationAcquireScannedTarget,
+							preconfiguration: ai.configurationAcquireScannedTarget,
+							condition: ai.conditionCombatOddsGood,
 							behaviour: ai.behaviourDestroyCurrentTarget,
 							reconsider: 1
 						}
