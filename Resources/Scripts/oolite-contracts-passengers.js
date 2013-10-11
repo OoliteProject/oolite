@@ -123,6 +123,10 @@ this._addPassengerToSystem = function(passenger)
 	{
 		passenger.skill = 0;
 	}
+	else if (passenger.skill > 70)
+	{
+		passenger.skill = 70;
+	}
 
 	this.$passengers.push(passenger);
 	this._updateMainStationInterfacesList();

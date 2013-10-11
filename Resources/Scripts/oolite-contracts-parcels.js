@@ -121,6 +121,10 @@ this._addParcelToSystem = function(parcel)
 	{
 		parcel.skill = 0;
 	}
+	else if (parcel.skill > 70)
+	{
+		parcel.skill = 70;
+	}
 
 	this.$parcels.push(parcel);
 	this._updateMainStationInterfacesList();
