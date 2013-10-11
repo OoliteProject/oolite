@@ -626,7 +626,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// beacons
 	[self setBeaconCode:[shipDict oo_stringForKey:@"beacon"]];
-	[self setBeaconLabel:[shipDict oo_stringForKey:@"beacon_label" defaultValue:[self beaconCode]]];
+	[self setBeaconLabel:[shipDict oo_stringForKey:@"beacon_label" defaultValue:[shipDict oo_stringForKey:@"beacon"]]];
 
 	
 	// contact tracking entities
