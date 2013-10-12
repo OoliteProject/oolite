@@ -626,6 +626,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// beacons
 	[self setBeaconCode:[shipDict oo_stringForKey:@"beacon"]];
+	[self setBeaconLabel:[shipDict oo_stringForKey:@"beacon_label" defaultValue:[shipDict oo_stringForKey:@"beacon"]]];
+
 	
 	// contact tracking entities
 	[self setTrackCloseContacts:[shipDict oo_boolForKey:@"track_contacts" defaultValue:NO]];
@@ -993,6 +995,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(_lastAegisLock);
 	
 	DESTROY(_beaconCode);
+	DESTROY(_beaconLabel);
 	DESTROY(_beaconDrawable);
 	
 	[super dealloc];
@@ -1389,6 +1392,29 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		_beaconCode = [bcode copy];
 		
 		DESTROY(_beaconDrawable);
+	}
+	// if not blanking code and label is currently blank, default label to code
+	if (bcode != nil && (_beaconLabel == nil || [_beaconLabel length] == 0))
+	{
+		[self setBeaconLabel:bcode];
+	}
+}
+
+
+- (NSString *) beaconLabel
+{
+	return _beaconLabel;
+}
+
+
+- (void) setBeaconLabel:(NSString *)blabel
+{
+	if ([blabel length] == 0)  blabel = nil;
+	
+	if (_beaconLabel != blabel)
+	{
+		[_beaconLabel release];
+		_beaconLabel = [OOExpand(blabel) retain];
 	}
 }
 

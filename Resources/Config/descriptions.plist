@@ -509,6 +509,8 @@
 	"equipment-primed-hud-@"			= "Primed: %@";
 	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
+	"mfd-d-selected"				= "Multi-function display %d selected.";
+
 	// Assorted messages sent out by ships etc..
 	"beg-for-mercy" =
 	(

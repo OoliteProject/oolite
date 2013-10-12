@@ -65,6 +65,7 @@ MA 02110-1301, USA.
 #import "DustEntity.h"
 #import "OOPlanetEntity.h"
 #import "OOVisualEffectEntity.h"
+#import "OOWaypointEntity.h"
 #import "OOSunEntity.h"
 #import "WormholeEntity.h"
 #import "OOBreakPatternEntity.h"
@@ -125,6 +126,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range);
 static OOComparisonResult compareName(id dict1, id dict2, void * context);
 static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
+/* TODO: route calculation is really slow - find a way to safely enable this */
 #undef CACHE_ROUTE_FROM_SYSTEM_RESULTS
 
 @interface RouteElement: NSObject
@@ -175,8 +177,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) setUpCargoPods;
 - (void) setUpInitialUniverse;
 - (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
-
-- (void) resetSystemDataCache;
 
 - (void) populateSpaceFromActiveWormholes;
 
@@ -341,6 +341,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
+
+	waypoints = [[NSMutableDictionary alloc] init];
 	
 	[self setUpSettings];
 	
@@ -427,6 +429,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 	DESTROY(_firstBeacon);
 	DESTROY(_lastBeacon);
+	DESTROY(waypoints);
 	
 	unsigned i;
 	for (i = 0; i < 256; i++)  [system_names[i] release];
@@ -2957,6 +2960,33 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (NSDictionary *) currentWaypoints
+{
+	return waypoints;
+}
+
+
+- (void) defineWaypoint:(NSDictionary *)definition forKey:(NSString *)key
+{
+	OOWaypointEntity *waypoint = nil;
+	waypoint = [waypoints objectForKey:key];
+	if (waypoint != nil)
+	{
+		[self removeEntity:waypoint];
+		[waypoints removeObjectForKey:key];
+	}
+	if (definition != nil)
+	{
+		waypoint = [OOWaypointEntity waypointWithDictionary:definition];
+		if (waypoint != nil)
+		{
+			[self addEntity:waypoint];
+			[waypoints setObject:waypoint forKey:key];
+		}
+	}
+}
+
+
 - (GLfloat *) skyClearColor
 {
 	return skyClearColor;
@@ -4562,6 +4592,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	{
 		ShipEntity *se = nil;
 		OOVisualEffectEntity *ve = nil;
+		OOWaypointEntity *wp = nil;
 		
 		if (![entity validForAddToUniverse])  return NO;
 		
@@ -4648,6 +4679,14 @@ static BOOL MaintainLinkedLists(Universe *uni)
 				if ([ve isBeacon])
 				{
 					[self setNextBeacon:ve];
+				}
+			}
+			else if ([entity isWaypoint])
+			{
+				wp = (OOWaypointEntity *)entity;
+				if ([wp isBeacon])
+				{
+					[self setNextBeacon:wp];
 				}
 			}
 		}
@@ -4778,6 +4817,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	closeSystems = nil;
 	
 	[self resetBeacons];
+	[waypoints removeAllObjects];
 	
 	no_update = updating;	// restore drawing
 }
@@ -7102,80 +7142,88 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
-static NSDictionary	*sCachedSystemData = nil;
+static NSMutableDictionary	*sCachedSystemData = nil;
 
 
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache
 {
 	OOJS_PROFILE_ENTER
 	
-	static Random_Seed	cachedSeed = {0};
-	
-	if (useCache)
+	/* This now caches data for all 256 systems if
+	 * possible. System data is moderately expensive to generate
+	 * and changes only rarely. */
+	if (!useCache)
 	{
-		// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
-		if (EXPECT(sCachedSystemData != nil && equal_seeds(cachedSeed, s_seed)))  return [[sCachedSystemData retain] autorelease];
+		[self resetSystemDataCache];
 	}
-	
-	DESTROY(sCachedSystemData);
-	cachedSeed = s_seed;
-	
-	RNG_Seed saved_seed = currentRandomSeed();
-	NSMutableDictionary *systemdata = [[NSMutableDictionary alloc] init];
-	
-	OOGovernmentID government = (s_seed.c / 8) & 7;
-	
-	OOEconomyID economy = s_seed.b & 7;
-	if (government < 2)
-		economy = economy | 2;
-	
-	OOTechLevelID techlevel = (economy ^ 7) + (s_seed.d & 3) + (government / 2) + (government & 1);
-	
-	unsigned population = (unsigned)(techlevel * 4) + government + economy + 1;
-	
-	unsigned productivity = ((economy ^ 7) + 3) * (government + 4) * population * 8;
-	
-	unsigned radius = (((s_seed.f & 15) + 11) * 256) + s_seed.d;
-	
-	NSString *name = [self generateSystemName:s_seed];
-	NSString *inhabitant = [self generateSystemInhabitants:s_seed plural:NO];
-	NSString *inhabitants = [self generateSystemInhabitants:s_seed plural:YES];
-	NSString *description = OOGenerateSystemDescription(s_seed, name);	// FIXME: is it necessary to generate this here? Can't we just generate a description if it's nil the second time (down below)? -- Ahrumn 2012-10-05
-	
-	NSString *override_key = [self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed:galaxy_seed];
-	
-	[systemdata oo_setUnsignedInteger:government	forKey:KEY_GOVERNMENT];
-	[systemdata oo_setUnsignedInteger:economy		forKey:KEY_ECONOMY];
-	[systemdata oo_setUnsignedInteger:techlevel		forKey:KEY_TECHLEVEL];
-	[systemdata oo_setUnsignedInteger:population	forKey:KEY_POPULATION];
-	[systemdata oo_setUnsignedInteger:productivity	forKey:KEY_PRODUCTIVITY];
-	[systemdata oo_setUnsignedInteger:radius		forKey:KEY_RADIUS];
-	[systemdata setObject:name						forKey:KEY_NAME];
-	[systemdata setObject:inhabitant				forKey:KEY_INHABITANT];
-	[systemdata setObject:inhabitants				forKey:KEY_INHABITANTS];
-	[systemdata setObject:description				forKey:KEY_DESCRIPTION];
-	
-	// check at this point
-	// for scripted overrides for this planet
-	NSDictionary *overrides = nil;
-	
-	overrides = [planetInfo oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
-	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
-	overrides = [planetInfo oo_dictionaryForKey:override_key];
-	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
-	overrides = [localPlanetInfoOverrides oo_dictionaryForKey:override_key];
-	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
-	
-	// check if the description needs to be recalculated
-	if ([description isEqual:[systemdata oo_stringForKey:KEY_DESCRIPTION]] && ![name isEqual:[systemdata oo_stringForKey:KEY_NAME]])
+	else
 	{
-		[systemdata setObject:OOGenerateSystemDescription(s_seed, [systemdata oo_stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
+		
+	}
+	if (sCachedSystemData == nil)
+	{
+		sCachedSystemData = [[NSMutableDictionary alloc] initWithCapacity:256];
+	}
+	NSMutableDictionary *systemdata = [sCachedSystemData objectForKey:[NSNumber numberWithInt:[self systemIDForSystemSeed:s_seed]]];
+	RNG_Seed saved_seed = currentRandomSeed();
+	if (systemdata == nil)
+	{
+		systemdata = [[NSMutableDictionary alloc] init];
+	
+		OOGovernmentID government = (s_seed.c / 8) & 7;
+	
+		OOEconomyID economy = s_seed.b & 7;
+		if (government < 2)
+			economy = economy | 2;
+	
+		OOTechLevelID techlevel = (economy ^ 7) + (s_seed.d & 3) + (government / 2) + (government & 1);
+	
+		unsigned population = (unsigned)(techlevel * 4) + government + economy + 1;
+	
+		unsigned productivity = ((economy ^ 7) + 3) * (government + 4) * population * 8;
+	
+		unsigned radius = (((s_seed.f & 15) + 11) * 256) + s_seed.d;
+	
+		NSString *name = [self generateSystemName:s_seed];
+		NSString *inhabitant = [self generateSystemInhabitants:s_seed plural:NO];
+		NSString *inhabitants = [self generateSystemInhabitants:s_seed plural:YES];
+		NSString *description = OOGenerateSystemDescription(s_seed, name);	// FIXME: is it necessary to generate this here? Can't we just generate a description if it's nil the second time (down below)? -- Ahrumn 2012-10-05
+	
+		NSString *override_key = [self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed:galaxy_seed];
+	
+		[systemdata oo_setUnsignedInteger:government	forKey:KEY_GOVERNMENT];
+		[systemdata oo_setUnsignedInteger:economy		forKey:KEY_ECONOMY];
+		[systemdata oo_setUnsignedInteger:techlevel		forKey:KEY_TECHLEVEL];
+		[systemdata oo_setUnsignedInteger:population	forKey:KEY_POPULATION];
+		[systemdata oo_setUnsignedInteger:productivity	forKey:KEY_PRODUCTIVITY];
+		[systemdata oo_setUnsignedInteger:radius		forKey:KEY_RADIUS];
+		[systemdata setObject:name						forKey:KEY_NAME];
+		[systemdata setObject:inhabitant				forKey:KEY_INHABITANT];
+		[systemdata setObject:inhabitants				forKey:KEY_INHABITANTS];
+		[systemdata setObject:description				forKey:KEY_DESCRIPTION];
+	
+		// check at this point
+		// for scripted overrides for this planet
+		NSDictionary *overrides = nil;
+	
+		overrides = [planetInfo oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
+		if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
+		overrides = [planetInfo oo_dictionaryForKey:override_key];
+		if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
+		overrides = [localPlanetInfoOverrides oo_dictionaryForKey:override_key];
+		if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
+	
+		// check if the description needs to be recalculated
+		if ([description isEqual:[systemdata oo_stringForKey:KEY_DESCRIPTION]] && ![name isEqual:[systemdata oo_stringForKey:KEY_NAME]])
+		{
+			[systemdata setObject:OOGenerateSystemDescription(s_seed, [systemdata oo_stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
+		}
+
+		[sCachedSystemData setObject:[systemdata autorelease] forKey:[NSNumber numberWithInt:[self systemIDForSystemSeed:s_seed]]];
 	}
 	if (useCache) setRandomSeed(saved_seed);
-	sCachedSystemData = [systemdata copy];
-	[systemdata release];
 	
-	return sCachedSystemData;
+	return [[systemdata copy] autorelease];
 	
 	OOJS_PROFILE_EXIT
 }
@@ -9874,6 +9922,16 @@ Entity *gOOJSPlayerIfStale = nil;
 		{
 			ShipEntity *se = (ShipEntity*)entity;
 			[self clearBeacon:se];
+		}
+		if ([entity isWaypoint])
+		{
+			OOWaypointEntity *wp = (OOWaypointEntity*)entity;
+			[self clearBeacon:wp];
+		}
+		if ([entity isVisualEffect])
+		{
+			OOVisualEffectEntity *ve = (OOVisualEffectEntity*)entity;
+			[self clearBeacon:ve];
 		}
 		
 		if ([entity isWormhole])

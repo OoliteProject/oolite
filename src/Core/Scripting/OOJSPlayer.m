@@ -134,14 +134,14 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "commsMessage",					PlayerCommsMessage,					1 },
 	{ "consoleMessage",					PlayerConsoleMessage,				1 },
 	{ "decreaseContractReputation",		PlayerDecreaseContractReputation,	0 },
-	{ "decreaseParcelReputation",	    PlayerDecreaseParcelReputation,	0 },
+	{ "decreaseParcelReputation",	    PlayerDecreaseParcelReputation,		0 },
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
 	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
-	{ "increaseParcelReputation",	    PlayerIncreaseParcelReputation,	0 },
+	{ "increaseParcelReputation",	    PlayerIncreaseParcelReputation,		0 },
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
 	{ "replaceShip",					PlayerReplaceShip,					1 },
 	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
-	{ "setPlayerRole",					PlayerSetPlayerRole,		1 },
+	{ "setPlayerRole",					PlayerSetPlayerRole,				1 },
 	{ 0 }
 };
 
@@ -626,7 +626,7 @@ static JSBool PlayerSetPlayerRole(JSContext *context, uintN argc, jsval *vp)
 	if (argc > 0)  role = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (role == nil)
 	{
-		OOJSReportBadArguments(context, @"Player", @"setPlayerRole", MIN(argc, 1U), OOJS_ARGV, nil, @"string (role) [, number (index)");
+		OOJSReportBadArguments(context, @"Player", @"setPlayerRole", MIN(argc, 1U), OOJS_ARGV, nil, @"string (role) [, number (index)]");
 		return NO;
 	}
 

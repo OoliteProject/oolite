@@ -829,6 +829,7 @@
 	{
 		ai_type = "buoyAI.plist";
 		beacon = "N0100 Navigation Buoy";
+		beacon_label = "%H Station";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		forward_weapon_type = "WEAPON_NONE";
@@ -862,6 +863,7 @@
 		like_ship = "oolite_template_buoy";
 		is_template = 1;
 		beacon = "W0100 Navigation Buoy (Witchpoint)";
+		beacon_label = "Witchpoint";
 		name = "Witchpoint Beacon";
 		roles = "buoy-witchpoint";
 		subentities = (

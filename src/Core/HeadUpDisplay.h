@@ -134,6 +134,11 @@ MA 02110-1301, USA.
 #define PRIMED_DISPLAY_WIDTH			12
 #define PRIMED_DISPLAY_HEIGHT		12
 
+#define ASCTARGET_DISPLAY_X				64
+#define ASCTARGET_DISPLAY_Y				-234
+#define ASCTARGET_DISPLAY_WIDTH			10
+#define ASCTARGET_DISPLAY_HEIGHT		10
+
 #define CLOCK_DISPLAY_X				-44
 #define CLOCK_DISPLAY_Y				-234
 #define CLOCK_DISPLAY_WIDTH			12
@@ -162,8 +167,12 @@ MA 02110-1301, USA.
 #define SCOOPSTATUS_WIDTH			16.0
 #define SCOOPSTATUS_HEIGHT			16.0
 
+#define MFD_TEXT_WIDTH			10
+#define MFD_TEXT_HEIGHT			10
+
 #define DIALS_KEY				@"dials"
 #define LEGENDS_KEY				@"legends"
+#define MFDS_KEY				@"multi_function_displays"
 #define X_KEY					@"x"
 #define Y_KEY					@"y"
 #define X_ORIGIN_KEY			@"x_origin"
@@ -209,6 +218,7 @@ MA 02110-1301, USA.
 @private
 	NSMutableArray		*legendArray;
 	NSMutableArray		*dialArray;
+	NSMutableArray		*mfdArray;
 	
 	// zoom level
 	GLfloat				scanner_zoom;
@@ -278,6 +288,9 @@ MA 02110-1301, USA.
 
 - (void) addLegend:(NSDictionary *)info;
 - (void) addDial:(NSDictionary *)info;
+- (void) addMFD:(NSDictionary *)info;
+
+- (NSUInteger) mfdCount;
 
 - (void) renderHUD;
 
@@ -318,6 +331,7 @@ MA 02110-1301, USA.
 
 
 void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
 void OODrawHilightedString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);

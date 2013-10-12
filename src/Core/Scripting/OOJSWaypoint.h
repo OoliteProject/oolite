@@ -1,8 +1,8 @@
 /*
 
-OOJSWormhole.h
+OOJSWaypoint.h
 
-JavaScript proxy for WormholeEntities.
+JavaScript proxy for OOWaypointEntities.
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -27,12 +27,13 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #include <jsapi.h>
 
-@class WormholeEntity;
+
+@class OOWaypointEntity;
 
 
-void InitOOJSWormhole(JSContext *context, JSObject *global);
+void InitOOJSWaypoint(JSContext *context, JSObject *global);
 
-@interface WormholeEntity (OOJavaScriptExtensions)
+@interface OOWaypointEntity (OOJavaScriptExtensions)
 
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
 - (NSString *) oo_jsClassName;

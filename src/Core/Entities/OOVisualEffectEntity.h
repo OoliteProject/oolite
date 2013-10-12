@@ -66,6 +66,7 @@
 
 	// beacons
 	NSString				*_beaconCode;
+	NSString				*_beaconLabel;
 	OOWeakReference			*_prevBeacon;
 	OOWeakReference			*_nextBeacon;
 	id <OOHUDBeaconIcon>	_beaconDrawable;

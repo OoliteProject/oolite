@@ -70,6 +70,8 @@ static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *v
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipSetMultiFunctionDisplay(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsval *vp);
 
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, double *premium, NSString *functionName, unsigned *risk);
@@ -118,6 +120,7 @@ enum
 	kPlayerShip_hyperspaceSpinTime,                         // hyperspace spin time, read only
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
@@ -165,6 +168,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READONLY_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
 	{ "missilesOnline",      kPlayerShip_missilesOnline,      OOJS_PROP_READONLY_CB },
+	{ "multiFunctionDisplays",     		kPlayerShip_multiFunctionDisplays,      OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
@@ -191,17 +195,19 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "addPassenger",					PlayerShipAddPassenger,						0 },
 	{ "awardContract",					PlayerShipAwardContract,					0 },
 	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
-	{ "beginHyperspaceCountdown",           PlayerShipBeginHyperspaceCountdown,                     0 },
-	{ "cancelHyperspaceCountdown",          PlayerShipCancelHyperspaceCountdown,            0 },
+	{ "beginHyperspaceCountdown",       PlayerShipBeginHyperspaceCountdown,         0 },
+	{ "cancelHyperspaceCountdown",      PlayerShipCancelHyperspaceCountdown,        0 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
 	{ "removeContract",					PlayerShipRemoveContract,					2 },
-	{ "removeParcel",                               PlayerShipRemoveParcel,                                         1 },
+	{ "removeParcel",                   PlayerShipRemoveParcel,                     1 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
+	{ "setMultiFunctionDisplay",		PlayerShipSetMultiFunctionDisplay,			1 },
+	{ "setMultiFunctionText",			PlayerShipSetMultiFunctionText,				1 },
 	{ "takeInternalDamage",				PlayerShipTakeInternalDamage,				0 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
@@ -343,6 +349,9 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			// No distinction made internally
 			return JS_NewNumberValue(context, [player shieldRechargeRate], value);
 			
+		case kPlayerShip_multiFunctionDisplays:
+			return JS_NewNumberValue(context, [[player hud] mfdCount], value);
+
 		case kPlayerShip_missilesOnline:
 			*value = OOJSValueFromBOOL(![player dialIdentEngaged]);
 			return YES;
@@ -1109,6 +1118,71 @@ static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc
 	OOJS_NATIVE_EXIT
 		
 }
+
+
+// setMultiFunctionDisplay(index,key)
+static JSBool PlayerShipSetMultiFunctionDisplay(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString		*key = nil;
+	uint32			index = 0;
+	PlayerEntity	*player = OOPlayerForScripting();
+	BOOL			OK = YES;
+
+	if (argc > 0)  
+	{
+		if (!JS_ValueToECMAUint32(context,OOJS_ARGV[0],&index))
+		{
+			OOJSReportBadArguments(context, @"PlayerShip", @"setMultiFunctionDisplay", MIN(argc, 1U), OOJS_ARGV, nil, @"number (index) [, string (key)]");
+			return NO;
+		}
+	}
+
+	if (argc > 1)
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[1]);
+	}
+
+	OK = [player setMultiFunctionDisplay:index toKey:key];
+
+	OOJS_RETURN_BOOL(OK);
+
+	OOJS_NATIVE_EXIT
+}
+
+
+// setMultiFunctionText(key,value)
+static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString				*key = nil;
+	NSString				*value = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+
+	if (argc > 0)  
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"setMultiFunctionText", MIN(argc, 1U), OOJS_ARGV, nil, @"string (key) [, string (text)]");
+		return NO;
+	}
+	if (argc > 1)
+	{
+		value = OOStringFromJSValue(context, OOJS_ARGV[1]);
+	}
+
+	[player setMultiFunctionText:value forKey:key];
+
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
 
 
 

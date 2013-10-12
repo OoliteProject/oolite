@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 	Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
 	OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity, 
-	DockEntity, OOJSScript;
+	DockEntity, OOJSScript, OOWaypointEntity;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -195,7 +195,8 @@ enum
 	
 	OOWeakReference			*_firstBeacon,
 							*_lastBeacon;
-	
+	NSMutableDictionary		*waypoints;
+
 	GLfloat					skyClearColor[4];
 	
 	NSString				*currentMessage;
@@ -424,6 +425,9 @@ enum
 - (void) setNextBeacon:(Entity <OOBeaconEntity> *) beaconShip;
 - (void) clearBeacon:(Entity <OOBeaconEntity> *) beaconShip;
 
+- (NSDictionary *) currentWaypoints;
+- (void) defineWaypoint:(NSDictionary *)definition forKey:(NSString *)key;
+
 - (GLfloat *) skyClearColor;
 // Note: the alpha value is also air resistance!
 - (void) setSkyColorRed:(GLfloat)red green:(GLfloat)green blue:(GLfloat)blue alpha:(GLfloat)alpha;
@@ -601,6 +605,8 @@ enum
 - (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache;
 - (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
+- (void) resetSystemDataCache;
+
 - (BOOL) inInterstellarSpace;
 
 - (void)setObject:(id)object forKey:(NSString *)key forPlanetKey:(NSString *)planetKey;

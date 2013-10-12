@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "NSNumberOOExtensions.h"
 #import "OOConstToJSString.h"
 #import "OOVisualEffectEntity.h"
+#import "OOWaypointEntity.h"
 
 #import "OOJSGlobal.h"
 #import "OOJSMissionVariables.h"
@@ -49,6 +50,7 @@ MA 02110-1301, USA.
 #import "OOJSDock.h"
 #import "OOJSVisualEffect.h"
 #import "OOJSWormhole.h"
+#import "OOJSWaypoint.h"
 #import "OOJSPlayer.h"
 #import "OOJSPlayerShip.h"
 #import "OOJSManifest.h"
@@ -351,6 +353,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSDock(gOOJSMainThreadContext, _globalObject);
 	InitOOJSVisualEffect(gOOJSMainThreadContext, _globalObject);
 	InitOOJSWormhole(gOOJSMainThreadContext, _globalObject);
+	InitOOJSWaypoint(gOOJSMainThreadContext, _globalObject);
 	InitOOJSPlayer(gOOJSMainThreadContext, _globalObject);
 	InitOOJSPlayerShip(gOOJSMainThreadContext, _globalObject);
 	InitOOJSManifest(gOOJSMainThreadContext, _globalObject);

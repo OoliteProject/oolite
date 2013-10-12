@@ -161,10 +161,19 @@ static JSClass sShipClass =
 };
 
 
+/* It turns out that the value in SpiderMonkey used to identify these
+ * enums is an 8-bit signed int:
+ * developer.mozilla.org/en/docs/SpiderMonkey/JSAPI_Reference/JSPropertySpec
+ * which puts a limit of 256 properties on the ship object.  Moved the
+ * enum to start at -128, so we can use the full 256 rather than just
+ * 128 of them. I don't think any of our other classes are getting
+ * close to the limit yet.
+ * - CIM 29/9/2013
+ */
 enum
 {
 	// Property IDs
-	kShip_accuracy,				// the ship's accuracy, float, read/write
+	kShip_accuracy = -128,		// the ship's accuracy, float, read/write
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read/write
 	kShip_AI,					// AI state machine name, string, read-only
 	kShip_AIScript,				// AI script, Script, read-only
@@ -176,6 +185,7 @@ enum
 	kShip_autoAI,				// bool, read-only, auto_ai from shipdata
 	kShip_autoWeapons,			// bool, read-only, auto_weapons from shipdata
 	kShip_beaconCode,			// beacon code, string, read/write
+	kShip_beaconLabel,			// beacon label, string, read/write
 	kShip_boundingBox,			// boundingBox, vector, read-only
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_cargoList,		// cargo on board, array of objects, read-only
@@ -311,6 +321,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "autoAI",					kShip_autoAI,				OOJS_PROP_READONLY_CB },
 	{ "autoWeapons",			kShip_autoWeapons,			OOJS_PROP_READONLY_CB },
 	{ "beaconCode",				kShip_beaconCode,			OOJS_PROP_READWRITE_CB },
+	{ "beaconLabel",			kShip_beaconLabel,			OOJS_PROP_READWRITE_CB },
 	{ "boundingBox",			kShip_boundingBox,			OOJS_PROP_READONLY_CB },
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "cargoList",			kShip_cargoList,		OOJS_PROP_READONLY_CB },	
@@ -692,6 +703,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_beaconCode:
 			result = [entity beaconCode];
+			break;
+
+		case kShip_beaconLabel:
+			result = [entity beaconLabel];
 			break;
 		
 		case kShip_isFrangible:
@@ -1196,6 +1211,16 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				}
 			}
 			return YES;
+			break;
+
+		case kShip_beaconLabel:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+				[entity setBeaconLabel:sValue];
+				return YES;
+			}
 			break;
 			
 		case kShip_accuracy:

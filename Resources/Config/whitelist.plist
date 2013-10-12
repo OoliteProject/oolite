@@ -313,6 +313,7 @@
 	(
 		"drawTrumbles:",
 		"drawTargetReticle:",
+		"drawWaypoints:",
 		"drawScanner:",
 		"drawScannerZoomIndicator:",
 		"drawStickSensitivityIndicator:",
@@ -337,6 +338,7 @@
 		"drawStatusLight:",
 		"drawClock:",
 		"drawPrimedEquipment:",
+		"drawASCTarget:",
 		"drawWeaponsOfflineText:",
 		"drawFPSInfoCounter:"
 	);

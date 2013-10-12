@@ -1,8 +1,9 @@
 /*
 
-OOJSWormhole.h
+OOWaypoint.h
 
-JavaScript proxy for WormholeEntities.
+A waypoint for the HUD
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -24,18 +25,25 @@ MA 02110-1301, USA.
 
 */
 
-#import <Foundation/Foundation.h>
-#include <jsapi.h>
+#import "Entity.h"
 
-@class WormholeEntity;
+@interface OOWaypointEntity: Entity <OOBeaconEntity>
+{
+@private
+	OOScalar				_size;
 
+	NSString				*_beaconCode;
+	NSString				*_beaconLabel;
+	OOWeakReference			*_prevBeacon;
+	OOWeakReference			*_nextBeacon;
+	id <OOHUDBeaconIcon>	_beaconDrawable;
+}
 
-void InitOOJSWormhole(JSContext *context, JSObject *global);
++ (instancetype) waypointWithDictionary:(NSDictionary *)info;
 
-@interface WormholeEntity (OOJavaScriptExtensions)
+- (id) initWithDictionary:(NSDictionary *)info;
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (NSString *) oo_jsClassName;
-- (BOOL) isVisibleToScripts;
+- (OOScalar) size;
+- (void) setSize:(OOScalar)newSize;
 
 @end

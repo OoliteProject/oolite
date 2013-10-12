@@ -78,6 +78,13 @@ enum
 	kOOGalacticHyperspaceBehaviourDefault	= GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN
 };
 
+typedef enum
+{
+	OOLRC_MODE_NORMAL = 0,
+	OOLRC_MODE_ECONOMY = 1,
+	OOLRC_MODE_GOVERNMENT = 2,
+	OOLRC_MODE_TECHLEVEL = 3
+} OOLongRangeChartMode;
 
 // OO_RESOLUTION_OPTION: true if full screen resolution can be changed.
 #if OOLITE_MAC_OS_X && OOLITE_64_BIT
@@ -353,7 +360,10 @@ typedef enum
 	StationEntity			*targetDockStation; 
 	
 	HeadUpDisplay			*hud;
-	
+	NSMutableDictionary		*multiFunctionDisplayText;
+	NSMutableArray			*multiFunctionDisplaySettings;
+	NSUInteger				activeMFD;
+
 	GLfloat					roll_delta, pitch_delta, yaw_delta;
 	GLfloat					launchRoll;
 	
@@ -399,7 +409,7 @@ typedef enum
 	unsigned				ship_kills;
 	
 	OOCompassMode			compassMode;
-	OOWeakReference		*compassTarget;
+	OOWeakReference			*compassTarget;
 	
 	GLfloat					fuel_leak_rate;
 	
@@ -481,6 +491,9 @@ typedef enum
 #endif
 
 	OOKeyCode				key_weapons_online_toggle;
+
+	OOKeyCode				key_cycle_mfd;
+	OOKeyCode				key_switch_mfd;
 	
 	// save-file
 	NSString				*save_path;
@@ -567,6 +580,8 @@ typedef enum
 	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
 	
+	OOLongRangeChartMode	longRangeChartMode;
+
 	NSArray					*_customViews;
 	NSUInteger				_customViewIndex;
 	
@@ -647,6 +662,13 @@ typedef enum
 - (BOOL) switchHudTo:(NSString *)hudFileName;
 - (void) resetHud;
 
+- (NSString *) multiFunctionText:(NSUInteger) index;
+- (void) setMultiFunctionText:(NSString *)text forKey:(NSString *)key;
+- (BOOL) setMultiFunctionDisplay:(NSUInteger) index toKey:(NSString *)key;
+- (void) cycleMultiFunctionDisplay:(NSUInteger) index;
+- (void) selectNextMultiFunctionDisplay;
+- (NSUInteger) activeMFD;
+
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;
 
@@ -702,6 +724,7 @@ typedef enum
 
 - (Entity *) compassTarget;
 - (void) setCompassTarget:(Entity *)value;
+- (NSString *) compassTargetLabel;
 
 - (OOCompassMode) compassMode;
 - (void) setCompassMode:(OOCompassMode)value;
@@ -914,6 +937,9 @@ typedef enum
 - (void) setGalacticHyperspaceFixedCoords:(NSPoint)point;
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
+
+- (OOLongRangeChartMode) longRangeChartMode;
+- (void) setLongRangeChartMode:(OOLongRangeChartMode) mode;
 
 - (BOOL) scoopOverride;
 - (void) setScoopOverride:(BOOL)newValue;

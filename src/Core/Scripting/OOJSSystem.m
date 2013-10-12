@@ -27,6 +27,7 @@
 #import "OOJavaScriptEngine.h"
 
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 #import "OOJSEntity.h"
 #import "OOJSPlayer.h"
 #import "Universe.h"
@@ -76,6 +77,7 @@ static JSBool SystemAddShipsToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemAddVisualEffect(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemSetWaypoint(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp);
@@ -132,8 +134,10 @@ enum
 	kSystem_pseudoRandomNumber,		// constant-per-system pseudorandom number in [0..1), double, read-only
 	kSystem_sun,					// system's sun, Planet, read-only
 	kSystem_stations,     // list of dockable entities, read-only
-	kSystem_wormholes,     // list of active entry wormholes, read-only
 	kSystem_techLevel,				// tech level ID, integer, read/write
+	kSystem_waypoints,     // dictionary of current player waypoints, read-only
+	kSystem_wormholes,     // list of active entry wormholes, read-only
+
 };
 
 
@@ -163,9 +167,10 @@ static JSPropertySpec sSystemProperties[] =
 	{ "pseudoRandom256",		kSystem_pseudoRandom256,		OOJS_PROP_READONLY_CB },
 	{ "pseudoRandomNumber",		kSystem_pseudoRandomNumber,		OOJS_PROP_READONLY_CB },
 	{ "stations",					kSystem_stations,					OOJS_PROP_READONLY_CB },
-	{ "wormholes",					kSystem_wormholes,					OOJS_PROP_READONLY_CB },
 	{ "sun",					kSystem_sun,					OOJS_PROP_READONLY_CB },
 	{ "techLevel",				kSystem_techLevel,				OOJS_PROP_READWRITE_CB },
+	{ "waypoints",					kSystem_waypoints,					OOJS_PROP_READONLY_CB },
+	{ "wormholes",					kSystem_wormholes,					OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -189,7 +194,8 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "locationFromCode",				SystemLocationFromCode,				1 },
 	// scrambledPseudoRandomNumber is implemented in oolite-global-prefix.js
 	{ "sendAllShipsAway",				SystemSendAllShipsAway,				1 },
-	{ "setPopulator",				SystemSetPopulator,				2 },
+	{ "setPopulator",					SystemSetPopulator,					2 },
+	{ "setWaypoint",					SystemSetWaypoint,					4 },
 	{ "shipsWithPrimaryRole",			SystemShipsWithPrimaryRole,			1 },
 	{ "shipsWithRole",					SystemShipsWithRole,				1 },
 	
@@ -267,6 +273,11 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			
 		case kSystem_stations:
 			result = [UNIVERSE stations];
+			handled = YES;
+			break;
+
+		case kSystem_waypoints:
+			result = [UNIVERSE currentWaypoints];
 			handled = YES;
 			break;
 
@@ -1298,6 +1309,63 @@ static JSBool SystemSetPopulator(JSContext *context, uintN argc, jsval *vp)
 		[populator release];
 
 		[UNIVERSE setPopulatorSetting:key to:settings];
+	}	
+
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool SystemSetWaypoint(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString *key;
+	NSMutableDictionary *settings;
+	HPVector position;
+	Quaternion orientation;
+
+	if (argc < 1) 
+	{
+		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, position, orientation, definition");
+		return NO;
+	}
+	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, position, orientation, definition");
+		return NO;
+	}
+	if (argc < 4 || JSVAL_IS_NULL(OOJS_ARGV[3]))
+	{
+		// clearing
+		[UNIVERSE defineWaypoint:nil forKey:key];
+	}
+	else
+	{
+		// adding
+		if (!JSValueToHPVector(context, OOJS_ARGV[1], &position))
+		{
+			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 2U), OOJS_ARGV, NULL, @"key, position, orientation, definition");
+			return NO;
+		}
+		if (!JSValueToQuaternion(context, OOJS_ARGV[2], &orientation))
+		{
+			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 3U), OOJS_ARGV, NULL, @"key, position, orientation, definition");
+			return NO;
+		}
+		if (!JSVAL_IS_OBJECT(OOJS_ARGV[3]) || JSVAL_IS_NULL(OOJS_ARGV[3]))
+		{
+			OOJSReportBadArguments(context, @"System", @"setWaypoint", MIN(argc, 4U), OOJS_ARGV, NULL, @"key, position, orientation, definition");
+			return NO;
+		}
+		
+		settings = [[OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[3])) mutableCopy] autorelease];
+		[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithDouble:position.x],[NSNumber numberWithDouble:position.y],[NSNumber numberWithDouble:position.z],nil] forKey:@"position"];
+		[settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithDouble:orientation.w],[NSNumber numberWithDouble:orientation.x],[NSNumber numberWithDouble:orientation.y],[NSNumber numberWithDouble:orientation.z],nil] forKey:@"orientation"];
+
+		[UNIVERSE defineWaypoint:settings forKey:key];
 	}	
 
 	OOJS_RETURN_VOID;

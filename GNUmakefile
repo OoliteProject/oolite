@@ -187,7 +187,8 @@ OOLITE_ENTITY_FILES = \
     OOLaserShotEntity.m \
     OOQuiriumCascadeEntity.m \
     OORingEffectEntity.m \
-    OOVisualEffectEntity.m 
+    OOVisualEffectEntity.m \
+    OOWaypointEntity.m 
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
     OODrawable.m \
@@ -298,10 +299,11 @@ OOLITE_SCRIPTING_FILES = \
     OOJSSystem.m \
     OOJSSystemInfo.m \
     OOJSTimer.m \
-		OOJSVisualEffect.m \
+	OOJSVisualEffect.m \
     OOJSVector.m \
     OOJSWorldScripts.m \
-		OOJSWormhole.m \
+	OOJSWormhole.m \
+	OOJSWaypoint.m \
     OOLegacyScriptWhitelist.m \
     OOPListScript.m \
     OOScript.m \
