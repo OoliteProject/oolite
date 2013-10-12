@@ -9669,7 +9669,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			ShipEntity *potential_target = [(OOWeakReference *)targ_id weakRefUnderlyingObject];
 		
-			if ((potential_target)&&(potential_target->isShip))
+			if ((potential_target)&&(potential_target->isShip)&&([potential_target isInSpace]))
 			{
 				if (potential_target->zero_distance < SCANNER_MAX_RANGE2 && (![potential_target isCloaked]))
 				{
