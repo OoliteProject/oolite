@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 
 @interface SkyEntity (OOPrivate)
 
-- (void)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 fromDictionary:(NSDictionary *)dictionary;
+- (BOOL)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 andColor3:(OOColor **)ioColor3 andColor4:(OOColor **)ioColor4 fromDictionary:(NSDictionary *)dictionary;
 
 @end
 
@@ -66,8 +66,11 @@ MA 02110-1301, USA.
 	self = [super init];
 	if (self == nil)  return nil;
 	
+	OOColor *col3 = [OOColor colorWithDescription:col1];
+	OOColor *col4 = [OOColor colorWithDescription:col2];
+
 	// Load colours
-	[self readColor1:&col1 andColor2:&col2 fromDictionary:systemInfo];
+	BOOL nebulaColorSet = [self readColor1:&col1 andColor2:&col2 andColor3:&col3 andColor4:&col4 fromDictionary:systemInfo];
 	
 	skyColor = [[OOColor colorWithDescription:[systemInfo objectForKey:@"sun_color"]] retain];
 	if (skyColor == nil)
@@ -121,8 +124,11 @@ MA 02110-1301, USA.
 	skyDrawable = [[OOSkyDrawable alloc]
 				   initWithColor1:col1
 				   Color2:col2
+				   Color3:col3
+				   Color4:col4
 				   starCount:starCount
 				   nebulaCount:nebulaCount
+				   nebulaHueFix:nebulaColorSet
 				   clusterFactor:clusterChance
 				   alpha:alpha
 				   scale:scale];
@@ -231,13 +237,14 @@ MA 02110-1301, USA.
 
 @implementation SkyEntity (OOPrivate)
 
-- (void)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 fromDictionary:(NSDictionary *)dictionary
+- (BOOL)readColor1:(OOColor **)ioColor1 andColor2:(OOColor **)ioColor2 andColor3:(OOColor **)ioColor3 andColor4:(OOColor **)ioColor4 fromDictionary:(NSDictionary *)dictionary
 {
 	NSString			*string = nil;
 	NSArray				*tokens = nil;
 	id					colorDesc = nil;
 	OOColor				*color = nil;
-	
+	BOOL				nebulaSet = NO;
+
 	assert(ioColor1 != NULL && ioColor2 != NULL);
 	
 	string = [dictionary oo_stringForKey:@"sky_rgb_colors"];
@@ -275,6 +282,51 @@ MA 02110-1301, USA.
 		if (color != nil)  *ioColor2 = color;
 		else  OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
+
+	colorDesc = [dictionary objectForKey:@"nebula_color_1"];
+	if (colorDesc != nil)
+	{
+		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+		if (color != nil)  
+		{
+			*ioColor3 = color;
+			nebulaSet = YES;
+		}
+		else  OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+	}
+	else
+	{
+		colorDesc = [dictionary objectForKey:@"sky_color_1"];
+		if (colorDesc != nil)
+		{
+			color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+			if (color != nil)  *ioColor3 = color;
+			else  OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+		}
+	}
+	
+	colorDesc = [dictionary objectForKey:@"nebula_color_2"];
+	if (colorDesc != nil)
+	{
+		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+		if (color != nil) 
+		{
+			*ioColor4 = color;
+			nebulaSet = YES;
+		}
+		else  OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+	}
+	else
+	{
+		colorDesc = [dictionary objectForKey:@"sky_color_2"];
+		if (colorDesc != nil)
+		{
+			color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
+			if (color != nil)  *ioColor4 = color;
+			else  OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+		}
+	}
+	return nebulaSet;
 }
 
 @end

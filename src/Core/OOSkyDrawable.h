@@ -46,8 +46,11 @@ SOFTWARE.
 
 - (id)initWithColor1:(OOColor *)color1
 			  Color2:(OOColor *)color2
+			  Color3:(OOColor *)color3
+			  Color4:(OOColor *)color4
 		   starCount:(unsigned)starCount
 		 nebulaCount:(unsigned)nebulaCount
+	    nebulaHueFix:(BOOL)nebulaHueFix
 	   clusterFactor:(float)nebulaClusterFactor
 			   alpha:(float)nebulaAlpha
 			   scale:(float)nebulaScale;

@@ -105,7 +105,7 @@ static OOProbabilisticTextureManager	*sStarTextures;
 static OOProbabilisticTextureManager	*sNebulaTextures;
 
 
-static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
+static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2, BOOL hueFix);
 
 
 @interface OOSkyDrawable (OOPrivate) <OOGraphicsResetClient>
@@ -114,6 +114,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 - (void)setUpNebulaeWithColor1:(OOColor *)color1
 						color2:(OOColor *)color2
 				 clusterFactor:(float)nebulaClusterFactor
+				  nebulaHueFix:(BOOL)nebulaHueFix
 						 alpha:(float)nebulaAlpha
 						 scale:(float)nebulaScale;
 						
@@ -132,8 +133,11 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 - (id)initWithColor1:(OOColor *)color1
 			  Color2:(OOColor *)color2
+			  Color3:(OOColor *)color3
+			  Color4:(OOColor *)color4
 		   starCount:(unsigned)starCount
 		 nebulaCount:(unsigned)nebulaCount
+	    nebulaHueFix:(BOOL)nebulaHueFix
 	   clusterFactor:(float)nebulaClusterFactor
 			   alpha:(float)nebulaAlpha
 			   scale:(float)nebulaScale
@@ -161,9 +165,10 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	
 	if (![UNIVERSE reducedDetail])
 	{
-		[self setUpNebulaeWithColor1:color1
-							  color2:color2
+		[self setUpNebulaeWithColor1:color3
+							  color2:color4
 					   clusterFactor:nebulaClusterFactor
+						nebulaHueFix:nebulaHueFix
 							   alpha:nebulaAlpha
 							   scale:nebulaScale];
 	}
@@ -347,6 +352,7 @@ static OOColor *DebugColor(Vector orientation)
 - (void)setUpNebulaeWithColor1:(OOColor *)color1
 						color2:(OOColor *)color2
 				 clusterFactor:(float)nebulaClusterFactor
+				  nebulaHueFix:(BOOL)nebulaHueFix
 						 alpha:(float)nebulaAlpha
 						 scale:(float)nebulaScale
 {
@@ -367,7 +373,7 @@ static OOColor *DebugColor(Vector orientation)
 	currQuad = quads;
 	for (i = 0; i < _nebulaCount; ++i)
 	{
-		color = SaturatedColorInRange(color1, color2);
+		color = SaturatedColorInRange(color1, color2, nebulaHueFix);
 		
 		// Select a direction and rotation.
 		q = OORandomQuaternion();
@@ -686,7 +692,7 @@ static OOColor *DebugColor(Vector orientation)
 @end
 
 
-static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
+static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2, BOOL hueFix)
 {
 	OOColor				*color = nil;
 	float				hue, saturation, brightness, alpha;
@@ -700,5 +706,14 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
 		in [0, 360], but colorWithCalibratedHue:... takes hue values in
 		[0, 1].
 	*/
+	if (hueFix)
+	{
+		/* now nebula colours can be independently set, correct the
+		 * range so they behave expectedly if they have actually been
+		 * set in planetinfo */
+		hue /= 360.0;
+	}
+	/* else keep it how it was before so the nebula hues are clearer */
+	
 	return [OOColor colorWithHue:hue saturation:saturation brightness:brightness alpha:alpha];
 }
