@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "OOVisualEffectEntity.h"
 #import "OOQuiriumCascadeEntity.h"
+#import "OOWaypointEntity.h"
 #import "Universe.h"
 #import "OOTrumble.h"
 #import "OOColor.h"
@@ -82,7 +83,9 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText);
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info);
+static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected, GLfloat scale);
+static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1);
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom);
 
 
@@ -101,6 +104,7 @@ enum
 - (void) drawCrosshairs;
 - (void) drawLegends;
 - (void) drawDials;
+- (void) drawMFDs;
 
 - (void) drawLegend:(NSDictionary *)info;
 - (void) drawHUDItem:(NSDictionary *)info;
@@ -130,11 +134,14 @@ enum
 - (void) drawMissileDisplay:(NSDictionary *)info;
 - (void) drawTargetReticle:(NSDictionary *)info;
 - (void) drawSecondaryTargetReticle:(NSDictionary *)info;
+- (void) drawWaypoints:(NSDictionary *)info;
 - (void) drawStatusLight:(NSDictionary *)info;
 - (void) drawDirectionCue:(NSDictionary *)info;
 - (void) drawClock:(NSDictionary *)info;
 - (void) drawPrimedEquipmentText:(NSDictionary *)info;
+- (void) drawASCTarget:(NSDictionary *)info;
 - (void) drawWeaponsOfflineText:(NSDictionary *)info;
+- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
 - (void) drawStickSenitivityIndicator:(NSDictionary *)info;
@@ -210,6 +217,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
+	mfdArray = [[NSMutableArray alloc] initWithCapacity:4]; // alloc retains
 	
 	// populate arrays
 	NSArray *dials = [hudinfo oo_arrayForKey:DIALS_KEY];
@@ -234,6 +242,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		[self addLegend:[legends oo_dictionaryAtIndex:i]];
 	}
+
+	NSArray *mfds = [hudinfo oo_arrayForKey:MFDS_KEY];
+	for (i = 0; i < [mfds count]; i++)
+	{
+		[self addMFD:[mfds oo_dictionaryAtIndex:i]];
+	}
+
 	
 	hudHidden = NO;
 	
@@ -619,6 +634,19 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
+- (void) addMFD:(NSDictionary *)info
+{
+	struct CachedInfo cache;
+	prefetchData(info, &cache);
+	[mfdArray addObject:[NSArray arrayWithObjects:info, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)],nil]];
+}
+
+
+- (NSUInteger) mfdCount
+{
+	return [mfdArray count];
+}
+
 /*
 	SLOW_CODE
 	As of 2012-09-13 (r5320), HUD rendering is taking 25%-30% of rendering time,
@@ -665,6 +693,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 	
 	[self drawDials];
+	[self drawMFDs];
 	OOCheckOpenGLErrors(@"After drawing HUD");
 	
 	OOVerifyOpenGLState();
@@ -713,6 +742,22 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// We always need to check the mass lock status. It's normally checked inside drawScanner,
 	// but if drawScanner wasn't called, we can check mass lock explicitly.
 	if (!_scannerUpdated)  [self checkMassLock];
+}
+
+
+- (void) drawMFDs
+{
+	NSUInteger i, nMFDs = [mfdArray count];
+	NSString *text = nil;
+	for (i = 0; i < nMFDs; i++)
+	{
+		text = [PLAYER multiFunctionText:i];
+		if (text != nil)
+		{
+			sCurrentDrawItem = [mfdArray oo_arrayAtIndex:i];
+			[self drawMultiFunctionDisplay:[sCurrentDrawItem oo_dictionaryAtIndex:WIDGET_INFO] withText:text asIndex:i];
+		}
+	}
 }
 
 
@@ -2265,7 +2310,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			glVertex3i(x , y + siz.height, z1);
 		OOGLEND();
 		GLColorWithOverallAlpha(green_color, alpha);
-		OODrawString([PLAYER dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
+		OODrawString([PLAYER dialTargetName], x + sp, y - 1, z1, NSMakeSize(siz.width, siz.height));
 	}
 	
 }
@@ -2277,7 +2322,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if ([PLAYER primaryTarget] != nil)
 	{
-		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES);
+		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES, info);
 		[self drawDirectionCue:info];
 	}
 	// extra feature if extra equipment installed
@@ -2314,12 +2359,29 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				{
 					if ([secondary zeroDistance] <= SCANNER_MAX_RANGE2 && [secondary isInSpace])
 					{
-						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO);	
+						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO, info);	
 					}			
 				}
 			}
 		}
 	}
+}
+
+
+- (void) drawWaypoints:(NSDictionary *)info
+{
+	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+	GLfloat scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
+
+	NSEnumerator *waypoints = [[UNIVERSE currentWaypoints] objectEnumerator];
+	OOWaypointEntity *waypoint = nil;
+	Entity *compass = [PLAYER compassTarget];
+	
+	while ((waypoint = [waypoints nextObject]))
+	{
+		hudDrawWaypoint(waypoint, PLAYER, z1, alpha, waypoint==compass, scale);
+	}
+
 }
 
 
@@ -2536,6 +2598,44 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			y -= size.height;
 		}	
 	}
+}
+
+
+- (void) drawASCTarget:(NSDictionary *)info
+{
+	if ([PLAYER status] == STATUS_DOCKED || [PLAYER compassMode] != COMPASS_MODE_BEACONS)
+	{
+		// Can't have compass target when docked, and only needed in beacon mode
+		return;
+	}
+	
+	GLfloat				itemColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+
+	NSInteger x = useDefined(cached.x, ASCTARGET_DISPLAY_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	NSInteger y = useDefined(cached.y, ASCTARGET_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	
+	NSSize size =
+	{
+		.width = useDefined(cached.width, ASCTARGET_DISPLAY_WIDTH),
+		.height = useDefined(cached.height, ASCTARGET_DISPLAY_HEIGHT)
+	};
+
+	GetRGBAArrayFromInfo(info, itemColor);
+	itemColor[3] *= overallAlpha;
+
+	OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
+	if ([info oo_intForKey:@"align"] == 1)
+	{
+		OODrawStringAligned([PLAYER compassTargetLabel], x, y, z1, size,YES);
+	}
+	else
+	{
+		OODrawStringAligned([PLAYER compassTargetLabel], x, y, z1, size,NO);
+	}
+	
 }
 
 
@@ -2801,6 +2901,77 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 						MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, z1, NSMakeSize(10,10));
 }
 
+
+- (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index;
+{
+	PlayerEntity		*player1 = PLAYER;
+	struct CachedInfo	cached;
+	NSInteger			i, x, y;
+	NSSize				siz, tmpsiz;
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	{
+		return;
+	}
+	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+	
+	// TODO: reduce alpha for non-selected MFDs
+	GLfloat mfd_color[4] =		{0.0, 1.0, 0.0, 0.9*alpha};
+	if (index != [player1 activeMFD])
+	{
+		mfd_color[3] *= 0.75;
+	}
+	[self drawSurround:info color:mfd_color];
+
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	x = cached.x + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = cached.y + [[UNIVERSE gameView] y_offset] * cached.y0;
+	
+	siz.width = useDefined(cached.width / 15, MFD_TEXT_WIDTH);
+	siz.height = useDefined(cached.height / 10, MFD_TEXT_HEIGHT);
+
+	GLfloat x0 = (GLfloat)(x - cached.width/2);
+	GLfloat y0 = (GLfloat)(y + cached.height/2);
+	GLfloat x1 = (GLfloat)(x + cached.width/2);
+	GLfloat y1 = (GLfloat)(y - cached.height/2);
+	GLColorWithOverallAlpha(mfd_color, alpha*0.3);
+	OOGLBEGIN(GL_QUADS);
+		glVertex3f(x0-2,y0+2,z1);
+		glVertex3f(x0-2,y1-2,z1);
+		glVertex3f(x1+2,y1-2,z1);
+		glVertex3f(x1+2,y0+2,z1);
+	OOGLEND();
+
+	NSString *line = nil;
+	NSArray *lines = [text componentsSeparatedByString:@"\n"];
+	// text at full opacity
+	GLColorWithOverallAlpha(mfd_color, alpha);
+	for (i = 0; i < 10 ; i++)
+	{
+		line = [lines oo_stringAtIndex:i defaultValue:nil];
+		if (line != nil)
+		{
+			y0 -= siz.height;
+			// all lines should be shorter than the size of the MFD
+			GLfloat textwidth = OORectFromString(line, 0.0f, 0.0f, siz).size.width;
+			if (textwidth <= cached.width)
+			{
+				OODrawString(line, x0, y0, z1, siz);
+			}
+			else
+			{
+				// compress it so it fits
+				tmpsiz.height = siz.height;
+				tmpsiz.width = siz.width * cached.width / textwidth;
+				OODrawString(line, x0, y0, z1, tmpsiz);
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+}
+
 //---------------------------------------------------------------------//
 
 static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount)
@@ -2918,11 +3089,13 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText)
+static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info)
 {
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
 	
+	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
+
 	if (target == nil || player1 == nil)  return;
 
 	if ([target isShip])
@@ -2963,10 +3136,6 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
 		return;
 	
-	OOMatrix		back_mat;
-	Quaternion		back_q = [player1 orientation];
-	back_q.w = -back_q.w;   // invert
-	Vector			v1 = vector_up_from_quaternion(back_q);
 	Vector			p1;
 	
 	// by definition close enough that single precision is fine
@@ -2975,54 +3144,14 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	GLfloat			rdist = magnitude(p1);
 	GLfloat			rsize = [target collisionRadius];
 	
-	if (rsize < rdist * ONE_SIXTYFOURTH)
-		rsize = rdist * ONE_SIXTYFOURTH;
+	if (rsize < rdist * scale)
+		rsize = rdist * scale;
 	
 	GLfloat			rs0 = rsize;
 	GLfloat			rs2 = rsize * 0.50;
 	
-	OOGL(glPushMatrix());
-	
-	// deal with view directions
-	Vector view_dir, view_up = kBasisYVector;
-	switch ([UNIVERSE viewDirection])
-	{
-		default:
-		case VIEW_FORWARD:
-			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
-			break;
-			
-		case VIEW_AFT:
-			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
-			quaternion_rotate_about_axis(&back_q, v1, M_PI);
-			break;
-			
-		case VIEW_PORT:
-			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis(&back_q, v1, 0.5 * M_PI);
-			break;
-			
-		case VIEW_STARBOARD:
-			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-			quaternion_rotate_about_axis(&back_q, v1, -0.5 * M_PI);
-			break;
-			
-		case VIEW_CUSTOM:
-			view_dir = [player1 customViewForwardVector];
-			view_up = [player1 customViewUpVector];
-			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
-			break;
-	}
-	OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
-	
-	back_mat = OOMatrixForQuaternionRotation(back_q);
-	
-	// rotate the view
-	GLMultOOMatrix([player1 rotationMatrix]);
-	// translate the view
-	OOGL(glTranslatef(p1.x, p1.y, p1.z));
-	//rotate to face player1
-	GLMultOOMatrix(back_mat);
+	hudRotateViewpointForVirtualDepth(player1,p1);
+
 	// draw the reticle
 	float range = sqrt(target->zero_distance) - target->collision_radius;
 	
@@ -3135,13 +3264,13 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		// add text for reticle here
 		range *= 0.001f;
 		if (range < 0.001f) range = 0.0f;	// avoids the occasional -0.001 km distance.
-		NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
-		float line_height = rdist * ONE_SIXTYFOURTH;
-		NSString*	info = [NSString stringWithFormat:@"%0.3f km", range];
-		if (legal_desc != nil) info = [NSString stringWithFormat:@"%@ (%@)", info, legal_desc];
+		NSSize textsize = NSMakeSize(rdist * scale, rdist * scale);
+		float line_height = rdist * scale;
+		NSString*	infoline = [NSString stringWithFormat:@"%0.3f km", range];
+		if (legal_desc != nil) infoline = [NSString stringWithFormat:@"%@ (%@)", infoline, legal_desc];
 		// no need to set colour here
 		OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
-		OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
+		OODrawString(infoline, rs0, 0.5 * rs2 - line_height, 0, textsize);
 	
 		if ([target isWormhole])
 		{
@@ -3176,6 +3305,119 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	}
 	
 	OOGL(glPopMatrix());
+}
+
+
+static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected, GLfloat scale)
+{
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	{
+		return;
+	}
+
+	Vector	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
+
+	hudRotateViewpointForVirtualDepth(player1,p1);
+	
+	// either close enough that single precision is fine or far enough
+	// away that precision is irrelevant
+	
+	GLfloat	rdist = magnitude(p1);
+	GLfloat	rsize = rdist * scale;
+	
+	GLfloat	rs0 = rsize;
+	GLfloat	rs2 = rsize * 0.50;
+
+	if (selected)
+	{
+		GLColorWithOverallAlpha(blue_color, alpha);
+	}
+	else
+	{
+		GLColorWithOverallAlpha(blue_color, alpha*0.25);
+	}
+
+	OOGLBEGIN(GL_LINES);
+		glVertex2f(rs0,rs2);	glVertex2f(rs2,rs2);
+		glVertex2f(rs2,rs0);	glVertex2f(rs2,rs2);
+
+		glVertex2f(-rs0,rs2);	glVertex2f(-rs2,rs2);
+		glVertex2f(-rs2,rs0);	glVertex2f(-rs2,rs2);
+
+		glVertex2f(-rs0,-rs2);	glVertex2f(-rs2,-rs2);
+		glVertex2f(-rs2,-rs0);	glVertex2f(-rs2,-rs2);
+
+		glVertex2f(rs0,-rs2);	glVertex2f(rs2,-rs2);
+		glVertex2f(rs2,-rs0);	glVertex2f(rs2,-rs2);
+
+//		glVertex2f(0,-rs2);	glVertex2f(0,rs2);
+//		glVertex2f(rs2,0);	glVertex2f(-rs2,0);
+	OOGLEND();
+	
+	if (selected)
+	{
+		GLfloat range = HPdistance([player1 position],[waypoint position]) * 0.001f;
+		if (range < 0.001f) range = 0.0f;	// avoids the occasional -0.001 km distance.
+		NSSize textsize = NSMakeSize(rdist * scale, rdist * scale);
+		float line_height = rdist * scale;
+		NSString*	infoline = [NSString stringWithFormat:@"%0.3f km", range];
+		OODrawString(infoline, rs0 * 0.5, -rs2 - line_height, 0, textsize);
+	}
+
+	OOGL(glPopMatrix());
+}
+
+static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
+{
+	OOMatrix		back_mat;
+	Quaternion		back_q = [player1 orientation];
+	back_q.w = -back_q.w;   // invert
+	Vector			v1 = vector_up_from_quaternion(back_q);
+
+	OOGL(glPushMatrix());
+	
+	// deal with view directions
+	Vector view_dir, view_up = kBasisYVector;
+	switch ([UNIVERSE viewDirection])
+	{
+		default:
+		case VIEW_FORWARD:
+			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
+			break;
+			
+		case VIEW_AFT:
+			view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
+			quaternion_rotate_about_axis(&back_q, v1, M_PI);
+			break;
+			
+		case VIEW_PORT:
+			view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+			quaternion_rotate_about_axis(&back_q, v1, 0.5 * M_PI);
+			break;
+			
+		case VIEW_STARBOARD:
+			view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
+			quaternion_rotate_about_axis(&back_q, v1, -0.5 * M_PI);
+			break;
+			
+		case VIEW_CUSTOM:
+			view_dir = [player1 customViewForwardVector];
+			view_up = [player1 customViewUpVector];
+			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
+			break;
+	}
+	OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+	
+	back_mat = OOMatrixForQuaternionRotation(back_q);
+	
+	// rotate the view
+	GLMultOOMatrix([player1 rotationMatrix]);
+	// translate the view
+	OOGL(glTranslatef(p1.x, p1.y, p1.z));
+	//rotate to face player1
+	GLMultOOMatrix(back_mat);
+	// draw the waypoint
+
 }
 
 
@@ -3287,8 +3529,14 @@ void drawHighlight(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat alpha)
 
 void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
+	OODrawStringAligned(text,x,y,z,siz,NO);
+}
+
+
+void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
+{
 	GLfloat			cx = x;
-	NSUInteger		i, length;
+	NSInteger		i, length;
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
 	
@@ -3300,12 +3548,17 @@ void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 	data = [sEncodingCoverter convertString:text];
 	length = [data length];
 	bytes = [data bytes];
+
+	if (EXPECT_NOT(rightAlign))
+	{
+		cx -= OORectFromString(text, 0.0f, 0.0f, siz).size.width;
+	}
 	
 	OOGLBEGIN(GL_QUADS);
-		for (i = 0; i < length; i++)
-		{
-			cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
-		}
+	for (i = 0; i < length; i++)
+	{
+		cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
+	}
 	OOGLEND();
 	
 	[OOTexture applyNone];

@@ -875,8 +875,18 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSUInteger	i;
 	
+	// multi-function displays
+	// must be reset before ship setup
+	[multiFunctionDisplayText release];
+	multiFunctionDisplayText = [[NSMutableDictionary alloc] init];
+
+	[multiFunctionDisplaySettings release];
+	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
+
 	[[UNIVERSE gameView] resetTypedString];
-	
+	// must do this on game load now caches an entire chart
+	[UNIVERSE resetSystemDataCache];
+
 	// Required keys
 	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
@@ -1203,7 +1213,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
 	}
-	
+
 	/*	entity_personality for scripts and shaders. If undefined, we fall back
 		to old behaviour of using a random value each time game is loaded (set
 		up in -setUp). Saving of entity_personality was added in 1.74.
@@ -1481,9 +1491,16 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setAutoCommLog:YES];
 	[UNIVERSE setPermanentCommLog:NO];
 	
+	[multiFunctionDisplayText release];
+	multiFunctionDisplayText = [[NSMutableDictionary alloc] init];
+
+	[multiFunctionDisplaySettings release];
+	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
+
 	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
-	
+	longRangeChartMode = OOLRC_MODE_NORMAL;
+
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];
 	
@@ -1769,7 +1786,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
-	
+
 	[self resetHud];
 	[hud setHidden:NO];
 	
@@ -3366,7 +3383,8 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL 			wasHidden = NO;
 	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
-	
+	int				i;
+
 	if (!hudFileName)  return NO;
 	
 	// is the HUD in the process of being rendered? If yes, set it to defer state and abort the switching now
@@ -3403,6 +3421,12 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setScannerZoom:scannerZoom];
 		[hud setCompassActive:wasCompassActive];
 		[hud setHidden:wasHidden];
+		activeMFD = 0;
+		[multiFunctionDisplaySettings removeAllObjects];
+		for (i = [hud mfdCount]-1 ; i >= 0 ; i--)
+		{
+			[multiFunctionDisplaySettings addObject:[NSNull null]];
+		}
 	}
 	
 	return YES;
@@ -3926,6 +3950,21 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (NSString *) compassTargetLabel
+{
+	if (compassMode != COMPASS_MODE_BEACONS)
+	{
+		return @"";
+	}
+	Entity *target = [self compassTarget];
+	if (target)
+	{
+		return [(Entity <OOBeaconEntity> *)target beaconLabel];
+	}
+	return @"";
+}
+
+
 - (OOCompassMode) compassMode
 {
 	return compassMode;
@@ -4123,6 +4162,109 @@ static GLfloat		sBaseMass = 0.0;
 	if (result == nil)  result = DESC(@"unknown-target");
 	
 	return result;
+}
+
+
+- (NSString *) multiFunctionText:(NSUInteger)i
+{
+	NSString *key = [multiFunctionDisplaySettings oo_stringAtIndex:i defaultValue:nil];
+	if (key == nil)
+	{
+		return nil;
+	}
+	NSString *text = [multiFunctionDisplayText oo_stringForKey:key defaultValue:nil];
+	return text;
+}
+
+
+- (void) setMultiFunctionText:(NSString *)text forKey:(NSString *)key
+{
+	if (text != nil)
+	{
+		[multiFunctionDisplayText setObject:text forKey:key];
+	}
+	else if (key != nil)
+	{
+		[multiFunctionDisplayText removeObjectForKey:key];
+		// and blank any MFDs currently using it
+		NSUInteger index;
+		while ((index = [multiFunctionDisplaySettings indexOfObject:key]) != NSNotFound)
+		{
+			[multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[NSNull null]];
+		}
+	}
+}
+
+
+- (BOOL) setMultiFunctionDisplay:(NSUInteger)index toKey:(NSString *)key
+{
+	if (index >= [hud mfdCount])
+	{
+		// is first inactive display
+		index = [multiFunctionDisplaySettings indexOfObject:[NSNull null]];
+		if (index == NSNotFound)
+		{
+			return NO;
+		}
+	}
+
+	if (index < [hud mfdCount])
+	{
+		if (key == nil)
+		{
+			[multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:[NSNull null]];
+		}
+		else
+		{
+			[multiFunctionDisplaySettings replaceObjectAtIndex:index withObject:key];
+		}
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
+}
+
+
+- (void) cycleMultiFunctionDisplay:(NSUInteger) index
+{
+	NSArray *keys = [multiFunctionDisplayText allKeys];
+	if ([keys count] == 0)
+	{
+		[self setMultiFunctionDisplay:index toKey:nil];
+		return;
+	}
+	id current = [multiFunctionDisplaySettings objectAtIndex:index];
+	if (current == [NSNull null])
+	{
+		[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:0]];
+	}
+	else
+	{
+		NSUInteger cIndex = [keys indexOfObject:current];
+		if (cIndex == NSNotFound || cIndex + 1 >= [keys count])
+		{
+			[self setMultiFunctionDisplay:index toKey:nil];
+		}
+		else 
+		{
+			[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:(cIndex+1)]];
+		}
+	}
+}
+
+
+- (void) selectNextMultiFunctionDisplay
+{
+	activeMFD = (activeMFD + 1) % [[self hud] mfdCount];
+	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"mfd-d-selected") ,activeMFD + 1] forCount:3.0 ];
+}
+
+
+- (NSUInteger) activeMFD
+{
+	return activeMFD;
 }
 
 
@@ -5900,6 +6042,9 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
+	// clear system data cache for old galaxy
+	[UNIVERSE resetSystemDataCache];
+
 	// remove any contracts and parcels for the old galaxy
 	if (contracts)
 		[contracts removeAllObjects];
@@ -9903,6 +10048,18 @@ static NSString *last_outfitting_key=nil;
 - (NSPoint) galacticHyperspaceFixedCoords
 {
 	return galacticHyperspaceFixedCoords;
+}
+
+
+- (OOLongRangeChartMode) longRangeChartMode
+{
+	return longRangeChartMode;
+}
+
+
+- (void) setLongRangeChartMode:(OOLongRangeChartMode) mode
+{
+	longRangeChartMode = mode;
 }
 
 

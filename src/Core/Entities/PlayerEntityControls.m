@@ -106,7 +106,7 @@ static BOOL				gammaControlPressed;
 #endif
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
-//static BOOL				queryPressed;
+static BOOL				queryPressed;
 static BOOL				spacePressed;
 static BOOL				switching_chart_screens;
 static BOOL				switching_status_screens;
@@ -116,6 +116,8 @@ static BOOL				zoom_pressed;
 static BOOL				customView_pressed;
 static BOOL				weaponsOnlineToggle_pressed;
 static BOOL				escapePodKey_pressed;
+static BOOL				cycleMFD_pressed;
+static BOOL				switchMFD_pressed;
 
 static NSUInteger		searchStringLength;
 static double			timeLastKeyPress;
@@ -273,6 +275,9 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_contract_info,			'\?'		);
 	
+	LOAD_KEY_SETTING(key_cycle_mfd,				';'			);
+	LOAD_KEY_SETTING(key_switch_mfd,			':'			);
+
 	LOAD_KEY_SETTING(key_next_target,			'+'			);
 	LOAD_KEY_SETTING(key_previous_target,		'-'			);
 	
@@ -1340,6 +1345,40 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 					cloak_pressed = NO;
+
+
+				exceptionContext = @"cycle mfds";
+				// ';' // Cycle active MFD
+				if ([gameView isDown:key_cycle_mfd])
+				{
+					if (!cycleMFD_pressed)
+					{
+						[self cycleMultiFunctionDisplay:activeMFD];
+					}
+					cycleMFD_pressed = YES;
+				}
+				else
+				{
+					cycleMFD_pressed = NO;
+				}
+
+				exceptionContext = @"switch mfds";
+				//  ':' // Select next MFD
+				if ([gameView isDown:key_switch_mfd])
+				{
+					if ([[self hud] mfdCount] > 1)
+					{
+						if (!switchMFD_pressed)
+						{
+							[self selectNextMultiFunctionDisplay];
+						}
+					}
+					switchMFD_pressed = YES;
+				}
+				else
+				{
+					switchMFD_pressed = NO;
+				}
 				
 			}
 			
@@ -1599,7 +1638,28 @@ static NSTimeInterval	time_last_frame;
 					pling_pressed = NO;
 				}
 			}
-			
+
+			if ([gameView isDown:key_contract_info])   // '?' toggle chart colours
+			{
+				if (!queryPressed)
+				{
+					OOLongRangeChartMode mode = [self longRangeChartMode];
+					if (mode != OOLRC_MODE_TECHLEVEL)
+					{
+						[self setLongRangeChartMode:mode+1];
+					}
+					else
+					{
+						[self setLongRangeChartMode:OOLRC_MODE_NORMAL];
+					}
+				}
+				queryPressed = YES;
+			}
+			else
+			{
+				queryPressed = NO;
+			}
+
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
 				if ([[gameView typedString] length] > 0)

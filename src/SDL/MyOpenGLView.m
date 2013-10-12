@@ -1496,10 +1496,10 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_x: KEYCODE_DOWN_EITHER (88, 120); break;		// X or x
 					case SDLK_y: KEYCODE_DOWN_EITHER (89, 121); break;		// Y or y
 					case SDLK_z: KEYCODE_DOWN_EITHER (90, 122); break;		// Z or z
+					case SDLK_SEMICOLON: KEYCODE_DOWN_EITHER(58, 59); break; // : or ;
 						//SDLK_BACKQUOTE and SDLK_HASH are special cases. No SDLK_ with code 126 exists.
 					case SDLK_HASH: if (!shift) keys[126] = YES; break;		// ~ (really #)
 					case SDLK_BACKQUOTE: if (!shift) keys[96] = YES; break;		// `
-					case SDLK_SEMICOLON: keys[59] = YES; break;			// ;
 					case SDLK_QUOTE: keys[39] = YES; break;				// '
 					case SDLK_LEFTBRACKET: keys[91] = YES; break;			// [
 					case SDLK_RIGHTBRACKET: keys[93] = YES; break;			// ]
@@ -1682,10 +1682,10 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_x: KEYCODE_UP_BOTH (88, 120); break;			// X and x
 					case SDLK_y: KEYCODE_UP_BOTH (89, 121); break;			// Y and y
 					case SDLK_z: KEYCODE_UP_BOTH (90, 122); break;			// Z and z
+					case SDLK_SEMICOLON: KEYCODE_UP_BOTH(58, 59); break; // : and ;
 						//SDLK_BACKQUOTE and SDLK_HASH are special cases. No SDLK_ with code 126 exists.
 					case SDLK_HASH: if (!shift) keys[126] = NO; break;		// ~ (really #)
 					case SDLK_BACKQUOTE: keys[96] = NO; break;			// `
-					case SDLK_SEMICOLON: keys[59] = NO; break;			// ;
 					case SDLK_QUOTE: keys[39] = NO; break;				// '
 					case SDLK_LEFTBRACKET: keys[91] = NO; break;			// [
 					case SDLK_RIGHTBRACKET: keys[93] = NO; break;			// ]

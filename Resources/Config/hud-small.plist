@@ -6,6 +6,10 @@
 			"equipment_required" = "EQ_SCANNER_SHOW_MISSILE_TARGET";
 			selector = "drawTargetReticle:";
 		},
+		{	// Waypoint display
+			equipment_required 	= "EQ_ADVANCED_COMPASS";
+			selector		= "drawWaypoints:";
+		},
 		{ /* station aegis, uses Images/aegis.png as indicator */
 			alpha = 0.8;
 			selector = "drawAegis:";
@@ -53,15 +57,15 @@
 			y = -184;
 		},
 		{ /* ship's clock, x and y give the location, the size defines the character size */
-			height = 12;
+			height = 10;
 			selector = "drawClock:";
-			width = 12;
-			x = -48;
-			y = -172;
+			width = 10;
+			x = -194;
+			y = -170;
 		},
 		{	// primed equipment, x and y give the location, the size defines the character size, n_bars is the number of items to show (default 1)
 			selector	= "drawPrimedEquipment:";
-			x = -48;
+			x = -194;
 			y = -160;
 			width		= 10;
 			height		= 10;
@@ -86,6 +90,14 @@
 			selector = "drawCompass:";
 			x = 108;
 			y = -172;
+		},
+		{	// compass beacon/waypoint ID, x and y give the location, the size defines the character size
+			equipment_required 	= "EQ_ADVANCED_COMPASS";
+			selector		= "drawASCTarget:";
+			height		= 10;
+			width		= 10;
+			x		= 124;
+			y		= -166;
 		},
 		{ /* roll bar, can draw a surround 2 units out from the dial size specified */
 			draw_surround = true;
@@ -238,8 +250,34 @@
 			width = 8;
 		}
 	);
-	message_gui = {};	// resets the default settings
-	comm_log_gui = {};	// resets the default settings
+	multi_function_displays = (
+		{
+			width = 174;
+			height = 116;
+			x = -100;
+			y = -62;
+			y_origin = 1;
+		}
+	);
+	message_gui = {
+		width = 216;
+		height = 112;
+		x = 0;
+		y = -104;
+		row_height = 14;
+	};
+	comm_log_gui = {
+		alpha = "0.75";
+		width = 180;
+		height = 120;
+		x = 100;
+		y = -62;
+		y_origin = 1;
+		row_height = 10;
+		permanent = no;
+		automatic = yes;
+		background_rgba = "0.0 0.05 0.45 0.5";		
+	};
 	overall_alpha	= 0.75;
 	reticle_target_sensitive = no;
 	cloak_indicator_on_status_light = yes;
