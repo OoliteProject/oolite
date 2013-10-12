@@ -1181,7 +1181,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 
-	roleWeightFlags = [[dict oo_dictionaryForKey:@"role_weight_Flags"] mutableCopy];
+	roleWeightFlags = [[dict oo_dictionaryForKey:@"role_weight_flags"] mutableCopy];
 	if (roleWeightFlags == nil)
 	{
 		roleWeightFlags = [[NSMutableDictionary alloc] init];
