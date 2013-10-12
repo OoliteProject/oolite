@@ -381,6 +381,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 #endif
 #endif
 	
+	[player startUpComplete];
 	_doingStartUp = NO;
 	
 	return self;
@@ -9702,6 +9703,8 @@ Entity *gOOJSPlayerIfStale = nil;
 	[player completeSetUp];
 	[self populateNormalSpace];
 
+	[player startUpComplete];
+
 	if(!showDemo)
 	{
 		[player setGuiToStatusScreen];
@@ -9709,7 +9712,7 @@ Entity *gOOJSPlayerIfStale = nil;
 	}
 	
 	[self verifyEntitySessionIDs];
-		
+
 	no_update = NO;
 	return YES;
 }

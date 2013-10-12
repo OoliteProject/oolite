@@ -598,6 +598,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		}
 	}
 
+	[self startUpComplete];
+
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading

@@ -586,6 +586,7 @@ typedef enum
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)loadingGame;
 - (void) completeSetUp;
 - (void) completeSetUpAndSetTarget:(BOOL)setTarget;
+- (void) startUpComplete;
 
 - (NSString *) commanderName;
 - (void) setCommanderName:(NSString *)value;

@@ -1737,6 +1737,14 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) startUpComplete
+{
+	JSContext *context = OOJSAcquireContext();
+	[self doWorldScriptEvent:OOJSID("startUpComplete") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+	OOJSRelinquishContext(context);
+}
+
+
 - (BOOL) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
 	DESTROY(compassTarget);
