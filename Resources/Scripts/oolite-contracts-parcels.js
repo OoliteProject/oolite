@@ -306,8 +306,16 @@ this._initialiseParcelContractsForSystem = function()
 
 		parcel.sender = randomName()+" "+randomName();
 		
+		// time allowed for delivery is time taken by "fewest jumps"
+		// route, plus 10-110%, plus four hours to make sure all routes
+		// are "in time" for a reasonable-length journey in-system.
+		var dtime = Math.floor((routeToDestination.time * 3600 * (1.1+(Math.random())))) + 14400;
+		parcel.deadline = clock.adjustedSeconds + dtime;
+
+		var newCommander = false;
 		if (i < 2 && !missionVariables.oolite_contracts_parcels)
 		{
+			newCommander = true;
 			parcel.risk = 0;
 			parcel.description = expandDescription("[parcel-description-safe]");
 		}
@@ -321,12 +329,6 @@ this._initialiseParcelContractsForSystem = function()
 			parcel.description = expandDescription("[parcel-description-risk"+parcel.risk+"]");
 		}
 
-		// time allowed for delivery is time taken by "fewest jumps"
-		// route, plus 10-110%, plus four hours to make sure all routes
-		// are "in time" for a reasonable-length journey in-system.
-		var dtime = Math.floor((routeToDestination.time * 3600 * (1.1+(Math.random())))) + 14400;
-		parcel.deadline = clock.adjustedSeconds + dtime;
-
 		// total payment is small for these items.
 		parcel.payment = Math.floor(
 			// 2-3 credits per LY of route
@@ -338,21 +340,25 @@ this._initialiseParcelContractsForSystem = function()
 		);
 		
 		parcel.payment *= (Math.random()+Math.random()+Math.random()+Math.random())/2;
-		var prudence = -1;
-		if (i>=2)
+	
+		if (!newCommander)
 		{
-			prudence = (2*Math.random())-1;
+			var prudence = (2*Math.random())-1;
+
+			var desperation = (Math.random()*(0.5+parcel.risk)) * (1+1/(Math.max(0.5,dtime-(routeToDestination.time * 3600))));
+			var competency = Math.max(50,(routeToDestination.route.length-1)*(1+(parcel.risk*2)));
+			if(parcel.risk == 0)
+			{
+				competency -= 10;
+			}
+			parcel.payment = Math.floor(parcel.payment * (1+(0.4*prudence)));
+			parcel.payment += (parcel.risk * 200);
+			parcel.skill = competency + 20*(prudence-desperation);
 		}
-		var desperation = (Math.random()*(0.5+parcel.risk)) * (1+1/(Math.max(0.5,dtime-(routeToDestination.time * 3600))));
-		var competency = Math.max(50,(routeToDestination.route.length-1)*(1+(parcel.risk*2)));
-		if(parcel.risk == 0)
+		else
 		{
-			competency -= 10;
+			parcel.skill = -1; // always available
 		}
-		parcel.payment = Math.floor(parcel.payment * (1+(0.4*prudence)));
-		parcel.payment += (parcel.risk * 200);
-		parcel.skill = competency + 20*(prudence-desperation);
-		
 
 		// add parcel to contract list
 		this._addParcelToSystem(parcel);
@@ -759,7 +765,11 @@ this._acceptContract = function()
 	var parcel = this.$parcels[this.$contractIndex];
 
 	// give the parcel to the player
-	player.ship.addParcel(parcel.sender+"'s "+this._formatPackageName(parcel.description),system.ID,parcel.destination,parcel.deadline,parcel.payment,0,parcel.risk);
+	var desc = expandDescription("[parcel-label]",{
+		"oolite-parcel-owner" : parcel.sender,
+		"oolite-parcel-contents" : this._formatPackageName(parcel.description)
+	});
+	player.ship.addParcel(desc,system.ID,parcel.destination,parcel.deadline,parcel.payment,0,parcel.risk);
 	
 	// remove the parcel from the station list
 	this.$parcels.splice(this.$contractIndex,1);

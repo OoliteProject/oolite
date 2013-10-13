@@ -1407,7 +1407,7 @@
 	// 1:2:9
 	"passenger-description-risk2" = ("[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-dangerous]","[passenger-description-cautious]","[passenger-description-cautious]","[passenger-description-safe]");
 
-
+	"parcel-label" = "[oolite-parcel-owner]'s [oolite-parcel-contents]";
 	"parcel-delivered-okay-@-@" = "You deliver %@, and are paid %@.\n";
 	"parcel-delivered-late-@-@" = "You have arrived late to deliver %@, and are only paid %@.\n";
 	"parcel-failed-@"			= "You have failed to deliver %@ on time, and will not be paid.\n";
