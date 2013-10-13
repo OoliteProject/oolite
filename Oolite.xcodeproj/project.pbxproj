@@ -105,6 +105,10 @@
 		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
 		1A1F2842105AAB7900ADB8C5 /* OOSparkEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */; };
 		1A1F2843105AAB7900ADB8C5 /* OOSparkEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */; };
+		1A1F6D0D180AC324002AD52E /* OOWaypointEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1F6D0B180AC324002AD52E /* OOWaypointEntity.h */; };
+		1A1F6D0E180AC324002AD52E /* OOWaypointEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1F6D0C180AC324002AD52E /* OOWaypointEntity.m */; };
+		1A1F6D16180AC371002AD52E /* OOJSWaypoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1F6D14180AC371002AD52E /* OOJSWaypoint.h */; };
+		1A1F6D17180AC371002AD52E /* OOJSWaypoint.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1F6D15180AC371002AD52E /* OOJSWaypoint.m */; };
 		1A1F7DB6117B5D8100332757 /* OOMaterialSpecifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1F7DA7117B5BDB00332757 /* OOMaterialSpecifier.m */; };
 		1A1F7DB7117B5D8200332757 /* OOMaterialSpecifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1F7DA6117B5BDB00332757 /* OOMaterialSpecifier.h */; };
 		1A20F7060F36EE0500156DE9 /* OOExcludeObjectEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A20F7040F36EE0500156DE9 /* OOExcludeObjectEnumerator.h */; };
@@ -1390,6 +1394,10 @@
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
 		1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSparkEntity.h; sourceTree = "<group>"; };
 		1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSparkEntity.m; sourceTree = "<group>"; };
+		1A1F6D0B180AC324002AD52E /* OOWaypointEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOWaypointEntity.h; sourceTree = "<group>"; };
+		1A1F6D0C180AC324002AD52E /* OOWaypointEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOWaypointEntity.m; sourceTree = "<group>"; };
+		1A1F6D14180AC371002AD52E /* OOJSWaypoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWaypoint.h; sourceTree = "<group>"; };
+		1A1F6D15180AC371002AD52E /* OOJSWaypoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSWaypoint.m; sourceTree = "<group>"; };
 		1A1F7DA6117B5BDB00332757 /* OOMaterialSpecifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMaterialSpecifier.h; sourceTree = "<group>"; };
 		1A1F7DA7117B5BDB00332757 /* OOMaterialSpecifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMaterialSpecifier.m; sourceTree = "<group>"; };
 		1A20F7040F36EE0500156DE9 /* OOExcludeObjectEnumerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExcludeObjectEnumerator.h; sourceTree = "<group>"; };
@@ -2681,6 +2689,8 @@
 				1A7C75980CC39D11005D0AA2 /* OOJSSun.m */,
 				1A72F87015E5658E00281337 /* OOJSVisualEffect.h */,
 				1A72F87115E5658E00281337 /* OOJSVisualEffect.m */,
+				1A1F6D14180AC371002AD52E /* OOJSWaypoint.h */,
+				1A1F6D15180AC371002AD52E /* OOJSWaypoint.m */,
 				1AA59C6A1780396C007C7373 /* OOJSWormhole.h */,
 				1AA59C6B1780396C007C7373 /* OOJSWormhole.m */,
 			);
@@ -3069,6 +3079,8 @@
 				1A72F86D15E5655D00281337 /* OOVisualEffectEntity.m */,
 				1ABA415C15ACBB6700F7E841 /* DockEntity.h */,
 				1ABA415D15ACBB6700F7E841 /* DockEntity.m */,
+				1A1F6D0B180AC324002AD52E /* OOWaypointEntity.h */,
+				1A1F6D0C180AC324002AD52E /* OOWaypointEntity.m */,
 				1A817DCA106D44D900AA2F97 /* Particles */,
 			);
 			path = Entities;
@@ -3609,6 +3621,8 @@
 				1AD8522517947BD600CBE743 /* OOHPVector.h in Headers */,
 				1AD8522E17947C9500CBE743 /* OOJSPopulatorDefinition.h in Headers */,
 				1A9438CF17F84C560011F80B /* OOExplosionCloudEntity.h in Headers */,
+				1A1F6D0D180AC324002AD52E /* OOWaypointEntity.h in Headers */,
+				1A1F6D16180AC371002AD52E /* OOJSWaypoint.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4090,6 +4104,8 @@
 				1AD8522617947BD600CBE743 /* OOHPVector.m in Sources */,
 				1AD8522F17947C9500CBE743 /* OOJSPopulatorDefinition.m in Sources */,
 				1A9438D017F84C560011F80B /* OOExplosionCloudEntity.m in Sources */,
+				1A1F6D0E180AC324002AD52E /* OOWaypointEntity.m in Sources */,
+				1A1F6D17180AC371002AD52E /* OOJSWaypoint.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
