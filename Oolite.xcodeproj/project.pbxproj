@@ -11,13 +11,13 @@
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */;
 			buildPhases = (
-				1AD267610C83057F00B4BFD1 /* Copy Debug OXP */,
 				1A09EF5B12BD0C5000BF7F48 /* Copy Plug-ins */,
+				1A7E3A06180AC8D400576095 /* Conditionally copy Debug Bundle */,
 			);
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
+				1A7E3A05180AC8BF00576095 /* PBXTargetDependency */,
 				1ABF219A12D691A300075821 /* PBXTargetDependency */,
-				1A6973C312F46643000CC708 /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = "Build All";
@@ -468,7 +468,6 @@
 		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
 		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
 		1A68A4A51615F4A400D7BB08 /* OOMeshToOctreeConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* OOMeshToOctreeConverter.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
-		1A6973CA12F46684000CC708 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A8FAA9E12F0E44D008FF5A2 /* Debug.oxp */; };
 		1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
 		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
@@ -830,13 +829,6 @@
 			remoteGlobalIDString = 8D57630D048677EA00EA77CD;
 			remoteInfo = "Oolite-importer";
 		};
-		1A6973C212F46643000CC708 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
-			remoteInfo = DebugOXP;
-		};
 		1A78B5D812D74CF900D42EE7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A78B5D412D74CF900D42EE7 /* libpng.xcodeproj */;
@@ -851,6 +843,20 @@
 			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
 			remoteInfo = libpng;
 		};
+		1A7E3A02180AC8B100576095 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugBundle.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
+			remoteInfo = "Debug Bundle";
+		};
+		1A7E3A04180AC8BF00576095 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugBundle.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
+			remoteInfo = "Debug Bundle";
+		};
 		1A8FA92612F0C694008FF5A2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AB775FC12CA2E53001478BB /* libjs.xcodeproj */;
@@ -864,13 +870,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = 1AC16CBF12F0943F00907218;
 			remoteInfo = jskwgen;
-		};
-		1A8FAA9D12F0E44D008FF5A2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
-			remoteInfo = DebugOXP;
 		};
 		1AB7760112CA2E53001478BB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1335,17 +1334,6 @@
 			name = "Copy Shaders";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1AD267610C83057F00B4BFD1 /* Copy Debug OXP */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = AddOns;
-			dstSubfolderSpec = 16;
-			files = (
-				1A6973CA12F46684000CC708 /* Debug.oxp in Copy Debug OXP */,
-			);
-			name = "Copy Debug OXP";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		1AE8837812EF91880075814F /* Copy Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1402,7 +1390,7 @@
 		1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
-		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = "Mac-specific/DebugOXP/DebugOXP.xcodeproj"; sourceTree = "<group>"; };
+		1A0519340C7CCAC900BA5CCA /* DebugBundle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugBundle.xcodeproj; path = "Mac-specific/DebugBundle/DebugBundle.xcodeproj"; sourceTree = "<group>"; };
 		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
 		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
 		1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDebugMonitor.h; sourceTree = "<group>"; };
@@ -2800,7 +2788,7 @@
 		1A5BF2710916D45B00BF238F /* External bundles */ = {
 			isa = PBXGroup;
 			children = (
-				1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */,
+				1A0519340C7CCAC900BA5CCA /* DebugBundle.xcodeproj */,
 				1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */,
 				1A3E018E11C574AC000FF226 /* Oolite-importer.xcodeproj */,
 			);
@@ -2975,6 +2963,14 @@
 				1A8A3D8F0B9B058500AB7625 /* Mac-specific */,
 			);
 			name = Audio;
+			sourceTree = "<group>";
+		};
+		1A7E39FF180AC8B100576095 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A7E3A03180AC8B100576095 /* Debug.bundle */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		1A817DCA106D44D900AA2F97 /* Particles */ = {
@@ -3292,14 +3288,6 @@
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
-			sourceTree = "<group>";
-		};
-		1A8FAA9A12F0E44D008FF5A2 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1A8FAA9E12F0E44D008FF5A2 /* Debug.oxp */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		1AA2E7061191E39600DFBA23 /* Build stuff */ = {
@@ -3790,8 +3778,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 1A8FAA9A12F0E44D008FF5A2 /* Products */;
-					ProjectRef = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
+					ProductGroup = 1A7E39FF180AC8B100576095 /* Products */;
+					ProjectRef = 1A0519340C7CCAC900BA5CCA /* DebugBundle.xcodeproj */;
 				},
 				{
 					ProductGroup = 1AB775FD12CA2E53001478BB /* Products */;
@@ -3859,6 +3847,13 @@
 			remoteRef = 1A78B5D812D74CF900D42EE7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		1A7E3A03180AC8B100576095 /* Debug.bundle */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = Debug.bundle;
+			remoteRef = 1A7E3A02180AC8B100576095 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		1A8FA92712F0C694008FF5A2 /* jsoplengen */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.executable";
@@ -3871,13 +3866,6 @@
 			fileType = "compiled.mach-o.executable";
 			path = jskwgen;
 			remoteRef = 1A8FA92812F0C694008FF5A2 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		1A8FAA9E12F0E44D008FF5A2 /* Debug.oxp */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = Debug.oxp;
-			remoteRef = 1A8FAA9D12F0E44D008FF5A2 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1AB7760212CA2E53001478BB /* libjs_for_oolite.a */ = {
@@ -3937,6 +3925,22 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		1A7E3A06180AC8D400576095 /* Conditionally copy Debug Bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/Debug.bundle",
+			);
+			name = "Conditionally copy Debug Bundle";
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/Oolite.app/Contents/PlugIns/Debug.bundle",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ $OOLITE_INCUDE_DEBUG_BUNDLE == 0 ]; then\n    exit 0\nfi\n\nif [ -e $SCRIPT_OUTPUT_FILE_0 ]; then\n    rm -rf $SCRIPT_OUTPUT_FILE_0\nfi\n\nditto $SCRIPT_INPUT_FILE_0 $SCRIPT_OUTPUT_FILE_0\n";
+		};
 		1AA2E7471191E4B400DFBA23 /* Copy Schemata */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -4217,15 +4221,15 @@
 			name = "Oolite-importer";
 			targetProxy = 1A3E01A811C574E1000FF226 /* PBXContainerItemProxy */;
 		};
-		1A6973C312F46643000CC708 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = DebugOXP;
-			targetProxy = 1A6973C212F46643000CC708 /* PBXContainerItemProxy */;
-		};
 		1A78B5DC12D74D0600D42EE7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = libpng;
 			targetProxy = 1A78B5DB12D74D0600D42EE7 /* PBXContainerItemProxy */;
+		};
+		1A7E3A05180AC8BF00576095 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Debug Bundle";
+			targetProxy = 1A7E3A04180AC8BF00576095 /* PBXContainerItemProxy */;
 		};
 		1AB7763512CA33FB001478BB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -4427,6 +4431,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				OOLITE_INCUDE_DEBUG_BUNDLE = 1;
 				PRODUCT_NAME = "Build All";
 			};
 			name = Debug;
@@ -4435,6 +4440,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				OOLITE_INCUDE_DEBUG_BUNDLE = 0;
 				PRODUCT_NAME = "Build All";
 			};
 			name = Deployment;
@@ -4443,6 +4449,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				OOLITE_INCUDE_DEBUG_BUNDLE = 1;
 				PRODUCT_NAME = "Build All";
 			};
 			name = TestRelease;

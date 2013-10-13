@@ -38,9 +38,9 @@ SOFTWARE.
 
 
 #if OOLITE_MAC_OS_X
-static id LoadDebugPlugIn(NSString *path);
+static id LoadDebugPlugIn(void);
 #else
-#define LoadDebugPlugIn(path) nil
+#define LoadDebugPlugIn() nil
 #endif
 
 
@@ -74,7 +74,7 @@ void OOInitDebugSupport(void)
 	if (debugOXPPath != nil)
 	{
 		// Load plug-in debugging code on platforms where this is supported.
-		sDebugPlugInController = LoadDebugPlugIn(debugOXPPath);
+		sDebugPlugInController = [LoadDebugPlugIn() retain];
 		
 		consoleHost = [debugSettings oo_stringForKey:@"console-host"];
 		consolePort = [debugSettings oo_unsignedShortForKey:@"console-port"];
@@ -115,34 +115,32 @@ void OOInitDebugSupport(void)
 
 #if OOLITE_MAC_OS_X
 
-// Note: it should in principle be possible to use this code to load a plug-in under GNUstep, too.
-static id LoadDebugPlugIn(NSString *path)
+static id LoadDebugPlugIn()
 {
 	OO_DEBUG_PUSH_PROGRESS(@"Loading debug plug-in");
 	
-	Class					principalClass = Nil;
-	NSString				*bundlePath = nil;
-	NSBundle				*bundle = nil;
-	id						debugController = nil;
+	id debugController = nil;
 	
-	bundlePath = [path stringByDeletingLastPathComponent];
-	bundle = [NSBundle bundleWithPath:bundlePath];
-	if ([bundle load])
+	NSURL *plugInURL = NSBundle.mainBundle.builtInPlugInsURL;
+	plugInURL = [plugInURL URLByAppendingPathComponent:@"Debug.bundle"];
+	NSBundle *debugBundle = [NSBundle bundleWithURL:plugInURL];
+	
+	if ([debugBundle load])
 	{
-		principalClass = [bundle principalClass];
+		Class principalClass = debugBundle.principalClass;
 		if (principalClass != Nil)
 		{
 			// Instantiate principal class of debug bundle, and let it do whatever it wants.
-			debugController = [[principalClass alloc] init];
+			debugController = [[principalClass new] autorelease];
 		}
 		else
 		{
-			OOLog(@"debugOXP.load.failed", @"Failed to find principal class of debug bundle.");
+			OOLog(@"debugSupport.load.failed", @"Failed to find principal class of debug bundle.");
 		}
 	}
 	else
 	{
-		OOLog(@"debugOXP.load.failed", @"Failed to load debug OXP plug-in from %@.", bundlePath);
+		OOLog(@"debugSupport.load.failed", @"Failed to load debug OXP plug-in from %@.", plugInURL.path);
 	}
 	
 	OO_DEBUG_POP_PROGRESS();
