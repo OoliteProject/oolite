@@ -375,6 +375,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	if (gui_info != nil && [gui_info count] == 0)
 	{
+		OOLog(@"reset.gui",@"Done");
 		// exists and it's empty. complete reset.
 		[gui setCurrentRow:8];
 		[gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
