@@ -9,9 +9,6 @@ Icon?
 # Xcode cruft
 project.xcworkspace/
 xcuserdata/
-*.mode1
-*.mode1v3
-*.pbxuser
 
 
 # Used for downloaded code
@@ -25,7 +22,6 @@ obj.spk
 obj.win.spk
 obj.spk.dbg
 obj.win.spk.dbg
-DebugOXP/requires.plist
 AddOns/
 
 # Debug output
