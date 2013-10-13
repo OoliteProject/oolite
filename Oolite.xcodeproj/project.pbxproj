@@ -529,6 +529,31 @@
 		1A7E317C113ED37C009AAB6D /* EntityShaderBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7E317B113ED37C009AAB6D /* EntityShaderBindings.m */; };
 		1A7E3189113ED496009AAB6D /* ProxyPlayerEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */; };
 		1A7E318A113ED496009AAB6D /* ProxyPlayerEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */; };
+		1A7E3A1D180AD05500576095 /* oolite-assassinAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A07180AD04000576095 /* oolite-assassinAI.js */; };
+		1A7E3A1E180AD05500576095 /* oolite-bountyHunterAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A08180AD04000576095 /* oolite-bountyHunterAI.js */; };
+		1A7E3A1F180AD05500576095 /* oolite-bountyHunterLeaderAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A09180AD04000576095 /* oolite-bountyHunterLeaderAI.js */; };
+		1A7E3A20180AD05500576095 /* oolite-constrictorAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0A180AD04000576095 /* oolite-constrictorAI.js */; };
+		1A7E3A21180AD05500576095 /* oolite-defenseShipAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0B180AD04000576095 /* oolite-defenseShipAI.js */; };
+		1A7E3A22180AD05500576095 /* oolite-escortAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0C180AD04000576095 /* oolite-escortAI.js */; };
+		1A7E3A23180AD05500576095 /* oolite-missileAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0D180AD04100576095 /* oolite-missileAI.js */; };
+		1A7E3A24180AD05500576095 /* oolite-nullAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0E180AD04100576095 /* oolite-nullAI.js */; };
+		1A7E3A25180AD05500576095 /* oolite-pirateAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0F180AD04100576095 /* oolite-pirateAI.js */; };
+		1A7E3A26180AD05500576095 /* oolite-pirateFighterAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A10180AD04100576095 /* oolite-pirateFighterAI.js */; };
+		1A7E3A27180AD05500576095 /* oolite-pirateFreighterAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A11180AD04100576095 /* oolite-pirateFreighterAI.js */; };
+		1A7E3A28180AD05500576095 /* oolite-pirateInterceptorAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A12180AD04100576095 /* oolite-pirateInterceptorAI.js */; };
+		1A7E3A29180AD05500576095 /* oolite-policeAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A13180AD04100576095 /* oolite-policeAI.js */; };
+		1A7E3A2A180AD05500576095 /* oolite-qbombAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A14180AD04100576095 /* oolite-qbombAI.js */; };
+		1A7E3A2B180AD05500576095 /* oolite-rockHermitAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A15180AD04100576095 /* oolite-rockHermitAI.js */; };
+		1A7E3A2C180AD05500576095 /* oolite-scavengerAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A16180AD04100576095 /* oolite-scavengerAI.js */; };
+		1A7E3A2D180AD05500576095 /* oolite-shuttleAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A17180AD04100576095 /* oolite-shuttleAI.js */; };
+		1A7E3A2E180AD05500576095 /* oolite-stationAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A18180AD04100576095 /* oolite-stationAI.js */; };
+		1A7E3A2F180AD05500576095 /* oolite-thargletAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A19180AD04100576095 /* oolite-thargletAI.js */; };
+		1A7E3A30180AD05500576095 /* oolite-thargoidAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A1A180AD04100576095 /* oolite-thargoidAI.js */; };
+		1A7E3A31180AD05500576095 /* oolite-traderAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A1B180AD04100576095 /* oolite-traderAI.js */; };
+		1A7E3A32180AD05500576095 /* oolite-traderOpportunistAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A1C180AD04100576095 /* oolite-traderOpportunistAI.js */; };
+		1A7E3A35180AD09A00576095 /* oolite-particle-cloud.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A7E3A33180AD08F00576095 /* oolite-particle-cloud.png */; };
+		1A7E3A36180AD09A00576095 /* oolite-particle-cloud2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A7E3A34180AD08F00576095 /* oolite-particle-cloud2.png */; };
+		1A7E3A38180AD0E100576095 /* oolite-priorityai.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A7E3A37180AD0DE00576095 /* oolite-priorityai.js */; };
 		1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */; };
 		1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */; };
 		1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */; };
@@ -1032,6 +1057,28 @@
 				1A2317D20B9D022500EF0852 /* thargletAI.plist in Copy AIs */,
 				1A2317D30B9D022500EF0852 /* thargoidAI.plist in Copy AIs */,
 				1A2317D40B9D022500EF0852 /* timebombAI.plist in Copy AIs */,
+				1A7E3A1D180AD05500576095 /* oolite-assassinAI.js in Copy AIs */,
+				1A7E3A1E180AD05500576095 /* oolite-bountyHunterAI.js in Copy AIs */,
+				1A7E3A1F180AD05500576095 /* oolite-bountyHunterLeaderAI.js in Copy AIs */,
+				1A7E3A20180AD05500576095 /* oolite-constrictorAI.js in Copy AIs */,
+				1A7E3A21180AD05500576095 /* oolite-defenseShipAI.js in Copy AIs */,
+				1A7E3A22180AD05500576095 /* oolite-escortAI.js in Copy AIs */,
+				1A7E3A23180AD05500576095 /* oolite-missileAI.js in Copy AIs */,
+				1A7E3A24180AD05500576095 /* oolite-nullAI.js in Copy AIs */,
+				1A7E3A25180AD05500576095 /* oolite-pirateAI.js in Copy AIs */,
+				1A7E3A26180AD05500576095 /* oolite-pirateFighterAI.js in Copy AIs */,
+				1A7E3A27180AD05500576095 /* oolite-pirateFreighterAI.js in Copy AIs */,
+				1A7E3A28180AD05500576095 /* oolite-pirateInterceptorAI.js in Copy AIs */,
+				1A7E3A29180AD05500576095 /* oolite-policeAI.js in Copy AIs */,
+				1A7E3A2A180AD05500576095 /* oolite-qbombAI.js in Copy AIs */,
+				1A7E3A2B180AD05500576095 /* oolite-rockHermitAI.js in Copy AIs */,
+				1A7E3A2C180AD05500576095 /* oolite-scavengerAI.js in Copy AIs */,
+				1A7E3A2D180AD05500576095 /* oolite-shuttleAI.js in Copy AIs */,
+				1A7E3A2E180AD05500576095 /* oolite-stationAI.js in Copy AIs */,
+				1A7E3A2F180AD05500576095 /* oolite-thargletAI.js in Copy AIs */,
+				1A7E3A30180AD05500576095 /* oolite-thargoidAI.js in Copy AIs */,
+				1A7E3A31180AD05500576095 /* oolite-traderAI.js in Copy AIs */,
+				1A7E3A32180AD05500576095 /* oolite-traderOpportunistAI.js in Copy AIs */,
 			);
 			name = "Copy AIs";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1042,6 +1089,8 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				1A7E3A35180AD09A00576095 /* oolite-particle-cloud.png in Copy Textures */,
+				1A7E3A36180AD09A00576095 /* oolite-particle-cloud2.png in Copy Textures */,
 				B3A96405165EE28F001BB5C1 /* oolite-exhaust-blur.png in Copy Textures */,
 				B3A96401165D800D001BB5C1 /* oolite-laser-blur.png in Copy Textures */,
 				B3A96402165D800D001BB5C1 /* oolite-laser-blur2.png in Copy Textures */,
@@ -1231,6 +1280,7 @@
 			dstPath = Scripts;
 			dstSubfolderSpec = 7;
 			files = (
+				1A7E3A38180AD0E100576095 /* oolite-priorityai.js in Copy Scripts */,
 				1AB23F07165A5A8C00642977 /* oolite-conditions.js in Copy Scripts */,
 				1A02B4C61643DFF80013749D /* oolite-contracts-cargo.js in Copy Scripts */,
 				1A02B4C71643DFF80013749D /* oolite-contracts-helpers.js in Copy Scripts */,
@@ -1834,6 +1884,31 @@
 		1A7E317B113ED37C009AAB6D /* EntityShaderBindings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntityShaderBindings.m; sourceTree = "<group>"; };
 		1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProxyPlayerEntity.h; sourceTree = "<group>"; };
 		1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProxyPlayerEntity.m; sourceTree = "<group>"; };
+		1A7E3A07180AD04000576095 /* oolite-assassinAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-assassinAI.js"; sourceTree = "<group>"; };
+		1A7E3A08180AD04000576095 /* oolite-bountyHunterAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-bountyHunterAI.js"; sourceTree = "<group>"; };
+		1A7E3A09180AD04000576095 /* oolite-bountyHunterLeaderAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-bountyHunterLeaderAI.js"; sourceTree = "<group>"; };
+		1A7E3A0A180AD04000576095 /* oolite-constrictorAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-constrictorAI.js"; sourceTree = "<group>"; };
+		1A7E3A0B180AD04000576095 /* oolite-defenseShipAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-defenseShipAI.js"; sourceTree = "<group>"; };
+		1A7E3A0C180AD04000576095 /* oolite-escortAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-escortAI.js"; sourceTree = "<group>"; };
+		1A7E3A0D180AD04100576095 /* oolite-missileAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-missileAI.js"; sourceTree = "<group>"; };
+		1A7E3A0E180AD04100576095 /* oolite-nullAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-nullAI.js"; sourceTree = "<group>"; };
+		1A7E3A0F180AD04100576095 /* oolite-pirateAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-pirateAI.js"; sourceTree = "<group>"; };
+		1A7E3A10180AD04100576095 /* oolite-pirateFighterAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-pirateFighterAI.js"; sourceTree = "<group>"; };
+		1A7E3A11180AD04100576095 /* oolite-pirateFreighterAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-pirateFreighterAI.js"; sourceTree = "<group>"; };
+		1A7E3A12180AD04100576095 /* oolite-pirateInterceptorAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-pirateInterceptorAI.js"; sourceTree = "<group>"; };
+		1A7E3A13180AD04100576095 /* oolite-policeAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-policeAI.js"; sourceTree = "<group>"; };
+		1A7E3A14180AD04100576095 /* oolite-qbombAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-qbombAI.js"; sourceTree = "<group>"; };
+		1A7E3A15180AD04100576095 /* oolite-rockHermitAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-rockHermitAI.js"; sourceTree = "<group>"; };
+		1A7E3A16180AD04100576095 /* oolite-scavengerAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-scavengerAI.js"; sourceTree = "<group>"; };
+		1A7E3A17180AD04100576095 /* oolite-shuttleAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-shuttleAI.js"; sourceTree = "<group>"; };
+		1A7E3A18180AD04100576095 /* oolite-stationAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-stationAI.js"; sourceTree = "<group>"; };
+		1A7E3A19180AD04100576095 /* oolite-thargletAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-thargletAI.js"; sourceTree = "<group>"; };
+		1A7E3A1A180AD04100576095 /* oolite-thargoidAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-thargoidAI.js"; sourceTree = "<group>"; };
+		1A7E3A1B180AD04100576095 /* oolite-traderAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-traderAI.js"; sourceTree = "<group>"; };
+		1A7E3A1C180AD04100576095 /* oolite-traderOpportunistAI.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-traderOpportunistAI.js"; sourceTree = "<group>"; };
+		1A7E3A33180AD08F00576095 /* oolite-particle-cloud.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-particle-cloud.png"; sourceTree = "<group>"; };
+		1A7E3A34180AD08F00576095 /* oolite-particle-cloud2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-particle-cloud2.png"; sourceTree = "<group>"; };
+		1A7E3A37180AD0DE00576095 /* oolite-priorityai.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-priorityai.js"; sourceTree = "<group>"; };
 		1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-particle-blur.png"; sourceTree = "<group>"; };
 		1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlasmaShotEntity.h; sourceTree = "<group>"; };
 		1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlasmaShotEntity.m; sourceTree = "<group>"; };
@@ -2267,6 +2342,28 @@
 		1A2317900B9D022400EF0852 /* AIs */ = {
 			isa = PBXGroup;
 			children = (
+				1A7E3A07180AD04000576095 /* oolite-assassinAI.js */,
+				1A7E3A08180AD04000576095 /* oolite-bountyHunterAI.js */,
+				1A7E3A09180AD04000576095 /* oolite-bountyHunterLeaderAI.js */,
+				1A7E3A0A180AD04000576095 /* oolite-constrictorAI.js */,
+				1A7E3A0B180AD04000576095 /* oolite-defenseShipAI.js */,
+				1A7E3A0C180AD04000576095 /* oolite-escortAI.js */,
+				1A7E3A0D180AD04100576095 /* oolite-missileAI.js */,
+				1A7E3A0E180AD04100576095 /* oolite-nullAI.js */,
+				1A7E3A0F180AD04100576095 /* oolite-pirateAI.js */,
+				1A7E3A10180AD04100576095 /* oolite-pirateFighterAI.js */,
+				1A7E3A11180AD04100576095 /* oolite-pirateFreighterAI.js */,
+				1A7E3A12180AD04100576095 /* oolite-pirateInterceptorAI.js */,
+				1A7E3A13180AD04100576095 /* oolite-policeAI.js */,
+				1A7E3A14180AD04100576095 /* oolite-qbombAI.js */,
+				1A7E3A15180AD04100576095 /* oolite-rockHermitAI.js */,
+				1A7E3A16180AD04100576095 /* oolite-scavengerAI.js */,
+				1A7E3A17180AD04100576095 /* oolite-shuttleAI.js */,
+				1A7E3A18180AD04100576095 /* oolite-stationAI.js */,
+				1A7E3A19180AD04100576095 /* oolite-thargletAI.js */,
+				1A7E3A1A180AD04100576095 /* oolite-thargoidAI.js */,
+				1A7E3A1B180AD04100576095 /* oolite-traderAI.js */,
+				1A7E3A1C180AD04100576095 /* oolite-traderOpportunistAI.js */,
 				1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */,
 				1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */,
 				1A2317910B9D022400EF0852 /* buoyAI.plist */,
@@ -2352,6 +2449,8 @@
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
 				1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */,
 				1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */,
+				1A7E3A33180AD08F00576095 /* oolite-particle-cloud.png */,
+				1A7E3A34180AD08F00576095 /* oolite-particle-cloud2.png */,
 				1A6C6D5C1652E038005D1D3B /* oolite-particle-dust.png */,
 				1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */,
 				1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */,
@@ -2635,6 +2734,7 @@
 				1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */,
 				1A572FB80D84B640003D4A26 /* oolite-nova-mission.js */,
 				1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */,
+				1A7E3A37180AD0DE00576095 /* oolite-priorityai.js */,
 				1AAADFBD17CB25A30032C68B /* oolite-registership.js */,
 				1A572FB90D84B640003D4A26 /* oolite-thargoid-plans-mission.js */,
 				1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */,
