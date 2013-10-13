@@ -81,7 +81,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setSize:(OOScalar)newSize;
+- (void) setSize:(OOScalar)newSize
 {
 	if (newSize > 0)
 	{
