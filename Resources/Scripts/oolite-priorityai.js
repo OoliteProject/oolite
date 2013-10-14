@@ -3938,7 +3938,7 @@ PriorityAIController.prototype.configurationSelectShuttleDestination = function(
 		if (distance > possible.collisionRadius + 10000)
 		{
 			// must be friendly destination and not moving too fast
-			if (possible.isPlanet || this.friendlyStation(possible) || possible.maxSpeed > this.ship.maxSpeed / 5)
+			if (possible.isPlanet || (this.friendlyStation(possible) && (possible.maxSpeed < this.ship.maxSpeed / 5)))
 			{
 				if (distance > system.mainPlanet.radius * 5)
 				{
