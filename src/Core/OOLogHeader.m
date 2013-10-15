@@ -216,15 +216,13 @@ static NSString *AdditionalLogHeaderInfo(void)
 
 static NSString *GetCPUDescription(void)
 {
-	unsigned long long	sysCPUType, sysCPUSubType, sysCPUFamily,
-						sysCPUFrequency, sysCPUCount;
 	NSString			*typeStr = nil, *subTypeStr = nil;
 	
-	sysCPUType = GetSysCtlInt("hw.cputype");
-	sysCPUSubType = GetSysCtlInt("hw.cpusubtype");
-	sysCPUFamily = GetSysCtlInt("hw.cpufamily");
-	sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
-	sysCPUCount = GetSysCtlInt("hw.logicalcpu");
+	unsigned long long sysCPUType = GetSysCtlInt("hw.cputype");
+	unsigned long long sysCPUFamily = GetSysCtlInt("hw.cpufamily");
+	unsigned long long sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
+	unsigned long long sysCPUCount = GetSysCtlInt("hw.physicalcpu");
+	unsigned long long sysLogicalCPUCount = GetSysCtlInt("hw.logicalcpu");
 	
 	/*	Note: CPU_TYPE_STRING tells us the build architecture. This gets the
 		physical CPU type. They may differ, for instance, when running under
@@ -265,8 +263,12 @@ static NSString *GetCPUDescription(void)
 					subTypeStr = @" (Ivy Bridge)";
 					break;
 					
+				case 0x10b282dc:
+					subTypeStr = @" (Haswell)";
+					break;
+					
 				default:
-					subTypeStr = [NSString stringWithFormat:@" (family %llx)", sysCPUFamily];
+					subTypeStr = [NSString stringWithFormat:@" (family 0x%llx)", sysCPUFamily];
 			}
 			break;
 		
@@ -276,7 +278,11 @@ static NSString *GetCPUDescription(void)
 	
 	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"CPU type %llu", sysCPUType];
 	
-	return [NSString stringWithFormat:@"%llu x %@%@ @ %llu MHz", sysCPUCount, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
+	NSString *countStr = nil;
+	if (sysCPUCount == sysLogicalCPUCount)  countStr = [NSString stringWithFormat:@"%llu", sysCPUCount];
+	else countStr = [NSString stringWithFormat:@"%llu (%llu logical)", sysCPUCount, sysLogicalCPUCount];
+	
+	return [NSString stringWithFormat:@"%@ x %@%@ @ %llu MHz", countStr, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
 }
 
 
