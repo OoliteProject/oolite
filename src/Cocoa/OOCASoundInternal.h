@@ -35,7 +35,6 @@ SOFTWARE.
 #import "OOCAStreamingSound.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
-#import <OSAtomic.h>
 #import "OOErrorDescription.h"
 #import "OOLogging.h"
 #import "OOMaths.h"
