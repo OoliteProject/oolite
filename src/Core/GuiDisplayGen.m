@@ -1980,6 +1980,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			}			
 			break;
 		case OOLRC_MODE_NORMAL:
+		default:
 			if (EXPECT(noNova))
 			{
 				r = g = b = 1.0;
