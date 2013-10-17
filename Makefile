@@ -56,41 +56,42 @@ endif
 .PHONY: debug
 debug: $(DEPS_DBG)
 	$(MAKE) -f GNUmakefile debug=yes
-	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
+	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: release
 release: $(DEPS)
 	$(MAKE) -f GNUmakefile debug=no
-	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
+	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: release-deployment
 release-deployment: $(DEPS)
 	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
-	
+
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
-	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
+	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 # Here are targets using the provided dependencies
 .PHONY: deps-debug
 deps-debug: $(DEPS_DBG)
 	$(MAKE) -f GNUmakefile debug=yes use_deps=yes
-	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
+	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-release
 deps-release: $(DEPS)
 	$(MAKE) -f GNUmakefile debug=no use_deps=yes
-	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
-	
+	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
+
+
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
 	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes
-	
+
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
-	cd DebugOXP && $(MAKE) && cd .. && mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && mv -f DebugOXP/Basic-debug.oxp AddOns/
+	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: LIBJS_DBG
 LIBJS_DBG:
@@ -114,7 +115,7 @@ endif
 clean:
 	$(MAKE) -f GNUmakefile clean
 	$(RM) -rf oolite.app
-	$(RM) -rf AddOns && cd DebugOXP && $(MAKE) clean && cd ..
+	$(RM) -rf AddOns 
 
 .PHONY: distclean
 distclean: clean
@@ -204,7 +205,7 @@ ${NSISVERSIONS}:
 .PHONY: pkg-win
 pkg-win: release ${NSISVERSIONS}
 	$(NSIS) installers/win32/OOlite.nsi
-	
+
 .PHONY: pkg-win-deployment
 pkg-win-deployment: release-deployment ${NSISVERSIONS}
 	@echo "!define DEPLOYMENT 1" >> ${NSISVERSIONS}
