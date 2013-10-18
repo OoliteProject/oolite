@@ -80,6 +80,7 @@ HPVector OORandomPositionInShell(HPVector centre, OOHPScalar inner, OOHPScalar o
 HPVector OOProjectHPVectorToPlane(HPVector point, HPVector plane, HPVector normal);
 #endif
 
+
 /* Multiply vector by scalar (in place) */
 OOINLINE void HPscale_vector(HPVector *outHPVector, OOHPScalar factor) ALWAYS_INLINE_FUNC NONNULL_FUNC;
 
@@ -137,6 +138,8 @@ OOINLINE HPVector HPnormal_to_surface(HPVector v1, HPVector v2, HPVector v3) CON
 
 #if __OBJC__
 NSString *HPVectorDescription(HPVector vector);	// @"(x, y, z)"
+NSArray *ArrayFromHPVector(HPVector vector);
+
 #endif
 
 #if OOMATHS_OPENGL_INTEGRATION

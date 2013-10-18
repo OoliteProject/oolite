@@ -561,7 +561,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self setEntityPersonalityInt:PersonalityForCommanderDict(fileDic)];
 	
 	// dockedStation is always the main station at this point;
-	// localMarket always refers to the main station (system) market
+	// "localMarket" save key always refers to the main station (system) market
 	if (![dockedStation localMarket])
 	{
 		NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
@@ -581,22 +581,18 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	// read saved position vector and primary role, check for an
 	// appropriate station at those coordinates, if found, switch
 	// docked station to that one.
-	HPVector dockedPos = kZeroHPVector;
-	dockedPos.x = [fileDic oo_doubleForKey:@"docked_station_position_x"];
-	dockedPos.y = [fileDic oo_doubleForKey:@"docked_station_position_y"];
-	dockedPos.z = [fileDic oo_doubleForKey:@"docked_station_position_z"];
+	HPVector dockedPos = [fileDic oo_hpvectorForKey:@"docked_station_position"];
 	NSString *dockedRole = [fileDic oo_stringForKey:@"docked_station_role" defaultValue:@""];
 	StationEntity *saveStation = [UNIVERSE stationWithRole:dockedRole andPosition:dockedPos];
+	OOLog(@"station.debug",@"%@",saveStation);
 	if (saveStation != nil && [saveStation allowsSaving])
 	{
-		dockedStation = saveStation;
+		[self setDockedStation:saveStation];
 		position = [saveStation position];
-		if ([UNIVERSE station] != saveStation)
-		{
-			NSArray *secondaryMarket = [fileDic oo_arrayForKey:@"docked_station_market"];
-			if (secondaryMarket != nil)  [dockedStation setLocalMarket:secondaryMarket];
-		}
+		OOLog(@"station.debug",@"Docked station = %@",[self dockedStation]);
 	}
+	// and initialise markets for the secondary stations
+	[UNIVERSE loadStationMarkets:[fileDic oo_arrayForKey:@"station_markets"]];
 
 	[self startUpComplete];
 

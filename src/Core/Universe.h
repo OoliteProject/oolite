@@ -660,8 +660,9 @@ enum
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;
 
 - (Random_Seed) marketSeed;
-//- (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute) current_time;
-//- (NSArray *) contractsForLocalSystemAtTime:(OOTimeAbsolute) current_time;
+- (void) loadStationMarkets:(NSArray *)marketData;
+- (NSArray *) getStationMarkets;
+
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
 
 /* Calculate base cost, before depreciation */

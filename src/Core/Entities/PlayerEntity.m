@@ -139,9 +139,6 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) noteCompassLostTarget;
 
-// Dumb setter; callers are responsible for sanity.
-- (void) setDockedStation:(StationEntity *)station;
-
 @end
 
 
@@ -828,7 +825,7 @@ static GLfloat		sBaseMass = 0.0;
 	// wormhole information
 	NSMutableArray *wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
 	NSEnumerator *wormholes = [scannedWormholes objectEnumerator];
-	WormholeEntity *wh;
+	WormholeEntity *wh = nil;
 	foreach(wh, wormholes)
 	{
 		[wormholeDicts addObject:[wh getDict]];
@@ -839,10 +836,8 @@ static GLfloat		sBaseMass = 0.0;
 	StationEntity *dockedStation = [self dockedStation];
 	[result setObject:[dockedStation primaryRole] forKey:@"docked_station_role"];
 	HPVector dpos = [dockedStation position];
-	[result setObject:[NSNumber numberWithDouble:dpos.x] forKey:@"docked_station_position_x"];
-	[result setObject:[NSNumber numberWithDouble:dpos.y] forKey:@"docked_station_position_y"];
-	[result setObject:[NSNumber numberWithDouble:dpos.z] forKey:@"docked_station_position_z"];
-	[result setObject:[dockedStation localMarket] forKey:@"docked_station_market"];
+	[result setObject:ArrayFromHPVector(dpos) forKey:@"docked_station_position"];
+	[result setObject:[UNIVERSE getStationMarkets] forKey:@"station_markets"];
 
 	// create checksum
 	clear_checksum();

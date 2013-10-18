@@ -649,6 +649,9 @@ typedef enum
 
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;
+// Dumb setter; callers are responsible for sanity.
+- (void) setDockedStation:(StationEntity *)station;
+
 
 - (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking;
 - (void) disengageAutopilot;

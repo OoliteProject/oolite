@@ -44,6 +44,15 @@ NSString *HPVectorDescription(HPVector vector)
 {
 	return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
 }
+
+NSArray *ArrayFromHPVector(HPVector vec)
+{
+	return [NSArray arrayWithObjects:[NSNumber numberWithDouble:vec.x],
+					[NSNumber numberWithDouble:vec.y],
+					[NSNumber numberWithDouble:vec.z],
+					nil];
+}
+
 #endif
 
 

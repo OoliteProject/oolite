@@ -2781,17 +2781,18 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		return nil;
 	}
 
-	float range = 10000; // allow a little variation in position
-	unsigned i;
+	float range = 1000000; // allow a little variation in position
 
-	// TODO: once the branch with cached station lists is merged in,
-	// use that list rather than the full entity list!
-	for (i = 0; i < n_entities; i++)
+	NSArray *stations = [self stations];
+	StationEntity *station = nil;
+	foreach (station, stations)
 	{
-		Entity *e = sortedEntities[i];
-		if ([e isStation] && EntityInRange(position, e, range) && [[(StationEntity *)e primaryRole] isEqualToString:role])
+		if (HPdistance2(position,[station position]) < range)
 		{
-			return (StationEntity *)e;
+			if ([[station primaryRole] isEqualToString:role])
+			{
+				return station;
+			}
 		}
 	}
 	return nil;
@@ -8292,6 +8293,68 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	ret.a ^= ret.b;	// XOR
 	
 	return ret;
+}
+
+
+- (void) loadStationMarkets:(NSArray *)marketData
+{
+	if (marketData == nil)
+	{
+		return;
+	}
+
+	NSArray *stations = [self stations];
+	StationEntity *station = nil;
+	NSDictionary *savedMarket = nil;
+
+	foreach (savedMarket, marketData)
+	{
+		HPVector pos = [savedMarket oo_hpvectorForKey:@"position"];
+		foreach (station, stations)
+		{
+			// must be deterministic and secondary
+			if ([station allowsSaving] && station != [UNIVERSE station])
+			{
+				// allow a km of drift just in case
+				if (HPdistance2(pos,[station position]) < 1000000)
+				{
+					[station setLocalMarket:[savedMarket oo_arrayForKey:@"market"]];
+					break;
+				}
+			}
+		}
+	}
+
+}
+
+
+- (NSArray *) getStationMarkets
+{
+	NSMutableArray *markets = [[NSMutableArray alloc] init];
+	NSArray *stations = [self stations];
+
+	StationEntity *station = nil;
+	NSMutableDictionary *savedMarket = nil;
+
+	NSArray *stationMarket = nil;
+
+	foreach (station, stations)
+	{
+		// must be deterministic and secondary
+		if ([station allowsSaving] && station != [UNIVERSE station])
+		{
+			stationMarket = [station localMarket];
+			if (stationMarket != nil)
+			{
+				savedMarket = [NSMutableDictionary dictionaryWithCapacity:2];
+				[savedMarket setObject:[station localMarket] forKey:@"market"];
+				[savedMarket setObject:ArrayFromHPVector([station position]) forKey:@"position"];
+				[markets addObject:savedMarket];
+			}
+		}
+	}
+
+	return [markets autorelease];
 }
 
 

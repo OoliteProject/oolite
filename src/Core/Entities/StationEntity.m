@@ -117,6 +117,10 @@
 
 - (NSMutableArray *) localMarket
 {
+	if (!localMarket)
+	{
+		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+	}
 	return localMarket;
 }
 
