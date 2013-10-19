@@ -10,6 +10,7 @@
 	"oolite-contracts-helpers.js",
 	"oolite-contracts-parcels.js",
 	"oolite-contracts-passengers.js",
+	"oolite-primable-equipment-manager.js",
 	"oolite-registership.js",
 
   /* Missions */

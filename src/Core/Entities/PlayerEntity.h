@@ -80,6 +80,12 @@ enum
 
 typedef enum
 {
+	OOPRIMEDEQUIP_ACTIVATED,
+	OOPRIMEDEQUIP_MODE
+} OOPrimedEquipmentMode;
+
+typedef enum
+{
 	OOLRC_MODE_NORMAL = 0,
 	OOLRC_MODE_ECONOMY = 1,
 	OOLRC_MODE_GOVERNMENT = 2,
@@ -383,7 +389,9 @@ typedef enum
 	OOMissileStatus			missile_status;
 	NSUInteger				activeMissile;
 	NSUInteger				primedEquipment;
-	
+	NSString				*_fastEquipmentA;
+	NSString				*_fastEquipmentB;
+
 	OOCargoQuantity			current_cargo;
 	
 	NSPoint					cursor_coordinates;
@@ -437,6 +445,8 @@ typedef enum
 #if FEATURE_REQUEST_5496
 	OOKeyCode				key_mode_equipment;
 #endif
+	OOKeyCode				key_fastactivate_equipment_a;
+	OOKeyCode				key_fastactivate_equipment_b;
 	
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;
@@ -447,7 +457,6 @@ typedef enum
 	OOKeyCode				key_scanner_unzoom;
 	
 	OOKeyCode				key_launch_escapepod;
-	OOKeyCode				key_energy_bomb;
 	
 	OOKeyCode				key_galactic_hyperspace;
 	OOKeyCode				key_hyperspace;
@@ -475,9 +484,7 @@ typedef enum
 	OOKeyCode				key_prev_compass_mode;
 	OOKeyCode				key_next_compass_mode;
 	
-	OOKeyCode				key_cloaking_device;
-	
-	OOKeyCode				key_contract_info;
+	OOKeyCode				key_chart_highlight;
 	
 	OOKeyCode				key_next_target;
 	OOKeyCode				key_previous_target;
@@ -804,6 +811,12 @@ typedef enum
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
 - (NSString *) primedEquipmentName:(NSInteger)offset;
 - (NSUInteger) primedEquipmentCount;
+- (void) activatePrimableEquipment:(NSUInteger)index withMode:(OOPrimedEquipmentMode)mode;
+- (NSString *) fastEquipmentA;
+- (NSString *) fastEquipmentB;
+- (void) setFastEquipmentA:(NSString *)eqKey;
+- (void) setFastEquipmentB:(NSString *)eqKey;
+
 - (NSArray *) cargoList;
 //- (NSArray *) cargoListForScripting; // now in ShipEntity
 - (unsigned) legalStatusOfCargoList;

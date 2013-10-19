@@ -584,12 +584,10 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	HPVector dockedPos = [fileDic oo_hpvectorForKey:@"docked_station_position"];
 	NSString *dockedRole = [fileDic oo_stringForKey:@"docked_station_role" defaultValue:@""];
 	StationEntity *saveStation = [UNIVERSE stationWithRole:dockedRole andPosition:dockedPos];
-	OOLog(@"station.debug",@"%@",saveStation);
 	if (saveStation != nil && [saveStation allowsSaving])
 	{
 		[self setDockedStation:saveStation];
 		position = [saveStation position];
-		OOLog(@"station.debug",@"Docked station = %@",[self dockedStation]);
 	}
 	// and initialise markets for the secondary stations
 	[UNIVERSE loadStationMarkets:[fileDic oo_arrayForKey:@"station_markets"]];

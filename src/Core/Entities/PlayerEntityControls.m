@@ -72,19 +72,21 @@ static BOOL				activate_equipment_pressed;
 #if FEATURE_REQUEST_5496
 static BOOL				mode_equipment_pressed;
 #endif
+static BOOL				fastactivate_a_pressed;
+static BOOL				fastactivate_b_pressed;
 static BOOL				next_missile_pressed;
 static BOOL				fire_missile_pressed;
 static BOOL				target_missile_pressed;
 static BOOL				target_incoming_missile_pressed;
 static BOOL				ident_pressed;
 static BOOL				safety_pressed;
-static BOOL				cloak_pressed;
 static BOOL				rotateCargo_pressed;
 static BOOL				autopilot_key_pressed;
 static BOOL				fast_autopilot_key_pressed;
 static BOOL				docking_clearance_request_key_pressed;
 #ifndef NDEBUG
 static BOOL				dump_target_state_pressed;
+static BOOL				dump_entity_list_pressed;
 #endif
 static BOOL				taking_snapshot;
 static BOOL				hide_hud_pressed;
@@ -206,9 +208,12 @@ static NSTimeInterval	time_last_frame;
 			[kdic setObject:[NSNumber numberWithUnsignedChar:keychar] forKey:key];
 		}
 	}
-	
+
 	// set default keys.
 #define LOAD_KEY_SETTING(name, default)	name = [kdic oo_unsignedShortForKey:@#name defaultValue:default]; [kdic setObject:[NSNumber numberWithUnsignedChar:name] forKey:@#name]
+
+#define LOAD_KEY_SETTING_ALIAS(name, oldname, default) name = [kdic oo_unsignedShortForKey:@#name defaultValue:[kdic oo_unsignedShortForKey:@#oldname defaultValue:default]]; [kdic setObject:[NSNumber numberWithUnsignedChar:name] forKey:@#name]
+
 	
 	LOAD_KEY_SETTING(key_roll_left,				gvArrowKeyLeft		);
 	LOAD_KEY_SETTING(key_roll_right,			gvArrowKeyRight		);
@@ -232,6 +237,8 @@ static NSTimeInterval	time_last_frame;
 #if FEATURE_REQUEST_5496
 	LOAD_KEY_SETTING(key_mode_equipment,		'b'			);
 #endif
+	LOAD_KEY_SETTING_ALIAS(key_fastactivate_equipment_a, key_cloaking_device,		'0'			);
+	LOAD_KEY_SETTING_ALIAS(key_fastactivate_equipment_b, key_energy_bomb,			'\t'		);
 	
 	LOAD_KEY_SETTING(key_target_missile,		't'			);
 	LOAD_KEY_SETTING(key_untarget_missile,		'u'			);
@@ -242,7 +249,6 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_scanner_unzoom,		'Z'			);
 	
 	LOAD_KEY_SETTING(key_launch_escapepod,		27	/* esc */ );
-	LOAD_KEY_SETTING(key_energy_bomb,			'\t'		);
 	
 	LOAD_KEY_SETTING(key_galactic_hyperspace,	'g'			);
 	LOAD_KEY_SETTING(key_hyperspace,			'h'			);
@@ -271,9 +277,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_prev_compass_mode,		'|'			);
 	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'		);
 	
-	LOAD_KEY_SETTING(key_cloaking_device,		'0'			);
-	
-	LOAD_KEY_SETTING(key_contract_info,			'\?'		);
+	LOAD_KEY_SETTING_ALIAS(key_chart_highlight,	key_contract_info,	'\?'	);
 	
 	LOAD_KEY_SETTING(key_cycle_mfd,				';'			);
 	LOAD_KEY_SETTING(key_switch_mfd,			':'			);
@@ -1035,17 +1039,9 @@ static NSTimeInterval	time_last_frame;
 				// activate equipment 'n' - runs the activated() function inside the equipment's script.
 				if ([gameView isDown:key_activate_equipment] || joyButtonState[BUTTON_ACTIVATEEQUIPMENT])
 				{
-
-				if (!activate_equipment_pressed)
+					if (!activate_equipment_pressed)
 					{
-						// primedEquipment == [eqScripts count] means we don't want to activate any equipment.
-						if(primedEquipment < [eqScripts count])
-						{
-							OOJSScript *eqScript = [[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1];
-							JSContext *context = OOJSAcquireContext();
-							[eqScript callMethod:OOJSID("activated") inContext:context withArguments:NULL count:0 result:NULL];
-							OOJSRelinquishContext(context);
-						}
+						[self activatePrimableEquipment:primedEquipment withMode:OOPRIMEDEQUIP_ACTIVATED];
 					}
 					activate_equipment_pressed = YES;
 				}
@@ -1056,23 +1052,38 @@ static NSTimeInterval	time_last_frame;
 				// mode equipment 'b' - runs the mode() function inside the equipment's script.
 				if ([gameView isDown:key_mode_equipment])
 				{
-
-				if (!mode_equipment_pressed)
+					if (!mode_equipment_pressed)
 					{
-						// primedEquipment == [eqScripts count] means we don't want to change mode of any equipment.
-						if(primedEquipment < [eqScripts count])
-						{
-							OOJSScript *eqScript = [[eqScripts oo_arrayAtIndex:primedEquipment] objectAtIndex:1];
-							JSContext *context = OOJSAcquireContext();
-							[eqScript callMethod:OOJSID("mode") inContext:context withArguments:NULL count:0 result:NULL];
-							OOJSRelinquishContext(context);
-						}
+						[self activatePrimableEquipment:primedEquipment withMode:OOPRIMEDEQUIP_MODE];
 					}
 					mode_equipment_pressed = YES;
 				}
 				else  mode_equipment_pressed = NO;
 			#endif	// FEATURE_REQUEST_5496
 				
+				exceptionContext = @"fast equipment A";
+				if ([gameView isDown:key_fastactivate_equipment_a])
+				{
+					if (!fastactivate_a_pressed)
+					{
+						[self activatePrimableEquipment:[self eqScriptIndexForKey:[self fastEquipmentA]] withMode:OOPRIMEDEQUIP_ACTIVATED];
+					}
+					fastactivate_a_pressed = YES;
+				}
+				else fastactivate_a_pressed = NO;
+
+				exceptionContext = @"fast equipment B";
+				if ([gameView isDown:key_fastactivate_equipment_b])
+				{
+					if (!fastactivate_b_pressed)
+					{
+						[self activatePrimableEquipment:[self eqScriptIndexForKey:[self fastEquipmentB]] withMode:OOPRIMEDEQUIP_ACTIVATED];
+					}
+					fastactivate_b_pressed = YES;
+				}
+				else fastactivate_b_pressed = NO;
+
+
 				exceptionContext = @"incoming missile T";
 				// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
 				if ([gameView isDown:key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE])
@@ -1138,17 +1149,7 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 				
-				exceptionContext = @"energy bomb";
-				//  shoot 'tab'   // Energy bomb
-				if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB]) && [self hasEnergyBomb])
-				{
-					// original energy bomb routine
-					if ([self fireEnergyBomb])
-					{
-						[self removeEquipmentItem:@"EQ_ENERGY_BOMB"];
-					}
-				}
-				
+			
 				exceptionContext = @"escape pod";
 				//  shoot 'escape'   // Escape pod launch - NOTE: Allowed at all times, but requires double press within a specific time interval.
 							// Double press not available in strict mode or when the "escape-pod-activation-immediate" override is in the 
@@ -1325,26 +1326,6 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 					galhyperspace_pressed = NO;
-				
-				exceptionContext = @"cloaking device";
-				//  shoot '0'   // Cloaking Device
-				if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && [self hasCloakingDevice])
-				{
-					if (!cloak_pressed)
-					{
-						if (!cloaking_device_active)
-						{
-							[self activateCloakingDevice];
-						}
-						else
-						{
-							[self deactivateCloakingDevice];
-						}
-					}
-					cloak_pressed = YES;
-				}
-				else
-					cloak_pressed = NO;
 
 
 				exceptionContext = @"cycle mfds";
@@ -1443,16 +1424,16 @@ static NSTimeInterval	time_last_frame;
 			// look for debugging keys
 			if ([gameView isDown:48])// look for the '0' key
 			{
-				if (!cloak_pressed)
+				if (!dump_entity_list_pressed)
 				{
 					[UNIVERSE debugDumpEntities];
 					gDebugFlags = 0;
 					[UNIVERSE addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
 				}
-				cloak_pressed = YES;
+				dump_entity_list_pressed = YES;
 			}
 			else
-				cloak_pressed = NO;
+				dump_entity_list_pressed = NO;
 			
 			// look for debugging keys
 			if ([gameView isDown:'d'])// look for the 'd' key
@@ -1639,7 +1620,7 @@ static NSTimeInterval	time_last_frame;
 				}
 			}
 
-			if ([gameView isDown:key_contract_info])   // '?' toggle chart colours
+			if ([gameView isDown:key_chart_highlight])   // '?' toggle chart colours
 			{
 				if (!queryPressed)
 				{
@@ -2206,48 +2187,6 @@ static NSTimeInterval	time_last_frame;
 				}
 			}
 			break;
-			
-/*		case GUI_SCREEN_CONTRACTS:
-			if ([self status] == STATUS_DOCKED)
-			{
-				if ([self handleGUIUpDownArrowKeys])
-					[self setGuiToContractsScreen];
-				
-				if ([self status] == STATUS_DOCKED && ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]))   // 'enter' | doubleclick
-				{
-					if ([gameView isDown:gvMouseDoubleClick])
-						[gameView clearMouse];
-					if (!selectPressed)
-					{
-						if ([self pickFromGuiContractsScreen])
-						{
-							[self playBuyCommodity];
-							[self setGuiToContractsScreen];
-						}
-						else
-						{
-							[self playCantBuyCommodity];
-						}
-					}
-					selectPressed = YES;
-				}
-				else
-				{
-					selectPressed = NO;
-				}
-				if ([gameView isDown:key_contract_info])   // '?' toggle between contracts screen and map
-				{
-					if (!queryPressed)
-					{
-						oldSelection = [gui selectedRow];
-						[self highlightSystemFromGuiContractsScreen];
-					}
-					queryPressed = YES;
-				}
-				else
-					queryPressed = NO;
-			}
-			break; */
 			
 		case GUI_SCREEN_REPORT:
 			if ([gameView isDown:32])	// spacebar

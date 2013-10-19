@@ -287,7 +287,7 @@
 	aiScript = [OOScript jsAIScriptFromFileNamed:aiString properties:properties];
 	if (aiScript == nil)
 	{
-		OOLog(@"ai.load.failed.unknownAI",@"Unable to load JS AI %@",aiString);
+		OOLog(@"ai.load.failed.unknownAI",@"Unable to load JS AI %@ for ship %@",aiString,self);
 		aiScript = [OOScript jsAIScriptFromFileNamed:@"oolite-nullAI.js" properties:properties];
 	}
 	else

@@ -19,6 +19,8 @@
 	key_prime_equipment			= "N";
 	key_activate_equipment		= "n";
 	key_mode_equipment			= "b";
+	key_fastactivate_equipment_a = "0";
+	key_fastactivate_equipment_b = "\t";	// tab
 
 	key_target_incoming_missile	= "T";
 	key_target_missile			= "t";
@@ -29,7 +31,8 @@
 	key_scanner_unzoom			= "Z";
 
 	key_launch_escapepod		= 27;		// escape
-	key_energy_bomb				= "\t";		// tab
+	// now primable equipment; old key works for compatibility
+	// key_energy_bomb				= "\t";		// tab
 
 	key_galactic_hyperspace		= "g";
 	key_hyperspace				= "h";
@@ -58,12 +61,14 @@
 	key_prev_compass_mode		= "|";
 	key_next_compass_mode		= "\\";
 
-	key_cloaking_device			= "0";
+	// now primable equipment; old key works for compatibility
+	// key_cloaking_device			= "0";
 
 	// in 1.76 switches between contracts and long range chart
 	// in 1.77 to 1.78 does nothing
 	// in 1.79 or later, cycles long range chart highlight mode
-	key_contract_info			= "?";
+	// key_contract_info			= "?"; // old name works for compatibility
+	key_chart_highlight			= "?";
 
 	key_cycle_mfd				= ";";
 	key_switch_mfd				= ":";

@@ -146,6 +146,7 @@
 		{
 			condition_script = "oolite-conditions.js";
 			portable_between_ships = true;
+			script = "oolite-cloaking-device-equipment.js";
 			available_to_all = true;
 		}
 	),

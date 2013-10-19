@@ -169,4 +169,19 @@
 	"oolite-registership-title-part3" = "Thank you for completing registration";
 	"oolite-registership-instructions-part3" = "Thank you. Your selected personal name and new ship name have been recorded, and will be transmitted to public ship registries in the next daily feed.\n\nIf at any point you wish to change either your own name or that of your ship, you may do so by docking at any Galactice Cooperative station, returning to this interface and entering the new data.";
 
+	// primable equipment management
+	"oolite-primablemanager-interface-title" = "Manage primable equipment";
+	"oolite-primablemanager-interface-category" = "[interfaces-category-ship-systems]";
+	"oolite-primablemanager-interface-summary" = "Assign primable equipment fitted to your ship to the two fast activation controls, for easy access in emergencies.";
+
+	"oolite-primablemanager-page1-title" = "Set first fast activation";
+	"oolite-primablemanager-page2-title" = "Set second fast activation";
+	"oolite-primablemanager-setup-text" = "Select the equipment to bind to this fast activation control.";
+	"oolite-primablemanager-page3-title" = "Fast activation settings saved";
+	"oolite-primablemanager-select-none" = "Assign no equipment";
+	"oolite-primablemanager-selected-text" = "(selected)";
+
+	"oolite-primablemanager-completed" = "Equipment configuration is complete.\n\nFirst fast activation:\n  [oolite-primable-a]\n\nSecond fast activation:\n  [oolite-primable-b]";
+
+
 }

@@ -107,6 +107,8 @@ enum
 	kPlayerShip_cursorCoordinatesInLY,			// cursor coordinates (in LY), Vector3D, read only
 	kPlayerShip_docked,							// docked, boolean, read-only
 	kPlayerShip_dockedStation,					// docked station, entity, read-only
+	kPlayerShip_fastEquipmentA,					// fast equipment A, string, read/write
+	kPlayerShip_fastEquipmentB,					// fast equipment B, string, read/write
 	kPlayerShip_forwardShield,					// forward shield charge level, nonnegative float, read/write
 	kPlayerShip_forwardShieldRechargeRate,		// forward shield recharge rate, positive float, read-only
 	kPlayerShip_fuelLeakRate,					// fuel leak rate, float, read/write
@@ -153,6 +155,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "cursorCoordinatesInLY",			kPlayerShip_cursorCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "docked",							kPlayerShip_docked,							OOJS_PROP_READONLY_CB },
 	{ "dockedStation",					kPlayerShip_dockedStation,					OOJS_PROP_READONLY_CB },
+	{ "fastEquipmentA",					kPlayerShip_fastEquipmentA,					OOJS_PROP_READWRITE_CB },
+	{ "fastEquipmentB",					kPlayerShip_fastEquipmentB,					OOJS_PROP_READWRITE_CB },
 	{ "forwardShield",					kPlayerShip_forwardShield,					OOJS_PROP_READWRITE_CB },
 	{ "forwardShieldRechargeRate",		kPlayerShip_forwardShieldRechargeRate,		OOJS_PROP_READONLY_CB },
 	{ "fuelLeakRate",					kPlayerShip_fuelLeakRate,					OOJS_PROP_READWRITE_CB },
@@ -331,6 +335,15 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_galacticHyperspaceFixedCoordsInLY:
 			return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([player galacticHyperspaceFixedCoords]), value);
+
+		case kPlayerShip_fastEquipmentA:
+			result = [player fastEquipmentA];
+			break;
+
+		case kPlayerShip_fastEquipmentB:
+			result = [player fastEquipmentB];
+			break;
+
 			
 		case kPlayerShip_forwardShield:
 			return JS_NewNumberValue(context, [player forwardShieldLevel], value);
@@ -510,6 +523,24 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 			
+		case kPlayerShip_fastEquipmentA:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil)
+			{
+				[player setFastEquipmentA:sValue];
+				return YES;
+			}
+			break;
+
+		case kPlayerShip_fastEquipmentB:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil)
+			{
+				[player setFastEquipmentB:sValue];
+				return YES;
+			}
+			break;
+
 		case kPlayerShip_forwardShield:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{

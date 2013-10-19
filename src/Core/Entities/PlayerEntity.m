@@ -737,6 +737,9 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	if (primedEquipment < [eqScripts count]) [result setObject:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0] forKey:@"primed_equipment"];
 	
+	[result setObject:[self fastEquipmentA] forKey:@"primed_equipment_a"];
+	[result setObject:[self fastEquipmentB] forKey:@"primed_equipment_b"];
+
 	// roles
 	[result setObject:roleWeights forKey:@"role_weights"];
 
@@ -980,6 +983,9 @@ static GLfloat		sBaseMass = 0.0;
 	[self addEquipmentFromCollection:equipment];
 	primedEquipment = [self eqScriptIndexForKey:[dict oo_stringForKey:@"primed_equipment"]];	// if key not found primedEquipment is set to primed-none
 	
+	[self setFastEquipmentA:[dict oo_stringForKey:@"primed_equipment_a" defaultValue:@"EQ_CLOAKING_DEVICE"]];
+	[self setFastEquipmentB:[dict oo_stringForKey:@"primed_equipment_b" defaultValue:@"EQ_ENERGY_BOMB"]]; // even though there isn't one, for compatibility.
+
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
 	DESTROY(compassTarget);
@@ -1641,6 +1647,9 @@ static GLfloat		sBaseMass = 0.0;
 	[eqScripts release];
 	eqScripts = [[NSMutableArray alloc] init];
 	primedEquipment = 0;
+	[self setFastEquipmentA:@"EQ_CLOAKING_DEVICE"];
+	[self setFastEquipmentB:@"EQ_ENERGY_BOMB"]; // for compatibility purposes
+
 	[self setActiveMissile:0];
 	for (i = 0; i < missiles; i++)
 	{
@@ -1850,6 +1859,9 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(keyconfig_settings);
 	DESTROY(target_memory);
 	
+	DESTROY(_fastEquipmentA);
+	DESTROY(_fastEquipmentB);
+
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
 	DESTROY(mission_variables);
@@ -6571,6 +6583,55 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) activatePrimableEquipment:(NSUInteger)index withMode:(OOPrimedEquipmentMode)mode
+{
+	// index == [eqScripts count] means we don't want to activate any equipment.
+	if(index < [eqScripts count])
+	{
+		OOJSScript *eqScript = [[eqScripts oo_arrayAtIndex:index] objectAtIndex:1];
+		JSContext *context = OOJSAcquireContext();
+		switch (mode)
+		{
+		case OOPRIMEDEQUIP_MODE:
+			[eqScript callMethod:OOJSID("mode") inContext:context withArguments:NULL count:0 result:NULL];
+			break;
+		case OOPRIMEDEQUIP_ACTIVATED:
+		default:
+			[eqScript callMethod:OOJSID("activated") inContext:context withArguments:NULL count:0 result:NULL];
+			break;
+		}
+		OOJSRelinquishContext(context);
+	}
+
+}
+
+
+- (NSString *) fastEquipmentA
+{
+	return _fastEquipmentA;
+}
+
+
+- (NSString *) fastEquipmentB
+{
+	return _fastEquipmentB;
+}
+
+
+- (void) setFastEquipmentA:(NSString *)eqKey
+{
+	[_fastEquipmentA release];
+	_fastEquipmentA = [eqKey copy];
+}
+
+
+- (void) setFastEquipmentB:(NSString *)eqKey
+{
+	[_fastEquipmentB release];
+	_fastEquipmentB = [eqKey copy];
+}
+
+
 - (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
 	OOWeaponType weaponType = WEAPON_NONE;
@@ -10474,6 +10535,8 @@ else _dockTarget = NO_TARGET;
 #if FEATURE_REQUEST_5496
 	key_mode_equipment &&
 #endif
+	key_fastactivate_equipment_a &&
+	key_fastactivate_equipment_b &&
 	key_target_missile &&
 	key_untarget_missile &&
 	key_target_incoming_missile &&
@@ -10481,7 +10544,6 @@ else _dockTarget = NO_TARGET;
 	key_scanner_zoom &&
 	key_scanner_unzoom &&
 	key_launch_escapepod &&
-	key_energy_bomb &&
 	key_galactic_hyperspace &&
 	key_hyperspace &&
 	key_jumpdrive &&
@@ -10501,11 +10563,12 @@ else _dockTarget = NO_TARGET;
 	key_comms_log &&
 	key_prev_compass_mode &&
 	key_next_compass_mode &&
-	key_cloaking_device &&
-	key_contract_info &&
+	key_chart_highlight &&
 	key_next_target &&
 	key_previous_target &&
 	key_custom_view &&
+	key_cycle_mfd &&
+	key_switch_mfd &&
 	key_docking_clearance_request &&
 	key_dump_target_state &&
 	key_weapons_online_toggle &&
