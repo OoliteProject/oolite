@@ -8026,7 +8026,14 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 		}
 	}
-
+	
+	/* the actual damage can't go more than S_M_R, so cap the range
+	 * for exploding purposes so that the visual appearance isn't
+	 * larger than that */
+	if (range > SCANNER_MAX_RANGE / 4.0)
+	{
+		range = SCANNER_MAX_RANGE / 4.0;
+	}
 	// and a visual sign of the explosion
 	// "fireball" explosion effect
 	[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSize:range*3.0]];
