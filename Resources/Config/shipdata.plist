@@ -425,6 +425,9 @@
 		like_ship = "oolite_template_asp";
 		auto_ai = no;
 		bounty = 150;
+		escorts = 2;
+		escort_role = "asp-pirate";
+		max_cargo = 5; // needed to encourage an attack
 		has_ecm = no;
 		has_cloaking_device = yes;
 		has_fuel_injection = no;

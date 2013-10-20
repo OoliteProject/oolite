@@ -77,8 +77,17 @@ this.systemWillPopulate = function ()
 					location: "WITCHPOINT",
 					callback: function(pos)
 					{
-						system.addShips("asp-cloaked", 1, pos, 0);
-						system.addShips("asp-pirate", 2, pos, 2E3);
+						var asp = system.addShips("asp-cloaked", 1, pos, 0)[0];
+						if (asp.escortGroup.count != 3)
+						{
+							var helpers = system.addShips("asp-pirate", 2, pos, 2E3);
+							asp.group = new ShipGroup("asps",asp);
+							for (var i = 0; i < 3; i++)
+							{
+								helpers[i].group = asp.group;
+								asp.group.addShip(helpers[i]);
+							}
+						}
 					}
 				});
 			}								 
