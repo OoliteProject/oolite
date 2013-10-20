@@ -673,7 +673,6 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setBool:[self hasEscapePod]				forKey:@"has_escape_pod"];
 	[result oo_setBool:[self hasECM]					forKey:@"has_ecm"];
 	[result oo_setBool:[self hasScoop]					forKey:@"has_scoop"];
-	[result oo_setBool:[self hasEnergyBomb]				forKey:@"has_energy_bomb"];
 	[result oo_setBool:[self hasFuelInjection]			forKey:@"has_fuel_injection"];
 	
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
@@ -4713,28 +4712,6 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (BOOL) fireEnergyBomb
-{
-	if (![self weaponsOnline])  return NO;
-
-	NSArray* targets = [UNIVERSE entitiesWithinRange:SCANNER_MAX_RANGE ofEntity:self];
-	if ([targets count] > 0)
-	{
-		unsigned i;
-		for (i = 0; i < [targets count]; i++)
-		{
-			Entity *e2 = [targets objectAtIndex:i];
-			if (e2->isShip)
-				[(ShipEntity *)e2 takeEnergyDamage:1000 from:self becauseOf:self];
-		}
-	}
-	[UNIVERSE addMessage:DESC(@"energy-bomb-activated") forCount:4.5];
-	[self playEnergyBombFired];
-	
-	return YES;
-}
-
-
 - (void) currentWeaponStats
 {
 	OOWeaponType currentWeapon = [self currentWeapon];
@@ -4910,11 +4887,6 @@ static GLfloat		sBaseMass = 0.0;
 	return [self weaponForFacing:currentWeaponFacing];
 }
 
-
-- (BOOL) hasEnergyBomb
-{
-	return [self hasEquipmentItem:@"EQ_ENERGY_BOMB"];
-}
 
 // override ShipEntity definition to ensure that 
 // if shields are still up, always hit the main entity and take the damage

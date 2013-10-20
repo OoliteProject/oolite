@@ -127,7 +127,6 @@ MA 02110-1301, USA.
 - (void) playWeaponOverheated;
 - (void) playMissileLaunched;
 - (void) playMineLaunched;
-- (void) playEnergyBombFired;
 
 // Miscellaneous sounds
 - (void) playEscapePodScooped;

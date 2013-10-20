@@ -74,7 +74,7 @@
 	// Outgoing weapons fire
 	"[player-laser-hit]"			= "laserhits.ogg";
 	"[player-laser-miss]"			= "laser.ogg";
-	"[energy-bomb-fired]"			= "bigbang.ogg";
+	"[energy-bomb-fired]"			= "bigbang.ogg"; 		// Kept for OXP compatibility
 	
 	// Warnings
 	"[@warning]"					= "warning.ogg";		// Not used directly by game, only by references below.

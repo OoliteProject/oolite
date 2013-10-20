@@ -767,7 +767,6 @@ typedef enum
 - (OOEnergyUnitType) installedEnergyUnitType;
 - (OOEnergyUnitType) energyUnitType;
 
-- (BOOL) fireEnergyBomb;
 - (ShipEntity *) launchMine:(ShipEntity *)mine;
 
 - (BOOL) activateCloakingDevice;
@@ -780,8 +779,6 @@ typedef enum
 
 - (OOWeaponType) weaponForFacing:(OOWeaponFacing)facing;
 - (OOWeaponType) currentWeapon;
-
-- (BOOL) hasEnergyBomb;
 
 - (void) rotateCargo;
 

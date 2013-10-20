@@ -597,12 +597,6 @@ static OOSoundSource		*sAfterburnerSources[2];
 }
 
 
-- (void) playEnergyBombFired
-{
-	[sWeaponSoundPool playSoundWithKey:@"[energy-bomb-fired]" priority:2.0];
-}
-
-
 - (void) playEscapePodScooped
 {
 	[sMiscSoundPool playSoundWithKey:@"[escape-pod-scooped]"];
