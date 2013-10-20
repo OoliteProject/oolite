@@ -332,11 +332,11 @@
 		}
 	);
 	message_gui = {
-		width = 216;
-		height = 132;
-		x = 156;
-		y = -68;
-		row_height = 12;
+		width = 252;
+		height = 140;
+		x = 128;
+		y = -60;
+		row_height = 14;
 	};
 	comm_log_gui = {
 		alpha = "0.75";
