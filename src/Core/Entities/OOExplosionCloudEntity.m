@@ -110,15 +110,15 @@ static OOTexture *sCloudTexture2 = nil;
 		_particleSize[i] += delta_t * _growthRate;
 
 		particleColor[i][3] = newAlpha;
-		if (particleColor[i][2] > 0.0)
+		if (particleColor[i][2] > 0.0) // fade blue (white to yellow)
 		{
-			particleColor[i][2] -= delta_t;
+			particleColor[i][2] -= delta_t/2.0;
 			if (particleColor[i][2] < 0.0)
 			{
-			particleColor[i][2] = 0.0f;
+				particleColor[i][2] = 0.0f;
 			}
 		}
-		else if (particleColor[i][1] > 0.0)
+		else if (particleColor[i][1] > 0.0) // fade green (yellow to red)
 		{
 			particleColor[i][1] -= delta_t;
 			if (particleColor[i][1] < 0.0)
@@ -126,9 +126,9 @@ static OOTexture *sCloudTexture2 = nil;
 				particleColor[i][1] = 0.0f;
 			}
 		}
-		else if (particleColor[i][0] > 0.0)
+		else if (particleColor[i][0] > 0.0) // fade red (red to black)
 		{
-			particleColor[i][0] -= delta_t;
+			particleColor[i][0] -= delta_t*2.0;
 			if (particleColor[i][0] < 0.0)
 			{
 				particleColor[i][0] = 0.0f;
