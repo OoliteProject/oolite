@@ -44,6 +44,13 @@ this.shipWasScooped = function (scooper)
 	if (scooper.equipmentStatus("EQ_CLOAKING_DEVICE") !== "EQUIPMENT_OK")
 	{
 		scooper.awardEquipment("EQ_CLOAKING_DEVICE");
+		if (scooper.isPlayer)
+		{
+			// gives it the defensive key if it's not already set
+			worldScripts["oolite-primable-equipment-register"]._updatePrimableEquipmentSettings("EQ_CLOAKING_DEVICE",true);
+			// true as second parameter means this is not reported
+			// without OXPs it will already be set to this
+		}
 	}
 	else if (scooper.isPlayer)
 	{

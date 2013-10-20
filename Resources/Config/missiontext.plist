@@ -174,14 +174,13 @@
 	"oolite-primablemanager-interface-category" = "[interfaces-category-ship-systems]";
 	"oolite-primablemanager-interface-summary" = "Assign primable equipment fitted to your ship to the two fast activation controls, for easy access in emergencies.";
 
-	"oolite-primablemanager-page1-title" = "Set first fast activation";
-	"oolite-primablemanager-page2-title" = "Set second fast activation";
+	"oolite-primablemanager-page1-title" = "Set first fast activation (defensive)";
+	"oolite-primablemanager-page2-title" = "Set second fast activation (offensive)";
 	"oolite-primablemanager-setup-text" = "Select the equipment to bind to this fast activation control.";
 	"oolite-primablemanager-page3-title" = "Fast activation settings saved";
 	"oolite-primablemanager-select-none" = "Assign no equipment";
 	"oolite-primablemanager-selected-text" = "(selected)";
 
-	"oolite-primablemanager-completed" = "Equipment configuration is complete.\n\nFirst fast activation:\n  [oolite-primable-a]\n\nSecond fast activation:\n  [oolite-primable-b]";
-
+	"oolite-primablemanager-completed" = "Equipment configuration is complete.\n\nFirst fast activation (defensive):\n  [oolite-primable-a]\n\nSecond fast activation (offensive):\n  [oolite-primable-b]";
 
 }

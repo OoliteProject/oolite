@@ -55,15 +55,9 @@
 			condition_script = "oolite-conditions.js";
 		}
 	),
-/* Removed entry since strict mode no longer exists. Internal code to make the item work remains, so re-enabling by OXP is straightforward */
-/*	(
-		7, 9000, "Energy Bomb",
-		"EQ_ENERGY_BOMB",
-		"A one-shot super-weapon capable of destroying all small craft within range.",
-		{
-			condition_script = "oolite-conditions.js";
-		}
-	), */
+/* Removed energy bomb entry since strict mode no longer exists. Can
+ * easily be reimplemented as primable equipment with offensive
+ * preference by OXP. */
 	(
 		8, 15000, "Extra Energy Unit",
 		"EQ_ENERGY_UNIT",
@@ -147,6 +141,7 @@
 			condition_script = "oolite-conditions.js";
 			portable_between_ships = true;
 			script = "oolite-cloaking-device-equipment.js";
+			fast_affinity_defensive = true; // tries to bind to '0' key if nothing else using it
 			available_to_all = true;
 		}
 	),

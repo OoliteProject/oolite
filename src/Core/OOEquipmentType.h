@@ -54,8 +54,10 @@ SOFTWARE.
 							_isMissileOrMine: 1,
 							_isVisible: 1,
 							_isAvailableToPlayer: 1,
-							_isAvailableToNPCs: 1;
-	GLfloat     _damageProbability;
+							_isAvailableToNPCs: 1,
+							_fastAffinityA: 1,
+							_fastAffinityB: 1;
+	GLfloat     			_damageProbability;
 	OOCargoQuantity			_requiredCargoSpace;
 	NSSet					*_requiresEquipment;
 	NSSet					*_requiresAnyEquipment;
@@ -118,6 +120,10 @@ SOFTWARE.
 
 - (NSDictionary *) scriptInfo;
 - (NSString *) scriptName;
+
+- (BOOL) fastAffinityDefensive;
+- (BOOL) fastAffinityOffensive;
+
 
 @end
 

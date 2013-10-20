@@ -38,7 +38,58 @@ this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
 this.version		= "1.79";
 
-this.startUpComplete = this.shipDockedWithStation = this.playerBoughtEquipment = this.playerBoughtNewShip = function()
+this.startUpComplete = this.shipDockedWithStation = this.playerBoughtNewShip = function()
+{
+	this._initialiseInterface();
+}
+
+
+this.playerBoughtEquipment = function(eqkey)
+{
+	this._initialiseInterface();
+	this._updatePrimableEquipmentSettings(eqkey,false);
+}
+
+
+this._updatePrimableEquipmentSettings = function(eqkey,quiet)
+{
+	/* If the player has gained some equipment which is recommended
+	 * for fast activation, and the activation slot has nothing in it,
+	 * assign to that slot. */
+	var info = EquipmentInfo.infoForKey(eqkey);
+	
+	if (info.fastAffinityDefensive && player.ship.equipmentStatus(player.ship.fastEquipmentA) != "EQUIPMENT_OK" && player.ship.equipmentStatus(player.ship.fastEquipmentA) != "EQUIPMENT_DAMAGED")
+	{
+		// no installed equipment in fast slot A, so assign this
+		player.ship.fastEquipmentA = eqkey;
+		if (!quiet)
+		{
+			player.consoleMessage(expandDescription("[oolite-primablemanager-notify-assign]",{
+				"oolite-primable-equipment": info.name,
+				"oolite-primable-slot": expandDescription("[oolite-primablemanager-slot-defensive]")
+			}),7.5);
+			player.consoleMessage(expandDescription("[oolite-primablemanager-notify-setup]"),7.5);
+		}
+	} 
+	else if (info.fastAffinityOffensive && player.ship.equipmentStatus(player.ship.fastEquipmentB) != "EQUIPMENT_OK" && player.ship.equipmentStatus(player.ship.fastEquipmentB) != "EQUIPMENT_DAMAGED")
+	{
+		// no installed equipment in fast slot B, so assign this
+		player.ship.fastEquipmentB = eqkey;
+		if (!quiet)
+		{
+			player.consoleMessage(expandDescription("[oolite-primablemanager-notify-assign]",{
+				"oolite-primable-equipment": info.name,
+				"oolite-primable-slot": expandDescription("[oolite-primablemanager-slot-offensive]")
+			}),7.5);
+			player.consoleMessage(expandDescription("[oolite-primablemanager-notify-setup]"),7.5);
+		}
+	}
+
+
+}
+
+
+this._initialiseInterface = function()
 {
 	if (player.ship.dockedStation)
 	{
@@ -143,17 +194,6 @@ this._configureStage2 = function(choice)
 	if (choice != "") 
 	{
 		player.ship.fastEquipmentA = choice;
-		if (choice == "ZZZZZZ_OOLITE_EQ_NONE")
-		{
-			if (player.ship.equipmentStatus("EQ_CLOAKING_DEVICE") == "EQUIPMENT_UNAVAILABLE")
-			{
-				/* for compatibility, if the player hasn't got the
-				 * cloaking device yet, and they set fast-A to none,
-				 * set it so that when they get the cloaking device it
-				 * takes this slot. */
-				player.ship.fastEquipmentA = "EQ_CLOAKING_DEVICE";
-			}
-		}
 	}
 	mission.runScreen({
 		titleKey: "oolite-primablemanager-page2-title",
@@ -170,19 +210,6 @@ this._configureStage3 = function(choice)
 	if (choice != "") 
 	{
 		player.ship.fastEquipmentB = choice;
-		if (choice == "ZZZZZZ_OOLITE_EQ_NONE")
-		{
-			if (player.ship.equipmentStatus("EQ_ENERGY_BOMB") == "EQUIPMENT_UNAVAILABLE")
-			{
-				/* for compatibility, if the player hasn't got the
-				 * energy bomb yet, but they've installed an OXP which
-				 * recreates it, and they set fast-B to none, set it
-				 * so that when they get the energy bomb it takes this
-				 * slot. */
-				player.ship.fastEquipmentB = "EQ_ENERGY_BOMB";
-			}
-		}
-
 	}
 	var message = expandMissionText("oolite-primablemanager-completed",{
 		"oolite-primable-a" : this._nameEquipment(player.ship.fastEquipmentA),

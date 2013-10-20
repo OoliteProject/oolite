@@ -509,6 +509,12 @@
 	"equipment-primed-hud-@"			= "Primed: %@";
 	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
+	"oolite-primablemanager-notify-setup" = "Adjust settings on interface screen if necessary";
+	"oolite-primablemanager-notify-assign" = "Assigned [oolite-primable-equipment] to [oolite-primable-slot] fast activation control";
+	"oolite-primablemanager-slot-defensive" = "defensive";
+	"oolite-primablemanager-slot-offensive" = "offensive";
+
+
 	"mfd-d-selected"				= "Multi-function display %d selected.";
 
 	// Assorted messages sent out by ships etc..

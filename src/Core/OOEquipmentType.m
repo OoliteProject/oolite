@@ -284,6 +284,11 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_script = [extra oo_stringForKey:@"script"];
 			if (_script != nil && ![OOScript jsScriptFromFileNamed:_script properties:nil])  _script = nil;
 			[_script retain];
+			if (_script != nil)
+			{
+				_fastAffinityA = !![extra oo_boolForKey:@"fast_affinity_defensive"];
+				_fastAffinityB = !![extra oo_boolForKey:@"fast_affinity_offensive"];
+			}
 		}
 	}
 	
@@ -531,6 +536,17 @@ static NSDictionary		*sMissilesRegistry = nil;
 	return _script;
 }
 
+
+- (BOOL) fastAffinityDefensive
+{
+	return _fastAffinityA;
+}
+
+
+- (BOOL) fastAffinityOffensive
+{
+	return _fastAffinityB;
+}
 
 /*	This method exists purely to suppress Clang static analyzer warnings that
 	this ivar is unused (but may be used by categories, which it is).

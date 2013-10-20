@@ -51,6 +51,8 @@ enum
 	kEquipmentInfo_description,
 	kEquipmentInfo_effectiveTechLevel,
 	kEquipmentInfo_equipmentKey,
+	kEquipmentInfo_fastAffinityDefensive,
+	kEquipmentInfo_fastAffinityOffensive,
 	kEquipmentInfo_incompatibleEquipment,
 	kEquipmentInfo_isAvailableToAll,
 	kEquipmentInfo_isAvailableToNPCs,
@@ -81,10 +83,12 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	// JS name							ID											flags
 	{ "canBeDamaged",					kEquipmentInfo_canBeDamaged,				OOJS_PROP_READONLY_CB },
 	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			OOJS_PROP_READONLY_CB },
-	{ "damageProbability",					kEquipmentInfo_damageProbability,				OOJS_PROP_READONLY_CB },
+	{ "damageProbability",				kEquipmentInfo_damageProbability,			OOJS_PROP_READONLY_CB },
 	{ "description",					kEquipmentInfo_description,					OOJS_PROP_READONLY_CB },
 	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			OOJS_PROP_READWRITE_CB },
 	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				OOJS_PROP_READONLY_CB },
+	{ "fastAffinityDefensive",			kEquipmentInfo_fastAffinityDefensive,		OOJS_PROP_READONLY_CB },
+	{ "fastAffinityOffensive",			kEquipmentInfo_fastAffinityOffensive,		OOJS_PROP_READONLY_CB },
 	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		OOJS_PROP_READONLY_CB },
 	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			OOJS_PROP_READONLY_CB },
 	{ "isAvailableToNPCs",				kEquipmentInfo_isAvailableToNPCs,			OOJS_PROP_READONLY_CB },
@@ -261,6 +265,14 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			
 		case kEquipmentInfo_damageProbability:
 			return JS_NewNumberValue(context, [eqType damageProbability], value);
+
+		case kEquipmentInfo_fastAffinityDefensive:
+			*value = OOJSValueFromBOOL([eqType fastAffinityDefensive]);
+			return YES;
+
+		case kEquipmentInfo_fastAffinityOffensive:
+			*value = OOJSValueFromBOOL([eqType fastAffinityOffensive]);
+			return YES;
 
 		case kEquipmentInfo_techLevel:
 			*value = INT_TO_JSVAL((int32_t)[eqType techLevel]);
