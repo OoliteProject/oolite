@@ -17,7 +17,6 @@
 			"EQ_WEAPON_MILITARY_LASER",
 			"EQ_FUEL_INJECTION",
 			"EQ_SCANNER_SHOW_MISSILE_TARGET",
-			"EQ_MULTI_TARGET",
 			"EQ_GAL_DRIVE",
 			"EQ_SHIELD_BOOSTER"
 		);
@@ -96,7 +95,7 @@
 			extras =
 			(
                 "EQ_SCANNER_SHOW_MISSILE_TARGET",
-                "EQ_MULTI_TARGET"
+                "EQ_TARGET_MEMORY"
 			);
 			"forward_weapon_type" = "EQ_WEAPON_PULSE_LASER";
 			missiles = 1;
@@ -231,7 +230,6 @@
 			"EQ_WEAPON_MILITARY_LASER",
 			"EQ_FUEL_INJECTION",
 			"EQ_SCANNER_SHOW_MISSILE_TARGET",
-			"EQ_MULTI_TARGET",
 			"EQ_GAL_DRIVE",
 			"EQ_SHIELD_BOOSTER",
 			"EQ_HEAT_SHIELD"
