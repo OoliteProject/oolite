@@ -4473,6 +4473,18 @@ PriorityAIController.prototype.configurationLeaveEscortGroup = function()
 }
 
 
+PriorityAIController.prototype.configurationLightsOff = function()
+{
+	this.ship.lightsActive = false;
+}
+
+
+PriorityAIController.prototype.configurationLightsOn = function()
+{
+	this.ship.lightsActive = true;
+}
+
+
 // remote controlled ships get same accuracy as lead ship
 PriorityAIController.prototype.configurationSetRemoteControl = function()
 {

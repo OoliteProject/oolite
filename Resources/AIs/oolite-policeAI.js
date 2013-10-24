@@ -65,6 +65,7 @@ this.aiStarted = function() {
 	ai.setPriorities([
 		/* Fight */
 		{
+			preconfiguration: ai.configurationLightsOn,
 			condition: ai.conditionLosingCombat,
 			behaviour: ai.behaviourFleeCombat,
 			reconsider: 5
@@ -96,6 +97,7 @@ this.aiStarted = function() {
 			reconsider: 1
 		},
 		{
+			preconfiguration: ai.configurationLightsOff,
 			condition: ai.conditionScannerContainsFineableOffender,
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourFineCurrentTarget,
