@@ -1149,7 +1149,7 @@
 			}
 		);
 		thrust = 32;
-		view_position_aft = "0.0 18.0 -35.5";
+		view_position_aft = "0.0 6.0 -35.5";
 		view_position_forward = "0.0 7.25 31.0";
 		view_position_port = "-35.5 7.5 0.0";
 		view_position_starboard = "35.5 7.5 0.0";
