@@ -8,6 +8,7 @@ Jens Ayton (Ahruman)
 Nikos Barkas (another_commander)
 Andrey Belov (timer)
 Nicolas Boulenguez
+CaptSolo
 Eugene Chernyakov (seventh)
 colinh
 Commander McLane
@@ -15,6 +16,7 @@ Paul Cooper (PhantorGorth)
 Dermot Costello
 Chris Crowther (hikari)
 Blake Deakins (Cmd. Cheyd)
+Griff
 Jelmer Graafstra
 James Hobson (Cmdr James)
 Influence D
