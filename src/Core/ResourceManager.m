@@ -203,18 +203,30 @@ static NSMutableDictionary *sStringCache;
 			{
 				// Check if it's a directory.
 				path = [root stringByAppendingPathComponent:subPath];
-				if ([fmgr fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory)
+				if ([fmgr fileExistsAtPath:path isDirectory:&isDirectory])
 				{
-					// If it is, is it an OXP?.
-					if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+					if (isDirectory)
 					{
-						[self checkPotentialPath:path :sSearchPaths];
-						if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
+						// If it is, is it an OXP?.
+						if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+						{
+							[self checkPotentialPath:path :sSearchPaths];
+							if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
+						}
+						else
+						{
+							// If not, don't search subdirectories.
+							[dirEnum skipDescendents];
+						}
 					}
 					else
 					{
-						// If not, don't search subdirectories.
-						[dirEnum skipDescendents];
+						// If not a directory, is it an OXZ?
+						if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxz"])
+						{
+							[self checkPotentialPath:path :sSearchPaths];
+							if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
+						}
 					}
 				}
 			}

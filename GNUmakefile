@@ -2,8 +2,8 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include config.make
 
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
-vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
-vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug
+vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug:src/Core/MiniZip
+vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug:src/Core/MiniZip
 GNUSTEP_INSTALLATION_DIR         = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
     GNUSTEP_OBJ_DIR_NAME         := $(GNUSTEP_OBJ_DIR_NAME).win
@@ -18,7 +18,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     else
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
-    ADDITIONAL_INCLUDE_DIRS      = -Ideps/Windows-x86-deps/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
+    ADDITIONAL_INCLUDE_DIRS      = -Ideps/Windows-x86-deps/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
     ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lpng14.dll -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
@@ -40,7 +40,7 @@ else
     LIBJS_LIB_DIR                = $(LIBJS_ROOT)/dist/lib
     LIBJS = js_static
 
-    ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
+    ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
     ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lSDL_mixer -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++
     ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
     ADDITIONAL_OBJCFLAGS         = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
@@ -138,7 +138,9 @@ oolite_C_FILES = \
     legacy_random.c \
     strlcpy.c \
     OOTCPStreamDecoder.c \
-    OOPlanetData.c
+    OOPlanetData.c \
+	ioapi.c \
+	unzip.c
 
 
 OOLITE_DEBUG_FILES = \
@@ -329,6 +331,7 @@ OOLITE_UI_FILES = \
 
 OO_UTILITY_FILES = \
     Comparison.m \
+    NSDataOOExtensions.m \
     NSDictionaryOOExtensions.m \
     NSFileManagerOOExtensions.m \
     NSMutableDictionaryOOExtensions.m \
