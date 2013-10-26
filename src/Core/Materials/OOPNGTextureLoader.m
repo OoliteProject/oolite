@@ -29,7 +29,7 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
 #import "OOCPUInfo.h"
-
+#import "NSDataOOExtensions.h"
 
 void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;
 
@@ -52,7 +52,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 - (void)loadTexture
 {
 	// Get data from file
-	fileData = [[NSData alloc] initWithContentsOfMappedFile:_path];
+	fileData = [[NSData oo_dataWithOXZFile:_path] retain];
 	if (fileData == nil)  return;
 	length = [fileData length];
 	

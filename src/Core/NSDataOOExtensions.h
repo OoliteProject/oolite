@@ -32,6 +32,6 @@ SOFTWARE.
 
 @interface NSData (OOExtensions)
 
-+ (instancetype) initWithOXZFile:(NSString *)path;
++ (instancetype) oo_dataWithOXZFile:(NSString *)path;
 
 @end

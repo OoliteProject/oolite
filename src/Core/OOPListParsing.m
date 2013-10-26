@@ -172,7 +172,7 @@ static NSData *ChangeDTDIfApplicable(NSData *data)
 */
 static NSData *CopyDataFromFile(NSString *path)
 {
-	return [[NSData initWithOXZFile:path] retain];
+	return [[NSData oo_dataWithOXZFile:path] retain];
 #if 0
 // without OXZ extension. Code to be deleted once everything is working
 #if OOLITE_MAC_OS_X

@@ -68,11 +68,11 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	if (result == nil)
 	{
 		filePath = [path stringByAppendingPathComponent:@"script.js"];
-		if ([fmgr fileExistsAtPath:filePath]) foundScript = YES;
+		if ([fmgr oo_oxzFileExistsAtPath:filePath]) foundScript = YES;
 		else
 		{
 			filePath = [path stringByAppendingPathComponent:@"script.es"];
-			if ([fmgr fileExistsAtPath:filePath]) foundScript = YES;
+			if ([fmgr oo_oxzFileExistsAtPath:filePath]) foundScript = YES;
 		}
 		if (foundScript)
 		{
@@ -95,7 +95,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	if (result == nil)
 	{
 		filePath = [path stringByAppendingPathComponent:@"script.plist"];
-		if ([fmgr fileExistsAtPath:filePath])
+		if ([fmgr oo_oxzFileExistsAtPath:filePath])
 		{
 			foundScript = YES;
 			OOLog(kOOLogLoadScriptPList, @"Trying to load property list script %@", filePath);
@@ -157,8 +157,8 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 
 + (NSArray *)scriptsFromFileAtPath:(NSString *)filePath
 {
-	BOOL directory;
-	if (![[NSFileManager defaultManager] fileExistsAtPath:filePath isDirectory:&directory] || directory) return nil;
+	// oo_oxzFile always returns false for directories
+	if (![[NSFileManager defaultManager] oo_oxzFileExistsAtPath:filePath]) return nil;
 	
 	NSString *extension = [[filePath pathExtension] lowercaseString];
 	

@@ -973,14 +973,14 @@ static NSString *LogClassKeyRoot(NSString *key)
 	for (pathEnum = [[ResourceManager paths] reverseObjectEnumerator]; (path = [pathEnum nextObject]); )
 	{
 		filePath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
-		if ([fmgr fileExistsAtPath:filePath])
+		if ([fmgr oo_oxzFileExistsAtPath:filePath])
 		{
 			result = filePath;
 			break;
 		}
 		
 		filePath = [path stringByAppendingPathComponent:fileName];
-		if ([fmgr fileExistsAtPath:filePath])
+		if ([fmgr oo_oxzFileExistsAtPath:filePath])
 		{
 			result = filePath;
 			break;

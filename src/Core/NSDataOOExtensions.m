@@ -34,7 +34,7 @@ SOFTWARE.
 
 @implementation NSData (OOExtensions)
 
-+ (instancetype) initWithOXZFile:(NSString *)path
++ (instancetype) oo_dataWithOXZFile:(NSString *)path
 {
 	unsigned i, cl;
 	NSArray *components = [path pathComponents];

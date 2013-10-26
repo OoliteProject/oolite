@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "GameController.h"
 #import "NSFileManagerOOExtensions.h"
-
+#import "unzip.h"
 
 @implementation NSFileManager (OOExtensions)
 
@@ -226,6 +226,77 @@ MA 02110-1301, USA.
 	return YES;
 }
 #endif
+
+- (BOOL) oo_oxzFileExistsAtPath:(NSString *)path
+{
+	unsigned i, cl;
+	NSArray *components = [path pathComponents];
+	cl = [components count];
+	for (i = 0 ; i < cl ; i++)
+	{
+		NSString *component = [components objectAtIndex:i];
+		if ([[[component pathExtension] lowercaseString] isEqualToString:@"oxz"])
+		{
+			break;
+		}
+	}
+	// if i == cl then the path is entirely uncompressed
+	if (i == cl)
+	{
+		BOOL directory = NO;
+		BOOL result = [self fileExistsAtPath:path isDirectory:&directory];
+		if (directory)
+		{
+			return NO;
+		}
+		return result;
+	}
+	
+	NSRange range;
+	range.location = 0; range.length = i+1;
+	NSString *zipFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
+	range.location = i+1; range.length = cl-(i+1);
+	NSString *containedFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
+
+	unzFile uf = NULL;
+	const char* zipname = [zipFile cStringUsingEncoding:NSUTF8StringEncoding];
+	if (zipname != NULL)
+	{
+		uf = unzOpen64(zipname);
+	}
+	if (uf == NULL)
+	{
+		// no such zip file
+		return NO;
+	}
+	const char* filename = [containedFile cStringUsingEncoding:NSUTF8StringEncoding];
+	// unzLocateFile(*, *, 1) = case-sensitive extract
+	BOOL result = YES;
+	if (unzLocateFile(uf, filename, 1) != UNZ_OK)
+    {
+		result = NO;
+	}
+	else
+	{
+		int err = UNZ_OK;
+		unz_file_info64 file_info = {0};
+		err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0);
+		if (err != UNZ_OK)
+		{
+			result = NO;
+		}
+		else
+		{
+			
+
+		}
+	}
+	unzClose(uf);
+	return result;
+}
+
+
+
 
 @end
 
