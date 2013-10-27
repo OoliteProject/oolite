@@ -27,7 +27,7 @@ SOFTWARE.
 
 #import "OOSDLConcreteSound.h"
 #import "OOLogging.h"
-
+#import "NSDataOOExtensions.h"
 
 @implementation OOSDLConcreteSound
 
@@ -35,7 +35,10 @@ SOFTWARE.
 {
 	if ((self = [super init]))
 	{
-		_chunk = Mix_LoadWAV([path UTF8String]);
+		NSData *fileData = [NSData oo_dataWithOXZFile:path];
+		SDL_RWops *soundData = SDL_RWFromConstMem([fileData bytes],[fileData length]);
+		_chunk = Mix_LoadWAV_RW(soundData, 0);
+		SDL_RWclose(soundData);
 		
 		if (_chunk != NULL)
 		{
