@@ -4129,16 +4129,22 @@ static const OOMatrix	starboard_matrix =
 					// HPVect: camera-relative position
 //					OOGL(GLTranslateOOVector(vector_flip(position)));
 					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+					// main light position, no shaders, in-flight / shaders, in-flight and docked.
+					if (cachedSun)
+					{
+						[self setMainLightPosition:[cachedSun cameraRelativePosition]];
+					}
+					OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));					
 				}
 				else
 				{
 					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient));
 					// main_light_position no shaders, docked/GUI.
 					OOGL(glLightfv(GL_LIGHT0, GL_POSITION, main_light_position));
+					// main light position, no shaders, in-flight / shaders, in-flight and docked.		
+					OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
 				}
 				
-				// main light position, no shaders, in-flight / shaders, in-flight and docked.
-				OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
 				
 				OOGL([self useGUILightSource:demoShipMode]);
 				
