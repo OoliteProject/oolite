@@ -361,7 +361,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (NSString*) descriptionComponents
 {
-	return [NSString stringWithFormat:@"position: %@ radius: %g m", VectorDescription([self position]), [self radius]];
+	return [NSString stringWithFormat:@"position: %@ radius: %g m", HPVectorDescription([self position]), [self radius]];
 }
 
 
@@ -529,7 +529,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 										   parameter:nil
 									relativeToEntity:self];
 	
-	if (station && distance([station position], position) < 4 * collision_radius) // there is a station in range.
+	if (station && HPdistance([station position], position) < 4 * collision_radius) // there is a station in range.
 	{
 		return YES;
 	}
@@ -551,7 +551,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	Quaternion  q1;
 	quaternion_set_random(&q1);
 	float start_distance = collision_radius + 125.0f;
-	Vector launch_pos = vector_add(position, vector_multiply_scalar(vector_forward_from_quaternion(q1), start_distance));
+	HPVector launch_pos = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(vector_forward_from_quaternion(q1), start_distance)));
 	
 	ShipEntity *shuttle_ship = [UNIVERSE newShipWithRole:@"shuttle"];   // retain count = 1
 	if (shuttle_ship)
@@ -644,7 +644,18 @@ static OOColor *ColorWithHSBColor(Vector c)
 		NSDictionary *spec = [NSDictionary dictionaryWithObjectsAndKeys:textureName, @"name", @"yes", @"repeat_s", @"linear", @"min_filter", @"yes", @"cube_map", nil];
 		diffuseMap = [OOTexture textureWithConfiguration:spec];
 		if (diffuseMap == nil)  return;		// OOTexture will have logged a file-not-found warning.
-		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-macros" : @"planet-customized-macros"];
+		if (shadersOn)  
+		{
+			[diffuseMap ensureFinishedLoading]; // only know if it is a cube map if it's loaded
+			if ([diffuseMap isCubeMap])
+			{
+				macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-cubemap-macros" : @"planet-customized-cubemap-macros"];
+			}
+			else
+			{
+				macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-macros" : @"planet-customized-macros"];
+			}
+		}
 		else textureName = @"dynamic";
 	}
 	else

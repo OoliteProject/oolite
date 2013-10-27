@@ -89,9 +89,6 @@ uniform sampler2D		uSpecularMap;
 
 // Normal map parameters.
 #define USE_NORMAL_MAP OOSTD_NORMAL_MAP || OOSTD_NORMAL_AND_SPECULAR_MAP
-#if USE_NORMAL_MAP
-uniform sampler2D		uNormalMap;
-#endif
 
 /*	"Harsh shadow factor": degree to which normal map affects global diffuse light
 	with terminator and full shadow, as opposed to "local light" which is a normal
@@ -119,8 +116,17 @@ const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
 #endif
 
 
-
+#if OOSTD_CUBE_MAP
+uniform samplerCube		uDiffuseMap;
+#if USE_NORMAL_MAP
+uniform samplerCube		uNormalMap;
+#endif
+#else
 uniform sampler2D		uDiffuseMap;
+#if USE_NORMAL_MAP
+uniform sampler2D		uNormalMap;
+#endif
+#endif
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
@@ -227,7 +233,11 @@ void main()
 		inverse of the cross product of the normal and binormal.
 	*/
 #if USE_NORMAL_MAP
+#if OOSTD_CUBE_MAP
+	vec4 normalMapSample = textureCube(uNormalMap, vCoords);
+#else
 	vec4 normalMapSample = texture2D(uNormalMap, texCoords);
+#endif
 	vec3 normal = normalize(normalMapSample.xyz - vec3(0.5));
 #else
 	vec3 normal = vec3(0, 0, 1);
@@ -237,7 +247,11 @@ void main()
 	vec3 light1Vector = normalize(vLight1Vector);
 	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
 	vec3 diffuseLight = diffuseIntensity * DIFFUSE_LIGHT;
+#if OOSTD_CUBE_MAP
+	vec4 diffuseMapSample = textureCube(uDiffuseMap, vCoords);
+#else
 	vec4 diffuseMapSample = texture2D(uDiffuseMap, texCoords);
+#endif
 	vec3 diffuseColor = diffuseMapSample.rgb;
 	totalColor += diffuseColor * diffuseLight;
 	

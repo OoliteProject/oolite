@@ -64,4 +64,17 @@
 		OOSTD_CUBE_MAP = 0;
 		OOSTD_HARSH_MISTRESS = 1;
 	};
+	"planet-customized-cubemap-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_CUBE_MAP = 1;
+	};
+	"moon-customized-cubemap-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_CUBE_MAP = 1;
+		OOSTD_HARSH_MISTRESS = 1;
+	};
 }
