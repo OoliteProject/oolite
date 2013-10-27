@@ -2081,14 +2081,14 @@
 		is_template = 1;
 		materials =
 		{
-			"griff_mamba_diffuse.png" = 
+			"oolite_mamba_diffuse.png" = 
 			{
-				diffuse_map = "griff_mamba_diffuse_escort.png";
+				diffuse_map = "oolite_mamba_diffuse_escort.png";
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
 				{
-					name = "griff_mamba_diffuse_escort.png"; extract_channel = "a";
+					name = "oolite_mamba_diffuse_escort.png"; extract_channel = "a";
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
@@ -3844,7 +3844,7 @@
 	};
 	"oolite_mamba_gun" = 
 	{
-		model = "griff_mamba_gun.dat"; 
+		model = "oolite_mamba_gun.dat"; 
 		name = "Mamba Gun";
 		smooth = "false";
 	};
