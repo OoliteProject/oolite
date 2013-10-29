@@ -1493,151 +1493,160 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		materials = 
+		{ 
+			"oolite_coriolis_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_coriolis_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824);  
+			}; 
+		};
 		max_energy = 25000;
 		max_flight_pitch = 8;
 		max_flight_roll = 8;
 		max_flight_speed = 0;
 		missiles = 0;
-		model = "new_coriolis.dat";
+		model = "oolite_coriolis.dat";
 		name = "Coriolis Station";
 		roles = "coriolis station";
 		rotating = yes;
-		subentities =
-		(
-			{
-				subentity_key = "dock-flat";
-				orientation = ( 1, 0, 0, 1);	// rotated 90 degrees
-				position = ( 0, 0, 500 );
-				is_dock = true;
+		subentities = 
+		( 
+			{ 
+				subentity_key = "oolite_coriolis_faceplate"; 
+				orientation = (1, 0, 0, 0); 
+				position = (0, 0, 0);
+				is_dock = false;						
+			},
+			{ 
+				subentity_key = "oolite_coriolis_tris"; 
+				orientation = (1, 0, 0, 0); 
+				position = (0, 0, 0); 
+				is_dock = false;
+			},
+			{ 
+				subentity_key = "oolite_coriolis_dock"; 
+				orientation = (1, 0, 0, 0);
+				position = (0, 0, 500.2561);
+				is_dock = true; 
 			},
 			{
-				subentity_key = "arc-detail";
-			},
-			{
-				subentity_key = "arc-detail";
-				orientation = ( 1, 0, 0, 1 );
-			},
-			{
-				subentity_key = "arc-detail";
-				orientation = ( 0, 0, 0, 1 );
-			},
-			{
-				subentity_key = "arc-detail";
-				orientation = ( 1, 0, 0, -1 );
-			},
-			
-			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 110 475";
 				color = { hue = 60; };
 				frequency = 1;
-				phase = -1;
-				position = ( 0, 92, 475 );
+				phase = -0.5;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 110 425";
 				color = { hue = 75; };
 				frequency = 1;
-				phase = -1.2;
-				position = ( 0, 92, 425 );
+				phase = -0.6;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 110 375";
 				color = { hue = 90; };
 				frequency = 1;
-				phase = -1.4;
-				position = ( 0, 92, 375 );
+				phase = -0.7;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 110 325";
 				color = { hue = 105; };
 				frequency = 1;
-				phase = -1.6;
-				position = ( 0, 92, 325 );
+				phase = -0.8;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 110 275";
 				color = { hue = 120; };
 				frequency = 1;
-				phase = -1.8;
-				position = ( 0, 92, 275 );
+				phase = -0.9;
+				size = 10;
 			},
-			
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 -110 475";
 				color = { hue = 60; };
 				frequency = 1;
-				phase = -1;
-				position = ( 0, -92, 475 );
+				phase = -0.5;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 -110 425";
 				color = { hue = 75; };
 				frequency = 1;
-				phase = -1.2;
-				position = ( 0, -92, 425 );
+				phase = -0.6;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 -110 375";
 				color = { hue = 90; };
 				frequency = 1;
-				phase = -1.4;
-				position = ( 0, -92, 375 );
+				phase = -0.7;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 -110 325";
 				color = { hue = 105; };
 				frequency = 1;
-				phase = -1.6;
-				position = ( 0, -92, 325 );
+				phase = -0.8;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
+				type = "flasher";
+				position = "0 -110 275";
 				color = { hue = 120; };
 				frequency = 1;
-				phase = -1.8;
-				position = ( 0, -92, 275 );
+				phase = -0.9;
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
-				color = "orangeColor";
+				type = "flasher";
+				position = "0 -16 252.0";
+				color = { hue = 60; };
 				frequency = 1;
 				phase = 0.5;
-				position = ( 0, -16, 252 );
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
-				color = "orangeColor";
+				type = "flasher";
+				position = "0 16 252.0";
+				color = { hue = 60; };
 				frequency = 1;
 				phase = 0.5;
-				position = ( 0, 16, 252 );
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
-				color = "orangeColor";
+				type = "flasher";
+				position = "-16 0 252.0";
+				color = { hue = 60; };
 				frequency = 1;
 				phase = 0;
-				position = ( 16, 0, 252 );
+				size = 10;
 			},
 			{
-				type = flasher;
-				size = 12;
-				color = "orangeColor";
+				type = "flasher";
+				position = "16 0 252.0";
+				color = { hue = 60; };
 				frequency = 1;
 				phase = 0;
-				position = ( -16, 0, 252 );
+				size = 10;
 			}
 		);
 		thrust = 100;
@@ -1654,37 +1663,155 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		materials = 
+		{ 
+			"oolite_dodo_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_dodo_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824);  
+			}; 
+		};
 		max_energy = 25000;
 		max_flight_pitch = 8;
 		max_flight_roll = 8;
 		max_flight_speed = 0;
 		missiles = 0;
-		model = "new-dodo.dat";
+		model = "oolite_dodo.dat";
 		name = "Dodecahedron Station";
 		roles = "dodo dodec dodecahedron station";
 		rotating = yes;
-		subentities =
-		(
-			{
-				subentity_key = "dock-flat";
-				orientation = ( 1, 0, 0, 1);	// rotated 90 degrees
-				position = ( 0, 0, 392 );
-				is_dock = true;
+		subentities = 
+		( 
+			{ 
+				subentity_key = "oolite_dodo_faceplate"; 
+				orientation = (1, 0, 0, 0); 
+				position = (0, 0, 0);
+				is_dock = false;						
 			},
-			"*FLASHER* 0 92 360 60.0 1 -0.50 12",
-			"*FLASHER* 0 92 315 75.0 1 -0.60 12",
-			"*FLASHER* 0 92 270 90.0 1 -0.70 12",
-			"*FLASHER* 0 92 225 105.0 1 -0.80 12",
-			"*FLASHER* 0 92 180 120.0 1 -0.90 12",
-			"*FLASHER* 0 -92 360 60.0 1 -0.50 12",
-			"*FLASHER* 0 -92 315 75.0 1 -0.60 12",
-			"*FLASHER* 0 -92 270 90.0 1 -0.70 12",
-			"*FLASHER* 0 -92 225 105.0 1 -0.80 12",
-			"*FLASHER* 0 -92 180 120.0 1 -0.90 12",
-			"*FLASHER* 0 -16 144 30.0 1 0.5 12",
-			"*FLASHER* 0 16 144 30.0 1 0.5 12",
-			"*FLASHER* 16 0 144 30.0 1 0.0 12",
-			"*FLASHER* -16 0 144 30.0 1 0.0 12"
+			{ 
+				subentity_key = "oolite_dodo_dock"; 
+				orientation = (1, 0, 0, 0);
+				position = (0, 0, 560.3216);
+				is_dock = true; 
+			},
+			{
+				type = "flasher";
+				position = "101 0 535";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = -0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "101 0 485";
+				color = { hue = 75; };
+				frequency = 1;
+				phase = -0.6;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "101 0 435";
+				color = { hue = 90; };
+				frequency = 1;
+				phase = -0.7;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "101 0 385";
+				color = { hue = 105; };
+				frequency = 1;
+				phase = -0.8;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "101 0 335";
+				color = { hue = 120; };
+				frequency = 1;
+				phase = -0.9;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "-101 0 535";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = -0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "-101 0 485";
+				color = { hue = 75; };
+				frequency = 1;
+				phase = -0.6;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "-101 0 435";
+				color = { hue = 90; };
+				frequency = 1;
+				phase = -0.7;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "-101 0 385";
+				color = { hue = 105; };
+				frequency = 1;
+				phase = -0.8;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "-101 0 335";
+				color = { hue = 120; };
+				frequency = 1;
+				phase = -0.9;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 -16 319.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 16 319.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "-16 0 319.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "16 0 319.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0;
+				size = 10;
+			}
 		);
 		thrust = 100;
 		weapon_energy = 0;
@@ -1966,37 +2093,155 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		materials = 
+		{ 
+			"oolite_ico_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_ico_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824);  
+			}; 
+		};
 		max_energy = 25000;
 		max_flight_pitch = 8;
 		max_flight_roll = 8;
 		max_flight_speed = 0;
 		missiles = 0;
-		model = "new-icos.dat";
+		model = "oolite_ico.dat";
 		name = "Icosahedron Station";
 		roles = "ico icosa icosahedron station";
 		rotating = yes;
-		subentities =
-		(
-			{
-				subentity_key = "dock-flat";
-				orientation = ( 1, 0, 0, 1);	// rotated 90 degrees
-				position = ( 0, 0, 500 );
-				is_dock = true;
+		subentities = 
+		( 
+			{ 
+				subentity_key = "oolite_ico_mainhull"; 
+				orientation = (1, 0, 0, 0); 
+				position = (0, 0, 0);
+				is_dock = false;						
 			},
-			"*FLASHER* 0 92 475 60.0 1 -0.50 12",
-			"*FLASHER* 0 92 425 75.0 1 -0.60 12",
-			"*FLASHER* 0 92 375 90.0 1 -0.70 12",
-			"*FLASHER* 0 92 325 105.0 1 -0.80 12",
-			"*FLASHER* 0 92 275 120.0 1 -0.90 12",
-			"*FLASHER* 0 -92 475 60.0 1 -0.50 12",
-			"*FLASHER* 0 -92 425 75.0 1 -0.60 12",
-			"*FLASHER* 0 -92 375 90.0 1 -0.70 12",
-			"*FLASHER* 0 -92 325 105.0 1 -0.80 12",
-			"*FLASHER* 0 -92 275 120.0 1 -0.90 12",
-			"*FLASHER* 0 -16 252 30.0 1 0.5 12",
-			"*FLASHER* 0 16 252 30.0 1 0.5 12",
-			"*FLASHER* 16 0 252 30.0 1 0.0 12",
-			"*FLASHER* -16 0 252 30.0 1 0.0 12"
+			{ 
+				subentity_key = "oolite_ico_dock"; 
+				orientation = (1, 0, 0, 0);
+				position = (0, 0, 642.8881);
+				is_dock = true; 
+			},
+			{
+				type = "flasher";
+				position = "0 110 615";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = -0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 110 565";
+				color = { hue = 75; };
+				frequency = 1;
+				phase = -0.6;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 110 515";
+				color = { hue = 90; };
+				frequency = 1;
+				phase = -0.7;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 110 465";
+				color = { hue = 105; };
+				frequency = 1;
+				phase = -0.8;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 110 415";
+				color = { hue = 120; };
+				frequency = 1;
+				phase = -0.9;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 -110 615";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = -0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 -110 565";
+				color = { hue = 75; };
+				frequency = 1;
+				phase = -0.6;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 -110 515";
+				color = { hue = 90; };
+				frequency = 1;
+				phase = -0.7;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 -110 465";
+				color = { hue = 105; };
+				frequency = 1;
+				phase = -0.8;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 -110 415";
+				color = { hue = 120; };
+				frequency = 1;
+				phase = -0.9;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 -16 400.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "0 16 400.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0.5;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "-16 0 400.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0;
+				size = 10;
+			},
+			{
+				type = "flasher";
+				position = "16 0 400.0";
+				color = { hue = 60; };
+				frequency = 1;
+				phase = 0;
+				size = 10;
+			}
 		);
 		thrust = 100;
 		weapon_energy = 0;
@@ -2669,6 +2914,20 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		materials = 
+		{ 
+			"oolite_rock_hermit_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_rock_hermit_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.6388, 0.9704, 0.9566); 
+			}; 
+		};
 		"max_defense_ships" = 2;
 		max_energy = 1000;
 		max_flight_pitch = 8;
@@ -2676,60 +2935,34 @@
 		max_flight_speed = 0;
 		"max_scavengers" = 1;
 		missiles = 0;
-		model = "new-rock.dat";
+		model = "oolite_rock_hermit.dat";
 		name = "Rock Hermit";
 		roles = "rockhermit station";
 		requires_docking_clearance = no;
 		scan_class = "CLASS_ROCK";
 		smooth = yes;
-		subentities = (
+		subentities = 
+		(
 			{
-				subentity_key = "hermit-docking-slit";
+				subentity_key = "oolite_rock_hermit_rock";
+				position = "0 0 0";
+				orientation = "1 0 0 0";
+			},
+			{
+				subentity_key = "oolite_rock_hermit_pipes";
+				position = "0 0 0";
+				orientation = "1 0 0 0";
+			},
+			{
+				subentity_key = "oolite_rock_hermit_tunnel_extras";
+				position = "0 0 0";
+				orientation = "1 0 0 0";
+			},
+			{
+				subentity_key = "oolite_rock_hermit_dock";
+				position = "0 0 -129.6059";
+				orientation = "1 0 0 0";
 				is_dock = true;
-			},
-			{
-				subentity_key = "hermitage";
-				position = ( 15, -80, 210);
-			},
-			{
-				subentity_key = "strut";
-				position = ( 0, -105, 205);
-			},
-			{
-				subentity_key = "strut";
-				position = ( 30, -105, 205);
-			},
-			{
-				type = flasher;
-				size = 12;
-				color = { hue = 20; };
-				frequency = 1;
-				phase = 0.5;
-				position = ( 0.0, -16.0, -78.0);
-			},
-			{
-				type = flasher;
-				size = 12;
-				color = { hue = 20; };
-				frequency = 1;
-				phase = 0.5;
-				position = ( 0.0, 16.0, -78.0);
-			},
-			{
-				type = flasher;
-				size = 12;
-				color = { hue = 30; };
-				frequency = 1;
-				phase = 0.0;
-				position = ( 16.0, 0.0, -78.0);
-			},
-			{
-				type = flasher;
-				size = 12;
-				color = { hue = 30; };
-				frequency = 1;
-				phase = 0.0;
-				position = ( -16.0, 0.0, -78.0);
 			}
 		);
 		thrust = 100;
@@ -2737,14 +2970,6 @@
 		tunnel_start_angle = 0;
 		tunnel_aspect_ratio = 1;
 		weapon_energy = 0;
-		materials =
-		{
-			"asteroid.png" =
-			{
-				shininess = 0;
-				specular_color = (0.0, 0.0, 0.0, 1.0);
-			};
-		};
 	};
 	"oolite_template_scarred-alloy" = {
 		like_ship = "oolite_template_alloy";
@@ -3770,14 +3995,6 @@
 
 		/* Begin subentity definitions. Subentities do not have templates. */
 
-	"arc-detail" =
-	{
-		ai_type = "nullAI.plist";
-		model = "arcdetail.dat";
-		name = "Arc Detail";
-		roles = "arc-detail";
-		smooth = yes;
-	};
 	// subentity, doesn't need template
 	"ballturret" =
 	{
@@ -3807,6 +4024,16 @@
 		setup_actions = ( initialiseTurret );
 		thrust = 1;
 		weapon_energy = 25;
+	};
+
+	/* Old-style model station subentities */
+	"arc-detail" =
+	{
+		ai_type = "nullAI.plist";
+		model = "arcdetail.dat";
+		name = "Arc Detail";
+		roles = "arc-detail";
+		smooth = yes;
 	};
 	dock =
 	{
@@ -3844,6 +4071,226 @@
 		roles = "strut";
 		unpiloted = yes;
 	};
+
+	/* New-style model station subentities */
+	"oolite_coriolis_faceplate" = 
+	{
+		materials = 
+		{ 
+			"oolite_coriolis_faceplate_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_coriolis_faceplate_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824);   
+			}; 
+		};
+		model = "oolite_coriolis_faceplate.dat";
+		name = "Coriolis Faceplate";
+		smooth = 0;
+	};
+	"oolite_coriolis_tris" = 
+	{ 
+		materials = 
+		{ 
+			"oolite_coriolis_tris_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_coriolis_tris_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824);   
+			}; 
+		};
+		model = "oolite_coriolis_tris.dat"; 
+		name = "Coriolis Triangle faces";    
+		smooth = 0;
+	};	
+	"oolite_coriolis_dock" = 
+	{
+		materials = 
+		{ 
+			"oolite_coriolis_dock_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_coriolis_dock_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824); 
+			}; 
+		};
+		model = "oolite_coriolis_dock.dat";
+		smooth = 0;
+		name = "Coriolis Dock";
+	};	
+
+	"oolite_dodo_faceplate" = 
+	{
+		materials = 
+		{ 
+			"oolite_dodo_faceplate_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_dodo_faceplate_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824);   
+			}; 
+		};
+		model = "oolite_dodo_faceplate.dat";
+		name = "Dodo Faceplate";
+		smooth = 1;
+	};
+	"oolite_dodo_dock" = 
+	{
+		materials = 
+		{ 
+			"oolite_dodo_dock_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_dodo_dock_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824); 
+			}; 
+		};	
+		smooth = 0;
+		model = "oolite_dodo_dock.dat";
+		name = "Dodo Dock";
+	};		
+
+	"oolite_ico_mainhull" = 
+	{
+		model = "oolite_ico_hull.dat";
+		smooth = 0;
+		materials = 
+		{ 
+			"oolite_ico_hull_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_ico_hull_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824);   
+			}; 
+		};
+		name = "Ico Mainhull";
+	};
+	"oolite_ico_dock" = 
+	{
+		model = "oolite_ico_dock.dat";
+		smooth = 0;
+		materials = 
+		{ 
+			"oolite_ico_dock_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_ico_dock_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.9520, 0.9630, 0.8824); 
+			}; 
+		};
+		name = "Ico Dock";
+	};
+
+	"oolite_rock_hermit_rock" = 
+	{
+		materials = 
+		{ 
+			"oolite_rock_hermit_rock_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+			}; 
+		};	
+		model = "oolite_rock_hermit_rock.dat";
+		name = "Rock Hermit (rock)";
+		smooth = yes;
+	};	
+	"oolite_rock_hermit_pipes" = 
+	{
+		materials = 
+		{ 
+			"oolite_rock_hermit_pipes_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_rock_hermit_pipes_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.6388, 0.9704, 0.9566);
+			}; 
+		};	
+		model = "oolite_rock_hermit_pipes.dat";
+		name = "Rock Hermit (pipes)";
+		smooth = no;
+	};	
+	"oolite_rock_hermit_tunnel_extras" = 
+	{
+		materials = 
+		{ 
+			"oolite_rock_hermit_tunnel_extras_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_rock_hermit_tunnel_extras_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.6388, 0.9704, 0.9566);
+			}; 
+		};	
+		model = "oolite_rock_hermit_tunnel_extras.dat";
+		name = "Rock Hermit (tunnel)";
+		smooth = no;
+	};
+	"oolite_rock_hermit_dock" = 
+	{
+		materials = 
+		{ 
+			"oolite_rock_hermit_dock_diffuse.png" = 
+			{ 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_rock_hermit_dock_diffuse.png";
+					extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.6388, 0.9704, 0.9566);
+			}; 
+		};		
+		model = "oolite_rock_hermit_dock.dat";
+		name = "Docking Slit";
+		smooth = "no";
+	};
+
 
 		/* Special entity definitions required by Oolite. There should be
 		 * no need to override these by OXP. */
