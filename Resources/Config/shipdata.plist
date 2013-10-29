@@ -115,7 +115,7 @@
 			}
 		);
 		energy_recharge_rate = 2;
-		exhaust = ("0.0 1.089 -17.0 3.6 2.4 2.0");
+		exhaust = ("0.0 1.089 -20.6786 3.6 2.4 0.7");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_ecm = 0.01;
@@ -125,8 +125,9 @@
 		likely_cargo = 2;
 		materials =
 		{
-			"oolite_adder_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_adder_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -155,7 +156,7 @@
 		view_position_starboard = "12.0 1.5 -1.0";
 		weapon_facings = 1;
 		weapon_position_aft = "0.0 0.0 -22.5";
-		weapon_position_forward = "-0.0 -1.67 27.4";
+		weapon_position_forward = "0.0 -1.6769 28.8523";
 		weapon_position_port = "-15.0 0.0 -14.5";
 		weapon_position_starboard = "15.0 0.0 -14.5";
 	};
@@ -274,9 +275,9 @@
 		);
 		exhaust =
 		(
-			"-0.01222 19.1713 -77.0  3.0 3.0 0.5", 
-			"-0.01222  9.04264 -78.0 1.4 2.2 0.5", 
-			"-0.01222 -1.17115 -78.0 1.4 2.2 0.5"
+			"-0.01222 19.1713 -78.89  3.0 3.0 0.5", 
+			"-0.01222  9.04264 -79.1195 1.4 2.2 0.5", 
+			"-0.01222 -1.17115 -81.1449 1.4 2.2 0.5"
 		);
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		frangible = "no";
@@ -287,19 +288,37 @@
 		hud = "hud.plist";
 		is_template = 1;
 		likely_cargo = 125;
-		materials =
-		{
-			"oolite_anaconda_diffuse.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
+		materials = 
+		{ 
+			"Hull" = 
+			{ 
+				diffuse_map = "oolite_anaconda_diffuse.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
 				emission_map = 
 				{
 					name = "oolite_anaconda_diffuse.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				}; 
+				emission_modulate_color = (0.75, 0.80, 0.80); 
 			};
-		};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_anaconda_subents.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 ); 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_anaconda_subents.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.75, 0.80, 0.80);				
+			};
+			"Gun" = 
+			{ 
+				diffuse_map = "oolite_anaconda_subents.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 ); 
+				shininess = 5; 
+			};		
+		};		
 		/* generating 750 TC for NPCs is a waste of time. Assume the
 		 * rest of the theoretical space is passenger cabins, special
 		 * cargoes, etc. TODO?: actually put the passenger cabins in
@@ -317,19 +336,6 @@
 		name = "Anaconda";
 		roles = "trader(0.5) trader-courier(0.1)";
 		scoop_position = "0.0 -30.0 -60";
-		subentities =
-		(
-			{
-				"subentity_key" = "oolite_anaconda_engine";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			},
-			{
-				"subentity_key" = "oolite_anaconda_gun";
-				"position" = "0 -4.6514 73.9893";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 14;
 		view_position_aft = "0.0 14.038046 -81.618951";
 		view_position_forward = "0.0 -1.8 79.344";
@@ -432,7 +438,7 @@
 			}
 		);
 		energy_recharge_rate = 4;
-		exhaust = ("0.0 -1.185465 -35.0 5.8 3.0 5.0");
+		exhaust = ("0.0 -1.185465 -39.4888 5.8 3.0 1.2");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		frangible = 0;
 		fuel = 70;
@@ -444,8 +450,9 @@
 		likely_cargo = 0;
 		materials =
 		{
-			"oolite_asp_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_asp_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -454,6 +461,12 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Gun" = 
+			{ 
+				diffuse_map = "oolite_asp_subents.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 ); 
+				shininess = 5; 
+			};	
 		};
 		max_cargo = 0;
 		max_energy = 350;
@@ -467,15 +480,6 @@
 		name = "Asp Mark II";
 		roles = "trader-courier hunter-medium(0.75) hunter-heavy(0.75) pirate-medium-fighter(0.5) pirate-heavy-fighter(0.5) pirate-interceptor pirate-aegis-raider escort-heavy assassin-heavy asp-pirate";
 		scoop_position = "0.0 -6.22 17.48";
-		smooth = no;
-		subentities =
-		(                                     
-			{
-				"subentity_key" = "oolite_asp_gun";
-				"position" = "0.0 -2.2644 42.1456";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 50;
 		view_position_aft = "0.0 4.7 -39.5811";
 		view_position_forward = "0.0 2.62065 50.1318";
@@ -572,15 +576,11 @@
 		is_template = 1;
 		materials =
 		{
-			"oolite_barrel_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_barrel_diffuse.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 );
 				shininess = 20;
-				specular = ( 0.5, 0.5, 0.5, 1.0 );
-				emission_map = 
-				{
-					name = "oolite_barrel_diffuse.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
 		};
 		max_energy = 1;
@@ -674,7 +674,7 @@
 			{ "role" = "escort-heavy"; min = -3; max = 1; },
 			{ "role" = ""; min = 0; max = 2; },
 		);
-		exhaust = (	"0.0 11.4 -49.0 3.0 4.5 3.0");
+		exhaust = (	"0.0 11.4 -53.6351 3.0 6.0 0.5");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		frangible = 0;
 		fuel = 70;
@@ -684,6 +684,28 @@
 		hud = "hud.plist";
 		is_template = 1;
 		likely_cargo = 100;
+		materials = 
+			{ 
+				"Hull" = 
+				{ 
+					diffuse_map = "oolite_boa_diffuse.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 );
+					shininess = 5; 
+					emission_map = { name = "oolite_boa_diffuse.png"; extract_channel = "a"; }; 
+					emission_modulate_color = (0.9926, 0.9686, 0.7325); 
+				}; 
+				"Engine" = 
+				{ 
+					diffuse_map = "oolite_boa_subents.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 );
+					shininess = 5; 
+					emission_map = 
+					{
+						name = "oolite_boa_subents.png"; extract_channel = "a";
+					};
+					emission_modulate_color = (0.75, 0.80, 0.80);					
+				};
+			};		
 		max_cargo = 125;
 		max_energy = 450;
 		max_flight_pitch = 1;
@@ -696,15 +718,6 @@
 		name = "Boa";
 		roles = "trader";
 		scoop_position = "0.0 3.029881 49.396415";
-		smooth = "false";
-		subentities =
-		(
-			{
-				"subentity_key" = "oolite_boa_engine";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 36;
 		view_position_aft = "0.0 3.894413 -51.6227";
 		view_position_forward = "0.0 9.71333 54.7745";
@@ -814,8 +827,8 @@
 		);
 		exhaust = 
 		(
-			"7.16646 14.373 -48.0 6.5 6.5 3.0", 
-			"-7.16646 14.373 -48.0 6.5 6.5 3.0"
+			"7.16646 14.373 -52.7779 6.5 6.5 0.5", 
+			"-7.16646 14.373 -52.7779 6.5 6.5 0.5"
 		);
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		frangible = 0;
@@ -828,8 +841,9 @@
 		likely_cargo = 125;
 		materials =
 		{
-			"oolite_boa-mk2_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_boa-mk2_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -838,6 +852,17 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_boa-mk2_subents.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5;
+				emission_map = 
+				{
+					name = "oolite_boa-mk2_subents.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.75, 0.80, 0.80);				
+			}; 				
 		};
 		max_cargo = 175;
 		max_energy = 525;
@@ -851,15 +876,6 @@
 		name = "Boa Class Cruiser";
 		roles = "trader(0.25) trader-courier(0.05)";
 		scoop_position = "0.0 -6.100643 44.2919";
-		smooth = "false";
-		subentities = 
-		(
-			{
-				"subentity_key" = "oolite_boa-mk2_engine";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 40;
 		view_position_aft = "0.0 8.343195 -55.9";
 		view_position_forward = "-0.075081 1.34004 49.3";
@@ -1014,8 +1030,9 @@
 		is_template = 1;
 		materials =
 		{
-			"oolite_barrel2_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_barrel2_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -1104,8 +1121,8 @@
 		energy_recharge_rate = 4;
 		exhaust = 
 		(		
-			"10.7601 6.3008 -29.8587  6.3 5.6",
-			"-10.7601 6.3008 -29.8587 6.3 5.6"
+			"10.7601 6.3008 -33.8587  6.3 5.6 1.0",
+			"-10.7601 6.3008 -33.8587 6.3 5.6 1.0"
 		);
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		frangible = 0;
@@ -1115,18 +1132,22 @@
 		has_scoop = 0.95;
 		is_template = 1;
 		likely_cargo = 15;
-		materials =
-		{
-			"oolite_cobra3_diffuse.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_cobra3_diffuse.png"; extract_channel = "a";
-				};
+		materials = 
+		{ 
+			"Hull" = 
+			{ 
+				diffuse_map = "oolite_cobra3_diffuse.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+				emission_map = { name = "oolite_cobra3_diffuse.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Gun" = 
+				{ 
+					diffuse_map = "oolite_cobra3_subents.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 ); 
+					shininess = 5; 
+				};			
 		};
 		max_cargo = 20;
 		max_energy = 256;
@@ -1139,15 +1160,6 @@
 		model = "oolite_cobra3.dat";
 		name = "Cobra Mark III";
 		scoop_position = "0.0 -5.5 25.0";
-		smooth = no;
-		subentities = 
-		(
-			{
-				"subentity_key" = "oolite_cobra3_gun";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 32;
 		view_position_aft = "0.0 6.0 -35.5";
 		view_position_forward = "0.0 7.25 31.0";
@@ -1176,7 +1188,7 @@
 		max_flight_speed = 300;
 		materials =
 		{
-			"oolite_cobra3_diffuse.png" =
+			"Hull" =
 			{
 				diffuse_map = "oolite_cobra3_diffuse_alt.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -1187,6 +1199,12 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Gun" = 
+				{ 
+					diffuse_map = "oolite_cobra3_subents.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 ); 
+					shininess = 5; 
+				};			
 		};
 		roles = "pirate-light-freighter pirate-medium-freighter(0.2) trader(0.375) hunter-heavy escort-heavy(0.25) hermit-ship sunskim-trader cobra3-alternate assassin-medium";
 	};
@@ -1203,7 +1221,7 @@
 		has_shield_booster = 0.25;
 		materials =
 		{
-			"oolite_cobra3_diffuse.png" =
+			"Hull" =
 			{
 				diffuse_map = "oolite_cobra3_diffuse_pirate.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -1214,6 +1232,12 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Gun" = 
+				{ 
+					diffuse_map = "oolite_cobra3_subents.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 ); 
+					shininess = 5; 
+				};			
 		};
 		max_cargo = 20;
 		max_flight_speed = 300;
@@ -1299,8 +1323,8 @@
 		energy_recharge_rate = 2.5;
 		exhaust = 
 		(
-	        "-6.71146  -0.733705 -24.3889 2.3 2.7 5.0", 
-	        "6.631265 -0.733705 -24.3889 2.3 2.7 5.0"
+	        "-6.71146  -0.733705 -28.3889 2.3 2.7 0.7", 
+	        "6.631265 -0.733705 -28.3889 2.3 2.7 0.7"
 		);
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
@@ -1310,8 +1334,9 @@
 		likely_cargo = 10;
 		materials =
 		{
-			"oolite_cobramk1_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_cobramk1_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -1333,7 +1358,6 @@
 		name = "Cobra Mark I";
 		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort-light(0.25) assassin-light";
 		scoop_position = "0.0 -5.0 -9";
-		smooth = "false";
 		thrust = 25;
 		view_position_aft = "0.0 3.75 -27.5";
 		view_position_forward = "0.0 5.0 21.7";
@@ -1341,7 +1365,7 @@
 		view_position_starboard = "16.0 6.5 0.0";
 		weapon_facings = 3;
 		weapon_position_aft = "0.0 0.0 -27.5";
-		weapon_position_forward = "0.0 0.0 35.8503";
+		weapon_position_forward = "-0.046166 -0.885124 34.8503";
 		weapon_position_port = "-35.0 -1.0 0.5";
 		weapon_position_starboard = "35.0 -1.0 0.5";
 	};
@@ -1357,7 +1381,7 @@
 		max_energy = 200;
 		materials =
 		{
-			"oolite_cobramk1_diffuse.png" =
+			"Hull" =
 			{
 				diffuse_map = "oolite_cobramk1_diffuse_alt.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -1381,7 +1405,7 @@
 		has_scoop = yes;
 		materials =
 		{
-			"oolite_cobramk1_diffuse.png" =
+			"Hull" =
 			{
 				diffuse_map = "oolite_cobramk1_diffuse_miner.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -1410,8 +1434,8 @@
 		energy_recharge_rate = 5;
 		exhaust = 
 		(
-			"2.12235 -1.09695 -21.9387 2.6 2.4 4.0",
-			"-2.12031 -1.09695 -21.9387 2.6 2.4 4.0"
+			"2.12235 -1.09695 -26.9387 2.6 2.4 1.0",
+			"-2.12031 -1.09695 -26.9387 2.6 2.4 1.0"
 		);
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		frangible = no;
@@ -1422,15 +1446,24 @@
 		is_template = 1;
 		likely_cargo = 3;
 		materials = 
-		{ 
-			"oolite_constrictor_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 ); 
-				shininess = 5; 
-				emission_map = { name = "oolite_constrictor_diffuse.png"; extract_channel = "a"; }; 
-				emission_modulate_color = (1.0, 0.1, 0.0); 				
-			}; 
-		};
+				"Hull" = 
+				{ 
+					diffuse_map = "oolite_constrictor_diffuse.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 ); 
+					shininess = 5; 
+					emission_map = { name = "oolite_constrictor_diffuse.png"; extract_channel = "a"; }; 
+					emission_modulate_color = (1.0, 0.1, 0.0); 				
+				}; 
+				"Engine" = 
+				{ 
+					diffuse_map = "oolite_constrictor_subents.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 ); 
+					shininess = 5;
+					emission_map = { name = "oolite_constrictor_subents.png"; extract_channel = "a"; }; 
+					emission_modulate_color = (0.75, 0.80, 0.80); 	
+				}; 			
+			};		
 		max_cargo = 15;
 		max_energy = 450;
 		max_flight_pitch = 1.75;
@@ -1442,14 +1475,6 @@
 		name = "Constrictor";
 		pilot = "constrictor-mission-thief";	// key to entry in characters.plist
 		roles = "constrictor";
-		subentities = 
-		(
-			{
-				"subentity_key" = "oolite_constrictor_engines";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 50;
 		weapon_facings = 15;
 		weapon_position_forward = "0.0 -5.780295 26.8758";
@@ -1668,8 +1693,21 @@
 	"oolite_template_ecm-proof-missile" = 
 	{
 		like_ship = "oolite_template_missile";
+		exhaust = ("0.0 0.0 -8.36243 2.0 2.0 1.5");
 		is_template = 1;
 		ai_type = "oolite-missileAI.js";
+		materials = 
+			{ 
+				"Hull" = 
+				{ 
+					diffuse_map = "oolite_missile_hardhead_diffuse.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 );
+					shininess = 10; 
+					emission_map = { name = "oolite_missile_hardhead_diffuse.png"; extract_channel = "a"; }; 
+					emission_modulate_color = (0.2, 0.8, 1.0);				
+				}; 
+			};
+		model = "oolite_missile_hardhead.dat";	
 		name = "ECM Hardened Missile";
 		script_info = 
 		{
@@ -1689,16 +1727,17 @@
 		energy_recharge_rate = 2;
 		exhaust =
 		(
-			"0.0 3.02523 -1.5        0.35 0.35 0.3",
-			"2.60324 -1.47267 -1.5   0.35 0.35 0.3",
-			"-2.60324 -1.47267 -1.5  0.35 0.35 0.3"
+			"0.0 3.02523 -2.7841 0.35 0.35 0.5",
+			"2.60324 -1.47267 -2.7841 0.35 0.35 0.5",
+			"-2.60324 -1.47267 -2.7841 0.35 0.35 0.5"
 		);
 		forward_weapon_type = "WEAPON_NONE";
 		is_template = 1;
 		materials =
 		{
-			"oolite_escape_capsule_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_escape_capsule_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -1718,7 +1757,6 @@
 		name = "Escape capsule";
 		roles = "escape-capsule";
 		scan_class = "CLASS_CARGO";
-		smooth = no;
 		thrust = 5;
 		weapon_position_aft = "0.0 0.0 -1.67";
 		weapon_position_forward = "0.0 0.0 4.18";
@@ -1795,7 +1833,7 @@
 			}
 		);
 		energy_recharge_rate = 4.5;
-		exhaust = ("-0.04427 0.2688 -40.8958 3.5 3.5 6.0");
+		exhaust = ("0.0 1.5 -40.8519 3.2 3.5 1.6");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		frangible = 0;
 		fuel = 70;
@@ -1810,8 +1848,9 @@
 		likely_cargo = 8;
 		materials =
 		{
-			"oolite_ferdelance_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_ferdelance_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -1820,6 +1859,17 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_ferdelance_subents.png"; 
+				specular_color = ( 0.6, 0.5, 0.5 );
+				shininess = 7; 
+				emission_map = 
+				{
+					name = "oolite_ferdelance_subents.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.75, 0.80, 0.80);
+			}; 			
 		};
 		max_cargo = 12;
 		max_energy = 150;
@@ -1833,15 +1883,6 @@
 		name = "Fer-de-Lance";
 		roles = "trader-freighter(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
 		scoop_position = "0.0 -10.0322 21.6829";
-		smooth = "false";
-		subentities = 
-		(
-			{
-				"subentity_key" = "oolite_ferdelance_subents";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 36;
 		view_position_aft = "0.0 12.0 -32.5";
 		view_position_forward = "0.0 0.0 47.0";
@@ -1868,7 +1909,7 @@
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
-		exhaust = ("0.0 0.22461 -20.0 3.4 3.5 5.0");
+		exhaust = ("0.0 0.22461 -20.6841 3.4 3.5 1.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		frangible = 0;
 		hyperspace_motor = no;
@@ -1878,8 +1919,9 @@
 		likely_cargo = 3;
 		materials =
 		{
-			"oolite_gecko_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_gecko_diffuse.png"; 			
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -1888,6 +1930,12 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Gun" = 
+			{ 
+				diffuse_map = "oolite_gecko_subents.png"; 
+				specular_color = ( 0.6, 0.5, 0.5 ); 
+				shininess = 7; 
+			};			
 		};
 		max_cargo = 3;
 		max_energy = 250;
@@ -1900,18 +1948,9 @@
 		name = "Gecko";
 		roles = "hunter(0.75) pirate-light-fighter(0.5) pirate-medium-fighter(0.75) pirate(0.5) escort(0.25) escort-medium(0.5) escort-heavy";
 		scoop_position = "0.0 -6.6 8.4";
-		smooth = "false";
-		subentities =
-		(                                     
-			{
-				"subentity_key" = "oolite_gecko_gun";
-				"position" = "0.0 -2.49055 25.6416";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 45;
 		weapon_facings = 1;
-		weapon_position_forward = "0.0 -2.58 24.1667";
+		weapon_position_forward = "0.0 -2.49055 25.6416";
 		weapon_position_aft = "0.0 5.54957 -12.1558";
 		weapon_position_port = "-13.75 -2.0625 -1.875";
 		weapon_position_starboard = "13.75 -2.0625 -1.875";
@@ -1972,8 +2011,8 @@
 		energy_recharge_rate = 2.5;
 		exhaust = 
 		(		
-			"-13.6291 -0.5683 -37.2306  8.0 5.3 9.0",
-			"13.6291  -0.5683 -37.2306  8.0 5.3 9.0"
+			"-13.6291 -0.5683 -38.8271  8.0 5.3 1.0",
+			"13.6291  -0.5683 -38.8271  8.0 5.3 1.0"
 		);
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
@@ -1986,8 +2025,9 @@
 		likely_cargo = 2;
 		materials =
 		{
-			"oolite_krait_diffuse.png" =
+			"Hull" =
 			{
+				diffuse_map = "oolite_krait_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -2024,8 +2064,8 @@
 		energy_recharge_rate = 3;
 		exhaust = 
 		(
-			"8.619065 1.689809 -29.0 3.3 3.3 7.0",
-			"-8.619065 1.689809 -29.0 3.3 3.3 7.0"
+			"8.619065 1.689809 -31.6852 3.3 3.3 1.4",
+			"-8.619065 1.689809 -31.6852 3.3 3.3 1.4"
 		);
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		frangible = 0;
@@ -2036,7 +2076,7 @@
 		likely_cargo = 3;
 		materials =
 		{
-			"oolite_mamba_diffuse.png" = 
+			"Hull" = 
 			{
 				diffuse_map = "oolite_mamba_diffuse.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -2047,6 +2087,12 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Gun" = 
+			{ 
+				diffuse_map = "oolite_mamba_subents.png"; 
+				specular_color = ( 0.6, 0.5, 0.5 ); 
+				shininess = 10; 
+			};			
 		};
 		max_cargo = 4;
 		max_energy = 240;
@@ -2059,18 +2105,10 @@
 		name = "Mamba";
 		roles = "pirate pirate-light-fighter(0.5) hunter";
 		scoop_position = "0.0 -2.0 -3";
-		subentities =
-		(                                     
-			{
-				"subentity_key" = "oolite_mamba_gun";
-				"position" = "0.0 0.241987 33.5581";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 32;
 		weapon_facings = 1;
 		weapon_position_aft = "0.0 1.5184 -30.3193";
-		weapon_position_forward = "0.0 0.241987 33.5581";
+		weapon_position_forward = "0.0 0.241963 33.558";
 		weapon_position_port = "-16.5 -3.0 0.0";
 		weapon_position_starboard = "16.5 -3.0 0.0";
 	};
@@ -2081,7 +2119,7 @@
 		is_template = 1;
 		materials =
 		{
-			"oolite_mamba_diffuse.png" = 
+			"Hull" = 
 			{
 				diffuse_map = "oolite_mamba_diffuse_escort.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -2092,6 +2130,12 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Gun" = 
+			{ 
+				diffuse_map = "oolite_mamba_subents.png"; 
+				specular_color = ( 0.6, 0.5, 0.5 ); 
+				shininess = 10; 
+			};			
 		};
 		name = "Mamba Escort";
 		roles = "pirate-light-fighter(0.5) escort escort-medium(0.25)";
@@ -2101,13 +2145,14 @@
 		ai_type = "oolite-missileAI.js";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
-		exhaust = ("0.0 0.0 -3.5 2.0 2.0 0.75");
+		exhaust = ("0.0 0.32581 -9.87154 2.0 2.0 1.5");
 		forward_weapon_type = "WEAPON_NONE";
 		is_template = 1;
 		materials = 
 		{ 
-			"oolite_missile_diffuse.png" = 
+			"Hull" = 
 			{ 
+				diffuse_map = "oolite_missile_diffuse.png"; 
 				specular_color = ( 0.2, 0.2, 0.2 );
 				shininess = 10; 
 				emission_map = { name = "oolite_missile_diffuse.png"; extract_channel = "a"; }; 
@@ -2206,7 +2251,7 @@
 			}
 		);
 		energy_recharge_rate = 3;
-		exhaust = ("0.0 -2.0 -30.0 3.0 3.0 1.0");
+		exhaust = ("0.0 -2.600855 -26.9998 2.0 2.0 0.5");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_scoop = yes;
@@ -2216,8 +2261,9 @@
 		likely_cargo = 5;
 		materials =
 		{
-			"oolite_moray_diffuse.png" = 
+			"Hull" = 
 			{
+				diffuse_map = "oolite_moray_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -2226,6 +2272,17 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_moray_subents.png"; 
+				specular_color = (0.2, 0.2, 0.2); 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_moray_subents.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.75, 0.80, 0.80);
+			};			
 		};
 		max_cargo = 7;
 		max_energy = 240;
@@ -2266,7 +2323,7 @@
 		max_cargo = 22;
 		materials =
 		{
-			"oolite_moray_diffuse.png" = 
+			"Hull" = 
 			{
 				diffuse_map = "oolite_moray_diffuse_med.png"; 
 				specular_color = (0.2, 0.2, 0.2);
@@ -2277,6 +2334,17 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_moray_subents.png"; 
+				specular_color = (0.2, 0.2, 0.2); 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_moray_subents.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.2, 1.0, 1.0);
+			};			
 		};
 		name = "Moray Medical Boat";
 		roles = "trader(0.5) sunskim-trader";
@@ -2288,7 +2356,7 @@
 		is_template = 1;
 		materials =
 		{
-			"oolite_moray_diffuse.png" = 
+			"Hull" = 
 			{
 				diffuse_map = "oolite_moray_diffuse_med.png"; 
 				specular_color = (0.2, 0.2, 0.2);
@@ -2299,6 +2367,17 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_moray_subents.png"; 
+				specular_color = (0.2, 0.2, 0.2); 
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_moray_subents.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.75, 0.80, 0.80);
+			};			
 		};
 		name = "Moray Medical Boat";
 		roles = "player";
@@ -2377,8 +2456,8 @@
 		energy_recharge_rate = 2.5;
 		exhaust = 
 		(
-			"0.152638 5.67333 -69.3 2.0 4.0 2.0",
-			"0.152638 -5.67333 -69.3 2.0 4.0 2.0"
+			"0.152638 5.67333 -71.0035 2.0 4.0 0.5",
+			"0.152638 -5.67333 -71.0035 2.0 4.0 0.5"
 		);
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		frangible = 0;
@@ -2389,18 +2468,33 @@
 		hud = "hud.plist";
 		is_template = 1;
 		likely_cargo = 75;
-		materials =
-		{
-			"oolite_python_diffuse.png" =
-			{
+		materials = 
+		{ 
+			"Hull" = 
+			{ 
+				diffuse_map = "oolite_python_diffuse.png";
 				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
+				shininess = 5; 
+				emission_map = { name = "oolite_python_diffuse.png"; extract_channel = "a"; }; 
+				emission_modulate_color = (0.75, 0.80, 0.80);				
+			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_python_subents.png";  
+				specular_color = (0.2, 0.2, 0.2);
+				shininess = 5; 
 				emission_map = 
 				{
-					name = "oolite_python_diffuse.png"; extract_channel = "a";
+					name = "oolite_python_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
-			};
+				emission_modulate_color = (0.75, 0.80, 0.80);				
+			}; 
+			"Gun" = 
+			{ 
+				diffuse_map = "oolite_python_subents.png"; 
+				specular_color = (0.2, 0.2, 0.2);
+				shininess = 5;
+			};			
 		};
 		max_cargo = 100;
 		max_energy = 450;
@@ -2414,19 +2508,6 @@
 		name = "Python";
 		roles = "trader(0.5) trader-smuggler(0.2) pirate(0.2) pirate-light-freighter(0.2)";
 		scoop_position = "0.0 -15.0 -21.5";
-		subentities = 
-		(
-			{
-				"subentity_key" = "oolite_python_engine";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			},
-			{
-				"subentity_key" = "oolite_python_gun";
-				"position" = "0 -0.030034 67.4256";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		thrust = 20;
 		view_position_aft = "0.0 9.150712 -64.8269";
 		view_position_forward = "0.0 1.18304 62. 0972";
@@ -2434,7 +2515,7 @@
 		view_position_starboard = "35.80095 2.0 -27.05945";
 		weapon_facings = 15;
 		weapon_position_aft = "0.0 0.0 -70.0";
-		weapon_position_forward = "0 0.303271 71.5";
+		weapon_position_forward = "0.0 0.308593 67.4737";
 		weapon_position_port = "-26.67 0.0 4.33";
 		weapon_position_starboard = "26.67 0.0 4.33";
 	};
@@ -2452,7 +2533,7 @@
 		has_shield_booster = 0.85;
 		materials =
 		{
-			"oolite_python_diffuse.png" =
+			"Hull" =
 			{
 				diffuse_map = "oolite_python_diffuse_blackdog.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -2463,6 +2544,23 @@
 				};
 				emission_modulate_color = (0.75, 0.80, 0.80);
 			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_python_subents.png";  
+				specular_color = (0.2, 0.2, 0.2);
+				shininess = 5; 
+				emission_map = 
+				{
+					name = "oolite_python_subents.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.75, 0.80, 0.80);
+			}; 
+			"Gun" = 
+			{ 
+				diffuse_map = "oolite_python_subents.png"; 
+				specular_color = (0.2, 0.2, 0.2);
+				shininess = 5; 
+			};	
 		};
 		roles = "pirate-medium-freighter pirate-heavy-freighter(0.25) blackdog";
 	};
@@ -2472,33 +2570,35 @@
 		is_template = 1;
 		exhaust = 
 		(
-			"4.347858 0.0 -62.0 3.8 3.8 2.0",
-			"-4.347858 0.0 -62.0 3.8 3.8 2.0"
+			"4.347858 0.0 -66.7083 3.8 3.8 0.6",
+			"-4.347858 0.0 -66.7083 3.8 3.8 0.6"
 		);
 		forward_weapon_type = "WEAPON_PULSE_LASER";
-		materials =
-		{
-			"oolite_python_diffuse_trader.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
+
+	materials = 
+		{ 
+			"Hull" = 
+			{ 
+				diffuse_map = "oolite_python_diffuse_trader.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
+				emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "g"; }; 
+				emission_modulate_color = (0.95, 0.90, 0.80);
+			}; 
+			"Engines" = 
+			{ 
+				diffuse_map = "oolite_python_subents_trader.png"; 
+				specular_color = ( 0.2, 0.2, 0.2 );
+				shininess = 5; 
 				emission_map = 
 				{
-					name = "oolite_python_diffuse_trader.png"; extract_channel = "a";
+					name = "oolite_python_subents_trader.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.95, 0.90, 0.80);
-			};
+				emission_modulate_color = (0.75, 0.80, 0.80);				
+			}; 			
 		};
 		model = "oolite_python_trader.dat";
 		roles = "player";
-		subentities = 
-		(
-			{
-				"subentity_key" = "oolite_python_engine_trader";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		weapon_position_forward = "0.0 -2.18304 62.0972";
 	};
 	"oolite_template_python-trader" =
@@ -2512,32 +2612,33 @@
 		);
 		exhaust = 
 		(
-			"4.347858 0.0 -62.0 3.8 3.8 2.0",
-			"-4.347858 0.0 -62.0 3.8 3.8 2.0"
+			"4.347858 0.0 -66.7083 3.8 3.8 0.6",
+			"-4.347858 0.0 -66.7083 3.8 3.8 0.6"
 		);
 		has_escape_pod = yes;
-		materials =
-		{
-			"oolite_python_diffuse_trader.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_python_diffuse_trader.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.95, 0.90, 0.80);
+		materials = 
+			{ 
+				"Hull" = 
+				{ 
+					diffuse_map = "oolite_python_diffuse_trader.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 );
+					shininess = 5; 
+					emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "g"; }; 
+					emission_modulate_color = (0.95, 0.90, 0.80);
+				}; 
+				"Engines" = 
+				{ 
+					diffuse_map = "oolite_python_subents_trader.png"; 
+					specular_color = ( 0.2, 0.2, 0.2 ); 
+					shininess = 5; 
+					emission_map = 
+					{
+						name = "oolite_python_subents_trader.png"; extract_channel = "a";
+					};
+					emission_modulate_color = (0.75, 0.80, 0.80);					
+					}; 			
 			};
-		};
 		model = "oolite_python_trader.dat";
-		subentities = 
-		(
-			{
-				"subentity_key" = "oolite_python_engine_trader";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			}
-		);
 		roles = "trader";
 		weapon_position_forward = "0.0 -2.18304 62.0972";
 	};
@@ -2672,16 +2773,17 @@
 		energy_recharge_rate = 1;
 		exhaust = 
 		(
-			"2.26919 3.591475 -15.188 2.5 2.3 4.0",
-			"-2.26919 3.591475 -15.188 2.5 2.3 4.0"
+			"2.26919 3.591475 -15.188 2.5 2.3 0.6",
+			"-2.26919 3.591475 -15.188 2.5 2.3 0.6"
 		);
 		forward_weapon_type = "WEAPON_NONE";
 		hyperspace_motor = no;
 		is_template = 1;
 		materials =
 		{
-			"oolite_shuttle_diffuse.png" = 
+			"Hull" = 
 			{
+				diffuse_map = "oolite_shuttle_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -2704,7 +2806,7 @@
 		thrust = 16;
 		weapon_facings = 0;
 		weapon_position_aft = "0.0 0.0 -17.5";
-		weapon_position_forward = "0.0 -4.5 17.5";
+		weapon_position_forward = "-0.0 -1.67 27.4";
 		weapon_position_port = "-9.0 0.0 11.5";
 		weapon_position_starboard = "9.0 0.0 11.5";
 	};
@@ -2715,14 +2817,15 @@
 		auto_weapons = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
-		exhaust = ("0.0 -1.81006 -14.474 3.6 3.6 7.0");
+		exhaust = ("0.0 -1.81006 -19.4741 3.6 3.6 1.5");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hyperspace_motor = no;
 		is_template = 1;
 		materials =
 		{
-			"oolite_sidewinder_diffuse.png" = 
+			"Hull" = 
 			{
+				diffuse_map = "oolite_sidewinder_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5;
 				emission_map = 
@@ -2757,8 +2860,9 @@
 		max_flight_pitch = 1.8;
 		materials =
 		{
-			"oolite_sidewinder_diffuse_escort.png" = 
+			"Hull" = 
 			{
+				diffuse_map = "oolite_sidewinder_diffuse_escort.png";
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 10;
 				emission_map = 
@@ -2815,13 +2919,14 @@
 		laser_color = "greenColor";
 		materials =
 		{
-			"oolite_tharglet_diffuse.png" = 
+			"Hull" = 
 			{
+				diffuse_map = "oolite_thargon_diffuse.png";
 				specular_color = (0.2, 0.8, 0.2);
 				shininess = 25;
 				emission_map = 
 				{
-					name = "oolite_tharglet_diffuse.png"; extract_channel = "a";
+					name = "oolite_thargon_diffuse.png"; extract_channel = "a";
 				};
 				emission_modulate_color = (0.6, 0.5, 0.2);
 			};
@@ -2859,7 +2964,7 @@
 		laser_color = "greenColor";
 		materials = 
 		{ 
-			"oolite_thargoid_diffuse.png" = 
+			"Hull" = 
 			{ 
 				diffuse_map = "oolite_thargoid_diffuse.png"; 
 				specular_color = (0.2, 0.8, 0.2);
@@ -2893,16 +2998,17 @@
 		energy_recharge_rate = 3;
 		exhaust = 
 		(
-			"2.1109  -1.97482 -19.0 2.0 2.0 3.0",
-			"-2.1109 -1.97482 -19.0 2.0 2.0 3.0"
+			"2.1109 -1.97482 -19.6977 2.0 2.0 0.5",
+			"-2.1109 -1.97482 -19.6977 2.0 2.0 0.5"
 		);
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		hyperspace_motor = no;
 		is_template = 1;
 		materials = 
 		{ 
-			"oolite_transporter_diffuse.png" = 
+			"Hull" = 
 			{ 
+				diffuse_map = "oolite_transporter_diffuse.png"; 
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5; 
 				emission_map = { name = "oolite_transporter_diffuse.png"; extract_channel = "a"; }; 
@@ -2936,7 +3042,7 @@
 		has_scoop = yes;
 		materials = 
 		{ 
-			"oolite_transporter_diffuse.png" = 
+			"Hull" = 
 			{
 				diffuse_map = "oolite_transporter_diffuse_miner.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -2956,8 +3062,8 @@
 		energy_recharge_rate = 4;
 		exhaust = 
 		(
-			"11.5223 -0.0416 -24.249 4.0 4.0 1.5",
-			"-11.5223 -0.0416 -24.249 4.0 4.0 1.5"
+			"11.5223 -0.0416 -26.249 4.0 4.0 1.2",
+			"-11.5223 -0.0416 -26.249 4.0 4.0 1.2"
 		);
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		frangible = 0;
@@ -2967,16 +3073,28 @@
 		laser_color = "magentaColor";
 		materials = 
 		{ 
-			"oolite_viper_diffuse.png" = 
+			"Hull" = 
 			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5; 
+				diffuse_map = "oolite_viper_diffuse.png";
+				specular_color = (0.6, 0.5, 0.5 );
+				shininess = 9; 
 				emission_map = 
 				{
 					name = "oolite_viper_diffuse.png"; extract_channel = "a";
 				}; 
 				emission_modulate_color = (0.75, 0.80, 0.80); 				
 			}; 
+			"Engine" = 
+				{ 
+					diffuse_map = "oolite_viper_diffuse.png"; 
+					specular_color = (0.6, 0.5, 0.5 ); 
+					shininess = 9; 
+				};
+				emission_map = 
+				{
+					name = "oolite_viper_diffuse.png"; extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.75, 0.80, 0.80); 				
 		};
 		max_energy = 180;
 		max_flight_pitch = 1.8;
@@ -2988,14 +3106,8 @@
 		name = "GalCop Viper";
 		roles = "police";
 		scan_class = "CLASS_POLICE";
-		smooth = "no";
 		subentities = 
 		(
-			{
-				"subentity_key" = "oolite_viper_subents";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			},
 			{
 				type = flasher;
 				size = 6;
@@ -3072,7 +3184,7 @@
 		thrust = 32;
 		weapon_facings = 1;
 		weapon_position_aft = "0.0 0.0 -27.5";
-		weapon_position_forward = "0.0 -0.15 35.034";	
+		weapon_position_forward = "0.0 -0.15 35.0344";	
 		weapon_position_port = "-12.5 0.0 0.0";
 		weapon_position_starboard = "12.5 0.0 0.0";
 	};
@@ -3084,9 +3196,9 @@
 		energy_recharge_rate = 6;
 		exhaust = 
 		(
-			"11.5223 -0.0416 -24.249 4.0 4.0 8.0",
-			"0.0 -0.0416 -24.249 4.0 4.0 8.0",
-			"-11.5223 -0.0416 -24.249 4.0 4.0 8.0"
+			"11.5223 -0.0416 -26.249 4.0 4.0 1.5",
+			"0.0 -0.0416 -26.249 4.0 4.0 1.5",
+			"-11.5223 -0.0416 -26.249 4.0 4.0 1.5"
 		);
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		frangible = no;
@@ -3098,16 +3210,28 @@
 		laser_color = "magentaColor";
 		materials = 
 		{ 
-			"oolite_viper_interceptor_diffuse.png" = 
+			"Hull" = 
 			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5; 
+				diffuse_map = "oolite_viper_interceptor_diffuse.png"; 
+				specular_color = (0.6, 0.7, 0.6);
+				shininess = 9; 
 				emission_map = 
 				{
 					name = "oolite_viper_interceptor_diffuse.png"; extract_channel = "a";
 				}; 
 				emission_modulate_color = (0.75, 0.80, 0.80); 				
-			}; 
+			};
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_viper_interceptor_diffuse.png"; 
+				specular_color = ( 0.6, 0.5, 0.5 );
+				shininess = 9; 
+				emission_map = 
+				{
+					name = "oolite_viper_interceptor_diffuse.png"; extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.75, 0.80, 0.80); 
+			};			
 		};
 		max_energy = 280;
 		max_flight_pitch = 2;
@@ -3119,13 +3243,7 @@
 		name = "GalCop Viper Interceptor";
 		roles = "interceptor wingman";
 		scan_class = "CLASS_POLICE";
-		smooth = no;
 		subentities = (
-			{
-				"subentity_key" = "oolite_viper_interceptor_subents";
-				"position" = "0 0 0";
-				"orientation" = "1 0 0 0";
-			},
 			{
 				type = flasher;
 				size = 6;
@@ -3214,7 +3332,7 @@
 		max_flight_speed = 360;
 		materials = 
 		{ 
-			"oolite_viper_diffuse.png" = 
+			"Hull" = 
 			{
 				diffuse_map = "oolite_viper_diffuse_pursuit.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -3237,10 +3355,10 @@
 		energy_recharge_rate = 2;
 		exhaust = 
 		(
-			"4.540065 6.93301 -13.0 1.4 1.4 2.0",
-			"-4.540065 6.93301 -13.0 1.4 1.4 2.0",
-			"13.1008  -8.98678 -14.0 2.0 2.0 2.0",
-			"-13.1021  -8.98678 -14.0 2.0 2.0 2.0"
+			"4.540065 6.93301 -13.9962 1.4 1.4 0.5",
+			"-4.540065 6.93301 -13.9962 1.4 1.4 0.5",
+			"13.1008 -8.98678 -14.0416 2.0 2.0 0.5",
+			"-13.1021 -8.98678 -14.0416 2.0 2.0 0.5"
 		);
 		forward_weapon_type = "WEAPON_NONE";
 		hyperspace_motor = no;
@@ -3248,8 +3366,9 @@
 		likely_cargo = 1;
 		materials = 
 		{ 
-			"oolite_worm_diffuse.png" = 
+			"Hull" = 
 			{
+				diffuse_map = "oolite_worm_diffuse.png";
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5; 
 				emission_map = 
@@ -3272,7 +3391,7 @@
 		thrust = 12;
 		weapon_facings = 1;
 		weapon_position_aft = "0.0 -4.8 -17.5";
-		weapon_position_forward = "0.0 -4.4 15.5";
+		weapon_position_forward = "0.0 -5.34047 19.2792";
 		weapon_position_port = "-12.5 -3.0 -2.5";
 		weapon_position_starboard = "12.5 -3.0 -2.5";
 	};
@@ -3289,7 +3408,7 @@
 		max_flight_speed = 100;
 		materials = 
 		{ 
-			"oolite_worm_diffuse.png" = 
+			"Hull" = 
 			{
 				diffuse_map = "oolite_worm_diffuse_miner.png";
 				specular_color = (0.2, 0.2, 0.2);
@@ -3724,214 +3843,6 @@
 		name = "Strut 10-10-30";
 		roles = "strut";
 		unpiloted = yes;
-	};
-
-	"oolite_anaconda_engine" = 
-	{
-		materials =
-		{
-			"oolite_anaconda_subents.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_anaconda_subents.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
-			};
-		};
-		model = "oolite_anaconda_engine.dat"; 
-		name = "Anaconda Engine";
-		smooth = "false";
-	};
-	"oolite_anaconda_gun" = 
-	{
-		model = "oolite_anaconda_gun.dat"; 
-		name = "Anaconda Gun";
-		smooth = "false";
-	};
-	"oolite_asp_gun" = 
-	{
-		model = "oolite_asp_gun.dat"; 
-		name = "Asp Mark II Gun";
-		smooth = "false";
-	};
-	"oolite_boa_engine" = 
-	{
-		materials =
-		{
-			"oolite_boa_subents.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_boa_subents.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
-			};
-		};
-		model = "oolite_boa_engine.dat"; 
-		name = "Boa Engine";
-		smooth = "false";
-	};
-	"oolite_boa-mk2_engine" = 
-	{
-		materials =
-		{
-			"oolite_boa-mk2_subents.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_boa-mk2_subents.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
-			};
-		};
-		model = "oolite_boa-mk2_engine.dat"; 
-		name = "Boa Class Cruiser Engine";
-		smooth = "false";
-	};
-	"oolite_cobra3_gun" = 
-	{
-		model = "oolite_cobra3_gun.dat"; 
-		name = "Cobra Mark III Gun";
-		smooth = "false";
-	};
-	"oolite_constrictor_engines" = 
-	{
-		materials = 
-		{ 
-			"oolite_constrictor_subents.png" = 
-			{ 
-				specular_color = ( 0.2, 0.2, 0.2 ); 
-				shininess = 5; 
-				emission_map = { name = "oolite_constrictor_subents.png"; extract_channel = "a"; }; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
-			}; 
-		};
-		model = "oolite_constrictor_engines.dat"; 
-		name = "Constrictor Engines";
-		smooth = "false";
-	};
-	"oolite_ferdelance_subents" = 
-	{
-		materials =
-		{
-			"oolite_ferdelance_subents.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_ferdelance_subents.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
-			};
-		};
-		model = "oolite_ferdelance_subents.dat"; 
-		name = "Fer-de-Lance Engines/Gun";	
-		smooth = "false";
-	};
-	"oolite_gecko_gun" = 
-	{
-		model = "oolite_gecko_gun.dat"; 
-		name = "Gecko Gun";
-		smooth = "false";
-	};
-	"oolite_mamba_gun" = 
-	{
-		model = "oolite_mamba_gun.dat"; 
-		name = "Mamba Gun";
-		smooth = "false";
-	};
-	"oolite_python_engine" = 
-	{
-		materials =
-		{
-			"oolite_python_subents.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_python_subents.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
-			};
-		};
-		model = "oolite_python_engine.dat"; 
-		name = "Python Engine";
-		smooth = "false";
-	};
-	"oolite_python_gun" = 
-	{
-		model = "oolite_python_gun.dat"; 
-		name = "Python Gun";
-		smooth = "false";
-	};
-	"oolite_python_engine_trader" = 
-	{
-		ai_type = "nullAI.plist";
-		materials =
-		{
-			"oolite_python_subents_trader.png" =
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5;
-				emission_map = 
-				{
-					name = "oolite_python_subents_trader.png"; extract_channel = "a";
-				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
-			};
-		};
-		model = "oolite_python_trader_engine.dat"; 
-		name = "Python Engine";
-		smooth = "false";
-	};
-	"oolite_viper_subents" = 
-	{
-		materials = 
-		{ 
-			"oolite_viper_diffuse.png" = 
-			{
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5; 
-				emission_map = 
-				{
-					name = "oolite_viper_diffuse.png"; extract_channel = "a";
-				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
-			}; 
-		};
-		model = "oolite_viper_subents.dat"; 
-		name = "GalCop Viper Engines+Gun";
-		smooth = "false";
-	};
-	"oolite_viper_interceptor_subents" = 
-	{
-		ai_type = "nullAI.plist";
-		materials = 
-		{ 
-			"oolite_viper_interceptor_diffuse.png" = 
-			{
-				diffuse_map = "oolite_viper_interceptor_diffuse.png";
-				specular_color = (0.2, 0.2, 0.2);
-				shininess = 5; 
-				emission_map = 
-				{
-					name = "oolite_viper_interceptor_diffuse.png"; extract_channel = "a";
-				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
-			}; 
-		};		
-		model = "oolite_viper_interceptor_subents.dat"; 
-		name = "GalCop Viper Interceptor Engines+Gun";
-		smooth = "false";
 	};
 
 		/* Special entity definitions required by Oolite. There should be
