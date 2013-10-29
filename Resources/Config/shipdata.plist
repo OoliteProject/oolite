@@ -2820,14 +2820,14 @@
 		);
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 
-	materials = 
+		materials = 
 		{ 
 			"Hull" = 
 			{ 
 				diffuse_map = "oolite_python_diffuse_trader.png"; 
 				specular_color = ( 0.2, 0.2, 0.2 );
 				shininess = 5; 
-				emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "g"; }; 
+				emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (0.95, 0.90, 0.80);
 			}; 
 			"Engines" = 
@@ -2868,7 +2868,7 @@
 					diffuse_map = "oolite_python_diffuse_trader.png"; 
 					specular_color = ( 0.2, 0.2, 0.2 );
 					shininess = 5; 
-					emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "g"; }; 
+					emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "a"; }; 
 					emission_modulate_color = (0.95, 0.90, 0.80);
 				}; 
 				"Engines" = 
