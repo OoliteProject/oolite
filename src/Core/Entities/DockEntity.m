@@ -653,7 +653,7 @@ MA 02110-1301, USA.
 	BOOL allow_docking_thisship = allow_docking || !disallowed_docking_collides;
 	// ships can physically dock here, and this routine is mainly for
 	// collision detection, but will never be directed here by traffic
-	// control, if allow_docking is false but d_d_c is true
+	// control, if allow_docking is false but d_d_c is also false
 	
 	StationEntity *station = (StationEntity *)[self parentEntity];
 	if ([station status] == STATUS_DEAD)
@@ -676,8 +676,20 @@ MA 02110-1301, USA.
 	GLfloat hh = port_dimensions.y;
 	GLfloat dd = port_dimensions.z;
 
-	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
-	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+	BOOL rotatedPort = (ww >= hh) ? NO : YES;
+	BOOL rotatedShip = ((shipbb.max.x - shipbb.min.x) >= (shipbb.max.y - shipbb.min.y)) ? NO : YES;
+	if (rotatedShip == rotatedPort)
+	{
+		// the ship and port are both bigger in x than y
+		while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
+		while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+	}
+	else
+	{
+		// the ship and port have different x/y biggerness
+		while (shipbb.max.x - shipbb.min.x > hh * 0.90)	hh *= 1.25;
+		while (shipbb.max.y - shipbb.min.y > ww * 0.90)	ww *= 1.25;
+	}
 	
 	ww *= 0.5;
 	hh *= 0.5;
@@ -743,7 +755,9 @@ MA 02110-1301, USA.
 	
 	// if close enough (within 50%) correct and add damage
 	//
-	if  ((arbb.min.x > -1.5 * ww)&&(arbb.max.x < 1.5 * ww)&&(arbb.min.y > -1.5 * hh)&&(arbb.max.y < 1.5 * hh))
+	GLfloat safety = 1.0+(01.0/100.0);
+
+	if  ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
 	{
 		if (arbb.min.z < 0.0)	// got our nose inside
 		{
