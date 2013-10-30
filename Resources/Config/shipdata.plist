@@ -2913,6 +2913,7 @@
 		has_ecm = yes;
 		has_escape_pod = no;
 		has_scoop = no;
+		is_carrier = 1;
 		is_template = 1;
 		materials = 
 		{ 
@@ -2938,9 +2939,11 @@
 		model = "oolite_rock_hermit.dat";
 		name = "Rock Hermit";
 		roles = "rockhermit station";
+		rotating = yes;
 		requires_docking_clearance = no;
 		scan_class = "CLASS_ROCK";
 		smooth = yes;
+		station_roll = "0.06"; // 0.5G at rim
 		subentities = 
 		(
 			{
