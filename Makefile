@@ -33,8 +33,13 @@ pkg-debtest: DEB_REV             := $(shell echo "0~test${DEB_REV}")
 pkg-debsnapshot: DEB_REV         := $(shell echo "0~trunk${DEB_REV}")
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    LIBJS                        = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
-    LIBJS_DBG                    = deps/Windows-x86-deps/DLLs/js32ECMAv5.dll
+    ifeq ($(GNUSTEP_HOST_CPU),x86_64)
+        LIBJS                        = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
+        LIBJS_DBG                    = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
+	else
+        LIBJS                        = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
+        LIBJS_DBG                    = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
+	endif
     DEPS                         = $(LIBJS)
     DEPS_DBG                     = $(LIBJS_DBG)
 else
@@ -185,7 +190,7 @@ pkg-debclean:
 
 # And here are our Windows packager targets
 #
-NSIS="C:\Program Files\NSIS\makensis.exe"
+NSIS=/nsis/makensis.exe
 NSISVERSIONS=installers/win32/OoliteVersions.nsh
 
 # Passing arguments cause problems with some versions of NSIS.
