@@ -327,6 +327,8 @@ static int OOCloseOXZVorbis (void *datasource);
 	size_t					sizeInFrames = 0;
 	int						remaining;
 	long					framesRead;
+	// 16-bit samples, either two or one track
+	int						frameSize = [self isStereo] ? 4 : 2;
 	ogg_int64_t				totalSizeInFrames;
 	BOOL					OK = YES;
 	
@@ -343,14 +345,13 @@ static int OOCloseOXZVorbis (void *datasource);
 	
 	if (OK)
 	{
-		buffer = malloc(sizeof (char) * sizeInFrames);
-		memset(buffer, 0, sizeof (char) * sizeInFrames);
+		buffer = malloc(sizeof (char) * frameSize * sizeInFrames);
 		if (!buffer) OK = NO;
 	}
 	
 	if (OK && sizeInFrames)
 	{
-		remaining = (int)MIN(sizeInFrames, (size_t)INT_MAX);
+		remaining = (int)MIN(frameSize * sizeInFrames, (size_t)INT_MAX);
 		dst = buffer;
 		
 		char pcmout[4096];
@@ -382,7 +383,7 @@ static int OOCloseOXZVorbis (void *datasource);
 	if (OK)
 	{
 		*outBuffer = buffer;
-		*outSize = sizeInFrames;
+		*outSize = sizeInFrames*frameSize;
 	}
 	else
 	{
@@ -438,7 +439,7 @@ static int OOCloseOXZVorbis (void *datasource);
 	ogg_int64_t				size;
 	
 	size = ov_pcm_total(&_vf, -1);
-	size *= sizeof(float) * ([self isStereo] ? 2 : 1);
+	size *= sizeof(char) * ([self isStereo] ? 4 : 2);
 	if ((uint64_t)SIZE_MAX < (uint64_t)size) size = (ogg_int64_t)SIZE_MAX;
 	return (size_t)size;
 }
