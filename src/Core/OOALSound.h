@@ -43,5 +43,6 @@ SOFTWARE.
 
 - (ALuint) soundBuffer;
 - (BOOL) soundIncomplete;
+- (void) rewind;
 
 @end

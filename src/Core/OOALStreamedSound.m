@@ -64,10 +64,11 @@ SOFTWARE.
 	{
 		_name = [[inDecoder name] copy];
 		_sampleRate = [inDecoder sampleRate];
-		decoder = [inDecoder retain];
 		_stereo = [inDecoder isStereo];
 		_reachedEnd = NO;
 		_buffer = malloc(OOAL_STREAM_CHUNK_SIZE);
+		decoder = [inDecoder retain];
+		[self rewind];
 	}
 	
 	if (!OK)
@@ -76,6 +77,13 @@ SOFTWARE.
 		self = nil;
 	}
 	return self;
+}
+
+
+- (void) rewind
+{
+	[decoder reset];
+	_reachedEnd = NO;
 }
 
 

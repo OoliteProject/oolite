@@ -46,6 +46,7 @@ SOFTWARE.
 	BOOL						_bigSound;
 	ALuint						_source;
 	BOOL						_playing;
+	BOOL						_loop;
 }
 
 - (void) update;

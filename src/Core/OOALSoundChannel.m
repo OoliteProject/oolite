@@ -33,6 +33,7 @@ SOFTWARE.
 
 - (BOOL) enqueueBuffer:(OOSound *)sound;
 - (void) hasStopped;
+- (void) getNextSoundBuffer;
 
 @end
 
@@ -75,31 +76,45 @@ SOFTWARE.
 		}
 		else if ([_sound soundIncomplete]) // streaming and not finished loading
 		{
-			if (!_bigSound)
-			{
-				// we've only loaded one buffer so far
-				_bigSound = YES;
-				_lastBuffer = _buffer;
-				[self enqueueBuffer:_sound];
-			}
-			else
-			{
-				// _lastBuffer has something in it, so only queue up
-				// another one if we've finished with that
-				ALint processed = 0;
-				OOAL(alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed));
-				if (processed > 0) // slot free
-				{
-					// dequeue and delete lastBuffer
-					ALuint buffer;
-					OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
-					assert(buffer == _lastBuffer);
-					OOAL(alDeleteBuffers(1,&_lastBuffer));
-					// shuffle along, and grab the next bit
-					_lastBuffer = _buffer;
-					[self enqueueBuffer:_sound];
-				}
-			}
+			OOLog(@"sound.buffer",@"Incomplete, trying next for %@",[_sound name]);
+			[self getNextSoundBuffer];
+		}
+		else if (_loop)
+		{
+			OOLog(@"sound.buffer",@"Looping, trying restart for %@",[_sound name]);
+			// sound is complete, but needs to be looped, so start it again
+			[_sound rewind];
+			[self getNextSoundBuffer];
+		}
+	}
+}
+
+
+- (void) getNextSoundBuffer
+{
+	if (!_bigSound)
+	{
+		// we've only loaded one buffer so far
+		_bigSound = YES;
+		_lastBuffer = _buffer;
+		[self enqueueBuffer:_sound];
+	}
+	else
+	{
+		// _lastBuffer has something in it, so only queue up
+		// another one if we've finished with that
+		ALint processed = 0;
+		OOAL(alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed));
+		if (processed > 0) // slot free
+		{
+			// dequeue and delete lastBuffer
+			ALuint buffer;
+			OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
+			assert(buffer == _lastBuffer);
+			OOAL(alDeleteBuffers(1,&_lastBuffer));
+			// shuffle along, and grab the next bit
+			_lastBuffer = _buffer;
+			[self enqueueBuffer:_sound];
 		}
 	}
 }
@@ -129,7 +144,9 @@ SOFTWARE.
 	
 	if (_sound != nil)  [self stop];
 
+	_loop = loop;
 	_bigSound = NO;
+	[sound rewind];
 	if ([self enqueueBuffer:sound])
 	{
 		_sound = [sound retain];
@@ -178,7 +195,6 @@ SOFTWARE.
 	{
 		[_delegate channel:self didFinishPlayingSound:sound];
 	}
-	[sound resetSeek];
 	[sound release];
 }
 

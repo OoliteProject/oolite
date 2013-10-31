@@ -49,10 +49,10 @@ static int OOCloseOXZVorbis (void *datasource);
 {
 	OggVorbis_File			_vf;
 	NSString				*_name;
-	BOOL					_atEnd;
+	BOOL					_readStarted;
+	BOOL					_seekableStream;
 @public
 	unzFile					uf;
-	size_t					oxzPointer;
 }
 
 - (NSDictionary *)comments;
@@ -119,21 +119,9 @@ static int OOCloseOXZVorbis (void *datasource);
 }
 
 
-- (BOOL)atEnd
+- (void) reset
 {
-	return YES;
-}
-
-
-- (void)rewindToBeginning
-{
-	
-}
-
-
-- (BOOL)scanToOffset:(uint64_t)inOffset
-{
-	return NO;
+	// nothing
 }
 
 
@@ -152,6 +140,9 @@ static int OOCloseOXZVorbis (void *datasource);
 	if ((self = [super init]))
 	{
 		BOOL				OK = NO;
+
+		_name = [[path lastPathComponent] retain];
+
 		unsigned i, cl;
 		NSArray *components = [path pathComponents];
 		cl = [components count];
@@ -170,7 +161,7 @@ static int OOCloseOXZVorbis (void *datasource);
 			int					err;
 			FILE				*file;
 	
-			_name = [[path lastPathComponent] retain];
+			_seekableStream = YES;
 		
 			if (nil != path)
 			{
@@ -194,17 +185,19 @@ static int OOCloseOXZVorbis (void *datasource);
 		}
 		else
 		{
+			_seekableStream = NO;
+
 			NSRange range;
 			range.location = 0; range.length = i+1;
 			NSString *zipFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
 			range.location = i+1; range.length = cl-(i+1);
 			NSString *containedFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
-		
+
+	
 			const char* zipname = [zipFile cStringUsingEncoding:NSUTF8StringEncoding];
 			if (zipname != NULL)
 			{
 				uf = unzOpen64(zipname);
-				oxzPointer = 0;
 			}
 			if (uf == NULL)
 			{
@@ -246,7 +239,6 @@ static int OOCloseOXZVorbis (void *datasource);
 						}
 						else
 						{
-				
 							ov_callbacks _callbacks = {
 								OOReadOXZVorbis, // read sequentially
 								NULL, // no seek
@@ -257,6 +249,7 @@ static int OOCloseOXZVorbis (void *datasource);
 							if (0 == err)
 							{
 								OK = YES;
+								_readStarted = NO;
 							}
 							if (!OK)
 							{
@@ -278,6 +271,7 @@ static int OOCloseOXZVorbis (void *datasource);
 {
 	[_name release];
 	ov_clear(&_vf);
+	unzClose(uf);
 	
 	[super dealloc];
 }
@@ -404,7 +398,7 @@ static int OOCloseOXZVorbis (void *datasource);
 
 	char *dst = buffer;
 	char pcmout[4096];
-	
+	_readStarted = YES;
 	do
 	{
 		int toRead = sizeof(pcmout);
@@ -457,26 +451,30 @@ static int OOCloseOXZVorbis (void *datasource);
 }
 
 
-- (BOOL)atEnd
+
+- (void) reset
 {
-	return _atEnd;
-}
-
-
-- (void)rewindToBeginning
-{
-	if (!ov_pcm_seek(&_vf, 0)) _atEnd = NO;
-}
-
-
-- (BOOL)scanToOffset:(uint64_t)inOffset
-{
-	if (!ov_pcm_seek(&_vf, inOffset))
+	if (!_readStarted)
 	{
-		_atEnd = NO;
-		return YES;
+		return; // don't need to do anything
 	}
-	else return NO;
+	if (_seekableStream)
+	{
+		ov_pcm_seek(&_vf, 0);
+		return;
+	}
+	// reset current file pointer in OXZ
+	unzOpenCurrentFile(uf);
+	// reopen OGG streamer
+	ov_clear(&_vf);
+	ov_callbacks _callbacks = {
+		OOReadOXZVorbis, // read sequentially
+		NULL, // no seek
+		OOCloseOXZVorbis, // close file
+		NULL, // no tell
+	};
+	ov_open_callbacks(self, &_vf, NULL, 0, _callbacks);
+	_readStarted = NO;
 }
 
 
@@ -495,6 +493,7 @@ static size_t OOReadOXZVorbis (void *ptr, size_t size, size_t nmemb, void *datas
 	void *buf = (void*)malloc(toRead);
 	int err = UNZ_OK;
 	err = unzReadCurrentFile(src->uf, buf, toRead);
+//	OOLog(@"sound.replay",@"Read %d blocks, got %d",toRead,err);
 	if (err > 0)
 	{
 		memcpy(ptr, buf, err);
@@ -509,8 +508,9 @@ static size_t OOReadOXZVorbis (void *ptr, size_t size, size_t nmemb, void *datas
 
 static int OOCloseOXZVorbis (void *datasource)
 {
-	OOALSoundVorbisCodec *src = (OOALSoundVorbisCodec *)datasource;
-	unzClose(src->uf);
+//  doing this prevents replaying
+//	OOALSoundVorbisCodec *src = (OOALSoundVorbisCodec *)datasource;
+//	unzClose(src->uf);
 	return 0;
 }
 

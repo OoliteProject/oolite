@@ -168,4 +168,9 @@ static BOOL sIsSoundOK = NO;
 }
 
 
+- (void) rewind
+{
+	// doesn't need to do anything on seekable FDs
+}
+
 @end

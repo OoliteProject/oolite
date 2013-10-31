@@ -32,7 +32,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 
-#define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 40960)
+#define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
 @interface OOALSoundDecoder: NSObject
 
@@ -53,9 +53,7 @@ SOFTWARE.
 - (long)sampleRate;
 
 // For streaming
-- (BOOL)atEnd;
-- (BOOL)scanToOffset:(uint64_t)inOffset;
-- (void)rewindToBeginning;
+- (void) reset;
 
 - (NSString *)name;
 
