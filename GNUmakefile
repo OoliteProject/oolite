@@ -11,20 +11,29 @@ endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 HOST_ARCH                        := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    JS_INC_DIR                   = deps/Windows-x86-deps/JS32ECMAv5/include
-    JS_LIB_DIR                   = deps/Windows-x86-deps/JS32ECMAv5/lib
+    ifeq ($(GNUSTEP_HOST_CPU),x86_64)
+        WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
+    else
+        WIN_DEPS_DIR                 = deps/Windows-deps/x86
+    endif
+    JS_INC_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/include
+    JS_LIB_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/lib
     ifeq ($(debug),yes)
         JS_IMPORT_LIBRARY        = js32ECMAv5dbg
     else
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
-    ADDITIONAL_INCLUDE_DIRS      = -Ideps/Windows-x86-deps/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
+    ADDITIONAL_INCLUDE_DIRS      = -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables
     ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lpng14.dll -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
     ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic
-    ADDITIONAL_LDFLAGS           += -Wl,--large-address-aware
-    oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib -L$(JS_LIB_DIR)
+    ifneq ($(GNUSTEP_HOST_CPU),x86_64)
+        ADDITIONAL_LDFLAGS           += -Wl,--large-address-aware
+    else
+        ADDITIONAL_LDFLAGS           +=
+    endif
+    oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -L$(WIN_DEPS_DIR)/lib -L$(JS_LIB_DIR)
     ifeq ($(ESPEAK),yes)
         ADDITIONAL_OBJC_LIBS     += -lespeak.dll
         ADDITIONAL_OBJCFLAGS     +=-DHAVE_LIBESPEAK=1

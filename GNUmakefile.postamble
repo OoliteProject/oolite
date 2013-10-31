@@ -53,7 +53,11 @@ ifeq ($(debug),no)
 	$(STRIP) $(PROGDIR)/$(DEST_BIN)
 endif
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	$(CP) $(CP_FLAGS) deps/Windows-x86-deps/DLLs/*.dll $(PROGDIR)
+    ifeq ($(GNUSTEP_HOST_CPU),x86_64)
+		$(CP) $(CP_FLAGS) deps/Windows-deps/x86_64/DLLs/*.dll $(PROGDIR)
+    else
+		$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
+    endif
 ifeq ($(debug),yes)
 	$(RM) $(PROGDIR)/js32ECMAv5.dll
 else

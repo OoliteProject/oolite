@@ -7,9 +7,6 @@
 [submodule "deps/Linux-deps"]
 	path = deps/Linux-deps
 	url = ../oolite-linux-dependencies.git
-[submodule "deps/Windows-x86-deps"]
-	path = deps/Windows-x86-deps
-	url = ../oolite-windows-dependencies.git
 [submodule "tests"]
 	path = tests
 	url = ../oolite-tests.git
