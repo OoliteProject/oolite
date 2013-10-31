@@ -32,6 +32,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 
+#define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 40960)
 
 @interface OOALSoundDecoder: NSObject
 
@@ -41,8 +42,8 @@ SOFTWARE.
 // Full-buffer reading.
 - (BOOL)readCreatingBuffer:(char **)outBuffer withFrameCount:(size_t *)outSize;
 
-// Stream reading. This will always provide two channels (as non-interleaved PCM), discarding extra channels or doubling mono as necessary.
-- (size_t)streamStereoToBufferL:(char *)ioBufferL bufferR:(char *)ioBufferR maxFrames:(size_t)inMax;
+// Stream reading.
+- (size_t)streamToBuffer:(char *)buffer;
 
 // Returns the size of the data -readMonoCreatingBuffer:withFrameCount: will create.
 - (size_t)sizeAsBuffer;

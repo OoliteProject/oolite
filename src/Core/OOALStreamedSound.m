@@ -1,9 +1,9 @@
 /*
 
-OOALBufferedSound.m
+OOALStreamedSound.m
 
 
-OOALBufferedSound - OpenAL sound implementation for Oolite.
+OOALStreamedSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2005-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,16 +26,17 @@ SOFTWARE.
 
 */
 
-#import "OOALBufferedSound.h"
+#import "OOALStreamedSound.h"
 #import "OOALSoundDecoder.h"
 
-@implementation OOALBufferedSound
+@implementation OOALStreamedSound
 
 - (void)dealloc
 {
 	free(_buffer);
 	_buffer = NULL;
-	
+	[decoder release];
+
 	[super dealloc];
 }
 
@@ -63,8 +64,10 @@ SOFTWARE.
 	{
 		_name = [[inDecoder name] copy];
 		_sampleRate = [inDecoder sampleRate];
-		OK = [inDecoder readCreatingBuffer:&_buffer withFrameCount:&_size];
+		decoder = [inDecoder retain];
 		_stereo = [inDecoder isStereo];
+		_reachedEnd = NO;
+		_buffer = malloc(OOAL_STREAM_CHUNK_SIZE);
 	}
 	
 	if (!OK)
@@ -76,8 +79,21 @@ SOFTWARE.
 }
 
 
+- (BOOL) soundIncomplete
+{
+	return !_reachedEnd;
+}
+
+
 - (ALuint) soundBuffer
 {
+	size_t transferred = [decoder streamToBuffer:_buffer];
+	if (transferred < OOAL_STREAM_CHUNK_SIZE)
+	{
+		// otherwise keep going
+		_reachedEnd = YES;
+	}
+
 	ALuint buffer;
 	ALint error;
 	OOAL(alGenBuffers(1,&buffer));
@@ -90,11 +106,11 @@ SOFTWARE.
 	{
 		if (!_stereo)
 		{
-			alBufferData(buffer,AL_FORMAT_MONO16,_buffer,_size,_sampleRate);
+			alBufferData(buffer,AL_FORMAT_MONO16,_buffer,transferred,_sampleRate);
 		}
 		else
 		{
-			alBufferData(buffer,AL_FORMAT_STEREO16,_buffer,_size,_sampleRate);
+			alBufferData(buffer,AL_FORMAT_STEREO16,_buffer,transferred,_sampleRate);
 		}
 		return buffer;
 	}

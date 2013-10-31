@@ -85,6 +85,17 @@ static OOSoundMixer *sSingleton = nil;
 }
 
 
+// only to be called at app shutdown by OOOpenALController::shutdown
+- (void) shutdown
+{
+	uint32_t i;
+	for (i = 0; i < kMixerGeneralChannels; ++i)
+	{
+		DESTROY(_channels[i]);
+	}
+}
+
+
 - (void) update
 {
 	uint32_t i;

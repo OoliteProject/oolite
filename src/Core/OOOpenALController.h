@@ -35,6 +35,7 @@ static NSString * const kOOLogSoundInitError		= @"sound.initialization.error";
 static NSString * const kOOLogSoundLoadingSuccess	= @"sound.load.success";
 static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
 
+
 @interface OOOpenALController : NSObject 
 {
 	@private
@@ -46,5 +47,7 @@ static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
 
 - (void) setMasterVolume:(ALfloat) fraction;
 - (ALfloat) masterVolume;
+
+- (void) shutdown;
 
 @end

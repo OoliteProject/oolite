@@ -1,8 +1,8 @@
 /*
 
-OOALSound.h
+OOALStreamedSound.h
 
-OOALSound - OpenAL sound implementation for Oolite.
+OOALStreamedSound - OpenAL sound implementation for Oolite.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,24 +24,22 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import "OOOpenALController.h"
+#import "OOSound.h"
+#import "OOALSoundDecoder.h"
 
-@interface OOSound: NSObject
+@interface OOALStreamedSound: OOSound
+{
+@private
+	char				*_buffer;
+	size_t				_size;
+	double				_sampleRate;
+	NSString			*_name;
+	BOOL				_stereo;
+	OOALSoundDecoder	*decoder;
+	BOOL				_reachedEnd;
+}
 
-+ (BOOL) setUp;
-+ (void) update;
+- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder;
 
-+ (void) setMasterVolume:(float) fraction;
-+ (float) masterVolume;
-
-- (id) initWithContentsOfFile:(NSString *)path;
-
-- (NSString *)name;
-
-+ (BOOL) isSoundOK;
-
-- (ALuint) soundBuffer;
-- (BOOL) soundIncomplete;
 
 @end

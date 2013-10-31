@@ -31,6 +31,7 @@ SOFTWARE.
 #import "OOALSoundDecoder.h"
 #import "OOOpenALController.h"
 #import "OOALBufferedSound.h"
+#import "OOALStreamedSound.h"
 #import "OOALSoundMixer.h"
 
 #define KEY_VOLUME_CONTROL @"volume_control"
@@ -101,22 +102,20 @@ static BOOL sIsSoundOK = NO;
 	decoder = [[OOALSoundDecoder alloc] initWithPath:path];
 	if (nil == decoder) return nil;
 	
-	if ([decoder sizeAsBuffer] <= (size_t)sMaxBufferedSoundSize)
+	if ([decoder sizeAsBuffer] >= 0 && [decoder sizeAsBuffer] <= (size_t)sMaxBufferedSoundSize)
 	{
 		self = [[OOALBufferedSound alloc] initWithDecoder:decoder];
 	}
 	else
 	{
-		self = nil;
-// not yet implemented
-//		self = [[OOALStreamingSound alloc] initWithDecoder:decoder];
+		self = [[OOALStreamedSound alloc] initWithDecoder:decoder];
 	}
 	[decoder release];
 	
 	if (nil != self)
 	{
 		#ifndef NDEBUG
-			OOLog(kOOLogSoundLoadingSuccess, @"Loaded sound %@", self);
+			OOLog(kOOLogSoundLoadingSuccess, @"Loaded sound %@", path);
 		#endif
 	}
 	else
@@ -161,5 +160,12 @@ static BOOL sIsSoundOK = NO;
 	OOLogGenericSubclassResponsibility();
 	return 0;
 }
+
+
+- (BOOL) soundIncomplete
+{
+	return NO;
+}
+
 
 @end

@@ -343,7 +343,8 @@ OOLITE_SOUND_FILES = \
 	OOALSoundChannel.m \
 	OOALSoundMixer.m \
     OOALSoundDecoder.m \
-	OOALBufferedSound.m 
+	OOALBufferedSound.m \
+	OOALStreamedSound.m 
 
 
 OOLITE_UI_FILES = \

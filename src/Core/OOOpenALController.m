@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 
 #import "OOOpenALController.h"
 #import "OOLogging.h"
+#import "OOALSoundMixer.h"
 
 static id sSingleton = nil;
 
@@ -78,6 +79,16 @@ static id sSingleton = nil;
 	ALfloat fraction = 0.0;
 	OOAL(alGetListenerf(AL_GAIN,&fraction));
 	return fraction;
+}
+
+// only to be called at app shutdown
+// is there a better way to handle this?
+- (void) shutdown
+{
+	[[OOSoundMixer sharedMixer] shutdown];
+	OOAL(alcMakeContextCurrent(NULL));
+	OOAL(alcDestroyContext(context));
+	OOAL(alcCloseDevice(device));
 }
 
 @end

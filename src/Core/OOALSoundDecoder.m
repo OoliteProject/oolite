@@ -39,9 +39,11 @@ enum
 	kMaxDecodeSize			= 1 << 20		// 2^20 frames = 4 MB
 };
 
-static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCount);
 static size_t OOReadOXZVorbis (void *ptr, size_t size, size_t nmemb, void *datasource);
 static int OOCloseOXZVorbis (void *datasource);
+// not practical to implement these
+//static int OOSeekOXZVorbis  (void *datasource, ogg_int64_t offset, int whence);
+//static long OOTellOXZVorbis (void *datasource);
 
 @interface OOALSoundVorbisCodec: OOALSoundDecoder
 {
@@ -84,7 +86,7 @@ static int OOCloseOXZVorbis (void *datasource);
 }
 
 
-- (size_t)streamStereoToBufferL:(char *)ioBufferL bufferR:(char *)ioBufferR maxFrames:(size_t)inMax
+- (size_t)streamToBuffer:(char *)ioBuffer
 {
 	return 0;
 }
@@ -147,27 +149,27 @@ static int OOCloseOXZVorbis (void *datasource);
 
 - (id)initWithPath:(NSString *)path
 {
-	BOOL				OK = NO;
-	unsigned i, cl;
-	NSArray *components = [path pathComponents];
-	cl = [components count];
-	for (i = 0 ; i < cl ; i++)
+	if ((self = [super init]))
 	{
-		NSString *component = [components objectAtIndex:i];
-		if ([[[component pathExtension] lowercaseString] isEqualToString:@"oxz"])
+		BOOL				OK = NO;
+		unsigned i, cl;
+		NSArray *components = [path pathComponents];
+		cl = [components count];
+		for (i = 0 ; i < cl ; i++)
 		{
-			break;
+			NSString *component = [components objectAtIndex:i];
+			if ([[[component pathExtension] lowercaseString] isEqualToString:@"oxz"])
+			{
+				break;
+			}
 		}
-	}
-	// if i == cl then the path is entirely uncompressed
-	if (i == cl)
-	{
-		/* Get vorbis data from a standard file stream */
-		int					err;
-		FILE				*file;
-	
-		if ((self = [super init]))
+		// if i == cl then the path is entirely uncompressed
+		if (i == cl)
 		{
+			/* Get vorbis data from a standard file stream */
+			int					err;
+			FILE				*file;
+	
 			_name = [[path lastPathComponent] retain];
 		
 			if (nil != path)
@@ -188,86 +190,86 @@ static int OOCloseOXZVorbis (void *datasource);
 				[self release];
 				self = nil;
 			}
-		}
-	}
-	else
-	{
-		NSRange range;
-		range.location = 0; range.length = i+1;
-		NSString *zipFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
-		range.location = i+1; range.length = cl-(i+1);
-		NSString *containedFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
 		
-		const char* zipname = [zipFile cStringUsingEncoding:NSUTF8StringEncoding];
-		if (zipname != NULL)
-		{
-			uf = unzOpen64(zipname);
-			oxzPointer = 0;
 		}
-		if (uf == NULL)
+		else
 		{
-			OOLog(kOOLogFileNotFound, @"Could not unzip OXZ at %@", zipFile);
-			[self release];
-			self = nil;
-		}
-		else 
-		{
-			const char* filename = [containedFile cStringUsingEncoding:NSUTF8StringEncoding];
-			// unzLocateFile(*, *, 1) = case-sensitive extract
-			if (unzLocateFile(uf, filename, 1) != UNZ_OK)
+			NSRange range;
+			range.location = 0; range.length = i+1;
+			NSString *zipFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
+			range.location = i+1; range.length = cl-(i+1);
+			NSString *containedFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
+		
+			const char* zipname = [zipFile cStringUsingEncoding:NSUTF8StringEncoding];
+			if (zipname != NULL)
 			{
-				unzClose(uf);
+				uf = unzOpen64(zipname);
+				oxzPointer = 0;
+			}
+			if (uf == NULL)
+			{
+				OOLog(kOOLogFileNotFound, @"Could not unzip OXZ at %@", zipFile);
 				[self release];
 				self = nil;
 			}
-			else
+			else 
 			{
-				int err = UNZ_OK;
-				unz_file_info64 file_info = {0};
-				err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0);
-				if (err != UNZ_OK)
+				const char* filename = [containedFile cStringUsingEncoding:NSUTF8StringEncoding];
+				// unzLocateFile(*, *, 1) = case-sensitive extract
+				if (unzLocateFile(uf, filename, 1) != UNZ_OK)
 				{
 					unzClose(uf);
-					OOLog(kOOLogFileNotFound, @"Could not get properties of %@ within OXZ at %@", containedFile, zipFile);
 					[self release];
 					self = nil;
 				}
 				else
 				{
-					err = unzOpenCurrentFile(uf);
+					int err = UNZ_OK;
+					unz_file_info64 file_info = {0};
+					err = unzGetCurrentFileInfo64(uf, &file_info, NULL, 0, NULL, 0, NULL, 0);
 					if (err != UNZ_OK)
 					{
 						unzClose(uf);
-						OOLog(kOOLogFileNotFound, @"Could not read %@ within OXZ at %@", containedFile, zipFile);
+						OOLog(kOOLogFileNotFound, @"Could not get properties of %@ within OXZ at %@", containedFile, zipFile);
 						[self release];
 						self = nil;
 					}
 					else
 					{
-				
-						ov_callbacks _callbacks = {
-							OOReadOXZVorbis, // read sequentially
-							NULL, // no seek
-							OOCloseOXZVorbis, // close file
-							NULL, // no tell
-						};
-						err = ov_open_callbacks(self, &_vf, NULL, 0, _callbacks);
-						if (0 == err)
-						{
-							OK = YES;
-						}
-						if (!OK)
+						err = unzOpenCurrentFile(uf);
+						if (err != UNZ_OK)
 						{
 							unzClose(uf);
+							OOLog(kOOLogFileNotFound, @"Could not read %@ within OXZ at %@", containedFile, zipFile);
 							[self release];
 							self = nil;
+						}
+						else
+						{
+				
+							ov_callbacks _callbacks = {
+								OOReadOXZVorbis, // read sequentially
+								NULL, // no seek
+								OOCloseOXZVorbis, // close file
+								NULL, // no tell
+							};
+							err = ov_open_callbacks(self, &_vf, NULL, 0, _callbacks);
+							if (0 == err)
+							{
+								OK = YES;
+							}
+							if (!OK)
+							{
+								unzClose(uf);
+								[self release];
+								self = nil;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	
 	return self;
 }
 
@@ -363,7 +365,7 @@ static int OOCloseOXZVorbis (void *datasource);
 			{
 				toRead = remaining;
 			}
-			framesRead = ov_read(&_vf, pcmout, remaining, 0, 2, 1, NULL);
+			framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, NULL);
 			if (framesRead <= 0)
 			{
 				if (OV_HOLE == framesRead) continue;
@@ -392,52 +394,44 @@ static int OOCloseOXZVorbis (void *datasource);
 	return OK;
 }
 
-/* TODO: this needs rewriting before it can be used */
-- (size_t)streamStereoToBufferL:(char *)ioBufferL bufferR:(char *)ioBufferR maxFrames:(size_t)inMax
+
+- (size_t)streamToBuffer:(char *)buffer
 {
-	float					**src;
-	unsigned				chanCount;
-	long					framesRead;
-	size_t					size;
-	int						remaining;
-	unsigned				rightChan;
 	
-	// Note: for our purposes, a frame is a set of one sample for each channel.
-	if (NULL == ioBufferL || NULL == ioBufferR || 0 == inMax) return 0;
-	if (_atEnd) return inMax;
+	int remaining = OOAL_STREAM_CHUNK_SIZE;
+	size_t streamed = 0;
+	long framesRead;
+
+	char *dst = buffer;
+	char pcmout[4096];
 	
-	remaining = (int)MIN(inMax, (size_t)INT_MAX);
 	do
 	{
-		chanCount = ov_info(&_vf, -1)->channels;
-		framesRead = ov_read_float(&_vf, &src, remaining, NULL);
+		int toRead = sizeof(pcmout);
+		if (remaining < toRead)
+		{
+			toRead = remaining;
+		}
+		framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, NULL);
 		if (framesRead <= 0)
 		{
 			if (OV_HOLE == framesRead) continue;
 			//else:
-			_atEnd = YES;
 			break;
 		}
-		
-		size = sizeof (float) * framesRead;
-		
-		rightChan = (1 == chanCount) ? 0 : 1;
-		bcopy(src[0], ioBufferL, size);
-		bcopy(src[rightChan], ioBufferR, size);
-		
-		remaining -= framesRead;
-		ioBufferL += framesRead;
-		ioBufferR += framesRead;
-	} while (0 != remaining);
-	
-	return inMax - remaining;
+		bcopy(&pcmout, dst, sizeof (char) * framesRead);
+		remaining -= sizeof(char) * framesRead;
+		dst += sizeof(char) * framesRead;
+		streamed += sizeof(char) * framesRead;
+	} while (0 < remaining);
+
+	return streamed;
 }
 
 
 - (size_t)sizeAsBuffer
 {
 	ogg_int64_t				size;
-	
 	size = ov_pcm_total(&_vf, -1);
 	size *= sizeof(char) * ([self isStereo] ? 4 : 2);
 	if ((uint64_t)SIZE_MAX < (uint64_t)size) size = (ogg_int64_t)SIZE_MAX;
@@ -494,16 +488,6 @@ static int OOCloseOXZVorbis (void *datasource);
 @end
 
 
-// TODO: optimise, vectorise
-static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCount)
-{
-	while (inCount--)
-	{
-		*outMix++ = (*inChan1++ + *inChan2++) * 0.5f;
-	}
-}
-
-
 static size_t OOReadOXZVorbis (void *ptr, size_t size, size_t nmemb, void *datasource)
 {
 	OOALSoundVorbisCodec *src = (OOALSoundVorbisCodec *)datasource;
@@ -530,4 +514,3 @@ static int OOCloseOXZVorbis (void *datasource)
 	return 0;
 }
 
-// TODO: implement seek/tell functions for OXZ datastream

@@ -41,6 +41,9 @@ SOFTWARE.
 	OOSoundChannel				*_next;
 	id							_delegate;
 	OOSound						*_sound;
+	ALuint						_buffer;
+	ALuint						_lastBuffer;
+	BOOL						_bigSound;
 	ALuint						_source;
 	BOOL						_playing;
 }

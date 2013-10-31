@@ -31,6 +31,7 @@ SOFTWARE.
 
 @interface OOSoundChannel (Private)
 
+- (BOOL) enqueueBuffer:(OOSound *)sound;
 - (void) hasStopped;
 
 @end
@@ -55,6 +56,12 @@ SOFTWARE.
 }
 
 
+- (void) dealloc
+{
+	[super dealloc];
+	OOAL(alDeleteSources(1,&_source));
+}
+
 - (void) update
 {
 	// Check if we've reached the end of a sound.
@@ -65,6 +72,34 @@ SOFTWARE.
 		if (check == AL_STOPPED)
 		{
 			[self hasStopped];
+		}
+		else if ([_sound soundIncomplete]) // streaming and not finished loading
+		{
+			if (!_bigSound)
+			{
+				// we've only loaded one buffer so far
+				_bigSound = YES;
+				_lastBuffer = _buffer;
+				[self enqueueBuffer:_sound];
+			}
+			else
+			{
+				// _lastBuffer has something in it, so only queue up
+				// another one if we've finished with that
+				ALint processed = 0;
+				OOAL(alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed));
+				if (processed > 0) // slot free
+				{
+					// dequeue and delete lastBuffer
+					ALuint buffer;
+					OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
+					assert(buffer == _lastBuffer);
+					OOAL(alDeleteBuffers(1,&_lastBuffer));
+					// shuffle along, and grab the next bit
+					_lastBuffer = _buffer;
+					[self enqueueBuffer:_sound];
+				}
+			}
 		}
 	}
 }
@@ -94,22 +129,16 @@ SOFTWARE.
 	
 	if (_sound != nil)  [self stop];
 
-	// get sound data
-	ALuint buffer = [sound soundBuffer];
-	// bind sound data to buffer
-	OOAL(alSourcei(_source, AL_BUFFER, buffer));
-	ALuint error;
-	if ((error = alGetError()) != AL_NO_ERROR)
+	_bigSound = NO;
+	if ([self enqueueBuffer:sound])
+	{
+		_sound = [sound retain];
+		return YES;
+	}
+	else
 	{
 		return NO;
 	}
-	OOAL(alSourcePlay(_source));
-	if ((error = alGetError()) != AL_NO_ERROR)
-	{
-		return NO;
-	}
-	_sound = [sound retain];
-	return YES;
 }
 
 
@@ -118,6 +147,7 @@ SOFTWARE.
 	if (_sound != nil)
 	{
 		OOAL(alSourceStop(_source));
+
 		[self hasStopped];
 	}
 }
@@ -125,6 +155,22 @@ SOFTWARE.
 
 - (void) hasStopped
 {
+	OOAL(alDeleteBuffers(1,&_buffer));
+	if (_bigSound)
+	{
+		// then we have two buffers to cleanup
+		OOAL(alDeleteBuffers(1,&_lastBuffer));
+	}
+	_bigSound = NO;
+	ALint queued;
+	OOAL(alGetSourcei(_source, AL_BUFFERS_QUEUED, &queued));
+    
+	while (queued--)
+	{
+		ALuint buffer;
+		OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
+	}
+
 	OOSound *sound = _sound;
 	_sound = nil;
 	
@@ -132,8 +178,32 @@ SOFTWARE.
 	{
 		[_delegate channel:self didFinishPlayingSound:sound];
 	}
+	[sound resetSeek];
 	[sound release];
 }
+
+
+- (BOOL) enqueueBuffer:(OOSound *)sound
+{
+	// get sound data
+	_buffer = [sound soundBuffer];
+	// bind sound data to buffer
+	OOAL(alSourceQueueBuffers(_source, 1, &_buffer));
+	ALuint error;
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+		OOLog(@"ov.debug",@"Error %d queueing buffers",error);
+		return NO;
+	}
+	OOAL(alSourcePlay(_source));
+	if ((error = alGetError()) != AL_NO_ERROR)
+	{
+		OOLog(@"ov.debug",@"Error %d playing source",error);
+		return NO;
+	}
+	return YES;
+}
+
 
 
 - (OOSound *)sound
