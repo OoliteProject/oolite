@@ -41,7 +41,7 @@ else
     LIBJS = js_static
 
     ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lSDL_mixer -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++
+    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lSDL_mixer -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++ -lopenal
     ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
     ADDITIONAL_OBJCFLAGS         = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
     oolite_LIB_DIRS              += -L/usr/X11R6/lib/ -L$(LIBJS_LIB_DIR)
@@ -313,16 +313,29 @@ OOLITE_SCRIPTING_FILES = \
     OOJSFrameCallbacks.m \
     OOJSFont.m
 
+#OOLITE_SOUND_FILES = \
+#    OOBasicSoundReferencePoint.m \
+#    
+#    OOSDLConcreteSound.m \
+#    OOSDLSound.m \
+#    OOSDLSoundChannel.m \
+#    OOSDLSoundMixer.m \
+#    OOSoundSource.m \
+#    OOSoundSourcePool.m \
+#    SDLMusic.m
+
 OOLITE_SOUND_FILES = \
-    OOBasicSoundReferencePoint.m \
-    OOMusicController.m \
-    OOSDLConcreteSound.m \
-    OOSDLSound.m \
-    OOSDLSoundChannel.m \
-    OOSDLSoundMixer.m \
-    OOSoundSource.m \
+	OOOpenALController.m \
+	OOMusicController.m \
+	OOSoundSource.m \
     OOSoundSourcePool.m \
-    SDLMusic.m
+	OOALMusic.m \
+	OOALSound.m \
+	OOALSoundChannel.m \
+	OOALSoundMixer.m \
+    OOALSoundDecoder.m \
+	OOALBufferedSound.m 
+
 
 OOLITE_UI_FILES = \
     GuiDisplayGen.m \

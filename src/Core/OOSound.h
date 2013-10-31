@@ -43,7 +43,14 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
+// currently on SDL platforms only as I can't test Mac OS X
+#define OOLITE_OPENAL OOLITE_SDL
 
+#if OOLITE_OPENAL
+	#import "OOALSound.h"
+	#import "OOALMusic.h"
+	#import "OOBasicSoundReferencePoint.h"
+#else
 #if OOLITE_SDL
 	#import "OOSDLSound.h"
 	#import "SDLMusic.h"
@@ -52,6 +59,7 @@ MA 02110-1301, USA.
 	#import "OOCASound.h"
 	#import "OOCAMusic.h"
 	#import "OOCASoundReferencePoint.h"
+#endif
 #endif
 
 #import "OOSoundSource.h"
