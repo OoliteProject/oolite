@@ -65,18 +65,8 @@ NSString * const kOOLogSoundLoadError			= @"sound.load.error";
 	{
 		_name = [[inDecoder name] copy];
 		_sampleRate = [inDecoder sampleRate];
-		if ([inDecoder isStereo])
-		{
-			OK = [inDecoder readMonoCreatingBuffer:&_buffer withFrameCount:&_size];
-/* TODO: implement stereo - needs to be interleaved for OpenAL, not
- * separate buffers */
-//			OK = [inDecoder readStereoCreatingLeftBuffer:&_bufferL rightBuffer:&_bufferR withFrameCount:&_size];
-//			_stereo = YES;
-		}
-		else
-		{
-			OK = [inDecoder readMonoCreatingBuffer:&_buffer withFrameCount:&_size];
-		}
+		OK = [inDecoder readCreatingBuffer:&_buffer withFrameCount:&_size];
+		_stereo = [inDecoder isStereo];
 	}
 	
 	if (!OK)

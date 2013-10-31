@@ -84,25 +84,15 @@ static int OOCloseOXZVorbis (void *datasource);
 }
 
 
-- (size_t)streamStereoToBufferL:(float *)ioBufferL bufferR:(float *)ioBufferR maxFrames:(size_t)inMax
+- (size_t)streamStereoToBufferL:(char *)ioBufferL bufferR:(char *)ioBufferR maxFrames:(size_t)inMax
 {
 	return 0;
 }
 
 
-- (BOOL)readMonoCreatingBuffer:(float **)outBuffer withFrameCount:(size_t *)outSize
+- (BOOL)readCreatingBuffer:(char **)outBuffer withFrameCount:(size_t *)outSize
 {
 	if (NULL != outBuffer) *outBuffer = NULL;
-	if (NULL != outSize) *outSize = 0;
-	
-	return NO;
-}
-
-
-- (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize
-{
-	if (NULL != outLeftBuffer) *outLeftBuffer = NULL;
-	if (NULL != outRightBuffer) *outRightBuffer = NULL;
 	if (NULL != outSize) *outSize = 0;
 	
 	return NO;
@@ -331,12 +321,11 @@ static int OOCloseOXZVorbis (void *datasource);
 }
 
 
-- (BOOL)readMonoCreatingBuffer:(float **)outBuffer withFrameCount:(size_t *)outSize
+- (BOOL)readCreatingBuffer:(char **)outBuffer withFrameCount:(size_t *)outSize
 {
-	float					*buffer = NULL, *dst, **src;
+	char					*buffer = NULL, *dst;
 	size_t					sizeInFrames = 0;
 	int						remaining;
-	unsigned				chanCount;
 	long					framesRead;
 	ogg_int64_t				totalSizeInFrames;
 	BOOL					OK = YES;
@@ -354,7 +343,8 @@ static int OOCloseOXZVorbis (void *datasource);
 	
 	if (OK)
 	{
-		buffer = malloc(sizeof (float) * sizeInFrames);
+		buffer = malloc(sizeof (char) * sizeInFrames);
+		memset(buffer, 0, sizeof (char) * sizeInFrames);
 		if (!buffer) OK = NO;
 	}
 	
@@ -363,10 +353,16 @@ static int OOCloseOXZVorbis (void *datasource);
 		remaining = (int)MIN(sizeInFrames, (size_t)INT_MAX);
 		dst = buffer;
 		
+		char pcmout[4096];
+
 		do
 		{
-			chanCount = ov_info(&_vf, -1)->channels;
-			framesRead = ov_read_float(&_vf, &src, remaining, NULL);
+			int toRead = sizeof(pcmout);
+			if (remaining < toRead)
+			{
+				toRead = remaining;
+			}
+			framesRead = ov_read(&_vf, pcmout, remaining, 0, 2, 1, NULL);
 			if (framesRead <= 0)
 			{
 				if (OV_HOLE == framesRead) continue;
@@ -374,12 +370,11 @@ static int OOCloseOXZVorbis (void *datasource);
 				break;
 			}
 			
-			if (1 == chanCount) bcopy(src[0], dst, sizeof (float) * framesRead);
-			else MixDown(src[0], src[1], dst, framesRead);
+			bcopy(&pcmout, dst, sizeof (char) * framesRead);
 			
 			remaining -= framesRead;
 			dst += framesRead;
-		} while (0 != remaining);
+		} while (0 < remaining);
 		
 		sizeInFrames -= remaining;	// In case we stopped at an error
 	}
@@ -396,86 +391,8 @@ static int OOCloseOXZVorbis (void *datasource);
 	return OK;
 }
 
-
-- (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize
-{
-	float					*bufferL = NULL, *bufferR = NULL, *dstL, *dstR, **src;
-	size_t					sizeInFrames = 0;
-	int						remaining;
-	unsigned				chanCount;
-	long					framesRead;
-	ogg_int64_t				totalSizeInFrames;
-	BOOL					OK = YES;
-	
-	if (NULL != outLeftBuffer) *outLeftBuffer = NULL;
-	if (NULL != outRightBuffer) *outRightBuffer = NULL;
-	if (NULL != outSize) *outSize = 0;
-	if (NULL == outLeftBuffer || NULL == outRightBuffer || NULL == outSize) OK = NO;
-	
-	if (OK)
-	{
-		totalSizeInFrames = ov_pcm_total(&_vf, -1);
-		assert ((uint64_t)totalSizeInFrames < (uint64_t)SIZE_MAX);	// Should have been checked by caller
-		sizeInFrames = (size_t)totalSizeInFrames;
-	}
-	
-	if (OK)
-	{
-		bufferL = malloc(sizeof (float) * sizeInFrames);
-		if (!bufferL) OK = NO;
-	}
-	
-	if (OK)
-	{
-		bufferR = malloc(sizeof (float) * sizeInFrames);
-		if (!bufferR) OK = NO;
-	}
-	
-	if (OK && sizeInFrames)
-	{
-		remaining = (int)MIN(sizeInFrames, (size_t)INT_MAX);
-		dstL = bufferL;
-		dstR = bufferR;
-		
-		do
-		{
-			chanCount = ov_info(&_vf, -1)->channels;
-			framesRead = ov_read_float(&_vf, &src, remaining, NULL);
-			if (framesRead <= 0)
-			{
-				if (OV_HOLE == framesRead) continue;
-				//else:
-				break;
-			}
-			
-			bcopy(src[0], dstL, sizeof (float) * framesRead);
-			if (1 == chanCount) bcopy(src[0], dstR, sizeof (float) * framesRead);
-			else bcopy(src[1], dstR, sizeof (float) * framesRead);
-			
-			remaining -= framesRead;
-			dstL += framesRead;
-			dstR += framesRead;
-		} while (0 != remaining);
-		
-		sizeInFrames -= remaining;	// In case we stopped at an error
-	}
-	
-	if (OK)
-	{
-		*outLeftBuffer = bufferL;
-		*outRightBuffer = bufferR;
-		*outSize = sizeInFrames;
-	}
-	else
-	{
-		if (bufferL) free(bufferL);
-		if (bufferR) free(bufferR);
-	}
-	return OK;
-}
-
-
-- (size_t)streamStereoToBufferL:(float *)ioBufferL bufferR:(float *)ioBufferR maxFrames:(size_t)inMax
+/* TODO: this needs rewriting before it can be used */
+- (size_t)streamStereoToBufferL:(char *)ioBufferL bufferR:(char *)ioBufferR maxFrames:(size_t)inMax
 {
 	float					**src;
 	unsigned				chanCount;

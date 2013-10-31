@@ -30,7 +30,7 @@ SOFTWARE.
 @interface OOALBufferedSound: OOSound
 {
 @private
-	float				*_buffer;
+	char				*_buffer;
 	size_t				_size;
 	double				_sampleRate;
 	NSString			*_name;

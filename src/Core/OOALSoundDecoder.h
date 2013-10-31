@@ -39,11 +39,10 @@ SOFTWARE.
 + (OOALSoundDecoder *)codecWithPath:(NSString *)inPath;
 
 // Full-buffer reading.
-- (BOOL)readMonoCreatingBuffer:(float **)outBuffer withFrameCount:(size_t *)outSize;
-- (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize;
+- (BOOL)readCreatingBuffer:(char **)outBuffer withFrameCount:(size_t *)outSize;
 
 // Stream reading. This will always provide two channels (as non-interleaved PCM), discarding extra channels or doubling mono as necessary.
-- (size_t)streamStereoToBufferL:(float *)ioBufferL bufferR:(float *)ioBufferR maxFrames:(size_t)inMax;
+- (size_t)streamStereoToBufferL:(char *)ioBufferL bufferR:(char *)ioBufferR maxFrames:(size_t)inMax;
 
 // Returns the size of the data -readMonoCreatingBuffer:withFrameCount: will create.
 - (size_t)sizeAsBuffer;
