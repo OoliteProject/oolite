@@ -2560,7 +2560,6 @@
 		like_ship = "oolite_template_moray";
 		is_template = 1;
 		roles = "player";
-		weapon_position_forward = "0.0 -10.5 30.5";
 	};
 	"oolite_template_morayMED" =
 	{
