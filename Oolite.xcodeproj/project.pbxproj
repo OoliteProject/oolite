@@ -563,6 +563,7 @@
 		1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
+		1A86D4F11825853D00000F67 /* role-categories.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A86D4EB1825852C00000F67 /* role-categories.plist */; };
 		1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A87063D1172029F003FDD2A /* OODebugFlags.h */; };
 		1A89CBCD182533D900A4E455 /* oolite_adder.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA1182533BE00A4E455 /* oolite_adder.dat */; };
 		1A89CBCE182533D900A4E455 /* oolite_anaconda.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA2182533BE00A4E455 /* oolite_anaconda.dat */; };
@@ -1103,6 +1104,7 @@
 				1A3591830C1C382700E52220 /* nebulatextures.plist in Copy Config */,
 				1A3591840C1C382700E52220 /* startextures.plist in Copy Config */,
 				1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */,
+				1A86D4F11825853D00000F67 /* role-categories.plist in Copy Config */,
 				1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */,
 				1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */,
 				1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */,
@@ -2134,6 +2136,7 @@
 		1A846BA90D79F9570081280D /* oolite-version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-version.xcconfig"; path = "src/Cocoa/oolite-version.xcconfig"; sourceTree = "<group>"; };
 		1A85AD0612EDCAC7000E1FCD /* OOJSPropID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPropID.h; sourceTree = "<group>"; };
 		1A85AE4D12EE0ED9000E1FCD /* OOViewID.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOViewID.tbl; sourceTree = "<group>"; };
+		1A86D4EB1825852C00000F67 /* role-categories.plist */ = {isa = PBXFileReference; explicitFileType = text; path = "role-categories.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.plist; };
 		1A87063D1172029F003FDD2A /* OODebugFlags.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugFlags.h; sourceTree = "<group>"; };
 		1A89CBA1182533BE00A4E455 /* oolite_adder.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = oolite_adder.dat; sourceTree = "<group>"; };
 		1A89CBA2182533BE00A4E455 /* oolite_anaconda.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = oolite_anaconda.dat; sourceTree = "<group>"; };
@@ -2651,6 +2654,7 @@
 				1AC5452C0D4D298E00C90E5B /* oolite-font.plist */,
 				1AC973F90C9847850010C42B /* pirate-victim-roles.plist */,
 				1A95338A0C02089E004EBB58 /* planetinfo.plist */,
+				1A86D4EB1825852C00000F67 /* role-categories.plist */,
 				1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2123261051892500530CDE /* shipdata-overrides.plist */,
