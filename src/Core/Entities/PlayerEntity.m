@@ -4734,8 +4734,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if ([self status] == STATUS_DEAD) return NO;
 	
-	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// now set up the escape sequence.
-	
 	/*
 		While inside the escape pod, we need to block access to all player.ship properties,
 		since we're not supposed to be inside our ship anymore! -- Kaks 20101114
@@ -4750,11 +4748,17 @@ static GLfloat		sBaseMass = 0.0;
 	if (doppelganger)
 	{
 		[doppelganger setVelocity:vector_multiply_scalar(v_forward, flightSpeed)];
+		[doppelganger setSpeed:0.0];
+		[doppelganger setDesiredSpeed:0.0];
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
 		[doppelganger setOwner:self];
 		[doppelganger setThrust:0]; // drifts
 		[UNIVERSE addEntity:doppelganger];
 	}
+
+	[self setFoundTarget:doppelganger]; // must do this before setting status
+	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// now set up the escape sequence.
+
 
 	// must do this before next step or uses BBox of pod, not old ship!
 	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
@@ -8970,6 +8974,20 @@ static NSString *last_outfitting_key=nil;
 - (void) setScoopsActive
 {
 	scoopsActive = YES;
+}
+
+
+// override shipentity to stop foundTarget being changed during escape sequence
+- (void) setFoundTarget:(Entity *) targetEntity
+{
+	/* Rare, but can happen, e.g. if a Q-mine goes off nearby during
+	 * the sequence */
+	if ([self status] == STATUS_ESCAPE_SEQUENCE)
+	{
+		return;
+	}
+	[_foundTarget release];
+	_foundTarget = [targetEntity weakRetain];
 }
 
 
