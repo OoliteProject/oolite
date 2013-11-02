@@ -32,6 +32,7 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOStellarBody.h"
 #import "OOJavaScriptEngine.h"
+#import "OOSound.h"
 
 
 static NSString *AdditionalLogHeaderInfo(void);
@@ -100,19 +101,15 @@ void OOPrintLogHeader(void)
 	NSArray *featureStrings = [NSArray arrayWithObjects:
 	// User features
 	#if OO_SHADERS
+		@"OpenAL",
+	#endif
+
+	#if OO_SHADERS
 		@"GLSL shaders",
 	#endif
 	
 	#if NEW_PLANETS
 		@"new planets",
-	#endif
-	
-	#if OOLITE_MAC_OS_X || defined(HAVE_LIBESPEAK)
-		@"spoken messages",
-	#endif
-	
-	#if MASS_DEPENDENT_FUEL_PRICES
-		@"mass/fuel pricing",
 	#endif
 	
 	// Debug features
