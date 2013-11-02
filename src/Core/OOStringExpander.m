@@ -525,11 +525,12 @@ static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *ke
 	// Specials override descriptions.plist.
 	if (result == nil)  result = ExpandStringKeySpecial(context, key);
 
-	// Key bindings override descriptions.plist.
-	if (result == nil)  result = ExpandStringKeyKeyboardBinding(context, key);
-	
 	// Now try descriptions.plist.
 	if (result == nil)  result = ExpandStringKeyFromDescriptions(context, key, sizeLimit, recursionLimit);
+
+	// For efficiency, descriptions.plist overrides keybindings.
+	// OXPers should therefore avoid oolite_key_ description keys
+	if (result == nil)  result = ExpandStringKeyKeyboardBinding(context, key);
 	
 	// Try mission variables.
 	if (result == nil)  result = ExpandStringKeyMissionVariable(context, key);
