@@ -1939,59 +1939,60 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		systemData = [UNIVERSE generateSystemData:g_seed];
 		noNova = ![systemData oo_boolForKey:@"sun_gone_nova"];
+		NSAssert1(chart_mode <= OOLRC_MODE_TECHLEVEL, @"Long range chart mode %i out of range", (int)chart_mode);
+		
 		switch (chart_mode)
 		{
-		case OOLRC_MODE_ECONOMY:
-			if (EXPECT(noNova))
-			{
-				systemParameter = [systemData oo_unsignedIntForKey:KEY_ECONOMY];
-				r = 0.5;
-				g = 0.3 + (0.1 * (GLfloat)systemParameter);
-				b = 1.0 - (0.1 * (GLfloat)systemParameter);
-			}
-			else
-			{
-				r = g = b = 0.3;
-			}
-			break;
-		case OOLRC_MODE_GOVERNMENT:
-			if (EXPECT(noNova))
-			{
-				systemParameter = [systemData oo_unsignedIntForKey:KEY_GOVERNMENT];
-				r = 1.0 - (0.1 * (GLfloat)systemParameter);
-				g = 0.3 + (0.1 * (GLfloat)systemParameter);
-				b = 0.1;
-			}
-			else
-			{
-				r = g = b = 0.3;
-			}
-			break;
-		case OOLRC_MODE_TECHLEVEL:
-			if (EXPECT(noNova))
-			{
-				systemParameter = [systemData oo_unsignedIntForKey:KEY_TECHLEVEL];				
-				r = 0.6;
-				g = b = 0.20 + (0.05 * (GLfloat)systemParameter);
-			}
-			else
-			{
-				r = g = b = 0.3;
-			}			
-			break;
-		case OOLRC_MODE_NORMAL:
-		default:
-			if (EXPECT(noNova))
-			{
-				r = g = b = 1.0;
-			}
-			else
-			{
-				r = 1.0;
-				g = 0.2;
-				b = 0.0;
-			}
-			break;
+			case OOLRC_MODE_ECONOMY:
+				if (EXPECT(noNova))
+				{
+					systemParameter = [systemData oo_unsignedIntForKey:KEY_ECONOMY];
+					r = 0.5;
+					g = 0.3 + (0.1 * (GLfloat)systemParameter);
+					b = 1.0 - (0.1 * (GLfloat)systemParameter);
+				}
+				else
+				{
+					r = g = b = 0.3;
+				}
+				break;
+			case OOLRC_MODE_GOVERNMENT:
+				if (EXPECT(noNova))
+				{
+					systemParameter = [systemData oo_unsignedIntForKey:KEY_GOVERNMENT];
+					r = 1.0 - (0.1 * (GLfloat)systemParameter);
+					g = 0.3 + (0.1 * (GLfloat)systemParameter);
+					b = 0.1;
+				}
+				else
+				{
+					r = g = b = 0.3;
+				}
+				break;
+			case OOLRC_MODE_TECHLEVEL:
+				if (EXPECT(noNova))
+				{
+					systemParameter = [systemData oo_unsignedIntForKey:KEY_TECHLEVEL];				
+					r = 0.6;
+					g = b = 0.20 + (0.05 * (GLfloat)systemParameter);
+				}
+				else
+				{
+					r = g = b = 0.3;
+				}			
+				break;
+			case OOLRC_MODE_NORMAL:
+				if (EXPECT(noNova))
+				{
+					r = g = b = 1.0;
+				}
+				else
+				{
+					r = 1.0;
+					g = 0.2;
+					b = 0.0;
+				}
+				break;
 		}
 		OOGL(glColor4f(r, g, b, alpha));
 		

@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
-extern NSString * const kOOLogNoteAddShips;
+static NSString * const kOOLogNoteAddShips = @"script.debug.note.addShips";
 
 
 @implementation ShipEntity (ScriptMethods)

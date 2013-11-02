@@ -93,7 +93,8 @@ withPropertyList:(id)rootPList
 // NSError domain and codes used to report schema verifier errors.
 extern NSString * const kOOPListSchemaVerifierErrorDomain;
 
-extern NSString * const kPListKeyPathErrorKey;			// Array specifying key path.
+extern NSString * const kPListKeyPathErrorKey;			// Array specifying key path in plist.
+extern NSString * const kSchemaKeyPathErrorKey;			// Array specifying key path in schema.
 
 extern NSString * const	kExpectedClassErrorKey;			// Expected class. Nil for vector and quaternion.
 extern NSString * const	kExpectedClassNameErrorKey;		// String describing expected class. May be more specific (for instance, "boolean" or "positive integer" for NSNumber).

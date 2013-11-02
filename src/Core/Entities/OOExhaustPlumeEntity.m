@@ -303,27 +303,22 @@ static OOTexture *sPlumeTexture = nil;
 	(void)iv; (void)ci;	// Suppress Clang static analyzer warnings.
 }
 
-GLuint tfan1[10] =    {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1 };		// initial fan 0..9
-/*
-GLuint qstrip1[18] =  {	1,	9,	2,	10,	3,	11,	4,	12,	5,	13,	6,	14,	7,	15,	8,	16,	1,	9 };		// first quadstrip 10..27
-GLuint qstrip2[18] =  {	9,	17,	10,	18,	11,	19,	12,	20,	13,	21,	14,	22,	15,	23,	16,	24,	9,	17 };	// second quadstrip 28..45
-GLuint qstrip3[18] =  {	17,	25,	18,	26,	19,	27,	20,	28,	21,	29,	22,	30,	23,	31,	24,	32,	17,	25 };	// third quadstrip 46..63
-GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 64..73  */
+static GLuint tfan1[10] =    {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1 };		// initial fan 0..9
 
 // normal polys
-GLuint tstr1[9] = {  1, 5, 9, 13, 17, 21, 25, 29, 33 };
-GLuint tstr2[9] = {  2, 6, 10, 14, 18, 22, 26, 30, 33 };
-GLuint tstr3[9] = {  3, 7, 11, 15, 19, 23, 27, 31, 33 };
-GLuint tstr4[9] = {  4, 8, 12, 16, 20, 24, 28, 32, 33 }; 
+static GLuint tstr1[9] = {  1, 5, 9, 13, 17, 21, 25, 29, 33 };
+static GLuint tstr2[9] = {  2, 6, 10, 14, 18, 22, 26, 30, 33 };
+static GLuint tstr3[9] = {  3, 7, 11, 15, 19, 23, 27, 31, 33 };
+static GLuint tstr4[9] = {  4, 8, 12, 16, 20, 24, 28, 32, 33 };
 
 // aft-view special polys
-GLuint afttstr1[4] = {  1, 5, 25, 29 };
-GLuint afttstr2[4] = {  2, 6, 26, 30 };
-GLuint afttstr3[4] = {  3, 7, 27, 31 };
-GLuint afttstr4[4] = {  4, 8, 28, 32 }; 
+static GLuint afttstr1[4] = {  1, 5, 25, 29 };
+static GLuint afttstr2[4] = {  2, 6, 26, 30 };
+static GLuint afttstr3[4] = {  3, 7, 27, 31 };
+static GLuint afttstr4[4] = {  4, 8, 28, 32 };
 
 
-GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
+static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent

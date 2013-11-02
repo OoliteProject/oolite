@@ -53,7 +53,7 @@ MA 02110-1301, USA.
 #endif
 
 
-extern NSString * const kOOLogDebugMessage;
+static NSString * const kOOLogDebugMessage = @"script.debug.message";
 
 
 static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);

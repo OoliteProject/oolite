@@ -41,8 +41,6 @@ SOFTWARE.
 #define NEBULA_SHUFFLE_FACTOR			0.005f
 #define DEBUG_COLORS					0	// If set, rgb = xyz (offset to range from 0.1 to 1.0).
 
-BOOL		gSkyWireframe = NO;
-
 
 /*	Min and max coords are 0 and 1 normally, but the default
 	sky-render-inset-coords can be used to modify them slightly as an attempted

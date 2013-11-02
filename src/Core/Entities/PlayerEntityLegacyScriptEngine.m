@@ -58,7 +58,7 @@ static NSString * const kOOLogScriptMissionDescNoKey		= @"script.missionDescript
 
 static NSString * const kOOLogDebug							= @"script.debug";
 static NSString * const kOOLogDebugOnMetaClass				= @"$scriptDebugOn";
-	   NSString * const kOOLogDebugMessage					= @"script.debug.message";
+static NSString * const kOOLogDebugMessage					= @"script.debug.message";
 static NSString * const kOOLogDebugOnOff					= @"script.debug.onOff";
 static NSString * const kOOLogDebugAddPlanet				= @"script.debug.addPlanet";
 static NSString * const kOOLogDebugReplaceVariablesInString	= @"script.debug.replaceVariablesInString";
@@ -69,7 +69,7 @@ static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.deb
 
 static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
 static NSString * const kOOLogNoteUseSpecialCargo			= @"script.debug.note.useSpecialCargo";
-	   NSString * const kOOLogNoteAddShips					= @"script.debug.note.addShips";
+static NSString * const kOOLogNoteAddShips					= @"script.debug.note.addShips";
 static NSString * const kOOLogNoteSet						= @"script.debug.note.set";
 static NSString * const kOOLogNoteShowShipModel				= @"script.debug.note.showShipModel";
 static NSString * const kOOLogNoteFuelLeak					= @"script.debug.note.setFuelLeak";
@@ -86,7 +86,7 @@ static NSString * const kOOLogSyntaxAwardCargo				= @"script.debug.syntax.awardC
 static NSString * const kOOLogSyntaxAwardEquipment			= @"script.debug.syntax.awardEquipment";
 static NSString * const kOOLogSyntaxRemoveEquipment			= @"script.debug.syntax.removeEquipment";
 static NSString * const kOOLogSyntaxMessageShipAIs			= @"script.debug.syntax.messageShipAIs";
-	   NSString * const kOOLogSyntaxAddShips				= @"script.debug.syntax.addShips";
+static NSString * const kOOLogSyntaxAddShips				= @"script.debug.syntax.addShips";
 static NSString * const kOOLogSyntaxSet						= @"script.debug.syntax.set";
 static NSString * const kOOLogSyntaxReset					= @"script.debug.syntax.reset";
 static NSString * const kOOLogSyntaxIncrement				= @"script.debug.syntax.increment";
@@ -2010,7 +2010,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 		else 
 		{
-//			[gui setText:@"" forRow:choicesRow align: alignment];
 			[gui setKey:GUI_KEY_SKIP forRow:choicesRow];
 		}
 		choicesRow++;
@@ -2104,12 +2103,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (NSString *) missionTitle
+{
+	return _missionTitle;
+}
+
+
 - (void) setMissionTitle:(NSString *)value
 {
-	if (missionTitle != value)
+	if (_missionTitle != value)
 	{
-		[missionTitle release];
-		missionTitle = [value copy];
+		[_missionTitle release];
+		_missionTitle = [value copy];
 	}
 }
 
@@ -2448,7 +2453,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// GUI stuff
 	{
 		[gui clear];
-		[gui setTitle: missionTitle ? missionTitle : DESC(@"mission-information")];
+		[gui setTitle:[self missionTitle] ?: DESC(@"mission-information")];
 		
 		if (!_missionTextEntry)
 		{
