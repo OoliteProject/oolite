@@ -6,3 +6,5 @@ SDKROOT									= macosx10.8
 MACOSX_DEPLOYMENT_TARGET				= 10.6
 
 GCC_VERSION								= com.apple.compilers.llvm.clang.1_0
+
+CLANG_ENABLE_MODULES					= YES
