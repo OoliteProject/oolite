@@ -375,6 +375,75 @@ MA 02110-1301, USA.
 }
 
 
+- (NSString *) keyBindingDescription:(NSString *)binding
+{
+	OOKeyCode key = (OOKeyCode)[keyconfig_settings oo_unsignedCharForKey:binding];
+	if (key == 0)
+	{
+		return nil;
+	}
+	return [self keyCodeDescription:key];
+}
+
+
+- (NSString *) keyCodeDescription:(OOKeyCode)code
+{
+	switch (code)
+	{
+	case 9:
+		return DESC(@"oolite-keycode-tab");
+	case 27:
+		return DESC(@"oolite-keycode-esc");
+	case 32:
+		return DESC(@"oolite-keycode-space");
+	case gvFunctionKey1:
+		return DESC(@"oolite-keycode-f1");
+	case gvFunctionKey2:
+		return DESC(@"oolite-keycode-f2");
+	case gvFunctionKey3:
+		return DESC(@"oolite-keycode-f3");
+	case gvFunctionKey4:
+		return DESC(@"oolite-keycode-f4");
+	case gvFunctionKey5:
+		return DESC(@"oolite-keycode-f5");
+	case gvFunctionKey6:
+		return DESC(@"oolite-keycode-f6");
+	case gvFunctionKey7:
+		return DESC(@"oolite-keycode-f7");
+	case gvFunctionKey8:
+		return DESC(@"oolite-keycode-f8");
+	case gvFunctionKey9:
+		return DESC(@"oolite-keycode-f9");
+	case gvFunctionKey10:
+		return DESC(@"oolite-keycode-f10");
+	case gvFunctionKey11:
+		return DESC(@"oolite-keycode-f11");
+	case gvArrowKeyRight:
+		return DESC(@"oolite-keycode-right");
+	case gvArrowKeyLeft:
+		return DESC(@"oolite-keycode-left");
+	case gvArrowKeyDown:
+		return DESC(@"oolite-keycode-down");
+	case gvArrowKeyUp:
+		return DESC(@"oolite-keycode-up");
+	case gvHomeKey:
+		return DESC(@"oolite-keycode-home");
+	case gvEndKey:
+		return DESC(@"oolite-keycode-end");
+	case gvInsertKey:
+		return DESC(@"oolite-keycode-insert");
+	case gvDeleteKey:
+		return DESC(@"oolite-keycode-delete");
+	case gvPageUpKey:
+		return DESC(@"oolite-keycode-pageup");
+	case gvPageDownKey:
+		return DESC(@"oolite-keycode-pagedown");
+	default:
+		return [NSString stringWithFormat:@"%C",code];
+	}
+}
+
+
 @end
 
 
