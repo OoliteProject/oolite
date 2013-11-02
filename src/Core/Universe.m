@@ -7338,6 +7338,13 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 - (void) setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key value:(id)object
 {
+	static BOOL sysdataLocked = NO;
+	if (sysdataLocked)
+	{
+		OOLogERR(@"script.error", @"System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
+		return;
+	}
+
 	// trying to set  unsettable properties?  
 	if ([key isEqualToString:KEY_RADIUS]) // buggy if we allow this key to be set
 	{
@@ -7439,6 +7446,11 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			[[self planet] setUpPlanetFromTexture: [[self planet] textureFileName]];
 		}
 	}
+	
+	sysdataLocked = YES;
+	[PLAYER doScriptEvent:OOJSID("systemInformationChanged") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithInt:gnum],[NSNumber numberWithInt:pnum],key,object,nil]];
+	sysdataLocked = NO;
+
 }
 
 
