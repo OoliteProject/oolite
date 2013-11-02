@@ -100,7 +100,7 @@ void OOPrintLogHeader(void)
 	
 	NSArray *featureStrings = [NSArray arrayWithObjects:
 	// User features
-	#if OO_SHADERS
+	#if OOLITE_OPENAL
 		@"OpenAL",
 	#endif
 
