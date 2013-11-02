@@ -81,7 +81,7 @@ SOFTWARE.
 	NSString *containedFile = [NSString pathWithComponents:[components subarrayWithRange:range]];
 
 	unzFile uf = NULL;
-	const char* zipname = [zipFile cStringUsingEncoding:NSUTF8StringEncoding];
+	const char* zipname = [zipFile UTF8String];
 	if (zipname != NULL)
 	{
 		uf = unzOpen64(zipname);
@@ -91,7 +91,7 @@ SOFTWARE.
 		OOLog(kOOLogFileNotFound, @"Could not unzip OXZ at %@", zipFile);
 		return nil;
 	}
-	const char* filename = [containedFile cStringUsingEncoding:NSUTF8StringEncoding];
+	const char* filename = [containedFile UTF8String];
 	// unzLocateFile(*, *, 1) = case-sensitive extract
 	if (unzLocateFile(uf, filename, 1) != UNZ_OK)
     {
@@ -152,7 +152,7 @@ SOFTWARE.
 	}
 	
 	unzClose(uf);
-	return [NSData dataWithData:tmp];
+	return [[tmp retain] autorelease];
 
 }
 
