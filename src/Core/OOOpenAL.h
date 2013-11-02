@@ -2,7 +2,8 @@
 
 OOOpenAL.h
 
-Singleton controller for Open AL interfaces
+Platform-independent access to OpenAL headers and AL utilities
+
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -24,17 +25,16 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCocoa.h"
+
+#if OOLITE_MAC_OS_X
+#import <OpenAL/al.h>
+#import <OpenAL/alc.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
+#endif
 
 // alGetError should always be called before openAL calls to reset the
 // error stack
-#define OOAL(cmd) alGetError(); cmd;
-
-@interface OOOpenAL : NSObject 
-{
-	@private
-	ALCdevice *alcDevice;
-	
-
-}
+#define OOAL(cmd) do { alGetError(); cmd; } while (0)

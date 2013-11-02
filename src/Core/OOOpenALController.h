@@ -24,13 +24,9 @@ MA 02110-1301, USA.
 
 */
 
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <Foundation/Foundation.h>
+#import "OOOpenAL.h"
 
-// alGetError should always be called before openAL calls to reset the
-// error stack
-#define OOAL(cmd) do { alGetError(); cmd; } while (0)
+
 static NSString * const kOOLogSoundInitError		= @"sound.initialization.error";
 static NSString * const kOOLogSoundLoadingSuccess	= @"sound.load.success";
 static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
@@ -38,7 +34,7 @@ static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
 
 @interface OOOpenALController : NSObject 
 {
-	@private
+@private
 	ALCdevice *device;
 	ALCcontext *context;
 }
