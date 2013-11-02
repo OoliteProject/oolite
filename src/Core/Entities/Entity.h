@@ -254,6 +254,7 @@ enum OOScanClass
 
 - (void) update:(OOTimeDelta)delta_t;
 
+- (void) applyVelocity:(OOTimeDelta)delta_t;
 - (BOOL) checkCloseCollisionWith:(Entity *)other;
 
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other;
