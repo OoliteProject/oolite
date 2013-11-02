@@ -368,6 +368,7 @@
 	$soundError								= $error;
 	$soundDebug								= no;
 	$soundDebugVerbose						= $soundDebug;
+	sound.buffer							= $soundDebugVerbose;
 	sound.customSounds						= $soundDebug;
 	sound.customSounds.recursion			= $soundError;			// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
 	sound.load.success						= $soundDebug;
