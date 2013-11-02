@@ -36,7 +36,7 @@ SOFTWARE.
 
 #define KEY_VOLUME_CONTROL @"volume_control"
 
-static int					sMaxBufferedSoundSize = 1 << 20;	// 1 MB
+static const size_t kMaxBufferedSoundSize = 1 << 20;	// 1 MB
 
 static BOOL	sIsSetUp = NO;
 static BOOL sIsSoundOK = NO;
@@ -102,7 +102,7 @@ static BOOL sIsSoundOK = NO;
 	decoder = [[OOALSoundDecoder alloc] initWithPath:path];
 	if (nil == decoder) return nil;
 	
-	if ([decoder sizeAsBuffer] >= 0 && [decoder sizeAsBuffer] <= (size_t)sMaxBufferedSoundSize)
+	if ([decoder sizeAsBuffer] <= kMaxBufferedSoundSize)
 	{
 		self = [[OOALBufferedSound alloc] initWithDecoder:decoder];
 	}

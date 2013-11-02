@@ -32,8 +32,6 @@ SOFTWARE.
 #import "OOLogging.h"
 #import "unzip.h"
 
-#define ZIP_BUFFER_SIZE 8192
-
 enum
 {
 	kMaxDecodeSize			= 1 << 20		// 2^20 frames = 4 MB
