@@ -110,14 +110,17 @@ enum
 #define LANE_WIDTH			51200.0
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
-static NSString * const kOOLogUniversePopulateError				= @"universe.populate.error";
+static NSString * const kOOLogUniversePopulateError			= @"universe.populate.error";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
-extern NSString * const kOOLogEntityVerificationError;
+static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
 static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 
 Universe *gSharedUniverse = nil;
+
+extern Entity *gOOJSPlayerIfStale;
+Entity *gOOJSPlayerIfStale = nil;
 
 
 static BOOL MaintainLinkedLists(Universe* uni);
@@ -220,16 +223,16 @@ static int JSResetFlags = 0;
 
 
 // track the position and status of the lights
-BOOL	object_light_on = NO;
-BOOL	demo_light_on = NO;
-static GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
-GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
+static BOOL		object_light_on = NO;
+static BOOL		demo_light_on = NO;
+static			GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
+static GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
 #define DOCKED_AMBIENT_LEVEL	0.2f	// Was 0.05, 'temporarily' set to 0.2.
 #define DOCKED_ILLUM_LEVEL		0.7f
-GLfloat docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
-GLfloat docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
-GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL * 0.75f, (GLfloat) 1.0f };	// yellow-white
+static GLfloat	docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
+static GLfloat	docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
+static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL * 0.75f, (GLfloat) 1.0f };	// yellow-white
 
 // Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is used for ambient, 0.0 means only sky colour is used.
 // TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322
@@ -9583,8 +9586,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	_autoCommLog = value;
 }
 
-
-Entity *gOOJSPlayerIfStale = nil;
 
 - (BOOL) blockJSPlayerShipProps
 {

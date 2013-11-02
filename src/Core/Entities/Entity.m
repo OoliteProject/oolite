@@ -49,7 +49,7 @@ static NSString * const kOOLogEntityAddToList				= @"entity.linkedList.add";
 static NSString * const kOOLogEntityAddToListError			= @"entity.linkedList.add.error";
 static NSString * const kOOLogEntityRemoveFromList			= @"entity.linkedList.remove";
 static NSString * const kOOLogEntityRemoveFromListError		= @"entity.linkedList.remove.error";
-	   NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
+static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
 static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.error";
 
 

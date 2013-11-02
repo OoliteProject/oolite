@@ -292,6 +292,7 @@ typedef enum
 	NSDictionary			*worldScriptsRequiringTickle;
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
+	NSString				*_missionTitle;
 	NSInteger /*OOGUIRow*/	missionTextRow;
 	NSString				*missionChoice;
 	BOOL					_missionWithCallback;

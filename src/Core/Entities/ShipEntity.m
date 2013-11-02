@@ -95,7 +95,7 @@ MA 02110-1301, USA.
 #define USEMASC 1
 
 
-extern NSString * const kOOLogSyntaxAddShips;
+static NSString * const kOOLogSyntaxAddShips			= @"script.debug.syntax.addShips";
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 
 

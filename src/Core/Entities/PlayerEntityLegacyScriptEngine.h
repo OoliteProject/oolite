@@ -212,9 +212,11 @@ typedef enum
 - (void) addMissionDestination:(NSString *)destinations;	// mark a system on the star charts
 - (void) removeMissionDestination:(NSString *)destinations; // stop a system being marked on star charts
 
-- (void) showShipModel: (NSString *)shipKey;
-- (void) setMissionMusic: (NSString *)value;
-- (void) setMissionTitle: (NSString *)value;
+- (void) showShipModel:(NSString *)shipKey;
+- (void) setMissionMusic:(NSString *)value;
+
+- (NSString *)missionTitle;
+- (void) setMissionTitle:(NSString *)value;
 
 - (void) setFuelLeak: (NSString *)value;
 - (NSNumber *)fuelLeakRate_number;
@@ -260,7 +262,5 @@ typedef enum
 - (BOOL) processSceneString:(NSString*) item atOffset:(Vector) off;
 
 @end
-
-NSString *missionTitle;
 
 NSString *OOComparisonTypeToString(OOComparisonType type) CONST_FUNC;

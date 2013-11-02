@@ -175,7 +175,7 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 
 
 static RANROTSeed sNoiseSeed;
-float ranNoiseBuffer[ 128 * 128];
+static float ranNoiseBuffer[128 * 128];
 
 void fillRanNoiseBuffer()
 {

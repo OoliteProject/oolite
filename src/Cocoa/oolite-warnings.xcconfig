@@ -35,7 +35,8 @@ OO_WARNING_EXCEPTIONS					= -Wno-unused-parameter -Wno-missing-field-initializer
 //     types. That's what explict casts are for.
 // -Wassign-enum: Correctly warns about Cocoa's abuse of enum types for bit
 //     masks, which we can't do anything sensible about.
-OO_EXTRA_WARNING_EXCEPTIONS				= -Wno-pedantic -Wno-gnu -Wno-undef -Wno-objc-interface-ivars -Wno-direct-ivar-access -Wno-receiver-forward-class -Wno-padded -Wno-float-equal -Wno-switch-enum -Wno-cast-align -Wno-unused-exception-parameter -Wno-missing-noreturn -Wno-unreachable-code -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-conditional-uninitialized -Wno-bad-function-cast -Wno-assign-enum
+// -Wvla: We use variable-length arrays with reckless abandon.
+OO_EXTRA_WARNING_EXCEPTIONS				= -Wno-pedantic -Wno-gnu -Wno-undef -Wno-objc-interface-ivars -Wno-direct-ivar-access -Wno-receiver-forward-class -Wno-padded -Wno-float-equal -Wno-switch-enum -Wno-cast-align -Wno-unused-exception-parameter -Wno-missing-noreturn -Wno-unreachable-code -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-conditional-uninitialized -Wno-bad-function-cast -Wno-assign-enum -Wno-vla
 
 // Things we don't want to break the build when they're introduced by devs on other platforms.
 OO_WARNING_NO_ERROR						= -Wno-error=deprecated-declarations -Wno-error=semicolon-before-method-body

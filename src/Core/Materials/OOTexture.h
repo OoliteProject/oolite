@@ -310,6 +310,13 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options);
 extern NSString * const kOOTextureSpecifierNameKey;
 extern NSString * const kOOTextureSpecifierSwizzleKey;
 extern NSString * const kOOTextureSpecifierMinFilterKey;
+extern NSString * const kOOTextureSpecifierMagFilterKey;
+extern NSString * const kOOTextureSpecifierNoShrinkKey;
+extern NSString * const kOOTextureSpecifierRepeatSKey;
+extern NSString * const kOOTextureSpecifierRepeatTKey;
+extern NSString * const kOOTextureSpecifierCubeMapKey;
+extern NSString * const kOOTextureSpecifierAnisotropyKey;
+extern NSString * const kOOTextureSpecifierLODBiasKey;
 
 // Keys not used in texture setup, but put in specific texture specifiers to simplify plists.
 extern NSString * const kOOTextureSpecifierModulateColorKey;

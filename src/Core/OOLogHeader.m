@@ -214,6 +214,11 @@ static NSString *AdditionalLogHeaderInfo(void)
 }
 
 
+#ifndef CPUFAMILY_INTEL_HASWELL
+	#define CPUFAMILY_INTEL_HASWELL 0x10b282dc
+#endif
+
+
 static NSString *GetCPUDescription(void)
 {
 	NSString			*typeStr = nil, *subTypeStr = nil;
@@ -263,7 +268,7 @@ static NSString *GetCPUDescription(void)
 					subTypeStr = @" (Ivy Bridge)";
 					break;
 					
-				case 0x10b282dc:
+				case CPUFAMILY_INTEL_HASWELL:
 					subTypeStr = @" (Haswell)";
 					break;
 					

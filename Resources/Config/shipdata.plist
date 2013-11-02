@@ -1516,6 +1516,7 @@
 		name = "Coriolis Station";
 		roles = "coriolis station";
 		rotating = yes;
+		station_roll = "0.08"; // 1G at rim
 		subentities = 
 		( 
 			{ 
@@ -1686,6 +1687,7 @@
 		name = "Dodecahedron Station";
 		roles = "dodo dodec dodecahedron station";
 		rotating = yes;
+		station_roll = "0.08"; // 1G at rim
 		subentities = 
 		( 
 			{ 
@@ -2116,6 +2118,7 @@
 		name = "Icosahedron Station";
 		roles = "ico icosa icosahedron station";
 		rotating = yes;
+		station_roll = "0.08"; // 1G at rim
 		subentities = 
 		( 
 			{ 
@@ -2557,7 +2560,6 @@
 		like_ship = "oolite_template_moray";
 		is_template = 1;
 		roles = "player";
-		weapon_position_forward = "0.0 -10.5 30.5";
 	};
 	"oolite_template_morayMED" =
 	{

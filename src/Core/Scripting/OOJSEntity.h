@@ -35,8 +35,8 @@ void InitOOJSEntity(JSContext *context, JSObject *global);
 
 BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);
 
-JSClass gOOEntityJSClass;
-JSObject *gOOEntityJSPrototype;
+extern JSClass gOOEntityJSClass;
+extern JSObject *gOOEntityJSPrototype;
 DEFINE_JS_OBJECT_GETTER(OOJSEntityGetEntity, &gOOEntityJSClass, gOOEntityJSPrototype, Entity)
 
 OOINLINE JSClass *JSEntityClass(void)  { return &gOOEntityJSClass; }

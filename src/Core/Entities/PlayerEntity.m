@@ -6562,15 +6562,16 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		OOJSScript *eqScript = [[eqScripts oo_arrayAtIndex:index] objectAtIndex:1];
 		JSContext *context = OOJSAcquireContext();
+		NSAssert1(mode <= OOPRIMEDEQUIP_MODE, @"Primable equipment mode %i out of range", (int)mode);
+		
 		switch (mode)
 		{
-		case OOPRIMEDEQUIP_MODE:
-			[eqScript callMethod:OOJSID("mode") inContext:context withArguments:NULL count:0 result:NULL];
-			break;
-		case OOPRIMEDEQUIP_ACTIVATED:
-		default:
-			[eqScript callMethod:OOJSID("activated") inContext:context withArguments:NULL count:0 result:NULL];
-			break;
+			case OOPRIMEDEQUIP_MODE:
+				[eqScript callMethod:OOJSID("mode") inContext:context withArguments:NULL count:0 result:NULL];
+				break;
+			case OOPRIMEDEQUIP_ACTIVATED:
+				[eqScript callMethod:OOJSID("activated") inContext:context withArguments:NULL count:0 result:NULL];
+				break;
 		}
 		OOJSRelinquishContext(context);
 	}
@@ -9858,8 +9859,14 @@ static NSString *last_outfitting_key=nil;
 	NSDictionary *result = [self missionOverlayDescriptor];
 	if (result == nil)
 	{
-		if ([missionTitle length] == 0)  result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_no_title"];
-		else  result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_with_title"];
+		if ([[self missionTitle] length] == 0)
+		{
+			result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_no_title"];
+		}
+		else
+		{
+			result = [UNIVERSE screenTextureDescriptorForKey:@"mission_overlay_with_title"];
+		}
 	}
 	
 	return result;
