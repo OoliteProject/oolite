@@ -57,7 +57,7 @@ _QuaternionDescription
 _VectorDescription
 _OOStringFromBehaviour
 _OOStringFromShaderSetting
-_OOSoundRegisterDebugMonitor
+# _OOSoundRegisterDebugMonitor # Not implemented in OpenAL builds
 _OOJSProfileEnter
 _OOJSProfileExit
 _OOJSUnreachable

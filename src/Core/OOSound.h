@@ -43,8 +43,7 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 
-// currently on SDL platforms only as I can't test Mac OS X
-#define OOLITE_OPENAL OOLITE_SDL
+#define OOLITE_OPENAL 1
 
 #if OOLITE_OPENAL
 	#import "OOALSound.h"
