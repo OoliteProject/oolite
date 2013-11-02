@@ -1181,7 +1181,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					if (goodToLaunch)
 					{
-						[self setFoundTarget:[self launchEscapeCapsule]];
+						[self launchEscapeCapsule];
 					}
 				}
 				
