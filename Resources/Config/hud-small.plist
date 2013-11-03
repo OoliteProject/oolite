@@ -71,11 +71,11 @@
 			height		= 10;
 		},
 		{	// weapons systems offline text, x and y give the location, the size defines the character size
-			height		= 8;
+			height		= 10;
 			selector	= "drawWeaponsOfflineText:";
-			width		= 8;
-			x		= -200;
-			y		= -170;
+			width		= 10;
+			x		= -51;
+			y		= -51;
 		},
 		{ /* speed bar, can draw a surround 2 units out from the dial size specified */
 			draw_surround = true;
