@@ -10535,6 +10535,18 @@ else _dockTarget = NO_TARGET;
 	key_pitch_back &&
 	key_yaw_left &&
 	key_yaw_right &&
+	key_view_forward &&
+	key_view_aft &&
+	key_view_port &&
+	key_view_starboard &&
+	key_gui_screen_status &&
+	key_gui_chart_screens &&
+	key_gui_system_data &&
+	key_gui_market &&
+	key_gui_arrow_left &&
+	key_gui_arrow_right &&
+	key_gui_arrow_up &&
+	key_gui_arrow_down &&
 	key_increase_speed &&
 	key_decrease_speed &&
 	key_inject_fuel &&

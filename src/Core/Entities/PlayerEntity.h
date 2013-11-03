@@ -431,6 +431,21 @@ typedef enum
 	OOKeyCode				key_pitch_back;
 	OOKeyCode				key_yaw_left;
 	OOKeyCode				key_yaw_right;
+
+	OOKeyCode				key_view_forward; 		// && undock
+	OOKeyCode				key_view_aft;			// && options menu
+	OOKeyCode				key_view_port;			// && equipment screen
+	OOKeyCode				key_view_starboard;		// && interfaces screen
+
+	OOKeyCode				key_gui_screen_status;
+	OOKeyCode				key_gui_chart_screens;
+	OOKeyCode				key_gui_system_data;
+	OOKeyCode				key_gui_market;
+
+	OOKeyCode				key_gui_arrow_left;
+	OOKeyCode				key_gui_arrow_right;
+	OOKeyCode				key_gui_arrow_up;
+	OOKeyCode				key_gui_arrow_down;
 	
 	OOKeyCode				key_increase_speed;
 	OOKeyCode				key_decrease_speed;

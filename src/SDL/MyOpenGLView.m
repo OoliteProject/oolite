@@ -87,7 +87,7 @@ MA 02110-1301, USA.
 {
 	// Changing these flags can trigger texture bugs.
 	const int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
-	
+
 	if (showSplashScreen)
 	{
 #if OOLITE_WINDOWS
@@ -96,10 +96,10 @@ MA 02110-1301, USA.
 		ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
 		updateContext = NO;	//don't update the (splash screen) window yet!
 		MoveWindow(SDL_Window,GetSystemMetrics(SM_CXSCREEN)/2,GetSystemMetrics(SM_CYSCREEN)/2,1,1,TRUE); // centre the splash screen
-		
+
 		// Initialise the SDL surface. (need custom SDL.dll)
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-		
+
 		// Post setVideoMode adjustments.
 		currentWindowSize=tmp;
 #else
@@ -122,9 +122,9 @@ MA 02110-1301, USA.
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
 	}
-	
+
 	_gamma = 1.0f;
-	if (SDL_SetGamma(_gamma, _gamma, _gamma) < 0 ) 
+	if (SDL_SetGamma(_gamma, _gamma, _gamma) < 0 )
 	{
 		char * errStr = SDL_GetError();
 		OOLogWARN(@"gamma.set.failed", @"Could not set gamma: %s", errStr);
@@ -142,18 +142,18 @@ MA 02110-1301, USA.
 	Uint32          colorkey;
 	SDL_Surface     *icon=NULL;
 	NSString		*imagesDir;
-	
+
 	// SDL splash screen  settings
-	
-	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];	
+
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
-	
+
 	NSArray				*arguments = nil;
 	NSEnumerator		*argEnum = nil;
 	NSString			*arg = nil;
 
 	arguments = [[NSProcessInfo processInfo] arguments];
-	
+
 	// scan for splash screen overrides: -nosplash || --nosplash , -splash || --splash
 	for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
 	{
@@ -167,7 +167,7 @@ MA 02110-1301, USA.
 			showSplashScreen = YES;
 		}
 	}
-	
+
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
 	OOLog(@"sdl.init", @"initialising SDL");
@@ -177,12 +177,12 @@ MA 02110-1301, USA.
 		[self dealloc];
 		return nil;
 	}
-	
+
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
-	
+
 	[OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
 	// end TODO
-	
+
 	[OOSound setUp];
 
 	// Generate the window caption, containing the version number and the date the executable was compiled.
@@ -213,7 +213,7 @@ MA 02110-1301, USA.
 		SDL_WM_SetIcon(icon, NULL);
 	}
 	SDL_FreeSurface(icon);
-	
+
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -242,11 +242,11 @@ MA 02110-1301, USA.
 	// Find what the full screen and windowed settings are.
 	[self loadFullscreenSettings];
 	[self loadWindowSize];
-	
+
 	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
-	
+
 	OOLog(@"display.initGL",@"Trying 32-bit depth buffer");
 	[self createSurface];
 	if (surface == NULL)
@@ -269,7 +269,7 @@ MA 02110-1301, USA.
 			SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 
 			[self createSurface];
-			
+
 			if (surface == NULL)
 			{
 				char * errStr = SDL_GetError();
@@ -286,12 +286,12 @@ MA 02110-1301, USA.
 			}
 		}
 	}
-	
+
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
-	
+
 	[self autoShowMouse];
-	
+
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 	mouseWarped = NO;
 
@@ -302,28 +302,28 @@ MA 02110-1301, USA.
 	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
 
 	m_glContextInitialized = NO;
-	
+
 	return self;
 }
 
 - (void) endSplashScreen
 {
 	if (!showSplashScreen) return;
-	
+
 #if OOLITE_WINDOWS
-	
+
 	wasFullScreen = !fullScreen;
 	updateContext = YES;
 	ShowWindow(SDL_Window,SW_RESTORE);
 	[self initialiseGLWithSize: firstScreen];
-	
+
 #else
-	
+
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
-	
+
 	videoModeFlags |= (fullScreen) ? SDL_FULLSCREEN : SDL_RESIZABLE;
 	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-	
+
 	if (!surface && fullScreen == YES)
 	{
 		[self setFullScreenMode: NO];
@@ -331,7 +331,7 @@ MA 02110-1301, USA.
 		videoModeFlags |= SDL_RESIZABLE;
 		surface = SDL_SetVideoMode(currentWindowSize.width, currentWindowSize.height, 32, videoModeFlags);
 	}
-	
+
 	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 
 	/* MKW 2011.11.11
@@ -350,9 +350,9 @@ MA 02110-1301, USA.
 		*/
 	}
 
-	
+
 #endif
-	
+
 	[self updateScreen];
 	[self autoShowMouse];
 }
@@ -361,7 +361,7 @@ MA 02110-1301, USA.
 {
 	if (typedString)
 		[typedString release];
-		
+
 	if (screenSizes)
 		[screenSizes release];
 
@@ -381,7 +381,7 @@ MA 02110-1301, USA.
 	//don't touch the 'please wait...' cursor.
 	if (fullScreen)
 	{
-		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)		
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
 			SDL_ShowCursor(SDL_DISABLE);
 	}
 	else
@@ -593,15 +593,15 @@ MA 02110-1301, USA.
 - (void) initSplashScreen
 {
 	if (!showSplashScreen) return;
-	
+
 	//too early for OOTexture!
 	SDL_Surface     	*image=NULL;
 	SDL_Rect			dest;
-	
+
 	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
-	
+
 	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] UTF8String]);
-	
+
 	if (image == NULL)
 	{
 		SDL_FreeSurface(image);
@@ -609,22 +609,22 @@ MA 02110-1301, USA.
 		[self endSplashScreen];
 		return;
 	}
-	
+
 	dest.x = 0;
 	dest.y = 0;
 	dest.w = image->w;
 	dest.h = image->h;
-	
+
   #if OOLITE_WINDOWS
-	
+
 	dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
 	dest.y = (GetSystemMetrics(SM_CYSCREEN)-dest.h)/2;
 	SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 	ShowWindow(SDL_Window,SW_RESTORE);
 	MoveWindow(SDL_Window,dest.x,dest.y,dest.w,dest.h,TRUE);
-	
+
   #else
-	
+
 	/* MKW 2011.11.11
 	 * According to Marc using the NOFRAME flag causes trouble under Ubuntu 8.04.
 	 *
@@ -634,31 +634,31 @@ MA 02110-1301, USA.
 	 * Took SDL_NOFRAME out, since it still causes strange problems here - cim 2012.04.09
 	 */
 	 surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
-	
+
   #endif
-	
+
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
 	glViewport( 0, 0, dest.w, dest.h);
-	
+
 	glEnable( GL_TEXTURE_2D );
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
-	
+
 	glMatrixMode( GL_PROJECTION );
 	glPushMatrix();
 	glLoadIdentity();
-	
+
 	glOrtho(0.0f, dest.w , dest.h, 0.0f, -1.0f, 1.0f);
-	
+
 	glMatrixMode( GL_MODELVIEW );
 	glPushMatrix();
 	glLoadIdentity();
-	
+
 	GLuint texture;
 	GLenum texture_format;
 	GLint  nOfColors;
-	
+
 	// get the number of channels in the SDL image
 	nOfColors = image->format->BytesPerPixel;
 	if (nOfColors == 4)     // contains an alpha channel
@@ -680,21 +680,21 @@ MA 02110-1301, USA.
 		[self endSplashScreen];
 		return;
 	}
-	
+
 	glGenTextures( 1, &texture );
 	glBindTexture( GL_TEXTURE_2D, texture );
-	
+
 	// Set the texture's stretching properties
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	
-	// Set the texture image data with the information  from SDL_Surface 
+
+	// Set the texture image data with the information  from SDL_Surface
 	glTexImage2D( GL_TEXTURE_2D, 0, nOfColors, image->w, image->h, 0,
                       texture_format, GL_UNSIGNED_BYTE, image->pixels );
-	
+
 	glBindTexture( GL_TEXTURE_2D, texture );
 	glBegin( GL_QUADS );
-	
+
 	glTexCoord2i( 0, 0 );
 	glVertex2i( 0, 0 );
 	glTexCoord2i( 1, 0 );
@@ -703,13 +703,13 @@ MA 02110-1301, USA.
 	glVertex2i( dest.w, dest.h );
 	glTexCoord2i( 0, 1 );
 	glVertex2i( 0, dest.h );
-	
+
 	glEnd();
-	
+
 	SDL_GL_SwapBuffers();
 	glLoadIdentity();       // reset matrix
-	
-	if ( image ) { 
+
+	if ( image ) {
 		SDL_FreeSurface( image );
 	}
 	glDeleteTextures(1, &texture);
@@ -761,7 +761,7 @@ MA 02110-1301, USA.
 			m_glContextInitialized = YES;
 			return;
 		}
-		
+
 	}
 	else if ( wasFullScreen )
 	{
@@ -782,7 +782,7 @@ MA 02110-1301, USA.
 					|| bounds.size.height != wDC.bottom - wDC.top))
 	{
 		RECT wDCtemp;
-		
+
 		// MoveWindow is used below to resize the game window when required. The resized window it
 		// creates includes the client plus the non-client area. This means that although dimensions
 		// capable of containing our wanted client area size are requested, the actual window generated has a
@@ -790,7 +790,7 @@ MA 02110-1301, USA.
 		// and adding it to the needed size when necessary (i.e. after splash screen or when switching from
 		// full screen to window) - Nikos 20091024
 		NSSize nonClientAreaCorrection = NSMakeSize(0,0);
-		
+
 		GetWindowRect(SDL_Window, &wDC);
 		if (wasFullScreen) // this is true when switching from full screen or when starting in windowed mode after the splash screen has ended
 		{
@@ -804,7 +804,7 @@ MA 02110-1301, USA.
 		MoveWindow(SDL_Window,wDC.left,wDC.top,viewSize.width + nonClientAreaCorrection.width,viewSize.height + nonClientAreaCorrection.height,TRUE);
 		GetClientRect(SDL_Window, &wDC);
 	}
-	
+
 	// Reset bounds and viewSize to current values
 	bounds.size.width = viewSize.width = wDC.right - wDC.left;
 	bounds.size.height = viewSize.height = wDC.bottom - wDC.top;
@@ -813,7 +813,7 @@ MA 02110-1301, USA.
 #else //OOLITE_LINUX
 
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
-	
+
 	if (v_mode == NO)
 		videoModeFlags |= SDL_NOFRAME;
 	if (fullScreen == YES)
@@ -851,7 +851,7 @@ MA 02110-1301, USA.
 	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * bounds.size.width/bounds.size.height;
 		x_offset = 240.0 * bounds.size.width/bounds.size.height;
-		y_offset = 240.0;		
+		y_offset = 240.0;
 	} else {
 		display_z = 640.0;
 		x_offset = 320.0;
@@ -861,11 +861,11 @@ MA 02110-1301, USA.
 	if (surface != 0)  SDL_FreeSurface(surface);
 
 	[self autoShowMouse];
-	
+
 	[[self gameController] setUpBasicOpenGLStateWithSize:viewSize];
 	SDL_GL_SwapBuffers();
 	squareX = 0.0f;
-	
+
 	m_glContextInitialized = YES;
 }
 
@@ -874,25 +874,25 @@ MA 02110-1301, USA.
 {
 	BOOL snapShotOK = YES;
 	SDL_Surface* tmpSurface;
-	
+
 	// backup the previous directory
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
 	// use the snapshots directory
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
-	
+
 	BOOL				withFilename = (filename != nil);
 	static unsigned		imageNo = 0;
 	unsigned			tmpImageNo = 0;
 	NSString			*pathToPic = nil;
 	NSString			*baseName = @"oolite";
-	
+
 #if SNAPSHOTS_PNG_FORMAT
 	NSString			*extension = @".png";
 #else
 	NSString			*extension = @".bmp";
 #endif
-	
-	if (withFilename) 
+
+	if (withFilename)
 	{
 		baseName = filename;
 		pathToPic = [filename stringByAppendingString:extension];
@@ -901,14 +901,14 @@ MA 02110-1301, USA.
 	{
 		tmpImageNo = imageNo;
 	}
-	
+
 	if (withFilename && [[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
 	{
 		OOLog(@"screenshot.filenameExists", @"Snapshot \"%@%@\" already exists - adding numerical sequence.", pathToPic, extension);
 		pathToPic = nil;
 	}
 
-	if (pathToPic == nil) 
+	if (pathToPic == nil)
 	{
 		do
 		{
@@ -916,19 +916,19 @@ MA 02110-1301, USA.
 			pathToPic = [NSString stringWithFormat:@"%@-%03d%@", baseName, tmpImageNo, extension];
 		} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
 	}
-	
+
 	if (!withFilename)
 	{
 		imageNo = tmpImageNo;
 	}
-			
+
 	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
-	
+
 	int pitch = surface->w * 3;
 	unsigned char *pixls = malloc(pitch * surface->h);
 	int y;
 	int off;
-        
+
 	if (surface->w % 4) glPixelStorei(GL_PACK_ALIGNMENT,1);
 	else                glPixelStorei(GL_PACK_ALIGNMENT,4);
 	for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
@@ -952,7 +952,7 @@ MA 02110-1301, USA.
 #endif
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
-	
+
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 	return snapShotOK;
@@ -1180,7 +1180,7 @@ MA 02110-1301, USA.
    	{
    		[self clearMouse];
    	}
-   	
+
 }
 
 
@@ -1269,8 +1269,8 @@ MA 02110-1301, USA.
 	int						mxdelta, mydelta;
 	float					mouseVirtualStickSensitivityX = viewSize.width * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
 	float					mouseVirtualStickSensitivityY = viewSize.height * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
-	
-	
+
+
 	while (SDL_PollEvent(&event))
 	{
 		switch (event.type) {
@@ -1280,7 +1280,7 @@ MA 02110-1301, USA.
 			case SDL_JOYHATMOTION:
 				[(OOSDLJoystickManager*)[OOJoystickManager sharedStickHandler] handleSDLEvent: &event];
 				break;
-				
+
 			case SDL_MOUSEBUTTONDOWN:
 				mbtn_event = (SDL_MouseButtonEvent*)&event;
 				switch(mbtn_event->button)
@@ -1299,7 +1299,7 @@ MA 02110-1301, USA.
 						[self resetMouse]; // Will set mouseWarped to YES
 				}
 				break;
-				
+
 			case SDL_MOUSEBUTTONUP:
 				mbtn_event = (SDL_MouseButtonEvent*)&event;
 				NSTimeInterval timeBetweenClicks = [NSDate timeIntervalSinceReferenceDate] - timeIntervalAtLastClick;
@@ -1314,7 +1314,7 @@ MA 02110-1301, USA.
 					keys[gvMouseLeftButton] = NO;
 				}
 				break;
-				
+
 			case SDL_MOUSEMOTION:
 			{
 				// Delta mode is set when the game is in 'flight' mode.
@@ -1331,12 +1331,12 @@ MA 02110-1301, USA.
 					SDL_GetRelativeMouseState(&mxdelta, &mydelta);
 					double mxd=(double)mxdelta / mouseVirtualStickSensitivityX;
 					double myd=(double)mydelta / mouseVirtualStickSensitivityY;
-					
+
 					if (!mouseWarped) // Standard event, update coordinates
 					{
 						virtualJoystickPosition.x += mxd;
 						virtualJoystickPosition.y += myd;
-					
+
 						// if we excceed the limits, revert changes
 						if(fabs(virtualJoystickPosition.x) > MOUSEX_MAXIMUM)
 						{
@@ -1349,7 +1349,7 @@ MA 02110-1301, USA.
 					}
 					else
 					{
-						// Motion event generated by WarpMouse is ignored and 
+						// Motion event generated by WarpMouse is ignored and
 						// we reset mouseWarped for the next time.
 						mouseWarped = NO;
 					}
@@ -1366,7 +1366,7 @@ MA 02110-1301, USA.
 
 					if (!mouseWarped) // standard event, handle it
 					{
-						double mx = mmove_event->x - w/2.0; 
+						double mx = mmove_event->x - w/2.0;
 						double my = mmove_event->y - h/2.0;
 						if (display_z > 640.0)
 						{
@@ -1378,7 +1378,7 @@ MA 02110-1301, USA.
 							mx /= MAIN_GUI_PIXEL_WIDTH * w / 640.0;
 							my /= MAIN_GUI_PIXEL_HEIGHT * w / 640.0;
 						}
-					
+
 						[self setVirtualJoystick:mx :my];
 					}
 					else
@@ -1391,18 +1391,18 @@ MA 02110-1301, USA.
 			}
 			case SDL_KEYDOWN:
 				kbd_event = (SDL_KeyboardEvent*)&event;
-				
+
 				if(allowingStringInput)
 				{
 					[self handleStringInput: kbd_event];
 				}
-				
+
 				// Macro KEYCODE_DOWN_EITHER. Detect the keypress state (with shift or without) and assign appropriate values to the
 				// keys array. This way Oolite can use more keys, since now key '3', for example is a different keypress to '#'.
 #define KEYCODE_DOWN_EITHER(a,b)	do { \
 if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; } \
 } while (0)
-				
+
 #if OOLITE_WINDOWS
 				/*
 					Windows locale patch - Enable backslash in win/UK
@@ -1414,9 +1414,9 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 				}
 				else switch (kbd_event->keysym.sym) {
 
-					case SDLK_BACKSLASH: 
+					case SDLK_BACKSLASH:
 						if (keyboardMap==gvKeyboardUK )
-						{			
+						{
 							KEYCODE_DOWN_EITHER (126, 35);						// ~ or #
 						}
 						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
@@ -1426,7 +1426,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						break;
 #else
 				switch (kbd_event->keysym.sym) {
-				
+
 					case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (124, 92); break;	// | or \.
 #endif
 					case SDLK_1: KEYCODE_DOWN_EITHER (33, gvNumberKey1); break;	// ! or 1
@@ -1441,17 +1441,17 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						}
 						else
 						{
-							KEYCODE_DOWN_EITHER (64, gvNumberKey2);				// @ or 2
+							KEYCODE_DOWN_EITHER (64, gvNumberKey2);             // @ or 2
 						}
 						break;
-					case SDLK_3: 
+					case SDLK_3:
 						if (keyboardMap==gvKeyboardUK)
 						{
-							KEYCODE_DOWN_EITHER (156, gvNumberKey3);			// £ or 3
+							KEYCODE_DOWN_EITHER (156, gvNumberKey3);            // ï¿½ or 3
 						}
 						else
 						{
-							KEYCODE_DOWN_EITHER (35, gvNumberKey3);				// # or 3
+							KEYCODE_DOWN_EITHER (35, gvNumberKey3);             // # or 3
 						}
 						break;
 #else
@@ -1511,24 +1511,28 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_SPACE: keys[32] = YES; break;
 					case SDLK_RETURN: keys[13] = YES; break;
 					case SDLK_TAB: keys[9] = YES; break;
-					case SDLK_KP8:
 					case SDLK_UP: keys[gvArrowKeyUp] = YES; break;
-					case SDLK_KP2:
 					case SDLK_DOWN: keys[gvArrowKeyDown] = YES; break;
-					case SDLK_KP4:
 					case SDLK_LEFT: keys[gvArrowKeyLeft] = YES; break;
-					case SDLK_KP6:
 					case SDLK_RIGHT: keys[gvArrowKeyRight] = YES; break;
-					
+
 					case SDLK_KP_MINUS: keys[45] = YES; break; // numeric keypad - key
 					case SDLK_KP_PLUS: keys[43] = YES; break; // numeric keypad + key
 					case SDLK_KP_ENTER: keys[13] = YES; break;
-					
+
 					case SDLK_KP_MULTIPLY: keys[42] = YES; break;	// *
-					
-					case SDLK_KP1: keys[44] = YES; break; // equivalent to <
-					case SDLK_KP3: keys[46] = YES; break; // equivalent to >
-					
+
+					case SDLK_KP1: keys[gvNumberPadKey1] = YES; break;
+					case SDLK_KP2: keys[gvNumberPadKey2] = YES; break;
+					case SDLK_KP3: keys[gvNumberPadKey3] = YES; break;
+					case SDLK_KP4: keys[gvNumberPadKey4] = YES; break;
+					case SDLK_KP5: keys[gvNumberPadKey5] = YES; break;
+					case SDLK_KP6: keys[gvNumberPadKey6] = YES; break;
+					case SDLK_KP7: keys[gvNumberPadKey7] = YES; break;
+					case SDLK_KP8: keys[gvNumberPadKey8] = YES; break;
+					case SDLK_KP9: keys[gvNumberPadKey9] = YES; break;
+					case SDLK_KP0: keys[gvNumberPadKey0] = YES; break;
+
 					case SDLK_F1: keys[gvFunctionKey1] = YES; break;
 					case SDLK_F2: keys[gvFunctionKey2] = YES; break;
 					case SDLK_F3: keys[gvFunctionKey3] = YES; break;
@@ -1539,22 +1543,22 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_F8: keys[gvFunctionKey8] = YES; break;
 					case SDLK_F9: keys[gvFunctionKey9] = YES; break;
 					case SDLK_F10: keys[gvFunctionKey10] = YES; break;
-					
+
 					case SDLK_BACKSPACE:
 					case SDLK_DELETE:
 						keys[gvDeleteKey] = YES;
 						break;
-					
+
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
 						shift = YES;
 						break;
-					
+
 					case SDLK_LCTRL:
 					case SDLK_RCTRL:
 						ctrl = YES;
 						break;
-					
+
 					case SDLK_F12:
 						[self toggleScreenMode];
 							if([[PlayerEntity sharedPlayer] guiScreen]==GUI_SCREEN_GAMEOPTIONS)
@@ -1563,7 +1567,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 								[[PlayerEntity sharedPlayer] setGuiToGameOptionsScreen];
 							}
 						break;
-					
+
 					case SDLK_ESCAPE:
 						if (shift)
 						{
@@ -1579,11 +1583,11 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						;
 				}
 				break;
-				
+
 			case SDL_KEYUP:
 				supressKeys = NO;    // DJS
 				kbd_event = (SDL_KeyboardEvent*)&event;
-				
+
 #define KEYCODE_UP_BOTH(a,b)	do { \
 keys[a] = NO; keys[b] = NO; \
 } while (0)
@@ -1599,9 +1603,9 @@ keys[a] = NO; keys[b] = NO; \
 				}
 				else switch (kbd_event->keysym.sym) {
 
-					case SDLK_BACKSLASH: 
+					case SDLK_BACKSLASH:
 						if (keyboardMap==gvKeyboardUK )
-						{			
+						{
 							KEYCODE_UP_BOTH (126, 35);							// ~ or #
 						}
 						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
@@ -1611,7 +1615,7 @@ keys[a] = NO; keys[b] = NO; \
 						break;
 #else
 				switch (kbd_event->keysym.sym) {
-				
+
 					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (124, 92); break;		// | or \.
 #endif
 
@@ -1621,36 +1625,36 @@ keys[a] = NO; keys[b] = NO; \
 						Windows locale patch - fix shift-2 & shift-3
 					*/
 					case SDLK_2:
-						if (keyboardMap==gvKeyboardUK)
-						{
-							KEYCODE_UP_BOTH (34, gvNumberKey2);					// " or 2
-						}
-						else
-						{
-							KEYCODE_UP_BOTH (64, gvNumberKey2);					// @ or 2
-						}
-						break;
-					case SDLK_3: 
-						if (keyboardMap==gvKeyboardUK)
-						{
-							KEYCODE_UP_BOTH (156, gvNumberKey3);				// £ or 3
-						}
-						else
-						{
-							KEYCODE_UP_BOTH (35, gvNumberKey3);					// # or 3
-						}
-						break;
+                        if (keyboardMap==gvKeyboardUK)
+                        {
+							KEYCODE_UP_BOTH (34, gvNumberKey2);				// " or 2
+                        }
+                        else
+                        {
+							KEYCODE_UP_BOTH (64, gvNumberKey2);				// @ or 2
+                        }
+                        break;
+                    case SDLK_3:
+                        if (keyboardMap==gvKeyboardUK)
+                        {
+							KEYCODE_UP_BOTH (156, gvNumberKey3);			// ï¿½ or 3
+                        }
+                        else
+                        {
+							KEYCODE_UP_BOTH (35, gvNumberKey3);				// # or 3
+                        }
+                        break;
 #else
-					case SDLK_2: KEYCODE_UP_BOTH (64, gvNumberKey2); break;		// @ or 2
-					case SDLK_3: KEYCODE_UP_BOTH (35, gvNumberKey3); break;		// # or 3
+					case SDLK_2: KEYCODE_UP_BOTH (64, gvNumberKey2); break;	// @ or 2
+					case SDLK_3: KEYCODE_UP_BOTH (35, gvNumberKey3); break;	// # or 3
 #endif
-					case SDLK_4: KEYCODE_UP_BOTH (36, gvNumberKey4); break;		// $ and 4
-					case SDLK_5: KEYCODE_UP_BOTH (37, gvNumberKey5); break;		// % and 5
-					case SDLK_6: KEYCODE_UP_BOTH (94, gvNumberKey6); break;		// ^ and 6
-					case SDLK_7: KEYCODE_UP_BOTH (38, gvNumberKey7); break;		// & and 7
-					case SDLK_8: KEYCODE_UP_BOTH (42, gvNumberKey8); break;		// * and 8
-					case SDLK_9: KEYCODE_UP_BOTH (40, gvNumberKey9) ;break;		// ( and 9
-					case SDLK_0: KEYCODE_UP_BOTH (41, gvNumberKey0); break;		// ) and 0
+					case SDLK_4: KEYCODE_UP_BOTH (36, gvNumberKey4); break;	// $ or 4
+					case SDLK_5: KEYCODE_UP_BOTH (37, gvNumberKey5); break;	// % or 5
+					case SDLK_6: KEYCODE_UP_BOTH (94, gvNumberKey6); break;	// ^ or 6
+					case SDLK_7: KEYCODE_UP_BOTH (38, gvNumberKey7); break;	// & or 7
+					case SDLK_8: KEYCODE_UP_BOTH (42, gvNumberKey8); break;	// * or 8
+					case SDLK_9: KEYCODE_UP_BOTH (40, gvNumberKey9); break;	// ( or 9
+					case SDLK_0: KEYCODE_UP_BOTH (41, gvNumberKey0); break;	// ) or 0
 					case SDLK_MINUS: KEYCODE_UP_BOTH (95, 45); break;		// _ and -
 					case SDLK_COMMA: KEYCODE_UP_BOTH (60, 44); break;		// < and ,
 					case SDLK_EQUALS: KEYCODE_UP_BOTH (43, 61); break;		// + and =
@@ -1697,24 +1701,28 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_SPACE: keys[32] = NO; break;
 					case SDLK_RETURN: keys[13] = NO; break;
 					case SDLK_TAB: keys[9] = NO; break;
-					case SDLK_KP8:
 					case SDLK_UP: keys[gvArrowKeyUp] = NO; break;
-					case SDLK_KP2:
 					case SDLK_DOWN: keys[gvArrowKeyDown] = NO; break;
-					case SDLK_KP4:
 					case SDLK_LEFT: keys[gvArrowKeyLeft] = NO; break;
-					case SDLK_KP6:
 					case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
-					
+
 					case SDLK_KP_MINUS: keys[45] = NO; break; // numeric keypad - key
 					case SDLK_KP_PLUS: keys[43] = NO; break; // numeric keypad + key
 					case SDLK_KP_ENTER: keys[13] = NO; break;
-					
+
 					case SDLK_KP_MULTIPLY: keys[42] = NO; break;	// *
-					
-					case SDLK_KP1: keys[44] = NO; break; // equivalent to <
-					case SDLK_KP3: keys[46] = NO; break; // equivalent to >
-					
+
+					case SDLK_KP1: keys[gvNumberPadKey1] = NO; break;
+					case SDLK_KP2: keys[gvNumberPadKey2] = NO; break;
+					case SDLK_KP3: keys[gvNumberPadKey3] = NO; break;
+					case SDLK_KP4: keys[gvNumberPadKey4] = NO; break;
+					case SDLK_KP5: keys[gvNumberPadKey5] = NO; break;
+					case SDLK_KP6: keys[gvNumberPadKey6] = NO; break;
+					case SDLK_KP7: keys[gvNumberPadKey7] = NO; break;
+					case SDLK_KP8: keys[gvNumberPadKey8] = NO; break;
+					case SDLK_KP9: keys[gvNumberPadKey9] = NO; break;
+					case SDLK_KP0: keys[gvNumberPadKey0] = NO; break;
+
 					case SDLK_F1: keys[gvFunctionKey1] = NO; break;
 					case SDLK_F2: keys[gvFunctionKey2] = NO; break;
 					case SDLK_F3: keys[gvFunctionKey3] = NO; break;
@@ -1725,33 +1733,33 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_F8: keys[gvFunctionKey8] = NO; break;
 					case SDLK_F9: keys[gvFunctionKey9] = NO; break;
 					case SDLK_F10: keys[gvFunctionKey10] = NO; break;
-					
+
 					case SDLK_BACKSPACE:
 					case SDLK_DELETE:
 						keys[gvDeleteKey] = NO;
 						break;
-						
+
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
 						shift = NO;
 						break;
-						
+
 					case SDLK_LCTRL:
 					case SDLK_RCTRL:
 						ctrl = NO;
 						break;
-						
+
 					case SDLK_ESCAPE:
 						keys[27] = NO;
 						break;
-						
+
 					default:
 						// Numerous cases not handled.
 						//OOLog(@"keys.test", @"Keyup scancode: %d", kbd_event->keysym.scancode);
 						;
 				}
 				break;
-				
+
 			case SDL_VIDEORESIZE:
 			{
 				SDL_ResizeEvent *rsevt=(SDL_ResizeEvent *)&event;
@@ -1776,7 +1784,7 @@ keys[a] = NO; keys[b] = NO; \
 #endif
 				break;
 			}
-				
+
 			// caused by INTR or someone hitting close
 			case SDL_QUIT:
 			{
@@ -1818,7 +1826,7 @@ keys[a] = NO; keys[b] = NO; \
 				key=toupper(key);
 			}
 		}
-		
+
 		// full input for load-save screen
 		// NB: left-shift could return 0
 		if (allowingStringInput == gvStringInputAll && ((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE))
@@ -1919,7 +1927,7 @@ keys[a] = NO; keys[b] = NO; \
 	currentSize=0;
 	int width=0, height=0, refresh=0;
 	unsigned i;
-   
+
 	NSArray* cmdline_arguments = [[NSProcessInfo processInfo] arguments];
 
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
@@ -1931,7 +1939,7 @@ keys[a] = NO; keys[b] = NO; \
 		refresh = [userDefaults integerForKey:@"display_refresh"];
 	if([userDefaults objectForKey:@"fullscreen"])
 		fullScreen=[userDefaults boolForKey:@"fullscreen"];
-		
+
 	// Check if -fullscreen has been passed on the command line. If yes, set it regardless of
 	// what is set by .GNUstepDefaults.
    	for (i = 0; i < [cmdline_arguments count]; i++)
@@ -1999,7 +2007,7 @@ keys[a] = NO; keys[b] = NO; \
 {
 	if (value < 0.2f)  value = 0.2f;
 	if (value > 4.0f)  value = 4.0f;
-	
+
 	_gamma = value;
 	SDL_SetGamma(_gamma, _gamma, _gamma);
 }
@@ -2016,16 +2024,16 @@ keys[a] = NO; keys[b] = NO; \
 #if OOLITE_WINDOWS
 	// SDL_GetModState() does not seem to do exactly what is intended under Windows. For this reason,
 	// the GetKeyState Windows API call is used to detect the Shift keypress. -- Nikos.
-	
+
 	return 0 != (GetKeyState(VK_SHIFT) & 0x100);
-	
+
 #else
 	return 0 != (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT));
-	
+
 #endif
 }
 
-		
+
 #ifndef NDEBUG
 - (void) dumpRGBAToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
@@ -2034,11 +2042,11 @@ keys[a] = NO; keys[b] = NO; \
 					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
-	
-	// use the snapshots directory	
+
+	// use the snapshots directory
 	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
 	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
-	
+
 	// convert transparency to black before saving to bmp
 	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 32, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
 	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
@@ -2053,11 +2061,11 @@ keys[a] = NO; keys[b] = NO; \
 					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 3)  return;
-	
-	// use the snapshots directory	
+
+	// use the snapshots directory
 	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
 	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
-	
+
 	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 24, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0x0);
 	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
 	SDL_FreeSurface(tmpSurface);
@@ -2071,11 +2079,11 @@ keys[a] = NO; keys[b] = NO; \
 					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width)  return;
-	
-	// use the snapshots directory	
+
+	// use the snapshots directory
 	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
 	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
-	
+
 	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 8, rowBytes, 0xFF, 0xFF, 0xFF, 0x0);
 	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
 	SDL_FreeSurface(tmpSurface);
@@ -2089,11 +2097,11 @@ keys[a] = NO; keys[b] = NO; \
 					rowBytes:(NSUInteger)rowBytes
 {
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 2)  return;
-	
-	// use the snapshots directory	
+
+	// use the snapshots directory
 	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
 	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
-	
+
 	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 16, rowBytes, 0xFF, 0xFF, 0xFF, 0xFF);
 	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
 	SDL_FreeSurface(tmpSurface);
@@ -2108,25 +2116,25 @@ keys[a] = NO; keys[b] = NO; \
 					   rowBytes:(NSUInteger)rowBytes
 {
 	if ((rgbName == nil && grayName == nil) || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
-	
+
 	uint8_t				*rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
 	NSUInteger			x, y;
 	BOOL				trivalAlpha = YES;
-	
+
 	rgbPx = rgbBytes = malloc(width * height * 3);
 	if (rgbBytes == NULL)  return;
-	
+
 	grayPx = grayBytes = malloc(width * height);
 	if (grayBytes == NULL)
 	{
 		free(rgbBytes);
 		return;
 	}
-	
+
 	for (y = 0; y < height; y++)
 	{
 		srcPx = bytes + rowBytes * y;
-		
+
 		for (x = 0; x < width; x++)
 		{
 			*rgbPx++ = *srcPx++;
@@ -2136,14 +2144,14 @@ keys[a] = NO; keys[b] = NO; \
 			*grayPx++ = *srcPx++;
 		}
 	}
-	
+
 	[self dumpRGBToFileNamed:rgbName
 					   bytes:rgbBytes
 					   width:width
 					  height:height
 					rowBytes:width * 3];
 	free(rgbBytes);
-	
+
 	if (!trivalAlpha)
 	{
 		[self dumpGrayToFileNamed:grayName
