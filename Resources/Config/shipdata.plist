@@ -2030,7 +2030,6 @@
 		like_ship = "oolite_template_ferdelance";
 		is_template = 1;
 		roles = "player";
-		thrust = 25;
 	};
 	"oolite_template_gecko" =
 	{
