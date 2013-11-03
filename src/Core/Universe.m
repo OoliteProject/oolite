@@ -1179,6 +1179,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		[self addEntity:a_station];		// STATUS_IN_FLIGHT, AI state GLOBAL
 		[a_station setStatus:STATUS_ACTIVE];	// For backward compatibility. Might not be needed.
 		[a_station setAllowsFastDocking:true];	// Main stations always allow fast docking.
+		[a_station setAllegiance:@"galcop"]; // Main station is galcop controlled
 	}
 	OO_DEBUG_POP_PROGRESS();
 	
