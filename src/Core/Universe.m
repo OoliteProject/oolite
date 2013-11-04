@@ -563,7 +563,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-docked-@"),[[PLAYER keyConfig] oo_intForKey:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-docked-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
 		}
 	}
 	else
@@ -575,7 +575,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-@"),[[PLAYER keyConfig] oo_intForKey:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
 		}
 	}
 	
