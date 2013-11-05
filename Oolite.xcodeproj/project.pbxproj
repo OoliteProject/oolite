@@ -724,7 +724,6 @@
 		1A9FCF2615DAC9BC00E965D5 /* GameController+FullScreen.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */; };
 		1AA085FE182578AF007CCAEB /* OOALBufferedSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA085EE182578AF007CCAEB /* OOALBufferedSound.h */; };
 		1AA085FF182578AF007CCAEB /* OOALBufferedSound.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA085EF182578AF007CCAEB /* OOALBufferedSound.m */; };
-		1AA08600182578AF007CCAEB /* OOALConcreteSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA085F0182578AF007CCAEB /* OOALConcreteSound.h */; };
 		1AA08602182578AF007CCAEB /* OOALMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA085F2182578AF007CCAEB /* OOALMusic.h */; };
 		1AA08603182578AF007CCAEB /* OOALMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA085F3182578AF007CCAEB /* OOALMusic.m */; };
 		1AA08604182578AF007CCAEB /* OOALSound.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA085F4182578AF007CCAEB /* OOALSound.h */; };
@@ -2311,8 +2310,6 @@
 		1A9FCF2515DAC9BC00E965D5 /* GameController+FullScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GameController+FullScreen.m"; sourceTree = "<group>"; };
 		1AA085EE182578AF007CCAEB /* OOALBufferedSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOALBufferedSound.h; sourceTree = "<group>"; };
 		1AA085EF182578AF007CCAEB /* OOALBufferedSound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOALBufferedSound.m; sourceTree = "<group>"; };
-		1AA085F0182578AF007CCAEB /* OOALConcreteSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOALConcreteSound.h; sourceTree = "<group>"; };
-		1AA085F1182578AF007CCAEB /* OOALConcreteSound.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOALConcreteSound.m; sourceTree = "<group>"; };
 		1AA085F2182578AF007CCAEB /* OOALMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOALMusic.h; sourceTree = "<group>"; };
 		1AA085F3182578AF007CCAEB /* OOALMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOALMusic.m; sourceTree = "<group>"; };
 		1AA085F4182578AF007CCAEB /* OOALSound.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOALSound.h; sourceTree = "<group>"; };
@@ -3829,8 +3826,6 @@
 				1AA08610182578B8007CCAEB /* OOOpenALController.m */,
 				1AA085EE182578AF007CCAEB /* OOALBufferedSound.h */,
 				1AA085EF182578AF007CCAEB /* OOALBufferedSound.m */,
-				1AA085F0182578AF007CCAEB /* OOALConcreteSound.h */,
-				1AA085F1182578AF007CCAEB /* OOALConcreteSound.m */,
 				1AA085F2182578AF007CCAEB /* OOALMusic.h */,
 				1AA085F3182578AF007CCAEB /* OOALMusic.m */,
 				1AA085F4182578AF007CCAEB /* OOALSound.h */,
@@ -4158,7 +4153,6 @@
 				1A2DA2B00CB4CB5C00DE6823 /* OOTCPStreamDecoder.h in Headers */,
 				1A2DA34D0CB4D0D800DE6823 /* OOJSConsole.h in Headers */,
 				1A2DA34E0CB4D0D800DE6823 /* OODebugMonitor.h in Headers */,
-				1AA08600182578AF007CCAEB /* OOALConcreteSound.h in Headers */,
 				1A2DA3550CB4D10800DE6823 /* OODebuggerInterface.h in Headers */,
 				1A2DA3EF0CB4E84900DE6823 /* OODebugSupport.h in Headers */,
 				1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */,
