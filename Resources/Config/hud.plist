@@ -208,12 +208,11 @@
 			align = 1;
 		},
 		{	// weapons systems offline text, x and y give the location, the size defines the character size
-			height		= 8;
+			height		= 10;
 			selector	= "drawWeaponsOfflineText:";
-			width		= 8;
-			x		= -175;
-			y		= 2;
-			y_origin	= -1;
+			width		= 10;
+			x		= -51;
+			y		= -51;
 		},
 		{	// fps counter, x and y give the location, the size defines the character size
 			height		= 18;

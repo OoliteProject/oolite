@@ -792,7 +792,7 @@ PriorityAIController.prototype.hostileStation = function(station)
 			return true;
 		}
 		// pirate stations hostile to bounty-free ships
-		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.shipInRoleGroup(this.ship,"oolite-pirate-victim")))
+		if (allegiance == "pirate" && (this.ship.bounty == 0 || this.shipInRoleCategory(this.ship,"oolite-pirate-victim")))
 		{
 			return true;
 		}

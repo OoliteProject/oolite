@@ -186,6 +186,7 @@ MA 02110-1301, USA.
 #define SPRITE_KEY				@"sprite"
 #define DRAW_SURROUND_KEY		@"draw_surround"
 #define EQUIPMENT_REQUIRED_KEY	@"equipment_required"
+#define ALERT_CONDITIONS_KEY	@"alert_conditions"
 #define LABELLED_KEY			@"labelled"
 #define TEXT_KEY				@"text"
 #define RGB_COLOR_KEY			@"rgb_color"

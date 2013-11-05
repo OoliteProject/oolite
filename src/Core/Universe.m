@@ -563,7 +563,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-docked-@"),[[PLAYER keyConfig] oo_intForKey:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-docked-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
 		}
 	}
 	else
@@ -575,7 +575,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-@"),[[PLAYER keyConfig] oo_intForKey:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
 		}
 	}
 	
@@ -1179,6 +1179,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		[self addEntity:a_station];		// STATUS_IN_FLIGHT, AI state GLOBAL
 		[a_station setStatus:STATUS_ACTIVE];	// For backward compatibility. Might not be needed.
 		[a_station setAllowsFastDocking:true];	// Main stations always allow fast docking.
+		[a_station setAllegiance:@"galcop"]; // Main station is galcop controlled
 	}
 	OO_DEBUG_POP_PROGRESS();
 	
@@ -7338,6 +7339,13 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 - (void) setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key value:(id)object
 {
+	static BOOL sysdataLocked = NO;
+	if (sysdataLocked)
+	{
+		OOLogERR(@"script.error", @"System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
+		return;
+	}
+
 	// trying to set  unsettable properties?  
 	if ([key isEqualToString:KEY_RADIUS]) // buggy if we allow this key to be set
 	{
@@ -7439,6 +7447,11 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			[[self planet] setUpPlanetFromTexture: [[self planet] textureFileName]];
 		}
 	}
+	
+	sysdataLocked = YES;
+	[PLAYER doScriptEvent:OOJSID("systemInformationChanged") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithInt:gnum],[NSNumber numberWithInt:pnum],key,object,nil]];
+	sysdataLocked = NO;
+
 }
 
 

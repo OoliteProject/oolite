@@ -682,19 +682,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (NSString *) repeatString:(NSString *)str times:(NSUInteger)times
 {
-
 	if (times == 0)  return @"";
 	
-	NSMutableString		*result = [NSMutableString stringWithCapacity:[str length] * times]; 
-	uint 				i;
+	NSMutableString		*result = [NSMutableString stringWithCapacity:[str length] * times];
 	
-	for (i = 0; i < times; i++)
+	for (NSUInteger i = 0; i < times; i++)
 	{
 	    [result appendString:str];
 	}
 	
 	return result;
-	
 }
 
  

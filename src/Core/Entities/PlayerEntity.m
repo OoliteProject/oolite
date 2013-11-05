@@ -2269,6 +2269,7 @@ static GLfloat		sBaseMass = 0.0;
 		// reset legal status again! Could have changed if a previously launched missile hit a clean NPC while in the escape pod.
 		[self setBounty:0 withReason:kOOLegalStatusReasonEscapePod];
 		bounty = 0;
+		thrust = max_thrust; // re-enable inertialess drives
 		// no access to all player.ship properties while inside the escape pod,
 		// we're not supposed to be inside our ship anymore! 
 		[self doScriptEvent:OOJSID("escapePodSequenceOver")];	// allow oxps to override the escape pod target
@@ -2652,8 +2653,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) performAutopilotUpdates:(OOTimeDelta)delta_t
 {
-
 	[self processBehaviour:delta_t];
+	[self applyVelocity:delta_t];
 	[self doBookkeeping:delta_t];
 }
 
@@ -2742,7 +2743,7 @@ static GLfloat		sBaseMass = 0.0;
 	UPDATE_STAGE(@"applying newtonian drift");
 	assert(VELOCITY_CLEANUP_FULL > VELOCITY_CLEANUP_MIN);
 	
-	position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(velocity, (float)delta_t)));
+	[self applyVelocity:delta_t];
 	
 	GLfloat thrust_factor = 1.0;
 	if (flightSpeed > maxFlightSpeed)
@@ -5166,8 +5167,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if ([self status] == STATUS_DEAD) return NO;
 	
-	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// now set up the escape sequence.
-	
 	/*
 		While inside the escape pod, we need to block access to all player.ship properties,
 		since we're not supposed to be inside our ship anymore! -- Kaks 20101114
@@ -5176,17 +5175,30 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:YES]; 	// no player.ship properties while inside the pod!
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
-	flightSpeed = fmax(flightSpeed, 50.0f);
+	flightSpeed = fmin(flightSpeed, maxFlightSpeed);
 	
 	doppelganger = [self createDoppelganger];
 	if (doppelganger)
 	{
 		[doppelganger setVelocity:vector_multiply_scalar(v_forward, flightSpeed)];
+		[doppelganger setSpeed:0.0];
+		[doppelganger setDesiredSpeed:0.0];
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
 		[doppelganger setOwner:self];
+		[doppelganger setThrust:0]; // drifts
 		[UNIVERSE addEntity:doppelganger];
 	}
-	
+
+	[self setFoundTarget:doppelganger]; // must do this before setting status
+	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// now set up the escape sequence.
+
+
+	// must do this before next step or uses BBox of pod, not old ship!
+	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
+	position = HPvector_subtract(position, vectorToHPVector(vector_multiply_scalar(v_up, sheight)));
+	float sdepth = (float)(boundingBox.max.z - boundingBox.min.z);
+	position = HPvector_subtract(position, vectorToHPVector(vector_multiply_scalar(v_forward, sdepth/2.0)));
+
 	// set up you
 	escapePod = [UNIVERSE newShipWithName:@"escape-capsule"];	// retained
 	if (escapePod != nil)
@@ -5195,21 +5207,28 @@ static GLfloat		sBaseMass = 0.0;
 		[self setMesh:[escapePod mesh]];
 	}
 	
-	flightSpeed = 1.0f;
-	flightPitch = 0.2f * (randf() - 0.5f);
-	flightRoll = 0.2f * (randf() - 0.5f);
+	/* These used to be non-zero, but BEHAVIOUR_IDLE levels off flight
+	 * anyway, and inertial velocity is used instead of inertialess
+	 * thrust - CIM */
+	flightSpeed = 0.0f;
+	flightPitch = 0.0f;
+	flightRoll = 0.0f;
+	flightYaw = 0.0f;
+	// and turn off inertialess drive
+	thrust = 0.0f;
 	
+
 	/*	Add an impulse upwards and backwards to the escape pod. This avoids
 		flying straight through the doppelganger in interstellar space or when
 		facing the main station/escape target, and generally looks cool.
 		-- Ahruman 2011-04-02
 	*/
-	Vector launchVector = vector_add(vector_multiply_scalar(v_up, 60.0f),
-									 vector_multiply_scalar(v_forward, -10.0f));
-	[self adjustVelocity:launchVector];
+	Vector launchVector = vector_add([doppelganger velocity],
+							vector_add(vector_multiply_scalar(v_up, 15.0f),
+									   vector_multiply_scalar(v_forward, -90.0f)));
+	[self setVelocity:launchVector];
 	
-	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
-	position = HPvector_subtract(position, vectorToHPVector(vector_multiply_scalar(v_up, sheight)));
+
 	
 	//remove escape pod
 	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
@@ -9597,6 +9616,20 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+// override shipentity to stop foundTarget being changed during escape sequence
+- (void) setFoundTarget:(Entity *) targetEntity
+{
+	/* Rare, but can happen, e.g. if a Q-mine goes off nearby during
+	 * the sequence */
+	if ([self status] == STATUS_ESCAPE_SEQUENCE)
+	{
+		return;
+	}
+	[_foundTarget release];
+	_foundTarget = [targetEntity weakRetain];
+}
+
+
 // override shipentity addTarget to implement target_memory
 - (void) addTarget:(Entity *) targetEntity
 {
@@ -10502,6 +10535,18 @@ else _dockTarget = NO_TARGET;
 	key_pitch_back &&
 	key_yaw_left &&
 	key_yaw_right &&
+	key_view_forward &&
+	key_view_aft &&
+	key_view_port &&
+	key_view_starboard &&
+	key_gui_screen_status &&
+	key_gui_chart_screens &&
+	key_gui_system_data &&
+	key_gui_market &&
+	key_gui_arrow_left &&
+	key_gui_arrow_right &&
+	key_gui_arrow_up &&
+	key_gui_arrow_down &&
 	key_increase_speed &&
 	key_decrease_speed &&
 	key_inject_fuel &&

@@ -83,42 +83,43 @@ this.systemWillPopulate = function()
 							deterministic: true
 						});
 
-		/* Add asteroids */
-		var clusters = 2*(1+Math.floor(system.scrambledPseudoRandomNumber(51728)*4));
-		var psclusters = 1+(clusters/2);
-		clusters = clusters-psclusters;
-		
-		var addRockCluster = function(pos) 
+	/* Add asteroids */
+	var clusters = 2*(1+Math.floor(system.scrambledPseudoRandomNumber(51728)*4));
+	var psclusters = 1+(clusters/2);
+	clusters = clusters-psclusters;
+	
+	var addRockCluster = function(pos) 
+	{
+		var size = 1+Math.floor(system.scrambledPseudoRandomNumber(Math.floor(pos.x))*11);
+		var hermit = (system.scrambledPseudoRandomNumber(Math.floor(pos.y))*31) <= size;
+		var rocks = system.addShips("asteroid",size,pos,25E3);
+		// don't add rock hermits if the sun is about to explode
+		if (hermit && !system.sun.isGoingNova) 
 		{
-				var size = 1+Math.floor(system.scrambledPseudoRandomNumber(Math.floor(pos.x))*11);
-				var hermit = (system.scrambledPseudoRandomNumber(Math.floor(pos.y))*31) <= size;
-				var rocks = system.addShips("asteroid",size,pos,25E3);
-				// don't add rock hermits if the sun is about to explode
-				if (hermit && !system.sun.isGoingNova) 
-				{
-						var rh = system.addShips("rockhermit",1,pos,0)[0];
-						rh.scanClass = "CLASS_ROCK";
-				}
+			var rh = system.addShips("rockhermit",1,pos,0)[0];
+			rh.scanClass = "CLASS_ROCK";
+			rh.allegiance = this._hermitAllegiance(pos,system.info.government);
 		}
+	}.bind(this);
 
-		system.setPopulator("oolite-route1-asteroids",
-												{
-														priority: 20,
-														location: "LANE_WP",
-														locationSeed: 51728,
-														groupCount: clusters,
-														callback: addRockCluster,
-														deterministic: true
-												});
-		system.setPopulator("oolite-route2-asteroids",
-												{
-														priority: 20,
-														location: "LANE_PS",
-														locationSeed: 82715,
-														groupCount: psclusters,
-														callback: addRockCluster,
-														deterministic: true
-												});
+	system.setPopulator("oolite-route1-asteroids",
+						{
+							priority: 20,
+							location: "LANE_WP",
+							locationSeed: 51728,
+							groupCount: clusters,
+							callback: addRockCluster,
+							deterministic: true
+						});
+	system.setPopulator("oolite-route2-asteroids",
+						{
+							priority: 20,
+							location: "LANE_PS",
+							locationSeed: 82715,
+							groupCount: psclusters,
+							callback: addRockCluster,
+							deterministic: true
+						});
 
 	/* To ensure there's at least one hermit, for smugglers to dock at */
 	system.setPopulator("oolite-offlane-hermit",
@@ -131,9 +132,10 @@ this.systemWillPopulate = function()
 								if (system.countShipsWithPrimaryRole("rockhermit")==0) {
 									var rh = system.addShips("rockhermit",1,pos,0)[0];
 									rh.scanClass = "CLASS_ROCK";
+									rh.allegiance = this._hermitAllegiance(pos,system.info.government);
 									// just the hermit, no other rocks
 								}
-							},
+							}.bind(this),
 							deterministic: true
 						});
 
@@ -187,10 +189,10 @@ this.systemWillPopulate = function()
 	var smugglers = 0; // small fast illegal goods traders
 
 	/* // for now just generate sources and destinations dynamically
-	this.$repopulatorFrequencyIncoming.traderFreighters = {};
-	this.$repopulatorFrequencyIncoming.traderCouriers = {};
-	this.$repopulatorFrequencyIncoming.traderSmugglers = {};
-	this.$repopulatorFrequencyOutgoing.traderFreighters = {};
+	   this.$repopulatorFrequencyIncoming.traderFreighters = {};
+	   this.$repopulatorFrequencyIncoming.traderCouriers = {};
+	   this.$repopulatorFrequencyIncoming.traderSmugglers = {};
+	   this.$repopulatorFrequencyOutgoing.traderFreighters = {};
 	*/
 	this.$repopulatorFrequencyIncoming.traderFreighters = 0;
 	this.$repopulatorFrequencyIncoming.traderCouriers = 0;
@@ -1869,7 +1871,7 @@ this._addAssassin = function(pos)
 		this._setWeapons(main,ws);
 		this._setSkill(main,extra);
 	}
-//	main.bounty = 1+Math.floor(Math.random()*10);
+	//	main.bounty = 1+Math.floor(Math.random()*10);
 	main.switchAI("oolite-assassinAI.js");
 	if (extra > 0)
 	{
@@ -1893,7 +1895,7 @@ this._addAssassin = function(pos)
 				extras[i].fuel = 7;
 				this._setWeapons(extras[i],1.8);
 			}
-//			extras[i].bounty = 1+Math.floor(Math.random()*5);
+			//			extras[i].bounty = 1+Math.floor(Math.random()*5);
 			extras[i].switchAI("oolite-assassinAI.js");
 		}
 	}
@@ -2114,7 +2116,7 @@ this._setWeapons = function(ship,level)
 		fwent.forwardWeapon = "EQ_WEAPON_MILITARY_LASER";
 		ship.aftWeapon = "EQ_WEAPON_MILITARY_LASER";
 	}
-//	log(this.name,"Set "+fwent.forwardWeapon+"/"+ship.aftWeapon+" for "+ship.name+" ("+ship.primaryRole+")");
+	//	log(this.name,"Set "+fwent.forwardWeapon+"/"+ship.aftWeapon+" for "+ship.name+" ("+ship.primaryRole+")");
 	return true;
 }
 
@@ -2288,6 +2290,29 @@ this._repositionForLaunch = function(planet,ships)
 		ships[i].orientation = launchvector.rotationTo([0, 0, 1]);
 		ships[i].velocity = ships[i].vectorForward.multiply(ships[i].maxSpeed);
 	}
+}
+
+
+this._hermitAllegiance = function(position,government)
+{
+	// default hermit status, allows all dockings but pirates will tend to
+	// go elsewhere. We set this in shipdata but a shipset might not
+	var allegiance = "neutral"; 
+	log("hermit.calc",Math.floor(Math.abs(position.z)) % 4,Math.floor(Math.abs(position.y)) % 4,Math.floor(Math.abs(position.x)) % 4,government);
+	if ((Math.floor(Math.abs(position.z)) % 4) * (Math.floor(Math.abs(position.y)) % 4) > government)
+	{
+		// pirates will use this hermit for docking and launching, but
+		// other ships might too
+		allegiance = "chaotic"; 
+		if (Math.abs(Math.floor(position.x) % 4) > government+1)
+		{
+			// in Feudal or Anarchy systems, some of the hermits are
+			// so pirate-friendly that legitimate traffic avoids them
+			allegiance = "pirate";
+		}
+	}
+	log("hermit.calc",allegiance);
+	return allegiance;
 }
 
 /* System selectors */

@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
-
+#import "PlayerEntityScriptMethods.h"
 
 // Don't bother with syntax warnings in Deployment builds.
 #define WARNINGS			(!defined(NDEBUG))
@@ -103,6 +103,7 @@ static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar
 static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit);
 static NSString *ExpandStringKeyOverride(OOStringExpansionContext *context, NSString *key);
 static NSString *ExpandStringKeySpecial(OOStringExpansionContext *context, NSString *key);
+static NSString *ExpandStringKeyKeyboardBinding(OOStringExpansionContext *context, NSString *key);
 static NSMapTable *SpecialSubstitutionSelectors(void);
 static NSString *ExpandStringKeyFromDescriptions(OOStringExpansionContext *context, NSString *key, NSUInteger sizeLimit, NSUInteger recursionLimit);
 static NSString *ExpandStringKeyMissionVariable(OOStringExpansionContext *context, NSString *key);
@@ -523,9 +524,13 @@ static NSString *ExpandStringKey(OOStringExpansionContext *context, NSString *ke
 	
 	// Specials override descriptions.plist.
 	if (result == nil)  result = ExpandStringKeySpecial(context, key);
-	
+
 	// Now try descriptions.plist.
 	if (result == nil)  result = ExpandStringKeyFromDescriptions(context, key, sizeLimit, recursionLimit);
+
+	// For efficiency, descriptions.plist overrides keybindings.
+	// OXPers should therefore avoid oolite_key_ description keys
+	if (result == nil)  result = ExpandStringKeyKeyboardBinding(context, key);
 	
 	// Try mission variables.
 	if (result == nil)  result = ExpandStringKeyMissionVariable(context, key);
@@ -598,6 +603,22 @@ static NSString *ExpandStringKeySpecial(OOStringExpansionContext *context, NSStr
 		}
 	}
 	
+	return nil;
+}
+
+
+/*	ExpandStringKeyKeyboardBinding(context, key)
+	
+	Attempt to expand a key by matching it against the keybindings
+*/
+static NSString *ExpandStringKeyKeyboardBinding(OOStringExpansionContext *context, NSString *key)
+{
+	NSCParameterAssert(context != NULL && key != nil);
+	if ([key hasPrefix:@"oolite_key_"])
+	{
+		NSString *binding = [key substringFromIndex:7];
+		return [PLAYER keyBindingDescription:binding];
+	}
 	return nil;
 }
 

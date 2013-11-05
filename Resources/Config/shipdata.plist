@@ -1485,6 +1485,7 @@
 	"oolite_template_coriolis-station" = 
 	{
 		ai_type = "oolite-stationAI.js";
+		allegiance = "galcop";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1656,6 +1657,7 @@
 	"oolite_template_dodecahedron-station" =
 	{
 		ai_type = "oolite-stationAI.js";
+		allegiance = "galcop";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -2028,7 +2030,6 @@
 		like_ship = "oolite_template_ferdelance";
 		is_template = 1;
 		roles = "player";
-		thrust = 25;
 	};
 	"oolite_template_gecko" =
 	{
@@ -2087,6 +2088,7 @@
 	"oolite_template_icosahedron-station" = 
 	{
 		ai_type = "oolite-stationAI.js";
+		allegiance = "galcop";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -2906,6 +2908,7 @@
 	"oolite_template_rock-hermit" = 
 	{
 		ai_type = "oolite-rockHermitAI.js";
+		allegiance = "neutral";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
 		"equipment_price_factor" = 4.5;

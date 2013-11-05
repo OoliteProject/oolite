@@ -462,8 +462,8 @@
 	"witch-engine-malfunction"		= "Witchspace engine malfunction!";
 	"witch-galactic-in-f-seconds"	= "Intergalactic jump in %.0f s.";
 	"witch-user-galactic-abort"		= "Intergalactic jump aborted.";
-	"game-paused-@"					= "Game paused.\nPress F2 for options, '%C' to resume.";
-	"game-paused-docked-@"			= "Game paused. Press '%C' to resume.";
+	"game-paused-@"					= "Game paused.\nPress F2 for options, '%@' to resume.";
+	"game-paused-docked-@"			= "Game paused. Press '%@' to resume.";
 	"game-saved"					= "Game saved.";
 	"mouse-on"						= "Mouse control on.";
 	"mouse-off"						= "Mouse control off.";
@@ -1524,6 +1524,33 @@
 	"speech-synthesis-incoming-message"	= "Incoming message";
 	"speech-synthesis-incoming-message-@"	= "[speech-synthesis-incoming-message]: %@";
 	
+	// translations of special keys
+	"oolite-keycode-tab"	= "Tab";
+	"oolite-keycode-esc"	= "Escape";
+	"oolite-keycode-space"	= "Space";
+	"oolite-keycode-f1"		= "F1";
+	"oolite-keycode-f2"		= "F2";
+	"oolite-keycode-f3"		= "F3";
+	"oolite-keycode-f4"		= "F4";
+	"oolite-keycode-f5"		= "F5";
+	"oolite-keycode-f6"		= "F6";
+	"oolite-keycode-f7"		= "F7";
+	"oolite-keycode-f8"		= "F8";
+	"oolite-keycode-f9"		= "F9";
+	"oolite-keycode-f10"	= "F10";
+	"oolite-keycode-f11"	= "F11";
+	"oolite-keycode-right"	= "Right Arrow";
+	"oolite-keycode-left"	= "Left Arrow";
+	"oolite-keycode-down"	= "Down Arrow";
+	"oolite-keycode-up"		= "Up Arrow";
+	"oolite-keycode-home"	= "Home";
+	"oolite-keycode-end"	= "End";
+	"oolite-keycode-insert"	= "Insert";
+	"oolite-keycode-delete"	= "Delete";
+	"oolite-keycode-pageup"	= "Page Up";
+	"oolite-keycode-pagedown" = "Page Down";
+	
+
 	// Mac multi-screen handling
 	"oolite-mac-bad-display" = "The display configuration has changed in a way that may impact Oolite’s performance.";
 	"oolite-mac-bad-display-2" = "Oolite’s main window is now on a screen which is not connected to a graphics processor compatible with Oolite. Oolite should continue to work, but performance may be degraded.";

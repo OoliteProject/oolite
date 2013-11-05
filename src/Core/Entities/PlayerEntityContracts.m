@@ -1994,6 +1994,9 @@ static NSMutableDictionary *currentShipyard = nil;
 	else
 		forward_weapon_type = WEAPON_NONE;
 	
+	// new ships start with weapons online
+	weapons_online = 1;
+
 	// get basic max_cargo
 	max_cargo = [UNIVERSE maxCargoForShip:[self shipDataKey]];
 

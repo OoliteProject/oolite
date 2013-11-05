@@ -923,13 +923,19 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 	if ([self status] != STATUS_COCKPIT_DISPLAY)
 	{
-		position = HPvector_add(position, HPvector_multiply_scalar(vectorToHPVector(velocity), delta_t));
+		[self applyVelocity:delta_t];
 	}
 
 	hasMoved = !HPvector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
 	lastOrientation = orientation;
+}
+
+
+- (void) applyVelocity:(OOTimeDelta)delta_t;
+{
+	position = HPvector_add(position, HPvector_multiply_scalar(vectorToHPVector(velocity), delta_t));
 }
 
 

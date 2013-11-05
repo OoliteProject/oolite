@@ -872,8 +872,26 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// check if equipment is required
 	NSString *equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	if (equipmentRequired != nil && ![PLAYER hasEquipmentItem:equipmentRequired])
+	{
 		return;
-	
+	}
+
+	// check alert condition
+	NSUInteger alertMask = [info oo_unsignedIntForKey:ALERT_CONDITIONS_KEY defaultValue:15];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (alertMask < 15)
+	{
+		OOAlertCondition alertCondition = [PLAYER alertCondition];
+		/* Because one of the items here is the scanner, which changes
+		 * the alert condition, this may give inconsistent results
+		 * mid-frame. This is unlikely to be crucial, but it's yet
+		 * another reason to get around to separating out scanner
+		 * display and alert level calculation - CIM */
+		if (~alertMask & (1 << alertCondition)) {
+			return;
+		}
+	}
+
 	OOTextureSprite				*legendSprite = nil;
 	NSString					*legendText = nil;
 	float						x, y;
@@ -917,6 +935,23 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	{
 		return;
 	}
+
+	// check alert condition
+	NSUInteger alertMask = [info oo_unsignedIntForKey:ALERT_CONDITIONS_KEY defaultValue:15];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (alertMask < 15)
+	{
+		OOAlertCondition alertCondition = [PLAYER alertCondition];
+		/* Because one of the items here is the scanner, which changes
+		 * the alert condition, this may give inconsistent results
+		 * mid-frame. This is unlikely to be crucial, but it's yet
+		 * another reason to get around to separating out scanner
+		 * display and alert level calculation - CIM */
+		if (~alertMask & (1 << alertCondition)) {
+			return;
+		}
+	}
+
 	// use the selector value stored during init.
 	[self performSelector:[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_SELECTOR] pointerValue] withObject:info];
 	OOCheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);
