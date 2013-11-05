@@ -1,0 +1,74 @@
+#! /bin/sh
+
+function fail {
+	# Print an error and bail. error: prefix is used for the benefit of build tools.
+	echo "error: $1" 1>&2
+	exit 1
+}
+
+function verbose {
+	# echo "$1"
+    :
+}
+
+function debug {
+	# Uncomment for debugging.
+	# echo "    DEBUG: $1"
+	:
+}
+
+
+if [ $# -lt 3 ]; then
+	fail "usage: copy_resources <source directory> <destination directory> <file extension>"
+fi
+
+pushd "$1" > /dev/null
+SOURCE_DIR=$(pwd)
+popd > /dev/null
+
+mkdir -p "$2"
+pushd "$2" > /dev/null
+DESTINATION_DIR=$(pwd)
+popd > /dev/null
+
+FILE_EXTENSION=$3
+
+
+cd "$SOURCE_DIR"
+FILES=`ls *$FILE_EXTENSION 2> /dev/null`
+
+if [ "$FILES" = "" ]; then
+	echo "warning: no files matching *$FILE_EXTENSION found in $SOURCE_DIR"
+	exit 0
+fi
+
+
+for FILE in $FILES; do
+	DESTINATION_FILE="$DESTINATION_DIR/$FILE"
+	SOURCE_FILE="$SOURCE_DIR/$FILE"
+
+	# If the destination file exists, don't copy if it has the same timestamp
+	COPY_THIS_FILE=1
+	if [ -e "$DESTINATION_FILE" ]; then
+		SOURCE_MOD_DATE=$(stat -f "%m" "$SOURCE_FILE")
+		DESTINATION_MOD_DATE=$(stat -f "%m" "$DESTINATION_FILE")
+		if [ $SOURCE_MOD_DATE -eq $DESTINATION_MOD_DATE ]; then
+			verbose "$FILE is up to date"
+			COPY_THIS_FILE=""
+		else
+			debug "$FILE is out of date (src: $SOURCE_MOD_DATE dst: $DESTINATION_MOD_DATE)"
+		fi
+	else
+		debug "$DESTINATION_FILE does not exist"
+	fi
+
+	if [ $COPY_THIS_FILE ]; then
+		echo "Copying $FILE"
+		cp -p "$SOURCE_FILE" "$DESTINATION_FILE"
+		if [ $? -ne 0 ]; then
+			fail "Failed to copy $FILE"
+		fi
+	else
+		debug "Not copying $FILE"
+	fi
+done

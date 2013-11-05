@@ -1,0 +1,49 @@
+#! /bin/sh
+
+if [ $# -lt 2 ]; then
+	echo "error: usage: copy_game_resources <source directory> <destination directory>"
+	exit 1
+fi
+
+
+SOURCE_DIR=$1
+DESTINATION_DIR=$2
+
+if [ ! $COPY_HELPER ]; then
+	COPY_HELPER="$(dirname $0)/copy-resources"
+fi
+
+
+function perform_copy_base {
+    "$COPY_HELPER" "$SOURCE_DIR/$1" "$DESTINATION_DIR/$2" "$3"
+    if [ $? -ne 0 ]; then
+        exit $?
+    fi
+}
+
+# Usage: perform_copy <directory name> <file suffix>
+# Copies modified files from src/<directory name> to dst/<directory name>
+function perform_copy {
+    perform_copy_base "$1" "$1" "$2"
+}
+
+# Usage: perform_copy_binary <directory name> <file suffix>
+# Copies modified files from src/Binary/<directory name> to dst/<directory name>
+function perform_copy_binary {
+    perform_copy_base "Binary/$1" "$1" "$2"
+}
+
+
+perform_copy AIs .plist
+perform_copy AIs .js
+perform_copy Config .plist
+perform_copy Scripts .js
+perform_copy Shaders .vertex
+perform_copy Shaders .fragment
+
+perform_copy_binary Images .png
+# N.b.: Images .bmp deliberately excluded, being Windows-specific
+perform_copy_binary Models .dat
+perform_copy_binary Music .ogg
+perform_copy_binary Sounds .ogg
+perform_copy_binary Textures .png
