@@ -365,7 +365,7 @@ static int OOCloseOXZVorbis (void *datasource);
 				break;
 			}
 			
-			bcopy(&pcmout, dst, sizeof (char) * framesRead);
+			memcpy(dst, &pcmout, sizeof (char) * framesRead);
 			
 			remaining -= framesRead;
 			dst += framesRead;
@@ -411,7 +411,7 @@ static int OOCloseOXZVorbis (void *datasource);
 			//else:
 			break;
 		}
-		bcopy(&pcmout, dst, sizeof (char) * framesRead);
+		memcpy(dst, &pcmout, sizeof (char) * framesRead);
 		remaining -= sizeof(char) * framesRead;
 		dst += sizeof(char) * framesRead;
 		streamed += sizeof(char) * framesRead;

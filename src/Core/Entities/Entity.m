@@ -933,7 +933,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) applyVelocity:(OOTimeDelta)delta_t;
+- (void) applyVelocity:(OOTimeDelta)delta_t
 {
 	position = HPvector_add(position, HPvector_multiply_scalar(vectorToHPVector(velocity), delta_t));
 }
