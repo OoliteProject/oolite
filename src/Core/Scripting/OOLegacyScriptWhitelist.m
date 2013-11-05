@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "OODeepCopy.h"
 
 
-#define OUTPUT_PLIST_PATHS	0		// If nonzero, error locators are formatted for script-patches.plist.
 #define INCLUDE_RAW_STRING !defined(NDEBUG)	// If nonzero, raw condition strings are included; if zero, a placeholder is used.
 
 
@@ -540,12 +539,7 @@ static NSMutableString *StringFromStackInternal(SanStackElement *topOfStack)
 	
 	NSString *string = topOfStack->key;
 	if (string == nil)  string = [NSString stringWithFormat:@"%lu", (unsigned long)topOfStack->index];
-#if OUTPUT_PLIST_PATHS
-	else  string = [NSString stringWithFormat:@"\"%@\"", string];
-	if ([base length] > 0)  [base appendString:@", "];
-#else
 	if ([base length] > 0)  [base appendString:@"."];
-#endif
 	
 	[base appendString:string];
 	
@@ -555,9 +549,5 @@ static NSMutableString *StringFromStackInternal(SanStackElement *topOfStack)
 
 static NSString *StringFromStack(SanStackElement *topOfStack)
 {
-#if OUTPUT_PLIST_PATHS
-	return [NSString stringWithFormat:@"(%@)", StringFromStackInternal(topOfStack)];
-#else
 	return StringFromStackInternal(topOfStack);
-#endif
 }
