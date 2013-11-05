@@ -116,8 +116,8 @@ SOFTWARE.
 			underflow = 0;
 		}
 		
-		bcopy(_bufferL + offset, ioData->mBuffers[0].mData, toCopy * sizeof (float));
-		bcopy(_bufferR + offset, ioData->mBuffers[1].mData, toCopy * sizeof (float));
+		memcpy(ioData->mBuffers[0].mData, _bufferL + offset, toCopy * sizeof (float));
+		memcpy(ioData->mBuffers[1].mData, _bufferR + offset, toCopy * sizeof (float));
 		
 		if (underflow && loop)
 		{
@@ -125,8 +125,8 @@ SOFTWARE.
 			toCopy = inNumFrames - toCopy;
 			if (_size < toCopy) toCopy = _size;
 			
-			bcopy(_bufferL, ((float *)ioData->mBuffers[0].mData) + offset, toCopy * sizeof (float));
-			bcopy(_bufferR, ((float *)ioData->mBuffers[1].mData) + offset, toCopy * sizeof (float));
+			memcpy(((float *)ioData->mBuffers[0].mData) + offset, _bufferL, toCopy * sizeof (float));
+			memcpy(((float *)ioData->mBuffers[1].mData) + offset, _bufferR, toCopy * sizeof (float));
 			
 			underflow -= toCopy;
 			offset = 0;
@@ -144,8 +144,8 @@ SOFTWARE.
 	
 	if (underflow)
 	{
-		bzero(ioData->mBuffers[0].mData + toCopy, underflow * sizeof (float));
-		bzero(ioData->mBuffers[1].mData + toCopy, underflow * sizeof (float));
+		memset(ioData->mBuffers[0].mData + toCopy, 0, underflow * sizeof (float));
+		memset(ioData->mBuffers[1].mData + toCopy, 0, underflow * sizeof (float));
 	}
 	
 	OOCASoundVerifyBuffers(ioData, inNumFrames, self);

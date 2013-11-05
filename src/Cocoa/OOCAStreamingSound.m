@@ -344,8 +344,8 @@ enum
 	remaining = available;
 	if (numBytes < available) available = numBytes;
 	
-	bcopy(ptrL, ioData->mBuffers[0].mData, available);
-	bcopy(ptrR, ioData->mBuffers[1].mData, available);
+	memcpy(ioData->mBuffers[0].mData, ptrL, available);
+	memcpy(ioData->mBuffers[1].mData, ptrR, available);
 	
 	VRB_didReadLength(context->bufferL, kSEL_VRB_didReadLength, available);
 	VRB_didReadLength(context->bufferR, kSEL_VRB_didReadLength, available);
@@ -357,8 +357,8 @@ enum
 		
 		if (0 == available) *ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
 		
-		bzero(ioData->mBuffers[0].mData + available, underflow);
-		bzero(ioData->mBuffers[1].mData + available, underflow);
+		memset(ioData->mBuffers[0].mData + available, 0, underflow);
+		memset(ioData->mBuffers[1].mData + available, 0, underflow);
 	}
 	
 	OOCASoundVerifyBuffers(ioData, inNumFrames, self);

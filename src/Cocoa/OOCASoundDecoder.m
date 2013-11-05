@@ -278,7 +278,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 				break;
 			}
 			
-			if (1 == chanCount) bcopy(src[0], dst, sizeof (float) * framesRead);
+			if (1 == chanCount)  memcpy(dst, src[0], sizeof (float) * framesRead);
 			else MixDown(src[0], src[1], dst, framesRead);
 			
 			remaining -= framesRead;
@@ -352,9 +352,9 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 				break;
 			}
 			
-			bcopy(src[0], dstL, sizeof (float) * framesRead);
-			if (1 == chanCount) bcopy(src[0], dstR, sizeof (float) * framesRead);
-			else bcopy(src[1], dstR, sizeof (float) * framesRead);
+			unsigned rightChan = (chanCount == 1) ? 0 : 1;
+			memcpy(dstL, src[0], sizeof (float) * framesRead);
+			memcpy(dstR, src[rightChan], sizeof (float) * framesRead);
 			
 			remaining -= framesRead;
 			dstL += framesRead;
@@ -386,7 +386,6 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 	long					framesRead;
 	size_t					size;
 	int						remaining;
-	unsigned				rightChan;
 	
 	// Note: for our purposes, a frame is a set of one sample for each channel.
 	if (NULL == ioBufferL || NULL == ioBufferR || 0 == inMax) return 0;
@@ -407,9 +406,9 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 		
 		size = sizeof (float) * framesRead;
 		
-		rightChan = (1 == chanCount) ? 0 : 1;
-		bcopy(src[0], ioBufferL, size);
-		bcopy(src[rightChan], ioBufferR, size);
+		unsigned rightChan = (chanCount == 1) ? 0 : 1;
+		memcpy(ioBufferL, src[0], size);
+		memcpy(ioBufferR, src[rightChan], size);
 		
 		remaining -= framesRead;
 		ioBufferL += framesRead;

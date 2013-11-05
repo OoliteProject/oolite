@@ -608,7 +608,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		
 		for (i = 0; i != count; i++)
 		{
-			bzero(ioData->mBuffers[i].mData, ioData->mBuffers[i].mDataByteSize);
+			memset(ioData->mBuffers[i].mData, 0, ioData->mBuffers[i].mDataByteSize);
 		}
 		*ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
 	}
@@ -685,7 +685,7 @@ static void PortSend(mach_port_t inPort, PortMessage inMessage)
 	PortSendMsgBody				message;
 	mach_msg_return_t			result;
 	
-	bzero(&message, sizeof message);
+	memset(&message, 0, sizeof message);
 	
 	message.header.msgh_bits = MACH_MSGH_BITS_REMOTE(MACH_MSG_TYPE_MAKE_SEND);
 	message.header.msgh_size = sizeof message;
@@ -714,7 +714,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage)
 	PortWaitMsgBody				message;
 	mach_msg_return_t			result;
 	
-	bzero(&message, sizeof message);
+	memset(&message, 0, sizeof message);
 	
 	message.header.msgh_bits = MACH_MSGH_BITS_LOCAL(MACH_MSG_TYPE_COPY_RECEIVE);
 	message.header.msgh_size = sizeof message;

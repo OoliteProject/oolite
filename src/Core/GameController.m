@@ -514,7 +514,7 @@ static void RemovePreference(NSString *key)
 		// No AddOns at all. Show the first existing AddOns folder (paths are in order of preference, etc...).
 		BOOL		pathIsDirectory;
 		NSString	*path = nil;
-		uint		i = 1;
+		NSUInteger	i = 1;
 		
 		while (i < [[ResourceManager rootPaths] count])
 		{
