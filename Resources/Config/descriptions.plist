@@ -1365,6 +1365,9 @@
 	"wormhole-collapsing-in-mm:ss"		= "Collapsing in %02d:%02d";
 	
 	"oxp-is-incompatible"			= "\t“%@” is incompatible with version %@ of Oolite.";
+	"oxz-lacks-manifest"			= "\t“%@” does not have a valid manifest.plist and could not be loaded";
+	"oxp-manifest-incomplete"		= "\tThe manifest.plist for “%@” is missing the required “%@” field"; 
+	"oxp-manifest-duplicate"		= "\tThe expansion pack “%@” appears to be a duplicate of “%@” and so was not loaded."; 
 	
 	"@-is-a-@-from-@"				= "%@ is a [21] %@ from %@";  // Character description: "<name> is a {frequent|etc} {offender|fugitive} from <system name>". Never actually visible.
 	"lowercase-offender"			= "offender";

@@ -50,6 +50,26 @@ static NSString * const kOOCacheKeySearchPaths			= @"search paths";
 static NSString * const kOOCacheKeyModificationDates	= @"modification dates";
 
 
+
+static NSString * const kOOManifestIdentifier			 = @"identifier";
+static NSString * const kOOManifestVersion				 = @"version";
+static NSString * const kOOManifestRequiredOoliteVersion = @"required_oolite_version";
+static NSString * const kOOManifestMaximumOoliteVersion  = @"maximum_oolite_version";
+// this property is not contained in the manifest.plist but is
+// calculated by Oolite
+static NSString * const kOOManifestFilePath				 = @"file_path";
+// following manifest.plist properties not yet implemented
+static NSString * const kOOManifestTitle				 = @"title";
+static NSString * const kOOManifestDescription			 = @"description";
+static NSString * const kOOManifestAuthor				 = @"author";
+static NSString * const kOOManifestCopyright			 = @"copyright";
+static NSString * const kOOManifestRequiresOXPs			 = @"requires_oxps";
+static NSString * const kOOManifestOptionalOXPs			 = @"optional_oxps";
+static NSString * const kOOManifestConflictOXPs			 = @"conflict_oxps";
+static NSString * const kOOManifestDownloadURL			 = @"download_url";
+static NSString * const kOOManifestInformationURL		 = @"information_url";
+
+
 extern NSDictionary* ParseOOSScripts(NSString* script);
 
 
@@ -57,7 +77,8 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 
 + (void) checkOXPMessagesInPath:(NSString *)path;
 + (void) checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths;
-+ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
++ (BOOL) validateManifest:(NSDictionary*)manifest forOXP:(NSString *)path;
++ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file;
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
 + (void) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (void) logPaths;
@@ -77,6 +98,7 @@ static NSMutableArray	*sErrors;
 //
 static NSMutableDictionary *sSoundCache;
 static NSMutableDictionary *sStringCache;
+static NSMutableDictionary *sOXPManifests;
 
 
 @implementation ResourceManager
@@ -238,6 +260,10 @@ static NSMutableDictionary *sStringCache;
 		[self checkPotentialPath:path :sSearchPaths];
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 	}
+
+	// TODO: check here for conflicts or missing requirements in OXP
+	// manifest data, remove search paths as needed and report errors
+
 	[self checkCacheUpToDateForPaths:sSearchPaths];
 	
 	return sSearchPaths;
@@ -341,26 +367,118 @@ static NSMutableDictionary *sStringCache;
 }
 
 
-// Given a path to an assumed OXP (or other location where files are permissible), check for a requires.plist and add to search paths if acceptable.
+// Given a path to an assumed OXP (or other location where files are permissible), check for a requires.plist or manifest.plist and add to search paths if acceptable.
 + (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths
 {
 	NSDictionary			*requirements = nil;
-	BOOL					requirementsMet;
-	
-	requirements = OODictionaryFromFile([path stringByAppendingPathComponent:@"requires.plist"]);
-	requirementsMet = [self areRequirementsFulfilled:requirements forOXP:path];
-	
-	if (requirementsMet)  [searchPaths addObject:path];
-	else if (EXPECT_NOT(![UNIVERSE strict]))
+	NSDictionary			*manifest = nil;
+	BOOL					requirementsMet = YES;
+
+	if (![[[path pathExtension] lowercaseString] isEqualToString:@"oxz"])
+	{
+		// OXZ format ignores requires.plist
+		requirements = OODictionaryFromFile([path stringByAppendingPathComponent:@"requires.plist"]);
+		requirementsMet = [self areRequirementsFulfilled:requirements forOXP:path andFile:@"requires.plist"];
+	}
+	if (!requirementsMet)
 	{
 		NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 		OOLog(@"oxp.versionMismatch", @"OXP %@ is incompatible with version %@ of Oolite.", path, version);
 		[self addErrorWithKey:@"oxp-is-incompatible" param1:[path lastPathComponent] param2:version];
+		return;
+	}
+	
+	manifest = OODictionaryFromFile([path stringByAppendingPathComponent:@"manifest.plist"]);
+	if (manifest == nil)
+	{
+		if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxz"])
+		{
+			OOLog(@"oxp.noManifest", @"OXZ %@ has no manifest.plist", path);
+			[self addErrorWithKey:@"oxz-lacks-manifest" param1:[path lastPathComponent] param2:nil];
+			return;
+		}
+	}
+	else
+	{
+		requirementsMet = [self validateManifest:manifest forOXP:path];
+	}
+
+	if (requirementsMet) 
+	{
+		[searchPaths addObject:path];
 	}
 }
 
 
-+ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path
++ (BOOL) validateManifest:(NSDictionary*)manifest forOXP:(NSString *)path
+{
+	if (sOXPManifests == nil)
+	{
+		sOXPManifests = [[NSMutableDictionary alloc] initWithCapacity:32];
+	}
+	
+	BOOL 		OK = YES;
+	NSString 	*identifier = [manifest oo_stringForKey:kOOManifestIdentifier defaultValue:nil];
+	NSString 	*version = [manifest oo_stringForKey:kOOManifestVersion defaultValue:nil];
+	NSString 	*required = [manifest oo_stringForKey:kOOManifestRequiredOoliteVersion defaultValue:nil];
+
+	NSString	*title = [manifest oo_stringForKey:kOOManifestTitle defaultValue:[path lastPathComponent]];
+
+	if (identifier == nil)
+	{
+		OOLog(@"oxp.noManifest", @"OXZ %@ manifest.plist has no '%@' field.", path, kOOManifestIdentifier);
+		[self addErrorWithKey:@"oxp-manifest-incomplete" param1:title param2:kOOManifestIdentifier];
+		OK = NO;
+	}
+	if (version == nil)
+	{
+		OOLog(@"oxp.noManifest", @"OXZ %@ manifest.plist has no '%@' field.", path, kOOManifestVersion);
+		[self addErrorWithKey:@"oxp-manifest-incomplete" param1:title param2:kOOManifestVersion];
+		OK = NO;
+	}
+	if (required == nil)
+	{
+		OOLog(@"oxp.noManifest", @"OXZ %@ manifest.plist has no '%@' field.", path, kOOManifestRequiredOoliteVersion);
+		[self addErrorWithKey:@"oxp-manifest-incomplete" param1:title param2:kOOManifestRequiredOoliteVersion];
+		OK = NO;
+	}
+	if (!OK)
+	{
+		return NO;
+	}
+	NSString *maxRequired = [manifest oo_stringForKey:kOOManifestMaximumOoliteVersion defaultValue:nil];
+	if (maxRequired == nil)
+	{
+		OK = [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", nil] forOXP:title andFile:@"manifest.plist"];
+	}
+	else
+	{
+		OK = [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", maxRequired, @"max_version", nil] forOXP:title andFile:@"manifest.plist"];
+	}
+	if (!OK)
+	{
+		NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+		OOLog(@"oxp.versionMismatch", @"OXP %@ is incompatible with version %@ of Oolite.", path, version);
+		[self addErrorWithKey:@"oxp-is-incompatible" param1:[path lastPathComponent] param2:version];
+		return NO;
+	}
+
+	NSDictionary *duplicate = [sOXPManifests objectForKey:identifier];
+	if (duplicate != nil)
+	{
+		OOLog(@"oxp.duplicate", @"OXP %@ has the same identifier (%@) as %@ which has already been loaded.",path,identifier,[duplicate oo_stringForKey:kOOManifestFilePath]);
+		[self addErrorWithKey:@"oxp-manifest-duplicate" param1:path param2:[duplicate oo_stringForKey:kOOManifestFilePath]];
+		return NO;
+	}
+	NSMutableDictionary *mData = [NSMutableDictionary dictionaryWithDictionary:manifest];
+	[mData setObject:path forKey:kOOManifestFilePath];
+	// add an extra key
+	[sOXPManifests setObject:mData forKey:identifier];
+	return YES;
+}
+
+
++ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file
 {
 	BOOL				OK = YES;
 	NSString			*requiredVersion = nil;
@@ -392,7 +510,7 @@ static NSMutableDictionary *sStringCache;
 			}
 			else
 			{
-				OOLog(@"requirements.wrongType", @"Expected requires.plist entry \"%@\" to be string, but got %@ in OXP %@.", @"version", [requirements class], [path lastPathComponent]);
+				OOLog(@"requirements.wrongType", @"Expected %@ entry \"%@\" to be string, but got %@ in OXP %@.", file, @"version", [requirements class], [path lastPathComponent]);
 				OK = NO;
 			}
 		}
@@ -413,7 +531,7 @@ static NSMutableDictionary *sStringCache;
 			}
 			else
 			{
-				OOLog(@"requirements.wrongType", @"Expected requires.plist entry \"%@\" to be string, but got %@ in OXP %@.", @"max_version", [requirements class], [path lastPathComponent]);
+				OOLog(@"requirements.wrongType", @"Expected %@ entry \"%@\" to be string, but got %@ in OXP %@.", file, @"max_version", [requirements class], [path lastPathComponent]);
 				OK = NO;
 			}
 		}
@@ -1278,6 +1396,8 @@ static NSString *LogClassKeyRoot(NSString *key)
 	sSoundCache = nil;
 	[sStringCache release];
 	sStringCache = nil;
+	[sOXPManifests release];
+	sOXPManifests = nil;
 }
 
 @end
