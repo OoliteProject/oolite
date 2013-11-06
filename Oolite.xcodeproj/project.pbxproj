@@ -3891,7 +3891,6 @@
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -3907,9 +3906,6 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
-				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
-				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
-				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				IBC_WARNINGS = NO;
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
@@ -3918,14 +3914,10 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
-				WARNING_CFLAGS = (
-					"-Wextra",
-					$OO_WARNING_FLAGS,
-				);
+				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -3945,7 +3937,6 @@
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
@@ -3957,9 +3948,6 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
-				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
-				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
-				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				IBC_WARNINGS = NO;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				LIBRARY_SEARCH_PATHS = (
@@ -3968,11 +3956,9 @@
 				);
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
-				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
 			};
 			name = Deployment;
 		};
@@ -3982,9 +3968,7 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-DLOADSAVEGUI";
 			};
 			name = Debug;
 		};
@@ -3993,8 +3977,6 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				OTHER_CFLAGS = "-DLOADSAVEGUI";
 			};
 			name = Deployment;
 		};
@@ -4005,7 +3987,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
-				COPY_SCR_SHIM = 1;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
@@ -4013,7 +3994,6 @@
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DEBUG_GRAPHVIZ=1",
@@ -4022,9 +4002,6 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
-				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
-				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
-				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				IBC_WARNINGS = NO;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				LIBRARY_SEARCH_PATHS = (
@@ -4033,11 +4010,9 @@
 				);
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
-				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
 			};
 			name = TestRelease;
 		};
@@ -4046,8 +4021,6 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				OTHER_CFLAGS = "-DLOADSAVEGUI";
 			};
 			name = TestRelease;
 		};
