@@ -61,6 +61,8 @@ static NSString * const kOOManifestFilePath				 = @"file_path";
 // following manifest.plist properties not yet implemented
 static NSString * const kOOManifestTitle				 = @"title";
 static NSString * const kOOManifestDescription			 = @"description";
+static NSString * const kOOManifestCategory				 = @"category";
+static NSString * const kOOManifestTags					 = @"tags";
 static NSString * const kOOManifestAuthor				 = @"author";
 static NSString * const kOOManifestCopyright			 = @"copyright";
 static NSString * const kOOManifestRequiresOXPs			 = @"requires_oxps";
