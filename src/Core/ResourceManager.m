@@ -64,7 +64,7 @@ static NSString * const kOOManifestDescription			 = @"description";
 static NSString * const kOOManifestCategory				 = @"category";
 static NSString * const kOOManifestTags					 = @"tags";
 static NSString * const kOOManifestAuthor				 = @"author";
-static NSString * const kOOManifestCopyright			 = @"copyright";
+static NSString * const kOOManifestLicense				 = @"license";
 static NSString * const kOOManifestRequiresOXPs			 = @"requires_oxps";
 static NSString * const kOOManifestOptionalOXPs			 = @"optional_oxps";
 static NSString * const kOOManifestConflictOXPs			 = @"conflict_oxps";
@@ -215,7 +215,12 @@ static NSMutableDictionary *sOXPManifests;
 		}
 	}
 	
-	sSearchPaths = [existingRootPaths mutableCopy];
+	// validate default search paths
+	sSearchPaths = [NSMutableArray new];
+	foreach(path, existingRootPaths)
+	{
+		[self checkPotentialPath:path :sSearchPaths];
+	}
 	
 	// Iterate over root paths.
 	for (pathEnum = [existingRootPaths objectEnumerator]; (root = [pathEnum nextObject]); )

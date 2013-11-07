@@ -21,11 +21,14 @@ endif
 SRC_BIN                          = $(OBJC_PROGRAM_NAME)$(OS_EXT)
 DEST_BIN                         = $(OBJC_PROGRAM_NAME)$(EXT)$(OS_EXT)
 
+MKMANIFEST=./mkmanifest.sh
+
 PROGDIR=$(OBJC_PROGRAM_NAME).app
 
 after-all::
 	$(MKDIRS) $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)/Resources
+	$(MKMANIFEST) > $(PROGDIR)/Resources/manifest.plist
 	$(CP) $(CP_FLAGS) Resources/README.TXT $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/InfoPlist.strings $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/AIs $(PROGDIR)/Resources
