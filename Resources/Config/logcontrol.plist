@@ -197,8 +197,10 @@
 	missile.damage.calc						= no; // Debugging of missile damage curves
 	
 	
-	oxp.duplicate							= $error;	
+	oxp.conflict							= $error;
+	oxp.duplicate							= $error;
 	oxp.noManifest							= $error;
+	oxp.requirementMissing					= $error;
 	oxp.versionMismatch						= $error;
 
 	player.ship								= no;
