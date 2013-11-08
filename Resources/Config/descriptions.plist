@@ -487,6 +487,8 @@
 	"weapon-out-of-juice"			= "Weapon system inactive (no energy left).";
 	"weapons-systems-online"		= "Weapons systems online.";
 	"weapons-systems-offline"		= "Weapons systems offline.";
+	"dock-mode-on"				= "Docking Mode Activated.";
+	"dock-mode-off"				= "Docking Mode Deactivated.";
 	"escape-sequence"				= "Escape sequence active.";
 	"@-ejected"						= "%@ ejected.";
 	"@-ready-to-eject"				= "Ready to eject %@.";
@@ -1162,6 +1164,7 @@
 	"stickmapper-target-nearest-incoming-missile"	= "Target incoming missile";
 	"stickmapper-cycle-secondary"	= "Cycle secondary";
 	"stickmapper-weapons-online-toggle"	= "Weapons online toggle";
+	"stickmapper-dock-mode-toggle"		= "Docking mode toggle";
 	"stickmapper-ECM"				= "ECM";
 	"stickmapper-toggle-ID"			= "Toggle ID";
 	"stickmapper-previous-target"	= "Select previous target";

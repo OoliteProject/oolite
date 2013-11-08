@@ -192,6 +192,18 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 }
 
 
+- (void) playDockModeOn
+{
+	[self playInterfaceBeep:@"[dock-mode-on]"];
+}
+
+
+- (void) playDockModeOff
+{
+	[self playInterfaceBeep:@"[dock-mode-off]"];
+}
+
+
 - (void) playCargoJettisioned
 {
 	[self playInterfaceBeep:@"[cargo-jettisoned]"];

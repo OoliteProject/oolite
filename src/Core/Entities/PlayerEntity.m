@@ -643,6 +643,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setInteger:galaxy_number	forKey:@"galaxy_number"];
 	
 	[result oo_setBool:[self weaponsOnline]	forKey:@"weapons_online"];
+	[result oo_setBool:[self dockMode] forKey:@"dock_mode"];
 	
 	[result oo_setInteger:forward_weapon_type	forKey:@"forward_weapon"];
 	[result oo_setInteger:aft_weapon_type		forKey:@"aft_weapon"];
@@ -1154,6 +1155,7 @@ static GLfloat		sBaseMass = 0.0;
 		starboard_weapon_type = WEAPON_NONE;
 	
 	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
+	dock_mode = [dict oo_boolForKey:@"dock_mode" defaultValue:NO];
 	
 	legalStatus = [dict oo_intForKey:@"legal_status"];
 	market_rnd = [dict oo_intForKey:@"market_rnd"];
@@ -1631,6 +1633,7 @@ static GLfloat		sBaseMass = 0.0;
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	weapons_online			= YES;
+	dock_mode = NO;
 	
 	ecm_in_operation = NO;
 	compassMode = COMPASS_MODE_BASIC;
@@ -3347,7 +3350,11 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setDockedAtMainStation
 {
 	[self setDockedStation:[UNIVERSE station]];
-	if (_dockedStation != nil)  [self setStatus:STATUS_DOCKED];
+	if (_dockedStation != nil)
+	{
+		[self setStatus:STATUS_DOCKED];
+		[self setDockMode:NO];
+	}
 }
 
 
@@ -4856,6 +4863,18 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (BOOL) dockMode
+{
+	return dock_mode;
+}
+
+
+- (void) setDockMode: (BOOL)newValue
+{
+	dock_mode = !!newValue;
+}
+
+
 - (BOOL) fireMainWeapon
 {
 	int weapon_to_be_fired = [self currentWeapon];
@@ -5787,6 +5806,7 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	[self setStatus:STATUS_DOCKED];
+	[self setDockMode:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	[self loseTargetStatus];
@@ -10700,6 +10720,7 @@ else _dockTarget = NO_TARGET;
 	key_docking_clearance_request &&
 	key_dump_target_state &&
 	key_weapons_online_toggle &&
+	key_dock_mode_toggle &&
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&

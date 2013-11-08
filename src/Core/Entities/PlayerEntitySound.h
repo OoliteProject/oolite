@@ -40,6 +40,8 @@ MA 02110-1301, USA.
 - (void) playMissileLockedOn;
 - (void) playWeaponsOnline;
 - (void) playWeaponsOffline;
+- (void) playDockModeOn;
+- (void) playDockModeOff;
 - (void) playNextEquipmentSelected;
 - (void) playNextMissileSelected;
 - (void) playCargoJettisioned;
