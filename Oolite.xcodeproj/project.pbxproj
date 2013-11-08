@@ -30,17 +30,6 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
-		1A0024961657B5BF00EAE045 /* oolite-star-1-alt.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248B1657B56E00EAE045 /* oolite-star-1-alt.png */; };
-		1A0024971657B5BF00EAE045 /* oolite-star-1-large.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248C1657B56E00EAE045 /* oolite-star-1-large.png */; };
-		1A0024981657B5BF00EAE045 /* oolite-star-2-large.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248D1657B56E00EAE045 /* oolite-star-2-large.png */; };
-		1A0024991657B5BF00EAE045 /* oolite-star-2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248E1657B56E00EAE045 /* oolite-star-2.png */; };
-		1A00249A1657B5BF00EAE045 /* oolite-star-3.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A00248F1657B56E00EAE045 /* oolite-star-3.png */; };
-		1A00249B1657B5BF00EAE045 /* oolite-star-4.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024901657B56E00EAE045 /* oolite-star-4.png */; };
-		1A00249C1657B5BF00EAE045 /* oolite-star-5.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024911657B56E00EAE045 /* oolite-star-5.png */; };
-		1A00249D1657B5BF00EAE045 /* oolite-star-6.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024921657B56E00EAE045 /* oolite-star-6.png */; };
-		1A00249E1657B5BF00EAE045 /* oolite-star-7.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024931657B56E00EAE045 /* oolite-star-7.png */; };
-		1A00249F1657B5BF00EAE045 /* oolite-star-8.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024941657B56E00EAE045 /* oolite-star-8.png */; };
-		1A0024A01657B5BF00EAE045 /* oolite-star-9.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0024951657B56E00EAE045 /* oolite-star-9.png */; };
 		1A00C65510663D3700A8737D /* OOProfilingStopwatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */; };
 		1A00C65610663D3700A8737D /* OOProfilingStopwatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */; };
 		1A00C7BA10667D3100A8737D /* OOECMBlastEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A00C7B810667D3100A8737D /* OOECMBlastEntity.h */; };
@@ -49,19 +38,12 @@
 		1A00C7E01066814C00A8737D /* OOAsyncWorkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A00C7DE1066814C00A8737D /* OOAsyncWorkManager.m */; };
 		1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */; };
 		1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */; };
-		1A01BC7011C5515B0011197F /* oolite-default-player-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */; };
-		1A02B4C61643DFF80013749D /* oolite-contracts-cargo.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A02B4C01643DF6B0013749D /* oolite-contracts-cargo.js */; };
-		1A02B4C71643DFF80013749D /* oolite-contracts-helpers.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A02B4C11643DF6B0013749D /* oolite-contracts-helpers.js */; };
-		1A02B4C81643DFF80013749D /* oolite-contracts-passengers.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A02B4C21643DF6B0013749D /* oolite-contracts-passengers.js */; };
-		1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */; };
 		1A033F91132687DC006F9DB7 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A033F90132687DC006F9DB7 /* Quartz.framework */; };
 		1A033FA313268821006F9DB7 /* OoliteReadMe.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 1A033FA213268821006F9DB7 /* OoliteReadMe.pdf */; };
 		1A033FB813268ABB006F9DB7 /* OOPDFView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A033FB613268ABB006F9DB7 /* OOPDFView.h */; };
 		1A033FB913268ABB006F9DB7 /* OOPDFView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A033FB713268ABB006F9DB7 /* OOPDFView.m */; };
-		1A033FBE13268B39006F9DB7 /* asteroid.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318230B9D026D00EF0852 /* asteroid.png */; };
 		1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
 		1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */; };
-		1A03659B0D7CA0EE00B5F46F /* oolite-nebula-4.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */; };
 		1A0479E90DC9F81000EE1CD0 /* OOShipRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0479E70DC9F81000EE1CD0 /* OOShipRegistry.h */; };
 		1A0479EA0DC9F81000EE1CD0 /* OOShipRegistry.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0479E80DC9F81000EE1CD0 /* OOShipRegistry.m */; };
 		1A047A450DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A047A430DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h */; };
@@ -70,15 +52,12 @@
 		1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */; };
 		1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */; };
 		1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */; };
-		1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */; };
 		1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */; };
 		1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */; };
 		1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */; };
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
 		1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */; };
 		1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
-		1A0C3EDE11933076007935E5 /* oolite-dust.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A0C3EDD1193306B007935E5 /* oolite-dust.vertex */; };
-		1A0C3EEB11933274007935E5 /* oolite-dust.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A0C3EEA11933272007935E5 /* oolite-dust.fragment */; };
 		1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */; };
 		1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */; };
 		1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */; };
@@ -94,7 +73,6 @@
 		1A1280F912ECA4ED00B65D9F /* OOJSFont.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1280F712ECA4ED00B65D9F /* OOJSFont.m */; };
 		1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A143A4611EF22C5001BAB8D /* JAPersistentFileReference.h */; };
 		1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A143A4711EF22C5001BAB8D /* JAPersistentFileReference.m */; };
-		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
 		1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */; };
@@ -112,179 +90,7 @@
 		1A1F7DB7117B5D8200332757 /* OOMaterialSpecifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1F7DA6117B5BDB00332757 /* OOMaterialSpecifier.h */; };
 		1A20F7060F36EE0500156DE9 /* OOExcludeObjectEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A20F7040F36EE0500156DE9 /* OOExcludeObjectEnumerator.h */; };
 		1A20F7070F36EE0500156DE9 /* OOExcludeObjectEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A20F7050F36EE0500156DE9 /* OOExcludeObjectEnumerator.m */; };
-		1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */; };
-		1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */; };
-		1A2123271051892500530CDE /* shipdata-overrides.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2123261051892500530CDE /* shipdata-overrides.plist */; };
-		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
-		1A2315550B9C778400EF0852 /* trumblebox.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A2315510B9C778400EF0852 /* trumblebox.png */; };
-		1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316DE0B9CFAD700EF0852 /* characters.plist */; };
-		1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316DF0B9CFAD700EF0852 /* commodities.plist */; };
-		1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E00B9CFAD700EF0852 /* customsounds.plist */; };
-		1A2316F10B9CFAD700EF0852 /* demoships.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E10B9CFAD700EF0852 /* demoships.plist */; };
-		1A2316F30B9CFAD700EF0852 /* equipment.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E30B9CFAD700EF0852 /* equipment.plist */; };
-		1A2316F40B9CFAD700EF0852 /* hud-small.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E40B9CFAD700EF0852 /* hud-small.plist */; };
-		1A2316F50B9CFAD700EF0852 /* hud.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E50B9CFAD700EF0852 /* hud.plist */; };
-		1A2316F60B9CFAD700EF0852 /* illegal_goods.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */; };
-		1A2316F70B9CFAD700EF0852 /* keyconfig.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E70B9CFAD700EF0852 /* keyconfig.plist */; };
-		1A2316F80B9CFAD700EF0852 /* logcontrol.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E80B9CFAD700EF0852 /* logcontrol.plist */; };
-		1A2316F90B9CFAD700EF0852 /* missiontext.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E90B9CFAD700EF0852 /* missiontext.plist */; };
-		1A2316FB0B9CFAD700EF0852 /* shipdata.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EB0B9CFAD700EF0852 /* shipdata.plist */; };
-		1A2316FC0B9CFAD800EF0852 /* shipyard.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316EC0B9CFAD700EF0852 /* shipyard.plist */; };
-		1A2316FD0B9CFAD800EF0852 /* speech_pronunciation_guide.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */; };
-		1A2317B30B9D022500EF0852 /* buoyAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317910B9D022400EF0852 /* buoyAI.plist */; };
-		1A2317B40B9D022500EF0852 /* collectLootAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317920B9D022500EF0852 /* collectLootAI.plist */; };
-		1A2317B50B9D022500EF0852 /* dockingAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317930B9D022500EF0852 /* dockingAI.plist */; };
-		1A2317B60B9D022500EF0852 /* dumbAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317940B9D022500EF0852 /* dumbAI.plist */; };
-		1A2317B70B9D022500EF0852 /* enteringPirateAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317950B9D022500EF0852 /* enteringPirateAI.plist */; };
-		1A2317B80B9D022500EF0852 /* enteringTraderAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317960B9D022500EF0852 /* enteringTraderAI.plist */; };
-		1A2317B90B9D022500EF0852 /* escortAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317970B9D022500EF0852 /* escortAI.plist */; };
-		1A2317BA0B9D022500EF0852 /* exitingTraderAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317980B9D022500EF0852 /* exitingTraderAI.plist */; };
-		1A2317BB0B9D022500EF0852 /* fallingShuttleAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317990B9D022500EF0852 /* fallingShuttleAI.plist */; };
-		1A2317BC0B9D022500EF0852 /* fttAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179A0B9D022500EF0852 /* fttAI.plist */; };
-		1A2317BD0B9D022500EF0852 /* gotoWaypointAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179B0B9D022500EF0852 /* gotoWaypointAI.plist */; };
-		1A2317BE0B9D022500EF0852 /* hardMissileAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179C0B9D022500EF0852 /* hardMissileAI.plist */; };
-		1A2317BF0B9D022500EF0852 /* homeAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179D0B9D022500EF0852 /* homeAI.plist */; };
-		1A2317C00B9D022500EF0852 /* interceptAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179E0B9D022500EF0852 /* interceptAI.plist */; };
-		1A2317C10B9D022500EF0852 /* minerAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A23179F0B9D022500EF0852 /* minerAI.plist */; };
-		1A2317C20B9D022500EF0852 /* missileAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A00B9D022500EF0852 /* missileAI.plist */; };
-		1A2317C30B9D022500EF0852 /* nullAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A10B9D022500EF0852 /* nullAI.plist */; };
-		1A2317C40B9D022500EF0852 /* pirateAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A20B9D022500EF0852 /* pirateAI.plist */; };
-		1A2317C50B9D022500EF0852 /* planetPatrolAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A30B9D022500EF0852 /* planetPatrolAI.plist */; };
-		1A2317C60B9D022500EF0852 /* policeInterceptAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A40B9D022500EF0852 /* policeInterceptAI.plist */; };
-		1A2317C70B9D022500EF0852 /* receiveDockingAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A50B9D022500EF0852 /* receiveDockingAI.plist */; };
-		1A2317C80B9D022500EF0852 /* risingShuttleAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A60B9D022500EF0852 /* risingShuttleAI.plist */; };
-		1A2317C90B9D022500EF0852 /* rockHermitAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A70B9D022500EF0852 /* rockHermitAI.plist */; };
-		1A2317CA0B9D022500EF0852 /* route1patrolAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A80B9D022500EF0852 /* route1patrolAI.plist */; };
-		1A2317CB0B9D022500EF0852 /* route1traderAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317A90B9D022500EF0852 /* route1traderAI.plist */; };
-		1A2317CC0B9D022500EF0852 /* route2patrolAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AA0B9D022500EF0852 /* route2patrolAI.plist */; };
-		1A2317CD0B9D022500EF0852 /* route2sunskimAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AB0B9D022500EF0852 /* route2sunskimAI.plist */; };
-		1A2317CE0B9D022500EF0852 /* scavengerAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AC0B9D022500EF0852 /* scavengerAI.plist */; };
-		1A2317D00B9D022500EF0852 /* stationAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AE0B9D022500EF0852 /* stationAI.plist */; };
-		1A2317D10B9D022500EF0852 /* sunSkimExitAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AF0B9D022500EF0852 /* sunSkimExitAI.plist */; };
-		1A2317D20B9D022500EF0852 /* thargletAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317B00B9D022500EF0852 /* thargletAI.plist */; };
-		1A2317D30B9D022500EF0852 /* thargoidAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317B10B9D022500EF0852 /* thargoidAI.plist */; };
-		1A2317D40B9D022500EF0852 /* timebombAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317B20B9D022500EF0852 /* timebombAI.plist */; };
-		1A23185F0B9D026D00EF0852 /* adder_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23181E0B9D026D00EF0852 /* adder_redux.png */; };
-		1A2318600B9D026D00EF0852 /* anaconda_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23181F0B9D026D00EF0852 /* anaconda_redux.png */; };
-		1A2318610B9D026D00EF0852 /* arcdetail.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318200B9D026D00EF0852 /* arcdetail.png */; };
-		1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318220B9D026D00EF0852 /* asp_redux.png */; };
-		1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318240B9D026D00EF0852 /* back_metal.png */; };
-		1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318250B9D026D00EF0852 /* barrel_metal.png */; };
-		1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318290B9D026D00EF0852 /* boa2_redux.png */; };
-		1A23186D0B9D026D00EF0852 /* boa_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182C0B9D026D00EF0852 /* boa_redux.png */; };
-		1A23186E0B9D026D00EF0852 /* bottom_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182D0B9D026D00EF0852 /* bottom_metal.png */; };
-		1A23186F0B9D026D00EF0852 /* cobra1_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182E0B9D026D00EF0852 /* cobra1_redux.png */; };
-		1A2318700B9D026D00EF0852 /* cobra1_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23182F0B9D026D00EF0852 /* cobra1_redux1.png */; };
-		1A2318710B9D026D00EF0852 /* cobra1_redux2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318300B9D026D00EF0852 /* cobra1_redux2.png */; };
-		1A2318730B9D026D00EF0852 /* cobra3_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318320B9D026D00EF0852 /* cobra3_redux.png */; };
-		1A2318740B9D026D00EF0852 /* cobra3_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318330B9D026D00EF0852 /* cobra3_redux1.png */; };
-		1A2318750B9D026D00EF0852 /* constrictor_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318340B9D026D00EF0852 /* constrictor_redux.png */; };
-		1A2318760B9D026D00EF0852 /* dark_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318350B9D026D00EF0852 /* dark_metal.png */; };
-		1A2318770B9D026D00EF0852 /* ferdelance_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318360B9D026D00EF0852 /* ferdelance_redux.png */; };
-		1A2318790B9D026D00EF0852 /* front_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318380B9D026D00EF0852 /* front_metal.png */; };
-		1A23187B0B9D026D00EF0852 /* gecko_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183A0B9D026D00EF0852 /* gecko_redux.png */; };
-		1A23187C0B9D026D00EF0852 /* krait_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183B0B9D026D00EF0852 /* krait_redux.png */; };
-		1A23187D0B9D026D00EF0852 /* left_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183C0B9D026D00EF0852 /* left_metal.png */; };
-		1A23187E0B9D026D00EF0852 /* mamba_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183D0B9D026D00EF0852 /* mamba_redux.png */; };
-		1A23187F0B9D026D00EF0852 /* mamba_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183E0B9D026D00EF0852 /* mamba_redux1.png */; };
-		1A2318800B9D026D00EF0852 /* metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183F0B9D026D00EF0852 /* metal.png */; };
-		1A2318810B9D026D00EF0852 /* missile.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318400B9D026D00EF0852 /* missile.png */; };
-		1A2318820B9D026D00EF0852 /* moray_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318410B9D026D00EF0852 /* moray_redux.png */; };
-		1A2318830B9D026D00EF0852 /* moray_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318420B9D026D00EF0852 /* moray_redux1.png */; };
-		1A23188A0B9D026D00EF0852 /* pod2_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318490B9D026D00EF0852 /* pod2_redux.png */; };
-		1A23188B0B9D026D00EF0852 /* python_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184A0B9D026D00EF0852 /* python_redux.png */; };
-		1A23188C0B9D026D00EF0852 /* python_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184B0B9D026D00EF0852 /* python_redux1.png */; };
-		1A23188D0B9D026D00EF0852 /* python_redux2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184C0B9D026D00EF0852 /* python_redux2.png */; };
-		1A23188E0B9D026D00EF0852 /* qbomb.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184D0B9D026D00EF0852 /* qbomb.png */; };
-		1A23188F0B9D026D00EF0852 /* right_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184E0B9D026D00EF0852 /* right_metal.png */; };
-		1A2318900B9D026D00EF0852 /* scarred_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184F0B9D026D00EF0852 /* scarred_metal.png */; };
-		1A2318910B9D026D00EF0852 /* shuttle_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318500B9D026D00EF0852 /* shuttle_redux.png */; };
-		1A2318920B9D026D00EF0852 /* sidewinder_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318510B9D026D00EF0852 /* sidewinder_redux.png */; };
-		1A2318940B9D026D00EF0852 /* target_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318530B9D026D00EF0852 /* target_metal.png */; };
-		1A2318950B9D026D00EF0852 /* thargoid_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318540B9D026D00EF0852 /* thargoid_redux.png */; };
-		1A2318960B9D026D00EF0852 /* thargon_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318550B9D026D00EF0852 /* thargon_redux.png */; };
-		1A2318970B9D026D00EF0852 /* top_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318560B9D026D00EF0852 /* top_metal.png */; };
-		1A2318980B9D026D00EF0852 /* transporter_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318570B9D026D00EF0852 /* transporter_redux.png */; };
-		1A2318990B9D026D00EF0852 /* transporter_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318580B9D026D00EF0852 /* transporter_redux1.png */; };
-		1A23189A0B9D026D00EF0852 /* trumblekit.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318590B9D026D00EF0852 /* trumblekit.png */; };
-		1A23189B0B9D026D00EF0852 /* viper_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185A0B9D026D00EF0852 /* viper_redux.png */; };
-		1A23189C0B9D026D00EF0852 /* viperi_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185B0B9D026D00EF0852 /* viperi_redux.png */; };
-		1A23189D0B9D026D00EF0852 /* worm_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185C0B9D026D00EF0852 /* worm_redux.png */; };
-		1A23189E0B9D026D00EF0852 /* worm_redux1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185D0B9D026D00EF0852 /* worm_redux1.png */; };
-		1A23189F0B9D026D00EF0852 /* wreck.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23185E0B9D026D00EF0852 /* wreck.png */; };
-		1A2318E50B9D02AA00EF0852 /* adder_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A60B9D02A900EF0852 /* adder_redux.dat */; };
-		1A2318E60B9D02AA00EF0852 /* alloy.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A70B9D02A900EF0852 /* alloy.dat */; };
-		1A2318E70B9D02AA00EF0852 /* anaconda_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A80B9D02A900EF0852 /* anaconda_redux.dat */; };
-		1A2318E80B9D02AA00EF0852 /* arcdetail.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318A90B9D02A900EF0852 /* arcdetail.dat */; };
-		1A2318E90B9D02AA00EF0852 /* asp_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AA0B9D02A900EF0852 /* asp_redux.dat */; };
-		1A2318EA0B9D02AA00EF0852 /* asteroid.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AB0B9D02A900EF0852 /* asteroid.dat */; };
-		1A2318EB0B9D02AA00EF0852 /* asteroid1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AC0B9D02A900EF0852 /* asteroid1.dat */; };
-		1A2318EC0B9D02AA00EF0852 /* barrel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AD0B9D02A900EF0852 /* barrel.dat */; };
-		1A2318ED0B9D02AA00EF0852 /* boa2_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AE0B9D02A900EF0852 /* boa2_redux.dat */; };
-		1A2318EE0B9D02AA00EF0852 /* boa_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318AF0B9D02A900EF0852 /* boa_redux.dat */; };
-		1A2318EF0B9D02AA00EF0852 /* boulder.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B00B9D02A900EF0852 /* boulder.dat */; };
-		1A2318F00B9D02AA00EF0852 /* boulder1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B10B9D02A900EF0852 /* boulder1.dat */; };
-		1A2318F10B9D02AA00EF0852 /* buoy.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B20B9D02A900EF0852 /* buoy.dat */; };
-		1A2318F20B9D02AA00EF0852 /* cobra1_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */; };
-		1A2318F50B9D02AA00EF0852 /* cobra3_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */; };
-		1A2318F70B9D02AA00EF0852 /* constrictor_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */; };
-		1A2318F80B9D02AA00EF0852 /* dock-flat.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B90B9D02A900EF0852 /* dock-flat.dat */; };
-		1A2318F90B9D02AA00EF0852 /* dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BA0B9D02A900EF0852 /* dock.dat */; };
-		1A2318FA0B9D02AA00EF0852 /* escpod_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */; };
-		1A2318FC0B9D02AA00EF0852 /* ferdelance_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */; };
-		1A2318FD0B9D02AA00EF0852 /* gecko_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */; };
-		1A2319000B9D02AA00EF0852 /* krait_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C10B9D02A900EF0852 /* krait_redux.dat */; };
-		1A2319010B9D02AA00EF0852 /* mamba_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C20B9D02A900EF0852 /* mamba_redux.dat */; };
-		1A2319030B9D02AA00EF0852 /* missile.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C40B9D02A900EF0852 /* missile.dat */; };
-		1A2319040B9D02AA00EF0852 /* moray_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C50B9D02A900EF0852 /* moray_redux.dat */; };
-		1A2319060B9D02AA00EF0852 /* new-dodo.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C70B9D02A900EF0852 /* new-dodo.dat */; };
-		1A2319070B9D02AA00EF0852 /* new-icos.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C80B9D02A900EF0852 /* new-icos.dat */; };
-		1A2319080B9D02AA00EF0852 /* new-rock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C90B9D02A900EF0852 /* new-rock.dat */; };
-		1A2319090B9D02AA00EF0852 /* new_coriolis.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CA0B9D02A900EF0852 /* new_coriolis.dat */; };
-		1A23190A0B9D02AA00EF0852 /* python_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CB0B9D02A900EF0852 /* python_redux.dat */; };
-		1A23190D0B9D02AA00EF0852 /* qbomb.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CE0B9D02AA00EF0852 /* qbomb.dat */; };
-		1A23190E0B9D02AA00EF0852 /* ring.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CF0B9D02AA00EF0852 /* ring.dat */; };
-		1A23190F0B9D02AA00EF0852 /* rock-box.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D00B9D02AA00EF0852 /* rock-box.dat */; };
-		1A2319100B9D02AA00EF0852 /* rock-dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D10B9D02AA00EF0852 /* rock-dock.dat */; };
-		1A2319110B9D02AA00EF0852 /* scarred_alloy.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D20B9D02AA00EF0852 /* scarred_alloy.dat */; };
-		1A2319120B9D02AA00EF0852 /* shuttle_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D30B9D02AA00EF0852 /* shuttle_redux.dat */; };
-		1A2319130B9D02AA00EF0852 /* sidewinder_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D40B9D02AA00EF0852 /* sidewinder_redux.dat */; };
-		1A2319140B9D02AA00EF0852 /* splinter.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D50B9D02AA00EF0852 /* splinter.dat */; };
-		1A2319150B9D02AA00EF0852 /* splinter1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D60B9D02AA00EF0852 /* splinter1.dat */; };
-		1A2319160B9D02AA00EF0852 /* strut.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D70B9D02AA00EF0852 /* strut.dat */; };
-		1A2319170B9D02AA00EF0852 /* thargoid_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */; };
-		1A2319180B9D02AA00EF0852 /* thargon_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */; };
-		1A2319190B9D02AA00EF0852 /* transporter_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */; };
-		1A23191B0B9D02AA00EF0852 /* viper_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */; };
-		1A23191C0B9D02AA00EF0852 /* viperi_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */; };
-		1A23191D0B9D02AA00EF0852 /* worm_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */; };
-		1A23191F0B9D02AA00EF0852 /* wreck1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E00B9D02AA00EF0852 /* wreck1.dat */; };
-		1A2319200B9D02AA00EF0852 /* wreck2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E10B9D02AA00EF0852 /* wreck2.dat */; };
-		1A2319210B9D02AA00EF0852 /* wreck3.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E20B9D02AA00EF0852 /* wreck3.dat */; };
-		1A2319220B9D02AA00EF0852 /* wreck4.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E30B9D02AA00EF0852 /* wreck4.dat */; };
-		1A2319230B9D02AA00EF0852 /* wreck5.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E40B9D02AA00EF0852 /* wreck5.dat */; };
-		1A2319760B9D02F900EF0852 /* BlueDanube.ogg in Copy Music */ = {isa = PBXBuildFile; fileRef = 1A2319740B9D02F900EF0852 /* BlueDanube.ogg */; };
-		1A2319770B9D02F900EF0852 /* OoliteTheme.ogg in Copy Music */ = {isa = PBXBuildFile; fileRef = 1A2319750B9D02F900EF0852 /* OoliteTheme.ogg */; };
-		1A2319A60B9D031D00EF0852 /* afterburner1.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319920B9D031D00EF0852 /* afterburner1.ogg */; };
-		1A2319A80B9D031D00EF0852 /* beep.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319940B9D031D00EF0852 /* beep.ogg */; };
-		1A2319A90B9D031D00EF0852 /* bigbang.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319950B9D031D00EF0852 /* bigbang.ogg */; };
-		1A2319AA0B9D031D00EF0852 /* boop.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319960B9D031D00EF0852 /* boop.ogg */; };
-		1A2319AB0B9D031D00EF0852 /* breakpattern.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319970B9D031D00EF0852 /* breakpattern.ogg */; };
-		1A2319AC0B9D031D00EF0852 /* buy.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319980B9D031D00EF0852 /* buy.ogg */; };
-		1A2319AD0B9D031D00EF0852 /* ecm.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319990B9D031D00EF0852 /* ecm.ogg */; };
-		1A2319AE0B9D031D00EF0852 /* guiclick.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199A0B9D031D00EF0852 /* guiclick.ogg */; };
-		1A2319AF0B9D031D00EF0852 /* hit.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199B0B9D031D00EF0852 /* hit.ogg */; };
-		1A2319B00B9D031D00EF0852 /* hullbang.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199C0B9D031D00EF0852 /* hullbang.ogg */; };
-		1A2319B10B9D031D00EF0852 /* laser.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199D0B9D031D00EF0852 /* laser.ogg */; };
-		1A2319B20B9D031D00EF0852 /* laserhits.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199E0B9D031D00EF0852 /* laserhits.ogg */; };
-		1A2319B30B9D031D00EF0852 /* missile.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A23199F0B9D031D00EF0852 /* missile.ogg */; };
-		1A2319B40B9D031D00EF0852 /* scoop.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A00B9D031D00EF0852 /* scoop.ogg */; };
-		1A2319B50B9D031D00EF0852 /* sell.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A10B9D031D00EF0852 /* sell.ogg */; };
-		1A2319B60B9D031D00EF0852 /* trumble.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A20B9D031D00EF0852 /* trumble.ogg */; };
-		1A2319B70B9D031D00EF0852 /* trumblesqueal.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A30B9D031D00EF0852 /* trumblesqueal.ogg */; };
-		1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A40B9D031D00EF0852 /* warning.ogg */; };
-		1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A50B9D031D00EF0852 /* witchabort.ogg */; };
 		1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */; };
 		1A26D0AC0BCF9CF80073F257 /* PlayerEntityLegacyScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0880BCF9CF70073F257 /* PlayerEntityLegacyScriptEngine.m */; };
 		1A26D0AD0BCF9CF80073F257 /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0890BCF9CF70073F257 /* ShipEntityAI.m */; };
@@ -377,20 +183,12 @@
 		1A2DA3EF0CB4E84900DE6823 /* OODebugSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */; };
 		1A3159590F1B894F00328E4A /* OOAIStateMachineVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */; };
 		1A31595A0F1B895000328E4A /* OOAIStateMachineVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */; };
-		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
 		1A35257212E1FFA900244C9D /* OOConstToJSString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A35257012E1FFA900244C9D /* OOConstToJSString.h */; };
 		1A35257312E1FFA900244C9D /* OOConstToJSString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A35257112E1FFA900244C9D /* OOConstToJSString.m */; };
-		1A35916D0C1C375400E52220 /* oolite-nebula-1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A3591690C1C375400E52220 /* oolite-nebula-1.png */; };
-		1A35916E0C1C375400E52220 /* oolite-star-1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A35916A0C1C375400E52220 /* oolite-star-1.png */; };
-		1A35916F0C1C375400E52220 /* oolite-nebula-3.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A35916B0C1C375400E52220 /* oolite-nebula-3.png */; };
-		1A3591700C1C375400E52220 /* oolite-nebula-2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A35916C0C1C375400E52220 /* oolite-nebula-2.png */; };
-		1A3591830C1C382700E52220 /* nebulatextures.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3591810C1C382700E52220 /* nebulatextures.plist */; };
-		1A3591840C1C382700E52220 /* startextures.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3591820C1C382700E52220 /* startextures.plist */; };
 		1A38B4AC0B988532001ED4A0 /* OOLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38B4AA0B988532001ED4A0 /* OOLogging.h */; };
 		1A38B4AD0B988532001ED4A0 /* OOLogging.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38B4AB0B988532001ED4A0 /* OOLogging.m */; settings = {COMPILER_FLAGS = "-fvisibility=default"; }; };
 		1A38E9E31603C7A500EE19F1 /* OOJSInterfaceDefinition.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A38E9E11603C7A500EE19F1 /* OOJSInterfaceDefinition.h */; };
 		1A38E9E41603C7A500EE19F1 /* OOJSInterfaceDefinition.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A38E9E21603C7A500EE19F1 /* OOJSInterfaceDefinition.m */; };
-		1A38E9E71603C92A00EE19F1 /* oolite-contracts-parcels.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A38E9E51603C7ED00EE19F1 /* oolite-contracts-parcels.js */; };
 		1A3A04620BC547DC00B5E2D9 /* OOTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3A04610BC547DC00B5E2D9 /* OOTypes.h */; };
 		1A3ACFEB0C5FF33A00EC50A7 /* OOJSShip.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */; };
 		1A3ACFEC0C5FF33A00EC50A7 /* OOJSShip.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */; };
@@ -413,7 +211,6 @@
 		1A43A1860CB9243B00D0E239 /* OOEntityFilterPredicate.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43A1840CB9243B00D0E239 /* OOEntityFilterPredicate.h */; };
 		1A43A1870CB9243B00D0E239 /* OOEntityFilterPredicate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */; };
 		1A43F28B105170A8003FDE8B /* OONSOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43F28A105170A8003FDE8B /* OONSOperation.h */; };
-		1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A4501E10DBF699A00815C04 /* descriptions.plist */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
@@ -431,20 +228,7 @@
 		1A54125114B892A200B8A4BE /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A54125014B892A200B8A4BE /* IOKit.framework */; };
 		1A54AB530E3E17A1001EB817 /* OOJSPlayerShip.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */; };
 		1A54AB540E3E17A1001EB817 /* OOJSPlayerShip.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A54AB520E3E17A0001EB817 /* OOJSPlayerShip.m */; };
-		1A572FC30D84B640003D4A26 /* oolite-nova-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FB80D84B640003D4A26 /* oolite-nova-mission.js */; };
-		1A572FC40D84B640003D4A26 /* oolite-thargoid-plans-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FB90D84B640003D4A26 /* oolite-thargoid-plans-mission.js */; };
-		1A572FC50D84B640003D4A26 /* oolite-trumbles-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FBA0D84B640003D4A26 /* oolite-trumbles-mission.js */; };
-		1A572FC60D84B640003D4A26 /* oolite-default-ship-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FBB0D84B640003D4A26 /* oolite-default-ship-script.js */; };
-		1A572FC70D84B640003D4A26 /* oolite-cloaking-device-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FBC0D84B640003D4A26 /* oolite-cloaking-device-mission.js */; };
-		1A572FC80D84B640003D4A26 /* oolite-constrictor.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FBD0D84B640003D4A26 /* oolite-constrictor.js */; };
-		1A572FC90D84B640003D4A26 /* oolite-constrictor-hunt-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FBE0D84B640003D4A26 /* oolite-constrictor-hunt-mission.js */; };
-		1A572FCA0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FBF0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js */; };
-		1A572FCB0D84B640003D4A26 /* oolite-cloaking-device-pod.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC00D84B640003D4A26 /* oolite-cloaking-device-pod.js */; };
-		1A572FCC0D84B640003D4A26 /* oolite-global-prefix.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC10D84B640003D4A26 /* oolite-global-prefix.js */; };
-		1A572FCD0D84B640003D4A26 /* oolite-thargoid-warship.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FC20D84B640003D4A26 /* oolite-thargoid-warship.js */; };
-		1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */; };
 		1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5AA3220C0098AF0029C78A /* OOOpenGL.m */; };
-		1A5ABE6B15FBC86F006C97DC /* oolite-default-effect-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A5ABE6A15FBC833006C97DC /* oolite-default-effect-script.js */; };
 		1A5D58871825241800C779AE /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A5D58821825241800C779AE /* ioapi.c */; };
 		1A5D58881825241800C779AE /* ioapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5D58831825241800C779AE /* ioapi.h */; };
 		1A5D588A1825241800C779AE /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A5D58851825241800C779AE /* unzip.c */; };
@@ -469,9 +253,6 @@
 		1A60AFB80D56093B0070510D /* OOMusicController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A60AFB60D56093B0070510D /* OOMusicController.m */; };
 		1A62F0FD0E26A2A000897506 /* OOEquipmentType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */; };
 		1A62F0FE0E26A2A000897506 /* OOEquipmentType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */; };
-		1A644E221052AA0100833636 /* traderInterceptAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A644E211052A9FD00833636 /* traderInterceptAI.plist */; };
-		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
-		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
 		1A68A4A51615F4A400D7BB08 /* OOMeshToOctreeConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* OOMeshToOctreeConverter.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
 		1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
@@ -482,7 +263,6 @@
 		1A6B228E0C9B40D4000717CF /* OOJSTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B228C0C9B40D4000717CF /* OOJSTimer.m */; };
 		1A6B25EE0C9C2746000717CF /* OOJSClock.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B25EC0C9C2745000717CF /* OOJSClock.h */; };
 		1A6B25EF0C9C2746000717CF /* OOJSClock.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B25ED0C9C2746000717CF /* OOJSClock.m */; };
-		1A6C6D5D1652E05D005D1D3B /* oolite-particle-dust.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A6C6D5C1652E038005D1D3B /* oolite-particle-dust.png */; };
 		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
 		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
 		1A6F665314DF323900695C11 /* OODefaultShaderSynthesizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6F665114DF323900695C11 /* OODefaultShaderSynthesizer.h */; };
@@ -513,7 +293,6 @@
 		1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7B967E0E620C9E00322821 /* OOSoundInternal.h */; };
 		1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */; };
 		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
-		1A7C27CA14FA70A500F2D2A8 /* shader-uniform-bindings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A7C27C814FA709500F2D2A8 /* shader-uniform-bindings.plist */; };
 		1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7C75980CC39D11005D0AA2 /* OOJSSun.m */; };
 		1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7C75990CC39D11005D0AA2 /* OOJSSun.h */; };
 		1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */; };
@@ -533,153 +312,13 @@
 		1A7E317C113ED37C009AAB6D /* EntityShaderBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7E317B113ED37C009AAB6D /* EntityShaderBindings.m */; };
 		1A7E3189113ED496009AAB6D /* ProxyPlayerEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */; };
 		1A7E318A113ED496009AAB6D /* ProxyPlayerEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */; };
-		1A7E3A1D180AD05500576095 /* oolite-assassinAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A07180AD04000576095 /* oolite-assassinAI.js */; };
-		1A7E3A1E180AD05500576095 /* oolite-bountyHunterAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A08180AD04000576095 /* oolite-bountyHunterAI.js */; };
-		1A7E3A1F180AD05500576095 /* oolite-bountyHunterLeaderAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A09180AD04000576095 /* oolite-bountyHunterLeaderAI.js */; };
-		1A7E3A20180AD05500576095 /* oolite-constrictorAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0A180AD04000576095 /* oolite-constrictorAI.js */; };
-		1A7E3A21180AD05500576095 /* oolite-defenseShipAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0B180AD04000576095 /* oolite-defenseShipAI.js */; };
-		1A7E3A22180AD05500576095 /* oolite-escortAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0C180AD04000576095 /* oolite-escortAI.js */; };
-		1A7E3A23180AD05500576095 /* oolite-missileAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0D180AD04100576095 /* oolite-missileAI.js */; };
-		1A7E3A24180AD05500576095 /* oolite-nullAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0E180AD04100576095 /* oolite-nullAI.js */; };
-		1A7E3A25180AD05500576095 /* oolite-pirateAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A0F180AD04100576095 /* oolite-pirateAI.js */; };
-		1A7E3A26180AD05500576095 /* oolite-pirateFighterAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A10180AD04100576095 /* oolite-pirateFighterAI.js */; };
-		1A7E3A27180AD05500576095 /* oolite-pirateFreighterAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A11180AD04100576095 /* oolite-pirateFreighterAI.js */; };
-		1A7E3A28180AD05500576095 /* oolite-pirateInterceptorAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A12180AD04100576095 /* oolite-pirateInterceptorAI.js */; };
-		1A7E3A29180AD05500576095 /* oolite-policeAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A13180AD04100576095 /* oolite-policeAI.js */; };
-		1A7E3A2A180AD05500576095 /* oolite-qbombAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A14180AD04100576095 /* oolite-qbombAI.js */; };
-		1A7E3A2B180AD05500576095 /* oolite-rockHermitAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A15180AD04100576095 /* oolite-rockHermitAI.js */; };
-		1A7E3A2C180AD05500576095 /* oolite-scavengerAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A16180AD04100576095 /* oolite-scavengerAI.js */; };
-		1A7E3A2D180AD05500576095 /* oolite-shuttleAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A17180AD04100576095 /* oolite-shuttleAI.js */; };
-		1A7E3A2E180AD05500576095 /* oolite-stationAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A18180AD04100576095 /* oolite-stationAI.js */; };
-		1A7E3A2F180AD05500576095 /* oolite-thargletAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A19180AD04100576095 /* oolite-thargletAI.js */; };
-		1A7E3A30180AD05500576095 /* oolite-thargoidAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A1A180AD04100576095 /* oolite-thargoidAI.js */; };
-		1A7E3A31180AD05500576095 /* oolite-traderAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A1B180AD04100576095 /* oolite-traderAI.js */; };
-		1A7E3A32180AD05500576095 /* oolite-traderOpportunistAI.js in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A7E3A1C180AD04100576095 /* oolite-traderOpportunistAI.js */; };
-		1A7E3A35180AD09A00576095 /* oolite-particle-cloud.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A7E3A33180AD08F00576095 /* oolite-particle-cloud.png */; };
-		1A7E3A36180AD09A00576095 /* oolite-particle-cloud2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A7E3A34180AD08F00576095 /* oolite-particle-cloud2.png */; };
-		1A7E3A38180AD0E100576095 /* oolite-priorityai.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A7E3A37180AD0DE00576095 /* oolite-priorityai.js */; };
-		1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */; };
 		1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */; };
 		1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */; };
 		1A817DA0106D3FF000AA2F97 /* OOPlasmaBurstEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817D9E106D3FF000AA2F97 /* OOPlasmaBurstEntity.h */; };
 		1A817DA1106D3FF000AA2F97 /* OOPlasmaBurstEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */; };
-		1A817DBF106D441200AA2F97 /* oolite-particle-flash.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */; };
 		1A817DC3106D443B00AA2F97 /* OOFlashEffectEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817DC1106D443B00AA2F97 /* OOFlashEffectEntity.h */; };
 		1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */; };
-		1A86D4F11825853D00000F67 /* role-categories.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A86D4EB1825852C00000F67 /* role-categories.plist */; };
 		1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A87063D1172029F003FDD2A /* OODebugFlags.h */; };
-		1A89CBCD182533D900A4E455 /* oolite_adder.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA1182533BE00A4E455 /* oolite_adder.dat */; };
-		1A89CBCE182533D900A4E455 /* oolite_anaconda.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA2182533BE00A4E455 /* oolite_anaconda.dat */; };
-		1A89CBCF182533D900A4E455 /* oolite_asp.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA3182533BE00A4E455 /* oolite_asp.dat */; };
-		1A89CBD0182533D900A4E455 /* oolite_barrel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA4182533BE00A4E455 /* oolite_barrel.dat */; };
-		1A89CBD1182533D900A4E455 /* oolite_barrel2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA5182533BE00A4E455 /* oolite_barrel2.dat */; };
-		1A89CBD2182533D900A4E455 /* oolite_boa-mk2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA6182533BE00A4E455 /* oolite_boa-mk2.dat */; };
-		1A89CBD3182533D900A4E455 /* oolite_boa.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA7182533BE00A4E455 /* oolite_boa.dat */; };
-		1A89CBD4182533D900A4E455 /* oolite_cobra3.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA8182533BE00A4E455 /* oolite_cobra3.dat */; };
-		1A89CBD5182533D900A4E455 /* oolite_cobramk1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBA9182533BE00A4E455 /* oolite_cobramk1.dat */; };
-		1A89CBD6182533D900A4E455 /* oolite_constrictor.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBAA182533BE00A4E455 /* oolite_constrictor.dat */; };
-		1A89CBD7182533D900A4E455 /* oolite_coriolis_dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBAB182533BE00A4E455 /* oolite_coriolis_dock.dat */; };
-		1A89CBD8182533D900A4E455 /* oolite_coriolis_faceplate.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBAC182533BE00A4E455 /* oolite_coriolis_faceplate.dat */; };
-		1A89CBD9182533D900A4E455 /* oolite_coriolis_tris.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBAD182533BE00A4E455 /* oolite_coriolis_tris.dat */; };
-		1A89CBDA182533D900A4E455 /* oolite_coriolis.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBAE182533BE00A4E455 /* oolite_coriolis.dat */; };
-		1A89CBDB182533D900A4E455 /* oolite_dodo_dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBAF182533BE00A4E455 /* oolite_dodo_dock.dat */; };
-		1A89CBDC182533D900A4E455 /* oolite_dodo_faceplate.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB0182533BE00A4E455 /* oolite_dodo_faceplate.dat */; };
-		1A89CBDD182533D900A4E455 /* oolite_dodo.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB1182533BE00A4E455 /* oolite_dodo.dat */; };
-		1A89CBDE182533D900A4E455 /* oolite_escape_capsule.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB2182533BE00A4E455 /* oolite_escape_capsule.dat */; };
-		1A89CBDF182533D900A4E455 /* oolite_ferdelance.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB3182533BE00A4E455 /* oolite_ferdelance.dat */; };
-		1A89CBE0182533D900A4E455 /* oolite_gecko.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB4182533BE00A4E455 /* oolite_gecko.dat */; };
-		1A89CBE1182533D900A4E455 /* oolite_ico_dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB5182533BE00A4E455 /* oolite_ico_dock.dat */; };
-		1A89CBE2182533D900A4E455 /* oolite_ico_hull.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB6182533BE00A4E455 /* oolite_ico_hull.dat */; };
-		1A89CBE3182533D900A4E455 /* oolite_ico.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB7182533BE00A4E455 /* oolite_ico.dat */; };
-		1A89CBE4182533D900A4E455 /* oolite_krait.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB8182533BE00A4E455 /* oolite_krait.dat */; };
-		1A89CBE5182533D900A4E455 /* oolite_mamba.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBB9182533BE00A4E455 /* oolite_mamba.dat */; };
-		1A89CBE6182533D900A4E455 /* oolite_missile_hardhead.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBBA182533BE00A4E455 /* oolite_missile_hardhead.dat */; };
-		1A89CBE7182533D900A4E455 /* oolite_missile.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBBB182533BE00A4E455 /* oolite_missile.dat */; };
-		1A89CBE8182533D900A4E455 /* oolite_moray.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBBC182533BE00A4E455 /* oolite_moray.dat */; };
-		1A89CBE9182533D900A4E455 /* oolite_python_trader.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBBD182533BE00A4E455 /* oolite_python_trader.dat */; };
-		1A89CBEA182533D900A4E455 /* oolite_python.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBBE182533BE00A4E455 /* oolite_python.dat */; };
-		1A89CBEB182533D900A4E455 /* oolite_rock_hermit_dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBBF182533BE00A4E455 /* oolite_rock_hermit_dock.dat */; };
-		1A89CBEC182533D900A4E455 /* oolite_rock_hermit_pipes.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC0182533BE00A4E455 /* oolite_rock_hermit_pipes.dat */; };
-		1A89CBED182533D900A4E455 /* oolite_rock_hermit_rock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC1182533BE00A4E455 /* oolite_rock_hermit_rock.dat */; };
-		1A89CBEE182533D900A4E455 /* oolite_rock_hermit_tunnel_extras.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC2182533BE00A4E455 /* oolite_rock_hermit_tunnel_extras.dat */; };
-		1A89CBEF182533D900A4E455 /* oolite_rock_hermit.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC3182533BE00A4E455 /* oolite_rock_hermit.dat */; };
-		1A89CBF0182533D900A4E455 /* oolite_shuttle.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC4182533BE00A4E455 /* oolite_shuttle.dat */; };
-		1A89CBF1182533D900A4E455 /* oolite_sidewinder_escort.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC5182533BE00A4E455 /* oolite_sidewinder_escort.dat */; };
-		1A89CBF2182533D900A4E455 /* oolite_sidewinder.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC6182533BE00A4E455 /* oolite_sidewinder.dat */; };
-		1A89CBF3182533D900A4E455 /* oolite_thargoid.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC7182533BE00A4E455 /* oolite_thargoid.dat */; };
-		1A89CBF4182533D900A4E455 /* oolite_thargon.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC8182533BE00A4E455 /* oolite_thargon.dat */; };
-		1A89CBF5182533D900A4E455 /* oolite_transporter.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBC9182533BE00A4E455 /* oolite_transporter.dat */; };
-		1A89CBF6182533D900A4E455 /* oolite_viper_interceptor.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBCA182533BE00A4E455 /* oolite_viper_interceptor.dat */; };
-		1A89CBF7182533D900A4E455 /* oolite_viper.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBCB182533BE00A4E455 /* oolite_viper.dat */; };
-		1A89CBF8182533D900A4E455 /* oolite_worm.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A89CBCC182533BE00A4E455 /* oolite_worm.dat */; };
-		1A89CC3C1825340E00A4E455 /* oolite_barrel_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CBFA1825340000A4E455 /* oolite_barrel_diffuse.png */; };
-		1A89CC3D1825340E00A4E455 /* oolite_barrel2_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CBFB1825340000A4E455 /* oolite_barrel2_diffuse.png */; };
-		1A89CC3E1825340E00A4E455 /* oolite_boa_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CBFC1825340000A4E455 /* oolite_boa_diffuse.png */; };
-		1A89CC3F1825340E00A4E455 /* oolite_boa_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CBFD1825340000A4E455 /* oolite_boa_subents.png */; };
-		1A89CC401825340E00A4E455 /* oolite_boa-mk2_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CBFE1825340000A4E455 /* oolite_boa-mk2_diffuse.png */; };
-		1A89CC411825340E00A4E455 /* oolite_boa-mk2_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CBFF1825340000A4E455 /* oolite_boa-mk2_subents.png */; };
-		1A89CC421825340E00A4E455 /* oolite_cobra3_diffuse_alt.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC001825340000A4E455 /* oolite_cobra3_diffuse_alt.png */; };
-		1A89CC431825340F00A4E455 /* oolite_cobra3_diffuse_pirate.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC011825340000A4E455 /* oolite_cobra3_diffuse_pirate.png */; };
-		1A89CC441825340F00A4E455 /* oolite_cobra3_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC021825340000A4E455 /* oolite_cobra3_diffuse.png */; };
-		1A89CC451825340F00A4E455 /* oolite_cobra3_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC031825340000A4E455 /* oolite_cobra3_subents.png */; };
-		1A89CC461825340F00A4E455 /* oolite_cobramk1_diffuse_alt.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC041825340000A4E455 /* oolite_cobramk1_diffuse_alt.png */; };
-		1A89CC471825340F00A4E455 /* oolite_cobramk1_diffuse_miner.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC051825340000A4E455 /* oolite_cobramk1_diffuse_miner.png */; };
-		1A89CC481825340F00A4E455 /* oolite_cobramk1_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC061825340000A4E455 /* oolite_cobramk1_diffuse.png */; };
-		1A89CC491825340F00A4E455 /* oolite_constrictor_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC071825340000A4E455 /* oolite_constrictor_diffuse.png */; };
-		1A89CC4A1825340F00A4E455 /* oolite_constrictor_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC081825340000A4E455 /* oolite_constrictor_subents.png */; };
-		1A89CC4B1825340F00A4E455 /* oolite_coriolis_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC091825340000A4E455 /* oolite_coriolis_diffuse.png */; };
-		1A89CC4C1825340F00A4E455 /* oolite_coriolis_dock_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC0A1825340000A4E455 /* oolite_coriolis_dock_diffuse.png */; };
-		1A89CC4D1825340F00A4E455 /* oolite_coriolis_faceplate_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC0B1825340000A4E455 /* oolite_coriolis_faceplate_diffuse.png */; };
-		1A89CC4E1825340F00A4E455 /* oolite_coriolis_tris_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC0C1825340000A4E455 /* oolite_coriolis_tris_diffuse.png */; };
-		1A89CC4F1825340F00A4E455 /* oolite_dodo_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC0D1825340000A4E455 /* oolite_dodo_diffuse.png */; };
-		1A89CC501825340F00A4E455 /* oolite_dodo_dock_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC0E1825340000A4E455 /* oolite_dodo_dock_diffuse.png */; };
-		1A89CC511825340F00A4E455 /* oolite_dodo_faceplate_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC0F1825340000A4E455 /* oolite_dodo_faceplate_diffuse.png */; };
-		1A89CC521825340F00A4E455 /* oolite_escape_capsule_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC101825340000A4E455 /* oolite_escape_capsule_diffuse.png */; };
-		1A89CC531825340F00A4E455 /* oolite_ferdelance_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC111825340000A4E455 /* oolite_ferdelance_diffuse.png */; };
-		1A89CC541825340F00A4E455 /* oolite_ferdelance_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC121825340000A4E455 /* oolite_ferdelance_subents.png */; };
-		1A89CC551825340F00A4E455 /* oolite_gecko_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC131825340000A4E455 /* oolite_gecko_diffuse.png */; };
-		1A89CC561825340F00A4E455 /* oolite_gecko_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC141825340000A4E455 /* oolite_gecko_subents.png */; };
-		1A89CC571825340F00A4E455 /* oolite_ico_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC151825340000A4E455 /* oolite_ico_diffuse.png */; };
-		1A89CC581825340F00A4E455 /* oolite_ico_dock_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC161825340000A4E455 /* oolite_ico_dock_diffuse.png */; };
-		1A89CC591825340F00A4E455 /* oolite_ico_hull_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC171825340000A4E455 /* oolite_ico_hull_diffuse.png */; };
-		1A89CC5A1825340F00A4E455 /* oolite_krait_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC181825340000A4E455 /* oolite_krait_diffuse.png */; };
-		1A89CC5B1825340F00A4E455 /* oolite_mamba_diffuse_escort.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC191825340000A4E455 /* oolite_mamba_diffuse_escort.png */; };
-		1A89CC5C1825340F00A4E455 /* oolite_mamba_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC1A1825340000A4E455 /* oolite_mamba_diffuse.png */; };
-		1A89CC5D1825340F00A4E455 /* oolite_mamba_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC1B1825340000A4E455 /* oolite_mamba_subents.png */; };
-		1A89CC5E1825340F00A4E455 /* oolite_missile_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC1C1825340000A4E455 /* oolite_missile_diffuse.png */; };
-		1A89CC5F1825340F00A4E455 /* oolite_missile_hardhead_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC1D1825340000A4E455 /* oolite_missile_hardhead_diffuse.png */; };
-		1A89CC601825340F00A4E455 /* oolite_moray_diffuse_med.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC1E1825340000A4E455 /* oolite_moray_diffuse_med.png */; };
-		1A89CC611825340F00A4E455 /* oolite_moray_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC1F1825340000A4E455 /* oolite_moray_diffuse.png */; };
-		1A89CC621825340F00A4E455 /* oolite_moray_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC201825340000A4E455 /* oolite_moray_subents.png */; };
-		1A89CC631825340F00A4E455 /* oolite_python_diffuse_blackdog.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC211825340000A4E455 /* oolite_python_diffuse_blackdog.png */; };
-		1A89CC641825340F00A4E455 /* oolite_python_diffuse_trader.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC221825340000A4E455 /* oolite_python_diffuse_trader.png */; };
-		1A89CC651825340F00A4E455 /* oolite_python_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC231825340000A4E455 /* oolite_python_diffuse.png */; };
-		1A89CC661825340F00A4E455 /* oolite_python_subents_trader.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC241825340000A4E455 /* oolite_python_subents_trader.png */; };
-		1A89CC671825340F00A4E455 /* oolite_python_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC251825340000A4E455 /* oolite_python_subents.png */; };
-		1A89CC681825340F00A4E455 /* oolite_rock_hermit_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC261825340000A4E455 /* oolite_rock_hermit_diffuse.png */; };
-		1A89CC691825340F00A4E455 /* oolite_rock_hermit_dock_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC271825340000A4E455 /* oolite_rock_hermit_dock_diffuse.png */; };
-		1A89CC6A1825340F00A4E455 /* oolite_rock_hermit_pipes_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC281825340000A4E455 /* oolite_rock_hermit_pipes_diffuse.png */; };
-		1A89CC6B1825340F00A4E455 /* oolite_rock_hermit_rock_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC291825340000A4E455 /* oolite_rock_hermit_rock_diffuse.png */; };
-		1A89CC6C1825340F00A4E455 /* oolite_rock_hermit_tunnel_extras_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC2A1825340000A4E455 /* oolite_rock_hermit_tunnel_extras_diffuse.png */; };
-		1A89CC6D1825340F00A4E455 /* oolite_shuttle_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC2B1825340000A4E455 /* oolite_shuttle_diffuse.png */; };
-		1A89CC6E1825340F00A4E455 /* oolite_sidewinder_diffuse_escort.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC2C1825340000A4E455 /* oolite_sidewinder_diffuse_escort.png */; };
-		1A89CC6F1825340F00A4E455 /* oolite_sidewinder_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC2D1825340000A4E455 /* oolite_sidewinder_diffuse.png */; };
-		1A89CC701825340F00A4E455 /* oolite_thargoid_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC2E1825340000A4E455 /* oolite_thargoid_diffuse.png */; };
-		1A89CC711825340F00A4E455 /* oolite_thargon_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC2F1825340000A4E455 /* oolite_thargon_diffuse.png */; };
-		1A89CC721825340F00A4E455 /* oolite_transporter_diffuse_miner.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC301825340000A4E455 /* oolite_transporter_diffuse_miner.png */; };
-		1A89CC731825340F00A4E455 /* oolite_transporter_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC311825340000A4E455 /* oolite_transporter_diffuse.png */; };
-		1A89CC741825340F00A4E455 /* oolite_viper_diffuse_pursuit.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC321825340000A4E455 /* oolite_viper_diffuse_pursuit.png */; };
-		1A89CC751825340F00A4E455 /* oolite_viper_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC331825340000A4E455 /* oolite_viper_diffuse.png */; };
-		1A89CC761825340F00A4E455 /* oolite_viper_interceptor_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC341825340000A4E455 /* oolite_viper_interceptor_diffuse.png */; };
-		1A89CC771825340F00A4E455 /* oolite_worm_diffuse_miner.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC351825340000A4E455 /* oolite_worm_diffuse_miner.png */; };
-		1A89CC781825340F00A4E455 /* oolite_worm_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC361825340000A4E455 /* oolite_worm_diffuse.png */; };
-		1A89CC791825340F00A4E455 /* oolite_adder_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC371825340000A4E455 /* oolite_adder_diffuse.png */; };
-		1A89CC7A1825340F00A4E455 /* oolite_anaconda_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC381825340000A4E455 /* oolite_anaconda_diffuse.png */; };
-		1A89CC7B1825340F00A4E455 /* oolite_anaconda_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC391825340000A4E455 /* oolite_anaconda_subents.png */; };
-		1A89CC7C1825340F00A4E455 /* oolite_asp_diffuse.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC3A1825340000A4E455 /* oolite_asp_diffuse.png */; };
-		1A89CC7D1825340F00A4E455 /* oolite_asp_subents.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A89CC3B1825340000A4E455 /* oolite_asp_subents.png */; };
-		1A89CC801825349F00A4E455 /* oolite-cloaking-device-equipment.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A89CC7F1825349A00A4E455 /* oolite-cloaking-device-equipment.js */; };
-		1A89CC82182534B600A4E455 /* oolite-primable-equipment-manager.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A89CC81182534B400A4E455 /* oolite-primable-equipment-manager.js */; };
 		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
 		1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */; };
 		1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */; };
@@ -711,9 +350,6 @@
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
 		1A9438CF17F84C560011F80B /* OOExplosionCloudEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9438CD17F84C560011F80B /* OOExplosionCloudEntity.h */; };
 		1A9438D017F84C560011F80B /* OOExplosionCloudEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9438CE17F84C560011F80B /* OOExplosionCloudEntity.m */; };
-		1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */; };
-		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
-		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
 		1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */; };
 		1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A95C03F118A450E002EE302 /* OOConvertCubeMapToLatLong.m */; settings = {COMPILER_FLAGS = "$OO_MATHS_OPTS -ffast-math"; }; };
 		1A97528F15DECA6600108FA5 /* OOFullScreenWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A97528D15DECA6600108FA5 /* OOFullScreenWindow.h */; };
@@ -755,22 +391,17 @@
 		1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */; };
 		1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */; settings = {COMPILER_FLAGS = "$OO_MATHS_OPTS -ffast-math"; }; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
-		1AAADFBC17CB25960032C68B /* oolite-populator.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A59FF4117CA26D6000BF0E0 /* oolite-populator.js */; };
-		1AAADFBE17CB25A90032C68B /* oolite-registership.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AAADFBD17CB25A30032C68B /* oolite-registership.js */; };
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; settings = {COMPILER_FLAGS = "-Wno-objc-protocol-method-implementation"; }; };
 		1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */; };
 		1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */; };
 		1AAEE9DA161F7523003A5A1E /* OOStringExpander.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAEE9D8161F7523003A5A1E /* OOStringExpander.h */; };
 		1AAEE9DB161F7523003A5A1E /* OOStringExpander.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAEE9D9161F7523003A5A1E /* OOStringExpander.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };
-		1AAF565A0F1A27EA00A2F2E6 /* whitelist.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AAF56590F1A27D900A2F2E6 /* whitelist.plist */; };
 		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
 		1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */; };
 		1AB01BBB0BB16A8A00F1B949 /* OOFastArithmetic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */; };
-		1AB23F07165A5A8C00642977 /* oolite-conditions.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AB23F06165A5A7700642977 /* oolite-conditions.js */; };
 		1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */; };
 		1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */; };
-		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
 		1AB4AEB80D688AD9003076D6 /* OOLogHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */; };
 		1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */; settings = {COMPILER_FLAGS = $SNAPSHOT_MACROS; }; };
 		1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */; };
@@ -793,7 +424,6 @@
 		1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABB688B0D044306008BE96D /* OOLoggingExtended.h */; };
 		1ABC03ED0EF86110003B740A /* OOCrosshairs.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABC03EB0EF86110003B740A /* OOCrosshairs.h */; };
 		1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABC03EC0EF86110003B740A /* OOCrosshairs.m */; };
-		1ABC04270EF872B7003B740A /* crosshairs.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1ABC04260EF872B7003B740A /* crosshairs.plist */; };
 		1ABC47FE0F155F0500B977AD /* OOJSFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABC47FC0F155F0500B977AD /* OOJSFunction.h */; };
 		1ABC47FF0F155F0500B977AD /* OOJSFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABC47FD0F155F0500B977AD /* OOJSFunction.m */; };
 		1ABDBA3B0EB365D90086BC3D /* OOIsNumberLiteral.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDBA390EB365D90086BC3D /* OOIsNumberLiteral.m */; };
@@ -802,21 +432,15 @@
 		1AC0F29E12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC0F29D12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m */; };
 		1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC27A0D0EA7E9940054E5F0 /* OOJSEquipmentInfo.h */; };
 		1AC27A100EA7E9940054E5F0 /* OOJSEquipmentInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC27A0E0EA7E9940054E5F0 /* OOJSEquipmentInfo.m */; };
-		1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AC544F90D4D217900C90E5B /* oolite-font.png */; };
 		1AC545060D4D228400C90E5B /* OOEncodingConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC545040D4D228400C90E5B /* OOEncodingConverter.h */; };
 		1AC545070D4D228400C90E5B /* OOEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC545050D4D228400C90E5B /* OOEncodingConverter.m */; };
-		1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC5452C0D4D298E00C90E5B /* oolite-font.plist */; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
-		1AC83179155534ED0032448F /* fleeQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1AC83175155534A30032448F /* fleeQMineAI.plist */; };
-		1AC8317A155534ED0032448F /* respondQMineAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1AC83177155534B00032448F /* respondQMineAI.plist */; };
-		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
 		1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1D16118DCBC0007B9A1F /* OOConcreteTexture.h */; };
 		1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACB1D17118DCBC0007B9A1F /* OOConcreteTexture.m */; };
 		1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1D1B118DCE5A007B9A1F /* OOTextureInternal.h */; };
 		1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACBF06F0D82DF9B00CC005F /* OOSoundSourcePool.h */; };
 		1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACBF0700D82DF9B00CC005F /* OOSoundSourcePool.m */; };
-		1ACE208F0D805F78009F6957 /* oolite-scarred-metal-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */; };
 		1ACEA3490C91507000C7CE97 /* OORoleSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA3470C91507000C7CE97 /* OORoleSet.h */; };
 		1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA3480C91507000C7CE97 /* OORoleSet.m */; };
 		1ACEA6BF0C91DA3E00C7CE97 /* OOJSGlobal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA6BD0C91DA3E00C7CE97 /* OOJSGlobal.h */; };
@@ -825,7 +449,6 @@
 		1ACEA7290C91DF2800C7CE97 /* OOJSMissionVariables.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7270C91DF2800C7CE97 /* OOJSMissionVariables.m */; };
 		1ACEA7AA0C91E32800C7CE97 /* OOJSMission.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */; };
 		1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */; };
-		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
 		1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */; };
@@ -847,16 +470,12 @@
 		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
 		1AE3455712CB77AE00FD8C62 /* libogg_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455012CB77A700FD8C62 /* libogg_for_oolite.a */; };
 		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
-		1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5412EB176B00B570E1 /* oolite-constrictor-pilot.js */; };
-		1AE45E5C12EB178100B570E1 /* oolite-locale-functions.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1AE45E5512EB177300B570E1 /* oolite-locale-functions.js */; };
 		1AE7325012F75D470045513D /* OOLaserShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE7324E12F75D470045513D /* OOLaserShotEntity.h */; };
 		1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE7324F12F75D470045513D /* OOLaserShotEntity.m */; };
-		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AE8837412EF91560075814F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
 		1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
 		1AE8838012EF91E80075814F /* SparkleVerificationKey.pem in Resources */ = {isa = PBXBuildFile; fileRef = 1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */; };
 		1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEA229D12CBD18600EC0F43 /* CoreServices.framework */; };
-		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
 		1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */; };
 		1AECE9E01177959F003986A8 /* OOPixMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AECE9DF1177959F003986A8 /* OOPixMap.h */; };
@@ -901,18 +520,8 @@
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
 		25F46753099695D5009483BF /* OoliteApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F46751099695D5009483BF /* OoliteApp.m */; };
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
-		2B060ED510E42715001EFB22 /* screenbackgrounds.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B060ED410E42715001EFB22 /* screenbackgrounds.plist */; };
-		2B060ED810E42735001EFB22 /* oolite-short-range-chart.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B060ED610E42735001EFB22 /* oolite-short-range-chart.png */; };
-		2B060ED910E42735001EFB22 /* oolite-long-range-chart.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B060ED710E42735001EFB22 /* oolite-long-range-chart.png */; };
-		2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
-		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
-		B3460D4515285BF1002592D0 /* oolite-default-planet.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */; };
-		B3460D4615285BF1002592D0 /* oolite-default-planet.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */; };
-		B3A96401165D800D001BB5C1 /* oolite-laser-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */; };
-		B3A96402165D800D001BB5C1 /* oolite-laser-blur2.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */; };
-		B3A96405165EE28F001BB5C1 /* oolite-exhaust-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = B3A96403165EE124001BB5C1 /* oolite-exhaust-blur.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1070,470 +679,6 @@
 			name = "Copy Plug-ins";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A23153A0B9C773B00EF0852 /* Copy Images */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Images;
-			dstSubfolderSpec = 7;
-			files = (
-				2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */,
-				2B060ED810E42735001EFB22 /* oolite-short-range-chart.png in Copy Images */,
-				2B060ED910E42735001EFB22 /* oolite-long-range-chart.png in Copy Images */,
-				1A2315520B9C778400EF0852 /* solar.png in Copy Images */,
-				1A2315550B9C778400EF0852 /* trumblebox.png in Copy Images */,
-			);
-			name = "Copy Images";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A2316C80B9CFAB800EF0852 /* Copy Config */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Config;
-			dstSubfolderSpec = 7;
-			files = (
-				1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */,
-				2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */,
-				1A2123271051892500530CDE /* shipdata-overrides.plist in Copy Config */,
-				2B060ED510E42715001EFB22 /* screenbackgrounds.plist in Copy Config */,
-				1ABC04270EF872B7003B740A /* crosshairs.plist in Copy Config */,
-				1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */,
-				1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */,
-				1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */,
-				1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */,
-				1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */,
-				1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */,
-				1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */,
-				1A3591830C1C382700E52220 /* nebulatextures.plist in Copy Config */,
-				1A3591840C1C382700E52220 /* startextures.plist in Copy Config */,
-				1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */,
-				1A86D4F11825853D00000F67 /* role-categories.plist in Copy Config */,
-				1A2316EE0B9CFAD700EF0852 /* characters.plist in Copy Config */,
-				1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */,
-				1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */,
-				1A2316F10B9CFAD700EF0852 /* demoships.plist in Copy Config */,
-				1A2316F30B9CFAD700EF0852 /* equipment.plist in Copy Config */,
-				1A2316F40B9CFAD700EF0852 /* hud-small.plist in Copy Config */,
-				1A2316F50B9CFAD700EF0852 /* hud.plist in Copy Config */,
-				1A2316F60B9CFAD700EF0852 /* illegal_goods.plist in Copy Config */,
-				1A2316F70B9CFAD700EF0852 /* keyconfig.plist in Copy Config */,
-				1A2316F80B9CFAD700EF0852 /* logcontrol.plist in Copy Config */,
-				1A2316F90B9CFAD700EF0852 /* missiontext.plist in Copy Config */,
-				1A2316FB0B9CFAD700EF0852 /* shipdata.plist in Copy Config */,
-				1A2316FC0B9CFAD800EF0852 /* shipyard.plist in Copy Config */,
-				1A2316FD0B9CFAD800EF0852 /* speech_pronunciation_guide.plist in Copy Config */,
-				1A7C27CA14FA70A500F2D2A8 /* shader-uniform-bindings.plist in Copy Config */,
-				1AAF565A0F1A27EA00A2F2E6 /* whitelist.plist in Copy Config */,
-			);
-			name = "Copy Config";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A2317D50B9D023400EF0852 /* Copy AIs */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = AIs;
-			dstSubfolderSpec = 7;
-			files = (
-				1AC83179155534ED0032448F /* fleeQMineAI.plist in Copy AIs */,
-				1AC8317A155534ED0032448F /* respondQMineAI.plist in Copy AIs */,
-				1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */,
-				1A644E221052AA0100833636 /* traderInterceptAI.plist in Copy AIs */,
-				1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */,
-				1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */,
-				1A2317B30B9D022500EF0852 /* buoyAI.plist in Copy AIs */,
-				1A2317B40B9D022500EF0852 /* collectLootAI.plist in Copy AIs */,
-				1A2317B50B9D022500EF0852 /* dockingAI.plist in Copy AIs */,
-				1A2317B60B9D022500EF0852 /* dumbAI.plist in Copy AIs */,
-				1A2317B70B9D022500EF0852 /* enteringPirateAI.plist in Copy AIs */,
-				1A2317B80B9D022500EF0852 /* enteringTraderAI.plist in Copy AIs */,
-				1A2317B90B9D022500EF0852 /* escortAI.plist in Copy AIs */,
-				1A2317BA0B9D022500EF0852 /* exitingTraderAI.plist in Copy AIs */,
-				1A2317BB0B9D022500EF0852 /* fallingShuttleAI.plist in Copy AIs */,
-				1A2317BC0B9D022500EF0852 /* fttAI.plist in Copy AIs */,
-				1A2317BD0B9D022500EF0852 /* gotoWaypointAI.plist in Copy AIs */,
-				1A2317BE0B9D022500EF0852 /* hardMissileAI.plist in Copy AIs */,
-				1A2317BF0B9D022500EF0852 /* homeAI.plist in Copy AIs */,
-				1A2317C00B9D022500EF0852 /* interceptAI.plist in Copy AIs */,
-				1A2317C10B9D022500EF0852 /* minerAI.plist in Copy AIs */,
-				1A2317C20B9D022500EF0852 /* missileAI.plist in Copy AIs */,
-				1A2317C30B9D022500EF0852 /* nullAI.plist in Copy AIs */,
-				1A2317C40B9D022500EF0852 /* pirateAI.plist in Copy AIs */,
-				1A2317C50B9D022500EF0852 /* planetPatrolAI.plist in Copy AIs */,
-				1A2317C60B9D022500EF0852 /* policeInterceptAI.plist in Copy AIs */,
-				1A2317C70B9D022500EF0852 /* receiveDockingAI.plist in Copy AIs */,
-				1A2317C80B9D022500EF0852 /* risingShuttleAI.plist in Copy AIs */,
-				1A2317C90B9D022500EF0852 /* rockHermitAI.plist in Copy AIs */,
-				1A2317CA0B9D022500EF0852 /* route1patrolAI.plist in Copy AIs */,
-				1A2317CB0B9D022500EF0852 /* route1traderAI.plist in Copy AIs */,
-				1A2317CC0B9D022500EF0852 /* route2patrolAI.plist in Copy AIs */,
-				1A2317CD0B9D022500EF0852 /* route2sunskimAI.plist in Copy AIs */,
-				1A2317CE0B9D022500EF0852 /* scavengerAI.plist in Copy AIs */,
-				1A2317D00B9D022500EF0852 /* stationAI.plist in Copy AIs */,
-				1A2317D10B9D022500EF0852 /* sunSkimExitAI.plist in Copy AIs */,
-				1A2317D20B9D022500EF0852 /* thargletAI.plist in Copy AIs */,
-				1A2317D30B9D022500EF0852 /* thargoidAI.plist in Copy AIs */,
-				1A2317D40B9D022500EF0852 /* timebombAI.plist in Copy AIs */,
-				1A7E3A1D180AD05500576095 /* oolite-assassinAI.js in Copy AIs */,
-				1A7E3A1E180AD05500576095 /* oolite-bountyHunterAI.js in Copy AIs */,
-				1A7E3A1F180AD05500576095 /* oolite-bountyHunterLeaderAI.js in Copy AIs */,
-				1A7E3A20180AD05500576095 /* oolite-constrictorAI.js in Copy AIs */,
-				1A7E3A21180AD05500576095 /* oolite-defenseShipAI.js in Copy AIs */,
-				1A7E3A22180AD05500576095 /* oolite-escortAI.js in Copy AIs */,
-				1A7E3A23180AD05500576095 /* oolite-missileAI.js in Copy AIs */,
-				1A7E3A24180AD05500576095 /* oolite-nullAI.js in Copy AIs */,
-				1A7E3A25180AD05500576095 /* oolite-pirateAI.js in Copy AIs */,
-				1A7E3A26180AD05500576095 /* oolite-pirateFighterAI.js in Copy AIs */,
-				1A7E3A27180AD05500576095 /* oolite-pirateFreighterAI.js in Copy AIs */,
-				1A7E3A28180AD05500576095 /* oolite-pirateInterceptorAI.js in Copy AIs */,
-				1A7E3A29180AD05500576095 /* oolite-policeAI.js in Copy AIs */,
-				1A7E3A2A180AD05500576095 /* oolite-qbombAI.js in Copy AIs */,
-				1A7E3A2B180AD05500576095 /* oolite-rockHermitAI.js in Copy AIs */,
-				1A7E3A2C180AD05500576095 /* oolite-scavengerAI.js in Copy AIs */,
-				1A7E3A2D180AD05500576095 /* oolite-shuttleAI.js in Copy AIs */,
-				1A7E3A2E180AD05500576095 /* oolite-stationAI.js in Copy AIs */,
-				1A7E3A2F180AD05500576095 /* oolite-thargletAI.js in Copy AIs */,
-				1A7E3A30180AD05500576095 /* oolite-thargoidAI.js in Copy AIs */,
-				1A7E3A31180AD05500576095 /* oolite-traderAI.js in Copy AIs */,
-				1A7E3A32180AD05500576095 /* oolite-traderOpportunistAI.js in Copy AIs */,
-			);
-			name = "Copy AIs";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A2318A00B9D027400EF0852 /* Copy Textures */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Textures;
-			dstSubfolderSpec = 7;
-			files = (
-				1A7E3A35180AD09A00576095 /* oolite-particle-cloud.png in Copy Textures */,
-				1A7E3A36180AD09A00576095 /* oolite-particle-cloud2.png in Copy Textures */,
-				B3A96405165EE28F001BB5C1 /* oolite-exhaust-blur.png in Copy Textures */,
-				B3A96401165D800D001BB5C1 /* oolite-laser-blur.png in Copy Textures */,
-				B3A96402165D800D001BB5C1 /* oolite-laser-blur2.png in Copy Textures */,
-				1A0024961657B5BF00EAE045 /* oolite-star-1-alt.png in Copy Textures */,
-				1A0024971657B5BF00EAE045 /* oolite-star-1-large.png in Copy Textures */,
-				1A0024981657B5BF00EAE045 /* oolite-star-2-large.png in Copy Textures */,
-				1A0024991657B5BF00EAE045 /* oolite-star-2.png in Copy Textures */,
-				1A00249A1657B5BF00EAE045 /* oolite-star-3.png in Copy Textures */,
-				1A00249B1657B5BF00EAE045 /* oolite-star-4.png in Copy Textures */,
-				1A00249C1657B5BF00EAE045 /* oolite-star-5.png in Copy Textures */,
-				1A00249D1657B5BF00EAE045 /* oolite-star-6.png in Copy Textures */,
-				1A00249E1657B5BF00EAE045 /* oolite-star-7.png in Copy Textures */,
-				1A00249F1657B5BF00EAE045 /* oolite-star-8.png in Copy Textures */,
-				1A0024A01657B5BF00EAE045 /* oolite-star-9.png in Copy Textures */,
-				1A6C6D5D1652E05D005D1D3B /* oolite-particle-dust.png in Copy Textures */,
-				1A033FBE13268B39006F9DB7 /* asteroid.png in Copy Textures */,
-				1A817DBF106D441200AA2F97 /* oolite-particle-flash.png in Copy Textures */,
-				1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */,
-				1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */,
-				1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */,
-				1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */,
-				1A03659B0D7CA0EE00B5F46F /* oolite-nebula-4.png in Copy Textures */,
-				1ACE208F0D805F78009F6957 /* oolite-scarred-metal-specular.png in Copy Textures */,
-				1A35916D0C1C375400E52220 /* oolite-nebula-1.png in Copy Textures */,
-				1A35916E0C1C375400E52220 /* oolite-star-1.png in Copy Textures */,
-				1A35916F0C1C375400E52220 /* oolite-nebula-3.png in Copy Textures */,
-				1A3591700C1C375400E52220 /* oolite-nebula-2.png in Copy Textures */,
-				1A23185F0B9D026D00EF0852 /* adder_redux.png in Copy Textures */,
-				1A2318600B9D026D00EF0852 /* anaconda_redux.png in Copy Textures */,
-				1A2318610B9D026D00EF0852 /* arcdetail.png in Copy Textures */,
-				1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */,
-				1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */,
-				1A2318660B9D026D00EF0852 /* barrel_metal.png in Copy Textures */,
-				1A23186A0B9D026D00EF0852 /* boa2_redux.png in Copy Textures */,
-				1A23186D0B9D026D00EF0852 /* boa_redux.png in Copy Textures */,
-				1A23186E0B9D026D00EF0852 /* bottom_metal.png in Copy Textures */,
-				1A23186F0B9D026D00EF0852 /* cobra1_redux.png in Copy Textures */,
-				1A2318700B9D026D00EF0852 /* cobra1_redux1.png in Copy Textures */,
-				1A2318710B9D026D00EF0852 /* cobra1_redux2.png in Copy Textures */,
-				1A2318730B9D026D00EF0852 /* cobra3_redux.png in Copy Textures */,
-				1A2318740B9D026D00EF0852 /* cobra3_redux1.png in Copy Textures */,
-				1A2318750B9D026D00EF0852 /* constrictor_redux.png in Copy Textures */,
-				1A2318760B9D026D00EF0852 /* dark_metal.png in Copy Textures */,
-				1A2318770B9D026D00EF0852 /* ferdelance_redux.png in Copy Textures */,
-				1A2318790B9D026D00EF0852 /* front_metal.png in Copy Textures */,
-				1A23187B0B9D026D00EF0852 /* gecko_redux.png in Copy Textures */,
-				1A23187C0B9D026D00EF0852 /* krait_redux.png in Copy Textures */,
-				1A23187D0B9D026D00EF0852 /* left_metal.png in Copy Textures */,
-				1A23187E0B9D026D00EF0852 /* mamba_redux.png in Copy Textures */,
-				1A23187F0B9D026D00EF0852 /* mamba_redux1.png in Copy Textures */,
-				1A2318800B9D026D00EF0852 /* metal.png in Copy Textures */,
-				1A2318810B9D026D00EF0852 /* missile.png in Copy Textures */,
-				1A2318820B9D026D00EF0852 /* moray_redux.png in Copy Textures */,
-				1A2318830B9D026D00EF0852 /* moray_redux1.png in Copy Textures */,
-				1A23188A0B9D026D00EF0852 /* pod2_redux.png in Copy Textures */,
-				1A23188B0B9D026D00EF0852 /* python_redux.png in Copy Textures */,
-				1A23188C0B9D026D00EF0852 /* python_redux1.png in Copy Textures */,
-				1A23188D0B9D026D00EF0852 /* python_redux2.png in Copy Textures */,
-				1A23188E0B9D026D00EF0852 /* qbomb.png in Copy Textures */,
-				1A23188F0B9D026D00EF0852 /* right_metal.png in Copy Textures */,
-				1A2318900B9D026D00EF0852 /* scarred_metal.png in Copy Textures */,
-				1A2318910B9D026D00EF0852 /* shuttle_redux.png in Copy Textures */,
-				1A2318920B9D026D00EF0852 /* sidewinder_redux.png in Copy Textures */,
-				1A2318940B9D026D00EF0852 /* target_metal.png in Copy Textures */,
-				1A2318950B9D026D00EF0852 /* thargoid_redux.png in Copy Textures */,
-				1A2318960B9D026D00EF0852 /* thargon_redux.png in Copy Textures */,
-				1A2318970B9D026D00EF0852 /* top_metal.png in Copy Textures */,
-				1A2318980B9D026D00EF0852 /* transporter_redux.png in Copy Textures */,
-				1A2318990B9D026D00EF0852 /* transporter_redux1.png in Copy Textures */,
-				1A23189A0B9D026D00EF0852 /* trumblekit.png in Copy Textures */,
-				1A23189B0B9D026D00EF0852 /* viper_redux.png in Copy Textures */,
-				1A23189C0B9D026D00EF0852 /* viperi_redux.png in Copy Textures */,
-				1A23189D0B9D026D00EF0852 /* worm_redux.png in Copy Textures */,
-				1A23189E0B9D026D00EF0852 /* worm_redux1.png in Copy Textures */,
-				1A23189F0B9D026D00EF0852 /* wreck.png in Copy Textures */,
-				1A89CC3C1825340E00A4E455 /* oolite_barrel_diffuse.png in Copy Textures */,
-				1A89CC3D1825340E00A4E455 /* oolite_barrel2_diffuse.png in Copy Textures */,
-				1A89CC3E1825340E00A4E455 /* oolite_boa_diffuse.png in Copy Textures */,
-				1A89CC3F1825340E00A4E455 /* oolite_boa_subents.png in Copy Textures */,
-				1A89CC401825340E00A4E455 /* oolite_boa-mk2_diffuse.png in Copy Textures */,
-				1A89CC411825340E00A4E455 /* oolite_boa-mk2_subents.png in Copy Textures */,
-				1A89CC421825340E00A4E455 /* oolite_cobra3_diffuse_alt.png in Copy Textures */,
-				1A89CC431825340F00A4E455 /* oolite_cobra3_diffuse_pirate.png in Copy Textures */,
-				1A89CC441825340F00A4E455 /* oolite_cobra3_diffuse.png in Copy Textures */,
-				1A89CC451825340F00A4E455 /* oolite_cobra3_subents.png in Copy Textures */,
-				1A89CC461825340F00A4E455 /* oolite_cobramk1_diffuse_alt.png in Copy Textures */,
-				1A89CC471825340F00A4E455 /* oolite_cobramk1_diffuse_miner.png in Copy Textures */,
-				1A89CC481825340F00A4E455 /* oolite_cobramk1_diffuse.png in Copy Textures */,
-				1A89CC491825340F00A4E455 /* oolite_constrictor_diffuse.png in Copy Textures */,
-				1A89CC4A1825340F00A4E455 /* oolite_constrictor_subents.png in Copy Textures */,
-				1A89CC4B1825340F00A4E455 /* oolite_coriolis_diffuse.png in Copy Textures */,
-				1A89CC4C1825340F00A4E455 /* oolite_coriolis_dock_diffuse.png in Copy Textures */,
-				1A89CC4D1825340F00A4E455 /* oolite_coriolis_faceplate_diffuse.png in Copy Textures */,
-				1A89CC4E1825340F00A4E455 /* oolite_coriolis_tris_diffuse.png in Copy Textures */,
-				1A89CC4F1825340F00A4E455 /* oolite_dodo_diffuse.png in Copy Textures */,
-				1A89CC501825340F00A4E455 /* oolite_dodo_dock_diffuse.png in Copy Textures */,
-				1A89CC511825340F00A4E455 /* oolite_dodo_faceplate_diffuse.png in Copy Textures */,
-				1A89CC521825340F00A4E455 /* oolite_escape_capsule_diffuse.png in Copy Textures */,
-				1A89CC531825340F00A4E455 /* oolite_ferdelance_diffuse.png in Copy Textures */,
-				1A89CC541825340F00A4E455 /* oolite_ferdelance_subents.png in Copy Textures */,
-				1A89CC551825340F00A4E455 /* oolite_gecko_diffuse.png in Copy Textures */,
-				1A89CC561825340F00A4E455 /* oolite_gecko_subents.png in Copy Textures */,
-				1A89CC571825340F00A4E455 /* oolite_ico_diffuse.png in Copy Textures */,
-				1A89CC581825340F00A4E455 /* oolite_ico_dock_diffuse.png in Copy Textures */,
-				1A89CC591825340F00A4E455 /* oolite_ico_hull_diffuse.png in Copy Textures */,
-				1A89CC5A1825340F00A4E455 /* oolite_krait_diffuse.png in Copy Textures */,
-				1A89CC5B1825340F00A4E455 /* oolite_mamba_diffuse_escort.png in Copy Textures */,
-				1A89CC5C1825340F00A4E455 /* oolite_mamba_diffuse.png in Copy Textures */,
-				1A89CC5D1825340F00A4E455 /* oolite_mamba_subents.png in Copy Textures */,
-				1A89CC5E1825340F00A4E455 /* oolite_missile_diffuse.png in Copy Textures */,
-				1A89CC5F1825340F00A4E455 /* oolite_missile_hardhead_diffuse.png in Copy Textures */,
-				1A89CC601825340F00A4E455 /* oolite_moray_diffuse_med.png in Copy Textures */,
-				1A89CC611825340F00A4E455 /* oolite_moray_diffuse.png in Copy Textures */,
-				1A89CC621825340F00A4E455 /* oolite_moray_subents.png in Copy Textures */,
-				1A89CC631825340F00A4E455 /* oolite_python_diffuse_blackdog.png in Copy Textures */,
-				1A89CC641825340F00A4E455 /* oolite_python_diffuse_trader.png in Copy Textures */,
-				1A89CC651825340F00A4E455 /* oolite_python_diffuse.png in Copy Textures */,
-				1A89CC661825340F00A4E455 /* oolite_python_subents_trader.png in Copy Textures */,
-				1A89CC671825340F00A4E455 /* oolite_python_subents.png in Copy Textures */,
-				1A89CC681825340F00A4E455 /* oolite_rock_hermit_diffuse.png in Copy Textures */,
-				1A89CC691825340F00A4E455 /* oolite_rock_hermit_dock_diffuse.png in Copy Textures */,
-				1A89CC6A1825340F00A4E455 /* oolite_rock_hermit_pipes_diffuse.png in Copy Textures */,
-				1A89CC6B1825340F00A4E455 /* oolite_rock_hermit_rock_diffuse.png in Copy Textures */,
-				1A89CC6C1825340F00A4E455 /* oolite_rock_hermit_tunnel_extras_diffuse.png in Copy Textures */,
-				1A89CC6D1825340F00A4E455 /* oolite_shuttle_diffuse.png in Copy Textures */,
-				1A89CC6E1825340F00A4E455 /* oolite_sidewinder_diffuse_escort.png in Copy Textures */,
-				1A89CC6F1825340F00A4E455 /* oolite_sidewinder_diffuse.png in Copy Textures */,
-				1A89CC701825340F00A4E455 /* oolite_thargoid_diffuse.png in Copy Textures */,
-				1A89CC711825340F00A4E455 /* oolite_thargon_diffuse.png in Copy Textures */,
-				1A89CC721825340F00A4E455 /* oolite_transporter_diffuse_miner.png in Copy Textures */,
-				1A89CC731825340F00A4E455 /* oolite_transporter_diffuse.png in Copy Textures */,
-				1A89CC741825340F00A4E455 /* oolite_viper_diffuse_pursuit.png in Copy Textures */,
-				1A89CC751825340F00A4E455 /* oolite_viper_diffuse.png in Copy Textures */,
-				1A89CC761825340F00A4E455 /* oolite_viper_interceptor_diffuse.png in Copy Textures */,
-				1A89CC771825340F00A4E455 /* oolite_worm_diffuse_miner.png in Copy Textures */,
-				1A89CC781825340F00A4E455 /* oolite_worm_diffuse.png in Copy Textures */,
-				1A89CC791825340F00A4E455 /* oolite_adder_diffuse.png in Copy Textures */,
-				1A89CC7A1825340F00A4E455 /* oolite_anaconda_diffuse.png in Copy Textures */,
-				1A89CC7B1825340F00A4E455 /* oolite_anaconda_subents.png in Copy Textures */,
-				1A89CC7C1825340F00A4E455 /* oolite_asp_diffuse.png in Copy Textures */,
-				1A89CC7D1825340F00A4E455 /* oolite_asp_subents.png in Copy Textures */,
-			);
-			name = "Copy Textures";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A2319640B9D02B900EF0852 /* Copy Models */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Models;
-			dstSubfolderSpec = 7;
-			files = (
-				1A89CBCD182533D900A4E455 /* oolite_adder.dat in Copy Models */,
-				1A89CBCE182533D900A4E455 /* oolite_anaconda.dat in Copy Models */,
-				1A89CBCF182533D900A4E455 /* oolite_asp.dat in Copy Models */,
-				1A89CBD0182533D900A4E455 /* oolite_barrel.dat in Copy Models */,
-				1A89CBD1182533D900A4E455 /* oolite_barrel2.dat in Copy Models */,
-				1A89CBD2182533D900A4E455 /* oolite_boa-mk2.dat in Copy Models */,
-				1A89CBD3182533D900A4E455 /* oolite_boa.dat in Copy Models */,
-				1A89CBD4182533D900A4E455 /* oolite_cobra3.dat in Copy Models */,
-				1A89CBD5182533D900A4E455 /* oolite_cobramk1.dat in Copy Models */,
-				1A89CBD6182533D900A4E455 /* oolite_constrictor.dat in Copy Models */,
-				1A89CBD7182533D900A4E455 /* oolite_coriolis_dock.dat in Copy Models */,
-				1A89CBD8182533D900A4E455 /* oolite_coriolis_faceplate.dat in Copy Models */,
-				1A89CBD9182533D900A4E455 /* oolite_coriolis_tris.dat in Copy Models */,
-				1A89CBDA182533D900A4E455 /* oolite_coriolis.dat in Copy Models */,
-				1A89CBDB182533D900A4E455 /* oolite_dodo_dock.dat in Copy Models */,
-				1A89CBDC182533D900A4E455 /* oolite_dodo_faceplate.dat in Copy Models */,
-				1A89CBDD182533D900A4E455 /* oolite_dodo.dat in Copy Models */,
-				1A89CBDE182533D900A4E455 /* oolite_escape_capsule.dat in Copy Models */,
-				1A89CBDF182533D900A4E455 /* oolite_ferdelance.dat in Copy Models */,
-				1A89CBE0182533D900A4E455 /* oolite_gecko.dat in Copy Models */,
-				1A89CBE1182533D900A4E455 /* oolite_ico_dock.dat in Copy Models */,
-				1A89CBE2182533D900A4E455 /* oolite_ico_hull.dat in Copy Models */,
-				1A89CBE3182533D900A4E455 /* oolite_ico.dat in Copy Models */,
-				1A89CBE4182533D900A4E455 /* oolite_krait.dat in Copy Models */,
-				1A89CBE5182533D900A4E455 /* oolite_mamba.dat in Copy Models */,
-				1A89CBE6182533D900A4E455 /* oolite_missile_hardhead.dat in Copy Models */,
-				1A89CBE7182533D900A4E455 /* oolite_missile.dat in Copy Models */,
-				1A89CBE8182533D900A4E455 /* oolite_moray.dat in Copy Models */,
-				1A89CBE9182533D900A4E455 /* oolite_python_trader.dat in Copy Models */,
-				1A89CBEA182533D900A4E455 /* oolite_python.dat in Copy Models */,
-				1A89CBEB182533D900A4E455 /* oolite_rock_hermit_dock.dat in Copy Models */,
-				1A89CBEC182533D900A4E455 /* oolite_rock_hermit_pipes.dat in Copy Models */,
-				1A89CBED182533D900A4E455 /* oolite_rock_hermit_rock.dat in Copy Models */,
-				1A89CBEE182533D900A4E455 /* oolite_rock_hermit_tunnel_extras.dat in Copy Models */,
-				1A89CBEF182533D900A4E455 /* oolite_rock_hermit.dat in Copy Models */,
-				1A89CBF0182533D900A4E455 /* oolite_shuttle.dat in Copy Models */,
-				1A89CBF1182533D900A4E455 /* oolite_sidewinder_escort.dat in Copy Models */,
-				1A89CBF2182533D900A4E455 /* oolite_sidewinder.dat in Copy Models */,
-				1A89CBF3182533D900A4E455 /* oolite_thargoid.dat in Copy Models */,
-				1A89CBF4182533D900A4E455 /* oolite_thargon.dat in Copy Models */,
-				1A89CBF5182533D900A4E455 /* oolite_transporter.dat in Copy Models */,
-				1A89CBF6182533D900A4E455 /* oolite_viper_interceptor.dat in Copy Models */,
-				1A89CBF7182533D900A4E455 /* oolite_viper.dat in Copy Models */,
-				1A89CBF8182533D900A4E455 /* oolite_worm.dat in Copy Models */,
-				1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */,
-				1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */,
-				1A2318E50B9D02AA00EF0852 /* adder_redux.dat in Copy Models */,
-				1A2318E60B9D02AA00EF0852 /* alloy.dat in Copy Models */,
-				1A2318E70B9D02AA00EF0852 /* anaconda_redux.dat in Copy Models */,
-				1A2318E80B9D02AA00EF0852 /* arcdetail.dat in Copy Models */,
-				1A2318E90B9D02AA00EF0852 /* asp_redux.dat in Copy Models */,
-				1A2318EA0B9D02AA00EF0852 /* asteroid.dat in Copy Models */,
-				1A2318EB0B9D02AA00EF0852 /* asteroid1.dat in Copy Models */,
-				1A2318EC0B9D02AA00EF0852 /* barrel.dat in Copy Models */,
-				1A2318ED0B9D02AA00EF0852 /* boa2_redux.dat in Copy Models */,
-				1A2318EE0B9D02AA00EF0852 /* boa_redux.dat in Copy Models */,
-				1A2318EF0B9D02AA00EF0852 /* boulder.dat in Copy Models */,
-				1A2318F00B9D02AA00EF0852 /* boulder1.dat in Copy Models */,
-				1A2318F10B9D02AA00EF0852 /* buoy.dat in Copy Models */,
-				1A2318F20B9D02AA00EF0852 /* cobra1_redux.dat in Copy Models */,
-				1A2318F50B9D02AA00EF0852 /* cobra3_redux.dat in Copy Models */,
-				1A2318F70B9D02AA00EF0852 /* constrictor_redux.dat in Copy Models */,
-				1A2318F80B9D02AA00EF0852 /* dock-flat.dat in Copy Models */,
-				1A2318F90B9D02AA00EF0852 /* dock.dat in Copy Models */,
-				1A2318FA0B9D02AA00EF0852 /* escpod_redux.dat in Copy Models */,
-				1A2318FC0B9D02AA00EF0852 /* ferdelance_redux.dat in Copy Models */,
-				1A2318FD0B9D02AA00EF0852 /* gecko_redux.dat in Copy Models */,
-				1A2319000B9D02AA00EF0852 /* krait_redux.dat in Copy Models */,
-				1A2319010B9D02AA00EF0852 /* mamba_redux.dat in Copy Models */,
-				1A2319030B9D02AA00EF0852 /* missile.dat in Copy Models */,
-				1A2319040B9D02AA00EF0852 /* moray_redux.dat in Copy Models */,
-				1A2319060B9D02AA00EF0852 /* new-dodo.dat in Copy Models */,
-				1A2319070B9D02AA00EF0852 /* new-icos.dat in Copy Models */,
-				1A2319080B9D02AA00EF0852 /* new-rock.dat in Copy Models */,
-				1A2319090B9D02AA00EF0852 /* new_coriolis.dat in Copy Models */,
-				1A23190A0B9D02AA00EF0852 /* python_redux.dat in Copy Models */,
-				1A23190D0B9D02AA00EF0852 /* qbomb.dat in Copy Models */,
-				1A23190E0B9D02AA00EF0852 /* ring.dat in Copy Models */,
-				1A23190F0B9D02AA00EF0852 /* rock-box.dat in Copy Models */,
-				1A2319100B9D02AA00EF0852 /* rock-dock.dat in Copy Models */,
-				1A2319110B9D02AA00EF0852 /* scarred_alloy.dat in Copy Models */,
-				1A2319120B9D02AA00EF0852 /* shuttle_redux.dat in Copy Models */,
-				1A2319130B9D02AA00EF0852 /* sidewinder_redux.dat in Copy Models */,
-				1A2319140B9D02AA00EF0852 /* splinter.dat in Copy Models */,
-				1A2319150B9D02AA00EF0852 /* splinter1.dat in Copy Models */,
-				1A2319160B9D02AA00EF0852 /* strut.dat in Copy Models */,
-				1A2319170B9D02AA00EF0852 /* thargoid_redux.dat in Copy Models */,
-				1A2319180B9D02AA00EF0852 /* thargon_redux.dat in Copy Models */,
-				1A2319190B9D02AA00EF0852 /* transporter_redux.dat in Copy Models */,
-				1A23191B0B9D02AA00EF0852 /* viper_redux.dat in Copy Models */,
-				1A23191C0B9D02AA00EF0852 /* viperi_redux.dat in Copy Models */,
-				1A23191D0B9D02AA00EF0852 /* worm_redux.dat in Copy Models */,
-				1A23191F0B9D02AA00EF0852 /* wreck1.dat in Copy Models */,
-				1A2319200B9D02AA00EF0852 /* wreck2.dat in Copy Models */,
-				1A2319210B9D02AA00EF0852 /* wreck3.dat in Copy Models */,
-				1A2319220B9D02AA00EF0852 /* wreck4.dat in Copy Models */,
-				1A2319230B9D02AA00EF0852 /* wreck5.dat in Copy Models */,
-			);
-			name = "Copy Models";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A2319780B9D030400EF0852 /* Copy Music */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Music;
-			dstSubfolderSpec = 7;
-			files = (
-				1A2319760B9D02F900EF0852 /* BlueDanube.ogg in Copy Music */,
-				1A2319770B9D02F900EF0852 /* OoliteTheme.ogg in Copy Music */,
-			);
-			name = "Copy Music";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A2319BA0B9D032700EF0852 /* Copy Sounds */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Sounds;
-			dstSubfolderSpec = 7;
-			files = (
-				1A2319A60B9D031D00EF0852 /* afterburner1.ogg in Copy Sounds */,
-				1A2319A80B9D031D00EF0852 /* beep.ogg in Copy Sounds */,
-				1A2319A90B9D031D00EF0852 /* bigbang.ogg in Copy Sounds */,
-				1A2319AA0B9D031D00EF0852 /* boop.ogg in Copy Sounds */,
-				1A2319AB0B9D031D00EF0852 /* breakpattern.ogg in Copy Sounds */,
-				1A2319AC0B9D031D00EF0852 /* buy.ogg in Copy Sounds */,
-				1A2319AD0B9D031D00EF0852 /* ecm.ogg in Copy Sounds */,
-				1A2319AE0B9D031D00EF0852 /* guiclick.ogg in Copy Sounds */,
-				1A2319AF0B9D031D00EF0852 /* hit.ogg in Copy Sounds */,
-				1A2319B00B9D031D00EF0852 /* hullbang.ogg in Copy Sounds */,
-				1A2319B10B9D031D00EF0852 /* laser.ogg in Copy Sounds */,
-				1A2319B20B9D031D00EF0852 /* laserhits.ogg in Copy Sounds */,
-				1A2319B30B9D031D00EF0852 /* missile.ogg in Copy Sounds */,
-				1A2319B40B9D031D00EF0852 /* scoop.ogg in Copy Sounds */,
-				1A2319B50B9D031D00EF0852 /* sell.ogg in Copy Sounds */,
-				1A2319B60B9D031D00EF0852 /* trumble.ogg in Copy Sounds */,
-				1A2319B70B9D031D00EF0852 /* trumblesqueal.ogg in Copy Sounds */,
-				1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */,
-				1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */,
-			);
-			name = "Copy Sounds";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A3491320BC25ED400802DA7 /* Copy Scripts */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Scripts;
-			dstSubfolderSpec = 7;
-			files = (
-				1A89CC82182534B600A4E455 /* oolite-primable-equipment-manager.js in Copy Scripts */,
-				1A89CC801825349F00A4E455 /* oolite-cloaking-device-equipment.js in Copy Scripts */,
-				1A7E3A38180AD0E100576095 /* oolite-priorityai.js in Copy Scripts */,
-				1AB23F07165A5A8C00642977 /* oolite-conditions.js in Copy Scripts */,
-				1A02B4C61643DFF80013749D /* oolite-contracts-cargo.js in Copy Scripts */,
-				1A02B4C71643DFF80013749D /* oolite-contracts-helpers.js in Copy Scripts */,
-				1A02B4C81643DFF80013749D /* oolite-contracts-passengers.js in Copy Scripts */,
-				1A38E9E71603C92A00EE19F1 /* oolite-contracts-parcels.js in Copy Scripts */,
-				1A5ABE6B15FBC86F006C97DC /* oolite-default-effect-script.js in Copy Scripts */,
-				1AE45E5A12EB177B00B570E1 /* oolite-constrictor-pilot.js in Copy Scripts */,
-				1AE45E5C12EB178100B570E1 /* oolite-locale-functions.js in Copy Scripts */,
-				1A01BC7011C5515B0011197F /* oolite-default-player-script.js in Copy Scripts */,
-				1A572FC30D84B640003D4A26 /* oolite-nova-mission.js in Copy Scripts */,
-				1A572FC40D84B640003D4A26 /* oolite-thargoid-plans-mission.js in Copy Scripts */,
-				1A572FC50D84B640003D4A26 /* oolite-trumbles-mission.js in Copy Scripts */,
-				1A572FC60D84B640003D4A26 /* oolite-default-ship-script.js in Copy Scripts */,
-				1A572FC70D84B640003D4A26 /* oolite-cloaking-device-mission.js in Copy Scripts */,
-				1A572FC80D84B640003D4A26 /* oolite-constrictor.js in Copy Scripts */,
-				1A572FC90D84B640003D4A26 /* oolite-constrictor-hunt-mission.js in Copy Scripts */,
-				1A572FCA0D84B640003D4A26 /* oolite-cloaking-device-target-ship.js in Copy Scripts */,
-				1A572FCB0D84B640003D4A26 /* oolite-cloaking-device-pod.js in Copy Scripts */,
-				1A572FCC0D84B640003D4A26 /* oolite-global-prefix.js in Copy Scripts */,
-				1AAADFBC17CB25960032C68B /* oolite-populator.js in Copy Scripts */,
-				1A572FCD0D84B640003D4A26 /* oolite-thargoid-warship.js in Copy Scripts */,
-				1AAADFBE17CB25A90032C68B /* oolite-registership.js in Copy Scripts */,
-			);
-			name = "Copy Scripts";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		1A5BF29C0916D49800BF238F /* Copy MDImporter */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -1543,23 +688,6 @@
 				1A3E019B11C574C2000FF226 /* Oolite.mdimporter in Copy MDImporter */,
 			);
 			name = "Copy MDImporter";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A6514FE0CCC9D7A0054D01B /* Copy Shaders */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Shaders;
-			dstSubfolderSpec = 7;
-			files = (
-				B3460D4515285BF1002592D0 /* oolite-default-planet.fragment in Copy Shaders */,
-				B3460D4615285BF1002592D0 /* oolite-default-planet.vertex in Copy Shaders */,
-				1A0C3EEB11933274007935E5 /* oolite-dust.fragment in Copy Shaders */,
-				1A0C3EDE11933076007935E5 /* oolite-dust.vertex in Copy Shaders */,
-				1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */,
-				1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */,
-				1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */,
-			);
-			name = "Copy Shaders";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1AE8837812EF91880075814F /* Copy Frameworks */ = {
@@ -4281,15 +3409,7 @@
 				0865431B06B8447D000CA0AB /* Frameworks */,
 				0865424C06B8447D000CA0AB /* Resources */,
 				1A5BF29C0916D49800BF238F /* Copy MDImporter */,
-				1A23153A0B9C773B00EF0852 /* Copy Images */,
-				1A2316C80B9CFAB800EF0852 /* Copy Config */,
-				1A2317D50B9D023400EF0852 /* Copy AIs */,
-				1A2318A00B9D027400EF0852 /* Copy Textures */,
-				1A2319640B9D02B900EF0852 /* Copy Models */,
-				1A2319780B9D030400EF0852 /* Copy Music */,
-				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
-				1A3491320BC25ED400802DA7 /* Copy Scripts */,
-				1A6514FE0CCC9D7A0054D01B /* Copy Shaders */,
+				1A2CC5F118293E380060285F /* Copy Game Resources */,
 				1AA2E7471191E4B400DFBA23 /* Copy Schemata */,
 				1AE8837812EF91880075814F /* Copy Frameworks */,
 			);
@@ -4479,6 +3599,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		1A2CC5F118293E380060285F /* Copy Game Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Game Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/tools/resource-management/copy-game-resources\" \"$SRCROOT/Resources\" \"$GAME_RESOURCES_DIR\"\n";
+		};
 		1A7E3A06180AC8D400576095 /* Conditionally copy Debug Bundle */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -4826,8 +3960,8 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
 				);
+				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -4843,9 +3977,6 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
-				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
-				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
-				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				IBC_WARNINGS = NO;
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
@@ -4854,14 +3985,10 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
-				WARNING_CFLAGS = (
-					"-Wextra",
-					$OO_WARNING_FLAGS,
-				);
+				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -4879,8 +4006,8 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
 				);
+				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
@@ -4892,9 +4019,6 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
-				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
-				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
-				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				IBC_WARNINGS = NO;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				LIBRARY_SEARCH_PATHS = (
@@ -4903,11 +4027,9 @@
 				);
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
-				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
 			};
 			name = Deployment;
 		};
@@ -4917,9 +4039,7 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-DLOADSAVEGUI";
 			};
 			name = Debug;
 		};
@@ -4928,8 +4048,6 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				OTHER_CFLAGS = "-DLOADSAVEGUI";
 			};
 			name = Deployment;
 		};
@@ -4940,14 +4058,13 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
-				COPY_SCR_SHIM = 1;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
 					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
 				);
+				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DEBUGGING_SYMBOLS = used;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
 					"DEBUG_GRAPHVIZ=1",
@@ -4956,9 +4073,6 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "$(SDKROOT)/usr/include/libkern/";
-				HEADER_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/src/Core/\"";
-				HEADER_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/src/Core/Entites/\"";
-				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				IBC_WARNINGS = NO;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				LIBRARY_SEARCH_PATHS = (
@@ -4967,11 +4081,9 @@
 				);
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
-				TEST_AFTER_BUILD = YES;
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = $OO_WARNING_FLAGS;
 				WRAPPER_EXTENSION = app;
-				ZERO_LINK = NO;
 			};
 			name = TestRelease;
 		};
@@ -4980,8 +4092,6 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
-				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				OTHER_CFLAGS = "-DLOADSAVEGUI";
 			};
 			name = TestRelease;
 		};

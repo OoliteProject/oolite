@@ -191,6 +191,11 @@ MA 02110-1301, USA.
 #define TEXT_KEY				@"text"
 #define RGB_COLOR_KEY			@"rgb_color"
 #define COLOR_KEY				@"color"
+#define COLOR_KEY_LOW			@"color_low"
+#define COLOR_KEY_MEDIUM		@"color_medium"
+#define COLOR_KEY_HIGH			@"color_high"
+#define COLOR_KEY_CRITICAL		@"color_critical"
+#define COLOR_KEY_SURROUND		@"color_surround"
 #define N_BARS_KEY				@"n_bars"
 
 #define ROWS_KEY				@"rows"

@@ -2298,7 +2298,6 @@ this._hermitAllegiance = function(position,government)
 	// default hermit status, allows all dockings but pirates will tend to
 	// go elsewhere. We set this in shipdata but a shipset might not
 	var allegiance = "neutral"; 
-	log("hermit.calc",Math.floor(Math.abs(position.z)) % 4,Math.floor(Math.abs(position.y)) % 4,Math.floor(Math.abs(position.x)) % 4,government);
 	if ((Math.floor(Math.abs(position.z)) % 4) * (Math.floor(Math.abs(position.y)) % 4) > government)
 	{
 		// pirates will use this hermit for docking and launching, but
@@ -2311,7 +2310,6 @@ this._hermitAllegiance = function(position,government)
 			allegiance = "pirate";
 		}
 	}
-	log("hermit.calc",allegiance);
 	return allegiance;
 }
 

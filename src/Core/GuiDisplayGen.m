@@ -1812,7 +1812,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSDictionary	*markedDestinations = [player markedDestinations];
 	NSDictionary	*systemData = nil;
 	NSUInteger		systemParameter;
-	GLfloat			r, g, b;
+	GLfloat			r = 1.0, g = 1.0, b = 1.0;
 	BOOL			noNova;
 
 	BOOL		*systemsFound = [UNIVERSE systemsFound];

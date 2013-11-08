@@ -60,6 +60,15 @@ MA 02110-1301, USA.
 #define	WIDGET_SELECTOR				2
 
 
+/* Convenience macros to make set-colour-or-default quicker. 'info' must be the NSDictionary and 'alpha' must be the overall alpha or these won't work */
+#define DO_SET_COLOR(t,d)		SetGLColourFromInfo(info,t,d,alpha)
+#define SET_COLOR(d)			DO_SET_COLOR(COLOR_KEY,d)
+#define SET_COLOR_LOW(d)		DO_SET_COLOR(COLOR_KEY_LOW,d)
+#define SET_COLOR_MEDIUM(d)		DO_SET_COLOR(COLOR_KEY_MEDIUM,d)
+#define SET_COLOR_HIGH(d)		DO_SET_COLOR(COLOR_KEY_HIGH,d)
+#define SET_COLOR_CRITICAL(d)	DO_SET_COLOR(COLOR_KEY_CRITICAL,d)
+#define SET_COLOR_SURROUND(d)	DO_SET_COLOR(COLOR_KEY_SURROUND,d)
+
 struct CachedInfo
 {
 	float x, y, x0, y0;
@@ -76,6 +85,7 @@ OOINLINE float useDefined(float val, float validVal)
 
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
 
+static void SetGLColourFromInfo(NSDictionary *info, NSString *key, const GLfloat defaultColor[4], GLfloat alpha);
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4]);
 
 static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
@@ -1738,7 +1748,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
 	
 	
-	GLColorWithOverallAlpha(green_color, alpha);
+	SET_COLOR_SURROUND(green_color);
 	if (draw_surround)
 	{
 		// draw speed surround
@@ -1746,9 +1756,17 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	}
 	// draw speed bar
 	if (ds > .80)
-		GLColorWithOverallAlpha(red_color, alpha);
+	{
+		SET_COLOR_HIGH(red_color);
+	}
 	else if (ds > .25)
-		GLColorWithOverallAlpha(yellow_color, alpha);
+	{
+		SET_COLOR_MEDIUM(yellow_color);
+	}
+	else
+	{
+		SET_COLOR_LOW(green_color);
+	}
 
 	hudDrawBarAt(x, y, z1, siz, ds);
 }
@@ -1774,11 +1792,11 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (draw_surround)
 	{
 		// draw ROLL surround
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw ROLL bar
-	GLColorWithOverallAlpha(yellow_color, alpha);
+	SET_COLOR(yellow_color);
 	hudDrawIndicatorAt(x, y, z1, siz, [PLAYER dialRoll]);
 }
 
@@ -1803,11 +1821,11 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (draw_surround)
 	{
 		// draw PITCH surround
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw PITCH bar
-	GLColorWithOverallAlpha(yellow_color, alpha);
+	SET_COLOR(yellow_color);
 	hudDrawIndicatorAt(x, y, z1, siz, [PLAYER dialPitch]);
 }
 
@@ -1833,11 +1851,11 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (draw_surround)
 	{
 		// draw YAW surround
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw YAW bar
-	GLColorWithOverallAlpha(yellow_color, alpha);
+	SET_COLOR(yellow_color);
 	hudDrawIndicatorAt(x, y, z1, siz, [PLAYER dialYaw]);
 }
 
@@ -1890,7 +1908,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (drawSurround)
 	{
 		// draw energy surround
-		GLColorWithOverallAlpha(yellow_color, alpha);
+		SET_COLOR_SURROUND(yellow_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	
@@ -1913,7 +1931,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 	}
 	
-	GLColorWithOverallAlpha((energyCritical ? red_color : yellow_color), alpha);	
+	if (energyCritical)
+	{
+		SET_COLOR_LOW(red_color);
+	}
+	else
+	{
+		SET_COLOR_MEDIUM(yellow_color);
+	}
 	bankY = y - (n_bars - 1) * midBank;
 	for (i = 0; i < n_bars; i++)
 	{
@@ -1953,15 +1978,22 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (draw_surround)
 	{
 		// draw forward_shield surround
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw forward_shield bar
-	GLColorWithOverallAlpha(green_color, alpha);
-	if (shield < .80)
-		GLColorWithOverallAlpha(yellow_color, alpha);
 	if (shield < .25)
-		GLColorWithOverallAlpha(red_color, alpha);
+	{
+		SET_COLOR_LOW(red_color);
+	}
+	else if (shield < .80)
+	{
+		SET_COLOR_MEDIUM(yellow_color);
+	} 
+	else
+	{
+		SET_COLOR_HIGH(green_color);
+	}
 	hudDrawBarAt(x, y, z1, siz, shield);
 }
 
@@ -1986,16 +2018,23 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	if (draw_surround)
 	{
-		// draw aft_shield surround
-		GLColorWithOverallAlpha(green_color, alpha);
+		// draw forward_shield surround
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
-	// draw aft_shield bar
-	GLColorWithOverallAlpha(green_color, alpha);
-	if (shield < .80)
-		GLColorWithOverallAlpha(yellow_color, alpha);
+	// draw forward_shield bar
 	if (shield < .25)
-		GLColorWithOverallAlpha(red_color, alpha);
+	{
+		SET_COLOR_LOW(red_color);
+	}
+	else if (shield < .80)
+	{
+		SET_COLOR_MEDIUM(yellow_color);
+	} 
+	else
+	{
+		SET_COLOR_HIGH(green_color);
+	}
 	hudDrawBarAt(x, y, z1, siz, shield);
 }
 
@@ -2020,7 +2059,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	if (draw_surround)
 	{
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	
@@ -2028,13 +2067,20 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	hr = [PLAYER dialHyperRange];
 	
 	// draw fuel bar
-	GLColorWithOverallAlpha(yellow_color, alpha);
+	SET_COLOR_MEDIUM(yellow_color);
 	hudDrawBarAt(x, y, z1, siz, fu);
 	
 	// draw range indicator
 	if (hr > 0.0f && hr <= 1.0f)
 	{
-		GLColorWithOverallAlpha([PLAYER hasSufficientFuelForJump] ? green_color : red_color, alpha);
+		if ([PLAYER hasSufficientFuelForJump])
+		{
+			SET_COLOR_HIGH(green_color);
+		}
+		else
+		{
+			SET_COLOR_LOW(red_color);
+		}
 		hudDrawMarkerAt(x, y, z1, siz, hr);
 	}
 }
@@ -2060,7 +2106,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	if (draw_surround)
 	{
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	
@@ -2070,16 +2116,16 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (temp > .80)
 	{
 		if (temp > .90 && flash)
-			GLColorWithOverallAlpha(redplus_color, alpha);
+			SET_COLOR_CRITICAL(redplus_color);
 		else
-			GLColorWithOverallAlpha(red_color, alpha);
+			SET_COLOR_HIGH(red_color);
 	}
 	else
 	{
 		if (temp > .25)
-			GLColorWithOverallAlpha(yellow_color, alpha);
+			SET_COLOR_MEDIUM(yellow_color);
 		else
-			GLColorWithOverallAlpha(green_color, alpha);
+			SET_COLOR_LOW(green_color);
 	}
 
 	[PLAYER setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([self checkPlayerInFlight]))];
@@ -2107,17 +2153,17 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	if (draw_surround)
 	{
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_SURROUND(green_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	
 	// draw weapon_temp bar (only need to call GLColor() once!)
 	if (temp > .80)
-		GLColorWithOverallAlpha(red_color, alpha);
+		SET_COLOR_HIGH(red_color);
 	else if (temp > .25)
-		GLColorWithOverallAlpha(yellow_color, alpha);
+		SET_COLOR_MEDIUM(yellow_color);
 	else
-		GLColorWithOverallAlpha(green_color, alpha);
+		SET_COLOR_LOW(green_color);
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
@@ -2142,7 +2188,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	if (draw_surround)
 	{
-		GLColorWithOverallAlpha(yellow_color, alpha);
+		SET_COLOR_SURROUND(yellow_color);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	
@@ -2153,16 +2199,16 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	if (alt < .25)
 	{
 		if (alt < .10 && flash)
-			GLColorWithOverallAlpha(redplus_color, alpha);
+			SET_COLOR_CRITICAL(redplus_color);
 		else
-			GLColorWithOverallAlpha(red_color, alpha);
+			SET_COLOR_HIGH(red_color);
 	}
 	else
 	{
 		if (alt < .75)
-			GLColorWithOverallAlpha(yellow_color, alpha);
+			SET_COLOR_MEDIUM(yellow_color);
 		else
-			GLColorWithOverallAlpha(green_color, alpha);
+			SET_COLOR_LOW(green_color);
 	}
 	
 	hudDrawBarAt(x, y, z1, siz, alt);
@@ -3872,6 +3918,26 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 }
 
 @end
+
+
+static void SetGLColourFromInfo(NSDictionary *info, NSString *key, const GLfloat defaultColor[4], GLfloat alpha)
+{
+	id			colorDesc = nil;
+	OOColor		*color = nil;
+	colorDesc = [info objectForKey:key];
+	if (colorDesc != nil)
+	{
+		color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)
+		{
+			GLfloat ioColor[4];
+			[color getRed:&ioColor[0] green:&ioColor[1] blue:&ioColor[2] alpha:&ioColor[3]];
+			GLColorWithOverallAlpha(ioColor,alpha);
+			return;
+		}	
+	}	
+	GLColorWithOverallAlpha(defaultColor,alpha);
+}
 
 
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4])
