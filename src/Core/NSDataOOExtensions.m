@@ -62,7 +62,14 @@ SOFTWARE.
 		{
 			if (!dir)
 			{
-				return [[[NSData alloc] initWithContentsOfMappedFile:path] autorelease];
+				if ([[fmgr attributesOfItemAtPath:path error:NULL] fileSize] == 0)
+				{
+					OOLog(kOOLogFileNotFound, @"Expected file but found empty file at %@", path);
+				}
+				else
+				{
+					return [[[NSData alloc] initWithContentsOfMappedFile:path] autorelease];
+				}
 			}
 			else
 			{
