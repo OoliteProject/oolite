@@ -59,8 +59,9 @@ SOFTWARE.
 
 - (void) dealloc
 {
-	[super dealloc];
+	[self hasStopped]; // make sure buffers are dequeued and deleted
 	OOAL(alDeleteSources(1, &_source));
+	[super dealloc];
 }
 
 - (void) update
