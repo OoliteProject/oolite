@@ -21,7 +21,7 @@ endif
 SRC_BIN                          = $(OBJC_PROGRAM_NAME)$(OS_EXT)
 DEST_BIN                         = $(OBJC_PROGRAM_NAME)$(EXT)$(OS_EXT)
 
-MKMANIFEST=./mkmanifest.sh
+MKMANIFEST=tools/mkmanifest.sh
 
 PROGDIR=$(OBJC_PROGRAM_NAME).app
 

@@ -3410,6 +3410,7 @@
 				0865424C06B8447D000CA0AB /* Resources */,
 				1A5BF29C0916D49800BF238F /* Copy MDImporter */,
 				1A2CC5F118293E380060285F /* Copy Game Resources */,
+				1A6D58B6182D5F3600BFB44D /* Generate Manifest */,
 				1AA2E7471191E4B400DFBA23 /* Copy Schemata */,
 				1AE8837812EF91880075814F /* Copy Frameworks */,
 			);
@@ -3612,6 +3613,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"$SRCROOT/tools/resource-management/copy-game-resources\" \"$SRCROOT/Resources\" \"$GAME_RESOURCES_DIR\"\n";
+		};
+		1A6D58B6182D5F3600BFB44D /* Generate Manifest */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate Manifest";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "tools/mkmanifest.sh > \"$GAME_RESOURCES_DIR/manifest.plist\"";
 		};
 		1A7E3A06180AC8D400576095 /* Conditionally copy Debug Bundle */ = {
 			isa = PBXShellScriptBuildPhase;
