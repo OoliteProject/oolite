@@ -960,7 +960,7 @@ static NSTimeInterval	time_last_frame;
 						NSString*	dockModeToggleMsg;
 						
 						[self setDockMode:![self dockMode]];
-						dockModeToggleMsg = [self dockMode] ? DESC(@"dock-mode-on") : DESC(@"dock-mode-off");
+						dockModeToggleMsg = [self dockMode] ? DESC(@"oolite-dock-mode-on") : DESC(@"oolite-dock-mode-off");
 						if ([self dockMode])
 						{
 							[self playDockModeOn];

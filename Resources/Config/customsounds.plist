@@ -23,8 +23,8 @@
 	"[next-missile-selected]"		= "[@click]";
 	"[weapons-online]"				= "[@beep]";
 	"[weapons-offline]"				= "[@boop]";
-	"[dock-mode-on]"				= "[@beep]";
-	"[dock-mode-off]"				= "[@boop]";
+	"[oolite-dock-mode-on]"				= "[@beep]";
+	"[oolite-dock-mode-off]"			= "[@boop]";
 	"[save-overwrite-yes]"			= "[@beep]";			// Player selects Overwrite on "are you sure you want to overwrite?" alert on save screen
 	"[save-overwrite-no]"			= "[@boop]";			// Player selects Cancel on "are you sure you want to overwrite?" alert on save screen
 	"[buy-commodity]"				= "buy.ogg";

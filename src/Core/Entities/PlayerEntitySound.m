@@ -194,13 +194,13 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 
 - (void) playDockModeOn
 {
-	[self playInterfaceBeep:@"[dock-mode-on]"];
+	[self playInterfaceBeep:@"[oolite-dock-mode-on]"];
 }
 
 
 - (void) playDockModeOff
 {
-	[self playInterfaceBeep:@"[dock-mode-off]"];
+	[self playInterfaceBeep:@"[oolite-dock-mode-off]"];
 }
 
 

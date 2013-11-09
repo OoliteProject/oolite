@@ -487,8 +487,8 @@
 	"weapon-out-of-juice"			= "Weapon system inactive (no energy left).";
 	"weapons-systems-online"		= "Weapons systems online.";
 	"weapons-systems-offline"		= "Weapons systems offline.";
-	"dock-mode-on"				= "Docking Mode Activated.";
-	"dock-mode-off"				= "Docking Mode Deactivated.";
+	"oolite-dock-mode-on"				= "Docking Mode Activated.";
+	"oolite-dock-mode-off"				= "Docking Mode Deactivated.";
 	"escape-sequence"				= "Escape sequence active.";
 	"@-ejected"						= "%@ ejected.";
 	"@-ready-to-eject"				= "Ready to eject %@.";
