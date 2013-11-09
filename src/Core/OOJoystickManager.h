@@ -100,9 +100,19 @@ enum {
 #define MAX_BUTTONS (MAX_REAL_BUTTONS + 4 * MAX_HATS)
 #define STICK_NOFUNCTION -1
 #define STICK_AXISUNASSIGNED -10.0
-#define STICK_PRECISIONDIV 98304 // 3 times more precise
+
+// Nonlinear options:
+// 0: normal gameplay
+// 1: regular normal mode, nonlinear precision mode
+// 2: nonlinear normal mode, regular precision mode
+// 3: nonlinear both modes, with cubic transform for normal, quintic transform for precision
+#define STICK_NONLINEAR_OPTION 1
+#define STICK_PRECISIONFAC 3
+//STICK_NONLINEAR1 needs to be a double between 0 and 1
+#define STICK_NONLINEAR1 0.2
+#define STICK_NONLINEAR2 (1.0-STICK_NONLINEAR1)
 #define STICK_NORMALDIV 32768
-#define STICK_PRECISIONFAC (STICK_PRECISIONDIV/STICK_NORMALDIV)
+#define STICK_PRECISIONDIV (STICK_PRECISIONFAC*STICK_NORMALDIV)
 
 #if OOLITE_MAC_OS_X
 #define STICK_DEADZONE	0.0025
@@ -231,6 +241,7 @@ typedef struct
 	SEL			cbSelector;
 	char		cbHardware;
 	BOOL		invertPitch;
+	double		deadzone;
 }
 
 + (id) sharedStickHandler;
@@ -261,6 +272,11 @@ typedef struct
 - (BOOL) getButtonState:(int)function;
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
+- (double) deadZone;
+- (void) setDeadZone: (double)newValue;
+
+// Transform raw axis state into actual axis state
+- (double) axisTransform: (double)axisvalue;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg

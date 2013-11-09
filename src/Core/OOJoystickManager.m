@@ -89,6 +89,7 @@ static id sSharedStickHandler = nil;
 		
 		precisionMode = NO;
 		invertPitch = NO;
+		deadzone = STICK_DEADZONE;
 	}
 	return self;
 }
@@ -97,7 +98,7 @@ static id sSharedStickHandler = nil;
 
 - (NSPoint) rollPitchAxis
 {
-	return NSMakePoint(axstate[AXIS_ROLL], axstate[AXIS_PITCH]);
+	return NSMakePoint([self getAxisState:AXIS_ROLL], [self getAxisState:AXIS_PITCH]);
 }
 
 
@@ -121,13 +122,82 @@ static id sSharedStickHandler = nil;
 
 - (double) getAxisState: (int)function
 {
-	return axstate[function];
+	switch (function)
+	{
+	case AXIS_ROLL:
+	case AXIS_PITCH:
+	case AXIS_YAW:
+		return [self axisTransform:axstate[function]];
+	default:
+		return axstate[function];
+	}
 }
 
 
 - (double) getSensitivity
 {
 	return precisionMode ? STICK_PRECISIONFAC : 1.0;
+}
+
+- (double) deadZone
+{
+	return deadzone;
+}
+
+
+- (void) setDeadZone: (double)newValue
+{
+	deadzone = newValue;
+}
+
+
+// axisTransform is an increasing function that maps the interval [-1,1] onto [-1,1] such that -1 -> -1, 0 -> 0 and 1 -> 1
+// By using a function with a shallow gradient at the origin, we can make the stick less sensitive at the centre (and hence
+// easier to make fine adjustments).  The functions I've used below are ax^n+bx where a+b=1 and n in an odd power.
+
+- (double) axisTransform: (double)axisvalue;
+{
+	if (fabs(axisvalue) < deadzone) return 0.0;
+
+#if STICK_NONLINEAR_OPTION == 0
+	if (precisionMode)
+	{
+		return axisvalue / STICK_PRECISIONFAC;
+	}
+	return axisvalue;
+#endif
+
+#if STICK_NONLINEAR_OPTION == 1
+	if (precisionMode)
+	{
+		// since we're mucking around with nonlinear stuff, we may as well throw in a smooth transition from deadzone to non-deadzone
+		if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
+		else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
+		return axisvalue*(STICK_NONLINEAR1 + STICK_NONLINEAR2*axisvalue*axisvalue);
+	}
+	return axisvalue;
+#endif
+
+#if STICK_NONLINEAR_OPTION == 2
+	if (precisionMode)
+	{
+		return axisvalue / STICK_PRECISIONFAC;
+	}
+	if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
+	else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
+	return axisvalue*(STICK_NONLINEAR1 + STICK_NONLINEAR2*axisvalue*axisvalue);
+#endif
+
+#if STICK_NONLINEAR_OPTION == 3
+	if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
+	else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
+	if (precisionMode)
+	{
+		return axisvalue*STICK_NONLINEAR1 + STICK_NONLINEAR2*pow(axisvalue,5);
+	}
+	return axisvalue*(STICK_NONLINEAR1 + axisvalue*axisvalue*STICK_NONLINEAR2);
+#endif
+
 }
 
 - (NSArray *)listSticks
@@ -411,18 +481,10 @@ static id sSharedStickHandler = nil;
 		case AXIS_ROLL:
 		case AXIS_PITCH:
 		case AXIS_YAW:
-			if(precisionMode)
-			{
-				axstate[function] = axisvalue / STICK_PRECISIONDIV;
-			}
-			else
-			{
-				axstate[function] = axisvalue / STICK_NORMALDIV;
-			}
-			break;
 		case AXIS_VIEWX:
 		case AXIS_VIEWY:
 			axstate[function] = axisvalue / STICK_NORMALDIV;
+			break;
 		default:
 			// set the state with no modification.
 			axstate[function] = axisvalue / 32768;         
@@ -466,23 +528,7 @@ static id sSharedStickHandler = nil;
 	{
 		bs = YES;
 		if(function == BUTTON_PRECISION)
-		{
 			precisionMode = !precisionMode;
-			
-			// adjust current states now
-			if(precisionMode)
-			{
-				if (axstate[AXIS_PITCH] != STICK_AXISUNASSIGNED) axstate[AXIS_PITCH] /= STICK_PRECISIONFAC;
-				if (axstate[AXIS_ROLL] != STICK_AXISUNASSIGNED) axstate[AXIS_ROLL] /= STICK_PRECISIONFAC;
-				if (axstate[AXIS_YAW] != STICK_AXISUNASSIGNED) axstate[AXIS_YAW] /= STICK_PRECISIONFAC;
-			}
-			else
-			{
-				if (axstate[AXIS_PITCH] != STICK_AXISUNASSIGNED) axstate[AXIS_PITCH] *= STICK_PRECISIONFAC;
-				if (axstate[AXIS_ROLL] != STICK_AXISUNASSIGNED) axstate[AXIS_ROLL] *= STICK_PRECISIONFAC;
-				if (axstate[AXIS_YAW] != STICK_AXISUNASSIGNED) axstate[AXIS_YAW] *= STICK_PRECISIONFAC;
-			}
-		}
 	}
 	
 	if (function >= 0)
