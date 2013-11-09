@@ -2937,6 +2937,16 @@ static NSTimeInterval	time_last_frame;
 	NSPoint				virtualStick = NSZeroPoint;
 	double				reqYaw = 0.0;
 	double				deadzone;
+
+	BOOL				keyboard_roll_left = NO;
+	BOOL				keyboard_roll_right = NO;
+	BOOL				keyboard_roll_lock = NO;
+	BOOL				keyboard_pitch_back = NO;
+	BOOL				keyboard_pitch_forward = NO;
+	BOOL				keyboard_pitch_lock = NO;
+	BOOL				keyboard_yaw_left = NO;
+	BOOL				keyboard_yaw_right = NO;
+	BOOL				keyboard_yaw_lock = NO;
 	
 	if (mouse_control_on)
 	{
@@ -3012,13 +3022,16 @@ static NSTimeInterval	time_last_frame;
 	// if we have yaw on the mouse x-axis, then allow using the keyboard roll keys
 	if (!mouse_control_on || (mouse_control_on && mouse_x_axis_map_to_yaw))
 	{
-		if ([gameView isDown:key_roll_left] && [gameView isDown:key_roll_right])
+		keyboard_roll_left = [gameView isDown:key_roll_left];
+		keyboard_roll_right = [gameView isDown:key_roll_right];
+		if (keyboard_roll_left && keyboard_roll_right)
 		{
 			keyboardRollOverride = YES;
 			if (![self dockMode]) flightRoll = 0.0;
 		}
 		else if ([gameView isDown:key_roll_left])
 		{
+<<<<<<< HEAD
 			keyboardRollOverride=YES;
 			if (![self dockMode] && flightRoll > 0.0)  flightRoll = 0.0;
 			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
@@ -3030,6 +3043,22 @@ static NSTimeInterval	time_last_frame;
 			if (![self dockMode] && flightRoll < 0.0)  flightRoll = 0.0;
 			[self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
+=======
+			if (keyboard_roll_left)
+			{
+				keyboardRollOverride=YES;
+				if (![self dockMode] && flightRoll > 0.0)  flightRoll = 0.0;
+				[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
+				rolling = YES;
+			}
+			if (keyboard_roll_right)
+			{
+				keyboardRollOverride=YES;
+				if (![self dockMode] && flightRoll < 0.0)  flightRoll = 0.0;
+				[self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
+				rolling = YES;
+			}
+>>>>>>> Added pitch and yaw to keyboard mod
 		}
 	}
 	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride)
@@ -3081,24 +3110,41 @@ static NSTimeInterval	time_last_frame;
 	// we don't care about pitch keyboard overrides when mouse control is on, only when using joystick
 	if (!mouse_control_on)
 	{
+<<<<<<< HEAD
 		if ([gameView isDown:key_pitch_back] && [gameView isDown:key_pitch_forward])
 		{
 			keyboardPitchOverride=YES;
 			flightPitch = 0.0;
 		}
 		else if ([gameView isDown:key_pitch_back])
+=======
+		keyboard_pitch_back = [gameView isDown:key_pitch_back];
+		keyboard_pitch_forward = [gameView isDown:key_pitch_forward];
+		if (keyboard_pitch_back && keyboard_pitch_forward)
+>>>>>>> Added pitch and yaw to keyboard mod
 		{
-			keyboardPitchOverride=YES;
-			if (flightPitch < 0.0)  flightPitch = 0.0;
-			[self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
-			pitching = YES;
+			keyboard_pitch_lock = YES;
 		}
+<<<<<<< HEAD
 		else if ([gameView isDown:key_pitch_forward])
+=======
+		else
+>>>>>>> Added pitch and yaw to keyboard mod
 		{
-			keyboardPitchOverride=YES;
-			if (flightPitch > 0.0)  flightPitch = 0.0;
-			[self decrease_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
-			pitching = YES;
+			if (keyboard_pitch_back)
+			{
+				keyboardPitchOverride=YES;
+				if (flightPitch < 0.0)  flightPitch = 0.0;
+				[self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
+				pitching = YES;
+			}
+			if (keyboard_pitch_forward)
+			{
+				keyboardPitchOverride=YES;
+				if (flightPitch > 0.0)  flightPitch = 0.0;
+				[self decrease_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
+				pitching = YES;
+			}
 		}
 	}
 	if(mouse_control_on || (numSticks && !keyboardPitchOverride))
@@ -3118,7 +3164,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		pitching = (fabs(virtualStick.y) >= deadzone);
 	}
-	if (!pitching)
+	if (!pitching && !keyboard_pitch_lock)
 	{
 		if (flightPitch > 0.0)
 		{
@@ -3136,24 +3182,37 @@ static NSTimeInterval	time_last_frame;
 	// if we have roll on the mouse x-axis, then allow using the keyboard yaw keys
 	if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw))
 	{
+<<<<<<< HEAD
 		if ([gameView isDown:key_yaw_left] && [gameView isDown:key_yaw_right])
 		{
 			keyboardYawOverride=YES;
 			flightYaw = 0.0;
 		}
 		else if ([gameView isDown:key_yaw_left])
+=======
+		keyboard_yaw_left = [gameView isDown:key_yaw_left];
+		keyboard_yaw_right = [gameView isDown:key_yaw_left];
+		if (keyboard_yaw_left && keyboard_yaw_right)
+>>>>>>> Added pitch and yaw to keyboard mod
 		{
-			keyboardYawOverride=YES;
-			if (flightYaw < 0.0)  flightYaw = 0.0;
-			[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
-			yawing = YES;
+			keyboard_yaw_lock = YES;
 		}
-		else if ([gameView isDown:key_yaw_right])
+		else
 		{
-			keyboardYawOverride=YES;
-			if (flightYaw > 0.0)  flightYaw = 0.0;
-			[self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
-			yawing = YES;
+			if (keyboard_yaw_left)
+			{
+				keyboardYawOverride=YES;
+				if (flightYaw < 0.0)  flightYaw = 0.0;
+				[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
+				yawing = YES;
+			}
+			else if (keyboard_yaw_right)
+			{
+				keyboardYawOverride=YES;
+				if (flightYaw > 0.0)  flightYaw = 0.0;
+				[self decrease_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
+				yawing = YES;
+			}
 		}
 	}
 	if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride)
@@ -3175,7 +3234,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		yawing = (fabs(reqYaw) >= deadzone);
 	}
-	if (!yawing)
+	if (!yawing && !keyboard_yaw_lock)
 	{
 		if (flightYaw > 0.0)
 		{
