@@ -3015,7 +3015,7 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:key_roll_left] && [gameView isDown:key_roll_right])
 		{
 			keyboardRollOverride = YES;
-			flightRoll = 0.0;
+			if (![self dockMode]) flightRoll = 0.0;
 		}
 		else if ([gameView isDown:key_roll_left])
 		{
