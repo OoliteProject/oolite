@@ -13,7 +13,7 @@ VER_DATE	:= $(shell date +%y%m%d)
 # of format X.X.X.X.
 # VER_GITHASH are the first ten digits of the actual hash of the commit being built.
 VER_GITREV	:= $(shell git rev-list --count HEAD)
-VER_GITHASH	:= $(shell git rev-parse --short=10 HEAD)
+VER_GITHASH	:= $(shell git rev-parse --short=7 HEAD)
 VER         := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITREV}-${VER_DATE}")
 BUILDTIME   := $(shell date "+%Y.%m.%d %H:%M")
 DEB_BUILDTIME   := $(shell date "+%a, %d %b %Y %H:%M:%S %z")
