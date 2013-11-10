@@ -4896,31 +4896,38 @@ static BOOL MaintainLinkedLists(Universe *uni)
 - (Entity *) firstEntityTargetedByPlayerPrecisely
 {
 	OOWeaponFacing targetFacing;
-	
+	Vector laserPortOffset = kZeroVector;
+	PlayerEntity *player = PLAYER;
+
 	switch (viewDirection)
 	{
 		case VIEW_FORWARD:
 			targetFacing = WEAPON_FACING_FORWARD;
+			laserPortOffset = [player forwardWeaponOffset];
 			break;
 			
 		case VIEW_AFT:
 			targetFacing = WEAPON_FACING_AFT;
+			laserPortOffset = [player aftWeaponOffset];
 			break;
 			
 		case VIEW_PORT:
 			targetFacing = WEAPON_FACING_PORT;
+			laserPortOffset = [player portWeaponOffset];
 			break;
 			
 		case VIEW_STARBOARD:
 			targetFacing = WEAPON_FACING_STARBOARD;
+			laserPortOffset = [player starboardWeaponOffset];
 			break;
 			
 		default:
 			// Match behaviour of -firstEntityTargetedByPlayer.
 			targetFacing = WEAPON_FACING_FORWARD;
+			laserPortOffset = [player forwardWeaponOffset];
 	}
 	
-	return [self firstShipHitByLaserFromShip:PLAYER inDirection:targetFacing offset:kZeroVector gettingRangeFound:NULL];
+	return [self firstShipHitByLaserFromShip:PLAYER inDirection:targetFacing offset:laserPortOffset gettingRangeFound:NULL];
 }
 
 
