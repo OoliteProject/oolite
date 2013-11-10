@@ -2438,12 +2438,12 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	// damp any rotations we entered with
-	if (flightRoll > 0.0)
+	if (![self dockMode] && flightRoll > 0.0)
 	{
 		if (flightRoll > delta_t)		[self decrease_flight_roll:delta_t];
 		else	flightRoll = 0.0;
 	}
-	if (flightRoll < 0.0)
+	if (![self dockMode] && flightRoll < 0.0)
 	{
 		if (flightRoll < -delta_t)		[self increase_flight_roll:delta_t];
 		else	flightRoll = 0.0;
