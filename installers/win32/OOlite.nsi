@@ -67,6 +67,7 @@ InstallColors /windows
 InstProgressFlags smooth
 AutoCloseWindow false
 SetOverwrite on
+RequestExecutionLevel user
 
 
 VIAddVersionKey "ProductName" "Oolite"
