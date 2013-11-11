@@ -122,15 +122,15 @@ static id sSharedStickHandler = nil;
 
 - (double) getAxisState: (int)function
 {
+	if (axstate[function] == STICK_AXISUNASSIGNED)
+	{
+		return STICK_AXISUNASSIGNED;
+	}
 	switch (function)
 	{
 	case AXIS_ROLL:
 	case AXIS_PITCH:
 	case AXIS_YAW:
-		if (axstate[function] == STICK_AXISUNASSIGNED)
-		{
-			return 0;
-		}
 		return [self axisTransform:axstate[function]];
 	default:
 		return axstate[function];
