@@ -1358,6 +1358,7 @@ this._addCourier = function(pos)
 	}
 	else
 	{
+		log(this.name,"Tried to add trader-courier but no ships of that role found - using default 'trader'");
 		var t = this._addShips("trader",1,pos,0);
 	}
 	t[0].bounty = 0;
@@ -1430,6 +1431,7 @@ this._addSmuggler = function(pos)
 	}
 	else
 	{
+		log(this.name,"Tried to add trader-smuggler but no ships of that role found - using default 'trader'");
 		var t = this._addShips("trader",1,pos,0);
 	}
 	if (t[0])
@@ -1528,6 +1530,7 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 	}
 	else
 	{
+		log(this.name,"Tried to add "+role+" but no ships of that role found - using default 'hunter'");
 		var t = this._addShips("hunter",1,pos,0);
 	}
 	if (t[0])
@@ -1628,6 +1631,7 @@ this._addPirateAssistant = function(role,lead,pos)
 	}
 	else
 	{
+		log(this.name,"Tried to add "+role+" but no ships of that role found - using default 'pirate'");
 		var asst = this._addShips("pirate",1,pos,4E3);
 	}
 	asst[0].homeSystem = lead.homeSystem;
@@ -1822,6 +1826,11 @@ this._addHeavyPirateReturn = function(pos)
 
 this._addAegisRaiders = function()
 {
+	if (!this._roleExists("pirate-aegis-raider")) 
+	{
+		log(this.name,"No ships with role pirate-aegis-raider defined - skipping addition");
+		return;
+	}
 	var g = this._addGroup("pirate-aegis-raider",3+Math.floor(Math.random()*5),system.mainPlanet,3E3);
 	var gs = g.ships;
 	for (var i=0; i < gs.length ; i++)
@@ -1857,6 +1866,11 @@ this._addAssassin = function(pos)
 			role = "assassin-heavy";
 			ws = 2.8;
 		}
+	}
+	if (!this._roleExists(role)) 
+	{
+		log(this.name,"No ships with role "+role+" defined - skipping addition");
+		return;
 	}
 	var main = this._addShips(role,1,pos,0)[0];
 	if (main.autoWeapons)
