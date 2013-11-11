@@ -32,6 +32,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import "OOOpenALController.h"
+#import "OOMaths.h"
 
 @class OOSound;
 
@@ -57,6 +58,8 @@ SOFTWARE.
 - (OOSoundChannel *) next;
 - (void) setNext:(OOSoundChannel *)next;
 
+// set sound position relative to listener
+- (void) setPosition:(Vector) vector;
 - (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop;
 - (void)stop;
 

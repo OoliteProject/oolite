@@ -44,6 +44,8 @@ OUT OF OR
 	BOOL						_loop;
 	uint8_t						_repeatCount,
 								_remainingCount;
+	Vector						_position;
+	BOOL						_positional;
 }
 
 + (instancetype) sourceWithSound:(OOSound *)inSound;
@@ -69,9 +71,10 @@ OUT OF OR
 - (void) playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount;
 - (void) playOrRepeatSound:(OOSound *)inSound;
 
-// Positional audio attributes are ignored in this implementation
+// Positional audio attributes are used in this implementation
 - (void) setPositional:(BOOL)inPositional;
 - (void) setPosition:(Vector)inPosition;
+// *Advanced* positional audio attributes are ignored in this implementation
 - (void) setVelocity:(Vector)inVelocity;
 - (void) setOrientation:(Vector)inOrientation;
 - (void) setConeAngle:(float)inAngle;

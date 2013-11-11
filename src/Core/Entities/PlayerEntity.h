@@ -795,6 +795,7 @@ typedef enum
 
 - (OOWeaponType) weaponForFacing:(OOWeaponFacing)facing;
 - (OOWeaponType) currentWeapon;
+- (Vector) currentLaserOffset;
 
 - (void) rotateCargo;
 
