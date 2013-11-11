@@ -127,6 +127,10 @@ static id sSharedStickHandler = nil;
 	case AXIS_ROLL:
 	case AXIS_PITCH:
 	case AXIS_YAW:
+		if (axstate[function] == STICK_AXISUNASSIGNED)
+		{
+			return 0;
+		}
 		return [self axisTransform:axstate[function]];
 	default:
 		return axstate[function];
@@ -575,7 +579,7 @@ static id sSharedStickHandler = nil;
 				 forKey:AXIS_SETTINGS];
 	[defaults setObject:[self buttonFunctions]
 				 forKey:BUTTON_SETTINGS];
-	
+	[defaults setFloat: deadzone forKey: STICK_DEADZONE_SETTING];
 	[defaults synchronize];
 }
 
@@ -611,6 +615,11 @@ static id sSharedStickHandler = nil;
 	{
 		// Nothing to load - set useful defaults
 		[self setDefaultMapping];
+	}
+	deadzone = [defaults oo_doubleForKey:STICK_DEADZONE_SETTING defaultValue:STICK_DEADZONE];
+	if (deadzone < 0 || deadzone > 1)
+	{
+		deadzone = STICK_DEADZONE;
 	}
 }
 

@@ -136,6 +136,7 @@ enum {
 #define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
 #define STICK_AXBUT  @"stickAxBt"   // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
+#define STICK_DEADZONE_SETTING @"JoystickAxesDeadzone"  // Deadzone setting double 0.0 to 1.0.
 // shortcut to make code more readable when using enum as key for
 // an NSDictionary
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
@@ -272,8 +273,6 @@ typedef struct
 - (BOOL) getButtonState:(int)function;
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
-- (double) deadZone;
-- (void) setDeadZone: (double)newValue;
 
 // Transform raw axis state into actual axis state
 - (double) axisTransform: (double)axisvalue;
