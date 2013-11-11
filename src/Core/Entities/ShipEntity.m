@@ -458,6 +458,17 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	isShip = YES;
 
+	// scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
+	// let's see if scan_class is set... 
+	scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
+	
+	// if not, try 'scanClass'. NOTE: non-standard capitalization is documented and entrenched.
+	if (scanClass == CLASS_NOT_SET)
+	{
+		scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
+	}
+
+
 	// FIXME: give NPCs shields instead.
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])  [self addEquipmentItem:@"EQ_SHIELD_BOOSTER" inContext:@"npc"];
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_enhancer"])  [self addEquipmentItem:@"EQ_SHIELD_ENHANCER" inContext:@"npc"];
@@ -540,6 +551,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		[self setUpCargoType:cargoString];
 	}
+	else if (scanClass != CLASS_CARGO)
+	{
+		if (cargo != nil) [cargo autorelease];
+		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
+		// if not CLASS_CARGO, and no cargo type set, default to CARGO_NOT_CARGO
+		cargo_type = CARGO_NOT_CARGO;
+	}
 	
 	hasScoopMessage = [shipDict oo_boolForKey:@"has_scoop_message" defaultValue:YES];
 
@@ -556,16 +574,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[self setScannerDisplayColor1:nil];
 	[self setScannerDisplayColor2:nil];
 
-	// scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
-	// let's see if scan_class is set... 
-	scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
-	
-	// if not, try 'scanClass'. NOTE: non-standard capitalization is documented and entrenched.
-	if (scanClass == CLASS_NOT_SET)
-	{
-		scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
-	}
-	
 	// Populate the missiles here. Must come after scanClass.
 	_missileRole = [shipDict oo_stringForKey:@"missile_role"];
 	unsigned	i, j;
@@ -10715,6 +10723,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	Quaternion q_save = orientation;	// save rotation
 	orientation = q_laser;			// face in direction of laser
+	// weapon offset for thargoid lasers is always zero
 	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:WEAPON_FACING_FORWARD offset:kZeroVector gettingRangeFound:&hit_at_range];
 	[self setShipHitByLaser:victim];
 	orientation = q_save;			// restore rotation
