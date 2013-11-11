@@ -103,3 +103,6 @@ $ cp .absolute_gitmodules .gitmodules
 $ git submodule upate --init
 $ cp .relative_gitmodules .gitmodules
 
+You should now have access to the submodules, without git complaining
+that .gitmodules has changed or including .gitmodules in pull requests.
+
