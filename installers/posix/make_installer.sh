@@ -36,9 +36,10 @@ fi
 
 cpu_architecture=$1
 oolite_version_extended=$2
+githash=`echo $oolite_version_extended | cut -d '-' -f 3`
 if [ "$build_submode" = "snapshot" ]
 then
-  oolite_version=$oolite_version_extended
+  oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2"."$3"."}'`$githash
   if [ "$4" = "nightly" ]
   then
     trunk="-trunk"
