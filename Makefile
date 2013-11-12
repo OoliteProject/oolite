@@ -11,10 +11,10 @@ VER_DATE	:= $(shell date +%y%m%d)
 # VER_GITREV is the count of commits since the establishment of the repository on github. Used
 # as replacement for SVN incremental revision number, since we require the version number to be
 # of format X.X.X.X.
-# VER_GITHASH are the first ten digits of the actual hash of the commit being built.
+# VER_GITHASH are the first seven digits of the actual hash of the commit being built.
 VER_GITREV	:= $(shell git rev-list --count HEAD)
 VER_GITHASH	:= $(shell git rev-parse --short=7 HEAD)
-VER         := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITREV}-${VER_DATE}")
+VER         := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITREV}-${VER_DATE}-${VER_GITHASH}")
 BUILDTIME   := $(shell date "+%Y.%m.%d %H:%M")
 DEB_BUILDTIME   := $(shell date "+%a, %d %b %Y %H:%M:%S %z")
 ifeq (${VER_REV},0)
