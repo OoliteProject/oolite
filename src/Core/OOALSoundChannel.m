@@ -149,6 +149,12 @@ SOFTWARE.
 }
 
 
+- (void) setGain:(float) gain
+{
+	OOAL(alSourcef(_source, AL_GAIN, gain));
+}
+
+
 - (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop
 {
 	if (sound == nil)  return NO;

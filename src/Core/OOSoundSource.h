@@ -46,6 +46,7 @@ OUT OF OR
 								_remainingCount;
 	Vector						_position;
 	BOOL						_positional;
+	float						_gain;
 }
 
 + (instancetype) sourceWithSound:(OOSound *)inSound;
@@ -73,7 +74,12 @@ OUT OF OR
 
 // Positional audio attributes are used in this implementation
 - (void) setPositional:(BOOL)inPositional;
+- (BOOL) positional;
 - (void) setPosition:(Vector)inPosition;
+- (Vector) position;
+- (void) setGain:(float)gain;
+- (float) gain;
+
 // *Advanced* positional audio attributes are ignored in this implementation
 - (void) setVelocity:(Vector)inVelocity;
 - (void) setOrientation:(Vector)inOrientation;

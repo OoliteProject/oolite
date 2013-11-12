@@ -64,7 +64,7 @@ static id sSingleton = nil;
 		{
 			OOLog(kOOLogSoundInitError,@"Error %d creating sound context",error);
 		}
-		OOAL(alDistanceModel(AL_NONE));
+		OOAL(alDistanceModel(AL_NONE)); 
 	}
 	return self;
 }

@@ -60,6 +60,7 @@ SOFTWARE.
 
 // set sound position relative to listener
 - (void) setPosition:(Vector) vector;
+- (void) setGain:(float) gain;
 - (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop;
 - (void)stop;
 

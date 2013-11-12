@@ -40,14 +40,23 @@ static NSMutableSet *sPlayingSoundSources;
 }
 
 
+- (id) init
+{
+	self = [super init];
+	if (!self) return nil;
+	
+	_positional = NO;
+	_position = kZeroVector;
+	_gain = 1.0;
+	return self;
+}
+
+
 - (id) initWithSound:(OOSound *)inSound
 {
 	self = [self init];
 	if (!self) return nil;
 	
-	_positional = NO;
-	_position = kZeroVector;
-
 	[self setSound:inSound];
 	
 	return self;
@@ -137,6 +146,7 @@ static NSMutableSet *sPlayingSoundSources;
 		_remainingCount = [self repeatCount];
 		[_channel setDelegate:self];
 		[_channel setPosition:_position];
+		[_channel setGain:_gain];
 		[_channel playSound:[self sound] looped:[self loop]];
 		[self retain];
 	}
@@ -230,13 +240,45 @@ static NSMutableSet *sPlayingSoundSources;
 }
 
 
+- (BOOL) positional
+{
+	return _positional;
+}
+
+
 - (void) setPosition:(Vector)inPosition
 {
 	_position = inPosition;
+	if (inPosition.x != 0.0 || inPosition.y != 0.0 || inPosition.z != 0.0)
+	{
+		_positional = YES;
+	}
 	if (_channel)
 	{
 		[_channel setPosition:_position]; 
 	}
+}
+
+
+- (Vector) position
+{
+	return _position;
+}
+
+
+- (void) setGain:(float)gain
+{
+	_gain = gain;
+	if (_channel)
+	{
+		[_channel setGain:_gain];
+	}
+}
+
+
+- (float) gain
+{
+	return _gain;
 }
 
 
