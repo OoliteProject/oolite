@@ -117,9 +117,7 @@ static BOOL				switching_equipship_screens;
 static BOOL				zoom_pressed;
 static BOOL				customView_pressed;
 static BOOL				weaponsOnlineToggle_pressed;
-#if ENABLE_DOCKMODE
 static BOOL				dockModeToggle_pressed;
-#endif
 static BOOL				escapePodKey_pressed;
 static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
@@ -246,9 +244,7 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_fire_lasers,			'a'			);
 	LOAD_KEY_SETTING(key_weapons_online_toggle,	'_'			);
-#if ENABLE_DOCKMODE
 	LOAD_KEY_SETTING(key_dock_mode_toggle,		'%');
-#endif
 	LOAD_KEY_SETTING(key_launch_missile,		'm'			);
 	LOAD_KEY_SETTING(key_next_missile,			'y'			);
 	LOAD_KEY_SETTING(key_ecm,					'e'			);
@@ -950,7 +946,6 @@ static NSTimeInterval	time_last_frame;
 				}
 				else  weaponsOnlineToggle_pressed = NO;
 				
-#if ENABLE_DOCKMODE
 				exceptionContext = @"dock mode toggle";
 				// dock mode toggle '%' - non-strict mode only
 				if (([gameView isDown:key_dock_mode_toggle] || joyButtonState[BUTTON_DOCKMODETOGGLE]) && ![UNIVERSE strict])
@@ -974,7 +969,6 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 				else  dockModeToggle_pressed = NO;
-#endif
 
 				exceptionContext = @"missile fire";
 				//  shoot 'm'   // launch missile

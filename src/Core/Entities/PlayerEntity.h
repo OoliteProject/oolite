@@ -277,8 +277,6 @@ typedef enum
 
 #define MISSION_DEST_LEGACY				@"__oolite_legacy_destinations"
 
-#define ENABLE_DOCKMODE 1
-
 @interface PlayerEntity: ShipEntity
 {
 @private
