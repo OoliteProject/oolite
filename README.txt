@@ -100,8 +100,8 @@ onto .gitmodules, then perform the submodules init, then replace
 .gitmodules with .relative_submodules.  eg, on Unix:
 
 $ cp .absolute_gitmodules .gitmodules
-$ git submodule upate --init
-$ cp .relative_gitmodules .gitmodules
+$ git submodule update --init
+$ git checkout -- .gitmodules
 
 You should now have access to the submodules, without git complaining
 that .gitmodules has changed or including .gitmodules in pull requests.
