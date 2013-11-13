@@ -1164,7 +1164,7 @@
 	"stickmapper-target-nearest-incoming-missile"	= "Target incoming missile";
 	"stickmapper-cycle-secondary"	= "Cycle secondary";
 	"stickmapper-weapons-online-toggle"	= "Weapons online toggle";
-	"stickmapper-dock-mode-toggle"		= "Docking mode toggle";
+	"stickmapper-oolite-dock-mode"		= "Docking mode toggle";
 	"stickmapper-ECM"				= "ECM";
 	"stickmapper-toggle-ID"			= "Toggle ID";
 	"stickmapper-previous-target"	= "Select previous target";

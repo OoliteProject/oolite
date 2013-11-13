@@ -542,13 +542,11 @@ MA 02110-1301, USA.
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_CLOAK]];
-#if ENABLE_DOCKMODE
 	[funcList addObject:
-	 [self makeStickGuiDict:DESC(@"stickmapper-dock-mode-toggle")
+	 [self makeStickGuiDict:DESC(@"stickmapper-oolite-dock-mode")
 	 			  allowable:HW_BUTTON
 	 			  	 axisfn:STICK_NOFUNCTION
 	 			  	 butfn:BUTTON_DOCKMODETOGGLE]];
-#endif
 	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-view-forward")
 				  allowable:HW_AXIS|HW_BUTTON
