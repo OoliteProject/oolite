@@ -62,7 +62,7 @@ SOFTWARE.
 		{
 			if (!dir)
 			{
-				if ([[fmgr attributesOfItemAtPath:path error:NULL] fileSize] == 0)
+				if ([[fmgr fileAttributesAtPath:path traverseLink:NO] fileSize] == 0)
 				{
 					OOLog(kOOLogFileNotFound, @"Expected file but found empty file at %@", path);
 				}

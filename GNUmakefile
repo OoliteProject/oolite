@@ -24,7 +24,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
     ADDITIONAL_INCLUDE_DIRS      = -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lpng14.dll -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
+    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lopenal32.dll -lpng14.dll -lmingw32 -lSDLmain -lSDL -lvorbisfile -lvorbis -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
     ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic
