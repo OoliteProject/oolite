@@ -89,12 +89,15 @@ enum
 	kPlayer_alertTemperature,		// cabin temperature alert flag, boolean, read-only
 	kPlayer_bounty,					// bounty, unsigned int, read/write
 	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
+	kPlayer_contractReputationPrecise,	// reputation for cargo contracts, float, read only
 	kPlayer_credits,				// credit balance, float, read/write
 	kPlayer_dockingClearanceStatus,	// docking clearance status, string, read only
 	kPlayer_legalStatus,			// legalStatus, string, read-only
 	kPlayer_name,					// Player name, string, read/write
 	kPlayer_parcelReputation,	// reputation for parcel contracts, integer, read-only
+	kPlayer_parcelReputationPrecise,	// reputation for parcel contracts, float, read-only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read-only
+	kPlayer_passengerReputationPrecise,	// reputation for passenger contracts, float, read-only
 	kPlayer_rank,					// rank, string, read-only
 	kPlayer_roleWeights,			// role weights, array, read-only
 	kPlayer_score,					// kill count, integer, read/write
@@ -113,12 +116,15 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "alertTemperature",		kPlayer_alertTemperature,	OOJS_PROP_READONLY_CB },
 	{ "bounty",					kPlayer_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "contractReputation",		kPlayer_contractReputation,	OOJS_PROP_READONLY_CB },
+	{ "contractReputationPrecise",		kPlayer_contractReputationPrecise,	OOJS_PROP_READONLY_CB },
 	{ "credits",				kPlayer_credits,			OOJS_PROP_READWRITE_CB },
 	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
 	{ "legalStatus",			kPlayer_legalStatus,		OOJS_PROP_READONLY_CB },
 	{ "name",					kPlayer_name,				OOJS_PROP_READWRITE_CB },
-	{ "parcelReputation",	kPlayer_parcelReputation,	OOJS_PROP_READONLY_CB },
+	{ "parcelReputation",		kPlayer_parcelReputation,	OOJS_PROP_READONLY_CB },
+	{ "parcelReputationPrecise",	kPlayer_parcelReputationPrecise,	OOJS_PROP_READONLY_CB },
 	{ "passengerReputation",	kPlayer_passengerReputation,	OOJS_PROP_READONLY_CB },
+	{ "passengerReputationPrecise",	kPlayer_passengerReputationPrecise,	OOJS_PROP_READONLY_CB },
 	{ "rank",					kPlayer_rank,				OOJS_PROP_READONLY_CB },
 	{ "roleWeights",			kPlayer_roleWeights,		OOJS_PROP_READONLY_CB },
 	{ "score",					kPlayer_score,				OOJS_PROP_READWRITE_CB },
@@ -240,15 +246,25 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kPlayer_trumbleCount:
 			return JS_NewNumberValue(context, [player trumbleCount], value);
 			
-			/* For compatibility with previous versions, these are on
+			/* For compatibility with previous versions, these are still on
 			 * a -7 to +7 scale */
 		case kPlayer_contractReputation:
-			return JS_NewNumberValue(context, ((float)[player contractReputation])/10.0, value);
+			return JS_NewNumberValue(context, (int)(((float)[player contractReputation])/10.0), value);
 			
 		case kPlayer_passengerReputation:
-			return JS_NewNumberValue(context, ((float)[player passengerReputation])/10.0, value);
+			return JS_NewNumberValue(context, (int)(((float)[player passengerReputation])/10.0), value);
 
 		case kPlayer_parcelReputation:
+			return JS_NewNumberValue(context, (int)(((float)[player parcelReputation])/10.0), value);
+
+			/* Full-precision reputations */
+		case kPlayer_contractReputationPrecise:
+			return JS_NewNumberValue(context, ((float)[player contractReputation])/10.0, value);
+			
+		case kPlayer_passengerReputationPrecise:
+			return JS_NewNumberValue(context, ((float)[player passengerReputation])/10.0, value);
+
+		case kPlayer_parcelReputationPrecise:
 			return JS_NewNumberValue(context, ((float)[player parcelReputation])/10.0, value);
 			
 		case kPlayer_dockingClearanceStatus:

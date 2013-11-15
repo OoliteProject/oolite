@@ -228,8 +228,8 @@ this._initialisePassengerContractsForSystem = function()
 
 	// no point in generating too many, but generally want 5 or more
 	// some of them will be discarded later
-	var numContracts = Math.floor(5*Math.random()+5*Math.random()+5*Math.random()+(player.passengerReputation*Math.random()));
-	if (player.passengerReputation >= 0 && numContracts < 5)
+	var numContracts = Math.floor(5*Math.random()+5*Math.random()+5*Math.random()+(player.passengerReputationPrecise*Math.random()));
+	if (player.passengerReputationPrecise >= 0 && numContracts < 5)
 	{
 		numContracts += 5;
 	}
@@ -260,7 +260,7 @@ this._initialisePassengerContractsForSystem = function()
 		// get the SystemInfo object for the destination
 		var destinationInfo = System.infoForSystem(galaxyNumber,destination);
 
-		var daysUntilDeparture = 1+(Math.random()*(7+player.passengerReputation-destinationInfo.government));
+		var daysUntilDeparture = 1+(Math.random()*(7+player.passengerReputationPrecise-destinationInfo.government));
 		if (daysUntilDeparture <= 0)
 		{ 
 			// loses some more contracts if reputation negative
@@ -317,7 +317,7 @@ this._initialisePassengerContractsForSystem = function()
 		// total payment is:
 		passenger.payment = Math.floor(
 			// payment per hop (higher at rep > 5)
-			5 * Math.pow(routeToDestination.route.length-1, (passenger.risk*0.2) + (player.passengerReputation > 5 ? 2.45 : 2.3)) +
+			5 * Math.pow(routeToDestination.route.length-1, (passenger.risk*0.2) + (player.passengerReputationPrecise > 5 ? 2.45 : 2.3)) +
 				// payment by route length
 				routeToDestination.distance * (8+(Math.random()*8)) +
 				// premium for delivery to more dangerous systems
@@ -336,7 +336,7 @@ this._initialisePassengerContractsForSystem = function()
 		passenger.payment += (passenger.risk * 200);
 		passenger.skill = competency + 20*(prudence-desperation);
 
-		passenger.advance = Math.min(passenger.payment*0.9,Math.max(0,Math.floor(passenger.payment * (0.05 + (0.1*desperation) + (0.02*player.passengerReputation))))); // some% up front
+		passenger.advance = Math.min(passenger.payment*0.9,Math.max(0,Math.floor(passenger.payment * (0.05 + (0.1*desperation) + (0.02*player.passengerReputationPrecise))))); // some% up front
 		passenger.payment -= passenger.advance;
 
 		// add passenger to contract list
@@ -450,7 +450,7 @@ this._passengerContractsDisplay = function(summary) {
 // display the mission screen for the summary page
 this._passengerContractSummaryPage = function()
 {
-	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.passengerReputation);
+	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.passengerReputationPrecise);
 
 	// column 'tab stops'
 	var columns = [12,18,23,28];
@@ -570,7 +570,7 @@ this._passengerContractSummaryPage = function()
 // display the mission screen for the contract detail page
 this._passengerContractSinglePage = function()
 {
-	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.passengerReputation);
+	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.passengerReputationPrecise);
 
 	// temp variable to simplify code
 	var passenger = this.$passengers[this.$contractIndex];
@@ -641,7 +641,7 @@ this._passengerContractSinglePage = function()
 	else
 	{
 		var utype = "both";
-		if (player.passengerReputation*10 >= passenger.skill)
+		if (player.passengerReputationPrecise*10 >= passenger.skill)
 		{
 			utype = "kills";
 		}

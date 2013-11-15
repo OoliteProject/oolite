@@ -232,8 +232,8 @@ this._initialiseCargoContractsForSystem = function()
 		// similar results with comparable efficiency.
 
 		// no point in generating too many, as route-finding is slow
-		var numContracts = Math.floor(5*Math.random()+5*Math.random()+5*Math.random()+(player.contractReputation*Math.random()));
-		if (player.contractReputation >= 0 && numContracts < 5)
+		var numContracts = Math.floor(5*Math.random()+5*Math.random()+5*Math.random()+(player.contractReputationPrecise*Math.random()));
+		if (player.contractReputationPrecise >= 0 && numContracts < 5)
 		{
 				numContracts += 5;
 		}
@@ -263,7 +263,7 @@ this._initialiseCargoContractsForSystem = function()
 				// get the SystemInfo object for the destination
 				var destinationInfo = System.infoForSystem(galaxyNumber,destination);
 
-				var daysUntilDeparture = 1+(Math.random()*(7+player.contractReputation-destinationInfo.government));
+				var daysUntilDeparture = 1+(Math.random()*(7+player.contractReputationPrecise-destinationInfo.government));
 				if (daysUntilDeparture <= 0)
 				{ 
 						// loses some more contracts if reputation negative
@@ -277,7 +277,7 @@ this._initialiseCargoContractsForSystem = function()
 						attempts++;
 						var commodity = commodities[Math.floor(Math.random()*commodities.length)];
 						// sub-tc contracts only available for top rep
-						if (system.mainStation.market[commodity].quantityUnit != 0 && player.contractReputation < 6.5) 
+						if (system.mainStation.market[commodity].quantityUnit != 0 && player.contractReputationPrecise < 6.5) 
 						{
 						} 
 						// ignore commodities with 0 availability here
