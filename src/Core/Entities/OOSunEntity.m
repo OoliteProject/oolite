@@ -491,6 +491,9 @@ MA 02110-1301, USA.
 	}
 
 	GLfloat blackColor[4] = {0.0,0.0,0.0,0.0};
+	GLfloat *color = blackColor;
+	GLfloat alpha = 0.0;
+
 	k=0;
 	sunColors[k++] = discColor[0];
 	sunColors[k++] = discColor[1];
@@ -498,8 +501,6 @@ MA 02110-1301, USA.
 	sunColors[k++] = discColor[3];
 	for (j = 0 ; j <= 4 ; j++)
 	{
-		GLfloat *color;
-		GLfloat alpha;
 		switch (j) {
 		case 4:
 			color = blackColor;
