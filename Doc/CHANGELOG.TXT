@@ -1,3 +1,15 @@
+Changes between Oolite 1.77.1 and Oolite 1.78:
+
+* Bug with behaviour of ship.forwardWeapon when ship had no forward
+  laser but subentity did fixed.
+* Shaders re-enabled on AMD R600/R700 if drivers recent enough
+* Game over message no longer depends on HUD settings
+* Cosmetic bugs with player escape pod sequence fixed
+* Player ship doppelganger no longer persists in obscure cases
+* New ships always have weapons online
+* Target-sensitive reticle accounts for weapon offsets
+* Include fix for build process on lunar-linux
+
 Changes between Oolite 1.77 and Oolite 1.77.1:
 
 * Bug with planetary cloud display fixed
