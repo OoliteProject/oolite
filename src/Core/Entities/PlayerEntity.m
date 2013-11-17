@@ -2855,6 +2855,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) showGameOver
 {
+	[hud resetGuis:[NSDictionary dictionaryWithObject:[NSDictionary dictionary] forKey:@"message_gui"]];
 	NSString *scoreMS = [NSString stringWithFormat:OOExpandKey(@"gameoverscreen-score-@"),
 							KillCountToRatingAndKillString(ship_kills)];
 	
