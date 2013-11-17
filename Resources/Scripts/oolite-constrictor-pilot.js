@@ -30,7 +30,7 @@
 this.name			= "oolite-constrictor-pilot";
 this.author			= "Eric Walch";
 this.copyright		= "© 2008-2010 the Oolite team.";
-this.version		= "1.77.1";
+this.version		= "1.78";
 
 
 this.unloadCharacter = function ()
