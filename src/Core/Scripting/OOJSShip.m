@@ -762,23 +762,23 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			break;
 			
 		case kShip_currentWeapon:
-			result = [entity weaponTypeForFacing:[entity currentWeaponFacing]];
+			result = [entity weaponTypeForFacing:[entity currentWeaponFacing] strict:YES];
 			break;
 		
 		case kShip_forwardWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD strict:YES];
 			break;
 		
 		case kShip_aftWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT strict:YES];
 			break;
 		
 		case kShip_portWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT strict:YES];
 			break;
 		
 		case kShip_starboardWeapon:
-			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
+			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD strict:YES];
 			break;
 		
 		case kShip_laserHeatLevel:

@@ -388,7 +388,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			return YES;
 
 		case kPlayerShip_currentWeapon:
-			result = [player weaponTypeForFacing:[player currentWeaponFacing]];
+			result = [player weaponTypeForFacing:[player currentWeaponFacing] strict:NO];
 			break;
 		
 	  case kPlayerShip_price:

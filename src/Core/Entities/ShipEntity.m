@@ -2726,7 +2726,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing
+- (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
 	OOWeaponType weaponType = WEAPON_NONE;
 
@@ -2737,7 +2737,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			case WEAPON_FACING_FORWARD:
 				weaponType = forward_weapon_type;
 				// if no forward weapon, see if subentities have forward weapons, return the first one found.
-				if (weaponType == WEAPON_NONE)
+				if (weaponType == WEAPON_NONE && !strict)
 				{
 					NSEnumerator	*subEntEnum = [self shipSubEntityEnumerator];
 					ShipEntity		*subEntity = nil;
