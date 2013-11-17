@@ -27,7 +27,7 @@ SOFTWARE.
 
 #import "OOSoundInternal.h"
 #import "OOLogging.h"
-
+#import "OOMaths.h"
 
 static NSMutableSet *sPlayingSoundSources;
 
@@ -37,6 +37,18 @@ static NSMutableSet *sPlayingSoundSources;
 + (instancetype) sourceWithSound:(OOSound *)inSound
 {
 	return [[[self alloc] initWithSound:inSound] autorelease];
+}
+
+
+- (id) init
+{
+	self = [super init];
+	if (!self) return nil;
+	
+	_positional = NO;
+	_position = kZeroVector;
+	_gain = 1.0;
+	return self;
 }
 
 
@@ -133,6 +145,8 @@ static NSMutableSet *sPlayingSoundSources;
 	{
 		_remainingCount = [self repeatCount];
 		[_channel setDelegate:self];
+		[_channel setPosition:_position];
+		[_channel setGain:_gain];
 		[_channel playSound:[self sound] looped:[self loop]];
 		[self retain];
 	}
@@ -211,16 +225,64 @@ static NSMutableSet *sPlayingSoundSources;
 
 - (void) setPositional:(BOOL)inPositional
 {
-	
+	if (inPositional)
+	{
+		_positional = YES;
+	}
+	else
+	{
+		/* OpenAL doesn't easily do non-positional sounds beyond the
+		 * stereo/mono distinction, but setting the position to the
+		 * zero vector is probably close enough */
+		_positional = NO;
+		[self setPosition:kZeroVector];
+	}
+}
+
+
+- (BOOL) positional
+{
+	return _positional;
 }
 
 
 - (void) setPosition:(Vector)inPosition
 {
-	
+	_position = inPosition;
+	if (inPosition.x != 0.0 || inPosition.y != 0.0 || inPosition.z != 0.0)
+	{
+		_positional = YES;
+	}
+	if (_channel)
+	{
+		[_channel setPosition:_position]; 
+	}
 }
 
 
+- (Vector) position
+{
+	return _position;
+}
+
+
+- (void) setGain:(float)gain
+{
+	_gain = gain;
+	if (_channel)
+	{
+		[_channel setGain:_gain];
+	}
+}
+
+
+- (float) gain
+{
+	return _gain;
+}
+
+
+/* Following not yet implemented */
 - (void) setVelocity:(Vector)inVelocity
 {
 	

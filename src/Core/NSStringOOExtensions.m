@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "NSStringOOExtensions.h"
+#import "NSDataOOExtensions.h"
 #import "OOCocoa.h"
 
 
@@ -38,7 +39,7 @@ MA 02110-1301, USA.
 	const uint8_t	*effectiveBytes = NULL;
 	size_t			effectiveLength = 0;
 	
-	data = [[NSData alloc] initWithContentsOfFile:path];
+	data = [[NSData oo_dataWithOXZFile:path] retain];
 	if (data == nil) OK = NO;
 	
 	if (OK)

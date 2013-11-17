@@ -1,11 +1,12 @@
 /*
 
-OOCASoundDebugMonitor.h
+OOALMusic.h
 
-Protocol for debugging information for sound system.
+Subclass of OOSound with additional controls specific to music playback. Only
+one instance of OOMusic may be playing at a time.
 
 
-OOCASound - Core Audio sound implementation for Oolite.
+OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2005-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,29 +29,18 @@ SOFTWARE.
 
 */
 
-#import "OOSound.h"
+#import <Foundation/Foundation.h>
+#import "OOALSound.h"
 
-#ifndef NDEBUG
 
-typedef enum
+@interface OOMusic: OOSound
 {
-	kOOCADebugStateIdle,
-	kOOCADebugStatePlaying,
-	kOOCADebugStateOther		// Cleanup phase or broken.
-} OOCASoundDebugMonitorChannelState;
+@private
+	OOSound				*sound;
+}
 
-
-@protocol OOCASoundDebugMonitor
-
-- (void) soundDebugMonitorNoteChannelMaxCount:(NSUInteger)maxChannels;
-- (void) soundDebugMonitorNoteActiveChannelCount:(NSUInteger)usedChannels;
-- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(NSUInteger)channel;
-
-- (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
+- (void) playLooped:(BOOL)looped;
+- (void) stop;
+- (BOOL) isPlaying;
 
 @end
-
-
-extern void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor);
-
-#endif

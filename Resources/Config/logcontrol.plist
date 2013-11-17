@@ -197,9 +197,12 @@
 	missile.damage.calc						= no; // Debugging of missile damage curves
 	
 	
+	oxp.conflict							= $error;
+	oxp.duplicate							= $error;
+	oxp.noManifest							= $error;
+	oxp.requirementMissing					= $error;
 	oxp.versionMismatch						= $error;
-	
-	
+
 	player.ship								= no;
 	player.ship.damage						= no;
 	player.equipmentScript					= $scriptDebugOn;
@@ -368,9 +371,11 @@
 	$soundError								= $error;
 	$soundDebug								= no;
 	$soundDebugVerbose						= $soundDebug;
+	sound.buffer							= $soundDebugVerbose;
 	sound.customSounds						= $soundDebug;
 	sound.customSounds.recursion			= $soundError;			// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
 	sound.load.success						= $soundDebug;
+	sound.initialization.error				= $soundError;
 	
 	// Mac-specific sound messages
 	sound.channel.cleanup.success			= $soundDebugVerbose;
@@ -378,7 +383,6 @@
 	sound.channel.cleanup.failed.broken		= inherit;
 	sound.channel.cleanup.failed.badState	= inherit;
 	sound.channel.machPortError				= $soundError;
-	sound.initialization.error				= $soundError;
 	sound.mixer.outOfChannels				= $soundError;
 	sound.mixer.inspector.loadFailed		= $soundError;
 	sound.mixer.replacingBrokenChannel		= $soundDebug;

@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "OOLogging.h"
 #import "OOStringParsing.h"
+#import "NSDataOOExtensions.h"
 #include <ctype.h>
 #include <string.h>
 
@@ -171,6 +172,9 @@ static NSData *ChangeDTDIfApplicable(NSData *data)
 */
 static NSData *CopyDataFromFile(NSString *path)
 {
+	return [[NSData oo_dataWithOXZFile:path] retain];
+#if 0
+// without OXZ extension. Code to be deleted once everything is working
 #if OOLITE_MAC_OS_X
 	return [[NSData alloc] initWithContentsOfMappedFile:path];
 #else
@@ -190,6 +194,7 @@ static NSData *CopyDataFromFile(NSString *path)
 	}
 	
 	return nil;
+#endif
 #endif
 }
 // Wrappers which ensure that the plist contains the right type of object.

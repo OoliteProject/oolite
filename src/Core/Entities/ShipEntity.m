@@ -10773,15 +10773,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction
+- (Vector) laserPortOffset:(OOWeaponFacing)direction
 {
-	double			range_limit2 = weaponRange * weaponRange;
-	GLfloat			hit_at_range;
-	Vector			vel = vector_multiply_scalar(v_forward, flightSpeed);
-	Vector			laserPortOffset = kZeroVector;
-
-	last_shot_time = [UNIVERSE getTime];
-
+	Vector laserPortOffset = kZeroVector;
 	switch (direction)
 	{
 		case WEAPON_FACING_FORWARD:
@@ -10801,7 +10795,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			laserPortOffset = starboardWeaponOffset;
 			break;
 	}
-	
+	return laserPortOffset;
+}
+
+
+- (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction
+{
+	double			range_limit2 = weaponRange * weaponRange;
+	GLfloat			hit_at_range;
+	Vector			vel = vector_multiply_scalar(v_forward, flightSpeed);
+	Vector			laserPortOffset = [self laserPortOffset:direction];
+
+	last_shot_time = [UNIVERSE getTime];
+
 	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:laserPortOffset gettingRangeFound:&hit_at_range];
 	[self setShipHitByLaser:victim];
 	
@@ -11053,6 +11059,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (Vector) missileLaunchPosition
+{
+	Vector start;
+	// default launching position
+	start.x = 0.0f;						// in the middle
+	start.y = boundingBox.min.y - 4.0f;	// 4m below bounding box
+	start.z = boundingBox.max.z + 1.0f;	// 1m ahead of bounding box
+	
+	// custom launching position
+	start = [shipinfoDictionary oo_vectorForKey:@"missile_launch_position" defaultValue:start];
+	
+	if (start.x == 0.0f && start.y == 0.0f && start.z <= 0.0f) // The kZeroVector as start is illegal also.
+	{
+		OOLog(@"ship.missileLaunch.invalidPosition", @"***** ERROR: The missile_launch_position defines a position %@ behind the %@. In future versions such missiles may explode on launch because they have to travel through the ship.", VectorDescription(start), self);
+		start.x = 0.0f;
+		start.y = boundingBox.min.y - 4.0f;
+		start.z = boundingBox.max.z + 1.0f;
+	}
+	return start;
+}
+
+
 - (ShipEntity *) fireMissile
 {
 	return [self fireMissileWithIdentifier:nil andTarget:[self primaryTarget]];
@@ -11071,21 +11099,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if ([UNIVERSE getTime] < missile_launch_time) return nil;
 
-	// default launching position
-	start.x = 0.0f;						// in the middle
-	start.y = boundingBox.min.y - 4.0f;	// 4m below bounding box
-	start.z = boundingBox.max.z + 1.0f;	// 1m ahead of bounding box
-	
-	// custom launching position
-	start = [shipinfoDictionary oo_vectorForKey:@"missile_launch_position" defaultValue:start];
-	
-	if (start.x == 0.0f && start.y == 0.0f && start.z <= 0.0f) // The kZeroVector as start is illegal also.
-	{
-		OOLog(@"ship.missileLaunch.invalidPosition", @"***** ERROR: The missile_launch_position defines a position %@ behind the %@. In future versions such missiles may explode on launch because they have to travel through the ship.", VectorDescription(start), self);
-		start.x = 0.0f;
-		start.y = boundingBox.min.y - 4.0f;
-		start.z = boundingBox.max.z + 1.0f;
-	}
+	start = [self missileLaunchPosition];
 	
 	double  throw_speed = 250.0f;
 	

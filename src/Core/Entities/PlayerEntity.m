@@ -4453,7 +4453,14 @@ static GLfloat		sBaseMass = 0.0;
 
 	if ([ms isEqual:@"INCOMING_MISSILE"])
 	{
-		[self playIncomingMissile];
+		if ([self primaryAggressor] != nil)
+		{
+			[self playIncomingMissile:HPVectorToVector([[self primaryAggressor] position])];
+		}
+		else
+		{
+			[self playIncomingMissile:kZeroVector];
+		}
 		[UNIVERSE addMessage:DESC(@"incoming-missile") forCount:4.5];
 	}
 
@@ -4547,7 +4554,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		firedMissile = [self launchMine:missile];
 		if (!replacingMissile) [self removeFromPylon:activeMissile];
-		if (firedMissile != nil) [self playMineLaunched];
+		if (firedMissile != nil) [self playMineLaunched:[self missileLaunchPosition]];
 	}
 	else
 	{
@@ -4558,7 +4565,7 @@ static GLfloat		sBaseMass = 0.0;
 		if (firedMissile != nil)
 		{
 			if (!replacingMissile) [self removeFromPylon:activeMissile];
-			[self playMissileLaunched];
+			[self playMissileLaunched:[self missileLaunchPosition]];
 		}
 	}
 	
@@ -4772,6 +4779,12 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (Vector) currentLaserOffset
+{
+	return [self laserPortOffset:currentWeaponFacing];
+}
+
+
 - (BOOL) fireMainWeapon
 {
 	int weapon_to_be_fired = [self currentWeapon];
@@ -4783,7 +4796,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT)
 	{
-		[self playWeaponOverheated];
+		[self playWeaponOverheated:[self currentLaserOffset]];
 		[UNIVERSE addMessage:DESC(@"weapon-overheat") forCount:3.0];
 		return NO;
 	}
@@ -4943,7 +4956,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	HPVector		rel_pos;
-	double		d_forward;
+	double		d_forward, d_right, d_up;
 	BOOL		internal_damage = NO;	// base chance
 	
 	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
@@ -4971,8 +4984,11 @@ static GLfloat		sBaseMass = 0.0;
 	if ([ent isShip]) [(ShipEntity *)ent doScriptEvent:OOJSID("shipAttackedOther") withArgument:self];
 
 	d_forward = dot_product(HPVectorToVector(rel_pos), v_forward);
-	
-	[self playShieldHit];
+	d_right = dot_product(HPVectorToVector(rel_pos), v_right);
+	d_up = dot_product(HPVectorToVector(rel_pos), v_up);
+	Vector relative = make_vector(d_right,d_up,d_forward);
+
+	[self playShieldHit:relative];
 
 	// firing on an innocent ship is an offence
 	if ([other isShip])
@@ -5013,7 +5029,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
-		[self playDirectHit];
+		[self playDirectHit:relative];
 		ship_temperature += (amount / [self heatInsulation]);
 	}
 	[self noteTakingDamage:amount from:other type:damageType];
@@ -5038,7 +5054,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent
 {
 	HPVector  rel_pos;
-	double  d_forward;
+	double  d_forward, d_right, d_up;
 	BOOL	internal_damage = NO;	// base chance
 	
 	if ([self status] == STATUS_DEAD)  return;
@@ -5055,8 +5071,11 @@ static GLfloat		sBaseMass = 0.0;
 	rel_pos = HPvector_subtract(rel_pos, position);
 	// rel_pos is now small
 	d_forward = dot_product(HPVectorToVector(rel_pos), v_forward);
-	
-	[self playScrapeDamage];
+	d_right = dot_product(HPVectorToVector(rel_pos), v_right);
+	d_up = dot_product(HPVectorToVector(rel_pos), v_up);
+	Vector relative = make_vector(d_right,d_up,d_forward);
+
+	[self playScrapeDamage:relative];
 	if (d_forward >= 0)
 	{
 		forward_shield -= amount;

@@ -103,6 +103,7 @@ typedef struct OOSoundSourcePoolElement
 				 priority:(float)priority
 			   expiryTime:(OOTimeDelta)expiryTime
 				 overlap:(BOOL)overlap
+				 position:(Vector)position
 {
 	uint8_t					slot;
 	OOTimeAbsolute			now, absExpiryTime;
@@ -137,6 +138,7 @@ typedef struct OOSoundSourcePoolElement
 	if (!overlap) _reserved = slot;
 	
 	// Play and store metadata
+	[element->source setPosition:position];
 	[element->source playSound:sound];
 	element->expiryTime = absExpiryTime;
 	element->priority = priority;
@@ -159,7 +161,20 @@ typedef struct OOSoundSourcePoolElement
 	[self playSoundWithKey:key
 				  priority:priority
 				expiryTime:expiryTime
-				   overlap:YES];
+				   overlap:YES
+				  position:kZeroVector];
+}
+
+
+- (void) playSoundWithKey:(NSString *)key
+				 priority:(float)priority
+				 position:(Vector)position
+{
+	[self playSoundWithKey:key
+				  priority:priority
+				expiryTime:0.5 + randf() * 0.1
+				   overlap:YES
+				  position:position];
 }
 
 
@@ -178,13 +193,31 @@ typedef struct OOSoundSourcePoolElement
 }
 
 
+- (void) playSoundWithKey:(NSString *)key position:(Vector)position
+{
+	[self playSoundWithKey:key priority:1.0 position:position];
+}
+
+
 - (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap
 {
 	[self playSoundWithKey:key
 				  priority:1.0
 				expiryTime:0.5
-				   overlap:overlap];
+				   overlap:overlap
+				  position:kZeroVector];
 }
+
+
+- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap position:(Vector)position
+{
+	[self playSoundWithKey:key
+				  priority:1.0
+				expiryTime:0.5
+				   overlap:overlap
+				  position:position];
+}
+
 
 @end
 

@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "OODebugFlags.h"
 #import "OOJSFrameCallbacks.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOOpenALController.h"
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
@@ -780,6 +781,7 @@ static NSMutableArray *sMessageStack;
 	OOLog(@"gameController.exitApp",@".GNUstepDefaults synchronized.");
 	OOLoggingTerminate();
 	SDL_Quit();
+	[[OOOpenALController sharedController] shutdown];
 	exit(0);
 }
 

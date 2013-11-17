@@ -1,6 +1,14 @@
 #import "OOSound.h"
 
-#if OOLITE_SDL
+#if OOLITE_OPENAL
+
+#import "OOALSoundMixer.h"
+#import "OOALSoundChannel.h"
+
+#define OOSoundAcquireLock() do {} while(0)
+#define OOSoundReleaseLock() do {} while(0)
+
+#elif OOLITE_SDL
 
 #import "OOSDLSoundMixer.h"
 #import "OOSDLSoundChannel.h"

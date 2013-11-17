@@ -916,7 +916,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([self fireMainWeapon])
 					{
-						[self playLaserHit:[self shipHitByLaser] != nil];
+						[self playLaserHit:([self shipHitByLaser] != nil) offset:[self currentLaserOffset]];
 					}
 				}
 				

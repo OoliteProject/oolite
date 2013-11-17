@@ -4,7 +4,7 @@ NSFileManagerOOExtensions.h
 
 This extends NSFileManager and adds some methods to insulate the
 main oolite code from the gory details of creating/chdiring to the
-commander save directory.
+commander save directory, as well as handling OXZ inspection
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -53,6 +53,9 @@ MA 02110-1301, USA.
 #if OOLITE_SDL
 - (BOOL) chdirToSnapshotPath;
 #endif
+
+// this also checks inside OXZ files; always returns NO for directories
+- (BOOL) oo_oxzFileExistsAtPath:(NSString *)path;
 
 @end
 

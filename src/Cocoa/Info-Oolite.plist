@@ -44,6 +44,26 @@
 			<key>LSTypeIsPackage</key>
 			<true/>
 		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>oxz</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>oolite-expansion-document</string>
+			<key>CFBundleTypeName</key>
+			<string>Oolite Expansion Pack</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.aegidian.oolite.oxp.compressed</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<integer>0</integer>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
@@ -86,6 +106,8 @@
 			</array>
 			<key>UTTypeDescription</key>
 			<string>Oolite Saved Game</string>
+			<key>UTTypeIconFile</key>
+			<string>oolite-document</string>
 			<key>UTTypeIdentifier</key>
 			<string>org.aegidian.oolite.save</string>
 			<key>UTTypeTagSpecification</key>
@@ -100,6 +122,22 @@
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.item</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Oolite Expansion Pack</string>
+			<key>UTTypeIconFile</key>
+			<string>oolite-expansion-document</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.aegidian.oolite.expansion</string>
+			<key>UTTypeReferenceURL</key>
+			<string>http://wiki.alioth.net/index.php/OXP_howto</string>
+			<key>UTTypeTagSpecification</key>
+			<dict/>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>org.aegidian.oolite.expansion</string>
 				<string>com.apple.package</string>
 			</array>
 			<key>UTTypeDescription</key>
@@ -111,6 +149,26 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>oxp</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>org.aegidian.oolite.expansion</string>
+				<string>com.pkware.zip-archive</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Oolite Expansion Pack</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.aegidian.oolite.oxp.compressed</string>
+			<key>UTTypeReferenceURL</key>
+			<string></string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>oxz</string>
 				</array>
 			</dict>
 		</dict>

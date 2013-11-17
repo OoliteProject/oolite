@@ -35,7 +35,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import "OOTypes.h"
-
+#import "OOMaths.h"
 
 @interface OOSoundSourcePool: NSObject
 {
@@ -54,14 +54,28 @@ SOFTWARE.
 
 - (void) playSoundWithKey:(NSString *)key
 				 priority:(float)priority
+			   expiryTime:(OOTimeDelta)expiryTime
+				  overlap:(BOOL)overlap
+				 position:(Vector)position;
+
+- (void) playSoundWithKey:(NSString *)key
+				 priority:(float)priority
 			   expiryTime:(OOTimeDelta)expiryTime;
 
 - (void) playSoundWithKey:(NSString *)key
 				 priority:(float)priority;	// expiryTime:0.1 +/- 0.5
 
+- (void) playSoundWithKey:(NSString *)key
+				 priority:(float)priority
+				 position:(Vector)position;	// expiryTime:0.1 +/- 0.5
+
+- (void) playSoundWithKey:(NSString *)key
+				 position:(Vector)position;	// expiryTime:0.1 +/- 0.5
+
 - (void) playSoundWithKey:(NSString *)key;	// priority: 1.0, expiryTime:0.1 +/- 0.5
 
 - (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap;	// if overlap == NO it waits for key to finish before playing key again
+- (void) playSoundWithKey:(NSString *)key overlap:(BOOL)overlap position:(Vector)position;
 
 
 @end

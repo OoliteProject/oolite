@@ -1,12 +1,11 @@
 /*
 
-OOCASoundDebugMonitor.h
+NSDataOOExtensions.h
 
-Protocol for debugging information for sound system.
+Extensions to NSData.
 
 
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2013 Jens Ayton
+Copyright (C) 2008-2013 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,29 +27,11 @@ SOFTWARE.
 
 */
 
-#import "OOSound.h"
-
-#ifndef NDEBUG
-
-typedef enum
-{
-	kOOCADebugStateIdle,
-	kOOCADebugStatePlaying,
-	kOOCADebugStateOther		// Cleanup phase or broken.
-} OOCASoundDebugMonitorChannelState;
+#import "OOCocoa.h"
 
 
-@protocol OOCASoundDebugMonitor
+@interface NSData (OOExtensions)
 
-- (void) soundDebugMonitorNoteChannelMaxCount:(NSUInteger)maxChannels;
-- (void) soundDebugMonitorNoteActiveChannelCount:(NSUInteger)usedChannels;
-- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(NSUInteger)channel;
-
-- (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
++ (instancetype) oo_dataWithOXZFile:(NSString *)path;
 
 @end
-
-
-extern void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor);
-
-#endif

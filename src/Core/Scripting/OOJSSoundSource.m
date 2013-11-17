@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSSound.h"
+#import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 #import "OOSound.h"
 #import "ResourceManager.h"
@@ -64,7 +65,10 @@ enum
 	kSoundSource_sound,
 	kSoundSource_isPlaying,
 	kSoundSource_loop,
-	kSoundSource_repeatCount
+	kSoundSource_position,
+	kSoundSource_positional,
+	kSoundSource_repeatCount,
+	kSoundSource_volume
 };
 
 
@@ -73,8 +77,11 @@ static JSPropertySpec sSoundSourceProperties[] =
 	// JS name					ID							flags
 	{ "isPlaying",				kSoundSource_isPlaying,		OOJS_PROP_READONLY_CB },
 	{ "loop",					kSoundSource_loop,			OOJS_PROP_READWRITE_CB },
+	{ "position",				kSoundSource_position,		OOJS_PROP_READWRITE_CB },
+	{ "positional",				kSoundSource_positional,	OOJS_PROP_READWRITE_CB },
 	{ "repeatCount",			kSoundSource_repeatCount,	OOJS_PROP_READWRITE_CB },
 	{ "sound",					kSoundSource_sound,			OOJS_PROP_READWRITE_CB },
+	{ "volume",					kSoundSource_volume,		OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -148,7 +155,18 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsid pr
 		case kSoundSource_repeatCount:
 			*value = INT_TO_JSVAL([soundSource repeatCount]);
 			return YES;
-		
+
+		case kSoundSource_position:
+			return VectorToJSValue(context, [soundSource position], value);
+
+		case kSoundSource_positional:
+			*value = OOJSValueFromBOOL([soundSource positional]);
+			return YES;
+
+		case kSoundSource_volume:
+			return JS_NewNumberValue(context, [soundSource gain], value);
+
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sSoundSourceProperties);
 			return NO;
@@ -167,7 +185,9 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid pr
 	OOSoundSource				*soundSource = nil;
 	int32						iValue;
 	JSBool						bValue;
-	
+	Vector						vValue;
+	double						fValue;
+
 	if (!JSSoundSourceGetSoundSource(context, this, &soundSource)) return NO;
 	
 	switch (JSID_TO_INT(propID))
@@ -195,6 +215,32 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsid pr
 			}
 			break;
 		
+
+		case kSoundSource_position:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				[soundSource setPosition:vValue];
+				return YES;
+			}
+			break;
+
+		case kSoundSource_positional:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[soundSource setPositional:bValue];
+				return YES;
+			}
+			break;
+
+		case kSoundSource_volume:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				fValue = OOClamp_0_max_d(fValue, 1);
+				[soundSource setGain:fValue];
+				return YES;
+			}
+			break;
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sSoundSourceProperties);
 			return NO;

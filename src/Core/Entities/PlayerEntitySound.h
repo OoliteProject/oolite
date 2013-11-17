@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 
-
 @interface PlayerEntity (Sound)
 
 - (void) setUpSound;
@@ -107,7 +106,7 @@ MA 02110-1301, USA.
 // Warning sounds
 - (void) playHostileWarning;
 - (void) playAlertConditionRed;
-- (void) playIncomingMissile;
+- (void) playIncomingMissile:(Vector)missileVector;
 - (void) playEnergyLow;
 - (void) playDockingDenied;
 - (void) playWitchjumpFailure;
@@ -118,15 +117,15 @@ MA 02110-1301, USA.
 - (void) playFuelLeak;
 
 // Damage sounds
-- (void) playShieldHit;
-- (void) playDirectHit;
-- (void) playScrapeDamage;
+- (void) playShieldHit:(Vector)attackVector;
+- (void) playDirectHit:(Vector)attackVector;
+- (void) playScrapeDamage:(Vector)attackVector;
 
 // Weapon sounds
-- (void) playLaserHit:(BOOL)hit;
-- (void) playWeaponOverheated;
-- (void) playMissileLaunched;
-- (void) playMineLaunched;
+- (void) playLaserHit:(BOOL)hit offset:(Vector)weaponOffset;
+- (void) playWeaponOverheated:(Vector)weaponOffset;
+- (void) playMissileLaunched:(Vector)weaponOffset;
+- (void) playMineLaunched:(Vector)weaponOffset;
 
 // Miscellaneous sounds
 - (void) playEscapePodScooped;

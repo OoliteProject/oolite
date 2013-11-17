@@ -1,12 +1,8 @@
 /*
 
-OOCASoundDebugMonitor.h
+OOALStreamedSound.h
 
-Protocol for debugging information for sound system.
-
-
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2013 Jens Ayton
+OOALStreamedSound - OpenAL sound implementation for Oolite.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -18,7 +14,7 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -29,28 +25,21 @@ SOFTWARE.
 */
 
 #import "OOSound.h"
+#import "OOALSoundDecoder.h"
 
-#ifndef NDEBUG
-
-typedef enum
+@interface OOALStreamedSound: OOSound
 {
-	kOOCADebugStateIdle,
-	kOOCADebugStatePlaying,
-	kOOCADebugStateOther		// Cleanup phase or broken.
-} OOCASoundDebugMonitorChannelState;
+@private
+	char				*_buffer;
+	size_t				_size;
+	double				_sampleRate;
+	NSString			*_name;
+	BOOL				_stereo;
+	OOALSoundDecoder	*decoder;
+	BOOL				_reachedEnd;
+}
 
+- (id)initWithDecoder:(OOALSoundDecoder *)inDecoder;
 
-@protocol OOCASoundDebugMonitor
-
-- (void) soundDebugMonitorNoteChannelMaxCount:(NSUInteger)maxChannels;
-- (void) soundDebugMonitorNoteActiveChannelCount:(NSUInteger)usedChannels;
-- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(NSUInteger)channel;
-
-- (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
 
 @end
-
-
-extern void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor);
-
-#endif

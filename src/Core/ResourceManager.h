@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
-
+#import "NSFileManagerOOExtensions.h"
 
 @class OOSound, OOMusic;
 

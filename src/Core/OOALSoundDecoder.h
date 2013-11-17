@@ -1,11 +1,13 @@
 /*
 
-OOCASoundDebugMonitor.h
+OOALSoundDecoder.h
 
-Protocol for debugging information for sound system.
+Class responsible for converting a sound to a PCM buffer for playback. This
+class is an implementation detail. Do not use it directly; use OOSound to
+load sounds.
 
 
-OOCASound - Core Audio sound implementation for Oolite.
+OOALSound - OpenAL sound implementation for Oolite.
 Copyright (C) 2005-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,29 +30,31 @@ SOFTWARE.
 
 */
 
-#import "OOSound.h"
+#import <Foundation/Foundation.h>
 
-#ifndef NDEBUG
+#define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
 
-typedef enum
-{
-	kOOCADebugStateIdle,
-	kOOCADebugStatePlaying,
-	kOOCADebugStateOther		// Cleanup phase or broken.
-} OOCASoundDebugMonitorChannelState;
+@interface OOALSoundDecoder: NSObject
 
+- (id)initWithPath:(NSString *)inPath;
++ (OOALSoundDecoder *)codecWithPath:(NSString *)inPath;
 
-@protocol OOCASoundDebugMonitor
+// Full-buffer reading.
+- (BOOL)readCreatingBuffer:(char **)outBuffer withFrameCount:(size_t *)outSize;
 
-- (void) soundDebugMonitorNoteChannelMaxCount:(NSUInteger)maxChannels;
-- (void) soundDebugMonitorNoteActiveChannelCount:(NSUInteger)usedChannels;
-- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(NSUInteger)channel;
+// Stream reading.
+- (size_t)streamToBuffer:(char *)buffer;
 
-- (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
+// Returns the size of the data -readMonoCreatingBuffer:withFrameCount: will create.
+- (size_t)sizeAsBuffer;
+
+- (BOOL)isStereo;
+
+- (long)sampleRate;
+
+// For streaming
+- (void) reset;
+
+- (NSString *)name;
 
 @end
-
-
-extern void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor);
-
-#endif

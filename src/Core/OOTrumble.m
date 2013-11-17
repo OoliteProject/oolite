@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOSound.h"
 #import "OOStringParsing.h"
+#import "OOMaths.h"
 
 
 static void InitTrumbleSounds(void);
@@ -987,7 +988,12 @@ static void InitTrumbleSounds(void)
 static void PlayTrumbleIdle(void)
 {
 	// Only play idle sound if no trumble is making noise.
-	if (![sTrumbleSoundSource isPlaying])  [sTrumbleSoundSource playSound:sTrumbleIdleSound];
+	if (![sTrumbleSoundSource isPlaying])
+	{
+		// trumble sound from random direction - where's it gone now?
+		[sTrumbleSoundSource setPosition:OORandomUnitVector()];
+		[sTrumbleSoundSource playSound:sTrumbleIdleSound];
+	}
 }
 
 
@@ -996,6 +1002,8 @@ static void PlayTrumbleSqueal(void)
 	// Play squeal sound if no trumble is currently squealing, but trumping idle sound.
 	if (![sTrumbleSoundSource isPlaying] || [sTrumbleSoundSource sound] == sTrumbleIdleSound)
 	{
+		// trumble sound from random direction - where's it gone now?
+		[sTrumbleSoundSource setPosition:OORandomUnitVector()];
 		[sTrumbleSoundSource playSound:sTrumbleSqealSound];
 	}
 }

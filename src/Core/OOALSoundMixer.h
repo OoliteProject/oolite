@@ -1,12 +1,13 @@
 /*
 
-OOCASoundDebugMonitor.h
+OOALSoundMixer.h
 
-Protocol for debugging information for sound system.
+Class responsible for managing and mixing sound channels. This class is an
+implementation detail. Do not use it directly; use an OOSoundSource to play an
+OOSound.
 
-
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2013 Jens Ayton
+OOALSound - OpenAL sound implementation for Oolite.
+Copyright (C) 2006-2013 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -18,7 +19,7 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -28,29 +29,33 @@ SOFTWARE.
 
 */
 
-#import "OOSound.h"
+#import <Foundation/Foundation.h>
 
-#ifndef NDEBUG
+@class OOSoundChannel;
 
-typedef enum
+
+enum
 {
-	kOOCADebugStateIdle,
-	kOOCADebugStatePlaying,
-	kOOCADebugStateOther		// Cleanup phase or broken.
-} OOCASoundDebugMonitorChannelState;
+	kMixerGeneralChannels		= 32
+};
 
 
-@protocol OOCASoundDebugMonitor
+@interface OOSoundMixer: NSObject
+{
+	OOSoundChannel				*_channels[kMixerGeneralChannels];
+	OOSoundChannel				*_freeList;
+	
+	uint32_t					_maxChannels;
+	uint32_t					_playMask;
+	
+}
 
-- (void) soundDebugMonitorNoteChannelMaxCount:(NSUInteger)maxChannels;
-- (void) soundDebugMonitorNoteActiveChannelCount:(NSUInteger)usedChannels;
-- (void) soundDebugMonitorNoteState:(OOCASoundDebugMonitorChannelState)state ofChannel:(NSUInteger)channel;
+// Singleton accessor
++ (id) sharedMixer;
 
-- (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
+- (void) update;
+
+- (OOSoundChannel *) popChannel;
+- (void) pushChannel:(OOSoundChannel *)channel;
 
 @end
-
-
-extern void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor);
-
-#endif
