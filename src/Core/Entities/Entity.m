@@ -1084,6 +1084,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	case STATUS_IN_FLIGHT:
 	case STATUS_DOCKING:
 	case STATUS_LAUNCHING:
+	case STATUS_AUTOPILOT_ENGAGED:
 	case STATUS_WITCHSPACE_COUNTDOWN:
 	case STATUS_BEING_SCOOPED:
 	case STATUS_EFFECT:

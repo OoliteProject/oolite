@@ -2439,6 +2439,8 @@ static GLfloat		sBaseMass = 0.0;
 		[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 		[self removeTarget:primeTarget];
 	}
+	// compass sanity check and update target for changed mode
+	[self validateCompassTarget];
 	
 	// update subentities
 	UPDATE_STAGE(@"updating subentities");
@@ -2889,6 +2891,9 @@ static GLfloat		sBaseMass = 0.0;
 		[self setScriptedMisjumpRange:0.5];
 
 		[self doScriptEvent:OOJSID("shipExitedWitchspace")];
+
+		[self doBookkeeping:delta_t]; // arrival frame updates
+
 		suppressAegisMessages=NO;
 	}
 }
@@ -3955,6 +3960,71 @@ static GLfloat		sBaseMass = 0.0;
 {
 	[compassTarget release];
 	compassTarget = [value weakRetain];
+}
+
+
+- (void) validateCompassTarget
+{
+	OOSunEntity		*the_sun = [UNIVERSE sun];
+	OOPlanetEntity	*the_planet = [UNIVERSE planet];
+	StationEntity	*the_station = [UNIVERSE station];
+	Entity			*the_target = [self primaryTarget];
+	Entity <OOBeaconEntity>		*beacon = [self nextBeacon];
+	if ([self isInSpace] && the_sun && the_planet		// be in a system
+		&& ![the_sun goneNova])			// and the system has not been novabombed
+	{
+		Entity *new_target = nil;
+		OOAegisStatus	aegis = [self checkForAegis];
+		
+		switch ([self compassMode])
+		{
+			case COMPASS_MODE_INACTIVE:
+				break;
+			
+			case COMPASS_MODE_BASIC:
+				if ((aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE) && the_station)
+				{
+					new_target = the_station;
+				}
+				else
+				{
+					new_target = the_planet;
+				}
+				break;
+				
+			case COMPASS_MODE_PLANET:
+				new_target = the_planet;
+				break;
+				
+			case COMPASS_MODE_STATION:
+				new_target = the_station;
+				break;
+				
+			case COMPASS_MODE_SUN:
+				new_target = the_sun;
+				break;
+				
+			case COMPASS_MODE_TARGET:
+				new_target = the_target;
+				break;
+				
+			case COMPASS_MODE_BEACONS:
+				new_target = beacon;
+				break;
+		}
+		
+		if (new_target == nil || [new_target status] < STATUS_ACTIVE || [new_target status] == STATUS_IN_HOLD)
+		{
+			[self setCompassMode:COMPASS_MODE_PLANET];
+			new_target = the_planet;
+		}
+		
+		if (EXPECT_NOT(new_target != [self compassTarget]))
+		{
+			[self setCompassTarget:new_target];
+			[self doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:new_target, OOStringFromCompassMode([self compassMode]), nil]];
+		}
+	}
 }
 
 

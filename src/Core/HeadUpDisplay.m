@@ -972,9 +972,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (BOOL) checkPlayerInFlight
 {
-	OOEntityStatus status = [PLAYER status];
-	
-	return ((status == STATUS_IN_FLIGHT)||(status == STATUS_AUTOPILOT_ENGAGED)||(status == STATUS_LAUNCHING)||(status == STATUS_WITCHSPACE_COUNTDOWN));
+	return [PLAYER isInSpace] && [PLAYER status] != STATUS_DOCKING;
 }
 
 
@@ -1466,68 +1464,9 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	OOGLEND();
 	OOGL(GLScaledLineWidth(lineWidth));	// thinner
 	
-	OOSunEntity		*the_sun = [UNIVERSE sun];
-	OOPlanetEntity	*the_planet = [UNIVERSE planet];
-	StationEntity	*the_station = [UNIVERSE station];
-	Entity			*the_target = [PLAYER primaryTarget];
-	Entity <OOBeaconEntity>		*beacon = [PLAYER nextBeacon];
-	if ([self checkPlayerInFlight]		// be in the right mode
-		&& the_sun && the_planet		// and be in a system
-		&& ![the_sun goneNova])			// and the system has not been novabombed
+	if ([self checkPlayerInSystemFlight] && [PLAYER status] != STATUS_LAUNCHING) // normal system
 	{
-		Entity *reference = nil;
-		OOAegisStatus	aegis = AEGIS_NONE;
-		
-		switch ([PLAYER compassMode])
-		{
-			case COMPASS_MODE_INACTIVE:
-				break;
-			
-			case COMPASS_MODE_BASIC:
-				aegis = [PLAYER checkForAegis];
-				if ((aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE) && the_station)
-				{
-					reference = the_station;
-				}
-				else
-				{
-					reference = the_planet;
-				}
-				break;
-				
-			case COMPASS_MODE_PLANET:
-				reference = the_planet;
-				break;
-				
-			case COMPASS_MODE_STATION:
-				reference = the_station;
-				break;
-				
-			case COMPASS_MODE_SUN:
-				reference = the_sun;
-				break;
-				
-			case COMPASS_MODE_TARGET:
-				reference = the_target;
-				break;
-				
-			case COMPASS_MODE_BEACONS:
-				reference = beacon;
-				break;
-		}
-		
-		if (reference == nil || [reference status] < STATUS_ACTIVE || [reference status] == STATUS_IN_HOLD)
-		{
-			[PLAYER setCompassMode:COMPASS_MODE_PLANET];
-			reference = the_planet;
-		}
-		
-		if (EXPECT_NOT(!_compassActive || reference != [PLAYER compassTarget]))
-		{
-			_compassActive = YES;
-			[PLAYER setCompassTarget:reference];
-			[PLAYER doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:reference, OOStringFromCompassMode([PLAYER compassMode]), nil]];
-		}
+		Entity *reference = [PLAYER compassTarget];
 		
 		// translate and rotate the view
 
@@ -1570,10 +1509,12 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 			case COMPASS_MODE_BEACONS:
 				[self drawCompassBeaconBlipAt:relativePosition Size:siz Alpha:alpha];
+				Entity <OOBeaconEntity>		*beacon = [PLAYER nextBeacon];
 				[[beacon beaconDrawable] oo_drawHUDBeaconIconAt:NSMakePoint(x, y) size:siz alpha:alpha z:z1];
 				break;
 		}
 		_compassUpdated = YES;
+		_compassActive = YES;
 	}
 }
 
