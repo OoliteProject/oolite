@@ -9,6 +9,7 @@ Changes between Oolite 1.77.1 and Oolite 1.78:
 * New ships always have weapons online
 * Target-sensitive reticle accounts for weapon offsets
 * Include fix for build process on lunar-linux
+* Deep-space rock hermit positions are now consistent over save/load
 
 Changes between Oolite 1.77 and Oolite 1.77.1:
 

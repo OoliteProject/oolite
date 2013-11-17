@@ -10425,9 +10425,6 @@ static void PreloadOneSound(NSString *soundName)
 		[pool release];
 	}
 	
-	setRandomSeed(savedSeed);
-	RANROTSetFullSeed(ranrotSavedSeed);
-	
 	if (!sunGoneNova && !includedHermit)
 	{
 		// if we haven't had a non-main station yet
@@ -10447,6 +10444,9 @@ static void PreloadOneSound(NSString *soundName)
 									 asCinders:NO
 								 clusterSize:1 + (Ranrot() % 6)];
 	}
+
+	setRandomSeed(savedSeed);
+	RANROTSetFullSeed(ranrotSavedSeed);
 
 }
 
