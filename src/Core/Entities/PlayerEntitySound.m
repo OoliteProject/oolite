@@ -52,14 +52,14 @@ static OOSoundSource		*sBreakPatternSource;
 static OOSoundSourcePool	*sBuySellSourcePool;
 static OOSoundSource		*sAfterburnerSources[2];
 
-const Vector	 kInterfaceBeepPosition		= { 0.0f, -0.2f, 0.5f };
-const Vector	 kInterfaceWarningPosition	= { 0.0f, -0.2f, 0.4f };
-const Vector	 kBreakPatternPosition		= { 0.0f, 0.0f, 1.0f };
-const Vector	 kEcmPosition				= { 0.2f, 0.6f, -0.1f };
-const Vector	 kWitchspacePosition		= { 0.0f, -0.3f, -0.3f };
+static const Vector	 kInterfaceBeepPosition		= { 0.0f, -0.2f, 0.5f };
+static const Vector	 kInterfaceWarningPosition	= { 0.0f, -0.2f, 0.4f };
+static const Vector	 kBreakPatternPosition		= { 0.0f, 0.0f, 1.0f };
+static const Vector	 kEcmPosition				= { 0.2f, 0.6f, -0.1f };
+static const Vector	 kWitchspacePosition		= { 0.0f, -0.3f, -0.3f };
 // maybe these should actually track engine positions
-const Vector	 kAfterburner1Position		= { -0.1f, 0.0f, -1.0f };
-const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
+static const Vector	 kAfterburner1Position		= { -0.1f, 0.0f, -1.0f };
+static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 
 @implementation PlayerEntity (Sound)
 
