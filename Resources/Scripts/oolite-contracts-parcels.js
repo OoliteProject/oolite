@@ -252,14 +252,14 @@ this._initialiseParcelContractsForSystem = function()
 		numContracts--;
 	}
 	// if the player has a bad reputation, reduce the available contract number
-	if (player.parcelReputation < 0)
+	if (player.parcelReputationPrecise < 0)
 	{
-		numContracts += player.parcelReputation;
+		numContracts += player.parcelReputationPrecise;
 	}
 	// if they have a very good reputation, increase the numbers
-	else if (player.parcelReputation > 4)
+	else if (player.parcelReputationPrecise > 4)
 	{
-		numContracts += Math.floor(Math.random()*(player.parcelReputation - 3));
+		numContracts += Math.floor(Math.random()*(player.parcelReputationPrecise - 3));
 	}
 	// always have at least four available for new Jamesons
 	if (!missionVariables.oolite_contracts_parcels && numContracts < 4)
@@ -267,7 +267,7 @@ this._initialiseParcelContractsForSystem = function()
 		numContracts = 4;
 	} 
 	// reduce number of places with none whatsoever
-	else if (numContracts < 1 && player.parcelReputation >= 0 && Math.random() < 0.5)
+	else if (numContracts < 1 && player.parcelReputationPrecise >= 0 && Math.random() < 0.5)
 	{
 		numContracts = 1;
 	}
@@ -334,7 +334,7 @@ this._initialiseParcelContractsForSystem = function()
 			// 2-3 credits per LY of route
 			(routeToDestination.distance * (2+Math.random())) +
 				// additional income for route length based on reputation
-				(Math.pow(routeToDestination.route.length,1+(parcel.risk*0.4)+(0.2*player.parcelReputation))) +
+				(Math.pow(routeToDestination.route.length,1+(parcel.risk*0.4)+(0.2*player.parcelReputationPrecise))) +
 				// small premium for delivery to more dangerous systems
 				(2 * Math.pow(7-destinationInfo.government,1.5))
 		);
@@ -471,7 +471,7 @@ this._parcelContractsDisplay = function(summary) {
 // display the mission screen for the summary page
 this._parcelContractSummaryPage = function()
 {
-	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.parcelReputation);
+	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.parcelReputationPrecise);
 	// column 'tab stops'
 	var columns = [14,21,28];
 
@@ -570,7 +570,7 @@ this._parcelContractSummaryPage = function()
 // display the mission screen for the contract detail page
 this._parcelContractSinglePage = function()
 {
-	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.parcelReputation);
+	var playerrep = worldScripts["oolite-contracts-helpers"]._playerSkill(player.parcelReputationPrecise);
 
 	// temp variable to simplify code
 	var parcel = this.$parcels[this.$contractIndex];
@@ -627,7 +627,7 @@ this._parcelContractSinglePage = function()
 		}
 	} else {
 		var utype = "both";
-		if (player.parcelReputation*10 >= parcel.skill)
+		if (player.parcelReputationPrecise*10 >= parcel.skill)
 		{
 			utype = "kills";
 		}

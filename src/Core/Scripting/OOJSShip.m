@@ -2657,7 +2657,7 @@ static JSBool ShipSetCargoType(JSContext *context, uintN argc, jsval *vp)
 	}
 	if ([thisEnt cargoType] != CARGO_NOT_CARGO)
 	{
-		OOJSReportBadArguments(context, @"Ship", @"setCargoType", argc, OOJS_ARGV, nil, @"Can only be used on cargo pod carriers, not cargo pods");
+		OOJSReportBadArguments(context, @"Ship", @"setCargoType", argc, OOJS_ARGV, nil, [NSString stringWithFormat:@"Can only be used on cargo pod carriers, not cargo pods (%@)",[thisEnt shipDataKey]]);
 		return NO;
 	}
 	BOOL ok = YES;
