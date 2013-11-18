@@ -32,7 +32,7 @@ this.version = "1.79";
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
-	if (system.mainStation.position.distanceTo(this.ship) < 25000 && Math.random() < 0.5)
+	if (system.mainStation && system.mainStation.position.distanceTo(this.ship) < 25000 && Math.random() < 0.5)
 	{
 		// if launching from (near) main station, sometimes hang around the
 		// aegis to wait for a launching courier

@@ -5747,6 +5747,10 @@ PriorityAIController.prototype.templateLeadPirateMission = function()
 			]
 		},
 		{
+			condition: this.conditionInInterstellarSpace,
+			truebranch: this.templateWitchspaceJumpAnywhere()
+		},
+		{
 			/* move to a position on one of the space lanes, preferring lane 1 */
 			label: "Lurk",
 			configuration: this.configurationSetDestinationToPirateLurk,
