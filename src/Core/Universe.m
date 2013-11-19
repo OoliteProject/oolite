@@ -224,10 +224,10 @@ static int JSResetFlags = 0;
 
 
 // track the position and status of the lights
-BOOL	object_light_on = NO;
-BOOL	demo_light_on = NO;
-static GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
-GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
+static BOOL		object_light_on = NO;
+static BOOL		demo_light_on = YES;
+static GLfloat	sun_off[4] = {0.0, 0.0, 0.0, 1.0};
+static GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
 #define DOCKED_AMBIENT_LEVEL	0.2f	// Was 0.05, 'temporarily' set to 0.2.
 #define DOCKED_ILLUM_LEVEL		0.7f
