@@ -111,7 +111,7 @@ this.aiStarted = function() {
 		 * show up at the witchpoint sooner or later */
 		{
 			configuration: ai.configurationSetDestinationToWitchpoint,
-			behaviour: ai.approachDestination,
+			behaviour: ai.behaviourApproachDestination,
 			reconsider: 30
 		}
 	]);
