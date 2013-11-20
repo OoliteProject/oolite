@@ -228,11 +228,16 @@ SOFTWARE.
 		OOLog(@"ov.debug",@"Error %d queueing buffers",error);
 		return NO;
 	}
-	OOAL(alSourcePlay(_source));
-	if ((error = alGetError()) != AL_NO_ERROR)
+	ALint playing = 0;
+	OOAL(alGetSourcei(_source,AL_SOURCE_STATE,&playing));
+	if (playing != AL_PLAYING)
 	{
-		OOLog(@"ov.debug",@"Error %d playing source",error);
-		return NO;
+		OOAL(alSourcePlay(_source));
+		if ((error = alGetError()) != AL_NO_ERROR)
+		{
+			OOLog(@"ov.debug",@"Error %d playing source",error);
+			return NO;
+		}
 	}
 	return YES;
 }
