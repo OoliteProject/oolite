@@ -87,9 +87,7 @@ static id sSharedStickHandler = nil;
 		// axes and buttons are set to unassigned (STICK_NOFUNCTION).
 		[self loadStickSettings];
 		
-		precisionMode = NO;
 		invertPitch = NO;
-		deadzone = STICK_DEADZONE;
 	}
 	return self;
 }
@@ -162,47 +160,18 @@ static id sSharedStickHandler = nil;
 - (double) axisTransform: (double)axisvalue;
 {
 	if (fabs(axisvalue) < deadzone) return 0.0;
-
-#if STICK_NONLINEAR_OPTION == 0
-	if (precisionMode)
-	{
-		return axisvalue / STICK_PRECISIONFAC;
-	}
-	return axisvalue;
-#endif
-
-#if STICK_NONLINEAR_OPTION == 1
-	if (precisionMode)
-	{
-		// since we're mucking around with nonlinear stuff, we may as well throw in a smooth transition from deadzone to non-deadzone
-		if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
-		else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
-		return axisvalue*(STICK_NONLINEAR1 + STICK_NONLINEAR2*axisvalue*axisvalue);
-	}
-	return axisvalue;
-#endif
-
-#if STICK_NONLINEAR_OPTION == 2
-	if (precisionMode)
-	{
-		return axisvalue / STICK_PRECISIONFAC;
-	}
-	if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
-	else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
-	return axisvalue*(STICK_NONLINEAR1 + STICK_NONLINEAR2*axisvalue*axisvalue);
-#endif
-
-#if STICK_NONLINEAR_OPTION == 3
+	
+	// since we're mucking around with nonlinear stuff, we may as well throw in a smooth transition
+	// from deadzone to non-deadzone
 	if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
 	else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
 	if (precisionMode)
 	{
-		return axisvalue*STICK_NONLINEAR1 + STICK_NONLINEAR2*pow(axisvalue,5);
+		return axisvalue*((1.0-nonlinear_parameter) + nonlinear_parameter*axisvalue*axisvalue);
 	}
-	return axisvalue*(STICK_NONLINEAR1 + axisvalue*axisvalue*STICK_NONLINEAR2);
-#endif
-
+	return axisvalue;
 }
+
 
 - (NSArray *)listSticks
 {
@@ -533,6 +502,7 @@ static id sSharedStickHandler = nil;
 		bs = YES;
 		if(function == BUTTON_PRECISION)
 			precisionMode = !precisionMode;
+			[[NSUserDefaults standardUserDefaults] setBool: precisionMode forKey: STICK_PRECISION_SETTING];
 	}
 	
 	if (function >= 0)
@@ -579,7 +549,9 @@ static id sSharedStickHandler = nil;
 				 forKey:AXIS_SETTINGS];
 	[defaults setObject:[self buttonFunctions]
 				 forKey:BUTTON_SETTINGS];
-	[defaults setFloat: deadzone forKey: STICK_DEADZONE_SETTING];
+	[defaults setDouble: deadzone forKey: STICK_DEADZONE_SETTING];
+	[defaults setDouble: nonlinear_parameter forKey: STICK_NONLINEAR_PARAMETER];
+	[defaults setBool: !!precisionMode forKey: STICK_PRECISION_SETTING];
 	[defaults synchronize];
 }
 
@@ -621,6 +593,16 @@ static id sSharedStickHandler = nil;
 	{
 		deadzone = STICK_DEADZONE;
 	}
+	nonlinear_parameter = [defaults oo_doubleForKey: STICK_NONLINEAR_PARAMETER defaultValue: 1.0];
+	if (nonlinear_parameter < 0.0)
+	{
+		nonlinear_parameter = 0.0;
+	}
+	if (nonlinear_parameter > 1.0)
+	{
+		nonlinear_parameter = 1.0;
+	}
+	precisionMode = [defaults oo_boolForKey: STICK_PRECISION_SETTING defaultValue:NO];
 }
 
 // These get overidden by subclasses
