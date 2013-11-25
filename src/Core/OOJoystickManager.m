@@ -549,8 +549,8 @@ static id sSharedStickHandler = nil;
 				 forKey:AXIS_SETTINGS];
 	[defaults setObject:[self buttonFunctions]
 				 forKey:BUTTON_SETTINGS];
-	[defaults setDouble: deadzone forKey: STICK_DEADZONE_SETTING];
-	[defaults setDouble: nonlinear_parameter forKey: STICK_NONLINEAR_PARAMETER];
+	[defaults setFloat: deadzone forKey: STICK_DEADZONE_SETTING];
+	[defaults setFloat: nonlinear_parameter forKey: STICK_NONLINEAR_PARAMETER];
 	[defaults setBool: !!precisionMode forKey: STICK_PRECISION_SETTING];
 	[defaults synchronize];
 }
@@ -594,14 +594,7 @@ static id sSharedStickHandler = nil;
 		deadzone = STICK_DEADZONE;
 	}
 	nonlinear_parameter = [defaults oo_doubleForKey: STICK_NONLINEAR_PARAMETER defaultValue: 1.0];
-	if (nonlinear_parameter < 0.0)
-	{
-		nonlinear_parameter = 0.0;
-	}
-	if (nonlinear_parameter > 1.0)
-	{
-		nonlinear_parameter = 1.0;
-	}
+	nonlinear_parameter = OOClamp_0_1_d( nonlinear_parameter );
 	precisionMode = [defaults oo_boolForKey: STICK_PRECISION_SETTING defaultValue:NO];
 }
 
