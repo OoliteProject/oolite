@@ -30,7 +30,8 @@
 #import "OOJSPropID.h"
 
 @class	OOColor, StationEntity, WormholeEntity, AI, Octree, OOMesh, OOScript,
-OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet;
+	OOJSScript, OORoleSet, OOShipGroup, OOEquipmentType, OOWeakSet,
+	OOExhaustPlumeEntity, OOFlasherEntity;
 
 #define MAX_TARGETS						24
 #define RAIDER_MAX_CARGO				5
@@ -909,6 +910,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void)setSuppressExplosion:(BOOL)suppress;
 
 - (void) resetExhaustPlumes;
+
+- (void) removeExhaust:(OOExhaustPlumeEntity *)exhaust;
+- (void) removeFlasher:(OOFlasherEntity *)flasher;
+
 
 /*-----------------------------------------
  

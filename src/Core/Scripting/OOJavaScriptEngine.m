@@ -49,6 +49,8 @@ MA 02110-1301, USA.
 #import "OOJSStation.h"
 #import "OOJSDock.h"
 #import "OOJSVisualEffect.h"
+#import "OOJSExhaustPlume.h"
+#import "OOJSFlasher.h"
 #import "OOJSWormhole.h"
 #import "OOJSWaypoint.h"
 #import "OOJSPlayer.h"
@@ -352,6 +354,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSStation(gOOJSMainThreadContext, _globalObject);
 	InitOOJSDock(gOOJSMainThreadContext, _globalObject);
 	InitOOJSVisualEffect(gOOJSMainThreadContext, _globalObject);
+	InitOOJSExhaustPlume(gOOJSMainThreadContext, _globalObject);
+	InitOOJSFlasher(gOOJSMainThreadContext, _globalObject);
 	InitOOJSWormhole(gOOJSMainThreadContext, _globalObject);
 	InitOOJSWaypoint(gOOJSMainThreadContext, _globalObject);
 	InitOOJSPlayer(gOOJSMainThreadContext, _globalObject);

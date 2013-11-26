@@ -254,7 +254,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) removeSubEntity:(OOVisualEffectEntity *)sub
+- (void) removeSubEntity:(Entity<OOSubEntity> *)sub
 {
 	[sub setOwner:nil];
 	[subEntities removeObject:sub];

@@ -8575,6 +8575,20 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (void) removeExhaust:(OOExhaustPlumeEntity *)exhaust
+{
+	[subEntities removeObject:exhaust];
+	[exhaust setOwner:nil];
+}
+
+
+- (void) removeFlasher:(OOFlasherEntity *)flasher
+{
+	[subEntities removeObject:flasher];
+	[flasher setOwner:nil];
+}
+
+
 - (void)subEntityDied:(ShipEntity *)sub
 {
 	if ([self subEntityTakingDamage] == sub)  [self setSubEntityTakingDamage:nil];

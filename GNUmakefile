@@ -287,6 +287,8 @@ OOLITE_SCRIPTING_FILES = \
     OOJSDock.m \
     OOJSEntity.m \
     OOJSEquipmentInfo.m \
+    OOJSExhaustPlume.m \
+    OOJSFlasher.m \
     OOJSFunction.m \
     OOJSGlobal.m \
     OOJSInterfaceDefinition.m \
