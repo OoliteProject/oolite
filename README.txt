@@ -97,7 +97,7 @@ not work - due to relative directory paths in .gitmodules, git tries
 to download the submodules from the fork instead of the original oolite
 repository.  A workaround is to copy the file .absolute_gitmodules
 onto .gitmodules, then perform the submodules init, then replace
-.gitmodules with .relative_submodules.  eg, on Unix:
+.gitmodules with the relative path version.  eg, on Unix:
 
 $ cp .absolute_gitmodules .gitmodules
 $ git submodule update --init
