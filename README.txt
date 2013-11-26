@@ -67,7 +67,8 @@ distros, GNUstep and SDL development libraries come prepackaged - just
 apt-get/yum install the relevant files. You may also need to install Mozilla
 Spidermonkey (libmozjs). On others you may need to build them from source. In
 particular, you need the SDL_Mixer library, which doesn't always come with the
-base SDL development kit. Then just type 'make'.
+base SDL development kit. Then just type 'make', or, if you're using GNU make,
+'make -f Makefile'.
 
 If you want to make the Linux autopackage, after getting the Autopackage
 development kit, just type 'makeinstaller', and a package file will be
