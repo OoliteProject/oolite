@@ -593,8 +593,7 @@ static id sSharedStickHandler = nil;
 	{
 		deadzone = STICK_DEADZONE;
 	}
-	nonlinear_parameter = [defaults oo_doubleForKey: STICK_NONLINEAR_PARAMETER defaultValue: 1.0];
-	nonlinear_parameter = OOClamp_0_1_d( nonlinear_parameter );
+	nonlinear_parameter = OOClamp_0_1_d( [defaults oo_doubleForKey: STICK_NONLINEAR_PARAMETER defaultValue: 1.0] );
 	precisionMode = [defaults oo_boolForKey: STICK_PRECISION_SETTING defaultValue:NO];
 }
 
