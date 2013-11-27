@@ -62,6 +62,11 @@ static JSClass sFlasherClass =
 enum
 {
 	// Property IDs
+	kFlasher_active,
+	kFlasher_color,
+	kFlasher_fraction,
+	kFlasher_frequency,
+	kFlasher_phase,
 	kFlasher_size
 };
 
@@ -69,6 +74,11 @@ enum
 static JSPropertySpec sFlasherProperties[] =
 {
 	// JS name						ID									flags
+	{ "active",	   			kFlasher_active,  		OOJS_PROP_READWRITE_CB },
+	{ "color",	   			kFlasher_color,	  		OOJS_PROP_READWRITE_CB },
+	{ "fraction",  			kFlasher_fraction,		OOJS_PROP_READWRITE_CB },
+	{ "frequency", 			kFlasher_frequency,		OOJS_PROP_READWRITE_CB },
+	{ "phase",	   			kFlasher_phase,	  		OOJS_PROP_READWRITE_CB },
 	{ "size",	   			kFlasher_size,	  		OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
@@ -149,6 +159,23 @@ static JSBool FlasherGetProperty(JSContext *context, JSObject *this, jsid propID
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kFlasher_active:
+			*value = OOJSValueFromBOOL([entity isActive]);
+			return YES;
+
+		case kFlasher_color:
+			result = [[entity color] normalizedArray];
+			break;
+
+		case kFlasher_frequency:
+			return JS_NewNumberValue(context, [entity frequency], value);
+
+		case kFlasher_fraction:
+			return JS_NewNumberValue(context, [entity fraction], value);
+
+		case kFlasher_phase:
+			return JS_NewNumberValue(context, [entity phase], value);
+
 		case kFlasher_size:
 			return JS_NewNumberValue(context, [entity diameter], value);
 
@@ -170,14 +197,63 @@ static JSBool FlasherSetProperty(JSContext *context, JSObject *this, jsid propID
 	
 	OOJS_NATIVE_ENTER(context)
 	
-	OOFlasherEntity				*entity = nil;
-	jsdouble          fValue;
+	OOFlasherEntity		*entity = nil;
+	jsdouble          	fValue;
+	JSBool				bValue;
+	OOColor				*colorForScript = nil;
 	
 	if (!JSFlasherGetFlasherEntity(context, this, &entity)) return NO;
 	if (entity == nil)  return YES;
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kFlasher_active:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setActive:bValue];
+				return YES;
+			}
+			break;
+
+		case kFlasher_color:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setColor:colorForScript];
+				return YES;
+			}
+			break;
+
+		case kFlasher_frequency:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue > 0.0)
+				{
+					[entity setFrequency:fValue];
+					return YES;
+				}
+			}
+			break;
+
+		case kFlasher_fraction:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue > 0.0 && fValue <= 1.0)
+				{
+					[entity setFraction:fValue];
+					return YES;
+				}
+			}
+			break;
+
+		case kFlasher_phase:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setPhase:fValue];
+				return YES;
+			}
+			break;
+
 		case kFlasher_size:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
