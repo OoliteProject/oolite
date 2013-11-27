@@ -227,7 +227,7 @@ static JSBool FlasherSetProperty(JSContext *context, JSObject *this, jsid propID
 		case kFlasher_frequency:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				if (fValue > 0.0)
+				if (fValue >= 0.0)
 				{
 					[entity setFrequency:fValue];
 					return YES;
