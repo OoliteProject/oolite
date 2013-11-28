@@ -67,8 +67,7 @@ distros, GNUstep and SDL development libraries come prepackaged - just
 apt-get/yum install the relevant files. You may also need to install Mozilla
 Spidermonkey (libmozjs). On others you may need to build them from source. In
 particular, you need the SDL_Mixer library, which doesn't always come with the
-base SDL development kit. Then just type 'make', or, if you're using GNU make,
-'make -f Makefile'.
+base SDL development kit. Then just type 'make'.
 
 If you want to make the Linux autopackage, after getting the Autopackage
 development kit, just type 'makeinstaller', and a package file will be
@@ -98,7 +97,7 @@ not work - due to relative directory paths in .gitmodules, git tries
 to download the submodules from the fork instead of the original oolite
 repository.  A workaround is to copy the file .absolute_gitmodules
 onto .gitmodules, then perform the submodules init, then replace
-.gitmodules with the relative path version.  eg, on Unix:
+.gitmodules with .relative_submodules.  eg, on Unix:
 
 $ cp .absolute_gitmodules .gitmodules
 $ git submodule update --init
