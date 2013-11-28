@@ -3112,7 +3112,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		pitching = (fabs(virtualStick.y) >= deadzone);
 	}
-	if (!pitching && !keyboard_pitch_lock)
+	if (!pitching)
 	{
 		if (flightPitch > 0.0)
 		{
@@ -3169,7 +3169,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		yawing = (fabs(reqYaw) >= deadzone);
 	}
-	if (!yawing && !keyboard_yaw_lock)
+	if (!yawing)
 	{
 		if (flightYaw > 0.0)
 		{
