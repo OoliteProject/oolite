@@ -2453,7 +2453,7 @@ PriorityAIController.prototype.conditionIsEscorting = function()
 			{
 				// has been left behind
 				this.configurationLeaveEscortGroup();
-				this.setParameter("oolite_witchspaceWormhole",false);
+				this.setParameter("oolite_witchspaceWormhole",null);
 				return false;
 			}
 		}
