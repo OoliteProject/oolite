@@ -98,6 +98,7 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1);
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear);
 static GLfloat nonlinearScannerFunc(GLfloat distance, GLfloat zoom, GLfloat scale);
+static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha );
 
 static OOTexture			*sFontTexture = nil;
 static OOEncodingConverter	*sEncodingCoverter = nil;
@@ -1272,6 +1273,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				// rotate the view
 				relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);
+				Vector rrp = relativePosition;
 				// scale the view
 				if (nonlinearScanner)
 				{
@@ -1335,7 +1337,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				if ([scannedEntity isShip])
 				{
 					ShipEntity* ship = (ShipEntity*)scannedEntity;
-					if (ship->collision_radius * upscale > 4.5)
+					if ((!nonlinearScanner && ship->collision_radius * upscale > 4.5) ||
+						(nonlinearScanner && nonlinearScannerFunc(act_dist, scanner_zoom, siz.width) - nonlinearScannerFunc(lim_dist, scanner_zoom, siz.width) > 4.5 ))
 					{
 						Vector bounds[6];
 						BoundingBox bb = ship->totalBoundingBox;
@@ -1380,16 +1383,23 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				}
 				if ([scannedEntity isCascadeWeapon])
 				{
-					GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
-					GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
-					GLfloat r0 = (l2 > 0)? sqrt(l2): 0;
-					if (r0 > 0)
+					if (nonlinearScanner)
 					{
-						OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
-						GLDrawOval(x1  - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
+						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, scannedEntity->collision_radius, scanner_zoom, alpha );
 					}
-					OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
-					GLDrawFilledOval(x1  - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
+					else
+					{
+						GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
+						GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
+						GLfloat r0 = (l2 > 0)? sqrt(l2): 0;
+						if (r0 > 0)
+						{
+							OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+							GLDrawOval(x1  - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
+						}
+						OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+						GLDrawFilledOval(x1  - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
+					}
 				}
 				else
 				{
@@ -1440,9 +1450,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 {
 	OOScalar mag = magnitude(V);
 	Vector unit = vector_normal(V);
-	if (mag > 0)
-		return vector_multiply_scalar(unit, nonlinearScannerFunc(mag, zoom, scale));
-	return V;
+	return vector_multiply_scalar(unit, nonlinearScannerFunc(mag, zoom, scale));
 }
 
 - (void) refreshLastTransmitter
@@ -3766,15 +3774,72 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, 
 	OOVerifyOpenGLState();
 }
 
-
-GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat scale )
+static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha )
 {
-	GLfloat x = distance / SCANNER_MAX_RANGE;
+	Vector spacepos, scannerpos;
+	GLfloat theta;
+	GLfloat z_factor = siz.height / siz.width;	// approx 1/4
+	GLfloat y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
+	OOGLVector *points = malloc(sizeof(OOGLVector)*24);
+	int i;
+	
+	if (radius*radius > centre.y*centre.y)
+	{
+		GLfloat r0 = sqrt(radius*radius-centre.y*centre.y);
+		OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+		spacepos.y = 0;
+		for (i = 0; i < 23; i++)
+		{
+			theta = i*2*M_PI/24;
+			spacepos.x = centre.x + r0 * cos(theta);
+			spacepos.z = centre.z + r0 * sin(theta);
+			scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+			points[i].x = x + scannerpos.x;
+			points[i].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+			points[i].z = z;
+		}
+		spacepos.x = centre.x + r0;
+		spacepos.y = 0;
+		spacepos.z = centre.z;
+		scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+		points[23].x = x + scannerpos.x;
+		points[23].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+		points[23].z = z;
+		GLDrawPoints(points,24);
+	}
+	OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+	spacepos.z = centre.z;
+	for (i = 0; i < 23; i++)
+	{
+		theta = 2*i*M_PI/24;
+		spacepos.x = centre.x + radius * cos(theta);
+		spacepos.y = centre.y + radius * sin(theta);
+		scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+		points[i].x = x + scannerpos.x;
+		points[i].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+		points[i].z = z;
+	}
+	spacepos.x = centre.x + radius;
+	spacepos.y = centre.y;
+	spacepos.z = centre.z;
+	scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+	points[23].x = x + scannerpos.x;
+	points[23].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+	points[23].z = z;
+	GLDrawFilledPoints(points, 24);
+	free(points);
+	return;
+}
+
+static GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat scale )
+{
+	GLfloat x = fabs(distance / SCANNER_MAX_RANGE);
+	if (x >= 1.0)
+		return scale;
 	if (zoom <= 1.0)
 		return scale * x;
-	if (distance > 0)
-		return scale * (zoom*x - (zoom-1)*pow(x,zoom/(zoom-1.0)));
-	return 0.0;
+	zoom = pow(2,zoom-1.0);
+	return scale * (zoom*x - (zoom-1)*pow(x,zoom/(zoom-1.0)));
 }
 
 
