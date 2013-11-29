@@ -10690,7 +10690,9 @@ else _dockTarget = NO_TARGET;
 	stickFunctions &&
 	showingLongRangeChart &&
 	_missionAllowInterrupt &&
-	_missionScreenID;
+	_missionScreenID &&
+	_missionTitle &&
+	_missionTextEntry;
 }
 #endif
 

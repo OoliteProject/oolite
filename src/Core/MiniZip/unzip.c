@@ -1102,10 +1102,13 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
         if ((file_info.size_file_comment>0) && (commentBufferSize>0))
             if (ZREAD64(s->z_filefunc, s->filestream,szComment,uSizeRead)!=uSizeRead)
                 err=UNZ_ERRNO;
-        lSeek+=file_info.size_file_comment - uSizeRead;
+/* commented out code from original minizip: compiler points out the
+ * value doesn't get further use, so make it marginally more efficient
+ * - CIM */
+//        lSeek+=file_info.size_file_comment - uSizeRead;
     }
     else
-        lSeek+=file_info.size_file_comment;
+//        lSeek+=file_info.size_file_comment;
 
 
     if ((err==UNZ_OK) && (pfile_info!=NULL))
@@ -1537,8 +1540,14 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
         (s->cur_file_info.compression_method!=Z_BZIP2ED) &&
 /* #endif */
         (s->cur_file_info.compression_method!=Z_DEFLATED))
-
+	{
         err=UNZ_BADZIPFILE;
+		/* Compiler notes that 'err' is never actually used here after
+		 * being set. Guessing from the below uses that it's supposed
+		 * to free the struct and then return the error. - CIM */
+		TRYFREE(pfile_in_zip_read_info);
+		return err;
+	}
 
     pfile_in_zip_read_info->crc32_wait=s->cur_file_info.crc;
     pfile_in_zip_read_info->crc32=0;

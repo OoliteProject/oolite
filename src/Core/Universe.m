@@ -3401,14 +3401,14 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	OOCargoQuantity co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
 	if (randf() < 0.5) // stops OXP monopolising pods for commodities
 	{
-		container = [UNIVERSE newShipWithRole: [UNIVERSE symbolicNameForCommodity:co_type]]; 
+		container = [UNIVERSE newShipWithRole: [UNIVERSE symbolicNameForCommodity:co_type]]; // newShipWithRole returns retained object
 	}
 	if (container == nil)
 	{
 		container = [UNIVERSE newShipWithRole:@"cargopod"]; 
 	}
 	[container setCommodity:co_type andAmount:co_amount];
-	return container;
+	return [container autorelease];
 }
 
 
