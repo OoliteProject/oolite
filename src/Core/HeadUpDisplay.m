@@ -1336,10 +1336,12 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				if ([scannedEntity isShip])
 				{
-					if (nonlinear_scanner)
-					{
-						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, 10*scannedEntity->collision_radius, scanner_zoom, alpha );
-					}
+					// Debugging code for nonlinear scanner - draws a cascade weapon sphere around ships, which looks pretty and enables me
+					// to debug the code without the mass slaughter of innocent civillians.
+					//if (nonlinear_scanner)
+					//{
+					//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, 10*scannedEntity->collision_radius, scanner_zoom, alpha );
+					//}
 					ShipEntity* ship = (ShipEntity*)scannedEntity;
 					if ((!nonlinear_scanner && ship->collision_radius * upscale > 4.5) ||
 						(nonlinear_scanner && nonlinearScannerFunc(act_dist, scanner_zoom, siz.width) - nonlinearScannerFunc(lim_dist, scanner_zoom, siz.width) > 4.5 ))
