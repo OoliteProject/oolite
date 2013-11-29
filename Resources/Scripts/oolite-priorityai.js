@@ -2710,12 +2710,12 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 		if (!this.ship.hasHostileTarget)
 		{
 			// entering attack mode
-			this.broadcastAttackMessage(target,"beginning",3);
+			this.broadcastAttackMessage(this.ship.target,"beginning",3);
 			this.ship.requestHelpFromGroup();
 		}
 		else 
 		{
-			this.broadcastAttackMessage(target,"continuing",4);
+			this.broadcastAttackMessage(this.ship.target,"continuing",4);
 		}
 	}
 	this.ship.performAttack();
@@ -3247,12 +3247,12 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 		if (!this.ship.hasHostileTarget)
 		{
 			// entering attack mode
-			this.broadcastAttackMessage(target,"beginning",3);
+			this.broadcastAttackMessage(this.ship.target,"beginning",3);
 			this.ship.requestHelpFromGroup();
 		}
 		else if (this.ship.target)
 		{
-			this.broadcastAttackMessage(target,"continuing",4);
+			this.broadcastAttackMessage(this.ship.target,"continuing",4);
 		}
 		if (this.ship.energy == this.ship.maxEnergy && this.getParameter("oolite_flag_escortsCoverRetreat") && this.ship.escortGroup.count > 1)
 		{
