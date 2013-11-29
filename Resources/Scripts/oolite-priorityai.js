@@ -967,7 +967,13 @@ PriorityAIController.prototype.oddsAssessment = function()
 		}
 	}
 
-	them += this.threatAssessment(target,false)
+	// If the ship is in combat, it's almost certainly assessing a
+	// ship which is in combat with it. If the ship is not in combat,
+	// use the (usually smaller) non-combat assessment to encourage
+	// pile-ons
+	var full = this.conditionInCombat();
+
+	them += this.threatAssessment(target,full)
 	if (target.group)
 	{
 		var gs = target.group.ships;
@@ -976,7 +982,7 @@ PriorityAIController.prototype.oddsAssessment = function()
 			ship = gs[i]
 			if (ship != target && this.distance(ship) < this.scannerRange)
 			{
-				them += this.threatAssessment(ship,false);
+				them += this.threatAssessment(ship,full);
 			}
 		}
 	}
@@ -988,7 +994,7 @@ PriorityAIController.prototype.oddsAssessment = function()
 			ship = gs[i]
 			if (ship != target && this.distance(ship) < this.scannerRange)
 			{
-				them += this.threatAssessment(ship,false);
+				them += this.threatAssessment(ship,full);
 			}
 		}
 	}
@@ -6306,6 +6312,7 @@ this._setCommunications = function(obj)
 /* Intentionally not documented */
 this._threatAssessment = function(ship,full)
 {
-	full = full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3);
+	// experimenting without this one for a while
+	//	full = full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3);
 	return ship.threatAssessment(full);
 }
