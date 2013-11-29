@@ -266,7 +266,7 @@ MA 02110-1301, USA.
 	BOOL				_compassActive;
 	
 	// Nonlinear scanner
-	BOOL			nonlinearScanner;
+	BOOL			nonlinear_scanner;
 
 }
 
@@ -319,6 +319,8 @@ MA 02110-1301, USA.
 
 - (void) drawWatermarkString:(NSString *)watermarkString;
 + (Vector) nonlinearScannerScale:(Vector) V Zoom:(GLfloat) zoom Scale:(double) scale;
+- (BOOL) nonlinearScanner;
+- (void) setNonlinearScanner: (BOOL)newValue;
 
 @end
 
