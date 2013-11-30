@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 // Don't bother with syntax warnings in Deployment builds.
 #define WARNINGS			(!defined(NDEBUG))
 
+#define OO_EXPANDER_RANDOM	(context->useGoodRNG ? (Ranrot()&0xFF) : gen_rnd_number())
 
 enum
 {
@@ -72,6 +73,7 @@ typedef struct
 	bool				isJavaScript;
 	bool				convertBackslashN;
 	bool				hasPercentR;		// Set to indicate we need an ExpandPercentR() pass.
+	bool				useGoodRNG;
 	
 	NSString			*systemNameWithIan;	// Cache for %I
 	NSString			*randomNameN;		// Cache for %N
@@ -91,7 +93,7 @@ static NSArray *GetSystemDescriptions(OOStringExpansionContext *context);
 
 static void AppendCharacters(NSMutableString **result, const unichar *characters, NSUInteger start, NSUInteger end);
 
-static NSString *NewRandomDigrams(void);
+static NSString *NewRandomDigrams(OOStringExpansionContext *context);
 static NSString *OldRandomDigrams(void);
 
 
@@ -160,6 +162,7 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 		.legacyLocals = [legacyLocals retain],
 		.isJavaScript = options & kOOExpandForJavaScript,
 		.convertBackslashN = options & kOOExpandBackslashN,
+		.useGoodRNG = options & kOOExpandGoodRNG,
 	};
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -488,7 +491,7 @@ static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar
 	
 	// Select a random sub-entry.
 	NSUInteger selection, count = [entry count];
-	NSUInteger rnd = gen_rnd_number();
+	NSUInteger rnd = OO_EXPANDER_RANDOM;
 	if (count == 5)
 	{
 		// Time-honoured Elite-compatible way for five items.
@@ -672,7 +675,7 @@ static NSString *ExpandStringKeyFromDescriptions(OOStringExpansionContext *conte
 	{
 		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
 		{
-			NSUInteger rnd = gen_rnd_number() % [value count];
+			NSUInteger rnd = OO_EXPANDER_RANDOM % [value count];
 			value = [value oo_objectAtIndex:rnd];
 		}
 		
@@ -1039,7 +1042,7 @@ static NSString *GetRandomNameN(OOStringExpansionContext *context)
 	
 	if (context->randomNameN == nil)
 	{
-		context->randomNameN = [NewRandomDigrams() retain];
+		context->randomNameN = [NewRandomDigrams(context) retain];
 	}
 	
 	return context->randomNameN;
@@ -1079,6 +1082,8 @@ static NSArray *GetSystemDescriptions(OOStringExpansionContext *context)
 */
 static NSString *OldRandomDigrams(void)
 {
+	/* The only point of using %R is for world generation, so there's
+	 * no point in checking the context */
 	unsigned len = gen_rnd_number() & 3;
 	NSString *digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
 	NSMutableString *name = [NSMutableString stringWithCapacity:256];
@@ -1093,20 +1098,19 @@ static NSString *OldRandomDigrams(void)
 }
 
 
-/*	Generates pseudo-random digram string using gen_rnd_number()
-	(world-generation consistent PRNG). Used for "%N" description string.
+/*	Generates pseudo-random digram string. Used for "%N" description string.
 */
-static NSString *NewRandomDigrams(void)
+static NSString *NewRandomDigrams(OOStringExpansionContext *context)
 {
-	unsigned length = (gen_rnd_number() % 4) + 1;
-	if ((gen_rnd_number() % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
+	unsigned length = (OO_EXPANDER_RANDOM % 4) + 1;
+	if ((OO_EXPANDER_RANDOM % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
 	NSString *digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
 	NSUInteger count = [digrams length] / 2;
 	NSMutableString *name = [NSMutableString stringWithCapacity:length * 2];
 	
 	for (unsigned i = 0; i != length; ++i)
 	{
-		[name appendString:[digrams substringWithRange:NSMakeRange((gen_rnd_number() % count) * 2, 2)]];
+		[name appendString:[digrams substringWithRange:NSMakeRange((OO_EXPANDER_RANDOM % count) * 2, 2)]];
 	}
 	
 	return [name capitalizedString];

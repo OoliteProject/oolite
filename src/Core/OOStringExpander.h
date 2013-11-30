@@ -35,7 +35,8 @@ enum
 {
 	kOOExpandForJavaScript		= 0x00000001,
 	kOOExpandBackslashN			= 0x00000002,
-	
+	kOOExpandGoodRNG			= 0x00000004,	
+
 	kOOExpandNoOptions			= 0
 };
 typedef NSUInteger OOExpandOptions;
