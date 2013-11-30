@@ -77,10 +77,26 @@ static OOTexture *sPlumeTexture = nil;
 		HPVector pos = { [definition oo_floatAtIndex:0], [definition oo_floatAtIndex:1], [definition oo_floatAtIndex:2] };
 		[self setPosition:pos];
 		Vector scale = { [definition oo_floatAtIndex:3], [definition oo_floatAtIndex:4], [definition oo_floatAtIndex:5] };
-		_exhaustScale = scale;
+		[self setScale:scale];
 	}
 	
 	return self;
+}
+
+
+- (Vector) scale
+{
+	return _exhaustScale;
+}
+
+
+- (void) setScale:(Vector)scale
+{
+	_exhaustScale = scale;
+	if (scale.z < 0.5 || scale.z > 2.0)
+	{
+		_exhaustScale.z = 1.0;
+	}
 }
 
 
@@ -166,14 +182,6 @@ static OOTexture *sPlumeTexture = nil;
 	GLfloat speedScale = fminf(1.0,speed*5.0);
 
 	GLfloat exhaust_factor = _exhaustScale.z;
-	if (exhaust_factor < 0.5)
-	{
-		exhaust_factor = 1.0;
-	}
-	else if (exhaust_factor > 2.0)
-	{
-		exhaust_factor = 1.0;
-	}
 	GLfloat i01 = -0.00 * hyper_fade;
 	GLfloat i03 = -0.12 * exhaust_factor;
 	GLfloat i06 = -0.25 * exhaust_factor;

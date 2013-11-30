@@ -106,6 +106,51 @@ MA 02110-1301, USA.
 }
 
 
+- (OOColor *) color
+{
+	return [OOColor colorWithRed:_colorComponents[0]
+						   green:_colorComponents[1]
+							blue:_colorComponents[2]
+						   alpha:_colorComponents[3]];
+}
+
+
+- (float) frequency
+{
+	return _frequency;
+}
+
+
+- (void) setFrequency:(float)frequency
+{
+	_frequency = frequency;
+}
+
+
+- (float) phase
+{
+	return _phase;
+}
+
+
+- (void) setPhase:(float)phase
+{
+	_phase = phase;
+}
+
+
+- (float) fraction
+{
+	return _brightfraction;
+}
+
+
+- (void) setFraction:(float)fraction
+{
+	_brightfraction = fraction;
+}
+
+
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];

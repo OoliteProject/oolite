@@ -2980,14 +2980,19 @@ static NSTimeInterval	time_last_frame;
 	// if we have yaw on the mouse x-axis, then allow using the keyboard roll keys
 	if (!mouse_control_on || (mouse_control_on && mouse_x_axis_map_to_yaw))
 	{
-		if ([gameView isDown:key_roll_left])
+		if ([gameView isDown:key_roll_left] && [gameView isDown:key_roll_right])
+		{
+			keyboardRollOverride = YES;
+			flightRoll = 0.0;
+		}
+		else if ([gameView isDown:key_roll_left])
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll > 0.0)  flightRoll = 0.0;
 			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
 		}
-		if ([gameView isDown:key_roll_right])
+		else if ([gameView isDown:key_roll_right])
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll < 0.0)  flightRoll = 0.0;
@@ -3030,14 +3035,19 @@ static NSTimeInterval	time_last_frame;
 	// we don't care about pitch keyboard overrides when mouse control is on, only when using joystick
 	if (!mouse_control_on)
 	{
-		if ([gameView isDown:key_pitch_back])
+		if ([gameView isDown:key_pitch_back] && [gameView isDown:key_pitch_forward])
+		{
+			keyboardPitchOverride=YES;
+			flightPitch = 0.0;
+		}
+		else if ([gameView isDown:key_pitch_back])
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch < 0.0)  flightPitch = 0.0;
 			[self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
 			pitching = YES;
 		}
-		if ([gameView isDown:key_pitch_forward])
+		else if ([gameView isDown:key_pitch_forward])
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch > 0.0)  flightPitch = 0.0;
@@ -3080,7 +3090,12 @@ static NSTimeInterval	time_last_frame;
 	// if we have roll on the mouse x-axis, then allow using the keyboard yaw keys
 	if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw))
 	{
-		if ([gameView isDown:key_yaw_left])
+		if ([gameView isDown:key_yaw_left] && [gameView isDown:key_yaw_right])
+		{
+			keyboardYawOverride=YES;
+			flightYaw = 0.0;
+		}
+		else if ([gameView isDown:key_yaw_left])
 		{
 			keyboardYawOverride=YES;
 			if (flightYaw < 0.0)  flightYaw = 0.0;

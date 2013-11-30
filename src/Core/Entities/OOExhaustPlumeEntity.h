@@ -58,6 +58,9 @@ enum
 
 - (void) resetPlume;
 
+- (Vector) scale;
+- (void) setScale:(Vector)scale;
+
 - (OOTexture *) texture;
 
 + (void) setUpTexture;

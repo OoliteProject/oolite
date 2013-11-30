@@ -518,6 +518,19 @@ PriorityAIController.prototype.allied = function(ship1,ship2)
 }
 
 
+PriorityAIController.prototype.broadcastAttackMessage = function(target,code,priority)
+{
+	var msgcode = "oolite_"+code+"Attack";
+	var scan = target.scanClass;
+	if (scan == "CLASS_THARGOID") {
+		msgcode += "Thargoid";
+	} else if (scan == "CLASS_ROCK" || scan == "CLASS_CARGO" || scan == "CLASS_BUOY" || scan == "CLASS_MISSILE" || scan == "CLASS_MINE") {
+		msgcode += "Inanimate";
+	}
+	this.communicate(msgcode,target,priority);
+}
+
+
 PriorityAIController.prototype.broadcastDistressMessage = function()
 {
 	if (this.__ltcache.oolite_sentDistressMessage)
@@ -954,7 +967,13 @@ PriorityAIController.prototype.oddsAssessment = function()
 		}
 	}
 
-	them += this.threatAssessment(target,false)
+	// If the ship is in combat, it's almost certainly assessing a
+	// ship which is in combat with it. If the ship is not in combat,
+	// use the (usually smaller) non-combat assessment to encourage
+	// pile-ons
+	var full = this.conditionInCombat();
+
+	them += this.threatAssessment(target,full)
 	if (target.group)
 	{
 		var gs = target.group.ships;
@@ -963,7 +982,7 @@ PriorityAIController.prototype.oddsAssessment = function()
 			ship = gs[i]
 			if (ship != target && this.distance(ship) < this.scannerRange)
 			{
-				them += this.threatAssessment(ship,false);
+				them += this.threatAssessment(ship,full);
 			}
 		}
 	}
@@ -975,7 +994,7 @@ PriorityAIController.prototype.oddsAssessment = function()
 			ship = gs[i]
 			if (ship != target && this.distance(ship) < this.scannerRange)
 			{
-				them += this.threatAssessment(ship,false);
+				them += this.threatAssessment(ship,full);
 			}
 		}
 	}
@@ -2453,7 +2472,7 @@ PriorityAIController.prototype.conditionIsEscorting = function()
 			{
 				// has been left behind
 				this.configurationLeaveEscortGroup();
-				this.setParameter("oolite_witchspaceWormhole",false);
+				this.setParameter("oolite_witchspaceWormhole",null);
 				return false;
 			}
 		}
@@ -2697,12 +2716,12 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 		if (!this.ship.hasHostileTarget)
 		{
 			// entering attack mode
-			this.communicate("oolite_beginningAttack",this.ship.target,3);
+			this.broadcastAttackMessage(this.ship.target,"beginning",3);
 			this.ship.requestHelpFromGroup();
 		}
 		else 
 		{
-			this.communicate("oolite_continuingAttack",this.ship.target,4);
+			this.broadcastAttackMessage(this.ship.target,"continuing",4);
 		}
 	}
 	this.ship.performAttack();
@@ -3234,12 +3253,12 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 		if (!this.ship.hasHostileTarget)
 		{
 			// entering attack mode
-			this.communicate("oolite_beginningAttack",target,3);
+			this.broadcastAttackMessage(this.ship.target,"beginning",3);
 			this.ship.requestHelpFromGroup();
 		}
 		else if (this.ship.target)
 		{
-			this.communicate("oolite_continuingAttack",target,4);
+			this.broadcastAttackMessage(this.ship.target,"continuing",4);
 		}
 		if (this.ship.energy == this.ship.maxEnergy && this.getParameter("oolite_flag_escortsCoverRetreat") && this.ship.escortGroup.count > 1)
 		{
@@ -6174,6 +6193,7 @@ this.startUp = function()
 	/* These are temporary for testing. Remove before release... */
 	this.$commsSettings.generic.generic.oolite_continuingAttack = "I've got the [oolite_entityClass]";
 	this.$commsSettings.generic.generic.oolite_beginningAttack = "Die, [oolite_entityName]!";
+	this.$commsSettings.generic.generic.oolite_beginningAttackInanimate = "I've got you this time, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
 	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
 	this.$commsSettings.pirate.generic.oolite_hitTarget = "Where's the cargo, [oolite_entityName]?";
@@ -6188,8 +6208,9 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_startFleeing = "I can't take this much longer! I'm getting out of here.";
 	this.$commsSettings.generic.generic.oolite_continueFleeing = "I'm still not clear. Someone please help!";
 	this.$commsSettings.generic.generic.oolite_groupIsOutnumbered = "Please, let us go!";
-	this.$commsSettings.pirate.generic.oolite_groupIsOutnumbered = "Argh! They're tougher than they looked. Break off the attack!";
+	this.$commsSettings.pirate.generic.oolite_groupIsOutnumbered = "Argh! They're tougher than they looked. Break off the attack!"
 	this.$commsSettings.generic.generic.oolite_dockingWait = "Bored now.";
+	this.$commsSettings.generic.generic.oolite_mining = "Maybe this one has gems.";
 	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
 	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
 	this.$commsSettings.generic.generic.oolite_agreeingToDumpCargo = "Have it! But please let us go!";
@@ -6291,6 +6312,7 @@ this._setCommunications = function(obj)
 /* Intentionally not documented */
 this._threatAssessment = function(ship,full)
 {
-	full = full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3);
+	// experimenting without this one for a while
+	//	full = full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3);
 	return ship.threatAssessment(full);
 }

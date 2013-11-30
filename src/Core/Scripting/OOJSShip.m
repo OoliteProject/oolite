@@ -212,7 +212,9 @@ enum
 	kShip_escortGroup,			// group, ShipGroup, read-only
 	kShip_escorts,				// deployed escorts, array of Ship, read-only
 	kShip_exhaustEmissiveColor,	// exhaust emissive color, array, read/write
+	kShip_exhausts,				// exhausts, array, read-only
 	kShip_extraCargo,				// cargo space increase granted by large cargo bay, int, read-only
+	kShip_flashers,				// flashers, array, read-only
 	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read/write
 	kShip_fuel,					// fuel, float, read/write
 	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read-only
@@ -349,7 +351,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
 	{ "escortGroup",			kShip_escortGroup,			OOJS_PROP_READONLY_CB },
 	{ "exhaustEmissiveColor",	kShip_exhaustEmissiveColor,	OOJS_PROP_READWRITE_CB },
+	{ "exhausts",				kShip_exhausts,				OOJS_PROP_READONLY_CB },
 	{ "extraCargo",				kShip_extraCargo,			OOJS_PROP_READONLY_CB },
+	{ "flashers",				kShip_flashers,				OOJS_PROP_READONLY_CB },
 	{ "forwardWeapon",			kShip_forwardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "fuel",					kShip_fuel,					OOJS_PROP_READWRITE_CB },
 	{ "fuelChargeRate",			kShip_fuelChargeRate,		OOJS_PROP_READONLY_CB },
@@ -642,6 +646,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_subEntities:
 			result = [entity subEntitiesForScript];
+			break;
+
+		case kShip_exhausts:
+			result = [[entity exhaustEnumerator] allObjects];
+			break;
+
+		case kShip_flashers:
+			result = [[entity flasherEnumerator] allObjects];
 			break;
 			
 		case kShip_subEntityCapacity:

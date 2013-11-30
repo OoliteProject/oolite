@@ -90,7 +90,7 @@
 
 - (void) clearSubEntities;
 - (BOOL) setUpSubEntities;
-- (void) removeSubEntity:(OOVisualEffectEntity *)sub;
+- (void) removeSubEntity:(Entity<OOSubEntity> *)sub;
 - (void) setNoDrawDistance;
 - (NSArray *)subEntities;
 - (NSUInteger) subEntityCount;

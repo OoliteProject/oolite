@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 	float					_frequency;
 	float					_phase;
 	float					_wave;
-	float         _brightfraction;
+	float         			_brightfraction;
 	NSArray					*_colors;
 	NSUInteger				_activeColor;
 	
@@ -50,6 +50,19 @@ MA 02110-1301, USA.
 
 - (BOOL) isActive;
 - (void) setActive:(BOOL)active;
+
+- (OOColor *) color;
+// setColor is defined by superclass
+
+- (float) frequency;
+- (void) setFrequency:(float)frequency;
+
+- (float) phase;
+- (void) setPhase:(float)phase;
+
+- (float) fraction;
+- (void) setFraction:(float)fraction;
+
 
 @end
 

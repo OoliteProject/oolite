@@ -329,6 +329,10 @@
 		1A8BB8EB0E8311F900122974 /* OONullTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8BB8E90E8311F900122974 /* OONullTexture.m */; };
 		1A8C981D117A380800D8AB7E /* OOCombinedEmissionMapGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */; };
 		1A8C981E117A380800D8AB7E /* OOCombinedEmissionMapGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8C97E4117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.h */; };
+		1A92AB711846403200C507E3 /* OOJSExhaustPlume.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A92AB6F1846403200C507E3 /* OOJSExhaustPlume.h */; };
+		1A92AB721846403200C507E3 /* OOJSExhaustPlume.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A92AB701846403200C507E3 /* OOJSExhaustPlume.m */; };
+		1A92AB7A1846403F00C507E3 /* OOJSFlasher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A92AB781846403F00C507E3 /* OOJSFlasher.h */; };
+		1A92AB7B1846403F00C507E3 /* OOJSFlasher.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A92AB791846403F00C507E3 /* OOJSFlasher.m */; };
 		1A9322970DF53C33003FD306 /* OOJSSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */; };
 		1A9322980DF53C33003FD306 /* OOJSSystemInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */; };
 		1A9400BE0BAF0ECD005F6CF3 /* OOStringParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */; };
@@ -1397,6 +1401,10 @@
 		1A8BB8E90E8311F900122974 /* OONullTexture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OONullTexture.m; sourceTree = "<group>"; };
 		1A8C97E4117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCombinedEmissionMapGenerator.h; sourceTree = "<group>"; };
 		1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCombinedEmissionMapGenerator.m; sourceTree = "<group>"; };
+		1A92AB6F1846403200C507E3 /* OOJSExhaustPlume.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSExhaustPlume.h; sourceTree = "<group>"; };
+		1A92AB701846403200C507E3 /* OOJSExhaustPlume.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSExhaustPlume.m; sourceTree = "<group>"; };
+		1A92AB781846403F00C507E3 /* OOJSFlasher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSFlasher.h; sourceTree = "<group>"; };
+		1A92AB791846403F00C507E3 /* OOJSFlasher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSFlasher.m; sourceTree = "<group>"; };
 		1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSystemInfo.h; sourceTree = "<group>"; };
 		1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystemInfo.m; sourceTree = "<group>"; };
 		1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOStringParsing.m; sourceTree = "<group>"; };
@@ -2168,6 +2176,10 @@
 				1ABA416115ADAB8D00F7E841 /* OOJSDock.m */,
 				1A2A8C130BC65FFD001E00FB /* OOJSEntity.h */,
 				1A2A8C140BC65FFD001E00FB /* OOJSEntity.m */,
+				1A92AB6F1846403200C507E3 /* OOJSExhaustPlume.h */,
+				1A92AB701846403200C507E3 /* OOJSExhaustPlume.m */,
+				1A92AB781846403F00C507E3 /* OOJSFlasher.h */,
+				1A92AB791846403F00C507E3 /* OOJSFlasher.m */,
 				1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */,
 				1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */,
 				1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */,
@@ -3219,6 +3231,7 @@
 				1A26D0BE0BCF9CF80073F257 /* PlanetEntity.h in Headers */,
 				1A26D0C10BCF9CF80073F257 /* Entity.h in Headers */,
 				1A26D0C50BCF9CF80073F257 /* WormholeEntity.h in Headers */,
+				1A92AB711846403200C507E3 /* OOJSExhaustPlume.h in Headers */,
 				1A26D0C70BCF9CF80073F257 /* StationEntity.h in Headers */,
 				1A26D0C80BCF9CF80073F257 /* PlayerEntityControls.h in Headers */,
 				1A26D0CA0BCF9CF80073F257 /* PlayerEntitySound.h in Headers */,
@@ -3285,6 +3298,7 @@
 				1A2DA3EF0CB4E84900DE6823 /* OODebugSupport.h in Headers */,
 				1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */,
 				1A43A1860CB9243B00D0E239 /* OOEntityFilterPredicate.h in Headers */,
+				1A92AB7A1846403F00C507E3 /* OOJSFlasher.h in Headers */,
 				1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */,
 				1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */,
 				1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */,
@@ -3812,6 +3826,7 @@
 				1A5218DE0D72ECE5000865E9 /* OOSpatialReference.m in Sources */,
 				1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */,
 				1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */,
+				1A92AB7B1846403F00C507E3 /* OOJSFlasher.m in Sources */,
 				1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */,
 				1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */,
 				1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */,
@@ -3836,6 +3851,7 @@
 				1ABAD7310F350B3400FD2CBF /* OOShipGroup.m in Sources */,
 				1A11F84A0F35F60C001C886C /* OOJSShipGroup.m in Sources */,
 				1A20F7070F36EE0500156DE9 /* OOExcludeObjectEnumerator.m in Sources */,
+				1A92AB721846403200C507E3 /* OOJSExhaustPlume.m in Sources */,
 				1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */,
 				1AE242C61054226900EAA7F2 /* OOFlasherEntity.m in Sources */,
 				1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */,

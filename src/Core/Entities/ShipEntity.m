@@ -1601,6 +1601,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 		if (escorter == nil)  break;
 		[self setUpOneEscort:escorter inGroup:escortGroup withRole:escortRole atPosition:ex_pos andCount:currentEscortCount];
+
+		[escorter release];
+
 		_pendingEscortCount--;
 		currentEscortCount = [escortGroup count] - 1;
 	}
@@ -1676,6 +1679,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 					break;
 				}
 				[self setUpOneEscort:escorter inGroup:escortGroup withRole:escortRole atPosition:ex_pos andCount:currentEscortCount];
+				[escorter release];
 			}
 			currentEscortCount++;
 			_maxEscortCount++;
@@ -1791,7 +1795,6 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		// otherwise force the escort to be clean
 		[escorter setBounty:0 withReason:kOOLegalStatusReasonSetup];
 	}
-	[escorter release];
 	
 }
 
@@ -4156,10 +4159,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
-	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
-	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
 
@@ -8572,6 +8572,20 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			}
 		}
 	}
+}
+
+
+- (void) removeExhaust:(OOExhaustPlumeEntity *)exhaust
+{
+	[subEntities removeObject:exhaust];
+	[exhaust setOwner:nil];
+}
+
+
+- (void) removeFlasher:(OOFlasherEntity *)flasher
+{
+	[subEntities removeObject:flasher];
+	[flasher setOwner:nil];
 }
 
 

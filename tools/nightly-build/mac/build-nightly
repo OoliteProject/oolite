@@ -1,7 +1,7 @@
 #! /bin/bash
 
 REPOSITORY="https://github.com/OoliteProject/oolite.git"
-BRANCH="maintenance/1.77"
+BRANCH="master"
 CONFIGURATION="TestRelease"
 
 VAR_DIR_NAME="var"
@@ -28,7 +28,7 @@ GIT_LOG_FILE="$LOG/git_log.txt"
 LAST_UPDATED_FILE="$VAR/last_updated"
 
 OOLITE_APP_PKG="$BUILD_DIR/Oolite.app"
-DEBUG_OXP_PKG="$BUILD_DIR/Debug.oxp"
+DEBUG_OXP_PKG="DebugOXP/Debug.oxp"
 
 FTP_URL_FILE="`pwd`/config/ftp_url"
 FTP_CREDENTIALS_FILE="`pwd`/config/ftp_credentials"
@@ -133,6 +133,12 @@ STATUS=$?
 
 if [ $STATUS ]
 then
+	"$GIT" reset --hard "origin/$BRANCH"
+	STATUS=$?
+fi
+
+if [ $STATUS ]
+then
 	"$GIT" submodule update --quiet --init --recursive >> "$GIT_LOG_FILE"
 	STATUS=$?
 fi
@@ -176,10 +182,6 @@ if [ -e $OOLITE_APP_PKG ]
 then
 	rm -rf $OOLITE_APP_PKG
 fi
-if [ -e $DEBUG_OXP_PKG ]
-then
-	rm -rf $DEBUG_OXP_PKG
-fi
 
 
 # Nastytacular: overwrite the oolite-snapshot.xcconfig file to generate the nightly watermark macros.
@@ -213,7 +215,7 @@ fi
 # Write changelog.
 if [ $LAST_REVISION != 0 ]
 then
-	"$GIT" log $LAST_REVISION..$CURRENT_REVISION > $CHANGELOG_FILE
+	"$GIT" log --pretty=format:"%h %an %ad %s" --no-merges $LAST_REVISION..$CURRENT_REVISION > $CHANGELOG_FILE
 else
 	echo "Initial checkout." > $CHANGELOG_FILE
 fi

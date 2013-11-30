@@ -86,10 +86,10 @@ SOFTWARE.
 */
 #if OOLOG_SHORT_CIRCUIT
 	#define OOLog(class, format, ...)				do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ## __VA_ARGS__); }} while (0)
-	#define OOLogWithArgmuents(class, format, args)	do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args); }} while (0)
+	#define OOLogWithArguments(class, format, args)	do { if (OOLogWillDisplayMessagesInClass(class)) { OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args); }} while (0)
 #else
 	#define OOLog(class, format, ...)				OOLogWithFunctionFileAndLine(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, ## __VA_ARGS__)
-	#define OOLogWithArgmuents(class, format, args)	OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args)
+	#define OOLogWithArguments(class, format, args)	OOLogWithFunctionFileAndLineAndArguments(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, format, args)
 #endif
 
 BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass);
@@ -135,7 +135,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 #elif !OOLOG_NO_HIJACK_NSLOG
 	// Hijack NSLog. Buahahahaha.
 	#define NSLog(format, ...)		OOLog(kOOLogUnconvertedNSLog, format, ## __VA_ARGS__)
-	#define NSLogv(format, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)
+	#define NSLogv(format, args)	OOLogWithArguments(kOOLogUnconvertedNSLog, format, args)
 #endif
 
 
