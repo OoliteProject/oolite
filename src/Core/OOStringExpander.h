@@ -177,21 +177,56 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 
 #define OOEXPAND_OBJECTS_FROM_ARGS(...) (id[]){ OOEXPAND_MAP(OO_CAST_PARAMETER, __VA_ARGS__) }
 
-#define OO_CAST_PARAMETER(ITEM) _Generic((ITEM), \
-	id: OOCastParamObject, \
-	char: OOCastParamSignedInteger, \
-	short: OOCastParamSignedInteger, \
-	int: OOCastParamSignedInteger, \
-	long: OOCastParamSignedInteger, \
-	long long: OOCastParamSignedInteger, \
-	unsigned char: OOCastParamUnsignedInteger, \
-	unsigned short: OOCastParamUnsignedInteger, \
-	unsigned int: OOCastParamUnsignedInteger, \
-	unsigned long: OOCastParamUnsignedInteger, \
-	unsigned long long: OOCastParamUnsignedInteger, \
-	float: OOCastParamFloat, \
-	double: OOCastParamDouble \
-)(ITEM)
+#define OO_CAST_PARAMETER(ITEM) \
+	__builtin_choose_expr( \
+		OOEXPAND_IS_OBJECT(ITEM), \
+		OOCastParamObject, \
+		__builtin_choose_expr( \
+			OOEXPAND_IS_SIGNED_INTEGER(ITEM), \
+			OOCastParamSignedInteger, \
+			__builtin_choose_expr( \
+				OOEXPAND_IS_UNSIGNED_INTEGER(ITEM), \
+				OOCastParamUnsignedInteger, \
+				__builtin_choose_expr( \
+					OOEXPAND_IS_FLOAT(ITEM), \
+					OOCastParamFloat, \
+					__builtin_choose_expr( \
+						OOEXPAND_IS_UNSIGNED_INTEGER(ITEM), \
+						OOCastParamUnsignedInteger, \
+						__builtin_choose_expr( \
+							OOEXPAND_IS_DOUBLE(ITEM), \
+							OOCastParamDouble, \
+							(void)0 \
+						) \
+					) \
+				) \
+			) \
+		) \
+	)(ITEM)
+
+#define OOEXPAND_IS_OBJECT(ITEM) ( \
+	__builtin_types_compatible_p(typeof(ITEM), id))
+
+#define OOEXPAND_IS_SIGNED_INTEGER(ITEM) ( \
+	__builtin_types_compatible_p(typeof(ITEM), char) || \
+	__builtin_types_compatible_p(typeof(ITEM), short) || \
+	__builtin_types_compatible_p(typeof(ITEM), int) || \
+	__builtin_types_compatible_p(typeof(ITEM), long) || \
+	__builtin_types_compatible_p(typeof(ITEM), long long))
+
+#define OOEXPAND_IS_UNSIGNED_INTEGER(ITEM) ( \
+	__builtin_types_compatible_p(typeof(ITEM), unsigned char) || \
+	__builtin_types_compatible_p(typeof(ITEM), unsigned short) || \
+	__builtin_types_compatible_p(typeof(ITEM), unsigned int) || \
+	__builtin_types_compatible_p(typeof(ITEM), unsigned long) || \
+	__builtin_types_compatible_p(typeof(ITEM), unsigned long long))
+
+#define OOEXPAND_IS_FLOAT(ITEM) ( \
+	__builtin_types_compatible_p(typeof(ITEM), float))
+
+#define OOEXPAND_IS_DOUBLE(ITEM) ( \
+	__builtin_types_compatible_p(typeof(ITEM), double) || \
+	__builtin_types_compatible_p(typeof(ITEM), long double))
 
 static inline id OOCastParamObject(id object) { return object; }
 static inline id OOCastParamSignedInteger(long long value) { return [NSNumber numberWithLongLong:value]; }
