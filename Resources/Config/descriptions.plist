@@ -1014,9 +1014,20 @@
 	"oolite-start-option-3"			= "3. View ship library";
 	"oolite-start-option-4"			= "4. Manage expansion packs"; // not yet used
 
+	"oolite-newgame-title"			= "New Game";
+
 	"oolite-ship-library-title"		= "Ship Library";
 	"oolite-ship-library-exit"		= "Press space to exit ship library";
 
+	"oolite-scenario-standard-name" = "Normal start";
+	"oolite-scenario-strict-name"	= "Strict game";
+	"oolite-scenario-tutorial-name" = "Tutorial";
+	"oolite-scenario-standard-description"	= "Start with a Cobra Mk III and 100 credits at Lave station, and try to make a living.";
+	"oolite-scenario-strict-description"	= "Like the normal start, but all expansion packs are disabled for this save game.";
+	"oolite-scenario-tutorial-description"	= "Take a standard Cooperative flight training course, including simulated combat and docking practice.";
+
+
+	
 	// Loading screen (currently Mac only), also logged under start.progress
 	"loading-ships"					= "Loading ship data";
 	"populating-space"				= "Populating space";

@@ -3498,19 +3498,15 @@ static BOOL autopilot_pause;
 					{
 						[self setGuiToIntroFirstGo:YES];
 					}
+					break;
 				}
 			}
 			if (([gameView isDown:SDLK_1]))
 			{
-				[self setStatus: STATUS_DOCKED];
-				[UNIVERSE removeDemoShips];
-				[gui clearBackground];
-				[[OOMusicController sharedController] stopThemeMusic];
-				[[UNIVERSE gameView] supressKeysUntilKeyUp]; // to prevent a missionscreen on the first page from reacting on this keypress.
-				[self setGuiToStatusScreen];
-				[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// trigger missionScreenOpportunity immediately after (re)start
-			}
-			if (([gameView isDown:SDLK_3]))
+				missionTextRow = 0;
+				[self setGuiToScenarioScreen];
+			} 
+			else if (([gameView isDown:SDLK_3]))
 			{
 				[self setGuiToIntroFirstGo:NO];
 			}			
@@ -3519,7 +3515,6 @@ static BOOL autopilot_pause;
 		case GUI_SCREEN_INTRO2:
 			if ([gameView isDown:' '])	//  '<space>'
 			{
-				[UNIVERSE removeDemoShips];
 				[self setGuiToIntroFirstGo:YES];
 			}
 			if ([gameView isDown:key_gui_arrow_left])	//  '<--'
@@ -3534,7 +3529,33 @@ static BOOL autopilot_pause;
 			}
 			upDownKeyPressed = (([gameView isDown:key_gui_arrow_left])||([gameView isDown:key_gui_arrow_right]));
 			break;
-			
+		
+		case GUI_SCREEN_NEWGAME:
+			if ([gameView isDown:13]) // enter
+			{
+				if (![self startScenario])
+				{
+					[self setGuiToIntroFirstGo:YES];
+				} 
+			}
+			if ([gameView isDown:key_gui_arrow_down])	//  '<--'
+			{
+				if (!upDownKeyPressed)
+				{
+					[self selectScenario:1];
+				}
+			}
+			if ([gameView isDown:key_gui_arrow_up])	//  '-->'
+			{
+				if (!upDownKeyPressed)
+				{
+					[self selectScenario:-1];
+				}
+			}
+			upDownKeyPressed = (([gameView isDown:key_gui_arrow_down])||([gameView isDown:key_gui_arrow_up]));
+			break;
+	
+	
 		case GUI_SCREEN_MISSION:
 			if ([[self hud] isHidden])
 			{

@@ -67,6 +67,11 @@ MA 02110-1301, USA.
 - (void) quicksavePlayer;
 - (void) autosavePlayer;
 
+- (void) setGuiToScenarioScreen;
+- (void) addScenarioModel:(NSString *)shipKey;
+- (BOOL) startScenario;
+- (void) selectScenario:(NSInteger)delta;
+
 #if OO_USE_CUSTOM_LOAD_SAVE
 
 // Interface for PlayerEntityControls

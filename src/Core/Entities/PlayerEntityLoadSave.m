@@ -29,7 +29,11 @@
 
 #import "NSFileManagerOOExtensions.h"
 #import "GameController.h"
+#import "ResourceManager.h"
+#import "OOStringExpander.h"
 #import "PlayerEntityControls.h"
+#import "ProxyPlayerEntity.h"
+#import "ShipEntityAI.h"
 #import "OOXMLExtensions.h"
 #import "OOSound.h"
 #import "OOColor.h"
@@ -197,6 +201,144 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self writePlayerToPath:path];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
+}
+
+
+- (void) setGuiToScenarioScreen
+{
+	NSArray *scenarios = [UNIVERSE scenarios];
+	[UNIVERSE removeDemoShips];
+	// GUI stuff
+	{
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		OOGUIRow		start_row = GUI_ROW_SCENARIOS_START;
+		OOGUIRow		row = start_row;
+		BOOL			guiChanged = (gui_screen != GUI_SCREEN_INTERFACES);
+
+		[gui clearAndKeepBackground:!guiChanged];
+		[gui setTitle:DESC(@"oolite-newgame-title")];
+
+		OOGUITabSettings tab_stops;
+		tab_stops[0] = 0;
+		tab_stops[1] = -480;
+		[gui setTabStops:tab_stops];
+
+		unsigned n_rows = GUI_MAX_ROWS_SCENARIOS;
+		NSUInteger i, count = [scenarios count];
+
+		NSUInteger page = missionTextRow / n_rows;
+		NSDictionary *scenario = nil;
+
+		if (page > 0)
+		{
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:start_row - 1];
+			[gui setColor:[OOColor greenColor] forRow:start_row - 1];
+		}
+
+		for (i = page*n_rows ; i < count && row < start_row + n_rows ; i++)
+		{
+			scenario = [[UNIVERSE scenarios] objectAtIndex:i];
+			[gui setText:OOExpand([NSString stringWithFormat:@" %@ ",[scenario oo_stringForKey:@"name"]]) forRow:row];
+			[gui setKey:[NSString stringWithFormat:@"Scenario:%d", i] forRow:row];
+			++row;
+		}
+
+		if ((page+1) * n_rows < count)
+		{
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
+			[gui setColor:[OOColor greenColor] forRow:row];
+		}
+
+		[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+		[gui setSelectedRow:start_row + (missionTextRow%n_rows)];
+
+		scenario = [[UNIVERSE scenarios] objectAtIndex:missionTextRow];
+		[gui addLongText:OOExpand([scenario oo_stringForKey:@"description"]) startingAtRow:GUI_ROW_SCENARIOS_DETAIL align:GUI_ALIGN_LEFT];
+
+
+		NSString *shipKey = [scenario oo_stringForKey:@"model"];
+		if (shipKey != nil)
+		{
+			[self addScenarioModel:shipKey];
+			[self setShowDemoShips:YES];
+		}
+		else
+		{
+			[self setShowDemoShips:NO];
+		}
+	}
+
+	gui_screen = GUI_SCREEN_NEWGAME;
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+}
+
+- (void) addScenarioModel:(NSString *)shipKey
+{
+	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
+	// MKW - retrieve last demo ships' orientation and release it
+	if( demoShip != nil )
+	{
+		q2 = [demoShip orientation];
+		[demoShip release];
+	}
+	NSDictionary *shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+	ShipEntity *ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
+	[ship wasAddedToUniverse];
+	
+	GLfloat cr = [ship collisionRadius];
+	[ship setOrientation: q2];
+	
+	[ship setPositionX:1.2 * cr y:0.8 * cr z:6.4 * cr];
+	[ship setScanClass: CLASS_NO_DRAW];
+	[ship setRoll: M_PI/10.0];
+	[ship setPitch: M_PI/25.0];
+	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
+	[ship setAITo: @"nullAI.plist"];
+	id subEntStatus = [shipData objectForKey:@"subentities_status"];
+	// show missing subentities if there's a subentities_status key
+	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];
+	[UNIVERSE addEntity: ship];
+	// MKW - save demo ship for its rotation
+	demoShip = [ship retain];
+	
+	[ship setStatus: STATUS_COCKPIT_DISPLAY];
+	
+	[ship release];
+}
+
+
+- (BOOL) startScenario
+{
+	NSDictionary *scenario = [[UNIVERSE scenarios] objectAtIndex:missionTextRow];
+	NSString *file = [scenario oo_stringForKey:@"file" defaultValue:nil];
+	if (file == nil) 
+	{
+		OOLog(@"scenario.init.error",@"No file entry found for scenario");
+		return NO;
+	}
+	NSString *path = [ResourceManager pathForFileNamed:file inFolder:@"Scenarios"];
+	if (path == nil)
+	{
+		OOLog(@"scenario.init.error",@"Game file not found for scenario %@",file);
+		return NO;
+	}
+	return [self loadPlayerFromFile:path];
+}
+
+
+- (void) selectScenario:(NSInteger)delta
+{
+	NSArray *scenarios = [UNIVERSE scenarios];
+	missionTextRow += delta;
+	if (missionTextRow < 0)
+	{
+		missionTextRow = 0;
+	}
+	else if (missionTextRow >= [scenarios count])
+	{
+		missionTextRow = [scenarios count] - 1;
+	}
+	[self setGuiToScenarioScreen];
 }
 
 

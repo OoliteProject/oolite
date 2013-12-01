@@ -2004,7 +2004,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2))
+	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
@@ -2608,6 +2608,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_MAIN:
 			case GUI_SCREEN_INTRO1:
 			case GUI_SCREEN_INTRO2:
+			case GUI_SCREEN_NEWGAME:
 			case GUI_SCREEN_MARKET:
 			case GUI_SCREEN_OPTIONS:
 			case GUI_SCREEN_GAMEOPTIONS:
@@ -8116,6 +8117,7 @@ static NSString *last_outfitting_key=nil;
 
 	if (justCobra)
 	{
+		[UNIVERSE removeDemoShips];
 		[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
 	}
 	[gui clear];

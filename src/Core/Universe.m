@@ -209,6 +209,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) verifyDescriptions;
 - (void) loadDescriptions;
+- (void) loadScenarios;
 
 - (void) verifyEntitySessionIDs;
 - (float) randomDistanceWithinScanner;
@@ -293,6 +294,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[self loadDescriptions];
 	// DESC expansion is now possible!
 	
+	// load starting saves
+	[self loadScenarios];
+
 	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
@@ -7084,6 +7088,20 @@ static void VerifyDesc(NSString *key, id desc)
 {
 	[_descriptions autorelease];
 	_descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	[self verifyDescriptions];
+}
+
+
+- (NSArray *) scenarios
+{
+	return _scenarios;
+}
+
+
+- (void) loadScenarios
+{
+	[_scenarios autorelease];
+	_scenarios = [[ResourceManager arrayFromFilesNamed:@"scenarios.plist" inFolder:@"Config" andMerge:YES] retain];
 	[self verifyDescriptions];
 }
 
