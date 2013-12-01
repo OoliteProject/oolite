@@ -212,14 +212,21 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 	__builtin_types_compatible_p(typeof(ITEM), short) || \
 	__builtin_types_compatible_p(typeof(ITEM), int) || \
 	__builtin_types_compatible_p(typeof(ITEM), long) || \
-	__builtin_types_compatible_p(typeof(ITEM), long long))
+	__builtin_types_compatible_p(typeof(ITEM), long long) || \
+	__builtin_types_compatible_p(typeof(ITEM), NSInteger) || \
+	__builtin_types_compatible_p(typeof(ITEM), intptr_t) || \
+	__builtin_types_compatible_p(typeof(ITEM), ssize_t) || \
+	__builtin_types_compatible_p(typeof(ITEM), off_t))
 
 #define OOEXPAND_IS_UNSIGNED_INTEGER(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), unsigned char) || \
 	__builtin_types_compatible_p(typeof(ITEM), unsigned short) || \
 	__builtin_types_compatible_p(typeof(ITEM), unsigned int) || \
 	__builtin_types_compatible_p(typeof(ITEM), unsigned long) || \
-	__builtin_types_compatible_p(typeof(ITEM), unsigned long long))
+	__builtin_types_compatible_p(typeof(ITEM), unsigned long long) || \
+	__builtin_types_compatible_p(typeof(ITEM), NSUInteger) || \
+	__builtin_types_compatible_p(typeof(ITEM), uintptr_t) || \
+	__builtin_types_compatible_p(typeof(ITEM), size_t))
 
 #define OOEXPAND_IS_FLOAT(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), float))
