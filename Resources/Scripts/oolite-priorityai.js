@@ -5669,7 +5669,7 @@ PriorityAIController.prototype.responseComponent_scooping_shipScoopedFuel = func
 PriorityAIController.prototype.responseComponent_trackPlayer_playerWillEnterWitchspace = function()
 {
 	var wormhole = this.getParameter("oolite_witchspaceWormhole");
-	if (wormhole != null)
+	if (wormhole != null && wormhole.isWormhole)
 	{
 		this.ship.enterWormhole(wormhole);
 	} 
