@@ -1054,16 +1054,16 @@
 	"equipment-pass-berth-@%0"		= "1 Passenger Berth";
 	"equipment-pass-berth-@%1"		= "%d Passenger Berths";
 	"equipment-@-not-available"		= "%@ (N/A)";
-	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
+	"manifest-cargo-quantity-format" = "[quantity] [units] × [commodityName]";
 	
 	// Short and Long Range Chart Overrides
-	"charts-distance-f"	= "Distance: %.1f Light Years";
-	"charts-est-travel-time-f" = "Estimated Travel Time: %.1f Hours";
+	"charts-distance"				= "Distance: [distance|precision:1] Light Years";
+	"charts-est-travel-time"		= "Estimated Travel Time: [time|precision:1] Hours";
 	
 	// Short Range Chart Screen
 	"short-range-chart-title"		= "Short Range Chart";
-	"short-range-chart-distance-f"	= "[charts-distance-f]";
-	"short-range-chart-est-travel-time-f" = "[charts-est-travel-time-f]";
+	"short-range-chart-distance"	= "[charts-distance]";
+	"short-range-chart-est-travel-time" = "[charts-est-travel-time]";
 	
 	// Long Range Chart Screen
 	"long-range-chart-title-d"		= "Galactic Chart %d";
@@ -1075,8 +1075,8 @@
 	"long-range-chart-title-5"		= "Galactic Chart 6";
 	"long-range-chart-title-6"		= "Galactic Chart 7";
 	"long-range-chart-title-7"		= "Galactic Chart 8";
-	"long-range-chart-distance-f"	= "[charts-distance-f]";
-	"long-range-chart-est-travel-time-f" = "[charts-est-travel-time-f]";
+	"long-range-chart-distance"		= "[charts-distance]";
+	"long-range-chart-est-travel-time" = "[charts-est-travel-time]";
 	"long-range-chart-find-planet-@" = "Find planet: %@";
 	"long-range-chart-system-unreachable" = "System Unreachable";
 	
@@ -1189,7 +1189,7 @@
 	
 	// Equip ship screen
 	"equip-title"					= "Ship Outfitting";
-	"equip-cash-@"					= "Cash: %@.";
+	"equip-cash-value"				= "Cash: [credits|dcr].";
 	"equip-no-equipment-available-for-purchase" = "No equipment available for purchase.";
 	"equip-repair-@"				= " Repair:%@";
 	"upgradeinfo-@-price-is-for-repairing" = "%@ (Price is for repairing the existing system).";

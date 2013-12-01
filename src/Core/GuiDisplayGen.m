@@ -1879,11 +1879,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (routeExists)
 	{
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		NSString *travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
+		NSString *travelDistLine = OOExpandFancy(@"[long-range-chart-distance]", distance);
 		NSString *travelTimeLine = @"";
 		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
 		{
-			travelTimeLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-est-travel-time-f"), time];
+			travelTimeLine = OOExpandFancy(@"[long-range-chart-est-travel-time]", time);
 		}
 			
 		[self setArray:[NSArray arrayWithObjects:targetSystemName, travelDistLine,travelTimeLine,nil] forRow:16];

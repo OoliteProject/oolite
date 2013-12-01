@@ -6776,10 +6776,11 @@ static GLfloat		sBaseMass = 0.0;
 	
 	for (cargoEnum = [list objectEnumerator]; (commodity = [cargoEnum nextObject]); )
 	{
-		NSString *desc = [commodity oo_stringForKey:@"displayName"];
+		NSInteger quantity = [commodity oo_integerForKey:@"quantity"];
 		NSString *units = [commodity oo_stringForKey:@"unit"];
-		[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
-							[commodity oo_intForKey:@"quantity"], units, desc]];
+		NSString *commodityName = [commodity oo_stringForKey:@"displayName"];
+		
+		[manifest addObject:OOExpandFancy(@"[manifest-cargo-quantity-format]", quantity, units, commodityName)];
 	}
 	
 	return manifest;
@@ -7162,9 +7163,16 @@ static GLfloat		sBaseMass = 0.0;
 		// refresh the short range chart cache, in case we've just loaded a save game with different local overrides, etc.
 		[gui refreshStarChart];
 		[gui setText:targetSystemName forRow:19];
-		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		[gui setText:[NSString stringWithFormat:OOExpandKey(@"short-range-chart-distance-f"), distance] forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:OOExpandKey(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
+		// distance & est-travel-time strings are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
+		[gui setText:OOExpandFancy(@"[short-range-chart-distance]", distance) forRow:20];
+		NSString *travelTimeRow = @"";
+		if ([self hasHyperspaceMotor] && distance > 0.0 && distance * 10.0 <= fuel)
+		{
+			double time = estimatedTravelTime;
+			travelTimeRow = OOExpandFancy(@"[short-range-chart-est-travel-time]", time);
+		}
+		[gui setText:travelTimeRow forRow:21];
+		
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
@@ -7678,7 +7686,7 @@ static NSString *last_outfitting_key=nil;
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"equip-title")];
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"equip-cash-@"), OOCredits(credits)]  forRow: GUI_ROW_EQUIPMENT_CASH];
+		[gui setText:OOExpandFancy(@"[equip-cash-value]", credits) forRow:GUI_ROW_EQUIPMENT_CASH];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;

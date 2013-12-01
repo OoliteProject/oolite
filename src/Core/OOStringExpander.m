@@ -74,6 +74,7 @@ typedef struct
 	bool				convertBackslashN;
 	bool				hasPercentR;		// Set to indicate we need an ExpandPercentR() pass.
 	bool				useGoodRNG;
+	bool				allowOperators;
 	
 	NSString			*systemNameWithIan;	// Cache for %I
 	NSString			*randomNameN;		// Cache for %N
@@ -120,6 +121,9 @@ static NSString *ExpandPercentR(OOStringExpansionContext *context, NSString *inp
 static void ReportWarningForUnknownKey(OOStringExpansionContext *context, NSString *key);
 #endif
 
+static NSString *ApplyOperators(NSString *string, NSString *operatorsString);
+static NSString *ApplyOneOperator(NSString *string, NSString *op, NSString *param);
+
 
 /*	SyntaxWarning(context, logMessageClass, format, ...)
  	SyntaxError(context, logMessageClass, format, ...)
@@ -163,6 +167,7 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 		.isJavaScript = options & kOOExpandForJavaScript,
 		.convertBackslashN = options & kOOExpandBackslashN,
 		.useGoodRNG = options & kOOExpandGoodRNG,
+		.allowOperators = options & kOOExpandAllowOperators,
 	};
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -401,6 +406,11 @@ static NSString *Expand(OOStringExpansionContext *context, NSString *string, NSU
 	for the balancing closing bracket, and if it is found dispatches to either
 	ExpandDigitKey() (for a key consisting only of digits) or ExpandStringKey()
 	(for anything else).
+	
+	If allowOperators, the key may be terminated by a vertical bar |, followed
+	by an operator. An operator is an identifier, optionally followed by a
+	colon and additional text, and may be terminated with another bar and
+	operator.
 */
 static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
@@ -408,7 +418,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 	NSCParameterAssert(characters[idx] == '[');
 	
 	// Find the balancing close bracket.
-	NSUInteger end, balanceCount = 1;
+	NSUInteger end, balanceCount = 1, firstBar = 0;
 	bool allDigits = true;
 	
 	for (end = idx + 1; end < size && balanceCount > 0; end++)
@@ -416,8 +426,9 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		if (characters[end] == ']')  balanceCount--;
 		else
 		{
-			if (!isdigit(characters[end]))  allDigits = false;
 			if (characters[end] == '[')  balanceCount++;
+			else if (characters[end] == '|' && firstBar == 0 && context->allowOperators)  firstBar = end;
+			if (!isdigit(characters[end]) && firstBar == 0)  allDigits = false;
 		}
 	}
 	
@@ -428,8 +439,10 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		return nil;
 	}
 	
-	*replaceLength = end - idx;
-	NSUInteger keyStart = idx + 1, keyLength = *replaceLength - 2;
+	NSUInteger totalLength = end - idx;
+	*replaceLength = totalLength;
+	NSUInteger keyStart = idx + 1, keyLength = totalLength - 2;
+	if (context->allowOperators && firstBar != 0)  keyLength = firstBar - idx - 1;
 	
 	if (EXPECT_NOT(keyLength == 0))
 	{
@@ -437,19 +450,85 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		return nil;
 	}
 	
+	NSString *expanded = nil;
 	if (allDigits)
 	{
-		return ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit);
+		expanded = ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit);
 	}
 	else
 	{
 		NSString *key = [NSString stringWithCharacters:characters + keyStart length:keyLength];
-		return ExpandStringKey(context, key, sizeLimit, recursionLimit);
+		expanded = ExpandStringKey(context, key, sizeLimit, recursionLimit);
 	}
+	
+	if (context->allowOperators && firstBar != 0)
+	{
+		NSString *operators = [NSString stringWithCharacters:characters + firstBar + 1 length:end - firstBar - 2];
+		expanded = ApplyOperators(expanded, operators);
+	}
+	
+	return expanded;
 }
 
 
-/*	ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit
+/*	ApplyOperators(string, operatorsString)
+	
+	Given a string and a series of formatting operators separated by vertical
+	bars (or a single formatting operator), apply the operators, in sequence,
+	to the string.
+ */
+static NSString *ApplyOperators(NSString *string, NSString *operatorsString)
+{
+	NSArray *operators = [operatorsString componentsSeparatedByString:@"|"];
+	NSString *op = nil;
+	
+	foreach(op, operators)
+	{
+		NSString *param = nil;
+		NSRange colon = [op rangeOfString:@":"];
+		if (colon.location != NSNotFound)
+		{
+			param = [op substringFromIndex:colon.location + colon.length];
+			op = [op substringToIndex:colon.location];
+		}
+		string = ApplyOneOperator(string, op, param);
+	}
+	
+	return string;
+}
+
+
+/*	ApplyOneOperator(string, op, param)
+	
+	Apply a single formatting operator to a string.
+	
+	For example, the expansion expression "[distance|precision:1]" will be
+	expanded by a call to ApplyOneOperator(@"distance", @"precision", @"1").
+	
+	<param> may be nil, indicating an operator with no parameter (no colon).
+ */
+static NSString *ApplyOneOperator(NSString *string, NSString *op, NSString *param)
+{
+	// FIXME: this could do with generalization.
+	if ([op isEqualToString:@"dcr"])
+	{
+		return OOCredits([string longLongValue]);
+	}
+	if ([op isEqualToString:@"cr"])
+	{
+		return OOCredits([string doubleValue] * 10);
+	}
+	if ([op isEqualToString:@"precision"])
+	{
+		return [NSString stringWithFormat:@"%.*f", [param intValue], [string doubleValue]];
+	}
+	
+	OOLogERR(@"strings.expand.invalidOperator", @"Unknown string expansion operator %@", op);
+	return string;
+}
+
+
+/*	ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit)
 	
 	Expand a key (as per ExpandKey()) consisting entirely of digits. <keyStart>
 	and <keyLength> specify the range of characters containing the key.
