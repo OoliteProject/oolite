@@ -517,7 +517,15 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) reinitAndShowDemo:(BOOL) showDemo
 {
-	[self reinitAndShowDemo:showDemo strictChanged:NO];
+	if (strict && showDemo)
+	{
+		[self setStrict:NO];
+		[self reinitAndShowDemo:showDemo strictChanged:YES];
+	}
+	else
+	{
+		[self reinitAndShowDemo:showDemo strictChanged:NO];
+	}
 }
 
 
@@ -6065,6 +6073,10 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 
 - (void) repopulateSystem
 {
+	if (EXPECT_NOT([PLAYER status] == STATUS_START_GAME))
+	{
+		return; // no need to be adding ships as this is not a "real" game
+	}
 	JSContext			*context = OOJSAcquireContext();
 	[PLAYER doWorldScriptEvent:OOJSIDFromString(system_repopulator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
 	OOJSRelinquishContext(context);
@@ -9801,9 +9813,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	_sessionID++;	// Must be after removing old entities and before adding new ones.
 	
-	// demo must not be in strict mode, or you can't load scenarios
-	// from OXPs if your last game was strict
-	[ResourceManager setUseAddOns:(!strict || showDemo)];	// also logs the paths
+	[ResourceManager setUseAddOns:!strict];	// also logs the paths
 	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
 	
 	// NOTE: Anything in the sharedCache is now trashed and must be
