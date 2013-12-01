@@ -7407,7 +7407,7 @@ static GLfloat		sBaseMass = 0.0;
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		GUI_ROW_INIT(gui);
 
-		int first_sel_row = (canLoadOrSave)? GUI_ROW(,SAVE) : GUI_ROW(,BEGIN_NEW);
+		int first_sel_row = (canLoadOrSave)? GUI_ROW(,SAVE) : GUI_ROW(,GAMEOPTIONS);
 		if (canQuickSave)
 			first_sel_row = GUI_ROW(,QUICKSAVE);
 
@@ -7433,7 +7433,7 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(,LOAD)];
 		}
 
-		[gui setText:DESC(@"options-begin-new-game") forRow:GUI_ROW(,BEGIN_NEW) align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"options-return-to-menu") forRow:GUI_ROW(,BEGIN_NEW) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,BEGIN_NEW)];
 
 		[gui setText:DESC(@"options-game-options") forRow:GUI_ROW(,GAMEOPTIONS) align:GUI_ALIGN_CENTER];
@@ -7448,12 +7448,6 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,QUIT)];
 #endif
 		
-		if ([UNIVERSE strict])
-			[gui setText:DESC(@"options-reset-to-unrestricted-play") forRow:GUI_ROW(,STRICT) align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"options-reset-to-strict-play") forRow:GUI_ROW(,STRICT) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,STRICT)];
-
 		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_OPTIONS_END_OF_LIST)];
 
 		if ([[UNIVERSE gameController] isGamePaused] || (!canLoadOrSave && [self status] == STATUS_DOCKED))

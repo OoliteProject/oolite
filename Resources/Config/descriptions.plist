@@ -1023,7 +1023,7 @@
 	"oolite-scenario-strict-name"	= "Strict game";
 	"oolite-scenario-tutorial-name" = "Tutorial";
 	"oolite-scenario-standard-description"	= "Start with a Cobra Mk III and 100 credits at Lave station, and try to make a living.";
-	"oolite-scenario-strict-description"	= "Like the normal start, but all expansion packs are disabled for this save game.";
+	"oolite-scenario-strict-description"	= "Strict games start like the normal start, but all expansion packs are permanently disabled for this save game.";
 	"oolite-scenario-tutorial-description"	= "Take a standard Cooperative flight training course, including simulated combat and docking practice.";
 
 
@@ -1130,6 +1130,7 @@
 	"options-save-commander"		= " Save Commander ";
 	"options-load-commander"		= " Load Commander ";
 	"options-begin-new-game"		= " Begin New Game ";
+	"options-return-to-menu"		= " End Game and return to menu ";
 	"options-game-options"			= " Game Options… ";
 	"options-exit-game"				= " Exit Game ";
 	"options-reset-to-unrestricted-play" = " Reset and enable OXPs ";

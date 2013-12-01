@@ -261,7 +261,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	
-	strict = [prefs oo_boolForKey:@"strict-gameplay" defaultValue:NO];
+	// prefs value no longer used - per save game but startup needs to
+	// be non-strict
+	strict = NO;
 	
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
@@ -510,7 +512,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	if (strict == value)  return YES;
 	
 	strict = !!value;
-	[[NSUserDefaults standardUserDefaults] setBool:strict forKey:@"strict-gameplay"];
 	return [self reinitAndShowDemo:!saveGame strictChanged:YES];
 }
 

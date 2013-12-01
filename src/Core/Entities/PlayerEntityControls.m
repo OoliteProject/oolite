@@ -1981,17 +1981,6 @@ static NSTimeInterval	time_last_frame;
 				[self setGuiToGameOptionsScreen];
 			}
 			
-			/*	TODO: Investigate why this has to be handled last (if the
-			 quit item and this are swapped, the game crashes if
-			 strict mode is selected with SIGSEGV in the ObjC runtime
-			 system. The stack trace shows it crashes when it hits
-			 the if statement, trying to send the message to one of
-			 the things contained.) */
-			if ((guiSelectedRow == GUI_ROW(,STRICT))&& selectKeyPress)
-			{
-				[UNIVERSE setStrict:![UNIVERSE strict]];
-			}
-			
 			break;
 			
 		case GUI_SCREEN_EQUIP_SHIP:
