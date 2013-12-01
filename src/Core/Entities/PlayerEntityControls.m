@@ -1845,7 +1845,7 @@ static NSTimeInterval	time_last_frame;
 				[demoShip release];
 				demoShip = nil;
 				
-				[self loadPlayerFromFile:commanderFile];
+				[self loadPlayerFromFile:commanderFile asNew:NO];
 			}
 			break;
 		}
@@ -3491,7 +3491,6 @@ static BOOL autopilot_pause;
 				{
 					[[OOMusicController sharedController] stopThemeMusic];
 					disc_operation_in_progress = YES;
-					[self setStatus:STATUS_DOCKED];
 					[UNIVERSE removeDemoShips];
 					[gui clearBackground];
 					if (![self loadPlayer])
@@ -3509,7 +3508,11 @@ static BOOL autopilot_pause;
 			else if (([gameView isDown:SDLK_3]))
 			{
 				[self setGuiToIntroFirstGo:NO];
-			}			
+			}
+			else
+			{
+				disc_operation_in_progress = NO;
+			}
 			break;
 			
 		case GUI_SCREEN_INTRO2:
@@ -3631,6 +3634,23 @@ static BOOL autopilot_pause;
 			}
 			break;
 			
+#if OO_USE_CUSTOM_LOAD_SAVE
+			// DJS: Farm off load/save screen options to LoadSave.m
+		case GUI_SCREEN_LOAD:
+		{
+			NSString *commanderFile = [self commanderSelector];
+			if(commanderFile)
+			{
+				// also release the demo ship here (see showShipyardModel and noteGUIDidChangeFrom)
+				[demoShip release];
+				demoShip = nil;
+				
+				[self loadPlayerFromFile:commanderFile asNew:NO];
+			}
+			break;
+		}
+#endif
+
 		default:
 			break;
 	}

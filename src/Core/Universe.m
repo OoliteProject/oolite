@@ -2673,13 +2673,13 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) handleGameOver
 {
-	if ([[self gameController] playerFileToLoad])
+  if ([[self gameController] playerFileToLoad])
   {
     [[self gameController] loadPlayerIfRequired];
   }
   else
   {
-    [self reinitAndShowDemo:NO];
+    [self reinitAndShowDemo:YES];
   } 
 }
 
@@ -9801,7 +9801,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	_sessionID++;	// Must be after removing old entities and before adding new ones.
 	
-	[ResourceManager setUseAddOns:!strict];	// also logs the paths
+	// demo must not be in strict mode, or you can't load scenarios
+	// from OXPs if your last game was strict
+	[ResourceManager setUseAddOns:(!strict || showDemo)];	// also logs the paths
 	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
 	
 	// NOTE: Anything in the sharedCache is now trashed and must be
@@ -9856,7 +9858,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	if(showDemo)
 	{
-		[player setGuiToIntroFirstGo:YES];
 		[player setStatus:STATUS_START_GAME];
 	}
 	else
@@ -9865,9 +9866,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	}
 	
 	[player completeSetUp];
-	[self populateNormalSpace];
+	if(showDemo)
+	{
+		[player setGuiToIntroFirstGo:YES];
+	}
+	else
+	{
+		// no need to do these if showing the demo as the only way out
+		// now is to load a game
+		[self populateNormalSpace];
 
-	[player startUpComplete];
+		[player startUpComplete];
+	}
 
 	if(!showDemo)
 	{

@@ -81,7 +81,7 @@ MA 02110-1301, USA.
 
 #endif
 
-- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen;
+- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:(BOOL)asNew;
 
 @end
 

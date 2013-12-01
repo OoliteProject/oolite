@@ -1746,6 +1746,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) completeSetUpAndSetTarget:(BOOL)setTarget
 {
 	[OOSoundSource stopAll];
+
 	[self setDockedStation:[UNIVERSE station]];
 	[self setLastAegisLock:[UNIVERSE planet]];
 		
@@ -2004,7 +2005,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME))
+	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_LOAD))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode

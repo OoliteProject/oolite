@@ -322,7 +322,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		OOLog(@"scenario.init.error",@"Game file not found for scenario %@",file);
 		return NO;
 	}
-	return [self loadPlayerFromFile:path];
+	BOOL result = [self loadPlayerFromFile:path asNew:YES];
+	if (!result)
+	{
+		return NO;
+	}
+	// don't drop the save game directory in
+	return YES;
 }
 
 
@@ -571,7 +577,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 #endif
 
 
-- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen
+- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:(BOOL)asNew
 {
 	/*	TODO: it would probably be better to load by creating a new
 		PlayerEntity, verifying that's OK, then replacing the global player.
@@ -657,11 +663,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
-		[save_path autorelease];
-		save_path = [fileToOpen retain];
+		if (!asNew)
+		{
+			[save_path autorelease];
+			save_path = [fileToOpen retain];
 		
-		[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
-		[[[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
+			[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
+			[[[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
+		}
 	}
 	else
 	{
@@ -761,7 +770,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSURL *url = oPanel.URL;
 		if (url.isFileURL)
 		{
-			return [self loadPlayerFromFile:url.path];
+			return [self loadPlayerFromFile:url.path asNew:NO];
 		}
 	}
 	
