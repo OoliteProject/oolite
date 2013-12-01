@@ -3988,8 +3988,9 @@
 				COPY_SCHEMATA = 1;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
-					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
+					"$(SRCROOT)/deps/Cocoa-deps/",
+					"$(SRCROOT)/deps/Cocoa-deps/Sparkle",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -4034,8 +4035,9 @@
 				EXPORTED_SYMBOLS_FILE = "src/Cocoa/exports-release.exp";
 				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "src/Cocoa/exports-release.exp";
 				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
-					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
+					"$(SRCROOT)/deps/Cocoa-deps/",
+					"$(SRCROOT)/deps/Cocoa-deps/Sparkle",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -4091,8 +4093,9 @@
 				COPY_SCHEMATA = 1;
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
-					"\"$(SRCROOT)/deps/Cocoa-deps/\"",
-					"\"$(SRCROOT)/deps/Cocoa-deps/Sparkle\"",
+					"$(SRCROOT)/deps/Cocoa-deps/",
+					"$(SRCROOT)/deps/Cocoa-deps/Sparkle",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
 				GCC_C_LANGUAGE_STANDARD = gnu99;

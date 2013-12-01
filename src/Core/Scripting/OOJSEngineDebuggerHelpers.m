@@ -210,7 +210,7 @@ const char *JSIDToStrSafeDbg(jsid anID)
 			// Bug; jsid strings must be interned.
 			return "*** uninterned string in jsid! ***";
 		}
-		formatted = [NSString stringWithFormat:@"\"%@\"", [NSString stringWithCharacters:chars length:length]];
+		formatted = [NSString stringWithCharacters:chars length:length];
 	}
 	else
 	{

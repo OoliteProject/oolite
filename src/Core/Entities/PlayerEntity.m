@@ -68,6 +68,7 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "NSFileManagerOOExtensions.h"
 #import "OOFullScreenController.h"
+#import "OODebugSupport.h"
 
 #import "OOJSScript.h"
 #import "OOScriptTimer.h"
@@ -5741,6 +5742,8 @@ static GLfloat		sBaseMass = 0.0;
 	NSParameterAssert(station != nil);
 	if ([self status] == STATUS_DEAD)  return;
 	
+	OOProfilerStartMarker(@"dock");
+	
 	[self setStatus:STATUS_DOCKING];
 	[self setDockedStation:station];
 	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
@@ -5774,6 +5777,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) docked
 {
+	OOProfilerPointMarker(@"-docked called");
+	
 	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation == nil)
 	{
@@ -5858,6 +5863,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// When a mission screen is started, any on-screen message is removed immediately.
 	[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// also displays docking reports first.
+	
+	OOProfilerEndMarker(@"dock");
 }
 
 
@@ -5865,6 +5872,8 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (station == nil)  return;
 	NSParameterAssert(station == [self dockedStation]);
+	
+	OOProfilerStartMarker(@"undock");
 	
 	// ensure we've not left keyboard entry on
 	[[UNIVERSE gameView] allowStringInput: NO];
@@ -5942,12 +5951,16 @@ static GLfloat		sBaseMass = 0.0;
 	[demoShip release];
 	demoShip = nil;
 	
+	OOProfilerEndMarker(@"undock");
+	
 	[self playLaunchFromStation];
 }
 
 
 - (void) witchStart
 {
+	OOProfilerStartMarker(@"witchspace");
+	
 	// chances of entering witchspace with autopilot on are very low, but as Berlios bug #18307 has shown us, entirely possible
 	// so in such cases we need to ensure that at least the docking music stops playing
 	if (autopilot_engaged)  [self disengageAutopilot];
@@ -5990,6 +6003,8 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setUpUniverseFromWitchspace];
 	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
+	
+	OOProfilerEndMarker(@"witchspace");
 }
 
 

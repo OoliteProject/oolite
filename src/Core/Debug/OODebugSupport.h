@@ -36,3 +36,59 @@ void OOInitDebugSupport(void);
 #define OOInitDebugSupport() do {} while (0)
 
 #endif
+
+
+#if OOLITE_MAC_OS_X
+#import <DTPerformanceSession/DTSignalFlag.h>
+
+/**
+ * Set a point flag in Instruments.
+ *
+ * Signal flags are hidden by default. To show them, select "Manage Flags..."
+ * from the Window menu, and select "Signal Flags" from the "Displayed Flags"
+ * dropdown menu.
+ *
+ * @param string An NSString identifying the context of the flag. This will be
+ *               displayed as "from oolite <string> [point]".
+ */
+#define OOProfilerPointMarker(string) \
+	OODTSendSignalFlag(string, DT_POINT_SIGNAL, NO)
+
+/**
+ * Set a start flag in Instruments.
+ *
+ * A start flag should be balanced with a matching end flag.
+ *
+ * @param string An NSString identifying the context of the flag. This will be
+ *               displayed as "from oolite <string> [point]". The start flag
+ *               is matched with the following end flag with the same string.
+ */
+#define OOProfilerStartMarker(string) \
+	OODTSendSignalFlag(string, DT_START_SIGNAL, NO)
+
+/**
+ * Set an end flag in Instruments.
+ *
+ * An end flag should be balanced with a matching start flag.
+ *
+ * @param string An NSString identifying the context of the flag. This will be
+ *               displayed as "from oolite <string> [point]". The end flag
+ *               is matched with the previous start flag with the same string.
+ */
+#define OOProfilerEndMarker(string) \
+	OODTSendSignalFlag(string, DT_END_SIGNAL, NO)
+
+#define OODTSendSignalFlag(string, signal, includeBacktrace) \
+	do { const char *stringC = [[@"oolite " stringByAppendingString:string] UTF8String]; DTSendSignalFlag(stringC, signal, includeBacktrace); } while (0)
+
+#else
+
+#define OOProfilerPointMarker(string) \
+	do {} while (0)
+
+#define OOProfilerStartMarker(string) \
+	do {} while (0)
+
+#define OOProfilerEndMarker(string) \
+	do {} while (0)
+#endif

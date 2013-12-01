@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OORoleSet.h"
 #import "OOShipGroup.h"
+#import "OODebugSupport.h"
 
 #import "Octree.h"
 #import "CollisionRegion.h"
@@ -240,8 +241,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
-{	
-	PlayerEntity	*player = nil;
+{
+	OOProfilerStartMarker(@"startup");
 	
 	if (gSharedUniverse != nil)
 	{
@@ -359,7 +360,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// set up cargopod templates
 	[self setUpCargoPods];
 
-	player = [PlayerEntity sharedPlayer];
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	[player deferredInit];
 	[self addEntity:player];
 	
@@ -377,7 +378,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[[GameController sharedController] logProgress:DESC(@"running-scripts")];
 	[player completeSetUp];
+	
+	[[GameController sharedController] logProgress:DESC(@"populating-space")];
 	[self populateNormalSpace];
+	
+	[[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
 	
 #if OO_LOCALIZATION_TOOLS
 	[self runLocalizationTools];
@@ -388,6 +393,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[player startUpComplete];
 	_doingStartUp = NO;
+	
+	OOProfilerEndMarker(@"startup");
 	
 	return self;
 }

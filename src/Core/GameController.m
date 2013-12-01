@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOJSFrameCallbacks.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOOpenALController.h"
+#import "OODebugSupport.h"
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
@@ -607,6 +608,8 @@ static void RemovePreference(NSString *key)
 #if OOLITE_MAC_OS_X
 	[splashProgressTextField setStringValue:message];
 	[splashProgressTextField display];
+	
+	OOProfilerPointMarker(message);
 #endif
 	if([message length] > 0)
 	{
