@@ -4350,8 +4350,13 @@ static const OOMatrix	starboard_matrix =
 				sPrevHudAlpha = -1.0f;
 			}
 			
-			if (v_status != STATUS_DEAD && v_status != STATUS_ESCAPE_SEQUENCE)
-			{
+			switch (v_status) {
+			case STATUS_DEAD:
+			case STATUS_ESCAPE_SEQUENCE:
+			case STATUS_START_GAME:
+				// no HUD rendering in these modes
+				break;
+			default:
 				[theHUD setLineWidth:lineWidth];
 				[theHUD renderHUD];
 			}
@@ -9833,7 +9838,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	if(showDemo)
 	{
-		[player setGuiToIntroFirstGo:NO];
+		[player setGuiToIntroFirstGo:YES];
 		[player setStatus:STATUS_START_GAME];
 	}
 	else

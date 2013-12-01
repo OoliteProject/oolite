@@ -3485,21 +3485,9 @@ static BOOL autopilot_pause;
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_INTRO1:
-			if(0) {}	// Dummy statement so compiler does not complain.
-			
-			// In order to support multiple languages, the Y/N response cannot be hardcoded. We get the keys
-			// corresponding to Yes/No from descriptions.plist and if they are not found there, we set them
-			// by default to [yY] and [nN] respectively. 
-			id valueYes = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"] lowercaseString];
-			id valueNo = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"] lowercaseString];
-			unsigned char charYes, charNo;
-			
-			charYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
-			charNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
-			
 			if (!disc_operation_in_progress)
 			{
-				if (([gameView isDown:charYes]) || ([gameView isDown:charYes - 32]))
+				if (([gameView isDown:SDLK_2]))
 				{
 					[[OOMusicController sharedController] stopThemeMusic];
 					disc_operation_in_progress = YES;
@@ -3508,22 +3496,11 @@ static BOOL autopilot_pause;
 					[gui clearBackground];
 					if (![self loadPlayer])
 					{
-						[self setGuiToIntroFirstGo:NO];
-						[UNIVERSE selectIntro2Next];
+						[self setGuiToIntroFirstGo:YES];
 					}
 				}
 			}
-			if (([gameView isDown:charNo]) || ([gameView isDown:charNo - 32]))
-			{
-				[self setGuiToIntroFirstGo:NO];
-				// removed intro inconsistency between normal startup and restart.
-				//[UNIVERSE selectIntro2Next];
-			}
-			
-			break;
-			
-		case GUI_SCREEN_INTRO2:
-			if ([gameView isDown:' '])	//  '<space>'
+			if (([gameView isDown:SDLK_1]))
 			{
 				[self setStatus: STATUS_DOCKED];
 				[UNIVERSE removeDemoShips];
@@ -3532,6 +3509,18 @@ static BOOL autopilot_pause;
 				[[UNIVERSE gameView] supressKeysUntilKeyUp]; // to prevent a missionscreen on the first page from reacting on this keypress.
 				[self setGuiToStatusScreen];
 				[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// trigger missionScreenOpportunity immediately after (re)start
+			}
+			if (([gameView isDown:SDLK_3]))
+			{
+				[self setGuiToIntroFirstGo:NO];
+			}			
+			break;
+			
+		case GUI_SCREEN_INTRO2:
+			if ([gameView isDown:' '])	//  '<space>'
+			{
+				[UNIVERSE removeDemoShips];
+				[self setGuiToIntroFirstGo:YES];
 			}
 			if ([gameView isDown:key_gui_arrow_left])	//  '<--'
 			{

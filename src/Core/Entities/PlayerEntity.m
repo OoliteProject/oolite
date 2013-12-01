@@ -8119,10 +8119,11 @@ static NSString *last_outfitting_key=nil;
 		[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
 	}
 	[gui clear];
-	[gui setTitle:@"Oolite"];
 	
 	if (justCobra)
 	{
+		[gui setTitle:@"Oolite"];
+
 		text = DESC(@"game-copyright");
 		[gui setText:text forRow:15 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor whiteColor] forRow:15];
@@ -8131,10 +8132,24 @@ static NSString *last_outfitting_key=nil;
 		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor grayColor] forRow:17];
 		
-        text = DESC(@"load-previous-commander");
-        [gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
-        [gui setColor:[OOColor yellowColor] forRow:19];
+        text = DESC(@"oolite-start-option-1");
+        [gui setText:text forRow:22 align:GUI_ALIGN_LEFT];
+        [gui setColor:[OOColor yellowColor] forRow:22];
 
+        text = DESC(@"oolite-start-option-2");
+        [gui setText:text forRow:23 align:GUI_ALIGN_LEFT];
+        [gui setColor:[OOColor yellowColor] forRow:23];
+
+        text = DESC(@"oolite-start-option-3");
+        [gui setText:text forRow:24 align:GUI_ALIGN_LEFT];
+        [gui setColor:[OOColor yellowColor] forRow:24];
+
+#if 0
+		// not yet implemented
+        text = DESC(@"oolite-start-option-4");
+        [gui setText:text forRow:25 align:GUI_ALIGN_LEFT];
+        [gui setColor:[OOColor yellowColor] forRow:25];
+#endif 
 		
 		// check for error messages from Resource Manager
 		//[ResourceManager paths]; done in Universe already
@@ -8205,10 +8220,12 @@ static NSString *last_outfitting_key=nil;
 	}
 	else
 	{
-		[gui setText:([UNIVERSE strict])? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
-		text = DESC(@"press-space-commander");
-		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor yellowColor] forRow:21];
+        text = DESC(@"oolite-ship-library-title");
+		[gui setTitle:text];
+
+        text = DESC(@"oolite-ship-library-exit");
+        [gui setText:text forRow:23 align:GUI_ALIGN_CENTER];
+        [gui setColor:[OOColor yellowColor] forRow:23];
 	}
 	
 	[gui setShowTextCursor:NO];
