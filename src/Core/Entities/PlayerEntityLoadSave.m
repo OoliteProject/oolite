@@ -239,7 +239,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			scenario = [[UNIVERSE scenarios] objectAtIndex:i];
 			[gui setText:OOExpand([NSString stringWithFormat:@" %@ ",[scenario oo_stringForKey:@"name"]]) forRow:row];
-			[gui setKey:[NSString stringWithFormat:@"Scenario:%d", i] forRow:row];
+			[gui setKey:[NSString stringWithFormat:@"Scenario:%lu", (unsigned long)i] forRow:row];
 			++row;
 		}
 
@@ -340,7 +340,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	{
 		missionTextRow = 0;
 	}
-	else if (missionTextRow >= [scenarios count])
+	else if (missionTextRow >= (NSInteger)[scenarios count])
 	{
 		missionTextRow = [scenarios count] - 1;
 	}
