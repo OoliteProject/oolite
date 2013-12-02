@@ -1012,10 +1012,11 @@
 	"oolite-start-option-1"			= "1. Start New Commander";
 	"oolite-start-option-2"			= "2. Load Commander";
 	"oolite-start-option-3"			= "3. View Ship Library";
-	"oolite-start-option-4"			= "4. Manage Expansion Packs"; // not yet used
+//	"oolite-start-option-4"			= "4. Manage Expansion Packs"; // not yet implemented
+	"oolite-start-option-4"			= "4. <coming soon>";
 	"oolite-start-option-5"			= "5. Exit Game";
 
-	"oolite-newgame-title"			= "New Game";
+	"oolite-newgame-title"			= "Start New Commander";
 
 	"oolite-ship-library-title"		= "Ship Library";
 	"oolite-ship-library-exit"		= "Press space to exit ship library";

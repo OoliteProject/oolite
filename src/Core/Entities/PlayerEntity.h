@@ -863,6 +863,8 @@ typedef enum
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
 
+- (void) setupStartScreenGui;
+- (void) selectIntroOption:(int)delta;
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen;

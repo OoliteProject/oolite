@@ -3474,9 +3474,25 @@ static BOOL autopilot_pause;
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_INTRO1:
+			if ([gameView isDown:key_gui_arrow_down])	//  '<--'
+			{
+				if (!upDownKeyPressed)
+				{
+					[self selectIntroOption:1];
+				}
+			}
+			if ([gameView isDown:key_gui_arrow_up])	//  '-->'
+			{
+				if (!upDownKeyPressed)
+				{
+					[self selectIntroOption:-1];
+				}
+			}
+			upDownKeyPressed = (([gameView isDown:key_gui_arrow_down])||([gameView isDown:key_gui_arrow_up]));
+			int row_zero = 21;
 			if (!disc_operation_in_progress)
 			{
-				if (([gameView isDown:SDLK_2]))
+				if (([gameView isDown:SDLK_2]) || ([gameView isDown:13] && missionTextRow == 2+row_zero))
 				{
 					[[OOMusicController sharedController] stopThemeMusic];
 					disc_operation_in_progress = YES;
@@ -3489,16 +3505,16 @@ static BOOL autopilot_pause;
 					break;
 				}
 			}
-			if (([gameView isDown:SDLK_1]))
+			if (([gameView isDown:SDLK_1]) || ([gameView isDown:13] && missionTextRow == 1+row_zero))
 			{
 				missionTextRow = 0;
 				[self setGuiToScenarioScreen];
 			} 
-			else if (([gameView isDown:SDLK_3]))
+			else if (([gameView isDown:SDLK_3]) || ([gameView isDown:13] && missionTextRow == 3+row_zero))
 			{
 				[self setGuiToIntroFirstGo:NO];
 			}
-			else if (([gameView isDown:SDLK_5]))
+			else if (([gameView isDown:SDLK_5]) || ([gameView isDown:13] && missionTextRow == 5+row_zero))
 			{
 				[[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
 			}

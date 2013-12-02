@@ -8102,6 +8102,82 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setupStartScreenGui
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSString		*text = nil;
+
+	[gui clear];
+
+	[gui setTitle:@"Oolite"];
+
+	text = DESC(@"game-copyright");
+	[gui setText:text forRow:15 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor whiteColor] forRow:15];
+		
+	text = DESC(@"theme-music-credit");
+	[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor grayColor] forRow:17];
+		
+	int row = 22;
+
+	text = DESC(@"oolite-start-option-1");
+	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	++row;
+
+	text = DESC(@"oolite-start-option-2");
+	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	++row;
+
+	text = DESC(@"oolite-start-option-3");
+	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	++row;
+
+	// not yet implemented
+	text = DESC(@"oolite-start-option-4");
+	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	++row;
+
+	text = DESC(@"oolite-start-option-5");
+	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	[gui setSelectableRange:NSMakeRange(22,5)];
+	[gui setSelectedRow:missionTextRow];
+
+	[gui setBackgroundTextureKey:@"intro"];
+
+}
+
+
+- (void) selectIntroOption:(int)delta
+{
+	missionTextRow += delta;
+	if (missionTextRow > 26)
+	{
+		missionTextRow = 22;
+	}
+	else if (missionTextRow < 22)
+	{
+		missionTextRow = 26;
+	}
+	[self setupStartScreenGui];
+}
+
+
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra
 {
 	NSString 		*text = nil;
@@ -8115,43 +8191,11 @@ static NSString *last_outfitting_key=nil;
 		[UNIVERSE removeDemoShips];
 		[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
 	}
-	[gui clear];
 	
 	if (justCobra)
 	{
-		[gui setTitle:@"Oolite"];
-
-		text = DESC(@"game-copyright");
-		[gui setText:text forRow:15 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor whiteColor] forRow:15];
-		
-		text = DESC(@"theme-music-credit");
-		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor grayColor] forRow:17];
-		
-        text = DESC(@"oolite-start-option-1");
-        [gui setText:text forRow:22 align:GUI_ALIGN_LEFT];
-        [gui setColor:[OOColor yellowColor] forRow:22];
-
-        text = DESC(@"oolite-start-option-2");
-        [gui setText:text forRow:23 align:GUI_ALIGN_LEFT];
-        [gui setColor:[OOColor yellowColor] forRow:23];
-
-        text = DESC(@"oolite-start-option-3");
-        [gui setText:text forRow:24 align:GUI_ALIGN_LEFT];
-        [gui setColor:[OOColor yellowColor] forRow:24];
-
-#if 0
-		// not yet implemented
-        text = DESC(@"oolite-start-option-4");
-        [gui setText:text forRow:25 align:GUI_ALIGN_LEFT];
-        [gui setColor:[OOColor yellowColor] forRow:25];
-#endif 
-
-        text = DESC(@"oolite-start-option-5");
-        [gui setText:text forRow:26 align:GUI_ALIGN_LEFT];
-        [gui setColor:[OOColor yellowColor] forRow:26];
-
+		missionTextRow = 22;
+		[self setupStartScreenGui];
 		
 		// check for error messages from Resource Manager
 		//[ResourceManager paths]; done in Universe already
@@ -8222,6 +8266,8 @@ static NSString *last_outfitting_key=nil;
 	}
 	else
 	{
+		[gui clear];
+
         text = DESC(@"oolite-ship-library-title");
 		[gui setTitle:text];
 
