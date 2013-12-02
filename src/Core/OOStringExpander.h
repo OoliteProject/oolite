@@ -205,7 +205,8 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 	)(ITEM)
 
 #define OOEXPAND_IS_OBJECT(ITEM) ( \
-	__builtin_types_compatible_p(typeof(ITEM), id))
+	__builtin_types_compatible_p(typeof(ITEM), NSString *) || \
+	__builtin_types_compatible_p(typeof(ITEM), NSNumber *))
 
 #define OOEXPAND_IS_SIGNED_INTEGER(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), char) || \
