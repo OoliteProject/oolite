@@ -8174,6 +8174,14 @@ static NSString *last_outfitting_key=nil;
 	{
 		missionTextRow = 26;
 	}
+	if (delta > 0)
+	{
+		[self playMenuNavigationDown];
+	}
+	else
+	{
+		[self playMenuNavigationUp];
+	}
 	[self setupStartScreenGui];
 }
 

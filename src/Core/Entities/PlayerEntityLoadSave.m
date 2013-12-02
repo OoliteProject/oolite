@@ -338,11 +338,19 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	missionTextRow += delta;
 	if (missionTextRow < 0)
 	{
-		missionTextRow = 0;
+		missionTextRow = [scenarios count] - 1;
 	}
 	else if (missionTextRow >= (NSInteger)[scenarios count])
 	{
-		missionTextRow = [scenarios count] - 1;
+		missionTextRow = 0;
+	}
+	if (delta > 0)
+	{
+		[self playMenuNavigationDown];
+	}
+	else
+	{
+		[self playMenuNavigationUp];
 	}
 	[self setGuiToScenarioScreen];
 }

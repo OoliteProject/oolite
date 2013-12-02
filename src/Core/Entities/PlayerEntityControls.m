@@ -3489,6 +3489,7 @@ static BOOL autopilot_pause;
 				}
 			}
 			upDownKeyPressed = (([gameView isDown:key_gui_arrow_down])||([gameView isDown:key_gui_arrow_up]));
+			selectPressed = [gameView isDown:13];
 			int row_zero = 21;
 			if (!disc_operation_in_progress)
 			{
@@ -3543,13 +3544,17 @@ static BOOL autopilot_pause;
 			break;
 		
 		case GUI_SCREEN_NEWGAME:
-			if ([gameView isDown:13]) // enter
+			if (!selectPressed)
 			{
-				if (![self startScenario])
+				if ([gameView isDown:13]) // enter
 				{
-					[self setGuiToIntroFirstGo:YES];
-				} 
+					if (![self startScenario])
+					{
+						[self setGuiToIntroFirstGo:YES];
+					} 
+				}
 			}
+			selectPressed = [gameView isDown:13];
 			if ([gameView isDown:key_gui_arrow_down])	//  '<--'
 			{
 				if (!upDownKeyPressed)
