@@ -8147,6 +8147,11 @@ static NSString *last_outfitting_key=nil;
         [gui setText:text forRow:25 align:GUI_ALIGN_LEFT];
         [gui setColor:[OOColor yellowColor] forRow:25];
 #endif 
+
+        text = DESC(@"oolite-start-option-5");
+        [gui setText:text forRow:26 align:GUI_ALIGN_LEFT];
+        [gui setColor:[OOColor yellowColor] forRow:26];
+
 		
 		// check for error messages from Resource Manager
 		//[ResourceManager paths]; done in Universe already

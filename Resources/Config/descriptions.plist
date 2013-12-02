@@ -1009,10 +1009,11 @@
 	"load-previous-commander-yes"	= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
 	"load-previous-commander-no"	= "n"; // Defines the key that corresponds to the no answer to load-previous-commander.
 	
-	"oolite-start-option-1"			= "1. Start new game";
-	"oolite-start-option-2"			= "2. Load saved game";
-	"oolite-start-option-3"			= "3. View ship library";
-	"oolite-start-option-4"			= "4. Manage expansion packs"; // not yet used
+	"oolite-start-option-1"			= "1. Start New Commander";
+	"oolite-start-option-2"			= "2. Load Commander";
+	"oolite-start-option-3"			= "3. View Ship Library";
+	"oolite-start-option-4"			= "4. Manage Expansion Packs"; // not yet used
+	"oolite-start-option-5"			= "5. Exit Game";
 
 	"oolite-newgame-title"			= "New Game";
 

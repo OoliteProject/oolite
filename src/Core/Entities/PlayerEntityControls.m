@@ -3498,6 +3498,10 @@ static BOOL autopilot_pause;
 			{
 				[self setGuiToIntroFirstGo:NO];
 			}
+			else if (([gameView isDown:SDLK_5]))
+			{
+				[[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
+			}
 			else
 			{
 				disc_operation_in_progress = NO;
