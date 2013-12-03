@@ -3537,7 +3537,7 @@ static BOOL autopilot_pause;
 		case GUI_SCREEN_NEWGAME:
 			if (!selectPressed)
 			{
-				if ([gameView isDown:13]) // enter
+				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
 				{
 					if (![self startScenario])
 					{
@@ -3550,17 +3550,32 @@ static BOOL autopilot_pause;
 			{
 				if (!upDownKeyPressed)
 				{
-					[self selectScenario:1];
+					[self selectScenario:1 relative:YES];
 				}
 			}
-			if ([gameView isDown:key_gui_arrow_up])	//  '-->'
+			else if ([gameView isDown:key_gui_arrow_up])	//  '-->'
 			{
 				if (!upDownKeyPressed)
 				{
-					[self selectScenario:-1];
+					[self selectScenario:-1 relative:YES];
+				}
+			}
+			else if ([gameView isDown:gvMouseLeftButton])
+			{
+				if (UNIVERSE)
+				{
+					int click_row = UNIVERSE->cursor_row;
+					if ([gui setSelectedRow:click_row])
+					{
+						[self selectScenario:click_row relative:NO];
+					}
 				}
 			}
 			upDownKeyPressed = (([gameView isDown:key_gui_arrow_down])||([gameView isDown:key_gui_arrow_up]));
+			if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+			{
+				[gameView clearMouse];
+			}
 			break;
 	
 	

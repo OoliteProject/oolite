@@ -70,7 +70,7 @@ MA 02110-1301, USA.
 - (void) setGuiToScenarioScreen;
 - (void) addScenarioModel:(NSString *)shipKey;
 - (BOOL) startScenario;
-- (void) selectScenario:(NSInteger)delta;
+- (void) selectScenario:(NSInteger)delta relative:(BOOL)relative;
 
 #if OO_USE_CUSTOM_LOAD_SAVE
 

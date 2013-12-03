@@ -233,6 +233,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:start_row - 1];
 			[gui setColor:[OOColor greenColor] forRow:start_row - 1];
+			[gui setKey:@"back" forRow:start_row - 1];
 		}
 
 		for (i = page*n_rows ; i < count && row < start_row + n_rows ; i++)
@@ -247,9 +248,17 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
 			[gui setColor:[OOColor greenColor] forRow:row];
+			[gui setKey:@"next" forRow:row];
+			++row;
 		}
-
-		[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+		if (page > 0)
+		{
+			[gui setSelectableRange:NSMakeRange(start_row - 1,1 + row - start_row)];
+		}
+		else
+		{
+			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+		}
 		[gui setSelectedRow:start_row + (missionTextRow%n_rows)];
 
 		scenario = [[UNIVERSE scenarios] objectAtIndex:missionTextRow];
@@ -269,7 +278,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 
 	gui_screen = GUI_SCREEN_NEWGAME;
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 - (void) addScenarioModel:(NSString *)shipKey
@@ -332,9 +341,19 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 }
 
 
-- (void) selectScenario:(NSInteger)delta
+- (void) selectScenario:(NSInteger)delta relative:(BOOL)relative;
 {
+	OOLog(@"select.scenario",@"%d (rel:%d)",delta,relative);
 	NSArray *scenarios = [UNIVERSE scenarios];
+	if (!relative)
+	{
+		NSInteger current = missionTextRow;
+
+		NSUInteger page = missionTextRow / GUI_MAX_ROWS_SCENARIOS;
+		NSInteger new = (page * GUI_MAX_ROWS_SCENARIOS)	+ delta - GUI_ROW_SCENARIOS_START;
+		delta = new - current;
+		OOLog(@"select.scenario",@"%d - %d = %d (%d)",new,current,delta,page);
+	}
 	missionTextRow += delta;
 	if (missionTextRow < 0)
 	{
@@ -348,7 +367,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	{
 		[self playMenuNavigationDown];
 	}
-	else
+	else if (delta < 0)
 	{
 		[self playMenuNavigationUp];
 	}
