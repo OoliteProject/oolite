@@ -8158,33 +8158,10 @@ static NSString *last_outfitting_key=nil;
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
 	[gui setSelectableRange:NSMakeRange(22,5)];
-	[gui setSelectedRow:missionTextRow];
+	[gui setSelectedRow:22];
 
 	[gui setBackgroundTextureKey:@"intro"];
 
-}
-
-
-- (void) selectIntroOption:(int)delta
-{
-	missionTextRow += delta;
-	if (missionTextRow > 26)
-	{
-		missionTextRow = 22;
-	}
-	else if (missionTextRow < 22)
-	{
-		missionTextRow = 26;
-	}
-	if (delta > 0)
-	{
-		[self playMenuNavigationDown];
-	}
-	else
-	{
-		[self playMenuNavigationUp];
-	}
-	[self setupStartScreenGui];
 }
 
 
@@ -8205,7 +8182,6 @@ static NSString *last_outfitting_key=nil;
 	
 	if (justCobra)
 	{
-		missionTextRow = 22;
 		[self setupStartScreenGui];
 		
 		// check for error messages from Resource Manager

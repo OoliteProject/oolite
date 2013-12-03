@@ -379,6 +379,7 @@ static NSTimeInterval	time_last_frame;
 	BOOL			arrow_up = [gameView isDown:key_gui_arrow_up];
 	BOOL			arrow_down = [gameView isDown:key_gui_arrow_down];
 	BOOL			mouse_click = [gameView isDown:gvMouseLeftButton];
+	BOOL			mouse_dbl_click = [gameView isDown:gvMouseDoubleClick];
 	
 	if (arrow_down)
 	{
@@ -433,6 +434,24 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 	}
+	if (mouse_dbl_click)
+	{
+		int click_row = 0;
+		if (UNIVERSE)
+			click_row = UNIVERSE->cursor_row;
+		if ([gui setSelectedRow:click_row])
+		{
+			result = YES;
+		}
+		else
+		{
+			// if double-clicked on an unselectable row, clear the
+			// state so it doesn't activate whatever was last
+			// selected
+			[gameView clearMouse];
+		}
+	}
+
 	
 	upDownKeyPressed = (arrow_up || arrow_down || mouse_click);
 	
