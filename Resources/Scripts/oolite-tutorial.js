@@ -1,8 +1,8 @@
 /*
 
-oolite-cloaking-device-equipment.js
+oolite-tutorial.js
 
-Equipment script for cloaking device.
+World script for tutorial.
 
 
 Oolite
@@ -27,18 +27,61 @@ MA 02110-1301, USA.
 
 
 /*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
-/*global worldScripts*/
+/*global worldScripts, player, missionVariables */
 
 
 "use strict";
 
-this.name = "Cloaking Device";
+this.name = "oolite-tutorial";
 this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
 this.version		= "1.79";
 
-
-this.activated = function()
+this.startUp = function()
 {
-	player.ship.isCloaked = !player.ship.isCloaked;
+	if (!missionVariables.oolite_tutorial)
+	{
+		return;
+	}
+	log(this.name,"Tutorial mode active");
+	// define rest of script now
+
+	// alternative populator
+	this.ooliteTutorialWillPopulate = function()
+	{
+		var addTutorialStation = function(pos)
+		{
+			system.addShips("oolite-tutorial-station",1,pos,0);
+		}
+
+		system.setPopulator("oolite-tutorial-station",
+						{
+							priority: 5,
+							location: "OUTER_SYSTEM_OFFPLANE",
+							locationSeed: 600,
+							callback: addTutorialStation,
+							deterministic: true
+						});
+	}
+
+	this.ooliteTutorialWillRepopulate = function()
+	{
+		// nothing yet
+	}
+
+
+
+
+	this._nextItem = function()
+	{
+		// move to the next item in the current tutorial
+	}
+
+	this._nextSection = function()
+	{
+		// move to the next section of the current tutorial
+	}
+
+
+
 }

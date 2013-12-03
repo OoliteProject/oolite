@@ -42,39 +42,47 @@ this.version		= "1.79";
 /* contexts: npc, purchase, scripted, newShip, (loading), (damage), (portable) */
 this.allowAwardEquipment = function(equipment, ship, context)
 {
-		if (equipment == "EQ_NAVAL_ENERGY_UNIT")
+	if (equipment == "EQ_NAVAL_ENERGY_UNIT")
+	{
+		// Naval Energy Unit purchase (including repair) by player
+		// requires Thargoid Plans complete
+		if (context == "purchase" && missionVariables.thargplans != "MISSION_COMPLETE")
 		{
-				// Naval Energy Unit purchase (including repair) by player
-				// requires Thargoid Plans complete
-				if (context == "purchase" && missionVariables.thargplans != "MISSION_COMPLETE")
-				{
-						return false;
-				}
+			return false;
 		}
+	}
 
-		if (equipment == "EQ_CLOAKING_DEVICE")
+	if (equipment == "EQ_CLOAKING_DEVICE")
+	{
+		// Cloaking Device can't be purchased by player, can be repaired
+		if (context == "purchase" && player.ship.equipmentStatus("EQ_CLOAKING_DEVICE") != "EQUIPMENT_DAMAGED")
 		{
-				// Cloaking Device can't be purchased by player, can be repaired
-				if (context == "purchase" && player.ship.equipmentStatus("EQ_CLOAKING_DEVICE") != "EQUIPMENT_DAMAGED")
-				{
-						return false;
-				}
-				// Never found on ships in shipyards
-				if (context == "newShip")
-				{
-						return false;
-				}
+			return false;
 		}
-
-		// OXP hook to allow stations to forbid specific equipment
-		if (context == "purchase" && player.ship.dockedStation && player.ship.dockedStation.scriptInfo["oolite-barred-equipment"])
+		// Never found on ships in shipyards
+		if (context == "newShip")
 		{
-				if (player.ship.dockedStation.scriptInfo["oolite-barred-equipment"].indexOf(equipment) != -1)
-				{
-						return false;
-				}
+			return false;
 		}
+	}
 
-		// otherwise allowed
-		return true;
+	if (equipment == "EQ_OOLITE_TUTORIAL_CONTROLS")
+	{
+		if (context == "purchase" || context == "npc" || context == "newShip" || context == "scripted")
+		{
+			return false;
+		}
+	}
+
+	// OXP hook to allow stations to forbid specific equipment
+	if (context == "purchase" && player.ship.dockedStation && player.ship.dockedStation.scriptInfo["oolite-barred-equipment"])
+	{
+		if (player.ship.dockedStation.scriptInfo["oolite-barred-equipment"].indexOf(equipment) != -1)
+		{
+			return false;
+		}
+	}
+
+	// otherwise allowed
+	return true;
 }

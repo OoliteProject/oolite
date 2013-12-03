@@ -1,8 +1,8 @@
 /*
 
-oolite-cloaking-device-equipment.js
+oolite-tutorial-equipment.js
 
-Equipment script for cloaking device.
+Equipment script for tutorial.
 
 
 Oolite
@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 "use strict";
 
-this.name = "Cloaking Device";
+this.name = "Tutorial Controls";
 this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
 this.version		= "1.79";
@@ -40,5 +40,11 @@ this.version		= "1.79";
 
 this.activated = function()
 {
-	player.ship.isCloaked = !player.ship.isCloaked;
+	worldScripts["oolite-tutorial"]._nextItem();
+}
+
+
+this.mode = function()
+{
+	worldScripts["oolite-tutorial"]._nextSection();
 }

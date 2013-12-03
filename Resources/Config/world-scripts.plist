@@ -18,6 +18,8 @@
 	"oolite-cloaking-device-mission.js",
 	"oolite-nova-mission.js",
 	"oolite-thargoid-plans-mission.js",
-	"oolite-trumbles-mission.js"
+	"oolite-trumbles-mission.js",
 
+  /* Tutorial */
+	"oolite-tutorial.js"
 )
