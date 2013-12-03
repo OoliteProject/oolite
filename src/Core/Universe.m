@@ -226,7 +226,7 @@ static int JSResetFlags = 0;
 
 // track the position and status of the lights
 static BOOL		object_light_on = NO;
-static BOOL		demo_light_on = YES;
+static BOOL		demo_light_on = NO;
 static			GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
 static GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 

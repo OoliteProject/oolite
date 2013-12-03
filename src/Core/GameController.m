@@ -273,6 +273,10 @@ static GameController *sSharedController = nil;
 	if (playerFileToLoad != nil)
 	{
 		[self logProgress:DESC(@"loading-player")];
+		// fix problem with non-shader lighting when starting skips
+		// the splash screen
+		[UNIVERSE useGUILightSource:YES];
+		[UNIVERSE useGUILightSource:NO];
 		[PLAYER loadPlayerFromFile:playerFileToLoad asNew:NO];
 	}
 }

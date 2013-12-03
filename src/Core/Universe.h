@@ -478,6 +478,8 @@ enum
 - (GameController *) gameController;
 - (NSDictionary *) gameSettings;
 
+- (void) useGUILightSource:(BOOL)GUILight;
+
 - (void) drawUniverse;
 
 - (void) defineFrustum;
