@@ -204,7 +204,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 }
 
 
-- (void) setGuiToScenarioScreen
+- (void) setGuiToScenarioScreen:(int)page
 {
 	NSArray *scenarios = [UNIVERSE scenarios];
 	[UNIVERSE removeDemoShips];
@@ -213,7 +213,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		GuiDisplayGen	*gui = [UNIVERSE gui];
 		OOGUIRow		start_row = GUI_ROW_SCENARIOS_START;
 		OOGUIRow		row = start_row;
-		BOOL			guiChanged = (gui_screen != GUI_SCREEN_INTERFACES);
+		BOOL			guiChanged = (gui_screen != GUI_SCREEN_NEWGAME);
 
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"oolite-newgame-title")];
@@ -226,15 +226,21 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		unsigned n_rows = GUI_MAX_ROWS_SCENARIOS;
 		NSUInteger i, count = [scenarios count];
 
-		NSUInteger page = missionTextRow / n_rows;
 		NSDictionary *scenario = nil;
+
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-scenario-exit"), @" <----- ", nil] forRow:start_row - 2];
+		[gui setColor:[OOColor grayColor] forRow:start_row - 2];
+		[gui setKey:@"exit" forRow:start_row - 2];
+		
 
 		if (page > 0)
 		{
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:start_row - 1];
 			[gui setColor:[OOColor greenColor] forRow:start_row - 1];
-			[gui setKey:@"back" forRow:start_row - 1];
+			[gui setKey:[NSString stringWithFormat:@"__page:%lu",page-1] forRow:start_row - 1];
 		}
+
+		[self setShowDemoShips:NO];
 
 		for (i = page*n_rows ; i < count && row < start_row + n_rows ; i++)
 		{
@@ -248,33 +254,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
 			[gui setColor:[OOColor greenColor] forRow:row];
-			[gui setKey:@"next" forRow:row];
+			[gui setKey:[NSString stringWithFormat:@"__page:%lu",page+1] forRow:row];
 			++row;
 		}
-		if (page > 0)
-		{
-			[gui setSelectableRange:NSMakeRange(start_row - 1,1 + row - start_row)];
-		}
-		else
-		{
-			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
-		}
-		[gui setSelectedRow:start_row + (missionTextRow%n_rows)];
-
-		scenario = [[UNIVERSE scenarios] objectAtIndex:missionTextRow];
-		[gui addLongText:OOExpand([scenario oo_stringForKey:@"description"]) startingAtRow:GUI_ROW_SCENARIOS_DETAIL align:GUI_ALIGN_LEFT];
-
-
-		NSString *shipKey = [scenario oo_stringForKey:@"model"];
-		if (shipKey != nil)
-		{
-			[self addScenarioModel:shipKey];
-			[self setShowDemoShips:YES];
-		}
-		else
-		{
-			[self setShowDemoShips:NO];
-		}
+		
+		[gui setSelectableRange:NSMakeRange(start_row - 2,3 + row - start_row)];
+		[gui setSelectedRow:start_row];
+		[self showScenarioDetails];
 	}
 
 	gui_screen = GUI_SCREEN_NEWGAME;
@@ -316,9 +302,55 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 }
 
 
+- (void) showScenarioDetails
+{
+	GuiDisplayGen* gui = [UNIVERSE gui];
+	NSString* key = [gui selectedRowKey];
+	[UNIVERSE removeDemoShips];
+
+	if ([key hasPrefix:@"Scenario"])
+	{
+		int item = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		NSDictionary *scenario = [[UNIVERSE scenarios] objectAtIndex:item];
+		[self setShowDemoShips:NO];
+		for (NSUInteger i=GUI_ROW_SCENARIOS_DETAIL;i<=27;i++)
+		{
+			[gui setText:@"" forRow:i];
+		}
+		if (scenario)
+		{
+			[gui addLongText:OOExpand([scenario oo_stringForKey:@"description"]) startingAtRow:GUI_ROW_SCENARIOS_DETAIL align:GUI_ALIGN_LEFT];
+			NSString *shipKey = [scenario oo_stringForKey:@"model"];
+			if (shipKey != nil)
+			{
+				[self addScenarioModel:shipKey];
+				[self setShowDemoShips:YES];
+			}
+		}
+
+	}
+}
+
+
 - (BOOL) startScenario
 {
-	NSDictionary *scenario = [[UNIVERSE scenarios] objectAtIndex:missionTextRow];
+	GuiDisplayGen* gui = [UNIVERSE gui];
+	NSString* key = [gui selectedRowKey];
+
+	if ([key isEqualToString:@"exit"])
+	{
+		// intended to return to main menu
+		return NO; 
+	}
+	if ([key hasPrefix:@"__page"])
+	{
+		int page = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		[self setGuiToScenarioScreen:page];
+		return YES;
+	}
+	int selection = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+
+	NSDictionary *scenario = [[UNIVERSE scenarios] objectAtIndex:selection];
 	NSString *file = [scenario oo_stringForKey:@"file" defaultValue:nil];
 	if (file == nil) 
 	{
@@ -341,38 +373,6 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 }
 
 
-- (void) selectScenario:(NSInteger)delta relative:(BOOL)relative;
-{
-	OOLog(@"select.scenario",@"%d (rel:%d)",delta,relative);
-	NSArray *scenarios = [UNIVERSE scenarios];
-	if (!relative)
-	{
-		NSInteger current = missionTextRow;
-
-		NSUInteger page = missionTextRow / GUI_MAX_ROWS_SCENARIOS;
-		NSInteger new = (page * GUI_MAX_ROWS_SCENARIOS)	+ delta - GUI_ROW_SCENARIOS_START;
-		delta = new - current;
-		OOLog(@"select.scenario",@"%d - %d = %d (%d)",new,current,delta,page);
-	}
-	missionTextRow += delta;
-	if (missionTextRow < 0)
-	{
-		missionTextRow = [scenarios count] - 1;
-	}
-	else if (missionTextRow >= (NSInteger)[scenarios count])
-	{
-		missionTextRow = 0;
-	}
-	if (delta > 0)
-	{
-		[self playMenuNavigationDown];
-	}
-	else if (delta < 0)
-	{
-		[self playMenuNavigationUp];
-	}
-	[self setGuiToScenarioScreen];
-}
 
 
 #if OO_USE_CUSTOM_LOAD_SAVE

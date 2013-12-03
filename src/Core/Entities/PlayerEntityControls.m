@@ -3476,40 +3476,43 @@ static BOOL autopilot_pause;
 		case GUI_SCREEN_INTRO1:
 			[self handleGUIUpDownArrowKeys];
 
-			selectPressed = [gameView isDown:13];
 			int row_zero = 21;
-			if (!disc_operation_in_progress)
+			if (!selectPressed)
 			{
-				if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 2+row_zero)
+				if (!disc_operation_in_progress)
 				{
-					[[OOMusicController sharedController] stopThemeMusic];
-					disc_operation_in_progress = YES;
-					[UNIVERSE removeDemoShips];
-					[gui clearBackground];
-					if (![self loadPlayer])
+					if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 2+row_zero)
 					{
-						[self setGuiToIntroFirstGo:YES];
+						[[OOMusicController sharedController] stopThemeMusic];
+						disc_operation_in_progress = YES;
+						[UNIVERSE removeDemoShips];
+						[gui clearBackground];
+						if (![self loadPlayer])
+						{
+							[self setGuiToIntroFirstGo:YES];
+						}
+						break;
 					}
-					break;
+				}
+				if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 1+row_zero)
+				{
+					missionTextRow = 0;
+					[self setGuiToScenarioScreen:0];
+				} 
+				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 3+row_zero)
+				{
+					[self setGuiToIntroFirstGo:NO];
+				}
+				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 5+row_zero)
+				{
+					[[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
+				}
+				else
+				{
+					disc_operation_in_progress = NO;
 				}
 			}
-			if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 1+row_zero)
-			{
-				missionTextRow = 0;
-				[self setGuiToScenarioScreen];
-			} 
-			else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 3+row_zero)
-			{
-				[self setGuiToIntroFirstGo:NO];
-			}
-			else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 5+row_zero)
-			{
-				[[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
-			}
-			else
-			{
-				disc_operation_in_progress = NO;
-			}
+			selectPressed = [gameView isDown:13];
 			if ([gameView isDown:gvMouseDoubleClick])
 			{
 				[gameView clearMouse];
@@ -3535,43 +3538,23 @@ static BOOL autopilot_pause;
 			break;
 		
 		case GUI_SCREEN_NEWGAME:
+			if ([self handleGUIUpDownArrowKeys])
+			{
+				[self showScenarioDetails];
+			}
+
 			if (!selectPressed)
 			{
 				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
 				{
 					if (![self startScenario])
 					{
+						[UNIVERSE removeDemoShips];
 						[self setGuiToIntroFirstGo:YES];
 					} 
 				}
 			}
 			selectPressed = [gameView isDown:13];
-			if ([gameView isDown:key_gui_arrow_down])	//  '<--'
-			{
-				if (!upDownKeyPressed)
-				{
-					[self selectScenario:1 relative:YES];
-				}
-			}
-			else if ([gameView isDown:key_gui_arrow_up])	//  '-->'
-			{
-				if (!upDownKeyPressed)
-				{
-					[self selectScenario:-1 relative:YES];
-				}
-			}
-			else if ([gameView isDown:gvMouseLeftButton])
-			{
-				if (UNIVERSE)
-				{
-					int click_row = UNIVERSE->cursor_row;
-					if ([gui setSelectedRow:click_row])
-					{
-						[self selectScenario:click_row relative:NO];
-					}
-				}
-			}
-			upDownKeyPressed = (([gameView isDown:key_gui_arrow_down])||([gameView isDown:key_gui_arrow_up]));
 			if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
 			{
 				[gameView clearMouse];

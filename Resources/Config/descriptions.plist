@@ -1021,11 +1021,12 @@
 	"oolite-ship-library-title"		= "Ship Library";
 	"oolite-ship-library-exit"		= "Press space to exit ship library";
 
-	"oolite-scenario-standard-name" = "Normal start";
-	"oolite-scenario-strict-name"	= "Strict game";
+	"oolite-scenario-exit"			= "Return to Menu";
+	"oolite-scenario-standard-name" = "Normal Start";
+	"oolite-scenario-strict-name"	= "Strict Mode";
 	"oolite-scenario-tutorial-name" = "Tutorial";
 	"oolite-scenario-standard-description"	= "Start with a Cobra Mk III and 100 credits at Lave station, and try to make a living.";
-	"oolite-scenario-strict-description"	= "Strict games start like the normal start, but all expansion packs are permanently disabled for this save game.";
+	"oolite-scenario-strict-description"	= "Strict Mode starts like the normal start, but all expansion packs are permanently disabled for this Commander.";
 	"oolite-scenario-tutorial-description"	= "Take a standard Cooperative flight training course, including simulated combat and docking practice.";
 
 

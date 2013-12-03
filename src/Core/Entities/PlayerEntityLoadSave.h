@@ -67,10 +67,11 @@ MA 02110-1301, USA.
 - (void) quicksavePlayer;
 - (void) autosavePlayer;
 
-- (void) setGuiToScenarioScreen;
+- (void) setGuiToScenarioScreen:(int)page;
 - (void) addScenarioModel:(NSString *)shipKey;
+- (void) showScenarioDetails;
 - (BOOL) startScenario;
-- (void) selectScenario:(NSInteger)delta relative:(BOOL)relative;
+
 
 #if OO_USE_CUSTOM_LOAD_SAVE
 
