@@ -183,4 +183,13 @@
 
 	"oolite-primablemanager-completed" = "Equipment configuration is complete.\n\nFirst fast activation (defensive):\n  [oolite-primable-a]\n\nSecond fast activation (offensive):\n  [oolite-primable-b]";
 
+
+	// tutorial
+	"oolite-tutorial-0-0-title" = "Flight Training Course";
+	"oolite-tutorial-0-0-message" = "Welcome to the Cooperative Flight Training Course, pilot. This course will demonstrate the basic functionality of Cooperative ships to you, in a specially-prepared simulator.\n\nThe course is in multiple sections. While in the simulator, you can use the '[oolite_key_activate_equipment]' key to advance to the next entry in the current lesson, and the '[oolite_key_mode_equipment]' key to go to the next lesson, if you wish to skip sections you have previously completed.\n\nOnce the simulation begins, a panel on your screen will display instructions, which you should follow to progress through the course. If you wish to temporarily hide the panel, press the '[oolite_key_cycle_mfd]' key. You can bring it back with the same key, or it will automatically reappear when there are new instructions.\n\nWhen you are ready, press the Enter key to begin the simulation with the first lesson.";
+	"oolite-tutorial-0-0-choices" = { "1" = "Begin Course"; };
+	
+	"oolite-tutorial-1-0" = "Lesson 1: the HUD\nThis lesson introduces the HUD components in turn.\n\nYou will need to press '[oolite_key_activate_equipment]' to go to the next component - do this now.\n\nRemember, you can also press '[oolite_key_mode_equipment]' to skip to the next lesson.";
+
+
 }

@@ -44,7 +44,18 @@ this.startUp = function()
 		return;
 	}
 	log(this.name,"Tutorial mode active");
-	// define rest of script now
+	// define rest of script now, otherwise it's pointless as it never
+	// gets used in normal play
+
+	this.$tutorialStage = 0;
+	this.$tutorialSubstage = 0;
+
+	/* Number of substages in each stage */
+	this.$tutorialStages = [
+		2, // stage 0: mission screen, post-launch cleanup
+		1, // stage 1: HUD displays
+		
+	]
 
 	// alternative populator
 	this.ooliteTutorialWillPopulate = function()
@@ -70,18 +81,89 @@ this.startUp = function()
 	}
 
 
+	this.missionScreenOpportunity = function()
+	{
+		if (this.$tutorialStage == 0 && this.$tutorialSubstage == 0)
+		{
+			player.ship.hudHidden = true;
+			mission.runScreen(
+				{
+					titleKey: "oolite-tutorial-0-0-title",
+					messageKey: "oolite-tutorial-0-0-message",
+					choicesKey: "oolite-tutorial-0-0-choices",
+					screenID: "oolite-tutorial-0-0"
+				},function()
+				{
+					player.ship.launch();
+					this._nextItem();
+				});
+		}
+	}
 
 
+	this.shipLaunchedFromStation = function(station)
+	{
+		if (this.$tutorialStage == 0 && this.$tutorialSubstage == 1)
+		{	
+			station.remove();
+			this._nextItem();
+		}
+	}
+
+	// move to the next item in the current tutorial
 	this._nextItem = function()
 	{
-		// move to the next item in the current tutorial
+		this.$tutorialSubstage++;
+		if (this.$tutorialSubstage >= this.$tutorialStages[this.$tutorialStage])
+		{
+			this._nextSection();
+		}
+		else
+		{
+			var fn = "__stage"+this.$tutorialStage+"sub"+this.$tutorialSubstage;
+			if (this[fn])
+			{
+				this[fn]();
+			}
+		}
 	}
 
+
+	// move to the next section of the tutorial
 	this._nextSection = function()
 	{
-		// move to the next section of the current tutorial
+		this.$tutorialStage++;
+		this.$tutorialSubstage = 0;
+		var fn = "__stage"+this.$tutorialStage+"sub"+this.$tutorialSubstage;
+		if (this[fn])
+		{
+			this[fn]();
+		}
 	}
 
 
+	this._setInstructions = function(key) 
+	{
+		if (player.ship.multiFunctionDisplays == 0)
+		{
+			log(this.name,"Installed HUD does not support multi-function displays - unable to show instructions");
+		}
+		else
+		{
+			player.ship.setMultiFunctionText("oolite-tutorial",expandMissionText(key),true);
+			player.ship.setMultiFunctionDisplay(0,"oolite-tutorial");
+		}
+	}
+
+	/* Tutorial stages */
+
+	// __stage0sub1 not needed
+	
+	this.__stage1sub0 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-0");
+		player.ship.hudHidden = false;
+
+	}
 
 }

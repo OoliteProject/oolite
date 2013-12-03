@@ -1191,6 +1191,7 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 	NSString				*key = nil;
 	NSString				*value = nil;
 	PlayerEntity			*player = OOPlayerForScripting();
+	JSBool					reflow = NO;
 
 	if (argc > 0)  
 	{
@@ -1205,8 +1206,22 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 	{
 		value = OOStringFromJSValue(context, OOJS_ARGV[1]);
 	}
+	if (argc > 2 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[2], &reflow)))
+	{
+		OOJSReportBadArguments(context, @"setMultiFunctionText", @"reflow", argc, OOJS_ARGV, nil, @"boolean");
+		return NO;
+	}
 
-	[player setMultiFunctionText:value forKey:key];
+	if (!reflow)
+	{
+		[player setMultiFunctionText:value forKey:key];
+	}
+	else
+	{
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		NSString *formatted = [gui reflowTextForMFD:value];
+		[player setMultiFunctionText:formatted forKey:key];
+	}
 
 	OOJS_RETURN_VOID;
 
