@@ -3474,26 +3474,13 @@ static BOOL autopilot_pause;
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_INTRO1:
-			if ([gameView isDown:key_gui_arrow_down])	//  '<--'
-			{
-				if (!upDownKeyPressed)
-				{
-					[self selectIntroOption:1];
-				}
-			}
-			if ([gameView isDown:key_gui_arrow_up])	//  '-->'
-			{
-				if (!upDownKeyPressed)
-				{
-					[self selectIntroOption:-1];
-				}
-			}
-			upDownKeyPressed = (([gameView isDown:key_gui_arrow_down])||([gameView isDown:key_gui_arrow_up]));
+			[self handleGUIUpDownArrowKeys];
+
 			selectPressed = [gameView isDown:13];
 			int row_zero = 21;
 			if (!disc_operation_in_progress)
 			{
-				if (([gameView isDown:gvNumberKey2]) || ([gameView isDown:13] && missionTextRow == 2+row_zero))
+				if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 2+row_zero)
 				{
 					[[OOMusicController sharedController] stopThemeMusic];
 					disc_operation_in_progress = YES;
@@ -3506,22 +3493,26 @@ static BOOL autopilot_pause;
 					break;
 				}
 			}
-			if (([gameView isDown:gvNumberKey1]) || ([gameView isDown:13] && missionTextRow == 1+row_zero))
+			if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 1+row_zero)
 			{
 				missionTextRow = 0;
 				[self setGuiToScenarioScreen];
 			} 
-			else if (([gameView isDown:gvNumberKey3]) || ([gameView isDown:13] && missionTextRow == 3+row_zero))
+			else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 3+row_zero)
 			{
 				[self setGuiToIntroFirstGo:NO];
 			}
-			else if (([gameView isDown:gvNumberKey5]) || ([gameView isDown:13] && missionTextRow == 5+row_zero))
+			else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 5+row_zero)
 			{
 				[[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
 			}
 			else
 			{
 				disc_operation_in_progress = NO;
+			}
+			if ([gameView isDown:gvMouseDoubleClick])
+			{
+				[gameView clearMouse];
 			}
 			break;
 			

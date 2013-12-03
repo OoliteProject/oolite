@@ -8107,6 +8107,8 @@ static NSString *last_outfitting_key=nil;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	NSString		*text = nil;
 
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+
 	[gui clear];
 
 	[gui setTitle:@"Oolite"];
@@ -8122,21 +8124,21 @@ static NSString *last_outfitting_key=nil;
 	int row = 22;
 
 	text = DESC(@"oolite-start-option-1");
-	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
 	++row;
 
 	text = DESC(@"oolite-start-option-2");
-	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
 	++row;
 
 	text = DESC(@"oolite-start-option-3");
-	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
@@ -8144,14 +8146,14 @@ static NSString *last_outfitting_key=nil;
 
 	// not yet implemented
 	text = DESC(@"oolite-start-option-4");
-	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
 	++row;
 
 	text = DESC(@"oolite-start-option-5");
-	[gui setText:text forRow:row align:GUI_ALIGN_LEFT];
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
@@ -8296,7 +8298,7 @@ static NSString *last_outfitting_key=nil;
 	
 	[self setShowDemoShips:YES];
 	[gui setBackgroundTextureKey:@"intro"];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 
