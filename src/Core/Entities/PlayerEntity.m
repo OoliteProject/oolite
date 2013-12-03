@@ -8195,6 +8195,7 @@ static NSString *last_outfitting_key=nil;
 	OOGUIRow 		msgLine = 2;
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+	[[UNIVERSE gameView] clearMouse];
 
 	if (justCobra)
 	{
