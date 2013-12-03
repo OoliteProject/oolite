@@ -229,7 +229,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSDictionary *scenario = nil;
 
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-scenario-exit"), @" <----- ", nil] forRow:start_row - 2];
-		[gui setColor:[OOColor grayColor] forRow:start_row - 2];
+		[gui setColor:[OOColor greenColor] forRow:start_row - 2];
 		[gui setKey:@"exit" forRow:start_row - 2];
 		
 
