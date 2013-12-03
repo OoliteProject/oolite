@@ -543,6 +543,11 @@ MA 02110-1301, USA.
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_CLOAK]];
 	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-oolite-dock-mode")
+	 			  allowable:HW_BUTTON
+	 			  	 axisfn:STICK_NOFUNCTION
+	 			  	 butfn:BUTTON_DOCKMODETOGGLE]];
+	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-view-forward")
 				  allowable:HW_AXIS|HW_BUTTON
 					 axisfn:AXIS_VIEWY

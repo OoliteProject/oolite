@@ -277,7 +277,6 @@ typedef enum
 
 #define MISSION_DEST_LEGACY				@"__oolite_legacy_destinations"
 
-
 @interface PlayerEntity: ShipEntity
 {
 @private
@@ -514,6 +513,7 @@ typedef enum
 #endif
 
 	OOKeyCode				key_weapons_online_toggle;
+	OOKeyCode				key_dock_mode_toggle;
 
 	OOKeyCode				key_cycle_mfd;
 	OOKeyCode				key_switch_mfd;
@@ -588,6 +588,7 @@ typedef enum
 							waitingForStickCallback: 1,
 							
 							weapons_online: 1,
+							dock_mode: 1,
 							
 							launchingMissile: 1,
 							replacingMissile: 1;
@@ -792,6 +793,9 @@ typedef enum
 
 - (BOOL) weaponsOnline;
 - (void) setWeaponsOnline:(BOOL)newValue;
+
+- (BOOL) dockMode;
+- (void) setDockMode: (BOOL)newValue;
 
 - (BOOL) fireMainWeapon;
 

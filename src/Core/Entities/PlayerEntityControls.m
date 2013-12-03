@@ -117,6 +117,7 @@ static BOOL				switching_equipship_screens;
 static BOOL				zoom_pressed;
 static BOOL				customView_pressed;
 static BOOL				weaponsOnlineToggle_pressed;
+static BOOL				dockModeToggle_pressed;
 static BOOL				escapePodKey_pressed;
 static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
@@ -243,6 +244,7 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_fire_lasers,			'a'			);
 	LOAD_KEY_SETTING(key_weapons_online_toggle,	'_'			);
+	LOAD_KEY_SETTING(key_dock_mode_toggle,		'%');
 	LOAD_KEY_SETTING(key_launch_missile,		'm'			);
 	LOAD_KEY_SETTING(key_next_missile,			'y'			);
 	LOAD_KEY_SETTING(key_ecm,					'e'			);
@@ -944,6 +946,30 @@ static NSTimeInterval	time_last_frame;
 				}
 				else  weaponsOnlineToggle_pressed = NO;
 				
+				exceptionContext = @"dock mode toggle";
+				// dock mode toggle '%' - non-strict mode only
+				if (([gameView isDown:key_dock_mode_toggle] || joyButtonState[BUTTON_DOCKMODETOGGLE]) && ![UNIVERSE strict])
+				{
+					if (!dockModeToggle_pressed)
+					{
+						NSString*	dockModeToggleMsg;
+						
+						[self setDockMode:![self dockMode]];
+						dockModeToggleMsg = [self dockMode] ? DESC(@"oolite-dock-mode-on") : DESC(@"oolite-dock-mode-off");
+						if ([self dockMode])
+						{
+							[self playDockModeOn];
+						}
+						else
+						{
+							[self playDockModeOff];
+						}
+						[UNIVERSE addMessage:dockModeToggleMsg forCount:2.0];
+						dockModeToggle_pressed = YES;
+					}
+				}
+				else  dockModeToggle_pressed = NO;
+
 				exceptionContext = @"missile fire";
 				//  shoot 'm'   // launch missile
 				if ([gameView isDown:key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE])
@@ -2406,12 +2432,12 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	// damp any rotations we entered with
-	if (flightRoll > 0.0)
+	if (![self dockMode] && flightRoll > 0.0)
 	{
 		if (flightRoll > delta_t)		[self decrease_flight_roll:delta_t];
 		else	flightRoll = 0.0;
 	}
-	if (flightRoll < 0.0)
+	if (![self dockMode] && flightRoll < 0.0)
 	{
 		if (flightRoll < -delta_t)		[self increase_flight_roll:delta_t];
 		else	flightRoll = 0.0;
@@ -2983,19 +3009,19 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:key_roll_left] && [gameView isDown:key_roll_right])
 		{
 			keyboardRollOverride = YES;
-			flightRoll = 0.0;
+			if (![self dockMode]) flightRoll = 0.0;
 		}
 		else if ([gameView isDown:key_roll_left])
 		{
 			keyboardRollOverride=YES;
-			if (flightRoll > 0.0)  flightRoll = 0.0;
+			if (![self dockMode] && flightRoll > 0.0)  flightRoll = 0.0;
 			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
 		}
 		else if ([gameView isDown:key_roll_right])
 		{
 			keyboardRollOverride=YES;
-			if (flightRoll < 0.0)  flightRoll = 0.0;
+			if (![self dockMode] && flightRoll < 0.0)  flightRoll = 0.0;
 			[self increase_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
 		}
@@ -3003,21 +3029,35 @@ static NSTimeInterval	time_last_frame;
 	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride)
 	{
 		stick_roll = max_flight_roll * virtualStick.x;
-		if (flightRoll < stick_roll)
+		if ([self dockMode])
 		{
-			[self increase_flight_roll:delta_t*roll_delta];
-			if (flightRoll > stick_roll)
-				flightRoll = stick_roll;
+			if (stick_roll < 0.0)
+			{
+				[self decrease_flight_roll:delta_t*-stick_roll];
+			}
+			else if (stick_roll > 0.0)
+			{
+				[self increase_flight_roll:delta_t*stick_roll];
+			}
 		}
-		if (flightRoll > stick_roll)
+		else
 		{
-			[self decrease_flight_roll:delta_t*roll_delta];
 			if (flightRoll < stick_roll)
+			{
+				[self increase_flight_roll:delta_t*roll_delta];
+				if (flightRoll > stick_roll)
 				flightRoll = stick_roll;
+			}
+			if (flightRoll > stick_roll)
+			{
+				[self decrease_flight_roll:delta_t*roll_delta];
+				if (flightRoll < stick_roll)
+					flightRoll = stick_roll;
+			}
 		}
 		rolling = (fabs(virtualStick.x) >= deadzone);
 	}
-	if (!rolling)
+	if (!rolling && ![self dockMode])
 	{
 		if (flightRoll > 0.0)
 		{
