@@ -233,6 +233,7 @@
 			y_origin	= -1;
 			height		= 20;
 			width		= 10;
+			with_dial	= "drawForwardShieldBar:";
 		},
 		{	text		= "AFT";
 			x		= -262;
@@ -240,6 +241,7 @@
 			y_origin	= -1;
 			height		= 20;
 			width		= 10;
+			with_dial	= "drawAftShieldBar:";
 		},
 		{
 			text		= "FUEL";
@@ -248,6 +250,7 @@
 			y_origin	= -1;
 			height		= 14;
 			width		= 9;
+			with_dial	= "drawFuelBar:";
 		},
 		{
 			text		= "CT";
@@ -256,6 +259,7 @@
 			y_origin	= -1;
 			height		= 14;
 			width		= 9;
+			with_dial	= "drawCabinTempBar:";
 		},
 		{
 			text		= "LT";
@@ -264,6 +268,7 @@
 			y_origin	= -1;
 			height		= 14;
 			width		= 9;
+			with_dial	= "drawWeaponTempBar:";
 		},
 		{
 			text		= "ALT";
@@ -272,6 +277,7 @@
 			y_origin	= -1;
 			height		= 14;
 			width		= 9;
+			with_dial	= "drawAltitudeBar:";
 		},
 		{
 			text		= "MISS";
@@ -280,6 +286,7 @@
 			y_origin	= -1;
 			height		= 16;
 			width		= 10;
+			with_dial	= "drawMissileDisplay:";
 		},
 		{	// RHS
 			text		= "SPD";
@@ -288,6 +295,7 @@
 			y_origin	= -1;
 			height		= 20;
 			width		= 10;
+			with_dial	= "drawSpeedBar:";
 		},
 		{
 			text		= "ROLL";
@@ -296,6 +304,7 @@
 			y_origin	= -1;
 			height		= 12;
 			width		= 9;
+			with_dial	= "drawRollBar:";
 		},
 		//{	// yaw bar legend, disabled by default
 		//	// uncomment as required to enable
@@ -304,6 +313,7 @@
 		//	y		= -138;
 		//	height		= 12;
 		//	width		= 9;
+		//	with_dial	= "drawYawBar:";
 		//},
 		{
 			text		= "PITCH";
@@ -312,6 +322,7 @@
 			y_origin	= -1;
 			height		= 12;
 			width		= 9;
+			with_dial	= "drawPitchBar:";
 		}
 	);
 	multi_function_displays = (

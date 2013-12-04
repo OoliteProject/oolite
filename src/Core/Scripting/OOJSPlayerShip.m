@@ -72,7 +72,8 @@ static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc,
 static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetMultiFunctionDisplay(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsval *vp);
-
+static JSBool PlayerShipHideHUDSelector(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipShowHUDSelector(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, double *premium, NSString *functionName, unsigned *risk);
 
@@ -203,6 +204,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "cancelHyperspaceCountdown",      PlayerShipCancelHyperspaceCountdown,        0 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
+	{ "hideHUDSelector",				PlayerShipHideHUDSelector,					1 },
 	{ "launch",							PlayerShipLaunch,							0 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
 	{ "removeContract",					PlayerShipRemoveContract,					2 },
@@ -212,6 +214,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
 	{ "setMultiFunctionDisplay",		PlayerShipSetMultiFunctionDisplay,			1 },
 	{ "setMultiFunctionText",			PlayerShipSetMultiFunctionText,				1 },
+	{ "showHUDSelector",				PlayerShipShowHUDSelector,					1 },
 	{ "takeInternalDamage",				PlayerShipTakeInternalDamage,				0 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
@@ -1229,6 +1232,52 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 }
 
 
+static JSBool PlayerShipHideHUDSelector(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString				*key = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+
+	if (argc > 0)  
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"hideHUDSelector", MIN(argc, 1U), OOJS_ARGV, nil, @"string (selector)");
+		return NO;
+	}
+	[[player hud] setHiddenSelector:key hidden:YES];
+	
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool PlayerShipShowHUDSelector(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString				*key = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+
+	if (argc > 0)  
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"hideHUDSelector", MIN(argc, 1U), OOJS_ARGV, nil, @"string (selector)");
+		return NO;
+	}
+	[[player hud] setHiddenSelector:key hidden:NO];
+	
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
 
 
 

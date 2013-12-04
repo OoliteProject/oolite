@@ -8144,11 +8144,13 @@ static NSString *last_outfitting_key=nil;
 
 	++row;
 
+#if 0
 	// not yet implemented
 	text = DESC(@"oolite-start-option-4");
 	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+#endif
 
 	++row;
 

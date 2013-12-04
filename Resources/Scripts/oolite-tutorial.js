@@ -53,8 +53,8 @@ this.startUp = function()
 	/* Number of substages in each stage */
 	this.$tutorialStages = [
 		2, // stage 0: mission screen, post-launch cleanup
-		1, // stage 1: HUD displays
-		
+		10, // stage 1: HUD displays
+		1 // stage 2: ...
 	]
 
 	// alternative populator
@@ -155,6 +155,61 @@ this.startUp = function()
 		}
 	}
 
+
+	this.$HUDSelectors = ["drawEnergyGauge:","drawForwardShieldBar:","drawAftShieldBar:","drawSpeedBar:","drawRollBar:","drawPitchBar:","drawYellowSurround:","drawFuelBar:","drawCabinTempBar:","drawWeaponTempBar:","drawAltitudeBar:","drawMissileDisplay:","drawStatusLight:","drawClock:","drawCompass:","drawScanner:","drawScannerZoomIndicator:"];
+	this.$HUDHighlighter = null;
+	this.$HUDHighlighterSelector = null;	
+	this.$HUDHighlighterCycles = 10;
+
+	this._showHUDItem = function(selector)
+	{
+		player.ship.showHUDSelector(selector);
+		if (this.$HUDHighlighterSelector)
+		{
+			player.ship.showHUDSelector(this.$HUDHighlighterSelector);
+		}
+		this.$HUDHighlighterSelector = selector;
+		if (this.$HUDHighlighter)
+		{
+			this.$HUDHighlighter.stop();
+		}
+		this.$HUDHighlighterCycles = 10;
+		this.$HUDHighlighter = new Timer
+		(this,
+		 function()
+		 {
+			 if (this.$HUDHighlighterCycles == 0)
+			 {
+				 this.$HUDHighlighter.stop();
+			 }
+			 else if (this.$HUDHighlighterCycles % 2 == 0)
+			 {
+				 player.ship.hideHUDSelector(this.$HUDHighlighterSelector);
+			 }
+			 else
+			 {
+				 player.ship.showHUDSelector(this.$HUDHighlighterSelector);
+			 }
+			 --this.$HUDHighlighterCycles;
+		 },0.5,0.5);
+	}
+
+	this._resetHUDItems = function()
+	{
+		for (var i=0; i<this.$HUDSelectors.length; i++)
+		{
+			player.ship.showHUDSelector(this.$HUDSelectors[i]);
+		}
+	}
+
+	this._hideHUDItems = function()
+	{
+		for (var i=0; i<this.$HUDSelectors.length; i++)
+		{
+			player.ship.hideHUDSelector(this.$HUDSelectors[i]);
+		}
+	}
+
 	/* Tutorial stages */
 
 	// __stage0sub1 not needed
@@ -162,8 +217,51 @@ this.startUp = function()
 	this.__stage1sub0 = function()
 	{
 		this._setInstructions("oolite-tutorial-1-0");
+		this._hideHUDItems();
 		player.ship.hudHidden = false;
+	}
 
+	this.__stage1sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-1");
+		this._showHUDItem("drawEnergyGauge:");
+	}
+
+	this.__stage1sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-2");
+	}
+
+	this.__stage1sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-3");
+		player.ship.energy = 1;
+	}
+	
+	this.__stage1sub4 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-4");
+		this._showHUDItem("drawForwardShieldBar:");
+	}
+
+	this.__stage1sub5 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-5");
+		this._showHUDItem("drawAftShieldBar:");
+	}
+
+	this.__stage1sub6 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-6");
+		player.ship.energy = 256;
+		player.ship.forwardShield = 0;
+		player.ship.aftShield = 0;
+	}
+	
+
+	this.__stage2sub0 = function()
+	{
+		this._resetHUDItems();
 	}
 
 }
