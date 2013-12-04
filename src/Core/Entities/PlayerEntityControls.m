@@ -3502,7 +3502,7 @@ static BOOL autopilot_pause;
 				{
 					if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 2+row_zero)
 					{
-						[[OOMusicController sharedController] stopThemeMusic];
+//						[[OOMusicController sharedController] stopThemeMusic];
 						disc_operation_in_progress = YES;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];

@@ -229,7 +229,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSDictionary *scenario = nil;
 
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-scenario-exit"), @" <----- ", nil] forRow:start_row - 2];
-		[gui setColor:[OOColor greenColor] forRow:start_row - 2];
+		[gui setColor:[OOColor redColor] forRow:start_row - 2];
 		[gui setKey:@"exit" forRow:start_row - 2];
 		
 
@@ -429,6 +429,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSDictionary *cdr;
 		switch ([gui selectedRow])
 		{
+			case EXITROW:
+				if ([self status] == STATUS_START_GAME)
+				{
+					[self setGuiToIntroFirstGo:YES];
+					return nil;
+				}
+				break;
 			case BACKROW:
 				currentPage--;
 				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
@@ -1068,18 +1075,19 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	tabStop[1]=160;
 	tabStop[2]=270;
 	[gui setTabStops: tabStop];
-	[gui setColor: [OOColor greenColor] forRow: LABELROW];
-	[gui setArray: [NSArray arrayWithObjects: DESC(@"loadsavescreen-commander-name"), DESC(@"loadsavescreen-rating"), nil]
-		   forRow:LABELROW];
 	
 	// clear text lines here
-	for (i = STARTROW - 1; i < ENDROW + 1; i++)
+	for (i = EXITROW ; i < ENDROW + 1; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
 		[gui setColor: [OOColor yellowColor] forRow: i];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
-	
+
+	[gui setColor: [OOColor greenColor] forRow: LABELROW];
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"loadsavescreen-commander-name"), DESC(@"loadsavescreen-rating"), nil]
+		   forRow:LABELROW];
+
 	if (page)
 	{
 		[gui setColor:[OOColor greenColor] forRow:STARTROW-1];
@@ -1088,6 +1096,15 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 		[gui setKey:GUI_KEY_OK forRow:STARTROW-1];
 		rangeStart=STARTROW-1;
 	}
+
+	if ([self status] == STATUS_START_GAME)
+	{
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-loadsave-exit"), @" <----- ", nil] forRow:EXITROW];
+		[gui setColor:[OOColor redColor] forRow:EXITROW];
+		[gui setKey:GUI_KEY_OK forRow:EXITROW];
+		rangeStart = EXITROW;
+	}
+
 	
 	if (firstIndex + NUMROWS >= [cdrDetailArray count])
 	{
