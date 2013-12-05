@@ -52,7 +52,7 @@ this.startUp = function()
 
 	/* Number of substages in each stage */
 	this.$tutorialStages = [
-		2, // stage 0: mission screen, post-launch cleanup
+		3, // stage 0: mission screen, post-launch cleanup, intro message
 		10, // stage 1: HUD displays
 		1 // stage 2: ...
 	]
@@ -85,6 +85,7 @@ this.startUp = function()
 	{
 		if (this.$tutorialStage == 0 && this.$tutorialSubstage == 0)
 		{
+			player.ship.targetSystem = 55;
 			player.ship.hudHidden = true;
 			mission.runScreen(
 				{
@@ -94,6 +95,7 @@ this.startUp = function()
 					screenID: "oolite-tutorial-0-0"
 				},function()
 				{
+					player.ship.hudHidden = false;
 					player.ship.launch();
 					this._nextItem();
 				});
@@ -108,6 +110,13 @@ this.startUp = function()
 			station.remove();
 			this._nextItem();
 		}
+	}
+
+
+	this.playerStartedJumpCountdown = function()
+	{
+		player.ship.cancelHyperspaceCountdown();
+		player.consoleMessage(expandMissionText("oolite-tutorial-no-witchspace"));
 	}
 
 	// move to the next item in the current tutorial
@@ -213,12 +222,16 @@ this.startUp = function()
 	/* Tutorial stages */
 
 	// __stage0sub1 not needed
+
+	this.__stage0sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-0-2");
+	}
 	
 	this.__stage1sub0 = function()
 	{
-		this._setInstructions("oolite-tutorial-1-0");
 		this._hideHUDItems();
-		player.ship.hudHidden = false;
+		this._setInstructions("oolite-tutorial-1-0");
 	}
 
 	this.__stage1sub1 = function()
@@ -258,6 +271,24 @@ this.startUp = function()
 		player.ship.aftShield = 0;
 	}
 	
+	this.__stage1sub7 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-7");
+		this._showHUDItem("drawYellowSurround:");
+		this._showHUDItem("drawFuelBar:");
+	}
+
+	this.__stage1sub8 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-8");
+		player.ship.fuelLeakRate = 5;
+	}
+
+	this.__stage1sub9 = function()
+	{
+		
+	}
+
 
 	this.__stage2sub0 = function()
 	{

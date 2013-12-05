@@ -185,11 +185,15 @@
 
 
 	// tutorial
+	"oolite-tutorial-no-witchspace" = "Witchspace controls are not available in this simulator.";
+
 	"oolite-tutorial-0-0-title" = "Flight Training Course";
 	"oolite-tutorial-0-0-message" = "Welcome to the Cooperative Flight Training Course, pilot. This course will demonstrate the basic functionality of Cooperative ships to you, in a specially-prepared simulator.\n\nThe course is in multiple sections. While in the simulator, you can use the '[oolite_key_activate_equipment]' key to advance to the next entry in the current lesson, and the '[oolite_key_mode_equipment]' key to go to the next lesson, if you wish to skip sections you have previously completed.\n\nOnce the simulation begins, a panel on your screen will display instructions, which you should follow to progress through the course. If you wish to temporarily hide the panel, press the '[oolite_key_cycle_mfd]' key. You can bring it back with the same key, or it will automatically reappear when there are new instructions.\n\nWhen you are ready, press the Enter key to begin the simulation with the first lesson.";
 	"oolite-tutorial-0-0-choices" = { "1" = "Begin Course"; };
 	
-	"oolite-tutorial-1-0" = "Lesson 1: the HUD\nThis lesson introduces the HUD components in turn.\n\nYou will need to press '[oolite_key_activate_equipment]' to go to the next component - do this now.\n\nRemember, you can also press '[oolite_key_mode_equipment]' to skip to the next lesson.";
+	"oolite-tutorial-0-2" = "Welcome to the pilot's training course. The lesson information will be displayed on this panel.\n\nYou will often need to press '[oolite_key_activate_equipment]' to go to the next step - do this now to start the first lesson.\n\nRemember, you can also press '[oolite_key_mode_equipment]' to skip to the next lesson.";
+
+	"oolite-tutorial-1-0" = "Lesson 1: the HUD\nThis lesson introduces the HUD components in turn.\nFor now, the HUD components have all been hidden. As you go through this lesson, they will be made visible and introduced.";
 
 	"oolite-tutorial-1-1" = "Energy banks: 1/3\nThe energy bank gauge shows the stored energy in your ship's capacitors, which are used to power various high-energy systems.\nThey are continually recharged from your ship's power plant, but intensive activity will drain them faster than they can be charged.";
 
@@ -202,5 +206,10 @@
 	"oolite-tutorial-1-5" = "Primary Shields: 2/3\n...while the other protects your aft.\nThe charge levels are independent, so try to take impacts on the stronger shield.";
 	
 	"oolite-tutorial-1-6" = "Primary Shields: 3/3\nThe shields will slowly recharge from the energy banks if they are drained, and the bars will change colour to highlight a drained state. As with the energy banks, a full recharge will take some time.";
+
+	"oolite-tutorial-1-7" = "Fuel: 1/2\nThis bar shows the amount of witchspace fuel currently available. The full capacity is sufficient for a seven light-year witchspace jump. With the correct equipment, fuel can also be used to significantly boost your speed in normal space.";
+
+	"oolite-tutorial-1-8" = "Fuel: 2/2\nThe vertical line shows the amount of fuel needed to reach the currently selected witchspace destination. If the fuel is insufficient, this will change colour.";
+
 
 }
