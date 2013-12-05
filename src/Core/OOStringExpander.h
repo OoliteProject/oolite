@@ -170,13 +170,32 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 
 #define OOExpandFancy(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandNoOptions, string, __VA_ARGS__)
 
-#define OOEXPAND_ARG_DICTIONARY(...) [NSDictionary dictionaryWithObjects:OOEXPAND_OBJECTS_FROM_ARGS(__VA_ARGS__) forKeys:OOEXPAND_NAMES_FROM_ARGS(__VA_ARGS__) count:OOEXPAND_ARGUMENT_COUNT(__VA_ARGS__)]
+
+// MARK: Danger zone! Everything beyond this point is scary.
+
+/*	Given an argument list, return a dictionary whose keys are the literal
+	arguments and whose values are objects representing the arguments' values
+	(as per OO_CAST_PARAMETER() below).
+	
+	Note that the argument list will be preprocessor-expanded at this point.
+ */
+#define OOEXPAND_ARG_DICTIONARY(...) ( \
+	(OOEXPAND_ARGUMENT_COUNT(__VA_ARGS__) == 0) ? \
+	(NSDictionary *)nil : \
+	[NSDictionary dictionaryWithObjects:OOEXPAND_OBJECTS_FROM_ARGS(__VA_ARGS__) \
+	                            forKeys:OOEXPAND_NAMES_FROM_ARGS(__VA_ARGS__) \
+	                              count:OOEXPAND_ARGUMENT_COUNT(__VA_ARGS__)] )
 
 #define OOEXPAND_NAME_FROM_ARG(ITEM)  @#ITEM
 #define OOEXPAND_NAMES_FROM_ARGS(...)  (NSString *[]){ OOEXPAND_MAP(OOEXPAND_NAME_FROM_ARG, __VA_ARGS__) }
 
 #define OOEXPAND_OBJECTS_FROM_ARGS(...) (id[]){ OOEXPAND_MAP(OO_CAST_PARAMETER, __VA_ARGS__) }
 
+/*	Limited boxing mechanism. ITEM may be an NSString *, NSNumber *, any
+	integer type or any floating point type; the result is an NSNumber *,
+	except if the parameter is an NSString * in which case it is returned
+	unmodified.
+ */
 #define OO_CAST_PARAMETER(ITEM) \
 	__builtin_choose_expr( \
 		OOEXPAND_IS_OBJECT(ITEM), \
@@ -204,10 +223,14 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 		) \
 	)(ITEM)
 
+// Test whether ITEM is a known object type.
+// NOTE: id works here in clang, but not gcc.
 #define OOEXPAND_IS_OBJECT(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), NSString *) || \
 	__builtin_types_compatible_p(typeof(ITEM), NSNumber *))
 
+// Test whether ITEM is a signed integer type.
+// Some redundancy to avoid silliness across platforms; probably not necessary.
 #define OOEXPAND_IS_SIGNED_INTEGER(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), char) || \
 	__builtin_types_compatible_p(typeof(ITEM), short) || \
@@ -219,6 +242,8 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 	__builtin_types_compatible_p(typeof(ITEM), ssize_t) || \
 	__builtin_types_compatible_p(typeof(ITEM), off_t))
 
+// Test whether ITEM is an unsigned integer type.
+// Some redundancy to avoid silliness across platforms; probably not necessary.
 #define OOEXPAND_IS_UNSIGNED_INTEGER(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), unsigned char) || \
 	__builtin_types_compatible_p(typeof(ITEM), unsigned short) || \
@@ -229,13 +254,17 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 	__builtin_types_compatible_p(typeof(ITEM), uintptr_t) || \
 	__builtin_types_compatible_p(typeof(ITEM), size_t))
 
+// Test whether ITEM is a float.
+// This is distinguished from double to expose optimization opportunities.
 #define OOEXPAND_IS_FLOAT(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), float))
 
+// Test whether ITEM is any other floating-point type.
 #define OOEXPAND_IS_DOUBLE(ITEM) ( \
 	__builtin_types_compatible_p(typeof(ITEM), double) || \
 	__builtin_types_compatible_p(typeof(ITEM), long double))
 
+// OO_CAST_PARAMETER() boils down to one of these.
 static inline id OOCastParamObject(id object) { return object; }
 static inline id OOCastParamSignedInteger(long long value) { return [NSNumber numberWithLongLong:value]; }
 static inline id OOCastParamUnsignedInteger(unsigned long long value) { return [NSNumber numberWithUnsignedLongLong:value]; }
