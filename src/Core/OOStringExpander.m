@@ -175,7 +175,14 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 	@try
 	{
 		// TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
-		intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+		if (options & kOOExpandKey)
+		{
+			intermediate = ExpandStringKey(&context, string, kStackAllocationLimit, kRecursionLimit);
+		}
+		else
+		{
+			intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+		}
 		if (!context.hasPercentR)
 		{
 			result = intermediate;
@@ -204,36 +211,7 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 
 NSString *OOExpandKeyWithSeed(NSString *key, Random_Seed seed, NSString *systemName)
 {
-	if (key == nil)  return nil;
-	
-	/*	Key variants, including OOGenerateSystemDescription(), get their own
-		"driver" for a minor efficiency bonus.
-	*/
-	OOStringExpansionContext context =
-	{
-		.seed = seed,
-		.systemName = [systemName retain]
-	};
-	
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSString *result = nil, *intermediate = nil;
-	@try
-	{
-		intermediate = ExpandStringKey(&context, key, kStackAllocationLimit, kRecursionLimit);
-		result = ExpandPercentR(&context, intermediate);
-	}
-	@finally
-	{
-		[context.systemName release];
-		[context.systemNameWithIan release];
-		[context.randomNameN release];
-		[context.randomNameR release];
-		[context.systemDescriptions release];
-	}
-	
-	result = [result copy];
-	[pool release];
-	return [result autorelease];
+	return OOExpandDescriptionString(key, seed, nil, nil, systemName, kOOExpandKey);
 }
 
 
@@ -251,7 +229,7 @@ NSString *OOExpand(NSString *string)
 
 NSString *OOExpandKey(NSString *key)
 {
-	return OOExpandKeyWithSeed(key, [UNIVERSE systemSeed], nil);
+	return OOExpandDescriptionString(key, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandKey);
 }
 
 
@@ -261,7 +239,7 @@ NSString *OOExpandKeyRandomized(NSString *key)
 	OOSetReallyRandomRANROTAndRndSeeds();
 	
 	// N.b.: the systemSeed is used only to retrieve the system name, not for actual randomness.
-	NSString *result = OOExpandKeyWithSeed(key, [UNIVERSE systemSeed], nil);
+	NSString *result = OOExpandDescriptionString(key, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandKey);
 	
 	OORestoreRandomState(savedRandomState);
 	
@@ -272,7 +250,7 @@ NSString *OOExpandKeyRandomized(NSString *key)
 NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name)
 {
 	seed_RNG_only_for_planet_description(seed);
-	return OOExpandKeyWithSeed(@"system-description-string", seed, name);
+	return OOExpandDescriptionString(@"system-description-string", seed, nil, nil, name, kOOExpandKey);
 }
 
 
