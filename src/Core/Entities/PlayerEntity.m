@@ -6780,7 +6780,7 @@ static GLfloat		sBaseMass = 0.0;
 		NSString *units = [commodity oo_stringForKey:@"unit"];
 		NSString *commodityName = [commodity oo_stringForKey:@"displayName"];
 		
-		[manifest addObject:OOExpandFancy(@"[manifest-cargo-quantity-format]", quantity, units, commodityName)];
+		[manifest addObject:OOExpandKey(@"manifest-cargo-quantity-format", quantity, units, commodityName)];
 	}
 	
 	return manifest;
@@ -7164,12 +7164,12 @@ static GLfloat		sBaseMass = 0.0;
 		[gui refreshStarChart];
 		[gui setText:targetSystemName forRow:19];
 		// distance & est-travel-time strings are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		[gui setText:OOExpandFancy(@"[short-range-chart-distance]", distance) forRow:20];
+		[gui setText:OOExpandKey(@"short-range-chart-distance", distance) forRow:20];
 		NSString *travelTimeRow = @"";
 		if ([self hasHyperspaceMotor] && distance > 0.0 && distance * 10.0 <= fuel)
 		{
 			double time = estimatedTravelTime;
-			travelTimeRow = OOExpandFancy(@"[short-range-chart-est-travel-time]", time);
+			travelTimeRow = OOExpandKey(@"short-range-chart-est-travel-time", time);
 		}
 		[gui setText:travelTimeRow forRow:21];
 		
@@ -7686,7 +7686,7 @@ static NSString *last_outfitting_key=nil;
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"equip-title")];
 		
-		[gui setText:OOExpandFancy(@"[equip-cash-value]", credits) forRow:GUI_ROW_EQUIPMENT_CASH];
+		[gui setText:OOExpandKey(@"equip-cash-value", credits) forRow:GUI_ROW_EQUIPMENT_CASH];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;

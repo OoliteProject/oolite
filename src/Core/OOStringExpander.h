@@ -115,16 +115,6 @@ NSString *OOExpandWithSeed(NSString *string, Random_Seed seed, NSString *systemN
 
 
 /*
-	OOExpand(string)
-	
-	Expand a string with default options.
-	
-	Equivalent to OOExpandForSystem(string, [UNIVERSE systemSeed, nil);
-*/
-NSString *OOExpand(NSString *string);
-
-
-/*
 	OOExpandKeyWithSeed(key, seed, systemName)
  
 	Expand a string as though it was surrounded by brackets.
@@ -132,15 +122,6 @@ NSString *OOExpand(NSString *string);
 	OOExpandWithSeed(@"[foo]", ...).
 */
 NSString *OOExpandKeyWithSeed(NSString *key, Random_Seed seed, NSString *systemName);
-
-
-/*
-	OOExpandKey(string)
-	
-	Expand a string as though it was surrounded by brackets; OOExpandKey(@"foo")
-	is equivalent to OOExpand(@"[foo]").
-*/
-NSString *OOExpandKey(NSString *key);
 
 
 /*
@@ -164,14 +145,18 @@ NSString *OOExpandKeyRandomized(NSString *key);
 NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 
 
+/**
+	Expand a string with default options.
+*/
+#define OOExpand(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandNoOptions, string, __VA_ARGS__)
 
-// MARK: experimental fancy expander
+/**
+	Expand a string as though it were surrounded by brackets;
+	OOExpandKey(@"foo", ...) is equivalent to OOExpand(@"[foo]", ...).
+*/
+#define OOExpandKey(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey, string, __VA_ARGS__)
 #define OOExpandFancyWithOptions(seed, systemName, options, string, ...) \
 	OOExpandDescriptionString(string, seed, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, systemName, (options) | kOOExpandAllowOperators)
-
-#define OOExpandFancy(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandNoOptions, string, __VA_ARGS__)
-
-#define OOExpandFancyKey(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey, string, __VA_ARGS__)
 
 #define OOExpandFancyWithSeed(seed, systemName, string, ...) OOExpandFancyWithOptions(seed, systemName, kOOExpandNoOptions, string, __VA_ARGS__)
 

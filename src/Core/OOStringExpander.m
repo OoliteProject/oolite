@@ -221,18 +221,6 @@ NSString *OOExpandWithSeed(NSString *text, Random_Seed seed, NSString *name)
 }
 
 
-NSString *OOExpand(NSString *string)
-{
-	return OOExpandDescriptionString(string, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandNoOptions);
-}
-
-
-NSString *OOExpandKey(NSString *key)
-{
-	return OOExpandDescriptionString(key, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandKey);
-}
-
-
 NSString *OOExpandKeyRandomized(NSString *key)
 {
 	OORandomState savedRandomState = OOSaveRandomState();
