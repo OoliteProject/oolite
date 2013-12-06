@@ -26,8 +26,8 @@
 		{	// scanner zoom indicator
 			alpha		= 1.0;
 			selector	= "drawScannerZoomIndicator:";
-			x		= 108;
-			y		= 32;
+			x		= 100;
+			y		= 36;
 			y_origin	= -1;
 		},
 		//{	// stick sensitivity indicator
