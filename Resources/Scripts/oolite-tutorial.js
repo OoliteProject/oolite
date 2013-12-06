@@ -53,7 +53,7 @@ this.startUp = function()
 	/* Number of substages in each stage */
 	this.$tutorialStages = [
 		3, // stage 0: mission screen, post-launch cleanup, intro message
-		10, // stage 1: HUD displays
+		30, // stage 1: HUD displays
 		1 // stage 2: ...
 	]
 
@@ -182,6 +182,10 @@ this.startUp = function()
 		{
 			this.$HUDHighlighter.stop();
 		}
+		if (selector == "")
+		{
+			return;
+		}
 		this.$HUDHighlighterCycles = 10;
 		this.$HUDHighlighter = new Timer
 		(this,
@@ -243,6 +247,7 @@ this.startUp = function()
 	this.__stage1sub2 = function()
 	{
 		this._setInstructions("oolite-tutorial-1-2");
+		this._showHUDItem("");
 	}
 
 	this.__stage1sub3 = function()
@@ -266,6 +271,7 @@ this.startUp = function()
 	this.__stage1sub6 = function()
 	{
 		this._setInstructions("oolite-tutorial-1-6");
+		this._showHUDItem("");
 		player.ship.energy = 256;
 		player.ship.forwardShield = 0;
 		player.ship.aftShield = 0;
@@ -281,13 +287,66 @@ this.startUp = function()
 	this.__stage1sub8 = function()
 	{
 		this._setInstructions("oolite-tutorial-1-8");
+		this._showHUDItem("");
 		player.ship.fuelLeakRate = 5;
 	}
 
 	this.__stage1sub9 = function()
 	{
-		
+		this._setInstructions("oolite-tutorial-1-9");
+		this._showHUDItem("drawCabinTempBar:");
 	}
+
+	this.__stage1sub10 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-10");
+		this._showHUDItem("");
+		player.ship.temperature = 0.999;
+	}
+
+	this.__stage1sub11 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-11");
+		this._showHUDItem("drawWeaponTempBar:");
+	}
+
+	this.__stage1sub12 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-12");
+		this._showHUDItem("");
+	}
+
+	this.__stage1sub13 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-13");
+		this._showHUDItem("drawAltitudeBar:");
+	}
+
+	this.__stage1sub14 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-14");
+		this._showHUDItem("drawSpeedBar:");
+	}
+
+	this.__stage1sub15 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-15");
+		this._showHUDItem("drawRollBar:");
+	}
+
+	this.__stage1sub16 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-16");
+		this._showHUDItem("drawPitchBar:");
+	}
+
+	this.__stage1sub17 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-17");
+		this._showHUDItem("drawMissileDisplay:");
+	}
+	
+	
 
 
 	this.__stage2sub0 = function()
