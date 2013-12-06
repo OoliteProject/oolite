@@ -1556,6 +1556,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				[[beacon beaconDrawable] oo_drawHUDBeaconIconAt:NSMakePoint(x, y) size:siz alpha:alpha z:z1];
 				break;
 		}
+		OOGL(GLScaledLineWidth(lineWidth));	// reset
+
 		_compassUpdated = YES;
 		_compassActive = YES;
 	}
@@ -2903,6 +2905,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	else if (div < 1.0) // insensitive mode (shouldn't happen)
 		GLDrawFilledOval(x, y, z1, siz, 10);
+
+	OOGL(GLScaledLineWidth(lineWidth)); // reset
 }
 
 
