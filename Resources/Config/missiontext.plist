@@ -229,4 +229,18 @@
 
 	"oolite-tutorial-1-17" = "Pylon Status:\nThe icons here show the missiles, mines and other deployable equipment attached to your external pylons. Currently your ship has three standard missiles fitted. Other types of pylon-mounted item have different icons.";
 
+	"oolite-tutorial-1-18" = "Scanner:\nThe scanner is perhaps the most important part of your HUD, and using it to locate and identify nearby objects will be the subject of the next lesson.";
+	
+	"oolite-tutorial-1-19" = "Compass:\nThe compass is used to locate more distant objects outside scanner range. The basic model is used to detect the system's major planet, which appears as a circle on the compass. If the circle is green, the planet is in front of you. Otherwise, it is behind you. Use of the compass for navigation will be covered in a later lesson.";
+
+	"oolite-tutorial-1-20" = "Status light: 1/2\nThe status light summarises the local situation. If it is green, as now, there are no large or powered objects nearby. Yellow, which is most common, indicates that there are nearby large or powered objects, and care should be taken while flying.";
+
+	"oolite-tutorial-1-21" = "Status light: 2/2\nA red status light indicates that something nearby presents a direct danger to your ship. An alarm will sound to indicate a change to this status.";
+
+	"oolite-tutorial-1-22" = "Clock: 1/2\nThe clock shows the current galactic standard time. The first seven digit number is the count of standard days since the start of the calendar. The remaining digits are the time on that standard day. For historical reasons, the standard day does not correspond exactly to that of any Cooperative planet, though it is close to many.";
+
+	"oolite-tutorial-1-23" = "Clock: 2/2\nIf the clock becomes unsynchronised with standard time, it will display 'adjusting' while it resynchronises. This is normal after witchspace jumps and when restarting the system after maintenance.";
+
+	"oolite-tutorial-1-24" = "This concludes the introduction to the HUD. There are a few additional HUD indicators which depend either on particular equipment or special circumstances, and these will be described in later lessons.";
+
 }

@@ -53,7 +53,7 @@ this.startUp = function()
 	/* Number of substages in each stage */
 	this.$tutorialStages = [
 		3, // stage 0: mission screen, post-launch cleanup, intro message
-		30, // stage 1: HUD displays
+		25, // stage 1: HUD displays
 		1 // stage 2: ...
 	]
 
@@ -186,7 +186,7 @@ this.startUp = function()
 		{
 			return;
 		}
-		this.$HUDHighlighterCycles = 10;
+		this.$HUDHighlighterCycles = 6;
 		this.$HUDHighlighter = new Timer
 		(this,
 		 function()
@@ -346,7 +346,48 @@ this.startUp = function()
 		this._showHUDItem("drawMissileDisplay:");
 	}
 	
-	
+	this.__stage1sub18 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-18");
+		this._showHUDItem("drawScannerZoomIndicator:");
+		this._showHUDItem("drawScanner:");
+	}
+
+	this.__stage1sub19 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-19");
+		this._showHUDItem("drawCompass:");
+	}
+
+	this.__stage1sub20 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-20");
+		this._showHUDItem("drawStatusLight:");
+	}
+
+	this.__stage1sub21 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-21");
+		this._showHUDItem("");
+	}
+
+	this.__stage1sub22 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-22");
+		this._showHUDItem("drawClock:");
+	}
+
+	this.__stage1sub23 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-23");
+		this._showHUDItem("");
+		clock.addSeconds(7200);
+	}
+
+	this.__stage1sub24 = function()
+	{
+		this._setInstructions("oolite-tutorial-1-24");
+	}
 
 
 	this.__stage2sub0 = function()
