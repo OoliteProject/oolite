@@ -987,6 +987,15 @@
 			};
 		};
 	};
+	"oolite_template_tutorial-buoy" = 
+	{
+		like_ship = "oolite_template_buoy";
+		is_template = 1;
+		beacon = "Buoy (training)";
+		beacon_label = "Training Buoy";
+		name = "Training Buoy";
+		roles = "oolite-tutorial-buoy";
+	};
 	"oolite_template_buoy-witchpoint" = 
 	{
 		like_ship = "oolite_template_buoy";
@@ -2946,6 +2955,7 @@
 		max_flight_speed = 1000;
 		model = "qbomb.dat";
 		name = "Quirium Cascade Mine";
+		scan_class = "CLASS_MINE";
 		roles = "energy-bomb EQ_QC_MINE";
 		thrust = 0;
 	};
@@ -4063,6 +4073,10 @@
 	"oolite-tutorial-station" = 
 	{
 		like_ship = "oolite_template_tutorial-station";
+	};
+	"oolite-tutorial-buoy" =
+	{
+		"like_ship" = "oolite_template_tutorial-buoy";
 	};
 
 

@@ -57,7 +57,8 @@ this.startUp = function()
 	this.$tutorialStages = [
 		3, // stage 0: mission screen, post-launch cleanup, intro message
 		25, // stage 1: HUD displays
-		20 // stage 2: scanner and basic flight
+		11, // stage 2: scanner and views
+		1, // stage 3: basic flight (not yet started)
 	];
 
 	this.$shipList = [];
@@ -120,13 +121,16 @@ this.startUp = function()
 	
 	this.shipTakingDamage = function(amount, whom, type)
 	{
-		player.ship.position = system.locationFromCode("OUTER_SYSTEM_OFFPLANE");
-		--this.$tutorialStage;
-		this.$tutorialSubstage = 9999;
-		player.ship.dealEnergyDamage(1,10000,0);
-		this._playSound("bigbang.ogg");
-		player.consoleMessage(expandMissionText("oolite-tutorial-no-death"));
-		this._nextItem(); // will call nextSection, which will reset energy
+		if (amount >= player.ship.energy)
+		{
+			player.ship.position = system.locationFromCode("OUTER_SYSTEM_OFFPLANE");
+			--this.$tutorialStage;
+			this.$tutorialSubstage = 9999;
+			player.ship.dealEnergyDamage(1,10000,0);
+			this._playSound("bigbang.ogg");
+			player.consoleMessage(expandMissionText("oolite-tutorial-no-death"));
+			this._nextItem(); // will call nextSection, which will reset energy
+		}
 	}
 
 
@@ -157,7 +161,7 @@ this.startUp = function()
 			if (this[fn])
 			{
 				this[fn]();
-			}
+			} 
 		}
 	}
 
@@ -276,7 +280,10 @@ this.startUp = function()
 		player.ship.hudHidden = false;
 		for (i=this.$shipList.length-1;i>=0;i--)
 		{
-			this.$shipList[i].remove();
+			if (this.$shipList[i] && this.$shipList[i].isShip)
+			{
+				this.$shipList[i].remove();
+			}
 		}
 	}
 
@@ -486,6 +493,58 @@ this.startUp = function()
 	this.__stage2sub4 = function()
 	{
 		this._setInstructions("oolite-tutorial-2-4");
+	}
+
+	this.__stage2sub5 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-5");
+		this._showHUDItem("drawScannerZoomIndicator:");
+	}
+
+	this.__stage2sub6 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-6");
+	}
+
+	this.__stage2sub7 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-7");
+		var yellow = this._addShips("[adder]",1,player.ship.position,5E3)[0];
+		yellow.setAI("nullAI.plist");
+		var red = this._addShips("[adder]",1,player.ship.position,5E3)[0];
+		red.setAI("nullAI.plist");
+		red.target = player.ship;
+		red.thrust = 0;
+		red.performFlee();
+		var purple = this._addShips("police",1,player.ship.position,5E3)[0];
+		purple.setAI("nullAI.plist");
+		
+	}
+
+	this.__stage2sub8 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-8");
+		this._addShips("oolite-tutorial-buoy",1,player.ship.position,10E3);
+		var miss = this._addShips("missile",1,player.ship.position,10E3)[0];
+		miss.setAI("nullAI.plist");
+		var mine = this._addShips("energy-bomb",1,player.ship.position,10E3)[0];
+		mine.setAI("nullAI.plist");
+	}
+
+
+	this.__stage2sub9 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-9");
+	}
+
+	this.__stage2sub10 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-10");
+	}
+
+	this.__stage3sub0 = function()
+	{
+		this._setInstructions("oolite-tutorial-3-0");
 	}
 
 

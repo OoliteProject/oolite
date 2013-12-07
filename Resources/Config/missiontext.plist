@@ -191,7 +191,7 @@
 
 
 	"oolite-tutorial-0-0-title" = "Flight Training Course";
-	"oolite-tutorial-0-0-message" = "Welcome to the Cooperative Flight Training Course, pilot. This course will demonstrate the basic functionality of Cooperative ships to you, in a specially-prepared simulator.\n\nThe course is in multiple sections. While in the simulator, you can use the '[oolite_key_activate_equipment]' key to advance to the next entry in the current lesson, and the '[oolite_key_mode_equipment]' key to go to the next lesson, if you wish to skip sections you have previously completed.\n\nOnce the simulation begins, a panel on your screen will display instructions, which you should follow to progress through the course. If you wish to temporarily hide the panel, press the '[oolite_key_cycle_mfd]' key. You can bring it back with the same key, or it will automatically reappear when there are new instructions.\n\nWhen you are ready, press the Enter key to begin the simulation with the first lesson.";
+	"oolite-tutorial-0-0-message" = "Welcome to the Cooperative Flight Training Course, pilot. This course will demonstrate the basic functionality of Cooperative ships to you, in a specially-prepared simulator.\n\nThe course is in multiple sections. While in the simulator, you can use the '[oolite_key_activate_equipment]' key to advance to the next entry in the current lesson, and the '[oolite_key_mode_equipment]' key to go to the next lesson, if you wish to skip sections you have previously completed.\n\nOnce the simulation begins, a panel on your screen will display instructions, which you should follow to progress through the course. If you wish to temporarily hide the panel, press the '[oolite_key_cycle_mfd]' key. You can bring it back with the same key, or it will automatically reappear when there are new instructions.\n\nWhere an instruction asks you to press a letter key, press the letter key alone if it is lower case (e.g. 'i'), and press shift and the key together if it is upper case (e.g. 'K').\n\nWhen you are ready, press the Enter key to begin the simulation with the first lesson.";
 	"oolite-tutorial-0-0-choices" = { "1" = "Begin Course"; };
 	
 	"oolite-tutorial-0-2" = "Welcome to the pilot's training course. The lesson information will be displayed on this panel.\n\nYou will often need to press '[oolite_key_activate_equipment]' to go to the next step - do this now to start the first lesson.\n\nRemember, you can also press '[oolite_key_mode_equipment]' to skip to the next lesson.";
@@ -246,20 +246,31 @@
 
 	"oolite-tutorial-1-24" = "This concludes the introduction to the HUD. There are a few additional HUD indicators which depend either on particular equipment or special circumstances, and these will be described in later lessons.";
 
-	"oolite-tutorial-2-0" = "Lesson 2: Basic navigation\nThis lesson introduces use of the scanner for navigation and identification, and the basic flight controls used in space.\n\nStart by bringing your ship to a complete stop using the '[oolite_key_decrease_speed]' key, then press '[oolite_key_activate_equipment]' to start the lesson.";
+	"oolite-tutorial-2-0" = "Lesson 2: Using the Scanner\nThis lesson introduces use of the scanner for navigation and identification, and the basic flight controls used in space.\n\nStart by bringing your ship to a complete stop using the '[oolite_key_decrease_speed]' key, then press '[oolite_key_activate_equipment]' to start the lesson.";
 
 	"oolite-tutorial-2-1-error" = "First bring your ship to a complete stop using the '[oolite_key_decrease_speed]' key.";
 
-	"oolite-tutorial-2-1" = "Scanner use: 1/x\nWe have added several asteroids around you, which are unpowered objects and appear on your scanner as a white marker.\nThe circle of the scanner represents the horizontal plane around your ship, with the lines forward approximately indicating your field of view.";
+	"oolite-tutorial-2-1" = "Scanner use: 1/8\nWe have added several asteroids around you, which appear on your scanner as a white marker.\nThe circle of the scanner represents the horizontal plane around your ship, with the lines forward approximately indicating your field of view.";
 
-	"oolite-tutorial-2-2" = "Scanner use: 2/x\nThe position of an object above or below the plane is then marked with a stick. The further the object is from the plane, the longer the stick will be.";
+	"oolite-tutorial-2-2" = "Scanner use: 2/8\nThe position of an object above or below the plane is then marked with a stick. The further the object is from the plane, the longer the stick will be.";
 
-	"oolite-tutorial-2-3" = "Scanner use: 3/x\nTo bring an object on the scanner into your forward view, first roll your ship with the '[oolite_key_roll_left]' and '[oolite_key_roll_right]' keys until the object is on the forward/back line of the scanner. Then, use the '[oolite_key_pitch_forward]' and '[oolite_key_pitch_back]' keys to turn your ship so that it is in front of you.";
+	"oolite-tutorial-2-3" = "Scanner use: 3/8\nTo bring an object on the scanner into your forward view, first roll your ship with the '[oolite_key_roll_left]' and '[oolite_key_roll_right]' keys until the object is on the forward/back line of the scanner. Then, use the '[oolite_key_pitch_forward]' and '[oolite_key_pitch_back]' keys to turn your ship so that it is in front of you.";
 
-	"oolite-tutorial-2-4" = "";
+	"oolite-tutorial-2-4" = "Scanner use: 4/8\nThe scanner can detect objects up to a substantial distance. Pick one of the asteroids and fly towards it. Accelerate with the '[oolite_key_increase_speed]' key, and decelerate again when nearby with the '[oolite_key_decrease_speed]' key.\nBe careful not to collide with it!";
 	
-	
+	"oolite-tutorial-2-5" = "Scanner use: 5/8\nWhen concentrating on close-up objects, it may be useful to zoom the scanner, sacrificing range for detail. Press the '[oolite_key_scanner_zoom]' key to zoom in, up to 5x zoom.\nYou can reset the zoom to maximum range using the '[oolite_key_scanner_unzoom]' key. Note the zoom level indicator by the scanner.";
 
+	"oolite-tutorial-2-6" = "Scanner use: 6/8\nThe colour of the marker is used to indicate something about its nature. Asteroids are unpowered objects and appear white. Other objects which will appear white include debris, cargo containers, and escape capsules";
+
+	"oolite-tutorial-2-7" = "Scanner use: 7/8\nPowered ships usually appear yellow on the scanner, unless they are attacking, when they appear red. Don't worry - this one isn't actually attacking!\nPolice and other official ships are indicated with a purple marker - be careful not to accidentally hit them as this is an illegal act.";
+	
+	"oolite-tutorial-2-8" = "Scanner use: 8/8\nOther common colours include yellow/green flashing for navigation buoys, light blue for missiles, and red/yellow flashing for mines. Again, don't worry, these are all disarmed!";
+
+	"oolite-tutorial-2-9" = "View controls: 1/x\nYour ship is fitted with four view cameras. Use the '[oolite_key_view_forward]', '[oolite_key_view_aft]', '[oolite_key_view_port]' and '[oolite_key_view_starboard]' keys to switch between them. The view lines on the scanner will move as you do. Notice that the crosshair is replaced on the other views, as you have no other weapons mounted.";
+
+	"oolite-tutorial-2-10" = "View controls: 2/x\nYour ship can also simulate an external view for you. Press '[oolite_key_custom_view]' to switch to external view mode and to cycle through the available external views. Any of the internal view keys will return you to internal viewing.";
+
+	"oolite-tutorial-3-0" = "Lesson 3: Flight Training\nThis lesson gives you opportunity to practice basic piloting skills in a relatively safe environment.";
 
 
 	"oolite-tutorial-end-title" = "Course Complete";
