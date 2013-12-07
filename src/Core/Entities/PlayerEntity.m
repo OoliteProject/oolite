@@ -6780,7 +6780,7 @@ static GLfloat		sBaseMass = 0.0;
 		NSString *units = [commodity oo_stringForKey:@"unit"];
 		NSString *commodityName = [commodity oo_stringForKey:@"displayName"];
 		
-		[manifest addObject:OOExpandKey(@"manifest-cargo-quantity-format", quantity, units, commodityName)];
+		[manifest addObject:OOExpandKey(@"manifest-cargo-quantity", quantity, units, commodityName)];
 	}
 	
 	return manifest;

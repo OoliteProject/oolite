@@ -1054,7 +1054,7 @@
 	"equipment-pass-berth-@%0"		= "1 Passenger Berth";
 	"equipment-pass-berth-@%1"		= "%d Passenger Berths";
 	"equipment-@-not-available"		= "%@ (N/A)";
-	"manifest-cargo-quantity-format" = "[quantity] [units] × [commodityName]";
+	"manifest-cargo-quantity"		= "[quantity] [units] × [commodityName]";
 	
 	// Short and Long Range Chart Overrides
 	"charts-distance"				= "Distance: [distance|precision:1] Light Years";
