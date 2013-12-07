@@ -47,6 +47,9 @@ this.startUp = function()
 	// define rest of script now, otherwise it's pointless as it never
 	// gets used in normal play
 
+	this.$tutorialSound = new SoundSource;	
+	this.$tutorialSpeech = new SoundSource;
+
 	this.$tutorialStage = 0;
 	this.$tutorialSubstage = 0;
 
@@ -54,8 +57,10 @@ this.startUp = function()
 	this.$tutorialStages = [
 		3, // stage 0: mission screen, post-launch cleanup, intro message
 		25, // stage 1: HUD displays
-		1 // stage 2: ...
-	]
+		20 // stage 2: scanner and basic flight
+	];
+
+	this.$shipList = [];
 
 	// alternative populator
 	this.ooliteTutorialWillPopulate = function()
@@ -112,11 +117,30 @@ this.startUp = function()
 		}
 	}
 
+	
+	this.shipTakingDamage = function(amount, whom, type)
+	{
+		player.ship.position = system.locationFromCode("OUTER_SYSTEM_OFFPLANE");
+		--this.$tutorialStage;
+		this.$tutorialSubstage = 9999;
+		player.ship.dealEnergyDamage(1,10000,0);
+		this._playSound("bigbang.ogg");
+		player.consoleMessage(expandMissionText("oolite-tutorial-no-death"));
+		this._nextItem(); // will call nextSection, which will reset energy
+	}
+
 
 	this.playerStartedJumpCountdown = function()
 	{
 		player.ship.cancelHyperspaceCountdown();
 		player.consoleMessage(expandMissionText("oolite-tutorial-no-witchspace"));
+	}
+
+	this._playSound = function(snd)
+	{
+		this.$tutorialSound.stop();
+		this.$tutorialSound.sound = snd;
+		this.$tutorialSound.play();
 	}
 
 	// move to the next item in the current tutorial
@@ -141,6 +165,7 @@ this.startUp = function()
 	// move to the next section of the tutorial
 	this._nextSection = function()
 	{
+		this._resetPlayerShip();
 		this.$tutorialStage++;
 		this.$tutorialSubstage = 0;
 		var fn = "__stage"+this.$tutorialStage+"sub"+this.$tutorialSubstage;
@@ -165,6 +190,9 @@ this.startUp = function()
 		{
 			player.ship.setMultiFunctionText("oolite-tutorial",expandMissionText(key),true);
 			player.ship.setMultiFunctionDisplay(0,"oolite-tutorial");
+			this.$tutorialSpeech.stop();
+			this.$tutorialSpeech.sound = key+".ogg";
+			this.$tutorialSpeech.play();
 		}
 	}
 
@@ -213,6 +241,7 @@ this.startUp = function()
 
 	this._resetHUDItems = function()
 	{
+		this._showHUDItem("");
 		for (var i=0; i<this.$HUDSelectors.length; i++)
 		{
 			player.ship.showHUDSelector(this.$HUDSelectors[i]);
@@ -225,6 +254,37 @@ this.startUp = function()
 		{
 			player.ship.hideHUDSelector(this.$HUDSelectors[i]);
 		}
+	}
+
+
+	this._resetPlayerShip = function()
+	{
+		player.ship.fuel = 2.0;
+		player.ship.energy = 256;		
+		player.ship.forwardShield = 128;
+		player.ship.aftShield = 128;
+		player.ship.forwardWeapon = "EQ_WEAPON_PULSE_LASER";
+		for (var i=0;i<4;i++)
+		{
+			player.ship.removeEquipment("EQ_MISSILE");
+		}
+		for (i=0;i<3;i++)
+		{
+			player.ship.awardEquipment("EQ_MISSILE");
+		}
+		this._resetHUDItems();
+		player.ship.hudHidden = false;
+		for (i=this.$shipList.length-1;i>=0;i--)
+		{
+			this.$shipList[i].remove();
+		}
+	}
+
+	this._addShips = function(role,num,pos,rad)
+	{
+		var arr = system.addShips(role,num,pos,rad);
+		this.$shipList = this.$shipList.concat(arr);
+		return arr;
 	}
 
 	/* Tutorial stages */
@@ -393,12 +453,40 @@ this.startUp = function()
 		this._setInstructions("oolite-tutorial-1-24");
 	}
 
-
 	this.__stage2sub0 = function()
 	{
-		this._resetHUDItems();
+		this._setInstructions("oolite-tutorial-2-0");
 	}
 
+	this.__stage2sub1 = function()
+	{
+		if (player.ship.speed > 0.1)
+		{
+			player.consoleMessage(expandMissionText("oolite-tutorial-2-1-error"));
+			this._setInstructions("oolite-tutorial-2-0");
+			--this.$tutorialSubstage;
+		}
+		else
+		{
+			this._setInstructions("oolite-tutorial-2-1");
+			this._addShips("asteroid",10,player.ship.position,25E3);
+		}
+	}
+
+	this.__stage2sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-2");
+	}
+
+	this.__stage2sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-3");
+	}
+
+	this.__stage2sub4 = function()
+	{
+		this._setInstructions("oolite-tutorial-2-4");
+	}
 
 
 

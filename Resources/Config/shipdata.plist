@@ -3091,6 +3091,7 @@
 	{
 		is_template = 1;
 		like_ship = "oolite_template_coriolis-station";
+		ai_type = "nullAI.plist";
 		is_carrier = 1;
 		market = "none";
 		name = "Tutorial Station";
