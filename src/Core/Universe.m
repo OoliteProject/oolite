@@ -1625,7 +1625,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 						   [OOCharacter randomCharacterWithRole:desc
-											  andOriginalSystem:systems[Ranrot() & 255]]]];
+											  andOriginalSystemSeed:systems[Ranrot() & 255]]]];
 		
 		if ([ship scanClass] == CLASS_NOT_SET)
 		{
@@ -2214,7 +2214,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
-				andOriginalSystem: systems[Ranrot() & 255]]]];
+				andOriginalSystemSeed: systems[Ranrot() & 255]]]];
 		// The following is set inside leaveWitchspace: AI state GLOBAL, STATUS_EXITING_WITCHSPACE, ai message: EXITED_WITCHSPACE, then STATUS_IN_FLIGHT
 		[ship leaveWitchspace];
 		[ship release];
@@ -2307,7 +2307,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		{
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
-				andOriginalSystem:systems[Ranrot() & 255]]]];
+				andOriginalSystemSeed:systems[Ranrot() & 255]]]];
 		}
 		
 		[ship setOrientation:OORandomQuaternion()];

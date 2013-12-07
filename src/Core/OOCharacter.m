@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 @interface OOCharacter (Private)
 
+- (id) initWithGenSeed:(Random_Seed)characterSeed andOriginalSystemSeed:(Random_Seed)systemSeed;
 - (void) setCharacterFromDictionary:(NSDictionary *)dict;
 
 @end
@@ -54,145 +55,153 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
-	[name release];
-	[shortDescription release];
-	[longDescription release];
-	[script_actions release];
+	[_name release];
+	[_shortDescription release];
+	[_scriptActions release];
 	DESTROY(_script);
 	
 	[super dealloc];
 }
 
 
-- (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed
+- (id) initWithGenSeed:(Random_Seed)characterSeed andOriginalSystemSeed:(Random_Seed)systemSeed
 {
-	self = [super init];
-	
-	// do character set-up
-	genSeed = g_seed;
-	originSystemSeed = s_seed;
-	
-	[self basicSetUp];
-	
+	if ((self = [super init]))
+	{
+		// do character set-up
+		_genSeed = characterSeed;
+		_originSystemSeed = systemSeed;
+		
+		[self basicSetUp];
+	}
 	return self;
 }
 
 
-- (id) initWithRole:(NSString *) role andOriginalSystemSeed:(Random_Seed) s_seed
+- (id) initWithRole:(NSString *)role andOriginalSystemSeed:(Random_Seed)systemSeed
 {
-	self = [super init];
+	Random_Seed seed;
+	make_pseudo_random_seed(&seed);
 	
-	// do character set-up
-	originSystemSeed = s_seed;
-	make_pseudo_random_seed( &genSeed);
-	
-	[self basicSetUp];
-	
-	[self castInRole: role];
+	if ((self = [self initWithGenSeed:seed andOriginalSystemSeed:systemSeed]))
+	{
+		[self castInRole:role];
+	}
 	
 	return self;
 }
 
-+ (OOCharacter *) characterWithRole:(NSString *) c_role andOriginalSystem:(Random_Seed) o_seed
++ (OOCharacter *) characterWithRole:(NSString *)role andOriginalSystemSeed:(Random_Seed)systemSeed
 {
-	return [[[OOCharacter alloc] initWithRole: c_role andOriginalSystemSeed: o_seed] autorelease];
+	return [[[self alloc] initWithRole:role andOriginalSystemSeed:systemSeed] autorelease];
 }
 
 
-+ (OOCharacter *) randomCharacterWithRole:(NSString *) c_role andOriginalSystem:(Random_Seed) o_seed
++ (OOCharacter *) randomCharacterWithRole:(NSString *)role andOriginalSystemSeed:(Random_Seed)systemSeed
 {
-	Random_Seed r_seed;
+	Random_Seed seed;
 	
-	r_seed.a = (ranrot_rand() & 0xff);
-	r_seed.b = (ranrot_rand() & 0xff);
-	r_seed.c = (ranrot_rand() & 0xff);
-	r_seed.d = (ranrot_rand() & 0xff);
-	r_seed.e = (ranrot_rand() & 0xff);
-	r_seed.f = (ranrot_rand() & 0xff);
+	seed.a = (Ranrot() & 0xff);
+	seed.b = (Ranrot() & 0xff);
+	seed.c = (Ranrot() & 0xff);
+	seed.d = (Ranrot() & 0xff);
+	seed.e = (Ranrot() & 0xff);
+	seed.f = (Ranrot() & 0xff);
 	
-	OOCharacter	*castmember = [[[OOCharacter alloc] initWithGenSeed: r_seed andOriginalSystemSeed: o_seed] autorelease];
+	OOCharacter	*character = [[[OOCharacter alloc] initWithGenSeed:seed andOriginalSystemSeed:systemSeed] autorelease];
+	[character castInRole:role];
 	
-	[castmember castInRole: c_role];
-	return castmember;
+	return character;
 }
 
 
-+ (OOCharacter *) characterWithDictionary:(NSDictionary *) c_dict
++ (OOCharacter *) characterWithDictionary:(NSDictionary *)dict
 {
-	OOCharacter	*castmember = [[[OOCharacter alloc] init] autorelease];
-	[castmember setCharacterFromDictionary: c_dict];
-	return castmember;
+	OOCharacter	*character = [[[OOCharacter alloc] init] autorelease];
+	[character setCharacterFromDictionary:dict];
+	
+	return character;
 }
 
 
 - (NSString *) planetOfOrigin
 {
 	// determine the planet of origin
-	NSDictionary* originInfo = [UNIVERSE generateSystemData: originSystemSeed];
-	return [originInfo objectForKey: KEY_NAME];
+	NSDictionary *originInfo = [UNIVERSE generateSystemData:[self originSystemSeed]];
+	return [originInfo objectForKey:KEY_NAME];
 }
 
 
 - (NSString *) species
 {
 	// determine the character's species
-	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
-	BOOL lowercaseIgnore = [[UNIVERSE descriptions] oo_boolForKey:@"lowercase_ignore"]; // i18n.
-	NSString* speciesString = (species == 3)? [UNIVERSE getSystemInhabitants: genSeed plural:NO]:[UNIVERSE getSystemInhabitants: originSystemSeed plural:NO];
-	if (lowercaseIgnore)
+	int species = [self genSeed].f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
+	NSString* speciesString = nil;
+	if (species == 3)  speciesString = [UNIVERSE getSystemInhabitants:[self genSeed] plural:NO];
+	else  speciesString = [UNIVERSE getSystemInhabitants:[self originSystemSeed] plural:NO];
+	
+	if (![[UNIVERSE descriptions] oo_boolForKey:@"lowercase_ignore"])
 	{
-		return [speciesString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+		speciesString = [speciesString lowercaseString];
 	}
-	return [[speciesString lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	
+	return [speciesString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
 
 - (void) basicSetUp
 {	
 	// save random seeds for restoration later
-	RNG_Seed saved_seed = currentRandomSeed();
-	RANROTSeed saved_ranrot = RANROTGetFullSeed();
+	RNG_Seed savedRNGSeed = currentRandomSeed();
+	RANROTSeed savedRANROTSeed = RANROTGetFullSeed();
 	// set RNG to character seed
+	Random_Seed genSeed = [self genSeed];
 	seed_for_planet_description(genSeed);
 
 	// determine the planet of origin
-	NSDictionary* originInfo = [UNIVERSE generateSystemData: originSystemSeed];
-	NSString* planetName = [originInfo objectForKey: KEY_NAME];
-	int government = [[originInfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable)
-	int criminal_tendency = government ^ 0x07;
+	NSDictionary *originInfo = [UNIVERSE generateSystemData:[self originSystemSeed]];
+	NSString *planetName = [originInfo oo_stringForKey:KEY_NAME];
+	OOGovernmentID government = [originInfo oo_intForKey:KEY_GOVERNMENT]; // 0 .. 7 (0 anarchic .. 7 most stable)
+	int criminalTendency = government ^ 0x07;
 
 	// determine the character's species
-	NSString* speciesString = [self species];
+	NSString *speciesString = [self species];
 	
 	// determine the character's name
 	seed_RNG_only_for_planet_description(genSeed);
 	NSString *genName = nil;
 	if ([speciesString hasPrefix:@"human"])
+	{
 		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", genSeed, nil), OOExpandKeyWithSeed(@"nom", genSeed, nil)];
-	else
+	} else {
 		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", genSeed, nil), OOExpandWithSeed(@"%R", genSeed, nil)];
+	}
 	
-	[self setName: genName];
+	[self setName:genName];
 	
-	[self setShortDescription: [NSString stringWithFormat:OOExpandKeyWithSeed(@"character-a-@-from-@", genSeed, nil), speciesString, planetName]];
-	[self setLongDescription: [self shortDescription]];
+	[self setShortDescription:[NSString stringWithFormat:OOExpandKeyWithSeed(@"character-a-@-from-@", genSeed, nil), speciesString, planetName]];
 	
-	// determine legalStatus for a completely random character
-	[self setLegalStatus: 0];	// clean
-	int legal_index = gen_rnd_number() & gen_rnd_number() & 0x03;
-	while (((gen_rnd_number() & 0xf) < criminal_tendency)&&(legal_index < 3))
-		legal_index++;
-	if (legal_index == 3)	// criminal
-		[self setLegalStatus: criminal_tendency + criminal_tendency * (gen_rnd_number() & 0x03) + (gen_rnd_number() & gen_rnd_number() & 0x7f)];
-	legal_index = 0;
-	if (legalStatus)	legal_index = (legalStatus <= 50) ? 1 : 2;
+	// determine _legalStatus for a completely random character
+	[self setLegalStatus:0];	// clean
+	int legalIndex = gen_rnd_number() & gen_rnd_number() & 0x03;
+	while (((gen_rnd_number() & 0xf) < criminalTendency) && (legalIndex < 3))
+	{
+		legalIndex++;
+	}
+	if (legalIndex == 3)
+	{
+		// criminal
+		[self setLegalStatus:criminalTendency + criminalTendency * (gen_rnd_number() & 0x03) + (gen_rnd_number() & gen_rnd_number() & 0x7f)];
+	}
+	legalIndex = 0;
+	if (_legalStatus > 0)  legalIndex = (_legalStatus <= 50) ? 1 : 2;
 
 	// if clean - determine insurance level (if any)
 	[self setInsuranceCredits:0];
-	if (legal_index == 0)
+	if (legalIndex == 0)
 	{
-		int insurance_index = gen_rnd_number() & gen_rnd_number() & 0x03;
-		switch (insurance_index)
+		int insuranceIndex = gen_rnd_number() & gen_rnd_number() & 0x03;
+		switch (insuranceIndex)
 		{
 			case 1:
 				[self setInsuranceCredits:125];
@@ -206,38 +215,31 @@ MA 02110-1301, USA.
 	}
 	
 	// restore random seed
-	setRandomSeed( saved_seed);
-	RANROTSetFullSeed(saved_ranrot);
+	setRandomSeed( savedRNGSeed);
+	RANROTSetFullSeed(savedRANROTSeed);
 }
 
 
-- (BOOL) castInRole:(NSString *) role
+- (BOOL) castInRole:(NSString *)role
 {
-	BOOL		specialSetUpDone = NO;
+	BOOL specialSetUpDone = NO;
 	
 	role = [role lowercaseString];
 	if ([role hasPrefix:@"pirate"])
 	{
-		// determine legalStatus for a completely random character
+		// determine _legalStatus for a completely random character
+		Random_Seed genSeed = [self genSeed];
 		int sins = 0x08 | (genSeed.a & genSeed.b);
-		[self setLegalStatus: sins & 0x7f];
-		
-		NSString *legalDesc = nil;
-		if (legalStatus > 50)  legalDesc = DESC(@"lowercase-fugitive");
-		else  DESC(@"lowercase-offender");
-		
-		NSString *longDesc = [NSString stringWithFormat:OOExpandKeyWithSeed(@"@-is-a-@-from-@", genSeed, nil), [self name], legalDesc, [self planetOfOrigin]];
-		[self setLongDescription:longDesc];
+		[self setLegalStatus:sins & 0x7f];
 		
 		specialSetUpDone = YES;
 	}
-	
 	else if ([role hasPrefix:@"trader"])
 	{
-		[self setLegalStatus: 0];	// clean
+		[self setLegalStatus:0];	// clean
 
-		int insurance_index = gen_rnd_number() & 0x03;
-		switch (insurance_index)
+		int insuranceIndex = gen_rnd_number() & 0x03;
+		switch (insuranceIndex)
 		{
 			case 0:
 				[self setInsuranceCredits:0];
@@ -253,35 +255,31 @@ MA 02110-1301, USA.
 		}
 		specialSetUpDone = YES;
 	}
-	
 	else if ([role hasPrefix:@"hunter"])
 	{
 		[self setLegalStatus:0];	// clean
-		int insurance_index = gen_rnd_number() & 0x03;
-		if (insurance_index == 3)
+		int insuranceIndex = gen_rnd_number() & 0x03;
+		if (insuranceIndex == 3)
 			[self setInsuranceCredits:500];
 		specialSetUpDone = YES;
 	}
-	
 	else if ([role hasPrefix:@"police"])
 	{
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:125];
 		specialSetUpDone = YES;
 	}
-	
 	else if ([role isEqual:@"miner"])
 	{
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:25];
 		specialSetUpDone = YES;
 	}
-	
 	else if ([role isEqual:@"passenger"])
 	{
 		[self setLegalStatus:0];	// clean
-		int insurance_index = gen_rnd_number() & 0x03;
-		switch (insurance_index)
+		int insuranceIndex = gen_rnd_number() & 0x03;
+		switch (insuranceIndex)
 		{
 			case 0:
 				[self setInsuranceCredits:25];
@@ -297,14 +295,12 @@ MA 02110-1301, USA.
 		}
 		specialSetUpDone = YES;
 	}
-	
 	else if ([role isEqual:@"slave"])
 	{
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:0];
 		specialSetUpDone = YES;
 	}
-	
 	else if ([role isEqual:@"thargoid"])
 	{
 		[self setLegalStatus:100];
@@ -322,101 +318,88 @@ MA 02110-1301, USA.
 
 - (NSString *)name
 {
-	return name;
+	return _name;
 }
 
 
 - (NSString *)shortDescription
 {
-	return shortDescription;
-}
-
-
-- (NSString *)longDescription
-{
-	return longDescription;
+	return _shortDescription;
 }
 
 
 - (Random_Seed)originSystemSeed
 {
-	return originSystemSeed;
+	return _originSystemSeed;
 }
 
 
 - (Random_Seed)genSeed
 {
-	return genSeed;
+	return _genSeed;
 }
 
 
 - (int)legalStatus
 {
-	return legalStatus;
+	return _legalStatus;
 }
 
 
 - (OOCreditsQuantity)insuranceCredits
 {
-	return insuranceCredits;
+	return _insuranceCredits;
 }
 
 
 - (NSArray *)legacyScript
 {
-	return script_actions;
+	return _scriptActions;
 }
 
 
 - (void)setName:(NSString *)value
 {
-	[name autorelease];
-	name = [value copy];
+	[_name autorelease];
+	_name = [value copy];
 }
 
 
 - (void)setShortDescription:(NSString *)value
 {
-	[shortDescription autorelease];
-	shortDescription = [value copy];
-}
-
-
-- (void)setLongDescription:(NSString *)value
-{
-	[longDescription autorelease];
-	longDescription = [value copy];
+	[_shortDescription autorelease];
+	_shortDescription = [value copy];
 }
 
 
 - (void)setOriginSystemSeed:(Random_Seed)value
 {
-	originSystemSeed = value;
+	_originSystemSeed = value;
 }
 
 
 - (void)setGenSeed:(Random_Seed)value
 {
-	genSeed = value;
+	_genSeed = value;
 }
 
 
 - (void)setLegalStatus:(int)value
 {
-	legalStatus = value;
+	_legalStatus = value;
 }
 
 
 - (void)setInsuranceCredits:(OOCreditsQuantity)value
 {
-	insuranceCredits = value;
+	_insuranceCredits = value;
 }
 
 
 - (void)setLegacyScript:(NSArray *)some_actions
 {
-	[script_actions autorelease];
-	script_actions = [some_actions copy];
+	[_scriptActions autorelease];
+	_scriptActions = [some_actions copy];
 }
 
 
@@ -426,16 +409,11 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setCharacterScript:(NSString *)script_name
+- (void) setCharacterScript:(NSString *)scriptName
 {
-	NSMutableDictionary		*properties = nil;
-	
-	properties = [NSMutableDictionary dictionary];
-	[properties setObject:self forKey:@"character"];
-	
 	[_script autorelease];
-	_script = [OOScript jsScriptFromFileNamed:script_name properties:properties];
-	
+	_script = [OOScript jsScriptFromFileNamed:scriptName
+								   properties:[NSDictionary dictionaryWithObject:self forKey:@"character"]];
 	[_script retain];
 }
 
@@ -448,10 +426,10 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setCharacterFromDictionary:(NSDictionary *) dict
+- (void) setCharacterFromDictionary:(NSDictionary *)dict
 {
 	id					origin = nil;
-	Random_Seed			g_seed = kNilRandomSeed;
+	Random_Seed			seed = kNilRandomSeed;
 	
 	origin = [dict objectForKey:@"origin"];
 	if ([origin isKindOfClass:[NSNumber class]] ||
@@ -479,27 +457,25 @@ MA 02110-1301, USA.
 		[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemNumber:ranrot_rand() & 0xff]];
 	}
 
-	
 	if ([dict objectForKey:@"random_seed"])
 	{
-		g_seed = RandomSeedFromString([dict oo_stringForKey:@"random_seed"]);  // returns kNilRandomSeed on failure
+		seed = RandomSeedFromString([dict oo_stringForKey:@"random_seed"]);  // returns kNilRandomSeed on failure
 	}
 	else
 	{
-		g_seed.a = (ranrot_rand() & 0xff);
-		g_seed.b = (ranrot_rand() & 0xff);
-		g_seed.c = (ranrot_rand() & 0xff);
-		g_seed.d = (ranrot_rand() & 0xff);
-		g_seed.e = (ranrot_rand() & 0xff);
-		g_seed.f = (ranrot_rand() & 0xff);
+		seed.a = (ranrot_rand() & 0xff);
+		seed.b = (ranrot_rand() & 0xff);
+		seed.c = (ranrot_rand() & 0xff);
+		seed.d = (ranrot_rand() & 0xff);
+		seed.e = (ranrot_rand() & 0xff);
+		seed.f = (ranrot_rand() & 0xff);
 	}
-	[self setGenSeed: g_seed];
+	[self setGenSeed:seed];
 	[self basicSetUp];
 	
 	if ([dict oo_stringForKey:@"role"])  [self castInRole:[dict oo_stringForKey:@"role"]];
 	if ([dict oo_stringForKey:@"name"])  [self setName:[dict oo_stringForKey:@"name"]];
 	if ([dict oo_stringForKey:@"short_description"])  [self setShortDescription:[dict oo_stringForKey:@"short_description"]];
-	if ([dict oo_stringForKey:@"long_description"])  [self setLongDescription:[dict oo_stringForKey:@"long_description"]];
 	if ([dict objectForKey:@"legal_status"])  [self setLegalStatus:[dict oo_intForKey:@"legal_status"]];
 	if ([dict objectForKey:@"bounty"])  [self setLegalStatus:[dict oo_intForKey:@"bounty"]];
 	if ([dict objectForKey:@"insurance"])  [self setInsuranceCredits:[dict oo_unsignedLongLongForKey:@"insurance"]];

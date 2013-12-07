@@ -35,22 +35,21 @@ MA 02110-1301, USA.
 @interface OOCharacter: NSObject
 {
 @private
-	NSString			*name;
-	NSString			*shortDescription;
-	NSString			*longDescription;
-	Random_Seed			originSystemSeed;
-	Random_Seed			genSeed;
-	int					legalStatus;
-	OOCreditsQuantity	insuranceCredits;
-	NSArray				*script_actions;
+	NSString			*_name;
+	NSString			*_shortDescription;
+	NSString			*_longDescription;
+	Random_Seed			_originSystemSeed;
+	Random_Seed			_genSeed;
+	int					_legalStatus;
+	OOCreditsQuantity	_insuranceCredits;
+	NSArray				*_scriptActions;
 	OOJSScript			*_script;
 }
 
-- (id) initWithGenSeed:(Random_Seed)g_seed andOriginalSystemSeed:(Random_Seed)s_seed;
 - (id) initWithRole:(NSString *)role andOriginalSystemSeed:(Random_Seed)s_seed;
 
-+ (OOCharacter *) characterWithRole:(NSString *)c_role andOriginalSystem:(Random_Seed)o_seed;
-+ (OOCharacter *) randomCharacterWithRole:(NSString *)c_role andOriginalSystem:(Random_Seed)o_seed;
++ (OOCharacter *) characterWithRole:(NSString *)c_role andOriginalSystemSeed:(Random_Seed)o_seed;
++ (OOCharacter *) randomCharacterWithRole:(NSString *)c_role andOriginalSystemSeed:(Random_Seed)o_seed;
 + (OOCharacter *) characterWithDictionary:(NSDictionary *)c_dict;
 
 - (NSString*) planetOfOrigin;
@@ -65,15 +64,6 @@ MA 02110-1301, USA.
 - (NSString *) shortDescription;
 - (void) setShortDescription:(NSString *)value;
 
-- (NSString *) longDescription;
-- (void) setLongDescription:(NSString *)value;
-
-- (Random_Seed) originSystemSeed;
-- (void) setOriginSystemSeed:(Random_Seed)value;
-
-- (Random_Seed) genSeed;
-- (void) setGenSeed:(Random_Seed)value;
-
 - (int) legalStatus;
 - (void) setLegalStatus:(int)value;
 
@@ -81,9 +71,9 @@ MA 02110-1301, USA.
 - (void) setInsuranceCredits:(OOCreditsQuantity)value;
 
 - (NSArray *) legacyScript;
-- (void) setLegacyScript:(NSArray *)some_actions;
+- (void) setLegacyScript:(NSArray *)scriptActions;
 - (OOJSScript *)script;
-- (void) setCharacterScript:(NSString *)script_name;
+- (void) setCharacterScript:(NSString *)scriptName;
 - (void) doScriptEvent:(jsid)message;
 
 @end

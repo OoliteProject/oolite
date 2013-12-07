@@ -742,7 +742,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	if ([self crew] == nil)
 	{
-		[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
+		[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystemSeed:[UNIVERSE systemSeed]]]];
 	}
 	
 	if ([self group] == nil)
@@ -1419,7 +1419,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: role
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 				
 		[ship setPrimaryRole:role];
 
@@ -1527,7 +1527,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			{
 				[police_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole: @"police"
-									   andOriginalSystem: [UNIVERSE systemSeed]]]];
+									   andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 			}
 			
 			[police_ship setGroup:[self stationGroup]];	// who's your Daddy
@@ -1623,13 +1623,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		{
 			[defense_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"police"
-				 andOriginalSystem: [UNIVERSE systemSeed]]]];
+				 andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 		}
 		else
 		{
 			[defense_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"hunter"
-				 andOriginalSystem: [UNIVERSE systemSeed]]]];
+				 andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 		}
 	}
 				
@@ -1694,7 +1694,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if (![scavenger_ship crew])
 			[scavenger_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"miner"
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 				
 		scavengers_launched++;
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
@@ -1742,7 +1742,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if (![miner_ship crew])
 			[miner_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"miner"
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 				
 		scavengers_launched++;
 		[miner_ship setScanClass:CLASS_NEUTRAL];
@@ -1795,7 +1795,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		{
 			[pirate_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"pirate"
-								   andOriginalSystem: [UNIVERSE systemSeed]]]];
+								   andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 		}
 				
 		defenders_launched++;
@@ -1843,7 +1843,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if (![shuttle_ship crew])
 			[shuttle_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"trader"
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 				
 		docked_shuttles--;
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
@@ -1875,7 +1875,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if (![escort_ship crew] && ![escort_ship isUnpiloted])
 			[escort_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"hunter"
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 				
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
@@ -1922,7 +1922,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			if (![patrol_ship crew])
 				[patrol_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole: @"police"
-					andOriginalSystem: [UNIVERSE systemSeed]]]];
+					andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 				
 			defenders_launched++;
 			[patrol_ship switchLightsOff];
@@ -1959,7 +1959,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		if (![ship crew])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: role
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 		if (ship->scanClass == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL];
 		[ship setPrimaryRole:role];
 		[ship setGroup:[self stationGroup]];	// who's your Daddy

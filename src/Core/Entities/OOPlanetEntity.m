@@ -560,7 +560,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		{
 			[shuttle_ship setCrew:[NSArray arrayWithObject:
 								   [OOCharacter randomCharacterWithRole: @"trader"
-													  andOriginalSystem: [UNIVERSE systemSeed]]]];
+													  andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 		}
 		
 		[shuttle_ship setPosition:launch_pos];

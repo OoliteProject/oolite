@@ -1732,7 +1732,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		[escorter setCrew:[NSArray arrayWithObject:
 									   [OOCharacter randomCharacterWithRole: pilotRole
-														  andOriginalSystem: [UNIVERSE systemSeed]]]];
+														  andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 	}
 		
 	[escorter setPrimaryRole:defaultRole];	//for mothership
@@ -11389,7 +11389,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		ShipEntity	*passenger = nil;
 		Random_Seed orig = [UNIVERSE systemSeedForSystemNumber:gen_rnd_number()];
-		passenger = [self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig]]];
+		passenger = [self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystemSeed:orig]]];
 		[passengers addObject:passenger];
 	}
 	

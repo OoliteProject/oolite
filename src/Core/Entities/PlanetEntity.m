@@ -1187,7 +1187,7 @@ static const BaseFace kTexturedFaces[][3] =
 		if (![shuttle_ship crew])
 			[shuttle_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"trader"
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
 				
 		[shuttle_ship setPosition:launch_pos];
 		[shuttle_ship setOrientation:q1];
