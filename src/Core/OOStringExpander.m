@@ -74,7 +74,6 @@ typedef struct
 	bool				convertBackslashN;
 	bool				hasPercentR;		// Set to indicate we need an ExpandPercentR() pass.
 	bool				useGoodRNG;
-	bool				allowOperators;
 	
 	NSString			*systemNameWithIan;	// Cache for %I
 	NSString			*randomNameN;		// Cache for %N
@@ -167,7 +166,6 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 		.isJavaScript = options & kOOExpandForJavaScript,
 		.convertBackslashN = options & kOOExpandBackslashN,
 		.useGoodRNG = options & kOOExpandGoodRNG,
-		.allowOperators = options & kOOExpandAllowOperators,
 	};
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -373,10 +371,9 @@ static NSString *Expand(OOStringExpansionContext *context, NSString *string, NSU
 	ExpandDigitKey() (for a key consisting only of digits) or ExpandStringKey()
 	(for anything else).
 	
-	If allowOperators, the key may be terminated by a vertical bar |, followed
-	by an operator. An operator is an identifier, optionally followed by a
-	colon and additional text, and may be terminated with another bar and
-	operator.
+	The key may be terminated by a vertical bar |, followed by an operator. An
+	operator is an identifier, optionally followed by a colon and additional
+	text, and may be terminated with another bar and operator.
 */
 static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
@@ -393,7 +390,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		else
 		{
 			if (characters[end] == '[')  balanceCount++;
-			else if (characters[end] == '|' && firstBar == 0 && context->allowOperators)  firstBar = end;
+			else if (characters[end] == '|' && firstBar == 0)  firstBar = end;
 			if (!isdigit(characters[end]) && firstBar == 0)  allDigits = false;
 		}
 	}
@@ -408,7 +405,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 	NSUInteger totalLength = end - idx;
 	*replaceLength = totalLength;
 	NSUInteger keyStart = idx + 1, keyLength = totalLength - 2;
-	if (context->allowOperators && firstBar != 0)  keyLength = firstBar - idx - 1;
+	if (firstBar != 0)  keyLength = firstBar - idx - 1;
 	
 	if (EXPECT_NOT(keyLength == 0))
 	{
@@ -427,7 +424,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		expanded = ExpandStringKey(context, key, sizeLimit, recursionLimit);
 	}
 	
-	if (context->allowOperators && firstBar != 0)
+	if (firstBar != 0)
 	{
 		NSString *operators = [NSString stringWithCharacters:characters + firstBar + 1 length:end - firstBar - 2];
 		expanded = ApplyOperators(expanded, operators);

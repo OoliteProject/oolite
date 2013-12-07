@@ -37,7 +37,6 @@ enum
 	kOOExpandBackslashN			= 0x00000002,
 	kOOExpandGoodRNG			= 0x00000004,
 	kOOExpandKey				= 0x00000008,	// Treat string as a key. Expand(@"foo", kOOExpandKey) == Expand(@"[foo]", kOOExpandNoOptions).
-	kOOExpandAllowOperators		= 0x00000010,
 
 	kOOExpandNoOptions			= 0
 };
@@ -155,8 +154,10 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 	OOExpandKey(@"foo", ...) is equivalent to OOExpand(@"[foo]", ...).
 */
 #define OOExpandKey(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey, string, __VA_ARGS__)
+
+
 #define OOExpandFancyWithOptions(seed, systemName, options, string, ...) \
-	OOExpandDescriptionString(string, seed, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, systemName, (options) | kOOExpandAllowOperators)
+	OOExpandDescriptionString(string, seed, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, systemName, options)
 
 #define OOExpandFancyWithSeed(seed, systemName, string, ...) OOExpandFancyWithOptions(seed, systemName, kOOExpandNoOptions, string, __VA_ARGS__)
 
