@@ -243,4 +243,10 @@
 
 	"oolite-tutorial-1-24" = "This concludes the introduction to the HUD. There are a few additional HUD indicators which depend either on particular equipment or special circumstances, and these will be described in later lessons.";
 
+
+
+	"oolite-tutorial-end-title" = "Course Complete";
+	"oolite-tutorial-end-message" = "Congratulations on your completion of the Cooperative Pilot's Training Course. We wish you luck in your future career.";
+	"oolite-tutorial-end-choices" = { "1" = "Exit Simulator"; };
+
 }

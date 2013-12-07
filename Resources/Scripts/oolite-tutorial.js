@@ -148,6 +148,10 @@ this.startUp = function()
 		{
 			this[fn]();
 		}
+		else
+		{
+			this._endTutorial();
+		}
 	}
 
 
@@ -393,6 +397,25 @@ this.startUp = function()
 	this.__stage2sub0 = function()
 	{
 		this._resetHUDItems();
+	}
+
+
+
+
+	this._endTutorial = function()
+	{
+		player.ship.hudHidden = true;
+		mission.runScreen(
+			{
+				titleKey: "oolite-tutorial-end-title",
+				messageKey: "oolite-tutorial-end-message",
+				choicesKey: "oolite-tutorial-end-choices",
+				screenID: "oolite-tutorial-end"
+			},function()
+			{
+				player.endScenario("oolite-tutorial");
+			}
+		);
 	}
 
 }

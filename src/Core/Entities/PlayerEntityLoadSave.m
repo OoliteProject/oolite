@@ -368,6 +368,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	{
 		return NO;
 	}
+	[scenarioKey release];
+	scenarioKey = [[scenario oo_stringForKey:@"scenario" defaultValue:nil] retain];
+
 	// don't drop the save game directory in
 	return YES;
 }
@@ -755,6 +758,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	[self calculateCurrentCargo];
 	
+	// set scenario key if the scenario allows saving and has one
+	NSString *scenario = [fileDic oo_stringForKey:@"scenario_key" defaultValue:nil];
+	DESTROY(scenarioKey);
+	if (scenario != nil)
+	{
+		scenarioKey = [scenario retain];
+	}
+
 	// Remember the savegame target, run js startUp.
 	[self completeSetUpAndSetTarget:NO];
 	// run initial system population

@@ -522,6 +522,7 @@ typedef enum
 	
 	// save-file
 	NSString				*save_path;
+	NSString				*scenarioKey;
 	
 	// position of viewports
 	Vector					forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
@@ -810,6 +811,8 @@ typedef enum
 - (void) setJumpType:(BOOL)isGalacticJump;
 
 - (BOOL) takeInternalDamage;
+
+- (BOOL) endScenario:(NSString *)key;
 
 - (NSMutableArray *) roleWeights;
 - (void) addRoleForAggression:(ShipEntity *)victim;

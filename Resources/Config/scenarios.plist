@@ -10,6 +10,7 @@
 		"name" = "[oolite-scenario-tutorial-name]";
 		"description" = "[oolite-scenario-tutorial-description]";
 		"model" = "coriolis-station";
+		"scenario" = "oolite-tutorial";
 	},
 	{
 		"file" = "oolite-strict.oolite-save";

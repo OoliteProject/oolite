@@ -842,6 +842,12 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:ArrayFromHPVector(dpos) forKey:@"docked_station_position"];
 	[result setObject:[UNIVERSE getStationMarkets] forKey:@"station_markets"];
 
+	// scenario information
+	if (scenarioKey != nil)
+	{
+		[result setObject:scenarioKey forKey:@"scenario"];
+	}
+
 	// create checksum
 	clear_checksum();
 	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);	munge_checksum(galaxy_seed.c);
@@ -1895,6 +1901,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(specialCargo);
 	
 	DESTROY(save_path);
+	DESTROY(scenarioKey);
 	
 	DESTROY(_customViews);
 	
@@ -5736,6 +5743,17 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[my_entities[i] release];		//	released
 	}
+}
+
+
+- (BOOL) endScenario:(NSString *)key
+{
+	if (scenarioKey != nil && [key isEqualToString:scenarioKey])
+	{
+		[UNIVERSE reinitAndShowDemo:YES];
+		return YES;
+	}
+	return NO;
 }
 
 
