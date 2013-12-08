@@ -1621,11 +1621,13 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		[ship setPosition:launchPos];	// minimise 'lollipop flash'
 		
 		// Deal with scripted cargopods and ensure they are filled with something.
-		if ([ship hasRole:@"cargopod"]) [self fillCargopodWithRandomCargo:ship];
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
+		if ([ship hasRole:@"cargopod"])  [self fillCargopodWithRandomCargo:ship];
+		
+		// Ensure piloted ships have pilots.
+		if (![ship crew] && ![ship isUnpiloted])
 			[ship setCrew:[NSArray arrayWithObject:
 						   [OOCharacter randomCharacterWithRole:desc
-											  andOriginalSystem:systems[Ranrot() & 255]]]];
+											  andOriginalSystemSeed:systems[Ranrot() & 255]]]];
 		
 		if ([ship scanClass] == CLASS_NOT_SET)
 		{
@@ -2211,10 +2213,10 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			[ship setCargoFlag: CARGO_FLAG_PIRATE];
 			[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23) withReason:kOOLegalStatusReasonSetup];	// they already have a price on their heads
 		}
-		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
+		if ([ship crew] == nil && ![ship isUnpiloted])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
-				andOriginalSystem: systems[Ranrot() & 255]]]];
+				andOriginalSystemSeed: systems[Ranrot() & 255]]]];
 		// The following is set inside leaveWitchspace: AI state GLOBAL, STATUS_EXITING_WITCHSPACE, ai message: EXITED_WITCHSPACE, then STATUS_IN_FLIGHT
 		[ship leaveWitchspace];
 		[ship release];
@@ -2303,11 +2305,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			[ship setScanClass:scanClass];
 		}
 		
-		if (!(scanClass == CLASS_CARGO || scanClass == CLASS_ROCK) && ![ship crew] && ![ship isUnpiloted])
+		if ([ship crew] == nil && ![ship isUnpiloted])
 		{
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
-				andOriginalSystem:systems[Ranrot() & 255]]]];
+				andOriginalSystemSeed:systems[Ranrot() & 255]]]];
 		}
 		
 		[ship setOrientation:OORandomQuaternion()];

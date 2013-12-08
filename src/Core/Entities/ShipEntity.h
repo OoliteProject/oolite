@@ -253,7 +253,7 @@ typedef enum
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
 							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
 							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
-							isUnpiloted: 1,				// Is meant to not have crew
+							_explicitlyUnpiloted: 1,	// Is meant to not have crew
 							hasScoopMessage: 1,			// suppress scoop messages when false.
 							
 							// scripting
@@ -722,7 +722,8 @@ typedef enum
 - (BOOL)isShuttle;		// Primary role is "shuttle"
 - (BOOL)isTurret;		// Behaviour is BEHAVIOUR_TRACK_AS_TURRET
 - (BOOL)isPirateVictim;	// Primary role is listed in pirate-victim-roles.plist
-- (BOOL)isUnpiloted;	// Has unpiloted = yes in its shipdata.plist entry
+- (BOOL)isExplicitlyUnpiloted; // Has unpiloted = yes in its shipdata.plist entry
+- (BOOL)isUnpiloted;	// Explicitly unpiloted, hulk, rock, cargo, debris etc; an open-ended criterion that may grow.
 
 - (OOAlertCondition) alertCondition; // quick calc for shaders
 - (OOAlertCondition) realAlertCondition; // full calculation for scripting
@@ -773,8 +774,13 @@ typedef enum
 - (void) setDestinationSystem:(OOSystemID)s;
 
 
-- (NSArray*) crew;
+- (NSArray *) crew;
 - (void) setCrew:(NSArray *)crewArray;
+/**
+	Convenience to set the crew to a single character of the given role,
+	originating in the ship's home system. Does nothing if unpiloted.
+ */
+- (void) setSingleCrewWithRole:(NSString *)crewRole;
 
 // Fuel and capacity in tenths of light-years.
 - (OOFuelQuantity) fuel;

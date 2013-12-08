@@ -1370,10 +1370,6 @@
 	"oxp-manifest-duplicate"		= "\tThe expansion pack “%@” appears to be a duplicate of “%@” and so was not loaded."; 
 	"oxp-conflict"					= "\tThe expansion pack “%@” conflicts with “%@” and so was not loaded.";
 	"oxp-required"					= "\tThe expansion pack “%@” was not loaded as it requires “%@” which is not installed.";
-
-	"@-is-a-@-from-@"				= "%@ is a [21] %@ from %@";  // Character description: "<name> is a {frequent|etc} {offender|fugitive} from <system name>". Never actually visible.
-	"lowercase-offender"			= "offender";
-	"lowercase-fugitive"			= "fugitive";
 	
 
 	// delivery reports

@@ -3799,7 +3799,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (void) addRoleForAggression:(ShipEntity *)victim
 {
-	if ([victim isUnpiloted] || [victim isHulk] || [victim hasHostileTarget] || [[victim primaryAggressor] isPlayer])
+	if ([victim isExplicitlyUnpiloted] || [victim isHulk] || [victim hasHostileTarget] || [[victim primaryAggressor] isPlayer])
 	{
 		return;
 	}

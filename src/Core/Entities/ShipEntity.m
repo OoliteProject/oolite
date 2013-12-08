@@ -644,14 +644,15 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[self setHeatInsulation:[shipDict oo_floatForKey:@"heat_insulation" defaultValue:[self hasHeatShield] ? 2.0 : 1.0]];
 	
 	// unpiloted (like missiles asteroids etc.)
-	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"])) 
+	_explicitlyUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"];
+	if (_explicitlyUnpiloted)
 	{
 		[self setCrew:nil];
 	}
 	else 
 	{
 		// crew and passengers
-		NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict oo_stringForKey:@"pilot"]];
+		NSDictionary *cdict = [[UNIVERSE characters] objectForKey:[shipDict oo_stringForKey:@"pilot"]];
 		if (cdict != nil)
 		{
 			OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
@@ -1730,9 +1731,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 	if ([escorter crew] == nil)
 	{
-		[escorter setCrew:[NSArray arrayWithObject:
-									   [OOCharacter randomCharacterWithRole: pilotRole
-														  andOriginalSystem: [UNIVERSE systemSeed]]]];
+		[escorter setSingleCrewWithRole:pilotRole];
 	}
 		
 	[escorter setPrimaryRole:defaultRole];	//for mothership
@@ -6682,9 +6681,15 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (BOOL)isExplicitlyUnpiloted
+{
+	return _explicitlyUnpiloted;
+}
+
+
 - (BOOL)isUnpiloted
 {
-	return isUnpiloted;
+	return [self isExplicitlyUnpiloted] || [self isHulk] || [self scanClass] == CLASS_ROCK || [self scanClass] == CLASS_CARGO;
 }
 
 
@@ -7261,10 +7266,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setCrew:(NSArray *)crewArray
 {
-	if (isUnpiloted) 
+	if ([self isExplicitlyUnpiloted])
 	{
 		//unpiloted ships cannot have crew
-		// but may have crew before isUnpiloted set, so force *that* to clear too
+		// but may have crew before isExplicitlyUnpiloted set, so force *that* to clear too
 		[crew autorelease];
 		crew = nil;
 		return;
@@ -7272,6 +7277,17 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	//do not set to hulk here when crew is nil (or 0).  Some things like missiles have no crew.
 	[crew autorelease];
 	crew = [crewArray copy];
+}
+
+
+- (void) setSingleCrewWithRole:(NSString *)crewRole
+{
+	if (![self isUnpiloted])
+	{
+		OOCharacter *crewMember = [OOCharacter randomCharacterWithRole:crewRole
+												 andOriginalSystemSeed:[UNIVERSE systemSeedForSystemNumber:[self homeSystem]]];
+		[self setCrew:[NSArray arrayWithObject:crewMember]];
+	}
 }
 
 
@@ -11389,7 +11405,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		ShipEntity	*passenger = nil;
 		Random_Seed orig = [UNIVERSE systemSeedForSystemNumber:gen_rnd_number()];
-		passenger = [self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig]]];
+		passenger = [self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystemSeed:orig]]];
 		[passengers addObject:passenger];
 	}
 	

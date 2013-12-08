@@ -558,9 +558,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		if ([[shuttle_ship crew] count] == 0)
 		{
-			[shuttle_ship setCrew:[NSArray arrayWithObject:
-								   [OOCharacter randomCharacterWithRole: @"trader"
-													  andOriginalSystem: [UNIVERSE systemSeed]]]];
+			[shuttle_ship setSingleCrewWithRole:@"trader"];
 		}
 		
 		[shuttle_ship setPosition:launch_pos];
