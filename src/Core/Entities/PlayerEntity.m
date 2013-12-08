@@ -6928,10 +6928,10 @@ static GLfloat		sBaseMass = 0.0;
 		tab_stops[2] = 144;
 		[gui setTabStops:tab_stops];
 		
-		int techlevel =		[targetSystemData oo_intForKey:KEY_TECHLEVEL];
-		int population =	[targetSystemData oo_intForKey:KEY_POPULATION];
-		int productivity =	[targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
-		int radius =		[targetSystemData oo_intForKey:KEY_RADIUS];
+		OOTechLevelID techLevel = [targetSystemData oo_intForKey:KEY_TECHLEVEL];
+		int population = [targetSystemData oo_intForKey:KEY_POPULATION];
+		int productivity = [targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
+		int radius = [targetSystemData oo_intForKey:KEY_RADIUS];
 		
 		NSString	*government_desc =	OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT]);
 		NSString	*economy_desc =		OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY]);
@@ -6943,25 +6943,63 @@ static GLfloat		sBaseMass = 0.0;
 			population = 0;
 			productivity = 0;
 			radius = 0;
-			techlevel = -1;	// So it dispalys as 0 on the system info screen
-			government_desc = DESC(@"nova-system-government");
-			economy_desc = DESC(@"nova-system-economy");
-			inhabitants = DESC(@"nova-system-inhabitants");
+			techLevel = -1;	// So it dispalys as 0 on the system info screen
+			government_desc = OOExpandKeyWithSeed(target_system_seed, @"nova-system-government");
+			economy_desc = OOExpandKeyWithSeed(target_system_seed, @"nova-system-economy");
+			inhabitants = OOExpandKeyWithSeed(target_system_seed, @"nova-system-inhabitants");
 			system_desc = OOExpandKeyWithSeed(target_system_seed, @"nova-system-description");
 		}
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		[UNIVERSE removeDemoShips];
 		
-		[gui setTitle:[NSString stringWithFormat:DESC(@"sysdata-planet-name-@"),   targetSystemName]];
+		{
+			NSString *system = targetSystemName;
+			[gui setTitle:OOExpandKeyWithSeed(target_system_seed, @"sysdata-data-on-system", system)];
+		}
 		
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-eco"), economy_desc, nil]					forRow:1];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-govt"), government_desc, nil]				forRow:3];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-tl"), [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-pop"), [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")], nil]	forRow:7];
-		[gui setArray:[NSArray arrayWithObjects:@"", [NSString stringWithFormat:@"(%@)", inhabitants], nil]				forRow:8];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-prod"), @"", [NSString stringWithFormat:DESC(@"sysdata-prod-worth"), productivity], nil]	forRow:10];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-radius"), @"", [NSString stringWithFormat:@"%5d km", radius], nil]	forRow:12];
+		NSString *populationDesc = OOExpandKeyWithSeed(target_system_seed, @"sysdata-pop-value", population, inhabitants);
+		NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
+		NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
+		NSString *populationDesc2 = [populationDescLines lastObject];
+		
+		[gui setArray:[NSArray arrayWithObjects:
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-eco"),
+					   economy_desc,
+					   nil]
+			   forRow:1];
+		[gui setArray:[NSArray arrayWithObjects:
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-govt"),
+					   government_desc,
+					   nil]
+			   forRow:3];
+		[gui setArray:[NSArray arrayWithObjects:
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-tl"),
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-tl-value", techLevel),
+					   nil]
+			   forRow:5];
+		[gui setArray:[NSArray arrayWithObjects:
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-pop"),
+					   populationDesc1,
+					   nil]
+			   forRow:7];
+		[gui setArray:[NSArray arrayWithObjects:@"",
+					   populationDesc2,
+					   nil]
+			   forRow:8];
+		[gui setArray:[NSArray arrayWithObjects:
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-prod"),
+					   @"",
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-prod-value", productivity),
+					   nil]
+			   forRow:10];
+		[gui setArray:[NSArray arrayWithObjects:
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-radius"),
+					   @"",
+					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-radius-value",
+										   radius),
+					   nil]
+			   forRow:12];
 		
 		OOGUIRow i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
 		missionTextRow = i;
@@ -7289,7 +7327,8 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SPEECH)];
 #if OOLITE_ESPEAK
 		{
-			NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-voice-@"), [UNIVERSE voiceName: voice_no]];
+			NSString *voiceName = [UNIVERSE voiceName:voice_no];
+			NSString *message = OOExpandKey(@"gameoptions-voice-name", voiceName);
 			[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SPEECH_LANGUAGE)];
 
@@ -7322,8 +7361,9 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,STICKMAPPER)];
 		}
 		
-		NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]]];
-		[gui setText:message forRow:GUI_ROW(GAME,MUSIC)  align:GUI_ALIGN_CENTER];
+		NSString *musicMode = [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]];
+		NSString *message = OOExpandKey(@"gameoptions-music-mode", musicMode);
+		[gui setText:message forRow:GUI_ROW(GAME,MUSIC) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,MUSIC)];
 
 		if ([UNIVERSE wireframeGraphics])
@@ -7348,7 +7388,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 		// Shader effects level.	
 		int shaderEffects = [UNIVERSE shaderEffectsLevel];
-		NSString* shaderEffectsOptionsString = nil;
 		if (shaderEffects == SHADERS_NOT_SUPPORTED)
 		{
 			[gui setText:DESC(@"gameoptions-shaderfx-not-available") forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
@@ -7356,8 +7395,8 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			shaderEffectsOptionsString = [NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), OODisplayStringFromShaderSetting(shaderEffects)];
-			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
+			NSString *shaderEffectsLevel = OODisplayStringFromShaderSetting(shaderEffects);
+			[gui setText:OOExpandKey(@"gameoptions-shaderfx", shaderEffectsLevel) forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
 		}
 		
@@ -8815,6 +8854,32 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (NSString *)marketScreenTitle
+{
+	StationEntity *dockedStation = [self dockedStation];
+	NSString *system = nil;
+	if ([UNIVERSE sun] != nil)  system = [UNIVERSE getSystemName:system_seed];
+	
+	if (dockedStation == nil || dockedStation == [UNIVERSE station])
+	{
+		if ([UNIVERSE sun] != nil)
+		{
+			return OOExpandKey(@"system-commodity-market", system);
+		}
+		else
+		{
+			// Witchspace
+			return OOExpandKey(@"commodity-market");
+		}
+	}
+	else
+	{
+		NSString *station = [dockedStation displayName];
+		return OOExpandKey(@"station-commodity-market", system, station);
+	}
+}
+
+
 - (void) setGuiToMarketScreen
 {
 	NSArray			*localMarket = [self localMarket];
@@ -8862,16 +8927,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		[gui clearAndKeepBackground:!guiChanged];
-		
-		StationEntity *dockedStation = [self dockedStation];
-		if (dockedStation == nil || dockedStation == [UNIVERSE station])
-		{
-			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
-		}
-		else
-		{
-			[gui setTitle:[NSString stringWithFormat:DESC(@"@-station-commodity-market"), [dockedStation displayName]]];
-		}
+		[gui setTitle:[self marketScreenTitle]];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -8911,7 +8967,11 @@ static NSString *last_outfitting_key=nil;
 		current_cargo = [self cargoQuantityOnBoard];
 		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
+		{
+			OOCargoQuantity currentCargo = current_cargo;
+			OOCargoQuantity cargoCapacity = [self maxAvailableCargoSpace];
+			[gui setText:OOExpandKey(@"market-cash-and-load", credits, currentCargo, cargoCapacity) forRow:GUI_ROW_MARKET_CASH];
+		}
 		
 		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
 		{
@@ -9703,15 +9763,15 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (NSString *) screenModeStringForWidth:(unsigned)inWidth height:(unsigned)inHeight refreshRate:(float)inRate
+- (NSString *) screenModeStringForWidth:(unsigned)width height:(unsigned)height refreshRate:(float)refreshRate
 {
-	if (0.0f != inRate)
+	if (0.0f != refreshRate)
 	{
-		return [NSString stringWithFormat:DESC(@"gameoptions-fullscreen-mode-d-by-d-at-g-hz"), inWidth, inHeight, inRate];
+		return OOExpandKey(@"gameoptions-fullscreen-with-refresh-rate", width, height, refreshRate);
 	}
 	else
 	{
-		return [NSString stringWithFormat:DESC(@"gameoptions-fullscreen-mode-d-by-d"), inWidth, inHeight];
+		return OOExpandKey(@"gameoptions-fullscreen", width, height);
 	}
 }
 

@@ -160,17 +160,17 @@ MA 02110-1301, USA.
 
 	// determine the planet of origin
 	NSDictionary *originInfo = [UNIVERSE generateSystemData:[self originSystemSeed]];
-	NSString *planetName = [originInfo oo_stringForKey:KEY_NAME];
+	NSString *planet = [originInfo oo_stringForKey:KEY_NAME];
 	OOGovernmentID government = [originInfo oo_intForKey:KEY_GOVERNMENT]; // 0 .. 7 (0 anarchic .. 7 most stable)
 	int criminalTendency = government ^ 0x07;
 
 	// determine the character's species
-	NSString *speciesString = [self species];
+	NSString *species = [self species];
 	
 	// determine the character's name
 	seed_RNG_only_for_planet_description(genSeed);
 	NSString *genName = nil;
-	if ([speciesString hasPrefix:@"human"])
+	if ([species hasPrefix:@"human"])
 	{
 		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(genSeed, @"%R"), OOExpandKeyWithSeed(genSeed, @"nom")];
 	} else {
@@ -181,10 +181,9 @@ MA 02110-1301, USA.
 		 */
 		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(genSeed, @"%R"), OOExpandWithSeed(genSeed, @"%R")];
 	}
-	
 	[self setName:genName];
 	
-	[self setShortDescription:[NSString stringWithFormat:OOExpandKeyWithSeed(genSeed, @"character-a-@-from-@"), speciesString, planetName]];
+	[self setShortDescription:OOExpandKeyWithSeed(genSeed, @"character-generic-description", species, planet)];
 	
 	// determine _legalStatus for a completely random character
 	[self setLegalStatus:0];	// clean

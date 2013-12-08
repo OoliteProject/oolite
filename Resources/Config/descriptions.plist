@@ -1082,28 +1082,30 @@
 	
 	// Market screen
 	"commodity-market"				= "Commodity Market";	// used if we're in witchspace. Needed for non-english languages.
-	"@-commodity-market"			= "%@ Commodity Market";
-	"@-station-commodity-market"			= "%@ Market"; // non-main stations
+	"system-commodity-market"		= "[system] Commodity Market";
+	"station-commodity-market"		= "[station] Market"; // non-main stations
 	"commodity-column-title"		= "Commodity:";
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";
 	"in-hold-column-title"			= "In hold:";
-	"cash-@-load-d-of-d"			= "Cash: %@. Load %d of %d t.";
+	"market-cash-and-load"			= "Cash: [credits|dcr]. Load [currentCargo] of [cargoCapacity] t.";
 	"cargo-tons-symbol"				= "t";
 	"cargo-grams-symbol"			= "g";
 	"cargo-kilograms-symbol"		= "kg";
 	"commodity-quantity-none"		= "—";
 	
 	// System data screen
-	"sysdata-planet-name-@"			= "Data on %@";
+	"sysdata-data-on-system"		= "Data on [system]";
 	"sysdata-eco"					= "Economy:";
 	"sysdata-govt"					= "Government:";
 	"sysdata-tl"					= "Tech Level:";
+	"sysdata-tl-value"				= "[techLevel|add:1]";
 	"sysdata-pop"					= "Population:";
-	"sysdata-billion-word"			= "Billion";
+	"sysdata-pop-value"				= "[population|multiply:0.1|precision:1] Billion\n([inhabitants])";
 	"sysdata-prod"					= "Gross productivity:";
-	"sysdata-prod-worth"			= " %5d M ₢";
+	"sysdata-prod-value"			= "[productivity] M₢";
 	"sysdata-radius"				= "Average radius:";
+	"sysdata-radius-value"			= "[radius] km";
 	"system-description-string"		= "[14] is [22].";
 	
 	// Options / Loadsave screen
@@ -1119,18 +1121,18 @@
 	// Gameoptions screen
 	"gameoptions-autosave-yes"				= " Autosave: On ";
 	"gameoptions-autosave-no"				= " Autosave: Off ";
-	"gameoptions-sound-volume"				= " Sound Volume: ";
 	"gameoptions-gamma-value"				= " Gamma: ";
+	"gameoptions-sound-volume"				= " Sound Volume: ";
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
 	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
 	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
-	"gameoptions-voice-@"					= " Voice: %@ ";
+	"gameoptions-voice-name"				= " Voice: [voiceName] ";
 	"gameoptions-voice-M"					= " Gender: Male ";
 	"gameoptions-voice-F"					= " Gender: Female ";
-	"gameoptions-music-mode-@"				= " Music: %@ ";
-	"gameoptions-fullscreen-mode-d-by-d-at-g-hz" = " Full Screen Mode: %d × %d at %.3g Hz ";
-	"gameoptions-fullscreen-mode-d-by-d"	= " Full Screen Mode: %d × %d ";
+	"gameoptions-music-mode"				= " Music: [musicMode] ";
+	"gameoptions-fullscreen-with-refresh-rate" = " Full Screen Mode: [width] × [height] at [refreshRate|precision:3] Hz ";
+	"gameoptions-fullscreen"				= " Full Screen Mode: [width] × [height] ";
 	"gameoptions-play-in-window"			= " Play in Window ";
 	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
@@ -1141,7 +1143,7 @@
 	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
 	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
 	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";
-	"gameoptions-shaderfx-@"				= " Shader Effects: %@ ";
+	"gameoptions-shaderfx"					= " Shader Effects: [shaderEffectsLevel] ";
 	"gameoptions-docking-clearance-yes"		= " Docking Clearance Protocol: On ";
 	"gameoptions-docking-clearance-no"		= " Docking Clearance Protocol: Off ";
 	"shaderfx-not-available"				= "Not available";
@@ -1462,7 +1464,7 @@
 	
 	// character descriptions
 	// basic short desc - “A $species from $homeworld”
-	"character-a-@-from-@"			= "a %@ from %@";
+	"character-generic-description"	= "a [species] from [planet]";
 	"character-a-thargoid"			= "an alien from outer space";
 	"character-thargoid-name"		= "a thargoid";
 	

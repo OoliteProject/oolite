@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOTexture.h"
 #import "OODebugFlags.h"
+#import "OOStringExpander.h"
 
 #import "OOJoystickManager.h"
 
@@ -2532,7 +2533,8 @@ static NSTimeInterval	time_last_frame;
 				else
 					voice_no = [UNIVERSE prevVoice: voice_no];
 				[UNIVERSE setVoice: voice_no withGenderM:voice_gender_m];
-				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-voice-@"), [UNIVERSE voiceName: voice_no]];
+				NSString *voiceName = [UNIVERSE voiceName:voice_no];
+				NSString *message = OOExpandKey(@"gameoptions-voice-name", voiceName);
 				[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
 				if (isSpeechOn)
 				{
@@ -2591,8 +2593,9 @@ static NSTimeInterval	time_last_frame;
 			if ((int)[musicController mode] != initialMode)
 			{
 				[self playChangedOption];
-				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:mode]];
-				[gui setText:message forRow:GUI_ROW(GAME,MUSIC)  align:GUI_ALIGN_CENTER];
+				NSString *musicMode = [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]];
+				NSString *message = OOExpandKey(@"gameoptions-music-mode", musicMode);
+				[gui setText:message forRow:GUI_ROW(GAME,MUSIC) align:GUI_ALIGN_CENTER];
 			}
 		}
 		musicModeKeyPressed = YES;
@@ -2728,9 +2731,8 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE setShaderEffectsLevel:shaderEffects];
 			shaderEffects = [UNIVERSE shaderEffectsLevel];
 			
-			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), OODisplayStringFromShaderSetting(shaderEffects)]
-				  forRow:GUI_ROW(GAME,SHADEREFFECTS)
-				   align:GUI_ALIGN_CENTER];
+			NSString *shaderEffectsLevel = OODisplayStringFromShaderSetting(shaderEffects);
+			[gui setText:OOExpandKey(@"gameoptions-shaderfx", shaderEffectsLevel) forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
 			timeLastKeyPress = script_time;
 		}
 		shaderSelectKeyPressed = YES;
