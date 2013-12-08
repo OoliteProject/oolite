@@ -1730,9 +1730,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		
 	if ([escorter crew] == nil)
 	{
-		[escorter setCrew:[NSArray arrayWithObject:
-									   [OOCharacter randomCharacterWithRole: pilotRole
-														  andOriginalSystemSeed: [UNIVERSE systemSeed]]]];
+		[escorter setSingleCrewWithRole:pilotRole];
 	}
 		
 	[escorter setPrimaryRole:defaultRole];	//for mothership
@@ -7272,6 +7270,17 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	//do not set to hulk here when crew is nil (or 0).  Some things like missiles have no crew.
 	[crew autorelease];
 	crew = [crewArray copy];
+}
+
+
+- (void) setSingleCrewWithRole:(NSString *)crewRole
+{
+	if (![self isUnpiloted])
+	{
+		OOCharacter *crewMember = [OOCharacter randomCharacterWithRole:crewRole
+												 andOriginalSystemSeed:[UNIVERSE systemSeedForSystemNumber:[self homeSystem]]];
+		[self setCrew:[NSArray arrayWithObject:crewMember]];
+	}
 }
 
 

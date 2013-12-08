@@ -773,8 +773,13 @@ typedef enum
 - (void) setDestinationSystem:(OOSystemID)s;
 
 
-- (NSArray*) crew;
+- (NSArray *) crew;
 - (void) setCrew:(NSArray *)crewArray;
+/**
+	Convenience to set the crew to a single character of the given role,
+	originating in the ship's home system. Does nothing if unpiloted.
+ */
+- (void) setSingleCrewWithRole:(NSString *)crewRole;
 
 // Fuel and capacity in tenths of light-years.
 - (OOFuelQuantity) fuel;
