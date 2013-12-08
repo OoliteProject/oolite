@@ -36,6 +36,9 @@ MA 02110-1301, USA.
 - (id) initWithGenSeed:(Random_Seed)characterSeed andOriginalSystemSeed:(Random_Seed)systemSeed;
 - (void) setCharacterFromDictionary:(NSDictionary *)dict;
 
+- (Random_Seed)originSystemSeed;
+- (Random_Seed)genSeed;
+
 @end
 
 
