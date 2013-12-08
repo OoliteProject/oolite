@@ -350,6 +350,7 @@ this.startUp = function()
 	
 	this.__stage1sub7 = function()
 	{
+		player.ship.fuel = 5;
 		this._setInstructions("oolite-tutorial-1-7");
 		this._showHUDItem("drawYellowSurround:");
 		this._showHUDItem("drawFuelBar:");
