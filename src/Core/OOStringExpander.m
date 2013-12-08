@@ -447,6 +447,36 @@ static NSString *ApplyOperators(NSString *string, NSString *operatorsString)
 }
 
 
+static NSString *Operator_dcr(NSString *string, NSString *param)
+{
+	return OOCredits([string longLongValue]);
+}
+
+
+static NSString *Operator_cr(NSString *string, NSString *param)
+{
+	return OOCredits([string doubleValue] * 10);
+}
+
+
+static NSString *Operator_precision(NSString *string, NSString *param)
+{
+	return [NSString stringWithFormat:@"%.*f", [param intValue], [string doubleValue]];
+}
+
+
+static NSString *Operator_multiply(NSString *string, NSString *param)
+{
+	return [NSString stringWithFormat:@"%g", [string doubleValue] * [param doubleValue]];
+}
+
+
+static NSString *Operator_add(NSString *string, NSString *param)
+{
+	return [NSString stringWithFormat:@"%g", [string doubleValue] + [param doubleValue]];
+}
+
+
 /*	ApplyOneOperator(string, op, param)
 	
 	Apply a single formatting operator to a string.
@@ -458,18 +488,24 @@ static NSString *ApplyOperators(NSString *string, NSString *operatorsString)
  */
 static NSString *ApplyOneOperator(NSString *string, NSString *op, NSString *param)
 {
-	// FIXME: this could do with generalization.
-	if ([op isEqualToString:@"dcr"])
+	static NSDictionary *operators = nil;
+	
+	if (operators == nil)
 	{
-		return OOCredits([string longLongValue]);
+		#define OPERATOR(name) [NSValue valueWithPointer:Operator_##name], @#name
+		operators = [[NSDictionary alloc] initWithObjectsAndKeys:
+					 OPERATOR(dcr),
+					 OPERATOR(cr),
+					 OPERATOR(precision),
+					 OPERATOR(multiply),
+					 OPERATOR(add),
+					 nil];
 	}
-	if ([op isEqualToString:@"cr"])
+	
+	NSString *(*operator)(NSString *string, NSString *param) = [[operators objectForKey:op] pointerValue];
+	if (operator != NULL)
 	{
-		return OOCredits([string doubleValue] * 10);
-	}
-	if ([op isEqualToString:@"precision"])
-	{
-		return [NSString stringWithFormat:@"%.*f", [param intValue], [string doubleValue]];
+		return operator(string, param);
 	}
 	
 	OOLogERR(@"strings.expand.invalidOperator", @"Unknown string expansion operator %@", op);
