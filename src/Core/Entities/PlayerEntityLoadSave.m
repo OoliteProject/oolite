@@ -562,12 +562,10 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	// dockedStation is always the main station at this point;
 	// "localMarket" save key always refers to the main station (system) market
-	if (![dockedStation localMarket])
-	{
-		NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
-		if (market != nil)  [dockedStation setLocalMarket:market];
-		else  [dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
-	}
+	NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
+	if (market != nil)  [dockedStation setLocalMarket:market];
+	else  [dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
+
 	[self calculateCurrentCargo];
 	
 	// Remember the savegame target, run js startUp.
