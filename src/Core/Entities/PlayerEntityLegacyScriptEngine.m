@@ -229,7 +229,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	{
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
-		expandedString = OOExpandDescriptionString(argumentString, [player system_seed], nil, locals, nil, kOOExpandNoOptions);
+		expandedString = OOExpandDescriptionString([player system_seed], argumentString, nil, locals, nil, kOOExpandNoOptions);
 		
 		[target performSelector:selector withObject:expandedString];
 	}
@@ -1849,7 +1849,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// Replace literal \n in strings with line breaks and perform expansions.
 	text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (text == nil)  return;
-	text = OOExpandDescriptionString(text, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandBackslashN);
+	text = OOExpandDescriptionString([UNIVERSE systemSeed], text, nil, nil, nil, kOOExpandBackslashN);
 	text = [self replaceVariablesInString:text];
 	
 	[self addLiteralMissionText:text];

@@ -172,14 +172,19 @@ MA 02110-1301, USA.
 	NSString *genName = nil;
 	if ([speciesString hasPrefix:@"human"])
 	{
-		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", genSeed, nil), OOExpandKeyWithSeed(@"nom", genSeed, nil)];
+		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(genSeed, @"%R"), OOExpandKeyWithSeed(genSeed, @"nom")];
 	} else {
-		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(@"%R", genSeed, nil), OOExpandWithSeed(@"%R", genSeed, nil)];
+		/*	NOTE: we can't use "%R %R" because that will produce the same string
+			twice. TODO: is there a reason not to use %N and kOOExpandGoodRNG
+			here? Is there some context where we rely on being able to get the
+			same name for a given genSeed?
+		 */
+		genName = [NSString stringWithFormat:@"%@ %@", OOExpandWithSeed(genSeed, @"%R"), OOExpandWithSeed(genSeed, @"%R")];
 	}
 	
 	[self setName:genName];
 	
-	[self setShortDescription:[NSString stringWithFormat:OOExpandKeyWithSeed(@"character-a-@-from-@", genSeed, nil), speciesString, planetName]];
+	[self setShortDescription:[NSString stringWithFormat:OOExpandKeyWithSeed(genSeed, @"character-a-@-from-@"), speciesString, planetName]];
 	
 	// determine _legalStatus for a completely random character
 	[self setLegalStatus:0];	// clean

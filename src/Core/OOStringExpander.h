@@ -101,7 +101,7 @@ typedef NSUInteger OOExpandOptions;
 	converted to line breaks. This is used for expanding missiontext.plist
 	entries, which may have literal \n especially in XML format.
 */
-NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *systemName, OOExpandOptions options);
+NSString *OOExpandDescriptionString(Random_Seed seed, NSString *string, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *systemName, OOExpandOptions options);
 
 
 /*
@@ -120,26 +120,26 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 /**
 	Expand a string with default options.
 */
-#define OOExpand(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandNoOptions, string, __VA_ARGS__)
+#define OOExpand(string, ...) OOExpandWithSeed([UNIVERSE systemSeed], string, __VA_ARGS__)
 
 /**
 	Expand a string as though it were surrounded by brackets;
 	OOExpandKey(@"foo", ...) is equivalent to OOExpand(@"[foo]", ...).
 */
-#define OOExpandKey(key, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey, key, __VA_ARGS__)
+#define OOExpandKey(key, ...) OOExpandKeyWithSeed([UNIVERSE systemSeed], key, __VA_ARGS__)
 
 /**
 	Like OOExpandKey(), but uses a random-er random seed to avoid repeatability.
  */
-#define OOExpandKeyRandomized(key, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
+#define OOExpandKeyRandomized(key, ...) OOExpandWithOptions([UNIVERSE systemSeed], kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
 
-#define OOExpandWithSeed(string, seed, systemName, ...) OOExpandFancyWithOptions(seed, systemName, 0, string, __VA_ARGS__)
+#define OOExpandWithSeed(seed, string, ...) OOExpandWithOptions(seed, kOOExpandNoOptions, string, __VA_ARGS__)
 
-#define OOExpandKeyWithSeed(key, seed, systemName, ...) OOExpandFancyWithOptions(seed, systemName, kOOExpandKey, key, __VA_ARGS__)
+#define OOExpandKeyWithSeed(seed, key, ...) OOExpandWithOptions(seed, kOOExpandKey, key, __VA_ARGS__)
 
 
-#define OOExpandFancyWithOptions(seed, systemName, options, string, ...) \
-	OOExpandDescriptionString(string, seed, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, systemName, options)
+#define OOExpandWithOptions(seed, options, string, ...) \
+	OOExpandDescriptionString(seed, string, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, nil, options)
 
 
 // MARK: Danger zone! Everything beyond this point is scary.

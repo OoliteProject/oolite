@@ -13028,7 +13028,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 							  [self displayName], @"[self:name]",
 							  [other_ship identFromShip: self], @"[target:name]",
 							  nil];
-	NSString *expandedMessage = OOExpandDescriptionString(message_text, [UNIVERSE systemSeed], specials, nil, nil, kOOExpandNoOptions);
+	NSString *expandedMessage = OOExpandDescriptionString([UNIVERSE systemSeed], message_text, specials, nil, nil, kOOExpandNoOptions);
 	
 	[self sendMessage:expandedMessage toShip:other_ship withUnpilotedOverride:NO];
 }

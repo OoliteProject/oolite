@@ -153,7 +153,7 @@ static void SyntaxIssue(OOStringExpansionContext *context, const char *function,
 // MARK: -
 // MARK: Public functions
 
-NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *systemName, OOExpandOptions options)
+NSString *OOExpandDescriptionString(Random_Seed seed, NSString *string, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *systemName, OOExpandOptions options)
 {
 	if (string == nil)  return nil;
 	
@@ -222,7 +222,7 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name)
 {
 	seed_RNG_only_for_planet_description(seed);
-	return OOExpandDescriptionString(@"system-description-string", seed, nil, nil, name, kOOExpandKey);
+	return OOExpandDescriptionString(seed, @"system-description-string", nil, nil, name, kOOExpandKey);
 }
 
 
