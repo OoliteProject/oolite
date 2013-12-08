@@ -644,14 +644,15 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[self setHeatInsulation:[shipDict oo_floatForKey:@"heat_insulation" defaultValue:[self hasHeatShield] ? 2.0 : 1.0]];
 	
 	// unpiloted (like missiles asteroids etc.)
-	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"])) 
+	_explicitlyUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"];
+	if (_explicitlyUnpiloted)
 	{
 		[self setCrew:nil];
 	}
 	else 
 	{
 		// crew and passengers
-		NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict oo_stringForKey:@"pilot"]];
+		NSDictionary *cdict = [[UNIVERSE characters] objectForKey:[shipDict oo_stringForKey:@"pilot"]];
 		if (cdict != nil)
 		{
 			OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
@@ -6680,9 +6681,15 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (BOOL)isExplicitlyUnpiloted
+{
+	return _explicitlyUnpiloted;
+}
+
+
 - (BOOL)isUnpiloted
 {
-	return isUnpiloted;
+	return [self isExplicitlyUnpiloted] || [self isHulk] || [self scanClass] == CLASS_ROCK || [self scanClass] == CLASS_CARGO;
 }
 
 
@@ -7259,10 +7266,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setCrew:(NSArray *)crewArray
 {
-	if (isUnpiloted) 
+	if ([self isExplicitlyUnpiloted])
 	{
 		//unpiloted ships cannot have crew
-		// but may have crew before isUnpiloted set, so force *that* to clear too
+		// but may have crew before isExplicitlyUnpiloted set, so force *that* to clear too
 		[crew autorelease];
 		crew = nil;
 		return;
