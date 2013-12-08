@@ -534,7 +534,7 @@ static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar
 	// Select a random sub-entry.
 	NSUInteger selection, count = [entry count];
 	NSUInteger rnd = OO_EXPANDER_RANDOM;
-	if (count == 5)
+	if (count == 5 && !context->useGoodRNG)
 	{
 		// Time-honoured Elite-compatible way for five items.
 		if (rnd >= 0xCC)  selection = 4;
