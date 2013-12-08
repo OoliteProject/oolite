@@ -372,5 +372,19 @@
 		{
 			available_to_player = false;
 		}
+	),
+	/* condition script blocks this one from appearing normally */
+	(
+		100, 500000, "Tutorial Controls",
+		"EQ_OOLITE_TUTORIAL_CONTROLS",
+		"Tutorial Controls.",
+		{
+			condition_script = "oolite-conditions.js";
+			script = "oolite-tutorial-equipment.js";
+			available_to_all = true;
+			visible = false;	// Hidden on status screen.
+			damage_probability = 0;
+		}
 	)
+
 )

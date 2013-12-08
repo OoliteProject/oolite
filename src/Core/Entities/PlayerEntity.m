@@ -842,6 +842,12 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:ArrayFromHPVector(dpos) forKey:@"docked_station_position"];
 	[result setObject:[UNIVERSE getStationMarkets] forKey:@"station_markets"];
 
+	// scenario information
+	if (scenarioKey != nil)
+	{
+		[result setObject:scenarioKey forKey:@"scenario"];
+	}
+
 	// create checksum
 	clear_checksum();
 	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);	munge_checksum(galaxy_seed.c);
@@ -1746,6 +1752,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) completeSetUpAndSetTarget:(BOOL)setTarget
 {
 	[OOSoundSource stopAll];
+
 	[self setDockedStation:[UNIVERSE station]];
 	[self setLastAegisLock:[UNIVERSE planet]];
 		
@@ -1894,6 +1901,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(specialCargo);
 	
 	DESTROY(save_path);
+	DESTROY(scenarioKey);
 	
 	DESTROY(_customViews);
 	
@@ -2004,7 +2012,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2))
+	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_LOAD))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
@@ -2608,6 +2616,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_MAIN:
 			case GUI_SCREEN_INTRO1:
 			case GUI_SCREEN_INTRO2:
+			case GUI_SCREEN_NEWGAME:
 			case GUI_SCREEN_MARKET:
 			case GUI_SCREEN_OPTIONS:
 			case GUI_SCREEN_GAMEOPTIONS:
@@ -5737,6 +5746,17 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (BOOL) endScenario:(NSString *)key
+{
+	if (scenarioKey != nil && [key isEqualToString:scenarioKey])
+	{
+		[UNIVERSE reinitAndShowDemo:YES];
+		return YES;
+	}
+	return NO;
+}
+
+
 - (void) enterDock:(StationEntity *)station
 {
 	NSParameterAssert(station != nil);
@@ -7405,7 +7425,7 @@ static GLfloat		sBaseMass = 0.0;
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		GUI_ROW_INIT(gui);
 
-		int first_sel_row = (canLoadOrSave)? GUI_ROW(,SAVE) : GUI_ROW(,BEGIN_NEW);
+		int first_sel_row = (canLoadOrSave)? GUI_ROW(,SAVE) : GUI_ROW(,GAMEOPTIONS);
 		if (canQuickSave)
 			first_sel_row = GUI_ROW(,QUICKSAVE);
 
@@ -7431,7 +7451,7 @@ static GLfloat		sBaseMass = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(,LOAD)];
 		}
 
-		[gui setText:DESC(@"options-begin-new-game") forRow:GUI_ROW(,BEGIN_NEW) align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"options-return-to-menu") forRow:GUI_ROW(,BEGIN_NEW) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,BEGIN_NEW)];
 
 		[gui setText:DESC(@"options-game-options") forRow:GUI_ROW(,GAMEOPTIONS) align:GUI_ALIGN_CENTER];
@@ -7446,12 +7466,6 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,QUIT)];
 #endif
 		
-		if ([UNIVERSE strict])
-			[gui setText:DESC(@"options-reset-to-unrestricted-play") forRow:GUI_ROW(,STRICT) align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"options-reset-to-strict-play") forRow:GUI_ROW(,STRICT) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(,STRICT)];
-
 		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_OPTIONS_END_OF_LIST)];
 
 		if ([[UNIVERSE gameController] isGamePaused] || (!canLoadOrSave && [self status] == STATUS_DOCKED))
@@ -8106,6 +8120,71 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setupStartScreenGui
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSString		*text = nil;
+
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+
+	[gui clear];
+
+	[gui setTitle:@"Oolite"];
+
+	text = DESC(@"game-copyright");
+	[gui setText:text forRow:15 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor whiteColor] forRow:15];
+		
+	text = DESC(@"theme-music-credit");
+	[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor grayColor] forRow:17];
+		
+	int row = 22;
+
+	text = DESC(@"oolite-start-option-1");
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	++row;
+
+	text = DESC(@"oolite-start-option-2");
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	++row;
+
+	text = DESC(@"oolite-start-option-3");
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	++row;
+
+#if 0
+	// not yet implemented
+	text = DESC(@"oolite-start-option-4");
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+#endif
+
+	++row;
+
+	text = DESC(@"oolite-start-option-5");
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+	[gui setSelectableRange:NSMakeRange(22,5)];
+	[gui setSelectedRow:22];
+
+	[gui setBackgroundTextureKey:@"intro"];
+
+}
+
+
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra
 {
 	NSString 		*text = nil;
@@ -8113,28 +8192,17 @@ static NSString *last_outfitting_key=nil;
 	OOGUIRow 		msgLine = 2;
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+	[[UNIVERSE gameView] clearMouse];
 
 	if (justCobra)
 	{
+		[UNIVERSE removeDemoShips];
 		[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
 	}
-	[gui clear];
-	[gui setTitle:@"Oolite"];
 	
 	if (justCobra)
 	{
-		text = DESC(@"game-copyright");
-		[gui setText:text forRow:15 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor whiteColor] forRow:15];
-		
-		text = DESC(@"theme-music-credit");
-		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor grayColor] forRow:17];
-		
-        text = DESC(@"load-previous-commander");
-        [gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
-        [gui setColor:[OOColor yellowColor] forRow:19];
-
+		[self setupStartScreenGui];
 		
 		// check for error messages from Resource Manager
 		//[ResourceManager paths]; done in Universe already
@@ -8205,10 +8273,14 @@ static NSString *last_outfitting_key=nil;
 	}
 	else
 	{
-		[gui setText:([UNIVERSE strict])? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
-		text = DESC(@"press-space-commander");
-		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor yellowColor] forRow:21];
+		[gui clear];
+
+        text = DESC(@"oolite-ship-library-title");
+		[gui setTitle:text];
+
+        text = DESC(@"oolite-ship-library-exit");
+        [gui setText:text forRow:23 align:GUI_ALIGN_CENTER];
+        [gui setColor:[OOColor yellowColor] forRow:23];
 	}
 	
 	[gui setShowTextCursor:NO];
@@ -8223,7 +8295,7 @@ static NSString *last_outfitting_key=nil;
 	
 	[self setShowDemoShips:YES];
 	[gui setBackgroundTextureKey:@"intro"];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 

@@ -37,6 +37,7 @@ function perform_copy_binary {
 perform_copy AIs .plist
 perform_copy AIs .js
 perform_copy Config .plist
+perform_copy Scenarios .oolite-save
 perform_copy Scripts .js
 perform_copy Shaders .vertex
 perform_copy Shaders .fragment

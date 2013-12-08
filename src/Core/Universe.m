@@ -209,6 +209,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) verifyDescriptions;
 - (void) loadDescriptions;
+- (void) loadScenarios;
 
 - (void) verifyEntitySessionIDs;
 - (float) randomDistanceWithinScanner;
@@ -225,7 +226,7 @@ static int JSResetFlags = 0;
 
 // track the position and status of the lights
 static BOOL		object_light_on = NO;
-static BOOL		demo_light_on = YES;
+static BOOL		demo_light_on = NO;
 static			GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
 static GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
@@ -260,7 +261,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	
-	strict = [prefs oo_boolForKey:@"strict-gameplay" defaultValue:NO];
+	// prefs value no longer used - per save game but startup needs to
+	// be non-strict
+	strict = NO;
 	
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
@@ -293,6 +296,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[self loadDescriptions];
 	// DESC expansion is now possible!
 	
+	// load starting saves
+	[self loadScenarios];
+
 	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
@@ -506,14 +512,21 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	if (strict == value)  return YES;
 	
 	strict = !!value;
-	[[NSUserDefaults standardUserDefaults] setBool:strict forKey:@"strict-gameplay"];
 	return [self reinitAndShowDemo:!saveGame strictChanged:YES];
 }
 
 
 - (void) reinitAndShowDemo:(BOOL) showDemo
 {
-	[self reinitAndShowDemo:showDemo strictChanged:NO];
+	if (strict && showDemo)
+	{
+		[self setStrict:NO];
+		[self reinitAndShowDemo:showDemo strictChanged:YES];
+	}
+	else
+	{
+		[self reinitAndShowDemo:showDemo strictChanged:NO];
+	}
 }
 
 
@@ -2671,13 +2684,13 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) handleGameOver
 {
-	if ([[self gameController] playerFileToLoad])
+  if ([[self gameController] playerFileToLoad])
   {
     [[self gameController] loadPlayerIfRequired];
   }
   else
   {
-    [self reinitAndShowDemo:NO];
+    [self reinitAndShowDemo:YES];
   } 
 }
 
@@ -4352,8 +4365,13 @@ static const OOMatrix	starboard_matrix =
 				sPrevHudAlpha = -1.0f;
 			}
 			
-			if (v_status != STATUS_DEAD && v_status != STATUS_ESCAPE_SEQUENCE)
-			{
+			switch (v_status) {
+			case STATUS_DEAD:
+			case STATUS_ESCAPE_SEQUENCE:
+			case STATUS_START_GAME:
+				// no HUD rendering in these modes
+				break;
+			default:
 				[theHUD setLineWidth:lineWidth];
 				[theHUD renderHUD];
 			}
@@ -6058,6 +6076,10 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 
 - (void) repopulateSystem
 {
+	if (EXPECT_NOT([PLAYER status] == STATUS_START_GAME))
+	{
+		return; // no need to be adding ships as this is not a "real" game
+	}
 	JSContext			*context = OOJSAcquireContext();
 	[PLAYER doWorldScriptEvent:OOJSIDFromString(system_repopulator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
 	OOJSRelinquishContext(context);
@@ -7081,6 +7103,20 @@ static void VerifyDesc(NSString *key, id desc)
 {
 	[_descriptions autorelease];
 	_descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	[self verifyDescriptions];
+}
+
+
+- (NSArray *) scenarios
+{
+	return _scenarios;
+}
+
+
+- (void) loadScenarios
+{
+	[_scenarios autorelease];
+	_scenarios = [[ResourceManager arrayFromFilesNamed:@"scenarios.plist" inFolder:@"Config" andMerge:YES] retain];
 	[self verifyDescriptions];
 }
 
@@ -9835,7 +9871,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	if(showDemo)
 	{
-		[player setGuiToIntroFirstGo:NO];
 		[player setStatus:STATUS_START_GAME];
 	}
 	else
@@ -9844,9 +9879,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	}
 	
 	[player completeSetUp];
-	[self populateNormalSpace];
+	if(showDemo)
+	{
+		[player setGuiToIntroFirstGo:YES];
+	}
+	else
+	{
+		// no need to do these if showing the demo as the only way out
+		// now is to load a game
+		[self populateNormalSpace];
 
-	[player startUpComplete];
+		[player startUpComplete];
+	}
 
 	if(!showDemo)
 	{

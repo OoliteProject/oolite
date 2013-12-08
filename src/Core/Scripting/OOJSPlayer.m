@@ -49,6 +49,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool PlayerCommsMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerConsoleMessage(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerEndScenario(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerIncreaseContractReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerDecreaseContractReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerIncreasePassengerReputation(JSContext *context, uintN argc, jsval *vp);
@@ -142,6 +143,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "decreaseContractReputation",		PlayerDecreaseContractReputation,	0 },
 	{ "decreaseParcelReputation",	    PlayerDecreaseParcelReputation,		0 },
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
+	{ "endScenario",					PlayerEndScenario,					1 },
 	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
 	{ "increaseParcelReputation",	    PlayerIncreaseParcelReputation,		0 },
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
@@ -397,6 +399,26 @@ static JSBool PlayerConsoleMessage(JSContext *context, uintN argc, jsval *vp)
 	
 	[UNIVERSE addMessage:message forCount:time];
 	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// endScenario(scenario : String)
+static JSBool PlayerEndScenario(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString				*scenario = nil;
+	
+	if (argc > 0)  scenario = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (scenario == nil)
+	{
+		OOJSReportBadArguments(context, @"Player", @"endScenario", argc, OOJS_ARGV, nil, @"scenario key");
+		return NO;
+	}
+	
+	OOJS_RETURN_BOOL([PLAYER endScenario:scenario]);
 	
 	OOJS_NATIVE_EXIT
 }

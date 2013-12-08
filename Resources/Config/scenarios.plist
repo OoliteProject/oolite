@@ -1,0 +1,21 @@
+(
+	{
+		"file" = "oolite-standard.oolite-save";
+		"name" = "[oolite-scenario-standard-name]";
+		"description" = "[oolite-scenario-standard-description]";
+		"model" = "cobra3-trader";
+	},
+	{
+		"file" = "oolite-tutorial.oolite-save";
+		"name" = "[oolite-scenario-tutorial-name]";
+		"description" = "[oolite-scenario-tutorial-description]";
+		"model" = "coriolis-station";
+		"scenario" = "oolite-tutorial";
+	},
+	{
+		"file" = "oolite-strict.oolite-save";
+		"name" = "[oolite-scenario-strict-name]";
+		"description" = "[oolite-scenario-strict-description]";
+		"model" = "cobra3-trader";
+	}
+)

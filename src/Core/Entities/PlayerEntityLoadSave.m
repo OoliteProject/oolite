@@ -29,7 +29,11 @@
 
 #import "NSFileManagerOOExtensions.h"
 #import "GameController.h"
+#import "ResourceManager.h"
+#import "OOStringExpander.h"
 #import "PlayerEntityControls.h"
+#import "ProxyPlayerEntity.h"
+#import "ShipEntityAI.h"
 #import "OOXMLExtensions.h"
 #import "OOSound.h"
 #import "OOColor.h"
@@ -200,6 +204,180 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 }
 
 
+- (void) setGuiToScenarioScreen:(int)page
+{
+	NSArray *scenarios = [UNIVERSE scenarios];
+	[UNIVERSE removeDemoShips];
+	// GUI stuff
+	{
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+		OOGUIRow		start_row = GUI_ROW_SCENARIOS_START;
+		OOGUIRow		row = start_row;
+		BOOL			guiChanged = (gui_screen != GUI_SCREEN_NEWGAME);
+
+		[gui clearAndKeepBackground:!guiChanged];
+		[gui setTitle:DESC(@"oolite-newgame-title")];
+
+		OOGUITabSettings tab_stops;
+		tab_stops[0] = 0;
+		tab_stops[1] = -480;
+		[gui setTabStops:tab_stops];
+
+		unsigned n_rows = GUI_MAX_ROWS_SCENARIOS;
+		NSUInteger i, count = [scenarios count];
+
+		NSDictionary *scenario = nil;
+
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-scenario-exit"), @" <----- ", nil] forRow:start_row - 2];
+		[gui setColor:[OOColor redColor] forRow:start_row - 2];
+		[gui setKey:@"exit" forRow:start_row - 2];
+		
+
+		if (page > 0)
+		{
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:start_row - 1];
+			[gui setColor:[OOColor greenColor] forRow:start_row - 1];
+			[gui setKey:[NSString stringWithFormat:@"__page:%lu",page-1] forRow:start_row - 1];
+		}
+
+		[self setShowDemoShips:NO];
+
+		for (i = page*n_rows ; i < count && row < start_row + n_rows ; i++)
+		{
+			scenario = [[UNIVERSE scenarios] objectAtIndex:i];
+			[gui setText:OOExpand([NSString stringWithFormat:@" %@ ",[scenario oo_stringForKey:@"name"]]) forRow:row];
+			[gui setKey:[NSString stringWithFormat:@"Scenario:%lu", (unsigned long)i] forRow:row];
+			++row;
+		}
+
+		if ((page+1) * n_rows < count)
+		{
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
+			[gui setColor:[OOColor greenColor] forRow:row];
+			[gui setKey:[NSString stringWithFormat:@"__page:%lu",page+1] forRow:row];
+			++row;
+		}
+		
+		[gui setSelectableRange:NSMakeRange(start_row - 2,3 + row - start_row)];
+		[gui setSelectedRow:start_row];
+		[self showScenarioDetails];
+	}
+
+	gui_screen = GUI_SCREEN_NEWGAME;
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+}
+
+- (void) addScenarioModel:(NSString *)shipKey
+{
+	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
+	// MKW - retrieve last demo ships' orientation and release it
+	if( demoShip != nil )
+	{
+		q2 = [demoShip orientation];
+		[demoShip release];
+	}
+	NSDictionary *shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+	ShipEntity *ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
+	[ship wasAddedToUniverse];
+	
+	GLfloat cr = [ship collisionRadius];
+	[ship setOrientation: q2];
+	
+	[ship setPositionX:1.2 * cr y:0.8 * cr z:6.4 * cr];
+	[ship setScanClass: CLASS_NO_DRAW];
+	[ship setRoll: M_PI/10.0];
+	[ship setPitch: M_PI/25.0];
+	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
+	[ship setAITo: @"nullAI.plist"];
+	id subEntStatus = [shipData objectForKey:@"subentities_status"];
+	// show missing subentities if there's a subentities_status key
+	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];
+	[UNIVERSE addEntity: ship];
+	// MKW - save demo ship for its rotation
+	demoShip = [ship retain];
+	
+	[ship setStatus: STATUS_COCKPIT_DISPLAY];
+	
+	[ship release];
+}
+
+
+- (void) showScenarioDetails
+{
+	GuiDisplayGen* gui = [UNIVERSE gui];
+	NSString* key = [gui selectedRowKey];
+	[UNIVERSE removeDemoShips];
+
+	if ([key hasPrefix:@"Scenario"])
+	{
+		int item = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		NSDictionary *scenario = [[UNIVERSE scenarios] objectAtIndex:item];
+		[self setShowDemoShips:NO];
+		for (NSUInteger i=GUI_ROW_SCENARIOS_DETAIL;i<=27;i++)
+		{
+			[gui setText:@"" forRow:i];
+		}
+		if (scenario)
+		{
+			[gui addLongText:OOExpand([scenario oo_stringForKey:@"description"]) startingAtRow:GUI_ROW_SCENARIOS_DETAIL align:GUI_ALIGN_LEFT];
+			NSString *shipKey = [scenario oo_stringForKey:@"model"];
+			if (shipKey != nil)
+			{
+				[self addScenarioModel:shipKey];
+				[self setShowDemoShips:YES];
+			}
+		}
+
+	}
+}
+
+
+- (BOOL) startScenario
+{
+	GuiDisplayGen* gui = [UNIVERSE gui];
+	NSString* key = [gui selectedRowKey];
+
+	if ([key isEqualToString:@"exit"])
+	{
+		// intended to return to main menu
+		return NO; 
+	}
+	if ([key hasPrefix:@"__page"])
+	{
+		int page = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		[self setGuiToScenarioScreen:page];
+		return YES;
+	}
+	int selection = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+
+	NSDictionary *scenario = [[UNIVERSE scenarios] objectAtIndex:selection];
+	NSString *file = [scenario oo_stringForKey:@"file" defaultValue:nil];
+	if (file == nil) 
+	{
+		OOLog(@"scenario.init.error",@"No file entry found for scenario");
+		return NO;
+	}
+	NSString *path = [ResourceManager pathForFileNamed:file inFolder:@"Scenarios"];
+	if (path == nil)
+	{
+		OOLog(@"scenario.init.error",@"Game file not found for scenario %@",file);
+		return NO;
+	}
+	BOOL result = [self loadPlayerFromFile:path asNew:YES];
+	if (!result)
+	{
+		return NO;
+	}
+	[scenarioKey release];
+	scenarioKey = [[scenario oo_stringForKey:@"scenario" defaultValue:nil] retain];
+
+	// don't drop the save game directory in
+	return YES;
+}
+
+
+
+
 #if OO_USE_CUSTOM_LOAD_SAVE
 
 - (NSString *)commanderSelector
@@ -254,6 +432,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSDictionary *cdr;
 		switch ([gui selectedRow])
 		{
+			case EXITROW:
+				if ([self status] == STATUS_START_GAME)
+				{
+					[self setGuiToIntroFirstGo:YES];
+					return nil;
+				}
+				break;
 			case BACKROW:
 				currentPage--;
 				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
@@ -429,7 +614,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 #endif
 
 
-- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen
+- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:(BOOL)asNew
 {
 	/*	TODO: it would probably be better to load by creating a new
 		PlayerEntity, verifying that's OK, then replacing the global player.
@@ -515,11 +700,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
-		[save_path autorelease];
-		save_path = [fileToOpen retain];
+		if (!asNew)
+		{
+			[save_path autorelease];
+			save_path = [fileToOpen retain];
 		
-		[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
-		[[[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
+			[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
+			[[[UNIVERSE gameView] gameController] setPlayerFileDirectory:fileToOpen];
+		}
 	}
 	else
 	{
@@ -568,6 +756,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 	[self calculateCurrentCargo];
 	
+	// set scenario key if the scenario allows saving and has one
+	NSString *scenario = [fileDic oo_stringForKey:@"scenario_key" defaultValue:nil];
+	DESTROY(scenarioKey);
+	if (scenario != nil)
+	{
+		scenarioKey = [scenario retain];
+	}
+
 	// Remember the savegame target, run js startUp.
 	[self completeSetUpAndSetTarget:NO];
 	// run initial system population
@@ -617,7 +813,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		NSURL *url = oPanel.URL;
 		if (url.isFileURL)
 		{
-			return [self loadPlayerFromFile:url.path];
+			return [self loadPlayerFromFile:url.path asNew:NO];
 		}
 	}
 	
@@ -888,18 +1084,19 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	tabStop[1]=160;
 	tabStop[2]=270;
 	[gui setTabStops: tabStop];
-	[gui setColor: [OOColor greenColor] forRow: LABELROW];
-	[gui setArray: [NSArray arrayWithObjects: DESC(@"loadsavescreen-commander-name"), DESC(@"loadsavescreen-rating"), nil]
-		   forRow:LABELROW];
 	
 	// clear text lines here
-	for (i = STARTROW - 1; i < ENDROW + 1; i++)
+	for (i = EXITROW ; i < ENDROW + 1; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
 		[gui setColor: [OOColor yellowColor] forRow: i];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
-	
+
+	[gui setColor: [OOColor greenColor] forRow: LABELROW];
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"loadsavescreen-commander-name"), DESC(@"loadsavescreen-rating"), nil]
+		   forRow:LABELROW];
+
 	if (page)
 	{
 		[gui setColor:[OOColor greenColor] forRow:STARTROW-1];
@@ -908,6 +1105,15 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 		[gui setKey:GUI_KEY_OK forRow:STARTROW-1];
 		rangeStart=STARTROW-1;
 	}
+
+	if ([self status] == STATUS_START_GAME)
+	{
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-loadsave-exit"), @" <----- ", nil] forRow:EXITROW];
+		[gui setColor:[OOColor redColor] forRow:EXITROW];
+		[gui setKey:GUI_KEY_OK forRow:EXITROW];
+		rangeStart = EXITROW;
+	}
+
 	
 	if (firstIndex + NUMROWS >= [cdrDetailArray count])
 	{

@@ -33,6 +33,7 @@ after-all::
 	$(CP) $(CP_FLAGS) Resources/InfoPlist.strings $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/AIs $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/Config $(PROGDIR)/Resources
+	$(CP) $(CP_FLAGS) Resources/Scenarios $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/Scripts $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/Shaders $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/Binary/Images $(PROGDIR)/Resources

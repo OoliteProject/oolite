@@ -187,6 +187,7 @@ MA 02110-1301, USA.
 #define DRAW_SURROUND_KEY		@"draw_surround"
 #define EQUIPMENT_REQUIRED_KEY	@"equipment_required"
 #define ALERT_CONDITIONS_KEY	@"alert_conditions"
+#define DIAL_REQUIRED_KEY		@"with_dial"
 #define LABELLED_KEY			@"labelled"
 #define TEXT_KEY				@"text"
 #define RGB_COLOR_KEY			@"rgb_color"
@@ -248,6 +249,8 @@ MA 02110-1301, USA.
 	BOOL				hudHidden;
 	
 	int					last_transmitter;
+
+	NSMutableSet		*_hiddenSelectors;
 	
 	// Crosshairs
 	OOCrosshairs		*_crosshairs;
@@ -283,6 +286,11 @@ MA 02110-1301, USA.
 
 - (BOOL) isHidden;
 - (void) setHidden:(BOOL)newValue;
+
+- (BOOL) hasHidden:(NSString *)selectorName;
+- (void) setHiddenSelector:(NSString *)selectorName hidden:(BOOL)hide;
+- (void) clearHiddenSelectors;
+
 - (BOOL) isCompassActive;
 - (void) setCompassActive:(BOOL)newValue;
 

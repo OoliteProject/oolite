@@ -196,6 +196,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setKey:(NSString *)str forRow:(OOGUIRow)row;
 - (void) setText:(NSString *)str forRow:(OOGUIRow)row;
 - (void) setText:(NSString *)str forRow:(OOGUIRow)row align:(OOGUIAlignment)alignment;
+- (NSString *) reflowTextForMFD:(NSString *)input;
 - (OOGUIRow) addLongText:(NSString *)str
 		   startingAtRow:(OOGUIRow)row
 				   align:(OOGUIAlignment)alignment;

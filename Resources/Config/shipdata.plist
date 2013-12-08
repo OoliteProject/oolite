@@ -987,6 +987,15 @@
 			};
 		};
 	};
+	"oolite_template_tutorial-buoy" = 
+	{
+		like_ship = "oolite_template_buoy";
+		is_template = 1;
+		beacon = "Buoy (training)";
+		beacon_label = "Training Buoy";
+		name = "Training Buoy";
+		roles = "oolite-tutorial-buoy";
+	};
 	"oolite_template_buoy-witchpoint" = 
 	{
 		like_ship = "oolite_template_buoy";
@@ -2946,6 +2955,7 @@
 		max_flight_speed = 1000;
 		model = "qbomb.dat";
 		name = "Quirium Cascade Mine";
+		scan_class = "CLASS_MINE";
 		roles = "energy-bomb EQ_QC_MINE";
 		thrust = 0;
 	};
@@ -3087,7 +3097,20 @@
 		weapon_position_port = "-9.0 0.0 11.5";
 		weapon_position_starboard = "9.0 0.0 11.5";
 	};
-	"oolite_template_sidewinder" = {
+	"oolite_template_tutorial-station" =
+	{
+		is_template = 1;
+		like_ship = "oolite_template_coriolis-station";
+		ai_type = "nullAI.plist";
+		is_carrier = 1;
+		market = "none";
+		name = "Tutorial Station";
+		roles = "oolite-tutorial-station";
+		rotating = no;
+		scan_class = "CLASS_NO_DRAW";
+	};
+	"oolite_template_sidewinder" = 
+	{
 		aft_eject_position = "0.0 -11.5 -22.5";
 		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
@@ -4043,6 +4066,17 @@
 	{
 		like_ship = "oolite_template_wreckage-component";
 		model = "wreck5.dat";
+	};
+
+
+	/* Begin definitions for entities used in the tutorial */
+	"oolite-tutorial-station" = 
+	{
+		like_ship = "oolite_template_tutorial-station";
+	};
+	"oolite-tutorial-buoy" =
+	{
+		"like_ship" = "oolite_template_tutorial-buoy";
 	};
 
 

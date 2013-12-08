@@ -239,6 +239,7 @@ enum
 	NSDictionary			*_descriptions;			// holds descriptive text for lots of stuff, loaded at initialisation
 	NSDictionary			*customSounds;			// holds descriptive audio for lots of stuff, loaded at initialisation
 	NSDictionary			*characters;			// holds descriptons of characters
+	NSArray					*_scenarios;			// game start scenarios
 	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentData;			// holds data on available equipment, loaded at initialisation
@@ -477,6 +478,8 @@ enum
 - (GameController *) gameController;
 - (NSDictionary *) gameSettings;
 
+- (void) useGUILightSource:(BOOL)GUILight;
+
 - (void) drawUniverse;
 
 - (void) defineFrustum;
@@ -595,6 +598,7 @@ enum
 - (NSDictionary *) descriptions;
 - (NSDictionary *) characters;
 - (NSDictionary *) missiontext;
+- (NSArray *) scenarios;
 
 - (NSString *)descriptionForKey:(NSString *)key;	// String, or random item from array
 - (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index;	// Indexed item from array

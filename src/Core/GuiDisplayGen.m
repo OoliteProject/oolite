@@ -645,6 +645,39 @@ static BOOL _refreshStarChart = NO;
 }
 
 
+- (NSString *) reflowTextForMFD:(NSString *)input
+{
+	NSMutableString	*output = [[NSMutableString alloc] initWithCapacity:512];
+	NSArray			 *lines = [input componentsSeparatedByString:@"\n"];
+	NSSize  		 chSize = pixel_text_size;
+	NSUInteger  	  limit = chSize.width * 15;
+	NSString  		  *line = nil;
+	foreach (line, lines)
+	{
+		NSMutableArray	*words = ScanTokensFromString(line);
+		NSMutableString *accum = [NSMutableString stringWithCapacity:64];
+		while ([words count] > 1)
+		{
+			[accum appendString:[words oo_stringAtIndex:0]];
+			[accum appendString:@" "];
+			if (OORectFromString(accum, 0.0f, 0.0f,chSize).size.width + OORectFromString([words oo_stringAtIndex:1], 0.0f, 0.0f,chSize).size.width > limit)
+			{
+				// can't fit next word on this line
+				[output appendString:[accum stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+				[output appendString:@"\n"];
+				[accum setString:@""];
+			}
+			[words removeObjectAtIndex:0];
+		}
+		[output appendString:accum];
+		[output appendString:[words oo_stringAtIndex:0]];
+		[output appendString:@"\n"];
+	}
+
+	return [output autorelease];
+}
+
+
 - (void) leaveLastLine
 {
 	unsigned i;

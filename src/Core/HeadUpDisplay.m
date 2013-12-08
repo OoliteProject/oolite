@@ -58,7 +58,7 @@ MA 02110-1301, USA.
 #define WIDGET_INFO					0
 #define WIDGET_CACHE				1
 #define	WIDGET_SELECTOR				2
-
+#define	WIDGET_SELECTOR_NAME		3
 
 /* Convenience macros to make set-colour-or-default quicker. 'info' must be the NSDictionary and 'alpha' must be the overall alpha or these won't work */
 #define DO_SET_COLOR(t,d)		SetGLColourFromInfo(info,t,d,alpha)
@@ -262,6 +262,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	hudHidden = NO;
 	
+	_hiddenSelectors = [[NSMutableSet alloc] initWithCapacity:16];
+
 	hudUpdating = NO;
 	
 	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
@@ -308,7 +310,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	DESTROY(propertiesReticleTargetSensitive);
 	DESTROY(_crosshairOverrides);
 	DESTROY(crosshairDefinition);
-	
+	DESTROY(_hiddenSelectors);
+
 	[super dealloc];
 }
 
@@ -523,6 +526,35 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
+- (BOOL) hasHidden:(NSString *)selectorName
+{
+	if (selectorName == nil)
+	{
+		return NO;
+	}
+	return [_hiddenSelectors containsObject:selectorName];
+}
+
+
+- (void) setHiddenSelector:(NSString *)selectorName hidden:(BOOL)hide
+{
+	if (hide)
+	{
+		[_hiddenSelectors addObject:selectorName];
+	}
+	else
+	{
+		[_hiddenSelectors removeObject:selectorName];
+	}
+}
+
+
+- (void) clearHiddenSelectors
+{
+	[_hiddenSelectors removeAllObjects];
+}
+
+
 - (BOOL) isCompassActive
 {
 	return _compassActive;
@@ -638,9 +670,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// valid dial, now prefetch data
 	struct CachedInfo cache;
 	prefetchData(info, &cache);
-	// add WIDGET_INFO, WIDGET_CACHE, WIDGET_SELECTOR to array
+	// add WIDGET_INFO, WIDGET_CACHE, WIDGET_SELECTOR, WIDGET_SELECTOR_NAME to array
 	[dialArray addObject:[NSArray arrayWithObjects:info, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)],
-								[NSValue valueWithPointer:selector], nil]];
+						 [NSValue valueWithPointer:selector], selectorString, nil]];
 }
 
 
@@ -902,6 +934,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		}
 	}
 
+	// check association with hidden dials
+	if ([self hasHidden:[info oo_stringForKey:DIAL_REQUIRED_KEY defaultValue:nil]])
+	{
+		return;
+	}
+
 	OOTextureSprite				*legendSprite = nil;
 	NSString					*legendText = nil;
 	float						x, y;
@@ -960,6 +998,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		if (~alertMask & (1 << alertCondition)) {
 			return;
 		}
+	}
+
+	if (EXPECT_NOT([self hasHidden:[sCurrentDrawItem objectAtIndex:WIDGET_SELECTOR_NAME]]))
+	{
+		return;
 	}
 
 	// use the selector value stored during init.
@@ -1513,6 +1556,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				[[beacon beaconDrawable] oo_drawHUDBeaconIconAt:NSMakePoint(x, y) size:siz alpha:alpha z:z1];
 				break;
 		}
+		OOGL(GLScaledLineWidth(lineWidth));	// reset
+
 		_compassUpdated = YES;
 		_compassActive = YES;
 	}
@@ -2860,6 +2905,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	else if (div < 1.0) // insensitive mode (shouldn't happen)
 		GLDrawFilledOval(x, y, z1, siz, 10);
+
+	OOGL(GLScaledLineWidth(lineWidth)); // reset
 }
 
 
