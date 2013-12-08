@@ -33,10 +33,11 @@ MA 02110-1301, USA.
 // Option flags for OOExpandDescriptionString().
 enum
 {
-	kOOExpandForJavaScript		= 0x00000001,
-	kOOExpandBackslashN			= 0x00000002,
-	kOOExpandGoodRNG			= 0x00000004,
-	kOOExpandKey				= 0x00000008,	// Treat string as a key. Expand(@"foo", kOOExpandKey) == Expand(@"[foo]", kOOExpandNoOptions).
+	kOOExpandForJavaScript		= 0x00000001,	/// Report warnings through JavaScript runtime system instead of normal logging.
+	kOOExpandBackslashN			= 0x00000002,	/// Convert literal "\\n"s to line breaks (used for missiontext.plist for historical reasons).
+	kOOExpandGoodRNG			= 0x00000004,	/// Use RANDROT for selecting from description arrays and for %N expansion.
+	kOOExpandReseedRNG			= 0x00000008,	/// Set "really random" seeds while expanding.
+	kOOExpandKey				= 0x00000010,	/// Treat string as a key. Expand(@"foo", kOOExpandKey) == Expand(@"[foo]", kOOExpandNoOptions).
 
 	kOOExpandNoOptions			= 0
 };
@@ -104,34 +105,6 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 
 
 /*
-	OOExpandWithSeed(string, seed, systemName)
-	
-	Expand string with a specified system seed.
-	
-	Equivalent to OOExpandDescriptionString(<string>, <seed>, nil, nil, <systemName>, kOOExpandNoOptions);
-*/
-NSString *OOExpandWithSeed(NSString *string, Random_Seed seed, NSString *systemName);
-
-
-/*
-	OOExpandKeyWithSeed(key, seed, systemName)
- 
-	Expand a string as though it was surrounded by brackets.
-	OOExpandKeyWithSeed(@"foo", ...) is equivalent to
-	OOExpandWithSeed(@"[foo]", ...).
-*/
-NSString *OOExpandKeyWithSeed(NSString *key, Random_Seed seed, NSString *systemName);
-
-
-/*
-	OOExpandKeyRandomized(key)
-	
-	Like OOExpandKey(), but uses a random-er random seed to avoid repeatability.
-*/
-NSString *OOExpandKeyRandomized(NSString *key);
-
-
-/*
 	OOGenerateSystemDescription(seed, name)
 	
 	Generates the default system description for the specified system seed.
@@ -153,13 +126,20 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 	Expand a string as though it were surrounded by brackets;
 	OOExpandKey(@"foo", ...) is equivalent to OOExpand(@"[foo]", ...).
 */
-#define OOExpandKey(string, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey, string, __VA_ARGS__)
+#define OOExpandKey(key, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey, key, __VA_ARGS__)
+
+/**
+	Like OOExpandKey(), but uses a random-er random seed to avoid repeatability.
+ */
+#define OOExpandKeyRandomized(key, ...) OOExpandFancyWithOptions([UNIVERSE systemSeed], nil, kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
+
+#define OOExpandWithSeed(string, seed, systemName, ...) OOExpandFancyWithOptions(seed, systemName, 0, string, __VA_ARGS__)
+
+#define OOExpandKeyWithSeed(key, seed, systemName, ...) OOExpandFancyWithOptions(seed, systemName, kOOExpandKey, key, __VA_ARGS__)
 
 
 #define OOExpandFancyWithOptions(seed, systemName, options, string, ...) \
 	OOExpandDescriptionString(string, seed, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, systemName, options)
-
-#define OOExpandFancyWithSeed(seed, systemName, string, ...) OOExpandFancyWithOptions(seed, systemName, kOOExpandNoOptions, string, __VA_ARGS__)
 
 
 // MARK: Danger zone! Everything beyond this point is scary.

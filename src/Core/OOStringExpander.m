@@ -168,6 +168,13 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 		.useGoodRNG = options & kOOExpandGoodRNG,
 	};
 	
+	OORandomState savedRandomState;
+	if (options & kOOExpandReseedRNG)
+	{
+		savedRandomState = OOSaveRandomState();
+		OOSetReallyRandomRANROTAndRndSeeds();
+	}
+	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSString *result = nil, *intermediate = nil;
 	@try
@@ -201,35 +208,14 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 		[context.systemDescriptions release];
 	}
 	
+	if (options & kOOExpandReseedRNG)
+	{
+		OORestoreRandomState(savedRandomState);
+	}
+	
 	result = [result copy];
 	[pool release];
 	return [result autorelease];
-}
-
-
-NSString *OOExpandKeyWithSeed(NSString *key, Random_Seed seed, NSString *systemName)
-{
-	return OOExpandDescriptionString(key, seed, nil, nil, systemName, kOOExpandKey);
-}
-
-
-NSString *OOExpandWithSeed(NSString *text, Random_Seed seed, NSString *name)
-{
-	return OOExpandDescriptionString(text, seed, nil, nil, name, kOOExpandNoOptions);
-}
-
-
-NSString *OOExpandKeyRandomized(NSString *key)
-{
-	OORandomState savedRandomState = OOSaveRandomState();
-	OOSetReallyRandomRANROTAndRndSeeds();
-	
-	// N.b.: the systemSeed is used only to retrieve the system name, not for actual randomness.
-	NSString *result = OOExpandDescriptionString(key, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandKey);
-	
-	OORestoreRandomState(savedRandomState);
-	
-	return result;
 }
 
 
