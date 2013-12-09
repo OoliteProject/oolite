@@ -237,7 +237,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:start_row - 1];
 			[gui setColor:[OOColor greenColor] forRow:start_row - 1];
-			[gui setKey:[NSString stringWithFormat:@"__page:%lu",page-1] forRow:start_row - 1];
+			[gui setKey:[NSString stringWithFormat:@"__page:%i",page-1] forRow:start_row - 1];
 		}
 
 		[self setShowDemoShips:NO];
@@ -254,7 +254,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		{
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
 			[gui setColor:[OOColor greenColor] forRow:row];
-			[gui setKey:[NSString stringWithFormat:@"__page:%lu",page+1] forRow:row];
+			[gui setKey:[NSString stringWithFormat:@"__page:%i",page+1] forRow:row];
 			++row;
 		}
 		
