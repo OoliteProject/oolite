@@ -391,7 +391,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	{
 		int guiSelectedRow=[gui selectedRow];
 		idx=(guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
-		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
+		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW && guiSelectedRow != EXITROW)
 		{
 			[self showCommanderShip: idx];
 		}
