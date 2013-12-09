@@ -335,6 +335,10 @@ static GameController *sSharedController = nil;
 		}
 		
 		[UNIVERSE update:delta_t];
+		if (EXPECT_NOT([PLAYER status] == STATUS_RESTART_GAME))
+		{
+			[UNIVERSE reinitAndShowDemo:YES];
+		}
 		if (!gameIsPaused)
 		{
 			[OOSound update];

@@ -5750,7 +5750,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (scenarioKey != nil && [key isEqualToString:scenarioKey])
 	{
-		[UNIVERSE reinitAndShowDemo:YES];
+		[self setStatus:STATUS_RESTART_GAME];
 		return YES;
 	}
 	return NO;
@@ -10387,6 +10387,7 @@ else _dockTarget = NO_TARGET;
         case STATUS_START_GAME:
             isDockedStatus = YES;
             break;   
+		case STATUS_RESTART_GAME:
 		case STATUS_EFFECT:
 		case STATUS_ACTIVE:
 		case STATUS_COCKPIT_DISPLAY:
