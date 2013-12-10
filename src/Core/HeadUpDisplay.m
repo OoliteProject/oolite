@@ -3857,8 +3857,14 @@ static GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat sca
 		return scale;
 	if (zoom <= 1.0)
 		return scale * x;
-	zoom = pow(2,zoom-1.0);
-	return scale * (zoom*x - (zoom-1)*pow(x,zoom/(zoom-1.0)));
+	GLfloat c = 1 / ( zoom - 1 );
+	GLfloat b = c * ( c + 1 );
+	GLfloat a = c + 1;
+	return scale * ( a - b / ( x + c ) );
+//	GLfloat a = 1.0/(2.0*zoom-1.0);
+//	return scale * (pow(((1-a*a)*(zoom*x-(zoom-1)*pow(x,zoom/(zoom-1.0)))+a*a),0.5)-a)/(1-a);
+//	zoom = pow(2,zoom-1.0);
+//	return scale * (zoom*x - (zoom-1)*pow(x,zoom/(zoom-1.0)));
 }
 
 
