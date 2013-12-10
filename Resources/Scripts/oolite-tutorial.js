@@ -74,8 +74,10 @@ this.startUp = function()
 		system.setPopulator("oolite-tutorial-station",
 						{
 							priority: 5,
-							location: "OUTER_SYSTEM_OFFPLANE",
-							locationSeed: 600,
+/*							location: "OUTER_SYSTEM_OFFPLANE",
+							locationSeed: 600, */
+							location: "COORDINATES",
+							coordinates: new Vector3D(-1294672.125,-7577498,3605521.5),
 							callback: addTutorialStation,
 							deterministic: true
 						});
