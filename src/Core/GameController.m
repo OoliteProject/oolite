@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOOpenALController.h"
 #import "OODebugSupport.h"
+#import "legacy_random.h"
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
@@ -89,6 +90,10 @@ static GameController *sSharedController = nil;
 	{
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
 		delta_t = 0.01; // one hundredth of a second
+
+		// rather than seeding this with the date repeatedly, seed it
+		// once here at startup
+		ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 		
 		_splashStart = [[NSDate alloc] init];
 	}

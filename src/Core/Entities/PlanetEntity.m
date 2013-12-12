@@ -1363,6 +1363,8 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 
 - (void) initialiseBaseTerrainArray:(int) percent_land
 {
+	RANROTSeed saved_seed = RANROTGetFullSeed();
+
 	// set first 12 or 14 vertices
 	if (percent_land >= 0)
 	{
@@ -1398,9 +1400,9 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 				base_terrain_array[v01] = base_terrain_array[v0];
 			else
 			{
-				int s1 = 0xffff0000 * base_vertex_array[v01].x;
-				int s2 = 0x00ffff00 * base_vertex_array[v01].y;
-				int s3 = 0x0000ffff * base_vertex_array[v01].z;
+				uint32_t s1 = 0xffff0000 * base_vertex_array[v01].x;
+				uint32_t s2 = 0x00ffff00 * base_vertex_array[v01].y;
+				uint32_t s3 = 0x0000ffff * base_vertex_array[v01].z;
 				ranrot_srand(s1+s2+s3);
 				base_terrain_array[v01] = (ranrot_rand() & 4) *25;
 			}
@@ -1409,9 +1411,9 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 				base_terrain_array[v12] = base_terrain_array[v1];
 			else
 			{
-				int s1 = 0xffff0000 * base_vertex_array[v12].x;
-				int s2 = 0x00ffff00 * base_vertex_array[v12].y;
-				int s3 = 0x0000ffff * base_vertex_array[v12].z;
+				uint32_t s1 = 0xffff0000 * base_vertex_array[v12].x;
+				uint32_t s2 = 0x00ffff00 * base_vertex_array[v12].y;
+				uint32_t s3 = 0x0000ffff * base_vertex_array[v12].z;
 				ranrot_srand(s1+s2+s3);
 				base_terrain_array[v12] = (ranrot_rand() & 4) *25;
 			}
@@ -1420,19 +1422,22 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 				base_terrain_array[v20] = base_terrain_array[v2];
 			else
 			{
-				int s1 = 0xffff0000 * base_vertex_array[v20].x;
-				int s2 = 0x00ffff00 * base_vertex_array[v20].y;
-				int s3 = 0x0000ffff * base_vertex_array[v20].z;
+				uint32_t s1 = 0xffff0000 * base_vertex_array[v20].x;
+				uint32_t s2 = 0x00ffff00 * base_vertex_array[v20].y;
+				uint32_t s3 = 0x0000ffff * base_vertex_array[v20].z;
 				ranrot_srand(s1+s2+s3);
 				base_terrain_array[v20] = (ranrot_rand() & 4) *25;
 			}
 		}
 	}
+
+	RANROTSetFullSeed(saved_seed);
 }
 
 
 - (void) paintVertex:(unsigned) vi :(int) seed
 {
+	RANROTSeed saved_seed = RANROTGetFullSeed();
 	BOOL isTextured = _texture != nil;
 	
 	GLfloat paint_land[4] = { 0.2, 0.9, 0.0, 1.0};
@@ -1457,7 +1462,7 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 		paint_sea[3] = (1.0 - pole_blend)*amb_sea[3] + pole_blend*amb_polar_sea[3];
 	}
 	
-	ranrot_srand(seed+v.x*1000+v.y*100+v.z*10);
+	ranrot_srand((uint32_t)(seed+v.x*1000+v.y*100+v.z*10));
 	
 	for (i = 0; i < 3; i++)
 	{
@@ -1475,6 +1480,8 @@ static unsigned baseVertexIndexForEdge(GLushort va, GLushort vb, BOOL textured)
 		// finally initialise the color array entry
 		vertexdata.color_array[vi*4 + i] = paint_color[i];
 	}
+
+	RANROTSetFullSeed(saved_seed);
 }
 
 

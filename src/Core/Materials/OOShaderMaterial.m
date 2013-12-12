@@ -489,7 +489,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	OOUniformConvertOptions	convertOptions;
 	BOOL					quatAsMatrix = YES;
 	GLfloat					scale = 1.0;
-	unsigned				randomSeed;
+	uint32_t				randomSeed;
 	RANROTSeed				savedSeed;
 	NSArray					*keys = nil;
 	
@@ -499,7 +499,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	}
 	else
 	{
-		randomSeed = (unsigned int)(uintptr_t)self;
+		randomSeed = (uint32_t)(uintptr_t)self;
 	}
 	savedSeed = RANROTGetFullSeed();
 	ranrot_srand(randomSeed);

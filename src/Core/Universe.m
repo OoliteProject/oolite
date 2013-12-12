@@ -615,7 +615,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		
 		[self allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
 
-		ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 		[player setRandom_factor:(ranrot_rand() & 255)];						// random factor for market values is reset
 
 // misjump on wormhole sets correct travel time if needed
@@ -858,7 +857,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[thing release];
 	
 	[self setLighting];	// also sets initial lights positions.
-	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
 	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
 	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
@@ -1207,7 +1205,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	cachedPlanet = a_planet;
 	cachedStation = a_station;
 	closeSystems = nil;
-	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	OO_DEBUG_POP_PROGRESS();
 	
 	
@@ -1320,7 +1317,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	NSEnumerator *enumerator = [[blocks sortedArrayUsingFunction:populatorPrioritySort context:nil] objectEnumerator];
 	NSDictionary *populator = nil;
 	HPVector location = kZeroHPVector;
-	unsigned i, locationSeed, groupCount, rndvalue;
+	uint32_t i, locationSeed, groupCount, rndvalue;
 	RANROTSeed rndcache = RANROTGetFullSeed();
 	RANROTSeed rndlocal = RANROTGetFullSeed();
 	NSString *locationCode = nil;
@@ -8430,6 +8427,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 - (NSArray *) shipsForSaleForSystem:(Random_Seed)s_seed withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time
 {
+	RANROTSeed saved_seed = RANROTGetFullSeed();
 	Random_Seed ship_seed = [self marketSeed];
 	
 	NSMutableDictionary		*resultDictionary = [NSMutableDictionary dictionary];
@@ -8521,7 +8519,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		
 		// seed random number generator
 		int super_rand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
-		int super_rand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
+		uint32_t super_rand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
 		ranrot_srand(super_rand2);
 		
 		NSDictionary* ship_base_dict = nil;
@@ -8865,6 +8863,8 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		}
 	}
 	
+	RANROTSetFullSeed(saved_seed);
+
 	return [NSArray arrayWithArray:resultArray];
 }
 

@@ -8862,7 +8862,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (unsigned) randomSeedForShaders
+- (uint32_t) randomSeedForShaders
 {
 	return entity_personality * 0x00010001;
 }

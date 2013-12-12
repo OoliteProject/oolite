@@ -913,12 +913,8 @@ static int shipsFound;
 }
 
 
-static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSNumber *) d100_number
 {
-	if (scriptRandomSeed == -1)	scriptRandomSeed = floor(1301 * ship_clock);	// stop predictable sequences
-	ranrot_srand(scriptRandomSeed);
-	scriptRandomSeed = ranrot_rand();
 	int d100 = ranrot_rand() % 100;
 	return [NSNumber numberWithInt:d100];
 }
@@ -932,9 +928,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) d256_number
 {
-	if (scriptRandomSeed == -1)	scriptRandomSeed = floor(1301 * ship_clock);	// stop predictable sequences
-	ranrot_srand(scriptRandomSeed);
-	scriptRandomSeed = ranrot_rand();
 	int d256 = ranrot_rand() % 256;
 	return [NSNumber numberWithInt:d256];
 }

@@ -68,7 +68,8 @@ enum
 {
 	int vi;
 	
-	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+// this should be unnecessary
+//	ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	
 	self = [super init];
 	

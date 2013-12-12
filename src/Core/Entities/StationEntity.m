@@ -275,13 +275,13 @@
 
 - (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed) s_seed andRandomFactor:(int) random_factor
 {
-	int tmp_seed = ranrot_rand();
+	RANROTSeed seed = RANROTGetFullSeed();
 	int rf = (random_factor ^ universalID) & 0xff;
 	int economy = [[UNIVERSE generateSystemData:s_seed] oo_intForKey:KEY_ECONOMY];
 	if (localMarket)
 		[localMarket release];
 	localMarket = [[NSMutableArray alloc] initWithArray:[UNIVERSE commodityDataForEconomy:economy andStation:self andRandomFactor:rf]];
-	ranrot_srand(tmp_seed);
+	RANROTSetFullSeed(seed);
 	return localMarket;
 }
 

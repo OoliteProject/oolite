@@ -110,7 +110,7 @@ unsigned RanrotWithSeed(RANROTSeed *ioSeed)
 }
 
 
-RANROTSeed MakeRanrotSeed(unsigned seed)
+RANROTSeed MakeRanrotSeed(uint32_t seed)
 {
 	RANROTSeed result =
 	{
@@ -147,7 +147,7 @@ RANROTSeed RanrotSeedFromRandomSeed(Random_Seed seed)
 }
 
 
-void ranrot_srand(unsigned int seed)
+void ranrot_srand(uint32_t seed)
 {
 	sRANROT = MakeRanrotSeed(seed);
 }

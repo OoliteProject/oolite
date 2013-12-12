@@ -73,7 +73,7 @@ double cunningFee(double value, double precision); // precision is the fraction 
 
 // an implementation of RANROT
 // pseudo random number generator
-void ranrot_srand(unsigned seed);
+void ranrot_srand(uint32_t seed);
 unsigned Ranrot(void);
 #define ranrot_rand() ((int)Ranrot())	// Some uses perform arithmetic that does weird things if result is unsigned -- DustEntity.m, for instance.
 float randf(void);
@@ -82,7 +82,7 @@ float bellf(int n);
 RANROTSeed RANROTGetFullSeed(void);
 void RANROTSetFullSeed(RANROTSeed seed);
 
-RANROTSeed MakeRanrotSeed(unsigned seed);
+RANROTSeed MakeRanrotSeed(uint32_t seed);
 RANROTSeed RanrotSeedFromRNGSeed(RNG_Seed seed);
 RANROTSeed RanrotSeedFromRandomSeed(Random_Seed seed);
 
