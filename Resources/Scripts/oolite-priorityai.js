@@ -2036,7 +2036,7 @@ PriorityAIController.prototype.conditionScannerContainsFineableOffender = functi
 PriorityAIController.prototype.conditionScannerContainsFugitive = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.isInSpace && s.bounty > 50 && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK"; 
+		return s.isInSpace && s.bounty > 50 && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK" && s.scanClass != "CLASS_BUOY"; 
 	});
 }
 
@@ -2044,7 +2044,7 @@ PriorityAIController.prototype.conditionScannerContainsHuntableOffender = functi
 {
 	return this.checkScannerWithPredicate(function(s) { 
 		var threshold = this.fineThreshold() / 2;
-		return s.isInSpace && s.bounty > threshold && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK"; 
+		return s.isInSpace && s.bounty > threshold && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK" && s.scanClass != "CLASS_BUOY"; 
 	});
 }
 
@@ -2053,7 +2053,7 @@ PriorityAIController.prototype.conditionScannerContainsSeriousOffender = functio
 {
 	return this.checkScannerWithPredicate(function(s) { 
 		var threshold = this.fineThreshold();
-		return s.isInSpace && s.bounty > threshold && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK"; 
+		return s.isInSpace && s.bounty > threshold && s.scanClass != "CLASS_CARGO" && s.scanClass != "CLASS_ROCK" && s.scanClass != "CLASS_BUOY"; 
 	});
 }
 
@@ -3657,8 +3657,9 @@ PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 		this.ship.removeDefenseTarget(target);
 		this.ship.target = null;
 	}
-	if (target && target.scanClass == "CLASS_CARGO")
+	if (target && (target.scanClass == "CLASS_CARGO" || target.scanClass == "CLASS_BUOY"))
 	{
+		this.ship.removeDefenseTarget(target);
 		this.ship.target = null;
 	}
 	/* Iff the ship does not currently have a target, select a new one
