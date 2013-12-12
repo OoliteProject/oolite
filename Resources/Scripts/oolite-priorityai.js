@@ -3017,7 +3017,9 @@ PriorityAIController.prototype.behaviourFollowCurrentTarget = function()
 	{
 		var rt = this.getParameter("oolite_rememberedTarget");
 	}
-
+	if (!rt) {
+		return;
+	}
 	this.ship.destination = rt.position;
 
 	if (rt.status == "STATUS_ENTERING_WITCHSPACE")
