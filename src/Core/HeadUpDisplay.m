@@ -299,6 +299,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
 	
 	nonlinear_scanner = [hudinfo oo_boolForKey:@"nonlinear_scanner" defaultValue:NO];
+	ultra_zoom = [hudinfo oo_boolForKey:@"ultra_zoom" defaultValue:NO];
 	
 	return self;
 }
@@ -1185,10 +1186,13 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	
 	int				scannerFootprint = SCANNER_MAX_RANGE * 2.5 / siz.width;
 	
+	GLfloat			zoom = scanner_zoom;
+	if (ultra_zoom)
+		zoom = pow(2, zoom - 1.0);
 	GLfloat			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0;
 	if (!nonlinear_scanner)
 	{
-		max_zoomed_range2 /= scanner_zoom * scanner_zoom;
+		max_zoomed_range2 /= zoom * zoom;
 	}
 	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
 	
@@ -1212,12 +1216,12 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (!emptyDial)
 	{
 		OOGL(glColor4fv(scanner_color));
-		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, scanner_zoom, nonlinear_scanner);
+		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, zoom, nonlinear_scanner);
 	}
 	
 	if ([self checkPlayerInFlight])
 	{
-		GLfloat upscale = scanner_zoom * 1.25 / scannerFootprint;
+		GLfloat upscale = zoom * 1.25 / scannerFootprint;
 		GLfloat max_blip = 0.0;
 		int drawClass;
 		
@@ -1277,7 +1281,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				// scale the view
 				if (nonlinear_scanner)
 				{
-					relativePosition = [HeadUpDisplay nonlinearScannerScale: relativePosition Zoom: scanner_zoom Scale: 0.5*siz.width];
+					relativePosition = [HeadUpDisplay nonlinearScannerScale: relativePosition Zoom: zoom Scale: 0.5*siz.width];
 				}
 				else
 				{
@@ -1338,13 +1342,13 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				{
 					// Debugging code for nonlinear scanner - draws a cascade weapon sphere around ships, which looks pretty and enables me
 					// to debug the code without the mass slaughter of innocent civillians.
-					//if (nonlinear_scanner)
-					//{
-					//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, 10*scannedEntity->collision_radius, scanner_zoom, alpha );
-					//}
+					if (nonlinear_scanner)
+					{
+						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, 10*scannedEntity->collision_radius, zoom, alpha );
+					}
 					ShipEntity* ship = (ShipEntity*)scannedEntity;
 					if ((!nonlinear_scanner && ship->collision_radius * upscale > 4.5) ||
-						(nonlinear_scanner && nonlinearScannerFunc(act_dist, scanner_zoom, siz.width) - nonlinearScannerFunc(lim_dist, scanner_zoom, siz.width) > 4.5 ))
+						(nonlinear_scanner && nonlinearScannerFunc(act_dist, zoom, siz.width) - nonlinearScannerFunc(lim_dist, zoom, siz.width) > 4.5 ))
 					{
 						Vector bounds[6];
 						BoundingBox bb = ship->totalBoundingBox;
@@ -1361,7 +1365,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 							bounds[i] = OOVectorMultiplyMatrix(vector_add(bounds[i], rp), rotMatrix);
 							if (nonlinear_scanner)
 							{
-								bounds[i] = [HeadUpDisplay nonlinearScannerScale:bounds[i] Zoom: scanner_zoom Scale: 0.5*siz.width];
+								bounds[i] = [HeadUpDisplay nonlinearScannerScale:bounds[i] Zoom: zoom Scale: 0.5*siz.width];
 							}
 							else
 							{
@@ -1391,7 +1395,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				{
 					if (nonlinear_scanner)
 					{
-						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, scannedEntity->collision_radius, scanner_zoom, alpha );
+						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, scannedEntity->collision_radius, zoom, alpha );
 					}
 					else
 					{
@@ -1472,6 +1476,18 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 }
 
 
+- (BOOL) ultraZoom
+{
+	return ultra_zoom;
+}
+
+
+- (void) setUltraZoom: (BOOL) newValue
+{
+	ultra_zoom = !!newValue;
+}
+
+
 - (void) refreshLastTransmitter
 {
 	Entity* lt = [UNIVERSE entityForUniversalID:last_transmitter];
@@ -1509,12 +1525,16 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
 	if (zl == 1) zoom_color[3] *= 0.75;
+	if (ultra_zoom)
+		zl = pow(2, zl - 1);
 	GLColorWithOverallAlpha(zoom_color, alpha);
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
 	OOGLBEGIN(GL_QUADS);
-		drawCharacterQuad(48 + zl, cx - 0.4 * siz.width, cy, z1, siz);
+		if (zl / 10 > 0)
+			drawCharacterQuad(48 + zl / 10, cx - 0.8 * siz.width, cy, z1, siz);
+		drawCharacterQuad(48 + zl % 10, cx - 0.4 * siz.width, cy, z1, siz);
 		drawCharacterQuad(58, cx, cy, z1, siz);
 		drawCharacterQuad(49, cx + 0.3 * siz.width, cy, z1, siz);
 	OOGLEND();
@@ -3861,10 +3881,6 @@ static GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat sca
 	GLfloat b = c * ( c + 1 );
 	GLfloat a = c + 1;
 	return scale * ( a - b / ( x + c ) );
-//	GLfloat a = 1.0/(2.0*zoom-1.0);
-//	return scale * (pow(((1-a*a)*(zoom*x-(zoom-1)*pow(x,zoom/(zoom-1.0)))+a*a),0.5)-a)/(1-a);
-//	zoom = pow(2,zoom-1.0);
-//	return scale * (zoom*x - (zoom-1)*pow(x,zoom/(zoom-1.0)));
 }
 
 
@@ -3920,7 +3936,7 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 				{
 					w1 = wdiv*2;
 					drawdiv = drawdiv5;
-					if (nonlinearScannerFunc((i+4)*1000,zoom,hh) - nonlinearScannerFunc((i+3)*1000.0,zoom,hh)>2)
+					if (nonlinearScannerFunc((i+1)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
 					{
 						drawdiv1 = YES;
 					}

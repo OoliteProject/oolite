@@ -267,6 +267,7 @@ MA 02110-1301, USA.
 	
 	// Nonlinear scanner
 	BOOL			nonlinear_scanner;
+	BOOL			ultra_zoom;
 
 }
 
@@ -321,6 +322,9 @@ MA 02110-1301, USA.
 + (Vector) nonlinearScannerScale:(Vector) V Zoom:(GLfloat) zoom Scale:(double) scale;
 - (BOOL) nonlinearScanner;
 - (void) setNonlinearScanner: (BOOL)newValue;
+
+- (BOOL) ultraZoom;
+- (void) setUltraZoom: (BOOL)newValue;
 
 @end
 

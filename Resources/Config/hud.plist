@@ -363,4 +363,5 @@
 	reticle_target_sensitive = no;
 	cloak_indicator_on_status_light = yes;
 	nonlinear_scanner = yes;
+	ultra_zoom = yes;
 }
