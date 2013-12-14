@@ -688,6 +688,49 @@ this.startUp = function()
 					this._nextItem();
 				}
 			}
+			else if (Math.random() < delta)
+			{
+				var boulders = system.shipsWithPrimaryRole("boulder",player.ship,10000);
+				if (boulders.length > 1)
+				{
+					boulders[0].explode();
+					if (boulders.length > 5)
+					{
+						boulders[2].explode();
+						boulders[1].explode();
+					}
+				}
+				var splinters = system.shipsWithPrimaryRole("splinter",player.ship,10000);
+				if (splinters.length > 1)
+				{
+					splinters[0].explode();
+					if (splinters.length > 5)
+					{
+						splinters[2].explode();
+						splinters[1].explode();
+					}
+				}
+				if (buoy.position.distanceTo(player.ship) > 5000)
+				{
+					player.consoleMessage(expandMissionText("oolite-tutorial-3-3-toofar"),5);
+					missionVariables.oolite_tutorial_asteroids = Math.floor(time);
+					this._nextItem();
+				}
+			}
+
+			if (time > 150)
+			{
+				player.consoleMessage(expandMissionText("oolite-tutorial-3-3-win"),5);
+				missionVariables.oolite_tutorial_asteroids = Math.floor(time);
+				this._nextItem();
+			}
+		});
+	}
+
+	this.__stage3sub4 = function()
+	{
+		this._setFrameCallback(function(delta)
+	    {
 			if (Math.random() < delta)
 			{
 				var boulders = system.shipsWithPrimaryRole("boulder",player.ship,10000);
@@ -711,19 +754,7 @@ this.startUp = function()
 					}
 				}
 			}
-
-			if (time > 150)
-			{
-				player.consoleMessage(expandMissionText("oolite-tutorial-3-3-win"),5);
-				missionVariables.oolite_tutorial_asteroids = Math.floor(time);
-				this._nextItem();
-			}
 		});
-	}
-
-	this.__stage3sub4 = function()
-	{
-		this._setFrameCallback("");
 		if (missionVariables.oolite_tutorial_asteroids >= 150)
 		{
 			if (missionVariables.oolite_tutorial_asteroids_win >= 1)
@@ -745,6 +776,7 @@ this.startUp = function()
 
 	this.__stage3sub5 = function()
 	{
+		this._setFrameCallback("");
 		this.$tutorialStage--;
 		this._nextSection();
 	}
@@ -774,7 +806,9 @@ this.startUp = function()
 		{
 			rocks[i].remove();
 		}
-		//...
+		//... move this line to later when there are more sections
+		this._setInstructions("oolite-tutorial-end-mfd");
+
 	}
 
 	this._endTutorial = function()
