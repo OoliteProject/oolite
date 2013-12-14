@@ -993,8 +993,11 @@
 		is_template = 1;
 		beacon = "Buoy (training)";
 		beacon_label = "Training Buoy";
+		density = 10000;
+		max_energy = 100000;
 		name = "Training Buoy";
 		roles = "oolite-tutorial-buoy";
+		thrust = 100000;
 	};
 	"oolite_template_buoy-witchpoint" = 
 	{

@@ -50,6 +50,8 @@ this.startUp = function()
 	this.$tutorialSound = new SoundSource;	
 	this.$tutorialSpeech = new SoundSource;
 
+	this.$fcb = null;
+
 	this.$tutorialStage = 0;
 	this.$tutorialSubstage = 0;
 
@@ -58,10 +60,16 @@ this.startUp = function()
 		3, // stage 0: mission screen, post-launch cleanup, intro message
 		25, // stage 1: HUD displays
 		11, // stage 2: scanner and views
-		1, // stage 3: basic flight (not yet started)
+		6, // stage 3: basic flight challenge
+		0, // stage 4: (not yet started)
 	];
 
 	this.$shipList = [];
+
+	missionVariables.oolite_tutorial_deaths = 0;
+	missionVariables.oolite_tutorial_asteroids = 0;
+	missionVariables.oolite_tutorial_asteroids_win = 0;
+	missionVariables.oolite_tutorial_asteroids_result = expandMissionText("oolite-tutorial-end-notry");
 
 	// alternative populator
 	this.ooliteTutorialWillPopulate = function()
@@ -74,8 +82,10 @@ this.startUp = function()
 		system.setPopulator("oolite-tutorial-station",
 						{
 							priority: 5,
-							location: "OUTER_SYSTEM_OFFPLANE",
-							locationSeed: 600,
+/*							location: "OUTER_SYSTEM_OFFPLANE",
+							locationSeed: 600, */
+							location: "COORDINATES",
+							coordinates: new Vector3D(-1294672.125,-7577498,3605521.5),
 							callback: addTutorialStation,
 							deterministic: true
 						});
@@ -113,6 +123,7 @@ this.startUp = function()
 	{
 		if (this.$tutorialStage == 0 && this.$tutorialSubstage == 1)
 		{	
+			station.position = station.position.add([0,0,1E7]);
 			station.remove();
 			this._nextItem();
 		}
@@ -129,6 +140,7 @@ this.startUp = function()
 			player.ship.dealEnergyDamage(1,10000,0);
 			this._playSound("bigbang.ogg");
 			player.consoleMessage(expandMissionText("oolite-tutorial-no-death"));
+			missionVariables.oolite_tutorial_deaths++;
 			this._nextItem(); // will call nextSection, which will reset energy
 		}
 	}
@@ -184,6 +196,20 @@ this.startUp = function()
 	}
 
 
+	this._setFrameCallback = function(fn)
+	{
+		if (this.$fcb)
+		{
+			removeFrameCallback(this.$fcb);
+			this.$fcb = null;
+		}
+		if (fn)
+		{
+			this.$fcb = addFrameCallback(fn.bind(this));
+		}
+	}
+
+
 	this._setInstructions = function(key) 
 	{
 		if (player.ship.multiFunctionDisplays == 0)
@@ -198,6 +224,21 @@ this.startUp = function()
 			this.$tutorialSpeech.sound = key+".ogg";
 			this.$tutorialSpeech.play();
 		}
+	}
+
+	this._scoreTry = function(key)
+	{
+		missionVariables["oolite_tutorial_"+key] = expandMissionText("oolite-tutorial-end-try");
+	}
+
+	this._scoreWin = function(key)
+	{
+		missionVariables["oolite_tutorial_"+key] = expandMissionText("oolite-tutorial-end-win");
+	}
+
+	this._scoreBonus = function(key)
+	{
+		missionVariables["oolite_tutorial_"+key] = expandMissionText("oolite-tutorial-end-bonus");
 	}
 
 
@@ -277,6 +318,7 @@ this.startUp = function()
 			player.ship.awardEquipment("EQ_MISSILE");
 		}
 		this._resetHUDItems();
+		this._setFrameCallback(null);
 		player.ship.hudHidden = false;
 		for (i=this.$shipList.length-1;i>=0;i--)
 		{
@@ -285,6 +327,12 @@ this.startUp = function()
 				this.$shipList[i].remove();
 			}
 		}
+		var fc = addFrameCallback(function(delta)
+								  {
+									  player.ship.velocity = player.ship.thrustVector;
+									  removeFrameCallback(fc);
+								  });
+
 	}
 
 	this._addShips = function(role,num,pos,rad)
@@ -545,10 +593,189 @@ this.startUp = function()
 
 	this.__stage3sub0 = function()
 	{
+		// restart;
+		var rocks = system.entitiesWithScanClass("CLASS_ROCK");
+		for (var i=rocks.length-1;i>=0;--i)
+		{
+			rocks[i].remove();
+		}
+		rocks = system.entitiesWithScanClass("CLASS_CARGO");
+		for (i=rocks.length-1;i>=0;--i)
+		{
+			rocks[i].remove();
+		}
+		player.ship.forwardWeapon = "EQ_WEAPON_NONE";
+		for (i=0;i<3;i++) {
+			player.ship.removeEquipment("EQ_MISSILE");
+		}
 		this._setInstructions("oolite-tutorial-3-0");
 	}
 
+	this.__stage3sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-3-1");
+	}
 
+	this.__stage3sub2 = function()
+	{
+		var centre = player.ship.position;
+		centre.z += 15000;
+		var buoy = this._addShips("oolite-tutorial-buoy",1,centre,0)[0];
+		this._addShips("asteroid",50,centre,7500);
+		this._setInstructions("oolite-tutorial-3-2");
+		this._setFrameCallback(function()
+		{
+			if (player.ship.speed < 1 && centre.distanceTo(player.ship) <= 500)
+			{
+				this._nextItem();
+			}
+		});
+	}
+
+	this.__stage3sub3 = function()
+	{
+		var buoy = system.shipsWithPrimaryRole("oolite-tutorial-buoy")[0];
+		if (!buoy)
+		{
+			buoy = this._addShips("oolite-tutorial-buoy",1,player.ship.position.add([0,0,500]),0)[0];
+		}
+		if (player.ship.speed > 1 || buoy.position.distanceTo(player.ship) > 500)
+		{
+			player.consoleMessage(expandMissionText("oolite-tutorial-3-3-error"));
+			this._setInstructions("oolite-tutorial-3-2");
+			--this.$tutorialSubstage;
+			return;
+		}
+
+		this._setInstructions("oolite-tutorial-3-3");
+		var time = 0;
+		var nexttime = 5;
+		var atonce = 1;
+		buoy.script.shipTakingDamage = function(amount,whom,type)
+		{
+			buoy.energy = 100000;
+			if (!whom.isPlayer)
+			{
+				whom.explode();
+			}
+		};
+		this._setFrameCallback(function(delta)
+		{
+			time += delta;
+			if (time > nexttime)
+			{
+				nexttime += 15;
+				var asteroids = system.shipsWithPrimaryRole("asteroid",player.ship,10000);
+				for (var i=0;i<atonce;++i)
+				{
+					var asteroid = asteroids[Math.floor(Math.random()*asteroids.length)];
+					if (asteroid)
+					{
+						asteroid.velocity = player.ship.position.subtract(asteroid.position).direction().multiply(200+(20*atonce));
+						// not on the hard difficulty
+						if (missionVariables.oolite_tutorial_asteroids_win == 0)
+						{
+							asteroid.scannerDisplayColor1 = "whiteColor";
+							asteroid.scannerDisplayColor2 = "redColor";
+						}
+					}
+				}
+				++atonce;
+				if (buoy.position.distanceTo(player.ship) > 5000)
+				{
+					player.consoleMessage(expandMissionText("oolite-tutorial-3-3-toofar"),5);
+					missionVariables.oolite_tutorial_asteroids = Math.floor(time);
+					this._nextItem();
+				}
+			}
+			if (Math.random() < delta)
+			{
+				var boulders = system.shipsWithPrimaryRole("boulder",player.ship,10000);
+				if (boulders.length > 1)
+				{
+					boulders[0].explode();
+					if (boulders.length > 5)
+					{
+						boulders[2].explode();
+						boulders[1].explode();
+					}
+				}
+				var splinters = system.shipsWithPrimaryRole("splinter",player.ship,10000);
+				if (splinters.length > 1)
+				{
+					splinters[0].explode();
+					if (splinters.length > 5)
+					{
+						splinters[2].explode();
+						splinters[1].explode();
+					}
+				}
+			}
+
+			if (time > 150)
+			{
+				player.consoleMessage(expandMissionText("oolite-tutorial-3-3-win"),5);
+				missionVariables.oolite_tutorial_asteroids = Math.floor(time);
+				this._nextItem();
+			}
+		});
+	}
+
+	this.__stage3sub4 = function()
+	{
+		this._setFrameCallback("");
+		if (missionVariables.oolite_tutorial_asteroids >= 150)
+		{
+			if (missionVariables.oolite_tutorial_asteroids_win >= 1)
+			{
+				missionVariables.oolite_tutorial_asteroids_win = 2;
+				this._setInstructions("oolite-tutorial-3-4b");
+			}
+			else 
+			{
+				this._setInstructions("oolite-tutorial-3-4a");
+				missionVariables.oolite_tutorial_asteroids_win = 1;
+			}
+		}
+		else
+		{
+			this._setInstructions("oolite-tutorial-3-4");
+		}
+	}
+
+	this.__stage3sub5 = function()
+	{
+		this.$tutorialStage--;
+		this._nextSection();
+	}
+
+
+	this.__stage4sub0 = function()
+	{
+		if (missionVariables.oolite_tutorial_asteroids_win == 1)
+		{
+			this._scoreWin("asteroids_result");
+		}
+		else if (missionVariables.oolite_tutorial_asteroids_win >= 2)
+		{
+			this._scoreBonus("asteroids_result");
+		}
+		else if (missionVariables.oolite_tutorial_asteroids > 0)
+		{
+			this._scoreTry("asteroids_result");
+		}
+		var rocks = system.entitiesWithScanClass("CLASS_ROCK");
+		for (var i=rocks.length-1;i>=0;--i)
+		{
+			rocks[i].remove();
+		}
+		rocks = system.entitiesWithScanClass("CLASS_CARGO");
+		for (i=rocks.length-1;i>=0;--i)
+		{
+			rocks[i].remove();
+		}
+		//...
+	}
 
 	this._endTutorial = function()
 	{

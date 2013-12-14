@@ -270,11 +270,35 @@
 
 	"oolite-tutorial-2-10" = "View controls: 2/x\nYour ship can also simulate an external view for you. Press '[oolite_key_custom_view]' to switch to external view mode and to cycle through the available external views. Any of the internal view keys will return you to internal viewing.";
 
-	"oolite-tutorial-3-0" = "Lesson 3: Flight Training\nThis lesson gives you opportunity to practice basic piloting skills in a relatively safe environment.";
+	"oolite-tutorial-3-0" = "Lesson 3: Flight Training\nThis lesson gives you opportunity to practice basic piloting skills. Your ship has been disarmed temporarily to focus on movement over weapon use.";
+	
+	"oolite-tutorial-3-1" = "To refresh your memory, the basic flight controls are:\n[oolite_key_roll_left]: roll left\n[oolite_key_roll_right]: roll right\n[oolite_key_pitch_forward]: pitch forward\n[oolite_key_pitch_back]: pitch back\n[oolite_key_increase_speed]: increase speed\n[oolite_key_decrease_speed]: decrease speed";
 
+	"oolite-tutorial-3-2" = "We have added a dense asteroid cluster nearby. Use your scanner to locate the buoy within it, then fly within 500m of the buoy and come to a complete stop.";
+
+	"oolite-tutorial-3-3-error" = "To continue, come to a stop near the buoy.";
+
+	"oolite-tutorial-3-3" = "Some of the asteroids will now start moving towards you. Staying within 5000m of the buoy, use your scanner to spot the moving asteroids, and the movement controls to avoid them.\nTo help you, the asteroids will be highlighted red on your scanner. Keep moving!\nIf it gets too much, just fly further from the buoy.";
+
+	"oolite-tutorial-3-3-toofar" = "You moved too far from the buoy";
+
+	"oolite-tutorial-3-3-win" = "That's enough practice for now";
+	
+	"oolite-tutorial-3-4" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, press '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_mode_equipment]' to go to the next stage of the course.\nTip: use the '[key_scanner_zoom]' key to magnify your scanner.";
+
+	"oolite-tutorial-3-4a" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, this time without the scanner highlighting, press '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_mode_equipment]' to go to the next stage of the course.";
+
+	"oolite-tutorial-3-4b" = "You survived [mission_oolite_tutorial_asteroids] seconds without scanner assistance.\nIt's probably time to press '[oolite_key_mode_equipment]' to go to the next stage of the course, but you can have another go with '[oolite_key_activate_equipment]' if you want.";
+
+	"oolite-tutorial-4-0" = "Lesson 4: ???";
 
 	"oolite-tutorial-end-title" = "Course Complete";
-	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course.";
+	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course. Your scores:\n\nDeaths: [mission_oolite_tutorial_deaths]\n\nAsteroid navigation: [mission_oolite_tutorial_asteroids_result] ([mission_oolite_tutorial_asteroids] seconds)\n";
 	"oolite-tutorial-end-choices" = { "1" = "Exit Simulator"; };
+
+	"oolite-tutorial-end-notry" = "Incomplete";
+	"oolite-tutorial-end-try" = "Completed";
+	"oolite-tutorial-end-win" = "Gold qualification";
+	"oolite-tutorial-end-bonus" = "Platinum qualification";
 
 }

@@ -656,21 +656,24 @@ static BOOL _refreshStarChart = NO;
 	{
 		NSMutableArray	*words = ScanTokensFromString(line);
 		NSMutableString *accum = [NSMutableString stringWithCapacity:64];
-		while ([words count] > 1)
+		if ([words count] > 0)
 		{
-			[accum appendString:[words oo_stringAtIndex:0]];
-			[accum appendString:@" "];
-			if (OORectFromString(accum, 0.0f, 0.0f,chSize).size.width + OORectFromString([words oo_stringAtIndex:1], 0.0f, 0.0f,chSize).size.width > limit)
+			while ([words count] > 1)
 			{
-				// can't fit next word on this line
-				[output appendString:[accum stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
-				[output appendString:@"\n"];
-				[accum setString:@""];
+				[accum appendString:[words oo_stringAtIndex:0]];
+				[accum appendString:@" "];
+				if (OORectFromString(accum, 0.0f, 0.0f,chSize).size.width + OORectFromString([words oo_stringAtIndex:1], 0.0f, 0.0f,chSize).size.width > limit)
+				{
+					// can't fit next word on this line
+					[output appendString:[accum stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]];
+					[output appendString:@"\n"];
+					[accum setString:@""];
+				}
+				[words removeObjectAtIndex:0];
 			}
-			[words removeObjectAtIndex:0];
+			[output appendString:accum];
+			[output appendString:[words oo_stringAtIndex:0]];
 		}
-		[output appendString:accum];
-		[output appendString:[words oo_stringAtIndex:0]];
 		[output appendString:@"\n"];
 	}
 
