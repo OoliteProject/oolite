@@ -284,13 +284,13 @@
 
 	"oolite-tutorial-3-3-win" = "That's enough practice for now";
 	
-	"oolite-tutorial-3-4" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, press '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_mode_equipment]' to go to the next stage of the course.\nTip: use the '[key_scanner_zoom]' key to magnify your scanner.";
+	"oolite-tutorial-3-4" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, press '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_mode_equipment]' to go to the next stage of the course.\n\nTip: use the '[oolite_key_scanner_zoom]' key to magnify your scanner.";
 
 	"oolite-tutorial-3-4a" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, this time without the scanner highlighting, press '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_mode_equipment]' to go to the next stage of the course.";
 
 	"oolite-tutorial-3-4b" = "You survived [mission_oolite_tutorial_asteroids] seconds without scanner assistance.\nIt's probably time to press '[oolite_key_mode_equipment]' to go to the next stage of the course, but you can have another go with '[oolite_key_activate_equipment]' if you want.";
 
-	"oolite-tutorial-4-0" = "Lesson 4: ???";
+	"oolite-tutorial-end-mfd" = "You have completed the course. Press '[oolite_key_activate_equipment]' to view your test scores.";
 
 	"oolite-tutorial-end-title" = "Course Complete";
 	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course. Your scores:\n\nDeaths: [mission_oolite_tutorial_deaths]\n\nAsteroid navigation: [mission_oolite_tutorial_asteroids_result] ([mission_oolite_tutorial_asteroids] seconds)\n";
