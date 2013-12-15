@@ -1282,15 +1282,12 @@
 	"shipyard-total-available-with-trade-in" = "Total available: [total|dcr]. ([credits|dcr] Cash + [tradeIn|idcr] Trade.)";
 	"passenger-berth%0"				= "Passenger Berth";
 	"passenger-berth%1"				= "Passenger Berths";
-	"shipyard-extra-with-long-description"	= " Extra [shortDescription] ([longDescription])";
 	"extra-@-@-(passenger-berths)"			= " Extra %@ %@";
-	"extra-@-@-@-(passenger-berth-long-description)" =	"Extra %@%@ (%@)";
 	"shipyard-first-extra"			= " Plus [item].";
 	"shipyard-additional-extra"		= " [item].";
 	"shipyard-standard-customer-model" = " Standard customer model.";
 	"shipyard-forward-weapon-upgraded-long" = " Forward weapon has been upgraded to a [weapon].";
 	"shipyard-forward-weapon-upgraded" = " Forward weapon upgraded to [weapon].";
-	"shipyard-price-long"			= " Selling price [price|icr].";
 	"shipyard-price"				= " Price [price|icr].";
 	
 	// Load/Save screens shared information

@@ -8493,7 +8493,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (shipBaseDict != nil))
 		{			
 			NSMutableDictionary* shipDict = [NSMutableDictionary dictionaryWithDictionary:shipBaseDict];
-			NSMutableString* longShipDescription = [NSMutableString stringWithCapacity:256];
 			NSMutableString* shortShipDescription = [NSMutableString stringWithCapacity:256];
 			NSString *shipName = [shipDict oo_stringForKey:@"display_name" defaultValue:[shipDict oo_stringForKey:KEY_NAME]];
 			OOCreditsQuantity price = [ship_info oo_unsignedIntForKey:KEY_PRICE];
@@ -8509,7 +8508,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			//NSString* brochure_desc = [self brochureDescriptionWithDictionary: ship_dict standardEquipment: extras optionalEquipment: options];
 			//NSLog(@"%@ Brochure description : \"%@\"", [ship_dict objectForKey:KEY_NAME], brochure_desc);
 			
-			[longShipDescription appendFormat:@"%@:", shipName];
 			[shortShipDescription appendFormat:@"%@:", shipName];
 			
 			OOWeaponFacingSet availableFacings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
@@ -8527,7 +8525,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			NSString *aftWeaponDesc = nil;
 			
 			NSString *shortExtrasKey = @"shipyard-first-extra";
-			NSString *passengerBerthLongDesc = nil;
 			
 			// for testing condition scripts
 			ShipEntity *testship = [[ProxyPlayerEntity alloc] initWithKey:ship_key definition:shipDict];
@@ -8544,7 +8541,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 					OOTechLevelID		eqTechLevel = [item techLevel];
 					OOCreditsQuantity	eqPrice = [item price] / 10;	// all amounts are x/10 due to being represented in tenths of credits.
 					NSString			*eqShortDesc = [item name];
-					NSString			*eqLongDesc = [item descriptiveText];
 					
 					if ([item techLevel] > techlevel)
 					{
@@ -8710,13 +8706,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 								maxCargo -= PASSENGER_BERTH_SPACE;
 								price += eqPrice;
 								[extras addObject:equipmentKey];
-								if (passengerBerthCount == 0)
-								{
-									// This will be needed to construct the description for passenger berths.
-									// Note: use of lowercaseString is bad from an i18n perspective,
-									// but the string is never actually shown anyway...
-									passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eqLongDesc lowercaseString]];
-								}
 								passengerBerthCount++;
 								customised = YES;
 							}
@@ -8732,10 +8721,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 							[extras addObject:equipmentKey];
 							if ([item isVisible])
 							{
-								NSString *shortDescription = eqShortDesc;
-								NSString *longDescription = [eqLongDesc lowercaseString];
-								[longShipDescription appendString:OOExpandKey(@"shipyard-extra-with-long-description", shortDescription, longDescription)];
-								NSString *item = shortDescription;
+								NSString *item = eqShortDesc;
 								[shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
 								shortExtrasKey = @"shipyard-additional-extra";
 							}
@@ -8758,7 +8744,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 				NSString* npb = (passengerBerthCount > 1)? [NSString stringWithFormat:@"%d ", passengerBerthCount] : (id)@"";
 				NSString* ppb = DESC_PLURAL(@"passenger-berth", passengerBerthCount);
 				NSString* extraPassengerBerthsDescription = [NSString stringWithFormat:DESC(@"extra-@-@-(passenger-berths)"), npb, ppb];
-				[longShipDescription appendFormat:DESC(@"extra-@-@-@-(passenger-berth-long-description)"), npb, ppb, passengerBerthLongDesc];
 				NSString *item = extraPassengerBerthsDescription;
 				[shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
 				shortExtrasKey = @"shipyard-additional-extra";
@@ -8766,26 +8751,19 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			
 			if (!customised)
 			{
-				[longShipDescription appendString:DESC(@"shipyard-standard-customer-model")];
-				[shortShipDescription appendString:DESC(@"shipyard-standard-customer-model")];
+				[shortShipDescription appendString:OOExpandKey(@"shipyard-standard-customer-model")];
 			}
 			
 			if (weaponCustomized)
 			{
 				NSString *weapon = (lowercaseIgnore ? fwdWeaponDesc : [fwdWeaponDesc lowercaseString]);
-				[longShipDescription appendString:OOExpandKey(@"shipyard-forward-weapon-upgraded-long", weapon)];
 				[shortShipDescription appendString:OOExpandKey(@"shipyard-forward-weapon-upgraded", weapon)];
-			}
-			if (otherWeaponAdded)
-			{
-				[longShipDescription appendFormat:@"aft %@", (lowercaseIgnore ? aftWeaponDesc : [aftWeaponDesc lowercaseString])];
 			}
 			if (price > base_price)
 			{
 				price = base_price + cunningFee(price - base_price, 0.05);
 			}
 			
-			[longShipDescription appendString:OOExpandKey(@"shipyard-price-long", price)];
 			[shortShipDescription appendString:OOExpandKey(@"shipyard-price", price)];
 			
 			NSString *shipID = [NSString stringWithFormat:@"%06x-%06x", superRand1, superRand2];
@@ -8796,7 +8774,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 				shipID,								SHIPYARD_KEY_ID,
 				ship_key,							SHIPYARD_KEY_SHIPDATA_KEY,
 				shipDict,							SHIPYARD_KEY_SHIP,
-				longShipDescription,				SHIPYARD_KEY_DESCRIPTION,
 				shortShipDescription,				KEY_SHORT_DESCRIPTION,
 				[NSNumber numberWithUnsignedLongLong:price], SHIPYARD_KEY_PRICE,
 				extras,								KEY_EQUIPMENT_EXTRAS,
