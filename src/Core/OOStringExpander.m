@@ -447,15 +447,27 @@ static NSString *ApplyOperators(NSString *string, NSString *operatorsString)
 }
 
 
+static NSString *Operator_cr(NSString *string, NSString *param)
+{
+	return OOCredits([string doubleValue] * 10);
+}
+
+
 static NSString *Operator_dcr(NSString *string, NSString *param)
 {
 	return OOCredits([string longLongValue]);
 }
 
 
-static NSString *Operator_cr(NSString *string, NSString *param)
+static NSString *Operator_icr(NSString *string, NSString *param)
 {
-	return OOCredits([string doubleValue] * 10);
+	return OOIntCredits([string longLongValue]);
+}
+
+
+static NSString *Operator_idcr(NSString *string, NSString *param)
+{
+	return OOIntCredits(round([string doubleValue] / 10.0));
 }
 
 
@@ -496,6 +508,8 @@ static NSString *ApplyOneOperator(NSString *string, NSString *op, NSString *para
 		operators = [[NSDictionary alloc] initWithObjectsAndKeys:
 					 OPERATOR(dcr),
 					 OPERATOR(cr),
+					 OPERATOR(icr),
+					 OPERATOR(idcr),
 					 OPERATOR(precision),
 					 OPERATOR(multiply),
 					 OPERATOR(add),
