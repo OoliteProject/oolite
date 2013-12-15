@@ -2818,13 +2818,15 @@ static GLfloat		sBaseMass = 0.0;
 		return;
 	}
 	
+	int seconds = round(witchspaceCountdown);
 	if (galactic_witchjump)
 	{
-		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
+		[UNIVERSE displayCountdownMessage:OOExpandKey(@"witch-galactic-in-x-seconds", seconds) forCount:1.0];
 	}
 	else
 	{
-		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+		NSString *destination = [UNIVERSE getSystemName:target_system_seed];
+		[UNIVERSE displayCountdownMessage:OOExpandKey(@"witch-to-x-in-y-seconds", seconds, destination) forCount:1.0];
 	}
 	
 	if (witchspaceCountdown == 0.0)

@@ -514,7 +514,9 @@ static NSTimeInterval	time_last_frame;
 		[self playStandardHyperspace];
 		// say it!
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+		int seconds = round(witchspaceCountdown);
+		NSString *destination = [UNIVERSE getSystemName:target_system_seed];
+		[UNIVERSE displayCountdownMessage:OOExpandKey(@"witch-to-x-in-y-seconds", seconds, destination) forCount:1.0];
 		[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
 					withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 		[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];

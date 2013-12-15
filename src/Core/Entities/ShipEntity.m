@@ -2451,7 +2451,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		flightYaw = 0.0;
 		[self applyAttitudeChanges:delta_t];
-		GLfloat range2 = 0.1 * HPdistance2(position, destination) / (collision_radius * collision_radius);
+		GLfloat range2 = 0.1 * HPdistance2(position, _destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
 		position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(velocity, range2 * delta_t)));
 	}
@@ -3788,7 +3788,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	ShipEntity* hauler = (ShipEntity*)[self owner];
 	if ((hauler)&&([hauler isShip]))
 	{
-		destination = [hauler absoluteTractorPosition];
+		_destination = [hauler absoluteTractorPosition];
 		double  distance = [self rangeToDestination];
 		if (distance < desired_range)
 		{
@@ -3806,7 +3806,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		velocity.z += moment * dv.z;
 		// acceleration = force / mass
 		// force proportional to distance (spring rule)
-		HPVector dp = HPvector_between(position, destination);
+		HPVector dp = HPvector_between(position, _destination);
 		moment = delta_t * 0.5 * tf;
 		velocity.x += moment * dp.x;
 		velocity.y += moment * dp.y;
@@ -3937,7 +3937,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			desired_speed = maxFlightSpeed;
 		}
 
-		destination = target->position;
+		_destination = target->position;
 		desired_range = 0.5 * target->collision_radius;
 		[self trackDestination: delta_t : NO];
 
@@ -4772,7 +4772,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// head for a point weapon-range * 0.5 to the six of the target
 		//
-		destination = [target distance_six:0.5 * weaponRange];
+		_destination = [target distance_six:0.5 * weaponRange];
 	}
 	// target-twelve
 	if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE)
@@ -4791,12 +4791,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{ // half at random
 				offset = -offset;
 			}
-			destination = [target distance_twelve:spacing withOffset:offset];
+			_destination = [target distance_twelve:spacing withOffset:offset];
 		}
 		else 
 		{
 			// head for a point 1.25km above the target
-			destination = [target distance_twelve:1250 withOffset:0];
+			_destination = [target distance_twelve:1250 withOffset:0];
 		}
 	}
 
@@ -5488,7 +5488,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (prox_ship)
 		{
 			desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
-			destination = prox_ship->position;
+			_destination = prox_ship->position;
 		}
 		double dq = [self trackDestination:delta_t:YES]; // returns 0 when heading towards prox_ship
 		// Heading towards target with desired_speed > 0, avoids collisions better than setting desired_speed to zero.
@@ -5609,7 +5609,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		success_factor = dist2;
 
 		// set destination spline point from r1 and ref
-		destination = make_HPvector(d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
+		_destination = make_HPvector(d1.x + r1 * ref.x, d1.y + r1 * ref.y, d1.z + r1 * ref.z);
 
 		// do the actual piloting!!
 		//
@@ -5829,8 +5829,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// HPVect: imprecise here - needs camera relative
 	if (0 && reportAIMessages)
 	{
-		OODebugDrawPoint(HPVectorToVector(destination), [OOColor blueColor]);
-		OODebugDrawColoredLine(HPVectorToVector([self position]), HPVectorToVector(destination), [OOColor colorWithWhite:0.15 alpha:1.0]);
+		OODebugDrawPoint(HPVectorToVector(_destination), [OOColor blueColor]);
+		OODebugDrawColoredLine(HPVectorToVector([self position]), HPVectorToVector(_destination), [OOColor colorWithWhite:0.15 alpha:1.0]);
 		
 		Entity *pTarget = [self primaryTarget];
 		if (pTarget != nil)
@@ -6219,10 +6219,10 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 		}
 		[previousCondition oo_setFloat:desired_range forKey:@"desired_range"];
 		[previousCondition oo_setFloat:desired_speed forKey:@"desired_speed"];
-		[previousCondition oo_setHPVector:destination forKey:@"destination"];
+		[previousCondition oo_setHPVector:_destination forKey:@"destination"];
 		
-		destination = [prox_ship position];
-		destination = OOHPVectorInterpolate(position, [prox_ship position], 0.5);		// point between us and them
+		_destination = [prox_ship position];
+		_destination = OOHPVectorInterpolate(position, [prox_ship position], 0.5);		// point between us and them
 		
 		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
 		
@@ -6241,7 +6241,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	_primaryTarget =	[[previousCondition objectForKey:@"primaryTarget"] weakRetain];
 	desired_range =	[previousCondition oo_floatForKey:@"desired_range"];
 	desired_speed =	[previousCondition oo_floatForKey:@"desired_speed"];
-	destination =	[previousCondition oo_hpvectorForKey:@"destination"];
+	_destination =	[previousCondition oo_hpvectorForKey:@"destination"];
 
 	[previousCondition release];
 	previousCondition = nil;
@@ -9290,7 +9290,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (HPVector) destination
 {
-	return destination;
+	return _destination;
 }
 
 - (HPVector) coordinates
@@ -9968,7 +9968,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		reversePlayer = -1;
 	}
 
-	relPos = HPVectorToVector(HPvector_subtract(destination, position));
+	relPos = HPVectorToVector(HPvector_subtract(_destination, position));
 	double range2 = magnitude2(relPos);
 	double desired_range2 = desired_range*desired_range;
 	
@@ -10111,7 +10111,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat) rangeToDestination
 {
-	return HPdistance(position, destination);
+	return HPdistance(position, _destination);
 }
 
 
@@ -12523,14 +12523,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) setDestination:(HPVector) dest
 {
-	destination = dest;
+	_destination = dest;
 	frustration = 0.0;	// new destination => no frustration!
 }
 
 
 - (void) setEscortDestination:(HPVector) dest
 {
-	destination = dest; // don't reset frustration for escorts.
+	_destination = dest; // don't reset frustration for escorts.
 }
 
 
@@ -13367,7 +13367,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	id target = [self primaryTarget];
 	if (target == nil)  target = @"<none>";
 	OOLog(@"dumpState.shipEntity", @"Target: %@", target);
-	OOLog(@"dumpState.shipEntity", @"Destination: %@", HPVectorDescription(destination));
+	OOLog(@"dumpState.shipEntity", @"Destination: %@", HPVectorDescription(_destination));
 	OOLog(@"dumpState.shipEntity", @"Other destination: %@", HPVectorDescription(coordinates));
 	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);
 	OOLog(@"dumpState.shipEntity", @"Desired speed: %g", desired_speed);

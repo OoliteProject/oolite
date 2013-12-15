@@ -187,7 +187,7 @@ typedef enum
 	Vector					v_forward, v_up, v_right;	// unit vectors derived from the direction faced
 	
 	// variables which are controlled by AI
-	HPVector					destination;				// for flying to/from a set point
+	HPVector				_destination;				// for flying to/from a set point
 
 	GLfloat					desired_range;				// range to which to journey/scan
 	GLfloat					desired_speed;				// speed at which to travel
