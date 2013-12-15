@@ -8093,15 +8093,15 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		for (i = 0; i < [targets count]; i++)
 		{
 			ShipEntity *e2 = (ShipEntity*)[targets objectAtIndex:i];
-			if ([e2 isShip])
+			if ([e2 isShip] && [e2 isInSpace])
 			{
 				Vector p2 = [self vectorTo:e2];
 				double ecr = [e2 collisionRadius];
 				double d2 = magnitude2(p2) - ecr * ecr;
-				while (d2 <= 0.0)
+				// limit momentum transfer to relatively sensible levels
+				if (d2 < 1.0)
 				{
-					p2 = OOVectorRandomSpatial(1.0);
-					d2 = magnitude2(p2);
+					d2 = 1.0;
 				}
 				double moment = amount*desired_range/d2;
 				[e2 addImpactMoment:vector_normal(p2) fraction:moment];
@@ -8246,6 +8246,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			limit--;
 			ShipEntity* cargoObj = [jetsam objectAtIndex:i];
 			ShipEntity* container = [UNIVERSE reifyCargoPod:cargoObj];
+			/* TODO: this debris position/velocity setting code is
+			 * duplicated - sometimes not very cleanly - all over the
+			 * place. Unify to a single function - CIM */
 			HPVector  rpos = xposition;
 			Vector	rrand = OORandomPositionInBoundingBox(boundingBox);
 			rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
@@ -8256,7 +8259,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 			v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 			v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-			[container setVelocity:v];
+			[container setVelocity:vector_add(v,[self velocity])];
 			quaternion_set_random(&q);
 			[container setOrientation:q];
 							
@@ -8363,76 +8366,57 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[self releaseCargoPodsDebris];
 				
 				//  Throw out rocks and alloys to be scooped up
-				if ([self hasRole:@"asteroid"])
+				if ([self hasRole:@"asteroid"] || [self isBoulder])
 				{
 					if (!noRocks && (being_mined || randf() < 0.20))
 					{
-						if ([[self primaryAggressor] isPlayer])
+						NSString *defaultRole = @"boulder";
+						float defaultSpeed = 50.0;
+						if ([self isBoulder])
+						{
+							defaultRole = @"splinter";
+							defaultSpeed = 20.0;
+							if (likely_cargo == 0)
+							{
+								likely_cargo = 4; // compatibility with older boulders
+							}
+						}
+						else if ([[self primaryAggressor] isPlayer])
 						{
 							[PLAYER addRoleForMining];
 						}
 						NSUInteger n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
 						
-						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"boulder"];
+						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:defaultRole];
 						for (i = 0; i < n_rocks; i++)
 						{
 							ShipEntity* rock = [UNIVERSE newShipWithRole:debrisRole];   // retain count = 1
 							if (rock)
 							{
-								HPVector  rpos = xposition;
-								int  r_speed = [rock maxFlightSpeed] > 0 ? 20.0 * [rock maxFlightSpeed] : 10;
-								int cr = (collision_radius > 10 * rock->collision_radius) ? collision_radius : 3 * rock->collision_radius;
-								rpos.x += (ranrot_rand() % cr) - cr/2;
-								rpos.y += (ranrot_rand() % cr) - cr/2;
-								rpos.z += (ranrot_rand() % cr) - cr/2;
+								float  r_speed = [rock maxFlightSpeed] > 0 ? 2.0 * [rock maxFlightSpeed] : defaultSpeed;
+								float cr = (collision_radius < rock->collision_radius) ? collision_radius : 2 * rock->collision_radius;
+								v.x = ((randf() * r_speed) - r_speed / 2);
+								v.y = ((randf() * r_speed) - r_speed / 2);
+								v.z = ((randf() * r_speed) - r_speed / 2);
+								[rock setVelocity:vector_add(v,[self velocity])];
+								HPVector rpos = HPvector_add(xposition,vectorToHPVector(vector_multiply_scalar(vector_normal(v),cr)));
 								[rock setPosition:rpos];
-								v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-								v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-								v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-								[rock setVelocity:v];
+
 								quaternion_set_random(&q);
 								[rock setOrientation:q];
 								
 								[rock setTemperature:[self randomEjectaTemperature]];
-								[rock setScanClass:CLASS_ROCK];
-								[rock setIsBoulder:YES];
-								[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
-								[rock release];
-							}
-						}
-					}
-					return;
-				}
-				else if ([self isBoulder])
-				{
-					if ((being_mined)||(ranrot_rand() % 100 < 20))
-					{
-						NSUInteger n_rocks = 2 + (ranrot_rand() % 5);
-						
-						NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"splinter"];
-						for (i = 0; i < n_rocks; i++)
-						{
-							ShipEntity* rock = [UNIVERSE newShipWithRole:debrisRole];   // retain count = 1
-							if (rock)
-							{
-								HPVector  rpos = xposition;
-								int  r_speed = [rock maxFlightSpeed] > 0 ? 20.0 * [rock maxFlightSpeed] : 20;
-								int cr = (collision_radius > 10 * rock->collision_radius) ? collision_radius : 3 * rock->collision_radius;
-								rpos.x += (ranrot_rand() % cr) - cr/2;
-								rpos.y += (ranrot_rand() % cr) - cr/2;
-								rpos.z += (ranrot_rand() % cr) - cr/2;
-								[rock setPosition:rpos];
-								v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-								v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-								v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-								[rock setVelocity:v];
-								quaternion_set_random(&q);
-								
-								[rock setTemperature:[self randomEjectaTemperature]];
-								[rock setBounty: 0 withReason:kOOLegalStatusReasonSetup];
-								[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
-								[rock setOrientation:q];
-								[rock setScanClass: CLASS_CARGO];
+								if ([self isBoulder])
+								{
+									[rock setScanClass: CLASS_CARGO];
+									[rock setBounty: 0 withReason:kOOLegalStatusReasonSetup];
+									[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
+								}
+								else
+								{
+									[rock setScanClass:CLASS_ROCK];
+									[rock setIsBoulder:YES];
+								}
 								[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
 								[rock release];
 							}
@@ -8510,7 +8494,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					v.x = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 					v.y = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
 					v.z = 0.1 *((ranrot_rand() % speed_low) - speed_low / 2);
-					[plate setVelocity:v];
+					[plate setVelocity:vector_add(v,[self velocity])];
 					quaternion_set_random(&q);
 					[plate setOrientation:q];
 					

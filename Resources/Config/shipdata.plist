@@ -918,6 +918,7 @@
 		has_scoop = no;
 		heat_insulation = 3;
 		is_template = 1;
+		likely_cargo = 4;
 		materials =
 		{
 			"oolite_boulder_diffuse.png" =
@@ -929,7 +930,7 @@
 		max_energy = 25;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
-		max_flight_speed = 5;
+		max_flight_speed = 50;
 		missiles = 0;
 		model = "oolite_boulder.dat";
 		name = "Boulder";
@@ -3200,7 +3201,7 @@
 		max_energy = 5;
 		max_flight_pitch = 1;
 		max_flight_roll = 1;
-		max_flight_speed = 10;
+		max_flight_speed = 20;
 		missiles = 0;
 		model = "oolite_splinter.dat";
 		name = "Splinter";
