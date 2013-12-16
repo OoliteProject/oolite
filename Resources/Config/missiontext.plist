@@ -266,9 +266,9 @@
 	
 	"oolite-tutorial-2-8" = "Scanner use: 8/8\nOther common colours include yellow/green flashing for navigation buoys, light blue for missiles, and red/yellow flashing for mines. Again, don't worry, these are all disarmed!";
 
-	"oolite-tutorial-2-9" = "View controls: 1/x\nYour ship is fitted with four view cameras. Use the '[oolite_key_view_forward]', '[oolite_key_view_aft]', '[oolite_key_view_port]' and '[oolite_key_view_starboard]' keys to switch between them. The view lines on the scanner will move as you do. Notice that the crosshair is replaced on the other views, as you have no other weapons mounted.";
+	"oolite-tutorial-2-9" = "View controls: 1/2\nYour ship is fitted with four view cameras. Use the '[oolite_key_view_forward]', '[oolite_key_view_aft]', '[oolite_key_view_port]' and '[oolite_key_view_starboard]' keys to switch between them. The view lines on the scanner will move as you do. Notice that the crosshair is replaced on the other views, as you have no other weapons mounted.";
 
-	"oolite-tutorial-2-10" = "View controls: 2/x\nYour ship can also simulate an external view for you. Press '[oolite_key_custom_view]' to switch to external view mode and to cycle through the available external views. Any of the internal view keys will return you to internal viewing.";
+	"oolite-tutorial-2-10" = "View controls: 2/2\nYour ship can also simulate an external view for you. Press '[oolite_key_custom_view]' to switch to external view mode and to cycle through the available external views. Any of the internal view keys will return you to internal viewing.";
 
 	"oolite-tutorial-3-0" = "Lesson 3: Flight Training\nThis lesson gives you opportunity to practice basic piloting skills. Your ship has been disarmed temporarily to focus on movement over weapon use.";
 	
