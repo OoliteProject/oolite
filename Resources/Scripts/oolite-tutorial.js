@@ -344,9 +344,31 @@ this.startUp = function()
 		}
 	}
 
+	// just in case a role has been defined out by OXP
+	this.$roleFallbacks = {
+		"asteroid" : "[asteroid]",
+		"boulder" : "[boulder]",
+		"splinter" : "[splinter]",
+		"police" : "[viper]",
+		"missile" : "[missile]",
+		"energy-bomb" : "[qbomb]"
+	};
+
 	this._addShips = function(role,num,pos,rad)
 	{
 		var arr = system.addShips(role,num,pos,rad);
+		if (!arr || arr.length == 0)
+		{
+			role = this.$roleFallbacks[role];
+			if (role)
+			{
+				arr = system.addShips(role,num,pos,rad);
+			}
+		}
+		if (!arr || arr.length == 0)
+		{
+			return [];
+		}
 		this.$shipList = this.$shipList.concat(arr);
 		return arr;
 	}
