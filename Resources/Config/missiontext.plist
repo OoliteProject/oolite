@@ -276,7 +276,7 @@
 
 	"oolite-tutorial-3-2" = "We have added a dense asteroid cluster nearby. Use your scanner to locate the buoy within it, then fly within 500m of the buoy and come to a complete stop.";
 
-	"oolite-tutorial-3-3-error" = "To continue, come to a stop near the buoy.";
+	"oolite-tutorial-3-3-error" = "To continue, come to a stop near the buoy. Use your '[oolite_key_scanner_unzoom]' key to maximise scan range if you are having trouble finding it.";
 
 	"oolite-tutorial-3-3" = "Some of the asteroids will now start moving towards you. Staying within 5000m of the buoy, use your scanner to spot the moving asteroids, and the movement controls to avoid them.\nTo help you, the asteroids will be highlighted red on your scanner. Keep moving!\nIf it gets too much, just fly further from the buoy.";
 
@@ -289,6 +289,48 @@
 	"oolite-tutorial-3-4a" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, this time without the scanner highlighting, press '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_mode_equipment]' to go to the next stage of the course.";
 
 	"oolite-tutorial-3-4b" = "You survived [mission_oolite_tutorial_asteroids] seconds without scanner assistance.\nIt's probably time to press '[oolite_key_mode_equipment]' to go to the next stage of the course, but you can have another go with '[oolite_key_activate_equipment]' if you want.";
+
+	"oolite-tutorial-4-0" = "Lesson 4: Weapons systems\nThis lesson will give you the chance to practice basic targeting and laser usage skills.";
+
+	"oolite-tutorial-4-1" = "Three asteroids have been added near you. Use the '[oolite_key_ident_system]' key to activate your identification system. Then, turn your ship so that one of the asteroids is directly in front of you. The ident system will then lock on to the asteroid.";
+
+	"oolite-tutorial-4-2" = "Three splinters (tiny rock fragments) have also been added now. Press '[oolite_key_ident_system]' again to reset the identification system to search mode, making sure you are not pointed at an asteroid. Then, use your scanner to search for the splinters. You may find you need to move closer to effectively identify such a small object.";
+	
+	"oolite-tutorial-4-3" = "The rocks have now been removed. As your identification system loses a target, it will automatically reset to search mode. The 'Scanner Targeting Enhancement' and 'Target System Memory Expansion' optional addons will further improve the operation of the ident system.";
+
+	"oolite-tutorial-4-4" = "Your ship is equipped with a basic pulse laser. This weapon is not recommended for use in live combat, due to its slow rate of fire, but that property makes it an ideal training weapon.\nIt also has the advantage that it will take much longer to overheat than a beam laser.";
+	
+	"oolite-tutorial-4-5" = "The '[oolite_key_fire_lasers]' key is used to fire your laser. We have added five stationary asteroids to use as target practice. Once you are confident of your ability to hit a large unmoving target, move on to the next stage.\nNote that your laser has a maximum range of 12.5km, so you may need to get closer.";
+
+	"oolite-tutorial-4-6" = "For the second stage, we have added some smaller boulders, and set them moving. Again, move on once you are confident in your ability to destroy these targets.";
+
+	"oolite-tutorial-4-7" = "Finally, we have added some tiny rock splinters for you to hunt down. Make sure your aim is precise! Once you are ready, press '[oolite_key_activate_equipment]' to start the next lesson.";
+
+	"oolite-tutorial-5-0" = "Lesson 5: Missiles\nThis lesson covers basic missile use and anti-missile tactics.";
+
+	"oolite-tutorial-5-1" = "The Cobra III can carry up to four pylon weapons. We have loaded three of them with standard ship-to-ship missiles. Press '[oolite_key_target_missile]' to arm a missile. The missile icon will turn yellow.";
+
+	"oolite-tutorial-5-2" = "We have added two asteroids, specially toughened so that your pulse laser will be ineffective. Turn to face one of them, and the armed missile will turn red as it locks on. You can use '[oolite_key_untarget_missile]' to break the lock, or '[oolite_key_target_missile]' to try to lock on to another target.";
+
+	"oolite-tutorial-5-3" = "If you wish to change the missile you are using, press '[oolite_key_next_missile]'. As for now all your missiles are identical, however, you can launch the missile with '[oolite_key_launch_missile]'. If it doesn't destroy the asteroid, launch another!";
+	
+	"oolite-tutorial-5-4" = "You can launch missiles, but what if a missile is launched at you? A standard missile contains enough explosives to destroy or seriously damage a Cobra III. The second half of this lesson describes missile avoidance techniques.";
+
+	"oolite-tutorial-5-5" = "Missile avoidance: 1/6\nMissiles can be destroyed by laser fire, but this is tricky to get right, especially with only a pulse laser, so for now we recommend that you try to avoid them. Use your scanner to locate the light blue marker, and try to keep it behind you and off to one side as it closes in.";
+	
+	"oolite-tutorial-5-6" = "Missile avoidance: 2/6\nOnce the missile gets closer, start making sharp turns away from it to throw it off. Even if you don't avoid it, if it explodes behind you then your engines are likely to help you away from the blast, reducing the damage you take. A head-on collision is likely to be lethal.";
+
+	"oolite-tutorial-5-7" = "Missile avoidance: 3/6\nIf you find missile avoidance difficult, the 'ECM (Electronic Counter-Measures) System' is available from most shipyards as an addon to your ship. It will confuse most but not all missiles into losing you as a target, and they will harmlessly self-destruct.";
+
+	"oolite-tutorial-5-8" = "Missile avoidance: 4/6\nIn live combat, if you do not have an ECM, one of your enemies might. So, if you get a missile fired at you, fire one right back at them - the ECM field is indiscriminate and will destroy both missiles.";
+
+	"oolite-tutorial-5-9" = "Missile avoidance: 5/6\nAnother approach is to outrun the missile - their fuel supply is extremely limited. If the missile has been fired from long-range, turning away from it and flying at full speed may get you clear.";
+
+	"oolite-tutorial-5-10" = "Missile avoidance: 6/6\nOkay, that's enough talking - time for some practice. When you next press '[oolite_key_activate_equipment]', we will fire a missile at you. Avoid it by whatever means you can, and note the warnings your HUD gives.";
+
+	"oolite-tutorial-5-11" = "Here it comes. Good luck!\n\nOnce you have survived the missile, press '[oolite_key_activate_equipment]' to start the next lesson.";
+
+
 
 	"oolite-tutorial-end-mfd" = "You have completed the course. Press '[oolite_key_activate_equipment]' to view your test scores.";
 

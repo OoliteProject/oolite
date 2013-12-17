@@ -61,7 +61,9 @@ this.startUp = function()
 		25, // stage 1: HUD displays
 		11, // stage 2: scanner and views
 		6, // stage 3: basic flight challenge
-		0, // stage 4: (not yet started)
+		8, // stage 4: targeting + lasers
+		12, // stage 5: missiles + avoidance
+		0, // stage 6: (not yet started)
 	];
 
 	this.$shipList = [];
@@ -103,6 +105,7 @@ this.startUp = function()
 		{
 			player.ship.targetSystem = 55;
 			player.ship.hudHidden = true;
+			player.ship.hideHUDSelector("drawPrimedEquipment:");
 			mission.runScreen(
 				{
 					titleKey: "oolite-tutorial-0-0-title",
@@ -318,21 +321,27 @@ this.startUp = function()
 			player.ship.awardEquipment("EQ_MISSILE");
 		}
 		this._resetHUDItems();
+		this._resetShips();
 		this._setFrameCallback(null);
+		player.ship.hideHUDSelector("drawPrimedEquipment:");
 		player.ship.hudHidden = false;
-		for (i=this.$shipList.length-1;i>=0;i--)
-		{
-			if (this.$shipList[i] && this.$shipList[i].isShip)
-			{
-				this.$shipList[i].remove();
-			}
-		}
 		var fc = addFrameCallback(function(delta)
 								  {
 									  player.ship.velocity = player.ship.thrustVector;
 									  removeFrameCallback(fc);
 								  });
 
+	}
+
+	this._resetShips = function()
+	{
+		for (var i=this.$shipList.length-1;i>=0;i--)
+		{
+			if (this.$shipList[i] && this.$shipList[i].isShip)
+			{
+				this.$shipList[i].remove();
+			}
+		}
 	}
 
 	this._addShips = function(role,num,pos,rad)
@@ -807,8 +816,131 @@ this.startUp = function()
 			rocks[i].remove();
 		}
 		//... move this line to later when there are more sections
-		this._setInstructions("oolite-tutorial-end-mfd");
+		this._setInstructions("oolite-tutorial-4-0");
 
+	}
+
+	this.__stage4sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-4-1");
+		this._addShips("asteroid",3,player.ship.position,20E3);
+	}
+
+	this.__stage4sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-4-2");
+		this._addShips("splinter",3,player.ship.position,20E3);
+	}
+
+	this.__stage4sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-4-3");
+		this._resetShips();
+	}
+
+	this.__stage4sub4 = function()
+	{
+		this._setInstructions("oolite-tutorial-4-4");
+	}
+
+	this.__stage4sub5 = function()
+	{
+		this._setInstructions("oolite-tutorial-4-5");
+		this._addShips("asteroid",5,player.ship.position,20E3);
+	}
+
+	this.__stage4sub6 = function()
+	{
+		this._setInstructions("oolite-tutorial-4-6");
+		var ships = this._addShips("boulder",5,player.ship.position,10E3);
+		for (var i=0;i<5;i++)
+		{
+			ships[i].velocity = Vector3D.random(150);
+		}
+	}
+
+	this.__stage4sub7 = function()
+	{
+		this._setInstructions("oolite-tutorial-4-7");
+		var ships = this._addShips("splinter",5,player.ship.position,10E3);
+		for (var i=0;i<5;i++)
+		{
+			ships[i].velocity = Vector3D.random(150);
+		}
+	}
+
+	this.__stage5sub0 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-0");
+	}
+
+	this.__stage5sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-1");
+	}
+
+	this.__stage5sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-2");
+		this._addShips("tutorial-asteroid",2,player.ship.position,20E3);
+	}
+
+	this.__stage5sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-3");
+	}
+
+	this.__stage5sub4 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-4");
+	}
+
+	this.__stage5sub5 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-5");
+	}
+
+	this.__stage5sub6 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-6");
+	}
+
+	this.__stage5sub7 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-7");
+	}
+
+	this.__stage5sub8 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-8");
+	}
+
+	this.__stage5sub9 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-9");
+	}
+
+	this.__stage5sub10 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-10");
+	}
+
+	this.__stage5sub11 = function()
+	{
+		this._setInstructions("oolite-tutorial-5-11");
+		var adder = this._addShips("[adder]",1,player.ship.position.add([6E3,6E3,6E3]),0)[0];
+		adder.target = player.ship;
+		adder.fireMissile();
+		adder.remove();
+	}
+
+
+
+
+
+	this.__stage6sub0 = function()
+	{
+		this._setInstructions("oolite-tutorial-end-mfd");
 	}
 
 	this._endTutorial = function()

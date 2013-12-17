@@ -566,6 +566,14 @@
 		};
 		model = "oolite_alt_asteroid.dat";
 	};
+	"oolite_template_tutorial-asteroid" =
+	{
+		like_ship = "oolite_template_asteroid";
+		is_template = 1;
+		energy_recharge_rate = 50; // effectively immune to pulse fire
+		name = "Training Asteroid";
+		roles = "tutorial-asteroid";
+	};
 	"oolite_template_barrel" =
 	{
 		ai_type = "dumbAI.plist";
@@ -4073,13 +4081,17 @@
 
 
 	/* Begin definitions for entities used in the tutorial */
-	"oolite-tutorial-station" = 
+	"oolite-tutorial-asteroid" =
 	{
-		like_ship = "oolite_template_tutorial-station";
+		"like_ship" = "oolite_template_tutorial-asteroid";
 	};
 	"oolite-tutorial-buoy" =
 	{
 		"like_ship" = "oolite_template_tutorial-buoy";
+	};
+	"oolite-tutorial-station" = 
+	{
+		"like_ship" = "oolite_template_tutorial-station";
 	};
 
 
