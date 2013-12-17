@@ -5436,6 +5436,10 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 				this.ship.target = whom;
 			}
 		}
+	} else {
+		// time to get one
+		this.ship.target = whom;
+		this.reconsiderNow();
 	}
 }
 
