@@ -2479,23 +2479,46 @@ this._weightedNearbyTradeSystem = function()
 
 /* Station selectors */
 
+this._launchReady = function(station)
+{
+	var docks = station.subEntities;
+	var space = 0;
+	for (var i=0; i<docks.length;i++)
+	{
+		if (docks[i].isDock)
+		{
+			space += 16 - docks[i].launchingQueueLength;
+		}
+	}
+//	log("station.debug",station.displayName+" has "+space +" in docking queue");
+	return (space >= 8);
+}
+
+
 // station for launching traders
 this._tradeStation = function(usemain)
 {
 	// usemain biases, but does not guarantee or forbid
-	if (usemain && Math.random() < 0.67)
+	if (usemain && Math.random() < 0.67 && this._launchReady(system.mainStation))
 	{
 		return system.mainStation;
 	}
 	var stats = system.stations;
-	var stat = system.stations[Math.floor(Math.random()*stats.length)];
-	if (stat.hasNPCTraffic)
+	var tries = 0;
+	do
 	{
-		if (stat.allegiance == "neutral" || stat.allegiance == "galcop" || stat.allegiance == "chaotic")
+		var stat = system.stations[Math.floor(Math.random()*stats.length)];
+		if (stat.hasNPCTraffic)
 		{
-			return stat;
+			if (stat.allegiance == "neutral" || stat.allegiance == "galcop" || stat.allegiance == "chaotic")
+			{
+				if (this._launchReady(stat))
+				{
+					return stat;
+				}
+			}
 		}
-	}
+	} while (tries < 5 && tries < stats.length);
 	return system.mainStation;
 }
 
@@ -2508,7 +2531,10 @@ this._pirateLaunch = function()
 	{
 		if (stat.allegiance == "pirate" || stat.allegiance == "chaotic")
 		{
-			return stat;
+			if (this._launchReady(stat))
+			{
+				return stat;
+			}
 		}
 	}
 	return system.mainPlanet;
@@ -2524,7 +2550,10 @@ this._hunterLaunch = function()
 	{
 		if (stat.allegiance == "hunter" || stat.allegiance == "galcop")
 		{
-			return stat;
+			if (this._launchReady(stat))
+			{
+				return stat;
+			}
 		}
 	}
 	return system.mainStation;
@@ -2540,7 +2569,10 @@ this._policeLaunch = function()
 	{
 		if (stat.allegiance == "galcop")
 		{
-			return stat;
+			if (this._launchReady(stat))
+			{
+				return stat;
+			}
 		}
 	}
 	return system.mainStation;
