@@ -440,12 +440,19 @@ this.PriorityAIController = function(ship)
 		parameters[key] = value;
 	}
 
-	this.setPriorities = function(priorities) 
+	this.setPriorities = function(priorities,delay) 
 	{
 		priorityList = priorities;
 		this.clearHandlers();
 		this.applyHandlers({});
-		_resetReconsideration.call(this,Math.random());
+		if (delay && delay > 0)
+		{
+			_resetReconsideration.call(this,delay);
+		}
+		else
+		{
+			_resetReconsideration.call(this,Math.random());
+		}
 	}
 
 
