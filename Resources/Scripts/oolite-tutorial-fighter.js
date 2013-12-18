@@ -1,8 +1,8 @@
 /*
 
-oolite-tutorial-equipment.js
+oolite-tutorial-fighter.js
 
-Equipment script for tutorial.
+Ship script for Tutorial fighters.
 
 
 Oolite
@@ -27,24 +27,22 @@ MA 02110-1301, USA.
 
 
 /*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
-/*global worldScripts*/
+/*global missionVariables, player*/
 
 
 "use strict";
 
-this.name = "Tutorial Controls";
+
+this.name			= "oolite-tutorial-fighter";
 this.author			= "cim";
-this.copyright		= "© 2008-2013 the Oolite team.";
+this.copyright		= "© 2013-2013 the Oolite team.";
 this.version		= "1.79";
 
 
-this.activated = function()
+this.shipDied = function (killer)
 {
-	worldScripts["oolite-tutorial"]._nextItemEquip();
-}
-
-
-this.mode = function()
-{
-	worldScripts["oolite-tutorial"]._nextSection();
-}
+	if (killer && killer.isPlayer && (!this.ship.group || this.ship.group.count <= 1))
+	{
+		worldScripts["oolite-tutorial"]._nextItem();
+	}
+};

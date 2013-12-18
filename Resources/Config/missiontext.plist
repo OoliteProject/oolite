@@ -189,6 +189,7 @@
 
 	"oolite-tutorial-no-death" = "If this wasn't a simulator, that would have killed you. Be more careful this time!";
 
+	"oolite-tutorial-no-advance" = "Advancing with '[oolite_key_activate_equipment]' is not currently available.";
 
 	"oolite-tutorial-0-0-title" = "Flight Training Course";
 	"oolite-tutorial-0-0-message" = "Welcome to the Cooperative Flight Training Course, pilot. This course will demonstrate the basic functionality of Cooperative ships to you, in a specially-prepared simulator.\n\nThe course is in multiple sections. While in the simulator, you can use the '[oolite_key_activate_equipment]' key to advance to the next entry in the current lesson, and the '[oolite_key_mode_equipment]' key to go to the next lesson, if you wish to skip sections you have previously completed.\n\nOnce the simulation begins, a panel on your screen will display instructions, which you should follow to progress through the course. If you wish to temporarily hide the panel, press the '[oolite_key_cycle_mfd]' key. You can bring it back with the same key, or it will automatically reappear when there are new instructions.\n\nWhere an instruction asks you to press a letter key, press the letter key alone if it is lower case (e.g. 'i'), and press shift and the key together if it is upper case (e.g. 'K').\n\nWhen you are ready, press the Enter key to begin the simulation with the first lesson.";
@@ -196,7 +197,7 @@
 	
 	"oolite-tutorial-0-2" = "Welcome to the pilot's training course. The lesson information will be displayed on this panel.\n\nYou will often need to press '[oolite_key_activate_equipment]' to go to the next step - do this now to start the first lesson.\n\nRemember, you can also press '[oolite_key_mode_equipment]' to skip to the next lesson.";
 
-	"oolite-tutorial-1-0" = "Lesson 1: the HUD\nThis lesson introduces the HUD components in turn.\nFor now, the HUD components have all been hidden. As you go through this lesson, they will be made visible and introduced.";
+	"oolite-tutorial-1-0" = "Lesson 1: the HUD\nThis lesson introduces the HUD components in turn.\nWhen you start, the HUD components will all be hidden. As you go through this lesson, they will be made visible and introduced.";
 
 	"oolite-tutorial-1-1" = "Energy banks: 1/3\nThe energy bank gauge shows the stored energy in your ship's capacitors, which are used to power various high-energy systems.\nThey are continually recharged from your ship's power plant, but intensive activity will drain them faster than they can be charged.";
 
@@ -330,12 +331,32 @@
 
 	"oolite-tutorial-5-11" = "Here it comes. Good luck!\n\nOnce you have survived the missile, press '[oolite_key_activate_equipment]' to start the next lesson.";
 
+	"oolite-tutorial-6-0" = "Lesson 6: Combat practice\nNow it's time to put everything you've learned in the previous lessons together, and fight some more challenging opponents.";
 
+	"oolite-tutorial-6-1" = "You'll be fighting simulated Krait fighters. The Krait is an old design, nowadays mostly superseded by the Mamba and Sidewinder, but it's cheap and easy to repair, and the large hull makes it easy to fit extra equipment, so it's still popular with some pilots. Press '[oolite_key_activate_equipment]' to start.";
+
+	"oolite-tutorial-6-2" = "This first Krait is unarmed - destroy it as fast as you can. This one should be easy, but if you ever feel out of your depth in later stages, we've also added a marker buoy. Shoot the buoy to end the lesson.\nYou only get three missiles for the entire course, so use them wisely.";
+
+	"oolite-tutorial-6-3" = "Now we move on to targets which can fight back. This Krait has a pulse laser like your own. It's not too much of a threat to your ship, but you should finish it quickly.";
+
+	"oolite-tutorial-6-4" = "Good work. Here's two more to take on. While fighting one, don't lose track of what the other is up to.\n\nTip: Zoom your scanner in so that you can see where the one you're firing at is going and keep on it. If you split your fire between both, you won't do enough damage.";
+
+	"oolite-tutorial-6-5" = "Excellent. That's the basics done. You can either end the lesson now by pressing '[oolite_key_mode_equipment]' or shooting the buoy, or you can continue to face harder targets by pressing '[oolite_key_activate_equipment]'.\nIf you want to wait a little for your shields to recharge, that's okay.";
+
+	"oolite-tutorial-6-6" = "This Krait has been upgraded to carry a beam laser. It'll tear up your shields in no time if you let it. Move!\n\nTip: Your weapon is weaker, so dodge and close the range rather than getting into a long-range shooting match.";
+
+	"oolite-tutorial-6-7" = "So far, so good. See if you can handle two at once.\n\nTip: when outnumbered like this, use a missile to distract one while you fight the other.";
+
+	"oolite-tutorial-6-8" = "You did it! We do have a third stage available if you're feeling up to it - press '[oolite_key_activate_equipment]' to start it. If that last fight was any trouble, though, maybe you'd be better stopping now. Pressing '[oolite_key_mode_equipment]' or shoot the buoy to complete the lesson.";
+
+	"oolite-tutorial-6-9" = "As you wish. This Krait is well-armed, well-equipped, and we've got a local escort pilot in the next simulator booth to fly it for us. Your Cobra might still be a superior ship, but you'll have to make every shot count.";
+
+	"oolite-tutorial-6-10" = "Very well done! If you fly like that, you might stand a chance when the pirates come for you. That's all we've got for combat training. Press '[oolite_key_activate_equipment]' to start the next lesson.";
 
 	"oolite-tutorial-end-mfd" = "You have completed the course. Press '[oolite_key_activate_equipment]' to view your test scores.";
 
 	"oolite-tutorial-end-title" = "Course Complete";
-	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course. Your scores:\n\nDeaths: [mission_oolite_tutorial_deaths]\n\nAsteroid navigation: [mission_oolite_tutorial_asteroids_result] ([mission_oolite_tutorial_asteroids] seconds)\n";
+	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course. Your scores:\n\nDeaths: [mission_oolite_tutorial_deaths]\n\nAsteroid navigation: [mission_oolite_tutorial_asteroids_result] ([mission_oolite_tutorial_asteroids] seconds)\nCombat practice: [mission_oolite_tutorial_combat_result] ([mission_oolite_tutorial_combat_duration] seconds)";
 	"oolite-tutorial-end-choices" = { "1" = "Exit Simulator"; };
 
 	"oolite-tutorial-end-notry" = "Incomplete";

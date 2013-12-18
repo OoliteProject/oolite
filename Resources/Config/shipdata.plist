@@ -2370,6 +2370,19 @@
 		weapon_position_port = "-45.0 0.0 -13.5";
 		weapon_position_starboard = "45.0 0.0 -13.5";
 	};
+	"oolite_template_tutorial-krait" = {
+		like_ship = "oolite_template_krait";
+		is_template = 1;
+		ai_type = "oolite-tutorialFighterAI.js";
+		forward_weapon_type = "WEAPON_PULSE_LASER";
+		has_fuel_injection = 0;
+		has_scoop = 0;
+		has_shield_booster = 0;
+		has_shield_enhancer = 0;
+		name = "Training Fighter";
+		roles = "oolite-tutorial-fighter";
+		script = "oolite-tutorial-fighter.js";
+	};
 	"oolite_template_mamba" = {
 		aft_eject_position = "0.0 -9.26 -35.1";
 		ai_type = "oolite-pirateAI.js";
@@ -4089,6 +4102,10 @@
 	"oolite-tutorial-buoy" =
 	{
 		"like_ship" = "oolite_template_tutorial-buoy";
+	};
+	"oolite-tutorial-krait" = 
+	{
+		"like_ship" = "oolite_template_tutorial-krait";
 	};
 	"oolite-tutorial-station" = 
 	{

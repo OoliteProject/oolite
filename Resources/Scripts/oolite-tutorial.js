@@ -54,6 +54,7 @@ this.startUp = function()
 
 	this.$tutorialStage = 0;
 	this.$tutorialSubstage = 0;
+	this.$advanceByEquipment = true;
 
 	/* Number of substages in each stage */
 	this.$tutorialStages = [
@@ -63,7 +64,8 @@ this.startUp = function()
 		6, // stage 3: basic flight challenge
 		8, // stage 4: targeting + lasers
 		12, // stage 5: missiles + avoidance
-		0, // stage 6: (not yet started)
+		11, // stage 6: combat
+		0, // stage 7: (not yet started)
 	];
 
 	this.$shipList = [];
@@ -72,6 +74,9 @@ this.startUp = function()
 	missionVariables.oolite_tutorial_asteroids = 0;
 	missionVariables.oolite_tutorial_asteroids_win = 0;
 	missionVariables.oolite_tutorial_asteroids_result = expandMissionText("oolite-tutorial-end-notry");
+	missionVariables.oolite_tutorial_combat_stage = 0;		
+	missionVariables.oolite_tutorial_combat_duration = 0;
+	missionVariables.oolite_tutorial_combat_result = expandMissionText("oolite-tutorial-end-notry");
 
 	// alternative populator
 	this.ooliteTutorialWillPopulate = function()
@@ -127,7 +132,7 @@ this.startUp = function()
 		if (this.$tutorialStage == 0 && this.$tutorialSubstage == 1)
 		{	
 			station.position = station.position.add([0,0,1E7]);
-			station.remove();
+			station.remove(true);
 			this._nextItem();
 		}
 	}
@@ -160,6 +165,18 @@ this.startUp = function()
 		this.$tutorialSound.stop();
 		this.$tutorialSound.sound = snd;
 		this.$tutorialSound.play();
+	}
+
+	this._nextItemEquip = function()
+	{
+		if (this.$advanceByEquipment)
+		{
+			this._nextItem();
+		}
+		else
+		{
+			player.consoleMessage(expandMissionText("oolite-tutorial-no-advance"));
+		}
 	}
 
 	// move to the next item in the current tutorial
@@ -307,6 +324,7 @@ this.startUp = function()
 
 	this._resetPlayerShip = function()
 	{
+		this.$advanceByEquipment = true;
 		player.ship.fuel = 2.0;
 		player.ship.energy = 256;		
 		player.ship.forwardShield = 128;
@@ -339,16 +357,38 @@ this.startUp = function()
 		{
 			if (this.$shipList[i] && this.$shipList[i].isShip)
 			{
-				this.$shipList[i].remove();
+				this.$shipList[i].remove(true);
 			}
 		}
 	}
 
+	// just in case a role has been defined out by OXP
+	this.$roleFallbacks = {
+		"asteroid" : "[asteroid]",
+		"boulder" : "[boulder]",
+		"splinter" : "[splinter]",
+		"police" : "[viper]",
+		"missile" : "[missile]",
+		"energy-bomb" : "[qbomb]"
+	};
+
 	this._addShips = function(role,num,pos,rad)
 	{
-		var arr = system.addShips(role,num,pos,rad);
-		this.$shipList = this.$shipList.concat(arr);
-		return arr;
+		var arr = system.addGroup(role,num,pos,rad);
+		if (!arr || arr.ships.length == 0)
+		{
+			role = this.$roleFallbacks[role];
+			if (role)
+			{
+				arr = system.addGroup(role,num,pos,rad);
+			}
+		}
+		if (!arr || arr.ships.length == 0)
+		{
+			return [];
+		}
+		this.$shipList = this.$shipList.concat(arr.ships);
+		return arr.ships;
 	}
 
 	/* Tutorial stages */
@@ -362,12 +402,12 @@ this.startUp = function()
 	
 	this.__stage1sub0 = function()
 	{
-		this._hideHUDItems();
 		this._setInstructions("oolite-tutorial-1-0");
 	}
 
 	this.__stage1sub1 = function()
 	{
+		this._hideHUDItems();
 		this._setInstructions("oolite-tutorial-1-1");
 		this._showHUDItem("drawEnergyGauge:");
 	}
@@ -657,6 +697,7 @@ this.startUp = function()
 		}
 
 		this._setInstructions("oolite-tutorial-3-3");
+		this.$advanceByEquipment = false;
 		var time = 0;
 		var nexttime = 5;
 		var atonce = 1;
@@ -781,6 +822,7 @@ this.startUp = function()
 		{
 			this._setInstructions("oolite-tutorial-3-4");
 		}
+		this.$advanceByEquipment = true;
 	}
 
 	this.__stage3sub5 = function()
@@ -934,12 +976,132 @@ this.startUp = function()
 		adder.remove();
 	}
 
-
-
-
-
 	this.__stage6sub0 = function()
 	{
+		this._setInstructions("oolite-tutorial-6-0");
+	}
+
+	this.__stage6sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-6-1");
+	}
+
+	this._stage6scorer = function()
+	{
+		missionVariables.oolite_tutorial_combat_stage = this.$tutorialSubstage;
+		missionVariables.oolite_tutorial_combat_duration = Math.floor(clock.seconds - this.$combatClock);
+	}
+
+	this.__stage6sub2 = function()
+	{
+		this.$advanceByEquipment = false;
+		this._setInstructions("oolite-tutorial-6-2");
+		var buoy = this._addShips("oolite-tutorial-buoy",1,player.ship.position,3E3)[0];
+		this.$combatClock = clock.seconds;
+		buoy.script.shipTakingDamage = function()
+		{
+			this._stage6scorer();
+			this._nextSection();
+		}.bind(this);
+
+		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3);
+		target[0].forwardWeapon = "EQ_WEAPON_NONE";
+		target[0].accuracy = 5;
+	}
+
+	this.__stage6sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-6-3");
+		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3);
+		target[0].accuracy = 0;
+		this._stage6scorer();
+	}
+
+	this.__stage6sub4 = function()
+	{
+		this._setInstructions("oolite-tutorial-6-4");
+		var target = this._addShips("oolite-tutorial-fighter",2,player.ship.position,10E3);
+		target[0].accuracy = 0;
+		target[1].accuracy = 0;
+		this._stage6scorer();
+	}
+	
+	this.__stage6sub5 = function()
+	{
+		this.$advanceByEquipment = true;
+		this._setInstructions("oolite-tutorial-6-5");
+		this._stage6scorer();
+	}
+
+	this.__stage6sub6 = function()
+	{
+		this.$advanceByEquipment = false;
+		this._setInstructions("oolite-tutorial-6-6");
+		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3)
+		target[0].accuracy = 0;
+		target[0].forwardWeapon = "EQ_WEAPON_BEAM_LASER";
+		this._stage6scorer();
+	}
+
+	this.__stage6sub7 = function()
+	{
+		this._setInstructions("oolite-tutorial-6-7");
+		var target = this._addShips("oolite-tutorial-fighter",2,player.ship.position,10E3)
+		target[0].accuracy = 0;
+		target[0].forwardWeapon = "EQ_WEAPON_BEAM_LASER";
+		target[1].accuracy = 0;
+		target[1].forwardWeapon = "EQ_WEAPON_BEAM_LASER";
+		this._stage6scorer();
+	}
+
+	this.__stage6sub8 = function()
+	{
+		this.$advanceByEquipment = true;
+		this._setInstructions("oolite-tutorial-6-8");
+		this._stage6scorer();
+	}
+
+	this.__stage6sub9 = function()
+	{
+		this.$advanceByEquipment = false;
+		this._setInstructions("oolite-tutorial-6-9");
+		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3)
+		target[0].accuracy = 6;
+		target[0].forwardWeapon = "EQ_WEAPON_BEAM_LASER";
+		target[0].awardEquipment("EQ_ECM");
+		target[0].awardEquipment("EQ_FUEL_INJECTION");
+		target[0].awardEquipment("EQ_SHIELD_BOOSTER");
+		this._stage6scorer();
+	}
+
+	this.__stage6sub10 = function()
+	{
+		this.$advanceByEquipment = true;
+		this._setInstructions("oolite-tutorial-6-10");
+		this._stage6scorer();
+	}
+
+	this.__stage7sub0 = function()
+	{
+		
+		if (missionVariables.oolite_tutorial_combat_stage > 0)
+		{
+			if (missionVariables.oolite_tutorial_combat_stage > 9)
+			{
+				this._scoreBonus("combat_result");
+			}
+			else if (missionVariables.oolite_tutorial_combat_stage > 7)
+			{
+				this._scoreWin("combat_result");
+			}
+			else if (missionVariables.oolite_tutorial_combat_stage > 4)
+			{
+				this._scoreTry("combat_result");
+			}
+		}
+
+
+
 		this._setInstructions("oolite-tutorial-end-mfd");
 	}
 
