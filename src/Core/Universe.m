@@ -4797,6 +4797,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		if ([entity isStation])
 		{
 			[allStations removeObject:entity];
+			if ([PLAYER getTargetDockStation] == entity)
+			{
+				[PLAYER setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+			}
 		}
 		return [self doRemoveEntity:entity];
 	}
