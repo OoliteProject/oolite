@@ -3129,9 +3129,9 @@
 		is_carrier = 1;
 		market = "none";
 		name = "Tutorial Station";
+		requires_docking_clearance = 1;
 		roles = "oolite-tutorial-station";
-		rotating = no;
-		scan_class = "CLASS_NO_DRAW";
+		scan_class = "CLASS_STATION";
 	};
 	"oolite_template_sidewinder" = 
 	{

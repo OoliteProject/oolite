@@ -353,6 +353,38 @@
 
 	"oolite-tutorial-6-10" = "Very well done! If you fly like that, you might stand a chance when the pirates come for you. That's all we've got for combat training. Press '[oolite_key_activate_equipment]' to start the next lesson.";
 
+	"oolite-tutorial-7-0" = "Lesson 7: Docking practice\nThis lesson will teach you how to dock your ship with a standard Cooperative station, and do so safely.";
+
+	"oolite-tutorial-7-1" = "Docking with the station is one of the things novice pilots often find the most difficult, and due to the size and solidity of the station, failing to dock successfully is often fatal. In this lesson, you'll learn the slow, safe way to dock. There are many shortcuts often taken by experienced pilots.";
+
+	"oolite-tutorial-7-2" = "We have added a Coriolis station to the simulator, coloured green on your scanner. As you can see, it rotates a few times every minute to provide cheap artificial gravity. There is a single docking bay, on the axis of rotation.";
+
+	"oolite-tutorial-7-3" = "In front of the station is the navigation buoy. For primary system stations this will always be on the side facing the planet - other stations may face in any direction. Fly close to the buoy, then press '[oolite_key_activate_equipment]'.";
+
+	"oolite-tutorial-7-4" = "Turn to face the station now. As you can see the docking bay is rectangular. The Cobra III is much wider than it is tall, so when you dock, you need to have the long axis of the bay as near to horizontal as possible.";
+
+	"oolite-tutorial-7-5" = "We'll start with the pre-docking checklist. Firstly, to avoid accidentally shooting your weapons at the station, put them into safe mode with the '[oolite_key_weapons_online_toggle]' key, and note the HUD message that appears. You can rearm them later with the same key.";
+
+	"oolite-tutorial-7-6" = "The next step is to request docking clearance. Target the station with your identification system (press '[oolite_key_ident_system]') and then press '[oolite_key_docking_clearance_request]' to request clearance. The station will respond, giving you a docking deadline (or if traffic is busy, requesting you wait)";
+
+	"oolite-tutorial-7-7" = "Okay, now it's time to dock. You need to do two things to dock safely - come in straight down the line extending from the docking bay, and keep the bay horizontal. If you get into trouble, just turn around, back off to the buoy, and start over. Press '[oolite_key_activate_equipment]' for a few more tips before you start.";
+
+	"oolite-tutorial-7-8" = "Docking Tips: 1/5\nOn your first few attempts, clearance might expire. The station will warn you - press '[oolite_key_docking_clearance_request]' to request an extension, which is almost always granted.";
+
+	"oolite-tutorial-7-9" = "Docking Tips: 2/5\nIf you're coming in on course, you'll be able to see all five interior walls of the bay at once. If you can't see a wall, temporarily point your nose well past the walls you can see.";
+
+	"oolite-tutorial-7-10" = "Docking Tips: 3/5\nIf you try to match the rotation before you're on course, you might get disoriented. Don't worry about the rotation until you're a kilometre or so out.";
+
+	"oolite-tutorial-7-11" = "Docking Tips: 4/5\nNormally if it's going wrong you should just stop, turn round, and try again. If you're too close, though, concentrate on getting the rotation right - your shields will bounce you in if you're reasonably close, but you just won't fit in sideways.";
+
+	"oolite-tutorial-7-12" = "Docking Tips: 5/5\nFinally, keep practicing! It will get easier.\n\nPress '[oolite_key_activate_equipment]' again to bring up a summary of your docking status.";
+
+	"oolite-tutorial-7-13-title" = "Lesson 7: Docking";
+	"oolite-tutorial-7-13-message" = "Well done - you've docked with some degree of success.\n\nYou can try again for some more practice, especially if this attempt didn't go particularly well, or you scraped the shields. Alternatively, if when feel ready, you can move on to the next lesson.";
+	"oolite-tutorial-7-13-choices" = { "01_AGAIN" = "Try again"; "02_CONTINUE" = "Continue to next lesson"; };
+
+
+
 	"oolite-tutorial-end-mfd" = "You have completed the course. Press '[oolite_key_activate_equipment]' to view your test scores.";
 
 	"oolite-tutorial-end-title" = "Course Complete";

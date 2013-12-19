@@ -806,6 +806,35 @@
 		"You docked without any clearance. For violating the station's docking protocol you have been fined %@."
 	);
 		
+	// components of the tutorial's docking helper
+	"oolite-tutorial-dock-notarget" = "Use your identification system to target the station you wish to dock with to activate the docking assessment system.";
+
+	"oolite-tutorial-dock-weapons" = "Weapons: ";
+	"oolite-tutorial-dock-weapons-good" = "Disarmed\n";
+	"oolite-tutorial-dock-weapons-bad" = "Armed (press '[oolite_key_weapons_online_toggle]')\n";
+	
+	"oolite-tutorial-dock-clearance" = "Clearance: ";
+	"oolite-tutorial-dock-clearance-good" = "Granted\n";
+	"oolite-tutorial-dock-clearance-expiring" = "Expiring ('[oolite_key_docking_clearance_request]' to extend)\n";
+	"oolite-tutorial-dock-clearance-bad" = "None (press '[oolite_key_docking_clearance_request]' to request)\n";
+	"oolite-tutorial-dock-clearance-wait" = "Waiting\n";
+
+	"oolite-tutorial-dock-approach" = "Approach: ";
+	"oolite-tutorial-dock-approach-good" = "On course\n";
+	"oolite-tutorial-dock-approach-okay" = "Adequate\n";
+	"oolite-tutorial-dock-approach-off" = "Off centre\n";
+	"oolite-tutorial-dock-approach-bad" = "Off course\n";
+
+	"oolite-tutorial-dock-speed" = "Speed: ";
+	"oolite-tutorial-dock-speed-fast" = "Too fast\n";
+	"oolite-tutorial-dock-speed-good" = "Good\n";
+	"oolite-tutorial-dock-speed-slow" = "Too slow\n";
+
+	"oolite-tutorial-dock-roll" = "Roll: ";
+	"oolite-tutorial-dock-roll-good" = "Matched\n";
+	"oolite-tutorial-dock-roll-okay" = "Adequate\n";
+	"oolite-tutorial-dock-roll-bad" = "Off course\n";
+
 	// system description after a nova
 	"nova-system-description" =
 	(
