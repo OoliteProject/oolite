@@ -7,6 +7,7 @@
 	// Use the following settings to add custom images to Oolite's screens
 
 	intro				= "intro.png";				// background for the ships at game start
+	newgame				= "newgame.png";			// background for the new game (scenario select) screen
 	status				= "status.png";
 	status_docked		= "status-docked.png";		// if not defined, same as status
 	status_in_flight	= "status-in-flight.png"; 	// if not defined, same as status
@@ -60,7 +61,7 @@
 	docked_overlay				= "docked-overlay.png";
 	paused_overlay				= "paused-overlay.png";		// in-flight and paused
 	paused_docked_overlay		= "paused-docked-overlay.png";
-	
+	newgame_overlay				= "newgame_overlay.png";
 	overwrite_overlay			= "overwrite-overlay.png";	// overlay used in the 'overwrite saved game?' screen
 
 */
