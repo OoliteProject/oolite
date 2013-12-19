@@ -152,6 +152,7 @@ this.startUp = function()
 	{
 		this._setFrameCallback("");
 		player.ship.setMultiFunctionText("oolite-tutorial",null);
+		this._resetShips(station);
 	}
 
 
@@ -419,13 +420,18 @@ this.startUp = function()
 
 	}
 
-	this._resetShips = function()
+	// exception parameter used to avoid removing the station the
+	// player is docked with
+	this._resetShips = function(exception)
 	{
 		for (var i=this.$shipList.length-1;i>=0;i--)
 		{
 			if (this.$shipList[i] && this.$shipList[i].isShip)
 			{
-				this.$shipList[i].remove(true);
+				if (!exception || exception != this.$shipList[i])
+				{
+					this.$shipList[i].remove(true);
+				}
 			}
 		}
 	}
