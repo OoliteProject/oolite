@@ -266,8 +266,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 		if (guiChanged)
 		{
-			NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"newgame"];
-			[gui setBackgroundTextureDescriptor:bgDescriptor];
+			[gui setBackgroundTextureKey:@"newgame"];
 			[gui setForegroundTextureKey:@"newgame_overlay"];
 		}
 	}
