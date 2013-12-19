@@ -629,6 +629,11 @@ MA 02110-1301, USA.
 	{
 		return YES;
 	}
+	// player docking manually
+	if ([ship isPlayer] && [[self owner] playerReservedDock] == self)
+	{
+		return YES;
+	}
 	return NO;
 }
 

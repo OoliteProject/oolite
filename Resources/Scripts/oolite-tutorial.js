@@ -65,7 +65,8 @@ this.startUp = function()
 		8, // stage 4: targeting + lasers
 		12, // stage 5: missiles + avoidance
 		11, // stage 6: combat
-		0, // stage 7: (not yet started)
+		15, // stage 7: docking
+		0, // stage 8: (not yet started)
 	];
 
 	this.$shipList = [];
@@ -124,6 +125,34 @@ this.startUp = function()
 					this._nextItem();
 				});
 		}
+		else if (this.$tutorialStage == 7 && this.$tutorialSubstage <= 13)
+		{
+			this._setFrameCallback("");
+			mission.runScreen(
+				{
+					titleKey: "oolite-tutorial-7-13-title",
+					messageKey: "oolite-tutorial-7-13-message",
+					choicesKey: "oolite-tutorial-7-13-choices",
+					screenID: "oolite-tutorial-7-13"
+				},function(choice)
+				{
+					this.$advanceByEquipment = true;
+					player.ship.launch();
+					// in case the player docked early
+					this.$tutorialSubstage = 13;
+					if (choice != "01_AGAIN")
+					{
+						this._nextItem();
+					}
+				});
+		}
+	}
+
+	this.shipWillDockWithStation = function(station)
+	{
+		this._setFrameCallback("");
+		player.ship.setMultiFunctionText("oolite-tutorial",null);
+		this._resetShips(station);
 	}
 
 
@@ -134,6 +163,16 @@ this.startUp = function()
 			station.position = station.position.add([0,0,1E7]);
 			station.remove(true);
 			this._nextItem();
+		}
+		else if (this.$tutorialStage == 7)
+		{
+			station.position = station.position.add([0,0,1E7]);
+			station.remove(true);
+			if (this.$tutorialSubstage != 14)
+			{
+				this.$tutorialStage--;
+			}
+			this._nextSection();
 		}
 	}
 
@@ -159,6 +198,36 @@ this.startUp = function()
 		player.ship.cancelHyperspaceCountdown();
 		player.consoleMessage(expandMissionText("oolite-tutorial-no-witchspace"));
 	}
+
+
+
+	this.$blockTorus = true;
+	this.$blockTorusObj = null;
+	this.$blockTorusFCB = addFrameCallback(function(delta)
+	{
+		if ($blockTorus)
+		{
+			// doesn't help with injectors, but the player doesn't
+			// have those here
+			if (player.ship.speed > player.ship.maxSpeed)
+			{
+				if (!this.$blockTorusObj || !this.$blockTorusObj.isInSpace)
+				{
+					this.$blockTorusObj = system.addShips("[adder]",1,player.ship.position.add(player.ship.vectorUp.multiply(10000)),0)[0];
+					this.$blockTorusObj.scannerDisplayColor1 = [0,0,0,0];
+					this.$blockTorusObj.scannerDisplayColor2 = [0,0,0,0];
+					this.$blockTorusObj.setAI("nullAI.plist");
+					player.consoleMessage(expandMissionText("oolite-tutorial-no-torus"));
+				}
+			}
+			else if (this.$blockTorusObj)
+			{
+				this.$blockTorusObj.remove(true);
+				this.$blockTorusObj = null;
+			}
+		}
+	}.bind(this));
+
 
 	this._playSound = function(snd)
 	{
@@ -351,13 +420,18 @@ this.startUp = function()
 
 	}
 
-	this._resetShips = function()
+	// exception parameter used to avoid removing the station the
+	// player is docked with
+	this._resetShips = function(exception)
 	{
 		for (var i=this.$shipList.length-1;i>=0;i--)
 		{
 			if (this.$shipList[i] && this.$shipList[i].isShip)
 			{
-				this.$shipList[i].remove(true);
+				if (!exception || exception != this.$shipList[i])
+				{
+					this.$shipList[i].remove(true);
+				}
 			}
 		}
 	}
@@ -1083,7 +1157,6 @@ this.startUp = function()
 
 	this.__stage7sub0 = function()
 	{
-		
 		if (missionVariables.oolite_tutorial_combat_stage > 0)
 		{
 			if (missionVariables.oolite_tutorial_combat_stage > 9)
@@ -1100,8 +1173,80 @@ this.startUp = function()
 			}
 		}
 
+		this._setInstructions("oolite-tutorial-7-0");
+	}
+
+	this.__stage7sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-1");
+	}
+
+	this.__stage7sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-2");
+		var station = this._addShips("oolite-tutorial-station",1,player.ship.position,15E3)[0];
+		var buoy = this._addShips("oolite-tutorial-buoy",1,station.position.add(station.vectorForward.multiply(10E3)),0)[0];
+	}
+
+	this.__stage7sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-3");
+	}
+
+	this.__stage7sub4 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-4");
+	}
+
+	this.__stage7sub5 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-5");
+	}
+
+	this.__stage7sub6 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-6");
+	}
+
+	this.__stage7sub7 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-7");
+	}
+
+	this.__stage7sub8 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-8");
+	}
+
+	this.__stage7sub9 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-9");
+	}
+
+	this.__stage7sub10 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-10");
+	}
+
+	this.__stage7sub11 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-11");
+	}
+
+	this.__stage7sub12 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-12");
+	}
+
+	this.__stage7sub13 = function()
+	{
+		this.$advanceByEquipment = false;
+		this._setFrameCallback(this._dockingMonitor.bind(this));
+	}
 
 
+	this.__stage8sub0 = function()
+	{
 		this._setInstructions("oolite-tutorial-end-mfd");
 	}
 
@@ -1121,4 +1266,169 @@ this.startUp = function()
 		);
 	}
 
+}
+
+
+/* Define this outside the tutorial - it might be useful! */
+this._dockingMonitor = function(delta)
+{
+	var report = "";
+	if (!player.ship.target || !player.ship.target.isStation)
+	{
+		report += "[oolite-tutorial-dock-notarget]";
+	}
+	else
+	{
+		// check weapons
+		report += "[oolite-tutorial-dock-weapons]";
+		if (player.ship.weaponsOnline)
+		{
+			report += "[oolite-tutorial-dock-weapons-bad]";
+		}
+		else
+		{
+			report += "[oolite-tutorial-dock-weapons-good]";
+		}
+		
+		// check clearance
+		report += "[oolite-tutorial-dock-clearance]";
+		switch (player.dockingClearanceStatus)
+		{
+		case "DOCKING_CLEARANCE_STATUS_NONE":
+			report += "[oolite-tutorial-dock-clearance-bad]";
+			break;
+		case "DOCKING_CLEARANCE_STATUS_REQUESTED":
+			report += "[oolite-tutorial-dock-clearance-wait]";
+			break;
+		case "DOCKING_CLEARANCE_STATUS_NOT_REQUIRED":
+		case "DOCKING_CLEARANCE_STATUS_GRANTED":
+			report += "[oolite-tutorial-dock-clearance-good]";
+			break;
+		case "DOCKING_CLEARANCE_STATUS_TIMING_OUT":
+			report += "[oolite-tutorial-dock-clearance-expiring]";
+			break;
+		}
+
+		// find dock
+		var station = player.ship.target;
+		var docks = station.subEntities;
+		var dock = null;
+		for (var i=0;i<docks.length;i++)
+		{
+			if (docks[i].isDock && docks[i].isQueued(player.ship))
+			{
+				dock = docks[i];
+				break;
+			}
+		}
+		if (dock != null)
+		{
+			// absolute position of dock
+			var dpos = station.position.add(station.vectorRight.multiply(dock.position.x)).add(station.vectorUp.multiply(dock.position.y)).add(station.vectorForward.multiply(dock.position.z));
+			// basis vectors in worldspace for dock
+			var dor = station.orientation.multiply(dock.orientation);
+			var dfwd = dor.vectorForward();
+			var dhoriz; var dvert; var shoriz; var svert; var dsize;
+			if (dock.boundingBox.y > dock.boundingBox.x)
+			{
+				// dock basis vectors
+				dhoriz = dor.vectorUp();
+				dvert = dor.vectorRight();
+				// safety margins
+				shoriz = (dock.boundingBox.y - player.ship.boundingBox.x)/2;
+				svert = (dock.boundingBox.x - player.ship.boundingBox.y)/2;
+				dsize = dock.boundingBox.x / 2;
+			}
+			else
+			{
+				dvert = dor.vectorUp();
+				dhoriz = dor.vectorRight();
+				// safety margins
+				shoriz = (dock.boundingBox.x - player.ship.boundingBox.x)/2
+				svert = (dock.boundingBox.y - player.ship.boundingBox.y)/2;
+				dsize = dock.boundingBox.y / 2;
+			}
+			
+			// check approach direction and course
+			report += "[oolite-tutorial-dock-approach]";
+			var relpos = dpos.subtract(player.ship.position);
+			var distance = relpos.magnitude();
+
+			if (player.ship.vectorForward.dot(relpos.direction()) < Math.cos(Math.atan(dsize/distance)) && distance > dock.boundingBox.z)
+			{
+				report += "[oolite-tutorial-dock-approach-bad]";
+			}
+			else
+			{
+				var x = Math.abs(dhoriz.dot(relpos));
+				var y = Math.abs(dvert.dot(relpos));
+				
+				if (x < shoriz && y < svert)
+				{
+					report += "[oolite-tutorial-dock-approach-good]";
+				}
+				else if (Math.abs(dfwd.dot(relpos)) > 0.999 && distance > 750)
+				{
+					report += "[oolite-tutorial-dock-approach-okay]";
+				}
+				else if (x < shoriz+50 && y < svert+50)
+				{
+					report += "[oolite-tutorial-dock-approach-okay]";
+				}
+				else
+				{
+					report += "[oolite-tutorial-dock-approach-off]";
+				}
+			}
+
+			// check speed
+			report += "[oolite-tutorial-dock-speed]";
+			var target = 40;
+			if (distance > 1000)
+			{
+				target = 75;
+				if (distance > 2000)
+				{
+					target = 120;
+					if (distance > 4000)
+					{
+						target = 200;
+					}
+				}
+			}
+			if (player.ship.speed > target * 1.5)
+			{
+				report += "[oolite-tutorial-dock-speed-fast]";
+			}
+			else if (player.ship.speed < target * 0.5)
+			{
+				report += "[oolite-tutorial-dock-speed-slow]";
+			}
+			else
+			{
+				report += "[oolite-tutorial-dock-speed-good]";
+			}
+
+			// check roll
+			report += "[oolite-tutorial-dock-roll]";
+			var roll = Math.abs(player.ship.vectorRight.dot(dhoriz));
+			if (roll > 0.999)
+			{
+				report += "[oolite-tutorial-dock-roll-good]";
+			}
+			else if (roll > 0.99)
+			{
+				report += "[oolite-tutorial-dock-roll-okay]";
+			}
+			else
+			{
+				report += "[oolite-tutorial-dock-roll-bad]";
+			}
+
+
+		}
+	}
+	var result = expandDescription(report);
+	player.ship.setMultiFunctionText("oolite-tutorial",result,true);
+	player.ship.setMultiFunctionDisplay(0,"oolite-tutorial");
 }
