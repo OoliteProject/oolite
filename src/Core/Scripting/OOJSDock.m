@@ -34,6 +34,9 @@ MA 02110-1301, USA.
 static JSObject		*sDockPrototype;
 
 static BOOL JSDockGetDockEntity(JSContext *context, JSObject *stationObj, DockEntity **outEntity);
+static BOOL JSDockGetShipEntity(JSContext *context, JSObject *shipObj, ShipEntity **outEntity);
+
+static JSBool DockIsQueued(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSBool DockGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
@@ -83,6 +86,7 @@ static JSPropertySpec sDockProperties[] =
 static JSFunctionSpec sDockMethods[] =
 {
 	// JS name					Function						min args
+	{ "isQueued",				DockIsQueued,					1 },
 	{ 0 }
 };
 
@@ -111,6 +115,28 @@ static BOOL JSDockGetDockEntity(JSContext *context, JSObject *dockObj, DockEntit
 	if (![entity isKindOfClass:[DockEntity class]])  return NO;
 	
 	*outEntity = (DockEntity *)entity;
+	return YES;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static BOOL JSDockGetShipEntity(JSContext *context, JSObject *shipObj, ShipEntity **outEntity)
+{
+	OOJS_PROFILE_ENTER
+	
+	BOOL						result;
+	Entity						*entity = nil;
+	
+	if (outEntity == NULL)  return NO;
+	*outEntity = nil;
+	
+	result = OOJSEntityGetEntity(context, shipObj, &entity);
+	if (!result)  return NO;
+	
+	if (![entity isKindOfClass:[ShipEntity class]])  return NO;
+	
+	*outEntity = (ShipEntity *)entity;
 	return YES;
 	
 	OOJS_PROFILE_EXIT
@@ -226,4 +252,29 @@ static JSBool DockSetProperty(JSContext *context, JSObject *this, jsid propID, J
 
 
 // *** Methods ***
+
+static JSBool DockIsQueued(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	BOOL result = NO;
+	DockEntity *dock = nil;
+
+	JSDockGetDockEntity(context, OOJS_THIS, &dock); 
+	if (argc == 0)
+	{
+		OOJSReportBadArguments(context, @"Dock", @"isQueued", MIN(argc, 1U), OOJS_ARGV, nil, @"ship");
+		return NO;
+	}
+	ShipEntity *ship = nil;
+	JSDockGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &ship);
+	if (ship != nil)
+	{
+		result = [dock shipIsInDockingQueue:ship];
+	}
+	
+	OOJS_RETURN_BOOL(result);
+	
+	OOJS_NATIVE_EXIT
+}
 
