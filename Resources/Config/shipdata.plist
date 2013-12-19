@@ -3128,7 +3128,7 @@
 		ai_type = "nullAI.plist";
 		is_carrier = 1;
 		market = "none";
-		name = "Tutorial Station";
+		name = "Training Station";
 		requires_docking_clearance = 1;
 		roles = "oolite-tutorial-station";
 		scan_class = "CLASS_STATION";

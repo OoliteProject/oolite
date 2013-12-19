@@ -187,6 +187,8 @@
 	// tutorial
 	"oolite-tutorial-no-witchspace" = "Witchspace controls are not available in this simulator.";
 
+	"oolite-tutorial-no-torus" = "The torus drive is not available during this lesson.";
+
 	"oolite-tutorial-no-death" = "If this wasn't a simulator, that would have killed you. Be more careful this time!";
 
 	"oolite-tutorial-no-advance" = "Advancing with '[oolite_key_activate_equipment]' is not currently available.";

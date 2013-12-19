@@ -198,6 +198,36 @@ this.startUp = function()
 		player.consoleMessage(expandMissionText("oolite-tutorial-no-witchspace"));
 	}
 
+
+
+	this.$blockTorus = true;
+	this.$blockTorusObj = null;
+	this.$blockTorusFCB = addFrameCallback(function(delta)
+	{
+		if ($blockTorus)
+		{
+			// doesn't help with injectors, but the player doesn't
+			// have those here
+			if (player.ship.speed > player.ship.maxSpeed)
+			{
+				if (!this.$blockTorusObj || !this.$blockTorusObj.isInSpace)
+				{
+					this.$blockTorusObj = system.addShips("[adder]",1,player.ship.position.add(player.ship.vectorUp.multiply(10000)),0)[0];
+					this.$blockTorusObj.scannerDisplayColor1 = [0,0,0,0];
+					this.$blockTorusObj.scannerDisplayColor2 = [0,0,0,0];
+					this.$blockTorusObj.setAI("nullAI.plist");
+					player.consoleMessage(expandMissionText("oolite-tutorial-no-torus"));
+				}
+			}
+			else if (this.$blockTorusObj)
+			{
+				this.$blockTorusObj.remove(true);
+				this.$blockTorusObj = null;
+			}
+		}
+	}.bind(this));
+
+
 	this._playSound = function(snd)
 	{
 		this.$tutorialSound.stop();
