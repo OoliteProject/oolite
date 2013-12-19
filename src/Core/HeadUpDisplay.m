@@ -2708,6 +2708,18 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawWeaponsOfflineText:(NSDictionary *)info
 {
+	OOViewID					viewID = [UNIVERSE viewDirection];
+
+	if (viewID == VIEW_CUSTOM ||
+		overallAlpha == 0.0f ||
+		!([PLAYER status] == STATUS_IN_FLIGHT || [PLAYER status] == STATUS_WITCHSPACE_COUNTDOWN) ||
+		[UNIVERSE displayGUI]
+		)
+	{
+		// Don't draw weapons offline text
+		return;
+	}
+
 	if (![PLAYER weaponsOnline])
 	{
 		int					x, y;
