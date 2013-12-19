@@ -261,9 +261,17 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[gui setSelectableRange:NSMakeRange(start_row - 2,3 + row - start_row)];
 		[gui setSelectedRow:start_row];
 		[self showScenarioDetails];
-	}
 
-	gui_screen = GUI_SCREEN_NEWGAME;
+		gui_screen = GUI_SCREEN_NEWGAME;
+	
+		if (guiChanged)
+		{
+			NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"newgame"];
+			[gui setBackgroundTextureDescriptor:bgDescriptor];
+			[gui setForegroundTextureKey:@"newgame_overlay"];
+		}
+	}
+	
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
