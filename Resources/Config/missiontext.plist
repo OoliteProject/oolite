@@ -391,6 +391,57 @@
 	"oolite-tutorial-7-13-message" = "Well done - you've docked with some degree of success.\n\nYou can try again for some more practice, especially if this attempt didn't go particularly well, or you scraped the shields. Alternatively, if when feel ready, you can move on to the next lesson.";
 	"oolite-tutorial-7-13-choices" = { "01_AGAIN" = "Try again"; "02_CONTINUE" = "Continue to next lesson"; };
 
+	"oolite-tutorial-8-0" = "Lesson 8: Information screens\nThis lesson covers various screens which are used to examine ship status and other information. After the docking lesson we thought you might need a short break from flying.";
+
+	"oolite-tutorial-8-1" = "Status screen: 1/4\nPressing '[oolite_key_gui_screen_status]' or 'F5' will bring up the status screen. You can use '[oolite_key_view_forward]' to return to forward view at any time while viewing it. Try it now, then come back to the forward view before continuing.";
+
+	"oolite-tutorial-8-2" = "Status screen: 2/4\nThe top of the screen shows your current location and witchspace destination, a text description of your alert condition (remember the status light from the first lesson), your current fuel and cash, and your legal status and combat rating.";
+
+	"oolite-tutorial-8-3" = "Status screen: 3/4\nThe bottom of the screen lists your ship's fitted equipment. We have added a few extra items to your ship which you can inspect now.";
+
+	"oolite-tutorial-8-4" = "Status screen: 4/4\nIf your equipment is damaged in combat or through failure to keep your ship well maintained, it will be coloured orange on the screen, with 'n/a' appended to its description. Check the screen again for an example.";
+
+	"oolite-tutorial-8-5" = "Manifest screen: 1/2\nPressing '[oolite_key_gui_screen_status]' or 'F5' while already on the status screen will display the manifest screen (so press either key twice from elsewhere). This displays your current cargo and a log of outstanding work contracts you have taken.";
+
+	"oolite-tutorial-8-6" = "Manifest screen: 2/2\nA number of cargo pods have been added to your hold to demonstrate the manifest screen, and a sample work contract entry has been added.";
+	
+	"oolite-tutorial-8-6-info" = "Training course: complete the course";
+
+	"oolite-tutorial-8-7" = "Short range chart: 1/10\nThe short range chart is reached by pressing '[oolite_key_gui_chart_screens]' or 'F6'. It shows the nearby systems, and your current position is marked with a green cross. A green circle shows the limits of your current witchspace fuel.";
+
+	"oolite-tutorial-8-8" = "Short range chart: 2/10\nWhere systems may be relevant to a contract of employment, they are often marked on the chart. An example of this has now been added to the nearby Leesti system.";
+
+	"oolite-tutorial-8-9" = "Short range chart: 3/10\nThe information screens share common directional controls - '[oolite_key_gui_arrow_left]', '[oolite_key_gui_arrow_right]', '[oolite_key_gui_arrow_up]', and '[oolite_key_gui_arrow_down]'. On this screen, they can be used to select a destination system.";
+
+	"oolite-tutorial-8-10" = "Short range chart: 4/10\nPressing the '[oolite_key_map_info]' key while on the short range chart will replace the system names with symbols reflecting key aspects of those systems - government, economy, and technological level.";
+
+	"oolite-tutorial-8-11" = "Short range chart: 5/10\nGovernment symbols:\n\007 - Corporate State\n\006 - Democracy\n\005 - Confederacy\n\004 - Communist\n\003 - Dictatorship\n\002 - Multi-Government\n\001 - Feudal\n\000 - Anarchy";
+
+	"oolite-tutorial-8-12" = "Short range chart: 6/10\nThe government type approximately corresponds to the level of control the planet has over its orbital space and therefore the likelihood of pirate attacks, with Corporate States being the safest, and Anarchies the most dangerous.";
+
+	"oolite-tutorial-8-13" = "Short range chart: 7/10\nEconomic symbols:\n\020 - Poor Agricultural\n\021 - Average Agricultural\n\022 - Rich Agricultural\n\023 - Mainly Agricultural\n\024 - Mainly Industrial\n\025 - Poor Industrial\n\026 - Average Industrial\n\027 - Rich Industrial";
+	
+	"oolite-tutorial-8-14" = "Short range chart: 8/10\nThe economy gives an idea of the types of trade goods which are likely to be cheap to buy or profitable to sell in this system. Most trade routes are between Agricultural and Industrial worlds.";
+
+	"oolite-tutorial-8-15" = "Short range chart: 9/10\nThe number is the technological level (TL) and represents the planet's capabilities at ship construction and maintenance, on a scale from 1 to 15. At higher TL systems, more equipment and ships will be available from stations.";
+
+	"oolite-tutorial-8-16" = "Short range chart: 10/10\nOnce you have selected a destination on the short range chart, the '[oolite_key_hyperspace]' key will activate the witchspace jump sequence. You are recommended to fly straight and level while the sequence is underway. Once the sequence is complete, you will travel through witchspace to your chosen destination.";
+
+	"oolite-tutorial-8-17" = "Long range chart: 1/2\nPressing '[oolite_key_gui_chart_screens]' or 'F6' again while on the short range chart screen displays the long range chart. This displays the wider region of space you are in, with your current position, witchspace range, and markers displayed as on the short range chart.";
+
+	"oolite-tutorial-8-18" = "Long range chart: 2/2\nThe scale is too wide to display name labels, but you can type letters to search for systems. Try going to the chart and typing 'ti' to discover all systems beginning with 'ti', which will be highlighted with a green square. You can hold shift while pressing the direction keys to switch between possibilities.";
+
+	"oolite-tutorial-8-19" = "System information: 1/1\nPressing '[oolite_key_gui_system_data]' or 'F7' will display information on the current witchspace destination system. This includes the government, economy and technological level mentioned earlier, as well as other key data for visitors.";
+
+	"oolite-tutorial-8-20" = "Market information: 1/1\nPressing '[oolite_key_gui_market]' or 'F8' will display the current market prices in this system, or, if docked at a station, for that station. When docked, cargo may be bought and sold using the direction controls.";
+
+	"oolite-tutorial-8-21" = "Station screens: 1/4\nWhile docked at a station, the view controls take on different functions, as external views are not required.";
+
+	"oolite-tutorial-8-22" = "Station screens: 2/4\nThe '[oolite_key_view_port]' or 'F3' key gives access to purchase fuel and equipment for your ship, and pressing it twice accesses the shipyard (if available) where other ships may be viewed and purchased.";
+
+	"oolite-tutorial-8-23" = "Station screens: 3/4\nThe '[oolite_key_view_starboard]' or 'F4' key meanwhile gives access to a range of ship and station systems and communications channels, where you may configure ship settings and look for information or work offers.";
+
+	"oolite-tutorial-8-24" = "Station screens: 4/4\nFinally, while docked at a station, the '[oolite_key_view_forward]' or 'F1' key is repurposed to request a launch slot, shortly after which you will be launched from the station.";
 
 
 	"oolite-tutorial-end-mfd" = "You have completed the course. Press '[oolite_key_activate_equipment]' to view your test scores.";

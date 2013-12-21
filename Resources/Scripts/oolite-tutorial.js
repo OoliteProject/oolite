@@ -66,7 +66,8 @@ this.startUp = function()
 		12, // stage 5: missiles + avoidance
 		11, // stage 6: combat
 		15, // stage 7: docking
-		0, // stage 8: (not yet started)
+		25, // stage 8: status screens
+		0, // stage 9: (not yet started)
 	];
 
 	this.$shipList = [];
@@ -1270,11 +1271,150 @@ this.startUp = function()
 		this._setFrameCallback(this._dockingMonitor.bind(this));
 	}
 
-
 	this.__stage8sub0 = function()
 	{
+		this._setInstructions("oolite-tutorial-8-0");
+	}
+
+	this.__stage8sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-1");
+	}
+
+	this.__stage8sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-2");
+	}
+
+	this.__stage8sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-3");
+		player.ship.awardEquipment("EQ_HEAT_SHIELD");
+		player.ship.awardEquipment("EQ_ENERGY_UNIT");
+	}
+
+	this.__stage8sub4 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-4");
+		player.ship.setEquipmentStatus("EQ_HEAT_SHIELD","EQUIPMENT_DAMAGED");
+	}
+
+	this.__stage8sub5 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-5");
+	}
+
+	this.__stage8sub6 = function()
+	{
+		player.ship.manifest.food = 5;
+		player.ship.manifest.minerals = 3;
+		player.ship.manifest.gold = 13;
+		mission.setInstructionsKey("oolite-tutorial-8-6-info",this.name);
+		this._setInstructions("oolite-tutorial-8-6");
+	}
+
+	this.__stage8sub7 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-7");
+	}
+
+	this.__stage8sub8 = function()
+	{
+		mission.markSystem(55);
+		this._setInstructions("oolite-tutorial-8-8");
+	}
+
+	this.__stage8sub9 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-9");
+	}
+
+	this.__stage8sub10 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-10");
+	}
+
+	this.__stage8sub11 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-11");
+	}
+
+	this.__stage8sub12 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-12");
+	}
+
+	this.__stage8sub13 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-13");
+	}
+
+	this.__stage8sub14 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-14");
+	}
+
+	this.__stage8sub15 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-15");
+	}
+
+	this.__stage8sub16 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-16");
+	}
+
+	this.__stage8sub17 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-17");
+	}
+
+	this.__stage8sub18 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-18");
+	}
+
+	this.__stage8sub19 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-19");
+	}
+
+	this.__stage8sub20 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-20");
+	}
+
+	this.__stage8sub21 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-21");
+	}
+
+	this.__stage8sub22 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-22");
+	}
+
+	this.__stage8sub23 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-23");
+	}
+
+	this.__stage8sub24 = function()
+	{
+		this._setInstructions("oolite-tutorial-8-24");
+	}
+
+
+
+
+	this.__stage9sub0 = function()
+	{
+		player.ship.removeEquipment("EQ_HEAT_SHIELD");
+		player.ship.removeEquipment("EQ_ENERGY_UNIT");
 		this._setInstructions("oolite-tutorial-end-mfd");
 	}
+
+
 
 	this._endTutorial = function()
 	{
@@ -1438,11 +1578,11 @@ this._dockingMonitor = function(delta)
 			// check roll
 			report += "[oolite-tutorial-dock-roll]";
 			var roll = Math.abs(player.ship.vectorRight.dot(dhoriz));
-			if (roll > 0.999)
+			if (roll > 0.99)
 			{
 				report += "[oolite-tutorial-dock-roll-good]";
 			}
-			else if (roll > 0.99)
+			else if (roll > 0.95)
 			{
 				report += "[oolite-tutorial-dock-roll-okay]";
 			}
