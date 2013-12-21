@@ -37,14 +37,32 @@ this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
 this.version		= "1.79";
 
+this.$mode = 0;
 
 this.activated = function()
 {
-	worldScripts["oolite-tutorial"]._nextItemEquip();
+	if (this.$mode == 0)
+	{
+		worldScripts["oolite-tutorial"]._nextItemEquip();
+	} 
+	else if (this.$mode == 1)
+	{
+		worldScripts["oolite-tutorial"]._nextSection();
+		this.$mode = 0;
+		player.consoleMessage(expandMissionText("oolite-tutorial-controls-mode0"));
+	}
+	else if (this.$mode == 2)
+	{
+		worldScripts["oolite-tutorial"]._restartSection();
+		this.$mode = 0;
+		player.consoleMessage(expandMissionText("oolite-tutorial-controls-mode0"));
+	}
 }
 
 
 this.mode = function()
 {
-	worldScripts["oolite-tutorial"]._nextSection();
+	this.$mode = (this.$mode + 1) % 3;
+
+	player.consoleMessage(expandMissionText("oolite-tutorial-controls-mode"+this.$mode));
 }
