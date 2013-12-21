@@ -1095,6 +1095,14 @@ this.startUp = function()
 			this._stage6scorer();
 			this._nextSection();
 		}.bind(this);
+		/* force buoy to be within scanner range */
+		buoy.script.$timer = new Timer (buoy.script,function() {
+			if (this.ship.position.distanceTo(player.ship) > 25E3)
+			{
+				this.ship.position = player.ship.position.add([0,0,10E3]);
+			}
+		},5,5);
+
 
 		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3);
 		target[0].forwardWeapon = "EQ_WEAPON_NONE";
