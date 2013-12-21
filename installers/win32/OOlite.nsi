@@ -74,6 +74,7 @@ VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
 VIAddVersionKey "LegalCopyright" "© 2003-2013 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
+VIAddVersionKey "ProductVersion" "${VER}"
 !ifdef SNAPSHOT
 VIAddVersionKey "GIT Revision" "${VER_GITHASH}"
 !endif
