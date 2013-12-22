@@ -281,7 +281,7 @@
 
 	"oolite-tutorial-3-0" = "Lesson 3: Flight Training\nThis lesson gives you opportunity to practice basic piloting skills. Your ship has been disarmed temporarily to focus on movement over weapon use.";
 	
-	"oolite-tutorial-3-1" = "To refresh your memory, the basic flight controls are:\n[oolite_key_roll_left]: roll left\n[oolite_key_roll_right]: roll right\n[oolite_key_pitch_forward]: pitch forward\n[oolite_key_pitch_back]: pitch back\n[oolite_key_increase_speed]: increase speed\n[oolite_key_decrease_speed]: decrease speed";
+	"oolite-tutorial-3-1" = "To refresh your memory, the basic flight controls are:\n[oolite_key_roll_left]: roll left\n[oolite_key_roll_right]: roll right\n[oolite_key_pitch_forward]: pitch forward\n[oolite_key_pitch_back]: pitch back\n[oolite_key_increase_speed]: increase speed\n[oolite_key_decrease_speed]: decrease speed\nHolding the Ctrl key while turning will increase precision.";
 
 	"oolite-tutorial-3-2" = "We have added a dense asteroid cluster nearby. Use your scanner to locate the buoy within it, then fly within 500m of the buoy and come to a complete stop.\n\nTip: use the range lines on the scanner to judge distance.";
 
