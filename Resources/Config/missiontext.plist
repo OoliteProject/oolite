@@ -443,11 +443,40 @@
 
 	"oolite-tutorial-8-24" = "Station screens: 4/4\nFinally, while docked at a station, the '[oolite_key_view_forward]' or 'F1' key is repurposed to request a launch slot, shortly after which you will be launched from the station.";
 
+	"oolite-tutorial-9-0" = "Lesson 9: System navigation\nThis lesson will cover navigation from the witchpoint to the system station.";
+
+	"oolite-tutorial-9-1" = "We have transported your ship near to the witchpoint buoy. This buoy marks a stable exit point from witchspace, and ships entering the system will do so near this buoy.";
+
+	"oolite-tutorial-9-2" = "The compass is used to direct you towards the planet. If you are facing the planet, the indicator will be green and centred. If you are facing directly away from the planet, it will be red and centred. Otherwise you will need to turn in the direction indicated. Turn your ship around and then use it to locate the planet it again.";
+
+	"oolite-tutorial-9-3" = "Turn towards the planet and accelerate to maximum speed. Even at your top normal speed, it can take up to an hour to reach orbit. You can speed your flight up using the torus drive. Press '[oolite_key_jumpdrive]' to activate it.";
+
+	"oolite-tutorial-9-4" = "The torus drive provides significant acceleration and speed. Notice how quickly you have left the witchpoint buoy behind, and how fast the planet is coming closer. The torus drive is only able to operate far from large masses and high-density energy sources (other than those on your ship it is precisely calibrated for).";
+
+	"oolite-tutorial-9-5" = "The drive will automatically cut out and decelerate you to conventional speeds if you near such an object, and can only be reactivated when your alert condition is Green once again. Ahead is a simulated trade ship, such as you might meet on a routine journey to the planet.";
+
+	"oolite-tutorial-9-6" = "Not all ships will be as friendly as the trader. Pirates will attack shipping even occasionally in safe systems. If you are attacked, unable to run, and outnumbered too much to fight, then you can dump cargo to distract them. Use the '[oolite_key_rotate_cargo]' key to select the item to dump, then the '[oolite_key_dump_cargo]' key to drop it.";
+
+	"oolite-tutorial-9-7" = "We have removed the trade ship now, so you should be back at condition Green. Re-engage the torus drive and continue approaching the planet. Watch your altitude bar - don't get too close to the surface";
+
+	"oolite-tutorial-9-7-sun" = "This is the sun, not the planet. Easy mistake to make, so try again.";
+
+	"oolite-tutorial-9-7-toofar" = "Approach the planet to move to the next stage";
+
+	"oolite-tutorial-9-8" = "Now that you are near the planet, your compass has changed to track the main station. Stop the torus drive with the '[oolite_key_jumpdrive]' key, then use the compass to locate the station.";
+
+	"oolite-tutorial-9-9" = "Head towards the station. If you stopped far enough from the planet, you will still be able to use your torus drive. Otherwise, travel there at conventional speeds, or temporarily head further from the planet until your condition returns to Green.";
+
+	"oolite-tutorial-9-9-toofar" = "Approach the station to move to the next stage";
+
+	"oolite-tutorial-9-10" = "When you are close enough to the station, the aegis indicator - a large S - will appear. This indicates that you are within sensor range of the station and will be protected against pirate attack by the station's police ships.";
+
+	"oolite-tutorial-9-11" = "Between the station and the planet you will see the navigation buoy. As covered in previous lessons, you should now dock with the station. Remember to ask for clearance first with the '[oolite_key_docking_clearance_request]' key.";
 
 	"oolite-tutorial-end-mfd" = "You have completed the course. Press '[oolite_key_activate_equipment]' to view your test scores.";
 
 	"oolite-tutorial-end-title" = "Course Complete";
-	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course. Your scores:\n\nDeaths: [mission_oolite_tutorial_deaths]\n\nAsteroid navigation: [mission_oolite_tutorial_asteroids_result] ([mission_oolite_tutorial_asteroids] seconds)\nCombat practice: [mission_oolite_tutorial_combat_result] ([mission_oolite_tutorial_combat_duration] seconds)";
+	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course. Your scores:\n\nDeaths: [mission_oolite_tutorial_deaths]\n\nAsteroid navigation: [mission_oolite_tutorial_asteroids_result] ([mission_oolite_tutorial_asteroids] seconds)\nCombat practice: [mission_oolite_tutorial_combat_result] ([mission_oolite_tutorial_combat_duration] seconds)\n\nWe wish you luck in your future career.";
 	"oolite-tutorial-end-choices" = { "1" = "Exit Simulator"; };
 
 	"oolite-tutorial-end-notry" = "Incomplete";

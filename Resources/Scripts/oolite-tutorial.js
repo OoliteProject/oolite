@@ -67,7 +67,7 @@ this.startUp = function()
 		11, // stage 6: combat
 		15, // stage 7: docking
 		25, // stage 8: status screens
-		0, // stage 9: (not yet started)
+		15 // stage 9: system navigation
 	];
 
 	this.$shipList = [];
@@ -83,6 +83,33 @@ this.startUp = function()
 	// alternative populator
 	this.ooliteTutorialWillPopulate = function()
 	{
+
+		system.setPopulator("oolite-nav-buoy",
+						{
+							priority: 5,
+							location: "COORDINATES",
+							coordinates: system.mainStation.position.add(system.mainStation.vectorForward.multiply(10E3)),
+							callback: function(pos) {
+								var nb = system.addShips("buoy",1,pos,0)[0];
+								nb.scanClass = "CLASS_BUOY";
+								nb.reactToAIMessage("START_TUMBLING");
+							},
+							deterministic: true
+						});
+
+		system.setPopulator("oolite-witch-buoy",
+						{
+							priority: 10,
+							location: "COORDINATES",
+							coordinates: [0,0,0],
+							callback: function(pos) {
+								var wb = system.addShips("buoy-witchpoint",1,pos,0)[0];
+								wb.scanClass = "CLASS_BUOY";
+								wb.reactToAIMessage("START_TUMBLING");
+							},
+							deterministic: true
+						});
+
 		var addTutorialStation = function(pos)
 		{
 			system.addShips("oolite-tutorial-station",1,pos,0);
@@ -147,6 +174,10 @@ this.startUp = function()
 					}
 				});
 		}
+		else if (this.$tutorialStage >= 9)
+		{
+			this._endTutorial();
+		}
 	}
 
 	this.shipWillDockWithStation = function(station)
@@ -191,6 +222,47 @@ this.startUp = function()
 			player.consoleMessage(expandMissionText("oolite-tutorial-no-death"));
 			missionVariables.oolite_tutorial_deaths++;
 			this._restartSection(); // will reset energy
+		}
+	}
+
+
+	this.shipEnteredPlanetaryVicinity = function(planet)
+	{
+		if (this.$tutorialStage < 9)
+		{
+			// you shouldn't be here
+			player.ship.position = system.locationFromCode("OUTER_SYSTEM_OFFPLANE");
+			this._restartSection();
+		}
+		else
+		{
+			if (planet == system.mainPlanet && this.$tutorialSubstage <= 7)
+			{
+				this.$tutorialSubstage = 7;
+				this._nextItem();
+			}
+			else if (planet == system.sun)
+			{
+				player.consoleMessage("oolite-tutorial-9-7-sun");
+			}
+		}
+	}
+
+	this.shipEnteredStationAegis = function(station)
+	{
+		if (this.$tutorialStage < 9)
+		{
+			// you shouldn't be here
+			player.ship.position = system.locationFromCode("OUTER_SYSTEM_OFFPLANE");
+			this._restartSection();
+		}
+		else
+		{
+			if (this.$tutorialSubstage <= 9)
+			{
+				this.$tutorialSubstage = 9;
+				this._nextItem();
+			}
 		}
 	}
 
@@ -1404,17 +1476,117 @@ this.startUp = function()
 		this._setInstructions("oolite-tutorial-8-24");
 	}
 
-
-
-
 	this.__stage9sub0 = function()
 	{
 		player.ship.removeEquipment("EQ_HEAT_SHIELD");
 		player.ship.removeEquipment("EQ_ENERGY_UNIT");
-		this._setInstructions("oolite-tutorial-end-mfd");
+		this._setInstructions("oolite-tutorial-9-0");
+	}
+
+	this.__stage9sub1 = function()
+	{
+		this._setInstructions("oolite-tutorial-9-1");
+		this.$blockTorus = false;
+		player.ship.position = [0,0,-8E3];
+	}
+
+	this.__stage9sub2 = function()
+	{
+		this._setInstructions("oolite-tutorial-9-2");
+		this._showHUDItem("drawCompass:");
+	}
+
+	this.__stage9sub3 = function()
+	{
+		this._setInstructions("oolite-tutorial-9-3");
+		this._setFrameCallback(function(delta) 
+		{
+			if (player.ship.speed > player.ship.maxSpeed * 10)
+			{
+				this._nextItem();
+			}
+		}.bind(this));
+	}
+
+	this.__stage9sub4 = function()
+	{
+		var accum = 0;
+		this._setFrameCallback(function(delta)
+		{
+			accum += delta;
+			if (accum > 20)
+			{
+				this._nextItem();
+			}
+		}.bind(this));
+		this._setInstructions("oolite-tutorial-9-4");
+	}
+
+	this.__stage9sub5 = function()
+	{
+		this._setFrameCallback("");
+		var t = this._addShips("[moray]",1,player.ship.position.add(player.ship.vectorForward.multiply(26E3)),0)[0];
+		t.homeSystem = 55;
+		t.destinationSystem = 7;
+		t.setCargoType("SCARCE_GOODS");
+		t.primaryRole = "trader";
+		t.setAI("oolite-traderAI.js");
+		this._setInstructions("oolite-tutorial-9-5");
+	}
+
+	this.__stage9sub6 = function()
+	{
+		this._setInstructions("oolite-tutorial-9-6");
+		player.ship.manifest.textiles = 2;
+		player.ship.manifest.radioactives = 3;
+	}
+
+	this.__stage9sub7 = function()
+	{
+		this._resetShips();
+		this._setInstructions("oolite-tutorial-9-7");
+		this._showHUDItem("drawAltitudeBar:");
+	}
+
+	this.__stage9sub8 = function()
+	{
+		if (system.mainPlanet.position.distanceTo(player.ship) > system.mainPlanet.radius * 3)
+		{
+			player.consoleMessage(expandMissionText("oolite-tutorial-9-7-toofar"));
+			--this.$tutorialSubstage;
+		}
+		else
+		{
+			this._setInstructions("oolite-tutorial-9-8");
+			this._showHUDItem("drawCompass:");
+		}
+	}
+
+	this.__stage9sub9 = function()
+	{
+		this._setInstructions("oolite-tutorial-9-9");
+	}
+
+	this.__stage9sub10 = function()
+	{
+		if (system.mainStation.position.distanceTo(player.ship) > 51200)
+		{
+			player.consoleMessage(expandMissionText("oolite-tutorial-9-9-toofar"));
+			--this.$tutorialSubstage;
+		}
+		else
+		{
+			this._setInstructions("oolite-tutorial-9-10");
+			this._showHUDItem("drawAegis");
+		}
 	}
 
 
+	this.__stage9sub11 = function()
+	{
+		this.$advanceByEquipment = false;
+		this._setInstructions("oolite-tutorial-9-11");
+	}
 
 	this._endTutorial = function()
 	{
