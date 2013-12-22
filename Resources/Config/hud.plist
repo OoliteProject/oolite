@@ -30,14 +30,14 @@
 			y		= 36;
 			y_origin	= -1;
 		},
-		//{	// stick sensitivity indicator
-		//	alpha		= 1.0;
-		//	selector	= "drawStickSensitivityIndicator:";
-		//	x		= 151;
-		//	y		= -165;
-		//	height		= 12;
-		//	width		= 12;
-		//},
+		{	// stick sensitivity indicator
+			alpha		= 1.0;
+			selector	= "drawStickSensitivityIndicator:";
+			x		= 151;
+			y		= -165;
+			height		= 12;
+			width		= 12;
+		},
 		{	// compass
 			alpha		= 1.0;
 			selector	= "drawCompass:";

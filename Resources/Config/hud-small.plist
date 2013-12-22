@@ -49,11 +49,19 @@
 			x = -112;
 			y = -164;
 		},
+		{	// stick sensitivity indicator
+			alpha		= 1.0;
+			selector	= "drawStickSensitivityIndicator:";
+			x		= -116;
+			y		= -184;
+			height		= 8;
+			width		= 8;
+		},
 		{ /* status indicator light, x and y give the location, the size defines the icon size */
 			height = 8;
 			selector = "drawStatusLight:";
 			width = 8;
-			x = -116;
+			x = -106;
 			y = -184;
 		},
 		{ /* ship's clock, x and y give the location, the size defines the character size */

@@ -2881,6 +2881,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	struct CachedInfo	cached;
 	
+	if (![stickHandler joystickCount])
+	{
+		return; // no need to draw if no joystick fitted
+	}
+
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
 	x = useDefined(cached.x, STATUS_LIGHT_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
@@ -2908,12 +2913,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				GLColorWithOverallAlpha(lightgray_color, alpha);
 		}
 		
-		if ([stickHandler joystickCount])
-		{
-			siz.width -= _crosshairWidth * lineWidth / 2;
-			siz.height -= _crosshairWidth * lineWidth / 2;
-			GLDrawOval(x, y, z1, siz, 10);
-		}
+		siz.width -= _crosshairWidth * lineWidth / 2;
+		siz.height -= _crosshairWidth * lineWidth / 2;
+		GLDrawOval(x, y, z1, siz, 10);
 	}
 	else if (div < 1.0) // insensitive mode (shouldn't happen)
 		GLDrawFilledOval(x, y, z1, siz, 10);
