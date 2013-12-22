@@ -10388,7 +10388,9 @@ else _dockTarget = NO_TARGET;
         case STATUS_START_GAME:
             isDockedStatus = YES;
             break;   
+			// special case - can be either docked or not, so avoid safety check below
 		case STATUS_RESTART_GAME:
+			return NO;
 		case STATUS_EFFECT:
 		case STATUS_ACTIVE:
 		case STATUS_COCKPIT_DISPLAY:
