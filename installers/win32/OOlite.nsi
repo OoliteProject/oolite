@@ -56,7 +56,7 @@ SetDatablockOptimize on
 OutFile "${OUTDIR}\OoliteInstall-${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITHASH}${EXTVER}.exe"
 BrandingText "(C) 2003-2013 Giles Williams, Jens Ayton and contributors"
 Name "Oolite"
-Caption "Oolite ${VER}${EXTVER} (git ${VER_GITHASH}) Setup"
+Caption "Oolite ${VER}${EXTVER} Setup"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
