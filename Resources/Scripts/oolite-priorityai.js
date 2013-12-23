@@ -2173,7 +2173,7 @@ PriorityAIController.prototype.conditionScannerContainsRocks = function()
 PriorityAIController.prototype.conditionScannerContainsSalvage = function()
 {
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.isInSpace && s.scanClass == "CLASS_CARGO";
+		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.commodity != null;
 	});
 }
 
@@ -2201,7 +2201,7 @@ PriorityAIController.prototype.conditionScannerContainsSalvageForGroup = functio
 		this.__ltcache.oolite_conditionScannerContainsSalvageForGroup = maxspeed;
 	}
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.__ltcache.oolite_conditionScannerContainsSalvageForGroup; 
+		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.commodity != null && s.velocity.magnitude() < this.__ltcache.oolite_conditionScannerContainsSalvageForGroup; 
 	});
 }
 
@@ -2213,7 +2213,7 @@ PriorityAIController.prototype.conditionScannerContainsSalvageForMe = function()
 		return false;
 	}
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.velocity.magnitude() < this.ship.maxSpeed; 
+		return s.isInSpace && s.scanClass == "CLASS_CARGO" && s.commodity != null && s.velocity.magnitude() < this.ship.maxSpeed; 
 	});
 }
 
