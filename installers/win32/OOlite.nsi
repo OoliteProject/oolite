@@ -6,6 +6,10 @@
 ; Basic-debug.OXP as an optional installation component
 !include "Sections.nsh"
 
+; Include the x64 library, required for checking whether the user has
+; attempted to run the 64-bit installer flavor under a 32-bit OS
+!include "x64.nsh"
+
 ; Need to include the versions as we can't pass them in as parameters
 ; and it's too much work to try to dynamically edit this file
 !include /NONFATAL "OoliteVersions.nsh"
@@ -136,11 +140,22 @@ SectionEnd
 !endif
 
 Function .onInit
- ; 1. Get the system drive
+ ; 1. Check that we are not attempting to run a 64-bit installer on a 32-bit operating system
+ ${IfNot} ${RunningX64}
+   ${If} ${BUILDHOST_IS64BIT} == "1"
+     MessageBox MB_OK|MB_ICONEXCLAMATION \
+	 "This application installs the 64-bit version of Oolite and $\n \
+	 cannot be run under a 32-bit environment. Click OK to abort $\n \
+	 the installation."
+	 Abort
+   ${EndIf}
+ ${EndIf}
+ 
+ ; 2. Get the system drive
  StrCpy $R9 $WINDIR 2
  StrCpy $INSTDIR $R9\Oolite
 
- ; 2. Check for multiple running installers
+ ; 3. Check for multiple running installers
  System::Call 'kernel32::CreateMutexA(i 0, i 0, t "OoliteInstallerMutex") i .r1 ?e'
  Pop $R0
  
@@ -148,10 +163,10 @@ Function .onInit
    MessageBox MB_OK|MB_ICONEXCLAMATION "Another instance of the Oolite installer is already running."
    Abort
    
-  ;3a. Skip checks, don't uninstall previous versions. Comment out the following line to re-enable 3b.
+  ;4a. Skip checks, don't uninstall previous versions. Comment out the following line to re-enable 4b.
   Goto done
   
-  ; 3b. Checks for previous versions of Oolite and offers to uninstall
+  ; 4b. Checks for previous versions of Oolite and offers to uninstall
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite" \
   "UninstallString"

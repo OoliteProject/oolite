@@ -206,6 +206,11 @@ ${NSISVERSIONS}:
 	@echo "!define VER_GITHASH ${VER_GITHASH}" >> $@
 	@echo "!define VERSION ${VER}" >> $@
 	@echo "!define BUILDTIME \"${BUILDTIME}\"" >> $@
+ifeq ($(GNUSTEP_HOST_CPU),x86_64)
+	@echo "!define BUILDHOST_IS64BIT 1" >> $@
+else
+	@echo "!define BUILDHOST_IS64BIT 0" >> $@
+endif
 
 .PHONY: pkg-win
 pkg-win: release ${NSISVERSIONS}
