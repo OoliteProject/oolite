@@ -1325,6 +1325,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	while ((populator = [enumerator nextObject]))
 	{
 		deterministic_population = [populator oo_boolForKey:@"deterministic" defaultValue:NO];
+		if (EXPECT_NOT(sun == nil || planet == nil))
+		{
+			// needs to be a non-nova system, and not interstellar space
+			deterministic_population = NO;
+		}
 
 		locationSeed = [populator oo_unsignedIntForKey:@"locationSeed" defaultValue:0];
 		groupCount = [populator oo_unsignedIntForKey:@"groupCount" defaultValue:1];
@@ -1354,7 +1359,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 				{
 					// not fixed coordinates and not seeded RNG; can't
 					// be deterministic
-					deterministic_population = false;
+					deterministic_population = NO;
 				}
 				if (sun == nil || planet == nil)
 				{
