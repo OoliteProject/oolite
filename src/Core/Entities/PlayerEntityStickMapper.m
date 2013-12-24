@@ -493,6 +493,21 @@ MA 02110-1301, USA.
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_ACTIVATEEQUIPMENT]];
 	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-mode-equipment")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_MODEEQUIPMENT]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-fastactivate-a")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_CLOAK]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-fastactivate-b")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_ENERGYBOMB]];
+	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-ECM")
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
@@ -537,11 +552,6 @@ MA 02110-1301, USA.
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_ESCAPE]];
-	[funcList addObject:
-	 [self makeStickGuiDict:DESC(@"stickmapper-cloak")
-				  allowable:HW_BUTTON
-					 axisfn:STICK_NOFUNCTION
-					  butfn:BUTTON_CLOAK]];
 	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-view-forward")
 				  allowable:HW_AXIS|HW_BUTTON

@@ -69,9 +69,7 @@ static BOOL				next_target_pressed;
 static BOOL				previous_target_pressed;
 static BOOL				prime_equipment_pressed;
 static BOOL				activate_equipment_pressed;
-#if FEATURE_REQUEST_5496
 static BOOL				mode_equipment_pressed;
-#endif
 static BOOL				fastactivate_a_pressed;
 static BOOL				fastactivate_b_pressed;
 static BOOL				next_missile_pressed;
@@ -249,9 +247,7 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_prime_equipment,		'N'			);
 	LOAD_KEY_SETTING(key_activate_equipment,	'n'			);
-#if FEATURE_REQUEST_5496
 	LOAD_KEY_SETTING(key_mode_equipment,		'b'			);
-#endif
 	LOAD_KEY_SETTING_ALIAS(key_fastactivate_equipment_a, key_cloaking_device,		'0'			);
 	LOAD_KEY_SETTING_ALIAS(key_fastactivate_equipment_b, key_energy_bomb,			'\t'		);
 	
@@ -1081,10 +1077,9 @@ static NSTimeInterval	time_last_frame;
 				}
 				else  activate_equipment_pressed = NO;
 				
-			#if FEATURE_REQUEST_5496	
 				exceptionContext = @"mode equipment";
 				// mode equipment 'b' - runs the mode() function inside the equipment's script.
-				if ([gameView isDown:key_mode_equipment])
+				if ([gameView isDown:key_mode_equipment] || joyButtonState[BUTTON_MODEEQUIPMENT])
 				{
 					if (!mode_equipment_pressed)
 					{
@@ -1093,10 +1088,9 @@ static NSTimeInterval	time_last_frame;
 					mode_equipment_pressed = YES;
 				}
 				else  mode_equipment_pressed = NO;
-			#endif	// FEATURE_REQUEST_5496
-				
+
 				exceptionContext = @"fast equipment A";
-				if ([gameView isDown:key_fastactivate_equipment_a])
+				if ([gameView isDown:key_fastactivate_equipment_a] || joyButtonState[BUTTON_CLOAK])
 				{
 					if (!fastactivate_a_pressed)
 					{
@@ -1107,7 +1101,7 @@ static NSTimeInterval	time_last_frame;
 				else fastactivate_a_pressed = NO;
 
 				exceptionContext = @"fast equipment B";
-				if ([gameView isDown:key_fastactivate_equipment_b])
+				if ([gameView isDown:key_fastactivate_equipment_b] || joyButtonState[BUTTON_ENERGYBOMB])
 				{
 					if (!fastactivate_b_pressed)
 					{

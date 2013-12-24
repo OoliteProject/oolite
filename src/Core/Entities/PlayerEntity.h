@@ -38,10 +38,6 @@ MA 02110-1301, USA.
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
 @class OOJoystickManager, OOTexture, OOLaserShotEntity;
 
-#ifndef FEATURE_REQUEST_5496
-#define FEATURE_REQUEST_5496 1
-#endif
-
 #define ALLOW_CUSTOM_VIEWS_WHILE_PAUSED	1
 #define SCRIPT_TIMER_INTERVAL			10.0
 
@@ -460,9 +456,7 @@ typedef enum
 	
 	OOKeyCode				key_prime_equipment;
 	OOKeyCode				key_activate_equipment;
-#if FEATURE_REQUEST_5496
 	OOKeyCode				key_mode_equipment;
-#endif
 	OOKeyCode				key_fastactivate_equipment_a;
 	OOKeyCode				key_fastactivate_equipment_b;
 	

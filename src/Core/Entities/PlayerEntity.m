@@ -10736,9 +10736,7 @@ else _dockTarget = NO_TARGET;
 	key_ecm &&
 	key_prime_equipment &&
 	key_activate_equipment &&
-#if FEATURE_REQUEST_5496
 	key_mode_equipment &&
-#endif
 	key_fastactivate_equipment_a &&
 	key_fastactivate_equipment_b &&
 	key_target_missile &&

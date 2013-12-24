@@ -1228,6 +1228,9 @@
 	"stickmapper-view-starboard"	= "View starboard";
 	"stickmapper-prime-equipment"	= "Prime equipment";
 	"stickmapper-activate-equipment"	= "Activate equipment";
+	"stickmapper-mode-equipment"	= "Set equipment mode";
+	"stickmapper-fastactivate-a"	= "Activate first fast equipment slot";
+	"stickmapper-fastactivate-b"	= "Activate second fast equipment slot";
 	"stickmapper-escape-pod"		= "Escape pod";
 	"stickmapper-cloak"				= "Cloaking device";
 	"stickmapper-scanner-zoom"		= "Scanner zoom";
