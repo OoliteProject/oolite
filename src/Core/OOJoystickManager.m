@@ -165,11 +165,25 @@ static id sSharedStickHandler = nil;
 	// from deadzone to non-deadzone
 	if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
 	else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
+
+	// apply non-linearity
+	axisvalue = axisvalue*((1.0-nonlinear_parameter) + nonlinear_parameter*axisvalue*axisvalue);
+	// apply precision mode if needed
+	if (precisionMode)
+	{
+		axisvalue /= STICK_PRECISIONFAC;
+	}
+	return axisvalue;
+
+/*	
+// these original settings caused problems for test pilots due to
+// expectation that precisionmode would also reduce full-axis turn
+// rate.
 	if (precisionMode)
 	{
 		return axisvalue*((1.0-nonlinear_parameter) + nonlinear_parameter*axisvalue*axisvalue);
 	}
-	return axisvalue;
+	return axisvalue; */
 }
 
 
