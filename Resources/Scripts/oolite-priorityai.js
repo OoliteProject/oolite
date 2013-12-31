@@ -5174,7 +5174,7 @@ PriorityAIController.prototype.responseComponent_standard_shipKilledOther = func
 PriorityAIController.prototype.responseComponent_standard_shipLaunchedEscapePod = function()
 {
 	this.communicate("oolite_eject",{},1);
-	if (this.getParameter("oolite_selfDestructAbandonedShip") == true)
+	if (this.getParameter("oolite_flag_selfDestructAbandonedShip") == true)
 	{
 		if (!this.ship.script.__oolite_self_destruct)
 		{
