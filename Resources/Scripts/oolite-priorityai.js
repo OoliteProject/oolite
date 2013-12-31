@@ -368,7 +368,14 @@ this.PriorityAIController = function(ship)
 			{
 				params = this.entityCommsParams(params);
 			}
-			var message = expandDescription(template,params);
+			if (template instanceof Function)
+			{
+				var message = template(key,params);
+			}
+			else
+			{
+				var message = expandDescription(template,params);
+			}
 			if (message != "")
 			{
 				this.ship.commsMessage(message);
@@ -6206,7 +6213,9 @@ this.startUp = function()
 
 	/* These are temporary for testing. Remove before release... */
 	this.$commsSettings.generic.generic.oolite_continuingAttack = "I've got the [oolite_entityClass]";
+	this.$commsSettings.police.generic.oolite_continuingAttack = function(k,p) { return "Targeting the "+p.oolite_entityName+". Cover me."; };
 	this.$commsSettings.generic.generic.oolite_beginningAttack = "Die, [oolite_entityName]!";
+	this.$commsSettings.police.generic.oolite_beginningAttack = function(k,p) { return "Leave the system or die, "+p.oolite_entityName+"!"; };
 	this.$commsSettings.generic.generic.oolite_beginningAttackInanimate = "I've got you this time, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
 	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
