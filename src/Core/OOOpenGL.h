@@ -204,6 +204,7 @@ typedef struct {
 
 void GLDrawPoints(OOGLVector *points, int n);
 void GLDrawFilledPoints(OOGLVector *points, int n);
+void GLDrawQuadStrip(OOGLVector *points, int n);
 
 /*	OO_CHECK_GL_HEAVY and error-checking stuff
 	

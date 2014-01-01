@@ -3816,11 +3816,11 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, 
 static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha )
 {
 	Vector spacepos, scannerpos;
-	GLfloat theta;
+	GLfloat theta, phi;
 	GLfloat z_factor = siz.height / siz.width;	// approx 1/4
 	GLfloat y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
 	OOGLVector *points = malloc(sizeof(OOGLVector)*25);
-	int i;
+	int i, j;
 	
 	if (radius*radius > centre.y*centre.y)
 	{
@@ -3847,25 +3847,40 @@ static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSiz
 		GLDrawPoints(points,25);
 	}
 	OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
-	for (i = 0; i < 24; i++)
-	{
-		theta = 2*i*M_PI/24;
-		spacepos.x = centre.x + radius * cos(theta);
-		spacepos.y = centre.y + radius * sin(theta);
-		spacepos.z = centre.z;
-		scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
-		points[i].x = x + scannerpos.x;
-		points[i].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
-		points[i].z = z;
-	}
-	spacepos.x = centre.x + radius;
-	spacepos.y = centre.y;
+	free(points);
+	// Here, we draw a sphere distorted by the nonlinear function. We draw the sphere as a set of horizontal strips
+	// The even indices of points are the points on the upper edge of the strip, while odd indices are points
+	// on the bottom edge.
+	points = malloc(sizeof(OOGLVector)*50);
+	spacepos.x = centre.x;
+	spacepos.y = centre.y + radius;
 	spacepos.z = centre.z;
 	scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
-	points[24].x = x + scannerpos.x;
-	points[24].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
-	points[24].z = z;
-	GLDrawFilledPoints(points, 25);
+	for (i = 0; i <= 24; i++)
+	{
+		points[2*i+1].x = x + scannerpos.x;
+		points[2*i+1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
+		points[2*i+1].z = z;
+	}
+	for (i = 1; i <= 24; i++)
+	{
+		theta = i*M_PI/24;
+		for (j = 0; j <= 24; j++)
+		{
+			phi = j*M_PI/12;
+			// copy point from bottom edge of previous strip into top edge position
+			points[2*j] = points[2*j+1];
+
+			spacepos.x = centre.x + radius * sin(theta) * cos(phi);
+			spacepos.y = centre.y + radius * cos(theta);
+			spacepos.z = centre.z + radius * sin(theta) * sin(phi);
+			scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+			points[2*j+1].x = x + scannerpos.x;
+			points[2*j+1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
+			points[2*j+1].z = z;
+		}
+		GLDrawQuadStrip(points, 50);
+	}
 	free(points);
 	return;
 }

@@ -194,6 +194,22 @@ void GLDrawFilledPoints(OOGLVector *points, int n)
 	return;
 }
 
+
+void GLDrawQuadStrip(OOGLVector *points, int n)
+{
+	int i;
+	OO_ENTER_OPENGL();
+	OOGLBEGIN(GL_QUAD_STRIP);
+	for (i = 0; i < n; i++)
+	{
+		glVertex3f(points->x, points->y, points->z );
+		points++;
+	}
+	OOGLEND();
+	return;
+}
+
+
 void GLScaledLineWidth(GLfloat width)
 {
 	OO_ENTER_OPENGL();
