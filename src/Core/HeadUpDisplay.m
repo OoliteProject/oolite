@@ -1229,15 +1229,15 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		
 		// Debugging code for nonlinear scanner - draws three fake cascade weapons, which looks pretty and enables me
 		// to debug the code without the mass slaughter of innocent civillians.
-		if (nonlinear_scanner)
-		{
-			Vector p = OOVectorMultiplyMatrix(make_vector(10000.0, 0.0, 0.0), rotMatrix);
-			GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 5000, zoom, alpha );
-			p = OOVectorMultiplyMatrix(make_vector(10000.0, 4500.0, 0.0), rotMatrix);
-			GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 2000, zoom, alpha );
-			p = OOVectorMultiplyMatrix(make_vector(0.0, 0.0, 20000.0), rotMatrix);
-			GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 6000, zoom, alpha );
-		}
+		//if (nonlinear_scanner)
+		//{
+		//	Vector p = OOVectorMultiplyMatrix(make_vector(10000.0, 0.0, 0.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 5000, zoom, alpha );
+		//	p = OOVectorMultiplyMatrix(make_vector(10000.0, 4500.0, 0.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 2000, zoom, alpha );
+		//	p = OOVectorMultiplyMatrix(make_vector(0.0, 0.0, 20000.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 6000, zoom, alpha );
+		//}
 		for (i = 0; i < ent_count; i++)  // scanner lollypops
 		{
 			scannedEntity = my_entities[i];
