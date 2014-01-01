@@ -51,7 +51,7 @@ static OOTexture *sCloudTexture2 = nil;
 - (id) initExplosionCloudWithPosition:(HPVector)pos velocity:(Vector)vel size:(float)size
 {
 	unsigned i;
-	unsigned count = 25;
+	unsigned count = [UNIVERSE detailLevel] <= DETAIL_LEVEL_SHADERS ? 10 : 25;
 	GLfloat baseColor[4] = {1.0,1.0,1.0,1.0};
 	_growthRate = kGrowthRateFactor * size;
 
@@ -65,7 +65,14 @@ static OOTexture *sCloudTexture2 = nil;
 		for (i=0;i<count;i++) 
 		{
 			float r,g,b;
-			r = randf();
+			if (i <= 8)
+			{
+				r = 0.75+randf()/4.0;
+			}
+			else
+			{
+				r = randf();
+			}
 			g = randf();
 			if (g > r) {
 				r = 1.0f;
@@ -101,6 +108,7 @@ static OOTexture *sCloudTexture2 = nil;
 	[super update:delta_t];
 	
 	// Fade out.
+	GLfloat		fadeRate = _count / 25.0;
 	unsigned	i, count = _count;
 	GLfloat		(*particleColor)[4] = _particleColor;
 	
@@ -112,7 +120,7 @@ static OOTexture *sCloudTexture2 = nil;
 		particleColor[i][3] = newAlpha;
 		if (particleColor[i][2] > 0.0) // fade blue (white to yellow)
 		{
-			particleColor[i][2] -= delta_t/2.0;
+			particleColor[i][2] -= delta_t*0.5*fadeRate;
 			if (particleColor[i][2] < 0.0)
 			{
 				particleColor[i][2] = 0.0f;
@@ -120,7 +128,7 @@ static OOTexture *sCloudTexture2 = nil;
 		}
 		else if (particleColor[i][1] > 0.0) // fade green (yellow to red)
 		{
-			particleColor[i][1] -= delta_t;
+			particleColor[i][1] -= delta_t*fadeRate;
 			if (particleColor[i][1] < 0.0)
 			{
 				particleColor[i][1] = 0.0f;
@@ -128,7 +136,7 @@ static OOTexture *sCloudTexture2 = nil;
 		}
 		else if (particleColor[i][0] > 0.0) // fade red (red to black)
 		{
-			particleColor[i][0] -= delta_t*2.0;
+			particleColor[i][0] -= delta_t*2.0*fadeRate;
 			if (particleColor[i][0] < 0.0)
 			{
 				particleColor[i][0] = 0.0f;

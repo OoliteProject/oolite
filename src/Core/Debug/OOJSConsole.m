@@ -121,9 +121,7 @@ enum
 {
 	// Property IDs
 	kConsole_debugFlags,						// debug flags, integer, read/write
-	kConsole_shaderMode,						// shader mode, symbolic string, read/write
-	kConsole_maximumShaderMode,					// highest supported shader mode, symbolic string, read-only
-	kConsole_reducedDetailMode,					// reduced detail mode, boolean, read/write
+	kConsole_detailLevel,						// shader mode, symbolic string, read/write
 	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
 	kConsole_ignoreDroppedPackets,				// boolean (default false), read/write
@@ -157,9 +155,7 @@ static JSPropertySpec sConsoleProperties[] =
 {
 	// JS name								ID											flags
 	{ "debugFlags",							kConsole_debugFlags,						OOJS_PROP_READWRITE_CB },
-	{ "shaderMode",							kConsole_shaderMode,						OOJS_PROP_READWRITE_CB },
-	{ "maximumShaderMode",					kConsole_maximumShaderMode,					OOJS_PROP_READONLY_CB },
-	{ "reducedDetailMode",					kConsole_reducedDetailMode,					OOJS_PROP_READWRITE_CB },
+	{ "detailLevel",						kConsole_detailLevel,						OOJS_PROP_READWRITE_CB },
 	{ "displayFPS",							kConsole_displayFPS,						OOJS_PROP_READWRITE_CB },
 	{ "platformDescription",				kConsole_platformDescription,				OOJS_PROP_READONLY_CB },
 	{ "pedanticMode",						kConsole_pedanticMode,						OOJS_PROP_READWRITE_CB },
@@ -321,17 +317,8 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 			break;
 #endif		
 			
-		case kConsole_shaderMode:
-			// EMMSTRAN: if still relevant, OOConstToJSString-ify.
-			*value = OOJSValueFromNativeObject(context, OOStringFromShaderSetting([UNIVERSE shaderEffectsLevel]));
-			break;
-			
-		case kConsole_maximumShaderMode:
-			*value = OOJSValueFromNativeObject(context, OOStringFromShaderSetting([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]));
-			break;
-			
-		case kConsole_reducedDetailMode:
-			*value = OOJSValueFromBOOL([UNIVERSE reducedDetail]);
+		case kConsole_detailLevel:
+			*value = INT_TO_JSVAL([UNIVERSE detailLevel]);
 			break;
 			
 		case kConsole_displayFPS:
@@ -414,7 +401,6 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID
 	OOJS_NATIVE_ENTER(context)
 	
 	int32						iValue;
-	NSString					*sValue = nil;
 	JSBool						bValue = NO;
 	
 	switch (JSID_TO_INT(propID))
@@ -427,22 +413,11 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID
 			}
 			break;
 #endif		
-		case kConsole_shaderMode:
-			sValue = OOStringFromJSValue(context, *value);
-			if (sValue != nil)
+		case kConsole_detailLevel:
+			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				OOJS_BEGIN_FULL_NATIVE(context)
-				OOShaderSetting setting = OOShaderSettingFromString(sValue);
-				[UNIVERSE setShaderEffectsLevel:setting transiently:YES];
-				OOJS_END_FULL_NATIVE
-			}
-			break;
-			
-		case kConsole_reducedDetailMode:
-			if (JS_ValueToBoolean(context, *value, &bValue))
-			{
-				OOJS_BEGIN_FULL_NATIVE(context)
-				[UNIVERSE setReducedDetail:bValue transiently:YES];
+				[UNIVERSE setDetailLevel:iValue];
 				OOJS_END_FULL_NATIVE
 			}
 			break;

@@ -124,11 +124,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[modifiedMacros setObject:[NSNumber numberWithUnsignedInt:textureUnits]
 						   forKey:@"OO_TEXTURE_UNIT_COUNT"];
 		
-		if ([UNIVERSE shaderEffectsLevel] == SHADERS_SIMPLE)
-		{
-			[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OO_REDUCED_COMPLEXITY"];
-		}
-		
+		// used to test for simplified shaders - OO_REDUCED_COMPLEXITY - here
 		macroString = MacrosToString(modifiedMacros);
 	}
 	

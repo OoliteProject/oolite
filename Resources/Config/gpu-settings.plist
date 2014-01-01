@@ -9,6 +9,10 @@
 								above. Default: "SHADERS_FULL". If set to
 								"SHADERS_OFF", shaders are treated as not
 								available.
+
+								Note that from 1.79 onwards	SHADERS_SIMPLE
+								is treated as SHADERS_OFF
+
 		smooth_points			Enable or disable use of point smoothing.
 								Default: true.
 		smooth_lines			Enable or disable use of line smoothing.

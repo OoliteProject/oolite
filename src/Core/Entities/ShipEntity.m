@@ -8345,9 +8345,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			
 			if (add_debris)
 			{
-				if ((scanClass == CLASS_CARGO && ![self isHulk]) || scanClass == CLASS_MISSILE || scanClass == CLASS_MINE)
+				if ([UNIVERSE reducedDetail] || (scanClass == CLASS_CARGO && ![self isHulk]) || scanClass == CLASS_MISSILE || scanClass == CLASS_MINE)
 				{
 					// "burst" explosion effect for small explosions
+					// and minimum detail
 					// 1. fast sparks
 					[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
 					// 2. slow clouds

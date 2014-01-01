@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOStringExpander.h"
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
 #import "OOConstToString.h"
@@ -2709,30 +2710,20 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no")  forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)  align:GUI_ALIGN_CENTER];
 	}
 	
-	if ((guiSelectedRow == GUI_ROW(GAME,DETAIL))&&(([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])))
-	{
-		if ([gameView isDown:key_gui_arrow_right] != [UNIVERSE reducedDetail])
-			[self playChangedOption];
-		[UNIVERSE setReducedDetail:[gameView isDown:key_gui_arrow_right]];
-		if ([UNIVERSE reducedDetail])
-			[gui setText:DESC(@"gameoptions-reduced-detail-yes")	forRow:GUI_ROW(GAME,DETAIL)  align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"gameoptions-reduced-detail-no")	forRow:GUI_ROW(GAME,DETAIL)  align:GUI_ALIGN_CENTER];
-	}
-	
 	
 	if (guiSelectedRow == GUI_ROW(GAME,SHADEREFFECTS) && ([gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left]))
 	{
 		if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
 			int direction = ([gameView isDown:key_gui_arrow_right]) ? 1 : -1;
-			OOShaderSetting shaderEffects = [UNIVERSE shaderEffectsLevel] + direction;
-			[UNIVERSE setShaderEffectsLevel:shaderEffects];
-			shaderEffects = [UNIVERSE shaderEffectsLevel];
+			OOGraphicsDetail detailLevel = [UNIVERSE detailLevel] + direction;
+			[UNIVERSE setDetailLevel:detailLevel];
+			detailLevel = [UNIVERSE detailLevel];
 			
-			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), OODisplayStringFromShaderSetting(shaderEffects)]
-				  forRow:GUI_ROW(GAME,SHADEREFFECTS)
-				   align:GUI_ALIGN_CENTER];
+			NSString *shaderEffectsOptionsString = [NSString stringWithFormat:@"gameoptions-detaillevel-%d",detailLevel];
+			[gui setText:OOExpandKey(shaderEffectsOptionsString) forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
+
 			timeLastKeyPress = script_time;
 		}
 		shaderSelectKeyPressed = YES;

@@ -82,6 +82,7 @@ enum
 	EQUIPMENT_EXTRA_INFO_INDEX				= 5
 };
 
+
 #define SHADERS_MIN SHADERS_OFF
 
 
@@ -213,8 +214,10 @@ enum
 	BOOL					autoSaveNow;
 	BOOL					autoSave;
 	BOOL					wireframeGraphics;
-	BOOL					reducedDetail;
-	OOShaderSetting			shaderEffectsLevel;
+	OOGraphicsDetail		detailLevel;
+// Above entry replaces these two
+//	BOOL					reducedDetail;
+//	OOShaderSetting			shaderEffectsLevel;
 	
 	BOOL					displayFPS;		
 			
@@ -708,13 +711,9 @@ enum
 - (void) setWireframeGraphics:(BOOL) value;
 - (BOOL) wireframeGraphics;
 
-- (void) setReducedDetail:(BOOL) value;
-- (void) setReducedDetail:(BOOL) value transiently:(BOOL)transiently;
 - (BOOL) reducedDetail;
-
-- (void) setShaderEffectsLevel:(OOShaderSetting)value;
-- (void) setShaderEffectsLevel:(OOShaderSetting)value transiently:(BOOL)transiently;
-- (OOShaderSetting) shaderEffectsLevel;
+- (void) setDetailLevel:(OOGraphicsDetail)value;
+- (OOGraphicsDetail) detailLevel;
 - (BOOL) useShaders;
 
 - (void) handleOoliteException:(NSException *)ooliteException;

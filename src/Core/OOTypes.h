@@ -229,3 +229,15 @@ typedef enum
 typedef uint8_t OOWeaponFacingSet;	// May have multiple bits set.
 
 #define VALID_WEAPON_FACINGS			(WEAPON_FACING_NONE | WEAPON_FACING_FORWARD | WEAPON_FACING_AFT | WEAPON_FACING_PORT | WEAPON_FACING_STARBOARD)
+
+
+typedef enum
+{
+	DETAIL_LEVEL_MINIMUM		= 0,
+	DETAIL_LEVEL_SHADERS		= 1,
+	DETAIL_LEVEL_EXTRAS			= 2,
+
+
+
+	DETAIL_LEVEL_MAXIMUM		= 2
+} OOGraphicsDetail;

@@ -201,9 +201,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (BOOL) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
 
-// Set shader effects level without logging or triggering a reset -- should only be used directly during startup.
-- (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value;
-
 - (void) setFirstBeacon:(Entity <OOBeaconEntity> *)beacon;
 - (void) setLastBeacon:(Entity <OOBeaconEntity> *)beacon;
 
@@ -214,6 +211,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) verifyEntitySessionIDs;
 - (float) randomDistanceWithinScanner;
 - (Vector) randomPlaceWithinScannerFrom:(Vector)pos alongRoute:(Vector)route withOffset:(double)offset;
+
+- (void) setDetailLevelDirectly:(OOGraphicsDetail)value;
 
 @end
 
@@ -276,8 +275,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
 	[OOOpenGLExtensionManager sharedManager];
-	[self setShaderEffectsLevelDirectly:[prefs oo_intForKey:@"shader-mode"
-											   defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultShaderSetting]]];
+	[self setDetailLevel:[prefs oo_intForKey:@"detailLevel"
+								defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultDetailLevel]]];
 	
 	[OOMaterial setUp];
 	
@@ -299,7 +298,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// load starting saves
 	[self loadScenarios];
 
-	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
@@ -3731,13 +3729,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:9];
 	
-	[result oo_setBool:reducedDetail forKey:@"reducedDetailGraphics"];
 	[result oo_setBool:[PLAYER isSpeechOn] forKey:@"speechOn"];
 	[result oo_setBool:autoSave forKey:@"autosave"];
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
 	
-	[result setObject:OOStringFromShaderSetting([self shaderEffectsLevel]) forKey:@"shaderEffectsLevel"];
+	[result setObject:OOStringFromShaderSetting([self detailLevel]) forKey:@"detailLevel"];
 	
 	NSString *desc = @"UNDEFINED";
 	switch ([[OOMusicController sharedController] mode])
@@ -9425,57 +9422,54 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 }
 
 
-- (void) setReducedDetail:(BOOL) value
-{
-	[self setReducedDetail:value transiently:NO];
-}
-
-
-- (void) setReducedDetail:(BOOL) value transiently:(BOOL)transiently
-{
-	reducedDetail = !!value;
-	if (!transiently)  [[NSUserDefaults standardUserDefaults] setBool:reducedDetail forKey:@"reduced-detail-graphics"];
-}
-
-
 - (BOOL) reducedDetail
 {
-	return reducedDetail;
+	return detailLevel == DETAIL_LEVEL_MINIMUM;
 }
 
 
-- (void) setShaderEffectsLevel:(OOShaderSetting)value
+/* Only to be called directly at initialisation */
+- (void) setDetailLevelDirectly:(OOGraphicsDetail)value
 {
-	[self setShaderEffectsLevel:value transiently:NO];
-}
-
-
-- (void) setShaderEffectsLevel:(OOShaderSetting)value transiently:(BOOL)transiently
-{
-	OOShaderSetting old = [self shaderEffectsLevel];
-	[self setShaderEffectsLevelDirectly:value];
-	OOShaderSetting new = [self shaderEffectsLevel];
-	
-	if (old != new)
+	if (value >= DETAIL_LEVEL_MAXIMUM)
 	{
-		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", OOStringFromShaderSetting(value));
-		if (!transiently)  [[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-mode"];
-		
+		value = DETAIL_LEVEL_MAXIMUM;
+	}
+	else if (value <= DETAIL_LEVEL_MINIMUM)
+	{
+		value = DETAIL_LEVEL_MINIMUM;
+	}
+	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	{
+		value = DETAIL_LEVEL_MINIMUM;
+	}
+	detailLevel = value;
+}
+
+
+- (void) setDetailLevel:(OOGraphicsDetail)value
+{
+	OOGraphicsDetail old = detailLevel;
+	[self setDetailLevelDirectly:value];
+	OOLog(@"rendering.detail-level", @"Detail level set to %d.", value);
+	[[NSUserDefaults standardUserDefaults] setInteger:detailLevel forKey:@"detailLevel"];
+	// if switch between shader on/off reset graphics state
+	if ((old >= DETAIL_LEVEL_SHADERS) != (detailLevel >= DETAIL_LEVEL_SHADERS))
+	{
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
+
 }
 
-
-- (OOShaderSetting) shaderEffectsLevel
+- (OOGraphicsDetail) detailLevel
 {
-	if (![[OOOpenGLExtensionManager sharedManager] shadersSupported])  return SHADERS_NOT_SUPPORTED;
-	return shaderEffectsLevel;
+	return detailLevel;
 }
 
 
 - (BOOL) useShaders
 {
-	return [self shaderEffectsLevel] > SHADERS_OFF;
+	return detailLevel >= DETAIL_LEVEL_SHADERS;
 }
 
 
@@ -10394,16 +10388,6 @@ static void PreloadOneSound(NSString *soundName)
 }
 #endif
 
-
-- (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value
-{
-	OOShaderSetting max = [[OOOpenGLExtensionManager sharedManager] maximumShaderSetting];
-	
-	if (value < SHADERS_MIN)  value = SHADERS_MIN;
-	if (max < value)  value = max;
-	
-	shaderEffectsLevel = value;
-}
 
 
 - (void) loadConditionScripts
