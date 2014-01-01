@@ -275,7 +275,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
 	[OOOpenGLExtensionManager sharedManager];
-	[self setDetailLevel:[prefs oo_intForKey:@"detailLevel"
+	[self setDetailLevelDirectly:[prefs oo_intForKey:@"detailLevel"
 								defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultDetailLevel]]];
 	
 	[OOMaterial setUp];
