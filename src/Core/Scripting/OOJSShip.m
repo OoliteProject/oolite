@@ -3393,7 +3393,15 @@ static JSBool ShipRequestDockingInstructions(JSContext *context, uintN argc, jsv
 	GET_THIS_SHIP(thisEnt);
 	[thisEnt requestDockingCoordinates];
 	
-	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
+	NSDictionary *dockingInstructions = [thisEnt dockingInstructions];
+	if (dockingInstructions != nil)
+	{
+		OOJS_RETURN_OBJECT(dockingInstructions);
+	}
+	else
+	{
+		OOJS_RETURN_NULL;
+	}
 	
 	OOJS_PROFILE_EXIT
 }
@@ -3407,7 +3415,15 @@ static JSBool ShipRecallDockingInstructions(JSContext *context, uintN argc, jsva
 	GET_THIS_SHIP(thisEnt);
 	[thisEnt recallDockingInstructions];
 	
-	OOJS_RETURN_OBJECT([thisEnt dockingInstructions]);
+	NSDictionary *dockingInstructions = [thisEnt dockingInstructions];
+	if (dockingInstructions != nil)
+	{
+		OOJS_RETURN_OBJECT(dockingInstructions);
+	}
+	else
+	{
+		OOJS_RETURN_NULL;
+	}
 	
 	OOJS_PROFILE_EXIT
 }
