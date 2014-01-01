@@ -1227,6 +1227,17 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		
 		OOVerifyOpenGLState();
 		
+		// Debugging code for nonlinear scanner - draws three fake cascade weapons, which looks pretty and enables me
+		// to debug the code without the mass slaughter of innocent civillians.
+		if (nonlinear_scanner)
+		{
+			Vector p = OOVectorMultiplyMatrix(make_vector(10000.0, 0.0, 0.0), rotMatrix);
+			GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 5000, zoom, alpha );
+			p = OOVectorMultiplyMatrix(make_vector(10000.0, 4500.0, 0.0), rotMatrix);
+			GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 2000, zoom, alpha );
+			p = OOVectorMultiplyMatrix(make_vector(0.0, 0.0, 20000.0), rotMatrix);
+			GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 6000, zoom, alpha );
+		}
 		for (i = 0; i < ent_count; i++)  // scanner lollypops
 		{
 			scannedEntity = my_entities[i];
@@ -1340,12 +1351,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				if ([scannedEntity isShip])
 				{
-					// Debugging code for nonlinear scanner - draws a cascade weapon sphere around ships, which looks pretty and enables me
-					// to debug the code without the mass slaughter of innocent civillians.
-					if (nonlinear_scanner)
-					{
-						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, 10*scannedEntity->collision_radius, zoom, alpha );
-					}
 					ShipEntity* ship = (ShipEntity*)scannedEntity;
 					if ((!nonlinear_scanner && ship->collision_radius * upscale > 4.5) ||
 						(nonlinear_scanner && nonlinearScannerFunc(act_dist, zoom, siz.width) - nonlinearScannerFunc(lim_dist, zoom, siz.width) > 4.5 ))
