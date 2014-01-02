@@ -332,6 +332,11 @@ this.PriorityAIController = function(ship)
 
 	this.communicate = function(key,params,priority)
 	{
+		if (!worldScripts["oolite-libPriorityAI"].$commsAllowed)
+		{
+			// comms temporarily disabled
+			return;
+		}
 		if (priority > 1)
 		{
 			var send = clock.adjustedSeconds - lastCommSent;
@@ -6173,6 +6178,7 @@ this.startUp = function()
 {
 	// initial definition is just essential communications for now
 	this.$commsSettings = {};
+	this.$commsAllowed = true;
 	this._setCommunications({
 		generic: {
 			generic: {
@@ -6239,6 +6245,19 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_agreeingToDumpCargo = "Have it! But please let us go!";
 }
 
+
+
+/* Event handler pair to prevent comms from being received while in
+ * witchspace tunnel */
+this.shipWillEnterWitchspace = function()
+{
+	this.$commsAllowed = false;
+}
+
+this.shipExitedWitchspace = function()
+{
+	this.$commsAllowed = true;
+}
 
 
 
