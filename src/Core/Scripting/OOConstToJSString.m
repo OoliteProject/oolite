@@ -131,7 +131,7 @@ ConstTable gOOGUIScreenIDConstTable					= TABLE(sOOGUIScreenIDTableEntries);
 ConstTable gOOScanClassConstTable					= TABLE(sOOScanClassTableEntries);
 ConstTable gOOViewIDConstTable						= TABLE(sOOViewIDTableEntries);
 ConstTable gOOShipDamageTypeConstTable				= TABLE(sOOShipDamageTypeTableEntries);
-ConstTable gOOLegalStatusReasonConstTable				= TABLE(sOOLegalStatusReasonTableEntries);
+ConstTable gOOLegalStatusReasonConstTable			= TABLE(sOOLegalStatusReasonTableEntries);
 
 static void InitTable(JSContext *context, ConstTable *table);
 

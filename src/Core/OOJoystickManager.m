@@ -157,7 +157,7 @@ static id sSharedStickHandler = nil;
 // By using a function with a shallow gradient at the origin, we can make the stick less sensitive at the centre (and hence
 // easier to make fine adjustments).  The functions I've used below are ax^n+bx where a+b=1 and n in an odd power.
 
-- (double) axisTransform: (double)axisvalue;
+- (double) axisTransform: (double)axisvalue
 {
 	if (fabs(axisvalue) < deadzone) return 0.0;
 	
