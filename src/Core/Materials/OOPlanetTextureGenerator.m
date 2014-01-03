@@ -165,7 +165,7 @@ enum
 		}
 		
 #ifndef TEXGEN_TEST_RIG
-		if ([UNIVERSE reducedDetail])
+		if ([UNIVERSE detailLevel] < DETAIL_LEVEL_SHADERS)
 		{
 			_planetScale = kPlanetScaleReducedDetail;
 		}

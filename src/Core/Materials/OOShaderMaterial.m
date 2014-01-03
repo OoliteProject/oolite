@@ -187,9 +187,12 @@ static NSString *MacrosToString(NSDictionary *macros);
 														 attributeBindings:attributeBindings
 																  cacheKey:cacheKey];
 			OOLogOutdent();
-			
+
+// no reduced complexity mode now
+#if 0
 			if (shaderProgram == nil)
 			{
+
 				BOOL canFallBack = ![modifiedMacros oo_boolForKey:@"OO_REDUCED_COMPLEXITY"];
 #ifndef NDEBUG
 				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
@@ -218,6 +221,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 					}
 				}
 			}
+#endif
 			
 			if (shaderProgram == nil)
 			{

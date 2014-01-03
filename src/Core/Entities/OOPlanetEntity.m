@@ -633,8 +633,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	NSDictionary *materialDefaults = [ResourceManager materialDefaults];
 	
 #if OO_SHADERS
-	OOShaderSetting shaderLevel = [UNIVERSE shaderEffectsLevel];
-	BOOL shadersOn = shaderLevel > SHADERS_OFF;
+	OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
+	BOOL shadersOn = detailLevel >= DETAIL_LEVEL_EXTRAS;
 #else
 	const BOOL shadersOn = NO;
 #endif
@@ -663,14 +663,14 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (isMoon)
 		{
 			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(shaderLevel == SHADERS_FULL) ? &normalMap : NULL
+										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
 												   withInfo:_materialParameters];
 		}
 		else
 		{
 			OOTexture *atmosphere = nil;
 			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(shaderLevel == SHADERS_FULL) ? &normalMap : NULL
+										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
 											  andAtmosphere:&atmosphere
 												   withInfo:_materialParameters];
 			
@@ -678,7 +678,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 			[_atmosphereDrawable setMaterial:dynamicMaterial];
 			[dynamicMaterial release];
 		}
-		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
+		if (shadersOn)
+		{
+			macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
+		}
 		textureName = @"dynamic";
 	}
 	OOMaterial *material = nil;
@@ -688,6 +691,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		NSMutableDictionary *config = [[[materialDefaults oo_dictionaryForKey:@"planet-material"] mutableCopy] autorelease];
 		[config setObject:[NSArray arrayWithObjects:diffuseMap, normalMap, nil] forKey:@"_oo_texture_objects"];
+		
 		material = [OOShaderMaterial shaderMaterialWithName:textureName
 											  configuration:config
 													 macros:macros
