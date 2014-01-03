@@ -519,26 +519,37 @@ static void RemovePreference(NSString *key)
 
 - (IBAction) showAddOnsAction:sender
 {
-	if ([[ResourceManager paths] count] > 1)
+	if (ResourceManager.paths.count > 1)
 	{
 		// Show the first populated AddOns folder (paths are in order of preference, path[0] is always Resources).
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:(NSString *)[[ResourceManager paths] objectAtIndex:1]]];
+		[NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:ResourceManager.paths[1]]];
 	}
 	else
 	{
 		// No AddOns at all. Show the first existing AddOns folder (paths are in order of preference, etc...).
-		BOOL		pathIsDirectory;
-		NSString	*path = nil;
-		NSUInteger	i = 1;
-		
-		while (i < [[ResourceManager rootPaths] count])
+        NSArray *addonPaths = [ResourceManager.rootPaths subarrayWithRange:(NSRange){ 1, ResourceManager.rootPaths.count - 1 }];
+        NSString *path = nil;
+        for (NSString *candidate in addonPaths)
 		{
-			path = (NSString *)[[ResourceManager rootPaths] objectAtIndex:i];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&pathIsDirectory] && pathIsDirectory) break;
-			// else
-			i++;
-		} 
-		if (i < [[ResourceManager rootPaths] count]) [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:path]];
+            BOOL pathIsDirectory;
+			if ([NSFileManager.defaultManager fileExistsAtPath:candidate isDirectory:&pathIsDirectory] && pathIsDirectory)
+            {
+                path = candidate;
+                break;
+            }
+		}
+
+        // If none found, use first addon path.
+        if (path == nil)
+        {
+            path = addonPaths[0];
+            [NSFileManager.defaultManager createDirectoryAtPath:path
+                                    withIntermediateDirectories:YES
+                                                     attributes:nil
+                                                          error:NULL];
+        }
+
+        [NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:path]];
 	}
 }
 
