@@ -446,7 +446,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	DESTROY(waypoints);
 	
 	unsigned i;
-	for (i = 0; i < 256; i++)  [system_names[i] release];
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+	for (i = 0; i < numberSystems; i++)  [system_names[i] release];
 	
 	[entitiesDeadThisUpdate release];
 	
@@ -6935,12 +6936,13 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	int						i;
 	Random_Seed				g_seed = gal_seed;
 	NSAutoreleasePool		*pool = nil;
+
 	
 	if (!equal_seeds(galaxy_seed, gal_seed) || forced) {
 		galaxy_seed = gal_seed;
 		
 		// systems
-		for (i = 0; i < 256; i++)
+		for (i = 0; i < numberSystems; i++)
 		{
 			pool = [[NSAutoreleasePool alloc] init];
 			
@@ -6984,7 +6986,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 
 - (Random_Seed) systemSeedForSystemNumber:(OOSystemID)n
 {
-	return systems[(unsigned)n & 0xFF];
+	SystemLimit = [[self planetInfo] objectForKey:@"system_limit"];
+	return systems[(unsigned)n & SystemLimit];
 }
 
 
@@ -6992,7 +6995,9 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	int i;
 	NSString *pname = [[sysname lowercaseString] capitalizedString];
-	for (i = 0; i < 256; i++)
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+
+	for (i = 0; i < numberSystems; i++)
 	{
 		if ([pname isEqualToString:[self getSystemName: systems[i]]])
 			return systems[i];
@@ -7005,7 +7010,9 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 - (OOSystemID) systemIDForSystemSeed:(Random_Seed)seed
 {
 	int i;
-	for (i = 0; i < 256; i++)
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+
+	for (i = 0; i < numberSystems; i++)
 	{
 		if (equal_seeds(systems[i], seed))  return i;
 	}
@@ -7228,7 +7235,8 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	}
 	if (sCachedSystemData == nil)
 	{
-		sCachedSystemData = [[NSMutableDictionary alloc] initWithCapacity:256];
+		numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+		sCachedSystemData = [[NSMutableDictionary alloc] initWithCapacity:numberSystems];
 	}
 	NSMutableDictionary *systemdata = [sCachedSystemData objectForKey:[NSNumber numberWithInt:[self systemIDForSystemSeed:s_seed]]];
 	RNG_Seed saved_seed = currentRandomSeed();
@@ -7248,7 +7256,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	
 		unsigned productivity = ((economy ^ 7) + 3) * (government + 4) * population * 8;
 	
-		unsigned radius = (((s_seed.f & 15) + 11) * 256) + s_seed.d;
+		unsigned radius = (((s_seed.f & 15) + 11) * numberSystems) + s_seed.d;
 	
 		NSString *name = [self generateSystemName:s_seed];
 		NSString *inhabitant = [self generateSystemInhabitants:s_seed plural:NO];
@@ -7711,10 +7719,13 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 {
 	if (sysName == nil) return kNilRandomSeed;	// no match found!
 	
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	NSString 	*system_name = nil;
 	NSString	*match = [sysName lowercaseString];
 	int i;
-	for (i = 0; i < 256; i++)
+
+
+	for (i = 0; i < numberSystems; i++)
 	{
 		system_name = [system_names[i] lowercaseString];
 		if ([system_name isEqualToString:match])
@@ -7740,7 +7751,9 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	NSPoint here = [PLAYER galaxy_coordinates];
 	
 	Random_Seed hereSeed = [self systemSeed];
-	for (unsigned short i = 0; i < 256; i++)
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+
+	for (unsigned short i = 0; i < numberSystems; i++)
 	{
 		Random_Seed system = systems[i];
 		double dist = distanceBetweenPlanetPositions(here.x, here.y, system.d, system.b);
@@ -7766,21 +7779,23 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		[self setGalaxySeed:gal_seed];
 	}
 	
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+
 	Random_Seed system = gal_seed;
 	double distance;
 	int n,i,j;
 	double min_dist = 10000.0;
 	
 	// make list of connected systems
-	BOOL connected[256];
-	for (i = 0; i < 256; i++)
+	BOOL connected[numberSystems];
+	for (i = 0; i < numberSystems; i++)
 		connected[i] = NO;
 	connected[0] = YES;			// system zero is always connected (true for galaxies 0..7)
 	for (n = 0; n < 3; n++)		//repeat three times for surety
 	{
-		for (i = 0; i < 256; i++)   // flood fill out from system zero
+		for (i = 0; i < numberSystems; i++)   // flood fill out from system zero
 		{
-			for (j = 0; j < 256; j++)
+			for (j = 0; j < numberSystems; j++)
 			{
 				double dist = distanceBetweenPlanetPositions(systems[i].d, systems[i].b, systems[j].d, systems[j].b);
 				if (dist <= MAX_JUMP_RANGE)
@@ -7792,7 +7807,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		}
 	}
 	
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < numberSystems; i++)
 	{
 		distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y, systems[i].d, systems[i].b);
 		if ((connected[i])&&(distance < min_dist)&&(distance != 0.0))
@@ -7811,21 +7826,22 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	if (!equal_seeds(gal_seed, galaxy_seed))
 		[self setGalaxySeed:gal_seed];
 	
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	Random_Seed system = gal_seed;
 	double distance;
 	int n,i,j;
 	double min_dist = 10000.0;
 	
 	// make list of connected systems
-	BOOL connected[256];
-	for (i = 0; i < 256; i++)
+	BOOL connected[numberSystems];
+	for (i = 0; i < numberSystems; i++)
 		connected[i] = NO;
 	connected[0] = YES;			// system zero is always connected (true for galaxies 0..7)
 	for (n = 0; n < 3; n++)		//repeat three times for surety
 	{
-		for (i = 0; i < 256; i++)   // flood fill out from system zero
+		for (i = 0; i < numberSystems; i++)   // flood fill out from system zero
 		{
-			for (j = 0; j < 256; j++)
+			for (j = 0; j < numberSystems; j++)
 			{
 				double dist = distanceBetweenPlanetPositions(systems[i].d, systems[i].b, systems[j].d, systems[j].b);
 				if (dist <= MAX_JUMP_RANGE)
@@ -7837,7 +7853,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		}
 	}
 	
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < numberSystems; i++)
 	{
 		distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y, systems[i].d, systems[i].b);
 		if ((connected[i])&&(distance < min_dist))
@@ -7866,8 +7882,9 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	unsigned	distance, dx, dy;
 	unsigned	i;
 	unsigned	min_dist = 10000;
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < numberSystems; i++)
 	{
 		dx = abs(coords.x - systems[i].d);
 		dy = abs(coords.y - systems[i].b);
@@ -7902,7 +7919,10 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	NSPoint 	system_coords = NSMakePoint(-1.0,-1.0);
 	int i;
 	int result = -1;
-	for (i = 0; i < 256; i++)
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+
+
+	for (i = 0; i < numberSystems; i++)
 	{
 		system_found[i] = NO;
 		system_name = [system_names[i] lowercaseString];
@@ -7962,23 +7982,25 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 #endif
 	
 	unsigned i, j;
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+	double limit = (numberSystems - 1)
+
+	if (start > limit || goal > limit) return nil;
 	
-	if (start > 255 || goal > 255) return nil;
-	
-	NSArray *neighbours[256];
-	for (i = 0; i < 256; i++)
+	NSArray *neighbours[numberSystems];
+	for (i = 0; i < numberSystems; i++)
 	{
 		neighbours[i] = [self neighboursToSystem:i];
 	}
 	
-	RouteElement *cheapest[256] = {0};
+	RouteElement *cheapest[numberSystems] = {0};
 	
-	double maxCost = optimizeBy == OPTIMIZED_BY_TIME ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
+	double maxCost = optimizeBy == OPTIMIZED_BY_TIME ? numberSystems * (7 * 7) : numberSystems * (7 * numberSystems + 7);
 	
-	NSMutableArray *curr = [NSMutableArray arrayWithCapacity:256];
+	NSMutableArray *curr = [NSMutableArray arrayWithCapacity:numberSystems];
 	[curr addObject:cheapest[start] = [RouteElement elementWithLocation:start parent:-1 cost:0 distance:0 time:0]];
 	
-	NSMutableArray *next = [NSMutableArray arrayWithCapacity:256];
+	NSMutableArray *next = [NSMutableArray arrayWithCapacity:numberSystems];
 	while ([curr count] != 0)
 	{
 		for (i = 0; i < [curr count]; i++) {
@@ -7995,7 +8017,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 				
 				double distance = [ce distance] + lastDistance;
 				double time = [ce time] + lastTime;
-				double cost = [ce cost] + (optimizeBy == OPTIMIZED_BY_TIME ? lastTime : 7 * 256 + lastDistance);
+				double cost = [ce cost] + (optimizeBy == OPTIMIZED_BY_TIME ? lastTime : 7 * numberSystems + lastDistance);
 				
 				if (cost < maxCost && (cheapest[n] == nil || [cheapest[n] cost] > cost)) {
 					RouteElement *e = [RouteElement elementWithLocation:n parent:c cost:cost distance:distance time:time];
@@ -8014,7 +8036,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	
 	if (!cheapest[goal]) return nil;
 	
-	NSMutableArray *route = [NSMutableArray arrayWithCapacity:256];
+	NSMutableArray *route = [NSMutableArray arrayWithCapacity:numberSystems];
 	RouteElement *e = cheapest[goal];
 	for (;;)
 	{
@@ -8049,8 +8071,9 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	}
 	NSMutableArray *neighbours = [NSMutableArray arrayWithCapacity:32];
 	double distance;
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	OOSystemID i;
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < numberSystems; i++)
 	{
 		distance = distanceBetweenPlanetPositions(seed.d, seed.b, systems[i].d, systems[i].b);
 		if ((distance <= MAX_JUMP_RANGE) && !(equal_seeds(seed, systems[i])))
@@ -8438,13 +8461,15 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	
 	NSMutableDictionary		*resultDictionary = [NSMutableDictionary dictionary];
 	
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	float					tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
 	unsigned				i;
 	PlayerEntity			*player = PLAYER;
 	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
 	RANROTSeed				personalitySeed = RanrotSeedFromRandomSeed(ship_seed);
 	
-	for (i = 0; i < 256; i++)
+	
+	for (i = 0; i < numberSystems; i++)
 	{
 		long long reference_time = 0x1000000 * floor(current_time / 0x1000000);
 		
@@ -8535,8 +8560,8 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (ship_base_dict != nil))
 		{			
 			NSMutableDictionary* ship_dict = [NSMutableDictionary dictionaryWithDictionary:ship_base_dict];
-			NSMutableString* description = [NSMutableString stringWithCapacity:256];
-			NSMutableString* short_description = [NSMutableString stringWithCapacity:256];
+			NSMutableString* description = [NSMutableString stringWithCapacity:numberSystems];
+			NSMutableString* short_description = [NSMutableString stringWithCapacity:numberSystems];
 			NSString *shipName = [ship_dict oo_stringForKey:@"display_name" defaultValue:[ship_dict oo_stringForKey:KEY_NAME]];
 			OOCreditsQuantity price = [ship_info oo_unsignedIntForKey:KEY_PRICE];
 			OOCreditsQuantity base_price = price;

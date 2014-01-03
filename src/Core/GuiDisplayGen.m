@@ -1564,7 +1564,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(GLScaledLineWidth(1.5f));
 	OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
 
-	for (i = 0; i < 256; i++)
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+
+	for (i = 0; i < numberSystems; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
@@ -1603,7 +1605,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		int seed_d, seed_b;
 		int tec, eco, gov;
 		NSString* p_name;
-	} nearby_systems[ 256 ];
+	} nearby_systems[ numberSystems ];
 	static int num_nearby_systems;
 
 	if ( _refreshStarChart || !equal_seeds( [player galaxy_seed], saved_galaxy_seed ) ||
@@ -1616,7 +1618,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			[nearby_systems[ i ].p_name release];
 
 		num_nearby_systems = 0;
-		for (i = 0; i < 256; i++)
+		for (i = 0; i < numberSystems; i++)
 		{
 			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
@@ -1954,7 +1956,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// draw marks
 	//
 	OOGL(GLScaledLineWidth(1.5f));
-	for (i = 0; i < 256; i++)
+
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+	for (i = 0; i < numberSystems; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
@@ -1970,7 +1974,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// draw stars
 	//
 	OOGL(glColor4f(1.0f, 1.0f, 1.0f, alpha));
-	for (i = 0; i < 256; i++)
+	for (i = 0; i < numberSystems; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		systemData = [UNIVERSE generateSystemData:g_seed];
@@ -2051,7 +2055,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	int n_matches = 0, foundIndex = -1;
 	
-	for (i = 0; i < 256; i++) if (systemsFound[i])
+	for (i = 0; i < numberSystems; i++) if (systemsFound[i])
 	{
 		if(foundSystem == n_matches) foundIndex = i;
 		n_matches++;
@@ -2068,7 +2072,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	else
 	{
 		BOOL drawNames = n_matches < 4;
-		for (i = 0; i < 256; i++)
+		for (i = 0; i < numberSystems; i++)
 		{
 			BOOL mark = systemsFound[i];
 			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -2117,11 +2121,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double			hoffset = 0.0f;
 	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	NSPoint			star, star2 = NSZeroPoint;
+	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	
 	OOGL(glColor4f(0.25f, 0.25f, 0.25f, alpha));
 	
 	OOGLBEGIN(GL_LINES);
-	for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
+	for (i = 0; i < numberSystems; i++) for (j = i + 1; j < numberSystems; j++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		g_seed2 = [UNIVERSE systemSeedForSystemNumber:j];

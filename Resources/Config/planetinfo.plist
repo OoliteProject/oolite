@@ -19,6 +19,12 @@
 		stations_require_docking_clearance = no;
 	};
 	
+
+	/* These lines control galaxy generation. Change if you want more systems in a galaxy */
+	"number_systems" = 256;
+	"system_limit" = 0xFF;  //must be hexadecimal and 1 less than number_systems
+
+
 	// Uncomment the desired behaviour for galactic hyperspace exit. Fixed coordinates will put the arrival
 	// of an intergalactic jump on map coordinates specified by the key galactic_hyperspace_fixed_coords.
 	"galactic_hyperspace_behaviour" = 	"BEHAVIOUR_STANDARD";
