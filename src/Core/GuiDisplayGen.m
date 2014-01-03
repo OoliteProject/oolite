@@ -1564,7 +1564,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(GLScaledLineWidth(1.5f));
 	OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
 
-	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+	numberSystems = [[UNIVERSE planetInfo] oo_unsignedCharForKey:@"number_systems"];
 
 	for (i = 0; i < numberSystems; i++)
 	{
@@ -1957,7 +1957,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	//
 	OOGL(GLScaledLineWidth(1.5f));
 
-	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+	numberSystems = [[UNIVERSE planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	for (i = 0; i < numberSystems; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -2121,7 +2121,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double			hoffset = 0.0f;
 	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	NSPoint			star, star2 = NSZeroPoint;
-	numberSystems = [[self planetInfo] oo_unsignedCharForKey:@"number_systems"];
+	numberSystems = [[UNIVERSE planetInfo] oo_unsignedCharForKey:@"number_systems"];
 	
 	OOGL(glColor4f(0.25f, 0.25f, 0.25f, alpha));
 	
