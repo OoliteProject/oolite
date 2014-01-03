@@ -624,3 +624,26 @@ NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearan
 	
 	return @"DOCKING_CLEARANCE_STATUS_UNKNOWN";
 }
+
+
+NSString *OOStringFromGraphicsDetail(OOGraphicsDetail detail)
+{
+	switch (detail)
+	{
+		CASE(DETAIL_LEVEL_MINIMUM);
+		CASE(DETAIL_LEVEL_SHADERS);
+		CASE(DETAIL_LEVEL_EXTRAS);
+	}
+	
+	return @"DETAIL_LEVEL_UNKNOWN";
+}
+
+
+OOGraphicsDetail OOGraphicsDetailFromString(NSString *string)
+{
+	REVERSE_CASE(DETAIL_LEVEL_MINIMUM);
+	REVERSE_CASE(DETAIL_LEVEL_SHADERS);
+	REVERSE_CASE(DETAIL_LEVEL_EXTRAS);
+	
+	return DETAIL_LEVEL_MINIMUM;
+}

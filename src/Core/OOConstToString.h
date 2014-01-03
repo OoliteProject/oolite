@@ -110,3 +110,6 @@ NSString *RouteTypeToString(OORouteType routeType);
 OORouteType StringToRouteType(NSString *string);
 
 NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus) PURE_FUNC;
+
+NSString *OOStringFromGraphicsDetail(OOGraphicsDetail detail);
+OOGraphicsDetail OOGraphicsDetailFromString(NSString *string);

@@ -121,7 +121,7 @@ enum
 {
 	// Property IDs
 	kConsole_debugFlags,						// debug flags, integer, read/write
-	kConsole_detailLevel,						// shader mode, symbolic string, read/write
+	kConsole_detailLevel,						// graphics detail level, symbolic string, read/write
 	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
 	kConsole_ignoreDroppedPackets,				// boolean (default false), read/write
@@ -318,7 +318,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 #endif		
 			
 		case kConsole_detailLevel:
-			*value = INT_TO_JSVAL([UNIVERSE detailLevel]);
+			*value = [OOStringFromGraphicsDetail([UNIVERSE detailLevel]) oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_displayFPS:
@@ -402,6 +402,7 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID
 	
 	int32						iValue;
 	JSBool						bValue = NO;
+	NSString					*sValue;
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -414,12 +415,10 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsid propID
 			break;
 #endif		
 		case kConsole_detailLevel:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				OOJS_BEGIN_FULL_NATIVE(context)
-				[UNIVERSE setDetailLevel:iValue];
-				OOJS_END_FULL_NATIVE
-			}
+			sValue = OOStringFromJSValue(context, *value);
+			OOJS_BEGIN_FULL_NATIVE(context)
+			[UNIVERSE setDetailLevel:OOGraphicsDetailFromString(sValue)];
+			OOJS_END_FULL_NATIVE
 			break;
 			
 		case kConsole_displayFPS:
