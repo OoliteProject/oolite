@@ -197,7 +197,7 @@
 	const OOPlanetDataLevel *data = &kPlanetData[_lod];
 	
 	OO_ENTER_OPENGL();
-	
+
 	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));

@@ -494,7 +494,7 @@ enum
 			{
 				q = QFactor(_info.fbmBuffer, x, y, _width, paleClouds, cloudFraction, nearPole);
 				color = CloudMix(&_info, q, nearPole);
-				
+				OOLog(@"atmos.color",@"(%d,%d) = %f %f %f %f",y,x,color.r,color.g,color.b,color.a);
 				*apx++ = 255.0f * color.r;
 				*apx++ = 255.0f * color.g;
 				*apx++ = 255.0f * color.b;

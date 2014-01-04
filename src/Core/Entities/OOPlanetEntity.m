@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #if NEW_PLANETS
 
-#define NEW_ATMOSPHERE 0
+#define NEW_ATMOSPHERE 1
 
 #import "OOPlanetDrawable.h"
 
@@ -442,7 +442,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 								   green:[mixColor greenComponent] * aleph2
 									blue:[mixColor blueComponent] * aleph
 								   alpha:aleph];
-				[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH + (ATMOSPHERE_DEPTH * alt)];
+				[_atmosphereDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
 			}
 		}
 		else if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
@@ -660,16 +660,16 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 		if (!isMoon)
 		{
+			/* Generate the atmosphere texture anyway */
 			OOTexture *diffuseTmp = nil;
 			OOTexture *atmosphere = nil;
 			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseTmp
 									   secondaryTexture:NULL
 										  andAtmosphere:&atmosphere
 											   withInfo:_materialParameters];
-			
+
 			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
 			[_atmosphereDrawable setMaterial:dynamicMaterial];
-			OOLog(@"atmos.debug",@"set material");
 			[dynamicMaterial release];
 		}
 	}
