@@ -65,6 +65,15 @@ SOFTWARE.
 @end
 
 
+/*	OOGenerateTextureCacheKey()
+	OOTextureCacheKeyForSpecifier()
+	
+	Generate texture cache keys of the form used by normal file-based textures.
+ */
+NSString *OOGenerateTextureCacheKey(NSString *directory, NSString *name, OOTextureFlags options, float anisotropy, float lodBias);
+NSString *OOTextureCacheKeyForSpecifier(id specifier);
+
+
 typedef struct OOTextureInfo
 {
 	GLfloat					anisotropyScale;

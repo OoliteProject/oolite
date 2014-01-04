@@ -87,10 +87,7 @@ SOFTWARE.
 			
 			if (emissionAndIlluminationSpec != nil)
 			{
-				OOTextureLoader *emissionAndIlluminationMap = [OOTextureLoader loaderWithTextureSpecifier:emissionAndIlluminationSpec
-																							 extraOptions:kOOTextureExtraShrink
-																								   folder:@"Textures"];
-				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMap:emissionAndIlluminationMap
+				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
 																							diffuseMap:_diffuseMap
 																						  diffuseColor:diffuseColor
 																						 emissionColor:emissionColor
@@ -99,19 +96,13 @@ SOFTWARE.
 			}
 			else
 			{
-				OOTextureLoader *emissionMap = [OOTextureLoader loaderWithTextureSpecifier:emissionSpec
-																			  extraOptions:kOOTextureExtraShrink
-																					folder:@"Textures"];
-				OOTextureLoader *illuminationMap = [OOTextureLoader loaderWithTextureSpecifier:illuminationSpec
-																				  extraOptions:kOOTextureExtraShrink
-																						folder:@"Textures"];
-				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMap:emissionMap
-																		  emissionColor:emissionColor
-																			 diffuseMap:_diffuseMap
-																		   diffuseColor:diffuseColor
-																		illuminationMap:illuminationMap
-																	  illuminationColor:illuminationColor
-																	   optionsSpecifier:emissionSpec ?: illuminationSpec];
+				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMapSpec:emissionSpec
+																			  emissionColor:emissionColor
+																				 diffuseMap:_diffuseMap
+																			   diffuseColor:diffuseColor
+																		illuminationMapSpec:illuminationSpec
+																		  illuminationColor:illuminationColor
+																		   optionsSpecifier:emissionSpec ?: illuminationSpec];
 			}
 			
 			_emissionMap = [[OOTexture textureWithGenerator:[generator autorelease]] retain];

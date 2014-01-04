@@ -158,7 +158,7 @@ static NSString *sGlobalTraceContext = nil;
 	options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 	
 	// Look for existing texture
-	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+	key = OOGenerateTextureCacheKey(directory, name, options, anisotropy, lodBias);
 	result = [OOTexture existingTextureForKey:key];
 	if (result == nil)
 	{
@@ -881,4 +881,32 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
 	options &= kOOTextureDefinedFlags;
 	
 	return options;
+}
+
+
+NSString *OOGenerateTextureCacheKey(NSString *directory, NSString *name, OOTextureFlags options, float anisotropy, float lodBias)
+{
+	if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		anisotropy = 0.0f;
+	}
+	if (!gOOTextureInfo.textureLODBiasAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		lodBias = 0.0f;
+	}
+	options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
+	
+	return [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+}
+
+
+NSString *OOTextureCacheKeyForSpecifier(id specifier)
+{
+	NSString *name;
+	OOTextureFlags options;
+	float anisotropy;
+	float lodBias;
+	
+	OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy, &lodBias, NO);
+	return OOGenerateTextureCacheKey(@"Textures", name, options, anisotropy, lodBias);
 }

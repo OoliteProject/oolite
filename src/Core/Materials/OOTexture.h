@@ -307,7 +307,6 @@ NSDictionary *OOMakeTextureSpecifier(NSString *name, OOTextureFlags options, flo
 OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options);
 
 
-
 // Texture specifier keys.
 extern NSString * const kOOTextureSpecifierNameKey;
 extern NSString * const kOOTextureSpecifierSwizzleKey;
