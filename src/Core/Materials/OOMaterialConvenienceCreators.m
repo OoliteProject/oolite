@@ -308,7 +308,7 @@ static BOOL sDumpShaderSource = NO;
 #endif
 	
 #if OO_MULTITEXTURE
-	if (result == nil && ![UNIVERSE reducedDetail])
+	if (result == nil /*&& ![UNIVERSE reducedDetail]*/)
 	{
 		if ([configuration oo_emissionMapSpecifier] != nil ||
 			[configuration oo_illuminationMapSpecifier] ||

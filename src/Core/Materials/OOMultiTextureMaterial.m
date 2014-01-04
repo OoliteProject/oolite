@@ -78,7 +78,7 @@ SOFTWARE.
 		// Check for simplest cases, where we don't need to bake a derived emission map.
 		if (emissionSpec != nil && illuminationSpec == nil && emissionAndIlluminationSpec == nil && emissionColor == nil)
 		{
-			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec] retain];
+			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink] retain];
 			if (_emissionMap != nil)  _unitsUsed++;
 		}
 		else
@@ -88,7 +88,7 @@ SOFTWARE.
 			if (emissionAndIlluminationSpec != nil)
 			{
 				OOTextureLoader *emissionAndIlluminationMap = [OOTextureLoader loaderWithTextureSpecifier:emissionAndIlluminationSpec
-																							 extraOptions:0
+																							 extraOptions:kOOTextureExtraShrink
 																								   folder:@"Textures"];
 				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMap:emissionAndIlluminationMap
 																							diffuseMap:_diffuseMap
@@ -100,10 +100,10 @@ SOFTWARE.
 			else
 			{
 				OOTextureLoader *emissionMap = [OOTextureLoader loaderWithTextureSpecifier:emissionSpec
-																			  extraOptions:0
+																			  extraOptions:kOOTextureExtraShrink
 																					folder:@"Textures"];
 				OOTextureLoader *illuminationMap = [OOTextureLoader loaderWithTextureSpecifier:illuminationSpec
-																				  extraOptions:0
+																				  extraOptions:kOOTextureExtraShrink
 																						folder:@"Textures"];
 				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMap:emissionMap
 																		  emissionColor:emissionColor
