@@ -33,7 +33,7 @@ SOFTWARE.
 
 - (id) initWithPixMap:(OOPixMap)pixMap textureOptions:(uint32_t)options freeWhenDone:(BOOL)freeWhenDone
 {
-	if ((self = [super init]))
+	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPixMap@%p", self] options:options]))
 	{
 		if (freeWhenDone)  _pixMap = pixMap;
 		else  _pixMap = OODuplicatePixMap(_pixMap, 0);
