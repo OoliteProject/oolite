@@ -324,17 +324,6 @@ OOLITE_SCRIPTING_FILES = \
     OOJSFrameCallbacks.m \
     OOJSFont.m
 
-#OOLITE_SOUND_FILES = \
-#    OOBasicSoundReferencePoint.m \
-#    
-#    OOSDLConcreteSound.m \
-#    OOSDLSound.m \
-#    OOSDLSoundChannel.m \
-#    OOSDLSoundMixer.m \
-#    OOSoundSource.m \
-#    OOSoundSourcePool.m \
-#    SDLMusic.m
-
 OOLITE_SOUND_FILES = \
 	OOOpenALController.m \
 	OOMusicController.m \
