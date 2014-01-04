@@ -122,6 +122,7 @@ enum
 	// Property IDs
 	kConsole_debugFlags,						// debug flags, integer, read/write
 	kConsole_detailLevel,						// graphics detail level, symbolic string, read/write
+	kConsole_maximumDetailLevel,				// maximum graphics detail level, symbolic string, read-only
 	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
 	kConsole_ignoreDroppedPackets,				// boolean (default false), read/write
@@ -156,6 +157,7 @@ static JSPropertySpec sConsoleProperties[] =
 	// JS name								ID											flags
 	{ "debugFlags",							kConsole_debugFlags,						OOJS_PROP_READWRITE_CB },
 	{ "detailLevel",						kConsole_detailLevel,						OOJS_PROP_READWRITE_CB },
+	{ "maximumDetailLevel",					kConsole_maximumDetailLevel,				OOJS_PROP_READONLY_CB },
 	{ "displayFPS",							kConsole_displayFPS,						OOJS_PROP_READWRITE_CB },
 	{ "platformDescription",				kConsole_platformDescription,				OOJS_PROP_READONLY_CB },
 	{ "pedanticMode",						kConsole_pedanticMode,						OOJS_PROP_READWRITE_CB },
@@ -319,6 +321,10 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsid propID
 			
 		case kConsole_detailLevel:
 			*value = [OOStringFromGraphicsDetail([UNIVERSE detailLevel]) oo_jsValueInContext:context];
+			break;
+			
+		case kConsole_maximumDetailLevel:
+			*value = [OOStringFromGraphicsDetail([[OOOpenGLExtensionManager sharedManager] maximumDetailLevel]) oo_jsValueInContext:context];
 			break;
 			
 		case kConsole_displayFPS:
