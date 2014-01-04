@@ -42,38 +42,40 @@ SOFTWARE.
 
 enum
 {
-	kOOTextureMinFilterDefault		= 0x0000UL,
-	kOOTextureMinFilterNearest		= 0x0001UL,
-	kOOTextureMinFilterLinear		= 0x0002UL,
-	kOOTextureMinFilterMipMap		= 0x0003UL,
+	kOOTextureMinFilterDefault		= 0x000000UL,
+	kOOTextureMinFilterNearest		= 0x000001UL,
+	kOOTextureMinFilterLinear		= 0x000002UL,
+	kOOTextureMinFilterMipMap		= 0x000003UL,
 	
-	kOOTextureMagFilterNearest		= 0x0000UL,
-	kOOTextureMagFilterLinear		= 0x0004UL,
+	kOOTextureMagFilterNearest		= 0x000000UL,
+	kOOTextureMagFilterLinear		= 0x000004UL,
 	
-	kOOTextureNoShrink				= 0x0010UL,
-	kOOTextureRepeatS				= 0x0020UL,
-	kOOTextureRepeatT				= 0x0040UL,
-	kOOTextureAllowRectTexture		= 0x0080UL,	// Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
-	kOOTextureNoFNFMessage			= 0x0100UL,	// Don't log file not found error
-	kOOTextureNeverScale			= 0x0200UL,	// Don't rescale texture, even if rect textures are not available. This *must not* be used for regular textures, but may be passed to OOTextureLoader when being used for other purposes.
-	kOOTextureAlphaMask				= 0x0400UL,	// Single-channel texture should be GL_ALPHA, not GL_LUMINANCE. No effect for multi-channel textures.
-	kOOTextureAllowCubeMap			= 0x0800UL,
+	kOOTextureNoShrink				= 0x000010UL,
+	kOOTextureExtraShrink			= 0x000020UL,
+	kOOTextureRepeatS				= 0x000040UL,
+	kOOTextureRepeatT				= 0x000080UL,
+	kOOTextureAllowRectTexture		= 0x000100UL,	// Indicates that GL_TEXTURE_RECTANGLE_EXT may be used instead of GL_TEXTURE_2D. See -texCoordsScale for a discussion of rectangle textures.
+	kOOTextureNoFNFMessage			= 0x000200UL,	// Don't log file not found error
+	kOOTextureNeverScale			= 0x000400UL,	// Don't rescale texture, even if rect textures are not available. This *must not* be used for regular textures, but may be passed to OOTextureLoader when being used for other purposes.
+	kOOTextureAlphaMask				= 0x000800UL,	// Single-channel texture should be GL_ALPHA, not GL_LUMINANCE. No effect for multi-channel textures.
+	kOOTextureAllowCubeMap			= 0x001000UL,
 	
-	kOOTextureExtractChannelMask	= 0x7000UL,
-	kOOTextureExtractChannelNone	= 0x0000UL,
-	kOOTextureExtractChannelR		= 0x1000UL,	// 001
-	kOOTextureExtractChannelG		= 0x3000UL,	// 011
-	kOOTextureExtractChannelB		= 0x5000UL,	// 101
-	kOOTextureExtractChannelA		= 0x7000UL,	// 111
+	kOOTextureExtractChannelMask	= 0x700000UL,
+	kOOTextureExtractChannelNone	= 0x000000UL,
+	kOOTextureExtractChannelR		= 0x100000UL,	// 001
+	kOOTextureExtractChannelG		= 0x300000UL,	// 011
+	kOOTextureExtractChannelB		= 0x500000UL,	// 101
+	kOOTextureExtractChannelA		= 0x700000UL,	// 111
 	
-	kOOTextureMinFilterMask			= 0x0003UL,
-	kOOTextureMagFilterMask			= 0x0004UL,
+	kOOTextureMinFilterMask			= 0x000003UL,
+	kOOTextureMagFilterMask			= 0x000004UL,
 	kOOTextureFlagsMask				= ~(kOOTextureMinFilterMask | kOOTextureMagFilterMask),
 	
 	kOOTextureDefaultOptions		= kOOTextureMinFilterDefault | kOOTextureMagFilterLinear,
 	
 	kOOTextureDefinedFlags			= kOOTextureMinFilterMask | kOOTextureMagFilterMask
 									| kOOTextureNoShrink
+									| kOOTextureExtraShrink
 									| kOOTextureAllowRectTexture
 									| kOOTextureAllowCubeMap
 									| kOOTextureRepeatS
@@ -300,7 +302,7 @@ NSDictionary *OOMakeTextureSpecifier(NSString *name, OOTextureFlags options, flo
 
 /*	OOApplyTextureOptionDefaults()
 	
-	Replace all default/autmatic options with their current default values.
+	Replace all default/automatic options with their current default values.
 */
 OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options);
 
@@ -312,6 +314,7 @@ extern NSString * const kOOTextureSpecifierSwizzleKey;
 extern NSString * const kOOTextureSpecifierMinFilterKey;
 extern NSString * const kOOTextureSpecifierMagFilterKey;
 extern NSString * const kOOTextureSpecifierNoShrinkKey;
+extern NSString * const kOOTextureSpecifierExtraShrinkKey;
 extern NSString * const kOOTextureSpecifierRepeatSKey;
 extern NSString * const kOOTextureSpecifierRepeatTKey;
 extern NSString * const kOOTextureSpecifierCubeMapKey;

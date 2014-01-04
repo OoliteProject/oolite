@@ -47,6 +47,7 @@ NSString * const kOOTextureSpecifierSwizzleKey				= @"extract_channel";
 NSString * const kOOTextureSpecifierMinFilterKey			= @"min_filter";
 NSString * const kOOTextureSpecifierMagFilterKey			= @"mag_filter";
 NSString * const kOOTextureSpecifierNoShrinkKey				= @"no_shrink";
+NSString * const kOOTextureSpecifierExtraShrinkKey			= @"extra_shrink";
 NSString * const kOOTextureSpecifierRepeatSKey				= @"repeat_s";
 NSString * const kOOTextureSpecifierRepeatTKey				= @"repeat_t";
 NSString * const kOOTextureSpecifierCubeMapKey				= @"cube_map";
@@ -707,6 +708,7 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, OOTextureFlag
 			else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
 			
 			if ([specifier oo_boolForKey:kOOTextureSpecifierNoShrinkKey defaultValue:NO])  options |= kOOTextureNoShrink;
+			if ([specifier oo_boolForKey:kOOTextureSpecifierExtraShrinkKey defaultValue:NO])  options |= kOOTextureExtraShrink;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatSKey defaultValue:NO])  options |= kOOTextureRepeatS;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatTKey defaultValue:NO])  options |= kOOTextureRepeatT;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierCubeMapKey defaultValue:NO])  options |= kOOTextureAllowCubeMap;
