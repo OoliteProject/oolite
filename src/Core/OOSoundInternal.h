@@ -8,22 +8,8 @@
 #define OOSoundAcquireLock() do {} while(0)
 #define OOSoundReleaseLock() do {} while(0)
 
-#elif OOLITE_SDL
+#else
 
-#import "OOSDLSoundMixer.h"
-#import "OOSDLSoundChannel.h"
-
-#define OOSoundAcquireLock() do {} while(0)
-#define OOSoundReleaseLock() do {} while(0)
-
-#elif OOLITE_MAC_OS_X
-
-#import "OOCASoundMixer.h"
-#import "OOCASoundChannel.h"
-
-extern NSRecursiveLock	*gOOCASoundSyncLock;
-
-#define OOSoundAcquireLock() [gOOCASoundSyncLock lock]
-#define OOSoundReleaseLock() [gOOCASoundSyncLock unlock]
+#warning No sound implementation selected. Currently, the only option is OOLITE_OPENAL. There are SDL and Mac CoreAudio implementations in the revision history.
 
 #endif
