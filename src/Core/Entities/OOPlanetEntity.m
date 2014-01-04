@@ -132,7 +132,7 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 		[self setUpAtmosphereParametersWithSourceInfo:dict targetInfo:planetInfo];
 		// planetInfo now contains a valid air_color
 		_airColor = [planetInfo objectForKey:@"air_color"];
-		//OOLog (@"kaks",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
+		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
 		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha",
 															@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
