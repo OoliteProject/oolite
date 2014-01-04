@@ -296,7 +296,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"atmosphere_color"]];
 		if (color != nil) seaHSB = HSBColorWithColor(color);
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"cloud_color"]];
-		if (color != nil) landHSB = HSBColorWithColor(color);
+	if (color != nil) landHSB = HSBColorWithColor(color);
 		
 		// polar areas: brighter, less saturation
 		landPolarHSB = vector_add(landHSB,LighterHSBColor(landHSB));
@@ -442,7 +442,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 								   green:[mixColor greenComponent] * aleph2
 									blue:[mixColor blueComponent] * aleph
 								   alpha:aleph];
-				[_atmosphereDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
+				[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH + (ATMOSPHERE_DEPTH * alt)];
 			}
 		}
 		else if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
@@ -493,12 +493,12 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	
 	[_planetDrawable renderOpaqueParts];
-#if NEW_ATMOSPHERE
+//#if NEW_ATMOSPHERE
 	if (_atmosphereDrawable != nil)
 	{
 		[_atmosphereDrawable renderOpaqueParts];
 	}
-#endif
+//#endif
 	
 	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
 }
@@ -657,6 +657,21 @@ static OOColor *ColorWithHSBColor(Vector c)
 			}
 		}
 		else textureName = @"dynamic";
+
+		if (!isMoon)
+		{
+			OOTexture *diffuseTmp = nil;
+			OOTexture *atmosphere = nil;
+			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseTmp
+									   secondaryTexture:NULL
+										  andAtmosphere:&atmosphere
+											   withInfo:_materialParameters];
+			
+			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
+			[_atmosphereDrawable setMaterial:dynamicMaterial];
+			OOLog(@"atmos.debug",@"set material");
+			[dynamicMaterial release];
+		}
 	}
 	else
 	{

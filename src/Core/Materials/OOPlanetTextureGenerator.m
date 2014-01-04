@@ -266,7 +266,6 @@ enum
 	}
 	
 	*texture = [OOTexture textureWithGenerator:diffuseGen];
-	
 	return *texture != nil;
 }
 
