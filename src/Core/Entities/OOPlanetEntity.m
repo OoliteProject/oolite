@@ -46,9 +46,9 @@ MA 02110-1301, USA.
 #import "OOSingleTextureMaterial.h"
 #import "OOShaderMaterial.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOGraphicsResetManager.h"
 
-
-@interface OOPlanetEntity (Private)
+@interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
 - (void) setUpLandParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 - (void) setUpAtmosphereParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
@@ -154,8 +154,8 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 	
 	_mesopause2 = (atmosphere) ? (kMesosphere + collision_radius) * (kMesosphere + collision_radius) : 0.0;
 	
-	NSString *textureName = [dict oo_stringForKey:@"texture"];
-	[self setUpPlanetFromTexture:textureName];
+	_textureName = [[dict oo_stringForKey:@"texture"] retain];
+	[self setUpPlanetFromTexture:_textureName];
 	[_planetDrawable setRadius:collision_radius];	
 		
 	// Orientation should be handled by the code that calls this planetEntity. Starting with a default value anyway.
@@ -185,6 +185,8 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 	
 	[self setStatus:STATUS_ACTIVE];
 	
+	[[OOGraphicsResetManager sharedManager] registerClient:self];
+
 	return self;
 }
 
@@ -354,7 +356,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 	DESTROY(_atmosphereDrawable);
 	//DESTROY(_airColor);	// this CTDs on loading savegames.. :(
 	DESTROY(_materialParameters);
+	DESTROY(_textureName);
 	
+	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
+
 	[super dealloc];
 }
 
@@ -620,6 +625,13 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (NSString *) textureFileName
 {
 	return [_planetDrawable textureName];
+}
+
+
+- (void)resetGraphicsState
+{
+	// reset the texture if graphics mode changes
+	[self setUpPlanetFromTexture:_textureName];
 }
 
 

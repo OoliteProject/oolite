@@ -9453,8 +9453,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	[self setDetailLevelDirectly:value];
 	OOLog(@"rendering.detail-level", @"Detail level set to %@.", OOStringFromGraphicsDetail(value));
 	[[NSUserDefaults standardUserDefaults] setInteger:detailLevel forKey:@"detailLevel"];
-	// if switch between shader on/off reset graphics state
-	if ((old >= DETAIL_LEVEL_SHADERS) != (detailLevel >= DETAIL_LEVEL_SHADERS))
+	// if changed then reset graphics state
+	// (some items now require this even if shader on/off mode unchanged)
+	if (old != detailLevel)
 	{
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
