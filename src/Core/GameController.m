@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOOpenALController.h"
 #import "OODebugSupport.h"
 #import "legacy_random.h"
+#import "OOOXZManager.h"
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
@@ -239,6 +240,9 @@ static GameController *sSharedController = nil;
 			}
 		}
 		
+		// initialise OXZ manager
+		[OOOXZManager sharedManager];
+		
 		// moved here to try to avoid initialising this before having an Open GL context
 		//[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
 		[[Universe alloc] initWithGameView:gameView];
@@ -319,6 +323,9 @@ static GameController *sSharedController = nil;
 	[gameView pollControls];
 	[self doPerformGameTick];
 	
+	// TEMP: just for testing! Should only do this on user request
+	[[OOOXZManager sharedManager] updateManifests];
+
 	[pool release];
 }
 
@@ -374,6 +381,7 @@ static GameController *sSharedController = nil;
 #if OOLITE_MAC_OS_X
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSEventTrackingRunLoopMode];
 #endif
+
 	}
 }
 
