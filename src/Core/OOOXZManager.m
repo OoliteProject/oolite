@@ -48,7 +48,7 @@ static OOOXZManager *sSingleton = nil;
 - (NSString *) manifestPath;
 - (NSString *) manifestDownloadPath;
 
-
+- (void) setOXZList:(NSArray *)list;
 - (void) setCurrentDownload:(NSURLDownload *)download;
 
 /* Delegates for URL downloader */
@@ -79,8 +79,9 @@ static OOOXZManager *sSingleton = nil;
 		_updatingManifests = NO;
 		_downloadStatus = OXZ_DOWNLOAD_NONE;
 		// if the file has not been downloaded, this will be nil
-		_oxzList = OOArrayFromFile([self manifestPath]);
-		
+		[self setOXZList:OOArrayFromFile([self manifestPath])];
+		OOLog(kOOOXZDebugLog,@"Initialised with %@",_oxzList);
+
 	}
 	return self;
 }
@@ -122,6 +123,16 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (void) setOXZList:(NSArray *)list
+{
+	DESTROY(_oxzList);
+	if (list != nil)
+	{
+		_oxzList = [list retain];
+	}
+}
+
+
 - (void) setCurrentDownload:(NSURLDownload *)download
 {
 	if (_currentDownload != nil)
@@ -134,17 +145,26 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) updateManifests
 {
+/* The download really should be asynchronous (while it's not so bad for the list, it would be terrible for an actual OXZ), but if I do it this way the delegates never get called - and NSURLDownload never actually puts the file anywhere - and I have no idea why. I'm guessing either something to do with the NSRunLoop not working properly under GNUstep or something wrong with the way I'm interacting with it. - CIM*/
+#ifndef OXZ_ASYNC_DOWNLOAD
+	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kOOOXZDataURL]];
+	NSURLResponse *response = nil;
+	NSError *error = nil;
+	NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+	// TODO: check for errors!
+	[self setOXZList:OOArrayFromData(data,kOOOXZDataURL)];
+	[_oxzList writeToFile:[self manifestPath] atomically:YES];
+	OOLog(kOOOXZDebugLog,@"Downloaded %@",_oxzList);
+	return YES;
+#else
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE || _updatingManifests)
 	{
 		return NO;
 	}
-	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kOOOXZDataURL]];
 	NSURLDownload *download = [[NSURLDownload alloc] initWithRequest:request delegate:self];
 	if (download)
 	{
 		[download setDestination:[self manifestDownloadPath] allowOverwrite:YES];
-
-		/* Delegates don't yet work. Suspect a problem with the run loop. */
 
 		_updatingManifests = YES;
 		_downloadProgress = 0;
@@ -159,6 +179,7 @@ static OOOXZManager *sSingleton = nil;
 		OOLog(kOOOXZErrorLog,@"Unable to start downloading manifests file at %@",[request URL]);
 		return NO;
 	}
+#endif
 }
 
 

@@ -242,6 +242,9 @@ static GameController *sSharedController = nil;
 		
 		// initialise OXZ manager
 		[OOOXZManager sharedManager];
+
+		// TEMP: just for testing! Should only do this on user request
+		[[OOOXZManager sharedManager] updateManifests];
 		
 		// moved here to try to avoid initialising this before having an Open GL context
 		//[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
@@ -323,9 +326,6 @@ static GameController *sSharedController = nil;
 	[gameView pollControls];
 	[self doPerformGameTick];
 	
-	// TEMP: just for testing! Should only do this on user request
-	[[OOOXZManager sharedManager] updateManifests];
-
 	[pool release];
 }
 
