@@ -49,24 +49,25 @@ static OOOXZManager *sSingleton = nil;
 
 // protocol was only formalised in 10.7
 #if OOLITE_MAC_OS_X_10_7 
-@interface OOOXZManager (OOPrivate) <NSURLDownloadDelegate> 
+@interface OOOXZManager (OOPrivate) <NSURLConnectionDataDelegate> 
 #else
-@interface OOOXZManager (OOPrivate)
+@interface OOOXZManager (NSURLConnectionDataDelegate) 
 #endif
 
 - (NSString *) installPath;
 - (NSString *) manifestPath;
 - (NSString *) manifestDownloadPath;
 
+- (BOOL) processDownloadedManifests;
+
 - (void) setOXZList:(NSArray *)list;
-- (void) setCurrentDownload:(NSURLDownload *)download;
+- (void) setCurrentDownload:(NSURLConnection *)download;
 
 /* Delegates for URL downloader */
-- (void) downloadDidBegin:(NSURLDownload *)download;
-- (void) download:(NSURLDownload *)download didReceiveResponse:(NSURLResponse *)response;
-- (void) download:(NSURLDownload *)download didReceiveDataOfLength:(NSUInteger)length;
-- (void) downloadDidFinish:(NSURLDownload *)download;
-- (void) download:(NSURLDownload *)download didFailWithError:(NSError *)error;
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response;
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data;
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection;
 
 @end
 
@@ -133,7 +134,7 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (void) setCurrentDownload:(NSURLDownload *)download
+- (void) setCurrentDownload:(NSURLConnection *)download
 {
 	if (_currentDownload != nil)
 	{
@@ -161,11 +162,10 @@ static OOOXZManager *sSingleton = nil;
 	{
 		return NO;
 	}
-	NSURLDownload *download = [[NSURLDownload alloc] initWithRequest:request delegate:self];
+	_downloadStatus = OXZ_DOWNLOAD_STARTED;
+	NSURLConnection *download = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (download)
 	{
-		[download setDestination:[self manifestDownloadPath] allowOverwrite:YES];
-
 		_updatingManifests = YES;
 		_downloadProgress = 0;
 		_downloadExpected = 0;
@@ -177,6 +177,7 @@ static OOOXZManager *sSingleton = nil;
 	else
 	{
 		OOLog(kOOOXZErrorLog,@"Unable to start downloading manifests file at %@",[request URL]);
+		_downloadStatus = OXZ_DOWNLOAD_NONE;
 		return NO;
 	}
 #endif
@@ -196,7 +197,13 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else if (_downloadStatus == OXZ_DOWNLOAD_COMPLETE)
 	{
-		// then we should clean up the temp file - TODO!
+#if OOLITE_MAC_OS_X
+		// correct for 10.5 onwards
+		[[NSFileManager defaultManager] removeItemAtPath:[self manifestDownloadPath] error:nil];
+#else
+		// correct for GNUstep's mostly pre-10.5 API
+		[[NSFileManager defaultManager] removeFileAtPath:[self manifestDownloadPath] handler:nil];
+#endif
 	}
 	_updatingManifests = NO;
 	_downloadStatus = OXZ_DOWNLOAD_NONE;
@@ -205,41 +212,84 @@ static OOOXZManager *sSingleton = nil;
 
 
 
-- (void) downloadDidBegin:(NSURLDownload *)download
+- (BOOL) processDownloadedManifests
 {
-	_downloadStatus = OXZ_DOWNLOAD_STARTED;
-	OOLog(kOOOXZDebugLog,@"Download started");
+	if (_downloadStatus != OXZ_DOWNLOAD_COMPLETE)
+	{
+		return NO;
+	}
+	[self setOXZList:OOArrayFromFile([self manifestDownloadPath])];
+	if (_oxzList != nil)
+	{
+		[_oxzList writeToFile:[self manifestPath] atomically:YES];
+		// and clean up the temp file
+#if OOLITE_MAC_OS_X
+		// correct for 10.5 onwards
+		[[NSFileManager defaultManager] removeItemAtPath:[self manifestDownloadPath] error:nil];
+#else
+		// correct for GNUstep's mostly pre-10.5 API
+		[[NSFileManager defaultManager] removeFileAtPath:[self manifestDownloadPath] handler:nil];
+#endif
+		return YES;
+	}
+	else
+	{
+		OOLog(kOOOXZErrorLog,@"Downloaded manifest was not a valid plist, has been left in %@",[self manifestDownloadPath]);
+		// revert to the old one
+		[self setOXZList:OOArrayFromFile([self manifestPath])];
+		return NO;
+	}
 }
 
 
-- (void) download:(NSURLDownload *)download didReceiveResponse:(NSURLResponse *)response
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
 	_downloadStatus = OXZ_DOWNLOAD_RECEIVING;
 	OOLog(kOOOXZDebugLog,@"Download receiving");
 	_downloadExpected = [response expectedContentLength];
 	_downloadProgress = 0;
+	DESTROY(_fileWriter);
+	[[NSFileManager defaultManager] createFileAtPath:[self manifestDownloadPath] contents:nil attributes:nil];
+	_fileWriter = [[NSFileHandle fileHandleForWritingAtPath:[self manifestDownloadPath]] retain];
+	if (_fileWriter == nil)
+	{
+		// file system is full or read-only or something
+		OOLog(kOOOXZErrorLog,@"Unable to create download file");
+		[self cancelUpdateManifests];
+	}
 }
 
 
-- (void) download:(NSURLDownload *)download didReceiveDataOfLength:(NSUInteger)length
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-	OOLog(kOOOXZDebugLog,@"Downloaded %lu bytes", (unsigned long)length);
-	_downloadProgress += length;
+	OOLog(kOOOXZDebugLog,@"Downloaded %ul bytes",[data length]);
+	[_fileWriter seekToEndOfFile];
+	[_fileWriter writeData:data];
+	_downloadProgress += [data length];
 }
 
 
-- (void) downloadDidFinish:(NSURLDownload *)download
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
 	_downloadStatus = OXZ_DOWNLOAD_COMPLETE;
 	OOLog(kOOOXZDebugLog,@"Download complete");
+	[_fileWriter synchronizeFile];
+	[_fileWriter closeFile];
+	DESTROY(_fileWriter);
 	DESTROY(_currentDownload);
+	if (![self processDownloadedManifests])
+	{
+		_downloadStatus = OXZ_DOWNLOAD_ERROR;
+	}
 }
 
 
-- (void) download:(NSURLDownload *)download didFailWithError:(NSError *)error
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
 	_downloadStatus = OXZ_DOWNLOAD_ERROR;
-	OOLog(kOOOXZErrorLog,@"Error downloading '%@': %@",[[download request] URL],[error localizedDescription]);
+	OOLog(kOOOXZErrorLog,@"Error downloading file: %@",[error description]);
+	[_fileWriter closeFile];
+	DESTROY(_fileWriter);
 	DESTROY(_currentDownload);
 }
 

@@ -36,21 +36,18 @@ typedef enum {
 	OXZ_DOWNLOAD_ERROR = 99
 } OXZDownloadStatus;
 
-#if 0
-// TODO: this should check for Mac OS 10.7 or higher, and possibly later GNUStep
-@interface OOOXZManager : NSObject <NSURLDownloadDelegate> 
-#else
+
 @interface OOOXZManager : NSObject
-#endif
 {
 @private
 	NSArray 			*_oxzList;
 	BOOL				_updatingManifests;
 
-	NSURLDownload		*_currentDownload;
+	NSURLConnection		*_currentDownload;
 	OXZDownloadStatus	_downloadStatus;
 	NSUInteger			_downloadProgress;
 	NSUInteger			_downloadExpected;
+	NSFileHandle		*_fileWriter;
 	
 
 }
@@ -59,7 +56,6 @@ typedef enum {
 
 - (BOOL) updateManifests;
 - (BOOL) cancelUpdateManifests;
-
 
 
 
