@@ -29,13 +29,16 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOCacheManager.h"
 
+
+#define OXZ_ASYNC_DOWNLOAD 1
+
 /* The URL for the manifest.plist array. This one is extremely
  * temporary, of course */
 static NSString * const kOOOXZDataURL = @"http://compsoc.dur.ac.uk/~cim/oolite/dev/manifests.plist";
 /* The filename to store the downloaded manifest.plist array */
-static NSString * const kOOOXZManifestCache = @"manifests.plist";
+static NSString * const kOOOXZManifestCache = @"Oolite-manifests.plist";
 /* The filename to temporarily store the downloaded manifest.plist array */
-static NSString * const kOOOXZManifestTmp = @"manifests.plist.new";
+static NSString * const kOOOXZManifestTmp = @"Oolite-manifests.plist.new";
 
 
 static NSString * const kOOOXZErrorLog = @"oxz.manager.error";
@@ -44,7 +47,12 @@ static NSString * const kOOOXZDebugLog = @"oxz.manager.debug";
 
 static OOOXZManager *sSingleton = nil;
 
-@interface OOOXZManager (OOPrivate) <NSURLDownloadDelegate>
+// protocol was only formalised in 10.7
+#if OOLITE_MAC_OS_X_10_7 
+@interface OOOXZManager (OOPrivate) <NSURLDownloadDelegate> 
+#else
+@interface OOOXZManager (OOPrivate)
+#endif
 
 - (NSString *) installPath;
 - (NSString *) manifestPath;
