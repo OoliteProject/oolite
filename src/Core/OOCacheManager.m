@@ -320,18 +320,17 @@ static OOCacheManager *sSingleton = nil;
 
 - (NSString *)cacheDirectoryPathCreatingIfNecessary:(BOOL)inCreate
 {
-	/*	Construct the path for the cache file, which is:
-			~/GNUstep/Library/Caches/Oolite-cache.plist
-		
-		FIXME: we shouldn't be hard-coding ~/GNUstep/. Does
-		NSSearchPathForDirectoriesInDomains() not work?
-		-- Ahruman 2009-09-06
+	/*	Construct the directory path for the cache file, which is probably:
+			~/GNUstep/Library/Caches/
 	*/
-	NSString *cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"];
-	if (![self directoryExists:cachePath create:inCreate]) return nil;
-	cachePath = [cachePath stringByAppendingPathComponent:@"Library"];
-	if (![self directoryExists:cachePath create:inCreate]) return nil;
-	cachePath = [cachePath stringByAppendingPathComponent:@"Caches"];
+
+	NSArray *cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
+	NSString *cachePath = [cachePaths objectAtIndex:0];
+	if (cachePath == nil)
+	{
+		return nil;
+	}
+
 	if (![self directoryExists:cachePath create:inCreate]) return nil;
 	
 	return cachePath;
