@@ -53,6 +53,8 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 				 isCombinedMap:(BOOL)isCombinedMap
 			  optionsSpecifier:(NSDictionary *)spec;
 
+- (NSString *)constructCacheKey;
+
 @end
 
 
