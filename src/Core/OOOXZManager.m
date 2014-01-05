@@ -109,6 +109,21 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+/* The install path for OXZs downloaded by
+ * Oolite. Library/ApplicationSupport seems to be the most appropriate
+ * location. */
+- (NSString *) installPath
+{
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory,NSUserDomainMask,YES);
+	NSString *appPath = [paths objectAtIndex:0];
+	if (appPath != nil)
+	{
+		appPath = [appPath stringByAppendingPathComponent:@"org.aegidian.oolite"];
+	}
+	return nil;
+}
+
+
 - (NSString *) manifestPath
 {
 	return [[[OOCacheManager sharedCache] cacheDirectoryPathCreatingIfNecessary:YES] stringByAppendingPathComponent:kOOOXZManifestCache];

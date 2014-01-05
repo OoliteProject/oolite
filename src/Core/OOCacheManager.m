@@ -324,6 +324,12 @@ static OOCacheManager *sSingleton = nil;
 			~/GNUstep/Library/Caches/
 	*/
 
+	/* Okay, I fixed the hard-coding of GNUStep - NSSearchPath seems
+	 * to work just fine. Is there any good reason that we don't
+	 * create an org.aegidian.oolite subfolder on GNUStep like Mac
+	 * has? If we did, then we could just use the Mac function on all
+	 * platforms... - CIM: 2014-01-05 */
+
 	NSArray *cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
 	NSString *cachePath = [cachePaths objectAtIndex:0];
 	if (cachePath == nil)
