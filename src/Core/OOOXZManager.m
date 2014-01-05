@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOOXZManager.h"
 #import "OOPListParsing.h"
 #import "ResourceManager.h"
+#import "OOCacheManager.h"
 
 /* The URL for the manifest.plist array. This one is extremely
  * temporary, of course */
@@ -43,7 +44,8 @@ static NSString * const kOOOXZDebugLog = @"oxz.manager.debug";
 
 static OOOXZManager *sSingleton = nil;
 
-@interface OOOXZManager (OOPrivate)
+@interface OOOXZManager (OOPrivate) <NSURLDownloadDelegate>
+
 - (NSString *) installPath;
 - (NSString *) manifestPath;
 - (NSString *) manifestDownloadPath;
@@ -98,19 +100,9 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-/* As currently implemented in ResourceManager the lowest-priority
- * root path is supposed to be in the user's home directory
- * (Mac/Linux) or next to the Oolite install (Windows). This is the
- * safest place to write to. */
-- (NSString *) installPath
-{
-	return [[ResourceManager rootPaths] lastObject];
-}
-
-
 - (NSString *) manifestPath
 {
-	return [[self installPath] stringByAppendingPathComponent:kOOOXZManifestCache];
+	return [[[OOCacheManager sharedCache] cacheDirectoryPathCreatingIfNecessary:YES] stringByAppendingPathComponent:kOOOXZManifestCache];
 }
 
 
@@ -119,7 +111,7 @@ static OOOXZManager *sSingleton = nil;
  * off to the side a bit */
 - (NSString *) manifestDownloadPath
 {
-	return [[self installPath] stringByAppendingPathComponent:kOOOXZManifestTmp];
+	return [[[OOCacheManager sharedCache] cacheDirectoryPathCreatingIfNecessary:YES] stringByAppendingPathComponent:kOOOXZManifestTmp];
 }
 
 
@@ -146,8 +138,8 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) updateManifests
 {
 /* The download really should be asynchronous (while it's not so bad for the list, it would be terrible for an actual OXZ), but if I do it this way the delegates never get called - and NSURLDownload never actually puts the file anywhere - and I have no idea why. I'm guessing either something to do with the NSRunLoop not working properly under GNUstep or something wrong with the way I'm interacting with it. - CIM*/
-#ifndef OXZ_ASYNC_DOWNLOAD
 	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kOOOXZDataURL]];
+#ifndef OXZ_ASYNC_DOWNLOAD
 	NSURLResponse *response = nil;
 	NSError *error = nil;
 	NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];

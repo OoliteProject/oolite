@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 	BOOL					_dirty;
 }
 
-+ (OOCacheManager *) sharedCache;
++ (OOCacheManager *)sharedCache;
 
 - (id)objectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)setObject:(id)inElement forKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
@@ -51,6 +51,8 @@ MA 02110-1301, USA.
 - (void) reloadAllCaches;
 
 - (void)setAllowCacheWrites:(BOOL)flag;
+
+- (NSString *)cacheDirectoryPathCreatingIfNecessary:(BOOL)create;
 
 - (void)flush;
 - (void)finishOngoingFlush;	// Wait for flush to complete. Does nothing if async flushing is disabled.
