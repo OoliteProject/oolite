@@ -129,7 +129,7 @@ static id sSharedStickHandler = nil;
 	case AXIS_ROLL:
 	case AXIS_PITCH:
 	case AXIS_YAW:
-		return [self axisTransform:axstate[function]];
+		return [profile apply: function axisvalue:axstate[function]];
 	default:
 		return axstate[function];
 	}
@@ -139,51 +139,6 @@ static id sSharedStickHandler = nil;
 - (double) getSensitivity
 {
 	return precisionMode ? STICK_PRECISIONFAC : 1.0;
-}
-
-- (double) deadZone
-{
-	return deadzone;
-}
-
-
-- (void) setDeadZone: (double)newValue
-{
-	deadzone = newValue;
-}
-
-
-// axisTransform is an increasing function that maps the interval [-1,1] onto [-1,1] such that -1 -> -1, 0 -> 0 and 1 -> 1
-// By using a function with a shallow gradient at the origin, we can make the stick less sensitive at the centre (and hence
-// easier to make fine adjustments).  The functions I've used below are ax^n+bx where a+b=1 and n in an odd power.
-
-- (double) axisTransform: (double)axisvalue
-{
-	if (fabs(axisvalue) < deadzone) return 0.0;
-	
-	// since we're mucking around with nonlinear stuff, we may as well throw in a smooth transition
-	// from deadzone to non-deadzone
-	if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
-	else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
-
-	// apply non-linearity
-	axisvalue = axisvalue*((1.0-nonlinear_parameter) + nonlinear_parameter*axisvalue*axisvalue);
-	// apply precision mode if needed
-	if (precisionMode)
-	{
-		axisvalue /= STICK_PRECISIONFAC;
-	}
-	return axisvalue;
-
-/*	
-// these original settings caused problems for test pilots due to
-// expectation that precisionmode would also reduce full-axis turn
-// rate.
-	if (precisionMode)
-	{
-		return axisvalue*((1.0-nonlinear_parameter) + nonlinear_parameter*axisvalue*axisvalue);
-	}
-	return axisvalue; */
 }
 
 
@@ -563,8 +518,7 @@ static id sSharedStickHandler = nil;
 				 forKey:AXIS_SETTINGS];
 	[defaults setObject:[self buttonFunctions]
 				 forKey:BUTTON_SETTINGS];
-	[defaults setFloat: deadzone forKey: STICK_DEADZONE_SETTING];
-	[defaults setFloat: nonlinear_parameter forKey: STICK_NONLINEAR_PARAMETER];
+	[defaults setObject: profile forKey: STICK_PROFILE_SETTING];
 	[defaults setBool: !!precisionMode forKey: STICK_PRECISION_SETTING];
 	[defaults synchronize];
 }
@@ -602,12 +556,11 @@ static id sSharedStickHandler = nil;
 		// Nothing to load - set useful defaults
 		[self setDefaultMapping];
 	}
-	deadzone = [defaults oo_doubleForKey:STICK_DEADZONE_SETTING defaultValue:STICK_DEADZONE];
-	if (deadzone < 0 || deadzone > 1)
+	profile = [defaults objectForKey: STICK_PROFILE_SETTING];
+	if (profile == nil)
 	{
-		deadzone = STICK_DEADZONE;
+		profile = [[OOJoystickProfile alloc] init];
 	}
-	nonlinear_parameter = OOClamp_0_1_d( [defaults oo_doubleForKey: STICK_NONLINEAR_PARAMETER defaultValue: 1.0] );
 	precisionMode = [defaults oo_boolForKey: STICK_PRECISION_SETTING defaultValue:NO];
 }
 
