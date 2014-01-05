@@ -50,6 +50,8 @@
 		1A047A460DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */; };
 		1A047B7E0DCB3D7500EE1CD0 /* OOProbabilitySet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */; };
 		1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */; };
+		1A05AFCD1879C2B800AFA7D1 /* OOOXZManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A05AFCB1879C2B800AFA7D1 /* OOOXZManager.h */; };
+		1A05AFCE1879C2B800AFA7D1 /* OOOXZManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A05AFCC1879C2B800AFA7D1 /* OOOXZManager.m */; };
 		1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */; };
 		1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */; };
 		1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */; };
@@ -751,6 +753,8 @@
 		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugBundle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugBundle.xcodeproj; path = "Mac-specific/DebugBundle/DebugBundle.xcodeproj"; sourceTree = "<group>"; };
+		1A05AFCB1879C2B800AFA7D1 /* OOOXZManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXZManager.h; sourceTree = "<group>"; };
+		1A05AFCC1879C2B800AFA7D1 /* OOOXZManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXZManager.m; sourceTree = "<group>"; };
 		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
 		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
 		1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDebugMonitor.h; sourceTree = "<group>"; };
@@ -2879,6 +2883,8 @@
 				1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */,
 				1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */,
 				1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */,
+				1A05AFCB1879C2B800AFA7D1 /* OOOXZManager.h */,
+				1A05AFCC1879C2B800AFA7D1 /* OOOXZManager.m */,
 			);
 			name = "Resource Management";
 			sourceTree = "<group>";
@@ -3360,6 +3366,7 @@
 				1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */,
 				1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */,
 				1A7E3189113ED496009AAB6D /* ProxyPlayerEntity.h in Headers */,
+				1A05AFCD1879C2B800AFA7D1 /* OOOXZManager.h in Headers */,
 				1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */,
 				1A3D03151173536C005BF5E6 /* OOMultiTextureMaterial.h in Headers */,
 				1A3D034A11736EDA005BF5E6 /* OOMaterialConvenienceCreators.h in Headers */,
@@ -3896,6 +3903,7 @@
 				1A7038A212BB9F5A0015CCDC /* dummy.cpp in Sources */,
 				1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */,
 				1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */,
+				1A05AFCE1879C2B800AFA7D1 /* OOOXZManager.m in Sources */,
 				1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */,
 				1AC0F29E12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m in Sources */,
 				1A35257312E1FFA900244C9D /* OOConstToJSString.m in Sources */,

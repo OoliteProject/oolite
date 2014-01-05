@@ -223,7 +223,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (void) download:(NSURLDownload *)download didReceiveDataOfLength:(NSUInteger)length
 {
-	OOLog(kOOOXZDebugLog,@"Downloaded %d bytes",length);
+	OOLog(kOOOXZDebugLog,@"Downloaded %lu bytes", (unsigned long)length);
 	_downloadProgress += length;
 }
 
