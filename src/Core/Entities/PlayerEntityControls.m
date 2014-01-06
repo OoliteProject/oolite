@@ -2635,6 +2635,7 @@ static NSTimeInterval	time_last_frame;
 			vol = (int)OOClampInteger(vol, 0, 20);
 			[OOSound setMasterVolume: 0.05 * vol];
 			[self playChangedOption];
+			espeak_SetParameter(espeakVOLUME, vol * 5, 0);
 			if (vol > 0)
 			{
 				NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");

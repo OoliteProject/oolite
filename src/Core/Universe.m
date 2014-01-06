@@ -321,8 +321,10 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		speechSynthesizer = synth;
 	});
 #elif OOLITE_ESPEAK
+	int volume = [OOSound masterVolume] * 100;
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
 	espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);
+	espeak_SetParameter(espeakVOLUME, volume, 0);
 	espeak_voices = espeak_ListVoices(NULL);
 	for (espeak_voice_count = 0;
 	     espeak_voices[espeak_voice_count];
