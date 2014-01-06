@@ -631,6 +631,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		}
 		
 		case kPlayerShip_targetSystem:
+			numberSystems = [[UNIVERSE planetInfo] oo_unsignedCharForKey:@"number_systems"];
 			/* This first check is essential: if removed, it would be
 			 * possible to make jumps of arbitrary length - CIM */
 			if ([player status] != STATUS_ENTERING_WITCHSPACE)
@@ -647,7 +648,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				
 				if (JS_ValueToInt32(context, *value, &iValue))
 				{
-					if (iValue >= 0 && iValue < 256)
+					if (iValue >= 0 && iValue < numberSystems)
 					{ 
 						Random_Seed seed = [UNIVERSE systemSeedForSystemNumber:(OOSystemID)iValue];
 						[player setTargetSystemSeed:seed];
