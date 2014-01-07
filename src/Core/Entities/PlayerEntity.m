@@ -53,6 +53,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "Octree.h"
 #import "OOCacheManager.h"
+#import "OOOXZManager.h"
 #import "OOStringExpander.h"
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
@@ -2012,7 +2013,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_LOAD))
+	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_OXZMANAGER && gui_screen != GUI_SCREEN_LOAD))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
@@ -2617,6 +2618,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_INTRO1:
 			case GUI_SCREEN_INTRO2:
 			case GUI_SCREEN_NEWGAME:
+			case GUI_SCREEN_OXZMANAGER:
 			case GUI_SCREEN_MARKET:
 			case GUI_SCREEN_OPTIONS:
 			case GUI_SCREEN_GAMEOPTIONS:
@@ -8163,13 +8165,10 @@ static NSString *last_outfitting_key=nil;
 
 	++row;
 
-#if 0
-	// not yet implemented
 	text = DESC(@"oolite-start-option-4");
 	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
-#endif
 
 	++row;
 
@@ -8298,6 +8297,29 @@ static NSString *last_outfitting_key=nil;
 	[gui setBackgroundTextureKey:@"intro"];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
+
+
+- (void) setGuiToOXZManager
+{
+
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+	[[UNIVERSE gameView] clearMouse];
+	[UNIVERSE removeDemoShips];
+
+	gui_screen = GUI_SCREEN_OXZMANAGER;
+
+	[[UNIVERSE gui] clearAndKeepBackground:NO];
+
+	OOLog(@"gui.debug",@"OXZMANAGER selected");
+	[[OOOXZManager sharedManager] gui];
+	
+	[[OOMusicController sharedController] playThemeMusic];
+	[[UNIVERSE gui] setBackgroundTextureKey:@"oxz-manager"];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+}
+
+
+
 
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen

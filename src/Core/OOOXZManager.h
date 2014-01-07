@@ -37,11 +37,23 @@ typedef enum {
 } OXZDownloadStatus;
 
 
+typedef enum {
+	OXZ_STATE_NODATA,
+	OXZ_STATE_MAIN,
+	OXZ_STATE_UPDATING,
+	OXZ_STATE_PICK_INSTALL,
+	OXZ_STATE_PICK_REMOVE,
+	OXZ_STATE_INSTALLING,
+	OXZ_STATE_REMOVING,
+	OXZ_STATE_TASKDONE
+} OXZInterfaceState;
+
+
 @interface OOOXZManager : NSObject
 {
 @private
 	NSArray 			*_oxzList;
-	BOOL				_updatingManifests;
+	OXZInterfaceState	_interfaceState;
 
 	NSURLConnection		*_currentDownload;
 	OXZDownloadStatus	_downloadStatus;
@@ -54,9 +66,14 @@ typedef enum {
 
 + (OOOXZManager *) sharedManager;
 
+- (NSString *) installPath;
+
 - (BOOL) updateManifests;
 - (BOOL) cancelUpdateManifests;
 
+- (NSArray *) manifests;
 
+- (void) gui;
+- (void) processSelection;
 
 @end

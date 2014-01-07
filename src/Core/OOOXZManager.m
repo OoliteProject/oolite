@@ -28,9 +28,10 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "ResourceManager.h"
 #import "OOCacheManager.h"
-
-
-#define OXZ_ASYNC_DOWNLOAD 1
+#import "OOTypes.h"
+#import "Universe.h"
+#import "GuiDisplayGen.h"
+#import "PlayerEntity.h"
 
 /* The URL for the manifest.plist array. This one is extremely
  * temporary, of course */
@@ -54,7 +55,6 @@ static OOOXZManager *sSingleton = nil;
 @interface OOOXZManager (NSURLConnectionDataDelegate) 
 #endif
 
-- (NSString *) installPath;
 - (NSString *) manifestPath;
 - (NSString *) manifestDownloadPath;
 
@@ -87,12 +87,18 @@ static OOOXZManager *sSingleton = nil;
 	self = [super init];
 	if (self != nil)
 	{
-		_updatingManifests = NO;
 		_downloadStatus = OXZ_DOWNLOAD_NONE;
 		// if the file has not been downloaded, this will be nil
 		[self setOXZList:OOArrayFromFile([self manifestPath])];
 		OOLog(kOOOXZDebugLog,@"Initialised with %@",_oxzList);
-
+		if (_oxzList != nil)
+		{
+			_interfaceState = OXZ_STATE_MAIN;
+		}
+		else
+		{
+			_interfaceState = OXZ_STATE_NODATA;
+		}
 	}
 	return self;
 }
@@ -118,7 +124,16 @@ static OOOXZManager *sSingleton = nil;
 	NSString *appPath = [paths objectAtIndex:0];
 	if (appPath != nil)
 	{
-		appPath = [appPath stringByAppendingPathComponent:@"org.aegidian.oolite"];
+		appPath = [appPath stringByAppendingPathComponent:@"Oolite"];
+#if OOLITE_MAC_OS_X
+		appPath = [appPath stringByAppendingPathComponent:@"Managed AddOns"];
+#else
+		/* GNUStep uses "ApplicationSupport" rather than "Application
+		 * Support" so match convention by not putting a space in the
+		 * path either */
+		appPath = [appPath stringByAppendingPathComponent:@"ManagedAddOns"];
+#endif
+		return appPath;
 	}
 	return nil;
 }
@@ -161,27 +176,16 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) updateManifests
 {
-/* The download really should be asynchronous (while it's not so bad for the list, it would be terrible for an actual OXZ), but if I do it this way the delegates never get called - and NSURLDownload never actually puts the file anywhere - and I have no idea why. I'm guessing either something to do with the NSRunLoop not working properly under GNUstep or something wrong with the way I'm interacting with it. - CIM*/
 	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kOOOXZDataURL]];
-#ifndef OXZ_ASYNC_DOWNLOAD
-	NSURLResponse *response = nil;
-	NSError *error = nil;
-	NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-	// TODO: check for errors!
-	[self setOXZList:OOArrayFromData(data,kOOOXZDataURL)];
-	[_oxzList writeToFile:[self manifestPath] atomically:YES];
-	OOLog(kOOOXZDebugLog,@"Downloaded %@",_oxzList);
-	return YES;
-#else
-	if (_downloadStatus != OXZ_DOWNLOAD_NONE || _updatingManifests)
+	if (_downloadStatus != OXZ_DOWNLOAD_NONE || (_interfaceState != OXZ_STATE_MAIN && _interfaceState != OXZ_STATE_NODATA))
 	{
 		return NO;
 	}
 	_downloadStatus = OXZ_DOWNLOAD_STARTED;
+	_interfaceState = OXZ_STATE_UPDATING;
 	NSURLConnection *download = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (download)
 	{
-		_updatingManifests = YES;
 		_downloadProgress = 0;
 		_downloadExpected = 0;
 		[self setCurrentDownload:download]; // retains it
@@ -192,16 +196,15 @@ static OOOXZManager *sSingleton = nil;
 	else
 	{
 		OOLog(kOOOXZErrorLog,@"Unable to start downloading manifests file at %@",[request URL]);
-		_downloadStatus = OXZ_DOWNLOAD_NONE;
+		_downloadStatus = OXZ_DOWNLOAD_ERROR;
 		return NO;
 	}
-#endif
 }
 
 
 - (BOOL) cancelUpdateManifests
 {
-	if (!_updatingManifests || _downloadStatus == OXZ_DOWNLOAD_NONE)
+	if (!_interfaceState == OXZ_STATE_UPDATING || _downloadStatus == OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
 	}
@@ -220,11 +223,17 @@ static OOOXZManager *sSingleton = nil;
 		[[NSFileManager defaultManager] removeFileAtPath:[self manifestDownloadPath] handler:nil];
 #endif
 	}
-	_updatingManifests = NO;
 	_downloadStatus = OXZ_DOWNLOAD_NONE;
+	_interfaceState = OXZ_STATE_MAIN;
+	[self gui];
 	return YES;
 }
 
+
+- (NSArray *) manifests
+{
+	return _oxzList;
+}
 
 
 - (BOOL) processDownloadedManifests
@@ -234,6 +243,7 @@ static OOOXZManager *sSingleton = nil;
 		return NO;
 	}
 	[self setOXZList:OOArrayFromFile([self manifestDownloadPath])];
+	_interfaceState = OXZ_STATE_TASKDONE;
 	if (_oxzList != nil)
 	{
 		[_oxzList writeToFile:[self manifestPath] atomically:YES];
@@ -245,16 +255,110 @@ static OOOXZManager *sSingleton = nil;
 		// correct for GNUstep's mostly pre-10.5 API
 		[[NSFileManager defaultManager] removeFileAtPath:[self manifestDownloadPath] handler:nil];
 #endif
+		[self gui];
 		return YES;
 	}
 	else
 	{
+		_downloadStatus = OXZ_DOWNLOAD_ERROR;
 		OOLog(kOOOXZErrorLog,@"Downloaded manifest was not a valid plist, has been left in %@",[self manifestDownloadPath]);
 		// revert to the old one
 		[self setOXZList:OOArrayFromFile([self manifestPath])];
+		[self gui];
 		return NO;
 	}
 }
+
+// TODO: move these constants somewhere better and use an enum instead
+#define OXZ_GUI_ROW_FIRSTRUN	1
+#define OXZ_GUI_ROW_PROGRESS	1
+#define OXZ_GUI_ROW_UPDATE		26
+#define OXZ_GUI_ROW_EXIT		27
+
+
+- (void) gui
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	OOGUIRow		startRow = OXZ_GUI_ROW_EXIT;
+
+	[gui clearAndKeepBackground:YES];
+	[gui setTitle:DESC(@"oolite-oxzmanager-title")];
+
+	/* This switch will give warnings until all states are
+	 * covered. Not a problem yet. */
+	switch (_interfaceState)
+	{
+	case OXZ_STATE_NODATA:
+		[gui addLongText:DESC(@"oolite-oxzmanager-firstrun") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
+		[gui setText:DESC(@"oolite-oxzmanager-download-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_UPDATE" forRow:OXZ_GUI_ROW_UPDATE];
+
+		startRow = OXZ_GUI_ROW_UPDATE;
+		break;
+	case OXZ_STATE_MAIN:
+		[gui addLongText:DESC(@"oolite-oxzmanager-intro") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
+		[gui setText:DESC(@"oolite-oxzmanager-update-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_UPDATE" forRow:OXZ_GUI_ROW_UPDATE];
+
+		// TODO: install and remove options
+
+		startRow = OXZ_GUI_ROW_UPDATE;
+		break;
+	case OXZ_STATE_UPDATING:
+		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),_downloadProgress,_downloadExpected] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		// no options yet
+		// TODO: cancel option
+		break;
+	case OXZ_STATE_TASKDONE:
+		if (_downloadStatus == OXZ_DOWNLOAD_COMPLETE)
+		{
+			[gui addLongText:DESC(@"oolite-oxzmanager-progress-done") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:DESC(@"oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		}
+		[gui setText:DESC(@"oolite-oxzmanager-acknowledge") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_ACK" forRow:OXZ_GUI_ROW_UPDATE];
+		startRow = OXZ_GUI_ROW_UPDATE;
+		break;
+	}
+	[gui setText:DESC(@"oolite-oxzmanager-exit") forRow:OXZ_GUI_ROW_EXIT align:GUI_ALIGN_CENTER];
+	[gui setKey:@"_EXIT" forRow:OXZ_GUI_ROW_EXIT];
+	[gui setSelectableRange:NSMakeRange(startRow,2+(OXZ_GUI_ROW_EXIT-startRow))];
+	[gui setSelectedRow:startRow];
+	
+}
+
+
+- (void) processSelection
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	OOGUIRow selection = [gui selectedRow];
+
+	if (selection == OXZ_GUI_ROW_EXIT)
+	{
+		[self cancelUpdateManifests]; // doesn't hurt if no update in progress
+		[PLAYER setGuiToIntroFirstGo:YES];
+		return;
+	}
+	else if (selection == OXZ_GUI_ROW_UPDATE)
+	{
+		if (_interfaceState == OXZ_STATE_TASKDONE)
+		{
+			_interfaceState = OXZ_STATE_MAIN;
+			_downloadStatus = OXZ_DOWNLOAD_NONE;
+		}
+		else
+		{
+			[self updateManifests];
+		}
+	}
+	[self gui]; // update GUI
+}
+
+
+
 
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
@@ -277,10 +381,11 @@ static OOOXZManager *sSingleton = nil;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-	OOLog(kOOOXZDebugLog,@"Downloaded %ul bytes",[data length]);
+	OOLog(kOOOXZDebugLog,@"Downloaded %lu bytes",[data length]);
 	[_fileWriter seekToEndOfFile];
 	[_fileWriter writeData:data];
 	_downloadProgress += [data length];
+	[self gui]; // update GUI
 }
 
 

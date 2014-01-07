@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OOLogOutputHandler.h"
 #import "NSFileManagerOOExtensions.h"
 #import "OldSchoolPropertyListWriting.h"
+#import "OOOXZManager.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -153,31 +154,37 @@ static NSMutableDictionary *sOXPManifests;
 		
 		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath],
 
+	  /* 1st path - ensures manually installed OXZs load later than
+	   * managed ones, which may be useful for debugging/testing
+	   * purposes. */
+							[[OOOXZManager sharedManager] installPath],
+
 #if OOLITE_MAC_OS_X
-	/* 1st mac path */		[[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
+	/* 2nd mac path */		[[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
 								stringByAppendingPathComponent:@"Application Support"]
 								stringByAppendingPathComponent:@"Oolite"]
 								stringByAppendingPathComponent:@"AddOns"],
-	/* 2nd mac path */		[[[[NSBundle mainBundle] bundlePath]
+	/* 3rd mac path */		[[[[NSBundle mainBundle] bundlePath]
 								stringByDeletingLastPathComponent]
 								stringByAppendingPathComponent:@"AddOns"],
 
 #elif OOLITE_WINDOWS
-	/* windows path */		@"../AddOns",
+	/* 2nd windows path */		@"../AddOns",
 #else	
-	/* 1st *nix path */		@"AddOns",
+	/* 2nd *nix path */		@"AddOns",
 #endif
 
 #if !OOLITE_WINDOWS
-	/*	2nd *nix path, 3rd mac path */
+	/*	3rd *nix path, 4th mac path */
 							[[NSHomeDirectory()
 								stringByAppendingPathComponent:@".Oolite"]
 								stringByAppendingPathComponent:@"AddOns"],
 #endif
+
 		
 						nil];
 	}
-	
+	OOLog(@"paths.debug",@"%@",sRootPaths);
 	return sRootPaths;
 }
 

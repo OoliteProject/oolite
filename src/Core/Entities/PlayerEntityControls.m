@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOOXZManager.h"
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
 #import "OOConstToString.h"
@@ -3506,6 +3507,10 @@ static BOOL autopilot_pause;
 				{
 					[self setGuiToIntroFirstGo:NO];
 				}
+				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 4+row_zero)
+				{
+					[self setGuiToOXZManager];
+				}
 				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 5+row_zero)
 				{
 					[[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
@@ -3563,7 +3568,29 @@ static BOOL autopilot_pause;
 				[gameView clearMouse];
 			}
 			break;
+
+		case GUI_SCREEN_OXZMANAGER:
+			if ([self handleGUIUpDownArrowKeys])
+			{
+// no, but will need to do something similar here later
+//				[[OOOXZManager sharedManager] gui];
+			}
+
+			if (!selectPressed)
+			{
+				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+				{
+					[[OOOXZManager sharedManager] processSelection];
+				}
+			}
+			selectPressed = [gameView isDown:13];
+			if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+			{
+				[gameView clearMouse];
+			}
+			break;
 	
+
 	
 		case GUI_SCREEN_MISSION:
 			if ([[self hud] isHidden])

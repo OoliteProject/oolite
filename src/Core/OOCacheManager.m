@@ -299,50 +299,28 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
-#if OOLITE_MAC_OS_X
-
 - (NSString *)cacheDirectoryPathCreatingIfNecessary:(BOOL)create
 {
 	/*	Construct the path to the directory for cache files, which is:
 			~/Library/Caches/org.aegidian.oolite/
+			or
+			~/GNUStep/Library/Caches/org.aegidian.oolite/
 		In addition to generally being the right place to put caches,
 		~/Library/Caches has the particular advantage of not being indexed by
 		Spotlight or backed up by Time Machine.
 	*/
 	NSString *cachePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
 	if (![self directoryExists:cachePath create:create]) return nil;
+
+#if !OOLITE_MAC_OS_X
+	// the old cache file on GNUstep was one level up, so remove it if it exists
+	[[NSFileManager defaultManager] removeFileAtPath:[cachePath stringByAppendingPathComponent:@"Oolite-cache.plist"] handler:nil];
+#endif
+
 	cachePath = [cachePath stringByAppendingPathComponent:@"org.aegidian.oolite"];
 	if (![self directoryExists:cachePath create:create]) return nil;
 	return cachePath;
 }
-
-#else
-
-- (NSString *)cacheDirectoryPathCreatingIfNecessary:(BOOL)inCreate
-{
-	/*	Construct the directory path for the cache file, which is probably:
-			~/GNUstep/Library/Caches/
-	*/
-
-	/* Okay, I fixed the hard-coding of GNUStep - NSSearchPath seems
-	 * to work just fine. Is there any good reason that we don't
-	 * create an org.aegidian.oolite subfolder on GNUStep like Mac
-	 * has? If we did, then we could just use the Mac function on all
-	 * platforms... - CIM: 2014-01-05 */
-
-	NSArray *cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory,NSUserDomainMask,YES);
-	NSString *cachePath = [cachePaths objectAtIndex:0];
-	if (cachePath == nil)
-	{
-		return nil;
-	}
-
-	if (![self directoryExists:cachePath create:inCreate]) return nil;
-	
-	return cachePath;
-}
-
-#endif
 
 @end
 
