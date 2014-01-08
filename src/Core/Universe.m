@@ -8149,7 +8149,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 */
 - (void) preloadPlanetTexturesForSystem:(Random_Seed)seed
 {
-#if 0 // NEW_PLANETS
+#if NEW_PLANETS
 	[self prunePreloadingPlanetMaterials];
 	
 	if ([_preloadingPlanetMaterials count] < 3)
