@@ -56,7 +56,6 @@ static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed"
 static NSString * const kOOLogScriptMissionDescNoText		= @"script.missionDescription.noMissionText";
 static NSString * const kOOLogScriptMissionDescNoKey		= @"script.missionDescription.noMissionKey";
 
-static NSString * const kOOLogDebug							= @"script.debug";
 static NSString * const kOOLogDebugOnMetaClass				= @"$scriptDebugOn";
 static NSString * const kOOLogDebugMessage					= @"script.debug.message";
 static NSString * const kOOLogDebugOnOff					= @"script.debug.onOff";
@@ -65,7 +64,6 @@ static NSString * const kOOLogDebugReplaceVariablesInString	= @"script.debug.rep
 static NSString * const kOOLogDebugProcessSceneStringAddScene = @"script.debug.processSceneString.addScene";
 static NSString * const kOOLogDebugProcessSceneStringAddModel = @"script.debug.processSceneString.addModel";
 static NSString * const kOOLogDebugProcessSceneStringAddMiniPlanet = @"script.debug.processSceneString.addMiniPlanet";
-static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
 
 static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
 static NSString * const kOOLogNoteUseSpecialCargo			= @"script.debug.note.useSpecialCargo";
@@ -76,11 +74,6 @@ static NSString * const kOOLogNoteFuelLeak					= @"script.debug.note.setFuelLeak
 static NSString * const kOOLogNoteAddPlanet					= @"script.debug.note.addPlanet";
 static NSString * const kOOLogNoteProcessSceneString		= @"script.debug.note.processSceneString";
 
-static NSString * const kOOLogSyntaxBadConditional			= @"script.debug.syntax.badConditional";
-static NSString * const kOOLogSyntaxNoAction				= @"script.debug.syntax.action.noneSpecified";
-static NSString * const kOOLogSyntaxBadAction				= @"script.debug.syntax.action.badSelector";
-static NSString * const kOOLogSyntaxNoScriptCondition		= @"script.debug.syntax.scriptCondition.noneSpecified";
-static NSString * const kOOLogSyntaxBadScriptCondition		= @"script.debug.syntax.scriptCondition.badSelector";
 static NSString * const kOOLogSyntaxSetPlanetInfo			= @"script.debug.syntax.setPlanetInfo";
 static NSString * const kOOLogSyntaxAwardCargo				= @"script.debug.syntax.awardCargo";
 static NSString * const kOOLogSyntaxAwardEquipment			= @"script.debug.syntax.awardEquipment";
@@ -99,7 +92,6 @@ static NSString * const kOOLogRemoveAllCargoNotDocked		= @"script.error.removeAl
 
 #define	ACTIONS_TEMP_PREFIX									"__oolite_actions_temp"
 static NSString * const kActionTempPrefix					= @ ACTIONS_TEMP_PREFIX;
-static NSString * const kActionTempFormat					= @ ACTIONS_TEMP_PREFIX ".%u";
 
 
 static NSString		*sMissionStringValue = nil;
@@ -128,12 +120,6 @@ static NSString *CurrentScriptNameOr(NSString *alternative)
 		return [NSString stringWithFormat:@"\"%@\"", sCurrentMissionKey];
 	}
 	return alternative;
-}
-
-
-OOINLINE NSString *CurrentScriptName(void)
-{
-	return CurrentScriptNameOr(nil);
 }
 
 

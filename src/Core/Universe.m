@@ -110,12 +110,10 @@ enum
 // currently twice scanner radius
 #define LANE_WIDTH			51200.0
 
-static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogUniversePopulateError			= @"universe.populate.error";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
 static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
-static NSString * const kOOLogFoundBeacon					= @"beacon.list";
 
 
 Universe *gSharedUniverse = nil;

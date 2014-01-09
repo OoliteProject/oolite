@@ -143,7 +143,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 #if OO_DEBUG
 #define OODebugLog OOLog
 #else
-#define OODebugLog(...)  do {} while (0)
+#define OODebugLog(class, format, ...)  do { (void)class; if (0) (void)format; } while (0)
 #endif
 
 
@@ -151,7 +151,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 #ifndef NDEBUG
 #define OOExtraLog OOLog
 #else
-#define OOExtraLog(...)  do {} while (0)
+#define OOExtraLog(...)  do { (void)class; if (0) (void)format; } while (0)
 #endif
 
 

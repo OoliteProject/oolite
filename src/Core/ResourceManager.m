@@ -61,6 +61,7 @@ static NSString * const kOOManifestConflictOXPs			= @"conflict_oxps";
 // this property is not contained in the manifest.plist but is
 // calculated by Oolite
 static NSString * const kOOManifestFilePath				= @"file_path";
+#if 0
 // following manifest.plist properties not yet implemented
 static NSString * const kOOManifestDescription			= @"description";
 static NSString * const kOOManifestCategory				= @"category";
@@ -70,6 +71,7 @@ static NSString * const kOOManifestLicense				= @"license";
 static NSString * const kOOManifestOptionalOXPs			= @"optional_oxps";
 static NSString * const kOOManifestDownloadURL			= @"download_url";
 static NSString * const kOOManifestInformationURL		= @"information_url";
+#endif
 
 // properties for within requires/optional/conflicts entries
 static NSString * const kOOManifestRelationIdentifier	= @"identifier";

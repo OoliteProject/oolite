@@ -54,7 +54,6 @@ static NSString * const	kShipRegistryCacheName = @"ship registry";
 static NSString * const	kShipDataCacheKey = @"ship data";
 static NSString * const	kPlayerShipsCacheKey = @"player ships";
 static NSString * const	kDemoShipsCacheKey = @"demo ships";
-static NSString * const	kConditionScriptsCacheKey = @"condition scripts";
 static NSString * const	kRoleWeightsCacheKey = @"role weights";
 static NSString * const	kDefaultDemoShip = @"coriolis-station";
 static NSString * const	kVisualEffectRegistryCacheName = @"visual effect registry";
