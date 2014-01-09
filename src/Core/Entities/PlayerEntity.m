@@ -8310,7 +8310,6 @@ static NSString *last_outfitting_key=nil;
 
 	[[UNIVERSE gui] clearAndKeepBackground:NO];
 
-	OOLog(@"gui.debug",@"OXZMANAGER selected");
 	[[OOOXZManager sharedManager] gui];
 	
 	[[OOMusicController sharedController] playThemeMusic];

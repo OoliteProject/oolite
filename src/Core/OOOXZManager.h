@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 #import "NSFileManagerOOExtensions.h"
+#import "OOTypes.h"
+#import "GuiDisplayGen.h"
 
 typedef enum {
 	OXZ_DOWNLOAD_NONE = 0,
@@ -61,7 +63,7 @@ typedef enum {
 	NSUInteger			_downloadExpected;
 	NSFileHandle		*_fileWriter;
 	
-
+	NSUInteger			_offset;
 }
 
 + (OOOXZManager *) sharedManager;
@@ -75,5 +77,8 @@ typedef enum {
 
 - (void) gui;
 - (void) processSelection;
+- (OOGUIRow) showInstallOptions;
+- (OOGUIRow) showRemoveOptions;
+- (void) showOptionsUpdate;
 
 @end

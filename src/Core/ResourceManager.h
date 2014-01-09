@@ -52,6 +52,9 @@ typedef enum
 + (NSEnumerator *)pathEnumerator;
 + (NSEnumerator *)reversePathEnumerator;
 
+// get manifest data for identifier
++ (NSDictionary *)manifestForIdentifier:(NSString *)identifier;
+
 + (void)handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex;
 
 + (NSString *)errors;			// Errors which occured during path scanning - essentially a list of OXPs whose requires.plist is bad.

@@ -28,10 +28,12 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "ResourceManager.h"
 #import "OOCacheManager.h"
-#import "OOTypes.h"
 #import "Universe.h"
 #import "GuiDisplayGen.h"
 #import "PlayerEntity.h"
+#import "OOCollectionExtractors.h"
+
+#import "OOManifestProperties.h"
 
 /* The URL for the manifest.plist array. This one is extremely
  * temporary, of course */
@@ -62,6 +64,9 @@ static OOOXZManager *sSingleton = nil;
 
 - (void) setOXZList:(NSArray *)list;
 - (void) setCurrentDownload:(NSURLConnection *)download;
+
+- (NSArray *) installOptions;
+- (NSArray *) removalOptions;
 
 /* Delegates for URL downloader */
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
@@ -177,7 +182,7 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) updateManifests
 {
 	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kOOOXZDataURL]];
-	if (_downloadStatus != OXZ_DOWNLOAD_NONE || (_interfaceState != OXZ_STATE_MAIN && _interfaceState != OXZ_STATE_NODATA))
+	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
 	}
@@ -272,6 +277,14 @@ static OOOXZManager *sSingleton = nil;
 // TODO: move these constants somewhere better and use an enum instead
 #define OXZ_GUI_ROW_FIRSTRUN	1
 #define OXZ_GUI_ROW_PROGRESS	1
+#define OXZ_GUI_ROW_LISTHEAD	1
+#define OXZ_GUI_ROW_LISTPREV	2
+#define OXZ_GUI_ROW_LISTSTART	3
+#define OXZ_GUI_ROW_LISTROWS	10
+#define OXZ_GUI_ROW_LISTNEXT	13
+#define OXZ_GUI_ROW_LISTDESC	15
+#define OXZ_GUI_ROW_INSTALL		24
+#define OXZ_GUI_ROW_REMOVE		25
 #define OXZ_GUI_ROW_UPDATE		26
 #define OXZ_GUI_ROW_EXIT		27
 
@@ -297,12 +310,17 @@ static OOOXZManager *sSingleton = nil;
 		break;
 	case OXZ_STATE_MAIN:
 		[gui addLongText:DESC(@"oolite-oxzmanager-intro") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
+		// fall through
+	case OXZ_STATE_PICK_INSTALL:
+	case OXZ_STATE_PICK_REMOVE:
+		[gui setText:DESC(@"oolite-oxzmanager-install") forRow:OXZ_GUI_ROW_INSTALL align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_INSTALL" forRow:OXZ_GUI_ROW_INSTALL];
+		[gui setText:DESC(@"oolite-oxzmanager-remove") forRow:OXZ_GUI_ROW_REMOVE align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_REMOVE" forRow:OXZ_GUI_ROW_REMOVE];
 		[gui setText:DESC(@"oolite-oxzmanager-update-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_UPDATE" forRow:OXZ_GUI_ROW_UPDATE];
 
-		// TODO: install and remove options
-
-		startRow = OXZ_GUI_ROW_UPDATE;
+		startRow = OXZ_GUI_ROW_INSTALL;
 		break;
 	case OXZ_STATE_UPDATING:
 		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),_downloadProgress,_downloadExpected] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
@@ -323,10 +341,27 @@ static OOOXZManager *sSingleton = nil;
 		startRow = OXZ_GUI_ROW_UPDATE;
 		break;
 	}
+
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL)
+	{
+		startRow = [self showInstallOptions];
+	}
+	else if (_interfaceState == OXZ_STATE_PICK_REMOVE)
+	{
+		startRow = [self showRemoveOptions];
+	}
+
 	[gui setText:DESC(@"oolite-oxzmanager-exit") forRow:OXZ_GUI_ROW_EXIT align:GUI_ALIGN_CENTER];
 	[gui setKey:@"_EXIT" forRow:OXZ_GUI_ROW_EXIT];
 	[gui setSelectableRange:NSMakeRange(startRow,2+(OXZ_GUI_ROW_EXIT-startRow))];
-	[gui setSelectedRow:startRow];
+	if (startRow < OXZ_GUI_ROW_INSTALL)
+	{
+		[gui setSelectedRow:OXZ_GUI_ROW_INSTALL];
+	}
+	else
+	{
+		[gui setSelectedRow:startRow];
+	}
 	
 }
 
@@ -354,11 +389,136 @@ static OOOXZManager *sSingleton = nil;
 			[self updateManifests];
 		}
 	}
+	else if (selection == OXZ_GUI_ROW_INSTALL)
+	{
+		_interfaceState = OXZ_STATE_PICK_INSTALL;
+	}
+	else if (selection == OXZ_GUI_ROW_REMOVE)
+	{
+		_interfaceState = OXZ_STATE_PICK_REMOVE;
+	}
+
 	[self gui]; // update GUI
 }
 
 
+- (NSArray *) installOptions
+{
+	NSUInteger start = _offset;
+	if (start >= [_oxzList count])
+	{
+		start = 0;
+	}
+	NSUInteger end = start + 10;
+	if (end > [_oxzList count])
+	{
+		end = [_oxzList count];
+	}
+	return [_oxzList subarrayWithRange:NSMakeRange(start,end-start)];
+}
 
+
+- (OOGUIRow) showInstallOptions
+{
+	// shows the current installation options page
+	OOGUIRow startRow = OXZ_STATE_PICK_INSTALL;
+	NSArray *options = [self installOptions];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+	tab_stops[1] = 100;
+	tab_stops[2] = 320;
+	tab_stops[3] = 400;
+	[gui setTabStops:tab_stops];
+	
+	[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-heading-category"),
+						   DESC(@"oolite-oxzmanager-heading-title"), 
+						   DESC(@"oolite-oxzmanager-heading-version"), 
+						   DESC(@"oolite-oxzmanager-heading-installed"), 
+								nil] forRow:OXZ_GUI_ROW_LISTHEAD];
+	if (_offset > 0)
+	{
+		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTPREV];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"",@"",@" <-- ", nil] forRow:OXZ_GUI_ROW_LISTPREV];
+		[gui setKey:@"_BACK" forRow:OXZ_GUI_ROW_LISTPREV];
+		startRow = OXZ_GUI_ROW_LISTPREV;
+	}
+	else
+	{
+		startRow = OXZ_GUI_ROW_LISTSTART;
+	}
+	if (_offset + 10 < [_oxzList count])
+	{
+		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTNEXT];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-next"), @"",@"",@" --> ", nil] forRow:OXZ_GUI_ROW_LISTNEXT];
+		[gui setKey:@"_NEXT" forRow:OXZ_GUI_ROW_LISTNEXT];
+	}
+
+	// clear any previous longtext
+	for (NSUInteger i = OXZ_GUI_ROW_LISTDESC; i < OXZ_GUI_ROW_INSTALL-1; i++)
+	{
+		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
+		[gui setKey:GUI_KEY_SKIP forRow:i];
+	}
+
+	OOGUIRow row = OXZ_GUI_ROW_LISTSTART;
+	NSDictionary *manifest = nil;
+	foreach (manifest, options)
+	{
+		NSDictionary *installed = [ResourceManager manifestForIdentifier:[manifest oo_stringForKey:kOOManifestIdentifier]];
+		NSString *installedVersion = [installed oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-version-none")];
+
+		[gui setArray:[NSArray arrayWithObjects:
+				 [manifest oo_stringForKey:kOOManifestCategory defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+			 [manifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+			 [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+			 installedVersion,
+		  nil] forRow:row];
+		[gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
+		
+		/* TODO: yellow for installable, orange for dependency issues, grey and unselectable for version issues
+		[gui setColor:[self colorForManifest:manifest] forRow:row];
+		*/
+		if (row == [gui selectedRow])
+		{
+			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+		}
+
+		row++;
+	}
+
+	return startRow;
+}
+
+
+- (NSArray *) removeOptions
+{
+	// TODO
+	return nil;
+}
+
+
+- (OOGUIRow) showRemoveOptions
+{
+	// shows the current removal options page
+
+	// TODO
+	return OXZ_STATE_PICK_INSTALL;
+}
+
+
+- (void) showOptionsUpdate
+{
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL)
+	{
+		[self showInstallOptions];
+	}
+	else if (_interfaceState == OXZ_STATE_PICK_REMOVE)
+	{
+		[self showRemoveOptions];
+	}
+	// else nothing necessary
+}
 
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response

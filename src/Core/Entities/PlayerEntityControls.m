@@ -3572,8 +3572,8 @@ static BOOL autopilot_pause;
 		case GUI_SCREEN_OXZMANAGER:
 			if ([self handleGUIUpDownArrowKeys])
 			{
-// no, but will need to do something similar here later
-//				[[OOOXZManager sharedManager] gui];
+				// only has an effect on install/remove selection screens
+				[[OOOXZManager sharedManager] showOptionsUpdate];
 			}
 
 			if (!selectPressed)

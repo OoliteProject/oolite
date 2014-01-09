@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOPListScript.h"
 
+#import "OOManifestProperties.h"
 
 static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
 static NSString * const kOOLogCacheExplicitFlush		= @"dataCache.rebuild.explicitFlush";
@@ -50,33 +51,6 @@ static NSString * const kOOCacheSearchPathModDates		= @"search path modification
 static NSString * const kOOCacheKeySearchPaths			= @"search paths";
 static NSString * const kOOCacheKeyModificationDates	= @"modification dates";
 
-
-
-static NSString * const kOOManifestIdentifier			= @"identifier";
-static NSString * const kOOManifestVersion				= @"version";
-static NSString * const kOOManifestRequiredOoliteVersion= @"required_oolite_version";
-static NSString * const kOOManifestMaximumOoliteVersion = @"maximum_oolite_version";
-static NSString * const kOOManifestTitle				= @"title";
-static NSString * const kOOManifestRequiresOXPs			= @"requires_oxps";
-static NSString * const kOOManifestConflictOXPs			= @"conflict_oxps";
-// this property is not contained in the manifest.plist but is
-// calculated by Oolite
-static NSString * const kOOManifestFilePath				= @"file_path";
-// following manifest.plist properties not yet implemented
-static NSString * const kOOManifestDescription			= @"description";
-static NSString * const kOOManifestCategory				= @"category";
-static NSString * const kOOManifestTags					= @"tags";
-static NSString * const kOOManifestAuthor				= @"author";
-static NSString * const kOOManifestLicense				= @"license";
-static NSString * const kOOManifestOptionalOXPs			= @"optional_oxps";
-static NSString * const kOOManifestDownloadURL			= @"download_url";
-static NSString * const kOOManifestInformationURL		= @"information_url";
-
-// properties for within requires/optional/conflicts entries
-static NSString * const kOOManifestRelationIdentifier	= @"identifier";
-static NSString * const kOOManifestRelationVersion		= @"version";
-static NSString * const kOOManifestRelationMaxVersion	= @"maximum_version";
-static NSString * const kOOManifestRelationDescription	= @"description";
 
 extern NSDictionary* ParseOOSScripts(NSString* script);
 
@@ -518,6 +492,12 @@ static NSMutableDictionary *sOXPManifests;
 	// add an extra key
 	[sOXPManifests setObject:mData forKey:identifier];
 	return YES;
+}
+
+
++ (NSDictionary *)manifestForIdentifier:(NSString *)identifier
+{
+	return [sOXPManifests objectForKey:identifier];
 }
 
 
