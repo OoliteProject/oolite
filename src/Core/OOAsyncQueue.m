@@ -34,6 +34,14 @@ SOFTWARE.
 #import "NSThreadOOExtensions.h"
 #include <stdlib.h>
 
+#ifndef OO_BUGGY_PTHREADS
+#if OOLITE_WINDOWS
+// Maybe add #if OOLITE_64_BIT too?
+#define OO_BUGGY_PTHREADS 1
+#else
+#define OO_BUGGY_PTHREADS 0
+#endif
+#endif
 
 enum
 {
@@ -194,7 +202,22 @@ FAIL:
 
 - (id)tryDequeue
 {
+#if OO_BUGGY_PTHREADS
+/* pthread_mutex_trylock is buggy on 64-bit windows with the pthread
+ * library in use, so avoid doing things which use it This is a little
+ * more blocking, but no thread should be hanging on to _lock for very
+ * long, so hopefully it won't be noticeable.
+ */
+	[_lock lock];
+	if ([_lock condition] != kConditionQueuedData)
+	{
+		[_lock unlock];
+		return NO;
+	}
+#else
+	// Mac and Linux can do it properly
 	if (![_lock tryLockWhenCondition:kConditionQueuedData])  return NO;
+#endif
 	return [self doDequeAndUnlockWithAcquiredLock];
 }
 
