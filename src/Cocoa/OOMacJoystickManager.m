@@ -263,7 +263,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 	{
 		JoyAxisEvent evt;
 		evt.type = JOYAXISMOTION;
-		evt.which = 0;
+		evt.which = current_stick;
 		evt.axis = axisNum;
 		
 		CFIndex intValue = IOHIDValueGetIntegerValue(value);
@@ -307,7 +307,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 		JoyHatEvent evt =
 		{
 			.type = JOYHAT_MOTION,
-			.which = 0,
+			.which = current_stick,
 			.hat = 0,	// The abuse of usage values for identifying elements means we can't distinguish between hats.
 			.value = MapHatValue(IOHIDValueGetIntegerValue(value) - min, max - min)
 		};
@@ -321,7 +321,7 @@ static uint8_t MapHatValue(CFIndex value, CFIndex max)
 		JoyButtonEvent evt;
 		BOOL buttonState = (IOHIDValueGetIntegerValue(value) != 0);
 		evt.type = buttonState ? JOYBUTTONDOWN : JOYBUTTONUP;
-		evt.which = 0;
+		evt.which = current_stick;
 		evt.button = buttonNum;
 		evt.state = buttonState ? 1 : 0;	
 		[self decodeButtonEvent:&evt];

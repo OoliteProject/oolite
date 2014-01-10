@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "PlayerEntitySound.h"
 #import "PlayerEntityLoadSave.h"
 #import "PlayerEntityStickMapper.h"
+#import "PlayerEntityStickProfile.h"
 
 #import "ShipEntityAI.h"
 #import "StationEntity.h"
@@ -1912,6 +1913,10 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 			}
+			break;
+		
+		case GUI_SCREEN_STICKPROFILE:
+			[self stickProfileInputHandler: gui view: gameView];
 			break;
 			
 		case GUI_SCREEN_GAMEOPTIONS:

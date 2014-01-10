@@ -86,7 +86,6 @@ static id sSharedStickHandler = nil;
 		// Make some sensible mappings. This also ensures unassigned
 		// axes and buttons are set to unassigned (STICK_NOFUNCTION).
 		[self loadStickSettings];
-		
 		invertPitch = NO;
 	}
 	return self;
@@ -129,7 +128,14 @@ static id sSharedStickHandler = nil;
 	case AXIS_ROLL:
 	case AXIS_PITCH:
 	case AXIS_YAW:
-		return [profile apply: function axisvalue:axstate[function]];
+		if (precisionMode)
+		{
+			return [axisProfiles[function] value:axstate[function]] / STICK_PRECISIONFAC;
+		}
+		else
+		{
+			return [axisProfiles[function] value:axstate[function]];
+		}
 	default:
 		return axstate[function];
 	}
@@ -141,6 +147,30 @@ static id sSharedStickHandler = nil;
 	return precisionMode ? STICK_PRECISIONFAC : 1.0;
 }
 
+
+- (OOJoystickAxisProfileManager *) getProfileManager
+{
+	return profileManager;
+}
+
+- (void) setAxisProfileByName: (NSString *) profileName forAxis: (int) axis
+{
+	if (axis >= 0 && axis < MAX_AXES)
+	{
+		[axisProfiles[axis] release];
+		axisProfiles[axis] = [[profileManager setProfileByName: profileName forAxis: axis] retain];
+	}
+	return;
+}
+
+- (NSString *) getAxisProfileName: (int) axis
+{
+	if (axis < 0 || axis >= MAX_AXES)
+	{
+		return @"Standard";
+	}
+	return [profileManager getProfileNameForAxis: axis];
+}
 
 - (NSArray *)listSticks
 {
@@ -378,7 +408,7 @@ static id sSharedStickHandler = nil;
 	if(cbObject && (cbHardware & HW_AXIS)) 
 	{
 		// ...then check if axis moved more than AXCBTHRESH - (fix for BUG #17482)
-		if(axisvalue > AXCBTHRESH) 
+		if(axisvalue > AXCBTHRESH)
 		{
 			NSDictionary *fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
 									[NSNumber numberWithBool: YES], STICK_ISAXIS,
@@ -394,6 +424,8 @@ static id sSharedStickHandler = nil;
 		return;
 	}
 	
+	if (evt->which != current_stick) return;
+
 	// SDL seems to have some bizarre (perhaps a bug) behaviour when
 	// events get queued up because the game isn't ready to handle
 	// them (perhaps it's loading a commander and initializing the
@@ -455,6 +487,8 @@ static id sSharedStickHandler = nil;
 		return;
 	}
 	
+	if (evt->which != current_stick) return;
+	
 	// Defensive measure - see comments in the axis handler for why.
 	int function;
 	if (evt->button < MAX_BUTTONS)
@@ -482,24 +516,24 @@ static id sSharedStickHandler = nil;
 }
 
 
-- (void) decodeHatEvent:(JoyHatEvent *)evt                                     
-{                                                                                  
-	// HACK: handle this as a set of buttons                                        
-	int i;                                                                          
-	JoyButtonEvent btn;                                                         
+- (void) decodeHatEvent:(JoyHatEvent *)evt
+{
+	// HACK: handle this as a set of buttons
+	int i;
+	JoyButtonEvent btn;
+
+	btn.which = evt->which;
 	
-	btn.which = evt->which;                                                         
-	
-	for (i = 0; i < 4; ++i)                                                         
-	{                                                                               
-		if ((evt->value ^ hatstate[evt->which][evt->hat]) & (1 << i))                
-		{                                                                            
-			btn.type = (evt->value & (1 << i)) ? JOYBUTTONDOWN : JOYBUTTONUP; 
-			btn.button = MAX_REAL_BUTTONS + i + evt->which * 4;                       
-			btn.state = (evt->value & (1 << i)) ? JOYBUTTON_PRESSED : JOYBUTTON_RELEASED;         
-			[self decodeButtonEvent:&btn];                                            
-		}                                                                            
-	}                                                                               
+	for (i = 0; i < 4; ++i)
+	{
+		if ((evt->value ^ hatstate[evt->which][evt->hat]) & (1 << i))
+		{
+			btn.type = (evt->value & (1 << i)) ? JOYBUTTONDOWN : JOYBUTTONUP;
+			btn.button = MAX_REAL_BUTTONS + i + evt->which * 4;
+			btn.state = (evt->value & (1 << i)) ? JOYBUTTON_PRESSED : JOYBUTTON_RELEASED;
+			[self decodeButtonEvent:&btn];
+		}
+	}
 	
 	hatstate[evt->which][evt->hat] = evt->value;
 }
@@ -514,12 +548,22 @@ static id sSharedStickHandler = nil;
 - (void) saveStickSettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSData *profileManagerData = [NSKeyedArchiver archivedDataWithRootObject: profileManager];
+	NSMutableArray *axisProfileList = [NSMutableArray arrayWithCapacity: MAX_AXES];
+	int i;
+	
 	[defaults setObject:[self axisFunctions]
 				 forKey:AXIS_SETTINGS];
 	[defaults setObject:[self buttonFunctions]
 				 forKey:BUTTON_SETTINGS];
-	[defaults setObject: profile forKey: STICK_PROFILE_SETTING];
+	[defaults setObject: profileManagerData forKey: STICK_PROFILE_MANAGER_SETTING];
+	for (i = 0; i < MAX_AXES; i++)
+	{
+		[axisProfileList addObject: @"Standard"/*[self getAxisProfileName: i]*/];
+	}
+	[defaults setObject: axisProfileList forKey: STICK_PROFILE_SETTING];
 	[defaults setBool: !!precisionMode forKey: STICK_PRECISION_SETTING];
+	[defaults setInteger: [self currentStick] forKey: STICK_CURRENTSTICK_SETTING];
 	[defaults synchronize];
 }
 
@@ -531,6 +575,15 @@ static id sSharedStickHandler = nil;
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSDictionary *axisSettings = [defaults objectForKey: AXIS_SETTINGS];
 	NSDictionary *buttonSettings = [defaults objectForKey: BUTTON_SETTINGS];
+	NSArray *axisProfileList = [defaults objectForKey: STICK_PROFILE_SETTING];
+	@try
+	{
+		profileManager = [[NSKeyedUnarchiver unarchiveObjectWithData: [defaults objectForKey: STICK_PROFILE_MANAGER_SETTING]] retain];
+	}
+	@catch (NSException *exception)
+	{
+		profileManager = [[OOJoystickManager alloc] init];
+	}
 	if(axisSettings)
 	{
 		NSArray *keys = [axisSettings allKeys];
@@ -556,12 +609,48 @@ static id sSharedStickHandler = nil;
 		// Nothing to load - set useful defaults
 		[self setDefaultMapping];
 	}
-	profile = [defaults objectForKey: STICK_PROFILE_SETTING];
-	if (profile == nil)
+	if (axisProfileList)
 	{
-		profile = [[OOJoystickProfile alloc] init];
+		for (i = 0; i < MAX_AXES; i++)
+		{
+			if (i < [axisProfileList count])
+			{
+				[self setAxisProfileByName: [axisProfileList objectAtIndex: i] forAxis: i];
+			}
+			else
+			{
+				[self setAxisProfileByName: @"Standard" forAxis: i];
+			}
+		}
+	}
+	else
+	{
+		for (i = 0; i < MAX_AXES; i++)
+		{
+			[self setAxisProfileByName: @"Standard" forAxis: i];
+		}
 	}
 	precisionMode = [defaults oo_boolForKey: STICK_PRECISION_SETTING defaultValue:NO];
+	[self setCurrentStick: [defaults oo_intForKey: STICK_CURRENTSTICK_SETTING defaultValue: 0]];
+}
+
+- (NSUInteger) currentStick
+{
+	if (current_stick >= MAX_STICKS)
+	{
+		return 0;
+	}
+	return current_stick;
+}
+
+- (void) setCurrentStick: (NSUInteger) newstick
+{
+	if (newstick >= MAX_STICKS)
+	{
+		current_stick = 0;
+	}
+	current_stick = newstick;
+	return;
 }
 
 // These get overidden by subclasses

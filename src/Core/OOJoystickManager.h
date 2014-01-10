@@ -129,7 +129,9 @@ enum {
 #define STICK_AXBUT  @"stickAxBt"   // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
 #define STICK_PRECISION_SETTING @"JoystickPrecision" // Precision mode
-#define STICK_PROFILE_SETTING @"JoystickProfile" // Joystick Profile
+#define STICK_PROFILE_SETTING @"JoystickProfile" // Joystick Profiles
+#define STICK_PROFILE_MANAGER_SETTING @"JoystickProfileManager" // Joystick Profile Manager
+#define STICK_CURRENTSTICK_SETTING @"JoystickCurrentStick" // Selected joystick
 // shortcut to make code more readable when using enum as key for
 // an NSDictionary
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
@@ -229,7 +231,9 @@ typedef struct
 	double		axstate[AXIS_end];
 	BOOL		butstate[BUTTON_end];
 	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
+	uint		current_stick;
 	BOOL		precisionMode;
+	OOJoystickAxisProfile * axisProfiles[MAX_AXES];
 	
 	// Handle callbacks - the object, selector to call
 	// the desired function, and the hardware (axis or button etc.)
@@ -237,7 +241,7 @@ typedef struct
 	SEL			cbSelector;
 	char		cbHardware;
 	BOOL		invertPitch;
-	OOJoystickProfile *profile;
+	OOJoystickAxisProfileManager *profileManager;
 
 }
 
@@ -270,6 +274,11 @@ typedef struct
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
 
+// Axis profile handling
+- (OOJoystickAxisProfileManager *) getProfileManager;
+- (void) setAxisProfileByName: (NSString *) profileName forAxis:(int) axis;
+- (NSString *) getAxisProfileName: (int) axis;
+
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg
 - (const BOOL *) getAllButtonStates;
@@ -300,6 +309,10 @@ typedef struct
 - (void) saveStickSettings;
 - (void) loadStickSettings;
 
+
+// get / set current stick
+- (NSUInteger) currentStick;
+- (void) setCurrentStick: (NSUInteger) newstick;
 
 //Methods that should be overridden by all subclasses
 - (NSString *) nameOfJoystick:(NSUInteger)stickNumber;

@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityStickMapper.h
+PlayerEntityStickMapper.m
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityControls.h"
+#import "PlayerEntityStickProfile.h"
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
@@ -69,12 +70,15 @@ MA 02110-1301, USA.
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
 	
+	[gui setArray: [NSArray arrayWithObjects: @"Edit Profile", nil] forRow: GUI_ROW_STICKPROFILE];
+	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE];
+	
 	[self displayFunctionList:gui skip:skip];
 	
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
 		   forRow:GUI_ROW_INSTRUCT];
 	
-	[gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
+	[gui setSelectedRow: GUI_ROW_STICKPROFILE];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"settings"];
@@ -104,6 +108,12 @@ MA 02110-1301, USA.
 	}
 	
 	[self handleGUIUpDownArrowKeys];
+	
+	if ([gameView isDown: 13] && [gui selectedRow] == GUI_ROW_STICKPROFILE)
+	{
+		[self setGuiToStickProfileScreen: gui];
+		return;
+	}
 	
 	NSString* key = [gui keyForRow: [gui selectedRow]];
 	if ([key hasPrefix:@"Index:"])
@@ -360,7 +370,7 @@ MA 02110-1301, USA.
 			i++;
 		}
 		
-		[gui setSelectableRange: NSMakeRange(GUI_ROW_FUNCSTART, i + start_row - GUI_ROW_FUNCSTART)];
+		[gui setSelectableRange: NSMakeRange(GUI_ROW_STICKPROFILE, i + start_row - GUI_ROW_STICKPROFILE)];
 	}
 	
 }

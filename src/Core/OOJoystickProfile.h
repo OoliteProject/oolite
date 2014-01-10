@@ -32,65 +32,82 @@ MA 02110-1301, USA.
 
 */
 
-@interface OOJoystickSplineSegment: NSObject <NSCopying>
+@interface OOJoystickAxisProfile : NSObject <NSCopying, NSCoding>
 {
 @private
-	double max_t;
-	double a[3];
-}
-
-- (id) init;
-- (id) copyWithZone: (NSZone *) zone;
-- (double) value: (double) t;
-- (double) gradient: (double) t;
-// Set the segment parameters so that f(t0) = f0, f(t1) = f1 and the gradient at t0 = df0
-- (void) set: (double) t0 t1:(double) t1 f0:(double) f0 f1:(double) f1 df0:(double) df0;
-- (double) limit;
-
-@end
-
-@interface OOJoystickSpline: NSObject <NSCopying>
-{
-@private
-	NSMutableArray *controlPoints;
-	NSMutableArray *segments;
-}
-
-- (id) init;
-- (id) copyWithZone: (NSZone *) zone;
-- (int) addControl: (double) t;
-- (void) removeControl: (int) index;
-- (void) moveControl: (int) index t: (double) t f: (double) f;
-- (double) value: (double) t;
-- (double) gradient: (double) t;
-
-@end
-
-@interface OOJoystickProfile: NSObject
-{
-@private
-	NSMutableDictionary *profiles;
-	NSMutableDictionary *axis_profiles;
-	double cubicParam;
-	double quinticParam;
 	double deadzone;
 }
 
 - (id) init;
-- (void) addProfile: (NSString *) name spline: (OOJoystickSpline *) spline;
-- (OOJoystickSpline *) getProfileCopy: (NSString *) name;
-- (void) setProfile: (NSString *) name spline: (OOJoystickSpline *) spline;
-- (void) setCubicParam: (double) param;
-- (void) setQuinticParam: (double) param;
-- (double) cubicParam;
-- (double) quinticParam;
-- (NSArray *) listProfiles;
-- (NSString *) getAxisProfile: (int) axis;
-- (bool) setAxisProfile: (int) axis profile:(NSString *) profileName;
+- (id) initWithCoder: (NSCoder *) encoder;
+- (void) encodeWithCoder: (NSCoder *) encoder;
+- (id) copyWithZone: (NSZone *) zone;
 - (double) deadzone;
 - (void) setDeadzone: (double) newValue;
-- (double) apply: (int) axis axisvalue: (double) axisvalue;
+- (double) value: (double) x;
 
+@end
+
+@interface OOJoystickPolynomialAxisProfile: OOJoystickAxisProfile
+{
+@private
+	unsigned int power;
+	double parameter;
+}
+
+- (id) init;
+- (id) initWithCoder: (NSCoder *) encoder;
+- (void) encodeWithCoder: (NSCoder *) encoder;
+- (id) copyWithZone: (NSZone *) zone;
+- (void) setPower: (unsigned int) newValue;
+- (unsigned int) power;
+- (void) setParameter: (double) newValue;
+- (double) parameter;
+- (double) value: (double) x;
+
+@end
+
+@interface OOJoystickSplineAxisProfile: OOJoystickAxisProfile
+{
+@private
+	NSMutableArray *controlPoints;
+	NSArray *segments;
+}
+
+- (id) init;
+- (void) dealloc;
+- (id) copyWithZone: (NSZone *) zone;
+- (id) initWithCoder: (NSCoder *) encoder;
+- (void) encodeWithCoder: (NSCoder *) encoder;
+- (int) addControl: (double) x;
+- (NSPoint) pointAtIndex: (int) index;
+- (int) countPoints;
+- (void) removeControl: (int) index;
+- (void) moveControl: (int) index point: (NSPoint) point;
+- (double) value: (double) x;
+- (double) gradient: (double) x;
+
+@end
+
+@interface OOJoystickAxisProfileManager: NSObject <NSCopying, NSCoding>
+{
+@private
+	NSMutableDictionary *profiles;
+	NSMutableDictionary *axisProfileMap;
+}
+
+- (id) init;
+- (id) copyWithZone: (NSZone *) zone;
+- (id) initWithCoder: (NSCoder *) encoder;
+- (void) encodeWithCoder: (NSCoder *) encoder;
+- (void) dealloc;
+- (void) addDefaultProfiles;
+- (void) addProfile: (NSString *) name profile: (OOJoystickAxisProfile *) profile;
+- (OOJoystickAxisProfile *) getProfile: (NSString *) name;
+- (BOOL) removeProfile: (NSString *) name;
+- (NSArray *) listProfiles;
+- (OOJoystickAxisProfile *) setProfileByName: (NSString *) name forAxis: (int) axis;
+- (NSString *) getProfileNameForAxis: (int) axis;
 
 @end
 

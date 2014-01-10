@@ -175,6 +175,7 @@ OOLITE_ENTITY_FILES = \
     PlayerEntityScriptMethods.m \
     PlayerEntitySound.m \
     PlayerEntityStickMapper.m \
+    PlayerEntityStickProfile.m \
     ProxyPlayerEntity.m \
     OOBreakPatternEntity.m \
     ShipEntity.m \
