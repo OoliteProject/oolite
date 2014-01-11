@@ -146,7 +146,8 @@ enum
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo
 {
-	if ((self = [super init]))
+	// AllowCubeMap not used yet but might be in future
+	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
 		_info.landFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"land_fraction" defaultValue:0.3]);
 		_info.landColor = FloatRGBFromDictColor(planetInfo, @"land_color");
@@ -1161,7 +1162,8 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 
 - (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed
 {
-	if ((self = [super init]))
+	// AllowCubeMap not used yet but might be in future
+	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetNormalTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
 		_cacheKey = [cacheKey copy];
 		_seed = seed;
@@ -1237,7 +1239,8 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 
 - (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed
 {
-	if ((self = [super init]))
+	// AllowCubeMap not used yet but might be in future
+	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetAtmoTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
 		_cacheKey = [cacheKey copy];
 		_seed = seed;
