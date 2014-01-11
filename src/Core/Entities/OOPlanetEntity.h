@@ -54,6 +54,7 @@ MA 02110-1301, USA.
 	OOTimeDelta				_shuttleLaunchInterval;
 	
 	NSDictionary			*_materialParameters;
+	NSString				*_textureName;
 }
 
 - (id) initAsMainPlanetForSystemSeed:(Random_Seed)seed;

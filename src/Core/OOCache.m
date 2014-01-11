@@ -661,9 +661,10 @@ static id CacheNodeGetValue(OOCacheNode *node)
 static void CacheNodeSetValue(OOCacheNode *node, id value)
 {
 	if (node == NULL) return;
-	
-	[node->value release];
+
+	id tmp = node->value;
 	node->value = [value retain];
+	[tmp release];
 }
 
 

@@ -165,7 +165,7 @@ enum
 		}
 		
 #ifndef TEXGEN_TEST_RIG
-		if ([UNIVERSE reducedDetail])
+		if ([UNIVERSE detailLevel] < DETAIL_LEVEL_SHADERS)
 		{
 			_planetScale = kPlanetScaleReducedDetail;
 		}
@@ -266,7 +266,6 @@ enum
 	}
 	
 	*texture = [OOTexture textureWithGenerator:diffuseGen];
-	
 	return *texture != nil;
 }
 
@@ -495,7 +494,6 @@ enum
 			{
 				q = QFactor(_info.fbmBuffer, x, y, _width, paleClouds, cloudFraction, nearPole);
 				color = CloudMix(&_info, q, nearPole);
-				
 				*apx++ = 255.0f * color.r;
 				*apx++ = 255.0f * color.g;
 				*apx++ = 255.0f * color.b;
@@ -600,8 +598,11 @@ static float BlendAlpha(float fraction, float a, float b)
 
 static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole)
 {
-#define AIR_ALPHA				(0.15f)
-#define CLOUD_ALPHA				(1.0f)
+//#define AIR_ALPHA				(0.15f)
+//#define CLOUD_ALPHA				(1.0f)
+// CIM: make distinction between cloud and not-cloud bigger
+#define AIR_ALPHA				(0.05f)
+#define CLOUD_ALPHA				(2.0f)
 
 #define POLAR_BOUNDARY			(0.33f)
 #define CLOUD_BOUNDARY			(0.5f)
@@ -644,7 +645,11 @@ static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nea
 	}
 	// magic numbers! at the poles we have fairly thin air.
 	alpha *= BlendAlpha(portion, 0.6f, 1.0f);
-	
+	if (alpha > 1.0)
+	{
+		alpha = 1.0;
+	}
+
 	return (FloatRGBA){ cloudColor.r, cloudColor.g, cloudColor.b, alpha };
 }
 

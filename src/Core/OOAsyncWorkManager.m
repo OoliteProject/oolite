@@ -286,7 +286,10 @@ static void InitAsyncWorkManager(void)
 	{
 		// Dequeue a task and complete it.
 		next = [_readyQueue dequeue];
+		[_pendingOpsLock lock];
 		[_pendingCompletableOperations removeObject:next];
+		[_pendingOpsLock unlock];
+	
 		[next completeAsyncTask];
 		
 	}  while (next != task);	// We don't control order, so keep looking until we get the one we care about.
