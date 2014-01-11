@@ -89,7 +89,7 @@ MA 02110-1301, USA.
 							view:(MyOpenGLView *)gameView
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	
+
 	// Don't do anything if the user is supposed to be selecting
 	// a function - other than look for Escape.
 	if(waitingForStickCallback)

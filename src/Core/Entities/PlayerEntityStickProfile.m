@@ -145,7 +145,6 @@ static BOOL stickProfileProfileKey_pressed;
 	[gui setText: @"Back" forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	[self showAxis: gui];
-	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
 	[gui setSelectedRow: GUI_ROW_STICKPROFILE_BACK];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[PLAYER status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
@@ -193,7 +192,7 @@ static BOOL stickProfileProfileKey_pressed;
 - (void) nextProfile: (GuiDisplayGen *) gui
 {
 	NSArray *profileList = [profileManager listProfiles];
-	NSUInteger index = [profileList indexOfObject: [profileManager getProfileForAxis: current_axis]];
+	NSUInteger index = [profileList indexOfObject: [profileManager getProfileNameForAxis: current_axis]];
 	if (index == NSNotFound)
 	{
 		index = 0;
@@ -206,7 +205,7 @@ static BOOL stickProfileProfileKey_pressed;
 			index = 0;
 		}
 	}
-	[profileManager setProfile: [profileList objectAtIndex: index] forAxis: current_axis ];
+	[stickHandler setAxisProfileByName: [profileList objectAtIndex: index] forAxis: current_axis ];
 	[self showAxis: gui];
 	return;
 }
@@ -214,7 +213,7 @@ static BOOL stickProfileProfileKey_pressed;
 - (void) previousProfile: (GuiDisplayGen *) gui
 {
 	NSArray *profileList = [profileManager listProfiles];
-	NSUInteger index = [profileList indexOfObject: [profileManager getProfileForAxis: current_axis]];
+	NSUInteger index = [profileList indexOfObject: [profileManager getProfileNameForAxis: current_axis]];
 	if (index == NSNotFound)
 	{
 		index = 0;
@@ -230,7 +229,7 @@ static BOOL stickProfileProfileKey_pressed;
 			index--;
 		}
 	}
-	[profileManager setProfile: [profileList objectAtIndex: index] forAxis: current_axis];
+	[stickHandler setAxisProfileByName: [profileList objectAtIndex: index] forAxis: current_axis];
 	[self showAxis: gui];
 	return;
 }
@@ -252,8 +251,9 @@ static BOOL stickProfileProfileKey_pressed;
 	tabStop[1] = 120;
 	[gui setArray: [NSArray arrayWithObjects: @"Axis:", [self axisName: current_axis], nil] forRow: GUI_ROW_STICKPROFILE_AXIS];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_AXIS];
-	[gui setArray: [NSArray arrayWithObjects: @"Profile:", [profileManager getProfileForAxis: current_axis], nil] forRow: GUI_ROW_STICKPROFILE_PROFILE];
+	[gui setArray: [NSArray arrayWithObjects: @"Profile:", [profileManager getProfileNameForAxis: current_axis], nil] forRow: GUI_ROW_STICKPROFILE_PROFILE];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_PROFILE];
+	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
 	return;
 }
 

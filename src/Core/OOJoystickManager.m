@@ -559,7 +559,7 @@ static id sSharedStickHandler = nil;
 	[defaults setObject: profileManagerData forKey: STICK_PROFILE_MANAGER_SETTING];
 	for (i = 0; i < MAX_AXES; i++)
 	{
-		[axisProfileList addObject: @"Standard"/*[self getAxisProfileName: i]*/];
+		[axisProfileList addObject: [self getAxisProfileName: i]];
 	}
 	[defaults setObject: axisProfileList forKey: STICK_PROFILE_SETTING];
 	[defaults setBool: !!precisionMode forKey: STICK_PRECISION_SETTING];
@@ -576,13 +576,18 @@ static id sSharedStickHandler = nil;
 	NSDictionary *axisSettings = [defaults objectForKey: AXIS_SETTINGS];
 	NSDictionary *buttonSettings = [defaults objectForKey: BUTTON_SETTINGS];
 	NSArray *axisProfileList = [defaults objectForKey: STICK_PROFILE_SETTING];
+	profileManager = nil;
 	@try
 	{
 		profileManager = [[NSKeyedUnarchiver unarchiveObjectWithData: [defaults objectForKey: STICK_PROFILE_MANAGER_SETTING]] retain];
 	}
 	@catch (NSException *exception)
 	{
-		profileManager = [[OOJoystickManager alloc] init];
+		profileManager = nil;
+	}
+	if (!profileManager)
+	{
+		profileManager = [[OOJoystickAxisProfileManager alloc] init];
 	}
 	if(axisSettings)
 	{

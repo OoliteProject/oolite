@@ -93,7 +93,7 @@ MA 02110-1301, USA.
 {
 @private
 	NSMutableDictionary *profiles;
-	NSMutableDictionary *axisProfileMap;
+	NSMutableDictionary *axisProfileNames;
 }
 
 - (id) init;

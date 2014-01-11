@@ -701,7 +701,7 @@ MA 02110-1301, USA.
 	if ((self = [super init]))
 	{
 		profiles = [[NSMutableDictionary alloc] init];
-		axisProfileMap = [[NSMutableDictionary alloc] init];
+		axisProfileNames = [[NSMutableDictionary alloc] init];
 		[self addDefaultProfiles];
 	}
 	return self;
@@ -711,6 +711,7 @@ MA 02110-1301, USA.
 {
 	OOJoystickAxisProfileManager *copy = [[[self class] alloc] init];
 	copy->profiles = [[NSMutableDictionary dictionaryWithDictionary:profiles] retain];
+	copy->axisProfileNames = [[NSMutableDictionary dictionaryWithDictionary: axisProfileNames] retain];
 	return copy;
 }
 
@@ -718,6 +719,7 @@ MA 02110-1301, USA.
 - (void) dealloc
 {
 	[profiles release];
+	[axisProfileNames release];
 	[super dealloc];
 	return;
 }
@@ -744,12 +746,23 @@ MA 02110-1301, USA.
 		}
 		@catch(NSException *exception)
 		{
+			profiles = nil;
+		}
+		if (!profiles)
+		{
 			profiles = [[NSMutableDictionary alloc] init];
 		}
-		axisProfileMap = [encoder decodeObjectForKey: @"AxisProfiles"];
-		if (!axisProfileMap)
+		@try
 		{
-			axisProfileMap = [[NSMutableDictionary alloc] init];
+			axisProfileNames = [[encoder decodeObjectForKey: @"AxisProfiles"] retain];
+		}
+		@catch(NSException *exception)
+		{
+			axisProfileNames = nil;
+		}
+		if (!axisProfileNames || ![axisProfileNames isKindOfClass: [NSMutableDictionary class]])
+		{
+			axisProfileNames = [[NSMutableDictionary alloc] init];
 		}
 		[self addDefaultProfiles];
 	}
@@ -771,7 +784,7 @@ MA 02110-1301, USA.
 		[dict setObject: data forKey: name];
 	}
 	[encoder encodeObject: dict forKey: @"AvailableProfiles"];
-	[encoder encodeObject: axisProfileMap forKey: @"AxisProfiles"];
+	[encoder encodeObject: axisProfileNames forKey: @"AxisProfiles"];
 	return;
 }
 
@@ -803,17 +816,17 @@ MA 02110-1301, USA.
 		[poly2 setParameter: 1.0];
 		[profiles setObject: poly2 forKey: @"Poly2"];
 	}
-	if ([axisProfileMap objectForKey: [NSNumber numberWithInteger: AXIS_ROLL]] == nil)
+	if ([axisProfileNames objectForKey: [NSNumber numberWithInteger: AXIS_ROLL]] == nil)
 	{
-		[axisProfileMap setObject: @"Standard" forKey: [NSNumber numberWithInteger: AXIS_ROLL]];
+		[axisProfileNames setObject: @"Standard" forKey: [NSNumber numberWithInteger: AXIS_ROLL]];
 	}
-	if ([axisProfileMap objectForKey: [NSNumber numberWithInteger: AXIS_PITCH]] == nil)
+	if ([axisProfileNames objectForKey: [NSNumber numberWithInteger: AXIS_PITCH]] == nil)
 	{
-		[axisProfileMap setObject: @"Standard" forKey: [NSNumber numberWithInteger: AXIS_PITCH]];
+		[axisProfileNames setObject: @"Standard" forKey: [NSNumber numberWithInteger: AXIS_PITCH]];
 	}
-	if ([axisProfileMap objectForKey: [NSNumber numberWithInteger: AXIS_YAW]] == nil)
+	if ([axisProfileNames objectForKey: [NSNumber numberWithInteger: AXIS_YAW]] == nil)
 	{
-		[axisProfileMap setObject: @"Standard" forKey: [NSNumber numberWithInteger: AXIS_YAW]];
+		[axisProfileNames setObject: @"Standard" forKey: [NSNumber numberWithInteger: AXIS_YAW]];
 	}
 	return;
 }
@@ -833,10 +846,10 @@ MA 02110-1301, USA.
 	profile = [profiles objectForKey: name];
 	if (profile == nil)
 	{
-		profile = [[OOJoystickAxisProfile alloc] init];
+		profile = [[[OOJoystickAxisProfile alloc] init] autorelease];
 		[profiles setObject: profile forKey: name];
 	}
-	return [profile autorelease];
+	return profile;
 }
 
 - (BOOL) removeProfile: (NSString *) name
@@ -844,7 +857,7 @@ MA 02110-1301, USA.
 	NSEnumerator *enumerator;
 	NSString *axisProfileName;
 	
-	enumerator = [axisProfileMap objectEnumerator];
+	enumerator = [axisProfileNames objectEnumerator];
 	while ((axisProfileName = [enumerator nextObject]))
 	{
 		if ([name isEqualToString: axisProfileName])
@@ -865,13 +878,13 @@ MA 02110-1301, USA.
 - (OOJoystickAxisProfile *) setProfileByName: (NSString *) name forAxis: (int) axis
 {
 	OOJoystickAxisProfile *profile = [self getProfile: name];
-	[axisProfileMap setObject: profile forKey: [NSNumber numberWithInteger: axis]];
+	[axisProfileNames setObject: name forKey: [NSNumber numberWithInt: axis]];
 	return profile;
 }
 
 - (NSString*) getProfileNameForAxis: (int) axis
 {
-	NSString *name = [axisProfileMap objectForKey: [NSNumber numberWithInteger: axis]];
+	NSString *name = [axisProfileNames objectForKey: [NSNumber numberWithInt: axis]];
 	if (name)
 	{
 		return name;
