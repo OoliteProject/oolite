@@ -41,6 +41,8 @@ typedef enum
 
 @interface ResourceManager : NSObject
 
++ (void) reset;
+
 + (NSArray *)rootPaths;			// Places add-ons are searched for, not including add-on paths.
 + (NSString *)builtInPath;		// Path for built-in data only.
 + (NSArray *)pathsWithAddOns;	// Root paths + add-on paths.

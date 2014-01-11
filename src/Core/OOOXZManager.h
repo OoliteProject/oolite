@@ -56,13 +56,15 @@ typedef enum {
 @private
 	NSArray 			*_oxzList;
 	OXZInterfaceState	_interfaceState;
+	BOOL				_changesMade;
 
 	NSURLConnection		*_currentDownload;
 	OXZDownloadStatus	_downloadStatus;
 	NSUInteger			_downloadProgress;
 	NSUInteger			_downloadExpected;
 	NSFileHandle		*_fileWriter;
-	
+	NSUInteger			_item;
+
 	NSUInteger			_offset;
 }
 
@@ -71,7 +73,7 @@ typedef enum {
 - (NSString *) installPath;
 
 - (BOOL) updateManifests;
-- (BOOL) cancelUpdateManifests;
+- (BOOL) cancelUpdate;
 
 - (NSArray *) manifests;
 

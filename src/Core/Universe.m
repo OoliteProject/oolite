@@ -199,8 +199,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) prunePreloadingPlanetMaterials;
 #endif
 
-- (BOOL) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
-
 // Set shader effects level without logging or triggering a reset -- should only be used directly during startup.
 - (void) setShaderEffectsLevelDirectly:(OOShaderSetting)value;
 

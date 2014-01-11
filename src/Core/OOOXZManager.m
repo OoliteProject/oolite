@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "PlayerEntity.h"
 #import "OOCollectionExtractors.h"
+#import "NSFileManagerOOExtensions.h"
 
 #import "OOManifestProperties.h"
 
@@ -40,8 +41,8 @@ MA 02110-1301, USA.
 static NSString * const kOOOXZDataURL = @"http://compsoc.dur.ac.uk/~cim/oolite/dev/manifests.plist";
 /* The filename to store the downloaded manifest.plist array */
 static NSString * const kOOOXZManifestCache = @"Oolite-manifests.plist";
-/* The filename to temporarily store the downloaded manifest.plist array */
-static NSString * const kOOOXZManifestTmp = @"Oolite-manifests.plist.new";
+/* The filename to temporarily store the downloaded manifest.plist array or OXZ. Has an OXZ extension since we might want to read its manifest.plist out of it; the extension is irrelevant for now if it's a plist download */
+static NSString * const kOOOXZTmpPath = @"Oolite-download.oxz";
 
 
 static NSString * const kOOOXZErrorLog = @"oxz.manager.error";
@@ -58,13 +59,19 @@ static OOOXZManager *sSingleton = nil;
 #endif
 
 - (NSString *) manifestPath;
-- (NSString *) manifestDownloadPath;
+- (NSString *) downloadPath;
 
+- (BOOL) ensureInstallPath;
+
+- (BOOL) beginDownload:(NSURLRequest *)request;
 - (BOOL) processDownloadedManifests;
+- (BOOL) processDownloadedOXZ;
 
 - (void) setOXZList:(NSArray *)list;
 - (void) setCurrentDownload:(NSURLConnection *)download;
 
+- (BOOL) installOXZ:(NSUInteger)item;
+- (BOOL) removeOXZ:(NSUInteger)item;
 - (NSArray *) installOptions;
 - (NSArray *) removalOptions;
 
@@ -104,6 +111,7 @@ static OOOXZManager *sSingleton = nil;
 		{
 			_interfaceState = OXZ_STATE_NODATA;
 		}
+		_changesMade = NO;
 	}
 	return self;
 }
@@ -144,6 +152,32 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (BOOL) ensureInstallPath
+{
+	BOOL				exists, directory;
+	NSFileManager		*fmgr = [NSFileManager defaultManager];
+	NSString			*path = [self installPath];
+
+	exists = [fmgr fileExistsAtPath:path isDirectory:&directory];
+	
+	if (exists && !directory)
+	{
+		OOLog(kOOOXZErrorLog, @"Expected %@ to be a folder, but it is a file.", path);
+		return NO;
+	}
+	if (!exists)
+	{
+		if (![fmgr oo_createDirectoryAtPath:path attributes:nil])
+		{
+			OOLog(kOOOXZErrorLog, @"Could not create folder %@.", path);
+			return NO;
+		}
+	}
+	
+	return YES;
+}
+
+
 - (NSString *) manifestPath
 {
 	return [[[OOCacheManager sharedCache] cacheDirectoryPathCreatingIfNecessary:YES] stringByAppendingPathComponent:kOOOXZManifestCache];
@@ -153,10 +187,12 @@ static OOOXZManager *sSingleton = nil;
 /* Download mechanism could destroy a correct file if it failed
  * half-way and was downloaded on top of the old one. So this loads it
  * off to the side a bit */
-- (NSString *) manifestDownloadPath
+- (NSString *) downloadPath
 {
-	return [[[OOCacheManager sharedCache] cacheDirectoryPathCreatingIfNecessary:YES] stringByAppendingPathComponent:kOOOXZManifestTmp];
+	return [[[OOCacheManager sharedCache] cacheDirectoryPathCreatingIfNecessary:YES] stringByAppendingPathComponent:kOOOXZTmpPath];
 }
+
+
 
 
 - (void) setOXZList:(NSArray *)list
@@ -188,6 +224,13 @@ static OOOXZManager *sSingleton = nil;
 	}
 	_downloadStatus = OXZ_DOWNLOAD_STARTED;
 	_interfaceState = OXZ_STATE_UPDATING;
+
+	return [self beginDownload:request];
+}
+
+
+- (BOOL) beginDownload:(NSURLRequest *)request
+{
 	NSURLConnection *download = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (download)
 	{
@@ -195,38 +238,33 @@ static OOOXZManager *sSingleton = nil;
 		_downloadExpected = 0;
 		[self setCurrentDownload:download]; // retains it
 		[download release];
-		OOLog(kOOOXZDebugLog,@"Manifest update request received, using %@ and downloading to %@",[request URL],[self manifestDownloadPath]);
+		OOLog(kOOOXZDebugLog,@"Download request received, using %@ and downloading to %@",[request URL],[self downloadPath]);
 		return YES;
 	}
 	else
 	{
-		OOLog(kOOOXZErrorLog,@"Unable to start downloading manifests file at %@",[request URL]);
+		OOLog(kOOOXZErrorLog,@"Unable to start downloading file at %@",[request URL]);
 		_downloadStatus = OXZ_DOWNLOAD_ERROR;
 		return NO;
 	}
 }
 
 
-- (BOOL) cancelUpdateManifests
+- (BOOL) cancelUpdate
 {
-	if (!_interfaceState == OXZ_STATE_UPDATING || _downloadStatus == OXZ_DOWNLOAD_NONE)
+	if (!(_interfaceState == OXZ_STATE_UPDATING || _interfaceState == OXZ_STATE_INSTALLING) || _downloadStatus == OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
 	}
-	OOLog(kOOOXZDebugLog,@"Trying to cancel manifests file update");
+	OOLog(kOOOXZDebugLog,@"Trying to cancel file download");
 	if (_currentDownload != nil)
 	{
 		[_currentDownload cancel];
 	}
 	else if (_downloadStatus == OXZ_DOWNLOAD_COMPLETE)
 	{
-#if OOLITE_MAC_OS_X
-		// correct for 10.5 onwards
-		[[NSFileManager defaultManager] removeItemAtPath:[self manifestDownloadPath] error:nil];
-#else
-		// correct for GNUstep's mostly pre-10.5 API
-		[[NSFileManager defaultManager] removeFileAtPath:[self manifestDownloadPath] handler:nil];
-#endif
+		NSString *path = [self downloadPath];
+		[[NSFileManager defaultManager] oo_removeItemAtPath:path];
 	}
 	_downloadStatus = OXZ_DOWNLOAD_NONE;
 	_interfaceState = OXZ_STATE_MAIN;
@@ -247,26 +285,20 @@ static OOOXZManager *sSingleton = nil;
 	{
 		return NO;
 	}
-	[self setOXZList:OOArrayFromFile([self manifestDownloadPath])];
+	[self setOXZList:OOArrayFromFile([self downloadPath])];
 	_interfaceState = OXZ_STATE_TASKDONE;
 	if (_oxzList != nil)
 	{
 		[_oxzList writeToFile:[self manifestPath] atomically:YES];
 		// and clean up the temp file
-#if OOLITE_MAC_OS_X
-		// correct for 10.5 onwards
-		[[NSFileManager defaultManager] removeItemAtPath:[self manifestDownloadPath] error:nil];
-#else
-		// correct for GNUstep's mostly pre-10.5 API
-		[[NSFileManager defaultManager] removeFileAtPath:[self manifestDownloadPath] handler:nil];
-#endif
+		[[NSFileManager defaultManager] oo_removeItemAtPath:[self downloadPath]];
 		[self gui];
 		return YES;
 	}
 	else
 	{
 		_downloadStatus = OXZ_DOWNLOAD_ERROR;
-		OOLog(kOOOXZErrorLog,@"Downloaded manifest was not a valid plist, has been left in %@",[self manifestDownloadPath]);
+		OOLog(kOOOXZErrorLog,@"Downloaded manifest was not a valid plist, has been left in %@",[self downloadPath]);
 		// revert to the old one
 		[self setOXZList:OOArrayFromFile([self manifestPath])];
 		[self gui];
@@ -274,13 +306,68 @@ static OOOXZManager *sSingleton = nil;
 	}
 }
 
+
+- (BOOL) processDownloadedOXZ
+{
+	if (_downloadStatus != OXZ_DOWNLOAD_COMPLETE)
+	{
+		return NO;
+	}
+	_interfaceState = OXZ_STATE_TASKDONE;
+
+	NSDictionary *downloadedManifest = OODictionaryFromFile([[self downloadPath] stringByAppendingPathComponent:@"manifest.plist"]);
+	if (downloadedManifest == nil)
+	{
+		_downloadStatus = OXZ_DOWNLOAD_ERROR;
+		OOLog(kOOOXZErrorLog,@"Downloaded OXZ does not contain a manifest.plist, has been left in %@",[self downloadPath]);
+		[self gui];
+		return NO;
+	}
+	NSDictionary *expectedManifest = [_oxzList objectAtIndex:_item];
+	if (expectedManifest == nil || (![[downloadedManifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestIdentifier]]) || (![[downloadedManifest oo_stringForKey:kOOManifestVersion] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestVersion]]))
+	{
+		_downloadStatus = OXZ_DOWNLOAD_ERROR;
+		OOLog(kOOOXZErrorLog,@"Downloaded OXZ does not have the same identifer and version as expected. This might be due to your manifests list being out of date - try updating it.");
+		[self gui];
+		return NO;
+	}
+	// this appears to be the OXZ we expected
+	// filename is going to be identifier.oxz
+	NSString *filename = [[downloadedManifest oo_stringForKey:kOOManifestIdentifier] stringByAppendingString:@".oxz"];
+
+	if (![self ensureInstallPath])
+	{
+		_downloadStatus = OXZ_DOWNLOAD_ERROR;
+		OOLog(kOOOXZErrorLog,@"Unable to create installation folder.");
+		[self gui];
+		return NO;
+	}
+
+	// delete filename if it exists from OXZ folder
+	NSString *destination = [[self installPath] stringByAppendingPathComponent:filename];
+	[[NSFileManager defaultManager] oo_removeItemAtPath:destination];
+
+	// move the temp file on to it
+	if (![[NSFileManager defaultManager] oo_moveItemAtPath:[self downloadPath] toPath:destination])
+	{
+		_downloadStatus = OXZ_DOWNLOAD_ERROR;
+		OOLog(kOOOXZErrorLog,@"Downloaded OXZ could not be installed.");
+		[self gui];
+		return NO;
+	}
+	_changesMade = YES;
+	[self gui];
+	return YES;
+}
+
+
 // TODO: move these constants somewhere better and use an enum instead
 #define OXZ_GUI_ROW_FIRSTRUN	1
 #define OXZ_GUI_ROW_PROGRESS	1
 #define OXZ_GUI_ROW_LISTHEAD	1
 #define OXZ_GUI_ROW_LISTPREV	2
 #define OXZ_GUI_ROW_LISTSTART	3
-#define OXZ_GUI_ROW_LISTROWS	10
+#define OXZ_GUI_NUM_LISTROWS	10
 #define OXZ_GUI_ROW_LISTNEXT	13
 #define OXZ_GUI_ROW_LISTDESC	15
 #define OXZ_GUI_ROW_INSTALL		24
@@ -323,6 +410,7 @@ static OOOXZManager *sSingleton = nil;
 		startRow = OXZ_GUI_ROW_INSTALL;
 		break;
 	case OXZ_STATE_UPDATING:
+	case OXZ_STATE_INSTALLING:
 		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),_downloadProgress,_downloadExpected] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
 		// no options yet
 		// TODO: cancel option
@@ -373,8 +461,18 @@ static OOOXZManager *sSingleton = nil;
 
 	if (selection == OXZ_GUI_ROW_EXIT)
 	{
-		[self cancelUpdateManifests]; // doesn't hurt if no update in progress
-		[PLAYER setGuiToIntroFirstGo:YES];
+		[self cancelUpdate]; // doesn't hurt if no update in progress
+		if (_changesMade)
+		{
+			// Rebuilds OXP search
+			[ResourceManager reset];
+			[UNIVERSE reinitAndShowDemo:YES strictChanged:YES];
+			_changesMade = NO;
+		}
+		else
+		{
+			[PLAYER setGuiToIntroFirstGo:YES];
+		}
 		return;
 	}
 	else if (selection == OXZ_GUI_ROW_UPDATE)
@@ -397,8 +495,59 @@ static OOOXZManager *sSingleton = nil;
 	{
 		_interfaceState = OXZ_STATE_PICK_REMOVE;
 	}
+	else if (selection == OXZ_GUI_ROW_LISTPREV)
+	{
+		_offset -= OXZ_GUI_NUM_LISTROWS;
+		[self showOptionsUpdate];
+		return;
+	}
+	else if (selection == OXZ_GUI_ROW_LISTNEXT)
+	{
+		_offset += OXZ_GUI_NUM_LISTROWS;
+		[self showOptionsUpdate];
+		return;
+	}
+	else
+	{
+		NSUInteger item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
+		if (_interfaceState == OXZ_STATE_PICK_REMOVE)
+		{
+			[self removeOXZ:item];
+		}
+		else if (_interfaceState == OXZ_STATE_PICK_INSTALL)
+		{
+			OOLog(kOOOXZDebugLog,@"Trying to install index %d",item);
+			[self installOXZ:item];
+		}
+	}
 
 	[self gui]; // update GUI
+}
+
+
+- (BOOL) installOXZ:(NSUInteger)item
+{
+	if ([_oxzList count] <= item)
+	{
+		return NO;
+	}
+	_item = item;
+	NSDictionary *manifest = [_oxzList objectAtIndex:item];
+	NSString *url = [manifest objectForKey:kOOManifestDownloadURL];
+	if (url == nil)
+	{
+		OOLog(kOOOXZErrorLog,@"Manifest does not have a download URL - cannot install");
+		return NO;
+	}
+	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
+	{
+		return NO;
+	}
+	_downloadStatus = OXZ_DOWNLOAD_STARTED;
+	_interfaceState = OXZ_STATE_INSTALLING;
+
+	return [self beginDownload:request];
 }
 
 
@@ -409,7 +558,7 @@ static OOOXZManager *sSingleton = nil;
 	{
 		start = 0;
 	}
-	NSUInteger end = start + 10;
+	NSUInteger end = start + OXZ_GUI_NUM_LISTROWS;
 	if (end > [_oxzList count])
 	{
 		end = [_oxzList count];
@@ -476,7 +625,7 @@ static OOOXZManager *sSingleton = nil;
 		  nil] forRow:row];
 		[gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
 		
-		/* TODO: yellow for installable, orange for dependency issues, grey and unselectable for version issues
+		/* TODO: yellow for installable, orange for dependency issues, grey and unselectable for version issues, green and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version.
 		[gui setColor:[self colorForManifest:manifest] forRow:row];
 		*/
 		if (row == [gui selectedRow])
@@ -488,6 +637,13 @@ static OOOXZManager *sSingleton = nil;
 	}
 
 	return startRow;
+}
+
+
+- (BOOL) removeOXZ:(NSUInteger)item
+{
+	// TODO
+	return NO;
 }
 
 
@@ -528,13 +684,13 @@ static OOOXZManager *sSingleton = nil;
 	_downloadExpected = [response expectedContentLength];
 	_downloadProgress = 0;
 	DESTROY(_fileWriter);
-	[[NSFileManager defaultManager] createFileAtPath:[self manifestDownloadPath] contents:nil attributes:nil];
-	_fileWriter = [[NSFileHandle fileHandleForWritingAtPath:[self manifestDownloadPath]] retain];
+	[[NSFileManager defaultManager] createFileAtPath:[self downloadPath] contents:nil attributes:nil];
+	_fileWriter = [[NSFileHandle fileHandleForWritingAtPath:[self downloadPath]] retain];
 	if (_fileWriter == nil)
 	{
 		// file system is full or read-only or something
 		OOLog(kOOOXZErrorLog,@"Unable to create download file");
-		[self cancelUpdateManifests];
+		[self cancelUpdate];
 	}
 }
 
@@ -557,8 +713,23 @@ static OOOXZManager *sSingleton = nil;
 	[_fileWriter closeFile];
 	DESTROY(_fileWriter);
 	DESTROY(_currentDownload);
-	if (![self processDownloadedManifests])
+	if (_interfaceState == OXZ_STATE_UPDATING)
 	{
+		if (![self processDownloadedManifests])
+		{
+			_downloadStatus = OXZ_DOWNLOAD_ERROR;
+		}
+	}
+	else if (_interfaceState == OXZ_STATE_INSTALLING)
+	{
+		if (![self processDownloadedOXZ])
+		{
+			_downloadStatus = OXZ_DOWNLOAD_ERROR;
+		}
+	}
+	else
+	{
+		OOLog(kOOOXZErrorLog,@"Error: download completed in unexpected state %d. This is an internal error - please report it.",_interfaceState);
 		_downloadStatus = OXZ_DOWNLOAD_ERROR;
 	}
 }

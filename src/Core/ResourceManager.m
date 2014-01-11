@@ -78,15 +78,28 @@ static BOOL				sFirstRun = YES;
 static NSMutableArray	*sOXPsWithMessagesFound;
 static NSMutableArray	*sExternalPaths;
 static NSMutableArray	*sErrors;
+static NSMutableDictionary *sOXPManifests;
 
 // caches allow us to load any given file once only
 //
 static NSMutableDictionary *sSoundCache;
 static NSMutableDictionary *sStringCache;
-static NSMutableDictionary *sOXPManifests;
+
 
 
 @implementation ResourceManager
+
++ (void) reset
+{
+	sFirstRun = YES;
+	sUseAddOns = YES;
+	DESTROY(sSearchPaths);
+	DESTROY(sOXPsWithMessagesFound);
+	DESTROY(sExternalPaths);
+	DESTROY(sErrors);
+	DESTROY(sOXPManifests);
+}
+
 
 + (NSString *) errors
 {
@@ -424,7 +437,7 @@ static NSMutableDictionary *sOXPManifests;
 
 + (BOOL) validateManifest:(NSDictionary*)manifest forOXP:(NSString *)path
 {
-	if (sOXPManifests == nil)
+	if (EXPECT_NOT(sOXPManifests == nil))
 	{
 		sOXPManifests = [[NSMutableDictionary alloc] initWithCapacity:32];
 	}
@@ -1553,8 +1566,6 @@ static NSString *LogClassKeyRoot(NSString *key)
 	sSoundCache = nil;
 	[sStringCache release];
 	sStringCache = nil;
-	[sOXPManifests release];
-	sOXPManifests = nil;
 }
 
 @end
