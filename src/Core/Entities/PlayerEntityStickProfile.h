@@ -42,21 +42,13 @@ MA 02110-1301, USA.
 {
 @private
 	OOJoystickManager *stickHandler;
-	OOJoystickAxisProfileManager *profileManager;
-	NSUInteger current_axis;
-	BOOL is_polynomial;
-	BOOL is_spline;
+	int current_axis;
+	int current_profile_type;
+	GuiDisplayGen *gui;
 	int current_screen;
-	int new_type;
-	NSString *edit_profile;
-	NSString *delete_profile;
-	OOJoystickAxisProfile *current_edit_profile;
-	BOOL editing_name;
 }
 
 - (id) init;
-- (void) dealloc;
-- (void) setGuiToScreen: (GuiDisplayGen *) gui;
-- (BOOL) isEditingText;
+- (void) startGui: (GuiDisplayGen *) gui_display_gen;
 @end
 

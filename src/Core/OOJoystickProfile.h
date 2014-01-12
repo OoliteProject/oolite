@@ -36,6 +36,12 @@ MA 02110-1301, USA.
 #define STICK_PROFILE_TYPE_POLYNOMIAL	1
 #define STICK_PROFILE_TYPE_SPLINE	2
 
+enum JOYSTICK_PROFILE_TYPES {
+	JOYSTICK_PROFILE_TYPE_STANDARD,
+	JOYSTICK_PROFILE_TYPE_POLYNOMIAL,
+	JOYSTICK_PROFILE_TYPE_SPLINE
+};
+
 @interface OOJoystickAxisProfile : NSObject <NSCopying, NSCoding>
 {
 @private
@@ -93,31 +99,6 @@ MA 02110-1301, USA.
 - (double) valueNoDeadzone: (double) x;
 - (double) gradient: (double) x;
 - (NSArray *) controlPoints;
-
-@end
-
-@interface OOJoystickAxisProfileManager: NSObject <NSCopying, NSCoding>
-{
-@private
-	NSMutableDictionary *profiles;
-	NSMutableDictionary *axisProfileNames;
-}
-
-- (id) init;
-- (id) copyWithZone: (NSZone *) zone;
-- (id) initWithCoder: (NSCoder *) encoder;
-- (void) encodeWithCoder: (NSCoder *) encoder;
-- (void) dealloc;
-- (void) addDefaultProfiles;
-- (void) addProfile: (NSString *) name profile: (OOJoystickAxisProfile *) profile;
-- (OOJoystickAxisProfile *) getProfile: (NSString *) name;
-- (BOOL) removeProfile: (NSString *) name;
-- (NSArray *) listProfiles;
-- (void) setProfileName: (NSString *) name forAxis: (int) axis;
-- (NSString *) getProfileNameForAxis: (int) axis;
-- (BOOL) isProfileUsed: (NSString *) profileName;
-- (BOOL) doesProfileExist: (NSString *) profileName;
-- (BOOL) renameProfile: (NSString *) from to: (NSString *) to;
 
 @end
 

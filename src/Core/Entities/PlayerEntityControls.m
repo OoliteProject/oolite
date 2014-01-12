@@ -1625,10 +1625,6 @@ static NSTimeInterval	time_last_frame;
 	{
 		[gameView setStringInput: gvStringInputAll];
 	}
-	else if (gui_screen == GUI_SCREEN_STICKPROFILE && [stickProfileScreen isEditingText])
-	{
-		[gameView setStringInput: gvStringInputAll];
-	}
 	else
 	{
 		[gameView allowStringInput: NO];
@@ -1920,10 +1916,6 @@ static NSTimeInterval	time_last_frame;
 			break;
 		
 		case GUI_SCREEN_STICKPROFILE:
-			if ([stickProfileScreen isEditingText])
-			{
-				pollControls = NO;
-			}
 			[self stickProfileInputHandler: gui view: gameView];
 			break;
 			
