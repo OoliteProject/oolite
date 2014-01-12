@@ -32,6 +32,10 @@ MA 02110-1301, USA.
 
 */
 
+#define STICKPROFILE_MAX_DEADZONE	0.1
+#define STICK_PROFILE_TYPE_POLYNOMIAL	1
+#define STICK_PROFILE_TYPE_SPLINE	2
+
 @interface OOJoystickAxisProfile : NSObject <NSCopying, NSCoding>
 {
 @private
@@ -44,7 +48,9 @@ MA 02110-1301, USA.
 - (id) copyWithZone: (NSZone *) zone;
 - (double) deadzone;
 - (void) setDeadzone: (double) newValue;
+- (double) removeDeadzone: (double) x;
 - (double) value: (double) x;
+- (double) valueNoDeadzone: (double) x;
 
 @end
 
@@ -63,7 +69,7 @@ MA 02110-1301, USA.
 - (unsigned int) power;
 - (void) setParameter: (double) newValue;
 - (double) parameter;
-- (double) value: (double) x;
+- (double) valueNoDeadzone: (double) x;
 
 @end
 
@@ -84,8 +90,9 @@ MA 02110-1301, USA.
 - (int) countPoints;
 - (void) removeControl: (int) index;
 - (void) moveControl: (int) index point: (NSPoint) point;
-- (double) value: (double) x;
+- (double) valueNoDeadzone: (double) x;
 - (double) gradient: (double) x;
+- (NSArray *) controlPoints;
 
 @end
 
@@ -106,8 +113,11 @@ MA 02110-1301, USA.
 - (OOJoystickAxisProfile *) getProfile: (NSString *) name;
 - (BOOL) removeProfile: (NSString *) name;
 - (NSArray *) listProfiles;
-- (OOJoystickAxisProfile *) setProfileByName: (NSString *) name forAxis: (int) axis;
+- (void) setProfileName: (NSString *) name forAxis: (int) axis;
 - (NSString *) getProfileNameForAxis: (int) axis;
+- (BOOL) isProfileUsed: (NSString *) profileName;
+- (BOOL) doesProfileExist: (NSString *) profileName;
+- (BOOL) renameProfile: (NSString *) from to: (NSString *) to;
 
 @end
 

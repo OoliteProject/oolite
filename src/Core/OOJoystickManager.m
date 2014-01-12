@@ -157,8 +157,10 @@ static id sSharedStickHandler = nil;
 {
 	if (axis >= 0 && axis < MAX_AXES)
 	{
+		[profileManager setProfileName: profileName forAxis: axis];
 		[axisProfiles[axis] release];
-		axisProfiles[axis] = [[profileManager setProfileByName: profileName forAxis: axis] retain];
+		axisProfiles[axis] = [[profileManager getProfile: profileName] retain];
+		return;
 	}
 	return;
 }

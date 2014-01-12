@@ -30,14 +30,11 @@ MA 02110-1301, USA.
 #import "OOJoystickProfile.h"
 #import "Universe.h"
 
-#define GUI_ROW_STICKPROFILE_BACK	18
-#define GUI_ROW_STICKPROFILE_AXIS	2
-#define GUI_ROW_STICKPROFILE_PROFILE 	3
-
 @interface PlayerEntity (StickProfile)
 
 - (void) setGuiToStickProfileScreen: (GuiDisplayGen *) gui;
 - (void) stickProfileInputHandler: (GuiDisplayGen *) gui view: (MyOpenGLView *) gameView;
+- (void) stickProfileGraphAxisProfile: (GLfloat) alpha screenAt: (Vector) screenAt screenSize: (NSSize) screenSize;
 
 @end
 
@@ -47,17 +44,19 @@ MA 02110-1301, USA.
 	OOJoystickManager *stickHandler;
 	OOJoystickAxisProfileManager *profileManager;
 	NSUInteger current_axis;
-	BOOL axis_key_pressed;
+	BOOL is_polynomial;
+	BOOL is_spline;
+	int current_screen;
+	int new_type;
+	NSString *edit_profile;
+	NSString *delete_profile;
+	OOJoystickAxisProfile *current_edit_profile;
+	BOOL editing_name;
 }
 
 - (id) init;
 - (void) dealloc;
 - (void) setGuiToScreen: (GuiDisplayGen *) gui;
-- (void) nextAxis: (GuiDisplayGen *) gui;
-- (void) previousAxis: (GuiDisplayGen *) gui;
-- (void) nextProfile: (GuiDisplayGen *) gui;
-- (void) previousProfile: (GuiDisplayGen *) gui;
-- (void) saveSettings;
-
+- (BOOL) isEditingText;
 @end
 

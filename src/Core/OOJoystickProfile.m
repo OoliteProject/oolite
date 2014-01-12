@@ -131,11 +131,11 @@ MA 02110-1301, USA.
 
 - (void) setDeadzone: (double) newValue
 {
-	deadzone = newValue;
+	deadzone = OOClamp_0_max_d(newValue, STICKPROFILE_MAX_DEADZONE);
 }
 
 
-- (double) value: (double) x
+- (double) removeDeadzone: (double) x
 {
 	if (fabs(x) < deadzone) return 0.0;
 	if (x < 0)
@@ -143,6 +143,17 @@ MA 02110-1301, USA.
 		return -OOClamp_0_1_d(-x-deadzone)/(1.0-deadzone);
 	}
 	return OOClamp_0_1_d(x-deadzone)/(1.0 - deadzone);
+}
+
+- (double) valueNoDeadzone: (double) x
+{
+	return x;
+}
+
+
+- (double) value: (double) x
+{
+	return [self valueNoDeadzone: [self removeDeadzone:x]];
 }
 
 @end
@@ -161,7 +172,7 @@ MA 02110-1301, USA.
 
 - (id) initWithCoder: (NSCoder *) encoder
 {
-	if ((self = [super init]))
+	if ((self = [super initWithCoder: encoder]))
 	{
 		if ([encoder containsValueForKey: @"Power"])
 		{
@@ -185,6 +196,7 @@ MA 02110-1301, USA.
 
 - (void) encodeWithCoder: (NSCoder *) encoder
 {
+	[super encodeWithCoder: encoder];
 	[encoder encodeInt: power forKey: @"Power"];
 	[encoder encodeDouble: parameter forKey: @"Parameter"];
 	return;
@@ -200,7 +212,18 @@ MA 02110-1301, USA.
 
 - (void) setPower: (unsigned int) newValue
 {
-	power = newValue;
+	if (newValue <= 0)
+	{
+		power = 1;
+	}
+	else if (newValue > 20)
+	{
+		power = 20;
+	}
+	else
+	{
+		power = newValue;
+	}
 	return;
 }
 
@@ -222,10 +245,8 @@ MA 02110-1301, USA.
 }
 
 
-- (double) value: (double) x
+- (double) valueNoDeadzone: (double) x
 {
-	// remove deadzone
-	x = [super value:x];
 	if (x < 0)
 	{
 		return -OOClamp_0_1_d(parameter * pow(-x,power)-(parameter - 1.0)*(-x));
@@ -439,7 +460,7 @@ MA 02110-1301, USA.
 
 - (id) initWithCoder: (NSCoder *) encoder
 {
-	if ((self = [super init]))
+	if ((self = [super initWithCoder: encoder]))
 	{
 		if ([encoder containsValueForKey: @"ControlPoints"])
 		{
@@ -457,6 +478,7 @@ MA 02110-1301, USA.
 
 - (void) encodeWithCoder: (NSCoder *) encoder;
 {
+	[super encodeWithCoder: encoder];
 	[encoder encodeObject: controlPoints forKey: @"ControlPoints"];
 	return;
 }
@@ -533,7 +555,12 @@ MA 02110-1301, USA.
 {
 	return [controlPoints count];
 }
-	
+
+
+- (NSArray *) controlPoints
+{
+	return [NSArray arrayWithArray: controlPoints];
+}
 
 // Calculate segments from control points
 - (BOOL) makeSegments
@@ -661,7 +688,7 @@ MA 02110-1301, USA.
 	return;
 }
 
-- (double) value: (double) x
+- (double) valueNoDeadzone: (double) x
 {
 	int i;
 	OOJoystickSplineSegment *segment;
@@ -670,7 +697,7 @@ MA 02110-1301, USA.
 		segment = [segments objectAtIndex: i];
 		if ([segment end] > x)
 		{
-			return [segment value:x];
+			return OOClamp_0_1_d([segment value:x]);
 		}
 	}
 	return 1.0;
@@ -844,7 +871,7 @@ MA 02110-1301, USA.
 	OOJoystickAxisProfile *profile;
 	
 	profile = [profiles objectForKey: name];
-	if (profile == nil)
+	if (!profile)
 	{
 		profile = [[[OOJoystickAxisProfile alloc] init] autorelease];
 		[profiles setObject: profile forKey: name];
@@ -875,11 +902,10 @@ MA 02110-1301, USA.
 	return [[profiles allKeys] sortedArrayUsingSelector: @selector(caseInsensitiveCompare:)];
 }
 
-- (OOJoystickAxisProfile *) setProfileByName: (NSString *) name forAxis: (int) axis
+- (void) setProfileName: (NSString *) name forAxis: (int) axis
 {
-	OOJoystickAxisProfile *profile = [self getProfile: name];
 	[axisProfileNames setObject: name forKey: [NSNumber numberWithInt: axis]];
-	return profile;
+	return;
 }
 
 - (NSString*) getProfileNameForAxis: (int) axis
@@ -892,6 +918,51 @@ MA 02110-1301, USA.
 	return @"Standard";
 }
 
+- (BOOL) isProfileUsed: (NSString *) profileName
+{
+	if ([[axisProfileNames allKeysForObject: profileName] count] == 0)
+	{
+		return NO;
+	}
+	if ([profileName isEqualToString: @"Standard"]) return YES;
+	return YES;
+}
+
+- (BOOL) doesProfileExist: (NSString *) profileName
+{
+	if ([profiles objectForKey: profileName])
+	{
+		return YES;
+	}
+	return NO;
+}
+
+- (BOOL) renameProfile: (NSString *) from to: (NSString *) to
+{
+	NSEnumerator *enumerator;
+	id next;
+	
+	if ([self doesProfileExist: from])
+	{
+		return NO;
+	}
+
+	if ([profiles objectForKey: from])
+	{
+		[profiles setObject: [profiles objectForKey: from] forKey: to];
+		[profiles removeObjectForKey: from];
+	}
+	
+	enumerator = [axisProfileNames keyEnumerator];
+	while ((next = [enumerator nextObject]))
+	{
+		if ([from isEqualToString: [axisProfileNames objectForKey: next]])
+		{
+			[axisProfileNames setObject: to forKey: next];
+		}
+	}
+	return YES;
+}
 
 @end
 
