@@ -1059,7 +1059,7 @@
 	"oolite-scenario-tutorial-description"	= "Take a standard Cooperative flight training course, including simulated combat and docking practice.";
 
 	"oolite-oxzmanager-title"		= "Expansion Pack Manager";
-	"oolite-oxzmanager-title-download"	= "Downloading file...";
+	"oolite-oxzmanager-title-downloading"	= "Downloading file...";
 	"oolite-oxzmanager-title-install"	= "Select pack to install";
 	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
 	"oolite-oxzmanager-exit"		= "Return to Menu";

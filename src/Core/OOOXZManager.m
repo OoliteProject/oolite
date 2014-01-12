@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOCollectionExtractors.h"
 #import "NSFileManagerOOExtensions.h"
+#import "OOColor.h"
 
 #import "OOManifestProperties.h"
 
@@ -49,6 +50,15 @@ static NSString * const kOOOXZTmpPlistPath = @"Oolite-download.plist";
 
 static NSString * const kOOOXZErrorLog = @"oxz.manager.error";
 static NSString * const kOOOXZDebugLog = @"oxz.manager.debug";
+
+typedef enum {
+	OXZ_INSTALLABLE_OKAY,
+	OXZ_INSTALLABLE_DEPENDENCIES,
+	OXZ_UNINSTALLABLE_ALREADY,
+	OXZ_UNINSTALLABLE_VERSION,
+	OXZ_UNINSTALLABLE_MANUAL
+} OXZInstallableState;
+
 
 
 static OOOXZManager *sSingleton = nil;
@@ -68,6 +78,10 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) beginDownload:(NSURLRequest *)request;
 - (BOOL) processDownloadedManifests;
 - (BOOL) processDownloadedOXZ;
+
+- (OXZInstallableState) installableState:(NSDictionary *)manifest;
+- (OOColor *) colorForManifest:(NSDictionary *)manifest;
+
 
 - (void) setOXZList:(NSArray *)list;
 - (void) setCurrentDownload:(NSURLConnection *)download;
@@ -381,6 +395,61 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (OXZInstallableState) installableState:(NSDictionary *)manifest
+{
+	NSString *title = [manifest oo_stringForKey:kOOManifestTitle defaultValue:nil];
+	NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier defaultValue:nil];
+	/* Check Oolite version */
+	if (![ResourceManager checkVersionCompatibility:manifest forOXP:title])
+	{
+		return OXZ_UNINSTALLABLE_VERSION;
+	}
+	/* Check for manual or current install */
+	NSDictionary *installed = [ResourceManager manifestForIdentifier:identifier];
+	if (installed != nil)
+	{
+		if (![[installed oo_stringForKey:kOOManifestFilePath] hasPrefix:[self installPath]])
+		{
+			// installed manually
+			return OXZ_UNINSTALLABLE_MANUAL;
+		}
+		if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:kOOManifestVersion]])
+		{
+			// installed this exact version already
+			return OXZ_UNINSTALLABLE_ALREADY;
+		}
+	}
+	/* Check for dependencies being met */
+	if ([ResourceManager manifestHasConflicts:manifest logErrors:NO] || [ResourceManager manifestHasMissingDependencies:manifest logErrors:NO]) 
+	{
+		return OXZ_INSTALLABLE_DEPENDENCIES;
+	} 
+	else
+	{
+		return OXZ_INSTALLABLE_OKAY;
+	}
+}
+
+
+- (OOColor *) colorForManifest:(NSDictionary *)manifest
+{
+	switch ([self installableState:manifest])
+	{
+	case OXZ_INSTALLABLE_OKAY:
+		return [OOColor yellowColor];
+	case OXZ_INSTALLABLE_DEPENDENCIES:
+		return [OOColor orangeColor];
+	case OXZ_UNINSTALLABLE_ALREADY:
+		return [OOColor greenColor];
+	case OXZ_UNINSTALLABLE_MANUAL:
+		return [OOColor redColor];
+	case OXZ_UNINSTALLABLE_VERSION:
+		return [OOColor grayColor];
+	}
+	return [OOColor yellowColor]; // never
+}
+
+
 // TODO: move these constants somewhere better and use an enum instead
 #define OXZ_GUI_ROW_FIRSTRUN	1
 #define OXZ_GUI_ROW_PROGRESS	1
@@ -571,6 +640,11 @@ static OOOXZManager *sSingleton = nil;
 	}
 	_item = item;
 	NSDictionary *manifest = [_oxzList objectAtIndex:item];
+	if ([self installableState:manifest] >= OXZ_UNINSTALLABLE_ALREADY)
+	{
+		// can't be installed on this version of Oolite, or already is installed
+		return NO;
+	}
 	NSString *url = [manifest objectForKey:kOOManifestDownloadURL];
 	if (url == nil)
 	{
@@ -692,11 +766,11 @@ static OOOXZManager *sSingleton = nil;
 			 [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 			 installedVersion,
 		  nil] forRow:row];
+
 		[gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
-		
-		/* TODO: yellow for installable, orange for dependency issues, grey and unselectable for version issues, green and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version.
+		/* yellow for installable, orange for dependency issues, grey and unselectable for version issues, green and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version. */
 		[gui setColor:[self colorForManifest:manifest] forRow:row];
-		*/
+
 		if (row == [gui selectedRow])
 		{
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];

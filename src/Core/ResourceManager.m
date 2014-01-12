@@ -482,15 +482,8 @@ static NSMutableDictionary *sStringCache;
 	{
 		return NO;
 	}
-	NSString *maxRequired = [manifest oo_stringForKey:kOOManifestMaximumOoliteVersion defaultValue:nil];
-	if (maxRequired == nil)
-	{
-		OK = [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", nil] forOXP:title andFile:@"manifest.plist"];
-	}
-	else
-	{
-		OK = [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", maxRequired, @"max_version", nil] forOXP:title andFile:@"manifest.plist"];
-	}
+	OK = [self checkVersionCompatibility:manifest forOXP:title];
+
 	if (!OK)
 	{
 		NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -511,6 +504,21 @@ static NSMutableDictionary *sStringCache;
 	// add an extra key
 	[sOXPManifests setObject:mData forKey:identifier];
 	return YES;
+}
+
+
++ (BOOL) checkVersionCompatibility:(NSDictionary *)manifest forOXP:(NSString *)title
+{
+	NSString 	*required = [manifest oo_stringForKey:kOOManifestRequiredOoliteVersion defaultValue:nil];
+	NSString *maxRequired = [manifest oo_stringForKey:kOOManifestMaximumOoliteVersion defaultValue:nil];
+	if (maxRequired == nil)
+	{
+		return [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", nil] forOXP:title andFile:@"manifest.plist"];
+	}
+	else
+	{
+		return [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", maxRequired, @"max_version", nil] forOXP:title andFile:@"manifest.plist"];
+	}
 }
 
 
@@ -584,15 +592,47 @@ static NSMutableDictionary *sStringCache;
 }
 
 
++ (BOOL) manifestHasConflicts:(NSDictionary *)manifest logErrors:(BOOL)logErrors
+{
+	NSDictionary	*conflicting = nil;
+	NSDictionary	*conflictManifest = nil;
+	NSString		*conflictID = nil;
+	NSArray			*conflicts = nil;
+	
+	conflicts = [manifest oo_arrayForKey:kOOManifestConflictOXPs defaultValue:nil];
+	// if it has a non-empty conflict_oxps list 
+	if (conflicts != nil && [conflicts count] > 0)
+	{
+		// iterate over that list
+		foreach (conflicting, conflicts)
+		{
+			conflictID = [conflicting oo_stringForKey:kOOManifestRelationIdentifier];
+			conflictManifest = [sOXPManifests objectForKey:conflictID];
+			// if the other OXP is in the list
+			if (conflictManifest != nil)
+			{
+				// then check versions
+				if ([self matchVersions:conflicting withVersion:[conflictManifest oo_stringForKey:kOOManifestVersion]])
+				{
+					if (logErrors)
+					{
+						[self addErrorWithKey:@"oxp-conflict" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[conflictManifest oo_stringForKey:kOOManifestTitle]];
+						OOLog(@"oxp.conflict",@"OXP %@ conflicts with %@ and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent],[[conflictManifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
+					}
+					return YES;
+				}
+			}
+		}
+	}
+	return NO;
+}
+
+
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths
 {
 	NSDictionary	*manifest = nil;
-	NSDictionary	*conflicting = nil;
-	NSDictionary	*conflictManifest = nil;
 	NSString		*identifier = nil;
-	NSString		*conflictID = nil;
 	NSArray			*identifiers = [sOXPManifests allKeys];
-	NSArray			*conflicts = nil;
 
 	// take a copy because we'll mutate the original
 	// foreach identified add-on
@@ -601,45 +641,64 @@ static NSMutableDictionary *sStringCache;
 		manifest = [sOXPManifests objectForKey:identifier];
 		if (manifest != nil)
 		{
-			conflicts = [manifest oo_arrayForKey:kOOManifestConflictOXPs defaultValue:nil];
-			// if it has a non-empty conflict_oxps list 
-			if (conflicts != nil && [conflicts count] > 0)
+			if ([self manifestHasConflicts:manifest logErrors:YES])
 			{
-				// iterate over that list
-				foreach (conflicting, conflicts)
-				{
-					conflictID = [conflicting oo_stringForKey:kOOManifestRelationIdentifier];
-					conflictManifest = [sOXPManifests objectForKey:conflictID];
-					// if the other OXP is in the list
-					if (conflictManifest != nil)
-					{
-						// then check versions
-						if ([self matchVersions:conflicting withVersion:[conflictManifest oo_stringForKey:kOOManifestVersion]])
-						{
-							// then we have a conflict, so remove this path
-							[self addErrorWithKey:@"oxp-conflict" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[conflictManifest oo_stringForKey:kOOManifestTitle]];
-							OOLog(@"oxp.conflict",@"OXP %@ conflicts with %@ and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent],[[conflictManifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
-							[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
-							[sOXPManifests removeObjectForKey:identifier];
-							break;
-						}
-					}
-				}
+				// then we have a conflict, so remove this path
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
 			}
 		}
 	}
 }
 
 
++ (BOOL) manifestHasMissingDependencies:(NSDictionary *)manifest logErrors:(BOOL)logErrors
+{
+	NSDictionary	*required = nil;
+	NSDictionary	*requiredManifest = nil;
+	NSString		*requiredID = nil;
+	NSArray			*requireds = nil;
+
+	requireds = [manifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
+	// if it has a non-empty required_oxps list 
+	if (requireds != nil && [requireds count] > 0)
+	{
+		// iterate over that list
+		foreach (required, requireds)
+		{
+			requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
+			requiredManifest = [sOXPManifests objectForKey:requiredID];
+			// if the other OXP is in the list
+			BOOL requirementsMet = NO;
+			if (requiredManifest != nil)
+			{
+				// then check versions
+				if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]])
+				{
+					requirementsMet = YES;
+				}
+			}
+			if (!requirementsMet)
+			{
+				if (logErrors)
+				{
+					[self addErrorWithKey:@"oxp-required" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[required oo_stringForKey:kOOManifestRelationDescription defaultValue:[required oo_stringForKey:kOOManifestRelationIdentifier]]];
+					OOLog(@"oxp.requirementMissing",@"OXP %@ had unmet requirements and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
+				}
+				return YES;
+			}
+		}
+	}
+	return NO;
+}
+
+
+
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths
 {
 	NSDictionary	*manifest = nil;
-	NSDictionary	*required = nil;
-	NSDictionary	*requiredManifest = nil;
 	NSString		*identifier = nil;
-	NSString		*requiredID = nil;
 	NSArray			*identifiers = [sOXPManifests allKeys];
-	NSArray			*requireds = nil;
 
 	BOOL			allMet = YES;
 
@@ -650,36 +709,12 @@ static NSMutableDictionary *sStringCache;
 		manifest = [sOXPManifests objectForKey:identifier];
 		if (manifest != nil)
 		{
-			requireds = [manifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
-			// if it has a non-empty required_oxps list 
-			if (requireds != nil && [requireds count] > 0)
+			if ([self manifestHasMissingDependencies:manifest logErrors:YES])
 			{
-				// iterate over that list
-				foreach (required, requireds)
-				{
-					requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
-					requiredManifest = [sOXPManifests objectForKey:requiredID];
-					// if the other OXP is in the list
-					BOOL requirementsMet = NO;
-					if (requiredManifest != nil)
-					{
-						// then check versions
-						if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]])
-						{
-							requirementsMet = YES;
-						}
-					}
-					if (!requirementsMet)
-					{
-						// then we have a missing requirement, so remove this path
-						[self addErrorWithKey:@"oxp-required" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[required oo_stringForKey:kOOManifestRelationDescription defaultValue:[required oo_stringForKey:kOOManifestRelationIdentifier]]];
-						OOLog(@"oxp.requirementMissing",@"OXP %@ had unmet requirements and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
-						[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
-						[sOXPManifests removeObjectForKey:identifier];
-						allMet = NO;
-						break;
-					}
-				}
+				// then we have a missing requirement, so remove this path
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
+				allMet = NO;
 			}
 		}
 	}

@@ -56,6 +56,11 @@ typedef enum
 
 // get manifest data for identifier
 + (NSDictionary *)manifestForIdentifier:(NSString *)identifier;
+// compatibility checks
++ (BOOL) checkVersionCompatibility:(NSDictionary *)manifest forOXP:(NSString *)title;
++ (BOOL) manifestHasConflicts:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
++ (BOOL) manifestHasMissingDependencies:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
+
 
 + (void)handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex;
 
