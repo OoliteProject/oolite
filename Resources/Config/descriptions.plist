@@ -1059,6 +1059,9 @@
 	"oolite-scenario-tutorial-description"	= "Take a standard Cooperative flight training course, including simulated combat and docking practice.";
 
 	"oolite-oxzmanager-title"		= "Expansion Pack Manager";
+	"oolite-oxzmanager-title-download"	= "Downloading file...";
+	"oolite-oxzmanager-title-install"	= "Select pack to install";
+	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
 	"oolite-oxzmanager-exit"		= "Return to Menu";
 	"oolite-oxzmanager-acknowledge"	= "Continue";
 	"oolite-oxzmanager-download-list"	= "Download expansions list";
@@ -1067,8 +1070,10 @@
 	"oolite-oxzmanager-remove"		= "Remove expansion pack";
 	"oolite-oxzmanager-firstrun"	= "Before Oolite can install your requested expansions automatically, it needs to retrieve the expansions list. You will need to be connected to the internet for this to work. Use the 'Download expansions list' option when you are ready, or 'Return to Menu' if you do not have internet access now or would rather download and install expansions yourself.";
 	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.";
+	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed. Expansion packs which you have installed manually must also be removed manually.";
 	"oolite-oxzmanager-progress-@-of-@"	= "Downloading: %lu of %lu";
 	"oolite-oxzmanager-progress-done"		= "Download complete";
+	"oolite-oxzmanager-removal-done"		= "Expansion pack removed";
 	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details.";
 	"oolite-oxzmanager-heading-category"	= "Category";
 	"oolite-oxzmanager-heading-title"		= "Title";

@@ -38,7 +38,7 @@ static NSString * const kOOManifestDownloadURL			= @"download_url";
 // this property is not contained in the manifest.plist but is
 // calculated by Oolite
 static NSString * const kOOManifestFilePath				= @"file_path";
-// following manifest.plist properties not yet used by Oolite
+// following manifest.plist properties not (yet?) used by Oolite
 // but may be used by other manifest reading applications
 #if 0
 static NSString * const kOOManifestTags					= @"tags";

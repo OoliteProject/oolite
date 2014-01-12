@@ -76,6 +76,7 @@ typedef enum {
 - (BOOL) cancelUpdate;
 
 - (NSArray *) manifests;
+- (NSArray *) managedOXZs;
 
 - (void) gui;
 - (void) processSelection;

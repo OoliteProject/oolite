@@ -371,6 +371,12 @@ static NSMutableDictionary *sStringCache;
 }
 
 
++ (NSDictionary *)manifestForIdentifier:(NSString *)identifier
+{
+	return [sOXPManifests objectForKey:identifier];
+}
+
+
 + (void) checkOXPMessagesInPath:(NSString *)path
 {
 	NSArray *OXPMessageArray = OOArrayFromFile([path stringByAppendingPathComponent:@"OXPMessages.plist"]);
@@ -505,12 +511,6 @@ static NSMutableDictionary *sStringCache;
 	// add an extra key
 	[sOXPManifests setObject:mData forKey:identifier];
 	return YES;
-}
-
-
-+ (NSDictionary *)manifestForIdentifier:(NSString *)identifier
-{
-	return [sOXPManifests objectForKey:identifier];
 }
 
 
