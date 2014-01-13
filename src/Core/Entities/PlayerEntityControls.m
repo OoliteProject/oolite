@@ -1883,6 +1883,48 @@ static NSTimeInterval	time_last_frame;
 		case GUI_SCREEN_STICKMAPPER:
 			[self stickMapperInputHandler: gui view: gameView];
 
+			if ([gui selectedRow] == GUI_ROW_STICKPROFILE)
+			{
+				if ([gameView isDown: key_gui_arrow_left])
+				{
+					if (!leftRightKeyPressed)
+					{
+						[stickProfileScreen previousAxis];
+					}
+					leftRightKeyPressed = YES;
+				}
+				else if ([gameView isDown: key_gui_arrow_right])
+				{
+					if (!leftRightKeyPressed)
+					{
+						[stickProfileScreen nextAxis];
+						
+					}
+					leftRightKeyPressed = YES;
+				}
+				else
+				{
+					leftRightKeyPressed = NO;
+				}
+				if (leftRightKeyPressed)
+				{
+					int from_function = 0;
+					NSString *key = [gui keyForRow: GUI_ROW_FUNCSTART];
+					NSArray *keyComponents = [key componentsSeparatedByString:@":"];
+					if ([keyComponents count] > 1)
+					{
+						from_function = [keyComponents oo_intAtIndex:1];
+						if (from_function < 0)  from_function = 0;
+					}
+					else
+					{
+						from_function = 0;
+					}
+					[self setGuiToStickMapperScreen:from_function];
+				}
+				break;
+			}
+
 			leftRightKeyPressed = [gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left];
 			if (leftRightKeyPressed)
 			{
@@ -1903,7 +1945,7 @@ static NSTimeInterval	time_last_frame;
 					if (from_function < 0)  from_function = 0;
 					
 					[self setGuiToStickMapperScreen:from_function];
-					if ([[UNIVERSE gui] selectedRow] < 0)
+					if ([[UNIVERSE gui] selectedRow] < GUI_ROW_FUNCSTART)
 					{
 						[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART];
 					}

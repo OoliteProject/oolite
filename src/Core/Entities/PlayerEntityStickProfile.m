@@ -33,42 +33,31 @@ MA 02110-1301, USA.
 #import "OOMacroOpenGL.h"
 
 #define GUI_ROW_STICKPROFILE_BACK		18
-#define GUI_ROW_STICKPROFILE_AXIS_LABEL		1
-#define GUI_ROW_STICKPROFILE_ROLL_AXIS		2
-#define GUI_ROW_STICKPROFILE_PITCH_AXIS		3
-#define GUI_ROW_STICKPROFILE_YAW_AXIS		4
+#define GUI_ROW_STICKPROFILE_AXIS		1
+#define GUI_ROW_STICKPROFILE_PROFILE_TYPE	2
 
-#define GUI_ROW_STICKPROFILE_DEADZONE	4
-#define GUI_ROW_STICKPROFILE_POWER	5
-#define GUI_ROW_STICKPROFILE_PARAM	6
-
-#define STICKPROFILE_SCREEN_MAIN	1
-#define STICKPROFILE_SCREEN_EDIT	2
+#define GUI_ROW_STICKPROFILE_POWER	3
+#define GUI_ROW_STICKPROFILE_PARAM	4
 
 static BOOL stickProfileArrow_pressed;
-static BOOL stickProfileEnter_pressed;
 
 @interface StickProfileScreen (StickProfileInternal)
 
 - (void) showScreen;
-- (void) showMainScreen;
-- (void) showEditScreen;
-- (void) setCurrentAxis: (int) axis;
 - (void) nextProfileType;
 - (void) previousProfileType;
 - (void) increaseDeadzone;
 - (void) decreaseDeadzone;
 - (void) polyIncreasePower;
+- (BOOL) currentProfileIsPolynomial;
+- (BOOL) currentProfileIsSpline;
 - (void) polyDecreasePower;
 - (void) polyIncreaseParam;
 - (void) polyDecreaseParam;
-- (BOOL) currentProfileIsPolynomial;
-- (BOOL) currentProfileIsSpline;
-- (int) currentScreen;
 - (void) saveSettings;
 - (void) graphProfile: (GLfloat) alpha at: (Vector) at size: (NSSize) size;
 - (void) startEdit;
-- (void) endEdit;
+- (NSString *) profileType;
 
 @end
 
@@ -86,43 +75,43 @@ static BOOL stickProfileEnter_pressed;
 {
 	[self handleGUIUpDownArrowKeys];
 	
-	switch ([stickProfileScreen currentScreen])
+	if ([gameView isDown:13] && [gui selectedRow] == GUI_ROW_STICKPROFILE_BACK)
 	{
-	case STICKPROFILE_SCREEN_MAIN:
-		if ([gameView isDown:13] && [gui selectedRow] == GUI_ROW_STICKPROFILE_BACK)
+		[stickProfileScreen saveSettings];
+		[self setGuiToStickMapperScreen: 0];
+	}
+	if ([gui selectedRow] == GUI_ROW_STICKPROFILE_PROFILE_TYPE)
+	{
+		if ([gameView isDown:key_gui_arrow_left])
 		{
-			[stickProfileScreen saveSettings];
-			[self setGuiToStickMapperScreen: 0];
+			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
+			{
+				[stickProfileScreen previousProfileType];
+				stickProfileArrow_pressed = YES;
+			}
 		}
-		switch ([gui selectedRow])
+		else if ([gameView isDown: key_gui_arrow_right])
 		{
-		case GUI_ROW_STICKPROFILE_ROLL_AXIS:
-			[stickProfileScreen setCurrentAxis: AXIS_ROLL];
-			break;
-		
-		case GUI_ROW_STICKPROFILE_PITCH_AXIS:
-			[stickProfileScreen setCurrentAxis: AXIS_PITCH];
-			break;
-		
-		case GUI_ROW_STICKPROFILE_YAW_AXIS:
-			[stickProfileScreen setCurrentAxis: AXIS_YAW];
-			break;
+			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
+			{
+				[stickProfileScreen nextProfileType];
+				stickProfileArrow_pressed = YES;
+			}
 		}
-		break;
-	
-	case STICKPROFILE_SCREEN_EDIT:
-		if ([gameView isDown:13] && [gui selectedRow] == GUI_ROW_STICKPROFILE_BACK)
+		else
 		{
-			[stickProfileScreen endEdit];
+			stickProfileArrow_pressed = NO;
 		}
-		switch ([gui selectedRow])
+	}
+	if ([stickProfileScreen currentProfileIsPolynomial])
+	{
+		if ([gui selectedRow] == GUI_ROW_STICKPROFILE_POWER)
 		{
-		case GUI_ROW_STICKPROFILE_DEADZONE:
 			if ([gameView isDown:key_gui_arrow_left])
 			{
 				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
 				{
-					[stickProfileScreen decreaseDeadzone];
+					[stickProfileScreen polyDecreasePower];
 					stickProfileArrow_pressed = YES;
 				}
 			}
@@ -130,7 +119,7 @@ static BOOL stickProfileEnter_pressed;
 			{
 				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
 				{
-					[stickProfileScreen increaseDeadzone];
+					[stickProfileScreen polyIncreasePower];
 					stickProfileArrow_pressed = YES;
 				}
 			}
@@ -138,57 +127,28 @@ static BOOL stickProfileEnter_pressed;
 			{
 				stickProfileArrow_pressed = NO;
 			}
-			break;
-	
 		}
-
-		if ([stickProfileScreen currentProfileIsPolynomial])
+		else if ([gui selectedRow] == GUI_ROW_STICKPROFILE_PARAM)
 		{
-			if ([gui selectedRow] == GUI_ROW_STICKPROFILE_POWER)
+			if ([gameView isDown:key_gui_arrow_left])
 			{
-				if ([gameView isDown:key_gui_arrow_left])
+				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
 				{
-					if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
-					{
-						[stickProfileScreen polyDecreasePower];
-						stickProfileArrow_pressed = YES;
-					}
-				}
-				else if ([gameView isDown: key_gui_arrow_right])
-				{
-					if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
-					{
-						[stickProfileScreen polyIncreasePower];
-						stickProfileArrow_pressed = YES;
-					}
-				}
-				else
-				{
-					stickProfileArrow_pressed = NO;
+					[stickProfileScreen polyDecreaseParam];
+					stickProfileArrow_pressed = YES;
 				}
 			}
-			else if ([gui selectedRow] == GUI_ROW_STICKPROFILE_PARAM)
+			else if ([gameView isDown: key_gui_arrow_right])
 			{
-				if ([gameView isDown:key_gui_arrow_left])
+				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
 				{
-					if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
-					{
-						[stickProfileScreen polyDecreaseParam];
-						stickProfileArrow_pressed = YES;
-					}
+					[stickProfileScreen polyIncreaseParam];
+					stickProfileArrow_pressed = YES;
 				}
-				else if ([gameView isDown: key_gui_arrow_right])
-				{
-					if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
-					{
-						[stickProfileScreen polyIncreaseParam];
-						stickProfileArrow_pressed = YES;
-					}
-				}
-				else
-				{
-					stickProfileArrow_pressed = NO;
-				}
+			}
+			else
+			{
+				stickProfileArrow_pressed = NO;
 			}
 		}
 	}
@@ -197,15 +157,8 @@ static BOOL stickProfileEnter_pressed;
 
 - (void) stickProfileGraphAxisProfile: (GLfloat) alpha screenAt: (Vector) screenAt screenSize: (NSSize) screenSize
 {
-	switch ([stickProfileScreen currentScreen])
-	{
-	case STICKPROFILE_SCREEN_MAIN:
-		[stickProfileScreen graphProfile: alpha at: make_vector(screenAt.x + screenSize.width/2.0 - 150, screenAt.y + screenSize.height/2.0 - 190, screenAt.z) size: NSMakeSize(150,150)];
-		break;
-	case STICKPROFILE_SCREEN_EDIT:
-		[stickProfileScreen graphProfile: alpha at: make_vector(screenAt.x + screenSize.width/2.0 - 150, screenAt.y + screenSize.height/2.0 - 190, screenAt.z) size: NSMakeSize(150,150)];
-		break;
-	}
+
+	[stickProfileScreen graphProfile: alpha at: make_vector(screenAt.x + screenSize.width/2.0 - 150, screenAt.y + screenSize.height/2.0 - 190, screenAt.z) size: NSMakeSize(150,150)];
 	return;
 }
 
@@ -219,14 +172,59 @@ static BOOL stickProfileEnter_pressed;
 	{
 		stickHandler = [OOJoystickManager sharedStickHandler];
 		current_axis = AXIS_ROLL;
+		profiles[0] = nil;
+		profiles[1] = nil;
+		profiles[2] = nil;
 	}
 	return self;
+}
+
+- (void) dealloc
+{
+	[profiles[0] release];
+	[profiles[1] release];
+	[profiles[2] release];
+	[super dealloc];
+}
+
+- (void) nextAxis
+{
+	if (current_axis == AXIS_ROLL)
+		current_axis = AXIS_PITCH;
+	else if (current_axis == AXIS_PITCH)
+		current_axis = AXIS_YAW;
+	return;
+}
+
+- (void) previousAxis
+{
+	if (current_axis == AXIS_PITCH)
+		current_axis = AXIS_ROLL;
+	else if (current_axis == AXIS_YAW)
+		current_axis = AXIS_PITCH;
+	return;
+}
+
+- (NSString *) currentAxis
+{
+	switch (current_axis)
+	{
+	case AXIS_ROLL:
+		return @"Roll";
+	
+	case AXIS_PITCH:
+		return @"Pitch";
+		
+	case AXIS_YAW:
+		return @"Yaw";
+	}
+	return @"";
 }
 
 - (void) startGui: (GuiDisplayGen *) gui_display_gen
 {
 	gui = gui_display_gen;
-	current_screen = STICKPROFILE_SCREEN_MAIN;
+	[self startEdit];
 	[gui clear];
 	[gui setTitle: [NSString stringWithFormat: @"Joystick Profile"]];
 	[self showScreen];
@@ -238,39 +236,71 @@ static BOOL stickProfileEnter_pressed;
 
 @implementation StickProfileScreen (StickProfileInternal)
 
-- (void) setCurrentAxis: (int) axis
-{
-	current_axis = axis;
-	return;
-}
-
 - (void) nextProfileType
 {
-	switch (current_profile_type)
+	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
+	
+	if ([profile isKindOfClass: [OOJoystickPolynomialAxisProfile class]])
 	{
-	case JOYSTICK_PROFILE_TYPE_STANDARD:
-		current_profile_type = JOYSTICK_PROFILE_TYPE_POLYNOMIAL;
-		break;
-
-	case JOYSTICK_PROFILE_TYPE_POLYNOMIAL:
-		current_profile_type = JOYSTICK_PROFILE_TYPE_SPLINE;
-		break;
+		if (profiles[1])
+		{
+			[profiles[1] release];
+		}
+		profiles[1] = [profile retain];
+		if (!profiles[2])
+		{
+			profiles[2] = [[OOJoystickSplineAxisProfile alloc] init];
+		}
+		[stickHandler setProfile: profiles[2] forAxis: current_axis];
 	}
+	else if(![profile isKindOfClass: [OOJoystickSplineAxisProfile class]])
+	{
+		if (profiles[0])
+		{
+			[profiles[0] release];
+		}
+		profiles[0] = [profile retain];
+		if (!profiles[1])
+		{
+			profiles[1] = [[OOJoystickPolynomialAxisProfile alloc] init];
+		}
+		[stickHandler setProfile: profiles[1] forAxis: current_axis];
+	}
+	[self showScreen];
 	return;
 }
 
 - (void) previousProfileType
 {
-	switch (current_profile_type)
-	{
-	case JOYSTICK_PROFILE_TYPE_SPLINE:
-		current_profile_type = JOYSTICK_PROFILE_TYPE_POLYNOMIAL;
-		break;
+	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
 	
-	case JOYSTICK_PROFILE_TYPE_POLYNOMIAL:
-		current_profile_type = JOYSTICK_PROFILE_TYPE_STANDARD;
-		break;
+	if ([profile isKindOfClass: [OOJoystickPolynomialAxisProfile class]])
+	{
+		if (profiles[1])
+		{
+			[profiles[1] release];
+		}
+		profiles[1] = [profile retain];
+		if (!profiles[0])
+		{
+			profiles[0] = [[OOJoystickAxisProfile alloc] init];
+		}
+		[stickHandler setProfile: profiles[0] forAxis: current_axis];
 	}
+	else if([profile isKindOfClass: [OOJoystickSplineAxisProfile class]])
+	{
+		if (profiles[2])
+		{
+			[profiles[2] release];
+		}
+		profiles[2] = [profile retain];
+		if (!profiles[1])
+		{
+			profiles[1] = [[OOJoystickPolynomialAxisProfile alloc] init];
+		}
+		[stickHandler setProfile: profiles[1] forAxis: current_axis];
+	}
+	[self showScreen];
 	return;
 }
 
@@ -309,6 +339,24 @@ static BOOL stickProfileEnter_pressed;
 	}
 	[self showScreen];
 	return;
+}
+
+- (BOOL) currentProfileIsPolynomial
+{
+	if ([[stickHandler getProfileForAxis: current_axis] isKindOfClass: [OOJoystickPolynomialAxisProfile class]])
+	{
+		return YES;
+	}
+	return NO;
+}
+
+- (BOOL) currentProfileIsSpline
+{
+	if ([[stickHandler getProfileForAxis: current_axis] isKindOfClass: [OOJoystickSplineAxisProfile class]])
+	{
+		return YES;
+	}
+	return NO;
 }
 
 - (void) polyDecreasePower
@@ -354,25 +402,6 @@ static BOOL stickProfileEnter_pressed;
 	return;
 }
 
-- (BOOL) currentProfileIsPolynomial
-{
-	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
-	return (profile && [profile isKindOfClass: [OOJoystickPolynomialAxisProfile class]]);
-}
-
-
-- (BOOL) currentProfileIsSpline
-{
-	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
-	return (profile && [profile isKindOfClass: [OOJoystickSplineAxisProfile class]]);
-}
-
-- (int) currentScreen
-{
-	return current_screen;
-}
-
-
 - (void) graphProfile: (GLfloat) alpha at: (Vector) at size: (NSSize) size
 {
 	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
@@ -417,11 +446,15 @@ static BOOL stickProfileEnter_pressed;
 
 - (void) startEdit
 {
-	return;
-}
-
-- (void) endEdit
-{
+	int i;
+	
+	for (i = 0; i < 3; i++)
+	{
+		if (profiles[i]) [profiles[i] release];
+	}
+	profiles[0] = nil;
+	profiles[1] = nil;
+	profiles[2] = nil;
 	return;
 }
 
@@ -433,39 +466,53 @@ static BOOL stickProfileEnter_pressed;
 
 - (void) showScreen
 {
-	[gui setText: @"Back" forRow: GUI_ROW_STICKPROFILE_BACK];
-	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
-	switch (current_screen)
-	{
-	case STICKPROFILE_SCREEN_EDIT:
-		[self showEditScreen];
-		break;
+	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
+	OOJoystickPolynomialAxisProfile *poly_profile;
+	NSString *v1 = @"||||||||||||||||||||";
+	NSString *v2 = @"....................";
+	int bars;
+	double value;
+	int power;
 
-	case STICKPROFILE_SCREEN_MAIN:
-	default:
-		[self showMainScreen];
-		break;
-	}
-	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
-	[gui setForegroundTextureKey:[PLAYER status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
-	[gui setBackgroundTextureKey: @"settings"];
-	return;
-}
-
-- (void) showMainScreen
-{
-	current_screen = STICKPROFILE_SCREEN_MAIN;
-
-	[gui setText: @"Axis Profiles" forRow: GUI_ROW_STICKPROFILE_AXIS_LABEL];
-	[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_AXIS_LABEL];
-	[gui setColor:[OOColor greenColor] forRow: GUI_ROW_STICKPROFILE_AXIS_LABEL];
-	[gui setText: @"Back" forRow: GUI_ROW_STICKPROFILE_BACK];
-	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
 	tabStop[0] = 50;
-	tabStop[1] = 120;
+	tabStop[1] = 140;
 	[gui setTabStops:tabStop];
+	[gui setText: @"Back" forRow: GUI_ROW_STICKPROFILE_BACK];
+	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
+	[gui setArray: [NSArray arrayWithObjects: @"Axis:", [self currentAxis], nil ] forRow: GUI_ROW_STICKPROFILE_AXIS];
+	[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_AXIS];
+	[gui setArray: [NSArray arrayWithObjects: @"Profile Type:", [self profileType], nil ] forRow: GUI_ROW_STICKPROFILE_PROFILE_TYPE];
+	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_PROFILE_TYPE];
+	if ([profile isKindOfClass:[OOJoystickPolynomialAxisProfile class]])
+	{
+		poly_profile = (OOJoystickPolynomialAxisProfile*) profile;
+		power = [poly_profile power];
+		bars = power;
+		if (bars < 0) bars = 0;
+		if (bars > 20) bars = 20;
+		[gui setArray: [NSArray arrayWithObjects: @"Power:",
+			[NSString stringWithFormat: @"%@%@ (%d) ", [v1 substringToIndex: bars], [v2 substringToIndex: 20 - bars], power],
+			nil] forRow: GUI_ROW_STICKPROFILE_POWER];
+		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_POWER];
+		value = [poly_profile parameter];
+		bars = 20*value;
+		if (bars < 0) bars = 0;
+		if (bars > 20) bars = 20;
+		[gui setArray: [NSArray arrayWithObjects: @"Parameter:",
+			[NSString stringWithFormat: @"%@%@ (%0.2f) ", [v1 substringToIndex: bars], [v2 substringToIndex: 20 - bars], value],
+			nil] forRow: GUI_ROW_STICKPROFILE_PARAM];
+		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_PARAM];
+	}
+	else
+	{
+		[gui setText: @"" forRow: GUI_ROW_STICKPROFILE_POWER];
+		[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_POWER];
+		[gui setText: @"" forRow: GUI_ROW_STICKPROFILE_PARAM];
+		[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_PARAM];
+	}
+	[gui setText: @"Back" forRow: GUI_ROW_STICKPROFILE_BACK];
+	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[PLAYER status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
@@ -473,7 +520,7 @@ static BOOL stickProfileEnter_pressed;
 	return;
 }
 
-- (void) showEditScreen
+/*- (void) showEditScreen
 {
 	OOJoystickAxisProfile *profile;
 	OOJoystickPolynomialAxisProfile *poly_profile;
@@ -524,22 +571,21 @@ static BOOL stickProfileEnter_pressed;
 		[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_PARAM];
 	}
 	return;
-}
+}*/
 
-- (NSString *) axisName: (int) axis
+- (NSString *) profileType
 {
-	switch (axis)
-	{
-	case AXIS_ROLL:
-		return @"Roll";
+	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
 	
-	case AXIS_PITCH:
-		return @"Pitch";
-		
-	case AXIS_YAW:
-		return @"Yaw";
+	if ([profile isKindOfClass: [OOJoystickPolynomialAxisProfile class]])
+	{
+		return @"Polynomial";
 	}
-	return @"";
+	if ([profile isKindOfClass: [OOJoystickSplineAxisProfile class]])
+	{
+		return @"Spline";
+	}
+	return @"Standard";
 }
 
 @end

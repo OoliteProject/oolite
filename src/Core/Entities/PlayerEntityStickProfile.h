@@ -43,12 +43,15 @@ MA 02110-1301, USA.
 @private
 	OOJoystickManager *stickHandler;
 	int current_axis;
-	int current_profile_type;
+	OOJoystickAxisProfile *profiles[3];
 	GuiDisplayGen *gui;
-	int current_screen;
 }
 
 - (id) init;
+- (void) dealloc;
+- (void) nextAxis;
+- (void) previousAxis;
+- (NSString *) currentAxis;
 - (void) startGui: (GuiDisplayGen *) gui_display_gen;
 @end
 

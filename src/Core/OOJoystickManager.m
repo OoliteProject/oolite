@@ -154,7 +154,6 @@ static id sSharedStickHandler = nil;
 	{
 		[axisProfiles[axis] release];
 		axisProfiles[axis] = [profile retain];
-		return;
 	}
 	return;
 }
@@ -562,7 +561,7 @@ static id sSharedStickHandler = nil;
 - (void) loadStickSettings
 {
 	unsigned i;
-	[self clearMappings];                  
+	[self clearMappings];
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSDictionary *axisSettings = [defaults objectForKey: AXIS_SETTINGS];
 	NSDictionary *buttonSettings = [defaults objectForKey: BUTTON_SETTINGS];
@@ -599,13 +598,9 @@ static id sSharedStickHandler = nil;
 			if (i < [axisProfileList count])
 			{
 				axisProfiles[i] = [[NSKeyedUnarchiver unarchiveObjectWithData: [axisProfileList objectAtIndex: i]] retain];
-				if (axisProfiles[i] && ![axisProfiles[i] isKindOfClass: [OOJoystickAxisProfile class]])
+				if (!axisProfiles[i] || ![axisProfiles[i] isKindOfClass: [OOJoystickAxisProfile class]])
 				{
 					[axisProfiles[i] release];
-					axisProfiles[i] = [[OOJoystickAxisProfile alloc] init];
-				}
-				else if (!axisProfiles[i])
-				{
 					axisProfiles[i] = [[OOJoystickAxisProfile alloc] init];
 				}
 			}

@@ -462,12 +462,10 @@ MA 02110-1301, USA.
 {
 	if ((self = [super initWithCoder: encoder]))
 	{
-		if ([encoder containsValueForKey: @"ControlPoints"])
+		controlPoints = [[encoder decodeObjectForKey: @"ControlPoints"] retain];
+		if (controlPoints == nil || ![controlPoints isKindOfClass: [NSMutableArray class]])
 		{
-			controlPoints = [encoder decodeObjectForKey: @"ControlPoints"];
-		}
-		else
-		{
+			[controlPoints release];
 			controlPoints = [[NSMutableArray alloc] init];
 		}
 		segments = [[NSMutableArray alloc] init];
@@ -692,12 +690,23 @@ MA 02110-1301, USA.
 {
 	int i;
 	OOJoystickSplineSegment *segment;
+	double sign;
+	
+	if (x < 0)
+	{
+		sign = -1.0;
+		x = -x;
+	}
+	else
+	{
+		sign = 1.0;
+	}
 	for (i = 0; i < [segments count]; i++)
 	{
 		segment = [segments objectAtIndex: i];
 		if ([segment end] > x)
 		{
-			return OOClamp_0_1_d([segment value:x]);
+			return sign * OOClamp_0_1_d([segment value:x]);
 		}
 	}
 	return 1.0;

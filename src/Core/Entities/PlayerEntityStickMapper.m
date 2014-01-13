@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
 
-
 @interface PlayerEntity (StickMapperInternal)
 
 - (void) removeFunction:(int)selFunctionIdx;
@@ -70,7 +69,7 @@ MA 02110-1301, USA.
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
 	
-	[gui setArray: [NSArray arrayWithObjects: @"Edit Profile", nil] forRow: GUI_ROW_STICKPROFILE];
+	[gui setArray: [NSArray arrayWithObjects: @"Edit Profile:", [stickProfileScreen currentAxis], nil] forRow: GUI_ROW_STICKPROFILE];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE];
 	
 	[self displayFunctionList:gui skip:skip];
@@ -109,7 +108,7 @@ MA 02110-1301, USA.
 	
 	[self handleGUIUpDownArrowKeys];
 	
-	if ([gameView isDown: 13] && [gui selectedRow] == GUI_ROW_STICKPROFILE)
+	if ([gui selectedRow] == GUI_ROW_STICKPROFILE && [gameView isDown: 13])
 	{
 		[self setGuiToStickProfileScreen: gui];
 		return;
