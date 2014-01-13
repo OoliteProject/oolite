@@ -1064,6 +1064,7 @@
 	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
 	"oolite-oxzmanager-exit"		= "Return to Menu";
 	"oolite-oxzmanager-acknowledge"	= "Continue";
+	"oolite-oxzmanager-cancel"		= "Cancel Download";
 	"oolite-oxzmanager-download-list"	= "Download expansions list";
 	"oolite-oxzmanager-update-list"	= "Update expansions list";
 	"oolite-oxzmanager-install"		= "Install expansion pack";

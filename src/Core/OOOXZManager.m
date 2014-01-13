@@ -60,6 +60,21 @@ typedef enum {
 } OXZInstallableState;
 
 
+enum {
+	OXZ_GUI_ROW_FIRSTRUN	= 1,
+	OXZ_GUI_ROW_PROGRESS	= 1,
+	OXZ_GUI_ROW_LISTHEAD	= 1,
+	OXZ_GUI_ROW_LISTPREV	= 2,
+	OXZ_GUI_ROW_LISTSTART	= 3,
+	OXZ_GUI_NUM_LISTROWS	= 10,
+	OXZ_GUI_ROW_LISTNEXT	= 13,
+	OXZ_GUI_ROW_LISTDESC	= 15,
+	OXZ_GUI_ROW_INSTALL		= 24,
+	OXZ_GUI_ROW_REMOVE		= 25,
+	OXZ_GUI_ROW_UPDATE		= 26,
+	OXZ_GUI_ROW_EXIT		= 27
+};
+
 
 static OOOXZManager *sSingleton = nil;
 
@@ -450,19 +465,6 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-// TODO: move these constants somewhere better and use an enum instead
-#define OXZ_GUI_ROW_FIRSTRUN	1
-#define OXZ_GUI_ROW_PROGRESS	1
-#define OXZ_GUI_ROW_LISTHEAD	1
-#define OXZ_GUI_ROW_LISTPREV	2
-#define OXZ_GUI_ROW_LISTSTART	3
-#define OXZ_GUI_NUM_LISTROWS	10
-#define OXZ_GUI_ROW_LISTNEXT	13
-#define OXZ_GUI_ROW_LISTDESC	15
-#define OXZ_GUI_ROW_INSTALL		24
-#define OXZ_GUI_ROW_REMOVE		25
-#define OXZ_GUI_ROW_UPDATE		26
-#define OXZ_GUI_ROW_EXIT		27
 
 
 - (void) gui
@@ -503,8 +505,11 @@ static OOOXZManager *sSingleton = nil;
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-downloading")];
 
 		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),_downloadProgress,_downloadExpected] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
-		// no options yet
-		// TODO: cancel option
+
+		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_CANCEL" forRow:OXZ_GUI_ROW_UPDATE];
+		startRow = OXZ_GUI_ROW_UPDATE;
+
 		break;
 	case OXZ_STATE_REMOVING:
 		[gui addLongText:DESC(@"oolite-oxzmanager-removal-done") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
@@ -586,6 +591,12 @@ static OOOXZManager *sSingleton = nil;
 	{
 		if (_interfaceState == OXZ_STATE_TASKDONE || _interfaceState == OXZ_STATE_REMOVING)
 		{
+			_interfaceState = OXZ_STATE_MAIN;
+			_downloadStatus = OXZ_DOWNLOAD_NONE;
+		}
+		else if (_interfaceState == OXZ_STATE_INSTALLING || _interfaceState == OXZ_STATE_UPDATING)
+		{
+			[self cancelUpdate];
 			_interfaceState = OXZ_STATE_MAIN;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 		}
@@ -895,11 +906,15 @@ static OOOXZManager *sSingleton = nil;
 								   [manifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 								   [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 										nil] forRow:row];
-			[gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
+			NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
+			[gui setKey:identifier forRow:row];
 		
-			/* TODO: yellow for normal, orange for 'broken'
-			   [gui setColor:[self colorForUninstall:manifest] forRow:row];
-			*/
+			if ([ResourceManager manifestForIdentifier:identifier] == nil)
+			{
+				// if not currently active, show as orange
+				[gui setColor:[OOColor orangeColor] forRow:row];
+			}
+
 			if (row == [gui selectedRow])
 			{
 				[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
