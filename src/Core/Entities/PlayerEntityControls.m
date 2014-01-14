@@ -1911,6 +1911,11 @@ static NSTimeInterval	time_last_frame;
 					int from_function = 0;
 					NSString *key = [gui keyForRow: GUI_ROW_FUNCSTART];
 					NSArray *keyComponents = [key componentsSeparatedByString:@":"];
+					if ([keyComponents count] > 0 && ![[keyComponents objectAtIndex: 0] isEqualToString: @"Index"])
+					{
+						key = [gui keyForRow: GUI_ROW_FUNCSTART + 1];
+						keyComponents = [key componentsSeparatedByString:@":"];
+					}
 					if ([keyComponents count] > 1)
 					{
 						from_function = [keyComponents oo_intAtIndex:1];

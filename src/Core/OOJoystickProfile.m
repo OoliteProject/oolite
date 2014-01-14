@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 
 #define SPLINE_POINT_MIN_SPACING 0.02
 
-@interface OOJoystickSplineSegment: NSObject <NSCopying, NSCoding>
+@interface OOJoystickSplineSegment: NSObject <NSCopying>
 {
 @private
 	double start;
@@ -65,8 +65,6 @@ MA 02110-1301, USA.
 + (id) segmentWithData: (NSPoint) left right: (NSPoint) right gradientleft: (double) gradientleft gradientright: (double) gradientright;
 
 - (id) copyWithZone: (NSZone *) zone;
-- (id) initWithCoder: (NSCoder *) encoder;
-- (void) encodeWithCoder: (NSCoder *) encoder;
 - (double) start;
 - (double) end;
 - (double) value: (double) t;
@@ -87,73 +85,28 @@ MA 02110-1301, USA.
 
 - (id) init
 {
-	if ((self = [super init]))
-	{
-		deadzone = STICK_DEADZONE;
-	}
-	return self;
-}
-
-- (id) initWithCoder: (NSCoder *) encoder
-{
-	if ((self = [super init]))
-	{
-		if ([encoder containsValueForKey: @"Deadzone"])
-		{
-			deadzone = OOClamp_0_1_d([encoder decodeDoubleForKey: @"Deadzone"]);
-		}
-		else
-		{
-			deadzone = STICK_DEADZONE;
-		}
-	}
-	return self;
-}
-
-- (void) encodeWithCoder: (NSCoder *) encoder
-{
-	[encoder encodeDouble: deadzone forKey: @"Deadzone"];
-	return;
+	return self = [super init];
 }
 
 - (id) copyWithZone: (NSZone *) zone
 {
 	OOJoystickAxisProfile *copy = [[[self class] alloc] init];
-	copy->deadzone = deadzone;
 	return copy;
-}
-
-- (double) deadzone
-{
-	return deadzone;
-}
-
-
-- (void) setDeadzone: (double) newValue
-{
-	deadzone = OOClamp_0_max_d(newValue, STICKPROFILE_MAX_DEADZONE);
-}
-
-
-- (double) removeDeadzone: (double) x
-{
-	if (fabs(x) < deadzone) return 0.0;
-	if (x < 0)
-	{
-		return -OOClamp_0_1_d(-x-deadzone)/(1.0-deadzone);
-	}
-	return OOClamp_0_1_d(x-deadzone)/(1.0 - deadzone);
-}
-
-- (double) valueNoDeadzone: (double) x
-{
-	return x;
 }
 
 
 - (double) value: (double) x
 {
-	return [self valueNoDeadzone: [self removeDeadzone:x]];
+	return x;
+}
+
+- (double) value: (double) x deadzone: (double) deadzone
+{
+	if (fabs(x) < deadzone)
+	{
+		return 0.0;
+	}
+	return x < 0 ? -[self value: (-x-deadzone)/(1.0-deadzone)] : [self value: (x-deadzone)/(1.0-deadzone)];
 }
 
 @end
@@ -164,42 +117,10 @@ MA 02110-1301, USA.
 {
 	if ((self = [super init]))
 	{
-		power = 3;
+		power = 3.0;
 		parameter = 1.0;
 	}
 	return self;
-}
-
-- (id) initWithCoder: (NSCoder *) encoder
-{
-	if ((self = [super initWithCoder: encoder]))
-	{
-		if ([encoder containsValueForKey: @"Power"])
-		{
-			power = [encoder decodeIntForKey: @"Power"];
-		}
-		else
-		{
-			power = 3;
-		}
-		if ([encoder containsValueForKey: @"Parameter"])
-		{
-			parameter = OOClamp_0_1_d([encoder decodeDoubleForKey: @"Parameter"]);
-		}
-		else
-		{
-			parameter = 1.0;
-		}
-	}
-	return self;
-}
-
-- (void) encodeWithCoder: (NSCoder *) encoder
-{
-	[super encodeWithCoder: encoder];
-	[encoder encodeInt: power forKey: @"Power"];
-	[encoder encodeDouble: parameter forKey: @"Parameter"];
-	return;
 }
 
 - (id) copyWithZone: (NSZone *) zone
@@ -210,15 +131,15 @@ MA 02110-1301, USA.
 	return copy;
 }
 
-- (void) setPower: (unsigned int) newValue
+- (void) setPower: (double) newValue
 {
-	if (newValue <= 0)
+	if (newValue < 1.0)
 	{
-		power = 1;
+		power = 1.0;
 	}
-	else if (newValue > 20)
+	else if (newValue > STICKPROFILE_MAX_POWER)
 	{
-		power = 20;
+		power = STICKPROFILE_MAX_POWER;
 	}
 	else
 	{
@@ -227,7 +148,7 @@ MA 02110-1301, USA.
 	return;
 }
 
-- (unsigned int) power
+- (double) power
 {
 	return power;
 }
@@ -245,7 +166,7 @@ MA 02110-1301, USA.
 }
 
 
-- (double) valueNoDeadzone: (double) x
+- (double) value: (double) x
 {
 	if (x < 0)
 	{
@@ -282,32 +203,6 @@ MA 02110-1301, USA.
 	copy->a[2] = a[2];
 	copy->a[3] = a[3];
 	return copy;
-}
-
-- (id) initWithCoder: (NSCoder *) encoder
-{
-	if ((self = [super init]))
-	{
-		start = [encoder decodeDoubleForKey: @"start"];
-		end = [encoder decodeDoubleForKey: @"end"];
-		a[0] = [encoder decodeDoubleForKey: @"a0"];
-		a[1] = [encoder decodeDoubleForKey: @"a1"];
-		a[2] = [encoder decodeDoubleForKey: @"a2"];
-		a[3] = [encoder decodeDoubleForKey: @"a3"];
-	}
-	return self;
-}
-
-
-- (void) encodeWithCoder: (NSCoder *) encoder
-{
-	[encoder encodeDouble: start forKey: @"start"];
-	[encoder encodeDouble: end forKey: @"end"];
-	[encoder encodeDouble: a[0] forKey: @"a0"];
-	[encoder encodeDouble: a[1] forKey: @"a1"];
-	[encoder encodeDouble: a[2] forKey: @"a2"];
-	[encoder encodeDouble: a[3] forKey: @"a3"];
-	return;
 }
 
 - (id) initWithData: (NSPoint) left right: (NSPoint) right
@@ -442,8 +337,8 @@ MA 02110-1301, USA.
 {
 	if ((self = [super init]))
 	{
-		controlPoints = [[NSMutableArray alloc] init];
-		segments = [[NSMutableArray alloc] init];
+		controlPoints = [[NSMutableArray alloc] initWithCapacity: 2];
+		segments = nil;
 		[self makeSegments];
 	}
 	return self;
@@ -457,31 +352,6 @@ MA 02110-1301, USA.
 	return;
 }
 
-
-- (id) initWithCoder: (NSCoder *) encoder
-{
-	if ((self = [super initWithCoder: encoder]))
-	{
-		controlPoints = [[encoder decodeObjectForKey: @"ControlPoints"] retain];
-		if (controlPoints == nil || ![controlPoints isKindOfClass: [NSMutableArray class]])
-		{
-			[controlPoints release];
-			controlPoints = [[NSMutableArray alloc] init];
-		}
-		segments = [[NSMutableArray alloc] init];
-		[self makeSegments];
-	}
-	return self;
-}
-
-- (void) encodeWithCoder: (NSCoder *) encoder;
-{
-	[super encodeWithCoder: encoder];
-	[encoder encodeObject: controlPoints forKey: @"ControlPoints"];
-	return;
-}
-
-
 - (id) copyWithZone: (NSZone *) zone
 {
 	OOJoystickSplineAxisProfile *copy = [[[self class] alloc] init];
@@ -491,19 +361,16 @@ MA 02110-1301, USA.
 }
 
 
-- (int) addControl: (double) x
+- (int) addControl: (NSPoint) point
 {
-	NSPoint left, right, point;
+	NSPoint left, right;
 	NSValue *value;
 	int i;
 
-	if (x <= SPLINE_POINT_MIN_SPACING || x >= 1 - SPLINE_POINT_MIN_SPACING )
+	if (point.x <= SPLINE_POINT_MIN_SPACING || point.x >= 1 - SPLINE_POINT_MIN_SPACING )
 	{
 		return -1;
 	}
-
-	point.x = x;
-	point.y = [self value: x];
 
 	left.x = 0.0;
 	left.y = 0.0;
@@ -512,6 +379,8 @@ MA 02110-1301, USA.
 		right = [[controlPoints objectAtIndex: i] pointValue];
 		if ((point.x - left.x) < SPLINE_POINT_MIN_SPACING)
 		{
+			[controlPoints replaceObjectAtIndex: i withObject: [NSValue valueWithPoint: point]];
+			[self makeSegments];
 			return i;
 		}
 		if ((right.x - point.x) >= SPLINE_POINT_MIN_SPACING)
@@ -635,6 +504,12 @@ MA 02110-1301, USA.
 	return;
 }
 
+- (void) clearControlPoints
+{
+	[controlPoints removeAllObjects];
+	[self makeSegments];
+}
+
 - (void) moveControl: (int) index point: (NSPoint) point
 {
 	NSPoint left, right;
@@ -686,7 +561,7 @@ MA 02110-1301, USA.
 	return;
 }
 
-- (double) valueNoDeadzone: (double) x
+- (double) value: (double) x
 {
 	int i;
 	OOJoystickSplineSegment *segment;

@@ -306,37 +306,12 @@ static BOOL stickProfileArrow_pressed;
 
 - (void) increaseDeadzone
 {
-	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
-	if (profile)
-	{
-		[profile setDeadzone: [profile deadzone] + STICKPROFILE_MAX_DEADZONE / 20];
-	}
 	[self showScreen];
 	return;
 }
 
 - (void) decreaseDeadzone
 {
-	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
-	if (profile)
-	{
-		[profile setDeadzone: [profile deadzone] - STICKPROFILE_MAX_DEADZONE / 20];
-	}
-	[self showScreen];
-	return;
-}
-
-- (void) polyIncreasePower
-{
-	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
-	OOJoystickPolynomialAxisProfile *poly_profile;
-
-	if (profile && [profile isKindOfClass: [OOJoystickPolynomialAxisProfile class]])
-	{
-		poly_profile = (OOJoystickPolynomialAxisProfile *) profile;
-		if ([poly_profile power] < 20)
-			[poly_profile setPower: [poly_profile power] + 1];
-	}
 	[self showScreen];
 	return;
 }
@@ -359,6 +334,20 @@ static BOOL stickProfileArrow_pressed;
 	return NO;
 }
 
+- (void) polyIncreasePower
+{
+	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
+	OOJoystickPolynomialAxisProfile *poly_profile;
+
+	if (profile && [profile isKindOfClass: [OOJoystickPolynomialAxisProfile class]])
+	{
+		poly_profile = (OOJoystickPolynomialAxisProfile *) profile;
+		[poly_profile setPower: [poly_profile power] + STICKPROFILE_MAX_POWER / 20];
+	}
+	[self showScreen];
+	return;
+}
+
 - (void) polyDecreasePower
 {
 	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
@@ -367,8 +356,7 @@ static BOOL stickProfileArrow_pressed;
 	if (profile && [profile isKindOfClass: [OOJoystickPolynomialAxisProfile class]])
 	{
 		poly_profile = (OOJoystickPolynomialAxisProfile *) profile;
-		if ([poly_profile power] > 0)
-			[poly_profile setPower: [poly_profile power] - 1];
+		[poly_profile setPower: [poly_profile power] - STICKPROFILE_MAX_POWER / 20];
 	}
 	[self showScreen];
 	return;
@@ -424,7 +412,7 @@ static BOOL stickProfileArrow_pressed;
 	OOGLBEGIN(GL_LINE_STRIP);
 		for (i = 0; i <= size.width - 20; i++)
 		{
-			glVertex3f(at.x+i+10,at.y+10+(size.height-20)*[profile valueNoDeadzone:((float)i)/(size.width-20)],at.z);
+			glVertex3f(at.x+i+10,at.y+10+(size.height-20)*[profile value:((float)i)/(size.width-20)],at.z);
 		}
 	OOGLEND();
 	OOGL(glColor4f(1.0,0.0,0.0,alpha));
@@ -472,7 +460,7 @@ static BOOL stickProfileArrow_pressed;
 	NSString *v2 = @"....................";
 	int bars;
 	double value;
-	int power;
+	double power;
 
 	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
 	tabStop[0] = 50;
@@ -488,11 +476,11 @@ static BOOL stickProfileArrow_pressed;
 	{
 		poly_profile = (OOJoystickPolynomialAxisProfile*) profile;
 		power = [poly_profile power];
-		bars = power;
+		bars = 20*power / STICKPROFILE_MAX_POWER;
 		if (bars < 0) bars = 0;
 		if (bars > 20) bars = 20;
 		[gui setArray: [NSArray arrayWithObjects: @"Power:",
-			[NSString stringWithFormat: @"%@%@ (%d) ", [v1 substringToIndex: bars], [v2 substringToIndex: 20 - bars], power],
+			[NSString stringWithFormat: @"%@%@ (%.1f) ", [v1 substringToIndex: bars], [v2 substringToIndex: 20 - bars], power],
 			nil] forRow: GUI_ROW_STICKPROFILE_POWER];
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_POWER];
 		value = [poly_profile parameter];

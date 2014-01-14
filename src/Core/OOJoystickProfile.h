@@ -32,9 +32,9 @@ MA 02110-1301, USA.
 
 */
 
-#define STICKPROFILE_MAX_DEADZONE	0.1
-#define STICK_PROFILE_TYPE_POLYNOMIAL	1
-#define STICK_PROFILE_TYPE_SPLINE	2
+#define STICKPROFILE_TYPE_POLYNOMIAL	1
+#define STICKPROFILE_TYPE_SPLINE	2
+#define STICKPROFILE_MAX_POWER		10.0
 
 enum JOYSTICK_PROFILE_TYPES {
 	JOYSTICK_PROFILE_TYPE_STANDARD,
@@ -42,40 +42,29 @@ enum JOYSTICK_PROFILE_TYPES {
 	JOYSTICK_PROFILE_TYPE_SPLINE
 };
 
-@interface OOJoystickAxisProfile : NSObject <NSCopying, NSCoding>
-{
-@private
-	double deadzone;
-}
+@interface OOJoystickAxisProfile : NSObject <NSCopying>
 
 - (id) init;
-- (id) initWithCoder: (NSCoder *) encoder;
-- (void) encodeWithCoder: (NSCoder *) encoder;
 - (id) copyWithZone: (NSZone *) zone;
-- (double) deadzone;
-- (void) setDeadzone: (double) newValue;
-- (double) removeDeadzone: (double) x;
 - (double) value: (double) x;
-- (double) valueNoDeadzone: (double) x;
+- (double) value: (double) x deadzone: (double) deadzone;
 
 @end
 
 @interface OOJoystickPolynomialAxisProfile: OOJoystickAxisProfile
 {
 @private
-	unsigned int power;
+	double power;
 	double parameter;
 }
 
 - (id) init;
-- (id) initWithCoder: (NSCoder *) encoder;
-- (void) encodeWithCoder: (NSCoder *) encoder;
 - (id) copyWithZone: (NSZone *) zone;
-- (void) setPower: (unsigned int) newValue;
-- (unsigned int) power;
+- (void) setPower: (double) newValue;
+- (double) power;
 - (void) setParameter: (double) newValue;
 - (double) parameter;
-- (double) valueNoDeadzone: (double) x;
+- (double) value: (double) x;
 
 @end
 
@@ -89,14 +78,13 @@ enum JOYSTICK_PROFILE_TYPES {
 - (id) init;
 - (void) dealloc;
 - (id) copyWithZone: (NSZone *) zone;
-- (id) initWithCoder: (NSCoder *) encoder;
-- (void) encodeWithCoder: (NSCoder *) encoder;
-- (int) addControl: (double) x;
+- (int) addControl: (NSPoint) point;
 - (NSPoint) pointAtIndex: (int) index;
 - (int) countPoints;
 - (void) removeControl: (int) index;
+- (void) clearControlPoints;
 - (void) moveControl: (int) index point: (NSPoint) point;
-- (double) valueNoDeadzone: (double) x;
+- (double) value: (double) x;
 - (double) gradient: (double) x;
 - (NSArray *) controlPoints;
 

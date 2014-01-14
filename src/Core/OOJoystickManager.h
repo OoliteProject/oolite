@@ -112,6 +112,9 @@ enum {
 #define STICK_DEADZONE	0.05
 #endif
 
+#define STICK_MAX_DEADZONE	(STICK_DEADZONE * 2)
+
+
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
 #define HW_AXIS 1
@@ -129,7 +132,10 @@ enum {
 #define STICK_AXBUT  @"stickAxBt"   // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
 #define STICK_PRECISION_SETTING @"JoystickPrecision" // Precision mode
-#define STICK_AXIS_PROFILES_SETTING @"JoystickAxisProfiles" // Joystick Profiles
+#define STICK_DEADZONE_SETTING @"JoystickDeadzone" // Deadzone
+#define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
+#define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
+#define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
 // an NSDictionary
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
@@ -230,7 +236,9 @@ typedef struct
 	BOOL		butstate[BUTTON_end];
 	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
 	BOOL		precisionMode;
-	OOJoystickAxisProfile * axisProfiles[MAX_AXES];
+	OOJoystickAxisProfile *roll_profile;
+	OOJoystickAxisProfile *pitch_profile;
+	OOJoystickAxisProfile *yaw_profile;
 	
 	// Handle callbacks - the object, selector to call
 	// the desired function, and the hardware (axis or button etc.)
@@ -238,6 +246,7 @@ typedef struct
 	SEL			cbSelector;
 	char		cbHardware;
 	BOOL		invertPitch;
+	double		deadzone;
 
 }
 
@@ -270,9 +279,15 @@ typedef struct
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
 
+// Deadzone handling
+- (void) setDeadzone: (double) newValue;
+- (double) deadzone;
+
 // Axis profile handling
 - (void) setProfile: (OOJoystickAxisProfile *) profile forAxis:(int) axis;
 - (OOJoystickAxisProfile *) getProfileForAxis: (int) axis;
+- (void) saveProfileForAxis: (int) axis;
+- (void) loadProfileForAxis: (int) axis;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg
