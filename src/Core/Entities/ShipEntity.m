@@ -3090,7 +3090,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// while loading, we mainly need to catch changes when the installed oxps set has changed since saving. 
 	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity] && !loading)  return NO;
 	if ([eqType  requiresMountedPylon] && [self missileCount] == 0 && !loading)  return NO;
-	if ([self availableCargoSpace] < [eqType requiredCargoSpace])  return NO;
+	if ([self availableCargoSpace] < [eqType requiredCargoSpace] && !loading)  return NO;
 	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment] includeWeapons:YES whileLoading:loading])  return NO;
 	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment] includeWeapons:YES whileLoading:loading])  return NO;
 	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment] includeWeapons:YES whileLoading:loading])  return NO;
@@ -7633,7 +7633,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (OOCargoQuantity) availableCargoSpace
 {
 	// OOCargoQuantity is unsigned, we need to check for underflows.
-	if (EXPECT_NOT([self cargoQuantityOnBoard] + equipment_weight >= [self maxAvailableCargoSpace])) return 0;
+	if (EXPECT_NOT([self cargoQuantityOnBoard] + equipment_weight >= max_cargo)) return 0;
 	return [self maxAvailableCargoSpace] - [self cargoQuantityOnBoard];
 }
 
