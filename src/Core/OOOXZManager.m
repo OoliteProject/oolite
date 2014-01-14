@@ -40,6 +40,8 @@ MA 02110-1301, USA.
 /* The URL for the manifest.plist array. This one is extremely
  * temporary, of course */
 static NSString * const kOOOXZDataURL = @"http://compsoc.dur.ac.uk/~cim/oolite/dev/manifests.plist";
+/* The config parameter to use a non-default URL at runtime */
+static NSString * const kOOOXZDataConfig = @"oxz-index-url";
 /* The filename to store the downloaded manifest.plist array */
 static NSString * const kOOOXZManifestCache = @"Oolite-manifests.plist";
 /* The filename to temporarily store the downloaded OXZ. Has an OXZ extension since we might want to read its manifest.plist out of it;  */
@@ -47,7 +49,7 @@ static NSString * const kOOOXZTmpPath = @"Oolite-download.oxz";
 /* The filename to temporarily store the downloaded plists. */
 static NSString * const kOOOXZTmpPlistPath = @"Oolite-download.plist";
 
-
+/* Log file record types */
 static NSString * const kOOOXZErrorLog = @"oxz.manager.error";
 static NSString * const kOOOXZDebugLog = @"oxz.manager.debug";
 
@@ -89,6 +91,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (NSString *) manifestPath;
 - (NSString *) downloadPath;
+- (NSString *) dataURL;
 
 - (BOOL) ensureInstallPath;
 
@@ -156,6 +159,7 @@ static OOOXZManager *sSingleton = nil;
 
 	[self setCurrentDownload:nil];
 	DESTROY(_oxzList);
+	DESTROY(_managedList);
 
 	[super dealloc];
 }
@@ -233,6 +237,17 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (NSString *) dataURL
+{
+	/* Not expected to be set in general, but might be useful for some users */
+	NSString *url = [[NSUserDefaults standardUserDefaults] stringForKey:kOOOXZDataConfig];
+	if (url != nil)
+	{
+		return url;
+	}
+	return kOOOXZDataURL;
+}
+
 
 
 - (void) setOXZList:(NSArray *)list
@@ -257,7 +272,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) updateManifests
 {
-	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kOOOXZDataURL]];
+	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[self dataURL]]];
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
@@ -307,7 +322,14 @@ static OOOXZManager *sSingleton = nil;
 		[[NSFileManager defaultManager] oo_removeItemAtPath:path];
 	}
 	_downloadStatus = OXZ_DOWNLOAD_NONE;
-	_interfaceState = OXZ_STATE_MAIN;
+	if (_interfaceState == OXZ_STATE_INSTALLING)
+	{
+		_interfaceState = OXZ_STATE_PICK_INSTALL;
+	}
+	else
+	{
+		_interfaceState = OXZ_STATE_MAIN;
+	}
 	[self gui];
 	return YES;
 }
@@ -321,7 +343,30 @@ static OOOXZManager *sSingleton = nil;
 
 - (NSArray *) managedOXZs
 {
-	return [[NSFileManager defaultManager] oo_directoryContentsAtPath:[self installPath]];
+	if (_managedList == nil)
+	{
+		NSArray *managedOXZs = [[NSFileManager defaultManager] oo_directoryContentsAtPath:[self installPath]];
+		NSMutableArray *manifests = [NSMutableArray arrayWithCapacity:[managedOXZs count]];
+		NSString *filename = nil;
+		NSString *fullpath = nil;
+		NSDictionary *manifest = nil;
+		foreach (filename, managedOXZs)
+		{
+			fullpath = [[self installPath] stringByAppendingPathComponent:filename];
+			manifest = OODictionaryFromFile([fullpath stringByAppendingPathComponent:@"manifest.plist"]);
+			if (manifest != nil)
+			{
+				NSMutableDictionary *adjManifest = [NSMutableDictionary dictionaryWithDictionary:manifest];
+				[adjManifest setObject:filename forKey:kOOManifestFilePath];
+
+				[manifests addObject:adjManifest];
+			}
+		}
+		[manifests sortUsingFunction:oxzSort context:NULL];
+
+		_managedList = [manifests copy];
+	}
+	return _managedList;
 }
 
 
@@ -406,6 +451,7 @@ static OOOXZManager *sSingleton = nil;
 		return NO;
 	}
 	_changesMade = YES;
+	DESTROY(_managedList); // will need updating
 	_interfaceState = OXZ_STATE_TASKDONE;
 	[self gui];
 	return YES;
@@ -430,9 +476,10 @@ static OOOXZManager *sSingleton = nil;
 			// installed manually
 			return OXZ_UNINSTALLABLE_MANUAL;
 		}
-		if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:kOOManifestVersion]])
+		if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:kOOManifestVersion]] && [[NSFileManager defaultManager] fileExistsAtPath:[installed oo_stringForKey:kOOManifestFilePath]])
 		{
-			// installed this exact version already
+			// installed this exact version already, and haven't
+			// uninstalled it since entering the manager
 			return OXZ_UNINSTALLABLE_ALREADY;
 		}
 	}
@@ -457,7 +504,7 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_INSTALLABLE_DEPENDENCIES:
 		return [OOColor orangeColor];
 	case OXZ_UNINSTALLABLE_ALREADY:
-		return [OOColor greenColor];
+		return [OOColor whiteColor];
 	case OXZ_UNINSTALLABLE_MANUAL:
 		return [OOColor redColor];
 	case OXZ_UNINSTALLABLE_VERSION:
@@ -591,16 +638,19 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else if (selection == OXZ_GUI_ROW_UPDATE)
 	{
-		if (_interfaceState == OXZ_STATE_TASKDONE || _interfaceState == OXZ_STATE_REMOVING)
+		if (_interfaceState == OXZ_STATE_REMOVING)
 		{
-			_interfaceState = OXZ_STATE_MAIN;
+			_interfaceState = OXZ_STATE_PICK_REMOVE;
+			_downloadStatus = OXZ_DOWNLOAD_NONE;
+		}
+		else if (_interfaceState == OXZ_STATE_TASKDONE)
+		{
+			_interfaceState = OXZ_STATE_PICK_INSTALL;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 		}
 		else if (_interfaceState == OXZ_STATE_INSTALLING || _interfaceState == OXZ_STATE_UPDATING)
 		{
-			[self cancelUpdate];
-			_interfaceState = OXZ_STATE_MAIN;
-			_downloadStatus = OXZ_DOWNLOAD_NONE;
+			[self cancelUpdate]; // sets interface state and download status
 		}
 		else
 		{
@@ -618,6 +668,10 @@ static OOOXZManager *sSingleton = nil;
 	else if (selection == OXZ_GUI_ROW_LISTPREV)
 	{
 		_offset -= OXZ_GUI_NUM_LISTROWS;
+		if (_offset < 0)
+		{
+			_offset = 0;
+		}
 		[self showOptionsUpdate];
 		return;
 	}
@@ -678,10 +732,15 @@ static OOOXZManager *sSingleton = nil;
 
 - (NSArray *) installOptions
 {
+	if (_offset < 0)
+	{
+		_offset = 0;
+	}
 	NSUInteger start = _offset;
 	if (start >= [_oxzList count])
 	{
 		start = 0;
+		_offset = 0;
 	}
 	NSUInteger end = start + OXZ_GUI_NUM_LISTROWS;
 	if (end > [_oxzList count])
@@ -695,7 +754,7 @@ static OOOXZManager *sSingleton = nil;
 - (OOGUIRow) showInstallOptions
 {
 	// shows the current installation options page
-	OOGUIRow startRow = OXZ_STATE_PICK_INSTALL;
+	OOGUIRow startRow = OXZ_GUI_ROW_LISTPREV;
 	NSArray *options = [self installOptions];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUITabSettings tab_stops;
@@ -715,21 +774,32 @@ static OOOXZManager *sSingleton = nil;
 		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTPREV];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"",@"",@" <-- ", nil] forRow:OXZ_GUI_ROW_LISTPREV];
 		[gui setKey:@"_BACK" forRow:OXZ_GUI_ROW_LISTPREV];
-		startRow = OXZ_GUI_ROW_LISTPREV;
 	}
 	else
 	{
-		startRow = OXZ_GUI_ROW_LISTSTART;
+		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTPREV align:GUI_ALIGN_LEFT];
+		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
 	}
 	if (_offset + 10 < [_oxzList count])
 	{
 		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTNEXT];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-next"), @"",@"",@" --> ", nil] forRow:OXZ_GUI_ROW_LISTNEXT];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"",@"",@" --> ", nil] forRow:OXZ_GUI_ROW_LISTNEXT];
 		[gui setKey:@"_NEXT" forRow:OXZ_GUI_ROW_LISTNEXT];
+	}
+	else
+	{
+		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTNEXT align:GUI_ALIGN_LEFT];
+		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
 	}
 
 	// clear any previous longtext
 	for (NSUInteger i = OXZ_GUI_ROW_LISTDESC; i < OXZ_GUI_ROW_INSTALL-1; i++)
+	{
+		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
+		[gui setKey:GUI_KEY_SKIP forRow:i];
+	}
+	// and any previous listed entries
+	for (NSUInteger i = OXZ_GUI_ROW_LISTSTART; i < OXZ_GUI_ROW_LISTNEXT; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
@@ -801,11 +871,13 @@ static OOOXZManager *sSingleton = nil;
 	NSArray *remList = [self managedOXZs];
 	if ([remList count] <= item)
 	{
+		OOLog(kOOOXZDebugLog,@"Unable to remove item %d as only %d in list",item,[remList count]);
 		return NO;
 	}
-	NSString *filename = [remList oo_stringAtIndex:item];
+	NSString *filename = [[remList objectAtIndex:item] oo_stringForKey:kOOManifestFilePath];
 	if (filename == nil)
 	{
+		OOLog(kOOOXZDebugLog,@"Unable to remove item %d as filename not found",item);
 		return NO;
 	}
 	NSString *path = [[self installPath] stringByAppendingPathComponent:filename];
@@ -815,6 +887,7 @@ static OOOXZManager *sSingleton = nil;
 		return NO;
 	}
 	_changesMade = YES;
+	DESTROY(_managedList); // will need updating
 	_interfaceState = OXZ_STATE_REMOVING;
 	[self gui];
 	return YES;
@@ -828,10 +901,15 @@ static OOOXZManager *sSingleton = nil;
 	{
 		return nil;
 	}
+	if (_offset < 0)
+	{
+		_offset = 0;
+	}
 	NSUInteger start = _offset;
 	if (start >= [remList count])
 	{
 		start = 0;
+		_offset = 0;
 	}
 	NSUInteger end = start + OXZ_GUI_NUM_LISTROWS;
 	if (end > [remList count])
@@ -845,7 +923,7 @@ static OOOXZManager *sSingleton = nil;
 - (OOGUIRow) showRemoveOptions
 {
 	// shows the current installation options page
-	OOGUIRow startRow = OXZ_STATE_PICK_INSTALL;
+	OOGUIRow startRow = OXZ_GUI_ROW_LISTPREV;
 	NSArray *options = [self removeOptions];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	if (options == nil)
@@ -869,17 +947,22 @@ static OOOXZManager *sSingleton = nil;
 		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTPREV];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"",@" <-- ", nil] forRow:OXZ_GUI_ROW_LISTPREV];
 		[gui setKey:@"_BACK" forRow:OXZ_GUI_ROW_LISTPREV];
-		startRow = OXZ_GUI_ROW_LISTPREV;
 	}
 	else
 	{
-		startRow = OXZ_GUI_ROW_LISTSTART;
+		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTPREV align:GUI_ALIGN_LEFT];
+		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTPREV];
 	}
 	if (_offset + 10 < [[self managedOXZs] count])
 	{
 		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTNEXT];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-next"), @"",@" --> ", nil] forRow:OXZ_GUI_ROW_LISTNEXT];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"",@" --> ", nil] forRow:OXZ_GUI_ROW_LISTNEXT];
 		[gui setKey:@"_NEXT" forRow:OXZ_GUI_ROW_LISTNEXT];
+	}
+	else
+	{
+		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTNEXT align:GUI_ALIGN_LEFT];
+		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
 	}
 
 	// clear any previous longtext
@@ -888,39 +971,37 @@ static OOOXZManager *sSingleton = nil;
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
+	// and any previous listed entries
+	for (NSUInteger i = OXZ_GUI_ROW_LISTSTART; i < OXZ_GUI_ROW_LISTNEXT; i++)
+	{
+		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
+		[gui setKey:GUI_KEY_SKIP forRow:i];
+	}
+
 
 	OOGUIRow row = OXZ_GUI_ROW_LISTSTART;
 	NSDictionary *manifest = nil;
-	NSString *filename = nil;
-	foreach (filename, options)
+	foreach (manifest, options)
 	{
-		filename = [[self installPath] stringByAppendingPathComponent:filename];
-		manifest = OODictionaryFromFile([filename stringByAppendingPathComponent:@"manifest.plist"]);
-		if (manifest == nil)
-		{
-			OOLog(kOOOXZErrorLog,@"Could not extract manifest.plist from %@ - the file may be corrupt.",filename);
-		}
-		else
-		{
 
-			[gui setArray:[NSArray arrayWithObjects:
-									   [manifest oo_stringForKey:kOOManifestCategory defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
-								   [manifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
-								   [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
-										nil] forRow:row];
-			NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
-			[gui setKey:identifier forRow:row];
+		[gui setArray:[NSArray arrayWithObjects:
+								   [manifest oo_stringForKey:kOOManifestCategory defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+							   [manifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+							   [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+									nil] forRow:row];
+		NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
+		[gui setKey:identifier forRow:row];
 		
-			if ([ResourceManager manifestForIdentifier:identifier] == nil)
-			{
-				// if not currently active, show as orange
-				[gui setColor:[OOColor orangeColor] forRow:row];
-			}
+		if ([ResourceManager manifestForIdentifier:identifier] == nil)
+		{
+			// if not currently active, show as orange
+			[gui setColor:[OOColor orangeColor] forRow:row];
+		}
 
-			if (row == [gui selectedRow])
-			{
-				[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
-			}
+		if (row == [gui selectedRow])
+		{
+			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+			
 		}
 		row++;
 	}

@@ -55,6 +55,7 @@ typedef enum {
 {
 @private
 	NSArray 			*_oxzList;
+	NSArray 			*_managedList;
 	OXZInterfaceState	_interfaceState;
 	BOOL				_changesMade;
 

@@ -95,7 +95,9 @@ SOFTWARE.
 	}
 	if (uf == NULL)
 	{
-		OOLog(kOOLogFileNotFound, @"Could not unzip OXZ at %@", zipFile);
+		// This is not necessarily an error - the OXZ manager tries to
+		// do this as a test for the presence of managed OXZs
+//		OOLog(kOOLogFileNotFound, @"Could not unzip OXZ at %@", zipFile);
 		return nil;
 	}
 	const char* filename = [containedFile UTF8String];
