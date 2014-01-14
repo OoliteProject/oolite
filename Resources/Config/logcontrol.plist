@@ -203,6 +203,9 @@
 	oxp.requirementMissing					= $error;
 	oxp.versionMismatch						= $error;
 
+	oxz.manager.error						= $error;
+	oxz.manager.debug						= no;
+
 	player.ship								= no;
 	player.ship.damage						= no;
 	player.equipmentScript					= $scriptDebugOn;

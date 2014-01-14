@@ -76,6 +76,8 @@ enum {
 };
 
 
+NSComparisonResult oxzSort(id m1, id m2, void *context);
+
 static OOOXZManager *sSingleton = nil;
 
 // protocol was only formalised in 10.7
@@ -238,7 +240,7 @@ static OOOXZManager *sSingleton = nil;
 	DESTROY(_oxzList);
 	if (list != nil)
 	{
-		_oxzList = [list retain];
+		_oxzList = [[list sortedArrayUsingFunction:oxzSort context:NULL] retain];
 	}
 }
 
@@ -1013,3 +1015,17 @@ static OOOXZManager *sSingleton = nil;
 
 @end
 
+/* Sort by category, then title, then version - and that should be unique */
+NSComparisonResult oxzSort(id m1, id m2, void *context)
+{
+	NSComparisonResult result = [[m1 oo_stringForKey:kOOManifestCategory defaultValue:@"zz"] localizedCompare:[m2 oo_stringForKey:kOOManifestCategory defaultValue:@"zz"]];
+	if (result == NSOrderedSame)
+	{
+		result = [[m1 oo_stringForKey:kOOManifestTitle defaultValue:@"zz"] localizedCompare:[m2 oo_stringForKey:kOOManifestTitle defaultValue:@"zz"]];
+		if (result == NSOrderedSame)
+		{
+			result = [[m2 oo_stringForKey:kOOManifestVersion defaultValue:@"0"] localizedCompare:[m1 oo_stringForKey:kOOManifestVersion defaultValue:@"0"]];
+		}
+	}
+	return result;
+}
