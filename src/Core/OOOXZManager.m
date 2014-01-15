@@ -55,6 +55,7 @@ static NSString * const kOOOXZDebugLog = @"oxz.manager.debug";
 
 typedef enum {
 	OXZ_INSTALLABLE_OKAY,
+	OXZ_INSTALLABLE_UPDATE,
 	OXZ_INSTALLABLE_DEPENDENCIES,
 	OXZ_UNINSTALLABLE_ALREADY,
 	OXZ_UNINSTALLABLE_VERSION,
@@ -70,7 +71,8 @@ enum {
 	OXZ_GUI_ROW_LISTSTART	= 3,
 	OXZ_GUI_NUM_LISTROWS	= 10,
 	OXZ_GUI_ROW_LISTNEXT	= 13,
-	OXZ_GUI_ROW_LISTDESC	= 15,
+	OXZ_GUI_ROW_LISTSTATUS	= 15,
+	OXZ_GUI_ROW_LISTDESC	= 17,
 	OXZ_GUI_ROW_INSTALL		= 24,
 	OXZ_GUI_ROW_REMOVE		= 25,
 	OXZ_GUI_ROW_UPDATE		= 26,
@@ -101,6 +103,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (OXZInstallableState) installableState:(NSDictionary *)manifest;
 - (OOColor *) colorForManifest:(NSDictionary *)manifest;
+- (NSString *) installStatusForManifest:(NSDictionary *)manifest;
 
 
 - (void) setOXZList:(NSArray *)list;
@@ -490,6 +493,10 @@ static OOOXZManager *sSingleton = nil;
 	} 
 	else
 	{
+		if (installed != nil)
+		{
+			return OXZ_INSTALLABLE_UPDATE;
+		}
 		return OXZ_INSTALLABLE_OKAY;
 	}
 }
@@ -501,6 +508,8 @@ static OOOXZManager *sSingleton = nil;
 	{
 	case OXZ_INSTALLABLE_OKAY:
 		return [OOColor yellowColor];
+	case OXZ_INSTALLABLE_UPDATE:
+		return [OOColor cyanColor];
 	case OXZ_INSTALLABLE_DEPENDENCIES:
 		return [OOColor orangeColor];
 	case OXZ_UNINSTALLABLE_ALREADY:
@@ -513,6 +522,26 @@ static OOOXZManager *sSingleton = nil;
 	return [OOColor yellowColor]; // never
 }
 
+
+- (NSString *) installStatusForManifest:(NSDictionary *)manifest
+{
+	switch ([self installableState:manifest])
+	{
+	case OXZ_INSTALLABLE_OKAY:
+		return DESC(@"oolite-oxzmanager-installable-okay");
+	case OXZ_INSTALLABLE_UPDATE:
+		return DESC(@"oolite-oxzmanager-installable-update");
+	case OXZ_INSTALLABLE_DEPENDENCIES:
+		return DESC(@"oolite-oxzmanager-installable-depend");
+	case OXZ_UNINSTALLABLE_ALREADY:
+		return DESC(@"oolite-oxzmanager-installable-already");
+	case OXZ_UNINSTALLABLE_MANUAL:
+		return DESC(@"oolite-oxzmanager-installable-manual");
+	case OXZ_UNINSTALLABLE_VERSION:
+		return DESC(@"oolite-oxzmanager-installable-version");
+	}
+	return nil; // never
+}
 
 
 
@@ -793,7 +822,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 
 	// clear any previous longtext
-	for (NSUInteger i = OXZ_GUI_ROW_LISTDESC; i < OXZ_GUI_ROW_INSTALL-1; i++)
+	for (NSUInteger i = OXZ_GUI_ROW_LISTSTATUS; i < OXZ_GUI_ROW_INSTALL-1; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
@@ -856,6 +885,8 @@ static OOOXZManager *sSingleton = nil;
 
 		if (row == [gui selectedRow])
 		{
+			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
+			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 		}
 

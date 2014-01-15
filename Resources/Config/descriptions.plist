@@ -1070,7 +1070,7 @@
 	"oolite-oxzmanager-install"		= "Install expansion pack";
 	"oolite-oxzmanager-remove"		= "Remove expansion pack";
 	"oolite-oxzmanager-firstrun"	= "Before Oolite can install your requested expansions automatically, it needs to retrieve the expansions list. You will need to be connected to the internet for this to work. Use the 'Download expansions list' option when you are ready, or 'Return to Menu' if you do not have internet access now or would rather download and install expansions yourself.";
-	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.";
+	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.\n\nThere are also many more expansion packs not available through the automatic installer, listed at http://wiki.alioth.net/index.php/OXP_List\n\nCalculations of conflicts and dependencies between expansion packs are based on your currently running packs. So, if pack A requires pack B to work, and you install pack B, pack A will still show up as having unmet requirements until you have exited and re-entered the manager, which will restart all the packs. You can, if you know you just installed pack B, install pack A anyway - both packs will then be loaded at once when you exit the manager.";
 	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed. Expansion packs which you have installed manually must also be removed manually.";
 	"oolite-oxzmanager-progress-@-of-@"	= "Downloading: %lu of %lu";
 	"oolite-oxzmanager-progress-done"		= "Download complete";
@@ -1082,6 +1082,12 @@
 	"oolite-oxzmanager-heading-installed"	= "Installed";
 	"oolite-oxzmanager-missing-field"		= "Unknown";
 	"oolite-oxzmanager-version-none"		= "-";
+	"oolite-oxzmanager-installable-okay"	= "Status: Ready to download and install.";	
+	"oolite-oxzmanager-installable-update"	= "Status: Installed; updated pack available for download.";
+	"oolite-oxzmanager-installable-depend"	= "Status: Conflicts with installed pack or requires another pack to be installed first.";
+	"oolite-oxzmanager-installable-already"	= "Status: Installed and at the current version.";
+	"oolite-oxzmanager-installable-manual"	= "Status: Manually installed; cannot also be installed automatically.";
+	"oolite-oxzmanager-installable-version"	= "Status: Incompatible with this version of Oolite.";
 
 
 	// Loading screen (currently Mac only), also logged under start.progress
