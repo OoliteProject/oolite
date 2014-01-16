@@ -2402,6 +2402,23 @@ static NSTimeInterval	time_last_frame;
 			{
 				selectPressed = NO;
 			}
+			if ([gameView isDown:gvMouseDoubleClick])
+			{
+				if (([gui selectedRow] == GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1) && [[gui keyForRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1] hasPrefix:@"More:"])
+				{
+					[self playMenuPageNext];
+					[gui setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
+					[self buySelectedShip];
+				}
+				else if (([gui selectedRow] == GUI_ROW_SHIPYARD_START) && [[gui keyForRow:GUI_ROW_SHIPYARD_START] hasPrefix:@"More:"])
+				{
+					[self playMenuPagePrevious];
+					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
+					[self buySelectedShip];
+				}
+				[gameView clearMouse];
+			}
+
 			break;
 			
 		default:
