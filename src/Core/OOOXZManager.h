@@ -84,5 +84,8 @@ typedef enum {
 - (OOGUIRow) showInstallOptions;
 - (OOGUIRow) showRemoveOptions;
 - (void) showOptionsUpdate;
+- (void) showOptionsPrev;
+- (void) showOptionsNext;
+
 
 @end

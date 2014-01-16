@@ -806,6 +806,10 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else
 	{
+		if ([gui selectedRow] == OXZ_GUI_ROW_LISTPREV)
+		{
+			[gui setSelectedRow:OXZ_GUI_ROW_LISTSTART];
+		}
 		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTPREV align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
 	}
@@ -817,6 +821,10 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else
 	{
+		if ([gui selectedRow] == OXZ_GUI_ROW_LISTNEXT)
+		{
+			[gui setSelectedRow:OXZ_GUI_ROW_LISTSTART];
+		}
 		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTNEXT align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
 	}
@@ -981,10 +989,14 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else
 	{
+		if ([gui selectedRow] == OXZ_GUI_ROW_LISTPREV)
+		{
+			[gui setSelectedRow:OXZ_GUI_ROW_LISTSTART];
+		}
 		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTPREV align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTPREV];
 	}
-	if (_offset + 10 < [[self managedOXZs] count])
+	if (_offset + OXZ_GUI_NUM_LISTROWS < [[self managedOXZs] count])
 	{
 		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTNEXT];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"",@" --> ", nil] forRow:OXZ_GUI_ROW_LISTNEXT];
@@ -992,6 +1004,10 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else
 	{
+		if ([gui selectedRow] == OXZ_GUI_ROW_LISTNEXT)
+		{
+			[gui setSelectedRow:OXZ_GUI_ROW_LISTSTART];
+		}
 		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTNEXT align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
 	}
@@ -1052,6 +1068,32 @@ static OOOXZManager *sSingleton = nil;
 		[self showRemoveOptions];
 	}
 	// else nothing necessary
+}
+
+
+- (void) showOptionsPrev
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE)
+	{
+		if ([gui selectedRow] == OXZ_GUI_ROW_LISTPREV)
+		{
+			[self processSelection];
+		}
+	}
+}
+
+
+- (void) showOptionsNext
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE)
+	{
+		if ([gui selectedRow] == OXZ_GUI_ROW_LISTNEXT)
+		{
+			[self processSelection];
+		}
+	}
 }
 
 

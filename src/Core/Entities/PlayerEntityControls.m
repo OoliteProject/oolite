@@ -3575,6 +3575,21 @@ static BOOL autopilot_pause;
 				// only has an effect on install/remove selection screens
 				[[OOOXZManager sharedManager] showOptionsUpdate];
 			}
+			if ([gameView isDown:key_gui_arrow_left])
+			{
+				if ((!leftRightKeyPressed))
+				{
+					[[OOOXZManager sharedManager] showOptionsPrev];
+				}
+			}
+			if ([gameView isDown:key_gui_arrow_right])
+			{
+				if ((!leftRightKeyPressed))
+				{
+					[[OOOXZManager sharedManager] showOptionsNext];
+				}
+			}
+			leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
 
 			if (!selectPressed)
 			{
