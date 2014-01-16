@@ -89,7 +89,7 @@ static GameController *sSharedController = nil;
 	if ((self = [super init]))
 	{
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
-		delta_t = 0.01; // one hundredth of a second
+		delta_t = 0.005; // one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
 
 		// rather than seeding this with the date repeatedly, seed it
 		// once here at startup
