@@ -663,6 +663,7 @@ static OOOXZManager *sSingleton = nil;
 		{
 			_interfaceState = OXZ_STATE_NODATA;
 		}
+		_downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
 		return;
 	}
 	else if (selection == OXZ_GUI_ROW_UPDATE)
