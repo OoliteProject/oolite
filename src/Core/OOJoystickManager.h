@@ -131,8 +131,6 @@ enum {
 #define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
 #define STICK_AXBUT  @"stickAxBt"   // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
-#define STICK_PRECISION_SETTING @"JoystickPrecision" // Precision mode
-#define STICK_DEADZONE_SETTING @"JoystickDeadzone" // Deadzone
 #define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
 #define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
 #define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles

@@ -647,7 +647,6 @@ static id sSharedStickHandler = nil;
 		bs = YES;
 		if(function == BUTTON_PRECISION)
 			precisionMode = !precisionMode;
-			[[NSUserDefaults standardUserDefaults] setBool: precisionMode forKey: STICK_PRECISION_SETTING];
 	}
 	
 	if (function >= 0)
