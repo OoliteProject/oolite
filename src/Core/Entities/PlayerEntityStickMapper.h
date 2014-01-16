@@ -29,13 +29,12 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
-#define MAX_ROWS_FUNCTIONS		11
+#define MAX_ROWS_FUNCTIONS		12
 
 #define GUI_ROW_STICKNAME		1
 #define GUI_ROW_STICKPROFILE		2
-#define GUI_ROW_DEADZONE		3
-#define GUI_ROW_HEADING			5
-#define GUI_ROW_FUNCSTART		6
+#define GUI_ROW_HEADING			4
+#define GUI_ROW_FUNCSTART		5
 #define GUI_ROW_FUNCEND			(GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1)
 #define GUI_ROW_INSTRUCT		18
 

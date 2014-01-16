@@ -68,10 +68,9 @@ MA 02110-1301, USA.
 					   nil]
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
-	
-	[gui setArray: [NSArray arrayWithObjects: @"Edit Profile:", [stickProfileScreen currentAxis], nil] forRow: GUI_ROW_STICKPROFILE];
+
+	[gui setArray: [NSArray arrayWithObjects: @"Edit Axis Profiles", nil] forRow: GUI_ROW_STICKPROFILE];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE];
-	
 	[self displayFunctionList:gui skip:skip];
 	
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
@@ -603,7 +602,7 @@ MA 02110-1301, USA.
 		[guiDict setObject: [NSNumber numberWithInt: butfn]
 					forKey: KEY_BUTTONFN];
 	return guiDict;
-} 
+}
 
 @end
 

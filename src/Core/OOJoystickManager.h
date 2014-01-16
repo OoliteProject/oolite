@@ -246,7 +246,6 @@ typedef struct
 	SEL			cbSelector;
 	char		cbHardware;
 	BOOL		invertPitch;
-	double		deadzone;
 
 }
 
@@ -278,10 +277,6 @@ typedef struct
 - (BOOL) getButtonState:(int)function;
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
-
-// Deadzone handling
-- (void) setDeadzone: (double) newValue;
-- (double) deadzone;
 
 // Axis profile handling
 - (void) setProfile: (OOJoystickAxisProfile *) profile forAxis:(int) axis;

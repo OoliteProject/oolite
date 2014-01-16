@@ -43,15 +43,20 @@ MA 02110-1301, USA.
 @private
 	OOJoystickManager *stickHandler;
 	int current_axis;
-	OOJoystickAxisProfile *profiles[3];
+	OOJoystickAxisProfile *profiles[3][2];
 	GuiDisplayGen *gui;
+	NSRect graphRect;
+	int selected_control_point;
+	int dragged_control_point;
+	int double_click_control_point;
 }
 
 - (id) init;
 - (void) dealloc;
-- (void) nextAxis;
-- (void) previousAxis;
-- (NSString *) currentAxis;
 - (void) startGui: (GuiDisplayGen *) gui_display_gen;
+- (void) mouseDown: (NSPoint) position;
+- (void) mouseUp;
+- (void) deleteSelected;
+
 @end
 

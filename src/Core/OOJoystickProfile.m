@@ -85,7 +85,11 @@ MA 02110-1301, USA.
 
 - (id) init
 {
-	return self = [super init];
+	if ((self = [super init]))
+	{
+		deadzone = STICK_DEADZONE;
+	}
+	return self;
 }
 
 - (id) copyWithZone: (NSZone *) zone
@@ -95,29 +99,39 @@ MA 02110-1301, USA.
 }
 
 
-- (double) value: (double) x
+- (double) rawValue: (double) x
 {
 	return x;
 }
 
-- (double) value: (double) x deadzone: (double) deadzone
+- (double) value: (double) x
 {
 	if (fabs(x) < deadzone)
 	{
 		return 0.0;
 	}
-	return x < 0 ? -[self value: (-x-deadzone)/(1.0-deadzone)] : [self value: (x-deadzone)/(1.0-deadzone)];
+	return x < 0 ? -[self rawValue: (-x-deadzone)/(1.0-deadzone)] : [self rawValue: (x-deadzone)/(1.0-deadzone)];
+}
+
+- (double) deadzone
+{
+	return deadzone;
+}
+
+- (void) setDeadzone: (double) newValue
+{
+	deadzone = OOClamp_0_1_d(newValue);
 }
 
 @end
 
-@implementation OOJoystickPolynomialAxisProfile
+@implementation OOJoystickStandardAxisProfile
 
 - (id) init
 {
 	if ((self = [super init]))
 	{
-		power = 3.0;
+		power = 1.0;
 		parameter = 1.0;
 	}
 	return self;
@@ -125,7 +139,7 @@ MA 02110-1301, USA.
 
 - (id) copyWithZone: (NSZone *) zone
 {
-	OOJoystickPolynomialAxisProfile *copy = [[[self class] alloc] init];
+	OOJoystickStandardAxisProfile *copy = [[[self class] alloc] init];
 	copy->power = power;
 	copy->parameter = parameter;
 	return copy;
@@ -166,7 +180,7 @@ MA 02110-1301, USA.
 }
 
 
-- (double) value: (double) x
+- (double) rawValue: (double) x
 {
 	if (x < 0)
 	{
@@ -364,7 +378,6 @@ MA 02110-1301, USA.
 - (int) addControl: (NSPoint) point
 {
 	NSPoint left, right;
-	NSValue *value;
 	int i;
 
 	if (point.x <= SPLINE_POINT_MIN_SPACING || point.x >= 1 - SPLINE_POINT_MIN_SPACING )
@@ -374,28 +387,35 @@ MA 02110-1301, USA.
 
 	left.x = 0.0;
 	left.y = 0.0;
-	for (i = 0; i < [controlPoints count]; i++ )
+	for (i = 0; i <= [controlPoints count]; i++ )
 	{
-		right = [[controlPoints objectAtIndex: i] pointValue];
+		if (i < [controlPoints count])
+		{
+			right = [[controlPoints objectAtIndex: i] pointValue];
+		}
+		else
+		{
+			right = NSMakePoint(1.0,1.0);
+		}
 		if ((point.x - left.x) < SPLINE_POINT_MIN_SPACING)
 		{
-			[controlPoints replaceObjectAtIndex: i withObject: [NSValue valueWithPoint: point]];
+			if (i == 0)
+			{
+				return -1;
+			}
+			[controlPoints replaceObjectAtIndex: i - 1 withObject: [NSValue valueWithPoint: point]];
 			[self makeSegments];
-			return i;
+			return i - 1;
 		}
 		if ((right.x - point.x) >= SPLINE_POINT_MIN_SPACING)
 		{
-			value = [NSValue valueWithPoint: point];
-			[controlPoints insertObject: value atIndex: i];
+			[controlPoints insertObject: [NSValue valueWithPoint: point] atIndex: i];
 			[self makeSegments];
 			return i;
 		}
 		left = right;
 	}
-	value = [NSValue valueWithPoint: point];
-	[controlPoints addObject: value];
-	[self makeSegments];
-	return [controlPoints count] - 1;
+	return -1;
 }
 
 - (NSPoint) pointAtIndex: (int) index
@@ -500,6 +520,7 @@ MA 02110-1301, USA.
 	if (index >= 0 && index < [controlPoints count])
 	{
 		[controlPoints removeObjectAtIndex: index];
+		[self makeSegments];
 	}
 	return;
 }
@@ -561,7 +582,7 @@ MA 02110-1301, USA.
 	return;
 }
 
-- (double) value: (double) x
+- (double) rawValue: (double) x
 {
 	int i;
 	OOJoystickSplineSegment *segment;

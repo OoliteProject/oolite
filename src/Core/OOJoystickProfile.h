@@ -32,26 +32,26 @@ MA 02110-1301, USA.
 
 */
 
-#define STICKPROFILE_TYPE_POLYNOMIAL	1
+#define STICKPROFILE_TYPE_STANDARD	1
 #define STICKPROFILE_TYPE_SPLINE	2
 #define STICKPROFILE_MAX_POWER		10.0
 
-enum JOYSTICK_PROFILE_TYPES {
-	JOYSTICK_PROFILE_TYPE_STANDARD,
-	JOYSTICK_PROFILE_TYPE_POLYNOMIAL,
-	JOYSTICK_PROFILE_TYPE_SPLINE
-};
-
 @interface OOJoystickAxisProfile : NSObject <NSCopying>
+{
+@private
+	double deadzone;
+}
 
 - (id) init;
 - (id) copyWithZone: (NSZone *) zone;
+- (double) rawValue: (double) x;
 - (double) value: (double) x;
-- (double) value: (double) x deadzone: (double) deadzone;
+- (double) deadzone;
+- (void) setDeadzone: (double) newValue;
 
 @end
 
-@interface OOJoystickPolynomialAxisProfile: OOJoystickAxisProfile
+@interface OOJoystickStandardAxisProfile: OOJoystickAxisProfile
 {
 @private
 	double power;
@@ -64,7 +64,7 @@ enum JOYSTICK_PROFILE_TYPES {
 - (double) power;
 - (void) setParameter: (double) newValue;
 - (double) parameter;
-- (double) value: (double) x;
+- (double) rawValue: (double) x;
 
 @end
 
@@ -84,7 +84,7 @@ enum JOYSTICK_PROFILE_TYPES {
 - (void) removeControl: (int) index;
 - (void) clearControlPoints;
 - (void) moveControl: (int) index point: (NSPoint) point;
-- (double) value: (double) x;
+- (double) rawValue: (double) x;
 - (double) gradient: (double) x;
 - (NSArray *) controlPoints;
 
