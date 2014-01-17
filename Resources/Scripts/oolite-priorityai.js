@@ -2750,11 +2750,6 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 // NOTE: this does not, and should not, check whether the station is friendly
 PriorityAIController.prototype.behaviourDockWithStation = function()
 {
-	// may need to release escorts
-	if (this.ship.escortGroup && this.ship.escortGroup.count > 1)
-	{
-		this.ship.dockEscorts();
-	}
 	var station = this.getParameter("oolite_dockingStation");
 	this.ship.target = station;
 	var handlers = {};
@@ -2791,8 +2786,18 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 		this.ship.performFaceDestination();
 		// and will reconsider in a little bit
 		break;
-	case "APPROACH":				
 	case "APPROACH_COORDINATES":
+		if (this.ship.escortGroup && this.ship.escortGroup.count > 1)
+		{
+			// docking clearance has been granted - can now release escorts
+			if (this.ship.dockingInstructions.docking_stage >= 2)
+			{
+				this.communicate("oolite_dockEscorts",{},3);
+				this.ship.dockEscorts();
+			}
+		}
+		// and fall through
+	case "APPROACH":				
 	case "BACK_OFF":
 		this.ship.performFlyToRangeFromDestination();
 		break;
@@ -6239,6 +6244,7 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_groupIsOutnumbered = "Please, let us go!";
 	this.$commsSettings.pirate.generic.oolite_groupIsOutnumbered = "Argh! They're tougher than they looked. Break off the attack!"
 	this.$commsSettings.generic.generic.oolite_dockingWait = "Bored now.";
+	this.$commsSettings.generic.generic.oolite_dockEscorts = "I've got clearance now. Begin your own docking sequences when ready.";
 	this.$commsSettings.generic.generic.oolite_mining = "Maybe this one has gems.";
 	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
 	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
