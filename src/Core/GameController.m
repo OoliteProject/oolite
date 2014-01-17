@@ -89,8 +89,8 @@ static GameController *sSharedController = nil;
 	if ((self = [super init]))
 	{
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
-		delta_t = 0.005; // one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
-
+		delta_t = 0.01; // one hundredth of a second 
+		
 		// rather than seeding this with the date repeatedly, seed it
 		// once here at startup
 		ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
@@ -367,7 +367,7 @@ static GameController *sSharedController = nil;
 {
 	if (timer == nil)
 	{   
-		NSTimeInterval ti = 0.01;
+		NSTimeInterval ti = 0.005; // one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
 		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
 		
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
