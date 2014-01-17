@@ -270,7 +270,7 @@ static BOOL stickProfileArrow_pressed;
 	[gui clear];
 	[gui setTitle: [NSString stringWithFormat: @"Joystick Profile"]];
 	[self showScreen];
-	[gui setSelectedRow: GUI_ROW_STICKPROFILE_BACK];
+	[gui setSelectedRow: GUI_ROW_STICKPROFILE_AXIS];
 	return;
 }
 
