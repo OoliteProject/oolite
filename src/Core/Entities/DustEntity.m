@@ -241,7 +241,7 @@ enum
 - (void) checkShaderMode
 {
 	shaderMode = kShaderModeOff;
-	if ([UNIVERSE shaderEffectsLevel] > SHADERS_OFF)
+	if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS)
 	{
 		if ([[OOOpenGLExtensionManager sharedManager] useDustShader])
 		{

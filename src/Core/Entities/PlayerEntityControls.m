@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOOXZManager.h"
+#import "OOStringExpander.h"
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
 #import "OOConstToString.h"
@@ -2402,6 +2403,23 @@ static NSTimeInterval	time_last_frame;
 			{
 				selectPressed = NO;
 			}
+			if ([gameView isDown:gvMouseDoubleClick])
+			{
+				if (([gui selectedRow] == GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1) && [[gui keyForRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1] hasPrefix:@"More:"])
+				{
+					[self playMenuPageNext];
+					[gui setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
+					[self buySelectedShip];
+				}
+				else if (([gui selectedRow] == GUI_ROW_SHIPYARD_START) && [[gui keyForRow:GUI_ROW_SHIPYARD_START] hasPrefix:@"More:"])
+				{
+					[self playMenuPagePrevious];
+					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
+					[self buySelectedShip];
+				}
+				[gameView clearMouse];
+			}
+
 			break;
 			
 		default:
@@ -2635,6 +2653,9 @@ static NSTimeInterval	time_last_frame;
 			vol = (int)OOClampInteger(vol, 0, 20);
 			[OOSound setMasterVolume: 0.05 * vol];
 			[self playChangedOption];
+#if OOLITE_ESPEAK
+			espeak_SetParameter(espeakVOLUME, vol * 5, 0);
+#endif
 			if (vol > 0)
 			{
 				NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");
@@ -2710,30 +2731,20 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no")  forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)  align:GUI_ALIGN_CENTER];
 	}
 	
-	if ((guiSelectedRow == GUI_ROW(GAME,DETAIL))&&(([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])))
-	{
-		if ([gameView isDown:key_gui_arrow_right] != [UNIVERSE reducedDetail])
-			[self playChangedOption];
-		[UNIVERSE setReducedDetail:[gameView isDown:key_gui_arrow_right]];
-		if ([UNIVERSE reducedDetail])
-			[gui setText:DESC(@"gameoptions-reduced-detail-yes")	forRow:GUI_ROW(GAME,DETAIL)  align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"gameoptions-reduced-detail-no")	forRow:GUI_ROW(GAME,DETAIL)  align:GUI_ALIGN_CENTER];
-	}
-	
 	
 	if (guiSelectedRow == GUI_ROW(GAME,SHADEREFFECTS) && ([gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left]))
 	{
 		if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
 			int direction = ([gameView isDown:key_gui_arrow_right]) ? 1 : -1;
-			OOShaderSetting shaderEffects = [UNIVERSE shaderEffectsLevel] + direction;
-			[UNIVERSE setShaderEffectsLevel:shaderEffects];
-			shaderEffects = [UNIVERSE shaderEffectsLevel];
+			OOGraphicsDetail detailLevel = [UNIVERSE detailLevel] + direction;
+			[UNIVERSE setDetailLevel:detailLevel];
+			detailLevel = [UNIVERSE detailLevel];
 			
-			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), OODisplayStringFromShaderSetting(shaderEffects)]
-				  forRow:GUI_ROW(GAME,SHADEREFFECTS)
-				   align:GUI_ALIGN_CENTER];
+			NSString *shaderEffectsOptionsString = [NSString stringWithFormat:@"gameoptions-detaillevel-%d",detailLevel];
+			[gui setText:OOExpandKey(shaderEffectsOptionsString) forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
+
 			timeLastKeyPress = script_time;
 		}
 		shaderSelectKeyPressed = YES;

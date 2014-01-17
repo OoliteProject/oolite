@@ -78,7 +78,7 @@ SOFTWARE.
 		// Check for simplest cases, where we don't need to bake a derived emission map.
 		if (emissionSpec != nil && illuminationSpec == nil && emissionAndIlluminationSpec == nil && emissionColor == nil)
 		{
-			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec] retain];
+			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec extraOptions:kOOTextureExtraShrink] retain];
 			if (_emissionMap != nil)  _unitsUsed++;
 		}
 		else
@@ -87,10 +87,7 @@ SOFTWARE.
 			
 			if (emissionAndIlluminationSpec != nil)
 			{
-				OOTextureLoader *emissionAndIlluminationMap = [OOTextureLoader loaderWithTextureSpecifier:emissionAndIlluminationSpec
-																							 extraOptions:0
-																								   folder:@"Textures"];
-				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMap:emissionAndIlluminationMap
+				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMapSpec:emissionAndIlluminationSpec
 																							diffuseMap:_diffuseMap
 																						  diffuseColor:diffuseColor
 																						 emissionColor:emissionColor
@@ -99,19 +96,13 @@ SOFTWARE.
 			}
 			else
 			{
-				OOTextureLoader *emissionMap = [OOTextureLoader loaderWithTextureSpecifier:emissionSpec
-																			  extraOptions:0
-																					folder:@"Textures"];
-				OOTextureLoader *illuminationMap = [OOTextureLoader loaderWithTextureSpecifier:illuminationSpec
-																				  extraOptions:0
-																						folder:@"Textures"];
-				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMap:emissionMap
-																		  emissionColor:emissionColor
-																			 diffuseMap:_diffuseMap
-																		   diffuseColor:diffuseColor
-																		illuminationMap:illuminationMap
-																	  illuminationColor:illuminationColor
-																	   optionsSpecifier:emissionSpec ?: illuminationSpec];
+				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMapSpec:emissionSpec
+																			  emissionColor:emissionColor
+																				 diffuseMap:_diffuseMap
+																			   diffuseColor:diffuseColor
+																		illuminationMapSpec:illuminationSpec
+																		  illuminationColor:illuminationColor
+																		   optionsSpecifier:emissionSpec ?: illuminationSpec];
 			}
 			
 			_emissionMap = [[OOTexture textureWithGenerator:[generator autorelease]] retain];

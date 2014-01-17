@@ -292,26 +292,26 @@ MA 02110-1301, USA.
 		if (ship_distance > SCANNER_MAX_RANGE)
 		{
 			// too far away - don't claim a docking slot by not putting on approachlist for now.
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO, -1);
 		}
 
 		[self addShipToShipsOnApproach: ship];
 		
 		if (ship_distance < 1000.0 + [station collisionRadius] + ship->collision_radius)	// too close - back off
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 5000, @"BACK_OFF", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 5000, @"BACK_OFF", nil, NO, -1);
 		
 		float dot = HPdot_product(launchVector, delta);
 		if (dot < 0) // approaching from the wrong side of the station - construct a vector to the side of the station.
 		{
 			HPVector approachVector = HPcross_product(HPvector_normal(delta), launchVector);
 			approachVector = HPcross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
-			return OOMakeDockingInstructions(station, OOHPVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , [ship maxFlightSpeed], 1000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, OOHPVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , [ship maxFlightSpeed], 1000, @"APPROACH", nil, NO, -1);
 		}
 		
 		if (ship_distance > 12500.0)
 		{
 			// long way off - approach more closely
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO, -1);
 		}
 	}
 	
@@ -320,7 +320,7 @@ MA 02110-1301, USA.
 		// some error has occurred - log it, and send the try-again message
 		OOLogERR(@"station.issueDockingInstructions.failed", @"couldn't addShipToShipsOnApproach:%@ in %@, retrying later -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
 		
-		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"TRY_AGAIN_LATER", nil, NO);
+		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"TRY_AGAIN_LATER", nil, NO, -1);
 	}
 
 
@@ -332,7 +332,7 @@ MA 02110-1301, USA.
 	{
 		OOLogERR(@"station.issueDockingInstructions.failed", @" -- coordinatesStack = %@", coordinatesStack);
 		
-		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
+		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"HOLD_POSITION", nil, NO, -1);
 	}
 	
 	// get the docking information from the instructions	
@@ -360,7 +360,7 @@ MA 02110-1301, USA.
 		if ((docking_stage == 1) &&(HPmagnitude2(delta) < 1000000.0))	// 1km*1km
 			speedAdvised *= 0.5;	// half speed
 		
-		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
+		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO, docking_stage);
 	}
 	else
 	{
@@ -412,7 +412,7 @@ MA 02110-1301, USA.
 			//remove the previous stage from the stack
 			[coordinatesStack removeObjectAtIndex:0];
 			
-			return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
+			return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation, docking_stage);
 		}
 		else
 		{
@@ -428,12 +428,12 @@ MA 02110-1301, USA.
 				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
 			}
 
-			return OOMakeDockingInstructions(station, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
+			return OOMakeDockingInstructions(station, ship->position, 0, 100, @"HOLD_POSITION", nil, NO, -1);
 		}
 	}
 	
 	// we should never reach here.
-	return OOMakeDockingInstructions(station, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
+	return OOMakeDockingInstructions(station, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO, -1);
 }
 
 

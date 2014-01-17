@@ -37,14 +37,8 @@ MA 02110-1301, USA.
 #import "OOJSEngineTimeManagement.h"
 
 
-#if DEBUG_GRAPHVIZ
-#define NSMakeRange(loc, len) ((NSRange){loc, len})
-#endif
-
-
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";
 static NSString * const kOOLogStringQuaternionConversion		= @"strings.conversion.quaternion";
-static NSString * const kOOLogStringVecAndQuatConversion		= @"strings.conversion.vectorAndQuaternion";
 static NSString * const kOOLogStringRandomSeedConversion		= @"strings.conversion.randomSeed";
 
 
@@ -422,11 +416,6 @@ NSString *ClockToString(double clock, BOOL adjusting)
 
 #if DEBUG_GRAPHVIZ
 
-// Workaround for Xcode auto-indent bug
-static NSString * const kQuotationMark = @"\"";
-static NSString * const kEscapedQuotationMark = @"\\\"";
-
-
 NSString *EscapedGraphVizString(NSString *string)
 {
 	NSString * const srcStrings[] =
@@ -451,7 +440,7 @@ NSString *EscapedGraphVizString(NSString *string)
 		[mutable replaceOccurrencesOfString:*src++
 								 withString:*sub++
 									options:0
-									  range:NSMakeRange(0, [mutable length])];
+									  range:(NSRange){ 0, [mutable length] }];
 	}
 	
 	if ([mutable length] == [string length])

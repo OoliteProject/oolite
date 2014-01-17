@@ -22,7 +22,7 @@ There are four public sound classes:
 
 
 Oolite
-Copyright (C) 2004-2013 Giles C Williams and contributors
+Copyright (C) 2004-2014 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -50,15 +50,9 @@ MA 02110-1301, USA.
 	#import "OOALMusic.h"
 	#import "OOBasicSoundReferencePoint.h"
 #else
-#if OOLITE_SDL
-	#import "OOSDLSound.h"
-	#import "SDLMusic.h"
-	#import "OOBasicSoundReferencePoint.h"
-#else
-	#import "OOCASound.h"
-	#import "OOCAMusic.h"
-	#import "OOCASoundReferencePoint.h"
-#endif
+
+#warning No sound implementation selected. Currently, the only option is OOLITE_OPENAL. There are SDL and Mac CoreAudio implementations in the revision history.
+
 #endif
 
 #import "OOSoundSource.h"

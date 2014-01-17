@@ -40,6 +40,10 @@ SOFTWARE.
 @private
 	NSString					*_cacheKey;
 	
+	NSDictionary				*_emissionSpec;
+	NSDictionary				*_illuminationSpec;
+	OOTexture					*_diffuseMap;
+	
 	OOPixMap					_emissionPx;
 	OOPixMap					_diffusePx;
 	OOPixMap					_illuminationPx;
@@ -58,20 +62,19 @@ SOFTWARE.
 #endif
 }
 
-// Note: these take ownership of diffuseMap's pixels.
-- (id) initWithEmissionMap:(OOTextureLoader *)emissionMapLoader
-			 emissionColor:(OOColor *)emissionColor
-				diffuseMap:(OOTexture *)diffuseMap
-			  diffuseColor:(OOColor *)diffuseColor
-		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
-		 illuminationColor:(OOColor *)illuminationColor
-		  optionsSpecifier:(NSDictionary *)spec;
+- (id) initWithEmissionMapSpec:(NSDictionary *)emissionMapSpec
+				 emissionColor:(OOColor *)emissionColor
+					diffuseMap:(OOTexture *)diffuseMap
+				  diffuseColor:(OOColor *)diffuseColor
+		   illuminationMapSpec:(NSDictionary *)illuminationMapSpec
+			 illuminationColor:(OOColor *)illuminationColor
+			  optionsSpecifier:(NSDictionary *)spec;
 
-- (id) initWithEmissionAndIlluminationMap:(OOTextureLoader *)emissionAndIlluminationMapLoader
-							   diffuseMap:(OOTexture *)diffuseMap
-							 diffuseColor:(OOColor *)diffuseColor
-							emissionColor:(OOColor *)emissionColor
-						illuminationColor:(OOColor *)illuminationColor
-						 optionsSpecifier:(NSDictionary *)spec;
+- (id) initWithEmissionAndIlluminationMapSpec:(NSDictionary *)emissionAndIlluminationMapSpec
+								   diffuseMap:(OOTexture *)diffuseMap
+								 diffuseColor:(OOColor *)diffuseColor
+								emissionColor:(OOColor *)emissionColor
+							illuminationColor:(OOColor *)illuminationColor
+							 optionsSpecifier:(NSDictionary *)spec;
 
 @end

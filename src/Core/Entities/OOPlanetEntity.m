@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #if NEW_PLANETS
 
-#define NEW_ATMOSPHERE 0
+#define NEW_ATMOSPHERE 1
 
 #import "OOPlanetDrawable.h"
 
@@ -46,9 +46,9 @@ MA 02110-1301, USA.
 #import "OOSingleTextureMaterial.h"
 #import "OOShaderMaterial.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOGraphicsResetManager.h"
 
-
-@interface OOPlanetEntity (Private)
+@interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
 - (void) setUpLandParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 - (void) setUpAtmosphereParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
@@ -70,7 +70,7 @@ MA 02110-1301, USA.
 }
 
 
-const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts at 10x the height of the clouds
+static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts at 10x the height of the clouds
 
 
 - (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed
@@ -132,7 +132,7 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 		[self setUpAtmosphereParametersWithSourceInfo:dict targetInfo:planetInfo];
 		// planetInfo now contains a valid air_color
 		_airColor = [planetInfo objectForKey:@"air_color"];
-		//OOLog (@"kaks",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
+		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
 		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha",
 															@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
@@ -154,8 +154,8 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 	
 	_mesopause2 = (atmosphere) ? (kMesosphere + collision_radius) * (kMesosphere + collision_radius) : 0.0;
 	
-	NSString *textureName = [dict oo_stringForKey:@"texture"];
-	[self setUpPlanetFromTexture:textureName];
+	_textureName = [[dict oo_stringForKey:@"texture"] retain];
+	[self setUpPlanetFromTexture:_textureName];
 	[_planetDrawable setRadius:collision_radius];	
 		
 	// Orientation should be handled by the code that calls this planetEntity. Starting with a default value anyway.
@@ -185,6 +185,8 @@ const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts 
 	
 	[self setStatus:STATUS_ACTIVE];
 	
+	[[OOGraphicsResetManager sharedManager] registerClient:self];
+
 	return self;
 }
 
@@ -296,7 +298,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"atmosphere_color"]];
 		if (color != nil) seaHSB = HSBColorWithColor(color);
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"cloud_color"]];
-		if (color != nil) landHSB = HSBColorWithColor(color);
+	if (color != nil) landHSB = HSBColorWithColor(color);
 		
 		// polar areas: brighter, less saturation
 		landPolarHSB = vector_add(landHSB,LighterHSBColor(landHSB));
@@ -354,14 +356,17 @@ static OOColor *ColorWithHSBColor(Vector c)
 	DESTROY(_atmosphereDrawable);
 	//DESTROY(_airColor);	// this CTDs on loading savegames.. :(
 	DESTROY(_materialParameters);
+	DESTROY(_textureName);
 	
+	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
+
 	[super dealloc];
 }
 
 
 - (NSString*) descriptionComponents
 {
-	return [NSString stringWithFormat:@"position: %@ radius: %g m", VectorDescription([self position]), [self radius]];
+	return [NSString stringWithFormat:@"position: %@ radius: %g m", HPVectorDescription([self position]), [self radius]];
 }
 
 
@@ -493,12 +498,12 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	
 	[_planetDrawable renderOpaqueParts];
-#if NEW_ATMOSPHERE
+//#if NEW_ATMOSPHERE
 	if (_atmosphereDrawable != nil)
 	{
 		[_atmosphereDrawable renderOpaqueParts];
 	}
-#endif
+//#endif
 	
 	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
 }
@@ -529,7 +534,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 										   parameter:nil
 									relativeToEntity:self];
 	
-	if (station && distance([station position], position) < 4 * collision_radius) // there is a station in range.
+	if (station && HPdistance([station position], position) < 4 * collision_radius) // there is a station in range.
 	{
 		return YES;
 	}
@@ -551,7 +556,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	Quaternion  q1;
 	quaternion_set_random(&q1);
 	float start_distance = collision_radius + 125.0f;
-	Vector launch_pos = vector_add(position, vector_multiply_scalar(vector_forward_from_quaternion(q1), start_distance));
+	HPVector launch_pos = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(vector_forward_from_quaternion(q1), start_distance)));
 	
 	ShipEntity *shuttle_ship = [UNIVERSE newShipWithRole:@"shuttle"];   // retain count = 1
 	if (shuttle_ship)
@@ -623,6 +628,13 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
+- (void)resetGraphicsState
+{
+	// reset the texture if graphics mode changes
+	[self setUpPlanetFromTexture:_textureName];
+}
+
+
 - (void) setTextureFileName:(NSString *)textureName
 {
 	BOOL isMoon = _atmosphereDrawable == nil;
@@ -633,33 +645,59 @@ static OOColor *ColorWithHSBColor(Vector c)
 	NSDictionary *materialDefaults = [ResourceManager materialDefaults];
 	
 #if OO_SHADERS
-	OOShaderSetting shaderLevel = [UNIVERSE shaderEffectsLevel];
-	BOOL shadersOn = shaderLevel > SHADERS_OFF;
+	OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
+	BOOL shadersOn = detailLevel >= DETAIL_LEVEL_EXTRAS;
 #else
 	const BOOL shadersOn = NO;
 #endif
 	
 	if (textureName != nil)
 	{
-		NSDictionary *spec = [NSDictionary dictionaryWithObjectsAndKeys:textureName, @"name", @"yes", @"repeat_s", @"linear", @"min_filter", nil];
+		NSDictionary *spec = [NSDictionary dictionaryWithObjectsAndKeys:textureName, @"name", @"yes", @"repeat_s", @"linear", @"min_filter", @"yes", @"cube_map", nil];
 		diffuseMap = [OOTexture textureWithConfiguration:spec];
 		if (diffuseMap == nil)  return;		// OOTexture will have logged a file-not-found warning.
-		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-macros" : @"planet-customized-macros"];
+		if (shadersOn)  
+		{
+			[diffuseMap ensureFinishedLoading]; // only know if it is a cube map if it's loaded
+			if ([diffuseMap isCubeMap])
+			{
+				macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-cubemap-macros" : @"planet-customized-cubemap-macros"];
+			}
+			else
+			{
+				macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-macros" : @"planet-customized-macros"];
+			}
+		}
 		else textureName = @"dynamic";
+
+		if (!isMoon)
+		{
+			/* Generate the atmosphere texture anyway */
+			OOTexture *diffuseTmp = nil;
+			OOTexture *atmosphere = nil;
+			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseTmp
+									   secondaryTexture:NULL
+										  andAtmosphere:&atmosphere
+											   withInfo:_materialParameters];
+
+			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
+			[_atmosphereDrawable setMaterial:dynamicMaterial];
+			[dynamicMaterial release];
+		}
 	}
 	else
 	{
 		if (isMoon)
 		{
 			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(shaderLevel == SHADERS_FULL) ? &normalMap : NULL
+										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
 												   withInfo:_materialParameters];
 		}
 		else
 		{
 			OOTexture *atmosphere = nil;
 			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(shaderLevel == SHADERS_FULL) ? &normalMap : NULL
+										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
 											  andAtmosphere:&atmosphere
 												   withInfo:_materialParameters];
 			
@@ -667,7 +705,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 			[_atmosphereDrawable setMaterial:dynamicMaterial];
 			[dynamicMaterial release];
 		}
-		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
+		if (shadersOn)
+		{
+			macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
+		}
 		textureName = @"dynamic";
 	}
 	OOMaterial *material = nil;
@@ -677,6 +718,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		NSMutableDictionary *config = [[[materialDefaults oo_dictionaryForKey:@"planet-material"] mutableCopy] autorelease];
 		[config setObject:[NSArray arrayWithObjects:diffuseMap, normalMap, nil] forKey:@"_oo_texture_objects"];
+		
 		material = [OOShaderMaterial shaderMaterialWithName:textureName
 											  configuration:config
 													 macros:macros

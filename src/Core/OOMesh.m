@@ -82,8 +82,6 @@ typedef enum
 
 
 static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFound";
-static NSString * const kOOLogMeshTooManyVertices			= @"mesh.load.failed.tooManyVertices";
-static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFaces";
 static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooManyMaterials";
 
 

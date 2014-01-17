@@ -123,9 +123,6 @@ MA 02110-1301, USA.
 @end
 
 
-static NSString * const kOOLogCacheIntegrityCheck	= @"dataCache.integrityCheck";
-
-
 typedef struct OOCacheImpl OOCacheImpl;
 typedef struct OOCacheNode OOCacheNode;
 
@@ -151,11 +148,12 @@ static NSString *CacheGetName(OOCacheImpl *cache);
 static void CacheSetName(OOCacheImpl *cache, NSString *name);
 
 #if OOCACHE_PERFORM_INTEGRITY_CHECKS
-	static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
-	
-	#define CHECK_INTEGRITY(context)	CacheCheckIntegrity(cache, (context))
+static NSString * const kOOLogCacheIntegrityCheck	= @"dataCache.integrityCheck";
+static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
+
+#define CHECK_INTEGRITY(context)	CacheCheckIntegrity(cache, (context))
 #else
-	#define CHECK_INTEGRITY(context)	do {} while (0)
+#define CHECK_INTEGRITY(context)	do {} while (0)
 #endif
 
 
@@ -663,9 +661,10 @@ static id CacheNodeGetValue(OOCacheNode *node)
 static void CacheNodeSetValue(OOCacheNode *node, id value)
 {
 	if (node == NULL) return;
-	
-	[node->value release];
+
+	id tmp = node->value;
 	node->value = [value retain];
+	[tmp release];
 }
 
 

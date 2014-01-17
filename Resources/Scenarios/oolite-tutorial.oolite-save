@@ -602,7 +602,7 @@
     <dict>
     </dict>
     <key>speech_gender</key>
-    <true/>
+    <false/>
     <key>speech_on</key>
     <false/>
     <key>speech_voice</key>

@@ -124,11 +124,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[modifiedMacros setObject:[NSNumber numberWithUnsignedInt:textureUnits]
 						   forKey:@"OO_TEXTURE_UNIT_COUNT"];
 		
-		if ([UNIVERSE shaderEffectsLevel] == SHADERS_SIMPLE)
-		{
-			[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OO_REDUCED_COMPLEXITY"];
-		}
-		
+		// used to test for simplified shaders - OO_REDUCED_COMPLEXITY - here
 		macroString = MacrosToString(modifiedMacros);
 	}
 	
@@ -191,9 +187,12 @@ static NSString *MacrosToString(NSDictionary *macros);
 														 attributeBindings:attributeBindings
 																  cacheKey:cacheKey];
 			OOLogOutdent();
-			
+
+// no reduced complexity mode now
+#if 0
 			if (shaderProgram == nil)
 			{
+
 				BOOL canFallBack = ![modifiedMacros oo_boolForKey:@"OO_REDUCED_COMPLEXITY"];
 #ifndef NDEBUG
 				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
@@ -222,6 +221,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 					}
 				}
 			}
+#endif
 			
 			if (shaderProgram == nil)
 			{

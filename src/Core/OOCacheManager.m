@@ -61,7 +61,6 @@ static NSString * const kOOLogDataCacheSetSuccess			= @"dataCache.set.success";
 static NSString * const kOOLogDataCacheSetFailed			= @"dataCache.set.failed";
 static NSString * const kOOLogDataCacheRemoveSuccess		= @"dataCache.remove.success";
 static NSString * const kOOLogDataCacheClearSuccess			= @"dataCache.clear.success";
-static NSString * const kOOLogDataCacheParamError			= @"general.error.parameterError.OOCacheManager";
 static NSString * const kOOLogDataCacheBuildPathError		= @"dataCache.write.buildPath.failed";
 static NSString * const kOOLogDataCacheSerializationError	= @"dataCache.write.serialize.failed";
 

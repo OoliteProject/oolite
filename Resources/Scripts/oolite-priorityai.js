@@ -332,6 +332,11 @@ this.PriorityAIController = function(ship)
 
 	this.communicate = function(key,params,priority)
 	{
+		if (!worldScripts["oolite-libPriorityAI"].$commsAllowed)
+		{
+			// comms temporarily disabled
+			return;
+		}
 		if (priority > 1)
 		{
 			var send = clock.adjustedSeconds - lastCommSent;
@@ -368,7 +373,14 @@ this.PriorityAIController = function(ship)
 			{
 				params = this.entityCommsParams(params);
 			}
-			var message = expandDescription(template,params);
+			if (template instanceof Function)
+			{
+				var message = template(key,params);
+			}
+			else
+			{
+				var message = expandDescription(template,params);
+			}
 			if (message != "")
 			{
 				this.ship.commsMessage(message);
@@ -2738,11 +2750,6 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 // NOTE: this does not, and should not, check whether the station is friendly
 PriorityAIController.prototype.behaviourDockWithStation = function()
 {
-	// may need to release escorts
-	if (this.ship.escortGroup && this.ship.escortGroup.count > 1)
-	{
-		this.ship.dockEscorts();
-	}
 	var station = this.getParameter("oolite_dockingStation");
 	this.ship.target = station;
 	var handlers = {};
@@ -2779,8 +2786,18 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 		this.ship.performFaceDestination();
 		// and will reconsider in a little bit
 		break;
-	case "APPROACH":				
 	case "APPROACH_COORDINATES":
+		if (this.ship.escortGroup && this.ship.escortGroup.count > 1)
+		{
+			// docking clearance has been granted - can now release escorts
+			if (this.ship.dockingInstructions.docking_stage >= 2)
+			{
+				this.communicate("oolite_dockEscorts",{},3);
+				this.ship.dockEscorts();
+			}
+		}
+		// and fall through
+	case "APPROACH":				
 	case "BACK_OFF":
 		this.ship.performFlyToRangeFromDestination();
 		break;
@@ -5167,7 +5184,7 @@ PriorityAIController.prototype.responseComponent_standard_shipKilledOther = func
 PriorityAIController.prototype.responseComponent_standard_shipLaunchedEscapePod = function()
 {
 	this.communicate("oolite_eject",{},1);
-	if (this.getParameter("oolite_selfDestructAbandonedShip") == true)
+	if (this.getParameter("oolite_flag_selfDestructAbandonedShip") == true)
 	{
 		if (!this.ship.script.__oolite_self_destruct)
 		{
@@ -6166,6 +6183,7 @@ this.startUp = function()
 {
 	// initial definition is just essential communications for now
 	this.$commsSettings = {};
+	this.$commsAllowed = true;
 	this._setCommunications({
 		generic: {
 			generic: {
@@ -6206,7 +6224,9 @@ this.startUp = function()
 
 	/* These are temporary for testing. Remove before release... */
 	this.$commsSettings.generic.generic.oolite_continuingAttack = "I've got the [oolite_entityClass]";
+	this.$commsSettings.police.generic.oolite_continuingAttack = function(k,p) { return "Targeting the "+p.oolite_entityName+". Cover me."; };
 	this.$commsSettings.generic.generic.oolite_beginningAttack = "Die, [oolite_entityName]!";
+	this.$commsSettings.police.generic.oolite_beginningAttack = function(k,p) { return "Leave the system or die, "+p.oolite_entityName+"!"; };
 	this.$commsSettings.generic.generic.oolite_beginningAttackInanimate = "I've got you this time, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
 	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
@@ -6224,12 +6244,26 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_groupIsOutnumbered = "Please, let us go!";
 	this.$commsSettings.pirate.generic.oolite_groupIsOutnumbered = "Argh! They're tougher than they looked. Break off the attack!"
 	this.$commsSettings.generic.generic.oolite_dockingWait = "Bored now.";
+	this.$commsSettings.generic.generic.oolite_dockEscorts = "I've got clearance now. Begin your own docking sequences when ready.";
 	this.$commsSettings.generic.generic.oolite_mining = "Maybe this one has gems.";
 	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
 	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
 	this.$commsSettings.generic.generic.oolite_agreeingToDumpCargo = "Have it! But please let us go!";
 }
 
+
+
+/* Event handler pair to prevent comms from being received while in
+ * witchspace tunnel */
+this.shipWillEnterWitchspace = function()
+{
+	this.$commsAllowed = false;
+}
+
+this.shipExitedWitchspace = function()
+{
+	this.$commsAllowed = true;
+}
 
 
 

@@ -333,22 +333,36 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 }
 
 
-- (OOShaderSetting)defaultShaderSetting
+- (OOGraphicsDetail)defaultDetailLevel
 {
 #if OO_SHADERS
-	return defaultShaderSetting;
+	if (defaultShaderSetting < SHADERS_FULL)
+	{
+		return DETAIL_LEVEL_MINIMUM;
+	}
+	else
+	{
+		return DETAIL_LEVEL_MAXIMUM;
+	}
 #else
 	return SHADERS_NOT_SUPPORTED;
 #endif
 }
 
 
-- (OOShaderSetting)maximumShaderSetting
+- (OOGraphicsDetail)maximumDetailLevel
 {
 #if OO_SHADERS
-	return maximumShaderSetting;
+	if (maximumShaderSetting < SHADERS_FULL)
+	{
+		return DETAIL_LEVEL_MINIMUM;
+	}
+	else
+	{
+		return DETAIL_LEVEL_MAXIMUM;
+	}
 #else
-	return SHADERS_NOT_SUPPORTED;
+	return DETAIL_LEVEL_MINIMUM;
 #endif
 }
 

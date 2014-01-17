@@ -47,6 +47,7 @@ NSString * const kOOTextureSpecifierSwizzleKey				= @"extract_channel";
 NSString * const kOOTextureSpecifierMinFilterKey			= @"min_filter";
 NSString * const kOOTextureSpecifierMagFilterKey			= @"mag_filter";
 NSString * const kOOTextureSpecifierNoShrinkKey				= @"no_shrink";
+NSString * const kOOTextureSpecifierExtraShrinkKey			= @"extra_shrink";
 NSString * const kOOTextureSpecifierRepeatSKey				= @"repeat_s";
 NSString * const kOOTextureSpecifierRepeatTKey				= @"repeat_t";
 NSString * const kOOTextureSpecifierCubeMapKey				= @"cube_map";
@@ -157,7 +158,7 @@ static NSString *sGlobalTraceContext = nil;
 	options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 	
 	// Look for existing texture
-	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+	key = OOGenerateTextureCacheKey(directory, name, options, anisotropy, lodBias);
 	result = [OOTexture existingTextureForKey:key];
 	if (result == nil)
 	{
@@ -707,6 +708,7 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, OOTextureFlag
 			else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
 			
 			if ([specifier oo_boolForKey:kOOTextureSpecifierNoShrinkKey defaultValue:NO])  options |= kOOTextureNoShrink;
+			if ([specifier oo_boolForKey:kOOTextureSpecifierExtraShrinkKey defaultValue:NO])  options |= kOOTextureExtraShrink;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatSKey defaultValue:NO])  options |= kOOTextureRepeatS;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatTKey defaultValue:NO])  options |= kOOTextureRepeatT;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierCubeMapKey defaultValue:NO])  options |= kOOTextureAllowCubeMap;
@@ -879,4 +881,32 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
 	options &= kOOTextureDefinedFlags;
 	
 	return options;
+}
+
+
+NSString *OOGenerateTextureCacheKey(NSString *directory, NSString *name, OOTextureFlags options, float anisotropy, float lodBias)
+{
+	if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		anisotropy = 0.0f;
+	}
+	if (!gOOTextureInfo.textureLODBiasAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		lodBias = 0.0f;
+	}
+	options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
+	
+	return [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+}
+
+
+NSString *OOTextureCacheKeyForSpecifier(id specifier)
+{
+	NSString *name;
+	OOTextureFlags options;
+	float anisotropy;
+	float lodBias;
+	
+	OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy, &lodBias, NO);
+	return OOGenerateTextureCacheKey(@"Textures", name, options, anisotropy, lodBias);
 }

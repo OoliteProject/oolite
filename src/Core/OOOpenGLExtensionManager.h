@@ -154,8 +154,8 @@ SOFTWARE.
 - (BOOL)haveExtension:(NSString *)extension;
 
 - (BOOL)shadersSupported;
-- (OOShaderSetting)defaultShaderSetting;
-- (OOShaderSetting)maximumShaderSetting;
+- (OOGraphicsDetail)defaultDetailLevel;
+- (OOGraphicsDetail)maximumDetailLevel;
 - (GLint)textureImageUnitCount;			// Fragment shader sampler count limit. Does not apply to fixed function multitexturing. (GL_MAX_TEXTURE_IMAGE_UNITS_ARB)
 
 - (BOOL)vboSupported;					// Vertex buffer objects

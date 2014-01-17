@@ -122,7 +122,7 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 	SynthNormalMap(&context);
 	SynthSpecular(&context);
 	
-	if ([UNIVERSE shaderEffectsLevel] == SHADERS_FULL)
+	if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS)
 	{
 		//	Add uniforms required for hull heat glow.
 		[context.uniforms setObject:@"hullHeatLevel" forKey:@"uHullHeatLevel"];
@@ -288,7 +288,7 @@ static BOOL sDumpShaderSource = NO;
 		if (result == nil &&
 				(smooth ||
 				 gDebugFlags & DEBUG_NO_SHADER_FALLBACK ||
-				 [UNIVERSE shaderEffectsLevel] == SHADERS_FULL ||
+				 [UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS ||
 				 [configuration oo_combinedSpecularMapSpecifier] != nil ||
 				 [configuration oo_normalMapSpecifier] != nil ||
 				 [configuration oo_parallaxMapSpecifier] != nil ||
@@ -308,7 +308,7 @@ static BOOL sDumpShaderSource = NO;
 #endif
 	
 #if OO_MULTITEXTURE
-	if (result == nil && ![UNIVERSE reducedDetail])
+	if (result == nil /*&& ![UNIVERSE reducedDetail]*/)
 	{
 		if ([configuration oo_emissionMapSpecifier] != nil ||
 			[configuration oo_illuminationMapSpecifier] ||

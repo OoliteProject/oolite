@@ -7355,26 +7355,11 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)];
 #endif
 		
-		if ([UNIVERSE reducedDetail])
-			[gui setText:DESC(@"gameoptions-reduced-detail-yes") forRow:GUI_ROW(GAME,DETAIL) align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"gameoptions-reduced-detail-no") forRow:GUI_ROW(GAME,DETAIL) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DETAIL)];
-	
-		// Shader effects level.	
-		int shaderEffects = [UNIVERSE shaderEffectsLevel];
-		NSString* shaderEffectsOptionsString = nil;
-		if (shaderEffects == SHADERS_NOT_SUPPORTED)
-		{
-			[gui setText:DESC(@"gameoptions-shaderfx-not-available") forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
-			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,SHADEREFFECTS)];
-		}
-		else
-		{
-			shaderEffectsOptionsString = [NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), OODisplayStringFromShaderSetting(shaderEffects)];
-			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
-		}
+		OOGraphicsDetail detail = [UNIVERSE detailLevel];
+		NSString *shaderEffectsOptionsString = [NSString stringWithFormat:@"gameoptions-detaillevel-%d",detail];
+		[gui setText:OOExpandKey(shaderEffectsOptionsString) forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
+
 		
 		if ([UNIVERSE dockingClearanceProtocolActive])
 		{
