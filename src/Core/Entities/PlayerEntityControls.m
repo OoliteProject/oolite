@@ -2898,16 +2898,6 @@ static NSTimeInterval	time_last_frame;
 	NSUInteger			numSticks = [stickHandler joystickCount];
 	NSPoint				virtualStick = NSZeroPoint;
 	double				reqYaw = 0.0;
-	double				deadzone;
-	
-	if (mouse_control_on)
-	{
-		deadzone = 0.0;
-	}
-	else
-	{
-		deadzone = STICK_DEADZONE / [stickHandler getSensitivity];
-	}
 	
 	/*	DJS: Handle inputs on the joy roll/pitch axis.
 	 Mouse control on takes precidence over joysticks.
@@ -2925,7 +2915,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		virtualStick = [stickHandler rollPitchAxis];
 		// handle roll separately (fix for BUG #17490)
-		if((virtualStick.x == STICK_AXISUNASSIGNED) || (fabs(virtualStick.x) < deadzone))
+		if((virtualStick.x == STICK_AXISUNASSIGNED))
 		{
 			// Not assigned or deadzoned - set to zero.
 			virtualStick.x=0;
@@ -2936,7 +2926,7 @@ static NSTimeInterval	time_last_frame;
 			keyboardRollOverride=NO;
 		}
 		// handle pitch separately (fix for BUG #17490)
-		if((virtualStick.y == STICK_AXISUNASSIGNED) || (fabs(virtualStick.y) < deadzone))
+		if((virtualStick.y == STICK_AXISUNASSIGNED))
 		{
 			// Not assigned or deadzoned - set to zero.
 			virtualStick.y=0;
@@ -2948,7 +2938,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		// handle yaw separately from pitch/roll
 		reqYaw = [stickHandler getAxisState: AXIS_YAW];
-		if((reqYaw == STICK_AXISUNASSIGNED) || fabs(reqYaw) < deadzone)
+		if((reqYaw == STICK_AXISUNASSIGNED))
 		{
 			// Not assigned or deadzoned - set to zero.
 			reqYaw=0;
@@ -3004,7 +2994,7 @@ static NSTimeInterval	time_last_frame;
 			if (flightRoll < stick_roll)
 				flightRoll = stick_roll;
 		}
-		rolling = (fabs(virtualStick.x) >= deadzone);
+		rolling = (fabs(virtualStick.x) > 0.0);
 	}
 	if (!rolling)
 	{
@@ -3054,7 +3044,7 @@ static NSTimeInterval	time_last_frame;
 			if (flightPitch < stick_pitch)
 				flightPitch = stick_pitch;
 		}
-		pitching = (fabs(virtualStick.y) >= deadzone);
+		pitching = (fabs(virtualStick.y) > 0.0);
 	}
 	if (!pitching)
 	{
@@ -3108,7 +3098,7 @@ static NSTimeInterval	time_last_frame;
 				if (flightYaw < stick_yaw)
 					flightYaw = stick_yaw;
 			}
-			yawing = (fabs(reqYaw) >= deadzone);
+			yawing = (fabs(reqYaw) > 0.0);
 		}
 		if (!yawing)
 		{

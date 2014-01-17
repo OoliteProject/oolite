@@ -414,6 +414,14 @@ static id sSharedStickHandler = nil;
 		case AXIS_ROLL:
 		case AXIS_PITCH:
 		case AXIS_YAW:
+			if (fabs(axisvalue) < STICK_DEADZONE)
+			{
+				axisvalue = 0.0;
+			}
+			else
+			{
+				axisvalue = axisvalue < 0 ? -(-axisvalue-STICK_DEADZONE)/(1.0-STICK_DEADZONE) : (axisvalue-STICK_DEADZONE)/(1.0-STICK_DEADZONE);
+			}
 			if(precisionMode)
 			{
 				axstate[function] = axisvalue / STICK_PRECISIONDIV;
