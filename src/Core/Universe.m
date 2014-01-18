@@ -4377,7 +4377,7 @@ static const OOMatrix	starboard_matrix =
 			}
 			
 #if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
-			[theHUD drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
+			[self drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
 #endif
 			
 			OOCheckOpenGLErrors(@"Universe after drawing HUD");
@@ -4453,6 +4453,17 @@ static const OOMatrix	starboard_matrix =
 	[comm_log_gui drawGUI:[comm_log_gui alpha] * overallAlpha drawCursor:NO];
 	
 	OOVerifyOpenGLState();
+}
+
+
+- (void) drawWatermarkString:(NSString *) watermarkString
+{
+	NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
+	
+	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
+	// position the watermark string on the top right hand corner of the game window and right-align it
+	OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
+						MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, [gameView display_z], NSMakeSize(10,10));
 }
 
 

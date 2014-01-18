@@ -492,6 +492,8 @@ enum
 
 - (void) drawMessage;
 
+- (void) drawWatermarkString:(NSString *)watermarkString;
+
 // Used to draw subentities. Should be getting this from camera.
 - (OOMatrix) viewMatrix;
 

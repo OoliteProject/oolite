@@ -2974,17 +2974,6 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawWatermarkString:(NSString *) watermarkString
-{
-	NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
-	
-	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
-	// position the watermark string on the top right hand corner of the game window and right-align it
-	OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
-						MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, z1, NSMakeSize(10,10));
-}
-
-
 - (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index
 {
 	PlayerEntity		*player1 = PLAYER;
