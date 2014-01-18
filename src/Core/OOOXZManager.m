@@ -564,6 +564,9 @@ static OOOXZManager *sSingleton = nil;
 
 		startRow = OXZ_GUI_ROW_UPDATE;
 		break;
+	case OXZ_STATE_RESTARTING:
+		[gui addLongText:DESC(@"oolite-oxzmanager-restart") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
+		return; // yes, return, not break: controls are pointless here
 	case OXZ_STATE_MAIN:
 		[gui addLongText:DESC(@"oolite-oxzmanager-intro") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
 		// fall through
@@ -621,7 +624,15 @@ static OOOXZManager *sSingleton = nil;
 		startRow = [self showRemoveOptions];
 	}
 
-	[gui setText:DESC(@"oolite-oxzmanager-exit") forRow:OXZ_GUI_ROW_EXIT align:GUI_ALIGN_CENTER];
+
+	if (_changesMade)
+	{
+		[gui setText:DESC(@"oolite-oxzmanager-exit-restart") forRow:OXZ_GUI_ROW_EXIT align:GUI_ALIGN_CENTER];
+	}
+	else
+	{
+		[gui setText:DESC(@"oolite-oxzmanager-exit") forRow:OXZ_GUI_ROW_EXIT align:GUI_ALIGN_CENTER];
+	}
 	[gui setKey:@"_EXIT" forRow:OXZ_GUI_ROW_EXIT];
 	[gui setSelectableRange:NSMakeRange(startRow,2+(OXZ_GUI_ROW_EXIT-startRow))];
 	if (startRow < OXZ_GUI_ROW_INSTALL)
@@ -636,6 +647,27 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (BOOL) isRestarting
+{
+	// for the restart
+	if (EXPECT_NOT(_interfaceState == OXZ_STATE_RESTARTING))
+	{
+		// Rebuilds OXP search
+		[ResourceManager reset];
+		[UNIVERSE reinitAndShowDemo:YES strictChanged:YES];
+		_changesMade = NO;
+		_interfaceState = OXZ_STATE_MAIN;
+		_downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
+		[PLAYER setGuiToIntroFirstGo:YES];
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
+}
+
+
 - (void) processSelection
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -644,27 +676,24 @@ static OOOXZManager *sSingleton = nil;
 	if (selection == OXZ_GUI_ROW_EXIT)
 	{
 		[self cancelUpdate]; // doesn't hurt if no update in progress
+		_downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
 		if (_changesMade)
 		{
-			// Rebuilds OXP search
-			[ResourceManager reset];
-			[UNIVERSE reinitAndShowDemo:YES strictChanged:YES];
-			_changesMade = NO;
+			_interfaceState = OXZ_STATE_RESTARTING;
 		}
 		else
 		{
 			[PLAYER setGuiToIntroFirstGo:YES];
+			if (_oxzList != nil)
+			{
+				_interfaceState = OXZ_STATE_MAIN;
+			}
+			else
+			{
+				_interfaceState = OXZ_STATE_NODATA;
+			}
+			return;
 		}
-		if (_oxzList != nil)
-		{
-			_interfaceState = OXZ_STATE_MAIN;
-		}
-		else
-		{
-			_interfaceState = OXZ_STATE_NODATA;
-		}
-		_downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
-		return;
 	}
 	else if (selection == OXZ_GUI_ROW_UPDATE)
 	{

@@ -3485,7 +3485,8 @@ static BOOL autopilot_pause;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	NSUInteger end_row = 21;
-	
+	OOOXZManager *oxzmanager = [OOOXZManager sharedManager];
+
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_INTRO1:
@@ -3581,38 +3582,41 @@ static BOOL autopilot_pause;
 			break;
 
 		case GUI_SCREEN_OXZMANAGER:
-			if ([self handleGUIUpDownArrowKeys])
+			if (EXPECT(![oxzmanager isRestarting]))
 			{
-				// only has an effect on install/remove selection screens
-				[[OOOXZManager sharedManager] showOptionsUpdate];
-			}
-			if ([gameView isDown:key_gui_arrow_left])
-			{
-				if ((!leftRightKeyPressed))
+				if ([self handleGUIUpDownArrowKeys])
 				{
-					[[OOOXZManager sharedManager] showOptionsPrev];
+					// only has an effect on install/remove selection screens
+					[oxzmanager showOptionsUpdate];
 				}
-			}
-			if ([gameView isDown:key_gui_arrow_right])
-			{
-				if ((!leftRightKeyPressed))
+				if ([gameView isDown:key_gui_arrow_left])
 				{
-					[[OOOXZManager sharedManager] showOptionsNext];
+					if ((!leftRightKeyPressed))
+					{
+						[oxzmanager showOptionsPrev];
+					}
 				}
-			}
-			leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
+				if ([gameView isDown:key_gui_arrow_right])
+				{
+					if ((!leftRightKeyPressed))
+					{
+						[oxzmanager showOptionsNext];
+					}
+				}
+				leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
 
-			if (!selectPressed)
-			{
-				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+				if (!selectPressed)
 				{
-					[[OOOXZManager sharedManager] processSelection];
+					if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+					{
+						[oxzmanager processSelection];
+					}
 				}
-			}
-			selectPressed = [gameView isDown:13];
-			if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
-			{
-				[gameView clearMouse];
+				selectPressed = [gameView isDown:13];
+				if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+				{
+					[gameView clearMouse];
+				}
 			}
 			break;
 	

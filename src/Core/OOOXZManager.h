@@ -47,7 +47,8 @@ typedef enum {
 	OXZ_STATE_PICK_REMOVE,
 	OXZ_STATE_INSTALLING,
 	OXZ_STATE_REMOVING,
-	OXZ_STATE_TASKDONE
+	OXZ_STATE_TASKDONE,
+	OXZ_STATE_RESTARTING
 } OXZInterfaceState;
 
 
@@ -80,6 +81,7 @@ typedef enum {
 - (NSArray *) managedOXZs;
 
 - (void) gui;
+- (BOOL) isRestarting;
 - (void) processSelection;
 - (OOGUIRow) showInstallOptions;
 - (OOGUIRow) showRemoveOptions;
