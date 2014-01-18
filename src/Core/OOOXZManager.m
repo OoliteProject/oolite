@@ -697,11 +697,8 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else if (selection == OXZ_GUI_ROW_LISTPREV)
 	{
-		_offset -= OXZ_GUI_NUM_LISTROWS;
-		if (_offset < 0)
-		{
-			_offset = 0;
-		}
+		if (_offset < OXZ_GUI_NUM_LISTROWS)  _offset = 0;
+		else  _offset -= OXZ_GUI_NUM_LISTROWS;
 		[self showOptionsUpdate];
 		return;
 	}
@@ -762,10 +759,6 @@ static OOOXZManager *sSingleton = nil;
 
 - (NSArray *) installOptions
 {
-	if (_offset < 0)
-	{
-		_offset = 0;
-	}
 	NSUInteger start = _offset;
 	if (start >= [_oxzList count])
 	{
@@ -940,10 +933,6 @@ static OOOXZManager *sSingleton = nil;
 	if ([remList count] == 0)
 	{
 		return nil;
-	}
-	if (_offset < 0)
-	{
-		_offset = 0;
 	}
 	NSUInteger start = _offset;
 	if (start >= [remList count])
