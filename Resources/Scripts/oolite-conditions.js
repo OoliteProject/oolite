@@ -83,6 +83,12 @@ this.allowAwardEquipment = function(equipment, ship, context)
 		}
 	}
 
+	// OXP hook to allow ships to forbid specific "available to all" equipment
+	if (ship.scriptInfo["oolite-barred-equipment"] && ship.scriptInfo["oolite-barred-equipment"].indexOf(equipment) != -1)
+	{
+		return false;
+	}
+
 	// otherwise allowed
 	return true;
 }
