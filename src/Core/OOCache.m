@@ -112,7 +112,7 @@ MA 02110-1301, USA.
 
 
 #ifndef OOCACHE_PERFORM_INTEGRITY_CHECKS
-#define OOCACHE_PERFORM_INTEGRITY_CHECKS	0
+#define OOCACHE_PERFORM_INTEGRITY_CHECKS	1
 #endif
 
 
@@ -127,7 +127,7 @@ typedef struct OOCacheImpl OOCacheImpl;
 typedef struct OOCacheNode OOCacheNode;
 
 
-enum { kCountUnknown = -1UL };
+enum { kCountUnknown = -1U };
 
 
 static NSString * const kSerializedEntryKeyKey		= @"key";
@@ -387,7 +387,7 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
 @end
 
 
-/***** Most of the implementation. In C. Because I'm inconsistent and slightly mad. *****/
+/***** Most of the implementation. In C. Because I'm inconsistent and slightly m. *****/
 
 struct OOCacheImpl
 {
@@ -701,6 +701,16 @@ static OOCacheNode *TreeSplay(OOCacheNode **root, id<OOCacheComparable> key)
 	
 	for (;;)
 	{
+#ifndef NDEBUG
+		if (node == NULL)
+		{
+			OOLog(@"node.error",@"node is NULL");
+		}
+		else if (node->key == NULL)
+		{
+			OOLog(@"node.error",@"node->key is NULL");
+		}
+#endif
 		order = [key compare:node->key];
 		if (order == NSOrderedAscending)
 		{
@@ -853,7 +863,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		{
 			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@'s left child %@ is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->leftChild));
 			CacheNodeFree(cache, node->leftChild);
-			node->leftChild = nil;
+			node->leftChild = NULL;
 			cache->count = kCountUnknown;
 		}
 		else
@@ -868,7 +878,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		{
 			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node \"%@\"'s right child \"%@\" is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->rightChild));
 			CacheNodeFree(cache, node->rightChild);
-			node->rightChild = nil;
+			node->rightChild = NULL;
 			cache->count = kCountUnknown;
 		}
 		else
@@ -940,7 +950,7 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	{
 		next = node->older;
 		++seenCount;
-		if (next == nil) break;
+		if (next == NULL) break;
 		
 		if (next->younger != node)
 		{
@@ -954,6 +964,8 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	{
 		// This is especially bad since this function is called just after verifying that the count field reflects the number of objects in the tree.
 		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): expected %u nodes, found %u. Cannot repair; clearing cache.", context, cache->name, cache->count, seenCount);
+		OOLog(kOOLogCacheIntegrityCheck, @"Age list seems to be: %@",CacheArrayOfNodesByAge(cache));
+
 		cache->count = 0;
 		CacheNodeFree(cache, cache->root);
 		cache->root = NULL;
