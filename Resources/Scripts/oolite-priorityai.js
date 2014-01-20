@@ -3013,6 +3013,7 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 	{
 		if (!this.__ltcache.oolite_witchspaceflee)
 		{
+			this.communicate("oolite_engageWitchspaceDriveFlee",{},2);
 			this.__ltcache.oolite_witchspaceflee = clock.seconds + 15;
 		}
 		if (this.__ltcache.oolite_witchspaceflee < clock.seconds)
@@ -6249,6 +6250,8 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
 	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
 	this.$commsSettings.generic.generic.oolite_agreeingToDumpCargo = "Have it! But please let us go!";
+	this.$commsSettings.generic.generic.oolite_engageWitchspaceDrive = "All ships, form up for witchspace jump.";
+	this.$commsSettings.generic.generic.oolite_engageWitchspaceDriveFlee = "There's too many of them! Get out of here!";
 }
 
 
