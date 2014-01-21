@@ -964,7 +964,40 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	{
 		// This is especially bad since this function is called just after verifying that the count field reflects the number of objects in the tree.
 		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): expected %u nodes, found %u. Cannot repair; clearing cache.", context, cache->name, cache->count, seenCount);
-		OOLog(kOOLogCacheIntegrityCheck, @"Age list seems to be: %@",CacheArrayOfNodesByAge(cache));
+
+		/* Start of temporary extra logging */
+		node = cache->youngest;
+	
+		if (node)  
+		{
+			for (;;)
+			{
+				next = node->older;
+				++seenCount;
+				if (next == NULL) break;
+				
+				if (node->key != NULL)
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Key is: %@",node->key);
+				}
+				else
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Key is: NULL");
+				}
+
+				if (node->value != NULL)
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Value is: %@",node->value);
+				}
+				else
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Value is: NULL");
+				}
+				
+				node = next;
+			}
+		}
+		/* End of temporary extra logging */
 
 		cache->count = 0;
 		CacheNodeFree(cache, cache->root);
