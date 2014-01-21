@@ -2001,8 +2001,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
+	/* This does not appear to save a significant amount of time in
+	 * most situations. No significant change in frame rate with a
+	 * 350-segment planetary ring at 1400 collision candidates, even
+	 * on old hardware. There are perhaps situations in which it could
+	 * be a significant optimisation, but those are likely to also be
+	 * the situations where the effect of adding hundreds of extra
+	 * false-positive collisions leaves the player returning to a
+	 * mess... So, commented out: CIM 21 Jan 2014
 	if (zero_distance > CLOSE_COLLISION_CHECK_MAX_RANGE2)	// don't work too hard on entities that are far from the player
-		return YES;
+	return YES; 
+	*/
 	
 	if (otherShip != nil)
 	{
