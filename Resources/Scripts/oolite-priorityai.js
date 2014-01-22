@@ -894,7 +894,7 @@ PriorityAIController.prototype.isAggressive = function(ship)
 
 PriorityAIController.prototype.isEscaping = function(ship)
 {
-	if (ai.getParameter("oolite_flag_continueUnlikelyPursuits") != null)
+	if (this.getParameter("oolite_flag_continueUnlikelyPursuits") != null)
 	{
 		return false;
 	}
@@ -3049,7 +3049,7 @@ PriorityAIController.prototype.behaviourFollowCurrentTarget = function()
 
 	if (rt.status == "STATUS_ENTERING_WITCHSPACE")
 	{
-		if (ai.getParameter("oolite_flag_witchspacePursuit"))
+		if (this.getParameter("oolite_flag_witchspacePursuit"))
 		{
 			var pos = rt.position;
 			var ws = system.wormholes;
