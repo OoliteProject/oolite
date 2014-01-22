@@ -471,9 +471,24 @@ static NSString *sGlobalTraceContext = nil;
 	if (cacheKey == nil)  return;
 	
 	[sLiveTextureCache removeObjectForKey:cacheKey];
-	NSAssert2([sRecentTextures objectForKey:cacheKey] != self, @"Texture retain count error for %@; cacheKey is %@.", self, cacheKey); //miscount in autorelease
-	// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
-	[sRecentTextures removeObjectForKey:cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+	if (EXPECT_NOT([sRecentTextures objectForKey:cacheKey] == self))
+	{
+		/* Experimental for now: I think the recent crash problems may
+		 * be because if the last reference to a texture is in
+		 * sRecentTextures, and the texture is regenerated, it
+		 * replaces the texture, causing a release. Therefore, if this
+		 * texture *isn't* overretained in the texture cache, the 2009
+		 * crash avoider will delete its replacement from the cache
+		 * ... possibly before that texture has been fully added to
+		 * the cache itself. So, the texture is only removed from the
+		 * cache by key if it was in it with that key. The extra time
+		 * needed to generate a planet texture compared with loading a
+		 * standard one may be why this problem shows up.  - CIM 20140122
+		 */
+		NSAssert2(0, @"Texture retain count error for %@; cacheKey is %@.", self, cacheKey); //miscount in autorelease
+		// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
+		[sRecentTextures removeObjectForKey:cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+	}
 #endif
 }
 
