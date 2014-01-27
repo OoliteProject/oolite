@@ -3,7 +3,7 @@
 		"file" = "oolite-standard.oolite-save";
 		"name" = "[oolite-scenario-standard-name]";
 		"description" = "[oolite-scenario-standard-description]";
-		"model" = "cobra3-trader";
+		"model" = "cobra3-player";
 	},
 	{
 		"file" = "oolite-tutorial.oolite-save";
@@ -16,6 +16,6 @@
 		"file" = "oolite-strict.oolite-save";
 		"name" = "[oolite-scenario-strict-name]";
 		"description" = "[oolite-scenario-strict-description]";
-		"model" = "cobra3-trader";
+		"model" = "oolite-cobra3-strict";
 	}
 )

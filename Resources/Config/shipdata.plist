@@ -4452,5 +4452,11 @@
 		roles = "oolite-unknown-ship";
 		smooth = yes;
 	};
+	"oolite-cobra3-strict" =
+	{
+		like_ship = "oolite_template_cobra3-player";
+		roles = "oolite-cobra3-strict";
+	};
+
 
 }
