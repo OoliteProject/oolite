@@ -73,6 +73,8 @@ enum {
 	OXZ_GUI_ROW_LISTNEXT	= 13,
 	OXZ_GUI_ROW_LISTSTATUS	= 15,
 	OXZ_GUI_ROW_LISTDESC	= 17,
+	OXZ_GUI_ROW_LISTINFO1	= 21,
+	OXZ_GUI_ROW_LISTINFO2	= 22,
 	OXZ_GUI_ROW_INSTALL		= 24,
 	OXZ_GUI_ROW_REMOVE		= 25,
 	OXZ_GUI_ROW_UPDATE		= 26,
@@ -94,6 +96,7 @@ static OOOXZManager *sSingleton = nil;
 - (NSString *) manifestPath;
 - (NSString *) downloadPath;
 - (NSString *) dataURL;
+- (NSString *) humanSize:(NSUInteger)bytes;
 
 - (BOOL) ensureInstallPath;
 
@@ -251,6 +254,22 @@ static OOOXZManager *sSingleton = nil;
 	return kOOOXZDataURL;
 }
 
+
+- (NSString *) humanSize:(NSUInteger)bytes
+{
+	if (bytes < 1024)
+	{
+		return @"<1 kb";
+	}
+	else if (bytes < 1024*1024)
+	{
+		return [NSString stringWithFormat:@"%lu kb",bytes>>10];
+	}
+	else 
+	{
+		return [NSString stringWithFormat:@"%lu Mb",bytes>>20];
+	}
+}
 
 
 - (void) setOXZList:(NSArray *)list
@@ -585,7 +604,7 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_STATE_INSTALLING:
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-downloading")];
 
-		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),_downloadProgress,_downloadExpected] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
 
 		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_CANCEL" forRow:OXZ_GUI_ROW_UPDATE];
@@ -919,7 +938,21 @@ static OOOXZManager *sSingleton = nil;
 			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+
+			NSString *infoUrl = [manifest oo_stringForKey:kOOManifestInformationURL];
+			if (infoUrl != nil)
+			{
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-url"),infoUrl,nil] forRow:OXZ_GUI_ROW_LISTINFO1];
+			}
+			NSUInteger size = [manifest oo_unsignedIntForKey:kOOManifestFileSize defaultValue:0];
+			if (size > 0)
+			{
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-size"),[self humanSize:size],nil] forRow:OXZ_GUI_ROW_LISTINFO2];
+			}
+			
+
 		}
+		
 
 		row++;
 	}

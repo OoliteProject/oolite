@@ -1073,8 +1073,8 @@
 	"oolite-oxzmanager-firstrun"	= "Before Oolite can install your requested expansions automatically, it needs to retrieve the expansions list. You will need to be connected to the internet for this to work. Use the 'Download expansions list' option when you are ready, or 'Return to Menu' if you do not have internet access now or would rather download and install expansions yourself.";
 	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.\n\nThere are also many more expansion packs not available through the automatic installer.\n\nCalculations of conflicts and dependencies between expansion packs are based on your currently running packs. So, if pack A requires pack B to work, and you install pack B, pack A will still show up as having unmet requirements until you have exited and re-entered the manager, which will restart all the packs. You can, if you know you just installed pack B, install pack A anyway - both packs will then be loaded at once when you exit the manager.";
 	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed. Expansion packs which you have installed manually must also be removed manually.";
-	"oolite-oxzmanager-restart"		= "As you have changed the expansion packs you have installed, Oolite now needs to reload the game data. This may take a few seconds or several minutes depending on how fast your computer is and how many packs you have installed. Please be patient while this reload completes: Oolite will not respond to the keyboard or mouse until this is done.";
-	"oolite-oxzmanager-progress-@-of-@"	= "Downloading: %lu of %lu";
+	"oolite-oxzmanager-restart"				= "As you have changed the expansion packs you have installed, Oolite now needs to reload the game data. This may take a few seconds or several minutes depending on how fast your computer is and how many packs you have installed. Please be patient while this reload completes: Oolite will not respond to the keyboard or mouse until this is done.";
+	"oolite-oxzmanager-progress-@-of-@"		= "Downloading: %@ of %@";
 	"oolite-oxzmanager-progress-done"		= "Download complete";
 	"oolite-oxzmanager-removal-done"		= "Expansion pack removed";
 	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details.";
@@ -1082,6 +1082,8 @@
 	"oolite-oxzmanager-heading-title"		= "Title";
 	"oolite-oxzmanager-heading-version"		= "Version";
 	"oolite-oxzmanager-heading-installed"	= "Installed";
+	"oolite-oxzmanager-infoline-url"		= "URL: ";
+	"oolite-oxzmanager-infoline-size"		= "Download size: ";
 	"oolite-oxzmanager-missing-field"		= "Unknown";
 	"oolite-oxzmanager-version-none"		= "-";
 	"oolite-oxzmanager-installable-okay"	= "Status: Ready to download and install.";	
