@@ -6634,8 +6634,20 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	[[UNIVERSE gameView] clearMouse];
-		
-	[self setShowDemoShips:NO];
+	
+	// Contributed by Pleb - show ship model if the appropriate user default key has been set - Nikos 20140127
+	if (EXPECT_NOT([[NSUserDefaults standardUserDefaults] boolForKey:@"show-ship-model-in-status-screen"]))
+	{
+		[UNIVERSE removeDemoShips];
+		[self showShipModelWithKey:[self shipDataKey] shipData:nil personality:[self entityPersonality]
+									factorX:2.5 factorY:1.7 factorZ:8.0 inContext:nil];
+		[self setShowDemoShips:YES];
+	}
+	else
+	{
+		[self setShowDemoShips:NO];
+	}
+	
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	if (guiChanged)
