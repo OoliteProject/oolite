@@ -6639,7 +6639,7 @@ static GLfloat		sBaseMass = 0.0;
 	if (EXPECT_NOT([[NSUserDefaults standardUserDefaults] boolForKey:@"show-ship-model-in-status-screen"]))
 	{
 		[UNIVERSE removeDemoShips];
-		[self showShipModelWithKey:[self shipDataKey] shipData:nil personality:[self entityPersonality]
+		[self showShipModelWithKey:[self shipDataKey] shipData:nil personality:[self entityPersonalityInt]
 									factorX:2.5 factorY:1.7 factorZ:8.0 inContext:nil];
 		[self setShowDemoShips:YES];
 	}
