@@ -3013,6 +3013,48 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) showShipModelWithKey:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality factorX:(GLfloat)factorX factorY:(GLfloat)factorY factorZ:(GLfloat)factorZ inContext:(NSString *)context
+{
+	if (shipKey == nil)  return;
+	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+	if (shipData == nil)  return;
+	
+	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
+	// MKW - retrieve last demo ships' orientation and release it
+	if( demoShip != nil )
+	{
+		q2 = [demoShip orientation];
+		[demoShip release];
+	}
+	
+	ShipEntity *ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
+	if (personality != ENTITY_PERSONALITY_INVALID)  [ship setEntityPersonalityInt:personality];
+	
+	[ship wasAddedToUniverse];
+	
+	if (context)  OOLog(@"script.debug.note.showShipModel", @"::::: showShipModel:'%@' in context: %@.", [ship name], context);
+	
+	GLfloat cr = [ship collisionRadius];
+	[ship setOrientation: q2];
+	[ship setPositionX:factorX * cr y:factorY * cr z:factorZ * cr];
+	[ship setScanClass: CLASS_NO_DRAW];
+	[ship setRoll: M_PI/10.0];
+	[ship setPitch: M_PI/25.0];
+	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
+	[ship setAITo: @"nullAI.plist"];
+	id subEntStatus = [shipData objectForKey:@"subentities_status"];
+	// show missing subentities if there's a subentities_status key
+	if (subEntStatus != nil) [ship deserializeShipSubEntitiesFrom:(NSString *)subEntStatus];
+	[UNIVERSE addEntity: ship];
+	// MKW - save demo ship for its rotation
+	demoShip = [ship retain];
+	
+	[ship setStatus: STATUS_COCKPIT_DISPLAY];
+	
+	[ship release];
+}
+
+
 // Check for lost targeting - both on the ships' main target as well as each
 // missile.
 // If we're actively scanning and we don't have a current target, then check
