@@ -2766,7 +2766,7 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 	{
 	case "TOO_BIG_TO_DOCK":
 	case "DOCKING_REFUSED":
-		this.ship.setParameter("oolite_dockingStation",null);
+		this.setParameter("oolite_dockingStation",null);
 		this.ship.target = null;
 		this.reconsiderNow();
 		break;
@@ -3070,7 +3070,7 @@ PriorityAIController.prototype.behaviourFollowCurrentTarget = function()
 		{
 			this.ship.destination = this.ship.position;
 			this.ship.target = null;
-			this.ship.setParameter("oolite_rememberedTarget",null);
+			this.setParameter("oolite_rememberedTarget",null);
 		}
 	}
 	else
