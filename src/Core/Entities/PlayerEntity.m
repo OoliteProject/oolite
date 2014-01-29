@@ -3022,7 +3022,13 @@ static GLfloat		sBaseMass = 0.0;
 	// Correct the position of the displayed model in the status screen when viewed in non-4/3 resolutions. Other screens displaying
 	// demoship models remain unaltered - Nikos 20140129
 	NSSize screenSize = [[UNIVERSE gameView] viewSize];
-	GLfloat screenSizeCorrectionFactor = [context isEqualToString:@"GUI_SCREEN_STATUS"] ? screenSize.height / screenSize.width * (4.0f/3.0f) : 1.0f;
+	GLfloat screenSizeCorrectionFactor = 1.0f;
+	if ([context isEqualToString:@"GUI_SCREEN_STATUS"])
+	{
+		screenSizeCorrectionFactor = screenSize.height <= screenSize.width ?
+										screenSize.height / screenSize.width * (4.0f/3.0f) :
+										screenSize.height / screenSize.width * (3.0f/4.0f);
+	}
 	
 	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
 	// MKW - retrieve last demo ships' orientation and release it
