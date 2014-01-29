@@ -3075,12 +3075,12 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		case GUI_SCREEN_GAMEOPTIONS:
 			//refresh play windowed / full screen
-			[[PlayerEntity sharedPlayer] setGuiToGameOptionsScreen];
+			[self setGuiToGameOptionsScreen];
 			break;
 		case GUI_SCREEN_STATUS:
 			// status screen must be redone in order to possibly
 			// refresh displayed model's draw position
-			[[PlayerEntity sharedPlayer] setGuiToStatusScreen];
+			[self setGuiToStatusScreen];
 			break;
 		default:
 			break;
