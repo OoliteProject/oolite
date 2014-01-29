@@ -1561,11 +1561,9 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 
 					case SDLK_F12:
 						[self toggleScreenMode];
-							if([[PlayerEntity sharedPlayer] guiScreen]==GUI_SCREEN_GAMEOPTIONS)
-							{
-								//refresh play windowed / full screen
-								[[PlayerEntity sharedPlayer] setGuiToGameOptionsScreen];
-							}
+						// normally we would want to do a gui screen resize update here, but
+						// toggling full screen mode executes an SDL_VIDEORESIZE event, which
+						// takes care of this for us - Nikos 20140129
 						break;
 
 					case SDLK_ESCAPE:
@@ -1782,6 +1780,12 @@ keys[a] = NO; keys[b] = NO; \
 #else
 				[self saveWindowSize: newSize];
 #endif
+				// certain gui screens will require an immediate redraw after
+				// a resize event - Nikos 20140129
+				if ([PlayerEntity sharedPlayer])
+				{
+					[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+				}
 				break;
 			}
 

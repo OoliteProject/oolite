@@ -999,6 +999,8 @@ typedef enum
 
 - (void) showShipModelWithKey:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality factorX:(GLfloat)factorX factorY:(GLfloat)factorY factorZ:(GLfloat)factorZ inContext:(NSString *)context;
 
+- (void) doGuiScreenResizeUpdates;
+
 @end
 
 

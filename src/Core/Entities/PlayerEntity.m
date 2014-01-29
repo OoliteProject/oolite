@@ -3019,6 +3019,11 @@ static GLfloat		sBaseMass = 0.0;
 	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipData == nil)  return;
 	
+	// Correct the position of the displayed model in the status screen when viewed in non-4/3 resolutions. Other screens displaying
+	// demoship models remain unaltered - Nikos 20140129
+	NSSize screenSize = [[UNIVERSE gameView] viewSize];
+	GLfloat screenSizeCorrectionFactor = [context isEqualToString:@"GUI_SCREEN_STATUS"] ? screenSize.height / screenSize.width * (4.0f/3.0f) : 1.0f;
+	
 	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
 	// MKW - retrieve last demo ships' orientation and release it
 	if( demoShip != nil )
@@ -3036,7 +3041,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	GLfloat cr = [ship collisionRadius];
 	[ship setOrientation: q2];
-	[ship setPositionX:factorX * cr y:factorY * cr z:factorZ * cr];
+	[ship setPositionX:factorX * cr * screenSizeCorrectionFactor y:factorY * cr * screenSizeCorrectionFactor z:factorZ * cr];
 	[ship setScanClass: CLASS_NO_DRAW];
 	[ship setRoll: M_PI/10.0];
 	[ship setPitch: M_PI/25.0];
@@ -3052,6 +3057,28 @@ static GLfloat		sBaseMass = 0.0;
 	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	
 	[ship release];
+}
+
+
+// Game options and status screens (for now) may require an immediate window redraw after
+// said window has been resized. This method must be called after such resize events, including
+// toggle to/from full screen - Nikos 20140129
+- (void) doGuiScreenResizeUpdates
+{
+	switch ([self guiScreen])
+	{
+		case GUI_SCREEN_GAMEOPTIONS:
+			//refresh play windowed / full screen
+			[[PlayerEntity sharedPlayer] setGuiToGameOptionsScreen];
+			break;
+		case GUI_SCREEN_STATUS:
+			// status screen must be redone in order to possibly
+			// refresh displayed model's draw position
+			[[PlayerEntity sharedPlayer] setGuiToStatusScreen];
+			break;
+		default:
+			break;
+	}
 }
 
 
@@ -6640,7 +6667,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[UNIVERSE removeDemoShips];
 		[self showShipModelWithKey:[self shipDataKey] shipData:nil personality:[self entityPersonalityInt]
-									factorX:2.5 factorY:1.7 factorZ:8.0 inContext:nil];
+									factorX:2.5 factorY:1.7 factorZ:8.0 inContext:@"GUI_SCREEN_STATUS"];
 		[self setShowDemoShips:YES];
 	}
 	else
