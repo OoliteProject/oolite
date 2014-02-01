@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOTexture.h"
 #import "OOJavaScriptEngine.h"
-
+#import "PlayerEntityStickProfile.h"
 
 OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 {
@@ -1251,6 +1251,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
 				[self drawEquipmentList:[player equipmentList] z:z];
+			}
+			if ([player guiScreen] == GUI_SCREEN_STICKPROFILE)
+			{
+				[player stickProfileGraphAxisProfile: alpha screenAt: make_vector(x,y,z) screenSize: size_in_pixels];
 			}
 		}
 		

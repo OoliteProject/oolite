@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
 @class OOJoystickManager, OOTexture, OOLaserShotEntity;
+@class StickProfileScreen;
 
 #define ALLOW_CUSTOM_VIEWS_WHILE_PAUSED	1
 #define SCRIPT_TIMER_INTERVAL			10.0
@@ -612,6 +613,8 @@ typedef enum
 
 	ShipEntity				*demoShip; // Used while docked to maintain demo ship rotation.
 	OOLaserShotEntity *lastShot; // used to correctly position laser shots on first frame of firing
+	
+	StickProfileScreen		*stickProfileScreen;
 }
 
 + (PlayerEntity *) sharedPlayer;

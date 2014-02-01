@@ -112,6 +112,9 @@ enum {
 #define STICK_DEADZONE	0.05
 #endif
 
+#define STICK_MAX_DEADZONE	(STICK_DEADZONE * 2)
+
+
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
 #define HW_AXIS 1
@@ -128,9 +131,9 @@ enum {
 #define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
 #define STICK_AXBUT  @"stickAxBt"   // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
-#define STICK_DEADZONE_SETTING @"JoystickAxesDeadzone"  // Deadzone setting double 0.0 to 1.0.
-#define STICK_PRECISION_SETTING @"JoystickPrecision" // Precision mode
-#define STICK_NONLINEAR_PARAMETER @"JoystickNonlinear" // Nonlinear parameter double from 0.0 to 1.0
+#define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
+#define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
+#define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
 // an NSDictionary
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
@@ -219,6 +222,8 @@ typedef struct
 #endif //OOLITE_SDL
 
 
+#import "OOJoystickProfile.h"
+
 @interface OOJoystickManager: NSObject 
 {
 @private
@@ -229,6 +234,9 @@ typedef struct
 	BOOL		butstate[BUTTON_end];
 	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
 	BOOL		precisionMode;
+	OOJoystickAxisProfile *roll_profile;
+	OOJoystickAxisProfile *pitch_profile;
+	OOJoystickAxisProfile *yaw_profile;
 	
 	// Handle callbacks - the object, selector to call
 	// the desired function, and the hardware (axis or button etc.)
@@ -236,12 +244,7 @@ typedef struct
 	SEL			cbSelector;
 	char		cbHardware;
 	BOOL		invertPitch;
-	double		deadzone;
 
-	// parameter for nonlinear settings.  This is a double between 0.0 and 1.0. 1.0 - nonlinear_parameter is the
-	// gradient of the transform function at zero. 0.0 means the gradient is 1.0, which makes the stick linear.
-	// Higher values reduce the stick response for more accuracy at the centre.
-	double		nonlinear_parameter;
 }
 
 + (id) sharedStickHandler;
@@ -273,8 +276,11 @@ typedef struct
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
 
-// Transform raw axis state into actual axis state
-- (double) axisTransform: (double)axisvalue;
+// Axis profile handling
+- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis:(int) axis;
+- (OOJoystickAxisProfile *) getProfileForAxis: (int) axis;
+- (void) saveProfileForAxis: (int) axis;
+- (void) loadProfileForAxis: (int) axis;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg

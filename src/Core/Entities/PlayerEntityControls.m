@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "PlayerEntitySound.h"
 #import "PlayerEntityLoadSave.h"
 #import "PlayerEntityStickMapper.h"
+#import "PlayerEntityStickProfile.h"
 
 #import "ShipEntityAI.h"
 #import "StationEntity.h"
@@ -1428,7 +1429,7 @@ static NSTimeInterval	time_last_frame;
 			[self pollCustomViewControls];	// allow custom views during pause
 			#endif
 			
-			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
+			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE )
 			{
 				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE messageGUI] leaveLastLine];
 				else [[UNIVERSE messageGUI] clear];
@@ -1903,7 +1904,7 @@ static NSTimeInterval	time_last_frame;
 					if (from_function < 0)  from_function = 0;
 					
 					[self setGuiToStickMapperScreen:from_function];
-					if ([[UNIVERSE gui] selectedRow] < 0)
+					if ([[UNIVERSE gui] selectedRow] < GUI_ROW_FUNCSTART)
 					{
 						[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART];
 					}
@@ -1913,6 +1914,10 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 			}
+			break;
+		
+		case GUI_SCREEN_STICKPROFILE:
+			[self stickProfileInputHandler: gui view: gameView];
 			break;
 			
 		case GUI_SCREEN_GAMEOPTIONS:

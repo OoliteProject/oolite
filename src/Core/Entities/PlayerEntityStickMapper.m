@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityStickMapper.h
+PlayerEntityStickMapper.m
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -24,10 +24,10 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityControls.h"
+#import "PlayerEntityStickProfile.h"
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
-
 
 @interface PlayerEntity (StickMapperInternal)
 
@@ -68,13 +68,15 @@ MA 02110-1301, USA.
 					   nil]
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
-	
+
+	[gui setArray: [NSArray arrayWithObjects: @"Edit Axis Profiles", nil] forRow: GUI_ROW_STICKPROFILE];
+	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE];
 	[self displayFunctionList:gui skip:skip];
 	
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
 		   forRow:GUI_ROW_INSTRUCT];
 	
-	[gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
+	[gui setSelectedRow: GUI_ROW_STICKPROFILE];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"settings"];
@@ -85,7 +87,7 @@ MA 02110-1301, USA.
 							view:(MyOpenGLView *)gameView
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	
+
 	// Don't do anything if the user is supposed to be selecting
 	// a function - other than look for Escape.
 	if(waitingForStickCallback)
@@ -104,6 +106,12 @@ MA 02110-1301, USA.
 	}
 	
 	[self handleGUIUpDownArrowKeys];
+	
+	if ([gui selectedRow] == GUI_ROW_STICKPROFILE && [gameView isDown: 13])
+	{
+		[self setGuiToStickProfileScreen: gui];
+		return;
+	}
 	
 	NSString* key = [gui keyForRow: [gui selectedRow]];
 	if ([key hasPrefix:@"Index:"])
@@ -360,7 +368,7 @@ MA 02110-1301, USA.
 			i++;
 		}
 		
-		[gui setSelectableRange: NSMakeRange(GUI_ROW_FUNCSTART, i + start_row - GUI_ROW_FUNCSTART)];
+		[gui setSelectableRange: NSMakeRange(GUI_ROW_STICKPROFILE, i + start_row - GUI_ROW_STICKPROFILE)];
 	}
 	
 }
@@ -594,7 +602,7 @@ MA 02110-1301, USA.
 		[guiDict setObject: [NSNumber numberWithInt: butfn]
 					forKey: KEY_BUTTONFN];
 	return guiDict;
-} 
+}
 
 @end
 

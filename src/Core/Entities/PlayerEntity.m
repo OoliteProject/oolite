@@ -80,6 +80,7 @@ MA 02110-1301, USA.
 
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
+#import "PlayerEntityStickProfile.h"
 
 
 #define PLAYER_DEFAULT_NAME				@"Jameson"
@@ -1740,6 +1741,8 @@ static GLfloat		sBaseMass = 0.0;
 	demoShip = nil;
 	
 	[[OOMusicController sharedController] justStop];
+	[stickProfileScreen release];
+	stickProfileScreen = [[StickProfileScreen alloc] init];
 	return YES;
 }
 
@@ -2626,6 +2629,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_SAVE:
 			case GUI_SCREEN_SAVE_OVERWRITE:
 			case GUI_SCREEN_STICKMAPPER:
+			case GUI_SCREEN_STICKPROFILE:
 			case GUI_SCREEN_MISSION:
 			case GUI_SCREEN_REPORT:
 				return;

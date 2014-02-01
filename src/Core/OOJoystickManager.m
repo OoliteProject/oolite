@@ -86,8 +86,8 @@ static id sSharedStickHandler = nil;
 		// Make some sensible mappings. This also ensures unassigned
 		// axes and buttons are set to unassigned (STICK_NOFUNCTION).
 		[self loadStickSettings];
-		
 		invertPitch = NO;
+		precisionMode = NO;
 	}
 	return self;
 }
@@ -127,9 +127,32 @@ static id sSharedStickHandler = nil;
 	switch (function)
 	{
 	case AXIS_ROLL:
+		if (precisionMode)
+		{
+			return [roll_profile value:axstate[function]] / STICK_PRECISIONFAC;
+		}
+		else
+		{
+ 			return [roll_profile value:axstate[function]];
+		}
 	case AXIS_PITCH:
+		if (precisionMode)
+		{
+			return [pitch_profile value:axstate[function]] / STICK_PRECISIONFAC;
+		}
+		else
+		{
+			return [pitch_profile value:axstate[function]];
+		}
 	case AXIS_YAW:
-		return [self axisTransform:axstate[function]];
+		if (precisionMode)
+		{
+			return [yaw_profile value:axstate[function]] / STICK_PRECISIONFAC;
+		}
+		else
+		{
+			return [yaw_profile value:axstate[function]];
+		}
 	default:
 		return axstate[function];
 	}
@@ -141,51 +164,159 @@ static id sSharedStickHandler = nil;
 	return precisionMode ? STICK_PRECISIONFAC : 1.0;
 }
 
-- (double) deadZone
+- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis: (int) axis
 {
-	return deadzone;
+	switch (axis)
+	{
+	case AXIS_ROLL:
+		[roll_profile release];
+		roll_profile = [profile retain];
+		break;
+
+	case AXIS_PITCH:
+		[pitch_profile release];
+		pitch_profile = [profile retain];
+		break;
+
+	case AXIS_YAW:
+		[yaw_profile release];
+		yaw_profile = [profile retain];
+		break;
+	}
+	return;
+}
+
+- (OOJoystickAxisProfile *) getProfileForAxis: (int) axis
+{
+	switch (axis)
+	{
+	case AXIS_ROLL:
+		return roll_profile;
+	case AXIS_PITCH:
+		return pitch_profile;
+	case AXIS_YAW:
+		return yaw_profile;
+	}
+	return nil;
 }
 
 
-- (void) setDeadZone: (double)newValue
+- (void) saveProfileForAxis: (int) axis
 {
-	deadzone = newValue;
-}
-
-
-// axisTransform is an increasing function that maps the interval [-1,1] onto [-1,1] such that -1 -> -1, 0 -> 0 and 1 -> 1
-// By using a function with a shallow gradient at the origin, we can make the stick less sensitive at the centre (and hence
-// easier to make fine adjustments).  The functions I've used below are ax^n+bx where a+b=1 and n in an odd power.
-
-- (double) axisTransform: (double)axisvalue
-{
-	if (fabs(axisvalue) < deadzone) return 0.0;
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+	OOJoystickAxisProfile *profile;
+	OOJoystickStandardAxisProfile *standard_profile;
+	OOJoystickSplineAxisProfile *spline_profile;
+	NSArray *controlPoints;
+	NSMutableArray *points;
+	NSPoint point;
+	int i;
 	
-	// since we're mucking around with nonlinear stuff, we may as well throw in a smooth transition
-	// from deadzone to non-deadzone
-	if (axisvalue < 0.0) axisvalue = -(-axisvalue - deadzone)/(1 - deadzone);
-	else axisvalue = (axisvalue - deadzone)/(1 - deadzone);
-
-	// apply non-linearity
-	axisvalue = axisvalue*((1.0-nonlinear_parameter) + nonlinear_parameter*axisvalue*axisvalue);
-	// apply precision mode if needed
-	if (precisionMode)
+	profile = [self getProfileForAxis: axis];
+	if (!profile) return;
+	[dict setObject: [NSNumber numberWithDouble: [profile deadzone]] forKey: @"Deadzone"];
+	if ([profile isKindOfClass: [OOJoystickStandardAxisProfile class]])
 	{
-		axisvalue /= STICK_PRECISIONFAC;
+		standard_profile = (OOJoystickStandardAxisProfile *) profile;
+		[dict setObject: @"Standard" forKey: @"Type"];
+		[dict setObject: [NSNumber numberWithDouble: [standard_profile power]] forKey: @"Power"];
+		[dict setObject: [NSNumber numberWithDouble: [standard_profile parameter]] forKey: @"Parameter"];
 	}
-	return axisvalue;
-
-/*	
-// these original settings caused problems for test pilots due to
-// expectation that precisionmode would also reduce full-axis turn
-// rate.
-	if (precisionMode)
+	else if ([profile isKindOfClass: [OOJoystickSplineAxisProfile class]])
 	{
-		return axisvalue*((1.0-nonlinear_parameter) + nonlinear_parameter*axisvalue*axisvalue);
+		spline_profile = (OOJoystickSplineAxisProfile *) profile;
+		[dict setObject: @"Spline" forKey: @"Type"];
+		controlPoints = [NSArray arrayWithArray: [spline_profile controlPoints]];
+		points = [[NSMutableArray alloc] initWithCapacity: [controlPoints count]];
+		for (i = 0; i < [controlPoints count]; i++)
+		{
+			point = [[controlPoints objectAtIndex: i] pointValue];
+			[points addObject: [NSArray arrayWithObjects:
+				[NSNumber numberWithFloat: point.x],
+				[NSNumber numberWithFloat: point.y],
+				nil ]];
+		}
+		[dict setObject: points forKey: @"ControlPoints"];
 	}
-	return axisvalue; */
+	else
+	{
+		[dict setObject: @"Standard" forKey: @"Type"];
+	}
+	if (axis == AXIS_ROLL)
+	{
+		[defaults setObject: dict forKey: STICK_ROLL_AXIS_PROFILE_SETTING];
+	}
+	else if (axis == AXIS_PITCH)
+	{
+		[defaults setObject: dict forKey: STICK_PITCH_AXIS_PROFILE_SETTING];
+	}
+	else if (axis == AXIS_YAW)
+	{
+		[defaults setObject: dict forKey: STICK_YAW_AXIS_PROFILE_SETTING];
+	}
+	return;
 }
 
+
+
+- (void) loadProfileForAxis: (int) axis
+{
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSDictionary *dict;
+	OOJoystickStandardAxisProfile *standard_profile;
+	OOJoystickSplineAxisProfile *spline_profile;
+	
+	if (axis == AXIS_ROLL)
+	{
+		dict = [defaults objectForKey: STICK_ROLL_AXIS_PROFILE_SETTING];
+	}
+	else if (axis == AXIS_PITCH)
+	{
+		dict = [defaults objectForKey: STICK_PITCH_AXIS_PROFILE_SETTING];
+	}
+	else if (axis == AXIS_YAW)
+	{
+		dict = [defaults objectForKey: STICK_YAW_AXIS_PROFILE_SETTING];
+	}
+	else
+	{
+		return;
+	}
+
+	NSString *type = [dict objectForKey: @"Type"];
+	if ([type isEqualToString: @"Standard"])
+	{
+		standard_profile = [[OOJoystickStandardAxisProfile alloc] init];
+		[standard_profile setDeadzone: [[dict objectForKey: @"Deadzone"] doubleValue]];
+		[standard_profile setPower: [[dict objectForKey: @"Power"] doubleValue]];
+		[standard_profile setParameter: [[dict objectForKey: @"Parameter"] doubleValue]];
+		[self setProfile: [standard_profile autorelease] forAxis: axis];
+	}
+	else if([type isEqualToString: @"Spline"])
+	{
+		spline_profile = [[OOJoystickSplineAxisProfile alloc] init];
+		[spline_profile setDeadzone: [[dict objectForKey: @"Deadzone"] doubleValue]];
+		NSArray *points = [dict objectForKey: @"ControlPoints"], *pointArray;
+		NSPoint point;
+		int i;
+
+		for (i = 0; i < [points count]; i++)
+		{
+			pointArray = [points objectAtIndex: i];
+			if ([pointArray count] >= 2)
+			{
+				point = NSMakePoint([[pointArray objectAtIndex: 0] floatValue], [[pointArray objectAtIndex: 1] floatValue]);
+				[spline_profile addControl: point];
+			}
+		}
+		[self setProfile: [spline_profile autorelease] forAxis: axis];
+	}
+	else
+	{
+		[self setProfile: [[[OOJoystickStandardAxisProfile alloc] init] autorelease] forAxis: axis];
+	}
+}
 
 - (NSArray *)listSticks
 {
@@ -423,7 +554,7 @@ static id sSharedStickHandler = nil;
 	if(cbObject && (cbHardware & HW_AXIS)) 
 	{
 		// ...then check if axis moved more than AXCBTHRESH - (fix for BUG #17482)
-		if(axisvalue > AXCBTHRESH) 
+		if(axisvalue > AXCBTHRESH)
 		{
 			NSDictionary *fnDict = [NSDictionary dictionaryWithObjectsAndKeys:
 									[NSNumber numberWithBool: YES], STICK_ISAXIS,
@@ -516,7 +647,6 @@ static id sSharedStickHandler = nil;
 		bs = YES;
 		if(function == BUTTON_PRECISION)
 			precisionMode = !precisionMode;
-			[[NSUserDefaults standardUserDefaults] setBool: precisionMode forKey: STICK_PRECISION_SETTING];
 	}
 	
 	if (function >= 0)
@@ -527,24 +657,24 @@ static id sSharedStickHandler = nil;
 }
 
 
-- (void) decodeHatEvent:(JoyHatEvent *)evt                                     
-{                                                                                  
-	// HACK: handle this as a set of buttons                                        
-	int i;                                                                          
-	JoyButtonEvent btn;                                                         
+- (void) decodeHatEvent:(JoyHatEvent *)evt
+{
+	// HACK: handle this as a set of buttons
+	int i;
+	JoyButtonEvent btn;
+
+	btn.which = evt->which;
 	
-	btn.which = evt->which;                                                         
-	
-	for (i = 0; i < 4; ++i)                                                         
-	{                                                                               
-		if ((evt->value ^ hatstate[evt->which][evt->hat]) & (1 << i))                
-		{                                                                            
-			btn.type = (evt->value & (1 << i)) ? JOYBUTTONDOWN : JOYBUTTONUP; 
-			btn.button = MAX_REAL_BUTTONS + i + evt->which * 4;                       
-			btn.state = (evt->value & (1 << i)) ? JOYBUTTON_PRESSED : JOYBUTTON_RELEASED;         
-			[self decodeButtonEvent:&btn];                                            
-		}                                                                            
-	}                                                                               
+	for (i = 0; i < 4; ++i)
+	{
+		if ((evt->value ^ hatstate[evt->which][evt->hat]) & (1 << i))
+		{
+			btn.type = (evt->value & (1 << i)) ? JOYBUTTONDOWN : JOYBUTTONUP;
+			btn.button = MAX_REAL_BUTTONS + i + evt->which * 4;
+			btn.state = (evt->value & (1 << i)) ? JOYBUTTON_PRESSED : JOYBUTTON_RELEASED;
+			[self decodeButtonEvent:&btn];
+		}
+	}
 	
 	hatstate[evt->which][evt->hat] = evt->value;
 }
@@ -559,13 +689,14 @@ static id sSharedStickHandler = nil;
 - (void) saveStickSettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	
 	[defaults setObject:[self axisFunctions]
 				 forKey:AXIS_SETTINGS];
 	[defaults setObject:[self buttonFunctions]
 				 forKey:BUTTON_SETTINGS];
-	[defaults setFloat: deadzone forKey: STICK_DEADZONE_SETTING];
-	[defaults setFloat: nonlinear_parameter forKey: STICK_NONLINEAR_PARAMETER];
-	[defaults setBool: !!precisionMode forKey: STICK_PRECISION_SETTING];
+	[self saveProfileForAxis: AXIS_ROLL];
+	[self saveProfileForAxis: AXIS_PITCH];
+	[self saveProfileForAxis: AXIS_YAW];
 	[defaults synchronize];
 }
 
@@ -573,7 +704,7 @@ static id sSharedStickHandler = nil;
 - (void) loadStickSettings
 {
 	unsigned i;
-	[self clearMappings];                  
+	[self clearMappings];
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSDictionary *axisSettings = [defaults objectForKey: AXIS_SETTINGS];
 	NSDictionary *buttonSettings = [defaults objectForKey: BUTTON_SETTINGS];
@@ -602,13 +733,9 @@ static id sSharedStickHandler = nil;
 		// Nothing to load - set useful defaults
 		[self setDefaultMapping];
 	}
-	deadzone = [defaults oo_doubleForKey:STICK_DEADZONE_SETTING defaultValue:STICK_DEADZONE];
-	if (deadzone < 0 || deadzone > 1)
-	{
-		deadzone = STICK_DEADZONE;
-	}
-	nonlinear_parameter = OOClamp_0_1_d( [defaults oo_doubleForKey: STICK_NONLINEAR_PARAMETER defaultValue: 1.0] );
-	precisionMode = [defaults oo_boolForKey: STICK_PRECISION_SETTING defaultValue:NO];
+	[self loadProfileForAxis: AXIS_ROLL];
+	[self loadProfileForAxis: AXIS_PITCH];
+	[self loadProfileForAxis: AXIS_YAW];
 }
 
 // These get overidden by subclasses
