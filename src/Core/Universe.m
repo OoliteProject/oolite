@@ -8169,12 +8169,21 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		if (_preloadingPlanetMaterials == nil)  _preloadingPlanetMaterials = [[NSMutableArray alloc] initWithCapacity:4];
 		
 		OOPlanetEntity *planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:seed];
-		[_preloadingPlanetMaterials addObject:[planet material]];
+		OOMaterial *surface = [planet material];
+		// can be nil if texture mis-defined
+		if (surface != nil)
+		{
+			// if it's already loaded, no need to continue
+			if (![surface isFinishedLoading])
+			{
+				[_preloadingPlanetMaterials addObject:surface];
 		
-		// In some instances (retextured planets atm), the main planet might not have an atmosphere defined.
-		// Trying to add nil to _preloadingPlanetMaterials will prematurely terminate the calling function.(!) --Kaks 20100107
-		OOMaterial *atmo = [planet atmosphereMaterial];
-		if (atmo != nil)  [_preloadingPlanetMaterials addObject:atmo];
+				// In some instances (retextured planets atm), the main planet might not have an atmosphere defined.
+				// Trying to add nil to _preloadingPlanetMaterials will prematurely terminate the calling function.(!) --Kaks 20100107
+				OOMaterial *atmo = [planet atmosphereMaterial];
+				if (atmo != nil)  [_preloadingPlanetMaterials addObject:atmo];
+			}
+		}
 		
 		[planet release];
 	}
