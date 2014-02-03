@@ -228,7 +228,8 @@ MA 02110-1301, USA.
 	// Verify V-sync successfully set - report it if not
 	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
 	{
-		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the WGL_EXT_swap_control extension.");
+		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
+					OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
 	}
 
 
