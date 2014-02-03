@@ -954,8 +954,15 @@ MA 02110-1301, USA.
 		return NO;
 	}
 	
-	// check against all ships
+
 	StationEntity	*station = (StationEntity *)[self parentEntity];
+	if ([station playerReservedDock] == self)
+	{
+		// player probably will not appreciate a ship launch right now
+		return NO;
+	}
+
+	// check against all ships
 	BOOL			isEmpty = YES;
 	int				ent_count =		UNIVERSE->n_entities;
 	Entity			**uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
