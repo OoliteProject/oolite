@@ -1243,6 +1243,7 @@
 	"stickmapper-roll"				= "Roll";
 	"stickmapper-pitch"				= "Pitch";
 	"stickmapper-yaw"				= "Yaw";
+	"stickmapper-profile"				= "Edit Axis Profiles";
 	"stickmapper-increase-thrust"	= "Increase thrust";
 	"stickmapper-decrease-thrust"	= "Decrease thrust";
 	"stickmapper-primary-weapon"	= "Primary weapon";
@@ -1272,6 +1273,18 @@
 	"stickmapper-escape-pod"		= "Escape pod";
 	"stickmapper-cloak"				= "Cloaking device";
 	"stickmapper-scanner-zoom"		= "Scanner zoom";
+	
+	"stickprofile-title"			= "Joystick Profile";
+	"stickprofile-back"			= "Back";
+	"stickprofile-axis"			= "Axis:";
+	"stickprofile-deadzone"			= "Deadzone:";
+	"stickprofile-profile-type"		= "Profile Type:";
+	"stickprofile-type-standard"		= "Standard";
+	"stickprofile-type-spline"		= "Spline";
+	"stickprofile-range"			= "Range:";
+	"stickprofile-sensitivity"		= "Sensitivity:";
+	"stickprofile-spline-instructions"	= "Click and Drag to set control points. Select and <Del> to delete points.";
+	
 	
 	"music-mode" =
 	(

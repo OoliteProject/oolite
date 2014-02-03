@@ -268,7 +268,7 @@ static BOOL stickProfileArrow_pressed;
 	gui = gui_display_gen;
 	[self startEdit];
 	[gui clear];
-	[gui setTitle: [NSString stringWithFormat: @"Joystick Profile"]];
+	[gui setTitle: [NSString stringWithFormat: DESC(@"stickprofile-title")]];
 	[self showScreen];
 	[gui setSelectedRow: GUI_ROW_STICKPROFILE_AXIS];
 	return;
@@ -360,13 +360,13 @@ static BOOL stickProfileArrow_pressed;
 	switch (current_axis)
 	{
 	case AXIS_ROLL:
-		return @"Roll";
+		return DESC(@"stickmapper-roll");
 	
 	case AXIS_PITCH:
-		return @"Pitch";
+		return DESC(@"stickmapper-pitch");
 		
 	case AXIS_YAW:
-		return @"Yaw";
+		return DESC(@"stickmapper-yaw");
 	}
 	return @"";
 }
@@ -589,13 +589,13 @@ static BOOL stickProfileArrow_pressed;
 	tabStop[0] = 50;
 	tabStop[1] = 140;
 	[gui setTabStops:tabStop];
-	[gui setText: @"Back" forRow: GUI_ROW_STICKPROFILE_BACK];
+	[gui setText: DESC(@"gui-back") forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
-	[gui setArray: [NSArray arrayWithObjects: @"Axis:", [self currentAxis], nil ] forRow: GUI_ROW_STICKPROFILE_AXIS];
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"stickprofile-axis"), [self currentAxis], nil ] forRow: GUI_ROW_STICKPROFILE_AXIS];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_AXIS];
 	value = [profile deadzone];
 	bars = 20 * value / STICK_MAX_DEADZONE;
-	[gui setArray: [NSArray arrayWithObjects: @"Deadzone:",
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"stickprofile-deadzone"),
 		[NSString stringWithFormat:
 			@"%@%@ (%0.4f)",
 			[v1 substringToIndex: bars],
@@ -604,7 +604,7 @@ static BOOL stickProfileArrow_pressed;
 			nil],
 		nil] forRow: GUI_ROW_STICKPROFILE_DEADZONE];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_DEADZONE];
-	[gui setArray: [NSArray arrayWithObjects: @"Profile Type:", [self profileType], nil ] forRow: GUI_ROW_STICKPROFILE_PROFILE_TYPE];
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"stickprofile-profile-type"), [self profileType], nil ] forRow: GUI_ROW_STICKPROFILE_PROFILE_TYPE];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_PROFILE_TYPE];
 	if ([profile isKindOfClass:[OOJoystickStandardAxisProfile class]])
 	{
@@ -613,7 +613,7 @@ static BOOL stickProfileArrow_pressed;
 		bars = 20*power / STICKPROFILE_MAX_POWER;
 		if (bars < 0) bars = 0;
 		if (bars > 20) bars = 20;
-		[gui setArray: [NSArray arrayWithObjects: @"Power:",
+		[gui setArray: [NSArray arrayWithObjects: DESC(@"stickprofile-range"),
 			[NSString stringWithFormat: @"%@%@ (%.1f) ", [v1 substringToIndex: bars], [v2 substringToIndex: 20 - bars], power],
 			nil] forRow: GUI_ROW_STICKPROFILE_POWER];
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_POWER];
@@ -621,7 +621,7 @@ static BOOL stickProfileArrow_pressed;
 		bars = 20*value;
 		if (bars < 0) bars = 0;
 		if (bars > 20) bars = 20;
-		[gui setArray: [NSArray arrayWithObjects: @"Parameter:",
+		[gui setArray: [NSArray arrayWithObjects: DESC(@"stickprofile-sensitivity"),
 			[NSString stringWithFormat: @"%@%@ (%0.2f) ", [v1 substringToIndex: bars], [v2 substringToIndex: 20 - bars], value],
 			nil] forRow: GUI_ROW_STICKPROFILE_PARAM];
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_PARAM];
@@ -631,11 +631,11 @@ static BOOL stickProfileArrow_pressed;
 	{
 		[gui setText: @"" forRow: GUI_ROW_STICKPROFILE_POWER];
 		[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_POWER];
-		[gui setText: @"Click and Drag to set control points. Select and <Del> to delete points." forRow: GUI_ROW_STICKPROFILE_PARAM];
+		[gui setText: DESC(@"stickprofile-spline-instructions") forRow: GUI_ROW_STICKPROFILE_PARAM];
 		[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_PARAM];
 		[gui setColor:[OOColor magentaColor] forRow: GUI_ROW_STICKPROFILE_PARAM];
 	}
-	[gui setText: @"Back" forRow: GUI_ROW_STICKPROFILE_BACK];
+	[gui setText: DESC(@"stickprofile-back") forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
@@ -650,13 +650,13 @@ static BOOL stickProfileArrow_pressed;
 	
 	if ([profile isKindOfClass: [OOJoystickStandardAxisProfile class]])
 	{
-		return @"Standard";
+		return DESC(@"stickprofile-type-standard");
 	}
 	if ([profile isKindOfClass: [OOJoystickSplineAxisProfile class]])
 	{
-		return @"Spline";
+		return DESC(@"stickprofile-type-spline");
 	}
-	return @"Standard";
+	return DESC(@"stickprofile-type-standard");
 }
 
 @end

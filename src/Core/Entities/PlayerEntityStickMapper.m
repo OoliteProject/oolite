@@ -69,7 +69,7 @@ MA 02110-1301, USA.
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
 
-	[gui setArray: [NSArray arrayWithObjects: @"Edit Axis Profiles", nil] forRow: GUI_ROW_STICKPROFILE];
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"stickmapper-profile"), nil] forRow: GUI_ROW_STICKPROFILE];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE];
 	[self displayFunctionList:gui skip:skip];
 	
