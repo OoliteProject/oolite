@@ -147,6 +147,8 @@ MA 02110-1301, USA.
 
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
+	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
+	int		vSyncValue;
 
 	NSArray				*arguments = nil;
 	NSEnumerator		*argEnum = nil;
@@ -219,7 +221,15 @@ MA 02110-1301, USA.
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);	// V-sync on by default.
+	
+	// V-sync settings
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vSyncPreference);	// V-sync on by default.
+	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
+	// Verify V-sync successfully set - report it if not
+	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
+	{
+		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the WGL_EXT_swap_control extension.");
+	}
 
 
 	/* Multisampling significantly improves graphics quality with
