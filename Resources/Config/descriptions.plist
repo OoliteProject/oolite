@@ -1274,16 +1274,18 @@
 	"stickmapper-cloak"				= "Cloaking device";
 	"stickmapper-scanner-zoom"		= "Scanner zoom";
 	
-	"stickprofile-title"			= "Joystick Profile";
-	"stickprofile-back"			= "Back";
-	"stickprofile-axis"			= "Axis:";
-	"stickprofile-deadzone"			= "Deadzone:";
-	"stickprofile-profile-type"		= "Profile Type:";
-	"stickprofile-type-standard"		= "Standard";
-	"stickprofile-type-spline"		= "Spline";
-	"stickprofile-range"			= "Range:";
-	"stickprofile-sensitivity"		= "Sensitivity:";
-	"stickprofile-spline-instructions"	= "Click and Drag to set control points. Select and <Del> to delete points.";
+	"oolite-stickprofile-title"			= "Joystick Profile";
+	"oolite-stickprofile-back"			= "Back";
+	"oolite-stickprofile-axis"			= "Axis:";
+	"oolite-stickprofile-deadzone"			= "Deadzone:";
+	"oolite-stickprofile-profile-type"		= "Profile Type:";
+	"oolite-stickprofile-type-standard"		= "Standard";
+	"oolite-stickprofile-type-spline"		= "Spline";
+	"oolite-stickprofile-range"			= "Range:";
+	"oolite-stickprofile-sensitivity"		= "Sensitivity:";
+	"oolite-stickprofile-spline-instructions"	= "Click and Drag to set control points. Select and <Del> to delete points.";
+	"oolite-stickprofile-movement"			= "Movement";
+	"oolite-stickprofile-response"			= "Response";
 	
 	
 	"music-mode" =
