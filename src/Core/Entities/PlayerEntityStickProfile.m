@@ -396,15 +396,18 @@ static BOOL stickProfileArrow_pressed;
 - (void) nextProfileType
 {
 	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
+	double deadzone;
 	
 	if ([profile isKindOfClass: [OOJoystickStandardAxisProfile class]])
 	{
+		deadzone = [profile deadzone];
 		[profiles[current_axis][0] release];
 		profiles[current_axis][0] = [profile retain];
 		if (!profiles[current_axis][1])
 		{
 			profiles[current_axis][1] = [[OOJoystickSplineAxisProfile alloc] init];
 		}
+		[profiles[current_axis][1] setDeadzone: deadzone];
 		[stickHandler setProfile: profiles[current_axis][1] forAxis: current_axis];
 		[stickHandler saveStickSettings];
 	}
@@ -415,15 +418,18 @@ static BOOL stickProfileArrow_pressed;
 - (void) previousProfileType
 {
 	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
+	double deadzone;
 	
 	if ([profile isKindOfClass: [OOJoystickSplineAxisProfile class]])
 	{
+		deadzone = [profile deadzone];
 		[profiles[current_axis][1] release];
 		profiles[current_axis][1] = [profile retain];
 		if (!profiles[current_axis][0])
 		{
 			profiles[current_axis][0] = [[OOJoystickStandardAxisProfile alloc] init];
 		}
+		[profiles[current_axis][0] setDeadzone: deadzone];
 		[stickHandler setProfile: profiles[current_axis][0] forAxis: current_axis];
 		[stickHandler saveStickSettings];
 	}
