@@ -602,7 +602,9 @@ static BOOL stickProfileArrow_pressed;
 	[gui setArray: [NSArray arrayWithObjects: DESC(@"oolite-stickprofile-axis"), [self currentAxis], nil ] forRow: GUI_ROW_STICKPROFILE_AXIS];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_AXIS];
 	value = [profile deadzone];
-	bars = 20 * value / STICK_MAX_DEADZONE;
+	bars = (int)(20 * value / STICK_MAX_DEADZONE + 0.5);
+	if (bars < 0) bars = 0;
+	if (bars > 20) bars = 20;
 	[gui setArray: [NSArray arrayWithObjects: DESC(@"oolite-stickprofile-deadzone"),
 		[NSString stringWithFormat:
 			@"%@%@ (%0.4f)",
@@ -618,7 +620,7 @@ static BOOL stickProfileArrow_pressed;
 	{
 		standard_profile = (OOJoystickStandardAxisProfile*) profile;
 		power = [standard_profile power];
-		bars = 20*power / STICKPROFILE_MAX_POWER;
+		bars = (int)(20*power / STICKPROFILE_MAX_POWER + 0.5);
 		if (bars < 0) bars = 0;
 		if (bars > 20) bars = 20;
 		[gui setArray: [NSArray arrayWithObjects: DESC(@"oolite-stickprofile-range"),
