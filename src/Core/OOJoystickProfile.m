@@ -120,7 +120,7 @@ MA 02110-1301, USA.
 
 - (void) setDeadzone: (double) newValue
 {
-	deadzone = OOClamp_0_1_d(newValue);
+	deadzone = OOClamp_0_max_d(newValue, STICK_MAX_DEADZONE);
 }
 
 @end

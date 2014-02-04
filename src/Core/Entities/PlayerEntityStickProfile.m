@@ -589,8 +589,6 @@ static BOOL stickProfileArrow_pressed;
 	tabStop[0] = 50;
 	tabStop[1] = 140;
 	[gui setTabStops:tabStop];
-	[gui setText: DESC(@"gui-back") forRow: GUI_ROW_STICKPROFILE_BACK];
-	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setArray: [NSArray arrayWithObjects: DESC(@"stickprofile-axis"), [self currentAxis], nil ] forRow: GUI_ROW_STICKPROFILE_AXIS];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_AXIS];
 	value = [profile deadzone];
@@ -635,7 +633,7 @@ static BOOL stickProfileArrow_pressed;
 		[gui setKey: GUI_KEY_SKIP forRow: GUI_ROW_STICKPROFILE_PARAM];
 		[gui setColor:[OOColor magentaColor] forRow: GUI_ROW_STICKPROFILE_PARAM];
 	}
-	[gui setText: DESC(@"stickprofile-back") forRow: GUI_ROW_STICKPROFILE_BACK];
+	[gui setText: DESC(@"gui-back") forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
