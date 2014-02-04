@@ -1106,22 +1106,20 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 		{
-			if (sub != player_reserved_dock)
+			/* so this time as long as it allows launching only check
+			 * the docking queue size so long as enumerator order is
+			 * deterministic, this will assign every launch this
+			 * update to the same dock (edge case where new docking
+			 * ship appears in the middle, probably not a problem) */
+			if ([sub allowsLaunching] && [sub countOfShipsInDockingQueue] <= threshold)
 			{
-				// so this time as long as it allows launching only check the docking queue size
-				// so long as enumerator order is deterministic, this will assign
-				// every launch this update to the same dock
-				// (edge case where new docking ship appears in the middle, probably
-				// not a problem)
-				if ([sub allowsLaunching] && [sub countOfShipsInDockingQueue] <= threshold)
+				if ([sub allowsLaunchingOf:ship])
 				{
-					if ([sub allowsLaunchingOf:ship])
-					{
-						[sub addShipToLaunchQueue:ship withPriority:priority];
-						return;
-					}
+					[sub addShipToLaunchQueue:ship withPriority:priority];
+					return;
 				}
 			}
+
 		}
 		threshold++;
 	}

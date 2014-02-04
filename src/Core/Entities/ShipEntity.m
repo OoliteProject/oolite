@@ -8201,6 +8201,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (void) getDestroyedBy:(Entity *)whom damageType:(OOShipDamageType)type
 {
 	[self noteKilledBy:whom damageType:type];
+	[self abortDocking];
 	[self becomeExplosion];
 }
 
