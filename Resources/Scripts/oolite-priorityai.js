@@ -2878,7 +2878,14 @@ PriorityAIController.prototype.behaviourEnterWitchspace = function()
 		{
 			if (entry == null)
 			{
-				this.communicate("oolite_engageWitchspaceDrive",{},4);
+				if ((this.ship.group && this.ship.group.count > 1) || (this.ship.escortGroup && this.ship.escortGroup.count > 1))
+				{
+					this.communicate("oolite_engageWitchspaceDriveGroup",{},4);
+				} 
+				else
+				{
+					this.communicate("oolite_engageWitchspaceDrive",{},4);
+				}
 				this.setParameter("oolite_witchspaceEntry",clock.seconds + 15);
 			}
 			this.ship.destination = this.ship.position.add(this.ship.vectorForward.multiply(30000));
@@ -6250,7 +6257,8 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
 	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
 	this.$commsSettings.generic.generic.oolite_agreeingToDumpCargo = "Have it! But please let us go!";
-	this.$commsSettings.generic.generic.oolite_engageWitchspaceDrive = "All ships, form up for witchspace jump.";
+	this.$commsSettings.generic.generic.oolite_engageWitchspaceDrive = "Anyone want a free ride out of the system?";
+	this.$commsSettings.generic.generic.oolite_engageWitchspaceDriveGroup = "All ships, form up for witchspace jump.";
 	this.$commsSettings.generic.generic.oolite_engageWitchspaceDriveFlee = "There's too many of them! Get out of here!";
 }
 
