@@ -128,19 +128,20 @@ uniform sampler2D		uNormalMap;
 #endif
 #endif
 
-// No vNormal, because normal is always 0,0,1 in tangent space.
+varying vec3			vNormal;
 varying vec3			vEyeVector;
 varying vec2			vTexCoords;
 varying vec3			vLight1Vector;
 varying vec3			vCoords;
+varying mat3			vTBN;
 
 
 vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
 {
-	float LdotN = lightVector.z;
+	float LdotN = dot(vNormal, lightVector);
 	
 #if USE_NORMAL_MAP
-	float globalTerm = dot(normalize(mix(vec3(0.0, 0.0, 1.0), normal, kHarshShadowFactor)), lightVector);
+	float globalTerm = dot(normalize(mix(vNormal, normal, kHarshShadowFactor)), lightVector);
 #else
 	float globalTerm = LdotN;
 #endif
@@ -238,9 +239,9 @@ void main()
 #else
 	vec4 normalMapSample = texture2D(uNormalMap, texCoords);
 #endif
-	vec3 normal = normalize(normalMapSample.xyz - vec3(0.5));
+	vec3 normal = normalize(normalMapSample.xyz - vec3(0.5)) * vTBN;
 #else
-	vec3 normal = vec3(0, 0, 1);
+	vec3 normal = vNormal;
 #endif
 	
 	// Diffuse light
