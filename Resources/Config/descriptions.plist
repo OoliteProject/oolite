@@ -1634,6 +1634,7 @@
 	"speech-synthesis-incoming-message-@"	= "[speech-synthesis-incoming-message]: %@";
 	
 	// translations of special keys
+	"oolite-keycode-unset"	= "(not set)";
 	"oolite-keycode-tab"	= "Tab";
 	"oolite-keycode-esc"	= "Escape";
 	"oolite-keycode-space"	= "Space";
