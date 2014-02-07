@@ -239,7 +239,7 @@ void main()
 #else
 	vec4 normalMapSample = texture2D(uNormalMap, texCoords);
 #endif
-	vec3 normal = normalize(normalMapSample.xyz - vec3(0.5)) * vTBN;
+	vec3 normal = vTBN * normalize(normalMapSample.xyz - vec3(0.5));
 #else
 	vec3 normal = vNormal;
 #endif
