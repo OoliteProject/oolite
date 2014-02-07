@@ -178,8 +178,8 @@ vec3 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 		If N is (0,0,1), this becomes (I.x,I.y,-I.z).
 		Note that we want it negated as per above.
 	*/
-	vec3 reflection = vec3(-lightVector.x, -lightVector.y, lightVector.z);
-	float NdotE = eyeVector.z;
+	vec3 reflection = -reflect(lightVector, vNormal);
+	float NdotE = dot(vNormal, eyeVector);
 #endif
 	
 	float RdotE = max(dot(reflection, eyeVector), 0.0);
