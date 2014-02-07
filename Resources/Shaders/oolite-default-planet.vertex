@@ -37,7 +37,7 @@ void main(void)
 	vec3 binormal = cross(vNormal, gl_NormalMatrix * vec3(0, 1, 0));
 	vec3 tangent = -cross(vNormal, binormal);
 	
-	vTBN = transpose(mat3(tangent, binormal, vNormal));
+	vTBN = mat3(tangent, binormal, vNormal);
 	
 	vEyeVector = -vec3(gl_ModelViewMatrix * gl_Vertex);
 
