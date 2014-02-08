@@ -511,7 +511,7 @@ static BOOL stickProfileArrow_pressed;
 {
 	OOJoystickAxisProfile *profile = [stickHandler getProfileForAxis: current_axis];
 	OOJoystickSplineAxisProfile *spline_profile;
-	int i;
+	NSInteger i;
 	NSPoint point;
 	NSArray *control_points;
 
@@ -540,7 +540,7 @@ static BOOL stickProfileArrow_pressed;
 	{
 		spline_profile = (OOJoystickSplineAxisProfile *)profile;
 		control_points = [spline_profile controlPoints];
-		for (i = 0; i < [control_points count]; i++)
+		for (i = 0; i < (NSInteger)[control_points count]; i++)
 		{
 			if (i == selected_control_point)
 			{
@@ -610,8 +610,7 @@ static BOOL stickProfileArrow_pressed;
 			@"%@%@ (%0.4f)",
 			[v1 substringToIndex: bars],
 			[v2 substringToIndex: 20 - bars],
-			value,
-			nil],
+			value],
 		nil] forRow: GUI_ROW_STICKPROFILE_DEADZONE];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_DEADZONE];
 	[gui setArray: [NSArray arrayWithObjects: DESC(@"oolite-stickprofile-profile-type"), [self profileType], nil ] forRow: GUI_ROW_STICKPROFILE_PROFILE_TYPE];

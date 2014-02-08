@@ -48,7 +48,6 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 
 
-static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
 static unsigned RepForRisk(unsigned risk);
 
 @interface PlayerEntity (ContractsPrivate)

@@ -211,7 +211,7 @@ static id sSharedStickHandler = nil;
 	NSArray *controlPoints;
 	NSMutableArray *points;
 	NSPoint point;
-	int i;
+	NSUInteger i;
 	
 	profile = [self getProfileForAxis: axis];
 	if (!profile) return;
@@ -299,7 +299,7 @@ static id sSharedStickHandler = nil;
 		[spline_profile setDeadzone: [[dict objectForKey: @"Deadzone"] doubleValue]];
 		NSArray *points = [dict objectForKey: @"ControlPoints"], *pointArray;
 		NSPoint point;
-		int i;
+		NSUInteger i;
 
 		for (i = 0; i < [points count]; i++)
 		{

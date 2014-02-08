@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 	
 	An NSMutableDictionary performs the first three operations efficiently but
 	has no support for pruning - specifically no support for finding the
-	least-recently-accessed element. Using standard Foundation containers, i
+	least-recently-accessed element. Using standard Foundation containers, it
 	would be necessary to use several dictionaries and arrays, which would be
 	quite inefficient since small NSArrays aren’t very good at head insertion
 	or deletion. Alternatively, a standard dictionary whose value objects

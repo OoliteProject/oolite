@@ -256,6 +256,10 @@
 		1A62F0FD0E26A2A000897506 /* OOEquipmentType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */; };
 		1A62F0FE0E26A2A000897506 /* OOEquipmentType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */; };
 		1A68A4A51615F4A400D7BB08 /* OOMeshToOctreeConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512834109BA27EC00F43D55 /* OOMeshToOctreeConverter.m */; settings = {COMPILER_FLAGS = $OO_MATHS_OPTS; }; };
+		1A69FFEE18A64C320062EAC8 /* PlayerEntityStickProfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A69FFEC18A64C320062EAC8 /* PlayerEntityStickProfile.h */; };
+		1A69FFEF18A64C320062EAC8 /* PlayerEntityStickProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A69FFED18A64C320062EAC8 /* PlayerEntityStickProfile.m */; };
+		1A69FFF718A64CF70062EAC8 /* OOJoystickProfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A69FFF518A64CF70062EAC8 /* OOJoystickProfile.h */; };
+		1A69FFF818A64CF70062EAC8 /* OOJoystickProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A69FFF618A64CF70062EAC8 /* OOJoystickProfile.m */; };
 		1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
 		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
@@ -1182,6 +1186,10 @@
 		1A644E211052A9FD00833636 /* traderInterceptAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = traderInterceptAI.plist; sourceTree = "<group>"; };
 		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		1A69FFEC18A64C320062EAC8 /* PlayerEntityStickProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityStickProfile.h; sourceTree = "<group>"; };
+		1A69FFED18A64C320062EAC8 /* PlayerEntityStickProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityStickProfile.m; sourceTree = "<group>"; };
+		1A69FFF518A64CF70062EAC8 /* OOJoystickProfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJoystickProfile.h; sourceTree = "<group>"; };
+		1A69FFF618A64CF70062EAC8 /* OOJoystickProfile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJoystickProfile.m; sourceTree = "<group>"; };
 		1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-snapshot.xcconfig"; path = "src/Cocoa/oolite-snapshot.xcconfig"; sourceTree = "<group>"; };
 		1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIGraphViz.m; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
@@ -1988,6 +1996,8 @@
 				1A26D0A50BCF9CF70073F257 /* PlayerEntitySound.m */,
 				1A26D09F0BCF9CF70073F257 /* PlayerEntityStickMapper.h */,
 				1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */,
+				1A69FFEC18A64C320062EAC8 /* PlayerEntityStickProfile.h */,
+				1A69FFED18A64C320062EAC8 /* PlayerEntityStickProfile.m */,
 			);
 			name = PlayerEntity;
 			sourceTree = "<group>";
@@ -2877,6 +2887,8 @@
 				1AC545050D4D228400C90E5B /* OOEncodingConverter.m */,
 				1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */,
 				1AB5E1EE12BD628500C334DD /* OOJoystickManager.m */,
+				1A69FFF518A64CF70062EAC8 /* OOJoystickProfile.h */,
+				1A69FFF618A64CF70062EAC8 /* OOJoystickProfile.m */,
 			);
 			name = "User Interface";
 			sourceTree = "<group>";
@@ -3328,7 +3340,9 @@
 				1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */,
 				1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */,
 				1A11C2B111CFC35000F3EE77 /* OOJSEngineTimeManagement.h in Headers */,
+				1A69FFF718A64CF70062EAC8 /* OOJoystickProfile.h in Headers */,
 				1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */,
+				1A69FFEE18A64C320062EAC8 /* PlayerEntityStickProfile.h in Headers */,
 				1AA08606182578AF007CCAEB /* OOALSoundChannel.h in Headers */,
 				1AA085FE182578AF007CCAEB /* OOALBufferedSound.h in Headers */,
 				1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */,
@@ -3771,6 +3785,7 @@
 				1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */,
 				1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */,
 				1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */,
+				1A69FFF818A64CF70062EAC8 /* OOJoystickProfile.m in Sources */,
 				1AC545070D4D228400C90E5B /* OOEncodingConverter.m in Sources */,
 				1A28AA170D55438200BC0CE4 /* OOJSSound.m in Sources */,
 				1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */,
@@ -3844,6 +3859,7 @@
 				1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */,
 				1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */,
 				1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */,
+				1A69FFEF18A64C320062EAC8 /* PlayerEntityStickProfile.m in Sources */,
 				1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */,
 				1A11C2B211CFC35000F3EE77 /* OOJSEngineTimeManagement.m in Sources */,
 				1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */,

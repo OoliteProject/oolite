@@ -378,7 +378,7 @@ MA 02110-1301, USA.
 - (int) addControl: (NSPoint) point
 {
 	NSPoint left, right;
-	int i;
+	NSUInteger i;
 
 	if (point.x <= SPLINE_POINT_MIN_SPACING || point.x >= 1 - SPLINE_POINT_MIN_SPACING )
 	{
@@ -418,7 +418,7 @@ MA 02110-1301, USA.
 	return -1;
 }
 
-- (NSPoint) pointAtIndex: (int) index
+- (NSPoint) pointAtIndex: (NSInteger) index
 {
 	NSPoint point;
 	if (index < 0)
@@ -426,7 +426,7 @@ MA 02110-1301, USA.
 		point.x = 0.0;
 		point.y = 0.0;
 	}
-	else if (index >= [controlPoints count])
+	else if (index >= (NSInteger)[controlPoints count])
 	{
 		point.x = 1.0;
 		point.y = 1.0;
@@ -452,7 +452,7 @@ MA 02110-1301, USA.
 // Calculate segments from control points
 - (BOOL) makeSegments
 {
-	int i;
+	NSUInteger i;
 	NSPoint left, right, next;
 	double gradientleft, gradientright;
 	OOJoystickSplineSegment* segment;
@@ -515,9 +515,9 @@ MA 02110-1301, USA.
 	return YES;
 }
 
-- (void) removeControl: (int) index
+- (void) removeControl: (NSInteger) index
 {
-	if (index >= 0 && index < [controlPoints count])
+	if (index >= 0 && index < (NSInteger)[controlPoints count])
 	{
 		[controlPoints removeObjectAtIndex: index];
 		[self makeSegments];
@@ -531,13 +531,13 @@ MA 02110-1301, USA.
 	[self makeSegments];
 }
 
-- (void) moveControl: (int) index point: (NSPoint) point
+- (void) moveControl: (NSInteger) index point: (NSPoint) point
 {
 	NSPoint left, right;
 
 	point.x = OOClamp_0_1_d(point.x);
 	point.y = OOClamp_0_1_d(point.y);
-	if (index < 0 || index >= [controlPoints count])
+	if (index < 0 || index >= (NSInteger)[controlPoints count])
 	{
 		return;
 	}
@@ -550,7 +550,7 @@ MA 02110-1301, USA.
 	{
 		left = [[controlPoints objectAtIndex: (index-1)] pointValue];
 	}
-	if (index == [controlPoints count] - 1)
+	if (index == (NSInteger)[controlPoints count] - 1)
 	{
 		right.x = 1.0;
 		right.y = 1.0;
@@ -584,7 +584,7 @@ MA 02110-1301, USA.
 
 - (double) rawValue: (double) x
 {
-	int i;
+	NSUInteger i;
 	OOJoystickSplineSegment *segment;
 	double sign;
 	
@@ -610,7 +610,7 @@ MA 02110-1301, USA.
 
 - (double) gradient: (double) x
 {
-	int i;
+	NSUInteger i;
 	OOJoystickSplineSegment *segment;
 	for (i = 0; i < [segments count]; i++)
 	{

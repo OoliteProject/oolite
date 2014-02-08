@@ -42,13 +42,13 @@ MA 02110-1301, USA.
 {
 @private
 	OOJoystickManager *stickHandler;
-	int current_axis;
+	NSUInteger current_axis;
 	OOJoystickAxisProfile *profiles[3][2];
 	GuiDisplayGen *gui;
 	NSRect graphRect;
-	int selected_control_point;
-	int dragged_control_point;
-	int double_click_control_point;
+	NSInteger selected_control_point;
+	NSInteger dragged_control_point;
+	NSInteger double_click_control_point;
 }
 
 - (id) init;
