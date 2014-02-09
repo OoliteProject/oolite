@@ -240,5 +240,5 @@ typedef enum
 
 
 
-	DETAIL_LEVEL_MAXIMUM		= 4
+	DETAIL_LEVEL_MAXIMUM		= 3
 } OOGraphicsDetail;
