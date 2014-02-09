@@ -33,7 +33,6 @@
 #define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb)
 #define AMBIENT_LIGHT		(gl_LightModel.ambient.rgb)
 #else
-#define OO_REDUCED_COMPLEXITY				0
 #define SPECULAR_LIGHT 						vec3(0.8)
 #define DIFFUSE_LIGHT 						vec3(0.8)
 #define AMBIENT_LIGHT						vec3(0.2)
@@ -43,9 +42,6 @@
 #endif
 
 
-#ifndef OO_REDUCED_COMPLEXITY
-#define OO_REDUCED_COMPLEXITY 0
-#endif
 #ifndef OOSTD_ILLUMINATION_MAP
 #define OOSTD_ILLUMINATION_MAP 0
 #endif
@@ -109,11 +105,7 @@ const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
 
 
 // Texture coordinate calcuation.
-#if OO_REDUCED_COMPLEXITY
-#define TEXTURE_COORDS vTexCoords
-#else
 #define TEXTURE_COORDS vec2(TexLongitude(coords.x, coords.z), vTexCoords.t)
-#endif
 
 
 #if OOSTD_CUBE_MAP
@@ -146,15 +138,8 @@ vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
 	float globalTerm = LdotN;
 #endif
 	
-#if OO_REDUCED_COMPLEXITY
-	// Hardish terminator.
-	float rev = min(1.0 - globalTerm, 1.0);
-	rev *= rev;
-	vec3 baseLight = vec3(1.0 - (rev * rev));
-#else
 	// Hard terminator with slight redish-orange tinge. Note: threshold values are cosines.
 	vec3 baseLight = smoothstep(vec3(0.0), kTerminatorThreshold, vec3(globalTerm));
-#endif
 	
 #if USE_NORMAL_MAP
 	// Modulate with normal-mapped "local" illumination.
@@ -195,7 +180,7 @@ vec3 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 }
 
 
-#if !OO_REDUCED_COMPLEXITY
+
 /*	Approximation of atan(y/z) with quadrant rectification, scaled to -0.5..0.5 instead of -pi..pi.
 	It is assumed that the values are in range. You are not expected to understand this.
 */
@@ -216,7 +201,7 @@ float TexLongitude(float z, float y)
 	// Well, technically not equivalent for z < 0, y = 0, but you'll very rarely see that exact case.
 	return result + step(z, 0.0) * sign(y) * 0.5 + 0.25;
 }
-#endif
+
 
 
 void main()
@@ -258,7 +243,7 @@ void main()
 	
 	// Ambient light, biased towards blue.
 	vec3 ambientColor = diffuseColor;
-#if !OO_REDUCED_COMPLEXITY && !OOSTD_HARSH_MISTRESS
+#if !OOSTD_HARSH_MISTRESS
 	ambientColor *= vec3(0.8, 0.8, 1.0);
 #endif
 	totalColor += AMBIENT_LIGHT * ambientColor;
