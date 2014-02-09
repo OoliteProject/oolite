@@ -1224,9 +1224,10 @@
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
 	"gameoptions-procedurally-textured-planets-no"	= " Detailed Planets: Off ";
-	"gameoptions-detaillevel-0"				= " Graphics Detail: Minimum ";
-	"gameoptions-detaillevel-1"				= " Graphics Detail: Normal Shaders ";
-	"gameoptions-detaillevel-2"				= " Graphics Detail: Extra Detail ";
+	"gameoptions-detaillevel-0"				= " Graphics Detail: Minimum Detail ";
+	"gameoptions-detaillevel-1"				= " Graphics Detail: Normal Detail ";
+	"gameoptions-detaillevel-2"				= " Graphics Detail: Shaders Enabled ";
+	"gameoptions-detaillevel-3"				= " Graphics Detail: Extra Detail ";
 // next eight no longer used
 /*	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
 	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
