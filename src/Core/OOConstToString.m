@@ -631,6 +631,7 @@ NSString *OOStringFromGraphicsDetail(OOGraphicsDetail detail)
 	switch (detail)
 	{
 		CASE(DETAIL_LEVEL_MINIMUM);
+		CASE(DETAIL_LEVEL_NORMAL);
 		CASE(DETAIL_LEVEL_SHADERS);
 		CASE(DETAIL_LEVEL_EXTRAS);
 	}
@@ -642,6 +643,7 @@ NSString *OOStringFromGraphicsDetail(OOGraphicsDetail detail)
 OOGraphicsDetail OOGraphicsDetailFromString(NSString *string)
 {
 	REVERSE_CASE(DETAIL_LEVEL_MINIMUM);
+	REVERSE_CASE(DETAIL_LEVEL_NORMAL);
 	REVERSE_CASE(DETAIL_LEVEL_SHADERS);
 	REVERSE_CASE(DETAIL_LEVEL_EXTRAS);
 	
