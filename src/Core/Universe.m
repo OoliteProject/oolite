@@ -3735,7 +3735,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
 	
-	[result setObject:OOStringFromShaderSetting([self detailLevel]) forKey:@"detailLevel"];
+	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	
 	NSString *desc = @"UNDEFINED";
 	switch ([[OOMusicController sharedController] mode])
