@@ -162,7 +162,7 @@ static OOTexture *sShotTexture2 = nil;
 			velocity in -[Entity update:], which is considered sufficient for
 			NPC ships.
 		*/
-		position = HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix])));
+		[self setPosition:HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix])))];
 		[self setOrientation:quaternion_multiply(_relOrientation, [ship normalOrientation])];
 	}
 
