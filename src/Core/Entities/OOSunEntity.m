@@ -555,10 +555,9 @@ MA 02110-1301, USA.
 }
 
 
-
-#if SUN_DIRECT_VISION_GLARE
 - (void) drawDirectVisionSunGlare
 {
+#if SUN_DIRECT_VISION_GLARE
 	OO_ENTER_OPENGL();
 	
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
@@ -579,13 +578,8 @@ MA 02110-1301, USA.
 		glVertex3f(-siz.width, siz.height, z);
 		OOGLEND();
 	}
-}
-#else
-- (void) drawDirectVisionSunGlare
-{
-	// do nothing
-}
 #endif
+}
 
 
 - (void) drawStarGlare
