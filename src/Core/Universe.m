@@ -4323,6 +4323,7 @@ static const OOMatrix	starboard_matrix =
 			{
 				if (cachedSun)
 				{
+					[cachedSun drawDirectVisionSunGlare];
 					[cachedSun drawStarGlare];
 				}
 			}

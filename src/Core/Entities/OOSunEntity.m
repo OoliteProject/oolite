@@ -555,6 +555,39 @@ MA 02110-1301, USA.
 }
 
 
+
+#if SUN_DIRECT_VISION_GLARE
+- (void) drawDirectVisionSunGlare
+{
+	OO_ENTER_OPENGL();
+	
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
+	GLfloat	directVisionSunGlare = [PLAYER lookingAtSunWithThresholdAngleCos:SUN_DIRECT_VISION_THRESHOLD_ANGLE_COS];
+	if (directVisionSunGlare)
+	{
+		NSSize	siz =	[[UNIVERSE gui]	size];
+		GLfloat z = [[UNIVERSE gameView] display_z];
+		GLfloat directVisionSunGlareColor[4] = {discColor[0], discColor[1], discColor[2], directVisionSunGlare};
+		
+		OOGL(glColor4fv(directVisionSunGlareColor));
+		
+		OOGLBEGIN(GL_QUADS);
+		glVertex3f(siz.width, siz.height, z);
+		glVertex3f(siz.width, -siz.height, z);
+		glVertex3f(-siz.width, -siz.height, z);
+		glVertex3f(-siz.width, siz.height, z);
+		OOGLEND();
+	}
+}
+#else
+- (void) drawDirectVisionSunGlare
+{
+	// do nothing
+}
+#endif
+
+
 - (void) drawStarGlare
 {
 	OO_ENTER_OPENGL();

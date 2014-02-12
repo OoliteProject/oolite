@@ -1966,6 +1966,43 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (GLfloat) lookingAtSunWithThresholdAngleCos:(GLfloat) thresholdAngleCos
+{
+	OOSunEntity	*sun = [UNIVERSE sun];
+	GLfloat measuredCos = 999.0f, measuredCosAbs, sunBrightness = 0.0f;
+	Vector relativePosition, unitRelativePosition;
+	
+	if (!sun)  return 0.0f;
+	
+	relativePosition = HPVectorToVector(HPvector_subtract([self viewpointPosition], [sun position]));
+	unitRelativePosition = vector_normal_or_zbasis(relativePosition);
+	switch ([UNIVERSE viewDirection])
+	{
+		case VIEW_FORWARD:
+			measuredCos = -dot_product(unitRelativePosition, v_forward);
+			break;
+		case VIEW_AFT:
+			measuredCos = +dot_product(unitRelativePosition, v_forward);
+			break;
+		case VIEW_PORT:
+			measuredCos = +dot_product(unitRelativePosition, v_right);
+			break;
+		case VIEW_STARBOARD:
+			measuredCos = -dot_product(unitRelativePosition, v_right);
+			break;
+		default:
+			break;
+	}
+	measuredCosAbs = fabs(measuredCos);
+	if (thresholdAngleCos < measuredCosAbs && measuredCosAbs < 1.0f)	// angle from viewpoint to sun < 10 deg
+	{
+		sunBrightness =  (measuredCos - thresholdAngleCos) / (1.0f - thresholdAngleCos);
+		if (sunBrightness < 0.0f)  sunBrightness = 0.0f;
+	}
+	return sunBrightness;
+}
+
+
 #ifndef NDEBUG
 #define STAGE_TRACKING_BEGIN	{ \
 									NSString * volatile updateStage = @"initialisation"; \

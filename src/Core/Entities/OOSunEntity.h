@@ -35,6 +35,11 @@ MA 02110-1301, USA.
 #define SUN_CORONA_SAMPLES		729			// Samples at half-degree intervals, with a bit of overlap.
 #define MAX_CORONAFLARE			600000.0	// nova flare
 
+#ifndef SUN_DIRECT_VISION_GLARE
+#define	SUN_DIRECT_VISION_GLARE	0
+#define	SUN_DIRECT_VISION_THRESHOLD_ANGLE_COS	0.9945f	// 6 degrees
+#endif
+
 
 @class ShipEntity;
 
@@ -80,6 +85,6 @@ MA 02110-1301, USA.
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
 
 - (void) drawStarGlare;
-
+- (void) drawDirectVisionSunGlare;
 
 @end
