@@ -1972,7 +1972,7 @@ static GLfloat		sBaseMass = 0.0;
 	GLfloat measuredCos = 999.0f, measuredCosAbs, sunBrightness = 0.0f;
 	Vector relativePosition, unitRelativePosition;
 	
-	if (!sun)  return 0.0f;
+	if (!sun || !isSunlit)  return 0.0f;
 	
 	relativePosition = HPVectorToVector(HPvector_subtract([self viewpointPosition], [sun position]));
 	unitRelativePosition = vector_normal_or_zbasis(relativePosition);
