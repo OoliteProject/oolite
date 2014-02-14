@@ -1994,7 +1994,7 @@ static GLfloat		sBaseMass = 0.0;
 			break;
 	}
 	measuredCosAbs = fabs(measuredCos);
-	if (thresholdAngleCos <= measuredCosAbs && measuredCosAbs <= 1.0f)	// angle from viewpoint to sun < 10 deg
+	if (thresholdAngleCos <= measuredCosAbs && measuredCosAbs <= 1.0f)	// angle from viewpoint to sun <= desired threshold
 	{
 		sunBrightness =  (measuredCos - thresholdAngleCos) / (1.0f - thresholdAngleCos);
 		if (sunBrightness < 0.0f)  sunBrightness = 0.0f;
