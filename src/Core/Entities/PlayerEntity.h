@@ -1012,6 +1012,11 @@ typedef enum
 */
 - (GLfloat) lookingAtSunWithThresholdAngleCos:(GLfloat) thresholdAngleCos;
 
+/* Fractional expression of amount of entry inside a planet's atmosphere. 0.0f is out of atmosphere,
+   1.0f is fully in and is normally associated with the point of ship destruct due to altitude.
+*/
+- (GLfloat) insideAtmosphereFraction;
+
 @end
 
 

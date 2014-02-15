@@ -1968,9 +1968,9 @@ static GLfloat		sBaseMass = 0.0;
 
 - (GLfloat) lookingAtSunWithThresholdAngleCos:(GLfloat) thresholdAngleCos
 {
-		OOSunEntity	*sun = [UNIVERSE sun];
+	OOSunEntity	*sun = [UNIVERSE sun];
 	GLfloat measuredCos = 999.0f, measuredCosAbs;
-	GLfloat atmosphereReductionFactor = 1.0f, sunBrightness = 0.0f;
+	GLfloat sunBrightness = 0.0f;
 	Vector relativePosition, unitRelativePosition;
 	
 	if (!sun || !isSunlit)  return 0.0f;
@@ -2000,13 +2000,20 @@ static GLfloat		sBaseMass = 0.0;
 		sunBrightness =  (measuredCos - thresholdAngleCos) / (1.0f - thresholdAngleCos);
 		if (sunBrightness < 0.0f)  sunBrightness = 0.0f;
 	}
+	return sunBrightness * sunBrightness * sunBrightness;
+}
+
+
+- (GLfloat) insideAtmosphereFraction
+{
+	GLfloat insideAtmoFrac = 0.0f;
 	
 	if ([UNIVERSE airResistanceFactor] > 0.01)  // player is inside planetary atmosphere
 	{
-		atmosphereReductionFactor = OOClamp_0_1_f([self dialAltitude] * 10.0f);
+		insideAtmoFrac = 1.0f - ([self dialAltitude] *  (GLfloat)PLAYER_DIAL_MAX_ALTITUDE / (10.0f * (GLfloat)ATMOSPHERE_DEPTH));
 	}
 	
-	return sunBrightness * sunBrightness * sunBrightness * atmosphereReductionFactor;
+	return insideAtmoFrac;
 }
 
 

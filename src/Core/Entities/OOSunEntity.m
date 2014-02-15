@@ -567,7 +567,9 @@ MA 02110-1301, USA.
 	{
 		NSSize	siz =	[[UNIVERSE gui]	size];
 		GLfloat z = [[UNIVERSE gameView] display_z];
-		GLfloat directVisionSunGlareColor[4] = {discColor[0], discColor[1], discColor[2], directVisionSunGlare * 0.85f};
+		GLfloat atmosphericReductionFactor =  1.0f - [PLAYER insideAtmosphereFraction];
+		GLfloat directVisionSunGlareColor[4] = {discColor[0], discColor[1], discColor[2], directVisionSunGlare *
+																			atmosphericReductionFactor * 0.85f};
 		
 		OOGL(glColor4fv(directVisionSunGlareColor));
 		
