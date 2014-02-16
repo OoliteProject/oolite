@@ -1778,7 +1778,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_left ? 0 : pressedArrow;
 				
-				if ([gameView isDown:gvArrowKeyRight])
+				if ([gameView isDown:key_gui_arrow_right])
 				{
 					if (nextSystem && pressedArrow != key_gui_arrow_right)
 					{
