@@ -2126,7 +2126,7 @@ PriorityAIController.prototype.conditionScannerContainsMiningOpportunity = funct
 PriorityAIController.prototype.conditionScannerContainsNonThargoid = function()
 {
 	var prioritytargets = this.checkScannerWithPredicate(function(s) { 
-		return s.scanClass != "CLASS_THARGOID" && s.scanClass != "CLASS_ROCK" && s.scanClass != "CLASS_CARGO";
+		return s.scanClass != "CLASS_THARGOID" && s.scanClass != "CLASS_ROCK" && s.scanClass != "CLASS_BUOY" && s.scanClass != "CLASS_CARGO";
 	});
 	if (prioritytargets) 
 	{
