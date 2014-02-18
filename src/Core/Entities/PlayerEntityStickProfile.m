@@ -96,7 +96,7 @@ static BOOL stickProfileArrow_pressed;
 	if ([gameView isDown:13] && [gui selectedRow] == GUI_ROW_STICKPROFILE_BACK)
 	{
 		[stickProfileScreen saveSettings];
-		[self setGuiToStickMapperScreen: 0];
+		[self setGuiToStickMapperScreen: 0 resetCurrentRow: YES];
 	}
 	switch ([gui selectedRow])
 	{

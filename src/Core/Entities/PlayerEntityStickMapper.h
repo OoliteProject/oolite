@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (StickMapper)
 
+   - (void) setGuiToStickMapperScreen: (unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow;
    - (void) setGuiToStickMapperScreen: (unsigned)skip;
    - (void) stickMapperInputHandler: (GuiDisplayGen *)gui
 							   view: (MyOpenGLView *)gameView;

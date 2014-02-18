@@ -45,6 +45,11 @@ MA 02110-1301, USA.
 
 - (void) setGuiToStickMapperScreen:(unsigned)skip
 {
+	[self setGuiToStickMapperScreen: skip resetCurrentRow: NO];
+}
+
+- (void) setGuiToStickMapperScreen:(unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow
+{
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	NSArray			*stickList = [stickHandler listSticks];
@@ -76,7 +81,10 @@ MA 02110-1301, USA.
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
 		   forRow:GUI_ROW_INSTRUCT];
 	
-	[gui setSelectedRow: GUI_ROW_STICKPROFILE];
+	if (resetCurrentRow)
+	{
+		[gui setSelectedRow: GUI_ROW_STICKPROFILE];
+	}
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"settings"];

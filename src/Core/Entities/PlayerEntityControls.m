@@ -1903,7 +1903,7 @@ static NSTimeInterval	time_last_frame;
 					from_function = [keyComponents oo_intAtIndex:1];
 					if (from_function < 0)  from_function = 0;
 					
-					[self setGuiToStickMapperScreen:from_function];
+					[self setGuiToStickMapperScreen:from_function resetCurrentRow: YES];
 					if ([[UNIVERSE gui] selectedRow] < GUI_ROW_FUNCSTART)
 					{
 						[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART];
@@ -2479,7 +2479,7 @@ static NSTimeInterval	time_last_frame;
 	if ((guiSelectedRow == GUI_ROW(GAME,STICKMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
-		[self setGuiToStickMapperScreen: 0];
+		[self setGuiToStickMapperScreen: 0 resetCurrentRow: YES];
 	}
 	
 #if OO_RESOLUTION_OPTION
