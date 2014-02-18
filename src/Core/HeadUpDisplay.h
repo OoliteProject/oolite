@@ -267,7 +267,7 @@ MA 02110-1301, USA.
 	
 	// Nonlinear scanner
 	BOOL			nonlinear_scanner;
-	BOOL			ultra_zoom;
+	BOOL			scanner_ultra_zoom;
 
 }
 
@@ -318,13 +318,12 @@ MA 02110-1301, USA.
 - (void) setLineWidth:(GLfloat)value;
 - (GLfloat) lineWidth;
 
-- (void) drawWatermarkString:(NSString *)watermarkString;
 + (Vector) nonlinearScannerScale:(Vector) V Zoom:(GLfloat) zoom Scale:(double) scale;
 - (BOOL) nonlinearScanner;
 - (void) setNonlinearScanner: (BOOL)newValue;
 
-- (BOOL) ultraZoom;
-- (void) setUltraZoom: (BOOL)newValue;
+- (BOOL) scannerUltraZoom;
+- (void) setScannerUltraZoom: (BOOL)newValue;
 
 @end
 

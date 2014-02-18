@@ -299,7 +299,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
 	
 	nonlinear_scanner = [hudinfo oo_boolForKey:@"nonlinear_scanner" defaultValue:NO];
-	ultra_zoom = [hudinfo oo_boolForKey:@"ultra_zoom" defaultValue:NO];
+	scanner_ultra_zoom = [hudinfo oo_boolForKey:@"scanner_ultra_zoom" defaultValue:NO];
 	
 	return self;
 }
@@ -1187,7 +1187,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	int				scannerFootprint = SCANNER_MAX_RANGE * 2.5 / siz.width;
 	
 	GLfloat			zoom = scanner_zoom;
-	if (ultra_zoom)
+	if (scanner_ultra_zoom)
 		zoom = pow(2, zoom - 1.0);
 	GLfloat			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0;
 	if (!nonlinear_scanner)
@@ -1481,15 +1481,15 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 }
 
 
-- (BOOL) ultraZoom
+- (BOOL) scannerUltraZoom
 {
-	return ultra_zoom;
+	return scanner_ultra_zoom;
 }
 
 
-- (void) setUltraZoom: (BOOL) newValue
+- (void) setScannerUltraZoom: (BOOL) newValue
 {
-	ultra_zoom = !!newValue;
+	scanner_ultra_zoom = !!newValue;
 }
 
 
@@ -1530,7 +1530,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
 	if (zl == 1) zoom_color[3] *= 0.75;
-	if (ultra_zoom)
+	if (scanner_ultra_zoom)
 		zl = pow(2, zl - 1);
 	GLColorWithOverallAlpha(zoom_color, alpha);
 	OOGL(glEnable(GL_TEXTURE_2D));
