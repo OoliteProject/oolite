@@ -96,8 +96,9 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info);
 static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected, GLfloat scale);
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1);
-static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom);
-
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear);
+static GLfloat nonlinearScannerFunc(GLfloat distance, GLfloat zoom, GLfloat scale);
+static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha );
 
 static OOTexture			*sFontTexture = nil;
 static OOEncodingConverter	*sEncodingCoverter = nil;
@@ -296,6 +297,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	_crosshairColor = [[OOColor colorWithDescription:crosshairColor] retain];
 	_crosshairScale = [hudinfo oo_floatForKey:@"crosshair_scale" defaultValue:32.0f];
 	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
+	
+	nonlinear_scanner = [hudinfo oo_boolForKey:@"nonlinear_scanner" defaultValue:NO];
+	ultra_zoom = [hudinfo oo_boolForKey:@"ultra_zoom" defaultValue:NO];
 	
 	return self;
 }
@@ -1182,7 +1186,14 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	
 	int				scannerFootprint = SCANNER_MAX_RANGE * 2.5 / siz.width;
 	
-	GLfloat			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0 / (scanner_zoom * scanner_zoom);
+	GLfloat			zoom = scanner_zoom;
+	if (ultra_zoom)
+		zoom = pow(2, zoom - 1.0);
+	GLfloat			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0;
+	if (!nonlinear_scanner)
+	{
+		max_zoomed_range2 /= zoom * zoom;
+	}
 	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
 	
 	if (PLAYER == nil)  return;
@@ -1205,17 +1216,28 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (!emptyDial)
 	{
 		OOGL(glColor4fv(scanner_color));
-		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, scanner_zoom);
+		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, zoom, nonlinear_scanner);
 	}
 	
 	if ([self checkPlayerInFlight])
 	{
-		GLfloat upscale = scanner_zoom * 1.25 / scannerFootprint;
+		GLfloat upscale = zoom * 1.25 / scannerFootprint;
 		GLfloat max_blip = 0.0;
 		int drawClass;
 		
 		OOVerifyOpenGLState();
 		
+		// Debugging code for nonlinear scanner - draws three fake cascade weapons, which looks pretty and enables me
+		// to debug the code without the mass slaughter of innocent civillians.
+		//if (nonlinear_scanner)
+		//{
+		//	Vector p = OOVectorMultiplyMatrix(make_vector(10000.0, 0.0, 0.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 5000, zoom, alpha );
+		//	p = OOVectorMultiplyMatrix(make_vector(10000.0, 4500.0, 0.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 2000, zoom, alpha );
+		//	p = OOVectorMultiplyMatrix(make_vector(0.0, 0.0, 20000.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 6000, zoom, alpha );
+		//}
 		for (i = 0; i < ent_count; i++)  // scanner lollypops
 		{
 			scannedEntity = my_entities[i];
@@ -1266,8 +1288,16 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				// rotate the view
 				relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);
+				Vector rrp = relativePosition;
 				// scale the view
-				scale_vector(&relativePosition, upscale);
+				if (nonlinear_scanner)
+				{
+					relativePosition = [HeadUpDisplay nonlinearScannerScale: relativePosition Zoom: zoom Scale: 0.5*siz.width];
+				}
+				else
+				{
+					scale_vector(&relativePosition, upscale);
+				}
 				
 				x1 = relativePosition.x;
 				y1 = z_factor * relativePosition.z;
@@ -1322,7 +1352,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				if ([scannedEntity isShip])
 				{
 					ShipEntity* ship = (ShipEntity*)scannedEntity;
-					if (ship->collision_radius * upscale > 4.5)
+					if ((!nonlinear_scanner && ship->collision_radius * upscale > 4.5) ||
+						(nonlinear_scanner && nonlinearScannerFunc(act_dist, zoom, siz.width) - nonlinearScannerFunc(lim_dist, zoom, siz.width) > 4.5 ))
 					{
 						Vector bounds[6];
 						BoundingBox bb = ship->totalBoundingBox;
@@ -1337,7 +1368,14 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 						for (i = 0; i < 6; i++)
 						{
 							bounds[i] = OOVectorMultiplyMatrix(vector_add(bounds[i], rp), rotMatrix);
-							scale_vector(&bounds[i], upscale);
+							if (nonlinear_scanner)
+							{
+								bounds[i] = [HeadUpDisplay nonlinearScannerScale:bounds[i] Zoom: zoom Scale: 0.5*siz.width];
+							}
+							else
+							{
+								scale_vector(&bounds[i], upscale);
+							}
 							bounds[i] = make_vector(bounds[i].x + scanner_cx, bounds[i].z * z_factor + bounds[i].y * y_factor + scanner_cy, z1 );
 						}
 						// draw the diamond
@@ -1360,16 +1398,23 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				}
 				if ([scannedEntity isCascadeWeapon])
 				{
-					GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
-					GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
-					GLfloat r0 = (l2 > 0)? sqrt(l2): 0;
-					if (r0 > 0)
+					if (nonlinear_scanner)
 					{
-						OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
-						GLDrawOval(x1  - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
+						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, scannedEntity->collision_radius, zoom, alpha );
 					}
-					OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
-					GLDrawFilledOval(x1  - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
+					else
+					{
+						GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
+						GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
+						GLfloat r0 = (l2 > 0)? sqrt(l2): 0;
+						if (r0 > 0)
+						{
+							OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+							GLDrawOval(x1  - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
+						}
+						OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+						GLDrawFilledOval(x1  - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
+					}
 				}
 				else
 				{
@@ -1416,6 +1461,37 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	_scannerUpdated = YES;
 }
 
++ (Vector) nonlinearScannerScale: (Vector) V Zoom:(GLfloat)zoom Scale:(double) scale
+{
+	OOScalar mag = magnitude(V);
+	Vector unit = vector_normal(V);
+	return vector_multiply_scalar(unit, nonlinearScannerFunc(mag, zoom, scale));
+}
+
+
+- (BOOL) nonlinearScanner
+{
+	return nonlinear_scanner;
+}
+
+
+- (void) setNonlinearScanner: (BOOL) newValue
+{
+	nonlinear_scanner = !!newValue;
+}
+
+
+- (BOOL) ultraZoom
+{
+	return ultra_zoom;
+}
+
+
+- (void) setUltraZoom: (BOOL) newValue
+{
+	ultra_zoom = !!newValue;
+}
+
 
 - (void) refreshLastTransmitter
 {
@@ -1454,12 +1530,16 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
 	if (zl == 1) zoom_color[3] *= 0.75;
+	if (ultra_zoom)
+		zl = pow(2, zl - 1);
 	GLColorWithOverallAlpha(zoom_color, alpha);
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
 	OOGLBEGIN(GL_QUADS);
-		drawCharacterQuad(48 + zl, cx - 0.4 * siz.width, cy, z1, siz);
+		if (zl / 10 > 0)
+			drawCharacterQuad(48 + zl / 10, cx - 0.8 * siz.width, cy, z1, siz);
+		drawCharacterQuad(48 + zl % 10, cx - 0.4 * siz.width, cy, z1, siz);
 		drawCharacterQuad(58, cx, cy, z1, siz);
 		drawCharacterQuad(49, cx + 0.3 * siz.width, cy, z1, siz);
 	OOGLEND();
@@ -3738,8 +3818,93 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, 
 	OOVerifyOpenGLState();
 }
 
+static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha )
+{
+	Vector spacepos, scannerpos;
+	GLfloat theta, phi;
+	GLfloat z_factor = siz.height / siz.width;	// approx 1/4
+	GLfloat y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
+	OOGLVector *points = malloc(sizeof(OOGLVector)*25);
+	int i, j;
+	
+	if (radius*radius > centre.y*centre.y)
+	{
+		GLfloat r0 = sqrt(radius*radius-centre.y*centre.y);
+		OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+		spacepos.y = 0;
+		for (i = 0; i < 24; i++)
+		{
+			theta = i*2*M_PI/24;
+			spacepos.x = centre.x + r0 * cos(theta);
+			spacepos.z = centre.z + r0 * sin(theta);
+			scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+			points[i].x = x + scannerpos.x;
+			points[i].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+			points[i].z = z;
+		}
+		spacepos.x = centre.x + r0;
+		spacepos.y = 0;
+		spacepos.z = centre.z;
+		scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+		points[24].x = x + scannerpos.x;
+		points[24].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+		points[24].z = z;
+		GLDrawPoints(points,25);
+	}
+	OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+	free(points);
+	// Here, we draw a sphere distorted by the nonlinear function. We draw the sphere as a set of horizontal strips
+	// The even indices of points are the points on the upper edge of the strip, while odd indices are points
+	// on the bottom edge.
+	points = malloc(sizeof(OOGLVector)*50);
+	spacepos.x = centre.x;
+	spacepos.y = centre.y + radius;
+	spacepos.z = centre.z;
+	scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+	for (i = 0; i <= 24; i++)
+	{
+		points[2*i+1].x = x + scannerpos.x;
+		points[2*i+1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
+		points[2*i+1].z = z;
+	}
+	for (i = 1; i <= 24; i++)
+	{
+		theta = i*M_PI/24;
+		for (j = 0; j <= 24; j++)
+		{
+			phi = j*M_PI/12;
+			// copy point from bottom edge of previous strip into top edge position
+			points[2*j] = points[2*j+1];
 
-static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom)
+			spacepos.x = centre.x + radius * sin(theta) * cos(phi);
+			spacepos.y = centre.y + radius * cos(theta);
+			spacepos.z = centre.z + radius * sin(theta) * sin(phi);
+			scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+			points[2*j+1].x = x + scannerpos.x;
+			points[2*j+1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
+			points[2*j+1].z = z;
+		}
+		GLDrawQuadStrip(points, 50);
+	}
+	free(points);
+	return;
+}
+
+static GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat scale )
+{
+	GLfloat x = fabs(distance / SCANNER_MAX_RANGE);
+	if (x >= 1.0)
+		return scale;
+	if (zoom <= 1.0)
+		return scale * x;
+	GLfloat c = 1 / ( zoom - 1 );
+	GLfloat b = c * ( c + 1 );
+	GLfloat a = c + 1;
+	return scale * ( a - b / ( x + c ) );
+}
+
+
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear)
 {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
@@ -3750,42 +3915,92 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 	GLfloat w2 = 0.250 * siz.width;
 	GLfloat h2 = 0.250 * siz.height;
 	
-	GLfloat km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
-	GLfloat hdiv = 0.5 * siz.height / km_scan;
-	GLfloat wdiv = 0.25 * siz.width / km_scan;
+	GLfloat km_scan;
+	GLfloat hdiv;
+	GLfloat wdiv;
+	BOOL drawdiv = NO, drawdiv1 = NO, drawdiv5 = NO;
 	
 	int i, ii;
 	
-	if (wdiv < 4.0)
-	{
-		wdiv *= 2.0;
-		ii = 5;
-	}
-	else
-	{
-		ii = 1;
-	}
-	
 	OOGL(GLScaledLineWidth(2.0 * thickness));
-	GLDrawOval(x, y, z, siz, 4);	
+	GLDrawOval(x, y, z, siz, 4);
 	OOGL(GLScaledLineWidth(thickness));
 	
 	OOGLBEGIN(GL_LINES);
 		glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);
 		glVertex3f(x - ww, y, z);	glVertex3f(x + ww, y, z);
 
-		for (i = ii; 2.0 * hdiv * i < siz.height; i += ii)
+		if (nonlinear)
 		{
-			h1 = i * hdiv;
-			w1 = wdiv;
-			if (i % 5 == 0)
-				w1 = w1 * 2.5;
-			if (i % 10 == 0)
-				w1 = w1 * 2.0;
-			if (w1 > 3.5)	// don't draw tiny marks
+			if (nonlinearScannerFunc(4000.0, zoom, hh)-nonlinearScannerFunc(3000.0, zoom ,hh) > 2) drawdiv1 = YES;
+			if (nonlinearScannerFunc(10000.0, zoom, hh)-nonlinearScannerFunc(5000.0, zoom, hh) > 2) drawdiv5 = YES;
+			wdiv = ww/(0.001*SCANNER_MAX_RANGE);
+			for (i = 1; 1000.0*i < SCANNER_MAX_RANGE; i++)
 			{
-				glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
-				glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+				drawdiv = drawdiv1;
+				w1 = wdiv;
+				if (i % 10 == 0)
+				{
+					w1 = wdiv*4;
+					drawdiv = YES;
+					if (nonlinearScannerFunc((i+5)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
+					{
+						drawdiv5 = YES;
+					}
+					else
+					{
+						drawdiv5 = NO;
+					}
+				}
+				else if (i % 5 == 0)
+				{
+					w1 = wdiv*2;
+					drawdiv = drawdiv5;
+					if (nonlinearScannerFunc((i+1)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
+					{
+						drawdiv1 = YES;
+					}
+					else
+					{
+						drawdiv1 = NO;
+					}
+				}
+				if (drawdiv)
+				{
+					h1 = nonlinearScannerFunc(i*1000.0,zoom,hh);
+					glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
+					glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+				}
+			}
+		}
+		else
+		{
+			km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
+			hdiv = 0.5 * siz.height / km_scan;
+			wdiv = 0.25 * siz.width / km_scan;
+			if (wdiv < 4.0)
+			{
+				wdiv *= 2.0;
+				ii = 5;
+			}
+			else
+			{
+				ii = 1;
+			}
+	
+			for (i = ii; 2.0 * hdiv * i < siz.height; i += ii)
+			{
+				h1 = i * hdiv;
+				w1 = wdiv;
+				if (i % 5 == 0)
+					w1 = w1 * 2.5;
+				if (i % 10 == 0)
+					w1 = w1 * 2.0;
+				if (w1 > 3.5)	// don't draw tiny marks
+				{
+					glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
+					glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+				}
 			}
 		}
 

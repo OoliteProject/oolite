@@ -192,6 +192,19 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 
+/*	GLDrawPoints(), GLDrawFilledPoints()
+	Draw array of points, as outline and fill respectively.
+*/
+
+typedef struct {
+	GLfloat x;
+	GLfloat y;
+	GLfloat z;
+} OOGLVector;
+
+void GLDrawPoints(OOGLVector *points, int n);
+void GLDrawFilledPoints(OOGLVector *points, int n);
+void GLDrawQuadStrip(OOGLVector *points, int n);
 
 /*	OO_CHECK_GL_HEAVY and error-checking stuff
 	

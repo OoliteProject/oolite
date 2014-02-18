@@ -166,6 +166,49 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 	OOGLEND();
 }
 
+void GLDrawPoints(OOGLVector *points, int n)
+{
+	int i;
+	OO_ENTER_OPENGL();
+	OOGLBEGIN(GL_LINE_STRIP);
+	for (i = 0; i < n; i++)
+	{
+		glVertex3f(points->x, points->y, points->z);
+		points++;
+	}
+	OOGLEND();
+	return;
+}
+
+void GLDrawFilledPoints(OOGLVector *points, int n)
+{
+	int i;
+	OO_ENTER_OPENGL();
+	OOGLBEGIN(GL_TRIANGLE_FAN);
+	for (i = 0; i < n; i++)
+	{
+		glVertex3f(points->x, points->y, points->z);
+		points++;
+	}
+	OOGLEND();
+	return;
+}
+
+
+void GLDrawQuadStrip(OOGLVector *points, int n)
+{
+	int i;
+	OO_ENTER_OPENGL();
+	OOGLBEGIN(GL_QUAD_STRIP);
+	for (i = 0; i < n; i++)
+	{
+		glVertex3f(points->x, points->y, points->z );
+		points++;
+	}
+	OOGLEND();
+	return;
+}
+
 
 void GLScaledLineWidth(GLfloat width)
 {
