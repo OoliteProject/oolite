@@ -562,7 +562,7 @@ MA 02110-1301, USA.
 	
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
-	GLfloat sunGlareAngularSize = atan([self radius]/HPdistance([PLAYER position], [self position])) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
+	GLfloat sunGlareAngularSize = atan([self radius]/HPdistance([PLAYER viewpointPosition], [self position])) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
 
 	GLfloat	directVisionSunGlare = [PLAYER lookingAtSunWithThresholdAngleCos:cos(sunGlareAngularSize)];
 	if (directVisionSunGlare)

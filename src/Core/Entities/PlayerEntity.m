@@ -71,6 +71,8 @@ MA 02110-1301, USA.
 #import "OOFullScreenController.h"
 #import "OODebugSupport.h"
 
+#import "CollisionRegion.h"
+
 #import "OOJSScript.h"
 #import "OOScriptTimer.h"
 #import "OOJSEngineTimeManagement.h"
@@ -1973,8 +1975,31 @@ static GLfloat		sBaseMass = 0.0;
 	GLfloat sunBrightness = 0.0f;
 	Vector relativePosition, unitRelativePosition;
 	
-	if (!sun || !isSunlit)  return 0.0f;
+	if (EXPECT_NOT(!sun))  return 0.0f;
 	
+	// check if camera position is shadowed
+	unsigned i;
+	unsigned	ent_count =	UNIVERSE->n_entities;
+	Entity		**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
+	for (i = 0; i < ent_count; i++)
+	{
+		if (uni_entities[i]->isSunlit)
+		{
+			if ([uni_entities[i] isPlanet] || 
+				([uni_entities[i] isShip] &&
+				 [uni_entities[i] isVisible]))
+			{
+				float shadow = 1.5f;
+				shadowAtPointOcclusionToValue([self viewpointPosition],1.0f,uni_entities[i],sun,&shadow);
+				if (shadow < 1) {
+					/* BUG: if the shadowing entity is not spherical, this gives over-shadowing. True elsewhere as well, but not so obvious there. */
+					return 0.0f;
+				}
+			}
+		}
+	}
+
+
 	relativePosition = HPVectorToVector(HPvector_subtract([self viewpointPosition], [sun position]));
 	unitRelativePosition = vector_normal_or_zbasis(relativePosition);
 	switch ([UNIVERSE viewDirection])
@@ -1991,6 +2016,14 @@ static GLfloat		sBaseMass = 0.0;
 		case VIEW_STARBOARD:
 			measuredCos = -dot_product(unitRelativePosition, v_right);
 			break;
+ 		case VIEW_CUSTOM:
+			{
+				Vector relativeView = [self customViewForwardVector];
+				Vector absoluteView = quaternion_rotate_vector(quaternion_conjugate([self orientation]),relativeView);
+				measuredCos = -dot_product(unitRelativePosition, absoluteView);
+			}
+			break;
+			
 		default:
 			break;
 	}

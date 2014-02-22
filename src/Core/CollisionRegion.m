@@ -421,13 +421,18 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region)
 // an outValue of 1 means it's just being occluded.
 static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *the_sun, float *outValue)
 {
-	*outValue = 1.5f;	// initial 'fully lit' value
-	
 	if (EXPECT_NOT(e1 == e2))
 	{
 		// you can't shade self
 		return NO;
 	}
+	return shadowAtPointOcclusionToValue(e1->position,e1->collision_radius,e2,the_sun,outValue);
+}
+
+// an outValue of 1 means it's just being occluded.
+BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity *e2, OOSunEntity *the_sun, float *outValue)
+{
+	*outValue = 1.5f;	// initial 'fully lit' value
 	
 	GLfloat cr_e2;
 	if ([e2 isShip])
@@ -439,7 +444,7 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	{
 		cr_e2 = e2->collision_radius;
 	}
-	if (cr_e2 < e1->collision_radius)
+	if (cr_e2 < e1rad)
 	{
 		// smaller can't shade bigger
 		return NO;
@@ -450,7 +455,7 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 //		return NO;	// things already /in/ shade can't shade things more.
 	//
 	// check projected sizes of discs
-	GLfloat d2_sun = HPdistance2(e1->position, the_sun->position);
+	GLfloat d2_sun = HPdistance2(e1pos, the_sun->position);
 	GLfloat d2_e2sun = HPdistance2(e2->position, the_sun->position);
 	if (d2_e2sun > d2_sun)
 	{
@@ -458,7 +463,7 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 		return NO;
 	}
 	
-	GLfloat d2_e2 = HPdistance2( e1->position, e2->position);
+	GLfloat d2_e2 = HPdistance2( e1pos, e2->position);
 	GLfloat cr_sun = the_sun->collision_radius;
 	
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
@@ -476,7 +481,7 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	
 	HPVector p_sun = the_sun->position;
 	HPVector p_e2 = e2->position;
-	HPVector p_e1 = e1->position;
+	HPVector p_e1 = e1pos;
 	Vector v_sun = HPVectorToVector(HPvector_subtract(p_sun, p_e1));
 	v_sun = vector_normal_or_zbasis(v_sun);
 	
