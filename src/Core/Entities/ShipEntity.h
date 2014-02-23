@@ -990,6 +990,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (double) rangeToSecondaryTarget:(Entity *)target;
 - (BOOL) hasProximityAlertIgnoringTarget:(BOOL)ignore_target;
 - (GLfloat) currentAimTolerance;
+/* This method returns a value between 0.0f and 1.0f, depending on how directly our view point
+   faces the sun and is used for generating the "staring at the sun" glare effect. 0.0f means that
+   we are not facing the sun, 1.0f means that we are looking directly at it. The cosine of the 
+   threshold angle between view point and sun, below which we consider the ship as looking
+   at the sun, is passed as parameter to the method.
+*/
+- (GLfloat) lookingAtSunWithThresholdAngleCos:(GLfloat) thresholdAngleCos;
+
 - (BOOL) onTarget:(OOWeaponFacing)direction withWeapon:(OOWeaponType)weapon;
 
 - (OOTimeDelta) shotTime;

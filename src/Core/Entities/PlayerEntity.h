@@ -1004,14 +1004,6 @@ typedef enum
 
 - (void) doGuiScreenResizeUpdates;
 
-/* This method returns a value between 0.0f and 1.0f, depending on how directly our view point
-   faces the sun and is used for generating the "staring at the sun" glare effect. 0.0f means that
-   we are not facing the sun, 1.0f means that we are looking directly at it. The cosine of the 
-   threshold angle between player view point and sun, below which we consider the player as looking
-   at the sun, is passed as parameter to the method.
-*/
-- (GLfloat) lookingAtSunWithThresholdAngleCos:(GLfloat) thresholdAngleCos;
-
 /* Fractional expression of amount of entry inside a planet's atmosphere. 0.0f is out of atmosphere,
    1.0f is fully in and is normally associated with the point of ship destruct due to altitude.
 */

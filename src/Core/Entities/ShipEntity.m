@@ -10271,6 +10271,28 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			basic_aim *= 1.3;
 		}
 	}
+	// only apply glare if ship is not shadowed
+	if (isSunlit) {
+		OOSunEntity *sun = [UNIVERSE sun];
+		if (sun)
+		{
+			GLfloat sunGlareAngularSize = atan([sun radius]/HPdistance([self position], [sun position])) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
+			GLfloat glareLevel = [self lookingAtSunWithThresholdAngleCos:cos(sunGlareAngularSize)];
+			if (glareLevel > 0.1f)
+			{
+				// looking towards sun can seriously mess up aim (glareLevel 0..1)
+				basic_aim *= (1.0 + glareLevel*3.0);
+//				OOLog(@"aim.debug",@"Sun glare affecting aim: %f for %@",glareLevel,self);
+				if (glareLevel > 0.5f)
+				{
+					// strong glare makes precise targeting impossible
+					best_cos = 0.99999;
+				}
+			}
+		}
+	}
+
+
 	GLfloat max_cos = sqrt(1-(basic_aim * basic_aim / 100000000.0));
 
 	if (max_cos < best_cos)
@@ -10278,6 +10300,45 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return max_cos;
 	}
 	return best_cos;
+}
+
+
+// much simpler than player version
+- (GLfloat) lookingAtSunWithThresholdAngleCos:(GLfloat) thresholdAngleCos
+{
+	OOSunEntity	*sun = [UNIVERSE sun];
+	GLfloat measuredCos = 999.0f, measuredCosAbs;
+	GLfloat sunBrightness = 0.0f;
+	Vector relativePosition, unitRelativePosition;
+	
+	if (EXPECT_NOT(!sun))  return 0.0f;
+	
+	relativePosition = HPVectorToVector(HPvector_subtract([self position], [sun position]));
+	unitRelativePosition = vector_normal_or_zbasis(relativePosition);
+	switch (currentWeaponFacing)
+	{
+		case WEAPON_FACING_FORWARD:
+			measuredCos = -dot_product(unitRelativePosition, v_forward);
+			break;
+		case WEAPON_FACING_AFT:
+			measuredCos = +dot_product(unitRelativePosition, v_forward);
+			break;
+		case WEAPON_FACING_PORT:
+			measuredCos = +dot_product(unitRelativePosition, v_right);
+			break;
+		case WEAPON_FACING_STARBOARD:
+			measuredCos = -dot_product(unitRelativePosition, v_right);
+			break;
+		default:
+			break;
+	}
+	measuredCosAbs = fabs(measuredCos);
+	if (thresholdAngleCos <= measuredCosAbs && measuredCosAbs <= 1.0f)	// angle from viewpoint to sun <= desired threshold
+	{
+		sunBrightness =  (measuredCos - thresholdAngleCos) / (1.0f - thresholdAngleCos);
+		if (sunBrightness < 0.0f)  sunBrightness = 0.0f;
+	}
+	return sunBrightness * sunBrightness * sunBrightness;
 }
 
 
