@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "NSFileManagerOOExtensions.h"
 #import "OOColor.h"
+#import "OOStringExpander.h"
 
 #import "OOManifestProperties.h"
 
@@ -623,7 +624,7 @@ static OOOXZManager *sSingleton = nil;
 		}
 		else
 		{
-			[gui addLongText:DESC(@"oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+			[gui addLongText:OOExpandKey(@"oolite-oxzmanager-progress-error") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
 		}
 		[gui setText:DESC(@"oolite-oxzmanager-acknowledge") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_ACK" forRow:OXZ_GUI_ROW_UPDATE];

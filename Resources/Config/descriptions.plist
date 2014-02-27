@@ -1077,7 +1077,7 @@
 	"oolite-oxzmanager-progress-@-of-@"		= "Downloading: %@ of %@";
 	"oolite-oxzmanager-progress-done"		= "Download complete";
 	"oolite-oxzmanager-removal-done"		= "Expansion pack removed";
-	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details. Using the [oolite-oxzmanager-update-list] menu option if you have not done so already and re-attempting the download may sometimes fix the problem.";
+	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details. Using the '[oolite-oxzmanager-update-list]' menu option if you have not done so already and re-attempting the download may sometimes fix the problem.";
 	"oolite-oxzmanager-heading-category"	= "Category";
 	"oolite-oxzmanager-heading-title"		= "Title";
 	"oolite-oxzmanager-heading-version"		= "Version";
