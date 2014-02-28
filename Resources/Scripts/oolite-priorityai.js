@@ -1603,7 +1603,7 @@ PriorityAIController.prototype.conditionMothershipIsAttacking = function()
 	if (this.ship.group && this.ship.group.leader != this.ship)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.target && this.isFighting(leader) && this.distance(leader.target) < this.scannerRange)
+		if (leader && leader.target && this.isFighting(leader) && this.distance(leader.target) < this.scannerRange)
 		{
 			return true;
 		}
@@ -1617,7 +1617,7 @@ PriorityAIController.prototype.conditionMothershipIsAttackingHostileTarget = fun
 	if (this.ship.group && this.ship.group.leader != this.ship)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.target && this.isFighting(leader) && this.isAggressive(leader.target) && this.distance(leader.target) < this.scannerRange)
+		if (leader && leader.target && this.isFighting(leader) && this.isAggressive(leader.target) && this.distance(leader.target) < this.scannerRange)
 		{
 			return true;
 		}
@@ -1630,7 +1630,7 @@ PriorityAIController.prototype.conditionMothershipUnderAttack = function()
 	if (this.ship.group && this.ship.group.leader != this.ship)
 	{
 		var leader = this.ship.group.leader;
-		if (leader.target && leader.target.target == leader && leader.target.hasHostileTarget && this.distance(leader.target) < this.scannerRange)
+		if (leader && leader.target && leader.target.target == leader && leader.target.hasHostileTarget && this.distance(leader.target) < this.scannerRange)
 		{
 			return true;
 		}
