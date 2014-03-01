@@ -3051,6 +3051,27 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 			}
 		}
 	}
+	if (this.ship.group && this.ship.group.leader && this.ship.group.leader != this.ship)
+	{
+		var leader = this.ship.group.leader;
+		if (leader.status == "STATUS_ENTERING_WITCHSPACE")
+		{
+			var wormholes = system.wormholes;
+			for (var i=0;i<wormholes.count;i++)
+			{
+				var wormhole = wormholes[i];
+				if (wormhole.expiryTime > clock.seconds && wormhole.position.distanceTo(leader) < 100 && wormhole.position.distanceTo(this.ship) < this.scannerRange)
+				{
+					// if the leader has departed and the wormhole is
+					// reachable, go for it!
+					this.ship.destination = wormhole.position;
+					this.ship.desiredSpeed = this.ship.maxFlightSpeed * 7;
+					this.ship.performFlyToRangeFromDestination();
+					return;
+				}
+			}
+		}
+	}
 
 	this.ship.desiredRange = this.scannerRange;
 	this.ship.performFlee();
