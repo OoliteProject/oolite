@@ -1566,7 +1566,6 @@
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
 		1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLStateManager.m; sourceTree = "<group>"; };
-		1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-32.exp"; path = "src/Cocoa/exports-debug-32.exp"; sourceTree = "<group>"; };
 		1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-64.exp"; path = "src/Cocoa/exports-debug-64.exp"; sourceTree = "<group>"; };
 		1AD8522317947BD600CBE743 /* OOHPVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOHPVector.h; sourceTree = "<group>"; };
 		1AD8522417947BD600CBE743 /* OOHPVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOHPVector.m; sourceTree = "<group>"; };
@@ -2957,7 +2956,6 @@
 				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
 				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
 				1A0730E817888C44008A1829 /* oolite-warnings.xcconfig */,
-				1AD5A81A12D3A9FD00B62503 /* exports-debug-32.exp */,
 				1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */,
 				1A1B24C313293ED2007A0940 /* exports-release.exp */,
 			);
