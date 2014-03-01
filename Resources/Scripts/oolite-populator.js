@@ -783,6 +783,7 @@ this.systemWillPopulate = function()
 						});
 	// assassins
 	initial = assassins;
+	var maxas = 2;
 	if (system.info.government < 3)
 	{
 		// if carrying high-risk contracts through dangerous systems,
@@ -799,6 +800,7 @@ this.systemWillPopulate = function()
 				} 
 				if (cs[i].risk == 2 && Math.random() < 0.5)
 				{
+					maxas += 2;
 					initial++;
 				}
 			}
@@ -820,6 +822,7 @@ this.systemWillPopulate = function()
 				} 
 				if (cs[i].risk == 2 && Math.random() < 0.5)
 				{
+					maxas += 2;
 					initial++;
 				}
 			}
@@ -829,11 +832,21 @@ this.systemWillPopulate = function()
 			}
 		}
 	}
+	var agc = randomise(initial);
+	/* Because the assassin groups all appear at the witchpoint it can
+	 * end up ridiculously populated in certain systems. Cap the
+	 * number of initial assassin groups at 2, unless the player is
+	 * carrying high-risk items, in which case they deserve whatever
+	 * shows up for jumping into an Anarchy bottleneck. */
+	if (agc > maxas)
+	{
+		agc = maxas;
+	}
 	system.setPopulator("oolite-assassins",
 						{
 							priority: 40,
 							location: "WITCHPOINT",
-							groupCount: randomise(initial),
+							groupCount: agc,
 							callback: this._addAssassin.bind(this)
 						});
 	
