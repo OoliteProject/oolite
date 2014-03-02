@@ -166,10 +166,15 @@ this.missionScreenOpportunity = function ()
 
 this.systemWillPopulate = function()
 {
+	// galaxy+system parts of this check shouldn't be necessary
 	if (galaxyNumber === 1 &&
 		system.ID === 193 &&
 		missionVariables.conhunt === "STAGE_1")
 	{
+		// ensure all normal system population is set up first
+		worldScripts["oolite-populator"].systemWillPopulate();
+
+		// then add the Constrictor
 		system.setPopulator("oolite-constrictor-mission",
 			{
 				priority: 50,
@@ -183,5 +188,17 @@ this.systemWillPopulate = function()
 					constrictor[0].setScript("oolite-constrictor.js");
 				}
 			});
+
+		/* Then remove most ships from the default populator which
+		 * might attack the Constrictor. The repopulator will add more
+		 * later. */
+		system.setPopulator("oolite-interceptors-witchpoint",null);
+		system.setPopulator("oolite-hunters-route1",null);
+		system.setPopulator("oolite-hunters-medium-route1",null);
+		system.setPopulator("oolite-hunters-medium-route3",null);
+		system.setPopulator("oolite-hunters-heavy-route1",null);
+		system.setPopulator("oolite-hunters-heavy-route3",null);
+		system.setPopulator("oolite-police-route1",null);
+		
 	}
 };

@@ -71,6 +71,8 @@ this.systemWillPopulate = function ()
 			if (missionVariables.cloakcounter > 6 && system.countShipsWithRole("asp-cloaked") === 0)
 			{
 				// Then trigger the ambush!
+				// ensure all normal system population is set up first
+				worldScripts["oolite-populator"].systemWillPopulate();
 				system.setPopulator("oolite-cloaking-device-mission",
 				{
 					priority: 50,
@@ -90,6 +92,17 @@ this.systemWillPopulate = function ()
 						}
 					}
 				});
+				/* Then remove most ships from the default populator which
+				 * might attack the cloaked group. The repopulator will add more
+				 * later. */
+				system.setPopulator("oolite-interceptors-witchpoint",null);
+				system.setPopulator("oolite-hunters-route1",null);
+				system.setPopulator("oolite-hunters-medium-route1",null);
+				system.setPopulator("oolite-hunters-medium-route3",null);
+				system.setPopulator("oolite-hunters-heavy-route1",null);
+				system.setPopulator("oolite-hunters-heavy-route3",null);
+				system.setPopulator("oolite-police-route1",null);
+				
 			}								 
 		}
 	}
