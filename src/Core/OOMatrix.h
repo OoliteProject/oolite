@@ -115,7 +115,34 @@ OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 NSString *OOMatrixDescription(OOMatrix matrix);		// @"{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
 #endif
 
+// Row operations
 
+// swap row1 and row2 of M
+void OOMatrixRowSwap(OOMatrix *M, int row1, int row2);
+// scale row of M by factor
+void OOMatrixRowScale(OOMatrix *m, int row, OOScalar factor);
+// replace row 1 of M with factor1 * row1 + factor2 * row2
+void OOMatrixRowOperation(OOMatrix *M, int row1, OOScalar factor1, int row2, OOScalar factor2 );
+
+// Column operations
+
+// swap column1 and column2 of M
+void OOMatrixColumnSwap(OOMatrix *M, int column1, int column2);
+// scale column of M by factor
+void OOMatrixColumnScale(OOMatrix *M, int column, OOScalar factor);
+//replace column1 of M with factor1 * column1 + factor2 + row2
+void OOMatrixColumnOperation(OOMatrix *M, int column1, OOScalar factor1, int column2, OOScalar factor2);
+
+// Transforms between square matrices
+
+// return matrix X such that XA = B, or zero matrix if X doesn't exist
+OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B);
+// return mareix X such that AX = B, or zero matrix if X doesn't exist
+OOMatrix OOMatrixRightTransform(OOMatrix A, OOMatrix B);
+
+// Matrix inversion
+
+OOMatrix OOMatrixInverse(OOMatrix M);
 
 /*** Only inline definitions beyond this point ***/
 

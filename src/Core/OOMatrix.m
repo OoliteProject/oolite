@@ -204,3 +204,192 @@ OOMatrix OOMatrixForBillboard(HPVector bbPos, HPVector eyePos)
 	
 	return OOMatrixFromBasisVectors(v1, v2, v0);
 }
+
+
+void OOMatrixRowSwap(OOMatrix *M, int row1, int row2)
+{
+	if (row1<0 || row1 >= 4 || row2 < 0 || row2 >= 4 || row1 == row2 )
+	{
+		return;
+	}
+	float x;
+	int i;
+	for (i = 0; i < 4; i++)
+	{
+		x = M->m[row1][i];
+		M->m[row1][i] = M->m[row2][i];
+		M->m[row2][i] = x;
+	}
+	return;
+}
+
+void OOMatrixRowScale(OOMatrix *M, int row, OOScalar factor)
+{
+	if (row < 0 || row >= 4)
+	{
+		return;
+	}
+	int i;
+	for (i = 0; i < 4; i++)
+	{
+		M->m[row][i] *= factor;
+	}
+	return;
+}
+
+void OOMatrixRowOperation(OOMatrix *M, int row1, OOScalar factor1, int row2, OOScalar factor2)
+{
+	if (row1 < 0 || row1 >= 4 || row2 < 0 || row2 >= 4)
+	{
+		return;
+	}
+	int i;
+	for (i = 0; i < 4; i++)
+	{
+		M->m[row1][i] = factor1 * M->m[row1][i] + factor2 * M->m[row2][i];
+	}
+	return;
+}
+
+void OOMatrixColumnSwap(OOMatrix *M, int column1, int column2)
+{
+	if (column1<0 || column1 >= 4 || column2 < 0 || column2 >= 4 || column1 == column2 )
+	{
+		return;
+	}
+	float x;
+	int i;
+	for (i = 0; i < 4; i++)
+	{
+		x = M->m[i][column1];
+		M->m[i][column1] = M->m[i][column2];
+		M->m[i][column2] = x;
+	}
+	return;
+}
+
+void OOMatrixColumnScale(OOMatrix *M, int column, OOScalar factor)
+{
+	if (column < 0 || column >= 4)
+	{
+		return;
+	}
+	int i;
+	for (i = 0; i < 4; i++)
+	{
+		M->m[i][column] *= factor;
+	}
+	return;
+}
+
+void OOMatrixColumnOperation(OOMatrix *M, int column1, OOScalar factor1, int column2, OOScalar factor2)
+{
+	if (column1 < 0 || column1 >= 4 || column2 < 0 || column2 >= 4)
+	{
+		return;
+	}
+	int i;
+	for (i = 0; i < 4; i++)
+	{
+		M->m[i][column1] = factor1 * M->m[i][column1] + factor2 * M->m[i][column2];
+	}
+	return;
+}
+
+OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B)
+{
+	int i, j;
+	BOOL found;
+	for (i = 0; i < 4; i++)
+	{
+		if (A.m[i][i] == 0.0)
+		{
+			found = NO;
+			for (j = i+1; j < 4; j++)
+			{
+				if (A.m[j][i] != 0.0)
+				{
+					found = YES;
+					OOMatrixColumnSwap(&A,i,j);
+					OOMatrixColumnSwap(&B,i,j);
+					break;
+				}
+			}
+			if (!found)
+			{
+				return kZeroMatrix;
+			}
+		}
+		OOMatrixColumnScale(&B, i, 1/A.m[i][i]);
+		OOMatrixColumnScale(&A, i, 1/A.m[i][i]);
+		for (j = i+1; j < 4; j++)
+		{
+			OOMatrixColumnOperation(&B, j, 1, i, -A.m[j][i]);
+			OOMatrixColumnOperation(&A, j, 1, i, -A.m[j][i]);
+		}
+	}
+	for (i = 3; i > 0; i--)
+	{
+		for (j = 0; j < i; j++)
+		{
+			OOMatrixColumnOperation(&B, j, 1, i, -A.m[j][i]);
+			OOMatrixColumnOperation(&A, j, 1, i, -A.m[j][i]);
+		}
+	}
+	return B;
+}
+
+OOMatrix OOMatrixRightTransform(OOMatrix A, OOMatrix B)
+{
+	int i, j;
+	BOOL found;
+	for (i = 0; i < 4; i++)
+	{
+		if (A.m[i][i] == 0.0)
+		{
+			found = NO;
+			for (j = i+1; j < 4; j++)
+			{
+				if (A.m[j][i] != 0.0)
+				{
+					found = YES;
+					OOMatrixRowSwap(&A,i,j);
+					OOMatrixRowSwap(&B,i,j);
+					break;
+				}
+			}
+			if (!found)
+			{
+				return kZeroMatrix;
+			}
+		}
+		OOMatrixRowScale(&B, i, 1/A.m[i][i]);
+		OOMatrixRowScale(&A, i, 1/A.m[i][i]);
+		for (j = i+1; j < 4; j++)
+		{
+			if (A.m[j][i] != 0.0)
+			{
+				OOMatrixRowOperation(&B, j, 1, i, -A.m[j][i]);
+				OOMatrixRowOperation(&A, j, 1, i, -A.m[j][i]);
+			}
+		}
+	}
+	for (i = 3; i > 0; i--)
+	{
+		for (j = 0; j < i; j++)
+		{
+			if (A.m[j][i] != 0.0)
+			{
+				OOMatrixRowOperation(&B, j, 1, i, -A.m[j][i]);
+				OOMatrixRowOperation(&A, j, 1, i, -A.m[j][i]);
+			}
+		}
+	}
+	return B;
+}
+
+OOMatrix OOMatrixInverse(OOMatrix M)
+{
+	return OOMatrixLeftTransform(M, kIdentityMatrix);
+}
+
