@@ -530,7 +530,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			// can't allocate a new queue while player is manually docking
 			continue;
 		}
-		if (sub != player_reserved_dock)
+		if (sub != player_reserved_dock || [ship isPlayer])
 		{
 			docking = [sub canAcceptShipForDocking:ship];
 			if ([docking isEqualToString:@"DOCK_CLOSED"])
@@ -1028,7 +1028,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
-			return YES;
+			if ([[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"DOCKING_POSSIBLE"])
+			{
+				return YES;
+			}
 		}
 	}
 	return NO;

@@ -140,7 +140,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 {
 	if ((self = [self init]))
 	{
-		if (smName != nil)  [self setStateMachine:smName withJSScript:@"nullAI.js"];
+		if (smName != nil)  [self setStateMachine:smName withJSScript:@"oolite-nullAI.js"];
 		if (stateName != nil)  currentState = [stateName retain];
 	}
 	
