@@ -324,16 +324,17 @@ OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B)
 		OOMatrixColumnScale(&A, i, 1/A.m[i][i]);
 		for (j = i+1; j < 4; j++)
 		{
-			OOMatrixColumnOperation(&B, j, 1, i, -A.m[j][i]);
-			OOMatrixColumnOperation(&A, j, 1, i, -A.m[j][i]);
+			OOMatrixColumnOperation(&B, j, 1, i, -A.m[i][j]);
+			OOMatrixColumnOperation(&A, j, 1, i, -A.m[i][j]);
 		}
 	}
+	OOLog( @"kja", @"A: %@", OOMatrixDescription( A ) );
 	for (i = 3; i > 0; i--)
 	{
 		for (j = 0; j < i; j++)
 		{
-			OOMatrixColumnOperation(&B, j, 1, i, -A.m[j][i]);
-			OOMatrixColumnOperation(&A, j, 1, i, -A.m[j][i]);
+			OOMatrixColumnOperation(&B, j, 1, i, -A.m[i][j]);
+			OOMatrixColumnOperation(&A, j, 1, i, -A.m[i][j]);
 		}
 	}
 	return B;
