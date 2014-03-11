@@ -775,6 +775,7 @@ typedef enum
 
 
 - (NSArray *) crew;
+- (NSArray *) crewForScripting;
 - (void) setCrew:(NSArray *)crewArray;
 /**
 	Convenience to set the crew to a single character of the given role,

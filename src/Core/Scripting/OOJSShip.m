@@ -196,6 +196,7 @@ enum
 	kShip_commodity,			// commodity of a ship, read only
 	kShip_commodityAmount,		// commodityAmount of a ship, read only
 	kShip_cloakAutomatic,		// should cloack start by itself or by script, read/write
+	kShip_crew,					// crew, list, read only
 	kShip_cruiseSpeed,			// desired cruising speed, number, read only
 	kShip_currentWeapon,		// the ship's active weapon, equipmentType, read/write
 	kShip_dataKey,				// string, read-only, shipdata.plist key
@@ -335,6 +336,7 @@ static JSPropertySpec sShipProperties[] =
 	// contracts instead of cargo to distinguish them from the manifest
 	{ "contracts",				kShip_contracts,			OOJS_PROP_READONLY_CB },
 	{ "cloakAutomatic",			kShip_cloakAutomatic,		OOJS_PROP_READWRITE_CB},
+	{ "crew",					kShip_crew,					OOJS_PROP_READONLY_CB },
 	{ "cruiseSpeed",			kShip_cruiseSpeed,			OOJS_PROP_READONLY_CB },
 	{ "currentWeapon",			kShip_currentWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "dataKey",				kShip_dataKey,				OOJS_PROP_READONLY_CB },
@@ -680,6 +682,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			}
 			break;
 		}		
+
+		case kShip_crew:
+			result = [entity crewForScripting];
+			break;
 	
 		case kShip_escorts:
 			result = [[entity escortGroup] memberArrayExcludingLeader];

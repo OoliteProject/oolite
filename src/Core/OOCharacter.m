@@ -135,6 +135,13 @@ MA 02110-1301, USA.
 }
 
 
+- (OOSystemID) planetIDOfOrigin
+{
+	// determine the planet of origin
+	return [UNIVERSE systemIDForSystemSeed:[self originSystemSeed]];
+}
+
+
 - (NSString *) species
 {
 	// determine the character's species

@@ -7303,6 +7303,31 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (NSArray *) crewForScripting
+{
+	if (crew == nil)
+	{
+		return nil;
+	}
+	OOCharacter *crewMember = nil;
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:4];
+	foreach (crewMember, crew)
+	{
+		NSDictionary *crewDict = [NSDictionary dictionaryWithObjectsAndKeys:
+		  [crewMember name], @"name",
+		  [crewMember shortDescription], @"description",
+		  [crewMember species], @"species",
+		  [NSNumber numberWithInt:[crewMember legalStatus]], @"legalStatus",
+	      [NSNumber numberWithUnsignedInt:[crewMember insuranceCredits]], @"insuranceCredits",
+		  [NSNumber numberWithInt:[crewMember planetIDOfOrigin]], @"homeSystem",
+		  nil];
+		[result addObject:crewDict];
+	}
+	return result;
+}
+
+
+
 - (void) setStateMachine:(NSString *)smName
 {
 	[self setAITo:smName];
