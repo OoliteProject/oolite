@@ -1428,8 +1428,8 @@
 	
 	// Save/Overwrite commander screens
 	"savescreen-title"				= "Save Commander";
-	"savescreen-commander-name-@"	= "Commander name: %@";
-	"savescreen-commander-name"		= "Commander name: ";
+	"savescreen-commander-name-@"	= "Save name: %@";
+	"savescreen-commander-name"		= "Save name: ";
 	"overwrite-save-commander-@"	= "Save Commander %@";
 	"overwritescreen-commander-@-already-exists-overwrite-query" = "A file named %@ already exists. Do you wish to overwrite it?";
 	"overwritescreen-yes"			= " Overwrite ";
