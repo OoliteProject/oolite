@@ -128,7 +128,7 @@ enum
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
 	kPlayerShip_renovationCost,					// int read-only current renovation cost
-	kPlayerShip_renovationFactor,				// float read-only multiplier for renovation costs
+	kPlayerShip_renovationMultiplier,			// float read-only multiplier for renovation costs
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_roll,							// roll (overrules Ship)
 	kPlayerShip_scannerNonLinear,				// non linear scanner setting, boolean, read/write
@@ -181,7 +181,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
 	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
-	{ "renovationFactor",				kPlayerShip_renovationFactor,				OOJS_PROP_READONLY_CB },
+	{ "renovationMultiplier",			kPlayerShip_renovationMultiplier,			OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "roll",							kPlayerShip_roll,							OOJS_PROP_READONLY_CB },
 	{ "scannerNonLinear",				kPlayerShip_scannerNonLinear,				OOJS_PROP_READWRITE_CB },
@@ -461,7 +461,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_renovationCost:
 			return JS_NewNumberValue(context, [player renovationCosts], value);
 
-		case kPlayerShip_renovationFactor:
+		case kPlayerShip_renovationMultiplier:
 			return JS_NewNumberValue(context, [player renovationFactor], value);
 
 
