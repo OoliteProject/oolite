@@ -887,6 +887,8 @@ typedef enum
 - (void) adjustTradeInFactorBy:(int)value;
 - (int) tradeInFactor;
 - (double) renovationCosts;
+- (double) renovationFactor;
+
 
 - (void) setDefaultViewOffsets;
 - (void) setDefaultCustomViews;
