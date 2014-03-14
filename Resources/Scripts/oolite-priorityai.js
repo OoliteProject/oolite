@@ -532,6 +532,15 @@ PriorityAIController.prototype.allied = function(ship1,ship2)
 			return true;
 		}
 	}
+	// main and other galcop stations allied with police
+	if (ship1.isStation && (ship1.allegiance == "galcop" || ship1.isMainStation) && ship2.scanClass == "CLASS_POLICE")
+	{
+		return true;
+	}
+	if (ship2.isStation && (ship2.allegiance == "galcop" || ship2.isMainStation) && ship1.scanClass == "CLASS_POLICE")
+	{
+		return true;
+	}
 	// Okay, these ships really do have nothing to do with each other...
 	return false;
 }
@@ -4839,6 +4848,7 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 {
 	if (this.ship == victim) return; // other handlers can get this one
 	if (this.distance(attacker) > this.scannerRange) return; // can't mark what you can't see
+	if (attacker.scanClass == "CLASS_POLICE") return; // ignored
 	if (this.getParameter("oolite_flag_markOffenders")) 
 	{
 		if (attacker.bounty == 0 && victim.bounty == 0)
@@ -5037,6 +5047,12 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 			{
 				this.communicate("oolite_friendlyFire",whom,3);
 				// ignore it
+				return;
+			}
+			// clean ships ignore friendly fire from police
+			if (this.ship.bounty == 0 && whom.scanClass == "CLASS_POLICE")
+			{
+				this.communicate("oolite_friendlyFire",whom,3);
 				return;
 			}
 			if (Math.random() > 0.1)
@@ -5458,6 +5474,13 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 		{
 			// was accidental
 			if (this.allied(whom,this.ship))
+			{
+				this.communicate("oolite_friendlyFire",whom,4);
+				// ignore it
+				return;
+			}
+			// allegiance=galcop case covered by this.allied
+			if (whom.scanClass == "CLASS_POLICE" && (this.ship.allegiance == "hunter" || this.ship.allegiance == "neutral"))
 			{
 				this.communicate("oolite_friendlyFire",whom,4);
 				// ignore it
