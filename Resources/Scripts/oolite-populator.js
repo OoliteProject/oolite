@@ -1271,16 +1271,19 @@ this.interstellarSpaceWillPopulate = function()
 
 this.interstellarSpaceWillRepopulate = function()
 {
-	if (system.countShipsWithPrimaryRole("thargoid") < 2)
+	if (Math.random() < 0.25)
 	{
-		if (Math.random() > 0.01)
+		if (system.countShipsWithPrimaryRole("thargoid") < 3)
 		{
-			system.addShips("thargoid",1,[0,0,0],25600);
-		}
-		else
-		{
-			// everyone's getting ambushed today
-			system.addShips("trader",1,[0,0,0],6400);
+			if (Math.random() > 0.05)
+			{
+				system.addShips("thargoid",1+Math.floor(Math.random()*3),[0,0,0],25600);
+			}
+			else
+			{
+				// everyone's getting ambushed today
+				system.addShips("trader",1,[0,0,0],6400);
+			}
 		}
 	}
 }
