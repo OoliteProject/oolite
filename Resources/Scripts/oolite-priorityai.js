@@ -698,11 +698,28 @@ PriorityAIController.prototype.entityCommsParams = function(entity)
 			{
 				params["oolite_entityName"] = entity.displayName;
 			}
+			if (!entity.isPlayer)
+			{
+				var crew = entity.crew;
+				if (entity.crew && entity.crew.length > 0)
+				{
+					params["oolite_entityCrew"] = entity.crew[0].name;
+				}
+				else
+				{
+					params["oolite_entityCrew"] = params["oolite_entityName"];
+				}
+			} 
+			else
+			{
+				params["oolite_entityCrew"] = player.name;
+			}
 		}
 		else if (entity.name)
 		{
 			params["oolite_entityClass"] = entity.name;
 			params["oolite_entityName"] = entity.name;
+			params["oolite_entityCrew"] = entity.name;
 		}
 	}
 	return params;
