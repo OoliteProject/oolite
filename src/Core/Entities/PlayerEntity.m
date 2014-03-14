@@ -6804,7 +6804,7 @@ static GLfloat		sBaseMass = 0.0;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
 
-	for (eqTypeEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	for (eqTypeEnum = [OOEquipmentType reverseEquipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
 		if ([eqType isVisible])
 		{

@@ -141,6 +141,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
++ (NSEnumerator *) reverseEquipmentEnumerator
+{
+	return [sEquipmentTypes reverseObjectEnumerator];
+}
+
+
 + (OOEquipmentType *) equipmentTypeWithIdentifier:(NSString *)identifier
 {
 	return [sEquipmentTypesByIdentifier objectForKey:identifier];
