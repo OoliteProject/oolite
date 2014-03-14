@@ -786,6 +786,7 @@ OOINLINE Universe *OOGetUniverse(void)
 
 // Not for direct use.
 NSComparisonResult populatorPrioritySort(id a, id b, void *context);
+NSComparisonResult equipmentSort(id a, id b, void *context);
 NSString *OOLookUpDescriptionPRIV(NSString *key);
 NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count);
 

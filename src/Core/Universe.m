@@ -9771,7 +9771,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	autoAIMap = [[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[equipmentData autorelease];
-	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
+	NSArray *equipmentTemp = [ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES];
+	equipmentData = [[equipmentTemp sortedArrayUsingFunction:equipmentSort context:NULL] retain];
+	
 
 	[OOEquipmentType loadEquipment];
 }
@@ -10509,6 +10511,32 @@ NSComparisonResult populatorPrioritySort(id a, id b, void *context)
 	int pri_two = [two oo_intForKey:@"priority" defaultValue:100];
 	if (pri_one < pri_two) return NSOrderedAscending;
 	if (pri_one > pri_two) return NSOrderedDescending;
+	return NSOrderedSame;
+}
+
+
+NSComparisonResult equipmentSort(id a, id b, void *context)
+{
+	NSArray *one = (NSArray *)a;
+	NSArray *two = (NSArray *)b;
+
+	/* Sort by explicit sort_order, then tech level, then price */
+
+	OOCreditsQuantity comp1 = [[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
+	OOCreditsQuantity comp2 = [[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
+	comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+	comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
+	comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
 	return NSOrderedSame;
 }
 
