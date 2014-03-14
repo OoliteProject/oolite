@@ -15,6 +15,9 @@
 */
 
 {
+	"assassin-light"	= "oolite-assassinAI.js";
+	"assassin-medium"	= "oolite-assassinAI.js";
+	"assassin-heavy"	= "oolite-assassinAI.js";
 	"asteroid"			= "dumbAI.plist";
 	"escort"			= "oolite-escortAI.js";
 	"hunter"			= "oolite-bountyHunterAI.js";

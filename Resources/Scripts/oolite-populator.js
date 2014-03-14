@@ -1362,7 +1362,8 @@ this._addFreighter = function(pos)
 			{
 				t[0].bounty = Math.ceil(Math.random()*20);
 				// half of the offender traders are a bit more sinister
-				if (Math.random() < 0.5)
+				// can only happen with ships which allow autoAI
+				if (Math.random() < 0.5 && t[0].autoAI)
 				{
 					t[0].switchAI("oolite-traderOpportunistAI.js");
 					goods = "PIRATE_GOODS";
@@ -1617,7 +1618,12 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			this._setWeapons(t[0],1.9);
 		}
 		this._setSkill(t[0],3); // likely to be good pilot
-		t[0].switchAI("oolite-bountyHunterLeaderAI.js");
+		if (t[0].autoAI)
+		{
+			t[0].switchAI("oolite-bountyHunterLeaderAI.js"); 
+// auto AI will normally get this already but not if the hunter
+// addition used fallback roles
+		}
 	}
 }
 
@@ -1677,7 +1683,14 @@ this._addPirateAssistant = function(role,lead,pos)
 	asst[0].destinationSystem = lead.destinationSystem;
 	if (role == "pirate-interceptor")
 	{
-		asst[0].switchAI("oolite-pirateInterceptorAI.js");
+		// autoAI gets this (except if we've fallen back to generic
+		// pirates) once OXPs have caught up and we can be confident
+		// that the new roles will be available, this can be
+		// simplified.
+		if (asst[0].autoAI)
+		{
+			asst[0].switchAI("oolite-pirateInterceptorAI.js");
+		}
 		asst[0].setBounty(50+system.government+Math.floor(Math.random()*36),"setup actions");
 		// interceptors not actually part of group: they just get the
 		// same destinations
@@ -1691,7 +1704,12 @@ this._addPirateAssistant = function(role,lead,pos)
 	{ 
 		asst[0].group = lead.group;
 		lead.group.addShip(asst[0]);
-		asst[0].switchAI("oolite-pirateFighterAI.js");
+		// autoAI gets this (except if we've fallen back to generic
+		// pirates - see above)
+		if (asst[0].autoAI)
+		{
+			asst[0].switchAI("oolite-pirateFighterAI.js");
+		}
 		asst[0].setBounty(20+system.government+Math.floor(Math.random()*12),"setup actions");
 		if (role == "pirate-light-fighter")
 		{
@@ -1780,7 +1798,11 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 		lead[0].setCargoType("PIRATE_GOODS");
 	}
 	this._setEscortWeapons(lead[0]);
-	lead[0].switchAI("oolite-pirateFreighterAI.js");
+	if (lead[0].autoAI)
+	{
+		// may have fallen back to generic 'pirate' role, so make sure
+		lead[0].switchAI("oolite-pirateFreighterAI.js");
+	}
 	return lead[0];
 }
 
@@ -1925,7 +1947,7 @@ this._addAssassin = function(pos)
 		this._setSkill(main,extra);
 	}
 	//	main.bounty = 1+Math.floor(Math.random()*10);
-	main.switchAI("oolite-assassinAI.js");
+//	main.switchAI("oolite-assassinAI.js"); // autoAI can get this
 	if (extra > 0)
 	{
 		var g = new ShipGroup("assassin group",main);
@@ -1949,7 +1971,7 @@ this._addAssassin = function(pos)
 				this._setWeapons(extras[i],1.8);
 			}
 			//			extras[i].bounty = 1+Math.floor(Math.random()*5);
-			extras[i].switchAI("oolite-assassinAI.js");
+//			extras[i].switchAI("oolite-assassinAI.js");
 		}
 	}
 }
@@ -1992,7 +2014,7 @@ this._addPoliceStationPatrol = function(pos)
 	p.primaryRole = "police-station-patrol";
 	p.group = system.mainStation.group;
 	p.group.addShip(p);
-	p.switchAI("oolite-policeAI.js");
+	// p.switchAI("oolite-policeAI.js");// autoAI gets this
 	p.bounty = 0;
 	p.maxEscorts = 16;
 	if (system.info.techlevel >= 14)
@@ -2013,7 +2035,7 @@ this._addInterceptors = function(pos)
 		h.ships[i].maxEscorts = 16;
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
-		h.ships[i].switchAI("oolite-policeAI.js");
+//		h.ships[i].switchAI("oolite-policeAI.js"); // auto AI
 		// only +1 as core already gives police ships better AI
 		this._setSkill(h.ships[i],1);
 
