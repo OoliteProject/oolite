@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 
 // this is the AI version for a local patrol or an assistant
 this.name = "Oolite Bounty Hunter AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);

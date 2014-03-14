@@ -36,7 +36,6 @@ MA 02110-1301, USA.
 this.name			= "oolite-populator";
 this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
-this.version		= "1.79";
 
 
 this.startUp = function()

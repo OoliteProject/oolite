@@ -29,7 +29,6 @@
 
 /* AI Library */
 this.name = "oolite-libPriorityAI";
-this.version = "1.79";
 this.copyright		= "© 2008-2013 the Oolite team.";
 this.author = "cim";
 

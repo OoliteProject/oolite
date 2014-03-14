@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Pirate Interceptor AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	this.ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);

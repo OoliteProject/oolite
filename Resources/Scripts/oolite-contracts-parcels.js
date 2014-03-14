@@ -37,7 +37,6 @@ this.name			= "oolite-contracts-parcels";
 this.author			= "cim";
 this.copyright		= "© 2012-2013 the Oolite team.";
 this.description	= "Parcel delivery contracts.";
-this.version		= "1.79";
 
 /**** Configuration options and API ****/
 

@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Escort AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
