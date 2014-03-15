@@ -2878,9 +2878,9 @@ PriorityAIController.prototype.behaviourEnterWitchspace = function()
 		// wait for escorts to launch
 		if (!this.conditionAllEscortsInFlight())
 		{
-			if (this.__ltcache.oolite_nearestStation)
+			if (this.__ltcache.oolite_nearestStation && this.distance(this.__ltcache.oolite_nearestStation) < 5000)
 			{
-				var launchpos = this.ship.position.add(this.__ltcache.oolite_nearestStation.vectorForward.multiply(8000).add(this.__ltcache.oolite_nearestStation.vectorRight.multiply(30000)));
+				var launchpos = this.ship.position.add(this.__ltcache.oolite_nearestStation.vectorForward.multiply(12000).add(this.__ltcache.oolite_nearestStation.vectorRight.multiply(30000)));
 				this.ship.destination = launchpos;
 			}
 			else
@@ -2923,7 +2923,7 @@ PriorityAIController.prototype.behaviourEnterWitchspace = function()
 				this.setParameter("oolite_witchspaceEntry",clock.seconds + 15);
 			}
 
-			if (this.__ltcache.oolite_nearestStation)
+			if (this.__ltcache.oolite_nearestStation && this.distance(this.__ltcache.oolite_nearestStation) < 5000)
 			{
 				var launchpos = this.ship.position.add(this.__ltcache.oolite_nearestStation.vectorForward.multiply(8000).add(this.__ltcache.oolite_nearestStation.vectorRight.multiply(30000)));
 				this.ship.destination = launchpos;
