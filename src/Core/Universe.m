@@ -3730,7 +3730,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:9];
 	
-	[result oo_setBool:[PLAYER isSpeechOn] forKey:@"speechOn"];
+	[result oo_setInteger:[PLAYER isSpeechOn] forKey:@"speechOn"];
 	[result oo_setBool:autoSave forKey:@"autosave"];
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
@@ -5982,7 +5982,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	//speech synthesis
 	
 	PlayerEntity* player = PLAYER;
-	if ([player isSpeechOn])
+	if ([player isSpeechOn] > OOSPEECHSETTINGS_OFF)
 	{
 		BOOL		isStandard = NO;
 		NSString	*systemSaid = nil;
@@ -6035,7 +6035,10 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	if (![currentMessage isEqual:text] || forceDisplay || universal_time >= messageRepeatTime)
 	{
-		[self speakWithSubstitutions:text];
+		if ([PLAYER isSpeechOn] == OOSPEECHSETTINGS_ALL)
+		{
+			[self speakWithSubstitutions:text];
+		}
 		
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
 		
@@ -6062,7 +6065,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		
 		if (!logOnly)
 		{
-			if ([player isSpeechOn])
+			if ([player isSpeechOn] >= OOSPEECHSETTINGS_COMMS)
 			{
 				// EMMSTRAN: should say "Incoming message from ..." when prefixed with sender name.
 				NSString *format = OOExpandKey(@"speech-synthesis-incoming-message-@");

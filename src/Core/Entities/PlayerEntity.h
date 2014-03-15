@@ -83,6 +83,14 @@ typedef enum
 
 typedef enum
 {
+	OOSPEECHSETTINGS_OFF = 0,
+	OOSPEECHSETTINGS_COMMS = 1,
+	OOSPEECHSETTINGS_ALL = 2
+} OOSpeechSettings;
+
+
+typedef enum
+{
 	OOLRC_MODE_NORMAL = 0,
 	OOLRC_MODE_ECONOMY = 1,
 	OOLRC_MODE_GOVERNMENT = 2,
@@ -578,8 +586,6 @@ typedef enum
 	
 							mouse_control_on: 1,
 	
-							isSpeechOn: 1,
-	
 							keyboardRollOverride: 1,   // Handle keyboard roll...
 							keyboardPitchOverride: 1,  // ...and pitch override separately - (fix for BUG #17490)  
 							keyboardYawOverride: 1,
@@ -593,7 +599,8 @@ typedef enum
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
 #endif
-  
+	OOSpeechSettings		isSpeechOn;
+
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
@@ -879,7 +886,7 @@ typedef enum
 - (BOOL) tryBuyingCommodity:(OOCommodityType)type all:(BOOL)all;
 - (BOOL) trySellingCommodity:(OOCommodityType)type all:(BOOL)all;
 
-- (BOOL) isSpeechOn;
+- (OOSpeechSettings) isSpeechOn;
 
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
  

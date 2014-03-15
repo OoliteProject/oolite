@@ -1210,6 +1210,7 @@
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
 	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
+	"gameoptions-spoken-messages-comms"		= " Spoken Messages: Comms only ";
 	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
 	"gameoptions-voice-@"					= " Voice: %@ ";
 	"gameoptions-voice-M"					= " Gender: Male ";

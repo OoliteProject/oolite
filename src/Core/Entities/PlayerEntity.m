@@ -792,7 +792,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:[NSNumber numberWithDouble:ship_clock] forKey:@"ship_clock"];
 
 	//speech
-	[result setObject:[NSNumber numberWithBool:isSpeechOn] forKey:@"speech_on"];
+	[result setObject:[NSNumber numberWithInt:isSpeechOn] forKey:@"speech_on"];
 #if OOLITE_ESPEAK
 	[result setObject:[UNIVERSE voiceName:voice_no] forKey:@"speech_voice"];
 	[result setObject:[NSNumber numberWithBool:voice_gender_m] forKey:@"speech_gender"];
@@ -1001,7 +1001,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(compassTarget);
 	
 	// speech
-	isSpeechOn = [dict oo_boolForKey:@"speech_on"];
+	isSpeechOn = [dict oo_intForKey:@"speech_on"];
 #if OOLITE_ESPEAK
 	voice_gender_m = [dict oo_boolForKey:@"speech_gender" defaultValue:YES];
 	voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:[dict oo_stringForKey:@"speech_voice" defaultValue:nil]] withGenderM:voice_gender_m];
@@ -1608,7 +1608,7 @@ static GLfloat		sBaseMass = 0.0;
 	fps_check_time = ship_clock;
 	ship_clock_adjust = 0.0;
 	
-	isSpeechOn = NO;
+	isSpeechOn = OOSPEECHSETTINGS_OFF;
 #if OOLITE_ESPEAK
 	voice_gender_m = YES;
 	voice_no = [UNIVERSE setVoice:-1 withGenderM:voice_gender_m];
@@ -7472,10 +7472,19 @@ static GLfloat		sBaseMass = 0.0;
 		
 #if OOLITE_SPEECH_SYNTH
 		// Speech control
-		if (isSpeechOn)
-			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
-		else
+		switch (isSpeechOn)
+		{
+		case OOSPEECHSETTINGS_OFF:
 			[gui setText:DESC(@"gameoptions-spoken-messages-no") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
+			break;
+		case OOSPEECHSETTINGS_COMMS:
+			[gui setText:DESC(@"gameoptions-spoken-messages-comms") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
+			break;
+		case OOSPEECHSETTINGS_ALL:
+			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
+			break;
+		}
+
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SPEECH)];
 #if OOLITE_ESPEAK
 		{
@@ -9346,7 +9355,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL) isSpeechOn
+- (OOSpeechSettings) isSpeechOn
 {
 	return isSpeechOn;
 }
@@ -10871,7 +10880,7 @@ else _dockTarget = NO_TARGET;
 	ADD_FLAG_IF_SET(yawing);
 	ADD_FLAG_IF_SET(using_mining_laser);
 	ADD_FLAG_IF_SET(mouse_control_on);
-	ADD_FLAG_IF_SET(isSpeechOn);
+//	ADD_FLAG_IF_SET(isSpeechOn);
 	ADD_FLAG_IF_SET(keyboardRollOverride);   // Handle keyboard roll...
 	ADD_FLAG_IF_SET(keyboardPitchOverride);  // ...and pitch override separately - (fix for BUG #17490)
 	ADD_FLAG_IF_SET(keyboardYawOverride);

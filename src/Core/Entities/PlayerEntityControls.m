@@ -99,6 +99,9 @@ static BOOL				disc_operation_in_progress;
 #if OO_RESOLUTION_OPTION
 static BOOL				switching_resolution;
 #endif
+#if OOLITE_SPEECH_SYNTH
+static BOOL				speech_settings_pressed;
+#endif
 static BOOL				wait_for_key_up;
 static BOOL				upDownKeyPressed;
 static BOOL				leftRightKeyPressed;
@@ -2532,18 +2535,51 @@ static NSTimeInterval	time_last_frame;
 #endif	// OO_RESOLUTION_OPTION
 	
 #if OOLITE_SPEECH_SYNTH
+
 	if ((guiSelectedRow == GUI_ROW(GAME,SPEECH))&&(([gameView isDown:key_gui_arrow_right])||([gameView isDown:gvArrowKeyLeft])))
 	{
-		if ([gameView isDown:key_gui_arrow_right] != [self isSpeechOn])
-			[self playChangedOption];
-		isSpeechOn = [gameView isDown:key_gui_arrow_right];
-		NSString *message = DESC(isSpeechOn ? @"gameoptions-spoken-messages-yes" : @"gameoptions-spoken-messages-no");
-		[gui setText:message	forRow:GUI_ROW(GAME,SPEECH)  align:GUI_ALIGN_CENTER];
-		if (isSpeechOn)
+		if (!speech_settings_pressed)
 		{
-			[UNIVERSE stopSpeaking];
-			[UNIVERSE startSpeakingString:message];
+			if ([gameView isDown:key_gui_arrow_right] && isSpeechOn < OOSPEECHSETTINGS_ALL)
+			{
+				++isSpeechOn;
+				[self playChangedOption];
+				speech_settings_pressed = YES;
+			}
+			else if ([gameView isDown:key_gui_arrow_left] && isSpeechOn > OOSPEECHSETTINGS_OFF)
+			{
+				speech_settings_pressed = YES;
+				--isSpeechOn;
+				[self playChangedOption];
+			}
+			if (speech_settings_pressed)
+			{
+				NSString *message = nil;
+				switch (isSpeechOn)
+				{
+				case OOSPEECHSETTINGS_OFF:
+					message = DESC(@"gameoptions-spoken-messages-no");
+					break;
+				case OOSPEECHSETTINGS_COMMS:
+					message = DESC(@"gameoptions-spoken-messages-comms");
+					break;
+				case OOSPEECHSETTINGS_ALL:
+					message = DESC(@"gameoptions-spoken-messages-yes");
+					break;
+				}
+				[gui setText:message forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
+
+				if (isSpeechOn == OOSPEECHSETTINGS_ALL)
+				{
+					[UNIVERSE stopSpeaking];
+					[UNIVERSE startSpeakingString:message];
+				}
+			}
 		}
+	}
+	else
+	{
+		speech_settings_pressed = NO;
 	}
 #if OOLITE_ESPEAK
 	if (guiSelectedRow == GUI_ROW(GAME,SPEECH_LANGUAGE))
@@ -2560,7 +2596,7 @@ static NSTimeInterval	time_last_frame;
 				[UNIVERSE setVoice: voice_no withGenderM:voice_gender_m];
 				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-voice-@"), [UNIVERSE voiceName: voice_no]];
 				[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
-				if (isSpeechOn)
+				if (isSpeechOn == OOSPEECHSETTINGS_ALL)
 				{
 					[UNIVERSE stopSpeaking];
 					[UNIVERSE startSpeakingString:[UNIVERSE voiceName: voice_no]];
@@ -2586,7 +2622,7 @@ static NSTimeInterval	time_last_frame;
 					[UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
 					NSString *message = [NSString stringWithFormat:DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
 					[gui setText:message forRow:GUI_ROW(GAME,SPEECH_GENDER) align:GUI_ALIGN_CENTER];
-					if (isSpeechOn)
+					if (isSpeechOn == OOSPEECHSETTINGS_ALL)
 					{
 						[UNIVERSE stopSpeaking];
 						[UNIVERSE startSpeakingString:[UNIVERSE voiceName: voice_no]];
