@@ -4032,9 +4032,9 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (slot >= [self maxPlayerRoles])
 	{
-		slot = [self maxPlayerRoles];
+		slot = [self maxPlayerRoles]-1;
 	}
-	if (slot > [roleWeights count])
+	if (slot >= [roleWeights count])
 	{
 		[roleWeights addObject:role];
 	}
