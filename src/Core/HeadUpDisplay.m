@@ -1604,7 +1604,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		
 		siz.width *= 0.2;
 		siz.height *= 0.2;
-		OOGL(GLScaledLineWidth(2.0));
+		OOGL(GLScaledLineWidth(2.0*lineWidth));
 		switch ([PLAYER compassMode])
 		{
 			case COMPASS_MODE_INACTIVE:
@@ -3924,7 +3924,7 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 	
 	OOGL(GLScaledLineWidth(2.0 * thickness));
 	GLDrawOval(x, y, z, siz, 4);
-	OOGL(GLScaledLineWidth(thickness));
+	OOGL(GLScaledLineWidth(thickness)); // reset (thickness = lineWidth)
 	
 	OOGLBEGIN(GL_LINES);
 		glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);
