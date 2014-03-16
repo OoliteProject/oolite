@@ -1297,7 +1297,23 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 			{
 				if ([key isKindOfClass:[NSString class]] && [key length] != 0)
 				{
+#ifndef __GNUC__
 					value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
+#else
+#if __GNUC__ > 4 || __GNUC_MINOR__ > 6
+					value = [[dictionary objectForKey:key] oo_jsValueInContext:context];
+#else
+					// GCC before 4.7 seems to have problems with this
+					// bit if the object is a weakref, causing crashes
+					// in docking code.
+					id tmp = [dictionary objectForKey:key];
+					if ([tmp respondsToSelector:@selector(weakRefUnderlyingObject)])
+					{
+						tmp = [tmp weakRefUnderlyingObject];
+					}
+					value = [tmp oo_jsValueInContext:context];
+#endif
+#endif
 					if (!JSVAL_IS_VOID(value))
 					{
 						OK = JS_SetPropertyById(context, result, OOJSIDFromString(key), &value);
