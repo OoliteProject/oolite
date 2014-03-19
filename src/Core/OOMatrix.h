@@ -78,7 +78,7 @@ OOINLINE OOMatrix OOMatrixRotateY(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotateZ(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotateQuaternion(OOMatrix m, Quaternion quat) INLINE_CONST_FUNC;
-
+OOINLINE OOMatrix OOMatrixTranspose(OOMatrix m) INLINE_CONST_FUNC;
 
 bool OOMatrixEqual(OOMatrix a, OOMatrix b) CONST_FUNC;
 OOINLINE bool OOMatrixIsIdentity(OOMatrix m) INLINE_CONST_FUNC;
@@ -137,7 +137,7 @@ void OOMatrixColumnOperation(OOMatrix *M, int column1, OOScalar factor1, int col
 
 // return matrix X such that XA = B, or zero matrix if X doesn't exist
 OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B);
-// return mareix X such that AX = B, or zero matrix if X doesn't exist
+// return matrix X such that AX = B, or zero matrix if X doesn't exist
 OOMatrix OOMatrixRightTransform(OOMatrix A, OOMatrix B);
 
 // Matrix inversion
@@ -347,6 +347,17 @@ OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outU
 	*outRight	= make_vector(m.m[0][0], m.m[1][0], m.m[2][0]);
 	*outUp		= make_vector(m.m[0][1], m.m[1][1], m.m[2][1]);
 	*outForward	= make_vector(m.m[0][2], m.m[1][2], m.m[2][2]);
+}
+
+OOINLINE OOMatrix OOMatrixTranspose(OOMatrix m)
+{
+	return OOMatrixConstruct
+	(
+		m.m[0][0], m.m[1][0], m.m[2][0], m.m[3][0],
+		m.m[0][1], m.m[1][1], m.m[2][1], m.m[3][1],
+		m.m[0][2], m.m[1][2], m.m[2][2], m.m[3][2],
+		m.m[0][3], m.m[1][3], m.m[2][3], m.m[3][3]
+	);
 }
 
 

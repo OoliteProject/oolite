@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOOpenGLMatrixManager.h"
 #import "OOCPUInfo.h"
 #import "OOMaterial.h"
 #import "OOTexture.h"
@@ -4068,6 +4069,7 @@ static const OOMatrix	starboard_matrix =
 			PlayerEntity	*player = PLAYER;
 			Entity			*drawthing = nil;
 			BOOL			demoShipMode = [player showDemoShips];
+			OOOpenGLMatrixManager*	matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 			
 			if (!displayGUI && wasDisplayGUI)
 			{
@@ -4108,6 +4110,9 @@ static const OOMatrix	starboard_matrix =
 			OOGL(glLoadIdentity());	// reset matrix
 			
 			OOGL(gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0));
+			[matrixManager resetModelView];
+			[matrixManager lookAtWithEye: make_vector(1.0,0.0,1.0) center: make_vector(0.0,0.0,1.0) up: make_vector(0.0,1.0,0.0)];
+			OOLog(@"kja", @"Projection matrix: %@", OOMatrixDescription([matrixManager getModelView]));
 			
 			// HACK BUSTED
 			OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
