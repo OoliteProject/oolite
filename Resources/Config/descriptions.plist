@@ -1048,6 +1048,20 @@
 
 	"oolite-ship-library-title"		= "Ship Library";
 	"oolite-ship-library-exit"		= "Press space to exit ship library";
+	
+	"oolite-ship-library-speed-stationary"	= "Speed: Stationary";
+	"oolite-ship-library-speed-veryslow"	= "Speed: Very Slow";
+	"oolite-ship-library-speed-slow"		= "Speed: Slow";
+	"oolite-ship-library-speed-average"		= "Speed: Average";
+	"oolite-ship-library-speed-fast"		= "Speed: Fast";
+	"oolite-ship-library-speed-veryfast"	= "Speed: Very Fast";
+
+	"oolite-ship-library-turn-veryslow"	= "Turn rate: Very Slow";
+	"oolite-ship-library-turn-slow"		= "Turn rate: Slow";
+	"oolite-ship-library-turn-average"	= "Turn rate: Average";
+	"oolite-ship-library-turn-fast"		= "Turn rate: Fast";
+	"oolite-ship-library-turn-veryfast"	= "Turn rate: Very Fast";
+
 
 	"oolite-loadsave-exit"			= "Return to Menu";
 	"oolite-scenario-exit"			= "Return to Menu";

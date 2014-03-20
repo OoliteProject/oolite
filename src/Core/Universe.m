@@ -213,6 +213,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) setDetailLevelDirectly:(OOGraphicsDetail)value;
 
+- (void) setLibraryTextForDemoShip;
+
 @end
 
 
@@ -2752,6 +2754,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	{
 		[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor whiteColor] forRow:19];
+
+		[self setLibraryTextForDemoShip];
 	}
 	
 	[self enterGUIViewModeWithMouseInteraction:NO];
@@ -2760,6 +2764,68 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		demo_stage = DEMO_SHOW_THING;
 		demo_stage_time = universal_time + 6.0;
 	}
+}
+
+
+- (void) setLibraryTextForDemoShip
+{
+	NSString *line = nil;
+	GLfloat param;
+
+	param = [demo_ship maxFlightSpeed];
+	if (param <= 1)
+	{
+		line = DESC(@"oolite-ship-library-speed-stationary");
+	}
+	else if (param <= 150)
+	{
+		line = DESC(@"oolite-ship-library-speed-veryslow");
+	}
+	else if (param <= 250)
+	{
+		line = DESC(@"oolite-ship-library-speed-slow");
+	}
+	else if (param <= 325)
+	{
+		line = DESC(@"oolite-ship-library-speed-average");
+	}
+	else if (param <= 425)
+	{
+		line = DESC(@"oolite-ship-library-speed-fast");
+	}
+	else
+	{
+		line = DESC(@"oolite-ship-library-speed-veryfast");
+	}
+		
+	[gui setText:line forRow:1 align:GUI_ALIGN_LEFT];
+
+	param = [demo_ship maxFlightRoll] + (2*[demo_ship maxFlightPitch]);
+	if (param <= 2)
+	{
+		line = DESC(@"oolite-ship-library-turn-veryslow");
+	}
+	else if (param <= 2.75)
+	{
+		line = DESC(@"oolite-ship-library-turn-slow");
+	}
+	else if (param <= 4.5)
+	{
+		line = DESC(@"oolite-ship-library-turn-average");
+	}
+	else if (param <= 6)
+	{
+		line = DESC(@"oolite-ship-library-turn-fast");
+	}
+	else
+	{
+		line = DESC(@"oolite-ship-library-turn-veryfast");
+	}
+	[gui setText:line forRow:2 align:GUI_ALIGN_LEFT];
+
+
+
+
 }
 
 
@@ -6211,6 +6277,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 										[demo_ship setPitch:M_PI/10.0];
 										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 										
+										[self setLibraryTextForDemoShip];
+
 										demo_stage = DEMO_FLY_IN;
 										demo_start_time=universal_time;
 										demo_stage_time = demo_start_time + DEMO2_FLY_IN_STAGE_TIME;

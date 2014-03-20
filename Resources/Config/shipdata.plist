@@ -1587,6 +1587,7 @@
 		name = "Coriolis Station";
 		roles = "coriolis station";
 		rotating = yes;
+		scan_class = "CLASS_STATION";
 		station_roll = "0.08"; // 1G at rim
 		subentities = 
 		( 
