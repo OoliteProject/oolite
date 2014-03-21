@@ -56,6 +56,7 @@ MA 02110-1301, USA.
 #import "OOShipRegistry.h"
 #import "OOProbabilitySet.h"
 #import "OOEquipmentType.h"
+#import "OOShipLibraryDescriptions.h"
 
 #import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
@@ -103,6 +104,8 @@ enum
 	DEMO_SHOW_THING,
 	DEMO_FLY_OUT
 };
+#define DEMO2_VANISHING_DISTANCE	650.0
+#define DEMO2_FLY_IN_STAGE_TIME	0.4
 
 
 #define MAX_NUMBER_OF_ENTITIES				200
@@ -115,6 +118,11 @@ static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.w
 static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
 
+
+static NSString * const kOODemoShipKey		= @"ship";
+static NSString * const kOODemoShipSpeed	= @"speed";
+static NSString * const kOODemoShipTurnRate	= @"turn_rate";
+static NSString * const kOODemoShipCargo	= @"cargo";
 
 Universe *gSharedUniverse = nil;
 
@@ -2707,11 +2715,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// in status demo draw ships and display text
 	if (!justCobra)
 	{
-		// Kaks - smooth transition from intro1 to intro2
-		if (![[demo_ship shipDataKey] isEqualTo:PLAYER_SHIP_DESC])
-		{
-			[self removeDemoShips];
-		}
+		// always, even if it's the cobra, because it's repositioned
+		[self removeDemoShips];
 	}
 	[player setStatus: STATUS_START_GAME];
 	[player setShowDemoShips: YES];
@@ -2726,16 +2731,21 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	{
 		/*- demo ships - intro2 -*/
 		demo_ship_index = 0;
-		if (!demo_ship) ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0] usePlayerProxy:YES];
+		if (!demo_ship) ship = [self newShipWithName:[[demo_ships oo_dictionaryAtIndex:0] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 	}
 	
 	if (ship)
 	{
 		[ship setOrientation:q2];
-		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->collision_radius];
 		if (!justCobra)
 		{
+			[ship setPositionX:0.0f y:0.0f z:DEMO2_VANISHING_DISTANCE * ship->collision_radius * 0.01];
 			[ship setDestination: ship->position];	// ideal position
+		}
+		else
+		{
+			// main screen Cobra is closer
+			[ship setPositionX:0.0f y:0.0f z:3.6 * ship->collision_radius];
 		}
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll:M_PI/5.0];
@@ -2752,9 +2762,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (!justCobra)
 	{
-		[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor whiteColor] forRow:19];
-
+//		[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 		[self setLibraryTextForDemoShip];
 	}
 	
@@ -2769,61 +2777,79 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) setLibraryTextForDemoShip
 {
-	NSString *line = nil;
-	GLfloat param;
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+	tab_stops[1] = 170;
+	tab_stops[2] = 340;
+	[gui setTabStops:tab_stops];
 
-	param = [demo_ship maxFlightSpeed];
-	if (param <= 1)
+	[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor whiteColor] forRow:19];
+
+	NSDictionary *librarySettings = [demo_ships oo_dictionaryAtIndex:demo_ship_index];
+	
+	NSString *field1 = nil;
+	NSString *field2 = nil;
+	NSString *field3 = nil;
+	NSString *override = nil;
+	
+	/* Row 2: Speed, Turn Rate, Cargo */
+
+	override = [librarySettings oo_stringForKey:kOODemoShipSpeed defaultValue:nil];
+	if (override != nil)
 	{
-		line = DESC(@"oolite-ship-library-speed-stationary");
-	}
-	else if (param <= 150)
-	{
-		line = DESC(@"oolite-ship-library-speed-veryslow");
-	}
-	else if (param <= 250)
-	{
-		line = DESC(@"oolite-ship-library-speed-slow");
-	}
-	else if (param <= 325)
-	{
-		line = DESC(@"oolite-ship-library-speed-average");
-	}
-	else if (param <= 425)
-	{
-		line = DESC(@"oolite-ship-library-speed-fast");
+		if ([override length] == 0)
+		{
+			field1 = @"";
+		}
+		else
+		{
+			field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-speed-custom"),OOExpand(override)];
+		}
 	}
 	else
 	{
-		line = DESC(@"oolite-ship-library-speed-veryfast");
+		field1 = OOShipLibrarySpeed(demo_ship);
 	}
 		
-	[gui setText:line forRow:1 align:GUI_ALIGN_LEFT];
 
-	param = [demo_ship maxFlightRoll] + (2*[demo_ship maxFlightPitch]);
-	if (param <= 2)
+	override = [librarySettings oo_stringForKey:kOODemoShipTurnRate defaultValue:nil];
+	if (override != nil)
 	{
-		line = DESC(@"oolite-ship-library-turn-veryslow");
-	}
-	else if (param <= 2.75)
-	{
-		line = DESC(@"oolite-ship-library-turn-slow");
-	}
-	else if (param <= 4.5)
-	{
-		line = DESC(@"oolite-ship-library-turn-average");
-	}
-	else if (param <= 6)
-	{
-		line = DESC(@"oolite-ship-library-turn-fast");
+		if ([override length] == 0)
+		{
+			field2 = @"";
+		}
+		else
+		{
+			field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turn-custom"),OOExpand(override)];
+		}
 	}
 	else
 	{
-		line = DESC(@"oolite-ship-library-turn-veryfast");
+		field2 = OOShipLibraryTurnRate(demo_ship);
 	}
-	[gui setText:line forRow:2 align:GUI_ALIGN_LEFT];
 
 
+	override = [librarySettings oo_stringForKey:kOODemoShipCargo defaultValue:nil];
+	if (override != nil)
+	{
+		if ([override length] == 0)
+		{
+			field3 = @"";
+		}
+		else
+		{
+			field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-cargo-custom"),OOExpand(override)];
+		}
+	}
+	else
+	{
+		field3 = OOShipLibraryCargo(demo_ship);
+	}
+	
+
+	[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:2];
 
 
 }
@@ -6226,37 +6252,30 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 						
 						quaternion_rotate_about_y(&q2,M_PI);
 						
-						#define DEMO2_VANISHING_DISTANCE	400.0
-						#define DEMO2_FLY_IN_STAGE_TIME	1.5
-						
 						switch (demo_stage)
 						{
 							case DEMO_FLY_IN:
 								[demo_ship setPosition:[demo_ship destination]];	// ideal position
 								demo_stage = DEMO_SHOW_THING;
-								demo_stage_time = universal_time + 6.0;
+								demo_stage_time = universal_time + 300.0;
 								break;
 							case DEMO_SHOW_THING:
-								vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius);
+								vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius * 6.0);
 								[demo_ship setVelocity:vel];
 								demo_stage = DEMO_FLY_OUT;
-								demo_stage_time = universal_time + 1.5;
+								demo_stage_time = universal_time + 0.25;
 								break;
 							case DEMO_FLY_OUT:
 								// change the demo_ship here
 								[self removeEntity:demo_ship];
 								demo_ship = nil;
 								
-								NSString		*shipDesc = nil;
+/*								NSString		*shipDesc = nil;
 								NSString		*shipName = nil;
-								NSDictionary	*shipDict = nil;
+								NSDictionary	*shipDict = nil; */
 								
 								demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
-								shipDesc = [demo_ships oo_stringAtIndex:demo_ship_index];
-								shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
-								
-								// Failure means we don't change demo_stage, so we'll automatically try again.
-								demo_ship = [[ShipEntity alloc] initWithKey:shipDesc definition:shipDict];
+								demo_ship = [self newShipWithName:[[demo_ships oo_dictionaryAtIndex:demo_ship_index] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 								
 								if (demo_ship != nil)
 								{
@@ -6275,7 +6294,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 										[demo_ship setScanClass: CLASS_NO_DRAW];
 										[demo_ship setRoll:M_PI/5.0];
 										[demo_ship setPitch:M_PI/10.0];
-										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+//										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 										
 										[self setLibraryTextForDemoShip];
 

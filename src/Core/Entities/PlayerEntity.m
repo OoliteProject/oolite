@@ -8448,8 +8448,8 @@ static NSString *last_outfitting_key=nil;
 		[gui setTitle:text];
 
         text = DESC(@"oolite-ship-library-exit");
-        [gui setText:text forRow:23 align:GUI_ALIGN_CENTER];
-        [gui setColor:[OOColor yellowColor] forRow:23];
+        [gui setText:text forRow:27 align:GUI_ALIGN_CENTER];
+        [gui setColor:[OOColor yellowColor] forRow:27];
 	}
 	
 	[gui setShowTextCursor:NO];

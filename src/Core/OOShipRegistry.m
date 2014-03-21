@@ -381,14 +381,14 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 - (void) loadDemoShips
 {
 	NSEnumerator			*enumerator = nil;
-	NSString				*key = nil;
+	NSDictionary			*key = nil;
 	NSArray					*initialDemoShips = nil;
 	NSMutableArray			*demoShips = nil;
 	
 	[_demoShips release];
 	_demoShips = nil;
 	
-	initialDemoShips = [ResourceManager arrayFromFilesNamed:@"demoships.plist"
+	initialDemoShips = [ResourceManager arrayFromFilesNamed:@"shiplibrary.plist"
 												   inFolder:@"Config"
 												   andMerge:YES
 													  cache:NO];
@@ -397,7 +397,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	// Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
 	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )
 	{
-		if (![key isKindOfClass:[NSString class]] || [self shipInfoForKey:key] == nil)
+		if (![key isKindOfClass:[NSDictionary class]] || [self shipInfoForKey:[key oo_stringForKey:@"ship"]] == nil)
 		{
 			[demoShips removeObject:key];
 		}
@@ -405,8 +405,16 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	
 	if ([demoShips count] == 0)
 	{
-		if ([self shipInfoForKey:kDefaultDemoShip] != nil)  [demoShips addObject:kDefaultDemoShip];
-		else  [demoShips addObject:[[_shipData allKeys] objectAtIndex:0]];
+		NSString *shipKey = nil;
+		if ([self shipInfoForKey:kDefaultDemoShip] != nil) 
+		{
+			shipKey = kDefaultDemoShip;
+		}
+		else
+		{
+			shipKey = [[_shipData allKeys] objectAtIndex:0];
+		}
+		[demoShips addObject:[NSDictionary dictionaryWithObject:shipKey forKey:@"ship"]];
 	}
 	
 	_demoShips = [demoShips copy];

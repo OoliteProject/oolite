@@ -395,6 +395,7 @@ OOLITE_MISC_FILES = \
     OOEquipmentType.m \
     OOMouseInteractionMode.m \
     OORoleSet.m \
+    OOShipLibraryDescriptions.m \
     OOShipRegistry.m \
     OOSpatialReference.m \
     OOTrumble.m \

@@ -1,0 +1,23 @@
+(
+	{
+		ship = "cobra3-trader";
+	},
+	{
+		ship = "coriolis-station";
+		speed = "";
+		turn_rate = "";
+		cargo = "";
+	},
+	{
+		ship = "moray";
+	},
+	{
+		ship = "viper-interceptor";
+		speed = "[oolite-ship-library-classified]";
+		turn_rate = "[oolite-ship-library-classified]";
+	},
+	{
+		ship = "anaconda";
+		cargo = "750 TC";
+	}
+)
