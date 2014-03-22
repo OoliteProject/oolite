@@ -1051,6 +1051,14 @@
 	
 	"oolite-ship-library-classified"	= "Classified";
 
+	"oolite-ship-library-category-ship"		= "Ship";
+	"oolite-ship-library-category-station"	= "Installation";
+	"oolite-ship-library-category-weapon"	= "Weapon";
+	"oolite-ship-library-category-natural"	= "Natural Object";
+	"oolite-ship-library-category-thargoid"	= "Thargoid Ship";	
+	"oolite-ship-library-category-buoy"		= "Navigation Buoy";
+	"oolite-ship-library-category-container"= "Container";
+
 	"oolite-ship-library-speed-custom"		= "Speed: %@";
 	"oolite-ship-library-speed-stationary"	= "Speed: Stationary";
 	"oolite-ship-library-speed-veryslow"	= "Speed: Very Slow";
@@ -1070,8 +1078,41 @@
 	"oolite-ship-library-cargo-none"		= "Cargo: None";
 	"oolite-ship-library-cargo-carried-u"	= "Cargo: %u TC";
 
+	"oolite-ship-library-generator-custom"	= "Generator: %@";
+	"oolite-ship-library-generator-weak"	= "Generator: Weak";
+	"oolite-ship-library-generator-average"	= "Generator: Average";
+	"oolite-ship-library-generator-strong"	= "Generator: Strong";
+
+	"oolite-ship-library-shields-custom"		= "Shields: %@";
+	"oolite-ship-library-shields-veryweak"		= "Shields: Very Weak";
+	"oolite-ship-library-shields-weak"			= "Shields: Weak";
+	"oolite-ship-library-shields-average"		= "Shields: Average";
+	"oolite-ship-library-shields-strong"		= "Shields: Strong";
+	"oolite-ship-library-shields-verystrong"	= "Shields: Very Strong";
+
+	"oolite-ship-library-witchspace-custom"	= "Witchspace: %@";
+	"oolite-ship-library-witchspace-yes"	= "Witchspace: Yes";
+	"oolite-ship-library-witchspace-no"		= "Witchspace: No";
+
+	"oolite-ship-library-weapons-custom"	= "Weapons: %@";
+	"oolite-ship-library-weapons-none"		= "Weapons: None";
+	"oolite-ship-library-weapons-u-u"		= "Weapons: %u fixed, %u pylons";
+
+	"oolite-ship-library-size-custom"	= "Size: %@";
+	"oolite-ship-library-size-u-u-u"	= "Size: %um x %um x %um";
 
 
+	"oolite-ship-library-summary-SO"	= "Cooperative Orbital Station";
+	"oolite-ship-library-summary-LM"	= "Light multi-role";
+	"oolite-ship-library-summary-HM"	= "Heavy multi-role";
+	"oolite-ship-library-summary-PHF"	= "Police heavy fighter";
+	"oolite-ship-library-summary-HFr"	= "Heavy freighter";
+
+	"oolite-ship-library-description-anaconda"	= "The Anaconda's large interior is almost entirely cargo space, leaving the ship little room for engines or generators. As a bulk cargo hauler, however, no other ship can carry anywhere near as much - but it requires a strong escort in all but the safest systems.";
+	"oolite-ship-library-description-cobra3"	= "The first truly successful multi-role design, with enough cargo space to trade or salvage effectively, and enough firepower not to need an escort while doing so.";
+	"oolite-ship-library-description-coriolis"	= "The Coriolis Station is the standard Cooperative orbital station seen in almost all systems. A kilometre across, with room for over a hundred ships and tens of thousands of inhabitants, these stations are key trading hubs for their systems, as well as housing several police Viper patrols.";
+	"oolite-ship-library-description-moray"		= "This light ship is popular for small transport jobs, especially of medical supplies, due to its agility and ability to operate in a wide range of environments. This also makes it popular with smaller pirate bands, who are unable to acquire a dedicated freighter.";
+	"oolite-ship-library-description-viperinterceptor"	= "This next generation police fighter has recently been introduced as a replacement for the aging Viper design. Expensive to build and maintain, it is rarely seen except in the richest systems, where it is extremely effective in securing the space lanes against piracy.";
 
 
 	"oolite-loadsave-exit"			= "Return to Menu";

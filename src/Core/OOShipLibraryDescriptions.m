@@ -25,6 +25,34 @@ MA 02110-1301, USA.
 #import "OOShipLibraryDescriptions.h"
 #import "Universe.h"
 
+NSString *OOShipLibraryCategory (ShipEntity *demo_ship)
+{
+	switch ([demo_ship scanClass])
+	{
+	case CLASS_NEUTRAL:
+	case CLASS_POLICE:
+	case CLASS_MILITARY:
+	case CLASS_PLAYER:
+		return DESC(@"oolite-ship-library-category-ship");
+	case CLASS_STATION:
+		return DESC(@"oolite-ship-library-category-station");
+	case CLASS_MINE:
+	case CLASS_MISSILE:
+		return DESC(@"oolite-ship-library-category-weapon");
+	case CLASS_ROCK:
+		return DESC(@"oolite-ship-library-category-natural");
+	case CLASS_THARGOID:
+		return DESC(@"oolite-ship-library-category-thargoid");
+	case CLASS_BUOY:
+		return DESC(@"oolite-ship-library-category-buoy");
+	case CLASS_CARGO:
+		return DESC(@"oolite-ship-library-category-container");
+	default:
+		return @"";
+	}
+}
+
+
 NSString *OOShipLibrarySpeed (ShipEntity *demo_ship)
 {
 	GLfloat	param = [demo_ship maxFlightSpeed];
@@ -98,4 +126,86 @@ NSString *OOShipLibraryCargo (ShipEntity *demo_ship)
 		result = [NSString stringWithFormat:DESC(@"oolite-ship-library-cargo-carried-u"),param];
 	}
 	return result;
+}
+
+
+NSString *OOShipLibraryGenerator (ShipEntity *demo_ship)
+{
+	float rate = [demo_ship energyRechargeRate];
+	NSString *result = nil;
+	if (rate < 2.5)
+	{
+		result = DESC(@"oolite-ship-library-generator-weak");
+	}
+	else if (rate < 3.75)
+	{
+		result = DESC(@"oolite-ship-library-generator-average");
+	}
+	else
+	{
+		result = DESC(@"oolite-ship-library-generator-strong");
+	}
+	return result;
+}
+
+
+NSString *OOShipLibraryShields (ShipEntity *demo_ship)
+{
+	// when NPCs have actual shields, add those on as well
+	float shields = [demo_ship maxEnergy];
+	NSString *result = nil;
+	if (shields < 128)
+	{
+		result = DESC(@"oolite-ship-library-shields-veryweak");
+	}
+	else if (shields < 192)
+	{
+		result = DESC(@"oolite-ship-library-shields-weak");
+	}
+	else if (shields < 256)
+	{
+		result = DESC(@"oolite-ship-library-shields-average");
+	}
+	else if (shields < 320)
+	{
+		result = DESC(@"oolite-ship-library-shields-strong");
+	}
+	else
+	{
+		result = DESC(@"oolite-ship-library-shields-verystrong");
+	}
+	return result;
+}
+
+
+NSString *OOShipLibraryWitchspace (ShipEntity *demo_ship)
+{
+	if ([demo_ship hasHyperspaceMotor])
+	{
+		return DESC(@"oolite-ship-library-witchspace-yes");
+	}
+	else
+	{
+		return DESC(@"oolite-ship-library-witchspace-no");
+	}
+}
+
+
+NSString *OOShipLibraryWeapons (ShipEntity *demo_ship)
+{
+	OOWeaponFacingSet facings = [demo_ship weaponFacings]; 
+	NSUInteger fixed = (facings&1)+(facings&2)/2+(facings&4)/4+(facings&8)/8;
+	NSUInteger pylons = [demo_ship missileCapacity];
+	if (fixed == 0 && pylons == 0)
+	{
+		return DESC(@"oolite-ship-library-weapons-none");
+	}
+	return [NSString stringWithFormat:DESC(@"oolite-ship-library-weapons-u-u"),fixed,pylons];
+}
+
+
+NSString *OOShipLibrarySize (ShipEntity *demo_ship)
+{
+	BoundingBox bb = [demo_ship totalBoundingBox];
+	return [NSString stringWithFormat:DESC(@"oolite-ship-library-size-u-u-u"),(unsigned)(bb.max.x-bb.min.x),(unsigned)(bb.max.y-bb.min.y),(unsigned)(bb.max.z-bb.min.z)];
 }

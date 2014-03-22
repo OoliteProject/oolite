@@ -26,6 +26,12 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
+NSString *OOShipLibraryCategory (ShipEntity *demo_ship);
 NSString *OOShipLibrarySpeed (ShipEntity *demo_ship);
 NSString *OOShipLibraryTurnRate (ShipEntity *demo_ship);
 NSString *OOShipLibraryCargo (ShipEntity *demo_ship);
+NSString *OOShipLibraryGenerator (ShipEntity *demo_ship);
+NSString *OOShipLibraryShields (ShipEntity *demo_ship);
+NSString *OOShipLibraryWitchspace (ShipEntity *demo_ship);
+NSString *OOShipLibraryWeapons (ShipEntity *demo_ship);
+NSString *OOShipLibrarySize (ShipEntity *demo_ship);

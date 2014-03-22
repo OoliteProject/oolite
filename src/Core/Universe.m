@@ -119,10 +119,20 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
 
 
-static NSString * const kOODemoShipKey		= @"ship";
-static NSString * const kOODemoShipSpeed	= @"speed";
-static NSString * const kOODemoShipTurnRate	= @"turn_rate";
-static NSString * const kOODemoShipCargo	= @"cargo";
+static NSString * const kOODemoShipKey			= @"ship";
+static NSString * const kOODemoShipClass		= @"class";
+static NSString * const kOODemoShipSummary		= @"summary";
+static NSString * const kOODemoShipDescription	= @"description";
+static NSString * const kOODemoShipShipData		= @"ship_data";
+static NSString * const kOODemoShipSpeed		= @"speed";
+static NSString * const kOODemoShipTurnRate		= @"turn_rate";
+static NSString * const kOODemoShipCargo		= @"cargo";
+static NSString * const kOODemoShipGenerator	= @"generator";
+static NSString * const kOODemoShipShields		= @"shields";
+static NSString * const kOODemoShipWitchspace	= @"witchspace";
+static NSString * const kOODemoShipWeapons		= @"weapons";
+static NSString * const kOODemoShipSize			= @"size";
+
 
 Universe *gSharedUniverse = nil;
 
@@ -2770,7 +2780,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	if (!justCobra)
 	{
 		demo_stage = DEMO_SHOW_THING;
-		demo_stage_time = universal_time + 6.0;
+		demo_stage_time = universal_time + 300.0;
 	}
 }
 
@@ -2783,74 +2793,217 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	tab_stops[2] = 340;
 	[gui setTabStops:tab_stops];
 
-	[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-	[gui setColor:[OOColor whiteColor] forRow:19];
+/*	[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor whiteColor] forRow:19]; */
 
 	NSDictionary *librarySettings = [demo_ships oo_dictionaryAtIndex:demo_ship_index];
 	
+	OOGUIRow descRow = 7;
+
 	NSString *field1 = nil;
 	NSString *field2 = nil;
 	NSString *field3 = nil;
 	NSString *override = nil;
-	
-	/* Row 2: Speed, Turn Rate, Cargo */
 
-	override = [librarySettings oo_stringForKey:kOODemoShipSpeed defaultValue:nil];
+	// clear rows
+	for (NSUInteger i=1;i<=18;i++)
+	{
+		[gui setText:@"" forRow:i];
+	}
+	
+	/* Row 1: ScanClass, Name, Summary */
+	override = [librarySettings oo_stringForKey:kOODemoShipClass defaultValue:nil];
 	if (override != nil)
 	{
-		if ([override length] == 0)
-		{
-			field1 = @"";
-		}
-		else
-		{
-			field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-speed-custom"),OOExpand(override)];
-		}
+		field1 = OOExpand(override);
 	}
 	else
 	{
-		field1 = OOShipLibrarySpeed(demo_ship);
+		// shouldn't be necessary
+		field1 = DESC(@"oolite-ship-library-category-ship");
 	}
+
+	field2 = [demo_ship shipClassName];
+
+	override = [librarySettings oo_stringForKey:kOODemoShipSummary defaultValue:nil];
+	if (override != nil)
+	{
+		field3 = OOExpand(override);
+	}
+	else
+	{
+		field3 = @"";
+	}
+	[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:1];
+	[gui setColor:[OOColor greenColor] forRow:1];
+
+	if (![librarySettings oo_boolForKey:kOODemoShipShipData defaultValue:YES])
+	{
+		descRow = 3;
+	}
+	else
+	{
+		/* Row 2: Speed, Turn Rate, Cargo */
+
+		override = [librarySettings oo_stringForKey:kOODemoShipSpeed defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field1 = @"";
+			}
+			else
+			{
+				field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-speed-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field1 = OOShipLibrarySpeed(demo_ship);
+		}
 		
 
-	override = [librarySettings oo_stringForKey:kOODemoShipTurnRate defaultValue:nil];
-	if (override != nil)
-	{
-		if ([override length] == 0)
+		override = [librarySettings oo_stringForKey:kOODemoShipTurnRate defaultValue:nil];
+		if (override != nil)
 		{
-			field2 = @"";
+			if ([override length] == 0)
+			{
+				field2 = @"";
+			}
+			else
+			{
+				field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turn-custom"),OOExpand(override)];
+			}
 		}
 		else
 		{
-			field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turn-custom"),OOExpand(override)];
+			field2 = OOShipLibraryTurnRate(demo_ship);
 		}
-	}
-	else
-	{
-		field2 = OOShipLibraryTurnRate(demo_ship);
-	}
 
 
-	override = [librarySettings oo_stringForKey:kOODemoShipCargo defaultValue:nil];
-	if (override != nil)
-	{
-		if ([override length] == 0)
+		override = [librarySettings oo_stringForKey:kOODemoShipCargo defaultValue:nil];
+		if (override != nil)
 		{
-			field3 = @"";
+			if ([override length] == 0)
+			{
+				field3 = @"";
+			}
+			else
+			{
+				field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-cargo-custom"),OOExpand(override)];
+			}
 		}
 		else
 		{
-			field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-cargo-custom"),OOExpand(override)];
+			field3 = OOShipLibraryCargo(demo_ship);
 		}
-	}
-	else
-	{
-		field3 = OOShipLibraryCargo(demo_ship);
-	}
 	
 
-	[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:2];
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:3];
 
+		/* Row 3: recharge rate, energy banks, witchspace */
+		override = [librarySettings oo_stringForKey:kOODemoShipGenerator defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field1 = @"";
+			}
+			else
+			{
+				field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-generator-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field1 = OOShipLibraryGenerator(demo_ship);
+		}
+
+
+		override = [librarySettings oo_stringForKey:kOODemoShipShields defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field2 = @"";
+			}
+			else
+			{
+				field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-shields-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field2 = OOShipLibraryShields(demo_ship);
+		}
+
+
+		override = [librarySettings oo_stringForKey:kOODemoShipWitchspace defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field3 = @"";
+			}
+			else
+			{
+				field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-witchspace-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field3 = OOShipLibraryWitchspace(demo_ship);
+		}
+
+
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:4];
+
+
+		/* Row 4: weapons, size */
+		override = [librarySettings oo_stringForKey:kOODemoShipWeapons defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field1 = @"";
+			}
+			else
+			{
+				field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-weapons-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field1 = OOShipLibraryWeapons(demo_ship);
+		}
+
+		field2 = @"";
+
+		override = [librarySettings oo_stringForKey:kOODemoShipSize defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field3 = @"";
+			}
+			else
+			{
+				field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-size-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field3 = OOShipLibrarySize(demo_ship);
+		}
+
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:5];
+	}
+
+	override = [librarySettings oo_stringForKey:kOODemoShipDescription defaultValue:nil];
+	if (override != nil)
+	{
+		[gui addLongText:OOExpand(override) startingAtRow:descRow align:GUI_ALIGN_LEFT];
+	}
 
 }
 
