@@ -1934,6 +1934,7 @@
 			"-2.60324 -1.47267 -2.7841 0.35 0.35 0.5"
 		);
 		forward_weapon_type = "WEAPON_NONE";
+		hyperspace_motor = no;
 		is_template = 1;
 		materials =
 		{
@@ -3251,6 +3252,7 @@
 		cargo_type = "CARGO_THARGOID";
 		energy_recharge_rate = 3;
 		forward_weapon_type = "WEAPON_PULSE_LASER";
+		hyperspace_motor = no;
 		is_template = 1;
 		laser_color = "greenColor";
 		materials =
