@@ -23,33 +23,18 @@ MA 02110-1301, USA.
 */
 
 #import "OOShipLibraryDescriptions.h"
+#import "OOStringExpander.h"
 #import "Universe.h"
 
-NSString *OOShipLibraryCategory (ShipEntity *demo_ship)
+NSString *OOShipLibraryCategorySingular(NSString *category)
 {
-	switch ([demo_ship scanClass])
-	{
-	case CLASS_NEUTRAL:
-	case CLASS_POLICE:
-	case CLASS_MILITARY:
-	case CLASS_PLAYER:
-		return DESC(@"oolite-ship-library-category-ship");
-	case CLASS_STATION:
-		return DESC(@"oolite-ship-library-category-station");
-	case CLASS_MINE:
-	case CLASS_MISSILE:
-		return DESC(@"oolite-ship-library-category-weapon");
-	case CLASS_ROCK:
-		return DESC(@"oolite-ship-library-category-natural");
-	case CLASS_THARGOID:
-		return DESC(@"oolite-ship-library-category-thargoid");
-	case CLASS_BUOY:
-		return DESC(@"oolite-ship-library-category-buoy");
-	case CLASS_CARGO:
-		return DESC(@"oolite-ship-library-category-container");
-	default:
-		return @"";
-	}
+	return OOExpandKey([NSString stringWithFormat:@"oolite-ship-library-category-%@",category]);
+}
+
+
+NSString *OOShipLibraryCategoryPlural(NSString *category)
+{
+	return OOExpandKey([NSString stringWithFormat:@"oolite-ship-library-category-plural-%@",category]);
 }
 
 

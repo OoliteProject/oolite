@@ -229,6 +229,7 @@ enum
 	GLfloat					demo_start_z;
 	int						demo_stage;
 	NSUInteger				demo_ship_index;
+	NSUInteger				demo_ship_subindex;
 	NSArray					*demo_ships;
 	
 	GLfloat					main_light_position[4];
@@ -411,6 +412,8 @@ enum
 - (void) setupIntroFirstGo:(BOOL)justCobra;
 - (void) selectIntro2Previous;
 - (void) selectIntro2Next;
+- (void) selectIntro2PreviousCategory;
+- (void) selectIntro2NextCategory;
 
 - (StationEntity *) station;
 - (OOPlanetEntity *) planet;

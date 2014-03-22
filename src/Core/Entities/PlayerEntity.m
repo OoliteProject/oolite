@@ -8463,7 +8463,14 @@ static NSString *last_outfitting_key=nil;
 	[[OOMusicController sharedController] playThemeMusic];
 	
 	[self setShowDemoShips:YES];
-	[gui setBackgroundTextureKey:@"intro"];
+	if (justCobra)
+	{
+		[gui setBackgroundTextureKey:@"intro"];
+	}
+	else
+	{
+		[gui setBackgroundTextureKey:@"shiplibrary"];
+	}
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 

@@ -3585,17 +3585,31 @@ static BOOL autopilot_pause;
 			{
 				[self setGuiToIntroFirstGo:YES];
 			}
-			if ([gameView isDown:key_gui_arrow_left])	//  '<--'
+			if ([gameView isDown:key_gui_arrow_up])	//  '<--'
 			{
 				if (!upDownKeyPressed)
 					[UNIVERSE selectIntro2Previous];
 			}
-			if ([gameView isDown:key_gui_arrow_right])	//  '-->'
+			if ([gameView isDown:key_gui_arrow_down])	//  '-->'
 			{
 				if (!upDownKeyPressed)
 					[UNIVERSE selectIntro2Next];
 			}
-			upDownKeyPressed = (([gameView isDown:key_gui_arrow_left])||([gameView isDown:key_gui_arrow_right]));
+			upDownKeyPressed = (([gameView isDown:key_gui_arrow_up])||([gameView isDown:key_gui_arrow_down]));
+
+			if ([gameView isDown:key_gui_arrow_left])	//  '<--'
+			{
+				if (!leftRightKeyPressed)
+					[UNIVERSE selectIntro2PreviousCategory];
+			}
+			if ([gameView isDown:key_gui_arrow_right])	//  '-->'
+			{
+				if (!leftRightKeyPressed)
+					[UNIVERSE selectIntro2NextCategory];
+			}
+			leftRightKeyPressed = (([gameView isDown:key_gui_arrow_left])||([gameView isDown:key_gui_arrow_right]));
+			
+
 			break;
 		
 		case GUI_SCREEN_NEWGAME:

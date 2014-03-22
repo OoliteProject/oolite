@@ -38,6 +38,8 @@ SOFTWARE.
 #import "OOLegacyScriptWhitelist.h"
 #import "OODeepCopy.h"
 #import "OOColor.h"
+#import "OOStringExpander.h"
+#import "OOShipLibraryDescriptions.h"
 #import "Universe.h"
 
 
@@ -45,6 +47,8 @@ SOFTWARE.
 
 
 static void DumpStringAddrs(NSDictionary *dict, NSString *context);
+static NSComparisonResult SortDemoShipsByName (id a, id b, void* context);
+static NSComparisonResult SortDemoCategoriesByName (id a, id b, void* context);
 
 
 static OOShipRegistry	*sSingleton = nil;
@@ -397,7 +401,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	// Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
 	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )
 	{
-		if (![key isKindOfClass:[NSDictionary class]] || [self shipInfoForKey:[key oo_stringForKey:@"ship"]] == nil)
+		if (![key isKindOfClass:[NSDictionary class]] || [self shipInfoForKey:[key oo_stringForKey:kOODemoShipKey]] == nil)
 		{
 			[demoShips removeObject:key];
 		}
@@ -414,10 +418,45 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 		{
 			shipKey = [[_shipData allKeys] objectAtIndex:0];
 		}
-		[demoShips addObject:[NSDictionary dictionaryWithObject:shipKey forKey:@"ship"]];
+		[demoShips addObject:[NSDictionary dictionaryWithObject:shipKey forKey:kOODemoShipKey]];
 	}
 	
-	_demoShips = [demoShips copy];
+	// now separate out the demoships by class, and add some extra keys
+	NSMutableDictionary *demoList = [NSMutableDictionary dictionaryWithCapacity:8];
+	NSMutableArray *demoClass = nil;
+	foreach(key, demoShips)
+	{
+		NSString *class = [key oo_stringForKey:kOODemoShipClass defaultValue:@"ship"];
+		if ([OOShipLibraryCategoryPlural(class) length] == 0)
+		{
+			OOLog(@"shipdata.load.warning",@"Unexpected class '%@' in shiplibrary.plist for '%@'",class,[key oo_stringForKey:kOODemoShipKey]);
+			class = @"ship";
+		}
+		demoClass = [demoList objectForKey:class];
+		if (demoClass == nil)
+		{
+			[demoList setObject:[NSMutableArray array] forKey:class];
+			demoClass = [demoList objectForKey:class];
+		}
+		NSMutableDictionary *demoEntry = [NSMutableDictionary dictionaryWithDictionary:key];
+		// add "name" object to dictionary from ship definition
+		[demoEntry setObject:[[self shipInfoForKey:[demoEntry oo_stringForKey:@"ship"]] oo_stringForKey:kOODemoShipName] forKey:kOODemoShipName];
+		// set "class" object to standard ship if not otherwise set
+		if (![[demoEntry oo_stringForKey:kOODemoShipClass defaultValue:nil] isEqualToString:class])
+		{
+			[demoEntry setObject:class forKey:kOODemoShipClass];
+		}
+		[demoClass addObject:demoEntry];
+	}
+	// sort each ship list by name
+	NSString *demoClassName = nil;
+	foreach(demoClassName, demoList)
+	{
+		[[demoList objectForKey:demoClassName] sortUsingFunction:SortDemoShipsByName context:NULL];
+	}
+
+	// and then sort the ship list list by class name
+	_demoShips = [[[demoList allValues] sortedArrayUsingFunction:SortDemoCategoriesByName context:NULL] retain];
 	[[OOCacheManager sharedCache] setObject:_demoShips forKey:kDemoShipsCacheKey inCache:kShipRegistryCacheName];
 }
 
@@ -1663,4 +1702,16 @@ static void GatherStringAddrs(id object, NSMutableSet *strings, NSString *contex
 	{
 		GatherStringAddrsDict(object, strings, context);
 	}
+}
+
+
+static NSComparisonResult SortDemoShipsByName (id a, id b, void* context)
+{
+	return [[a oo_stringForKey:@"name"] compare:[b oo_stringForKey:@"name"]];
+}
+
+
+static NSComparisonResult SortDemoCategoriesByName (id a, id b, void* context)
+{
+	return [OOShipLibraryCategoryPlural([[a oo_dictionaryAtIndex:0] oo_stringForKey:@"class"]) compare:OOShipLibraryCategoryPlural([[b oo_dictionaryAtIndex:0] oo_stringForKey:@"class"])];
 }

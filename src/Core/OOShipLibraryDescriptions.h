@@ -26,7 +26,24 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-NSString *OOShipLibraryCategory (ShipEntity *demo_ship);
+static NSString * const kOODemoShipKey			= @"ship";
+static NSString * const kOODemoShipName			= @"name"; // set internally only
+static NSString * const kOODemoShipClass		= @"class";
+static NSString * const kOODemoShipSummary		= @"summary";
+static NSString * const kOODemoShipDescription	= @"description";
+static NSString * const kOODemoShipShipData		= @"ship_data";
+static NSString * const kOODemoShipSpeed		= @"speed";
+static NSString * const kOODemoShipTurnRate		= @"turn_rate";
+static NSString * const kOODemoShipCargo		= @"cargo";
+static NSString * const kOODemoShipGenerator	= @"generator";
+static NSString * const kOODemoShipShields		= @"shields";
+static NSString * const kOODemoShipWitchspace	= @"witchspace";
+static NSString * const kOODemoShipWeapons		= @"weapons";
+static NSString * const kOODemoShipSize			= @"size";
+
+NSString *OOShipLibraryCategorySingular(NSString *category);
+NSString *OOShipLibraryCategoryPlural(NSString *category);
+
 NSString *OOShipLibrarySpeed (ShipEntity *demo_ship);
 NSString *OOShipLibraryTurnRate (ShipEntity *demo_ship);
 NSString *OOShipLibraryCargo (ShipEntity *demo_ship);

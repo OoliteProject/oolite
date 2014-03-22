@@ -119,21 +119,6 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
 
 
-static NSString * const kOODemoShipKey			= @"ship";
-static NSString * const kOODemoShipClass		= @"class";
-static NSString * const kOODemoShipSummary		= @"summary";
-static NSString * const kOODemoShipDescription	= @"description";
-static NSString * const kOODemoShipShipData		= @"ship_data";
-static NSString * const kOODemoShipSpeed		= @"speed";
-static NSString * const kOODemoShipTurnRate		= @"turn_rate";
-static NSString * const kOODemoShipCargo		= @"cargo";
-static NSString * const kOODemoShipGenerator	= @"generator";
-static NSString * const kOODemoShipShields		= @"shields";
-static NSString * const kOODemoShipWitchspace	= @"witchspace";
-static NSString * const kOODemoShipWeapons		= @"weapons";
-static NSString * const kOODemoShipSize			= @"size";
-
-
 Universe *gSharedUniverse = nil;
 
 extern Entity *gOOJSPlayerIfStale;
@@ -231,6 +216,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) setDetailLevelDirectly:(OOGraphicsDetail)value;
 
+- (NSDictionary *)demoShipData;
 - (void) setLibraryTextForDemoShip;
 
 @end
@@ -2740,8 +2726,33 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	else
 	{
 		/*- demo ships - intro2 -*/
+
 		demo_ship_index = 0;
-		if (!demo_ship) ship = [self newShipWithName:[[demo_ships oo_dictionaryAtIndex:0] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
+		demo_ship_subindex = 0;
+
+		/* Try to set the initial list position to Cobra III if
+		 * available, and at least the Ships category. */
+		NSArray *subList = nil;
+		foreach (subList, demo_ships)
+		{
+			if ([[[subList oo_dictionaryAtIndex:0] oo_stringForKey:kOODemoShipClass] isEqualToString:@"ship"])
+			{
+				demo_ship_index = [demo_ships indexOfObject:subList];
+				NSDictionary *shipEntry = nil;
+				foreach (shipEntry, subList)
+				{
+					if ([[shipEntry oo_stringForKey:kOODemoShipKey] isEqualToString:@"cobra3-trader"])
+					{
+						demo_ship_subindex = [subList indexOfObject:shipEntry];
+						break;
+					}
+				}
+				break;
+			}
+		}
+
+
+		if (!demo_ship) ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 	}
 	
 	if (ship)
@@ -2785,6 +2796,12 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 }
 
 
+- (NSDictionary *)demoShipData
+{
+	return [[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex];
+}
+
+
 - (void) setLibraryTextForDemoShip
 {
 	OOGUITabSettings tab_stops;
@@ -2796,7 +2813,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 /*	[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor whiteColor] forRow:19]; */
 
-	NSDictionary *librarySettings = [demo_ships oo_dictionaryAtIndex:demo_ship_index];
+	NSDictionary *librarySettings = [self demoShipData];
 	
 	OOGUIRow descRow = 7;
 
@@ -2806,24 +2823,18 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	NSString *override = nil;
 
 	// clear rows
-	for (NSUInteger i=1;i<=18;i++)
+	for (NSUInteger i=1;i<=26;i++)
 	{
 		[gui setText:@"" forRow:i];
 	}
 	
 	/* Row 1: ScanClass, Name, Summary */
-	override = [librarySettings oo_stringForKey:kOODemoShipClass defaultValue:nil];
-	if (override != nil)
-	{
-		field1 = OOExpand(override);
-	}
-	else
-	{
-		// shouldn't be necessary
-		field1 = DESC(@"oolite-ship-library-category-ship");
-	}
+	override = [librarySettings oo_stringForKey:kOODemoShipClass defaultValue:@"ship"];
+	field1 = OOShipLibraryCategorySingular(override);
+
 
 	field2 = [demo_ship shipClassName];
+
 
 	override = [librarySettings oo_stringForKey:kOODemoShipSummary defaultValue:nil];
 	if (override != nil)
@@ -2837,7 +2848,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:1];
 	[gui setColor:[OOColor greenColor] forRow:1];
 
-	if (![librarySettings oo_boolForKey:kOODemoShipShipData defaultValue:YES])
+	// ship_data defaults to true for "ship" class, false for everything else
+	if (![librarySettings oo_boolForKey:kOODemoShipShipData defaultValue:[[librarySettings oo_stringForKey:kOODemoShipClass defaultValue:@"ship"] isEqualToString:@"ship"]])
 	{
 		descRow = 3;
 	}
@@ -3005,13 +3017,79 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		[gui addLongText:OOExpand(override) startingAtRow:descRow align:GUI_ALIGN_LEFT];
 	}
 
+	
+	// line 19: ship categories
+	field1 = [NSString stringWithFormat:@"<-- %@",OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:((demo_ship_index+[demo_ships count]-1)%[demo_ships count])] objectAtIndex:0] oo_stringForKey:kOODemoShipClass])];
+	field2 = OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:demo_ship_index] objectAtIndex:0] oo_stringForKey:kOODemoShipClass]);
+	field3 = [NSString stringWithFormat:@"%@ -->",OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:((demo_ship_index+1)%[demo_ships count])] objectAtIndex:0] oo_stringForKey:kOODemoShipClass])];
+	
+	[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:19];
+	[gui setColor:[OOColor greenColor] forRow:19];
+
+	// lines 21-25: ship names
+	NSArray *subList = [demo_ships objectAtIndex:demo_ship_index];
+	NSUInteger i,start = demo_ship_subindex - (demo_ship_subindex%5);
+	NSUInteger end = start + 4;
+	if (end >= [subList count])
+	{
+		end = [subList count] - 1;
+	}
+	OOGUIRow row = 21;
+	field1 = @"";
+	field3 = @"";
+	for (i = start ; i <= end ; i++)
+	{
+		field2 = [[subList objectAtIndex:i] oo_stringForKey:kOODemoShipName];
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:row];
+		if (i == demo_ship_subindex)
+		{
+			[gui setColor:[OOColor yellowColor] forRow:row];
+		}
+		else
+		{
+			[gui setColor:[OOColor whiteColor] forRow:row];
+		}
+		row++;
+	}
+
+	field2 = @"...";
+	if (start > 0)
+	{
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:20];
+		[gui setColor:[OOColor whiteColor] forRow:20];
+	}
+	if (end < [subList count]-1)
+	{
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:26];
+		[gui setColor:[OOColor whiteColor] forRow:26];
+	}
+
 }
 
 
 - (void) selectIntro2Previous
 {
 	demo_stage = DEMO_SHOW_THING;
-	demo_ship_index = (demo_ship_index + [demo_ships count] - 2) % [demo_ships count];
+	NSUInteger subcount = [[demo_ships objectAtIndex:demo_ship_index] count];
+	demo_ship_subindex = (demo_ship_subindex + subcount - 2) % subcount;
+	demo_stage_time  = universal_time - 1.0;	// force change
+}
+
+
+- (void) selectIntro2PreviousCategory
+{
+	demo_stage = DEMO_SHOW_THING;
+	demo_ship_index = (demo_ship_index + [demo_ships count] - 1) % [demo_ships count];
+	demo_ship_subindex = [[demo_ships objectAtIndex:demo_ship_index] count] - 1;
+	demo_stage_time  = universal_time - 1.0;	// force change
+}
+
+
+- (void) selectIntro2NextCategory
+{
+	demo_stage = DEMO_SHOW_THING;
+ 	demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
+	demo_ship_subindex = [[demo_ships objectAtIndex:demo_ship_index] count] - 1;
 	demo_stage_time  = universal_time - 1.0;	// force change
 }
 
@@ -6427,8 +6505,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 								NSString		*shipName = nil;
 								NSDictionary	*shipDict = nil; */
 								
-								demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
-								demo_ship = [self newShipWithName:[[demo_ships oo_dictionaryAtIndex:demo_ship_index] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
+								demo_ship_subindex = (demo_ship_subindex + 1) % [[demo_ships objectAtIndex:demo_ship_index] count];
+								demo_ship = [self newShipWithName:[[self demoShipData] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 								
 								if (demo_ship != nil)
 								{
@@ -10113,6 +10191,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 		[demo_ships release];
 		demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 		demo_ship_index = 0;
+		demo_ship_subindex = 0;
 	}
 	
 	breakPatternCounter = 0;
