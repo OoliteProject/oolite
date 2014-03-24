@@ -1131,7 +1131,7 @@
 	"oolite-ship-library-summary-WMn"	= "Timed explosive";
 	"oolite-ship-library-summary-WMs"	= "Fire-and-forget missile";
 
-	"oolite-ship-library-description-adder"	= "The Adder is the smallest ship capable of fitting a witchdrive. It has little else to recommend it, but its low price and reliability makes it useful in high-risk mining and salvage operations";
+	"oolite-ship-library-description-adder"	= "The Adder is the smallest ship capable of fitting a witchdrive. It has little else to recommend it other than extreme manoeuvrability, but its low price and reliability makes it useful in high-risk mining and salvage operations";
 	"oolite-ship-library-description-anaconda"	= "The Anaconda's large interior is almost entirely cargo space, leaving the ship little room for engines or generators. As a bulk cargo hauler, however, no other ship can carry anywhere near as much - but it requires a strong escort in all but the safest systems.";
 	"oolite-ship-library-description-asp"	= "The Asp is a pure fighter, with powerful shields and excellent speed. It is most popular with military organisations where the lack of cargo space and singular missile pylon are not significant disadvantages, but it also sees some more peaceful use as a fast courier.";
 	"oolite-ship-library-description-asteroid"	= "Asteroids and other smaller rocky bodies are found throughout Cooperative space. As a minor hazard to navigation there is a small fee paid for their destruction, but more usually they are broken apart by mining ships for possible mineral content.";

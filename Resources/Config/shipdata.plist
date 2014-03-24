@@ -3407,6 +3407,7 @@
 		frangible = 0;
 		has_ecm = yes;
 		has_escape_pod = yes;
+		hyperspace_motor = no;
 		is_template = 1;
 		laser_color = "magentaColor";
 		materials = 
