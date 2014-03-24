@@ -75,6 +75,13 @@
 
 @implementation StationEntity
 
+/* Override ShipEntity: stations of CLASS_ROCK or CLASS_CARGO are not automatically unpiloted. */
+- (BOOL)isUnpiloted
+{
+	return [self isExplicitlyUnpiloted] || [self isHulk];
+}
+
+
 - (OOTechLevelID) equivalentTechLevel
 {
 	return equivalentTechLevel;
@@ -2029,12 +2036,15 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		// TODO: We're potentially cancelling docking at another station, so
 		//       ensure we clear the timer to allow NPC traffic.  If we
 		//       don't, normal traffic will resume once the timer runs out.
-		
 		// No clearance is needed, but don't send friendly messages to hostile ships!
 		if (!(([other isPlayer] && [other hasHostileTarget]) || (self == [UNIVERSE station] && [other bounty] > 50)))
+		{
 			[self sendExpandedMessage:@"[station-docking-clearance-not-required]" toShip:other];
+		}
 		if ([other isPlayer])
+		{
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
+		}
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
 
