@@ -2730,7 +2730,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	else
 	{
-		NSInteger negative = (lines % 2) ? (lines - 1) / 2 : lines / 2;
+		NSInteger negative = (lines - 1) / 2;
 		NSInteger positive = lines / 2;
 		for (NSInteger i = -negative; i <= positive; i++)
 		{
