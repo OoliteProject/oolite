@@ -209,14 +209,14 @@ static NSTimeInterval	time_last_frame;
 			else if (iValue <= 0xFF)  keychar = iValue;
 			else continue;
 			
-			[kdic setObject:[NSNumber numberWithUnsignedChar:keychar] forKey:key];
+			[kdic setObject:[NSNumber numberWithUnsignedShort:keychar] forKey:key];
 		}
 	}
 
 	// set default keys.
-#define LOAD_KEY_SETTING(name, default)	name = [kdic oo_unsignedShortForKey:@#name defaultValue:default]; [kdic setObject:[NSNumber numberWithUnsignedChar:name] forKey:@#name]
+#define LOAD_KEY_SETTING(name, default)	name = [kdic oo_unsignedShortForKey:@#name defaultValue:default]; [kdic setObject:[NSNumber numberWithUnsignedShort:name] forKey:@#name];
 
-#define LOAD_KEY_SETTING_ALIAS(name, oldname, default) name = [kdic oo_unsignedShortForKey:@#name defaultValue:[kdic oo_unsignedShortForKey:@#oldname defaultValue:default]]; [kdic setObject:[NSNumber numberWithUnsignedChar:name] forKey:@#name]
+#define LOAD_KEY_SETTING_ALIAS(name, oldname, default) name = [kdic oo_unsignedShortForKey:@#name defaultValue:[kdic oo_unsignedShortForKey:@#oldname defaultValue:default]]; [kdic setObject:[NSNumber numberWithUnsignedShort:name] forKey:@#name]
 
 	
 	LOAD_KEY_SETTING(key_roll_left,				gvArrowKeyLeft		);
@@ -3562,9 +3562,13 @@ static BOOL autopilot_pause;
 				}
 				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 4+row_zero)
 				{
-					[self setGuiToOXZManager];
+					[self setGuiToKeySettingsScreen];
 				}
 				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 5+row_zero)
+				{
+					[self setGuiToOXZManager];
+				}
+				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 6+row_zero)
 				{
 					[[UNIVERSE gameController] exitAppWithContext:@"Exit Game selected on start screen"];
 				}
@@ -3580,6 +3584,13 @@ static BOOL autopilot_pause;
 			}
 			break;
 			
+		case GUI_SCREEN_KEYBOARD:
+			if ([gameView isDown:' '])	//  '<space>'
+			{
+				[self setGuiToIntroFirstGo:YES];
+			}
+			break;
+
 		case GUI_SCREEN_INTRO2:
 			if ([gameView isDown:' '])	//  '<space>'
 			{

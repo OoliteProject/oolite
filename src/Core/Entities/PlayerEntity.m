@@ -2100,7 +2100,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_OXZMANAGER && gui_screen != GUI_SCREEN_LOAD))
+	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_OXZMANAGER && gui_screen != GUI_SCREEN_LOAD && gui_screen != GUI_SCREEN_KEYBOARD))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
@@ -2704,6 +2704,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_MAIN:
 			case GUI_SCREEN_INTRO1:
 			case GUI_SCREEN_INTRO2:
+			case GUI_SCREEN_KEYBOARD:
 			case GUI_SCREEN_NEWGAME:
 			case GUI_SCREEN_OXZMANAGER:
 			case GUI_SCREEN_MARKET:
@@ -8346,7 +8347,15 @@ static NSString *last_outfitting_key=nil;
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
-	[gui setSelectableRange:NSMakeRange(22,5)];
+	++row;
+
+	text = DESC(@"oolite-start-option-6");
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+
+	[gui setSelectableRange:NSMakeRange(22,6)];
 	[gui setSelectedRow:22];
 
 	[gui setBackgroundTextureKey:@"intro"];
@@ -8471,6 +8480,90 @@ static NSString *last_outfitting_key=nil;
 	{
 		[gui setBackgroundTextureKey:@"shiplibrary"];
 	}
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+}
+
+
+- (void) setGuiToKeySettingsScreen
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSUInteger i,j,ct;
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+	[[UNIVERSE gameView] clearMouse];
+	[UNIVERSE removeDemoShips];
+
+	[gui setTitle:DESC(@"oolite-keysetting-screen")];
+
+	gui_screen = GUI_SCREEN_KEYBOARD;
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+	tab_stops[1] = 115;
+	tab_stops[2] = 170;
+	tab_stops[3] = 285;
+	tab_stops[4] = 340;
+	tab_stops[5] = 455;
+	[gui setTabStops:tab_stops];
+
+	NSArray *keys = [NSArray arrayWithObjects:
+		 @"key_roll_left",@"key_pitch_forward",@"key_yaw_left",
+		 @"key_roll_right",@"key_pitch_back",@"key_yaw_right",
+		 @"key_increase_speed",@"key_decrease_speed",@"key_inject_fuel",
+		 @"key_mouse_control",@"",@"",
+		 @"key_view_forward",@"key_gui_screen_status",@"key_gui_arrow_left", //
+		 @"key_view_aft",@"key_gui_chart_screens",@"key_gui_arrow_right",
+		 @"key_view_port",@"key_gui_system_data",@"key_gui_arrow_up", 
+		 @"key_view_starboard",@"key_gui_market",@"key_gui_arrow_down",
+		 @"key_custom_view",@"key_map_info",@"key_map_home",
+		 @"key_snapshot",@"key_advanced_nav_array",@"key_chart_highlight", //
+		 @"",@"",@"",
+		 @"key_fire_lasers",@"key_launch_missile",@"key_ecm",
+		 @"key_ident_system",@"key_target_missile",@"key_untarget_missile",
+		 @"key_weapons_online_toggle",@"key_next_missile",@"key_target_incoming_missile",
+		 @"key_next_target",@"key_previous_target",@"key_launch_escapepod", //
+		 @"",@"",@"",
+		 @"key_jumpdrive",@"key_hyperspace",@"key_galactic_hyperspace",
+		 @"key_autopilot",@"key_autodock",@"key_docking_clearance_request",
+		 @"key_docking_music",@"",@"",
+		 @"key_scanner_zoom",@"key_dump_cargo",@"key_prev_compass_mode", //
+		 @"key_scanner_unzoom",@"key_rotate_cargo",@"key_next_compass_mode", 
+		 @"key_comms_log",@"key_cycle_mfd",@"key_switch_mfd",
+		 @"",@"",@"",
+		 @"key_prime_equipment",@"key_activate_equipment",@"key_mode_equipment",
+		 @"key_fastactivate_equipment_a",@"key_fastactivate_equipment_b",@"", //
+		 @"",@"",@"",
+		 @"key_pausebutton",@"key_show_fps",@"key_hud_toggle",
+		nil];
+
+	OOGUIRow row = 0;
+	ct = [keys count];
+	for (i=0; i<ct; i+=3)
+	{
+		NSMutableArray *keydefs = [NSMutableArray arrayWithCapacity:6];
+		for (j=0;j<=2;j++)
+		{
+			NSString *key = [keys oo_stringAtIndex:i+j];
+			if ([key length] == 0)
+			{
+				[keydefs addObject:@""];
+				[keydefs addObject:@""];
+			}
+			else
+			{
+				[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite-keydesc-%@]",key])];
+				[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite_%@]",key])];
+			}
+		}
+		[gui setArray:keydefs forRow:row];
+		[gui setColor:[OOColor yellowColor] forRow:row];
+		row++;
+	}
+
+	[gui setText:DESC(@"oolite-keysetting-text") forRow:27 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor whiteColor] forRow:27];
+		 
+	[[OOMusicController sharedController] playThemeMusic];
+	[gui setBackgroundTextureKey:@"keyboardsettings"];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 

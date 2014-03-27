@@ -872,6 +872,7 @@ typedef enum
 
 - (void) setupStartScreenGui;
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
+- (void) setGuiToKeySettingsScreen;
 - (void) setGuiToOXZManager;
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen;

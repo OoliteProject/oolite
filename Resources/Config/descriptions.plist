@@ -1041,8 +1041,10 @@
 	"oolite-start-option-1"			= " Start New Commander ";
 	"oolite-start-option-2"			= " Load Commander ";
 	"oolite-start-option-3"			= " View Ship Library ";
-	"oolite-start-option-4"			= " Manage Expansion Packs ";
-	"oolite-start-option-5"			= " Exit Game ";
+	"oolite-start-option-4"			= " View Keyboard Settings ";
+	"oolite-start-option-5"			= " Manage Expansion Packs ";
+	"oolite-start-option-6"			= " Exit Game ";
+
 
 	"oolite-newgame-title"			= "Start New Commander";
 
@@ -1165,6 +1167,93 @@
 	"oolite-ship-library-description-viperinterceptor"	= "This next generation police fighter has recently been introduced as a replacement for the aging Viper design. Expensive to build and maintain, it is rarely seen except in the richest systems, where it is extremely effective in securing the space lanes against piracy.";
 	"oolite-ship-library-description-worm"	= "A light transport craft similar to the orbital shuttle in capacity but with a longer range. Its weapon mounting is usually used by miners for a cheap mining ship, but particularly desperate pilots have been known to fit it with a pulse laser and use it as a (very) light escort craft.";
 
+	"oolite-keysetting-screen" 		= "Keyboard Settings";
+	"oolite-keysetting-text" 		= "See documentation for more information. Press space to return to the menu";
+
+	"oolite-keydesc-key_roll_left"				= "Roll left";
+	"oolite-keydesc-key_roll_right"				= "Roll right";
+	"oolite-keydesc-key_pitch_forward"			= "Pitch down";
+	"oolite-keydesc-key_pitch_back"				= "Pitch up";
+	"oolite-keydesc-key_yaw_left"				= "Yaw left";
+	"oolite-keydesc-key_yaw_right"				= "Yaw right";
+
+	"oolite-keydesc-key_view_forward"			= "Forward view";
+	"oolite-keydesc-key_view_aft"				= "Aft view";
+	"oolite-keydesc-key_view_port"				= "Port view";
+	"oolite-keydesc-key_view_starboard"			= "Starboard view";
+
+	"oolite-keydesc-key_gui_screen_status"		= "Status screens";
+	"oolite-keydesc-key_gui_chart_screens"		= "Chart screens";
+	"oolite-keydesc-key_gui_system_data"		= "System screens";
+	"oolite-keydesc-key_gui_market"				= "Market screens";
+
+	"oolite-keydesc-key_gui_arrow_left"			= "GUI Left";
+	"oolite-keydesc-key_gui_arrow_right"		= "GUI Right";
+	"oolite-keydesc-key_gui_arrow_up"			= "GUI Up";
+	"oolite-keydesc-key_gui_arrow_down"			= "GUI Down";
+
+	"oolite-keydesc-key_increase_speed"			= "Accelerate";
+	"oolite-keydesc-key_decrease_speed"			= "Decelerate";
+	"oolite-keydesc-key_inject_fuel"			= "Fuel Injectors";
+
+	"oolite-keydesc-key_fire_lasers"			= "Fire laser";
+	"oolite-keydesc-key_weapons_online_toggle"	= "Weapons toggle";
+	"oolite-keydesc-key_launch_missile"			= "Launch missile";
+	"oolite-keydesc-key_next_missile"			= "Next missile";
+	"oolite-keydesc-key_ecm"					= "ECM";
+
+	"oolite-keydesc-key_prime_equipment"		= "Select item";
+	"oolite-keydesc-key_activate_equipment"		= "Item button 1";
+	"oolite-keydesc-key_mode_equipment"			= "Item button 2";
+	"oolite-keydesc-key_fastactivate_equipment_a" = "Item shortcut 1";
+	"oolite-keydesc-key_fastactivate_equipment_b" = "Item shortcut 2";
+
+	"oolite-keydesc-key_target_incoming_missile"	= "Target incoming";
+	"oolite-keydesc-key_target_missile"			= "Target missile";
+	"oolite-keydesc-key_untarget_missile"		= "Untarget missile";
+	"oolite-keydesc-key_ident_system"			= "Ident system";
+
+	"oolite-keydesc-key_scanner_zoom"			= "Zoom scanner";
+	"oolite-keydesc-key_scanner_unzoom"			= "Unzoom scanner";
+
+	"oolite-keydesc-key_launch_escapepod"		= "Escape Pod";
+
+	"oolite-keydesc-key_galactic_hyperspace"	= "Galactic jump";
+	"oolite-keydesc-key_hyperspace"				= "Witchspace jump";
+	"oolite-keydesc-key_jumpdrive"				= "Torus drive";
+
+	"oolite-keydesc-key_dump_cargo"				= "Dump cargo";
+	"oolite-keydesc-key_rotate_cargo"			= "Rotate cargo";
+
+	"oolite-keydesc-key_autopilot"				= "Docking computer";
+	"oolite-keydesc-key_autodock"				= "Fast docking";
+	"oolite-keydesc-key_docking_clearance_request"	= "Request clearance";
+
+	"oolite-keydesc-key_snapshot"				= "Take snapshot";
+	"oolite-keydesc-key_docking_music"			= "Docking music";
+
+	"oolite-keydesc-key_advanced_nav_array"		= "Route planner";
+	"oolite-keydesc-key_map_home"				= "Home map";
+	"oolite-keydesc-key_map_info"				= "Show chart icons";
+
+	"oolite-keydesc-key_pausebutton"			= "Pause";
+	"oolite-keydesc-key_show_fps"				= "Show FPS";
+	"oolite-keydesc-key_mouse_control"			= "Mouse control";
+	"oolite-keydesc-key_hud_toggle"				= "Toggle HUD";
+
+	"oolite-keydesc-key_comms_log"				= "Comms log";
+	"oolite-keydesc-key_prev_compass_mode"		= "ASC back";
+	"oolite-keydesc-key_next_compass_mode"		= "ASC forward";
+
+	"oolite-keydesc-key_chart_highlight"			= "Chart highlight";
+
+	"oolite-keydesc-key_cycle_mfd"				= "Cycle MFD";
+	"oolite-keydesc-key_switch_mfd"				= "Select MFD";
+
+	"oolite-keydesc-key_next_target"				= "Next target";
+	"oolite-keydesc-key_previous_target"			= "Previous target";
+
+	"oolite-keydesc-key_custom_view"				= "External view";
 
 	"oolite-loadsave-exit"			= "Return to Menu";
 	"oolite-scenario-exit"			= "Return to Menu";
@@ -1768,10 +1857,10 @@
 	"oolite-keycode-f9"		= "F9";
 	"oolite-keycode-f10"	= "F10";
 	"oolite-keycode-f11"	= "F11";
-	"oolite-keycode-right"	= "Right Arrow";
-	"oolite-keycode-left"	= "Left Arrow";
-	"oolite-keycode-down"	= "Down Arrow";
-	"oolite-keycode-up"		= "Up Arrow";
+	"oolite-keycode-right"	= "Right";
+	"oolite-keycode-left"	= "Left";
+	"oolite-keycode-down"	= "Down";
+	"oolite-keycode-up"		= "Up";
 	"oolite-keycode-home"	= "Home";
 	"oolite-keycode-end"	= "End";
 	"oolite-keycode-insert"	= "Insert";

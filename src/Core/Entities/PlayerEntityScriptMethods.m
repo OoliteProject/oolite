@@ -382,7 +382,7 @@ MA 02110-1301, USA.
 		// no such setting
 		return nil;
 	}
-	OOKeyCode key = (OOKeyCode)[keyconfig_settings oo_unsignedCharForKey:binding];
+	OOKeyCode key = (OOKeyCode)[keyconfig_settings oo_unsignedShortForKey:binding];
 	// 0 = key not set
 	return [self keyCodeDescription:key];
 }
