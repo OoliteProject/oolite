@@ -1844,7 +1844,7 @@
 	// translations of special keys
 	"oolite-keycode-unset"	= "(not set)";
 	"oolite-keycode-tab"	= "Tab";
-	"oolite-keycode-esc"	= "Escape";
+	"oolite-keycode-esc"	= "Esc";
 	"oolite-keycode-space"	= "Space";
 	"oolite-keycode-f1"		= "F1";
 	"oolite-keycode-f2"		= "F2";

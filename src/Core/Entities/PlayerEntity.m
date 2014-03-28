@@ -8551,7 +8551,14 @@ static NSString *last_outfitting_key=nil;
 			else
 			{
 				[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite-keydesc-%@]",key])];
-				[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite_%@]",key])];
+				if (EXPECT_NOT([key isEqualToString:@"key_launch_escapepod"]))
+				{
+					[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite_%@]+[oolite_%@]",key,key])];
+				}
+				else
+				{
+					[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite_%@]",key])];
+				}
 			}
 		}
 		[gui setArray:keydefs forRow:row];
