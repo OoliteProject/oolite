@@ -10189,6 +10189,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	if (strictChanged)
 	{
 		[self loadDescriptions];
+		[self loadScenarios];
 		
 		[missiontext autorelease];
 		missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
