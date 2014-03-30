@@ -1365,6 +1365,11 @@ this._addFreighter = function(pos)
 				if (Math.random() < 0.5 && t[0].autoAI)
 				{
 					t[0].switchAI("oolite-traderOpportunistAI.js");
+					if (t[0].autoWeapons)
+					{
+						this._setSkill(t[0],2); // need to be decent pilots to make this work
+						this._setWeapons(t[0],2.5); // boost weapons
+					}
 					goods = "PIRATE_GOODS";
 				} 
 				var eg = t[0].escortGroup.ships;

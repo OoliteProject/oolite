@@ -2117,9 +2117,12 @@ PriorityAIController.prototype.conditionScannerContainsLoneVictim = function()
 	var target = null;
 	for (var i = scan.length-1 ; i >= 0 ; i--)
 	{
-		if (!this.allied(this.ship,scan[i]) && this.shipInRoleCategory(scan[i],"oolite-pirate-victim") && scan[i].cargoSpaceCapacity > 0)
+		if (!this.allied(this.ship,scan[i]))
 		{
-			target = scan[i];
+			if (this.shipInRoleCategory(scan[i],"oolite-pirate-victim") && scan[i].cargoSpaceCapacity > 0)
+			{
+				target = scan[i];
+			}
 			others++;
 		}
 	}

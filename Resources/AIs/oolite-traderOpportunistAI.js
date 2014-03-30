@@ -75,8 +75,13 @@ this.aiStarted = function() {
 		{
 			condition: ai.conditionScannerContainsLoneVictim,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
-			reconsider: 20
+			truebranch: [
+				{
+					condition: ai.conditionCombatOddsGood,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 20
+				}
+			]
 		},
 		{
 			condition: ai.conditionCargoIsProfitableHere,
