@@ -5260,7 +5260,36 @@ PriorityAIController.prototype.responseComponent_standard_shipFiredMissile = fun
 
 PriorityAIController.prototype.responseComponent_standard_shipKilledOther = function(other)
 {
-	this.communicate("oolite_killedTarget",other,3);
+	if (this.ship.target == other)
+	{
+		if (this.allied(this.ship,other))
+		{
+			this.communicate("oolite_killedAlly",other,3);
+		}
+		else if (other.crew && other.crew.length > 0)
+		{
+			this.communicate("oolite_killedTarget",other,2);
+		}
+		else
+		{
+			this.communicate("oolite_killedUncrewedTarget",other,3);
+		}
+	}
+	else
+	{
+		if (this.allied(this.ship,other))
+		{
+			this.communicate("oolite_killedAlly",other,3);
+		}
+		else if (other.crew && other.crew.length > 0)
+		{
+			this.communicate("oolite_killedNonTarget",other,3);
+		}
+		else
+		{
+			this.communicate("oolite_killedUncrewedNonTarget",other,3);
+		}
+	}
 }
 
 
@@ -5572,7 +5601,37 @@ PriorityAIController.prototype.responseComponent_station_shipFiredMissile = func
 
 PriorityAIController.prototype.responseComponent_station_shipKilledOther = function(other)
 {
-	this.communicate("oolite_killedTarget",other,3);
+	// slightly lower message priorities than the ship version
+	if (this.ship.target == other)
+	{
+		if (this.allied(this.ship,other))
+		{
+			this.communicate("oolite_killedAlly",other,3);
+		}
+		else if (other.crew && other.crew.length > 0)
+		{
+			this.communicate("oolite_killedTarget",other,3);
+		}
+		else
+		{
+			this.communicate("oolite_killedUncrewedTarget",other,4);
+		}
+	}
+	else
+	{
+		if (this.allied(this.ship,other))
+		{
+			this.communicate("oolite_killedAlly",other,3);
+		}
+		else if (other.crew && other.crew.length > 0)
+		{
+			this.communicate("oolite_killedNonTarget",other,3);
+		}
+		else
+		{
+			this.communicate("oolite_killedUncrewedNonTarget",other,4);
+		}
+	}
 }
 
 
@@ -6320,6 +6379,9 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_beginningAttackInanimate = "I've got you this time, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
 	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
+	this.$commsSettings.station = { generic: {} };
+	this.$commsSettings.station.generic.oolite_killedNonTarget = "Pull up, [oolite_entityName]!";
+	this.$commsSettings.generic.generic.oolite_killedAlly = "No! [oolite_entityName]!";
 	this.$commsSettings.pirate.generic.oolite_hitTarget = "Where's the cargo, [oolite_entityName]?";
 	this.$commsSettings.generic.generic.oolite_friendlyFire = "Watch where you're shooting, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_eject = "Condition critical! I'm bailing out...";
