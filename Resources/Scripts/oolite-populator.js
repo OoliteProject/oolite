@@ -79,6 +79,7 @@ this.systemWillPopulate = function()
 								var nb = system.addShips("buoy",1,pos,0)[0];
 								nb.scanClass = "CLASS_BUOY";
 								nb.reactToAIMessage("START_TUMBLING");
+								nb.beaconLabel = "[oolite-beacon-label-station]";
 							},
 							deterministic: true
 						});
@@ -92,6 +93,7 @@ this.systemWillPopulate = function()
 								var wb = system.addShips("buoy-witchpoint",1,pos,0)[0];
 								wb.scanClass = "CLASS_BUOY";
 								wb.reactToAIMessage("START_TUMBLING");
+								wb.beaconLabel = "[oolite-beacon-label-witchpoint]";
 							},
 							deterministic: true
 						});

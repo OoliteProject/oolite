@@ -850,6 +850,10 @@
 	"@-damaged"						= "%@ damaged.";
 	"@-destroyed"					= "%@ destroyed.";
 	
+	// beacon labels
+	"oolite-beacon-label-station"		= "%H Station";
+	"oolite-beacon-label-witchpoint"	= "Witchpoint";
+
 	// icons for the hud
 	"EQ_HARDENED_MISSILE" =
 	(
