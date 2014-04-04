@@ -672,6 +672,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 		if (!isMoon)
 		{
+			OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
 			/* Generate the atmosphere texture anyway */
 			OOTexture *diffuseTmp = nil;
 			OOTexture *atmosphere = nil;
@@ -679,6 +680,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 									   secondaryTexture:NULL
 										  andAtmosphere:&atmosphere
 											   withInfo:_materialParameters];
+
+			OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
 
 			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
 			[_atmosphereDrawable setMaterial:dynamicMaterial];

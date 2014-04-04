@@ -151,7 +151,7 @@ enum
 	// AllowCubeMap not used yet but might be in future
 	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
-		OOLog(@"texture.planet.generate",@"Extracting parameters");
+		OOLog(@"texture.planet.generate",@"Extracting parameters for generator %@",self);
 
 		_info.landFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"land_fraction" defaultValue:0.3]);
 		_info.landColor = FloatRGBFromDictColor(planetInfo, @"land_color");
@@ -269,6 +269,8 @@ enum
 		}
 		return NO;
 	}
+
+	OOLog(@"texture.planet.generate",@"Generator %@ has atmosphere %@",diffuseGen,*atmosphere);
 	
 	*texture = [OOTexture textureWithGenerator:diffuseGen];
 	return *texture != nil;
