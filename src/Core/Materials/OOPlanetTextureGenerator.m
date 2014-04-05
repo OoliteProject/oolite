@@ -99,9 +99,10 @@ enum
 @private
 	NSString				*_cacheKey;
 	RANROTSeed				_seed;
+	OOPlanetTextureGenerator	*_parent;
 }
 
-- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed;
+- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed andParent:(OOPlanetTextureGenerator *)parent;
 
 - (void) completeWithData:(void *)data width:(unsigned)width height:(unsigned)height;
 
@@ -332,7 +333,7 @@ enum
 {
 	if (_atmoGenerator == nil)
 	{
-		_atmoGenerator = [[OOPlanetAtmosphereGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"atmo"] seed:_info.seed];
+		_atmoGenerator = [[OOPlanetAtmosphereGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"atmo"] seed:_info.seed andParent:self];
 	}
 	return _atmoGenerator;
 }
@@ -1243,7 +1244,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 
 @implementation OOPlanetAtmosphereGenerator
 
-- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed
+- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed andParent:(OOPlanetTextureGenerator *)parent;
 {
 	OOLog(@"texture.planet.generate",@"Initialising atmosphere generator %@",cacheKey);
 	// AllowCubeMap not used yet but might be in future
@@ -1251,6 +1252,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 	{
 		_cacheKey = [cacheKey copy];
 		_seed = seed;
+		_parent = [parent retain];
 	}
 	return self;
 }
@@ -1259,7 +1261,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 - (void) dealloc
 {
 	DESTROY(_cacheKey);
-	
+	DESTROY(_parent);
 	[super dealloc];
 }
 
@@ -1285,6 +1287,32 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 - (void) loadTexture
 {
 	// Do nothing.
+}
+
+
+/* Because of the hack to avoid making texture loaders need to know
+ * about multiple textures, when we call the atmosphere generator on a
+ * planet with a from-file texture, things can occasionally go wrong
+ * because this isn't queued until after it's ready, but might be
+ * requested from the queue before then. So, when getResult is called,
+ * it waits for its parent task to complete if it's not itself ready -
+ * by the time the parent task is complete, this texture loader will
+ * have been enqueued, and [super getResult] will then work
+ * properly. - CIM 2014-04-05 */
+- (BOOL) getResult:(OOPixMap *)result
+			format:(OOTextureDataFormat *)outFormat
+	 originalWidth:(uint32_t *)outWidth
+	originalHeight:(uint32_t *)outHeight
+{
+	if (!_ready)
+	{
+		[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:_parent];
+	}
+
+	return [super getResult:result
+					 format:outFormat
+			  originalWidth:outWidth
+			 originalHeight:outHeight];
 }
 
 
