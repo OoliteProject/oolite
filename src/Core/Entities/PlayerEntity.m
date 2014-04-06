@@ -4206,14 +4206,29 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSString *) compassTargetLabel
 {
-	if (compassMode != COMPASS_MODE_BEACONS)
+	switch (compassMode)
 	{
+	case COMPASS_MODE_INACTIVE:
+		return @"";
+	case COMPASS_MODE_BASIC:
+		return @"";
+	case COMPASS_MODE_BEACONS:
+	{
+		Entity *target = [self compassTarget];
+		if (target)
+		{
+			return [(Entity <OOBeaconEntity> *)target beaconLabel];
+		}
 		return @"";
 	}
-	Entity *target = [self compassTarget];
-	if (target)
-	{
-		return [(Entity <OOBeaconEntity> *)target beaconLabel];
+	case COMPASS_MODE_PLANET:
+		return [[UNIVERSE planet] name];
+	case COMPASS_MODE_SUN:
+		return [[UNIVERSE sun] name];
+	case COMPASS_MODE_STATION:
+		return [[UNIVERSE station] displayName];
+	case COMPASS_MODE_TARGET:
+		return DESC(@"[oolite-beacon-label-target]");
 	}
 	return @"";
 }

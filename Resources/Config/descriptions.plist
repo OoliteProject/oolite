@@ -853,6 +853,8 @@
 	// beacon labels
 	"oolite-beacon-label-station"		= "%H Station";
 	"oolite-beacon-label-witchpoint"	= "Witchpoint";
+	"oolite-beacon-label-target"		= "Target";
+	"oolite-default-star-name"			= "Star";
 
 	// icons for the hud
 	"EQ_HARDENED_MISSILE" =

@@ -1073,7 +1073,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		OOLogWARN(@"universe.setup.badSun",@"Sun positioning: max iterations exceeded for '%@'. Adjust radius, sun_radius or sun_distance_modifier.",[systeminfo objectForKey: @"name"]);
 	}
 	
-	NSMutableDictionary *sun_dict = [NSMutableDictionary dictionaryWithCapacity:4];
+	NSMutableDictionary *sun_dict = [NSMutableDictionary dictionaryWithCapacity:5];
 	[sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
 	dict_object=[systeminfo objectForKey: @"corona_shimmer"];
 	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_shimmer"];
@@ -1094,6 +1094,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	else
 	{
 		[sun_dict setObject:[NSNumber numberWithFloat:defaultSunFlare] forKey:@"corona_flare"];
+	}
+	dict_object=[systeminfo objectForKey:KEY_SUNNAME];
+	if (dict_object!=nil) 
+	{
+		[sun_dict setObject:dict_object forKey:KEY_SUNNAME];
 	}
 	
 	a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:sun_dict];	// alloc retains!

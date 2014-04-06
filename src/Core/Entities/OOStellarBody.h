@@ -59,4 +59,7 @@ typedef enum
 - (double) radius;
 - (OOStellarBodyType) planetType;
 
+- (NSString *) name;
+- (void) setName:(NSString *)name;
+
 @end

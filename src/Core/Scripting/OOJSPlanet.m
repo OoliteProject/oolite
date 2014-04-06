@@ -60,6 +60,7 @@ enum
 	// Property IDs
 	kPlanet_isMainPlanet,		// Is [UNIVERSE planet], boolean, read-only
 	kPlanet_hasAtmosphere,
+	kPlanet_name,				// Name of planet, string, read/write
 	kPlanet_radius,				// Radius of planet in metres, read-only
 	kPlanet_texture,			// Planet texture read / write
 	kPlanet_orientation,		// orientation, quaternion, read/write
@@ -72,6 +73,7 @@ static JSPropertySpec sPlanetProperties[] =
 	// JS name					ID							flags
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		OOJS_PROP_READONLY_CB },
 	{ "isMainPlanet",			kPlanet_isMainPlanet,		OOJS_PROP_READONLY_CB },
+	{ "name",					kPlanet_name,				OOJS_PROP_READWRITE_CB },
 	{ "radius",					kPlanet_radius,				OOJS_PROP_READONLY_CB },
 	{ "rotationalVelocity",		kPlanet_rotationalVelocity,	OOJS_PROP_READWRITE_CB },
 	{ "texture",				kPlanet_texture,			OOJS_PROP_READWRITE_CB },
@@ -149,6 +151,10 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 			*value = OOJSValueFromNativeObject(context, [planet textureFileName]);
 			return YES;
 			
+		case kPlanet_name:
+			*value = OOJSValueFromNativeObject(context, [planet name]);
+			return YES;
+
 		case kPlanet_orientation:
 			return QuaternionToJSValue(context, [planet normalOrientation], value);
 		
@@ -179,6 +185,12 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	switch (JSID_TO_INT(propID))
 	{
+
+		case kPlanet_name:
+			sValue = OOStringFromJSValue(context, *value);
+			[planet setName:sValue];
+			return YES;
+
 		case kPlanet_texture:
 		{
 			BOOL OK = NO;

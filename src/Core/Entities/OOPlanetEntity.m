@@ -47,6 +47,7 @@ MA 02110-1301, USA.
 #import "OOShaderMaterial.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOGraphicsResetManager.h"
+#import "OOStringExpander.h"
 
 @interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
@@ -96,6 +97,9 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	seed_for_planet_description(seed);
 	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:seed] mutableCopy];
 	[planetInfo autorelease];
+
+	_name = nil;
+	[self setName:OOExpand([dict oo_stringForKey:KEY_PLANETNAME defaultValue:[planetInfo oo_stringForKey:KEY_PLANETNAME defaultValue:@"%H"]])];
 	
 	int radius_km = [dict oo_intForKey:KEY_RADIUS defaultValue:[planetInfo oo_intForKey:KEY_RADIUS]];
 	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
@@ -352,6 +356,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) dealloc
 {
+	DESTROY(_name);
 	DESTROY(_planetDrawable);
 	DESTROY(_atmosphereDrawable);
 	//DESTROY(_airColor);	// this CTDs on loading savegames.. :(
@@ -753,6 +758,19 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (OOMaterial *) atmosphereMaterial
 {
 	return [_atmosphereDrawable material];
+}
+
+
+- (NSString *) name
+{
+	return _name;
+}
+
+
+- (void) setName:(NSString *)name
+{
+	[_name release];
+	_name = [name retain];
 }
 
 @end

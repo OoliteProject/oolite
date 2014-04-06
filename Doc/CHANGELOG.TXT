@@ -112,6 +112,7 @@ New properties:
 ---------------
 * entity.isWormhole
 * oolite.gameSettings.keyConfig
+* planet.name
 * player.cargoReputationPrecise
 * player.parcelReputationPrecise
 * player.passengerReputationPrecise
@@ -142,6 +143,7 @@ New properties:
 * ship.shipUniqueName
 * station.allegiance
 * station.market[*].legalPenalty
+* sun.name
 * system.populatorSettings
 * system.stations
 * system.waypoints
@@ -252,8 +254,10 @@ New properties:
 * hud.plist: scanner_ultra_zoom
 * planetinfo.plist: nebula_color_1
 * planetinfo.plist: nebula_color_2
+* planetinfo.plist: planet_name
 * planetinfo.plist: populator
 * planetinfo.plist: repopulator
+* planetinfo.plist: sun_name
 * shipdata.plist: auto_weapons
 * shipdata.plist: escort_roles
 * shipdata.plist: exhaust_emissive_color

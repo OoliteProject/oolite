@@ -2750,9 +2750,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawASCTarget:(NSDictionary *)info
 {
-	if ([PLAYER status] == STATUS_DOCKED || [PLAYER compassMode] != COMPASS_MODE_BEACONS)
+	if (!([self checkPlayerInSystemFlight] && [PLAYER status] != STATUS_LAUNCHING)) // normal system
 	{
-		// Can't have compass target when docked, and only needed in beacon mode
+		// Can't have compass target when docked, etc. (matches blip condition)
 		return;
 	}
 	

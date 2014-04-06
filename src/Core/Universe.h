@@ -107,6 +107,8 @@ enum
 #define KEY_INHABITANTS						@"inhabitants"
 #define KEY_DESCRIPTION						@"description"
 #define KEY_SHORT_DESCRIPTION				@"short_description"
+#define KEY_PLANETNAME						@"planet_name"
+#define KEY_SUNNAME							@"sun_name"
 
 #define KEY_CHANCE							@"chance"
 #define KEY_PRICE							@"price"
