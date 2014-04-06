@@ -80,7 +80,7 @@ this.aiStarted = function() {
 			preconfiguration: ai.configurationCheckScanner,
 			condition: ai.conditionScannerContainsFugitive,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
+			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
 		{
@@ -91,7 +91,7 @@ this.aiStarted = function() {
 				 * odds they'll never shoot anything */
 				{
 					notcondition: ai.conditionCombatOddsBad,
-					behaviour: ai.behaviourDestroyCurrentTarget,
+					behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 					reconsider: 1
 				}
 			]

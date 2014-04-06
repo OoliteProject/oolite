@@ -2722,6 +2722,13 @@ PriorityAIController.prototype.behaviourCollectSalvage = function()
 }
 
 
+PriorityAIController.prototype.behaviourCommenceAttackOnCurrentTarget = function()
+{
+	this.communicate("oolite_beginningFight",this.ship.target,3);
+	this.behaviourDestroyCurrentTarget();
+}
+
+
 PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 {
 	this.setParameter("oolite_witchspaceEntry",null);
@@ -6361,7 +6368,7 @@ this.startUp = function()
 		},
 		assassin: {
 			generic: {
-				oolite_beginningAttack: "[oolite-comms-contractAttack]",
+				oolite_beginningFight: "[oolite-comms-contractAttack]",
 			}
 		},
 		_thargoid: {
@@ -6379,6 +6386,8 @@ this.startUp = function()
 	this.$commsSettings.generic.generic.oolite_beginningAttackInanimate = "I've got you this time, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
 	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
+	this.$commsSettings.hunter = { generic: {} };
+	this.$commsSettings.hunter.generic.oolite_beginningFight = "Now there's an [oolite_entityName] with a decent bounty. Attack!";
 	this.$commsSettings.station = { generic: {} };
 	this.$commsSettings.station.generic.oolite_killedNonTarget = "Pull up, [oolite_entityName]!";
 	this.$commsSettings.generic.generic.oolite_killedAlly = "No! [oolite_entityName]!";

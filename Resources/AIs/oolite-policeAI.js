@@ -86,13 +86,13 @@ this.aiStarted = function() {
 			preconfiguration: ai.configurationCheckScanner,
 			condition: ai.conditionScannerContainsFugitive,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
+			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
 		{
 			condition: ai.conditionScannerContainsSeriousOffender,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
+			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
 		{
