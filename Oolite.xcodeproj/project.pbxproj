@@ -461,6 +461,8 @@
 		1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */; };
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
+		1AD2E31618F17BC700239EBB /* OOShipLibraryDescriptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD2E31418F17BC700239EBB /* OOShipLibraryDescriptions.h */; };
+		1AD2E31718F17BC700239EBB /* OOShipLibraryDescriptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD2E31518F17BC700239EBB /* OOShipLibraryDescriptions.m */; };
 		1AD3C339163A92F600469C4D /* OOOpenGLStateManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */; };
 		1AD8522517947BD600CBE743 /* OOHPVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD8522317947BD600CBE743 /* OOHPVector.h */; };
 		1AD8522617947BD600CBE743 /* OOHPVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD8522417947BD600CBE743 /* OOHPVector.m */; };
@@ -1565,6 +1567,8 @@
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; languageSpecificationIdentifier = plist; path = autoAImap.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
+		1AD2E31418F17BC700239EBB /* OOShipLibraryDescriptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShipLibraryDescriptions.h; sourceTree = "<group>"; };
+		1AD2E31518F17BC700239EBB /* OOShipLibraryDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShipLibraryDescriptions.m; sourceTree = "<group>"; };
 		1AD3C338163A92F600469C4D /* OOOpenGLStateManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLStateManager.m; sourceTree = "<group>"; };
 		1AD5A81B12D3A9FD00B62503 /* exports-debug-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = "exports-debug-64.exp"; path = "src/Cocoa/exports-debug-64.exp"; sourceTree = "<group>"; };
 		1AD8522317947BD600CBE743 /* OOHPVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOHPVector.h; sourceTree = "<group>"; };
@@ -3043,6 +3047,8 @@
 				1ACEA3480C91507000C7CE97 /* OORoleSet.m */,
 				1A0479E70DC9F81000EE1CD0 /* OOShipRegistry.h */,
 				1A0479E80DC9F81000EE1CD0 /* OOShipRegistry.m */,
+				1AD2E31418F17BC700239EBB /* OOShipLibraryDescriptions.h */,
+				1AD2E31518F17BC700239EBB /* OOShipLibraryDescriptions.m */,
 				1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */,
 				1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */,
 				1A7038A112BB9F5A0015CCDC /* dummy.cpp */,
@@ -3193,6 +3199,7 @@
 				1A26D0BC0BCF9CF80073F257 /* PlayerEntityContracts.h in Headers */,
 				1A26D0BE0BCF9CF80073F257 /* PlanetEntity.h in Headers */,
 				1A26D0C10BCF9CF80073F257 /* Entity.h in Headers */,
+				1AD2E31618F17BC700239EBB /* OOShipLibraryDescriptions.h in Headers */,
 				1A26D0C50BCF9CF80073F257 /* WormholeEntity.h in Headers */,
 				1A92AB711846403200C507E3 /* OOJSExhaustPlume.h in Headers */,
 				1A26D0C70BCF9CF80073F257 /* StationEntity.h in Headers */,
@@ -3696,6 +3703,7 @@
 				1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */,
 				1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */,
 				1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */,
+				1AD2E31718F17BC700239EBB /* OOShipLibraryDescriptions.m in Sources */,
 				1A5DBAA70BC000DC00D57389 /* OOJavaScriptEngine.m in Sources */,
 				1A5DBAA90BC000DC00D57389 /* OOJSScript.m in Sources */,
 				1A5DBAAB0BC000DC00D57389 /* OOPListScript.m in Sources */,
