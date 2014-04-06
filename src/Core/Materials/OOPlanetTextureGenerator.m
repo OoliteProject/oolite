@@ -1244,7 +1244,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 
 @implementation OOPlanetAtmosphereGenerator
 
-- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed andParent:(OOPlanetTextureGenerator *)parent;
+- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed andParent:(OOPlanetTextureGenerator *)parent
 {
 	OOLog(@"texture.planet.generate",@"Initialising atmosphere generator %@",cacheKey);
 	// AllowCubeMap not used yet but might be in future
