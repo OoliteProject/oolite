@@ -4475,6 +4475,8 @@ static const OOMatrix	starboard_matrix =
 			Vector viewOffset = [player viewpointOffset];
 			
 			OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+
+			BOOL		fogging, bpHide = [self breakPatternHide];
 			
 			if (EXPECT(!displayGUI || demoShipMode))
 			{
@@ -4510,7 +4512,6 @@ static const OOMatrix	starboard_matrix =
 				
 				int			furthest = draw_count - 1;
 				int			nearest = 0;
-				BOOL		fogging, bpHide = [self breakPatternHide];
 				BOOL		inAtmosphere = airResistanceFactor > 0.01;
 				GLfloat		fogFactor = 0.5 / airResistanceFactor;
 				double 		fog_scale, half_scale;
@@ -4652,7 +4653,7 @@ static const OOMatrix	starboard_matrix =
 
 			if (EXPECT(!displayGUI || demoShipMode))
 			{
-				if (cachedSun)
+				if (!bpHide && cachedSun)
 				{
 					[cachedSun drawDirectVisionSunGlare];
 					[cachedSun drawStarGlare];
