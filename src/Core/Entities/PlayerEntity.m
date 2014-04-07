@@ -4228,7 +4228,7 @@ static GLfloat		sBaseMass = 0.0;
 	case COMPASS_MODE_STATION:
 		return [[UNIVERSE station] displayName];
 	case COMPASS_MODE_TARGET:
-		return DESC(@"[oolite-beacon-label-target]");
+		return DESC(@"oolite-beacon-label-target");
 	}
 	return @"";
 }
