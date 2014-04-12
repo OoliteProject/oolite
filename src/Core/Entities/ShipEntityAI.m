@@ -372,9 +372,12 @@
 
 - (void) performAttack
 {
-	behaviour = BEHAVIOUR_ATTACK_TARGET;
-	desired_range = 1250 * randf() + 750; // 750 til 2000
-	frustration = 0.0;
+	if (behaviour != BEHAVIOUR_EVASIVE_ACTION)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+		desired_range = 1250 * randf() + 750; // 750 til 2000
+		frustration = 0.0;	
+	}
 }
 
 
@@ -404,11 +407,12 @@
 
 - (void) performFlee
 {
-	behaviour = BEHAVIOUR_FLEE_TARGET;
-
-	[self setEvasiveJink:400.0];
-
-	frustration = 0.0;
+	if (behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION)
+	{
+		behaviour = BEHAVIOUR_FLEE_TARGET;
+		[self setEvasiveJink:400.0];
+		frustration = 0.0;
+	}
 }
 
 
