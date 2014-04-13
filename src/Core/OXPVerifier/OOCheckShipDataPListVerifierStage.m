@@ -184,7 +184,13 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	[self checkModel];
 	
 	NSString *aiName = [info oo_stringForKey:@"ai_type"];
-	if (aiName != nil)  [_aiVerifierStage stateMachineNamed:aiName usedByShip:name];
+	if (aiName != nil) 
+	{
+		if (![aiName hasSuffix:@".js"])
+		{
+			[_aiVerifierStage stateMachineNamed:aiName usedByShip:name];
+		}
+	}
 	
 	// Todo: check for pirates with 0 bounty
 	
