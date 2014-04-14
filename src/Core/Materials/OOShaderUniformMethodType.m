@@ -91,6 +91,7 @@ OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *si
 - (signed long)signedLongMethod;
 - (unsigned long)unsignedLongMethod;
 - (Vector)vectorMethod;
+- (HPVector)hpvectorMethod;
 - (Quaternion)quaternionMethod;
 - (OOMatrix)matrixMethod;
 - (NSPoint)pointMethod;
@@ -116,6 +117,7 @@ static void InitTemplates(void)
 	GET_TEMPLATE(kOOShaderUniformTypeFloat,			floatMethod);
 	GET_TEMPLATE(kOOShaderUniformTypeDouble,		doubleMethod);
 	GET_TEMPLATE(kOOShaderUniformTypeVector,		vectorMethod);
+	GET_TEMPLATE(kOOShaderUniformTypeHPVector,		hpvectorMethod);
 	GET_TEMPLATE(kOOShaderUniformTypeQuaternion,	quaternionMethod);
 	GET_TEMPLATE(kOOShaderUniformTypeMatrix,		matrixMethod);
 	GET_TEMPLATE(kOOShaderUniformTypePoint,			pointMethod);
@@ -205,6 +207,13 @@ static const char *CopyTemplateForSelector(SEL selector)
 - (Vector)vectorMethod
 {
 	Vector v = {0};
+	return v;
+}
+
+
+- (HPVector)hpvectorMethod
+{
+	HPVector v = {0};
 	return v;
 }
 

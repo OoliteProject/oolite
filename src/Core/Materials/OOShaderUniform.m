@@ -269,6 +269,7 @@ SOFTWARE.
 			break;
 			
 		case kOOShaderUniformTypeVector:
+		case kOOShaderUniformTypeHPVector:
 			valueType = @"vec4";
 			break;
 			
@@ -462,6 +463,7 @@ SOFTWARE.
 	GLint						iVal;
 	GLfloat						fVal;
 	Vector						vVal;
+	HPVector					hpvVal;
 	GLfloat						expVVal[4];
 	OOMatrix					mVal;
 	Quaternion					qVal;
@@ -506,6 +508,16 @@ SOFTWARE.
 			expVVal[0] = vVal.x;
 			expVVal[1] = vVal.y;
 			expVVal[2] = vVal.z;
+			expVVal[3] = 1.0f;
+			isVector = YES;
+			break;
+
+		case kOOShaderUniformTypeHPVector:
+			hpvVal = ((HPVectorReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			if (convertNormalize)  hpvVal = HPvector_normal(hpvVal);
+			expVVal[0] = (GLfloat)hpvVal.x;
+			expVVal[1] = (GLfloat)hpvVal.y;
+			expVVal[2] = (GLfloat)hpvVal.z;
 			expVVal[3] = 1.0f;
 			isVector = YES;
 			break;

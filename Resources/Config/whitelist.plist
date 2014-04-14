@@ -348,6 +348,7 @@
 		"position",
 		"orientation",
 		"relativePosition",
+		"cameraRelativePosition",
 		"viewpointOffset",
 		"collisionRadius",
 		"mass",
