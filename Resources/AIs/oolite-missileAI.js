@@ -51,6 +51,12 @@ this.aiStarted = function() {
 			reconsider: 2
 		},
 		{
+			condition: ai.conditionMissileNeedsLaunchEvasion,
+			configuration: ai.configurationMissileAdjustLaunch,
+			behaviour: ai.behaviourApproachDestination,
+			reconsider: 2
+		},
+		{
 			condition: ai.conditionHasTarget,
 			behaviour: ai.behaviourMissileInterceptTarget,
 			reconsider: 5
@@ -67,6 +73,21 @@ this.aiStarted = function() {
 		}
 	]);
 }
+
+
+/* Missile AIs may get started well before the missile is
+ * fired. shipSpawned runs on the first update after addition to the
+ * Universe as an independent entity, so is a suitable time to do this
+ * check. */
+this.shipSpawned = function()
+{
+	/* Launch correction when fired at target in aft arc */ 
+	if (this.ship.target && this.ship.target.position.subtract(this.ship.position).direction().dot(this.ship.vectorForward) < -0.8)
+	{
+		this.oolite_priorityai.setParameter("oolite_flag_launchAdjustMissile",true);
+	}
+}
+
 
 /* ECM response function */
 this._ecmProofMissileResponse = function()
@@ -87,3 +108,4 @@ this._ecmProofMissileResponse = function()
 	}	
 	this.ship.explode();
 }
+

@@ -1134,6 +1134,8 @@ PriorityAIController.prototype.setWitchspaceRouteTo = function(dest)
 	if (system.info.distanceToSystem(info) < this.ship.fuel)
 	{
 		this.setParameter("oolite_witchspaceDestination",dest);
+		this.communicate("oolite_selectedWitchspaceDestination",{"oolite_witchspaceDestination":info.name},4);
+
 		return;
 	}
 	else
@@ -1148,6 +1150,7 @@ PriorityAIController.prototype.setWitchspaceRouteTo = function(dest)
 		if (system.info.distanceToSystem(System.infoForSystem(galaxyNumber,next)) < this.ship.fuel)
 		{
 			this.setParameter("oolite_witchspaceDestination",next);
+			this.communicate("oolite_selectedWitchspaceDestination",{"oolite_witchspaceDestination":System.infoForSystem(galaxyNumber,next).name},4);
 			return;
 		}
 		this.setParameter("oolite_witchspaceDestination",null);
@@ -2536,6 +2539,12 @@ PriorityAIController.prototype.conditionIsGroupLeader = function()
 		return true;
 	}
 	return (this.ship.group.leader == this.ship);
+}
+
+
+PriorityAIController.prototype.conditionMissileNeedsLaunchEvasion = function()
+{
+	return (this.getParameter("oolite_flag_launchAdjustMissile") != null);
 }
 
 
@@ -4152,6 +4161,19 @@ PriorityAIController.prototype.configurationSelectWitchspaceDestinationOutbound 
 
 
 /*** Destination configuration ***/
+
+
+PriorityAIController.prototype.configurationMissileAdjustLaunch = function()
+{
+	// clear flag
+	this.setParameter("oolite_flag_launchAdjustMissile",null);
+
+	/* tilt down and accelerate - assumes missile is co-aligned to
+	 * ship on launch, and launched from below the ship */
+	this.ship.destination = this.ship.position.add(this.ship.vectorUp);
+	this.ship.desiredRange = 100000;
+	this.ship.desiredSpeed = this.ship.maxFlightSpeed;
+}
 
 
 PriorityAIController.prototype.configurationMissileAdjustSpread = function()
