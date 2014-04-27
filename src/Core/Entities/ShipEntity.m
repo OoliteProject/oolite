@@ -248,6 +248,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// set these flags explicitly.
 	haveExecutedSpawnAction = NO;
+	haveStartedJSAI = NO;
 	scripted_misjump		= NO;
 	_scriptedMisjumpRange		= 0.5;
 	being_fined = NO;
@@ -2393,6 +2394,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		haveExecutedSpawnAction = YES;
 	}
+	/* No point in starting the AI if still launching */
+	if (!haveStartedJSAI && [self status] != STATUS_LAUNCHING)
+	{
+		haveStartedJSAI = YES;
+		[self doScriptEvent:OOJSID("aiStarted")];
+	}
 
 	// behaviours according to status and behaviour
 	//
@@ -2403,6 +2410,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 			[self setStatus:STATUS_IN_FLIGHT];
 			// awaken JS-based AIs
+			haveStartedJSAI = YES;
 			[self doScriptEvent:OOJSID("aiStarted")];
 			[self doScriptEvent:OOJSID("shipLaunchedFromStation") withArgument:stationLaunchedFrom];
 			[shipAI reactToMessage:@"LAUNCHED OKAY" context:@"launched"];

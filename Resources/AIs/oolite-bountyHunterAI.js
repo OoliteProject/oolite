@@ -36,6 +36,7 @@ this.aiStarted = function() {
 
 	ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 
+	ai.setParameter("oolite_personalityMatchesLeader",0.9);
 	ai.setCommunicationsRole("hunter");
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-bounty-hunter"]);

@@ -42,6 +42,7 @@ this.aiStarted = function() {
 		ai.setWaypointGenerator(ai.waypointsWitchpointPatrol);
 	}
 
+	ai.setParameter("oolite_personalityMatchesLeader",0.9);
 	ai.setCommunicationsRole("assassin");
 
 	ai.setParameter("oolite_flag_witchspacePursuit",true);

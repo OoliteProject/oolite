@@ -394,6 +394,18 @@ this.PriorityAIController = function(ship)
 	}
 
 
+	this.communicationsPersonality = function()
+	{
+		return commsPersonality;
+	}
+
+
+	this.communicationsRole = function()
+	{
+		return commsRole;
+	}
+
+
 	this.getParameter = function(key)
 	{
 		if (key in parameters)
@@ -435,8 +447,78 @@ this.PriorityAIController = function(ship)
 	this.setCommunicationsRole = function(role)
 	{
 		commsRole = role;
-		// TODO: if personality is generic, pick a new one from the
-		// allowed list. If possible use the same as the group leader.
+		// If personality is generic, or doesn't exist in this role,
+		// pick a new one from the allowed list.
+		var cps = worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities(role);
+		
+		if (commsPersonality == "generic" || cps.indexOf(commsPersonality) == -1)
+		{
+			/* Allow group leaders to optionally set their own
+			 * personality on ships in their group with the same
+			 * role. This bit is for setting a follower's
+			 * personality. */
+			var pmatch = this.getParameter("oolite_personalityMatchesLeader");
+			if (pmatch && Math.random() < pmatch)
+			{
+				if (this.ship.group)
+				{
+					var l = this.ship.group.leader;
+					if (l && l != this.ship && l.AIScript.oolite_priorityai)
+					{
+
+						if (l.AIScript.oolite_priorityai.communicationsRole() == role)
+						{
+							var lp = l.AIScript.oolite_priorityai.communicationsPersonality();
+							if (lp != "generic")
+							{
+								this.setCommunicationsPersonality(lp);
+								return;
+							}
+						}
+					}
+				}
+			}
+			
+			if (cps.length > 0)
+			{
+				if (cps.length == 1)
+				{
+					this.setCommunicationsPersonality(cps[0]);
+				}
+				else
+				{
+					var cpx = this.ship.entityPersonality % cps.length;
+					if (cps[cpx] != "generic")
+					{
+						this.setCommunicationsPersonality(cps[cpx]);
+					}
+					else 
+					{
+						var cpx2 = this.ship.entityPersonality % (cps.length-1);
+						if (cpx2 >= cpx)
+						{
+							++cpx2; // don't pick the same as cpx
+						}
+						this.setCommunicationsPersonality(cps[cpx2]);
+					}
+				}
+			}
+			/* Set personalities of followers */
+			if (pmatch && this.ship.group && this.ship.group.leader == this.ship)
+			{
+				var fs = this.ship.group.ships;
+				for (var i=fs.length-1;i>=0;--i)
+				{
+					if (fs[i] != this.ship && Math.random() < pmatch && fs[i].AIScript.oolite_priorityai)
+					{
+						if (fs[i].AIScript.oolite_priorityai.communicationsRole() == role)
+						{
+							fs[i].AIScript.oolite_priorityai.setCommunicationsPersonality(commsPersonality);
+						}
+					}
+				}
+			}
+		}
 	}
 
 
@@ -4032,6 +4114,7 @@ PriorityAIController.prototype.configurationSelectRandomTradeStation = function(
 		if (Math.random() < 0.9 && this.friendlyStation(system.mainStation))
 		{
 			this.setParameter("oolite_selectedStation",system.mainStation);
+			this.communicate("oolite_selectedStation",system.mainStation,4);
 			return;
 		}
 	} 
@@ -4040,6 +4123,7 @@ PriorityAIController.prototype.configurationSelectRandomTradeStation = function(
 		if (Math.random() < 0.5 && this.friendlyStation(system.mainStation))
 		{
 			this.setParameter("oolite_selectedStation",system.mainStation);
+			this.communicate("oolite_selectedStation",system.mainStation,4);
 			return;
 		}
 	}
@@ -4108,6 +4192,7 @@ PriorityAIController.prototype.configurationSelectShuttleDestination = function(
 	else
 	{
 		this.setParameter("oolite_selectedStation",destination);
+		this.communicate("oolite_selectedStation",destination,4);
 		this.setParameter("oolite_selectedPlanet",null);
 	}
 }
@@ -6359,6 +6444,7 @@ PriorityAIController.prototype.waypointsWitchpointPatrol = function()
 
 this.startUp = function()
 {
+	delete this.startUp;
 	// initial definition is just essential communications for now
 	this.$commsSettings = {};
 	this.$commsAllowed = true;
@@ -6496,7 +6582,7 @@ this._getCommunication = function(role, personality, key)
 /* Returns the available personalities for a particular role */
 this._getCommunicationPersonalities = function(role)
 {
-	if (!this.$commsSettings[role])
+	if (!this.$commsSettings || !this.$commsSettings[role])
 	{
 		return [];
 	}

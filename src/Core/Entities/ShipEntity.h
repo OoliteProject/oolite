@@ -259,6 +259,7 @@ typedef enum
 							// scripting
 							scripted_misjump: 1,
 							haveExecutedSpawnAction: 1,
+							haveStartedJSAI: 1,
 							noRocks: 1,
 							_lightsActive: 1;
 

@@ -38,6 +38,13 @@ this.aiStarted = function() {
 	 * destroy the remainder. */
 	// ai.setParameter("oolite_flag_autoSpreadMissiles",true);
 
+	/* Launch correction when fired at target in aft arc */ 
+	if (this.ship.target && this.ship.target.position.subtract(this.ship.position).direction().dot(this.ship.vectorForward) < -0.8)
+	{
+		this.oolite_priorityai.setParameter("oolite_flag_launchAdjustMissile",true);
+	}
+
+
 	ai.setPriorities([
 		{
 			condition: ai.conditionMissileOutOfFuel,
@@ -72,20 +79,6 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourMissileSelfDestruct
 		}
 	]);
-}
-
-
-/* Missile AIs may get started well before the missile is
- * fired. shipSpawned runs on the first update after addition to the
- * Universe as an independent entity, so is a suitable time to do this
- * check. */
-this.shipSpawned = function()
-{
-	/* Launch correction when fired at target in aft arc */ 
-	if (this.ship.target && this.ship.target.position.subtract(this.ship.position).direction().dot(this.ship.vectorForward) < -0.8)
-	{
-		this.oolite_priorityai.setParameter("oolite_flag_launchAdjustMissile",true);
-	}
 }
 
 

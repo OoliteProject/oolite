@@ -59,6 +59,7 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-trader","oolite-bounty-hunter","oolite-scavenger","oolite-shuttle"]);
 
+	ai.setParameter("oolite_personalityMatchesLeader",0.5);
 	ai.setCommunicationsRole("police");
 
 	ai.setPriorities([
