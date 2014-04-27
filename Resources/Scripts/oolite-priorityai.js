@@ -1828,11 +1828,21 @@ PriorityAIController.prototype.conditionFriendlyStationNearby = function()
 
 PriorityAIController.prototype.conditionGroupIsSeparated = function()
 {
-	if (!this.ship.group || !this.ship.group.leader)
+	var group = this.ship.group;
+	if (!group)
 	{
-		return false;
+		return;
 	}
-	var leader = this.ship.group.leader;
+	var leader;
+	if (group.leader)
+	{
+		leader = group.leader;
+	}
+	else
+	{
+		leader = group.ships[0];
+	}
+
 	if (leader.isStation)
 	{
 		// can get 2x as far from station
@@ -3191,7 +3201,7 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 					// if the leader has departed and the wormhole is
 					// reachable, go for it!
 					this.ship.destination = wormhole.position;
-					this.ship.desiredSpeed = this.ship.maxFlightSpeed * 7;
+					this.ship.desiredSpeed = this.ship.maxSpeed * 7;
 					this.ship.performFlyToRangeFromDestination();
 					return;
 				}
@@ -4257,7 +4267,7 @@ PriorityAIController.prototype.configurationMissileAdjustLaunch = function()
 	 * ship on launch, and launched from below the ship */
 	this.ship.destination = this.ship.position.add(this.ship.vectorUp);
 	this.ship.desiredRange = 100000;
-	this.ship.desiredSpeed = this.ship.maxFlightSpeed;
+	this.ship.desiredSpeed = this.ship.maxSpeed;
 }
 
 
@@ -4268,13 +4278,13 @@ PriorityAIController.prototype.configurationMissileAdjustSpread = function()
 	{
 		this.ship.destination = this.ship.target.position;
 		this.ship.desiredRange = 100;
-		this.ship.desiredSpeed = this.ship.maxFlightSpeed;
+		this.ship.desiredSpeed = this.ship.maxSpeed;
 	}
 	else
 	{
 		this.ship.destination = near.position.add(Vector3D.randomDirection(20));
 		this.ship.desiredRange = 1000;
-		this.ship.desiredSpeed = this.ship.maxFlightSpeed;
+		this.ship.desiredSpeed = this.ship.maxSpeed;
 	}
 }
 
@@ -4960,6 +4970,17 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 
 	if (!this.ship.hasHostileTarget)
 	{
+		// can't see the target
+		if (this.distance(enemy) > this.scannerRange)
+		{
+			this.ship.destination = enemy.position;
+			this.ship.desiredRange = this.scannerRange * 0.75;
+			// rush to help on injectors if possible
+			this.ship.desiredSpeed = this.ship.maxSpeed * 7;
+			this.ship.performFlyToRangeFromDestination();
+			// don't reconsider just yet
+			return;
+		}
 		this.reconsiderNow();
 		return; // not in a combat mode
 	}
