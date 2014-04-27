@@ -6478,7 +6478,7 @@ this.startUp = function()
 		},
 		trader: { 
 			generic: { 
-				oolite_acceptPirateDemand: "[oolite-comms-acceptPirateDemand]",
+				oolite_agreeingToDumpCargo: "[oolite-comms-acceptPirateDemand]",
 				oolite_makeDistressCall: "[oolite-comms-makeDistressCall]"
 			} 
 		},
