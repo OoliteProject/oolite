@@ -35,17 +35,27 @@ this.aiStarted = function() {
 	ai.setParameter("oolite_flag_surrendersEarly",true);
 	ai.setParameter("oolite_flag_escortsCoverRetreat",true);
 
-	ai.setCommunicationsRole("trader");
+
+	var commsrole = "trader";
 	// same AI works for freighters, couriers and smugglers with minimal
 	// modification
 	if (this.ship.primaryRole == "trader-smuggler")
 	{
+		if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("trader-smuggler").length > 0)
+		{
+			commsrole = "trader-smuggler";
+		}
 		ai.setParameter("oolite_flag_fleesPreemptively",true);
 	}
 	else if (this.ship.primaryRole == "trader-courier")
 	{
 		ai.setParameter("oolite_flag_noDockingUntilDestination",true);
+		if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("trader-courier").length > 0)
+		{
+			commsrole = "trader-courier";
+		}
 	}
+	ai.setCommunicationsRole(commsrole);
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-trader"]);
 

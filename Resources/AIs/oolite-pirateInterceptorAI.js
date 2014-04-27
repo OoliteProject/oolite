@@ -37,18 +37,27 @@ this.aiStarted = function() {
 
 	// to hunt the hunters, go where they go
 	var searchalgorithm = ai.conditionScannerContainsHunters;
+	var commsrole = "pirate";
 	if (this.ship.primaryRole == "pirate-aegis-raider")
 	{
+		if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("pirate-aegis-raider").length > 0)
+		{
+			commsrole = "pirate-aegis-raider";
+		}
 		searchalgorithm = ai.conditionScannerContainsCleanShip;
 		ai.setWaypointGenerator(ai.waypointsStationPatrol);
 	}
 	else
 	{
+		if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("pirate-aegis-raider").length > 0)
+		{
+			commsrole = "pirate-interceptor";
+		}
 		ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 	}
 
 	ai.setParameter("oolite_personalityMatchesLeader",0.6);
-	ai.setCommunicationsRole("pirate");
+	ai.setCommunicationsRole(commsrole);
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);
 	

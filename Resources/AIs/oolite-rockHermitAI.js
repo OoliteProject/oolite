@@ -31,7 +31,14 @@ this.name = "Oolite Rock Hermit AI";
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
-	ai.setCommunicationsRole("station");
+	if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("hermit").length > 0)
+	{
+		ai.setCommunicationsRole("hermit");
+	}
+	else
+	{
+		ai.setCommunicationsRole("station");
+	}
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-scavenger"]);
 

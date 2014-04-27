@@ -34,7 +34,14 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_flag_sendsDistressCalls",true);
 
-	ai.setCommunicationsRole("trader");
+	if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("trader-opportunist").length > 0)
+	{
+		ai.setCommunicationsRole("trader-opportunist");
+	}
+	else
+	{
+		ai.setCommunicationsRole("trader");
+	}
 
 	ai.setPriorities([
 		{
