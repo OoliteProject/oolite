@@ -259,15 +259,15 @@ static OOOXZManager *sSingleton = nil;
 {
 	if (bytes < 1024)
 	{
-		return @"<1 kb";
+		return @"<1 kB";
 	}
 	else if (bytes < 1024*1024)
 	{
-		return [NSString stringWithFormat:@"%lu kb",bytes>>10];
+		return [NSString stringWithFormat:@"%lu kB",bytes>>10];
 	}
 	else 
 	{
-		return [NSString stringWithFormat:@"%lu Mb",bytes>>20];
+		return [NSString stringWithFormat:@"%lu MB",bytes>>20];
 	}
 }
 
