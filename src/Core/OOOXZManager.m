@@ -620,7 +620,7 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_STATE_TASKDONE:
 		if (_downloadStatus == OXZ_DOWNLOAD_COMPLETE)
 		{
-			[gui addLongText:DESC(@"oolite-oxzmanager-progress-done") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+			[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-done-%u-%u"),[_oxzList count],[[self managedOXZs] count]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
 		}
 		else
 		{
