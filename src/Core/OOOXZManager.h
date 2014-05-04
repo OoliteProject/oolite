@@ -44,6 +44,7 @@ typedef enum {
 	OXZ_STATE_MAIN,
 	OXZ_STATE_UPDATING,
 	OXZ_STATE_PICK_INSTALL,
+	OXZ_STATE_PICK_INSTALLED,
 	OXZ_STATE_PICK_REMOVE,
 	OXZ_STATE_INSTALLING,
 	OXZ_STATE_REMOVING,
@@ -83,7 +84,7 @@ typedef enum {
 - (void) gui;
 - (BOOL) isRestarting;
 - (void) processSelection;
-- (OOGUIRow) showInstallOptions;
+- (OOGUIRow) showInstallOptionsWithFilter:(BOOL)filter;
 - (OOGUIRow) showRemoveOptions;
 - (void) showOptionsUpdate;
 - (void) showOptionsPrev;

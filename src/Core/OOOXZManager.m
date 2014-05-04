@@ -66,16 +66,17 @@ typedef enum {
 enum {
 	OXZ_GUI_ROW_FIRSTRUN	= 1,
 	OXZ_GUI_ROW_PROGRESS	= 1,
-	OXZ_GUI_ROW_LISTHEAD	= 1,
-	OXZ_GUI_ROW_LISTPREV	= 2,
-	OXZ_GUI_ROW_LISTSTART	= 3,
+	OXZ_GUI_ROW_LISTHEAD	= 0,
+	OXZ_GUI_ROW_LISTPREV	= 1,
+	OXZ_GUI_ROW_LISTSTART	= 2,
 	OXZ_GUI_NUM_LISTROWS	= 10,
-	OXZ_GUI_ROW_LISTNEXT	= 13,
-	OXZ_GUI_ROW_LISTSTATUS	= 15,
-	OXZ_GUI_ROW_LISTDESC	= 17,
-	OXZ_GUI_ROW_LISTINFO1	= 21,
-	OXZ_GUI_ROW_LISTINFO2	= 22,
-	OXZ_GUI_ROW_INSTALL		= 24,
+	OXZ_GUI_ROW_LISTNEXT	= 12,
+	OXZ_GUI_ROW_LISTSTATUS	= 14,
+	OXZ_GUI_ROW_LISTDESC	= 16,
+	OXZ_GUI_ROW_LISTINFO1	= 20,
+	OXZ_GUI_ROW_LISTINFO2	= 21,
+	OXZ_GUI_ROW_INSTALL		= 23,
+	OXZ_GUI_ROW_INSTALLED	= 24,
 	OXZ_GUI_ROW_REMOVE		= 25,
 	OXZ_GUI_ROW_UPDATE		= 26,
 	OXZ_GUI_ROW_EXIT		= 27
@@ -115,7 +116,7 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) installOXZ:(NSUInteger)item;
 - (BOOL) removeOXZ:(NSUInteger)item;
 - (NSArray *) installOptions;
-- (NSArray *) removalOptions;
+- (NSArray *) removeOptions;
 
 /* Delegates for URL downloader */
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
@@ -572,8 +573,8 @@ static OOOXZManager *sSingleton = nil;
 	[gui clearAndKeepBackground:YES];
 	[gui setTitle:DESC(@"oolite-oxzmanager-title")];
 
-	/* This switch will give warnings until all states are
-	 * covered. Not a problem yet. */
+	/* This switch will give warnings unless all states are
+	 * covered. */
 	switch (_interfaceState)
 	{
 	case OXZ_STATE_NODATA:
@@ -590,9 +591,12 @@ static OOOXZManager *sSingleton = nil;
 		[gui addLongText:DESC(@"oolite-oxzmanager-intro") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
 		// fall through
 	case OXZ_STATE_PICK_INSTALL:
+	case OXZ_STATE_PICK_INSTALLED:
 	case OXZ_STATE_PICK_REMOVE:
 		[gui setText:DESC(@"oolite-oxzmanager-install") forRow:OXZ_GUI_ROW_INSTALL align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_INSTALL" forRow:OXZ_GUI_ROW_INSTALL];
+		[gui setText:DESC(@"oolite-oxzmanager-installed") forRow:OXZ_GUI_ROW_INSTALLED align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_INSTALLED" forRow:OXZ_GUI_ROW_INSTALLED];
 		[gui setText:DESC(@"oolite-oxzmanager-remove") forRow:OXZ_GUI_ROW_REMOVE align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_REMOVE" forRow:OXZ_GUI_ROW_REMOVE];
 		[gui setText:DESC(@"oolite-oxzmanager-update-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
@@ -635,7 +639,12 @@ static OOOXZManager *sSingleton = nil;
 	if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 	{
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-install")];
-		startRow = [self showInstallOptions];
+		startRow = [self showInstallOptionsWithFilter:NO];
+	}
+	else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
+	{
+		[gui setTitle:DESC(@"oolite-oxzmanager-title-installed")];
+		startRow = [self showInstallOptionsWithFilter:YES];
 	}
 	else if (_interfaceState == OXZ_STATE_PICK_REMOVE)
 	{
@@ -739,6 +748,10 @@ static OOOXZManager *sSingleton = nil;
 	{
 		_interfaceState = OXZ_STATE_PICK_INSTALL;
 	}
+	else if (selection == OXZ_GUI_ROW_INSTALLED)
+	{
+		_interfaceState = OXZ_STATE_PICK_INSTALLED;
+	}
 	else if (selection == OXZ_GUI_ROW_REMOVE)
 	{
 		_interfaceState = OXZ_STATE_PICK_REMOVE;
@@ -822,11 +835,12 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (OOGUIRow) showInstallOptions
+- (OOGUIRow) showInstallOptionsWithFilter:(BOOL)filter
 {
 	// shows the current installation options page
 	OOGUIRow startRow = OXZ_GUI_ROW_LISTPREV;
-	NSArray *options = [self installOptions];
+	NSArray *options = filter ? [self removeOptions] : [self installOptions];
+	NSUInteger optCount = filter ? [[self managedOXZs] count] : [_oxzList count];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUITabSettings tab_stops;
 	tab_stops[0] = 0;
@@ -835,11 +849,13 @@ static OOOXZManager *sSingleton = nil;
 	tab_stops[3] = 400;
 	[gui setTabStops:tab_stops];
 	
+
 	[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-heading-category"),
 						   DESC(@"oolite-oxzmanager-heading-title"), 
-						   DESC(@"oolite-oxzmanager-heading-version"), 
 						   DESC(@"oolite-oxzmanager-heading-installed"), 
+						   DESC(@"oolite-oxzmanager-heading-downloadable"), 
 								nil] forRow:OXZ_GUI_ROW_LISTHEAD];
+
 	if (_offset > 0)
 	{
 		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTPREV];
@@ -855,7 +871,7 @@ static OOOXZManager *sSingleton = nil;
 		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTPREV align:GUI_ALIGN_LEFT];
 		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
 	}
-	if (_offset + 10 < [_oxzList count])
+	if (_offset + 10 < optCount)
 	{
 		[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTNEXT];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"",@"",@" --> ", nil] forRow:OXZ_GUI_ROW_LISTNEXT];
@@ -886,6 +902,8 @@ static OOOXZManager *sSingleton = nil;
 
 	OOGUIRow row = OXZ_GUI_ROW_LISTSTART;
 	NSDictionary *manifest = nil;
+	BOOL oxzLineSelected = NO;
+
 	foreach (manifest, options)
 	{
 		// Make this update after an OXZ has been downloaded but
@@ -925,8 +943,8 @@ static OOOXZManager *sSingleton = nil;
 		[gui setArray:[NSArray arrayWithObjects:
 				 [manifest oo_stringForKey:kOOManifestCategory defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 			 [manifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
-			 [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 			 installedVersion,
+			 [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 		  nil] forRow:row];
 
 		[gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
@@ -935,6 +953,8 @@ static OOOXZManager *sSingleton = nil;
 
 		if (row == [gui selectedRow])
 		{
+			oxzLineSelected = YES;
+			
 			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
@@ -956,6 +976,19 @@ static OOOXZManager *sSingleton = nil;
 
 		row++;
 	}
+
+	if (!oxzLineSelected)
+	{
+		if (filter)
+		{
+			[gui addLongText:DESC(@"oolite-oxzmanager-installed-nonepicked") startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:DESC(@"oolite-oxzmanager-installer-nonepicked") startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+		}
+	}
+
 
 	return startRow;
 }
@@ -1113,7 +1146,11 @@ static OOOXZManager *sSingleton = nil;
 {
 	if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 	{
-		[self showInstallOptions];
+		[self showInstallOptionsWithFilter:NO];
+	}
+	else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
+	{
+		[self showInstallOptionsWithFilter:YES];
 	}
 	else if (_interfaceState == OXZ_STATE_PICK_REMOVE)
 	{
