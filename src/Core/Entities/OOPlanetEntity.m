@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 #import "OOPlanetTextureGenerator.h"
+#import "OOStandaloneAtmosphereGenerator.h"
 #import "OOSingleTextureMaterial.h"
 #import "OOShaderMaterial.h"
 #import "OOEntityFilterPredicate.h"
@@ -678,13 +679,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (!isMoon)
 		{
 			OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
-			/* Generate the atmosphere texture anyway */
-			OOTexture *diffuseTmp = nil;
+			/* Generate a standalone atmosphere texture */
 			OOTexture *atmosphere = nil;
-			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseTmp
-									   secondaryTexture:NULL
-										  andAtmosphere:&atmosphere
-											   withInfo:_materialParameters];
+			[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
+															  withInfo:_materialParameters];
 
 			OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
 
