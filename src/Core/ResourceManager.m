@@ -512,7 +512,8 @@ static NSMutableDictionary *sStringCache;
 {
 	NSString 	*required = [manifest oo_stringForKey:kOOManifestRequiredOoliteVersion defaultValue:nil];
 	NSString *maxRequired = [manifest oo_stringForKey:kOOManifestMaximumOoliteVersion defaultValue:nil];
-	if (maxRequired == nil)
+	// ignore empty max version string rather than treating as "version 0"
+	if (maxRequired == nil || [maxRequired length] == 0)
 	{
 		return [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", nil] forOXP:title andFile:@"manifest.plist"];
 	}
