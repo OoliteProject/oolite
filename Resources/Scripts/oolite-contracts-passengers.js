@@ -293,7 +293,7 @@ this._initialisePassengerContractsForSystem = function()
 
 		if (passenger.species.match(new RegExp(expandDescription("[human-word]"),"i")))
 		{
-			passenger.name = expandDescription("%R ")+expandDescription("[nom]");
+			passenger.name = expandDescription("%N ")+expandDescription("[nom]");
 		}
 		else
 		{
@@ -774,30 +774,43 @@ this._processPassengerChoice = function(choice)
 // move a passenger from the contracts list to the player's ship (if possible)
 this._acceptContract = function()
 {
-		var passenger = this.$passengers[this.$contractIndex];
+	var passenger = this.$passengers[this.$contractIndex];
 
-		// give the passenger to the player
-		var result = player.ship.addPassenger(passenger.name,system.ID,passenger.destination,passenger.deadline,passenger.payment,passenger.advance);
-		
-		if (result)
+	// give the passenger to the player
+	var result = player.ship.addPassenger(passenger.name,system.ID,passenger.destination,passenger.deadline,passenger.payment,passenger.advance,passenger.risk);
+	
+	if (result)
+	{
+		// pay the advance
+		player.credits += passenger.advance;
+
+		// remove the passenger from the station list
+		this.$passengers.splice(this.$contractIndex,1);
+
+		// update the interface description
+		this._updateMainStationInterfacesList();
+
+		this.$helper._soundSuccess();
+
+		if (passenger.risk > 0)
 		{
-				// pay the advance
-				player.credits += passenger.advance;
-
-				// remove the passenger from the station list
-				this.$passengers.splice(this.$contractIndex,1);
-
-				// update the interface description
-				this._updateMainStationInterfacesList();
-
-				this.$helper._soundSuccess();
+			// once for medium risk
+			worldScripts["oolite-contracts-helpers"]._setClientName(passenger.name);
+			if (passenger.risk > 1)
+			{
+				// three times for high risk
+				worldScripts["oolite-contracts-helpers"]._setClientName(passenger.name);
+				worldScripts["oolite-contracts-helpers"]._setClientName(passenger.name);
+			}
 		}
-		else
-		{
-				// else must have had another passenger board recently
-				// (unlikely, but another OXP could have done it)
-				this.$helper._soundFailure();
-		}
+
+	}
+	else
+	{
+		// else must have had another passenger board recently
+		// (unlikely, but another OXP could have done it)
+		this.$helper._soundFailure();
+	}
 }
 
 

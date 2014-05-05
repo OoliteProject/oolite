@@ -2742,6 +2742,22 @@ PriorityAIController.prototype.behaviourApproachDestination = function()
 }
 
 
+PriorityAIController.prototype.behaviourAssassinateCurrentTarget = function()
+{
+	var params = this.entityCommsParams(this.ship.target);
+	if (this.ship.target.isPlayer)
+	{
+		params["oolite_entityContracts"] = worldScripts["oolite-contracts-helpers"]._getClientName();
+	}
+	else
+	{
+		params["oolite_entityContracts"] = expandDescription("%N ")+expandDescription("[nom]");
+	}
+	this.communicate("oolite_beginningAssassination",params,3);
+	this.behaviourCommenceAttackOnCurrentTarget();
+}
+
+
 PriorityAIController.prototype.behaviourAvoidCascadeExplosion = function()
 {
 	var handlers = {};
@@ -5988,7 +6004,7 @@ PriorityAIController.prototype.responseComponent_trackPlayer_playerWillEnterWitc
 	{
 		this.ship.enterWormhole(wormhole);
 	} 
-	else
+	else if (this.getParameter("oolite_rememberedTarget") == player.ship)
 	{
 		this.ship.enterWormhole();
 	}

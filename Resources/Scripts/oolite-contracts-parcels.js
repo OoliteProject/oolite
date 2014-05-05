@@ -769,6 +769,18 @@ this._acceptContract = function()
 		"oolite-parcel-contents" : this._formatPackageName(parcel.description)
 	});
 	player.ship.addParcel(desc,system.ID,parcel.destination,parcel.deadline,parcel.payment,0,parcel.risk);
+
+	if (parcel.risk > 0)
+	{
+		// once for medium risk
+		worldScripts["oolite-contracts-helpers"]._setClientName(parcel.sender);
+		if (parcel.risk > 1)
+		{
+			// three times for high risk
+			worldScripts["oolite-contracts-helpers"]._setClientName(parcel.sender);
+			worldScripts["oolite-contracts-helpers"]._setClientName(parcel.sender);
+		}
+	}
 	
 	// remove the parcel from the station list
 	this.$parcels.splice(this.$contractIndex,1);

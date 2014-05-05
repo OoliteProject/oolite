@@ -90,7 +90,7 @@ this.aiStarted = function() {
 						{
 							preconfiguration: ai.configurationAcquireScannedTarget,
 							condition: ai.conditionCombatOddsGood,
-							behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
+							behaviour: ai.behaviourAssassinateCurrentTarget,
 							reconsider: 10
 						}
 					]
