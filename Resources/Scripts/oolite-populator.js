@@ -1948,6 +1948,9 @@ this._addAssassin = function(pos)
 		{
 			main.awardEquipment("EQ_SHIELD_BOOSTER"); 
 		}
+		// assassins don't respect escape pods and won't expect anyone
+		// else to either.
+		main.removeEquipment("EQ_ESCAPE_POD");
 		main.fuel = 7;
 		this._setWeapons(main,ws);
 		this._setSkill(main,extra);
@@ -1958,21 +1961,23 @@ this._addAssassin = function(pos)
 	{
 		var g = new ShipGroup("assassin group",main);
 		main.group = g;
+		var numext = Math.floor(Math.random()*3)+1;
 		if (role == "assassin-heavy")
 		{
-			var extras = this._addShips("assassin-medium",2,pos,3E3);
+			var extras = this._addShips("assassin-medium",numext,pos,3E3);
 		}
 		else
 		{
-			var extras = this._addShips("assassin-light",2,pos,3E3);
+			var extras = this._addShips("assassin-light",numext,pos,3E3);
 		}
-		for (var i=0;i<2;i++)
+		for (var i=0;i<numext;i++)
 		{
 			extras[i].group = g;
 			g.addShip(extras[i]);
 			if (extras[i].autoWeapons)
 			{
 				extras[i].awardEquipment("EQ_FUEL_INJECTION");
+				extras[i].removeEquipment("EQ_ESCAPE_POD");
 				extras[i].fuel = 7;
 				this._setWeapons(extras[i],1.8);
 			}
