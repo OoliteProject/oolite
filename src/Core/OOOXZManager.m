@@ -57,7 +57,10 @@ typedef enum {
 	OXZ_INSTALLABLE_OKAY,
 	OXZ_INSTALLABLE_UPDATE,
 	OXZ_INSTALLABLE_DEPENDENCIES,
+	// for things to work, _ALREADY must be the first UNINSTALLABLE state
+	// and all the INSTALLABLE ones must be before all the UNINSTALLABLE ones
 	OXZ_UNINSTALLABLE_ALREADY,
+	OXZ_UNINSTALLABLE_NOREMOTE,
 	OXZ_UNINSTALLABLE_VERSION,
 	OXZ_UNINSTALLABLE_MANUAL
 } OXZInstallableState;
@@ -105,9 +108,9 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) processDownloadedManifests;
 - (BOOL) processDownloadedOXZ;
 
-- (OXZInstallableState) installableState:(NSDictionary *)manifest;
-- (OOColor *) colorForManifest:(NSDictionary *)manifest;
-- (NSString *) installStatusForManifest:(NSDictionary *)manifest;
+- (OXZInstallableState) installableState:(NSDictionary *)manifest withAvailability:(BOOL)avail;
+- (OOColor *) colorForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail;
+- (NSString *) installStatusForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail;
 
 
 - (void) setOXZList:(NSArray *)list;
@@ -382,6 +385,15 @@ static OOOXZManager *sSingleton = nil;
 				NSMutableDictionary *adjManifest = [NSMutableDictionary dictionaryWithDictionary:manifest];
 				[adjManifest setObject:filename forKey:kOOManifestFilePath];
 
+				NSDictionary *stored = nil;
+				foreach (stored, _oxzList)
+				{
+					if ([[stored oo_stringForKey:kOOManifestIdentifier] isEqualToString:[manifest oo_stringForKey:kOOManifestIdentifier]])
+					{
+						[adjManifest setObject:[stored oo_stringForKey:kOOManifestVersion] forKey:kOOManifestAvailableVersion];
+					}
+				}
+
 				[manifests addObject:adjManifest];
 			}
 		}
@@ -405,6 +417,8 @@ static OOOXZManager *sSingleton = nil;
 		[_oxzList writeToFile:[self manifestPath] atomically:YES];
 		// and clean up the temp file
 		[[NSFileManager defaultManager] oo_removeItemAtPath:[self downloadPath]];
+		// invalidate the managed list
+		DESTROY(_managedList);
 		_interfaceState = OXZ_STATE_TASKDONE;
 		[self gui];
 		return YES;
@@ -481,7 +495,7 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (OXZInstallableState) installableState:(NSDictionary *)manifest
+- (OXZInstallableState) installableState:(NSDictionary *)manifest withAvailability:(BOOL)avail
 {
 	NSString *title = [manifest oo_stringForKey:kOOManifestTitle defaultValue:nil];
 	NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier defaultValue:nil];
@@ -499,11 +513,17 @@ static OOOXZManager *sSingleton = nil;
 			// installed manually
 			return OXZ_UNINSTALLABLE_MANUAL;
 		}
-		if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:kOOManifestVersion]] && [[NSFileManager defaultManager] fileExistsAtPath:[installed oo_stringForKey:kOOManifestFilePath]])
+		if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:(avail?kOOManifestAvailableVersion:kOOManifestVersion)]] && [[NSFileManager defaultManager] fileExistsAtPath:[installed oo_stringForKey:kOOManifestFilePath]])
 		{
 			// installed this exact version already, and haven't
-			// uninstalled it since entering the manager
+			// uninstalled it since entering the manager, and it's
+			// still available
 			return OXZ_UNINSTALLABLE_ALREADY;
+		}
+		else if (avail && [manifest oo_stringForKey:kOOManifestAvailableVersion defaultValue:nil] == nil)
+		{
+			// installed, but no remote copy is indexed any more
+			return OXZ_UNINSTALLABLE_NOREMOTE;
 		}
 	}
 	/* Check for dependencies being met */
@@ -522,9 +542,9 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (OOColor *) colorForManifest:(NSDictionary *)manifest
+- (OOColor *) colorForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail
 {
-	switch ([self installableState:manifest])
+	switch ([self installableState:manifest withAvailability:avail])
 	{
 	case OXZ_INSTALLABLE_OKAY:
 		return [OOColor yellowColor];
@@ -538,14 +558,16 @@ static OOOXZManager *sSingleton = nil;
 		return [OOColor redColor];
 	case OXZ_UNINSTALLABLE_VERSION:
 		return [OOColor grayColor];
+	case OXZ_UNINSTALLABLE_NOREMOTE:
+		return [OOColor blueColor];
 	}
 	return [OOColor yellowColor]; // never
 }
 
 
-- (NSString *) installStatusForManifest:(NSDictionary *)manifest
+- (NSString *) installStatusForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail
 {
-	switch ([self installableState:manifest])
+	switch ([self installableState:manifest withAvailability:avail])
 	{
 	case OXZ_INSTALLABLE_OKAY:
 		return DESC(@"oolite-oxzmanager-installable-okay");
@@ -559,6 +581,8 @@ static OOOXZManager *sSingleton = nil;
 		return DESC(@"oolite-oxzmanager-installable-manual");
 	case OXZ_UNINSTALLABLE_VERSION:
 		return DESC(@"oolite-oxzmanager-installable-version");
+	case OXZ_UNINSTALLABLE_NOREMOTE:
+		return DESC(@"oolite-oxzmanager-installable-noremote");
 	}
 	return nil; // never
 }
@@ -795,7 +819,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	_item = item;
 	NSDictionary *manifest = [_oxzList objectAtIndex:item];
-	if ([self installableState:manifest] >= OXZ_UNINSTALLABLE_ALREADY)
+	if ([self installableState:manifest withAvailability:NO] >= OXZ_UNINSTALLABLE_ALREADY)
 	{
 		// can't be installed on this version of Oolite, or already is installed
 		return NO;
@@ -906,7 +930,7 @@ static OOOXZManager *sSingleton = nil;
 
 	foreach (manifest, options)
 	{
-		// Make this update after an OXZ has been downloaded but
+		// TODO: Make this update after an OXZ has been downloaded but
 		// before the full rebuild is triggered by exiting the OXZ
 		// manager
 		NSDictionary *installed = [ResourceManager manifestForIdentifier:[manifest oo_stringForKey:kOOManifestIdentifier]];
@@ -940,22 +964,24 @@ static OOOXZManager *sSingleton = nil;
 			installedVersion = [installed oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-version-none")];
 		}
 
+		/* If the filter is in use, the available_version key will
+		 * contain the version which can be downloaded. */
 		[gui setArray:[NSArray arrayWithObjects:
-				 [manifest oo_stringForKey:kOOManifestCategory defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+			 [manifest oo_stringForKey:kOOManifestCategory defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 			 [manifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 			 installedVersion,
-			 [manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
+		     [manifest oo_stringForKey:(filter?kOOManifestAvailableVersion:kOOManifestVersion) defaultValue:DESC(@"oolite-oxzmanager-version-none")],
 		  nil] forRow:row];
 
 		[gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
-		/* yellow for installable, orange for dependency issues, grey and unselectable for version issues, green and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version. */
-		[gui setColor:[self colorForManifest:manifest] forRow:row];
+		/* yellow for installable, orange for dependency issues, grey and unselectable for version issues, white and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version. */
+		[gui setColor:[self colorForManifest:manifest withAvailability:filter] forRow:row];
 
 		if (row == [gui selectedRow])
 		{
 			oxzLineSelected = YES;
 			
-			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
+			[gui setText:[self installStatusForManifest:manifest withAvailability:filter] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
@@ -1113,6 +1139,8 @@ static OOOXZManager *sSingleton = nil;
 
 	OOGUIRow row = OXZ_GUI_ROW_LISTSTART;
 	NSDictionary *manifest = nil;
+	BOOL oxzSelected = NO;
+
 	foreach (manifest, options)
 	{
 
@@ -1124,18 +1152,23 @@ static OOOXZManager *sSingleton = nil;
 		NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
 		[gui setKey:identifier forRow:row];
 		
-		if ([ResourceManager manifestForIdentifier:identifier] == nil)
-		{
-			// if not currently active, show as orange
-			[gui setColor:[OOColor orangeColor] forRow:row];
-		}
-
+		[gui setColor:[self colorForManifest:manifest withAvailability:YES] forRow:row];
+		
 		if (row == [gui selectedRow])
 		{
+			[gui setText:[self installStatusForManifest:manifest withAvailability:YES] forRow:OXZ_GUI_ROW_LISTSTATUS];
+			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
+
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 			
+			oxzSelected = YES;
 		}
 		row++;
+	}
+
+	if (!oxzSelected)
+	{
+		[gui addLongText:DESC(@"oolite-oxzmanager-remover-nonepicked") startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 	}
 
 	return startRow;	

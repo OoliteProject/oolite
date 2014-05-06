@@ -1307,8 +1307,10 @@
 	"oolite-oxzmanager-installable-already"	= "Status: Installed and at the current version.";
 	"oolite-oxzmanager-installable-manual"	= "Status: Manually installed; cannot also be installed automatically.";
 	"oolite-oxzmanager-installable-version"	= "Status: Incompatible with this version of Oolite.";
+	"oolite-oxzmanager-installable-noremote"= "Status: Installed but no longer available for download.";
 	"oolite-oxzmanager-installer-nonepicked" = "Select a pack and press return to install or upgrade it if possible. Packs in orange can be installed but will require other packs to be installed before they work, or conflict with a pack you have already installed.";
 	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here.";
+	"oolite-oxzmanager-remover-nonepicked" = "Select a pack and press return to remove it. If the pack is coloured blue it is no longer available for download and you will not be able to reinstall it if you remove it.";
 
 
 	// Loading screen (currently Mac only), also logged under start.progress
