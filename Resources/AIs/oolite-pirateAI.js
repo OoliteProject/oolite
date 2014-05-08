@@ -33,7 +33,7 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_flag_watchForCargo",true);
 
-	ai.setParameter("oolite_personalityMatchesLeader",0.6);
+	ai.setParameter("oolite_personalityMatchesLeader",0.9);
 	ai.setCommunicationsRole("pirate");
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);

@@ -33,7 +33,7 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_flag_watchForCargo",true);
 
-	ai.setParameter("oolite_personalityMatchesLeader",0.6);
+	ai.setParameter("oolite_personalityMatchesLeader",0.95);
 	if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("pirate-freighter").length > 0)
 	{
 		ai.setCommunicationsRole("pirate-freighter");

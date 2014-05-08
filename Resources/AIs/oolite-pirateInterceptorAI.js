@@ -56,7 +56,7 @@ this.aiStarted = function() {
 		ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 	}
 
-	ai.setParameter("oolite_personalityMatchesLeader",0.6);
+	ai.setParameter("oolite_personalityMatchesLeader",0.95);
 	ai.setCommunicationsRole(commsrole);
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);
