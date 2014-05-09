@@ -33,7 +33,6 @@
 #define DEBUG_DUMP_RAW		(	1	&& DEBUG_DUMP)
 
 #define ALBEDO_FACTOR		0.7f	// Overall darkening of everything, allowing better contrast for snow and specular highlights.
-#define POLAR_CAPS			1
 
 #import "OOStandaloneAtmosphereGenerator.h"
 #import "OOCollectionExtractors.h"

@@ -416,6 +416,8 @@
 		1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */; settings = {COMPILER_FLAGS = $SNAPSHOT_MACROS; }; };
 		1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */; };
 		1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB5E1EE12BD628500C334DD /* OOJoystickManager.m */; settings = {COMPILER_FLAGS = "-fvisibility=default"; }; };
+		1AB6963C191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB6963A191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.h */; };
+		1AB6963D191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB6963B191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.m */; };
 		1AB7761012CA2EE0001478BB /* libjs_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB7760212CA2E53001478BB /* libjs_for_oolite.a */; };
 		1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB784F70D554F7B00517983 /* OOJSSoundSource.h */; };
 		1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB784F80D554F7B00517983 /* OOJSSoundSource.m */; };
@@ -1509,6 +1511,8 @@
 		1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogHeader.m; sourceTree = "<group>"; };
 		1AB5E1ED12BD628500C334DD /* OOJoystickManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJoystickManager.h; sourceTree = "<group>"; };
 		1AB5E1EE12BD628500C334DD /* OOJoystickManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJoystickManager.m; sourceTree = "<group>"; };
+		1AB6963A191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStandaloneAtmosphereGenerator.h; sourceTree = "<group>"; };
+		1AB6963B191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOStandaloneAtmosphereGenerator.m; sourceTree = "<group>"; };
 		1AB775FC12CA2E53001478BB /* libjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjs.xcodeproj; path = "deps/Cocoa-deps/libjs/libjs.xcodeproj"; sourceTree = "<group>"; };
 		1AB784F70D554F7B00517983 /* OOJSSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSoundSource.h; sourceTree = "<group>"; };
 		1AB784F80D554F7B00517983 /* OOJSSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSoundSource.m; sourceTree = "<group>"; };
@@ -2344,6 +2348,8 @@
 				1AECE9EE11779910003986A8 /* OOPixMap.m */,
 				1A19783C117F81B10060DB56 /* OOPixMapChannelOperations.h */,
 				1A19783D117F81B10060DB56 /* OOPixMapChannelOperations.m */,
+				1AB6963A191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.h */,
+				1AB6963B191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.m */,
 				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
 				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
 				1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */,
@@ -3140,6 +3146,7 @@
 				25F3E63B0994F08A002F25FD /* OOOpenGL.h in Headers */,
 				25160E2F0995362F0037C2E1 /* OOCocoa.h in Headers */,
 				1AA08611182578B8007CCAEB /* OOOpenAL.h in Headers */,
+				1AB6963C191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.h in Headers */,
 				25161158099544390037C2E1 /* AI.h in Headers */,
 				2516115D099544390037C2E1 /* GameController.h in Headers */,
 				25161162099544390037C2E1 /* OOTrumble.h in Headers */,
@@ -3740,6 +3747,7 @@
 				1A26D0E80BCF9D3B0073F257 /* OOPNGTextureLoader.m in Sources */,
 				1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */,
 				1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */,
+				1AB6963D191D85F600E4B232 /* OOStandaloneAtmosphereGenerator.m in Sources */,
 				1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */,
 				1A5D588A1825241800C779AE /* unzip.c in Sources */,
 				1A2A16680BD10B1200152975 /* OOSingleTextureMaterial.m in Sources */,
