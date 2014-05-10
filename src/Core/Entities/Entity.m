@@ -636,6 +636,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	[self updateCameraRelativePosition];
 }
 
+
 - (void) updateCameraRelativePosition
 {
 	cameraRelativePosition = HPVectorToVector(HPvector_subtract([self absolutePositionForSubentity],[PLAYER viewpointPosition]));
