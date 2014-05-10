@@ -147,7 +147,7 @@
 		missiles = 1;
 		model = "oolite_adder.dat";
 		name = "Adder";
-		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate-independent(0.2) scavenger shuttle hermit-ship";
+		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate(0.2) scavenger shuttle hermit-ship";
 		scoop_position = "0.0 -5.1 22.724";
 		thrust = 30;
 		view_position_aft = "0.0 5.0 -22.5";
