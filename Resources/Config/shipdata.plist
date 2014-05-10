@@ -2084,7 +2084,7 @@
 		missiles = 2;
 		model = "oolite_ferdelance.dat";
 		name = "Fer-de-Lance";
-		roles = "trader-freighter(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
+		roles = "trader(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
 		scoop_position = "0.0 -10.0322 21.6829";
 		thrust = 36;
 		view_position_aft = "0.0 12.0 -32.5";
