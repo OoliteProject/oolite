@@ -4555,6 +4555,7 @@ static const OOMatrix	starboard_matrix =
 						{
 							//translate the object
 							// HPVect: camera relative
+							[drawthing updateCameraRelativePosition];
 							GLTranslateOOVector([drawthing cameraRelativePosition]);
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
@@ -4617,6 +4618,7 @@ static const OOMatrix	starboard_matrix =
 						{
 							//translate the object
 							// HPVect: camera relative positions
+							[drawthing updateCameraRelativePosition];
 							GLTranslateOOVector([drawthing cameraRelativePosition]);
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
