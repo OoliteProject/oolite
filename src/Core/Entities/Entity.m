@@ -624,8 +624,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (void) setPosition:(HPVector) posn
 {
 	position = posn;
-// not currently needed here: called just before drawing
-//	[self updateCameraRelativePosition];
+	[self updateCameraRelativePosition];
 }
 
 
@@ -634,7 +633,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	position.x = x;
 	position.y = y;
 	position.z = z;
-//	[self updateCameraRelativePosition];
+	[self updateCameraRelativePosition];
 }
 
 - (void) updateCameraRelativePosition
@@ -905,13 +904,13 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		{
 			zero_distance = [[self owner] zeroDistance];
 			cam_zero_distance = [[self owner] camZeroDistance];
-//			[self updateCameraRelativePosition];
+			[self updateCameraRelativePosition];
 		}
 		else
 		{
 			zero_distance = HPdistance2(PLAYER->position, position);
 			cam_zero_distance = HPdistance2([PLAYER viewpointPosition], position);
-//			[self updateCameraRelativePosition];
+			[self updateCameraRelativePosition];
 		}
 	}
 	else
