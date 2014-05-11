@@ -5,8 +5,6 @@ General:
 * Automatic expansion pack installer now available (not all existing
   expansion packs are available for automatic installation; manual
   installation still possible as before)
-* Strict mode now only disables OXPs rather than making other gameplay
-  changes
 * New game start screen, including access to a keyboard control
   summary and a ship specification library
 * New Tutorial option for starting a game, for a basic flight training
@@ -16,6 +14,8 @@ Gameplay:
 =========
 * Coordinate precision increased, allowing ships to travel much
   further from the witchpoint without problems
+* Strict mode now only disables OXPs rather than making other gameplay
+  changes
 * Ship hostility indicator no longer depends on weapon range
 * New equipment: Integrated Targeting System
 * Standard HUDs now include primable equipment dials, compass target
@@ -63,6 +63,8 @@ Controls:
 * Number pad keys can now be bound independently of arrow keys
 * Number keys can now be bound independently of function keys
 * GUI direction keys now independent of flight direction keys
+* With an Advanced Navigation Array, the '?' key now cycles through
+  different colour highlights
 * New ';' and ':' keys for multi-function displays
 * 'tab' and '0' keys are now fast activation keys for primable
   equipment. Equipment previously using those keys has been rewritten
@@ -72,6 +74,12 @@ Controls:
 * New joystick axis configuration interface, allowing much more
   precise control
 
+Settings:
+=========
+
+* --noshaders command line option to temporarily start Oolite without
+  shader support, for debugging graphics card problems.
+
 Expansion pack development:
 ===========================
 
@@ -79,34 +87,34 @@ Packaging:
 ----------
 * New compressed OXZ format for easy - and automatic - expansion pack
   distribution.
+* Default Javascript properties set from manifest.plist
 
 General:
 --------
-* Wormholes have a read-only representation
 * The system populator is now run via Javascript and can be modified
   by expansion pack scripts. There is also a system repopulator to
   allow replacement of expected ship losses or departures.
 * shipdata.plist reorganised to make heavy use of templates. This
   allows shipset OXPs to be written to take advantage of future
   changes to core shipdata.
-* Primable equipment dial added to HUD
-* Sun colour and background star colour are now separated
-* Ship cargo is now defined when ships are created
-* Javascript may be used as a language for ship AIs
+* Javascript may be used as a language for ship AIs. Numerous extra JS
+  properties, methods and handlers have been added to allow this.
 * Priority-based AI library available for writing Javascript AIs in,
   with a wide range of predefined behaviours and easy addition of
   custom behaviours
+* Multi-function displays for arbitrary persistent in-flight text display
+* Primable equipment dial added to HUD
+* Sun colour and background star colour are now separated
+* Ship cargo is now defined when ships are created
 * Mission screens can now have an arbitrary text entry prompt
 * Waypoints can be added - like a compass target, but not attached to
   any other entity.
-* With an Advanced Navigation Array, the '?' key now cycles through
-  different colour highlights
 * [oolite_key_FOO] description expansion describes keyconfig entry key_FOO
 * Javascript representation for ship exhausts
+* Wormholes have a read-only Javascript representation
 * Javascript representation for flashers
 * Description and mission text expansions now use a much better random
   number generator
-* Default Javascript properties set from manifest.plist
 
 New properties:
 ---------------
@@ -234,6 +242,8 @@ New plists:
 * role-categories.plist: supersedes and extends pirate-victim-roles.plist
 * scenarios.plist: allows alternative game starts to be added
 * shiplibrary.plist: adds ships to the start game ship database
+* The demoships.plist file no longer has any effect as there is no
+  longer a demo ships screen.
 
 New properties:
 * equipment.plist: fast_affinity_defensive
@@ -291,6 +301,11 @@ Bug fixes:
 
 System requirements:
 ====================
+
+General
+-------
+* Use of the "extra detail" graphics setting is likely to require a
+  dedicated graphics card for best performance.
 
 Mac-specific
 ------------
