@@ -2546,6 +2546,10 @@ this._weightedNearbyTradeSystem = function()
 		}
 	}
 	// fallback
+	if (locals.length > 0)
+	{
+		return locals[0].systemID;
+	}
 	return system.ID;
 }
 
