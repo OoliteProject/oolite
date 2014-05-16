@@ -6424,15 +6424,17 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	if ([other mass] < 2000) // we are not alerted by small objects. (a cargopod has a mass of about 1000)
 		return;
 	
-	if (isStation) // don't be alarmed close to stations -- is this sensible? we dont mind crashing with carriers?
-		return;
 
-	if ((other->isStation) && (behaviour == BEHAVIOUR_FLY_RANGE_FROM_DESTINATION || 
-							   behaviour == BEHAVIOUR_FLY_TO_DESTINATION || 
-							   [self status] == STATUS_LAUNCHING || 
+	if (isStation) // stations don't worry about colliding with things
+		return; 
+
+	/* Ignore station collision warnings if launching or docking */
+	if ((other->isStation) && ([self status] == STATUS_LAUNCHING || 
 							   dockingInstructions != nil))
-		return;  // Ships in BEHAVIOUR_FLY_TO_DESTINATION should have their own check for a clear flightpath.
-	
+	{
+		return; 
+	}	
+
 	if (!crew) // Ships without pilot (cargo, rocks, missiles, buoys etc) will not get alarmed. (escape-pods have pilots)
 		return;
 	
