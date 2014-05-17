@@ -271,7 +271,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else 
 	{
-		return [NSString stringWithFormat:@"%lu MB",bytes>>20];
+		return [NSString stringWithFormat:@"%.2f MB",((float)(bytes>>10))/1024];
 	}
 }
 
