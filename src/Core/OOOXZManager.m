@@ -1196,7 +1196,7 @@ static OOOXZManager *sSingleton = nil;
 - (void) showOptionsPrev
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE)
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE || _interfaceState == OXZ_STATE_PICK_INSTALLED)
 	{
 		if ([gui selectedRow] == OXZ_GUI_ROW_LISTPREV)
 		{
@@ -1209,7 +1209,7 @@ static OOOXZManager *sSingleton = nil;
 - (void) showOptionsNext
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE)
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_REMOVE || _interfaceState == OXZ_STATE_PICK_INSTALLED)
 	{
 		if ([gui selectedRow] == OXZ_GUI_ROW_LISTNEXT)
 		{
