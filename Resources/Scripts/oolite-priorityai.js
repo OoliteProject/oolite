@@ -5469,7 +5469,10 @@ PriorityAIController.prototype.responseComponent_standard_shipLaunchedFromStatio
 
 PriorityAIController.prototype.responseComponent_standard_shipScoopedOther = function(other)
 {
-	this.communicate("oolite_scoopedCargo",{"oolite_goodsDescription":displayNameForCommodity(other.commodity)},4);
+	if (other.commodity)
+	{
+		this.communicate("oolite_scoopedCargo",{"oolite_goodsDescription":displayNameForCommodity(other.commodity)},4);
+	}
 	this.setParameter("oolite_cargoDropped",null);
 	this.reconsiderNow();
 }
