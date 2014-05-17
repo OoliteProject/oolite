@@ -1273,6 +1273,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 }
 
 
+/* This is extremely expensive to call with useCache:NO */
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache
 {
 	NSString		*result = nil;
@@ -1324,6 +1325,8 @@ static NSString *LogClassKeyRoot(NSString *key)
 }
 
 
+/* use extreme caution in calling with usePathCache:NO - this can be
+ * an extremely expensive operation */
 + (id) retrieveFileNamed:(NSString *)fileName
 				inFolder:(NSString *)folderName
 				   cache:(NSMutableDictionary **)ioCache
@@ -1403,7 +1406,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 		}
 	}
 	
-	path = [self pathForFileNamed:fileName inFolder:folderName cache:useCache];
+	path = [self pathForFileNamed:fileName inFolder:folderName cache:YES];
 	if (path != nil)  result = [NSString stringWithContentsOfUnicodeFile:path];
 	
 	if (result != nil && useCache)
