@@ -57,6 +57,7 @@ Sound:
 ======
 * Now uses the OpenAL library to give fully positional sound. Supports
   stereo speakers up to 7.1 or binaural HRTF with headphones.
+* iTunes integration works again with iTunes 11 on the Mac.
 
 Controls:
 =========
