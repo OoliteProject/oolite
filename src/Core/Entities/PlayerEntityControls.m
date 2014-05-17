@@ -1871,7 +1871,9 @@ static NSTimeInterval	time_last_frame;
 			
 		case GUI_SCREEN_SAVE:
 			[self pollGuiScreenControlsWithFKeyAlias:NO];
-			if ([gameView isDown:gvFunctionKey1] || [gameView isDown:key_view_forward])  [self handleUndockControl];
+			/* Only F1 works for launch on this screen, not '1' or
+			 * whatever it has been bound to */
+			if ([gameView isDown:gvFunctionKey1])  [self handleUndockControl];
 			if (gui_screen == GUI_SCREEN_SAVE)
 			{
 				[self saveCommanderInputHandler];
