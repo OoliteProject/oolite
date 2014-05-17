@@ -710,7 +710,6 @@ static OOOXZManager *sSingleton = nil;
 		_changesMade = NO;
 		_interfaceState = OXZ_STATE_MAIN;
 		_downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
-		[PLAYER setGuiToIntroFirstGo:YES];
 		return YES;
 	}
 	else
