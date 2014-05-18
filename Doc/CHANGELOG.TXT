@@ -169,6 +169,7 @@ New methods:
 * Ship.keysForRole(role) (static method)
 * Ship.roleIsInCategory(role,category) (static method)
 * Ship.roles() (static method)
+* Ship.shipDataForKey(key) (static method)
 * dock.isQueued(ship)
 * player.endScenario(key)
 * player.ship.hideHUDSelector(selector)
