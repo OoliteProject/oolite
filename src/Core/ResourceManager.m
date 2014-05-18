@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "NSFileManagerOOExtensions.h"
 #import "OldSchoolPropertyListWriting.h"
 #import "OOOXZManager.h"
+#import "unzip.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -66,9 +67,14 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths;
 + (BOOL) matchVersions:(NSDictionary *)rangeDict withVersion:(NSString *)version;
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
-+ (void) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
++ (BOOL) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (void) logPaths;
 + (void) mergeRoleCategories:(NSDictionary *)catData intoDictionary:(NSMutableDictionary *)category;
++ (void) preloadFileLists;
++ (void) preloadFileListFromOXZ:(NSString *)path forFolders:(NSArray *)folders;
++ (void) preloadFileListFromFolder:(NSString *)path forFolders:(NSArray *)folders;
++ (void) preloadFilePathFor:(NSString *)fileName inFolder:(NSString *)subFolder atPath:(NSString *)path;
+
 
 @end
 
@@ -296,6 +302,113 @@ static NSMutableDictionary *sStringCache;
 }
 
 
++ (void) preloadFileLists
+{
+	NSString 		 *path = nil;
+	NSEnumerator *pathEnum = nil;
+
+	// folders which may contain files to be cached
+	NSArray *folders = [NSArray arrayWithObjects:@"AIs",@"Images",@"Models",@"Music",@"Scenarios",@"Scripts",@"Shaders",@"Sounds",@"Textures",nil];
+
+	for (pathEnum = [[ResourceManager paths] reverseObjectEnumerator]; (path = [pathEnum nextObject]); )
+	{
+		if ([path hasSuffix:@".oxz"])
+		{
+			[self preloadFileListFromOXZ:path forFolders:folders];
+		}
+		else
+		{
+			[self preloadFileListFromFolder:path forFolders:folders];
+		}
+	}
+}
+
+
++ (void) preloadFileListFromOXZ:(NSString *)path forFolders:(NSArray *)folders
+{
+	unzFile uf = NULL;
+	const char* zipname = [path UTF8String];
+	char componentName[512];
+
+	if (zipname != NULL)
+	{
+		uf = unzOpen64(zipname);
+	}
+	if (uf == NULL)
+	{
+		OOLog(@"resourceManager.error",@"Could not open .oxz at %@ as zip file",path);
+		return;
+	}
+	if (unzGoToFirstFile(uf) == UNZ_OK)
+	{
+		do 
+		{
+			unzGetCurrentFileInfo64(uf, NULL,
+									componentName, 512,
+									NULL, 0,
+									NULL, 0);
+			NSString *zipEntry = [NSString stringWithUTF8String:componentName];
+			NSArray *pathBits = [zipEntry pathComponents];
+			if ([pathBits count] >= 2)
+			{
+				NSString *folder = [pathBits oo_stringAtIndex:0];
+				if ([folders containsObject:folder])
+				{
+					NSRange bitRange;
+					bitRange.location = 1;
+					bitRange.length = [pathBits count]-1;
+					NSString *file = [NSString pathWithComponents:[pathBits subarrayWithRange:bitRange]];
+					NSString *fullPath = [[path stringByAppendingPathComponent:folder] stringByAppendingPathComponent:file];
+					
+					[self preloadFilePathFor:file inFolder:folder atPath:fullPath];
+				}
+			}
+
+		} 
+		while (unzGoToNextFile(uf) == UNZ_OK);
+	}
+	unzClose(uf);
+
+}
+
+
++ (void) preloadFileListFromFolder:(NSString *)path forFolders:(NSArray *)folders
+{
+	NSFileManager *fmgr 		= [NSFileManager defaultManager];
+	NSString *subFolder 		= nil;
+	NSString *subFolderPath 	= nil;
+	NSArray *fileList			= nil;
+	NSString *fileName			= nil;
+
+	// search each subfolder for files
+	foreach (subFolder, folders)
+	{
+		subFolderPath = [path stringByAppendingPathComponent:subFolder];
+		fileList = [fmgr oo_directoryContentsAtPath:subFolderPath];
+		foreach (fileName, fileList)
+		{
+			[self preloadFilePathFor:fileName inFolder:subFolder atPath:[subFolderPath stringByAppendingPathComponent:fileName]];
+		}
+	}
+
+}
+
+
++ (void) preloadFilePathFor:(NSString *)fileName inFolder:(NSString *)subFolder atPath:(NSString *)path
+{
+	OOCacheManager	*cache = [OOCacheManager sharedCache];
+	NSString *cacheKey = [NSString stringWithFormat:@"%@/%@", subFolder, fileName];
+	NSString *result = [cache objectForKey:cacheKey inCache:@"resolved paths"];
+	// if nil, not found in another OXP already
+	if (result == nil)
+	{
+		OOLog(@"resourceManager.foundFile.preLoad", @"Found %@/%@ at %@", subFolder, fileName, path);
+		[cache setObject:path forKey:cacheKey inCache:@"resolved paths"];
+	}
+}
+
+
+
 + (NSArray *)paths
 {
 	if (EXPECT_NOT(sSearchPaths == nil))
@@ -337,6 +450,10 @@ static NSMutableDictionary *sStringCache;
 		
 		[self checkCacheUpToDateForPaths:[self paths]];
 		[self logPaths];
+		/* preloading the file lists at this stage helps efficiency a
+		 * lot when many OXZs are installed */
+		[self preloadFileLists];
+
 	}
 }
 
@@ -765,7 +882,7 @@ static NSMutableDictionary *sStringCache;
 }
 
 
-+ (void)checkCacheUpToDateForPaths:(NSArray *)searchPaths
++ (BOOL)checkCacheUpToDateForPaths:(NSArray *)searchPaths
 {
 	/*	Check if caches are up to date.
 		The strategy is to use a two-entry cache. One entry is an array
@@ -828,6 +945,8 @@ static NSMutableDictionary *sStringCache;
 		[cacheMgr setObject:modDates forKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
 	}
 	else OOLog(kOOLogCacheUpToDate, @"Data cache is up to date.");
+
+	return upToDate;
 }
 
 
@@ -1296,6 +1415,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	// Search for file
 	fmgr = [NSFileManager defaultManager];
+	// reverse object enumerator allows OXPs to override core
 	for (pathEnum = [[ResourceManager paths] reverseObjectEnumerator]; (path = [pathEnum nextObject]); )
 	{
 		filePath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];

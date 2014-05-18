@@ -226,8 +226,9 @@
 	rendering.reset							= yes;
 	rendering.reset.start					= inherit;
 	rendering.reset.end						= no;
+
 	
-	
+	resourceManager.error					= yes;
 	resourceManager.foundFile				= no;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
 	
 	
