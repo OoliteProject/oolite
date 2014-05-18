@@ -294,6 +294,7 @@
 	script.javaScript.init.success			= no;
 	script.javaScript.init.error			= $error;				// Fatal start-up error
 	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
+	script.javaScript.timeLimit.debug		= no;					// Time limiter debugging info
 	script.javaScript.willLoad				= no;
 	
 	script.load								= no;
