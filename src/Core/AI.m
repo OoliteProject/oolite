@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "OOCacheManager.h"
 #import "OOCollectionExtractors.h"
+#import "OOPListParsing.h"
 
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
@@ -306,7 +307,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 - (void) setStateMachine:(NSString *)smName withJSScript:(NSString *)script
 {
 	NSDictionary *newSM = [self loadStateMachine:smName jsName:script];
-	
+
 	if (newSM)
 	{
 		[self preserveCurrentStateMachine];
@@ -327,7 +328,6 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 		// refresh name
 		[self refreshOwnerDesc];
 	}
-
 }
 
 
@@ -825,7 +825,11 @@ static AIStackElement *sStack = NULL;
 		@try
 		{
 			// Load state machine and validate against whitelist.
-			newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" mergeMode:MERGE_NONE cache:NO];
+			NSString *aiPath = [ResourceManager pathForFileNamed:smName inFolder:@"AIs"];
+			if (aiPath != nil)
+			{
+				newSM = OODictionaryFromFile(aiPath);
+			}
 			if (newSM == nil)
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
