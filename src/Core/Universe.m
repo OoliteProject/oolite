@@ -3405,12 +3405,10 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			jsval result;
 			jsval args[] = { OOJSValueFromNativeObject(context, shipKey) };
 			
-			OOJSStartTimeLimiter();
 			OK = [condScript callMethod:OOJSID("allowSpawnShip")
 						  inContext:context
 					  withArguments:args count:sizeof args / sizeof *args
 							 result:&result];
-			OOJSStopTimeLimiter();
 
 			if (OK) OK = JS_ValueToBoolean(context, result, &allow_instantiation);
 			
@@ -8844,12 +8842,10 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 					jsval result;
 					jsval args[] = { OOJSValueFromNativeObject(context, key) };
 			
-					OOJSStartTimeLimiter();
 					OK = [condScript callMethod:OOJSID("allowOfferShip")
 												inContext:context
 										withArguments:args count:sizeof args / sizeof *args
 													 result:&result];
-					OOJSStopTimeLimiter();
 
 					if (OK) OK = JS_ValueToBoolean(context, result, &allow_purchase);
 			
@@ -9006,12 +9002,10 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 							jsval result;
 							jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, testship) , OOJSValueFromNativeObject(JScontext, @"newShip")};
 				
-							OOJSStartTimeLimiter();
 							OK = [condScript callMethod:OOJSID("allowAwardEquipment")
 																inContext:JScontext
 														withArguments:args count:sizeof args / sizeof *args
 																	 result:&result];
-							OOJSStopTimeLimiter();
 
 							if (OK) OK = JS_ValueToBoolean(JScontext, result, &allow_addition);
 				

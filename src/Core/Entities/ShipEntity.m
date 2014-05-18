@@ -3131,12 +3131,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jsval result;
 				jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, self) , OOJSValueFromNativeObject(JScontext, context)};
 				
-				OOJSStartTimeLimiter();
 				OK = [condScript callMethod:OOJSID("allowAwardEquipment")
 											inContext:JScontext
 									withArguments:args count:sizeof args / sizeof *args
 												 result:&result];
-				OOJSStopTimeLimiter();
 
 				if (OK) OK = JS_ValueToBoolean(JScontext, result, &allow_addition);
 				
@@ -12746,12 +12744,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		for (i = 0; i < _maxEscortCount; i++)
 		{
 			args[0] = INT_TO_JSVAL(i);
-			OOJSStartTimeLimiter();
 			OK = [script callMethod:OOJSID("coordinatesForEscortPosition")
 						  inContext:context
 					  withArguments:args count:sizeof args / sizeof *args
 							 result:&result];
-			OOJSStopTimeLimiter();
 			
 			if (OK)  OK = JSValueToVector(context, result, &_escortPositions[i]);
 			
