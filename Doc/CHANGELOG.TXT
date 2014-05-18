@@ -274,6 +274,8 @@ New properties:
 * shipdata.plist: escort_roles
 * shipdata.plist: exhaust_emissive_color
 * shipyard.plist: renovation_multiplier
+* shipyard.plist: ship_name
+* shipyard.plist: ship_class_name
 
 Shaders:
 --------
