@@ -1541,13 +1541,13 @@ this._addMediumHunterRemote = function(pos)
 
 this._addMediumHunterReturn = function(pos)
 {
-	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-medium",true);
+	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(4),"hunter-medium",true);
 }
 
 
 this._addMediumHunterOutbound = function(pos)
 {
-	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-medium",false);
+	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(4),"hunter-medium",false);
 }
 
 
@@ -1583,6 +1583,8 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 	{
 		t[0].bounty = 0;
 		t[0].homeSystem = home;
+		t[0].destinationSystem = dest;
+		
 		if (returning)
 		{
 			this._setMissiles(t[0],-1);
@@ -1593,8 +1595,6 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			this._setFuel(t[0]);
 		}
 
-		t[0].destinationSystem = dest;
-		
 		var group = new ShipGroup("hunter group",t[0]);
 		t[0].group = group;
 
@@ -2281,7 +2281,7 @@ this._setReturnFuel = function(ship)
 this._wormholePos = function()
 {
 	var v = Vector3D.randomDirection().multiply(2000+Math.random()*3000);
-	if (v.z < 0 && v.x+v.y < 500)
+	if (v.z < 0 && Math.abs(v.x)+Math.abs(v.y) < 1000)
 	{
 		v.z = -v.z; // avoid collision risk with witchbuoy
 	}
