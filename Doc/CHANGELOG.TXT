@@ -80,6 +80,8 @@ Settings:
 
 * --noshaders command line option to temporarily start Oolite without
   shader support, for debugging graphics card problems.
+* Windows and Linux ports: Default spoken messages voice changed to
+  female.
 
 Expansion pack development:
 ===========================
