@@ -676,47 +676,36 @@ static OOColor *ColorWithHSBColor(Vector c)
 		}
 		else textureName = @"dynamic";
 
-		if (!isMoon)
-		{
-			OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
-			/* Generate a standalone atmosphere texture */
-			OOTexture *atmosphere = nil;
-			[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
-															  withInfo:_materialParameters];
-
-			OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
-
-			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
-			[_atmosphereDrawable setMaterial:dynamicMaterial];
-			[dynamicMaterial release];
-		}
 	}
 	else
 	{
-		if (isMoon)
-		{
-			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
-												   withInfo:_materialParameters];
-		}
-		else
-		{
-			OOTexture *atmosphere = nil;
-			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
-											  andAtmosphere:&atmosphere
-												   withInfo:_materialParameters];
-			
-			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
-			[_atmosphereDrawable setMaterial:dynamicMaterial];
-			[dynamicMaterial release];
-		}
+		[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
+									   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
+											   withInfo:_materialParameters];
+
 		if (shadersOn)
 		{
 			macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
 		}
 		textureName = @"dynamic";
 	}
+
+	/* Generate atmosphere texture */
+	if (!isMoon)
+	{
+		OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
+		/* Generate a standalone atmosphere texture */
+		OOTexture *atmosphere = nil;
+		[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
+														  withInfo:_materialParameters];
+		
+		OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
+		
+		OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
+		[_atmosphereDrawable setMaterial:dynamicMaterial];
+		[dynamicMaterial release];
+	}
+
 	OOMaterial *material = nil;
 	
 #if OO_SHADERS
