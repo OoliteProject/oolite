@@ -1361,40 +1361,6 @@ static NSTimeInterval	time_last_frame;
 				else
 					galhyperspace_pressed = NO;
 
-
-				exceptionContext = @"cycle mfds";
-				// ';' // Cycle active MFD
-				if ([gameView isDown:key_cycle_mfd])
-				{
-					if (!cycleMFD_pressed)
-					{
-						[self cycleMultiFunctionDisplay:activeMFD];
-					}
-					cycleMFD_pressed = YES;
-				}
-				else
-				{
-					cycleMFD_pressed = NO;
-				}
-
-				exceptionContext = @"switch mfds";
-				//  ':' // Select next MFD
-				if ([gameView isDown:key_switch_mfd])
-				{
-					if ([[self hud] mfdCount] > 1)
-					{
-						if (!switchMFD_pressed)
-						{
-							[self selectNextMultiFunctionDisplay];
-						}
-					}
-					switchMFD_pressed = YES;
-				}
-				else
-				{
-					switchMFD_pressed = NO;
-				}
-				
 			}
 			
 	#ifndef NDEBUG
@@ -2945,6 +2911,38 @@ static NSTimeInterval	time_last_frame;
 		}
 	}
 	
+	// ';' // Cycle active MFD
+	if ([gameView isDown:key_cycle_mfd])
+	{
+		if (!cycleMFD_pressed)
+		{
+			[self cycleMultiFunctionDisplay:activeMFD];
+		}
+		cycleMFD_pressed = YES;
+	}
+	else
+	{
+		cycleMFD_pressed = NO;
+	}
+
+	//  ':' // Select next MFD
+	if ([gameView isDown:key_switch_mfd])
+	{
+		if ([[self hud] mfdCount] > 1)
+		{
+			if (!switchMFD_pressed)
+			{
+				[self selectNextMultiFunctionDisplay];
+			}
+		}
+		switchMFD_pressed = YES;
+	}
+	else
+	{
+		switchMFD_pressed = NO;
+	}
+				
+
 	//  show comms log '`'
 	if ([gameView isDown:key_comms_log])
 	{
