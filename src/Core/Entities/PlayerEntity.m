@@ -3611,10 +3611,18 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setCompassActive:wasCompassActive];
 		[hud setHidden:wasHidden];
 		activeMFD = 0;
+		NSArray *savedMFDs = [NSArray arrayWithArray:multiFunctionDisplaySettings];
 		[multiFunctionDisplaySettings removeAllObjects];
-		for (i = [hud mfdCount]-1 ; i >= 0 ; i--)
+		for (i = 0; i < [hud mfdCount] ; i++)
 		{
-			[multiFunctionDisplaySettings addObject:[NSNull null]];
+			if ([savedMFDs count] > i)
+			{
+				[multiFunctionDisplaySettings addObject:[savedMFDs objectAtIndex:i]];
+			}
+			else
+			{
+				[multiFunctionDisplaySettings addObject:[NSNull null]];
+			}
 		}
 	}
 	
