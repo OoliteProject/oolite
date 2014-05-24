@@ -3572,7 +3572,7 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL 			wasHidden = NO;
 	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
-	int				i;
+	NSUInteger		i;
 
 	if (!hudFileName)  return NO;
 	
