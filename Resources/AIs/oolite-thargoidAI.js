@@ -33,6 +33,7 @@ this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_fightsNearHostileStations",true);
+	ai.setParameter("oolite_flag_likesInterstellarSpace",true);
 
 	ai.setCommunicationsRole("_thargoid");
 	ai.setCommunicationsPersonality("thargoid");

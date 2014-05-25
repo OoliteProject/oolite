@@ -36,6 +36,7 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_flag_fightsNearHostileStations",true);
 	ai.setParameter("oolite_flag_scanIgnoresUnpowered",true);
+	ai.setParameter("oolite_flag_likesInterstellarSpace",true);
 
 	ai.setPriorities([
 		/* Check for mothership */

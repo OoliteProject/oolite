@@ -5077,6 +5077,11 @@ PriorityAIController.prototype.responseComponent_standard_playerWillEnterWitchsp
 	{
 		this.ship.enterWormhole(wormhole);
 	} 
+	/* Given a chance to leave interstellar space, take it */
+	else if (system.isInterstellarSpace && !this.getParameter("oolite_flag_likesInterstellarSpace") && this.distance(player.ship) < this.scannerRange)
+	{
+		this.ship.enterWormhole();
+	}
 }
 
 
