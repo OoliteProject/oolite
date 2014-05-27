@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 	NSMutableDictionary		*shipsOnApproach;
 	NSMutableArray			*launchQueue;
 	double					last_launch_time;
-	double					approach_spacing;
+//	double					approach_spacing; // not needed now holding pattern changed
 	
 	ShipEntity				*id_lock[MAX_DOCKING_STAGES];	// OOWeakReferences to a ShipEntity
 	

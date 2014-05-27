@@ -77,7 +77,6 @@ MA 02110-1301, USA.
 		{
 			last_launch_time = [UNIVERSE getTime];
 		}
-		approach_spacing = 0.0;
 	}
 	
 	return [shipsOnApproach count];
@@ -124,7 +123,6 @@ MA 02110-1301, USA.
 	}
 	
 	last_launch_time = [UNIVERSE getTime] + playerExtraTime;
-	approach_spacing = 0.0;
 }
 
 
@@ -493,21 +491,46 @@ MA 02110-1301, USA.
 	{
 		NSMutableDictionary *nextCoords = [NSMutableDictionary dictionaryWithCapacity:3];
 		int offset = corridor_offset[i];
+		float corridor_length = port_depth * corridor_distance[i];
 		
-		// space out first coordinate further if there are many ships
-		if ((i == corridor_count - 1) && offset)
+		float rx = s * port_depth * offset;
+		float ry = c * port_depth * offset;
+		float rz = corridor_length;
+		// if there are many ships on approach, randomise coordinates a bit
+		if ((i == corridor_count - 1) && [self countOfShipsInDockingQueue])
 		{
-			offset += approach_spacing / port_depth;
+			/* This used to try to just space the ships further out
+			 * along the 16 approach lanes - this had various problems
+			 * with putting ship coordinates on top of each other
+			 * and/or spacing them out all the way back to the
+			 * witchpoint. Instead, use a few more bits of
+			 * entityPersonalityInt to shuffle the holding coordinates
+			 * a bit more. It still doesn't guarantee two ships won't
+			 * want the same space, but it makes it considerably more
+			 * unlikely - I dropped 100 docking ships into the aegis
+			 * at once, and they all got allocated positions far
+			 * enough from the others to avoid collisions or near
+			 * misses - CIM: 27 May 2014 */
+
+			int offset_id2 = ([ship entityPersonalityInt] & 0xf0)>>4;	// 16  point compass
+			int offset_id3 = ([ship entityPersonalityInt] & 0xf00)>>8;	// 16  point step position
+			float c2 = cos(offset_id2 * M_PI * ONE_EIGHTH);
+			float s2 = sin(offset_id2 * M_PI * ONE_EIGHTH);
+			float ssize = MAX(port_depth,1500.0);
+			rx += c2 * ssize; 
+			ry += s2 * ssize; 
+			rz += ssize * ((float)offset_id3 / 4.0);
+
+//			OOLog(@"docking.debug",@"Adjusted coordinates by %f x %f x %f",c2 * ssize,s2 * ssize,ssize * ((float)offset_id3 / 4.0));
 		}
 		
-		float corridor_length = port_depth * corridor_distance[i];
 		// add the lenght inside the station to the corridor, except for the final position, inside the dock.
 		if (corridor_distance[i] > 0)  corridor_length += port_corridor;
 		
 		[nextCoords oo_setInteger:corridor_count - i	forKey:@"docking_stage"];
-		[nextCoords oo_setFloat:s * port_depth * offset	forKey:@"rx"];
-		[nextCoords oo_setFloat:c * port_depth * offset	forKey:@"ry"];
-		[nextCoords oo_setFloat:corridor_length			forKey:@"rz"];
+		[nextCoords oo_setFloat:rx						forKey:@"rx"];
+		[nextCoords oo_setFloat:ry						forKey:@"ry"];
+		[nextCoords oo_setFloat:rz						forKey:@"rz"];
 		[nextCoords oo_setFloat:corridor_speed[i]		forKey:@"speed"];
 		[nextCoords oo_setFloat:corridor_range[i]		forKey:@"range"];
 		
@@ -533,17 +556,6 @@ MA 02110-1301, USA.
 	
 	[shipsOnApproach setObject:coordinatesStack forKey:shipID];
 	
-	approach_spacing += 500;  // space out incoming ships by 500m
-	
-	// FIXME: Eric 23-10-2011: Below is a quick fix to prevent the approach_spacing from blowing up
-	// to high values because of bad AI's for docking ships that keep requesting and aborting docking.
-	// Post 1.76 this probably should replace it with a proper list of holding slots so  that close by slots
-	// can be used again once the ship has left the Approach queue. In the current fix, resetting can
-	// result in two ships getting the same holding position.
-	if (approach_spacing > 2 * SCANNER_MAX_RANGE && approach_spacing / 500 > 5 * [shipsOnApproach count])
-	{
-		approach_spacing = 0;
-	}
 	
 	// COMM-CHATTER
 	if (station == [UNIVERSE station])
@@ -1206,11 +1218,6 @@ MA 02110-1301, USA.
 		no_docking_while_launching = NO;	// launching complete
 	}
 	
-	if (approach_spacing > 0.0)
-	{
-		approach_spacing -= delta_t * 10.0;	// reduce by 10 m/s
-		if (approach_spacing < 0.0)   approach_spacing = 0.0;
-	}
 }
 
 
