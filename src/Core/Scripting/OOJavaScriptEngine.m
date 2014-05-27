@@ -2118,6 +2118,11 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter)
 }
 
 
+BOOL JSEntityIsDemoShipPredicate(Entity *entity, void *parameter)
+{
+	return ([entity isVisibleToScripts] && [entity isShip] && [entity status] == STATUS_COCKPIT_DISPLAY && ![entity isSubEntity]);
+}
+
 static NSMapTable *sRegisteredSubClasses;
 
 void OOJSRegisterSubclass(JSClass *subclass, JSClass *superclass)

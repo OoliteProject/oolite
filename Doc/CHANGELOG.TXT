@@ -155,6 +155,7 @@ New properties:
 * station.allegiance
 * station.market[*].legalPenalty
 * sun.name
+* system.allDemoShips
 * system.populatorSettings
 * system.stations
 * system.waypoints
