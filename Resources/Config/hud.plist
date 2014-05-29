@@ -185,7 +185,7 @@
 			height		= 12;
 			selector	= "drawClock:";
 			width		= 12;
-			x		= -48;
+			x		= -41;
 			y		= 18;
 			y_origin	= -1;
 		},
@@ -290,7 +290,7 @@
 		},
 		{	// RHS
 			text		= "SPD";
-			x		= 241;
+			x		= 242;
 			y		= 82;
 			y_origin	= -1;
 			height		= 20;
@@ -299,7 +299,7 @@
 		},
 		{
 			text		= "ROLL";
-			x		= 241;
+			x		= 242;
 			y		= 72;
 			y_origin	= -1;
 			height		= 12;
@@ -309,7 +309,7 @@
 		//{	// yaw bar legend, disabled by default
 		//	// uncomment as required to enable
 		//	text		= "YAW";
-		//	x		= 241;
+		//	x		= 242;
 		//	y		= -138;
 		//	height		= 12;
 		//	width		= 9;
@@ -317,7 +317,7 @@
 		//},
 		{
 			text		= "PITCH";
-			x		= 241;
+			x		= 242;
 			y		= 62;
 			y_origin	= -1;
 			height		= 12;
