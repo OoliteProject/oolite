@@ -137,6 +137,14 @@
 			x = -152;
 			y = -201;
 		},
+		{   /* witchspace destination label */
+			selector = "drawWitchspaceDestination:";
+			height = 10;
+			width = 10;
+			y = -207;
+			x = -176;
+			color = (0.25,0.25,1.0,1.0);
+		},
 		{ /* cabin temperature bar */
 			height = 8;
 			selector = "drawCabinTempBar:";

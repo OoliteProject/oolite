@@ -139,6 +139,7 @@ enum
 - (void) drawForwardShieldBar:(NSDictionary *)info;
 - (void) drawAftShieldBar:(NSDictionary *)info;
 - (void) drawFuelBar:(NSDictionary *)info;
+- (void) drawWitchspaceDestination:(NSDictionary *)info;
 - (void) drawCabinTempBar:(NSDictionary *)info;
 - (void) drawWeaponTempBar:(NSDictionary *)info;
 - (void) drawAltitudeBar:(NSDictionary *)info;
@@ -182,6 +183,7 @@ static const GLfloat darkgreen_color[4] =	{0.0, 0.75, 0.0, 1.0};
 static const GLfloat cyan_color[4] =		{0.0, 1.0, 1.0, 1.0};
 static const GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
 static const GLfloat black_color[4] =		{0.0, 0.0, 0.0, 1.0};
+static const GLfloat white_color[4] =		{1.0, 1.0, 1.0, 1.0};
 static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 
 static float	sGlyphWidths[256];
@@ -2149,6 +2151,36 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 		hudDrawMarkerAt(x, y, z1, siz, hr);
 	}
+
+}
+
+
+- (void) drawWitchspaceDestination:(NSDictionary *)info
+{
+	// A zero-distance jump counts as 0.1LY
+	if ([PLAYER dialHyperRange] == 0.0f)
+	{
+		return;
+	}
+
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, WITCHDEST_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, WITCHDEST_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, WITCHDEST_WIDTH);
+	siz.height = useDefined(cached.height, WITCHDEST_HEIGHT);
+	alpha *= cached.alpha;
+
+	SET_COLOR(green_color);
+	
+	OODrawString([UNIVERSE getSystemName:[PLAYER target_system_seed]], x, y, z1, siz);
+
 }
 
 
