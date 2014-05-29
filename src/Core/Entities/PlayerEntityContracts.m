@@ -1218,7 +1218,7 @@ for (unsigned i=0;i<amount;i++)
 		
 		NSInteger page_offset = 0;
 		BOOL multi_page = NO;
-		NSUInteger total_rows = cargoRowCount + MAX(1,[passengerManifest count]) + MAX(1,[contractManifest count]) + [missionsManifest count] + MAX(1,[parcelManifest count]) + 5;
+		NSUInteger total_rows = cargoRowCount + MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) + [missionsManifest count] + MAX(1U,[parcelManifest count]) + 5;
 		if (total_rows > max_rows)
 		{
 			max_rows -= 2;
