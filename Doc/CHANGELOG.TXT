@@ -260,9 +260,10 @@ New properties:
 * hud.plist: color_low
 * hud.plist: color_medium
 * hud.plist: color_surround
-* hud.plist: drawASCTarget
-* hud.plist: drawPrimedEquipment
-* hud.plist: drawWaypoints
+* hud.plist: drawASCTarget:
+* hud.plist: drawPrimedEquipment:
+* hud.plist: drawWaypoints:
+* hud.plist: drawWitchspaceDestination:
 * hud.plist: multi_function_displays
 * hud.plist: reticle_scale (scanner targeting enhancement)
 * hud.plist: scanner_non_linear
@@ -305,6 +306,7 @@ Bug fixes:
 * Fix bug when pressing opposite movement direction keys together
 * Fix various random number generation bugs
 * Clean up momentum transfer in explosions
+* Fix error in manifest screen paging
 
 System requirements:
 ====================
