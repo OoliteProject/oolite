@@ -34,7 +34,14 @@ this.aiStarted = function() {
 	ai.setParameter("oolite_flag_sendsDistressCalls",true);
 	ai.setParameter("oolite_flag_allowPlanetaryLanding",true);
 
-	ai.setCommunicationsRole("shuttle");
+	if (this.ship.primaryRole == "escape-capsule")
+	{
+		ai.setCommunicationsRole("escapepod");
+	}
+	else
+	{
+		ai.setCommunicationsRole("shuttle");
+	}
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate-victim"]);
 
