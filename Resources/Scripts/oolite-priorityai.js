@@ -6534,41 +6534,6 @@ this.startUp = function()
 		}
 	});
 
-	/* These are temporary for testing. Remove before release... */
-	this.$commsSettings.generic.generic.oolite_continuingAttack = "I've got the [oolite_entityClass]";
-	this.$commsSettings.police.generic.oolite_continuingAttack = function(k,p) { return "Targeting the "+p.oolite_entityName+". Cover me."; };
-	this.$commsSettings.generic.generic.oolite_beginningAttack = "Die, [oolite_entityName]!";
-	this.$commsSettings.police.generic.oolite_beginningAttack = function(k,p) { return "Leave the system or die, "+p.oolite_entityName+"!"; };
-	this.$commsSettings.generic.generic.oolite_beginningAttackInanimate = "I've got you this time, [oolite_entityName]!";
-	this.$commsSettings.generic.generic.oolite_hitTarget = "Take that, scum.";
-	this.$commsSettings.generic.generic.oolite_killedTarget = "[oolite_entityClass] down!";
-	this.$commsSettings.hunter = { generic: {} };
-	this.$commsSettings.hunter.generic.oolite_beginningFight = "Now there's an [oolite_entityName] with a decent bounty. Attack!";
-	this.$commsSettings.station = { generic: {} };
-	this.$commsSettings.station.generic.oolite_killedNonTarget = "Pull up, [oolite_entityName]!";
-	this.$commsSettings.generic.generic.oolite_killedAlly = "No! [oolite_entityName]!";
-	this.$commsSettings.pirate.generic.oolite_hitTarget = "Where's the cargo, [oolite_entityName]?";
-	this.$commsSettings.generic.generic.oolite_friendlyFire = "Watch where you're shooting, [oolite_entityName]!";
-	this.$commsSettings.generic.generic.oolite_eject = "Condition critical! I'm bailing out...";
-	this.$commsSettings.generic.generic.oolite_thargoidAttack = "%N! A thargoid warship!";
-	this.$commsSettings.generic.generic.oolite_firedMissile = "Dodge this for a bit, [oolite_entityName].";
-	this.$commsSettings.generic.generic.oolite_incomingMissile = "Help! Help! Missile!";
-	this.$commsSettings.generic.generic.oolite_startHelping = "Hold on! I'm on them.";
-	this.$commsSettings.generic.generic.oolite_switchTarget = "I'll get the [oolite_entityClass].";
-	this.$commsSettings.generic.generic.oolite_newAssailant = "Where did that [oolite_entityClass] come from?";
-	this.$commsSettings.generic.generic.oolite_startFleeing = "I can't take this much longer! I'm getting out of here.";
-	this.$commsSettings.generic.generic.oolite_continueFleeing = "I'm still not clear. Someone please help!";
-	this.$commsSettings.generic.generic.oolite_groupIsOutnumbered = "Please, let us go!";
-	this.$commsSettings.pirate.generic.oolite_groupIsOutnumbered = "Argh! They're tougher than they looked. Break off the attack!"
-	this.$commsSettings.generic.generic.oolite_dockingWait = "Bored now.";
-	this.$commsSettings.generic.generic.oolite_dockEscorts = "I've got clearance now. Begin your own docking sequences when ready.";
-	this.$commsSettings.generic.generic.oolite_mining = "Maybe this one has gems.";
-	this.$commsSettings.generic.generic.oolite_quiriumCascade = "Cascade! %N! Get out of here!";
-	this.$commsSettings.pirate.generic.oolite_scoopedCargo = "Ah, [oolite_goodsDescription]. We should have shaken them down for more.";
-	this.$commsSettings.generic.generic.oolite_agreeingToDumpCargo = "Have it! But please let us go!";
-	this.$commsSettings.generic.generic.oolite_engageWitchspaceDrive = "Anyone want a free ride out of the system?";
-	this.$commsSettings.generic.generic.oolite_engageWitchspaceDriveGroup = "All ships, form up for witchspace jump.";
-	this.$commsSettings.generic.generic.oolite_engageWitchspaceDriveFlee = "There's too many of them! Get out of here!";
 }
 
 

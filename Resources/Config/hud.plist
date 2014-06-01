@@ -140,15 +140,16 @@
 			y		= 61;
 			y_origin	= -1;
 		},
-		{   // witchspace destination label
-			selector = "drawWitchspaceDestination:";
-			height = 10;
-			width = 10;
-			y = 55;
-			x = -240;
-			y_origin	= -1;
-			color = (0.25,0.25,1.0,1.0);
-		},
+// not enabled in default HUD - uncomment to use
+//		{   // witchspace destination label
+//			selector = "drawWitchspaceDestination:";
+//			height = 10;
+//			width = 10;
+//			y = 55;
+//			x = -240;
+//			y_origin	= -1;
+//			color = (0.25,0.25,1.0,1.0);
+//		},
 		{	// cabin temperature bar
 			height		= 8;
 			selector	= "drawCabinTempBar:";
