@@ -1509,6 +1509,19 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (BOOL) isMinable
+{
+	if ([self hasRole:@"asteroid"] || [self isBoulder])
+	{
+		if (!noRocks)
+		{
+			return YES;
+		}
+	}
+	return NO;
+}
+
+
 - (BOOL) countsAsKill
 {
 	return [[self shipInfoDictionary] oo_boolForKey:@"counts_as_kill" defaultValue:YES];

@@ -236,6 +236,7 @@ enum
 	kShip_isFrangible,			// frangible, boolean, read-only
 	kShip_isFleeing,			// is fleeing, boolean, read-only
 	kShip_isJamming,			// jamming scanners, boolean, read/write (if jammer installed)
+	kShip_isMinable,			// is a sensible target for mining, boolean, read-only
 	kShip_isMine,				// is mine, boolean, read-only
 	kShip_isMissile,			// is missile, boolean, read-only
 	kShip_isPiloted,			// is piloted, boolean, read-only (includes stations)
@@ -375,6 +376,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isFrangible",			kShip_isFrangible,			OOJS_PROP_READONLY_CB },
 	{ "isFleeing",				kShip_isFleeing,			OOJS_PROP_READONLY_CB },
 	{ "isJamming",				kShip_isJamming,			OOJS_PROP_READONLY_CB },
+	{ "isMinable",				kShip_isMinable,			OOJS_PROP_READONLY_CB },
 	{ "isMine",					kShip_isMine,				OOJS_PROP_READONLY_CB },
 	{ "isMissile",				kShip_isMissile,			OOJS_PROP_READONLY_CB },
 	{ "isPiloted",				kShip_isPiloted,			OOJS_PROP_READONLY_CB },
@@ -920,6 +922,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			
 		case kShip_isRock:
 			*value = OOJSValueFromBOOL([entity scanClass] == CLASS_ROCK);	// hermits and asteroids!
+			return YES;
+
+		case kShip_isMinable:
+			*value = OOJSValueFromBOOL([entity isMinable]);
 			return YES;
 			
 		case kShip_isBoulder:

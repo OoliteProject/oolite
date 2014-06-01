@@ -516,6 +516,7 @@ typedef enum
 
 - (void) setIsBoulder:(BOOL)flag;
 - (BOOL) isBoulder;
+- (BOOL) isMinable;
 
 - (BOOL) countsAsKill;
 

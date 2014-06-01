@@ -2300,7 +2300,7 @@ PriorityAIController.prototype.conditionScannerContainsRocks = function()
 	}
 	// no boulders, what about asteroids?
 	return this.checkScannerWithPredicate(function(s) { 
-		return s.isInSpace && s.hasRole("asteroid");
+		return s.isInSpace && s.isMinable;
 	});
 }
 

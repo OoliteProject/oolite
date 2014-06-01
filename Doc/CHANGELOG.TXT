@@ -148,6 +148,7 @@ New properties:
 * ship.flashers
 * ship.homeSystem
 * ship.isFleeing
+* ship.isMinable
 * ship.isTurret
 * ship.markedForFines
 * ship.shipClassName
