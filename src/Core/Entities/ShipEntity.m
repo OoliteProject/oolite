@@ -4869,7 +4869,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	[self trackPrimaryTarget:delta_t:NO];
-	[self fireMainWeapon:range];
+
+	/* Don't open fire until within 3km - it doesn't take many mining
+	 * laser shots to destroy an asteroid, but some of these mining
+	 * ships are way too slow to effectively chase down the debris:
+	 * wait until reasonably close before trying to split it. */
+	if (range < 3000)
+	{
+		[self fireMainWeapon:range];
+	}
 	
 	
 }
