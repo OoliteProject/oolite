@@ -577,6 +577,8 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	GameController *gameController = [UNIVERSE gameController];
 	
+	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE);
+
 	@try
 	{
 	//  command-key controls
@@ -603,7 +605,7 @@ static NSTimeInterval	time_last_frame;
 	#endif
 		
 	#if OOLITE_WINDOWS
-		if ( ([gameView isDown:'Q']) )
+		if ( !onTextEntryScreen && ([gameView isDown:'Q']) )
 		{
 			exceptionContext = @"windows - Q";
 			[gameController exitAppWithContext:@"Q pressed [Windows]"];
@@ -665,8 +667,9 @@ static NSTimeInterval	time_last_frame;
 			taking_snapshot = NO;
 		}
 		
+		
 		// FPS display
-		if ([gameView isDown:key_show_fps])   //  'F' key
+		if (!onTextEntryScreen && [gameView isDown:key_show_fps])   //  'F' key
 		{
 			exceptionContext = @"toggle FPS";
 			if (!f_key_pressed)  [UNIVERSE setDisplayFPS:![UNIVERSE displayFPS]];
@@ -689,7 +692,7 @@ static NSTimeInterval	time_last_frame;
 		if (allowMouseControl)
 		{
 			exceptionContext = @"mouse control";
-			if ([gameView isDown:key_mouse_control])   //  'M' key
+			if (!onTextEntryScreen && [gameView isDown:key_mouse_control])   //  'M' key
 			{
 				if (!m_key_pressed)
 				{
