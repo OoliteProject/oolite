@@ -3911,14 +3911,11 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	{
 		case 0 :	// TONNES
 			return 1;
-			break;
 		case 1 :	// KILOGRAMS
 			return 1 + (Ranrot() % 6) + (Ranrot() % 6) + (Ranrot() % 6);
-			break;
 		case 2 :	// GRAMS
 			//return 4 + 3 * (Ranrot() % 6) + 2 * (Ranrot() % 6) + (Ranrot() % 6);
 			return 4 + (Ranrot() % 16) + (Ranrot() % 11) + (Ranrot() % 6);
-			break;
 	}
 	return 1;
 }

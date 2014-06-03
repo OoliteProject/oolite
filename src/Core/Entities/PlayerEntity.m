@@ -2718,7 +2718,6 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_MISSION:
 			case GUI_SCREEN_REPORT:
 				return;
-				break;
 			
 			// Screens from which it's safe to jump to the mission screen
 //			case GUI_SCREEN_CONTRACTS:
