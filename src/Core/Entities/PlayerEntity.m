@@ -7000,8 +7000,18 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		NSString *desc = [commodity oo_stringForKey:@"displayName"];
 		NSString *units = [commodity oo_stringForKey:@"unit"];
-		[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
-							[commodity oo_intForKey:@"quantity"], units, desc]];
+		if (EXPECT([units isEqualToString:DESC(@"cargo-tons-symbol")] || [commodity oo_intForKey:@"containers"] == 0))
+		{
+			// normal display
+			[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
+								   [commodity oo_intForKey:@"quantity"], units, desc]];
+		}
+		else
+		{
+			// if low-mass cargo is occupying containers, show how many
+			[manifest addObject:[NSString stringWithFormat:DESC(@"oolite-manifest-cargo-quantity-format2"),
+								   [commodity oo_intForKey:@"quantity"], units, desc, [commodity oo_intForKey:@"containers"]]];
+		}
 	}
 	
 	return manifest;
@@ -7014,16 +7024,19 @@ static GLfloat		sBaseMass = 0.0;
 	
 	NSUInteger			i, commodityCount = [shipCommodityData count];
 	OOCargoQuantity		quantityInHold[commodityCount];
+	OOCargoQuantity		containersInHold[commodityCount];
 	
 	// following changed to work whether docked or not
 	for (i = 0; i < commodityCount; i++)
 	{
 		quantityInHold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
+		containersInHold[i] = 0;
 	}
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
 		quantityInHold[[container commodityType]] += [container commodityAmount];
+		++containersInHold[[container commodityType]];
 	}
 	
 	for (i = 0; i < commodityCount; i++)
@@ -7035,8 +7048,9 @@ static GLfloat		sBaseMass = 0.0;
 			// commodity, quantity - keep consistency between .manifest and .contracts
 			[commodity setObject:CommodityTypeToString(i) forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:quantityInHold[i]] forKey:@"quantity"];
+			[commodity setObject:[NSNumber numberWithUnsignedInt:containersInHold[i]] forKey:@"containers"];
 			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
-			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
+			[commodity setObject:DisplayStringForMassUnitForCommodity(i) forKey:@"unit"]; 
 			[list addObject:commodity];
 		}
 	}

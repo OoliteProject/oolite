@@ -1359,6 +1359,8 @@
 	"equipment-pass-berth-@%1"		= "%d Passenger Berths";
 	"equipment-@-not-available"		= "%@ (N/A)";
 	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
+	"oolite-manifest-cargo-quantity-format2" = "%d %@ × %@ (%d TC)";	// $count $units × $commodityName ($containers TC)
+	
 	
 	// Short and Long Range Chart Overrides
 	"charts-distance-f"	= "Distance: %.1f Light Years";
