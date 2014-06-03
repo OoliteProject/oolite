@@ -498,7 +498,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (NSMutableArray *) shipCommodityData
+- (NSArray *) shipCommodityData
 {
 	return shipCommodityData;
 }

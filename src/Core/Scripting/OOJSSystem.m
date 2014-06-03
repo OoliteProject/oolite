@@ -1575,7 +1575,7 @@ static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *par
 	{
 		[result sortUsingFunction:CompareEntitiesByDistance context:relativeTo];
 	}
-	if (result == nil)  result = [NSArray array];
+	if (result == nil)  return [NSArray array];
 	return result;
 	
 	OOJS_PROFILE_EXIT

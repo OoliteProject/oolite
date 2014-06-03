@@ -415,7 +415,7 @@ typedef enum
 	OOCreditsQuantity		credits;	
 	OOGalaxyID				galaxy_number;
 	
-	NSMutableArray			*shipCommodityData;
+	NSArray					*shipCommodityData;
 	
 	ShipEntity				*missile_entity[PLAYER_MAX_MISSILES];	// holds the actual missile entities or equivalents
 	OOUniversalID			_dockTarget;	// used by the escape pod code
@@ -648,7 +648,7 @@ typedef enum
 - (void) unloadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
 - (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
 - (void) loadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
-- (NSMutableArray *) shipCommodityData;
+- (NSArray *) shipCommodityData;
 
 - (OOCreditsQuantity) deciCredits;
 

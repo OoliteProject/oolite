@@ -766,7 +766,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	NSDictionary			*shipyardOverrides = nil;
 	NSDictionary			*shipyardEntry = nil;
 	NSDictionary			*shipyardOverridesEntry = nil;
-	NSMutableSet			*playerShips = nil;
+	NSMutableArray			*playerShips = nil;
 	
 	// Strip out any shipyard stuff in shipdata (there shouldn't be any).
 	for (shipKeyEnum = [ioData keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
