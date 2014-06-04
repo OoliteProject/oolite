@@ -238,7 +238,8 @@
 	(
 		{	// LHS
 			text		= "FWD";
-			x		= -267;
+			align		= 1;
+			x		= -245;
 			y		= 86;
 			y_origin	= -1;
 			height		= 12;
@@ -246,7 +247,8 @@
 			with_dial	= "drawForwardShieldBar:";
 		},
 		{	text		= "AFT";
-			x		= -264;
+			align		= 1;
+			x		= -245;
 			y		= 70;
 			y_origin	= -1;
 			height		= 12;
@@ -255,7 +257,8 @@
 		},
 		{
 			text		= "FUEL";
-			x		= -266;
+			align		= 1;
+			x		= -245;
 			y		= 55;
 			y_origin	= -1;
 			height		= 10;
@@ -264,7 +267,8 @@
 		},
 		{
 			text		= "CT";
-			x		= -256;
+			align		= 1;
+			x		= -245;
 			y		= 45;
 			y_origin	= -1;
 			height		= 10;
@@ -273,7 +277,8 @@
 		},
 		{
 			text		= "LT";
-			x		= -255;
+			align		= 1;
+			x		= -245;
 			y		= 34;
 			y_origin	= -1;
 			height		= 10;
@@ -282,7 +287,8 @@
 		},
 		{
 			text		= "ALT";
-			x		= -261;
+			align		= 1;
+			x		= -245;
 			y		= 24;
 			y_origin	= -1;
 			height		= 10;
@@ -291,7 +297,8 @@
 		},
 		{
 			text		= "MISS";
-			x		= -273;
+			align		= 1;
+			x		= -245;
 			y		= 3;
 			y_origin	= -1;
 			height		= 14;

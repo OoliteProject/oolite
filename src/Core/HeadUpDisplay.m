@@ -974,7 +974,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 			size.width = useDefined(cached.width, 14.0f);
 			size.height = useDefined(cached.height, 8.0f);
 			GLColorWithOverallAlpha(green_color, alpha);
-			OODrawString(legendText, x, y, z1, size);
+			if ([info oo_intForKey:@"align"] == 1)
+			{
+				OODrawStringAligned(legendText, x, y, z1, size, YES);
+			}
+			else
+			{
+				OODrawStringAligned(legendText, x, y, z1, size, NO);
+			}
 		}
 	}
 }
