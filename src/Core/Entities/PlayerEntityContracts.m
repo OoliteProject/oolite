@@ -1789,6 +1789,8 @@ static NSMutableDictionary *currentShipyard = nil;
 		if (fromShip == 0)
 		{
 			[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
+			 // next bit or the first ship on the list gets wrongly previewed
+			[UNIVERSE removeDemoShips];
 		}
 		return YES;
 	}
