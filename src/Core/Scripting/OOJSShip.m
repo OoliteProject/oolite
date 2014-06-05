@@ -292,6 +292,7 @@ enum
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
 	kShip_subEntityCapacity,	// max subentities for this ship, int, read-only
+	kShip_sunGlareFilter,		// sun glare filter multiplier, float, read/write
 	kShip_target,				// target, Ship, read/write
 	kShip_temperature,			// hull temperature, double, read/write
 	kShip_thrust,				// the ship's thrust, double, read/write
@@ -433,6 +434,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "subEntities",			kShip_subEntities,			OOJS_PROP_READONLY_CB },
 	{ "subEntityCapacity",		kShip_subEntityCapacity,	OOJS_PROP_READONLY_CB },
+	{ "sunGlareFilter",			kShip_sunGlareFilter,		OOJS_PROP_READWRITE_CB },
 	{ "target",					kShip_target,				OOJS_PROP_READWRITE_CB },
 	{ "temperature",			kShip_temperature,			OOJS_PROP_READWRITE_CB },
 	{ "thrust",					kShip_thrust,				OOJS_PROP_READWRITE_CB },
@@ -966,6 +968,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity scriptInfo];
 			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than null
 			break;
+			
+		case kShip_sunGlareFilter:
+			return JS_NewNumberValue(context, [entity sunGlareFilter], value);
 			
 		case kShip_trackCloseContacts:
 			*value = OOJSValueFromBOOL([entity trackCloseContacts]);
@@ -1517,7 +1522,22 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				}
 			}
 			break;
-
+			
+		case kShip_sunGlareFilter:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue >= 0.0f && fValue <= 1.0f)
+				{
+					[entity setSunGlareFilter:fValue];
+					return YES;
+				}
+				else
+				{
+					OOJSReportError(context, @"ship.%@ must be > 0.0 and < 1.0.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties));
+					return NO;
+				}
+			}
+			break;
 			
 		case kShip_thrust:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;

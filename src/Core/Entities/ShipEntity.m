@@ -431,6 +431,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// fuel scoop destination position (where cargo gets sucked into)
 	tractor_position = [shipDict oo_vectorForKey:@"scoop_position"];
 	
+	// sun glare filter - default is no filter
+	[self setSunGlareFilter:[shipDict oo_floatForKey:@"sun_glare_filter" defaultValue:0.0f]];
+	
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 
@@ -1051,6 +1054,18 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (NSString *) shortDescriptionComponents
 {
 	return [NSString stringWithFormat:@"\"%@\"", [self name]];
+}
+
+
+- (GLfloat) sunGlareFilter
+{
+	return sunGlareFilter;
+}
+
+
+- (void) setSunGlareFilter:(GLfloat)newValue
+{
+	sunGlareFilter = OOClamp_0_1_f(newValue);
 }
 
 
@@ -10331,7 +10346,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (sun)
 		{
 			GLfloat sunGlareAngularSize = atan([sun radius]/HPdistance([self position], [sun position])) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
-			GLfloat glareLevel = [self lookingAtSunWithThresholdAngleCos:cos(sunGlareAngularSize)];
+			GLfloat glareLevel = [self lookingAtSunWithThresholdAngleCos:cos(sunGlareAngularSize)] * (1.0f - [self sunGlareFilter]);
 			if (glareLevel > 0.1f)
 			{
 				// looking towards sun can seriously mess up aim (glareLevel 0..1)

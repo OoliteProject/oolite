@@ -578,8 +578,10 @@ MA 02110-1301, USA.
 		// 182: square of ratio of radius to sun-witchpoint distance
 		// in default Lave
 		GLfloat distanceReductionFactor = OOClamp_0_1_f(([self radius] * [self radius] * 182.0) / HPdistance2([PLAYER position], [self position]));
+		GLfloat	sunGlareFilterMultiplierLocal = [PLAYER sunGlareFilter];
 		GLfloat directVisionSunGlareColor[4] = {discColor[0], discColor[1], discColor[2], directVisionSunGlare *
-													atmosphericReductionFactor * distanceReductionFactor * 0.85f};
+													atmosphericReductionFactor * distanceReductionFactor * 
+													(1.0f - sunGlareFilterMultiplierLocal) * 0.85f};
 													
 		OOGL(glColor4fv(directVisionSunGlareColor));
 		

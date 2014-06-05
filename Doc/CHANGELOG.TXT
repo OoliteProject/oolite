@@ -153,6 +153,7 @@ New properties:
 * ship.markedForFines
 * ship.shipClassName
 * ship.shipUniqueName
+* ship.sunGlareFilter
 * station.allegiance
 * station.market[*].legalPenalty
 * sun.name
@@ -278,6 +279,7 @@ New properties:
 * shipdata.plist: auto_weapons
 * shipdata.plist: escort_roles
 * shipdata.plist: exhaust_emissive_color
+* shipdata.plist: sun_glare_filter
 * shipyard.plist: renovation_multiplier
 * shipyard.plist: ship_name
 * shipyard.plist: ship_class_name

@@ -265,6 +265,8 @@ typedef enum
 
 	GLfloat    _scriptedMisjumpRange; 
 	
+	GLfloat		sunGlareFilter;							// Range 0.0 - 1.0, where 0 means no sun glare filter, 1 means glare fully filtered
+	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
 	
@@ -1097,6 +1099,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) broadcastThargoidDestroyed;
 
 - (void) broadcastHitByLaserFrom:(ShipEntity*) aggressor_ship;
+
+// Sun glare filter - 0 for no filter, 1 for full filter
+- (GLfloat) sunGlareFilter;
+- (void) setSunGlareFilter:(GLfloat)newValue;
 
 // Unpiloted ships cannot broadcast messages, unless the unpilotedOverride is set to YES.
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship;
