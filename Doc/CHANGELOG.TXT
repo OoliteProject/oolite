@@ -178,6 +178,7 @@ New methods:
 * dock.isQueued(ship)
 * player.endScenario(key)
 * player.ship.hideHUDSelector(selector)
+* player.ship.resetScannerZoom()
 * player.ship.setMultiFunctionDisplay(index,key)
 * player.ship.setMultiFunctionText(key, string)
 * player.ship.showHUDSelector(selector)

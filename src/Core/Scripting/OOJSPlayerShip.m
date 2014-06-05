@@ -67,6 +67,7 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 static JSBool PlayerShipRemoveContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipResetScannerZoom(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
@@ -219,6 +220,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "removeParcel",                   PlayerShipRemoveParcel,                     1 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
+	{ "resetScannerZoom",				PlayerShipResetScannerZoom,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
 	{ "setMultiFunctionDisplay",		PlayerShipSetMultiFunctionDisplay,			1 },
 	{ "setMultiFunctionText",			PlayerShipSetMultiFunctionText,				1 },
@@ -1118,6 +1120,21 @@ static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *v
 	OOJS_RETURN_BOOL(YES);
 	OOJS_NATIVE_EXIT
 }
+
+
+// resetScannerZoom()
+static JSBool PlayerShipResetScannerZoom(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	
+	[player resetScannerZoom];
+
+	OOJS_RETURN_VOID;
+	OOJS_NATIVE_EXIT
+}
+
 
 // takeInternalDamage()
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp)

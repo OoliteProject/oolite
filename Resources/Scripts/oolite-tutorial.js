@@ -460,6 +460,7 @@ this.startUp = function()
 		{
 			player.ship.showHUDSelector(this.$HUDSelectors[i]);
 		}
+		player.ship.resetScannerZoom();
 	}
 
 	this._hideHUDItems = function()
@@ -1176,7 +1177,7 @@ this.startUp = function()
 		},5,5);
 
 
-		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3);
+		var target = this._addShips("oolite-tutorial-fighter-wave1",1,player.ship.position,10E3);
 		target[0].forwardWeapon = "EQ_WEAPON_NONE";
 		target[0].accuracy = 5;
 	}
@@ -1184,17 +1185,17 @@ this.startUp = function()
 	this.__stage6sub3 = function()
 	{
 		this._setInstructions("oolite-tutorial-6-3");
-		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3);
-		target[0].accuracy = 0;
+		var target = this._addShips("oolite-tutorial-fighter-wave1",1,player.ship.position,10E3);
+		target[0].accuracy = -5;
 		this._stage6scorer();
 	}
 
 	this.__stage6sub4 = function()
 	{
 		this._setInstructions("oolite-tutorial-6-4");
-		var target = this._addShips("oolite-tutorial-fighter",2,player.ship.position,10E3);
-		target[0].accuracy = 0;
-		target[1].accuracy = 0;
+		var target = this._addShips("oolite-tutorial-fighter-wave1",2,player.ship.position,10E3);
+		target[0].accuracy = -5;
+		target[1].accuracy = -5;
 		this._stage6scorer();
 	}
 	

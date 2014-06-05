@@ -2390,6 +2390,11 @@
 		roles = "oolite-tutorial-fighter";
 		script = "oolite-tutorial-fighter.js";
 	};
+	"oolite_template_tutorial-krait-wave1" = {
+		like_ship = "oolite_template_tutorial-krait";
+	    energy_recharge_rate = 0.25; /* significant reduction */
+		roles = "oolite-tutorial-fighter-wave1";
+	};
 	"oolite_template_mamba" = {
 		aft_eject_position = "0.0 -9.26 -35.1";
 		ai_type = "oolite-pirateAI.js";
@@ -4114,6 +4119,10 @@
 	"oolite-tutorial-krait" = 
 	{
 		"like_ship" = "oolite_template_tutorial-krait";
+	};
+	"oolite-tutorial-krait-wave1" = 
+	{
+		"like_ship" = "oolite_template_tutorial-krait-wave1";
 	};
 	"oolite-tutorial-station" = 
 	{

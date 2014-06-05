@@ -192,6 +192,12 @@ MA 02110-1301, USA.
 }
 
 
+- (void) resetScannerZoom
+{
+	scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
+}
+
+
 - (OOGalaxyID) currentGalaxyID
 {
 	return galaxy_number;
