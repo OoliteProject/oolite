@@ -44,6 +44,7 @@ typedef enum
 + (void) reset;
 
 + (NSArray *)rootPaths;			// Places add-ons are searched for, not including add-on paths.
++ (NSArray *)userRootPaths;		// Places users are expected to place add-ons, not including built-in data or managed add-ons directory.
 + (NSString *)builtInPath;		// Path for built-in data only.
 + (NSArray *)pathsWithAddOns;	// Root paths + add-on paths.
 + (NSArray *)paths;				// builtInPath or pathsWithAddOns, depending on useAddOns state.

@@ -524,38 +524,58 @@ static void RemovePreference(NSString *key)
 
 - (IBAction) showAddOnsAction:sender
 {
-	if (ResourceManager.paths.count > 1)
-	{
-		// Show the first populated AddOns folder (paths are in order of preference, path[0] is always Resources).
-		[NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:ResourceManager.paths[1]]];
-	}
-	else
-	{
-		// No AddOns at all. Show the first existing AddOns folder (paths are in order of preference, etc...).
-        NSArray *addonPaths = [ResourceManager.rootPaths subarrayWithRange:(NSRange){ 1, ResourceManager.rootPaths.count - 1 }];
-        NSString *path = nil;
-        for (NSString *candidate in addonPaths)
-		{
-            BOOL pathIsDirectory;
-			if ([NSFileManager.defaultManager fileExistsAtPath:candidate isDirectory:&pathIsDirectory] && pathIsDirectory)
-            {
-                path = candidate;
-                break;
-            }
+	NSArray *paths = ResourceManager.userRootPaths;
+	
+	// Look for an AddOns directory that actually contains some AddOns.
+	for (NSString *path in paths) {
+		if ([self addOnsExistAtPath:path]) {
+			[self openPath:path];
+			return;
 		}
-
-        // If none found, use first addon path.
-        if (path == nil)
-        {
-            path = addonPaths[0];
-            [NSFileManager.defaultManager createDirectoryAtPath:path
-                                    withIntermediateDirectories:YES
-                                                     attributes:nil
-                                                          error:NULL];
-        }
-
-        [NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:path]];
 	}
+	
+	// If that failed, look for an AddOns directory that actually exists.
+	for (NSString *path in paths) {
+		if ([self isDirectoryAtPath:path]) {
+			[self openPath:path];
+			return;
+		}
+	}
+	
+	// None found, create the default path.
+	[NSFileManager.defaultManager createDirectoryAtPath:paths[0]
+							withIntermediateDirectories:YES
+											 attributes:nil
+												  error:NULL];
+	[self openPath:paths[0]];
+}
+
+
+- (BOOL) isDirectoryAtPath:(NSString *)path
+{
+	BOOL isDirectory;
+	return [NSFileManager.defaultManager fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory;
+}
+
+
+- (BOOL) addOnsExistAtPath:(NSString *)path
+{
+	if (![self isDirectoryAtPath:path])  return NO;
+	
+	NSWorkspace *workspace = NSWorkspace.sharedWorkspace;
+	for (NSString *subPath in [NSFileManager.defaultManager enumeratorAtPath:path]) {
+		subPath = [path stringByAppendingPathComponent:subPath];
+		NSString *type = [workspace typeOfFile:subPath error:NULL];
+		if ([workspace type:type conformsToType:@"org.aegidian.oolite.expansion"])  return YES;
+	}
+	
+	return NO;
+}
+
+
+- (void) openPath:(NSString *)path
+{
+	[NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:path]];
 }
 
 

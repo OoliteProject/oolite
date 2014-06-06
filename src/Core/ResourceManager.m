@@ -140,41 +140,48 @@ static NSMutableDictionary *sStringCache;
 
 + (NSArray *)rootPaths
 {
+	static NSArray *sRootPaths = nil;
+	if (sRootPaths == nil) {
+		/* Built-in data, then managed OXZs, then manually installed ones,
+		 * which may be useful for debugging/testing purposes. */
+		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath], [[OOOXZManager sharedManager] installPath], nil];
+		sRootPaths = [sRootPaths arrayByAddingObjectsFromArray:[self userRootPaths]];
+	}
+	
+	return sRootPaths;
+}
+
+
++ (NSArray *)userRootPaths
+{
 	static NSArray			*sRootPaths = nil;
 	
 	if (sRootPaths == nil)
 	{
 		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
 		
-		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath],
-
-	  /* 1st path - ensures manually installed OXZs load later than
-	   * managed ones, which may be useful for debugging/testing
-	   * purposes. */
-							[[OOOXZManager sharedManager] installPath],
+		sRootPaths = [[NSArray alloc] initWithObjects:
 
 #if OOLITE_MAC_OS_X
-	/* 2nd mac path */		[[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
-								stringByAppendingPathComponent:@"Application Support"]
-								stringByAppendingPathComponent:@"Oolite"]
-								stringByAppendingPathComponent:@"AddOns"],
-	/* 3rd mac path */		[[[[NSBundle mainBundle] bundlePath]
-								stringByDeletingLastPathComponent]
-								stringByAppendingPathComponent:@"AddOns"],
+					  [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
+						 stringByAppendingPathComponent:@"Application Support"]
+						 stringByAppendingPathComponent:@"Oolite"]
+					    stringByAppendingPathComponent:@"AddOns"],
+					  [[[[NSBundle mainBundle] bundlePath]
+						 stringByDeletingLastPathComponent]
+					    stringByAppendingPathComponent:@"AddOns"],
 
 #elif OOLITE_WINDOWS
-	/* 2nd windows path */		@"../AddOns",
+					  @"../AddOns",
 #else	
-	/* 2nd *nix path */		@"AddOns",
+					  @"AddOns",
 #endif
 
 #if !OOLITE_WINDOWS
-	/*	3rd *nix path, 4th mac path */
-							[[NSHomeDirectory()
-								stringByAppendingPathComponent:@".Oolite"]
-								stringByAppendingPathComponent:@"AddOns"],
+					  [[NSHomeDirectory()
+						stringByAppendingPathComponent:@".Oolite"]
+					   stringByAppendingPathComponent:@"AddOns"],
 #endif
-
 		
 						nil];
 	}
