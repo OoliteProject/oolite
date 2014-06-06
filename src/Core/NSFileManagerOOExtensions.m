@@ -125,7 +125,7 @@ MA 02110-1301, USA.
 
 - (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes
 {
-	return [self createDirectoryAtPath:path withIntermediateDirectories:NO attributes:attributes error:NULL];
+	return [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:attributes error:NULL];
 }
 
 
