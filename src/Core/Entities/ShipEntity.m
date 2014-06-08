@@ -8601,8 +8601,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		[self clearSubEntities];
 
 		// momentum from explosions
-		desired_range = collision_radius * 2.5f;
-		[self dealMomentumWithinDesiredRange:0.125f * mass];
+		if (!suppressExplosion)
+		{
+			desired_range = collision_radius * 2.5f;
+			[self dealMomentumWithinDesiredRange:0.125f * mass];
+		}
 		
 		if (self != PLAYER)	// was if !isPlayer - but I think this may cause ghosts (Who's "I"? -- Ahruman)
 		{
