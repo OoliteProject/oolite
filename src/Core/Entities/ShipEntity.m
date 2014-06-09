@@ -5476,7 +5476,33 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 		if (((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor)) || (flightSpeed > max_flight_pitch * 5 * confidenceFactor * distance))
 			desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
-			
+		
+
+		/* Flight correction block to prevent one possible form of
+		 * crashes in late docking process */
+		if (docking_match_rotation && confidenceFactor >= MAX_COS && dockingInstructions != nil && [dockingInstructions oo_intForKey:@"docking_stage"] >= 7)
+		{
+			// then at this point should be rotating to match the station
+			StationEntity* station_for_docking = (StationEntity*)[self targetStation];
+
+			if ((station_for_docking)&&(station_for_docking->isStation))
+			{
+				float rollMatch = dot_product([station_for_docking portUpVectorForShip:self],[self upVector]);
+				if (rollMatch < MAX_COS && rollMatch > -MAX_COS)
+				{
+					// not matching rotating - stop until corrected
+					desired_speed = 0.1;
+				}
+				else if (desired_speed <= 0.2)
+				{
+					// had previously paused, so return to normal speed
+					desired_speed = [dockingInstructions oo_floatForKey:@"speed"];
+				}
+			}
+		}
+
+
+	
 		if (distance < last_distance)	// improvement
 		{
 			frustration -= 0.25 * delta_t;
