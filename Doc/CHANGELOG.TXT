@@ -41,6 +41,8 @@ Gameplay:
 * Parcel and passenger contracts made much more varied. High-price
   high-risk contracts added. Reputation scale increased.
 * Station rotation slowed down
+* Number of cargo containers used by Gold, Platinum, Gems (e.g. after
+  scooping) now shown on the manifest screen.
 
 Graphics:
 =========
@@ -52,6 +54,7 @@ Graphics:
 * Core ship models and textures replaced with significantly improved
   ones by Griff/CaptSolo
 * New planet and atmosphere graphics (requires 'extra detail')
+* Default HUD adjusted a little to improve appearance of text
 
 Sound:
 ======
@@ -61,6 +64,8 @@ Sound:
 
 Controls:
 =========
+* Default key for dump cargo now "Shift-D", not "d", to reduce chance
+  of pressing accidentally
 * Number pad keys can now be bound independently of arrow keys
 * Number keys can now be bound independently of function keys
 * GUI direction keys now independent of flight direction keys
@@ -258,6 +263,7 @@ New properties:
 * equipment.plist: fast_affinity_offensive
 * equipment.plist: sort_order
 * hud.plist: alert_conditions
+* hud.plist: align
 * hud.plist: color_critical
 * hud.plist: color_high
 * hud.plist: color_low

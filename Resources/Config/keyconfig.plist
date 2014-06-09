@@ -53,7 +53,7 @@
 	key_hyperspace				= "h";
 	key_jumpdrive				= "j";
 
-	key_dump_cargo				= "d";
+	key_dump_cargo				= "D";
 	key_rotate_cargo			= "R";
 
 	key_autopilot				= "c";
