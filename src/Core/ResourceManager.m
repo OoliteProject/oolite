@@ -144,23 +144,22 @@ static NSMutableDictionary *sStringCache;
 	if (sRootPaths == nil) {
 		/* Built-in data, then managed OXZs, then manually installed ones,
 		 * which may be useful for debugging/testing purposes. */
-		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath], [[OOOXZManager sharedManager] installPath], nil];
-		sRootPaths = [sRootPaths arrayByAddingObjectsFromArray:[self userRootPaths]];
+		sRootPaths = [NSArray arrayWithObjects:[self builtInPath], [[OOOXZManager sharedManager] installPath], nil];
+		sRootPaths = [[sRootPaths arrayByAddingObjectsFromArray:[self userRootPaths]] retain];
 	}
-	
 	return sRootPaths;
 }
 
 
 + (NSArray *)userRootPaths
 {
-	static NSArray			*sRootPaths = nil;
+	static NSArray			*sUserRootPaths = nil;
 	
-	if (sRootPaths == nil)
+	if (sUserRootPaths == nil)
 	{
 		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
 		
-		sRootPaths = [[NSArray alloc] initWithObjects:
+		sUserRootPaths = [[NSArray alloc] initWithObjects:
 
 #if OOLITE_MAC_OS_X
 					  [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
@@ -185,8 +184,8 @@ static NSMutableDictionary *sStringCache;
 		
 						nil];
 	}
-	OOLog(@"paths.debug",@"%@",sRootPaths);
-	return sRootPaths;
+	OOLog(@"paths.debug",@"%@",sUserRootPaths);
+	return sUserRootPaths;
 }
 
 
