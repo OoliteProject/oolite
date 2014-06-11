@@ -550,8 +550,15 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) launchShuttle
 {
-	if (_shuttlesOnGround == 0)  return;
-	
+	if (_shuttlesOnGround == 0)  
+	{
+		return;
+	}
+	if ([PLAYER status] == STATUS_START_GAME)
+	{
+		// don't launch if game not started
+		return;
+	}
 	if (self != [UNIVERSE planet] && ![self planetHasStation])
 	{
 		// don't launch shuttles when no station is nearby.

@@ -29,6 +29,16 @@ MA 02110-1301, USA.
 this.name = "Oolite Main Station AI";
 
 this.aiStarted = function() {
+	/* This AI, unlike the others, can end up being started outside of
+	 * the game when worldscripts are not loaded. If it's in that
+	 * position, it can just act like the nullAI. OXP AIs which might
+	 * end up as a main station AI for Lave should also do this
+	 * check. */
+	if (!worldScripts["oolite-libPriorityAI"])
+	{
+		return;
+	}
+
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_listenForDistressCall",true);
