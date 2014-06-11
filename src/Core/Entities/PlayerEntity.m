@@ -1397,6 +1397,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	isPlayer = YES;
 	
+	[self setStatus:STATUS_START_GAME];
+
 	int i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
@@ -1405,8 +1407,6 @@ static GLfloat		sBaseMass = 0.0;
 	[self setUpAndConfirmOK:NO];
 	
 	save_path = nil;
-	
-	[self setUpSound];
 	
 	scoopsActive = NO;
 	
@@ -1484,9 +1484,27 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
-	worldScripts = [[ResourceManager loadScripts] retain];
-	[UNIVERSE loadConditionScripts];
-	
+
+#if OOLITE_WINDOWS
+	if (saveGame)
+	{
+		[UNIVERSE preloadSounds];
+		[self setUpSound];
+		worldScripts = [[ResourceManager loadScripts] retain];
+		[UNIVERSE loadConditionScripts];
+	}
+#else
+	/* on OSes that allow safe deletion of open files, can use sounds
+	 * on the OXZ screen and other start screens */
+	[UNIVERSE preloadSounds];
+	[self setUpSound];
+	if (saveGame)
+	{
+		worldScripts = [[ResourceManager loadScripts] retain];
+		[UNIVERSE loadConditionScripts];
+	}
+#endif
+
 	[[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
 	
 	// if there is cargo remaining from previously (e.g. a game restart), remove it

@@ -3543,7 +3543,6 @@ static BOOL autopilot_pause;
 				{
 					if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 2+row_zero)
 					{
-//						[[OOMusicController sharedController] stopThemeMusic];
 						disc_operation_in_progress = YES;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
@@ -3651,6 +3650,8 @@ static BOOL autopilot_pause;
 			break;
 
 		case GUI_SCREEN_OXZMANAGER:
+			// release locks on music on this screen
+			[[OOMusicController sharedController] stopThemeMusic];
 			if (EXPECT(![oxzmanager isRestarting]))
 			{
 				if ([self handleGUIUpDownArrowKeys])

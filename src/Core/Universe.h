@@ -662,6 +662,7 @@ enum
 - (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;
 
 - (void) preloadPlanetTexturesForSystem:(Random_Seed)seed;
+- (void) preloadSounds;
 
 - (NSDictionary *) planetInfo;
 

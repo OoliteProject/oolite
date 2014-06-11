@@ -101,6 +101,9 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 	DESTROY(sEcmSource);
 	DESTROY(sHyperspaceSoundSource);
 	
+	DESTROY(sAfterburnerSources[0]);
+	DESTROY(sAfterburnerSources[1]);
+
 	DESTROY(sBuySellSourcePool);
 	DESTROY(sWarningSoundPool);
 	DESTROY(sWeaponSoundPool);
@@ -110,6 +113,9 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 
 - (void) playInterfaceBeep:(NSString *)beepKey
 {
+#if OOLITE_WINDOWS
+	if ([self status] == STATUS_START_GAME) { return; }
+#endif
 	[sInterfaceBeepSource playSound:[OOSound soundWithCustomSoundKey:beepKey]];
 }
 

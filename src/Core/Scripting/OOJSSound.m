@@ -111,7 +111,7 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 	OOJS_PROFILE_ENTER
 	
 	OOJSPauseTimeLimiter();
-	if (JSVAL_IS_STRING(value))
+	if ([PLAYER status] != STATUS_START_GAME && JSVAL_IS_STRING(value))
 	{
 		return GetNamedSound(OOStringFromJSValue(context, value));
 	}

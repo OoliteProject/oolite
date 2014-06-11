@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "GuiDisplayGen.h"
 #import "PlayerEntity.h"
+#import "PlayerEntitySound.h"
 #import "OOCollectionExtractors.h"
 #import "NSFileManagerOOExtensions.h"
 #import "OOColor.h"
@@ -594,6 +595,13 @@ static OOOXZManager *sSingleton = nil;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIRow		startRow = OXZ_GUI_ROW_EXIT;
 
+#if OOLITE_WINDOWS
+	/* unlock OXZs ahead of potential changes by making sure sound
+	 * files aren't being held open */
+	[ResourceManager clearCaches];
+	[PLAYER destroySound];
+#endif
+
 	[gui clearAndKeepBackground:YES];
 	[gui setTitle:DESC(@"oolite-oxzmanager-title")];
 
@@ -1033,6 +1041,7 @@ static OOOXZManager *sSingleton = nil;
 		OOLog(kOOOXZDebugLog, @"Unable to remove item %lu as filename not found", (unsigned long)item);
 		return NO;
 	}
+
 	NSString *path = [[self installPath] stringByAppendingPathComponent:filename];
 	if (![[NSFileManager defaultManager] oo_removeItemAtPath:path])
 	{

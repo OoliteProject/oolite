@@ -177,7 +177,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 @interface Universe (OOPrivate)
 
 - (BOOL) doRemoveEntity:(Entity *)entity;
-- (void) preloadSounds;
 - (void) setUpSettings;
 - (void) setUpCargoPods;
 - (void) setUpInitialUniverse;
@@ -361,7 +360,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[self setUpSettings];
 	
-	[self preloadSounds];	// Must be after setUpSettings.
+	// can't do this here as it might lock an OXZ open
+	// [self preloadSounds];	// Must be after setUpSettings.
 	
 	// Preload particle effect textures:
 	[OOLightParticleEntity setUpTexture];
