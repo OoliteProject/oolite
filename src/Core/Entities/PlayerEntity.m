@@ -10552,6 +10552,12 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (BOOL) scriptsLoaded
+{
+	return worldScripts != nil && [worldScripts count] > 0;
+}
+
+
 - (NSArray *) worldScriptNames
 {
 	return [worldScripts allKeys];

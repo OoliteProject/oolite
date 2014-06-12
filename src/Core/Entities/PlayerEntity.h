@@ -967,6 +967,7 @@ typedef enum
 - (NSDictionary *) equipScreenBackgroundDescriptor;
 - (void) setEquipScreenBackgroundDescriptor:(NSDictionary *)descriptor;
 
+- (BOOL) scriptsLoaded;
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;
 

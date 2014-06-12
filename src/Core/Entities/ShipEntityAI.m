@@ -251,6 +251,11 @@
 
 - (void) setAITo:(NSString *)aiString
 {
+	// don't try to load real AIs if the game hasn't started yet
+	if (![PLAYER scriptsLoaded])
+	{
+		aiString = @"oolite-nullAI.js";
+	}
 	if ([aiString hasSuffix:@".plist"])
 	{
 		[[self getAI] setStateMachine:aiString withJSScript:@"oolite-nullAI.js"];
