@@ -189,13 +189,6 @@ SOFTWARE.
 
 - (void) hasStopped
 {
-	OOAL(alDeleteBuffers(1,&_buffer));
-	if (_bigSound)
-	{
-		// then we have two buffers to cleanup
-		OOAL(alDeleteBuffers(1,&_lastBuffer));
-	}
-	_bigSound = NO;
 	ALint queued;
 	OOAL(alGetSourcei(_source, AL_BUFFERS_QUEUED, &queued));
     
@@ -204,6 +197,15 @@ SOFTWARE.
 		ALuint buffer;
 		OOAL(alSourceUnqueueBuffers(_source, 1, &buffer));
 	}
+
+	OOAL(alDeleteBuffers(1,&_buffer));
+	if (_bigSound)
+	{
+		// then we have two buffers to cleanup
+		OOAL(alDeleteBuffers(1,&_lastBuffer));
+	}
+	_bigSound = NO;
+
 
 	OOSound *sound = _sound;
 	_sound = nil;
