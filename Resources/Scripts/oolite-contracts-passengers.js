@@ -300,6 +300,36 @@ this._initialisePassengerContractsForSystem = function()
 			passenger.name = randomName()+" "+randomName();
 		}
 
+		/* Because passengers with duplicate names won't be accepted,
+		 * check for name duplication with either other passengers
+		 * here or other passengers carried by the player, and adjust
+		 * this passenger's name a little if there's a match */
+		do {
+			var okay = true;
+			for (var j=0;j<player.ship.passengers.length;j++)
+			{
+				if (player.ship.passengers[j].name == passenger.name)
+				{
+					okay = false;
+					break;
+				}
+			}
+			if (okay) {
+				for (var j=0;j<this.$passengers.length;j++)
+				{
+					if (this.$passengers[j].name == passenger.name)
+					{
+						okay = false;
+						break;
+					}
+				}
+			}
+			if (!okay) {
+				passenger.name += "a";
+			}
+		} while (!okay);
+
+
 		passenger.risk = Math.floor(Math.random()*3);
 		passenger.species = expandDescription("[passenger-description-risk"+passenger.risk+"]")+" "+passenger.species;
 
