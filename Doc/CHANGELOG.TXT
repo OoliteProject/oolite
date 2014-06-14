@@ -317,6 +317,8 @@ Bug fixes:
 * Fix various random number generation bugs
 * Clean up momentum transfer in explosions
 * Fix error in manifest screen paging
+* Fix problem with duplicate passenger names in contract generation
+* Fix some issues moving in and out of strict mode
 
 System requirements:
 ====================

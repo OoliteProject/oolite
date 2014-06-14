@@ -9297,8 +9297,8 @@ static NSString *last_outfitting_key=nil;
 		[gui setTabStops:tab_stops];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
-		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringTo(DESC(@"price-column-title"),7.0),
-							 OOPadStringTo(DESC(@"for-sale-column-title"),11.0), OOPadStringTo(DESC(@"in-hold-column-title"),15.0), nil] forRow:GUI_ROW_MARKET_KEY];
+		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
+							 OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), nil] forRow:GUI_ROW_MARKET_KEY];
 		
 		for (i = 0; i < commodityCount; i++)
 		{
@@ -9310,12 +9310,14 @@ static NSString *last_outfitting_key=nil;
 			OOCreditsQuantity pricePerUnit = [marketDef oo_unsignedIntAtIndex:MARKET_PRICE];
 			OOMassUnit unit = [UNIVERSE unitsForCommodity:i];
 			
-			NSString *available = OOPadStringTo(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 6.0);
-			NSString *price = OOPadStringTo([NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit],7.0);
+			NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
+
+			NSUInteger priceDecimal = pricePerUnit % 10;
+			NSString *price = [NSString stringWithFormat:@" %@.%u ",OOPadStringToEms([NSString stringWithFormat:@"%u",(pricePerUnit/10)],1.5),priceDecimal];
 			
 			// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 			
-			NSString *owned = OOPadStringTo((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 10.0);
+			NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
 			NSString *units = DisplayStringForMassUnit(unit);
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];

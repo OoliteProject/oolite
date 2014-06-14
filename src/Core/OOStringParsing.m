@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
+#import "HeadUpDisplay.h"
 
 #import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
@@ -260,13 +261,17 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 }
 
 
-NSString *OOPadStringTo(NSString * string, float numSpaces)
+NSString *OOPadStringToEms(NSString * string, float numEms)
 {
 	NSString		*result = string;
-	numSpaces -= [result length];
-	if (numSpaces>0)
+	OOLog(@"string.pad.1",@"%@ => %f",result,numEms);
+	numEms -= OOStringWidthInEm(result);
+	OOLog(@"string.pad.2",@"%@ => %f",result,numEms);
+	if (numEms>0)
 	{
-		result=[[@"" stringByPaddingToLength: numSpaces*2 withString: @" " startingAtIndex:0] stringByAppendingString: result];
+		numEms /= OOStringWidthInEm(@"\037"); // 037 is narrow space
+		OOLog(@"string.pad.3",@"%@ => %f",result,numEms);
+		result=[[@"" stringByPaddingToLength:(NSUInteger)numEms withString: @"\037" startingAtIndex:0] stringByAppendingString: result];
 	}
 	return result;
 }

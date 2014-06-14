@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "OldSchoolPropertyListWriting.h"
 #import "OOOXZManager.h"
 #import "unzip.h"
+#import "HeadUpDisplay.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
