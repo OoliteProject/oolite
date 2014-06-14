@@ -366,3 +366,5 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 NSRect OORectFromString(NSString *text, GLfloat x, GLfloat y, NSSize siz);
 CGFloat OOStringWidthInEm(NSString *text);
+
+void OOHUDResetTextEngine(void);

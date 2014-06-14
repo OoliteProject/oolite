@@ -441,7 +441,8 @@ static NSMutableDictionary *sStringCache;
 		sFirstRun = NO;
 		sUseAddOns = useAddOns;
 		[ResourceManager clearCaches];
-		
+		OOHUDResetTextEngine();
+
 		OOCacheManager *cmgr = [OOCacheManager sharedCache];
 		if (sUseAddOns)
 		{

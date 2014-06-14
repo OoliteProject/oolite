@@ -3641,6 +3641,13 @@ static void InitTextEngine(void)
 }
 
 
+void OOHUDResetTextEngine(void)
+{
+	DESTROY(sFontTexture);
+	DESTROY(sEncodingCoverter);
+}
+
+
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
