@@ -323,7 +323,7 @@
 	
 	
 	searchPaths.dumpAll						= $troubleShootingDump;
-	
+	searchPaths.debug						= no;
 	
 	$shaderDebug							= $shaderDebugOn;
 	$shaderError							= $error;

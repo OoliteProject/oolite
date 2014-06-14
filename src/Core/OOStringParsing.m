@@ -264,13 +264,10 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 NSString *OOPadStringToEms(NSString * string, float numEms)
 {
 	NSString		*result = string;
-	OOLog(@"string.pad.1",@"%@ => %f",result,numEms);
 	numEms -= OOStringWidthInEm(result);
-	OOLog(@"string.pad.2",@"%@ => %f",result,numEms);
 	if (numEms>0)
 	{
 		numEms /= OOStringWidthInEm(@"\037"); // 037 is narrow space
-		OOLog(@"string.pad.3",@"%@ => %f",result,numEms);
 		result=[[@"" stringByPaddingToLength:(NSUInteger)numEms withString: @"\037" startingAtIndex:0] stringByAppendingString: result];
 	}
 	return result;

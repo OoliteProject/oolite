@@ -185,7 +185,7 @@ static NSMutableDictionary *sStringCache;
 		
 						nil];
 	}
-	OOLog(@"paths.debug",@"%@",sUserRootPaths);
+	OOLog(@"searchPaths.debug",@"%@",sUserRootPaths);
 	return sUserRootPaths;
 }
 
