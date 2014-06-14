@@ -1543,49 +1543,54 @@ this.startUp = function()
 
 	this.__stage9sub7 = function()
 	{
-		this._resetShips();
 		this._setInstructions("oolite-tutorial-9-7");
-		this._showHUDItem("drawAltitudeBar:");
 	}
 
 	this.__stage9sub8 = function()
 	{
-		if (system.mainPlanet.position.distanceTo(player.ship) > system.mainPlanet.radius * 3)
-		{
-			player.consoleMessage(expandMissionText("oolite-tutorial-9-7-toofar"));
-			--this.$tutorialSubstage;
-		}
-		else
-		{
-			this._setInstructions("oolite-tutorial-9-8");
-			this._showHUDItem("drawCompass:");
-		}
+		this._resetShips();
+		this._setInstructions("oolite-tutorial-9-8");
+		this._showHUDItem("drawAltitudeBar:");
 	}
 
 	this.__stage9sub9 = function()
 	{
-		this._setInstructions("oolite-tutorial-9-9");
-	}
-
-	this.__stage9sub10 = function()
-	{
-		if (system.mainStation.position.distanceTo(player.ship) > 51200)
+		if (system.mainPlanet.position.distanceTo(player.ship) > system.mainPlanet.radius * 3)
 		{
-			player.consoleMessage(expandMissionText("oolite-tutorial-9-9-toofar"));
+			player.consoleMessage(expandMissionText("oolite-tutorial-9-8-toofar"));
 			--this.$tutorialSubstage;
 		}
 		else
 		{
-			this._setInstructions("oolite-tutorial-9-10");
+			this._setInstructions("oolite-tutorial-9-9");
+			this._showHUDItem("drawCompass:");
+		}
+	}
+
+	this.__stage9sub10 = function()
+	{
+		this._setInstructions("oolite-tutorial-9-10");
+	}
+
+	this.__stage9sub11 = function()
+	{
+		if (system.mainStation.position.distanceTo(player.ship) > 51200)
+		{
+			player.consoleMessage(expandMissionText("oolite-tutorial-9-10-toofar"));
+			--this.$tutorialSubstage;
+		}
+		else
+		{
+			this._setInstructions("oolite-tutorial-9-11");
 			this._showHUDItem("drawAegis");
 		}
 	}
 
 
-	this.__stage9sub11 = function()
+	this.__stage9sub12 = function()
 	{
 		this.$advanceByEquipment = false;
-		this._setInstructions("oolite-tutorial-9-11");
+		this._setInstructions("oolite-tutorial-9-12");
 	}
 
 	this._endTutorial = function()

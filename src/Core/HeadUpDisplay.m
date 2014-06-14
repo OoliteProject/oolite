@@ -3808,6 +3808,10 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
+	/* TODO: the modifications of cx here cause difficulties for fonts
+	 * with different number widths to the default font. Find an
+	 * alternative way to do this. - CIM: 14/06/2014 */
+
 	OOGLBEGIN(GL_QUADS);
 		glColor4f(ce1, 1.0f, 0.0f, 1.0f);
 		// see OODrawHilightedPlanetInfo
