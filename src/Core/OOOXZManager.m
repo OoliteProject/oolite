@@ -105,7 +105,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) ensureInstallPath;
 
-- (BOOL) beginDownload:(NSURLRequest *)request;
+- (BOOL) beginDownload:(NSMutableURLRequest *)request;
 - (BOOL) processDownloadedManifests;
 - (BOOL) processDownloadedOXZ;
 
@@ -299,7 +299,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) updateManifests
 {
-	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[self dataURL]]];
+	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self dataURL]]];
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
@@ -311,8 +311,10 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (BOOL) beginDownload:(NSURLRequest *)request
+- (BOOL) beginDownload:(NSMutableURLRequest *)request
 {
+	NSString *userAgent = [NSString stringWithFormat:@"Oolite/%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+	[request setValue:userAgent forHTTPHeaderField:@"User-Agent"];
 	NSURLConnection *download = [[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (download)
 	{
@@ -837,7 +839,7 @@ static OOOXZManager *sSingleton = nil;
 		OOLog(kOOOXZErrorLog,@"Manifest does not have a download URL - cannot install");
 		return NO;
 	}
-	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
 	if (_downloadStatus != OXZ_DOWNLOAD_NONE)
 	{
 		return NO;
