@@ -2009,8 +2009,8 @@ static GLfloat		sBaseMass = 0.0;
 			{
 				float shadow = 1.5f;
 				shadowAtPointOcclusionToValue([self viewpointPosition],1.0f,uni_entities[i],sun,&shadow);
+				/* BUG: if the shadowing entity is not spherical, this gives over-shadowing. True elsewhere as well, but not so obvious there. */
 				if (shadow < 1) {
-					/* BUG: if the shadowing entity is not spherical, this gives over-shadowing. True elsewhere as well, but not so obvious there. */
 					return 0.0f;
 				}
 			}
@@ -2046,11 +2046,20 @@ static GLfloat		sBaseMass = 0.0;
 			break;
 	}
 	measuredCosAbs = fabs(measuredCos);
-	if (thresholdAngleCos <= measuredCosAbs && measuredCosAbs <= 1.0f)	// angle from viewpoint to sun <= desired threshold
+	/*
+	  Bugfix: 1.1f - floating point errors can mean the dot product of two
+	  normalised vectors can be very slightly more than 1, which can
+	  cause extreme flickering of the glare at certain ranges to the
+	  sun. The real test is just that it's not still 999 - CIM
+	 */
+	if (thresholdAngleCos <= measuredCosAbs && measuredCosAbs <= 1.1f)	// angle from viewpoint to sun <= desired threshold
 	{
 		sunBrightness =  (measuredCos - thresholdAngleCos) / (1.0f - thresholdAngleCos);
+//		OOLog(@"glare.debug",@"raw brightness = %f",sunBrightness);
 		if (sunBrightness < 0.0f)  sunBrightness = 0.0f;
+		else if (sunBrightness > 1.0f)  sunBrightness = 1.0f;
 	}
+//	OOLog(@"glare.debug",@"cos=%f, threshold = %f, brightness = %f",measuredCosAbs,thresholdAngleCos,sunBrightness);
 	return sunBrightness * sunBrightness * sunBrightness;
 }
 
