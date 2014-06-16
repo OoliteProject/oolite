@@ -9322,7 +9322,7 @@ static NSString *last_outfitting_key=nil;
 			NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
 
 			NSUInteger priceDecimal = pricePerUnit % 10;
-			NSString *price = [NSString stringWithFormat:@" %@.%u ",OOPadStringToEms([NSString stringWithFormat:@"%u",(pricePerUnit/10)],1.5),priceDecimal];
+			NSString *price = [NSString stringWithFormat:@" %@.%u ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
 			
 			// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 			
