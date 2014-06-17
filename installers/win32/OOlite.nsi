@@ -285,7 +285,17 @@ RMDir /r "$SMPROGRAMS\Oolite"
 
 ; Remove Package files (but leave any generated content behind)
 RMDir /r "$INSTDIR\oolite.app\Contents"
+
+; Managed OXZs, if present, must survive the uninstall
+IfFileExists "$INSTDIR\oolite.app\GNUstep\Library\ApplicationSupport\Oolite\ManagedAddOns\*.oxz" NoRemoveOXZFolder RemoveOXZFolder
+NoRemoveOXZFolder:
+RMDir /r "$INSTDIR\oolite.app\GNUstep\Defaults"
+RMDir /r "$INSTDIR\oolite.app\GNUstep\Library\Caches"
+goto EndOfOXZFolderCheck
+RemoveOXZFolder:
 RMDir /r "$INSTDIR\oolite.app\GNUstep"
+EndOfOXZFolderCheck:
+
 RMDir /r "$INSTDIR\oolite.app\oolite.app"
 RMDir /r "$INSTDIR\oolite.app\Resources"
 RMDir /r "$INSTDIR\oolite.app\Logs"
