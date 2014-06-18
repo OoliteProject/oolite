@@ -5943,32 +5943,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	OOGL(glPushMatrix());
 	
-	if ([self status] == STATUS_ACTIVE)
-	{
-/*		Vector abspos = position;  // STATUS_ACTIVE means it is in control of its own orientation
-		Entity		*last = nil;
-		Entity		*father = [self owner]; 
-		OOMatrix	r_mat;
-		
-		while ((father)&&(father != last)  &&father != NO_TARGET)
-		{
-			r_mat = [father drawRotationMatrix];
-			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
-			last = father;
-			if (![last isSubEntity]) break;
-			father = [father owner];
-			} */
-		HPVector abspos = [self absolutePositionForSubentity];
-		
-		GLLoadOOMatrix([UNIVERSE viewMatrix]);
-		// HPVect: need to make camera-relative
-		GLTranslateOOVector(HPVectorToVector(abspos));
-	}
-	else
-	{
-		// HPVect: need to make camera-relative
-		GLTranslateOOVector(HPVectorToVector(position));
-	}
+	// HPVect: need to make camera-relative
+	GLTranslateOOVector(HPVectorToVector(position));
 	
 	GLMultOOMatrix(rotMatrix);
 	[self drawImmediate:immediate translucent:translucent];
