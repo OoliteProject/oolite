@@ -9432,50 +9432,55 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (double) ballTrackLeadingTarget:(double) delta_t atTarget:(Entity *)target
 {
+	if (!target)
+	{
+		return -2.0; // no target
+	}
+
 	Vector		vector_to_target;
 	Vector		axis_to_track_by;
-	HPVector		my_position = [self absolutePositionForSubentity];
 	Vector		my_aim = vector_forward_from_quaternion(orientation);
 	Vector		my_ref = reference;
 	double		aim_cos, ref_cos;
 	Vector		leading = [target velocity];
 
-/*	Entity		*last = nil;
+	// need to get vector to target in terms of this entities coordinate system
+	HPVector my_position = [self absolutePositionForSubentity];
+	vector_to_target = HPVectorToVector(HPvector_subtract([target position], my_position));
+	// this is in absolute coordinates, so now rotate it
+
+	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
-	OOMatrix	r_mat;
-	
+
+	Quaternion  q = kIdentityQuaternion;
 	while ((father)&&(father != last) && (father != NO_TARGET))
 	{
-		r_mat = [father drawRotationMatrix];
-		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
-		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
+		q = quaternion_multiply(q,quaternion_conjugate([father orientation]));
 		last = father;
 		if (![last isSubEntity]) break;
 		father = [father owner];
-		}*/
-
-	if (target)
-	{
-		vector_to_target = HPVectorToVector(HPvector_subtract([target position], my_position));
-		if (magnitude(vector_to_target) > weaponRange * 1.01)
-		{
-			return -2.0; // out of range
-		}
-
-		float lead = magnitude(vector_to_target) / TURRET_SHOT_SPEED;
-		
-		vector_to_target = vector_add(vector_to_target, vector_multiply_scalar(leading, lead));
-		vector_to_target = vector_normal_or_fallback(vector_to_target, kBasisZVector);
-		
-		// do the tracking!
-		aim_cos = dot_product(vector_to_target, my_aim);
-		ref_cos = dot_product(vector_to_target, my_ref);
 	}
-	else
+	q = quaternion_conjugate(q);
+	// q now contains the rotation to the turret's reference system
+
+	vector_to_target = quaternion_rotate_vector(q,vector_to_target);
+	leading = quaternion_rotate_vector(q,leading);
+	// rotate the vector to target and its velocity
+	
+	if (magnitude(vector_to_target) > weaponRange * 1.01)
 	{
-		aim_cos = 0.0;
-		ref_cos = -1.0;
+		return -2.0; // out of range
 	}
+
+	float lead = magnitude(vector_to_target) / TURRET_SHOT_SPEED;
+		
+	vector_to_target = vector_add(vector_to_target, vector_multiply_scalar(leading, lead));
+	vector_to_target = vector_normal_or_fallback(vector_to_target, kBasisZVector);
+		
+	// do the tracking!
+	aim_cos = dot_product(vector_to_target, my_aim);
+	ref_cos = dot_product(vector_to_target, my_ref);
+
 	
 	if (ref_cos > TURRET_MINIMUM_COS)  // target is forward of self
 	{
@@ -10678,23 +10683,24 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;
 
 	Vector		vel;	
-	HPVector		origin = [self absolutePositionForSubentity];
-		/* position;
+	HPVector		origin = [self position];
+
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 
-	
+	vel = vector_forward_from_quaternion(orientation);		// Facing
+	// adjust velocity and position vectors to absolute coordinates
 	while ((father)&&(father != last) && (father != NO_TARGET))
 	{
 		r_mat = [father drawRotationMatrix];
 		origin = HPvector_add(OOHPVectorMultiplyMatrix(origin, r_mat), [father position]);
+		vel = OOVectorMultiplyMatrix(vel, r_mat);
 		last = father;
 		if (![last isSubEntity]) break;
 		father = [father owner];
-	}*/
+	}
 	
-	vel = vector_forward_from_quaternion(orientation);		// Facing
 	origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(vel, collision_radius + 0.5)));	// Start just outside collision sphere
 	vel = vector_multiply_scalar(vel, TURRET_SHOT_SPEED);	// Shot velocity
 	
