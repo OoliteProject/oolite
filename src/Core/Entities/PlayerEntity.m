@@ -1996,6 +1996,7 @@ static GLfloat		sBaseMass = 0.0;
 	if (EXPECT_NOT(!sun))  return 0.0f;
 	
 	// check if camera position is shadowed
+	OOViewID vdir = [UNIVERSE viewDirection];
 	unsigned i;
 	unsigned	ent_count =	UNIVERSE->n_entities;
 	Entity		**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
@@ -2007,11 +2008,15 @@ static GLfloat		sBaseMass = 0.0;
 				([uni_entities[i] isShip] &&
 				 [uni_entities[i] isVisible]))
 			{
-				float shadow = 1.5f;
-				shadowAtPointOcclusionToValue([self viewpointPosition],1.0f,uni_entities[i],sun,&shadow);
-				/* BUG: if the shadowing entity is not spherical, this gives over-shadowing. True elsewhere as well, but not so obvious there. */
-				if (shadow < 1) {
-					return 0.0f;
+				// the player ship can't shadow internal views
+				if (EXPECT(vdir > VIEW_STARBOARD || ![uni_entities[i] isPlayer]))
+				{
+					float shadow = 1.5f;
+					shadowAtPointOcclusionToValue([self viewpointPosition],1.0f,uni_entities[i],sun,&shadow);
+					/* BUG: if the shadowing entity is not spherical, this gives over-shadowing. True elsewhere as well, but not so obvious there. */
+					if (shadow < 1) {
+						return 0.0f;
+					}
 				}
 			}
 		}
@@ -2020,7 +2025,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	relativePosition = HPVectorToVector(HPvector_subtract([self viewpointPosition], [sun position]));
 	unitRelativePosition = vector_normal_or_zbasis(relativePosition);
-	switch ([UNIVERSE viewDirection])
+	switch (vdir)
 	{
 		case VIEW_FORWARD:
 			measuredCos = -dot_product(unitRelativePosition, v_forward);
