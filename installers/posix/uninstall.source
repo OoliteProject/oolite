@@ -8,6 +8,8 @@
 #              adds a header defining the environment variables used below.
 # 
 # 2011-04-03: Updated to facilitate rsync repository setup for oolite-update script
+# 2014-06-20: Enhanced error code generation to facilitate error recognition
+#             Updated to remove ManagedAddOns folder tree
 # 
 
 
@@ -97,7 +99,7 @@ rm -rf AddOns/Basic-debug.oxp/ 1> /dev/null 2> /dev/null
 rmdir AddOns/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+1)) 
+  rm_rc=$(($rm_rc+2)) 
 fi
 
 # Only remove known files from oolite.app/ and 
@@ -110,7 +112,7 @@ rm -rf oolite.app/Resources/ 1> /dev/null 2> /dev/null
 rmdir oolite.app/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+1))
+  rm_rc=$(($rm_rc+4))
 fi
 
 # Remove uninstall script
@@ -120,7 +122,19 @@ rm -f ${SELF_FILENAME}
 rmdir ${OOLITE_ROOT}/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+1))
+  rm_rc=$(($rm_rc+8))
+fi
+
+# Remove Oolite/ManagedAddOns folder if it is empty
+rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
+if [ $? -ne 0 ]
+then
+  rm_rc=$(($rm_rc+16))
+fi
+rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
+if [ $? -ne 0 ]
+then
+  rm_rc=$(($rm_rc+32))
 fi
 
 echo "Done."
@@ -129,6 +143,7 @@ echo "Done."
 # Finished uninstall!
 if [ $rm_rc -ne 0 ] 
 then
+  # TO DO: Issue a message showing which folders could not be removed
   echo "Warning $rm_rc: Some folders could not be removed."
 fi
 
