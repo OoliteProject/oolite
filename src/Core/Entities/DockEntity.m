@@ -48,6 +48,7 @@ MA 02110-1301, USA.
 @interface DockEntity (OOPrivate)
 
 - (void) clearIdLocks:(ShipEntity *)ship;
+- (void) clearAllIdLocks;
 - (void) autoDockShipsInQueue:(NSMutableDictionary *)queue;
 - (void) addShipToShipsOnApproach:(ShipEntity *)ship;
 - (void) pullInShipIfPermitted:(ShipEntity *)ship;
@@ -122,6 +123,9 @@ MA 02110-1301, USA.
 
 	}
 	
+	// mark docking queue flight pattern as clear
+	[self clearAllIdLocks];
+
 	last_launch_time = [UNIVERSE getTime] + playerExtraTime;
 }
 
@@ -1184,6 +1188,16 @@ MA 02110-1301, USA.
 		{
 			DESTROY(id_lock[i]);
 		}
+	}
+}
+
+
+- (void) clearAllIdLocks
+{
+	int i;
+	for (i = 1; i < MAX_DOCKING_STAGES; i++)
+	{
+		DESTROY(id_lock[i]);
 	}
 }
 

@@ -2941,16 +2941,6 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 		this.ship.target = null;
 		this.reconsiderNow();
 		break;
-	case "TRY_AGAIN_LATER":
-		if (this.distance(station) < 10000)
-		{
-			this.ship.destination = station.position;
-			this.ship.desiredRange = 12500;
-			this.ship.desiredSpeed = this.cruiseSpeed();
-			this.ship.performFlyToRangeFromDestination();
-			break;
-		}
-		// else fall through
 	case "HOLD_POSITION":
 		this.communicate("oolite_dockingWait",{},4);
 		this.ship.destination = station.position;
@@ -2970,6 +2960,7 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 		// and fall through
 	case "APPROACH":				
 	case "BACK_OFF":
+	case "TRY_AGAIN_LATER":
 		this.ship.performFlyToRangeFromDestination();
 		break;
 	}
