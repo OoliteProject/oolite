@@ -117,7 +117,7 @@ static OOOXZManager *sSingleton = nil;
 - (void) setOXZList:(NSArray *)list;
 - (void) setCurrentDownload:(NSURLConnection *)download;
 
-- (BOOL) installOXZ:(NSUInteger)item;
+- (BOOL) installOXZ:(NSUInteger)item filteredList:(BOOL)filtered;
 - (BOOL) removeOXZ:(NSUInteger)item;
 - (NSArray *) installOptions;
 - (NSArray *) removeOptions;
@@ -394,6 +394,7 @@ static OOOXZManager *sSingleton = nil;
 					if ([[stored oo_stringForKey:kOOManifestIdentifier] isEqualToString:[manifest oo_stringForKey:kOOManifestIdentifier]])
 					{
 						[adjManifest setObject:[stored oo_stringForKey:kOOManifestVersion] forKey:kOOManifestAvailableVersion];
+						[adjManifest setObject:[stored oo_stringForKey:kOOManifestDownloadURL] forKey:kOOManifestDownloadURL];
 					}
 				}
 
@@ -455,8 +456,19 @@ static OOOXZManager *sSingleton = nil;
 		[self gui];
 		return NO;
 	}
-	NSDictionary *expectedManifest = [_oxzList objectAtIndex:_item];
-	if (expectedManifest == nil || (![[downloadedManifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestIdentifier]]) || (![[downloadedManifest oo_stringForKey:kOOManifestVersion] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestVersion]]))
+	NSDictionary *expectedManifest = nil;
+	if (_itemIsFiltered)
+	{
+		expectedManifest = [[self managedOXZs] objectAtIndex:_item];
+	}
+	else
+	{
+		expectedManifest = [_oxzList objectAtIndex:_item];
+	}
+	if (expectedManifest == nil || 
+		(![[downloadedManifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestIdentifier]]) || 
+		(![[downloadedManifest oo_stringForKey:kOOManifestVersion] isEqualToString:[expectedManifest oo_stringForKey:(_itemIsFiltered?kOOManifestAvailableVersion:kOOManifestVersion)]])
+		)
 	{
 		_downloadStatus = OXZ_DOWNLOAD_ERROR;
 		OOLog(kOOOXZErrorLog,@"Downloaded OXZ does not have the same identifer and version as expected. This might be due to your manifests list being out of date - try updating it.");
@@ -536,7 +548,7 @@ static OOOXZManager *sSingleton = nil;
 	} 
 	else
 	{
-		if (installed != nil)
+		if (installed != nil) 
 		{
 			return OXZ_INSTALLABLE_UPDATE;
 		}
@@ -812,23 +824,41 @@ static OOOXZManager *sSingleton = nil;
 		else if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 		{
 			OOLog(kOOOXZDebugLog, @"Trying to install index %lu", (unsigned long)item);
-			[self installOXZ:item];
+			[self installOXZ:item filteredList:NO];
 		}
+		else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
+		{
+			OOLog(kOOOXZDebugLog, @"Trying to install index %lu", (unsigned long)item);
+			[self installOXZ:item filteredList:YES];
+		}
+
 	}
 
 	[self gui]; // update GUI
 }
 
 
-- (BOOL) installOXZ:(NSUInteger)item
+- (BOOL) installOXZ:(NSUInteger)item filteredList:(BOOL)filtered
 {
-	if ([_oxzList count] <= item)
+	NSArray *picklist = nil;
+	if (filtered)
+	{
+		picklist = [self managedOXZs];
+	}
+	else
+	{
+		picklist = _oxzList;
+	}
+
+	if ([picklist count] <= item)
 	{
 		return NO;
 	}
+	NSDictionary *manifest = [picklist objectAtIndex:item];
 	_item = item;
-	NSDictionary *manifest = [_oxzList objectAtIndex:item];
-	if ([self installableState:manifest withAvailability:NO] >= OXZ_UNINSTALLABLE_ALREADY)
+	_itemIsFiltered = filtered;
+
+	if ([self installableState:manifest withAvailability:filtered] >= OXZ_UNINSTALLABLE_ALREADY)
 	{
 		// can't be installed on this version of Oolite, or already is installed
 		return NO;

@@ -67,6 +67,7 @@ typedef enum {
 	NSUInteger			_downloadExpected;
 	NSFileHandle		*_fileWriter;
 	NSUInteger			_item;
+	BOOL				_itemIsFiltered;
 
 	NSUInteger			_offset;
 }
