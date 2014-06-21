@@ -207,7 +207,7 @@ this.PriorityAIController = function(ship)
 			this.__ltcache = {};
 			this.__ltcachestart = clock.adjustedSeconds + 60;
 		}
-		if (!this.__ltcache.oolite_nearestStation)
+		if (!this.__ltcache.oolite_nearestStation || !this.__ltcache.oolite_nearestStation.isValid)
 		{
 			this.__ltcache.oolite_nearestStation = this.ship.findNearestStation();
 		}
@@ -820,7 +820,7 @@ PriorityAIController.prototype.fineThreshold = function()
 // May need to move this and hostileStation to native code for efficiency
 PriorityAIController.prototype.friendlyStation = function(station)
 {
-	if (!station || !station.isInSpace)
+	if (!station || !station.isValid || !station.isInSpace)
 	{
 		return false;
 	}
@@ -869,7 +869,11 @@ PriorityAIController.prototype.friendlyStation = function(station)
 
 PriorityAIController.prototype.homeStation = function() 
 {
-	if (this.__ltcache.oolite_homeStation !== undefined)
+	if (this.__ltcache.oolite_homeStation === null)
+	{
+		return null;
+	}
+	if (this.__ltcache.oolite_homeStation !== undefined && this.__ltcache.oolite_homeStation.isValid)
 	{
 		return this.__ltcache.oolite_homeStation;
 	}
@@ -902,7 +906,7 @@ PriorityAIController.prototype.homeStation = function()
 // be an exact negation
 PriorityAIController.prototype.hostileStation = function(station)
 {
-	if (!station || !station.isInSpace)
+	if (!station || !station.isValid || !station.isInSpace)
 	{
 		return false;
 	}
@@ -1661,7 +1665,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 
 	if (!this.getParameter("oolite_flag_fightsNearHostileStations"))
 	{
-		if (this.__ltcache.oolite_nearestStation && this.distance(this.__ltcache.oolite_nearestStation) < 51200 && this.hostileStation(this.__ltcache.oolite_nearestStation))
+		if (this.__ltcache.oolite_nearestStation && this.__ltcache.oolite_nearestStation.isValid && this.distance(this.__ltcache.oolite_nearestStation) < 51200 && this.hostileStation(this.__ltcache.oolite_nearestStation))
 		{
 			// if there is a hostile station nearby, probably best to leave
 			return true;
@@ -1822,6 +1826,10 @@ PriorityAIController.prototype.conditionFriendlyStationExists = function()
 
 PriorityAIController.prototype.conditionFriendlyStationNearby = function()
 {
+	if (!this.__ltcache.oolite_nearestStation)
+	{
+		return false;
+	}
 	return this.friendlyStation(this.__ltcache.oolite_nearestStation) && this.distance(this.__ltcache.oolite_nearestStation) < this.scannerRange;
 }
 
@@ -1899,6 +1907,10 @@ PriorityAIController.prototype.conditionHomeStationNearby = function()
 
 PriorityAIController.prototype.conditionHostileStationNearby = function()
 {
+	if (!this.__ltcache.oolite_nearestStation)
+	{
+		return false;
+	}
 	return this.hostileStation(this.__ltcache.oolite_nearestStation) && this.distance(this.__ltcache.oolite_nearestStation) < 51200;
 }
 
@@ -1968,6 +1980,10 @@ PriorityAIController.prototype.conditionSelectedStationNearMainPlanet = function
 
 PriorityAIController.prototype.conditionStationNearby = function()
 {
+	if (!this.__ltcache.oolite_nearestStation || !this.__ltcache.oolite_nearestStation.isValid)
+	{
+		return false;
+	}
 	return this.distance(this.__ltcache.oolite_nearestStation) < this.scannerRange*2;
 }
 
@@ -3008,7 +3024,7 @@ PriorityAIController.prototype.behaviourEnterWitchspace = function()
 		// wait for escorts to launch
 		if (!this.conditionAllEscortsInFlight())
 		{
-			if (this.__ltcache.oolite_nearestStation && this.distance(this.__ltcache.oolite_nearestStation) < 5000)
+			if (this.__ltcache.oolite_nearestStation && this.__ltcache.oolite_nearestStation.isValid && this.distance(this.__ltcache.oolite_nearestStation) < 5000)
 			{
 				var launchpos = this.ship.position.add(this.__ltcache.oolite_nearestStation.vectorForward.multiply(12000).add(this.__ltcache.oolite_nearestStation.vectorRight.multiply(30000)));
 				this.ship.destination = launchpos;
@@ -3053,7 +3069,7 @@ PriorityAIController.prototype.behaviourEnterWitchspace = function()
 				this.setParameter("oolite_witchspaceEntry",clock.seconds + 15);
 			}
 
-			if (this.__ltcache.oolite_nearestStation && this.distance(this.__ltcache.oolite_nearestStation) < 5000)
+			if (this.__ltcache.oolite_nearestStation && this.__ltcache.oolite_nearestStation.isValid && this.distance(this.__ltcache.oolite_nearestStation) < 5000)
 			{
 				var launchpos = this.ship.position.add(this.__ltcache.oolite_nearestStation.vectorForward.multiply(8000).add(this.__ltcache.oolite_nearestStation.vectorRight.multiply(30000)));
 				this.ship.destination = launchpos;
@@ -4426,7 +4442,7 @@ PriorityAIController.prototype.configurationSetDestinationToNearestHostileStatio
 
 PriorityAIController.prototype.configurationSetDestinationToNearestStation = function()
 {
-	if (this.__ltcache.oolite_nearestStation)
+	if (this.__ltcache.oolite_nearestStation && this.__ltcache.oolite_nearestStation.isValid)
 	{
 		this.ship.destination = this.__ltcache.oolite_nearestStation.position;
 		this.ship.desiredRange = 15000;
@@ -4619,6 +4635,10 @@ PriorityAIController.prototype.configurationSetWaypoint = function()
 
 PriorityAIController.prototype.configurationSetNearbyFriendlyStationForDocking = function()
 {
+	if (!this.__ltcache.oolite_nearestStation)
+	{
+		return false;
+	}
 	if (this.friendlyStation(this.__ltcache.oolite_nearestStation))
 	{
 		if (this.distance(this.__ltcache.oolite_nearestStation) < this.scannerRange)
@@ -6302,6 +6322,14 @@ PriorityAIController.prototype.templateWitchspaceJumpOutbound = function()
 
 PriorityAIController.prototype.waypointsSpacelanePatrol = function()
 {
+	// interstellar space exception
+	if (!system.sun)
+	{
+		this.setParameter("oolite_waypoint",new Vector3D(0,0,0));
+		this.setParameter("oolite_waypointRange",7500);
+		return;
+	}
+
 	var p = this.ship.position;
 	var choice = "";
 	if (p.magnitude() < 10000)
