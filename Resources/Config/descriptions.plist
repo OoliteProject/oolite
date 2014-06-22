@@ -1289,6 +1289,7 @@
 	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed. Expansion packs which you have installed manually must also be removed manually.";
 	"oolite-oxzmanager-restart"				= "As you have changed the expansion packs you have installed, Oolite now needs to reload the game data. This may take a few seconds or several minutes depending on how fast your computer is and how many packs you have installed. Please be patient while this reload completes: Oolite will not respond to the keyboard or mouse until this is done.";
 	"oolite-oxzmanager-progress-@-of-@"		= "Downloading: %@ of %@";
+	"oolite-oxzmanager-progress-warning"	= "If you are downloading a large file Oolite may sometimes appear to hang during the download without updating the progress. The download is still progressing - please be patient as Oolite will return to normal operation when the download is complete.";
 	"oolite-oxzmanager-progress-done-%u-%u"	= "Download complete. There are now %u expansion packs available for download, and %u pack(s) have been installed here.";
 	"oolite-oxzmanager-removal-done"		= "Expansion pack removed";
 	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details. Using the '[oolite-oxzmanager-update-list]' menu option if you have not done so already and re-attempting the download may sometimes fix the problem.";
