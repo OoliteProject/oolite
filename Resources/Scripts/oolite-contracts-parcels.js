@@ -345,19 +345,31 @@ this._initialiseParcelContractsForSystem = function()
 			var prudence = (2*Math.random())-1;
 
 			var desperation = (Math.random()*(0.5+parcel.risk)) * (1+1/(Math.max(0.5,dtime-(routeToDestination.time * 3600))));
-			var competency = Math.max(50,(routeToDestination.route.length-1)*(1+(parcel.risk*2)));
+			var competency = Math.max(50,(routeToDestination.route.length-1)*(0.5+(parcel.risk*2)));
 			if(parcel.risk == 0)
 			{
-				competency -= 10;
+				competency -= 30;
 			}
 			parcel.payment = Math.floor(parcel.payment * (1+(0.4*prudence)));
 			parcel.payment += (parcel.risk * 200);
+			if (parcel.payment < 100)
+			{
+				competency -= 15;
+				// paying this little probably can't ask for anyone good
+			}
 			parcel.skill = competency + 20*(prudence-desperation);
 		}
 		else
 		{
 			parcel.skill = -1; // always available
 		}
+
+		if (parcel.skill > 60)
+		{
+			parcel.skill = 60;
+		}
+
+//		log(this.name,parcel.payment,parcel.skill,parcel.risk);
 
 		// add parcel to contract list
 		this._addParcelToSystem(parcel);

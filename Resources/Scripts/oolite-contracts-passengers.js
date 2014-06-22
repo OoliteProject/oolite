@@ -356,17 +356,19 @@ this._initialisePassengerContractsForSystem = function()
 
 		var prudence = (2*Math.random())-1;
 		var desperation = (Math.random()*(0.5+passenger.risk)) * (1+1/(Math.max(0.5,dtime-(routeToDestination.time * 3600))));
-		var competency = Math.max(50,(routeToDestination.route.length-1)*(1+(passenger.risk*2)));
+		var competency = Math.max(50,(routeToDestination.route.length-1)*(0.5+(passenger.risk*2)));
 		if(passenger.risk == 0)
 		{
-			competency -= 10;
+			competency -= 30;
 		}
 		passenger.payment = Math.floor(passenger.payment * (1+(0.4*prudence)));
 		passenger.payment += (passenger.risk * 200);
-		passenger.skill = competency + 20*(prudence-desperation);
+		passenger.skill = Math.min(60,competency + 20*(prudence-desperation));
 
 		passenger.advance = Math.min(passenger.payment*0.9,Math.max(0,Math.floor(passenger.payment * (0.05 + (0.1*desperation) + (0.02*player.passengerReputationPrecise))))); // some% up front
 		passenger.payment -= passenger.advance;
+
+//		log(this.name,passenger.payment,passenger.skill,passenger.risk);
 
 		// add passenger to contract list
 		this._addPassengerToSystem(passenger);
