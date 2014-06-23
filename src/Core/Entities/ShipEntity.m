@@ -4879,7 +4879,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = maxFlightSpeed * 0.375;
 		return;
 	}
-	else if ((range < 650) || ([self proximityAlert] == nil))
+	else if ((range < 650) || ([self proximityAlert] != nil))
 	{
 		if ([self proximityAlert] == NO_TARGET)
 		{
@@ -4893,7 +4893,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 	{
 		//we have a target, its within scanner range, and outside 650
-		desired_speed = maxFlightSpeed * 0.375;
+		desired_speed = maxFlightSpeed * 0.875;
 	}
 
 	[self trackPrimaryTarget:delta_t:NO];
