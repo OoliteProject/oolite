@@ -177,7 +177,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 
 - (NSString *) shortDescriptionComponents
 {
-	return [NSString stringWithFormat:@"%@:%@", stateMachineName, currentState];
+	return [NSString stringWithFormat:@"%@:%@ / %@", stateMachineName, currentState, [stateMachine objectForKey:@"jsScript"]];
 }
 
 
