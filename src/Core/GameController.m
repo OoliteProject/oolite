@@ -348,9 +348,9 @@ static GameController *sSharedController = nil;
 		{
 			[UNIVERSE reinitAndShowDemo:YES];
 		}
+		[OOSound update];
 		if (!gameIsPaused)
 		{
-			[OOSound update];
 			OOJSFrameCallbacksInvoke(delta_t);
 		}
 	}
