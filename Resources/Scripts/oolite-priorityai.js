@@ -6012,7 +6012,7 @@ PriorityAIController.prototype.responseComponent_expectWitchspace_shipTargetLost
 	{
 		target = this.getParameter("oolite_rememberedTarget");
 	}
-	if (target) {
+	if (target && target.position) {
 		var pos = target.position;
 		var ws = system.wormholes;
 		// most likely to be most recent

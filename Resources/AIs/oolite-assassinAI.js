@@ -67,11 +67,6 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourEnterWitchspace,
 			reconsider: 15
 		},
-		{
-			condition: ai.conditionHasRememberedTarget,
-			behaviour: ai.behaviourFollowCurrentTarget,
-			reconsider: 15
-		},
 		/* Check for couriers */
 		{
 			preconfiguration: ai.configurationCheckScanner,
@@ -103,6 +98,11 @@ this.aiStarted = function() {
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 20
+		},
+		{
+			condition: ai.conditionHasRememberedTarget,
+			behaviour: ai.behaviourFollowCurrentTarget,
+			reconsider: 15
 		},
 		{
 			preconfiguration: ai.configurationAppointGroupLeader,
