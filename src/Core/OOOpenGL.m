@@ -29,8 +29,9 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOOpenGLExtensionManager.h"
 
-
+#ifndef NDEBUG
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
+#endif
 
 static GLfloat sDisplayScaleFactor = 1.0f;
 

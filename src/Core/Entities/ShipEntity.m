@@ -96,8 +96,9 @@ MA 02110-1301, USA.
 
 
 static NSString * const kOOLogSyntaxAddShips			= @"script.debug.syntax.addShips";
+#ifndef NDEBUG
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
-
+#endif
 
 #if MASS_DEPENDENT_FUEL_PRICES
 static GLfloat calcFuelChargeRate (GLfloat myMass)
