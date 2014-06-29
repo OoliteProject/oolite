@@ -2947,6 +2947,21 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 		this.ship.performFaceDestination();
 		// and will reconsider in a little bit
 		break;
+	case "TRY_AGAIN_LATER":
+		if (this.distance(station) < 5000)
+		{
+			if (this.__ltcache.oolite_dockingclearpos)
+			{
+				this.ship.destination = this.__ltcache.oolite_dockingclearpos;
+			}
+			else
+			{
+				this.ship.destination = station.position.add(Vector3D.randomDirection(8000+station.collisionRadius));
+				this.__ltcache.oolite_dockingclearpos = this.ship.destination;
+			}
+		}
+		this.ship.performFlyToRangeFromDestination();
+		break;
 	case "APPROACH_COORDINATES":
 		if (this.ship.escortGroup && this.ship.escortGroup.count > 1)
 		{
@@ -2960,7 +2975,6 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 		// and fall through
 	case "APPROACH":				
 	case "BACK_OFF":
-	case "TRY_AGAIN_LATER":
 		this.ship.performFlyToRangeFromDestination();
 		break;
 	}
@@ -4845,6 +4859,7 @@ PriorityAIController.prototype.responsesAddDocking = function(handlers)
 {
 	handlers.stationWithdrewDockingClearance = this.responseComponent_docking_stationWithdrewDockingClearance;
 	handlers.shipAchievedDesiredRange = this.responseComponent_docking_shipAchievedDesiredRange;
+	handlers.shipAIFrustrated = this.responseComponent_docking_shipAIFrustrated;
 }
 
 /* Override of standard handlers for use while escorting */
@@ -5909,6 +5924,16 @@ PriorityAIController.prototype.responseComponent_docking_shipAchievedDesiredRang
 	{
 		this.reconsiderNow();
 	}
+}
+
+
+PriorityAIController.prototype.responseComponent_docking_shipAIFrustrated = function()
+{
+	var station = this.getParameter("oolite_dockingStation",null);
+	station.abortDockingForShip(this.ship);
+	this.communicate("oolite_abortDocking",{},3);
+	this.setParameter("oolite_dockingStation",null);
+	this.reconsiderNow();
 }
 
 
