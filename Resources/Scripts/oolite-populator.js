@@ -1336,6 +1336,7 @@ this._addFreighter = function(pos)
 			t[0].homeSystem = system.ID;
 			t[0].destinationSystem = this._weightedNearbyTradeSystem();
 			goods = "PLENTIFUL_GOODS";
+			t[0].fuel = 7;
 		}
 		else
 		{

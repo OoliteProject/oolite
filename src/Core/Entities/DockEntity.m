@@ -322,7 +322,7 @@ MA 02110-1301, USA.
 		// some error has occurred - log it, and send the try-again message
 		OOLogERR(@"station.issueDockingInstructions.failed", @"couldn't addShipToShipsOnApproach:%@ in %@, retrying later -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
 		
-		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"TRY_AGAIN_LATER", nil, NO, -1);
+		return OOMakeDockingInstructions(station, [ship position], 200, 100, @"TRY_AGAIN_LATER", nil, NO, -1);
 	}
 
 
