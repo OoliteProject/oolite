@@ -1883,6 +1883,16 @@
 	"oolite-keycode-delete"	= "Delete";
 	"oolite-keycode-pageup"	= "Page Up";
 	"oolite-keycode-pagedown" = "Page Down";
+	"oolite-keycode-numpad0" = "Numpad 0";
+	"oolite-keycode-numpad1" = "Numpad 1";
+	"oolite-keycode-numpad2" = "Numpad 2";
+	"oolite-keycode-numpad3" = "Numpad 3";
+	"oolite-keycode-numpad4" = "Numpad 4";
+	"oolite-keycode-numpad5" = "Numpad 5";
+	"oolite-keycode-numpad6" = "Numpad 6";
+	"oolite-keycode-numpad7" = "Numpad 7";
+	"oolite-keycode-numpad8" = "Numpad 8";
+	"oolite-keycode-numpad9" = "Numpad 9";
 	
 
 	// Mac multi-screen handling

@@ -16,10 +16,17 @@
 	key_gui_system_data			= "7";
 	key_gui_market				= "8";
 
-	key_gui_arrow_left			= 253;
+/*	key_gui_arrow_left			= 253;
 	key_gui_arrow_right			= 252;
 	key_gui_arrow_up			= 255;
 	key_gui_arrow_down			= 254;
+*/
+ // alternative settings to use numpad instead
+	key_gui_arrow_left			= 314; //numpad 4
+	key_gui_arrow_right			= 316; //numpad 6
+	key_gui_arrow_up			= 318; //numpad 8
+	key_gui_arrow_down			= 312; //numpad 2
+
 
 	key_increase_speed			= "w";
 	key_decrease_speed			= "s";

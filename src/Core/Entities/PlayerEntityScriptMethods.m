@@ -448,6 +448,27 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-pageup");
 	case gvPageDownKey:
 		return DESC(@"oolite-keycode-pagedown");
+	case gvNumberPadKey0:
+		return DESC(@"oolite-keycode-numpad0");
+	case gvNumberPadKey1:
+		return DESC(@"oolite-keycode-numpad1");
+	case gvNumberPadKey2:
+		return DESC(@"oolite-keycode-numpad2");
+	case gvNumberPadKey3:
+		return DESC(@"oolite-keycode-numpad3");
+	case gvNumberPadKey4:
+		return DESC(@"oolite-keycode-numpad4");
+	case gvNumberPadKey5:
+		return DESC(@"oolite-keycode-numpad5");
+	case gvNumberPadKey6:
+		return DESC(@"oolite-keycode-numpad6");
+	case gvNumberPadKey7:
+		return DESC(@"oolite-keycode-numpad7");
+	case gvNumberPadKey8:
+		return DESC(@"oolite-keycode-numpad8");
+	case gvNumberPadKey9:
+		return DESC(@"oolite-keycode-numpad9");
+
 	default:
 		return [NSString stringWithFormat:@"%C",code];
 	}
