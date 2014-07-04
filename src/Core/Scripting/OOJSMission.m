@@ -384,6 +384,7 @@ static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsv
 	
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*text = nil;
+	NSArray				*texts = nil;
 	NSString			*missionKey = nil;
 	
 	if (EXPECT_NOT(argc == 0))
@@ -395,7 +396,14 @@ static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsv
 		OOJSReportBadArguments(context, @"Mission", isKey ? @"setInstructionsKey" : @"setInstructions", 1, OOJS_ARGV, NULL, @"string or null");
 		return NO;
 	}
-	else  text = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	else if (!JSVAL_IS_NULL(OOJS_ARGV[0]) && JSVAL_IS_OBJECT(OOJS_ARGV[0]))
+	{
+		texts = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[0]);
+	}
+	else
+	{
+		text = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
 	
 	if (argc > 1)
 	{
@@ -416,6 +424,10 @@ static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsv
 		{
 			[player setMissionInstructions:text forMission:missionKey];
 		}
+	}
+	else if (texts != nil && !isKey)
+	{
+		[player setMissionInstructionsList:texts forMission:missionKey];
 	}
 	else
 	{

@@ -1,3 +1,21 @@
+Changes between Oolite 1.80 and Oolite 1.82:
+
+Expansion pack development:
+===========================
+
+General:
+--------
+
+* mission.setInstructions() can now take an array as its first
+  parameter. The first element will be a heading on the manifest
+  screen, with the remaining elements being mission entries.
+
+
+
+
+
+
+
 Changes between Oolite 1.78 and Oolite 1.80:
 
 General:
