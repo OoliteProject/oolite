@@ -84,6 +84,9 @@ void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char *file, uns
 void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)
 #endif
 {
+#if OOJS_DEBUG_LIMITER
+	OOLog(@"script.javaScript.timeLimit.debug",@"Limiter starting: %u => %u",sLimiterStartDepth,sLimiterStartDepth+1);
+#endif
 	if (sLimiterStartDepth++ == 0)
 	{
 		if (limit <= 0.0)  limit = OOJS_TIME_LIMIT;
@@ -116,6 +119,11 @@ void OOJSStopTimeLimiter(void)
 	
 	sLastStoppedFile = file;
 	sLastStoppedLine = line;
+
+#if OOJS_DEBUG_LIMITER
+	OOLog(@"script.javaScript.timeLimit.debug",@"Limiter ending: %u <= %u",sLimiterStartDepth-1,sLimiterStartDepth);
+#endif
+
 #endif
 	
 	if (--sLimiterStartDepth == 0)  sLimiterTimeLimit = 0.0;

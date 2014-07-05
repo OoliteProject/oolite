@@ -214,6 +214,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
     OOMaterial.m \
     OONullTexture.m \
     OOPlanetTextureGenerator.m \
+    OOStandaloneAtmosphereGenerator.m \
     OOPNGTextureLoader.m \
     OOShaderMaterial.m \
     OOShaderProgram.m \
@@ -396,6 +397,7 @@ OOLITE_MISC_FILES = \
     OOEquipmentType.m \
     OOMouseInteractionMode.m \
     OORoleSet.m \
+    OOShipLibraryDescriptions.m \
     OOShipRegistry.m \
     OOSpatialReference.m \
     OOTrumble.m \

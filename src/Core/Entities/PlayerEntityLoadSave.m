@@ -622,6 +622,16 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			loadedOK = NO;
 		}
 	}
+
+	if (loadedOK)
+	{
+		BOOL strict = [fileDic oo_boolForKey:@"strict" defaultValue:NO];
+		if (![UNIVERSE setStrict:strict fromSaveGame:YES]) 
+		{
+			fail_reason = DESC(@"loadfailed-saved-game-failed-to-load");
+			loadedOK = NO;
+		}
+	}
 	
 	if (loadedOK)
 	{
@@ -1096,7 +1106,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	if (firstIndex + NUMROWS >= [cdrDetailArray count])
 	{
 		lastIndex=[cdrDetailArray count];
-		[gui setSelectableRange: NSMakeRange(rangeStart, rangeStart + NUMROWS)];
+		[gui setSelectableRange: NSMakeRange(rangeStart, rangeStart + NUMROWS + 2)];
 	}
 	else
 	{

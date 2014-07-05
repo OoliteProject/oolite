@@ -140,6 +140,7 @@ enum
 - (void) drawForwardShieldBar:(NSDictionary *)info;
 - (void) drawAftShieldBar:(NSDictionary *)info;
 - (void) drawFuelBar:(NSDictionary *)info;
+- (void) drawWitchspaceDestination:(NSDictionary *)info;
 - (void) drawCabinTempBar:(NSDictionary *)info;
 - (void) drawWeaponTempBar:(NSDictionary *)info;
 - (void) drawAltitudeBar:(NSDictionary *)info;
@@ -974,7 +975,14 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 			size.width = useDefined(cached.width, 14.0f);
 			size.height = useDefined(cached.height, 8.0f);
 			GLColorWithOverallAlpha(green_color, alpha);
-			OODrawString(legendText, x, y, z1, size);
+			if ([info oo_intForKey:@"align"] == 1)
+			{
+				OODrawStringAligned(legendText, x, y, z1, size, YES);
+			}
+			else
+			{
+				OODrawStringAligned(legendText, x, y, z1, size, NO);
+			}
 		}
 	}
 }
@@ -1605,7 +1613,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		
 		siz.width *= 0.2;
 		siz.height *= 0.2;
-		OOGL(GLScaledLineWidth(2.0));
+		OOGL(GLScaledLineWidth(2.0*lineWidth));
 		switch ([PLAYER compassMode])
 		{
 			case COMPASS_MODE_INACTIVE:
@@ -2153,6 +2161,36 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 		hudDrawMarkerAt(x, y, z1, siz, hr);
 	}
+
+}
+
+
+- (void) drawWitchspaceDestination:(NSDictionary *)info
+{
+	// A zero-distance jump counts as 0.1LY
+	if ([PLAYER dialHyperRange] == 0.0f)
+	{
+		return;
+	}
+
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, WITCHDEST_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, WITCHDEST_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, WITCHDEST_WIDTH);
+	siz.height = useDefined(cached.height, WITCHDEST_HEIGHT);
+	alpha *= cached.alpha;
+
+	SET_COLOR(green_color);
+	
+	OODrawString([UNIVERSE getSystemName:[PLAYER target_system_seed]], x, y, z1, siz);
+
 }
 
 
@@ -2742,7 +2780,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	else
 	{
-		NSInteger negative = (lines % 2) ? (lines - 1) / 2 : lines / 2;
+		NSInteger negative = (lines - 1) / 2;
 		NSInteger positive = lines / 2;
 		for (NSInteger i = -negative; i <= positive; i++)
 		{
@@ -2762,9 +2800,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawASCTarget:(NSDictionary *)info
 {
-	if ([PLAYER status] == STATUS_DOCKED || [PLAYER compassMode] != COMPASS_MODE_BEACONS)
+	if (!([self checkPlayerInSystemFlight] && [PLAYER status] != STATUS_LAUNCHING)) // normal system
 	{
-		// Can't have compass target when docked, and only needed in beacon mode
+		// Can't have compass target when docked, etc. (matches blip condition)
 		return;
 	}
 	
@@ -3623,6 +3661,13 @@ static void InitTextEngine(void)
 }
 
 
+void OOHUDResetTextEngine(void)
+{
+	DESTROY(sFontTexture);
+	DESTROY(sEncodingCoverter);
+}
+
+
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
@@ -3783,6 +3828,10 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
+	/* TODO: the modifications of cx here cause difficulties for fonts
+	 * with different number widths to the default font. Find an
+	 * alternative way to do this. - CIM: 14/06/2014 */
+
 	OOGLBEGIN(GL_QUADS);
 		glColor4f(ce1, 1.0f, 0.0f, 1.0f);
 		// see OODrawHilightedPlanetInfo
@@ -3944,7 +3993,7 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 	
 	OOGL(GLScaledLineWidth(2.0 * thickness));
 	GLDrawOval(x, y, z, siz, 4);
-	OOGL(GLScaledLineWidth(thickness));
+	OOGL(GLScaledLineWidth(thickness)); // reset (thickness = lineWidth)
 	
 	OOGLBEGIN(GL_LINES);
 		glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);

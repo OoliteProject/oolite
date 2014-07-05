@@ -7,6 +7,8 @@
 	// Use the following settings to add custom images to Oolite's screens
 
 	intro				= "intro.png";				// background for the ships at game start
+	shiplibrary			= "shiplibrary.png";		// background for the ship library screen
+	keyboardsettings	= "keyboardsettings.png";	// background for the keyboard settings display
 	newgame				= "newgame.png";			// background for the new game (scenario select) screen
 	status				= "status.png";
 	status_docked		= "status-docked.png";		// if not defined, same as status

@@ -259,10 +259,13 @@ typedef enum
 							// scripting
 							scripted_misjump: 1,
 							haveExecutedSpawnAction: 1,
+							haveStartedJSAI: 1,
 							noRocks: 1,
 							_lightsActive: 1;
 
 	GLfloat    _scriptedMisjumpRange; 
+	
+	GLfloat		sunGlareFilter;							// Range 0.0 - 1.0, where 0 means no sun glare filter, 1 means glare fully filtered
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
@@ -515,6 +518,7 @@ typedef enum
 
 - (void) setIsBoulder:(BOOL)flag;
 - (BOOL) isBoulder;
+- (BOOL) isMinable;
 
 - (BOOL) countsAsKill;
 
@@ -775,6 +779,7 @@ typedef enum
 
 
 - (NSArray *) crew;
+- (NSArray *) crewForScripting;
 - (void) setCrew:(NSArray *)crewArray;
 /**
 	Convenience to set the crew to a single character of the given role,
@@ -1094,6 +1099,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) broadcastThargoidDestroyed;
 
 - (void) broadcastHitByLaserFrom:(ShipEntity*) aggressor_ship;
+
+// Sun glare filter - 0 for no filter, 1 for full filter
+- (GLfloat) sunGlareFilter;
+- (void) setSunGlareFilter:(GLfloat)newValue;
 
 // Unpiloted ships cannot broadcast messages, unless the unpilotedOverride is set to YES.
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship;

@@ -28,14 +28,20 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Trader Opportunist AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_sendsDistressCalls",true);
 
-	ai.setCommunicationsRole("trader");
+	if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("trader-opportunist").length > 0)
+	{
+		ai.setCommunicationsRole("trader-opportunist");
+	}
+	else
+	{
+		ai.setCommunicationsRole("trader");
+	}
 
 	ai.setPriorities([
 		{
@@ -76,8 +82,13 @@ this.aiStarted = function() {
 		{
 			condition: ai.conditionScannerContainsLoneVictim,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
-			reconsider: 20
+			truebranch: [
+				{
+					condition: ai.conditionCombatOddsGood,
+					behaviour: ai.behaviourDestroyCurrentTarget,
+					reconsider: 20
+				}
+			]
 		},
 		{
 			condition: ai.conditionCargoIsProfitableHere,

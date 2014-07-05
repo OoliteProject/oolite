@@ -108,6 +108,11 @@ MA 02110-1301, USA.
 #define FUEL_BAR_WIDTH				80
 #define FUEL_BAR_HEIGHT				8
 
+#define WITCHDEST_CENTRE_X			-200
+#define WITCHDEST_CENTRE_Y			-179
+#define WITCHDEST_WIDTH				80
+#define WITCHDEST_HEIGHT				8
+
 #define CABIN_TEMP_BAR_CENTRE_X		-200
 #define CABIN_TEMP_BAR_CENTRE_Y		-189
 #define CABIN_TEMP_BAR_WIDTH		80
@@ -361,3 +366,5 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 NSRect OORectFromString(NSString *text, GLfloat x, GLfloat y, NSSize siz);
 CGFloat OOStringWidthInEm(NSString *text);
+
+void OOHUDResetTextEngine(void);

@@ -27,13 +27,13 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Pirate AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	this.ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_watchForCargo",true);
 
+	ai.setParameter("oolite_personalityMatchesLeader",0.9);
 	ai.setCommunicationsRole("pirate");
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);

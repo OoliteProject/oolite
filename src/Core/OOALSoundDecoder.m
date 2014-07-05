@@ -261,12 +261,25 @@ static int OOCloseOXZVorbis (void *datasource);
 			}
 		}
 	}
+#ifdef OOLITE_DEBUG_SOUND_FILE_OPENING
+	if (self != nil)
+	{
+		OOLog(@"sound.retain",@"%@",_name);
+	}
+#endif
 	return self;
 }
 
 
 - (void)dealloc
 {
+#ifdef OOLITE_DEBUG_SOUND_FILE_OPENING
+	if (self != nil)
+	{
+		OOLog(@"sound.release",@"%@",_name);
+	}
+#endif
+
 	[_name release];
 	ov_clear(&_vf);
 	unzClose(uf);

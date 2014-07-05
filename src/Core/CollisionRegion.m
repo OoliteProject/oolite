@@ -457,13 +457,48 @@ BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity *e2, OO
 	// check projected sizes of discs
 	GLfloat d2_sun = HPdistance2(e1pos, the_sun->position);
 	GLfloat d2_e2sun = HPdistance2(e2->position, the_sun->position);
+	GLfloat d2_e2 = HPdistance2( e1pos, e2->position);
+
 	if (d2_e2sun > d2_sun)
 	{
-		// you are nearer the sun than the potential occluder, so it can't shade you
+		// you are nearer the sun than the potential occluder, so it
+		// probably can't shade you
+		if (d2_e2 < cr_e2 * cr_e2 && [e2 isShip])
+		{
+			// exception: if within the collision radius of the other
+			// object, might still be shadowed by it.
+			GLfloat bbx = 0.0f, bby = 0.0f, bbz = 0.0f;
+			BoundingBox bb = [(ShipEntity*)e2 totalBoundingBox];
+			bounding_box_get_dimensions(bb,&bbx,&bby,&bbz);
+			float minbb = bbx;
+			if (bby < minbb) { minbb = bby; }
+			if (bbz < minbb) { minbb = bbz; }
+			minbb -= e1rad; // subtract object's size
+			/* closer to the object than the shortest axis. This check
+			 * branch is basically for docking at a rock hermit facing
+			 * away from the sun, but it checks the shortest bounding
+			 * box size rather than the collision radius to avoid
+			 * getting weird shadowing effects around large planar
+			 * entities like the OXP Torus Station.
+			 *
+			 * Well... more weird shadowing effects than there already
+			 * are, anyway.
+			 *
+			 * There are more accurate ways to check "sphere inside
+			 * bounding box" but this seems accurate enough and is
+			 * simpler.
+			 *
+			 * - CIM
+			 */ 
+			if (d2_e2 < minbb * minbb)
+			{
+				*outValue = 0.1;
+				return YES;
+			}
+		}
 		return NO;
 	}
 	
-	GLfloat d2_e2 = HPdistance2( e1pos, e2->position);
 	GLfloat cr_sun = the_sun->collision_radius;
 	
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
@@ -477,7 +512,18 @@ BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity *e2, OO
 	// double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
 	// double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
 	// find the difference between the angles subtended by occluder and sun
-	float theta_diff = asin(cr_e2 / sqrt(d2_e2)) - asin(cr_sun / sqrt(d2_sun));
+	float d2_e = sqrt(d2_e2);
+	float theta_diff;
+	if (d2_e < cr_e2)
+	{
+		// then we're "inside" the object. Calculate as if we were on
+		// the edge of it to avoid taking asin(x>1)
+		theta_diff = asin(1) - asin(cr_sun / sqrt(d2_sun));
+	}
+	else
+	{
+		theta_diff = asin(cr_e2 / d2_e) - asin(cr_sun / sqrt(d2_sun));
+	}
 	
 	HPVector p_sun = the_sun->position;
 	HPVector p_e2 = e2->position;

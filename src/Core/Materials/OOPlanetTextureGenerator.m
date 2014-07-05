@@ -99,9 +99,10 @@ enum
 @private
 	NSString				*_cacheKey;
 	RANROTSeed				_seed;
+	OOPlanetTextureGenerator	*_parent;
 }
 
-- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed;
+- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed andParent:(OOPlanetTextureGenerator *)parent;
 
 - (void) completeWithData:(void *)data width:(unsigned)width height:(unsigned)height;
 
@@ -146,18 +147,22 @@ enum
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo
 {
+	OOLog(@"texture.planet.generate",@"Initialising planetary generator");
+
 	// AllowCubeMap not used yet but might be in future
 	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
+		OOLog(@"texture.planet.generate",@"Extracting parameters for generator %@",self);
+
 		_info.landFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"land_fraction" defaultValue:0.3]);
 		_info.landColor = FloatRGBFromDictColor(planetInfo, @"land_color");
 		_info.seaColor = FloatRGBFromDictColor(planetInfo, @"sea_color");
 		_info.paleLandColor = FloatRGBFromDictColor(planetInfo, @"polar_land_color");
 		_info.polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_info.seed];
-		
 		if ([planetInfo objectForKey:@"cloud_alpha"])
 		{
+			OOLog(@"texture.planet.generate",@"Extracting atmosphere parameters");
 			// we have an atmosphere:
 			_info.cloudAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
 			_info.cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);
@@ -265,6 +270,8 @@ enum
 		}
 		return NO;
 	}
+
+	OOLog(@"texture.planet.generate",@"Generator %@ has atmosphere %@",diffuseGen,*atmosphere);
 	
 	*texture = [OOTexture textureWithGenerator:diffuseGen];
 	return *texture != nil;
@@ -326,7 +333,7 @@ enum
 {
 	if (_atmoGenerator == nil)
 	{
-		_atmoGenerator = [[OOPlanetAtmosphereGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"atmo"] seed:_info.seed];
+		_atmoGenerator = [[OOPlanetAtmosphereGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"atmo"] seed:_info.seed andParent:self];
 	}
 	return _atmoGenerator;
 }
@@ -1237,13 +1244,15 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 
 @implementation OOPlanetAtmosphereGenerator
 
-- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed
+- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed andParent:(OOPlanetTextureGenerator *)parent
 {
+	OOLog(@"texture.planet.generate",@"Initialising atmosphere generator %@",cacheKey);
 	// AllowCubeMap not used yet but might be in future
 	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetAtmoTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
 		_cacheKey = [cacheKey copy];
 		_seed = seed;
+		_parent = [parent retain];
 	}
 	return self;
 }
@@ -1252,7 +1261,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 - (void) dealloc
 {
 	DESTROY(_cacheKey);
-	
+	DESTROY(_parent);
 	[super dealloc];
 }
 
@@ -1281,8 +1290,36 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 }
 
 
+/* Because of the hack to avoid making texture loaders need to know
+ * about multiple textures, when we call the atmosphere generator on a
+ * planet with a from-file texture, things can occasionally go wrong
+ * because this isn't queued until after it's ready, but might be
+ * requested from the queue before then. So, when getResult is called,
+ * it waits for its parent task to complete if it's not itself ready -
+ * by the time the parent task is complete, this texture loader will
+ * have been enqueued, and [super getResult] will then work
+ * properly. - CIM 2014-04-05 */
+- (BOOL) getResult:(OOPixMap *)result
+			format:(OOTextureDataFormat *)outFormat
+	 originalWidth:(uint32_t *)outWidth
+	originalHeight:(uint32_t *)outHeight
+{
+	if (!_ready)
+	{
+		[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:_parent];
+	}
+
+	return [super getResult:result
+					 format:outFormat
+			  originalWidth:outWidth
+			 originalHeight:outHeight];
+}
+
+
 - (void) completeWithData:(void *)data_ width:(unsigned)width_ height:(unsigned)height_
 {
+	OOLog(@"texture.planet.generate",@"Completing atmosphere generator");
+
 	_data = data_;
 	_width = width_;
 	_height = height_;

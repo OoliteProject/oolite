@@ -137,6 +137,15 @@
 			x = -152;
 			y = -201;
 		},
+// not enabled in default HUD - uncomment to use
+//		{   /* witchspace destination label */
+//			selector = "drawWitchspaceDestination:";
+//			height = 10;
+//			width = 10;
+//			y = -207;
+//			x = -176;
+//			color = (0.25,0.25,1.0,1.0);
+//		},
 		{ /* cabin temperature bar */
 			height = 8;
 			selector = "drawCabinTempBar:";
@@ -203,42 +212,48 @@
 		},
 		{
 			text = "Roll";
-			x = -192;
+			align = 1;
+			x = -181;
 			y = -180;
 			height = 8;
 			width = 8;
 		},
 		{
 			text = "Pitch";
-			x = -196;
+			align = 1;
+			x = -181;
 			y = -192;
 			height = 8;
 			width = 8;
 		},
 		{
 			text = "FUEL";
-			x = -197;
+			align = 1;
+			x = -181;
 			y = -206;
 			height = 8;
 			width = 8;
 		},
 		{
 			text = "CT";
-			x = -189;
+			align = 1;
+			x = -181;
 			y = -216;
 			height = 8;
 			width = 8;
 		},
 		{
 			text = "LT";
-			x = -188;
+			align = 1;
+			x = -181;
 			y = -226;
 			height = 8;
 			width = 8;
 		},
 		{
 			text = "ALT";
-			x = -193;
+			align = 1;
+			x = -181;
 			y = -236;
 			height = 8;
 			width = 8;

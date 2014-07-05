@@ -645,10 +645,16 @@ FAIL:
 				}
 			}
 			
-			// full input for load-save screen
-			if (allowingStringInput == gvStringInputAll)
+			// full input for load-save screen or 'all' input
+			if (allowingStringInput >= gvStringInputLoadSave)
 			{
+				// except '/' for loadsave
 				if (isprint(key) && key != '/')
+				{
+					isAlphabetKeyDown = YES;
+					[typedString appendFormat:@"%c", key];
+				}
+				else if (key == '/' && allowingStringInput == gvStringInputAll)
 				{
 					isAlphabetKeyDown = YES;
 					[typedString appendFormat:@"%c", key];

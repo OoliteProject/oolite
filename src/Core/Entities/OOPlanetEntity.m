@@ -43,10 +43,12 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 #import "OOPlanetTextureGenerator.h"
+#import "OOStandaloneAtmosphereGenerator.h"
 #import "OOSingleTextureMaterial.h"
 #import "OOShaderMaterial.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOGraphicsResetManager.h"
+#import "OOStringExpander.h"
 
 @interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
@@ -96,6 +98,9 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	seed_for_planet_description(seed);
 	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:seed] mutableCopy];
 	[planetInfo autorelease];
+
+	_name = nil;
+	[self setName:OOExpand([dict oo_stringForKey:KEY_PLANETNAME defaultValue:[planetInfo oo_stringForKey:KEY_PLANETNAME defaultValue:@"%H"]])];
 	
 	int radius_km = [dict oo_intForKey:KEY_RADIUS defaultValue:[planetInfo oo_intForKey:KEY_RADIUS]];
 	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
@@ -352,6 +357,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) dealloc
 {
+	DESTROY(_name);
 	DESTROY(_planetDrawable);
 	DESTROY(_atmosphereDrawable);
 	//DESTROY(_airColor);	// this CTDs on loading savegames.. :(
@@ -544,8 +550,15 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) launchShuttle
 {
-	if (_shuttlesOnGround == 0)  return;
-	
+	if (_shuttlesOnGround == 0)  
+	{
+		return;
+	}
+	if ([PLAYER status] == STATUS_START_GAME)
+	{
+		// don't launch if game not started
+		return;
+	}
 	if (self != [UNIVERSE planet] && ![self planetHasStation])
 	{
 		// don't launch shuttles when no station is nearby.
@@ -670,47 +683,36 @@ static OOColor *ColorWithHSBColor(Vector c)
 		}
 		else textureName = @"dynamic";
 
-		if (!isMoon)
-		{
-			/* Generate the atmosphere texture anyway */
-			OOTexture *diffuseTmp = nil;
-			OOTexture *atmosphere = nil;
-			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseTmp
-									   secondaryTexture:NULL
-										  andAtmosphere:&atmosphere
-											   withInfo:_materialParameters];
-
-			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
-			[_atmosphereDrawable setMaterial:dynamicMaterial];
-			[dynamicMaterial release];
-		}
 	}
 	else
 	{
-		if (isMoon)
-		{
-			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
-												   withInfo:_materialParameters];
-		}
-		else
-		{
-			OOTexture *atmosphere = nil;
-			[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-										   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
-											  andAtmosphere:&atmosphere
-												   withInfo:_materialParameters];
-			
-			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
-			[_atmosphereDrawable setMaterial:dynamicMaterial];
-			[dynamicMaterial release];
-		}
+		[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
+									   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
+											   withInfo:_materialParameters];
+
 		if (shadersOn)
 		{
 			macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
 		}
 		textureName = @"dynamic";
 	}
+
+	/* Generate atmosphere texture */
+	if (!isMoon)
+	{
+		OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
+		/* Generate a standalone atmosphere texture */
+		OOTexture *atmosphere = nil;
+		[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
+														  withInfo:_materialParameters];
+		
+		OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
+		
+		OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
+		[_atmosphereDrawable setMaterial:dynamicMaterial];
+		[dynamicMaterial release];
+	}
+
 	OOMaterial *material = nil;
 	
 #if OO_SHADERS
@@ -750,6 +752,19 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (OOMaterial *) atmosphereMaterial
 {
 	return [_atmosphereDrawable material];
+}
+
+
+- (NSString *) name
+{
+	return _name;
+}
+
+
+- (void) setName:(NSString *)name
+{
+	[_name release];
+	_name = [name retain];
 }
 
 @end

@@ -164,7 +164,6 @@ vec4 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 }
 
 
-#ifndef OO_REDUCED_COMPLEXITY
 uniform float			uHullHeatLevel;
 uniform float			uTime;
 
@@ -206,7 +205,6 @@ vec4 TemperatureGlow(in float level)
 	
 	return result;	
 }
-#endif
 
 
 void main(void)
@@ -317,12 +315,10 @@ void main(void)
 	totalColor += specularColor * specularLight;
 #endif
 	
-#ifndef OO_REDUCED_COMPLEXITY
 	// Heat glow
 	float hullHeat = max(uHullHeatLevel - 0.5, 0.0) * 2.0;
 	hullHeat = Pulse(hullHeat * hullHeat, 0.1);
 	totalColor += TemperatureGlow(hullHeat);
-#endif
 	
 	gl_FragColor = totalColor;
 }

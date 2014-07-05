@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
-
+#import "OOStringExpander.h"
 
 @interface OOSunEntity (Private)
 
@@ -126,6 +126,10 @@ MA 02110-1301, USA.
 	scanClass = CLASS_NO_DRAW;
 	
 	[self setSunColor:sun_color];
+
+	[self setName:OOExpand([dict oo_stringForKey:KEY_SUNNAME defaultValue:@"[oolite-default-star-name]"])];
+
+
 		
 	corona_blending=OOClamp_0_1_f([dict oo_floatForKey:@"corona_hues" defaultValue:1.0f]);
 	corona_speed_factor=[dict oo_floatForKey:@"corona_shimmer" defaultValue:-1.0];
@@ -194,6 +198,7 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
+	DESTROY(_name);
 	[super dealloc];
 }
 
@@ -573,8 +578,10 @@ MA 02110-1301, USA.
 		// 182: square of ratio of radius to sun-witchpoint distance
 		// in default Lave
 		GLfloat distanceReductionFactor = OOClamp_0_1_f(([self radius] * [self radius] * 182.0) / HPdistance2([PLAYER position], [self position]));
+		GLfloat	sunGlareFilterMultiplierLocal = [PLAYER sunGlareFilter];
 		GLfloat directVisionSunGlareColor[4] = {discColor[0], discColor[1], discColor[2], directVisionSunGlare *
-													atmosphericReductionFactor * distanceReductionFactor * 0.85f};
+													atmosphericReductionFactor * distanceReductionFactor * 
+													(1.0f - sunGlareFilterMultiplierLocal) * 0.85f};
 													
 		OOGL(glColor4fv(directVisionSunGlareColor));
 		
@@ -631,6 +638,10 @@ MA 02110-1301, USA.
 		oldRadius =	[object doubleValue];	// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
 		[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
 		collision_radius = oldRadius;								
+	}
+	else if ([key isEqualToString:KEY_SUNNAME])
+	{
+		[self setName:[dict oo_stringForKey:KEY_SUNNAME]];
 	}
 	else if ([key isEqualToString:@"corona_flare"])
 	{
@@ -749,5 +760,19 @@ MA 02110-1301, USA.
 {
 	return YES;
 }
+
+
+- (NSString *) name
+{
+	return _name;
+}
+
+
+- (void) setName:(NSString *)name
+{
+	[_name release];
+	_name = [name retain];
+}
+
 
 @end

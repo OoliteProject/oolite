@@ -135,7 +135,9 @@
 		"hunter",
 		"hunter-medium",
 		"hunter-heavy",
-		"escape-capsule"
+		"escape-capsule",
+		"police",
+		"rockhermit"
 	);
 
 	/* Roles the police are less likely to side with in a clean v

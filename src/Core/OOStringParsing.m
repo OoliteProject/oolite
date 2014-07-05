@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
+#import "HeadUpDisplay.h"
 
 #import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
@@ -50,7 +51,7 @@ NSMutableArray *ScanTokensFromString(NSString *values)
 	static NSCharacterSet	*space_set = nil;
 	
 	// Note: Shark suggests we're getting a lot of early exits, but testing showed a pretty steady 2% early exit rate.
-	if (EXPECT_NOT(values == nil))  return [NSArray array];
+	if (EXPECT_NOT(values == nil))  return [NSMutableArray array];
 	if (EXPECT_NOT(space_set == nil)) space_set = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
 	
 	result = [NSMutableArray array];
@@ -260,13 +261,14 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 }
 
 
-NSString *OOPadStringTo(NSString * string, float numSpaces)
+NSString *OOPadStringToEms(NSString * string, float numEms)
 {
 	NSString		*result = string;
-	numSpaces -= [result length];
-	if (numSpaces>0)
+	numEms -= OOStringWidthInEm(result);
+	if (numEms>0)
 	{
-		result=[[@"" stringByPaddingToLength: numSpaces*2 withString: @" " startingAtIndex:0] stringByAppendingString: result];
+		numEms /= OOStringWidthInEm(@"\037"); // 037 is narrow space
+		result=[[@"" stringByPaddingToLength:(NSUInteger)numEms withString: @"\037" startingAtIndex:0] stringByAppendingString: result];
 	}
 	return result;
 }

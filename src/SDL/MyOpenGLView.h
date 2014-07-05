@@ -59,7 +59,7 @@ enum GameViewKeys
 	gvArrowKeyRight,
 	gvArrowKeyLeft,
 	gvArrowKeyDown,
-	gvArrowKeyUp,
+	gvArrowKeyUp, // 255
 	gvMouseLeftButton = 301,
 	gvMouseDoubleClick,
 	gvHomeKey,
@@ -67,7 +67,7 @@ enum GameViewKeys
 	gvInsertKey,
 	gvDeleteKey,
 	gvPageUpKey,
-	gvPageDownKey,
+	gvPageDownKey, // 308
 	gvNumberKey0 = 48,
 	gvNumberKey1,
 	gvNumberKey2,
@@ -94,7 +94,8 @@ enum StringInput
 {
 	gvStringInputNo = 0,
 	gvStringInputAlpha = 1,
-	gvStringInputAll = 2
+	gvStringInputLoadSave = 2,	
+	gvStringInputAll = 3
 };
 
 enum KeyboardType

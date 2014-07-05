@@ -178,11 +178,12 @@
 
 - (void) calculateLevelOfDetailForViewDistance:(float)distance
 {
-	float	drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0f;
+	BOOL simple = [UNIVERSE reducedDetail];
+	float	drawFactor = [[UNIVERSE gameView] viewSize].width / (simple ? 100.0f : 40.0f);
 	float	drawRatio2 = drawFactor * _radius / sqrt(distance); // proportional to size on screen in pixels
 	
 	float lod = sqrt(drawRatio2 * LOD_FACTOR);
-	if ([UNIVERSE reducedDetail])
+	if (simple)
 	{
 		lod -= 0.5f / LOD_GRANULARITY;	// Make LOD transitions earlier.
 		lod = OOClamp_0_max_f(lod, (LOD_GRANULARITY - 1) / LOD_GRANULARITY);	// Don't use highest LOD.

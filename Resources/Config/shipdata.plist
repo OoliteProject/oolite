@@ -147,7 +147,7 @@
 		missiles = 1;
 		model = "oolite_adder.dat";
 		name = "Adder";
-		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate-independent(0.2) scavenger shuttle hermit-ship";
+		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate(0.2) scavenger shuttle hermit-ship";
 		scoop_position = "0.0 -5.1 22.724";
 		thrust = 30;
 		view_position_aft = "0.0 5.0 -22.5";
@@ -972,7 +972,8 @@
 	{
 		ai_type = "buoyAI.plist";
 		beacon = "N0100 Navigation Buoy";
-		beacon_label = "%H Station";
+/* Beacon label for now set in populator, not shipdata, for compatibility
+ * with old OXP like_ship entries */
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1018,7 +1019,6 @@
 		like_ship = "oolite_template_buoy";
 		is_template = 1;
 		beacon = "W0100 Navigation Buoy (Witchpoint)";
-		beacon_label = "Witchpoint";
 		name = "Witchpoint Beacon";
 		roles = "buoy-witchpoint";
 		subentities = (
@@ -1587,6 +1587,7 @@
 		name = "Coriolis Station";
 		roles = "coriolis station";
 		rotating = yes;
+		scan_class = "CLASS_STATION";
 		station_roll = "0.08"; // 1G at rim
 		subentities = 
 		( 
@@ -1933,6 +1934,7 @@
 			"-2.60324 -1.47267 -2.7841 0.35 0.35 0.5"
 		);
 		forward_weapon_type = "WEAPON_NONE";
+		hyperspace_motor = no;
 		is_template = 1;
 		materials =
 		{
@@ -2082,7 +2084,7 @@
 		missiles = 2;
 		model = "oolite_ferdelance.dat";
 		name = "Fer-de-Lance";
-		roles = "trader-freighter(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
+		roles = "trader(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
 		scoop_position = "0.0 -10.0322 21.6829";
 		thrust = 36;
 		view_position_aft = "0.0 12.0 -32.5";
@@ -2387,6 +2389,11 @@
 		name = "Training Fighter";
 		roles = "oolite-tutorial-fighter";
 		script = "oolite-tutorial-fighter.js";
+	};
+	"oolite_template_tutorial-krait-wave1" = {
+		like_ship = "oolite_template_tutorial-krait";
+	    energy_recharge_rate = 0.25; /* significant reduction */
+		roles = "oolite-tutorial-fighter-wave1";
 	};
 	"oolite_template_mamba" = {
 		aft_eject_position = "0.0 -9.26 -35.1";
@@ -3250,6 +3257,7 @@
 		cargo_type = "CARGO_THARGOID";
 		energy_recharge_rate = 3;
 		forward_weapon_type = "WEAPON_PULSE_LASER";
+		hyperspace_motor = no;
 		is_template = 1;
 		laser_color = "greenColor";
 		materials =
@@ -3404,6 +3412,7 @@
 		frangible = 0;
 		has_ecm = yes;
 		has_escape_pod = yes;
+		hyperspace_motor = no;
 		is_template = 1;
 		laser_color = "magentaColor";
 		materials = 
@@ -4110,6 +4119,10 @@
 	"oolite-tutorial-krait" = 
 	{
 		"like_ship" = "oolite_template_tutorial-krait";
+	};
+	"oolite-tutorial-krait-wave1" = 
+	{
+		"like_ship" = "oolite_template_tutorial-krait-wave1";
 	};
 	"oolite-tutorial-station" = 
 	{

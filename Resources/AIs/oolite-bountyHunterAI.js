@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 
 // this is the AI version for a local patrol or an assistant
 this.name = "Oolite Bounty Hunter AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
@@ -37,6 +36,7 @@ this.aiStarted = function() {
 
 	ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 
+	ai.setParameter("oolite_personalityMatchesLeader",0.9);
 	ai.setCommunicationsRole("hunter");
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-bounty-hunter"]);
@@ -81,7 +81,7 @@ this.aiStarted = function() {
 			preconfiguration: ai.configurationCheckScanner,
 			condition: ai.conditionScannerContainsFugitive,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
+			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
 		{
@@ -92,7 +92,7 @@ this.aiStarted = function() {
 				 * odds they'll never shoot anything */
 				{
 					notcondition: ai.conditionCombatOddsBad,
-					behaviour: ai.behaviourDestroyCurrentTarget,
+					behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 					reconsider: 1
 				}
 			]

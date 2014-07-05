@@ -37,7 +37,59 @@ this.name			= "oolite-contracts-helpers";
 this.author			= "cim";
 this.copyright		= "© 2012-2013 the Oolite team.";
 this.description	= "Helper functions for various contracts.";
-this.version		= "1.79";
+
+
+/* Save and retrieve client names for use in Assassin AIs */
+this.startUp = function()
+{
+	if (missionVariables.oolite_contract_clientnames)
+	{
+		this.$clientNames = JSON.parse(missionVariables.oolite_contract_clientnames);
+	}
+	else
+	{
+		this.$clientNames = [];
+		for (var i=0;i<20;i++)
+		{
+			// one-time initialisation
+			this.$clientNames[i] = "";
+		}
+	}
+}
+
+
+this.playerWillSaveGame = function()
+{
+	missionVariables.oolite_contract_clientnames = JSON.stringify(this.$clientNames);
+}
+
+
+// set a client name in the random selection
+this._setClientName = function(name)
+{
+	this.$clientNames[Math.floor(Math.random()*20)] = name;
+}
+
+
+// get a random recent (usually) client name
+this._getClientName = function()
+{
+	var idx = Math.floor(Math.random()*20);
+	for (var i=0;i<20;i++)
+	{
+		var name = this.$clientNames[(idx+i)%20];
+		if (name != "")
+		{
+			return name;
+		}
+	}
+	// being requested when no clients recorded, ever!
+	// unlikely but might happen
+	return expandDescription("%N ")+expandDescription("[nom]");
+}
+
+
+
 
 // returns a string containing the necessary number of "hair spaces" to
 // pad the currentText string to the specified length in 'em'

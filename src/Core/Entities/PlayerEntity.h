@@ -83,6 +83,14 @@ typedef enum
 
 typedef enum
 {
+	OOSPEECHSETTINGS_OFF = 0,
+	OOSPEECHSETTINGS_COMMS = 1,
+	OOSPEECHSETTINGS_ALL = 2
+} OOSpeechSettings;
+
+
+typedef enum
+{
 	OOLRC_MODE_NORMAL = 0,
 	OOLRC_MODE_ECONOMY = 1,
 	OOLRC_MODE_GOVERNMENT = 2,
@@ -407,7 +415,7 @@ typedef enum
 	OOCreditsQuantity		credits;	
 	OOGalaxyID				galaxy_number;
 	
-	NSMutableArray			*shipCommodityData;
+	NSArray					*shipCommodityData;
 	
 	ShipEntity				*missile_entity[PLAYER_MAX_MISSILES];	// holds the actual missile entities or equivalents
 	OOUniversalID			_dockTarget;	// used by the escape pod code
@@ -578,8 +586,6 @@ typedef enum
 	
 							mouse_control_on: 1,
 	
-							isSpeechOn: 1,
-	
 							keyboardRollOverride: 1,   // Handle keyboard roll...
 							keyboardPitchOverride: 1,  // ...and pitch override separately - (fix for BUG #17490)  
 							keyboardYawOverride: 1,
@@ -593,7 +599,8 @@ typedef enum
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
 #endif
-  
+	OOSpeechSettings		isSpeechOn;
+
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
@@ -641,7 +648,7 @@ typedef enum
 - (void) unloadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
 - (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
 - (void) loadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
-- (NSMutableArray *) shipCommodityData;
+- (NSArray *) shipCommodityData;
 
 - (OOCreditsQuantity) deciCredits;
 
@@ -865,6 +872,7 @@ typedef enum
 
 - (void) setupStartScreenGui;
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
+- (void) setGuiToKeySettingsScreen;
 - (void) setGuiToOXZManager;
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen;
@@ -879,7 +887,7 @@ typedef enum
 - (BOOL) tryBuyingCommodity:(OOCommodityType)type all:(BOOL)all;
 - (BOOL) trySellingCommodity:(OOCommodityType)type all:(BOOL)all;
 
-- (BOOL) isSpeechOn;
+- (OOSpeechSettings) isSpeechOn;
 
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
  
@@ -887,6 +895,8 @@ typedef enum
 - (void) adjustTradeInFactorBy:(int)value;
 - (int) tradeInFactor;
 - (double) renovationCosts;
+- (double) renovationFactor;
+
 
 - (void) setDefaultViewOffsets;
 - (void) setDefaultCustomViews;
@@ -957,6 +967,7 @@ typedef enum
 - (NSDictionary *) equipScreenBackgroundDescriptor;
 - (void) setEquipScreenBackgroundDescriptor:(NSDictionary *)descriptor;
 
+- (BOOL) scriptsLoaded;
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;
 

@@ -149,11 +149,16 @@ enum
 }
 
 
+- (void) updateCameraRelativePosition
+{
+	HPVector c_pos = [PLAYER viewpointPosition];
+	cameraRelativePosition = make_vector((OOScalar)-fmod(c_pos.x,DUST_SCALE),(OOScalar)-fmod(c_pos.y,DUST_SCALE),(OOScalar)-fmod(c_pos.z,DUST_SCALE));
+}
+
+
 - (void) update:(OOTimeDelta) delta_t
 {
 	// [self setPosition:position];
-	HPVector c_pos = [PLAYER viewpointPosition];
-	cameraRelativePosition = make_vector((OOScalar)-fmod(c_pos.x,DUST_SCALE),(OOScalar)-fmod(c_pos.y,DUST_SCALE),(OOScalar)-fmod(c_pos.z,DUST_SCALE));
 
 #if OO_SHADERS
 	if (EXPECT_NOT(shaderMode == kShaderModeUnknown))  [self checkShaderMode];

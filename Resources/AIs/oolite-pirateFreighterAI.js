@@ -27,14 +27,21 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Pirate Freighter AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_watchForCargo",true);
 
-	ai.setCommunicationsRole("pirate");
+	ai.setParameter("oolite_personalityMatchesLeader",0.95);
+	if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("pirate-freighter").length > 0)
+	{
+		ai.setCommunicationsRole("pirate-freighter");
+	}
+	else
+	{
+		ai.setCommunicationsRole("pirate");
+	}
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);
 

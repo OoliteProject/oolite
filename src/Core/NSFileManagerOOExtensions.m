@@ -125,7 +125,7 @@ MA 02110-1301, USA.
 
 - (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes
 {
-	return [self createDirectoryAtPath:path withIntermediateDirectories:NO attributes:attributes error:NULL];
+	return [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:attributes error:NULL];
 }
 
 
@@ -172,7 +172,8 @@ MA 02110-1301, USA.
 
 - (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes
 {
-	return [self createDirectoryAtPath:path attributes:attributes];
+	// has been in GNUStep since 2008, so it's probably safe to use now.
+	return [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:attributes error:NULL];
 }
 
 

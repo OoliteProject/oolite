@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Police AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
@@ -60,6 +59,7 @@ this.aiStarted = function() {
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-trader","oolite-bounty-hunter","oolite-scavenger","oolite-shuttle"]);
 
+	ai.setParameter("oolite_personalityMatchesLeader",0.5);
 	ai.setCommunicationsRole("police");
 
 	ai.setPriorities([
@@ -87,13 +87,13 @@ this.aiStarted = function() {
 			preconfiguration: ai.configurationCheckScanner,
 			condition: ai.conditionScannerContainsFugitive,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
+			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
 		{
 			condition: ai.conditionScannerContainsSeriousOffender,
 			configuration: ai.configurationAcquireScannedTarget,
-			behaviour: ai.behaviourDestroyCurrentTarget,
+			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
 		{

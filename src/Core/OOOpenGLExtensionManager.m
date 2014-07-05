@@ -506,7 +506,25 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 - (void)checkShadersSupported
 {
 	shadersAvailable = NO;
-	
+
+	/* Some cards claim to support shaders but do so extremely
+	 * badly. These are listed in gpu-settings.plist where we know
+	 * about them; for those we don't being able to run with
+	 * -noshaders may help get the game up and running at a frame rate
+	 * where thegraphics settings can be changed.  - CIM */
+	NSArray 		*arguments = [[NSProcessInfo processInfo] arguments];
+	NSEnumerator 	*argEnum = nil;
+	NSString 		*arg = nil;
+	// scan for shader overrides: -noshaders || --noshaders
+	for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
+	{
+		if ([arg isEqual:@"-noshaders"] || [arg isEqual:@"--noshaders"])
+		{
+			OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disabled on command line).");
+			return;
+		}
+	}	
+
 	NSString * const requiredExtension[] = 
 						{
 							@"GL_ARB_shading_language_100",

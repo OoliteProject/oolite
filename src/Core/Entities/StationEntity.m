@@ -75,6 +75,13 @@
 
 @implementation StationEntity
 
+/* Override ShipEntity: stations of CLASS_ROCK or CLASS_CARGO are not automatically unpiloted. */
+- (BOOL)isUnpiloted
+{
+	return [self isExplicitlyUnpiloted] || [self isHulk];
+}
+
+
 - (OOTechLevelID) equivalentTechLevel
 {
 	return equivalentTechLevel;
@@ -530,7 +537,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			// can't allocate a new queue while player is manually docking
 			continue;
 		}
-		if (sub != player_reserved_dock)
+		if (sub != player_reserved_dock || [ship isPlayer])
 		{
 			docking = [sub canAcceptShipForDocking:ship];
 			if ([docking isEqualToString:@"DOCK_CLOSED"])
@@ -574,7 +581,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	}	
 	if (chosenDock == nil)
 	{
-		if (player_is_ahead || ([docking isEqualToString:@"TOO_BIG_TO_DOCK"] && !alldockstoosmall))
+		if (player_is_ahead || ([docking isEqualToString:@"TOO_BIG_TO_DOCK"] && !alldockstoosmall) || docking == nil)
 		{
 			// either player is manually docking and we can't allocate new docks,
 			// or the last dock was too small, and there may be an acceptable one
@@ -582,7 +589,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			docking = @"TRY_AGAIN_LATER";
 		}
 		// no docks accept this ship (or the player is blocking them)
-		return OOMakeDockingInstructions(self, [ship position], 0, 100, docking, nil, NO, -1);
+		return OOMakeDockingInstructions(self, [ship position], 200, 100, docking, nil, NO, -1);
 	}
 
 
@@ -1028,7 +1035,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
-			return YES;
+			if ([[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"DOCKING_POSSIBLE"])
+			{
+				return YES;
+			}
 		}
 	}
 	return NO;
@@ -2026,12 +2036,15 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		// TODO: We're potentially cancelling docking at another station, so
 		//       ensure we clear the timer to allow NPC traffic.  If we
 		//       don't, normal traffic will resume once the timer runs out.
-		
 		// No clearance is needed, but don't send friendly messages to hostile ships!
 		if (!(([other isPlayer] && [other hasHostileTarget]) || (self == [UNIVERSE station] && [other bounty] > 50)))
+		{
 			[self sendExpandedMessage:@"[station-docking-clearance-not-required]" toShip:other];
+		}
 		if ([other isPlayer])
+		{
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
+		}
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
 

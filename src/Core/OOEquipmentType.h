@@ -78,6 +78,7 @@ SOFTWARE.
 
 + (NSArray *) allEquipmentTypes;
 + (NSEnumerator *) equipmentEnumerator;
++ (NSEnumerator *) reverseEquipmentEnumerator;
 
 + (OOEquipmentType *) equipmentTypeWithIdentifier:(NSString *)identifier;
 

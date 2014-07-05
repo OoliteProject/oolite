@@ -99,6 +99,7 @@ static void SwitchOpenGLStateInternal(const OOOpenGLState *sourceState, const OO
 	items. The GetState_ accessors are used only in debug mode, while the
 	SetState_ acccessors are used in either mode.
 */
+#ifndef NDEBUG
 static inline bool GetState_DEPTH_WRITEMASK(void)
 {
 	OO_ENTER_OPENGL();
@@ -107,11 +108,13 @@ static inline bool GetState_DEPTH_WRITEMASK(void)
 	OOGL(glGetBooleanv(GL_DEPTH_WRITEMASK, &value));
 	return value;
 }
+#endif
 
 #define SetState_DEPTH_WRITEMASK(VALUE)  OOGL(glDepthMask(VALUE))
 
 #define SetState_SHADE_MODEL(VALUE)  OOGL(glShadeModel(VALUE))
 
+#ifndef NDEBUG
 static inline GLenum GetState_TEXTURE_ENV_MODE(void)
 {
 	OO_ENTER_OPENGL();
@@ -120,10 +123,12 @@ static inline GLenum GetState_TEXTURE_ENV_MODE(void)
 	OOGL(glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &value));
 	return value;
 }
+#endif
 
 #define SetState_TEXTURE_ENV_MODE(VALUE)  OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, VALUE))
 
 #if OO_MULTITEXTURE
+#ifndef NDEBUG
 static inline GLenum GetState_ACTIVE_TEXTURE(void)
 {
 	OO_ENTER_OPENGL();
@@ -132,9 +137,11 @@ static inline GLenum GetState_ACTIVE_TEXTURE(void)
 	OOGL(glGetIntegerv(GL_ACTIVE_TEXTURE_ARB, &value));
 	return value;
 }
+#endif
 
 #define SetState_ACTIVE_TEXTURE(VALUE)  OOGL(glActiveTextureARB(VALUE))
 
+#ifndef NDEBUG
 static inline GLenum GetState_CLIENT_ACTIVE_TEXTURE(void)
 {
 	OO_ENTER_OPENGL();
@@ -143,6 +150,7 @@ static inline GLenum GetState_CLIENT_ACTIVE_TEXTURE(void)
 	OOGL(glGetIntegerv(GL_CLIENT_ACTIVE_TEXTURE_ARB, &value));
 	return value;
 }
+#endif
 
 #define SetState_CLIENT_ACTIVE_TEXTURE(VALUE)  OOGL(glClientActiveTextureARB(VALUE))
 

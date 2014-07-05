@@ -274,6 +274,7 @@
 			"escape_pod_model",
 			"aft_eject_position",
 			"auto_ai",
+			"auto_weapons",
 			"script",
 			"conditions",
 			"condition_script",

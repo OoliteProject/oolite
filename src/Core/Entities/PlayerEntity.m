@@ -498,7 +498,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (NSMutableArray *) shipCommodityData
+- (NSArray *) shipCommodityData
 {
 	return shipCommodityData;
 }
@@ -792,7 +792,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:[NSNumber numberWithDouble:ship_clock] forKey:@"ship_clock"];
 
 	//speech
-	[result setObject:[NSNumber numberWithBool:isSpeechOn] forKey:@"speech_on"];
+	[result setObject:[NSNumber numberWithInt:isSpeechOn] forKey:@"speech_on"];
 #if OOLITE_ESPEAK
 	[result setObject:[UNIVERSE voiceName:voice_no] forKey:@"speech_voice"];
 	[result setObject:[NSNumber numberWithBool:voice_gender_m] forKey:@"speech_gender"];
@@ -1001,7 +1001,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(compassTarget);
 	
 	// speech
-	isSpeechOn = [dict oo_boolForKey:@"speech_on"];
+	isSpeechOn = [dict oo_intForKey:@"speech_on"];
 #if OOLITE_ESPEAK
 	voice_gender_m = [dict oo_boolForKey:@"speech_gender" defaultValue:YES];
 	voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:[dict oo_stringForKey:@"speech_voice" defaultValue:nil]] withGenderM:voice_gender_m];
@@ -1397,6 +1397,8 @@ static GLfloat		sBaseMass = 0.0;
 	
 	isPlayer = YES;
 	
+	[self setStatus:STATUS_START_GAME];
+
 	int i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
@@ -1405,8 +1407,6 @@ static GLfloat		sBaseMass = 0.0;
 	[self setUpAndConfirmOK:NO];
 	
 	save_path = nil;
-	
-	[self setUpSound];
 	
 	scoopsActive = NO;
 	
@@ -1484,9 +1484,27 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
-	worldScripts = [[ResourceManager loadScripts] retain];
-	[UNIVERSE loadConditionScripts];
-	
+
+#if OOLITE_WINDOWS
+	if (saveGame)
+	{
+		[UNIVERSE preloadSounds];
+		[self setUpSound];
+		worldScripts = [[ResourceManager loadScripts] retain];
+		[UNIVERSE loadConditionScripts];
+	}
+#else
+	/* on OSes that allow safe deletion of open files, can use sounds
+	 * on the OXZ screen and other start screens */
+	[UNIVERSE preloadSounds];
+	[self setUpSound];
+	if (saveGame)
+	{
+		worldScripts = [[ResourceManager loadScripts] retain];
+		[UNIVERSE loadConditionScripts];
+	}
+#endif
+
 	[[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
 	
 	// if there is cargo remaining from previously (e.g. a game restart), remove it
@@ -1608,7 +1626,7 @@ static GLfloat		sBaseMass = 0.0;
 	fps_check_time = ship_clock;
 	ship_clock_adjust = 0.0;
 	
-	isSpeechOn = NO;
+	isSpeechOn = OOSPEECHSETTINGS_OFF;
 #if OOLITE_ESPEAK
 	voice_gender_m = YES;
 	voice_no = [UNIVERSE setVoice:-1 withGenderM:voice_gender_m];
@@ -1978,6 +1996,7 @@ static GLfloat		sBaseMass = 0.0;
 	if (EXPECT_NOT(!sun))  return 0.0f;
 	
 	// check if camera position is shadowed
+	OOViewID vdir = [UNIVERSE viewDirection];
 	unsigned i;
 	unsigned	ent_count =	UNIVERSE->n_entities;
 	Entity		**uni_entities = UNIVERSE->sortedEntities;	// grab the public sorted list
@@ -1989,11 +2008,15 @@ static GLfloat		sBaseMass = 0.0;
 				([uni_entities[i] isShip] &&
 				 [uni_entities[i] isVisible]))
 			{
-				float shadow = 1.5f;
-				shadowAtPointOcclusionToValue([self viewpointPosition],1.0f,uni_entities[i],sun,&shadow);
-				if (shadow < 1) {
+				// the player ship can't shadow internal views
+				if (EXPECT(vdir > VIEW_STARBOARD || ![uni_entities[i] isPlayer]))
+				{
+					float shadow = 1.5f;
+					shadowAtPointOcclusionToValue([self viewpointPosition],1.0f,uni_entities[i],sun,&shadow);
 					/* BUG: if the shadowing entity is not spherical, this gives over-shadowing. True elsewhere as well, but not so obvious there. */
-					return 0.0f;
+					if (shadow < 1) {
+						return 0.0f;
+					}
 				}
 			}
 		}
@@ -2002,7 +2025,7 @@ static GLfloat		sBaseMass = 0.0;
 
 	relativePosition = HPVectorToVector(HPvector_subtract([self viewpointPosition], [sun position]));
 	unitRelativePosition = vector_normal_or_zbasis(relativePosition);
-	switch ([UNIVERSE viewDirection])
+	switch (vdir)
 	{
 		case VIEW_FORWARD:
 			measuredCos = -dot_product(unitRelativePosition, v_forward);
@@ -2028,11 +2051,20 @@ static GLfloat		sBaseMass = 0.0;
 			break;
 	}
 	measuredCosAbs = fabs(measuredCos);
-	if (thresholdAngleCos <= measuredCosAbs && measuredCosAbs <= 1.0f)	// angle from viewpoint to sun <= desired threshold
+	/*
+	  Bugfix: 1.1f - floating point errors can mean the dot product of two
+	  normalised vectors can be very slightly more than 1, which can
+	  cause extreme flickering of the glare at certain ranges to the
+	  sun. The real test is just that it's not still 999 - CIM
+	 */
+	if (thresholdAngleCos <= measuredCosAbs && measuredCosAbs <= 1.1f)	// angle from viewpoint to sun <= desired threshold
 	{
 		sunBrightness =  (measuredCos - thresholdAngleCos) / (1.0f - thresholdAngleCos);
+//		OOLog(@"glare.debug",@"raw brightness = %f",sunBrightness);
 		if (sunBrightness < 0.0f)  sunBrightness = 0.0f;
+		else if (sunBrightness > 1.0f)  sunBrightness = 1.0f;
 	}
+//	OOLog(@"glare.debug",@"cos=%f, threshold = %f, brightness = %f",measuredCosAbs,thresholdAngleCos,sunBrightness);
 	return sunBrightness * sunBrightness * sunBrightness;
 }
 
@@ -2100,7 +2132,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_OXZMANAGER && gui_screen != GUI_SCREEN_LOAD))
+	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_OXZMANAGER && gui_screen != GUI_SCREEN_LOAD && gui_screen != GUI_SCREEN_KEYBOARD))
 	{
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
@@ -2704,6 +2736,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_MAIN:
 			case GUI_SCREEN_INTRO1:
 			case GUI_SCREEN_INTRO2:
+			case GUI_SCREEN_KEYBOARD:
 			case GUI_SCREEN_NEWGAME:
 			case GUI_SCREEN_OXZMANAGER:
 			case GUI_SCREEN_MARKET:
@@ -2717,7 +2750,6 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_MISSION:
 			case GUI_SCREEN_REPORT:
 				return;
-				break;
 			
 			// Screens from which it's safe to jump to the mission screen
 //			case GUI_SCREEN_CONTRACTS:
@@ -3571,7 +3603,7 @@ static GLfloat		sBaseMass = 0.0;
 	BOOL 			wasHidden = NO;
 	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
-	int				i;
+	NSUInteger		i;
 
 	if (!hudFileName)  return NO;
 	
@@ -3610,10 +3642,18 @@ static GLfloat		sBaseMass = 0.0;
 		[hud setCompassActive:wasCompassActive];
 		[hud setHidden:wasHidden];
 		activeMFD = 0;
+		NSArray *savedMFDs = [NSArray arrayWithArray:multiFunctionDisplaySettings];
 		[multiFunctionDisplaySettings removeAllObjects];
-		for (i = [hud mfdCount]-1 ; i >= 0 ; i--)
+		for (i = 0; i < [hud mfdCount] ; i++)
 		{
-			[multiFunctionDisplaySettings addObject:[NSNull null]];
+			if ([savedMFDs count] > i)
+			{
+				[multiFunctionDisplaySettings addObject:[savedMFDs objectAtIndex:i]];
+			}
+			else
+			{
+				[multiFunctionDisplaySettings addObject:[NSNull null]];
+			}
 		}
 	}
 	
@@ -4032,9 +4072,9 @@ static GLfloat		sBaseMass = 0.0;
 {
 	if (slot >= [self maxPlayerRoles])
 	{
-		slot = [self maxPlayerRoles];
+		slot = [self maxPlayerRoles]-1;
 	}
-	if (slot > [roleWeights count])
+	if (slot >= [roleWeights count])
 	{
 		[roleWeights addObject:role];
 	}
@@ -4205,14 +4245,29 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSString *) compassTargetLabel
 {
-	if (compassMode != COMPASS_MODE_BEACONS)
+	switch (compassMode)
 	{
+	case COMPASS_MODE_INACTIVE:
+		return @"";
+	case COMPASS_MODE_BASIC:
+		return @"";
+	case COMPASS_MODE_BEACONS:
+	{
+		Entity *target = [self compassTarget];
+		if (target)
+		{
+			return [(Entity <OOBeaconEntity> *)target beaconLabel];
+		}
 		return @"";
 	}
-	Entity *target = [self compassTarget];
-	if (target)
-	{
-		return [(Entity <OOBeaconEntity> *)target beaconLabel];
+	case COMPASS_MODE_PLANET:
+		return [[UNIVERSE planet] name];
+	case COMPASS_MODE_SUN:
+		return [[UNIVERSE sun] name];
+	case COMPASS_MODE_STATION:
+		return [[UNIVERSE station] displayName];
+	case COMPASS_MODE_TARGET:
+		return DESC(@"oolite-beacon-label-target");
 	}
 	return @"";
 }
@@ -6804,7 +6859,7 @@ static GLfloat		sBaseMass = 0.0;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
 
-	for (eqTypeEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	for (eqTypeEnum = [OOEquipmentType reverseEquipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
 		if ([eqType isVisible])
 		{
@@ -6864,7 +6919,7 @@ static GLfloat		sBaseMass = 0.0;
 - (NSString *) primedEquipmentName:(NSInteger)offset
 {
 	NSUInteger c = [self primedEquipmentCount];
-	NSUInteger idx = (primedEquipment+offset)%(c+1);
+	NSUInteger idx = (primedEquipment+(c+1)+offset)%(c+1);
 	if (idx == c)
 	{
 		return DESC(@"equipment-primed-none-hud-label");
@@ -6976,8 +7031,18 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		NSString *desc = [commodity oo_stringForKey:@"displayName"];
 		NSString *units = [commodity oo_stringForKey:@"unit"];
-		[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
-							[commodity oo_intForKey:@"quantity"], units, desc]];
+		if (EXPECT([units isEqualToString:DESC(@"cargo-tons-symbol")] || [commodity oo_intForKey:@"containers"] == 0))
+		{
+			// normal display
+			[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
+								   [commodity oo_intForKey:@"quantity"], units, desc]];
+		}
+		else
+		{
+			// if low-mass cargo is occupying containers, show how many
+			[manifest addObject:[NSString stringWithFormat:DESC(@"oolite-manifest-cargo-quantity-format2"),
+								   [commodity oo_intForKey:@"quantity"], units, desc, [commodity oo_intForKey:@"containers"]]];
+		}
 	}
 	
 	return manifest;
@@ -6990,16 +7055,19 @@ static GLfloat		sBaseMass = 0.0;
 	
 	NSUInteger			i, commodityCount = [shipCommodityData count];
 	OOCargoQuantity		quantityInHold[commodityCount];
+	OOCargoQuantity		containersInHold[commodityCount];
 	
 	// following changed to work whether docked or not
 	for (i = 0; i < commodityCount; i++)
 	{
 		quantityInHold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
+		containersInHold[i] = 0;
 	}
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
 		quantityInHold[[container commodityType]] += [container commodityAmount];
+		++containersInHold[[container commodityType]];
 	}
 	
 	for (i = 0; i < commodityCount; i++)
@@ -7011,8 +7079,9 @@ static GLfloat		sBaseMass = 0.0;
 			// commodity, quantity - keep consistency between .manifest and .contracts
 			[commodity setObject:CommodityTypeToString(i) forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:quantityInHold[i]] forKey:@"quantity"];
+			[commodity setObject:[NSNumber numberWithUnsignedInt:containersInHold[i]] forKey:@"containers"];
 			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
-			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
+			[commodity setObject:DisplayStringForMassUnitForCommodity(i) forKey:@"unit"]; 
 			[list addObject:commodity];
 		}
 	}
@@ -7472,10 +7541,19 @@ static GLfloat		sBaseMass = 0.0;
 		
 #if OOLITE_SPEECH_SYNTH
 		// Speech control
-		if (isSpeechOn)
-			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
-		else
+		switch (isSpeechOn)
+		{
+		case OOSPEECHSETTINGS_OFF:
 			[gui setText:DESC(@"gameoptions-spoken-messages-no") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
+			break;
+		case OOSPEECHSETTINGS_COMMS:
+			[gui setText:DESC(@"gameoptions-spoken-messages-comms") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
+			break;
+		case OOSPEECHSETTINGS_ALL:
+			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
+			break;
+		}
+
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SPEECH)];
 #if OOLITE_ESPEAK
 		{
@@ -8337,7 +8415,15 @@ static NSString *last_outfitting_key=nil;
 	[gui setColor:[OOColor yellowColor] forRow:row];
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
-	[gui setSelectableRange:NSMakeRange(22,5)];
+	++row;
+
+	text = DESC(@"oolite-start-option-6");
+	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor yellowColor] forRow:row];
+	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
+
+
+	[gui setSelectableRange:NSMakeRange(22,6)];
 	[gui setSelectedRow:22];
 
 	[gui setBackgroundTextureKey:@"intro"];
@@ -8439,8 +8525,8 @@ static NSString *last_outfitting_key=nil;
 		[gui setTitle:text];
 
         text = DESC(@"oolite-ship-library-exit");
-        [gui setText:text forRow:23 align:GUI_ALIGN_CENTER];
-        [gui setColor:[OOColor yellowColor] forRow:23];
+        [gui setText:text forRow:27 align:GUI_ALIGN_CENTER];
+        [gui setColor:[OOColor yellowColor] forRow:27];
 	}
 	
 	[gui setShowTextCursor:NO];
@@ -8454,7 +8540,105 @@ static NSString *last_outfitting_key=nil;
 	[[OOMusicController sharedController] playThemeMusic];
 	
 	[self setShowDemoShips:YES];
-	[gui setBackgroundTextureKey:@"intro"];
+	if (justCobra)
+	{
+		[gui setBackgroundTextureKey:@"intro"];
+	}
+	else
+	{
+		[gui setBackgroundTextureKey:@"shiplibrary"];
+	}
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+}
+
+
+- (void) setGuiToKeySettingsScreen
+{
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSUInteger i,j,ct;
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+	[[UNIVERSE gameView] clearMouse];
+	[UNIVERSE removeDemoShips];
+
+	[gui setTitle:DESC(@"oolite-keysetting-screen")];
+
+	gui_screen = GUI_SCREEN_KEYBOARD;
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+	tab_stops[1] = 115;
+	tab_stops[2] = 170;
+	tab_stops[3] = 285;
+	tab_stops[4] = 340;
+	tab_stops[5] = 455;
+	[gui setTabStops:tab_stops];
+
+	NSArray *keys = [NSArray arrayWithObjects:
+		 @"key_roll_left",@"key_pitch_forward",@"key_yaw_left",
+		 @"key_roll_right",@"key_pitch_back",@"key_yaw_right",
+		 @"key_increase_speed",@"key_decrease_speed",@"key_inject_fuel",
+		 @"key_mouse_control",@"",@"",
+		 @"key_view_forward",@"key_gui_screen_status",@"key_gui_arrow_left", //
+		 @"key_view_aft",@"key_gui_chart_screens",@"key_gui_arrow_right",
+		 @"key_view_port",@"key_gui_system_data",@"key_gui_arrow_up", 
+		 @"key_view_starboard",@"key_gui_market",@"key_gui_arrow_down",
+		 @"key_custom_view",@"key_map_info",@"key_map_home",
+		 @"key_snapshot",@"key_advanced_nav_array",@"key_chart_highlight", //
+		 @"",@"",@"",
+		 @"key_fire_lasers",@"key_launch_missile",@"key_ecm",
+		 @"key_ident_system",@"key_target_missile",@"key_untarget_missile",
+		 @"key_weapons_online_toggle",@"key_next_missile",@"key_target_incoming_missile",
+		 @"key_next_target",@"key_previous_target",@"key_launch_escapepod", //
+		 @"",@"",@"",
+		 @"key_jumpdrive",@"key_hyperspace",@"key_galactic_hyperspace",
+		 @"key_autopilot",@"key_autodock",@"key_docking_clearance_request",
+		 @"key_docking_music",@"",@"",
+		 @"key_scanner_zoom",@"key_dump_cargo",@"key_prev_compass_mode", //
+		 @"key_scanner_unzoom",@"key_rotate_cargo",@"key_next_compass_mode", 
+		 @"key_comms_log",@"key_cycle_mfd",@"key_switch_mfd",
+		 @"",@"",@"",
+		 @"key_prime_equipment",@"key_activate_equipment",@"key_mode_equipment",
+		 @"key_fastactivate_equipment_a",@"key_fastactivate_equipment_b",@"", //
+		 @"",@"",@"",
+		 @"key_pausebutton",@"key_show_fps",@"key_hud_toggle",
+		nil];
+
+	OOGUIRow row = 0;
+	ct = [keys count];
+	for (i=0; i<ct; i+=3)
+	{
+		NSMutableArray *keydefs = [NSMutableArray arrayWithCapacity:6];
+		for (j=0;j<=2;j++)
+		{
+			NSString *key = [keys oo_stringAtIndex:i+j];
+			if ([key length] == 0)
+			{
+				[keydefs addObject:@""];
+				[keydefs addObject:@""];
+			}
+			else
+			{
+				[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite-keydesc-%@]",key])];
+				if (EXPECT_NOT([key isEqualToString:@"key_launch_escapepod"]))
+				{
+					[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite_%@]+[oolite_%@]",key,key])];
+				}
+				else
+				{
+					[keydefs addObject:OOExpand([NSString stringWithFormat:@"[oolite_%@]",key])];
+				}
+			}
+		}
+		[gui setArray:keydefs forRow:row];
+		[gui setColor:[OOColor yellowColor] forRow:row];
+		row++;
+	}
+
+	[gui setText:DESC(@"oolite-keysetting-text") forRow:27 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor whiteColor] forRow:27];
+		 
+	[[OOMusicController sharedController] playThemeMusic];
+	[gui setBackgroundTextureKey:@"keyboardsettings"];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
@@ -9127,8 +9311,8 @@ static NSString *last_outfitting_key=nil;
 		[gui setTabStops:tab_stops];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
-		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringTo(DESC(@"price-column-title"),7.0),
-							 OOPadStringTo(DESC(@"for-sale-column-title"),11.0), OOPadStringTo(DESC(@"in-hold-column-title"),15.0), nil] forRow:GUI_ROW_MARKET_KEY];
+		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
+							 OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), nil] forRow:GUI_ROW_MARKET_KEY];
 		
 		for (i = 0; i < commodityCount; i++)
 		{
@@ -9140,12 +9324,14 @@ static NSString *last_outfitting_key=nil;
 			OOCreditsQuantity pricePerUnit = [marketDef oo_unsignedIntAtIndex:MARKET_PRICE];
 			OOMassUnit unit = [UNIVERSE unitsForCommodity:i];
 			
-			NSString *available = OOPadStringTo(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 6.0);
-			NSString *price = OOPadStringTo([NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit],7.0);
+			NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
+
+			NSUInteger priceDecimal = pricePerUnit % 10;
+			NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
 			
 			// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 			
-			NSString *owned = OOPadStringTo((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 10.0);
+			NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
 			NSString *units = DisplayStringForMassUnit(unit);
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
@@ -9346,7 +9532,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (BOOL) isSpeechOn
+- (OOSpeechSettings) isSpeechOn
 {
 	return isSpeechOn;
 }
@@ -9656,14 +9842,18 @@ static NSString *last_outfitting_key=nil;
 	// 5% of value of ships wear + correction for missing subentities.
 	OOCreditsQuantity shipValue = [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]];
 
-	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
-	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
-	double			renovationFactor = [shipyardInfo oo_doubleForKey:KEY_RENOVATION_MULTIPLIER defaultValue:1.0];
-
 	double costs = 0.005 * (100 - ship_trade_in_factor) * shipValue;
 	costs += 0.01 * shipValue * [self missingSubEntitiesAdjustment];
-	costs *= renovationFactor;
+	costs *= [self renovationFactor];
 	return cunningFee(costs, 0.05);
+}
+
+
+- (double) renovationFactor
+{
+	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
+	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
+	return [shipyardInfo oo_doubleForKey:KEY_RENOVATION_MULTIPLIER defaultValue:1.0];
 }
 
 
@@ -10378,6 +10568,12 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (BOOL) scriptsLoaded
+{
+	return worldScripts != nil && [worldScripts count] > 0;
+}
+
+
 - (NSArray *) worldScriptNames
 {
 	return [worldScripts allKeys];
@@ -10867,7 +11063,7 @@ else _dockTarget = NO_TARGET;
 	ADD_FLAG_IF_SET(yawing);
 	ADD_FLAG_IF_SET(using_mining_laser);
 	ADD_FLAG_IF_SET(mouse_control_on);
-	ADD_FLAG_IF_SET(isSpeechOn);
+//	ADD_FLAG_IF_SET(isSpeechOn);
 	ADD_FLAG_IF_SET(keyboardRollOverride);   // Handle keyboard roll...
 	ADD_FLAG_IF_SET(keyboardPitchOverride);  // ...and pitch override separately - (fix for BUG #17490)
 	ADD_FLAG_IF_SET(keyboardYawOverride);

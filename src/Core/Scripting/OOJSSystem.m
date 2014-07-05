@@ -110,6 +110,7 @@ static JSClass sSystemClass =
 enum
 {
 	// Property IDs
+	kSystem_allDemoShips,				// demo ships, array of Ship, read-only
 	kSystem_allShips,				// ships in system, array of Ship, read-only
 	kSystem_allVisualEffects,				// VEs in system, array of VEs, read-only
 	kSystem_breakPattern, // witchspace break pattern shown
@@ -144,6 +145,7 @@ enum
 static JSPropertySpec sSystemProperties[] =
 {
 	// JS name					ID								flags
+	{ "allDemoShips",			kSystem_allDemoShips,			OOJS_PROP_READONLY_CB },
 	{ "allShips",				kSystem_allShips,				OOJS_PROP_READONLY_CB },
 	{ "allVisualEffects",	 kSystem_allVisualEffects,		OOJS_PROP_READONLY_CB },
 	{ "breakPattern",			kSystem_breakPattern,			OOJS_PROP_READWRITE_CB },
@@ -292,6 +294,14 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			OOJS_END_FULL_NATIVE
 			handled = YES;
 			break;
+
+		case kSystem_allDemoShips:
+			OOJS_BEGIN_FULL_NATIVE(context)
+			result = [UNIVERSE findShipsMatchingPredicate:JSEntityIsDemoShipPredicate parameter:NULL inRange:-1 ofEntity:nil];
+			OOJS_END_FULL_NATIVE
+			handled = YES;
+			break;
+
 
 		case kSystem_allVisualEffects:
 			OOJS_BEGIN_FULL_NATIVE(context)
@@ -1565,7 +1575,7 @@ static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *par
 	{
 		[result sortUsingFunction:CompareEntitiesByDistance context:relativeTo];
 	}
-	if (result == nil)  result = [NSArray array];
+	if (result == nil)  return [NSArray array];
 	return result;
 	
 	OOJS_PROFILE_EXIT

@@ -8,9 +8,6 @@
     <integer>16308</integer>
     <key>comm_log</key>
     <array>
-	<string>Coriolis Station:</string>
-	<string>You are cleared to dock. Please proceed. </string>
-	<string>Clearance expires at 2084004:20:25:55</string>
     </array>
     <key>contract_record</key>
     <dict>

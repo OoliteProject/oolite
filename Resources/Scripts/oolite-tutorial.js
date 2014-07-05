@@ -35,7 +35,6 @@ MA 02110-1301, USA.
 this.name = "oolite-tutorial";
 this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
-this.version		= "1.79";
 
 this.startUp = function()
 {
@@ -461,6 +460,7 @@ this.startUp = function()
 		{
 			player.ship.showHUDSelector(this.$HUDSelectors[i]);
 		}
+		player.ship.resetScannerZoom();
 	}
 
 	this._hideHUDItems = function()
@@ -1177,7 +1177,7 @@ this.startUp = function()
 		},5,5);
 
 
-		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3);
+		var target = this._addShips("oolite-tutorial-fighter-wave1",1,player.ship.position,10E3);
 		target[0].forwardWeapon = "EQ_WEAPON_NONE";
 		target[0].accuracy = 5;
 	}
@@ -1185,17 +1185,17 @@ this.startUp = function()
 	this.__stage6sub3 = function()
 	{
 		this._setInstructions("oolite-tutorial-6-3");
-		var target = this._addShips("oolite-tutorial-fighter",1,player.ship.position,10E3);
-		target[0].accuracy = 0;
+		var target = this._addShips("oolite-tutorial-fighter-wave1",1,player.ship.position,10E3);
+		target[0].accuracy = -5;
 		this._stage6scorer();
 	}
 
 	this.__stage6sub4 = function()
 	{
 		this._setInstructions("oolite-tutorial-6-4");
-		var target = this._addShips("oolite-tutorial-fighter",2,player.ship.position,10E3);
-		target[0].accuracy = 0;
-		target[1].accuracy = 0;
+		var target = this._addShips("oolite-tutorial-fighter-wave1",2,player.ship.position,10E3);
+		target[0].accuracy = -5;
+		target[1].accuracy = -5;
 		this._stage6scorer();
 	}
 	
@@ -1543,49 +1543,54 @@ this.startUp = function()
 
 	this.__stage9sub7 = function()
 	{
-		this._resetShips();
 		this._setInstructions("oolite-tutorial-9-7");
-		this._showHUDItem("drawAltitudeBar:");
 	}
 
 	this.__stage9sub8 = function()
 	{
-		if (system.mainPlanet.position.distanceTo(player.ship) > system.mainPlanet.radius * 3)
-		{
-			player.consoleMessage(expandMissionText("oolite-tutorial-9-7-toofar"));
-			--this.$tutorialSubstage;
-		}
-		else
-		{
-			this._setInstructions("oolite-tutorial-9-8");
-			this._showHUDItem("drawCompass:");
-		}
+		this._resetShips();
+		this._setInstructions("oolite-tutorial-9-8");
+		this._showHUDItem("drawAltitudeBar:");
 	}
 
 	this.__stage9sub9 = function()
 	{
-		this._setInstructions("oolite-tutorial-9-9");
-	}
-
-	this.__stage9sub10 = function()
-	{
-		if (system.mainStation.position.distanceTo(player.ship) > 51200)
+		if (system.mainPlanet.position.distanceTo(player.ship) > system.mainPlanet.radius * 3)
 		{
-			player.consoleMessage(expandMissionText("oolite-tutorial-9-9-toofar"));
+			player.consoleMessage(expandMissionText("oolite-tutorial-9-8-toofar"));
 			--this.$tutorialSubstage;
 		}
 		else
 		{
-			this._setInstructions("oolite-tutorial-9-10");
+			this._setInstructions("oolite-tutorial-9-9");
+			this._showHUDItem("drawCompass:");
+		}
+	}
+
+	this.__stage9sub10 = function()
+	{
+		this._setInstructions("oolite-tutorial-9-10");
+	}
+
+	this.__stage9sub11 = function()
+	{
+		if (system.mainStation.position.distanceTo(player.ship) > 51200)
+		{
+			player.consoleMessage(expandMissionText("oolite-tutorial-9-10-toofar"));
+			--this.$tutorialSubstage;
+		}
+		else
+		{
+			this._setInstructions("oolite-tutorial-9-11");
 			this._showHUDItem("drawAegis");
 		}
 	}
 
 
-	this.__stage9sub11 = function()
+	this.__stage9sub12 = function()
 	{
 		this.$advanceByEquipment = false;
-		this._setInstructions("oolite-tutorial-9-11");
+		this._setInstructions("oolite-tutorial-9-12");
 	}
 
 	this._endTutorial = function()

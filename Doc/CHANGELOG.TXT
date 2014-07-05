@@ -1,3 +1,357 @@
+Changes between Oolite 1.80 and Oolite 1.82:
+
+Expansion pack development:
+===========================
+
+General:
+--------
+
+* mission.setInstructions() can now take an array as its first
+  parameter. The first element will be a heading on the manifest
+  screen, with the remaining elements being mission entries.
+
+
+
+
+
+
+
+Changes between Oolite 1.78 and Oolite 1.80:
+
+General:
+========
+* Automatic expansion pack installer now available (not all existing
+  expansion packs are available for automatic installation; manual
+  installation still possible as before)
+* New game start screen, including access to a keyboard control
+  summary and a ship specification library
+* New Tutorial option for starting a game, for a basic flight training
+  course
+
+Gameplay:
+=========
+* Coordinate precision increased, allowing ships to travel much
+  further from the witchpoint without problems
+* Strict mode now only disables OXPs rather than making other gameplay
+  changes
+* Ship hostility indicator no longer depends on weapon range
+* New equipment: Integrated Targeting System
+* Standard HUDs now include primable equipment dials, compass target
+  naming, and multi-function displays. HUD layouts reorganised
+  slightly to fit the extra components in. ';' and ':' keys manage
+  multi-function display (MFD) selection
+* Major changes to NPC behaviour and AIs, including new courier,
+  smuggler, assassin, pirate leader, bounty hunter leader, pirate
+  raider, thargoid raider and police blockade roles. Significant
+  increases in diversity of ships used for existing roles.
+* Widened the difficulty gap between Corporate States (now safer) and
+  Anarchy (now far more dangerous) systems. System danger now also
+  depends to an extent on events in neighbouring systems.
+* Saving the game at stations other than the main system station is
+  now possible; stations added by expansion packs must be flagged by
+  the expansion pack as valid save locations for this to work.
+* Save game file name and player commander name are now
+  independent. Interface added on F4 to set player commander name and
+  player ship name.
+* Docking computers now fly a bit faster
+* Improved short-term and long-term assessment of player actions for
+  more realistic and varied NPC responses
+* Parcel and passenger contracts made much more varied. High-price
+  high-risk contracts added. Reputation scale increased.
+* Station rotation slowed down
+* Number of cargo containers used by Gold, Platinum, Gems (e.g. after
+  scooping) now shown on the manifest screen.
+
+Graphics:
+=========
+* Graphics settings have changed to merge "shader settings" and
+  "reduced detail" into a single option. There is an 'extra detail'
+  option suitable for dedicated graphics cards.
+* New look for the sun, including improved corona and a glare effect
+* New explosion graphics
+* Core ship models and textures replaced with significantly improved
+  ones by Griff/CaptSolo
+* New planet and atmosphere graphics (requires 'extra detail')
+* Default HUD adjusted a little to improve appearance of text
+
+Sound:
+======
+* Now uses the OpenAL library to give fully positional sound. Supports
+  stereo speakers up to 7.1 or binaural HRTF with headphones.
+* iTunes integration works again with iTunes 11 on the Mac.
+
+Controls:
+=========
+* Default key for dump cargo now "Shift-D", not "d", to reduce chance
+  of pressing accidentally
+* Number pad keys can now be bound independently of arrow keys
+* Number keys can now be bound independently of function keys
+* GUI direction keys now independent of flight direction keys
+* With an Advanced Navigation Array, the '?' key now cycles through
+  different colour highlights
+* New ';' and ':' keys for multi-function displays
+* 'tab' and '0' keys are now fast activation keys for primable
+  equipment. Equipment previously using those keys has been rewritten
+  to be primable equipment and will automatically be initially
+  assigned to those keys if it is installed. New interface on F4 to
+  rebind these keys.
+* New joystick axis configuration interface, allowing much more
+  precise control
+
+Settings:
+=========
+
+* --noshaders command line option to temporarily start Oolite without
+  shader support, for debugging graphics card problems.
+* Windows and Linux ports: Default spoken messages voice changed to
+  female.
+
+Expansion pack development:
+===========================
+
+Packaging:
+----------
+* New compressed OXZ format for easy - and automatic - expansion pack
+  distribution.
+* Default Javascript properties set from manifest.plist
+
+General:
+--------
+* The system populator is now run via Javascript and can be modified
+  by expansion pack scripts. There is also a system repopulator to
+  allow replacement of expected ship losses or departures.
+* shipdata.plist reorganised to make heavy use of templates. This
+  allows shipset OXPs to be written to take advantage of future
+  changes to core shipdata.
+* Javascript may be used as a language for ship AIs. Numerous extra JS
+  properties, methods and handlers have been added to allow this.
+* Priority-based AI library available for writing Javascript AIs in,
+  with a wide range of predefined behaviours and easy addition of
+  custom behaviours
+* Multi-function displays for arbitrary persistent in-flight text display
+* Primable equipment dial added to HUD
+* Sun colour and background star colour are now separated
+* Ship cargo is now defined when ships are created
+* Mission screens can now have an arbitrary text entry prompt
+* Waypoints can be added - like a compass target, but not attached to
+  any other entity.
+* [oolite_key_FOO] description expansion describes keyconfig entry key_FOO
+* Javascript representation for ship exhausts
+* Wormholes have a read-only Javascript representation
+* Javascript representation for flashers
+* Description and mission text expansions now use a much better random
+  number generator
+
+New properties:
+---------------
+* entity.isWormhole
+* oolite.gameSettings.keyConfig
+* planet.name
+* player.cargoReputationPrecise
+* player.parcelReputationPrecise
+* player.passengerReputationPrecise
+* player.roleWeights
+* player.setPlayerRole(role [,index])
+* player.ship.multiFunctionDisplays
+* player.ship.renovationCost
+* player.ship.renovationMultiplier
+* player.ship.viewPosition*
+* ship.AIScript
+* ship.AIScriptWakeTime
+* ship.autoWeapons
+* ship.beaconLabel
+* ship.cargoList
+* ship.crew
+* ship.destinationSystem
+* ship.dockingInstructions
+* ship.energyRechargeRate
+* ship.exhaustEmissiveColor
+* ship.exhausts
+* ship.extraCargo
+* ship.flashers
+* ship.homeSystem
+* ship.isFleeing
+* ship.isMinable
+* ship.isTurret
+* ship.markedForFines
+* ship.shipClassName
+* ship.shipUniqueName
+* ship.sunGlareFilter
+* station.allegiance
+* station.market[*].legalPenalty
+* sun.name
+* system.allDemoShips
+* system.populatorSettings
+* system.stations
+* system.waypoints
+* system.wormholes
+* visualeffect.beaconLabel
+* wormhole.arrivalTime
+* wormhole.destination
+* wormhole.expiryTime
+* wormhole.origin
+
+New methods:
+------------
+* Ship.keys() (static method)
+* Ship.keysForRole(role) (static method)
+* Ship.roleIsInCategory(role,category) (static method)
+* Ship.roles() (static method)
+* Ship.shipDataForKey(key) (static method)
+* dock.isQueued(ship)
+* player.endScenario(key)
+* player.ship.hideHUDSelector(selector)
+* player.ship.resetScannerZoom()
+* player.ship.setMultiFunctionDisplay(index,key)
+* player.ship.setMultiFunctionText(key, string)
+* player.ship.showHUDSelector(selector)
+* ship.becomeCascadeExplosion()
+* ship.broadcastCascadeImminent()
+* ship.broadcastDistressMessage()
+* ship.checkCourseToDestination()
+* ship.checkScanner()
+* ship.damageAssessment()
+* ship.dumpCargo (change to specify how many items to dump)
+* ship.enterWormhole(hole)
+* ship.findNearestStation()
+* ship.getSafeCourseToDestination()
+* ship.markTargetForFines()
+* ship.notifyGroupOfWormhole()
+* ship.offerToEscort(mother)
+* ship.patrolReportIn(station)
+* ship.performAttack()
+* ship.performCollect()
+* ship.performEscort()
+* ship.performFaceDestination()
+* ship.performFlee()
+* ship.performFlyToRangeFromDestination()
+* ship.performHold()
+* ship.performIdle()
+* ship.performIntercept()
+* ship.performLandOnPlanet()
+* ship.performMining()
+* ship.performScriptedAI()
+* ship.performScriptedAttackAI()
+* ship.performStop()
+* ship.performTumble()
+* ship.recallDockingInstructions();
+* ship.removeDefenseTarget(target)
+* ship.requestDockingInstructions();
+* ship.requestHelpFromGroup()
+* ship.setCargoType(type)
+* ship.setCrew(crew)
+* ship.throwSpark()
+* station.abortAllDockings()
+* station.abortDockingForShip(ship)
+* station.launchEscort()
+* system.locationFromCode(code)
+* system.setWaypoint()
+
+New handlers:
+-------------
+* ship.cargoDumpedNearby(cargo,dumper)
+* ship.defenseTargetDestroyed(target)
+* ship.escortRejected
+* ship.helpRequestReceived(ally,enemy)
+* ship.shipAIFrustrated(context)
+* ship.shipAchievedDesiredRange
+* ship.shipNowFacingDestination()
+* ship.shipWasDumped()
+* ship.shipWitchspaceBlocked(blocker)
+* ship.stationWithdrewDockingClearance
+* ship.wormholeSuggested(hole)
+* station.stationDockingQueuesAreEmpty
+* station.stationReceivedDockingRequest(ship)
+* world.guiScreenWillChange fires on changing to GUI_SCREEN_INTERFACES
+* world.startUpComplete
+* world.systemInformationChanged(gal,sys,key,newValue)
+
+Plists:
+-------
+New plists:
+* manifest.plist: required for OXZ format distribution
+* role-categories.plist: supersedes and extends pirate-victim-roles.plist
+* scenarios.plist: allows alternative game starts to be added
+* shiplibrary.plist: adds ships to the start game ship database
+* The demoships.plist file no longer has any effect as there is no
+  longer a demo ships screen.
+
+New properties:
+* equipment.plist: fast_affinity_defensive
+* equipment.plist: fast_affinity_offensive
+* equipment.plist: sort_order
+* hud.plist: alert_conditions
+* hud.plist: align
+* hud.plist: color_critical
+* hud.plist: color_high
+* hud.plist: color_low
+* hud.plist: color_medium
+* hud.plist: color_surround
+* hud.plist: drawASCTarget:
+* hud.plist: drawPrimedEquipment:
+* hud.plist: drawWaypoints:
+* hud.plist: drawWitchspaceDestination:
+* hud.plist: multi_function_displays
+* hud.plist: reticle_scale (scanner targeting enhancement)
+* hud.plist: scanner_non_linear
+* hud.plist: scanner_ultra_zoom
+* planetinfo.plist: nebula_color_1
+* planetinfo.plist: nebula_color_2
+* planetinfo.plist: planet_name
+* planetinfo.plist: populator
+* planetinfo.plist: repopulator
+* planetinfo.plist: sun_name
+* shipdata.plist: auto_weapons
+* shipdata.plist: escort_roles
+* shipdata.plist: exhaust_emissive_color
+* shipdata.plist: sun_glare_filter
+* shipyard.plist: renovation_multiplier
+* shipyard.plist: ship_name
+* shipyard.plist: ship_class_name
+
+Shaders:
+--------
+* tradeInFactor uniform for player ship
+* Simplified shader mode no longer exists
+
+Bug fixes:
+==========
+* Stop previously unknown targets appearing in the target memory
+* Reduce need for JS garbage collection while in flight
+* Fix some bugs with combat flight causing misses on really easy shots
+* Several Javascript crashes fixed
+* Errors in NPC escape pod use for lighter ships fixed
+* Fix bug with station subentity initialisation
+* Fix bug in ship.forwardWeapon property
+* Consistently use ship scanner ranges
+* Asp can now equip a fuel scoop
+* Core ships with only one missile pylon can no longer buy the
+  Multi-Targeting System as it's only useful to ships with at least
+  two missiles.
+* Fix some bugs with the escape pod launch sequence
+* Fix bug with reticle target sensitivity
+* Fix some bugs with compass dial requirements
+* Fix bug when pressing opposite movement direction keys together
+* Fix various random number generation bugs
+* Clean up momentum transfer in explosions
+* Fix error in manifest screen paging
+* Fix problem with duplicate passenger names in contract generation
+* Fix some issues moving in and out of strict mode
+
+System requirements:
+====================
+
+General
+-------
+* Use of the "extra detail" graphics setting is likely to require a
+  dedicated graphics card for best performance.
+
+Mac-specific
+------------
+* Oolite now requires Mac OS X 10.6 or later, and is 64-bit only.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.77.1 and Oolite 1.78:
 
 * Bug with behaviour of ship.forwardWeapon when ship had no forward

@@ -36,7 +36,6 @@ MA 02110-1301, USA.
 this.name			= "oolite-tutorial-fighter";
 this.author			= "cim";
 this.copyright		= "© 2013-2013 the Oolite team.";
-this.version		= "1.79";
 
 
 this.shipDied = function (killer)

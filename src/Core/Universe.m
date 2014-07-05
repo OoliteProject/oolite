@@ -57,6 +57,7 @@ MA 02110-1301, USA.
 #import "OOShipRegistry.h"
 #import "OOProbabilitySet.h"
 #import "OOEquipmentType.h"
+#import "OOShipLibraryDescriptions.h"
 
 #import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
@@ -104,6 +105,8 @@ enum
 	DEMO_SHOW_THING,
 	DEMO_FLY_OUT
 };
+#define DEMO2_VANISHING_DISTANCE	650.0
+#define DEMO2_FLY_IN_STAGE_TIME	0.4
 
 
 #define MAX_NUMBER_OF_ENTITIES				200
@@ -175,7 +178,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 @interface Universe (OOPrivate)
 
 - (BOOL) doRemoveEntity:(Entity *)entity;
-- (void) preloadSounds;
 - (void) setUpSettings;
 - (void) setUpCargoPods;
 - (void) setUpInitialUniverse;
@@ -213,6 +215,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (Vector) randomPlaceWithinScannerFrom:(Vector)pos alongRoute:(Vector)route withOffset:(double)offset;
 
 - (void) setDetailLevelDirectly:(OOGraphicsDetail)value;
+
+- (NSDictionary *)demoShipData;
+- (void) setLibraryTextForDemoShip;
 
 @end
 
@@ -356,7 +361,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[self setUpSettings];
 	
-	[self preloadSounds];	// Must be after setUpSettings.
+	// can't do this here as it might lock an OXZ open
+	// [self preloadSounds];	// Must be after setUpSettings.
 	
 	// Preload particle effect textures:
 	[OOLightParticleEntity setUpTexture];
@@ -1068,7 +1074,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		OOLogWARN(@"universe.setup.badSun",@"Sun positioning: max iterations exceeded for '%@'. Adjust radius, sun_radius or sun_distance_modifier.",[systeminfo objectForKey: @"name"]);
 	}
 	
-	NSMutableDictionary *sun_dict = [NSMutableDictionary dictionaryWithCapacity:4];
+	NSMutableDictionary *sun_dict = [NSMutableDictionary dictionaryWithCapacity:5];
 	[sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
 	dict_object=[systeminfo objectForKey: @"corona_shimmer"];
 	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_shimmer"];
@@ -1089,6 +1095,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	else
 	{
 		[sun_dict setObject:[NSNumber numberWithFloat:defaultSunFlare] forKey:@"corona_flare"];
+	}
+	dict_object=[systeminfo objectForKey:KEY_SUNNAME];
+	if (dict_object!=nil) 
+	{
+		[sun_dict setObject:dict_object forKey:KEY_SUNNAME];
 	}
 	
 	a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:sun_dict];	// alloc retains!
@@ -1251,15 +1262,18 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from hyperpoint");
 //	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	[self clearSystemPopulator];
-	
-	NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:(sunGoneNova)?@"novaSystemWillPopulate":@"systemWillPopulate"];
-	[system_repopulator release];
-	system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:(sunGoneNova)?@"novaSystemWillRepopulate":@"systemWillRepopulate"] retain];
 
-	JSContext *context = OOJSAcquireContext();
-	[PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
-	OOJSRelinquishContext(context);
-	[self populateSystemFromDictionariesWithSun:cachedSun andPlanet:cachedPlanet];
+	if ([PLAYER status] != STATUS_START_GAME)
+	{
+		NSString *populator = [systeminfo oo_stringForKey:@"populator" defaultValue:(sunGoneNova)?@"novaSystemWillPopulate":@"systemWillPopulate"];
+		[system_repopulator release];
+		system_repopulator = [[systeminfo oo_stringForKey:@"repopulator" defaultValue:(sunGoneNova)?@"novaSystemWillRepopulate":@"systemWillRepopulate"] retain];
+
+		JSContext *context = OOJSAcquireContext();
+		[PLAYER doWorldScriptEvent:OOJSIDFromString(populator) inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+		OOJSRelinquishContext(context);
+		[self populateSystemFromDictionariesWithSun:cachedSun andPlanet:cachedPlanet];
+	}
 
 	OO_DEBUG_POP_PROGRESS();
 
@@ -2706,11 +2720,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// in status demo draw ships and display text
 	if (!justCobra)
 	{
-		// Kaks - smooth transition from intro1 to intro2
-		if (![[demo_ship shipDataKey] isEqualTo:PLAYER_SHIP_DESC])
-		{
-			[self removeDemoShips];
-		}
+		// always, even if it's the cobra, because it's repositioned
+		[self removeDemoShips];
 	}
 	[player setStatus: STATUS_START_GAME];
 	[player setShowDemoShips: YES];
@@ -2724,21 +2735,59 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	else
 	{
 		/*- demo ships - intro2 -*/
+
 		demo_ship_index = 0;
-		if (!demo_ship) ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0] usePlayerProxy:YES];
+		demo_ship_subindex = 0;
+
+		/* Try to set the initial list position to Cobra III if
+		 * available, and at least the Ships category. */
+		NSArray *subList = nil;
+		foreach (subList, demo_ships)
+		{
+			if ([[[subList oo_dictionaryAtIndex:0] oo_stringForKey:kOODemoShipClass] isEqualToString:@"ship"])
+			{
+				demo_ship_index = [demo_ships indexOfObject:subList];
+				NSDictionary *shipEntry = nil;
+				foreach (shipEntry, subList)
+				{
+					if ([[shipEntry oo_stringForKey:kOODemoShipKey] isEqualToString:@"cobra3-trader"])
+					{
+						demo_ship_subindex = [subList indexOfObject:shipEntry];
+						break;
+					}
+				}
+				break;
+			}
+		}
+
+
+		if (!demo_ship) ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 	}
 	
 	if (ship)
 	{
 		[ship setOrientation:q2];
-		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->collision_radius];
 		if (!justCobra)
 		{
+			[ship setPositionX:0.0f y:0.0f z:DEMO2_VANISHING_DISTANCE * ship->collision_radius * 0.01];
 			[ship setDestination: ship->position];	// ideal position
 		}
+		else
+		{
+			// main screen Cobra is closer
+			[ship setPositionX:0.0f y:0.0f z:3.6 * ship->collision_radius];
+		}
 		[ship setScanClass: CLASS_NO_DRAW];
-		[ship setRoll:M_PI/5.0];
-		[ship setPitch:M_PI/10.0];
+		if (justCobra)
+		{
+			[ship setRoll:M_PI/7.5];
+			[ship setPitch:M_PI/15.0];
+		}
+		else
+		{
+			[ship setRoll:M_PI/10.0];
+			[ship setPitch:M_PI/20.0];
+		}
 		[ship switchAITo:@"nullAI.plist"];
 		if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -2751,23 +2800,313 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (!justCobra)
 	{
-		[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor whiteColor] forRow:19];
+//		[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+		[self setLibraryTextForDemoShip];
 	}
 	
 	[self enterGUIViewModeWithMouseInteraction:NO];
 	if (!justCobra)
 	{
 		demo_stage = DEMO_SHOW_THING;
-		demo_stage_time = universal_time + 6.0;
+		demo_stage_time = universal_time + 300.0;
 	}
+}
+
+
+- (NSDictionary *)demoShipData
+{
+	return [[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex];
+}
+
+
+- (void) setLibraryTextForDemoShip
+{
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+	tab_stops[1] = 170;
+	tab_stops[2] = 340;
+	[gui setTabStops:tab_stops];
+
+/*	[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+	[gui setColor:[OOColor whiteColor] forRow:19]; */
+
+	NSDictionary *librarySettings = [self demoShipData];
+	
+	OOGUIRow descRow = 7;
+
+	NSString *field1 = nil;
+	NSString *field2 = nil;
+	NSString *field3 = nil;
+	NSString *override = nil;
+
+	// clear rows
+	for (NSUInteger i=1;i<=26;i++)
+	{
+		[gui setText:@"" forRow:i];
+	}
+	
+	/* Row 1: ScanClass, Name, Summary */
+	override = [librarySettings oo_stringForKey:kOODemoShipClass defaultValue:@"ship"];
+	field1 = OOShipLibraryCategorySingular(override);
+
+
+	field2 = [demo_ship shipClassName];
+
+
+	override = [librarySettings oo_stringForKey:kOODemoShipSummary defaultValue:nil];
+	if (override != nil)
+	{
+		field3 = OOExpand(override);
+	}
+	else
+	{
+		field3 = @"";
+	}
+	[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:1];
+	[gui setColor:[OOColor greenColor] forRow:1];
+
+	// ship_data defaults to true for "ship" class, false for everything else
+	if (![librarySettings oo_boolForKey:kOODemoShipShipData defaultValue:[[librarySettings oo_stringForKey:kOODemoShipClass defaultValue:@"ship"] isEqualToString:@"ship"]])
+	{
+		descRow = 3;
+	}
+	else
+	{
+		/* Row 2: Speed, Turn Rate, Cargo */
+
+		override = [librarySettings oo_stringForKey:kOODemoShipSpeed defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field1 = @"";
+			}
+			else
+			{
+				field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-speed-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field1 = OOShipLibrarySpeed(demo_ship);
+		}
+		
+
+		override = [librarySettings oo_stringForKey:kOODemoShipTurnRate defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field2 = @"";
+			}
+			else
+			{
+				field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turn-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field2 = OOShipLibraryTurnRate(demo_ship);
+		}
+
+
+		override = [librarySettings oo_stringForKey:kOODemoShipCargo defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field3 = @"";
+			}
+			else
+			{
+				field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-cargo-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field3 = OOShipLibraryCargo(demo_ship);
+		}
+	
+
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:3];
+
+		/* Row 3: recharge rate, energy banks, witchspace */
+		override = [librarySettings oo_stringForKey:kOODemoShipGenerator defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field1 = @"";
+			}
+			else
+			{
+				field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-generator-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field1 = OOShipLibraryGenerator(demo_ship);
+		}
+
+
+		override = [librarySettings oo_stringForKey:kOODemoShipShields defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field2 = @"";
+			}
+			else
+			{
+				field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-shields-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field2 = OOShipLibraryShields(demo_ship);
+		}
+
+
+		override = [librarySettings oo_stringForKey:kOODemoShipWitchspace defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field3 = @"";
+			}
+			else
+			{
+				field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-witchspace-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field3 = OOShipLibraryWitchspace(demo_ship);
+		}
+
+
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:4];
+
+
+		/* Row 4: weapons, size */
+		override = [librarySettings oo_stringForKey:kOODemoShipWeapons defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field1 = @"";
+			}
+			else
+			{
+				field1 = [NSString stringWithFormat:DESC(@"oolite-ship-library-weapons-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field1 = OOShipLibraryWeapons(demo_ship);
+		}
+
+		field2 = @"";
+
+		override = [librarySettings oo_stringForKey:kOODemoShipSize defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field3 = @"";
+			}
+			else
+			{
+				field3 = [NSString stringWithFormat:DESC(@"oolite-ship-library-size-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field3 = OOShipLibrarySize(demo_ship);
+		}
+
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:5];
+	}
+
+	override = [librarySettings oo_stringForKey:kOODemoShipDescription defaultValue:nil];
+	if (override != nil)
+	{
+		[gui addLongText:OOExpand(override) startingAtRow:descRow align:GUI_ALIGN_LEFT];
+	}
+
+	
+	// line 19: ship categories
+	field1 = [NSString stringWithFormat:@"<-- %@",OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:((demo_ship_index+[demo_ships count]-1)%[demo_ships count])] objectAtIndex:0] oo_stringForKey:kOODemoShipClass])];
+	field2 = OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:demo_ship_index] objectAtIndex:0] oo_stringForKey:kOODemoShipClass]);
+	field3 = [NSString stringWithFormat:@"%@ -->",OOShipLibraryCategoryPlural([[[demo_ships objectAtIndex:((demo_ship_index+1)%[demo_ships count])] objectAtIndex:0] oo_stringForKey:kOODemoShipClass])];
+	
+	[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:19];
+	[gui setColor:[OOColor greenColor] forRow:19];
+
+	// lines 21-25: ship names
+	NSArray *subList = [demo_ships objectAtIndex:demo_ship_index];
+	NSUInteger i,start = demo_ship_subindex - (demo_ship_subindex%5);
+	NSUInteger end = start + 4;
+	if (end >= [subList count])
+	{
+		end = [subList count] - 1;
+	}
+	OOGUIRow row = 21;
+	field1 = @"";
+	field3 = @"";
+	for (i = start ; i <= end ; i++)
+	{
+		field2 = [[subList objectAtIndex:i] oo_stringForKey:kOODemoShipName];
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:row];
+		if (i == demo_ship_subindex)
+		{
+			[gui setColor:[OOColor yellowColor] forRow:row];
+		}
+		else
+		{
+			[gui setColor:[OOColor whiteColor] forRow:row];
+		}
+		row++;
+	}
+
+	field2 = @"...";
+	if (start > 0)
+	{
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:20];
+		[gui setColor:[OOColor whiteColor] forRow:20];
+	}
+	if (end < [subList count]-1)
+	{
+		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:26];
+		[gui setColor:[OOColor whiteColor] forRow:26];
+	}
+
 }
 
 
 - (void) selectIntro2Previous
 {
 	demo_stage = DEMO_SHOW_THING;
-	demo_ship_index = (demo_ship_index + [demo_ships count] - 2) % [demo_ships count];
+	NSUInteger subcount = [[demo_ships objectAtIndex:demo_ship_index] count];
+	demo_ship_subindex = (demo_ship_subindex + subcount - 2) % subcount;
+	demo_stage_time  = universal_time - 1.0;	// force change
+}
+
+
+- (void) selectIntro2PreviousCategory
+{
+	demo_stage = DEMO_SHOW_THING;
+	demo_ship_index = (demo_ship_index + [demo_ships count] - 1) % [demo_ships count];
+	demo_ship_subindex = [[demo_ships objectAtIndex:demo_ship_index] count] - 1;
+	demo_stage_time  = universal_time - 1.0;	// force change
+}
+
+
+- (void) selectIntro2NextCategory
+{
+	demo_stage = DEMO_SHOW_THING;
+ 	demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
+	demo_ship_subindex = [[demo_ships objectAtIndex:demo_ship_index] count] - 1;
 	demo_stage_time  = universal_time - 1.0;	// force change
 }
 
@@ -3067,12 +3406,10 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 			jsval result;
 			jsval args[] = { OOJSValueFromNativeObject(context, shipKey) };
 			
-			OOJSStartTimeLimiter();
 			OK = [condScript callMethod:OOJSID("allowSpawnShip")
 						  inContext:context
 					  withArguments:args count:sizeof args / sizeof *args
 							 result:&result];
-			OOJSStopTimeLimiter();
 
 			if (OK) OK = JS_ValueToBoolean(context, result, &allow_instantiation);
 			
@@ -3575,14 +3912,11 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	{
 		case 0 :	// TONNES
 			return 1;
-			break;
 		case 1 :	// KILOGRAMS
 			return 1 + (Ranrot() % 6) + (Ranrot() % 6) + (Ranrot() % 6);
-			break;
 		case 2 :	// GRAMS
 			//return 4 + 3 * (Ranrot() % 6) + 2 * (Ranrot() % 6) + (Ranrot() % 6);
 			return 4 + (Ranrot() % 16) + (Ranrot() % 11) + (Ranrot() % 6);
-			break;
 	}
 	return 1;
 }
@@ -3731,7 +4065,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 {
 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:9];
 	
-	[result oo_setBool:[PLAYER isSpeechOn] forKey:@"speechOn"];
+	[result oo_setInteger:[PLAYER isSpeechOn] forKey:@"speechOn"];
 	[result oo_setBool:autoSave forKey:@"autosave"];
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
@@ -4147,6 +4481,8 @@ static const OOMatrix	starboard_matrix =
 			
 			[matrixManager lookAtWithEye: view_dir center: make_vector(0.0, 0.0, 0.0) up: view_up]; 
 			[matrixManager syncModelView];
+
+			BOOL		fogging, bpHide = [self breakPatternHide];
 			
 			if (EXPECT(!displayGUI || demoShipMode))
 			{
@@ -4183,7 +4519,6 @@ static const OOMatrix	starboard_matrix =
 				
 				int			furthest = draw_count - 1;
 				int			nearest = 0;
-				BOOL		fogging, bpHide = [self breakPatternHide];
 				BOOL		inAtmosphere = airResistanceFactor > 0.01;
 				GLfloat		fogFactor = 0.5 / airResistanceFactor;
 				double 		fog_scale, half_scale;
@@ -4219,10 +4554,9 @@ static const OOMatrix	starboard_matrix =
 						{
 							//translate the object
 							// HPVect: camera relative
-							//GLTranslateOOVector([drawthing cameraRelativePosition]);
+							[drawthing updateCameraRelativePosition];
 							[matrixManager translateModelView: [drawthing cameraRelativePosition]];
 							//rotate the object
-							//GLMultOOMatrix([drawthing drawRotationMatrix]);
 							[matrixManager multModelView: [drawthing drawRotationMatrix]];
 						}
 						else
@@ -4286,6 +4620,7 @@ static const OOMatrix	starboard_matrix =
 						{
 							//translate the object
 							// HPVect: camera relative positions
+							[drawthing updateCameraRelativePosition];
 							[matrixManager translateModelView: [drawthing cameraRelativePosition]];
 							//rotate the object
 							[matrixManager multModelView: [drawthing drawRotationMatrix]];
@@ -4332,7 +4667,7 @@ static const OOMatrix	starboard_matrix =
 
 			if (EXPECT(!displayGUI || demoShipMode))
 			{
-				if (cachedSun)
+				if (!bpHide && cachedSun)
 				{
 					[cachedSun drawDirectVisionSunGlare];
 					[cachedSun drawStarGlare];
@@ -5993,7 +6328,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	//speech synthesis
 	
 	PlayerEntity* player = PLAYER;
-	if ([player isSpeechOn])
+	if ([player isSpeechOn] > OOSPEECHSETTINGS_OFF)
 	{
 		BOOL		isStandard = NO;
 		NSString	*systemSaid = nil;
@@ -6046,7 +6381,10 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	if (![currentMessage isEqual:text] || forceDisplay || universal_time >= messageRepeatTime)
 	{
-		[self speakWithSubstitutions:text];
+		if ([PLAYER isSpeechOn] == OOSPEECHSETTINGS_ALL)
+		{
+			[self speakWithSubstitutions:text];
+		}
 		
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
 		
@@ -6073,7 +6411,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		
 		if (!logOnly)
 		{
-			if ([player isSpeechOn])
+			if ([player isSpeechOn] >= OOSPEECHSETTINGS_COMMS)
 			{
 				// EMMSTRAN: should say "Incoming message from ..." when prefixed with sender name.
 				NSString *format = OOExpandKey(@"speech-synthesis-incoming-message-@");
@@ -6168,37 +6506,30 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 						
 						quaternion_rotate_about_y(&q2,M_PI);
 						
-						#define DEMO2_VANISHING_DISTANCE	400.0
-						#define DEMO2_FLY_IN_STAGE_TIME	1.5
-						
 						switch (demo_stage)
 						{
 							case DEMO_FLY_IN:
 								[demo_ship setPosition:[demo_ship destination]];	// ideal position
 								demo_stage = DEMO_SHOW_THING;
-								demo_stage_time = universal_time + 6.0;
+								demo_stage_time = universal_time + 300.0;
 								break;
 							case DEMO_SHOW_THING:
-								vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius);
+								vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius * 6.0);
 								[demo_ship setVelocity:vel];
 								demo_stage = DEMO_FLY_OUT;
-								demo_stage_time = universal_time + 1.5;
+								demo_stage_time = universal_time + 0.25;
 								break;
 							case DEMO_FLY_OUT:
 								// change the demo_ship here
 								[self removeEntity:demo_ship];
 								demo_ship = nil;
 								
-								NSString		*shipDesc = nil;
+/*								NSString		*shipDesc = nil;
 								NSString		*shipName = nil;
-								NSDictionary	*shipDict = nil;
+								NSDictionary	*shipDict = nil; */
 								
-								demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
-								shipDesc = [demo_ships oo_stringAtIndex:demo_ship_index];
-								shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
-								
-								// Failure means we don't change demo_stage, so we'll automatically try again.
-								demo_ship = [[ShipEntity alloc] initWithKey:shipDesc definition:shipDict];
+								demo_ship_subindex = (demo_ship_subindex + 1) % [[demo_ships objectAtIndex:demo_ship_index] count];
+								demo_ship = [self newShipWithName:[[self demoShipData] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 								
 								if (demo_ship != nil)
 								{
@@ -6215,10 +6546,12 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 										[demo_ship setDestination: make_HPvector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
 										[demo_ship setVelocity:kZeroVector];
 										[demo_ship setScanClass: CLASS_NO_DRAW];
-										[demo_ship setRoll:M_PI/5.0];
-										[demo_ship setPitch:M_PI/10.0];
-										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+										[demo_ship setRoll:M_PI/10.0];
+										[demo_ship setPitch:M_PI/20.0];
+//										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 										
+										[self setLibraryTextForDemoShip];
+
 										demo_stage = DEMO_FLY_IN;
 										demo_start_time=universal_time;
 										demo_stage_time = demo_start_time + DEMO2_FLY_IN_STAGE_TIME;
@@ -8515,12 +8848,10 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 					jsval result;
 					jsval args[] = { OOJSValueFromNativeObject(context, key) };
 			
-					OOJSStartTimeLimiter();
 					OK = [condScript callMethod:OOJSID("allowOfferShip")
 												inContext:context
 										withArguments:args count:sizeof args / sizeof *args
 													 result:&result];
-					OOJSStopTimeLimiter();
 
 					if (OK) OK = JS_ValueToBoolean(context, result, &allow_purchase);
 			
@@ -8677,12 +9008,10 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 							jsval result;
 							jsval args[] = { OOJSValueFromNativeObject(JScontext, equipmentKey) , OOJSValueFromNativeObject(JScontext, testship) , OOJSValueFromNativeObject(JScontext, @"newShip")};
 				
-							OOJSStartTimeLimiter();
 							OK = [condScript callMethod:OOJSID("allowAwardEquipment")
 																inContext:JScontext
 														withArguments:args count:sizeof args / sizeof *args
 																	 result:&result];
-							OOJSStopTimeLimiter();
 
 							if (OK) OK = JS_ValueToBoolean(JScontext, result, &allow_addition);
 				
@@ -9782,7 +10111,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	autoAIMap = [[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[equipmentData autorelease];
-	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
+	NSArray *equipmentTemp = [ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES];
+	equipmentData = [[equipmentTemp sortedArrayUsingFunction:equipmentSort context:NULL] retain];
+	
 
 	[OOEquipmentType loadEquipment];
 }
@@ -9869,6 +10200,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	if (strictChanged)
 	{
 		[self loadDescriptions];
+		[self loadScenarios];
 		
 		[missiontext autorelease];
 		missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -9879,6 +10211,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 		[demo_ships release];
 		demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 		demo_ship_index = 0;
+		demo_ship_subindex = 0;
 	}
 	
 	breakPatternCounter = 0;
@@ -10520,6 +10853,32 @@ NSComparisonResult populatorPrioritySort(id a, id b, void *context)
 	int pri_two = [two oo_intForKey:@"priority" defaultValue:100];
 	if (pri_one < pri_two) return NSOrderedAscending;
 	if (pri_one > pri_two) return NSOrderedDescending;
+	return NSOrderedSame;
+}
+
+
+NSComparisonResult equipmentSort(id a, id b, void *context)
+{
+	NSArray *one = (NSArray *)a;
+	NSArray *two = (NSArray *)b;
+
+	/* Sort by explicit sort_order, then tech level, then price */
+
+	OOCreditsQuantity comp1 = [[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
+	OOCreditsQuantity comp2 = [[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
+	comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+	comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
+	comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
 	return NSOrderedSame;
 }
 

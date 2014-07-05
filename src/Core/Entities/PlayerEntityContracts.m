@@ -1215,10 +1215,24 @@ for (unsigned i=0;i<amount;i++)
 		
 		// show extra lines if no HUD is displayed.
 		if ([[self hud] isHidden]) max_rows += 7;
+
+		NSUInteger mmRows = 0;
+		id mmEntry = nil;
+		foreach (mmEntry, missionsManifest)
+		{
+			if ([mmEntry isKindOfClass:[NSString class]])
+			{
+				++mmRows;
+			}
+			else if ([mmEntry isKindOfClass:[NSArray class]])
+			{
+				mmRows += [(NSArray *)mmEntry count];
+			}
+		}
 		
 		NSInteger page_offset = 0;
 		BOOL multi_page = NO;
-		NSUInteger total_rows = cargoRowCount + [passengerManifest count] + [contractManifest count] + [missionsManifest count] + [parcelManifest count] + 5;
+		NSUInteger total_rows = cargoRowCount + MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) + mmRows + MAX(1U,[parcelManifest count]) + 5;
 		if (total_rows > max_rows)
 		{
 			max_rows -= 2;
@@ -1332,11 +1346,46 @@ for (unsigned i=0;i<amount;i++)
 		
 		if (manifestCount > 0)
 		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-missions")) , yellowColor, missionsRow - 1);
+			if ([[missionsManifest objectAtIndex:0] isKindOfClass:[NSString class]])
+			{
+				// then there's at least one without its own heading
+				// to go under the generic 'missions' heading
+				SET_MANIFEST_ROW( (DESC(@"manifest-missions")) , yellowColor, missionsRow - 1);
+			}
+			else
+			{
+				missionsRow--;
+			}
 			
+			NSUInteger mmRow = 0;
 			for (i = 0; i < manifestCount; i++)
 			{
-				SET_MANIFEST_ROW( ((NSString*)[missionsManifest objectAtIndex:i]) , greenColor, missionsRow + i);
+				NSString *mmItem = nil;
+				mmEntry = [missionsManifest objectAtIndex:i];
+				if ([mmEntry isKindOfClass:[NSString class]])
+				{
+					mmItem = [NSString stringWithFormat:@"\t%@",(NSString *)mmEntry];
+					SET_MANIFEST_ROW( (mmItem) , greenColor, missionsRow + mmRow);
+					++mmRow;
+				}
+				else if ([mmEntry isKindOfClass:[NSArray class]])
+				{
+					BOOL isHeading = YES;
+					foreach (mmItem, mmEntry)
+					{
+						if (isHeading)
+						{
+							SET_MANIFEST_ROW( ((NSString *)mmItem) , yellowColor , missionsRow + mmRow);
+						}
+						else
+						{
+							mmItem = [NSString stringWithFormat:@"\t%@",(NSString *)mmItem];
+							SET_MANIFEST_ROW( ((NSString *)mmItem) , greenColor , missionsRow + mmRow);
+						}
+						isHeading = NO;
+						++mmRow;
+					}
+				}
 			}
 		}
 		
@@ -1789,6 +1838,8 @@ static NSMutableDictionary *currentShipyard = nil;
 		if (fromShip == 0)
 		{
 			[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
+			 // next bit or the first ship on the list gets wrongly previewed
+			[UNIVERSE removeDemoShips];
 		}
 		return YES;
 	}

@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 + (OOCharacter *) characterWithDictionary:(NSDictionary *)c_dict;
 
 - (NSString*) planetOfOrigin;
+- (OOSystemID) planetIDOfOrigin;
 - (NSString*) species;
 
 - (void) basicSetUp;

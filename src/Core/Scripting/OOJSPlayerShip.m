@@ -67,6 +67,7 @@ static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp)
 static JSBool PlayerShipRemoveContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipResetScannerZoom(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
@@ -127,6 +128,8 @@ enum
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
+	kPlayerShip_renovationCost,					// int read-only current renovation cost
+	kPlayerShip_renovationMultiplier,			// float read-only multiplier for renovation costs
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_roll,							// roll (overrules Ship)
 	kPlayerShip_scannerNonLinear,				// non linear scanner setting, boolean, read/write
@@ -178,6 +181,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "multiFunctionDisplays",     		kPlayerShip_multiFunctionDisplays,      OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
+	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
+	{ "renovationMultiplier",			kPlayerShip_renovationMultiplier,			OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "roll",							kPlayerShip_roll,							OOJS_PROP_READONLY_CB },
 	{ "scannerNonLinear",				kPlayerShip_scannerNonLinear,				OOJS_PROP_READWRITE_CB },
@@ -215,6 +220,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "removeParcel",                   PlayerShipRemoveParcel,                     1 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
+	{ "resetScannerZoom",				PlayerShipResetScannerZoom,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
 	{ "setMultiFunctionDisplay",		PlayerShipSetMultiFunctionDisplay,			1 },
 	{ "setMultiFunctionText",			PlayerShipSetMultiFunctionText,				1 },
@@ -453,6 +459,13 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 
 	  case kPlayerShip_serviceLevel:
 			return JS_NewNumberValue(context, [player tradeInFactor], value);
+
+		case kPlayerShip_renovationCost:
+			return JS_NewNumberValue(context, [player renovationCosts], value);
+
+		case kPlayerShip_renovationMultiplier:
+			return JS_NewNumberValue(context, [player renovationFactor], value);
+
 
 			// make roll, pitch, yaw reported to JS use same +/- convention as
 			// for NPC ships
@@ -1107,6 +1120,21 @@ static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *v
 	OOJS_RETURN_BOOL(YES);
 	OOJS_NATIVE_EXIT
 }
+
+
+// resetScannerZoom()
+static JSBool PlayerShipResetScannerZoom(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	
+	[player resetScannerZoom];
+
+	OOJS_RETURN_VOID;
+	OOJS_NATIVE_EXIT
+}
+
 
 // takeInternalDamage()
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp)

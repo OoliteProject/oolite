@@ -1449,8 +1449,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					isLeftAligned = tabStops[j] >= 0;
 					rowPosition[i].x = abs(tabStops[j]);
 					
-					// we don't want to highlight leading space(s)
-					NSString	*hilitedText = [text stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" "]];
+					// we don't want to highlight leading space(s) or narrow spaces (\037s)
+					NSString	*hilitedText = [text stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \037"]];
 					NSRange		txtRange = [text rangeOfString:hilitedText];
 					unsigned	leadingSpaces = 0;
 					
@@ -1462,17 +1462,20 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					else if (txtRange.location > 0)
 					{
 						// padded string!
-						NSRect charBlock = OORectFromString(@" ", 0, 0, characterSize);
-						leadingSpaces = charBlock.size.width * txtRange.location;
-						
-						// if we're displaying commodity-quantity-none, let's try and be pixel perfect!
+						NSRange padRange;
+						padRange.location = 0;
+						padRange.length = txtRange.location;
+						NSRect charBlock = OORectFromString([text substringWithRange:padRange], 0, 0, characterSize);
+						leadingSpaces = (unsigned)charBlock.size.width;
+
+/*						// if we're displaying commodity-quantity-none, let's try and be pixel perfect!
 						NSString *qtyNone = DESC(@"commodity-quantity-none");
 						txtRange = [hilitedText rangeOfString:qtyNone];
 						
 						if (txtRange.location == 0) // bingo!
 						{
 							rowPosition[i].x += OORectFromString(@"0", 0, 0, characterSize).size.width - OORectFromString(qtyNone, 0, 0, characterSize).size.width;
-						}
+							} */
 					}
 					
 					// baseline text rect, needed for correct highlight positioning.

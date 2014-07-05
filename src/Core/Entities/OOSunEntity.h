@@ -74,6 +74,8 @@ MA 02110-1301, USA.
 	OOTimeDelta				_novaCountdown;
 	OOTimeDelta				_novaExpansionTimer;
 	float					_novaExpansionRate;
+
+	NSString				*_name;
 }
 
 - (id) initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*) dict;

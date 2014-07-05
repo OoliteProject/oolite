@@ -507,10 +507,12 @@ static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *v
 	}
 	
 	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARGV[1], &abortAllDockings);
-	
+
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = [station launchIndependentShip:shipRole];
 	if (abortAllDockings) [station abortAllDockings];
-	
+	OOJS_END_FULL_NATIVE
+
 	OOJS_RETURN_OBJECT(result);
 	OOJS_NATIVE_EXIT
 }
@@ -522,8 +524,13 @@ static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp
 	
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
-	
-	OOJS_RETURN_OBJECT([station launchDefenseShip]);
+
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchDefenseShip];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -535,7 +542,12 @@ static JSBool StationLaunchEscort(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchEscort]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchEscort];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -546,8 +558,13 @@ static JSBool StationLaunchScavenger(JSContext *context, uintN argc, jsval *vp)
 	
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
-	
-	OOJS_RETURN_OBJECT([station launchScavenger]);
+
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchScavenger];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -559,7 +576,11 @@ static JSBool StationLaunchMiner(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchMiner]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchMiner];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
@@ -571,7 +592,12 @@ static JSBool StationLaunchPirateShip(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchPirateShip]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchPirateShip];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -583,7 +609,11 @@ static JSBool StationLaunchShuttle(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchShuttle]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchShuttle];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
@@ -595,7 +625,11 @@ static JSBool StationLaunchPatrol(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchPatrol]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchPatrol];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
@@ -607,7 +641,11 @@ static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchPolice]);
+	NSArray *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchPolice];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
