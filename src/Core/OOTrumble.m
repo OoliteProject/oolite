@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "OOMaths.h"
+#import "OOOpenGLMatrixManager.h"
 
 
 static void InitTrumbleSounds(void);
@@ -383,11 +384,13 @@ static void PlayTrumbleSqueal(void);
 	OOGL(glShadeModel(GL_SMOOTH));
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	
-	OOGL(glPushMatrix());
+	[matrixManager pushModelView];
 	
-	OOGL(glTranslatef( position.x, position.y, z));
-	OOGL(glRotatef( rotation, 0.0, 0.0, 1.0));
+	[matrixManager translateModelView: make_vector(position.x, position.y, z)];
+	[matrixManager multModelView: OOMatrixForRotationZ(rotation)];
+	[matrixManager syncModelView];
 
 	//
 	// Body..
@@ -433,7 +436,8 @@ static void PlayTrumbleSqueal(void);
 			eyeTextureOffset = 0.5;	break;
 	}
 	
-	OOGL(glTranslatef( eye_position.x * wd, eye_position.y * ht, 0.0));
+	[matrixManager translateModelView: make_vector(eye_position.x * wd, eye_position.y * ht, 0.0)];
+	[matrixManager syncModelView];
 	
 	OOGL(glColor4fv(colorEyes));
 	OOGLBEGIN(GL_QUADS);
@@ -467,7 +471,7 @@ static void PlayTrumbleSqueal(void);
 			mouthTextureOffset = 0.875;	break;
 	}
 	
-	OOGL(glTranslatef( mouth_position.x * wd, mouth_position.y * ht, 0.0));
+	[matrixManager translateModelView: make_vector(mouth_position.x * wd, mouth_position.y * ht, 0.0)];
 	
 	OOGL(glColor4fv(colorBase));
 	OOGLBEGIN(GL_QUADS);
@@ -485,7 +489,8 @@ static void PlayTrumbleSqueal(void);
 	OOGLEND();	
 	
 	// finally..
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 	OOGL(glDisable(GL_TEXTURE_2D));
 }
 

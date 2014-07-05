@@ -4107,16 +4107,13 @@ static const OOMatrix	starboard_matrix =
 			}
 			
 			OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-			OOGL(glLoadIdentity());	// reset matrix
 			
-			OOGL(gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0));
 			[matrixManager resetModelView];
-			[matrixManager lookAtWithEye: make_vector(1.0,0.0,1.0) center: make_vector(0.0,0.0,1.0) up: make_vector(0.0,1.0,0.0)];
-			OOLog(@"kja", @"Projection matrix: %@", OOMatrixDescription([matrixManager getModelView]));
+			[matrixManager lookAtWithEye: make_vector(0.0,0.0,0.0) center: make_vector(0.0,0.0,1.0) up: make_vector(0.0,1.0,0.0)];
 			
 			// HACK BUSTED
-			OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
-			OOGL(glPushMatrix()); // save this flat viewpoint
+			[matrixManager multModelView: OOMatrixForScale(-1.0,1.0,1.0)]; // flip left and right
+			[matrixManager pushModelView]; // save this flat viewpoint
 			
 			/* OpenGL viewpoints: 
 			 *
@@ -4148,14 +4145,16 @@ static const OOMatrix	starboard_matrix =
 			view_matrix = OOMatrixMultiply(view_matrix, flipMatrix);
 			Vector viewOffset = [player viewpointOffset];
 			
-			OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+			[matrixManager lookAtWithEye: view_dir center: make_vector(0.0, 0.0, 0.0) up: view_up]; 
+			[matrixManager syncModelView];
 			
 			if (EXPECT(!displayGUI || demoShipMode))
 			{
 				if (EXPECT(!demoShipMode))	// we're in flight
 				{
 					// rotate the view
-					OOGL(GLMultOOMatrix([player rotationMatrix]));
+					[matrixManager multModelView: [player rotationMatrix]];
+					[matrixManager syncModelView];
 					// translate the view
 					// HPVect: camera-relative position
 //					OOGL(GLTranslateOOVector(vector_flip(position)));
@@ -4180,7 +4179,7 @@ static const OOMatrix	starboard_matrix =
 				OOGL([self useGUILightSource:demoShipMode]);
 				
 				// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
-				OOGL(viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX));
+				viewMatrix = [matrixManager getModelView];
 				
 				int			furthest = draw_count - 1;
 				int			nearest = 0;
@@ -4215,22 +4214,27 @@ static const OOMatrix	starboard_matrix =
 						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
 						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
 						
-						OOGL(glPushMatrix());
+						[matrixManager pushModelView];
 						if (EXPECT(drawthing != player))
 						{
 							//translate the object
 							// HPVect: camera relative
-							GLTranslateOOVector([drawthing cameraRelativePosition]);
+							//GLTranslateOOVector([drawthing cameraRelativePosition]);
+							[matrixManager translateModelView: [drawthing cameraRelativePosition]];
 							//rotate the object
-							GLMultOOMatrix([drawthing drawRotationMatrix]);
+							//GLMultOOMatrix([drawthing drawRotationMatrix]);
+							[matrixManager multModelView: [drawthing drawRotationMatrix]];
 						}
 						else
 						{
 							// Load transformation matrix
-							GLLoadOOMatrix(view_matrix);
+							//GLLoadOOMatrix(view_matrix);
+							[matrixManager loadModelView: view_matrix];
 							//translate the object  from the viewpoint
-							GLTranslateOOVector(vector_flip(viewOffset));
+							//GLTranslateOOVector(vector_flip(viewOffset));
+							[matrixManager translateModelView: vector_flip(viewOffset)];
 						}
+						[matrixManager syncModelView];
 						
 						// atmospheric fog
 						fogging = (inAtmosphere && ![drawthing isStellarObject]);
@@ -4257,7 +4261,7 @@ static const OOMatrix	starboard_matrix =
 							OOGL(glDisable(GL_FOG));
 						}
 						
-						OOGL(glPopMatrix());
+						[matrixManager popModelView];
 					}
 				}
 				
@@ -4277,21 +4281,21 @@ static const OOMatrix	starboard_matrix =
 					if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either in flight or in demo ship mode
 					{
 						
-						OOGL(glPushMatrix());
+						[matrixManager pushModelView];
 						if (EXPECT(drawthing != player))
 						{
 							//translate the object
 							// HPVect: camera relative positions
-							GLTranslateOOVector([drawthing cameraRelativePosition]);
+							[matrixManager translateModelView: [drawthing cameraRelativePosition]];
 							//rotate the object
-							GLMultOOMatrix([drawthing drawRotationMatrix]);
+							[matrixManager multModelView: [drawthing drawRotationMatrix]];
 						}
 						else
 						{
 							// Load transformation matrix
-							GLLoadOOMatrix(view_matrix);
+							[matrixManager loadModelView: view_matrix];
 							//translate the object  from the viewpoint
-							GLTranslateOOVector(vector_flip(viewOffset));
+							[matrixManager translateModelView: vector_flip(viewOffset)];
 						}
 						
 						// experimental - atmospheric fog
@@ -4309,6 +4313,7 @@ static const OOMatrix	starboard_matrix =
 						}
 						
 						// draw the thing
+						[matrixManager syncModelView];
 						[drawthing drawImmediate:false translucent:true];
 						
 						// atmospheric fog
@@ -4317,12 +4322,13 @@ static const OOMatrix	starboard_matrix =
 							OOGL(glDisable(GL_FOG));
 						}
 						
-						OOGL(glPopMatrix());
+						[matrixManager popModelView];
 					}
 				}
 			}
 			
-			OOGL(glPopMatrix()); //restore saved flat viewpoint
+			[matrixManager popModelView];
+			[matrixManager syncModelView];
 
 			if (EXPECT(!displayGUI || demoShipMode))
 			{

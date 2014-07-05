@@ -91,6 +91,8 @@ MA 02110-1301, USA.
 #import "OOJSVector.h"
 #import "OOJSEngineTimeManagement.h"
 
+#import "OOOpenGLMatrixManager.h"
+
 
 #define USEMASC 1
 
@@ -5872,8 +5874,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		return; // TOO FAR AWAY
 	}
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	
-	OOGL(glPushMatrix());
+	[matrixManager pushModelView];
 	
 	if ([self status] == STATUS_ACTIVE)
 	{
@@ -5892,17 +5895,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			} */
 		HPVector abspos = [self absolutePositionForSubentity];
 		
-		GLLoadOOMatrix([UNIVERSE viewMatrix]);
+		[matrixManager loadModelView: [UNIVERSE viewMatrix]];
 		// HPVect: need to make camera-relative
-		GLTranslateOOVector(HPVectorToVector(abspos));
+		[matrixManager translateModelView:HPVectorToVector(abspos)];
 	}
 	else
 	{
 		// HPVect: need to make camera-relative
-		GLTranslateOOVector(HPVectorToVector(position));
+		[matrixManager translateModelView: HPVectorToVector(position)];
 	}
 	
-	GLMultOOMatrix(rotMatrix);
+	[matrixManager multModelView: rotMatrix];
+	[matrixManager syncModelView];
 	[self drawImmediate:immediate translucent:translucent];
 	
 #ifndef NDEBUG
@@ -5912,7 +5916,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 #endif
 	
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 	
 	OOVerifyOpenGLState();	
 }

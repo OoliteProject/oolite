@@ -51,6 +51,8 @@ MA 02110-1301, USA.
 
 #import "OOFilteringEnumerator.h"
 
+#import "OOOpenGLMatrixManager.h"
+
 @interface OOVisualEffectEntity (Private)
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
@@ -389,17 +391,20 @@ MA 02110-1301, USA.
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	if (cam_zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
 		return; // TOO FAR AWAY
 	}
-	OOGL(glPushMatrix());
+	[matrixManager pushModelView];
 	// HPVect: camera position
-	GLTranslateOOVector(HPVectorToVector(position));
-	GLMultOOMatrix(rotMatrix);
+	[matrixManager translateModelView: HPVectorToVector(position)];
+	[matrixManager multModelView: rotMatrix];
+	[matrixManager syncModelView];
 	[self drawImmediate:immediate translucent:translucent];
 
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 }
 
 
@@ -640,18 +645,21 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent 
 {
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	if (no_draw_distance < cam_zero_distance)
 	{
 		return; // too far away to draw
 	}
-	OOGL(glPushMatrix());
-	OOGL(glScalef(scaleX,scaleY,scaleZ));
+	[matrixManager pushModelView];
+	[matrixManager scaleModelView: make_vector(scaleX,scaleY,scaleZ)];
+	[matrixManager syncModelView];
 
 	if ([self mesh] != nil)
 	{
 		[super drawImmediate:immediate translucent:translucent];
 	}
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?

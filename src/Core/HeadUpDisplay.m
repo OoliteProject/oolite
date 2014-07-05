@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOJoystickManager.h"
 #import "OOJavaScriptEngine.h"
+#import "OOOpenGLMatrixManager.h"
 
 
 #define ONE_SIXTEENTH				0.0625
@@ -1777,9 +1778,11 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 	OOGLEND();
 #else
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x, y, z1));
-	OOGL(glScalef(w, -h, 1.0f));
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	[matrixManager pushModelView];
+	[matrixManager translateModelView: make_vector(x, y, z1)];
+	[matrixManager scaleModelView: make_vector(w, -h, 1.0f)];
+	[matrixManager syncModelView];
 	
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	OOGL(glVertexPointer(2, GL_FLOAT, 0, strip));
@@ -1788,8 +1791,9 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-	
-	OOGL(glPopMatrix());
+
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 #endif
 }
 
@@ -2334,24 +2338,27 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 					  width:(GLfloat)width height:(GLfloat)height alpha:(GLfloat)alpha
 {
 	OOPolygonSprite *sprite = IconForMissileRole([missile primaryRole]);
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	
 	if (selected)
 	{
 		// Draw yellow outline.
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-		OOGL(glScalef(width, height, 1.0f));
+		[matrixManager pushModelView];
+		[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
+		[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
+		[matrixManager syncModelView];
 		GLColorWithOverallAlpha(yellow_color, alpha);
 		[sprite drawOutline];
-		OOGL(glPopMatrix());
+		[matrixManager popModelView];
 		
 		// Draw black backing, so outline colour isn’t blended into missile colour.
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-		OOGL(glScalef(width, height, 1.0f));
+		[matrixManager pushModelView];
+		[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
+		[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
+		[matrixManager syncModelView];
 		GLColorWithOverallAlpha(black_color, alpha);
 		[sprite drawFilled];
-		OOGL(glPopMatrix());
+		[matrixManager popModelView];
 		
 		switch (status)
 		{
@@ -2369,11 +2376,13 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		else  GLColorWithOverallAlpha(red_color, alpha);
 	}
 	
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-	OOGL(glScalef(width, height, 1.0f));
+	[matrixManager pushModelView];
+	[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
+	[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
+	[matrixManager syncModelView];
 	[sprite drawFilled];
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 }
 
 
@@ -2382,14 +2391,17 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 							width:(GLfloat)width height:(GLfloat)height alpha:(GLfloat)alpha
 {
 	OOPolygonSprite *sprite = IconForMissileRole(kDefaultMissileIconKey);
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	
 	// Draw gray outline.
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-	OOGL(glScalef(width, height, 1.0f));
+	[matrixManager pushModelView];
+	[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
+	[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
+	[matrixManager syncModelView];
 	GLColorWithOverallAlpha(lightgray_color, alpha);
 	[sprite drawOutline];
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 }
 
 
@@ -3247,6 +3259,8 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	NSString		*legal_desc = nil;
 	
 	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
+	
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 
 	if (target == nil || player1 == nil)  return;
 
@@ -3456,7 +3470,8 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		}
 	}
 	
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 }
 
 
@@ -3466,6 +3481,8 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 	{
 		return;
 	}
+	
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 
 	Vector	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
 
@@ -3516,7 +3533,8 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 		OODrawString(infoline, rs0 * 0.5, -rs2 - line_height, 0, textsize);
 	}
 
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 }
 
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
@@ -3525,8 +3543,9 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 
-	OOGL(glPushMatrix());
+	[matrixManager pushModelView];
 	
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
@@ -3558,17 +3577,18 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
 			break;
 	}
-	OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+	[matrixManager lookAtWithEye: view_dir center: kZeroVector up: view_up];
 	
 	back_mat = OOMatrixForQuaternionRotation(back_q);
 	
 	// rotate the view
-	GLMultOOMatrix([player1 rotationMatrix]);
+	[matrixManager multModelView: [player1 rotationMatrix]];
 	// translate the view
-	OOGL(glTranslatef(p1.x, p1.y, p1.z));
+	[matrixManager translateModelView: p1];
 	//rotate to face player1
-	GLMultOOMatrix(back_mat);
+	[matrixManager multModelView: back_mat];
 	// draw the waypoint
+	[matrixManager syncModelView];
 
 }
 
@@ -4103,14 +4123,17 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	GLfloat oy = y - size.height * 0.5;
 	GLfloat width = size.width * (1.0f / 6.0f);
 	GLfloat height = size.height * (1.0f / 6.0f);
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(ox, oy, z));
-	OOGL(glScalef(width, height, 1.0f));
+	[matrixManager pushModelView];
+	[matrixManager translateModelView: make_vector(ox, oy, z)];
+	[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
+	[matrixManager syncModelView];
 	[self drawFilled];
 	glColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
 	[self drawOutline];
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 }
 
 @end

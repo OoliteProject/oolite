@@ -33,6 +33,7 @@
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
+#import "OOOpenGLMatrixManager.h"
 
 #ifndef NDEBUG
 #import "Entity.h"
@@ -195,6 +196,7 @@
 	assert(_lod < kOOPlanetDataLevels);
 	
 	const OOPlanetDataLevel *data = &kPlanetData[_lod];
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	
 	OO_ENTER_OPENGL();
 
@@ -217,8 +219,9 @@
 	[_material apply];
 	
 	// Scale the ball.
-	OOGL(glPushMatrix());
-	GLMultOOMatrix(_transform);
+	[matrixManager pushModelView];
+	[matrixManager multModelView: _transform];
+	[matrixManager syncModelView];
 	
 	OOGL(glEnable(GL_LIGHTING));
 	OOGL(glEnable(GL_TEXTURE_2D));
@@ -267,7 +270,8 @@
 #endif
 
 	
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 #endif

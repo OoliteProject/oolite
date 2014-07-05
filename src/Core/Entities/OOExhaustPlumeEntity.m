@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOMacroOpenGL.h"
 #import "PlayerEntity.h"
+#import "OOOpenGLMatrixManager.h"
 
 #import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
@@ -331,6 +332,7 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	if (!translucent)  return;
 	
 	ShipEntity *ship = [self owner];
@@ -339,8 +341,9 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
-	OOGL(glPopMatrix());	// restore absolute positioning
-	OOGL(glPushMatrix());	// avoid stack underflow
+	[matrixManager popModelView];
+	[matrixManager pushModelView];
+	[matrixManager syncModelView];
 //	GLTranslateOOVector(vector_flip([self cameraRelativePosition]));
 	HPVector cam = [PLAYER viewpointPosition];
 	for (unsigned n=0;n<34*3;n++)

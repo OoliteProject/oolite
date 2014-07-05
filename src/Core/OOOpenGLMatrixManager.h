@@ -34,6 +34,15 @@ enum
 	OOLITE_GL_MATRIX_PROJECTION,
 	OOLITE_GL_MATRIX_MODELVIEW_PROJECTION,
 	OOLITE_GL_MATRIX_NORMAL,
+	OOLITE_GL_MATRIX_MODELVIEW_INVERSE,
+	OOLITE_GL_MATRIX_PROJECTION_INVERSE,
+	OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE,
+	OOLITE_GL_MATRIX_MODELVIEW_TRANSPOSE,
+	OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE,
+	OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE,
+	OOLITE_GL_MATRIX_MODELVIEW_INVERSE_TRANSPOSE,
+	OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE,
+	OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE,
 	OOLITE_GL_MATRIX_END
 };
 
@@ -72,16 +81,20 @@ enum
 - (void) pushModelView;
 - (OOMatrix) popModelView;
 - (OOMatrix) getModelView;
+- (void) syncModelView;
 - (void) loadProjection: (OOMatrix) matrix;
 - (void) multProjection: (OOMatrix) matrix;
 - (void) translateProjection: (Vector) vector;
 - (void) rotateProjection: (GLfloat) angle axis: (Vector) axis;
 - (void) scaleProjection: (Vector) scale;
-- (void) frustumLeft: (double) l right: (double) r top: (double) t bottom: (double) b near: (double) n far: (double) f;
+- (void) frustumLeft: (double) l right: (double) r bottom: (double) b top: (double) t near: (double) n far: (double) f;
+- (void) orthoLeft: (double) l right: (double) r bottom: (double) b top: (double) t near: (double) n far: (double) f;
+- (void) perspectiveFovy: (double) fovy aspect: (double) aspect zNear: (double) zNear zFar: (double) zFar;
 - (void) resetProjection;
 - (void) pushProjection;
 - (OOMatrix) popProjection;
 - (OOMatrix) getProjection;
+- (void) syncProjection;
 - (OOMatrix) getMatrix: (int) which;
 
 @end

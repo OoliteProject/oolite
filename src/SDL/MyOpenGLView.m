@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OOCollectionExtractors.h" // for splash screen settings
 #import "OOFullScreenController.h"
+#import "OOOpenGLMatrixManager.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
@@ -610,6 +611,7 @@ MA 02110-1301, USA.
 	SDL_Rect			dest;
 
 	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 
 	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] UTF8String]);
 
@@ -656,15 +658,12 @@ MA 02110-1301, USA.
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
 
-	glMatrixMode( GL_PROJECTION );
-	glPushMatrix();
-	glLoadIdentity();
+	[matrixManager resetProjection];
+	[matrixManager orthoLeft: 0.0f right: dest.w bottom: dest.h top: 0.0 near: -1.0 far: 1.0];
+	[matrixManager syncProjection];
 
-	glOrtho(0.0f, dest.w , dest.h, 0.0f, -1.0f, 1.0f);
-
-	glMatrixMode( GL_MODELVIEW );
-	glPushMatrix();
-	glLoadIdentity();
+	[matrixManager resetModelView];
+	[matrixManager syncModelView];
 
 	GLuint texture;
 	GLenum texture_format;
@@ -718,7 +717,8 @@ MA 02110-1301, USA.
 	glEnd();
 
 	SDL_GL_SwapBuffers();
-	glLoadIdentity();       // reset matrix
+	[matrixManager resetModelView];
+	[matrixManager syncModelView];
 
 	if ( image ) {
 		SDL_FreeSurface( image );

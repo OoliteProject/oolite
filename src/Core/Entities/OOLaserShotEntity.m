@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
 
+#import "OOOpenGLMatrixManager.h"
+
 
 #define kLaserDuration		(0.09)	// seconds
 
@@ -190,7 +192,8 @@ static const GLfloat kLaserVertices[] =
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
-	
+
+	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
@@ -201,7 +204,7 @@ static const GLfloat kLaserVertices[] =
 	*/
 	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glEnable(GL_TEXTURE_2D));
-	OOGL(glPushMatrix());
+	[matrixManager pushModelView];
 	
 	[[self texture1] apply];
 	GLfloat s = sin([UNIVERSE getTime]);
@@ -239,7 +242,8 @@ static const GLfloat kLaserVertices[] =
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
 	glDrawArrays(GL_QUADS, 0, 8);
 	
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glDisable(GL_TEXTURE_2D));
 	

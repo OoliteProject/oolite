@@ -85,11 +85,26 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 {
 	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = NO;
 	valid[OOLITE_GL_MATRIX_NORMAL] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_INVERSE] = NO;
+	valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_INVERSE_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = NO;
 }
 
 - (void) updateProjection
 {
 	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION] = NO;
+	valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE] = NO;
+	valid[OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE] = NO;
+	valid[OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE] = NO;
 }
 
 @end
@@ -218,6 +233,13 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 	return matrices[OOLITE_GL_MATRIX_MODELVIEW];
 }
 
+- (void) syncModelView
+{
+	OOGL(glMatrixMode(GL_MODELVIEW));
+	GLLoadOOMatrix([self getModelView]);
+	return;
+}
+
 - (void) loadProjection: (OOMatrix) matrix
 {
 	matrices[OOLITE_GL_MATRIX_PROJECTION] = matrix;
@@ -250,15 +272,40 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 	[self multProjection: OOMatrixForScale(scale.x, scale.y, scale.z)];
 }
 
-- (void) frustumLeft: (double) l right: (double) r top: (double) t bottom: (double) b near: (double) n far: (double) f
+- (void) frustumLeft: (double) l right: (double) r bottom: (double) b top: (double) t near: (double) n far: (double) f
 {
-	if (l == r || t == b || n == f || n <= 0 || f <= 0 ) return;
+	if (l == r || t == b || n == f || n <= 0 || f <= 0) return;
 	[self multProjection: OOMatrixConstruct
 	(
-		  2*n/(l+f),		0.0,		 0.0,	 0.0,
-			0.0,	  2*n/(t+b),		 0.0,	 0.0,
+		  2*n/(r-l),		0.0,		 0.0,	 0.0,
+			0.0,	  2*n/(t-b),		 0.0,	 0.0,
 		(r+l)/(r-l),	(t+b)/(t-b),	-(f+n)/(f-n),	-1.0,
 			0.0,		0.0,	-2*f*n/(f-n),	 0.0
+	)];
+}
+
+- (void) orthoLeft: (double) l right: (double) r bottom: (double) b top: (double) t near: (double) n far: (double) f
+{
+	if (l == r || t == b || n == f) return;
+	[self multProjection: OOMatrixConstruct
+	(
+		2/(r-l),	0.0,		0.0,		0.0,
+		0.0,		2/(t-b),	0.0,		0.0,
+		0.0,		0.0,		2/(n-f),	0.0,
+		(l+r)/(l-r),	(b+t)/(b-t),	(n+f)/(n-f),	1.0
+	)];
+}
+
+- (void) perspectiveFovy: (double) fovy aspect: (double) aspect zNear: (double) zNear zFar: (double) zFar
+{
+	if (aspect == 0.0 || zNear == zFar) return;
+	double f = 1.0/tan(M_PI * fovy / 360);
+	[self multProjection: OOMatrixConstruct
+	(
+		f/aspect,	0.0,	0.0,				0.0,
+		0.0,		f,	0.0,				0.0,
+		0.0,		0.0,	(zFar + zNear)/(zNear - zFar),	-1.0,
+		0.0,		0.0,	2*zFar*zNear/(zNear - zFar),	0.0
 	)];
 }
 
@@ -285,6 +332,13 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 	return matrices[OOLITE_GL_MATRIX_PROJECTION];
 }
 
+- (void) syncProjection
+{
+	OOGL(glMatrixMode(GL_PROJECTION));
+	GLLoadOOMatrix([self getProjection]);
+	return;
+}
+
 - (OOMatrix) getMatrix: (int) which
 {
 	if (which < 0 || which >= OOLITE_GL_MATRIX_END) return kIdentityMatrix;
@@ -304,6 +358,33 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 		matrices[which].m[2][3] = 0.0;
 		matrices[which].m[3][3] = 1.0;
 		matrices[which] = OOMatrixTranspose(OOMatrixInverse(matrices[which]));
+		break;
+	case OOLITE_GL_MATRIX_MODELVIEW_INVERSE:
+		matrices[which] = OOMatrixInverse(matrices[OOLITE_GL_MATRIX_MODELVIEW]);
+		break;
+	case OOLITE_GL_MATRIX_PROJECTION_INVERSE:
+		matrices[which] = OOMatrixInverse(matrices[OOLITE_GL_MATRIX_PROJECTION]);
+		break;
+	case OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE:
+		matrices[which] = OOMatrixInverse([self getMatrix: OOLITE_GL_MATRIX_MODELVIEW_PROJECTION]);
+		break;
+	case OOLITE_GL_MATRIX_MODELVIEW_TRANSPOSE:
+		matrices[which] = OOMatrixTranspose(matrices[OOLITE_GL_MATRIX_MODELVIEW]);
+		break;
+	case OOLITE_GL_MATRIX_PROJECTION_TRANSPOSE:
+		matrices[which] = OOMatrixTranspose(matrices[OOLITE_GL_MATRIX_PROJECTION]);
+		break;
+	case OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_TRANSPOSE:
+		matrices[which] = OOMatrixTranspose([self getMatrix: OOLITE_GL_MATRIX_MODELVIEW_PROJECTION]);
+		break;
+	case OOLITE_GL_MATRIX_MODELVIEW_INVERSE_TRANSPOSE:
+		matrices[which] = OOMatrixTranspose([self getMatrix: OOLITE_GL_MATRIX_MODELVIEW_INVERSE]);
+		break;
+	case OOLITE_GL_MATRIX_PROJECTION_INVERSE_TRANSPOSE:
+		matrices[which] = OOMatrixTranspose([self getMatrix: OOLITE_GL_MATRIX_PROJECTION_INVERSE]);
+		break;
+	case OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE_TRANSPOSE:
+		matrices[which] = OOMatrixTranspose([self getMatrix: OOLITE_GL_MATRIX_MODELVIEW_PROJECTION_INVERSE]);
 		break;
 	}
 	valid[which] = YES;
