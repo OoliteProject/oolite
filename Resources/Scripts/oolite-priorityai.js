@@ -406,6 +406,15 @@ this.PriorityAIController = function(ship)
 	}
 
 
+	this.fireECM = function()
+	{
+		// give a chance for missiles fired close to their target to
+		// hit before it can use ECM
+		var delay = (12-this.ship.accuracy)/4; // 0.5 - 4.25
+		var etimer = new Timer(this,function() { this.ship.fireECM() }.bind(this),delay);
+	}
+
+
 	this.getParameter = function(key)
 	{
 		if (key in parameters)
@@ -431,7 +440,8 @@ this.PriorityAIController = function(ship)
 	/* Requests reconsideration of behaviour ahead of schedule. */
 	this.reconsiderNow = function() 
 	{
-		_resetReconsideration.call(this,0.1);
+		// 0.1 - 1.6 seconds depending on accuracy
+		_resetReconsideration.call(this,0.1+((10-this.ship.accuracy)/10));
 	}
 
 
@@ -5002,7 +5012,7 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
-		this.ship.fireECM();
+		this.fireECM();
 	}
 	if (enemy.scanClass == "CLASS_THARGOID" && this.ship.scanClass != "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
 	{
@@ -5175,7 +5185,7 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackedWithMissil
 	}
 	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
-		this.ship.fireECM();
+		this.fireECM();
 		this.ship.addDefenseTarget(missile);
 		this.ship.addDefenseTarget(whom);
 		// but don't reconsider immediately, because the ECM will
@@ -5679,7 +5689,7 @@ PriorityAIController.prototype.responseComponent_station_shipAttackedWithMissile
 	this.ship.alertCondition = 3;
 	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
-		this.ship.fireECM();
+		this.fireECM();
 		this.ship.addDefenseTarget(missile);
 		this.ship.addDefenseTarget(whom);
 		// but don't reconsider immediately
@@ -5834,7 +5844,7 @@ PriorityAIController.prototype.responseComponent_station_helpRequestReceived = f
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
-		this.ship.fireECM();
+		this.fireECM();
 		return;
 	}
 	if (!this.ship.alertCondition == 3)
@@ -5959,7 +5969,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
-		this.ship.fireECM();
+		this.fireECM();
 	}
 	if (enemy.scanClass == "CLASS_THARGOID" && this.ship.scanClass != "CLASS_THARGOID" && (!this.ship.target || this.ship.target.scanClass != "CLASS_THARGOID"))
 	{
@@ -5983,7 +5993,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
 	{
-		this.ship.fireECM();
+		this.fireECM();
 		return;
 	}
 	if (!this.ship.hasHostileTarget)
