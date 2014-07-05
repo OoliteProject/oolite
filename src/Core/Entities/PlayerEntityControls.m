@@ -1592,7 +1592,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	else if (gui_screen == GUI_SCREEN_SAVE)
 	{
-		[gameView setStringInput: gvStringInputAll];
+		[gameView setStringInput: gvStringInputLoadSave];
 	}
 	else if (gui_screen == GUI_SCREEN_MISSION && _missionTextEntry)
 	{

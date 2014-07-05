@@ -77,7 +77,8 @@ enum StringInput
 {
 	gvStringInputNo = 0,
 	gvStringInputAlpha = 1,
-	gvStringInputAll = 2
+	gvStringInputLoadSave = 2,
+	gvStringInputAll = 3
 };
 
 extern int debug;

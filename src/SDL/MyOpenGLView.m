@@ -132,6 +132,7 @@ MA 02110-1301, USA.
 		// mostly work on mine despite this function failing.
 		//	exit(1);
 	}
+	SDL_EnableUNICODE(1);
 }
 
 
@@ -1830,28 +1831,28 @@ keys[a] = NO; keys[b] = NO; \
 	// TODO: a more flexible mechanism  for max. string length ?
 	if([typedString length] < 40)
 	{
-		// inputAlpha - limited input for planet find screen
-		// alpha keys - either inputAlpha  or inputAll...
-		if(key >= SDLK_a && key <= SDLK_z)
+		if (allowingStringInput == gvStringInputAlpha)
 		{
-			isAlphabetKeyDown=YES;
-			// if in inputAlpha, keep in lower case.
-			if(shift && allowingStringInput == gvStringInputAll)
+		// inputAlpha - limited input for planet find screen
+			if(key >= SDLK_a && key <= SDLK_z)
 			{
-				key=toupper(key);
+				isAlphabetKeyDown=YES;
+				[typedString appendFormat:@"%c", key];
+				// if in inputAlpha, keep in lower case.
 			}
 		}
-
-		// full input for load-save screen
-		// NB: left-shift could return 0
-		if (allowingStringInput == gvStringInputAll && ((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE))
+		else
 		{
-			isAlphabetKeyDown=YES;
-		}
-
-		if(isAlphabetKeyDown)
-		{
-			[typedString appendFormat:@"%c", key];
+			Uint16 unicode = kbd_event->keysym.unicode;
+			// printable range
+			if (unicode >= 32 && unicode <= 126)
+			{
+				if ((char)unicode != '/' || allowingStringInput == gvStringInputAll)
+				{
+					isAlphabetKeyDown=YES;
+					[typedString appendFormat:@"%c", unicode];
+				}
+			}
 		}
 	}
 }
