@@ -70,7 +70,17 @@ enum GameViewKeys
 	gvNumberKey6,
 	gvNumberKey7,
 	gvNumberKey8,
-	gvNumberKey9
+	gvNumberKey9,
+    gvNumberPadKey0 = 310,
+	gvNumberPadKey1,
+	gvNumberPadKey2,
+	gvNumberPadKey3,
+	gvNumberPadKey4,
+	gvNumberPadKey5,
+	gvNumberPadKey6,
+	gvNumberPadKey7,
+	gvNumberPadKey8,
+	gvNumberPadKey9 //319
 };
 
 enum StringInput
