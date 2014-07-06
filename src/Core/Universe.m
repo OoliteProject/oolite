@@ -4536,10 +4536,8 @@ static const OOMatrix	starboard_matrix =
 						else
 						{
 							// Load transformation matrix
-							//GLLoadOOMatrix(view_matrix);
 							[matrixManager loadModelView: view_matrix];
 							//translate the object  from the viewpoint
-							//GLTranslateOOVector(vector_flip(viewOffset));
 							[matrixManager translateModelView: vector_flip(viewOffset)];
 						}
 						[matrixManager syncModelView];
