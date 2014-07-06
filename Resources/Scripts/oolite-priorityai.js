@@ -5939,8 +5939,11 @@ PriorityAIController.prototype.responseComponent_docking_shipAchievedDesiredRang
 
 PriorityAIController.prototype.responseComponent_docking_shipAIFrustrated = function()
 {
-	var station = this.getParameter("oolite_dockingStation",null);
-	station.abortDockingForShip(this.ship);
+	var station = this.getParameter("oolite_dockingStation");
+	if (station)
+	{
+		station.abortDockingForShip(this.ship);
+	}
 	this.communicate("oolite_abortDocking",{},3);
 	this.setParameter("oolite_dockingStation",null);
 	this.reconsiderNow();
