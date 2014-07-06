@@ -4414,6 +4414,10 @@ static const OOMatrix	starboard_matrix =
 			// use a non-mutable copy so this can't be changed under us.
 			for (i = 0; i < ent_count; i++)
 			{
+				/* BUG: this list is ordered nearest to furthest from
+				 * the player, and we just assume that the camera is
+				 * on/near the player. So long as everything uses
+				 * depth tests, we'll get away with it. - CIM */
 				Entity *e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
 				if ([e isVisible])
 				{
@@ -4422,8 +4426,6 @@ static const OOMatrix	starboard_matrix =
 			}
 			
 			v_status = [player status];
-			
-			[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 			
 			OOCheckOpenGLErrors(@"Universe before doing anything");
 			
@@ -4453,6 +4455,8 @@ static const OOMatrix	starboard_matrix =
 				float   aspect = viewSize.height/viewSize.width;
 				
 				OOGL(glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane));
+				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
+
 
 				OOGL(glLoadIdentity());	// reset matrix
 			
