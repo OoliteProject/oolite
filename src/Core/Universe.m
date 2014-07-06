@@ -4402,7 +4402,9 @@ static const OOMatrix	starboard_matrix =
 			PlayerEntity	*player = PLAYER;
 			Entity			*drawthing = nil;
 			BOOL			demoShipMode = [player showDemoShips];
-			
+			NSSize  viewSize = [gameView viewSize];
+			float   aspect = viewSize.height/viewSize.width;
+
 			if (!displayGUI && wasDisplayGUI)
 			{
 				// reset light1 position for the shaders
@@ -4447,14 +4449,9 @@ static const OOMatrix	starboard_matrix =
 
 			for (vdist=0;vdist<=1;vdist++)
 			{
-
-				// slight overlap between boxes to avoid planet
-				// rendering problems
-				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH - 2000.0;
+				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
-				NSSize  viewSize = [gameView viewSize];
 				float   ratio = 0.5 * nearPlane;
-				float   aspect = viewSize.height/viewSize.width;
 				
 				OOGL(glMatrixMode(GL_PROJECTION));
 				OOGL(glLoadIdentity());	// reset matrix
@@ -4694,6 +4691,15 @@ static const OOMatrix	starboard_matrix =
 			}
 			
 
+			/* Reset for HUD drawing */
+			OOGL(glMatrixMode(GL_PROJECTION));
+			OOGL(glLoadIdentity());	// reset matrix
+			OOGL(glFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH));
+			OOGL(glMatrixMode(GL_MODELVIEW));
+
+			OOCheckOpenGLErrors(@"Universe after drawing entities");
+			OOLog(@"universe.profile.draw",@"Begin HUD");
+			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
 			if (EXPECT(!displayGUI || demoShipMode))
 			{
 				if (!bpHide && cachedSun)
@@ -4702,10 +4708,6 @@ static const OOMatrix	starboard_matrix =
 					[cachedSun drawStarGlare];
 				}
 			}
-
-			OOCheckOpenGLErrors(@"Universe after drawing entities");
-			OOLog(@"universe.profile.draw",@"Begin HUD");
-			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
 
 			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
 			if (lineWidth < 1.0)  lineWidth = 1.0;
