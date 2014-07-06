@@ -37,6 +37,7 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
+#import "OOOpenGLMatrixManager.h"
 
 
 static NSMutableDictionary		*sShaderCache = nil;
@@ -58,6 +59,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 							 key:(NSString *)key;
 
 - (void) bindAttributes:(NSDictionary *)attributeBindings;
+- (void) bindStandardMatrixUniforms;
 
 @end
 
@@ -163,6 +165,10 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	{
 		[sShaderCache removeObjectForKey:key];
 		[key release];
+	}
+	
+	if (standardMatrixUniformLocations != nil) {
+		[standardMatrixUniformLocations release];
 	}
 	
 	OOGL(glDeleteObjectARB(program));
@@ -296,6 +302,8 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	self = [super init];
 	if (self == nil)  OK = NO;
 	
+	standardMatrixUniformLocations = nil;
+	
 	if (OK && vertexSource == nil && fragmentSource == nil)  OK = NO;	// Must have at least one shader!
 	
 	if (OK && prefixString != nil)
@@ -357,7 +365,12 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	if (vertexShader != NULL_SHADER)  OOGL(glDeleteObjectARB(vertexShader));
 	if (fragmentShader != NULL_SHADER)  OOGL(glDeleteObjectARB(fragmentShader));
 	
-	if (!OK)
+	if (OK)
+	{
+		OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+		standardMatrixUniformLocations = [matrixManager standardMatrixUniformLocations: program];
+	}
+	else
 	{
 		if (self != nil && program != NULL_SHADER)
 		{
@@ -384,6 +397,29 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));
 	}
 }
+
+- (void) bindStandardMatrixUniforms
+{
+	if (standardMatrixUniformLocations != nil)
+	{
+		OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+		NSEnumerator *enumerator = [standardMatrixUniformLocations objectEnumerator];
+		id obj;
+		NSArray *pair;
+		
+		while ((obj = [enumerator nextObject]))
+		{
+			if ([obj isKindOfClass:[NSArray class]])
+			{
+				pair = (NSArray*)obj;
+				GLUniformMatrix([[pair objectAtIndex: 0] intValue], [matrixManager getMatrix: [[pair objectAtIndex: 1] intValue]]);
+			}
+		}
+	}
+	return;
+}
+
+
 
 @end
 

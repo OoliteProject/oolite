@@ -227,17 +227,20 @@ static const GLfloat kLaserVertices[] =
 		};
 	
 	OOGL(glColor4fv(_color));
-	glScaled(kLaserHalfWidth, kLaserHalfWidth, _range);
+	[matrixManager scaleModelView: make_vector(kLaserHalfWidth, kLaserHalfWidth, _range)];
+	[matrixManager syncModelView];
 	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
 	glDrawArrays(GL_QUADS, 0, 8);
 	
-	glScaled(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0);
+	[matrixManager scaleModelView: make_vector(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0)];
+	[matrixManager syncModelView];
 	OOGL(glColor4f(1.0,1.0,1.0,0.9));
 	glDrawArrays(GL_QUADS, 0, 8);
 
 	[[self texture2] apply];
-	glScaled(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0);
+	[matrixManager scaleModelView: make_vector(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0)];
+	[matrixManager syncModelView];
 	OOGL(glColor4f(_color[0],_color[1],_color[2],0.9));
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
 	glDrawArrays(GL_QUADS, 0, 8);

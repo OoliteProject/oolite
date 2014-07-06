@@ -31,7 +31,16 @@ const NSString *ooliteStandardMatrixUniforms[] =
 	@"ooliteModelView",
 	@"ooliteProjection",
 	@"ooliteModelViewProjection",
-	@"ooliteNormalMatrix"
+	@"ooliteNormalMatrix",
+	@"ooliteModelViewInverse",
+	@"ooliteProjectionInverse",
+	@"ooliteModelViewProjectionInverse",
+	@"ooliteModelViewTranspose",
+	@"ooliteProjectionTracnspose",
+	@"ooliteModelViewProjectionTranspose",
+	@"ooliteModelViewInverseTraspose",
+	@"ooliteProjectionInverseTranspose",
+	@"ooliteModelViewProjectionInverseTranspose"
 };
 
 static OOOpenGLMatrixManager * sharedMatrixManager = nil;
@@ -389,6 +398,25 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 	}
 	valid[which] = YES;
 	return matrices[which];
+}
+
+- (NSArray*) standardMatrixUniformLocations: (GLuint) program
+{
+	GLint location;
+	int i;
+	NSMutableArray *locationSet = [[[NSMutableArray alloc] init] autorelease];
+	
+	for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
+		location = glGetUniformLocationARB(program, [ooliteStandardMatrixUniforms[i] UTF8String]);
+		if (location >= 0) {
+			[locationSet addObject:
+				[NSArray arrayWithObjects:
+					[NSNumber numberWithInt: location],
+					[NSNumber numberWithInt: i],
+					nil]];
+		}
+	}
+	return [NSArray arrayWithArray: locationSet];
 }
 
 @end

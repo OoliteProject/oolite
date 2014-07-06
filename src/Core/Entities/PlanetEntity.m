@@ -980,14 +980,12 @@ static const BaseFace kTexturedFaces[][3] =
 
 	if (atmosphere)
 	{
-		[matrixManager popModelView];
-		[matrixManager pushModelView];
-		[matrixManager syncModelView];
-		//OOGL(glPopMatrix());	// get old draw matrix back
-		//OOGL(glPushMatrix());	// and store it again
-		OOGL(glTranslatef(cameraRelativePosition.x,cameraRelativePosition.y,cameraRelativePosition.z)); // centre on the planet
+		[matrixManager popModelView];	// get old draw matrix back
+		[matrixManager pushModelView];	// and store it again
+		[matrixManager translateModelView: cameraRelativePosition]; // centre on the planet
 		// rotate
-//		GLMultOOMatrix([atmosphere rotationMatrix]);
+//		[matrixManager multModelView: [atmosphere rotationMatrix]];
+		[matrixManager syncModelView];
 		// draw atmosphere entity
 		[atmosphere drawImmediate:false translucent:false];
 	}

@@ -933,14 +933,6 @@ static NSMutableArray *sMessageStack;
 	OOGL(glClearDepth(MAX_CLEAR_DEPTH));
 	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
 	
-	[matrixManager resetProjection];
-	[matrixManager syncProjection];
-	OOGL(glLoadIdentity());
-	OOGL(glOrtho(0.0f, 640.0f, 480.0f, 0.0f, -1.0f, 1.0f));
-	[matrixManager orthoLeft: 0.0 right: 640 bottom: 480.0f top: 0.0 near: -1.0 far: 1.0];
-	OOLog(@"kja", @"Projection matrix: %@", OOMatrixDescription([matrixManager getProjection]));
-	OOLog(@"kja", @"OpenGL Projection matrix: %@", OOMatrixDescription(OOMatrixLoadGLMatrix(GL_PROJECTION_MATRIX)));
-
 	[matrixManager resetProjection]; // reset matrix
 	[matrixManager frustumLeft:-ratio right:ratio bottom: -aspect*ratio top: aspect*ratio near: 1.0 far: MAX_CLEAR_DEPTH];	// set projection matrix
 	[matrixManager syncProjection];

@@ -94,8 +94,7 @@ SOFTWARE.
 	[matrixManager pushProjection];
 	
 	OOGL(glViewport(0, 0, _size, _size));
-	[matrixManager scaleProjection: make_vector(-1.0, 1.0, 1.0)];
-	OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
+	[matrixManager scaleProjection: make_vector(-1.0, 1.0, 1.0)]; // flip left and right
 	
 	/*	TODO: once confirmed working (and rendering everything in the right
 		orientation), replace with glLoadMatrix and the following:
@@ -108,11 +107,7 @@ SOFTWARE.
 	*/
 	
 	[matrixManager resetProjection];
-	OOGL(glLoadIdentity());
-	OOGL(gluPerspective(90.0, 1.0, 1.0, MAX_CLEAR_DEPTH));
 	[matrixManager perspectiveFovy: 90.0 aspect: 1.0 zNear: 1.0 zFar: MAX_CLEAR_DEPTH];
-	OOLog(@"kja", @"Projection matrix: %@", OOMatrixDescription([matrixManager getProjection]));
-	OOLog(@"kja", @"OpenGL Projection matrix: %@", OOMatrixDescription(OOMatrixLoadGLMatrix(GL_PROJECTION_MATRIX)));
 	
 	OODrawable *sky = [[UNIVERSE nearestEntityMatchingPredicate:HasClassPredicate parameter:[SkyEntity class] relativeToEntity:nil] drawable];
 	OOSunEntity *sun = [UNIVERSE sun];

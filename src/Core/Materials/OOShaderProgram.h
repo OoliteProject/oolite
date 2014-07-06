@@ -42,6 +42,7 @@ SOFTWARE.
 @private
 	GLhandleARB						program;
 	NSString						*key;
+	NSArray							*standardMatrixUniformLocations;
 }
 
 + (id) shaderProgramWithVertexShader:(NSString *)vertexShaderSource
