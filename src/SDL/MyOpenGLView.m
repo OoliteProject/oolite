@@ -1774,7 +1774,6 @@ keys[a] = NO; keys[b] = NO; \
 			{
 				SDL_ResizeEvent *rsevt=(SDL_ResizeEvent *)&event;
 				NSSize newSize=NSMakeSize(rsevt->w, rsevt->h);
-				[self initialiseGLWithSize: newSize];
 #if OOLITE_WINDOWS
 				if (!fullScreen && updateContext)
 				{
@@ -1786,10 +1785,12 @@ keys[a] = NO; keys[b] = NO; \
 					}
 					else
 					{
+						[self initialiseGLWithSize: newSize];
 						[self saveWindowSize: newSize];
 					}
 				}
 #else
+				[self initialiseGLWithSize: newSize];
 				[self saveWindowSize: newSize];
 #endif
 				// certain gui screens will require an immediate redraw after
