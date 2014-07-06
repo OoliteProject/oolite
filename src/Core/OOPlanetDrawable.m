@@ -207,7 +207,7 @@
 	if (_isAtmosphere)
 	{
 		OOGL(glEnable(GL_BLEND));
-//		OOGL(glDisable(GL_DEPTH_TEST));
+		OOGL(glDisable(GL_DEPTH_TEST));
 		OOGL(glDepthMask(GL_FALSE));
 	}
 	else

@@ -503,6 +503,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	}
 
+#if 0
+	// still gives depth buffer problems at long ranges
+	// switching back to this? Don't forget to comment out
+	// OOGL(glDisable(GL_DEPTH_TEST)); in OOPlanetDrawable
+
 	if (translucent)
 	{
 		if (_atmosphereDrawable != nil)
@@ -514,6 +519,14 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		[_planetDrawable renderOpaqueParts];
 	}
+#else
+	// cheat and render atmosphere on opaque pass
+	[_planetDrawable renderOpaqueParts];
+	if (_atmosphereDrawable != nil)
+	{
+		[_atmosphereDrawable renderTranslucentParts];
+	}
+#endif
 
 	
 	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
