@@ -186,6 +186,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		[sActiveProgram release];
 		sActiveProgram = [self retain];
 		OOGL(glUseProgramObjectARB(program));
+		[self bindStandardMatrixUniforms];
 	}
 }
 
@@ -407,6 +408,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		id obj;
 		NSArray *pair;
 		
+		[matrixManager syncModelView];
 		while ((obj = [enumerator nextObject]))
 		{
 			if ([obj isKindOfClass:[NSArray class]])

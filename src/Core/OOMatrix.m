@@ -328,7 +328,6 @@ OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B)
 			OOMatrixColumnOperation(&A, j, 1, i, -A.m[i][j]);
 		}
 	}
-	OOLog( @"kja", @"A: %@", OOMatrixDescription( A ) );
 	for (i = 3; i > 0; i--)
 	{
 		for (j = 0; j < i; j++)

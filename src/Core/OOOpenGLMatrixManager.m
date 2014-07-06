@@ -26,21 +26,21 @@ MA 02110-1301, USA.
 
 #import "OOOpenGLMatrixManager.h"
 
-const NSString *ooliteStandardMatrixUniforms[] =
+const char* ooliteStandardMatrixUniforms[] =
 {
-	@"ooliteModelView",
-	@"ooliteProjection",
-	@"ooliteModelViewProjection",
-	@"ooliteNormalMatrix",
-	@"ooliteModelViewInverse",
-	@"ooliteProjectionInverse",
-	@"ooliteModelViewProjectionInverse",
-	@"ooliteModelViewTranspose",
-	@"ooliteProjectionTracnspose",
-	@"ooliteModelViewProjectionTranspose",
-	@"ooliteModelViewInverseTraspose",
-	@"ooliteProjectionInverseTranspose",
-	@"ooliteModelViewProjectionInverseTranspose"
+	"ooliteModelView",
+	"ooliteProjection",
+	"ooliteModelViewProjection",
+	"ooliteNormalMatrix",
+	"ooliteModelViewInverse",
+	"ooliteProjectionInverse",
+	"ooliteModelViewProjectionInverse",
+	"ooliteModelViewTranspose",
+	"ooliteProjectionTracnspose",
+	"ooliteModelViewProjectionTranspose",
+	"ooliteModelViewInverseTraspose",
+	"ooliteProjectionInverseTranspose",
+	"ooliteModelViewProjectionInverseTranspose"
 };
 
 static OOOpenGLMatrixManager * sharedMatrixManager = nil;
@@ -205,7 +205,6 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 	Vector z = vector_normal(vector_subtract(eye, center));
 	Vector x = vector_normal(cross_product(up, z));
 	Vector y = cross_product(z, x);
-	OOLog( @"kja",@"x:{%g,%g,%g} y:{%g,%g,%g} z:{%g,%g,%g}", x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z);
 	OOMatrix m1 = OOMatrixConstruct
 	(
 		x.x + eye.x,	x.y + eye.y,	x.z + eye.z,	1.0,
@@ -407,7 +406,7 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 	NSMutableArray *locationSet = [[[NSMutableArray alloc] init] autorelease];
 	
 	for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
-		location = glGetUniformLocationARB(program, [ooliteStandardMatrixUniforms[i] UTF8String]);
+		location = glGetUniformLocationARB(program, ooliteStandardMatrixUniforms[i]);
 		if (location >= 0) {
 			[locationSet addObject:
 				[NSArray arrayWithObjects:
@@ -416,7 +415,7 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 					nil]];
 		}
 	}
-	return [NSArray arrayWithArray: locationSet];
+	return [[NSArray arrayWithArray: locationSet] retain];
 }
 
 @end

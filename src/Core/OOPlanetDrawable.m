@@ -217,12 +217,12 @@
 		OOGL(glDisable(GL_BLEND));
 	}
 	
-	[_material apply];
-	
 	// Scale the ball.
 	[matrixManager pushModelView];
 	[matrixManager multModelView: _transform];
 	[matrixManager syncModelView];
+	
+	[_material apply];
 	
 	OOGL(glEnable(GL_LIGHTING));
 	OOGL(glEnable(GL_TEXTURE_2D));

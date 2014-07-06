@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #import "OOMaths.h"
 
-extern const NSString *ooliteStandardMatrixUniforms[];
+extern const char* ooliteStandardMatrixUniforms[];
 
 enum
 {
