@@ -120,20 +120,19 @@ uniform sampler2D		uNormalMap;
 #endif
 #endif
 
-varying vec3			vNormal;
+// No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
 varying vec2			vTexCoords;
 varying vec3			vLight1Vector;
 varying vec3			vCoords;
-varying mat3			vTBN;
 
 
 vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
 {
-	float LdotN = dot(vNormal, lightVector);
+	float LdotN = lightVector.z;
 	
 #if USE_NORMAL_MAP
-	float globalTerm = dot(normalize(mix(vNormal, normal, kHarshShadowFactor)), lightVector);
+	float globalTerm = dot(normalize(mix(vec3(0.0, 0.0, 1.0), normal, kHarshShadowFactor)), lightVector);
 #else
 	float globalTerm = LdotN;
 #endif
@@ -163,8 +162,8 @@ vec3 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 		If N is (0,0,1), this becomes (I.x,I.y,-I.z).
 		Note that we want it negated as per above.
 	*/
-	vec3 reflection = -reflect(lightVector, vNormal);
-	float NdotE = dot(vNormal, eyeVector);
+	vec3 reflection = vec3(-lightVector.x, -lightVector.y, lightVector.z);
+	float NdotE = eyeVector.z;
 #endif
 	
 	float RdotE = max(dot(reflection, eyeVector), 0.0);
@@ -178,7 +177,6 @@ vec3 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 	
 	return lightColor * intensity;
 }
-
 
 
 /*	Approximation of atan(y/z) with quadrant rectification, scaled to -0.5..0.5 instead of -pi..pi.
@@ -203,7 +201,6 @@ float TexLongitude(float z, float y)
 }
 
 
-
 void main()
 {
 	vec3 totalColor = vec3(0);
@@ -224,9 +221,9 @@ void main()
 #else
 	vec4 normalMapSample = texture2D(uNormalMap, texCoords);
 #endif
-	vec3 normal = vTBN * normalize(normalMapSample.xyz - vec3(0.5));
+	vec3 normal = normalize(normalMapSample.xyz - vec3(0.5));
 #else
-	vec3 normal = vNormal;
+	vec3 normal = vec3(0, 0, 1);
 #endif
 	
 	// Diffuse light
@@ -243,7 +240,7 @@ void main()
 	
 	// Ambient light, biased towards blue.
 	vec3 ambientColor = diffuseColor;
-#if !OOSTD_HARSH_MISTRESS
+#if !OO_REDUCED_COMPLEXITY && !OOSTD_HARSH_MISTRESS
 	ambientColor *= vec3(0.8, 0.8, 1.0);
 #endif
 	totalColor += AMBIENT_LIGHT * ambientColor;
