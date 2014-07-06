@@ -1295,6 +1295,24 @@ static OOOXZManager *sSingleton = nil;
 	[_fileWriter writeData:data];
 	_downloadProgress += [data length];
 	[self gui]; // update GUI
+#if OOLITE_WINDOWS
+	/* Irritating fix to issue https://github.com/OoliteProject/oolite/issues/95
+	 *
+	 * The problem is that on MINGW, GNUStep makes all socket streams
+	 * blocking, which causes problems with the run loop. Calling this
+	 * method of the run loop forces it to execute all already
+	 * scheduled items with a time in the past, before any more items
+	 * are placed on it, which means that the main game update gets a
+	 * chance to run.
+	 *
+	 * This stops the interface freezing - and Oolite appearing to
+	 * have stopped responding to the OS - when downloading large
+	 * (>20Mb) OXZ files.
+	 *
+	 * CIM 6 July 2014
+	 */
+	[[NSRunLoop currentRunLoop] limitDateForMode:NSDefaultRunLoopMode];
+#endif
 }
 
 
