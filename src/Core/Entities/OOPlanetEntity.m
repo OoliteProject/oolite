@@ -486,7 +486,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
+	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
 	
 	if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:([self radius] + ATMOSPHERE_DEPTH)])
@@ -502,14 +502,19 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_planetDrawable calculateLevelOfDetailForViewDistance:cam_zero_distance];
 		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	}
-	
-	[_planetDrawable renderOpaqueParts];
-//#if NEW_ATMOSPHERE
-	if (_atmosphereDrawable != nil)
+
+	if (translucent)
 	{
-		[_atmosphereDrawable renderOpaqueParts];
+		if (_atmosphereDrawable != nil)
+		{
+			[_atmosphereDrawable renderTranslucentParts];
+		}
 	}
-//#endif
+	else
+	{
+		[_planetDrawable renderOpaqueParts];
+	}
+
 	
 	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
 }

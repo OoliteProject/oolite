@@ -4417,7 +4417,8 @@ static const OOMatrix	starboard_matrix =
 				/* BUG: this list is ordered nearest to furthest from
 				 * the player, and we just assume that the camera is
 				 * on/near the player. So long as everything uses
-				 * depth tests, we'll get away with it. - CIM */
+				 * depth tests, we'll get away with it; it'll just
+				 * occasionally be inefficient. - CIM */
 				Entity *e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
 				if ([e isVisible])
 				{
@@ -4446,17 +4447,21 @@ static const OOMatrix	starboard_matrix =
 
 			for (vdist=0;vdist<=1;vdist++)
 			{
-				OOGL(glClear(GL_DEPTH_BUFFER_BIT));
 
-				float   nearPlane = vdist ? 1.0 : 50000.0;
-				float   farPlane = vdist ? MAX_CLEAR_DEPTH : 50000.0;
-				NSSize  viewSize = [gameView currentScreenSize];
+				// slight overlap between boxes to avoid planet
+				// rendering problems
+				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH - 2000.0;
+				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
+				NSSize  viewSize = [gameView viewSize];
 				float   ratio = 0.5 * nearPlane;
 				float   aspect = viewSize.height/viewSize.width;
 				
+				OOGL(glMatrixMode(GL_PROJECTION));
+				OOGL(glLoadIdentity());	// reset matrix
 				OOGL(glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane));
-				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
+				OOGL(glMatrixMode(GL_MODELVIEW));
 
+				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 
 				OOGL(glLoadIdentity());	// reset matrix
 			
@@ -4465,7 +4470,7 @@ static const OOMatrix	starboard_matrix =
 				// HACK BUSTED
 				OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
 				OOGL(glPushMatrix()); // save this flat viewpoint
-			
+
 				/* OpenGL viewpoints: 
 				 *
 				 * Oolite used to transform the viewpoint by the inverse of the
@@ -4488,8 +4493,13 @@ static const OOMatrix	starboard_matrix =
 				// If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
 				if (displayGUI)  [gui drawGUIBackground];
 			
-				OOSetOpenGLState(OPENGL_STATE_OPAQUE);  // FIXME: should be redundant.
-			
+				OOSetOpenGLState(OPENGL_STATE_OPAQUE); 
+				// clearing the depth buffer waits until we've set
+				// STATE_OPAQUE so that depth writes are definitely
+				// available.
+				OOGL(glClear(GL_DEPTH_BUFFER_BIT));
+		
+
 				// Set up view transformation matrix
 				OOMatrix flipMatrix = kIdentityMatrix;
 				flipMatrix.m[2][2] = -1;
@@ -4554,8 +4564,10 @@ static const OOMatrix	starboard_matrix =
 						OOEntityStatus d_status = [drawthing status];
 					
 						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
-						if (vdist == 1 && [drawthing isSky]) continue;
-					
+						if (vdist == 1 && [drawthing cameraRangeFront] > farPlane*1.5) continue;
+						if (vdist == 0 && [drawthing cameraRangeBack] < nearPlane) continue;
+//						if (vdist == 1 && [drawthing isPlanet]) continue;
+
 						if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either demo ship mode or in flight
 						{
 							// reset material properties
@@ -4622,6 +4634,11 @@ static const OOMatrix	starboard_matrix =
 						OOEntityStatus d_status = [drawthing status];
 					
 						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
+						if (vdist == 1 && [drawthing cameraRangeFront] > farPlane*1.5) continue;
+						if (vdist == 0 && [drawthing cameraRangeBack] < nearPlane) continue;
+						// temporary fix for atmosphere bug
+//						if (vdist == 1 && [drawthing isPlanet]) continue;
+
 					
 						if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either in flight or in demo ship mode
 						{
