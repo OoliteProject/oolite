@@ -240,7 +240,7 @@ void main()
 	
 	// Ambient light, biased towards blue.
 	vec3 ambientColor = diffuseColor;
-#if !OO_REDUCED_COMPLEXITY && !OOSTD_HARSH_MISTRESS
+#if !OOSTD_HARSH_MISTRESS
 	ambientColor *= vec3(0.8, 0.8, 1.0);
 #endif
 	totalColor += AMBIENT_LIGHT * ambientColor;
