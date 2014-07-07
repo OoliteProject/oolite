@@ -503,30 +503,35 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	}
 
-#if 0
-	// still gives depth buffer problems at long ranges
-	// switching back to this? Don't forget to comment out
-	// OOGL(glDisable(GL_DEPTH_TEST)); in OOPlanetDrawable
-
-	if (translucent)
+	// 500km squared
+	if (magnitude2(cameraRelativePosition) > 250000000000.0) 
 	{
+		/* at this distance the atmosphere is too close to the planet
+		 * for a 24-bit depth buffer to reliably distinguish the two,
+		 * so cheat and draw the atmosphere on the opaque pass: it's
+		 * far enough away that painter's algorithm should do fine */
+		[_planetDrawable renderOpaqueParts];
 		if (_atmosphereDrawable != nil)
 		{
-			[_atmosphereDrawable renderTranslucentParts];
+			[_atmosphereDrawable renderTranslucentPartsOnOpaquePass];
 		}
 	}
-	else
+	else 
 	{
-		[_planetDrawable renderOpaqueParts];
+		/* At close range we can do this properly and draw the
+		 * atmosphere on the transparent pass */
+		if (translucent)
+		{
+			if (_atmosphereDrawable != nil)
+			{
+				[_atmosphereDrawable renderTranslucentParts];
+			}
+		}
+		else
+		{
+			[_planetDrawable renderOpaqueParts];
+		}
 	}
-#else
-	// cheat and render atmosphere on opaque pass
-	[_planetDrawable renderOpaqueParts];
-	if (_atmosphereDrawable != nil)
-	{
-		[_atmosphereDrawable renderTranslucentParts];
-	}
-#endif
 
 	
 	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
