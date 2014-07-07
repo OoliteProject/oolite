@@ -411,7 +411,12 @@ this.PriorityAIController = function(ship)
 		// give a chance for missiles fired close to their target to
 		// hit before it can use ECM
 		var delay = (12-this.ship.accuracy)/4; // 0.5 - 4.25
-		var etimer = new Timer(this,function() { this.ship.fireECM() }.bind(this),delay);
+		var etimer = new Timer(this,function() { 
+			if (this.ship) 
+			{
+				this.ship.fireECM()
+			}
+		}.bind(this),delay);
 	}
 
 
@@ -440,8 +445,11 @@ this.PriorityAIController = function(ship)
 	/* Requests reconsideration of behaviour ahead of schedule. */
 	this.reconsiderNow = function() 
 	{
-		// 0.1 - 1.6 seconds depending on accuracy
-		_resetReconsideration.call(this,0.1+((10-this.ship.accuracy)/10));
+		if (this.ship && this.ship.accuracy !== undefined)
+		{
+			// 0.1 - 1.6 seconds depending on accuracy
+			_resetReconsideration.call(this,0.1+((10-this.ship.accuracy)/10));
+		}
 	}
 
 
@@ -5188,8 +5196,14 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackedWithMissil
 		this.fireECM();
 		this.ship.addDefenseTarget(missile);
 		this.ship.addDefenseTarget(whom);
-		// but don't reconsider immediately, because the ECM will
-		// probably get it
+		// but don't usually reconsider immediately, because the ECM
+		// will probably get it
+		if (!this.__cache.oolite_conditionInCombat)
+		{
+			// however, if the missile is the start of an attack,
+			// reconsider to start combat mode
+			this.reconsiderNow();
+		}
 	}
 	else
 	{
