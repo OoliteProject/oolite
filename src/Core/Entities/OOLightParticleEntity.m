@@ -130,7 +130,7 @@ static OOTexture *sBlobTexture = nil;
 	[matrixManager pushModelView];
 
 	[matrixManager translateModelView:HPVectorToVector(HPvector_subtract(abspos,[PLAYER viewpointPosition]))];	// move to camera-relative position	
-	GLLoadOOMatrix([matrixManager getModelView]);
+	[matrixManager syncModelView];
 	[self drawImmediate:immediate translucent:translucent];
 
 	[matrixManager loadModelView: temp_matrix];

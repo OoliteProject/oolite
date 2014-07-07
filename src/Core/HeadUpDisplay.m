@@ -3354,6 +3354,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	GLfloat			rs0 = rsize;
 	GLfloat			rs2 = rsize * 0.50;
 	
+	[matrixManager pushModelView];
 	hudRotateViewpointForVirtualDepth(player1,p1);
 
 	// draw the reticle
@@ -3524,6 +3525,7 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 
 	Vector	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
 
+	[matrixManager pushModelView];
 	hudRotateViewpointForVirtualDepth(player1,p1);
 	
 	// either close enough that single precision is fine or far enough
@@ -3583,8 +3585,6 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	Vector			v1 = vector_up_from_quaternion(back_q);
 	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 
-	[matrixManager pushModelView];
-	
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
 	switch ([UNIVERSE viewDirection])

@@ -39,7 +39,7 @@ SOFTWARE.
 #import "OOPlanetEntity.h"
 #import "OODrawable.h"
 #import "OOEntityFilterPredicate.h"
-#import "OOOpenGLMatrixManager"
+#import "OOOpenGLMatrixManager.h"
 
 
 #if OO_USE_FBO && OO_TEXTURE_CUBE_MAP

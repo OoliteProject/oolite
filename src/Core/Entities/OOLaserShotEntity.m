@@ -206,6 +206,8 @@ static const GLfloat kLaserVertices[] =
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[matrixManager pushModelView];
 	
+	[matrixManager scaleModelView: make_vector(kLaserHalfWidth, kLaserHalfWidth, _range)];
+	[matrixManager syncModelView];
 	[[self texture1] apply];
 	GLfloat s = sin([UNIVERSE getTime]);
 	GLfloat phase = s*(_range/200.0);
@@ -227,8 +229,6 @@ static const GLfloat kLaserVertices[] =
 		};
 	
 	OOGL(glColor4fv(_color));
-	[matrixManager scaleModelView: make_vector(kLaserHalfWidth, kLaserHalfWidth, _range)];
-	[matrixManager syncModelView];
 	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
 	glDrawArrays(GL_QUADS, 0, 8);
