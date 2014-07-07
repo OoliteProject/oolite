@@ -172,8 +172,13 @@ MA 02110-1301, USA.
 
 - (BOOL) oo_createDirectoryAtPath:(NSString *)path attributes:(NSDictionary *)attributes
 {
+#if OOLITE_WINDOWS
+	return [self createDirectoryAtPath:path attributes:attributes];
+#else
 	// has been in GNUStep since 2008, so it's probably safe to use now.
+	// .... why do I say things like that, of course it's not safe - CIM
 	return [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:attributes error:NULL];
+#endif
 }
 
 
