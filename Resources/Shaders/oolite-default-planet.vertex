@@ -38,7 +38,7 @@ void main(void)
 	
 	// Build tangent basis.
 	vec3 normal = normalize(ooliteNormalMatrix * gl_Normal);
-	vec3 binormal = cross(normal, ooliteNormalMatrix * vec3(0, 1, 0));
+	vec3 binormal = normalize(cross(normal, ooliteNormalMatrix * vec3(0, 1, 0)));
 	vec3 tangent = -cross(normal, binormal);
 	
 	mat3 TBN = mat3(tangent, binormal, normal);
