@@ -414,7 +414,14 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 			if ([obj isKindOfClass:[NSArray class]])
 			{
 				pair = (NSArray*)obj;
-				GLUniformMatrix([[pair objectAtIndex: 0] intValue], [matrixManager getMatrix: [[pair objectAtIndex: 1] intValue]]);
+				if ([[pair oo_stringAtIndex: 2] compare: @"mat3"] == 0)
+				{
+					GLUniformMatrix3([pair oo_intAtIndex: 0], [matrixManager getMatrix: [pair oo_intAtIndex: 1]]);
+				}
+				else
+				{
+					GLUniformMatrix([pair oo_intAtIndex: 0], [matrixManager getMatrix: [pair oo_intAtIndex: 1]]);
+				}
 			}
 		}
 	}

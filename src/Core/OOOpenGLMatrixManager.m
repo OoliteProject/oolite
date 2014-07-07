@@ -351,6 +351,7 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 {
 	if (which < 0 || which >= OOLITE_GL_MATRIX_END) return kIdentityMatrix;
 	if (valid[which]) return matrices[which];
+	OOScalar d;
 	switch(which)
 	{
 	case OOLITE_GL_MATRIX_MODELVIEW_PROJECTION:
@@ -365,7 +366,18 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 		matrices[which].m[1][3] = 0.0;
 		matrices[which].m[2][3] = 0.0;
 		matrices[which].m[3][3] = 1.0;
-		matrices[which] = OOMatrixTranspose(OOMatrixInverse(matrices[which]));
+		matrices[which] = OOMatrixTranspose(OOMatrixInverseWithDeterminant(matrices[which], &d));
+		if (d != 0.0)
+		{
+			d = pow(fabs(d), 1.0/3);
+			for (int i = 0; i < 3; i++)
+			{
+				for (int j = 0; j < 3; j++)
+				{
+					matrices[which].m[i][j] /= d;
+				}
+			}
+		}
 		break;
 	case OOLITE_GL_MATRIX_MODELVIEW_INVERSE:
 		matrices[which] = OOMatrixInverse(matrices[OOLITE_GL_MATRIX_MODELVIEW]);
@@ -402,17 +414,30 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 - (NSArray*) standardMatrixUniformLocations: (GLuint) program
 {
 	GLint location;
-	int i;
+	NSUInteger i;
 	NSMutableArray *locationSet = [[[NSMutableArray alloc] init] autorelease];
 	
 	for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
 		location = glGetUniformLocationARB(program, ooliteStandardMatrixUniforms[i]);
 		if (location >= 0) {
-			[locationSet addObject:
-				[NSArray arrayWithObjects:
-					[NSNumber numberWithInt: location],
-					[NSNumber numberWithInt: i],
-					nil]];
+			if (i == OOLITE_GL_MATRIX_NORMAL)
+			{
+				[locationSet addObject:
+					[NSArray arrayWithObjects:
+						[NSNumber numberWithInt: location],
+						[NSNumber numberWithInt: i],
+						@"mat3",
+						nil]];
+			}
+			else
+			{
+				[locationSet addObject:
+					[NSArray arrayWithObjects:
+						[NSNumber numberWithInt: location],
+						[NSNumber numberWithInt: i],
+						@"mat4",
+						nil]];
+			}
 		}
 	}
 	return [[NSArray arrayWithArray: locationSet] retain];

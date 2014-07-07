@@ -393,3 +393,77 @@ OOMatrix OOMatrixInverse(OOMatrix M)
 	return OOMatrixLeftTransform(M, kIdentityMatrix);
 }
 
+OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *d)
+{
+	int i, j;
+	OOMatrix B = kIdentityMatrix;
+	BOOL found;
+
+	*d = 1.0;
+	for (i = 0; i < 4; i++)
+	{
+		if (M.m[i][i] == 0.0)
+		{
+			found = NO;
+			for (j = i+1; j < 4; j++)
+			{
+				if (M.m[j][i] != 0.0)
+				{
+					found = YES;
+					OOMatrixRowSwap(&M,i,j);
+					OOMatrixRowSwap(&B,i,j);
+					*d *= -1;
+					break;
+				}
+			}
+			if (!found)
+			{
+				*d = 0.0;
+				return kZeroMatrix;
+			}
+		}
+		*d /= M.m[i][i];
+		OOMatrixRowScale(&B, i, 1/M.m[i][i]);
+		OOMatrixRowScale(&M, i, 1/M.m[i][i]);
+		for (j = i+1; j < 4; j++)
+		{
+			if (M.m[j][i] != 0.0)
+			{
+				OOMatrixRowOperation(&B, j, 1, i, -M.m[j][i]);
+				OOMatrixRowOperation(&M, j, 1, i, -M.m[j][i]);
+			}
+		}
+	}
+	for (i = 3; i > 0; i--)
+	{
+		for (j = 0; j < i; j++)
+		{
+			if (M.m[j][i] != 0.0)
+			{
+				OOMatrixRowOperation(&B, j, 1, i, -M.m[j][i]);
+				OOMatrixRowOperation(&M, j, 1, i, -M.m[j][i]);
+			}
+		}
+	}
+	return B;
+}
+
+#if OOMATHS_OPENGL_INTEGRATION
+
+void GLUniformMatrix3(int location, OOMatrix M)
+{
+	OOScalar m[9];
+	m[0] = M.m[0][0];
+	m[1] = M.m[0][1];
+	m[2] = M.m[0][2];
+	m[3] = M.m[1][0];
+	m[4] = M.m[1][1];
+	m[5] = M.m[1][2];
+	m[6] = M.m[2][0];
+	m[7] = M.m[2][1];
+	m[8] = M.m[2][2];
+	OOGL(glUniformMatrix3fvARB(location, 1, NO, m));
+}
+
+#endif
+

@@ -106,6 +106,7 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 #define GLMultTransposeOOMatrix(M) do { OOMatrix m_ = M; OOGL(glMultTransposeMatrixf(OOMatrixValuesForOpenGL(m_))); } while (0)
 #define GLLoadTransposeOOMatrix(M) do { OOMatrix m_ = M; OOGL(glLoadTransposeMatrixf(OOMatrixValuesForOpenGL(m_))); } while (0)
 #define GLUniformMatrix(location, M) do { OOGL(glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(M))); } while (0)
+void GLUniformMatrix3(GLint location, OOMatrix M);
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 #endif
@@ -135,14 +136,16 @@ void OOMatrixColumnOperation(OOMatrix *M, int column1, OOScalar factor1, int col
 
 // Transforms between square matrices
 
-// return matrix X such that XA = B, or zero matrix if X doesn't exist
+// return matrix X such that XA = B, or zero matrix if X doesn't exist.
 OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B);
-// return matrix X such that AX = B, or zero matrix if X doesn't exist
+// return matrix X such that AX = B, or zero matrix if X doesn't exist.
 OOMatrix OOMatrixRightTransform(OOMatrix A, OOMatrix B);
 
 // Matrix inversion
 
 OOMatrix OOMatrixInverse(OOMatrix M);
+// Inverts matrix returning determinant of inverse in 
+OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *determinant);
 
 /*** Only inline definitions beyond this point ***/
 
