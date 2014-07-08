@@ -5474,10 +5474,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		GLfloat eta = ((distance + 1) - desired_range) / (0.51 * flightSpeed * confidenceFactor);	// 2% safety margin assuming an average of half current speed
 		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
+		if (dockingInstructions != nil)
+		{
+			minTurnSpeedFactor /= 10.0;
+		}
+
 
 		if (((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor)) || (flightSpeed > max_flight_pitch * 5 * confidenceFactor * distance))
+		{
 			desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
-		
+		}
 
 		/* Flight correction block to prevent one possible form of
 		 * crashes in late docking process */
@@ -10056,7 +10062,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		have large trouble with reaching their destination. When those ships enter the slowdown range, they have almost no speed vector
 		in the direction of the target. I now used 95% of desired_range to aim at, but a smaller value might even be better. 
 	*/
-	if (range2 > desired_range2) max_cos = sqrt(1 - precision * desired_range2/range2);  // Head for a point within 95% of desired_range.
+	if (range2 > desired_range2) 
+	{
+		max_cos = sqrt(1 - precision * desired_range2/range2);  // Head for a point within 95% of desired_range.
+		// must also reduce min_d in this case
+		min_d = precision * desired_range2/range2;
+	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
@@ -10084,7 +10095,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
 	{
 
-		if (d_forward <= -max_cos)  // hack to avoid just flying away from the destination
+		if (d_forward <= -max_cos || (retreat && d_forward >= max_cos))  // hack to avoid just flying away from the destination
 		{
 			d_up = min_d * 2.0;
 		}
