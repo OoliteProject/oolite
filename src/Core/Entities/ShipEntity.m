@@ -5477,6 +5477,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (dockingInstructions != nil)
 		{
 			minTurnSpeedFactor /= 10.0;
+			if (minTurnSpeedFactor * maxFlightSpeed > 20.0)
+			{
+				minTurnSpeedFactor /= 10.0;
+			}
 		}
 
 
