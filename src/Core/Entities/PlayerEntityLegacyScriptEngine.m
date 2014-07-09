@@ -730,7 +730,26 @@ static BOOL sRunningScript = NO;
 			}
 			else if ([vars isKindOfClass:[NSArray class]])
 			{
-				[result2 addObject:vars];
+				BOOL found = NO;
+				NSArray *element = nil;
+				foreach (element, result2)
+				{
+					if ([[element oo_stringAtIndex:0] isEqualToString:[(NSArray*)vars oo_stringAtIndex:0]])
+					{
+
+						[result2 removeObject:element];
+						NSRange notTheHeader;
+						notTheHeader.location = 1;
+						notTheHeader.length = [(NSArray*)vars count]-1;
+						[result2 addObject:[element arrayByAddingObjectsFromArray:[(NSArray*)vars subarrayWithRange:notTheHeader]]];
+						found = YES;
+						break;
+					}
+				}
+				if (!found)
+				{
+					[result2 addObject:vars];
+				}
 			}
 		}
 	}

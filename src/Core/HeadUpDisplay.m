@@ -187,6 +187,8 @@ static const GLfloat black_color[4] =		{0.0, 0.0, 0.0, 1.0};
 static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 
 static float	sGlyphWidths[256];
+static float    sF6KernGovt;
+static float    sF6KernTL;
 static BOOL		_scannerUpdated;
 static BOOL		_compassUpdated;
 static BOOL 	hostiles;
@@ -3650,6 +3652,9 @@ static void InitTextEngine(void)
 									  lodBias:-0.75f];
 	[sFontTexture retain];
 	
+	sF6KernGovt = [fontSpec oo_floatForKey:@"f6KernGovernment" defaultValue:1.0];	
+	sF6KernTL = [fontSpec oo_floatForKey:@"f6KernTechLevel" defaultValue:2.0];
+
 	sEncodingCoverter = [[OOEncodingConverter alloc] initWithFontPList:fontSpec];
 	widths = [fontSpec oo_arrayForKey:@"widths"];
 	count = [widths count];
@@ -3827,22 +3832,18 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
-	
-	/* TODO: the modifications of cx here cause difficulties for fonts
-	 * with different number widths to the default font. Find an
-	 * alternative way to do this. - CIM: 14/06/2014 */
 
 	OOGLBEGIN(GL_QUADS);
 		glColor4f(ce1, 1.0f, 0.0f, 1.0f);
 		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
 		glColor3fv(&govcol[gov * 3]);
-		cx += drawCharacterQuad(gov, cx, y, z, siz) - 1.0f;		// charcters 0..7 are government symbols
+		cx += drawCharacterQuad(gov, cx, y, z, siz) - sF6KernGovt;		// charcters 0..7 are government symbols
 		glColor4f(0.5f, 1.0f, 1.0f, 1.0f);
 		if (tl > 9)
 		{
 			// display TL clamped between 1..16, this must be a '1'!
-			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - 2.0f;
+			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - sF6KernTL;
 		}
 		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2.0f, z, siz);
 	OOGLEND();

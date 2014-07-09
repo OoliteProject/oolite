@@ -13,6 +13,12 @@
 	encoding = "windows-latin-1";
 	texture = "oolite-font.png";
 	
+	/* Some fonts (including the default) may adjust the kerning on
+	 * the F6 screen slightly for better results. Units are the same
+	 * as the 'widths' parameter. */
+	"f6KernGovernment" = 1.0;
+	"f6KernTechLevel" = 2.0;
+
 	substitutions =
 	{
 		/*	This section specifies automatic string conversions. Some of these
