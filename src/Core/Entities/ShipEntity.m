@@ -10069,8 +10069,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (range2 > desired_range2) 
 	{
 		max_cos = sqrt(1 - precision * desired_range2/range2);  // Head for a point within 95% of desired_range.
-		// must also reduce min_d in this case
-		min_d = precision * desired_range2/range2;
+		if (max_cos >= 0.99999)
+		{
+			max_cos = 0.99999;
+		}
 	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
@@ -10102,7 +10104,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (d_forward <= -max_cos || (retreat && d_forward >= max_cos))  // hack to avoid just flying away from the destination
 		{
 			d_up = min_d * 2.0;
-		}
+		} 
 
 		if (d_up > min_d)
 		{
@@ -10141,6 +10143,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				stick_pitch = + max_flight_pitch * reverse * 0.125 * factor;
 			if (fabs(d_up) < fabs(stick_pitch) * delta_t) 
 				stick_pitch = fabs(d_up) / delta_t * (stick_pitch<0 ? -1 : 1); // don't overshoot heading
+		}
+
+		if (stick_pitch == 0.0)
+		{
+			// not sufficiently on course yet, but min_d is too high
+			// turn anyway slightly to adjust
+			stick_pitch = 0.01;
 		}
 	}
 
