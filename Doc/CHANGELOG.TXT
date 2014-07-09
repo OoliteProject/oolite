@@ -1,5 +1,10 @@
 Changes between Oolite 1.80 and Oolite 1.82:
 
+General:
+========
+* More AI improvements
+
+
 Expansion pack development:
 ===========================
 
@@ -9,9 +14,20 @@ General:
 * mission.setInstructions() can now take an array as its first
   parameter. The first element will be a heading on the manifest
   screen, with the remaining elements being mission entries.
+  If multiple entries have the same heading, they are grouped.
+
+
+Plists:
+-------
+* oolite-font.plist: new f6KernGovernment and f6KernTechLevel options
 
 
 
+Changes between Oolite 1.80 and Oolite 1.80.1:
+
+* Fix non-alphanumeric characters not being available on mission screen
+* Fix problem with large OXZ downloads on Windows
+* Fix some problems with docking of fast and fast-turning ships
 
 
 
