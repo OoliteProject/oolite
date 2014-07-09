@@ -2428,6 +2428,22 @@ PriorityAIController.prototype.conditionScannerContainsThargoidMothership = func
 }
 
 
+PriorityAIController.prototype.conditionScannerContainsTraderEnemy = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		return (s.primaryRole && this.shipInRoleCategory(s,"oolite-trader-dislike"));
+	});
+}
+
+
+PriorityAIController.prototype.conditionScannerContainsTraderSmugglerEnemy = function()
+{
+	return this.checkScannerWithPredicate(function(s) { 
+		return (s.primaryRole && this.shipInRoleCategory(s,"oolite-smuggler-dislike"));
+	});
+}
+
+
 PriorityAIController.prototype.conditionScannerContainsUnspreadMissile = function()
 {
 	if (!this.getParameter("oolite_flag_autoSpreadMissiles"))
