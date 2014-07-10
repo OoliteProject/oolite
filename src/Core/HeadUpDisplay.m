@@ -165,8 +165,6 @@ enum
 
 - (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon;
 
-- (void) checkMassLock;
-- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass;
 - (BOOL) checkPlayerInFlight;
 - (BOOL) checkPlayerInSystemFlight;
 
@@ -188,9 +186,7 @@ static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 static float	sGlyphWidths[256];
 static float    sF6KernGovt;
 static float    sF6KernTL;
-static BOOL		_scannerUpdated;
 static BOOL		_compassUpdated;
-static BOOL 	hostiles;
 
 
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
@@ -770,7 +766,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {	
 	z1 = [[UNIVERSE gameView] display_z];
 	// reset drawScanner flag.
-	_scannerUpdated = NO;
 	_compassUpdated = NO;
 	
 	// tight loop, we assume dialArray doesn't change in mid-draw.
@@ -788,9 +783,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[PLAYER doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:[NSNull null], OOStringFromCompassMode([PLAYER compassMode]), nil]];
 	}
 	
-	// We always need to check the mass lock status. It's normally checked inside drawScanner,
-	// but if drawScanner wasn't called, we can check mass lock explicitly.
-	if (!_scannerUpdated)  [self checkMassLock];
 }
 
 
@@ -1044,96 +1036,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) checkMassLock
-{	
-	if ([self checkPlayerInFlight])
-	{
-		int				i, scanClass, ent_count = UNIVERSE->n_entities;
-		Entity			**uni_entities	= UNIVERSE->sortedEntities;	// grab the public sorted list
-		Entity			*my_entities[ent_count];
-		Entity			*scannedEntity = nil;
-		BOOL			massLocked = NO;
-		
-		for (i = 0; i < ent_count; i++)
-		{
-			my_entities[i] = [uni_entities[i] retain];	// retained
-		}
-	
-		for (i = 0; i < ent_count && !massLocked; i++)
-		{
-			scannedEntity = my_entities[i];
-			scanClass = [scannedEntity scanClass];
-			
-			massLocked = [self checkEntityForMassLock:scannedEntity withScanClass:scanClass];
-		}
-		[PLAYER setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
-
-		for (i = 0; i < ent_count; i++)
-		{
-			[my_entities[i] release];	//	released
-		}
-	}
-}
-
-
-- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass
-{
-	BOOL massLocked = NO;
-	
-	if (EXPECT_NOT([ent isStellarObject]))
-	{
-		Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)ent;
-		if (EXPECT([stellar planetType] != STELLAR_TYPE_MINIATURE))
-		{
-			double dist = stellar->zero_distance;
-			double rad = stellar->collision_radius;
-			double factor = ([stellar isSun]) ? 2.0 : 4.0;
-			// plus ensure mass lock when 25 km or less from the surface of small stellar bodies
-			// dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
-			if (dist < rad*rad*factor || dist < rad*rad + 50000*rad + 625000000 ) 
-			{
-				massLocked = YES;
-			}
-		}
-	}
-	else if (scanClass != CLASS_NO_DRAW)
-	{
-		// cloaked ships do not mass lock!
-		if (EXPECT_NOT ([ent isShip] && [(ShipEntity *)ent isCloaked]))
-		{
-			scanClass = CLASS_NO_DRAW;
-		}
-	}
-
-	if (!massLocked && ent->zero_distance <= SCANNER_MAX_RANGE2)
-	{
-		switch (scanClass)
-		{
-			case CLASS_NO_DRAW:
-			case CLASS_PLAYER:
-			case CLASS_BUOY:
-			case CLASS_ROCK:
-			case CLASS_CARGO:
-			case CLASS_MINE:
-			case CLASS_VISUAL_EFFECT:
-				break;
-				
-			case CLASS_THARGOID:
-			case CLASS_MISSILE:
-			case CLASS_STATION:
-			case CLASS_POLICE:
-			case CLASS_MILITARY:
-			case CLASS_WORMHOLE:
-			default:
-				massLocked = YES;
-				break;
-		}
-	}
-	
-	return massLocked;
-}
-
-
 static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 {
 	data->x = [info oo_floatForKey:X_KEY defaultValue:NOT_DEFINED];
@@ -1149,9 +1051,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 
 - (void) drawScanner:(NSDictionary *)info
 {
-	//	if (_scannerUpdated)  return;		// there's never the need to draw the scanner twice per frame!
-	// apparently there are HUDs out there that do this. CIM 6/12/12
-	
 	int				i, x, y;
 	NSSize			siz;
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
@@ -1159,8 +1058,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	BOOL			emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
 		
 	BOOL			isHostile = NO;
-	BOOL			foundHostiles = NO;
-	BOOL			massLocked = NO;
 	
 	if (emptyDial)
 	{
@@ -1260,8 +1157,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				drawClass = CLASS_NO_DRAW;
 			}
 			
-			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:drawClass];	// we just need one masslocker..
-			
 			if (drawClass != CLASS_NO_DRAW)
 			{
 				GLfloat x1,y1,y2;
@@ -1276,6 +1171,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				GLfloat	act_dist = sqrt(scannedEntity->zero_distance);
 				GLfloat	lim_dist = act_dist - scannedEntity->collision_radius;
 				
+				// for efficiency, assume no scannable entity > 10km radius
+				if (act_dist > max_zoomed_range + 10000.0)
+					break;
+
 				if (lim_dist > max_zoomed_range)
 					continue;
 				
@@ -1335,30 +1234,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				// position the scanner
 				x1 += scanner_cx;   y1 += scanner_cy;   y2 += scanner_cy;
-				
-				switch (drawClass)
-				{
-					case CLASS_VISUAL_EFFECT:
-						break;
 
-					case CLASS_THARGOID:
-						foundHostiles = YES;
-						break;
-
-					case CLASS_ROCK:
-					case CLASS_CARGO:
-					case CLASS_MISSILE:
-					case CLASS_STATION:
-					case CLASS_BUOY:
-					case CLASS_POLICE:
-					case CLASS_MILITARY:
-					case CLASS_MINE:
-					case CLASS_WORMHOLE:
-					default:
-						foundHostiles |= isHostile;
-						break;
-				}
-				
 				if ([scannedEntity isShip])
 				{
 					ShipEntity* ship = (ShipEntity*)scannedEntity;
@@ -1447,18 +1323,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 			}
 		}
 		
-		[PLAYER setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
-		
-		[PLAYER setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
-		
-		if ((foundHostiles)&&(!hostiles))
-		{
-			hostiles = YES;
-		}
-		if ((!foundHostiles)&&(hostiles))
-		{
-			hostiles = NO;					// there are now no hostiles on scope, relax
-		}
 	}
 	
 	for (i = 0; i < ent_count; i++)
@@ -1468,7 +1332,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	
 	OOVerifyOpenGLState();
 	
-	_scannerUpdated = YES;
 }
 
 + (Vector) nonlinearScannerScale: (Vector) V Zoom:(GLfloat)zoom Scale:(double) scale
@@ -1966,21 +1829,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	labelled = [info oo_boolForKey:LABELLED_KEY defaultValue:YES];
 	if (n_bars > 8)  labelled = NO;
 	
-	// MKW - ensure we don't alert the player every time they use energy if they only have 1 energybank
-	//[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
-	if(EXPECT([self checkPlayerInFlight]))
-	{
-		if(n_bars > 1)
-		{
-			energyCritical = energy < 1.0 ;
-		}
-		else
-		{
-			energyCritical = energy < 0.8;
-		}
-		[player setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
-	}
-	
 	if (drawSurround)
 	{
 		// draw energy surround
@@ -2234,7 +2082,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 			SET_COLOR_LOW(green_color);
 	}
 
-	[PLAYER setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([self checkPlayerInFlight]))];
+	
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
@@ -2319,7 +2167,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
-	[PLAYER setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([self checkPlayerInFlight]))];
 }
 
 
