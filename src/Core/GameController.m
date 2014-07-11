@@ -922,7 +922,7 @@ static NSMutableArray *sMessageStack;
 - (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize
 {
 	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
-	OOOpenGLMatrixManager		*matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager		*matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;

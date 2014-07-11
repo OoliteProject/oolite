@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "OOMaths.h"
-#import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
 
 
 static void InitTrumbleSounds(void);
@@ -384,7 +384,7 @@ static void PlayTrumbleSqueal(void);
 	OOGL(glShadeModel(GL_SMOOTH));
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	[matrixManager pushModelView];
 	

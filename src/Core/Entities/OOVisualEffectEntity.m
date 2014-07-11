@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 
 #import "OOFilteringEnumerator.h"
 
-#import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
 
 @interface OOVisualEffectEntity (Private)
 
@@ -391,7 +391,7 @@ MA 02110-1301, USA.
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	if (cam_zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
 		return; // TOO FAR AWAY
@@ -645,7 +645,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent 
 {
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	if (no_draw_distance < cam_zero_distance)
 	{
 		return; // too far away to draw

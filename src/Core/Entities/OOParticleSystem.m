@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOLightParticleEntity.h"
 #import "OOMacroOpenGL.h"
-#import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
 
 
 //	Testing toy: cause particle systems to stop after half a second.
@@ -161,7 +161,7 @@ do { \
 	GLfloat		(*particleColor)[4] = _particleColor;
 	GLfloat		*particleSize = _particleSize;
 	
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	if ([UNIVERSE reducedDetail])
 	{

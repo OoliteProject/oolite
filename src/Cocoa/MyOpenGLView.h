@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 #import "OOMouseInteractionMode.h"
+#import "OOOpenGLMatrixManager.h"
 
 
 #define MAX_CLEAR_DEPTH		100000000.0
@@ -125,6 +126,9 @@ extern int debug;
 	
 	int					_virtualScreen;
 	NSData				*_pixelFormatAttributes;
+	
+	OOOpenGLMatrixManager		*matrixManager;
+
 }
 
 
@@ -179,6 +183,8 @@ extern int debug;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;
+
+- (OOOpenGLMatrixManager *) getOpenGLMatrixManager;
 
 #ifndef NDEBUG
 // General image-dumping methods.

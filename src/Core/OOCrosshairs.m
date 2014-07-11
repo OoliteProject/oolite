@@ -32,7 +32,6 @@ SOFTWARE.
 #import "Universe.h"
 #import "MyOpenGLView.h"
 #import "OOMacroOpenGL.h"
-#import "OOOpenGLMatrixManager.h"
 
 
 @interface OOCrosshairs (Private)
@@ -84,7 +83,7 @@ SOFTWARE.
 	{
 		OO_ENTER_OPENGL();
 		OOSetOpenGLState(OPENGL_STATE_OVERLAY);
-		OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+		OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 		
 		OOGL(glPushAttrib(GL_ENABLE_BIT));
 		OOGL(glDisable(GL_LIGHTING));

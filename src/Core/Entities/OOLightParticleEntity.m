@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOMacroOpenGL.h"
 #import "OOGraphicsResetManager.h"
-#import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
 
 
 #define PARTICLE_DISTANCE_SCALE_LOW		12.0
@@ -113,7 +113,7 @@ static OOTexture *sBlobTexture = nil;
 	Entity *father = [self owner];
 	Entity *last = nil;
 	HPVector abspos = position;
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	while (father != nil && father != last && father != NO_TARGET)
 	{

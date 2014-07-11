@@ -43,7 +43,6 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
 #import "OOGraphicsResetManager.h"
-#import "OOOpenGLMatrixManager.h"
 
 
 #if !OOLITE_MAC_OS_X
@@ -787,7 +786,7 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	double  drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	if (cam_zero_distance > 0.0)
 	{

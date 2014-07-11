@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
 
-#import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
 
 
 #define kLaserDuration		(0.09)	// seconds
@@ -193,7 +193,7 @@ static const GLfloat kLaserVertices[] =
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
 
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	

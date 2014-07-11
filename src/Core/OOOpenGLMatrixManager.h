@@ -70,7 +70,6 @@ enum
 
 - (id) init;
 - (void) dealloc;
-+ (OOOpenGLMatrixManager *) sharedOpenGLMatrixManager;
 - (void) loadModelView: (OOMatrix) matrix;
 - (void) resetModelView;
 - (void) multModelView: (OOMatrix) matrix;

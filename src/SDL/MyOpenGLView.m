@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OOCollectionExtractors.h" // for splash screen settings
 #import "OOFullScreenController.h"
-#import "OOOpenGLMatrixManager.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
@@ -171,6 +170,8 @@ MA 02110-1301, USA.
 			showSplashScreen = YES;
 		}
 	}
+
+	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
@@ -385,6 +386,11 @@ MA 02110-1301, USA.
 	}
 
 	SDL_Quit();
+
+	if (matrixManager)
+	{
+		[matrixManager release];
+	}
 
 	[super dealloc];
 }
@@ -612,7 +618,6 @@ MA 02110-1301, USA.
 	SDL_Rect			dest;
 
 	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
 
 	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] UTF8String]);
 
@@ -2033,6 +2038,11 @@ keys[a] = NO; keys[b] = NO; \
 - (float) gammaValue
 {
 	return _gamma;
+}
+
+- (OOOpenGLMatrixManager *) getOpenGLMatrixManager
+{
+	return matrixManager;
 }
 
 

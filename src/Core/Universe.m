@@ -4260,7 +4260,7 @@ static const OOMatrix	starboard_matrix =
 {
 	OOMatrix clip;
 	GLfloat   rt;
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [gameView getOpenGLMatrixManager];
 	
 	clip = [matrixManager getMatrix: OOLITE_GL_MATRIX_MODELVIEW_PROJECTION];
 	
@@ -4377,7 +4377,7 @@ static const OOMatrix	starboard_matrix =
 			PlayerEntity	*player = PLAYER;
 			Entity			*drawthing = nil;
 			BOOL			demoShipMode = [player showDemoShips];
-			OOOpenGLMatrixManager*	matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+			OOOpenGLMatrixManager*	matrixManager = [gameView getOpenGLMatrixManager];
 			
 			if (!displayGUI && wasDisplayGUI)
 			{

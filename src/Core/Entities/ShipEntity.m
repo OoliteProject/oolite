@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "OOExcludeObjectEnumerator.h"
 #import "OOWeakSet.h"
 #import "GameController.h"
+#import "MyOpenGLView.h"
 
 #import "OOCharacter.h"
 #import "AI.h"
@@ -90,9 +91,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOJSVector.h"
 #import "OOJSEngineTimeManagement.h"
-
-#import "OOOpenGLMatrixManager.h"
-
 
 #define USEMASC 1
 
@@ -5953,7 +5951,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		return; // TOO FAR AWAY
 	}
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	[matrixManager pushModelView];
 	

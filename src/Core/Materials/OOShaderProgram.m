@@ -37,7 +37,8 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
-#import "OOOpenGLMatrixManager.h"
+#import "Universe.h"
+#import "MyOpenGLView.h"
 
 
 static NSMutableDictionary		*sShaderCache = nil;
@@ -368,7 +369,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	
 	if (OK)
 	{
-		OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+		OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 		standardMatrixUniformLocations = [matrixManager standardMatrixUniformLocations: program];
 	}
 	else
@@ -403,7 +404,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 {
 	if (standardMatrixUniformLocations != nil)
 	{
-		OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+		OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 		NSEnumerator *enumerator = [standardMatrixUniformLocations objectEnumerator];
 		id obj;
 		NSArray *pair;

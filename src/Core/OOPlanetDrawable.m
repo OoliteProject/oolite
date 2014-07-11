@@ -33,7 +33,6 @@
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
-#import "OOOpenGLMatrixManager.h"
 
 #ifndef NDEBUG
 #import "Entity.h"
@@ -197,7 +196,7 @@
 	assert(_lod < kOOPlanetDataLevels);
 	
 	const OOPlanetDataLevel *data = &kPlanetData[_lod];
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	OO_ENTER_OPENGL();
 

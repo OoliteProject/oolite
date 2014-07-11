@@ -39,7 +39,6 @@ SOFTWARE.
 #import "OOPlanetEntity.h"
 #import "OODrawable.h"
 #import "OOEntityFilterPredicate.h"
-#import "OOOpenGLMatrixManager.h"
 
 
 #if OO_USE_FBO && OO_TEXTURE_CUBE_MAP
@@ -82,7 +81,7 @@ SOFTWARE.
 
 - (void) render
 {
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	if (_textureName == 0)  [self setUp];
 	
@@ -143,7 +142,7 @@ SOFTWARE.
 
 - (void) renderOnePassWithSky:(OODrawable *)sky sun:(OOSunEntity *)sun planets:(NSArray *)planets
 {
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	OO_ENTER_OPENGL();
 	
 	OOGL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));

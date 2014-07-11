@@ -45,7 +45,6 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOJoystickManager.h"
 #import "OOJavaScriptEngine.h"
-#import "OOOpenGLMatrixManager.h"
 
 
 #define ONE_SIXTEENTH				0.0625
@@ -1788,7 +1787,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 	OOGLEND();
 #else
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	[matrixManager pushModelView];
 	[matrixManager translateModelView: make_vector(x, y, z1)];
 	[matrixManager scaleModelView: make_vector(w, -h, 1.0f)];
@@ -2378,7 +2377,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 					  width:(GLfloat)width height:(GLfloat)height alpha:(GLfloat)alpha
 {
 	OOPolygonSprite *sprite = IconForMissileRole([missile primaryRole]);
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	if (selected)
 	{
@@ -2431,7 +2430,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 							width:(GLfloat)width height:(GLfloat)height alpha:(GLfloat)alpha
 {
 	OOPolygonSprite *sprite = IconForMissileRole(kDefaultMissileIconKey);
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	// Draw gray outline.
 	[matrixManager pushModelView];
@@ -3300,7 +3299,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	
 	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
 	
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 
 	if (target == nil || player1 == nil)  return;
 
@@ -3523,7 +3522,7 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 		return;
 	}
 	
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 
 	Vector	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
 
@@ -3585,7 +3584,7 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
@@ -4173,7 +4172,7 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	GLfloat oy = y - size.height * 0.5;
 	GLfloat width = size.width * (1.0f / 6.0f);
 	GLfloat height = size.height * (1.0f / 6.0f);
-	OOOpenGLMatrixManager *matrixManager = [OOOpenGLMatrixManager sharedOpenGLMatrixManager];
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	[matrixManager pushModelView];
 	[matrixManager translateModelView: make_vector(ox, oy, z)];

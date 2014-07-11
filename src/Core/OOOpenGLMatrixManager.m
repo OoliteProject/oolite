@@ -44,8 +44,6 @@ const char* ooliteStandardMatrixUniforms[] =
 	"ooliteModelViewProjectionInverseTranspose"
 };
 
-static OOOpenGLMatrixManager * sharedMatrixManager = nil;
-
 @implementation OOOpenGLMatrixStack
 
 - (id) init
@@ -145,15 +143,6 @@ static OOOpenGLMatrixManager * sharedMatrixManager = nil;
 		projectionStack = [[OOOpenGLMatrixStack alloc] init];
 	}
 	return self;
-}
-
-+ (OOOpenGLMatrixManager *) sharedOpenGLMatrixManager
-{
-	if (!sharedMatrixManager)
-	{
-		sharedMatrixManager = [[OOOpenGLMatrixManager alloc] init];
-	}
-	return sharedMatrixManager;
 }
 
 - (void) dealloc
