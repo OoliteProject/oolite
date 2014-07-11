@@ -126,6 +126,10 @@ static GLfloat		sBaseMass = 0.0;
 - (void) showGameOver;
 - (void) updateWormholes;
 
+- (void) updateAlertConditionForNearbyEntities;
+- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass;
+
+
 // Shopping
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
@@ -143,6 +147,8 @@ static GLfloat		sBaseMass = 0.0;
 - (OOFuelQuantity) fuelRequiredForJump;
 
 - (void) noteCompassLostTarget;
+
+
 
 @end
 
@@ -2597,7 +2603,8 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) updateMovementFlags{
+- (void) updateMovementFlags
+{
 	hasMoved = !HPvector_equal(position, lastPosition);
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
@@ -2605,8 +2612,133 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (void) updateAlertConditionForNearbyEntities
+{
+	if (![self isInSpace] || [self status] == STATUS_DOCKING)
+	{
+		[self clearAlertFlags];
+		// not needed while docked
+		return;
+	}
+
+	int				i, ent_count		= UNIVERSE->n_entities;
+	Entity			**uni_entities	= UNIVERSE->sortedEntities;	// grab the public sorted list
+	Entity			*my_entities[ent_count];
+	Entity			*scannedEntity = nil;
+	for (i = 0; i < ent_count; i++)
+	{
+		my_entities[i] = [uni_entities[i] retain];	// retained
+	}
+	BOOL massLocked = NO;
+	BOOL foundHostiles = NO;
+	for (i = 0; i < ent_count; i++)  // scanner lollypops
+	{
+		scannedEntity = my_entities[i];
+		if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2)
+		{
+			// list is sorted, and ships outside scanner range can't
+			// affect alert status
+			break;
+		}
+		int theirClass = [scannedEntity scanClass];
+		massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+		if (theirClass != CLASS_NO_DRAW)
+		{
+			if (theirClass == CLASS_THARGOID || [scannedEntity isCascadeWeapon])
+			{
+				foundHostiles = YES;
+			}
+			else if ([scannedEntity isShip])
+			{
+				ShipEntity *ship = (ShipEntity *)scannedEntity;
+				foundHostiles |= (([ship hasHostileTarget])&&([ship primaryTarget] == self));
+			}
+		}
+	}
+	[self setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
+		
+	[self setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
+
+	for (i = 0; i < ent_count; i++)
+	{
+		[my_entities[i] release];	//	released
+	}
+	
+	BOOL energyCritical = NO;
+	if (energy < 64 && energy < maxEnergy * 0.8)
+	{
+		energyCritical = YES;
+	}
+	[self setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
+
+	[self setAlertFlag:ALERT_FLAG_TEMP to:([self hullHeatLevel] > .90)];
+
+	[self setAlertFlag:ALERT_FLAG_ALT to:([self dialAltitude] < .10)];
+
+}
+
+
+- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)theirClass
+{
+	BOOL massLocked = NO;
+	
+	if (EXPECT_NOT([ent isStellarObject]))
+	{
+		Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)ent;
+		if (EXPECT([stellar planetType] != STELLAR_TYPE_MINIATURE))
+		{
+			double dist = stellar->zero_distance;
+			double rad = stellar->collision_radius;
+			double factor = ([stellar isSun]) ? 2.0 : 4.0;
+			// plus ensure mass lock when 25 km or less from the surface of small stellar bodies
+			// dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
+			if (dist < rad*rad*factor || dist < rad*rad + 50000*rad + 625000000 ) 
+			{
+				massLocked = YES;
+			}
+		}
+	}
+	else if (theirClass != CLASS_NO_DRAW)
+	{
+		// cloaked ships do not mass lock!
+		if (EXPECT_NOT ([ent isShip] && [(ShipEntity *)ent isCloaked]))
+		{
+			theirClass = CLASS_NO_DRAW;
+		}
+	}
+
+	if (!massLocked && ent->zero_distance <= SCANNER_MAX_RANGE2)
+	{
+		switch (theirClass)
+		{
+			case CLASS_NO_DRAW:
+			case CLASS_PLAYER:
+			case CLASS_BUOY:
+			case CLASS_ROCK:
+			case CLASS_CARGO:
+			case CLASS_MINE:
+			case CLASS_VISUAL_EFFECT:
+				break;
+				
+			case CLASS_THARGOID:
+			case CLASS_MISSILE:
+			case CLASS_STATION:
+			case CLASS_POLICE:
+			case CLASS_MILITARY:
+			case CLASS_WORMHOLE:
+			default:
+				massLocked = YES;
+				break;
+		}
+	}
+	
+	return massLocked;
+}
+
+
 - (void) updateAlertCondition
 {
+	[self updateAlertConditionForNearbyEntities];
 	/*	TODO: update alert condition once per frame. Tried this before, but
 		there turned out to be complications. See mailing list archive.
 		-- Ahruman 20070802
@@ -4722,9 +4854,14 @@ static GLfloat		sBaseMass = 0.0;
 	else
 	{
 		if (alertFlags != 0)
+		{
 			alertCondition = ALERT_CONDITION_YELLOW;
+		}
 		if (alertFlags > ALERT_FLAG_YELLOW_LIMIT)
+		{
 			alertCondition = ALERT_CONDITION_RED;
+			OOLog(@"alert.debug",@"Flags=%d",alertFlags);
+		}
 	}
 	if ((alertCondition == ALERT_CONDITION_RED)&&(old_alert_condition < ALERT_CONDITION_RED))
 	{

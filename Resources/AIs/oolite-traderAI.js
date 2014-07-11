@@ -37,6 +37,7 @@ this.aiStarted = function() {
 
 
 	var commsrole = "trader";
+	var cautionscan = ai.conditionScannerContainsTraderEnemy;
 	// same AI works for freighters, couriers and smugglers with minimal
 	// modification
 	if (this.ship.primaryRole == "trader-smuggler")
@@ -45,6 +46,7 @@ this.aiStarted = function() {
 		{
 			commsrole = "trader-smuggler";
 		}
+		cautionscan = ai.conditionScannerContainsTraderSmugglerEnemy;
 		ai.setParameter("oolite_flag_fleesPreemptively",true);
 	}
 	else if (this.ship.primaryRole == "trader-courier")
@@ -86,6 +88,20 @@ this.aiStarted = function() {
 			configuration: ai.configurationSetDestinationToNearestStation,
 			behaviour: ai.behaviourLeaveVicinityOfDestination,
 			reconsider: 20
+		},
+		{
+			// if not near a friendly station, move away from
+			// potentially hostile ships
+			condition: ai.conditionFriendlyStationNearby,
+			falsebranch: [
+				{
+					preconfiguration: ai.configurationCheckScanner,
+					condition: cautionscan,
+					configuration: ai.configurationAcquireScannedTarget,
+					behaviour: ai.behaviourLeaveVicinityOfTarget,
+					reconsider: 20
+				}
+			]
 		},
 		{
 			condition: ai.conditionCargoIsProfitableHere,
