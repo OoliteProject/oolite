@@ -8074,7 +8074,8 @@ static NSString *last_outfitting_key=nil;
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
-		tab_stops[1] = -380;
+		tab_stops[1] = -360;
+		tab_stops[2] = -480;
 		[gui setTabStops:tab_stops];
 		
 		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
@@ -8106,7 +8107,7 @@ static NSString *last_outfitting_key=nil;
 					[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				}
 				[gui setColor:[OOColor greenColor] forRow:row];
-				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @" <-- ", nil] forRow:row];
 				row++;
 			}
 			
@@ -8132,15 +8133,28 @@ static NSString *last_outfitting_key=nil;
 				
 				price *= priceFactor;  // increased prices at some stations
 				
+				NSUInteger installTime = [eqInfo installTime];
+				if (installTime == 0)
+				{
+					installTime = 600 + price;
+				}
 				// is this item damaged?
 				if ([self hasEquipmentItem:eq_key_damaged])
 				{
 					desc = [NSString stringWithFormat:DESC(@"equip-repair-@"), desc];
 					price /= 2.0;
+					installTime = [eqInfo repairTime];
+					if (installTime == 0)
+					{
+						installTime = 600 + price;
+					}
+
 					[gui setColor:[OOColor orangeColor] forRow:row];	// color repair items in orange
 				}
 				
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
+
+				NSString *timeString = [UNIVERSE shortTimeDescription:installTime];
 				
 				if ([eqKeyForSelectFacing isEqualToString:eqKey])
 				{
@@ -8188,7 +8202,7 @@ static NSString *last_outfitting_key=nil;
 						if (displayRow)	// Always true for the first pass. The first pass is used to display the name of the weapon being purchased.
 						{
 							[gui setKey:eqKey forRow:row];
-							[gui setArray:[NSArray arrayWithObjects:desc, (facing_count > 0 ? priceString : (NSString *)@""), nil] forRow:row];
+							[gui setArray:[NSArray arrayWithObjects:desc, (facing_count > 0 ? priceString : (NSString *)@""), timeString, nil] forRow:row];
 							row++;
 						}
 						facing_count++;
@@ -8198,7 +8212,7 @@ static NSString *last_outfitting_key=nil;
 				{
 					// Normal equipment list.
 					[gui setKey:eqKey forRow:row];
-					[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
+					[gui setArray:[NSArray arrayWithObjects:desc, priceString, timeString, nil] forRow:row];
 					row++;
 				}
 			}
@@ -8207,7 +8221,7 @@ static NSString *last_outfitting_key=nil;
 			{
 				// just overwrite the last item :-)
 				[gui setColor:[OOColor greenColor] forRow:row - 1];
-				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row - 1];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @" --> ", nil] forRow:row - 1];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", i - 1] forRow:row - 1];
 			}
 			
@@ -8885,6 +8899,8 @@ static NSString *last_outfitting_key=nil;
 		chosen_weapon_facing = WEAPON_FACING_STARBOARD;
 	
 	OOCreditsQuantity old_credits = credits;
+	OOEquipmentType *eqInfo = [OOEquipmentType equipmentTypeWithIdentifier:key];
+	BOOL isRepair = [self hasEquipmentItem:[eqInfo damagedIdentifier]];
 	if ([self tryBuyingItem:key])
 	{
 		if (credits == old_credits)
@@ -8901,9 +8917,25 @@ static NSString *last_outfitting_key=nil;
 		{
 			// adjust time before playerBoughtEquipment gets to change credits dynamically
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
+			NSUInteger adjust = 0;
+			if (isRepair)
+			{
+				adjust = [eqInfo repairTime];
+			}
+			else
+			{
+				adjust = [eqInfo installTime];
+			}
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			[UNIVERSE forceWitchspaceEntries];
-			ship_clock_adjust += time_adjust + 600.0;
+			if (adjust == 0)
+			{
+				ship_clock_adjust += time_adjust + 600.0;
+			}
+			else
+			{
+				ship_clock_adjust += (double)adjust;
+			}
 			
 			[self doScriptEvent:OOJSID("playerBoughtEquipment") withArgument:key];
 			if (gui_screen == GUI_SCREEN_EQUIP_SHIP) //if we haven't changed gui screen inside playerBoughtEquipment

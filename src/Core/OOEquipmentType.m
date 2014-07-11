@@ -227,6 +227,9 @@ static NSDictionary		*sMissilesRegistry = nil;
 			
 			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
 
+			_installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
+			_repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
+
 			_damageProbability = [extra oo_floatForKey:@"damage_probability" defaultValue:(_isMissileOrMine?0.0:1.0)];
 			
 			id object = [extra objectForKey:@"requires_equipment"];
@@ -553,6 +556,26 @@ static NSDictionary		*sMissilesRegistry = nil;
 {
 	return _fastAffinityB;
 }
+
+
+- (NSUInteger) installTime
+{
+	return _installTime;
+}
+
+
+- (NSUInteger) repairTime
+{
+	if (_repairTime > 0)
+	{
+		return _repairTime;
+	}
+	else 
+	{
+		return _installTime / 2;
+	}
+}
+
 
 /*	This method exists purely to suppress Clang static analyzer warnings that
 	this ivar is unused (but may be used by categories, which it is).
