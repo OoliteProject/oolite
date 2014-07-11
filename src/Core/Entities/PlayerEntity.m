@@ -4860,7 +4860,6 @@ static GLfloat		sBaseMass = 0.0;
 		if (alertFlags > ALERT_FLAG_YELLOW_LIMIT)
 		{
 			alertCondition = ALERT_CONDITION_RED;
-			OOLog(@"alert.debug",@"Flags=%d",alertFlags);
 		}
 	}
 	if ((alertCondition == ALERT_CONDITION_RED)&&(old_alert_condition < ALERT_CONDITION_RED))
