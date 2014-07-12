@@ -3931,13 +3931,6 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (GLfloat) hullHeatLevel
-{
-	GLfloat result = (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
-	return OOClamp_0_1_f(result);
-}
-
-
 - (GLfloat) laserHeatLevel
 {
 	GLfloat result = (GLfloat)weapon_temp / (GLfloat)PLAYER_MAX_WEAPON_TEMP;
@@ -5466,7 +5459,7 @@ static GLfloat		sBaseMass = 0.0;
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
 		[self playDirectHit:relative];
-		ship_temperature += (amount / [self heatInsulation]);
+		ship_temperature += (amount * SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR / [self heatInsulation]);
 	}
 	[self noteTakingDamage:amount from:other type:damageType];
 	if (cascading) energy = 0.0; // explicitly set energy to zero when cascading, in case an oxp raised the energy in noteTakingDamage.

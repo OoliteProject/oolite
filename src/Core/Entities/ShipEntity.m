@@ -8929,7 +8929,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat)hullHeatLevel
 {
-	return ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+	GLfloat result = (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
+	return OOClamp_0_1_f(result);
 }
 
 
@@ -12186,6 +12187,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	energy -= amount;
+	ship_temperature += amount * SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR / [self heatInsulation];
+
 	being_mined = NO;
 	ShipEntity *hunter = nil;
 	
