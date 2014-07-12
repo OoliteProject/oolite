@@ -374,6 +374,8 @@ static OOOXZManager *sSingleton = nil;
 {
 	if (_managedList == nil)
 	{
+		// if this list is being reset, also reset the current install list
+		[ResourceManager resetManifestKnowledgeForOXZManager];
 		NSArray *managedOXZs = [[NSFileManager defaultManager] oo_directoryContentsAtPath:[self installPath]];
 		NSMutableArray *manifests = [NSMutableArray arrayWithCapacity:[managedOXZs count]];
 		NSString *filename = nil;
@@ -655,17 +657,6 @@ static OOOXZManager *sSingleton = nil;
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-downloading")];
 
 		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
-
-		/* the download buffer on Windows GNUStep is far too small, so
-		 * the download processing function can end up queued so much
-		 * that the GUI update hardly ever runs. Linux GNUStep has a
-		 * decent buffer size, and Mac OS probably handles it more
-		 * sensibly anyway. See
-		 * http://aegidian.org/bb/viewtopic.php?p=220176#p220176 for
-		 * discussion. - CIM */
-#if OOLITE_WINDOWS
-		[gui addLongText:DESC(@"oolite-oxzmanager-progress-warning") startingAtRow:OXZ_GUI_ROW_PROGRESS+4 align:GUI_ALIGN_LEFT];
-#endif
 
 		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_CANCEL" forRow:OXZ_GUI_ROW_UPDATE];
