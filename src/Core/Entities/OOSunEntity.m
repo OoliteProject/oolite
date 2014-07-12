@@ -304,7 +304,7 @@ MA 02110-1301, USA.
 	if (![UNIVERSE reducedDetail])
 	{
 		corona_stage += corona_speed_factor * delta_t;
-		if (corona_stage > 1.0)
+		while (corona_stage > 1.0)
 		{
 			int i;
 			corona_stage -= 1.0;
