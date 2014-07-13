@@ -10,6 +10,10 @@
 # 2011-04-03: Updated to facilitate rsync repository setup for oolite-update script
 # 2014-06-20: Enhanced error code generation to facilitate error recognition
 #             Updated to remove ManagedAddOns folder tree
+# 2014-07-13: Ambiguous warning message is displayed when Oolite/ManagedAddOns 
+#             folder does not exist. Added check before trying to remove it.
+#             Updated error handling to report the folders which were not empty and 
+#             could not be removed.
 # 
 
 
@@ -91,6 +95,7 @@ rmdir doc/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
   rm_rc=$(($rm_rc+1)) 
+  echo "Warning: Unable to remove ${OOLITE_ROOT}/doc/. The folder is not empty."
 fi
 
 # Only remove add-on placed by setup and 
@@ -100,6 +105,7 @@ rmdir AddOns/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
   rm_rc=$(($rm_rc+2)) 
+  echo "Warning: Unable to remove ${OOLITE_ROOT}/AddOns/. The folder is not empty."
 fi
 
 # Only remove known files from oolite.app/ and 
@@ -112,7 +118,8 @@ rm -rf oolite.app/Resources/ 1> /dev/null 2> /dev/null
 rmdir oolite.app/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+4))
+  rm_rc=$(($rm_rc+4)) 
+  echo "Warning: Unable to remove ${OOLITE_ROOT}/oolite.app/. The folder is not empty."
 fi
 
 # Remove uninstall script
@@ -123,30 +130,36 @@ rmdir ${OOLITE_ROOT}/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
   rm_rc=$(($rm_rc+8))
+  echo "Warning: Unable to remove ${OOLITE_ROOT}/. The folder is not empty."
 fi
 
 # Remove Oolite/ManagedAddOns folder if it is empty
-rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
-if [ $? -ne 0 ]
-then
-  rm_rc=$(($rm_rc+16))
-fi
-rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
-if [ $? -ne 0 ]
-then
-  rm_rc=$(($rm_rc+32))
-fi
+if [ -d "~/GNUstep/Library/ApplicationSupport/Oolite" ]; then 
+  if [ -d "~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns" ]; then 
+    rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
+    if [ $? -ne 0 ]
+    then
+      rm_rc=$(($rm_rc+16)) 
+      echo "Warning: Unable to remove ~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/. The folder is not empty."
+    fi
+  fi
 
-echo "Done."
+  rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
+  if [ $? -ne 0 ]
+  then
+    rm_rc=$(($rm_rc+32)) 
+    echo "Warning: Unable to remove ~/GNUstep/Library/ApplicationSupport/Oolite/. The folder is not empty."
+  fi
+fi
 
 
 # Finished uninstall!
 if [ $rm_rc -ne 0 ] 
 then
-  # TO DO: Issue a message showing which folders could not be removed
-  echo "Warning $rm_rc: Some folders could not be removed."
+  echo "Finished with warnings." 
+else 
+  echo "Done." 
 fi
 
 # Exit with grace
 exit $rm_rc
-
