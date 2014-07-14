@@ -3210,7 +3210,7 @@ static NSTimeInterval	time_last_frame;
 	BOOL			docked_okay = ([self status] == STATUS_DOCKED);
 	
 	//  text displays
-	if ([gameView isDown:gvFunctionKey5] || [gameView isDown:key_gui_screen_status])
+	if ([gameView isDown:gvFunctionKey5] || (fKeyAlias && [gameView isDown:key_gui_screen_status]))
 	{
 		if (!switching_status_screens)
 		{
