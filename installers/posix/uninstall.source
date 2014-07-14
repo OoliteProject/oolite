@@ -14,6 +14,8 @@
 #             folder does not exist. Added check before trying to remove it.
 #             Updated error handling to report the folders which were not empty and 
 #             could not be removed.
+# 2014-07-14: Replaced '~' by $HOME environment variable. 
+#             Fixed a warning visualization issue.
 # 
 
 
@@ -66,6 +68,7 @@ fi
 
 # Remove Oolite
 
+echo
 cd ${OOLITE_ROOT}
 
 # Remove Oolite menu
@@ -134,21 +137,21 @@ then
 fi
 
 # Remove Oolite/ManagedAddOns folder if it is empty
-if [ -d "~/GNUstep/Library/ApplicationSupport/Oolite" ]; then 
-  if [ -d "~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns" ]; then 
-    rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
+if [ -d "$HOME/GNUstep/Library/ApplicationSupport/Oolite" ]; then 
+  if [ -d "$HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns" ]; then 
+    rmdir $HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
     if [ $? -ne 0 ]
     then
       rm_rc=$(($rm_rc+16)) 
-      echo "Warning: Unable to remove ~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/. The folder is not empty."
+      echo "Warning: Unable to remove $HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/. The folder is not empty."
     fi
   fi
 
-  rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
+  rmdir $HOME/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
   if [ $? -ne 0 ]
   then
     rm_rc=$(($rm_rc+32)) 
-    echo "Warning: Unable to remove ~/GNUstep/Library/ApplicationSupport/Oolite/. The folder is not empty."
+    echo "Warning: Unable to remove $HOME/GNUstep/Library/ApplicationSupport/Oolite/. The folder is not empty."
   fi
 fi
 
