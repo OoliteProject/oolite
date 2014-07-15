@@ -7536,8 +7536,8 @@ static GLfloat		sBaseMass = 0.0;
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
 	// don't target planets outside the immediate vicinity.
-	if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
-			cursor_coordinates = galaxy_coordinates;	// home
+	//if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
+	//		cursor_coordinates = galaxy_coordinates;	// home
 	
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 	{
