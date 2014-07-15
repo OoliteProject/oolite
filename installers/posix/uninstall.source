@@ -16,8 +16,17 @@
 #             could not be removed.
 # 2014-07-14: Replaced '~' by $HOME environment variable. 
 #             Fixed a warning visualization issue.
+# 2014-07-15: Added checks to remove Oolite and Managed Add-ons parent folders only 
+#             if all subfolders are removed.
 # 
 
+
+FOLDER_MASK_DOC=0x01 
+FOLDER_MASK_ADDONS=0x02 
+FOLDER_MASK_APP=0x04 
+FOLDER_MASK_OOLITE=0x08 
+FOLDER_MASK_MNGADDONS=0x10 
+FOLDER_MASK_MNGOOLITE=0x20 
 
 rm_rc=0   # Initialize (r)e(m)ove (r)eturn (c)ode counter
 SELF_PATH=$(cd $(dirname $0); pwd -P)
@@ -97,7 +106,7 @@ rm -f doc/README.TXT 1> /dev/null 2> /dev/null
 rmdir doc/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+1)) 
+  rm_rc=$(($rm_rc+$FOLDER_MASK_DOC)) 
   echo "Warning: Unable to remove ${OOLITE_ROOT}/doc/. The folder is not empty."
 fi
 
@@ -107,7 +116,7 @@ rm -rf AddOns/Basic-debug.oxp/ 1> /dev/null 2> /dev/null
 rmdir AddOns/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+2)) 
+  rm_rc=$(($rm_rc+$FOLDER_MASK_ADDONS)) 
   echo "Warning: Unable to remove ${OOLITE_ROOT}/AddOns/. The folder is not empty."
 fi
 
@@ -121,7 +130,7 @@ rm -rf oolite.app/Resources/ 1> /dev/null 2> /dev/null
 rmdir oolite.app/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+4)) 
+  rm_rc=$(($rm_rc+$FOLDER_MASK_APP)) 
   echo "Warning: Unable to remove ${OOLITE_ROOT}/oolite.app/. The folder is not empty."
 fi
 
@@ -129,11 +138,13 @@ fi
 rm -f ${SELF_FILENAME}
 
 # Remove Oolite/ root folder if it is empty
-rmdir ${OOLITE_ROOT}/ 1> /dev/null 2> /dev/null
-if [ $? -ne 0 ]
-then
-  rm_rc=$(($rm_rc+8))
-  echo "Warning: Unable to remove ${OOLITE_ROOT}/. The folder is not empty."
+if [ $rm_rc -eq 0 ]; then   # Proceed to parent folder removal only if subfolders are removed
+  rmdir ${OOLITE_ROOT}/ 1> /dev/null 2> /dev/null
+  if [ $? -ne 0 ]
+  then
+    rm_rc=$(($rm_rc+$FOLDER_MASK_OOLITE))
+    echo "Warning: Unable to remove ${OOLITE_ROOT}/. The folder is not empty."
+  fi
 fi
 
 # Remove Oolite/ManagedAddOns folder if it is empty
@@ -142,16 +153,19 @@ if [ -d "$HOME/GNUstep/Library/ApplicationSupport/Oolite" ]; then
     rmdir $HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
     if [ $? -ne 0 ]
     then
-      rm_rc=$(($rm_rc+16)) 
+      rm_rc=$(($rm_rc+$FOLDER_MASK_MNGADDONS)) 
       echo "Warning: Unable to remove $HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/. The folder is not empty."
     fi
   fi
 
-  rmdir $HOME/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
-  if [ $? -ne 0 ]
-  then
-    rm_rc=$(($rm_rc+32)) 
-    echo "Warning: Unable to remove $HOME/GNUstep/Library/ApplicationSupport/Oolite/. The folder is not empty."
+  subfolders_deleted=$(($rm_rc & $FOLDER_MASK_MNGADDONS)) 
+  if [ $subfolders_deleted -eq 0 ]; then   # Proceed to parent folder removal only if subfolder is removed
+    rmdir $HOME/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
+    if [ $? -ne 0 ]
+    then
+      rm_rc=$(($rm_rc+$FOLDER_MASK_MNGOOLITE)) 
+      echo "Warning: Unable to remove $HOME/GNUstep/Library/ApplicationSupport/Oolite/. The folder is not empty."
+    fi
   fi
 fi
 

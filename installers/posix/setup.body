@@ -20,7 +20,7 @@ INSTALL_ROOT_SYSTEMWIDE="/opt"
 INSTALL_ROOT_USERHOME="GNUstep/Applications"   # CAUTION! Depending on the usage, this should be sometimes manually pre-pended with $HOME/
 STARTUP_SCRIPTS_PATH_SYSTEMWIDE="/usr/local/bin"
 STARTUP_SCRIPTS_PATH_USERHOME="${INSTALL_ROOT_USERHOME}/${OOLITE_ROOT_NAME}"   # CAUTION! Depending on the usage, this should be sometimes manually pre-pended with $HOME/
-ERROR_CODE_UNINSTALL_FAILED=111   # arbitrary error code to detect if uninstall did nothing
+ERROR_CODE_UNINSTALL_FAILED=999   # arbitrary error code to detect if uninstall did nothing
                                   # NOTE: also used in uninstall[.source] script
 
 
