@@ -31,8 +31,10 @@ Changes between Oolite 1.80 and Oolite 1.80.1:
 * Fix problem with large OXZ downloads on Windows
 * Fix some problems with docking of fast and fast-turning ships
 * Fix display problem with sun corona in rare cases
+* Fixed key 5 switching to status screen when used during save game
+  filename entry.
 
-
+-------------------------------------------------------------------------------
 
 Changes between Oolite 1.78 and Oolite 1.80:
 
