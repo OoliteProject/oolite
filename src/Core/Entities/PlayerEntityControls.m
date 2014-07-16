@@ -1699,8 +1699,8 @@ static NSTimeInterval	time_last_frame;
 						double		vadjust = 51;
 						double		hscale = MAIN_GUI_PIXEL_WIDTH / 64.0;
 						double		vscale = MAIN_GUI_PIXEL_HEIGHT / 128.0;
-						cursor_coordinates.x = galaxy_coordinates.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale;
-						cursor_coordinates.y = galaxy_coordinates.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale;
+						cursor_coordinates.x = chart_centre_coordinates.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale;
+						cursor_coordinates.y = chart_centre_coordinates.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale;
 					}
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 					{
@@ -1725,6 +1725,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView resetTypedString];
 					cursor_coordinates = galaxy_coordinates;
+					chart_centre_coordinates = galaxy_coordinates;
 					found_system_seed = kNilRandomSeed;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					moving = YES;
@@ -1803,7 +1804,22 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_up ? 0 : pressedArrow;
-				
+				if (cursor_coordinates.x - chart_centre_coordinates.x < -20 )
+				{
+					chart_centre_coordinates.x = cursor_coordinates.x + 20;
+				}
+				else if (cursor_coordinates.x - chart_centre_coordinates.x > 20)
+				{
+					chart_centre_coordinates.x = cursor_coordinates.x - 20;
+				}
+				if (cursor_coordinates.y - chart_centre_coordinates.y < -20 )
+				{
+					chart_centre_coordinates.y = cursor_coordinates.y + 20;
+				}
+				else if (cursor_coordinates.y - chart_centre_coordinates.y > 20)
+				{
+					chart_centre_coordinates.y = cursor_coordinates.y - 20;
+				}
 				if ((cursor_moving)&&(!moving))
 				{
 					// if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5

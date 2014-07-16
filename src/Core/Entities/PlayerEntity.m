@@ -558,6 +558,10 @@ static GLfloat		sBaseMass = 0.0;
 	return cursor_coordinates;
 }
 
+- (NSPoint) chart_centre_coordinates
+{
+	return chart_centre_coordinates;
+}
 
 - (Random_Seed) system_seed
 {
@@ -569,6 +573,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	system_seed = s_seed;
 	galaxy_coordinates = NSMakePoint(s_seed.d, s_seed.b);
+	chart_centre_coordinates = galaxy_coordinates;
 }
 
 
@@ -927,6 +932,7 @@ static GLfloat		sBaseMass = 0.0;
 	NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
 	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
+	chart_centre_coordinates = galaxy_coordinates;
 	cursor_coordinates = galaxy_coordinates;
 	
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
@@ -1698,6 +1704,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	market_rnd				= 0;
 	ship_kills				= 0;
+	chart_centre_coordinates	= galaxy_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
 	
 	scripted_misjump		= NO;
@@ -6374,6 +6381,7 @@ static GLfloat		sBaseMass = 0.0;
 	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	
+	chart_centre_coordinates = galaxy_coordinates;
 	OOProfilerEndMarker(@"witchspace");
 }
 
