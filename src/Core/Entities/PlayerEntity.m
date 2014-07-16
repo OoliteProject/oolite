@@ -558,6 +558,10 @@ static GLfloat		sBaseMass = 0.0;
 	return cursor_coordinates;
 }
 
+- (NSPoint) chart_centre_coordinates
+{
+	return chart_centre_coordinates;
+}
 
 - (Random_Seed) system_seed
 {
@@ -569,6 +573,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	system_seed = s_seed;
 	galaxy_coordinates = NSMakePoint(s_seed.d, s_seed.b);
+	chart_centre_coordinates = galaxy_coordinates;
 }
 
 
@@ -927,6 +932,7 @@ static GLfloat		sBaseMass = 0.0;
 	NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
 	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
+	chart_centre_coordinates = galaxy_coordinates;
 	cursor_coordinates = galaxy_coordinates;
 	
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
@@ -1698,6 +1704,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	market_rnd				= 0;
 	ship_kills				= 0;
+	chart_centre_coordinates	= galaxy_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
 	
 	scripted_misjump		= NO;
@@ -6374,6 +6381,7 @@ static GLfloat		sBaseMass = 0.0;
 	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	
+	chart_centre_coordinates = galaxy_coordinates;
 	OOProfilerEndMarker(@"witchspace");
 }
 
@@ -7536,8 +7544,8 @@ static GLfloat		sBaseMass = 0.0;
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
 	// don't target planets outside the immediate vicinity.
-	if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
-			cursor_coordinates = galaxy_coordinates;	// home
+	//if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
+	//		cursor_coordinates = galaxy_coordinates;	// home
 	
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 	{

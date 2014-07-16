@@ -1533,10 +1533,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (!player)
 		return;
 
+	NSPoint	chart_centre_coordinates = [player chart_centre_coordinates];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
 	NSPoint	cu;
-	
+
 	double fuel = 35.0 * [player dialFuel];
 	
 	Random_Seed g_seed;
@@ -1544,13 +1545,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		vcenter = 160.0f;
 	double		hscale = size_in_pixels.width / 64.0;
 	double		vscale = -size_in_pixels.height / 128.0;
-	double		hoffset = hcenter - galaxy_coordinates.x*hscale;
-	double		voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - galaxy_coordinates.y*vscale;
+	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
+	double		voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
 	NSPoint		star;
 	
-	if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
-		cursor_coordinates = galaxy_coordinates;	// home
+	//if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-centre_coordinates.y)>=38))
+	//	cursor_coordinates = galaxy_coordinates;	// home
 	
 	// get a list of systems marked as contract destinations
 	NSDictionary* markedDestinations = [player markedDestinations];
@@ -1581,8 +1582,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		star.x = (float)(g_seed.d * hscale + hoffset);
 		star.y = (float)(g_seed.b * vscale + voffset);
 		
-		dx = abs(galaxy_coordinates.x - g_seed.d);
-		dy = abs(galaxy_coordinates.y - g_seed.b);
+		dx = abs(chart_centre_coordinates.x - g_seed.d);
+		dy = abs(chart_centre_coordinates.y - g_seed.b);
 		
 		if ((dx < 20)&&(dy < 38))
 		{
@@ -1604,7 +1605,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// Caching code submitted by Y A J, 20091022
 	
 	static Random_Seed saved_galaxy_seed;
-	static NSPoint saved_galaxy_coordinates;
+	static NSPoint saved_centre_coordinates;
 	static struct saved_system
 	{
 		int seed_d, seed_b;
@@ -1614,8 +1615,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	static int num_nearby_systems;
 
 	if ( _refreshStarChart || !equal_seeds( [player galaxy_seed], saved_galaxy_seed ) ||
-		galaxy_coordinates.x != saved_galaxy_coordinates.x ||
-		galaxy_coordinates.y != saved_galaxy_coordinates.y )
+		chart_centre_coordinates.x != saved_centre_coordinates.x ||
+		chart_centre_coordinates.y != saved_centre_coordinates.y )
 	{
 		// saved systems are stale; recompute
 		_refreshStarChart = NO;
@@ -1629,8 +1630,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 			int dx, dy;
 		
-			dx = abs(galaxy_coordinates.x - g_seed.d);
-			dy = abs(galaxy_coordinates.y - g_seed.b);
+			dx = abs(chart_centre_coordinates.x - g_seed.d);
+			dy = abs(chart_centre_coordinates.y - g_seed.b);
 		
 			if ((dx < 20)&&(dy < 38))
 			{
@@ -1652,7 +1653,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			}
 		}
 		saved_galaxy_seed = [player galaxy_seed];
-		saved_galaxy_coordinates = galaxy_coordinates;
+		saved_centre_coordinates = chart_centre_coordinates;
 	}
 	
 	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
