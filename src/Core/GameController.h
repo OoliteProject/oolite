@@ -69,6 +69,7 @@ MA 02110-1301, USA.
 	NSMutableArray			*expansionPathsToInclude;
 	
 	NSTimer					*timer;
+	NSTimeInterval			_animationTimerInterval;
 	
 	NSDate					*_splashStart;
 	
