@@ -1580,7 +1580,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	BOOL			moving = NO;
-	double			cursor_speed = 10.0;
+	double			cursor_speed = [gameView isCtrlDown] ? 20.0 : 10.0;
 	GameController  *controller = [UNIVERSE gameController];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	GUI_ROW_INIT(gui);
