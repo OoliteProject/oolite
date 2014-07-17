@@ -1701,8 +1701,9 @@ static NSTimeInterval	time_last_frame;
 						double		vadjust = 51;
 						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
 						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
-						cursor_coordinates.x = OOClamp_0_max_f(chart_centre_coordinates.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
-						cursor_coordinates.y = OOClamp_0_max_f(chart_centre_coordinates.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+						NSPoint		centre = [self chart_centre_for_zoom];
+						cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
+						cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
 					}
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 					{
@@ -1734,13 +1735,13 @@ static NSTimeInterval	time_last_frame;
 				}
 				if ([gameView isDown:gvPageDownKey])
 				{
-					chart_zoom += 0.1;
+					chart_zoom *=1.02;
 					if (chart_zoom > 4) chart_zoom = 4;
 					moving = YES;
 				}
 				if ([gameView isDown:gvPageUpKey])
 				{
-					chart_zoom -= 0.1;
+					chart_zoom /= 1.02;
 					if (chart_zoom < 1) chart_zoom = 1;
 					moving = YES;
 					chart_centre_coordinates = cursor_coordinates;
@@ -1842,22 +1843,6 @@ static NSTimeInterval	time_last_frame;
 				else if (cursor_coordinates.y - chart_centre_coordinates.y >= 38*chart_zoom)
 				{
 					chart_centre_coordinates.y = cursor_coordinates.y - 38*chart_zoom;
-				}
-				if (chart_centre_coordinates.x < 32.0 * chart_zoom )
-				{
-					chart_centre_coordinates.x = 32.0 * chart_zoom;
-				}
-				else if (256.0 - chart_centre_coordinates.x < 32.0 * chart_zoom)
-				{
-					chart_centre_coordinates.x = 256.0 - 32.0 * chart_zoom;
-				}
-				if (chart_centre_coordinates.y < 32.0 * chart_zoom)
-				{
-					chart_centre_coordinates.y = 32.0 * chart_zoom;
-				}
-				else if (256.0 - chart_centre_coordinates.y < 32.0 * chart_zoom)
-				{
-					chart_centre_coordinates.y = 256.0 - 32.0 * chart_zoom;
 				}
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_LONG_RANGE_CHART)) [self setGuiToLongRangeChartScreen]; // update graphics
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) [self setGuiToShortRangeChartScreen]; // update graphics

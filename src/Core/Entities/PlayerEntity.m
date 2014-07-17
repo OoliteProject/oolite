@@ -570,6 +570,14 @@ static GLfloat		sBaseMass = 0.0;
 	return chart_zoom;
 }
 
+- (NSPoint) chart_centre_for_zoom
+{
+	NSPoint p;
+	p.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (chart_zoom - 1.0) / 3.0;
+	p.y = chart_centre_coordinates.y + (128.0 - chart_centre_coordinates.y) * (chart_zoom - 1.0) / 3.0;
+	return p;
+}
+
 
 - (Random_Seed) system_seed
 {

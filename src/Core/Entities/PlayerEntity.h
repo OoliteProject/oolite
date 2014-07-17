@@ -663,6 +663,7 @@ typedef enum
 - (NSPoint) cursor_coordinates;
 - (NSPoint) chart_centre_coordinates;
 - (OOScalar) chart_zoom;
+- (NSPoint) chart_centre_for_zoom;
 
 - (Random_Seed) system_seed;
 - (void) setSystem_seed:(Random_Seed) s_seed;

@@ -1533,7 +1533,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (!player)
 		return;
 
-	NSPoint	chart_centre_coordinates = [player chart_centre_coordinates];
+	NSPoint	chart_centre_coordinates = [player chart_centre_for_zoom];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
 	OOScalar	zoom = [player chart_zoom];
@@ -1550,9 +1550,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
 	NSPoint		star;
-	
-	//if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-centre_coordinates.y)>=38))
-	//	cursor_coordinates = galaxy_coordinates;	// home
 	
 	// get a list of systems marked as contract destinations
 	NSDictionary* markedDestinations = [player markedDestinations];
