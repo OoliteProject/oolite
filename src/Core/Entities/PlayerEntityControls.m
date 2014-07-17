@@ -1606,6 +1606,7 @@ static NSTimeInterval	time_last_frame;
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_LONG_RANGE_CHART:
+			cursor_speed *= 2.0;
 			if ([gameView isDown:key_advanced_nav_array])   //  '^' key
 			{
 				if (!pling_pressed)
