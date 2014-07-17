@@ -404,6 +404,7 @@ typedef enum
 	
 	NSPoint					cursor_coordinates;
 	NSPoint					chart_centre_coordinates;
+	OOScalar				chart_zoom;
 	OOTimeDelta				witchspaceCountdown;
 	
 	// player commander data
@@ -661,6 +662,7 @@ typedef enum
 - (void) setGalaxyCoordinates:(NSPoint)newPosition;
 - (NSPoint) cursor_coordinates;
 - (NSPoint) chart_centre_coordinates;
+- (OOScalar) chart_zoom;
 
 - (Random_Seed) system_seed;
 - (void) setSystem_seed:(Random_Seed) s_seed;

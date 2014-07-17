@@ -1536,6 +1536,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint	chart_centre_coordinates = [player chart_centre_coordinates];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
+	OOScalar	zoom = [player chart_zoom];
 	NSPoint	cu;
 
 	double fuel = 35.0 * [player dialFuel];
@@ -1543,8 +1544,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
 	double		vcenter = 160.0f;
-	double		hscale = size_in_pixels.width / 64.0;
-	double		vscale = -size_in_pixels.height / 128.0;
+	double		hscale = size_in_pixels.width / (64.0 * zoom);
+	double		vscale = -size_in_pixels.height / (128.0 * zoom);
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
@@ -1577,15 +1578,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
 		int dx, dy;
-		float blob_size = 4.0f + 0.5f * (g_seed.f & 15);
+		float blob_size = (4.0f + 0.5f * (g_seed.f & 15))/zoom;
+		if (blob_size < 0.5) blob_size = 0.5;
 				
 		star.x = (float)(g_seed.d * hscale + hoffset);
 		star.y = (float)(g_seed.b * vscale + voffset);
 		
-		dx = abs(chart_centre_coordinates.x - g_seed.d);
-		dy = abs(chart_centre_coordinates.y - g_seed.b);
+		dx = abs(chart_centre_coordinates.x - g_seed.d)/zoom;
+		dy = abs(chart_centre_coordinates.y - g_seed.b)/zoom;
 		
-		if ((dx < 20)&&(dy < 38))
+		if ((dx <= 32)&&(dy <= 38))
 		{
 			NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
 			if (markers != nil)	// is marked
@@ -1630,10 +1632,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 			int dx, dy;
 		
-			dx = abs(chart_centre_coordinates.x - g_seed.d);
-			dy = abs(chart_centre_coordinates.y - g_seed.b);
+			dx = abs(chart_centre_coordinates.x - g_seed.d)/zoom;
+			dy = abs(chart_centre_coordinates.y - g_seed.b)/zoom;
 		
-			if ((dx < 20)&&(dy < 38))
+			if ((dx <= 32)&&(dy <= 38))
 			{
 				NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
 				if (EXPECT_NOT([sys_info oo_boolForKey:@"sun_gone_nova"]))
@@ -1677,13 +1679,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			 targetIdx = i;		// we have a winner!
 		}
 		
-		if (![player showInfoFlag])	// System's name
+		if (zoom < 2)
 		{
-			OODrawString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
-		}
-		else if (EXPECT(sys->gov >= 0))	// Not a nova? Show the info.
-		{
-			OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
+			if (![player showInfoFlag])	// System's name
+			{
+				OODrawString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
+			}
+			else if (EXPECT(sys->gov >= 0))	// Not a nova? Show the info.
+			{
+				OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
+			}
 		}
 	}
 	

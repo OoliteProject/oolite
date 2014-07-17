@@ -558,10 +558,18 @@ static GLfloat		sBaseMass = 0.0;
 	return cursor_coordinates;
 }
 
+
 - (NSPoint) chart_centre_coordinates
 {
 	return chart_centre_coordinates;
 }
+
+
+- (OOScalar) chart_zoom
+{
+	return chart_zoom;
+}
+
 
 - (Random_Seed) system_seed
 {
@@ -934,6 +942,7 @@ static GLfloat		sBaseMass = 0.0;
 	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	chart_centre_coordinates = galaxy_coordinates;
 	cursor_coordinates = galaxy_coordinates;
+	chart_zoom = 1.0;
 	
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
 	if (keyStringValue != nil)
@@ -1706,6 +1715,7 @@ static GLfloat		sBaseMass = 0.0;
 	ship_kills				= 0;
 	chart_centre_coordinates	= galaxy_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
+	chart_zoom			= 1.0;
 	
 	scripted_misjump		= NO;
 	_scriptedMisjumpRange	= 0.5;
