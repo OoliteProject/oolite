@@ -1607,6 +1607,42 @@ static NSTimeInterval	time_last_frame;
 	{
 		case GUI_SCREEN_LONG_RANGE_CHART:
 			cursor_speed *= 2.0;
+
+			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
+			{
+				if ([[gameView typedString] length] > 0)
+				{
+					planetSearchString = [[[gameView typedString] lowercaseString] retain];
+					NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString];
+					if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
+					{
+						// always reset the found system index at the beginning of a new search
+						if ([planetSearchString length] == 1) [[UNIVERSE gui] targetNextFoundSystem:0];
+						
+						// Always select the right one out of 2 overlapping systems.
+						[self targetNewSystem:0 whileTyping:YES];
+					}
+					else
+					{
+						found_system_seed = kNilRandomSeed;
+						[self clearPlanetSearchString];
+					}
+				}
+				else
+				{
+					if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
+					{
+						found_system_seed = kNilRandomSeed;
+						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
+					}
+					if (planetSearchString) [planetSearchString release];
+					planetSearchString = nil;
+				}
+				
+				moving |= (searchStringLength != [[gameView typedString] length]);
+				searchStringLength = [[gameView typedString] length];
+			}
+		case GUI_SCREEN_SHORT_RANGE_CHART:
 			if ([gameView isDown:key_advanced_nav_array])   //  '^' key
 			{
 				if (!pling_pressed)
@@ -1645,41 +1681,6 @@ static NSTimeInterval	time_last_frame;
 				queryPressed = NO;
 			}
 
-			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
-			{
-				if ([[gameView typedString] length] > 0)
-				{
-					planetSearchString = [[[gameView typedString] lowercaseString] retain];
-					NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString];
-					if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
-					{
-						// always reset the found system index at the beginning of a new search
-						if ([planetSearchString length] == 1) [[UNIVERSE gui] targetNextFoundSystem:0];
-						
-						// Always select the right one out of 2 overlapping systems.
-						[self targetNewSystem:0 whileTyping:YES];
-					}
-					else
-					{
-						found_system_seed = kNilRandomSeed;
-						[self clearPlanetSearchString];
-					}
-				}
-				else
-				{
-					if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
-					{
-						found_system_seed = kNilRandomSeed;
-						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
-					}
-					if (planetSearchString) [planetSearchString release];
-					planetSearchString = nil;
-				}
-				
-				moving |= (searchStringLength != [[gameView typedString] length]);
-				searchStringLength = [[gameView typedString] length];
-			}
-		case GUI_SCREEN_SHORT_RANGE_CHART:
 			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART) cursor_speed *= chart_zoom;
 			
 			show_info_flag = ([gameView isDown:key_map_info]);
@@ -1701,7 +1702,7 @@ static NSTimeInterval	time_last_frame;
 						double		vadjust = 51;
 						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
 						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
-						NSPoint		centre = [self chart_centre_for_zoom];
+						NSPoint		centre = [self chart_centre_for_zoom: chart_zoom];
 						cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 						cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
 					}
@@ -1836,13 +1837,13 @@ static NSTimeInterval	time_last_frame;
 				{
 					chart_centre_coordinates.x = cursor_coordinates.x - 20*chart_zoom;
 				}
-				if (cursor_coordinates.y - chart_centre_coordinates.y <= -38*chart_zoom)
+				if (cursor_coordinates.y - chart_centre_coordinates.y <= -32*chart_zoom)
 				{
-					chart_centre_coordinates.y = cursor_coordinates.y + 38*chart_zoom;
+					chart_centre_coordinates.y = cursor_coordinates.y + 32*chart_zoom;
 				}
-				else if (cursor_coordinates.y - chart_centre_coordinates.y >= 38*chart_zoom)
+				else if (cursor_coordinates.y - chart_centre_coordinates.y >= 32*chart_zoom)
 				{
-					chart_centre_coordinates.y = cursor_coordinates.y - 38*chart_zoom;
+					chart_centre_coordinates.y = cursor_coordinates.y - 32*chart_zoom;
 				}
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_LONG_RANGE_CHART)) [self setGuiToLongRangeChartScreen]; // update graphics
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) [self setGuiToShortRangeChartScreen]; // update graphics

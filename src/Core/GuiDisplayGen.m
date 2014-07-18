@@ -55,7 +55,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) drawSystemMarker:(NSDictionary *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
 
 - (void) drawEquipmentList:(NSArray *)eqptList z:(GLfloat)z;
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) route optimizedBy:(OORouteType) optimizeBy;
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) route optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom;
 
 @end
 
@@ -1533,23 +1533,71 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (!player)
 		return;
 
-	NSPoint	chart_centre_coordinates = [player chart_centre_for_zoom];
+	OOScalar	zoom = [player chart_zoom];
+	NSPoint	chart_centre_coordinates = [player chart_centre_for_zoom: zoom];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
-	OOScalar	zoom = [player chart_zoom];
+	OOLongRangeChartMode chart_mode = [player longRangeChartMode];
+	Random_Seed		galaxy_seed = [player galaxy_seed];
+	GLfloat			r = 1.0, g = 1.0, b = 1.0;
+	BOOL			noNova;
 	NSPoint	cu;
+	NSUInteger		systemParameter;
 
 	double fuel = 35.0 * [player dialFuel];
 	
 	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
-	double		vcenter = 160.0f;
+	double		vcenter = 120.0f;
 	double		hscale = size_in_pixels.width / (64.0 * zoom);
 	double		vscale = -size_in_pixels.height / (128.0 * zoom);
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
+	double		distance = 0.0, time = 0.0;
 	NSPoint		star;
+	
+	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
+	BOOL		routeExists = YES;
+
+	if (showAdvancedNavArray)
+	{
+		advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
+	}
+	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
+	{
+		advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
+	}
+	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
+	{
+		advancedNavArrayMode = OPTIMIZED_BY_TIME;
+	}
+	
+	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	{
+		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
+		
+		// if the ANA has been activated and we are in string input mode (i.e. planet search),
+		// get out of it so that distance and time data can be displayed
+		if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
+		
+		if (!routeInfo)  routeExists = NO;
+		
+		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: zoom];
+		if (routeExists)
+		{
+			distance = [routeInfo oo_doubleForKey:@"distance"];
+			time = [routeInfo oo_doubleForKey:@"time"];
+		}
+	}
+	else
+	{
+		Random_Seed dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		distance = distanceBetweenPlanetPositions(dest.d,dest.b,galaxy_coordinates.x,galaxy_coordinates.y);
+		time = distance * distance;
+	}
 	
 	// get a list of systems marked as contract destinations
 	NSDictionary* markedDestinations = [player markedDestinations];
@@ -1565,41 +1613,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 	}
 		
-	// draw marks and stars
-	//
-	OOGL(GLScaledLineWidth(1.5f));
-	OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
-
-	for (i = 0; i < 256; i++)
-	{
-		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		
-		int dx, dy;
-		float blob_size = (4.0f + 0.5f * (g_seed.f & 15))/zoom;
-		if (blob_size < 0.5) blob_size = 0.5;
-				
-		star.x = (float)(g_seed.d * hscale + hoffset);
-		star.y = (float)(g_seed.b * vscale + voffset);
-		
-		dx = abs(chart_centre_coordinates.x - g_seed.d)/zoom;
-		dy = abs(chart_centre_coordinates.y - g_seed.b)/zoom;
-		
-		if ((dx <= 32)&&(dy <= 38))
-		{
-			NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
-			if (markers != nil)	// is marked
-			{
-				GLfloat base_size = 0.5f * blob_size + 2.5f;
-				[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
-
-				OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
-			}
-			GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
-		}
-	}
-	
-	// draw names
-	//
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
 	// Caching code submitted by Y A J, 20091022
 	
@@ -1607,11 +1620,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	static NSPoint saved_centre_coordinates;
 	static struct saved_system
 	{
-		int seed_d, seed_b;
+		Random_Seed seed;
 		int tec, eco, gov;
 		NSString* p_name;
+		BOOL nova;
 	} nearby_systems[ 256 ];
-	static int num_nearby_systems;
+	static int num_nearby_systems = 0;
 
 	if ( _refreshStarChart || !equal_seeds( [player galaxy_seed], saved_galaxy_seed ) ||
 		chart_centre_coordinates.x != saved_centre_coordinates.x ||
@@ -1632,7 +1646,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			dx = abs(chart_centre_coordinates.x - g_seed.d)/zoom;
 			dy = abs(chart_centre_coordinates.y - g_seed.b)/zoom;
 		
-			if ((dx <= 32)&&(dy <= 38))
+			if ((dx <= 32)&&(dy <= 32))
 			{
 				NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
 				if (EXPECT_NOT([sys_info oo_boolForKey:@"sun_gone_nova"]))
@@ -1645,9 +1659,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					nearby_systems[ num_nearby_systems ].eco = [sys_info oo_intForKey:KEY_ECONOMY];
 					nearby_systems[ num_nearby_systems ].gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
 				}
-				nearby_systems[ num_nearby_systems ].seed_d = g_seed.d;
-				nearby_systems[ num_nearby_systems ].seed_b = g_seed.b;
+				nearby_systems[ num_nearby_systems ].seed = g_seed;
 				nearby_systems[ num_nearby_systems ].p_name = [[sys_info oo_stringForKey:KEY_NAME] retain];
+				nearby_systems[ num_nearby_systems ].nova = [[UNIVERSE generateSystemData:g_seed] oo_boolForKey:@"sun_gone_nova"];
 				num_nearby_systems++;
 			}
 		}
@@ -1655,6 +1669,91 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		saved_centre_coordinates = chart_centre_coordinates;
 	}
 	
+	// draw marks and stars
+	//
+	OOGL(GLScaledLineWidth(1.5f));
+	OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
+
+	for (i = 0; i < num_nearby_systems; i++)
+	{
+		g_seed = nearby_systems[i].seed;
+		
+		float blob_size = (4.0f + 0.5f * (g_seed.f & 15))/zoom;
+		if (blob_size < 0.5) blob_size = 0.5;
+
+		star.x = (float)(g_seed.d * hscale + hoffset);
+		star.y = (float)(g_seed.b * vscale + voffset);
+
+		noNova = !nearby_systems[i].nova;
+		NSAssert1(chart_mode <= OOLRC_MODE_TECHLEVEL, @"Long range chart mode %i out of range", (int)chart_mode);
+	
+		switch (chart_mode)
+		{
+			case OOLRC_MODE_ECONOMY:
+				if (EXPECT(noNova))
+				{
+					systemParameter = nearby_systems[i].eco;
+					r = 0.5;
+					g = 0.3 + (0.1 * (GLfloat)systemParameter);
+					b = 1.0 - (0.1 * (GLfloat)systemParameter);
+				}
+				else
+				{
+					r = g = b = 0.3;
+				}
+				break;
+			case OOLRC_MODE_GOVERNMENT:
+				if (EXPECT(noNova))
+				{
+					systemParameter = nearby_systems[i].gov;
+					r = 1.0 - (0.1 * (GLfloat)systemParameter);
+					g = 0.3 + (0.1 * (GLfloat)systemParameter);
+					b = 0.1;
+				}
+				else
+				{
+					r = g = b = 0.3;
+				}
+				break;
+			case OOLRC_MODE_TECHLEVEL:
+				if (EXPECT(noNova))
+				{
+					systemParameter = nearby_systems[i].tec;
+					r = 0.6;
+					g = b = 0.20 + (0.05 * (GLfloat)systemParameter);
+				}
+				else
+				{
+					r = g = b = 0.3;
+				}			
+				break;
+			case OOLRC_MODE_NORMAL:
+				if (EXPECT(noNova))
+				{
+					r = g = b = 1.0;
+				}
+				else
+				{
+					r = 1.0;
+					g = 0.2;
+					b = 0.0;
+				}
+				break;
+		}
+		OOGL(glColor4f(r, g, b, alpha));
+
+		NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
+		if (markers != nil)	// is marked
+		{
+			GLfloat base_size = 0.5f * blob_size + 2.5f;
+			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
+				OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
+		}
+		GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
+	}
+	
+	// draw names
+	//
 	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
 	
 	Random_Seed target = [PLAYER target_system_seed];	
@@ -1668,9 +1767,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		sys = nearby_systems + i;
 		
-		star.x = (float)(sys->seed_d * hscale + hoffset);
-		star.y = (float)(sys->seed_b * vscale + voffset);
-		if (sys->seed_d == target.d && sys->seed_b == target.b	// same place as target system?
+		star.x = (float)(sys->seed.d * hscale + hoffset);
+		star.y = (float)(sys->seed.b * vscale + voffset);
+		if (sys->seed.d == target.d && sys->seed.b == target.b	// same place as target system?
 			&& [sys->p_name isEqualToString:targetName])		// not overlapping twin? (example: Divees & Tezabi in galaxy 5)
 		{
 			 targetIdx = i;		// we have a winner!
@@ -1694,8 +1793,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if( targetIdx != -1 )
 	{
 		sys = nearby_systems + targetIdx;
-		star.x = (float)(sys->seed_d * hscale + hoffset);
-		star.y = (float)(sys->seed_b * vscale + voffset);
+		star.x = (float)(sys->seed.d * hscale + hoffset);
+		star.y = (float)(sys->seed.b * vscale + voffset);
 		
 		if (![player showInfoFlag])
 		{
@@ -1901,7 +2000,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		if (!routeInfo)  routeExists = NO;
 		
-		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode];
+		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: 4.0];
 		if (routeExists)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
@@ -2118,14 +2217,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
+	PlayerEntity	*player = PLAYER;
 	Random_Seed		g_seed, g_seed2;
+	NSPoint	chart_centre_coordinates = [player chart_centre_for_zoom: zoom];
 	NSUInteger		i, j;
-	double			hscale = size_in_pixels.width / 256.0;
-	double			vscale = -1.0 * size_in_pixels.height / 512.0;
-	double			hoffset = 0.0f;
-	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
+	double			hcenter = size_in_pixels.width/2.0;
+	double			vcenter = 120.0f;
+	double			hscale = size_in_pixels.width / (64.0*zoom);
+	double			vscale = -1.0 * size_in_pixels.height / (128.0*zoom);
+	double			hoffset = hcenter - chart_centre_coordinates.x*hscale;
+	double			voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - chart_centre_coordinates.y*vscale;
 	NSPoint			star, star2 = NSZeroPoint;
 	
 	OOGL(glColor4f(0.25f, 0.25f, 0.25f, alpha));
