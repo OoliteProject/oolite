@@ -1548,7 +1548,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
-	double		vcenter = 120.0f;
+	double		vcenter = 120.0f + 5.0 * (4.0 - zoom);
 	double		hscale = size_in_pixels.width / (64.0 * zoom);
 	double		vscale = -size_in_pixels.height / (128.0 * zoom);
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
@@ -1641,7 +1641,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
-			int dx, dy;
+			double dx, dy;
 		
 			dx = abs(chart_centre_coordinates.x - g_seed.d)/zoom;
 			dy = abs(chart_centre_coordinates.y - g_seed.b)/zoom;
@@ -2224,7 +2224,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint	chart_centre_coordinates = [player chart_centre_for_zoom: zoom];
 	NSUInteger		i, j;
 	double			hcenter = size_in_pixels.width/2.0;
-	double			vcenter = 120.0f;
+	double			vcenter = 120.0f + 5.0 * (4.0 - zoom);
 	double			hscale = size_in_pixels.width / (64.0*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (128.0*zoom);
 	double			hoffset = hcenter - chart_centre_coordinates.x*hscale;
@@ -2238,6 +2238,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		g_seed2 = [UNIVERSE systemSeedForSystemNumber:j];
+
+		double dx, dy;
+		dx = abs(chart_centre_coordinates.x - g_seed.d)/zoom;
+		dy = abs(chart_centre_coordinates.y - g_seed.b)/zoom;
+		if (dx > 32.0 || dy > 32.0) continue;
+
+		dx = abs(chart_centre_coordinates.x - g_seed2.d)/zoom;
+		dy = abs(chart_centre_coordinates.y - g_seed2.b)/zoom;
+		if (dx > 32.0 || dy > 32.0) continue;
 		
 		star.x = (float)(g_seed.d * hscale + hoffset);
 		star.y = (float)(g_seed.b * vscale + voffset);
