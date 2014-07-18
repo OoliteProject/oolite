@@ -33,6 +33,7 @@ Changes between Oolite 1.80 and Oolite 1.80.1:
 * Fix display problem with sun corona in rare cases
 * Fixed key 5 switching to status screen when used during save game
   filename entry.
+* Fix Linux uninstall script error handling
 
 -------------------------------------------------------------------------------
 
