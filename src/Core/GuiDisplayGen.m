@@ -1562,6 +1562,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 
+	Random_Seed target = [PLAYER target_system_seed];
+	NSString *targetName = [UNIVERSE getSystemName:target];
+	
 	// get a list of systems marked as contract destinations
 	NSDictionary* markedDestinations = [player markedDestinations];
 	
@@ -1630,6 +1633,54 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		}
 		saved_galaxy_seed = [player galaxy_seed];
 		saved_centre_coordinates = chart_centre_coordinates;
+	}
+	
+	if (showAdvancedNavArray)
+	{
+		advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
+	}
+	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
+	{
+		advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
+	}
+	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
+	{
+		advancedNavArrayMode = OPTIMIZED_BY_TIME;
+	}
+	
+	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	{
+		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		target = [UNIVERSE systemSeedForSystemNumber: destNumber];
+		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
+		
+		// if the ANA has been activated and we are in string input mode (i.e. planet search),
+		// get out of it so that distance and time data can be displayed
+		if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
+		
+		if (routeInfo)  routeExists = YES;
+		
+		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: zoom];
+
+		if (routeExists)
+		{
+			distance = [routeInfo oo_doubleForKey:@"distance"];
+			time = [routeInfo oo_doubleForKey:@"time"];
+		}
+	}
+	if (!routeExists)
+	{
+		target = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		distance = distanceBetweenPlanetPositions(target.d,target.b,galaxy_coordinates.x,galaxy_coordinates.y);
+		if ([player hasHyperspaceMotor] && distance <= [player fuel]/10.0)
+		{
+			time = distance * distance;
+		}
+		else
+		{
+			time = 0.0;
+		}
 	}
 	
 	// draw marks and stars
@@ -1769,9 +1820,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	//
 	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
 	
-	Random_Seed target = [PLAYER target_system_seed];
-	NSString *targetName = [UNIVERSE getSystemName:target];
-	
 	int targetIdx = -1;
 	struct saved_system *sys;
 	NSSize chSize = NSMakeSize(pixel_row_height,pixel_row_height);
@@ -1816,54 +1864,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		else if (sys->gov >= 0)	// Not a nova? Show the info.
 		{
 			OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
-		}
-	}
-	
-	if (showAdvancedNavArray)
-	{
-		advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
-	}
-	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
-	{
-		advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
-	}
-	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
-	{
-		advancedNavArrayMode = OPTIMIZED_BY_TIME;
-	}
-	
-	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
-	{
-		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-		target = [UNIVERSE systemSeedForSystemNumber: destNumber];
-		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
-		
-		// if the ANA has been activated and we are in string input mode (i.e. planet search),
-		// get out of it so that distance and time data can be displayed
-		if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
-		
-		if (routeInfo)  routeExists = YES;
-		
-		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: zoom];
-
-		if (routeExists)
-		{
-			distance = [routeInfo oo_doubleForKey:@"distance"];
-			time = [routeInfo oo_doubleForKey:@"time"];
-		}
-	}
-	if (!routeExists)
-	{
-		target = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-		distance = distanceBetweenPlanetPositions(target.d,target.b,galaxy_coordinates.x,galaxy_coordinates.y);
-		if ([player hasHyperspaceMotor] && distance <= [player fuel]/10.0)
-		{
-			time = distance * distance;
-		}
-		else
-		{
-			time = 0.0;
 		}
 	}
 	
