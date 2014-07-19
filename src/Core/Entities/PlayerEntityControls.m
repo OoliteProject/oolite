@@ -3274,6 +3274,7 @@ static NSTimeInterval	time_last_frame;
 					chart_mode = CHART_MODE_LONG_RANGE;
 				}
 			}
+			[gui clearAndKeepBackground: NO];
 			[self setGuiToShortRangeChartScreen];
 		}
 	}
@@ -3430,7 +3431,7 @@ static BOOL autopilot_pause;
 			toggling_music = NO;
 		}
 		// look for the pause game, 'p' key
-		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)
+		if ([gameView isDown:key_pausebutton] && !(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART && chart_mode == CHART_MODE_LONG_RANGE) && gui_screen != GUI_SCREEN_MISSION)
 		{
 			if (!autopilot_pause)
 			{
@@ -3478,7 +3479,7 @@ static BOOL autopilot_pause;
 	{
 		// Pause game, 'p' key
 		exceptionContext = @"pause key";
-		if ([gameView isDown:key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
+		if ([gameView isDown:key_pausebutton] && (!(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART && chart_mode == CHART_MODE_LONG_RANGE) &&
 				gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_REPORT &&
 				gui_screen != GUI_SCREEN_SAVE) )
 		{
