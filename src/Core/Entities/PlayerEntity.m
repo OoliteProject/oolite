@@ -567,6 +567,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (OOScalar) chart_zoom
 {
+	if (chart_mode == CHART_MODE_LONG_RANGE) return CHART_MAX_ZOOM;
 	return chart_zoom;
 }
 
@@ -951,6 +952,7 @@ static GLfloat		sBaseMass = 0.0;
 	chart_centre_coordinates = galaxy_coordinates;
 	cursor_coordinates = galaxy_coordinates;
 	chart_zoom = 1.0;
+	chart_mode = CHART_MODE_SHORT_RANGE;
 	
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
 	if (keyStringValue != nil)
@@ -1724,6 +1726,8 @@ static GLfloat		sBaseMass = 0.0;
 	chart_centre_coordinates	= galaxy_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
 	chart_zoom			= 1.0;
+	chart_mode			= CHART_MODE_SHORT_RANGE;
+
 	
 	scripted_misjump		= NO;
 	_scriptedMisjumpRange	= 0.5;
@@ -7571,14 +7575,33 @@ static GLfloat		sBaseMass = 0.0;
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:DESC(@"short-range-chart-title")];
+		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
+		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
+		{
+			[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
+		}
+		else
+		{
+			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
+		}
 		// refresh the short range chart cache, in case we've just loaded a save game with different local overrides, etc.
 		[gui refreshStarChart];
 		//[gui setText:targetSystemName forRow:19];
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
 		//[gui setText:[NSString stringWithFormat:OOExpandKey(@"short-range-chart-distance-f"), distance] forRow:20];
 		//if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:OOExpandKey(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
-		[gui setShowTextCursor:NO];
+		if (chart_mode == CHART_MODE_LONG_RANGE)
+		{
+			NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
+			[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:GUI_ROW_PLANET_FINDER];
+			[gui setColor:[OOColor cyanColor] forRow:GUI_ROW_PLANET_FINDER];
+			[gui setShowTextCursor:YES];
+			[gui setCurrentRow:GUI_ROW_PLANET_FINDER];
+		}
+		else
+		{
+			[gui setShowTextCursor:NO];
+		}
 	}
 	/* ends */
 	

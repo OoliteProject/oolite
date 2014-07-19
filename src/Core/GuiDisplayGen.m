@@ -1560,6 +1560,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
 	BOOL		routeExists = YES;
 
+	BOOL		*systemsFound = [UNIVERSE systemsFound];
 
 	// get a list of systems marked as contract destinations
 	NSDictionary* markedDestinations = [player markedDestinations];
@@ -1714,6 +1715,56 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
 	}
 	
+	// draw found stars and captions
+	//
+	OOGL(GLScaledLineWidth(1.5f));
+	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
+	int n_matches = 0, foundIndex = -1;
+	
+	for (i = 0; i < 256; i++) if (systemsFound[i])
+	{
+		if(foundSystem == n_matches) foundIndex = i;
+		n_matches++;
+	}
+	
+	if (n_matches == 0)
+	{
+		foundSystem = 0;
+	}
+	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST || backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST || backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG)
+	{
+		// do nothing at this stage
+	}
+	else
+	{
+		BOOL drawNames = n_matches < 4;
+		for (i = 0; i < 256; i++)
+		{
+			BOOL mark = systemsFound[i];
+			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
+			if (mark)
+			{
+				star.x = (float)(g_seed.d * hscale + hoffset);
+				star.y = (float)(g_seed.b * vscale + voffset);
+				OOGLBEGIN(GL_LINE_LOOP);
+					glVertex3f(x + star.x - 2.0f,	y + star.y - 2.0f,	z);
+					glVertex3f(x + star.x + 2.0f,	y + star.y - 2.0f,	z);
+					glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
+					glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
+				OOGLEND();
+				if (i == foundIndex || n_matches == 1)
+				{
+					if (n_matches == 1) foundSystem = 0;
+					OOGL(glColor4f(0.0f, 1.0f, 1.0f, alpha));
+					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+					OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
+				}
+				else if (drawNames)
+					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+			}
+		}
+	}
+
 	// draw names
 	//
 	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow

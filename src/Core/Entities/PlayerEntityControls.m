@@ -577,7 +577,7 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	GameController *gameController = [UNIVERSE gameController];
 	
-	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE);
+	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART && chart_mode == CHART_MODE_LONG_RANGE) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE);
 
 	@try
 	{
@@ -1580,13 +1580,13 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	BOOL			moving = NO;
-	double			cursor_speed = [gameView isCtrlDown] ? 20.0 : 10.0;
+	double			cursor_speed = ([gameView isCtrlDown] ? 20.0 : 10.0)* [self chart_zoom];
 	GameController  *controller = [UNIVERSE gameController];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	GUI_ROW_INIT(gui);
 	
 	// deal with string inputs as necessary
-	if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
+	if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART && chart_mode == CHART_MODE_LONG_RANGE)
 	{
 		[gameView setStringInput: gvStringInputAlpha];
 	}
@@ -1605,8 +1605,8 @@ static NSTimeInterval	time_last_frame;
 	
 	switch (gui_screen)
 	{
+		case GUI_SCREEN_SHORT_RANGE_CHART:
 		case GUI_SCREEN_LONG_RANGE_CHART:
-			cursor_speed *= 2.0;
 
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
@@ -1642,7 +1642,6 @@ static NSTimeInterval	time_last_frame;
 				moving |= (searchStringLength != [[gameView typedString] length]);
 				searchStringLength = [[gameView typedString] length];
 			}
-		case GUI_SCREEN_SHORT_RANGE_CHART:
 			if ([gameView isDown:key_advanced_nav_array])   //  '^' key
 			{
 				if (!pling_pressed)
@@ -1680,8 +1679,6 @@ static NSTimeInterval	time_last_frame;
 			{
 				queryPressed = NO;
 			}
-
-			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART) cursor_speed *= chart_zoom;
 			
 			show_info_flag = ([gameView isDown:key_map_info]);
 			
@@ -3266,10 +3263,18 @@ static NSTimeInterval	time_last_frame;
 		if  (!switching_chart_screens)
 		{
 			switching_chart_screens = YES;
-			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart))
-				[self setGuiToLongRangeChartScreen];
-			else
-				[self setGuiToShortRangeChartScreen];
+			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
+			{
+				if (chart_mode == CHART_MODE_LONG_RANGE)
+				{
+					chart_mode = CHART_MODE_SHORT_RANGE;
+				}
+				else
+				{
+					chart_mode = CHART_MODE_LONG_RANGE;
+				}
+			}
+			[self setGuiToShortRangeChartScreen];
 		}
 	}
 	else

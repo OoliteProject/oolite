@@ -148,7 +148,8 @@ enum
 	GUI_ROW_SCENARIOS_START				= 3,
 	GUI_MAX_ROWS_SCENARIOS				= 12,
 	GUI_ROW_SCENARIOS_DETAIL			= GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS + 2,
-	GUI_ROW_CHART_SYSTEM				= 18
+	GUI_ROW_CHART_SYSTEM				= 18,
+	GUI_ROW_PLANET_FINDER				= 19
 };
 #if GUI_FIRST_ROW() < 0
 # error Too many items in OPTIONS list!
@@ -233,6 +234,12 @@ typedef enum
 	PLAYER_FLEEING_CARGO = 2,
 	PLAYER_FLEEING_LIKELY = 3
 } OOPlayerFleeingStatus;
+
+typedef enum
+{
+	CHART_MODE_SHORT_RANGE,
+	CHART_MODE_LONG_RANGE
+} OOChartMode;
 
 
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
@@ -417,6 +424,7 @@ typedef enum
 	// Chart zoom is 1.0 when fully zoomed in and increases as we zoom out.  The reason I've done it that way round
 	// is because we might want to implement bigger galaxies one day, and thus may need to zoom out indefinitely.
 	OOScalar				chart_zoom;
+	OOChartMode				chart_mode;
 	OOTimeDelta				witchspaceCountdown;
 	
 	// player commander data
