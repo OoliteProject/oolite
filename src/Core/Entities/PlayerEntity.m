@@ -573,8 +573,8 @@ static GLfloat		sBaseMass = 0.0;
 - (NSPoint) chart_centre_for_zoom: (OOScalar) zoom
 {
 	NSPoint p;
-	p.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (zoom - 1.0) / 3.0;
-	p.y = chart_centre_coordinates.y + (128.0 - chart_centre_coordinates.y) * (zoom - 1.0) / 3.0;
+	p.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
+	p.y = chart_centre_coordinates.y + (128.0 - chart_centre_coordinates.y) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
 	return p;
 }
 
@@ -7561,20 +7561,11 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
-	// don't target planets outside the immediate vicinity.
-	//if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
-	//		cursor_coordinates = galaxy_coordinates;	// home
-	
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 	{
 		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	}
 	
-	// now calculate the distance.
-	double			distance = [self hyperspaceJumpDistance];
-	double			estimatedTravelTime = distance * distance;
-	
-	NSString		*targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 	
 	// GUI stuff
@@ -7583,17 +7574,15 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setTitle:DESC(@"short-range-chart-title")];
 		// refresh the short range chart cache, in case we've just loaded a save game with different local overrides, etc.
 		[gui refreshStarChart];
-		[gui setText:targetSystemName forRow:19];
+		//[gui setText:targetSystemName forRow:19];
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		[gui setText:[NSString stringWithFormat:OOExpandKey(@"short-range-chart-distance-f"), distance] forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:OOExpandKey(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
+		//[gui setText:[NSString stringWithFormat:OOExpandKey(@"short-range-chart-distance-f"), distance] forRow:20];
+		//if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:OOExpandKey(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
 	
 	[[UNIVERSE gameView] clearMouse];
-	
-	[targetSystemName release]; // released
 	
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];

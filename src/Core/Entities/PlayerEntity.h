@@ -97,6 +97,16 @@ typedef enum
 	OOLRC_MODE_TECHLEVEL = 3
 } OOLongRangeChartMode;
 
+#define CHART_WIDTH_AT_MAX_ZOOM 64.0
+#define CHART_HEIGHT_AT_MAX_ZOOM 64.0
+// Galaxy width / width of chart area at max zoom
+#define CHART_MAX_ZOOM (256.0/CHART_WIDTH_AT_MAX_ZOOM)
+//start scrolling when cursor is this number of units away from centre
+#define CHART_SCROLL_AT_X 20.0
+#define CHART_SCROLL_AT_Y 32.0
+
+#define CHART_ZOOM_SHOW_LABELS 2.0
+
 // OO_RESOLUTION_OPTION: true if full screen resolution can be changed.
 #if OOLITE_MAC_OS_X && OOLITE_64_BIT
 #define OO_RESOLUTION_OPTION		0
@@ -138,7 +148,7 @@ enum
 	GUI_ROW_SCENARIOS_START				= 3,
 	GUI_MAX_ROWS_SCENARIOS				= 12,
 	GUI_ROW_SCENARIOS_DETAIL			= GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS + 2,
-
+	GUI_ROW_CHART_SYSTEM				= 18
 };
 #if GUI_FIRST_ROW() < 0
 # error Too many items in OPTIONS list!
@@ -404,6 +414,8 @@ typedef enum
 	
 	NSPoint					cursor_coordinates;
 	NSPoint					chart_centre_coordinates;
+	// Chart zoom is 1.0 when fully zoomed in and increases as we zoom out.  The reason I've done it that way round
+	// is because we might want to implement bigger galaxies one day, and thus may need to zoom out indefinitely.
 	OOScalar				chart_zoom;
 	OOTimeDelta				witchspaceCountdown;
 	

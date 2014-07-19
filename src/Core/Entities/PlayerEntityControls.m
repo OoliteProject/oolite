@@ -1699,7 +1699,7 @@ static NSTimeInterval	time_last_frame;
 					NSPoint maus = [gameView virtualJoystickPosition];
 					if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 					{
-						double		vadjust = 91 + 5.0 * (4.0-chart_zoom);
+						double		vadjust = 71;
 						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
 						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
 						NSPoint		centre = [self chart_centre_for_zoom: chart_zoom];
@@ -1737,7 +1737,7 @@ static NSTimeInterval	time_last_frame;
 				if ([gameView isDown:gvPageDownKey])
 				{
 					chart_zoom *=1.02;
-					if (chart_zoom > 4) chart_zoom = 4;
+					if (chart_zoom > CHART_MAX_ZOOM) chart_zoom = CHART_MAX_ZOOM;
 					moving = YES;
 				}
 				if ([gameView isDown:gvPageUpKey])
@@ -1829,21 +1829,21 @@ static NSTimeInterval	time_last_frame;
 					cursor_coordinates.x = target_system_seed.d;
 					cursor_coordinates.y = target_system_seed.b;
 				}
-				if (cursor_coordinates.x - chart_centre_coordinates.x <= -20*chart_zoom)
+				if (cursor_coordinates.x - chart_centre_coordinates.x <= -CHART_SCROLL_AT_X*chart_zoom)
 				{
-					chart_centre_coordinates.x = cursor_coordinates.x + 20*chart_zoom;
+					chart_centre_coordinates.x = cursor_coordinates.x + CHART_SCROLL_AT_X*chart_zoom;
 				}
-				else if (cursor_coordinates.x - chart_centre_coordinates.x >= 20*chart_zoom)
+				else if (cursor_coordinates.x - chart_centre_coordinates.x >= CHART_SCROLL_AT_X*chart_zoom)
 				{
-					chart_centre_coordinates.x = cursor_coordinates.x - 20*chart_zoom;
+					chart_centre_coordinates.x = cursor_coordinates.x - CHART_SCROLL_AT_X*chart_zoom;
 				}
-				if (cursor_coordinates.y - chart_centre_coordinates.y <= -32*chart_zoom)
+				if (cursor_coordinates.y - chart_centre_coordinates.y <= -CHART_SCROLL_AT_Y*chart_zoom)
 				{
-					chart_centre_coordinates.y = cursor_coordinates.y + 32*chart_zoom;
+					chart_centre_coordinates.y = cursor_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
 				}
-				else if (cursor_coordinates.y - chart_centre_coordinates.y >= 32*chart_zoom)
+				else if (cursor_coordinates.y - chart_centre_coordinates.y >= CHART_SCROLL_AT_Y*chart_zoom)
 				{
-					chart_centre_coordinates.y = cursor_coordinates.y - 32*chart_zoom;
+					chart_centre_coordinates.y = cursor_coordinates.y - CHART_SCROLL_AT_Y*chart_zoom;
 				}
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_LONG_RANGE_CHART)) [self setGuiToLongRangeChartScreen]; // update graphics
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) [self setGuiToShortRangeChartScreen]; // update graphics
