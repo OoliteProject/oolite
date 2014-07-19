@@ -1803,7 +1803,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	// highlight the name of the currently selected system
 	//
-	if( targetIdx != -1 )
+	if( targetIdx != -1 && zoom <= CHART_ZOOM_SHOW_LABELS)
 	{
 		sys = nearby_systems + targetIdx;
 		star.x = (float)(sys->seed.d * hscale + hoffset);
@@ -1857,7 +1857,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		target = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 		distance = distanceBetweenPlanetPositions(target.d,target.b,galaxy_coordinates.x,galaxy_coordinates.y);
-		time = distance * distance;
+		if ([player hasHyperspaceMotor] && distance <= [player fuel]/10.0)
+		{
+			time = distance * distance;
+		}
+		else
+		{
+			time = 0.0;
+		}
 	}
 	
 	OOGUITabSettings tab_stops;
@@ -1868,7 +1875,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	targetName = [[UNIVERSE getSystemName:target] retain];
 
 	// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-	NSString *travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
+	NSString *travelDistLine = @"";
+	if (distance > 0)
+	{
+		travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
+	}
 	NSString *travelTimeLine = @"";
 	if (time > 0)
 	{
@@ -2359,8 +2370,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				glVertex3f(x+star2.x, y+star2.y, z);
 			OOGLEND();
 			
-			// Label the route.
-			OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y - 8.0, z, NSMakeSize(8,8));
+			// Label the route, if not already labelled
+			if (zoom > CHART_ZOOM_SHOW_LABELS)
+			{
+				OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y - 8.0, z, NSMakeSize(8,8));
+			}
 		}
 		// Label the destination, which was not included in the above loop.
 		loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];
