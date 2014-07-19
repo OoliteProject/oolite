@@ -133,8 +133,6 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance)
 }
 
 
-static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
-
 static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 {
 	GLfloat			ww = 0.5 * siz.width;
@@ -172,6 +170,46 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 	GLDrawOvalPoints(x, y, z, siz, step);
 	OOGLEND();
 }
+
+void GLDrawClippedOval(GLfloat x, GLfloat y, GLfloat z, NSSize size, GLfloat step, NSRect clip)
+{
+	NSPoint p;
+	BOOL clipped = YES;
+	GLfloat			ww = 0.5 * size.width;
+	GLfloat			hh = 0.5 * size.height;
+	GLfloat theta;
+	GLfloat delta = step * M_PI / 180.0f;
+	
+	OO_ENTER_OPENGL();
+	for (theta = 0.0; theta <= 2*M_PI; theta += delta )
+	{
+		p.x = x + ww * cos(theta);
+		p.y = y + hh * sin(theta);
+		if (p.x >= clip.origin.x && p.x <= clip.origin.x + clip.size.width && p.y >= clip.origin.y && p.y <= clip.origin.y + clip.size.height)
+		{
+			if(clipped)
+			{
+				OOGLBEGIN(GL_LINE_STRIP);
+				clipped = NO;
+			}
+			glVertex3f(p.x, p.y, z);
+		}
+		else
+		{
+			if(!clipped)
+			{
+				OOGLEND();
+				clipped = YES;
+			}
+		}
+	}
+	if(!clipped)
+	{
+		OOGLEND();
+	}
+	return;
+}
+
 
 void GLDrawPoints(OOGLVector *points, int n)
 {

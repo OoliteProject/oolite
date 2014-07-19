@@ -191,6 +191,7 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance);
 */
 void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
+void GLDrawClippedOval(GLfloat x, GLfloat y, GLfloat z, NSSize size, GLfloat step, NSRect clip);
 
 /*	GLDrawPoints(), GLDrawFilledPoints()
 	Draw array of points, as outline and fill respectively.

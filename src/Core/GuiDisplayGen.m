@@ -1556,6 +1556,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	int			i;
 	double		distance = 0.0, time = 0.0;
 	NSPoint		star;
+	NSRect		clipRect = NSMakeRect(-size_in_pixels.width / 2.0, -4.5 * MAIN_GUI_ROW_HEIGHT, size_in_pixels.width, 18*MAIN_GUI_ROW_HEIGHT);
 	
 	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
 	BOOL		routeExists = NO;
@@ -1577,7 +1578,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		// draw fuel range circle
 		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 		OOGL(GLScaledLineWidth(2.0f));
-		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
+		GLDrawClippedOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5, clipRect);
 	}
 		
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
@@ -1894,9 +1895,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	// draw crosshairs over current location
 	//
-	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
-	[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
-	
+	dx = fabs(chart_centre_coordinates.x - galaxy_coordinates.x);
+	dy = fabs(chart_centre_coordinates.y - galaxy_coordinates.y);
+
+	if ((dx <= zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)&&(dy <= zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0))
+	{
+		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
+		[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
+	}
+
 	// draw crosshairs over cursor
 	//
 	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
