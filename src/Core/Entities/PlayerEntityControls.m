@@ -1697,9 +1697,9 @@ static NSTimeInterval	time_last_frame;
 					if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 					{
 						double		vadjust = 80;
-						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
-						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
-						NSPoint		centre = [self chart_centre_for_zoom: chart_zoom];
+						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * [self chart_zoom]);
+						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * [self chart_zoom]);
+						NSPoint		centre = [self chart_centre_for_zoom: [self chart_zoom]];
 						cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 						cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
 					}

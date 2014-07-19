@@ -7600,6 +7600,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
+			[gui setText: @"Test" forRow: GUI_ROW_CHART_SYSTEM+1];
 			[gui setShowTextCursor:NO];
 		}
 	}

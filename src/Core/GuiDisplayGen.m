@@ -1558,7 +1558,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint		star;
 	
 	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
-	BOOL		routeExists = YES;
+	BOOL		routeExists = NO;
 
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 
@@ -1836,25 +1836,27 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		target = [UNIVERSE systemSeedForSystemNumber: destNumber];
 		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
 		
 		// if the ANA has been activated and we are in string input mode (i.e. planet search),
 		// get out of it so that distance and time data can be displayed
-		//if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
+		if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
 		
-		if (!routeInfo)  routeExists = NO;
+		if (routeInfo)  routeExists = YES;
 		
 		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: zoom];
+
 		if (routeExists)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
 			time = [routeInfo oo_doubleForKey:@"time"];
 		}
 	}
-	else
+	if (!routeExists)
 	{
-		Random_Seed dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-		distance = distanceBetweenPlanetPositions(dest.d,dest.b,galaxy_coordinates.x,galaxy_coordinates.y);
+		target = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		distance = distanceBetweenPlanetPositions(target.d,target.b,galaxy_coordinates.x,galaxy_coordinates.y);
 		time = distance * distance;
 	}
 	
@@ -1863,25 +1865,19 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	tab_stops[1] = 96;
 	tab_stops[2] = 288;
 	[self setTabStops:tab_stops];
-	NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER target_system_seed]] retain];
+	targetName = [[UNIVERSE getSystemName:target] retain];
 
-	if (routeExists)
+	// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
+	NSString *travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
+	NSString *travelTimeLine = @"";
+	if (time > 0)
 	{
-		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		NSString *travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
-		NSString *travelTimeLine = @"";
-		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
-		{
-			travelTimeLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-est-travel-time-f"), time];
-		}
-			
-		[self setArray:[NSArray arrayWithObjects:targetSystemName, travelDistLine,travelTimeLine,nil] forRow:GUI_ROW_CHART_SYSTEM];
+		travelTimeLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-est-travel-time-f"), time];
 	}
-	else
-	{
-		[self setArray:[NSArray arrayWithObjects:targetSystemName, DESC(@"long-range-chart-system-unreachable"), nil] forRow:GUI_ROW_CHART_SYSTEM];
-	}
-	[targetSystemName release];
+	
+	[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:GUI_ROW_CHART_SYSTEM];
+	[targetName release];
+
 	// draw crosshairs over current location
 	//
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
