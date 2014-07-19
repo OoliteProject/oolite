@@ -1548,11 +1548,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
-	double		vcenter = 140.0f;
 	double		hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double		vscale = -size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
+	double		vcenter = 10*MAIN_GUI_ROW_HEIGHT;
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
-	double		voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - chart_centre_coordinates.y*vscale;
+	double		voffset = size_in_pixels.height - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
 	double		distance = 0.0, time = 0.0;
 	NSPoint		star;
