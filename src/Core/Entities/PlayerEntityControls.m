@@ -1680,7 +1680,7 @@ static NSTimeInterval	time_last_frame;
 				queryPressed = NO;
 			}
 			
-			show_info_flag = ([gameView isDown:key_map_info]);
+			show_info_flag = ([gameView isDown:key_map_info] && chart_mode != CHART_MODE_LONG_RANGE);
 			
 			// If we have entered this screen with the injectors key pressed, make sure
 			// that injectors switch off when we release it - Nikos.

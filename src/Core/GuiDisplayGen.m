@@ -1564,6 +1564,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	Random_Seed target = [PLAYER target_system_seed];
 	NSString *targetName = [UNIVERSE getSystemName:target];
+	double dx, dy;
 	
 	// get a list of systems marked as contract destinations
 	NSDictionary* markedDestinations = [player markedDestinations];
@@ -1606,9 +1607,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		for (i = 0; i < 256; i++)
 		{
 			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		
-			double dx, dy;
-		
+
 			dx = fabs(chart_centre_coordinates.x - g_seed.d);
 			dy = fabs(chart_centre_coordinates.y - g_seed.b);
 		
@@ -1788,20 +1787,24 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	else
 	{
-		BOOL drawNames = n_matches < 4;
 		for (i = 0; i < 256; i++)
 		{
 			BOOL mark = systemsFound[i];
+			float marker_size = 8.0/zoom;
 			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-			if (mark)
+
+			dx = fabs(chart_centre_coordinates.x - g_seed.d);
+			dy = fabs(chart_centre_coordinates.y - g_seed.b);
+		
+			if (mark && (dx <= zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)&&(dy <= zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0))
 			{
 				star.x = (float)(g_seed.d * hscale + hoffset);
 				star.y = (float)(g_seed.b * vscale + voffset);
 				OOGLBEGIN(GL_LINE_LOOP);
-					glVertex3f(x + star.x - 2.0f,	y + star.y - 2.0f,	z);
-					glVertex3f(x + star.x + 2.0f,	y + star.y - 2.0f,	z);
-					glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
-					glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
+					glVertex3f(x + star.x - marker_size,	y + star.y - marker_size,	z);
+					glVertex3f(x + star.x + marker_size,	y + star.y - marker_size,	z);
+					glVertex3f(x + star.x + marker_size,	y + star.y + marker_size,	z);
+					glVertex3f(x + star.x - marker_size,	y + star.y + marker_size,	z);
 				OOGLEND();
 				if (i == foundIndex || n_matches == 1)
 				{
@@ -1810,7 +1813,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
 					OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 				}
-				else if (drawNames)
+				else if (zoom > CHART_ZOOM_SHOW_LABELS)
 					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
 			}
 		}
