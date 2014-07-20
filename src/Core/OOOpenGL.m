@@ -133,8 +133,6 @@ void GLDrawBallBillboard(GLfloat radius, GLfloat step, GLfloat z_distance)
 }
 
 
-static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
-
 static void GLDrawOvalPoints(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 {
 	GLfloat			ww = 0.5 * siz.width;

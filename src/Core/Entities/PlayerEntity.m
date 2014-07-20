@@ -558,10 +558,26 @@ static GLfloat		sBaseMass = 0.0;
 	return cursor_coordinates;
 }
 
+
 - (NSPoint) chart_centre_coordinates
 {
 	return chart_centre_coordinates;
 }
+
+
+- (OOScalar) chart_zoom
+{
+	return chart_zoom;
+}
+
+- (NSPoint) chart_centre_for_zoom: (OOScalar) zoom
+{
+	NSPoint p;
+	p.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
+	p.y = chart_centre_coordinates.y + (128.0 - chart_centre_coordinates.y) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
+	return p;
+}
+
 
 - (Random_Seed) system_seed
 {
@@ -574,6 +590,7 @@ static GLfloat		sBaseMass = 0.0;
 	system_seed = s_seed;
 	galaxy_coordinates = NSMakePoint(s_seed.d, s_seed.b);
 	chart_centre_coordinates = galaxy_coordinates;
+	target_chart_centre = chart_centre_coordinates;
 }
 
 
@@ -933,7 +950,12 @@ static GLfloat		sBaseMass = 0.0;
 	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	chart_centre_coordinates = galaxy_coordinates;
+	target_chart_centre = chart_centre_coordinates;
 	cursor_coordinates = galaxy_coordinates;
+	chart_zoom = 1.0;
+	target_chart_zoom = 1.0;
+	saved_chart_zoom = 1.0;
+	chart_mode = CHART_MODE_SHORT_RANGE;
 	
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
 	if (keyStringValue != nil)
@@ -1705,7 +1727,13 @@ static GLfloat		sBaseMass = 0.0;
 	market_rnd				= 0;
 	ship_kills				= 0;
 	chart_centre_coordinates	= galaxy_coordinates;
+	target_chart_centre		= chart_centre_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
+	chart_zoom			= 1.0;
+	target_chart_zoom		= 1.0;
+	saved_chart_zoom		= 1.0;
+	chart_mode			= CHART_MODE_SHORT_RANGE;
+
 	
 	scripted_misjump		= NO;
 	_scriptedMisjumpRange	= 0.5;
@@ -2894,7 +2922,6 @@ static GLfloat		sBaseMass = 0.0;
 //			case GUI_SCREEN_CONTRACTS:
 			case GUI_SCREEN_EQUIP_SHIP:
 			case GUI_SCREEN_INTERFACES:
-			case GUI_SCREEN_LONG_RANGE_CHART:
 			case GUI_SCREEN_MANIFEST:
 			case GUI_SCREEN_SHIPYARD:
 			case GUI_SCREEN_SHORT_RANGE_CHART:
@@ -6382,6 +6409,7 @@ static GLfloat		sBaseMass = 0.0;
 	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	
 	chart_centre_coordinates = galaxy_coordinates;
+	target_chart_centre = chart_centre_coordinates;
 	OOProfilerEndMarker(@"witchspace");
 }
 
@@ -7473,66 +7501,6 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) setGuiToLongRangeChartScreen
-{
-	GuiDisplayGen	*gui = [UNIVERSE gui];
-	OOGUIScreenID	oldScreen = gui_screen;
-	
-	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
-	BOOL			guiChanged = (oldScreen != gui_screen);
-	
-	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
-	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
-			target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	
-	NSString *targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
-	
-	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
-	
-	// GUI stuff
-	{
-		[gui clearAndKeepBackground:!guiChanged];
-		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
-		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
-		{
-			[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
-		}
-		else
-		{
-			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
-		}
-		
-		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
-		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:17];
-		[gui setColor:[OOColor cyanColor] forRow:17];
-		
-		[gui setShowTextCursor:YES];
-		[gui setCurrentRow:17];
-	}
-	/* ends */
-	
-	[[UNIVERSE gameView] clearMouse];
-	
-	[targetSystemName release];
-	
-	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
-	
-	if (guiChanged)
-	{
-		NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
-		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"long_range_chart"];
-		[gui setBackgroundTextureDescriptor:bgDescriptor];
-		
-		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		
-		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
-		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
-	}
-}
-
-
 - (void) setGuiToShortRangeChartScreen
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -7543,39 +7511,47 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
-	// don't target planets outside the immediate vicinity.
-	//if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
-	//		cursor_coordinates = galaxy_coordinates;	// home
-	
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 	{
 		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	}
 	
-	// now calculate the distance.
-	double			distance = [self hyperspaceJumpDistance];
-	double			estimatedTravelTime = distance * distance;
-	
-	NSString		*targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 	
 	// GUI stuff
 	{
-		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:DESC(@"short-range-chart-title")];
+		//[gui clearAndKeepBackground:!guiChanged];
+		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
+		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
+		{
+			[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
+		}
+		else
+		{
+			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
+		}
 		// refresh the short range chart cache, in case we've just loaded a save game with different local overrides, etc.
 		[gui refreshStarChart];
-		[gui setText:targetSystemName forRow:19];
+		//[gui setText:targetSystemName forRow:19];
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		[gui setText:[NSString stringWithFormat:OOExpandKey(@"short-range-chart-distance-f"), distance] forRow:20];
-		if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:OOExpandKey(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
-		[gui setShowTextCursor:NO];
+		//[gui setText:[NSString stringWithFormat:OOExpandKey(@"short-range-chart-distance-f"), distance] forRow:20];
+		//if ([self hasHyperspaceMotor]) [gui setText:(NSString *)((distance > 0.0 && distance <= (double)fuel/10.0) ? (NSString *)[NSString stringWithFormat:OOExpandKey(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (NSString *)@"") forRow:21];
+		if (chart_mode == CHART_MODE_LONG_RANGE)
+		{
+			NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
+			[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:GUI_ROW_PLANET_FINDER];
+			[gui setColor:[OOColor cyanColor] forRow:GUI_ROW_PLANET_FINDER];
+			[gui setShowTextCursor:YES];
+			[gui setCurrentRow:GUI_ROW_PLANET_FINDER];
+		}
+		else
+		{
+			[gui setShowTextCursor:NO];
+		}
 	}
 	/* ends */
 	
 	[[UNIVERSE gameView] clearMouse];
-	
-	[targetSystemName release]; // released
 	
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
@@ -11323,7 +11299,6 @@ else _dockTarget = NO_TARGET;
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&
-	showingLongRangeChart &&
 	_missionAllowInterrupt &&
 	_missionScreenID &&
 	_missionTitle &&
