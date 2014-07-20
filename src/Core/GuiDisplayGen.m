@@ -1556,12 +1556,27 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	int			i;
 	double		distance = 0.0, time = 0.0;
 	NSPoint		star;
-	NSRect		clipRect = NSMakeRect(x, y + 10*MAIN_GUI_ROW_HEIGHT, size_in_pixels.width, 19*MAIN_GUI_ROW_HEIGHT);
+	OOScalar	pixelRatio;
+	NSRect		clipRect;
 	
 	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
 	BOOL		routeExists = NO;
 
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
+	NSSize		viewSize = [[UNIVERSE gameView] viewSize];
+	double aspect_ratio = viewSize.width / viewSize.height;
+	if (aspect_ratio > 4.0/3.0)
+	{
+		pixelRatio = viewSize.height / 480.0;
+	}
+	else
+	{
+		pixelRatio = viewSize.width / 640.0;
+	}
+	clipRect = NSMakeRect((viewSize.width - size_in_pixels.width*pixelRatio)/2.0,
+				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
+				size_in_pixels.width*pixelRatio,
+				GUI_ROW_CHART_SYSTEM*MAIN_GUI_ROW_HEIGHT*pixelRatio );
 
 	Random_Seed target = [PLAYER target_system_seed];
 	NSString *targetName = [UNIVERSE getSystemName:target];
@@ -1578,7 +1593,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		// draw fuel range circle
 		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 		OOGL(GLScaledLineWidth(2.0f));
-		GLDrawClippedOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5, clipRect);
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height);
+		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
+		glDisable(GL_SCISSOR_TEST);
 	}
 		
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
