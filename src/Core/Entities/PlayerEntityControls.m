@@ -1511,7 +1511,7 @@ static NSTimeInterval	time_last_frame;
 		
 		exceptionContext = @"pause";
 		// Pause game 'p'
-		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)// look for the 'p' key
+		if ([gameView isDown:key_pausebutton] && !(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART && chart_mode == CHART_MODE_LONG_RANGE) && gui_screen != GUI_SCREEN_MISSION)// look for the 'p' key
 		{
 			if (!pause_pressed)
 			{
@@ -1606,7 +1606,6 @@ static NSTimeInterval	time_last_frame;
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_SHORT_RANGE_CHART:
-		case GUI_SCREEN_LONG_RANGE_CHART:
 
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
@@ -1703,22 +1702,12 @@ static NSTimeInterval	time_last_frame;
 						cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 						cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
 					}
-					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
-					{
-						double		vadjust = 211;
-						double		hadjust = MAIN_GUI_PIXEL_WIDTH / 2.0;
-						double		hscale = MAIN_GUI_PIXEL_WIDTH / 256.0;
-						double		vscale = MAIN_GUI_PIXEL_HEIGHT / 512.0;
-						cursor_coordinates.x = (maus.x * MAIN_GUI_PIXEL_WIDTH + hadjust)/ hscale;
-						cursor_coordinates.y = (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale;
-					}
 					[gameView resetTypedString];
 					moving = YES;
 				}
 				if ([gameView isDown:gvMouseDoubleClick])
 				{
 					[gameView clearMouse];
-					showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
 					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 					[self setGuiToSystemDataScreen];
 				}
@@ -1739,13 +1728,19 @@ static NSTimeInterval	time_last_frame;
 				}
 				if ([gameView isDown:gvPageUpKey])
 				{
+					if (chart_mode == CHART_MODE_LONG_RANGE)
+					{
+						chart_mode = CHART_MODE_SHORT_RANGE;
+						target_chart_zoom = CHART_MAX_ZOOM;
+						[gui clearAndKeepBackground: YES];
+					}
 					target_chart_zoom /= 1.02;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					moving = YES;
 					target_chart_centre = cursor_coordinates;
 				}
 				
-				BOOL nextSystem = [gameView isShiftDown] && gui_screen == GUI_SCREEN_LONG_RANGE_CHART;
+				BOOL nextSystem = [gameView isShiftDown];
 				
 				if ([gameView isDown:key_gui_arrow_left])
 				{
@@ -2825,7 +2820,7 @@ static NSTimeInterval	time_last_frame;
 {
 	if ([[UNIVERSE gameView] isDown:key_custom_view])
 	{
-		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
+		if (!customView_pressed && [_customViews count] != 0 && !(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART && chart_mode == CHART_MODE_LONG_RANGE))
 		{
 			if ([UNIVERSE viewDirection] == VIEW_CUSTOM)	// already in custom view mode
 			{
@@ -2871,7 +2866,7 @@ static NSTimeInterval	time_last_frame;
 	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
 	
 	//  view keys
-	if (([gameView isDown:gvFunctionKey1] || [gameView isDown:key_view_forward]) || (virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || ((([gameView isDown:key_hyperspace] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART) || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI]))
+	if (([gameView isDown:gvFunctionKey1] || [gameView isDown:key_view_forward]) || (virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || ((([gameView isDown:key_hyperspace] && !(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART && chart_mode == CHART_MODE_LONG_RANGE)) || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI]))
 	{
 		[self switchToThisView:VIEW_FORWARD];
 	}
@@ -3292,7 +3287,6 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
-			showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
 			[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 			[self setGuiToSystemDataScreen];
 		}
@@ -3916,9 +3910,6 @@ static BOOL autopilot_pause;
 		break;
 	case GUI_SCREEN_SHORT_RANGE_CHART:
 		[self setGuiToShortRangeChartScreen];
-		break;
-	case GUI_SCREEN_LONG_RANGE_CHART:
-		[self setGuiToLongRangeChartScreen];
 		break;
 	case GUI_SCREEN_SYSTEM_DATA:
 		[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];

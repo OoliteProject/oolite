@@ -2922,7 +2922,6 @@ static GLfloat		sBaseMass = 0.0;
 //			case GUI_SCREEN_CONTRACTS:
 			case GUI_SCREEN_EQUIP_SHIP:
 			case GUI_SCREEN_INTERFACES:
-			case GUI_SCREEN_LONG_RANGE_CHART:
 			case GUI_SCREEN_MANIFEST:
 			case GUI_SCREEN_SHIPYARD:
 			case GUI_SCREEN_SHORT_RANGE_CHART:
@@ -7502,66 +7501,6 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) setGuiToLongRangeChartScreen
-{
-	GuiDisplayGen	*gui = [UNIVERSE gui];
-	OOGUIScreenID	oldScreen = gui_screen;
-	
-	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
-	BOOL			guiChanged = (oldScreen != gui_screen);
-	
-	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
-	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
-			target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	
-	NSString *targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
-	
-	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
-	
-	// GUI stuff
-	{
-		[gui clearAndKeepBackground:!guiChanged];
-		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
-		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
-		{
-			[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
-		}
-		else
-		{
-			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
-		}
-		
-		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
-		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:17];
-		[gui setColor:[OOColor cyanColor] forRow:17];
-		
-		[gui setShowTextCursor:YES];
-		[gui setCurrentRow:17];
-	}
-	/* ends */
-	
-	[[UNIVERSE gameView] clearMouse];
-	
-	[targetSystemName release];
-	
-	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
-	
-	if (guiChanged)
-	{
-		NSDictionary *bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
-		if (bgDescriptor == nil)  bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"long_range_chart"];
-		[gui setBackgroundTextureDescriptor:bgDescriptor];
-		
-		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		
-		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
-		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
-	}
-}
-
-
 - (void) setGuiToShortRangeChartScreen
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -11360,7 +11299,6 @@ else _dockTarget = NO_TARGET;
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&
-	showingLongRangeChart &&
 	_missionAllowInterrupt &&
 	_missionScreenID &&
 	_missionTitle &&

@@ -1138,7 +1138,7 @@ for (unsigned i=0;i<amount;i++)
 	}
 	dest_name = [contract_info oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME];
 	
-	[self setGuiToLongRangeChartScreen];
+	[self setGuiToShortRangeChartScreen];
 	[UNIVERSE findSystemCoordinatesWithPrefix:[dest_name lowercaseString] exactMatch:YES]; // if dest_name is 'Ra', make sure there's only 1 result.
 	[self targetNewSystem:1]; // now highlight the 1 result found.
 } */

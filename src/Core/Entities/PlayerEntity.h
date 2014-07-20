@@ -374,8 +374,6 @@ typedef enum
 	
 	OOMatrix				playerRotMatrix;
 	
-	BOOL					showingLongRangeChart;
-	
 	// For OO-GUI based save screen
 	NSString				*commanderNameString;
 	NSMutableArray			*cdrDetailArray;
@@ -877,7 +875,6 @@ typedef enum
 
 - (void) setGuiToSystemDataScreen;
 - (NSDictionary *) markedDestinations;
-- (void) setGuiToLongRangeChartScreen;
 - (void) setGuiToShortRangeChartScreen;
 - (void) setGuiToLoadSaveScreen;
 - (void) setGuiToGameOptionsScreen;
