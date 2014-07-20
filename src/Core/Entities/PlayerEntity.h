@@ -103,7 +103,7 @@ typedef enum
 #define CHART_MAX_ZOOM (256.0/CHART_WIDTH_AT_MAX_ZOOM)
 //start scrolling when cursor is this number of units away from centre
 #define CHART_SCROLL_AT_X 20.0
-#define CHART_SCROLL_AT_Y 32.0
+#define CHART_SCROLL_AT_Y 31.0
 
 #define CHART_ZOOM_SHOW_LABELS 2.0
 
