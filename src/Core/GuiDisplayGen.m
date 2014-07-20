@@ -1574,8 +1574,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	clipRect = NSMakeRect((viewSize.width - size_in_pixels.width*pixelRatio)/2.0,
 				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
-				size_in_pixels.width*pixelRatio,
-				GUI_ROW_CHART_SYSTEM*MAIN_GUI_ROW_HEIGHT*pixelRatio);
+				size_in_pixels.width * pixelRatio,
+				GUI_ROW_CHART_SYSTEM * MAIN_GUI_ROW_HEIGHT * pixelRatio);
 
 	Random_Seed target = [PLAYER target_system_seed];
 	NSString *targetName = [UNIVERSE getSystemName:target];
@@ -1592,10 +1592,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		// draw fuel range circle
 		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 		OOGL(GLScaledLineWidth(2.0f));
-		glEnable(GL_SCISSOR_TEST);
-		glScissor(clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height);
+		OOGL(glEnable(GL_SCISSOR_TEST));
+		OOGL(glScissor(clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height));
 		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
-		glDisable(GL_SCISSOR_TEST);
+		OOGL(glDisable(GL_SCISSOR_TEST));
 	}
 		
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
