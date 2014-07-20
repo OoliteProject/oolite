@@ -567,7 +567,6 @@ static GLfloat		sBaseMass = 0.0;
 
 - (OOScalar) chart_zoom
 {
-	if (chart_mode == CHART_MODE_LONG_RANGE) return CHART_MAX_ZOOM;
 	return chart_zoom;
 }
 
@@ -591,6 +590,7 @@ static GLfloat		sBaseMass = 0.0;
 	system_seed = s_seed;
 	galaxy_coordinates = NSMakePoint(s_seed.d, s_seed.b);
 	chart_centre_coordinates = galaxy_coordinates;
+	target_chart_centre = chart_centre_coordinates;
 }
 
 
@@ -950,8 +950,11 @@ static GLfloat		sBaseMass = 0.0;
 	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	chart_centre_coordinates = galaxy_coordinates;
+	target_chart_centre = chart_centre_coordinates;
 	cursor_coordinates = galaxy_coordinates;
 	chart_zoom = 1.0;
+	target_chart_zoom = 1.0;
+	saved_chart_zoom = 1.0;
 	chart_mode = CHART_MODE_SHORT_RANGE;
 	
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
@@ -1724,8 +1727,11 @@ static GLfloat		sBaseMass = 0.0;
 	market_rnd				= 0;
 	ship_kills				= 0;
 	chart_centre_coordinates	= galaxy_coordinates;
+	target_chart_centre		= chart_centre_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
 	chart_zoom			= 1.0;
+	target_chart_zoom		= 1.0;
+	saved_chart_zoom		= 1.0;
 	chart_mode			= CHART_MODE_SHORT_RANGE;
 
 	
@@ -6404,6 +6410,7 @@ static GLfloat		sBaseMass = 0.0;
 	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	
 	chart_centre_coordinates = galaxy_coordinates;
+	target_chart_centre = chart_centre_coordinates;
 	OOProfilerEndMarker(@"witchspace");
 }
 

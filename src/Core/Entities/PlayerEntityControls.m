@@ -1580,7 +1580,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	BOOL			moving = NO;
-	double			cursor_speed = ([gameView isCtrlDown] ? 20.0 : 10.0)* [self chart_zoom];
+	double			cursor_speed = ([gameView isCtrlDown] ? 20.0 : 10.0)* chart_zoom;
 	GameController  *controller = [UNIVERSE gameController];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	GUI_ROW_INIT(gui);
@@ -1697,9 +1697,9 @@ static NSTimeInterval	time_last_frame;
 					if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 					{
 						double		vadjust = 80;
-						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * [self chart_zoom]);
-						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * [self chart_zoom]);
-						NSPoint		centre = [self chart_centre_for_zoom: [self chart_zoom]];
+						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
+						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
+						NSPoint		centre = [self chart_centre_for_zoom: chart_zoom];
 						cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 						cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
 					}
@@ -1733,16 +1733,16 @@ static NSTimeInterval	time_last_frame;
 				}
 				if ([gameView isDown:gvPageDownKey])
 				{
-					chart_zoom *=1.02;
-					if (chart_zoom > CHART_MAX_ZOOM) chart_zoom = CHART_MAX_ZOOM;
+					target_chart_zoom *=1.02;
+					if (target_chart_zoom > CHART_MAX_ZOOM) target_chart_zoom = CHART_MAX_ZOOM;
 					moving = YES;
 				}
 				if ([gameView isDown:gvPageUpKey])
 				{
-					chart_zoom /= 1.02;
-					if (chart_zoom < 1) chart_zoom = 1;
+					target_chart_zoom /= 1.02;
+					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					moving = YES;
-					chart_centre_coordinates = cursor_coordinates;
+					target_chart_centre = cursor_coordinates;
 				}
 				
 				BOOL nextSystem = [gameView isShiftDown] && gui_screen == GUI_SCREEN_LONG_RANGE_CHART;
@@ -1826,23 +1826,25 @@ static NSTimeInterval	time_last_frame;
 					cursor_coordinates.x = target_system_seed.d;
 					cursor_coordinates.y = target_system_seed.b;
 				}
-				if (cursor_coordinates.x - chart_centre_coordinates.x <= -CHART_SCROLL_AT_X*chart_zoom)
+				if (cursor_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X*chart_zoom)
 				{
-					chart_centre_coordinates.x = cursor_coordinates.x + CHART_SCROLL_AT_X*chart_zoom;
+					target_chart_centre.x = cursor_coordinates.x + CHART_SCROLL_AT_X*chart_zoom;
 				}
-				else if (cursor_coordinates.x - chart_centre_coordinates.x >= CHART_SCROLL_AT_X*chart_zoom)
+				else if (cursor_coordinates.x - target_chart_centre.x >= CHART_SCROLL_AT_X*chart_zoom)
 				{
-					chart_centre_coordinates.x = cursor_coordinates.x - CHART_SCROLL_AT_X*chart_zoom;
+					target_chart_centre.x = cursor_coordinates.x - CHART_SCROLL_AT_X*chart_zoom;
 				}
-				if (cursor_coordinates.y - chart_centre_coordinates.y <= -CHART_SCROLL_AT_Y*chart_zoom)
+				if (cursor_coordinates.y - target_chart_centre.y <= -CHART_SCROLL_AT_Y*chart_zoom)
 				{
-					chart_centre_coordinates.y = cursor_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
+					target_chart_centre.y = cursor_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
 				}
-				else if (cursor_coordinates.y - chart_centre_coordinates.y >= CHART_SCROLL_AT_Y*chart_zoom)
+				else if (cursor_coordinates.y - target_chart_centre.y >= CHART_SCROLL_AT_Y*chart_zoom)
 				{
-					chart_centre_coordinates.y = cursor_coordinates.y - CHART_SCROLL_AT_Y*chart_zoom;
+					target_chart_centre.y = cursor_coordinates.y - CHART_SCROLL_AT_Y*chart_zoom;
 				}
-				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_LONG_RANGE_CHART)) [self setGuiToLongRangeChartScreen]; // update graphics
+				chart_centre_coordinates.x = (3.0*chart_centre_coordinates.x + target_chart_centre.x)/4.0;
+				chart_centre_coordinates.y = (3.0*chart_centre_coordinates.y + target_chart_centre.y)/4.0;
+				chart_zoom = (3.0*chart_zoom + target_chart_zoom)/4.0;
 				if ((cursor_moving)&&(gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) [self setGuiToShortRangeChartScreen]; // update graphics
 				cursor_moving = moving;
 			}
@@ -3267,14 +3269,17 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (chart_mode == CHART_MODE_LONG_RANGE)
 				{
+					target_chart_zoom = saved_chart_zoom;
 					chart_mode = CHART_MODE_SHORT_RANGE;
 				}
 				else
 				{
+					saved_chart_zoom = target_chart_zoom;
+					target_chart_zoom = CHART_MAX_ZOOM;
 					chart_mode = CHART_MODE_LONG_RANGE;
 				}
 			}
-			[gui clearAndKeepBackground: NO];
+			[gui clearAndKeepBackground: YES];
 			[self setGuiToShortRangeChartScreen];
 		}
 	}
