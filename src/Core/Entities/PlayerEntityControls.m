@@ -1696,7 +1696,7 @@ static NSTimeInterval	time_last_frame;
 					NSPoint maus = [gameView virtualJoystickPosition];
 					if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 					{
-						double		vadjust = 80;
+						double		vadjust = 64;
 						double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
 						double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
 						NSPoint		centre = [self chart_centre_for_zoom: chart_zoom];
@@ -1726,7 +1726,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView resetTypedString];
 					cursor_coordinates = galaxy_coordinates;
-					chart_centre_coordinates = galaxy_coordinates;
+					target_chart_centre = galaxy_coordinates;
 					found_system_seed = kNilRandomSeed;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					moving = YES;
