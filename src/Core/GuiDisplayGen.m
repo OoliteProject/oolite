@@ -1716,7 +1716,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		dx = fabs(chart_centre_coordinates.x - g_seed.d);
 		dy = fabs(chart_centre_coordinates.y - g_seed.b);
 	
-		if ((dx > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)||(dy > zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0))
+		if ((dx > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)||(dy > zoom*CHART_HEIGHT_AT_MAX_ZOOM))
 			continue;
 		float blob_size = (4.0f + 0.5f * (g_seed.f & 15))/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
@@ -1823,7 +1823,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			dx = fabs(chart_centre_coordinates.x - g_seed.d);
 			dy = fabs(chart_centre_coordinates.y - g_seed.b);
 		
-			if (mark && (dx <= zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)&&(dy <= zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0))
+			if (mark && (dx <= zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)&&(dy <= zoom*CHART_HEIGHT_AT_MAX_ZOOM))
 			{
 				star.x = (float)(g_seed.d * hscale + hoffset);
 				star.y = (float)(g_seed.b * vscale + voffset);
@@ -1864,7 +1864,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		dx = fabs(chart_centre_coordinates.x - sys->seed.d);
 		dy = fabs(chart_centre_coordinates.y - sys->seed.b);
 		
-		if ((dx > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)||(dy > zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0))
+		if ((dx > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)||(dy > zoom*CHART_HEIGHT_AT_MAX_ZOOM))
 			continue;
 		star.x = (float)(sys->seed.d * hscale + hoffset);
 		star.y = (float)(sys->seed.b * vscale + voffset);
@@ -1929,14 +1929,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	// draw crosshairs over current location
 	//
-	dx = fabs(chart_centre_coordinates.x - galaxy_coordinates.x);
-	dy = fabs(chart_centre_coordinates.y - galaxy_coordinates.y);
+	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
+	[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
 
-	if ((dx <= zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)&&(dy <= zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0))
-	{
-		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
-		[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
-	}
 
 	// draw crosshairs over cursor
 	//
@@ -2349,9 +2344,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
-	PlayerEntity	*player = PLAYER;
 	Random_Seed		g_seed, g_seed2;
-	NSPoint	chart_centre_coordinates = [player chart_centre_for_zoom: zoom];
 	NSUInteger		i, j;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
@@ -2365,15 +2358,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		g_seed2 = [UNIVERSE systemSeedForSystemNumber:j];
 
-		double dx, dy;
-		dx = fabs(chart_centre_coordinates.x - g_seed.d);
-		dy = fabs(chart_centre_coordinates.y - g_seed.b);
-		if (dx > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0 || dy > zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0) continue;
-
-		dx = abs(chart_centre_coordinates.x - g_seed2.d);
-		dy = abs(chart_centre_coordinates.y - g_seed2.b);
-		if (dx > zoom*CHART_HEIGHT_AT_MAX_ZOOM/2.0 || dy > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0) continue;
-		
 		star.x = (float)(g_seed.d * hscale);
 		star.y = (float)(g_seed.b * vscale);
 		star2.x = (float)(g_seed2.d * hscale);
