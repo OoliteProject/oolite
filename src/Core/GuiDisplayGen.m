@@ -2100,11 +2100,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	int			i;
 	double		distance = 0.0, time = 0.0;
 	
-	if (showAdvancedNavArray)
-	{
-		advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
-	}
-	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
+	if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
 	{
 		advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
 	}
@@ -2118,10 +2114,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
-		
-		// if the ANA has been activated and we are in string input mode (i.e. planet search),
-		// get out of it so that distance and time data can be displayed
-		if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
 		
 		if (!routeInfo)  routeExists = NO;
 		
