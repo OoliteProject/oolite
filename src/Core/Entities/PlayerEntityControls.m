@@ -1649,11 +1649,23 @@ static NSTimeInterval	time_last_frame;
 					if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 					{
 						[gui setShowAdvancedNavArray:YES];
-						switch (ANA_mode)
+						if ([gameView isCtrlDown])
 						{
-							case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
-							case OPTIMIZED_BY_JUMPS:ANA_mode = OPTIMIZED_BY_TIME;	break;
-							default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
+							switch (ANA_mode)
+							{
+								case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_TIME;	break;
+								case OPTIMIZED_BY_TIME:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
+								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
+							}
+						}
+						else
+						{
+							switch (ANA_mode)
+							{
+								case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
+								case OPTIMIZED_BY_JUMPS:ANA_mode = OPTIMIZED_BY_TIME;	break;
+								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
+							}
 						}
 					}
 					else
