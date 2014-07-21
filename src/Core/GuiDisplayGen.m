@@ -1678,7 +1678,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		// if the ANA has been activated and we are in string input mode (i.e. planet search),
 		// get out of it so that distance and time data can be displayed
-		if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
+		//if ([[[UNIVERSE gameView] typedString] length] > 0)  [player clearPlanetSearchString];
 		
 		if (routeInfo)  routeExists = YES;
 		
@@ -2100,7 +2100,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	int			i;
 	double		distance = 0.0, time = 0.0;
 	
-	if ([player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	if (showAdvancedNavArray)
 	{
 		advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
 	}
