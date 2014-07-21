@@ -1587,15 +1587,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// get present location
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
 
+	// enable draw clipping; limit drawing area within the chart area
+	OOGL(glEnable(GL_SCISSOR_TEST));
+	OOGL(glScissor(clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height));
+
 	if ([player hasHyperspaceMotor])
 	{
 		// draw fuel range circle
 		OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
 		OOGL(GLScaledLineWidth(2.0f));
-		OOGL(glEnable(GL_SCISSOR_TEST));
-		OOGL(glScissor(clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height));
 		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
-		OOGL(glDisable(GL_SCISSOR_TEST));
 	}
 		
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
@@ -1939,6 +1940,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
 	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
 	[self drawCrossHairsWithSize:7 x:x + cu.x y:y + cu.y z:z];
+
+	// disable draw clipping
+	OOGL(glDisable(GL_SCISSOR_TEST));
 }
 
 
