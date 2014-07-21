@@ -235,6 +235,7 @@ typedef enum
 	PLAYER_FLEEING_LIKELY = 3
 } OOPlayerFleeingStatus;
 
+
 typedef enum
 {
 	CHART_MODE_SHORT_RANGE,
@@ -427,6 +428,7 @@ typedef enum
 	OOScalar				target_chart_zoom;
 	OOScalar				saved_chart_zoom;
 	OOChartMode				chart_mode;
+	OORouteType				ANA_mode;
 	OOTimeDelta				witchspaceCountdown;
 	
 	// player commander data
@@ -686,6 +688,7 @@ typedef enum
 - (NSPoint) chart_centre_coordinates;
 - (OOScalar) chart_zoom;
 - (NSPoint) chart_centre_for_zoom: (OOScalar) zoom;
+- (OORouteType) ANAMode;
 
 - (Random_Seed) system_seed;
 - (void) setSystem_seed:(Random_Seed) s_seed;

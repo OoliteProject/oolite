@@ -114,6 +114,7 @@ static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
 static BOOL				queryPressed;
 static BOOL				spacePressed;
+static BOOL				chartInfoPressed;
 static BOOL				switching_chart_screens;
 static BOOL				switching_status_screens;
 //static BOOL				switching_market_screens;
@@ -1645,17 +1646,26 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!pling_pressed)
 				{
-					if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
+					if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+					{
+						[gui setShowAdvancedNavArray:YES];
+						switch (ANA_mode)
+						{
+							case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
+							case OPTIMIZED_BY_JUMPS:ANA_mode = OPTIMIZED_BY_TIME;	break;
+							default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
+						}
+					}
+					else
+					{
+						[gui setShowAdvancedNavArray: NO];
+					}
 					pling_pressed = YES;
 				}
 			}
 			else
 			{
-				if (pling_pressed)
-				{
-					[gui setShowAdvancedNavArray:NO];
-					pling_pressed = NO;
-				}
+				pling_pressed = NO;
 			}
 
 			if ([gameView isDown:key_chart_highlight])   // '?' toggle chart colours
@@ -1678,8 +1688,19 @@ static NSTimeInterval	time_last_frame;
 			{
 				queryPressed = NO;
 			}
-			
-			show_info_flag = ([gameView isDown:key_map_info] && chart_mode != CHART_MODE_LONG_RANGE);
+
+			if ([gameView isDown:key_map_info] && chart_zoom <= CHART_ZOOM_SHOW_LABELS)
+			{
+				if (!chartInfoPressed)
+				{
+					show_info_flag = !show_info_flag;
+					chartInfoPressed = YES;
+				}
+			}
+			else
+			{
+				chartInfoPressed = NO;
+			}
 			
 			// If we have entered this screen with the injectors key pressed, make sure
 			// that injectors switch off when we release it - Nikos.

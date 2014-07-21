@@ -570,12 +570,19 @@ static GLfloat		sBaseMass = 0.0;
 	return chart_zoom;
 }
 
+
 - (NSPoint) chart_centre_for_zoom: (OOScalar) zoom
 {
 	NSPoint p;
 	p.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
 	p.y = chart_centre_coordinates.y + (128.0 - chart_centre_coordinates.y) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
 	return p;
+}
+
+
+- (OORouteType) ANAMode
+{
+	return ANA_mode;
 }
 
 
@@ -956,6 +963,7 @@ static GLfloat		sBaseMass = 0.0;
 	target_chart_zoom = 1.0;
 	saved_chart_zoom = 1.0;
 	chart_mode = CHART_MODE_SHORT_RANGE;
+	ANA_mode = OPTIMIZED_BY_NONE;
 	
 	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
 	if (keyStringValue != nil)
@@ -1733,6 +1741,7 @@ static GLfloat		sBaseMass = 0.0;
 	target_chart_zoom		= 1.0;
 	saved_chart_zoom		= 1.0;
 	chart_mode			= CHART_MODE_SHORT_RANGE;
+	ANA_mode			= OPTIMIZED_BY_NONE;
 
 	
 	scripted_misjump		= NO;

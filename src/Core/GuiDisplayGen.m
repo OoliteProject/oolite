@@ -1558,7 +1558,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOScalar	pixelRatio;
 	NSRect		clipRect;
 	
-	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
+	OORouteType	advancedNavArrayMode = [player ANAMode];
 	BOOL		routeExists = NO;
 
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
@@ -1645,15 +1645,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (showAdvancedNavArray)
 	{
-		advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
+		if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
+		{
+			advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
+		}
+		else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
+		{
+			advancedNavArrayMode = OPTIMIZED_BY_TIME;
+		}
 	}
-	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
+	else
 	{
-		advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
-	}
-	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
-	{
-		advancedNavArrayMode = OPTIMIZED_BY_TIME;
+		advancedNavArrayMode = OPTIMIZED_BY_NONE;
 	}
 
 	OOSystemID savedPlanetNumber = 0;
@@ -2102,7 +2105,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	int			i;
 	double		distance = 0.0, time = 0.0;
 	
-	if (showAdvancedNavArray)
+	if ([player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
 		advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
 	}
