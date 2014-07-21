@@ -1642,11 +1642,11 @@ static NSTimeInterval	time_last_frame;
 				moving |= (searchStringLength != [[gameView typedString] length]);
 				searchStringLength = [[gameView typedString] length];
 			}
-			if ([gameView isDown:key_advanced_nav_array])   //  '^' key
+			if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 			{
-				if (!pling_pressed)
+				if ([gameView isDown:key_advanced_nav_array])   //  '^' key
 				{
-					if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+					if (!pling_pressed)
 					{
 						[gui setShowAdvancedNavArray:YES];
 						if ([gameView isCtrlDown])
@@ -1668,16 +1668,16 @@ static NSTimeInterval	time_last_frame;
 							}
 						}
 					}
-					else
-					{
-						[gui setShowAdvancedNavArray: NO];
-					}
 					pling_pressed = YES;
+				}
+				else
+				{
+					pling_pressed = NO;
 				}
 			}
 			else
 			{
-				pling_pressed = NO;
+				[gui setShowAdvancedNavArray: NO];	
 			}
 
 			if ([gameView isDown:key_chart_highlight])   // '?' toggle chart colours
