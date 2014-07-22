@@ -1643,22 +1643,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		saved_galaxy_seed = [player galaxy_seed];
 	}
 	
-	if (showAdvancedNavArray)
-	{
-		if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
-		{
-			advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
-		}
-		else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
-		{
-			advancedNavArrayMode = OPTIMIZED_BY_TIME;
-		}
-	}
-	else
-	{
-		advancedNavArrayMode = OPTIMIZED_BY_NONE;
-	}
-
 	OOSystemID savedPlanetNumber = 0;
 	OOSystemID savedDestNumber = 0;
 	static NSDictionary *routeInfo = nil;

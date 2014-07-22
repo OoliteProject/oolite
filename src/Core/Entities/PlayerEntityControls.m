@@ -1648,7 +1648,6 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (!pling_pressed)
 					{
-						[gui setShowAdvancedNavArray:YES];
 						if ([gameView isCtrlDown])
 						{
 							switch (ANA_mode)
@@ -1677,7 +1676,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 			{
-				[gui setShowAdvancedNavArray: NO];	
+				ANA_mode = OPTIMIZED_BY_NONE;
 			}
 
 			if ([gameView isDown:key_chart_highlight])   // '?' toggle chart colours
