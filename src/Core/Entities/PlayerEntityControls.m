@@ -3297,6 +3297,7 @@ static NSTimeInterval	time_last_frame;
 				if (chart_mode == CHART_MODE_LONG_RANGE)
 				{
 					target_chart_zoom = saved_chart_zoom;
+					target_chart_centre = cursor_coordinates;
 					chart_mode = CHART_MODE_SHORT_RANGE;
 				}
 				else
