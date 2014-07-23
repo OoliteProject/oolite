@@ -1839,7 +1839,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	int targetIdx = -1;
 	struct saved_system *sys;
-	NSSize chSize = NSMakeSize(pixel_row_height,pixel_row_height);
+	NSSize chSize = NSMakeSize(pixel_row_height/zoom,pixel_row_height/zoom);
 	
 	for (i = 0; i < num_nearby_systems; i++)
 	{
