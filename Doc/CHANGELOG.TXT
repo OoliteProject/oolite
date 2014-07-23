@@ -17,12 +17,19 @@ General:
   parameter. The first element will be a heading on the manifest
   screen, with the remaining elements being mission entries.
   If multiple entries have the same heading, they are grouped.
-
+* Subentities now inherit their parent's entity personality - useful
+  for shader randomisation.
 
 Plists:
 -------
 * oolite-font.plist: new f6KernGovernment and f6KernTechLevel options
 * equipment.plist: installation_time, repair_time
+
+
+
+Bug fixes:
+==========
+* Restore something like the 1.76 behaviour in terms of alloy plates in debris
 
 
 Changes between Oolite 1.80 and Oolite 1.80.1:
