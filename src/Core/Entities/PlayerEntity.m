@@ -7570,6 +7570,7 @@ static GLfloat		sBaseMass = 0.0;
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
 		[gui setBackgroundTextureKey:@"short_range_chart"];
+		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }

@@ -1608,7 +1608,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		case GUI_SCREEN_SHORT_RANGE_CHART:
 
-			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
+			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN && chart_mode == CHART_MODE_LONG_RANGE)
 			{
 				if ([[gameView typedString] length] > 0)
 				{
