@@ -216,7 +216,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 	_nextAegisCheck = -0.1f;
 	aiScriptWakeTime = 0;
-
+	
 	if (![self setUpShipFromDictionary:dict])
 	{
 		[self release];
@@ -853,7 +853,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[subentity setPosition:subPosition];
 	[subentity setOrientation:subOrientation];
 	[subentity setReference:vector_forward_from_quaternion(subOrientation)];
-	
+	// subentities inherit parent personality
+	[subentity setEntityPersonalityInt:[self entityPersonalityInt]];
+
 	if (asTurret)
 	{
 		[subentity setBehaviour:BEHAVIOUR_TRACK_AS_TURRET];
@@ -8060,6 +8062,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	float parentTemp = [self temperature];
 	float adjusted = parentTemp * (bellf(5) * (kRange * 2.0f) - kRange + factor);
+	if (adjusted > SHIP_MAX_CABIN_TEMP)
+	{
+		adjusted = SHIP_MAX_CABIN_TEMP;
+	}
 	
 	// Interpolate so that result == parentTemp when parentTemp is SHIP_MIN_CABIN_TEMP
 	float interp = OOClamp_0_1_f((parentTemp - SHIP_MIN_CABIN_TEMP) / (SHIP_MAX_CABIN_TEMP - SHIP_MIN_CABIN_TEMP));
@@ -8405,8 +8411,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	Vector v;
 	Quaternion q;
 	int speed_low = 200;
-	NSUInteger n_alloys = floorf(sqrtf(sqrtf(mass / 25000.0f)));
-	
+	GLfloat n_alloys = sqrtf(sqrtf(mass / 6000.0f));
+	NSUInteger numAlloys = 0;
+
 	if ([self status] == STATUS_DEAD)
 	{
 		[UNIVERSE removeEntity:self];
@@ -8531,7 +8538,13 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					{
 						// Create wreckage only when UNIVERSE is less than half full.
 						// (condition set in r906 - was < 0.75 before) --Kaks 2011.10.17
-						n_wreckage = (n_alloys < 3)? n_alloys : 3;
+						NSUInteger maxWrecks = 3;
+						// if it can cope with extra detail, allow more wreckage
+						if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS)
+						{
+							maxWrecks = 8;
+						}
+						n_wreckage = (n_alloys < maxWrecks)? floorf(n_alloys) : maxWrecks;
 					}
 					
 					for (i = 0; i < n_wreckage; i++)
@@ -8563,19 +8576,26 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[wreck release];
 						}
 					}
-					n_alloys = ranrot_rand() % n_alloys;
+					n_alloys = randf() * n_alloys;
 				}
-			}
-			
-			// If UNIVERSE is almost full, don't create more than 1 piece of scrap metal.
-			if (!add_debris)
+			} 
+
+			if (!canFragment)
 			{
-				n_alloys = (n_alloys > 1) ? 1 : 0;
+				n_alloys = 0.0;
 			}
-			
+			// If UNIVERSE is almost full, don't create more than 1 piece of scrap metal.
+			else if (!add_debris)
+			{
+				n_alloys = (n_alloys > 1.0) ? 1.0 : 0.0;
+			}
+
+			// now convert to uint
+			numAlloys = floorf(n_alloys);
+
 			// Throw out scrap metal
 			//
-			for (i = 0; i < n_alloys; i++)
+			for (i = 0; i < numAlloys; i++)
 			{
 				ShipEntity* plate = [UNIVERSE newShipWithRole:@"alloy"];   // retain count = 1
 				if (plate)
@@ -8598,6 +8618,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					[plate setScanClass: CLASS_CARGO];
 					[plate setCommodity:[UNIVERSE commodityForName:@"Alloys"] andAmount:1];
 					[UNIVERSE addEntity:plate];	// STATUS_IN_FLIGHT, AI state GLOBAL
+					
 					[plate release];
 				}
 			}
