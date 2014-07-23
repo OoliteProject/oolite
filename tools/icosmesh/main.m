@@ -135,10 +135,13 @@ int main (int argc, const char * argv[])
 
 static NSArray *SubdivideMesh(NSArray *triangles)
 {
-	NSMutableArray *result = [NSMutableArray arrayWithCapacity:triangles.count * 4];
-	
-	for (JAIcosTriangle *triangle in triangles)
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[triangles count] * 4];
+
+	JAIcosTriangle *triangle;
+        NSInteger i;
+	for( i = 0; i < [triangles count]; i++ )
 	{
+		triangle = (JAIcosTriangle*)[triangles objectAtIndex: i];
 		[result addObjectsFromArray:[triangle subdivide]];
 	}
 	
@@ -191,7 +194,7 @@ static void WritePrelude(FILE *header, FILE *source)
 
 static void WriteVertices(FILE *header, FILE *source, JAVertexSet *vertices)
 {
-	unsigned i, count = vertices.count;
+	unsigned i, count = [vertices count];
 	
 	fprintf(header, "\n\n#define kOOPlanetDataVertexCount %u\n\n", count);
 	fprintf(header, "extern const GLfloat kOOPlanetVertices[kOOPlanetDataVertexCount * 3];\n");
@@ -236,17 +239,17 @@ static void WriteMeshForTriangles(FILE *source, unsigned level, NSArray *triangl
 	[mesh addTriangles:triangles];
 	WriteMesh(source, level, mesh);
 	
-	*faceCount = mesh.faceCount;
-	*maxVertex = mesh.maxIndex + 1;
+	*faceCount = [mesh faceCount];
+	*maxVertex = [mesh maxIndex] + 1;
 }
 
 
 static void WriteMesh(FILE *source, unsigned level, JAIcosMesh *mesh)
 {
-	unsigned i, count = mesh.faceCount;
+	unsigned i, count = [mesh faceCount];
 	NSArray *indices = [mesh indexArray];
 	
-	fprintf(source, "\n\n/*  Level %u index array\n    %u faces\n*/\nstatic const %s kFaceIndicesLevel%u[%u] =\n{\n", level, count, SizeTypeForMaximum(mesh.maxIndex), level, count * 3);
+	fprintf(source, "\n\n/*  Level %u index array\n    %u faces\n*/\nstatic const %s kFaceIndicesLevel%u[%u] =\n{\n", level, count, SizeTypeForMaximum([mesh maxIndex]), level, count * 3);
 	for (i = 0; i < count; i++)
 	{
 		if (i != 0)  fprintf(source, ",\n");
@@ -317,7 +320,7 @@ static const char *SizeEnumeratorForMaximum(unsigned maxValue)
 }
 
 
-static const char *SizeTypeForMaximum(unsigned maxValue)
+const char *SizeTypeForMaximum(unsigned maxValue)
 {
 	if (maxValue <= UCHAR_MAX)  return "GLubyte";
 	if (maxValue <= USHRT_MAX)  return "GLushort";

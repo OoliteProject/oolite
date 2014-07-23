@@ -15,11 +15,7 @@ static inline BOOL IsPolarVector(Vector v)
 }
 
 
-@interface JAIcosTriangle ()
-
-- (void) rotate;	// a = b, b = c, c = a
-- (void) generateTextureCoordinatesAndBinormals;	// Requires that any polar coordinate is in [0].
-- (void) fixUpWinding;
+@interface JAIcosTriangle (Private)
 
 @end
 
