@@ -1549,7 +1549,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		hcenter = size_in_pixels.width/2.0;
 	double		hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double		vscale = -size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
-	double		vcenter = 11*MAIN_GUI_ROW_HEIGHT;
+	double		vcenter = 10*MAIN_GUI_ROW_HEIGHT;
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
@@ -1573,9 +1573,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		pixelRatio = viewSize.width / 640.0;
 	}
 	clipRect = NSMakeRect((viewSize.width - size_in_pixels.width*pixelRatio)/2.0,
-				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
+				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (GUI_ROW_CHART_SYSTEM-2)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
 				size_in_pixels.width * pixelRatio,
-				GUI_ROW_CHART_SYSTEM * MAIN_GUI_ROW_HEIGHT * pixelRatio);
+				(GUI_ROW_CHART_SYSTEM-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
 
 	Random_Seed target = [PLAYER target_system_seed];
 	NSString *targetName = [UNIVERSE getSystemName:target];
@@ -1925,6 +1925,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	// disable draw clipping
 	OOGL(glDisable(GL_SCISSOR_TEST));
+
+	// Draw bottom divider
+	OOGL(glColor4f(0.75f, 0.75f, 0.75f, alpha));	// 75% gray
+	OOGLBEGIN(GL_QUADS);
+		glVertex3f(x + 0, (float)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height),	z);
+		glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height), z);
+		glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
+		glVertex3f(x + 0, (GLfloat)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
+	OOGLEND();
 }
 
 

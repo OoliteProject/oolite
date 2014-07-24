@@ -102,7 +102,7 @@ typedef enum
 // Galaxy width / width of chart area at max zoom
 #define CHART_MAX_ZOOM (256.0/CHART_WIDTH_AT_MAX_ZOOM)
 //start scrolling when cursor is this number of units away from centre
-#define CHART_SCROLL_AT_X 30.0
+#define CHART_SCROLL_AT_X 25.0
 #define CHART_SCROLL_AT_Y 31.0
 
 #define CHART_ZOOM_SHOW_LABELS 2.0
@@ -148,8 +148,8 @@ enum
 	GUI_ROW_SCENARIOS_START				= 3,
 	GUI_MAX_ROWS_SCENARIOS				= 12,
 	GUI_ROW_SCENARIOS_DETAIL			= GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS + 2,
-	GUI_ROW_CHART_SYSTEM				= 18,
-	GUI_ROW_PLANET_FINDER				= 19
+	GUI_ROW_CHART_SYSTEM				= 19,
+	GUI_ROW_PLANET_FINDER				= 20
 };
 #if GUI_FIRST_ROW() < 0
 # error Too many items in OPTIONS list!
