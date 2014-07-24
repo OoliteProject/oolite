@@ -2389,14 +2389,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			// Label the route, if not already labelled
 			if (zoom > CHART_ZOOM_SHOW_LABELS)
 			{
-				OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y - 8.0, z, NSMakeSize(8,8));
+				OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y, z, NSMakeSize(8,8));
 			}
 		}
 		// Label the destination, which was not included in the above loop.
 		if (zoom > CHART_ZOOM_SHOW_LABELS)
 		{
 			loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];
-			OODrawString([UNIVERSE systemNameIndex:loc], x + star2.x + 2.0, y + star2.y - 10.0, z, NSMakeSize(10,10));
+			OODrawString([UNIVERSE systemNameIndex:loc], x + star2.x + 2.0, y + star2.y, z, NSMakeSize(10,10));
 		}
 	}
 }
