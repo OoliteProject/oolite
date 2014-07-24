@@ -18,6 +18,10 @@
 /*	Coordinates of icosahedron with poles on the Y axis.
 	Based on http://www.csee.umbc.edu/~squire/reference/polyhedra.shtml#icosahedron
 */
+
+
+/* Original vertices with the poles on the y axis
+
 static const Vector kBaseVertices[12] =
 {
 	{ +0.000000000000, +1.000000000000, +0.000000000000 },
@@ -32,10 +36,31 @@ static const Vector kBaseVertices[12] =
 	{ -0.276393205089, -0.447213577125, -0.850650817090 },
 	{ +0.723606805183, -0.447213577125, -0.525731117519 },
 	{ +0.000000000000, -1.000000000000, +0.000000000000 }
+};*/
+
+/* New coordinates with y axis through the centre of the top face
+*/
+static const Vector kBaseVertices[12] =
+{
+	{ +0.607061998207, +0.794654472292, +0.000000000000 },
+	{ +0.982246946377, -0.187592474085, +0.000000000000 },
+	{ +0.491123473188, +0.187592474085, +0.850650808352 },
+	{ -0.303530999103, +0.794654472292, +0.525731112119 },
+	{ -0.303530999103, +0.794654472292, -0.525731112119 },
+	{ +0.491123473188, +0.187592474085, -0.850650808352 },
+	{ +0.303530999103, -0.794654472292, +0.525731112119 },
+	{ -0.491123473188, -0.187592474085, +0.850650808352 },
+	{ -0.982246946377, +0.187592474085, +0.000000000000 },
+	{ -0.491123473188, -0.187592474085, -0.850650808352 },
+	{ +0.303530999103, -0.794654472292, -0.525731112119 },
+	{ -0.607061998207, -0.794654472292, +0.000000000000 }
 };
 
 
 #define kBaseFaceCount 20
+
+/* Original faces 
+
 static const struct { unsigned a, b, c; } kBaseTriangles[kBaseFaceCount] =
 {
 	{ 0, 1, 2 },
@@ -58,6 +83,33 @@ static const struct { unsigned a, b, c; } kBaseTriangles[kBaseFaceCount] =
 	{ 8, 9, 4 },
 	{ 9, 10, 5 },
 	{ 10, 6, 1 }
+};*/
+
+
+/* new faces with consistent winding */
+
+static const struct { unsigned a, b, c; } kBaseTriangles[kBaseFaceCount] =
+{
+	{ 1, 0, 2 },
+	{ 2, 0, 3 },
+	{ 3, 0, 4 },
+	{ 4, 0, 5 },
+	{ 5, 0, 1 },
+	{ 1, 2, 6 },
+	{ 2, 3, 7 },
+	{ 3, 4, 8 },
+	{ 4, 5, 9 },
+	{ 5, 1, 10 },
+	{ 6, 10, 1 },
+	{ 7, 6, 2 },
+	{ 8, 7, 3 },
+	{ 9, 8, 4 },
+	{ 10, 9, 5 },
+	{ 6, 11, 10 },
+	{ 7, 11, 6 },
+	{ 8, 11, 7 },
+	{ 9, 11, 8 },
+	{ 10, 11, 9 }
 };
 
 
