@@ -1731,7 +1731,7 @@ static NSTimeInterval	time_last_frame;
 				if ([gameView isDown:gvMouseLeftButton])
 				{
 					NSPoint maus = [gameView virtualJoystickPosition];
-					double		vadjust = 64;
+					double		vadjust = 80;
 					double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
 					double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
 					NSPoint		centre = [self chart_centre_for_zoom: chart_zoom];
