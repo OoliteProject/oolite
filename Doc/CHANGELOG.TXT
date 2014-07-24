@@ -6,6 +6,7 @@ General:
 * Heat cooldown slower
 * Installation time now on equipment purchase screen
 * OXZ installer now updates dependency check after each install
+* Added zooming, scrolling galaxy chart
 
 Expansion pack development:
 ===========================
