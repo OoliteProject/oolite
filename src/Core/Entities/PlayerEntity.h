@@ -236,13 +236,6 @@ typedef enum
 } OOPlayerFleeingStatus;
 
 
-typedef enum
-{
-	CHART_MODE_SHORT_RANGE,
-	CHART_MODE_LONG_RANGE
-} OOChartMode;
-
-
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -427,7 +420,6 @@ typedef enum
 	OOScalar				chart_zoom;
 	OOScalar				target_chart_zoom;
 	OOScalar				saved_chart_zoom;
-	OOChartMode				chart_mode;
 	OORouteType				ANA_mode;
 	OOTimeDelta				witchspaceCountdown;
 	
@@ -878,7 +870,9 @@ typedef enum
 
 - (void) setGuiToSystemDataScreen;
 - (NSDictionary *) markedDestinations;
+- (void) setGuiToLongRangeChartScreen;
 - (void) setGuiToShortRangeChartScreen;
+- (void) setGuiToChartScreenFrom: (OOGUIScreenID) oldScreen;
 - (void) setGuiToLoadSaveScreen;
 - (void) setGuiToGameOptionsScreen;
 - (OOWeaponFacingSet) availableFacings;

@@ -1237,7 +1237,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		if (self == [UNIVERSE gui])
 		{
-			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART || backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
+			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART || [player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART || backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
 			{
 				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 			}
@@ -2013,7 +2013,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 - (Random_Seed) targetNextFoundSystem:(int)direction // +1 , 0 , -1
 {
 	Random_Seed sys = [PLAYER target_system_seed];
-	if ([PLAYER guiScreen] != GUI_SCREEN_SHORT_RANGE_CHART) return sys;
+	if ([PLAYER guiScreen] != GUI_SCREEN_SHORT_RANGE_CHART && [PLAYER guiScreen] != GUI_SCREEN_LONG_RANGE_CHART) return sys;
 	
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	unsigned 	i, first = 0, last = 0, count = 0;
