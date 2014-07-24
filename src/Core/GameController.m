@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #import "OODebugSupport.h"
 #import "legacy_random.h"
 #import "OOOXZManager.h"
+#import "OOOpenGLMatrixManager.h"
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
@@ -923,6 +924,7 @@ static NSMutableArray *sMessageStack;
 - (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize
 {
 	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
+	OOOpenGLMatrixManager		*matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
@@ -933,12 +935,10 @@ static NSMutableArray *sMessageStack;
 	OOGL(glClearDepth(MAX_CLEAR_DEPTH));
 	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
 	
-	OOGL(glMatrixMode(GL_PROJECTION));
-	OOGL(glLoadIdentity());	// reset matrix
-	OOGL(glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH));	// set projection matrix
-	
-	OOGL(glMatrixMode(GL_MODELVIEW));
-	
+	[matrixManager resetProjection]; // reset matrix
+	[matrixManager frustumLeft:-ratio right:ratio bottom: -aspect*ratio top: aspect*ratio near: 1.0 far: MAX_CLEAR_DEPTH];	// set projection matrix
+	[matrixManager syncProjection];
+		
 	OOGL(glDepthFunc(GL_LESS));			// depth buffer
 	
 	if (UNIVERSE)

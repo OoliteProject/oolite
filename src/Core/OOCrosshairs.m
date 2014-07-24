@@ -83,12 +83,14 @@ SOFTWARE.
 	{
 		OO_ENTER_OPENGL();
 		OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+		OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 		
 		OOGL(glPushAttrib(GL_ENABLE_BIT));
 		OOGL(glDisable(GL_LIGHTING));
 		OOGL(glDisable(GL_TEXTURE_2D));
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(0, 0, [[UNIVERSE gameView] display_z]));
+		[matrixManager pushModelView];
+		[matrixManager translateModelView: make_vector(0.0, 0.0, [[UNIVERSE gameView] display_z])];
+		[matrixManager syncModelView];
 		
 		OOGL(glVertexPointer(2, GL_FLOAT, sizeof (GLfloat) * 6, _data));
 		OOGL(glColorPointer(4, GL_FLOAT, sizeof (GLfloat) * 6, _data + 2));
@@ -101,7 +103,8 @@ SOFTWARE.
 		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 		OOGL(glDisableClientState(GL_COLOR_ARRAY));
 		
-		OOGL(glPopMatrix());
+		[matrixManager popModelView];
+		[matrixManager syncModelView];
 		OOGL(glPopAttrib());
 		
 		OOVerifyOpenGLState();

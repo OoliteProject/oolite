@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOLightParticleEntity.h"
 #import "OOMacroOpenGL.h"
+#import "MyOpenGLView.h"
 
 
 //	Testing toy: cause particle systems to stop after half a second.
@@ -160,11 +161,14 @@ do { \
 	GLfloat		(*particleColor)[4] = _particleColor;
 	GLfloat		*particleSize = _particleSize;
 	
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	
 	if ([UNIVERSE reducedDetail])
 	{
 		// Quick rendering - particle cloud is effectively a 2D billboard.
-		OOGL(glPushMatrix());
-		GLMultOOMatrix(OOMatrixForBillboard(selfPosition, viewPosition));
+		[matrixManager pushModelView];
+		[matrixManager multModelView: OOMatrixForBillboard(selfPosition, viewPosition)];
+		[matrixManager syncModelView];
 		
 		OOGLBEGIN(GL_QUADS);
 		for (i = 0; i < count; i++)
@@ -174,7 +178,8 @@ do { \
 		}
 		OOGLEND();
 		
-		OOGL(glPopMatrix());
+		[matrixManager popModelView];
+		[matrixManager syncModelView];
 	}
 	else
 	{
@@ -192,16 +197,18 @@ do { \
 			
 			for (i = 0; i < count; i++)
 			{
-				OOGL(glPushMatrix());
-				GLTranslateOOVector(particlePosition[i]);
-				GLMultOOMatrix(bbMatrix);
+				[matrixManager pushModelView];
+				[matrixManager translateModelView: particlePosition[i]];
+				[matrixManager multModelView: bbMatrix];
+				[matrixManager syncModelView];
 				
 				glColor4fv(particleColor[i]);
 				OOGLBEGIN(GL_QUADS);
 					DrawQuadForView(0, 0, 0, particleSize[i]);
 				OOGLEND();
 				
-				OOGL(glPopMatrix());
+				[matrixManager popModelView];
+				[matrixManager syncModelView];
 			}
 		}
 		else
@@ -215,16 +222,17 @@ do { \
 			
 			for (i = 0; i < count; i++)
 			{
-				OOGL(glPushMatrix());
-				GLTranslateOOVector(particlePosition[i]);
-				GLMultOOMatrix(OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition));
+				[matrixManager pushModelView];
+				[matrixManager translateModelView: particlePosition[i]];
+				[matrixManager multModelView: OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition)];
 				
 				glColor4fv(particleColor[i]);
 				OOGLBEGIN(GL_QUADS);
 				DrawQuadForView(0, 0, 0, particleSize[i]);
 				OOGLEND();
 				
-				OOGL(glPopMatrix());
+				[matrixManager popModelView];
+				[matrixManager syncModelView];
 			}
 		}
 

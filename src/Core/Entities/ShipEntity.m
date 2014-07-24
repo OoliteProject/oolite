@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "OOExcludeObjectEnumerator.h"
 #import "OOWeakSet.h"
 #import "GameController.h"
+#import "MyOpenGLView.h"
 
 #import "OOCharacter.h"
 #import "AI.h"
@@ -90,7 +91,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOJSVector.h"
 #import "OOJSEngineTimeManagement.h"
-
 
 #define USEMASC 1
 
@@ -5951,13 +5951,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		return; // TOO FAR AWAY
 	}
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
-	OOGL(glPushMatrix());
+	[matrixManager pushModelView];
 	
 	// HPVect: need to make camera-relative
-	GLTranslateOOVector(HPVectorToVector(position));
-	
-	GLMultOOMatrix(rotMatrix);
+	[matrixManager translateModelView: HPVectorToVector(position)];
+	[matrixManager multModelView: rotMatrix];
+	[matrixManager syncModelView];
 	[self drawImmediate:immediate translucent:translucent];
 	
 #ifndef NDEBUG
@@ -5967,7 +5968,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 #endif
 	
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 	
 	OOVerifyOpenGLState();	
 }

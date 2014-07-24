@@ -81,20 +81,19 @@ SOFTWARE.
 
 - (void) render
 {
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	
 	if (_textureName == 0)  [self setUp];
 	
 	OO_ENTER_OPENGL();
 	
 	// Save stuff.
 	OOGL(glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT));
-	OOGL(glMatrixMode(GL_MODELVIEW));
-	OOGL(glPushMatrix());
-	
-	OOGL(glMatrixMode(GL_PROJECTION));
-	OOGL(glPushMatrix());
+	[matrixManager pushModelView];
+	[matrixManager pushProjection];
 	
 	OOGL(glViewport(0, 0, _size, _size));
-	OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
+	[matrixManager scaleProjection: make_vector(-1.0, 1.0, 1.0)]; // flip left and right
 	
 	/*	TODO: once confirmed working (and rendering everything in the right
 		orientation), replace with glLoadMatrix and the following:
@@ -106,8 +105,8 @@ SOFTWARE.
 		...and appropriate rotations thereof.
 	*/
 	
-	OOGL(glLoadIdentity());
-	OOGL(gluPerspective(90.0, 1.0, 1.0, MAX_CLEAR_DEPTH));
+	[matrixManager resetProjection];
+	[matrixManager perspectiveFovy: 90.0 aspect: 1.0 zNear: 1.0 zFar: MAX_CLEAR_DEPTH];
 	
 	OODrawable *sky = [[UNIVERSE nearestEntityMatchingPredicate:HasClassPredicate parameter:[SkyEntity class] relativeToEntity:nil] drawable];
 	OOSunEntity *sun = [UNIVERSE sun];
@@ -119,26 +118,23 @@ SOFTWARE.
 	
 	for (i = 0; i < 6; i++)
 	{
-		OOGL(glPushMatrix());
+		[matrixManager pushProjection];
 		Vector center = centers[i];
 		Vector up = ups[i];
-		OOGL(gluLookAt(0, 0, 0, center.x, center.y, center.z, up.x, up.y, up.z));
-		
-		OOGL(glMatrixMode(GL_MODELVIEW));
-		OOGL(glPushMatrix());
+		[matrixManager lookAtWithEye: kZeroVector, center: center up: up];
+		[matrixManager syncProjection];
 		
 		OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbos[i]));
 		[self renderOnePassWithSky:sky sun:sun planets:planets];
 		
-		OOGL(glPopMatrix());
-		OOGL(glMatrixMode(GL_PROJECTION));
-		OOGL(glPopMatrix());
+		[matrixManager popProjection];
+		[matrixManager syncProjection];
 	}
 	
-	OOGL(glMatrixMode(GL_PROJECTION));
-	OOGL(glPopMatrix());
-	OOGL(glMatrixMode(GL_MODELVIEW));
-	OOGL(glPopMatrix());
+	[matrixManager popProjection];
+	[matrixManager syncProjection];
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 	OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
 	OOGL(glPopAttrib());
 }
@@ -146,6 +142,7 @@ SOFTWARE.
 
 - (void) renderOnePassWithSky:(OODrawable *)sky sun:(OOSunEntity *)sun planets:(NSArray *)planets
 {
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	OO_ENTER_OPENGL();
 	
 	OOGL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
@@ -156,27 +153,32 @@ SOFTWARE.
 	[sky renderOpaqueParts];
 	OOGL(glDepthMask(GL_TRUE));
 	
-	OOGL(glLoadIdentity());
-	GLTranslateOOVector(vector_flip([PLAYER position]));
+	[matrixManager pushModelView];
+	[matrixManager resetModelView];
+	[matrixManager translateModelView: vector_flip([PLAYER position])];
 	
 	NSEnumerator	*planetEnum = nil;
 	OOPlanetEntity	*planet = nil;
 	for (planetEnum = [planets objectEnumerator]; (planet = [planetEnum nextObject]); )
 	{
-		OOGL(glPushMatrix());
-		GLTranslateOOVector([planet position]);
+		[matrixManager pushModelView];
+		[matrixManager translateModelView: [planet position]];
+		[matrixManager syncModelView];
 #if NEW_PLANETS
 		[[planet drawable] renderOpaqueParts];
 #else
 		[planet drawUnconditionally];
 #endif
-		OOGL(glPopMatrix());
+		[matrixManager popModelView];
 	}
 	
-	OOGL(glPushMatrix());
-	GLTranslateOOVector([sun position]);
+	[matrixManager pushModelView];
+	[matrixManager translateModelView: [sun position]];
+	[matrixManager syncModelView];
 	[sun drawUnconditionally];
-	OOGL(glPopMatrix());
+	[matrixManager popModelView];
+	[matrixManager popModelView];
+	[matrixManager syncModelView];
 }
 
 - (void) setUp

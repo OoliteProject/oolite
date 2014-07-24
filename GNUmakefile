@@ -240,6 +240,7 @@ OOLITE_GRAPHICS_MISC_FILES = \
     OOOpenGL.m \
     OOOpenGLStateManager.m \
     OOOpenGLExtensionManager.m \
+    OOOpenGLMatrixManager.m \
     OOProbabilisticTextureManager.m \
     OOSkyDrawable.m \
     OOTextureSprite.m \
