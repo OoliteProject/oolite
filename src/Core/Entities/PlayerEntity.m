@@ -7027,7 +7027,8 @@ static GLfloat		sBaseMass = 0.0;
 
 - (NSArray *) equipmentList
 {
-	NSMutableArray		*quip = [NSMutableArray array];
+	NSMutableArray		*quip1 = [NSMutableArray array]; // damaged
+	NSMutableArray		*quip2 = [NSMutableArray array]; // working
 	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
@@ -7038,7 +7039,7 @@ static GLfloat		sBaseMass = 0.0;
 		{
 			if ([self hasEquipmentItem:[eqType identifier]])
 			{
-				[quip addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
+				[quip2 addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
 			}
 			else 
 			{
@@ -7046,7 +7047,7 @@ static GLfloat		sBaseMass = 0.0;
 				if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
 				{
 					desc = [NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]];
-					[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+					[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
 				}
 			}
 		}
@@ -7055,31 +7056,33 @@ static GLfloat		sBaseMass = 0.0;
 	if (max_passengers > 0)
 	{
 		desc = [NSString stringWithFormat:DESC_PLURAL(@"equipment-pass-berth-@", max_passengers), max_passengers];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	
 	if (forward_weapon_type > WEAPON_NONE)
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(forward_weapon_type)] name]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	if (aft_weapon_type > WEAPON_NONE)
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(aft_weapon_type)] name]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	if (port_weapon_type > WEAPON_NONE)
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(port_weapon_type)] name]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	if (starboard_weapon_type > WEAPON_NONE)
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(starboard_weapon_type)] name]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	
-	return quip;
+	// list damaged first, then working
+	[quip1 addObjectsFromArray:quip2];
+	return quip1;
 }
 
 
