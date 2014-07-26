@@ -1572,14 +1572,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		pixelRatio = viewSize.width / 640.0;
 	}
-	clipRect = NSMakeRect((viewSize.width - size_in_pixels.width*pixelRatio)/2.0,
+	clipRect = NSMakeRect(0,
 				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (GUI_ROW_CHART_SYSTEM-2)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
-				size_in_pixels.width * pixelRatio,
+				viewSize.width,
 				(GUI_ROW_CHART_SYSTEM-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
 
 	Random_Seed target = [PLAYER target_system_seed];
 	NSString *targetName = [UNIVERSE getSystemName:target];
-	double dx, dy;
+	double dy;
 	
 	// get a list of systems marked as contract destinations
 	NSDictionary* markedDestinations = [player markedDestinations];
@@ -1697,10 +1697,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		g_seed = nearby_systems[i].seed;
 		
-		dx = fabs(chart_centre_coordinates.x - g_seed.d);
 		dy = fabs(chart_centre_coordinates.y - g_seed.b);
 	
-		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0 + CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER)))
+		if (dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER))
 			continue;
 		float blob_size = (4.0f + 0.5f * (g_seed.f & 15))/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
@@ -1804,10 +1803,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			float marker_size = 8.0/zoom;
 			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 
-			dx = fabs(chart_centre_coordinates.x - g_seed.d);
 			dy = fabs(chart_centre_coordinates.y - g_seed.b);
 		
-			if (mark && (dx <= zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0+CHART_CLIP_BORDER))&&(dy <= zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
+			if (mark && (dy <= zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
 			{
 				star.x = (float)(g_seed.d * hscale + hoffset);
 				star.y = (float)(g_seed.b * vscale + voffset);
@@ -1845,10 +1843,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		sys = nearby_systems + i;
 		
-		dx = fabs(chart_centre_coordinates.x - sys->seed.d);
 		dy = fabs(chart_centre_coordinates.y - sys->seed.b);
 		
-		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0+CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
+		if ((dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
 			continue;
 		star.x = (float)(sys->seed.d * hscale + hoffset);
 		star.y = (float)(sys->seed.b * vscale + voffset);
