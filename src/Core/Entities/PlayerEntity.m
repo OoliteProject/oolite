@@ -11385,6 +11385,7 @@ else _dockTarget = NO_TARGET;
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&
+	showingLongRangeChart &&
 	_missionAllowInterrupt &&
 	_missionScreenID &&
 	_missionTitle &&

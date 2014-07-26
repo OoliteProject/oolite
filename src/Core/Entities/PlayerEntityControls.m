@@ -3299,9 +3299,12 @@ static NSTimeInterval	time_last_frame;
 		{
 			switching_chart_screens = YES;
 			[gui clearAndKeepBackground: YES];
-			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
+			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart))
 			{
-				saved_chart_zoom = target_chart_zoom;
+				if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
+				{
+					saved_chart_zoom = target_chart_zoom;
+				}
 				target_chart_zoom = CHART_MAX_ZOOM;
 				[self setGuiToLongRangeChartScreen];
 			}
@@ -3322,6 +3325,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
+			showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
 			[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 			[self setGuiToSystemDataScreen];
 		}
