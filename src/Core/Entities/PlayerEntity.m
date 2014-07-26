@@ -2739,24 +2739,31 @@ static GLfloat		sBaseMass = 0.0;
 	for (i = 0; i < ent_count; i++)  // scanner lollypops
 	{
 		scannedEntity = my_entities[i];
-		if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2)
+
+		/* if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2)
 		{
 			// list is sorted, and ships outside scanner range can't
 			// affect alert status
 			break;
-		}
-		int theirClass = [scannedEntity scanClass];
-		massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
-		if (theirClass != CLASS_NO_DRAW)
+			}*/
+		/* Oh, wait, but *planets* outside scanner range can. Skip
+		 * this optimisation for now, though it could be done another
+		 * way - CIM */
+		if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
-			if (theirClass == CLASS_THARGOID || [scannedEntity isCascadeWeapon])
+			int theirClass = [scannedEntity scanClass];
+			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+			if (theirClass != CLASS_NO_DRAW)
 			{
-				foundHostiles = YES;
-			}
-			else if ([scannedEntity isShip])
-			{
-				ShipEntity *ship = (ShipEntity *)scannedEntity;
-				foundHostiles |= (([ship hasHostileTarget])&&([ship primaryTarget] == self));
+				if (theirClass == CLASS_THARGOID || [scannedEntity isCascadeWeapon])
+				{
+					foundHostiles = YES;
+				}
+				else if ([scannedEntity isShip])
+				{
+					ShipEntity *ship = (ShipEntity *)scannedEntity;
+					foundHostiles |= (([ship hasHostileTarget])&&([ship primaryTarget] == self));
+				}
 			}
 		}
 	}
