@@ -1820,7 +1820,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				if (i == foundIndex || n_matches == 1)
 				{
 					if (n_matches == 1) foundSystem = 0;
-					if (zoom > CHART_ZOOM_SHOW_LABELS)
+					if (zoom > CHART_ZOOM_SHOW_LABELS && advancedNavArrayMode == OPTIMIZED_BY_NONE)
 					{
 						OOGL(glColor4f(0.0f, 1.0f, 1.0f, alpha));
 						OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
