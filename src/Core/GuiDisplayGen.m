@@ -1700,7 +1700,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		dx = fabs(chart_centre_coordinates.x - g_seed.d);
 		dy = fabs(chart_centre_coordinates.y - g_seed.b);
 	
-		if ((dx > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)||(dy > zoom*CHART_HEIGHT_AT_MAX_ZOOM))
+		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0 + CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER)))
 			continue;
 		float blob_size = (4.0f + 0.5f * (g_seed.f & 15))/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
@@ -1807,7 +1807,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			dx = fabs(chart_centre_coordinates.x - g_seed.d);
 			dy = fabs(chart_centre_coordinates.y - g_seed.b);
 		
-			if (mark && (dx <= zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)&&(dy <= zoom*CHART_HEIGHT_AT_MAX_ZOOM))
+			if (mark && (dx <= zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0+CHART_CLIP_BORDER))&&(dy <= zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
 			{
 				star.x = (float)(g_seed.d * hscale + hoffset);
 				star.y = (float)(g_seed.b * vscale + voffset);
@@ -1848,7 +1848,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		dx = fabs(chart_centre_coordinates.x - sys->seed.d);
 		dy = fabs(chart_centre_coordinates.y - sys->seed.b);
 		
-		if ((dx > zoom*CHART_WIDTH_AT_MAX_ZOOM/2.0)||(dy > zoom*CHART_HEIGHT_AT_MAX_ZOOM))
+		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0+CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
 			continue;
 		star.x = (float)(sys->seed.d * hscale + hoffset);
 		star.y = (float)(sys->seed.b * vscale + voffset);

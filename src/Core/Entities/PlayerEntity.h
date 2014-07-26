@@ -97,15 +97,16 @@ typedef enum
 	OOLRC_MODE_TECHLEVEL = 3
 } OOLongRangeChartMode;
 
-#define CHART_WIDTH_AT_MAX_ZOOM 64.0
-#define CHART_HEIGHT_AT_MAX_ZOOM 64.0
+#define CHART_WIDTH_AT_MAX_ZOOM		64.0
+#define CHART_HEIGHT_AT_MAX_ZOOM	64.0
 // Galaxy width / width of chart area at max zoom
-#define CHART_MAX_ZOOM (256.0/CHART_WIDTH_AT_MAX_ZOOM)
+#define CHART_MAX_ZOOM			(256.0/CHART_WIDTH_AT_MAX_ZOOM)
 //start scrolling when cursor is this number of units away from centre
-#define CHART_SCROLL_AT_X 25.0
-#define CHART_SCROLL_AT_Y 31.0
+#define CHART_SCROLL_AT_X		25.0
+#define CHART_SCROLL_AT_Y		31.0
+#define CHART_CLIP_BORDER		10.0
 
-#define CHART_ZOOM_SHOW_LABELS 2.0
+#define CHART_ZOOM_SHOW_LABELS		2.0
 
 // OO_RESOLUTION_OPTION: true if full screen resolution can be changed.
 #if OOLITE_MAC_OS_X && OOLITE_64_BIT
