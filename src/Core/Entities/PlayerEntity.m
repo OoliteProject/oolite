@@ -5571,7 +5571,17 @@ static GLfloat		sBaseMass = 0.0;
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
 		[self playDirectHit:relative];
-		ship_temperature += (amount * SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR / [self heatInsulation]);
+		if (ship_temperature < SHIP_MAX_CABIN_TEMP)
+		{
+			/* Heat increase from energy impacts will never directly cause
+			 * overheating - too easy for missile hits to cause an uncredited
+			 * death by overheating against NPCs, so same rules for player */
+			ship_temperature += amount * SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR / [self heatInsulation];
+			if (ship_temperature > SHIP_MAX_CABIN_TEMP)
+			{
+				ship_temperature = SHIP_MAX_CABIN_TEMP;
+			}
+		}
 	}
 	[self noteTakingDamage:amount from:other type:damageType];
 	if (cascading) energy = 0.0; // explicitly set energy to zero when cascading, in case an oxp raised the energy in noteTakingDamage.

@@ -12208,7 +12208,18 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	energy -= amount;
-	ship_temperature += amount * SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR / [self heatInsulation];
+	/* Heat increase from energy impacts will never directly cause
+	 * overheating - too easy for missile hits to cause an uncredited
+	 * death by overheating - CIM */
+	if (ship_temperature < SHIP_MAX_CABIN_TEMP)
+	{
+		ship_temperature += amount * SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR / [self heatInsulation];
+		if (ship_temperature > SHIP_MAX_CABIN_TEMP)
+		{
+			ship_temperature = SHIP_MAX_CABIN_TEMP;
+		}
+	}
+
 
 	being_mined = NO;
 	ShipEntity *hunter = nil;
