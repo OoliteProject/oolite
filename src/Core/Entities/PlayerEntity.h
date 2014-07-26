@@ -412,6 +412,7 @@ typedef enum
 	OOCargoQuantity			current_cargo;
 	
 	NSPoint					cursor_coordinates;
+	NSPoint					chart_cursor_coordinates;
 	NSPoint					chart_centre_coordinates;
 	// where we want the chart centre to be - used for smooth transitions
 	NSPoint					target_chart_centre;
@@ -679,7 +680,7 @@ typedef enum
 - (NSPoint) cursor_coordinates;
 - (NSPoint) chart_centre_coordinates;
 - (OOScalar) chart_zoom;
-- (NSPoint) chart_centre_for_zoom: (OOScalar) zoom;
+- (NSPoint) adjusted_chart_centre;
 - (OORouteType) ANAMode;
 
 - (Random_Seed) system_seed;

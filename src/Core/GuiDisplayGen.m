@@ -1533,7 +1533,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		return;
 
 	OOScalar	zoom = [player chart_zoom];
-	NSPoint	chart_centre_coordinates = [player chart_centre_for_zoom: zoom];
+	NSPoint	chart_centre_coordinates = [player adjusted_chart_centre];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
 	OOLongRangeChartMode chart_mode = [player longRangeChartMode];

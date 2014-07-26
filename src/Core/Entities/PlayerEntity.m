@@ -571,12 +571,73 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (NSPoint) chart_centre_for_zoom: (OOScalar) zoom
+- (NSPoint) adjusted_chart_centre
 {
-	NSPoint p;
-	p.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
-	p.y = chart_centre_coordinates.y + (128.0 - chart_centre_coordinates.y) * (zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
-	return p;
+	NSPoint acc;		// adjusted chart centre
+	double scroll_pos;	// cursor coordinate at which we'd want to scoll chart in the direction we're currently considering
+	double ecc;		// chart centre coordinate we'd want if the cursor was on the edge of the galaxy in the current direction
+
+	// When fully zoomed in we want to centre chart on chart_centre_coordinates.  When zoomed out we want the chart centred on
+	// (128.0, 128.0) so the galaxy fits the screen width.  For intermediate zoom we interpolate.
+	acc.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (chart_zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
+	acc.y = chart_centre_coordinates.y + (128.0 - chart_centre_coordinates.y) * (chart_zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
+
+	// If the cursor is out of the centre non-scrolling part of the screen adjust the chart centre.  If the cursor is just at scroll_pos
+	// we want to return the chart centre as it is, but if it's at the edge of the galaxy we want the centre positioned so the cursor is
+	// at the edge of the screen
+	if (chart_cursor_coordinates.x - acc.x <= -CHART_SCROLL_AT_X*chart_zoom)
+	{
+		scroll_pos = acc.x - CHART_SCROLL_AT_X*chart_zoom;
+		ecc = CHART_WIDTH_AT_MAX_ZOOM*chart_zoom / 2.0;
+		if (scroll_pos <= 0)
+		{
+			acc.x = ecc;
+		}
+		else
+		{
+			acc.x = ((scroll_pos-chart_cursor_coordinates.x)*ecc + chart_cursor_coordinates.x*acc.x)/scroll_pos;
+		}
+	}
+	else if (chart_cursor_coordinates.x - acc.x >= CHART_SCROLL_AT_X*chart_zoom)
+	{
+		scroll_pos = acc.x + CHART_SCROLL_AT_X*chart_zoom;
+		ecc = 256.0 - CHART_WIDTH_AT_MAX_ZOOM*chart_zoom / 2.0;
+		if (scroll_pos >= 256.0)
+		{
+			acc.x = ecc;
+		}
+		else
+		{
+			acc.x = ((chart_cursor_coordinates.x-scroll_pos)*ecc + (256.0 - chart_cursor_coordinates.x)*acc.x)/(256.0 - scroll_pos);
+		}
+	}
+	if (chart_cursor_coordinates.y - acc.y <= -CHART_SCROLL_AT_Y*chart_zoom)
+	{
+		scroll_pos = acc.y - CHART_SCROLL_AT_Y*chart_zoom;
+		ecc = CHART_HEIGHT_AT_MAX_ZOOM*chart_zoom / 2.0;
+		if (scroll_pos <= 0)
+		{
+			acc.y = ecc;
+		}
+		else
+		{
+			acc.y = ((scroll_pos-chart_cursor_coordinates.y)*ecc + chart_cursor_coordinates.y*acc.y)/scroll_pos;
+		}
+	}
+	else if (chart_cursor_coordinates.y - acc.y >= CHART_SCROLL_AT_Y*chart_zoom)
+	{
+		scroll_pos = acc.y + CHART_SCROLL_AT_Y*chart_zoom;
+		ecc = 256.0 - CHART_HEIGHT_AT_MAX_ZOOM*chart_zoom / 2.0;
+		if (scroll_pos >= 256.0)
+		{
+			acc.y = ecc;
+		}
+		else
+		{
+			acc.y = ((chart_cursor_coordinates.y-scroll_pos)*ecc + (256.0 - chart_cursor_coordinates.y)*acc.y)/(256.0 - scroll_pos);
+		}
+	}
+	return acc;
 }
 
 
@@ -971,6 +1032,7 @@ static GLfloat		sBaseMass = 0.0;
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	}
+	chart_cursor_coordinates = cursor_coordinates;
 	
 	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
 	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
@@ -1736,6 +1798,7 @@ static GLfloat		sBaseMass = 0.0;
 	chart_centre_coordinates	= galaxy_coordinates;
 	target_chart_centre		= chart_centre_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
+	chart_cursor_coordinates	= cursor_coordinates;
 	chart_zoom			= 1.0;
 	target_chart_zoom		= 1.0;
 	saved_chart_zoom		= 1.0;

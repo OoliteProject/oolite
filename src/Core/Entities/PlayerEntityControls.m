@@ -1734,7 +1734,7 @@ static NSTimeInterval	time_last_frame;
 					double		vadjust = 80;
 					double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
 					double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
-					NSPoint		centre = [self chart_centre_for_zoom: chart_zoom];
+					NSPoint		centre = [self adjusted_chart_centre];
 					cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 					cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
@@ -1857,25 +1857,11 @@ static NSTimeInterval	time_last_frame;
 					cursor_coordinates.x = target_system_seed.d;
 					cursor_coordinates.y = target_system_seed.b;
 				}
-				if (cursor_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X*chart_zoom)
-				{
-					target_chart_centre.x = cursor_coordinates.x + CHART_SCROLL_AT_X*chart_zoom;
-				}
-				else if (cursor_coordinates.x - target_chart_centre.x >= CHART_SCROLL_AT_X*chart_zoom)
-				{
-					target_chart_centre.x = cursor_coordinates.x - CHART_SCROLL_AT_X*chart_zoom;
-				}
-				if (cursor_coordinates.y - target_chart_centre.y <= -CHART_SCROLL_AT_Y*chart_zoom)
-				{
-					target_chart_centre.y = cursor_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
-				}
-				else if (cursor_coordinates.y - target_chart_centre.y >= CHART_SCROLL_AT_Y*chart_zoom)
-				{
-					target_chart_centre.y = cursor_coordinates.y - CHART_SCROLL_AT_Y*chart_zoom;
-				}
 				chart_centre_coordinates.x = (3.0*chart_centre_coordinates.x + target_chart_centre.x)/4.0;
 				chart_centre_coordinates.y = (3.0*chart_centre_coordinates.y + target_chart_centre.y)/4.0;
 				chart_zoom = (3.0*chart_zoom + target_chart_zoom)/4.0;
+				chart_cursor_coordinates.x = (3.0*chart_cursor_coordinates.x + cursor_coordinates.x)/4.0;
+				chart_cursor_coordinates.y = (3.0*chart_cursor_coordinates.y + cursor_coordinates.y)/4.0;
 				if (cursor_moving) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
 				cursor_moving = moving;
 			}
