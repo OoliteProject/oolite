@@ -3310,7 +3310,10 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 			{
-				target_chart_zoom = saved_chart_zoom;
+				if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
+				{
+					target_chart_zoom = saved_chart_zoom;
+				}
 				target_chart_centre = cursor_coordinates;
 				[self setGuiToShortRangeChartScreen];
 			}
