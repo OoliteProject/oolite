@@ -7594,6 +7594,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setGuiToLongRangeChartScreen
 {
 	OOGUIScreenID	oldScreen = gui_screen;
+	[[UNIVERSE gui] clearAndKeepBackground:gui_screen != GUI_SCREEN_LONG_RANGE_CHART];
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	target_chart_zoom = CHART_MAX_ZOOM;
 	[self setGuiToChartScreenFrom: oldScreen];
@@ -7602,6 +7603,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setGuiToShortRangeChartScreen
 {
 	OOGUIScreenID	oldScreen = gui_screen;
+	[[UNIVERSE gui] clearAndKeepBackground:gui_screen != GUI_SCREEN_SHORT_RANGE_CHART];
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	[self setGuiToChartScreenFrom: oldScreen];
 }
@@ -7623,7 +7625,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// GUI stuff
 	{
-		[gui clearAndKeepBackground:!guiChanged];
+		//[gui clearAndKeepBackground:!guiChanged];
 		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
 		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
 		{

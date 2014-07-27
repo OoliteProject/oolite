@@ -3298,7 +3298,6 @@ static NSTimeInterval	time_last_frame;
 		if  (!switching_chart_screens)
 		{
 			switching_chart_screens = YES;
-			[gui clearAndKeepBackground: YES];
 			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart))
 			{
 				if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
