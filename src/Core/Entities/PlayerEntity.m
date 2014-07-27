@@ -7595,6 +7595,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	OOGUIScreenID	oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
+	target_chart_zoom = CHART_MAX_ZOOM;
 	[self setGuiToChartScreenFrom: oldScreen];
 }
 	
