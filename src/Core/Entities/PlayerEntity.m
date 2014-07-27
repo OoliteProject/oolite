@@ -7622,7 +7622,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	// GUI stuff
 	{
-		//[gui clearAndKeepBackground:!guiChanged];
+		[gui clearAndKeepBackground:!guiChanged];
 		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
 		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
 		{
