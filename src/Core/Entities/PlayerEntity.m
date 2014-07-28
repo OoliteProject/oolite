@@ -7594,7 +7594,9 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setGuiToLongRangeChartScreen
 {
 	OOGUIScreenID	oldScreen = gui_screen;
-	[[UNIVERSE gui] clearAndKeepBackground:gui_screen != GUI_SCREEN_LONG_RANGE_CHART];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	[gui clearAndKeepBackground:NO];
+	[gui setBackgroundTextureKey:@"short_range_chart"];
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	target_chart_zoom = CHART_MAX_ZOOM;
 	[self setGuiToChartScreenFrom: oldScreen];
@@ -7603,7 +7605,9 @@ static GLfloat		sBaseMass = 0.0;
 - (void) setGuiToShortRangeChartScreen
 {
 	OOGUIScreenID	oldScreen = gui_screen;
-	[[UNIVERSE gui] clearAndKeepBackground:gui_screen != GUI_SCREEN_SHORT_RANGE_CHART];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	[gui clearAndKeepBackground:NO];
+	[gui setBackgroundTextureKey:@"short_range_chart"];
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	[self setGuiToChartScreenFrom: oldScreen];
 }
