@@ -3300,7 +3300,7 @@ static NSTimeInterval	time_last_frame;
 			switching_chart_screens = YES;
 			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart))
 			{
-				if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
+				if (target_chart_zoom != CHART_MAX_ZOOM)
 				{
 					saved_chart_zoom = target_chart_zoom;
 				}
@@ -3309,7 +3309,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 			{
-				if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
+				if (target_chart_zoom == CHART_MAX_ZOOM)
 				{
 					target_chart_zoom = saved_chart_zoom;
 				}
