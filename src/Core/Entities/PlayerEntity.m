@@ -2749,7 +2749,7 @@ static GLfloat		sBaseMass = 0.0;
 		/* Oh, wait, but *planets* outside scanner range can. Skip
 		 * this optimisation for now, though it could be done another
 		 * way - CIM */
-		if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
+		if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
 			int theirClass = [scannedEntity scanClass];
 			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
