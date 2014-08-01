@@ -930,7 +930,7 @@ static NSMutableArray *sMessageStack;
 	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
 	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	
-	OOGL(glClearDepth(MAX_CLEAR_DEPTH));
+	OOGL(glClearDepth(1.0));
 	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
 	
 	OOGL(glMatrixMode(GL_PROJECTION));
@@ -939,7 +939,7 @@ static NSMutableArray *sMessageStack;
 	
 	OOGL(glMatrixMode(GL_MODELVIEW));
 	
-	OOGL(glDepthFunc(GL_LESS));			// depth buffer
+	OOGL(glDepthFunc(GL_LEQUAL));			// depth buffer
 	
 	if (UNIVERSE)
 	{

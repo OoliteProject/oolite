@@ -214,6 +214,18 @@ MA 02110-1301, USA.
 }
 
 
+- (GLfloat) cameraRangeFront
+{
+	return MAX_CLEAR_DEPTH;
+}
+
+
+- (GLfloat) cameraRangeBack
+{
+	return MAX_CLEAR_DEPTH;
+}
+
+
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if ([UNIVERSE breakPatternHide])  return;
