@@ -62,6 +62,8 @@ typedef enum {
 	BOOL				_changesMade;
 
 	NSURLConnection		*_currentDownload;
+	NSString			*_currentDownloadName;
+
 	OXZDownloadStatus	_downloadStatus;
 	NSUInteger			_downloadProgress;
 	NSUInteger			_downloadExpected;
@@ -70,6 +72,8 @@ typedef enum {
 	BOOL				_itemIsFiltered;
 
 	NSUInteger			_offset;
+
+	NSString			*_progressStatus;
 }
 
 + (OOOXZManager *) sharedManager;
