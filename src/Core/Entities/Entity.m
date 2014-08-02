@@ -610,6 +610,17 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	return cameraRelativePosition;
 }
 
+- (GLfloat) cameraRangeFront
+{
+	return magnitude(cameraRelativePosition) - [self collisionRadius];
+}
+
+- (GLfloat) cameraRangeBack
+{
+	return magnitude(cameraRelativePosition) + [self collisionRadius];
+}
+
+
 
 // Exposed to uniform bindings.
 // so needs to remain at OpenGL precision levels

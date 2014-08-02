@@ -263,6 +263,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setStatusPage:(NSUInteger) pageNum;
 - (NSUInteger) statusPage;
 - (void) refreshStarChart;
+- (void) setStarChartTitle;
 
 - (Random_Seed) targetNextFoundSystem:(int)direction;
 

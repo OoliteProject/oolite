@@ -42,6 +42,8 @@ typedef enum
 @interface ResourceManager : NSObject
 
 + (void) reset;
++ (void) resetManifestKnowledgeForOXZManager;
+
 
 + (NSArray *)rootPaths;			// Places add-ons are searched for, not including add-on paths.
 + (NSArray *)userRootPaths;		// Places users are expected to place add-ons, not including built-in data or managed add-ons directory.

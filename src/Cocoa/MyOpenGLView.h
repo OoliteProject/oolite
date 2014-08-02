@@ -28,8 +28,11 @@ MA 02110-1301, USA.
 #import "OOOpenGLMatrixManager.h"
 
 
-#define MAX_CLEAR_DEPTH		100000000.0
-// 100 000 km.
+#define MAX_CLEAR_DEPTH		10000000000.0
+// 10 000 000 km.
+#define INTERMEDIATE_CLEAR_DEPTH		100.0
+// 100 m.
+
 
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40

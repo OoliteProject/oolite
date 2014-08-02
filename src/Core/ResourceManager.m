@@ -109,6 +109,14 @@ static NSMutableDictionary *sStringCache;
 }
 
 
++ (void) resetManifestKnowledgeForOXZManager
+{
+	DESTROY(sSearchPaths);
+	DESTROY(sOXPManifests);
+	[ResourceManager pathsWithAddOns];
+}
+
+
 + (NSString *) errors
 {
 	NSArray					*error = nil;

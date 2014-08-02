@@ -58,7 +58,10 @@
 #define COMBAT_WEAPON_RANGE_FACTOR		1.200f
 #define COMBAT_JINK_OFFSET				500.0f
 
-#define SHIP_COOLING_FACTOR				1.0f
+#define SHIP_COOLING_FACTOR				0.1f
+// heat taken from energy damage depends on mass
+// but limit heating at maximum to the rate of a Cobra III
+#define SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR  (mass > 215000 ? 215000 / mass : 1.0)
 #define SHIP_INSULATION_FACTOR			0.00175f
 #define SHIP_MAX_CABIN_TEMP				256.0f
 #define SHIP_MIN_CABIN_TEMP				60.0f

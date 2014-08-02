@@ -138,7 +138,9 @@ enum
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND		@"OoliteDataNotFoundException"
 #define OOLITE_EXCEPTION_FATAL				@"OoliteFatalException"
 
-#define BILLBOARD_DEPTH						50000.0
+// the distance the sky backdrop is from the camera
+// though it appears at infinity
+#define BILLBOARD_DEPTH						75000.0
 
 #define TIME_ACCELERATION_FACTOR_MIN		0.0625f
 #define TIME_ACCELERATION_FACTOR_DEFAULT	1.0f

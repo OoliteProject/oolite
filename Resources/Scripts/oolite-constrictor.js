@@ -68,7 +68,8 @@ this.shipSpawned = function ()
 
 this.shipDied = function (killer)
 {
-    if (killer.isPlayer)
+	// check mission variable, just in case
+    if (killer && killer.isPlayer && missionVariables.conhunt === "STAGE_1")
 	{
 		missionVariables.conhunt = "CONSTRICTOR_DESTROYED";
 	}

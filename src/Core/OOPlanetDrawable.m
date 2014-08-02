@@ -51,6 +51,8 @@
 
 - (void) debugDrawNormals;
 
+- (void) renderCommonParts;
+
 @end
 
 
@@ -195,12 +197,55 @@
 {
 	assert(_lod < kOOPlanetDataLevels);
 	
-	const OOPlanetDataLevel *data = &kPlanetData[_lod];
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	
 	OO_ENTER_OPENGL();
 
 	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+	
+	[self renderCommonParts];
+
+	OOVerifyOpenGLState();
+
+}
+
+
+- (void) renderTranslucentParts
+{
+	assert(_lod < kOOPlanetDataLevels);
+	
+	OO_ENTER_OPENGL();
+
+	// yes, opaque - necessary changes made later
+	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+	
+	[self renderCommonParts];
+
+	OOVerifyOpenGLState();
+
+}
+
+
+- (void) renderTranslucentPartsOnOpaquePass
+{
+	assert(_lod < kOOPlanetDataLevels);
+	
+	OO_ENTER_OPENGL();
+
+	// yes, opaque - necessary changes made later
+	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
+	
+	OOGL(glDisable(GL_DEPTH_TEST));
+	[self renderCommonParts];
+	OOGL(glEnable(GL_DEPTH_TEST));
+
+	OOVerifyOpenGLState();
+
+}
+
+
+- (void) renderCommonParts
+{
+	const OOPlanetDataLevel *data = &kPlanetData[_lod];
+	OOOpenGLMatrixManager*	matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
 	OOGL(glShadeModel(GL_SMOOTH));
@@ -208,7 +253,6 @@
 	if (_isAtmosphere)
 	{
 		OOGL(glEnable(GL_BLEND));
-		OOGL(glDisable(GL_DEPTH_TEST));
 		OOGL(glDepthMask(GL_FALSE));
 	}
 	else
@@ -281,13 +325,6 @@
 	
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	
-	OOVerifyOpenGLState();
-}
-
-
-- (void) renderTranslucentParts
-{
-	[self renderOpaqueParts];
 }
 
 

@@ -115,7 +115,8 @@ static OOOXZManager *sSingleton = nil;
 
 
 - (void) setOXZList:(NSArray *)list;
-- (void) setCurrentDownload:(NSURLConnection *)download;
+- (void) setCurrentDownload:(NSURLConnection *)download withLabel:(NSString *)label;
+- (void) setProgressStatus:(NSString *)newStatus;
 
 - (BOOL) installOXZ:(NSUInteger)item filteredList:(BOOL)filtered;
 - (BOOL) removeOXZ:(NSUInteger)item;
@@ -159,6 +160,7 @@ static OOOXZManager *sSingleton = nil;
 			_interfaceState = OXZ_STATE_NODATA;
 		}
 		_changesMade = NO;
+		[self setProgressStatus:@""];
 	}
 	return self;
 }
@@ -168,7 +170,7 @@ static OOOXZManager *sSingleton = nil;
 {
 	if (sSingleton == self)  sSingleton = nil;
 
-	[self setCurrentDownload:nil];
+	[self setCurrentDownload:nil withLabel:nil];
 	DESTROY(_oxzList);
 	DESTROY(_managedList);
 
@@ -287,15 +289,23 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (void) setCurrentDownload:(NSURLConnection *)download
+- (void) setCurrentDownload:(NSURLConnection *)download withLabel:(NSString *)label
 {
 	if (_currentDownload != nil)
 	{
 		[_currentDownload cancel]; // releases via delegate
 	}
 	_currentDownload = [download retain];
+	DESTROY(_currentDownloadName);
+	_currentDownloadName = [label copy];
 }
 
+
+- (void) setProgressStatus:(NSString *)new
+{
+	DESTROY(_progressStatus);
+	_progressStatus = [new copy];
+}
 
 - (BOOL) updateManifests
 {
@@ -320,7 +330,22 @@ static OOOXZManager *sSingleton = nil;
 	{
 		_downloadProgress = 0;
 		_downloadExpected = 0;
-		[self setCurrentDownload:download]; // retains it
+		NSString *label = DESC(@"oolite-oxzmanager-download-label-list");
+		if (_interfaceState != OXZ_STATE_UPDATING)
+		{
+			NSDictionary *expectedManifest = nil;
+			if (_itemIsFiltered)
+			{
+				expectedManifest = [[self managedOXZs] objectAtIndex:_item];
+			}
+			else
+			{
+				expectedManifest = [_oxzList objectAtIndex:_item];
+			}
+			label = [expectedManifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-download-label-oxz")];
+		}
+
+		[self setCurrentDownload:download withLabel:label]; // retains it
 		[download release];
 		OOLog(kOOOXZDebugLog,@"Download request received, using %@ and downloading to %@",[request URL],[self downloadPath]);
 		return YES;
@@ -374,6 +399,8 @@ static OOOXZManager *sSingleton = nil;
 {
 	if (_managedList == nil)
 	{
+		// if this list is being reset, also reset the current install list
+		[ResourceManager resetManifestKnowledgeForOXZManager];
 		NSArray *managedOXZs = [[NSFileManager defaultManager] oo_directoryContentsAtPath:[self installPath]];
 		NSMutableArray *manifests = [NSMutableArray arrayWithCapacity:[managedOXZs count]];
 		NSString *filename = nil;
@@ -654,18 +681,9 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_STATE_INSTALLING:
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-downloading")];
 
-		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-of-@"),[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+		[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-progress-@-is-@-of-@"),_currentDownloadName,[self humanSize:_downloadProgress],[self humanSize:_downloadExpected]] startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
 
-		/* the download buffer on Windows GNUStep is far too small, so
-		 * the download processing function can end up queued so much
-		 * that the GUI update hardly ever runs. Linux GNUStep has a
-		 * decent buffer size, and Mac OS probably handles it more
-		 * sensibly anyway. See
-		 * http://aegidian.org/bb/viewtopic.php?p=220176#p220176 for
-		 * discussion. - CIM */
-#if OOLITE_WINDOWS
-		[gui addLongText:DESC(@"oolite-oxzmanager-progress-warning") startingAtRow:OXZ_GUI_ROW_PROGRESS+4 align:GUI_ALIGN_LEFT];
-#endif
+		[gui addLongText:_progressStatus startingAtRow:OXZ_GUI_ROW_PROGRESS+2 align:GUI_ALIGN_LEFT];
 
 		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_CANCEL" forRow:OXZ_GUI_ROW_UPDATE];

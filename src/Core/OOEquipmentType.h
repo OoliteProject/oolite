@@ -57,6 +57,8 @@ SOFTWARE.
 							_isAvailableToNPCs: 1,
 							_fastAffinityA: 1,
 							_fastAffinityB: 1;
+	NSUInteger				_installTime;
+	NSUInteger				_repairTime;
 	GLfloat     			_damageProbability;
 	OOCargoQuantity			_requiredCargoSpace;
 	NSSet					*_requiresEquipment;
@@ -125,6 +127,8 @@ SOFTWARE.
 - (BOOL) fastAffinityDefensive;
 - (BOOL) fastAffinityOffensive;
 
+- (NSUInteger) installTime;
+- (NSUInteger) repairTime;
 
 @end
 

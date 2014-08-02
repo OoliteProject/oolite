@@ -10,8 +10,23 @@
 # 2011-04-03: Updated to facilitate rsync repository setup for oolite-update script
 # 2014-06-20: Enhanced error code generation to facilitate error recognition
 #             Updated to remove ManagedAddOns folder tree
+# 2014-07-13: Ambiguous warning message is displayed when Oolite/ManagedAddOns 
+#             folder does not exist. Added check before trying to remove it.
+#             Updated error handling to report the folders which were not empty and 
+#             could not be removed.
+# 2014-07-14: Replaced '~' by $HOME environment variable. 
+#             Fixed a warning visualization issue.
+# 2014-07-15: Added checks to remove Oolite and Managed Add-ons parent folders only 
+#             if all subfolders are removed.
 # 
 
+
+FOLDER_MASK_DOC=0x01 
+FOLDER_MASK_ADDONS=0x02 
+FOLDER_MASK_APP=0x04 
+FOLDER_MASK_OOLITE=0x08 
+FOLDER_MASK_MNGADDONS=0x10 
+FOLDER_MASK_MNGOOLITE=0x20 
 
 rm_rc=0   # Initialize (r)e(m)ove (r)eturn (c)ode counter
 SELF_PATH=$(cd $(dirname $0); pwd -P)
@@ -62,6 +77,7 @@ fi
 
 # Remove Oolite
 
+echo
 cd ${OOLITE_ROOT}
 
 # Remove Oolite menu
@@ -90,7 +106,8 @@ rm -f doc/README.TXT 1> /dev/null 2> /dev/null
 rmdir doc/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+1)) 
+  rm_rc=$(($rm_rc+$FOLDER_MASK_DOC)) 
+  echo "Warning: Unable to remove ${OOLITE_ROOT}/doc/. The folder is not empty."
 fi
 
 # Only remove add-on placed by setup and 
@@ -99,7 +116,8 @@ rm -rf AddOns/Basic-debug.oxp/ 1> /dev/null 2> /dev/null
 rmdir AddOns/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+2)) 
+  rm_rc=$(($rm_rc+$FOLDER_MASK_ADDONS)) 
+  echo "Warning: Unable to remove ${OOLITE_ROOT}/AddOns/. The folder is not empty."
 fi
 
 # Only remove known files from oolite.app/ and 
@@ -112,41 +130,53 @@ rm -rf oolite.app/Resources/ 1> /dev/null 2> /dev/null
 rmdir oolite.app/ 1> /dev/null 2> /dev/null
 if [ $? -ne 0 ]
 then
-  rm_rc=$(($rm_rc+4))
+  rm_rc=$(($rm_rc+$FOLDER_MASK_APP)) 
+  echo "Warning: Unable to remove ${OOLITE_ROOT}/oolite.app/. The folder is not empty."
 fi
 
 # Remove uninstall script
 rm -f ${SELF_FILENAME}
 
 # Remove Oolite/ root folder if it is empty
-rmdir ${OOLITE_ROOT}/ 1> /dev/null 2> /dev/null
-if [ $? -ne 0 ]
-then
-  rm_rc=$(($rm_rc+8))
+if [ $rm_rc -eq 0 ]; then   # Proceed to parent folder removal only if subfolders are removed
+  rmdir ${OOLITE_ROOT}/ 1> /dev/null 2> /dev/null
+  if [ $? -ne 0 ]
+  then
+    rm_rc=$(($rm_rc+$FOLDER_MASK_OOLITE))
+    echo "Warning: Unable to remove ${OOLITE_ROOT}/. The folder is not empty."
+  fi
 fi
 
 # Remove Oolite/ManagedAddOns folder if it is empty
-rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
-if [ $? -ne 0 ]
-then
-  rm_rc=$(($rm_rc+16))
-fi
-rmdir ~/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
-if [ $? -ne 0 ]
-then
-  rm_rc=$(($rm_rc+32))
-fi
+if [ -d "$HOME/GNUstep/Library/ApplicationSupport/Oolite" ]; then 
+  if [ -d "$HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns" ]; then 
+    rmdir $HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/ 1> /dev/null 2> /dev/null
+    if [ $? -ne 0 ]
+    then
+      rm_rc=$(($rm_rc+$FOLDER_MASK_MNGADDONS)) 
+      echo "Warning: Unable to remove $HOME/GNUstep/Library/ApplicationSupport/Oolite/ManagedAddOns/. The folder is not empty."
+    fi
+  fi
 
-echo "Done."
+  subfolders_deleted=$(($rm_rc & $FOLDER_MASK_MNGADDONS)) 
+  if [ $subfolders_deleted -eq 0 ]; then   # Proceed to parent folder removal only if subfolder is removed
+    rmdir $HOME/GNUstep/Library/ApplicationSupport/Oolite/ 1> /dev/null 2> /dev/null
+    if [ $? -ne 0 ]
+    then
+      rm_rc=$(($rm_rc+$FOLDER_MASK_MNGOOLITE)) 
+      echo "Warning: Unable to remove $HOME/GNUstep/Library/ApplicationSupport/Oolite/. The folder is not empty."
+    fi
+  fi
+fi
 
 
 # Finished uninstall!
 if [ $rm_rc -ne 0 ] 
 then
-  # TO DO: Issue a message showing which folders could not be removed
-  echo "Warning $rm_rc: Some folders could not be removed."
+  echo "Finished with warnings." 
+else 
+  echo "Done." 
 fi
 
 # Exit with grace
 exit $rm_rc
-

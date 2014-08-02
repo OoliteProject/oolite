@@ -167,7 +167,7 @@
 	"oolite-registership-instructions-part2" = "Please enter your ship's new name. Registering a name here is important to distinguish your ship from others of the same type.\n\nFor example, if you enter 'Pride of %H' here, your ship will be registered as '[commander_shipname]: Pride of %H'\n\nYour ship is currently registered as '[commander_shipdisplayname]'. To keep this name, press 'Enter' now.";
 
 	"oolite-registership-title-part3" = "Thank you for completing registration";
-	"oolite-registership-instructions-part3" = "Thank you. Your selected personal name and new ship name have been recorded, and will be transmitted to public ship registries in the next daily feed.\n\nIf at any point you wish to change either your own name or that of your ship, you may do so by docking at any Galactice Cooperative station, returning to this interface and entering the new data.";
+	"oolite-registership-instructions-part3" = "Thank you. Your selected personal name and new ship name have been recorded, and will be transmitted to public ship registries in the next daily feed.\n\nIf at any point you wish to change either your own name or that of your ship, you may do so by docking at any Galactic Cooperative station, returning to this interface and entering the new data.";
 
 	// primable equipment management
 	"oolite-primablemanager-interface-title" = "Manage primable equipment";

@@ -92,6 +92,7 @@ static GameController *sSharedController = nil;
 	{
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
 		delta_t = 0.01; // one hundredth of a second 
+		_animationTimerInterval = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"animation_timer_interval" defaultValue:0.005];
 		
 		// rather than seeding this with the date repeatedly, seed it
 		// once here at startup
@@ -372,7 +373,8 @@ static GameController *sSharedController = nil;
 {
 	if (timer == nil)
 	{   
-		NSTimeInterval ti = 0.005; // one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
+		NSTimeInterval ti = _animationTimerInterval; // default one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
+		
 		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
 		
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
@@ -930,7 +932,7 @@ static NSMutableArray *sMessageStack;
 	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
 	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	
-	OOGL(glClearDepth(MAX_CLEAR_DEPTH));
+	OOGL(glClearDepth(1.0));
 	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
 	
 	[matrixManager resetProjection]; // reset matrix
