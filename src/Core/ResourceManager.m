@@ -66,7 +66,6 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file;
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths;
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths;
-+ (BOOL) matchVersions:(NSDictionary *)rangeDict withVersion:(NSString *)version;
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
 + (BOOL) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (void) logPaths;
@@ -790,8 +789,6 @@ static NSMutableDictionary *sStringCache;
 + (BOOL) manifestHasMissingDependencies:(NSDictionary *)manifest logErrors:(BOOL)logErrors
 {
 	NSDictionary	*required = nil;
-	NSDictionary	*requiredManifest = nil;
-	NSString		*requiredID = nil;
 	NSArray			*requireds = nil;
 
 	requireds = [manifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
@@ -801,25 +798,8 @@ static NSMutableDictionary *sStringCache;
 		// iterate over that list
 		foreach (required, requireds)
 		{
-			requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
-			requiredManifest = [sOXPManifests objectForKey:requiredID];
-			// if the other OXP is in the list
-			BOOL requirementsMet = NO;
-			if (requiredManifest != nil)
+			if ([ResourceManager manifest:manifest HasUnmetDependency:required logErrors:logErrors])
 			{
-				// then check versions
-				if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]])
-				{
-					requirementsMet = YES;
-				}
-			}
-			if (!requirementsMet)
-			{
-				if (logErrors)
-				{
-					[self addErrorWithKey:@"oxp-required" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[required oo_stringForKey:kOOManifestRelationDescription defaultValue:[required oo_stringForKey:kOOManifestRelationIdentifier]]];
-					OOLog(@"oxp.requirementMissing",@"OXP %@ had unmet requirements and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
-				}
 				return YES;
 			}
 		}
@@ -827,6 +807,32 @@ static NSMutableDictionary *sStringCache;
 	return NO;
 }
 
+
++ (BOOL) manifest:(NSDictionary *)manifest HasUnmetDependency:(NSDictionary *)required logErrors:(BOOL)logErrors
+{
+	NSString		*requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
+	NSDictionary	*requiredManifest = [sOXPManifests objectForKey:requiredID];
+	// if the other OXP is in the list
+	BOOL requirementsMet = NO;
+	if (requiredManifest != nil)
+	{
+		// then check versions
+		if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]])
+		{
+			requirementsMet = YES;
+		}
+	}
+	if (!requirementsMet)
+	{
+		if (logErrors)
+		{
+			[self addErrorWithKey:@"oxp-required" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[required oo_stringForKey:kOOManifestRelationDescription defaultValue:[required oo_stringForKey:kOOManifestRelationIdentifier]]];
+			OOLog(@"oxp.requirementMissing",@"OXP %@ had unmet requirements and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
+		}
+		return YES;
+	}
+	return NO;
+}
 
 
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths

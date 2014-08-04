@@ -63,6 +63,9 @@ typedef enum
 + (BOOL) checkVersionCompatibility:(NSDictionary *)manifest forOXP:(NSString *)title;
 + (BOOL) manifestHasConflicts:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
 + (BOOL) manifestHasMissingDependencies:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
++ (BOOL) manifest:(NSDictionary *)manifest HasUnmetDependency:(NSDictionary *)required logErrors:(BOOL)logErrors;
++ (BOOL) matchVersions:(NSDictionary *)rangeDict withVersion:(NSString *)version;
+
 
 
 + (void)handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex;
