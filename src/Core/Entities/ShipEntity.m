@@ -5899,7 +5899,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		return [target position];
 	}
-	float t = [UNIVERSE getTime] - trackingCurveTimes[0];
+	double t = [UNIVERSE getTime] - trackingCurveTimes[0];
 	return HPvector_add(HPvector_add(trackingCurveCoeffs[0], HPvector_multiply_scalar(trackingCurveCoeffs[1],t)), HPvector_multiply_scalar(trackingCurveCoeffs[2],t*t));
 }
 
@@ -5947,7 +5947,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		trackingCurveCoeffs[2] = kZeroHPVector;
 		return;
 	}
-	float	t1 = trackingCurveTimes[1] - trackingCurveTimes[0],
+	double	t1 = trackingCurveTimes[1] - trackingCurveTimes[0],
 		t2 = trackingCurveTimes[2] - trackingCurveTimes[0];
 	trackingCurveCoeffs[0] = trackingCurvePositions[0];
 	trackingCurveCoeffs[1] = HPvector_add(HPvector_add(
