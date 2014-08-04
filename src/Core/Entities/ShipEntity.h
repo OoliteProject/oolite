@@ -126,6 +126,8 @@
 #define COMBAT_AI_USES_SNIPING			8.5f
 // adds BEHAVIOUR_ATTACK_SNIPER
 #define COMBAT_AI_FLEES_BETTER_2		9.0f
+// AI reacts to changes in target path in about 0.5 seconds.
+#define COMBAT_AI_STANDARD_REACTION_TIME	50.0f
 
 
 
@@ -418,6 +420,13 @@ typedef enum
 	OOWeakReference			*_rememberedShip;			// ship being remembered
 	OOWeakReference			*_proximityAlert;			// a ShipEntity within 2x collision_radius
 	
+	// Stuff for the target tracking curve.  The ship records the position of the target every reactionTime/2 seconds, then fits a curve to the
+	// last three recorded positions.  Instead of tracking the primary target's actual position it uses the curve to calculate the target's position.
+	// This introduces a small amount of lag to the target tracking making the NPC more human.
+	float				reactionTime;
+	HPVector			trackingCurvePositions[3];
+	OOTimeAbsolute			trackingCurveTimes[3];
+	HPVector			trackingCurveCoeffs[3];
 	
 
 	
@@ -453,6 +462,7 @@ typedef enum
 	id <OOHUDBeaconIcon>	_beaconDrawable;
 
 	double			_nextAegisCheck;
+	
 }
 
 // ship brains
@@ -654,6 +664,13 @@ typedef enum
 - (void) behaviour_track_as_turret:(double) delta_t;
 - (void) behaviour_fly_thru_navpoints:(double) delta_t;
 - (void) behaviour_scripted_ai:(double) delta_t;
+
+- (float) reactionTime;
+- (void) setReactionTime: (float) newReactionTime;
+- (HPVector) calculateTargetPosition;
+- (void) startTrackingCurve;
+- (void) updateTrackingCurve;
+- (void) calculateTrackingCurve;
 
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
 - (void)setScannerDisplayColor1:(OOColor *)color1;
