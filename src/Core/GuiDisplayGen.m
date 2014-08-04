@@ -1525,6 +1525,32 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
+- (void) setStarChartTitle
+{
+	PlayerEntity *player = PLAYER;
+	OOGalaxyID galaxy_number = [player galaxyNumber];
+	NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]];
+
+	NSString *location_key = [NSString stringWithFormat:@"long-range-chart-title-%d-%d", galaxy_number,system_id];
+	if ([[UNIVERSE descriptions] valueForKey:location_key] == nil)
+	{
+		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
+		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
+		{
+			[self setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
+		}
+		else
+		{
+			[self setTitle:[UNIVERSE descriptionForKey:gal_key]];
+		}
+	}
+	else
+	{
+		[self setTitle:[UNIVERSE descriptionForKey:location_key]];
+	}
+}
+
+
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	PlayerEntity* player = PLAYER;

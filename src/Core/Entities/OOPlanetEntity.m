@@ -486,7 +486,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
+	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
 	
 	if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:([self radius] + ATMOSPHERE_DEPTH)])
@@ -502,14 +502,37 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_planetDrawable calculateLevelOfDetailForViewDistance:cam_zero_distance];
 		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	}
-	
-	[_planetDrawable renderOpaqueParts];
-//#if NEW_ATMOSPHERE
-	if (_atmosphereDrawable != nil)
+
+	// 500km squared
+	if (magnitude2(cameraRelativePosition) > 250000000000.0) 
 	{
-		[_atmosphereDrawable renderOpaqueParts];
+		/* at this distance the atmosphere is too close to the planet
+		 * for a 24-bit depth buffer to reliably distinguish the two,
+		 * so cheat and draw the atmosphere on the opaque pass: it's
+		 * far enough away that painter's algorithm should do fine */
+		[_planetDrawable renderOpaqueParts];
+		if (_atmosphereDrawable != nil)
+		{
+			[_atmosphereDrawable renderTranslucentPartsOnOpaquePass];
+		}
 	}
-//#endif
+	else 
+	{
+		/* At close range we can do this properly and draw the
+		 * atmosphere on the transparent pass */
+		if (translucent)
+		{
+			if (_atmosphereDrawable != nil)
+			{
+				[_atmosphereDrawable renderTranslucentParts];
+			}
+		}
+		else
+		{
+			[_planetDrawable renderOpaqueParts];
+		}
+	}
+
 	
 	if ([UNIVERSE wireframeGraphics])  OOGLWireframeModeOff();
 }

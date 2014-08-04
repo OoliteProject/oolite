@@ -2749,7 +2749,7 @@ static GLfloat		sBaseMass = 0.0;
 		/* Oh, wait, but *planets* outside scanner range can. Skip
 		 * this optimisation for now, though it could be done another
 		 * way - CIM */
-		if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
+		if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
 			int theirClass = [scannedEntity scanClass];
 			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
@@ -7630,15 +7630,7 @@ static GLfloat		sBaseMass = 0.0;
 	// GUI stuff
 	{
 		//[gui clearAndKeepBackground:!guiChanged];
-		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
-		if ([[UNIVERSE descriptions] valueForKey:gal_key] == nil)
-		{
-			[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
-		}
-		else
-		{
-			[gui setTitle:[UNIVERSE descriptionForKey:gal_key]];
-		}
+		[gui setStarChartTitle];
 		// refresh the short range chart cache, in case we've just loaded a save game with different local overrides, etc.
 		[gui refreshStarChart];
 		//[gui setText:targetSystemName forRow:19];
