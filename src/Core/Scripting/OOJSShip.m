@@ -274,6 +274,7 @@ enum
 	kShip_portWeapon,			// the ship's port weapon, equipmentType, read/write
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_primaryRole,			// Primary role, string, read/write
+	kShip_reactionTime,		// AI reaction time, read/write
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
 	kShip_roleWeights,			// roles and weights, dictionary, read-only
 	kShip_roles,				// roles, array, read-only
@@ -416,6 +417,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "portWeapon",				kShip_portWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "potentialCollider",		kShip_potentialCollider,	OOJS_PROP_READONLY_CB },
 	{ "primaryRole",			kShip_primaryRole,			OOJS_PROP_READWRITE_CB },
+	{ "reactionTime",		kShip_reactionTime,		OOJS_PROP_READWRITE_CB },
 	{ "reportAIMessages",		kShip_reportAIMessages,		OOJS_PROP_READWRITE_CB },
 	{ "roleWeights",			kShip_roleWeights,			OOJS_PROP_READONLY_CB },
 	{ "roles",					kShip_roles,				OOJS_PROP_READONLY_CB },
@@ -789,6 +791,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_scannerRange:
 			return JS_NewNumberValue(context, [entity scannerRange], value);
 		
+		case kShip_reactionTime:
+			return JS_NewNumberValue(context, [entity reactionTime], value);
+			
 		case kShip_reportAIMessages:
 			*value = OOJSValueFromBOOL([entity reportAIMessages]);
 			return YES;
@@ -1406,6 +1411,16 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 		
+		case kShip_reactionTime:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setReactionTime:fValue];
+				return YES;
+			}
+			break;
+
 		case kShip_reportAIMessages:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
