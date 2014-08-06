@@ -127,7 +127,7 @@
 // adds BEHAVIOUR_ATTACK_SNIPER
 #define COMBAT_AI_FLEES_BETTER_2		9.0f
 // AI reacts to changes in target path in about 0.5 seconds.
-#define COMBAT_AI_STANDARD_REACTION_TIME	0.5f
+#define COMBAT_AI_STANDARD_REACTION_TIME	1.5f
 
 
 
