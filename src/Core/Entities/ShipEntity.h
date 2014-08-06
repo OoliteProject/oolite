@@ -424,8 +424,8 @@ typedef enum
 	// last three recorded positions.  Instead of tracking the primary target's actual position it uses the curve to calculate the target's position.
 	// This introduces a small amount of lag to the target tracking making the NPC more human.
 	float				reactionTime;
-	HPVector			trackingCurvePositions[3];
-	OOTimeAbsolute			trackingCurveTimes[3];
+	HPVector			trackingCurvePositions[4];
+	OOTimeAbsolute			trackingCurveTimes[4];
 	HPVector			trackingCurveCoeffs[3];
 	
 
