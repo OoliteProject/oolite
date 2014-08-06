@@ -5899,7 +5899,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		return [target position];
 	}
-	double t = [UNIVERSE getTime] - trackingCurveTimes[0];
+	double t = [UNIVERSE getTime] - trackingCurveTimes[1];
 	return HPvector_add(HPvector_add(trackingCurveCoeffs[0], HPvector_multiply_scalar(trackingCurveCoeffs[1],t)), HPvector_multiply_scalar(trackingCurveCoeffs[2],t*t));
 }
 
@@ -5915,9 +5915,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	trackingCurvePositions[0] = [target position];
 	trackingCurvePositions[1] = [target position];
 	trackingCurvePositions[2] = [target position];
+	trackingCurvePositions[3] = [target position];
 	trackingCurveTimes[0] = now;
-	trackingCurveTimes[1] = now - reactionTime/2.0;
-	trackingCurveTimes[2] = now - reactionTime;
+	trackingCurveTimes[1] = now - reactionTime/3.0;
+	trackingCurveTimes[2] = now - reactionTime*2.0/3.0;
+	trackingCurveTimes[3] = now - reactionTime;
 	[self calculateTrackingCurve];
 	return;
 }
@@ -5927,10 +5929,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	Entity *target = [self primaryTarget];
 	OOTimeAbsolute now = [UNIVERSE getTime];
-	if (target == nil || reactionTime <= 0.0 || trackingCurveTimes[0] + reactionTime/2.0 > now) return;
+	if (target == nil || reactionTime <= 0.0 || trackingCurveTimes[0] + reactionTime/3.0 > now) return;
+	trackingCurvePositions[3] = trackingCurvePositions[2];
 	trackingCurvePositions[2] = trackingCurvePositions[1];
 	trackingCurvePositions[1] = trackingCurvePositions[0];
 	trackingCurvePositions[0] = [target position];
+	trackingCurveTimes[3] = trackingCurveTimes[2];
 	trackingCurveTimes[2] = trackingCurveTimes[1];
 	trackingCurveTimes[1] = trackingCurveTimes[0];
 	trackingCurveTimes[0] = now;
@@ -5945,19 +5949,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		trackingCurveCoeffs[0] = trackingCurvePositions[0];
 		trackingCurveCoeffs[1] = kZeroHPVector;
 		trackingCurveCoeffs[2] = kZeroHPVector;
+		trackingCurveCoeffs[3] = kZeroHPVector;
 		return;
 	}
-	double	t1 = trackingCurveTimes[1] - trackingCurveTimes[0],
-		t2 = trackingCurveTimes[2] - trackingCurveTimes[0];
+	double	t1 = trackingCurveTimes[2] - trackingCurveTimes[1],
+		t2 = trackingCurveTimes[3] - trackingCurveTimes[1];
 	trackingCurveCoeffs[0] = trackingCurvePositions[0];
 	trackingCurveCoeffs[1] = HPvector_add(HPvector_add(
-		HPvector_multiply_scalar(trackingCurvePositions[0], -(t1+t2)/(t1*t2)),
-		HPvector_multiply_scalar(trackingCurvePositions[1], -t2/(t1*(t1-t2)))),
-		HPvector_multiply_scalar(trackingCurvePositions[2], t1/(t2*(t1-t2))));
+		HPvector_multiply_scalar(trackingCurvePositions[1], -(t1+t2)/(t1*t2)),
+		HPvector_multiply_scalar(trackingCurvePositions[2], -t2/(t1*(t1-t2)))),
+		HPvector_multiply_scalar(trackingCurvePositions[3], t1/(t2*(t1-t2))));
 	trackingCurveCoeffs[2] = HPvector_add(HPvector_add(
-		HPvector_multiply_scalar(trackingCurvePositions[0], 1/(t1*t2)),
-		HPvector_multiply_scalar(trackingCurvePositions[1], 1/(t1*(t1-t2)))),
-		HPvector_multiply_scalar(trackingCurvePositions[2], -1/(t2*(t1-t2))));
+		HPvector_multiply_scalar(trackingCurvePositions[1], 1/(t1*t2)),
+		HPvector_multiply_scalar(trackingCurvePositions[2], 1/(t1*(t1-t2)))),
+		HPvector_multiply_scalar(trackingCurvePositions[3], -1/(t2*(t1-t2))));
 	return;
 }
 
