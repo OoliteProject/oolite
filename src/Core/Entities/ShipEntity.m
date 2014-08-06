@@ -5951,7 +5951,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		trackingCurveCoeffs[0] = trackingCurvePositions[0];
 		trackingCurveCoeffs[1] = kZeroHPVector;
 		trackingCurveCoeffs[2] = kZeroHPVector;
-		trackingCurveCoeffs[3] = kZeroHPVector;
 		return;
 	}
 	double	t1 = trackingCurveTimes[2] - trackingCurveTimes[1],
