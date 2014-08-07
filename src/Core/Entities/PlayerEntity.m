@@ -749,6 +749,10 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
 	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
 	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
+	if (hud != nil)
+	{
+		[result oo_setFloat: [hud scannerZoom] forKey:@"ship_scanner_zoom"];
+	}
 	
 	[result oo_setInteger:max_cargo + PASSENGER_BERTH_SPACE * max_passengers	forKey:@"max_cargo"];
 	
@@ -1265,6 +1269,10 @@ static GLfloat		sBaseMass = 0.0;
 		starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
 	else
 		starboard_weapon_type = WEAPON_NONE;
+	if (hud != nil)
+	{
+		[hud setScannerZoom: [dict oo_floatForKey:@"ship_scanner_zoom" defaultValue: 1.0]];
+	}
 	
 	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
 	
@@ -6251,7 +6259,6 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(_primaryTarget); // must happen before showing break_pattern to supress active reticule.
 	[self clearTargetMemory];
 	
-	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
@@ -6407,7 +6414,6 @@ static GLfloat		sBaseMass = 0.0;
 	[self clearAlertFlags];
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 	
-	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	
@@ -6470,7 +6476,6 @@ static GLfloat		sBaseMass = 0.0;
 		DESTROY(_primaryTarget);
 	}
 	
-	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	
