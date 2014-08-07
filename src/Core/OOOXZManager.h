@@ -74,6 +74,7 @@ typedef enum {
 	NSUInteger			_offset;
 
 	NSString			*_progressStatus;
+	NSMutableSet		*_dependencyStack;
 }
 
 + (OOOXZManager *) sharedManager;

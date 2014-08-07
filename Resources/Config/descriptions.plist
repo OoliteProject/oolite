@@ -1285,7 +1285,7 @@
 	"oolite-oxzmanager-installed"	= "List installed expansion packs";
 	"oolite-oxzmanager-remove"		= "Remove expansion pack";
 	"oolite-oxzmanager-firstrun"	= "Before Oolite can install your requested expansions automatically, it needs to retrieve the expansions list. You will need to be connected to the internet for this to work. Use the 'Download expansions list' option when you are ready, or 'Return to Menu' if you do not have internet access now or would rather download and install expansions yourself.\n\nImportant: if you have old expansion packs installed in the OXP format, Oolite will not be able to automatically detect that they are the same pack as a new release. When downloading an expansion through this manager, you must first uninstall any old OXP versions of the same expansion to avoid problems.";
-	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.\n\nThere are also many more expansion packs not available through the automatic installer.\n\nImportant: if you have old expansion packs installed in the OXP format, Oolite will not be able to automatically detect that they are the same pack as a new release. When downloading an expansion through this manager, you must first uninstall any old OXP versions of the same expansion to avoid problems.";
+	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.\n\nThere are also many more expansion packs not available through the automatic installer.\n\nImportant: if you have old expansion packs installed in the OXP format, Oolite will not be able to automatically detect that they are the same pack as a new release. When downloading an expansion through this manager, you must first uninstall any old OXP versions of the same expansion to avoid problems.\n\nIf an expansion pack requires other expansion packs to run, Oolite will automatically download those other expansion packs for you, if they are available.";
 	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed. Expansion packs which you have installed manually must also be removed manually. Oolite is not able to manage old OXP format expansion packs for you.";
 	"oolite-oxzmanager-restart"				= "As you have changed the expansion packs you have installed, Oolite now needs to reload the game data. This may take a few seconds or several minutes depending on how fast your computer is and how many packs you have installed. Please be patient while this reload completes: Oolite will not respond to the keyboard or mouse until this is done.";
 	"oolite-oxzmanager-progress-@-is-@-of-@"		= "Downloading %@: %@ of %@";
@@ -1294,6 +1294,10 @@
 	"oolite-oxzmanager-progress-done-%u-%u"	= "Download complete. There are now %u expansion packs available for download, and %u pack(s) have been installed here.";
 	"oolite-oxzmanager-removal-done"		= "Expansion pack removed";
 	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details. Using the '[oolite-oxzmanager-update-list]' menu option if you have not done so already and re-attempting the download may sometimes fix the problem.";
+	"oolite-oxzmanager-progress-requires-@" = "Unmet requirement: %@\n";
+	"oolite-oxzmanager-progress-now-has-@"  = "Now met requirement: %@\n";
+	"oolite-oxzmanager-progress-get-required"	= "Now downloading additional OXZ to meet requirements.\n";	
+	"oolite-oxzmanager-progress-required-@-not-found"	= "Unable to meet requirement: %@\n  You will need to resolve this manually.\n";
 	"oolite-oxzmanager-heading-category"	= "Category";
 	"oolite-oxzmanager-heading-title"		= "Title";
 	"oolite-oxzmanager-heading-version"		= "Version";
@@ -1305,7 +1309,8 @@
 	"oolite-oxzmanager-version-none"		= "-";
 	"oolite-oxzmanager-installable-okay"	= "Status: Ready to download and install.";	
 	"oolite-oxzmanager-installable-update"	= "Status: Installed; updated pack available for download.";
-	"oolite-oxzmanager-installable-depend"	= "Status: Conflicts with installed pack or requires another pack to be installed first.";
+	"oolite-oxzmanager-installable-depend"	= "Status: Ready to download, but Oolite will also download extra packs to make it work.";
+	"oolite-oxzmanager-installable-conflicts"	= "Status: Conflicts with an already installed pack.";
 	"oolite-oxzmanager-installable-already"	= "Status: Installed and at the current version.";
 	"oolite-oxzmanager-installable-manual"	= "Status: Manually installed; cannot also be installed automatically.";
 	"oolite-oxzmanager-installable-version"	= "Status: Incompatible with this version of Oolite.";

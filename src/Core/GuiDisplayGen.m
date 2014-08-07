@@ -1531,7 +1531,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGalaxyID galaxy_number = [player galaxyNumber];
 	NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]];
 
-	NSString *location_key = [NSString stringWithFormat:@"long-range-chart-title-%d-%d", galaxy_number,system_id];
+	NSString *location_key = [NSString stringWithFormat:@"long-range-chart-title-%d-%ld", galaxy_number, (long)system_id];
 	if ([[UNIVERSE descriptions] valueForKey:location_key] == nil)
 	{
 		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];

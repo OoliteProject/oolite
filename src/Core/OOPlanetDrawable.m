@@ -196,8 +196,6 @@
 - (void) renderOpaqueParts
 {
 	assert(_lod < kOOPlanetDataLevels);
-	
-	OO_ENTER_OPENGL();
 
 	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 	
@@ -211,8 +209,6 @@
 - (void) renderTranslucentParts
 {
 	assert(_lod < kOOPlanetDataLevels);
-	
-	OO_ENTER_OPENGL();
 
 	// yes, opaque - necessary changes made later
 	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
@@ -245,6 +241,8 @@
 - (void) renderCommonParts
 {
 	const OOPlanetDataLevel *data = &kPlanetData[_lod];
+	
+	OO_ENTER_OPENGL();
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
 	OOGL(glShadeModel(GL_SMOOTH));
