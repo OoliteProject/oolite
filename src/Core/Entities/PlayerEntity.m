@@ -749,7 +749,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
 	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
 	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
-	if (hud != nil)
+	if (hud != nil && [hud nonlinearScanner])
 	{
 		[result oo_setFloat: [hud scannerZoom] forKey:@"ship_scanner_zoom"];
 	}
@@ -1269,7 +1269,7 @@ static GLfloat		sBaseMass = 0.0;
 		starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
 	else
 		starboard_weapon_type = WEAPON_NONE;
-	if (hud != nil)
+	if (hud != nil && [hud nonlinearScanner])
 	{
 		[hud setScannerZoom: [dict oo_floatForKey:@"ship_scanner_zoom" defaultValue: 1.0]];
 	}
@@ -6246,7 +6246,11 @@ static GLfloat		sBaseMass = 0.0;
 	[self setStatus:STATUS_DOCKING];
 	[self setDockedStation:station];
 	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
-	
+
+	if (![hud nonlinearScanner])
+	{
+		[hud setScannerZoom: 1.0];
+	}
 	ident_engaged = NO;
 	afterburner_engaged = NO;
 	autopilot_engaged = NO;
@@ -6401,6 +6405,10 @@ static GLfloat		sBaseMass = 0.0;
 	gui_screen = GUI_SCREEN_MAIN;
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 
+	if (![hud nonlinearScanner])
+	{
+		[hud setScannerZoom: 1.0];
+	}
 	[self loadCargoPods];
 	// do not do anything that calls JS handlers between now and calling
 	// [station launchShip] below, or the cargo returned by JS may be off
@@ -6462,6 +6470,10 @@ static GLfloat		sBaseMass = 0.0;
 	// so in such cases we need to ensure that at least the docking music stops playing
 	if (autopilot_engaged)  [self disengageAutopilot];
 	
+	if (![hud nonlinearScanner])
+	{
+		[hud setScannerZoom: 1.0];
+	}
 	[self safeAllMissiles];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
