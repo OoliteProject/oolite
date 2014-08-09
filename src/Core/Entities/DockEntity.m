@@ -364,78 +364,71 @@ MA 02110-1301, USA.
 		
 		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO, docking_stage);
 	}
-	else
-	{
-		// reached the current coordinates okay..
 	
-		// get the NEXT coordinates
-		nextCoords = (NSMutableDictionary *)[coordinatesStack oo_dictionaryAtIndex:1];
-		if (nextCoords == nil)
-		{
-			return nil;
-		}
-		
-		docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
-		speedAdvised = [nextCoords oo_floatForKey:@"speed"];
-		rangeAdvised = [nextCoords oo_floatForKey:@"range"];
-		BOOL match_rotation = [nextCoords oo_boolForKey:@"match_rotation"];
-		NSString *comms_message = [nextCoords oo_stringForKey:@"comms_message"];
-		
-		if (comms_message)
-		{
-			[station sendExpandedMessage:comms_message toShip:ship];
-		}
-				
-		// calculate world coordinates from relative coordinates
-		rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
-		rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
-		rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
-		coords = [self absolutePositionForSubentity];
-		coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
-		coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
-		coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
-		
-		if([id_lock[docking_stage] weakRefUnderlyingObject] == nil &&
-		   [id_lock[docking_stage + 1] weakRefUnderlyingObject] == nil &&
-		   [id_lock[docking_stage + 2] weakRefUnderlyingObject] == nil)	// check three stages ahead
-		{
-			// approach is clear - move to next position
-			//
-			
-			// clear any previously owned docking stages
-			[self clearIdLocks:ship];
-					
-			if (docking_stage > 1)	// don't claim first docking stage
-			{
-				[id_lock[docking_stage] release];
-				id_lock[docking_stage] = [ship weakRetain];	// otherwise - claim this docking stage
-			}
-			
-			//remove the previous stage from the stack
-			[coordinatesStack removeObjectAtIndex:0];
-			
-			return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation, docking_stage);
-		}
-		else
-		{
-			// approach isn't clear - hold position..
-			//
-			[[ship getAI] message:@"HOLD_POSITION"];
-			
-			if (![nextCoords objectForKey:@"hold_message_given"])
-			{
-				// COMM-CHATTER
-				[UNIVERSE clearPreviousMessage];
-				[self sendExpandedMessage: @"[station-hold-position]" toShip: ship];
-				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
-			}
+	// else, reached the current coordinates okay..
 
-			return OOMakeDockingInstructions(station, ship->position, 0, 100, @"HOLD_POSITION", nil, NO, -1);
-		}
+	// get the NEXT coordinates
+	nextCoords = (NSMutableDictionary *)[coordinatesStack oo_dictionaryAtIndex:1];
+	if (nextCoords == nil)
+	{
+		return nil;
 	}
 	
-	// we should never reach here.
-	return OOMakeDockingInstructions(station, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO, -1);
+	docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
+	speedAdvised = [nextCoords oo_floatForKey:@"speed"];
+	rangeAdvised = [nextCoords oo_floatForKey:@"range"];
+	BOOL match_rotation = [nextCoords oo_boolForKey:@"match_rotation"];
+	NSString *comms_message = [nextCoords oo_stringForKey:@"comms_message"];
+	
+	if (comms_message)
+	{
+		[station sendExpandedMessage:comms_message toShip:ship];
+	}
+			
+	// calculate world coordinates from relative coordinates
+	rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
+	rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
+	rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
+	coords = [self absolutePositionForSubentity];
+	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
+	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
+	coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
+	
+	if([id_lock[docking_stage] weakRefUnderlyingObject] == nil &&
+	   [id_lock[docking_stage + 1] weakRefUnderlyingObject] == nil &&
+	   [id_lock[docking_stage + 2] weakRefUnderlyingObject] == nil)	// check three stages ahead
+	{
+		// approach is clear - move to next position
+		//
+		
+		// clear any previously owned docking stages
+		[self clearIdLocks:ship];
+				
+		if (docking_stage > 1)	// don't claim first docking stage
+		{
+			[id_lock[docking_stage] release];
+			id_lock[docking_stage] = [ship weakRetain];	// otherwise - claim this docking stage
+		}
+		
+		//remove the previous stage from the stack
+		[coordinatesStack removeObjectAtIndex:0];
+		
+		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation, docking_stage);
+	}
+	
+	// else, approach isn't clear - hold position..
+	//
+	[[ship getAI] message:@"HOLD_POSITION"];
+	
+	if (![nextCoords objectForKey:@"hold_message_given"])
+	{
+		// COMM-CHATTER
+		[UNIVERSE clearPreviousMessage];
+		[self sendExpandedMessage: @"[station-hold-position]" toShip: ship];
+		[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
+	}
+
+	return OOMakeDockingInstructions(station, ship->position, 0, 100, @"HOLD_POSITION", nil, NO, -1);
 }
 
 
