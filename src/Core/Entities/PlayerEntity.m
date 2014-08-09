@@ -5576,7 +5576,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (amount > 0.0)
 	{
-		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
 		[self playDirectHit:relative];
 		if (ship_temperature < SHIP_MAX_CABIN_TEMP)
@@ -5605,7 +5604,15 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	else
 	{
-		if (internal_damage)  [self takeInternalDamage];
+		while (amount > 0.0)
+		{
+			internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
+			if (internal_damage)
+			{
+				[self takeInternalDamage];
+			}
+			amount -= (PLAYER_INTERNAL_DAMAGE_FACTOR + 1);
+		}
 	}
 }
 
@@ -5662,16 +5669,16 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	
-	if (amount)
+	[super takeScrapeDamage:amount from:ent];
+	
+	while (amount > 0.0)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
-	}
-	
-	[super takeScrapeDamage:amount from:ent];
-
-	if (internal_damage)
-	{
-		[self takeInternalDamage];
+		if (internal_damage)
+		{
+			[self takeInternalDamage];
+		}
+		amount -= (PLAYER_INTERNAL_DAMAGE_FACTOR + 1);
 	}
 }
 
