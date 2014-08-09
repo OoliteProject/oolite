@@ -286,6 +286,7 @@ typedef enum
 
 #define SCANNER_ZOOM_RATE_UP			2.0
 #define SCANNER_ZOOM_RATE_DOWN			-8.0
+#define SCANNER_ECM_FUZZINESS			1.5
 
 #define PLAYER_INTERNAL_DAMAGE_FACTOR	31
 
@@ -400,7 +401,8 @@ typedef enum
 	OOWeaponFacing			chosen_weapon_facing;   // for purchasing weapons
 	
 	double					ecm_start_time;
-	
+	double					last_ecm_time;	
+
 	OOGUIScreenID			gui_screen;
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;
@@ -822,6 +824,8 @@ typedef enum
 
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
+
+- (double) scannerFuzziness;
 
 - (BOOL) weaponsOnline;
 - (void) setWeaponsOnline:(BOOL)newValue;
