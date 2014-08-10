@@ -1575,7 +1575,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		hcenter = size_in_pixels.width/2.0;
 	double		hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double		vscale = -size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
-	double		vcenter = 10*MAIN_GUI_ROW_HEIGHT;
+	double		vcenter = CHART_SCREEN_VERTICAL_CENTRE;
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
