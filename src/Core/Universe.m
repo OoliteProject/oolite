@@ -511,7 +511,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	}
 	DESTROY(useAddOns);
 	useAddOns = [newUse retain];
-	OOLog(@"scenario.restrict",@"Set to %@",newUse);
+
 	return [self reinitAndShowDemo:!saveGame];
 }
 

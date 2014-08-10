@@ -590,11 +590,15 @@ static NSMutableDictionary *sStringCache;
 			[self addErrorWithKey:@"oxz-lacks-manifest" param1:[path lastPathComponent] param2:nil];
 			return;
 		}
+		else
+		{
+			// make up a basic manifest
+			manifest = [NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"__oolite.tmp.%@",path],kOOManifestIdentifier,@"1",kOOManifestVersion,@"OXP without manifest",kOOManifestTitle,@"1",kOOManifestRequiredOoliteVersion,nil];
+		}
 	}
-	else
-	{
-		requirementsMet = [self validateManifest:manifest forOXP:path];
-	}
+	
+	requirementsMet = [self validateManifest:manifest forOXP:path];
+
 
 	if (requirementsMet) 
 	{
@@ -981,6 +985,11 @@ static NSMutableDictionary *sStringCache;
 		return NO;
 	}
 #endif
+	if ([[manifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:@"org.oolite.oolite"])
+	{
+		// the core data is always allowed!
+		return YES;
+	}
 
 	if ([sUseAddOns hasPrefix:SCENARIO_OXP_DEFINITION_BYID])
 	{
