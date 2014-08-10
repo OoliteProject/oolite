@@ -281,7 +281,11 @@ static void OpenLogFile(NSString *name);
 	*/
 	[[OOCacheManager sharedCache] flush];
 	[[OOCacheManager sharedCache] setAllowCacheWrites:NO];
-	[ResourceManager setUseAddOns:NO];
+	/* FIXME: the OXP verifier should load files from OXPs which have
+	 * been explicitly listed as required_oxps in the
+	 * manifest. Reading the manifest from the OXP being verified and
+	 * setting 'id:<its identifier>' below will do this. */
+	[ResourceManager setUseAddOns:SCENARIO_OXP_DEFINITION_NONE];
 	
 	SwitchLogFile(_displayName);
 	OOLog(@"verifyOXP.start", @"Running OXP verifier for %@", _basePath);//_displayName);

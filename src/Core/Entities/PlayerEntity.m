@@ -3693,7 +3693,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) moveForward:(double) amount
 {
 	distanceTravelled += (float)amount;
-	position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)));
+	[self setPosition:HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)))];
 }
 
 
