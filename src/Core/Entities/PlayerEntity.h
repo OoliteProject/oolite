@@ -421,6 +421,7 @@ typedef enum
 	
 	NSPoint					cursor_coordinates;
 	NSPoint					chart_cursor_coordinates;
+	NSPoint					chart_focus_coordinates;
 	NSPoint					chart_centre_coordinates;
 	// where we want the chart centre to be - used for smooth transitions
 	NSPoint					target_chart_centre;

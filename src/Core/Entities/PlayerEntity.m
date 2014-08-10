@@ -585,7 +585,7 @@ static GLfloat		sBaseMass = 0.0;
 	// If the cursor is out of the centre non-scrolling part of the screen adjust the chart centre.  If the cursor is just at scroll_pos
 	// we want to return the chart centre as it is, but if it's at the edge of the galaxy we want the centre positioned so the cursor is
 	// at the edge of the screen
-	if (chart_cursor_coordinates.x - acc.x <= -CHART_SCROLL_AT_X*chart_zoom)
+	if (chart_focus_coordinates.x - acc.x <= -CHART_SCROLL_AT_X*chart_zoom)
 	{
 		scroll_pos = acc.x - CHART_SCROLL_AT_X*chart_zoom;
 		ecc = CHART_WIDTH_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -595,10 +595,10 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.x = ((scroll_pos-chart_cursor_coordinates.x)*ecc + chart_cursor_coordinates.x*acc.x)/scroll_pos;
+			acc.x = ((scroll_pos-chart_focus_coordinates.x)*ecc + chart_focus_coordinates.x*acc.x)/scroll_pos;
 		}
 	}
-	else if (chart_cursor_coordinates.x - acc.x >= CHART_SCROLL_AT_X*chart_zoom)
+	else if (chart_focus_coordinates.x - acc.x >= CHART_SCROLL_AT_X*chart_zoom)
 	{
 		scroll_pos = acc.x + CHART_SCROLL_AT_X*chart_zoom;
 		ecc = 256.0 - CHART_WIDTH_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -608,10 +608,10 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.x = ((chart_cursor_coordinates.x-scroll_pos)*ecc + (256.0 - chart_cursor_coordinates.x)*acc.x)/(256.0 - scroll_pos);
+			acc.x = ((chart_focus_coordinates.x-scroll_pos)*ecc + (256.0 - chart_focus_coordinates.x)*acc.x)/(256.0 - scroll_pos);
 		}
 	}
-	if (chart_cursor_coordinates.y - acc.y <= -CHART_SCROLL_AT_Y*chart_zoom)
+	if (chart_focus_coordinates.y - acc.y <= -CHART_SCROLL_AT_Y*chart_zoom)
 	{
 		scroll_pos = acc.y - CHART_SCROLL_AT_Y*chart_zoom;
 		ecc = CHART_HEIGHT_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -621,10 +621,10 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.y = ((scroll_pos-chart_cursor_coordinates.y)*ecc + chart_cursor_coordinates.y*acc.y)/scroll_pos;
+			acc.y = ((scroll_pos-chart_focus_coordinates.y)*ecc + chart_focus_coordinates.y*acc.y)/scroll_pos;
 		}
 	}
-	else if (chart_cursor_coordinates.y - acc.y >= CHART_SCROLL_AT_Y*chart_zoom)
+	else if (chart_focus_coordinates.y - acc.y >= CHART_SCROLL_AT_Y*chart_zoom)
 	{
 		scroll_pos = acc.y + CHART_SCROLL_AT_Y*chart_zoom;
 		ecc = 256.0 - CHART_HEIGHT_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -634,7 +634,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.y = ((chart_cursor_coordinates.y-scroll_pos)*ecc + (256.0 - chart_cursor_coordinates.y)*acc.y)/(256.0 - scroll_pos);
+			acc.y = ((chart_focus_coordinates.y-scroll_pos)*ecc + (256.0 - chart_focus_coordinates.y)*acc.y)/(256.0 - scroll_pos);
 		}
 	}
 	return acc;
@@ -1037,6 +1037,7 @@ static GLfloat		sBaseMass = 0.0;
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	}
 	chart_cursor_coordinates = cursor_coordinates;
+	chart_focus_coordinates = cursor_coordinates;
 	
 	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
 	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
@@ -1807,6 +1808,7 @@ static GLfloat		sBaseMass = 0.0;
 	target_chart_centre		= chart_centre_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
 	chart_cursor_coordinates	= cursor_coordinates;
+	chart_focus_coordinates		= cursor_coordinates;
 	chart_zoom			= 1.0;
 	target_chart_zoom		= 1.0;
 	saved_chart_zoom		= 1.0;

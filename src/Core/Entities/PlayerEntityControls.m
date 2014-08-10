@@ -126,6 +126,9 @@ static BOOL				escapePodKey_pressed;
 static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
 static BOOL				mouse_left_down;
+static NSPoint				mouse_click_position;
+static NSPoint				centre_at_mouse_click;
+
 
 static NSUInteger		searchStringLength;
 static double			timeLastKeyPress;
@@ -1731,8 +1734,6 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ([gameView isDown:gvMouseLeftButton])
 				{
-					static NSPoint mouse_click_position;
-					static NSPoint centre_at_mouse_click;
 					NSPoint maus = [gameView virtualJoystickPosition];
 					double vadjust = MAIN_GUI_PIXEL_HEIGHT/2.0 - CHART_SCREEN_VERTICAL_CENTRE;
 					double hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
@@ -1742,8 +1743,8 @@ static NSTimeInterval	time_last_frame;
 						NSPoint centre = [self adjusted_chart_centre];
 						centre_at_mouse_click = chart_centre_coordinates;
 						mouse_click_position = maus;
-						cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
-						cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+						chart_focus_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
+						chart_focus_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
 					}
 					if (fabs(maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH > 2 ||
 						fabs(maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT > 2)
@@ -1758,6 +1759,12 @@ static NSTimeInterval	time_last_frame;
 				}
 				else if (mouse_left_down == YES) 
 				{
+					NSPoint maus = [gameView virtualJoystickPosition];
+					if (fabs(maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH <= 2 &&
+						fabs(maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT <= 2)
+					{
+						cursor_coordinates = chart_focus_coordinates;
+					}
 					mouse_left_down = NO;
 				}
 				if ([gameView isDown:gvMouseDoubleClick])
@@ -1772,6 +1779,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView resetTypedString];
 					cursor_coordinates = galaxy_coordinates;
+					chart_focus_coordinates = cursor_coordinates;
 					target_chart_centre = galaxy_coordinates;
 					found_system_seed = kNilRandomSeed;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
@@ -1795,6 +1803,7 @@ static NSTimeInterval	time_last_frame;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					moving = YES;
 					target_chart_centre = cursor_coordinates;
+					chart_focus_coordinates = target_chart_centre;
 				}
 				
 				BOOL nextSystem = [gameView isShiftDown];
@@ -1813,6 +1822,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.x < 0.0) cursor_coordinates.x = 0.0;
 						moving = YES;
 					}
+					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_left ? 0 : pressedArrow;
@@ -1831,6 +1841,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.x > 256.0) cursor_coordinates.x = 256.0;
 						moving = YES;
 					}
+					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_right ? 0 : pressedArrow;
@@ -1849,6 +1860,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y > 256.0) cursor_coordinates.y = 256.0;
 						moving = YES;
 					}
+					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_down ? 0 : pressedArrow;
@@ -1867,6 +1879,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y < 0.0) cursor_coordinates.y = 0.0;
 						moving = YES;
 					}
+					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_up ? 0 : pressedArrow;
@@ -1878,21 +1891,21 @@ static NSTimeInterval	time_last_frame;
 					cursor_coordinates.x = target_system_seed.d;
 					cursor_coordinates.y = target_system_seed.b;
 				}
-				if (cursor_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X*chart_zoom)
+				if (chart_focus_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X*chart_zoom)
 				{
-					target_chart_centre.x = cursor_coordinates.x + CHART_SCROLL_AT_X*chart_zoom;
+					target_chart_centre.x = chart_focus_coordinates.x + CHART_SCROLL_AT_X*chart_zoom;
 				}
-				else if (cursor_coordinates.x - target_chart_centre.x >= CHART_SCROLL_AT_X*chart_zoom)
+				else if (chart_focus_coordinates.x - target_chart_centre.x >= CHART_SCROLL_AT_X*chart_zoom)
 				{
-					target_chart_centre.x = cursor_coordinates.x - CHART_SCROLL_AT_X*chart_zoom;
+					target_chart_centre.x = chart_focus_coordinates.x - CHART_SCROLL_AT_X*chart_zoom;
 				}
-				if (cursor_coordinates.y - target_chart_centre.y <= -CHART_SCROLL_AT_Y*chart_zoom)
+				if (chart_focus_coordinates.y - target_chart_centre.y <= -CHART_SCROLL_AT_Y*chart_zoom)
 				{
-					target_chart_centre.y = cursor_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
+					target_chart_centre.y = chart_focus_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
 				}
-					else if (cursor_coordinates.y - target_chart_centre.y >= CHART_SCROLL_AT_Y*chart_zoom)
+					else if (chart_focus_coordinates.y - target_chart_centre.y >= CHART_SCROLL_AT_Y*chart_zoom)
 				{
-					target_chart_centre.y = cursor_coordinates.y - CHART_SCROLL_AT_Y*chart_zoom;
+					target_chart_centre.y = chart_focus_coordinates.y - CHART_SCROLL_AT_Y*chart_zoom;
 				}
 				chart_centre_coordinates.x = (3.0*chart_centre_coordinates.x + target_chart_centre.x)/4.0;
 				chart_centre_coordinates.y = (3.0*chart_centre_coordinates.y + target_chart_centre.y)/4.0;
