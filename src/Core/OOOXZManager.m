@@ -865,7 +865,7 @@ static OOOXZManager *sSingleton = nil;
 	{
 		// Rebuilds OXP search
 		[ResourceManager reset];
-		[UNIVERSE reinitAndShowDemo:YES strictChanged:YES];
+		[UNIVERSE reinitAndShowDemo:YES];
 		_changesMade = NO;
 		_interfaceState = OXZ_STATE_MAIN;
 		_downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state

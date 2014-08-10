@@ -266,7 +266,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	// prefs value no longer used - per save game but startup needs to
 	// be non-strict
-	strict = NO;
+	useAddOns = [[NSString alloc] initWithString:SCENARIO_OXP_DEFINITION_ALL];
 	
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
@@ -292,8 +292,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #endif
 	
 	// init the Resource Manager
-	[ResourceManager setUseAddOns:!strict];	// also logs the paths if changed
-	//[ResourceManager paths];	// called inside setUseAddOns...
+	[ResourceManager setUseAddOns:useAddOns];	// also logs the paths if changed
 	
 	// Set up the internal game strings
 	[self loadDescriptions];
@@ -498,41 +497,24 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 }
 
 
-/* From 1.79, "strict mode" is "no OXPs mode" as a useful debug tool,
- * nothing else */
-- (BOOL) strict
+- (NSString *) useAddOns
 {
-	return strict;
+	return useAddOns;
 }
 
 
-- (BOOL) setStrict:(BOOL)value
+- (BOOL) setUseAddOns:(NSString *) newUse fromSaveGame:(BOOL) saveGame
 {
-	return [self setStrict:value fromSaveGame:NO];
-}
-
-
-- (BOOL) setStrict:(BOOL) value fromSaveGame:(BOOL) saveGame
-{
-	if (strict == value)  return YES;
-	
-	strict = !!value;
-	return [self reinitAndShowDemo:!saveGame strictChanged:YES];
-}
-
-
-- (void) reinitAndShowDemo:(BOOL) showDemo
-{
-	if (strict && showDemo)
+	if ([newUse isEqualToString:useAddOns])
 	{
-		[self setStrict:NO];
-		[self reinitAndShowDemo:showDemo strictChanged:YES];
+		return YES;
 	}
-	else
-	{
-		[self reinitAndShowDemo:showDemo strictChanged:NO];
-	}
+	DESTROY(useAddOns);
+	useAddOns = [newUse retain];
+	OOLog(@"scenario.restrict",@"Set to %@",newUse);
+	return [self reinitAndShowDemo:!saveGame];
 }
+
 
 
 - (NSUInteger) entityCount
@@ -10204,7 +10186,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 
 
 // FIXME: needs less redundancy?
-- (BOOL) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged
+- (BOOL) reinitAndShowDemo:(BOOL) showDemo
 {
 	no_update = YES;
 	PlayerEntity* player = PLAYER;
@@ -10213,11 +10195,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	if (JSResetFlags != 0)	// JS reset failed, remember previous settings 
 	{
 		showDemo = (JSResetFlags & 2) > 0;	// binary 10, a.k.a. 1 << 1
-		strictChanged = (JSResetFlags & 1) > 0;	// binary 01
 	}
 	else
 	{
-		JSResetFlags = (showDemo << 1) | strictChanged;
+		JSResetFlags = (showDemo << 1);
 	}
 	
 	[self removeAllEntitiesExceptPlayer];
@@ -10226,7 +10207,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	_sessionID++;	// Must be after removing old entities and before adding new ones.
 	
-	[ResourceManager setUseAddOns:!strict];	// also logs the paths
+	[ResourceManager setUseAddOns:useAddOns];	// also logs the paths
 	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
 	
 	// NOTE: Anything in the sharedCache is now trashed and must be
@@ -10238,14 +10219,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	[[self gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 	[PLAYER setSpeed:0.0];
 	
-	if (strictChanged)
-	{
-		[self loadDescriptions];
-		[self loadScenarios];
-		
-		[missiontext autorelease];
-		missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
-	}
+	[self loadDescriptions];
+	[self loadScenarios];
+	
+	[missiontext autorelease];
+	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
+	
 	
 	if(showDemo)
 	{

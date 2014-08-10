@@ -66,6 +66,11 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file;
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths;
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths;
++ (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths;
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest;
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withIdentifier:(NSString *)identifier;
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withTag:(NSString *)tag;
+
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
 + (BOOL) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (void) logPaths;
@@ -80,12 +85,15 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 
 
 static NSMutableArray	*sSearchPaths;
-static BOOL				sUseAddOns = YES;
+static NSString			*sUseAddOns;
 static BOOL				sFirstRun = YES;
+static BOOL				sAllMet = NO;
 static NSMutableArray	*sOXPsWithMessagesFound;
 static NSMutableArray	*sExternalPaths;
 static NSMutableArray	*sErrors;
 static NSMutableDictionary *sOXPManifests;
+
+
 
 // caches allow us to load any given file once only
 //
@@ -99,7 +107,7 @@ static NSMutableDictionary *sStringCache;
 + (void) reset
 {
 	sFirstRun = YES;
-	sUseAddOns = YES;
+	DESTROY(sUseAddOns);
 	DESTROY(sSearchPaths);
 	DESTROY(sOXPsWithMessagesFound);
 	DESTROY(sExternalPaths);
@@ -110,6 +118,7 @@ static NSMutableDictionary *sStringCache;
 
 + (void) resetManifestKnowledgeForOXZManager
 {
+	DESTROY(sUseAddOns);
 	DESTROY(sSearchPaths);
 	DESTROY(sOXPManifests);
 	[ResourceManager pathsWithAddOns];
@@ -213,7 +222,18 @@ static NSMutableDictionary *sStringCache;
 + (NSArray *)pathsWithAddOns
 {
 	if ([sSearchPaths count] > 0)  return sSearchPaths;
+
+	if (sUseAddOns == nil)
+	{
+		sUseAddOns = [[NSString alloc] initWithString:SCENARIO_OXP_DEFINITION_ALL];
+	}
 	
+	/* Handle special case of 'strict mode' efficiently */
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_NONE])
+	{
+		return (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
+	}
+
 	[sErrors release];
 	sErrors = nil;
 	
@@ -298,6 +318,7 @@ static NSMutableDictionary *sStringCache;
 	 * loading OXPs which we shouldn't; if doing so takes out other
 	 * OXPs which would have been safe, that's not important. */
 	[self filterSearchPathsForConflicts:sSearchPaths];
+
 	/* This one needs to be run repeatedly to be sure. Take the chain
 	 * A depends on B depends on C. A and B are installed. A is
 	 * checked first, and depends on B, which is thought to be
@@ -309,6 +330,13 @@ static NSMutableDictionary *sStringCache;
 	 * but this is already fast enough for most purposes.
 	 */
 	while (![self filterSearchPathsForRequirements:sSearchPaths]) {}
+
+	/* If a scenario restriction is in place, restrict OXPs to the
+	 * ones valid for the scenario only. */
+	if (![sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
+	{
+		[self filterSearchPathsByScenario:sSearchPaths];
+	}
 
 	[self checkCacheUpToDateForPaths:sSearchPaths];
 	
@@ -427,32 +455,33 @@ static NSMutableDictionary *sStringCache;
 {
 	if (EXPECT_NOT(sSearchPaths == nil))
 	{
-		if (!sUseAddOns)
-		{
-			sSearchPaths = [[NSMutableArray alloc] init];
-		}
+		sSearchPaths = [[NSMutableArray alloc] init];
 	}
-	return sUseAddOns ? [self pathsWithAddOns] : (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
+	return [self pathsWithAddOns];
 }
 
 
-+ (BOOL)useAddOns
++ (NSString *)useAddOns
 {
 	return sUseAddOns;
 }
 
 
-+ (void)setUseAddOns:(BOOL)useAddOns
++ (void)setUseAddOns:(NSString *)useAddOns
 {
-	if (sFirstRun || sUseAddOns != useAddOns)
+	if (sFirstRun || ![useAddOns isEqualToString:sUseAddOns])
 	{
+		[self reset];
 		sFirstRun = NO;
-		sUseAddOns = useAddOns;
+		sUseAddOns = [useAddOns retain];
 		[ResourceManager clearCaches];
 		OOHUDResetTextEngine();
 
 		OOCacheManager *cmgr = [OOCacheManager sharedCache];
-		if (sUseAddOns)
+		/* only allow cache writes for the "all OXPs" default
+		 *
+		 * cache should be less necessary for restricted sets anyway */
+		if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
 		{
 			[cmgr reloadAllCaches];
 			[cmgr setAllowCacheWrites:YES];
@@ -811,7 +840,7 @@ static NSMutableDictionary *sStringCache;
 + (BOOL) manifest:(NSDictionary *)manifest HasUnmetDependency:(NSDictionary *)required logErrors:(BOOL)logErrors
 {
 	NSString		*requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
-	NSDictionary	*requiredManifest = [sOXPManifests objectForKey:requiredID];
+	NSMutableDictionary	*requiredManifest = [sOXPManifests objectForKey:requiredID];
 	// if the other OXP is in the list
 	BOOL requirementsMet = NO;
 	if (requiredManifest != nil)
@@ -820,6 +849,26 @@ static NSMutableDictionary *sStringCache;
 		if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]])
 		{
 			requirementsMet = YES;
+			/* Mark the requiredManifest as a dependency of the
+			 * requiring manifest */
+			NSSet *reqby = [requiredManifest oo_setForKey:kOOManifestRequiredBy defaultValue:[NSSet set]];
+			NSUInteger reqbycount = [reqby count];
+			/* then add this manifest to its required set. This is
+			 * done without checking if it's already there, because
+			 * the list of nested requirements may have changed. */
+			reqby = [reqby setByAddingObject:[manifest oo_stringForKey:kOOManifestIdentifier]];
+			// *and* anything that requires this OXP to be installed
+			reqby = [reqby setByAddingObjectsFromSet:[manifest oo_setForKey:kOOManifestRequiredBy]];
+			if (reqbycount < [reqby count])
+			{
+				/* Then the set has increased in size. To handle
+				 * potential cases with nested dependencies, need to
+				 * re-run the requirement filter until all the sets
+				 * stabilise. */
+				sAllMet = NO;
+			}
+			// and push back into the requiring manifest
+			[requiredManifest setObject:reqby forKey:kOOManifestRequiredBy];
 		}
 	}
 	if (!requirementsMet)
@@ -841,7 +890,7 @@ static NSMutableDictionary *sStringCache;
 	NSString		*identifier = nil;
 	NSArray			*identifiers = [sOXPManifests allKeys];
 
-	BOOL			allMet = YES;
+	sAllMet = YES;
 
 	// take a copy because we'll mutate the original
 	// foreach identified add-on
@@ -855,12 +904,12 @@ static NSMutableDictionary *sStringCache;
 				// then we have a missing requirement, so remove this path
 				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
 				[sOXPManifests removeObjectForKey:identifier];
-				allMet = NO;
+				sAllMet = NO;
 			}
 		}
 	}
 
-	return allMet;
+	return sAllMet;
 }
 
 
@@ -890,6 +939,103 @@ static NSMutableDictionary *sStringCache;
 	}
 	// either version was okay, or no version info so an unconditional match
 	return YES;
+}
+
+
++ (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths
+{
+	NSDictionary	*manifest = nil;
+	NSString		*identifier = nil;
+	NSArray			*identifiers = [sOXPManifests allKeys];
+
+	// take a copy because we'll mutate the original
+	// foreach identified add-on
+	foreach (identifier, identifiers)
+	{
+		manifest = [sOXPManifests objectForKey:identifier];
+		if (manifest != nil)
+		{
+			if (![ResourceManager manifestAllowedByScenario:manifest])
+			{
+				// then we don't need this one
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
+			}
+		}
+	}
+}
+
+
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest
+{
+	/* Checks for a couple of "never happens" cases */
+#ifndef NDEBUG
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
+	{
+		OOLog(@"scenario.check",@"Checked scenario allowances in all state - this is an internal error; please report this");
+		return YES;
+	}
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_NONE])
+	{
+		OOLog(@"scenario.check",@"Checked scenario allowances in none state - this is an internal error; please report this");
+		return NO;
+	}
+#endif
+
+	if ([sUseAddOns hasPrefix:SCENARIO_OXP_DEFINITION_BYID])
+	{
+		return [ResourceManager manifestAllowedByScenario:manifest withIdentifier:[sUseAddOns substringFromIndex:[SCENARIO_OXP_DEFINITION_BYID length]]];
+	}
+	else
+	{
+		return [ResourceManager manifestAllowedByScenario:manifest withTag:[sUseAddOns substringFromIndex:[SCENARIO_OXP_DEFINITION_BYTAG length]]];
+	}
+}
+
+
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withIdentifier:(NSString *)identifier
+{
+	if ([[manifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:identifier])
+	{
+		// manifest has the identifier - easy
+		return YES;
+	}
+	// manifest is also allowed if a manifest with that identifier
+	// requires it to be installed
+	if ([[manifest oo_setForKey:kOOManifestRequiredBy] containsObject:identifier])
+	{
+		return YES;
+	}
+	// otherwise, no
+	return NO;
+}
+
+
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withTag:(NSString *)tag
+{
+	if ([[manifest oo_arrayForKey:kOOManifestTags] containsObject:tag])
+	{
+		// manifest has the tag - easy
+		return YES;
+	}
+	// manifest is also allowed if a manifest with that tag
+	// requires it to be installed
+	NSSet *reqby = [manifest oo_setForKey:kOOManifestRequiredBy];
+	if (reqby != nil)
+	{
+		NSString *identifier = nil;
+		foreach (identifier, reqby)
+		{
+			NSDictionary *reqManifest = [sOXPManifests oo_dictionaryForKey:identifier defaultValue:nil];
+			// need to check for nil as this one may already have been ruled out
+			if (reqManifest != nil && [[reqManifest oo_arrayForKey:kOOManifestTags] containsObject:tag])
+			{
+				return YES;
+			}
+		}
+	}
+	// otherwise, no
+	return NO;
 }
 
 
@@ -1723,22 +1869,15 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSEnumerator			*pathEnum = nil;
 	NSString				*path = nil;
 
-	if (sUseAddOns)
+	// Prettify paths for logging.
+	displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
+	for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
 	{
-		// Prettify paths for logging.
-		displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
-		for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
-		{
-			[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
-		}
-		
-		OOLog(@"searchPaths.dumpAll", @"Unrestricted mode - resource paths:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
+		[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
 	}
-	else
-	{
-		OOLog(@"searchPaths.dumpAll", @"Strict mode - resource path:\n    %@",
-			[[[self builtInPath] stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]);
-	}
+	
+	OOLog(@"searchPaths.dumpAll", @"Resource paths: %@\n    %@", sUseAddOns, [displayPaths componentsJoinedByString:@"\n    "]);
+
 }
 
 
