@@ -1756,13 +1756,13 @@ static NSTimeInterval	time_last_frame;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					moving = YES;
 				}
-				if ([gameView isDown:gvPageDownKey])
+				if ([gameView isDown:gvPageDownKey] || [gameView mouseWheelState] == gvMouseWheelDown)
 				{
 					target_chart_zoom *=1.02;
 					if (target_chart_zoom > CHART_MAX_ZOOM) target_chart_zoom = CHART_MAX_ZOOM;
 					moving = YES;
 				}
-				if ([gameView isDown:gvPageUpKey])
+				if ([gameView isDown:gvPageUpKey] || [gameView mouseWheelState] == gvMouseWheelUp)
 				{
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 					{
