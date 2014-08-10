@@ -3317,6 +3317,7 @@ static NSTimeInterval	time_last_frame;
 	if (([gameView isDown:gvFunctionKey6])||(fKeyAlias && [gameView isDown:key_gui_chart_screens]))
 	{
 		mouse_left_down = NO;
+		[gameView clearMouse];
 		if  (!switching_chart_screens)
 		{
 			switching_chart_screens = YES;
