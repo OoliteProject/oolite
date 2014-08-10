@@ -5224,6 +5224,29 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+/* Scanner fuzziness is entirely cosmetic - it doesn't affect the
+ * player's actual target locks */
+- (double) scannerFuzziness
+{
+	double fuzz = 0.0;
+	/* Fuzziness from ECM bursts */
+	double since = [UNIVERSE getTime] - last_ecm_time;
+	if (since < SCANNER_ECM_FUZZINESS)
+	{
+		fuzz += (SCANNER_ECM_FUZZINESS - since) * (SCANNER_ECM_FUZZINESS - since) * 1000.0;
+	}
+	/* Other causes could go here */
+	
+	return fuzz;
+}
+
+
+- (void) noticeECM
+{
+	last_ecm_time = [UNIVERSE getTime];
+}
+
+
 - (BOOL) fireECM
 {
 	if ([super fireECM])
@@ -5576,7 +5599,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (amount > 0.0)
 	{
-		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
 		[self playDirectHit:relative];
 		if (ship_temperature < SHIP_MAX_CABIN_TEMP)
@@ -5605,7 +5627,15 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	else
 	{
-		if (internal_damage)  [self takeInternalDamage];
+		while (amount > 0.0)
+		{
+			internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
+			if (internal_damage)
+			{
+				[self takeInternalDamage];
+			}
+			amount -= (PLAYER_INTERNAL_DAMAGE_FACTOR + 1);
+		}
 	}
 }
 
@@ -5662,16 +5692,16 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	
-	if (amount)
+	[super takeScrapeDamage:amount from:ent];
+	
+	while (amount > 0.0)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
-	}
-	
-	[super takeScrapeDamage:amount from:ent];
-
-	if (internal_damage)
-	{
-		[self takeInternalDamage];
+		if (internal_damage)
+		{
+			[self takeInternalDamage];
+		}
+		amount -= (PLAYER_INTERNAL_DAMAGE_FACTOR + 1);
 	}
 }
 

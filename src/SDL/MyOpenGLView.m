@@ -1841,7 +1841,9 @@ keys[a] = NO; keys[b] = NO; \
 	// check if enough time has passed since last use of the mousewheel and act
 	// if needed
 	if (timeNow >= timeSinceLastMouseWheel + OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL)
+	{
 		_mouseWheelState = gvMouseWheelNeutral;
+	}
 }
 
 
