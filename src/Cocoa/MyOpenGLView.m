@@ -971,6 +971,13 @@ FAIL:
 }
 
 
+- (int) mouseWheelState
+{
+	// FIXME: Mousewheel in-game implementaiton for Macs needed
+	return gvMouseWheelNeutral;
+}
+
+
 - (BOOL) isCommandQDown
 {
 	return commandQ;
