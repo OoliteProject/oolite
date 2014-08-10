@@ -60,8 +60,9 @@
 
 #define SHIP_COOLING_FACTOR				0.1f
 // heat taken from energy damage depends on mass
-// but limit heating at maximum to the rate of a Cobra III
-#define SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR  (mass > 215000 ? 215000 / mass : 1.0)
+// but limit maximum rate since masses vary so much
+// Cobra III ~=215000
+#define SHIP_ENERGY_DAMAGE_TO_HEAT_FACTOR  (mass > 400000 ? 200000 / mass : 0.5)
 #define SHIP_INSULATION_FACTOR			0.00175f
 #define SHIP_MAX_CABIN_TEMP				256.0f
 #define SHIP_MIN_CABIN_TEMP				60.0f

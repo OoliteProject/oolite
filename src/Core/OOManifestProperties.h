@@ -39,14 +39,15 @@ static NSString * const kOOManifestFileSize				= @"file_size";
 static NSString * const kOOManifestInformationURL		= @"information_url";
 static NSString * const kOOManifestAuthor				= @"author";
 static NSString * const kOOManifestLicense				= @"license";
+static NSString * const kOOManifestTags					= @"tags";
 /* these properties are not contained in the manifest.plist (and would be
    overwritten if they were...) but are calculated by Oolite */
 static NSString * const kOOManifestFilePath				= @"file_path";
+static NSString * const kOOManifestRequiredBy			= @"required_by";
 static NSString * const kOOManifestAvailableVersion		= @"available_version";
 // following manifest.plist properties not (yet?) used by Oolite
 // but may be used by other manifest reading applications
 #if 0
-static NSString * const kOOManifestTags					= @"tags";
 static NSString * const kOOManifestOptionalOXPs			= @"optional_oxps";
 #endif
 

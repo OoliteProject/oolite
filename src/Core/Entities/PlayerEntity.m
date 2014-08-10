@@ -914,11 +914,8 @@ static GLfloat		sBaseMass = 0.0;
 	//local market for main station
 	if ([[UNIVERSE station] localMarket])  [result setObject:[[UNIVERSE station] localMarket] forKey:@"localMarket"];
 
-	// strict UNIVERSE?
-	if ([UNIVERSE strict])
-	{
-		[result setObject:[NSNumber numberWithBool:YES] forKey:@"strict"];
-	}
+	// Scenario restriction on OXZs
+	[result setObject:[UNIVERSE useAddOns] forKey:@"scenario_restriction"];
 
 	// persistant UNIVERSE information
 	if ([UNIVERSE localPlanetInfoOverrides])
@@ -1000,8 +997,26 @@ static GLfloat		sBaseMass = 0.0;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
 	
-	BOOL strict = [dict oo_boolForKey:@"strict" defaultValue:NO];
-	if (![UNIVERSE setStrict:strict fromSaveGame:YES]) return NO;
+	NSString *scenarioRestrict = [dict oo_stringForKey:@"scenario_restriction" defaultValue:nil];
+	if (scenarioRestrict == nil)
+	{
+		// older save game - use the 'strict' key instead
+		BOOL strict = [dict oo_boolForKey:@"strict" defaultValue:NO];
+		if (strict)
+		{
+			scenarioRestrict = SCENARIO_OXP_DEFINITION_NONE;
+		}
+		else
+		{
+			scenarioRestrict = SCENARIO_OXP_DEFINITION_ALL;
+		}
+	}
+
+	if (![UNIVERSE setUseAddOns:scenarioRestrict fromSaveGame:YES]) 
+	{
+		return NO;
+	} 
+
 	
 	//base ship description
 	[self setShipDataKey:[dict oo_stringForKey:@"ship_desc"]];
@@ -3680,7 +3695,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) moveForward:(double) amount
 {
 	distanceTravelled += (float)amount;
-	position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)));
+	[self setPosition:HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)))];
 }
 
 
