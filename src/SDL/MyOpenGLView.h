@@ -136,8 +136,8 @@ extern int debug;
 	BOOL				mouseWarped;
 
 	NSTimeInterval		timeIntervalAtLastClick;
-	BOOL				doubleClick;
 	NSTimeInterval		timeSinceLastMouseWheel;
+	BOOL				doubleClick;
 
 	NSMutableString		*typedString;
 
@@ -252,7 +252,7 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (int) numKeys;
-- (int) mouseWheelState;;
+- (int) mouseWheelState;
 
 // Command-key combinations need special handling. SDL stubs for these mac functions.
 - (BOOL) isCommandQDown;

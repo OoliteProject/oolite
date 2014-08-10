@@ -97,6 +97,7 @@ typedef enum
 	OOLRC_MODE_TECHLEVEL = 3
 } OOLongRangeChartMode;
 
+// When fully zoomed in, chart shows area of galaxy that's 64x64 galaxy units.
 #define CHART_WIDTH_AT_MAX_ZOOM		64.0
 #define CHART_HEIGHT_AT_MAX_ZOOM	64.0
 // Galaxy width / width of chart area at max zoom
@@ -105,6 +106,8 @@ typedef enum
 #define CHART_SCROLL_AT_X		25.0
 #define CHART_SCROLL_AT_Y		31.0
 #define CHART_CLIP_BORDER		10.0
+#define CHART_SCREEN_VERTICAL_CENTRE	(10*MAIN_GUI_ROW_HEIGHT)
+#define CHART_ZOOM_SPEED_FACTOR		1.05
 
 #define CHART_ZOOM_SHOW_LABELS		2.0
 

@@ -7699,8 +7699,6 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	/* ends */
 	
-	[[UNIVERSE gameView] clearMouse];
-	
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	

@@ -125,6 +125,7 @@ static BOOL				weaponsOnlineToggle_pressed;
 static BOOL				escapePodKey_pressed;
 static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
+static BOOL				mouse_left_down;
 
 static NSUInteger		searchStringLength;
 static double			timeLastKeyPress;
@@ -1730,22 +1731,42 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ([gameView isDown:gvMouseLeftButton])
 				{
+					static NSPoint mouse_click_position;
+					static NSPoint centre_at_mouse_click;
 					NSPoint maus = [gameView virtualJoystickPosition];
-					double		vadjust = 80;
-					double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
-					double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
-					NSPoint		centre = [self adjusted_chart_centre];
-					cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
-					cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+					double vadjust = MAIN_GUI_PIXEL_HEIGHT/2.0 - CHART_SCREEN_VERTICAL_CENTRE;
+					double hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
+					double vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
+					if (mouse_left_down == NO)
+					{
+						NSPoint centre = [self adjusted_chart_centre];
+						centre_at_mouse_click = chart_centre_coordinates;
+						mouse_click_position = maus;
+						cursor_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
+						cursor_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+					}
+					if (fabs(maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH > 2 ||
+						fabs(maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT > 2)
+					{
+						target_chart_centre.x = OOClamp_0_max_f(centre_at_mouse_click.x - (maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH/hscale, 256.0);
+						target_chart_centre.y = OOClamp_0_max_f(centre_at_mouse_click.y - (maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT/vscale, 256.0);
+					}
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 						[gameView resetTypedString];
 					moving = YES;
+					mouse_left_down = YES;
+				}
+				else if (mouse_left_down == YES) 
+				{
+					mouse_left_down = NO;
 				}
 				if ([gameView isDown:gvMouseDoubleClick])
 				{
 					[gameView clearMouse];
+					mouse_left_down = NO;
 					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 					[self setGuiToSystemDataScreen];
+					break;
 				}
 				if ([gameView isDown:key_map_home])
 				{
@@ -1758,7 +1779,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				if ([gameView isDown:gvPageDownKey] || [gameView mouseWheelState] == gvMouseWheelDown)
 				{
-					target_chart_zoom *=1.02;
+					target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom > CHART_MAX_ZOOM) target_chart_zoom = CHART_MAX_ZOOM;
 					moving = YES;
 				}
@@ -1770,7 +1791,7 @@ static NSTimeInterval	time_last_frame;
 						target_chart_zoom = CHART_MAX_ZOOM;
 						[gui clearAndKeepBackground: YES];
 					}
-					target_chart_zoom /= 1.02;
+					target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					moving = YES;
 					target_chart_centre = cursor_coordinates;
@@ -1865,7 +1886,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					target_chart_centre.x = cursor_coordinates.x - CHART_SCROLL_AT_X*chart_zoom;
 				}
-					if (cursor_coordinates.y - target_chart_centre.y <= -CHART_SCROLL_AT_Y*chart_zoom)
+				if (cursor_coordinates.y - target_chart_centre.y <= -CHART_SCROLL_AT_Y*chart_zoom)
 				{
 					target_chart_centre.y = cursor_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
 				}
@@ -3295,6 +3316,8 @@ static NSTimeInterval	time_last_frame;
 	
 	if (([gameView isDown:gvFunctionKey6])||(fKeyAlias && [gameView isDown:key_gui_chart_screens]))
 	{
+		mouse_left_down = NO;
+		[gameView clearMouse];
 		if  (!switching_chart_screens)
 		{
 			switching_chart_screens = YES;
