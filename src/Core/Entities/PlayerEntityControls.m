@@ -1729,14 +1729,14 @@ static NSTimeInterval	time_last_frame;
 			
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
-				static NSPoint mouse_click_position;
-				static NSPoint centre_at_mouse_click;
-				NSPoint maus = [gameView virtualJoystickPosition];
-				double		vadjust = MAIN_GUI_PIXEL_HEIGHT/2.0 - CHART_SCREEN_VERTICAL_CENTRE;
-				double		hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
-				double		vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
 				if ([gameView isDown:gvMouseLeftButton])
 				{
+					static NSPoint mouse_click_position;
+					static NSPoint centre_at_mouse_click;
+					NSPoint maus = [gameView virtualJoystickPosition];
+					double vadjust = MAIN_GUI_PIXEL_HEIGHT/2.0 - CHART_SCREEN_VERTICAL_CENTRE;
+					double hscale = MAIN_GUI_PIXEL_WIDTH / (64.0 * chart_zoom);
+					double vscale = MAIN_GUI_PIXEL_HEIGHT / (128.0 * chart_zoom);
 					if (mouse_left_down == NO)
 					{
 						NSPoint centre = [self adjusted_chart_centre];
@@ -1766,6 +1766,7 @@ static NSTimeInterval	time_last_frame;
 					mouse_left_down = NO;
 					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 					[self setGuiToSystemDataScreen];
+					break;
 				}
 				if ([gameView isDown:key_map_home])
 				{
