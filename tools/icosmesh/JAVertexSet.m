@@ -23,7 +23,7 @@
 	NSNumber *number = [_indices objectForKey:value];
 	if (number == nil)
 	{
-		number = [NSNumber numberWithUnsignedInteger:self.count];
+		number = [NSNumber numberWithUnsignedInteger:[self count]];
 		[_indices setObject:number forKey:value];
 		[_vertices addObject:value];
 	}
@@ -34,9 +34,9 @@
 
 - (Vertex) vertexAtIndex:(NSUInteger)index
 {
-	if (index >= self.count)
+	if (index >= [self count])
 	{
-		[NSException raise:NSRangeException format:@"%s: attempt to access element %u of %u", __FUNCTION__, index, self.count];
+		[NSException raise:NSRangeException format:@"%s: attempt to access element %u of %u", __FUNCTION__, index, [self count]];
 	}
 	
 	Vertex result;
@@ -47,13 +47,13 @@
 
 - (NSUInteger) count
 {
-	return _vertices.count;
+	return [_vertices count];
 }
 
 
 - (NSArray *) positionArray
 {
-	unsigned i, count = self.count;
+	unsigned i, count = [self count];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:count * 3];
 	for (i = 0; i < count; i++)
 	{
@@ -85,7 +85,7 @@
 
 - (NSArray *) texCoordArray
 {
-	unsigned i, count = self.count;
+	unsigned i, count = [self count];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:count * 2];
 	for (i = 0; i < count; i++)
 	{
