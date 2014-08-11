@@ -924,7 +924,6 @@ static NSMutableArray *sMessageStack;
 - (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize
 {
 	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
-	OOOpenGLMatrixManager		*matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
@@ -935,9 +934,8 @@ static NSMutableArray *sMessageStack;
 	OOGL(glClearDepth(1.0));
 	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
 	
-	[matrixManager resetProjection]; // reset matrix
-	[matrixManager frustumLeft:-ratio right:ratio bottom: -aspect*ratio top: aspect*ratio near: 1.0 far: MAX_CLEAR_DEPTH];	// set projection matrix
-	[matrixManager syncProjection];
+	OOGLResetProjection(); // reset matrix
+	OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
 		
 	OOGL(glDepthFunc(GL_LESS));			// depth buffer
 	

@@ -99,3 +99,26 @@ enum
 
 @end
 
+void OOGLPushModelView();
+OOMatrix OOGLPopModelView();
+OOMatrix OOGLGetModelView();
+void OOGLResetModelView();
+void OOGLLoadModelView(OOMatrix matrix);
+void OOGLMultModelView(OOMatrix matrix);
+void OOGLTranslateModelView(Vector vector);
+void OOGLRotateModelView(GLfloat angle, Vector axis);
+void OOGLScaleModelView(Vector scale);
+void OOGLLookAt(Vector eye, Vector center, Vector up);
+
+void OOGLResetProjection();
+void OOGLPushProjection();
+OOMatrix OOGLPopProjection();
+OOMatrix OOGLGetProjection();
+void OOGLLoadProjection(OOMatrix matrix);
+void OOGLMultProjection(OOMatrix matrix);
+void OOGLTranslateProjection(Vector vector);
+void OOGLRotateProjection(GLfloat angle, Vector axis);
+void OOGLScaleProjection(Vector scale);
+void OOGLFrustum(double left, double right, double bottom, double top, double near, double far);
+void OOGLOrtho(double left, double right, double bottom, double top, double near, double far);
+void OOGLPerspective(double fovy, double aspect, double zNear, double zFar);

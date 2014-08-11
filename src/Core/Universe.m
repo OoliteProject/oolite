@@ -4377,7 +4377,6 @@ static const OOMatrix	starboard_matrix =
 			PlayerEntity	*player = PLAYER;
 			Entity			*drawthing = nil;
 			BOOL			demoShipMode = [player showDemoShips];
-			OOOpenGLMatrixManager*	matrixManager = [gameView getOpenGLMatrixManager];
 			
 			NSSize  viewSize = [gameView viewSize];
 			float   aspect = viewSize.height/viewSize.width;
@@ -4430,18 +4429,17 @@ static const OOMatrix	starboard_matrix =
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
 				float   ratio = 0.5 * nearPlane;
 				
-				[matrixManager resetProjection];
-				[matrixManager frustumLeft: -ratio right: ratio bottom: -aspect*ratio top: aspect*ratio near:nearPlane far: farPlane];
-				[matrixManager syncProjection];
+				OOGLResetProjection();
+				OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
 
 				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 
-				[matrixManager resetModelView];	// reset matrix
-				[matrixManager lookAtWithEye: kZeroVector center: kBasisZVector up: kBasisYVector];
+				OOGLResetModelView();	// reset matrix
+				OOGLLookAt(kZeroVector, kBasisZVector, kBasisYVector);
 			
 				// HACK BUSTED
-				[matrixManager multModelView: OOMatrixForScale(-1.0,1.0,1.0)]; // flip left and right
-				[matrixManager pushModelView]; // save this flat viewpoint
+				OOGLMultModelView(OOMatrixForScale(-1.0,1.0,1.0)); // flip left and right
+				OOGLPushModelView(); // save this flat viewpoint
 
 				/* OpenGL viewpoints: 
 				 *
@@ -4478,16 +4476,14 @@ static const OOMatrix	starboard_matrix =
 				view_matrix = OOMatrixMultiply(view_matrix, flipMatrix);
 				Vector viewOffset = [player viewpointOffset];
 			
-				[matrixManager lookAtWithEye: view_dir center: kZeroVector up: view_up]; 
-				[matrixManager syncModelView];
+				OOGLLookAt(view_dir, kZeroVector, view_up); 
 
 				if (EXPECT(!displayGUI || demoShipMode))
 				{
 					if (EXPECT(!demoShipMode))	// we're in flight
 					{
 						// rotate the view
-						[matrixManager multModelView: [player rotationMatrix]];
-						[matrixManager syncModelView];
+						OOGLMultModelView([player rotationMatrix]);
 						// translate the view
 						// HPVect: camera-relative position
 						OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
@@ -4511,7 +4507,7 @@ static const OOMatrix	starboard_matrix =
 					OOGL([self useGUILightSource:demoShipMode]);
 				
 					// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
-					viewMatrix = [matrixManager getModelView];
+					viewMatrix = OOGLGetModelView();
 
 					int			furthest = draw_count - 1;
 					int			nearest = 0;
@@ -4548,24 +4544,23 @@ static const OOMatrix	starboard_matrix =
 							OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
 							OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
 						
-							[matrixManager pushModelView];
+							OOGLPushModelView();
 							if (EXPECT(drawthing != player))
 							{
 								//translate the object
 								// HPVect: camera relative
 								[drawthing updateCameraRelativePosition];
-								[matrixManager translateModelView: [drawthing cameraRelativePosition]];
+								OOGLTranslateModelView([drawthing cameraRelativePosition]);
 								//rotate the object
-								[matrixManager multModelView: [drawthing drawRotationMatrix]];
+								OOGLMultModelView([drawthing drawRotationMatrix]);
 							}
 							else
 							{
 								// Load transformation matrix
-								[matrixManager loadModelView: view_matrix];
+								OOGLLoadModelView(view_matrix);
 								//translate the object  from the viewpoint
-								[matrixManager translateModelView: vector_flip(viewOffset)];
+								OOGLTranslateModelView(vector_flip(viewOffset));
 							}
-							[matrixManager syncModelView];
 						
 							// atmospheric fog
 							fogging = (inAtmosphere && ![drawthing isStellarObject]);
@@ -4586,7 +4581,7 @@ static const OOMatrix	starboard_matrix =
 							// draw the thing
 							[drawthing drawImmediate:false translucent:false];
 						
-							[matrixManager popModelView];
+							OOGLPopModelView();
 
 							// atmospheric fog
 							if (fogging)
@@ -4598,24 +4593,23 @@ static const OOMatrix	starboard_matrix =
 				
 						if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either in flight or in demo ship mode
 						{
-							[matrixManager pushModelView];
+							OOGLPushModelView();
 							if (EXPECT(drawthing != player))
 							{
 								//translate the object
 								// HPVect: camera relative positions
 								[drawthing updateCameraRelativePosition];
-								[matrixManager translateModelView: [drawthing cameraRelativePosition]];
+								OOGLTranslateModelView([drawthing cameraRelativePosition]);
 								//rotate the object
-								[matrixManager multModelView: [drawthing drawRotationMatrix]];
+								OOGLMultModelView([drawthing drawRotationMatrix]);
 							}
 							else
 							{
 								// Load transformation matrix
-								[matrixManager loadModelView: view_matrix];
+								OOGLLoadModelView(view_matrix);
 								//translate the object  from the viewpoint
-								[matrixManager translateModelView: vector_flip(viewOffset)];
+								OOGLTranslateModelView(vector_flip(viewOffset));
 							}
-							[matrixManager syncModelView];
 						
 							// experimental - atmospheric fog
 							fogging = (inAtmosphere && ![drawthing isStellarObject]);
@@ -4640,22 +4634,20 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glDisable(GL_FOG));
 							}
 						
-							[matrixManager popModelView];
+							OOGLPopModelView();
 						}
 					}
 				}
 
-				[matrixManager popModelView];
-				[matrixManager syncModelView];
+				OOGLPopModelView();
+
 
 			}
 			
 
 			/* Reset for HUD drawing */
-			OOGL(glMatrixMode(GL_PROJECTION));
-			[matrixManager resetProjection];
-			[matrixManager frustumLeft: -0.5 right: 0.5 bottom: -aspect*0.5 top: aspect*0.5 near: 1.0 far: MAX_CLEAR_DEPTH];
-			[matrixManager syncProjection];
+			OOGLResetProjection();
+			OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
 
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
 			OOLog(@"universe.profile.draw",@"Begin HUD");

@@ -391,20 +391,17 @@ MA 02110-1301, USA.
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent
 {
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	if (cam_zero_distance > no_draw_distance) // this test provides an opportunity to do simple LoD culling
 	{
 		return; // TOO FAR AWAY
 	}
-	[matrixManager pushModelView];
+	OOGLPushModelView();
 	// HPVect: camera position
-	[matrixManager translateModelView: HPVectorToVector(position)];
-	[matrixManager multModelView: rotMatrix];
-	[matrixManager syncModelView];
+	OOGLTranslateModelView(HPVectorToVector(position));
+	OOGLMultModelView(rotMatrix);
 	[self drawImmediate:immediate translucent:translucent];
 
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 }
 
 
@@ -645,21 +642,18 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent 
 {
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	if (no_draw_distance < cam_zero_distance)
 	{
 		return; // too far away to draw
 	}
-	[matrixManager pushModelView];
-	[matrixManager scaleModelView: make_vector(scaleX,scaleY,scaleZ)];
-	[matrixManager syncModelView];
+	OOGLPushModelView();
+	OOGLScaleModelView(make_vector(scaleX,scaleY,scaleZ));
 
 	if ([self mesh] != nil)
 	{
 		[super drawImmediate:immediate translucent:translucent];
 	}
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?

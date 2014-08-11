@@ -5953,14 +5953,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		return; // TOO FAR AWAY
 	}
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	
-	[matrixManager pushModelView];
+	OOGLPushModelView();
 	
 	// HPVect: need to make camera-relative
-	[matrixManager translateModelView: HPVectorToVector(position)];
-	[matrixManager multModelView: rotMatrix];
-	[matrixManager syncModelView];
+	OOGLTranslateModelView(HPVectorToVector(position));
+	OOGLMultModelView(rotMatrix);
 	[self drawImmediate:immediate translucent:translucent];
 	
 #ifndef NDEBUG
@@ -5970,8 +5967,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 #endif
 	
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 	
 	OOVerifyOpenGLState();	
 }

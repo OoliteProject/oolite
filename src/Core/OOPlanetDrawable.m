@@ -245,7 +245,6 @@
 - (void) renderCommonParts
 {
 	const OOPlanetDataLevel *data = &kPlanetData[_lod];
-	OOOpenGLMatrixManager*	matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
 	OOGL(glShadeModel(GL_SMOOTH));
@@ -261,9 +260,8 @@
 	}
 	
 	// Scale the ball.
-	[matrixManager pushModelView];
-	[matrixManager multModelView: _transform];
-	[matrixManager syncModelView];
+	OOGLPushModelView();
+	OOGLMultModelView(_transform);
 	
 	[_material apply];
 	
@@ -314,8 +312,7 @@
 #endif
 
 	
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 #endif

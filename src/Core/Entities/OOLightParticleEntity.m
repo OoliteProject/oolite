@@ -113,8 +113,7 @@ static OOTexture *sBlobTexture = nil;
 	Entity *father = [self owner];
 	Entity *last = nil;
 	HPVector abspos = position;
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	
+
 	while (father != nil && father != last && father != NO_TARGET)
 	{
 		OOMatrix rM = [father drawRotationMatrix];
@@ -125,15 +124,13 @@ static OOTexture *sBlobTexture = nil;
 		father = [father owner];
 	}
 
-	OOMatrix temp_matrix = [matrixManager getModelView];
-	[matrixManager popModelView];
-	[matrixManager pushModelView];
+	OOMatrix temp_matrix = OOGLPopModelView();
+	OOGLPushModelView();
 
-	[matrixManager translateModelView:HPVectorToVector(HPvector_subtract(abspos,[PLAYER viewpointPosition]))];	// move to camera-relative position	
-	[matrixManager syncModelView];
+	OOGLTranslateModelView(HPVectorToVector(HPvector_subtract(abspos,[PLAYER viewpointPosition])));	// move to camera-relative position	
 	[self drawImmediate:immediate translucent:translucent];
 
-	[matrixManager loadModelView: temp_matrix];
+	OOGLLoadModelView(temp_matrix);
 }
 
 

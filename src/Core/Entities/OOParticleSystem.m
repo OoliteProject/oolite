@@ -161,14 +161,11 @@ do { \
 	GLfloat		(*particleColor)[4] = _particleColor;
 	GLfloat		*particleSize = _particleSize;
 	
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	
 	if ([UNIVERSE reducedDetail])
 	{
 		// Quick rendering - particle cloud is effectively a 2D billboard.
-		[matrixManager pushModelView];
-		[matrixManager multModelView: OOMatrixForBillboard(selfPosition, viewPosition)];
-		[matrixManager syncModelView];
+		OOGLPushModelView();
+		OOGLMultModelView(OOMatrixForBillboard(selfPosition, viewPosition));
 		
 		OOGLBEGIN(GL_QUADS);
 		for (i = 0; i < count; i++)
@@ -178,8 +175,7 @@ do { \
 		}
 		OOGLEND();
 		
-		[matrixManager popModelView];
-		[matrixManager syncModelView];
+		OOGLPopModelView();
 	}
 	else
 	{
@@ -197,18 +193,16 @@ do { \
 			
 			for (i = 0; i < count; i++)
 			{
-				[matrixManager pushModelView];
-				[matrixManager translateModelView: particlePosition[i]];
-				[matrixManager multModelView: bbMatrix];
-				[matrixManager syncModelView];
+				OOGLPushModelView();
+				OOGLTranslateModelView(particlePosition[i]);
+				OOGLMultModelView(bbMatrix);
 				
 				glColor4fv(particleColor[i]);
 				OOGLBEGIN(GL_QUADS);
 					DrawQuadForView(0, 0, 0, particleSize[i]);
 				OOGLEND();
 				
-				[matrixManager popModelView];
-				[matrixManager syncModelView];
+				OOGLPopModelView();
 			}
 		}
 		else
@@ -222,17 +216,16 @@ do { \
 			
 			for (i = 0; i < count; i++)
 			{
-				[matrixManager pushModelView];
-				[matrixManager translateModelView: particlePosition[i]];
-				[matrixManager multModelView: OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition)];
+				OOGLPushModelView();
+				OOGLTranslateModelView(particlePosition[i]);
+				OOGLMultModelView(OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition));
 				
 				glColor4fv(particleColor[i]);
 				OOGLBEGIN(GL_QUADS);
 				DrawQuadForView(0, 0, 0, particleSize[i]);
 				OOGLEND();
 				
-				[matrixManager popModelView];
-				[matrixManager syncModelView];
+				OOGLPopModelView();
 			}
 		}
 

@@ -1650,11 +1650,9 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 	OOGLEND();
 #else
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	[matrixManager pushModelView];
-	[matrixManager translateModelView: make_vector(x, y, z1)];
-	[matrixManager scaleModelView: make_vector(w, -h, 1.0f)];
-	[matrixManager syncModelView];
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x, y, z1));
+	OOGLScaleModelView(make_vector(w, -h, 1.0f));
 	
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	OOGL(glVertexPointer(2, GL_FLOAT, 0, strip));
@@ -1664,8 +1662,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 #endif
 }
 
@@ -2224,27 +2221,24 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 					  width:(GLfloat)width height:(GLfloat)height alpha:(GLfloat)alpha
 {
 	OOPolygonSprite *sprite = IconForMissileRole([missile primaryRole]);
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	if (selected)
 	{
 		// Draw yellow outline.
-		[matrixManager pushModelView];
-		[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
-		[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
-		[matrixManager syncModelView];
+		OOGLPushModelView();
+		OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGLScaleModelView(make_vector(width, height, 1.0f));
 		GLColorWithOverallAlpha(yellow_color, alpha);
 		[sprite drawOutline];
-		[matrixManager popModelView];
+		OOGLPopModelView();
 		
 		// Draw black backing, so outline colour isn’t blended into missile colour.
-		[matrixManager pushModelView];
-		[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
-		[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
-		[matrixManager syncModelView];
+		OOGLPushModelView();
+		OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGLScaleModelView(make_vector(width, height, 1.0f));
 		GLColorWithOverallAlpha(black_color, alpha);
 		[sprite drawFilled];
-		[matrixManager popModelView];
+		OOGLPopModelView();
 		
 		switch (status)
 		{
@@ -2262,13 +2256,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		else  GLColorWithOverallAlpha(red_color, alpha);
 	}
 	
-	[matrixManager pushModelView];
-	[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
-	[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
-	[matrixManager syncModelView];
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	[sprite drawFilled];
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 }
 
 
@@ -2277,17 +2269,14 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 							width:(GLfloat)width height:(GLfloat)height alpha:(GLfloat)alpha
 {
 	OOPolygonSprite *sprite = IconForMissileRole(kDefaultMissileIconKey);
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	// Draw gray outline.
-	[matrixManager pushModelView];
-	[matrixManager translateModelView: make_vector(x - width * 2.0f, y - height * 2.0f, z1)];
-	[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
-	[matrixManager syncModelView];
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	GLColorWithOverallAlpha(lightgray_color, alpha);
 	[sprite drawOutline];
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 }
 
 
@@ -3146,8 +3135,6 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	
 	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
 	
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-
 	if (target == nil || player1 == nil)  return;
 
 	if ([target isShip])
@@ -3202,7 +3189,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	GLfloat			rs0 = rsize;
 	GLfloat			rs2 = rsize * 0.50;
 	
-	[matrixManager pushModelView];
+	OOGLPushModelView();
 	hudRotateViewpointForVirtualDepth(player1,p1);
 
 	// draw the reticle
@@ -3357,8 +3344,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		}
 	}
 	
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 }
 
 
@@ -3369,11 +3355,10 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 		return;
 	}
 	
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 
 	Vector	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
 
-	[matrixManager pushModelView];
+	OOGLPushModelView();
 	hudRotateViewpointForVirtualDepth(player1,p1);
 	
 	// either close enough that single precision is fine or far enough
@@ -3421,8 +3406,7 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 		OODrawString(infoline, rs0 * 0.5, -rs2 - line_height, 0, textsize);
 	}
 
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 }
 
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
@@ -3431,7 +3415,6 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
@@ -3463,18 +3446,17 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
 			break;
 	}
-	[matrixManager lookAtWithEye: view_dir center: kZeroVector up: view_up];
+	OOGLLookAt(view_dir, kZeroVector, view_up);
 	
 	back_mat = OOMatrixForQuaternionRotation(back_q);
 	
 	// rotate the view
-	[matrixManager multModelView: [player1 rotationMatrix]];
+	OOGLMultModelView([player1 rotationMatrix]);
 	// translate the view
-	[matrixManager translateModelView: p1];
+	OOGLTranslateModelView(p1);
 	//rotate to face player1
-	[matrixManager multModelView: back_mat];
+	OOGLMultModelView(back_mat);
 	// draw the waypoint
-	[matrixManager syncModelView];
 
 }
 
@@ -4019,17 +4001,14 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	GLfloat oy = y - size.height * 0.5;
 	GLfloat width = size.width * (1.0f / 6.0f);
 	GLfloat height = size.height * (1.0f / 6.0f);
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
-	[matrixManager pushModelView];
-	[matrixManager translateModelView: make_vector(ox, oy, z)];
-	[matrixManager scaleModelView: make_vector(width, height, 1.0f)];
-	[matrixManager syncModelView];
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(ox, oy, z));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	[self drawFilled];
 	glColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
 	[self drawOutline];
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 }
 
 @end

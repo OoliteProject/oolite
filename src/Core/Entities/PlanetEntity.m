@@ -786,7 +786,6 @@ static const BaseFace kTexturedFaces[][3] =
 	
 	double  drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
 	
 	if (cam_zero_distance > 0.0)
 	{
@@ -836,8 +835,7 @@ static const BaseFace kTexturedFaces[][3] =
 			{
 				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
 			}
-			[matrixManager multModelVew: rotMatrix];	// rotate the clouds!
-			[matrixManager syncModelView];
+			OOGLMultModelVew(rotMatrix);	// rotate the clouds!
 			OOGL(glEnable(GL_BLEND));
 //			OOGL(glDisable(GL_LIGHTING));
 			// Fall through.
@@ -979,12 +977,11 @@ static const BaseFace kTexturedFaces[][3] =
 
 	if (atmosphere)
 	{
-		[matrixManager popModelView];	// get old draw matrix back
-		[matrixManager pushModelView];	// and store it again
-		[matrixManager translateModelView: cameraRelativePosition]; // centre on the planet
+		OOGLPopModelView();	// get old draw matrix back
+		OOGLPushModelView();	// and store it again
+		OOGLTranslateModelView(cameraRelativePosition); // centre on the planet
 		// rotate
-//		[matrixManager multModelView: [atmosphere rotationMatrix]];
-		[matrixManager syncModelView];
+//		OOGLMultModelView([atmosphere rotationMatrix]);
 		// draw atmosphere entity
 		[atmosphere drawImmediate:false translucent:false];
 	}

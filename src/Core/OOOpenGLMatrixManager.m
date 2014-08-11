@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #import "OOOpenGLExtensionManager.h"
 #import "OOOpenGLMatrixManager.h"
+#import "MyOpenGLView.h"
+#import "Universe.h"
 
 const char* ooliteStandardMatrixUniforms[] =
 {
@@ -434,4 +436,162 @@ const char* ooliteStandardMatrixUniforms[] =
 }
 
 @end
+
+void OOGLPushModelView()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager pushModelView];
+	[matrixManager syncModelView];
+}
+
+OOMatrix OOGLPopModelView()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	OOMatrix matrix = [matrixManager popModelView];
+	[matrixManager syncModelView];
+	return matrix;
+}
+
+OOMatrix OOGLGetModelView()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	OOMatrix matrix = [matrixManager getModelView];
+	return matrix;
+}
+
+void OOGLResetModelView()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager resetModelView];
+	[matrixManager syncModelView];
+}
+
+void OOGLLoadModelView(OOMatrix matrix)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager loadModelView: matrix];
+	[matrixManager syncModelView];
+}
+
+void OOGLMultModelView(OOMatrix matrix)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager multModelView: matrix];
+	[matrixManager syncModelView];
+}
+
+void OOGLTranslateModelView(Vector vector)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager translateModelView: vector];
+	[matrixManager syncModelView];
+}
+
+void OOGLRotateModelView(GLfloat angle, Vector axis)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager rotateModelView: angle axis: axis];
+	[matrixManager syncModelView];
+}
+
+void OOGLScaleModelView(Vector scale)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager scaleModelView: scale];
+	[matrixManager syncModelView];
+}
+
+void OOGLLookAt(Vector eye, Vector center, Vector up)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager lookAtWithEye: eye center: center up: up];
+	[matrixManager syncModelView];
+}
+
+void OOGLResetProjection()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager resetProjection];
+	[matrixManager syncProjection];
+}
+
+void OOGLPushProjection()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager pushProjection];
+	[matrixManager syncProjection];
+}
+
+OOMatrix OOGLPopProjection()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	OOMatrix matrix = [matrixManager popProjection];
+	[matrixManager syncProjection];
+	return matrix;
+}
+
+OOMatrix OOGLGetProjection()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	OOMatrix matrix = [matrixManager getProjection];
+	return matrix;
+}
+
+void OOGLLoadProjection(OOMatrix matrix)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager loadProjection: matrix];
+	[matrixManager syncProjection];
+}
+
+void OOGLMultProjection(OOMatrix matrix)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager multProjection: matrix];
+	[matrixManager syncProjection];
+}
+
+void OOGLTranslateProjection(Vector vector)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager translateProjection: vector];
+	[matrixManager syncProjection];
+}
+
+void OOGLRotateProjection(GLfloat angle, Vector axis)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager rotateProjection: angle axis: axis];
+	[matrixManager syncProjection];
+}
+
+void OOGLScaleProjection(Vector scale)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager scaleProjection: scale];
+	[matrixManager syncProjection];
+}
+
+void OOGLFrustum(double left, double right, double bottom, double top, double near, double far)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager frustumLeft: left right: right bottom: bottom top: top near: near far: far];
+	[matrixManager syncProjection];
+}
+
+void OOGLOrtho(double left, double right, double bottom, double top, double near, double far)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager orthoLeft: left right: right bottom: bottom top: top near: near far: far];
+	[matrixManager syncProjection];
+}
+
+void OOGLPerspective(double fovy, double aspect, double zNear, double zFar)
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	[matrixManager perspectiveFovy: fovy aspect: aspect zNear: zNear zFar: zFar];
+	[matrixManager syncProjection];
+}
+
+
 

@@ -383,14 +383,13 @@ static void PlayTrumbleSqueal(void);
 	GLfloat ht = 96 * size;
 	OOGL(glShadeModel(GL_SMOOTH));
 	OOGL(glEnable(GL_TEXTURE_2D));
+	
+	OOGLPushModelView();
+	
+	OOGLTranslateModelView(make_vector(position.x, position.y, z));
+	OOGLMultModelView(OOMatrixForRotationZ(rotation));
+
 	[texture apply];
-	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	
-	[matrixManager pushModelView];
-	
-	[matrixManager translateModelView: make_vector(position.x, position.y, z)];
-	[matrixManager multModelView: OOMatrixForRotationZ(rotation)];
-	[matrixManager syncModelView];
 
 	//
 	// Body..
@@ -436,8 +435,7 @@ static void PlayTrumbleSqueal(void);
 			eyeTextureOffset = 0.5;	break;
 	}
 	
-	[matrixManager translateModelView: make_vector(eye_position.x * wd, eye_position.y * ht, 0.0)];
-	[matrixManager syncModelView];
+	OOGLTranslateModelView(make_vector(eye_position.x * wd, eye_position.y * ht, 0.0));
 	
 	OOGL(glColor4fv(colorEyes));
 	OOGLBEGIN(GL_QUADS);
@@ -471,7 +469,7 @@ static void PlayTrumbleSqueal(void);
 			mouthTextureOffset = 0.875;	break;
 	}
 	
-	[matrixManager translateModelView: make_vector(mouth_position.x * wd, mouth_position.y * ht, 0.0)];
+	OOGLTranslateModelView(make_vector(mouth_position.x * wd, mouth_position.y * ht, 0.0));
 	
 	OOGL(glColor4fv(colorBase));
 	OOGLBEGIN(GL_QUADS);
@@ -489,8 +487,7 @@ static void PlayTrumbleSqueal(void);
 	OOGLEND();	
 	
 	// finally..
-	[matrixManager popModelView];
-	[matrixManager syncModelView];
+	OOGLPopModelView();
 	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
