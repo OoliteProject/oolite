@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
+#define OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL	0.05
 
 #define SNAPSHOTS_PNG_FORMAT		1
 
@@ -93,6 +94,13 @@ enum GameViewKeys
 	gvNumberPadKey9 //319
 };
 
+enum MouseWheelStatus
+{
+	gvMouseWheelDown = -1,
+	gvMouseWheelNeutral,
+	gvMouseWheelUp
+};
+
 enum StringInput
 {
 	gvStringInputNo = 0,
@@ -128,6 +136,7 @@ extern int debug;
 	BOOL				mouseWarped;
 
 	NSTimeInterval		timeIntervalAtLastClick;
+	NSTimeInterval		timeSinceLastMouseWheel;
 	BOOL				doubleClick;
 
 	NSMutableString		*typedString;
@@ -167,7 +176,9 @@ extern int debug;
 	NSSize				firstScreen;
 
    // Mouse mode indicator (for mouse movement model)
-   BOOL  mouseInDeltaMode;
+   BOOL					mouseInDeltaMode;
+   
+   int					_mouseWheelState;
 }
 
 - (void) initSplashScreen;
@@ -241,6 +252,7 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (int) numKeys;
+- (int) mouseWheelState;
 
 // Command-key combinations need special handling. SDL stubs for these mac functions.
 - (BOOL) isCommandQDown;

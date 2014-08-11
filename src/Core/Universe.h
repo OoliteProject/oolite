@@ -283,7 +283,7 @@ enum
 
 	NSArray					*closeSystems;
 	
-	BOOL					strict;
+	NSString				*useAddOns;
 	
 	BOOL					no_update;
 	
@@ -340,13 +340,10 @@ enum
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
 
-- (BOOL) strict;
-- (BOOL) setStrict:(BOOL) value;
-- (BOOL) setStrict:(BOOL)value fromSaveGame: (BOOL)saveGame;
+- (NSString *) useAddOns;
+- (BOOL) setUseAddOns:(NSString *)newUse fromSaveGame: (BOOL)saveGame;
 
-- (void) reinitAndShowDemo:(BOOL)showDemo;
-// called from OXZ manager
-- (BOOL) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
+- (BOOL) reinitAndShowDemo:(BOOL)showDemo;
 
 - (BOOL) doingStartUp;	// True during initial game startup (not reset).
 

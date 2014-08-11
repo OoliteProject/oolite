@@ -57,6 +57,7 @@ this._registerShip = function()
 		titleKey: "oolite-registership-title-part1",
 		messageKey: "oolite-registership-instructions-part1",
 		screenID: "oolite-register",
+		exitScreen: "GUI_SCREEN_INTERFACES",
 		textEntry: true
 	},this._registerShip2.bind(this));
 }
@@ -72,6 +73,7 @@ this._registerShip2 = function(cdrname)
 		titleKey: "oolite-registership-title-part2",
 		messageKey: "oolite-registership-instructions-part2",
 		screenID: "oolite-register",
+		exitScreen: "GUI_SCREEN_INTERFACES",
 		textEntry: true
 	},this._registerShip3.bind(this));
 }
@@ -86,6 +88,7 @@ this._registerShip3 = function(shipname)
 	mission.runScreen({
 		titleKey: "oolite-registership-title-part3",
 		messageKey: "oolite-registership-instructions-part3",
+		exitScreen: "GUI_SCREEN_INTERFACES",
 		screenID: "oolite-register",
 	});
 }
