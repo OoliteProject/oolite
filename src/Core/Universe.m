@@ -4245,9 +4245,8 @@ static const OOMatrix	starboard_matrix =
 {
 	OOMatrix clip;
 	GLfloat   rt;
-	OOOpenGLMatrixManager *matrixManager = [gameView getOpenGLMatrixManager];
 	
-	clip = [matrixManager getMatrix: OOLITE_GL_MATRIX_MODELVIEW_PROJECTION];
+	clip = OOGLGetModelViewProjection();
 	
 	/* Extract the numbers for the RIGHT plane */
 	frustum[0][0] = clip.m[0][3] - clip.m[0][0];

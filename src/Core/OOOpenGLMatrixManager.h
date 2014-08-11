@@ -122,3 +122,6 @@ void OOGLScaleProjection(Vector scale);
 void OOGLFrustum(double left, double right, double bottom, double top, double near, double far);
 void OOGLOrtho(double left, double right, double bottom, double top, double near, double far);
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar);
+
+OOMatrix OOGLGetModelViewProjection();
+

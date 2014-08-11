@@ -593,5 +593,9 @@ void OOGLPerspective(double fovy, double aspect, double zNear, double zFar)
 	[matrixManager syncProjection];
 }
 
-
+OOMatrix OOGLGetModelViewProjection()
+{
+	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+	return [matrixManager getMatrix: OOLITE_GL_MATRIX_MODELVIEW_PROJECTION];
+}
 
