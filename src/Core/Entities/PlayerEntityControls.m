@@ -1588,6 +1588,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	BOOL			moving = NO;
+	BOOL			dragging = NO;
 	double			cursor_speed = ([gameView isCtrlDown] ? 20.0 : 10.0)* chart_zoom;
 	GameController  *controller = [UNIVERSE gameController];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -1751,10 +1752,10 @@ static NSTimeInterval	time_last_frame;
 					{
 						target_chart_centre.x = OOClamp_0_max_f(centre_at_mouse_click.x - (maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH/hscale, 256.0);
 						target_chart_centre.y = OOClamp_0_max_f(centre_at_mouse_click.y - (maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT/vscale, 256.0);
+						dragging = YES;
 					}
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 						[gameView resetTypedString];
-					moving = YES;
 					mouse_left_down = YES;
 				}
 				else if (mouse_left_down == YES) 
@@ -1764,6 +1765,11 @@ static NSTimeInterval	time_last_frame;
 						fabs(maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT <= 2)
 					{
 						cursor_coordinates = chart_focus_coordinates;
+						moving = YES;
+					}
+					else
+					{
+						dragging = YES;
 					}
 					mouse_left_down = NO;
 				}
@@ -1890,6 +1896,7 @@ static NSTimeInterval	time_last_frame;
 							target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 					cursor_coordinates.x = target_system_seed.d;
 					cursor_coordinates.y = target_system_seed.b;
+					chart_focus_coordinates = cursor_coordinates;
 				}
 				if (chart_focus_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X*chart_zoom)
 				{
@@ -1912,7 +1919,7 @@ static NSTimeInterval	time_last_frame;
 				chart_zoom = (3.0*chart_zoom + target_chart_zoom)/4.0;
 				chart_cursor_coordinates.x = (3.0*chart_cursor_coordinates.x + cursor_coordinates.x)/4.0;
 				chart_cursor_coordinates.y = (3.0*chart_cursor_coordinates.y + cursor_coordinates.y)/4.0;
-				if (cursor_moving) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
+				if (cursor_moving || dragging) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
 				cursor_moving = moving;
 			}
 			
