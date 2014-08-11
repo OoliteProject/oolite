@@ -585,7 +585,7 @@ static GLfloat		sBaseMass = 0.0;
 	// If the cursor is out of the centre non-scrolling part of the screen adjust the chart centre.  If the cursor is just at scroll_pos
 	// we want to return the chart centre as it is, but if it's at the edge of the galaxy we want the centre positioned so the cursor is
 	// at the edge of the screen
-	if (chart_cursor_coordinates.x - acc.x <= -CHART_SCROLL_AT_X*chart_zoom)
+	if (chart_focus_coordinates.x - acc.x <= -CHART_SCROLL_AT_X*chart_zoom)
 	{
 		scroll_pos = acc.x - CHART_SCROLL_AT_X*chart_zoom;
 		ecc = CHART_WIDTH_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -595,10 +595,10 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.x = ((scroll_pos-chart_cursor_coordinates.x)*ecc + chart_cursor_coordinates.x*acc.x)/scroll_pos;
+			acc.x = ((scroll_pos-chart_focus_coordinates.x)*ecc + chart_focus_coordinates.x*acc.x)/scroll_pos;
 		}
 	}
-	else if (chart_cursor_coordinates.x - acc.x >= CHART_SCROLL_AT_X*chart_zoom)
+	else if (chart_focus_coordinates.x - acc.x >= CHART_SCROLL_AT_X*chart_zoom)
 	{
 		scroll_pos = acc.x + CHART_SCROLL_AT_X*chart_zoom;
 		ecc = 256.0 - CHART_WIDTH_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -608,10 +608,10 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.x = ((chart_cursor_coordinates.x-scroll_pos)*ecc + (256.0 - chart_cursor_coordinates.x)*acc.x)/(256.0 - scroll_pos);
+			acc.x = ((chart_focus_coordinates.x-scroll_pos)*ecc + (256.0 - chart_focus_coordinates.x)*acc.x)/(256.0 - scroll_pos);
 		}
 	}
-	if (chart_cursor_coordinates.y - acc.y <= -CHART_SCROLL_AT_Y*chart_zoom)
+	if (chart_focus_coordinates.y - acc.y <= -CHART_SCROLL_AT_Y*chart_zoom)
 	{
 		scroll_pos = acc.y - CHART_SCROLL_AT_Y*chart_zoom;
 		ecc = CHART_HEIGHT_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -621,10 +621,10 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.y = ((scroll_pos-chart_cursor_coordinates.y)*ecc + chart_cursor_coordinates.y*acc.y)/scroll_pos;
+			acc.y = ((scroll_pos-chart_focus_coordinates.y)*ecc + chart_focus_coordinates.y*acc.y)/scroll_pos;
 		}
 	}
-	else if (chart_cursor_coordinates.y - acc.y >= CHART_SCROLL_AT_Y*chart_zoom)
+	else if (chart_focus_coordinates.y - acc.y >= CHART_SCROLL_AT_Y*chart_zoom)
 	{
 		scroll_pos = acc.y + CHART_SCROLL_AT_Y*chart_zoom;
 		ecc = 256.0 - CHART_HEIGHT_AT_MAX_ZOOM*chart_zoom / 2.0;
@@ -634,7 +634,7 @@ static GLfloat		sBaseMass = 0.0;
 		}
 		else
 		{
-			acc.y = ((chart_cursor_coordinates.y-scroll_pos)*ecc + (256.0 - chart_cursor_coordinates.y)*acc.y)/(256.0 - scroll_pos);
+			acc.y = ((chart_focus_coordinates.y-scroll_pos)*ecc + (256.0 - chart_focus_coordinates.y)*acc.y)/(256.0 - scroll_pos);
 		}
 	}
 	return acc;
@@ -749,6 +749,10 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
 	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
 	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
+	if (hud != nil && [hud nonlinearScanner])
+	{
+		[result oo_setFloat: [hud scannerZoom] forKey:@"ship_scanner_zoom"];
+	}
 	
 	[result oo_setInteger:max_cargo + PASSENGER_BERTH_SPACE * max_passengers	forKey:@"max_cargo"];
 	
@@ -910,11 +914,8 @@ static GLfloat		sBaseMass = 0.0;
 	//local market for main station
 	if ([[UNIVERSE station] localMarket])  [result setObject:[[UNIVERSE station] localMarket] forKey:@"localMarket"];
 
-	// strict UNIVERSE?
-	if ([UNIVERSE strict])
-	{
-		[result setObject:[NSNumber numberWithBool:YES] forKey:@"strict"];
-	}
+	// Scenario restriction on OXZs
+	[result setObject:[UNIVERSE useAddOns] forKey:@"scenario_restriction"];
 
 	// persistant UNIVERSE information
 	if ([UNIVERSE localPlanetInfoOverrides])
@@ -996,8 +997,26 @@ static GLfloat		sBaseMass = 0.0;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
 	
-	BOOL strict = [dict oo_boolForKey:@"strict" defaultValue:NO];
-	if (![UNIVERSE setStrict:strict fromSaveGame:YES]) return NO;
+	NSString *scenarioRestrict = [dict oo_stringForKey:@"scenario_restriction" defaultValue:nil];
+	if (scenarioRestrict == nil)
+	{
+		// older save game - use the 'strict' key instead
+		BOOL strict = [dict oo_boolForKey:@"strict" defaultValue:NO];
+		if (strict)
+		{
+			scenarioRestrict = SCENARIO_OXP_DEFINITION_NONE;
+		}
+		else
+		{
+			scenarioRestrict = SCENARIO_OXP_DEFINITION_ALL;
+		}
+	}
+
+	if (![UNIVERSE setUseAddOns:scenarioRestrict fromSaveGame:YES]) 
+	{
+		return NO;
+	} 
+
 	
 	//base ship description
 	[self setShipDataKey:[dict oo_stringForKey:@"ship_desc"]];
@@ -1033,6 +1052,7 @@ static GLfloat		sBaseMass = 0.0;
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	}
 	chart_cursor_coordinates = cursor_coordinates;
+	chart_focus_coordinates = cursor_coordinates;
 	
 	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
 	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
@@ -1265,6 +1285,10 @@ static GLfloat		sBaseMass = 0.0;
 		starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
 	else
 		starboard_weapon_type = WEAPON_NONE;
+	if (hud != nil && [hud nonlinearScanner])
+	{
+		[hud setScannerZoom: [dict oo_floatForKey:@"ship_scanner_zoom" defaultValue: 1.0]];
+	}
 	
 	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
 	
@@ -1799,6 +1823,7 @@ static GLfloat		sBaseMass = 0.0;
 	target_chart_centre		= chart_centre_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
 	chart_cursor_coordinates	= cursor_coordinates;
+	chart_focus_coordinates		= cursor_coordinates;
 	chart_zoom			= 1.0;
 	target_chart_zoom		= 1.0;
 	saved_chart_zoom		= 1.0;
@@ -3670,7 +3695,7 @@ static GLfloat		sBaseMass = 0.0;
 - (void) moveForward:(double) amount
 {
 	distanceTravelled += (float)amount;
-	position = HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)));
+	[self setPosition:HPvector_add(position, vectorToHPVector(vector_multiply_scalar(v_forward, (float)amount)))];
 }
 
 
@@ -5216,6 +5241,29 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+/* Scanner fuzziness is entirely cosmetic - it doesn't affect the
+ * player's actual target locks */
+- (double) scannerFuzziness
+{
+	double fuzz = 0.0;
+	/* Fuzziness from ECM bursts */
+	double since = [UNIVERSE getTime] - last_ecm_time;
+	if (since < SCANNER_ECM_FUZZINESS)
+	{
+		fuzz += (SCANNER_ECM_FUZZINESS - since) * (SCANNER_ECM_FUZZINESS - since) * 1000.0;
+	}
+	/* Other causes could go here */
+	
+	return fuzz;
+}
+
+
+- (void) noticeECM
+{
+	last_ecm_time = [UNIVERSE getTime];
+}
+
+
 - (BOOL) fireECM
 {
 	if ([super fireECM])
@@ -5568,7 +5616,6 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (amount > 0.0)
 	{
-		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
 		[self playDirectHit:relative];
 		if (ship_temperature < SHIP_MAX_CABIN_TEMP)
@@ -5597,7 +5644,15 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	else
 	{
-		if (internal_damage)  [self takeInternalDamage];
+		while (amount > 0.0)
+		{
+			internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
+			if (internal_damage)
+			{
+				[self takeInternalDamage];
+			}
+			amount -= (PLAYER_INTERNAL_DAMAGE_FACTOR + 1);
+		}
 	}
 }
 
@@ -5654,16 +5709,16 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	
-	if (amount)
+	[super takeScrapeDamage:amount from:ent];
+	
+	while (amount > 0.0)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
-	}
-	
-	[super takeScrapeDamage:amount from:ent];
-
-	if (internal_damage)
-	{
-		[self takeInternalDamage];
+		if (internal_damage)
+		{
+			[self takeInternalDamage];
+		}
+		amount -= (PLAYER_INTERNAL_DAMAGE_FACTOR + 1);
 	}
 }
 
@@ -6238,7 +6293,11 @@ static GLfloat		sBaseMass = 0.0;
 	[self setStatus:STATUS_DOCKING];
 	[self setDockedStation:station];
 	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
-	
+
+	if (![hud nonlinearScanner])
+	{
+		[hud setScannerZoom: 1.0];
+	}
 	ident_engaged = NO;
 	afterburner_engaged = NO;
 	autopilot_engaged = NO;
@@ -6251,7 +6310,6 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(_primaryTarget); // must happen before showing break_pattern to supress active reticule.
 	[self clearTargetMemory];
 	
-	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
@@ -6394,6 +6452,10 @@ static GLfloat		sBaseMass = 0.0;
 	gui_screen = GUI_SCREEN_MAIN;
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 
+	if (![hud nonlinearScanner])
+	{
+		[hud setScannerZoom: 1.0];
+	}
 	[self loadCargoPods];
 	// do not do anything that calls JS handlers between now and calling
 	// [station launchShip] below, or the cargo returned by JS may be off
@@ -6407,7 +6469,6 @@ static GLfloat		sBaseMass = 0.0;
 	[self clearAlertFlags];
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 	
-	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	
@@ -6456,6 +6517,10 @@ static GLfloat		sBaseMass = 0.0;
 	// so in such cases we need to ensure that at least the docking music stops playing
 	if (autopilot_engaged)  [self disengageAutopilot];
 	
+	if (![hud nonlinearScanner])
+	{
+		[hud setScannerZoom: 1.0];
+	}
 	[self safeAllMissiles];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
@@ -6470,7 +6535,6 @@ static GLfloat		sBaseMass = 0.0;
 		DESTROY(_primaryTarget);
 	}
 	
-	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	
@@ -7651,8 +7715,6 @@ static GLfloat		sBaseMass = 0.0;
 		}
 	}
 	/* ends */
-	
-	[[UNIVERSE gameView] clearMouse];
 	
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];

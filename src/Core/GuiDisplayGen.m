@@ -1531,7 +1531,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGalaxyID galaxy_number = [player galaxyNumber];
 	NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]];
 
-	NSString *location_key = [NSString stringWithFormat:@"long-range-chart-title-%d-%d", galaxy_number,system_id];
+	NSString *location_key = [NSString stringWithFormat:@"long-range-chart-title-%d-%ld", galaxy_number, (long)system_id];
 	if ([[UNIVERSE descriptions] valueForKey:location_key] == nil)
 	{
 		NSString *gal_key = [NSString stringWithFormat:@"long-range-chart-title-%d", galaxy_number];
@@ -1575,7 +1575,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		hcenter = size_in_pixels.width/2.0;
 	double		hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double		vscale = -size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
-	double		vcenter = 10*MAIN_GUI_ROW_HEIGHT;
+	double		vcenter = CHART_SCREEN_VERTICAL_CENTRE;
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;

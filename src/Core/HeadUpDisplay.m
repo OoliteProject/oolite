@@ -1190,6 +1190,12 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				ms_blip -= floor(ms_blip);
 				
 				relativePosition = [PLAYER vectorTo:scannedEntity];
+				double fuzz = [PLAYER scannerFuzziness];
+				if (fuzz > 0)
+				{
+					relativePosition = vector_add(relativePosition,OOVectorRandomRadial(fuzz));
+				}
+
 				Vector rp = relativePosition;
 				
 				if (act_dist > max_zoomed_range)

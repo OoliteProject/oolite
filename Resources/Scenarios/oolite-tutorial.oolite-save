@@ -374,6 +374,8 @@
 	<string>player-unknown</string>
 	<string>player-unknown</string>
     </array>
+	<key>scenario_restriction</key>
+	<string>tag:oolite-tutorial-compatible</string>
     <key>shipCommodityData</key>
     <array>
 	<array>

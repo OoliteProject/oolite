@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
+#define OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL	0.05
 
 @class Entity, GameController;
 
@@ -85,6 +86,13 @@ enum GameViewKeys
 	gvNumberPadKey7,
 	gvNumberPadKey8,
 	gvNumberPadKey9 //319
+};
+
+enum MouseWheelStatus
+{
+	gvMouseWheelDown = -1,
+	gvMouseWheelNeutral,
+	gvMouseWheelUp
 };
 
 enum StringInput
@@ -178,6 +186,7 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (int) numKeys;
+- (int) mouseWheelState;
 
 // Command-key combinations need special handling.
 - (BOOL) isCommandQDown;

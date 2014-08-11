@@ -299,6 +299,13 @@ this.PriorityAIController = function(ship)
 	/* Do not call this directly. It is called automatically on ship death. Deliberately not documented. */
 	this.cleanup = function()
 	{
+		// stop timers
+		var etimer = this.getParameter("oolite_internal_ecmtimer");
+		if (etimer && etimer.isRunning)
+		{
+			etimer.stop();
+		}
+
 		// break links to disconnect this from GC roots a little sooner
 		delete this.ship.AIScript.oolite_priorityai;
 		this.applyHandlers({});
@@ -408,6 +415,10 @@ this.PriorityAIController = function(ship)
 
 	this.fireECM = function()
 	{
+		if (this.getParameter("oolite_internal_ecmtimer"))
+		{
+			return;
+		}
 		// give a chance for missiles fired close to their target to
 		// hit before it can use ECM
 		var delay = (12-this.ship.accuracy)/4; // 0.5 - 4.25
@@ -415,8 +426,10 @@ this.PriorityAIController = function(ship)
 			if (this.ship) 
 			{
 				this.ship.fireECM()
+				this.setParameter("oolite_internal_ecmtimer",null);
 			}
 		}.bind(this),delay);
+		this.setParameter("oolite_internal_ecmtimer",etimer);
 	}
 
 

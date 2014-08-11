@@ -610,7 +610,9 @@ static JSFunctionSpec sScriptMethods[] =
 	NSString *manifestPath = [[[path stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"manifest.plist"];
 	NSDictionary *manifest = OODictionaryFromFile(manifestPath);
 	NSMutableDictionary *properties = [NSMutableDictionary dictionaryWithCapacity:3];
-	if (manifest != nil)
+	/* __oolite.tmp.* is allocated for OXPs without manifests. Its
+	 * values are meaningless and shouldn't be used here */
+	if (manifest != nil && ![[manifest oo_stringForKey:kOOManifestIdentifier] hasPrefix:@"__oolite.tmp."])
 	{
 		if ([manifest objectForKey:kOOManifestVersion] != nil)
 		{

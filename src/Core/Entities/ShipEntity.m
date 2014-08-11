@@ -475,6 +475,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 
 	// FIXME: give NPCs shields instead.
+	
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])  [self addEquipmentItem:@"EQ_SHIELD_BOOSTER" inContext:@"npc"];
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_enhancer"])  [self addEquipmentItem:@"EQ_SHIELD_ENHANCER" inContext:@"npc"];
 	
@@ -3387,6 +3388,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				if ([self isCloaked])  [self setCloaked:NO];
 			}
+
+			if (!isPlayer)
+			{
+				if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"])
+				{
+					maxEnergy -= 256.0f;
+					if (maxEnergy < energy) energy = maxEnergy;
+				}
+				if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
+				{
+					maxEnergy -= 256.0f;
+					energy_recharge_rate /= 1.5;
+					if (maxEnergy < energy) energy = maxEnergy;
+				}
+			}
 		}
 		
 		if (![equipmentKey hasSuffix:@"_DAMAGED"])
@@ -3401,20 +3417,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		
 		[_equipment removeObject:equipmentKey];
 		if ([_equipment count] == 0)  [self removeAllEquipment];
-		if (!isPlayer)
-		{
-			if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"])
-			{
-				maxEnergy -= 256.0f;
-				if (maxEnergy < energy) energy = maxEnergy;
-			}
-			if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
-			{
-				maxEnergy -= 256.0f;
-				energy_recharge_rate /= 1.5;
-				if (maxEnergy < energy) energy = maxEnergy;
-			}
-		}
 	}
 }
 

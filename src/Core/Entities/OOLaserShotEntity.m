@@ -101,7 +101,7 @@ static OOTexture *sShotTexture2 = nil;
 	
 	[self setOrientation:quaternion_multiply(q,q0)];
 	[self setOwner:ship];
-	_range = [srcEntity weaponRange];
+	[self setRange:[srcEntity weaponRange]];
 	_lifetime = kLaserDuration;
 	
 	_color[0] = kLaserRed/3.0;
@@ -148,6 +148,7 @@ static OOTexture *sShotTexture2 = nil;
 - (void) setRange:(GLfloat)range
 {
 	_range = range;
+	[self setCollisionRadius:range];
 }
 
 

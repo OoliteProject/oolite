@@ -38,6 +38,10 @@ typedef enum
 	MERGE_SMART		// Merge files by merging the top-level elements of each file (second-order merge, but not recursive)
 } OOResourceMergeMode;
 
+#define SCENARIO_OXP_DEFINITION_ALL    @""
+#define SCENARIO_OXP_DEFINITION_NONE   @"strict"
+#define SCENARIO_OXP_DEFINITION_BYID   @"id:"
+#define SCENARIO_OXP_DEFINITION_BYTAG  @"tag:"
 
 @interface ResourceManager : NSObject
 
@@ -50,9 +54,9 @@ typedef enum
 + (NSString *)builtInPath;		// Path for built-in data only.
 + (NSArray *)pathsWithAddOns;	// Root paths + add-on paths.
 + (NSArray *)paths;				// builtInPath or pathsWithAddOns, depending on useAddOns state.
-+ (BOOL)useAddOns;
++ (NSString *)useAddOns;
 + (NSArray *)OXPsWithMessagesFound;
-+ (void)setUseAddOns:(BOOL)useAddOns;
++ (void)setUseAddOns:(NSString *)useAddOns;
 + (void)addExternalPath:(NSString *)fileName;
 + (NSEnumerator *)pathEnumerator;
 + (NSEnumerator *)reversePathEnumerator;
@@ -63,6 +67,9 @@ typedef enum
 + (BOOL) checkVersionCompatibility:(NSDictionary *)manifest forOXP:(NSString *)title;
 + (BOOL) manifestHasConflicts:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
 + (BOOL) manifestHasMissingDependencies:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
++ (BOOL) manifest:(NSDictionary *)manifest HasUnmetDependency:(NSDictionary *)required logErrors:(BOOL)logErrors;
++ (BOOL) matchVersions:(NSDictionary *)rangeDict withVersion:(NSString *)version;
+
 
 
 + (void)handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex;

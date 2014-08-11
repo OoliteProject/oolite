@@ -313,7 +313,9 @@ MA 02110-1301, USA.
 	allowingStringInput = gvStringInputNo;
 	isAlphabetKeyDown = NO;
 
-	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
+	timeIntervalAtLastClick = timeSinceLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
+	
+	_mouseWheelState = gvMouseWheelNeutral;
 
 	m_glContextInitialized = NO;
 
@@ -1243,6 +1245,12 @@ MA 02110-1301, USA.
 }
 
 
+- (int) mouseWheelState
+{
+	return _mouseWheelState;
+}
+
+
 - (BOOL) isCommandQDown
 {
 	return NO;
@@ -1286,6 +1294,7 @@ MA 02110-1301, USA.
 	int						mxdelta, mydelta;
 	float					mouseVirtualStickSensitivityX = viewSize.width * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
 	float					mouseVirtualStickSensitivityY = viewSize.height * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
+	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
 
 
 	while (SDL_PollEvent(&event))
@@ -1314,12 +1323,20 @@ MA 02110-1301, USA.
 						 so we use mouseWarped to simply ignore handling of motion events in this case. - Nikos 20110721
 						*/
 						[self resetMouse]; // Will set mouseWarped to YES
+						break;
+					// mousewheel stuff
+					case SDL_BUTTON_WHEELUP:
+						_mouseWheelState = gvMouseWheelUp;
+						break;
+					case SDL_BUTTON_WHEELDOWN:
+						_mouseWheelState = gvMouseWheelDown;
+						break;
 				}
 				break;
 
 			case SDL_MOUSEBUTTONUP:
 				mbtn_event = (SDL_MouseButtonEvent*)&event;
-				NSTimeInterval timeBetweenClicks = [NSDate timeIntervalSinceReferenceDate] - timeIntervalAtLastClick;
+				NSTimeInterval timeBetweenClicks = timeNow - timeIntervalAtLastClick;
 				timeIntervalAtLastClick += timeBetweenClicks;
 				if (mbtn_event->button == SDL_BUTTON_LEFT)
 				{
@@ -1329,6 +1346,17 @@ MA 02110-1301, USA.
 						keys[gvMouseDoubleClick] = doubleClick;
 					}
 					keys[gvMouseLeftButton] = NO;
+				}
+				/* 
+				   Mousewheel handling - just note time since last use here and mark as inactive,
+				   if needed, at the end of this method. Note that the mousewheel button up event is 
+				   kind of special, as in, it is sent at the same time as its corresponding mousewheel
+				   button down one - Nikos 20140809
+				*/
+				if (mbtn_event->button == SDL_BUTTON_WHEELUP || mbtn_event->button == SDL_BUTTON_WHEELDOWN)
+				{
+					NSTimeInterval timeBetweenMouseWheels = timeNow - timeSinceLastMouseWheel;
+					timeSinceLastMouseWheel += timeBetweenMouseWheels;
 				}
 				break;
 
@@ -1814,6 +1842,12 @@ keys[a] = NO; keys[b] = NO; \
 				[gameController exitAppWithContext:@"SDL_QUIT event received"];
 			}
 		}
+	}
+	// check if enough time has passed since last use of the mousewheel and act
+	// if needed
+	if (timeNow >= timeSinceLastMouseWheel + OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL)
+	{
+		_mouseWheelState = gvMouseWheelNeutral;
 	}
 }
 

@@ -97,6 +97,7 @@ typedef enum
 	OOLRC_MODE_TECHLEVEL = 3
 } OOLongRangeChartMode;
 
+// When fully zoomed in, chart shows area of galaxy that's 64x64 galaxy units.
 #define CHART_WIDTH_AT_MAX_ZOOM		64.0
 #define CHART_HEIGHT_AT_MAX_ZOOM	64.0
 // Galaxy width / width of chart area at max zoom
@@ -105,6 +106,8 @@ typedef enum
 #define CHART_SCROLL_AT_X		25.0
 #define CHART_SCROLL_AT_Y		31.0
 #define CHART_CLIP_BORDER		10.0
+#define CHART_SCREEN_VERTICAL_CENTRE	(10*MAIN_GUI_ROW_HEIGHT)
+#define CHART_ZOOM_SPEED_FACTOR		1.05
 
 #define CHART_ZOOM_SHOW_LABELS		2.0
 
@@ -286,6 +289,7 @@ typedef enum
 
 #define SCANNER_ZOOM_RATE_UP			2.0
 #define SCANNER_ZOOM_RATE_DOWN			-8.0
+#define SCANNER_ECM_FUZZINESS			1.5
 
 #define PLAYER_INTERNAL_DAMAGE_FACTOR	31
 
@@ -400,7 +404,8 @@ typedef enum
 	OOWeaponFacing			chosen_weapon_facing;   // for purchasing weapons
 	
 	double					ecm_start_time;
-	
+	double					last_ecm_time;	
+
 	OOGUIScreenID			gui_screen;
 	OOAlertFlags			alertFlags;
 	OOAlertCondition		alertCondition;
@@ -416,6 +421,7 @@ typedef enum
 	
 	NSPoint					cursor_coordinates;
 	NSPoint					chart_cursor_coordinates;
+	NSPoint					chart_focus_coordinates;
 	NSPoint					chart_centre_coordinates;
 	// where we want the chart centre to be - used for smooth transitions
 	NSPoint					target_chart_centre;
@@ -822,6 +828,8 @@ typedef enum
 
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
+
+- (double) scannerFuzziness;
 
 - (BOOL) weaponsOnline;
 - (void) setWeaponsOnline:(BOOL)newValue;
