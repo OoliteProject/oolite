@@ -6,6 +6,9 @@
 //  Copyright 2009 Jens Ayton. All rights reserved.
 //
 
+#ifdef __MINGW32__
+#include <stdbool.h>
+#endif
 #import "icosmesh.h"
 
 
