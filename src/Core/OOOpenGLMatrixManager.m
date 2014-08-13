@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLMatrixManager.h"
 #import "MyOpenGLView.h"
 #import "Universe.h"
+#import "OOMacroOpenGL.h"
 
 const char* ooliteStandardMatrixUniforms[] =
 {
@@ -235,6 +236,7 @@ const char* ooliteStandardMatrixUniforms[] =
 
 - (void) syncModelView
 {
+	OO_ENTER_OPENGL();
 	OOGL(glMatrixMode(GL_MODELVIEW));
 	GLLoadOOMatrix([self getModelView]);
 	return;
@@ -334,6 +336,7 @@ const char* ooliteStandardMatrixUniforms[] =
 
 - (void) syncProjection
 {
+	OO_ENTER_OPENGL();
 	OOGL(glMatrixMode(GL_PROJECTION));
 	GLLoadOOMatrix([self getProjection]);
 	return;

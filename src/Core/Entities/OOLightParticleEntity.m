@@ -108,8 +108,6 @@ static OOTexture *sBlobTexture = nil;
 	cam_zero_distance = [[self owner] camZeroDistance];
 	if (no_draw_distance <= cam_zero_distance)  return;
 	
-	OO_ENTER_OPENGL();
-	
 	Entity *father = [self owner];
 	Entity *last = nil;
 	HPVector abspos = position;
