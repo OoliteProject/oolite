@@ -575,17 +575,17 @@ void OOGLScaleProjection(Vector scale)
 	[matrixManager syncProjection];
 }
 
-void OOGLFrustum(double left, double right, double bottom, double top, double near, double far)
+void OOGLFrustum(double frleft, double frright, double frbottom, double frtop, double frnear, double frfar)
 {
 	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	[matrixManager frustumLeft: left right: right bottom: bottom top: top near: near far: far];
+	[matrixManager frustumLeft: frleft right: frright bottom: frbottom top: frtop near: frnear far: frfar];
 	[matrixManager syncProjection];
 }
 
-void OOGLOrtho(double left, double right, double bottom, double top, double near, double far)
+void OOGLOrtho(double orleft, double orright, double orbottom, double ortop, double ornear, double orfar)
 {
 	OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-	[matrixManager orthoLeft: left right: right bottom: bottom top: top near: near far: far];
+	[matrixManager orthoLeft: orleft right: orright bottom: orbottom top: ortop near: ornear far: orfar];
 	[matrixManager syncProjection];
 }
 
