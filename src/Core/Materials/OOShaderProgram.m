@@ -409,6 +409,8 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		id obj;
 		NSArray *pair;
 		
+		OO_ENTER_OPENGL();
+
 		[matrixManager syncModelView];
 		while ((obj = [enumerator nextObject]))
 		{
@@ -417,7 +419,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 				pair = (NSArray*)obj;
 				if ([[pair oo_stringAtIndex: 2] compare: @"mat3"] == 0)
 				{
-					GLUniformMatrix3([pair oo_intAtIndex: 0], [matrixManager getMatrix: [pair oo_intAtIndex: 1]]);
+					OOGL(GLUniformMatrix3([pair oo_intAtIndex: 0], [matrixManager getMatrix: [pair oo_intAtIndex: 1]]));
 				}
 				else
 				{
