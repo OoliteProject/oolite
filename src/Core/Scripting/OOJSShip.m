@@ -2978,9 +2978,23 @@ static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL 
 		[UNIVERSE unMagicMainStation];
 	}
 	
-	[thisEnt setSuppressExplosion:!explode];
-	[thisEnt setEnergy:1];
-	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
+	if (EXPECT_NOT([thisEnt status] == STATUS_DOCKED))
+	{
+		/* If it's in the launch queue and hasn't yet been added to
+		 * the universe, set the status to DEAD (so it gets removed
+		 * from the launch queue) */
+		[thisEnt setStatus:STATUS_DEAD];
+		/* No shipDied event occurs in this place - it never really
+		 * existed. This case is just to prevent an error from the
+		 * usual code branch - removing ships while they're still
+		 * docked is not recommended. */
+	}
+	else
+	{
+		[thisEnt setSuppressExplosion:!explode];
+		[thisEnt setEnergy:1];
+		[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
+	}
 	
 	OOJS_RETURN_VOID;
 	

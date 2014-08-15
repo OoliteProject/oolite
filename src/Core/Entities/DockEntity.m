@@ -1217,7 +1217,11 @@ MA 02110-1301, USA.
 	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
 	{
 		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
-		[self launchShip:se];
+		// check to make sure ship has not been destroyed in queue by script
+		if ([se status] == STATUS_DOCKED)
+		{
+			[self launchShip:se];
+		}
 		[launchQueue removeObjectAtIndex:0];
 	}
 	if (([launchQueue count] == 0) && no_docking_while_launching)
