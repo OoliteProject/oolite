@@ -411,6 +411,8 @@ const char* ooliteStandardMatrixUniforms[] =
 	GLint location;
 	NSUInteger i;
 	NSMutableArray *locationSet = [[[NSMutableArray alloc] init] autorelease];
+    
+    OO_ENTER_OPENGL();
 	
 	for (i = 0; i < OOLITE_GL_MATRIX_END; i++) {
 		location = glGetUniformLocationARB(program, ooliteStandardMatrixUniforms[i]);

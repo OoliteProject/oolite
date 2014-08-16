@@ -536,6 +536,8 @@
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
+		B33A44F1199E6745000B45AE /* OOOpenGLMatrixManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B33A44EF199E6745000B45AE /* OOOpenGLMatrixManager.h */; };
+		B33A44F2199E6745000B45AE /* OOOpenGLMatrixManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B33A44F0199E6745000B45AE /* OOOpenGLMatrixManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1663,6 +1665,8 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "javascript-errors.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
+		B33A44EF199E6745000B45AE /* OOOpenGLMatrixManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLMatrixManager.h; sourceTree = "<group>"; };
+		B33A44F0199E6745000B45AE /* OOOpenGLMatrixManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLMatrixManager.m; sourceTree = "<group>"; };
 		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
 		B3460D4415285BDE002592D0 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur.png"; sourceTree = "<group>"; };
@@ -2056,6 +2060,8 @@
 				1A2A1DEA0BD2A28E00152975 /* OOMacroOpenGL.h */,
 				1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */,
 				1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */,
+				B33A44EF199E6745000B45AE /* OOOpenGLMatrixManager.h */,
+				B33A44F0199E6745000B45AE /* OOOpenGLMatrixManager.m */,
 				1A127F4112EC6A4400B65D9F /* OOTextureSprite.h */,
 				1A127F4212EC6A4400B65D9F /* OOTextureSprite.m */,
 				1AB9AE89107F459B00B6F3CE /* OOPolygonSprite.h */,
@@ -3288,6 +3294,7 @@
 				1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */,
 				1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */,
 				1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */,
+				B33A44F1199E6745000B45AE /* OOOpenGLMatrixManager.h in Headers */,
 				1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */,
 				1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */,
 				1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */,
@@ -3725,6 +3732,7 @@
 				1A71EA8C0BCF8C6B00CD5C13 /* OOXMLExtensions.m in Sources */,
 				1A26D0AC0BCF9CF80073F257 /* PlayerEntityLegacyScriptEngine.m in Sources */,
 				1A26D0AD0BCF9CF80073F257 /* ShipEntityAI.m in Sources */,
+				B33A44F2199E6745000B45AE /* OOOpenGLMatrixManager.m in Sources */,
 				1A26D0AF0BCF9CF80073F257 /* PlayerEntityScriptMethods.m in Sources */,
 				1A26D0B00BCF9CF80073F257 /* PlayerEntityLoadSave.m in Sources */,
 				1A26D0B10BCF9CF80073F257 /* PlayerEntity.m in Sources */,
