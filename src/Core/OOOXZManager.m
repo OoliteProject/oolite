@@ -83,7 +83,9 @@ enum {
 	OXZ_GUI_ROW_INSTALL		= 23,
 	OXZ_GUI_ROW_INSTALLED	= 24,
 	OXZ_GUI_ROW_REMOVE		= 25,
+	OXZ_GUI_ROW_PROCEED		= 25,
 	OXZ_GUI_ROW_UPDATE		= 26,
+	OXZ_GUI_ROW_CANCEL		= 26,
 	OXZ_GUI_ROW_EXIT		= 27
 };
 
@@ -161,6 +163,7 @@ static OOOXZManager *sSingleton = nil;
 			_interfaceState = OXZ_STATE_NODATA;
 		}
 		_changesMade = NO;
+		_downloadAllDependencies = NO;
 		_dependencyStack = [[NSMutableSet alloc] initWithCapacity:8];
 		[self setProgressStatus:@""];
 	}
@@ -587,7 +590,10 @@ static OOOXZManager *sSingleton = nil;
 		// get an object from the requirements list, and download it
 		// if it can be found
 		requirement = [_dependencyStack anyObject];
-		[progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
+		if (!_downloadAllDependencies)
+		{
+			[progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
+		}
 		NSString *needsIdentifier = [requirement oo_stringForKey:kOOManifestRelationIdentifier];
 		
 		NSDictionary *availableDownload = nil;
@@ -610,8 +616,17 @@ static OOOXZManager *sSingleton = nil;
 		{
 			// then download that item
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
-			[self installOXZ:index filteredList:NO];
+			if (_downloadAllDependencies)
+			{
+				[self installOXZ:index filteredList:NO];
+			}
+			else
+			{
+				_interfaceState = OXZ_STATE_DEPENDENCIES;
+				_item = index;
+			}
 			[self setProgressStatus:progress];
+			[self gui];
 			return YES;
 		}
 		else
@@ -630,6 +645,7 @@ static OOOXZManager *sSingleton = nil;
 	[self setProgressStatus:@""];
 	_interfaceState = OXZ_STATE_TASKDONE;
 	[_dependencyStack removeAllObjects]; // just in case
+	_downloadAllDependencies = NO;
 	[self gui];
 	return YES;
 }
@@ -791,11 +807,28 @@ static OOOXZManager *sSingleton = nil;
 
 		[gui addLongText:_progressStatus startingAtRow:OXZ_GUI_ROW_PROGRESS+2 align:GUI_ALIGN_LEFT];
 
-		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
-		[gui setKey:@"_CANCEL" forRow:OXZ_GUI_ROW_UPDATE];
+		[gui setText:DESC(@"oolite-oxzmanager-cancel") forRow:OXZ_GUI_ROW_CANCEL align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_CANCEL" forRow:OXZ_GUI_ROW_CANCEL];
 		startRow = OXZ_GUI_ROW_UPDATE;
-
 		break;
+	case OXZ_STATE_DEPENDENCIES:
+		[gui setTitle:DESC(@"oolite-oxzmanager-title-dependencies")];
+
+		[gui setText:DESC(@"oolite-oxzmanager-dependencies-decision") forRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
+
+		[gui addLongText:_progressStatus startingAtRow:OXZ_GUI_ROW_PROGRESS+2 align:GUI_ALIGN_LEFT];
+
+		startRow = OXZ_GUI_ROW_INSTALLED;
+		[gui setText:DESC(@"oolite-oxzmanager-dependencies-yes-all") forRow:OXZ_GUI_ROW_INSTALLED align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_PROCEED_ALL" forRow:OXZ_GUI_ROW_INSTALLED];
+
+		[gui setText:DESC(@"oolite-oxzmanager-dependencies-yes") forRow:OXZ_GUI_ROW_PROCEED align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_PROCEED" forRow:OXZ_GUI_ROW_PROCEED];
+
+		[gui setText:DESC(@"oolite-oxzmanager-dependencies-no") forRow:OXZ_GUI_ROW_CANCEL align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_CANCEL" forRow:OXZ_GUI_ROW_CANCEL];
+		break;
+
 	case OXZ_STATE_REMOVING:
 		[gui addLongText:DESC(@"oolite-oxzmanager-removal-done") startingAtRow:OXZ_GUI_ROW_PROGRESS align:GUI_ALIGN_LEFT];
 		[gui setText:DESC(@"oolite-oxzmanager-acknowledge") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
@@ -886,6 +919,8 @@ static OOOXZManager *sSingleton = nil;
 	if (selection == OXZ_GUI_ROW_EXIT)
 	{
 		[self cancelUpdate]; // doesn't hurt if no update in progress
+		[_dependencyStack removeAllObjects]; // cleanup
+		_downloadAllDependencies = NO;
 		_downloadStatus = OXZ_DOWNLOAD_NONE; // clear error state
 		if (_changesMade)
 		{
@@ -905,15 +940,17 @@ static OOOXZManager *sSingleton = nil;
 			return;
 		}
 	}
-	else if (selection == OXZ_GUI_ROW_UPDATE)
+	else if (selection == OXZ_GUI_ROW_UPDATE) // also == _CANCEL
 	{
 		if (_interfaceState == OXZ_STATE_REMOVING)
 		{
 			_interfaceState = OXZ_STATE_PICK_REMOVE;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 		}
-		else if (_interfaceState == OXZ_STATE_TASKDONE)
+		else if (_interfaceState == OXZ_STATE_TASKDONE || _interfaceState == OXZ_STATE_DEPENDENCIES)
 		{
+			[_dependencyStack removeAllObjects];
+			_downloadAllDependencies = NO;
 			_interfaceState = OXZ_STATE_PICK_INSTALL;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 		}
@@ -932,11 +969,26 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else if (selection == OXZ_GUI_ROW_INSTALLED)
 	{
-		_interfaceState = OXZ_STATE_PICK_INSTALLED;
+		if (_interfaceState == OXZ_STATE_DEPENDENCIES) // also == _PROCEED_ALL
+		{
+			_downloadAllDependencies = YES;
+			[self installOXZ:_item filteredList:NO];
+		}
+		else 
+		{
+			_interfaceState = OXZ_STATE_PICK_INSTALLED;
+		}
 	}
-	else if (selection == OXZ_GUI_ROW_REMOVE)
+	else if (selection == OXZ_GUI_ROW_REMOVE) // also == _PROCEED
 	{
-		_interfaceState = OXZ_STATE_PICK_REMOVE;
+		if (_interfaceState == OXZ_STATE_DEPENDENCIES)
+		{
+			[self installOXZ:_item filteredList:NO];
+		}
+		else
+		{
+			_interfaceState = OXZ_STATE_PICK_REMOVE;
+		}
 	}
 	else if (selection == OXZ_GUI_ROW_LISTPREV)
 	{

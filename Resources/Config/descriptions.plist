@@ -1272,6 +1272,7 @@
 
 	"oolite-oxzmanager-title"		= "Expansion Pack Manager";
 	"oolite-oxzmanager-title-downloading"	= "Downloading file...";
+	"oolite-oxzmanager-title-dependencies"	= "Additional packs required...";
 	"oolite-oxzmanager-title-install"	= "Select pack to install";
 	"oolite-oxzmanager-title-installed"	= "Select pack to update";
 	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
@@ -1279,6 +1280,9 @@
 	"oolite-oxzmanager-exit-restart"	= "Return to Menu (applies changes)";
 	"oolite-oxzmanager-acknowledge"	= "Continue";
 	"oolite-oxzmanager-cancel"		= "Cancel Download";
+	"oolite-oxzmanager-dependencies-yes-all"	= "Download all additional required packs";
+	"oolite-oxzmanager-dependencies-yes"	= "Download next additional required pack";
+	"oolite-oxzmanager-dependencies-no"		= "Do not download additional packs";
 	"oolite-oxzmanager-download-list"	= "Download expansions list";
 	"oolite-oxzmanager-update-list"	= "Update expansions list";
 	"oolite-oxzmanager-install"		= "Install expansion pack";
@@ -1296,8 +1300,9 @@
 	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details. Using the '[oolite-oxzmanager-update-list]' menu option if you have not done so already and re-attempting the download may sometimes fix the problem.";
 	"oolite-oxzmanager-progress-requires-@" = "Unmet requirement: %@\n";
 	"oolite-oxzmanager-progress-now-has-@"  = "Now met requirement: %@\n";
-	"oolite-oxzmanager-progress-get-required"	= "Now downloading additional OXZ to meet requirements.\n";	
+	"oolite-oxzmanager-progress-get-required"	= "Download additional OXZ to meet requirements?\n";	
 	"oolite-oxzmanager-progress-required-@-not-found"	= "Unable to meet requirement: %@\n  You will need to resolve this manually.\n";
+	"oolite-oxzmanager-dependencies-decision"	= "Additional installs are required: do you wish to proceed?";
 	"oolite-oxzmanager-heading-category"	= "Category";
 	"oolite-oxzmanager-heading-title"		= "Title";
 	"oolite-oxzmanager-heading-version"		= "Version";

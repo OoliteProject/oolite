@@ -47,6 +47,7 @@ typedef enum {
 	OXZ_STATE_PICK_INSTALLED,
 	OXZ_STATE_PICK_REMOVE,
 	OXZ_STATE_INSTALLING,
+	OXZ_STATE_DEPENDENCIES,
 	OXZ_STATE_REMOVING,
 	OXZ_STATE_TASKDONE,
 	OXZ_STATE_RESTARTING
@@ -70,6 +71,7 @@ typedef enum {
 	NSFileHandle		*_fileWriter;
 	NSUInteger			_item;
 	BOOL				_itemIsFiltered;
+	BOOL				_downloadAllDependencies;
 
 	NSUInteger			_offset;
 
