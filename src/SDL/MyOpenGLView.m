@@ -171,6 +171,8 @@ MA 02110-1301, USA.
 		}
 	}
 
+	matrixManager = [[OOOpenGLMatrixManager alloc] init];
+
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
 	OOLog(@"sdl.init", @"initialising SDL");
@@ -386,6 +388,11 @@ MA 02110-1301, USA.
 	}
 
 	SDL_Quit();
+
+	if (matrixManager)
+	{
+		[matrixManager release];
+	}
 
 	[super dealloc];
 }
@@ -659,15 +666,12 @@ MA 02110-1301, USA.
 	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
 
-	glMatrixMode( GL_PROJECTION );
-	glPushMatrix();
-	glLoadIdentity();
+	[matrixManager resetProjection];
+	[matrixManager orthoLeft: 0.0f right: dest.w bottom: dest.h top: 0.0 near: -1.0 far: 1.0];
+	[matrixManager syncProjection];
 
-	glOrtho(0.0f, dest.w , dest.h, 0.0f, -1.0f, 1.0f);
-
-	glMatrixMode( GL_MODELVIEW );
-	glPushMatrix();
-	glLoadIdentity();
+	[matrixManager resetModelView];
+	[matrixManager syncModelView];
 
 	GLuint texture;
 	GLenum texture_format;
@@ -721,7 +725,8 @@ MA 02110-1301, USA.
 	glEnd();
 
 	SDL_GL_SwapBuffers();
-	glLoadIdentity();       // reset matrix
+	[matrixManager resetModelView];
+	[matrixManager syncModelView];
 
 	if ( image ) {
 		SDL_FreeSurface( image );
@@ -2067,6 +2072,11 @@ keys[a] = NO; keys[b] = NO; \
 - (float) gammaValue
 {
 	return _gamma;
+}
+
+- (OOOpenGLMatrixManager *) getOpenGLMatrixManager
+{
+	return matrixManager;
 }
 
 

@@ -10,21 +10,17 @@
 #import "JAVertexSet.h"
 #import "JAIcosTriangle.h"
 
-
-@interface JAIcosMesh ()
-
-- (void) addOneVertex:(Vertex)v;
-
-@property (readwrite) JAVertexSet *vertexSet;
-@property (readwrite) NSUInteger maxIndex;
-
-@end
-
-
 @implementation JAIcosMesh
 
-@synthesize vertexSet = _vertexSet, maxIndex = _maxIndex;
+- (JAVertexSet*) vertexSet
+{
+        return _vertexSet;
+}
 
+- (NSUInteger) maxIndex
+{
+        return _maxIndex;
+}
 
 - (id) init
 {
@@ -43,7 +39,7 @@
 	if ((self = [super init]))
 	{
 		if (vertexSet == nil)  vertexSet = [[JAVertexSet alloc] init];
-		self.vertexSet = vertexSet;
+		_vertexSet = vertexSet;
 		
 		_indices = [NSMutableArray array];
 		if (vertexSet == nil || _indices == nil)  return nil;
@@ -55,7 +51,7 @@
 
 - (NSUInteger) faceCount
 {
-	return _indices.count / 3;
+	return [_indices count] / 3;
 }
 
 
@@ -63,16 +59,19 @@
 {
 	if (triangle == nil)  return;
 	
-	[self addOneVertex:triangle.vertexA];
-	[self addOneVertex:triangle.vertexB];
-	[self addOneVertex:triangle.vertexC];
+	[self addOneVertex:[triangle vertexA]];
+	[self addOneVertex:[triangle vertexB]];
+	[self addOneVertex:[triangle vertexC]];
 }
 
 
 - (void) addTriangles:(NSArray *)triangles
 {
-	for (JAIcosTriangle *triangle in triangles)
+	JAIcosTriangle *triangle;
+        unsigned i;
+	for (i = 0; i < [triangles count]; i++)
 	{
+        	triangle = (JAIcosTriangle*)[triangles objectAtIndex: i];
 		[self addTriangle:triangle];
 	}
 }
@@ -86,9 +85,9 @@
 
 - (void) addOneVertex:(Vertex)v
 {
-	NSUInteger index = [self.vertexSet indexForVertex:v];
+	NSUInteger index = [[self vertexSet] indexForVertex:v];
 	[_indices addObject:[NSNumber numberWithUnsignedInteger:index]];
-	if (self.maxIndex < index)  self.maxIndex = index;
+	if (_maxIndex < index)  _maxIndex = index;
 }
 
 @end

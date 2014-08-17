@@ -835,7 +835,7 @@ static const BaseFace kTexturedFaces[][3] =
 			{
 				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
 			}
-			GLMultOOMatrix(rotMatrix);	// rotate the clouds!
+			OOGLMultModelVew(rotMatrix);	// rotate the clouds!
 			OOGL(glEnable(GL_BLEND));
 //			OOGL(glDisable(GL_LIGHTING));
 			// Fall through.
@@ -977,11 +977,11 @@ static const BaseFace kTexturedFaces[][3] =
 
 	if (atmosphere)
 	{
-		OOGL(glPopMatrix());	// get old draw matrix back
-		OOGL(glPushMatrix());	// and store it again
-		OOGL(glTranslatef(cameraRelativePosition.x,cameraRelativePosition.y,cameraRelativePosition.z)); // centre on the planet
+		OOGLPopModelView();	// get old draw matrix back
+		OOGLPushModelView();	// and store it again
+		OOGLTranslateModelView(cameraRelativePosition); // centre on the planet
 		// rotate
-//		GLMultOOMatrix([atmosphere rotationMatrix]);
+//		OOGLMultModelView([atmosphere rotationMatrix]);
 		// draw atmosphere entity
 		[atmosphere drawImmediate:false translucent:false];
 	}

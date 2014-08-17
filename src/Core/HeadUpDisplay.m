@@ -1656,9 +1656,9 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 	OOGLEND();
 #else
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x, y, z1));
-	OOGL(glScalef(w, -h, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x, y, z1));
+	OOGLScaleModelView(make_vector(w, -h, 1.0f));
 	
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	OOGL(glVertexPointer(2, GL_FLOAT, 0, strip));
@@ -1667,8 +1667,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-	
-	OOGL(glPopMatrix());
+
+	OOGLPopModelView();
 #endif
 }
 
@@ -2231,20 +2231,20 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	if (selected)
 	{
 		// Draw yellow outline.
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-		OOGL(glScalef(width, height, 1.0f));
+		OOGLPushModelView();
+		OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGLScaleModelView(make_vector(width, height, 1.0f));
 		GLColorWithOverallAlpha(yellow_color, alpha);
 		[sprite drawOutline];
-		OOGL(glPopMatrix());
+		OOGLPopModelView();
 		
 		// Draw black backing, so outline colour isn’t blended into missile colour.
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-		OOGL(glScalef(width, height, 1.0f));
+		OOGLPushModelView();
+		OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGLScaleModelView(make_vector(width, height, 1.0f));
 		GLColorWithOverallAlpha(black_color, alpha);
 		[sprite drawFilled];
-		OOGL(glPopMatrix());
+		OOGLPopModelView();
 		
 		switch (status)
 		{
@@ -2262,11 +2262,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		else  GLColorWithOverallAlpha(red_color, alpha);
 	}
 	
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-	OOGL(glScalef(width, height, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	[sprite drawFilled];
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 
@@ -2277,12 +2277,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	OOPolygonSprite *sprite = IconForMissileRole(kDefaultMissileIconKey);
 	
 	// Draw gray outline.
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-	OOGL(glScalef(width, height, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	GLColorWithOverallAlpha(lightgray_color, alpha);
 	[sprite drawOutline];
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 
@@ -3140,7 +3140,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	NSString		*legal_desc = nil;
 	
 	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
-
+	
 	if (target == nil || player1 == nil)  return;
 
 	if ([target isShip])
@@ -3195,6 +3195,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	GLfloat			rs0 = rsize;
 	GLfloat			rs2 = rsize * 0.50;
 	
+	OOGLPushModelView();
 	hudRotateViewpointForVirtualDepth(player1,p1);
 
 	// draw the reticle
@@ -3349,7 +3350,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		}
 	}
 	
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 
@@ -3359,9 +3360,11 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 	{
 		return;
 	}
+	
 
 	Vector	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
 
+	OOGLPushModelView();
 	hudRotateViewpointForVirtualDepth(player1,p1);
 	
 	// either close enough that single precision is fine or far enough
@@ -3409,7 +3412,7 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 		OODrawString(infoline, rs0 * 0.5, -rs2 - line_height, 0, textsize);
 	}
 
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
@@ -3419,8 +3422,6 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
 
-	OOGL(glPushMatrix());
-	
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
 	switch ([UNIVERSE viewDirection])
@@ -3451,16 +3452,16 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
 			break;
 	}
-	OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+	OOGLLookAt(view_dir, kZeroVector, view_up);
 	
 	back_mat = OOMatrixForQuaternionRotation(back_q);
 	
 	// rotate the view
-	GLMultOOMatrix([player1 rotationMatrix]);
+	OOGLMultModelView([player1 rotationMatrix]);
 	// translate the view
-	OOGL(glTranslatef(p1.x, p1.y, p1.z));
+	OOGLTranslateModelView(p1);
 	//rotate to face player1
-	GLMultOOMatrix(back_mat);
+	OOGLMultModelView(back_mat);
 	// draw the waypoint
 
 }
@@ -4007,13 +4008,13 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	GLfloat width = size.width * (1.0f / 6.0f);
 	GLfloat height = size.height * (1.0f / 6.0f);
 	
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(ox, oy, z));
-	OOGL(glScalef(width, height, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(ox, oy, z));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	[self drawFilled];
 	glColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
 	[self drawOutline];
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 @end

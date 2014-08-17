@@ -6,6 +6,9 @@
 //  Copyright 2009 Jens Ayton. All rights reserved.
 //
 
+#ifdef __MINGW32__
+#include <stdbool.h>
+#endif
 #import "icosmesh.h"
 
 
@@ -18,11 +21,14 @@
 // Note: order is not guaranteed to be maintained.
 + (id) triangleWithVectorA:(Vector)a b:(Vector)b c:(Vector)c;
 - (id) initWithVectorA:(Vector)a b:(Vector)b c:(Vector)c;
+- (Vertex) vertexA;
+- (Vertex) vertexB;
+- (Vertex) vertexC;
+- (void) rotate;	// a = b, b = c, c = a
+- (void) generateTextureCoordinatesAndBinormals;	// Requires that any polar coordinate is in [0].
+- (void) fixUpWinding;
+
 
 - (NSArray *) subdivide;	// A list of four JAIcosTriangles.
-
-@property (readonly) Vertex vertexA;
-@property (readonly) Vertex vertexB;
-@property (readonly) Vertex vertexC;
 
 @end

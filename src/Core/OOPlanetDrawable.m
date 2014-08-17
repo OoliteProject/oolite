@@ -257,11 +257,11 @@
 		OOGL(glDisable(GL_BLEND));
 	}
 	
-	[_material apply];
-	
 	// Scale the ball.
-	OOGL(glPushMatrix());
-	GLMultOOMatrix(_transform);
+	OOGLPushModelView();
+	OOGLMultModelView(_transform);
+	
+	[_material apply];
 	
 	OOGL(glEnable(GL_LIGHTING));
 	OOGL(glEnable(GL_TEXTURE_2D));
@@ -310,7 +310,7 @@
 #endif
 
 	
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 #endif

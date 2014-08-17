@@ -25,7 +25,7 @@ typedef struct
 extern const OOPlanetDataLevel kPlanetData[kOOPlanetDataLevels];
 
 
-#define kOOPlanetDataVertexCount 10446
+#define kOOPlanetDataVertexCount 10393
 
 extern const GLfloat kOOPlanetVertices[kOOPlanetDataVertexCount * 3];
 extern const GLfloat kOOPlanetTexCoords[kOOPlanetDataVertexCount * 2];

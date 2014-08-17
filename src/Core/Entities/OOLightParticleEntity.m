@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOMacroOpenGL.h"
 #import "OOGraphicsResetManager.h"
+#import "MyOpenGLView.h"
 
 
 #define PARTICLE_DISTANCE_SCALE_LOW		12.0
@@ -107,12 +108,10 @@ static OOTexture *sBlobTexture = nil;
 	cam_zero_distance = [[self owner] camZeroDistance];
 	if (no_draw_distance <= cam_zero_distance)  return;
 	
-	OO_ENTER_OPENGL();
-	
 	Entity *father = [self owner];
 	Entity *last = nil;
 	HPVector abspos = position;
-	
+
 	while (father != nil && father != last && father != NO_TARGET)
 	{
 		OOMatrix rM = [father drawRotationMatrix];
@@ -123,13 +122,13 @@ static OOTexture *sBlobTexture = nil;
 		father = [father owner];
 	}
 
-	OOMatrix temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
-	OOGL(glPopMatrix());  OOGL(glPushMatrix());  // restore zero!
+	OOMatrix temp_matrix = OOGLPopModelView();
+	OOGLPushModelView();
 
-	GLTranslateOOVector(HPVectorToVector(HPvector_subtract(abspos,[PLAYER viewpointPosition])));	// move to camera-relative position	
+	OOGLTranslateModelView(HPVectorToVector(HPvector_subtract(abspos,[PLAYER viewpointPosition])));	// move to camera-relative position	
 	[self drawImmediate:immediate translucent:translucent];
 
-	GLLoadOOMatrix(temp_matrix);
+	OOGLLoadModelView(temp_matrix);
 }
 
 

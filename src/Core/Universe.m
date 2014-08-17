@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOOpenGLMatrixManager.h"
 #import "OOCPUInfo.h"
 #import "OOMaterial.h"
 #import "OOTexture.h"
@@ -4242,43 +4243,16 @@ static const OOMatrix	starboard_matrix =
 
 - (void) defineFrustum
 {
-	GLfloat   proj[16];
-	GLfloat   modl[16];
-	GLfloat   clip[16];
+	OOMatrix clip;
 	GLfloat   rt;
 	
-	/* Get the current PROJECTION matrix from OpenGL */
-	glGetFloatv( GL_PROJECTION_MATRIX, proj );
-	
-	/* Get the current MODELVIEW matrix from OpenGL */
-	glGetFloatv( GL_MODELVIEW_MATRIX, modl );
-	
-	/* Combine the two matrices (multiply projection by modelview) */
-	clip[ 0] = modl[ 0] * proj[ 0] + modl[ 1] * proj[ 4] + modl[ 2] * proj[ 8] + modl[ 3] * proj[12];
-	clip[ 1] = modl[ 0] * proj[ 1] + modl[ 1] * proj[ 5] + modl[ 2] * proj[ 9] + modl[ 3] * proj[13];
-	clip[ 2] = modl[ 0] * proj[ 2] + modl[ 1] * proj[ 6] + modl[ 2] * proj[10] + modl[ 3] * proj[14];
-	clip[ 3] = modl[ 0] * proj[ 3] + modl[ 1] * proj[ 7] + modl[ 2] * proj[11] + modl[ 3] * proj[15];
-	
-	clip[ 4] = modl[ 4] * proj[ 0] + modl[ 5] * proj[ 4] + modl[ 6] * proj[ 8] + modl[ 7] * proj[12];
-	clip[ 5] = modl[ 4] * proj[ 1] + modl[ 5] * proj[ 5] + modl[ 6] * proj[ 9] + modl[ 7] * proj[13];
-	clip[ 6] = modl[ 4] * proj[ 2] + modl[ 5] * proj[ 6] + modl[ 6] * proj[10] + modl[ 7] * proj[14];
-	clip[ 7] = modl[ 4] * proj[ 3] + modl[ 5] * proj[ 7] + modl[ 6] * proj[11] + modl[ 7] * proj[15];
-	
-	clip[ 8] = modl[ 8] * proj[ 0] + modl[ 9] * proj[ 4] + modl[10] * proj[ 8] + modl[11] * proj[12];
-	clip[ 9] = modl[ 8] * proj[ 1] + modl[ 9] * proj[ 5] + modl[10] * proj[ 9] + modl[11] * proj[13];
-	clip[10] = modl[ 8] * proj[ 2] + modl[ 9] * proj[ 6] + modl[10] * proj[10] + modl[11] * proj[14];
-	clip[11] = modl[ 8] * proj[ 3] + modl[ 9] * proj[ 7] + modl[10] * proj[11] + modl[11] * proj[15];
-	
-	clip[12] = modl[12] * proj[ 0] + modl[13] * proj[ 4] + modl[14] * proj[ 8] + modl[15] * proj[12];
-	clip[13] = modl[12] * proj[ 1] + modl[13] * proj[ 5] + modl[14] * proj[ 9] + modl[15] * proj[13];
-	clip[14] = modl[12] * proj[ 2] + modl[13] * proj[ 6] + modl[14] * proj[10] + modl[15] * proj[14];
-	clip[15] = modl[12] * proj[ 3] + modl[13] * proj[ 7] + modl[14] * proj[11] + modl[15] * proj[15];
+	clip = OOGLGetModelViewProjection();
 	
 	/* Extract the numbers for the RIGHT plane */
-	frustum[0][0] = clip[ 3] - clip[ 0];
-	frustum[0][1] = clip[ 7] - clip[ 4];
-	frustum[0][2] = clip[11] - clip[ 8];
-	frustum[0][3] = clip[15] - clip[12];
+	frustum[0][0] = clip.m[0][3] - clip.m[0][0];
+	frustum[0][1] = clip.m[1][3] - clip.m[1][0];
+	frustum[0][2] = clip.m[2][3] - clip.m[2][0];
+	frustum[0][3] = clip.m[3][3] - clip.m[3][0];
 	
 	/* Normalize the result */
 	rt = 1.0f / sqrt(frustum[0][0] * frustum[0][0] + frustum[0][1] * frustum[0][1] + frustum[0][2] * frustum[0][2]);
@@ -4288,10 +4262,10 @@ static const OOMatrix	starboard_matrix =
 	frustum[0][3] *= rt;
 	
 	/* Extract the numbers for the LEFT plane */
-	frustum[1][0] = clip[ 3] + clip[ 0];
-	frustum[1][1] = clip[ 7] + clip[ 4];
-	frustum[1][2] = clip[11] + clip[ 8];
-	frustum[1][3] = clip[15] + clip[12];
+	frustum[1][0] = clip.m[0][3] + clip.m[0][0];
+	frustum[1][1] = clip.m[1][3] + clip.m[1][0];
+	frustum[1][2] = clip.m[2][3] + clip.m[2][0];
+	frustum[1][3] = clip.m[3][3] + clip.m[3][0];
 	
 	/* Normalize the result */
 	rt = 1.0f / sqrt(frustum[1][0] * frustum[1][0] + frustum[1][1] * frustum[1][1] + frustum[1][2] * frustum[1][2]);
@@ -4301,10 +4275,10 @@ static const OOMatrix	starboard_matrix =
 	frustum[1][3] *= rt;
 
 	/* Extract the BOTTOM plane */
-	frustum[2][0] = clip[ 3] + clip[ 1];
-	frustum[2][1] = clip[ 7] + clip[ 5];
-	frustum[2][2] = clip[11] + clip[ 9];
-	frustum[2][3] = clip[15] + clip[13];
+	frustum[2][0] = clip.m[0][3] + clip.m[0][1];
+	frustum[2][1] = clip.m[1][3] + clip.m[1][1];
+	frustum[2][2] = clip.m[2][3] + clip.m[2][1];
+	frustum[2][3] = clip.m[3][3] + clip.m[3][1];
 
 	/* Normalize the result */
 	rt = 1.0 / sqrt(frustum[2][0] * frustum[2][0] + frustum[2][1] * frustum[2][1] + frustum[2][2] * frustum[2][2]);
@@ -4314,10 +4288,10 @@ static const OOMatrix	starboard_matrix =
 	frustum[2][3] *= rt;
 
 	/* Extract the TOP plane */
-	frustum[3][0] = clip[ 3] - clip[ 1];
-	frustum[3][1] = clip[ 7] - clip[ 5];
-	frustum[3][2] = clip[11] - clip[ 9];
-	frustum[3][3] = clip[15] - clip[13];
+	frustum[3][0] = clip.m[0][3] - clip.m[0][1];
+	frustum[3][1] = clip.m[1][3] - clip.m[1][1];
+	frustum[3][2] = clip.m[2][3] - clip.m[2][1];
+	frustum[3][3] = clip.m[3][3] - clip.m[3][1];
 
 	/* Normalize the result */
 	rt = 1.0 / sqrt(frustum[3][0] * frustum[3][0] + frustum[3][1] * frustum[3][1] + frustum[3][2] * frustum[3][2]);
@@ -4327,10 +4301,10 @@ static const OOMatrix	starboard_matrix =
 	frustum[3][3] *= rt;
 
 	/* Extract the FAR plane */
-	frustum[4][0] = clip[ 3] - clip[ 2];
-	frustum[4][1] = clip[ 7] - clip[ 6];
-	frustum[4][2] = clip[11] - clip[10];
-	frustum[4][3] = clip[15] - clip[14];
+	frustum[4][0] = clip.m[0][3] - clip.m[0][2];
+	frustum[4][1] = clip.m[1][3] - clip.m[1][2];
+	frustum[4][2] = clip.m[2][3] - clip.m[2][2];
+	frustum[4][3] = clip.m[3][3] - clip.m[3][2];
 
 	/* Normalize the result */
 	rt = sqrt(frustum[4][0] * frustum[4][0] + frustum[4][1] * frustum[4][1] + frustum[4][2] * frustum[4][2]);
@@ -4340,10 +4314,10 @@ static const OOMatrix	starboard_matrix =
 	frustum[4][3] *= rt;
 
 	/* Extract the NEAR plane */
-	frustum[5][0] = clip[ 3] + clip[ 2];
-	frustum[5][1] = clip[ 7] + clip[ 6];
-	frustum[5][2] = clip[11] + clip[10];
-	frustum[5][3] = clip[15] + clip[14];
+	frustum[5][0] = clip.m[0][3] + clip.m[0][2];
+	frustum[5][1] = clip.m[1][3] + clip.m[1][2];
+	frustum[5][2] = clip.m[2][3] + clip.m[2][2];
+	frustum[5][3] = clip.m[3][3] + clip.m[3][2];
 
 	/* Normalize the result */
 	rt = sqrt(frustum[5][0] * frustum[5][0] + frustum[5][1] * frustum[5][1] + frustum[5][2] * frustum[5][2]);
@@ -4387,6 +4361,7 @@ static const OOMatrix	starboard_matrix =
 			PlayerEntity	*player = PLAYER;
 			Entity			*drawthing = nil;
 			BOOL			demoShipMode = [player showDemoShips];
+			
 			NSSize  viewSize = [gameView viewSize];
 			float   aspect = viewSize.height/viewSize.width;
 
@@ -4438,20 +4413,17 @@ static const OOMatrix	starboard_matrix =
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
 				float   ratio = 0.5 * nearPlane;
 				
-				OOGL(glMatrixMode(GL_PROJECTION));
-				OOGL(glLoadIdentity());	// reset matrix
-				OOGL(glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane));
-				OOGL(glMatrixMode(GL_MODELVIEW));
+				OOGLResetProjection();
+				OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
 
 				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 
-				OOGL(glLoadIdentity());	// reset matrix
-			
-				OOGL(gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0));
+				OOGLResetModelView();	// reset matrix
+				OOGLLookAt(kZeroVector, kBasisZVector, kBasisYVector);
 			
 				// HACK BUSTED
-				OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
-				OOGL(glPushMatrix()); // save this flat viewpoint
+				OOGLMultModelView(OOMatrixForScale(-1.0,1.0,1.0)); // flip left and right
+				OOGLPushModelView(); // save this flat viewpoint
 
 				/* OpenGL viewpoints: 
 				 *
@@ -4488,17 +4460,16 @@ static const OOMatrix	starboard_matrix =
 				view_matrix = OOMatrixMultiply(view_matrix, flipMatrix);
 				Vector viewOffset = [player viewpointOffset];
 			
-				OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+				OOGLLookAt(view_dir, kZeroVector, view_up); 
 
 				if (EXPECT(!displayGUI || demoShipMode))
 				{
 					if (EXPECT(!demoShipMode))	// we're in flight
 					{
 						// rotate the view
-						OOGL(GLMultOOMatrix([player rotationMatrix]));
+						OOGLMultModelView([player rotationMatrix]);
 						// translate the view
 						// HPVect: camera-relative position
-//					OOGL(GLTranslateOOVector(vector_flip(position)));
 						OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 						// main light position, no shaders, in-flight / shaders, in-flight and docked.
 						if (cachedSun)
@@ -4520,8 +4491,8 @@ static const OOMatrix	starboard_matrix =
 					OOGL([self useGUILightSource:demoShipMode]);
 				
 					// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
-					OOGL(viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX));
-				
+					viewMatrix = OOGLGetModelView();
+
 					int			furthest = draw_count - 1;
 					int			nearest = 0;
 					BOOL		inAtmosphere = airResistanceFactor > 0.01;
@@ -4557,22 +4528,22 @@ static const OOMatrix	starboard_matrix =
 							OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
 							OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
 						
-							OOGL(glPushMatrix());
+							OOGLPushModelView();
 							if (EXPECT(drawthing != player))
 							{
 								//translate the object
 								// HPVect: camera relative
 								[drawthing updateCameraRelativePosition];
-								GLTranslateOOVector([drawthing cameraRelativePosition]);
+								OOGLTranslateModelView([drawthing cameraRelativePosition]);
 								//rotate the object
-								GLMultOOMatrix([drawthing drawRotationMatrix]);
+								OOGLMultModelView([drawthing drawRotationMatrix]);
 							}
 							else
 							{
 								// Load transformation matrix
-								GLLoadOOMatrix(view_matrix);
+								OOGLLoadModelView(view_matrix);
 								//translate the object  from the viewpoint
-								GLTranslateOOVector(vector_flip(viewOffset));
+								OOGLTranslateModelView(vector_flip(viewOffset));
 							}
 						
 							// atmospheric fog
@@ -4594,53 +4565,34 @@ static const OOMatrix	starboard_matrix =
 							// draw the thing
 							[drawthing drawImmediate:false translucent:false];
 						
+							OOGLPopModelView();
+
 							// atmospheric fog
 							if (fogging)
 							{
 								OOGL(glDisable(GL_FOG));
 							}
 						
-							OOGL(glPopMatrix());
 						}
-					}
 				
-					//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
-				
-					OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);  // FIXME: should be redundant.
-				
-					OOCheckOpenGLErrors(@"Universe after setting up for translucent pass");
-					OOLog(@"universe.profile.draw",@"Begin translucent pass");
-					for (i = furthest; i >= nearest; i--)
-					{
-						drawthing = my_entities[i];
-						OOEntityStatus d_status = [drawthing status];
-					
-						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
-						if (vdist == 1 && [drawthing cameraRangeFront] > farPlane*1.5) continue;
-						if (vdist == 0 && [drawthing cameraRangeBack] < nearPlane) continue;
-						// temporary fix for atmosphere bug
-//						if (vdist == 1 && [drawthing isPlanet]) continue;
-
-					
 						if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either in flight or in demo ship mode
 						{
-						
-							OOGL(glPushMatrix());
+							OOGLPushModelView();
 							if (EXPECT(drawthing != player))
 							{
 								//translate the object
 								// HPVect: camera relative positions
 								[drawthing updateCameraRelativePosition];
-								GLTranslateOOVector([drawthing cameraRelativePosition]);
+								OOGLTranslateModelView([drawthing cameraRelativePosition]);
 								//rotate the object
-								GLMultOOMatrix([drawthing drawRotationMatrix]);
+								OOGLMultModelView([drawthing drawRotationMatrix]);
 							}
 							else
 							{
 								// Load transformation matrix
-								GLLoadOOMatrix(view_matrix);
+								OOGLLoadModelView(view_matrix);
 								//translate the object  from the viewpoint
-								GLTranslateOOVector(vector_flip(viewOffset));
+								OOGLTranslateModelView(vector_flip(viewOffset));
 							}
 						
 							// experimental - atmospheric fog
@@ -4666,21 +4618,20 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glDisable(GL_FOG));
 							}
 						
-							OOGL(glPopMatrix());
+							OOGLPopModelView();
 						}
 					}
 				}
 
-				OOGL(glPopMatrix()); //restore saved flat viewpoint
+				OOGLPopModelView();
+
 
 			}
 			
 
 			/* Reset for HUD drawing */
-			OOGL(glMatrixMode(GL_PROJECTION));
-			OOGL(glLoadIdentity());	// reset matrix
-			OOGL(glFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH));
-			OOGL(glMatrixMode(GL_MODELVIEW));
+			OOGLResetProjection();
+			OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
 
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
 			OOLog(@"universe.profile.draw",@"Begin HUD");

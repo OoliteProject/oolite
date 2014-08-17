@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 #import "OOMouseInteractionMode.h"
+#import "OOOpenGLMatrixManager.h"
+
 
 #include <SDL.h>
 
@@ -174,6 +176,8 @@ extern int debug;
 #endif
 
 	NSSize				firstScreen;
+	
+	OOOpenGLMatrixManager		*matrixManager;
 
    // Mouse mode indicator (for mouse movement model)
    BOOL					mouseInDeltaMode;
@@ -267,6 +271,8 @@ extern int debug;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;
+
+- (OOOpenGLMatrixManager *) getOpenGLMatrixManager;
 
 #ifndef NDEBUG
 // General image-dumping method.

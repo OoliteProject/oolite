@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "OOExcludeObjectEnumerator.h"
 #import "OOWeakSet.h"
 #import "GameController.h"
+#import "MyOpenGLView.h"
 
 #import "OOCharacter.h"
 #import "AI.h"
@@ -90,7 +91,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOJSVector.h"
 #import "OOJSEngineTimeManagement.h"
-
 
 #define USEMASC 1
 
@@ -5955,13 +5955,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		return; // TOO FAR AWAY
 	}
-	
-	OOGL(glPushMatrix());
+	OOGLPushModelView();
 	
 	// HPVect: need to make camera-relative
-	GLTranslateOOVector(HPVectorToVector(position));
-	
-	GLMultOOMatrix(rotMatrix);
+	OOGLTranslateModelView(HPVectorToVector(position));
+	OOGLMultModelView(rotMatrix);
 	[self drawImmediate:immediate translucent:translucent];
 	
 #ifndef NDEBUG
@@ -5971,7 +5969,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 #endif
 	
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 	
 	OOVerifyOpenGLState();	
 }

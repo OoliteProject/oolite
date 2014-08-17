@@ -87,14 +87,11 @@ SOFTWARE.
 	
 	// Save stuff.
 	OOGL(glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT));
-	OOGL(glMatrixMode(GL_MODELVIEW));
-	OOGL(glPushMatrix());
-	
-	OOGL(glMatrixMode(GL_PROJECTION));
-	OOGL(glPushMatrix());
+	OOGLPushModelView();
+	OOGLPushProjection();
 	
 	OOGL(glViewport(0, 0, _size, _size));
-	OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
+	OOGLScaleProjection(make_vector(-1.0, 1.0, 1.0)); // flip left and right
 	
 	/*	TODO: once confirmed working (and rendering everything in the right
 		orientation), replace with glLoadMatrix and the following:
@@ -106,8 +103,8 @@ SOFTWARE.
 		...and appropriate rotations thereof.
 	*/
 	
-	OOGL(glLoadIdentity());
-	OOGL(gluPerspective(90.0, 1.0, 1.0, MAX_CLEAR_DEPTH));
+	OOGLResetProjection();
+	OOGLPerspective(90.0, 1.0, 1.0, MAX_CLEAR_DEPTH);
 	
 	OODrawable *sky = [[UNIVERSE nearestEntityMatchingPredicate:HasClassPredicate parameter:[SkyEntity class] relativeToEntity:nil] drawable];
 	OOSunEntity *sun = [UNIVERSE sun];
@@ -119,26 +116,19 @@ SOFTWARE.
 	
 	for (i = 0; i < 6; i++)
 	{
-		OOGL(glPushMatrix());
+		OOGLPushProjection();
 		Vector center = centers[i];
 		Vector up = ups[i];
-		OOGL(gluLookAt(0, 0, 0, center.x, center.y, center.z, up.x, up.y, up.z));
-		
-		OOGL(glMatrixMode(GL_MODELVIEW));
-		OOGL(glPushMatrix());
+		OOGLLookAt(kZeroVector, center, up);
 		
 		OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbos[i]));
 		[self renderOnePassWithSky:sky sun:sun planets:planets];
 		
-		OOGL(glPopMatrix());
-		OOGL(glMatrixMode(GL_PROJECTION));
-		OOGL(glPopMatrix());
+		OOGLPopProjection();
 	}
 	
-	OOGL(glMatrixMode(GL_PROJECTION));
-	OOGL(glPopMatrix());
-	OOGL(glMatrixMode(GL_MODELVIEW));
-	OOGL(glPopMatrix());
+	OOGLPopProjection();
+	OOGLPopModelView();
 	OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
 	OOGL(glPopAttrib());
 }
@@ -156,27 +146,29 @@ SOFTWARE.
 	[sky renderOpaqueParts];
 	OOGL(glDepthMask(GL_TRUE));
 	
-	OOGL(glLoadIdentity());
-	GLTranslateOOVector(vector_flip([PLAYER position]));
+	OOGLPushModelView();
+	OOGLResetModelView();
+	OOGLTranslateModelView(vector_flip([PLAYER position]));
 	
 	NSEnumerator	*planetEnum = nil;
 	OOPlanetEntity	*planet = nil;
 	for (planetEnum = [planets objectEnumerator]; (planet = [planetEnum nextObject]); )
 	{
-		OOGL(glPushMatrix());
-		GLTranslateOOVector([planet position]);
+		OOGLPushModelView();
+		OOGLTranslateModelView(planet position]);
 #if NEW_PLANETS
 		[[planet drawable] renderOpaqueParts];
 #else
 		[planet drawUnconditionally];
 #endif
-		OOGL(glPopMatrix());
+		OOGLPopModelView();
 	}
 	
-	OOGL(glPushMatrix());
-	GLTranslateOOVector([sun position]);
+	OOGLPushModelView();
+	OOGLTranslateModelView([sun position]);
 	[sun drawUnconditionally];
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
+	OOGLPopModelView();
 }
 
 - (void) setUp

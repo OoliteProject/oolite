@@ -87,8 +87,8 @@ SOFTWARE.
 		OOGL(glPushAttrib(GL_ENABLE_BIT));
 		OOGL(glDisable(GL_LIGHTING));
 		OOGL(glDisable(GL_TEXTURE_2D));
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(0, 0, [[UNIVERSE gameView] display_z]));
+		OOGLPushModelView();
+		OOGLTranslateModelView(make_vector(0.0, 0.0, [[UNIVERSE gameView] display_z]));
 		
 		OOGL(glVertexPointer(2, GL_FLOAT, sizeof (GLfloat) * 6, _data));
 		OOGL(glColorPointer(4, GL_FLOAT, sizeof (GLfloat) * 6, _data + 2));
@@ -101,7 +101,7 @@ SOFTWARE.
 		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 		OOGL(glDisableClientState(GL_COLOR_ARRAY));
 		
-		OOGL(glPopMatrix());
+		OOGLPopModelView();
 		OOGL(glPopAttrib());
 		
 		OOVerifyOpenGLState();
