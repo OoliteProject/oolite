@@ -40,9 +40,9 @@ const char* ooliteStandardMatrixUniforms[] =
 	"ooliteProjectionInverse",
 	"ooliteModelViewProjectionInverse",
 	"ooliteModelViewTranspose",
-	"ooliteProjectionTracnspose",
+	"ooliteProjectionTranspose",
 	"ooliteModelViewProjectionTranspose",
-	"ooliteModelViewInverseTraspose",
+	"ooliteModelViewInverseTranspose",
 	"ooliteProjectionInverseTranspose",
 	"ooliteModelViewProjectionInverseTranspose"
 };
