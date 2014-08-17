@@ -25,7 +25,6 @@
 uniform mat3			ooliteNormalMatrix;
 uniform mat4			ooliteModelView;
 uniform mat4			ooliteModelViewProjection;
-uniform mat4			ooliteProjection;
 varying vec3			vEyeVector;
 varying vec2			vTexCoords;
 varying vec3			vLight1Vector;
