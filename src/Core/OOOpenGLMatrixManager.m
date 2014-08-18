@@ -81,6 +81,12 @@ const char* ooliteStandardMatrixUniforms[] =
 	return matrix;
 }
 
+- (unsigned int) stackCount
+{
+	return [stack count];
+}
+
+
 @end
 
 @interface OOOpenGLMatrixManager(Private)
@@ -232,6 +238,11 @@ const char* ooliteStandardMatrixUniforms[] =
 - (OOMatrix) getModelView
 {
 	return matrices[OOLITE_GL_MATRIX_MODELVIEW];
+}
+
+- (unsigned int) countModelView
+{
+	return [modelViewStack stackCount];
 }
 
 - (void) syncModelView
