@@ -150,7 +150,6 @@ MA 02110-1301, USA.
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
 	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
 	int		vSyncValue;
-	BOOL	splashArgFound = NO;
 
 	NSArray				*arguments = nil;
 	NSEnumerator		*argEnum = nil;
@@ -165,9 +164,9 @@ MA 02110-1301, USA.
 		if ([arg isEqual:@"-nosplash"] || [arg isEqual:@"--nosplash"])
 		{
 			showSplashScreen = NO;
-			splashArgFound = YES;	// -nosplash always trumps -splash
+			continue;	// -nosplash always trumps -splash
 		}
-		else if (([arg isEqual:@"-splash"] || [arg isEqual:@"--splash"]) && !splashArgFound)
+		else if ([arg isEqual:@"-splash"] || [arg isEqual:@"--splash"])
 		{
 			showSplashScreen = YES;
 		}
