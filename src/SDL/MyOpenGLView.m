@@ -158,6 +158,7 @@ MA 02110-1301, USA.
 	arguments = [[NSProcessInfo processInfo] arguments];
 
 	// scan for splash screen overrides: -nosplash || --nosplash , -splash || --splash
+	// scan for V-sync disabling overrides: -novsync || --novsync
 	for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
 	{
 		if ([arg isEqual:@"-nosplash"] || [arg isEqual:@"--nosplash"])
@@ -169,6 +170,9 @@ MA 02110-1301, USA.
 		{
 			showSplashScreen = YES;
 		}
+		
+		// if V-sync is disabled at the command line, override the defaults file
+		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
 	}
 
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
