@@ -154,6 +154,7 @@ MA 02110-1301, USA.
 	NSArray				*arguments = nil;
 	NSEnumerator		*argEnum = nil;
 	NSString			*arg = nil;
+	BOOL				noSplashArgFound = NO;
 
 	arguments = [[NSProcessInfo processInfo] arguments];
 
@@ -164,9 +165,9 @@ MA 02110-1301, USA.
 		if ([arg isEqual:@"-nosplash"] || [arg isEqual:@"--nosplash"])
 		{
 			showSplashScreen = NO;
-			continue;	// -nosplash always trumps -splash
+			noSplashArgFound = YES;	// -nosplash always trumps -splash
 		}
-		else if ([arg isEqual:@"-splash"] || [arg isEqual:@"--splash"])
+		else if (([arg isEqual:@"-splash"] || [arg isEqual:@"--splash"]) && !noSplashArgFound)
 		{
 			showSplashScreen = YES;
 		}
