@@ -4918,7 +4918,10 @@ static GLfloat		sBaseMass = 0.0;
 					else if ([self primaryTarget] != nil)
 					{
 						// never inherit target if we have EQ_MULTI_TARGET installed! [ Bug #16221 : Targeting enhancement regression ]
-						if([self hasEquipmentItem:@"EQ_MULTI_TARGET"])
+						/* CIM: seems okay to do this when launching a
+						 * missile to stop multi-target being a bit
+						 * irritating in a fight - 20/8/2014 */
+						if([self hasEquipmentItem:@"EQ_MULTI_TARGET"] && !launchingMissile)
 						{
 							[self noteLostTarget];
 							DESTROY(_primaryTarget);
@@ -10051,7 +10054,7 @@ static NSString *last_outfitting_key=nil;
 		[self tidyMissilePylons];
 		
 		// This should be the currently selected missile, deselect it.
-		if (pylon >= activeMissile)
+		if (pylon <= activeMissile)
 		{
 			if (activeMissile == missiles && missiles > 0) activeMissile--;
 			if (activeMissile > 0) activeMissile--;
