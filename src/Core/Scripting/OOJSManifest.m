@@ -200,6 +200,7 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 	}
 	
 	// EMMSTRAN: use NSMapTable. -- Ahruman 2011-02-10
+	DESTROY(sManifestNameMap);
 	sManifestNameMap = [[NSMutableDictionary alloc] initWithDictionary:manifestNameMap];
 }
 

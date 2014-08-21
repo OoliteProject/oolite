@@ -92,7 +92,8 @@ typedef struct OOSoundSourcePoolElement
 	{
 		[_sources[i].source release];
 	}
-	
+	free(_sources);
+
 	[_lastKey release];
 	
 	[super dealloc];

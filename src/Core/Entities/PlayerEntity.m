@@ -1172,6 +1172,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self initialiseMissionDestinations:newDestinations andLegacy:legacyDestinations];
 	
 	// shipyard
+	DESTROY(shipyard_record);
 	shipyard_record = [[dict oo_dictionaryForKey:@"shipyard_record"] mutableCopy];
 	if (shipyard_record == nil)  shipyard_record = [[NSMutableDictionary alloc] init];
 	
@@ -1539,6 +1540,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	target_memory_index = 0;
 	
+	DESTROY(dockingReport);
 	dockingReport = [[NSMutableString alloc] init];
 	[hud resetGuis:[NSDictionary dictionaryWithObjectsAndKeys:[NSDictionary dictionaryWithObjectsAndKeys:nil], @"message_gui",
 														[NSDictionary dictionaryWithObjectsAndKeys:nil], @"comm_log_gui", nil]];
@@ -1680,13 +1682,16 @@ static GLfloat		sBaseMass = 0.0;
 	[reputation oo_setInteger:0 forKey:PARCEL_BAD_KEY];
 	[reputation oo_setInteger:MAX_CONTRACT_REP forKey:PARCEL_UNKNOWN_KEY];
 	
+	DESTROY(roleWeights);
 	roleWeights = [[NSMutableArray alloc] initWithCapacity:8];
 	for (i = 0 ; i < 8 ; i++)
 	{
 		[roleWeights addObject:@"player-unknown"];
 	}
+	DESTROY(roleWeightFlags);
 	roleWeightFlags = [[NSMutableDictionary alloc] init];
 
+	DESTROY(roleSystemList);
 	roleSystemList = [[NSMutableArray alloc] initWithCapacity:32];
 
 	energy					= 256;
@@ -1793,6 +1798,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	max_cargo				= 20; // will be reset later
 	
+	DESTROY(shipCommodityData);
 	shipCommodityData = [[[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] objectForKey:@"default"] retain];
 	
 	// set up missiles
@@ -2029,6 +2035,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(_fastEquipmentA);
 	DESTROY(_fastEquipmentB);
 
+	DESTROY(eqScripts);
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
 	DESTROY(mission_variables);

@@ -35,6 +35,7 @@ SOFTWARE.
 {
 	free(_buffer);
 	_buffer = NULL;
+	DESTROY(_name);
 	
 	[super dealloc];
 }

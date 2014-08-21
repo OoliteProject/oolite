@@ -134,6 +134,9 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 {
 	if (sSingleton != nil)
 	{
+		/* CIM: 'release' doesn't work - the class definition
+		 * overrides it, so this leaks memory. Needs a proper reset
+		 * method for reloading the ship registry data instead */
 		[sSingleton release];
 		sSingleton = nil;
 		

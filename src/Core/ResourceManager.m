@@ -259,6 +259,7 @@ static NSMutableDictionary *sStringCache;
 	}
 	
 	// validate default search paths
+	DESTROY(sSearchPaths);
 	sSearchPaths = [NSMutableArray new];
 	foreach(path, existingRootPaths)
 	{

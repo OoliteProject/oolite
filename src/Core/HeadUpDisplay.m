@@ -307,11 +307,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) dealloc
 {
 	DESTROY(legendArray);
-	DESTROY(dialArray);
+	DESTROY(dialArray);	
+	DESTROY(mfdArray);
 	DESTROY(hudName);
 	DESTROY(deferredHudName);
 	DESTROY(propertiesReticleTargetSensitive);
 	DESTROY(_crosshairOverrides);
+	DESTROY(_crosshairColor);
 	DESTROY(crosshairDefinition);
 	DESTROY(_hiddenSelectors);
 
