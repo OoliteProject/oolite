@@ -125,6 +125,7 @@ enum
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
+	kPlayerShip_multiFunctionDisplayList,		// active mfd list, array, read-only
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
@@ -179,6 +180,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
 	{ "missilesOnline",      kPlayerShip_missilesOnline,      OOJS_PROP_READONLY_CB },
 	{ "multiFunctionDisplays",     		kPlayerShip_multiFunctionDisplays,      OOJS_PROP_READONLY_CB },
+	{ "multiFunctionDisplayList",  		kPlayerShip_multiFunctionDisplayList,      OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
 	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
@@ -377,6 +379,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_multiFunctionDisplays:
 			return JS_NewNumberValue(context, [[player hud] mfdCount], value);
+
+		case kPlayerShip_multiFunctionDisplayList:
+			result = [player multiFunctionDisplayList];
+			break;
 
 		case kPlayerShip_missilesOnline:
 			*value = OOJSValueFromBOOL(![player dialIdentEngaged]);

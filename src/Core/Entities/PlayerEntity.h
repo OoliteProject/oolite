@@ -727,6 +727,7 @@ typedef enum
 - (BOOL) switchHudTo:(NSString *)hudFileName;
 - (void) resetHud;
 
+- (NSArray *) multiFunctionDisplayList;
 - (NSString *) multiFunctionText:(NSUInteger) index;
 - (void) setMultiFunctionText:(NSString *)text forKey:(NSString *)key;
 - (BOOL) setMultiFunctionDisplay:(NSUInteger) index toKey:(NSString *)key;

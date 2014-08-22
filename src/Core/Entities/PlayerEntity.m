@@ -4743,6 +4743,12 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+- (NSArray *) multiFunctionDisplayList
+{
+	return multiFunctionDisplaySettings;
+}
+
+
 - (NSString *) multiFunctionText:(NSUInteger)i
 {
 	NSString *key = [multiFunctionDisplaySettings oo_stringAtIndex:i defaultValue:nil];
