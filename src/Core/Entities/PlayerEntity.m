@@ -5261,7 +5261,7 @@ static GLfloat		sBaseMass = 0.0;
 	double since = [UNIVERSE getTime] - last_ecm_time;
 	if (since < SCANNER_ECM_FUZZINESS)
 	{
-		fuzz += (SCANNER_ECM_FUZZINESS - since) * (SCANNER_ECM_FUZZINESS - since) * 1000.0;
+		fuzz += (SCANNER_ECM_FUZZINESS - since) * (SCANNER_ECM_FUZZINESS - since) * 500.0;
 	}
 	/* Other causes could go here */
 	
