@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "HeadUpDisplay.h"
+#import "GameController.h"
 #import "ResourceManager.h"
 #import "PlayerEntity.h"
 #import "OOSunEntity.h"
@@ -1193,7 +1194,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				relativePosition = [PLAYER vectorTo:scannedEntity];
 				double fuzz = [PLAYER scannerFuzziness];
-				if (fuzz > 0)
+				if (fuzz > 0 && ![[UNIVERSE gameController] isGamePaused])
 				{
 					relativePosition = vector_add(relativePosition,OOVectorRandomRadial(fuzz));
 				}

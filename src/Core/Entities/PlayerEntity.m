@@ -1793,6 +1793,7 @@ static GLfloat		sBaseMass = 0.0;
 	weapons_online			= YES;
 	
 	ecm_in_operation = NO;
+	last_ecm_time = [UNIVERSE getTime];
 	compassMode = COMPASS_MODE_BASIC;
 	ident_engaged = NO;
 	
