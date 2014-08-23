@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOStringExpander.h"
 
+
 @implementation OOCommodityMarket
 
 - (id) init
@@ -34,7 +35,8 @@ MA 02110-1301, USA.
 	self = [super init];
 	if (self == nil)  return nil;
 
-	_commodityList = [NSMutableDictionary dictionaryWithCapacity:24];
+	_commodityList = [[NSMutableDictionary dictionaryWithCapacity:24] retain];
+
 	return self;
 }
 

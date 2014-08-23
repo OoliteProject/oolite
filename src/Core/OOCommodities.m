@@ -124,9 +124,9 @@ MA 02110-1301, USA.
 {
 	float bias = [self economicBiasForGood:good inEconomy:economy];
 
-	float base = [good oo_floatForKey:kOOCommodityQuantityAverage];
-	float econ = base * [good oo_floatForKey:kOOCommodityQuantityEconomic] * -bias;
-	float random = base * [good oo_floatForKey:kOOCommodityQuantityRandom] * (randf() - randf());
+	float base = [good oo_floatForKey:kOOCommodityPriceAverage];
+	float econ = base * [good oo_floatForKey:kOOCommodityPriceEconomic] * -bias;
+	float random = base * [good oo_floatForKey:kOOCommodityPriceRandom] * (randf() - randf());
 	base += econ + random;
 	if (base < 0.0)
 	{
