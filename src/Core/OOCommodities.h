@@ -27,6 +27,9 @@ MA 02110-1301, USA.
 #import "OOCommodityMarket.h"
 #import "OOTypes.h"
 
+
+#define MAIN_SYSTEM_MARKET_LIMIT  127
+
 // keys in trade-goods.plist
 static NSString * const kOOCommodityName			= @"name";
 #if 0

@@ -1,0 +1,262 @@
+{
+/* Strictly, commodity names should be prefixed oolite-, but for
+ * compatibility with older OXPs, keep the older names */
+	"food" = {
+		"name" = "[commodity-name food]";
+		"container" = 0;  // 0=t
+		"peak_export" = 7; // Poor Ag
+		"peak_import" = 0; // Rich Ind
+		"price_average" = 50; // decicredits
+		// fraction of average ~= 2.75 credits
+		"price_economic_component" = 0.55;
+		// fraction of average ~= 0.2 credits
+		"price_random_component" = 0.04;
+		"quantity_average" = 13.5; // gets rounded
+		"quantity_economic_component" = 0.52;
+		"quantity_random_component" = 0.04;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"textiles" = {
+		"name" = "[commodity-name textiles]";
+		"container" = 0;  
+		"peak_export" = 7; 
+		"peak_import" = 0; 
+		"price_average" = 71;
+		"price_economic_component" = 0.18;
+		"price_random_component" = 0.09;
+		"quantity_average" = 15; 
+		"quantity_economic_component" = 0.23;
+		"quantity_random_component" = 0.1;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"radioactives" = {
+		"name" = "[commodity-name radioactives]";
+		"container" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 231;
+		"price_economic_component" = 0.19;
+		"price_random_component" = 0.06;
+		"quantity_average" = 16; 
+		"quantity_economic_component" = 0.66;
+		"quantity_random_component" = 0.09;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"slaves" = {
+		"name" = "[commodity-name slaves]";
+		"container" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 152;
+		"price_economic_component" = 0.45;
+		"price_random_component" = 0.40;
+		"quantity_average" = 9.75; 
+		"quantity_economic_component" = 1.10;
+		"quantity_random_component" = 1.59;
+		"export_legality" = 1;
+		"import_legality" = 0;
+	};
+
+	"liquor_wines" = {
+		"name" = "[commodity-name liquor_wines]";
+		"container" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 291;
+		"price_economic_component" = 0.24;
+		"price_random_component" = 0.05;
+		"quantity_average" = 20; 
+		"quantity_economic_component" = 0.88;
+		"quantity_random_component" = 0.38;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"luxuries" = {
+		"name" = "[commodity-name luxuries]";
+		"container" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 902;
+		"price_economic_component" = 0.12;
+		"price_random_component" = 0.01;
+		"quantity_average" = 27.5; 
+		"quantity_economic_component" = 1.02;
+		"quantity_random_component" = 0.05;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"narcotics" = {
+		"name" = "[commodity-name narcotics]";
+		"container" = 0;
+		"peak_export" = 0;
+		"peak_import" = 0;
+		"price_average" = 512;
+		"price_economic_component" = 0;
+		"price_random_component" = 1.0;
+		"quantity_average" = 32; 
+		"quantity_economic_component" = 0;
+		"quantity_random_component" = 1.0;
+		"export_legality" = 2;
+		"import_legality" = 0;
+	};
+
+	"computers" = {
+		"name" = "[commodity-name computers]";
+		"container" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 818;
+		"price_economic_component" = 0.24;
+		"price_random_component" = 0.01;
+		"quantity_average" = 8.5; 
+		"quantity_economic_component" = 5.77;
+		"quantity_random_component" = 0.17;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"machinery" = {
+		"name" = "[commodity-name machinery]";
+		"container" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 560;
+		"price_economic_component" = 0.14;
+		"price_random_component" = 0.03;
+		"quantity_average" = 22.5;
+		"quantity_economic_component" = 0.93;
+		"quantity_random_component" = 0.16;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"alloys" = {
+		"name" = "[commodity-name alloys]";
+		"container" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 388;
+		"price_economic_component" = 0.03;
+		"price_random_component" = 0.16;
+		"quantity_average" = 29;
+		"quantity_economic_component" = 0.12;
+		"quantity_random_component" = 0.53;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"firearms" = {
+		"name" = "[commodity-name firearms]";
+		"container" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 692;
+		"price_economic_component" = 0.26;
+		"price_random_component" = 0.02;
+		"quantity_average" = 1;
+		"quantity_economic_component" = 32.5;
+		"quantity_random_component" = 3.5;
+		"export_legality" = 1;
+		"import_legality" = 0;
+	};
+
+	"furs" = {
+		"name" = "[commodity-name furs]";
+		"container" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 704;
+		"price_economic_component" = 0.18;
+		"price_random_component" = 0.18;
+		"quantity_average" = 27.5;
+		"quantity_economic_component" = 1.15;
+		"quantity_random_component" = 1.15;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"minerals" = {
+		"name" = "[commodity-name minerals]";
+		"container" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 120;
+		"price_economic_component" = 0.11;
+		"price_random_component" = 0.05;
+		"quantity_average" = 58;
+		"quantity_economic_component" = 0.06;
+		"quantity_random_component" = 0.03;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"gold" = {
+		"name" = "[commodity-name gold]";
+		"container" = 1; // kg
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 388;
+		"price_economic_component" = 0.11;
+		"price_random_component" = 0.05;
+		"quantity_average" = 9;
+		"quantity_economic_component" = 0.39;
+		"quantity_random_component" = 0.39;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"platinum" = {
+		"name" = "[commodity-name platinum]";
+		"container" = 1; // kg
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 718;
+		"price_economic_component" = 0.04;
+		"price_random_component" = 0.09;
+		"quantity_average" = 13.5;
+		"quantity_economic_component" = 0.52;
+		"quantity_random_component" = 1.15;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"gem_stones" = {
+		"name" = "[commodity-name gem_stones]";
+		"container" = 2; // g
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 196;
+		"price_economic_component" = 0.07;
+		"price_random_component" = 0.15;
+		"quantity_average" = 6.75;
+		"quantity_economic_component" = 0.26;
+		"quantity_random_component" = 1.11;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+	"alien_items" = {
+		"name" = "[commodity-name alien_items]";
+		"container" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 436;
+		"price_economic_component" = 0.03;
+		"price_random_component" = 0.15;
+		"quantity_average" = 0;
+		"quantity_economic_component" = 0;
+		"quantity_random_component" = 0;
+		"export_legality" = 0;
+		"import_legality" = 0;
+	};
+
+
+}

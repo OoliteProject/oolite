@@ -84,6 +84,11 @@ MA 02110-1301, USA.
 	{
 		good = [_commodityLists oo_dictionaryForKey:commodity];
 		OOCargoQuantity q = [self generateQuantityForGood:good inEconomy:economy];
+		// main system market limited to 127 units of each item
+		if (q > MAIN_SYSTEM_MARKET_LIMIT)
+		{
+			q = MAIN_SYSTEM_MARKET_LIMIT;
+		}
 		OOCreditsQuantity p = [self generatePriceForGood:good inEconomy:economy];
 		[market setGood:commodity toPrice:p andQuantity:q withInfo:good];
 	}
@@ -120,7 +125,7 @@ MA 02110-1301, USA.
 	float bias = [self economicBiasForGood:good inEconomy:economy];
 
 	float base = [good oo_floatForKey:kOOCommodityQuantityAverage];
-	float econ = base * [good oo_floatForKey:kOOCommodityQuantityEconomic] * bias;
+	float econ = base * [good oo_floatForKey:kOOCommodityQuantityEconomic] * -bias;
 	float random = base * [good oo_floatForKey:kOOCommodityQuantityRandom] * (randf() - randf());
 	base += econ + random;
 	if (base < 0.0)
@@ -140,9 +145,10 @@ MA 02110-1301, USA.
 	OOEconomyID exporter = [good oo_intForKey:kOOCommodityPeakExport];
 	OOEconomyID importer = [good oo_intForKey:kOOCommodityPeakImport];
 	
+	// *2 and /2 to work in ints at this stage
 	int exDiff = abs(economy-exporter)*2;
 	int imDiff = abs(economy-importer)*2;
-	int distance = abs(exporter-importer);
+	int distance = (exDiff+imDiff)/2;
 
 	if (exDiff == imDiff)
 	{
@@ -152,12 +158,12 @@ MA 02110-1301, USA.
 	else if (exDiff > imDiff)
 	{
 		// closer to the importer, so return -ve
-		return -((float)imDiff/(float)distance);
+		return -(1.0-((float)imDiff/(float)distance));
 	}
 	else
 	{
-		// closer to the exporter, so return -ve
-		return ((float)exDiff/(float)distance);
+		// closer to the exporter, so return +ve
+		return 1.0-((float)exDiff/(float)distance);
 	}
 }
 
