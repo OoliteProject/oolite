@@ -1827,6 +1827,7 @@
 							);
 	
 	// Commodity names
+	"oolite-unknown-commodity-name" = "Unknown Commodity";
 	"commodity-name food"			= "Food";
 	"commodity-name textiles"		= "Textiles";
 	"commodity-name radioactives"	= "Radioactives";

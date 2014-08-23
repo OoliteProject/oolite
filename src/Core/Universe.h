@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOJSPropID.h"
 #import "OOStellarBody.h"
 #import "OOEntityWithDrawable.h"
+#import "OOCommodities.h"
 
 
 #if OOLITE_ESPEAK
@@ -240,6 +241,8 @@ enum
 	
 	BOOL					dumpCollisionInfo;
 	
+	OOCommodities			*commodities;
+
 	NSDictionary			*commodityLists;		// holds data on commodities for various types of station, loaded at initialisation
 	NSArray					*commodityData;			// holds data on commodities extracted from commodityLists
 	

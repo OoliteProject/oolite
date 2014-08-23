@@ -423,6 +423,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[entities release];
 	
+	[commodities release];
 	[commodityLists release];
 	[commodityData release];
 	
@@ -10054,6 +10055,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 #endif
 	
+	[commodities autorelease];
+	commodities = [[OOCommodities alloc] init];
+
+
 	[commodityLists autorelease];
 	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	

@@ -168,6 +168,7 @@ SOFTWARE.
 - (NSArray *) oo_arrayForKey:(id)key defaultValue:(NSArray *)value;
 - (NSSet *) oo_setForKey:(id)key defaultValue:(NSSet *)value;
 - (NSDictionary *) oo_dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
+- (NSMutableDictionary *) oo_mutableDictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 - (NSData *) oo_dataForKey:(id)key defaultValue:(NSData *)value;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
@@ -211,6 +212,7 @@ SOFTWARE.
 - (NSArray *) oo_arrayForKey:(id)key;
 - (NSSet *) oo_setForKey:(id)key;
 - (NSDictionary *) oo_dictionaryForKey:(id)key;
+- (NSMutableDictionary *) oo_mutableDictionaryForKey:(id)key;
 - (NSData *) oo_dataForKey:(id)key;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
