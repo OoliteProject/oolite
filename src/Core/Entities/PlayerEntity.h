@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "OOTypes.h"
 #import "OOJSPropID.h"
-
+#import "OOCommodityMarket.h"
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
@@ -443,7 +443,7 @@ typedef enum
 	OOCreditsQuantity		credits;	
 	OOGalaxyID				galaxy_number;
 	
-	NSArray					*shipCommodityData;
+	OOCommodityMarket		*shipCommodityData;
 	
 	ShipEntity				*missile_entity[PLAYER_MAX_MISSILES];	// holds the actual missile entities or equivalents
 	OOUniversalID			_dockTarget;	// used by the escape pod code
@@ -672,11 +672,11 @@ typedef enum
 
 - (void) unloadCargoPods;
 - (void) loadCargoPods;
-- (void) unloadAllCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
+- (void) unloadAllCargoPodsForType:(OOCommodityType)type toManifest:(OOCommodityMarket *) manifest;
 - (void) unloadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
-- (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
+- (void) loadCargoPodsForType:(OOCommodityType)type fromManifest:(OOCommodityMarket *) manifest;
 - (void) loadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
-- (NSArray *) shipCommodityData;
+- (OOCommodityMarket *) shipCommodityData;
 
 - (OOCreditsQuantity) deciCredits;
 
@@ -919,7 +919,6 @@ typedef enum
 
 - (void) buySelectedItem;
 
-- (BOOL) marketFlooded:(OOCommodityType)type;
 - (BOOL) tryBuyingCommodity:(OOCommodityType)type all:(BOOL)all;
 - (BOOL) trySellingCommodity:(OOCommodityType)type all:(BOOL)all;
 

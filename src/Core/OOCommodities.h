@@ -61,7 +61,16 @@ static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 
 }
 
++ (OOCommodityType) legacyCommodityType:(NSUInteger)i;
+
+- (OOCommodityMarket *) generateManifestForPlayer;
+- (OOCommodityMarket *) generateBlankMarket;
 - (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy;
+
+
+- (BOOL) goodDefined:(NSString *)key;
+- (NSString *) getRandomCommodity;
+- (OOMassUnit) massUnitForGood:(NSString *)good;
 
 
 

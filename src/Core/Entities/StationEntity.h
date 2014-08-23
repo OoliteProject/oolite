@@ -106,7 +106,7 @@ typedef enum
 							hasBreakPattern: 1;
 }
 
-- (NSMutableArray *) localMarket;
+- (OOCommodityMarket *) localMarket;
 - (void) setLocalMarket:(NSArray *)market;
 - (NSDictionary *) localMarketForScripting;
 - (void) setPrice:(NSUInteger) price forCommodity:(OOCommodityType) commodity;
@@ -121,7 +121,8 @@ typedef enum
 - (NSMutableDictionary *) localInterfaces;
 - (void) setInterfaceDefinition:(OOJSInterfaceDefinition *)definition forKey:(NSString *)key;
 
-- (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int)random_factor;
+- (OOCommodityMarket *) initialiseLocalMarket;
+// TRADE_GOODS FIXME probably need to re-type this one too
 - (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed)seed andRandomFactor:(int)random_factor;
 
 - (OOTechLevelID) equivalentTechLevel;

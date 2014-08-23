@@ -40,6 +40,52 @@ MA 02110-1301, USA.
 
 @implementation OOCommodities
 
+/* Older save games store some commodity information by its old index. */
++ (OOCommodityType) legacyCommodityType:(NSUInteger)i
+{
+	switch (i)
+	{
+	case 0:
+		return @"food";
+	case 1:
+		return @"textiles";
+	case 2:
+		return @"radioactives";
+	case 3:
+		return @"slaves";
+	case 4:
+		return @"liquor_wines";
+	case 5:
+		return @"luxuries";
+	case 6:
+		return @"narcotics";
+	case 7:
+		return @"computers";
+	case 8:
+		return @"machinery";
+	case 9:
+		return @"alloys";
+	case 10:
+		return @"firearms";
+	case 11:
+		return @"furs";
+	case 12:
+		return @"minerals";
+	case 13:
+		return @"gold";
+	case 14:
+		return @"platinum";
+	case 15:
+		return @"gem_stones";
+	case 16:
+		return @"alien_items";
+	}
+	// shouldn't happen
+	return @"food";
+}
+
+
+
 - (id) init
 {
 	self = [super init];
@@ -74,6 +120,27 @@ MA 02110-1301, USA.
 }
 
 
+- (OOCommodityMarket *) generateManifestForPlayer
+{
+	return [self generateBlankMarket];
+}
+
+
+- (OOCommodityMarket *) generateBlankMarket
+{
+	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
+
+	NSString *commodity = nil;
+	NSDictionary *good = nil;
+	foreachkey (commodity, _commodityLists)
+	{
+		good = [_commodityLists oo_dictionaryForKey:commodity];
+		[market setGood:commodity toPrice:0 andQuantity:0 withInfo:good];
+	}
+	return [market autorelease];
+}
+
+
 - (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy
 {
 	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
@@ -96,7 +163,29 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL) goodDefined:(NSString *)key
+{
+	return ([_commodityLists oo_dictionaryForKey:key] != nil);
+}
 
+
+- (NSString *) getRandomCommodity
+{
+	NSArray *keys = [_commodityLists allKeys];
+	NSUInteger idx = Ranrot() % [keys count];
+	return [keys oo_stringAtIndex:idx];
+}
+
+
+- (OOMassUnit) massUnitForGood:(NSString *)good
+{
+	NSDictionary *definition = [_commodityLists oo_dictionaryForKey:good];
+	if (definition == nil)
+	{
+		return UNITS_TONS;
+	}
+	return [definition oo_unsignedIntegerForKey:kOOCommodityContainer];
+}
 
 
 

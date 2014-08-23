@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 	if (self == nil)  return nil;
 
 	_commodityList = [[NSMutableDictionary dictionaryWithCapacity:24] retain];
+	_capacity = MAIN_SYSTEM_MARKET_LIMIT;
 
 	return self;
 }
@@ -46,6 +47,18 @@ MA 02110-1301, USA.
 	DESTROY(_commodityList);
 
 	[super dealloc];
+}
+
+
+- (OOCargoQuantity) capacity
+{
+	return _capacity;
+}
+
+
+- (NSUInteger) count
+{
+	return [_commodityList count];
 }
 
 
@@ -61,6 +74,7 @@ MA 02110-1301, USA.
 
 - (NSArray *) goods
 {
+	// TODO: sort this in the traditional order
 	return [_commodityList allKeys];
 }
 
@@ -87,6 +101,31 @@ MA 02110-1301, USA.
 	[definition oo_setUnsignedInteger:quantity forKey:kOOCommodityQuantityCurrent];
 	return YES;
 }
+
+
+- (BOOL) addQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good
+{
+	OOCargoQuantity current = [self quantityForGood:good];
+	if (current + quantity > _capacity)
+	{
+		return NO;
+	}
+	[self setQuantity:(current+quantity) forGood:good];
+	return YES;
+}
+
+
+- (BOOL) removeQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good
+{
+	OOCargoQuantity current = [self quantityForGood:good];
+	if (current < quantity)
+	{
+		return NO;
+	}
+	[self setQuantity:(current-quantity) forGood:good];
+	return YES;
+}
+
 
 
 - (NSString *) nameForGood:(NSString *)good
@@ -154,5 +193,70 @@ MA 02110-1301, USA.
 	return [definition oo_unsignedIntegerForKey:kOOCommodityLegalityImport];
 }
 
+
+- (NSDictionary *) definitionForGood:(NSString *)good
+{
+	return [_commodityList oo_dictionaryForKey:good];
+}
+
+
+
+- (NSArray *) savePlayerAmounts
+{
+	NSMutableArray *amounts = [NSMutableArray arrayWithCapacity:[self count]];
+	NSString *good = nil;
+	foreach (good, [self goods])
+	{
+		[amounts addObject:[NSArray arrayWithObjects:[self nameForGood:good],[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],nil]];
+	}
+	return [NSArray arrayWithArray:amounts];
+}
+
+
+- (void) loadPlayerAmounts:(NSArray *)amounts
+{
+	OOCargoQuantity q;
+	BOOL 			loadedOK;
+	NSString 		*good = nil;
+	foreach (good, [self goods])
+	{
+		// make sure that any goods not defined in the save game are zeroed
+		[self setQuantity:0 forGood:good];
+	}
+
+
+	NSArray *loaded = nil;
+	foreach (loaded, amounts)
+	{
+		loadedOK = NO;
+		good = [loaded oo_stringAtIndex:0];
+		q = [loaded oo_unsignedIntegerAtIndex:1];
+		// old save games might have more in the array, but we don't care
+		if (![self setQuantity:q forGood:good])
+		{
+			// then it's an array from a 1.80-or-earlier save game and
+			// the good name is the description string (maybe a
+			// translated one)
+			NSString *key = nil;
+			foreach (key, [self goods])
+			{
+				if ([good isEqualToString:[self nameForGood:key]])
+				{
+					[self setQuantity:q forGood:key];
+					loadedOK = YES;
+					break;
+				}
+			}
+		}
+		else
+		{
+			loadedOK = YES;
+		}
+		if (!loadedOK)
+		{
+			OOLog(@"setCommanderDataFromDictionary.warning.cargo",@"Cargo %@ (%u units) could not be loaded from the saved game, as it is no longer defined",good,q);
+		}
+	}
+}
 
 @end
