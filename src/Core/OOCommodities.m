@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCommodities.h"
+#import "OOCommodityMarket.h"
 
 #import "ResourceManager.h"
 #import "legacy_random.h"
@@ -160,6 +161,18 @@ MA 02110-1301, USA.
 		[market setGood:commodity toPrice:p andQuantity:q withInfo:good];
 	}
 	return [market autorelease];
+}
+
+
+- (NSUInteger) count
+{
+	return [_commodityLists count];
+}
+
+
+- (NSArray *) goods
+{
+	return [_commodityLists allKeys];
 }
 
 

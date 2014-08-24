@@ -144,7 +144,7 @@ static unsigned RepForRisk(unsigned risk);
 		else
 		{
 			// sell as slave - increase no. of slaves in manifest
-			[self awardCargo:@"1 Slaves"];
+			[shipCommodityData addQuantity:1 forGood:@"slaves"];
 		}
 		if ((i < [rescuees count] - 1) && added_entry)
 			[result appendString:@"\n"];
@@ -293,20 +293,18 @@ static unsigned RepForRisk(unsigned risk);
 		NSString* contract_cargo_desc = [contract_info oo_stringForKey:CARGO_KEY_DESCRIPTION];
 		int dest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
-	
-		// no longer needed
-		// int premium = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_PREMIUM];
-		int fee = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_FEE];
-		
-		int contract_cargo_type = [contract_info oo_intForKey:CARGO_KEY_TYPE];
-		int contract_amount = [contract_info oo_intForKey:CARGO_KEY_AMOUNT];
-		
-		NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:contract_cargo_type]];
-		int quantity_on_hand =  [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
 		
 		if (equal_seeds(system_seed, [UNIVERSE systemSeedForSystemNumber:dest]))
 		{
+			// no longer needed
+			// int premium = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_PREMIUM];
+			int fee = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_FEE];
+			
+			OOCommodityType contract_cargo_type = [contract_info oo_stringForKey:CARGO_KEY_TYPE];
+			int contract_amount = [contract_info oo_intForKey:CARGO_KEY_AMOUNT];
+			
+			int quantity_on_hand =  [shipCommodityData quantityForGood:contract_cargo_type];
+
 			// we've arrived in system!
 			if (dest_eta > 0)
 			{
@@ -316,18 +314,14 @@ static unsigned RepForRisk(unsigned risk);
 					// with the goods too!
 					
 					// remove the goods...
-					quantity_on_hand -= contract_amount;
-					[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:quantity_on_hand]];
-					[manifest replaceObjectAtIndex:contract_cargo_type withObject:commodityInfo];
-					if (shipCommodityData)
-						[shipCommodityData release];
-					shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+					[shipCommodityData removeQuantity:contract_amount forGood:contract_cargo_type];
+
 					// pay the premium and fee
 					// credits += fee + premium;
 					// not any more: all contracts initially awarded by JS, so fee
 					// is now all that needs to be paid - CIM
 
-					if ([UNIVERSE legalStatusOfCommodity:[commodityInfo objectAtIndex:MARKET_NAME]] > 0)
+					if ([shipCommodityData exportLegalityForGood:contract_cargo_type] > 0)
 					{
 						[self addRoleToPlayer:@"trader-smuggler"];
 					}
@@ -354,16 +348,14 @@ static unsigned RepForRisk(unsigned risk);
 					if (percent_delivered >= acceptable_ratio)
 					{
 						// remove the goods...
-						[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-						[manifest replaceObjectAtIndex:contract_cargo_type withObject:commodityInfo];
-						[shipCommodityData release];
-						shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+						[shipCommodityData setQuantity:0 forGood:contract_cargo_type];
+
 						// pay the fee
 						int shortfall = 100 - percent_delivered;
 						int payment = percent_delivered * (fee) / 100.0;
 						credits += payment;
 						
-						if ([UNIVERSE legalStatusOfCommodity:[commodityInfo objectAtIndex:MARKET_NAME]] > 0)
+						if ([shipCommodityData exportLegalityForGood:contract_cargo_type] > 0)
 						{
 							[self addRoleToPlayer:@"trader-smuggler"];
 						}
@@ -932,16 +924,16 @@ for (unsigned i=0;i<amount;i++)
 }
 
 
-- (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start
+- (BOOL) awardContract:(unsigned)qty commodity:(OOCommodityType)type start:(unsigned)start
 					 destination:(unsigned)Destination eta:(double)eta fee:(double)fee premium:(double)premium
 {
-	OOCommodityType	type = [UNIVERSE commodityForName: commodity];
+
 	Random_Seed		r_seed = [UNIVERSE marketSeed];
 	int				sr1 = r_seed.a * 0x10000 + r_seed.c * 0x100 + r_seed.e;
 	int				sr2 = r_seed.b * 0x10000 + r_seed.d * 0x100 + r_seed.f;
 	NSString		*cargo_ID =[NSString stringWithFormat:@"%06x-%06x", sr1, sr2];
 	
-	if (type == COMMODITY_UNDEFINED)  return NO;
+	if (![[UNIVERSE commodities] goodDefined:type])  return NO;
 	if (qty < 1)  return NO;
 	
 	// avoid duplicate cargo_IDs
@@ -953,7 +945,7 @@ for (unsigned i=0;i<amount;i++)
 
 	NSDictionary* cargo_info = [NSDictionary dictionaryWithObjectsAndKeys:
 		cargo_ID,										CARGO_KEY_ID,
-		[NSNumber numberWithInteger:type],				CARGO_KEY_TYPE,
+		type,											CARGO_KEY_TYPE,
 		[NSNumber numberWithInt:qty],					CARGO_KEY_AMOUNT,
 		[UNIVERSE describeCommodity:type amount:qty],	CARGO_KEY_DESCRIPTION,
 		[NSNumber numberWithInt:start],					CONTRACT_KEY_START,
@@ -967,25 +959,18 @@ for (unsigned i=0;i<amount;i++)
 	// check available space
 	
 	OOCargoQuantity		cargoSpaceRequired = qty;
-	OOMassUnit			contractCargoUnits	= [UNIVERSE unitsForCommodity:type];
+	OOMassUnit			contractCargoUnits	= [shipCommodityData massUnitForGood:type];
 	
 	if (contractCargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired /= 1000;
 	if (contractCargoUnits == UNITS_GRAMS)  cargoSpaceRequired /= 1000000;
 	
 	if (cargoSpaceRequired > [self availableCargoSpace]) return NO;
-	
-	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
-	qty += [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
-	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:qty]];
-	[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
 
-	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+	[shipCommodityData addQuantity:qty forGood:type];
 
 	current_cargo = [self cargoQuantityOnBoard];
 
-	if ([UNIVERSE legalStatusOfCommodity:[manifest_commodity objectAtIndex:MARKET_NAME]] > 0)
+	if ([shipCommodityData exportLegalityForGood:type] > 0)
 	{
 		[self addRoleToPlayer:@"trader-smuggler"];
 		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-illegal"];
@@ -1003,13 +988,11 @@ for (unsigned i=0;i<amount;i++)
 }
 
 
-- (BOOL) removeContract:(NSString*)commodity destination:(unsigned)dest	// removes the first match found, returns NO if none found
+- (BOOL) removeContract:(OOCommodityType)type destination:(unsigned)dest	// removes the first match found, returns NO if none found
 {
 	if ([contracts count] == 0 || dest > 255)  return NO;
 
-	OOCommodityType	findType = [UNIVERSE commodityForName: commodity];
-
-	if (findType == COMMODITY_UNDEFINED)  return NO;
+	if (![[UNIVERSE commodities] goodDefined:type])  return NO;
 	
 	unsigned			i;
 	
@@ -1017,9 +1000,9 @@ for (unsigned i=0;i<amount;i++)
 	{
 		NSDictionary		*contractInfo = [contracts oo_dictionaryAtIndex:i];
 		unsigned 			cargoDest = [contractInfo oo_intForKey:CONTRACT_KEY_DESTINATION];
-		OOCommodityType		cargoType = [contractInfo oo_intForKey:CARGO_KEY_TYPE];
+		OOCommodityType		cargoType = [contractInfo oo_stringForKey:CARGO_KEY_TYPE];
 		
-		if (cargoType == findType && cargoDest == dest)
+		if ([cargoType isEqualToString:type] && cargoDest == dest)
 		{
 			[contract_record removeObjectForKey:[contractInfo oo_stringForKey:CARGO_KEY_ID]];
 			[contracts removeObjectAtIndex:i];
@@ -1030,118 +1013,7 @@ for (unsigned i=0;i<amount;i++)
 	return NO;
 }
 
-/*
-- (BOOL) pickFromGuiContractsScreen
-{
-	GuiDisplayGen* gui = [UNIVERSE gui];
-	
-	NSMutableArray* passenger_market = [[UNIVERSE station] localPassengers];
-	NSMutableArray* contract_market = [[UNIVERSE station] localContracts];
-	
-	if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < GUI_ROW_CARGO_START))
-	{
-		NSDictionary* passenger_info = (NSDictionary*)[passenger_market objectAtIndex:[gui selectedRow] - GUI_ROW_PASSENGERS_START];
-		NSString* passenger_name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
-		NSNumber* passenger_arrival_time = (NSNumber*)[passenger_info objectForKey:CONTRACT_KEY_ARRIVAL_TIME];
-		int passenger_premium = [passenger_info oo_intForKey:CONTRACT_KEY_PREMIUM];
-		if ([passengers count] >= max_passengers)
-			return NO;
-		[passengers addObject:passenger_info];
-		[passenger_record setObject:passenger_arrival_time forKey:passenger_name];
-		[passenger_market removeObject:passenger_info];
-		credits += 10 * passenger_premium;
-		
-		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
-		
-		return YES;
-	}
-	
-	if (([gui selectedRow] >= GUI_ROW_CARGO_START)&&([gui selectedRow] < GUI_ROW_MARKET_CASH))
-	{
-		NSDictionary		*contractInfo = nil;
-		NSString			*contractID = nil;
-		NSNumber			*contractArrivalTime = nil;
-		OOCreditsQuantity	contractPremium;
-		OOCargoQuantity		contractAmount;
-		OOCommodityType		contractCommodityType;
-		OOMassUnit			contractCargoUnits;
-		OOCargoQuantity		cargoSpaceRequired;
-		
-		contractInfo			= [contract_market objectAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
-		contractID				= [contractInfo oo_stringForKey:CARGO_KEY_ID];
-		contractArrivalTime		= [contractInfo oo_objectOfClass:[NSNumber class] forKey:CONTRACT_KEY_ARRIVAL_TIME];
-		contractPremium			= [contractInfo oo_intForKey:CONTRACT_KEY_PREMIUM];
-		contractAmount			= [contractInfo oo_intForKey:CARGO_KEY_AMOUNT];
-		contractCommodityType	= [contractInfo oo_intForKey:CARGO_KEY_TYPE];
-		contractCargoUnits		= [UNIVERSE unitsForCommodity:contractCommodityType];
-		
-		cargoSpaceRequired = contractAmount;
-		if (contractCargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired /= 1000;
-		if (contractCargoUnits == UNITS_GRAMS)  cargoSpaceRequired /= 1000000;
-		
-		// tests for refusal...
-		if (cargoSpaceRequired > [self availableCargoSpace])	// no room for cargo
-		{
-			return NO;
-		}
-			
-		if (contractPremium * 10 > credits)					// can't afford contract
-		{
-			return NO;
-		}
-			
-		// okay passed all tests ...
-		
-		// pay the premium
-		credits -= 10 * contractPremium;
-		// add commodity to what's being carried
-		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:[manifest objectAtIndex:contractCommodityType]];
-		int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
-		manifest_quantity += contractAmount;
-		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-		[manifest replaceObjectAtIndex:contractCommodityType withObject:[NSArray arrayWithArray:manifest_commodity]];
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-		current_cargo = [self cargoQuantityOnBoard];
-		
-		[contracts addObject:contractInfo];
-		[contract_record setObject:contractArrivalTime forKey:contractID];
-		[contract_market removeObject:contractInfo];
-		
-		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
-		
-		return YES;
-	}
-	return NO;
-}
-*/
 
- /*
-- (void) highlightSystemFromGuiContractsScreen
-{
-	GuiDisplayGen	*gui = [UNIVERSE gui];
-
-	NSArray			*passenger_market = [[UNIVERSE station] localPassengers];
-	NSArray			*contract_market = [[UNIVERSE station] localContracts];
-
-	NSDictionary	*contract_info = nil;
-	NSString 		*dest_name = nil;
-	
-	if (([gui selectedRow] < GUI_ROW_CARGO_START) && ([gui selectedRow] >= GUI_ROW_PASSENGERS_START))
-	{
-		contract_info = (NSDictionary*)[passenger_market objectAtIndex:[gui selectedRow] - GUI_ROW_PASSENGERS_START];
-	}
-	else if (([gui selectedRow] >= GUI_ROW_CARGO_START) && ([gui selectedRow] < GUI_ROW_MARKET_CASH))
-	{
-		contract_info = (NSDictionary*)[contract_market objectAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
-	}
-	dest_name = [contract_info oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME];
-	
-	[self setGuiToShortRangeChartScreen];
-	[UNIVERSE findSystemCoordinatesWithPrefix:[dest_name lowercaseString] exactMatch:YES]; // if dest_name is 'Ra', make sure there's only 1 result.
-	[self targetNewSystem:1]; // now highlight the 1 result found.
-} */
 
 
 - (NSArray*) passengerList
@@ -1817,7 +1689,7 @@ static NSMutableDictionary *currentShipyard = nil;
 
 - (BOOL) buySelectedShip
 {
-
+	int				i;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIRow		selectedRow = [gui selectedRow];
 	
@@ -1854,10 +1726,10 @@ static NSMutableDictionary *currentShipyard = nil;
 		return NO;	// you can't afford it!
 	
 	// sell all the commodities carried
-	NSUInteger i;
-	for (i = 0; i < [shipCommodityData count]; i++)
+	NSString *good = nil;
+	foreach (good, [shipCommodityData goods])
 	{
-		[self trySellingCommodity:i all:YES];
+		[self trySellingCommodity:good all:YES];
 	}
 	// We tried to sell everything. If there are still items present in our inventory, it
 	// means that the market got saturated (quantity in station > 127 t) before we could sell
@@ -1952,19 +1824,10 @@ static NSMutableDictionary *currentShipyard = nil;
 - (void) newShipCommonSetup:(NSString *)shipKey yardInfo:(NSDictionary *)ship_info baseInfo:(NSDictionary *)ship_base_dict 
 {
 
-	unsigned i;
 	if (current_cargo)
 	{
 		// Zero out our manifest.
-		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-		for (i = 0; i < [manifest count]; i++)
-		{
-			NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:i]];
-			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-			[manifest replaceObjectAtIndex:i withObject:manifest_commodity];
-		}
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+		[shipCommodityData removeAllGoods];
 		current_cargo = 0;
 	}
 	

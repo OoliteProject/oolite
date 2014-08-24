@@ -62,7 +62,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setGood:(NSString *)key toPrice:(OOCreditsQuantity)price andQuantity:(OOCargoQuantity)quantity withInfo:(NSDictionary *)info
+- (void) setGood:(OOCommodityType)key toPrice:(OOCreditsQuantity)price andQuantity:(OOCargoQuantity)quantity withInfo:(NSDictionary *)info
 {
 	NSMutableDictionary *definition = [NSMutableDictionary dictionaryWithDictionary:info];
 	[definition oo_setUnsignedInteger:price forKey:kOOCommodityPriceCurrent];
@@ -79,7 +79,13 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) setPrice:(OOCreditsQuantity)price forGood:(NSString *)good
+- (NSDictionary *) dictionaryForScripting
+{
+	return [[_commodityList copy] autorelease];
+}
+
+
+- (BOOL) setPrice:(OOCreditsQuantity)price forGood:(OOCommodityType)good
 {
 	NSMutableDictionary *definition = [_commodityList oo_mutableDictionaryForKey:good];
 	if (definition == nil)
@@ -91,7 +97,7 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) setQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good
+- (BOOL) setQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
 {
 	NSMutableDictionary *definition = [_commodityList oo_mutableDictionaryForKey:good];
 	if (definition == nil)
@@ -103,7 +109,7 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) addQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good
+- (BOOL) addQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
 {
 	OOCargoQuantity current = [self quantityForGood:good];
 	if (current + quantity > _capacity)
@@ -115,7 +121,7 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) removeQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good
+- (BOOL) removeQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
 {
 	OOCargoQuantity current = [self quantityForGood:good];
 	if (current < quantity)
@@ -127,8 +133,18 @@ MA 02110-1301, USA.
 }
 
 
+- (void) removeAllGoods
+{
+	OOCommodityType good = nil;
+	foreach (good, [_commodityList allKeys])
+	{
+		[self setQuantity:0 forGood:good];
+	}
+}
 
-- (NSString *) nameForGood:(NSString *)good
+
+
+- (NSString *) nameForGood:(OOCommodityType)good
 {
 	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
 	if (definition == nil)
@@ -139,7 +155,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOCreditsQuantity) priceForGood:(NSString *)good
+- (OOCreditsQuantity) priceForGood:(OOCommodityType)good
 {
 	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
 	if (definition == nil)
@@ -150,7 +166,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOCargoQuantity) quantityForGood:(NSString *)good
+- (OOCargoQuantity) quantityForGood:(OOCommodityType)good
 {
 	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
 	if (definition == nil)
@@ -161,7 +177,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOMassUnit) massUnitForGood:(NSString *)good
+- (OOMassUnit) massUnitForGood:(OOCommodityType)good
 {
 	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
 	if (definition == nil)
@@ -172,7 +188,7 @@ MA 02110-1301, USA.
 }
 
 
-- (NSUInteger) exportLegalityForGood:(NSString *)good
+- (NSUInteger) exportLegalityForGood:(OOCommodityType)good
 {
 	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
 	if (definition == nil)
@@ -183,7 +199,7 @@ MA 02110-1301, USA.
 }
 
 
-- (NSUInteger) importLegalityForGood:(NSString *)good
+- (NSUInteger) importLegalityForGood:(OOCommodityType)good
 {
 	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
 	if (definition == nil)
@@ -194,9 +210,20 @@ MA 02110-1301, USA.
 }
 
 
-- (NSDictionary *) definitionForGood:(NSString *)good
+- (float) trumbleOpinionForGood:(OOCommodityType)good
 {
-	return [_commodityList oo_dictionaryForKey:good];
+	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
+	if (definition == nil)
+	{
+		return 0;
+	}
+	return [definition oo_floatForKey:kOOCommodityTrumbleOpinion];
+}
+
+
+- (NSDictionary *) definitionForGood:(OOCommodityType)good
+{
+	return [[[_commodityList oo_dictionaryForKey:good] copy] autorelease];
 }
 
 
@@ -204,7 +231,7 @@ MA 02110-1301, USA.
 - (NSArray *) savePlayerAmounts
 {
 	NSMutableArray *amounts = [NSMutableArray arrayWithCapacity:[self count]];
-	NSString *good = nil;
+	OOCommodityType good = nil;
 	foreach (good, [self goods])
 	{
 		[amounts addObject:[NSArray arrayWithObjects:[self nameForGood:good],[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],nil]];
@@ -237,7 +264,7 @@ MA 02110-1301, USA.
 			// then it's an array from a 1.80-or-earlier save game and
 			// the good name is the description string (maybe a
 			// translated one)
-			NSString *key = nil;
+			OOCommodityType key = nil;
 			foreach (key, [self goods])
 			{
 				if ([good isEqualToString:[self nameForGood:key]])
@@ -258,5 +285,69 @@ MA 02110-1301, USA.
 		}
 	}
 }
+
+
+- (NSArray *) saveStationAmounts
+{
+	NSMutableArray *amounts = [NSMutableArray arrayWithCapacity:[self count]];
+	OOCommodityType good = nil;
+	foreach (good, [self goods])
+	{
+		[amounts addObject:[NSArray arrayWithObjects:[self nameForGood:good],[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],[NSNumber numberWithUnsignedInt:[self priceForGood:good]],nil]];
+	}
+	return [NSArray arrayWithArray:amounts];
+}
+
+
+- (void) loadStationAmounts:(NSArray *)amounts
+{
+	OOCargoQuantity 	q;
+	OOCreditsQuantity	p;
+	BOOL 				loadedOK;
+	NSString 			*good = nil;
+	foreach (good, [self goods])
+	{
+		// make sure that any goods not defined in the save game are zeroed
+		[self setQuantity:0 forGood:good];
+	}
+
+
+	NSArray *loaded = nil;
+	foreach (loaded, amounts)
+	{
+		loadedOK = NO;
+		good = [loaded oo_stringAtIndex:0];
+		q = [loaded oo_unsignedIntegerAtIndex:1];
+		p = [loaded oo_unsignedIntegerAtIndex:2];
+		// old save games might have more in the array, but we don't care
+		if (![self setQuantity:q forGood:good])
+		{
+			// then it's an array from a 1.80-or-earlier save game and
+			// the good name is the description string (maybe a
+			// translated one)
+			OOCommodityType key = nil;
+			foreach (key, [self goods])
+			{
+				if ([good isEqualToString:[self nameForGood:key]])
+				{
+					[self setQuantity:q forGood:key];
+					[self setPrice:p forGood:key];
+					loadedOK = YES;
+					break;
+				}
+			}
+		}
+		else
+		{
+			[self setPrice:p forGood:good];
+			loadedOK = YES;
+		}
+		if (!loadedOK)
+		{
+			OOLog(@"load.warning.cargo",@"Station market good %@ (%u units) could not be loaded from the saved game, as it is no longer defined",good,q);
+		}
+	}
+}
+
 
 @end

@@ -24,7 +24,6 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOCommodityMarket.h"
 #import "OOTypes.h"
 
 
@@ -51,7 +50,9 @@ static NSString * const kOOCommodityQuantityRandom	= @"quantity_random";
 static NSString * const kOOCommodityQuantityCurrent	= @"quantity_current";
 static NSString * const kOOCommodityLegalityExport	= @"legality_export";
 static NSString * const kOOCommodityLegalityImport	= @"legality_import";
+static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
 
+@class OOCommodityMarket;
 
 @interface OOCommodities: NSObject
 {
@@ -68,6 +69,8 @@ static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 - (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy;
 
 
+- (NSUInteger) count;
+- (NSArray *) goods;
 - (BOOL) goodDefined:(NSString *)key;
 - (NSString *) getRandomCommodity;
 - (OOMassUnit) massUnitForGood:(NSString *)good;

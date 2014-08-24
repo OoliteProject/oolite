@@ -1,6 +1,7 @@
 {
 /* Strictly, commodity names should be prefixed oolite-, but for
- * compatibility with older OXPs, keep the older names */
+ * compatibility with older OXPs, keep the older names. OXP
+ * commodities should be prefixed as usual. */
 	"food" = {
 		"name" = "[commodity-name food]";
 		"container" = 0;  // 0=t
@@ -16,6 +17,7 @@
 		"quantity_random" = 0.04;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 1.0;
 	};
 
 	"textiles" = {
@@ -31,6 +33,7 @@
 		"quantity_random" = 0.1;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0.25;
 	};
 
 	"radioactives" = {
@@ -46,6 +49,7 @@
 		"quantity_random" = 0.09;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0.75;
 	};
 
 	"slaves" = {
@@ -61,6 +65,7 @@
 		"quantity_random" = 1.59;
 		"export_legality" = 1;
 		"import_legality" = 0;
+		"trumble_opinion" = 0.01;
 	};
 
 	"liquor_wines" = {
@@ -76,6 +81,7 @@
 		"quantity_random" = 0.38;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0.95;
 	};
 
 	"luxuries" = {
@@ -91,6 +97,7 @@
 		"quantity_random" = 0.05;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 1.25;
 	};
 
 	"narcotics" = {
@@ -106,6 +113,7 @@
 		"quantity_random" = 1.0;
 		"export_legality" = 2;
 		"import_legality" = 0;
+		"trumble_opinion" = 1.05;
 	};
 
 	"computers" = {
@@ -121,6 +129,7 @@
 		"quantity_random" = 0.17;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"machinery" = {
@@ -136,6 +145,7 @@
 		"quantity_random" = 0.16;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"alloys" = {
@@ -151,6 +161,7 @@
 		"quantity_random" = 0.53;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"firearms" = {
@@ -166,6 +177,7 @@
 		"quantity_random" = 3.5;
 		"export_legality" = 1;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"furs" = {
@@ -181,6 +193,7 @@
 		"quantity_random" = 1.15;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0.15;
 	};
 
 	"minerals" = {
@@ -196,6 +209,7 @@
 		"quantity_random" = 0.03;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"gold" = {
@@ -211,6 +225,7 @@
 		"quantity_random" = 0.39;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"platinum" = {
@@ -226,6 +241,7 @@
 		"quantity_random" = 1.15;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"gem_stones" = {
@@ -241,6 +257,7 @@
 		"quantity_random" = 1.11;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 	"alien_items" = {
@@ -256,6 +273,7 @@
 		"quantity_random" = 0;
 		"export_legality" = 0;
 		"import_legality" = 0;
+		"trumble_opinion" = 0;
 	};
 
 

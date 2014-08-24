@@ -465,7 +465,7 @@ enum
 
 - (int) legalStatusOfCommodity:(NSString *)commodity;
 // TRADE_GOODS TODO: this needs to become lSOM.. atStation:StationEntity*
-- (int) legalStatusOfManifest:(OOCommodityMarket *)manifest;
+- (unsigned) legalStatusOfManifest:(OOCommodityMarket *)manifest;
 
 - (OOCommodities *) commodities;
 

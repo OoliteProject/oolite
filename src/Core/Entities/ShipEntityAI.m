@@ -1082,7 +1082,7 @@
 		ShipEntity *other = (ShipEntity *)scanned_ships[i];
 		if ([other scanClass] == CLASS_CARGO && [other cargoType] != CARGO_NOT_CARGO && [other status] != STATUS_BEING_SCOOPED)
 		{
-			if ((![self isPolice]) || ([other commodityType] == 3)) // police only rescue lifepods and slaves
+			if ((![self isPolice]) || ([[other commodityType] isEqualToString:@"slaves"])) // police only rescue lifepods and slaves
 			{
 				GLfloat d2 = distance2_scanned_ships[i];
 				if (d2 < found_d2)

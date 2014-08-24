@@ -425,7 +425,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[commodities release];
 	
-	[illegalGoods release];
 	[_descriptions release];
 	[characters release];
 	[customSounds release];
@@ -3699,26 +3698,24 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (int) legalStatusOfCommodity:(NSString *)commodity
+- (int) legalStatusOfCommodity:(OOCommodityType)commodity
 {
-	return [illegalGoods oo_unsignedIntForKey:commodity defaultValue:0];
+	return [[UNIVERSE commodityMarket] exportLegalityForGood:commodity];
 }
 
 
-- (int) legalStatusOfManifest:(NSArray *)manifest
+// TRADE_GOODS TODO: this needs to become lSOM.. atStation:StationEntity*
+- (unsigned) legalStatusOfManifest:(OOCommodityMarket *)manifest
 {
 	unsigned				penalty = 0;
-	NSString				*commodity = nil;
+	OOCommodityType			commodity = nil;
 	OOCargoQuantity			amount;
-	NSArray					*entry = nil;
 	unsigned				penaltyPerUnit;
 	
-	foreach (entry, manifest)
+	foreach (commodity, [manifest goods])
 	{
-		commodity = [entry oo_stringAtIndex:MARKET_NAME];
-		amount = [entry oo_unsignedIntAtIndex:MARKET_QUANTITY];
-		
-		penaltyPerUnit = [illegalGoods oo_unsignedIntForKey:commodity defaultValue:0];
+		amount = [manifest quantityForGood:commodity];
+		penaltyPerUnit = [manifest exportLegalityForGood:commodity];
 		penalty += amount * penaltyPerUnit;
 	}
 	return penalty;
@@ -3753,7 +3750,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	OOCargoQuantity co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];
 	if (randf() < 0.5) // stops OXP monopolising pods for commodities
 	{
-		container = [UNIVERSE newShipWithRole: [UNIVERSE symbolicNameForCommodity:co_type]]; // newShipWithRole returns retained object
+		container = [UNIVERSE newShipWithRole:co_type]; // newShipWithRole returns retained object
 	}
 	if (container == nil)
 	{
@@ -3771,7 +3768,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		reverse the probabilities for scarce goods.
 	*/
 	NSMutableArray  *accumulator = [NSMutableArray arrayWithCapacity:how_many];
-	NSUInteger		i, commodityCount = [commodityMarket count];
+	NSUInteger		i=0, commodityCount = [commodityMarket count];
 	OOCargoQuantity quantities[commodityCount];
 	OOCargoQuantity total_quantity = 0;
 
@@ -3794,7 +3791,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		}
 		if (q > 64) q = 64;
 		q *= 100;   q/= 64;
-		quantities[i] = q;
+		quantities[i++] = q;
 		total_quantity += q;
 	}
 	// quantities is now used to determine which good get into the containers
@@ -3848,7 +3845,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		}
 		else
 		{
-			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %ld.", commodity_type);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %ld.", commodity_name);
 		}
 
 		how_much--;
@@ -7716,7 +7713,9 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		OOSunEntity* the_sun = [self sun];
 		if ([key isEqualToString:KEY_ECONOMY])
 		{	
-			if([self station]) [[self station] initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+			// TRADE_GOODS: FIXME - is this actually a good idea?
+			// I'm not sure changing the market at this point is.
+			if([self station]) [[self station] initialiseLocalMarket];
 		}
 		else if ([key isEqualToString:KEY_TECHLEVEL])
 		{	
@@ -8610,7 +8609,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	StationEntity *station = nil;
 	NSMutableDictionary *savedMarket = nil;
 
-	NSArray *stationMarket = nil;
+	OOCommodityMarket *stationMarket = nil;
 
 	foreach (station, stations)
 	{
@@ -8621,7 +8620,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			if (stationMarket != nil)
 			{
 				savedMarket = [NSMutableDictionary dictionaryWithCapacity:2];
-				[savedMarket setObject:[station localMarket] forKey:@"market"];
+				[savedMarket setObject:[stationMarket saveStationAmounts] forKey:@"market"];
 				[savedMarket setObject:ArrayFromHPVector([station position]) forKey:@"position"];
 				[markets addObject:savedMarket];
 			}
@@ -9950,14 +9949,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 
 - (void) setUpCargoPods
 {
-	NSMutableDictionary *tmp = [[NSMutableDictionary alloc] initWithCapacity:(1 + COMMODITY_ALIEN_ITEMS - COMMODITY_FOOD)];
-	OOCommodityType type;
-	for (type = COMMODITY_FOOD ; type <= COMMODITY_ALIEN_ITEMS ; type++)
+	NSMutableDictionary *tmp = [[NSMutableDictionary alloc] initWithCapacity:[commodities count]];
+	OOCommodityType type = nil;
+	foreach (type, [commodities goods])
 	{
 		ShipEntity *container = [self newShipWithRole:@"oolite-template-cargopod"];
 		[container setScanClass:CLASS_CARGO];
 		[container setCommodity:type andAmount:1];
-		[tmp setObject:container forKey:[NSNumber numberWithInt:type]];
+		[tmp setObject:container forKey:type];
 		[container release];
 	}
 	[cargoPods release];
@@ -10064,7 +10063,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	[self setUpInitialUniverse];
 	autoSaveNow = NO;	// don't autosave immediately after restarting a game
 	
-	[[self station] initialiseLocalMarketWithRandomFactor:[player random_factor]];
+	[[self station] initialiseLocalMarket];
 	
 	if(showDemo)
 	{

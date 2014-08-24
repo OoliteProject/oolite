@@ -2219,8 +2219,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						if (!wait_for_key_up)
 						{
-							int item = [(NSString *)[gui selectedRowKey] intValue];
-							if ([self tryBuyingCommodity:item all:[gameView isShiftDown]])
+							if ([self tryBuyingCommodity:[gui selectedRowKey] all:[gameView isShiftDown]])
 							{
 								[self playBuyCommodity];
 								[self setGuiToMarketScreen];
@@ -2236,8 +2235,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						if (!wait_for_key_up)
 						{
-							int item = [(NSString *)[gui selectedRowKey] intValue];
-							if ([self trySellingCommodity:item all:[gameView isShiftDown]])
+							if ([self trySellingCommodity:[gui selectedRowKey] all:[gameView isShiftDown]])
 							{
 								[self playSellCommodity];
 								[self setGuiToMarketScreen];
@@ -2258,8 +2256,8 @@ static NSTimeInterval	time_last_frame;
 						}
 						if (!wait_for_key_up)
 						{
-							int item = [(NSString *)[gui selectedRowKey] intValue];
-							int yours =		[[shipCommodityData oo_arrayAtIndex:item] oo_intAtIndex:1];
+							OOCommodityType item = [gui selectedRowKey];
+							OOCargoQuantity yours =	[shipCommodityData quantityForGood:item];
 							if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
 							{
 								[self playBuyCommodity];

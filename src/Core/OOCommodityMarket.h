@@ -39,22 +39,32 @@ MA 02110-1301, USA.
 
 - (NSUInteger) count;
 
-- (void) setGood:(NSString *)key toPrice:(OOCreditsQuantity)price andQuantity:(OOCargoQuantity)quantity withInfo:(NSDictionary *)info;
+- (void) setGood:(OOCommodityType)key toPrice:(OOCreditsQuantity)price andQuantity:(OOCargoQuantity)quantity withInfo:(NSDictionary *)info;
 
 - (NSArray *) goods;
-- (BOOL) setPrice:(OOCreditsQuantity)price forGood:(NSString *)good;
-- (BOOL) setQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good;
-- (BOOL) addQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good;
-- (BOOL) removeQuantity:(OOCargoQuantity)quantity forGood:(NSString *)good;
+- (NSDictionary *) dictionaryForScripting;
 
-- (NSString *) nameForGood:(NSString *)good;
-- (OOCreditsQuantity) priceForGood:(NSString *)good;
-- (OOCargoQuantity) quantityForGood:(NSString *)good;
-- (OOMassUnit) massUnitForGood:(NSString *)good;
-- (NSUInteger) exportLegalityForGood:(NSString *)good;
-- (NSUInteger) importLegalityForGood:(NSString *)good;
+- (BOOL) setPrice:(OOCreditsQuantity)price forGood:(OOCommodityType)good;
+- (BOOL) setQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
+- (BOOL) addQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
+- (BOOL) removeQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
+- (void) removeAllGoods;
+
+- (NSString *) nameForGood:(OOCommodityType)good;
+- (OOCreditsQuantity) priceForGood:(OOCommodityType)good;
+- (OOCargoQuantity) quantityForGood:(OOCommodityType)good;
+- (OOMassUnit) massUnitForGood:(OOCommodityType)good;
+- (NSUInteger) exportLegalityForGood:(OOCommodityType)good;
+- (NSUInteger) importLegalityForGood:(OOCommodityType)good;
+- (float) trumbleOpinionForGood:(OOCommodityType)good;
+
+- (NSDictionary *) definitionForGood:(OOCommodityType)good;
+
 
 - (NSArray *) savePlayerAmounts;
 - (void) loadPlayerAmounts:(NSArray *)amounts;
+
+- (NSArray *) saveStationAmounts;
+- (void) loadStationAmounts:(NSArray *)amounts;
 
 @end

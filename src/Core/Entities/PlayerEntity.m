@@ -9593,7 +9593,7 @@ static NSString *last_outfitting_key=nil;
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
 			
-			[gui setKey:[NSString stringWithFormat:@"%ld",i] forRow:row];
+			[gui setKey:good forRow:row];
 			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
 		}
 		 // actually count the containers and  valuables (may be > max_cargo)
@@ -9640,22 +9640,18 @@ static NSString *last_outfitting_key=nil;
 {
 	if (![self isDocked])  return NO; // can't buy if not docked.
 	
-	NSMutableArray		*localMarket = [self localMarket];
-	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
-	OOCreditsQuantity	pricePerUnit	= [commodityArray oo_unsignedIntAtIndex:MARKET_PRICE];
-	OOMassUnit			unit			= [UNIVERSE unitsForCommodity:index];
+	OOCommodityMarket	*localMarket = [self localMarket];
+	OOCreditsQuantity	pricePerUnit	= [localMarket priceForGood:index];
+	OOMassUnit			unit			= [localMarket massUnitForGood:index];
 
 	if (specialCargo != nil && unit == UNITS_TONS)
 	{
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
 	}
-	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
-	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
-	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
-	int market_quantity = [market_commodity oo_intAtIndex:MARKET_QUANTITY];
+	int manifest_quantity = [shipCommodityData quantityForGood:index];
+	int market_quantity = [localMarket quantityForGood:index];
 	
-	int purchase = all ? 127 : 1;
+	int purchase = all ? [localMarket capacity] : 1;
 	if (purchase > market_quantity)
 	{
 		purchase = market_quantity;					// limit to what's available
@@ -9699,24 +9695,16 @@ static NSString *last_outfitting_key=nil;
 		return NO;									// stop if that results in nothing to be bought
 	}
 	
-	manifest_quantity += purchase;
-	market_quantity -= purchase;
+	[localMarket removeQuantity:purchase forGood:index];
+	[shipCommodityData addQuantity:purchase forGood:index];
 	credits -= pricePerUnit * purchase;
-	
-	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
-	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
-	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-	
-	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	
+
 	[self calculateCurrentCargo];
 	
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
 	
-	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:purchase], [NSNumber numberWithUnsignedLongLong:pricePerUnit], nil]];
-	if ([UNIVERSE legalStatusOfCommodity:[market_commodity objectAtIndex:MARKET_NAME]] > 0)
+	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:purchase], [NSNumber numberWithUnsignedLongLong:pricePerUnit], nil]];
+	if ([localMarket exportLegalityForGood:index] > 0)
 	{
 		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-illegal"];
 	}
@@ -9733,42 +9721,32 @@ static NSString *last_outfitting_key=nil;
 {
 	if (![self isDocked])  return NO; // can't sell if not docked.
 	
-	NSMutableArray *localMarket = [self localMarket];
-	int available_units = [[shipCommodityData oo_arrayAtIndex:index] oo_intAtIndex:MARKET_QUANTITY];
-	int pricePerUnit = [[localMarket oo_arrayAtIndex:index] oo_intAtIndex:MARKET_PRICE];
+	OOCommodityMarket *localMarket = [self localMarket];
+	int available_units = [shipCommodityData quantityForGood:index];
+	int pricePerUnit = [localMarket priceForGood:index];
 	
 	if (available_units == 0)  return NO;
 	
-	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
-	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
-	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
-	int market_quantity =   [market_commodity oo_intAtIndex:MARKET_QUANTITY];
-	
-	int sell = all ? 127 : 1;
+	int market_quantity = [localMarket quantityForGood:index];
+
+	int capacity = [localMarket capacity];
+	int sell = all ? capacity : 1;
 	if (sell > available_units)
 		sell = available_units;					// limit to what's in the hold
-	if (sell + market_quantity > 127)
-		sell = 127 - market_quantity;			// avoid flooding the market
+	if (sell + market_quantity > capacity)
+		sell = capacity - market_quantity;			// avoid flooding the market
 	if (sell <= 0)
 		return NO;								// stop if that results in nothing to be sold
 	
-	current_cargo -= sell;
-	manifest_quantity -= sell;
-	market_quantity += sell;
+	[localMarket addQuantity:sell forGood:index];
+	[shipCommodityData removeQuantity:sell forGood:index];
 	credits += pricePerUnit * sell;
-	
-	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
-	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
-	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-	
-	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+
+	[self calculateCurrentCargo];
 	
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	
-	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
+	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
 	
 	return YES;
 }

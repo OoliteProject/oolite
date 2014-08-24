@@ -773,9 +773,8 @@ static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	OOCommodityType commodity = StringToCommodityType(commodityString);
-	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
 	{
 		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
 		return NO;
@@ -785,6 +784,7 @@ static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
 	BOOL gotPrice = JS_ValueToInt32(context, OOJS_ARGV[1], &price);
 	if (EXPECT_NOT(!gotPrice || price < 0 || price > 1020))
 	{
+		// TRADE_GOODS: TODO - remove this restriction
 		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be between 0 and 1020 decicredits");
 		return NO;
 	}
@@ -815,9 +815,8 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 		return NO;
 	}
 	
-	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	OOCommodityType commodity = StringToCommodityType(commodityString);
-	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
 	{
 		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
 		return NO;

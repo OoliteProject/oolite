@@ -79,7 +79,7 @@ typedef enum
 
 	NSString				*allegiance;
 	
-	NSMutableArray			*localMarket;
+	OOCommodityMarket		*localMarket;
 //	NSMutableArray			*localPassengers;
 //	NSMutableArray			*localContracts;
 	NSMutableArray			*localShipyard;
@@ -122,8 +122,6 @@ typedef enum
 - (void) setInterfaceDefinition:(OOJSInterfaceDefinition *)definition forKey:(NSString *)key;
 
 - (OOCommodityMarket *) initialiseLocalMarket;
-// TRADE_GOODS FIXME probably need to re-type this one too
-- (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed)seed andRandomFactor:(int)random_factor;
 
 - (OOTechLevelID) equivalentTechLevel;
 - (void) setEquivalentTechLevel:(OOTechLevelID)value;

@@ -739,7 +739,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	// "localMarket" save key always refers to the main station (system) market
 	NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
 	if (market != nil)  [dockedStation setLocalMarket:market];
-	else  [dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
+	else  [dockedStation initialiseLocalMarket];
 
 	[self calculateCurrentCargo];
 	

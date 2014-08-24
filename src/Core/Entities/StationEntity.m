@@ -122,11 +122,11 @@
 }
 
 
-- (NSMutableArray *) localMarket
+- (OOCommodityMarket *) localMarket
 {
 	if (!localMarket)
 	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+		[self initialiseLocalMarket];
 	}
 	return localMarket;
 }
@@ -134,9 +134,11 @@
 
 - (void) setLocalMarket:(NSArray *) some_market
 {
-	if (localMarket)
-		[localMarket release];
-	localMarket = [[NSMutableArray alloc] initWithArray:some_market];
+	if (!localMarket)
+	{
+		[self initialiseLocalMarket];
+	}
+	[localMarket loadStationAmounts:some_market];
 }
 
 
@@ -144,44 +146,10 @@
 {
 	if (!localMarket)
 	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+		[self initialiseLocalMarket];
 	}
 
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:17];
-	OOCommodityType cType;
-	NSString *commodityKey = nil;
-
-	NSArray *commodityKeys = [[NSArray alloc] initWithObjects:@"displayName",@"quantity",@"price",@"marketBasePrice",@"marketEcoAdjustPrice",@"marketEcoAdjustQuantity",@"marketBaseQuantity",@"marketMaskPrice",@"marketMaskQuantity",@"quantityUnit",nil];
-	// displayName not numeric, price and quantity already are
-	// have I missed an obvious "slice of array" function here? - CIM
-	NSArray *numericKeys = [[NSArray alloc] initWithObjects:@"marketBasePrice",@"marketEcoAdjustPrice",@"marketEcoAdjustQuantity",@"marketBaseQuantity",@"marketMaskPrice",@"marketMaskQuantity",@"quantityUnit",nil]; 
-	
-	for (cType=COMMODITY_FOOD; cType <= COMMODITY_ALIEN_ITEMS; cType++)
-	{
-		NSArray *marketLine = [localMarket objectAtIndex:cType];
-		NSMutableDictionary *commodity = [NSMutableDictionary dictionaryWithObjects:marketLine forKeys:commodityKeys];
-		NSEnumerator	*keyEnum = [numericKeys objectEnumerator];
-		while ((commodityKey = [keyEnum nextObject]))
-		{
-			// convert value to int from string
-			[commodity setObject:[NSNumber numberWithInt:[commodity oo_intForKey:commodityKey]] forKey:commodityKey];
-		}
-		if (self == [UNIVERSE station])
-		{
-			[commodity setObject:[NSNumber numberWithInt:[UNIVERSE legalStatusOfCommodity:[commodity oo_stringForKey:@"displayName"]]] forKey:@"legalPenalty"];
-		} 
-		else
-		{
-			[commodity setObject:[NSNumber numberWithInt:0] forKey:@"legalPenalty"];
-		}
-
-		[result setObject:commodity forKey:CommodityTypeToString(cType)];
-	}
-
-	[commodityKeys release];
-	[numericKeys release];
-
-  return [NSDictionary dictionaryWithDictionary:result];
+	return [localMarket dictionaryForScripting];
 }
 
 
@@ -189,13 +157,10 @@
 {
 	if (!localMarket)
 	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+		[self initialiseLocalMarket];
 	}
 	
-	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
-	[commodityData replaceObjectAtIndex:MARKET_PRICE withObject:[NSNumber numberWithUnsignedInteger:price]];
-	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
-	[commodityData release];
+	[localMarket setPrice:price forGood:commodity];
 }
 
 
@@ -203,42 +168,11 @@
 {
 	if (!localMarket)
 	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+		[self initialiseLocalMarket];
 	}
 	
-	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
-	[commodityData replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInteger:quantity]];
-	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
-	[commodityData release];
+	[localMarket setQuantity:quantity forGood:commodity];
 }
-
-
-/*- (NSMutableArray *) localPassengers
-	{
-	return localPassengers;
-	}
-
-
-	- (void) setLocalPassengers:(NSArray *) some_market
-	{
-	if (localPassengers)
-	[localPassengers release];
-	localPassengers = [[NSMutableArray alloc] initWithArray:some_market];
-	}
-
-
-	- (NSMutableArray *) localContracts
-	{
-	return localContracts;
-	}
-
-
-	- (void) setLocalContracts:(NSArray *) some_market
-	{
-	if (localContracts)
-	[localContracts release];
-	localContracts = [[NSMutableArray alloc] initWithArray:some_market];
-	} */
 
 
 - (NSMutableArray *) localShipyard
@@ -274,21 +208,11 @@
 }
 
 
-- (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int) random_factor
+- (OOCommodityMarket *) initialiseLocalMarket
 {
-	return [self initialiseMarketWithSeed:[PLAYER system_seed] andRandomFactor:random_factor];
-}
-
-
-- (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed) s_seed andRandomFactor:(int) random_factor
-{
-	RANROTSeed seed = RANROTGetFullSeed();
-	int rf = (random_factor ^ universalID) & 0xff;
-	int economy = [[UNIVERSE generateSystemData:s_seed] oo_intForKey:KEY_ECONOMY];
-	if (localMarket)
-		[localMarket release];
-	localMarket = [[NSMutableArray alloc] initWithArray:[UNIVERSE commodityDataForEconomy:economy andStation:self andRandomFactor:rf]];
-	RANROTSetFullSeed(seed);
+	DESTROY(localMarket);
+	// TRADE_GOODS: FIXME - actual secondary station markets!
+	localMarket = [[UNIVERSE commodityMarket] copy];	
 	return localMarket;
 }
 
