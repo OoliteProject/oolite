@@ -51,6 +51,7 @@ static NSString * const kOOCommodityQuantityCurrent	= @"quantity";
 static NSString * const kOOCommodityLegalityExport	= @"legality_export";
 static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
+static NSString * const kOOCommoditySortOrder		= @"sort_order";
 
 @class OOCommodityMarket;
 

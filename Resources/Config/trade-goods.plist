@@ -18,6 +18,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 1.0;
+		"sort_order" = 100;
 	};
 
 	"textiles" = {
@@ -33,7 +34,8 @@
 		"quantity_random" = 0.1;
 		"export_legality" = 0;
 		"import_legality" = 0;
-		"trumble_opinion" = 0.25;
+		"trumble_opinion" = 0.25;		
+		"sort_order" = 200;
 	};
 
 	"radioactives" = {
@@ -50,6 +52,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0.75;
+		"sort_order" = 300;
 	};
 
 	"slaves" = {
@@ -66,6 +69,7 @@
 		"export_legality" = 1;
 		"import_legality" = 0;
 		"trumble_opinion" = 0.01;
+		"sort_order" = 400;
 	};
 
 	"liquor_wines" = {
@@ -82,6 +86,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0.95;
+		"sort_order" = 500;
 	};
 
 	"luxuries" = {
@@ -98,6 +103,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 1.25;
+		"sort_order" = 600;
 	};
 
 	"narcotics" = {
@@ -114,6 +120,7 @@
 		"export_legality" = 2;
 		"import_legality" = 0;
 		"trumble_opinion" = 1.05;
+		"sort_order" = 700;
 	};
 
 	"computers" = {
@@ -130,6 +137,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 800;
 	};
 
 	"machinery" = {
@@ -146,6 +154,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 900;
 	};
 
 	"alloys" = {
@@ -162,6 +171,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 1000;
 	};
 
 	"firearms" = {
@@ -178,6 +188,7 @@
 		"export_legality" = 1;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 1100;
 	};
 
 	"furs" = {
@@ -194,6 +205,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0.15;
+		"sort_order" = 1200;
 	};
 
 	"minerals" = {
@@ -210,6 +222,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 1300;
 	};
 
 	"gold" = {
@@ -226,6 +239,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 1400;
 	};
 
 	"platinum" = {
@@ -242,6 +256,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 1500;
 	};
 
 	"gem_stones" = {
@@ -258,6 +273,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 1600;
 	};
 
 	"alien_items" = {
@@ -274,6 +290,7 @@
 		"export_legality" = 0;
 		"import_legality" = 0;
 		"trumble_opinion" = 0;
+		"sort_order" = 1700;
 	};
 
 

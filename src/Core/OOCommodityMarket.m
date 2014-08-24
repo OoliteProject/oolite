@@ -28,6 +28,9 @@ MA 02110-1301, USA.
 #import "OOStringExpander.h"
 
 
+NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
+
+
 @implementation OOCommodityMarket
 
 - (id) init
@@ -38,6 +41,8 @@ MA 02110-1301, USA.
 	_commodityList = [[NSMutableDictionary dictionaryWithCapacity:24] retain];
 	_capacity = MAIN_SYSTEM_MARKET_LIMIT;
 
+	_sortedKeys = nil;
+
 	return self;
 }
 
@@ -45,7 +50,7 @@ MA 02110-1301, USA.
 - (void) dealloc
 {
 	DESTROY(_commodityList);
-
+	DESTROY(_sortedKeys);
 	[super dealloc];
 }
 
@@ -69,13 +74,18 @@ MA 02110-1301, USA.
 	[definition oo_setUnsignedInteger:quantity forKey:kOOCommodityQuantityCurrent];
 
 	[_commodityList setObject:definition forKey:key];
+	DESTROY(_sortedKeys); // reset
 }
 
 
 - (NSArray *) goods
 {
-	// TODO: sort this in the traditional order
-	return [_commodityList allKeys];
+	if (_sortedKeys == nil)
+	{
+		NSArray *keys = [_commodityList allKeys];
+		_sortedKeys = [[keys sortedArrayUsingFunction:goodsSorter context:_commodityList] retain];
+	}
+	return _sortedKeys;
 }
 
 
@@ -351,3 +361,24 @@ MA 02110-1301, USA.
 
 
 @end
+
+
+NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context)
+{
+	NSDictionary *commodityList = (NSDictionary *)context;
+	int v1 = [[commodityList oo_dictionaryForKey:a] oo_intForKey:kOOCommoditySortOrder];
+    int v2 = [[commodityList oo_dictionaryForKey:b] oo_intForKey:kOOCommoditySortOrder];
+
+    if (v1 < v2)
+	{
+        return NSOrderedAscending;
+	}
+    else if (v1 > v2)
+	{
+        return NSOrderedDescending;
+	}
+    else
+	{
+        return NSOrderedSame;
+	}
+}

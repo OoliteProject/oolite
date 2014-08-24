@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 @private
 	NSMutableDictionary		*_commodityList;
 	OOCargoQuantity			_capacity;
+	NSArray					*_sortedKeys;
 }
 
 - (OOCargoQuantity) capacity;
