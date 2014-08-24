@@ -459,7 +459,6 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		[self loadCargoPodsForType:good fromManifest:shipCommodityData];
 	}
-
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
 
@@ -859,7 +858,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
 
 	//local market for main station
-	if ([[UNIVERSE station] localMarket])  [result setObject:[[UNIVERSE station] localMarket] forKey:@"localMarket"];
+	if ([[UNIVERSE station] localMarket])  [result setObject:[[[UNIVERSE station] localMarket] saveStationAmounts] forKey:@"localMarket"];
 
 	// Scenario restriction on OXZs
 	[result setObject:[UNIVERSE useAddOns] forKey:@"scenario_restriction"];
@@ -1093,6 +1092,8 @@ static GLfloat		sBaseMass = 0.0;
 	max_passengers = [dict oo_intForKey:@"max_passengers" defaultValue:0];
 	passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
 	passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
+// TRADE_GOODS: FIXME - older savegames will have ints rather than strings
+// for commodities here
 	contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
 	contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
 	parcels = [[dict oo_arrayForKey:@"parcels"] mutableCopy];
@@ -1888,6 +1889,9 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (![super setUpFromDictionary:shipDict]) return NO;
 	
+	DESTROY(cargo);
+	cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo];
+
 	// Player-only settings.
 	//
 	// set control factors..
@@ -9572,12 +9576,13 @@ static NSString *last_outfitting_key=nil;
 		
 
 		OOCommodityType good = nil;
+		i = 0;
 		foreach (good, goods)
 		{
 			
 			NSString* desc = [NSString stringWithFormat:@" %@ ", [shipCommodityData nameForGood:good]];
 			OOCargoQuantity available_units = [localMarket quantityForGood:good];
-			OOCargoQuantity units_in_hold = quantityInHold[i];
+			OOCargoQuantity units_in_hold = quantityInHold[i++];
 			OOCreditsQuantity pricePerUnit = [localMarket priceForGood:good];
 			OOMassUnit unit = [shipCommodityData massUnitForGood:good];
 			

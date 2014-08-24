@@ -234,7 +234,7 @@ MA 02110-1301, USA.
 	OOCommodityType good = nil;
 	foreach (good, [self goods])
 	{
-		[amounts addObject:[NSArray arrayWithObjects:[self nameForGood:good],[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],nil]];
+		[amounts addObject:[NSArray arrayWithObjects:good,[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],nil]];
 	}
 	return [NSArray arrayWithArray:amounts];
 }
@@ -293,7 +293,7 @@ MA 02110-1301, USA.
 	OOCommodityType good = nil;
 	foreach (good, [self goods])
 	{
-		[amounts addObject:[NSArray arrayWithObjects:[self nameForGood:good],[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],[NSNumber numberWithUnsignedInt:[self priceForGood:good]],nil]];
+		[amounts addObject:[NSArray arrayWithObjects:good,[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],[NSNumber numberWithUnsignedInt:[self priceForGood:good]],nil]];
 	}
 	return [NSArray arrayWithArray:amounts];
 }

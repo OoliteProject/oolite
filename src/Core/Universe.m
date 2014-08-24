@@ -7235,7 +7235,6 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	
 	DESTROY(commodityMarket);
 	commodityMarket = [[commodities generateMarketForSystemWithEconomy:economy] retain];
-	
 }
 
 

@@ -236,6 +236,7 @@
 	save.success							= no;
 	quickSave.failed						= $error;
 	load.failed								= $error;
+	load.progress							= no;
 	
 	
 	setup.ship.badEntry.subentities			= inherit;

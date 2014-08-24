@@ -124,6 +124,12 @@
 
 - (OOCommodityMarket *) localMarket
 {
+	if (self == [UNIVERSE station])
+	{
+		// main stations use the system market
+		// just return a reference
+		return [UNIVERSE commodityMarket];
+	}
 	if (!localMarket)
 	{
 		[self initialiseLocalMarket];
@@ -134,44 +140,25 @@
 
 - (void) setLocalMarket:(NSArray *) some_market
 {
-	if (!localMarket)
-	{
-		[self initialiseLocalMarket];
-	}
-	[localMarket loadStationAmounts:some_market];
+	[[self localMarket] loadStationAmounts:some_market];
 }
 
 
 - (NSDictionary *) localMarketForScripting
 {
-	if (!localMarket)
-	{
-		[self initialiseLocalMarket];
-	}
-
-	return [localMarket dictionaryForScripting];
+	return [[self localMarket] dictionaryForScripting];
 }
 
 
 - (void) setPrice:(NSUInteger)price forCommodity:(OOCommodityType)commodity
 {
-	if (!localMarket)
-	{
-		[self initialiseLocalMarket];
-	}
-	
-	[localMarket setPrice:price forGood:commodity];
+	[[self localMarket] setPrice:price forGood:commodity];
 }
 
 
 - (void) setQuantity:(NSUInteger)quantity forCommodity:(OOCommodityType)commodity
 {
-	if (!localMarket)
-	{
-		[self initialiseLocalMarket];
-	}
-	
-	[localMarket setQuantity:quantity forGood:commodity];
+	[[self localMarket] setQuantity:quantity forGood:commodity];
 }
 
 
@@ -212,7 +199,7 @@
 {
 	DESTROY(localMarket);
 	// TRADE_GOODS: FIXME - actual secondary station markets!
-	localMarket = [[UNIVERSE commodityMarket] copy];	
+	localMarket = [[[UNIVERSE commodities] generateMarketForSystemWithEconomy:0] retain];	
 	return localMarket;
 }
 
