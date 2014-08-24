@@ -94,7 +94,7 @@ MA 02110-1301, USA.
 
 	NSDictionary *rawCommodityLists = [ResourceManager dictionaryFromFilesNamed:@"trade-goods.plist" inFolder:@"Config" andMerge:YES];
 /* // TODO: validation of inputs
-	// TODO: convert 't', 'kg', 'g' in container to 0, 1, 2
+	// TODO: convert 't', 'kg', 'g' in quantity_unit to 0, 1, 2
 	// for now it needs them entering as the ints
 	NSMutableDictionary *validatedCommodityLists = [NSMutableDictionary dictionaryWithCapacity:[rawCommodityLists count]];
 	NSString *commodityName = nil;
@@ -238,6 +238,17 @@ MA 02110-1301, USA.
 	{
 		return (OOCreditsQuantity)base;
 	}
+}
+
+
+- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy
+{
+	NSDictionary *data = [_commodityLists oo_dictionaryForKey:commodity];
+	if (data == nil)
+	{
+		return 0;
+	}
+	return [self generatePriceForGood:data inEconomy:economy];
 }
 
 

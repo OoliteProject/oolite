@@ -45,6 +45,8 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 
 static JSBool SystemInfoDistanceToSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp);
+
 static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, jsval *vp);
 
 
@@ -92,6 +94,7 @@ static JSFunctionSpec sSystemInfoMethods[] =
 	{ "toString",				OOJSObjectWrapperToString,	0 },
 	{ "distanceToSystem",		SystemInfoDistanceToSystem,	1 },
 	{ "routeToSystem",			SystemInfoRouteToSystem,	1 },
+	{ "samplePrice",			SystemInfoSamplePrice,		1 },
 	{ 0 }
 };
 
@@ -583,6 +586,36 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp)
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// samplePrice(commodity)
+static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOSystemInfo			*thisInfo = nil;
+	
+	if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))  return NO;
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"samplePrice", MIN(argc, 1U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
+		return NO;
+	}
+
+	BOOL sameGalaxy = ([thisInfo galaxy] == [PLAYER galaxyNumber]);
+	if (!sameGalaxy)
+	{
+		OOJSReportErrorForCaller(context, @"SystemInfo", @"routeToSystem", @"Cannot calculate sample price for destinations in other galaxies.");
+		return NO;
+	}
+
+	OOCreditsQuantity price = [[UNIVERSE commodities] samplePriceForCommodity:commodity inEconomy:[[thisInfo valueForKey:@"economy"] intValue]];
+	
+	OOJS_RETURN_INT(price);
 	
 	OOJS_NATIVE_EXIT
 }

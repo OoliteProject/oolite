@@ -782,10 +782,9 @@ static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
 
 	int32 price;
 	BOOL gotPrice = JS_ValueToInt32(context, OOJS_ARGV[1], &price);
-	if (EXPECT_NOT(!gotPrice || price < 0 || price > 1020))
+	if (EXPECT_NOT(!gotPrice || price < 0))
 	{
-		// TRADE_GOODS: TODO - remove this restriction
-		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be between 0 and 1020 decicredits");
+		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be at least 0 decicredits");
 		return NO;
 	}
 
@@ -824,9 +823,9 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 
 	int32 quantity;
 	BOOL gotQuantity = JS_ValueToInt32(context, OOJS_ARGV[1], &quantity);
-	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > 127))
+	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > [[station localMarket] capacity]))
 	{
-		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and 127 units");
+		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and the station market capacity");
 		return NO;
 	}
 

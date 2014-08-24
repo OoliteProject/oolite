@@ -35,19 +35,19 @@ static NSString * const kOOCommodityName			= @"name";
 // not used yet
 static NSString * const kOOCommodityClasses			= @"classes";
 #endif
-static NSString * const kOOCommodityContainer		= @"container";
+static NSString * const kOOCommodityContainer		= @"quantity_unit";
 static NSString * const kOOCommodityPeakExport		= @"peak_export";
 static NSString * const kOOCommodityPeakImport		= @"peak_import";
 static NSString * const kOOCommodityPriceAverage	= @"price_average";
 static NSString * const kOOCommodityPriceEconomic	= @"price_economic";
 static NSString * const kOOCommodityPriceRandom		= @"price_random";
-// next one cannot be set from file
-static NSString * const kOOCommodityPriceCurrent	= @"price_current";
+// next one cannot be set from file - named for compatibility
+static NSString * const kOOCommodityPriceCurrent	= @"price";
 static NSString * const kOOCommodityQuantityAverage	= @"quantity_average";
 static NSString * const kOOCommodityQuantityEconomic= @"quantity_economic";
 static NSString * const kOOCommodityQuantityRandom	= @"quantity_random";
-// next one cannot be set from file
-static NSString * const kOOCommodityQuantityCurrent	= @"quantity_current";
+// next one cannot be set from file - named for compatibility
+static NSString * const kOOCommodityQuantityCurrent	= @"quantity";
 static NSString * const kOOCommodityLegalityExport	= @"legality_export";
 static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
@@ -68,6 +68,7 @@ static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
 - (OOCommodityMarket *) generateBlankMarket;
 - (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy;
 
+- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy;
 
 - (NSUInteger) count;
 - (NSArray *) goods;

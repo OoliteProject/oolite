@@ -924,7 +924,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	NSUInteger	i;
+	NSInteger	i;
 	
 	// multi-function displays
 	// must be reset before ship setup
@@ -1092,9 +1092,35 @@ static GLfloat		sBaseMass = 0.0;
 	max_passengers = [dict oo_intForKey:@"max_passengers" defaultValue:0];
 	passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
 	passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
-// TRADE_GOODS: FIXME - older savegames will have ints rather than strings
-// for commodities here
+	/* Note: contracts from older savegames will have ints in the commodity.
+	 * Need to fix this up */
 	contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
+	NSMutableDictionary *contractInfo = nil;
+
+	// iterate downwards; lets us remove invalid ones as we go
+	for (i = [contracts count]-1 ; i >= 0 ; i--)
+	{
+		contractInfo = [[[contracts oo_dictionaryAtIndex:i] mutableCopy] autorelease];
+		// if the trade good ID is an int
+		if ([[contractInfo objectForKey:CARGO_KEY_TYPE] isKindOfClass:[NSNumber class]])
+		{
+			// look it up, and replace with a string
+			NSUInteger legacy_type = [contractInfo oo_unsignedIntegerForKey:CARGO_KEY_TYPE];
+			[contractInfo setObject:[OOCommodities legacyCommodityType:legacy_type] forKey:CARGO_KEY_TYPE];
+			[contracts replaceObjectAtIndex:i withObject:[[contractInfo copy] autorelease]];
+		}
+		else
+		{
+			OOCommodityType new_type = [contractInfo oo_stringForKey:CARGO_KEY_TYPE];
+			// check that that the type still exists
+			if (![[UNIVERSE commodities] goodDefined:new_type])
+			{
+				OOLog(@"setCommanderDataFromDictionary.warning.contract",@"Cargo contract to deliver %@ could not be loaded from the saved game, as the commodity is no longer defined",new_type);
+				[contracts removeObjectAtIndex:i];
+			}
+		}
+	}
+
 	contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
 	parcels = [[dict oo_arrayForKey:@"parcels"] mutableCopy];
 	parcel_record = [[dict oo_dictionaryForKey:@"parcel_record"] mutableCopy];
@@ -7395,8 +7421,6 @@ static GLfloat		sBaseMass = 0.0;
 		if (forCargo)
 		{
 			// commodity, quantity - keep consistency between .manifest and .contracts
-// TRADE_GOODS FIXME: cargo contracts currently have commodity stored as an int
-
 			[contract setObject:[dict oo_stringForKey:CARGO_KEY_TYPE] forKey:@"commodity"];
 			[contract setObject:[NSNumber numberWithUnsignedInt:[dict oo_intForKey:CARGO_KEY_AMOUNT]] forKey:@"quantity"];
 			[contract setObject:[dict oo_stringForKey:CARGO_KEY_DESCRIPTION] forKey:@"description"];

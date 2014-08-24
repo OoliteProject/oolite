@@ -4,7 +4,7 @@
  * commodities should be prefixed as usual. */
 	"food" = {
 		"name" = "[commodity-name food]";
-		"container" = 0;  // 0=t
+		"quantity_unit" = 0;  // 0=t
 		"peak_export" = 7; // Poor Ag
 		"peak_import" = 0; // Rich Ind
 		"price_average" = 50; // decicredits
@@ -22,7 +22,7 @@
 
 	"textiles" = {
 		"name" = "[commodity-name textiles]";
-		"container" = 0;  
+		"quantity_unit" = 0;  
 		"peak_export" = 7; 
 		"peak_import" = 0; 
 		"price_average" = 71;
@@ -38,7 +38,7 @@
 
 	"radioactives" = {
 		"name" = "[commodity-name radioactives]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 231;
@@ -54,7 +54,7 @@
 
 	"slaves" = {
 		"name" = "[commodity-name slaves]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 152;
@@ -70,7 +70,7 @@
 
 	"liquor_wines" = {
 		"name" = "[commodity-name liquor_wines]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 291;
@@ -86,7 +86,7 @@
 
 	"luxuries" = {
 		"name" = "[commodity-name luxuries]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 7;
 		"price_average" = 902;
@@ -102,7 +102,7 @@
 
 	"narcotics" = {
 		"name" = "[commodity-name narcotics]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 0;
 		"price_average" = 512;
@@ -118,7 +118,7 @@
 
 	"computers" = {
 		"name" = "[commodity-name computers]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 7;
 		"price_average" = 818;
@@ -134,7 +134,7 @@
 
 	"machinery" = {
 		"name" = "[commodity-name machinery]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 7;
 		"price_average" = 560;
@@ -150,7 +150,7 @@
 
 	"alloys" = {
 		"name" = "[commodity-name alloys]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 7;
 		"price_average" = 388;
@@ -166,7 +166,7 @@
 
 	"firearms" = {
 		"name" = "[commodity-name firearms]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 7;
 		"price_average" = 692;
@@ -182,7 +182,7 @@
 
 	"furs" = {
 		"name" = "[commodity-name furs]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 704;
@@ -198,7 +198,7 @@
 
 	"minerals" = {
 		"name" = "[commodity-name minerals]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 120;
@@ -214,7 +214,7 @@
 
 	"gold" = {
 		"name" = "[commodity-name gold]";
-		"container" = 1; // kg
+		"quantity_unit" = 1; // kg
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 388;
@@ -230,7 +230,7 @@
 
 	"platinum" = {
 		"name" = "[commodity-name platinum]";
-		"container" = 1; // kg
+		"quantity_unit" = 1; // kg
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 718;
@@ -246,7 +246,7 @@
 
 	"gem_stones" = {
 		"name" = "[commodity-name gem_stones]";
-		"container" = 2; // g
+		"quantity_unit" = 2; // g
 		"peak_export" = 7;
 		"peak_import" = 0;
 		"price_average" = 196;
@@ -262,7 +262,7 @@
 
 	"alien_items" = {
 		"name" = "[commodity-name alien_items]";
-		"container" = 0;
+		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 7;
 		"price_average" = 436;

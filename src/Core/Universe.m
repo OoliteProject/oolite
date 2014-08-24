@@ -7710,13 +7710,11 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	if (sameSystem)
 	{
 		OOSunEntity* the_sun = [self sun];
-		if ([key isEqualToString:KEY_ECONOMY])
-		{	
-			// TRADE_GOODS: FIXME - is this actually a good idea?
-			// I'm not sure changing the market at this point is.
-			if([self station]) [[self station] initialiseLocalMarket];
-		}
-		else if ([key isEqualToString:KEY_TECHLEVEL])
+		/* KEY_ECONOMY used to be here, but resetting the main station
+		 * market while the player is in the system is likely to cause
+		 * more trouble than it's worth. Let them leave and come back
+		 * - CIM */
+		if ([key isEqualToString:KEY_TECHLEVEL])
 		{	
 			if([self station]){
 				[[self station] setEquivalentTechLevel:[object intValue]];
