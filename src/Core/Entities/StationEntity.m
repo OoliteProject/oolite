@@ -809,6 +809,11 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	double unitime = [UNIVERSE getTime];
 	
+	if (!isMainStation && localMarket == nil)
+	{
+		[self initialiseLocalMarket];
+	}
+
 	[super update:delta_t];
 
 	PlayerEntity *player = PLAYER;

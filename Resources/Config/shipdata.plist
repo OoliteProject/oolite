@@ -1564,6 +1564,10 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		market_definition = (
+			// empty array matches system prices
+			// leaving the key out entirely is a blank market
+		);
 		materials = 
 		{ 
 			"oolite_coriolis_diffuse.png" = 
@@ -1737,6 +1741,10 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		market_definition = (
+			// empty array matches system prices
+			// leaving the key out entirely is a blank market
+		);
 		materials = 
 		{ 
 			"oolite_dodo_diffuse.png" = 
@@ -2169,6 +2177,10 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		market_definition = (
+			// empty array matches system prices
+			// leaving the key out entirely is a blank market
+		);
 		materials = 
 		{ 
 			"oolite_ico_diffuse.png" = 
@@ -3031,7 +3043,7 @@
 				"quantity_multiplier" = 0.0;
 			},
 			{
-				// sometimes need clothes, but usually not
+				// sometimes need clothes, but usually have enough already
 				"type" = "class";
 				"name" = "oolite-wearable";
 				"price_multiplier" = 0.8;
