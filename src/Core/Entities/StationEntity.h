@@ -105,12 +105,16 @@ typedef enum
 							allowsFastDocking: 1,
 							allowsSaving: 1,
 							allowsAutoDocking: 1,
-							hasBreakPattern: 1;
+							hasBreakPattern: 1,
+							marketMonitored: 1;
 }
 
 
 - (OOCargoQuantity) marketCapacity;
-- (NSArray *)marketDefinition;
+- (NSArray *) marketDefinition;
+- (BOOL) marketMonitored;
+- (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export;
+
 - (OOCommodityMarket *) localMarket;
 - (void) setLocalMarket:(NSArray *)market;
 - (NSDictionary *) localMarketForScripting;

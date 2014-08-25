@@ -823,7 +823,7 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 
 	int32 quantity;
 	BOOL gotQuantity = JS_ValueToInt32(context, OOJS_ARGV[1], &quantity);
-	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > [[station localMarket] capacity]))
+	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > [[station localMarket] capacityForGood:commodity]))
 	{
 		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and the station market capacity");
 		return NO;

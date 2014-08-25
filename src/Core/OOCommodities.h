@@ -49,6 +49,7 @@ static NSString * const kOOCommodityLegalityExport	= @"legality_export";
 static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
 static NSString * const kOOCommoditySortOrder		= @"sort_order";
+static NSString * const kOOCommodityCapacity		= @"capacity";
 
 // keys in secondary market definitions
 static NSString * const kOOCommodityMarketType					= @"type";
@@ -59,7 +60,11 @@ static NSString * const kOOCommodityMarketPriceRandomiser		= @"price_randomiser"
 static NSString * const kOOCommodityMarketQuantityAdder			= @"quantity_adder";
 static NSString * const kOOCommodityMarketQuantityMultiplier	= @"quantity_multiplier";
 static NSString * const kOOCommodityMarketQuantityRandomiser	= @"quantity_randomiser";
+static NSString * const kOOCommodityMarketLegalityExport		= @"legality_export";
+static NSString * const kOOCommodityMarketLegalityImport		= @"legality_import";
+static NSString * const kOOCommodityMarketCapacity				= @"capacity";
 
+// values for "type" in the plist
 static NSString * const kOOCommodityMarketTypeValueDefault		= @"default";
 static NSString * const kOOCommodityMarketTypeValueClass		= @"class";
 static NSString * const kOOCommodityMarketTypeValueGood			= @"good";

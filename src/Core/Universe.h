@@ -463,10 +463,6 @@ enum
 
 - (OOCreditsQuantity) getEquipmentPriceForKey:(NSString *) eq_key;
 
-- (int) legalStatusOfCommodity:(NSString *)commodity;
-// TRADE_GOODS TODO: this needs to become lSOM.. atStation:StationEntity*
-- (unsigned) legalStatusOfManifest:(OOCommodityMarket *)manifest;
-
 - (OOCommodities *) commodities;
 
 - (ShipEntity *) reifyCargoPod:(ShipEntity *)cargoObj;

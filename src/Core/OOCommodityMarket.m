@@ -39,7 +39,6 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 	if (self == nil)  return nil;
 
 	_commodityList = [[NSMutableDictionary dictionaryWithCapacity:24] retain];
-	_capacity = MAIN_SYSTEM_MARKET_LIMIT;
 
 	_sortedKeys = nil;
 
@@ -52,18 +51,6 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 	DESTROY(_commodityList);
 	DESTROY(_sortedKeys);
 	[super dealloc];
-}
-
-
-- (OOCargoQuantity) capacity
-{
-	return _capacity;
-}
-
-
-- (void) setCapacity:(OOCargoQuantity)capacity
-{
-	_capacity = capacity;
 }
 
 
@@ -116,7 +103,7 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 - (BOOL) setQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
 {
 	NSMutableDictionary *definition = [_commodityList oo_mutableDictionaryForKey:good];
-	if (definition == nil)
+	if (definition == nil || quantity > [self capacityForGood:good])
 	{
 		return NO;
 	}
@@ -128,7 +115,7 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 - (BOOL) addQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good
 {
 	OOCargoQuantity current = [self quantityForGood:good];
-	if (current + quantity > _capacity)
+	if (current + quantity > [self capacityForGood:good])
 	{
 		return NO;
 	}
@@ -223,6 +210,19 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 		return 0;
 	}
 	return [definition oo_unsignedIntegerForKey:kOOCommodityLegalityImport];
+}
+
+
+- (OOCargoQuantity) capacityForGood:(OOCommodityType)good
+{
+	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
+	if (definition == nil)
+	{
+		return 0;
+	}
+	// should only be undefined for main system markets, not secondary stations
+	// meaningless for player ship, though
+	return [definition oo_unsignedIntegerForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 }
 
 

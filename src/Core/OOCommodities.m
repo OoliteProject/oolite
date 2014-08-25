@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 - (NSDictionary *) firstModifierForGood:(OOCommodityType)good inClasses:(NSArray *)classes fromList:(NSArray *)definitions;
 - (OOCreditsQuantity) adjustPrice:(OOCreditsQuantity)price byRule:(NSDictionary *)rule;
 - (OOCargoQuantity) adjustQuantity:(OOCargoQuantity)quantity byRule:(NSDictionary *)rule;
-
+- (NSDictionary *) updateInfoFor:(NSDictionary *)good byRule:(NSDictionary *)rule maxCapacity:(OOCargoQuantity)maxCapacity;
 
 @end
 
@@ -175,13 +175,11 @@ MA 02110-1301, USA.
 	if (marketDefinition == nil)
 	{
 		OOCommodityMarket *market = [self generateBlankMarket];
-		[market setCapacity:[station marketCapacity]];
 		return market;
 	}
 
 	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
 	OOCargoQuantity capacity = [station marketCapacity];
-	[market setCapacity:capacity];
 	OOCommodityMarket *mainMarket = [UNIVERSE commodityMarket];
 
 	NSString *commodity = nil;
@@ -189,17 +187,22 @@ MA 02110-1301, USA.
 	foreachkey (commodity, _commodityLists)
 	{
 		good = [_commodityLists oo_dictionaryForKey:commodity];
+		OOCargoQuantity baseCapacity = [good oo_unsignedIntegerForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+
 		OOCargoQuantity q = [mainMarket quantityForGood:commodity];
 		OOCreditsQuantity p = [mainMarket priceForGood:commodity];
-		// first, scale to this station's capacity
-		q = (q * capacity) / MAIN_SYSTEM_MARKET_LIMIT;
 
 		NSDictionary *modifier = [self firstModifierForGood:commodity inClasses:[good oo_arrayForKey:kOOCommodityClasses] fromList:marketDefinition];
+		good = [self updateInfoFor:good byRule:modifier maxCapacity:capacity];
 		p = [self adjustPrice:p byRule:modifier];
+
+		// first, scale to this station's capacity for this good
+		OOCargoQuantity localCapacity = [good oo_unsignedIntegerForKey:kOOCommodityCapacity];
+		q = (q * localCapacity) / baseCapacity;
 		q = [self adjustQuantity:q byRule:modifier];
-		if (q > capacity)
+		if (q > localCapacity)
 		{
-			q = capacity; // cap
+			q = localCapacity; // cap
 		}
 
 		[market setGood:commodity toPrice:p andQuantity:q withInfo:good];
@@ -394,5 +397,37 @@ MA 02110-1301, USA.
 	// may be over station capacity - that gets capped later
 	return (OOCargoQuantity) q;
 }
+
+
+- (NSDictionary *) updateInfoFor:(NSDictionary *)good byRule:(NSDictionary *)rule maxCapacity:(OOCargoQuantity)maxCapacity
+{
+	NSMutableDictionary *tmp = [NSMutableDictionary dictionaryWithDictionary:good];
+	int import = [rule oo_intForKey:kOOCommodityMarketLegalityImport defaultValue:-1];
+	if (import >= 0)
+	{
+		[tmp oo_setInteger:import forKey:kOOCommodityLegalityImport];
+	}
+
+	int export = [rule oo_intForKey:kOOCommodityMarketLegalityExport defaultValue:-1];
+	if (export >= 0)
+	{
+		[tmp oo_setInteger:import forKey:kOOCommodityLegalityExport];
+	}
+
+	int capacity = [rule oo_intForKey:kOOCommodityMarketCapacity defaultValue:-1];
+	if (capacity >= 0 && capacity <= maxCapacity)
+	{
+		[tmp oo_setInteger:capacity forKey:kOOCommodityCapacity];
+	}
+	else
+	{
+		// set to the station max capacity
+		[tmp oo_setInteger:maxCapacity forKey:kOOCommodityCapacity];
+	}
+
+	return [[tmp copy] autorelease];
+}
+
+
 
 @end

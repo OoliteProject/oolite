@@ -3698,30 +3698,6 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (int) legalStatusOfCommodity:(OOCommodityType)commodity
-{
-	return [[UNIVERSE commodityMarket] exportLegalityForGood:commodity];
-}
-
-
-// TRADE_GOODS TODO: this needs to become lSOM.. atStation:StationEntity*
-- (unsigned) legalStatusOfManifest:(OOCommodityMarket *)manifest
-{
-	unsigned				penalty = 0;
-	OOCommodityType			commodity = nil;
-	OOCargoQuantity			amount;
-	unsigned				penaltyPerUnit;
-	
-	foreach (commodity, [manifest goods])
-	{
-		amount = [manifest quantityForGood:commodity];
-		penaltyPerUnit = [manifest exportLegalityForGood:commodity];
-		penalty += amount * penaltyPerUnit;
-	}
-	return penalty;
-}
-
-
 - (OOCommodities *) commodities
 {
 	return commodities;

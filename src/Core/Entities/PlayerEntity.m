@@ -6351,6 +6351,18 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[self unloadCargoPods];	// fill up the on-ship commodities before...
 
+	// check import status of station
+	// escape pods must be cleared before this happens
+	if ([dockedStation marketMonitored])
+	{
+		OOCreditsQuantity oldbounty = [self bounty];
+		[self markAsOffender:[dockedStation legalStatusOfManifest:shipCommodityData export:NO] withReason:kOOLegalStatusReasonIllegalImports];
+		if ([self bounty] > oldbounty)
+		{
+			[self addRoleToPlayer:@"trader-smuggler"];
+		}
+	}
+
 	// check contracts
 	NSString *passengerAndCargoReport = [self checkPassengerContracts]; // Is also processing cargo and parcel contracts.
 	[self addMessageToReport:passengerAndCargoReport];
@@ -6420,11 +6432,11 @@ static GLfloat		sBaseMass = 0.0;
 		[self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")];
 	}
 	
-	if (station == [UNIVERSE station])
+	if ([station marketMonitored])
 	{
 		// 'leaving with those guns were you sir?'
 		OOCreditsQuantity oldbounty = [self bounty];
-		[self markAsOffender:[UNIVERSE legalStatusOfManifest:shipCommodityData] withReason:kOOLegalStatusReasonIllegalExports];
+		[self markAsOffender:[station legalStatusOfManifest:shipCommodityData export:YES] withReason:kOOLegalStatusReasonIllegalExports];
 		if ([self bounty] > oldbounty)
 		{
 			[self addRoleToPlayer:@"trader-smuggler"];
@@ -7394,6 +7406,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+// determines general export legality, not tied to a station
 - (unsigned) legalStatusOfCargoList
 {
 	NSString 		*good = nil;
@@ -9680,7 +9693,7 @@ static NSString *last_outfitting_key=nil;
 	int manifest_quantity = [shipCommodityData quantityForGood:index];
 	int market_quantity = [localMarket quantityForGood:index];
 	
-	int purchase = all ? [localMarket capacity] : 1;
+	int purchase = all ? [localMarket capacityForGood:index] : 1;
 	if (purchase > market_quantity)
 	{
 		purchase = market_quantity;					// limit to what's available
@@ -9758,7 +9771,7 @@ static NSString *last_outfitting_key=nil;
 	
 	int market_quantity = [localMarket quantityForGood:index];
 
-	int capacity = [localMarket capacity];
+	int capacity = [localMarket capacityForGood:index];
 	int sell = all ? capacity : 1;
 	if (sell > available_units)
 		sell = available_units;					// limit to what's in the hold

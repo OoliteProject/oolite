@@ -32,12 +32,9 @@ MA 02110-1301, USA.
 {
 @private
 	NSMutableDictionary		*_commodityList;
-	OOCargoQuantity			_capacity;
 	NSArray					*_sortedKeys;
 }
 
-- (OOCargoQuantity) capacity;
-- (void) setCapacity:(OOCargoQuantity)capacity;
 
 - (NSUInteger) count;
 
@@ -58,6 +55,7 @@ MA 02110-1301, USA.
 - (OOMassUnit) massUnitForGood:(OOCommodityType)good;
 - (NSUInteger) exportLegalityForGood:(OOCommodityType)good;
 - (NSUInteger) importLegalityForGood:(OOCommodityType)good;
+- (OOCargoQuantity) capacityForGood:(OOCommodityType)good;
 - (float) trumbleOpinionForGood:(OOCommodityType)good;
 
 - (NSDictionary *) definitionForGood:(OOCommodityType)good;

@@ -134,6 +134,37 @@
 }
 
 
+- (BOOL) marketMonitored
+{
+	if (self == [UNIVERSE station])
+	{
+		return YES;
+	}
+	return marketMonitored;
+}
+
+
+- (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export
+{
+	OOCreditsQuantity penalty, status = 0;
+	OOCommodityMarket *market = [self localMarket];
+	OOCommodityType good = nil;
+	foreach (good, [manifest goods])
+	{
+		if (export)
+		{
+			penalty = [market exportLegalityForGood:good];
+		}
+		else
+		{
+			penalty = [market importLegalityForGood:good];
+		}
+		status += penalty * [manifest quantityForGood:good];
+	}
+	return status;
+}
+
+
 - (OOCommodityMarket *) localMarket
 {
 	if (self == [UNIVERSE station])
@@ -640,6 +671,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 	marketCapacity = [dict oo_unsignedIntegerForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 	marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
+	marketMonitored = [dict oo_boolForKey:@"market_monitored" defaultValue:NO];
 
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.

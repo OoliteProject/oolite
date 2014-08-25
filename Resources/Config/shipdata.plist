@@ -1568,6 +1568,7 @@
 			// empty array matches system prices
 			// leaving the key out entirely is a blank market
 		);
+		"market_monitored" = yes;
 		materials = 
 		{ 
 			"oolite_coriolis_diffuse.png" = 
@@ -1745,6 +1746,7 @@
 			// empty array matches system prices
 			// leaving the key out entirely is a blank market
 		);
+		"market_monitored" = yes;
 		materials = 
 		{ 
 			"oolite_dodo_diffuse.png" = 
@@ -2181,6 +2183,7 @@
 			// empty array matches system prices
 			// leaving the key out entirely is a blank market
 		);
+		"market_monitored" = yes;
 		materials = 
 		{ 
 			"oolite_ico_diffuse.png" = 
@@ -3023,7 +3026,7 @@
 		has_scoop = no;
 		is_carrier = 1;
 		is_template = 1;
-		"market_capacity" = 31;
+		"market_capacity" = 31; // maximum capacity for any good
 		"market_definition" = (
 			{
 				// export cheap mining products
@@ -3041,6 +3044,7 @@
 				"price_multiplier" = 1.05;
 				"price_randomiser" = 0.05;
 				"quantity_multiplier" = 0.0;
+				"capacity" = 15;
 			},
 			{
 				// sometimes need clothes, but usually have enough already
@@ -3049,6 +3053,7 @@
 				"price_multiplier" = 0.8;
 				"price_randomiser" = 0.4;
 				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
 			},
 			{
 				// sometimes need new mining equipment
@@ -3057,15 +3062,18 @@
 				"price_multiplier" = 0.8;
 				"price_randomiser" = 0.4;
 				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
 			},
 			{
 				// not really interested
 				"type" = "default";
 				"price_multiplier" = 0.55;
 				"price_randomiser" = 0.25;
-				"quantity_multiplier" = 0;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 3;
 			}
 		);
+		"market_monitored" = no;
 		materials = 
 		{ 
 			"oolite_rock_hermit_diffuse.png" = 

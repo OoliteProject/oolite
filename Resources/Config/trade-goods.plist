@@ -16,8 +16,8 @@
 		"quantity_average" = 13.5; // gets rounded
 		"quantity_economic" = 0.52;
 		"quantity_random" = 0.04;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 1.0;
 		"sort_order" = 100;
 	};
@@ -34,8 +34,8 @@
 		"quantity_average" = 15; 
 		"quantity_economic" = 0.23;
 		"quantity_random" = 0.1;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0.25;		
 		"sort_order" = 200;
 	};
@@ -52,8 +52,8 @@
 		"quantity_average" = 16; 
 		"quantity_economic" = 0.66;
 		"quantity_random" = 0.09;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0.75;
 		"sort_order" = 300;
 	};
@@ -70,8 +70,8 @@
 		"quantity_average" = 9.75; 
 		"quantity_economic" = 1.10;
 		"quantity_random" = 1.59;
-		"export_legality" = 1;
-		"import_legality" = 0;
+		"legality_export" = 1;
+		"legality_import" = 0;
 		"trumble_opinion" = 0.01;
 		"sort_order" = 400;
 	};
@@ -88,8 +88,8 @@
 		"quantity_average" = 20; 
 		"quantity_economic" = 0.88;
 		"quantity_random" = 0.38;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0.95;
 		"sort_order" = 500;
 	};
@@ -106,8 +106,8 @@
 		"quantity_average" = 27.5; 
 		"quantity_economic" = 1.02;
 		"quantity_random" = 0.05;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 1.25;
 		"sort_order" = 600;
 	};
@@ -124,8 +124,8 @@
 		"quantity_average" = 32; 
 		"quantity_economic" = 0;
 		"quantity_random" = 1.0;
-		"export_legality" = 2;
-		"import_legality" = 0;
+		"legality_export" = 2;
+		"legality_import" = 0;
 		"trumble_opinion" = 1.05;
 		"sort_order" = 700;
 	};
@@ -142,8 +142,8 @@
 		"quantity_average" = 8.5; 
 		"quantity_economic" = 5.77;
 		"quantity_random" = 0.17;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 800;
 	};
@@ -160,8 +160,8 @@
 		"quantity_average" = 22.5;
 		"quantity_economic" = 0.93;
 		"quantity_random" = 0.16;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 900;
 	};
@@ -178,8 +178,8 @@
 		"quantity_average" = 29;
 		"quantity_economic" = 0.12;
 		"quantity_random" = 0.53;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1000;
 	};
@@ -196,8 +196,8 @@
 		"quantity_average" = 1;
 		"quantity_economic" = 32.5;
 		"quantity_random" = 3.5;
-		"export_legality" = 1;
-		"import_legality" = 0;
+		"legality_export" = 1;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1100;
 	};
@@ -214,8 +214,8 @@
 		"quantity_average" = 27.5;
 		"quantity_economic" = 1.15;
 		"quantity_random" = 1.15;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0.15;
 		"sort_order" = 1200;
 	};
@@ -232,8 +232,8 @@
 		"quantity_average" = 58;
 		"quantity_economic" = 0.06;
 		"quantity_random" = 0.03;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1300;
 	};
@@ -250,8 +250,8 @@
 		"quantity_average" = 9;
 		"quantity_economic" = 0.39;
 		"quantity_random" = 0.39;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1400;
 	};
@@ -268,8 +268,8 @@
 		"quantity_average" = 13.5;
 		"quantity_economic" = 0.52;
 		"quantity_random" = 1.15;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1500;
 	};
@@ -286,8 +286,8 @@
 		"quantity_average" = 6.75;
 		"quantity_economic" = 0.26;
 		"quantity_random" = 1.11;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1600;
 	};
@@ -304,8 +304,8 @@
 		"quantity_average" = 0;
 		"quantity_economic" = 0;
 		"quantity_random" = 0;
-		"export_legality" = 0;
-		"import_legality" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1700;
 	};
