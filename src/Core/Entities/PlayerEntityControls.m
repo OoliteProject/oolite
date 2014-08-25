@@ -2209,13 +2209,7 @@ static NSTimeInterval	time_last_frame;
 			break;
 
 		case GUI_SCREEN_MARKET:
-			if ([self status] == STATUS_DOCKED)
-			{
 				[self handleGUIUpDownArrowKeys];
-				if (upDownKeyPressed)
-				{
-					[self setGuiToMarketScreen];
-				}
 
 				if (([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])||([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))
 				{
@@ -2230,7 +2224,19 @@ static NSTimeInterval	time_last_frame;
 							}
 							else
 							{
-								[self playCantBuyCommodity];
+								if ([[gui selectedRowKey] isEqualToString:@">>>"])
+								{
+									[self playMenuNavigationDown];
+								}
+								else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
+								{
+									[self playMenuNavigationUp];
+								}
+								else
+								{
+									[self playCantBuyCommodity];
+								}
+								[self setGuiToMarketScreen];
 							}
 							wait_for_key_up = YES;
 						}
@@ -2246,7 +2252,19 @@ static NSTimeInterval	time_last_frame;
 							}
 							else
 							{
-								[self playCantSellCommodity];
+								if ([[gui selectedRowKey] isEqualToString:@">>>"])
+								{
+									[self playMenuNavigationDown];
+								}
+								else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
+								{
+									[self playMenuNavigationUp];
+								}
+								else
+								{
+									[self playCantSellCommodity];
+								}
+								[self setGuiToMarketScreen];
 							}
 							wait_for_key_up = YES;
 						}
@@ -2262,7 +2280,17 @@ static NSTimeInterval	time_last_frame;
 						{
 							OOCommodityType item = [gui selectedRowKey];
 							OOCargoQuantity yours =	[shipCommodityData quantityForGood:item];
-							if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
+							if ([item isEqualToString:@">>>"])
+							{
+								[self tryBuyingCommodity:item all:YES];
+								[self setGuiToMarketScreen];
+							}
+							else if ([item isEqualToString:@"<<<"])
+							{
+								[self trySellingCommodity:item all:YES];
+								[self setGuiToMarketScreen];
+							}
+							else if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
 							{
 								[self playBuyCommodity];
 								[self setGuiToMarketScreen];
@@ -2289,7 +2317,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					wait_for_key_up = NO;
 				}
-			}
+
 			break;
 			
 		case GUI_SCREEN_REPORT:

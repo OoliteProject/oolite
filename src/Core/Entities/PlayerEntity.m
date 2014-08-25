@@ -9567,7 +9567,11 @@ static NSString *last_outfitting_key=nil;
 	{
 		localMarket = [[UNIVERSE commodities] generateBlankMarket];
 	}
-	
+
+	// following changed to work whether docked or not
+	NSArray 			*goods = [shipCommodityData goods];
+	NSUInteger maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+
 	// GUI stuff
 	{
 		OOGUIRow			start_row = GUI_ROW_MARKET_START;
@@ -9575,9 +9579,6 @@ static NSString *last_outfitting_key=nil;
 		NSUInteger			i, j, commodityCount = [shipCommodityData count];
 		OOCargoQuantity		quantityInHold[commodityCount];
 		
-		// following changed to work whether docked or not
-		NSArray 			*goods = [shipCommodityData goods];
-
 		for (i = 0; i < commodityCount; i++)
 		{
 			quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
@@ -9591,10 +9592,6 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
-		// FIXME: deal better if there are fewer than 17 commodities defined
-		[gui setSelectableRange:NSMakeRange(start_row,GUI_ROW_MARKET_END - start_row)];
-
-
 		StationEntity *dockedStation = [self dockedStation];
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
@@ -9616,33 +9613,11 @@ static NSString *last_outfitting_key=nil;
 		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
 							 OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), nil] forRow:GUI_ROW_MARKET_KEY];
 
-		NSUInteger maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
-		int updateRowSelect = -1;
-
-		if ([gui selectedRow] > -1)
-		{
-			if (marketOffset > 0 && [gui selectedRow] == GUI_ROW_MARKET_START)
-			{
-				// just wrapped round
-				marketOffset = 0;
-			}
-			else if (marketOffset == 0 && [gui selectedRow] == GUI_ROW_MARKET_LAST)
-			{
-				// just wrapped round
-				marketOffset = maxOffset;
-			}
-			else if (marketOffset > 0 && [gui selectedRow] <= GUI_ROW_MARKET_SCROLLUP)
-			{
-				--marketOffset;
-				updateRowSelect = GUI_ROW_MARKET_SCROLLUP+1;
-			} 
-			else if (marketOffset < maxOffset && [gui selectedRow] >= GUI_ROW_MARKET_SCROLLDOWN)
-			{
-				++marketOffset;
-				updateRowSelect = GUI_ROW_MARKET_SCROLLDOWN-1;
-			}
-		}
 		if (marketOffset > maxOffset)
+		{
+			marketOffset = 0;
+		}
+		else if (marketOffset < 0)
 		{
 			marketOffset = maxOffset;
 		}
@@ -9674,29 +9649,71 @@ static NSString *last_outfitting_key=nil;
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
 			
-			[gui setKey:good forRow:row];
+			if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
+			{
+				[gui setKey:good forRow:row];
+			}
 			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
 			if (row >= GUI_ROW_MARKET_END)
 			{
 				break;
 			}
 		}
+
+		if (marketOffset < maxOffset)
+		{
+			[gui setKey:@">>>" forRow:GUI_ROW_MARKET_LAST];
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_LAST];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
+		}
+		if (marketOffset > 0)
+		{
+			[gui setKey:@"<<<" forRow:GUI_ROW_MARKET_START];
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_START];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
+		}
+
+
 		 // actually count the containers and  valuables (may be > max_cargo)
 		current_cargo = [self cargoQuantityOnBoard];
 		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
 		
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
 		
-		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
+		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock, may need to scroll out of it
 		{
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
-			if (updateRowSelect != -1)
-			{
-				[gui setSelectedRow:updateRowSelect];
-			}
-
 			if (([gui selectedRow] < start_row)||([gui selectedRow] >=row))
 				[gui setSelectedRow:start_row];
+		}
+		else if (maxOffset > 0)
+		{
+			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+			if ([gui selectedRow] == GUI_ROW_MARKET_START)
+			{
+				if (marketOffset == 0)
+				{
+					[gui setSelectedRow:GUI_ROW_MARKET_LAST];
+				}
+			}
+			else if ([gui selectedRow] == GUI_ROW_MARKET_LAST)
+			{
+				if (marketOffset == maxOffset)
+				{
+					[gui setSelectedRow:GUI_ROW_MARKET_START];
+				}
+			}
+			else
+			{
+				if (marketOffset == 0)
+				{
+					[gui setSelectedRow:GUI_ROW_MARKET_LAST];
+				}
+				else
+				{
+					[gui setSelectedRow:GUI_ROW_MARKET_START];
+				}
+			}
 		}
 		else
 		{
@@ -9709,7 +9726,7 @@ static NSString *last_outfitting_key=nil;
 	[[UNIVERSE gameView] clearMouse];
 	
 	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:[self status] == STATUS_DOCKED];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:([self status] == STATUS_DOCKED || maxOffset > 0)];
 	
 	if (guiChanged)
 	{
@@ -9728,6 +9745,12 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) tryBuyingCommodity:(OOCommodityType)index all:(BOOL)all
 {
+	if ([index isEqualToString:@"<<<"] || [index isEqualToString:@">>>"])
+	{
+		++marketOffset;
+		return NO;
+	}
+
 	if (![self isDocked])  return NO; // can't buy if not docked.
 	
 	OOCommodityMarket	*localMarket = [self localMarket];
@@ -9809,6 +9832,12 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) trySellingCommodity:(OOCommodityType)index all:(BOOL)all
 {
+	if ([index isEqualToString:@"<<<"] || [index isEqualToString:@">>>"])
+	{
+		--marketOffset;
+		return NO;
+	}
+
 	if (![self isDocked])  return NO; // can't sell if not docked.
 	
 	OOCommodityMarket *localMarket = [self localMarket];

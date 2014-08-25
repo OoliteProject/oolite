@@ -386,7 +386,7 @@ typedef enum
 	BOOL					pollControls;
 // ...end save screen   
 
-	NSUInteger				marketOffset;
+	NSInteger				marketOffset;
 
 	OOWeakReference			*_dockedStation;
 	
