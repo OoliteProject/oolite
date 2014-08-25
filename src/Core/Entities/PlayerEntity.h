@@ -143,6 +143,10 @@ enum
 	GUI_ROW_EQUIPMENT_CASH				= 1,
 	GUI_ROW_MARKET_KEY					= 1,
 	GUI_ROW_MARKET_START				= 2,
+	GUI_ROW_MARKET_SCROLLUP				= 4,
+	GUI_ROW_MARKET_SCROLLDOWN			= 16,
+	GUI_ROW_MARKET_LAST					= 18,
+	GUI_ROW_MARKET_END					= 19,
 	GUI_ROW_MARKET_CASH					= 20,
 	GUI_ROW_INTERFACES_HEADING			= 1,
 	GUI_ROW_INTERFACES_START			= 3,
@@ -381,6 +385,8 @@ typedef enum
 	int						currentPage;
 	BOOL					pollControls;
 // ...end save screen   
+
+	NSUInteger				marketOffset;
 
 	OOWeakReference			*_dockedStation;
 	

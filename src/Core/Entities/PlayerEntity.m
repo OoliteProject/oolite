@@ -1713,7 +1713,8 @@ static GLfloat		sBaseMass = 0.0;
 	[self setMissionBackgroundDescriptor:nil];
 	[self setMissionBackgroundSpecial:nil];
 	[self setEquipScreenBackgroundDescriptor:nil];
-	
+	marketOffset = 0;
+
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
 	script_time_interval = SCRIPT_TIMER_INTERVAL;
@@ -9590,6 +9591,10 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
+		// FIXME: deal better if there are fewer than 17 commodities defined
+		[gui setSelectableRange:NSMakeRange(start_row,GUI_ROW_MARKET_END - start_row)];
+
+
 		StationEntity *dockedStation = [self dockedStation];
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
@@ -9610,13 +9615,47 @@ static NSString *last_outfitting_key=nil;
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
 		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
 							 OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), nil] forRow:GUI_ROW_MARKET_KEY];
-		
+
+		NSUInteger maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+		int updateRowSelect = -1;
+
+		if ([gui selectedRow] > -1)
+		{
+			if (marketOffset > 0 && [gui selectedRow] == GUI_ROW_MARKET_START)
+			{
+				// just wrapped round
+				marketOffset = 0;
+			}
+			else if (marketOffset == 0 && [gui selectedRow] == GUI_ROW_MARKET_LAST)
+			{
+				// just wrapped round
+				marketOffset = maxOffset;
+			}
+			else if (marketOffset > 0 && [gui selectedRow] <= GUI_ROW_MARKET_SCROLLUP)
+			{
+				--marketOffset;
+				updateRowSelect = GUI_ROW_MARKET_SCROLLUP+1;
+			} 
+			else if (marketOffset < maxOffset && [gui selectedRow] >= GUI_ROW_MARKET_SCROLLDOWN)
+			{
+				++marketOffset;
+				updateRowSelect = GUI_ROW_MARKET_SCROLLDOWN-1;
+			}
+		}
+		if (marketOffset > maxOffset)
+		{
+			marketOffset = maxOffset;
+		}
 
 		OOCommodityType good = nil;
 		i = 0;
 		foreach (good, goods)
 		{
-			
+			if (i < marketOffset)
+			{
+				++i;
+				continue;
+			}
 			NSString* desc = [NSString stringWithFormat:@" %@ ", [shipCommodityData nameForGood:good]];
 			OOCargoQuantity available_units = [localMarket quantityForGood:good];
 			OOCargoQuantity units_in_hold = quantityInHold[i++];
@@ -9637,6 +9676,10 @@ static NSString *last_outfitting_key=nil;
 			
 			[gui setKey:good forRow:row];
 			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
+			if (row >= GUI_ROW_MARKET_END)
+			{
+				break;
+			}
 		}
 		 // actually count the containers and  valuables (may be > max_cargo)
 		current_cargo = [self cargoQuantityOnBoard];
@@ -9647,6 +9690,11 @@ static NSString *last_outfitting_key=nil;
 		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
 		{
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+			if (updateRowSelect != -1)
+			{
+				[gui setSelectedRow:updateRowSelect];
+			}
+
 			if (([gui selectedRow] < start_row)||([gui selectedRow] >=row))
 				[gui setSelectedRow:start_row];
 		}

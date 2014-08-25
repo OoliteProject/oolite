@@ -2212,7 +2212,11 @@ static NSTimeInterval	time_last_frame;
 			if ([self status] == STATUS_DOCKED)
 			{
 				[self handleGUIUpDownArrowKeys];
-				
+				if (upDownKeyPressed)
+				{
+					[self setGuiToMarketScreen];
+				}
+
 				if (([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])||([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))
 				{
 					if ([gameView isDown:key_gui_arrow_right])   // -->
