@@ -80,6 +80,8 @@ typedef enum
 	NSString				*allegiance;
 	
 	OOCommodityMarket		*localMarket;
+	OOCargoQuantity			marketCapacity;
+	NSArray					*marketDefinition;
 //	NSMutableArray			*localPassengers;
 //	NSMutableArray			*localContracts;
 	NSMutableArray			*localShipyard;
@@ -106,6 +108,9 @@ typedef enum
 							hasBreakPattern: 1;
 }
 
+
+- (OOCargoQuantity) marketCapacity;
+- (NSArray *)marketDefinition;
 - (OOCommodityMarket *) localMarket;
 - (void) setLocalMarket:(NSArray *)market;
 - (NSDictionary *) localMarketForScripting;

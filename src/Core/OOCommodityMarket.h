@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 }
 
 - (OOCargoQuantity) capacity;
+- (void) setCapacity:(OOCargoQuantity)capacity;
 
 - (NSUInteger) count;
 

@@ -122,6 +122,18 @@
 }
 
 
+- (OOCargoQuantity) marketCapacity
+{
+	return marketCapacity;
+}
+
+
+- (NSArray *) marketDefinition
+{
+	return marketDefinition;
+}
+
+
 - (OOCommodityMarket *) localMarket
 {
 	if (self == [UNIVERSE station])
@@ -198,8 +210,7 @@
 - (OOCommodityMarket *) initialiseLocalMarket
 {
 	DESTROY(localMarket);
-	// TRADE_GOODS: FIXME - actual secondary station markets!
-	localMarket = [[[UNIVERSE commodities] generateMarketForSystemWithEconomy:0] retain];	
+	localMarket = [[[UNIVERSE commodities] generateMarketForStation:self] retain];	
 	return localMarket;
 }
 
@@ -578,6 +589,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 - (void) dealloc
 {
 	DESTROY(_shipsOnHold);
+	DESTROY(marketDefinition);
 	DESTROY(localMarket);
 	DESTROY(allegiance);
 //	DESTROY(localPassengers);
@@ -625,7 +637,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
 	[self setAllegiance:[dict oo_stringForKey:@"allegiance"]];
-	
+
+	marketCapacity = [dict oo_unsignedIntegerForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+	marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
+
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.
 	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:[UNIVERSE dockingClearanceProtocolActive]];

@@ -61,6 +61,12 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 }
 
 
+- (void) setCapacity:(OOCargoQuantity)capacity
+{
+	_capacity = capacity;
+}
+
+
 - (NSUInteger) count
 {
 	return [_commodityList count];

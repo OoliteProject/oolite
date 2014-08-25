@@ -3011,6 +3011,49 @@
 		has_scoop = no;
 		is_carrier = 1;
 		is_template = 1;
+		"market_capacity" = 31;
+		"market_definition" = (
+			{
+				// export cheap mining products
+				"type" = "class";
+				"name" = "oolite-mining";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.1;
+				"quantity_multiplier" = 3.5;
+				"quantity_randomiser" = 3.0;
+			},
+			{
+				// import supplies a bit
+				"type" = "class";
+				"name" = "oolite-edible";
+				"price_multiplier" = 1.05;
+				"price_randomiser" = 0.05;
+				"quantity_multiplier" = 0.0;
+			},
+			{
+				// sometimes need clothes, but usually not
+				"type" = "class";
+				"name" = "oolite-wearable";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+			},
+			{
+				// sometimes need new mining equipment
+				"type" = "class";
+				"name" = "oolite-machinery";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+			},
+			{
+				// not really interested
+				"type" = "default";
+				"price_multiplier" = 0.55;
+				"price_randomiser" = 0.25;
+				"quantity_multiplier" = 0;
+			}
+		);
 		materials = 
 		{ 
 			"oolite_rock_hermit_diffuse.png" = 
@@ -3139,7 +3182,6 @@
 		like_ship = "oolite_template_coriolis-station";
 		ai_type = "nullAI.plist";
 		is_carrier = 1;
-		market = "none";
 		name = "Training Station";
 		requires_docking_clearance = 1;
 		roles = "oolite-tutorial-station";

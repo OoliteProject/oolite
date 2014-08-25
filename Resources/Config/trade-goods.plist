@@ -60,7 +60,7 @@
 
 	"slaves" = {
 		"name" = "[commodity-name slaves]";
-		"classes" = ("oolite-restricted","oolite-living");
+		"classes" = ("oolite-restricted","oolite-living","oolite-slaves");
 		"quantity_unit" = 0;
 		"peak_export" = 7;
 		"peak_import" = 0;

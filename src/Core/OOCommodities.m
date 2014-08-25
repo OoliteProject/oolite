@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOCommodities.h"
 #import "OOCommodityMarket.h"
 
+#import "StationEntity.h"
 #import "ResourceManager.h"
 #import "legacy_random.h"
 #import "OOCollectionExtractors.h"
@@ -35,6 +36,10 @@ MA 02110-1301, USA.
 - (OOCreditsQuantity) generatePriceForGood:(NSDictionary *)good inEconomy:(OOEconomyID)economy;
 
 - (float) economicBiasForGood:(NSDictionary *)good inEconomy:(OOEconomyID)economy;
+- (NSDictionary *) firstModifierForGood:(OOCommodityType)good inClasses:(NSArray *)classes fromList:(NSArray *)definitions;
+- (OOCreditsQuantity) adjustPrice:(OOCreditsQuantity)price byRule:(NSDictionary *)rule;
+- (OOCargoQuantity) adjustQuantity:(OOCargoQuantity)quantity byRule:(NSDictionary *)rule;
+
 
 @end
 
@@ -164,6 +169,45 @@ MA 02110-1301, USA.
 }
 
 
+- (OOCommodityMarket *) generateMarketForStation:(StationEntity *)station
+{
+	NSArray *marketDefinition = [station marketDefinition];
+	if (marketDefinition == nil)
+	{
+		OOCommodityMarket *market = [self generateBlankMarket];
+		[market setCapacity:[station marketCapacity]];
+		return market;
+	}
+
+	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
+	OOCargoQuantity capacity = [station marketCapacity];
+	[market setCapacity:capacity];
+	OOCommodityMarket *mainMarket = [UNIVERSE commodityMarket];
+
+	NSString *commodity = nil;
+	NSDictionary *good = nil;
+	foreachkey (commodity, _commodityLists)
+	{
+		good = [_commodityLists oo_dictionaryForKey:commodity];
+		OOCargoQuantity q = [mainMarket quantityForGood:commodity];
+		OOCreditsQuantity p = [mainMarket priceForGood:commodity];
+		// first, scale to this station's capacity
+		q = (q * capacity) / MAIN_SYSTEM_MARKET_LIMIT;
+
+		NSDictionary *modifier = [self firstModifierForGood:commodity inClasses:[good oo_arrayForKey:kOOCommodityClasses] fromList:marketDefinition];
+		p = [self adjustPrice:p byRule:modifier];
+		q = [self adjustQuantity:q byRule:modifier];
+		if (q > capacity)
+		{
+			q = capacity; // cap
+		}
+
+		[market setGood:commodity toPrice:p andQuantity:q withInfo:good];
+	}
+	return [market autorelease];
+}
+
+
 - (NSUInteger) count
 {
 	return [_commodityLists count];
@@ -280,5 +324,75 @@ MA 02110-1301, USA.
 	}
 }
 
+
+- (NSDictionary *) firstModifierForGood:(OOCommodityType)good inClasses:(NSArray *)classes fromList:(NSArray *)definitions
+{
+	NSUInteger i;
+	for (i = 0; i < [definitions count]; i++)
+	{
+		NSDictionary *definition = [definitions oo_dictionaryAtIndex:i];
+		if (definition != nil)
+		{
+			NSString *applicationType = [definition oo_stringForKey:kOOCommodityMarketType defaultValue:kOOCommodityMarketTypeValueDefault];
+			NSString *applicationName = [definition oo_stringForKey:kOOCommodityMarketName defaultValue:@""];
+
+			if (
+				[applicationType isEqualToString:kOOCommodityMarketTypeValueDefault]
+				|| ([applicationType isEqualToString:kOOCommodityMarketTypeValueGood] && [applicationName isEqualToString:good])
+				|| ([applicationType isEqualToString:kOOCommodityMarketTypeValueClass] && [classes containsObject:applicationName])
+				)
+			{
+				return definition;
+			}
+		}
+	}
+	// return a blank dictionary - default values will do the rest
+	return [NSDictionary dictionary];
+}
+
+
+- (OOCreditsQuantity) adjustPrice:(OOCreditsQuantity)price byRule:(NSDictionary *)rule
+{
+	float p = (float)price; // work in floats to avoid rounding problems
+	float pa = [rule oo_floatForKey:kOOCommodityMarketPriceAdder defaultValue:0.0];
+	float pm = [rule oo_floatForKey:kOOCommodityMarketPriceMultiplier defaultValue:1.0];
+	if (pm <= 0.0 && pa <= 0.0)
+	{
+		// setting a price multiplier of 0 forces the price to zero
+		return 0;
+	}
+	float pr = [rule oo_floatForKey:kOOCommodityMarketPriceRandomiser defaultValue:0.0];
+	p = (p * pm) + pa + (p * pr * (randf()-randf()));
+	if (p < 1.0)
+	{
+		// random variation and non-zero price multiplier can't reduce
+		// price below 1 decicredit
+		p = 1.0;
+	}
+	return (OOCreditsQuantity) p;
+}
+
+
+- (OOCargoQuantity) adjustQuantity:(OOCargoQuantity)quantity byRule:(NSDictionary *)rule
+{
+	float q = (float)quantity; // work in floats to avoid rounding problems
+	float qa = [rule oo_floatForKey:kOOCommodityMarketQuantityAdder defaultValue:0.0];
+	float qm = [rule oo_floatForKey:kOOCommodityMarketQuantityMultiplier defaultValue:1.0];
+	if (qm <= 0.0 && qa <= 0.0)
+	{
+		// setting a price multiplier of 0 forces the price to zero
+		return 0;
+	}
+	float qr = [rule oo_floatForKey:kOOCommodityMarketQuantityRandomiser defaultValue:0.0];
+	q = (q * qm) + qa + (q * qr * (randf()-randf()));
+	if (q < 0.0)
+	{
+		// random variation and non-zero price multiplier can't reduce
+		// quantity below zero
+		q = 0.0;
+	}
+	// may be over station capacity - that gets capped later
+	return (OOCargoQuantity) q;
+}
 
 @end

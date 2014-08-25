@@ -31,10 +31,7 @@ MA 02110-1301, USA.
 
 // keys in trade-goods.plist
 static NSString * const kOOCommodityName			= @"name";
-#if 0
-// not used yet
 static NSString * const kOOCommodityClasses			= @"classes";
-#endif
 static NSString * const kOOCommodityContainer		= @"quantity_unit";
 static NSString * const kOOCommodityPeakExport		= @"peak_export";
 static NSString * const kOOCommodityPeakImport		= @"peak_import";
@@ -53,7 +50,23 @@ static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
 static NSString * const kOOCommoditySortOrder		= @"sort_order";
 
-@class OOCommodityMarket;
+// keys in secondary market definitions
+static NSString * const kOOCommodityMarketType					= @"type";
+static NSString * const kOOCommodityMarketName					= @"name";
+static NSString * const kOOCommodityMarketPriceAdder			= @"price_adder";
+static NSString * const kOOCommodityMarketPriceMultiplier		= @"price_multiplier";
+static NSString * const kOOCommodityMarketPriceRandomiser		= @"price_randomiser";
+static NSString * const kOOCommodityMarketQuantityAdder			= @"quantity_adder";
+static NSString * const kOOCommodityMarketQuantityMultiplier	= @"quantity_multiplier";
+static NSString * const kOOCommodityMarketQuantityRandomiser	= @"quantity_randomiser";
+
+static NSString * const kOOCommodityMarketTypeValueDefault		= @"default";
+static NSString * const kOOCommodityMarketTypeValueClass		= @"class";
+static NSString * const kOOCommodityMarketTypeValueGood			= @"good";
+
+
+
+@class OOCommodityMarket, StationEntity;
 
 @interface OOCommodities: NSObject
 {
@@ -68,6 +81,7 @@ static NSString * const kOOCommoditySortOrder		= @"sort_order";
 - (OOCommodityMarket *) generateManifestForPlayer;
 - (OOCommodityMarket *) generateBlankMarket;
 - (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy;
+- (OOCommodityMarket *) generateMarketForStation:(StationEntity *)station;
 
 - (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy;
 
