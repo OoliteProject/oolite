@@ -7412,7 +7412,7 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSString 		*good = nil;
 	OOCargoQuantity amount;
-	unsigned		penalty;
+	unsigned		penalty = 0;
 
 	foreach (good, [shipCommodityData goods])
 	{
