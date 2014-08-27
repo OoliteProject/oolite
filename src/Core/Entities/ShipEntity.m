@@ -9716,7 +9716,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	Vector  relPos = HPVectorToVector(HPvector_subtract([self calculateTargetPosition], position));
 	
-	double	range2 = magnitude2(relPos);
+	double	range2 = magnitude2(HPVectorToVector(HPvector_subtract([target position], position)));
 
 	if (range2 > scannerRange * scannerRange)
 	{
@@ -9945,7 +9945,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat  d_forward, d_up, d_right;
 	
 	Vector  relPos = HPVectorToVector(HPvector_subtract([self calculateTargetPosition], position));
-	double	range2 = magnitude2(relPos);
+	double	range2 = magnitude2(HPVectorToVector(HPvector_subtract([target position], position)));
 
 	if (range2 > scannerRange * scannerRange)
 	{
