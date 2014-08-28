@@ -3356,7 +3356,8 @@ static NSTimeInterval	time_last_frame;
 				{
 					target_chart_zoom = saved_chart_zoom;
 				}
-				target_chart_centre = cursor_coordinates;
+				target_chart_centre.x = cursor_coordinates.x = target_system_seed.d;
+				target_chart_centre.y = cursor_coordinates.y = target_system_seed.b;
 				[self setGuiToShortRangeChartScreen];
 			}
 		}
