@@ -33,8 +33,9 @@
 		{	// stick sensitivity indicator
 			alpha		= 1.0;
 			selector	= "drawStickSensitivityIndicator:";
-			x		= 151;
-			y		= -165;
+			x		= 150;
+			y		= 75;
+			y_origin = -1;
 			height		= 12;
 			width		= 12;
 		},

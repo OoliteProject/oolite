@@ -157,7 +157,7 @@ enum
 - (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
-- (void) drawStickSenitivityIndicator:(NSDictionary *)info;
+- (void) drawStickSensitivityIndicator:(NSDictionary *)info;
 
 - (void) drawGreenSurround:(NSDictionary *)info;
 - (void) drawYellowSurround:(NSDictionary *)info;
