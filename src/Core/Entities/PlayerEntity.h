@@ -244,6 +244,20 @@ typedef enum
 } OOPlayerFleeingStatus;
 
 
+typedef enum
+{
+	MARKET_FILTER_MODE_OFF = 0,
+	MARKET_FILTER_MODE_TRADE = 1,
+	MARKET_FILTER_MODE_HOLD = 2,
+	MARKET_FILTER_MODE_STOCK = 3,
+	MARKET_FILTER_MODE_LEGAL = 4,
+	MARKET_FILTER_MODE_RESTRICTED = 5, // import or export
+
+
+	MARKET_FILTER_MODE_MAX = 5 // always equal to highest real mode
+} OOMarketFilterMode;
+
+
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -388,6 +402,7 @@ typedef enum
 // ...end save screen   
 
 	NSInteger				marketOffset;
+	OOMarketFilterMode		marketFilterMode;
 
 	OOWeakReference			*_dockedStation;
 	
@@ -541,6 +556,7 @@ typedef enum
 	OOKeyCode				key_next_compass_mode;
 	
 	OOKeyCode				key_chart_highlight;
+	OOKeyCode				key_market_filter_cycle;
 	
 	OOKeyCode				key_next_target;
 	OOKeyCode				key_previous_target;

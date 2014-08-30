@@ -1416,7 +1416,15 @@
 	"cargo-grams-symbol"			= "g";
 	"cargo-kilograms-symbol"		= "kg";
 	"commodity-quantity-none"		= "—";
-	
+	"oolite-market-filtered-all"	= " Current filter hides all goods ";
+	"oolite-market-filter-line"		= "Filter: ";
+	"oolite-market-filter-0"		= "All goods";
+	"oolite-market-filter-1"		= "Carried or in stock";
+	"oolite-market-filter-2"		= "Carried";
+	"oolite-market-filter-3"		= "In stock";
+	"oolite-market-filter-4"		= "No transport restrictions";
+	"oolite-market-filter-5"		= "Transport restrictions";
+
 	// System data screen
 	"sysdata-planet-name-@"			= "Data on %@";
 	"sysdata-eco"					= "Economy:";

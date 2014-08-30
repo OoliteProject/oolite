@@ -130,6 +130,7 @@ static GLfloat		sBaseMass = 0.0;
 
 
 // Shopping
+- (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
 // Cargo & passenger contracts
@@ -1769,6 +1770,7 @@ static GLfloat		sBaseMass = 0.0;
 	ident_engaged = NO;
 	
 	max_cargo				= 20; // will be reset later
+	marketFilterMode		= MARKET_FILTER_MODE_OFF;
 	
 	DESTROY(shipCommodityData);
 	shipCommodityData = [[[UNIVERSE commodities] generateManifestForPlayer] retain];
@@ -9554,6 +9556,58 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market
+{
+	if (marketFilterMode == MARKET_FILTER_MODE_OFF)
+	{
+		return goods;
+	}
+	NSMutableArray	*filteredGoods = [NSMutableArray arrayWithCapacity:[goods count]];
+	OOCommodityType	good = nil;
+	foreach (good, goods)
+	{
+		switch (marketFilterMode)
+		{
+		case MARKET_FILTER_MODE_OFF:
+			// never reached, but keeps compiler happy
+			[filteredGoods addObject:good];
+			break;
+		case MARKET_FILTER_MODE_TRADE:
+			if ([market quantityForGood:good] > 0 || [shipCommodityData quantityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_HOLD:
+			if ([shipCommodityData quantityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_STOCK:
+			if ([market quantityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_LEGAL:
+			if ([market exportLegalityForGood:good] == 0 && [market importLegalityForGood:good] == 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_RESTRICTED:
+			if ([market exportLegalityForGood:good] > 0 || [market importLegalityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		}
+	}
+	return [[filteredGoods copy] autorelease];
+}
+
+
 - (void) setGuiToMarketScreen
 {
 	OOCommodityMarket	*localMarket = [self localMarket];
@@ -9572,8 +9626,12 @@ static NSString *last_outfitting_key=nil;
 	}
 
 	// following changed to work whether docked or not
-	NSArray 			*goods = [localMarket goods];
-	NSUInteger maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+	NSArray 			*goods = [self applyMarketFilter:[localMarket goods] onMarket:localMarket];
+	NSUInteger maxOffset = 0;
+	if ([goods count] > (GUI_ROW_MARKET_END-GUI_ROW_MARKET_START))
+	{
+		maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+	}
 
 	// GUI stuff
 	{
@@ -9625,62 +9683,71 @@ static NSString *last_outfitting_key=nil;
 			marketOffset = maxOffset;
 		}
 
-		OOCommodityType good = nil;
-		i = 0;
-		foreach (good, goods)
+		if ([goods count] > 0)
 		{
-			if (i < marketOffset)
+			OOCommodityType good = nil;
+			i = 0;
+			foreach (good, goods)
 			{
-				++i;
-				continue;
-			}
-			NSString* desc = [NSString stringWithFormat:@" %@ ", [shipCommodityData nameForGood:good]];
-			OOCargoQuantity available_units = [localMarket quantityForGood:good];
-			OOCargoQuantity units_in_hold = quantityInHold[i++];
-			OOCreditsQuantity pricePerUnit = [localMarket priceForGood:good];
-			OOMassUnit unit = [shipCommodityData massUnitForGood:good];
+				if (i < marketOffset)
+				{
+					++i;
+					continue;
+				}
+				NSString* desc = [NSString stringWithFormat:@" %@ ", [shipCommodityData nameForGood:good]];
+				OOCargoQuantity available_units = [localMarket quantityForGood:good];
+				OOCargoQuantity units_in_hold = quantityInHold[i++];
+				OOCreditsQuantity pricePerUnit = [localMarket priceForGood:good];
+				OOMassUnit unit = [shipCommodityData massUnitForGood:good];
 			
-			NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
+				NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
 
-			NSUInteger priceDecimal = pricePerUnit % 10;
-			NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
+				NSUInteger priceDecimal = pricePerUnit % 10;
+				NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
 			
-			// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
+				// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 			
-			NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
-			NSString *units = DisplayStringForMassUnit(unit);
-			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
-			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
+				NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
+				NSString *units = DisplayStringForMassUnit(unit);
+				NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
+				NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
 			
-			if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
-			{
-				[gui setKey:good forRow:row];
+				if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
+				{
+					[gui setKey:good forRow:row];
+				}
+				[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
+				if (row >= GUI_ROW_MARKET_END)
+				{
+					break;
+				}
 			}
-			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
-			if (row >= GUI_ROW_MARKET_END)
+
+			if (marketOffset < maxOffset)
 			{
-				break;
+				[gui setKey:@">>>" forRow:GUI_ROW_MARKET_LAST];
+				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_LAST];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
+			}
+			if (marketOffset > 0)
+			{
+				[gui setKey:@"<<<" forRow:GUI_ROW_MARKET_START];
+				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_START];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
 			}
 		}
-
-		if (marketOffset < maxOffset)
+		else
 		{
-			[gui setKey:@">>>" forRow:GUI_ROW_MARKET_LAST];
-			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_LAST];
-			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
+			// filter is excluding everything
+			[gui setText:DESC(@"oolite-market-filtered-all") forRow:GUI_ROW_MARKET_START];
 		}
-		if (marketOffset > 0)
-		{
-			[gui setKey:@"<<<" forRow:GUI_ROW_MARKET_START];
-			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_START];
-			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
-		}
-
 
 		 // actually count the containers and  valuables (may be > max_cargo)
 		current_cargo = [self cargoQuantityOnBoard];
 		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
 		
+		[gui setText:[NSString stringWithFormat:@"%@ %@",OOExpand(@"[oolite-market-filter-line]"), OOExpand([NSString stringWithFormat:@"[oolite-market-filter-%u]",marketFilterMode])] forRow:GUI_ROW_MARKET_END];
+		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_END];
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
 		
 		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock, may need to scroll out of it

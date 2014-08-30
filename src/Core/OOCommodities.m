@@ -164,6 +164,13 @@ MA 02110-1301, USA.
 	[definition oo_setUnsignedInteger:p forKey:kOOCommodityPriceCurrent];
 	[definition oo_setUnsignedInteger:q forKey:kOOCommodityQuantityCurrent];
 	[definition setObject:key forKey:kOOCommodityKey];
+	if (station != nil && ![station marketMonitored])
+	{
+		// clear legal status indicators if the market is not monitored
+		[definition oo_setUnsignedInteger:0 forKey:kOOCommodityLegalityExport];		
+		[definition oo_setUnsignedInteger:0 forKey:kOOCommodityLegalityImport];
+	}
+
 	NSString *goodScriptName = [definition oo_stringForKey:kOOCommodityScript];
 	if (goodScriptName == nil)
 	{
@@ -492,7 +499,8 @@ MA 02110-1301, USA.
 		return 0;
 	}
 	float pr = [rule oo_floatForKey:kOOCommodityMarketPriceRandomiser defaultValue:0.0];
-	p = (p * pm) + pa + (p * pr * (randf()-randf()));
+	p += pa;
+	p = (p * pm) + (p * pr * (randf()-randf()));
 	if (p < 1.0)
 	{
 		// random variation and non-zero price multiplier can't reduce
@@ -514,7 +522,8 @@ MA 02110-1301, USA.
 		return 0;
 	}
 	float qr = [rule oo_floatForKey:kOOCommodityMarketQuantityRandomiser defaultValue:0.0];
-	q = (q * qm) + qa + (q * qr * (randf()-randf()));
+	q += qa;
+	q = (q * qm) + (q * qr * (randf()-randf()));
 	if (q < 0.0)
 	{
 		// random variation and non-zero price multiplier can't reduce
