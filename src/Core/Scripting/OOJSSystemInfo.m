@@ -613,7 +613,7 @@ static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 
-	OOCreditsQuantity price = [[UNIVERSE commodities] samplePriceForCommodity:commodity inEconomy:[[thisInfo valueForKey:@"economy"] intValue]];
+	OOCreditsQuantity price = [[UNIVERSE commodities] samplePriceForCommodity:commodity inEconomy:[[thisInfo valueForKey:@"economy"] intValue] withScript:[thisInfo valueForKey:@"commodity_script"] inSystem:[thisInfo system]];
 	
 	OOJS_RETURN_INT(price);
 	

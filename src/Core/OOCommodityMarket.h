@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 
 - (NSUInteger) count;
 
-- (void) setGood:(OOCommodityType)key toPrice:(OOCreditsQuantity)price andQuantity:(OOCargoQuantity)quantity withInfo:(NSDictionary *)info;
+- (void) setGood:(OOCommodityType)key withInfo:(NSDictionary *)info;
 
 - (NSArray *) goods;
 - (NSDictionary *) dictionaryForScripting;

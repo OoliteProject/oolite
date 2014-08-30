@@ -317,6 +317,7 @@ typedef enum
 	
 	NSDictionary			*worldScripts;
 	NSDictionary			*worldScriptsRequiringTickle;
+	NSMutableDictionary		*commodityScripts;
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
 	NSString				*_missionTitle;
@@ -1011,6 +1012,8 @@ typedef enum
 - (BOOL) scriptsLoaded;
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;
+
+- (OOScript *) commodityScriptNamed:(NSString *)script;
 
 // *** World script events.
 // In general, script events should be sent through doScriptEvent:..., which

@@ -60,12 +60,9 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 }
 
 
-- (void) setGood:(OOCommodityType)key toPrice:(OOCreditsQuantity)price andQuantity:(OOCargoQuantity)quantity withInfo:(NSDictionary *)info
+- (void) setGood:(OOCommodityType)key withInfo:(NSDictionary *)info
 {
 	NSMutableDictionary *definition = [NSMutableDictionary dictionaryWithDictionary:info];
-	[definition oo_setUnsignedInteger:price forKey:kOOCommodityPriceCurrent];
-	[definition oo_setUnsignedInteger:quantity forKey:kOOCommodityQuantityCurrent];
-
 	[_commodityList setObject:definition forKey:key];
 	DESTROY(_sortedKeys); // reset
 }

@@ -134,6 +134,12 @@
 }
 
 
+- (NSString *) marketScriptName
+{
+	return marketScriptName;
+}
+
+
 - (BOOL) marketMonitored
 {
 	if (self == [UNIVERSE station])
@@ -621,6 +627,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 {
 	DESTROY(_shipsOnHold);
 	DESTROY(marketDefinition);
+	DESTROY(marketScriptName);
 	DESTROY(localMarket);
 	DESTROY(allegiance);
 //	DESTROY(localPassengers);
@@ -671,6 +678,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 	marketCapacity = [dict oo_unsignedIntegerForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 	marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
+	marketScriptName = [[dict oo_arrayForKey:@"market_script" defaultValue:nil] retain];
 	marketMonitored = [dict oo_boolForKey:@"market_monitored" defaultValue:NO];
 
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,

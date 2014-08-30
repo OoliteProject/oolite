@@ -50,6 +50,9 @@ static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
 static NSString * const kOOCommoditySortOrder		= @"sort_order";
 static NSString * const kOOCommodityCapacity		= @"capacity";
+// next one cannot be set from file - named for compatibility
+static NSString * const kOOCommodityKey				= @"key";
+
 
 // keys in secondary market definitions
 static NSString * const kOOCommodityMarketType					= @"type";
@@ -85,10 +88,10 @@ static NSString * const kOOCommodityMarketTypeValueGood			= @"good";
 
 - (OOCommodityMarket *) generateManifestForPlayer;
 - (OOCommodityMarket *) generateBlankMarket;
-- (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy;
+- (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(NSString *)scriptName;
 - (OOCommodityMarket *) generateMarketForStation:(StationEntity *)station;
 
-- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy;
+- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString *)scriptName inSystem:(OOSystemID)system;
 
 - (NSUInteger) count;
 - (NSArray *) goods;

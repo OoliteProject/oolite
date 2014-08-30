@@ -7200,6 +7200,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	NSDictionary	*systemData;
 	PlayerEntity	*player = PLAYER;
 	OOEconomyID		economy;
+	NSString		*scriptName;
 	
 	[self setGalaxySeed: [player galaxy_seed]];
 	
@@ -7208,9 +7209,10 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	
 	systemData = [self generateSystemData:target_system_seed];
 	economy = [systemData  oo_unsignedCharForKey:KEY_ECONOMY];
+	scriptName = [systemData  oo_stringForKey:@"commodity_script" defaultValue:nil];
 	
 	DESTROY(commodityMarket);
-	commodityMarket = [[commodities generateMarketForSystemWithEconomy:economy] retain];
+	commodityMarket = [[commodities generateMarketForSystemWithEconomy:economy andScript:scriptName] retain];
 }
 
 

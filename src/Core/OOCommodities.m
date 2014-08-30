@@ -29,8 +29,15 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "legacy_random.h"
 #import "OOCollectionExtractors.h"
+#import "OOJSScript.h"
+#import "PlayerEntity.h"
+
 
 @interface OOCommodities (OOPrivate)
+
+- (NSDictionary *) modifyGood:(NSDictionary *)good withScript:(OOScript *)script atStation:(StationEntity *)station inSystem:(OOSystemID)system localMode:(BOOL)local;
+- (NSDictionary *) createDefinitionFrom:(NSDictionary *) good price:(OOCreditsQuantity)p andQuantity:(OOCreditsQuantity)q forKey:(OOCommodityType)key atStation:(StationEntity *)station inSystem:(OOSystemID)system;
+
 
 - (OOCargoQuantity) generateQuantityForGood:(NSDictionary *)good inEconomy:(OOEconomyID)economy;
 - (OOCreditsQuantity) generatePriceForGood:(NSDictionary *)good inEconomy:(OOEconomyID)economy;
@@ -137,18 +144,102 @@ MA 02110-1301, USA.
 	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
 
 	NSString *commodity = nil;
-	NSDictionary *good = nil;
+	NSMutableDictionary *good = nil;
 	foreachkey (commodity, _commodityLists)
 	{
-		good = [_commodityLists oo_dictionaryForKey:commodity];
-		[market setGood:commodity toPrice:0 andQuantity:0 withInfo:good];
+		good = [NSMutableDictionary dictionaryWithDictionary:[_commodityLists oo_dictionaryForKey:commodity]];
+		[good oo_setUnsignedInteger:0 forKey:kOOCommodityPriceCurrent];
+		[good oo_setUnsignedInteger:0 forKey:kOOCommodityQuantityCurrent];
+		[good setObject:commodity forKey:kOOCommodityKey];
+		
+		[market setGood:commodity withInfo:good];
 	}
 	return [market autorelease];
 }
 
 
-- (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy
+- (NSDictionary *) createDefinitionFrom:(NSDictionary *) good price:(OOCreditsQuantity)p andQuantity:(OOCreditsQuantity)q forKey:(OOCommodityType)key atStation:(StationEntity *)station inSystem:(OOSystemID)system
 {
+	NSMutableDictionary *definition = [NSMutableDictionary dictionaryWithDictionary:good];
+	[definition oo_setUnsignedInteger:p forKey:kOOCommodityPriceCurrent];
+	[definition oo_setUnsignedInteger:q forKey:kOOCommodityQuantityCurrent];
+	[definition setObject:key forKey:kOOCommodityKey];
+	NSString *goodScriptName = [definition oo_stringForKey:@"script"];
+	if (goodScriptName == nil)
+	{
+		return definition;
+	}
+	OOScript *goodScript = [PLAYER commodityScriptNamed:goodScriptName];
+	if (goodScript == nil)
+	{
+		return definition;
+	}
+	return [self modifyGood:definition withScript:goodScript atStation:station inSystem:system localMode:NO];
+}
+
+
+- (NSDictionary *) modifyGood:(NSDictionary *)good withScript:(OOScript *)script atStation:(StationEntity *)station inSystem:(OOSystemID)system localMode:(BOOL)localMode
+{
+	NSDictionary 		*result = nil;
+	JSContext			*context = OOJSAcquireContext();
+	jsval				rval;
+	jsval				args[] = { 
+		[good oo_jsValueInContext:context], 
+		[station oo_jsValueInContext:context], 
+		INT_TO_JSVAL(system) 
+	};
+	BOOL				OK = YES;
+	NSString			*errorType = nil;
+
+	if (localMode)
+	{
+		errorType = @"local";
+		OK = [script callMethod:OOJSID("updateLocalCommodityDefinition")
+					  inContext:context
+				  withArguments:args
+						  count:3
+						 result:&rval];
+	}
+	else
+	{
+		errorType = @"general";
+		OK = [script callMethod:OOJSID("updateGeneralCommodityDefinition")
+					  inContext:context
+				  withArguments:args
+						  count:3
+						 result:&rval];
+	}
+
+	if (!OK)
+	{
+		OOLog(@"script.commodityScript.error",@"Could not update %@ commodity definition for %@ - unable to call updateLocalCommodityDefinition",errorType,[good oo_stringForKey:kOOCommodityName]);
+		OOJSRelinquishContext(context);
+		return good;
+	}
+
+	if (!JSVAL_IS_OBJECT(rval))
+	{
+		OOLog(@"script.commodityScript.error",@"Could not update %@ commodity definition for %@ - return value invalid",errorType,[good oo_stringForKey:kOOCommodityKey]);
+		OOJSRelinquishContext(context);
+		return good;
+	}
+
+	result = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(rval));
+	OOJSRelinquishContext(context);
+	if (![result isKindOfClass:[NSDictionary class]])
+	{
+		OOLog(@"script.commodityScript.error",@"Could not update %@ commodity definition for %@ - return value invalid",errorType,[good oo_stringForKey:kOOCommodityKey]);
+		return good;
+	}
+	
+	return result;
+}
+
+
+- (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(NSString *)scriptName;
+{
+	OOScript *script = [PLAYER commodityScriptNamed:scriptName];
+
 	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
 
 	NSString *commodity = nil;
@@ -163,7 +254,12 @@ MA 02110-1301, USA.
 			q = MAIN_SYSTEM_MARKET_LIMIT;
 		}
 		OOCreditsQuantity p = [self generatePriceForGood:good inEconomy:economy];
-		[market setGood:commodity toPrice:p andQuantity:q withInfo:good];
+		good = [self createDefinitionFrom:good price:p andQuantity:q forKey:commodity atStation:nil inSystem:[UNIVERSE currentSystemID]];
+		if (script != nil)
+		{
+			good = [self modifyGood:good withScript:script atStation:nil inSystem:[UNIVERSE currentSystemID] localMode:YES];
+		}
+		[market setGood:commodity withInfo:good];
 	}
 	return [market autorelease];
 }
@@ -172,12 +268,14 @@ MA 02110-1301, USA.
 - (OOCommodityMarket *) generateMarketForStation:(StationEntity *)station
 {
 	NSArray *marketDefinition = [station marketDefinition];
-	if (marketDefinition == nil)
+	NSString *marketScriptName = [station marketScriptName];
+	OOScript *marketScript = [PLAYER commodityScriptNamed:marketScriptName];
+	if (marketDefinition == nil && marketScript == nil)
 	{
 		OOCommodityMarket *market = [self generateBlankMarket];
 		return market;
 	}
-
+	
 	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
 	OOCargoQuantity capacity = [station marketCapacity];
 	OOCommodityMarket *mainMarket = [UNIVERSE commodityMarket];
@@ -191,21 +289,39 @@ MA 02110-1301, USA.
 
 		OOCargoQuantity q = [mainMarket quantityForGood:commodity];
 		OOCreditsQuantity p = [mainMarket priceForGood:commodity];
-
-		NSDictionary *modifier = [self firstModifierForGood:commodity inClasses:[good oo_arrayForKey:kOOCommodityClasses] fromList:marketDefinition];
-		good = [self updateInfoFor:good byRule:modifier maxCapacity:capacity];
-		p = [self adjustPrice:p byRule:modifier];
-
-		// first, scale to this station's capacity for this good
-		OOCargoQuantity localCapacity = [good oo_unsignedIntegerForKey:kOOCommodityCapacity];
-		q = (q * localCapacity) / baseCapacity;
-		q = [self adjustQuantity:q byRule:modifier];
-		if (q > localCapacity)
+		
+		if (marketScript == nil)
 		{
-			q = localCapacity; // cap
+			NSDictionary *modifier = [self firstModifierForGood:commodity inClasses:[good oo_arrayForKey:kOOCommodityClasses] fromList:marketDefinition];
+			good = [self updateInfoFor:good byRule:modifier maxCapacity:capacity];
+			p = [self adjustPrice:p byRule:modifier];
+		
+			// first, scale to this station's capacity for this good
+			OOCargoQuantity localCapacity = [good oo_unsignedIntegerForKey:kOOCommodityCapacity];
+			if (localCapacity > capacity)
+			{
+				localCapacity = capacity;
+			}
+			q = (q * localCapacity) / baseCapacity;
+			q = [self adjustQuantity:q byRule:modifier];
+			if (q > localCapacity)
+			{
+				q = localCapacity; // cap
+			}
+		}
+		else
+		{
+			// only scale to market at this stage
+			q = (q * capacity) / baseCapacity;
 		}
 
-		[market setGood:commodity toPrice:p andQuantity:q withInfo:good];
+		good = [self createDefinitionFrom:good price:p andQuantity:q forKey:commodity atStation:station inSystem:[UNIVERSE currentSystemID]];
+		if (marketScript != nil)
+		{
+			good = [self modifyGood:good withScript:marketScript atStation:station inSystem:[UNIVERSE currentSystemID] localMode:YES];
+		}
+
+		[market setGood:commodity withInfo:good];
 	}
 	return [market autorelease];
 }
@@ -288,14 +404,25 @@ MA 02110-1301, USA.
 }
 
 
-- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy
+- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString *)scriptName inSystem:(OOSystemID)system;
 {
-	NSDictionary *data = [_commodityLists oo_dictionaryForKey:commodity];
-	if (data == nil)
+	NSDictionary *good = [_commodityLists oo_dictionaryForKey:commodity];
+	if (good == nil)
 	{
 		return 0;
 	}
-	return [self generatePriceForGood:data inEconomy:economy];
+	OOCreditsQuantity p = [self generatePriceForGood:good inEconomy:economy];
+
+	good = [self createDefinitionFrom:good price:p andQuantity:0 forKey:commodity atStation:nil inSystem:system];
+	if (scriptName != nil)
+	{
+		OOScript *script = [PLAYER commodityScriptNamed:scriptName];
+		if (script != nil)
+		{
+			good = [self modifyGood:good withScript:script atStation:nil inSystem:system localMode:YES];
+		}
+	}
+	return [good oo_unsignedIntegerForKey:kOOCommodityPriceCurrent];
 }
 
 

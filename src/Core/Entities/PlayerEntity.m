@@ -76,7 +76,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOScriptTimer.h"
 #import "OOJSEngineTimeManagement.h"
-#import "OOJSScript.h"
 #import "OOJSInterfaceDefinition.h"
 #import "OOConstToJSString.h"
 
@@ -1581,6 +1580,7 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
+	DESTROY(commodityScripts);
 
 #if OOLITE_WINDOWS
 	if (saveGame)
@@ -1589,6 +1589,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self setUpSound];
 		worldScripts = [[ResourceManager loadScripts] retain];
 		[UNIVERSE loadConditionScripts];
+		commodityScripts = [[NSMutableDictionary alloc] init];
 	}
 #else
 	/* on OSes that allow safe deletion of open files, can use sounds
@@ -1599,6 +1600,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		worldScripts = [[ResourceManager loadScripts] retain];
 		[UNIVERSE loadConditionScripts];
+		commodityScripts = [[NSMutableDictionary alloc] init];
 	}
 #endif
 
@@ -2011,6 +2013,7 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(eqScripts);
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
+	DESTROY(commodityScripts);
 	DESTROY(mission_variables);
 	
 	DESTROY(localVariables);
@@ -10928,6 +10931,31 @@ static NSString *last_outfitting_key=nil;
 - (NSDictionary *) worldScriptsByName
 {
 	return [[worldScripts copy] autorelease];
+}
+
+
+- (OOScript *) commodityScriptNamed:(NSString *)scriptName
+{
+	if (scriptName == nil)
+	{
+		return nil;
+	}
+	OOScript *cscript = nil;
+	if ((cscript = [commodityScripts objectForKey:scriptName]))
+	{
+		return cscript;
+	}
+	cscript = [OOScript jsScriptFromFileNamed:scriptName properties:nil];
+	if (cscript != nil)
+	{
+		// storing it in here retains it
+		[commodityScripts setObject:cscript forKey:scriptName];
+	}
+	else
+	{
+		OOLog(@"script.commodityScript.load",@"Could not load script %@",scriptName);
+	}
+	return cscript;
 }
 
 

@@ -82,6 +82,7 @@ typedef enum
 	OOCommodityMarket		*localMarket;
 	OOCargoQuantity			marketCapacity;
 	NSArray					*marketDefinition;
+	NSString				*marketScriptName;
 //	NSMutableArray			*localPassengers;
 //	NSMutableArray			*localContracts;
 	NSMutableArray			*localShipyard;
@@ -112,6 +113,7 @@ typedef enum
 
 - (OOCargoQuantity) marketCapacity;
 - (NSArray *) marketDefinition;
+- (NSString *) marketScriptName;
 - (BOOL) marketMonitored;
 - (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export;
 
