@@ -155,7 +155,7 @@
 	OOCreditsQuantity penalty, status = 0;
 	OOCommodityMarket *market = [self localMarket];
 	OOCommodityType good = nil;
-	foreach (good, [manifest goods])
+	foreach (good, [market goods])
 	{
 		if (export)
 		{
@@ -678,7 +678,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 	marketCapacity = [dict oo_unsignedIntegerForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 	marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
-	marketScriptName = [[dict oo_arrayForKey:@"market_script" defaultValue:nil] retain];
+	marketScriptName = [[dict oo_stringForKey:@"market_script" defaultValue:nil] retain];
 	marketMonitored = [dict oo_boolForKey:@"market_monitored" defaultValue:NO];
 
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,

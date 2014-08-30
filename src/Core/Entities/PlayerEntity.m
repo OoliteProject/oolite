@@ -9572,7 +9572,7 @@ static NSString *last_outfitting_key=nil;
 	}
 
 	// following changed to work whether docked or not
-	NSArray 			*goods = [shipCommodityData goods];
+	NSArray 			*goods = [localMarket goods];
 	NSUInteger maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
 
 	// GUI stuff

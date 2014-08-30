@@ -7209,7 +7209,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	
 	systemData = [self generateSystemData:target_system_seed];
 	economy = [systemData  oo_unsignedCharForKey:KEY_ECONOMY];
-	scriptName = [systemData  oo_stringForKey:@"commodity_script" defaultValue:nil];
+	scriptName = [systemData  oo_stringForKey:@"market_script" defaultValue:nil];
 	
 	DESTROY(commodityMarket);
 	commodityMarket = [[commodities generateMarketForSystemWithEconomy:economy andScript:scriptName] retain];
