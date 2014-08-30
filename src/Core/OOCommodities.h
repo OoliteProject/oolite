@@ -50,6 +50,7 @@ static NSString * const kOOCommodityLegalityImport	= @"legality_import";
 static NSString * const kOOCommodityTrumbleOpinion	= @"trumble_opinion";
 static NSString * const kOOCommoditySortOrder		= @"sort_order";
 static NSString * const kOOCommodityCapacity		= @"capacity";
+static NSString * const kOOCommodityScript			= @"market_script";
 // next one cannot be set from file - named for compatibility
 static NSString * const kOOCommodityKey				= @"key";
 

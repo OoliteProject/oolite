@@ -164,7 +164,7 @@ MA 02110-1301, USA.
 	[definition oo_setUnsignedInteger:p forKey:kOOCommodityPriceCurrent];
 	[definition oo_setUnsignedInteger:q forKey:kOOCommodityQuantityCurrent];
 	[definition setObject:key forKey:kOOCommodityKey];
-	NSString *goodScriptName = [definition oo_stringForKey:@"market_script"];
+	NSString *goodScriptName = [definition oo_stringForKey:kOOCommodityScript];
 	if (goodScriptName == nil)
 	{
 		return definition;
