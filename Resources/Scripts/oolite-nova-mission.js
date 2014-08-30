@@ -236,7 +236,7 @@ this.missionScreenOpportunity = function ()
 					messageKey: "oolite_nova_hero",
 					background: "solar.png"
 				});
-				player.ship.manifest["gem-stones"] += 100;
+				player.ship.manifest["gem_stones"] += 100;
 				this._endTheMission();
 			}
 			else if (missionVariables.nova === "NOVA_ESCAPE_POD")
@@ -317,7 +317,6 @@ this.shipWillExitWitchspace = function ()
 		player.ship.fuelLeakRate = 25;
 		this.willGoNova = true;
 		player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
-		system.info.market = "none";
 		this.buoyLoaded = false;  // w-bouy is not in system yet.
 		if (this.novaMissionTimer)
 		{
