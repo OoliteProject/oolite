@@ -1425,6 +1425,15 @@
 	"oolite-market-filter-4"		= "No transport restrictions";
 	"oolite-market-filter-5"		= "Transport restrictions";
 
+	"oolite-market-sorter-line"		= "Sort: ";
+	"oolite-market-sorter-0"		= "Default";
+	"oolite-market-sorter-1"		= "Alphabetical";
+	"oolite-market-sorter-2"		= "Price";
+	"oolite-market-sorter-3"		= "Quantity in stock";
+	"oolite-market-sorter-4"		= "Quantity in hold";
+	"oolite-market-sorter-5"		= "Unit mass";
+
+
 	// System data screen
 	"sysdata-planet-name-@"			= "Data on %@";
 	"sysdata-eco"					= "Economy:";

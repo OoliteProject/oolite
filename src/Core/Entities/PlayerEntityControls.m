@@ -302,6 +302,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING_ALIAS(key_chart_highlight,	key_contract_info,	'\?'	);
 	
 	LOAD_KEY_SETTING(key_market_filter_cycle,	'?'			);
+	LOAD_KEY_SETTING(key_market_sorter_cycle,	'/'			);
 
 	LOAD_KEY_SETTING(key_cycle_mfd,				';'			);
 	LOAD_KEY_SETTING(key_switch_mfd,			':'			);
@@ -2320,18 +2321,32 @@ static NSTimeInterval	time_last_frame;
 				wait_for_key_up = NO;
 			}
 
-			if ([gameView isDown:key_market_filter_cycle])
+			if ([gameView isDown:key_market_filter_cycle] || [gameView isDown:key_market_sorter_cycle])
 			{
 				if (!queryPressed)
 				{
 					queryPressed = YES;
-					if (marketFilterMode >= MARKET_FILTER_MODE_MAX)
+					if ([gameView isDown:key_market_filter_cycle])
 					{
-						marketFilterMode = MARKET_FILTER_MODE_OFF;
+						if (marketFilterMode >= MARKET_FILTER_MODE_MAX)
+						{
+							marketFilterMode = MARKET_FILTER_MODE_OFF;
+						}
+						else
+						{
+							marketFilterMode++;
+						}
 					}
 					else
 					{
-						marketFilterMode++;
+						if (marketSorterMode >= MARKET_SORTER_MODE_MAX)
+						{
+							marketSorterMode = MARKET_SORTER_MODE_OFF;
+						}
+						else
+						{
+							marketSorterMode++;
+						}
 					}
 					[self playChangedOption];
 					[self setGuiToMarketScreen];

@@ -101,6 +101,11 @@ static float const 		kDeadResetTime				= 30.0f;
 PlayerEntity		*gOOPlayer = nil;
 static GLfloat		sBaseMass = 0.0;
 
+NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *market);
+
 
 @interface PlayerEntity (OOPrivate)
 
@@ -131,6 +136,8 @@ static GLfloat		sBaseMass = 0.0;
 
 // Shopping
 - (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
+- (NSArray *) applyMarketSorter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
+
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
 // Cargo & passenger contracts
@@ -9608,6 +9615,28 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (NSArray *) applyMarketSorter:(NSArray *)goods onMarket:(OOCommodityMarket *)market
+{
+	switch (marketSorterMode)
+	{
+	case MARKET_SORTER_MODE_ALPHA:
+		return [goods sortedArrayUsingFunction:marketSorterByName context:market];
+	case MARKET_SORTER_MODE_PRICE:
+		return [goods sortedArrayUsingFunction:marketSorterByPrice context:market];
+	case MARKET_SORTER_MODE_STOCK:
+		return [goods sortedArrayUsingFunction:marketSorterByQuantity context:market];
+	case MARKET_SORTER_MODE_HOLD:
+		return [goods sortedArrayUsingFunction:marketSorterByQuantity context:shipCommodityData];
+	case MARKET_SORTER_MODE_UNIT:
+		return [goods sortedArrayUsingFunction:marketSorterByMassUnit context:market];	
+	case MARKET_SORTER_MODE_OFF:
+		// keep default sort order
+		break;
+	}
+	return goods;
+}
+
+
 - (void) setGuiToMarketScreen
 {
 	OOCommodityMarket	*localMarket = [self localMarket];
@@ -9626,7 +9655,7 @@ static NSString *last_outfitting_key=nil;
 	}
 
 	// following changed to work whether docked or not
-	NSArray 			*goods = [self applyMarketFilter:[localMarket goods] onMarket:localMarket];
+	NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
 	NSUInteger maxOffset = 0;
 	if ([goods count] > (GUI_ROW_MARKET_END-GUI_ROW_MARKET_START))
 	{
@@ -9745,9 +9774,15 @@ static NSString *last_outfitting_key=nil;
 		 // actually count the containers and  valuables (may be > max_cargo)
 		current_cargo = [self cargoQuantityOnBoard];
 		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
-		
-		[gui setText:[NSString stringWithFormat:@"%@ %@",OOExpand(@"[oolite-market-filter-line]"), OOExpand([NSString stringWithFormat:@"[oolite-market-filter-%u]",marketFilterMode])] forRow:GUI_ROW_MARKET_END];
+
+		// filter sort info
+		NSString *filterText = [NSString stringWithFormat:@"%@ %@",OOExpand(@"[oolite-market-filter-line]"), OOExpand([NSString stringWithFormat:@"[oolite-market-filter-%u]",marketFilterMode])];
+		NSString *sorterText = [NSString stringWithFormat:@"%@ %@",OOExpand(@"[oolite-market-sorter-line]"), OOExpand([NSString stringWithFormat:@"[oolite-market-sorter-%u]",marketSorterMode])];
+		[gui setArray:[NSArray arrayWithObjects:filterText, @"", sorterText, nil] forRow:GUI_ROW_MARKET_END];
+
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_END];
+
+
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
 		
 		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock, may need to scroll out of it
@@ -11603,3 +11638,67 @@ else _dockTarget = NO_TARGET;
 #endif
 
 @end
+
+
+NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	return [[market nameForGood:a] compare:[market nameForGood:b]];
+}
+
+
+NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	int result = (int)[market priceForGood:a] - (int)[market priceForGood:b];
+	if (result < 0)
+	{
+		return NSOrderedAscending;
+	}
+	else if (result > 0)
+	{
+		return NSOrderedDescending;
+	}
+	else
+	{
+		return NSOrderedSame;
+	}
+}
+
+
+NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	int result = (int)[market quantityForGood:a] - (int)[market quantityForGood:b];
+	if (result < 0)
+	{
+		return NSOrderedAscending;
+	}
+	else if (result > 0)
+	{
+		return NSOrderedDescending;
+	}
+	else
+	{
+		return NSOrderedSame;
+	}
+}
+
+
+NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	int result = (int)[market massUnitForGood:a] - (int)[market massUnitForGood:b];
+	if (result < 0)
+	{
+		return NSOrderedAscending;
+	}
+	else if (result > 0)
+	{
+		return NSOrderedDescending;
+	}
+	else
+	{
+		return NSOrderedSame;
+	}
+}

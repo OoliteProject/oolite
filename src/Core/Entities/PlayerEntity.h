@@ -258,6 +258,19 @@ typedef enum
 } OOMarketFilterMode;
 
 
+typedef enum
+{
+	MARKET_SORTER_MODE_OFF = 0,
+	MARKET_SORTER_MODE_ALPHA = 1,
+	MARKET_SORTER_MODE_PRICE = 2,
+	MARKET_SORTER_MODE_STOCK = 3,
+	MARKET_SORTER_MODE_HOLD = 4,
+	MARKET_SORTER_MODE_UNIT = 5,
+
+	MARKET_SORTER_MODE_MAX = 5 // always equal to highest real mode
+} OOMarketSorterMode;
+
+
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -403,6 +416,7 @@ typedef enum
 
 	NSInteger				marketOffset;
 	OOMarketFilterMode		marketFilterMode;
+	OOMarketSorterMode		marketSorterMode;
 
 	OOWeakReference			*_dockedStation;
 	
@@ -557,6 +571,7 @@ typedef enum
 	
 	OOKeyCode				key_chart_highlight;
 	OOKeyCode				key_market_filter_cycle;
+	OOKeyCode				key_market_sorter_cycle;
 	
 	OOKeyCode				key_next_target;
 	OOKeyCode				key_previous_target;
