@@ -123,9 +123,10 @@
 			x = -152;
 			y = -187;
 		},
-		{ /* just draws a surround 2 units around the selected size, you could also use drawGreenSurround: */
+		{ /* just draws a surround 2 units around the selected size */
 			height = 40;
-			selector = "drawYellowSurround:";
+			selector = "drawSurround:";
+			color = "yellowColor";
 			width = 48;
 			x = -152;
 			y = -216;

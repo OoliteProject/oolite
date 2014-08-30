@@ -330,6 +330,7 @@
 		"drawAftShieldBar:",
 		"drawYellowSurround:",
 		"drawGreenSurround:",
+		"drawSurround:",
 		"drawFuelBar:",
 		"drawWitchspaceDestination:",
 		"drawCabinTempBar:",

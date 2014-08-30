@@ -2900,7 +2900,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawSurround:(NSDictionary *)info color:(const GLfloat[4])color
+- (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color
 {
 	NSInteger			x, y;
 	NSSize				siz;
@@ -2926,15 +2926,34 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
+- (void) drawSurround:(NSDictionary *)info
+{
+	GLfloat	itemColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	id		colorDesc = [info objectForKey:COLOR_KEY];
+	if (colorDesc != nil)
+	{
+		OOColor *color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)
+		{
+			itemColor[0] = [color redComponent];
+			itemColor[1] = [color greenComponent];
+			itemColor[2] = [color blueComponent];
+		}
+	}
+
+	[self drawSurroundInternal:info color:itemColor];
+}
+
+
 - (void) drawGreenSurround:(NSDictionary *)info
 {
-	[self drawSurround:info color:green_color];
+	[self drawSurroundInternal:info color:green_color];
 }
 
 
 - (void) drawYellowSurround:(NSDictionary *)info
 {
-	[self drawSurround:info color:yellow_color];
+	[self drawSurroundInternal:info color:yellow_color];
 }
 
 
@@ -2968,7 +2987,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	{
 		mfd_color[3] *= 0.75;
 	}
-	[self drawSurround:info color:mfd_color];
+	[self drawSurroundInternal:info color:mfd_color];
 
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	x = cached.x + [[UNIVERSE gameView] x_offset] * cached.x0;
