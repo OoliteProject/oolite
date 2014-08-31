@@ -192,6 +192,7 @@ MA 02110-1301, USA.
 #define DRAW_SURROUND_KEY		@"draw_surround"
 #define EQUIPMENT_REQUIRED_KEY	@"equipment_required"
 #define ALERT_CONDITIONS_KEY	@"alert_conditions"
+#define VIEWSCREEN_KEY			@"viewscreen_only"
 #define DIAL_REQUIRED_KEY		@"with_dial"
 #define LABELLED_KEY			@"labelled"
 #define TEXT_KEY				@"text"

@@ -1005,14 +1005,16 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	if (alertMask < 15)
 	{
 		OOAlertCondition alertCondition = [PLAYER alertCondition];
-		/* Because one of the items here is the scanner, which changes
-		 * the alert condition, this may give inconsistent results
-		 * mid-frame. This is unlikely to be crucial, but it's yet
-		 * another reason to get around to separating out scanner
-		 * display and alert level calculation - CIM */
 		if (~alertMask & (1 << alertCondition)) {
 			return;
 		}
+	}
+
+	BOOL viewOnly = [info oo_unsignedIntForKey:VIEWSCREEN_KEY defaultValue:NO];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN)
+	{
+		return;
 	}
 
 	if (EXPECT_NOT([self hasHidden:[sCurrentDrawItem objectAtIndex:WIDGET_SELECTOR_NAME]]))
