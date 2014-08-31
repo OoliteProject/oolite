@@ -942,6 +942,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		}
 	}
 
+	BOOL viewOnly = [info oo_unsignedIntForKey:VIEWSCREEN_KEY defaultValue:NO];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN)
+	{
+		return;
+	}
+
 	// check association with hidden dials
 	if ([self hasHidden:[info oo_stringForKey:DIAL_REQUIRED_KEY defaultValue:nil]])
 	{
