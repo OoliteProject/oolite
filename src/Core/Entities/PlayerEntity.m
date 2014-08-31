@@ -6523,6 +6523,14 @@ static GLfloat		sBaseMass = 0.0;
 	scanner_zoom_rate = 0.0f;
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	
+	forward_weapon_temp = 0.0f;
+	aft_weapon_temp = 0.0f;
+	port_weapon_temp = 0.0f;
+	starboard_weapon_temp = 0.0f;
+	
+	forward_shield = [self maxForwardShieldLevel];
+	aft_shield = [self maxAftShieldLevel];
+
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayText:NO];
