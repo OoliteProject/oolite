@@ -1693,13 +1693,13 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
-	x = useDefined(cached.x, SPEED_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
-	y = useDefined(cached.y, SPEED_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
-	siz.width = useDefined(cached.width, SPEED_BAR_WIDTH);
-	siz.height = useDefined(cached.height, SPEED_BAR_HEIGHT);
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 50);
+	siz.height = useDefined(cached.height, 8);
 	alpha *= cached.alpha;
 	
-	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
 	
 	SET_COLOR_SURROUND(green_color);
 	if (draw_surround)
@@ -1735,8 +1735,8 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
-	x = useDefined(cached.x, SPEED_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
-	y = useDefined(cached.y, SPEED_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
 	alpha *= cached.alpha;
 	
 	SET_COLOR(yellow_color);
@@ -1768,12 +1768,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
-	x = useDefined(cached.x, ROLL_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
-	y = useDefined(cached.y, ROLL_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
-	siz.width = useDefined(cached.width, ROLL_BAR_WIDTH);
-	siz.height = useDefined(cached.height, ROLL_BAR_HEIGHT);
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 50);
+	siz.height = useDefined(cached.height, 8);
 	alpha *= cached.alpha;
-	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
 	
 	if (draw_surround)
 	{
@@ -1797,10 +1797,10 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
-	x = useDefined(cached.x, STATUS_LIGHT_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
-	y = useDefined(cached.y, STATUS_LIGHT_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
-	siz.width = useDefined(cached.width, STATUS_LIGHT_HEIGHT);
-	siz.height = useDefined(cached.height, STATUS_LIGHT_HEIGHT);
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 8);
+	siz.height = useDefined(cached.height, 8);
 	alpha *= cached.alpha;
 	
 	GLfloat light_color[4] = { 0.25, 0.25, 0.25, 0.0};
