@@ -158,7 +158,13 @@ enum
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
 - (void) drawStickSensitivityIndicator:(NSDictionary *)info;
+- (void) drawCustomBar:(NSDictionary *)info;
+- (void) drawCustomText:(NSDictionary *)info;
+- (void) drawCustomIndicator:(NSDictionary *)info;
+- (void) drawCustomLight:(NSDictionary *)info;
 
+- (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color;
+- (void) drawSurround:(NSDictionary *)info;
 - (void) drawGreenSurround:(NSDictionary *)info;
 - (void) drawYellowSurround:(NSDictionary *)info;
 
@@ -1673,6 +1679,146 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 	OOGLPopModelView();
 #endif
+}
+
+
+- (void) drawCustomBar:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	GLfloat				ds = OOClamp_0_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, SPEED_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, SPEED_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, SPEED_BAR_WIDTH);
+	siz.height = useDefined(cached.height, SPEED_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
+	
+	SET_COLOR_SURROUND(green_color);
+	if (draw_surround)
+	{
+		// draw custom surround
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	// draw custom bar
+	if (ds > .75)
+	{
+		SET_COLOR_HIGH(green_color);
+	}
+	else if (ds > .25)
+	{
+		SET_COLOR_MEDIUM(yellow_color);
+	}
+	else
+	{
+		SET_COLOR_LOW(red_color);
+	}
+
+	hudDrawBarAt(x, y, z1, siz, ds);
+}
+
+
+- (void) drawCustomText:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				size;
+	GLfloat				alpha = overallAlpha;
+	NSString			*text = [PLAYER dialCustomString:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, SPEED_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, SPEED_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	alpha *= cached.alpha;
+	
+	SET_COLOR(yellow_color);
+
+	size.width = useDefined(cached.width, 10.0f);
+	size.height = useDefined(cached.height, 10.0f);
+
+	if ([info oo_intForKey:@"align"] == 1)
+	{
+		OODrawStringAligned(text, x, y, z1, size, YES);
+	}
+	else
+	{
+		OODrawStringAligned(text, x, y, z1, size, NO);
+	}
+
+}
+
+
+- (void) drawCustomIndicator:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	GLfloat				iv = OOClamp_n1_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, ROLL_BAR_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, ROLL_BAR_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, ROLL_BAR_WIDTH);
+	siz.height = useDefined(cached.height, ROLL_BAR_HEIGHT);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
+	
+	if (draw_surround)
+	{
+		// draw custom surround
+		SET_COLOR_SURROUND(green_color);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	// draw custom indicator
+	SET_COLOR(yellow_color);
+	hudDrawIndicatorAt(x, y, z1, siz, iv);
+}
+
+
+- (void) drawCustomLight:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, STATUS_LIGHT_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, STATUS_LIGHT_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, STATUS_LIGHT_HEIGHT);
+	siz.height = useDefined(cached.height, STATUS_LIGHT_HEIGHT);
+	alpha *= cached.alpha;
+	
+	GLfloat light_color[4] = { 0.25, 0.25, 0.25, 0.0};
+	
+	OOColor *color = [PLAYER dialCustomColor:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	[color getRed:&light_color[0]
+			green:&light_color[1]
+			 blue:&light_color[2]
+			alpha:&light_color[3]];
+
+	GLColorWithOverallAlpha(light_color, alpha);
+	OOGLBEGIN(GL_POLYGON);
+	hudDrawStatusIconAt(x, y, z1, siz);
+	OOGLEND();
+	OOGL(glColor4f(0.25, 0.25, 0.25, alpha));
+	OOGLBEGIN(GL_LINE_LOOP);
+		hudDrawStatusIconAt(x, y, z1, siz);
+	OOGLEND();
 }
 
 

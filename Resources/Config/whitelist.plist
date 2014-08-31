@@ -342,7 +342,11 @@
 		"drawPrimedEquipment:",
 		"drawASCTarget:",
 		"drawWeaponsOfflineText:",
-		"drawFPSInfoCounter:"
+		"drawFPSInfoCounter:",
+		"drawCustomBar:",
+		"drawCustomText:",
+		"drawCustomIndicator:",
+		"drawCustomLight:"
 	);
 	
 	shader_entity_binding_methods =

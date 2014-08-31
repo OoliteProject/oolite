@@ -203,6 +203,7 @@ MA 02110-1301, USA.
 #define COLOR_KEY_CRITICAL		@"color_critical"
 #define COLOR_KEY_SURROUND		@"color_surround"
 #define N_BARS_KEY				@"n_bars"
+#define CUSTOM_DIAL_KEY			@"data_source"
 
 #define ROWS_KEY				@"rows"
 #define COLUMNS_KEY				@"columns"

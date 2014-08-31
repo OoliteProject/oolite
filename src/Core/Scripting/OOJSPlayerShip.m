@@ -75,6 +75,7 @@ static JSBool PlayerShipSetMultiFunctionDisplay(JSContext *context, uintN argc, 
 static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipHideHUDSelector(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipShowHUDSelector(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipSetCustomHUDDial(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, double *premium, NSString *functionName, unsigned *risk);
 
@@ -224,6 +225,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "resetScannerZoom",				PlayerShipResetScannerZoom,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
+	{ "setCustomHUDDial",				PlayerShipSetCustomHUDDial,					2 },
 	{ "setMultiFunctionDisplay",		PlayerShipSetMultiFunctionDisplay,			1 },
 	{ "setMultiFunctionText",			PlayerShipSetMultiFunctionText,				1 },
 	{ "showHUDSelector",				PlayerShipShowHUDSelector,					1 },
@@ -1287,6 +1289,42 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 		NSString *formatted = [gui reflowTextForMFD:value];
 		[player setMultiFunctionText:formatted forKey:key];
 	}
+
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
+// setCustomHUDDial(key,value)
+static JSBool PlayerShipSetCustomHUDDial(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString				*key = nil;
+	id						value = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+
+	if (argc > 0)  
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"setCustomHUDDial", MIN(argc, 1U), OOJS_ARGV, nil, @"string (key), value]");
+		return NO;
+	}
+	if (argc > 1)
+	{
+		value = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[1]);
+	}
+	else
+	{
+		value = @"";
+	}
+
+	[player setDialCustom:value forKey:key];
+	
 
 	OOJS_RETURN_VOID;
 

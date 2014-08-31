@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 /* Clamp to range. */
 OOINLINE float OOClamp_0_1_f(float value) INLINE_CONST_FUNC;
+OOINLINE float OOClamp_n1_1_f(float value) INLINE_CONST_FUNC;
 OOINLINE double OOClamp_0_1_d(double value) INLINE_CONST_FUNC;
 OOINLINE float OOClamp_0_max_f(float value, float max) INLINE_CONST_FUNC;
 OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
@@ -71,6 +72,11 @@ OOINLINE INLINE_CONST_FUNC NSUInteger OORoundUpToPowerOf2_NS(NSUInteger value)
 OOINLINE float OOClamp_0_1_f(float value)
 {
 	return fmax(0.0f, fmin(value, 1.0f));
+}
+
+OOINLINE float OOClamp_n1_1_f(float value)
+{
+	return fmax(-1.0f, fmin(value, 1.0f));
 }
 
 OOINLINE double OOClamp_0_1_d(double value)

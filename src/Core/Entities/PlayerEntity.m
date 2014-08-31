@@ -988,6 +988,9 @@ static GLfloat		sBaseMass = 0.0;
 	[multiFunctionDisplaySettings release];
 	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
 
+	[customDialSettings release];
+	customDialSettings = [[NSMutableDictionary alloc] init];
+
 	[[UNIVERSE gameView] resetTypedString];
 	// must do this on game load now caches an entire chart
 	[UNIVERSE resetSystemDataCache];
@@ -1655,6 +1658,9 @@ static GLfloat		sBaseMass = 0.0;
 	[multiFunctionDisplaySettings release];
 	multiFunctionDisplaySettings = [[NSMutableArray alloc] init];
 
+	[customDialSettings release];
+	customDialSettings = [[NSMutableDictionary alloc] init];
+
 	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
 	longRangeChartMode = OOLRC_MODE_NORMAL;
@@ -2029,6 +2035,10 @@ static GLfloat		sBaseMass = 0.0;
 {
 	DESTROY(compassTarget);
 	DESTROY(hud);
+	DESTROY(multiFunctionDisplayText);
+	DESTROY(multiFunctionDisplaySettings);
+	DESTROY(customDialSettings);
+
 	DESTROY(commLog);
 	DESTROY(keyconfig_settings);
 	DESTROY(target_memory);
@@ -3935,6 +3945,30 @@ static GLfloat		sBaseMass = 0.0;
 	}
 	
 	return YES;
+}
+
+
+- (float) dialCustomFloat:(NSString *)dialKey
+{
+	return [customDialSettings oo_floatForKey:dialKey defaultValue:0.0];
+}
+
+
+- (NSString *) dialCustomString:(NSString *)dialKey
+{
+	return [customDialSettings oo_stringForKey:dialKey defaultValue:@""];
+}
+
+
+- (OOColor *) dialCustomColor:(NSString *)dialKey
+{
+	return [OOColor colorWithDescription:[customDialSettings objectForKey:dialKey]];
+}
+
+
+- (void) setDialCustom:(id)value forKey:(NSString *)dialKey
+{
+	[customDialSettings setObject:value forKey:dialKey];
 }
 
 
