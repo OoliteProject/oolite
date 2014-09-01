@@ -66,6 +66,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file;
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths;
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths;
++ (void) filterSearchPathsToExcludeScenarioOnlyPaths:(NSMutableArray *)searchPaths;
 + (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths;
 + (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest;
 + (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withIdentifier:(NSString *)identifier;
@@ -310,6 +311,13 @@ static NSMutableDictionary *sStringCache;
 	{
 		[self checkPotentialPath:path :sSearchPaths];
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
+	}
+
+	/* If a scenario restriction is *not* in place, remove
+	 * scenario-only OXPs. */
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
+	{
+		[self filterSearchPathsToExcludeScenarioOnlyPaths:sSearchPaths];
 	}
 
 	/* This is a conservative filter. It probably gets rid of more
@@ -945,6 +953,30 @@ static NSMutableDictionary *sStringCache;
 	// either version was okay, or no version info so an unconditional match
 	return YES;
 }
+
+
++ (void) filterSearchPathsToExcludeScenarioOnlyPaths:(NSMutableArray *)searchPaths
+{
+	NSDictionary	*manifest = nil;
+	NSString		*identifier = nil;
+	NSArray			*identifiers = [sOXPManifests allKeys];
+
+	// take a copy because we'll mutate the original
+	// foreach identified add-on
+	foreach (identifier, identifiers)
+	{
+		manifest = [sOXPManifests objectForKey:identifier];
+		if (manifest != nil)
+		{
+			if ([[manifest oo_arrayForKey:kOOManifestTags] containsObject:kOOManifestTagScenarioOnly])
+			{
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
+			}
+		}
+	}
+}
+
 
 
 + (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths

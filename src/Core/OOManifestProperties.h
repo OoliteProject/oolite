@@ -56,3 +56,7 @@ static NSString * const kOOManifestRelationIdentifier	= @"identifier";
 static NSString * const kOOManifestRelationVersion		= @"version";
 static NSString * const kOOManifestRelationMaxVersion	= @"maximum_version";
 static NSString * const kOOManifestRelationDescription	= @"description";
+
+// 'magic' value for a tag to exclude an OXP from loading except when
+// required by a scenario
+static NSString * const kOOManifestTagScenarioOnly		= @"oolite-scenario-only";
