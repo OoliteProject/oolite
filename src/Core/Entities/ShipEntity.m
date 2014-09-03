@@ -670,6 +670,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 	home_system = [UNIVERSE currentSystemID];
 	destination_system = [UNIVERSE currentSystemID];
+
+	reactionTime = [shipDict oo_floatForKey: @"reaction_time" defaultValue: COMBAT_AI_STANDARD_REACTION_TIME];
 	
 	return YES;
 	
@@ -2174,6 +2176,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			scanClass = CLASS_NEUTRAL;
 			OOLog(@"ship.sanityCheck.failed", @"Ship %@ %@ with scanClass CLASS_NOT_SET; forced to CLASS_NEUTRAL.", self, [self primaryRole]);
 		}
+
+		[self updateTrackingCurve];
 
 		//
 		// deal with collisions
@@ -5874,6 +5878,94 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 }
 
+- (float) reactionTime
+{
+	return reactionTime;
+}
+
+
+- (void) setReactionTime: (float) newReactionTime
+{
+	reactionTime = newReactionTime;
+}
+
+
+- (HPVector) calculateTargetPosition
+{
+	Entity *target = [self primaryTarget];
+	if (target == nil)
+	{
+		return kZeroHPVector;
+	}
+	if (reactionTime <= 0.0)
+	{
+		return [target position];
+	}
+	double t = [UNIVERSE getTime] - trackingCurveTimes[1];
+	return HPvector_add(HPvector_add(trackingCurveCoeffs[0], HPvector_multiply_scalar(trackingCurveCoeffs[1],t)), HPvector_multiply_scalar(trackingCurveCoeffs[2],t*t));
+}
+
+
+- (void) startTrackingCurve
+{
+	Entity *target = [self primaryTarget];
+	if (target == nil)
+	{
+		return;
+	}
+	OOTimeAbsolute now = [UNIVERSE getTime];
+	trackingCurvePositions[0] = [target position];
+	trackingCurvePositions[1] = [target position];
+	trackingCurvePositions[2] = [target position];
+	trackingCurvePositions[3] = [target position];
+	trackingCurveTimes[0] = now;
+	trackingCurveTimes[1] = now - reactionTime/3.0;
+	trackingCurveTimes[2] = now - reactionTime*2.0/3.0;
+	trackingCurveTimes[3] = now - reactionTime;
+	[self calculateTrackingCurve];
+	return;
+}
+
+
+- (void) updateTrackingCurve
+{
+	Entity *target = [self primaryTarget];
+	OOTimeAbsolute now = [UNIVERSE getTime];
+	if (target == nil || reactionTime <= 0.0 || trackingCurveTimes[0] + reactionTime/3.0 > now) return;
+	trackingCurvePositions[3] = trackingCurvePositions[2];
+	trackingCurvePositions[2] = trackingCurvePositions[1];
+	trackingCurvePositions[1] = trackingCurvePositions[0];
+	trackingCurvePositions[0] = [target position];
+	trackingCurveTimes[3] = trackingCurveTimes[2];
+	trackingCurveTimes[2] = trackingCurveTimes[1];
+	trackingCurveTimes[1] = trackingCurveTimes[0];
+	trackingCurveTimes[0] = now;
+	[self calculateTrackingCurve];
+	return;
+}
+
+- (void) calculateTrackingCurve
+{
+	if (reactionTime <= 0.0)
+	{
+		trackingCurveCoeffs[0] = trackingCurvePositions[0];
+		trackingCurveCoeffs[1] = kZeroHPVector;
+		trackingCurveCoeffs[2] = kZeroHPVector;
+		return;
+	}
+	double	t1 = trackingCurveTimes[2] - trackingCurveTimes[1],
+		t2 = trackingCurveTimes[3] - trackingCurveTimes[1];
+	trackingCurveCoeffs[0] = trackingCurvePositions[1];
+	trackingCurveCoeffs[1] = HPvector_add(HPvector_add(
+		HPvector_multiply_scalar(trackingCurvePositions[1], -(t1+t2)/(t1*t2)),
+		HPvector_multiply_scalar(trackingCurvePositions[2], -t2/(t1*(t1-t2)))),
+		HPvector_multiply_scalar(trackingCurvePositions[3], t1/(t2*(t1-t2))));
+	trackingCurveCoeffs[2] = HPvector_add(HPvector_add(
+		HPvector_multiply_scalar(trackingCurvePositions[1], 1/(t1*t2)),
+		HPvector_multiply_scalar(trackingCurvePositions[2], 1/(t1*(t1-t2)))),
+		HPvector_multiply_scalar(trackingCurvePositions[3], -1/(t2*(t1-t2))));
+	return;
+}
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
@@ -6305,6 +6397,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	behaviour =		[previousCondition oo_intForKey:@"behaviour"];
 	[_primaryTarget release];
 	_primaryTarget =	[[previousCondition objectForKey:@"primaryTarget"] weakRetain];
+	[self startTrackingCurve];
 	desired_range =	[previousCondition oo_floatForKey:@"desired_range"];
 	desired_speed =	[previousCondition oo_floatForKey:@"desired_speed"];
 	destination =	[previousCondition oo_hpvectorForKey:@"destination"];
@@ -9236,6 +9329,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		DESTROY(_primaryTarget);
 		_primaryTarget = [targetEntity weakRetain];
+		[self startTrackingCurve];
 	}
 	
 	[[self shipSubEntityEnumerator] makeObjectsPerformSelector:@selector(addTarget:) withObject:targetEntity];
@@ -9618,9 +9712,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	GLfloat  d_forward, d_up, d_right;
 	
-	Vector  relPos = [self vectorTo:target];
+	Vector  relPos = HPVectorToVector(HPvector_subtract([self calculateTargetPosition], position));
 	
-	double	range2 = magnitude2(relPos);
+	double	range2 = magnitude2(HPVectorToVector(HPvector_subtract([target position], position)));
 
 	if (range2 > scannerRange * scannerRange)
 	{
@@ -9848,8 +9942,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	GLfloat  d_forward, d_up, d_right;
 	
-	Vector  relPos = [self vectorTo:target];
-	double	range2 = magnitude2(relPos);
+	Vector  relPos = HPVectorToVector(HPvector_subtract([self calculateTargetPosition], position));
+	double	range2 = magnitude2(HPVectorToVector(HPvector_subtract([target position], position)));
 
 	if (range2 > scannerRange * scannerRange)
 	{
@@ -10492,7 +10586,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;	// 3/4 of the time you can't see from a lit place into a darker place
 	}
 	radius = target->collision_radius;
-	rel_pos = [self vectorTo:target];
+	rel_pos = HPVectorToVector(HPvector_subtract([self calculateTargetPosition], position));
 	d2 = magnitude2(rel_pos);
 	urp = vector_normal_or_zbasis(rel_pos);
 	
