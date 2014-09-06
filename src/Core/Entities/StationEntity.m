@@ -150,6 +150,16 @@
 }
 
 
+- (BOOL) marketBroadcast
+{
+	if (self == [UNIVERSE station])
+	{
+		return YES;
+	}
+	return marketBroadcast;
+}
+
+
 - (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export
 {
 	OOCreditsQuantity penalty, status = 0;
@@ -680,6 +690,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
 	marketScriptName = [[dict oo_stringForKey:@"market_script" defaultValue:nil] retain];
 	marketMonitored = [dict oo_boolForKey:@"market_monitored" defaultValue:NO];
+	marketBroadcast = [dict oo_boolForKey:@"market_broadcast" defaultValue:YES];
 
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.

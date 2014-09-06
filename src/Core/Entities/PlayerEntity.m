@@ -9551,9 +9551,9 @@ static NSString *last_outfitting_key=nil;
 	StationEntity *station = [self dockedStation];
 	if (station == nil)  
 	{
-		if ([[PLAYER primaryTarget] isStation])
+		if ([[self primaryTarget] isStation] && [(StationEntity *)[self primaryTarget] marketBroadcast])
 		{
-			station = [PLAYER primaryTarget];
+			station = [self primaryTarget];
 		}
 		else
 		{
@@ -9775,7 +9775,7 @@ static NSString *last_outfitting_key=nil;
 		
 		
 		StationEntity *dockedStation = [self dockedStation];
-		if (dockedStation == nil && [[self primaryTarget] isStation])
+		if (dockedStation == nil && [[self primaryTarget] isStation] && [(StationEntity *)[self primaryTarget] marketBroadcast])
 		{
 			dockedStation = [self primaryTarget];
 		}

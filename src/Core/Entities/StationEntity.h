@@ -107,7 +107,8 @@ typedef enum
 							allowsSaving: 1,
 							allowsAutoDocking: 1,
 							hasBreakPattern: 1,
-							marketMonitored: 1;
+							marketMonitored: 1,
+							marketBroadcast: 1;
 }
 
 
@@ -115,6 +116,7 @@ typedef enum
 - (NSArray *) marketDefinition;
 - (NSString *) marketScriptName;
 - (BOOL) marketMonitored;
+- (BOOL) marketBroadcast;
 - (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export;
 
 - (OOCommodityMarket *) localMarket;
