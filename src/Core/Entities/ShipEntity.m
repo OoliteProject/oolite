@@ -9039,7 +9039,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat scannerRange2 = scannerRange * scannerRange;
 	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
-		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
+		if (scan->isShip && ![(ShipEntity*)scan isCloaked] && [self isValidTarget:scan])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
@@ -9051,7 +9051,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	scan = z_next;	while ((scan)&&(scan->isShip == NO))	scan = scan->z_next;	// skip non-ships
 	while ((scan)&&(scan->position.z < position.z + scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
-		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
+		if (scan->isShip && ![(ShipEntity*)scan isCloaked] && [self isValidTarget:scan])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
 			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
