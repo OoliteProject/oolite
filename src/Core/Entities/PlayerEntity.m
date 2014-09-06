@@ -9864,6 +9864,12 @@ static NSString *last_outfitting_key=nil;
 	else // show_marketinfo > 0
 	{
 		OOCommodityType good = [gui selectedRowKey];
+		if (EXPECT_NOT(good == nil))
+		{
+			// this should never happen
+			// but stop it crashing just in case
+			good = [UNIVERSE getRandomCommodity];
+		}
 		show_marketinfo = [gui selectedRow];
 		j = [goods indexOfObject:good];
 
