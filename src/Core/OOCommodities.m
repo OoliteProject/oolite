@@ -135,7 +135,23 @@ MA 02110-1301, USA.
 
 - (OOCommodityMarket *) generateManifestForPlayer
 {
-	return [self generateBlankMarket];
+	OOCommodityMarket *market = [[OOCommodityMarket alloc] init];
+
+	NSString *commodity = nil;
+	NSMutableDictionary *good = nil;
+	foreachkey (commodity, _commodityLists)
+	{
+		good = [NSMutableDictionary dictionaryWithDictionary:[_commodityLists oo_dictionaryForKey:commodity]];
+		[good oo_setUnsignedInteger:0 forKey:kOOCommodityPriceCurrent];
+		[good oo_setUnsignedInteger:0 forKey:kOOCommodityQuantityCurrent];
+		/* The actual capacity of the player ship is a total, not
+		 * per-good, so is managed separately through PlayerEntity */
+		[good oo_setUnsignedInteger:UINT32_MAX forKey:kOOCommodityCapacity];
+		[good setObject:commodity forKey:kOOCommodityKey];
+		
+		[market setGood:commodity withInfo:good];
+	}
+	return [market autorelease];
 }
 
 
