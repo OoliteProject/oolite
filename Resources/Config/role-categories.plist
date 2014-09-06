@@ -119,8 +119,11 @@
 	"oolite-scavenger" = (
 		"miner",
 		"rockhermit",
+		"rockhermit-chaotic",
 		"scavenger"
 	);
+
+	
 
 	/* Roles the police are more likely to side with in a clean v
 	 * clean fight */
@@ -172,7 +175,8 @@
 		"assassin-medium",
 		"assassin-heavy",
 		"assassin-player",
-		"player-unknown"
+		"player-unknown",
+		"rockhermit-pirate"
 	);
 
 
@@ -201,5 +205,11 @@
 		"police-witchpoint-patrol"
 	);
 
-
+	/* Roles of rock hermits */
+	"oolite-rockhermits" = (
+		"rockhermit",
+		"rockhermit-chaotic",
+		"rockhermit-pirate"
+	);
+	
 }
