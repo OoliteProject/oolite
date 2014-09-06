@@ -1413,9 +1413,9 @@
 	"in-hold-column-title"			= "In hold:";
 	"oolite-legality-column-title"	= "Legal?";
 	"oolite-legality-clear"			= "—";
-	"oolite-legality-export"		= " E"; // legal to export
-	"oolite-legality-import"		= " I"; // legal to import
-	"oolite-legality-neither"		= " R";
+	"oolite-legality-export"		= "Ex"; // legal to export
+	"oolite-legality-import"		= "Im"; // legal to import
+	"oolite-legality-neither"		= "Re";
 	"cash-@-load-d-of-d"			= "Cash: %@. Load %d of %d t.";
 	"cargo-tons-symbol"				= "t";
 	"cargo-grams-symbol"			= "g";

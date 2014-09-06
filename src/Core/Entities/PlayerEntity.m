@@ -9654,10 +9654,10 @@ static NSString *last_outfitting_key=nil;
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	OOGUITabSettings tab_stops;
 	tab_stops[0] = 0;
-	tab_stops[1] = 162;
-	tab_stops[2] = 252;
-	tab_stops[3] = 306;
-	tab_stops[4] = 426;
+	tab_stops[1] = 172;
+	tab_stops[2] = 262;
+	tab_stops[3] = 316;
+	tab_stops[4] = 436;
 	[gui setTabStops:tab_stops];
 	
 	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
@@ -9824,13 +9824,13 @@ static NSString *last_outfitting_key=nil;
 			{
 				[gui setKey:@">>>" forRow:GUI_ROW_MARKET_LAST];
 				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_LAST];
-				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
 			}
 			if (marketOffset > 0)
 			{
 				[gui setKey:@"<<<" forRow:GUI_ROW_MARKET_START];
 				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_START];
-				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
 			}
 		}
 		else
