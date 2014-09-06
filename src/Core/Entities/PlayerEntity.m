@@ -9727,11 +9727,11 @@ static NSString *last_outfitting_key=nil;
 	
 	gui_screen = GUI_SCREEN_MARKET;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	if (guiChanged)
+	if (guiChanged || [gui selectedRow] == -1)
 	{
 		/* the way the info to show is determined, it has to reset to
 		 * the list view when returning to the F8 screen from
-		 * elsewhere */
+		 * elsewhere, or when pressing F8 from the info screen */
 		show_marketinfo = 0;
 	}
 	
