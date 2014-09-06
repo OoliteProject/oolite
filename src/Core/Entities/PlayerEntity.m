@@ -9654,14 +9654,14 @@ static NSString *last_outfitting_key=nil;
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	OOGUITabSettings tab_stops;
 	tab_stops[0] = 0;
-	tab_stops[1] = 142;
-	tab_stops[2] = 212;
-	tab_stops[3] = 276;
-	tab_stops[4] = 396;
+	tab_stops[1] = 162;
+	tab_stops[2] = 252;
+	tab_stops[3] = 306;
+	tab_stops[4] = 426;
 	[gui setTabStops:tab_stops];
 	
 	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
-	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
+	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),3.5),
 						   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
 }
 
@@ -9678,7 +9678,7 @@ static NSString *last_outfitting_key=nil;
 	NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
 
 	NSUInteger priceDecimal = pricePerUnit % 10;
-	NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
+	NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],2.5),priceDecimal];
 			
 	// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
 			

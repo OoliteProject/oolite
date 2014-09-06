@@ -1411,11 +1411,11 @@
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";
 	"in-hold-column-title"			= "In hold:";
-	"oolite-legality-column-title"	= "Legal status:";
+	"oolite-legality-column-title"	= "Legal?";
 	"oolite-legality-clear"			= "—";
-	"oolite-legality-export"		= "Export only";
-	"oolite-legality-import"		= "Import only";
-	"oolite-legality-neither"		= "Restricted";
+	"oolite-legality-export"		= " E"; // legal to export
+	"oolite-legality-import"		= " I"; // legal to import
+	"oolite-legality-neither"		= " R";
 	"cash-@-load-d-of-d"			= "Cash: %@. Load %d of %d t.";
 	"cargo-tons-symbol"				= "t";
 	"cargo-grams-symbol"			= "g";
