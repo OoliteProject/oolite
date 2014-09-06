@@ -60,7 +60,7 @@
 
 	"slaves" = {
 		"name" = "[commodity-name slaves]";
-		"classes" = ("oolite-restricted","oolite-living","oolite-slaves");
+		"classes" = ("oolite-restricted","oolite-living","oolite-slaves","oolite-salvage");
 		"quantity_unit" = 0;
 		"peak_export" = 7;
 		"peak_import" = 0;
@@ -168,7 +168,7 @@
 
 	"alloys" = {
 		"name" = "[commodity-name alloys]";
-		"classes" = ("oolite-business","oolite-shipyard","oolite-metals");
+		"classes" = ("oolite-business","oolite-shipyard","oolite-metals","oolite-salvage");
 		"quantity_unit" = 0;
 		"peak_export" = 0;
 		"peak_import" = 7;

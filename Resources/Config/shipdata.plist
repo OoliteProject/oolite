@@ -3133,6 +3133,121 @@
 		tunnel_aspect_ratio = 1;
 		weapon_energy = 0;
 	};
+
+	"oolite_template_rock-hermit-chaotic" = 
+	{
+		like_ship = "oolite_template_rock-hermit";
+		is_template = 1;
+		allegiance = "chaotic";
+		"market_definition" = (
+			{
+				// export cheap mining products
+				"type" = "class";
+				"name" = "oolite-mining";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.1;
+				"quantity_multiplier" = 3.5;
+				"quantity_randomiser" = 3.0;
+			},
+			{
+				// import supplies a bit
+				"type" = "class";
+				"name" = "oolite-edible";
+				"price_multiplier" = 1.05;
+				"price_randomiser" = 0.05;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 15;
+			},
+			{
+				// sometimes need clothes, but usually have enough already
+				"type" = "class";
+				"name" = "oolite-wearable";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// sometimes need new mining equipment
+				"type" = "class";
+				"name" = "oolite-machinery";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// alien items never in stock
+				"type" = "class";
+				"name" = "oolite-thargoid";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.15;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// small-scale trading out of way of authorities 
+				"type" = "default";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.15;
+				"quantity_adder" = 2;
+				"quantity_multiplier" = 0.85; // capacity will do most of the work
+				"quantity_randomiser" = 1.0;
+				"capacity" = 7;
+			}
+		);
+		roles = "rockhermit-chaotic station";
+	};
+
+	"oolite_template_rock-hermit-pirate" = 
+	{
+		like_ship = "oolite_template_rock-hermit";
+		is_template = 1;
+		allegiance = "pirate";
+		"market_capacity" = 15;
+		"market_definition" = (
+			{
+				// export slightly cheap mining products, but not many
+				"type" = "class";
+				"name" = "oolite-mining";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.1;
+				"quantity_multiplier" = 1.75;
+				"quantity_randomiser" = 1.0;
+			},
+			{
+				// common salvage from piracy
+				"type" = "class";
+				"name" = "oolite-salvage";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.1;
+				"quantity_adder" = 2;
+				"quantity_multiplier" = 2.75;
+				"quantity_randomiser" = 2.0;
+			},
+			{
+				// alien items never in stock
+				"type" = "class";
+				"name" = "oolite-thargoid";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.15;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// fencing stolen goods
+				"type" = "default";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.15;
+				"quantity_adder" = 2;
+				"quantity_multiplier" = 0.55;
+				"quantity_randomiser" = 3.85;
+				"capacity" = 7;
+			}
+		);
+		roles = "rockhermit-pirate station";
+	};
+
 	"oolite_template_scarred-alloy" = {
 		like_ship = "oolite_template_alloy";
 		is_template = 1;
@@ -4082,6 +4197,14 @@
 	"rock-hermit" =
 	{
 		like_ship = "oolite_template_rock-hermit";
+	};
+	"rock-hermit-chaotic" =
+	{
+		like_ship = "oolite_template_rock-hermit-chaotic";
+	};
+	"rock-hermit-pirate" =
+	{
+		like_ship = "oolite_template_rock-hermit-pirate";
 	};
 	"scarred-alloy" =
 	{
