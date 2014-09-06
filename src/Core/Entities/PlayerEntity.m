@@ -9694,14 +9694,15 @@ static NSString *last_outfitting_key=nil;
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
-		tab_stops[1] = 192;
-		tab_stops[2] = 272;
-		tab_stops[3] = 346;
+		tab_stops[1] = 142;
+		tab_stops[2] = 212;
+		tab_stops[3] = 276;
+		tab_stops[4] = 396;
 		[gui setTabStops:tab_stops];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
 		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
-							 OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), nil] forRow:GUI_ROW_MARKET_KEY];
+							   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
 
 		if (marketOffset > maxOffset)
 		{
@@ -9740,12 +9741,39 @@ static NSString *last_outfitting_key=nil;
 				NSString *units = DisplayStringForMassUnit(unit);
 				NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 				NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
+
+				NSUInteger import_legality = [localMarket importLegalityForGood:good];
+				NSUInteger export_legality = [localMarket exportLegalityForGood:good];
+				NSString *legaldesc = nil;
+				if (import_legality == 0)
+				{
+					if (export_legality == 0)
+					{
+						legaldesc = DESC(@"oolite-legality-clear");
+					}
+					else
+					{
+						legaldesc = DESC(@"oolite-legality-import");
+					}
+				} 
+				else
+				{
+					if (export_legality == 0)
+					{
+						legaldesc = DESC(@"oolite-legality-export");
+					}
+					else
+					{
+						legaldesc = DESC(@"oolite-legality-neither");
+					}
+				}
+				legaldesc = [NSString stringWithFormat:@" %@ ",legaldesc];
 			
 				if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
 				{
 					[gui setKey:good forRow:row];
 				}
-				[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
+				[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, legaldesc, nil] forRow:row++];
 				if (row >= GUI_ROW_MARKET_END)
 				{
 					break;
