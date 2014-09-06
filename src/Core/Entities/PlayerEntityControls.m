@@ -303,6 +303,7 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_market_filter_cycle,	'?'			);
 	LOAD_KEY_SETTING(key_market_sorter_cycle,	'/'			);
+	LOAD_KEY_SETTING(key_market_info,			'i'			);
 
 	LOAD_KEY_SETTING(key_cycle_mfd,				';'			);
 	LOAD_KEY_SETTING(key_switch_mfd,			':'			);
@@ -2212,150 +2213,191 @@ static NSTimeInterval	time_last_frame;
 			break;
 
 		case GUI_SCREEN_MARKET:
-			[self handleGUIUpDownArrowKeys];
+			if (show_marketinfo == 0)
+			{
+				[self handleGUIUpDownArrowKeys];
 
-			if (([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])||([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))
-			{
-				if ([gameView isDown:key_gui_arrow_right])   // -->
+				if ([self isDocked])
 				{
-					if (!wait_for_key_up)
+					if (([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])||([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))
 					{
-						if ([self tryBuyingCommodity:[gui selectedRowKey] all:[gameView isShiftDown]])
+						if ([gameView isDown:key_gui_arrow_right])   // -->
 						{
-							[self playBuyCommodity];
-							[self setGuiToMarketScreen];
-						}
-						else
-						{
-							if ([[gui selectedRowKey] isEqualToString:@">>>"])
+							if (!wait_for_key_up)
 							{
-								[self playMenuNavigationDown];
+								if ([self tryBuyingCommodity:[gui selectedRowKey] all:[gameView isShiftDown]])
+								{
+									[self playBuyCommodity];
+									[self setGuiToMarketScreen];
+								}
+								else
+								{
+									if ([[gui selectedRowKey] isEqualToString:@">>>"])
+									{
+										[self playMenuNavigationDown];
+									}
+									else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
+									{
+										[self playMenuNavigationUp];
+									}
+									else
+									{
+										[self playCantBuyCommodity];
+									}
+									[self setGuiToMarketScreen];
+								}
+								wait_for_key_up = YES;
 							}
-							else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
+						}
+						if ([gameView isDown:key_gui_arrow_left])   // <--
+						{
+							if (!wait_for_key_up)
 							{
-								[self playMenuNavigationUp];
+								if ([self trySellingCommodity:[gui selectedRowKey] all:[gameView isShiftDown]])
+								{
+									[self playSellCommodity];
+									[self setGuiToMarketScreen];
+								}
+								else
+								{
+									if ([[gui selectedRowKey] isEqualToString:@">>>"])
+									{
+										[self playMenuNavigationDown];
+									}
+									else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
+									{
+										[self playMenuNavigationUp];
+									}
+									else
+									{
+										[self playCantSellCommodity];
+									}
+									[self setGuiToMarketScreen];
+								}
+								wait_for_key_up = YES;
 							}
-							else
+						}
+						if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])   // 'enter'
+						{
+							if ([gameView isDown:gvMouseDoubleClick])
 							{
-								[self playCantBuyCommodity];
+								wait_for_key_up = NO;
+								[gameView clearMouse];
 							}
-							[self setGuiToMarketScreen];
-						}
-						wait_for_key_up = YES;
-					}
-				}
-				if ([gameView isDown:key_gui_arrow_left])   // <--
-				{
-					if (!wait_for_key_up)
-					{
-						if ([self trySellingCommodity:[gui selectedRowKey] all:[gameView isShiftDown]])
-						{
-							[self playSellCommodity];
-							[self setGuiToMarketScreen];
-						}
-						else
-						{
-							if ([[gui selectedRowKey] isEqualToString:@">>>"])
+							if (!wait_for_key_up)
 							{
-								[self playMenuNavigationDown];
+								OOCommodityType item = [gui selectedRowKey];
+								OOCargoQuantity yours =	[shipCommodityData quantityForGood:item];
+								if ([item isEqualToString:@">>>"])
+								{
+									[self tryBuyingCommodity:item all:YES];
+									[self setGuiToMarketScreen];
+								}
+								else if ([item isEqualToString:@"<<<"])
+								{
+									[self trySellingCommodity:item all:YES];
+									[self setGuiToMarketScreen];
+								}
+								else if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
+								{
+									[self playBuyCommodity];
+									[self setGuiToMarketScreen];
+								}
+								else if ((yours > 0) && [self trySellingCommodity:item all:YES])	// sell all you can
+								{
+									[self playSellCommodity];
+									[self setGuiToMarketScreen];
+								}
+								else if ([self tryBuyingCommodity:item all:YES])			// buy as much as possible
+								{
+									[self playBuyCommodity];
+									[self setGuiToMarketScreen];
+								}
+								else
+								{
+									[self playCantBuyCommodity];
+								}
+								wait_for_key_up = YES;
 							}
-							else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
-							{
-								[self playMenuNavigationUp];
-							}
-							else
-							{
-								[self playCantSellCommodity];
-							}
-							[self setGuiToMarketScreen];
-						}
-						wait_for_key_up = YES;
-					}
-				}
-				if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])   // 'enter'
-				{
-					if ([gameView isDown:gvMouseDoubleClick])
-					{
-						wait_for_key_up = NO;
-						[gameView clearMouse];
-					}
-					if (!wait_for_key_up)
-					{
-						OOCommodityType item = [gui selectedRowKey];
-						OOCargoQuantity yours =	[shipCommodityData quantityForGood:item];
-						if ([item isEqualToString:@">>>"])
-						{
-							[self tryBuyingCommodity:item all:YES];
-							[self setGuiToMarketScreen];
-						}
-						else if ([item isEqualToString:@"<<<"])
-						{
-							[self trySellingCommodity:item all:YES];
-							[self setGuiToMarketScreen];
-						}
-						else if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
-						{
-							[self playBuyCommodity];
-							[self setGuiToMarketScreen];
-						}
-						else if ((yours > 0) && [self trySellingCommodity:item all:YES])	// sell all you can
-						{
-							[self playSellCommodity];
-							[self setGuiToMarketScreen];
-						}
-						else if ([self tryBuyingCommodity:item all:YES])			// buy as much as possible
-						{
-							[self playBuyCommodity];
-							[self setGuiToMarketScreen];
-						}
-						else
-						{
-							[self playCantBuyCommodity];
-						}
-						wait_for_key_up = YES;
-					}
-				}
-			}
-			else
-			{
-				wait_for_key_up = NO;
-			}
-
-			if ([gameView isDown:key_market_filter_cycle] || [gameView isDown:key_market_sorter_cycle])
-			{
-				if (!queryPressed)
-				{
-					queryPressed = YES;
-					if ([gameView isDown:key_market_filter_cycle])
-					{
-						if (marketFilterMode >= MARKET_FILTER_MODE_MAX)
-						{
-							marketFilterMode = MARKET_FILTER_MODE_OFF;
-						}
-						else
-						{
-							marketFilterMode++;
 						}
 					}
 					else
 					{
-						if (marketSorterMode >= MARKET_SORTER_MODE_MAX)
+						wait_for_key_up = NO;
+					}
+				} // end if (self isDocked)
+
+				if ([gameView isDown:key_market_filter_cycle] || [gameView isDown:key_market_sorter_cycle])
+				{
+					if (!queryPressed)
+					{
+						queryPressed = YES;
+						if ([gameView isDown:key_market_filter_cycle])
 						{
-							marketSorterMode = MARKET_SORTER_MODE_OFF;
+							if (marketFilterMode >= MARKET_FILTER_MODE_MAX)
+							{
+								marketFilterMode = MARKET_FILTER_MODE_OFF;
+							}
+							else
+							{
+								marketFilterMode++;
+							}
 						}
 						else
 						{
-							marketSorterMode++;
+							if (marketSorterMode >= MARKET_SORTER_MODE_MAX)
+							{
+								marketSorterMode = MARKET_SORTER_MODE_OFF;
+							}
+							else
+							{
+								marketSorterMode++;
+							}
+						}
+						[self playChangedOption];
+						[self setGuiToMarketScreen];
+					}
+				} 
+				else
+				{
+					queryPressed = NO;
+				}
+			} // end if (!show_marketinfo_flag)
+			if ([gameView isDown:key_market_info])
+			{
+				if (!chartInfoPressed)
+				{
+					chartInfoPressed = YES;
+					if (show_marketinfo == 0)
+					{
+						BOOL switchok = YES;
+						// check that we have some marketinfo
+						if ([gui selectedRowKey] == nil || [[gui selectedRowKey] isEqualToString:@">>>"] || [[gui selectedRowKey] isEqualToString:@"<<<"])
+						{
+							switchok = NO;
+							// can't switch if no commodity selected
+						}
+						if (switchok)
+						{
+							show_marketinfo = 1;
+							[self setGuiToMarketScreen];
 						}
 					}
-					[self playChangedOption];
-					[self setGuiToMarketScreen];
+					else
+					{
+						NSUInteger tmp = show_marketinfo;
+						show_marketinfo = 0;
+						[self setGuiToMarketScreen];
+						[gui setSelectedRow:tmp];
+					}
 				}
-			} 
+			}
 			else
 			{
-				queryPressed = NO;
+				chartInfoPressed = NO;
 			}
+
+
 
 			break;
 			

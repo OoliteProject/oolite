@@ -94,6 +94,7 @@
 
 	key_market_filter_cycle		= "?";
 	key_market_sorter_cycle		= "/";
+	key_market_info				= "i";
 	
 	key_cycle_mfd				= ";";
 	key_switch_mfd				= ":";

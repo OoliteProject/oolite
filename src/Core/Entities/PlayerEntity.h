@@ -572,6 +572,7 @@ typedef enum
 	OOKeyCode				key_chart_highlight;
 	OOKeyCode				key_market_filter_cycle;
 	OOKeyCode				key_market_sorter_cycle;
+	OOKeyCode				key_market_info;
 	
 	OOKeyCode				key_next_target;
 	OOKeyCode				key_previous_target;
@@ -666,6 +667,9 @@ typedef enum
 	BOOL					voice_gender_m;
 #endif
 	OOSpeechSettings		isSpeechOn;
+
+	NSUInteger				show_marketinfo;
+
 
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;

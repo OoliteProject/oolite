@@ -143,6 +143,18 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 }
 
 
+- (BOOL) setComment:(NSString *)comment forGood:(OOCommodityType)good
+{
+	NSMutableDictionary *definition = [_commodityList oo_mutableDictionaryForKey:good];
+	if (definition == nil)
+	{
+		return NO;
+	}
+	[definition setObject:comment forKey:kOOCommodityComment];
+	return YES;
+}
+
+
 
 - (NSString *) nameForGood:(OOCommodityType)good
 {
@@ -152,6 +164,17 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 		return OOExpand(@"[oolite-unknown-commodity-name]");
 	}
 	return OOExpand([definition oo_stringForKey:kOOCommodityName defaultValue:@"[oolite-unknown-commodity-name]"]);
+}
+
+
+- (NSString *) commentForGood:(OOCommodityType)good
+{
+	NSDictionary *definition = [_commodityList oo_dictionaryForKey:good];
+	if (definition == nil)
+	{
+		return OOExpand(@"[oolite-unknown-commodity-name]");
+	}
+	return OOExpand([definition oo_stringForKey:kOOCommodityComment defaultValue:@"[oolite-commodity-no-comment]"]);
 }
 
 

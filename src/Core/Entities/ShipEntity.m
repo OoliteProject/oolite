@@ -923,24 +923,28 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		case CARGO_SLAVES:
 			commodity_amount = 1;
+			DESTROY(commodity_type);
 			commodity_type = [[NSString stringWithString:@"slaves"] retain];
 			cargo_type = CARGO_RANDOM; // not realy random, but it tells that cargo is selected.
 			break;
 			
 		case CARGO_ALLOY:
 			commodity_amount = 1;
+			DESTROY(commodity_type);
 			commodity_type = [[NSString stringWithString:@"alloys"] retain];
 			cargo_type = CARGO_RANDOM;
 			break;
 			
 		case CARGO_MINERALS:
 			commodity_amount = 1;
+			DESTROY(commodity_type);
 			commodity_type = [[NSString stringWithString:@"minerals"] retain];
 			cargo_type = CARGO_RANDOM;
 			break;
 			
 		case CARGO_THARGOID:
 			commodity_amount = 1;
+			DESTROY(commodity_type);
 			commodity_type = [[NSString stringWithString:@"alien_items"] retain];
 			cargo_type = CARGO_RANDOM;
 			break;

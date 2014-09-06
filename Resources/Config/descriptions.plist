@@ -1438,6 +1438,9 @@
 	"oolite-market-sorter-4"		= "Quantity in hold";
 	"oolite-market-sorter-5"		= "Unit mass";
 
+	"oolite-commodity-no-comment"	= "No additional information available";
+	"oolite-commodity-info-return"	= "Press '[oolite_key_market_info]' to return to commodity list";
+	"oolite-commodity-information-@"	= "Commodity Information: %@";
 
 	// System data screen
 	"sysdata-planet-name-@"			= "Data on %@";

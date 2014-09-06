@@ -137,6 +137,10 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 // Shopping
 - (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
 - (NSArray *) applyMarketSorter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
+- (void) showMarketScreenHeaders;
+- (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity;
+
+
 
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
@@ -1537,6 +1541,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	showDemoShips = NO;
 	show_info_flag = NO;
+	show_marketinfo = 0;
 	
 	// Reset JavaScript.
 	[OOScriptTimer noteGameReset];
@@ -9637,6 +9642,76 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) showMarketScreenHeaders
+{
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+	tab_stops[1] = 142;
+	tab_stops[2] = 212;
+	tab_stops[3] = 276;
+	tab_stops[4] = 396;
+	[gui setTabStops:tab_stops];
+	
+	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
+	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
+						   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
+}
+
+
+- (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity
+{
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	NSString* desc = [NSString stringWithFormat:@" %@ ", [shipCommodityData nameForGood:good]];
+	OOCargoQuantity available_units = [localMarket quantityForGood:good];
+	OOCargoQuantity units_in_hold = quantity;
+	OOCreditsQuantity pricePerUnit = [localMarket priceForGood:good];
+	OOMassUnit unit = [shipCommodityData massUnitForGood:good];
+			
+	NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
+
+	NSUInteger priceDecimal = pricePerUnit % 10;
+	NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
+			
+	// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
+			
+	NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
+	NSString *units = DisplayStringForMassUnit(unit);
+	NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
+	NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
+
+	NSUInteger import_legality = [localMarket importLegalityForGood:good];
+	NSUInteger export_legality = [localMarket exportLegalityForGood:good];
+	NSString *legaldesc = nil;
+	if (import_legality == 0)
+	{
+		if (export_legality == 0)
+		{
+			legaldesc = DESC(@"oolite-legality-clear");
+		}
+		else
+		{
+			legaldesc = DESC(@"oolite-legality-import");
+		}
+	} 
+	else
+	{
+		if (export_legality == 0)
+		{
+			legaldesc = DESC(@"oolite-legality-export");
+		}
+		else
+		{
+			legaldesc = DESC(@"oolite-legality-neither");
+		}
+	}
+	legaldesc = [NSString stringWithFormat:@" %@ ",legaldesc];
+			
+	[gui setKey:good forRow:row];
+	[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, legaldesc, nil] forRow:row++];
+
+}
+
 - (void) setGuiToMarketScreen
 {
 	OOCommodityMarket	*localMarket = [self localMarket];
@@ -9645,6 +9720,13 @@ static NSString *last_outfitting_key=nil;
 	
 	gui_screen = GUI_SCREEN_MARKET;
 	BOOL			guiChanged = (oldScreen != gui_screen);
+	if (guiChanged)
+	{
+		/* the way the info to show is determined, it has to reset to
+		 * the list view when returning to the F8 screen from
+		 * elsewhere */
+		show_marketinfo = 0;
+	}
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
@@ -9662,23 +9744,25 @@ static NSString *last_outfitting_key=nil;
 		maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
 	}
 
+	NSUInteger			i, j, commodityCount = [shipCommodityData count];
+	OOCargoQuantity		quantityInHold[commodityCount];
+		
+	for (i = 0; i < commodityCount; i++)
+	{
+		quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
+	}
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity *container = [cargo objectAtIndex:i];
+		j = [goods indexOfObject:[container commodityType]];
+		quantityInHold[j] += [container commodityAmount];
+	}
+
 	// GUI stuff
+	if (EXPECT(show_marketinfo == 0)) 
 	{
 		OOGUIRow			start_row = GUI_ROW_MARKET_START;
 		OOGUIRow			row = start_row;
-		NSUInteger			i, j, commodityCount = [shipCommodityData count];
-		OOCargoQuantity		quantityInHold[commodityCount];
-		
-		for (i = 0; i < commodityCount; i++)
-		{
-			quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
-		}
-		for (i = 0; i < [cargo count]; i++)
-		{
-			ShipEntity *container = [cargo objectAtIndex:i];
-			j = [goods indexOfObject:[container commodityType]];
-			quantityInHold[j] += [container commodityAmount];
-		}
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
@@ -9692,17 +9776,7 @@ static NSString *last_outfitting_key=nil;
 			[gui setTitle:[NSString stringWithFormat:DESC(@"@-station-commodity-market"), [dockedStation displayName]]];
 		}
 		
-		OOGUITabSettings tab_stops;
-		tab_stops[0] = 0;
-		tab_stops[1] = 142;
-		tab_stops[2] = 212;
-		tab_stops[3] = 276;
-		tab_stops[4] = 396;
-		[gui setTabStops:tab_stops];
-		
-		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
-		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
-							   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
+		[self showMarketScreenHeaders];
 
 		if (marketOffset > maxOffset)
 		{
@@ -9724,56 +9798,9 @@ static NSString *last_outfitting_key=nil;
 					++i;
 					continue;
 				}
-				NSString* desc = [NSString stringWithFormat:@" %@ ", [shipCommodityData nameForGood:good]];
-				OOCargoQuantity available_units = [localMarket quantityForGood:good];
-				OOCargoQuantity units_in_hold = quantityInHold[i++];
-				OOCreditsQuantity pricePerUnit = [localMarket priceForGood:good];
-				OOMassUnit unit = [shipCommodityData massUnitForGood:good];
-			
-				NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
+				[self showMarketScreenDataLine:row forGood:good inMarket:localMarket holdQuantity:quantityInHold[i++]];
 
-				NSUInteger priceDecimal = pricePerUnit % 10;
-				NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
-			
-				// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
-			
-				NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
-				NSString *units = DisplayStringForMassUnit(unit);
-				NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
-				NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
-
-				NSUInteger import_legality = [localMarket importLegalityForGood:good];
-				NSUInteger export_legality = [localMarket exportLegalityForGood:good];
-				NSString *legaldesc = nil;
-				if (import_legality == 0)
-				{
-					if (export_legality == 0)
-					{
-						legaldesc = DESC(@"oolite-legality-clear");
-					}
-					else
-					{
-						legaldesc = DESC(@"oolite-legality-import");
-					}
-				} 
-				else
-				{
-					if (export_legality == 0)
-					{
-						legaldesc = DESC(@"oolite-legality-export");
-					}
-					else
-					{
-						legaldesc = DESC(@"oolite-legality-neither");
-					}
-				}
-				legaldesc = [NSString stringWithFormat:@" %@ ",legaldesc];
-			
-				if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
-				{
-					[gui setKey:good forRow:row];
-				}
-				[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, legaldesc, nil] forRow:row++];
+				++row;
 				if (row >= GUI_ROW_MARKET_END)
 				{
 					break;
@@ -9813,53 +9840,46 @@ static NSString *last_outfitting_key=nil;
 
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
 		
-		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock, may need to scroll out of it
+		[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+		if (([gui selectedRow] < start_row)||([gui selectedRow] >=row))
 		{
-			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
-			if (([gui selectedRow] < start_row)||([gui selectedRow] >=row))
-				[gui setSelectedRow:start_row];
-		}
-		else if (maxOffset > 0)
-		{
-			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
-			if ([gui selectedRow] == GUI_ROW_MARKET_START)
-			{
-				if (marketOffset == 0)
-				{
-					[gui setSelectedRow:GUI_ROW_MARKET_LAST];
-				}
-			}
-			else if ([gui selectedRow] == GUI_ROW_MARKET_LAST)
-			{
-				if (marketOffset == maxOffset)
-				{
-					[gui setSelectedRow:GUI_ROW_MARKET_START];
-				}
-			}
-			else
-			{
-				if (marketOffset == 0)
-				{
-					[gui setSelectedRow:GUI_ROW_MARKET_LAST];
-				}
-				else
-				{
-					[gui setSelectedRow:GUI_ROW_MARKET_START];
-				}
-			}
-		}
-		else
-		{
-			[gui setNoSelectedRow];
+			[gui setSelectedRow:start_row];
 		}
 		
 		[gui setShowTextCursor:NO];
+	}
+	else // show_marketinfo > 0
+	{
+		OOCommodityType good = [gui selectedRowKey];
+		show_marketinfo = [gui selectedRow];
+		j = [goods indexOfObject:good];
+
+		[gui clearAndKeepBackground:!guiChanged];
+
+		[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-commodity-information-@"), [shipCommodityData nameForGood:good]]];
+
+		[self showMarketScreenHeaders];
+		[self showMarketScreenDataLine:GUI_ROW_MARKET_START forGood:good inMarket:localMarket holdQuantity:quantityInHold[j]];
+
+		NSString *info = [shipCommodityData commentForGood:good];
+		if (info == nil || [info length] == 0)
+		{
+			[gui addLongText:DESC(@"oolite-commodity-no-comment") startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:info startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+		}
+		[gui setText:OOExpand(@"[oolite-commodity-info-return]") forRow:GUI_ROW_MARKET_END align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_END];
+		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
+
 	}
 	
 	[[UNIVERSE gameView] clearMouse];
 	
 	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:([self status] == STATUS_DOCKED || maxOffset > 0)];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	
 	if (guiChanged)
 	{

@@ -48,8 +48,10 @@ MA 02110-1301, USA.
 - (BOOL) addQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
 - (BOOL) removeQuantity:(OOCargoQuantity)quantity forGood:(OOCommodityType)good;
 - (void) removeAllGoods;
+- (BOOL) setComment:(NSString *)comment forGood:(OOCommodityType)good;
 
 - (NSString *) nameForGood:(OOCommodityType)good;
+- (NSString *) commentForGood:(OOCommodityType)good;
 - (OOCreditsQuantity) priceForGood:(OOCommodityType)good;
 - (OOCargoQuantity) quantityForGood:(OOCommodityType)good;
 - (OOMassUnit) massUnitForGood:(OOCommodityType)good;
