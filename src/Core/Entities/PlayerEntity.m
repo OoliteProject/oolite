@@ -9551,7 +9551,14 @@ static NSString *last_outfitting_key=nil;
 	StationEntity *station = [self dockedStation];
 	if (station == nil)  
 	{
-		station = [UNIVERSE station];
+		if ([[PLAYER primaryTarget] isStation])
+		{
+			station = [PLAYER primaryTarget];
+		}
+		else
+		{
+			station = [UNIVERSE station];
+		}
 		if (station == nil)
 		{
 			// interstellar space or similar
@@ -9766,7 +9773,13 @@ static NSString *last_outfitting_key=nil;
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		
+		
 		StationEntity *dockedStation = [self dockedStation];
+		if (dockedStation == nil && [[self primaryTarget] isStation])
+		{
+			dockedStation = [self primaryTarget];
+		}
+
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
 			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
