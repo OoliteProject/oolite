@@ -611,7 +611,7 @@ static NSMutableDictionary *sStringCache;
 					return;
 				}
 			}
-			// make up a basic manifest in relaxed mode
+			// make up a basic manifest in relaxed mode or for base folders
 			manifest = [NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"__oolite.tmp.%@",path],kOOManifestIdentifier,@"1",kOOManifestVersion,@"OXP without manifest",kOOManifestTitle,@"1",kOOManifestRequiredOoliteVersion,nil];
 		}
 	}

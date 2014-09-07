@@ -2114,6 +2114,10 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (BOOL) spawnShip:(NSString *) shipdesc
 {
+	// no need to do any more than log - enforcing modes wouldn't even have
+	// loaded the legacy script
+	OOStandardsDeprecated([NSString stringWithFormat:@"'spawn' via legacy script is deprecated as a way of adding ships for %@",shipdesc]);
+
 	ShipEntity		*ship;
 	NSDictionary	*shipdict = nil;
 	
