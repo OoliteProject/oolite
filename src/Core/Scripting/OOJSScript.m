@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOManifestProperties.h"
 #import "OOCollectionExtractors.h"
 #import "OOPListParsing.h"
+#import "OODebugStandards.h"
 
 #if OO_CACHE_JS_SCRIPTS
 #include <jsxdrapi.h>
@@ -706,7 +707,27 @@ static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject
 	if (script == NULL)
 	{
 		fileContents = [NSString stringWithContentsOfUnicodeFile:path];
-		if (fileContents != nil)  data = [fileContents utf16DataWithBOM:NO];
+
+		if (fileContents != nil) 
+		{
+#ifndef NDEBUG
+		/* FIXME: this isn't strictly the right test, since strict
+		 * mode can be enabled with this string within a function
+		 * definition, but it seems unlikely anyone is actually doing
+		 * that here. */
+		if ([fileContents rangeOfString:@"\"use strict\";"].location == NSNotFound && [fileContents rangeOfString:@"'use strict';"].location == NSNotFound)
+		{
+			OOStandardsDeprecated([NSString stringWithFormat:@"Script %@ does not \"use strict\";",path]);
+			if (OOEnforceStandards())
+			{
+				// prepend it anyway
+				// TODO: some time after 1.82, make this required
+				fileContents = [@"\"use strict\";\n" stringByAppendingString:fileContents];
+			}
+		}
+#endif
+			data = [fileContents utf16DataWithBOM:NO];
+		}
 		if (data == nil)  *outErrorMessage = @"could not load file";
 		else
 		{
