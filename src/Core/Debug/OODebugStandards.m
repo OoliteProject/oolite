@@ -27,10 +27,10 @@ SOFTWARE.
 
 */
 
-#include "OODebugStandards.h"
-#include "OOLogging.h"
-#include "OOCollectionExtractors.h"
-#include "GameController.h"
+#import "OODebugStandards.h"
+#import "OOLogging.h"
+#import "OOCollectionExtractors.h"
+#import "GameController.h"
 
 #ifndef NDEBUG
 
@@ -50,7 +50,7 @@ typedef enum {
 	STANDARDS_ENFORCEMENT_QUIT
 } OOStandardsEnforcement;
 
-static OOStandardsEnforcement sEnforcement = STANDARDS_ENFORCEMENT_OFF;
+static OOStandardsEnforcement sEnforcement = STANDARDS_ENFORCEMENT_WARN;
 
 
 void OOStandardsSetup()

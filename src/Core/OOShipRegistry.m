@@ -42,6 +42,7 @@ SOFTWARE.
 #import "OOShipLibraryDescriptions.h"
 #import "Universe.h"
 
+#import "OODebugStandards.h"
 
 #define PRELOAD 0
 
@@ -1009,65 +1010,76 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 		
 		if (conditions != nil)
 		{
-			if ([conditions isKindOfClass:[NSArray class]])
+			OOStandardsDeprecated([NSString stringWithFormat:@"The 'conditions' key is deprecated in shipdata entry %@",shipKey]);
+			if (!OOEnforceStandards())
 			{
-				conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<shipdata.plist entry \"%@\">", shipKey]);
-			}
-			else
-			{
-				OOLogWARN(@"shipdata.load.warning", @"conditions for shipdata.plist entry \"%@\" are not an array, ignoring.", shipKey);
-				conditions = nil;
-			}
+				if ([conditions isKindOfClass:[NSArray class]])
+				{
+					conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<shipdata.plist entry \"%@\">", shipKey]);
+				}
+				else
+				{
+					OOLogWARN(@"shipdata.load.warning", @"conditions for shipdata.plist entry \"%@\" are not an array, ignoring.", shipKey);
+					conditions = nil;
+				}
 			
-			if (conditions != nil)
-			{
-				[shipEntry setObject:conditions forKey:@"conditions"];
-			}
-			else
-			{
-				[shipEntry removeObjectForKey:@"conditions"];
+				if (conditions != nil)
+				{
+					[shipEntry setObject:conditions forKey:@"conditions"];
+				}
+				else
+				{
+					[shipEntry removeObjectForKey:@"conditions"];
+				}
 			}
 		}
 		
 		if (hasShipyard != nil)
 		{
 			hasShipyard = OOSanitizeLegacyScriptConditions(hasShipyard, [NSString stringWithFormat:@"<shipdata.plist entry \"%@\" hasShipyard conditions>", shipKey]);
-			
-			if (hasShipyard != nil)
+			OOStandardsDeprecated([NSString stringWithFormat:@"Use of legacy script conditions in the 'has_shipyard' key is deprecated in shipyard entry %@",shipKey]);
+			if (!OOEnforceStandards())
 			{
-				[shipEntry setObject:hasShipyard forKey:@"has_shipyard"];
-			}
-			else
-			{
-				[shipEntry removeObjectForKey:@"hasShipyard"];
-				[shipEntry removeObjectForKey:@"has_shipyard"];
+				if (hasShipyard != nil)
+				{
+					[shipEntry setObject:hasShipyard forKey:@"has_shipyard"];
+				}
+				else
+				{
+					[shipEntry removeObjectForKey:@"hasShipyard"];
+					[shipEntry removeObjectForKey:@"has_shipyard"];
+				}
 			}
 		}
 		
 		if (shipyardConditions != nil)
 		{
-			mutableShipyard = [[[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] mutableCopy] autorelease];
+			OOStandardsDeprecated([NSString stringWithFormat:@"The 'conditions' key is deprecated in shipyard entry %@",shipKey]);
+			if (!OOEnforceStandards())
+			{
+				mutableShipyard = [[[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] mutableCopy] autorelease];
 			
-			if ([shipyardConditions isKindOfClass:[NSArray class]])
-			{
-				shipyardConditions = OOSanitizeLegacyScriptConditions(shipyardConditions, [NSString stringWithFormat:@"<shipyard.plist entry \"%@\">", shipKey]);
-			}
-			else
-			{
-				OOLogWARN(@"shipdata.load.warning", @"conditions for shipyard.plist entry \"%@\" are not an array, ignoring.", shipKey);
-				shipyardConditions = nil;
-			}
+				if ([shipyardConditions isKindOfClass:[NSArray class]])
+				{
+					shipyardConditions = OOSanitizeLegacyScriptConditions(shipyardConditions, [NSString stringWithFormat:@"<shipyard.plist entry \"%@\">", shipKey]);
+				}
+				else
+				{
+					OOLogWARN(@"shipdata.load.warning", @"conditions for shipyard.plist entry \"%@\" are not an array, ignoring.", shipKey);
+					shipyardConditions = nil;
+				}
 			
-			if (shipyardConditions != nil)
-			{
-				[mutableShipyard setObject:shipyardConditions forKey:@"conditions"];
-			}
-			else
-			{
-				[mutableShipyard removeObjectForKey:@"conditions"];
-			}
+				if (shipyardConditions != nil)
+				{
+					[mutableShipyard setObject:shipyardConditions forKey:@"conditions"];
+				}
+				else
+				{
+					[mutableShipyard removeObjectForKey:@"conditions"];
+				}
 			
-			[shipEntry setObject:mutableShipyard forKey:@"_oo_shipyard"];
+				[shipEntry setObject:mutableShipyard forKey:@"_oo_shipyard"];
+			}
 		}
 	}
 
@@ -1186,11 +1198,14 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	if ([declaration isKindOfClass:[NSString class]])
 	{
 		// Update old-style string-based declaration.
-		result = [self translateOldStyleSubentityDeclaration:declaration
-													 forShip:shipKey
-													shipData:shipData
-												  fatalError:outFatalError];
-		
+		OOStandardsDeprecated([NSString stringWithFormat:@"Old style sub-entity declarations are deprecated in %@",shipKey]);
+		if (!OOEnforceStandards())
+		{
+			result = [self translateOldStyleSubentityDeclaration:declaration
+														 forShip:shipKey
+														shipData:shipData
+													  fatalError:outFatalError];
+		}
 		if (result != nil)
 		{
 			// Ensure internal translation made sense, and clean up a bit.

@@ -30,6 +30,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOCacheManager.h"
+#import "OODebugStandards.h"
 
 
 static NSArray			*sEquipmentTypes = nil;
@@ -265,8 +266,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 			}
 			if (conditions != nil)
 			{
-				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
-				[_conditions retain];
+				OOStandardsDeprecated([NSString stringWithFormat:@"The conditions key is deprecated for equipment %@",_name]);
+				if (OOEnforceStandards())
+				{
+					_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
+					[_conditions retain];
+				}
 			}
 
 			object = [extra objectForKey:@"condition_script"];
@@ -602,8 +607,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 	tl = [self techLevel];
 	if (tl == kOOVariableTechLevel)
 	{
-		missionVar = [PLAYER missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
-		tl = OOUIntegerFromObject(missionVar, tl);
+		OOStandardsDeprecated([NSString stringWithFormat:@"TL99 is deprecated for %@",[self identifier]]);
+		if (!OOEnforceStandards())
+		{
+			missionVar = [PLAYER missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
+			tl = OOUIntegerFromObject(missionVar, tl);
+		}
 	}
 	
 	return tl;

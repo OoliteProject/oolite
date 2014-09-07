@@ -41,6 +41,7 @@
 #import "OOEntityFilterPredicate.h"
 #import "OOFilteringEnumerator.h"
 #import "OOJSPopulatorDefinition.h"
+#import "OODebugStandards.h"
 
 static JSObject *sSystemPrototype;
 
@@ -951,8 +952,9 @@ static JSBool SystemAddGroupToRoute(JSContext *context, uintN argc, jsval *vp)
 // legacy_addShips(role : String, count : Number)
 static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp)
 {
+	OOStandardsDeprecated(@"system.legacy_addShips() is deprecated");
 	OOJS_NATIVE_ENTER(context)
-	
+		
 	NSString			*role = nil;
 	int32				count;
 	
@@ -979,6 +981,7 @@ static JSBool SystemLegacyAddShips(JSContext *context, uintN argc, jsval *vp)
 // legacy_addSystemShips(role : String, count : Number, location : Number)
 static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *vp)
 {
+	OOStandardsDeprecated(@"system.legacy_addSystemShips() is deprecated");
 	OOJS_NATIVE_ENTER(context)
 	
 	jsdouble			position;
@@ -1009,6 +1012,7 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, uintN argc, jsval *
 // legacy_addShipsAt(role : String, count : Number, coordScheme : String, coords : vectorExpression)
 static JSBool SystemLegacyAddShipsAt(JSContext *context, uintN argc, jsval *vp)
 {
+	OOStandardsDeprecated(@"system.legacy_addShipsAt() is deprecated");
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -1045,6 +1049,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, uintN argc, jsval *vp)
 // legacy_addShipsAtPrecisely(role : String, count : Number, coordScheme : String, coords : vectorExpression)
 static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, uintN argc, jsval *vp)
 {
+	OOStandardsDeprecated(@"system.legacy_addShipsAtPrecisely() is deprecated");
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -1081,6 +1086,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, uintN argc, js
 // legacy_addShipsWithinRadius(role : String, count : Number, coordScheme : String, coords : vectorExpression, radius : Number)
 static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, uintN argc, jsval *vp)
 {
+	OOStandardsDeprecated(@"system.legacy_addShipsWithinRadius() is deprecated");
 	OOJS_NATIVE_ENTER(context)
 	
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -1120,6 +1126,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, uintN argc, j
 // legacy_spawnShip(key : string)
 static JSBool SystemLegacySpawnShip(JSContext *context, uintN argc, jsval *vp)
 {
+	OOStandardsDeprecated(@"system.legacy_spawnShip() is deprecated");
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString			*key = nil;
