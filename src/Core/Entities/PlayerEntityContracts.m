@@ -460,6 +460,22 @@ static unsigned RepForRisk(unsigned risk);
 }
 
 
+- (OOCargoQuantity) contractedVolumeForGood:(OOCommodityType) good
+{
+	OOCargoQuantity total = 0;
+	for (unsigned i = 0; i < [contracts count]; i++)
+	{
+		NSDictionary* contract_info = [contracts oo_dictionaryAtIndex:i];
+		OOCommodityType contract_cargo_type = [contract_info oo_stringForKey:CARGO_KEY_TYPE];
+		if ([good isEqualToString:contract_cargo_type])
+		{
+			total += [contract_info oo_unsignedIntegerForKey:CARGO_KEY_AMOUNT];
+		}
+	}
+	return total;
+}
+
+
 - (void) addMessageToReport:(NSString*) report
 {
 	if ([report length] != 0)

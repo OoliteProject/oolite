@@ -9976,6 +9976,13 @@ static NSString *last_outfitting_key=nil;
 		[self showMarketScreenHeaders];
 		[self showMarketScreenDataLine:GUI_ROW_MARKET_START forGood:marketSelectedCommodity inMarket:localMarket holdQuantity:quantityInHold[j]];
 
+		OOCargoQuantity contracted = [self contractedVolumeForGood:marketSelectedCommodity];
+		if (contracted > 0)
+		{
+			OOMassUnit unit = [shipCommodityData massUnitForGood:marketSelectedCommodity];
+			[gui setText:[NSString stringWithFormat:DESC(@"oolite-commodity-contracted-d-@"), contracted, DisplayStringForMassUnit(unit)] forRow:GUI_ROW_MARKET_START+1];
+		}
+
 		NSString *info = [shipCommodityData commentForGood:marketSelectedCommodity];
 		if (info == nil || [info length] == 0)
 		{
@@ -10031,7 +10038,20 @@ static NSString *last_outfitting_key=nil;
 	int manifest_quantity = [shipCommodityData quantityForGood:index];
 	int market_quantity = [localMarket quantityForGood:index];
 	
-	int purchase = all ? [localMarket capacityForGood:index] : 1;
+	int purchase = 1;
+	if (all)
+	{
+		// if cargo contracts, put a break point on the contract volume
+		int contracted = [self contractedVolumeForGood:index];
+		if (manifest_quantity >= contracted)
+		{
+			purchase = [localMarket capacityForGood:index];
+		}
+		else
+		{
+			purchase = contracted-manifest_quantity;
+		}
+	}
 	if (purchase > market_quantity)
 	{
 		purchase = market_quantity;					// limit to what's available
@@ -10116,7 +10136,21 @@ static NSString *last_outfitting_key=nil;
 	int market_quantity = [localMarket quantityForGood:index];
 
 	int capacity = [localMarket capacityForGood:index];
-	int sell = all ? capacity : 1;
+	int sell = 1;
+	if (all)
+	{
+		// if cargo contracts, put a break point on the contract volume
+		int contracted = [self contractedVolumeForGood:index];
+		if (available_units <= contracted)
+		{
+			sell = capacity;
+		}
+		else
+		{
+			sell = available_units-contracted;
+		}
+	}
+
 	if (sell > available_units)
 		sell = available_units;					// limit to what's in the hold
 	if (sell + market_quantity > capacity)
