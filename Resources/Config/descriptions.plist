@@ -1440,7 +1440,7 @@
 
 	"oolite-commodity-no-comment"	= "No additional information available";
 	"oolite-commodity-info-return"	= "Press '[oolite_key_market_info]' to return to commodity list";
-	"oolite-commodity-information-@"	= "Commodity Information: %@";
+	"oolite-commodity-information-@"	= "Commodity: %@";
 	"oolite-commodity-contracted-d-@"	= "Total cargo contracts: %d %@";
 
 	// System data screen
