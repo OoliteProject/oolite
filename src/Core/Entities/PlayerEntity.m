@@ -135,8 +135,6 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 
 
 // Shopping
-- (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
-- (NSArray *) applyMarketSorter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
 - (void) showMarketScreenHeaders;
 - (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity;
 
@@ -147,7 +145,6 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 // Cargo & passenger contracts
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *)contractsArray forCargo:(BOOL)forCargo;
 
-- (OOCommodityMarket *) localMarket;
 
 - (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker;
 
@@ -1541,7 +1538,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	showDemoShips = NO;
 	show_info_flag = NO;
-	show_marketinfo = 0;
+	DESTROY(marketSelectedCommodity);
 	
 	// Reset JavaScript.
 	[OOScriptTimer noteGameReset];
@@ -2034,6 +2031,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	DESTROY(lastTextKey);
 	
+	DESTROY(marketSelectedCommodity);
 	DESTROY(reputation);
 	DESTROY(roleWeights);
 	DESTROY(roleWeightFlags);
@@ -3006,6 +3004,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 			case GUI_SCREEN_NEWGAME:
 			case GUI_SCREEN_OXZMANAGER:
 			case GUI_SCREEN_MARKET:
+			case GUI_SCREEN_MARKETINFO:
 			case GUI_SCREEN_OPTIONS:
 			case GUI_SCREEN_GAMEOPTIONS:
 			case GUI_SCREEN_LOAD:
@@ -9727,13 +9726,7 @@ static NSString *last_outfitting_key=nil;
 	
 	gui_screen = GUI_SCREEN_MARKET;
 	BOOL			guiChanged = (oldScreen != gui_screen);
-	if (guiChanged || [gui selectedRow] == -1)
-	{
-		/* the way the info to show is determined, it has to reset to
-		 * the list view when returning to the F8 screen from
-		 * elsewhere, or when pressing F8 from the info screen */
-		show_marketinfo = 0;
-	}
+
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
@@ -9765,12 +9758,48 @@ static NSString *last_outfitting_key=nil;
 		quantityInHold[j] += [container commodityAmount];
 	}
 
+	if (marketSelectedCommodity != nil && ([marketSelectedCommodity isEqualToString:@"<<<"] || [marketSelectedCommodity isEqualToString:@">>>"]))
+	{
+		// nothing?
+	}
+	else
+	{
+		if (marketSelectedCommodity == nil || [goods indexOfObject:marketSelectedCommodity] == NSNotFound)
+		{
+			DESTROY(marketSelectedCommodity);
+			if ([goods count] > 0)
+			{
+				marketSelectedCommodity = [[goods oo_stringAtIndex:0] retain];
+			}
+		}
+		if (maxOffset > 0)
+		{
+			j = [goods indexOfObject:marketSelectedCommodity];
+			// validate marketOffset when returning from infoscreen
+			if (j <= marketOffset)
+			{
+				// is off top of list, move list upwards
+				marketOffset = j-1;
+			}
+			else if (j > marketOffset+(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START)-2)
+			{
+				// is off bottom of list, move list downwards
+				marketOffset = 2+j-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+				if (marketOffset > maxOffset)
+				{
+					marketOffset = maxOffset;
+				}
+			}
+		}
+	}
+
+
 	// GUI stuff
-	if (EXPECT(show_marketinfo == 0)) 
 	{
 		OOGUIRow			start_row = GUI_ROW_MARKET_START;
 		OOGUIRow			row = start_row;
-		
+		OOGUIRow			active_row = [gui selectedRow];
+
 		[gui clearAndKeepBackground:!guiChanged];
 		
 		
@@ -9812,6 +9841,10 @@ static NSString *last_outfitting_key=nil;
 					continue;
 				}
 				[self showMarketScreenDataLine:row forGood:good inMarket:localMarket holdQuantity:quantityInHold[i++]];
+				if ([good isEqualToString:marketSelectedCommodity])
+				{
+					active_row = row;
+				}
 
 				++row;
 				if (row >= GUI_ROW_MARKET_END)
@@ -9822,12 +9855,20 @@ static NSString *last_outfitting_key=nil;
 
 			if (marketOffset < maxOffset)
 			{
+				if ([marketSelectedCommodity isEqualToString:@">>>"])
+				{
+					active_row = GUI_ROW_MARKET_LAST;
+				}
 				[gui setKey:@">>>" forRow:GUI_ROW_MARKET_LAST];
 				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_LAST];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
 			}
 			if (marketOffset > 0)
 			{
+				if ([marketSelectedCommodity isEqualToString:@"<<<"])
+				{
+					active_row = GUI_ROW_MARKET_START;
+				}
 				[gui setKey:@"<<<" forRow:GUI_ROW_MARKET_START];
 				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_START];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
@@ -9837,6 +9878,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			// filter is excluding everything
 			[gui setText:DESC(@"oolite-market-filtered-all") forRow:GUI_ROW_MARKET_START];
+			active_row = -1;
 		}
 
 		 // actually count the containers and  valuables (may be > max_cargo)
@@ -9854,46 +9896,11 @@ static NSString *last_outfitting_key=nil;
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
 		
 		[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
-		if (([gui selectedRow] < start_row)||([gui selectedRow] >=row))
-		{
-			[gui setSelectedRow:start_row];
-		}
+		[gui setSelectedRow:active_row];
 		
 		[gui setShowTextCursor:NO];
 	}
-	else // show_marketinfo > 0
-	{
-		OOCommodityType good = [gui selectedRowKey];
-		if (EXPECT_NOT(good == nil))
-		{
-			// this should never happen
-			// but stop it crashing just in case
-			good = [UNIVERSE getRandomCommodity];
-		}
-		show_marketinfo = [gui selectedRow];
-		j = [goods indexOfObject:good];
 
-		[gui clearAndKeepBackground:!guiChanged];
-
-		[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-commodity-information-@"), [shipCommodityData nameForGood:good]]];
-
-		[self showMarketScreenHeaders];
-		[self showMarketScreenDataLine:GUI_ROW_MARKET_START forGood:good inMarket:localMarket holdQuantity:quantityInHold[j]];
-
-		NSString *info = [shipCommodityData commentForGood:good];
-		if (info == nil || [info length] == 0)
-		{
-			[gui addLongText:DESC(@"oolite-commodity-no-comment") startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
-		}
-		else
-		{
-			[gui addLongText:info startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
-		}
-		[gui setText:OOExpand(@"[oolite-commodity-info-return]") forRow:GUI_ROW_MARKET_END align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_END];
-		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
-
-	}
 	
 	[[UNIVERSE gameView] clearMouse];
 	
@@ -9908,6 +9915,94 @@ static NSString *last_outfitting_key=nil;
 	}
 }
 
+
+- (void) setGuiToMarketInfoScreen
+{
+	OOCommodityMarket	*localMarket = [self localMarket];
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	OOGUIScreenID		oldScreen = gui_screen;
+	
+	gui_screen = GUI_SCREEN_MARKETINFO;
+	BOOL			guiChanged = (oldScreen != gui_screen);
+
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+	
+	// fix problems with economies in witchspace
+	if (localMarket == nil)
+	{
+		localMarket = [[UNIVERSE commodities] generateBlankMarket];
+	}
+
+	// following changed to work whether docked or not
+	NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
+
+	NSUInteger			i, j, commodityCount = [shipCommodityData count];
+	OOCargoQuantity		quantityInHold[commodityCount];
+		
+	for (i = 0; i < commodityCount; i++)
+	{
+		quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
+	}
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity *container = [cargo objectAtIndex:i];
+		j = [goods indexOfObject:[container commodityType]];
+		quantityInHold[j] += [container commodityAmount];
+	}
+
+
+	// GUI stuff
+	{
+		if (EXPECT_NOT(marketSelectedCommodity == nil))
+		{
+			j = NSNotFound;
+		}
+		else
+		{
+			j = [goods indexOfObject:marketSelectedCommodity];
+		}
+		if (j == NSNotFound)
+		{
+			DESTROY(marketSelectedCommodity);
+			[self setGuiToMarketScreen];
+			return;
+		}
+
+		[gui clearAndKeepBackground:!guiChanged];
+
+		[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-commodity-information-@"), [shipCommodityData nameForGood:marketSelectedCommodity]]];
+
+		[self showMarketScreenHeaders];
+		[self showMarketScreenDataLine:GUI_ROW_MARKET_START forGood:marketSelectedCommodity inMarket:localMarket holdQuantity:quantityInHold[j]];
+
+		NSString *info = [shipCommodityData commentForGood:marketSelectedCommodity];
+		if (info == nil || [info length] == 0)
+		{
+			[gui addLongText:DESC(@"oolite-commodity-no-comment") startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:info startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+		}
+
+		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
+
+	}
+
+	[[UNIVERSE gameView] clearMouse];
+	
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+	
+	if (guiChanged)
+	{
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
+		[gui setBackgroundTextureKey:@"marketinfo"];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+	}
+
+}
 
 - (OOGUIScreenID) guiScreen
 {

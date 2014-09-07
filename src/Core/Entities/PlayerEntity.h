@@ -415,6 +415,7 @@ typedef enum
 // ...end save screen   
 
 	NSInteger				marketOffset;
+	OOCommodityType			marketSelectedCommodity;
 	OOMarketFilterMode		marketFilterMode;
 	OOMarketSorterMode		marketSorterMode;
 
@@ -572,7 +573,6 @@ typedef enum
 	OOKeyCode				key_chart_highlight;
 	OOKeyCode				key_market_filter_cycle;
 	OOKeyCode				key_market_sorter_cycle;
-	OOKeyCode				key_market_info;
 	
 	OOKeyCode				key_next_target;
 	OOKeyCode				key_previous_target;
@@ -667,8 +667,6 @@ typedef enum
 	BOOL					voice_gender_m;
 #endif
 	OOSpeechSettings		isSpeechOn;
-
-	NSUInteger				show_marketinfo;
 
 
 	// For PlayerEntity (StickMapper)
@@ -947,6 +945,11 @@ typedef enum
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
+- (void) setGuiToMarketInfoScreen;
+- (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
+- (NSArray *) applyMarketSorter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
+- (OOCommodityMarket *) localMarket;
+
 
 - (void) setupStartScreenGui;
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
