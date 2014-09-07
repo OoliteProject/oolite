@@ -37,6 +37,7 @@ SOFTWARE.
 #include <stdlib.h>
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OODebugStandards.h"
 
 
 #define DUMP_CONVERTED_CUBE_MAPS	0
@@ -117,6 +118,7 @@ static BOOL					sHaveSetUp = NO;
 		if (!(options & kOOTextureNoFNFMessage))
 		{
 			OOLogWARN(kOOLogFileNotFound, @"Could not find texture file \"%@\".", name);
+			OOStandardsError(@"Texture file not found");
 		}
 		return nil;
 	}

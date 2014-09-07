@@ -601,6 +601,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			{
 				[reportedBadShips sortUsingSelector:@selector(caseInsensitiveCompare:)];
 				OOLogERR(@"shipData.merge.failed", @"one or more shipdata.plist entries have %@ references that cannot be resolved: %@", likeKey, [reportedBadShips componentsJoinedByString:@", "]); // FIXME: distinguish shipdata and effectdata
+				OOStandardsError(@"Likely missing a dependency in a manifest.plist");
 			}
 			break;
 		}
@@ -858,6 +859,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 				// If entry is broken, we need to kill this ship.
 				if (fatal)
 				{
+					OOStandardsError(@"Bad subentity definition found");
 					remove = YES;
 				}
 				else if (subentityDict != nil)
@@ -869,7 +871,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 					{
 						subentityKey = [subentityDict oo_stringForKey:@"subentity_key"];
 						subentityShipEntry = [ioData objectForKey:subentityKey];
-						if (subentityKey == nil)
+						if (subentityKey == nil || subentityShipEntry == nil)
 						{
 							// Oops, reference to non-existent subent.
 							if (badSubentities == nil)  badSubentities = [NSMutableSet set];
@@ -900,6 +902,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 				{
 					badSubentitiesList = [[[badSubentities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
 					OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
+					OOStandardsError(@"Bad subentity definition found");
 				}
 				remove = YES;
 			}
@@ -935,6 +938,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 		{
 			OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
 			remove = YES;
+			OOStandardsError(@"Error in shipdata.plist");
 		}
 		else
 		{
@@ -942,11 +946,13 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			if (shipMode && [modelName length] == 0)
 			{
 				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
+				OOStandardsError(@"Error in shipdata.plist");
 				remove = YES;
 			}
 			else if ([modelName length] != 0 && [ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
 			{
 				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName);
+				OOStandardsError(@"Error in shipdata.plist");
 				remove = YES;
 			}
 		}
