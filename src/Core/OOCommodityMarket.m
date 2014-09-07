@@ -341,12 +341,6 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 	OOCreditsQuantity	p;
 	BOOL 				loadedOK;
 	NSString 			*good = nil;
-	foreach (good, [self goods])
-	{
-		// make sure that any goods not defined in the save game are zeroed
-		[self setQuantity:0 forGood:good];
-	}
-
 
 	NSArray *loaded = nil;
 	foreach (loaded, amounts)
