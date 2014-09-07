@@ -154,6 +154,7 @@ oolite_C_FILES = \
 
 OOLITE_DEBUG_FILES = \
     OODebugMonitor.m \
+	OODebugStandards.m \
     OODebugSupport.m \
     OODebugTCPConsoleClient.m \
     OOJSConsole.m \
