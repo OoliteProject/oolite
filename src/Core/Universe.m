@@ -305,6 +305,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
+	[inGameView setGammaValue:[prefs oo_floatForKey:@"gamma-value" defaultValue:1.0f]];
 	
 	// Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
@@ -4048,12 +4049,19 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 
 - (NSDictionary *) gameSettings
 {
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:9];
+#if OOLITE_SDL
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:10];
+#else
+ 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:9];
+#endif
 	
 	[result oo_setInteger:[PLAYER isSpeechOn] forKey:@"speechOn"];
 	[result oo_setBool:autoSave forKey:@"autosave"];
 	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
+#if OOLITE_SDL
+	[result oo_setFloat:[gameView gammaValue] forKey:@"gammaValue"];
+#endif
 	
 	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	

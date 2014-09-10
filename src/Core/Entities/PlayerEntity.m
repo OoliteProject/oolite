@@ -897,9 +897,6 @@ static GLfloat		sBaseMass = 0.0;
 	[result setObject:[UNIVERSE voiceName:voice_no] forKey:@"speech_voice"];
 	[result setObject:[NSNumber numberWithBool:voice_gender_m] forKey:@"speech_gender"];
 #endif
-
-	// gamma control
-	[result setObject:[NSNumber numberWithFloat:[[UNIVERSE gameView] gammaValue]] forKey:@"gamma_control"];
 	
 	// docking clearance
 	[result setObject:[NSNumber numberWithBool:[UNIVERSE dockingClearanceProtocolActive]] forKey:@"docking_clearance_protocol"];
@@ -1479,9 +1476,6 @@ static GLfloat		sBaseMass = 0.0;
 	if (_customViews != nil)
 		_customViewIndex = [dict oo_unsignedIntForKey:@"custom_view_index"] % [_customViews count];
 
-
-	// gamma
-	[[UNIVERSE gameView] setGammaValue:[dict oo_floatForKey:@"gamma_control" defaultValue:1.0]];
 
 	// docking clearance protocol
 	[UNIVERSE setDockingClearanceProtocolActive:[dict oo_boolForKey:@"docking_clearance_protocol" defaultValue:NO]];
