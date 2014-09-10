@@ -36,8 +36,11 @@ MA 02110-1301, USA.
 static JSObject *sManifestPrototype;
 static JSObject	*sManifestObject;
 
-static JSBool ManifestInformation(JSContext *context, uintN argc, jsval *vp);
-static JSBool ManifestSetInformation(JSContext *context, uintN argc, jsval *vp);
+static JSBool ManifestComment(JSContext *context, uintN argc, jsval *vp);
+static JSBool ManifestSetComment(JSContext *context, uintN argc, jsval *vp);
+static JSBool ManifestShortComment(JSContext *context, uintN argc, jsval *vp);
+static JSBool ManifestSetShortComment(JSContext *context, uintN argc, jsval *vp);
+
 
 static JSBool ManifestDeleteProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
@@ -78,8 +81,10 @@ static JSPropertySpec sManifestProperties[] =
 static JSFunctionSpec sManifestMethods[] =
 {
 	// JS name					Function					min args
-	{ "information",			ManifestInformation,		1 },
-	{ "setInformation",			ManifestSetInformation,		2 },
+	{ "shortComment",			ManifestShortComment,				1 },
+	{ "setShortComment",		ManifestSetShortComment,			2 },
+	{ "comment",				ManifestComment,		1 },
+	{ "setComment",				ManifestSetComment,		2 },
 	{ 0 }
 };
 
@@ -224,7 +229,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsid propI
 }
 
 
-static JSBool ManifestInformation(JSContext *context, uintN argc, jsval *vp)
+static JSBool ManifestComment(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 
@@ -237,7 +242,7 @@ static JSBool ManifestInformation(JSContext *context, uintN argc, jsval *vp)
 	}
 	if (good == nil)
 	{
-		OOJSReportBadArguments(context, @"Manifest", @"information", MIN(argc, 1U), OOJS_ARGV, nil, @"good");
+		OOJSReportBadArguments(context, @"Manifest", @"comment", MIN(argc, 1U), OOJS_ARGV, nil, @"good");
 		return NO;
 	}
 
@@ -249,7 +254,7 @@ static JSBool ManifestInformation(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-static JSBool ManifestSetInformation(JSContext *context, uintN argc, jsval *vp)
+static JSBool ManifestSetComment(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 
@@ -264,11 +269,63 @@ static JSBool ManifestSetInformation(JSContext *context, uintN argc, jsval *vp)
 	}
 	if (good == nil || information == nil)
 	{
-		OOJSReportBadArguments(context, @"Manifest", @"setInformation", MIN(argc, 2U), OOJS_ARGV, nil, @"good and information text");
+		OOJSReportBadArguments(context, @"Manifest", @"setComment", MIN(argc, 2U), OOJS_ARGV, nil, @"good and information text");
 		return NO;
 	}
 
 	OK = [[PLAYER shipCommodityData] setComment:information forGood:good];
+
+	OOJS_RETURN_BOOL(OK);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool ManifestShortComment(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	OOCommodityType	good = nil;
+	NSString *		information = nil;
+
+	if (argc > 0)
+	{
+		good = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (good == nil)
+	{
+		OOJSReportBadArguments(context, @"Manifest", @"shortComment", MIN(argc, 1U), OOJS_ARGV, nil, @"good");
+		return NO;
+	}
+
+	information = [[PLAYER shipCommodityData] shortCommentForGood:good];
+
+	OOJS_RETURN_OBJECT(information);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool ManifestSetShortComment(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	BOOL 			OK;
+	OOCommodityType	good = nil;
+	NSString *		information = nil;
+
+	if (argc > 1)
+	{
+		good = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		information = OOStringFromJSValue(context, OOJS_ARGV[1]);
+	}
+	if (good == nil || information == nil)
+	{
+		OOJSReportBadArguments(context, @"Manifest", @"setShortComment", MIN(argc, 2U), OOJS_ARGV, nil, @"good and information text");
+		return NO;
+	}
+
+	OK = [[PLAYER shipCommodityData] setShortComment:information forGood:good];
 
 	OOJS_RETURN_BOOL(OK);
 	

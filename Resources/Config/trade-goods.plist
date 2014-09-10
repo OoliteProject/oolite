@@ -74,6 +74,7 @@
 		"legality_import" = 0;
 		"trumble_opinion" = 0.01;
 		"sort_order" = 400;
+		"comment" = "[oolite-commodity-illegal]";
 	};
 
 	"liquor_wines" = {
@@ -128,6 +129,7 @@
 		"legality_import" = 0;
 		"trumble_opinion" = 1.05;
 		"sort_order" = 700;
+		"comment" = "[oolite-commodity-illegal]";
 	};
 
 	"computers" = {
@@ -200,6 +202,7 @@
 		"legality_import" = 0;
 		"trumble_opinion" = 0;
 		"sort_order" = 1100;
+		"comment" = "[oolite-commodity-illegal]";
 	};
 
 	"furs" = {

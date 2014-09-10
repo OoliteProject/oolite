@@ -9653,15 +9653,24 @@ static NSString *last_outfitting_key=nil;
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	OOGUITabSettings tab_stops;
 	tab_stops[0] = 0;
-	tab_stops[1] = 172;
-	tab_stops[2] = 262;
-	tab_stops[3] = 316;
-	tab_stops[4] = 436;
+/*	tab_stops[1] = 137;
+	tab_stops[2] = 217;
+	tab_stops[3] = 271;
+	tab_stops[4] = 381;
+	tab_stops[5] = 431; */
+	tab_stops[1] = 137; 
+	tab_stops[2] = 187;
+	tab_stops[3] = 267;
+	tab_stops[4] = 321;
+	tab_stops[5] = 431;
 	[gui setTabStops:tab_stops];
 	
 	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
 	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),3.5),
+						   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), DESC(@"oolite-extras-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
+	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), DESC(@"oolite-extras-column-title"), OOPadStringToEms(DESC(@"price-column-title"),3.5),
 						   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
+
 }
 
 
@@ -9713,8 +9722,10 @@ static NSString *last_outfitting_key=nil;
 	}
 	legaldesc = [NSString stringWithFormat:@" %@ ",legaldesc];
 			
+	NSString *extradesc = [shipCommodityData shortCommentForGood:good];
+
 	[gui setKey:good forRow:row];
-	[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, legaldesc, nil] forRow:row++];
+	[gui setArray:[NSArray arrayWithObjects: desc, extradesc, price, units_available, units_owned, legaldesc,  nil] forRow:row++];
 
 }
 

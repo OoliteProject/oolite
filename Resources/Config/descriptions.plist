@@ -1411,7 +1411,9 @@
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";
 	"in-hold-column-title"			= "In hold:";
-	"oolite-legality-column-title"	= "Legal?";
+	"oolite-legality-column-title"	= "Legal:";
+	"oolite-extras-column-title"	= "";
+//	"oolite-extras-column-title"	= "Extra:"; // title for column is for OXPs
 	"oolite-legality-clear"			= "—";
 	"oolite-legality-export"		= "Ex"; // legal to export
 	"oolite-legality-import"		= "Im"; // legal to import
@@ -1439,9 +1441,12 @@
 	"oolite-market-sorter-5"		= "Unit mass";
 
 	"oolite-commodity-no-comment"	= "No additional information available";
+	"oolite-commodity-no-short-comment"	= "";
+//	"oolite-commodity-no-short-comment"	= "—"; // blank for column is for OXPs
 	"oolite-commodity-info-return"	= "Press '[oolite_key_market_info]' to return to commodity list";
 	"oolite-commodity-information-@"	= "Commodity: %@";
 	"oolite-commodity-contracted-d-@"	= "Total cargo contracts: %d %@";
+	"oolite-commodity-illegal"		 = "It is illegal to export this good from Cooperative stations.";
 
 	// System data screen
 	"sysdata-planet-name-@"			= "Data on %@";
