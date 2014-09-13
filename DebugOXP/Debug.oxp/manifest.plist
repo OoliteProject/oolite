@@ -1,0 +1,11 @@
+{
+	title = "Oolite Debug OXP";
+	identifier = "org.oolite.oolite.debug";
+	
+	version = "1.81";
+	required_oolite_version = "1.81";
+	
+	license = "GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.TXT for details";
+	author = "Giles Williams, Jens Ayton and contributors";
+	information_url = "http://www.oolite.org/";
+}

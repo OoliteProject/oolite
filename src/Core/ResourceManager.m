@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOOXZManager.h"
 #import "unzip.h"
 #import "HeadUpDisplay.h"
+#import "OODebugStandards.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -601,7 +602,16 @@ static NSMutableDictionary *sStringCache;
 		}
 		else
 		{
-			// make up a basic manifest
+			if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+			{
+				OOStandardsError([NSString stringWithFormat:@"OXP %@ has no manifest.plist", path]);
+				if (OOEnforceStandards())
+				{
+					[self addErrorWithKey:@"oxp-lacks-manifest" param1:[path lastPathComponent] param2:nil];
+					return;
+				}
+			}
+			// make up a basic manifest in relaxed mode or for base folders
 			manifest = [NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"__oolite.tmp.%@",path],kOOManifestIdentifier,@"1",kOOManifestVersion,@"OXP without manifest",kOOManifestTitle,@"1",kOOManifestRequiredOoliteVersion,nil];
 		}
 	}
@@ -1524,6 +1534,10 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	/* If the old pirate-victim-roles files exist, merge them in */
 	NSArray *pirateVictims = [ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES];
+	if (OOEnforceStandards() && [pirateVictims count] > 0)
+	{
+		OOStandardsDeprecated(@"pirate-victim-roles.plist is still being used.");
+	}
 	[ResourceManager mergeRoleCategories:[NSDictionary dictionaryWithObject:pirateVictims forKey:@"oolite-pirate-victim"] intoDictionary:roleCategories];
 
 	return [[roleCategories copy] autorelease];

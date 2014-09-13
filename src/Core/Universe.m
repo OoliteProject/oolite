@@ -82,6 +82,7 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
 #import "OODebugFlags.h"
+#import "OODebugStandards.h"
 #import "OOLoggingExtended.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJoystickManager.h"
@@ -89,6 +90,7 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOJSFrameCallbacks.h"
 #import "OOJSPopulatorDefinition.h"
+
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -861,10 +863,14 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
 	{
-		[player runUnsanitizedScriptActions:script_actions
-						  allowingAIMethods:NO
-							withContextName:@"<witchspace script_actions>"
-								  forTarget:nil];
+		OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions system info key is deprecated for %@.",override_key]);
+		if (!OOEnforceStandards()) 
+		{
+			[player runUnsanitizedScriptActions:script_actions
+							  allowingAIMethods:NO
+								withContextName:@"<witchspace script_actions>"
+									  forTarget:nil];
+		}
 	}
 	
 	next_repopulation = randf() * SYSTEM_REPOPULATION_INTERVAL;
@@ -1263,12 +1269,16 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
 	{
-		OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - legacy script_actions");
-		[PLAYER runUnsanitizedScriptActions:script_actions
-											   allowingAIMethods:NO
-												 withContextName:@"<system script_actions>"
-													   forTarget:nil];
-		OO_DEBUG_POP_PROGRESS();
+		OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions system info key is deprecated for %@.",[self getSystemName:system_seed]]);
+		if (!OOEnforceStandards()) 
+		{
+			OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - legacy script_actions");
+			[PLAYER runUnsanitizedScriptActions:script_actions
+							  allowingAIMethods:NO
+								withContextName:@"<system script_actions>"
+									  forTarget:nil];
+			OO_DEBUG_POP_PROGRESS();
+		}
 	}
 
 	next_repopulation = randf() * SYSTEM_REPOPULATION_INTERVAL;
@@ -2104,6 +2114,10 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (BOOL) spawnShip:(NSString *) shipdesc
 {
+	// no need to do any more than log - enforcing modes wouldn't even have
+	// loaded the legacy script
+	OOStandardsDeprecated([NSString stringWithFormat:@"'spawn' via legacy script is deprecated as a way of adding ships for %@",shipdesc]);
+
 	ShipEntity		*ship;
 	NSDictionary	*shipdict = nil;
 	

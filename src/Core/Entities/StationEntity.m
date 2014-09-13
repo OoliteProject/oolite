@@ -46,6 +46,7 @@
 #import "OOJSScript.h"
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
+#import "OODebugStandards.h"
 #import "OOWeakSet.h"
 
 
@@ -659,17 +660,21 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	port_radius = [dict oo_nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
 	
-	// port_dimensions can be set for rock-hermits and other specials
+	// port_dimensions is deprecated
 	port_dimensions = make_vector(69, 69, 250);
 	NSString *portDimensionsStr = [dict oo_stringForKey:@"port_dimensions"];
-	if (portDimensionsStr != nil)   // this can be set for rock-hermits and other specials
+	if (portDimensionsStr != nil)  
 	{
-		NSArray* tokens = [portDimensionsStr componentsSeparatedByString:@"x"];
-		if ([tokens count] == 3)
+		OOStandardsDeprecated(@"The port_dimensions key is deprecated");
+		if (!OOEnforceStandards())
 		{
-			port_dimensions = make_vector([[tokens objectAtIndex:0] floatValue],
-																		[[tokens objectAtIndex:1] floatValue],
-																		[[tokens objectAtIndex:2] floatValue]);
+			NSArray* tokens = [portDimensionsStr componentsSeparatedByString:@"x"];
+			if ([tokens count] == 3)
+			{
+				port_dimensions = make_vector([[tokens objectAtIndex:0] floatValue],
+											  [[tokens objectAtIndex:1] floatValue],
+											  [[tokens objectAtIndex:2] floatValue]);
+			}
 		}
 	}
 	
@@ -768,6 +773,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		return YES;
 	}
 
+	OOStandardsDeprecated([NSString stringWithFormat:@"No docks set up for %@",self]);
 	OOLog(@"ship.setup.docks",@"No docks set up for %@, making virtual dock",self);
 
 	// no real docks, make a virtual one

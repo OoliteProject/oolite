@@ -87,6 +87,7 @@ MA 02110-1301, USA.
 
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
+#import "OODebugStandards.h"
 
 #import "OOJSScript.h"
 #import "OOJSVector.h"
@@ -7548,13 +7549,44 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if (script == nil)
 	{
 		actions = [shipinfoDictionary oo_arrayForKey:@"launch_actions"];
-		if (actions)  [properties setObject:actions forKey:@"legacy_launchActions"];	
+		if (actions)
+		{
+			OOStandardsDeprecated([NSString stringWithFormat:@"The launch_actions ship key is deprecated on %@.",[self displayName]]);
+			if (!OOEnforceStandards()) 
+			{
+				[properties setObject:actions forKey:@"legacy_launchActions"];	
+			}
+		}
+
 		actions = [shipinfoDictionary oo_arrayForKey:@"script_actions"];
-		if (actions)  [properties setObject:actions forKey:@"legacy_scriptActions"];
+		if (actions)
+		{
+			OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions ship key is deprecated on %@.",[self displayName]]);
+			if (!OOEnforceStandards()) 
+			{
+				[properties setObject:actions forKey:@"legacy_scriptActions"];	
+			}
+		}
+
 		actions = [shipinfoDictionary oo_arrayForKey:@"death_actions"];
-		if (actions)  [properties setObject:actions forKey:@"legacy_deathActions"];
+		if (actions)
+		{
+			OOStandardsDeprecated([NSString stringWithFormat:@"The death_actions ship key is deprecated on %@.",[self displayName]]);
+			if (!OOEnforceStandards()) 
+			{
+				[properties setObject:actions forKey:@"legacy_deathActions"];	
+			}
+		}
+
 		actions = [shipinfoDictionary oo_arrayForKey:@"setup_actions"];
-		if (actions)  [properties setObject:actions forKey:@"legacy_setupActions"];
+		if (actions)
+		{
+			OOStandardsDeprecated([NSString stringWithFormat:@"The setup_actions ship key is deprecated on %@.",[self displayName]]);
+			if (!OOEnforceStandards()) 
+			{
+				[properties setObject:actions forKey:@"legacy_setupActions"];	
+			}
+		}
 		
 		script = [OOScript jsScriptFromFileNamed:@"oolite-default-ship-script.js"
 									  properties:properties];
@@ -8281,6 +8313,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 // Exposed to AI
 - (void) dealEnergyDamageWithinDesiredRange
 {
+	OOStandardsDeprecated([NSString stringWithFormat:@"dealEnergyDamageWithinDesiredRange is deprecated for %@",self]);
 	// not over scannerRange
 	NSArray* targets = [UNIVERSE entitiesWithinRange:(desired_range < SCANNER_MAX_RANGE ? desired_range : SCANNER_MAX_RANGE) ofEntity:self];
 	if ([targets count] > 0)

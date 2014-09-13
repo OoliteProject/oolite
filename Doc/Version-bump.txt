@@ -6,6 +6,7 @@ installers/autopackage/default.x86_64.apspec
 src/Cocoa/Info-Oolite.plist
 src/Cocoa/oolite-version.xcconfig
 Resources/InfoPlist.strings (twice. note: UTF-16)
+DebugOXP/Debug.oxp/manifest.plist
 
 - Major versions:
 Doc/OoliteReadMe.doc

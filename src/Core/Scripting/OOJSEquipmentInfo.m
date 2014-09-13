@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOEquipmentType.h"
 #import "OOJSPlayer.h"
-
+#import "OODebugStandards.h"
 
 static JSObject *sEquipmentInfoPrototype;
 
@@ -389,7 +389,8 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 	switch (JSID_TO_INT(propID))
 	{
 		case kEquipmentInfo_effectiveTechLevel:
-			if ([eqType techLevel] == kOOVariableTechLevel)
+			OOStandardsDeprecated([NSString stringWithFormat:@"TL99 for variable tech level is deprecated for %@",[eqType identifier]]);
+			if (!OOEnforceStandards() && [eqType techLevel] == kOOVariableTechLevel)
 			{
 				if (JSVAL_IS_NULL(*value)) 
 				{

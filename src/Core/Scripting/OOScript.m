@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOPListParsing.h"
 #import "ResourceManager.h"
+#import "OODebugStandards.h"
 
 
 static NSString * const kOOLogLoadScriptJavaScript			= @"script.load.javaScript";
@@ -97,15 +98,19 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 		filePath = [path stringByAppendingPathComponent:@"script.plist"];
 		if ([fmgr oo_oxzFileExistsAtPath:filePath])
 		{
-			foundScript = YES;
-			OOLog(kOOLogLoadScriptPList, @"Trying to load property list script %@", filePath);
-			OOLogIndentIf(kOOLogLoadScriptPList);
+			OOStandardsDeprecated([NSString stringWithFormat:@"Legacy script %@ is deprecated",filePath]);
+			if (!OOEnforceStandards())
+			{
+				foundScript = YES;
+				OOLog(kOOLogLoadScriptPList, @"Trying to load property list script %@", filePath);
+				OOLogIndentIf(kOOLogLoadScriptPList);
+				
+				result = [OOPListScript scriptsInPListFile:filePath];
+				if (result != nil)  OOLog(kOOLogLoadScriptOK, @"Successfully loaded property list script %@", filePath);
+				else  OOLogERR(kOOLogLoadScriptParseError, @"Failed to load property list script %@", filePath);
 			
-			result = [OOPListScript scriptsInPListFile:filePath];
-			if (result != nil)  OOLog(kOOLogLoadScriptOK, @"Successfully loaded property list script %@", filePath);
-			else  OOLogERR(kOOLogLoadScriptParseError, @"Failed to load property list script %@", filePath);
-			
-			OOLogOutdentIf(kOOLogLoadScriptPList);
+				OOLogOutdentIf(kOOLogLoadScriptPList);
+			}
 		}
 	}
 	
@@ -171,6 +176,11 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	}
 	else if ([extension isEqualToString:@"plist"])
 	{
+		OOStandardsDeprecated([NSString stringWithFormat:@"Legacy script %@ is deprecated",filePath]);
+		if (OOEnforceStandards())
+		{
+			return nil;
+		}
 		return [OOPListScript scriptsInPListFile:filePath];
 	}
 	
