@@ -84,6 +84,10 @@ Changes between Oolite 1.80 and Oolite 1.80.1:
 * Fix error with "OUTER_SYSTEM" positions in very large systems
 * Fix bug where ship.checkScanner would detect a docked player and other
   invalid targets.
+* Windows and Linux ports: Gamma is now a generic game option, not a save
+  file one. Fixes unexpected gamma resets when starting a new game.
+* Windows port: Fixed unnecessary double OpenGL initializations under
+  certain resize window conditions.
 
 -------------------------------------------------------------------------------
 
