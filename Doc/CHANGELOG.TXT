@@ -82,6 +82,8 @@ Changes between Oolite 1.80 and Oolite 1.80.1:
 * Fix consistency errors on ship library screen
 * Ship registration forms now return to interfaces page
 * Fix error with "OUTER_SYSTEM" positions in very large systems
+* Fix bug where ship.checkScanner would detect a docked player and other
+  invalid targets.
 
 -------------------------------------------------------------------------------
 
