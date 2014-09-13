@@ -615,6 +615,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
+		OOLog(@"load.progress",@"Reading file");
 		fileDic = OODictionaryFromFile(fileToOpen);
 		if (fileDic == nil)
 		{
@@ -625,6 +626,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 	if (loadedOK)
 	{
+		OOLog(@"load.progress",@"Restricting scenario");
 		NSString *scenarioRestrict = [fileDic oo_stringForKey:@"scenario_restriction" defaultValue:nil];
 		if (scenarioRestrict == nil)
 		{
@@ -650,6 +652,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
+		OOLog(@"load.progress",@"Creating player ship");
 		// Check that player ship exists
 		NSString		*shipKey = nil;
 		NSDictionary	*shipDict = nil;
@@ -667,6 +670,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
+		OOLog(@"load.progress",@"Initialising player entity");
 		if (![self setUpAndConfirmOK:YES saveGame:YES])
 		{
 			fail_reason = DESC(@"loadfailed-could-not-reset-javascript");
@@ -676,6 +680,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
+		OOLog(@"load.progress",@"Loading commander data");
 		if (![self setCommanderDataFromDictionary:fileDic])
 		{
 			// this could still be a reset js issue, if switching from strict / unrestricted
@@ -687,6 +692,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	if (loadedOK)
 	{
+		OOLog(@"load.progress",@"Recording save path");
 		if (!asNew)
 		{
 			[save_path autorelease];
@@ -707,6 +713,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		return NO;
 	}
 	
+	OOLog(@"load.progress",@"Creating system");
 	[UNIVERSE setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_DEFAULT];
 	[UNIVERSE setSystemTo:system_seed];
 	[UNIVERSE removeAllEntitiesExceptPlayer];
@@ -714,6 +721,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[UNIVERSE setUpSpace];
 	[UNIVERSE setAutoSaveNow:NO];
 	
+	OOLog(@"load.progress",@"Resetting player flight variables");
 	[self setDockedAtMainStation];
 	StationEntity *dockedStation = [self dockedStation];
 	
@@ -735,14 +743,22 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	[self setEntityPersonalityInt:PersonalityForCommanderDict(fileDic)];
 	
+	OOLog(@"load.progress",@"Loading system market");
 	// dockedStation is always the main station at this point;
 	// "localMarket" save key always refers to the main station (system) market
 	NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
-	if (market != nil)  [dockedStation setLocalMarket:market];
-	else  [dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
+	if (market != nil) 
+	{
+		[dockedStation setLocalMarket:market];
+	}
+	else
+	{
+		[dockedStation initialiseLocalMarket];
+	}
 
 	[self calculateCurrentCargo];
 	
+	OOLog(@"load.progress",@"Setting scenario key");
 	// set scenario key if the scenario allows saving and has one
 	NSString *scenario = [fileDic oo_stringForKey:@"scenario_key" defaultValue:nil];
 	DESTROY(scenarioKey);
@@ -751,9 +767,11 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		scenarioKey = [scenario retain];
 	}
 
+	OOLog(@"load.progress",@"Starting JS engine");
 	// Remember the savegame target, run js startUp.
 	[self completeSetUpAndSetTarget:NO];
 	// run initial system population
+	OOLog(@"load.progress",@"Populating initial system");
 	[UNIVERSE populateNormalSpace];
 
 	// might as well start off with a collected JS environment
@@ -773,11 +791,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	// and initialise markets for the secondary stations
 	[UNIVERSE loadStationMarkets:[fileDic oo_arrayForKey:@"station_markets"]];
 
+	OOLog(@"load.progress",@"Completing JS startup");
 	[self startUpComplete];
 
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading
+	OOLog(@"load.progress",@"Loading complete");
 	return loadedOK;
 }
 

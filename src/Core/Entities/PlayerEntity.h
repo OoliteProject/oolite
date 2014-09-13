@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "OOTypes.h"
 #import "OOJSPropID.h"
-
+#import "OOCommodityMarket.h"
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
@@ -143,6 +143,10 @@ enum
 	GUI_ROW_EQUIPMENT_CASH				= 1,
 	GUI_ROW_MARKET_KEY					= 1,
 	GUI_ROW_MARKET_START				= 2,
+	GUI_ROW_MARKET_SCROLLUP				= 4,
+	GUI_ROW_MARKET_SCROLLDOWN			= 16,
+	GUI_ROW_MARKET_LAST					= 18,
+	GUI_ROW_MARKET_END					= 19,
 	GUI_ROW_MARKET_CASH					= 20,
 	GUI_ROW_INTERFACES_HEADING			= 1,
 	GUI_ROW_INTERFACES_START			= 3,
@@ -240,6 +244,33 @@ typedef enum
 } OOPlayerFleeingStatus;
 
 
+typedef enum
+{
+	MARKET_FILTER_MODE_OFF = 0,
+	MARKET_FILTER_MODE_TRADE = 1,
+	MARKET_FILTER_MODE_HOLD = 2,
+	MARKET_FILTER_MODE_STOCK = 3,
+	MARKET_FILTER_MODE_LEGAL = 4,
+	MARKET_FILTER_MODE_RESTRICTED = 5, // import or export
+
+
+	MARKET_FILTER_MODE_MAX = 5 // always equal to highest real mode
+} OOMarketFilterMode;
+
+
+typedef enum
+{
+	MARKET_SORTER_MODE_OFF = 0,
+	MARKET_SORTER_MODE_ALPHA = 1,
+	MARKET_SORTER_MODE_PRICE = 2,
+	MARKET_SORTER_MODE_STOCK = 3,
+	MARKET_SORTER_MODE_HOLD = 4,
+	MARKET_SORTER_MODE_UNIT = 5,
+
+	MARKET_SORTER_MODE_MAX = 5 // always equal to highest real mode
+} OOMarketSorterMode;
+
+
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -313,6 +344,7 @@ typedef enum
 	
 	NSDictionary			*worldScripts;
 	NSDictionary			*worldScriptsRequiringTickle;
+	NSMutableDictionary		*commodityScripts;
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
 	NSString				*_missionTitle;
@@ -382,6 +414,11 @@ typedef enum
 	BOOL					pollControls;
 // ...end save screen   
 
+	NSInteger				marketOffset;
+	OOCommodityType			marketSelectedCommodity;
+	OOMarketFilterMode		marketFilterMode;
+	OOMarketSorterMode		marketSorterMode;
+
 	OOWeakReference			*_dockedStation;
 	
 /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
@@ -444,7 +481,7 @@ typedef enum
 	OOCreditsQuantity		credits;	
 	OOGalaxyID				galaxy_number;
 	
-	NSArray					*shipCommodityData;
+	OOCommodityMarket		*shipCommodityData;
 	
 	ShipEntity				*missile_entity[PLAYER_MAX_MISSILES];	// holds the actual missile entities or equivalents
 	OOUniversalID			_dockTarget;	// used by the escape pod code
@@ -535,6 +572,8 @@ typedef enum
 	OOKeyCode				key_next_compass_mode;
 	
 	OOKeyCode				key_chart_highlight;
+	OOKeyCode				key_market_filter_cycle;
+	OOKeyCode				key_market_sorter_cycle;
 	
 	OOKeyCode				key_next_target;
 	OOKeyCode				key_previous_target;
@@ -630,6 +669,7 @@ typedef enum
 #endif
 	OOSpeechSettings		isSpeechOn;
 
+
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
@@ -673,11 +713,11 @@ typedef enum
 
 - (void) unloadCargoPods;
 - (void) loadCargoPods;
-- (void) unloadAllCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
+- (void) unloadAllCargoPodsForType:(OOCommodityType)type toManifest:(OOCommodityMarket *) manifest;
 - (void) unloadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
-- (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
+- (void) loadCargoPodsForType:(OOCommodityType)type fromManifest:(OOCommodityMarket *) manifest;
 - (void) loadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity) quantity;
-- (NSArray *) shipCommodityData;
+- (OOCommodityMarket *) shipCommodityData;
 
 - (OOCreditsQuantity) deciCredits;
 
@@ -912,6 +952,11 @@ typedef enum
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
+- (void) setGuiToMarketInfoScreen;
+- (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
+- (NSArray *) applyMarketSorter:(NSArray *)goods onMarket:(OOCommodityMarket *)market;
+- (OOCommodityMarket *) localMarket;
+
 
 - (void) setupStartScreenGui;
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
@@ -926,7 +971,6 @@ typedef enum
 
 - (void) buySelectedItem;
 
-- (BOOL) marketFlooded:(OOCommodityType)type;
 - (BOOL) tryBuyingCommodity:(OOCommodityType)type all:(BOOL)all;
 - (BOOL) trySellingCommodity:(OOCommodityType)type all:(BOOL)all;
 
@@ -1013,6 +1057,8 @@ typedef enum
 - (BOOL) scriptsLoaded;
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;
+
+- (OOScript *) commodityScriptNamed:(NSString *)script;
 
 // *** World script events.
 // In general, script events should be sent through doScriptEvent:..., which

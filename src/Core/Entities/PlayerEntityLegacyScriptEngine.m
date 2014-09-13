@@ -1317,11 +1317,9 @@ static int shipsFound;
 	if (scriptTarget != self)  return;
 
 	NSArray					*tokens = ScanTokensFromString(amount_typeString);
-	NSString				*typeString = nil;
 	OOCargoQuantityDelta	amount;
 	OOCommodityType			type;
 	OOMassUnit				unit;
-	NSArray					*commodityArray = nil;
 
 	if ([tokens count] != 2)
 	{
@@ -1329,13 +1327,9 @@ static int shipsFound;
 		return;
 	}
 	
-	typeString = [tokens objectAtIndex:1];
-	type = [UNIVERSE commodityForName:typeString];
-	if (type == COMMODITY_UNDEFINED)  type = [typeString intValue];
-	
-	commodityArray = [UNIVERSE commodityDataForType:type];
-	
-	if (commodityArray == nil)
+
+	type = [tokens oo_stringAtIndex:1];
+	if (![[UNIVERSE commodities] goodDefined:type])
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"unknown type");
 		return;
@@ -1348,7 +1342,7 @@ static int shipsFound;
 		return;
 	}
 	
-	unit = [UNIVERSE unitsForCommodity:type];
+	unit = [shipCommodityData massUnitForGood:type];
 	if (specialCargo && unit == UNITS_TONS)
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"cargo hold full with special cargo");
@@ -1368,7 +1362,6 @@ static int shipsFound;
 {
 	// Misnamed method. It only removes cargo measured in TONS, g & Kg items are not removed. --Kaks 20091004
 	OOCommodityType			type;
-	OOMassUnit				unit;
 	
 	if (scriptTarget != self)  return;
 	
@@ -1380,19 +1373,15 @@ static int shipsFound;
 	
 	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
-	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	for (type = 0; (NSUInteger)type < [manifest count]; type++)
+	foreach(type, [shipCommodityData goods])
 	{
-		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
-		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
-		unit = [UNIVERSE unitsForCommodity:type]; // will return tons for unknown types
-		if (unit == UNITS_TONS)
+		if ([shipCommodityData massUnitForGood:type] == UNITS_TONS)
 		{
-			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
+			[shipCommodityData setQuantity:0 forGood:type];
 		}
 	}
-	
+
+
 	if (forceRemoval && [self status] != STATUS_DOCKED)
 	{
 		NSInteger i;
@@ -1405,9 +1394,6 @@ static int shipsFound;
 			[cargo removeObjectAtIndex:i];
 		}
 	}
-	
-	[shipCommodityData release];
-	shipCommodityData = [manifest mutableCopy];
 	
 	DESTROY(specialCargo);
 	

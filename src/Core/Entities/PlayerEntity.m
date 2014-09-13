@@ -76,7 +76,6 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 #import "OOScriptTimer.h"
 #import "OOJSEngineTimeManagement.h"
-#import "OOJSScript.h"
 #import "OOJSInterfaceDefinition.h"
 #import "OOConstToJSString.h"
 
@@ -101,6 +100,11 @@ static float const 		kDeadResetTime				= 30.0f;
 
 PlayerEntity		*gOOPlayer = nil;
 static GLfloat		sBaseMass = 0.0;
+
+NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *market);
 
 
 @interface PlayerEntity (OOPrivate)
@@ -131,10 +135,16 @@ static GLfloat		sBaseMass = 0.0;
 
 
 // Shopping
+- (void) showMarketScreenHeaders;
+- (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity;
+
+
+
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
 // Cargo & passenger contracts
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *)contractsArray forCargo:(BOOL)forCargo;
+
 
 - (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker;
 
@@ -200,7 +210,7 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) unloadAllCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
+- (void) unloadAllCargoPodsForType:(OOCommodityType)type toManifest:(OOCommodityMarket *) manifest
 {
 	NSInteger i, cargoCount = [cargo count];
 	if (cargoCount == 0)  return;
@@ -209,19 +219,17 @@ static GLfloat		sBaseMass = 0.0;
 	for (i =  cargoCount - 1; i >= 0 ; i--)
 	{
 		ShipEntity *cargoItem = [cargo objectAtIndex:i];
-		OOCommodityType commodityType = [cargoItem commodityType];
-		if (commodityType == COMMODITY_UNDEFINED || commodityType == type)
+		NSString * commodityType = [cargoItem commodityType];
+		if (commodityType == nil || commodityType == type)
 		{
 			if (commodityType == type)
 			{
-				NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:commodityType]];	
-				OOCargoQuantity amount = [commodityInfo oo_unsignedIntAtIndex:MARKET_QUANTITY] + [cargoItem commodityAmount];
-				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInt:amount]]; // enter the adjusted amount
-				[manifest replaceObjectAtIndex:commodityType withObject:commodityInfo];
+				// transfer
+				[manifest addQuantity:[cargoItem commodityAmount] forGood:type];
 			}
 			else	// undefined
 			{
-				OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type (COMMODITY_UNDEFINED), rejecting.", cargoItem);
+				OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type, rejecting.", cargoItem);
 				continue;
 			}
 			[cargo removeObjectAtIndex:i];
@@ -245,7 +253,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		cargoItem = [cargo objectAtIndex:i];
 		co_type = [cargoItem commodityType];
-		if (co_type == COMMODITY_UNDEFINED || co_type == type)
+		if (co_type == nil || co_type == type)
 		{
 			if (co_type == type)
 			{
@@ -274,14 +282,7 @@ static GLfloat		sBaseMass = 0.0;
 	// now check if we are ready. When not, proceed with quantities in the manifest.
 	if (cargoToGo > 0)
 	{
-		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
-		NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];	
-		amount = [commodityInfo oo_unsignedIntAtIndex:MARKET_QUANTITY] - cargoToGo;
-		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInt:amount]]; // enter the adjusted amount
-		[manifest replaceObjectAtIndex:type withObject:commodityInfo];
-		
-		[shipCommodityData release];
-		shipCommodityData = manifest;
+		[shipCommodityData removeQuantity:cargoToGo forGood:type];
 	}
 }
 
@@ -291,27 +292,12 @@ static GLfloat		sBaseMass = 0.0;
 	NSAssert([self isDocked], @"Cannot unload cargo pods unless docked.");
 	
 	/* loads commodities from the cargo pods onto the ship's manifest */
-	NSUInteger i;
-	NSMutableArray *localMarket = [[self dockedStation] localMarket];
-	NSMutableArray *manifest = [[NSMutableArray arrayWithArray:localMarket] retain];  // retain
-	
-	// copy the quantities in ShipCommodityData to the manifest
-	// (was: zero the quantities in the manifest, making a mutable array of mutable arrays)
-	OOCargoQuantity amount = 0;
-	
-	for (i = 0; i < [manifest count]; i++)
+	NSString *good = nil;
+	foreach (good, [shipCommodityData goods])
 	{
-		NSMutableArray *commodityInfo = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:i]];
-		NSArray *shipCommInfo = [NSArray arrayWithArray:[shipCommodityData oo_arrayAtIndex:i]];
-		amount = [shipCommInfo oo_intAtIndex:MARKET_QUANTITY];
-		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]];
-		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
-		[self unloadAllCargoPodsForType:i fromArray:manifest];
+		[self unloadAllCargoPodsForType:good toManifest:shipCommodityData];
 	}
-	
-	[shipCommodityData release];
-	shipCommodityData = manifest;
-	
+
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
 
@@ -338,14 +324,13 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
-- (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
+- (void) loadCargoPodsForType:(OOCommodityType)type fromManifest:(OOCommodityMarket *) manifest
 {
 	// load commodities from the ships manifest into individual cargo pods
 	unsigned j;
 	
-	NSMutableArray	*commodityInfo = [[NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]] retain];  // retain
-	OOCargoQuantity	quantity = [commodityInfo oo_unsignedIntAtIndex:MARKET_QUANTITY];
-	OOMassUnit		units =	[UNIVERSE unitsForCommodity:type];
+	OOCargoQuantity	quantity = [manifest quantityForGood:type];
+	OOMassUnit		units =	[manifest massUnitForGood:type];
 	
 	if (quantity > 0)
 	{
@@ -356,9 +341,7 @@ static GLfloat		sBaseMass = 0.0;
 			{
 				[self createCargoPodWithType:type andAmount:1];		// or CTD if unsuccesful (!)
 			}
-			// adjust manifest for this commodity
-			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
+			[manifest setQuantity:0 forGood:type];
 		}
 		else
 		{
@@ -407,18 +390,16 @@ static GLfloat		sBaseMass = 0.0;
 					quantity -= amountToLoadInCargopod;
 				}
 				// adjust manifest for this commodity
-				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:tmpQuantity]];
-				[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
+				[manifest setQuantity:tmpQuantity forGood:type];
 			}
 		}
 	}
-	[commodityInfo release]; // release, done
 }
 
 
 - (void) loadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity)quantity
 {
-	OOMassUnit unit = [UNIVERSE unitsForCommodity:type];
+	OOMassUnit unit = [shipCommodityData massUnitForGood:type];
 	
 	while (quantity)
 	{
@@ -444,18 +425,11 @@ static GLfloat		sBaseMass = 0.0;
 				else
 				{
 					// try to squeeze any surplus, up to half a ton, in the manifest.
-					int amount;		
-					NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
-					NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];	
-					amount = [commodityInfo oo_intAtIndex:MARKET_QUANTITY] + smaller_quantity;
+					int amount = [shipCommodityData quantityForGood:type] + smaller_quantity;
 					if (amount > MAX_GRAMS_IN_SAFE && unit == UNITS_GRAMS) amount = MAX_GRAMS_IN_SAFE;
 					else if (amount > MAX_KILOGRAMS_IN_SAFE && unit == UNITS_KILOGRAMS) amount = MAX_KILOGRAMS_IN_SAFE;
 
-					[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]]; // enter the adjusted amount
-					[manifest replaceObjectAtIndex:type withObject:commodityInfo];
-					
-					[shipCommodityData release];
-					shipCommodityData = manifest;
+					[shipCommodityData setQuantity:amount forGood:type];
 				}
 				quantity -= smaller_quantity;
 			}
@@ -488,23 +462,16 @@ static GLfloat		sBaseMass = 0.0;
 - (void) loadCargoPods
 {
 	/* loads commodities from the ships manifest into individual cargo pods */
-	unsigned i;
-
-	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];  // retain
-	
-	if (cargo == nil)  cargo = [[NSMutableArray alloc] init];
-	
-	for (i = 0; i < [manifest count]; i++)
+	NSString *good = nil;
+	foreach (good, [shipCommodityData goods])
 	{
-		[self loadCargoPodsForType:i fromArray: manifest];
+		[self loadCargoPodsForType:good fromManifest:shipCommodityData];
 	}
-	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	[manifest release]; // release, done
+	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
 
 
-- (NSArray *) shipCommodityData
+- (OOCommodityMarket *) shipCommodityData
 {
 	return shipCommodityData;
 }
@@ -698,7 +665,8 @@ static GLfloat		sBaseMass = 0.0;
 - (NSDictionary *) commanderDataDictionary
 {
 	NSAssert([self isDocked], @"Cannot create commander data dictionary unless docked.");
-	
+	int i;
+
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
 	
 	[result setObject:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"written_by_version"];
@@ -756,21 +724,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	[result oo_setInteger:max_cargo + PASSENGER_BERTH_SPACE * max_passengers	forKey:@"max_cargo"];
 	
-	[result setObject:shipCommodityData		forKey:@"shipCommodityData"];
-	
-	// sanitise commodity units - the savegame might contain the wrong units
-	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	NSInteger i;
-	for (i = [manifest count] - 1; i >= 0 ; i--)
-	{
-		NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:i]];
-		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
-		[commodityInfo replaceObjectAtIndex:MARKET_UNITS withObject:[NSNumber numberWithInt:[UNIVERSE unitsForCommodity:i]]];
-		[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
-
-	}
-	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+	[result setObject:[shipCommodityData savePlayerAmounts]		forKey:@"shipCommodityData"];
 	
 	// Deprecated equipment flags. New equipment shouldn't be added here (it'll be handled by the extra_equipment dictionary).
 	[result oo_setBool:[self hasDockingComputer]		forKey:@"has_docking_computer"];
@@ -909,7 +863,7 @@ static GLfloat		sBaseMass = 0.0;
 	[result oo_setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
 
 	//local market for main station
-	if ([[UNIVERSE station] localMarket])  [result setObject:[[UNIVERSE station] localMarket] forKey:@"localMarket"];
+	if ([[UNIVERSE station] localMarket])  [result setObject:[[[UNIVERSE station] localMarket] saveStationAmounts] forKey:@"localMarket"];
 
 	// Scenario restriction on OXZs
 	[result setObject:[UNIVERSE useAddOns] forKey:@"scenario_restriction"];
@@ -975,7 +929,7 @@ static GLfloat		sBaseMass = 0.0;
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	NSUInteger	i;
+	NSInteger	i;
 	
 	// multi-function displays
 	// must be reset before ship setup
@@ -1064,8 +1018,7 @@ static GLfloat		sBaseMass = 0.0;
 	[self setShipUniqueName:[dict oo_stringForKey:@"ship_unique_name" defaultValue:@""]];
 	[self setShipClassName:[dict oo_stringForKey:@"ship_class_name" defaultValue:[shipDict oo_stringForKey:@"name"]]];
 	
-	[shipCommodityData autorelease];
-	shipCommodityData = [[dict oo_arrayForKey:@"shipCommodityData" defaultValue:shipCommodityData] copy];
+	[shipCommodityData loadPlayerAmounts:[dict oo_arrayForKey:@"shipCommodityData"]];
 	
 	// extra equipment flags
 	[self removeAllEquipment];
@@ -1147,7 +1100,35 @@ static GLfloat		sBaseMass = 0.0;
 	max_passengers = [dict oo_intForKey:@"max_passengers" defaultValue:0];
 	passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
 	passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
+	/* Note: contracts from older savegames will have ints in the commodity.
+	 * Need to fix this up */
 	contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
+	NSMutableDictionary *contractInfo = nil;
+
+	// iterate downwards; lets us remove invalid ones as we go
+	for (i = [contracts count]-1 ; i >= 0 ; i--)
+	{
+		contractInfo = [[[contracts oo_dictionaryAtIndex:i] mutableCopy] autorelease];
+		// if the trade good ID is an int
+		if ([[contractInfo objectForKey:CARGO_KEY_TYPE] isKindOfClass:[NSNumber class]])
+		{
+			// look it up, and replace with a string
+			NSUInteger legacy_type = [contractInfo oo_unsignedIntegerForKey:CARGO_KEY_TYPE];
+			[contractInfo setObject:[OOCommodities legacyCommodityType:legacy_type] forKey:CARGO_KEY_TYPE];
+			[contracts replaceObjectAtIndex:i withObject:[[contractInfo copy] autorelease]];
+		}
+		else
+		{
+			OOCommodityType new_type = [contractInfo oo_stringForKey:CARGO_KEY_TYPE];
+			// check that that the type still exists
+			if (![[UNIVERSE commodities] goodDefined:new_type])
+			{
+				OOLog(@"setCommanderDataFromDictionary.warning.contract",@"Cargo contract to deliver %@ could not be loaded from the saved game, as the commodity is no longer defined",new_type);
+				[contracts removeObjectAtIndex:i];
+			}
+		}
+	}
+
 	contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
 	parcels = [[dict oo_arrayForKey:@"parcels"] mutableCopy];
 	parcel_record = [[dict oo_dictionaryForKey:@"parcel_record"] mutableCopy];
@@ -1211,7 +1192,6 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], [self maxAvailableCargoSpace]);
 		
-		NSMutableArray		*manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 		OOCommodityType		type;
 		OOMassUnit			units;
 		OOCargoQuantity		oldAmount, toRemove;
@@ -1219,11 +1199,11 @@ static GLfloat		sBaseMass = 0.0;
 		i = excessCargo;
 		
 		// manifest always contains entries for all 17 commodities, even if their quantity is 0.
-		for (type = [manifest count]; i > 0 && type >= 0; type--)
+		foreach (type, [shipCommodityData goods])
 		{
-			units =	[UNIVERSE unitsForCommodity:type];
-			NSMutableArray	*manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
-			oldAmount = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
+			units =	[shipCommodityData massUnitForGood:type];
+
+			oldAmount = [shipCommodityData quantityForGood:type];
 			BOOL roundedTon = (units != UNITS_TONS) && ((units == UNITS_KILOGRAMS && oldAmount > MAX_KILOGRAMS_IN_SAFE) || (units == UNITS_GRAMS && oldAmount > MAX_GRAMS_IN_SAFE));
 			if (roundedTon || (units == UNITS_TONS && oldAmount > 0))
 			{
@@ -1250,13 +1230,9 @@ static GLfloat		sBaseMass = 0.0;
 						partAmount = 0;
 					}
 				}
-				
-				[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt: oldAmount - toRemove]];
-				[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
+				[shipCommodityData removeQuantity:toRemove forGood:type];
 			}
 		}
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 	}
 	
 	credits = OODeciCreditsFromObject([dict objectForKey:@"credits"]);
@@ -1559,6 +1535,7 @@ static GLfloat		sBaseMass = 0.0;
 	
 	showDemoShips = NO;
 	show_info_flag = NO;
+	DESTROY(marketSelectedCommodity);
 	
 	// Reset JavaScript.
 	[OOScriptTimer noteGameReset];
@@ -1610,6 +1587,7 @@ static GLfloat		sBaseMass = 0.0;
 	[UNIVERSE setBlockJSPlayerShipProps:NO];	// full access to player.ship properties!
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
+	DESTROY(commodityScripts);
 
 #if OOLITE_WINDOWS
 	if (saveGame)
@@ -1618,6 +1596,7 @@ static GLfloat		sBaseMass = 0.0;
 		[self setUpSound];
 		worldScripts = [[ResourceManager loadScripts] retain];
 		[UNIVERSE loadConditionScripts];
+		commodityScripts = [[NSMutableDictionary alloc] init];
 	}
 #else
 	/* on OSes that allow safe deletion of open files, can use sounds
@@ -1628,6 +1607,7 @@ static GLfloat		sBaseMass = 0.0;
 	{
 		worldScripts = [[ResourceManager loadScripts] retain];
 		[UNIVERSE loadConditionScripts];
+		commodityScripts = [[NSMutableDictionary alloc] init];
 	}
 #endif
 
@@ -1745,7 +1725,8 @@ static GLfloat		sBaseMass = 0.0;
 	[self setMissionBackgroundDescriptor:nil];
 	[self setMissionBackgroundSpecial:nil];
 	[self setEquipScreenBackgroundDescriptor:nil];
-	
+	marketOffset = 0;
+
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
 	script_time_interval = SCRIPT_TIMER_INTERVAL;
@@ -1798,9 +1779,10 @@ static GLfloat		sBaseMass = 0.0;
 	ident_engaged = NO;
 	
 	max_cargo				= 20; // will be reset later
+	marketFilterMode		= MARKET_FILTER_MODE_OFF;
 	
 	DESTROY(shipCommodityData);
-	shipCommodityData = [[[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] objectForKey:@"default"] retain];
+	shipCommodityData = [[[UNIVERSE commodities] generateManifestForPlayer] retain];
 	
 	// set up missiles
 	missiles				= PLAYER_STARTING_MISSILES;
@@ -1947,6 +1929,9 @@ static GLfloat		sBaseMass = 0.0;
 	
 	if (![super setUpFromDictionary:shipDict]) return NO;
 	
+	DESTROY(cargo);
+	cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo];
+
 	// Player-only settings.
 	//
 	// set control factors..
@@ -2043,12 +2028,14 @@ static GLfloat		sBaseMass = 0.0;
 	DESTROY(eqScripts);
 	DESTROY(worldScripts);
 	DESTROY(worldScriptsRequiringTickle);
+	DESTROY(commodityScripts);
 	DESTROY(mission_variables);
 	
 	DESTROY(localVariables);
 	
 	DESTROY(lastTextKey);
 	
+	DESTROY(marketSelectedCommodity);
 	DESTROY(reputation);
 	DESTROY(roleWeights);
 	DESTROY(roleWeightFlags);
@@ -3021,6 +3008,7 @@ static GLfloat		sBaseMass = 0.0;
 			case GUI_SCREEN_NEWGAME:
 			case GUI_SCREEN_OXZMANAGER:
 			case GUI_SCREEN_MARKET:
+			case GUI_SCREEN_MARKETINFO:
 			case GUI_SCREEN_OPTIONS:
 			case GUI_SCREEN_GAMEOPTIONS:
 			case GUI_SCREEN_LOAD:
@@ -5955,11 +5943,11 @@ static GLfloat		sBaseMass = 0.0;
 	if (flightSpeed > 4.0 * maxFlightSpeed)
 	{
 		[UNIVERSE addMessage:DESC(@"hold-locked") forCount:3.0];
-		return COMMODITY_UNDEFINED;
+		return nil;
 	}
 
 	OOCommodityType result = [super dumpCargo];
-	if (result != COMMODITY_UNDEFINED)
+	if (result != nil)
 	{
 		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ejected") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0 forceDisplay:YES];
 		[self playCargoJettisioned];
@@ -5986,23 +5974,17 @@ static GLfloat		sBaseMass = 0.0;
 		pod = (ShipEntity*)[[cargo objectAtIndex:0] retain];
 		contents = [pod commodityType];
 		rotates++;
-	} while ((contents == current_contents)&&(rotates < n_cargo));
+	} while ([contents isEqualToString:current_contents]&&(rotates < n_cargo));
 	[pod release];
 	
-	if (contents != CARGO_NOT_CARGO)
-	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ready-to-eject"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
-	}
-	else
-	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"ready-to-eject-@") ,[pod name]] forCount:3.0];
-	}
+	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ready-to-eject"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
+
 	// now scan through the remaining 1..(n_cargo - rotates) places moving similar cargo to the last place
 	// this means the cargo gets to be sorted as it is rotated through
 	for (i = 1; i < (n_cargo - rotates); i++)
 	{
 		pod = [cargo objectAtIndex:i];
-		if ([pod commodityType] == current_contents)
+		if ([[pod commodityType] isEqualToString:current_contents])
 		{
 			[pod retain];
 			[cargo removeObjectAtIndex:i--];
@@ -6406,13 +6388,25 @@ static GLfloat		sBaseMass = 0.0;
 
 	if ([dockedStation localMarket] == nil)
 	{
-		[dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
+		[dockedStation initialiseLocalMarket];
 	}
 
 	NSString *escapepodReport = [self processEscapePods];
 	[self addMessageToReport:escapepodReport];
 	
 	[self unloadCargoPods];	// fill up the on-ship commodities before...
+
+	// check import status of station
+	// escape pods must be cleared before this happens
+	if ([dockedStation marketMonitored])
+	{
+		OOCreditsQuantity oldbounty = [self bounty];
+		[self markAsOffender:[dockedStation legalStatusOfManifest:shipCommodityData export:NO] withReason:kOOLegalStatusReasonIllegalImports];
+		if ([self bounty] > oldbounty)
+		{
+			[self addRoleToPlayer:@"trader-smuggler"];
+		}
+	}
 
 	// check contracts
 	NSString *passengerAndCargoReport = [self checkPassengerContracts]; // Is also processing cargo and parcel contracts.
@@ -6483,11 +6477,11 @@ static GLfloat		sBaseMass = 0.0;
 		[self doWorldEventUntilMissionScreen:OOJSID("missionScreenEnded")];
 	}
 	
-	if (station == [UNIVERSE station])
+	if ([station marketMonitored])
 	{
 		// 'leaving with those guns were you sir?'
 		OOCreditsQuantity oldbounty = [self bounty];
-		[self markAsOffender:[UNIVERSE legalStatusOfManifest:shipCommodityData] withReason:kOOLegalStatusReasonIllegalExports];
+		[self markAsOffender:[station legalStatusOfManifest:shipCommodityData export:YES] withReason:kOOLegalStatusReasonIllegalExports];
 		if ([self bounty] > oldbounty)
 		{
 			[self addRoleToPlayer:@"trader-smuggler"];
@@ -7426,21 +7420,23 @@ static GLfloat		sBaseMass = 0.0;
 {
 	NSMutableArray		*list = [NSMutableArray array];
 	
-	NSUInteger			i, commodityCount = [shipCommodityData count];
+	NSUInteger			i, j, commodityCount = [shipCommodityData count];
 	OOCargoQuantity		quantityInHold[commodityCount];
 	OOCargoQuantity		containersInHold[commodityCount];
-	
+	NSArray 			*goods = [shipCommodityData goods];
+
 	// following changed to work whether docked or not
 	for (i = 0; i < commodityCount; i++)
 	{
-		quantityInHold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
+		quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
 		containersInHold[i] = 0;
 	}
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
-		quantityInHold[[container commodityType]] += [container commodityAmount];
-		++containersInHold[[container commodityType]];
+		j = [goods indexOfObject:[container commodityType]];
+		quantityInHold[j] += [container commodityAmount];
+		++containersInHold[j];
 	}
 	
 	for (i = 0; i < commodityCount; i++)
@@ -7448,13 +7444,13 @@ static GLfloat		sBaseMass = 0.0;
 		if (quantityInHold[i] > 0)
 		{
 			NSMutableDictionary	*commodity = [NSMutableDictionary dictionaryWithCapacity:4];
-			NSString *symName = [[shipCommodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME];
+			NSString *symName = [goods oo_stringAtIndex:i];
 			// commodity, quantity - keep consistency between .manifest and .contracts
-			[commodity setObject:CommodityTypeToString(i) forKey:@"commodity"];
+			[commodity setObject:symName forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:quantityInHold[i]] forKey:@"quantity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:containersInHold[i]] forKey:@"containers"];
-			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
-			[commodity setObject:DisplayStringForMassUnitForCommodity(i) forKey:@"unit"]; 
+			[commodity setObject:[shipCommodityData nameForGood:symName] forKey:@"displayName"]; 
+			[commodity setObject:DisplayStringForMassUnitForCommodity(symName) forKey:@"unit"]; 
 			[list addObject:commodity];
 		}
 	}
@@ -7463,19 +7459,17 @@ static GLfloat		sBaseMass = 0.0;
 }
 
 
+// determines general export legality, not tied to a station
 - (unsigned) legalStatusOfCargoList
 {
-	NSArray *list = [self cargoListForScripting];
-	NSDictionary *entry = nil;
-	unsigned penalty = 0;
-	NSString *commodity = nil;
+	NSString 		*good = nil;
 	OOCargoQuantity amount;
+	unsigned		penalty = 0;
 
-	foreach (entry, list)
+	foreach (good, [shipCommodityData goods])
 	{
-		commodity = [[shipCommodityData oo_arrayAtIndex:StringToCommodityType([entry oo_stringForKey:@"commodity"])] oo_stringAtIndex:MARKET_NAME];
-		amount = [entry oo_intForKey:@"quantity"];
-		penalty += [UNIVERSE legalStatusOfCommodity:commodity] * amount;
+		amount = [shipCommodityData quantityForGood:good];
+		penalty += [shipCommodityData exportLegalityForGood:good] * amount;
 	}
 	return penalty;
 }
@@ -7493,7 +7487,7 @@ static GLfloat		sBaseMass = 0.0;
 		if (forCargo)
 		{
 			// commodity, quantity - keep consistency between .manifest and .contracts
-			[contract setObject:[[UNIVERSE symbolicNameForCommodity:[dict oo_intForKey:CARGO_KEY_TYPE]] lowercaseString] forKey:@"commodity"];
+			[contract setObject:[dict oo_stringForKey:CARGO_KEY_TYPE] forKey:@"commodity"];
 			[contract setObject:[NSNumber numberWithUnsignedInt:[dict oo_intForKey:CARGO_KEY_AMOUNT]] forKey:@"quantity"];
 			[contract setObject:[dict oo_stringForKey:CARGO_KEY_DESCRIPTION] forKey:@"description"];
 		}
@@ -9468,7 +9462,7 @@ static NSString *last_outfitting_key=nil;
 
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type
 {
-	OOCargoQuantity 	amount = [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
+	OOCargoQuantity 	amount = [shipCommodityData quantityForGood:type];
 	
 	if  ([self status] != STATUS_DOCKED)
 	{
@@ -9480,7 +9474,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			cargoItem = [cargo objectAtIndex:i];
 			co_type = [cargoItem commodityType];
-			if (co_type == type)
+			if ([co_type isEqualToString:type])
 			{
 				amount += [cargoItem commodityAmount];
 			}
@@ -9493,7 +9487,7 @@ static NSString *last_outfitting_key=nil;
 
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount
 {
-	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
+	OOMassUnit			unit = [shipCommodityData massUnitForGood:type];
 	if([self specialCargo] && unit == UNITS_TONS) return 0;	// don't do anything if we've got a special cargo...
 	
 	OOCargoQuantity		oldAmount = [self cargoQuantityForType:type];
@@ -9532,17 +9526,11 @@ static NSString *last_outfitting_key=nil;
 	}
 	else
 	{
-		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
-		NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
-		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]];
-		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-		[manifest release];
+		[shipCommodityData setQuantity:amount forGood:type];
 	}
 
-	[self cargoQuantityOnBoard];
-	return [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
+	[self calculateCurrentCargo];
+	return [shipCommodityData quantityForGood:type];
 }
 
 
@@ -9566,17 +9554,14 @@ static NSString *last_outfitting_key=nil;
 		
 		Optimised this method, to compensate for increased usage - Kaks 20091002
 	*/
-	NSArray				*manifest = [NSArray arrayWithArray:[self shipCommodityData]];
-	NSInteger			i, count = [manifest count];
 	OOCargoQuantity		cargoQtyOnBoard = 0;
-	
-	for (i = count - 1; i >= 0 ; i--)
+	NSString			*good = nil;
+
+	foreach (good, [shipCommodityData goods])
 	{
-		NSArray *commodityInfo = [NSArray arrayWithArray:[manifest objectAtIndex:i]];
-		OOCargoQuantity quantity = [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
+		OOCargoQuantity quantity = [shipCommodityData quantityForGood:good];
 		
-		// manifest contains entries for all 17 commodities, even when their quantity is 0.
-		OOMassUnit commodityUnits = [UNIVERSE unitsForCommodity:i];
+		OOMassUnit commodityUnits = [shipCommodityData massUnitForGood:good];
 		
 		if (commodityUnits != UNITS_TONS)
 		{
@@ -9596,66 +9581,281 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (NSMutableArray *) localMarket
+- (OOCommodityMarket *) localMarket
 {
 	StationEntity *station = [self dockedStation];
-	if (station == nil)  station = [UNIVERSE station];
-	NSMutableArray *localMarket = [station localMarket];
-	if (localMarket == nil)  localMarket = [station initialiseLocalMarketWithRandomFactor:market_rnd];
+	if (station == nil)  
+	{
+		if ([[self primaryTarget] isStation] && [(StationEntity *)[self primaryTarget] marketBroadcast])
+		{
+			station = [self primaryTarget];
+		}
+		else
+		{
+			station = [UNIVERSE station];
+		}
+		if (station == nil)
+		{
+			// interstellar space or similar
+			return nil;
+		}
+	}
+	OOCommodityMarket *localMarket = [station localMarket];
+	if (localMarket == nil)
+	{
+		localMarket = [station initialiseLocalMarket];
+	}
 	
 	return localMarket;
 }
 
 
+- (NSArray *) applyMarketFilter:(NSArray *)goods onMarket:(OOCommodityMarket *)market
+{
+	if (marketFilterMode == MARKET_FILTER_MODE_OFF)
+	{
+		return goods;
+	}
+	NSMutableArray	*filteredGoods = [NSMutableArray arrayWithCapacity:[goods count]];
+	OOCommodityType	good = nil;
+	foreach (good, goods)
+	{
+		switch (marketFilterMode)
+		{
+		case MARKET_FILTER_MODE_OFF:
+			// never reached, but keeps compiler happy
+			[filteredGoods addObject:good];
+			break;
+		case MARKET_FILTER_MODE_TRADE:
+			if ([market quantityForGood:good] > 0 || [shipCommodityData quantityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_HOLD:
+			if ([shipCommodityData quantityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_STOCK:
+			if ([market quantityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_LEGAL:
+			if ([market exportLegalityForGood:good] == 0 && [market importLegalityForGood:good] == 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		case MARKET_FILTER_MODE_RESTRICTED:
+			if ([market exportLegalityForGood:good] > 0 || [market importLegalityForGood:good] > 0)
+			{
+				[filteredGoods addObject:good];
+			}
+			break;
+		}
+	}
+	return [[filteredGoods copy] autorelease];
+}
+
+
+- (NSArray *) applyMarketSorter:(NSArray *)goods onMarket:(OOCommodityMarket *)market
+{
+	switch (marketSorterMode)
+	{
+	case MARKET_SORTER_MODE_ALPHA:
+		return [goods sortedArrayUsingFunction:marketSorterByName context:market];
+	case MARKET_SORTER_MODE_PRICE:
+		return [goods sortedArrayUsingFunction:marketSorterByPrice context:market];
+	case MARKET_SORTER_MODE_STOCK:
+		return [goods sortedArrayUsingFunction:marketSorterByQuantity context:market];
+	case MARKET_SORTER_MODE_HOLD:
+		return [goods sortedArrayUsingFunction:marketSorterByQuantity context:shipCommodityData];
+	case MARKET_SORTER_MODE_UNIT:
+		return [goods sortedArrayUsingFunction:marketSorterByMassUnit context:market];	
+	case MARKET_SORTER_MODE_OFF:
+		// keep default sort order
+		break;
+	}
+	return goods;
+}
+
+
+- (void) showMarketScreenHeaders
+{
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	OOGUITabSettings tab_stops;
+	tab_stops[0] = 0;
+/*	tab_stops[1] = 137;
+	tab_stops[2] = 217;
+	tab_stops[3] = 271;
+	tab_stops[4] = 381;
+	tab_stops[5] = 431; */
+	tab_stops[1] = 137; 
+	tab_stops[2] = 187;
+	tab_stops[3] = 267;
+	tab_stops[4] = 321;
+	tab_stops[5] = 431;
+	[gui setTabStops:tab_stops];
+	
+	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
+	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),3.5),
+						   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), DESC(@"oolite-extras-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
+	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), DESC(@"oolite-extras-column-title"), OOPadStringToEms(DESC(@"price-column-title"),3.5),
+						   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
+
+}
+
+
+- (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity
+{
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	NSString* desc = [NSString stringWithFormat:@" %@ ", [shipCommodityData nameForGood:good]];
+	OOCargoQuantity available_units = [localMarket quantityForGood:good];
+	OOCargoQuantity units_in_hold = quantity;
+	OOCreditsQuantity pricePerUnit = [localMarket priceForGood:good];
+	OOMassUnit unit = [shipCommodityData massUnitForGood:good];
+			
+	NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
+
+	NSUInteger priceDecimal = pricePerUnit % 10;
+	NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],2.5),priceDecimal];
+			
+	// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
+			
+	NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
+	NSString *units = DisplayStringForMassUnit(unit);
+	NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
+	NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
+
+	NSUInteger import_legality = [localMarket importLegalityForGood:good];
+	NSUInteger export_legality = [localMarket exportLegalityForGood:good];
+	NSString *legaldesc = nil;
+	if (import_legality == 0)
+	{
+		if (export_legality == 0)
+		{
+			legaldesc = DESC(@"oolite-legality-clear");
+		}
+		else
+		{
+			legaldesc = DESC(@"oolite-legality-import");
+		}
+	} 
+	else
+	{
+		if (export_legality == 0)
+		{
+			legaldesc = DESC(@"oolite-legality-export");
+		}
+		else
+		{
+			legaldesc = DESC(@"oolite-legality-neither");
+		}
+	}
+	legaldesc = [NSString stringWithFormat:@" %@ ",legaldesc];
+			
+	NSString *extradesc = [shipCommodityData shortCommentForGood:good];
+
+	[gui setKey:good forRow:row];
+	[gui setArray:[NSArray arrayWithObjects: desc, extradesc, price, units_available, units_owned, legaldesc,  nil] forRow:row++];
+
+}
+
 - (void) setGuiToMarketScreen
 {
-	NSArray			*localMarket = [self localMarket];
-	GuiDisplayGen	*gui = [UNIVERSE gui];
-	OOGUIScreenID	oldScreen = gui_screen;
+	OOCommodityMarket	*localMarket = [self localMarket];
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	OOGUIScreenID		oldScreen = gui_screen;
 	
 	gui_screen = GUI_SCREEN_MARKET;
 	BOOL			guiChanged = (oldScreen != gui_screen);
+
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
 	// fix problems with economies in witchspace
-	if ([UNIVERSE station] == nil)
+	if (localMarket == nil)
 	{
-		unsigned i;
-		NSMutableArray *ourEconomy = [NSMutableArray arrayWithArray:[UNIVERSE commodityDataForEconomy:0 andStation:(StationEntity*)nil andRandomFactor:0]];
-		for (i = 0; i < [ourEconomy count]; i++)
-		{
-			NSMutableArray *commodityInfo = [NSMutableArray arrayWithArray:[ourEconomy objectAtIndex:i]];
-			[commodityInfo replaceObjectAtIndex:MARKET_PRICE withObject:[NSNumber numberWithInt: 0]];
-			[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt: 0]];
-			[ourEconomy replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
-		}
-		localMarket = [NSArray arrayWithArray:ourEconomy];
+		localMarket = [[UNIVERSE commodities] generateBlankMarket];
 	}
-	
+
+	// following changed to work whether docked or not
+	NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
+	NSUInteger maxOffset = 0;
+	if ([goods count] > (GUI_ROW_MARKET_END-GUI_ROW_MARKET_START))
+	{
+		maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+	}
+
+	NSUInteger			i, j, commodityCount = [shipCommodityData count];
+	OOCargoQuantity		quantityInHold[commodityCount];
+		
+	for (i = 0; i < commodityCount; i++)
+	{
+		quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
+	}
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity *container = [cargo objectAtIndex:i];
+		j = [goods indexOfObject:[container commodityType]];
+		quantityInHold[j] += [container commodityAmount];
+	}
+
+	if (marketSelectedCommodity != nil && ([marketSelectedCommodity isEqualToString:@"<<<"] || [marketSelectedCommodity isEqualToString:@">>>"]))
+	{
+		// nothing?
+	}
+	else
+	{
+		if (marketSelectedCommodity == nil || [goods indexOfObject:marketSelectedCommodity] == NSNotFound)
+		{
+			DESTROY(marketSelectedCommodity);
+			if ([goods count] > 0)
+			{
+				marketSelectedCommodity = [[goods oo_stringAtIndex:0] retain];
+			}
+		}
+		if (maxOffset > 0)
+		{
+			j = [goods indexOfObject:marketSelectedCommodity];
+			// validate marketOffset when returning from infoscreen
+			if (j <= marketOffset)
+			{
+				// is off top of list, move list upwards
+				marketOffset = j-1;
+			}
+			else if (j > marketOffset+(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START)-2)
+			{
+				// is off bottom of list, move list downwards
+				marketOffset = 2+j-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+				if (marketOffset > maxOffset)
+				{
+					marketOffset = maxOffset;
+				}
+			}
+		}
+	}
+
+
 	// GUI stuff
 	{
 		OOGUIRow			start_row = GUI_ROW_MARKET_START;
 		OOGUIRow			row = start_row;
-		NSUInteger			i, commodityCount = [shipCommodityData count];
-		OOCargoQuantity		quantityInHold[commodityCount];
-		NSArray				*marketDef = nil;
-		
-		// following changed to work whether docked or not
-		
-		for (i = 0; i < commodityCount; i++)
-		{
-			quantityInHold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
-		}
-		for (i = 0; i < [cargo count]; i++)
-		{
-			ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
-			quantityInHold[[container commodityType]] += [container commodityAmount];
-		}
-		
+		OOGUIRow			active_row = [gui selectedRow];
+
 		[gui clearAndKeepBackground:!guiChanged];
 		
+		
 		StationEntity *dockedStation = [self dockedStation];
+		if (dockedStation == nil && [[self primaryTarget] isStation] && [(StationEntity *)[self primaryTarget] marketBroadcast])
+		{
+			dockedStation = [self primaryTarget];
+		}
+
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
 			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
@@ -9665,66 +9865,94 @@ static NSString *last_outfitting_key=nil;
 			[gui setTitle:[NSString stringWithFormat:DESC(@"@-station-commodity-market"), [dockedStation displayName]]];
 		}
 		
-		OOGUITabSettings tab_stops;
-		tab_stops[0] = 0;
-		tab_stops[1] = 192;
-		tab_stops[2] = 272;
-		tab_stops[3] = 346;
-		[gui setTabStops:tab_stops];
-		
-		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
-		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),2.5),
-							 OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), nil] forRow:GUI_ROW_MARKET_KEY];
-		
-		for (i = 0; i < commodityCount; i++)
-		{
-			marketDef = [localMarket oo_arrayAtIndex:i];
-			
-			NSString* desc = [NSString stringWithFormat:@" %@ ", CommodityDisplayNameForCommodityArray(marketDef)];
-			OOCargoQuantity available_units = [marketDef oo_unsignedIntAtIndex:MARKET_QUANTITY];
-			OOCargoQuantity units_in_hold = quantityInHold[i];
-			OOCreditsQuantity pricePerUnit = [marketDef oo_unsignedIntAtIndex:MARKET_PRICE];
-			OOMassUnit unit = [UNIVERSE unitsForCommodity:i];
-			
-			NSString *available = OOPadStringToEms(((available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none")), 2.5);
+		[self showMarketScreenHeaders];
 
-			NSUInteger priceDecimal = pricePerUnit % 10;
-			NSString *price = [NSString stringWithFormat:@" %@.%lu ",OOPadStringToEms([NSString stringWithFormat:@"%lu",(unsigned long)(pricePerUnit/10)],1.5),priceDecimal];
-			
-			// this works with up to 9999 tons of gemstones. Any more than that, they deserve the formatting they get! :)
-			
-			NSString *owned = OOPadStringToEms((units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none"), 4.5);
-			NSString *units = DisplayStringForMassUnit(unit);
-			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
-			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
-			
-			[gui setKey:[NSString stringWithFormat:@"%ld",i] forRow:row];
-			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
-		}
-		 // actually count the containers and  valuables (may be > max_cargo)
-		current_cargo = [self cargoQuantityOnBoard];
-		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
-		
-		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
-		
-		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
+		if (marketOffset > maxOffset)
 		{
-			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
-			if (([gui selectedRow] < start_row)||([gui selectedRow] >=row))
-				[gui setSelectedRow:start_row];
+			marketOffset = 0;
+		}
+		else if (marketOffset < 0)
+		{
+			marketOffset = maxOffset;
+		}
+
+		if ([goods count] > 0)
+		{
+			OOCommodityType good = nil;
+			i = 0;
+			foreach (good, goods)
+			{
+				if (i < marketOffset)
+				{
+					++i;
+					continue;
+				}
+				[self showMarketScreenDataLine:row forGood:good inMarket:localMarket holdQuantity:quantityInHold[i++]];
+				if ([good isEqualToString:marketSelectedCommodity])
+				{
+					active_row = row;
+				}
+
+				++row;
+				if (row >= GUI_ROW_MARKET_END)
+				{
+					break;
+				}
+			}
+
+			if (marketOffset < maxOffset)
+			{
+				if ([marketSelectedCommodity isEqualToString:@">>>"])
+				{
+					active_row = GUI_ROW_MARKET_LAST;
+				}
+				[gui setKey:@">>>" forRow:GUI_ROW_MARKET_LAST];
+				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_LAST];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
+			}
+			if (marketOffset > 0)
+			{
+				if ([marketSelectedCommodity isEqualToString:@"<<<"])
+				{
+					active_row = GUI_ROW_MARKET_START;
+				}
+				[gui setKey:@"<<<" forRow:GUI_ROW_MARKET_START];
+				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_START];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
+			}
 		}
 		else
 		{
-			[gui setNoSelectedRow];
+			// filter is excluding everything
+			[gui setText:DESC(@"oolite-market-filtered-all") forRow:GUI_ROW_MARKET_START];
+			active_row = -1;
 		}
+
+		 // actually count the containers and  valuables (may be > max_cargo)
+		current_cargo = [self cargoQuantityOnBoard];
+		if (current_cargo > [self maxAvailableCargoSpace]) current_cargo = [self maxAvailableCargoSpace]; 
+
+		// filter sort info
+		NSString *filterText = [NSString stringWithFormat:@"%@ %@",OOExpand(@"[oolite-market-filter-line]"), OOExpand([NSString stringWithFormat:@"[oolite-market-filter-%u]",marketFilterMode])];
+		NSString *sorterText = [NSString stringWithFormat:@"%@ %@",OOExpand(@"[oolite-market-sorter-line]"), OOExpand([NSString stringWithFormat:@"[oolite-market-sorter-%u]",marketSorterMode])];
+		[gui setArray:[NSArray arrayWithObjects:filterText, @"", sorterText, nil] forRow:GUI_ROW_MARKET_END];
+
+		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_END];
+
+
+		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
+		
+		[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
+		[gui setSelectedRow:active_row];
 		
 		[gui setShowTextCursor:NO];
 	}
+
 	
 	[[UNIVERSE gameView] clearMouse];
 	
 	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:[self status] == STATUS_DOCKED];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	
 	if (guiChanged)
 	{
@@ -9735,41 +9963,142 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setGuiToMarketInfoScreen
+{
+	OOCommodityMarket	*localMarket = [self localMarket];
+	GuiDisplayGen		*gui = [UNIVERSE gui];
+	OOGUIScreenID		oldScreen = gui_screen;
+	
+	gui_screen = GUI_SCREEN_MARKETINFO;
+	BOOL			guiChanged = (oldScreen != gui_screen);
+
+	
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+	
+	// fix problems with economies in witchspace
+	if (localMarket == nil)
+	{
+		localMarket = [[UNIVERSE commodities] generateBlankMarket];
+	}
+
+	// following changed to work whether docked or not
+	NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
+
+	NSUInteger			i, j, commodityCount = [shipCommodityData count];
+	OOCargoQuantity		quantityInHold[commodityCount];
+		
+	for (i = 0; i < commodityCount; i++)
+	{
+		quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
+	}
+	for (i = 0; i < [cargo count]; i++)
+	{
+		ShipEntity *container = [cargo objectAtIndex:i];
+		j = [goods indexOfObject:[container commodityType]];
+		quantityInHold[j] += [container commodityAmount];
+	}
+
+
+	// GUI stuff
+	{
+		if (EXPECT_NOT(marketSelectedCommodity == nil))
+		{
+			j = NSNotFound;
+		}
+		else
+		{
+			j = [goods indexOfObject:marketSelectedCommodity];
+		}
+		if (j == NSNotFound)
+		{
+			DESTROY(marketSelectedCommodity);
+			[self setGuiToMarketScreen];
+			return;
+		}
+
+		[gui clearAndKeepBackground:!guiChanged];
+
+		[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-commodity-information-@"), [shipCommodityData nameForGood:marketSelectedCommodity]]];
+
+		[self showMarketScreenHeaders];
+		[self showMarketScreenDataLine:GUI_ROW_MARKET_START forGood:marketSelectedCommodity inMarket:localMarket holdQuantity:quantityInHold[j]];
+
+		OOCargoQuantity contracted = [self contractedVolumeForGood:marketSelectedCommodity];
+		if (contracted > 0)
+		{
+			OOMassUnit unit = [shipCommodityData massUnitForGood:marketSelectedCommodity];
+			[gui setText:[NSString stringWithFormat:DESC(@"oolite-commodity-contracted-d-@"), contracted, DisplayStringForMassUnit(unit)] forRow:GUI_ROW_MARKET_START+1];
+		}
+
+		NSString *info = [shipCommodityData commentForGood:marketSelectedCommodity];
+		if (info == nil || [info length] == 0)
+		{
+			[gui addLongText:DESC(@"oolite-commodity-no-comment") startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			[gui addLongText:info startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+		}
+
+		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
+
+	}
+
+	[[UNIVERSE gameView] clearMouse];
+	
+	[self setShowDemoShips:NO];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+	
+	if (guiChanged)
+	{
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
+		[gui setBackgroundTextureKey:@"marketinfo"];
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+	}
+
+}
+
 - (OOGUIScreenID) guiScreen
 {
 	return gui_screen;
 }
 
 
-- (BOOL) marketFlooded:(OOCommodityType)index
-{
-	NSArray *commodityArray = [[self localMarket] oo_arrayAtIndex:index];
-	int available_units = [commodityArray oo_intAtIndex:MARKET_QUANTITY];
-	
-	return (available_units >= 127);
-}
-
-
 - (BOOL) tryBuyingCommodity:(OOCommodityType)index all:(BOOL)all
 {
+	if ([index isEqualToString:@"<<<"] || [index isEqualToString:@">>>"])
+	{
+		++marketOffset;
+		return NO;
+	}
+
 	if (![self isDocked])  return NO; // can't buy if not docked.
 	
-	NSMutableArray		*localMarket = [self localMarket];
-	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
-	OOCreditsQuantity	pricePerUnit	= [commodityArray oo_unsignedIntAtIndex:MARKET_PRICE];
-	OOMassUnit			unit			= [UNIVERSE unitsForCommodity:index];
+	OOCommodityMarket	*localMarket = [self localMarket];
+	OOCreditsQuantity	pricePerUnit	= [localMarket priceForGood:index];
+	OOMassUnit			unit			= [localMarket massUnitForGood:index];
 
 	if (specialCargo != nil && unit == UNITS_TONS)
 	{
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
 	}
-	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
-	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
-	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
-	int market_quantity = [market_commodity oo_intAtIndex:MARKET_QUANTITY];
+	int manifest_quantity = [shipCommodityData quantityForGood:index];
+	int market_quantity = [localMarket quantityForGood:index];
 	
-	int purchase = all ? 127 : 1;
+	int purchase = 1;
+	if (all)
+	{
+		// if cargo contracts, put a break point on the contract volume
+		int contracted = [self contractedVolumeForGood:index];
+		if (manifest_quantity >= contracted)
+		{
+			purchase = [localMarket capacityForGood:index];
+		}
+		else
+		{
+			purchase = contracted-manifest_quantity;
+		}
+	}
 	if (purchase > market_quantity)
 	{
 		purchase = market_quantity;					// limit to what's available
@@ -9813,24 +10142,16 @@ static NSString *last_outfitting_key=nil;
 		return NO;									// stop if that results in nothing to be bought
 	}
 	
-	manifest_quantity += purchase;
-	market_quantity -= purchase;
+	[localMarket removeQuantity:purchase forGood:index];
+	[shipCommodityData addQuantity:purchase forGood:index];
 	credits -= pricePerUnit * purchase;
-	
-	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
-	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
-	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-	
-	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	
+
 	[self calculateCurrentCargo];
 	
 	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
 	
-	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:purchase], [NSNumber numberWithUnsignedLongLong:pricePerUnit], nil]];
-	if ([UNIVERSE legalStatusOfCommodity:[market_commodity objectAtIndex:MARKET_NAME]] > 0)
+	[self doScriptEvent:OOJSID("playerBoughtCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:purchase], [NSNumber numberWithUnsignedLongLong:pricePerUnit], nil]];
+	if ([localMarket exportLegalityForGood:index] > 0)
 	{
 		[roleWeightFlags setObject:[NSNumber numberWithInt:1] forKey:@"bought-illegal"];
 	}
@@ -9845,44 +10166,54 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) trySellingCommodity:(OOCommodityType)index all:(BOOL)all
 {
+	if ([index isEqualToString:@"<<<"] || [index isEqualToString:@">>>"])
+	{
+		--marketOffset;
+		return NO;
+	}
+
 	if (![self isDocked])  return NO; // can't sell if not docked.
 	
-	NSMutableArray *localMarket = [self localMarket];
-	int available_units = [[shipCommodityData oo_arrayAtIndex:index] oo_intAtIndex:MARKET_QUANTITY];
-	int pricePerUnit = [[localMarket oo_arrayAtIndex:index] oo_intAtIndex:MARKET_PRICE];
+	OOCommodityMarket *localMarket = [self localMarket];
+	int available_units = [shipCommodityData quantityForGood:index];
+	int pricePerUnit = [localMarket priceForGood:index];
 	
 	if (available_units == 0)  return NO;
 	
-	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
-	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
-	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
-	int market_quantity =   [market_commodity oo_intAtIndex:MARKET_QUANTITY];
-	
-	int sell = all ? 127 : 1;
+	int market_quantity = [localMarket quantityForGood:index];
+
+	int capacity = [localMarket capacityForGood:index];
+	int sell = 1;
+	if (all)
+	{
+		// if cargo contracts, put a break point on the contract volume
+		int contracted = [self contractedVolumeForGood:index];
+		if (available_units <= contracted)
+		{
+			sell = capacity;
+		}
+		else
+		{
+			sell = available_units-contracted;
+		}
+	}
+
 	if (sell > available_units)
 		sell = available_units;					// limit to what's in the hold
-	if (sell + market_quantity > 127)
-		sell = 127 - market_quantity;			// avoid flooding the market
+	if (sell + market_quantity > capacity)
+		sell = capacity - market_quantity;			// avoid flooding the market
 	if (sell <= 0)
 		return NO;								// stop if that results in nothing to be sold
 	
-	current_cargo -= sell;
-	manifest_quantity -= sell;
-	market_quantity += sell;
+	[localMarket addQuantity:sell forGood:index];
+	[shipCommodityData removeQuantity:sell forGood:index];
 	credits += pricePerUnit * sell;
-	
-	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
-	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
-	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-	
-	[shipCommodityData release];
-	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+
+	[self calculateCurrentCargo];
 	
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	
-	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:CommodityTypeToString(index), [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
+	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
 	
 	return YES;
 }
@@ -10948,6 +11279,31 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (OOScript *) commodityScriptNamed:(NSString *)scriptName
+{
+	if (scriptName == nil)
+	{
+		return nil;
+	}
+	OOScript *cscript = nil;
+	if ((cscript = [commodityScripts objectForKey:scriptName]))
+	{
+		return cscript;
+	}
+	cscript = [OOScript jsScriptFromFileNamed:scriptName properties:nil];
+	if (cscript != nil)
+	{
+		// storing it in here retains it
+		[commodityScripts setObject:cscript forKey:scriptName];
+	}
+	else
+	{
+		OOLog(@"script.commodityScript.load",@"Could not load script %@",scriptName);
+	}
+	return cscript;
+}
+
+
 - (void) doScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
 	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
@@ -11525,3 +11881,67 @@ else _dockTarget = NO_TARGET;
 #endif
 
 @end
+
+
+NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	return [[market nameForGood:a] compare:[market nameForGood:b]];
+}
+
+
+NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	int result = (int)[market priceForGood:a] - (int)[market priceForGood:b];
+	if (result < 0)
+	{
+		return NSOrderedAscending;
+	}
+	else if (result > 0)
+	{
+		return NSOrderedDescending;
+	}
+	else
+	{
+		return NSOrderedSame;
+	}
+}
+
+
+NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	int result = (int)[market quantityForGood:a] - (int)[market quantityForGood:b];
+	if (result < 0)
+	{
+		return NSOrderedAscending;
+	}
+	else if (result > 0)
+	{
+		return NSOrderedDescending;
+	}
+	else
+	{
+		return NSOrderedSame;
+	}
+}
+
+
+NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *context)
+{
+	OOCommodityMarket *market = (OOCommodityMarket *)context;
+	int result = (int)[market massUnitForGood:a] - (int)[market massUnitForGood:b];
+	if (result < 0)
+	{
+		return NSOrderedAscending;
+	}
+	else if (result > 0)
+	{
+		return NSOrderedDescending;
+	}
+	else
+	{
+		return NSOrderedSame;
+	}
+}

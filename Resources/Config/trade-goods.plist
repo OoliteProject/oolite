@@ -1,0 +1,317 @@
+{
+/* Strictly, commodity names should be prefixed oolite-, but for
+ * compatibility with older OXPs, keep the older names. OXP
+ * commodities should be prefixed as usual. */
+	"food" = {
+		"name" = "[commodity-name food]";
+		"classes" = ("oolite-consumer","oolite-edible","oolite-farming");
+		"quantity_unit" = 0;  // 0=t
+		"peak_export" = 7; // Poor Ag
+		"peak_import" = 0; // Rich Ind
+		"price_average" = 50; // decicredits
+		// fraction of average ~= 2.75 credits
+		"price_economic" = 0.55;
+		// fraction of average ~= 0.2 credits
+		"price_random" = 0.04;
+		"quantity_average" = 13.5; // gets rounded
+		"quantity_economic" = 0.52;
+		"quantity_random" = 0.04;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 1.0;
+		"sort_order" = 100;
+	};
+
+	"textiles" = {
+		"name" = "[commodity-name textiles]";
+		"classes" = ("oolite-consumer","oolite-wearable","oolite-farming");
+		"quantity_unit" = 0;  
+		"peak_export" = 7; 
+		"peak_import" = 0; 
+		"price_average" = 71;
+		"price_economic" = 0.18;
+		"price_random" = 0.09;
+		"quantity_average" = 15; 
+		"quantity_economic" = 0.23;
+		"quantity_random" = 0.1;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0.25;		
+		"sort_order" = 200;
+	};
+
+	"radioactives" = {
+		"name" = "[commodity-name radioactives]";
+		"classes" = ("oolite-dangerous","oolite-mining");
+		"quantity_unit" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 231;
+		"price_economic" = 0.19;
+		"price_random" = 0.06;
+		"quantity_average" = 16; 
+		"quantity_economic" = 0.66;
+		"quantity_random" = 0.09;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0.75;
+		"sort_order" = 300;
+	};
+
+	"slaves" = {
+		"name" = "[commodity-name slaves]";
+		"classes" = ("oolite-restricted","oolite-living","oolite-slaves","oolite-salvage");
+		"quantity_unit" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 152;
+		"price_economic" = 0.45;
+		"price_random" = 0.40;
+		"quantity_average" = 9.75; 
+		"quantity_economic" = 1.10;
+		"quantity_random" = 1.59;
+		"legality_export" = 1;
+		"legality_import" = 0;
+		"trumble_opinion" = 0.01;
+		"sort_order" = 400;
+		"comment" = "[oolite-commodity-illegal]";
+	};
+
+	"liquor_wines" = {
+		"name" = "[commodity-name liquor_wines]";
+		"classes" = ("oolite-consumer","oolite-edible","oolite-farming");
+		"quantity_unit" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 291;
+		"price_economic" = 0.24;
+		"price_random" = 0.05;
+		"quantity_average" = 20; 
+		"quantity_economic" = 0.88;
+		"quantity_random" = 0.38;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0.95;
+		"sort_order" = 500;
+	};
+
+	"luxuries" = {
+		"name" = "[commodity-name luxuries]";
+		"classes" = ("oolite-consumer","oolite-luxury");
+		"quantity_unit" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 902;
+		"price_economic" = 0.12;
+		"price_random" = 0.01;
+		"quantity_average" = 27.5; 
+		"quantity_economic" = 1.02;
+		"quantity_random" = 0.05;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 1.25;
+		"sort_order" = 600;
+	};
+
+	"narcotics" = {
+		"name" = "[commodity-name narcotics]";
+		"classes" = ("oolite-consumer","oolite-dangerous","oolite-restricted","oolite-medical");
+		"quantity_unit" = 0;
+		"peak_export" = 0;
+		"peak_import" = 0;
+		"price_average" = 512;
+		"price_economic" = 0;
+		"price_random" = 1.0;
+		"quantity_average" = 32; 
+		"quantity_economic" = 0;
+		"quantity_random" = 1.0;
+		"legality_export" = 2;
+		"legality_import" = 0;
+		"trumble_opinion" = 1.05;
+		"sort_order" = 700;
+		"comment" = "[oolite-commodity-illegal]";
+	};
+
+	"computers" = {
+		"name" = "[commodity-name computers]";
+		"classes" = ("oolite-business","oolite-shipyard","oolite-technological");
+		"quantity_unit" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 818;
+		"price_economic" = 0.24;
+		"price_random" = 0.01;
+		"quantity_average" = 8.5; 
+		"quantity_economic" = 5.77;
+		"quantity_random" = 0.17;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 800;
+	};
+
+	"machinery" = {
+		"name" = "[commodity-name machinery]";
+		"classes" = ("oolite-business","oolite-technological","oolite-machinery");
+		"quantity_unit" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 560;
+		"price_economic" = 0.14;
+		"price_random" = 0.03;
+		"quantity_average" = 22.5;
+		"quantity_economic" = 0.93;
+		"quantity_random" = 0.16;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 900;
+	};
+
+	"alloys" = {
+		"name" = "[commodity-name alloys]";
+		"classes" = ("oolite-business","oolite-shipyard","oolite-metals","oolite-salvage");
+		"quantity_unit" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 388;
+		"price_economic" = 0.03;
+		"price_random" = 0.16;
+		"quantity_average" = 29;
+		"quantity_economic" = 0.12;
+		"quantity_random" = 0.53;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 1000;
+	};
+
+	"firearms" = {
+		"name" = "[commodity-name firearms]";
+		"classes" = ("oolite-dangerous","oolite-restricted","oolite-military","oolite-weapons");
+		"quantity_unit" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 692;
+		"price_economic" = 0.26;
+		"price_random" = 0.02;
+		"quantity_average" = 1;
+		"quantity_economic" = 32.5;
+		"quantity_random" = 3.5;
+		"legality_export" = 1;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 1100;
+		"comment" = "[oolite-commodity-illegal]";
+	};
+
+	"furs" = {
+		"name" = "[commodity-name furs]";
+		"classes" = ("oolite-consumer","oolite-farming","oolite-wearable","oolite-animalproduct");
+		"quantity_unit" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 704;
+		"price_economic" = 0.18;
+		"price_random" = 0.18;
+		"quantity_average" = 27.5;
+		"quantity_economic" = 1.15;
+		"quantity_random" = 1.15;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0.15;
+		"sort_order" = 1200;
+	};
+
+	"minerals" = {
+		"name" = "[commodity-name minerals]";
+		"classes" = ("oolite-mining","oolite-business","oolite-rawmaterial");
+		"quantity_unit" = 0;
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 120;
+		"price_economic" = 0.11;
+		"price_random" = 0.05;
+		"quantity_average" = 58;
+		"quantity_economic" = 0.06;
+		"quantity_random" = 0.03;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 1300;
+	};
+
+	"gold" = {
+		"name" = "[commodity-name gold]";
+		"classes" = ("oolite-mining","oolite-business","oolite-consumer","oolite-metals");
+		"quantity_unit" = 1; // kg
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 388;
+		"price_economic" = 0.04;
+		"price_random" = 0.05;
+		"quantity_average" = 9;
+		"quantity_economic" = 0.39;
+		"quantity_random" = 0.39;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 1400;
+	};
+
+	"platinum" = {
+		"name" = "[commodity-name platinum]";
+		"classes" = ("oolite-mining","oolite-business","oolite-consumer","oolite-metals");
+		"quantity_unit" = 1; // kg
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 718;
+		"price_economic" = 0.04;
+		"price_random" = 0.09;
+		"quantity_average" = 13.5;
+		"quantity_economic" = 0.52;
+		"quantity_random" = 1.15;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 1500;
+	};
+
+	"gem_stones" = {
+		"name" = "[commodity-name gem_stones]";
+		"classes" = ("oolite-mining","oolite-consumer");
+		"quantity_unit" = 2; // g
+		"peak_export" = 7;
+		"peak_import" = 0;
+		"price_average" = 196;
+		"price_economic" = 0.07;
+		"price_random" = 0.15;
+		"quantity_average" = 6.75;
+		"quantity_economic" = 0.26;
+		"quantity_random" = 1.11;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 1600;
+	};
+
+	"alien_items" = {
+		"name" = "[commodity-name alien_items]";
+		"classes" = ("oolite-alien","oolite-thargoid","oolite-military");
+		"quantity_unit" = 0;
+		"peak_export" = 0;
+		"peak_import" = 7;
+		"price_average" = 436;
+		"price_economic" = 0.48;
+		"price_random" = 0.03;
+		"quantity_average" = 0;
+		"quantity_economic" = 0;
+		"quantity_random" = 0;
+		"legality_export" = 0;
+		"legality_import" = 0;
+		"trumble_opinion" = 0;
+		"sort_order" = 1700;
+	};
+
+
+}

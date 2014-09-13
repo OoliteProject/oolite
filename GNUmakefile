@@ -394,6 +394,8 @@ OOLITE_MISC_FILES = \
     MyOpenGLView.m \
     OOCharacter.m \
     OOCocoa.m \
+	OOCommodities.m \
+	OOCommodityMarket.m \
     OOEquipmentType.m \
     OOMouseInteractionMode.m \
     OORoleSet.m \

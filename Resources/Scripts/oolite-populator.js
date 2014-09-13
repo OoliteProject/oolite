@@ -111,9 +111,20 @@ this.systemWillPopulate = function()
 		// don't add rock hermits if the sun is about to explode
 		if (hermit && !system.sun.isGoingNova) 
 		{
-			var rh = system.addShips("rockhermit",1,pos,0)[0];
+			var allegiance = this._hermitAllegiance(pos,system.info.government);
+			var role = "rockhermit";
+			if (allegiance == "chaotic")
+			{
+				role = "rockhermit-chaotic";
+			}
+			else if (allegiance == "pirate")
+			{
+				role = "rockhermit-pirate";
+			}
+
+			var rh = system.addShips(role,1,pos,0)[0];
 			rh.scanClass = "CLASS_ROCK";
-			rh.allegiance = this._hermitAllegiance(pos,system.info.government);
+
 		}
 	}.bind(this);
 
@@ -144,10 +155,18 @@ this.systemWillPopulate = function()
 							locationSeed: 71258,
 							groupCount: 1,
 							callback: function(pos) {
-								if (system.countShipsWithPrimaryRole("rockhermit")==0) {
-									var rh = system.addShips("rockhermit",1,pos,0)[0];
-									rh.scanClass = "CLASS_ROCK";
-									rh.allegiance = this._hermitAllegiance(pos,system.info.government);
+								if (system.countShipsWithPrimaryRole("rockhermit")+system.countShipsWithPrimaryRole("rockhermit-chaotic")+system.countShipsWithPrimaryRole("rockhermit-pirate")==0) {
+									var allegiance = this._hermitAllegiance(pos,system.info.government);
+									var role = "rockhermit";
+									if (allegiance == "chaotic")
+									{
+										role = "rockhermit-chaotic";
+									}
+									else if (allegiance == "pirate")
+									{
+										role = "rockhermit-pirate";
+									}
+									var rh = system.addShips(role,1,pos,0)[0];
 									// just the hermit, no other rocks
 								}
 							}.bind(this),

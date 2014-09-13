@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOJSPropID.h"
 #import "OOStellarBody.h"
 #import "OOEntityWithDrawable.h"
+#import "OOCommodities.h"
 
 
 #if OOLITE_ESPEAK
@@ -240,10 +241,10 @@ enum
 	
 	BOOL					dumpCollisionInfo;
 	
-	NSDictionary			*commodityLists;		// holds data on commodities for various types of station, loaded at initialisation
-	NSArray					*commodityData;			// holds data on commodities extracted from commodityLists
-	
-	NSDictionary			*illegalGoods;			// holds the legal penalty for illicit commodities, loaded at initialisation
+	OOCommodities			*commodities;
+	OOCommodityMarket		*commodityMarket;
+
+
 	NSDictionary			*_descriptions;			// holds descriptive text for lots of stuff, loaded at initialisation
 	NSDictionary			*customSounds;			// holds descriptive audio for lots of stuff, loaded at initialisation
 	NSDictionary			*characters;			// holds descriptons of characters
@@ -462,24 +463,19 @@ enum
 
 - (OOCreditsQuantity) getEquipmentPriceForKey:(NSString *) eq_key;
 
-- (int) legalStatusOfCommodity:(NSString *)commodity;
-- (int) legalStatusOfManifest:(NSArray *)manifest;
+- (OOCommodities *) commodities;
 
 - (ShipEntity *) reifyCargoPod:(ShipEntity *)cargoObj;
 - (ShipEntity *) cargoPodFromTemplate:(ShipEntity *)cargoObj;
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce legal:(BOOL)legal;
-- (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;
-- (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many;
+- (NSArray *) getContainersOfCommodity:(OOCommodityType) commodity_name :(OOCargoQuantity) how_many;
 - (void) fillCargopodWithRandomCargo:(ShipEntity *)cargopod;
 
-- (OOCommodityType) getRandomCommodity;
+- (NSString *) getRandomCommodity;
 - (OOCargoQuantity) getRandomAmountOfCommodity:(OOCommodityType) co_type;
 
-- (NSArray *) commodityDataForType:(OOCommodityType)type;
-- (OOCommodityType) commodityForName:(NSString *)co_name;
-- (NSString *) symbolicNameForCommodity:(OOCommodityType)co_type;
+- (NSDictionary *) commodityDataForType:(OOCommodityType)type;
 - (NSString *) displayNameForCommodity:(OOCommodityType)co_type;
-- (OOMassUnit) unitsForCommodity:(OOCommodityType)co_type;
 - (NSString *) describeCommodity:(OOCommodityType)co_type amount:(OOCargoQuantity) co_amount;
 
 - (void) setGameView:(MyOpenGLView *)view;
@@ -666,11 +662,7 @@ enum
 - (NSDictionary *) planetInfo;
 
 - (NSArray *) equipmentData;
-- (NSDictionary *) commodityLists;
-- (NSArray *) commodityData;
-
-- (BOOL) generateEconomicDataWithEconomy:(OOEconomyID) economy andRandomFactor:(int) random_factor;
-- (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor;
+- (OOCommodityMarket *) commodityMarket;
 
 - (NSString *) timeDescription:(OOTimeDelta) interval;
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;

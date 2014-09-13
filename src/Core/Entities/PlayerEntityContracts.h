@@ -81,6 +81,7 @@ MA 02110-1301, USA.
 - (int) contractReputation;
 - (void) increaseContractReputation:(unsigned)amount;
 - (void) decreaseContractReputation:(unsigned)amount;
+- (OOCargoQuantity) contractedVolumeForGood:(OOCommodityType) good;
 
 - (void) erodeReputation;
 - (void) normaliseReputation;

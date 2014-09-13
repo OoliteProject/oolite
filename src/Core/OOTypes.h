@@ -70,7 +70,7 @@ typedef enum
 	CARGO_CHARACTER					= 300
 } OOCargoType;
 
-
+/*
 enum
 {
 	COMMODITY_UNDEFINED		= -1,
@@ -95,7 +95,8 @@ enum
 	COMMODITY_ALIEN_ITEMS
 };
 typedef NSInteger OOCommodityType;
-
+*/
+typedef NSString* OOCommodityType;
 
 typedef enum
 {

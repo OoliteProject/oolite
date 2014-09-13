@@ -773,9 +773,8 @@ static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	OOCommodityType commodity = StringToCommodityType(commodityString);
-	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
 	{
 		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
 		return NO;
@@ -783,9 +782,9 @@ static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
 
 	int32 price;
 	BOOL gotPrice = JS_ValueToInt32(context, OOJS_ARGV[1], &price);
-	if (EXPECT_NOT(!gotPrice || price < 0 || price > 1020))
+	if (EXPECT_NOT(!gotPrice || price < 0))
 	{
-		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be between 0 and 1020 decicredits");
+		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be at least 0 decicredits");
 		return NO;
 	}
 
@@ -815,9 +814,8 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 		return NO;
 	}
 	
-	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	OOCommodityType commodity = StringToCommodityType(commodityString);
-	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
 	{
 		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
 		return NO;
@@ -825,9 +823,9 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 
 	int32 quantity;
 	BOOL gotQuantity = JS_ValueToInt32(context, OOJS_ARGV[1], &quantity);
-	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > 127))
+	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > [[station localMarket] capacityForGood:commodity]))
 	{
-		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and 127 units");
+		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and the station market capacity");
 		return NO;
 	}
 

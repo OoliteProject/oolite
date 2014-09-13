@@ -825,7 +825,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_commodity:
 			if ([entity commodityAmount] > 0)
 			{
-				result = CommodityTypeToString([entity commodityType]);
+				result = [entity commodityType];
 			}
 			break;
 			
@@ -2678,25 +2678,26 @@ static JSBool ShipSetCargo(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	ShipEntity				*thisEnt = nil;
-	NSString				*cargoType = nil;
-	OOCommodityType			commodity = COMMODITY_UNDEFINED;
+	OOCommodityType			commodity = nil;
 	int32					count = 1;
 	BOOL					gotCount = YES;
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	if (argc > 0)  cargoType = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, OOJS_ARGV[1], &count);
-	if (EXPECT_NOT(cargoType == nil || !gotCount || count < 1))
+	if (EXPECT_NOT(commodity == nil || !gotCount || count < 1))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"setCargo", argc, OOJS_ARGV, nil, @"cargo name and optional positive quantity");
 		return NO;
 	}
 	
-	commodity = [UNIVERSE commodityForName:cargoType];
-	if (commodity != COMMODITY_UNDEFINED)  [thisEnt setCommodityForPod:commodity andAmount:count];
+	if ([[UNIVERSE commodities] goodDefined:commodity])
+	{
+		[thisEnt setCommodityForPod:commodity andAmount:count];
+	}
 	
-	OOJS_RETURN_BOOL(commodity != COMMODITY_UNDEFINED);
+	OOJS_RETURN_BOOL([[UNIVERSE commodities] goodDefined:commodity]);
 	
 	OOJS_NATIVE_EXIT
 }
