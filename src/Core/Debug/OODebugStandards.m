@@ -111,7 +111,11 @@ BOOL OOEnforceStandards()
 }
 
 
-
+void OOSetStandardsForOXPVerifierMode()
+{
+	sEnforcement = STANDARDS_ENFORCEMENT_WARN;
+	sSetup = YES;
+}
 
 
 

@@ -32,6 +32,7 @@ SOFTWARE.
 #define OOStandardsDeprecated() do {} while (0)
 #define OOStandardsError() do {} while (0)
 #define OOEnforceStandards() 0
+#define OOSetStandardsForOXPVerifierMode() do {} while (0) 
 
 #else
 
@@ -47,5 +48,7 @@ void OOStandardsError(NSString *message);
 // Always false in release builds
 // This will *not* exit in "exit on error" mode
 BOOL OOEnforceStandards();
+
+void OOSetStandardsForOXPVerifierMode();
 
 #endif

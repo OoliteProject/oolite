@@ -39,7 +39,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "GameController.h"
 #import "OOCacheManager.h"
-
+#import "OODebugStandards.h"
 
 static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
@@ -244,7 +244,9 @@ static void OpenLogFile(NSString *name);
 - (id)initWithPath:(NSString *)path
 {
 	self = [super init];
-	
+
+	OOSetStandardsForOXPVerifierMode();
+
 	NSString *verifierPListPath = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"verifyOXP.plist"];
 	_verifierPList = [[NSDictionary dictionaryWithContentsOfFile:verifierPListPath] retain];
 	
