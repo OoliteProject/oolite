@@ -8460,13 +8460,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor
-{
-	// temporary until secondary station markets implemented
-	return [NSArray array];
-}
-
-
 - (NSString *) timeDescription:(double) interval
 {
 	double r_time = interval;

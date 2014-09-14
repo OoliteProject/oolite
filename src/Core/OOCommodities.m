@@ -104,7 +104,7 @@ MA 02110-1301, USA.
 	self = [super init];
 	if (self == nil)  return nil;
 
-	NSDictionary *rawCommodityLists = [ResourceManager dictionaryFromFilesNamed:@"trade-goods.plist" inFolder:@"Config" andMerge:YES];
+	NSDictionary *rawCommodityLists = [ResourceManager dictionaryFromFilesNamed:@"trade-goods.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES];
 /* // TODO: validation of inputs
 	// TODO: convert 't', 'kg', 'g' in quantity_unit to 0, 1, 2
 	// for now it needs them entering as the ints
