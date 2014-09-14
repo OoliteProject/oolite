@@ -220,9 +220,9 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	{
 		ShipEntity *cargoItem = [cargo objectAtIndex:i];
 		NSString * commodityType = [cargoItem commodityType];
-		if (commodityType == nil || commodityType == type)
+		if (commodityType == nil || [commodityType isEqualToString:type])
 		{
-			if (commodityType == type)
+			if ([commodityType isEqualToString:type])
 			{
 				// transfer
 				[manifest addQuantity:[cargoItem commodityAmount] forGood:type];
@@ -253,9 +253,9 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	{
 		cargoItem = [cargo objectAtIndex:i];
 		co_type = [cargoItem commodityType];
-		if (co_type == nil || co_type == type)
+		if (co_type == nil || [co_type isEqualToString:type])
 		{
-			if (co_type == type)
+			if ([co_type isEqualToString:type])
 			{
 				amount =  [cargoItem commodityAmount];
 				if (amount <= cargoToGo)
@@ -297,6 +297,12 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	{
 		[self unloadAllCargoPodsForType:good toManifest:shipCommodityData];
 	}
+#ifndef NDEBUG
+	if ([cargo count] > 0)
+	{
+		OOLog(@"player.unloadCargo",@"Cargo remains in pods after unloading - %@",cargo);
+	}
+#endif
 
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
