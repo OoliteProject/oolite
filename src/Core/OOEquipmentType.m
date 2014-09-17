@@ -267,7 +267,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 			if (conditions != nil)
 			{
 				OOStandardsDeprecated([NSString stringWithFormat:@"The conditions key is deprecated for equipment %@",_name]);
-				if (OOEnforceStandards())
+				if (!OOEnforceStandards())
 				{
 					_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
 					[_conditions retain];
