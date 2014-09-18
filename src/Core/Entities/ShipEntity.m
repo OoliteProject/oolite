@@ -6957,10 +6957,10 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 #ifdef DEBUG_LASER_TYPES
 			[self setLaserColor:[OOColor yellowColor]];
 #endif
-			weapon_damage =			7.5;
+			weapon_damage =			6.0;
 			// weapon_recharge_rate =	0.25;
 			weapon_recharge_rate =	0.1;
-			weapon_shot_temperature =	4.0f;
+			weapon_shot_temperature =	3.2f;
 			break;
 		case WEAPON_MINING_LASER:
 #ifdef DEBUG_LASER_TYPES
@@ -6984,10 +6984,10 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 #ifdef DEBUG_LASER_TYPES
 			[self setLaserColor:[OOColor magentaColor]];
 #endif
-			weapon_damage =			23.0;
+			weapon_damage =			9.0;
 			// weapon_recharge_rate =	0.20;
 			weapon_recharge_rate =	0.10;
-			weapon_shot_temperature =	8.0f;
+			weapon_shot_temperature =	3.2f;
 			break;
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
