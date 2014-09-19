@@ -5370,7 +5370,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 			break;
 			
 		case WEAPON_BEAM_LASER:
-			weapon_energy_use =		1.0f;
+			weapon_energy_use =		0.5f;
 			weapon_reload_time =	0.1f;
 			break;
 			
@@ -5381,7 +5381,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 			
 		case WEAPON_THARGOID_LASER:
 		case WEAPON_MILITARY_LASER:
-			weapon_energy_use =		1.2f;
+			weapon_energy_use =		0.8f;
 			weapon_reload_time =	0.1f;
 			break;
 			
