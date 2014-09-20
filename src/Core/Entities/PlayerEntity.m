@@ -7822,11 +7822,29 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 		unsigned modeWidth = [mode oo_unsignedIntForKey:kOODisplayWidth];
 		unsigned modeHeight = [mode oo_unsignedIntForKey:kOODisplayHeight];
 		float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
+
+#if OOLITE_WINDOWS
+		BOOL runningOnPrimaryDisplayDevice = [gameView isRunningOnPrimaryDisplayDevice];
+		if (!runningOnPrimaryDisplayDevice)
+		{
+			MONITORINFOEX mInfo = [gameView currentMonitorInfo];
+			modeWidth = mInfo.rcMonitor.right - mInfo.rcMonitor.left;
+			modeHeight = mInfo.rcMonitor.bottom - mInfo.rcMonitor.top;
+		}
+#endif
 		
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
+		
 		[gui setText:displayModeString forRow:GUI_ROW(GAME,DISPLAY) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DISPLAY)];
-#endif
+		if (runningOnPrimaryDisplayDevice)
+		{
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DISPLAY)];
+		}
+		else
+		{
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,DISPLAY)];
+		}
+#endif	// OO_RESOLUTIOM_OPTION
 
 		if ([UNIVERSE autoSave])
 			[gui setText:DESC(@"gameoptions-autosave-yes") forRow:GUI_ROW(GAME,AUTOSAVE) align:GUI_ALIGN_CENTER];
