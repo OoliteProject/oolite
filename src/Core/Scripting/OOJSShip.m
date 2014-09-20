@@ -352,7 +352,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "destinationSystem",		kShip_destinationSystem,	OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
 	{ "dockingInstructions",	kShip_dockingInstructions,	OOJS_PROP_READONLY_CB },
-	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
+	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READWRITE_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
@@ -399,11 +399,11 @@ static JSPropertySpec sShipProperties[] =
 	{ "lightsActive",			kShip_lightsActive,			OOJS_PROP_READWRITE_CB },
 	{ "markedForFines",				kShip_markedForFines,				OOJS_PROP_READONLY_CB },
 	{ "maxEscorts",				kShip_maxEscorts,				OOJS_PROP_READWRITE_CB },
-	{ "maxPitch",				kShip_maxPitch,				OOJS_PROP_READONLY_CB },
-	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READONLY_CB },
-	{ "maxRoll",				kShip_maxRoll,				OOJS_PROP_READONLY_CB },
-	{ "maxYaw",					kShip_maxYaw,				OOJS_PROP_READONLY_CB },
-	{ "maxThrust",				kShip_maxThrust,			OOJS_PROP_READONLY_CB },
+	{ "maxPitch",				kShip_maxPitch,				OOJS_PROP_READWRITE_CB },
+	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READWRITE_CB },
+	{ "maxRoll",				kShip_maxRoll,				OOJS_PROP_READWRITE_CB },
+	{ "maxYaw",					kShip_maxYaw,				OOJS_PROP_READWRITE_CB },
+	{ "maxThrust",				kShip_maxThrust,			OOJS_PROP_READWRITE_CB },
 	{ "missileCapacity",		kShip_missileCapacity,		OOJS_PROP_READONLY_CB },
 	{ "missileLoadTime",		kShip_missileLoadTime,		OOJS_PROP_READWRITE_CB },
 	{ "missiles",				kShip_missiles,				OOJS_PROP_READONLY_CB },
@@ -1555,7 +1555,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 			
 		case kShip_thrust:
-			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+//			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
 			
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
@@ -1563,7 +1563,87 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_maxPitch:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxPitch cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightPitch:fValue];
+				return YES;
+			}
+			break;
+
+		
+		case kShip_maxSpeed:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxSpeed cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightSpeed:fValue];
+				return YES;
+			}
+			break;
+		
+		case kShip_maxRoll:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxRoll cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightRoll:fValue];
+				return YES;
+			}
+			break;
+		
+		case kShip_maxYaw:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxYaw cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightYaw:fValue];
+				return YES;
+			}
+			break;
+
+		case kShip_maxThrust:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxThrust cannot be negative.");
+					return NO;
+				}
+				[entity setMaxThrust:fValue];
+				return YES;
+			}
+			break;
+
+		case kShip_energyRechargeRate:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.energyRechargeRate cannot be negative.");
+					return NO;
+				}
+				[entity setEnergyRechargeRate:fValue];
+				return YES;
+			}
+			break;
 			
+
 		case kShip_lightsActive:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{

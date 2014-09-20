@@ -5331,6 +5331,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+// needed to stop PS.energyRechargeRate = PS.energyRechargeRate going wrong
+- (void) setEnergyRechargeRate:(GLfloat)new
+{
+	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
+	energy_recharge_rate = new / energy_multiplier;
+}
+
+
 - (OOEnergyUnitType) energyUnitType
 {
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])  return ENERGY_UNIT_NAVAL;

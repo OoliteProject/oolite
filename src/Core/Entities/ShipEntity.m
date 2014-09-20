@@ -3792,6 +3792,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (void) setMaxThrust:(GLfloat)new
+{
+	max_thrust = new;
+}
+
+
 - (float) thrust
 {
 	return thrust;
@@ -7004,6 +7010,13 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 	return energy_recharge_rate;
 }
 
+
+- (void) setEnergyRechargeRate:(GLfloat)new
+{
+	energy_recharge_rate = new;
+}
+
+
 - (float) weaponRechargeRate
 {
 	return weapon_recharge_rate;
@@ -8174,6 +8187,30 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (GLfloat) maxFlightYaw
 {
 	return max_flight_yaw;
+}
+
+
+- (void) setMaxFlightPitch:(GLfloat)new
+{
+	max_flight_pitch = new;
+}
+
+
+- (void) setMaxFlightSpeed:(GLfloat)new
+{
+	maxFlightSpeed = new;
+}
+
+
+- (void) setMaxFlightRoll:(GLfloat)new
+{
+	max_flight_roll = new;
+}
+
+
+- (void) setMaxFlightYaw:(GLfloat)new
+{
+	max_flight_yaw = new;
 }
 
 

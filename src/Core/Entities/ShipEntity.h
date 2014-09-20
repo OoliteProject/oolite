@@ -630,6 +630,14 @@ typedef enum
 - (float) maxThrust;
 - (float) thrust;
 
+- (void) setMaxThrust:(GLfloat)new;
+- (void) setMaxFlightPitch:(GLfloat)new;
+- (void) setMaxFlightSpeed:(GLfloat)new;
+- (void) setMaxFlightRoll:(GLfloat)new;
+- (void) setMaxFlightYaw:(GLfloat)new;
+- (void) setEnergyRechargeRate:(GLfloat)new;
+
+
 - (void) processBehaviour:(OOTimeDelta)delta_t;
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;

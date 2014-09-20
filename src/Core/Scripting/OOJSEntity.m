@@ -100,7 +100,7 @@ static JSPropertySpec sEntityProperties[] =
 	{ "energy",					kEntity_energy,				OOJS_PROP_READWRITE_CB },
 	{ "heading",				kEntity_heading,			OOJS_PROP_READONLY_CB },
 	{ "mass",					kEntity_mass,				OOJS_PROP_READONLY_CB },
-	{ "maxEnergy",				kEntity_maxEnergy,			OOJS_PROP_READONLY_CB },
+	{ "maxEnergy",				kEntity_maxEnergy,			OOJS_PROP_READWRITE_CB },
 	{ "orientation",			kEntity_orientation,		OOJS_PROP_READWRITE_CB },
 	{ "owner",					kEntity_owner,				OOJS_PROP_READONLY_CB },
 	{ "position",				kEntity_position,			OOJS_PROP_READWRITE_CB },
@@ -346,6 +346,20 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsid propID,
 				return YES;
 			}
 			break;
+
+		case kEntity_maxEnergy:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue <= 0.0)
+				{
+					OOJSReportError(context, @"entity.maxEnergy must be positive.");
+					return NO;
+				}
+				[entity setMaxEnergy:fValue];
+				return YES;
+			}
+			break;
+
 
 		case kEntity_scanClass:
 			if ([entity isShip] && ![entity isPlayer])
