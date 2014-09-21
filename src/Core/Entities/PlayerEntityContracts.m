@@ -1705,7 +1705,6 @@ static NSMutableDictionary *currentShipyard = nil;
 
 - (BOOL) buySelectedShip
 {
-	int				i;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIRow		selectedRow = [gui selectedRow];
 	
@@ -1760,10 +1759,10 @@ static NSMutableDictionary *currentShipyard = nil;
 	// this ship has a clean record
 	legalStatus = 0;
 
-	NSArray* extras = [shipInfo oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
-	for (i = 0; i < [extras count]; i++)
+	NSArray *extras = [shipInfo oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
+	for (NSUInteger i = 0; i < [extras count]; i++)
 	{
-		NSString* eq_key = [extras oo_stringAtIndex:i];
+		NSString *eq_key = [extras oo_stringAtIndex:i];
 		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
 		{
 			max_passengers++;

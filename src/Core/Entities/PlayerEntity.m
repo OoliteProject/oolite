@@ -935,8 +935,6 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	NSInteger	i;
-	
 	// multi-function displays
 	// must be reset before ship setup
 	[multiFunctionDisplayText release];
@@ -1112,7 +1110,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	NSMutableDictionary *contractInfo = nil;
 
 	// iterate downwards; lets us remove invalid ones as we go
-	for (i = [contracts count]-1 ; i >= 0 ; i--)
+	for (NSInteger i = (NSInteger)[contracts count] - 1; i >= 0; i--)
 	{
 		contractInfo = [[[contracts oo_dictionaryAtIndex:i] mutableCopy] autorelease];
 		// if the trade good ID is an int
@@ -1185,7 +1183,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	if (passengers && ([passengers count] > max_passengers))
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.passengers", @"player ship %@ had more passengers (%lu) than passenger berths (%u). Removing extra passengers.", [self name], [passengers count], max_passengers);
-		for (i = [passengers count] - 1; i >= max_passengers; i--)
+		for (NSInteger i = (NSInteger)[passengers count] - 1; i >= max_passengers; i--)
 		{
 			[passenger_record removeObjectForKey:[[passengers oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME]];
 			[passengers removeObjectAtIndex:i];
@@ -1193,7 +1191,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	}
 	
 	// too much cargo?	
-	int excessCargo = [self cargoQuantityOnBoard] - [self maxAvailableCargoSpace];
+	OOCargoQuantity excessCargo = [self cargoQuantityOnBoard] - [self maxAvailableCargoSpace];
 	if (excessCargo > 0)
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], [self maxAvailableCargoSpace]);
@@ -1202,7 +1200,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 		OOMassUnit			units;
 		OOCargoQuantity		oldAmount, toRemove;
 		
-		i = excessCargo;
+		OOCargoQuantity remainingExcess = excessCargo;
 		
 		// manifest always contains entries for all 17 commodities, even if their quantity is 0.
 		foreach (type, [shipCommodityData goods])
@@ -1216,20 +1214,20 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 				// let's remove stuff
 				OOCargoQuantity partAmount = oldAmount;
 				toRemove = 0;
-				while (i > 0 && partAmount > 0)
+				while (remainingExcess > 0 && partAmount > 0)
 				{
 					if (EXPECT_NOT(roundedTon && ((units == UNITS_KILOGRAMS && partAmount > MAX_KILOGRAMS_IN_SAFE) || (units == UNITS_GRAMS && partAmount > MAX_GRAMS_IN_SAFE))))
 					{
 						toRemove += (units == UNITS_KILOGRAMS) ? (partAmount > (KILOGRAMS_PER_POD + MAX_KILOGRAMS_IN_SAFE) ? KILOGRAMS_PER_POD : partAmount - MAX_KILOGRAMS_IN_SAFE)
 									: (partAmount > (GRAMS_PER_POD + MAX_GRAMS_IN_SAFE) ? GRAMS_PER_POD : partAmount - MAX_GRAMS_IN_SAFE);
 						partAmount = oldAmount - toRemove;
-						i--;
+						remainingExcess--;
 					}
 					else if (!roundedTon)
 					{
 						toRemove++;
 						partAmount--;
-						i--;
+						remainingExcess--;
 					}
 					else
 					{
@@ -1330,7 +1328,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	NSArray *savedCommLog = [dict oo_arrayForKey:@"comm_log"];
 	NSUInteger commCount = [savedCommLog count];
-	for (i = 0; i < commCount; i++)
+	for (NSUInteger i = 0; i < commCount; i++)
 	{
 		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
 	}
@@ -1344,7 +1342,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	// set up missiles
 	[self setActiveMissile:0];
-	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
+	for (NSUInteger i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
 		[missile_entity[i] release];
 		missile_entity[i] = nil;
@@ -1352,17 +1350,17 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
-		for (i = 0, missiles = 0; i < [missileRoles count] && missiles < max_missiles; i++)
+		for (NSUInteger roleIndex = 0, missileCount = 0; roleIndex < [missileRoles count] && missileCount < max_missiles; roleIndex++)
 		{
-			NSString *missile_desc = [missileRoles oo_stringAtIndex:i];
+			NSString *missile_desc = [missileRoles oo_stringAtIndex:roleIndex];
 			if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"])
 			{
 				ShipEntity *amiss = [UNIVERSE newShipWithRole:missile_desc];
 				if (amiss)
 				{
-					missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:missile_desc];
-					missile_entity[missiles] = amiss;   // retain count = 1
-					missiles++;
+					missile_list[missileCount] = [OOEquipmentType equipmentTypeWithIdentifier:missile_desc];
+					missile_entity[missileCount] = amiss;   // retain count = 1
+					missileCount++;
 				}
 				else
 				{
@@ -1373,7 +1371,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	}
 	else	// no missile_roles
 	{
-		for (i = 0; i < missiles; i++)
+		for (NSUInteger i = 0; i < missiles; i++)
 		{
 			missile_list[i] = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retain count = 1 - should be okay as long as we keep a missile with this role
@@ -9808,25 +9806,25 @@ static NSString *last_outfitting_key=nil;
 	}
 
 	// following changed to work whether docked or not
-	NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
-	NSUInteger maxOffset = 0;
+	NSArray *goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
+	NSInteger maxOffset = 0;
 	if ([goods count] > (GUI_ROW_MARKET_END-GUI_ROW_MARKET_START))
 	{
 		maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
 	}
 
-	NSUInteger			i, j, commodityCount = [shipCommodityData count];
+	NSUInteger			commodityCount = [shipCommodityData count];
 	OOCargoQuantity		quantityInHold[commodityCount];
 		
-	for (i = 0; i < commodityCount; i++)
+	for (NSUInteger i = 0; i < commodityCount; i++)
 	{
 		quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
 	}
-	for (i = 0; i < [cargo count]; i++)
+	for (NSUInteger i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
-		j = [goods indexOfObject:[container commodityType]];
-		quantityInHold[j] += [container commodityAmount];
+		NSUInteger goodsIndex = [goods indexOfObject:[container commodityType]];
+		quantityInHold[goodsIndex] += [container commodityAmount];
 	}
 
 	if (marketSelectedCommodity != nil && ([marketSelectedCommodity isEqualToString:@"<<<"] || [marketSelectedCommodity isEqualToString:@">>>"]))
@@ -9845,17 +9843,17 @@ static NSString *last_outfitting_key=nil;
 		}
 		if (maxOffset > 0)
 		{
-			j = [goods indexOfObject:marketSelectedCommodity];
+			NSInteger goodsIndex = [goods indexOfObject:marketSelectedCommodity];
 			// validate marketOffset when returning from infoscreen
-			if (j <= marketOffset)
+			if (goodsIndex <= marketOffset)
 			{
 				// is off top of list, move list upwards
-				marketOffset = j-1;
+				marketOffset = goodsIndex-1;
 			}
-			else if (j > marketOffset+(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START)-2)
+			else if (goodsIndex > marketOffset+(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START)-2)
 			{
 				// is off bottom of list, move list downwards
-				marketOffset = 2+j-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+				marketOffset = 2+goodsIndex-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
 				if (marketOffset > maxOffset)
 				{
 					marketOffset = maxOffset;
@@ -9903,7 +9901,7 @@ static NSString *last_outfitting_key=nil;
 		if ([goods count] > 0)
 		{
 			OOCommodityType good = nil;
-			i = 0;
+			NSInteger i = 0;
 			foreach (good, goods)
 			{
 				if (i < marketOffset)

@@ -2538,25 +2538,25 @@ static NSTimeInterval	time_last_frame;
 				NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
 				if ([goods count] > 0)
 				{
-					NSInteger j = [goods indexOfObject:marketSelectedCommodity];
+					NSInteger goodsIndex = [goods indexOfObject:marketSelectedCommodity];
 					if (arrow_down)
 					{
-						++j;
+						++goodsIndex;
 					}
 					else
 					{
-						--j;
+						--goodsIndex;
 					}
-					if (j < 0)
+					if (goodsIndex < 0)
 					{
-						j = [goods count]-1;
+						goodsIndex = [goods count]-1;
 					}
-					else if (j >= [goods count])
+					else if (goodsIndex >= (NSInteger)[goods count])
 					{
-						j = 0;
+						goodsIndex = 0;
 					}
 					DESTROY(marketSelectedCommodity);
-					marketSelectedCommodity = [[goods oo_stringAtIndex:j] retain];
+					marketSelectedCommodity = [[goods oo_stringAtIndex:goodsIndex] retain];
 					[self setGuiToMarketInfoScreen];
 				}
 			}
