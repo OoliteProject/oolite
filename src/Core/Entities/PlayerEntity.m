@@ -7823,8 +7823,8 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 		unsigned modeHeight = [mode oo_unsignedIntForKey:kOODisplayHeight];
 		float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
 
-#if OOLITE_WINDOWS
 		BOOL runningOnPrimaryDisplayDevice = [gameView isRunningOnPrimaryDisplayDevice];
+#if OOLITE_WINDOWS
 		if (!runningOnPrimaryDisplayDevice)
 		{
 			MONITORINFOEX mInfo = [gameView currentMonitorInfo];
