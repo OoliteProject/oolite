@@ -61,7 +61,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1A0CD53515AF0BCE00970505"
-               BuildableName = "OoliteUnitTests.octest"
+               BuildableName = "OoliteUnitTests.xctest"
                BlueprintName = "OoliteUnitTests"
                ReferencedContainer = "container:Mac-specific/OCUnitTests/OoliteUnitTests.xcodeproj">
             </BuildableReference>
