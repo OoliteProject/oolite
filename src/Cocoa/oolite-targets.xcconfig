@@ -1,7 +1,7 @@
 #include "oolite-warnings.xcconfig"
 
 ARCHS									= x86_64
-SDKROOT									= macosx10.8
+SDKROOT									= macosx
 
 MACOSX_DEPLOYMENT_TARGET				= 10.6
 
