@@ -101,10 +101,10 @@ static float const 		kDeadResetTime				= 30.0f;
 PlayerEntity		*gOOPlayer = nil;
 static GLfloat		sBaseMass = 0.0;
 
-NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *market);
-NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *market);
-NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *market);
-NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByName(id a, id b, void *market);
+NSComparisonResult marketSorterByPrice(id a, id b, void *market);
+NSComparisonResult marketSorterByQuantity(id a, id b, void *market);
+NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 
 @interface PlayerEntity (OOPrivate)
@@ -11905,17 +11905,17 @@ else _dockTarget = NO_TARGET;
 @end
 
 
-NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByName(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	return [[market nameForGood:a] compare:[market nameForGood:b]];
+	return [[market nameForGood:(OOCommodityType)a] compare:[market nameForGood:(OOCommodityType)b]];
 }
 
 
-NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByPrice(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	int result = (int)[market priceForGood:a] - (int)[market priceForGood:b];
+	int result = (int)[market priceForGood:(OOCommodityType)a] - (int)[market priceForGood:(OOCommodityType)b];
 	if (result < 0)
 	{
 		return NSOrderedAscending;
@@ -11931,10 +11931,10 @@ NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, voi
 }
 
 
-NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByQuantity(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	int result = (int)[market quantityForGood:a] - (int)[market quantityForGood:b];
+	int result = (int)[market quantityForGood:(OOCommodityType)a] - (int)[market quantityForGood:(OOCommodityType)b];
 	if (result < 0)
 	{
 		return NSOrderedAscending;
@@ -11950,10 +11950,10 @@ NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, 
 }
 
 
-NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByMassUnit(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	int result = (int)[market massUnitForGood:a] - (int)[market massUnitForGood:b];
+	int result = (int)[market massUnitForGood:(OOCommodityType)a] - (int)[market massUnitForGood:(OOCommodityType)b];
 	if (result < 0)
 	{
 		return NSOrderedAscending;
