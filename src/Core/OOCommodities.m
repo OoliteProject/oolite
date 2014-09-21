@@ -259,7 +259,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(NSString *)scriptName;
+- (OOCommodityMarket *) generateMarketForSystemWithEconomy:(OOEconomyID)economy andScript:(NSString *)scriptName
 {
 	OOScript *script = [PLAYER commodityScriptNamed:scriptName];
 
@@ -427,7 +427,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString *)scriptName inSystem:(OOSystemID)system;
+- (OOCreditsQuantity) samplePriceForCommodity:(OOCommodityType)commodity inEconomy:(OOEconomyID)economy withScript:(NSString *)scriptName inSystem:(OOSystemID)system
 {
 	NSDictionary *good = [_commodityLists oo_dictionaryForKey:commodity];
 	if (good == nil)
@@ -554,20 +554,20 @@ MA 02110-1301, USA.
 - (NSDictionary *) updateInfoFor:(NSDictionary *)good byRule:(NSDictionary *)rule maxCapacity:(OOCargoQuantity)maxCapacity
 {
 	NSMutableDictionary *tmp = [NSMutableDictionary dictionaryWithDictionary:good];
-	int import = [rule oo_intForKey:kOOCommodityMarketLegalityImport defaultValue:-1];
+	NSInteger import = [rule oo_integerForKey:kOOCommodityMarketLegalityImport defaultValue:-1];
 	if (import >= 0)
 	{
 		[tmp oo_setInteger:import forKey:kOOCommodityLegalityImport];
 	}
 
-	int export = [rule oo_intForKey:kOOCommodityMarketLegalityExport defaultValue:-1];
+	NSInteger export = [rule oo_integerForKey:kOOCommodityMarketLegalityExport defaultValue:-1];
 	if (export >= 0)
 	{
 		[tmp oo_setInteger:import forKey:kOOCommodityLegalityExport];
 	}
 
-	int capacity = [rule oo_intForKey:kOOCommodityMarketCapacity defaultValue:-1];
-	if (capacity >= 0 && capacity <= maxCapacity)
+	NSInteger capacity = [rule oo_integerForKey:kOOCommodityMarketCapacity defaultValue:-1];
+	if (capacity >= 0 && capacity <= (NSInteger)maxCapacity)
 	{
 		[tmp oo_setInteger:capacity forKey:kOOCommodityCapacity];
 	}
