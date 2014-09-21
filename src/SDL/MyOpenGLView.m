@@ -800,7 +800,7 @@ MA 02110-1301, USA.
 - (BOOL) isRunningOnPrimaryDisplayDevice
 {
 	return YES;
-+}
+}
 
 #endif //OOLITE_WINDOWS
 
