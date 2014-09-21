@@ -185,7 +185,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-"use strict";
 
 this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
@@ -195,6 +194,7 @@ this.version		= "1.81";
 
 
 (function() {
+"use strict";
 
 this.inputBuffer	= "";
 this.$				= null;
