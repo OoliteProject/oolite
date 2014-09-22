@@ -829,6 +829,14 @@ MA 02110-1301, USA.
 	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
 	
 	RECT wDC;
+	
+	/* initializing gl - better get the current monitor information now
+	   NOTE: If we ever decide to change the default behaviour of launching
+	   always on primary monitor to launching on the monitor the program was 
+	   started on, all that needs to be done is comment out the line below.
+	   Nikos 20140922
+	 */
+	[self getCurrentMonitorInfo: &monitorInfo];
 
 	if (fullScreen)
 	{
@@ -855,9 +863,6 @@ MA 02110-1301, USA.
 			saveSize=NO;
 			
 			ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
-			
-			// just returned to windowed mode; get new display information
-			[self getCurrentMonitorInfo: &monitorInfo];
 			
 			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX |
 									WS_MAXIMIZEBOX );
@@ -902,6 +907,11 @@ MA 02110-1301, USA.
 	// Reset bounds and viewSize to current values
 	bounds.size.width = viewSize.width = wDC.right - wDC.left;
 	bounds.size.height = viewSize.height = wDC.bottom - wDC.top;
+	if (fullScreen) // bounds on fullscreen coincide with client area, since we are borderless
+	{
+		bounds.origin.x = monitorInfo.rcMonitor.left;
+		bounds.origin.y = monitorInfo.rcMonitor.top;
+	}
 	wasFullScreen=fullScreen;
 
 #else //OOLITE_LINUX
@@ -1924,6 +1934,22 @@ keys[a] = NO; keys[b] = NO; \
 						{
 							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
 						}
+						
+						/* if we are in fullscreen mode we normally don't worry about having the window moved.
+						   However, when using multiple monitors, one can use hotkey combinations to make the
+						   window "jump" from one monitor to the next. We don't want this to happen, so if we
+						   detect that our (fullscreen) window has moved, we immediately bring it back to its
+						   original position. Nikos - 20140922
+						*/
+						if (fullScreen)
+						{
+							RECT rDC;
+							GetWindowRect(SDL_Window, &rDC);
+							if (rDC.left != monitorInfo.rcMonitor.left || rDC.top != monitorInfo.rcMonitor.top)
+							{
+								MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+							}
+						}						
 						break;
 					default:
 						;
