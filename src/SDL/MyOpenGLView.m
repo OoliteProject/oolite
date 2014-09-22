@@ -1930,11 +1930,6 @@ keys[a] = NO; keys[b] = NO; \
 				switch (event.syswm.msg->msg)
 				{
 					case WM_WINDOWPOSCHANGING:
-						if ([PlayerEntity sharedPlayer])
-						{
-							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
-						}
-						
 						/* if we are in fullscreen mode we normally don't worry about having the window moved.
 						   However, when using multiple monitors, one can use hotkey combinations to make the
 						   window "jump" from one monitor to the next. We don't want this to happen, so if we
@@ -1949,7 +1944,13 @@ keys[a] = NO; keys[b] = NO; \
 							{
 								MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
 							}
-						}						
+						}
+						// it is important that this gets done after we've dealt with possible fullscreen movements,
+						// because -doGuiScreenResizeUpdates does itself an update on current monitor
+						if ([PlayerEntity sharedPlayer])
+						{
+							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+						}
 						break;
 					default:
 						;
