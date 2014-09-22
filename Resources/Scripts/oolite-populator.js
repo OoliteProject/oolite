@@ -2272,7 +2272,7 @@ this._setWeapons = function(ship,level)
 
 this._setSkill = function(ship,bias)
 {
-	level += this.$skillLevelBias;
+	bias += this.$skillLevelBias;
 	if (ship.autoWeapons && ship.accuracy < 5 && bias != 0)
 	{
 		// shift skill towards end of accuracy range

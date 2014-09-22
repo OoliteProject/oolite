@@ -3746,8 +3746,8 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"Ship", @"threatAssessment", argc, OOJS_ARGV, nil, @"boolean");
 		return NO;
 	}
-	// start with 1 per ship
-	double assessment = 1;
+	// start with 2.5 per ship
+	double assessment = 2.5;
 	// +/- 0.1 for speed, larger subtraction for very slow ships
 	GLfloat maxspeed = [thisEnt maxFlightSpeed];
 	assessment += (maxspeed-300)/1000;
@@ -3801,14 +3801,14 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		}
 		else
 		{
-			assessment += [thisEnt accuracy]/10;
+			assessment += [thisEnt accuracy]/5;
 		}
 
 		// check lasers
 		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD strict:NO];
 		if (wt == WEAPON_NONE)
 		{
-			assessment -= 1;
+			assessment -= 2.5; // cancel base ship danger
 		}
 		else
 		{
@@ -3850,7 +3850,7 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 			assessment *= 1.5;
 			if ([thisEnt hasRole:@"thargoid-mothership"])
 			{
-				assessment += 2.5;
+				assessment += 5;
 			}
 		}
 		else
@@ -3863,7 +3863,7 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 			else
 			{
 				// and more than one trick if they can mount multiple lasers
-				assessment += 0.75;
+				assessment += 0.5;
 			}
 		}
 	}
@@ -3898,7 +3898,7 @@ static double ShipThreatAssessmentWeapon(OOWeaponType wt)
 	case WEAPON_PULSE_LASER:
 		return 0;
 	case WEAPON_BEAM_LASER:
-		return 0.33;
+		return 0.5;
 	case WEAPON_MINING_LASER:
 		return -0.5;
 	case WEAPON_MILITARY_LASER:
