@@ -42,6 +42,10 @@ MA 02110-1301, USA.
 #define ALLOW_CUSTOM_VIEWS_WHILE_PAUSED	1
 #define SCRIPT_TIMER_INTERVAL			10.0
 
+#ifndef OO_VARIABLE_TORUS_SPEED
+#define OO_VARIABLE_TORUS_SPEED			1
+#endif
+
 #define GUI_ROW_INIT(GUI) /*int n_rows = [(GUI) rows]*/
 #define GUI_FIRST_ROW(GROUP) ((GUI_DEFAULT_ROWS - GUI_ROW_##GROUP##OPTIONS_END_OF_LIST) / 2)
 // reposition menu
@@ -290,7 +294,13 @@ typedef enum
 
 #define	PLAYER_TARGET_MEMORY_SIZE		16
 
-#define HYPERSPEED_FACTOR				32.0
+#if OO_VARIABLE_TORUS_SPEED
+#define HYPERSPEED_FACTOR				[PLAYER hyperspeedFactor]
+#define MIN_HYPERSPEED_FACTOR			32.0
+#define MAX_HYPERSPEED_FACTOR			1024.0
+#else
+#define HYPERSPEED_FACTOR				32
+#endif
 
 #define PLAYER_SHIP_DESC				@"cobra3-player"
 
@@ -494,7 +504,11 @@ typedef enum
 	OOWeakReference			*compassTarget;
 	
 	GLfloat					fuel_leak_rate;
-	
+
+#if OO_VARIABLE_TORUS_SPEED
+	GLfloat					hyperspeedFactor;
+#endif
+
 	// keys!
 	NSDictionary   *keyconfig_settings;
 
@@ -822,6 +836,10 @@ typedef enum
 
 - (float) fuelLeakRate;
 - (void) setFuelLeakRate:(float)value;
+
+#if OO_VARIABLE_TORUS_SPEED
+- (GLfloat) hyperspeedFactor;
+#endif
 
 - (double) clockTime;			// Note that this is not an OOTimeAbsolute
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute

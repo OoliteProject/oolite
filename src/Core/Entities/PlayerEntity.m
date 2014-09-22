@@ -2655,6 +2655,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				if (alertFlags & ALERT_FLAG_MASS_LOCK)
 				{
 					// decelerate much quicker in masslocks
+					// this does also apply to injector deceleration
+					// but it's not very noticeable
 					deceleration *= 3;
 				}
 				flightSpeed -= deceleration;
@@ -2760,7 +2762,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		return;
 	}
 
-	int				i, ent_count		= UNIVERSE->n_entities;
+	int				i, ent_count	= UNIVERSE->n_entities;
 	Entity			**uni_entities	= UNIVERSE->sortedEntities;	// grab the public sorted list
 	Entity			*my_entities[ent_count];
 	Entity			*scannedEntity = nil;
@@ -2770,19 +2772,37 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	BOOL massLocked = NO;
 	BOOL foundHostiles = NO;
+#if OO_VARIABLE_TORUS_SPEED
+	BOOL needHyperspeedNearest = YES;
+	double hsnDistance = 0;
+#endif
 	for (i = 0; i < ent_count; i++)  // scanner lollypops
 	{
 		scannedEntity = my_entities[i];
 
-		/* if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2)
+#if OO_VARIABLE_TORUS_SPEED
+		if (EXPECT_NOT(needHyperspeedNearest))
 		{
-			// list is sorted, and ships outside scanner range can't
-			// affect alert status
-			break;
-			}*/
-		/* Oh, wait, but *planets* outside scanner range can. Skip
-		 * this optimisation for now, though it could be done another
-		 * way - CIM */
+			// not visual effects, waypoints, ships, etc.
+			if (scannedEntity != self && [scannedEntity canCollide])
+			{
+				hsnDistance = sqrt(scannedEntity->zero_distance)-[scannedEntity collisionRadius];
+				needHyperspeedNearest = NO;
+			}
+		} 
+		else if ([scannedEntity isStellarObject])
+		{
+			// planets, stars might be closest surface even if not
+			// closest centre. That could be true of others, but the
+			// error is negligible there.
+			double thisHSN = sqrt(scannedEntity->zero_distance)-[scannedEntity collisionRadius];
+			if (thisHSN < hsnDistance)
+			{
+				hsnDistance = thisHSN;
+			}
+		}
+#endif
+		
 		if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
 			int theirClass = [scannedEntity scanClass];
@@ -2801,6 +2821,35 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			}
 		}
 	}
+#if OO_VARIABLE_TORUS_SPEED
+	if (EXPECT_NOT(needHyperspeedNearest))
+	{
+		// this case should only occur in an otherwise empty
+		// interstellar space - unlikely but possible
+		hyperspeedFactor = MIN_HYPERSPEED_FACTOR;
+	}
+	else
+	{
+		// once nearest object is >4x scanner range
+		// start increasing torus speed
+		double factor = hsnDistance/(4*SCANNER_MAX_RANGE);
+		if (factor < 1.0)
+		{
+			hyperspeedFactor = MIN_HYPERSPEED_FACTOR;
+		}
+		else
+		{
+			hyperspeedFactor = MIN_HYPERSPEED_FACTOR * sqrt(factor);
+			if (hyperspeedFactor > MAX_HYPERSPEED_FACTOR)
+			{
+				// caps out at ~10^8m from nearest object
+				// which takes ~10 minutes of flying
+				hyperspeedFactor = MAX_HYPERSPEED_FACTOR;
+			}
+		}
+	}
+#endif
+
 	[self setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
 		
 	[self setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
@@ -3145,6 +3194,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 #define VELOCITY_CLEANUP_MIN	2000.0f	// Minimum speed for "power braking".
 #define VELOCITY_CLEANUP_FULL	5000.0f	// Speed at which full "power braking" factor is used.
 #define VELOCITY_CLEANUP_RATE	0.001f	// Factor for full "power braking".
+
+
+#if OO_VARIABLE_TORUS_SPEED
+- (GLfloat) hyperspeedFactor
+{
+	return hyperspeedFactor;
+}
+#endif
 
 
 - (void) performInFlightUpdates:(OOTimeDelta)delta_t
