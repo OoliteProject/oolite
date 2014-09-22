@@ -2651,7 +2651,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			if (travelling_at_hyperspeed)
 			{
 				// decrease speed to maximum normal speed
-				flightSpeed -= (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
+				float deceleration = (speed_delta * delta_t * HYPERSPEED_FACTOR);
+				if (alertFlags & ALERT_FLAG_MASS_LOCK)
+				{
+					// decelerate much quicker in masslocks
+					deceleration *= 3;
+				}
+				flightSpeed -= deceleration;
 				if (flightSpeed < maxFlightSpeed)
 					flightSpeed = maxFlightSpeed;
 			}
