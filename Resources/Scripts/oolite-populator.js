@@ -40,9 +40,51 @@ this.copyright		= "© 2008-2013 the Oolite team.";
 
 this.startUp = function()
 {
-	// for translations
+	/* For translations: the Moray Medical Boat gets different cargo */
 	this.$medicalReg = new RegExp(expandDescription("[medical-word]"),"i");
+
+	/* The global level of bias in weapon selection. A few useful
+	 * threshold values if modifying this:
+	 *
+	 * 0: default weapon selection
+	 *
+	 * 0.2: above this military lasers start being granted to rare ships
+	 *
+	 * 1.2: above this aft military lasers start appearing; forward
+	 * military/aft beam is common
+	 *
+	 * -0.8: no ships have aft beam laser; forward beam is rare
+	 *
+	 * -1.8: no ships have beam lasers
+	 *
+	 * A few ships (e.g. police ships) do not have variable lasers and
+	 * are not affected by this setting.
+	 */
+	this.$weaponLevelBias = 0;
+
+	/* The global level of bias in AI skill selection. Per-ship bias
+	 * varies between +3 and -3. Ships with accuracy already >= 5 are
+	 * not affected by this biasing.
+	 *
+	 * At -3, no ships will get an accuracy higher than the random
+	 * -5..5 they spawned with; at +3 no ships will get an accuracy
+	 * lower than that.
+	 *
+	 * Regardless of this parameter, 
+	 */
+	this.$skillLevelBias = 0;
+
+	/* The maximum accuracy a ship can be granted by skill
+	 * biasing. Values >10 can be set and will make it more likely
+	 * that any ship with positive skill bias will get accuracy
+	 * 10. Setting a negative value here will have odd results.  
+	 */
+	this.$skillLevelMaximum = 4.99;
+
+
+	// internal variables; do not modify outside this script
 	this.$populatorRun = 0;
+	delete this.startUp;
 }
 
 
@@ -2171,6 +2213,7 @@ this._setEscortWeapons = function(mothership)
  */
 this._setWeapons = function(ship,level)
 {
+	level += this.$weaponLevelBias;
 	if (!ship.autoWeapons)
 	{
 		// default is not to change anything
@@ -2229,10 +2272,11 @@ this._setWeapons = function(ship,level)
 
 this._setSkill = function(ship,bias)
 {
+	level += this.$skillLevelBias;
 	if (ship.autoWeapons && ship.accuracy < 5 && bias != 0)
 	{
 		// shift skill towards end of accuracy range
-		var target = 4.99;
+		var target = this.$skillLevelMaximum;
 		if (bias < 0)
 		{
 			target = -5;
