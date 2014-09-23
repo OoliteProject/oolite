@@ -1191,7 +1191,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	// too much cargo?	
-	OOCargoQuantity excessCargo = [self cargoQuantityOnBoard] - [self maxAvailableCargoSpace];
+	NSInteger excessCargo = (NSInteger)[self cargoQuantityOnBoard] - (NSInteger)[self maxAvailableCargoSpace];
 	if (excessCargo > 0)
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], [self maxAvailableCargoSpace]);
@@ -1200,7 +1200,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		OOMassUnit			units;
 		OOCargoQuantity		oldAmount, toRemove;
 		
-		OOCargoQuantity remainingExcess = excessCargo;
+		OOCargoQuantity remainingExcess = (OOCargoQuantity)excessCargo;
 		
 		// manifest always contains entries for all 17 commodities, even if their quantity is 0.
 		foreach (type, [shipCommodityData goods])
