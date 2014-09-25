@@ -158,14 +158,8 @@ static OOOXZManager *sSingleton = nil;
 		// if the file has not been downloaded, this will be nil
 		[self setOXZList:OOArrayFromFile([self manifestPath])];
 		OOLog(kOOOXZDebugLog,@"Initialised with %@",_oxzList);
-		if (_oxzList != nil)
-		{
-			_interfaceState = OXZ_STATE_MAIN;
-		}
-		else
-		{
-			_interfaceState = OXZ_STATE_NODATA;
-		}
+		_interfaceState = OXZ_STATE_NODATA;
+		
 		_changesMade = NO;
 		_downloadAllDependencies = NO;
 		_dependencyStack = [[NSMutableSet alloc] initWithCapacity:8];
@@ -789,11 +783,26 @@ static OOOXZManager *sSingleton = nil;
 	switch (_interfaceState)
 	{
 	case OXZ_STATE_NODATA:
-		[gui addLongText:DESC(@"oolite-oxzmanager-firstrun") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
-		[gui setText:DESC(@"oolite-oxzmanager-download-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
-		[gui setKey:@"_UPDATE" forRow:OXZ_GUI_ROW_UPDATE];
+		if (_oxzList == nil)
+		{
+			[gui addLongText:DESC(@"oolite-oxzmanager-firstrun") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
+			[gui setText:DESC(@"oolite-oxzmanager-download-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
+			[gui setKey:@"_UPDATE" forRow:OXZ_GUI_ROW_UPDATE];
 
-		startRow = OXZ_GUI_ROW_UPDATE;
+			startRow = OXZ_GUI_ROW_UPDATE;
+		}
+		else
+		{
+			// update data	
+			[gui addLongText:DESC(@"oolite-oxzmanager-secondrun") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
+			[gui setText:DESC(@"oolite-oxzmanager-download-noupdate") forRow:OXZ_GUI_ROW_PROCEED align:GUI_ALIGN_CENTER];
+			[gui setKey:@"_MAIN" forRow:OXZ_GUI_ROW_PROCEED];
+
+			[gui setText:DESC(@"oolite-oxzmanager-update-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
+			[gui setKey:@"_UPDATE" forRow:OXZ_GUI_ROW_UPDATE];
+
+			startRow = OXZ_GUI_ROW_PROCEED;
+		}
 		break;
 	case OXZ_STATE_RESTARTING:
 		[gui addLongText:DESC(@"oolite-oxzmanager-restart") startingAtRow:OXZ_GUI_ROW_FIRSTRUN align:GUI_ALIGN_LEFT];
@@ -902,6 +911,10 @@ static OOOXZManager *sSingleton = nil;
 	{
 		[gui setSelectedRow:OXZ_GUI_ROW_INSTALL];
 	}
+	else if (_interfaceState == OXZ_STATE_NODATA)
+	{
+		[gui setSelectedRow:OXZ_GUI_ROW_UPDATE];
+	}
 	else
 	{
 		[gui setSelectedRow:startRow];
@@ -1003,6 +1016,10 @@ static OOOXZManager *sSingleton = nil;
 		if (_interfaceState == OXZ_STATE_DEPENDENCIES)
 		{
 			[self installOXZ:_item];
+		}
+		else if (_interfaceState == OXZ_STATE_NODATA)
+		{
+			_interfaceState = OXZ_STATE_MAIN;
 		}
 		else
 		{
