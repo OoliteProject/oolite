@@ -59,6 +59,7 @@ typedef enum {
 @private
 	NSArray 			*_oxzList;
 	NSArray 			*_managedList;
+	NSArray				*_filteredList;
 	OXZInterfaceState	_interfaceState;
 	BOOL				_changesMade;
 
@@ -70,7 +71,7 @@ typedef enum {
 	NSUInteger			_downloadExpected;
 	NSFileHandle		*_fileWriter;
 	NSUInteger			_item;
-	BOOL				_itemIsFiltered;
+
 	BOOL				_downloadAllDependencies;
 
 	NSUInteger			_offset;
@@ -92,7 +93,7 @@ typedef enum {
 - (void) gui;
 - (BOOL) isRestarting;
 - (void) processSelection;
-- (OOGUIRow) showInstallOptionsWithFilter:(BOOL)filter;
+- (OOGUIRow) showInstallOptions;
 - (OOGUIRow) showRemoveOptions;
 - (void) showOptionsUpdate;
 - (void) showOptionsPrev;

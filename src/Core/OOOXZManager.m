@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "OOOXZManager.h"
 #import "OOPListParsing.h"
+#import "OOStringParsing.h"
 #import "ResourceManager.h"
 #import "OOCacheManager.h"
 #import "Universe.h"
@@ -112,16 +113,19 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) processDownloadedManifests;
 - (BOOL) processDownloadedOXZ;
 
-- (OXZInstallableState) installableState:(NSDictionary *)manifest withAvailability:(BOOL)avail;
-- (OOColor *) colorForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail;
-- (NSString *) installStatusForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail;
+- (OXZInstallableState) installableState:(NSDictionary *)manifest;
+- (OOColor *) colorForManifest:(NSDictionary *)manifest;
+- (NSString *) installStatusForManifest:(NSDictionary *)manifest;
 
 
 - (void) setOXZList:(NSArray *)list;
+- (void) setFilteredList:(NSArray *)list;
+- (NSArray *) applyCurrentFilter:(NSArray *)list;
+
 - (void) setCurrentDownload:(NSURLConnection *)download withLabel:(NSString *)label;
 - (void) setProgressStatus:(NSString *)newStatus;
 
-- (BOOL) installOXZ:(NSUInteger)item filteredList:(BOOL)filtered;
+- (BOOL) installOXZ:(NSUInteger)item;
 - (BOOL) removeOXZ:(NSUInteger)item;
 - (NSArray *) installOptions;
 - (NSArray *) removeOptions;
@@ -178,6 +182,7 @@ static OOOXZManager *sSingleton = nil;
 	[self setCurrentDownload:nil withLabel:nil];
 	DESTROY(_oxzList);
 	DESTROY(_managedList);
+	DESTROY(_filteredList);
 
 	[super dealloc];
 }
@@ -294,6 +299,21 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (void) setFilteredList:(NSArray *)list
+{
+	DESTROY(_filteredList);
+	_filteredList = [list copy]; // copy retains
+}
+
+
+- (NSArray *) applyCurrentFilter:(NSArray *)list
+{
+	// TODO: add filters other than 'all'
+	return list;
+}
+
+
+
 - (void) setCurrentDownload:(NSURLConnection *)download withLabel:(NSString *)label
 {
 	if (_currentDownload != nil)
@@ -340,14 +360,8 @@ static OOOXZManager *sSingleton = nil;
 		if (_interfaceState != OXZ_STATE_UPDATING)
 		{
 			NSDictionary *expectedManifest = nil;
-			if (_itemIsFiltered)
-			{
-				expectedManifest = [[self managedOXZs] objectAtIndex:_item];
-			}
-			else
-			{
-				expectedManifest = [_oxzList objectAtIndex:_item];
-			}
+			expectedManifest = [_filteredList objectAtIndex:_item];
+
 			label = [expectedManifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-download-label-oxz")];
 		}
 
@@ -490,17 +504,11 @@ static OOOXZManager *sSingleton = nil;
 		return NO;
 	}
 	NSDictionary *expectedManifest = nil;
-	if (_itemIsFiltered)
-	{
-		expectedManifest = [[self managedOXZs] objectAtIndex:_item];
-	}
-	else
-	{
-		expectedManifest = [_oxzList objectAtIndex:_item];
-	}
+	expectedManifest = [_filteredList objectAtIndex:_item];
+
 	if (expectedManifest == nil || 
 		(![[downloadedManifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestIdentifier]]) || 
-		(![[downloadedManifest oo_stringForKey:kOOManifestVersion] isEqualToString:[expectedManifest oo_stringForKey:(_itemIsFiltered?kOOManifestAvailableVersion:kOOManifestVersion)]])
+		(![[downloadedManifest oo_stringForKey:kOOManifestVersion] isEqualToString:[expectedManifest oo_stringForKey:kOOManifestAvailableVersion]])
 		)
 	{
 		_downloadStatus = OXZ_DOWNLOAD_ERROR;
@@ -614,11 +622,13 @@ static OOOXZManager *sSingleton = nil;
 
 		if (foundDownload)
 		{
+			// must clear filters entirely at this point
+			[self setFilteredList:_oxzList];
 			// then download that item
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 			if (_downloadAllDependencies)
 			{
-				[self installOXZ:index filteredList:NO];
+				[self installOXZ:index];
 			}
 			else
 			{
@@ -651,7 +661,7 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (OXZInstallableState) installableState:(NSDictionary *)manifest withAvailability:(BOOL)avail
+- (OXZInstallableState) installableState:(NSDictionary *)manifest
 {
 	NSString *title = [manifest oo_stringForKey:kOOManifestTitle defaultValue:nil];
 	NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier defaultValue:nil];
@@ -669,14 +679,15 @@ static OOOXZManager *sSingleton = nil;
 			// installed manually
 			return OXZ_UNINSTALLABLE_MANUAL;
 		}
-		if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:(avail?kOOManifestAvailableVersion:kOOManifestVersion)]] && [[NSFileManager defaultManager] fileExistsAtPath:[installed oo_stringForKey:kOOManifestFilePath]])
+		if ([[installed oo_stringForKey:kOOManifestVersion] isEqualToString:[manifest oo_stringForKey:kOOManifestAvailableVersion defaultValue:[manifest oo_stringForKey:kOOManifestVersion]]]
+			&& [[NSFileManager defaultManager] fileExistsAtPath:[installed oo_stringForKey:kOOManifestFilePath]])
 		{
 			// installed this exact version already, and haven't
 			// uninstalled it since entering the manager, and it's
 			// still available
 			return OXZ_UNINSTALLABLE_ALREADY;
 		}
-		else if (avail && [manifest oo_stringForKey:kOOManifestAvailableVersion defaultValue:nil] == nil)
+		else if ([manifest oo_stringForKey:kOOManifestAvailableVersion defaultValue:nil] == nil)
 		{
 			// installed, but no remote copy is indexed any more
 			return OXZ_UNINSTALLABLE_NOREMOTE;
@@ -695,6 +706,11 @@ static OOOXZManager *sSingleton = nil;
 	{
 		if (installed != nil) 
 		{
+			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([installed oo_stringForKey:kOOManifestAvailableVersion])) == NSOrderedDescending)
+			{
+				// the installed copy is more recent than the server copy
+				return OXZ_UNINSTALLABLE_NOREMOTE;
+			}
 			return OXZ_INSTALLABLE_UPDATE;
 		}
 		return OXZ_INSTALLABLE_OKAY;
@@ -702,9 +718,9 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (OOColor *) colorForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail
+- (OOColor *) colorForManifest:(NSDictionary *)manifest 
 {
-	switch ([self installableState:manifest withAvailability:avail])
+	switch ([self installableState:manifest])
 	{
 	case OXZ_INSTALLABLE_OKAY:
 		return [OOColor yellowColor];
@@ -727,9 +743,9 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (NSString *) installStatusForManifest:(NSDictionary *)manifest withAvailability:(BOOL)avail
+- (NSString *) installStatusForManifest:(NSDictionary *)manifest 
 {
-	switch ([self installableState:manifest withAvailability:avail])
+	switch ([self installableState:manifest])
 	{
 	case OXZ_INSTALLABLE_OKAY:
 		return DESC(@"oolite-oxzmanager-installable-okay");
@@ -855,16 +871,19 @@ static OOOXZManager *sSingleton = nil;
 	if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 	{
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-install")];
-		startRow = [self showInstallOptionsWithFilter:NO];
+		[self setFilteredList:[self applyCurrentFilter:_oxzList]];
+		startRow = [self showInstallOptions];
 	}
 	else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
 	{
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-installed")];
-		startRow = [self showInstallOptionsWithFilter:YES];
+		[self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
+		startRow = [self showInstallOptions];
 	}
 	else if (_interfaceState == OXZ_STATE_PICK_REMOVE)
 	{
 		[gui setTitle:DESC(@"oolite-oxzmanager-title-remove")];
+		[self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
 		startRow = [self showRemoveOptions];
 	}
 
@@ -972,7 +991,7 @@ static OOOXZManager *sSingleton = nil;
 		if (_interfaceState == OXZ_STATE_DEPENDENCIES) // also == _PROCEED_ALL
 		{
 			_downloadAllDependencies = YES;
-			[self installOXZ:_item filteredList:NO];
+			[self installOXZ:_item];
 		}
 		else 
 		{
@@ -983,7 +1002,7 @@ static OOOXZManager *sSingleton = nil;
 	{
 		if (_interfaceState == OXZ_STATE_DEPENDENCIES)
 		{
-			[self installOXZ:_item filteredList:NO];
+			[self installOXZ:_item];
 		}
 		else
 		{
@@ -1013,12 +1032,12 @@ static OOOXZManager *sSingleton = nil;
 		else if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 		{
 			OOLog(kOOOXZDebugLog, @"Trying to install index %lu", (unsigned long)item);
-			[self installOXZ:item filteredList:NO];
+			[self installOXZ:item];
 		}
 		else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
 		{
 			OOLog(kOOOXZDebugLog, @"Trying to install index %lu", (unsigned long)item);
-			[self installOXZ:item filteredList:YES];
+			[self installOXZ:item];
 		}
 
 	}
@@ -1027,17 +1046,9 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
-- (BOOL) installOXZ:(NSUInteger)item filteredList:(BOOL)filtered
+- (BOOL) installOXZ:(NSUInteger)item 
 {
-	NSArray *picklist = nil;
-	if (filtered)
-	{
-		picklist = [self managedOXZs];
-	}
-	else
-	{
-		picklist = _oxzList;
-	}
+	NSArray *picklist = _filteredList;
 
 	if ([picklist count] <= item)
 	{
@@ -1045,9 +1056,8 @@ static OOOXZManager *sSingleton = nil;
 	}
 	NSDictionary *manifest = [picklist objectAtIndex:item];
 	_item = item;
-	_itemIsFiltered = filtered;
 
-	if ([self installableState:manifest withAvailability:filtered] >= OXZ_UNINSTALLABLE_ALREADY)
+	if ([self installableState:manifest] >= OXZ_UNINSTALLABLE_ALREADY)
 	{
 		OOLog(kOOOXZDebugLog,@"Cannot install %@",manifest);
 		// can't be installed on this version of Oolite, or already is installed
@@ -1075,26 +1085,26 @@ static OOOXZManager *sSingleton = nil;
 - (NSArray *) installOptions
 {
 	NSUInteger start = _offset;
-	if (start >= [_oxzList count])
+	if (start >= [_filteredList count])
 	{
 		start = 0;
 		_offset = 0;
 	}
 	NSUInteger end = start + OXZ_GUI_NUM_LISTROWS;
-	if (end > [_oxzList count])
+	if (end > [_filteredList count])
 	{
-		end = [_oxzList count];
+		end = [_filteredList count];
 	}
-	return [_oxzList subarrayWithRange:NSMakeRange(start,end-start)];
+	return [_filteredList subarrayWithRange:NSMakeRange(start,end-start)];
 }
 
 
-- (OOGUIRow) showInstallOptionsWithFilter:(BOOL)filter
+- (OOGUIRow) showInstallOptions
 {
 	// shows the current installation options page
 	OOGUIRow startRow = OXZ_GUI_ROW_LISTPREV;
-	NSArray *options = filter ? [self removeOptions] : [self installOptions];
-	NSUInteger optCount = filter ? [[self managedOXZs] count] : [_oxzList count];
+	NSArray *options = [self installOptions];
+	NSUInteger optCount = [_filteredList count];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUITabSettings tab_stops;
 	tab_stops[0] = 0;
@@ -1197,18 +1207,18 @@ static OOOXZManager *sSingleton = nil;
 			 [manifest oo_stringForKey:kOOManifestCategory defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 			 [manifest oo_stringForKey:kOOManifestTitle defaultValue:DESC(@"oolite-oxzmanager-missing-field")],
 			 installedVersion,
-		     [manifest oo_stringForKey:(filter?kOOManifestAvailableVersion:kOOManifestVersion) defaultValue:DESC(@"oolite-oxzmanager-version-none")],
+		 	 [manifest oo_stringForKey:kOOManifestAvailableVersion defaultValue:[manifest oo_stringForKey:kOOManifestVersion defaultValue:DESC(@"oolite-oxzmanager-version-none")]],
 		  nil] forRow:row];
 
 		[gui setKey:[manifest oo_stringForKey:kOOManifestIdentifier] forRow:row];
 		/* yellow for installable, orange for dependency issues, grey and unselectable for version issues, white and unselectable for already installed (manually or otherwise) at the current version, red and unselectable for already installed manually at a different version. */
-		[gui setColor:[self colorForManifest:manifest withAvailability:filter] forRow:row];
+		[gui setColor:[self colorForManifest:manifest] forRow:row];
 
 		if (row == [gui selectedRow])
 		{
 			oxzLineSelected = YES;
 			
-			[gui setText:[self installStatusForManifest:manifest withAvailability:filter] forRow:OXZ_GUI_ROW_LISTSTATUS];
+			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
@@ -1232,14 +1242,8 @@ static OOOXZManager *sSingleton = nil;
 
 	if (!oxzLineSelected)
 	{
-		if (filter)
-		{
-			[gui addLongText:DESC(@"oolite-oxzmanager-installed-nonepicked") startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
-		}
-		else
-		{
-			[gui addLongText:DESC(@"oolite-oxzmanager-installer-nonepicked") startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
-		}
+		[gui addLongText:DESC(@"oolite-oxzmanager-installer-nonepicked") startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+		
 	}
 
 
@@ -1249,7 +1253,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) removeOXZ:(NSUInteger)item
 {
-	NSArray *remList = [self managedOXZs];
+	NSArray *remList = _filteredList;
 	if ([remList count] <= item)
 	{
 		OOLog(kOOOXZDebugLog, @"Unable to remove item %lu as only %lu in list", (unsigned long)item, (unsigned long)[remList count]);
@@ -1278,7 +1282,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (NSArray *) removeOptions
 {
-	NSArray *remList = [self managedOXZs];
+	NSArray *remList = _filteredList;
 	if ([remList count] == 0)
 	{
 		return nil;
@@ -1380,11 +1384,11 @@ static OOOXZManager *sSingleton = nil;
 		NSString *identifier = [manifest oo_stringForKey:kOOManifestIdentifier];
 		[gui setKey:identifier forRow:row];
 		
-		[gui setColor:[self colorForManifest:manifest withAvailability:YES] forRow:row];
+		[gui setColor:[self colorForManifest:manifest] forRow:row];
 		
 		if (row == [gui selectedRow])
 		{
-			[gui setText:[self installStatusForManifest:manifest withAvailability:YES] forRow:OXZ_GUI_ROW_LISTSTATUS];
+			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 
 			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
@@ -1405,16 +1409,20 @@ static OOOXZManager *sSingleton = nil;
 
 - (void) showOptionsUpdate
 {
+
 	if (_interfaceState == OXZ_STATE_PICK_INSTALL)
 	{
-		[self showInstallOptionsWithFilter:NO];
+		[self setFilteredList:[self applyCurrentFilter:_oxzList]];
+		[self showInstallOptions];
 	}
 	else if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
 	{
-		[self showInstallOptionsWithFilter:YES];
+		[self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
+		[self showInstallOptions];
 	}
 	else if (_interfaceState == OXZ_STATE_PICK_REMOVE)
 	{
+		[self setFilteredList:[self applyCurrentFilter:[self managedOXZs]]];
 		[self showRemoveOptions];
 	}
 	// else nothing necessary
