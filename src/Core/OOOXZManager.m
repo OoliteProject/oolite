@@ -184,6 +184,7 @@ static OOOXZManager *sSingleton = nil;
 		_interfaceState = OXZ_STATE_NODATA;
 		_currentFilter = [[NSString stringWithString:@"*"] retain];
 		
+		_interfaceShowingOXZDetail = NO;
 		_changesMade = NO;
 		_downloadAllDependencies = NO;
 		_dependencyStack = [[NSMutableSet alloc] initWithCapacity:8];
@@ -1240,6 +1241,12 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (BOOL) isAcceptingGUIInput
+{
+	return !_interfaceShowingOXZDetail;
+}
+
+
 - (void) processTextInput:(NSString *)input
 {
 	if ([self validateFilter:input])
@@ -1272,6 +1279,10 @@ static OOOXZManager *sSingleton = nil;
 
 - (void) processFilterKey
 {
+	if (_interfaceShowingOXZDetail)
+	{
+		_interfaceShowingOXZDetail = NO;
+	}
 	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE || _interfaceState == OXZ_STATE_MAIN)
 	{
 		_interfaceState = OXZ_STATE_SETFILTER;
@@ -1284,8 +1295,71 @@ static OOOXZManager *sSingleton = nil;
 
 - (void) processShowInfoKey
 {
-	// TODO: Info functionality - shows whole-page info on the
-	// selected OXZ
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE)
+	{
+		GuiDisplayGen	*gui = [UNIVERSE gui];
+
+		if (_interfaceShowingOXZDetail)
+		{
+			_interfaceShowingOXZDetail = NO;
+			[self gui]; // restore screen
+			// reset list selection position
+			[gui setSelectedRow:(_item - _offset + OXZ_GUI_ROW_LISTSTART)];
+			// and do the GUI again with the correct positions
+			[self showOptionsUpdate]; // restore screen
+		}
+		else
+		{
+			OOGUIRow selection = [gui selectedRow];
+			
+			if (selection < OXZ_GUI_ROW_LISTSTART || selection >= OXZ_GUI_ROW_LISTSTART + OXZ_GUI_NUM_LISTROWS)
+			{
+				// not on an OXZ
+				return;
+			}
+
+
+			_item = _offset + selection - OXZ_GUI_ROW_LISTSTART;
+
+			NSDictionary *manifest = [_filteredList oo_dictionaryAtIndex:_item];
+			_interfaceShowingOXZDetail = YES;
+
+			[gui clearAndKeepBackground:YES];
+			[gui setTitle:DESC(@"oolite-oxzmanager-title-infopage")];
+
+// title, version			
+			[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-title-@-version-@"),
+								   [manifest oo_stringForKey:kOOManifestTitle],
+								   [manifest oo_stringForKey:kOOManifestVersion]]
+				  forRow:0 align:GUI_ALIGN_LEFT];
+
+// author
+			[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-author-@"),
+								   [manifest oo_stringForKey:kOOManifestAuthor]]
+				  forRow:1 align:GUI_ALIGN_LEFT];
+
+// license
+			[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-license-@"),
+								   [manifest oo_stringForKey:kOOManifestLicense]]
+				  startingAtRow:2 align:GUI_ALIGN_LEFT];
+// tags
+			
+			[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-tags-@"),[[manifest oo_arrayForKey:kOOManifestTags] componentsJoinedByString: @", "]]
+				  startingAtRow:4  align:GUI_ALIGN_LEFT];
+// description
+			[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-description-@"),[manifest oo_stringForKey:kOOManifestDescription]]
+				  startingAtRow:7  align:GUI_ALIGN_LEFT];
+
+// infoURL		
+			[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-infourl-@"),
+								   [manifest oo_stringForKey:kOOManifestInformationURL]]
+				  forRow:25 align:GUI_ALIGN_LEFT];
+// instructions
+			[gui setText:OOExpand(DESC(@"oolite-oxzmanager-infopage-return")) forRow:27 align:GUI_ALIGN_CENTER];
+			[gui setColor:[OOColor greenColor] forRow:27];
+
+		}
+	}
 }
 
 
@@ -1470,7 +1544,7 @@ static OOOXZManager *sSingleton = nil;
 			
 			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
-			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+			[gui addLongText:[[[manifest oo_stringForKey:kOOManifestDescription] componentsSeparatedByString:@"\n"] oo_stringAtIndex:0] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
 			NSString *infoUrl = [manifest oo_stringForKey:kOOManifestInformationURL];
 			if (infoUrl != nil)
@@ -1492,7 +1566,16 @@ static OOOXZManager *sSingleton = nil;
 
 	if (!oxzLineSelected)
 	{
-		[gui addLongText:DESC(@"oolite-oxzmanager-installer-nonepicked") startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+		if (_interfaceState == OXZ_STATE_PICK_INSTALLED)
+		{
+			// installeD
+			[gui addLongText:OOExpand(DESC(@"oolite-oxzmanager-installed-nonepicked")) startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+		}
+		else
+		{
+			// installeR
+			[gui addLongText:OOExpand(DESC(@"oolite-oxzmanager-installer-nonepicked")) startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+		}
 		
 	}
 
@@ -1641,7 +1724,7 @@ static OOOXZManager *sSingleton = nil;
 			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
 
-			[gui addLongText:[manifest oo_stringForKey:kOOManifestDescription] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+			[gui addLongText:[[[manifest oo_stringForKey:kOOManifestDescription] componentsSeparatedByString:@"\n"] oo_stringAtIndex:0] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 			
 			oxzSelected = YES;
 		}

@@ -64,6 +64,7 @@ typedef enum {
 	NSString			*_currentFilter;
 
 	OXZInterfaceState	_interfaceState;
+	BOOL				_interfaceShowingOXZDetail;
 	BOOL				_changesMade;
 
 	NSURLConnection		*_currentDownload;
@@ -96,7 +97,7 @@ typedef enum {
 - (void) gui;
 - (BOOL) isRestarting;
 - (BOOL) isAcceptingTextInput;
-
+- (BOOL) isAcceptingGUIInput;
 
 - (void) processSelection;
 - (void) processTextInput:(NSString *)input;

@@ -3966,55 +3966,58 @@ static BOOL autopilot_pause;
 			[[OOMusicController sharedController] stopThemeMusic];
 			if (EXPECT(![oxzmanager isRestarting]))
 			{
-				if ([oxzmanager isAcceptingTextInput])
+				if ([oxzmanager isAcceptingGUIInput])
 				{
-					[gameView setStringInput: gvStringInputAll];
-					[oxzmanager refreshTextInput:[gameView typedString]];
-				}
-				else
-				{
-					[gameView allowStringInput: NO];
-				}
-				if ([self handleGUIUpDownArrowKeys])
-				{
-					// only has an effect on install/remove selection screens
-					[oxzmanager showOptionsUpdate];
-				}
-				if ([gameView isDown:key_gui_arrow_left])
-				{
-					if ((!leftRightKeyPressed))
+					if ([oxzmanager isAcceptingTextInput])
 					{
-						[oxzmanager showOptionsPrev];
+						[gameView setStringInput: gvStringInputAll];
+						[oxzmanager refreshTextInput:[gameView typedString]];
 					}
-				}
-				if ([gameView isDown:key_gui_arrow_right])
-				{
-					if ((!leftRightKeyPressed))
+					else
 					{
-						[oxzmanager showOptionsNext];
+						[gameView allowStringInput: NO];
 					}
-				}
-				leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
+					if ([self handleGUIUpDownArrowKeys])
+					{
+						// only has an effect on install/remove selection screens
+						[oxzmanager showOptionsUpdate];
+					}
+					if ([gameView isDown:key_gui_arrow_left])
+					{
+						if ((!leftRightKeyPressed))
+						{
+							[oxzmanager showOptionsPrev];
+						}
+					}
+					if ([gameView isDown:key_gui_arrow_right])
+					{
+						if ((!leftRightKeyPressed))
+						{
+							[oxzmanager showOptionsNext];
+						}
+					}
+					leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
 
-				if (!selectPressed)
-				{
-					if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+					if (!selectPressed)
 					{
-						if ([oxzmanager isAcceptingTextInput])
+						if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
 						{
-							[oxzmanager processTextInput:[gameView typedString]];
-						}
-						else
-						{
-							[oxzmanager processSelection];
+							if ([oxzmanager isAcceptingTextInput])
+							{
+								[oxzmanager processTextInput:[gameView typedString]];
+							}
+							else
+							{
+								[oxzmanager processSelection];
+							}
 						}
 					}
-				}
-				selectPressed = [gameView isDown:13];
-				if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
-				{
-					[gameView clearMouse];
-				}
+					selectPressed = [gameView isDown:13];
+					if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+					{
+						[gameView clearMouse];
+					}
+				} // endif isAcceptingGUIInput
 				if ([gameView isDown:key_oxzmanager_setfilter] ||
 					[gameView isDown:key_oxzmanager_showinfo] ||
 					[gameView isDown:key_oxzmanager_extract])
