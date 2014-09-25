@@ -60,6 +60,8 @@ static NSString * const kOOOXZDebugLog = @"oxz.manager.debug";
 /* Filter components */
 static NSString * const kOOOXZFilterAll = @"*";
 static NSString * const kOOOXZFilterUpdates = @"u";
+static NSString * const kOOOXZFilterKeyword = @"k:";
+static NSString * const kOOOXZFilterAuthor = @"a:";
 
 
 typedef enum {
@@ -77,15 +79,15 @@ typedef enum {
 
 
 enum {
+	OXZ_GUI_ROW_LISTHEAD	= 0,
 	OXZ_GUI_ROW_FIRSTRUN	= 1,
 	OXZ_GUI_ROW_PROGRESS	= 1,
-	OXZ_GUI_ROW_FILTERCURRENT	= 1,
-	OXZ_GUI_ROW_LISTHEAD	= 0,
+	OXZ_GUI_ROW_FILTERHELP	= 1,
 	OXZ_GUI_ROW_LISTPREV	= 1,
 	OXZ_GUI_ROW_LISTSTART	= 2,
-	OXZ_GUI_ROW_FILTERHELP	= 3,
 	OXZ_GUI_NUM_LISTROWS	= 10,
 	OXZ_GUI_ROW_LISTNEXT	= 12,
+	OXZ_GUI_ROW_LISTFILTER	= 22,
 	OXZ_GUI_ROW_LISTSTATUS	= 14,
 	OXZ_GUI_ROW_LISTDESC	= 16,
 	OXZ_GUI_ROW_LISTINFO1	= 20,
@@ -96,6 +98,7 @@ enum {
 	OXZ_GUI_ROW_PROCEED		= 25,
 	OXZ_GUI_ROW_UPDATE		= 26,
 	OXZ_GUI_ROW_CANCEL		= 26,
+	OXZ_GUI_ROW_FILTERCURRENT = 26,
 	OXZ_GUI_ROW_INPUT		= 27,
 	OXZ_GUI_ROW_EXIT		= 27
 };
@@ -152,6 +155,8 @@ static OOOXZManager *sSingleton = nil;
 @interface OOOXZManager (OOFilterRules)
 - (BOOL) applyFilterByNoFilter:(NSDictionary *)manifest;
 - (BOOL) applyFilterByUpdateRequired:(NSDictionary *)manifest;
+- (BOOL) applyFilterByKeyword:(NSDictionary *)manifest keyword:(NSString *)keyword;
+- (BOOL) applyFilterByAuthor:(NSDictionary *)manifest author:(NSString *)author;
 
 @end 
 
@@ -336,6 +341,17 @@ static OOOXZManager *sSingleton = nil;
 	{
 		filterSelector = @selector(applyFilterByUpdateRequired:);
 	}
+	else if ([_currentFilter hasPrefix:kOOOXZFilterKeyword])
+	{
+		filterSelector = @selector(applyFilterByKeyword:keyword:);
+		parameter = [_currentFilter substringFromIndex:[kOOOXZFilterKeyword length]];
+	}
+	else if ([_currentFilter hasPrefix:kOOOXZFilterAuthor])
+	{
+		filterSelector = @selector(applyFilterByAuthor:author:);
+		parameter = [_currentFilter substringFromIndex:[kOOOXZFilterAuthor length]];
+	}
+
 	NSMutableArray *filteredList = [NSMutableArray arrayWithCapacity:[list count]];
 	NSDictionary *manifest       = nil;
 	NSInvocation *invocation     = [NSInvocation invocationWithMethodSignature:[[self class] instanceMethodSignatureForSelector:filterSelector]];
@@ -378,26 +394,52 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (BOOL) applyFilterByKeyword:(NSDictionary *)manifest keyword:(NSString *)keyword
+{
+	NSString *parameter = nil;
+	NSArray *parameters = [NSArray arrayWithObjects:kOOManifestTitle,kOOManifestDescription,kOOManifestCategory,nil];
+	foreach (parameter,parameters)
+	{
+		if ([[manifest oo_stringForKey:parameter] rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound)
+		{
+			return YES;
+		}
+	}
+	// tags are slightly different
+	parameters = [manifest oo_arrayForKey:kOOManifestTags];
+	foreach (parameter,parameters)
+	{
+		if ([parameter rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound)
+		{
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
+
+- (BOOL) applyFilterByAuthor:(NSDictionary *)manifest author:(NSString *)author
+{
+	NSString *mAuth = [manifest oo_stringForKey:kOOManifestAuthor];
+	return ([mAuth rangeOfString:author options:NSCaseInsensitiveSearch].location != NSNotFound);
+}
+
 
 /*** End filters ***/
 
 - (BOOL) validateFilter:(NSString *)input
 {
 	NSString *filter = [input lowercaseString];
-	if ([filter length] == 0)
-	{
-		return YES; // empty filter is valid
-	}
-	if ([filter isEqualToString:kOOOXZFilterAll])
-	{
-		return YES;
-	}
-	if ([filter isEqualToString:kOOOXZFilterUpdates])
+	if (([filter length] == 0) // empty is valid
+		|| ([filter isEqualToString:kOOOXZFilterAll])
+		|| ([filter isEqualToString:kOOOXZFilterUpdates])
+		|| ([filter hasPrefix:kOOOXZFilterKeyword] && [filter length] > [kOOOXZFilterKeyword length])
+		|| ([filter hasPrefix:kOOOXZFilterAuthor] && [filter length] > [kOOOXZFilterAuthor length])
+		)
 	{
 		return YES;
 	}
-
-
 
 	return NO;
 }
@@ -899,7 +941,7 @@ static OOOXZManager *sSingleton = nil;
 	switch (_interfaceState)
 	{
 	case OXZ_STATE_SETFILTER:
-		
+		[gui setTitle:DESC(@"oolite-oxzmanager-title-setfilter")];
 		[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-currentfilter-is-@"),_currentFilter] forRow:OXZ_GUI_ROW_FILTERCURRENT align:GUI_ALIGN_LEFT];
 		[gui addLongText:DESC(@"oolite-oxzmanager-filterhelp") startingAtRow:OXZ_GUI_ROW_FILTERHELP align:GUI_ALIGN_LEFT];
 
@@ -936,11 +978,12 @@ static OOOXZManager *sSingleton = nil;
 	case OXZ_STATE_PICK_INSTALL:
 	case OXZ_STATE_PICK_INSTALLED:
 	case OXZ_STATE_PICK_REMOVE:
-	case OXZ_STATE_FILTERSET:
-		if (_interfaceState == OXZ_STATE_FILTERSET)
+		if (_interfaceState != OXZ_STATE_MAIN)
 		{
-			[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-currentfilter-is-@"),_currentFilter] forRow:OXZ_GUI_ROW_FILTERCURRENT align:GUI_ALIGN_LEFT];
+			[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-currentfilter-is-@-@"),OOExpand(@"[oolite_key_oxzmanager_setfilter]"),_currentFilter] forRow:OXZ_GUI_ROW_LISTFILTER align:GUI_ALIGN_LEFT];
+			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTFILTER];
 		}
+
 		[gui setText:DESC(@"oolite-oxzmanager-install") forRow:OXZ_GUI_ROW_INSTALL align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_INSTALL" forRow:OXZ_GUI_ROW_INSTALL];
 		[gui setText:DESC(@"oolite-oxzmanager-installed") forRow:OXZ_GUI_ROW_INSTALLED align:GUI_ALIGN_CENTER];
@@ -1205,7 +1248,7 @@ static OOOXZManager *sSingleton = nil;
 		{
 			[self setFilter:input];
 		} // else keep previous filter
-		_interfaceState = OXZ_STATE_FILTERSET;
+		_interfaceState = OXZ_STATE_PICK_INSTALL;
 		[self gui];
 	}
 	// else nothing
@@ -1229,7 +1272,7 @@ static OOOXZManager *sSingleton = nil;
 
 - (void) processFilterKey
 {
-	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE)
+	if (_interfaceState == OXZ_STATE_PICK_INSTALL || _interfaceState == OXZ_STATE_PICK_INSTALLED || _interfaceState == OXZ_STATE_PICK_REMOVE || _interfaceState == OXZ_STATE_MAIN)
 	{
 		_interfaceState = OXZ_STATE_SETFILTER;
 		[[UNIVERSE gameView] resetTypedString];

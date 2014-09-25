@@ -1276,6 +1276,7 @@
 	"oolite-oxzmanager-title-install"	= "Select pack to install";
 	"oolite-oxzmanager-title-installed"	= "Select pack to update";
 	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
+	"oolite-oxzmanager-title-setfilter"	= "Set expansion pack filter";
 	"oolite-oxzmanager-exit"		= "Return to Menu";
 	"oolite-oxzmanager-exit-restart"	= "Return to Menu (applies changes)";
 	"oolite-oxzmanager-acknowledge"	= "Continue";
@@ -1326,9 +1327,10 @@
 	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here.";
 	"oolite-oxzmanager-remover-nonepicked" = "Select a pack and press return to remove it. If the pack is coloured blue it is no longer available for download and you will not be able to reinstall it if you remove it.";
 
-	"oolite-oxzmanager-text-prompt-@" 		= "New Filter: %@";
-	"oolite-oxzmanager-currentfilter-is-@"  = "Current Filter: %@";
-	"oolite-oxzmanager-filterhelp" 			= "Enter a filter to restrict the expansion pack lists, or press enter to keep the current filter. The following filters are available:\n\n'*' - show everything\n'u' - packs with updates available\n{... more to come ...}\n\nThe filter entry will turn orange if you enter an invalid filter.";
+	"oolite-oxzmanager-text-prompt-@" 		= "New Filter = %@";
+	"oolite-oxzmanager-currentfilter-is-@"  = "Current filter = %@";
+	"oolite-oxzmanager-currentfilter-is-@-@"  = "Filter ('%@' sets): %@";
+	"oolite-oxzmanager-filterhelp" 			= "Enter a filter to restrict the expansion pack lists, or leave blank to keep the current filter. The following filters are available:\n\n'*' - show everything\n'u' - installed packs with updates available\n'k:<keyword>' - keyword search\n'a:<author>' - author search\n\nThe filter entry will turn orange if you enter an invalid filter.";
 
 
 	// Loading screen (currently Mac only), also logged under start.progress
