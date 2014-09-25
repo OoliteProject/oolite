@@ -50,7 +50,9 @@ typedef enum {
 	OXZ_STATE_DEPENDENCIES,
 	OXZ_STATE_REMOVING,
 	OXZ_STATE_TASKDONE,
-	OXZ_STATE_RESTARTING
+	OXZ_STATE_RESTARTING,
+	OXZ_STATE_SETFILTER,
+	OXZ_STATE_FILTERSET
 } OXZInterfaceState;
 
 
@@ -60,6 +62,8 @@ typedef enum {
 	NSArray 			*_oxzList;
 	NSArray 			*_managedList;
 	NSArray				*_filteredList;
+	NSString			*_currentFilter;
+
 	OXZInterfaceState	_interfaceState;
 	BOOL				_changesMade;
 
@@ -92,7 +96,15 @@ typedef enum {
 
 - (void) gui;
 - (BOOL) isRestarting;
+- (BOOL) isAcceptingTextInput;
+
+
 - (void) processSelection;
+- (void) processTextInput:(NSString *)input;
+- (void) refreshTextInput:(NSString *)input;
+- (void) processFilterKey;
+- (void) processShowInfoKey;
+- (void) processExtractKey;
 - (OOGUIRow) showInstallOptions;
 - (OOGUIRow) showRemoveOptions;
 - (void) showOptionsUpdate;

@@ -604,6 +604,10 @@ typedef enum
 
 	OOKeyCode				key_cycle_mfd;
 	OOKeyCode				key_switch_mfd;
+
+	OOKeyCode				key_oxzmanager_setfilter;
+	OOKeyCode				key_oxzmanager_showinfo;
+	OOKeyCode				key_oxzmanager_extract;
 	
 	// save-file
 	NSString				*save_path;

@@ -126,6 +126,7 @@ static BOOL				escapePodKey_pressed;
 static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
 static BOOL				mouse_left_down;
+static BOOL				oxz_manager_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -312,6 +313,10 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_previous_target,		'-'			);
 	
 	LOAD_KEY_SETTING(key_custom_view,			'v'			);
+
+	LOAD_KEY_SETTING(key_oxzmanager_setfilter,	'f'			);
+	LOAD_KEY_SETTING(key_oxzmanager_showinfo,	'i'			);
+	LOAD_KEY_SETTING(key_oxzmanager_extract,	'x'			);
 	
 #ifndef NDEBUG
 	LOAD_KEY_SETTING(key_dump_target_state,		'H'			);
@@ -586,7 +591,7 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	GameController *gameController = [UNIVERSE gameController];
 	
-	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE);
+	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE) || (gui_screen == GUI_SCREEN_OXZMANAGER);
 
 	@try
 	{
@@ -1614,6 +1619,14 @@ static NSTimeInterval	time_last_frame;
 	{
 		[gameView setStringInput: gvStringInputAll];
 	}
+#if 0
+	// at the moment this function is never called for GUI_SCREEN_OXZMANAGER
+	// but putting this here in case we do later
+	else if (gui_screen == GUI_SCREEN_OXZMANAGER && [[OOOXZManager sharedManager] isAcceptingTextInput])
+	{
+		[gameView setStringInput: gvStringInputAll];
+	}
+#endif
 	else
 	{
 		[gameView allowStringInput: NO];
@@ -3953,6 +3966,15 @@ static BOOL autopilot_pause;
 			[[OOMusicController sharedController] stopThemeMusic];
 			if (EXPECT(![oxzmanager isRestarting]))
 			{
+				if ([oxzmanager isAcceptingTextInput])
+				{
+					[gameView setStringInput: gvStringInputAll];
+					[oxzmanager refreshTextInput:[gameView typedString]];
+				}
+				else
+				{
+					[gameView allowStringInput: NO];
+				}
 				if ([self handleGUIUpDownArrowKeys])
 				{
 					// only has an effect on install/remove selection screens
@@ -3978,13 +4000,46 @@ static BOOL autopilot_pause;
 				{
 					if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
 					{
-						[oxzmanager processSelection];
+						if ([oxzmanager isAcceptingTextInput])
+						{
+							[oxzmanager processTextInput:[gameView typedString]];
+						}
+						else
+						{
+							[oxzmanager processSelection];
+						}
 					}
 				}
 				selectPressed = [gameView isDown:13];
 				if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
 				{
 					[gameView clearMouse];
+				}
+				if ([gameView isDown:key_oxzmanager_setfilter] ||
+					[gameView isDown:key_oxzmanager_showinfo] ||
+					[gameView isDown:key_oxzmanager_extract])
+				{
+					if (!oxz_manager_pressed)
+					{
+						oxz_manager_pressed = YES;
+						if ([gameView isDown:key_oxzmanager_setfilter])
+						{
+							[oxzmanager processFilterKey];
+						}
+						else if ([gameView isDown:key_oxzmanager_showinfo])
+						{
+							[oxzmanager processShowInfoKey];
+						}
+						else if ([gameView isDown:key_oxzmanager_extract])
+						{
+							[oxzmanager processExtractKey];
+						}
+						
+					}
+				}
+				else
+				{
+					oxz_manager_pressed = NO;
 				}
 			}
 			break;
