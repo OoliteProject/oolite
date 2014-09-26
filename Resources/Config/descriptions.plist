@@ -1327,7 +1327,7 @@
 	"oolite-oxzmanager-installable-version"	= "Status: Incompatible with this version of Oolite.";
 	"oolite-oxzmanager-installable-noremote"= "Status: Installed but no longer available for download.";
 	"oolite-oxzmanager-installer-nonepicked" = "Select a pack and press return to install or upgrade it if possible. Packs in orange can be installed but will require other packs to be installed before they work, or conflict with a pack you have already installed. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack.";
-	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack.";
+	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack, or '[oolite_key_oxzmanager_extract]' to extract it to your AddOns folder.";
 	"oolite-oxzmanager-remover-nonepicked" = "Select a pack and press return to remove it. If the pack is coloured blue it is no longer available for download and you will not be able to reinstall it if you remove it.";
 
 	"oolite-oxzmanager-text-prompt-@" 		= "New Filter = %@";
@@ -1343,7 +1343,7 @@
 	"oolite-oxzmanager-infopage-infourl-@"		= "URL: %@";
 	"oolite-oxzmanager-infopage-return"			= "Press '[oolite_key_oxzmanager_showinfo]' again to return";
 
-	"oolite-oxzmanager-extract-info"			= "Extracting an expansion pack installed through the manager will unzip it and place it into your AddOns folder. It will be placed in the AddOns folder in a disabled state - to enable it, rename the main folder from '.off' to '.oxp', and remove the managed copy of the pack.";
+	"oolite-oxzmanager-extract-info"			= "Extracting an expansion pack installed through the manager will unzip it and place it into your AddOns folder. You do not need to do this to play Oolite with the pack - only if you want to look inside it or modify it.";
 	"oolite-oxzmanager-extract-releasebuild"	= "If you want to modify or build your own expansions, the developer release of Oolite has several useful additional features.";
 	"oolite-oxzmanager-extract-@-already-exists"	= "The extraction target %@ already exists - you have already extracted this pack. If you would like to extract it again, first delete or move the existing folder.";
 	"oolite-oxzmanager-extract-to-@"			= "If you extract this pack, the folder %@ will be created, and the pack's contents will be extracted inside it. Renaming the folder to end in '.oxp' will let Oolite run it, though you will need to remove the managed version to avoid a conflict.\n\nPlease note that large packs may take a little while to extract - please be patient.";
