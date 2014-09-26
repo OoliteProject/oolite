@@ -1278,6 +1278,7 @@
 	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
 	"oolite-oxzmanager-title-setfilter"	= "Set expansion pack filter";
 	"oolite-oxzmanager-title-infopage"	= "Expansion pack details";
+	"oolite-oxzmanager-title-extract"	= "Extract expansion pack";
 	"oolite-oxzmanager-exit"		= "Return to Menu";
 	"oolite-oxzmanager-exit-restart"	= "Return to Menu (applies changes)";
 	"oolite-oxzmanager-acknowledge"	= "Continue";
@@ -1341,6 +1342,23 @@
 	"oolite-oxzmanager-infopage-description-@"	= "Description: %@";
 	"oolite-oxzmanager-infopage-infourl-@"		= "URL: %@";
 	"oolite-oxzmanager-infopage-return"			= "Press '[oolite_key_oxzmanager_showinfo]' again to return";
+
+	"oolite-oxzmanager-extract-info"			= "Extracting an expansion pack installed through the manager will unzip it and place it into your AddOns folder. It will be placed in the AddOns folder in a disabled state - to enable it, rename the main folder from '.off' to '.oxp', and remove the managed copy of the pack.";
+	"oolite-oxzmanager-extract-releasebuild"	= "If you want to modify or build your own expansions, the developer release of Oolite has several useful additional features.";
+	"oolite-oxzmanager-extract-@-already-exists"	= "The extraction target %@ already exists - you have already extracted this pack. If you would like to extract it again, first delete or move the existing folder.";
+	"oolite-oxzmanager-extract-to-@"			= "If you extract this pack, the folder %@ will be created, and the pack's contents will be extracted inside it. Renaming the folder to end in '.oxp' will let Oolite run it, though you will need to remove the managed version to avoid a conflict.\n\nPlease note that large packs may take a little while to extract - please be patient.";
+	"oolite-oxzmanager-extract-unavailable"		= "Extraction unavailable";
+	"oolite-oxzmanager-extract-proceed"			= "Extract now";
+	"oolite-oxzmanager-extract-cancel"			= "Cancel extraction";
+	
+	"oolite-oxzmanager-extract-log-no-original"		= "The original managed expansion pack could not be found. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-bad-original"	= "The original managed expansion pack could not be opened successfully. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-exists"		= "The target folder already exists. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-unmakeable"	= "The target folder could not be created - check your file and directory permissions. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-created"	= "Created target folder and extracting files:\n";
+	"oolite-oxzmanager-extract-log-sub-failed"		= "Extraction failed part way through. This may be caused by insufficient disk space to extract the pack, or other causes. The partial extraction is still in place if you wish to inspect it.";
+	"oolite-oxzmanager-extract-log-num-u-extracted"	= "Extracted %u files successfully.\n";
+	"oolite-oxzmanager-extract-log-extracted-to-@" = "Extraction to %@ is now complete.\n";
 
 	// Loading screen (currently Mac only), also logged under start.progress
 	"loading-ships"					= "Loading ship data";
