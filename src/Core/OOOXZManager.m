@@ -63,6 +63,7 @@ static NSString * const kOOOXZDebugLog = @"oxz.manager.debug";
 /* Filter components */
 static NSString * const kOOOXZFilterAll = @"*";
 static NSString * const kOOOXZFilterUpdates = @"u";
+static NSString * const kOOOXZFilterInstallable = @"i";
 static NSString * const kOOOXZFilterKeyword = @"k:";
 static NSString * const kOOOXZFilterAuthor = @"a:";
 
@@ -161,6 +162,7 @@ static OOOXZManager *sSingleton = nil;
 @interface OOOXZManager (OOFilterRules)
 - (BOOL) applyFilterByNoFilter:(NSDictionary *)manifest;
 - (BOOL) applyFilterByUpdateRequired:(NSDictionary *)manifest;
+- (BOOL) applyFilterByInstallable:(NSDictionary *)manifest;
 - (BOOL) applyFilterByKeyword:(NSDictionary *)manifest keyword:(NSString *)keyword;
 - (BOOL) applyFilterByAuthor:(NSDictionary *)manifest author:(NSString *)author;
 
@@ -358,6 +360,10 @@ static OOOXZManager *sSingleton = nil;
 	{
 		filterSelector = @selector(applyFilterByUpdateRequired:);
 	}
+	else if ([_currentFilter isEqualToString:kOOOXZFilterInstallable])
+	{
+		filterSelector = @selector(applyFilterByInstallable:);
+	}
 	else if ([_currentFilter hasPrefix:kOOOXZFilterKeyword])
 	{
 		filterSelector = @selector(applyFilterByKeyword:keyword:);
@@ -409,6 +415,12 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (BOOL) applyFilterByInstallable:(NSDictionary *)manifest
+{
+	return ([self installableState:manifest] < OXZ_UNINSTALLABLE_ALREADY);
+}
+
+
 - (BOOL) applyFilterByKeyword:(NSDictionary *)manifest keyword:(NSString *)keyword
 {
 	NSString *parameter = nil;
@@ -449,6 +461,7 @@ static OOOXZManager *sSingleton = nil;
 	if (([filter length] == 0) // empty is valid
 		|| ([filter isEqualToString:kOOOXZFilterAll])
 		|| ([filter isEqualToString:kOOOXZFilterUpdates])
+		|| ([filter isEqualToString:kOOOXZFilterInstallable])
 		|| ([filter hasPrefix:kOOOXZFilterKeyword] && [filter length] > [kOOOXZFilterKeyword length])
 		|| ([filter hasPrefix:kOOOXZFilterAuthor] && [filter length] > [kOOOXZFilterAuthor length])
 		)
@@ -1277,15 +1290,12 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else if (selection == OXZ_GUI_ROW_LISTPREV)
 	{
-		if (_offset < OXZ_GUI_NUM_LISTROWS)  _offset = 0;
-		else  _offset -= OXZ_GUI_NUM_LISTROWS;
-		[self showOptionsUpdate];
+		[self processOptionsPrev];
 		return;
 	}
 	else if (selection == OXZ_GUI_ROW_LISTNEXT)
 	{
-		_offset += OXZ_GUI_NUM_LISTROWS;
-		[self showOptionsUpdate];
+		[self processOptionsNext];
 		return;
 	}
 	else
@@ -1863,6 +1873,31 @@ static OOOXZManager *sSingleton = nil;
 			[self processSelection];
 		}
 	}
+}
+
+
+- (void) processOptionsPrev
+{
+	if (_offset < OXZ_GUI_NUM_LISTROWS)  
+	{
+		_offset = 0;
+	}
+	else
+	{
+		_offset -= OXZ_GUI_NUM_LISTROWS;
+	}
+	[self showOptionsUpdate];
+}
+
+
+- (void) processOptionsNext
+{
+	if (_offset + OXZ_GUI_NUM_LISTROWS < [_filteredList count])
+	{
+		_offset += OXZ_GUI_NUM_LISTROWS;
+	}
+	[self showOptionsUpdate];
+	return;
 }
 
 

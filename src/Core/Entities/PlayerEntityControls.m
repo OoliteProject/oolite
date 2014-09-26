@@ -3986,14 +3986,14 @@ static BOOL autopilot_pause;
 					{
 						if ((!leftRightKeyPressed))
 						{
-							[oxzmanager showOptionsPrev];
+							[oxzmanager processOptionsPrev];
 						}
 					}
-					if ([gameView isDown:key_gui_arrow_right])
+					else if ([gameView isDown:key_gui_arrow_right])
 					{
 						if ((!leftRightKeyPressed))
 						{
-							[oxzmanager showOptionsNext];
+							[oxzmanager processOptionsNext];
 						}
 					}
 					leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];

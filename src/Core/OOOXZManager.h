@@ -112,6 +112,7 @@ typedef enum {
 - (void) showOptionsUpdate;
 - (void) showOptionsPrev;
 - (void) showOptionsNext;
-
+- (void) processOptionsPrev;
+- (void) processOptionsNext;
 
 @end

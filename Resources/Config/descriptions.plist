@@ -1333,7 +1333,7 @@
 	"oolite-oxzmanager-text-prompt-@" 		= "New Filter = %@";
 	"oolite-oxzmanager-currentfilter-is-@"  = "Current filter = %@";
 	"oolite-oxzmanager-currentfilter-is-@-@"  = "Filter ('%@' sets): %@";
-	"oolite-oxzmanager-filterhelp" 			= "Enter a filter to restrict the expansion pack lists, or leave blank to keep the current filter. The following filters are available:\n\n'*' - show everything\n'u' - installed packs with updates available\n'k:<keyword>' - keyword search\n'a:<author>' - author search\n\nThe filter entry will turn orange if you enter an invalid filter.";
+	"oolite-oxzmanager-filterhelp" 			= "Enter a filter to restrict the expansion pack lists, or leave blank to keep the current filter. The following filters are available:\n\n'*' - show everything\n'i' - packs not already installed\n'u' - installed packs with updates available\n'k:<keyword>' - keyword search\n'a:<author>' - author search\n\nThe filter entry will turn orange if the currently entered filter is invalid.";
 
 	"oolite-oxzmanager-infopage-title-@-version-@"	= "Expansion Pack: %@ %@";
 	"oolite-oxzmanager-infopage-author-@"		= "Author: %@";
