@@ -6940,6 +6940,7 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 	switch (weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON:
+			weapon_energy_use =		6.0f;
 			weapon_damage =			6.0;
 			weapon_recharge_rate =	0.25;
 			weapon_shot_temperature =	8.0f;
@@ -6948,8 +6949,8 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 #ifdef DEBUG_LASER_TYPES
 			[self setLaserColor:[OOColor redColor]];
 #endif
+			weapon_energy_use =		0.8f;
 			weapon_damage =			15.0;
-			// weapon_recharge_rate =	0.33;
 			weapon_recharge_rate =	0.5;
 			weapon_shot_temperature =	7.0f;
 			break;
@@ -6957,8 +6958,8 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 #ifdef DEBUG_LASER_TYPES
 			[self setLaserColor:[OOColor yellowColor]];
 #endif
+			weapon_energy_use =		0.5f;
 			weapon_damage =			6.0;
-			// weapon_recharge_rate =	0.25;
 			weapon_recharge_rate =	0.1;
 			weapon_shot_temperature =	3.2f;
 			break;
@@ -6966,17 +6967,14 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 #ifdef DEBUG_LASER_TYPES
 			[self setLaserColor:[OOColor blueColor]];
 #endif
+			weapon_energy_use =		1.4f;
 			weapon_damage =			50.0;
 			weapon_recharge_rate =	2.5;
 			weapon_shot_temperature =	10.0f;
 			break;
 		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
+			weapon_energy_use =		1.1f;
 			weapon_damage =			12.5;
-// changing weapon_recharge_rate to accompany change to onTarget - CIM 20120502
-//			weapon_recharge_rate =	0.5;
-// old behaviour gave range of 0.7-1.3 between 25 and 100 FPS
-// so duplicate this range
-//			weapon_recharge_rate = 0.7+(0.6*[self entityPersonality]);
 			weapon_recharge_rate = 0.7+(0.04*(10-accuracy));
 			weapon_shot_temperature =	8.0f;
 			break;
@@ -6984,13 +6982,14 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 #ifdef DEBUG_LASER_TYPES
 			[self setLaserColor:[OOColor magentaColor]];
 #endif
+			weapon_energy_use =		1.1f;
 			weapon_damage =			12.0;
-			// weapon_recharge_rate =	0.20;
 			weapon_recharge_rate =	0.10;
 			weapon_shot_temperature =	4.25f;
 			break;
 		case WEAPON_NONE:
 		case WEAPON_UNDEFINED:
+			weapon_energy_use =		0.0f;
 			weapon_damage =			0.0;	// indicating no weapon!
 			weapon_recharge_rate =	0.20;	// maximum rate
 			weapon_shot_temperature =	0.0f;
@@ -10707,6 +10706,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return NO;
 
+	if (energy <= weapon_energy_use) return NO;
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	if (weapon_type != WEAPON_THARGOID_LASER)
 	{ // thargoid laser may just pick secondary target in this case
@@ -10744,6 +10744,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	if (fired)
 	{
+		energy -= weapon_energy_use;
 		switch (direction)
 		{
 			case WEAPON_FACING_FORWARD:
@@ -10956,13 +10957,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	ShipEntity *parent = [self owner];
 	NSAssert([parent isShipWithSubEntityShip:self], @"-fireSubentityLaserShot: called on ship which is not a subentity.");
-	
+
+	// subentity lasers still draw power from the main entity
+	if ([parent energy] <= weapon_energy_use) return NO;
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	if (forward_weapon_temp > WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP)  return NO;
 	if (range > weaponRange)  return NO;
-	
+
 	forward_weapon_temp += weapon_shot_temperature;
-	
+	[parent setEnergy:([parent energy] - weapon_energy_use)];
+
 	GLfloat hitAtRange = weaponRange;
 	OOWeaponFacing direction = WEAPON_FACING_FORWARD;
 	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:kZeroVector gettingRangeFound:&hitAtRange];
@@ -11127,12 +11131,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[UNIVERSE addEntity:shot];
 	
 	[self resetShotTime];
-	
-	// random laser over-heating for AI ships
-/*	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_damage)&&(![self isMining]))
-	{
-		shot_time -= (randf() * weapon_damage);
-		} */
 	
 	return YES;
 }

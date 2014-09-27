@@ -296,7 +296,7 @@ typedef enum
 	GLfloat					weaponRange;				// range of the weapon (in meters)
 	OOWeaponFacing			currentWeaponFacing;		// not necessarily the same as view for the player
 	
-	GLfloat					weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
+	GLfloat					weapon_energy_use, weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
 	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp; // current weapon temperatures
 
 	GLfloat					scannerRange;				// typically 25600

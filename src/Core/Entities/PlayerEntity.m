@@ -5355,42 +5355,6 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	// Basic stats: weapon_damage & weaponRange (weapon_recharge_rate is not used by the player)
 	[self setWeaponDataFromType:currentWeapon];
-	
-	// Advanced stats: all the other stats used by the player!
-	switch (currentWeapon)
-	{
-		case WEAPON_PLASMA_CANNON:
-			weapon_energy_use =		6.0f;
-			weapon_reload_time =	0.25f;
-			break;
-			
-		case WEAPON_PULSE_LASER:
-			weapon_energy_use =		0.8f;
-			weapon_reload_time =	0.5f;
-			break;
-			
-		case WEAPON_BEAM_LASER:
-			weapon_energy_use =		0.5f;
-			weapon_reload_time =	0.1f;
-			break;
-			
-		case WEAPON_MINING_LASER:
-			weapon_energy_use =		1.4f;
-			weapon_reload_time =	2.5f;
-			break;
-			
-		case WEAPON_THARGOID_LASER:
-		case WEAPON_MILITARY_LASER:
-			weapon_energy_use =		1.1f;
-			weapon_reload_time =	0.1f;
-			break;
-			
-		case WEAPON_NONE:
-		case WEAPON_UNDEFINED:
-			weapon_energy_use =		0.0f;
-			weapon_reload_time =	0.1f;
-			break;
-	}
 }
 
 

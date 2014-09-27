@@ -437,7 +437,6 @@ typedef enum
 	
 	GLfloat					forward_shield, aft_shield;
 	OOTimeDelta				forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
-	GLfloat					weapon_energy_use, weapon_reload_time;
 	
 	OOWeaponFacing			chosen_weapon_facing;   // for purchasing weapons
 	
