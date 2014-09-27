@@ -66,6 +66,8 @@ static NSString * const kOOOXZFilterUpdates = @"u";
 static NSString * const kOOOXZFilterInstallable = @"i";
 static NSString * const kOOOXZFilterKeyword = @"k:";
 static NSString * const kOOOXZFilterAuthor = @"a:";
+static NSString * const kOOOXZFilterDays = @"d:";
+static NSString * const kOOOXZFilterTag = @"t:";
 
 
 typedef enum {
@@ -165,6 +167,8 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) applyFilterByInstallable:(NSDictionary *)manifest;
 - (BOOL) applyFilterByKeyword:(NSDictionary *)manifest keyword:(NSString *)keyword;
 - (BOOL) applyFilterByAuthor:(NSDictionary *)manifest author:(NSString *)author;
+- (BOOL) applyFilterByDays:(NSDictionary *)manifest days:(NSString *)days;
+- (BOOL) applyFilterByTag:(NSDictionary *)manifest tag:(NSString *)tag;
 
 @end 
 
@@ -374,6 +378,16 @@ static OOOXZManager *sSingleton = nil;
 		filterSelector = @selector(applyFilterByAuthor:author:);
 		parameter = [_currentFilter substringFromIndex:[kOOOXZFilterAuthor length]];
 	}
+	else if ([_currentFilter hasPrefix:kOOOXZFilterDays])
+	{
+		filterSelector = @selector(applyFilterByDays:days:);
+		parameter = [_currentFilter substringFromIndex:[kOOOXZFilterDays length]];
+	}
+	else if ([_currentFilter hasPrefix:kOOOXZFilterTag])
+	{
+		filterSelector = @selector(applyFilterByTag:tag:);
+		parameter = [_currentFilter substringFromIndex:[kOOOXZFilterTag length]];
+	}
 
 	NSMutableArray *filteredList = [NSMutableArray arrayWithCapacity:[list count]];
 	NSDictionary *manifest       = nil;
@@ -453,6 +467,37 @@ static OOOXZManager *sSingleton = nil;
 }
 
 
+- (BOOL) applyFilterByDays:(NSDictionary *)manifest days:(NSString *)days
+{
+	NSInteger i = [days integerValue];
+	if (i < 1)
+	{
+		return NO;
+	}
+	else
+	{
+		NSUInteger updated = [manifest oo_unsignedIntegerForKey:kOOManifestUploadDate];
+		NSUInteger now = (NSUInteger)[[NSDate date] timeIntervalSince1970];
+		return (updated + (86400 * i) > now);
+	}
+}
+
+
+- (BOOL) applyFilterByTag:(NSDictionary *)manifest tag:(NSString *)tag
+{
+	NSString *parameter = nil;
+	NSArray *parameters = [manifest oo_arrayForKey:kOOManifestTags];
+	foreach (parameter,parameters)
+	{
+		if ([parameter rangeOfString:tag options:NSCaseInsensitiveSearch].location != NSNotFound)
+		{
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
 /*** End filters ***/
 
 - (BOOL) validateFilter:(NSString *)input
@@ -464,6 +509,8 @@ static OOOXZManager *sSingleton = nil;
 		|| ([filter isEqualToString:kOOOXZFilterInstallable])
 		|| ([filter hasPrefix:kOOOXZFilterKeyword] && [filter length] > [kOOOXZFilterKeyword length])
 		|| ([filter hasPrefix:kOOOXZFilterAuthor] && [filter length] > [kOOOXZFilterAuthor length])
+		|| ([filter hasPrefix:kOOOXZFilterDays] && [[filter substringFromIndex:[kOOOXZFilterDays length]] intValue] > 0)
+		|| ([filter hasPrefix:kOOOXZFilterTag] && [filter length] > [kOOOXZFilterTag length])
 		)
 	{
 		return YES;
