@@ -50,7 +50,10 @@ typedef enum {
 	OXZ_STATE_DEPENDENCIES,
 	OXZ_STATE_REMOVING,
 	OXZ_STATE_TASKDONE,
-	OXZ_STATE_RESTARTING
+	OXZ_STATE_RESTARTING,
+	OXZ_STATE_SETFILTER,
+	OXZ_STATE_EXTRACT,
+	OXZ_STATE_EXTRACTDONE
 } OXZInterfaceState;
 
 
@@ -59,7 +62,11 @@ typedef enum {
 @private
 	NSArray 			*_oxzList;
 	NSArray 			*_managedList;
+	NSArray				*_filteredList;
+	NSString			*_currentFilter;
+
 	OXZInterfaceState	_interfaceState;
+	BOOL				_interfaceShowingOXZDetail;
 	BOOL				_changesMade;
 
 	NSURLConnection		*_currentDownload;
@@ -70,7 +77,7 @@ typedef enum {
 	NSUInteger			_downloadExpected;
 	NSFileHandle		*_fileWriter;
 	NSUInteger			_item;
-	BOOL				_itemIsFiltered;
+
 	BOOL				_downloadAllDependencies;
 
 	NSUInteger			_offset;
@@ -91,12 +98,21 @@ typedef enum {
 
 - (void) gui;
 - (BOOL) isRestarting;
+- (BOOL) isAcceptingTextInput;
+- (BOOL) isAcceptingGUIInput;
+
 - (void) processSelection;
-- (OOGUIRow) showInstallOptionsWithFilter:(BOOL)filter;
+- (void) processTextInput:(NSString *)input;
+- (void) refreshTextInput:(NSString *)input;
+- (void) processFilterKey;
+- (void) processShowInfoKey;
+- (void) processExtractKey;
+- (OOGUIRow) showInstallOptions;
 - (OOGUIRow) showRemoveOptions;
 - (void) showOptionsUpdate;
 - (void) showOptionsPrev;
 - (void) showOptionsNext;
-
+- (void) processOptionsPrev;
+- (void) processOptionsNext;
 
 @end
