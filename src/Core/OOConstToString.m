@@ -253,7 +253,7 @@ NSString *OOStringFromWeaponType(OOWeaponType weapon)
 
 OOWeaponType OOWeaponTypeFromString(NSString *string)
 {
-	return [OOEquipmentType equipmentTypeWithIdentifier:string];
+	return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
 }
 
 
@@ -268,6 +268,14 @@ OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString *string)
 	OOWeaponType w = [OOEquipmentType equipmentTypeWithIdentifier:string];
 	if (w == nil)
 	{
+		if (![string hasPrefix:@"EQ_"])
+		{
+			w = [OOEquipmentType equipmentTypeWithIdentifier:[NSString stringWithFormat:@"EQ_%@",string]];
+			if (w != nil)
+			{
+				return w;
+			}
+		}
 		return [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_WEAPON_NONE"];
 	}
 	return w;
@@ -302,7 +310,7 @@ OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(NSString *string)
 
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string)
 {
-	// there is no significant difference between the two any more
+	// there is no difference between the two any more
 	return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
 }
 
