@@ -3726,27 +3726,21 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 
 		// check lasers
 		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD strict:NO];
-		if (wt == WEAPON_NONE)
-		{
-			assessment -= 1;
-		}
-		else
-		{
-			assessment += ShipThreatAssessmentWeapon(wt);
-		}
+		assessment += ShipThreatAssessmentWeapon(wt);
+
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_AFT strict:NO];
-		if (wt != WEAPON_NONE)
+		if (!isWeaponNone(wt))
 		{
 			assessment += 1 + ShipThreatAssessmentWeapon(wt);
 		}
 		// port and starboard weapons less important
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_PORT strict:NO];
-		if (wt != WEAPON_NONE)
+		if (!isWeaponNone(wt))
 		{
 			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_STARBOARD strict:NO];
-		if (wt != WEAPON_NONE)
+		if (!isWeaponNone(wt))
 		{
 			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
@@ -3811,22 +3805,11 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 
 static double ShipThreatAssessmentWeapon(OOWeaponType wt)
 {
-	switch (wt)
+	if (wt == nil)
 	{
-	case WEAPON_NONE:
-		return -1;
-	case WEAPON_PULSE_LASER:
-		return 0;
-	case WEAPON_BEAM_LASER:
-		return 0.33;
-	case WEAPON_MINING_LASER:
-		return -0.5;
-	case WEAPON_MILITARY_LASER:
-	case WEAPON_THARGOID_LASER:
-		return 1.0;
-	default:
-		return 0;
+		return -1.0;
 	}
+	return [wt weaponThreatAssessment];
 }
 
 

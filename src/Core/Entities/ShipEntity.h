@@ -149,7 +149,7 @@ typedef enum OOBehaviour
 #undef ENTRY
 
 
-typedef enum
+/*typedef enum
 {
 	WEAPON_NONE						= 0U,
 	WEAPON_PLASMA_CANNON			= 1,
@@ -159,7 +159,8 @@ typedef enum
 	WEAPON_MILITARY_LASER			= 5,
 	WEAPON_THARGOID_LASER			= 10,
 	WEAPON_UNDEFINED
-} OOWeaponType;
+	} OOWeaponType; */
+typedef OOEquipmentType* OOWeaponType;
 
 
 typedef enum
@@ -220,6 +221,7 @@ typedef enum
 	NSDictionary			*dockingInstructions;
 	
 	OOColor					*laser_color;
+	OOColor					*default_laser_color;
 	OOColor					*exhaust_emissive_color;
 	OOColor					*scanner_display_color1;
 	OOColor					*scanner_display_color2;
@@ -1227,23 +1229,22 @@ NSDictionary *OODefaultShipShaderMacros(void);
 
 GLfloat getWeaponRangeFromType(OOWeaponType weapon_type);
 
-// Stuff implemented in OOConstToString.m
-enum
-{
-	// Values used for unknown strings.
-	kOOWeaponTypeDefault		= WEAPON_NONE
-};
-
+// Defined in OOConstToString.m
 NSString *OOStringFromBehaviour(OOBehaviour behaviour) CONST_FUNC;
 
 // Weapon strings prefixed with EQ_, used in shipyard.plist.
 NSString *OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString *string) PURE_FUNC;	// Uses suffix match for backwards compatibility.
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string) PURE_FUNC;
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(NSString *string);
+
 
 NSString *OOStringFromWeaponType(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType OOWeaponTypeFromString(NSString *string) PURE_FUNC;
 
+BOOL isWeaponNone(OOWeaponType weapon);
+
 NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition);
 
 NSString *OOStringFromShipDamageType(OOShipDamageType type) CONST_FUNC;
+

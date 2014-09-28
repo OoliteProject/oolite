@@ -28,7 +28,7 @@ MA );-);, USA.
 
 #import "Universe.h"
 #import "PlayerEntity.h"
-
+#import "OOEquipmentType.h"
 
 #define CASE(foo) case foo: return @#foo;
 #define REVERSE_CASE(foo) if ([string isEqualToString:@#foo]) return foo;
@@ -247,85 +247,63 @@ NSString *JSTypeToString(int /* JSType */ type)
 
 NSString *OOStringFromWeaponType(OOWeaponType weapon)
 {
-	switch (weapon)
-	{
-		CASE(WEAPON_NONE);
-		CASE(WEAPON_PLASMA_CANNON);
-		CASE(WEAPON_PULSE_LASER);
-		CASE(WEAPON_BEAM_LASER);
-		CASE(WEAPON_MINING_LASER);
-		CASE(WEAPON_MILITARY_LASER);
-		CASE(WEAPON_THARGOID_LASER);
-		CASE(WEAPON_UNDEFINED);
-	}
-	return @"Unknown weapon";
+	return [weapon identifier];
 }
 
 
 OOWeaponType OOWeaponTypeFromString(NSString *string)
 {
-	REVERSE_CASE(WEAPON_PLASMA_CANNON);
-	REVERSE_CASE(WEAPON_PULSE_LASER);
-	REVERSE_CASE(WEAPON_BEAM_LASER);
-	REVERSE_CASE(WEAPON_MINING_LASER);
-	REVERSE_CASE(WEAPON_MILITARY_LASER);
-	REVERSE_CASE(WEAPON_THARGOID_LASER);
-	
-	return kOOWeaponTypeDefault;
+	return [OOEquipmentType equipmentTypeWithIdentifier:string];
 }
 
 
 NSString *OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon)
 {
-#define EQ_CASE(foo) case foo: return @"EQ_"#foo;
-	
-	switch (weapon)
-	{
-	//	EQ_CASE(WEAPON_PLASMA_CANNON);
-		case WEAPON_PLASMA_CANNON: return @"EQ_WEAPON_TWIN_PLASMA_CANNON";
-		EQ_CASE(WEAPON_PULSE_LASER);
-		EQ_CASE(WEAPON_BEAM_LASER);
-		EQ_CASE(WEAPON_MINING_LASER);
-		EQ_CASE(WEAPON_MILITARY_LASER);
-		EQ_CASE(WEAPON_THARGOID_LASER);
-		
-		case WEAPON_NONE:
-		case WEAPON_UNDEFINED:
-			break;
-	}
-	return nil;
-#undef EQ_CASE
+	return [weapon identifier];
 }
 
 
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString *string)
 {
-#define EQ_REVERSE_CASE(foo) if ([string hasSuffix:@#foo]) return WEAPON_##foo;
-	EQ_REVERSE_CASE(PLASMA_CANNON); // required in playerEntityControls (case GUI_SCREEN_EQUIP_SHIP)
-	EQ_REVERSE_CASE(PULSE_LASER);
-	EQ_REVERSE_CASE(BEAM_LASER);
-	EQ_REVERSE_CASE(MINING_LASER);
-	EQ_REVERSE_CASE(MILITARY_LASER);
-	EQ_REVERSE_CASE(THARGOID_LASER);
-	
-	return kOOWeaponTypeDefault;
-#undef EQ_REVERSE_CASE
+	OOWeaponType w = [OOEquipmentType equipmentTypeWithIdentifier:string];
+	if (w == nil)
+	{
+		return [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_WEAPON_NONE"];
+	}
+	return w;
+}
+
+
+/* Previous save games will have weapon types stored as ints to the
+ * various weapon types */
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(NSString *string)
+{
+	if ([string intValue] > 0)
+	{
+		switch ([string intValue])
+		{
+		case 2:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_PULSE_LASER");
+		case 3:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_BEAM_LASER");
+		case 4:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_MINING_LASER");
+		case 5:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_MILITARY_LASER");
+		case 10:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_THARGOID_LASER");
+		default:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
+		}
+	}
+	return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
 }
 
 
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string)
 {
-#define EQ_REVERSE_CASE(foo) if ([string isEqualToString:@"EQ_WEAPON_" #foo]) return WEAPON_##foo;
-//	EQ_REVERSE_CASE(PLASMA_CANNON);
-	if ([string isEqual:@"EQ_WEAPON_TWIN_PLASMA_CANNON"]) return WEAPON_PLASMA_CANNON;
-	EQ_REVERSE_CASE(PULSE_LASER);
-	EQ_REVERSE_CASE(BEAM_LASER);
-	EQ_REVERSE_CASE(MINING_LASER);
-	EQ_REVERSE_CASE(MILITARY_LASER);
-	EQ_REVERSE_CASE(THARGOID_LASER);
-	
-	return kOOWeaponTypeDefault;
-#undef EQ_REVERSE_CASE
+	// there is no significant difference between the two any more
+	return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
 }
 
 

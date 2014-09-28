@@ -1869,25 +1869,26 @@ static NSMutableDictionary *currentShipyard = nil;
 	int base_facings = [shipDict oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];
 	int available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:base_facings];
 
+	// not retained - weapon types are references to the objects in OOEquipmentType's cache
 	if (available_facings & WEAPON_FACING_AFT)
 		aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"aft_weapon_type"]);
 	else
-		aft_weapon_type = WEAPON_NONE;
+		aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
 	if (available_facings & WEAPON_FACING_PORT)
 		port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"port_weapon_type"]);
 	else
-		port_weapon_type = WEAPON_NONE;
+		port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
 	if (available_facings & WEAPON_FACING_STARBOARD)
 		starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"starboard_weapon_type"]);
 	else
-		starboard_weapon_type = WEAPON_NONE;
+		starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
 	if (available_facings & WEAPON_FACING_FORWARD)
 		forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy([shipDict oo_stringForKey:@"forward_weapon_type"]);
 	else
-		forward_weapon_type = WEAPON_NONE;
+		forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 	
 	// new ships start with weapons online
 	weapons_online = 1;

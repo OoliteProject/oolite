@@ -98,12 +98,38 @@
 		}
 	),
 	(
+		3, 0, "No weapon",
+		"EQ_WEAPON_NONE",
+		"Remove weapon from selected mounting.",
+		{
+			condition_script = "oolite-conditions.js";
+			available_to_all = true;
+			weapon_info = {
+				range = 32000;
+				energy = 0.0;
+				damage = 0.0;
+				recharge_rate = 100.0;
+				shot_temperature = 0.0;
+				threat_assessment = -1.0;
+			};
+		}
+	),
+	(
 		3, 4000, "Pulse Laser",
 		"EQ_WEAPON_PULSE_LASER",
 		"High powered pulse laser, a basic defense configuration.",
 		{
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
+			weapon_info = {
+				range = 12500;
+				energy = 0.8;
+				damage = 15.0;
+				recharge_rate = 0.5;
+				shot_temperature = 7.0;
+				color = "redColor";
+				threat_assessment = 0.0;
+			};
 		}
 	),
 	(
@@ -113,6 +139,16 @@
 		{
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
+			weapon_info = {
+				range = 15000;
+				energy = 0.5;
+				damage = 6.0;
+				recharge_rate = 0.1;
+				shot_temperature = 3.2;
+				color = "yellowColor";
+				threat_assessment = 0.5;
+			};
+
 		}
 	),
 	(
@@ -122,6 +158,16 @@
 		{
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
+			weapon_info = {
+				range = 12500;
+				energy = 1.4;
+				damage = 50.0;
+				recharge_rate = 2.5;
+				shot_temperature = 10.0;
+				color = "blueColor";
+				is_mining_laser = 1;
+				threat_assessment = -0.5;
+			};
 		}
 	),
 	(
@@ -131,6 +177,15 @@
 		{
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
+			weapon_info = {
+				range = 30000;
+				energy = 1.1;
+				damage = 12.0;
+				recharge_rate = 0.1;
+				shot_temperature = 4.25;
+				color = "magentaColor";
+				threat_assessment = 1.0;
+			};
 		}
 	),
 	/* condition script blocks this one from appearing normally */
@@ -287,6 +342,16 @@
 		"Captured Thargoid weapon, self-aiming.",
 		{
 			available_to_player = false;
+			weapon_info = {
+				range = 17500;
+				energy = 1.1;
+				damage = 12.5;
+				recharge_rate = 1.0;
+				shot_temperature = 8.0;
+				color = "greenColor";
+				is_turret_laser = true;
+				threat_assessment = 1.0;
+			};
 		}
 	),
 	(
@@ -318,12 +383,12 @@
 			condition_script = "oolite-conditions.js";
 		}
 	),
-	/* next item was a test item */
-	(
-		2, 2000, "Twin Plasma Cannon",
-		"EQ_WEAPON_TWIN_PLASMA_CANNON",
-		"Basic cannon delivering charged plasma bursts at sublight speed."
-	),
+	/* next item was a test item, no longer supported */
+//	(
+//		2, 2000, "Twin Plasma Cannon",
+//		"EQ_WEAPON_TWIN_PLASMA_CANNON",
+//		"Basic cannon delivering charged plasma bursts at sublight speed."
+//	),
 	/* new items */
 	(
 		4, 15000, "External Heat Shielding",
