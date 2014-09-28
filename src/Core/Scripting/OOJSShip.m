@@ -3806,19 +3806,12 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 
 		// check lasers
 		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD strict:NO];
-<<<<<<< HEAD
 		assessment += ShipThreatAssessmentWeapon(wt);
+		if (isWeaponNone(wt))
+		{
+			assessment -= 1.5; // further penalty for ships with no forward laser
+		}
 
-=======
-		if (wt == WEAPON_NONE)
-		{
-			assessment -= 2.5; // cancel base ship danger
-		}
-		else
-		{
-			assessment += ShipThreatAssessmentWeapon(wt);
-		}
->>>>>>> master
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_AFT strict:NO];
 		if (!isWeaponNone(wt))
 		{
