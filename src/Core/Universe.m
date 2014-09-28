@@ -3836,7 +3836,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		}
 		else
 		{
-			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %ld.", commodity_name);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@", commodity_name);
 		}
 
 		how_much--;

@@ -88,6 +88,7 @@ Changes between Oolite 1.80 and Oolite 1.80.1:
   file one. Fixes unexpected gamma resets when starting a new game.
 * Windows port: Fixed unnecessary double OpenGL initializations under
   certain resize window conditions.
+* Fix return type of EquipmentInfo.requiredCargoSpace
 
 -------------------------------------------------------------------------------
 

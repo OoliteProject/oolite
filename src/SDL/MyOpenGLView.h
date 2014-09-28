@@ -172,6 +172,7 @@ extern int debug;
 	BOOL				saveSize;
 	unsigned			keyboardMap;
 	HWND 				SDL_Window;
+	MONITORINFOEX		monitorInfo;
 
 #endif
 
@@ -208,6 +209,11 @@ extern int debug;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;
+- (BOOL) isRunningOnPrimaryDisplayDevice;
+#if OOLITE_WINDOWS
+- (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
+- (MONITORINFOEX) currentMonitorInfo;
+#endif
 
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;

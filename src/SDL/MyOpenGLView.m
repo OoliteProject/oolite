@@ -204,13 +204,20 @@ MA 02110-1301, USA.
 	SDL_WM_SetCaption (windowCaption, "Oolite");	// Set window title.
 
 #if OOLITE_WINDOWS
-
+	// needed for enabling system window manager events, which is needed for handling window movement messages
+	SDL_EventState (SDL_SYSWMEVENT, SDL_ENABLE);
+	
 	//capture the window handle for later
 	static SDL_SysWMinfo wInfo;
 	SDL_VERSION(&wInfo.version);
 	SDL_GetWMInfo(&wInfo);
 	SDL_Window   = wInfo.window;
-
+	
+	// This must be inited after SDL_Window has been set - we need the main window handle in order to get monitor info
+	if (![self getCurrentMonitorInfo:&monitorInfo])
+	{
+		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
+	}
 #endif
 
 	imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
@@ -524,8 +531,22 @@ MA 02110-1301, USA.
 - (void) toggleScreenMode
 {
 	[self setFullScreenMode: !fullScreen];
-	if(fullScreen)
-		[self initialiseGLWithSize:[self modeAsSize: currentSize]];
+#if OOLITE_WINDOWS
+	[self getCurrentMonitorInfo:&monitorInfo];
+#endif
+ 	if(fullScreen)
+	{
+#if OOLITE_WINDOWS
+		if(![self isRunningOnPrimaryDisplayDevice])
+		{
+			[self initialiseGLWithSize:NSMakeSize(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+												monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top)];
+		}
+		else  [self initialiseGLWithSize:[self modeAsSize: currentSize]];
+#else
+ 		[self initialiseGLWithSize:[self modeAsSize: currentSize]];
+#endif
+	}
 	else
 		[self initialiseGLWithSize: currentWindowSize];
 }
@@ -742,10 +763,53 @@ MA 02110-1301, USA.
 	OOVerifyOpenGLState();
 }
 
+
+#if OOLITE_WINDOWS
+- (MONITORINFOEX) currentMonitorInfo
+{
+	return monitorInfo;
+}
+
+
+- (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo
+{
+	HMONITOR hMon = MonitorFromWindow(SDL_Window, MONITOR_DEFAULTTOPRIMARY);
+	ZeroMemory(mInfo, sizeof(MONITORINFOEX));
+	mInfo->cbSize = sizeof(MONITORINFOEX);
+	if (GetMonitorInfo (hMon, (LPMONITORINFO)mInfo))
+	{
+		return YES;
+	}
+	return NO;
+}
+
+
+- (BOOL) isRunningOnPrimaryDisplayDevice
+{
+	BOOL result = YES;
+	[self getCurrentMonitorInfo:&monitorInfo];
+	if (!(monitorInfo.dwFlags & MONITORINFOF_PRIMARY))
+	{
+		result = NO;
+	}
+	return result;
+}
+
+#else // for Linux we assume we are always on the primary monitor for now
+
+- (BOOL) isRunningOnPrimaryDisplayDevice
+{
+	return YES;
+}
+
+#endif //OOLITE_WINDOWS
+
+
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
 	[self initialiseGLWithSize:v_size useVideoMode:YES];
 }
+
 
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
@@ -755,20 +819,27 @@ MA 02110-1301, USA.
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 	SDL_GL_SwapBuffers();	// clear the buffer before resize
+	
 #if OOLITE_WINDOWS
-
 	if (!updateContext) return;
 
 	DEVMODE settings;
 	settings.dmSize        = sizeof(DEVMODE);
 	settings.dmDriverExtra = 0;
 	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
-			//ChangeDisplaySettings(NULL, 0);
+	
 	RECT wDC;
+	
+	/* initializing gl - better get the current monitor information now
+	   NOTE: If we ever decide to change the default behaviour of launching
+	   always on primary monitor to launching on the monitor the program was 
+	   started on, all that needs to be done is comment out the line below.
+	   Nikos 20140922
+	 */
+	[self getCurrentMonitorInfo: &monitorInfo];
 
 	if (fullScreen)
 	{
-
 		settings.dmPelsWidth = viewSize.width;
 		settings.dmPelsHeight = viewSize.height;
 		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
@@ -776,26 +847,30 @@ MA 02110-1301, USA.
 			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 		}
 		SetForegroundWindow(SDL_Window);
-		if (ChangeDisplaySettings(&settings, CDS_FULLSCREEN)==DISP_CHANGE_SUCCESSFUL)
+		if (ChangeDisplaySettingsEx(monitorInfo.szDevice, &settings, NULL, CDS_FULLSCREEN, NULL)==DISP_CHANGE_SUCCESSFUL)
 		{
-			MoveWindow(SDL_Window, 0, 0, viewSize.width, viewSize.height, TRUE);
+			MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
 		}
 		else
 		{
 			m_glContextInitialized = YES;
 			return;
 		}
-
 	}
 	else if ( wasFullScreen )
 	{
 			// stop saveWindowSize from reacting to caption & frame
 			saveSize=NO;
-			ChangeDisplaySettings(NULL, 0);
-			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
-
-			MoveWindow(SDL_Window,(GetSystemMetrics(SM_CXSCREEN)-(int)viewSize.width)/2,
-			(GetSystemMetrics(SM_CYSCREEN)-(int)viewSize.height)/2 -16,(int)viewSize.width,(int)viewSize.height,TRUE);
+			
+			ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+			
+			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX |
+									WS_MAXIMIZEBOX );
+			MoveWindow(SDL_Window,	(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - (int)viewSize.width)/2 + 
+									monitorInfo.rcMonitor.left,
+									(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - (int)viewSize.height)/2 +
+									monitorInfo.rcMonitor.top - 16,
+									(int)viewSize.width,(int)viewSize.height,TRUE);
 
 			ShowWindow(SDL_Window,SW_SHOW);
 	}
@@ -832,6 +907,11 @@ MA 02110-1301, USA.
 	// Reset bounds and viewSize to current values
 	bounds.size.width = viewSize.width = wDC.right - wDC.left;
 	bounds.size.height = viewSize.height = wDC.bottom - wDC.top;
+	if (fullScreen) // bounds on fullscreen coincide with client area, since we are borderless
+	{
+		bounds.origin.x = monitorInfo.rcMonitor.left;
+		bounds.origin.y = monitorInfo.rcMonitor.top;
+	}
 	wasFullScreen=fullScreen;
 
 #else //OOLITE_LINUX
@@ -1839,6 +1919,45 @@ keys[a] = NO; keys[b] = NO; \
 				}
 				break;
 			}
+				
+#if OOLITE_WINDOWS	
+			// need to track this because the user may move the game window
+			// to a secondary monitor, in which case we must potentially
+			// refresh the information displayed (e.g. Game Options screen)
+			// Nikos - 20140920
+			case SDL_SYSWMEVENT:
+			{
+				switch (event.syswm.msg->msg)
+				{
+					case WM_WINDOWPOSCHANGING:
+						/* if we are in fullscreen mode we normally don't worry about having the window moved.
+						   However, when using multiple monitors, one can use hotkey combinations to make the
+						   window "jump" from one monitor to the next. We don't want this to happen, so if we
+						   detect that our (fullscreen) window has moved, we immediately bring it back to its
+						   original position. Nikos - 20140922
+						*/
+						if (fullScreen)
+						{
+							RECT rDC;
+							GetWindowRect(SDL_Window, &rDC);
+							if (rDC.left != monitorInfo.rcMonitor.left || rDC.top != monitorInfo.rcMonitor.top)
+							{
+								MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+							}
+						}
+						// it is important that this gets done after we've dealt with possible fullscreen movements,
+						// because -doGuiScreenResizeUpdates does itself an update on current monitor
+						if ([PlayerEntity sharedPlayer])
+						{
+							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+						}
+						break;
+					default:
+						;
+				}
+				break;
+			}
+#endif
 
 			// caused by INTR or someone hitting close
 			case SDL_QUIT:

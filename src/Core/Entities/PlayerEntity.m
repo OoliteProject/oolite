@@ -101,10 +101,10 @@ static float const 		kDeadResetTime				= 30.0f;
 PlayerEntity		*gOOPlayer = nil;
 static GLfloat		sBaseMass = 0.0;
 
-NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *market);
-NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *market);
-NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *market);
-NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *market);
+NSComparisonResult marketSorterByName(id a, id b, void *market);
+NSComparisonResult marketSorterByPrice(id a, id b, void *market);
+NSComparisonResult marketSorterByQuantity(id a, id b, void *market);
+NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 
 @interface PlayerEntity (OOPrivate)
@@ -935,8 +935,6 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	NSInteger	i;
-	
 	// multi-function displays
 	// must be reset before ship setup
 	[multiFunctionDisplayText release];
@@ -1112,7 +1110,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	NSMutableDictionary *contractInfo = nil;
 
 	// iterate downwards; lets us remove invalid ones as we go
-	for (i = [contracts count]-1 ; i >= 0 ; i--)
+	for (NSInteger i = (NSInteger)[contracts count] - 1; i >= 0; i--)
 	{
 		contractInfo = [[[contracts oo_dictionaryAtIndex:i] mutableCopy] autorelease];
 		// if the trade good ID is an int
@@ -1185,7 +1183,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	if (passengers && ([passengers count] > max_passengers))
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.passengers", @"player ship %@ had more passengers (%lu) than passenger berths (%u). Removing extra passengers.", [self name], [passengers count], max_passengers);
-		for (i = [passengers count] - 1; i >= max_passengers; i--)
+		for (NSInteger i = (NSInteger)[passengers count] - 1; i >= max_passengers; i--)
 		{
 			[passenger_record removeObjectForKey:[[passengers oo_dictionaryAtIndex:i] oo_stringForKey:PASSENGER_KEY_NAME]];
 			[passengers removeObjectAtIndex:i];
@@ -1193,7 +1191,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	}
 	
 	// too much cargo?	
-	int excessCargo = [self cargoQuantityOnBoard] - [self maxAvailableCargoSpace];
+	NSInteger excessCargo = (NSInteger)[self cargoQuantityOnBoard] - (NSInteger)[self maxAvailableCargoSpace];
 	if (excessCargo > 0)
 	{
 		OOLogWARN(@"setCommanderDataFromDictionary.inconsistency.cargo", @"player ship %@ had more cargo (%i) than it can hold (%u). Removing extra cargo.", [self name], [self cargoQuantityOnBoard], [self maxAvailableCargoSpace]);
@@ -1202,7 +1200,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 		OOMassUnit			units;
 		OOCargoQuantity		oldAmount, toRemove;
 		
-		i = excessCargo;
+		OOCargoQuantity remainingExcess = (OOCargoQuantity)excessCargo;
 		
 		// manifest always contains entries for all 17 commodities, even if their quantity is 0.
 		foreach (type, [shipCommodityData goods])
@@ -1216,20 +1214,20 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 				// let's remove stuff
 				OOCargoQuantity partAmount = oldAmount;
 				toRemove = 0;
-				while (i > 0 && partAmount > 0)
+				while (remainingExcess > 0 && partAmount > 0)
 				{
 					if (EXPECT_NOT(roundedTon && ((units == UNITS_KILOGRAMS && partAmount > MAX_KILOGRAMS_IN_SAFE) || (units == UNITS_GRAMS && partAmount > MAX_GRAMS_IN_SAFE))))
 					{
 						toRemove += (units == UNITS_KILOGRAMS) ? (partAmount > (KILOGRAMS_PER_POD + MAX_KILOGRAMS_IN_SAFE) ? KILOGRAMS_PER_POD : partAmount - MAX_KILOGRAMS_IN_SAFE)
 									: (partAmount > (GRAMS_PER_POD + MAX_GRAMS_IN_SAFE) ? GRAMS_PER_POD : partAmount - MAX_GRAMS_IN_SAFE);
 						partAmount = oldAmount - toRemove;
-						i--;
+						remainingExcess--;
 					}
 					else if (!roundedTon)
 					{
 						toRemove++;
 						partAmount--;
-						i--;
+						remainingExcess--;
 					}
 					else
 					{
@@ -1333,7 +1331,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	NSArray *savedCommLog = [dict oo_arrayForKey:@"comm_log"];
 	NSUInteger commCount = [savedCommLog count];
-	for (i = 0; i < commCount; i++)
+	for (NSUInteger i = 0; i < commCount; i++)
 	{
 		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
 	}
@@ -1347,7 +1345,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	
 	// set up missiles
 	[self setActiveMissile:0];
-	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
+	for (NSUInteger i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
 		[missile_entity[i] release];
 		missile_entity[i] = nil;
@@ -1355,17 +1353,17 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
-		for (i = 0, missiles = 0; i < [missileRoles count] && missiles < max_missiles; i++)
+		for (NSUInteger roleIndex = 0, missileCount = 0; roleIndex < [missileRoles count] && missileCount < max_missiles; roleIndex++)
 		{
-			NSString *missile_desc = [missileRoles oo_stringAtIndex:i];
+			NSString *missile_desc = [missileRoles oo_stringAtIndex:roleIndex];
 			if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"])
 			{
 				ShipEntity *amiss = [UNIVERSE newShipWithRole:missile_desc];
 				if (amiss)
 				{
-					missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:missile_desc];
-					missile_entity[missiles] = amiss;   // retain count = 1
-					missiles++;
+					missile_list[missileCount] = [OOEquipmentType equipmentTypeWithIdentifier:missile_desc];
+					missile_entity[missileCount] = amiss;   // retain count = 1
+					missileCount++;
 				}
 				else
 				{
@@ -1376,7 +1374,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	}
 	else	// no missile_roles
 	{
-		for (i = 0; i < missiles; i++)
+		for (NSUInteger i = 0; i < missiles; i++)
 		{
 			missile_list[i] = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retain count = 1 - should be okay as long as we keep a missile with this role
@@ -2657,7 +2655,15 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 			if (travelling_at_hyperspeed)
 			{
 				// decrease speed to maximum normal speed
-				flightSpeed -= (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
+				float deceleration = (speed_delta * delta_t * HYPERSPEED_FACTOR);
+				if (alertFlags & ALERT_FLAG_MASS_LOCK)
+				{
+					// decelerate much quicker in masslocks
+					// this does also apply to injector deceleration
+					// but it's not very noticeable
+					deceleration *= 3;
+				}
+				flightSpeed -= deceleration;
 				if (flightSpeed < maxFlightSpeed)
 					flightSpeed = maxFlightSpeed;
 			}
@@ -2760,7 +2766,7 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 		return;
 	}
 
-	int				i, ent_count		= UNIVERSE->n_entities;
+	int				i, ent_count	= UNIVERSE->n_entities;
 	Entity			**uni_entities	= UNIVERSE->sortedEntities;	// grab the public sorted list
 	Entity			*my_entities[ent_count];
 	Entity			*scannedEntity = nil;
@@ -2770,19 +2776,37 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 	}
 	BOOL massLocked = NO;
 	BOOL foundHostiles = NO;
+#if OO_VARIABLE_TORUS_SPEED
+	BOOL needHyperspeedNearest = YES;
+	double hsnDistance = 0;
+#endif
 	for (i = 0; i < ent_count; i++)  // scanner lollypops
 	{
 		scannedEntity = my_entities[i];
 
-		/* if (scannedEntity->zero_distance > SCANNER_MAX_RANGE2)
+#if OO_VARIABLE_TORUS_SPEED
+		if (EXPECT_NOT(needHyperspeedNearest))
 		{
-			// list is sorted, and ships outside scanner range can't
-			// affect alert status
-			break;
-			}*/
-		/* Oh, wait, but *planets* outside scanner range can. Skip
-		 * this optimisation for now, though it could be done another
-		 * way - CIM */
+			// not visual effects, waypoints, ships, etc.
+			if (scannedEntity != self && [scannedEntity canCollide])
+			{
+				hsnDistance = sqrt(scannedEntity->zero_distance)-[scannedEntity collisionRadius];
+				needHyperspeedNearest = NO;
+			}
+		} 
+		else if ([scannedEntity isStellarObject])
+		{
+			// planets, stars might be closest surface even if not
+			// closest centre. That could be true of others, but the
+			// error is negligible there.
+			double thisHSN = sqrt(scannedEntity->zero_distance)-[scannedEntity collisionRadius];
+			if (thisHSN < hsnDistance)
+			{
+				hsnDistance = thisHSN;
+			}
+		}
+#endif
+		
 		if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
 			int theirClass = [scannedEntity scanClass];
@@ -2801,6 +2825,35 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 			}
 		}
 	}
+#if OO_VARIABLE_TORUS_SPEED
+	if (EXPECT_NOT(needHyperspeedNearest))
+	{
+		// this case should only occur in an otherwise empty
+		// interstellar space - unlikely but possible
+		hyperspeedFactor = MIN_HYPERSPEED_FACTOR;
+	}
+	else
+	{
+		// once nearest object is >4x scanner range
+		// start increasing torus speed
+		double factor = hsnDistance/(4*SCANNER_MAX_RANGE);
+		if (factor < 1.0)
+		{
+			hyperspeedFactor = MIN_HYPERSPEED_FACTOR;
+		}
+		else
+		{
+			hyperspeedFactor = MIN_HYPERSPEED_FACTOR * sqrt(factor);
+			if (hyperspeedFactor > MAX_HYPERSPEED_FACTOR)
+			{
+				// caps out at ~10^8m from nearest object
+				// which takes ~10 minutes of flying
+				hyperspeedFactor = MAX_HYPERSPEED_FACTOR;
+			}
+		}
+	}
+#endif
+
 	[self setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
 		
 	[self setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
@@ -3145,6 +3198,14 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 #define VELOCITY_CLEANUP_MIN	2000.0f	// Minimum speed for "power braking".
 #define VELOCITY_CLEANUP_FULL	5000.0f	// Speed at which full "power braking" factor is used.
 #define VELOCITY_CLEANUP_RATE	0.001f	// Factor for full "power braking".
+
+
+#if OO_VARIABLE_TORUS_SPEED
+- (GLfloat) hyperspeedFactor
+{
+	return hyperspeedFactor;
+}
+#endif
 
 
 - (void) performInFlightUpdates:(OOTimeDelta)delta_t
@@ -5334,6 +5395,14 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 {
 	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
 	return energy_recharge_rate * energy_multiplier;
+}
+
+
+// needed to stop PS.energyRechargeRate = PS.energyRechargeRate going wrong
+- (void) setEnergyRechargeRate:(GLfloat)new
+{
+	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
+	energy_recharge_rate = new / energy_multiplier;
 }
 
 
@@ -7784,11 +7853,29 @@ NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, 
 		unsigned modeWidth = [mode oo_unsignedIntForKey:kOODisplayWidth];
 		unsigned modeHeight = [mode oo_unsignedIntForKey:kOODisplayHeight];
 		float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
+
+		BOOL runningOnPrimaryDisplayDevice = [gameView isRunningOnPrimaryDisplayDevice];
+#if OOLITE_WINDOWS
+		if (!runningOnPrimaryDisplayDevice)
+		{
+			MONITORINFOEX mInfo = [gameView currentMonitorInfo];
+			modeWidth = mInfo.rcMonitor.right - mInfo.rcMonitor.left;
+			modeHeight = mInfo.rcMonitor.bottom - mInfo.rcMonitor.top;
+		}
+#endif
 		
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
+		
 		[gui setText:displayModeString forRow:GUI_ROW(GAME,DISPLAY) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DISPLAY)];
-#endif
+		if (runningOnPrimaryDisplayDevice)
+		{
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DISPLAY)];
+		}
+		else
+		{
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,DISPLAY)];
+		}
+#endif	// OO_RESOLUTIOM_OPTION
 
 		if ([UNIVERSE autoSave])
 			[gui setText:DESC(@"gameoptions-autosave-yes") forRow:GUI_ROW(GAME,AUTOSAVE) align:GUI_ALIGN_CENTER];
@@ -9752,25 +9839,25 @@ static NSString *last_outfitting_key=nil;
 	}
 
 	// following changed to work whether docked or not
-	NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
-	NSUInteger maxOffset = 0;
+	NSArray *goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
+	NSInteger maxOffset = 0;
 	if ([goods count] > (GUI_ROW_MARKET_END-GUI_ROW_MARKET_START))
 	{
 		maxOffset = [goods count]-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
 	}
 
-	NSUInteger			i, j, commodityCount = [shipCommodityData count];
+	NSUInteger			commodityCount = [shipCommodityData count];
 	OOCargoQuantity		quantityInHold[commodityCount];
 		
-	for (i = 0; i < commodityCount; i++)
+	for (NSUInteger i = 0; i < commodityCount; i++)
 	{
 		quantityInHold[i] = [shipCommodityData quantityForGood:[goods oo_stringAtIndex:i]];
 	}
-	for (i = 0; i < [cargo count]; i++)
+	for (NSUInteger i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
-		j = [goods indexOfObject:[container commodityType]];
-		quantityInHold[j] += [container commodityAmount];
+		NSUInteger goodsIndex = [goods indexOfObject:[container commodityType]];
+		quantityInHold[goodsIndex] += [container commodityAmount];
 	}
 
 	if (marketSelectedCommodity != nil && ([marketSelectedCommodity isEqualToString:@"<<<"] || [marketSelectedCommodity isEqualToString:@">>>"]))
@@ -9789,17 +9876,17 @@ static NSString *last_outfitting_key=nil;
 		}
 		if (maxOffset > 0)
 		{
-			j = [goods indexOfObject:marketSelectedCommodity];
+			NSInteger goodsIndex = [goods indexOfObject:marketSelectedCommodity];
 			// validate marketOffset when returning from infoscreen
-			if (j <= marketOffset)
+			if (goodsIndex <= marketOffset)
 			{
 				// is off top of list, move list upwards
-				marketOffset = j-1;
+				marketOffset = goodsIndex-1;
 			}
-			else if (j > marketOffset+(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START)-2)
+			else if (goodsIndex > marketOffset+(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START)-2)
 			{
 				// is off bottom of list, move list downwards
-				marketOffset = 2+j-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
+				marketOffset = 2+goodsIndex-(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START);
 				if (marketOffset > maxOffset)
 				{
 					marketOffset = maxOffset;
@@ -9847,7 +9934,7 @@ static NSString *last_outfitting_key=nil;
 		if ([goods count] > 0)
 		{
 			OOCommodityType good = nil;
-			i = 0;
+			NSInteger i = 0;
 			foreach (good, goods)
 			{
 				if (i < marketOffset)
@@ -11856,17 +11943,17 @@ else _dockTarget = NO_TARGET;
 @end
 
 
-NSComparisonResult marketSorterByName(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByName(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	return [[market nameForGood:a] compare:[market nameForGood:b]];
+	return [[market nameForGood:(OOCommodityType)a] compare:[market nameForGood:(OOCommodityType)b]];
 }
 
 
-NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByPrice(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	int result = (int)[market priceForGood:a] - (int)[market priceForGood:b];
+	int result = (int)[market priceForGood:(OOCommodityType)a] - (int)[market priceForGood:(OOCommodityType)b];
 	if (result < 0)
 	{
 		return NSOrderedAscending;
@@ -11882,10 +11969,10 @@ NSComparisonResult marketSorterByPrice(OOCommodityType a, OOCommodityType b, voi
 }
 
 
-NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByQuantity(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	int result = (int)[market quantityForGood:a] - (int)[market quantityForGood:b];
+	int result = (int)[market quantityForGood:(OOCommodityType)a] - (int)[market quantityForGood:(OOCommodityType)b];
 	if (result < 0)
 	{
 		return NSOrderedAscending;
@@ -11901,10 +11988,10 @@ NSComparisonResult marketSorterByQuantity(OOCommodityType a, OOCommodityType b, 
 }
 
 
-NSComparisonResult marketSorterByMassUnit(OOCommodityType a, OOCommodityType b, void *context)
+NSComparisonResult marketSorterByMassUnit(id a, id b, void *context)
 {
 	OOCommodityMarket *market = (OOCommodityMarket *)context;
-	int result = (int)[market massUnitForGood:a] - (int)[market massUnitForGood:b];
+	int result = (int)[market massUnitForGood:(OOCommodityType)a] - (int)[market massUnitForGood:(OOCommodityType)b];
 	if (result < 0)
 	{
 		return NSOrderedAscending;

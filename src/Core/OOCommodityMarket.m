@@ -1,6 +1,6 @@
 /*
 
-OOCommodities.m
+OOCommodityMarket.m
 
 Oolite
 Copyright (C) 2004-2014 Giles C Williams and contributors
@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOStringExpander.h"
 
 
-NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
+static NSComparisonResult goodsSorter(id a, id b, void *context);
 
 
 @implementation OOCommodityMarket
@@ -405,11 +405,11 @@ NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context);
 @end
 
 
-NSComparisonResult goodsSorter(NSString *a, NSString *b, void *context)
+static NSComparisonResult goodsSorter(id a, id b, void *context)
 {
 	NSDictionary *commodityList = (NSDictionary *)context;
-	int v1 = [[commodityList oo_dictionaryForKey:a] oo_intForKey:kOOCommoditySortOrder];
-    int v2 = [[commodityList oo_dictionaryForKey:b] oo_intForKey:kOOCommoditySortOrder];
+	int v1 = [[commodityList oo_dictionaryForKey:(NSString *)a] oo_intForKey:kOOCommoditySortOrder];
+    int v2 = [[commodityList oo_dictionaryForKey:(NSString *)b] oo_intForKey:kOOCommoditySortOrder];
 
     if (v1 < v2)
 	{

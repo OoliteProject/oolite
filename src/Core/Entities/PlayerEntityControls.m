@@ -126,6 +126,7 @@ static BOOL				escapePodKey_pressed;
 static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
 static BOOL				mouse_left_down;
+static BOOL				oxz_manager_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -312,6 +313,10 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_previous_target,		'-'			);
 	
 	LOAD_KEY_SETTING(key_custom_view,			'v'			);
+
+	LOAD_KEY_SETTING(key_oxzmanager_setfilter,	'f'			);
+	LOAD_KEY_SETTING(key_oxzmanager_showinfo,	'i'			);
+	LOAD_KEY_SETTING(key_oxzmanager_extract,	'x'			);
 	
 #ifndef NDEBUG
 	LOAD_KEY_SETTING(key_dump_target_state,		'H'			);
@@ -586,7 +591,7 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	GameController *gameController = [UNIVERSE gameController];
 	
-	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE);
+	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE) || (gui_screen == GUI_SCREEN_OXZMANAGER);
 
 	@try
 	{
@@ -1614,6 +1619,14 @@ static NSTimeInterval	time_last_frame;
 	{
 		[gameView setStringInput: gvStringInputAll];
 	}
+#if 0
+	// at the moment this function is never called for GUI_SCREEN_OXZMANAGER
+	// but putting this here in case we do later
+	else if (gui_screen == GUI_SCREEN_OXZMANAGER && [[OOOXZManager sharedManager] isAcceptingTextInput])
+	{
+		[gameView setStringInput: gvStringInputAll];
+	}
+#endif
 	else
 	{
 		[gameView allowStringInput: NO];
@@ -2538,25 +2551,25 @@ static NSTimeInterval	time_last_frame;
 				NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
 				if ([goods count] > 0)
 				{
-					NSInteger j = [goods indexOfObject:marketSelectedCommodity];
+					NSInteger goodsIndex = [goods indexOfObject:marketSelectedCommodity];
 					if (arrow_down)
 					{
-						++j;
+						++goodsIndex;
 					}
 					else
 					{
-						--j;
+						--goodsIndex;
 					}
-					if (j < 0)
+					if (goodsIndex < 0)
 					{
-						j = [goods count]-1;
+						goodsIndex = [goods count]-1;
 					}
-					else if (j >= [goods count])
+					else if (goodsIndex >= (NSInteger)[goods count])
 					{
-						j = 0;
+						goodsIndex = 0;
 					}
 					DESTROY(marketSelectedCommodity);
-					marketSelectedCommodity = [[goods oo_stringAtIndex:j] retain];
+					marketSelectedCommodity = [[goods oo_stringAtIndex:goodsIndex] retain];
 					[self setGuiToMarketInfoScreen];
 				}
 			}
@@ -3953,38 +3966,83 @@ static BOOL autopilot_pause;
 			[[OOMusicController sharedController] stopThemeMusic];
 			if (EXPECT(![oxzmanager isRestarting]))
 			{
-				if ([self handleGUIUpDownArrowKeys])
+				if ([oxzmanager isAcceptingGUIInput])
 				{
-					// only has an effect on install/remove selection screens
-					[oxzmanager showOptionsUpdate];
-				}
-				if ([gameView isDown:key_gui_arrow_left])
-				{
-					if ((!leftRightKeyPressed))
+					if ([oxzmanager isAcceptingTextInput])
 					{
-						[oxzmanager showOptionsPrev];
+						[gameView setStringInput: gvStringInputAll];
+						[oxzmanager refreshTextInput:[gameView typedString]];
 					}
-				}
-				if ([gameView isDown:key_gui_arrow_right])
-				{
-					if ((!leftRightKeyPressed))
+					else
 					{
-						[oxzmanager showOptionsNext];
+						[gameView allowStringInput: NO];
 					}
-				}
-				leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
+					if ([self handleGUIUpDownArrowKeys])
+					{
+						// only has an effect on install/remove selection screens
+						[oxzmanager showOptionsUpdate];
+					}
+					if ([gameView isDown:key_gui_arrow_left])
+					{
+						if ((!leftRightKeyPressed))
+						{
+							[oxzmanager processOptionsPrev];
+						}
+					}
+					else if ([gameView isDown:key_gui_arrow_right])
+					{
+						if ((!leftRightKeyPressed))
+						{
+							[oxzmanager processOptionsNext];
+						}
+					}
+					leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
 
-				if (!selectPressed)
-				{
-					if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+					if (!selectPressed)
 					{
-						[oxzmanager processSelection];
+						if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+						{
+							if ([oxzmanager isAcceptingTextInput])
+							{
+								[oxzmanager processTextInput:[gameView typedString]];
+							}
+							else
+							{
+								[oxzmanager processSelection];
+							}
+						}
+					}
+					selectPressed = [gameView isDown:13];
+					if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+					{
+						[gameView clearMouse];
+					}
+				} // endif isAcceptingGUIInput
+				if ([gameView isDown:key_oxzmanager_setfilter] ||
+					[gameView isDown:key_oxzmanager_showinfo] ||
+					[gameView isDown:key_oxzmanager_extract])
+				{
+					if (!oxz_manager_pressed)
+					{
+						oxz_manager_pressed = YES;
+						if ([gameView isDown:key_oxzmanager_setfilter])
+						{
+							[oxzmanager processFilterKey];
+						}
+						else if ([gameView isDown:key_oxzmanager_showinfo])
+						{
+							[oxzmanager processShowInfoKey];
+						}
+						else if ([gameView isDown:key_oxzmanager_extract])
+						{
+							[oxzmanager processExtractKey];
+						}
+						
 					}
 				}
-				selectPressed = [gameView isDown:13];
-				if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+				else
 				{
-					[gameView clearMouse];
+					oxz_manager_pressed = NO;
 				}
 			}
 			break;

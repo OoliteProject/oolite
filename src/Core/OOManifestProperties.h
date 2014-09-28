@@ -45,6 +45,9 @@ static NSString * const kOOManifestTags					= @"tags";
 static NSString * const kOOManifestFilePath				= @"file_path";
 static NSString * const kOOManifestRequiredBy			= @"required_by";
 static NSString * const kOOManifestAvailableVersion		= @"available_version";
+/* these properties are not contained in the manifest.plist but are
+ * provided by in the manifest*s* list by the API */
+static NSString * const kOOManifestUploadDate			= @"upload_date";
 // following manifest.plist properties not (yet?) used by Oolite
 // but may be used by other manifest reading applications
 #if 0

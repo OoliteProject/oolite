@@ -1923,9 +1923,9 @@
 		name = "ECM Hardened Missile";
 		script_info = 
 		{
-			oolite_missile_blastPower = 170;
+			oolite_missile_blastPower = 180;
 			oolite_missile_blastRadius = 32.5;
-			oolite_missile_blastShaping = 0.25;
+			oolite_missile_blastShaping = 0.1;
 			oolite_missile_ecmResponse = "_ecmProofMissileResponse";				
 			oolite_missile_proximity = 25;
 			oolite_missile_range = 30000;
@@ -2525,9 +2525,9 @@
 		scan_class = "CLASS_MISSILE";
 		script_info = 
 		{
-			oolite_missile_blastPower = 170;
+			oolite_missile_blastPower = 180;
 			oolite_missile_blastRadius = 32.5;
-			oolite_missile_blastShaping = 0.25;
+			oolite_missile_blastShaping = 0.1;
 			oolite_missile_proximity = 25;
 			oolite_missile_range = 30000;
 		};

@@ -338,7 +338,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			return YES;
 			
 		case kEquipmentInfo_requiredCargoSpace:
-			*value = OOJSValueFromBOOL([eqType requiredCargoSpace]);
+			*value = INT_TO_JSVAL((int32_t)[eqType requiredCargoSpace]);
 			return YES;
 			
 		case kEquipmentInfo_requiresEquipment:

@@ -936,28 +936,28 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		case CARGO_SLAVES:
 			commodity_amount = 1;
 			DESTROY(commodity_type);
-			commodity_type = [[NSString stringWithString:@"slaves"] retain];
+			commodity_type = @"slaves";
 			cargo_type = CARGO_RANDOM; // not realy random, but it tells that cargo is selected.
 			break;
 			
 		case CARGO_ALLOY:
 			commodity_amount = 1;
 			DESTROY(commodity_type);
-			commodity_type = [[NSString stringWithString:@"alloys"] retain];
+			commodity_type = @"alloys";
 			cargo_type = CARGO_RANDOM;
 			break;
 			
 		case CARGO_MINERALS:
 			commodity_amount = 1;
 			DESTROY(commodity_type);
-			commodity_type = [[NSString stringWithString:@"minerals"] retain];
+			commodity_type = @"minerals";
 			cargo_type = CARGO_RANDOM;
 			break;
 			
 		case CARGO_THARGOID:
 			commodity_amount = 1;
 			DESTROY(commodity_type);
-			commodity_type = [[NSString stringWithString:@"alien_items"] retain];
+			commodity_type = @"alien_items";
 			cargo_type = CARGO_RANDOM;
 			break;
 			
@@ -3805,6 +3805,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (float) maxThrust
 {
 	return max_thrust;
+}
+
+
+- (void) setMaxThrust:(GLfloat)new
+{
+	max_thrust = new;
 }
 
 
@@ -6982,6 +6988,13 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 	return energy_recharge_rate;
 }
 
+
+- (void) setEnergyRechargeRate:(GLfloat)new
+{
+	energy_recharge_rate = new;
+}
+
+
 - (float) weaponRechargeRate
 {
 	return weapon_recharge_rate;
@@ -8152,6 +8165,30 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (GLfloat) maxFlightYaw
 {
 	return max_flight_yaw;
+}
+
+
+- (void) setMaxFlightPitch:(GLfloat)new
+{
+	max_flight_pitch = new;
+}
+
+
+- (void) setMaxFlightSpeed:(GLfloat)new
+{
+	maxFlightSpeed = new;
+}
+
+
+- (void) setMaxFlightRoll:(GLfloat)new
+{
+	max_flight_roll = new;
+}
+
+
+- (void) setMaxFlightYaw:(GLfloat)new
+{
+	max_flight_yaw = new;
 }
 
 
