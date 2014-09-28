@@ -501,11 +501,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// no weapon_damage? It's a missile: set weapon_damage from shipdata!
 	if (weapon_damage == 0.0) 
 	{
-		weapon_damage_override = weapon_damage = [shipDict oo_floatForKey:@"weapon_energy"]; // any damage value for missiles/bombs
+		weapon_damage_override = weapon_damage = [shipDict oo_floatForKey:@"weapon_energy" defaultValue:0]; // any damage value for missiles/bombs
 	}
 	else
-	{ 
-		weapon_damage_override = OOClamp_0_max_f([shipinfoDictionary oo_floatForKey:@"weapon_energy" defaultValue:weapon_damage],50.0); // front laser damage can be modified, within limits!
+	{
+		weapon_damage_override = 0;
 	}
 
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
@@ -6974,64 +6974,6 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		}
 	}
 
-/*	switch (weapon_type)
-	{
-		case WEAPON_PLASMA_CANNON:
-			weapon_energy_use =		6.0f;
-			weapon_damage =			6.0;
-			weapon_recharge_rate =	0.25;
-			weapon_shot_temperature =	8.0f;
-			break;
-		case WEAPON_PULSE_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor redColor]];
-#endif
-			weapon_energy_use =		0.8f;
-			weapon_damage =			15.0;
-			weapon_recharge_rate =	0.5;
-			weapon_shot_temperature =	7.0f;
-			break;
-		case WEAPON_BEAM_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor yellowColor]];
-#endif
-			weapon_energy_use =		0.5f;
-			weapon_damage =			6.0;
-			weapon_recharge_rate =	0.1;
-			weapon_shot_temperature =	3.2f;
-			break;
-		case WEAPON_MINING_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor blueColor]];
-#endif
-			weapon_energy_use =		1.4f;
-			weapon_damage =			50.0;
-			weapon_recharge_rate =	2.5;
-			weapon_shot_temperature =	10.0f;
-			break;
-		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
-			weapon_energy_use =		1.1f;
-			weapon_damage =			12.5;
-			weapon_recharge_rate = 0.7+(0.04*(10-accuracy));
-			weapon_shot_temperature =	8.0f;
-			break;
-		case WEAPON_MILITARY_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor magentaColor]];
-#endif
-			weapon_energy_use =		1.1f;
-			weapon_damage =			12.0;
-			weapon_recharge_rate =	0.10;
-			weapon_shot_temperature =	4.25f;
-			break;
-		case WEAPON_NONE:
-		case WEAPON_UNDEFINED:
-			weapon_energy_use =		0.0f;
-			weapon_damage =			0.0;	// indicating no weapon!
-			weapon_recharge_rate =	0.20;	// maximum rate
-			weapon_shot_temperature =	0.0f;
-			break;
-			} */
 }
 
 
@@ -10817,7 +10759,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	[self setWeaponDataFromType:forward_weapon_type];
 
-	weapon_damage = weapon_damage_override;
+//  weapon damage override no longer effective
+//	weapon_damage = weapon_damage_override;
 	
 	BOOL result = [self fireWeapon:forward_weapon_type direction:WEAPON_FACING_FORWARD range:range];
 	if (isWeaponNone(forward_weapon_type))
