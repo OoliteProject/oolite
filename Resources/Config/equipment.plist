@@ -98,9 +98,9 @@
 		}
 	),
 	(
-		3, 0, "No weapon",
+		3, 0, "Remove Laser",
 		"EQ_WEAPON_NONE",
-		"Remove weapon from selected mounting.",
+		"Remove laser weapon from selected mounting.",
 		{
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
