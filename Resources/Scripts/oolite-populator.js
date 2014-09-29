@@ -210,6 +210,7 @@ this.systemWillPopulate = function()
 									}
 									var rh = system.addShips(role,1,pos,0)[0];
 									// just the hermit, no other rocks
+									rh.scanClass = "CLASS_ROCK";
 								}
 							}.bind(this),
 							deterministic: true
