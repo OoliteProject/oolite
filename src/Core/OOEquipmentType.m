@@ -231,6 +231,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
 			_repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
 
+			_weaponInfo = [[extra oo_dictionaryForKey:@"weapon_info" defaultValue:[NSDictionary dictionary]] retain];
+
 			_damageProbability = [extra oo_floatForKey:@"damage_probability" defaultValue:(_isMissileOrMine?0.0:1.0)];
 			
 			id object = [extra objectForKey:@"requires_equipment"];
@@ -325,6 +327,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_incompatibleEquipment);
 	DESTROY(_conditions);
 	DESTROY(_condition_script);
+	DESTROY(_weaponInfo);
 	DESTROY(_scriptInfo);
 	DESTROY(_script);
 	
@@ -579,6 +582,60 @@ static NSDictionary		*sMissilesRegistry = nil;
 	{
 		return _installTime / 2;
 	}
+}
+
+
+- (BOOL) isTurretLaser
+{
+	return [_weaponInfo oo_boolForKey:@"is_turret_laser" defaultValue:NO];
+}
+
+
+- (BOOL) isMiningLaser
+{
+	return [_weaponInfo oo_boolForKey:@"is_mining_laser" defaultValue:NO];
+}
+
+
+- (GLfloat) weaponRange
+{
+	return [_weaponInfo oo_floatForKey:@"range" defaultValue:12500.0];
+}
+
+
+- (GLfloat) weaponEnergyUse
+{
+	return [_weaponInfo oo_floatForKey:@"energy" defaultValue:0.8];
+}
+
+
+- (GLfloat) weaponDamage
+{
+	return [_weaponInfo oo_floatForKey:@"damage" defaultValue:15.0];
+}
+
+
+- (GLfloat) weaponRechargeRate
+{
+	return [_weaponInfo oo_floatForKey:@"recharge_rate" defaultValue:0.5];
+}
+
+
+- (GLfloat) weaponShotTemperature
+{
+	return [_weaponInfo oo_floatForKey:@"shot_temperature" defaultValue:7.0];
+}
+
+
+- (GLfloat) weaponThreatAssessment
+{
+	return [_weaponInfo oo_floatForKey:@"threat_assessment" defaultValue:1.0];
+}
+
+
+- (OOColor *) weaponColor
+{
+	return [OOColor brightColorWithDescription:[_weaponInfo objectForKey:@"color"]];
 }
 
 

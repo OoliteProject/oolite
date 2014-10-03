@@ -950,7 +950,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"shoot";
 				//  shoot 'a'
-				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
+				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
 				{
 					if ([self fireMainWeapon])
 					{
@@ -2105,18 +2105,18 @@ static NSTimeInterval	time_last_frame;
 			if ([self handleGUIUpDownArrowKeys])
 			{
 				NSString		*itemText = [gui selectedRowText];
-				OOWeaponType		weaponType = WEAPON_UNDEFINED;
+				OOWeaponType		weaponType = nil;
 				
 				if ([itemText isEqual:FORWARD_FACING_STRING]) weaponType = forward_weapon_type;
 				if ([itemText isEqual:AFT_FACING_STRING]) weaponType = aft_weapon_type;
 				if ([itemText isEqual:PORT_FACING_STRING]) weaponType = port_weapon_type;
 				if ([itemText isEqual:STARBOARD_FACING_STRING]) weaponType = starboard_weapon_type;
 				
-				if (weaponType != WEAPON_UNDEFINED)
+				if (weaponType != nil)
 				{
 					BOOL		sameAs = OOWeaponTypeFromEquipmentIdentifierSloppy([gui selectedRowKey]) == weaponType;
 					// override showInformation _completely_ with itemText
-					if (weaponType == WEAPON_NONE)  itemText = DESC(@"no-weapon-enter-to-install");
+					if ([[weaponType identifier] isEqualToString:@"EQ_WEAPON_NONE"])  itemText = DESC(@"no-weapon-enter-to-install");
 					else
 					{
 						NSString *weaponName = [[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)] name];

@@ -9107,10 +9107,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	OOCreditsQuantity	scrap_value = 351; // translates to 250 cr.
 	
-	OOWeaponType		ship_fwd_weapon = [dict oo_unsignedIntForKey:@"forward_weapon"];
-	OOWeaponType		ship_aft_weapon = [dict oo_unsignedIntForKey:@"aft_weapon"];
-	OOWeaponType		ship_port_weapon = [dict oo_unsignedIntForKey:@"port_weapon"];
-	OOWeaponType		ship_starboard_weapon = [dict oo_unsignedIntForKey:@"starboard_weapon"];
+	OOWeaponType		ship_fwd_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"forward_weapon"]];
+	OOWeaponType		ship_aft_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"aft_weapon"]];
+	OOWeaponType		ship_port_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"port_weapon"]];
+	OOWeaponType		ship_starboard_weapon = [OOEquipmentType equipmentTypeWithIdentifier:[dict oo_stringForKey:@"starboard_weapon"]];
 	unsigned			ship_missiles = [dict oo_unsignedIntForKey:@"missiles"];
 	unsigned			ship_max_passengers = [dict oo_unsignedIntForKey:@"max_passengers"];
 	NSMutableArray		*ship_extra_equipment = [NSMutableArray arrayWithArray:[[dict oo_dictionaryForKey:@"extra_equipment"] allKeys]];

@@ -254,6 +254,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	_compassActive = isCompassToBeDrawn;
 	
+	_lastWeaponType = nil;
+
 	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
 	for (i = 0; i < [legends count]; i++)
 	{
@@ -886,6 +888,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon
 {
 	NSString					*weaponName = nil;
+	NSString					*weaponName2 = nil;
 	static						NSDictionary *crosshairDefs = nil;
 	NSArray						*result = nil;
 	
@@ -897,7 +900,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	 */
 	
 	weaponName = OOStringFromWeaponType(weapon);
+	weaponName2 = [weaponName substringFromIndex:3]; // strip "EQ_"
 	result = [_crosshairOverrides oo_arrayForKey:weaponName];
+	if (result == nil) 
+	{
+		result = [_crosshairOverrides oo_arrayForKey:weaponName2];
+	}
 	if (result == nil)  result = [_crosshairOverrides oo_arrayForKey:@"OTHER"];
 	if (result == nil)
 	{
@@ -910,6 +918,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		}
 		
 		result = [crosshairDefs oo_arrayForKey:weaponName];
+		if (result == nil) 
+		{
+			result = [crosshairDefs oo_arrayForKey:weaponName2];
+		}
 		if (result == nil)  result = [crosshairDefs oo_arrayForKey:@"OTHER"];
 	}
 	

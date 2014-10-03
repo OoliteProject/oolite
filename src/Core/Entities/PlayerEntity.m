@@ -718,10 +718,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[result oo_setBool:[self weaponsOnline]	forKey:@"weapons_online"];
 	
-	[result oo_setInteger:forward_weapon_type	forKey:@"forward_weapon"];
-	[result oo_setInteger:aft_weapon_type		forKey:@"aft_weapon"];
-	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
-	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
+	[result setObject:[forward_weapon_type identifier]	forKey:@"forward_weapon"];
+	[result setObject:[aft_weapon_type identifier]		forKey:@"aft_weapon"];
+	[result setObject:[port_weapon_type identifier]		forKey:@"port_weapon"];
+	[result setObject:[starboard_weapon_type identifier]	forKey:@"starboard_weapon"];
 	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
 	if (hud != nil && [hud nonlinearScanner])
 	{
@@ -1248,24 +1248,27 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	OOWeaponFacingSet available_facings = [shipyard_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];
 
 	if (available_facings & WEAPON_FACING_FORWARD)
-		forward_weapon_type = [dict oo_intForKey:@"forward_weapon"];
+		forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierLegacy([dict oo_stringForKey:@"forward_weapon"]);
 	else
-		forward_weapon_type = WEAPON_NONE;
+		forward_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
 	if (available_facings & WEAPON_FACING_AFT)
-		aft_weapon_type = [dict oo_intForKey:@"aft_weapon"];
+		aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierLegacy([dict oo_stringForKey:@"aft_weapon"]);
 	else
-		aft_weapon_type = WEAPON_NONE;
+		aft_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
 	if (available_facings & WEAPON_FACING_PORT)
-		port_weapon_type = [dict oo_intForKey:@"port_weapon"];
+		port_weapon_type = OOWeaponTypeFromEquipmentIdentifierLegacy([dict oo_stringForKey:@"port_weapon"]);
 	else
-		port_weapon_type = WEAPON_NONE;
+		port_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
 
 	if (available_facings & WEAPON_FACING_STARBOARD)
-		starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
+		starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierLegacy([dict oo_stringForKey:@"starboard_weapon"]);
 	else
-		starboard_weapon_type = WEAPON_NONE;
+		starboard_weapon_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_NONE");
+
+	[self setWeaponDataFromType:forward_weapon_type];
+
 	if (hud != nil && [hud nonlinearScanner])
 	{
 		[hud setScannerZoom: [dict oo_floatForKey:@"ship_scanner_zoom" defaultValue: 1.0]];
@@ -1769,10 +1772,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	fuel_leak_rate			= 0.0f;
 	
 	galaxy_number			= 0;
-	forward_weapon_type		= WEAPON_PULSE_LASER;
-	aft_weapon_type			= WEAPON_NONE;
-	port_weapon_type		= WEAPON_NONE;
-	starboard_weapon_type	= WEAPON_NONE;
+	// will load real weapon data later
+	forward_weapon_type		= nil;
+	aft_weapon_type			= nil;
+	port_weapon_type		= nil;
+	starboard_weapon_type	= nil;
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	weapons_online			= YES;
@@ -5424,42 +5428,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// Basic stats: weapon_damage & weaponRange (weapon_recharge_rate is not used by the player)
 	[self setWeaponDataFromType:currentWeapon];
-	
-	// Advanced stats: all the other stats used by the player!
-	switch (currentWeapon)
-	{
-		case WEAPON_PLASMA_CANNON:
-			weapon_energy_use =		6.0f;
-			weapon_reload_time =	0.25f;
-			break;
-			
-		case WEAPON_PULSE_LASER:
-			weapon_energy_use =		0.8f;
-			weapon_reload_time =	0.5f;
-			break;
-			
-		case WEAPON_BEAM_LASER:
-			weapon_energy_use =		1.0f;
-			weapon_reload_time =	0.1f;
-			break;
-			
-		case WEAPON_MINING_LASER:
-			weapon_energy_use =		1.4f;
-			weapon_reload_time =	2.5f;
-			break;
-			
-		case WEAPON_THARGOID_LASER:
-		case WEAPON_MILITARY_LASER:
-			weapon_energy_use =		1.2f;
-			weapon_reload_time =	0.1f;
-			break;
-			
-		case WEAPON_NONE:
-		case WEAPON_UNDEFINED:
-			weapon_energy_use =		0.0f;
-			weapon_reload_time =	0.1f;
-			break;
-	}
 }
 
 
@@ -5484,7 +5452,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (BOOL) fireMainWeapon
 {
-	int weapon_to_be_fired = [self currentWeapon];
+	OOWeaponType weapon_to_be_fired = [self currentWeapon];
 
 	if (![self weaponsOnline])
 	{
@@ -5498,7 +5466,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		return NO;
 	}
 
-	if (weapon_to_be_fired == WEAPON_NONE)
+	if (isWeaponNone(weapon_to_be_fired))
 	{
 		return NO;
 	}
@@ -5511,7 +5479,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		return NO;
 	}
 
-	using_mining_laser = (weapon_to_be_fired == WEAPON_MINING_LASER);
+	using_mining_laser = [weapon_to_be_fired isMiningLaser];
 
 	energy -= weapon_energy_use;
 
@@ -5542,23 +5510,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	BOOL	weaponFired = NO;
-	switch (weapon_to_be_fired)
+	if (!isWeaponNone(weapon_to_be_fired))
 	{
-		case WEAPON_PLASMA_CANNON:
-			[self firePlasmaShotAtOffset:10.0 speed:PLAYER_PLASMA_SPEED color:[OOColor greenColor]];
-			weaponFired = YES;
-			break;
-
-		case WEAPON_PULSE_LASER:
-		case WEAPON_BEAM_LASER:
-		case WEAPON_MINING_LASER:
-		case WEAPON_MILITARY_LASER:
+		if (![weapon_to_be_fired isTurretLaser])
+		{
 			[self fireLaserShotInDirection:currentWeaponFacing];
 			weaponFired = YES;
-			break;
-		
-		case WEAPON_THARGOID_LASER:
-			break;
+		}
+		else
+		{
+			// nothing: compatible with previous versions
+		}
 	}
 	
 	if (weaponFired && cloaking_device_active && cloakPassive)
@@ -5589,7 +5551,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		case WEAPON_FACING_NONE:
 			break;
 	}
-	return WEAPON_NONE;
+	return nil;
 }
 
 
@@ -7325,24 +7287,24 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	
-	if (forward_weapon_type > WEAPON_NONE)
+	if (!isWeaponNone(forward_weapon_type))
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(forward_weapon_type)] name]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[forward_weapon_type name]];
 		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	if (aft_weapon_type > WEAPON_NONE)
+	if (!isWeaponNone(aft_weapon_type))
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(aft_weapon_type)] name]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[aft_weapon_type name]];
 		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	if (port_weapon_type > WEAPON_NONE)
+	if (!isWeaponNone(port_weapon_type))
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(port_weapon_type)] name]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[port_weapon_type name]];
 		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	if (starboard_weapon_type > WEAPON_NONE)
+	if (!isWeaponNone(starboard_weapon_type))
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(starboard_weapon_type)] name]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[starboard_weapon_type name]];
 		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	
@@ -7425,7 +7387,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
-	OOWeaponType weaponType = WEAPON_NONE;
+	OOWeaponType weaponType = nil;
 	
 	switch (facing)
 	{
@@ -7449,7 +7411,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			break;
 	}
 
-	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
+	return weaponType;
 }
 
 
@@ -8449,25 +8411,25 @@ static NSString *last_outfitting_key=nil;
 							case 1:
 								displayRow = available_facings & WEAPON_FACING_FORWARD;
 								desc = FORWARD_FACING_STRING;
-								weaponMounted = forward_weapon_type > WEAPON_NONE;
+								weaponMounted = !isWeaponNone(forward_weapon_type);
 								break;
 								
 							case 2:
 								displayRow = available_facings & WEAPON_FACING_AFT;
 								desc = AFT_FACING_STRING;
-								weaponMounted = aft_weapon_type > WEAPON_NONE;
+								weaponMounted = !isWeaponNone(aft_weapon_type);
 								break;
 								
 							case 3:
 								displayRow = available_facings & WEAPON_FACING_PORT;
 								desc = PORT_FACING_STRING;
-								weaponMounted = port_weapon_type > WEAPON_NONE;
+								weaponMounted = !isWeaponNone(port_weapon_type);
 								break;
 								
 							case 4:
 								displayRow = available_facings & WEAPON_FACING_STARBOARD;
 								desc = STARBOARD_FACING_STRING;
-								weaponMounted = starboard_weapon_type > WEAPON_NONE;
+								weaponMounted = !isWeaponNone(starboard_weapon_type);
 								break;
 						}
 						
@@ -9281,7 +9243,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		OOWeaponType chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
-		OOWeaponType current_weapon = WEAPON_NONE;
+		OOWeaponType current_weapon = nil;
 		
 		switch (chosen_weapon_facing)
 		{
@@ -9312,7 +9274,7 @@ static NSString *last_outfitting_key=nil;
 		credits -= price;
 		
 		// Refund current_weapon
-		if (current_weapon != WEAPON_NONE)
+		if (current_weapon != nil)
 		{
 			tradeIn = [UNIVERSE getEquipmentPriceForKey:OOEquipmentIdentifierFromWeaponType(current_weapon)];
 		}
@@ -9477,7 +9439,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	
 	// sets WEAPON_NONE if not recognised
-	int chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
+	OOWeaponType chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
 	
 	switch (facing)
 	{
@@ -10485,8 +10447,13 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType
 {
-	if (forward_weapon_type == weaponType || aft_weapon_type == weaponType)  return YES;
-	if (port_weapon_type == weaponType || starboard_weapon_type == weaponType)  return YES;
+	if ([[forward_weapon_type identifier] isEqualToString:[weaponType identifier]] ||
+		[[aft_weapon_type identifier] isEqualToString:[weaponType identifier]] ||
+		[[port_weapon_type identifier] isEqualToString:[weaponType identifier]] ||
+		[[starboard_weapon_type identifier] isEqualToString:[weaponType identifier]])
+	{
+		return YES;
+	}
 	
 	return [super hasPrimaryWeapon:weaponType];
 }

@@ -279,13 +279,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	weapon_facings = [shipDict oo_intForKey:@"weapon_facings" defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
 	if (weapon_facings & WEAPON_FACING_FORWARD)
-		forward_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+		forward_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"EQ_WEAPON_NONE"]);
 	if (weapon_facings & WEAPON_FACING_AFT)
-		aft_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+		aft_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"EQ_WEAPON_NONE"]);
 	if (weapon_facings & WEAPON_FACING_PORT)
-		port_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"port_weapon_type" defaultValue:@"WEAPON_NONE"]);
+		port_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"port_weapon_type" defaultValue:@"EQ_WEAPON_NONE"]);
 	if (weapon_facings & WEAPON_FACING_STARBOARD)
-		starboard_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"starboard_weapon_type" defaultValue:@"WEAPON_NONE"]);
+		starboard_weapon_type = OOWeaponTypeFromString([shipDict oo_stringForKey:@"starboard_weapon_type" defaultValue:@"EQ_WEAPON_NONE"]);
 
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
@@ -374,18 +374,24 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
 	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
 	
-	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
+	DESTROY(default_laser_color);
+	default_laser_color = [[OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]] retain];
 	
-	if (color == nil)  color = [OOColor redColor];
-	[self setLaserColor:color];
-	
+	if (default_laser_color == nil) 
+	{
+		[self setLaserColor:[OOColor redColor]];
+	}
+	else
+	{
+		[self setLaserColor:default_laser_color];
+	}
 	// exhaust emissive color
 	OORGBAComponents defaultExhaustEmissiveColorComponents; // pale blue is exhaust default color
 	defaultExhaustEmissiveColorComponents.r = 0.7f;
 	defaultExhaustEmissiveColorComponents.g = 0.9f;
 	defaultExhaustEmissiveColorComponents.b = 1.0f;
 	defaultExhaustEmissiveColorComponents.a = 0.9f;
-	color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"exhaust_emissive_color"]];
+	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"exhaust_emissive_color"]];
 	if (color == nil)  color = [OOColor colorWithRGBAComponents:defaultExhaustEmissiveColorComponents];
 	[self setExhaustEmissiveColor:color];
 	
@@ -393,13 +399,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	[self setUpSubEntities];
 
 // correctly initialise weaponRange, etc. (must be after subentity setup)
-	if (forward_weapon_type == WEAPON_NONE)
+	if (isWeaponNone(forward_weapon_type))
 	{
-		OOWeaponType 			weapon_type = WEAPON_NONE;
+		OOWeaponType 			weapon_type = nil;
 		BOOL hasTurrets = NO;
 		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
 		ShipEntity		*se = nil;
-		while (weapon_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		while (isWeaponNone(weapon_type) && (se = [subEnum nextObject]))
 		{
 			weapon_type = se->forward_weapon_type;
 			if (se->behaviour == BEHAVIOUR_TRACK_AS_TURRET)
@@ -407,11 +413,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 				hasTurrets = YES;
 			}
 		}
-		if (weapon_type == WEAPON_NONE && hasTurrets)
+		if (isWeaponNone(weapon_type) && hasTurrets)
 		{ // safety for ships only equipped with turrets
-			weapon_type = WEAPON_PLASMA_CANNON;
+			weaponRange = 10000.0;
 		}
-		[self setWeaponDataFromType:weapon_type];
+		else
+		{
+			[self setWeaponDataFromType:weapon_type];
+		}
 	}
 	else
 	{
@@ -492,11 +501,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// no weapon_damage? It's a missile: set weapon_damage from shipdata!
 	if (weapon_damage == 0.0) 
 	{
-		weapon_damage_override = weapon_damage = [shipDict oo_floatForKey:@"weapon_energy"]; // any damage value for missiles/bombs
+		weapon_damage_override = weapon_damage = [shipDict oo_floatForKey:@"weapon_energy" defaultValue:0]; // any damage value for missiles/bombs
 	}
 	else
-	{ 
-		weapon_damage_override = OOClamp_0_max_f([shipinfoDictionary oo_floatForKey:@"weapon_energy" defaultValue:weapon_damage],50.0); // front laser damage can be modified, within limits!
+	{
+		weapon_damage_override = 0;
 	}
 
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
@@ -999,6 +1008,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(roleSet);
 	DESTROY(primaryRole);
 	DESTROY(laser_color);
+	DESTROY(default_laser_color);
 	DESTROY(exhaust_emissive_color);
 	DESTROY(scanner_display_color1);
 	DESTROY(scanner_display_color2);
@@ -2864,7 +2874,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// Check for primary weapon
 		OOWeaponType weaponType = OOWeaponTypeFromEquipmentIdentifierStrict(itemKey);
-		if (weaponType != WEAPON_NONE)
+		if (!isWeaponNone(weaponType))
 		{
 			if ([self hasPrimaryWeapon:weaponType])  return YES;
 		}
@@ -2903,8 +2913,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSEnumerator				*subEntEnum = nil;
 	ShipEntity					*subEntity = nil;
 	
-	if (forward_weapon_type == weaponType || aft_weapon_type == weaponType || port_weapon_type == weaponType || starboard_weapon_type == weaponType)  return YES;
-	
+	if ([[forward_weapon_type identifier] isEqualToString:[weaponType identifier]] ||
+		[[aft_weapon_type identifier] isEqualToString:[weaponType identifier]] ||
+		[[port_weapon_type identifier] isEqualToString:[weaponType identifier]] ||
+		[[starboard_weapon_type identifier] isEqualToString:[weaponType identifier]])
+	{
+		return YES;
+	}
+
 	for (subEntEnum = [self shipSubEntityEnumerator]; (subEntity = [subEntEnum nextObject]); )
 	{
 		if ([subEntity hasPrimaryWeapon:weaponType])  return YES;
@@ -3010,7 +3026,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (OOWeaponType) weaponTypeIDForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
-	OOWeaponType weaponType = WEAPON_NONE;
+	OOWeaponType weaponType = nil;
 
 	if (facing & weapon_facings)
 	{
@@ -3019,11 +3035,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			case WEAPON_FACING_FORWARD:
 				weaponType = forward_weapon_type;
 				// if no forward weapon, and not carrying out a strict check, see if subentities have forward weapons, return the first one found.
-				if (weaponType == WEAPON_NONE && !strict)
+				if (isWeaponNone(weaponType) && !strict)
 				{
 					NSEnumerator	*subEntEnum = [self shipSubEntityEnumerator];
 					ShipEntity		*subEntity = nil;
-					while (weaponType == WEAPON_NONE && (subEntity = [subEntEnum nextObject]))
+					while (isWeaponNone(weaponType) && (subEntity = [subEntEnum nextObject]))
 					{
 						weaponType = subEntity->forward_weapon_type;
 					}
@@ -3051,9 +3067,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (OOEquipmentType *) weaponTypeForFacing:(OOWeaponFacing)facing strict:(BOOL)strict
 {
-	OOWeaponType weaponType = [self weaponTypeIDForFacing:facing strict:strict];
-
-	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
+//	OOWeaponType weaponType = [self weaponTypeIDForFacing:facing strict:strict];
+//	return [OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)];
+	return [self weaponTypeIDForFacing:facing strict:strict];
 }
 
 
@@ -4244,12 +4260,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	GLfloat forward_weapon_real_temp = forward_weapon_temp;
 
 // if forward weapon is actually on a subent
-	if (forward_weapon_real_type == WEAPON_NONE)
+	if (isWeaponNone(forward_weapon_real_type))
 	{
 		BOOL hasTurrets = NO;
 		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
 		ShipEntity		*se = nil;
-		while (forward_weapon_real_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		while (isWeaponNone(forward_weapon_real_type) && (se = [subEnum nextObject]))
 		{
 			forward_weapon_real_type = se->forward_weapon_type;
 			forward_weapon_real_temp = se->forward_weapon_temp;
@@ -4258,14 +4274,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				hasTurrets = YES;
 			}
 		}
-		if (forward_weapon_real_type == WEAPON_NONE && hasTurrets)
+		if (isWeaponNone(forward_weapon_real_type) && hasTurrets)
 		{ // safety for ships only equipped with turrets
-			forward_weapon_real_type = WEAPON_PLASMA_CANNON;
+			forward_weapon_real_type = OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_PULSE_LASER");
 			forward_weapon_real_temp = COMBAT_AI_WEAPON_TEMP_USABLE * 0.9;
 		}
 	}
 
-	if (forward_weapon_real_type == WEAPON_THARGOID_LASER) 
+	if ([forward_weapon_real_type isTurretLaser]) 
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 	} 
@@ -4273,19 +4289,19 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		BOOL in_good_range = aim_tolerance*range < COMBAT_AI_CONFIDENCE_FACTOR;
 
-		BOOL aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
-		BOOL forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_READY); // does not require in_good_range
-		BOOL port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
-		BOOL starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
+		BOOL aft_weapon_ready = !isWeaponNone(aft_weapon_type) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
+		BOOL forward_weapon_ready = !isWeaponNone(forward_weapon_real_type) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_READY); // does not require in_good_range
+		BOOL port_weapon_ready = !isWeaponNone(port_weapon_type) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
+		BOOL starboard_weapon_ready = !isWeaponNone(starboard_weapon_type) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_READY) && in_good_range;
 // if no weapons cool enough to be good choices, be less picky
 		BOOL weapons_heating = NO;
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
 		{
 			weapons_heating = YES;
-			aft_weapon_ready = (aft_weapon_type != WEAPON_NONE) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
-			forward_weapon_ready = (forward_weapon_real_type != WEAPON_NONE) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_USABLE); // does not require in_good_range
-			port_weapon_ready = (port_weapon_type != WEAPON_NONE) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
-			starboard_weapon_ready = (starboard_weapon_type != WEAPON_NONE) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
+			aft_weapon_ready = !isWeaponNone(aft_weapon_type) && (aft_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
+			forward_weapon_ready = !isWeaponNone(forward_weapon_real_type) && (forward_weapon_real_temp < COMBAT_AI_WEAPON_TEMP_USABLE); // does not require in_good_range
+			port_weapon_ready = !isWeaponNone(port_weapon_type) && (port_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
+		starboard_weapon_ready = !isWeaponNone(starboard_weapon_type) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
 		}
 
 		ShipEntity*	target = [self primaryTarget];
@@ -4295,7 +4311,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{ // no usable weapons! Either not fitted or overheated
 			
 			// if unarmed
-			if (forward_weapon_real_type == WEAPON_NONE && aft_weapon_type == WEAPON_NONE && port_weapon_type == WEAPON_NONE && starboard_weapon_type == WEAPON_NONE)
+			if (isWeaponNone(forward_weapon_real_type) && 
+				isWeaponNone(aft_weapon_type) && 
+				isWeaponNone(port_weapon_type) && 
+				isWeaponNone(starboard_weapon_type))
 			{
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 			}
@@ -4382,7 +4401,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink = kZeroVector; // almost all behaviours
 
 				// TODO: good pilots use behaviour_attack_sniper sometimes
-				if (getWeaponRangeFromType(forward_weapon_real_type) > getWeaponRangeFromType(WEAPON_PULSE_LASER) && range > getWeaponRangeFromType(WEAPON_PULSE_LASER))
+				if (getWeaponRangeFromType(forward_weapon_real_type) > 12500 && range > 12500)
 				{
 					behaviour = BEHAVIOUR_ATTACK_SNIPER;
 				}
@@ -4447,7 +4466,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (port_weapon_temp < starboard_weapon_temp)
 		{
-			if (port_weapon_type == WEAPON_NONE)
+			if (isWeaponNone(port_weapon_type))
 			{
 				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_RIGHT;
 				[self setWeaponDataFromType:starboard_weapon_type];
@@ -4460,7 +4479,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		else
 		{
-			if (starboard_weapon_type != WEAPON_NONE)
+			if (isWeaponNone(starboard_weapon_type))
 			{
 				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_RIGHT;
 				[self setWeaponDataFromType:starboard_weapon_type];
@@ -4556,7 +4575,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{ // will probably have more luck with the other laser or picking a different attack method
 		if (leftside)
 		{
-			if (starboard_weapon_type != WEAPON_NONE)
+			if (!isWeaponNone(starboard_weapon_type))
 			{
 				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_RIGHT;
 			}
@@ -4567,7 +4586,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		else
 		{
-			if (port_weapon_type != WEAPON_NONE)
+			if (!isWeaponNone(port_weapon_type))
 			{
 				behaviour = BEHAVIOUR_ATTACK_BROADSIDE_LEFT;
 			}
@@ -4644,7 +4663,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 	[self behaviour_fly_to_target_six:delta_t];
-	if (port_weapon_type != WEAPON_NONE)
+	if (!isWeaponNone(port_weapon_type))
 	{
 		[self setWeaponDataFromType:port_weapon_type];
 	}
@@ -4712,7 +4731,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
-	else if (range < getWeaponRangeFromType(WEAPON_PULSE_LASER))
+	else if (range < 15000)
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
@@ -4848,9 +4867,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// target-twelve
 	if (behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE)
 	{
-		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+		if ([forward_weapon_type isTurretLaser])
 		{
-      // head for a point near the target, avoiding common Galcop weapon mount locations
+			// head for a point near the target, avoiding common Galcop weapon mount locations
+			// TODO: this should account for weapon ranges
 			GLfloat offset = 1000.0;
 			GLfloat spacing = 2000.0;
 			if (accuracy > 0.0) 
@@ -4878,7 +4898,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else if(frustration > 0.0) frustration -= delta_t * 0.75;
 
 	double aspect = [self approachAspectToPrimaryTarget];
-	if(forward_weapon_type != WEAPON_THARGOID_LASER && (frustration > 10 || aspect > 0.75))
+	if(![forward_weapon_type isTurretLaser] && (frustration > 10 || aspect > 0.75))
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 	}
@@ -5061,7 +5081,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// don't do this if the target is fleeing and the front laser is
 		// the only weapon, or if we're too far away to use non-front
 		// lasers effectively
-		if (aspect < 0 || aft_weapon_type != WEAPON_NONE || port_weapon_type != WEAPON_NONE || starboard_weapon_type != WEAPON_NONE)
+		if (aspect < 0 || 
+			!isWeaponNone(aft_weapon_type) ||
+			!isWeaponNone(port_weapon_type) ||
+			!isWeaponNone(starboard_weapon_type))
 		{
 			frustration = 0.0;
 			behaviour = BEHAVIOUR_ATTACK_TARGET;
@@ -5073,7 +5096,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// need to dodge sooner if in aft sights
 		if ([target behaviour] != BEHAVIOUR_FLEE_TARGET && [target behaviour] != BEHAVIOUR_FLEE_EVASIVE_ACTION)
 		{
-			if ((aspect > 0.99999 && [target weaponTypeForFacing:WEAPON_FACING_FORWARD strict:NO] != WEAPON_NONE) || (aspect < -0.999 && [target weaponTypeForFacing:WEAPON_FACING_AFT strict:NO] != WEAPON_NONE)) 
+			if ((aspect > 0.99999 && !isWeaponNone([target weaponTypeForFacing:WEAPON_FACING_FORWARD strict:NO])) || (aspect < -0.999 && !isWeaponNone([target weaponTypeForFacing:WEAPON_FACING_AFT strict:NO])))
 			{
 				frustration = 0.0;
 				behaviour = BEHAVIOUR_EVASIVE_ACTION;
@@ -5180,14 +5203,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
 	{
 		behaviour = BEHAVIOUR_CLOSE_WITH_TARGET;
-		if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+		if ([forward_weapon_type isTurretLaser]) 
 		{
 				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 		} 
 		frustration = 0.0;
 	}
 	[self trackPrimaryTarget:delta_t:YES];
-	if (forward_weapon_type == WEAPON_THARGOID_LASER) 
+	if ([forward_weapon_type isTurretLaser]) 
 	{
 		// most Thargoids will only have the forward weapon
 		[self fireMainWeapon:range];
@@ -5268,7 +5291,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 // thargoids won't normally be fleeing, but if they do, they can still shoot
-	if (forward_weapon_type == WEAPON_THARGOID_LASER)
+	if ([forward_weapon_type isTurretLaser])
 	{
 		[self fireMainWeapon:range];
 	}
@@ -6943,65 +6966,20 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 - (void) setWeaponDataFromType: (OOWeaponType) weapon_type
 {
 	weaponRange = getWeaponRangeFromType(weapon_type);
-	switch (weapon_type)
+	weapon_energy_use = [weapon_type weaponEnergyUse];
+	weapon_recharge_rate = [weapon_type weaponRechargeRate];
+	weapon_shot_temperature = [weapon_type weaponShotTemperature];
+	weapon_damage = [weapon_type weaponDamage];
+
+	if (default_laser_color == nil)
 	{
-		case WEAPON_PLASMA_CANNON:
-			weapon_damage =			6.0;
-			weapon_recharge_rate =	0.25;
-			weapon_shot_temperature =	8.0f;
-			break;
-		case WEAPON_PULSE_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor redColor]];
-#endif
-			weapon_damage =			15.0;
-			// weapon_recharge_rate =	0.33;
-			weapon_recharge_rate =	0.5;
-			weapon_shot_temperature =	7.0f;
-			break;
-		case WEAPON_BEAM_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor yellowColor]];
-#endif
-			weapon_damage =			15.0;
-			// weapon_recharge_rate =	0.25;
-			weapon_recharge_rate =	0.1;
-			weapon_shot_temperature =	8.0f;
-			break;
-		case WEAPON_MINING_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor blueColor]];
-#endif
-			weapon_damage =			50.0;
-			weapon_recharge_rate =	2.5;
-			weapon_shot_temperature =	10.0f;
-			break;
-		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
-			weapon_damage =			12.5;
-// changing weapon_recharge_rate to accompany change to onTarget - CIM 20120502
-//			weapon_recharge_rate =	0.5;
-// old behaviour gave range of 0.7-1.3 between 25 and 100 FPS
-// so duplicate this range
-//			weapon_recharge_rate = 0.7+(0.6*[self entityPersonality]);
-			weapon_recharge_rate = 0.7+(0.04*(10-accuracy));
-			weapon_shot_temperature =	8.0f;
-			break;
-		case WEAPON_MILITARY_LASER:
-#ifdef DEBUG_LASER_TYPES
-			[self setLaserColor:[OOColor magentaColor]];
-#endif
-			weapon_damage =			23.0;
-			// weapon_recharge_rate =	0.20;
-			weapon_recharge_rate =	0.10;
-			weapon_shot_temperature =	8.0f;
-			break;
-		case WEAPON_NONE:
-		case WEAPON_UNDEFINED:
-			weapon_damage =			0.0;	// indicating no weapon!
-			weapon_recharge_rate =	0.20;	// maximum rate
-			weapon_shot_temperature =	0.0f;
-			break;
+		OOColor *wcol = [weapon_type weaponColor];
+		if (wcol != nil)
+		{
+			[self setLaserColor:wcol];
+		}
 	}
+
 }
 
 
@@ -9101,14 +9079,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (GLfloat)laserHeatLevelForward
 {
 	GLfloat result = forward_weapon_temp / NPC_MAX_WEAPON_TEMP;
-	if (forward_weapon_type == WEAPON_NONE) 
+	if (isWeaponNone(forward_weapon_type)) 
 	{ // must check subents
-		OOWeaponType forward_weapon_real_type = WEAPON_NONE;
+		OOWeaponType forward_weapon_real_type = nil;
 		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
 		ShipEntity		*se = nil;
-		while (forward_weapon_real_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		while (isWeaponNone(forward_weapon_real_type) && (se = [subEnum nextObject]))
 		{
-			if (se->forward_weapon_type != WEAPON_NONE)
+			if (!isWeaponNone(se->forward_weapon_type))
 			{
 				forward_weapon_real_type = se->forward_weapon_type;
 				result = se->forward_weapon_temp / NPC_MAX_WEAPON_TEMP;
@@ -10661,11 +10639,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat dq = -1.0f;
 	GLfloat d2, radius, astq;
 	Vector rel_pos, urp;
-	if (weapon_type == WEAPON_THARGOID_LASER)
+	if ([weapon_type isTurretLaser])
 	{
-/* this gives a frame rate dependency. Modified weapon_recharge_time
- * elsewhere to give a similar effect - CIM 20120502 */		
-// if (randf() < 0.05) return YES;	// one in twenty shots on target
 		return YES;
 	}
 	
@@ -10744,8 +10719,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return NO;
 
+	if (energy <= weapon_energy_use) return NO;
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
-	if (weapon_type != WEAPON_THARGOID_LASER)
+	if (![weapon_type isTurretLaser])
 	{ // thargoid laser may just pick secondary target in this case
 		if (range > randf() * weaponRange * (accuracy+7.5))  return NO;
 		if (range > weaponRange)  return NO;
@@ -10753,34 +10729,23 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (![self onTarget:direction withWeapon:weapon_type])  return NO;
 	
 	BOOL fired = NO;
-	switch (weapon_type)
+	if (!isWeaponNone(weapon_type))
 	{
-		case WEAPON_PLASMA_CANNON:
-			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor] direction:direction];
-			fired = YES;
-			break;
-		
-		case WEAPON_PULSE_LASER:
-		case WEAPON_BEAM_LASER:
-		case WEAPON_MINING_LASER:
-		case WEAPON_MILITARY_LASER:
-			[self fireLaserShotInDirection:direction];
-			fired = YES;
-			break;
-		
-		case WEAPON_THARGOID_LASER:
+		if ([weapon_type isTurretLaser])
+		{
 			[self fireDirectLaserShot:range];
 			fired = YES;
-			break;
-		
-		case WEAPON_NONE:
-		case WEAPON_UNDEFINED:
-			// Do nothing
-			break;
+		}
+		else
+		{
+			[self fireLaserShotInDirection:direction];
+			fired = YES;
+		}
 	}
 
 	if (fired)
 	{
+		energy -= weapon_energy_use;
 		switch (direction)
 		{
 			case WEAPON_FACING_FORWARD:
@@ -10831,18 +10796,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	[self setWeaponDataFromType:forward_weapon_type];
 
-	weapon_damage = weapon_damage_override;
+//  weapon damage override no longer effective
+//	weapon_damage = weapon_damage_override;
 	
 	BOOL result = [self fireWeapon:forward_weapon_type direction:WEAPON_FACING_FORWARD range:range];
-	if (forward_weapon_type == WEAPON_NONE)
+	if (isWeaponNone(forward_weapon_type))
 	{
 		// need to check subentities to avoid AI oddities
 		// will already have fired them by now, though
 		NSEnumerator	*subEnum = [self shipSubEntityEnumerator];
 		ShipEntity		*se = nil;
-		OOWeaponType 			weapon_type = WEAPON_NONE;
+		OOWeaponType 			weapon_type = nil;
 		BOOL hasTurrets = NO;
-		while (weapon_type == WEAPON_NONE && (se = [subEnum nextObject]))
+		while (isWeaponNone(weapon_type) && (se = [subEnum nextObject]))
 		{
 			weapon_type = se->forward_weapon_type;
 			weapon_temp = se->forward_weapon_temp;
@@ -10851,9 +10817,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				hasTurrets = YES;
 			}
 		}
-		if (weapon_type == WEAPON_NONE && hasTurrets)
+		if (isWeaponNone(weapon_type) && hasTurrets)
 		{ // no forward weapon but has turrets, so set up range calculations accordingly
-			[self setWeaponDataFromType:WEAPON_PLASMA_CANNON];
+			weaponRange = 10000.0;
 		}
 		else
 		{
@@ -10988,18 +10954,21 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	[self setShipHitByLaser:nil];
 	
-	if (forward_weapon_type == WEAPON_NONE)  return NO;
+	if (isWeaponNone(forward_weapon_type))  return NO;
 	[self setWeaponDataFromType:forward_weapon_type];
 	
 	ShipEntity *parent = [self owner];
 	NSAssert([parent isShipWithSubEntityShip:self], @"-fireSubentityLaserShot: called on ship which is not a subentity.");
-	
+
+	// subentity lasers still draw power from the main entity
+	if ([parent energy] <= weapon_energy_use) return NO;
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	if (forward_weapon_temp > WEAPON_COOLING_CUTOUT * NPC_MAX_WEAPON_TEMP)  return NO;
 	if (range > weaponRange)  return NO;
-	
+
 	forward_weapon_temp += weapon_shot_temperature;
-	
+	[parent setEnergy:([parent energy] - weapon_energy_use)];
+
 	GLfloat hitAtRange = weaponRange;
 	OOWeaponFacing direction = WEAPON_FACING_FORWARD;
 	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:kZeroVector gettingRangeFound:&hitAtRange];
@@ -11164,12 +11133,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[UNIVERSE addEntity:shot];
 	
 	[self resetShotTime];
-	
-	// random laser over-heating for AI ships
-/*	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_damage)&&(![self isMining]))
-	{
-		shot_time -= (randf() * weapon_damage);
-		} */
 	
 	return YES;
 }
@@ -13521,7 +13484,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (BOOL) isMining
 {
-	return ((behaviour == BEHAVIOUR_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
+	return ((behaviour == BEHAVIOUR_ATTACK_MINING_TARGET)&&([forward_weapon_type isMiningLaser]));
 }
 
 
@@ -14152,24 +14115,11 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
 
 GLfloat getWeaponRangeFromType(OOWeaponType weapon_type)
 {
-	switch (weapon_type)
-	{
-	case WEAPON_PLASMA_CANNON:
-		return 5000.0;
-	case WEAPON_PULSE_LASER:
-	case WEAPON_MINING_LASER:
-		return 12500.0;
-	case WEAPON_BEAM_LASER:
-		return 15000.0;
-	case WEAPON_THARGOID_LASER:
-		return 17500.0;
-	case WEAPON_MILITARY_LASER:
-		return 30000.0;
-	case WEAPON_NONE:
-	case WEAPON_UNDEFINED:
-		return 32000.0;
-	}
-// never reached
-	return 32000.0;
+	return [weapon_type weaponRange];
 }
 
+
+BOOL isWeaponNone(OOWeaponType weapon)
+{
+	return weapon == nil || [[weapon identifier] isEqualToString:@"EQ_WEAPON_NONE"];
+}
