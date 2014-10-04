@@ -8898,7 +8898,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 					{
 						OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
 						//fit best weapon forward
-						if (available_facings & WEAPON_FACING_FORWARD && new_weapon > fwd_weapon)
+						if (available_facings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwd_weapon weaponThreatAssessment])
 						{
 							//again remember to divide price by 10 to get credits from tenths of credit
 							price -= [self getEquipmentPriceForKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
@@ -8912,7 +8912,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 						else 
 						{
 							//if less good than current forward, try fitting is to rear
-							if (available_facings & WEAPON_FACING_AFT && (!aft_weapon || new_weapon > aft_weapon))
+							if (available_facings & WEAPON_FACING_AFT && (isWeaponNone(aft_weapon) || [new_weapon weaponThreatAssessment] > [aft_weapon weaponThreatAssessment]))
 							{
 								price -= [self getEquipmentPriceForKey:aft_weapon_string] * 90 / 1000;	// 90% credits
 								price += eqPrice;

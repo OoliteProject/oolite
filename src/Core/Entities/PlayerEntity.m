@@ -718,10 +718,22 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[result oo_setBool:[self weaponsOnline]	forKey:@"weapons_online"];
 	
-	[result setObject:[forward_weapon_type identifier]	forKey:@"forward_weapon"];
-	[result setObject:[aft_weapon_type identifier]		forKey:@"aft_weapon"];
-	[result setObject:[port_weapon_type identifier]		forKey:@"port_weapon"];
-	[result setObject:[starboard_weapon_type identifier]	forKey:@"starboard_weapon"];
+	if (forward_weapon_type != nil)
+	{
+		[result setObject:[forward_weapon_type identifier]	forKey:@"forward_weapon"];
+	}
+	if (aft_weapon_type != nil)
+	{
+		[result setObject:[aft_weapon_type identifier]		forKey:@"aft_weapon"];
+	}
+	if (port_weapon_type != nil)
+	{
+		[result setObject:[port_weapon_type identifier]		forKey:@"port_weapon"];
+	}
+	if (starboard_weapon_type != nil)
+	{
+		[result setObject:[starboard_weapon_type identifier]	forKey:@"starboard_weapon"];
+	}
 	[result setObject:[self serializeShipSubEntities] forKey:@"subentities_status"];
 	if (hud != nil && [hud nonlinearScanner])
 	{
