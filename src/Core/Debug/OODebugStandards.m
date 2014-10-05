@@ -32,7 +32,14 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "GameController.h"
 
-#ifndef NDEBUG
+#ifdef NDEBUG
+// in release mode, stubs
+void OOStandardsDeprecated(NSString *message) {}
+void OOStandardsError(NSString *message) {}
+BOOL OOEnforceStandards() { return NO; }
+void OOSetStandardsForOXPVerifierMode() {}
+
+#else
 
 void OOStandardsSetup();
 void OOStandardsInternal(NSString *type, NSString *message);

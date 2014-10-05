@@ -26,16 +26,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-
-#ifdef NDEBUG
-// in release mode, stubs
-#define OOStandardsDeprecated() do {} while (0)
-#define OOStandardsError() do {} while (0)
-#define OOEnforceStandards() 0
-#define OOSetStandardsForOXPVerifierMode() do {} while (0) 
-
-#else
-
 #import "OOCocoa.h"
 
 // Warn/exit if deprecated functionality used
@@ -51,4 +41,4 @@ BOOL OOEnforceStandards();
 
 void OOSetStandardsForOXPVerifierMode();
 
-#endif
+
