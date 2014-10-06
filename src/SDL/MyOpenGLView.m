@@ -828,6 +828,17 @@ MA 02110-1301, USA.
 	settings.dmDriverExtra = 0;
 	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
 	
+	static BOOL lastWindowPlacementMaximized = NO;
+	WINDOWPLACEMENT windowPlacement;
+	windowPlacement.length = sizeof(WINDOWPLACEMENT);
+	if (fullScreen && GetWindowPlacement(SDL_Window, &windowPlacement) && (windowPlacement.showCmd == SW_SHOWMAXIMIZED))
+	{
+		if (!wasFullScreen)
+		{
+			lastWindowPlacementMaximized = YES;
+		}
+	}
+		
 	RECT wDC;
 	
 	/* initializing gl - better get the current monitor information now
@@ -843,7 +854,19 @@ MA 02110-1301, USA.
 		settings.dmPelsWidth = viewSize.width;
 		settings.dmPelsHeight = viewSize.height;
 		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
-		if(!wasFullScreen) {
+		
+		// just before going fullscreen, save the location of the current window. It
+		// may be needed in case of potential attempts to move our fullscreen window
+		// in a maximized state (yes, in Windows this is entirely possible).
+		if(lastWindowPlacementMaximized)
+		{
+			CopyRect(&lastGoodRect, &windowPlacement.rcNormalPosition);
+		}
+		else  GetWindowRect(SDL_Window, &lastGoodRect);
+		
+		// ok, can go fullscreen now
+		if(!wasFullScreen)
+		{
 			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 		}
 		SetForegroundWindow(SDL_Window);
@@ -866,11 +889,20 @@ MA 02110-1301, USA.
 			
 			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX |
 									WS_MAXIMIZEBOX );
+									
+			if (!lastWindowPlacementMaximized)
+			{
+				windowPlacement.showCmd = SW_SHOWNORMAL;
+				SetWindowPlacement(SDL_Window, &windowPlacement);
+			}
+
 			MoveWindow(SDL_Window,	(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - (int)viewSize.width)/2 + 
 									monitorInfo.rcMonitor.left,
 									(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - (int)viewSize.height)/2 +
-									monitorInfo.rcMonitor.top - 16,
+									monitorInfo.rcMonitor.top - (lastWindowPlacementMaximized ? 32 : 16),
 									(int)viewSize.width,(int)viewSize.height,TRUE);
+									
+			lastWindowPlacementMaximized = NO;
 
 			ShowWindow(SDL_Window,SW_SHOW);
 	}
@@ -1939,10 +1971,44 @@ keys[a] = NO; keys[b] = NO; \
 						if (fullScreen)
 						{
 							RECT rDC;
+							
+							/* attempting to move our fullscreen window while in maximized state can freak
+							   Windows out and the window may not return to its original position properly.
+							   Solution: if such a move takes place, first change the window placement to
+							   normal, move it normally, then restore its placement to maximized again. 
+							   Additionally, the last good known window position seems to be lost in such
+							   a case. While at it, update also the coordinates of the non-maximized window
+							   so that it can return to its original position - this is why we need lastGoodRect.
+							 */
+							WINDOWPLACEMENT wp;
+							wp.length = sizeof(WINDOWPLACEMENT);
+							GetWindowPlacement(SDL_Window, &wp);
+							
 							GetWindowRect(SDL_Window, &rDC);
 							if (rDC.left != monitorInfo.rcMonitor.left || rDC.top != monitorInfo.rcMonitor.top)
 							{
+								BOOL fullScreenMaximized = NO;
+								if (wp.showCmd == SW_SHOWMAXIMIZED && !fullScreenMaximized)
+								{
+									fullScreenMaximized = YES;
+									wp.showCmd = SW_SHOWNORMAL;
+									SetWindowPlacement(SDL_Window, &wp);
+								}
+			
 								MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+								
+								if (fullScreenMaximized)
+								{
+									GetWindowPlacement(SDL_Window, &wp);
+									wp.showCmd = SW_SHOWMAXIMIZED;
+									CopyRect(&wp.rcNormalPosition, &lastGoodRect);
+									SetWindowPlacement(SDL_Window, &wp);
+								}
+							}
+							else if (wp.showCmd == SW_SHOWMAXIMIZED)
+							{
+									CopyRect(&wp.rcNormalPosition, &lastGoodRect);
+									SetWindowPlacement(SDL_Window, &wp);
 							}
 						}
 						// it is important that this gets done after we've dealt with possible fullscreen movements,

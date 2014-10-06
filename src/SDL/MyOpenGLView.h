@@ -173,6 +173,7 @@ extern int debug;
 	unsigned			keyboardMap;
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
+	RECT				lastGoodRect;
 
 #endif
 
