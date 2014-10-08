@@ -143,6 +143,7 @@ MA 02110-1301, USA.
 		//on average:  0 = .25 , 1 = 2.25  -  the same sun should give the same random component
 		corona_speed_factor=OOClamp_0_1_f(corona_speed_factor) * 2.0 + randf() * randf();
 	}
+	OOLog(@"planetinfo.record",@"corona_shimmer = %f",corona_speed_factor);
 	corona_stage = 0.0;
 	for (i = 0; i < SUN_CORONA_SAMPLES; i++)
 		rvalue[i] = randf();
