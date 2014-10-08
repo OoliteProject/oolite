@@ -48,6 +48,9 @@ SOFTWARE.
 #define PROFILE_ENCODING_CONVERTER 0
 
 
+static const NSUInteger kCachePruneThreshold = 200;
+
+
 #if PROFILE_ENCODING_CONVERTER
 static OOEncodingConverter	*sProfiledConverter = nil;
 static NSTimer				*sProfileTimer = nil;
@@ -72,7 +75,7 @@ static unsigned				sCacheMisses = 0;
 	if (self != nil)
 	{
 		_cache = [[OOCache alloc] init];
-		[_cache setPruneThreshold:100];
+		[_cache setPruneThreshold:kCachePruneThreshold];
 		[_cache setName:@"Text encoding"];
 		_substitutions = [substitutions copy];
 		_encoding = encoding;
@@ -184,8 +187,8 @@ static unsigned				sCacheMisses = 0;
 /*
 	Profiling observations:
 	* The clock generates one new string per second.
-	* The trade screens each use over 60 strings, so cache sizes below 70 are
-	  undesireable.
+	* The trade screens each use over 100 strings, so cache sizes below 150
+      are undesireable.
 	* Cache hit ratio is extremely near 100% at most times.
 */
 - (void) profileFire:(id)junk
