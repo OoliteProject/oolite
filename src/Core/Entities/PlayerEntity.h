@@ -283,7 +283,12 @@ typedef enum
 #define YAW_DAMPING_FACTOR				1.0f
 
 #define PLAYER_MAX_WEAPON_TEMP			256.0f
+#ifdef OO_DUMP_PLANETINFO
+// debugging
+#define PLAYER_MAX_FUEL					7000
+#else
 #define PLAYER_MAX_FUEL					70
+#endif
 #define PLAYER_MAX_MISSILES				16
 #define PLAYER_STARTING_MAX_MISSILES	4
 #define PLAYER_STARTING_MISSILES		3

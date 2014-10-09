@@ -688,11 +688,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				 * consequences of allowing jump destination to be set in
 				 * flight are not as severe and do not allow the 7LY limit to
 				 * be broken. Nevertheless, it is not allowed. - CIM */
+				// (except when compiled in debugging mode)
+#ifndef OO_DUMP_PLANETINFO
 				if (EXPECT_NOT([player status] != STATUS_DOCKED && [player status] != STATUS_LAUNCHING))
 				{
 					OOJSReportError(context, @"player.ship.targetSystem is read-only unless called when docked.");
 					return NO;
 				}
+#endif
 				
 				if (JS_ValueToInt32(context, *value, &iValue))
 				{
@@ -1170,6 +1173,10 @@ static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc,
 	if (argc < 1) 
 	{
 		witchspaceSpinUpTime = 0;
+#ifdef OO_DUMP_PLANETINFO
+		// quick intersystem jumps for debugging
+		witchspaceSpinUpTime = 1;
+#endif
 	}
 	else
 	{

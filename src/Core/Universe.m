@@ -891,7 +891,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	double planet_radius = [a_planet radius];
 	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
+#ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"planet zpos = %f",planet_zpos);
+#endif
 	[a_planet setPosition:(HPVector){ 0, 0, planet_zpos }];
 	[a_planet setEnergy:1000000.0];
 	
@@ -948,6 +950,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 				   alpha:0.0f];
 
 	
+#ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"seed = %d %d %d %d",system_seed.c,system_seed.d,system_seed.e,system_seed.f);
 	OOLog(@"planetinfo.record",@"coordinates = %d %d",system_seed.d,system_seed.b);
 
@@ -963,7 +966,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	SPROP(inhabitant);
 	SPROP(inhabitants);
 	SPROP(description);
-
+#endif
 
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
@@ -1047,7 +1050,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	{
 		sun_radius = sun_radius < 1000.0 ? 1000.0 : 1000000.0;
 	}
+#ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"sun_radius = %f",sun_radius);
+#endif
 	safeDistance=16 * sun_radius * sun_radius; // 4 times the sun radius
 	
 	// generated sun_distance/sun_radius ratios vary from 4.29 ( 15/3.5 ) to 16.67 ( 25/1.5 )
@@ -1074,9 +1079,10 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		sunPos = HPvector_subtract(sunPos, vectorToHPVector(vector_multiply_scalar(vf, sun_distance))); // back off from the planet by 15..25 planet radii
 		posIterator++;
 	} while (HPmagnitude2(sunPos) < safeDistance && posIterator <= 10);	// try 10 times before giving up
+#ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"sun_vector = %.3f %.3f %.3f",vf.x,vf.y,vf.z);
 	OOLog(@"planetinfo.record",@"sun_distance = %.0f",sun_distance);
-
+#endif
 	
 	if (posIterator>10)
 	{
@@ -1110,9 +1116,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	{
 		[sun_dict setObject:dict_object forKey:KEY_SUNNAME];
 	}
+#ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"corona_flare = %f",[sun_dict oo_floatForKey:@"corona_flare"]);
 	OOLog(@"planetinfo.record",@"corona_hues = %f",[sun_dict oo_floatForKey:@"corona_hues"]);
-	OOLog(@"planetinfo.record",@"sun_color = %@",bgcolor);
+	OOLog(@"planetinfo.record",@"sun_color = %@",[bgcolor descriptionComponents]);
+#endif
 	a_sun = [[OOSunEntity alloc] initSunWithColor:bgcolor andDictionary:sun_dict];	// alloc retains!
 	
 	[a_sun setStatus:STATUS_ACTIVE];
@@ -1141,8 +1149,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		vf = vector_forward_from_quaternion(q_station);
 	}
 	while (vf.z <= 0.0);						// keep station on the correct side of the planet
+#ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"station_vector = %.3f %.3f %.3f",vf.x,vf.y,vf.z);
-
+#endif
 	stationPos = HPvector_subtract(stationPos, vectorToHPVector(vector_multiply_scalar(vf, 2.0 * planet_radius)));
 	
 	defaultStationDesc = @"coriolis";
@@ -1157,8 +1166,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			defaultStationDesc = @"icosahedron";
 		}
 	}
+#ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"station = %@",defaultStationDesc);
-
+#endif
 	//// possibly systeminfo has an override for the station
 	stationDesc = [systeminfo oo_stringForKey:@"station" defaultValue:defaultStationDesc];
 	

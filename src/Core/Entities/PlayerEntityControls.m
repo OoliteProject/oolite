@@ -535,11 +535,13 @@ static NSTimeInterval	time_last_frame;
 		}
 		else 
 		{
+#ifndef OO_DUMP_PLANETINFO
 			if (spin_time < 5) 
 			{
 				witchspaceCountdown = 5;
 			} 
 			else 
+#endif
 			{
 				witchspaceCountdown = spin_time;
 			}

@@ -188,6 +188,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	int		deltaT = floor(fmod([PLAYER clockTimeAdjusted], 86400));
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * deltaT);
 	
+#ifdef OO_DUMP_PLANETINFO
 #define CPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %@;",[(OOColor *)[planetInfo objectForKey:@#PROP] descriptionComponents]);
 #define FPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %f;",[planetInfo oo_floatForKey:@"" #PROP]);
 	CPROP(air_color);
@@ -201,6 +202,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	CPROP(polar_sea_color);
 	CPROP(sea_color);
 	OOLog(@"planetinfo.record",@"rotation_speed = %f",_rotationalVelocity);
+#endif
 
 	[self setStatus:STATUS_ACTIVE];
 	
