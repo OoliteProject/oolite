@@ -6905,6 +6905,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		misjump = YES; // a script could just have changed this to true;
 	}
+#ifdef OO_DUMP_PLANETINFO
+	misjump = NO;
+#endif
 	if (misjump && [self scriptedMisjumpRange] != 0.5)
 	{
 		[w_hole setMisjumpWithRange:[self scriptedMisjumpRange]]; // overrides wormholes, if player also had non-default scriptedMisjumpRange
@@ -6922,6 +6925,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (ship_trade_in_factor < 80)
 		    malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
 
+#ifdef OO_DUMP_PLANETINFO
+	BOOL misjump = NO; // debugging
+#else
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
 	BOOL misjump = [self scriptedMisjump] || (flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75));
@@ -6941,7 +6947,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
 		}
 	}
-	
+#endif	
+
 	// From this point forward we are -definitely- witchjumping
 	
 	// burn the full fuel amount to create the wormhole
