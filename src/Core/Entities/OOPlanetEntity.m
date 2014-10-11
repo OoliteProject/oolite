@@ -237,7 +237,7 @@ static Vector LighterHSBColor(Vector c)
 static Vector HSBColorWithColor(OOColor *color)
 {
 	OOHSBAComponents c = [color hsbaComponents];
-	return (Vector){ c.h, c.s, c.b };
+	return (Vector){ c.h/360, c.s, c.b };
 }
 
 
