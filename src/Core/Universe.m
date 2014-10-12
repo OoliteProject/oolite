@@ -78,7 +78,7 @@ MA 02110-1301, USA.
 #import "OOLightParticleEntity.h"
 #import "OOFlashEffectEntity.h"
 #import "OOExplosionCloudEntity.h"
-
+#import "OOSystemDescriptionManager.h"
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
 #import "OODebugFlags.h"
@@ -432,6 +432,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[characters release];
 	[customSounds release];
 	[planetInfo release];
+	[systemManager release];
 	[missiontext release];
 	[equipmentData release];
 	[demo_ships release];
@@ -817,11 +818,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	NSMutableDictionary *systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
 	
 	NSString*		override_key = [self keyForInterstellarOverridesForSystemSeeds:s1 :s2 inGalaxySeed:galaxy_seed];
-	
+
 	// check at this point
 	// for scripted overrides for this insterstellar area
 	[systeminfo addEntriesFromDictionary:[planetInfo oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
-	[systeminfo addEntriesFromDictionary:[planetInfo oo_dictionaryForKey:@"interstellar space"]];
+	[systeminfo addEntriesFromDictionary:[planetInfo oo_dictionaryForKey:PLANETINFO_INTERSTELLAR_KEY]];
 	[systeminfo addEntriesFromDictionary:[planetInfo oo_dictionaryForKey:override_key]];
 	[systeminfo addEntriesFromDictionary:[localPlanetInfoOverrides oo_dictionaryForKey:override_key]];
 	
@@ -7454,6 +7455,12 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
+- (OOSystemDescriptionManager *) systemManager
+{
+	return systemManager;
+}
+
+
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed
 {
 	Random_Seed g0 = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
@@ -9954,6 +9961,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	[planetInfo autorelease];
 	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 	
+	[systemManager autorelease];
+	systemManager = [[ResourceManager systemDescriptionManager] retain];
+
 	[screenBackgrounds autorelease];
 	screenBackgrounds = [[ResourceManager dictionaryFromFilesNamed:@"screenbackgrounds.plist" inFolder:@"Config" andMerge:YES] retain];
 

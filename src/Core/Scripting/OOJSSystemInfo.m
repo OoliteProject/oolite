@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOJSVector.h"
 #import "OOIsNumberLiteral.h"
 #import "OOConstToString.h"
+#import "OOSystemDescriptionManager.h"
 
 
 static JSObject *sSystemInfoPrototype;
@@ -464,14 +465,17 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 	{
 		NSString *key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 		
-		if (!sameGalaxy || savedInterstellarInfo)
+		OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
+		id propValue = nil;
+		// interstellar space needs more work at this stage
+		if ([info system] != -1)
 		{
-			OOJSReportError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ?  @"invalid interstellar space reference" : @"other galaxies");
-			*value = JSVAL_VOID;
-			return NO;
+			NSString *systemKey = [NSString stringWithFormat:@"%u %u",[info galaxy],[info system]];
+
+			propValue = [[systemManager getPropertiesForSystemKey:systemKey] objectForKey:key];
+		} else {
+			propValue = [info valueForKey:key];
 		}
-		
-		id propValue = [info valueForKey:key];
 		
 		if (propValue != nil)
 		{

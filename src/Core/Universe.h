@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 	Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
 	OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity, 
-	DockEntity, OOJSScript, OOWaypointEntity;
+	DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -134,6 +134,7 @@ enum
 #define PASSENGER_BERTH_SPACE				5
 
 #define PLANETINFO_UNIVERSAL_KEY			@"universal"
+#define PLANETINFO_INTERSTELLAR_KEY			@"interstellar space"
 
 #define OOLITE_EXCEPTION_LOOPING			@"OoliteLoopingException"
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND		@"OoliteDataNotFoundException"
@@ -250,6 +251,7 @@ enum
 	NSDictionary			*characters;			// holds descriptons of characters
 	NSArray					*_scenarios;			// game start scenarios
 	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
+	OOSystemDescriptionManager	*systemManager; // planetinfo data manager
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentData;			// holds data on available equipment, loaded at initialisation
 //	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
@@ -606,6 +608,8 @@ enum
 - (NSDictionary *) characters;
 - (NSDictionary *) missiontext;
 - (NSArray *) scenarios;
+
+- (OOSystemDescriptionManager *) systemManager;
 
 - (NSString *)descriptionForKey:(NSString *)key;	// String, or random item from array
 - (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index;	// Indexed item from array

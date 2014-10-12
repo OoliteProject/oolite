@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "unzip.h"
 #import "HeadUpDisplay.h"
 #import "OODebugStandards.h"
+#import "OOSystemDescriptionManager.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -1562,6 +1563,51 @@ static NSString *LogClassKeyRoot(NSString *key)
 		[contents addObjectsFromArray:catDataEntry];
 	}
 }
+
+
++ (OOSystemDescriptionManager *) systemDescriptionManager
+{
+	OOLog(@"manager.debug",@"Initialising manager");
+	OOSystemDescriptionManager *manager = [[OOSystemDescriptionManager alloc] init];
+	
+	NSString *path = nil;
+	NSString *configPath = nil;
+	NSDictionary *categories = nil;
+	NSString *systemKey = nil;
+
+	NSEnumerator *pathEnum = [self pathEnumerator];	
+	while ((path = [pathEnum nextObject]))
+	{
+		configPath = [[path stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"planetinfo.plist"];
+		categories = OODictionaryFromFile(configPath);
+		if (categories != nil)
+		{
+			foreachkey(systemKey,categories)
+			{
+				NSDictionary *values = [categories oo_dictionaryForKey:systemKey defaultValue:nil];
+				if (values != nil)
+				{
+					if ([systemKey isEqualToString:PLANETINFO_UNIVERSAL_KEY])
+					{
+						[manager setUniversalProperties:values];
+					}
+					else if ([systemKey isEqualToString:PLANETINFO_INTERSTELLAR_KEY])
+					{
+						[manager setInterstellarProperties:values];
+					}
+					else
+					{
+						[manager setProperties:values forSystemKey:systemKey];
+					}
+				}
+			}
+		}
+	}
+	OOLog(@"manager.debug",@"Initialised manager");
+	return [manager autorelease];
+}
+
 
 
 + (NSDictionary *) shaderBindingTypesDictionary

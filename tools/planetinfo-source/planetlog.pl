@@ -84,6 +84,7 @@ while (<>) {
 	} elsif ($begin && /PLANETINFO OVER/) {
 		push(@accum,"\t\tsky_n_stars = ".(5000+int(rand(5000))).";\n");
 		push(@accum,"\t\tsky_n_blurs = ".(40+int(rand(160))).";\n");
+		push(@accum,"\t\tlayer = 0;\n");
 		@accum = sort(@accum);
 		print (join("",@accum));
 		print ("\t};\n\n");
