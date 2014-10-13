@@ -295,6 +295,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (color != nil) seaHSB = HSBColorWithColor(color);
 		else ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
 		
+		// TODO STATICPLANET: these colours can be set by dictionary too
 		// polar areas are brighter but have less colour (closer to white)
 		landPolarHSB = LighterHSBColor(landHSB);
 		seaPolarHSB = LighterHSBColor(seaHSB);

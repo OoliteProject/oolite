@@ -73,11 +73,8 @@ typedef enum
 - (void) setProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value;
 
 - (NSDictionary *) getPropertiesForSystemKey:(NSString *)key;
+- (NSDictionary *) getPropertiesForCurrentSystem;
 - (id) getProperty:(NSString *)property forSystemKey:(NSString *)key;
-/* some planetinfo properties have two ways to specify
- * need to get the one with higher layer (if they're both at the same layer,
- * go with property1) */
-- (id) getProperty:(NSString *)property1 orProperty:(NSString *)property2 forSystemKey:(NSString *)key;
 
 @end
 

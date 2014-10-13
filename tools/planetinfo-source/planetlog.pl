@@ -7,6 +7,15 @@ my $begin = 0;
 
 my @accum = "";
 
+my @radii;
+open(my $RADIILIST, "<radii.txt");
+while (<$RADIILIST>)
+{
+	chomp;
+	push(@radii,$_);
+}
+close($RADIILIST);
+
 print ("{\n\n");
 
 print ('	"interstellar space" =
@@ -84,6 +93,7 @@ while (<>) {
 	} elsif ($begin && /PLANETINFO OVER/) {
 		push(@accum,"\t\tsky_n_stars = ".(5000+int(rand(5000))).";\n");
 		push(@accum,"\t\tsky_n_blurs = ".(40+int(rand(160))).";\n");
+		push(@accum,"\t\tradius = ".shift(@radii).";\n");
 		push(@accum,"\t\tlayer = 0;\n");
 		@accum = sort(@accum);
 		print (join("",@accum));

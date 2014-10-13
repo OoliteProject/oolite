@@ -28,7 +28,8 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOTypes.h"
-
+#import "PlayerEntity.h"
+#import "Universe.h"
 
 // likely maximum number of planetinfo properties to be applied to a system
 // just for efficiency - no harm in exceeding it
@@ -40,6 +41,10 @@ MA 02110-1301, USA.
 - (void) updateCacheEntry:(NSUInteger)i;
 - (void) updateCacheEntry:(NSUInteger)i forProperty:(NSString *)property;
 - (id) getProperty:(NSString *)property forSystemKey:(NSString *)key withUniversal:(BOOL)universal;
+/* some planetinfo properties have two ways to specify
+ * need to get the one with higher layer (if they're both at the same layer,
+ * go with property1) */
+- (id) getProperty:(NSString *)property1 orProperty:(NSString *)property2 forSystemKey:(NSString *)key withUniversal:(BOOL)universal;
 
 @end
 
@@ -157,6 +162,28 @@ static NSString *kOOSystemLayerProperty = @"layer";
 }
 
 
+- (NSDictionary *) getPropertiesForCurrentSystem
+{
+	OOSystemID s = [UNIVERSE currentSystemID];
+	if (s > 0)
+	{
+		NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
+		if (index >= OO_SYSTEM_CACHE_LENGTH)
+		{
+			OOLog(@"system.description.error",@"'%u' is an invalid system index for the current system. This is an internal error. Please report it.",index);
+			return [NSDictionary dictionary];
+		}
+		return propertyCache[index];
+	}
+	else
+	{
+		OOLog(@"system.description.error",@"getPropertiesForCurrentSystem called while player in interstellar space. This is an internal error. Please report it.");
+		// this shouldn't be called for interstellar space
+		return [NSDictionary dictionary];
+	}
+}
+
+
 - (NSDictionary *) getPropertiesForSystemKey:(NSString *)key
 {
 	NSArray  *tokens = ScanTokensFromString(key);
@@ -220,7 +247,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 }
 
 
-- (id) getProperty:(NSString *)property1 orProperty:(NSString *)property2 forSystemKey:(NSString *)key
+- (id) getProperty:(NSString *)property1 orProperty:(NSString *)property2 forSystemKey:(NSString *)key withUniversal:(BOOL)universal
 {
 	OOSystemDescriptionEntry *desc = [systemDescriptions objectForKey:key];
 	if (desc == nil)
@@ -249,13 +276,16 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	{
 		result = [desc getProperty:property2 forLayer:OO_LAYER_OXP_STATIC];
 	}
-	if (result == nil)
+	if (universal)
 	{
-		result = [universalProperties objectForKey:property1];
-	}
-	if (result == nil)
-	{
-		result = [universalProperties objectForKey:property2];
+		if (result == nil)
+		{
+			result = [universalProperties objectForKey:property1];
+		}
+		if (result == nil)
+		{
+			result = [universalProperties objectForKey:property2];
+		}
 	}
 	if (result == nil)
 	{
@@ -292,11 +322,12 @@ static NSString *kOOSystemLayerProperty = @"layer";
 {
 	NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
 	NSString *property = nil;
+	id val = nil;
 	BOOL interstellar = [key hasPrefix:@"interstellar:"];
 	foreach (property, propertiesInUse)
 	{
 		// don't use universal properties on interstellar specific regions
-		id val = [self getProperty:property forSystemKey:key withUniversal:!interstellar];
+		val = [self getProperty:property forSystemKey:key withUniversal:!interstellar];
 
 		if (val != nil)
 		{
