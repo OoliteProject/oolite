@@ -150,7 +150,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker;
 
 - (void) witchStart;
-- (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump;
+- (void) witchJumpTo:(OOSystemID)sTo misjump:(BOOL)misjump;
 - (void) witchEnd;
 
 // Jump distance/cost calculations for selected target.
@@ -1937,7 +1937,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	entity_personality = ranrot_rand() & 0x7FFF;
 	
-	[self setSystemTo:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxy:galaxy_number]];
+	[self setSystemID:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxy:galaxy_number]];
 	[UNIVERSE setGalaxyTo:galaxy_number];
 	[UNIVERSE setSystemTo:system_id];
 
@@ -3371,7 +3371,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				from doing it twice thanks to the texture cache.
 				-- Ahruman 2009-12-19
 			*/
-			[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+			[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
 		}
 		else
 		{
@@ -4218,7 +4218,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (GLfloat) dialHyperRange
 {
-	if (target_system_id == system_id) && ![UNIVERSE inInterstellarSpace])  return 0.0f;
+	if (target_system_id == system_id && ![UNIVERSE inInterstellarSpace])  return 0.0f;
 	return [self fuelRequiredForJump] / (GLfloat)PLAYER_MAX_FUEL;
 }
 
@@ -6736,7 +6736,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 
 	// Check we're not jumping into the current system
-	if (!([UNIVERSE inInterstellarSpace]) && system_id == target_system_id))
+	if (![UNIVERSE inInterstellarSpace] && system_id == target_system_id)
 	{
 		//dont allow player to hyperspace to current location.
 		//Note interstellar space will have a system_seed place we came from
@@ -6999,7 +6999,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	fuel -= [self fuelRequiredForJump];
 	
 	// Create the players' wormhole
-	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_seed fromShip:self];
+	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_id fromShip:self];
 	[UNIVERSE addEntity:wormhole]; // Add new wormhole to Universe to let other ships target it. Required for ships following the player.
 	[self addScannedWormhole:wormhole];
 	
@@ -7049,11 +7049,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		[wormhole setMisjumpWithRange:[self scriptedMisjumpRange]];
 	}
-	[self witchJumpTo:target_system_seed misjump:misjump];
+	[self witchJumpTo:target_system_id misjump:misjump];
 }
 
 
-- (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump
+- (void) witchJumpTo:(OOSystemID)sTo misjump:(BOOL)misjump
 {
 	[self witchStart];
 
@@ -7065,14 +7065,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
-	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	NSPoint destCoords = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:sTo inGalaxy:galaxy_number]);
+	double distance = distanceBetweenPlanetPositions(destCoords.x,destCoords.y,galaxy_coordinates.x,galaxy_coordinates.y);
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
 	if (!misjump)
 	{
 		ship_clock_adjust += distance * distance * 3600.0;
-		system_seed = sTo;
+		[self setSystemID:sTo];
 		[self setBounty:(legalStatus/2) withReason:kOOLegalStatusReasonNewSystem];	// 'another day, another system'
 		[self witchEnd];
 		if (market_rnd < 8) [self erodeReputation];		// every 32 systems or so, drop back towards 'unknown'
@@ -7218,13 +7219,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// Both system_seed & target_system_seed are != nil at all times when this function is called.
 	
-	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_seed];
+	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_id];
 	if ([self isDocked] && [self dockedStation] != [UNIVERSE station])
 	{
 		systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [[self dockedStation] displayName]];
 	}
 
-	targetSystemName =	[UNIVERSE getSystemName:target_system_seed];
+	targetSystemName =	[UNIVERSE getSystemName:target_system_id];
 
 	// GUI stuff
 	{
@@ -7598,11 +7599,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 		
 		OOSystemID 	planet = [dict oo_intForKey:CONTRACT_KEY_DESTINATION];
-		NSString 	*planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
+		NSString 	*planetName = [UNIVERSE getSystemName:planet];
 		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_DESTINATION];
 		[contract setObject:planetName forKey:@"destinationName"];
 		planet = [dict oo_intForKey:CONTRACT_KEY_START];
-		planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
+		planetName = [UNIVERSE getSystemName: planet];
 		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_START];
 		[contract setObject:planetName forKey:@"startName"];
 		
@@ -7641,7 +7642,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSDictionary	*targetSystemData;
 	NSString		*targetSystemName;
 	
-	targetSystemData = [[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
+	targetSystemData = [[UNIVERSE generateSystemData:target_system_id] retain];  // retained
 	targetSystemName = [targetSystemData oo_stringForKey:KEY_NAME];
 	
 	BOOL			sunGoneNova = ([targetSystemData oo_boolForKey:@"sun_gone_nova"]);
@@ -7680,7 +7681,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			government_desc = DESC(@"nova-system-government");
 			economy_desc = DESC(@"nova-system-economy");
 			inhabitants = DESC(@"nova-system-inhabitants");
-			system_desc = OOExpandKeyWithSeed(@"nova-system-description", target_system_seed, nil);
+			system_desc = OOExpandKeyWithSeed(@"nova-system-description", kNilRandomSeed, targetSystemName);
 		}
 		
 		[gui clearAndKeepBackground:!guiChanged];
@@ -7723,7 +7724,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
 		RNG_Seed saved_seed = currentRandomSeed();
 		
-		if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
+		if (target_system_id == system_id)
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
 		}
@@ -7831,12 +7832,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
-	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
-	{
-		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	}
+	target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
 	
-	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+	[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
 	
 	// GUI stuff
 	{
@@ -7871,7 +7869,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
 		[gui setBackgroundTextureKey:@"short_range_chart"];
-		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
+		if (found_system_id >= 0)
+		{		
+			[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_id] lowercaseString] exactMatch:YES];
+		}
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
@@ -8266,7 +8267,7 @@ static NSString *last_outfitting_key=nil;
 		skip = 0;
 
 	double priceFactor = 1.0;
-	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] oo_intForKey:KEY_TECHLEVEL];
+	OOTechLevelID techlevel = [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
 
 	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation)
@@ -8319,7 +8320,7 @@ static NSString *last_outfitting_key=nil;
 		if (techlevel < minTechLevel && techlevel + 3 > minTechLevel)
 		{
 			unsigned day = i * 13 + (unsigned)floor([UNIVERSE getTime] / 86400.0);
-			unsigned char dayRnd = (day & 0xff) ^ system_seed.a;
+			unsigned char dayRnd = (day & 0xff) ^ (unsigned char)system_id;
 			OOTechLevelID originalMinTechLevel = minTechLevel;
 			
 			while (minTechLevel > 0 && minTechLevel > originalMinTechLevel - 3 && !(dayRnd & 7))	// bargain tech days every 1/8 days
@@ -9415,7 +9416,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		OOTechLevelID techLevel = NSNotFound;
 		if (dockedStation != nil)  techLevel = [dockedStation equivalentTechLevel];
-		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE generateSystemData:system_seed] oo_unsignedIntForKey:KEY_TECHLEVEL];
+		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE currentSystemData] oo_unsignedIntForKey:KEY_TECHLEVEL];
 		
 		credits -= price;
 		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
@@ -9976,7 +9977,7 @@ static NSString *last_outfitting_key=nil;
 
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
-			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_id]] : DESC(@"commodity-market")];
 		}
 		else
 		{
