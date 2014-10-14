@@ -7628,7 +7628,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
 	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
 	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
-	BOOL sameSystem = (sameGalaxy && equal_seeds([self systemSeed], s_seed));
+	BOOL sameSystem = (sameGalaxy && pnum == [self currentSystemID]);
 	NSDictionary *sysInfo = nil;
 	
 	// short range map fix
@@ -7656,14 +7656,15 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		object = (id)[NSString stringWithFormat:@"%f",OOClamp_0_1_f([object floatValue])];
 	}
 	
-	[self setObject:object forKey:key forPlanetKey:overrideKey];
-	
-	if (sameGalaxy) // refresh the current systemData cache!
-		sysInfo=[self generateSystemData:system_seed useCache:NO]; // needed if sameSystem
+	// TODO: STATICPLANET - this should allow layer to be specified
+	[systemManager setProperty:key forSystemKey:overrideKey andLayer:2 toValue:object];
+
 	
 	// Apply changes that can be effective immediately, issue warning if they can't be changed just now
 	if (sameSystem)
 	{
+		sysInfo = [systemManager getPropertiesForCurrentSystem];
+
 		OOSunEntity* the_sun = [self sun];
 		/* KEY_ECONOMY used to be here, but resetting the main station
 		 * market while the player is in the system is likely to cause
@@ -7747,149 +7748,36 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSString *) getSystemName:(Random_Seed)s_seed
+- (NSString *) getSystemName:(OOSystemID) sys
 {
-	return [[self generateSystemData:s_seed] oo_stringForKey:KEY_NAME];
+	key = [NSString stringWithFormat:@"%u %u",[PLAYER currentGalaxyID],sys];
+	return [[systemManager getPropertiesForSystemKey:key] oo_stringForKey:KEY_NAME];
 }
 
 
-- (OOGovernmentID) getSystemGovernment:(Random_Seed)s_seed
+- (OOGovernmentID) getSystemGovernment:(OOSystemID) sys
 {
-	return [[self generateSystemData:s_seed] oo_unsignedCharForKey:KEY_GOVERNMENT];
+	key = [NSString stringWithFormat:@"%u %u",[PLAYER currentGalaxyID],sys];
+	return [[systemManager getPropertiesForSystemKey:key] oo_unsignedCharForKey:KEY_GOVERNMENT];
 }
 
 
-- (NSString *) getSystemInhabitants:(Random_Seed) s_seed
+- (NSString *) getSystemInhabitants:(OOSystemID) sys
 {
-	return [self getSystemInhabitants:s_seed plural:YES];
+	return [self getSystemInhabitants:sys plural:YES];
 }
 
 
-- (NSString *) getSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural
+- (NSString *) getSystemInhabitants:(OOSystemID) sys plural:(BOOL)plural
 {	
+	key = [NSString stringWithFormat:@"%u %u",[PLAYER currentGalaxyID],sys];
 	NSString *ret = nil;
 	if (!plural)
-		ret = [[self generateSystemData:s_seed] oo_stringForKey:KEY_INHABITANT];
+		ret = [[systemManager getPropertiesForSystemKey:key] oo_stringForKey:KEY_INHABITANT];
 	if (ret != nil) // the singular form might be absent.
 		return ret;
 	else
-		return [[self generateSystemData:s_seed] oo_stringForKey:KEY_INHABITANTS];
-}
-
-
-- (NSString *) generateSystemName:(Random_Seed) s_seed
-{
-	int i;
-	
-	NSString			*digrams = [self descriptionForKey:@"digrams"];
-	NSString			*apostrophe = [self descriptionForKey:@"digrams-apostrophe"];
-	NSMutableString		*name = [NSMutableString string];
-	int size = 4;
-	
-	if ((s_seed.a & 0x40) == 0)
-		size = 3;
-	
-	for (i = 0; i < size; i++)
-	{
-		NSString *c1, *c2;
-		int x = s_seed.f & 0x1f;
-		if (x != 0)
-		{
-			x += 12;	x *= 2;
-			c1 = [digrams substringWithRange:NSMakeRange(x,1)];
-			c2 = [digrams substringWithRange:NSMakeRange(x+1,1)];
-			[name appendString:c1];
-			if (![c2 isEqual:apostrophe])		[name appendString:c2];
-		}
-		rotate_seed(&s_seed);
-	}
-	
-	return [name capitalizedString];
-}
-
-
-- (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed
-{
-	int i;
-#if OOLITE_MAC_OS_X
-	NSString			*phonograms = [self descriptionForKey:@"phonograms"];
-#else
-	NSString			*phonograms = [self descriptionForKey:@"espkphonos"];
-#endif
-	NSMutableString		*name = [NSMutableString string];
-	int size = 4;
-	
-	if ((s_seed.a & 0x40) == 0)
-		size = 3;
-	
-	for (i = 0; i < size; i++)
-	{
-		NSString *c1;
-		int x = s_seed.f & 0x1f;
-		if (x != 0)
-		{
-			x += 12;	x *= 4;
-			c1 = [phonograms substringWithRange:NSMakeRange(x,4)];
-			[name appendString:c1];
-		}
-		rotate_seed(&s_seed);
-	}
-	
-#if OOLITE_MAC_OS_X
-	return [NSString stringWithFormat:@"[[inpt PHON]]%@[[inpt TEXT]]", name];
-#else
-	return [NSString stringWithFormat:@"[[%@]]", name];
-#endif
-}
-
-
-- (NSString *) generateSystemInhabitants:(Random_Seed)s_seed plural:(BOOL)plural
-{
-	NSMutableString	*inhabitants = [NSMutableString string];
-	NSArray			*inhabitantStrings = nil;
-	//i18n: Some languages have different plural and singular forms for adjectives.
-	BOOL			singularAdjectivesExist = NO;
-	
-	// getSystemInhabitants is now used in most cases, to enable plist overrides.
-	if (s_seed.e < 127)
-	{
-		[inhabitants appendString:DESC_PLURAL(@"human-colonial-description", plural ? -1 : 1)];
-	}
-	else
-	{
-		inhabitantStrings = [[self descriptions] oo_arrayForKey:KEY_INHABITANTS];
-		// The first 5 arrays in 'inhabitants' are the standard ones, anything else below is language specific
-		// and will refer to the different singular forms for the particular language we are translating to.
-		// If this is the case, three more arrays are expected, raising the total count of subarrays to 8.
-		singularAdjectivesExist = [inhabitantStrings count] == 8;
-		
-		int inhab = (s_seed.f / 4) & 7;
-		if (inhab < 3)
-			[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ?
-								0 : singularAdjectivesExist ? 5 : 0] oo_stringAtIndex:inhab]];
-		
-		inhab = s_seed.f / 32;
-		if (inhab < 6)
-		{
-			[inhabitants appendString:@" "];
-			[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ?
-								1 : singularAdjectivesExist ? 6 : 1] oo_stringAtIndex:inhab]];
-		}
-		
-		inhab = (s_seed.d ^ s_seed.b) & 7;
-		if (inhab < 6)
-		{
-			[inhabitants appendString:@" "];
-			[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ?
-								2 : singularAdjectivesExist ? 7 : 2] oo_stringAtIndex:inhab]];
-		}
-		
-		inhab = (inhab + (s_seed.f & 3)) & 7;
-		[inhabitants appendString:@" "];
-		[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ? 4 : 3] oo_stringAtIndex:inhab]];
-	}
-	
-	return [inhabitants stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];	
+		return [[systemManager getPropertiesForSystemKey:key] oo_stringForKey:KEY_INHABITANTS];
 }
 
 

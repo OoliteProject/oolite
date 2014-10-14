@@ -1,6 +1,6 @@
 /*
 
-OOPlanetDescriptionManager.h
+OOSystemDescriptionManager.h
 
 Class responsible for planet description data.
 
@@ -75,6 +75,7 @@ typedef enum
 - (NSDictionary *) getPropertiesForSystemKey:(NSString *)key;
 - (NSDictionary *) getPropertiesForCurrentSystem;
 - (id) getProperty:(NSString *)property forSystemKey:(NSString *)key;
+- (id) getProperty:(NSString *)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
 @end
 

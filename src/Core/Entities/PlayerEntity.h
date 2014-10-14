@@ -350,11 +350,12 @@ typedef enum
 @interface PlayerEntity: ShipEntity
 {
 @private
-	Random_Seed				system_seed;
-	Random_Seed				target_system_seed;
+	OOSystemID				system_id;
+	OOSystemID				target_system_id;
+
 	float					occlusion_dial;
 	
-	Random_Seed				found_system_seed;
+	OOSystemID				found_system_id;
 	int						ship_trade_in_factor;
 	
 	NSDictionary			*worldScripts;
@@ -489,8 +490,6 @@ typedef enum
 	NSString				*_commanderName;
 	NSString				*_lastsaveName;
 	NSPoint					galaxy_coordinates;
-	
-	Random_Seed				galaxy_seed;
 	
 	OOCreditsQuantity		credits;	
 	OOGalaxyID				galaxy_number;
@@ -746,7 +745,6 @@ typedef enum
 - (int) random_factor;
 - (void) setRandom_factor:(int)rf;
 - (OOGalaxyID) galaxyNumber;
-- (Random_Seed) galaxy_seed;
 - (NSPoint) galaxy_coordinates;
 - (void) setGalaxyCoordinates:(NSPoint)newPosition;
 - (NSPoint) cursor_coordinates;
@@ -755,10 +753,12 @@ typedef enum
 - (NSPoint) adjusted_chart_centre;
 - (OORouteType) ANAMode;
 
-- (Random_Seed) system_seed;
-- (void) setSystem_seed:(Random_Seed) s_seed;
-- (Random_Seed) target_system_seed;
-- (void) setTargetSystemSeed:(Random_Seed) s_seed;
+
+- (OOSystemID) systemID;
+- (void) setSystemID:(OOSystemID) sid;
+- (OOSystemID) targetSystemID;
+- (void) setTargetSystemID:(OOSystemID) sid;
+
 
 - (NSDictionary *) commanderDataDictionary;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;

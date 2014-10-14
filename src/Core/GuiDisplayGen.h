@@ -265,6 +265,6 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) refreshStarChart;
 - (void) setStarChartTitle;
 
-- (Random_Seed) targetNextFoundSystem:(int)direction;
+- (OOSystemID) targetNextFoundSystem:(int)direction;
 
 @end

@@ -59,7 +59,7 @@ MA 02110-1301, USA.
 	NSString				*_name;
 }
 
-- (id) initAsMainPlanetForSystemSeed:(Random_Seed)seed;
+- (id) initAsMainPlanetForSystem:(OOSystemID)seed;
 
 - (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed;
 

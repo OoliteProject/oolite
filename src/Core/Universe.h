@@ -261,11 +261,10 @@ enum
 	
 	NSDictionary      *cargoPods; // template cargo pods
 
-	Random_Seed				galaxy_seed;
-	Random_Seed				system_seed;
-	Random_Seed				target_system_seed;
+	OOGalaxyID				galaxyID;
+	OOSystemID				systemID;
+	OOSystemID				targetSystemID;
 	
-	Random_Seed				systems[256];			// hold pregenerated universe info
 	NSString				*system_names[256];		// hold pregenerated universe info
 	BOOL					system_found[256];		// holds matches for input strings
 	
@@ -363,7 +362,7 @@ enum
 - (void) setUpUniverseFromWitchspace;
 - (void) setUpUniverseFromMisjump;
 - (void) setUpWitchspace;
-- (void) setUpWitchspaceBetweenSystem:(Random_Seed)s1 andSystem:(Random_Seed)s2;
+- (void) setUpWitchspaceBetweenSystem:(OOSystemID)s1 andSystem:(OOSystemID)s2;
 - (void) setUpSpace;
 - (void) populateNormalSpace;
 - (void) clearSystemPopulator;
@@ -593,15 +592,11 @@ enum
 
 ///////////////////////////////////////
 
-- (void) setGalaxySeed:(Random_Seed) gal_seed;
-- (void) setGalaxySeed:(Random_Seed) gal_seed andReinit:(BOOL) forced;
+- (void) setGalaxyTo:(OOGalaxyID) g;
+- (void) setGalaxyTo:(OOGalaxyID) g andReinit:(BOOL) forced;
 
-- (void) setSystemTo:(Random_Seed) s_seed;
+- (void) setSystemTo:(OOSystemID) s;
 
-- (Random_Seed) systemSeed;
-- (Random_Seed) systemSeedForSystemNumber:(OOSystemID) n;
-- (Random_Seed) systemSeedForSystemName:(NSString *)sysname;
-- (OOSystemID) systemIDForSystemSeed:(Random_Seed)seed;
 - (OOSystemID) currentSystemID;
 
 - (NSDictionary *) descriptions;
@@ -615,10 +610,10 @@ enum
 - (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index;	// Indexed item from array
 - (BOOL) descriptionBooleanForKey:(NSString *)key;	// Boolean from descriptions.plist, for configuration.
 
-- (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed;
-- (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed;
-- (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
-- (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache;
+- (NSString *) keyForPlanetOverridesForSystem:(OOSystemID) s inGalaxy:(OOGalaxyID) g;
+- (NSString *) keyForInterstellarOverridesForSystemSeeds:(OOSystemID) s1 :(OOSystemID) s2 inGalaxySeed:(OOGalaxyID) g;
+- (NSDictionary *) generateSystemData:(OOSystemID) s;
+- (NSDictionary *) generateSystemData:(OOSystemID) s useCache:(BOOL) useCache;
 - (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
 - (void) resetSystemDataCache;
 
@@ -630,37 +625,34 @@ enum
 - (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
 - (id) systemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
 - (NSArray *) systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum;
-- (NSString *) getSystemName:(Random_Seed) s_seed;
-- (OOGovernmentID) getSystemGovernment:(Random_Seed)s_seed;
-- (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
-- (NSString *) getSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
-- (NSString *) generateSystemName:(Random_Seed) system_seed;
-- (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed;
-- (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
-- (NSPoint) coordinatesForSystem:(Random_Seed)s_seed;
-- (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (Random_Seed) findSystemFromName:(NSString *) sysName;
+- (NSString *) getSystemName:(OOSystemID) sys;
+- (OOGovernmentID) getSystemGovernment:(OOSystemID) sys;
+- (NSString *) getSystemInhabitants:(OOSystemID) sys;
+- (NSString *) getSystemInhabitants:(OOSystemID) sys plural:(BOOL)plural;
+
+- (NSPoint) coordinatesForSystem:(OOSystemID)s;
+- (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
+- (OOSystemID) findSystemFromName:(NSString *) sysName;
 
 /**
  * Finds systems within range.  If range is greater than 7.0LY then only look within 7.0LY.
  */
 - (NSMutableArray *) nearbyDestinationsWithinRange:(double) range;
 
-- (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
+- (OOSystemID) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(OOGalaxyID) gal;
+- (OOSystemID) findConnectedSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systemsFound;
 - (NSString*) systemNameIndex:(OOSystemID) index;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
-- (NSArray *) neighboursToRandomSeed:(Random_Seed) seed;
 
 - (NSMutableDictionary *) localPlanetInfoOverrides;
 - (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;
 
-- (void) preloadPlanetTexturesForSystem:(Random_Seed)seed;
+- (void) preloadPlanetTexturesForSystem:(OOSystemID)system;
 - (void) preloadSounds;
 
 - (NSDictionary *) planetInfo;
@@ -671,11 +663,10 @@ enum
 - (NSString *) timeDescription:(OOTimeDelta) interval;
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;
 
-- (Random_Seed) marketSeed;
 - (void) loadStationMarkets:(NSArray *)marketData;
 - (NSArray *) getStationMarkets;
 
-- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
+- (NSArray *) shipsForSaleForSystem:(OOSystemID) s withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
 
 /* Calculate base cost, before depreciation */
 - (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
