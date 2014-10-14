@@ -2355,7 +2355,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	double		external_temp = 0;
 	GLfloat		air_friction = 0.0f;
 	air_friction = 0.5f * [UNIVERSE airResistanceFactor];
-	
+	if (air_friction < 0.005f) // aRF < 0.01
+	{
+		// stops mysteriously overheating and exploding in the middle of empty space
+		air_friction = 0;
+	}
+
 	UPDATE_STAGE(@"updating weapon temperatures and shot times");
 	// cool all weapons.
 	float coolAmount = WEAPON_COOLING_FACTOR * delta_t;
