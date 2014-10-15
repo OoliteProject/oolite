@@ -390,6 +390,49 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	}
 }
 
+
+- (NSPoint) coordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+{
+	if (s < 0)
+	{
+		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
+		return nil;
+	}
+	NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+	if (index >= OO_SYSTEM_CACHE_LENGTH)
+	{
+		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
+		return nil;
+	}
+	return PointFromString([propertyCache[index] oo_stringForKey:@"coordinates"]);
+
+}
+
+
+- (Random_Seed) getRandomSeedForCurrentSystem
+{
+	if ([UNIVERSE currentSystemID] < 0)
+	{
+		return kNilRandomSeed;
+	}
+	else
+	{
+		OOSystemID s = [UNIVERSE currentSystemID];
+		NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
+		if (index >= OO_SYSTEM_CACHE_LENGTH)
+		{
+			OOLog(@"system.description.error",@"'%u' is an invalid system index for the current system. This is an internal error. Please report it.",index);
+			return kNilRandomSeed
+		}
+		// only the last four numbers of the random seed are significant
+		// for RNG seeding, and RNG seeding is the only thing this is
+		// used for now - not system generation
+		return RandomSeedFromString([NSString stringWithFormat:@"0 0 %@",[propertyCache[index] oo_stringForKey:@"random_seed"]));
+	}
+}
+
+
+
 @end
 
 
@@ -436,5 +479,6 @@ static NSString *kOOSystemLayerProperty = @"layer";
 {
 	return [layers[layer] objectForKey:property];
 }
+
 
 @end

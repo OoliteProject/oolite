@@ -50,6 +50,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOEquipmentType.h"
 #import "HeadUpDisplay.h"
+#import "OOSystemDescriptionManager.h"
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
@@ -215,7 +216,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	{
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
-		expandedString = OOExpandDescriptionString(argumentString, [player system_seed], nil, locals, nil, kOOExpandNoOptions);
+		expandedString = OOExpandDescriptionString(argumentString, [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], nil, locals, nil, kOOExpandNoOptions);
 		
 		[target performSelector:selector withObject:expandedString];
 	}
@@ -1081,7 +1082,7 @@ static int shipsFound;
 
 - (NSNumber *) systemGovernment_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_GOVERNMENT];
 }
 
@@ -1098,28 +1099,28 @@ static int shipsFound;
 
 - (NSNumber *) systemEconomy_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_ECONOMY];
 }
 
 
 - (NSNumber *) systemTechLevel_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_TECHLEVEL];
 }
 
 
 - (NSNumber *) systemPopulation_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_POPULATION];
 }
 
 
 - (NSNumber *) systemProductivity_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_PRODUCTIVITY];
 }
 
@@ -1870,7 +1871,7 @@ static int shipsFound;
 	// Replace literal \n in strings with line breaks and perform expansions.
 	text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (text == nil)  return;
-	text = OOExpandDescriptionString(text, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandBackslashN);
+	text = OOExpandDescriptionString(text, [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], nil, nil, nil, kOOExpandBackslashN);
 	text = [self replaceVariablesInString:text];
 	
 	[self addLiteralMissionText:text];
@@ -2275,7 +2276,7 @@ static int shipsFound;
 
 	/*- add planet -*/
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initPlanetFromDictionary: %@", dict);
-	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[UNIVERSE systemSeed]] autorelease];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem]] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
@@ -2326,7 +2327,7 @@ static int shipsFound;
 	}
 
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initMoonFromDictionary: %@", dict);
-	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[UNIVERSE systemSeed]] autorelease];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem]] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
@@ -2723,13 +2724,13 @@ static int shipsFound;
 			return NO;				//		   0........... 1 2 3
 		
 		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
-		if (target_system_seed.b & 8)
+		if (target_system_id & 8)
 		{
-			_sysInfoLight = (target_system_seed.b & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
+			_sysInfoLight = (target_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
 		}
 		else
 		{
-			_sysInfoLight = (target_system_seed.d & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
+			_sysInfoLight = (target_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
 		}
 
 		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
@@ -2742,7 +2743,7 @@ static int shipsFound;
 		}
 		else
 		{
-			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:target_system_seed] autorelease];
+			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:target_system_id] autorelease];
 		}
 		OOPlanetEntity *doppelganger = [originalPlanet miniatureVersion];
 		if (doppelganger == nil)  return NO;

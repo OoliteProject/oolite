@@ -77,6 +77,10 @@ typedef enum
 - (id) getProperty:(NSString *)property forSystemKey:(NSString *)key;
 - (id) getProperty:(NSString *)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
+- (NSPoint) getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+
+- (Random_Seed) getRandomSeedForCurrentSystem;
+
 @end
 
 

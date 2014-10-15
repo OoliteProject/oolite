@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 #import "OOStringExpander.h"
-#import "OOStringParsing.h"
+#import "OOSystemDescriptionManager.h"
 
 #import "StationEntity.h"
 
@@ -234,28 +234,29 @@ MA 02110-1301, USA.
 }
 
 
+/* FIXME: these next three functions seed the RNG when called. That
+ * could cause unwanted effects - should save its state, and then
+ * reset it after generating the number. */
 - (unsigned) systemPseudoRandom100
 {
-	seed_RNG_only_for_planet_description(system_seed);
+	seed_RNG_only_for_planet_description([[UNIVERSE systemManager] getRandomSeedForCurrentSystem]);
 	return (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
 }
 
 
 - (unsigned) systemPseudoRandom256
 {
-	seed_RNG_only_for_planet_description(system_seed);
+	seed_RNG_only_for_planet_description([[UNIVERSE systemManager] getRandomSeedForCurrentSystem]);
 	return gen_rnd_number();
 }
 
 
 - (double) systemPseudoRandomFloat
 {
-	Random_Seed seed = system_seed;
-	seed_RNG_only_for_planet_description(system_seed);
+	seed_RNG_only_for_planet_description([[UNIVERSE systemManager] getRandomSeedForCurrentSystem]);
 	unsigned a = gen_rnd_number();
 	unsigned b = gen_rnd_number();
 	unsigned c = gen_rnd_number();
-	system_seed = seed;
 	
 	a = (a << 16) | (b << 8) | c;
 	return (double)a / (double)0x01000000;
