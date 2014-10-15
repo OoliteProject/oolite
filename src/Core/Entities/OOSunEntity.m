@@ -573,7 +573,9 @@ MA 02110-1301, USA.
 	if (directVisionSunGlare)
 	{
 		NSSize	siz =	[[UNIVERSE gui]	size];
-		GLfloat z = [[UNIVERSE gameView] display_z];
+		MyOpenGLView *gameView = [UNIVERSE gameView];
+		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
 		GLfloat atmosphericReductionFactor =  1.0f - [PLAYER insideAtmosphereFraction];
 		// 182: square of ratio of radius to sun-witchpoint distance
 		// in default Lave
@@ -614,7 +616,9 @@ MA 02110-1301, USA.
 		double alpha = 1-(alt/corona);
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
-		GLfloat z = [[UNIVERSE gameView] display_z];
+		MyOpenGLView *gameView = [UNIVERSE gameView];
+		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
 		OOGL(glColor4fv(glareColor));
 
 		OOGLBEGIN(GL_QUADS);
