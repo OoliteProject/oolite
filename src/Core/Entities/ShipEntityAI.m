@@ -2762,7 +2762,7 @@
 	}
 	
 	NSArray			*sDests = nil;
-	Random_Seed		targetSystem;
+	OOSystemID		targetSystem;
 	NSUInteger		i = 0;
 	
 	// get a list of destinations within range
@@ -2798,12 +2798,12 @@
 			i = ranrot_rand() % n_dests;
 		}
 		
-		NSString *systemSeedKey = [[sDests oo_dictionaryAtIndex:i] objectForKey:@"system_seed"];
-		targetSystem = RandomSeedFromString(systemSeedKey);
+		
+		targetSystem = [[sDests oo_dictionaryAtIndex:i] oo_intForKey:@"sysID"];
 	}
 	else
 	{
-		targetSystem = [UNIVERSE systemSeedForSystemNumber:systemID];
+		targetSystem = systemID;
 		
 		for (i = 0; i < n_dests; i++)
 		{

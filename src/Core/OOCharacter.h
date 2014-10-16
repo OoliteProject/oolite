@@ -45,10 +45,10 @@ MA 02110-1301, USA.
 	OOJSScript			*_script;
 }
 
-- (id) initWithRole:(NSString *)role andOriginalSystemSeed:(Random_Seed)s_seed;
+- (id) initWithRole:(NSString *)role andOriginalSystem:(OOSystemID)s;
 
-+ (OOCharacter *) characterWithRole:(NSString *)c_role andOriginalSystemSeed:(Random_Seed)o_seed;
-+ (OOCharacter *) randomCharacterWithRole:(NSString *)c_role andOriginalSystemSeed:(Random_Seed)o_seed;
++ (OOCharacter *) characterWithRole:(NSString *)c_role andOriginalSystem:(OOSystemID)s;
++ (OOCharacter *) randomCharacterWithRole:(NSString *)c_role andOriginalSystem:(OOSystemID)s;
 + (OOCharacter *) characterWithDictionary:(NSDictionary *)c_dict;
 
 - (NSString*) planetOfOrigin;

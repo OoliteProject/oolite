@@ -391,18 +391,18 @@ static NSString *kOOSystemLayerProperty = @"layer";
 }
 
 
-- (NSPoint) coordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+- (NSPoint) getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
 {
 	if (s < 0)
 	{
 		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
-		return nil;
+		return (NSPoint){0,0};
 	}
 	NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
 	if (index >= OO_SYSTEM_CACHE_LENGTH)
 	{
 		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
-		return nil;
+		return (NSPoint){0,0};
 	}
 	return PointFromString([propertyCache[index] oo_stringForKey:@"coordinates"]);
 
@@ -422,13 +422,30 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		if (index >= OO_SYSTEM_CACHE_LENGTH)
 		{
 			OOLog(@"system.description.error",@"'%u' is an invalid system index for the current system. This is an internal error. Please report it.",index);
-			return kNilRandomSeed
+			return kNilRandomSeed;
 		}
 		// only the last four numbers of the random seed are significant
 		// for RNG seeding, and RNG seeding is the only thing this is
 		// used for now - not system generation
-		return RandomSeedFromString([NSString stringWithFormat:@"0 0 %@",[propertyCache[index] oo_stringForKey:@"random_seed"]));
+		return RandomSeedFromString([NSString stringWithFormat:@"0 0 %@",[propertyCache[index] oo_stringForKey:@"random_seed"]]);
 	}
+}
+
+
+- (Random_Seed) getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+{
+	if (s < 0)
+	{
+		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
+		return kNilRandomSeed;
+	}
+	NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+	if (index >= OO_SYSTEM_CACHE_LENGTH)
+	{
+		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
+		return kNilRandomSeed;
+	}
+	return RandomSeedFromString([NSString stringWithFormat:@"0 0 %@",[propertyCache[index] oo_stringForKey:@"random_seed"]]);
 }
 
 

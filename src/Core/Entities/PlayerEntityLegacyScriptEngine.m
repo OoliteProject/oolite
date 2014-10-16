@@ -2276,7 +2276,7 @@ static int shipsFound;
 
 	/*- add planet -*/
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initPlanetFromDictionary: %@", dict);
-	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem]] autorelease];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
@@ -2327,7 +2327,7 @@ static int shipsFound;
 	}
 
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initMoonFromDictionary: %@", dict);
-	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem]] autorelease];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))

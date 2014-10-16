@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
+#import "OOTypes.h"
+#import "legacy_random.h"
 
 typedef enum
 {
@@ -80,6 +82,7 @@ typedef enum
 - (NSPoint) getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
 - (Random_Seed) getRandomSeedForCurrentSystem;
+- (Random_Seed) getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
 @end
 

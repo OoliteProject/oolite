@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOSystemDescriptionManager.h"
 
 #import "OOPlanetTextureGenerator.h"
 #import "OOStandaloneAtmosphereGenerator.h"
@@ -62,20 +63,20 @@ MA 02110-1301, USA.
 @implementation OOPlanetEntity
 
 // this is exclusively called to initialise the main planet.
-- (id) initAsMainPlanetForSystemSeed:(Random_Seed)seed
+- (id) initAsMainPlanetForSystem:(OOSystemID)s
 {
-	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:seed] mutableCopy];
+	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:s] mutableCopy];
 	[planetInfo autorelease];
 	
 	[planetInfo oo_setBool:YES forKey:@"mainForLocalSystem"];
-	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:seed];
+	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
 }
 
 
 static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts at 10x the height of the clouds
 
 
-- (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed
+- (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID
 {
 	if (dict == nil)  dict = [NSDictionary dictionary];
 	RANROTSeed savedRanrotSeed = RANROTGetFullSeed();
@@ -96,7 +97,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	// Generate various planet info.
 	seed_for_planet_description(seed);
-	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:seed] mutableCopy];
+	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:systemID] mutableCopy];
 	[planetInfo autorelease];
 
 	_name = nil;
