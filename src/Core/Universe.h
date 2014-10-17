@@ -646,6 +646,7 @@ enum
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systemsFound;
 - (NSString*) systemNameIndex:(OOSystemID) index;
+- (OOSystemID) systemWithName:(NSString *) name;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
 

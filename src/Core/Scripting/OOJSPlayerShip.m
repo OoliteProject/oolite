@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
 #import "EntityOOJavaScriptExtensions.h"
-
+#import "OOSystemDescriptionManager.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityControls.h"
 #import "PlayerEntityContracts.h"
@@ -403,7 +403,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([player cursor_coordinates]), value);
 			
 		case kPlayerShip_targetSystem:
-			*value = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
+			*value = INT_TO_JSVAL([player targetSystemID]);
 			return YES;
 			
 		case kPlayerShip_scannerNonLinear:
@@ -699,10 +699,9 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				
 				if (JS_ValueToInt32(context, *value, &iValue))
 				{
-					if (iValue >= 0 && iValue < 256)
+					if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY)
 					{ 
-						Random_Seed seed = [UNIVERSE systemSeedForSystemNumber:(OOSystemID)iValue];
-						[player setTargetSystemSeed:seed];
+						[player setTargetSystemID:iValue];
 						return YES;
 					}
 					else

@@ -126,7 +126,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (OOGalaxyID) galaxy;
 - (OOSystemID) system;
-- (Random_Seed) systemSeed;
+//- (Random_Seed) systemSeed;
 
 @end
 
@@ -244,11 +244,11 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInf
 }
 
 
-- (Random_Seed) systemSeed
+/*- (Random_Seed) systemSeed
 {
 	NSAssert([PLAYER currentGalaxyID] == _galaxy, @"Attempt to use -[OOSystemInfo systemSeed] from a different galaxy.");
 	return [UNIVERSE systemSeedForSystemNumber:_system];
-}
+	}*/
 
 
 - (NSPoint) coordinates
@@ -257,7 +257,7 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInf
 	{
 		return [PLAYER galaxy_coordinates];
 	}
-	return [UNIVERSE coordinatesForSystem:[self systemSeed]];
+	return [UNIVERSE coordinatesForSystem:_system];
 }
 
 

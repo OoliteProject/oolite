@@ -1167,7 +1167,7 @@ static JSBool SystemStaticSystemNameForID(JSContext *context, uintN argc, jsval 
 	if (systemID == -1)
 		OOJS_RETURN_OBJECT(DESC(@"interstellar-space"));
 	else
-		OOJS_RETURN_OBJECT([UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]]);
+		OOJS_RETURN_OBJECT([UNIVERSE getSystemName:systemID]);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -1190,7 +1190,7 @@ static JSBool SystemStaticSystemIDForName(JSContext *context, uintN argc, jsval 
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 
-	result = [UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]];
+	result = [UNIVERSE systemWithName:name];
 
 	OOJS_END_FULL_NATIVE
 	
