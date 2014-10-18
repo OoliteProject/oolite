@@ -1036,11 +1036,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	else
 		// compatibility for loading 1.80 savegames
 	{
-		Random_Seed galaxy_seed = RandomSeedFromString([dict oo_stringForKey:@"galaxy_seed"]);
-		if (is_nil_seed(galaxy_seed))  return NO;
+		galaxy_number = [dict oo_intForKey:@"galaxy_number"];
 
-		// TODO: STATICPLANET - calculate galaxy_id from galaxy_seed
-		// can take a short cut and assume that the old game was using traditional seeds
 		[UNIVERSE setGalaxyTo: galaxy_number andReinit:YES];
 	
 		NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
@@ -1065,30 +1062,19 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		chart_focus_coordinates = cursor_coordinates;
 
 		// TODO: STATICPLANET - calculate system ID, target ID
-	
-		keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
-		Random_Seed found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
-		// TODO: STATICPLANET - calculate found system ID
-/* ** this is how it was done before - adapt this
-	// Where are we? What system are we targeting?
-	// current_system_name and target_system_name, if present on the savegame,
-	// are the only way - at present - to distinguish between overlapping systems. Kaks 20100706
-	
-	// If we have the current system name, let's see if it matches the current system.
-	NSString *sysName = [dict oo_stringForKey:@"current_system_name"];
-	system_seed = [UNIVERSE findSystemFromName:sysName];
-	
-	if (is_nil_seed(system_seed) || (galaxy_coordinates.x != system_seed.d && galaxy_coordinates.y != system_seed.b))
-	{
-		// no match found, find the system from the coordinates.
-		system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	}
-	
-	// If we have a target system name, let's see if it matches the system at the cursor coordinates.
-	sysName = [dict oo_stringForKey:@"target_system_name"];
-	target_system_seed = [UNIVERSE findSystemFromName:sysName];
-*/
-
+		if ([dict objectForKey:@"current_system_name"])
+		{
+			system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"current_system_name"]];
+			target_system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"target_system_name"]];
+		}
+		else
+		{
+			// really old save games don't have system name saved
+			// use coordinates instead - unreliable in zero-distance pairs.
+			system_id = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxy:galaxy_number];
+			target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+		}
+		found_system_id = -1;
 	}		
 
 	NSString *cname = [dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME];
@@ -1591,7 +1577,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
 	unsigned i;
-	Random_Seed gal_seed = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
 	
 	showDemoShips = NO;
 	show_info_flag = NO;
