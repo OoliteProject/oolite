@@ -37,7 +37,7 @@ typedef enum
 } OOSystemLayer;
 
 #define OO_SYSTEM_LAYERS        4
-#define OO_SYSTEMS_PER_GALAXY	256
+#define OO_SYSTEMS_PER_GALAXY	(kOOMaximumSystemID+1)
 #define OO_GALAXIES_AVAILABLE	8
 #define OO_SYSTEMS_AVAILABLE    OO_SYSTEMS_PER_GALAXY * OO_GALAXIES_AVAILABLE
 // don't bother caching interstellar properties
