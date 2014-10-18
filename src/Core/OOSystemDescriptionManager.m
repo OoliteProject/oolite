@@ -424,10 +424,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 			OOLog(@"system.description.error",@"'%u' is an invalid system index for the current system. This is an internal error. Please report it.",index);
 			return kNilRandomSeed;
 		}
-		// only the last four numbers of the random seed are significant
-		// for RNG seeding, and RNG seeding is the only thing this is
-		// used for now - not system generation
-		return RandomSeedFromString([NSString stringWithFormat:@"0 0 %@",[propertyCache[index] oo_stringForKey:@"random_seed"]]);
+		return RandomSeedFromString([propertyCache[index] oo_stringForKey:@"random_seed"]);
 	}
 }
 
@@ -445,7 +442,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
 		return kNilRandomSeed;
 	}
-	return RandomSeedFromString([NSString stringWithFormat:@"0 0 %@",[propertyCache[index] oo_stringForKey:@"random_seed"]]);
+	return RandomSeedFromString([propertyCache[index] oo_stringForKey:@"random_seed"]);
 }
 
 

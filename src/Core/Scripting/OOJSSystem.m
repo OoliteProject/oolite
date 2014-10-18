@@ -1190,7 +1190,7 @@ static JSBool SystemStaticSystemIDForName(JSContext *context, uintN argc, jsval 
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 
-	result = [UNIVERSE systemWithName:name];
+	result = [UNIVERSE findSystemFromName:name];
 
 	OOJS_END_FULL_NATIVE
 	

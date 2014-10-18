@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 @private
 	NSString			*_name;
 	NSString			*_shortDescription;
-	Random_Seed			_originSystemSeed;
+	OOSystemID			_originSystem;
 	Random_Seed			_genSeed;
 	int					_legalStatus;
 	OOCreditsQuantity	_insuranceCredits;

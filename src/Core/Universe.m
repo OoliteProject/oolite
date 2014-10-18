@@ -596,7 +596,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (void) carryPlayerOn:(StationEntity*)carrier inWormhole:(WormholeEntity*)wormhole
 {
 		PlayerEntity	*player = PLAYER;
-		Random_Seed dest = [wormhole destination];
+		OOSystemID dest = [wormhole destination];
 
 		[player setWormhole:wormhole];
 		[player addScannedWormhole:wormhole];
@@ -617,7 +617,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 		if (![wormhole withMisjump])
 		{
-			[player setSystem_seed:dest];
+			[player setSystemID:dest];
 			[self setSystemTo: dest];
 			
 			[self setUpSpace];
@@ -661,15 +661,15 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		StationEntity	*dockedStation = [player dockedStation];
 		NSPoint			coords = [player galaxy_coordinates];
 		// check the nearest system
-		Random_Seed s_seed = [self findSystemAtCoords:coords withGalaxySeed:[player galaxy_seed]];
+		OOSystemID sys = [self findSystemAtCoords:coords withGalaxy:[player galaxyNumber]];
 		BOOL interstel =[dockedStation interstellarUndockingAllowed];// && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
 		
 		// remove everything except the player and the docked station
 		if (dockedStation && !interstel)
 		{	// jump to the nearest system
-			[player setSystem_seed:s_seed];
+			[player setSystemID:sys];
 			closeSystems = nil;
-			[self setSystemTo: s_seed];
+			[self setSystemTo: sys];
 			int index = 0;
 			while ([entities count] > 2)
 			{
@@ -762,7 +762,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[self setViewDirection:VIEW_FORWARD];
 	
-	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self getSystemName:system_seed], [player dial_clock_adjusted]]
+	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self getSystemName:systemID], [player dial_clock_adjusted]]
 		align:GUI_ALIGN_CENTER color:[OOColor whiteColor] fadeTime:0 key:nil addToArray:[player commLog]];
 	
 	displayGUI = NO;
@@ -801,14 +801,13 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 }
 
 
-// TODO STATICPLANET: these should use system IDs, not system seeds
 - (void) setUpWitchspace
 {
-	[self setUpWitchspaceBetweenSystem:[PLAYER system_seed] andSystem:[PLAYER target_system_seed]];
+	[self setUpWitchspaceBetweenSystem:[PLAYER systemID] andSystem:[PLAYER targetSystemID]];
 }
 
 
-- (void) setUpWitchspaceBetweenSystem:(Random_Seed)s1 andSystem:(Random_Seed)s2
+- (void) setUpWitchspaceBetweenSystem:(OOSystemID)s1 andSystem:(OOSystemID)s2
 {
 	// new system is hyper-centric : witchspace exit point is origin
 	
@@ -816,7 +815,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	PlayerEntity*		player = PLAYER;
 	Quaternion			randomQ;
 	
-	NSString*		override_key = [self keyForInterstellarOverridesForSystemSeeds:s1 :s2 inGalaxySeed:galaxy_seed];
+	NSString*		override_key = [self keyForInterstellarOverridesForSystems:s1 :s2 inGalaxy:galaxyID];
 
 	NSDictionary *systeminfo = [systemManager getPropertiesForSystemKey:override_key];
 	
@@ -877,12 +876,12 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (OOPlanetEntity *) setUpPlanet
 {
 	// set the system seed for random number generation
-	seed_for_planet_description(system_seed);
-	
-	Random_Seed systemSeed = [self systemSeed];
+	Random_Seed systemSeed = [systemManager getRandomSeedForCurrentSystem];
+	seed_for_planet_description(systemSeed);
+
 	NSMutableDictionary *planetDict = [NSMutableDictionary dictionaryWithDictionary:[systemManager getPropertiesForCurrentSystem]];
 	[planetDict oo_setBool:YES forKey:@"mainForLocalSystem"];
-	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:YES andSeed:systemSeed];
+	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:YES andSeed:systemSeed forSystem:systemID];
 	
 	double planet_zpos = [planetDict oo_floatForKey:@"planet_distance" defaultValue:500000];
 	planet_zpos *= [planetDict oo_floatForKey:@"planet_distance_multiplier" defaultValue:1.0];
@@ -935,6 +934,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOColor				*pale_bgcolor;
 	BOOL				sunGoneNova;
 	
+	Random_Seed systemSeed = [systemManager getRandomSeedForCurrentSystem];
+
 	[[GameController sharedController] logProgress:DESC(@"populating-space")];
 	
 	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova" defaultValue:NO];
@@ -968,7 +969,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #endif
 
 	// set the system seed for random number generation
-	seed_for_planet_description(system_seed);
+	seed_for_planet_description(systemSeed);
 	
 	/*- the sky backdrop -*/
 	// colors...
@@ -1025,7 +1026,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OO_DEBUG_POP_PROGRESS();
 	
 	// set the system seed for random number generation
-	seed_for_planet_description(system_seed);
+	seed_for_planet_description(systemSeed);
 	
 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - sun");
 	/*- space sun -*/
@@ -1232,11 +1233,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) populateNormalSpace
 {	
-	/* Need to take a copy of this dictionary because the populator
-	 * functions may ask for a different system info object, which
-	 * will invalidate the cache, taking this object with it... 
-	 * CIM: 6/8/2013 */
-	NSDictionary		*systeminfo = [NSDictionary dictionaryWithDictionary:[self generateSystemData:system_seed useCache:NO]];
+	NSDictionary		*systeminfo = [systemManager getPropertiesForCurrentSystem];
 
 	BOOL sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	// check for nova
@@ -1284,7 +1281,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
 	{
-		OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions system info key is deprecated for %@.",[self getSystemName:system_seed]]);
+		OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions system info key is deprecated for %@.",[self getSystemName:systemID]]);
 		if (!OOEnforceStandards()) 
 		{
 			OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - legacy script_actions");
@@ -1334,6 +1331,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) populateSystemFromDictionariesWithSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
 {
+	Random_Seed systemSeed = [systemManager getRandomSeedForCurrentSystem];
 	NSArray *blocks = [populatorSettings allValues];
 	NSEnumerator *enumerator = [[blocks sortedArrayUsingFunction:populatorPrioritySort context:nil] objectEnumerator];
 	NSDictionary *populator = nil;
@@ -1368,7 +1366,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 				{
 					rndcache = RANROTGetFullSeed();
 					// different place for each system
-					rndlocal = RanrotSeedFromRandomSeed(system_seed);
+					rndlocal = RanrotSeedFromRandomSeed(systemSeed);
 					rndvalue = RanrotWithSeed(&rndlocal);
 					// ...for location seed
 					rndlocal = MakeRanrotSeed(rndvalue+locationSeed);
@@ -1565,7 +1563,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	*/
 	
-	NSDictionary	*systeminfo = [self generateSystemData:system_seed];
+	NSDictionary	*systeminfo = [self currentSystemData];
 	OOSunEntity		*the_sun = [self sun];
 	SkyEntity		*the_sky = nil;
 	GLfloat			sun_pos[] = {0.0, 0.0, 0.0, 1.0};	// equivalent to kZeroVector - for interstellar space.
@@ -1663,7 +1661,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		if (![ship crew] && ![ship isUnpiloted])
 			[ship setCrew:[NSArray arrayWithObject:
 						   [OOCharacter randomCharacterWithRole:desc
-											  andOriginalSystemSeed:systems[Ranrot() & 255]]]];
+											  andOriginalSystem:Ranrot() & 255]]];
 		
 		if ([ship scanClass] == CLASS_NOT_SET)
 		{
@@ -2214,7 +2212,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	NSDictionary		*systeminfo = nil;
 	OOGovernmentID		government;
 	
-	systeminfo = [self generateSystemData:system_seed];
+	systeminfo = [self currentSystemData];
  	government = [systeminfo oo_unsignedCharForKey:KEY_GOVERNMENT];
 	
 	ship = [self newShipWithRole:role];   // retain count = 1
@@ -2256,7 +2254,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		if ([ship crew] == nil && ![ship isUnpiloted])
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
-				andOriginalSystemSeed: systems[Ranrot() & 255]]]];
+				andOriginalSystem: Ranrot() & 255]]];
 		// The following is set inside leaveWitchspace: AI state GLOBAL, STATUS_EXITING_WITCHSPACE, ai message: EXITED_WITCHSPACE, then STATUS_IN_FLIGHT
 		[ship leaveWitchspace];
 		[ship release];
@@ -2349,7 +2347,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		{
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
-				andOriginalSystemSeed:systems[Ranrot() & 255]]]];
+				andOriginalSystem:Ranrot() & 255]]];
 		}
 		
 		[ship setOrientation:OORandomQuaternion()];
@@ -4959,7 +4957,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 						}
 						else
 						{
-							stationRoll = [[self generateSystemData:system_seed] oo_doubleForKey:@"station_roll" defaultValue:STANDARD_STATION_ROLL];
+							stationRoll = [[self currentSystemData] oo_doubleForKey:@"station_roll" defaultValue:STANDARD_STATION_ROLL];
 						}
 						
 						[se setRoll: stationRoll];
@@ -6246,19 +6244,15 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	PlayerEntity* player = PLAYER;
 	if ([player isSpeechOn] > OOSPEECHSETTINGS_OFF)
 	{
-		BOOL		isStandard = NO;
 		NSString	*systemSaid = nil;
 		NSString	*h_systemSaid = nil;
 		
-		NSString	*systemName = [self getSystemName:system_seed];
+		NSString	*systemName = [self getSystemName:systemID];
 		
-		isStandard = [systemName isEqualToString:[self generateSystemName:system_seed]];
-		//if the name is not the standard generated one, we can't  use the generated phonemes.
-		systemSaid = isStandard ? [self generatePhoneticSystemName:system_seed] : systemName;
+		systemSaid = systemName;
 		
-		NSString	*h_systemName = [self getSystemName:[player target_system_seed]];
-		isStandard = [h_systemName isEqualToString: [self generateSystemName:[player target_system_seed]]];
-		h_systemSaid = isStandard ? [self generatePhoneticSystemName:[player target_system_seed]] : h_systemName;
+		NSString	*h_systemName = [self getSystemName:[player targetSystemID]];
+		h_systemSaid = h_systemName;
 		
 		NSString	*spokenText = text;
 		if (speechArray != nil)
@@ -7200,53 +7194,50 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 }
 
 
-- (void) setGalaxySeed:(Random_Seed) gal_seed
+- (void) setGalaxyTo:(OOGalaxyID) g
 {
-	[self setGalaxySeed:gal_seed andReinit:NO];
+	[self setGalaxyTo:g andReinit:NO];
 }
 
 
-- (void) setGalaxySeed:(Random_Seed) gal_seed andReinit:(BOOL) forced
+- (void) setGalaxyTo:(OOGalaxyID) g andReinit:(BOOL) forced
 {
 	int						i;
-	Random_Seed				g_seed = gal_seed;
 	NSAutoreleasePool		*pool = nil;
 	
-	if (!equal_seeds(galaxy_seed, gal_seed) || forced) {
-		galaxy_seed = gal_seed;
+	if (galaxyID != g || forced) {
+		galaxyID = g;
 		
 		// systems
+		pool = [[NSAutoreleasePool alloc] init];
+			
 		for (i = 0; i < 256; i++)
 		{
-			pool = [[NSAutoreleasePool alloc] init];
-			
-			systems[i] = g_seed;
-			if (system_names[i])	[system_names[i] release];
-			system_names[i] = [[self getSystemName:g_seed] retain];
-			rotate_seed(&g_seed);
-			rotate_seed(&g_seed);
-			rotate_seed(&g_seed);
-			rotate_seed(&g_seed);
-			
-			[pool release];
+			if (system_names[i])
+			{
+				[system_names[i] release];
+			}
+			system_names[i] = [[systemManager getProperty:@"name" forSystem:i inGalaxy:g] retain];
+
 		}
+		[pool release];
 	}
 }
 
 
-- (void) setSystemTo:(Random_Seed) s_seed
+- (void) setSystemTo:(OOSystemID) s;
 {
 	NSDictionary	*systemData;
 	PlayerEntity	*player = PLAYER;
 	OOEconomyID		economy;
 	NSString		*scriptName;
 	
-	[self setGalaxySeed: [player galaxy_seed]];
+	[self setGalaxyTo: [player galaxyNumber]];
 	
-	system_seed = s_seed;
-	target_system_seed = s_seed;
+	systemID = s;
+	targetSystemID = s;
 	
-	systemData = [self generateSystemData:target_system_seed];
+	systemData = [self generateSystemData:targetSystemID];
 	economy = [systemData  oo_unsignedCharForKey:KEY_ECONOMY];
 	scriptName = [systemData  oo_stringForKey:@"market_script" defaultValue:nil];
 	
@@ -7255,47 +7246,9 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 }
 
 
-- (Random_Seed) systemSeed
-{
-	return system_seed;
-}
-
-
-- (Random_Seed) systemSeedForSystemNumber:(OOSystemID)n
-{
-	return systems[(unsigned)n & 0xFF];
-}
-
-
-- (Random_Seed) systemSeedForSystemName:(NSString *)sysname
-{
-	int i;
-	NSString *pname = [[sysname lowercaseString] capitalizedString];
-	for (i = 0; i < 256; i++)
-	{
-		if ([pname isEqualToString:[self getSystemName: systems[i]]])
-			return systems[i];
-	}
-	
-	return kNilRandomSeed;
-}
-
-
-- (OOSystemID) systemIDForSystemSeed:(Random_Seed)seed
-{
-	int i;
-	for (i = 0; i < 256; i++)
-	{
-		if (equal_seeds(systems[i], seed))  return i;
-	}
-	
-	return -1;
-}
-
-
 - (OOSystemID) currentSystemID
 {
-	return [self systemIDForSystemSeed:[self systemSeed]];
+	return systemID;
 }
 
 
@@ -7441,70 +7394,33 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
-- (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed
+- (NSString *) keyForPlanetOverridesForSystem:(OOSystemID) s inGalaxy:(OOGalaxyID) g
 {
-	Random_Seed g0 = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
-	// do not call this function from g_seed != galaxy_seed
-	// isn't called this way at the moment, and for what it's used for
-	// there's no need to. - CIM 25/11/12
-	int pnum = [self systemIDForSystemSeed:s_seed];
-	int gnum = 0;
-	while (((g_seed.a != g0.a)||(g_seed.b != g0.b)||(g_seed.c != g0.c)||(g_seed.d != g0.d)||(g_seed.e != g0.e)||(g_seed.f != g0.f))&&(gnum < 8))
-	{
-		gnum++;
-		g0.a = rotate_byte_left(g0.a);
-		g0.b = rotate_byte_left(g0.b);
-		g0.c = rotate_byte_left(g0.c);
-		g0.d = rotate_byte_left(g0.d);
-		g0.e = rotate_byte_left(g0.e);
-		g0.f = rotate_byte_left(g0.f);
-	}
-	return [NSString stringWithFormat:@"%d %d", gnum, pnum];
+	return [NSString stringWithFormat:@"%d %d", g, s];
 }
 
 
-- (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed
+- (NSString *) keyForInterstellarOverridesForSystems:(OOSystemID) s1 :(OOSystemID) s2 inGalaxy:(OOGalaxyID) g
 {
-	Random_Seed g0 = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
-	int pnum1 = [self findSystemNumberAtCoords:NSMakePoint(s_seed1.d,s_seed1.b) withGalaxySeed:g_seed];
-	int pnum2 = [self findSystemNumberAtCoords:NSMakePoint(s_seed2.d,s_seed2.b) withGalaxySeed:g_seed];
-	if (pnum1 > pnum2)
-	{	// swap them
-		int t = pnum1;	pnum1 = pnum2;	pnum2 = t;
-	}
-	int gnum = 0;
-	while (((g_seed.a != g0.a)||(g_seed.b != g0.b)||(g_seed.c != g0.c)||(g_seed.d != g0.d)||(g_seed.e != g0.e)||(g_seed.f != g0.f))&&(gnum < 8))
-	{
-		gnum++;
-		g0.a = rotate_byte_left(g0.a);
-		g0.b = rotate_byte_left(g0.b);
-		g0.c = rotate_byte_left(g0.c);
-		g0.d = rotate_byte_left(g0.d);
-		g0.e = rotate_byte_left(g0.e);
-		g0.f = rotate_byte_left(g0.f);
-	}
-	return [NSString stringWithFormat:@"interstellar: %d %d %d", gnum, pnum1, pnum2];
+	return [NSString stringWithFormat:@"interstellar: %d %d %d", g, s1, s2];
 }
 
 
-- (NSDictionary *) generateSystemData:(Random_Seed) s_seed
+- (NSDictionary *) generateSystemData:(OOSystemID) s
 {
-	return [self generateSystemData:s_seed useCache:YES];
+	return [self generateSystemData:s useCache:YES];
 }
 
 
-static NSMutableDictionary	*sCachedSystemData = nil;
-
-
-// TODO STATICPLANET - this should be called by ID in the first place
-- (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache
+// cache isn't handled this way any more
+- (NSDictionary *) generateSystemData:(OOSystemID) s useCache:(BOOL) useCache
 {
 	OOJS_PROFILE_ENTER
 	
 // TODO: At the moment this method is only called for systems in the
 // same galaxy. At some point probably needs generalising to have a
 // galaxynumber parameter.
-	NSString *systemKey = [NSString stringWithFormat:@"%u %u",[PLAYER galaxyNumber],[self systemIDForSystemSeed:s_seed]];
+	NSString *systemKey = [NSString stringWithFormat:@"%u %u",[PLAYER galaxyNumber],s];
 
 	return [[[systemManager getPropertiesForSystemKey:systemKey] copy] autorelease];
 	
@@ -7518,7 +7434,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	
 	if (![self inInterstellarSpace])
 	{
-		return [self generateSystemData:system_seed];
+		return [self generateSystemData:systemID];
 	}
 	else
 	{
@@ -7602,10 +7518,11 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 }
 
 
+// layer 2
+// used by legacy script engine and sun going nova
 - (void) setSystemDataKey:(NSString *)key value:(NSObject *)object
 {
-	NSString *overrideKey = [self keyForPlanetOverridesForSystemSeed:system_seed inGalaxySeed:galaxy_seed];
-	[self setObject:object forKey:key forPlanetKey:overrideKey];
+	[self setSystemDataForGalaxy:galaxyID planet:systemID key:key value:object];
 }
 
 
@@ -7626,7 +7543,6 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	}
 	
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
-	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
 	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
 	BOOL sameSystem = (sameGalaxy && pnum == [self currentSystemID]);
 	NSDictionary *sysInfo = nil;
@@ -7674,7 +7590,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		{	
 			if([self station]){
 				[[self station] setEquivalentTechLevel:[object intValue]];
-				[[self station] setLocalShipyard:[self shipsForSaleForSystem:system_seed
+				[[self station] setLocalShipyard:[self shipsForSaleForSystem:systemID
 								withTL:[object intValue] atTime:[PLAYER clockTime]]];
 			}
 		}
@@ -7730,7 +7646,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 - (NSDictionary *) generateSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum
 {
-	NSString *systemKey = [NSString stringWithFormat:@"%u %u",gnum,pnum];
+	NSString *systemKey = [self keyForPlanetOverridesForSystem:pnum inGalaxy:gnum];
 	return [systemManager getPropertiesForSystemKey:systemKey];
 }
 
@@ -7743,22 +7659,22 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 - (id) systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key
 {
-	NSString *systemKey = [NSString stringWithFormat:@"%u %u",gnum,pnum];
+	NSString *systemKey = [self keyForPlanetOverridesForSystem:pnum inGalaxy:gnum];
 	return [systemManager getProperty:key forSystemKey:systemKey];
 }
 
 
 - (NSString *) getSystemName:(OOSystemID) sys
 {
-	key = [NSString stringWithFormat:@"%u %u",[PLAYER currentGalaxyID],sys];
-	return [[systemManager getPropertiesForSystemKey:key] oo_stringForKey:KEY_NAME];
+	NSString *systemKey = [self keyForPlanetOverridesForSystem:sys inGalaxy:galaxyID];
+	return (NSString *)[systemManager getProperty:@"name" forSystemKey:systemKey];
 }
 
 
 - (OOGovernmentID) getSystemGovernment:(OOSystemID) sys
 {
-	key = [NSString stringWithFormat:@"%u %u",[PLAYER currentGalaxyID],sys];
-	return [[systemManager getPropertiesForSystemKey:key] oo_unsignedCharForKey:KEY_GOVERNMENT];
+	NSString *systemKey = [self keyForPlanetOverridesForSystem:sys inGalaxy:galaxyID];
+	return [[systemManager getProperty:@"government" forSystemKey:systemKey] unsignedCharValue];
 }
 
 
@@ -7770,26 +7686,32 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 - (NSString *) getSystemInhabitants:(OOSystemID) sys plural:(BOOL)plural
 {	
-	key = [NSString stringWithFormat:@"%u %u",[PLAYER currentGalaxyID],sys];
+	NSString *systemKey = [self keyForPlanetOverridesForSystem:sys inGalaxy:galaxyID];
 	NSString *ret = nil;
 	if (!plural)
-		ret = [[systemManager getPropertiesForSystemKey:key] oo_stringForKey:KEY_INHABITANT];
+	{
+		ret = [[systemManager getPropertiesForSystemKey:systemKey] oo_stringForKey:KEY_INHABITANT];
+	}
 	if (ret != nil) // the singular form might be absent.
+	{
 		return ret;
+	}
 	else
-		return [[systemManager getPropertiesForSystemKey:key] oo_stringForKey:KEY_INHABITANTS];
+	{
+		return [[systemManager getPropertiesForSystemKey:systemKey] oo_stringForKey:KEY_INHABITANTS];
+	}
 }
 
 
-- (NSPoint) coordinatesForSystem:(Random_Seed)s_seed
+- (NSPoint) coordinatesForSystem:(OOSystemID)s
 {
-	return NSMakePoint(s_seed.d, s_seed.b);
+	return [systemManager getCoordinatesForSystem:s inGalaxy:galaxyID];
 }
 
 
-- (Random_Seed) findSystemFromName:(NSString *) sysName
+- (OOSystemID) findSystemFromName:(NSString *) sysName
 {
-	if (sysName == nil) return kNilRandomSeed;	// no match found!
+	if (sysName == nil) return -1;	// no match found!
 	
 	NSString 	*system_name = nil;
 	NSString	*match = [sysName lowercaseString];
@@ -7799,16 +7721,16 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 		system_name = [system_names[i] lowercaseString];
 		if ([system_name isEqualToString:match])
 		{
-			return systems[i];
+			return i;
 		}
 	}
-	return kNilRandomSeed;	// no match found!
+	return -1;	// no match found!
 }
 
 
-- (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
+- (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) g
 {
-	return systems[[self findSystemNumberAtCoords:coords withGalaxySeed:gal_seed]];
+	return [self findSystemNumberAtCoords:coords withGalaxy:g];
 }
 
 
@@ -7819,18 +7741,16 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	range = OOClamp_0_max_d(range, MAX_JUMP_RANGE); // limit to systems within 7LY
 	NSPoint here = [PLAYER galaxy_coordinates];
 	
-	Random_Seed hereSeed = [self systemSeed];
 	for (unsigned short i = 0; i < 256; i++)
 	{
-		Random_Seed system = systems[i];
-		double dist = distanceBetweenPlanetPositions(here.x, here.y, system.d, system.b);
-		if (dist <= range && (!equal_seeds(system, hereSeed) || [self inInterstellarSpace])) // if we are in interstellar space, it's OK to include the system we (mis)jumped from
+		NSPoint there = [self coordinatesForSystem:i];
+		double dist = distanceBetweenPlanetPositions(here.x, here.y, there.x, there.y);
+		if (dist <= range && (i != systemID || [self inInterstellarSpace])) // if we are in interstellar space, it's OK to include the system we (mis)jumped from
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
-								StringFromRandomSeed(system), @"system_seed",
 								[NSNumber numberWithDouble:dist], @"distance",
 								[NSNumber numberWithInt:i], @"sysID",
-								[[self generateSystemData:system] oo_stringForKey:@"sun_gone_nova" defaultValue:@"0"], @"nova",
+								[[self generateSystemData:i] oo_stringForKey:@"sun_gone_nova" defaultValue:@"0"], @"nova",
 								nil]];
 		}
 	}
@@ -7839,14 +7759,9 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 }
 
 
-- (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
+- (OOSystemID) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) g
 {
-	if (!equal_seeds(gal_seed, galaxy_seed))
-	{
-		[self setGalaxySeed:gal_seed];
-	}
-	
-	Random_Seed system = gal_seed;
+
 	double distance;
 	int n,i,j;
 	double min_dist = 10000.0;
@@ -7860,9 +7775,11 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	{
 		for (i = 0; i < 256; i++)   // flood fill out from system zero
 		{
-			for (j = 0; j < 256; j++)
+			NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
+			for (j = i+1; j < 256; j++)
 			{
-				double dist = distanceBetweenPlanetPositions(systems[i].d, systems[i].b, systems[j].d, systems[j].b);
+				NSPoint jpos = [systemManager getCoordinatesForSystem:j inGalaxy:g];
+				double dist = distanceBetweenPlanetPositions(ipos.x,ipos.y,jpos.x,jpos.y);
 				if (dist <= MAX_JUMP_RANGE)
 				{
 					connected[j] |= connected[i];
@@ -7871,14 +7788,15 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			}
 		}
 	}
-	
+	OOSystemID system = 0;
 	for (i = 0; i < 256; i++)
 	{
-		distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y, systems[i].d, systems[i].b);
+		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
+		distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y, ipos.x, ipos.y);
 		if ((connected[i])&&(distance < min_dist)&&(distance != 0.0))
 		{
 			min_dist = distance;
-			system = systems[i];
+			system = i;
 		}
 	}
 	
@@ -7886,12 +7804,11 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 }
 
 
-- (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
+/* This differs from the above function in that it can return a system
+ * exactly at the specified coordinates */
+- (OOSystemID) findConnectedSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) g
 {
-	if (!equal_seeds(gal_seed, galaxy_seed))
-		[self setGalaxySeed:gal_seed];
-	
-	Random_Seed system = gal_seed;
+
 	double distance;
 	int n,i,j;
 	double min_dist = 10000.0;
@@ -7905,9 +7822,11 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	{
 		for (i = 0; i < 256; i++)   // flood fill out from system zero
 		{
-			for (j = 0; j < 256; j++)
+			NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
+			for (j = i+1; j < 256; j++)
 			{
-				double dist = distanceBetweenPlanetPositions(systems[i].d, systems[i].b, systems[j].d, systems[j].b);
+				NSPoint jpos = [systemManager getCoordinatesForSystem:j inGalaxy:g];
+				double dist = distanceBetweenPlanetPositions(ipos.x,ipos.y,jpos.x,jpos.y);
 				if (dist <= MAX_JUMP_RANGE)
 				{
 					connected[j] |= connected[i];
@@ -7916,26 +7835,24 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			}
 		}
 	}
-	
+	OOSystemID system = 0;
 	for (i = 0; i < 256; i++)
 	{
-		distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y, systems[i].d, systems[i].b);
+		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
+		distance = distanceBetweenPlanetPositions((int)coords.x, (int)coords.y, ipos.x, ipos.y);
 		if ((connected[i])&&(distance < min_dist))
 		{
 			min_dist = distance;
-			system = systems[i];
+			system = i;
 		}
 	}
 	
-	return system;
+	return system;	
 }
 
 
-- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID)g
 {
-	if (!equal_seeds(gal_seed, galaxy_seed))
-		[self setGalaxySeed:gal_seed];
-	
 	/*
 		NOTE: this previously used NSNotFound as the default value, but
 		returned an int, which would truncate on 64-bit systems. I assume
@@ -7949,8 +7866,9 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	
 	for (i = 0; i < 256; i++)
 	{
-		dx = abs(coords.x - systems[i].d);
-		dy = abs(coords.y - systems[i].b);
+		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
+		dx = abs(coords.x - ipos.x);
+		dy = abs(coords.y - ipos.y);
 		
 		if (dx > dy)	distance = (dx + dx + dy) / 2;
 		else			distance = (dx + dy + dy) / 2;
@@ -7961,7 +7879,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			system = i;
 		}
 		
-		if ((distance == min_dist)&&(coords.y > systems[i].b))	// with coincident systems choose only if ABOVE
+		if ((distance == min_dist)&&(coords.y > ipos.y))	// with coincident systems choose only if ABOVE
 		{
 			system = i;
 		}
@@ -7991,8 +7909,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			system_found[i] = YES;
 			if (result < 0)
 			{
-				system_coords.x = systems[i].d;
-				system_coords.y = systems[i].b;
+				system_coords = [systemManager getCoordinatesForSystem:i inGalaxy:galaxyID];
 				result = i;
 			}
 		}
@@ -8070,7 +7987,10 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 				OOSystemID n = [ns oo_intAtIndex:j];
 				OOSystemID c = [ce location];
 				
-				double lastDistance = distanceBetweenPlanetPositions(systems[c].d, systems[c].b, systems[n].d, systems[n].b);
+				NSPoint cpos = [systemManager getCoordinatesForSystem:c inGalaxy:galaxyID];
+				NSPoint npos = [systemManager getCoordinatesForSystem:n inGalaxy:galaxyID];
+
+				double lastDistance = distanceBetweenPlanetPositions(npos.x,npos.y,cpos.x,cpos.y);
 				double lastTime = lastDistance * lastDistance;
 				
 				double distance = [ce distance] + lastDistance;
@@ -8121,19 +8041,21 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSArray *) neighboursToRandomSeed: (Random_Seed) seed
+- (NSArray *) neighboursToSystem: (OOSystemID) s
 {
-	if (equal_seeds(system_seed, seed) && closeSystems != nil) 
+	if (s == systemID && closeSystems != nil) 
 	{
 		return closeSystems;
 	}
 	NSMutableArray *neighbours = [NSMutableArray arrayWithCapacity:32];
 	double distance;
 	OOSystemID i;
+	NSPoint spos = [systemManager getCoordinatesForSystem:s inGalaxy:galaxyID];
 	for (i = 0; i < 256; i++)
 	{
-		distance = distanceBetweenPlanetPositions(seed.d, seed.b, systems[i].d, systems[i].b);
-		if ((distance <= MAX_JUMP_RANGE) && !(equal_seeds(seed, systems[i])))
+		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:galaxyID];
+		distance = distanceBetweenPlanetPositions(spos.x,spos.y,ipos.x,ipos.y);
+		if ((distance <= MAX_JUMP_RANGE) && s != i)
 		{		
 			if (distance < 0)
 			{
@@ -8144,19 +8066,13 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 			[neighbours addObject:[NSNumber numberWithInt:i]];
 		}
 	}
-	if (equal_seeds(system_seed, seed))
+	if (s == systemID)
 	{
 		[closeSystems release];
 		closeSystems = [neighbours copy];
 		return closeSystems;
 	}
 	return neighbours;
-}
-
-
-- (NSArray *) neighboursToSystem: (OOSystemID) system_number
-{
-	return [self neighboursToRandomSeed: systems[system_number]];
 }
 
 
@@ -8227,7 +8143,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	http://www.aegidian.org/bb/viewtopic.php?f=3&t=12109
 	-- Ahruman 2012-06-29
 */
-- (void) preloadPlanetTexturesForSystem:(Random_Seed)seed
+- (void) preloadPlanetTexturesForSystem:(OOSystemID)s
 {
 // #if NEW_PLANETS
 #if 0
@@ -8237,7 +8153,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 	{
 		if (_preloadingPlanetMaterials == nil)  _preloadingPlanetMaterials = [[NSMutableArray alloc] initWithCapacity:4];
 		
-		OOPlanetEntity *planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:seed];
+		OOPlanetEntity *planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystem:s];
 		OOMaterial *surface = [planet material];
 		// can be nil if texture mis-defined
 		if (surface != nil)
@@ -8361,7 +8277,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 - (Random_Seed) marketSeed
 {
-	Random_Seed		ret = system_seed;
+	Random_Seed		ret = [systemManager getRandomSeedForCurrentSystem];
 	
 	// adjust basic seed by market random factor
 	// which for (very bad) historical reasons is 0x80
@@ -8439,7 +8355,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSArray *) shipsForSaleForSystem:(Random_Seed)s_seed withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time
+- (NSArray *) shipsForSaleForSystem:(OOSystemID)s withTL:(OOTechLevelID)specialTL atTime:(OOTimeAbsolute)current_time
 {
 	RANROTSeed saved_seed = RANROTGetFullSeed();
 	Random_Seed ship_seed = [self marketSeed];
@@ -8510,7 +8426,7 @@ static NSMutableDictionary	*sCachedSystemData = nil;
 
 		}
 		
-		NSDictionary	*systemInfo = [self generateSystemData:system_seed];
+		NSDictionary	*systemInfo = [self generateSystemData:s];
 		OOTechLevelID	techlevel;
 		if (specialTL != NSNotFound)  
 		{
@@ -9171,25 +9087,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 
 - (HPVector) getWitchspaceExitPosition
 {
-	return [self getWitchspaceExitPositionResettingRandomSeed:NO];
-}
-
-- (HPVector) randomizeFromSeedAndGetWitchspaceExitPosition
-{
-	return [self getWitchspaceExitPositionResettingRandomSeed:YES];
-}
-
-- (HPVector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed
-{
-	if (resetSeed)
-	{
-		// Generate three random numbers so that anything implicitly relying on PRNG state is unchanged...
-		seed_RNG_only_for_planet_description(system_seed);
-		gen_rnd_number();
-		gen_rnd_number();
-		gen_rnd_number();
-	}
-	
 	return kZeroHPVector;
 }
 
@@ -9198,7 +9095,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 {
 	// this should be fairly close to {0,0,0,1}
 	Quaternion q_result;
-	seed_RNG_only_for_planet_description(system_seed);
+
+// CIM: seems to be no reason why this should be a per-system constant
+//  - trying it without resetting the RNG for now
+//	seed_RNG_only_for_planet_description(system_seed);
 	
 	q_result.x = (gen_rnd_number() - 128)/1024.0;
 	q_result.y = (gen_rnd_number() - 128)/1024.0;
@@ -9819,7 +9719,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	[self removeAllEntitiesExceptPlayer];
 	[OOTexture clearCache];
-	[self resetSystemDataCache];
 	
 	_sessionID++;	// Must be after removing old entities and before adding new ones.
 	
@@ -9929,8 +9828,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	OO_DEBUG_POP_PROGRESS();
 	
 	OO_DEBUG_PUSH_PROGRESS(@"Galaxy reset");
-	[self setGalaxySeed: [player galaxy_seed] andReinit:YES];
-	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
+	[self setGalaxyTo: [player galaxyNumber] andReinit:YES];
+	systemID = [player systemID];
 	OO_DEBUG_POP_PROGRESS();
 	
 	OO_DEBUG_PUSH_PROGRESS(@"Player init: setUpShipFromDictionary");
@@ -10133,13 +10032,6 @@ static void PreloadOneSound(NSString *soundName)
 	
 	// Afterburner sound doesn't go through customsounds.plist.
 	PreloadOneSound(@"afterburner1.ogg");
-}
-
-
-- (void) resetSystemDataCache
-{
-	[sCachedSystemData release];
-	sCachedSystemData = nil;
 }
 
 

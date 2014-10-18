@@ -611,11 +611,10 @@ enum
 - (BOOL) descriptionBooleanForKey:(NSString *)key;	// Boolean from descriptions.plist, for configuration.
 
 - (NSString *) keyForPlanetOverridesForSystem:(OOSystemID) s inGalaxy:(OOGalaxyID) g;
-- (NSString *) keyForInterstellarOverridesForSystemSeeds:(OOSystemID) s1 :(OOSystemID) s2 inGalaxySeed:(OOGalaxyID) g;
+- (NSString *) keyForInterstellarOverridesForSystems:(OOSystemID) s1 :(OOSystemID) s2 inGalaxy:(OOGalaxyID) g;
 - (NSDictionary *) generateSystemData:(OOSystemID) s;
 - (NSDictionary *) generateSystemData:(OOSystemID) s useCache:(BOOL) useCache;
 - (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
-- (void) resetSystemDataCache;
 
 - (BOOL) inInterstellarSpace;
 
@@ -639,14 +638,13 @@ enum
  */
 - (NSMutableArray *) nearbyDestinationsWithinRange:(double) range;
 
-- (OOSystemID) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(OOGalaxyID) gal;
+- (OOSystemID) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
 - (OOSystemID) findConnectedSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
 - (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systemsFound;
 - (NSString*) systemNameIndex:(OOSystemID) index;
-- (OOSystemID) systemWithName:(NSString *) name;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
 
@@ -675,8 +673,6 @@ enum
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
 - (HPVector) getWitchspaceExitPosition;
-- (HPVector) randomizeFromSeedAndGetWitchspaceExitPosition;
-- (HPVector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed;
 - (Quaternion) getWitchspaceExitRotation;
 
 - (HPVector) getSunSkimStartPositionForShip:(ShipEntity*) ship;
