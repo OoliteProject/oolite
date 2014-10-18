@@ -15,6 +15,16 @@ while (<$RADIILIST>)
 	push(@radii,$_);
 }
 close($RADIILIST);
+my @seeds;
+open(my $SEEDLIST, "<seeds.txt");
+while (<$SEEDLIST>)
+{
+	chomp;
+	push(@seeds,$_);
+
+}
+close($SEEDLIST);
+
 
 print ("{\n\n");
 
@@ -83,7 +93,10 @@ while (<>) {
 		$key =~s/planet zpos/planet_distance/;
 		$key =~s/seed/random_seed/;
 		$record .= ("\t\t".$key." = ");
-		if ($val !~/"/ && $val =~/[^0-9.]/) {
+		if ($key eq "random_seed") {
+			$val = shift(@seeds);
+			$record .= ('"'.$val.'"');
+		} elsif ($val !~/"/ && $val =~/[^0-9.]/) {
 			$record .= ('"'.$val.'"');
 		} else {
 			$record .= ($val);

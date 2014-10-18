@@ -5,6 +5,7 @@
 * `radii.txt` separate file containing planet radii in km because I forgot
   to include that value in the log dump and don't want to spend four
   hours regenerating it
+* `seeds.txt` separate file containing system seed strings, same reason
 * `planetlog.pl` is a tool to convert this into a planetinfo.plist file
 
 The log is saved here because even with the debugging tools enabled by
