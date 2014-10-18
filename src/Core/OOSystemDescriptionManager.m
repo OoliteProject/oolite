@@ -64,6 +64,9 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		for (NSUInteger i=0;i<OO_SYSTEM_CACHE_LENGTH;i++)
 		{
 			propertyCache[i] = [[NSMutableDictionary alloc] initWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
+			// hub count of 24 is considerably higher than occurs in
+			// standard planetinfo
+			neighbourCache[i] = [[NSMutableArray alloc] initWithCapacity:24];
 		}
 		propertiesInUse = [[NSMutableSet alloc] initWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
 
@@ -79,9 +82,41 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	for (NSUInteger i=0;i<OO_SYSTEM_CACHE_LENGTH;i++)
 	{
 		DESTROY(propertyCache[i]);
+		DESTROY(neighbourCache[i]);
 	}
 	DESTROY(propertiesInUse);
 	[super dealloc];
+}
+
+
+- (void) buildRouteCache
+{
+	NSUInteger i,j,k,jIndex,kIndex;
+	// firstly, cache all coordinates
+	for (i=0;i<OO_SYSTEM_CACHE_LENGTH;i++)
+	{
+		coordinatesCache[i] = PointFromString([propertyCache[i] oo_stringForKey:@"coordinates"]);
+	}
+	// now for each system find its neighbours
+	for (i=0;i<OO_GALAXIES_AVAILABLE;i++)
+	{
+		// one galaxy at a time
+		for (j=0;j<OO_SYSTEMS_PER_GALAXY;j++)
+		{
+			jIndex = j+(i*OO_SYSTEMS_PER_GALAXY);
+			for (k=j+1;k<OO_SYSTEMS_PER_GALAXY;k++)
+			{
+				kIndex = k+(i*OO_SYSTEMS_PER_GALAXY);
+				if (distanceBetweenPlanetPositions(coordinatesCache[jIndex].x,coordinatesCache[jIndex].y,coordinatesCache[kIndex].x,coordinatesCache[kIndex].y) <= MAX_JUMP_RANGE)
+				{
+					// arrays are of system number only
+					[neighbourCache[jIndex] addObject:[NSNumber numberWithInt:k]];
+					[neighbourCache[kIndex] addObject:[NSNumber numberWithInt:j]];
+				}
+			}
+		}
+	}
+
 }
 
 
@@ -404,8 +439,24 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
 		return (NSPoint){0,0};
 	}
-	return PointFromString([propertyCache[index] oo_stringForKey:@"coordinates"]);
+	return coordinatesCache[index];
+}
 
+
+- (NSArray *) getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+{
+	if (s < 0)
+	{
+		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
+		return nil;
+	}
+	NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+	if (index >= OO_SYSTEM_CACHE_LENGTH)
+	{
+		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
+		return nil;
+	}
+	return neighbourCache[index];
 }
 
 
@@ -444,7 +495,6 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	}
 	return RandomSeedFromString([propertyCache[index] oo_stringForKey:@"random_seed"]);
 }
-
 
 
 @end

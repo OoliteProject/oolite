@@ -38,7 +38,7 @@ typedef enum
 
 #define OO_SYSTEM_LAYERS        4
 #define OO_SYSTEMS_PER_GALAXY	(kOOMaximumSystemID+1)
-#define OO_GALAXIES_AVAILABLE	8
+#define OO_GALAXIES_AVAILABLE	(kOOMaximumGalaxyID+1)
 #define OO_SYSTEMS_AVAILABLE    OO_SYSTEMS_PER_GALAXY * OO_GALAXIES_AVAILABLE
 // don't bother caching interstellar properties
 #define OO_SYSTEM_CACHE_LENGTH  OO_SYSTEMS_AVAILABLE
@@ -54,7 +54,12 @@ typedef enum
 
 @end
 
-
+/**
+ * Note: forSystem: inGalaxy: returns from the (fast) propertyCache
+ *
+ * forSystemKey calculates the values - but is necessary for
+ * interstellar space
+ */
 @interface OOSystemDescriptionManager : NSObject
 {
 @private
@@ -63,7 +68,15 @@ typedef enum
 	NSMutableDictionary			*systemDescriptions;
 	NSMutableDictionary			*propertyCache[OO_SYSTEM_CACHE_LENGTH];
 	NSMutableSet				*propertiesInUse;
+	NSPoint						coordinatesCache[OO_SYSTEM_CACHE_LENGTH];
+	NSMutableArray				*neighbourCache[OO_SYSTEM_CACHE_LENGTH];
 }
+
+// this needs to be re-called every time system coordinates change
+// changing system coordinates after plist loading is probably
+// too much of a can of worms *anyway*, so currently it's only
+// called just after the manager data is loaded.
+- (void) buildRouteCache;
 
 - (void) setUniversalProperties:(NSDictionary *)properties;
 - (void) setInterstellarProperties:(NSDictionary *)properties;
@@ -80,6 +93,7 @@ typedef enum
 - (id) getProperty:(NSString *)property forSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
 - (NSPoint) getCoordinatesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
+- (NSArray *) getNeighbourIDsForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;
 
 - (Random_Seed) getRandomSeedForCurrentSystem;
 - (Random_Seed) getRandomSeedForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g;

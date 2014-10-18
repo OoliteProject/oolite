@@ -6696,7 +6696,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) witchEnd
 {
 	[UNIVERSE setSystemTo:system_id];
-	galaxy_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:system_id inGalaxy:galaxy_number]);
+	galaxy_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:system_id inGalaxy:galaxy_number];
 
 	[UNIVERSE setUpUniverseFromWitchspace];
 	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
@@ -7051,7 +7051,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) witchJumpTo:(OOSystemID)sTo misjump:(BOOL)misjump
 {
 	[self witchStart];
-
 	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
 	if (2 * market_rnd < ship_trade_in_factor)
 	{
@@ -7064,7 +7063,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	double distance = distanceBetweenPlanetPositions(destCoords.x,destCoords.y,galaxy_coordinates.x,galaxy_coordinates.y);
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
-	
 	if (!misjump)
 	{
 		ship_clock_adjust += distance * distance * 3600.0;
@@ -7155,12 +7153,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
 		}
 	}
-
 	/* there's going to be a slight pause at this stage anyway;
 	 * there's also going to be a lot of stale ship scripts. Force a
 	 * garbage collection while we have chance. - CIM */
 	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
-
 	flightSpeed = wormhole ? [wormhole exitSpeed] : fmin(maxFlightSpeed,50.0f);
 	[wormhole release];	// OK even if nil
 	wormhole = nil;

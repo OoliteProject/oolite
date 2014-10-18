@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
 #import "PlayerEntityScriptMethods.h"
+#import "PlayerEntity.h"
 
 // Don't bother with syntax warnings in Deployment builds.
 #define WARNINGS			(!defined(NDEBUG))
@@ -1012,7 +1013,9 @@ static void AppendCharacters(NSMutableString **result, const unichar *characters
 static NSString *GetSystemName(OOStringExpansionContext *context)
 {
 	NSCParameterAssert(context != NULL);
-	NSCParameterAssert(context->systemName != nil);
+	if (context->systemName == nil) {
+		context->systemName = [[UNIVERSE getSystemName:[PLAYER systemID]] retain];
+	}
 	
 	return context->systemName;
 }

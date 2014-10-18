@@ -470,9 +470,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 		// interstellar space needs more work at this stage
 		if ([info system] != -1)
 		{
-			NSString *systemKey = [NSString stringWithFormat:@"%u %u",[info galaxy],[info system]];
-
-			propValue = [[systemManager getPropertiesForSystemKey:systemKey] objectForKey:key];
+			propValue = [systemManager getProperty:key forSystem:[info system] inGalaxy:[info galaxy]];
 		} else {
 			propValue = [info valueForKey:key];
 		}

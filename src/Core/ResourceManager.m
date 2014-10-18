@@ -1604,6 +1604,8 @@ static NSString *LogClassKeyRoot(NSString *key)
 			}
 		}
 	}
+	OOLog(@"manager.debug",@"Caching routes");
+	[manager buildRouteCache];
 	OOLog(@"manager.debug",@"Initialised manager");
 	return [manager autorelease];
 }

@@ -759,7 +759,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[player leaveWitchspace];
 	[player release];											// released here
-	
+
 	[self setViewDirection:VIEW_FORWARD];
 	
 	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self getSystemName:systemID], [player dial_clock_adjusted]]
@@ -7422,7 +7422,7 @@ static void VerifyDesc(NSString *key, id desc)
 // galaxynumber parameter.
 	NSString *systemKey = [NSString stringWithFormat:@"%u %u",[PLAYER galaxyNumber],s];
 
-	return [[[systemManager getPropertiesForSystemKey:systemKey] copy] autorelease];
+	return [systemManager getPropertiesForSystemKey:systemKey];
 	
 	OOJS_PROFILE_EXIT
 }
@@ -7659,22 +7659,19 @@ static void VerifyDesc(NSString *key, id desc)
 
 - (id) systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key
 {
-	NSString *systemKey = [self keyForPlanetOverridesForSystem:pnum inGalaxy:gnum];
-	return [systemManager getProperty:key forSystemKey:systemKey];
+	return [systemManager getProperty:key forSystem:pnum inGalaxy:gnum];
 }
 
 
 - (NSString *) getSystemName:(OOSystemID) sys
 {
-	NSString *systemKey = [self keyForPlanetOverridesForSystem:sys inGalaxy:galaxyID];
-	return (NSString *)[systemManager getProperty:@"name" forSystemKey:systemKey];
+	return [systemManager getProperty:@"name" forSystem:sys inGalaxy:galaxyID];
 }
 
 
 - (OOGovernmentID) getSystemGovernment:(OOSystemID) sys
 {
-	NSString *systemKey = [self keyForPlanetOverridesForSystem:sys inGalaxy:galaxyID];
-	return [[systemManager getProperty:@"government" forSystemKey:systemKey] unsignedCharValue];
+	return [[systemManager getProperty:@"government" forSystem:sys inGalaxy:galaxyID] unsignedCharValue];
 }
 
 
@@ -7686,11 +7683,10 @@ static void VerifyDesc(NSString *key, id desc)
 
 - (NSString *) getSystemInhabitants:(OOSystemID) sys plural:(BOOL)plural
 {	
-	NSString *systemKey = [self keyForPlanetOverridesForSystem:sys inGalaxy:galaxyID];
 	NSString *ret = nil;
 	if (!plural)
 	{
-		ret = [[systemManager getPropertiesForSystemKey:systemKey] oo_stringForKey:KEY_INHABITANT];
+		ret = [systemManager getProperty:KEY_INHABITANT forSystem:sys inGalaxy:galaxyID];
 	}
 	if (ret != nil) // the singular form might be absent.
 	{
@@ -7698,7 +7694,7 @@ static void VerifyDesc(NSString *key, id desc)
 	}
 	else
 	{
-		return [[systemManager getPropertiesForSystemKey:systemKey] oo_stringForKey:KEY_INHABITANTS];
+		return [systemManager getProperty:KEY_INHABITANT forSystem:sys inGalaxy:galaxyID];
 	}
 }
 
@@ -8047,25 +8043,8 @@ static void VerifyDesc(NSString *key, id desc)
 	{
 		return closeSystems;
 	}
-	NSMutableArray *neighbours = [NSMutableArray arrayWithCapacity:32];
-	double distance;
-	OOSystemID i;
-	NSPoint spos = [systemManager getCoordinatesForSystem:s inGalaxy:galaxyID];
-	for (i = 0; i < 256; i++)
-	{
-		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:galaxyID];
-		distance = distanceBetweenPlanetPositions(spos.x,spos.y,ipos.x,ipos.y);
-		if ((distance <= MAX_JUMP_RANGE) && s != i)
-		{		
-			if (distance < 0)
-			{
-				OOLogWARN(@"universe.findSystems.badDistance", @"DEBUG: Universe neighboursToRandomSeed: found a system pair with a negative distance (%f).", distance);
-				//i guess its still in range, but skip as it makes no sense
-				continue;
-			}
-			[neighbours addObject:[NSNumber numberWithInt:i]];
-		}
-	}
+	NSArray *neighbours = [systemManager getNeighbourIDsForSystem:s inGalaxy:galaxyID];
+
 	if (s == systemID)
 	{
 		[closeSystems release];
