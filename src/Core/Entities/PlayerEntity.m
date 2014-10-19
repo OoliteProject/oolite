@@ -989,7 +989,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// ship depreciation
 	ship_trade_in_factor = [dict oo_intForKey:@"ship_trade_in_factor" defaultValue:95];
 	
-	// TODO: STATICPLANET - alternative path for galaxy_id, system_id, target_id
+	// newer savegames use galaxy_id
 	if ([dict oo_stringForKey:@"galaxy_id"] != nil)
 	{
 		galaxy_number = [dict oo_intForKey:@"galaxy_id"];
@@ -1057,7 +1057,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		chart_cursor_coordinates = cursor_coordinates;
 		chart_focus_coordinates = cursor_coordinates;
 
-		// TODO: STATICPLANET - calculate system ID, target ID
+		// calculate system ID, target ID
 		if ([dict objectForKey:@"current_system_name"])
 		{
 			system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"current_system_name"]];

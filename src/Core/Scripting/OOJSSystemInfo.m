@@ -48,6 +48,7 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 static JSBool SystemInfoDistanceToSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemInfoSetPropertyMethod(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, jsval *vp);
 
@@ -93,10 +94,11 @@ static JSPropertySpec sSystemInfoProperties[] =
 static JSFunctionSpec sSystemInfoMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				OOJSObjectWrapperToString,	0 },
-	{ "distanceToSystem",		SystemInfoDistanceToSystem,	1 },
-	{ "routeToSystem",			SystemInfoRouteToSystem,	1 },
-	{ "samplePrice",			SystemInfoSamplePrice,		1 },
+	{ "toString",				OOJSObjectWrapperToString,		0 },
+	{ "distanceToSystem",		SystemInfoDistanceToSystem,		1 },
+	{ "routeToSystem",			SystemInfoRouteToSystem,		1 },
+	{ "samplePrice",			SystemInfoSamplePrice,			1 },
+	{ "setProperty",			SystemInfoSetPropertyMethod,	3 },
 	{ 0 }
 };
 
@@ -621,6 +623,60 @@ static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp)
 	OOCreditsQuantity price = [[UNIVERSE commodities] samplePriceForCommodity:commodity inEconomy:[[thisInfo valueForKey:@"economy"] intValue] withScript:[thisInfo valueForKey:@"commodity_script"] inSystem:[thisInfo system]];
 	
 	OOJS_RETURN_INT(price);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool SystemInfoSetPropertyMethod(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOSystemInfo			*thisInfo = nil;
+	
+	if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))  return NO;
+
+	NSString *property = nil;
+	id value = nil;
+	OOSystemLayer layer = OO_LAYER_OXP_DYNAMIC;
+	NSString *manifest = nil;
+
+	int32 iValue;
+
+	if (argc < 3)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(layer, property, value [,manifest])");
+		return NO;
+	}
+	if (!JS_ValueToInt32(context, OOJS_ARGV[0], &iValue))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(layer, property, value [,manifest])");
+		return NO;
+	}
+	layer = (OOSystemLayer)iValue;
+	if (layer < 0 || layer >= OO_SYSTEM_LAYERS)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"layer must be 0, 1, 2 or 3");
+		return NO;
+	}
+
+	property = OOStringFromJSValue(context, OOJS_ARGV[1]);
+	if (!JSVAL_IS_NULL(OOJS_ARGV[2]))
+	{
+		value = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[2]);
+	}
+	if (argc >= 4)
+	{
+		manifest = OOStringFromJSValue(context, OOJS_ARGV[3]);
+	}
+	else
+	{
+		manifest = [[OOJSScript currentlyRunningScript] propertyNamed:kLocalManifestProperty];
+	}
+
+	[UNIVERSE setSystemDataForGalaxy:[thisInfo galaxy] planet:[thisInfo system] key:property value:value fromManifest:manifest forLayer:layer];
+
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

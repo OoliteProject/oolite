@@ -214,7 +214,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	{
 		return;
 	}
-	OOLog(@"saving change",@"%@ %@ %@ %d",manifest,key,property,layer);
+//	OOLog(@"saving change",@"%@ %@ %@ %d",manifest,key,property,layer);
 	NSArray *overrideKey = [NSArray arrayWithObjects:manifest,key,property,[[NSNumber numberWithInt:layer] stringValue],nil];
 	// Obj-C copes with NSArray keys to dictionaries fine, but the
 	// plist format doesn't, so they can't be saved.
@@ -629,7 +629,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 
 - (void) setProperty:(NSString *)property forLayer:(OOSystemLayer)layer toValue:(id)value
 {
-	if (property == nil)
+	if (value == nil)
 	{
 		[layers[layer] removeObjectForKey:property];
 	}

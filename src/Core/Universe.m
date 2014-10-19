@@ -921,9 +921,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	Vector				vf;
 	id			dict_object;
 
-	// TODO STATICPLANET - this should use system ID, not seed
-	// TODO STATICPLANET - watch for dual-option settings here and in sub-functions (e.g. _multiplier propeperties)
-	
 	NSDictionary		*systeminfo = [systemManager getPropertiesForCurrentSystem];
 	unsigned			techlevel = [systeminfo oo_unsignedIntForKey:KEY_TECHLEVEL];
 	NSString			*stationDesc = nil, *defaultStationDesc = nil;
@@ -7524,7 +7521,6 @@ static void VerifyDesc(NSString *key, id desc)
 		object = (id)[NSString stringWithFormat:@"%f",OOClamp_0_1_f([object floatValue])];
 	}
 	
-	// TODO: STATICPLANET - this should allow layer to be specified
 	[systemManager setProperty:key forSystemKey:overrideKey andLayer:layer toValue:object fromManifest:manifest];
 
 	

@@ -1567,7 +1567,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 
 + (OOSystemDescriptionManager *) systemDescriptionManager
 {
-	OOLog(@"manager.debug",@"Initialising manager");
+	OOLog(@"resourceManager.planetinfo.load",@"Initialising manager");
 	OOSystemDescriptionManager *manager = [[OOSystemDescriptionManager alloc] init];
 	
 	NSString *path = nil;
@@ -1604,9 +1604,9 @@ static NSString *LogClassKeyRoot(NSString *key)
 			}
 		}
 	}
-	OOLog(@"manager.debug",@"Caching routes");
+	OOLog(@"resourceManager.planetinfo.load",@"Caching routes");
 	[manager buildRouteCache];
-	OOLog(@"manager.debug",@"Initialised manager");
+	OOLog(@"resourceManager.planetinfo.load",@"Initialised manager");
 	return [manager autorelease];
 }
 
