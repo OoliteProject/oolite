@@ -2371,7 +2371,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSUInteger		i, j;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
-	NSPoint			star, star2, starabs, star2abs = NSZeroPoint;
+	NSPoint			star = NSZeroPoint, 
+		star2 = NSZeroPoint, 
+		starabs = NSZeroPoint, 
+		star2abs = NSZeroPoint;
 	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
 	OOGalaxyID		g = [PLAYER galaxyNumber];
 
