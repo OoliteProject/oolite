@@ -1286,7 +1286,10 @@ static int shipsFound;
 	keyString = [[tokens objectAtIndex:0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [[tokens objectAtIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	
-	[UNIVERSE setSystemDataKey:keyString value:valueString];
+	/* Legacy script planetinfo settings are now non-persistent over save/load
+	 * Virtually nothing uses them any more, and expecting them to have a
+	 * manifest and identifying what it is if so seems unnecessary */
+	[UNIVERSE setSystemDataKey:keyString value:valueString fromManifest:@""];
 
 }
 
@@ -1309,7 +1312,7 @@ static int shipsFound;
 	keyString = [[tokens objectAtIndex:2] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [[tokens objectAtIndex:3] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
-	[UNIVERSE setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString];
+	[UNIVERSE setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString fromManifest:@"" forLayer:OO_LAYER_OXP_DYNAMIC];
 }
 
 

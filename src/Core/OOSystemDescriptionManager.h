@@ -70,6 +70,7 @@ typedef enum
 	NSMutableSet				*propertiesInUse;
 	NSPoint						coordinatesCache[OO_SYSTEM_CACHE_LENGTH];
 	NSMutableArray				*neighbourCache[OO_SYSTEM_CACHE_LENGTH];
+	NSMutableDictionary			*scriptedChanges;
 }
 
 // this needs to be re-called every time system coordinates change
@@ -85,7 +86,11 @@ typedef enum
 - (void) setProperties:(NSDictionary *)properties forSystemKey:(NSString *)key;
 
 // this is used by Javascript property setting
-- (void) setProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value;
+- (void) setProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value fromManifest:(NSString *)manifest;
+
+- (void) importScriptedChanges:(NSDictionary *)scripted;
+- (void) importLegacyScriptedChanges:(NSDictionary *)scripted;
+- (NSDictionary *) exportScriptedChanges;
 
 - (NSDictionary *) getPropertiesForSystemKey:(NSString *)key;
 - (NSDictionary *) getPropertiesForCurrentSystem;

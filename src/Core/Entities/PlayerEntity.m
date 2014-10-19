@@ -879,11 +879,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// Scenario restriction on OXZs
 	[result setObject:[UNIVERSE useAddOns] forKey:@"scenario_restriction"];
 
-	// persistant UNIVERSE information
-	if ([UNIVERSE localPlanetInfoOverrides])
-	{
-		[result setObject:[UNIVERSE localPlanetInfoOverrides] forKey:@"local_planetinfo_overrides"];
-	}
+	[result setObject:[[UNIVERSE systemManager] exportScriptedChanges] forKey:@"scripted_planetinfo_overrides"];
 
 	// trumble information
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
@@ -1384,8 +1380,20 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (mission_variables == nil)  mission_variables = [[NSMutableDictionary alloc] init];
 	
 	// persistant UNIVERSE info
-	NSDictionary *planetInfoOverrides = [dict oo_dictionaryForKey:@"local_planetinfo_overrides"];
-	if (planetInfoOverrides != nil)  [UNIVERSE setLocalPlanetInfoOverrides:planetInfoOverrides];
+	NSDictionary *planetInfoOverrides = [dict oo_dictionaryForKey:@"scripted_planetinfo_overrides"];
+	if (planetInfoOverrides != nil)
+	{
+		[[UNIVERSE systemManager] importScriptedChanges:planetInfoOverrides];	
+	} 
+	else
+	{
+		// no scripted overrides? What about 1.80-style local overrides?
+		planetInfoOverrides = [dict oo_dictionaryForKey:@"local_planetinfo_overrides"];
+		if (planetInfoOverrides != nil)
+		{
+			[[UNIVERSE systemManager] importLegacyScriptedChanges:planetInfoOverrides];
+		}
+	}
 	
 	// communications log
 	[commLog release];

@@ -460,6 +460,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOGalaxyID					galaxy;
 	OOSystemID					system;
 	NSString					*stringValue = nil;
+	NSString					*manifest = nil;
 	int32						iValue;
 	JSBool            bValue;
 	
@@ -484,6 +485,8 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 
 	
 	if (system == -1)  return YES;	// Can't change anything else in interstellar space.
+
+	manifest = [[OOJSScript currentlyRunningScript] propertyNamed:kLocalManifestProperty];
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -491,7 +494,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 			stringValue = OOStringFromJSValue(context, *value);
 			if (stringValue != nil)
 			{
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_NAME value:stringValue];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_NAME value:stringValue fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;
@@ -500,7 +503,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 			stringValue = OOStringFromJSValue(context, *value);
 			if (stringValue != nil)
 			{
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_DESCRIPTION value:stringValue];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_DESCRIPTION value:stringValue fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;
@@ -509,7 +512,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 			stringValue = OOStringFromJSValue(context, *value);
 			if (stringValue != nil)
 			{
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_INHABITANTS value:stringValue];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_INHABITANTS value:stringValue fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;
@@ -519,7 +522,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 			{
 				if (iValue < 0)  iValue = 0;
 				if (7 < iValue)  iValue = 7;
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_GOVERNMENT value:[NSNumber numberWithInt:iValue]];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_GOVERNMENT value:[NSNumber numberWithInt:iValue] fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;
@@ -529,7 +532,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 			{
 				if (iValue < 0)  iValue = 0;
 				if (7 < iValue)  iValue = 7;
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_ECONOMY value:[NSNumber numberWithInt:iValue]];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_ECONOMY value:[NSNumber numberWithInt:iValue] fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;
@@ -539,7 +542,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 			{
 				if (iValue < 0)  iValue = 0;
 				if (15 < iValue)  iValue = 15;
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_TECHLEVEL value:[NSNumber numberWithInt:iValue]];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_TECHLEVEL value:[NSNumber numberWithInt:iValue] fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;
@@ -547,7 +550,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kSystem_population:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_POPULATION value:[NSNumber numberWithInt:iValue]];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_POPULATION value:[NSNumber numberWithInt:iValue] fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;
@@ -555,7 +558,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kSystem_productivity:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
-				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:iValue]];
+				[UNIVERSE setSystemDataForGalaxy:galaxy planet:system key:KEY_PRODUCTIVITY value:[NSNumber numberWithInt:iValue] fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 				return YES;
 			}
 			break;

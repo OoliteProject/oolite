@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #import "OOStellarBody.h"
 #import "OOEntityWithDrawable.h"
 #import "OOCommodities.h"
-
+#import "OOSystemDescriptionManager.h"
 
 #if OOLITE_ESPEAK
 #include <espeak/speak_lib.h>
@@ -292,8 +292,6 @@ enum
 #ifndef NDEBUG
 	double					timeAccelerationFactor;
 #endif
-	
-	NSMutableDictionary		*localPlanetInfoOverrides;
 	
 	NSMutableArray			*activeWormholes;
 	
@@ -618,10 +616,8 @@ enum
 
 - (BOOL) inInterstellarSpace;
 
-- (void)setObject:(id)object forKey:(NSString *)key forPlanetKey:(NSString *)planetKey;
-
-- (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
-- (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
+- (void) setSystemDataKey:(NSString*) key value:(NSObject*) object fromManifest:(NSString *)manifest;
+- (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object fromManifest:(NSString *)manifest forLayer:(OOSystemLayer)layer;
 - (id) systemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
 - (NSArray *) systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum;
 - (NSString *) getSystemName:(OOSystemID) sys;
@@ -647,9 +643,6 @@ enum
 - (NSString*) systemNameIndex:(OOSystemID) index;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
-
-- (NSMutableDictionary *) localPlanetInfoOverrides;
-- (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;
 
 - (void) preloadPlanetTexturesForSystem:(OOSystemID)system;
 - (void) preloadSounds;

@@ -30,6 +30,11 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "PlayerEntity.h"
 #import "Universe.h"
+#import "ResourceManager.h"
+
+// character sequence which can't be in property name, system key or layer
+// and is highly unlikely to be in a manifest identifier
+static NSString * const kOOScriptedChangeJoiner = @"~|~";
 
 // likely maximum number of planetinfo properties to be applied to a system
 // just for efficiency - no harm in exceeding it
@@ -45,6 +50,8 @@ MA 02110-1301, USA.
  * need to get the one with higher layer (if they're both at the same layer,
  * go with property1) */
 - (id) getProperty:(NSString *)property1 orProperty:(NSString *)property2 forSystemKey:(NSString *)key withUniversal:(BOOL)universal;
+
+- (void) saveScriptedChangeToProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value fromManifest:(NSString *)manifest;
 
 @end
 
@@ -69,7 +76,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 			neighbourCache[i] = [[NSMutableArray alloc] initWithCapacity:24];
 		}
 		propertiesInUse = [[NSMutableSet alloc] initWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
-
+		scriptedChanges = [[NSMutableDictionary alloc] initWithCapacity:64];
 	}
 	return self;
 }
@@ -85,6 +92,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		DESTROY(neighbourCache[i]);
 	}
 	DESTROY(propertiesInUse);
+	DESTROY(scriptedChanges);
 	[super dealloc];
 }
 
@@ -167,7 +175,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 }
 
 
-- (void) setProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value
+- (void) setProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value fromManifest:(NSString *)manifest
 {
 	OOSystemDescriptionEntry *desc = [systemDescriptions objectForKey:key];
 	if (desc == nil)
@@ -182,6 +190,8 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	NSArray  *tokens = ScanTokensFromString(key);
 	if ([tokens count] == 2 && [tokens oo_unsignedIntegerAtIndex:0] < OO_GALAXIES_AVAILABLE && [tokens oo_unsignedIntegerAtIndex:1] < OO_SYSTEMS_PER_GALAXY)
 	{
+		[self saveScriptedChangeToProperty:property forSystemKey:key andLayer:layer toValue:value fromManifest:manifest];
+	
 		OOGalaxyID g = [tokens oo_unsignedIntegerAtIndex:0];
 		OOSystemID s = [tokens oo_unsignedIntegerAtIndex:1];
 		NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
@@ -194,6 +204,97 @@ static NSString *kOOSystemLayerProperty = @"layer";
 			[self updateCacheEntry:index forProperty:property];
 		}
 	}
+}
+
+
+- (void) saveScriptedChangeToProperty:(NSString *)property forSystemKey:(NSString *)key andLayer:(OOSystemLayer)layer toValue:(id)value fromManifest:(NSString *)manifest
+{
+	// if OXP doesn't have a manifest, cancel saving the change
+	if (manifest == nil)
+	{
+		return;
+	}
+	OOLog(@"saving change",@"%@ %@ %@ %d",manifest,key,property,layer);
+	NSArray *overrideKey = [NSArray arrayWithObjects:manifest,key,property,[[NSNumber numberWithInt:layer] stringValue],nil];
+	// Obj-C copes with NSArray keys to dictionaries fine, but the
+	// plist format doesn't, so they can't be saved.
+	NSString *overrideKeyStr = [overrideKey componentsJoinedByString:kOOScriptedChangeJoiner];
+	if (value != nil)
+	{
+		[scriptedChanges setObject:value forKey:overrideKeyStr];
+	}
+	else
+	{
+		[scriptedChanges removeObjectForKey:overrideKeyStr];
+	}
+}
+
+
+- (void) importScriptedChanges:(NSDictionary *)scripted
+{
+	NSArray *key = nil;
+	NSString *keyStr = nil;
+	NSString *manifest = nil;
+	foreachkey(keyStr, scripted)
+	{
+		key = [keyStr componentsSeparatedByString:kOOScriptedChangeJoiner];
+		if ([key count] == 4)
+		{
+			manifest = [key oo_stringAtIndex:0];
+			if ([ResourceManager manifestForIdentifier:manifest] != nil)
+			{
+//				OOLog(@"importing",@"%@ -> %@",keyStr,[scripted objectForKey:keyStr]);
+				[self setProperty:[key oo_stringAtIndex:2]
+					 forSystemKey:[key oo_stringAtIndex:1]
+						 andLayer:[key oo_intAtIndex:3]
+						  toValue:[scripted objectForKey:keyStr]
+					 fromManifest:manifest];
+				// and doing this set stores it into the manager's copy
+				// of scripted changes
+				// this means in theory we could import more than one
+			}
+			// else OXP not installed, do not load
+		}
+		else
+		{
+			OOLog(@"systemManager.import",@"Key '%@' has unexpected format - skipping",keyStr);
+		}
+	}
+
+}
+
+
+// import of the old local_planetinfo_overrides dictionary
+- (void) importLegacyScriptedChanges:(NSDictionary *)scripted
+{
+	NSString *systemKey = nil;
+	NSString *propertyKey = nil;
+	NSString *defaultManifest = @"org.oolite.oolite";
+	
+	foreachkey(systemKey,scripted)
+	{
+		NSDictionary *legacyChanges = [scripted oo_dictionaryForKey:systemKey];
+		if ([legacyChanges objectForKey:@"sun_gone_nova"] != nil)
+		{
+			// then this is a change to import even if we don't know
+			// if the OXP is still installed
+			foreachkey (propertyKey, legacyChanges)
+			{
+				[self setProperty:propertyKey
+					 forSystemKey:systemKey
+						 andLayer:OO_LAYER_OXP_DYNAMIC
+						  toValue:[legacyChanges objectForKey:propertyKey]
+					 fromManifest:defaultManifest];
+			}
+		}
+	}
+
+}
+
+
+- (NSDictionary *) exportScriptedChanges
+{
+	return [[scriptedChanges copy] autorelease];
 }
 
 

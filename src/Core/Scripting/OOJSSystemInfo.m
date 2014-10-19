@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOIsNumberLiteral.h"
 #import "OOConstToString.h"
 #import "OOSystemDescriptionManager.h"
+#import "OOJSScript.h"
 
 
 static JSObject *sSystemInfoPrototype;
@@ -218,7 +219,9 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInf
 
 - (void) setValue:(id)value forKey:(NSString *)key
 {
-	[UNIVERSE setSystemDataForGalaxy:_galaxy planet:_system key:key value:value];
+	NSString *manifest = [[OOJSScript currentlyRunningScript] propertyNamed:kLocalManifestProperty];
+
+	[UNIVERSE setSystemDataForGalaxy:_galaxy planet:_system key:key value:value  fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 }
 
 

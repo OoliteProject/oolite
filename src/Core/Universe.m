@@ -353,8 +353,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
 	comm_log_gui = [[GuiDisplayGen alloc] init]; // alloc retains
 	
-	localPlanetInfoOverrides = [[NSMutableDictionary alloc] initWithCapacity:8];	
-	
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
@@ -444,7 +442,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[allPlanets release];
 	[allStations release];
 	
-	[localPlanetInfoOverrides release];
 	[activeWormholes release];				
 	[characterPool release];
 	[universeRegion release];
@@ -7471,62 +7468,17 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
-- (void)setObject:(id)object forKey:(NSString *)key forPlanetKey:(NSString *)planetKey
-{
-	NSMutableDictionary	*overrideDict = nil;
-	
-	if (key == nil || planetKey == nil)  return;
-	
-	overrideDict = [localPlanetInfoOverrides objectForKey:planetKey];
-	if (EXPECT_NOT(overrideDict != nil && ![overrideDict isKindOfClass:[NSMutableDictionary class]]))
-	{
-		/*	
-			LocalPlanetInfoOverrides sometimes contained immutable
-			dictionaries. Changes to -setLocalPlanetInfoOverrides
-			should have fixed it, but...
-			-- Abridged note. Originally from Ahruman 20070729
-		*/
-		if ([overrideDict isKindOfClass:[NSDictionary class]])
-		{
-			overrideDict = [[overrideDict mutableCopy] autorelease];
-		}
-		else
-		{
-			overrideDict = nil;
-		}
-	}
-	
-	if (overrideDict == nil)  overrideDict = [NSMutableDictionary dictionary];
-	
-	if (object != nil)
-	{
-		[overrideDict setObject:object forKey:key];
-	}
-	else
-	{
-		[overrideDict removeObjectForKey:key];
-	}
-	
-	if ([overrideDict count] > 0)
-	{
-		[localPlanetInfoOverrides setObject:overrideDict forKey:planetKey];
-	}
-	else
-	{
-		[localPlanetInfoOverrides removeObjectForKey:planetKey];
-	}
-}
 
 
 // layer 2
 // used by legacy script engine and sun going nova
-- (void) setSystemDataKey:(NSString *)key value:(NSObject *)object
+- (void) setSystemDataKey:(NSString *)key value:(NSObject *)object fromManifest:(NSString *)manifest
 {
-	[self setSystemDataForGalaxy:galaxyID planet:systemID key:key value:object];
+	[self setSystemDataForGalaxy:galaxyID planet:systemID key:key value:object fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 }
 
 
-- (void) setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key value:(id)object
+- (void) setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key value:(id)object fromManifest:(NSString *)manifest forLayer:(OOSystemLayer)layer
 {
 	static BOOL sysdataLocked = NO;
 	if (sysdataLocked)
@@ -7573,7 +7525,7 @@ static void VerifyDesc(NSString *key, id desc)
 	}
 	
 	// TODO: STATICPLANET - this should allow layer to be specified
-	[systemManager setProperty:key forSystemKey:overrideKey andLayer:2 toValue:object];
+	[systemManager setProperty:key forSystemKey:overrideKey andLayer:layer toValue:object fromManifest:manifest];
 
 	
 	// Apply changes that can be effective immediately, issue warning if they can't be changed just now
@@ -8052,45 +8004,6 @@ static void VerifyDesc(NSString *key, id desc)
 		return closeSystems;
 	}
 	return neighbours;
-}
-
-
-- (NSMutableDictionary *) localPlanetInfoOverrides
-{
-	return localPlanetInfoOverrides;
-}
-
-
-- (void) setLocalPlanetInfoOverrides:(NSDictionary *)dict
-{
-	NSEnumerator				*keyEnum = nil;
-	NSString					*key = nil;
-	id							value = nil;
-	
-	/*	Bug: localPlanetInfoOverrides contains immutable dictionaries, rather
-		than mutable dictionaries.
-		Analysis: when loading a saved game, localPlanetInfoOverrides is
-		restored using setLocalPlanetInfoOverrides:. This was using
-		-[NSMutableDictionary dictionaryWithDictionary:] to copy the immutable
-		dictionary from the saved game. This is a shallow copy, however,
-		creating a mutable dictionary of immutable dictionaries.
-		Fix: explicitly make mutable copies of member dictionaries. (The
-		contents of those dictionaries, in turn, can be immutable.)
-	*/
-	[localPlanetInfoOverrides release];
-	
-	localPlanetInfoOverrides = [[NSMutableDictionary alloc] initWithCapacity:[dict count]];
-	
-	for (keyEnum = [dict keyEnumerator]; (key = [keyEnum nextObject]); )
-	{
-		value = [dict objectForKey:key];
-		if (value != nil)
-		{
-			value = [value mutableCopy];
-			[localPlanetInfoOverrides setObject:value forKey:key];
-			[value release];
-		}
-	}
 }
 
 
@@ -9799,11 +9712,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
 	if (characterPool) [characterPool autorelease];
 	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
-	OO_DEBUG_POP_PROGRESS();
-	
-	OO_DEBUG_PUSH_PROGRESS(@"localPlanetInfoOverrides reset");
-	// these lines are needed here to reset systeminfo and long range chart properly
-	[localPlanetInfoOverrides removeAllObjects];
 	OO_DEBUG_POP_PROGRESS();
 	
 	OO_DEBUG_PUSH_PROGRESS(@"Galaxy reset");
