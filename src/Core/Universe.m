@@ -7490,6 +7490,13 @@ static void VerifyDesc(NSString *key, id desc)
 		OOLogERR(@"script.error", @"System property '%@' cannot be set.",key);
 		return;
 	}
+
+	if ([key isEqualToString:@"coordinates"]) // setting this in game would be very confusing
+	{
+		OOLogERR(@"script.error", @"System property '%@' cannot be set.",key);
+		return;
+	}
+
 	
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
 	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
