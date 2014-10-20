@@ -430,6 +430,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[characters release];
 	[customSounds release];
 	[planetInfo release];
+	[globalSettings release];
 	[systemManager release];
 	[missiontext release];
 	[equipmentData release];
@@ -2603,7 +2604,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOColor *col2 = [OOColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:0.25];	//standard tunnel colour
 	
 	// TODO STATICPLANET: global-settings.plist
-	colorDesc = [[self planetInfo] objectForKey:@"hyperspace_tunnel_color_1"];
+	colorDesc = [[self globalSettings] objectForKey:@"hyperspace_tunnel_color_1"];
 	if (colorDesc != nil)
 	{
 		color = [OOColor colorWithDescription:colorDesc];
@@ -2611,7 +2612,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else  OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
 	// TODO STATICPLANET: global-settings.plist
-	colorDesc = [[self planetInfo] objectForKey:@"hyperspace_tunnel_color_2"];
+	colorDesc = [[self globalSettings] objectForKey:@"hyperspace_tunnel_color_2"];
 	if (colorDesc != nil)
 	{
 		color = [OOColor colorWithDescription:colorDesc];
@@ -8077,6 +8078,12 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
+- (NSDictionary *) globalSettings
+{
+	return globalSettings;
+}
+
+
 - (NSArray *) equipmentData
 {
 	return equipmentData;
@@ -9530,6 +9537,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	
 	[planetInfo autorelease];
 	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
+
+	[globalSettings autorelease];
+	globalSettings = [[ResourceManager dictionaryFromFilesNamed:@"global-settings.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
+
 	
 	[systemManager autorelease];
 	systemManager = [[ResourceManager systemDescriptionManager] retain];
@@ -9730,9 +9741,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	// Player init above finishes initialising all standard player ship properties. Now that the base mass is set, we can run setUpSpace! 
 	[self setUpSpace];
 	
-	// TODO STATICPLANET: just make this 'YES' now?
-	[self setDockingClearanceProtocolActive:[[[self planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY] 
-											oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO]];
+	[self setDockingClearanceProtocolActive:
+			  [[self currentSystemData]	oo_boolForKey:@"stations_require_docking_clearance" defaultValue:YES]];
 
 	[self enterGUIViewModeWithMouseInteraction:NO];
 	[player setPosition:[[self station] position]];

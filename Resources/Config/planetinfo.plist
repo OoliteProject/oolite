@@ -17,29 +17,6 @@
 		stations_require_docking_clearance = no;
 	};
 
-	// Uncomment the desired behaviour for galactic hyperspace exit. Fixed coordinates will put the arrival
-	// of an intergalactic jump on map coordinates specified by the key galactic_hyperspace_fixed_coords.
-	"galactic_hyperspace_behaviour" = 	"BEHAVIOUR_STANDARD";
-						//"BEHAVIOUR_ALL_SYSTEMS_REACHABLE";
-						//"BEHAVIOUR_FIXED_COORDINATES";
-						
-	// When using BEHAVIOUR_FIXED_COORDINATES, the key below is used to specify the
-	// actual fixed coordinates for the intergalactic jump.
-	"galactic_hyperspace_fixed_coords" = 	"96 96";
-	
-	hyperspace_tunnel_color_1 = (1.0, 1.0, 1.0, 0.7);		// R, G, B, A values 0.0 to 1.0
-	
-	//hyperspace_tunnel_color_1 = (1.0, 0.0, 0.0, 0.5);		// fallback value, same as docking tunnel
-	//hyperspace_tunnel_color_2 = (0.0, 0.0, 1.0, 0.25);	// fallback value, same as docking tunnel
-	
-	/* This setting controls the minimum charge level of the energy banks
-	   before the shields start charging. It's taken as a percentage value
-	   from 0.0 (0%) to 1.0 (100%).  If the energy banks are less than this,
-       energy is first used to charge the banks, and only then the shields.
-	   Default: 0.0
-	*/
-	//shield_charge_energybank_threshold = 0.75;
-
 	"0 0" = {
 		air_color = "0.735411 0.597965 0.878678 1";
 		cloud_alpha = 1.000000;

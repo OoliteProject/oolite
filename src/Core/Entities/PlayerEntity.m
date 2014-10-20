@@ -1933,8 +1933,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[UNIVERSE setSystemTo:system_id];
 
 	
-	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
-	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
+	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE globalSettings] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
+	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE globalSettings] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
 	cloaking_device_active = NO;
 
@@ -2503,7 +2503,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if( (forward_shield > fwdMax * 0.25) && (aft_shield > aftMax * 0.25) )
 	{
 		// TODO: Can this be cached anywhere sensibly (without adding another member variable)?
-		float minEnergyBankLevel = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
+		float minEnergyBankLevel = [[UNIVERSE globalSettings] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
 		energyForShields = MAX(0.0, energy -0.1 - (maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
 	}
 	
