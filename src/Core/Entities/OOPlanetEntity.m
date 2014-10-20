@@ -296,10 +296,26 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (color != nil) seaHSB = HSBColorWithColor(color);
 		else ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
 		
-		// TODO STATICPLANET: these colours can be set by dictionary too
 		// polar areas are brighter but have less colour (closer to white)
-		landPolarHSB = LighterHSBColor(landHSB);
-		seaPolarHSB = LighterHSBColor(seaHSB);
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_land_color"]];
+		if (color != nil)
+		{
+			landPolarHSB = HSBColorWithColor(color);
+		}
+		else 
+		{
+			landPolarHSB = LighterHSBColor(landHSB);
+		}
+
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_sea_color"]];
+		if (color != nil)
+		{
+			seaPolarHSB = HSBColorWithColor(color);
+		}
+		else
+		{
+			seaPolarHSB = LighterHSBColor(seaHSB);
+		}
 		
 		[targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"land_color"];
 		[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"sea_color"];

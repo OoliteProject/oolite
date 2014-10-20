@@ -2603,7 +2603,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOColor *col1 = [OOColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.5];	//standard tunnel colour
 	OOColor *col2 = [OOColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:0.25];	//standard tunnel colour
 	
-	// TODO STATICPLANET: global-settings.plist
 	colorDesc = [[self globalSettings] objectForKey:@"hyperspace_tunnel_color_1"];
 	if (colorDesc != nil)
 	{
@@ -2611,7 +2610,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		if (color != nil)  col1 = color;
 		else  OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
-	// TODO STATICPLANET: global-settings.plist
+
 	colorDesc = [[self globalSettings] objectForKey:@"hyperspace_tunnel_color_2"];
 	if (colorDesc != nil)
 	{
