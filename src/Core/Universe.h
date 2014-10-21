@@ -250,7 +250,6 @@ enum
 	NSDictionary			*customSounds;			// holds descriptive audio for lots of stuff, loaded at initialisation
 	NSDictionary			*characters;			// holds descriptons of characters
 	NSArray					*_scenarios;			// game start scenarios
-	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255 (TODO: remove this)
 	NSDictionary			*globalSettings;		// miscellaneous global game settings
 	OOSystemDescriptionManager	*systemManager; // planetinfo data manager
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
@@ -648,7 +647,6 @@ enum
 - (void) preloadPlanetTexturesForSystem:(OOSystemID)system;
 - (void) preloadSounds;
 
-- (NSDictionary *) planetInfo;
 - (NSDictionary *) globalSettings;
 
 - (NSArray *) equipmentData;

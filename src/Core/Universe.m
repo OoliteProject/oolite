@@ -429,7 +429,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[_descriptions release];
 	[characters release];
 	[customSounds release];
-	[planetInfo release];
 	[globalSettings release];
 	[systemManager release];
 	[missiontext release];
@@ -8071,12 +8070,6 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
-- (NSDictionary *) planetInfo
-{
-	return planetInfo;
-}
-
-
 - (NSDictionary *) globalSettings
 {
 	return globalSettings;
@@ -9534,9 +9527,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	[customSounds autorelease];
 	customSounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[planetInfo autorelease];
-	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
-
 	[globalSettings autorelease];
 	globalSettings = [[ResourceManager dictionaryFromFilesNamed:@"global-settings.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 

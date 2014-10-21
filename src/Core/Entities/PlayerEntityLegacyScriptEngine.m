@@ -2270,7 +2270,7 @@ static int shipsFound;
 
 	if (!UNIVERSE)
 		return nil;
-	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:planetKey];
+	NSDictionary* dict = [[UNIVERSE systemManager] getPropertiesForSystemKey:planetKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", planetKey);
@@ -2322,7 +2322,7 @@ static int shipsFound;
 
 	if (!UNIVERSE)
 		return nil;
-	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:moonKey];
+	NSDictionary* dict = [[UNIVERSE systemManager] getPropertiesForSystemKey:moonKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", moonKey);
