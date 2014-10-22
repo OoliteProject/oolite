@@ -601,6 +601,10 @@ static NSString *kOOSystemLayerProperty = @"layer";
 @end
 
 
+@interface OOSystemDescriptionEntry (OOPrivate)
+- (id) validateProperty:(NSString *)property withValue:(id)value;
+@end
+
 @implementation OOSystemDescriptionEntry 
 
 - (id) init
@@ -635,7 +639,14 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	}
 	else
 	{
-		[layers[layer] setObject:value forKey:property];
+		// validate type of object for certain properties
+		value = [self validateProperty:property withValue:value];
+		// if it's nil now, validation failed and could not be recovered
+		// so don't actually set anything
+		if (value != nil)
+		{
+			[layers[layer] setObject:value forKey:property];
+		}
 	}
 }
 
@@ -645,5 +656,57 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	return [layers[layer] objectForKey:property];
 }
 
+
+/* Mostly the rest of the game gets a system dictionary from
+ * [UNIVERSE currentSystemData] or similar, which means that it uses
+ * safe methods like oo_stringForKey: - a few things use a direct call
+ * to getProperty for various reasons, so need some type validation
+ * here instead. */
+- (id) validateProperty:(NSString *)property withValue:(id)value
+{
+	if ([property isEqualToString:@"coordinates"])
+	{
+		// must be a string with two numbers in it
+		// TODO: convert two element arrays
+		if (![value isKindOfClass:[NSString class]])
+		{
+			OOLog(@"system.description.error",@"'%@' is not a valid format for coordinates",value);
+			return nil;
+		}
+		NSArray		*tokens = ScanTokensFromString((NSString *)value);
+		if ([tokens count] != 2)
+		{
+			OOLog(@"system.description.error",@"'%@' is not a valid format for coordinates (must have exactly two numbers)",value);
+			return nil;
+		}
+	} 
+	else if ([property isEqualToString:@"radius"] || [property isEqualToString:@"government"]) 
+	{ 
+		// read in a context which expects a string, but it's a string representation of a number
+		if (![value isKindOfClass:[NSString class]])
+		{
+			if ([value isKindOfClass:[NSNumber class]])
+			{
+				return [value stringValue];
+			}
+			else
+			{
+				OOLog(@"system.description.error",@"'%@' is not a valid value for '%@' (string required)",value,property);
+				return nil;
+			}
+		}
+	}
+	else if ([property isEqualToString:@"inhabitant"] || [property isEqualToString:@"inhabitants"] || [property isEqualToString:@"name"] ) 
+	{
+		// read in a context which expects a string
+		if (![value isKindOfClass:[NSString class]])
+		{
+			OOLog(@"system.description.error",@"'%@' is not a valid value for '%@' (string required)",value,property);
+			return nil;
+		}
+	}
+
+	return value;
+}
 
 @end

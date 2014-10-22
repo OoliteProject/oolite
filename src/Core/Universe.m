@@ -7611,6 +7611,7 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
+/* Only called from OOJSSystemInfo. */
 - (id) systemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key
 {
 	return [systemManager getProperty:key forSystem:pnum inGalaxy:gnum];
