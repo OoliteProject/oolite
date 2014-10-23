@@ -1426,7 +1426,7 @@
 		missiles = 1;
 		model = "oolite_cobramk1.dat";
 		name = "Cobra Mark I";
-		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort-light(0.25) assassin-light";
+		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort(0.25) assassin-light";
 		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		view_position_aft = "0.0 3.75 -27.5";
