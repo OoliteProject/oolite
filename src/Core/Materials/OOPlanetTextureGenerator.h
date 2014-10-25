@@ -42,6 +42,7 @@ typedef struct OOPlanetTextureGeneratorInfo
 	
 	// Planet parameters.
 	float							landFraction;
+	float							polarFraction;
 	FloatRGB						landColor;
 	FloatRGB						seaColor;
 	FloatRGB						deepSeaColor;
