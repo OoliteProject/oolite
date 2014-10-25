@@ -50,6 +50,7 @@ MA 02110-1301, USA.
 #import "OOEntityFilterPredicate.h"
 #import "OOGraphicsResetManager.h"
 #import "OOStringExpander.h"
+#import "OOOpenGLMatrixManager.h"
 
 @interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
@@ -166,6 +167,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		
 	// Orientation should be handled by the code that calls this planetEntity. Starting with a default value anyway.
 	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };
+	_atmosphereOrientation = kIdentityQuaternion;
 	_rotationAxis = vector_up_from_quaternion(orientation);
 	
 	// set speed of rotation.
@@ -178,7 +180,9 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		_rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
 		_rotationalVelocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
-	
+
+	_atmosphereRotationalVelocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f * randf()];
+
 	// set energy
 	energy = collision_radius * 1000.0;
 	
@@ -188,6 +192,8 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	// rotate planet based on current time, needs to be done here - backported from PlanetEntity.
 	int		deltaT = floor(fmod([PLAYER clockTimeAdjusted], 86400));
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * deltaT);
+	quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * deltaT);
+
 	
 #ifdef OO_DUMP_PLANETINFO
 #define CPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %@;",[(OOColor *)[planetInfo objectForKey:@#PROP] descriptionComponents]);
@@ -501,6 +507,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * delta_t);
+	// atmosphere orientation is relative to the orientation of the planet
+	quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * delta_t);
 
 	[self orientationChanged];
 	
@@ -547,7 +555,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_planetDrawable renderOpaqueParts];
 		if (_atmosphereDrawable != nil)
 		{
+			OOGLPushModelView();
+			OOGLMultModelView(OOMatrixForQuaternionRotation(_atmosphereOrientation));
 			[_atmosphereDrawable renderTranslucentPartsOnOpaquePass];
+			OOGLPopModelView();
 		}
 	}
 	else 
@@ -558,7 +569,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 		{
 			if (_atmosphereDrawable != nil)
 			{
+				OOGLPushModelView();
+				OOGLMultModelView(OOMatrixForQuaternionRotation(_atmosphereOrientation));
 				[_atmosphereDrawable renderTranslucentParts];
+				OOGLPopModelView();
 			}
 		}
 		else

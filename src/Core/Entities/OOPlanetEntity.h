@@ -48,6 +48,8 @@ MA 02110-1301, USA.
 	
 	Vector					_rotationAxis;
 	float					_rotationalVelocity;
+	Quaternion				_atmosphereOrientation;
+	float					_atmosphereRotationalVelocity;
 	
 	unsigned				_shuttlesOnGround;
 	OOTimeDelta				_lastLaunchTime;
