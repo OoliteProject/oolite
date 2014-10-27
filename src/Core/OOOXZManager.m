@@ -2037,7 +2037,16 @@ static OOOXZManager *sSingleton = nil;
 			else
 			{
 				// file
-				// because of ZIP format, folder must now exist
+				// usually folder must now exist, but just in case...
+				NSString *folder = [[path stringByAppendingPathComponent:componentName] stringByDeletingLastPathComponent];
+				if ([folder length] > 0 && ![fmgr fileExistsAtPath:folder] && ![fmgr oo_createDirectoryAtPath:folder attributes:nil])
+				{
+					OOLog(kOOOXZErrorLog,@"Subpath %@ could not be created",folder);
+					[extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-sub-failed")];
+					error = YES;
+					break;
+				}
+				
 
 				// This is less efficient in memory use than just
 				// streaming out of the ZIP file onto disk
