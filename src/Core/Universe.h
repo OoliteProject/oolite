@@ -99,8 +99,11 @@ enum
 
 #define KEY_TECHLEVEL						@"techlevel"
 #define KEY_ECONOMY							@"economy"
+#define KEY_ECONOMY_DESC					@"economy_description"
 #define KEY_GOVERNMENT						@"government"
+#define KEY_GOVERNMENT_DESC					@"government_description"
 #define KEY_POPULATION						@"population"
+#define KEY_POPULATION_DESC					@"population_description"
 #define KEY_PRODUCTIVITY					@"productivity"
 #define KEY_RADIUS							@"radius"
 #define KEY_NAME							@"name"

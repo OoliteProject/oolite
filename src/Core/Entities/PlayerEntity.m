@@ -7651,11 +7651,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		int productivity =	[targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
 		int radius =		[targetSystemData oo_intForKey:KEY_RADIUS];
 		
-		NSString	*government_desc =	OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT]);
-		NSString	*economy_desc =		OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY]);
+		NSString	*government_desc =	[targetSystemData oo_stringForKey:KEY_GOVERNMENT_DESC 
+															 defaultValue:OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT])];
+		NSString	*economy_desc =		[targetSystemData oo_stringForKey:KEY_ECONOMY_DESC 
+															 defaultValue:OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY])];
 		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
 		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
-		
+
+		NSString    *population_desc =  [targetSystemData oo_stringForKey:KEY_POPULATION_DESC 
+															 defaultValue:[NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")]];
+
 		if (sunGoneNova)
 		{
 			population = 0;
@@ -7666,7 +7671,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			economy_desc = DESC(@"nova-system-economy");
 			inhabitants = DESC(@"nova-system-inhabitants");
 			system_desc = OOExpandKeyWithSeed(@"nova-system-description", kNilRandomSeed, targetSystemName);
+			population_desc = [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")];
 		}
+
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		[UNIVERSE removeDemoShips];
@@ -7676,7 +7683,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-eco"), economy_desc, nil]					forRow:1];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-govt"), government_desc, nil]				forRow:3];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-tl"), [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-pop"), [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")], nil]	forRow:7];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-pop"), population_desc, nil]	forRow:7];
 		[gui setArray:[NSArray arrayWithObjects:@"", [NSString stringWithFormat:@"(%@)", inhabitants], nil]				forRow:8];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-prod"), @"", [NSString stringWithFormat:DESC(@"sysdata-prod-worth"), productivity], nil]	forRow:10];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-radius"), @"", [NSString stringWithFormat:@"%5d km", radius], nil]	forRow:12];
