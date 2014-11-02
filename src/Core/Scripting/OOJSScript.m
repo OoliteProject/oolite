@@ -187,8 +187,16 @@ static JSFunctionSpec sScriptMethods[] =
 			if ([key isKindOfClass:[NSString class]])
 			{
 				property = [defaultProperties objectForKey:key];
-				// can be overwritten by script itself
-				[self setProperty:property named:key];
+				if ([key isEqualToString:kLocalManifestProperty])
+				{
+					// this must not be editable
+					[self defineProperty:property named:key];
+				}
+				else
+				{
+					// can be overwritten by script itself
+					[self setProperty:property named:key];
+				}
 			}
 		}
 
@@ -618,6 +626,11 @@ static JSFunctionSpec sScriptMethods[] =
 		if ([manifest objectForKey:kOOManifestVersion] != nil)
 		{
 			[properties setObject:[manifest oo_stringForKey:kOOManifestVersion] forKey:@"version"];
+		}
+		if ([manifest objectForKey:kOOManifestIdentifier] != nil)
+		{
+			// used for system info
+			[properties setObject:[manifest oo_stringForKey:kOOManifestIdentifier] forKey:kLocalManifestProperty];
 		}
 		if ([manifest objectForKey:kOOManifestAuthor] != nil)
 		{

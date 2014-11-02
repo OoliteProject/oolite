@@ -230,7 +230,7 @@
 	
 	resourceManager.error					= yes;
 	resourceManager.foundFile				= no;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
-	
+	resourceManager.planetinfo				= no;
 	
 	save.failed								= $error;
 	save.success							= no;

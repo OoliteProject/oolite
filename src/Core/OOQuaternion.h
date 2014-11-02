@@ -81,6 +81,7 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *ou
 
 /* produce a quaternion representing an angle between two vectors. Assumes the vectors are normalized. */
 Quaternion quaternion_rotation_between(Vector v0, Vector v1) CONST_FUNC;
+Quaternion quaternion_rotation_betweenHP(HPVector v0, HPVector v1) CONST_FUNC;
 
 /* produce a quaternion representing an angle between two vectors with a maximum arc */
 Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc) CONST_FUNC;

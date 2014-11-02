@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OOJavaScriptEngine.h"
 #import "PlayerEntityStickProfile.h"
+#import "OOSystemDescriptionManager.h"
 
 OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 {
@@ -1529,7 +1530,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 {
 	PlayerEntity *player = PLAYER;
 	OOGalaxyID galaxy_number = [player galaxyNumber];
-	NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]];
+	NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxy:[player galaxyNumber]];
 
 	NSString *location_key = [NSString stringWithFormat:@"long-range-chart-title-%d-%ld", galaxy_number, (long)system_id];
 	if ([[UNIVERSE descriptions] valueForKey:location_key] == nil)
@@ -1558,12 +1559,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (!player)
 		return;
 
+	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
+
 	OOScalar	zoom = [player chart_zoom];
 	NSPoint	chart_centre_coordinates = [player adjusted_chart_centre];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
 	OOLongRangeChartMode chart_mode = [player longRangeChartMode];
-	Random_Seed		galaxy_seed = [player galaxy_seed];
+	OOGalaxyID		galaxy_id = [player galaxyNumber];
 	GLfloat			r = 1.0, g = 1.0, b = 1.0;
 	BOOL			noNova;
 	NSPoint	cu;
@@ -1571,7 +1574,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	double fuel = 35.0 * [player dialFuel];
 	
-	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
 	double		hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double		vscale = -size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
@@ -1603,7 +1605,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				size_in_pixels.width * pixelRatio,
 				(GUI_ROW_CHART_SYSTEM-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
 
-	Random_Seed target = [PLAYER target_system_seed];
+	OOSystemID target = [PLAYER targetSystemID];
 	NSString *targetName = [UNIVERSE getSystemName:target];
 	double dx, dy;
 	
@@ -1628,17 +1630,17 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
 	// Caching code submitted by Y A J, 20091022
 	
-	static Random_Seed saved_galaxy_seed;
+	static OOGalaxyID saved_galaxy_id;
 	static struct saved_system
 	{
-		Random_Seed seed;
+		OOSystemID sysid;
 		int tec, eco, gov;
 		NSString* p_name;
 		BOOL nova;
 	} nearby_systems[ 256 ];
 	static int num_nearby_systems = 0;
 
-	if ( _refreshStarChart || !equal_seeds( [player galaxy_seed], saved_galaxy_seed ))
+	if ( _refreshStarChart || galaxy_id != saved_galaxy_id)
 	{
 		// saved systems are stale; recompute
 		_refreshStarChart = NO;
@@ -1648,9 +1650,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		num_nearby_systems = 0;
 		for (i = 0; i < 256; i++)
 		{
-			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 
-			NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
+			NSDictionary* sys_info = [UNIVERSE generateSystemData:i];
 			if (EXPECT_NOT([sys_info oo_boolForKey:@"sun_gone_nova"]))
 			{
 				nearby_systems[ num_nearby_systems ].gov = -1;	// Flag up nova systems!
@@ -1661,12 +1662,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				nearby_systems[ num_nearby_systems ].eco = [sys_info oo_intForKey:KEY_ECONOMY];
 				nearby_systems[ num_nearby_systems ].gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
 			}
-			nearby_systems[ num_nearby_systems ].seed = g_seed;
+			nearby_systems[ num_nearby_systems ].sysid = i;
 			nearby_systems[ num_nearby_systems ].p_name = [[sys_info oo_stringForKey:KEY_NAME] retain];
-			nearby_systems[ num_nearby_systems ].nova = [[UNIVERSE generateSystemData:g_seed] oo_boolForKey:@"sun_gone_nova"];
+			nearby_systems[ num_nearby_systems ].nova = [[UNIVERSE generateSystemData:i] oo_boolForKey:@"sun_gone_nova"];
 			num_nearby_systems++;
 		}
-		saved_galaxy_seed = [player galaxy_seed];
+		saved_galaxy_id = [player galaxyNumber];
 	}
 	
 	OOSystemID savedPlanetNumber = 0;
@@ -1675,8 +1676,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_id];
+		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id];
 		if (routeInfo == nil || planetNumber != savedPlanetNumber || destNumber != savedDestNumber)
 		{
 			[routeInfo release];
@@ -1684,7 +1685,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			savedPlanetNumber = planetNumber;
 			savedDestNumber = destNumber;
 		}
-		target = [UNIVERSE systemSeedForSystemNumber: destNumber];
+		target = destNumber;
 		
 		// if the ANA has been activated and we are in string input mode (i.e. planet search),
 		// get out of it so that distance and time data can be displayed
@@ -1700,10 +1701,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			time = [routeInfo oo_doubleForKey:@"time"];
 		}
 	}
+	NSPoint targetCoordinates = (NSPoint){0,0};
 	if (!routeExists)
 	{
-		target = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-		distance = distanceBetweenPlanetPositions(target.d,target.b,galaxy_coordinates.x,galaxy_coordinates.y);
+		target = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		targetCoordinates = [systemManager getCoordinatesForSystem:target inGalaxy:galaxy_id];
+
+		distance = distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
 		if ([player hasHyperspaceMotor] && distance <= [player fuel]/10.0)
 		{
 			time = distance * distance;
@@ -1721,18 +1725,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	for (i = 0; i < num_nearby_systems; i++)
 	{
-		g_seed = nearby_systems[i].seed;
+		NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
 		
-		dx = fabs(chart_centre_coordinates.x - g_seed.d);
-		dy = fabs(chart_centre_coordinates.y - g_seed.b);
+		dx = fabs(chart_centre_coordinates.x - sys_coordinates.x);
+		dy = fabs(chart_centre_coordinates.y - sys_coordinates.y);
 	
 		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0 + CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER)))
 			continue;
-		float blob_size = (4.0f + 0.5f * (g_seed.f & 15))/zoom;
+		float blob_size = (1.0f + 0.5f * ([[systemManager getProperty:@"radius" forSystem:i inGalaxy:galaxy_id] floatValue]/300.0f))/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
 
-		star.x = (float)(g_seed.d * hscale + hoffset);
-		star.y = (float)(g_seed.b * vscale + voffset);
+		star.x = (float)(sys_coordinates.x * hscale + hoffset);
+		star.y = (float)(sys_coordinates.y * vscale + voffset);
 
 		noNova = !nearby_systems[i].nova;
 		NSAssert1(chart_mode <= OOLRC_MODE_TECHLEVEL, @"Long range chart mode %i out of range", (int)chart_mode);
@@ -1828,15 +1832,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			BOOL mark = systemsFound[i];
 			float marker_size = 8.0/zoom;
-			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
+			NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
 
-			dx = fabs(chart_centre_coordinates.x - g_seed.d);
-			dy = fabs(chart_centre_coordinates.y - g_seed.b);
+			dx = fabs(chart_centre_coordinates.x - sys_coordinates.x);
+			dy = fabs(chart_centre_coordinates.y - sys_coordinates.y);
 		
 			if (mark && (dx <= zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0+CHART_CLIP_BORDER))&&(dy <= zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
 			{
-				star.x = (float)(g_seed.d * hscale + hoffset);
-				star.y = (float)(g_seed.b * vscale + voffset);
+				star.x = (float)(sys_coordinates.x * hscale + hoffset);
+				star.y = (float)(sys_coordinates.y * vscale + voffset);
 				OOGLBEGIN(GL_LINE_LOOP);
 					glVertex3f(x + star.x - marker_size,	y + star.y - marker_size,	z);
 					glVertex3f(x + star.x + marker_size,	y + star.y - marker_size,	z);
@@ -1870,16 +1874,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	for (i = 0; i < num_nearby_systems; i++)
 	{
 		sys = nearby_systems + i;
-		
-		dx = fabs(chart_centre_coordinates.x - sys->seed.d);
-		dy = fabs(chart_centre_coordinates.y - sys->seed.b);
+		NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:sys->sysid inGalaxy:galaxy_id];
+
+		dx = fabs(chart_centre_coordinates.x - sys_coordinates.x);
+		dy = fabs(chart_centre_coordinates.y - sys_coordinates.y);
 		
 		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0+CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM+CHART_CLIP_BORDER)))
 			continue;
-		star.x = (float)(sys->seed.d * hscale + hoffset);
-		star.y = (float)(sys->seed.b * vscale + voffset);
-		if (sys->seed.d == target.d && sys->seed.b == target.b	// same place as target system?
-			&& [sys->p_name isEqualToString:targetName])		// not overlapping twin? (example: Divees & Tezabi in galaxy 5)
+		star.x = (float)(sys_coordinates.x * hscale + hoffset);
+		star.y = (float)(sys_coordinates.y * vscale + voffset);
+		if (sys->sysid == target)		// not overlapping twin? (example: Divees & Tezabi in galaxy 5)
 		{
 			 targetIdx = i;		// we have a winner!
 		}
@@ -1902,8 +1906,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if( targetIdx != -1 && zoom <= CHART_ZOOM_SHOW_LABELS)
 	{
 		sys = nearby_systems + targetIdx;
-		star.x = (float)(sys->seed.d * hscale + hoffset);
-		star.y = (float)(sys->seed.b * vscale + voffset);
+		NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:sys->sysid inGalaxy:galaxy_id];
+
+		star.x = (float)(sys_coordinates.x * hscale + hoffset);
+		star.y = (float)(sys_coordinates.y * vscale + voffset);
 		
 		if (![player showInfoFlag])
 		{
@@ -2036,9 +2042,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (Random_Seed) targetNextFoundSystem:(int)direction // +1 , 0 , -1
+- (OOSystemID) targetNextFoundSystem:(int)direction // +1 , 0 , -1
 {
-	Random_Seed sys = [PLAYER target_system_seed];
+	OOSystemID sys = [PLAYER targetSystemID];
 	if ([PLAYER guiScreen] != GUI_SCREEN_SHORT_RANGE_CHART && [PLAYER guiScreen] != GUI_SCREEN_LONG_RANGE_CHART) return sys;
 	
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
@@ -2059,7 +2065,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			{
 				last = i;
 			}
-			if (systemIndex == (int)count) sys = [UNIVERSE systemSeedForSystemNumber:i];
+			if (systemIndex == (int)count) 
+			{
+				sys = i;
+			}
 			count++;
 		}
 	}
@@ -2070,12 +2079,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (systemIndex < 0)
 	{
 		systemIndex = count - 1;
-		sys = [UNIVERSE systemSeedForSystemNumber:last];
+		sys = last;
 	}
 	if (systemIndex >= (int)count)
 	{
 		systemIndex = 0;
-		sys = [UNIVERSE systemSeedForSystemNumber:first];
+		sys = first;
 	}
 	
 	foundSystem = systemIndex;
@@ -2088,7 +2097,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	PlayerEntity	*player = PLAYER;
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint			cursor_coordinates = [player cursor_coordinates];
-	Random_Seed		galaxy_seed = [player galaxy_seed];
+	OOGalaxyID		galaxy_id = [player galaxyNumber];
 	OOLongRangeChartMode chart_mode = [player longRangeChartMode];
 	if (![player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
@@ -2096,6 +2105,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 
 	double fuel = 35.0 * [player dialFuel];
+
+	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
 	
 	// get a list of systems marked as contract destinations
 	NSDictionary	*markedDestinations = [player markedDestinations];
@@ -2108,7 +2119,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	NSPoint		star, cu;
 	
-	Random_Seed g_seed;
 	double		hscale = size_in_pixels.width / 256.0;
 	double		vscale = -1.0 * size_in_pixels.height / 512.0;
 	double		hoffset = 0.0f;
@@ -2130,8 +2140,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_id];
+		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id];
 		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
 		
 		if (!routeInfo)  routeExists = NO;
@@ -2145,8 +2155,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	else
 	{
-		Random_Seed dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-		distance = distanceBetweenPlanetPositions(dest.d,dest.b,galaxy_coordinates.x,galaxy_coordinates.y);
+		OOSystemID dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		NSPoint dest_coordinates = [systemManager getCoordinatesForSystem:dest inGalaxy:galaxy_id];
+		distance = distanceBetweenPlanetPositions(dest_coordinates.x,dest_coordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
 		time = distance * distance;
 	}
 	
@@ -2155,7 +2166,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	tab_stops[1] = 96;
 	tab_stops[2] = 288;
 	[self setTabStops:tab_stops];
-	NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER target_system_seed]] retain];
+	NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER targetSystemID]] retain];
 
 	if (routeExists)
 	{
@@ -2201,12 +2212,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(GLScaledLineWidth(1.5f));
 	for (i = 0; i < 256; i++)
 	{
-		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
 		if (markers != nil)
 		{
-			star.x = (float)(g_seed.d * hscale + hoffset);
-			star.y = (float)(g_seed.b * vscale + voffset);
+			NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
+			star.x = (float)(sys_coordinates.x * hscale + hoffset);
+			star.y = (float)(sys_coordinates.y * vscale + voffset);
 			
 			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:2.5f];
 		}
@@ -2217,8 +2228,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(glColor4f(1.0f, 1.0f, 1.0f, alpha));
 	for (i = 0; i < 256; i++)
 	{
-		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		systemData = [UNIVERSE generateSystemData:g_seed];
+		systemData = [UNIVERSE generateSystemData:i];
 		noNova = ![systemData oo_boolForKey:@"sun_gone_nova"];
 		NSAssert1(chart_mode <= OOLRC_MODE_TECHLEVEL, @"Long range chart mode %i out of range", (int)chart_mode);
 		
@@ -2277,10 +2287,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		}
 		OOGL(glColor4f(r, g, b, alpha));
 		
-		star.x = (float)(g_seed.d * hscale + hoffset);
-		star.y = (float)(g_seed.b * vscale + voffset);
+		NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
+
+		star.x = (float)(sys_coordinates.x * hscale + hoffset);
+		star.y = (float)(sys_coordinates.y * vscale + voffset);
 		
-		float sz = (4.0f + 0.5f * (0x03 | (g_seed.f & 0x0f))) / 7.0f;
+		float sz = (1.0f + 0.5f * ([[systemManager getProperty:@"radius" forSystem:i inGalaxy:galaxy_id] floatValue]/300.0f))/7.0f;
+
 		OOGLBEGIN(GL_QUADS);
 		glVertex3f(x + star.x, y + star.y + sz, z);
 		glVertex3f(x + star.x + sz,	y + star.y, z);
@@ -2316,11 +2329,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		for (i = 0; i < 256; i++)
 		{
 			BOOL mark = systemsFound[i];
-			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
+			NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
 			if (mark)
 			{
-				star.x = (float)(g_seed.d * hscale + hoffset);
-				star.y = (float)(g_seed.b * vscale + voffset);
+				star.x = (float)(sys_coordinates.x * hscale + hoffset);
+				star.y = (float)(sys_coordinates.y * vscale + voffset);
 				OOGLBEGIN(GL_LINE_LOOP);
 					glVertex3f(x + star.x - 2.0f,	y + star.y - 2.0f,	z);
 					glVertex3f(x + star.x + 2.0f,	y + star.y - 2.0f,	z);
@@ -2355,30 +2368,38 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
-	Random_Seed		g_seed, g_seed2;
 	NSUInteger		i, j;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
-	NSPoint			star, star2 = NSZeroPoint;
-	
+	NSPoint			star = NSZeroPoint, 
+		star2 = NSZeroPoint, 
+		starabs = NSZeroPoint, 
+		star2abs = NSZeroPoint;
+	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
+	OOGalaxyID		g = [PLAYER galaxyNumber];
+
 	OOGL(glColor4f(0.25f, 0.25f, 0.25f, alpha));
 	
 	OOGLBEGIN(GL_LINES);
-	for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
+	for (i = 0; i < 256; i++)
 	{
-		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		g_seed2 = [UNIVERSE systemSeedForSystemNumber:j];
+		starabs = [systemManager getCoordinatesForSystem:i inGalaxy:g];
 
-		star.x = (float)(g_seed.d * hscale);
-		star.y = (float)(g_seed.b * vscale);
-		star2.x = (float)(g_seed2.d * hscale);
-		star2.y = (float)(g_seed2.b * vscale);
-		double d = distanceBetweenPlanetPositions(g_seed.d, g_seed.b, g_seed2.d, g_seed2.b);
-		
-		if (d <= MAX_JUMP_RANGE)	// another_commander - Default to 7.0 LY.
+		star.x = (float)(starabs.x * hscale);
+		star.y = (float)(starabs.y * vscale);
+
+		for (j = i + 1; j < 256; j++)
 		{
-			glVertex3f(x+star.x, y+star.y, z);
-			glVertex3f(x+star2.x, y+star2.y, z);
+			star2abs = [systemManager getCoordinatesForSystem:j inGalaxy:g];
+			double d = distanceBetweenPlanetPositions(starabs.x, starabs.y, star2abs.x, star2abs.y);
+		
+			if (d <= MAX_JUMP_RANGE)	// another_commander - Default to 7.0 LY.
+			{
+				star2.x = (float)(star2abs.x * hscale);
+				star2.y = (float)(star2abs.y * vscale);
+				glVertex3f(x+star.x, y+star.y, z);
+				glVertex3f(x+star2.x, y+star2.y, z);
+			}
 		}
 	}
 	OOGLEND();
@@ -2399,13 +2420,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		for (i = 0; i < route_hops; i++)
 		{
 			loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];
+			starabs = [systemManager getCoordinatesForSystem:loc inGalaxy:g];
+			star2abs = [systemManager getCoordinatesForSystem:[[routeInfo objectForKey:@"route"] oo_intAtIndex:i+1] inGalaxy:g];
+
+			star.x = (float)(starabs.x * hscale);
+			star.y = (float)(starabs.y * vscale);
 			
-			g_seed = [UNIVERSE systemSeedForSystemNumber:loc];
-			g_seed2 = [UNIVERSE systemSeedForSystemNumber:[[routeInfo objectForKey:@"route"] oo_intAtIndex:(i+1)]];
-			star.x = (float)(g_seed.d * hscale);
-			star.y = (float)(g_seed.b * vscale);
-			star2.x = (float)(g_seed2.d * hscale);
-			star2.y = (float)(g_seed2.b * vscale);
+			star2.x = (float)(star2abs.x * hscale);
+			star2.y = (float)(star2abs.y * vscale);
+
 			
 			OOGLBEGIN(GL_LINES);
 				glVertex3f(x+star.x, y+star.y, z);

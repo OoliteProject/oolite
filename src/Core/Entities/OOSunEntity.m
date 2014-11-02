@@ -143,6 +143,10 @@ MA 02110-1301, USA.
 		//on average:  0 = .25 , 1 = 2.25  -  the same sun should give the same random component
 		corona_speed_factor=OOClamp_0_1_f(corona_speed_factor) * 2.0 + randf() * randf();
 	}
+#ifdef OO_DUMP_PLANETINFO
+	OOLog(@"planetinfo.record",@"corona_shimmer = %f",corona_speed_factor);
+#endif
+
 	corona_stage = 0.0;
 	for (i = 0; i < SUN_CORONA_SAMPLES; i++)
 		rvalue[i] = randf();
@@ -278,7 +282,10 @@ MA 02110-1301, USA.
 				if (sky_bri == 1.0)
 				{	
 					// This sun has now gone nova!
-					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES]];
+					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES] fromManifest:@"org.oolite.oolite"];
+					// Novas are stored under the core manifest if the
+					// player was there at the time. Default layer 2
+					// is fine.
 					OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;

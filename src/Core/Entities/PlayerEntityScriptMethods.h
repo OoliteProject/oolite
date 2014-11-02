@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 
 - (OOGalaxyID) currentGalaxyID;
 - (OOSystemID) currentSystemID;
+- (OOSystemID) targetSystemID;
 
 - (void) setMissionChoice:(NSString *)newChoice;
 - (void) setMissionChoice:(NSString *)newChoice withEvent:(BOOL) withEvent;

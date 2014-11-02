@@ -82,6 +82,7 @@ MA 02110-1301, USA.
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityStickProfile.h"
+#import "OOSystemDescriptionManager.h"
 
 
 #define PLAYER_DEFAULT_NAME				@"Jameson"
@@ -149,7 +150,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) prepareMarkedDestination:(NSMutableDictionary *)markers :(NSDictionary *)marker;
 
 - (void) witchStart;
-- (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump;
+- (void) witchJumpTo:(OOSystemID)sTo misjump:(BOOL)misjump;
 - (void) witchEnd;
 
 // Jump distance/cost calculations for selected target.
@@ -507,12 +508,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (Random_Seed) galaxy_seed
-{
-	return galaxy_seed;
-}
-
-
 - (NSPoint) galaxy_coordinates
 {
 	return galaxy_coordinates;
@@ -620,31 +615,31 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (Random_Seed) system_seed
+- (OOSystemID) systemID
 {
-	return system_seed;
+	return system_id;
 }
 
 
-- (void) setSystem_seed:(Random_Seed) s_seed
+- (void) setSystemID:(OOSystemID) sid
 {
-	system_seed = s_seed;
-	galaxy_coordinates = NSMakePoint(s_seed.d, s_seed.b);
+	system_id = sid;
+	galaxy_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:sid inGalaxy:galaxy_number]);
 	chart_centre_coordinates = galaxy_coordinates;
 	target_chart_centre = chart_centre_coordinates;
 }
 
 
-- (Random_Seed) target_system_seed
+- (OOSystemID) targetSystemID
 {
-	return target_system_seed;
+	return target_system_id;
 }
 
 
-- (void) setTargetSystemSeed:(Random_Seed) s_seed
+- (void) setTargetSystemID:(OOSystemID) sid
 {
-	target_system_seed = s_seed;
-	cursor_coordinates = NSMakePoint(s_seed.d, s_seed.b);
+	target_system_id = sid;
+	cursor_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystemKey:[UNIVERSE keyForPlanetOverridesForSystem:sid inGalaxy:galaxy_number]]);
 }
 
 
@@ -677,27 +672,25 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[result setObject:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"written_by_version"];
 
-	NSString	*gal_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", galaxy_seed.a, galaxy_seed.b, galaxy_seed.c, galaxy_seed.d, galaxy_seed.e, galaxy_seed.f];
-	NSString	*gal_coords = [NSString stringWithFormat:@"%d %d",(int)galaxy_coordinates.x,(int)galaxy_coordinates.y];
-	NSString	*tgt_coords = [NSString stringWithFormat:@"%d %d",(int)cursor_coordinates.x,(int)cursor_coordinates.y];
+	NSString	*gal_id = [NSString stringWithFormat:@"%u", galaxy_number];
+	NSString	*sys_id = [NSString stringWithFormat:@"%d", system_id];
+	NSString	*tgt_id = [NSString stringWithFormat:@"%d", target_system_id];
 	// Variable requiredCargoSpace not suitable for Oolite as it currently stands: it retroactively changes a savegame cargo space.
 	//unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
 	
-	[result setObject:gal_seed		forKey:@"galaxy_seed"];
-	[result setObject:gal_coords	forKey:@"galaxy_coordinates"];
-	[result setObject:tgt_coords	forKey:@"target_coordinates"];
+	[result setObject:gal_id		forKey:@"galaxy_id"];
+	[result setObject:sys_id	forKey:@"system_id"];
+	[result setObject:tgt_id	forKey:@"target_id"];
 	
-	if (!equal_seeds(found_system_seed,kNilRandomSeed))
+	if (found_system_id >= 0)
 	{
-		NSString *found_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", found_system_seed.a, found_system_seed.b, found_system_seed.c, found_system_seed.d, found_system_seed.e, found_system_seed.f];
-		[result setObject:found_seed	forKey:@"found_system_seed"];
+		NSString *found_id = [NSString stringWithFormat:@"%d", found_system_id];
+		[result setObject:found_id	forKey:@"found_system_id"];
 	}
 	
 	// Write the name of the current system. Useful for looking up saved game information and for overlapping systems.
-	[result setObject:[UNIVERSE getSystemName:[self system_seed]] forKey:@"current_system_name"];
-	// Write the name of the targeted system. Useful for overlapping systems.
-	[result setObject:[UNIVERSE getSystemName:[self target_system_seed]] forKey:@"target_system_name"];
+	[result setObject:[UNIVERSE getSystemName:[self currentSystemID]] forKey:@"current_system_name"];
 	
 	[result setObject:[self commanderName] forKey:@"player_name"];
 	[result setObject:[self lastsaveName] forKey:@"player_save_name"];
@@ -886,11 +879,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// Scenario restriction on OXZs
 	[result setObject:[UNIVERSE useAddOns] forKey:@"scenario_restriction"];
 
-	// persistant UNIVERSE information
-	if ([UNIVERSE localPlanetInfoOverrides])
-	{
-		[result setObject:[UNIVERSE localPlanetInfoOverrides] forKey:@"local_planetinfo_overrides"];
-	}
+	[result setObject:[[UNIVERSE systemManager] exportScriptedChanges] forKey:@"scripted_planetinfo_overrides"];
 
 	// trumble information
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
@@ -920,8 +909,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	// create checksum
 	clear_checksum();
-	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);	munge_checksum(galaxy_seed.c);
-	munge_checksum(galaxy_seed.d);	munge_checksum(galaxy_seed.e);	munge_checksum(galaxy_seed.f);
+// TODO: should checksum checks be removed?
+//	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);	munge_checksum(galaxy_seed.c);
+//	munge_checksum(galaxy_seed.d);	munge_checksum(galaxy_seed.e);	munge_checksum(galaxy_seed.f);
 	munge_checksum(galaxy_coordinates.x);	munge_checksum(galaxy_coordinates.y);
 	munge_checksum(credits);		munge_checksum(fuel);
 	munge_checksum(max_cargo);		munge_checksum(missiles);
@@ -959,13 +949,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	customDialSettings = [[NSMutableDictionary alloc] init];
 
 	[[UNIVERSE gameView] resetTypedString];
-	// must do this on game load now caches an entire chart
-	[UNIVERSE resetSystemDataCache];
 
 	// Required keys
 	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
-	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
-	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
+	// galaxy_seed is used is 1.80 or earlier
+	if ([dict oo_stringForKey:@"galaxy_seed"] == nil && [dict oo_stringForKey:@"galaxy_id"] == nil)  return NO;
+	// galaxy_coordinates is used is 1.80 or earlier
+	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil && [dict oo_stringForKey:@"system_id"] == nil)  return NO;
 	
 	NSString *scenarioRestrict = [dict oo_stringForKey:@"scenario_restriction" defaultValue:nil];
 	if (scenarioRestrict == nil)
@@ -999,34 +989,90 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// ship depreciation
 	ship_trade_in_factor = [dict oo_intForKey:@"ship_trade_in_factor" defaultValue:95];
 	
-	galaxy_seed = RandomSeedFromString([dict oo_stringForKey:@"galaxy_seed"]);
-	if (is_nil_seed(galaxy_seed))  return NO;
-	[UNIVERSE setGalaxySeed: galaxy_seed andReinit:YES];
-	
-	NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
-	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
-	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
-	chart_centre_coordinates = galaxy_coordinates;
-	target_chart_centre = chart_centre_coordinates;
-	cursor_coordinates = galaxy_coordinates;
-	chart_zoom = 1.0;
-	target_chart_zoom = 1.0;
-	saved_chart_zoom = 1.0;
-	ANA_mode = OPTIMIZED_BY_NONE;
-	
-	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
-	if (keyStringValue != nil)
+	// newer savegames use galaxy_id
+	if ([dict oo_stringForKey:@"galaxy_id"] != nil)
 	{
-		coord_vals = ScanTokensFromString(keyStringValue);
+		galaxy_number = [dict oo_intForKey:@"galaxy_id"];
+		if (galaxy_number < 0 || galaxy_number >= OO_GALAXIES_AVAILABLE)
+		{
+			return NO;
+		}
+		[UNIVERSE setGalaxyTo:galaxy_number andReinit:YES];
+
+		system_id = [dict oo_intForKey:@"system_id"];
+		if (system_id < 0 || system_id >= OO_SYSTEMS_PER_GALAXY)
+		{
+			return NO;
+		}
+
+		[UNIVERSE setSystemTo:system_id];
+
+		NSArray *coord_vals = ScanTokensFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:system_id inGalaxy:galaxy_number]);
+		galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
+		galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
+		chart_centre_coordinates = galaxy_coordinates;
+		target_chart_centre = chart_centre_coordinates;
+		cursor_coordinates = galaxy_coordinates;
+		chart_zoom = 1.0;
+		target_chart_zoom = 1.0;
+		saved_chart_zoom = 1.0;
+		ANA_mode = OPTIMIZED_BY_NONE;
+
+
+		target_system_id = [dict oo_intForKey:@"target_id" defaultValue:system_id];
+		coord_vals = ScanTokensFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:target_system_id inGalaxy:galaxy_number]);		
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
+
+		chart_cursor_coordinates = cursor_coordinates;
+		chart_focus_coordinates = cursor_coordinates;
+
+		found_system_id = [dict oo_intForKey:@"found_system_id" defaultValue:-1];
 	}
-	chart_cursor_coordinates = cursor_coordinates;
-	chart_focus_coordinates = cursor_coordinates;
+	else
+		// compatibility for loading 1.80 savegames
+	{
+		galaxy_number = [dict oo_intForKey:@"galaxy_number"];
+
+		[UNIVERSE setGalaxyTo: galaxy_number andReinit:YES];
 	
-	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
-	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
-	
+		NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
+		galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
+		galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
+		chart_centre_coordinates = galaxy_coordinates;
+		target_chart_centre = chart_centre_coordinates;
+		cursor_coordinates = galaxy_coordinates;
+		chart_zoom = 1.0;
+		target_chart_zoom = 1.0;
+		saved_chart_zoom = 1.0;
+		ANA_mode = OPTIMIZED_BY_NONE;
+		
+		NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
+		if (keyStringValue != nil)
+		{
+			coord_vals = ScanTokensFromString(keyStringValue);
+			cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
+			cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
+		}
+		chart_cursor_coordinates = cursor_coordinates;
+		chart_focus_coordinates = cursor_coordinates;
+
+		// calculate system ID, target ID
+		if ([dict objectForKey:@"current_system_name"])
+		{
+			system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"current_system_name"]];
+			target_system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"target_system_name"]];
+		}
+		else
+		{
+			// really old save games don't have system name saved
+			// use coordinates instead - unreliable in zero-distance pairs.
+			system_id = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxy:galaxy_number];
+			target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+		}
+		found_system_id = -1;
+	}		
+
 	NSString *cname = [dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME];
 	[self setCommanderName:cname];
 	[self setLastsaveName:[dict oo_stringForKey:@"player_save_name" defaultValue:cname]];
@@ -1334,8 +1380,20 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (mission_variables == nil)  mission_variables = [[NSMutableDictionary alloc] init];
 	
 	// persistant UNIVERSE info
-	NSDictionary *planetInfoOverrides = [dict oo_dictionaryForKey:@"local_planetinfo_overrides"];
-	if (planetInfoOverrides != nil)  [UNIVERSE setLocalPlanetInfoOverrides:planetInfoOverrides];
+	NSDictionary *planetInfoOverrides = [dict oo_dictionaryForKey:@"scripted_planetinfo_overrides"];
+	if (planetInfoOverrides != nil)
+	{
+		[[UNIVERSE systemManager] importScriptedChanges:planetInfoOverrides];	
+	} 
+	else
+	{
+		// no scripted overrides? What about 1.80-style local overrides?
+		planetInfoOverrides = [dict oo_dictionaryForKey:@"local_planetinfo_overrides"];
+		if (planetInfoOverrides != nil)
+		{
+			[[UNIVERSE systemManager] importLegacyScriptedChanges:planetInfoOverrides];
+		}
+	}
 	
 	// communications log
 	[commLog release];
@@ -1417,31 +1475,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	forward_shield = [self maxForwardShieldLevel];
 	aft_shield = [self maxAftShieldLevel];
 	
-	// Where are we? What system are we targeting?
-	// current_system_name and target_system_name, if present on the savegame,
-	// are the only way - at present - to distinguish between overlapping systems. Kaks 20100706
-	
-	// If we have the current system name, let's see if it matches the current system.
-	NSString *sysName = [dict oo_stringForKey:@"current_system_name"];
-	system_seed = [UNIVERSE findSystemFromName:sysName];
-	
-	if (is_nil_seed(system_seed) || (galaxy_coordinates.x != system_seed.d && galaxy_coordinates.y != system_seed.b))
-	{
-		// no match found, find the system from the coordinates.
-		system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	}
-	
-	// If we have a target system name, let's see if it matches the system at the cursor coordinates.
-	sysName = [dict oo_stringForKey:@"target_system_name"];
-	target_system_seed = [UNIVERSE findSystemFromName:sysName];
-	
-	if (is_nil_seed(target_system_seed) || (cursor_coordinates.x != target_system_seed.d && cursor_coordinates.y != target_system_seed.b))
-	{
-		// no match found, find the system from the coordinates.
-		BOOL sameCoords = (cursor_coordinates.x == galaxy_coordinates.x && cursor_coordinates.y == galaxy_coordinates.y);
-		if (sameCoords) target_system_seed = system_seed;
-		else target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	}
+	// used to get current_system and target_system here,
+	// but stores the ID in the save file instead
 	
 	// restore subentities status
 	[self deserializeShipSubEntitiesFrom:[dict oo_stringForKey:@"subentities_status"]];
@@ -1550,7 +1585,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
 	unsigned i;
-	Random_Seed gal_seed = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
 	
 	showDemoShips = NO;
 	show_info_flag = NO;
@@ -1667,7 +1701,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setScriptTarget:nil];
 	[self resetMissionChoice];
 	[[UNIVERSE gameView] resetTypedString];
-	found_system_seed = kNilRandomSeed;
+	found_system_id = -1;
 	
 	[reputation release];
 	reputation = [[NSMutableDictionary alloc] initWithCapacity:6];
@@ -1777,7 +1811,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setLastsaveName:PLAYER_DEFAULT_NAME];
 	
 	galaxy_coordinates		= NSMakePoint(0x14,0xAD);	// 20,173
-	galaxy_seed				= gal_seed;
+
 	credits					= 1000;
 	fuel					= PLAYER_MAX_FUEL;
 	fuel_accumulator		= 0.0f;
@@ -1894,12 +1928,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	entity_personality = ranrot_rand() & 0x7FFF;
 	
-	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
-	[UNIVERSE setSystemTo:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
+	[self setSystemID:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxy:galaxy_number]];
+	[UNIVERSE setGalaxyTo:galaxy_number];
+	[UNIVERSE setSystemTo:system_id];
 
 	
-	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
-	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
+	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE globalSettings] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
+	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE globalSettings] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
 	cloaking_device_active = NO;
 
@@ -1926,7 +1961,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setLastAegisLock:[UNIVERSE planet]];
 		
 	// If loading from a savegame don't reset the targetted system.
-	if (setTarget) target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	// Always loading from a savegame nowadays, so... - CIM
+	//	if (setTarget) target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	
 	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
@@ -2472,7 +2508,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if( (forward_shield > fwdMax * 0.25) && (aft_shield > aftMax * 0.25) )
 	{
 		// TODO: Can this be cached anywhere sensibly (without adding another member variable)?
-		float minEnergyBankLevel = [[UNIVERSE planetInfo] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
+		float minEnergyBankLevel = [[UNIVERSE globalSettings] oo_floatForKey:@"shield_charge_energybank_threshold" defaultValue:0.25];
 		energyForShields = MAX(0.0, energy -0.1 - (maxEnergy * minEnergyBankLevel)); // NB: The - 0.1 ensures the energy value does not 'bounce' across the critical energy message and causes spurious energy-low warnings
 	}
 	
@@ -2562,12 +2598,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		// no access to all player.ship properties while inside the escape pod,
 		// we're not supposed to be inside our ship anymore! 
 		[self doScriptEvent:OOJSID("escapePodSequenceOver")];	// allow oxps to override the escape pod target
-		if (!equal_seeds(target_system_seed, system_seed)) // overridden: we're going to a nearby system!
+		/**
+		 * This code branch doesn't seem to be used any more - see ~line 6000
+		 * Should we remove it? - CIM
+		 */
+		if (EXPECT_NOT(target_system_id != system_id)) // overridden: we're going to a nearby system!
 		{
-			system_seed = target_system_seed;
-			[UNIVERSE setSystemTo:system_seed];
-			galaxy_coordinates.x = system_seed.d;
-			galaxy_coordinates.y = system_seed.b;
+			system_id = target_system_id;
+			[UNIVERSE setSystemTo:system_id];
+			galaxy_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:system_id inGalaxy:galaxy_number]);
 			
 			[UNIVERSE setUpSpace];
 			// run initial system population
@@ -3312,7 +3351,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	else
 	{
-		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_id], witchspaceCountdown] forCount:1.0];
 	}
 	
 	if (witchspaceCountdown == 0.0)
@@ -3328,7 +3367,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				from doing it twice thanks to the texture cache.
 				-- Ahruman 2009-12-19
 			*/
-			[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+			[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
 		}
 		else
 		{
@@ -3358,7 +3397,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		// announce arrival
 		if ([UNIVERSE planet])
 		{
-			[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_seed]] forCount:3.0];
+			[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_id]] forCount:3.0];
 			// and reset the compass
 			if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
 				compassMode = COMPASS_MODE_PLANET;
@@ -4175,7 +4214,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (GLfloat) dialHyperRange
 {
-	if (equal_seeds(target_system_seed, system_seed) && ![UNIVERSE inInterstellarSpace])  return 0.0f;
+	if (target_system_id == system_id && ![UNIVERSE inInterstellarSpace])  return 0.0f;
 	return [self fuelRequiredForJump] / (GLfloat)PLAYER_MAX_FUEL;
 }
 
@@ -5946,7 +5985,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 	
 	// set up the standard location where the escape pod will dock.
-	target_system_seed = system_seed;			// we're staying in this system
+	target_system_id = system_id;			// we're staying in this system
 	[self setDockTarget:[UNIVERSE station]];	// we're docking at the main station, if there is one
 	
 	[self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:escapePod];	// no player.ship properties should be available to script
@@ -6654,9 +6693,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) witchEnd
 {
-	[UNIVERSE setSystemTo:system_seed];
-	galaxy_coordinates.x = system_seed.d;
-	galaxy_coordinates.y = system_seed.b;
+	[UNIVERSE setSystemTo:system_id];
+	galaxy_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:system_id inGalaxy:galaxy_number];
+
 	[UNIVERSE setUpUniverseFromWitchspace];
 	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
 	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
@@ -6693,7 +6732,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 
 	// Check we're not jumping into the current system
-	if (!([UNIVERSE inInterstellarSpace]) && equal_seeds(system_seed,target_system_seed))
+	if (![UNIVERSE inInterstellarSpace] && system_id == target_system_id)
 	{
 		//dont allow player to hyperspace to current location.
 		//Note interstellar space will have a system_seed place we came from
@@ -6760,7 +6799,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (double) hyperspaceJumpDistance
 {
-	return distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	NSPoint targetCoordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:target_system_id inGalaxy:galaxy_number]);
+	return distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
 }
 
 
@@ -6804,9 +6844,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	
-	// clear system data cache for old galaxy
-	[UNIVERSE resetSystemDataCache];
-
 	// remove any contracts and parcels for the old galaxy
 	if (contracts)
 		[contracts removeAllObjects];
@@ -6850,16 +6887,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self removeEquipmentItem:@"EQ_GAL_DRIVE"];
 	
 	galaxy_number++;
-	galaxy_number &= 7;
+	if (EXPECT_NOT(galaxy_number >= OO_GALAXIES_AVAILABLE))
+	{
+		galaxy_number = 0;
+	}
 
-	galaxy_seed.a = rotate_byte_left(galaxy_seed.a);
-	galaxy_seed.b = rotate_byte_left(galaxy_seed.b);
-	galaxy_seed.c = rotate_byte_left(galaxy_seed.c);
-	galaxy_seed.d = rotate_byte_left(galaxy_seed.d);
-	galaxy_seed.e = rotate_byte_left(galaxy_seed.e);
-	galaxy_seed.f = rotate_byte_left(galaxy_seed.f);
-
-	[UNIVERSE setGalaxySeed:galaxy_seed];
+	[UNIVERSE setGalaxyTo:galaxy_number];
 
 	// Choose the galactic hyperspace behaviour. Refers to where we may actually end up after an intergalactic jump.
 	// The default behaviour is that the player cannot arrive on unreachable or isolated systems. The options
@@ -6869,24 +6902,23 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	switch (galacticHyperspaceBehaviour)
 	{
 		case GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES:			
-			system_seed = [UNIVERSE findSystemAtCoords:galacticHyperspaceFixedCoords withGalaxySeed:galaxy_seed];
+			system_id = [UNIVERSE findSystemAtCoords:galacticHyperspaceFixedCoords withGalaxy:galaxy_number];
 			break;
 		case GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE:
-			system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+			system_id = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxy:galaxy_number];
 			break;
 		case GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD:
 		default:
 			// instead find a system connected to system 0 near the current coordinates...
-			system_seed = [UNIVERSE findConnectedSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+			system_id = [UNIVERSE findConnectedSystemAtCoords:galaxy_coordinates withGalaxy:galaxy_number];
 			break;
 	}
-	target_system_seed = system_seed;
+	target_system_id = system_id;
 	
 	[self setBounty:0 withReason:kOOLegalStatusReasonNewGalaxy];	// let's make a fresh start!
-	cursor_coordinates.x = system_seed.d;
-	cursor_coordinates.y = system_seed.b;
-	
-	[self witchEnd];
+	cursor_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:system_id inGalaxy:galaxy_number]);
+
+	[self witchEnd]; // sets coordinates
 	
 	[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
 }
@@ -6910,6 +6942,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		misjump = YES; // a script could just have changed this to true;
 	}
+#ifdef OO_DUMP_PLANETINFO
+	misjump = NO;
+#endif
 	if (misjump && [self scriptedMisjumpRange] != 0.5)
 	{
 		[w_hole setMisjumpWithRange:[self scriptedMisjumpRange]]; // overrides wormholes, if player also had non-default scriptedMisjumpRange
@@ -6927,6 +6962,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (ship_trade_in_factor < 80)
 		    malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
 
+#ifdef OO_DUMP_PLANETINFO
+	BOOL misjump = NO; // debugging
+#else
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
 	BOOL misjump = [self scriptedMisjump] || (flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75));
@@ -6946,14 +6984,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
 		}
 	}
-	
+#endif	
+
 	// From this point forward we are -definitely- witchjumping
 	
 	// burn the full fuel amount to create the wormhole
 	fuel -= [self fuelRequiredForJump];
 	
 	// Create the players' wormhole
-	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_seed fromShip:self];
+	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_id fromShip:self];
 	[UNIVERSE addEntity:wormhole]; // Add new wormhole to Universe to let other ships target it. Required for ships following the player.
 	[self addScannedWormhole:wormhole];
 	
@@ -7003,14 +7042,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		[wormhole setMisjumpWithRange:[self scriptedMisjumpRange]];
 	}
-	[self witchJumpTo:target_system_seed misjump:misjump];
+	[self witchJumpTo:target_system_id misjump:misjump];
 }
 
 
-- (void) witchJumpTo:(Random_Seed)sTo misjump:(BOOL)misjump
+- (void) witchJumpTo:(OOSystemID)sTo misjump:(BOOL)misjump
 {
 	[self witchStart];
-
 	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
 	if (2 * market_rnd < ship_trade_in_factor)
 	{
@@ -7019,14 +7057,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
-	double distance = distanceBetweenPlanetPositions(sTo.d,sTo.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	NSPoint destCoords = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:sTo inGalaxy:galaxy_number]);
+	double distance = distanceBetweenPlanetPositions(destCoords.x,destCoords.y,galaxy_coordinates.x,galaxy_coordinates.y);
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
-	
 	if (!misjump)
 	{
 		ship_clock_adjust += distance * distance * 3600.0;
-		system_seed = sTo;
+		[self setSystemID:sTo];
 		[self setBounty:(legalStatus/2) withReason:kOOLegalStatusReasonNewSystem];	// 'another day, another system'
 		[self witchEnd];
 		if (market_rnd < 8) [self erodeReputation];		// every 32 systems or so, drop back towards 'unknown'
@@ -7113,12 +7151,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[wormhole setExitSpeed:maxFlightSpeed*WORMHOLE_LEADER_SPEED_FACTOR];
 		}
 	}
-
 	/* there's going to be a slight pause at this stage anyway;
 	 * there's also going to be a lot of stale ship scripts. Force a
 	 * garbage collection while we have chance. - CIM */
 	[[OOJavaScriptEngine sharedEngine] garbageCollectionOpportunity:YES];
-
 	flightSpeed = wormhole ? [wormhole exitSpeed] : fmin(maxFlightSpeed,50.0f);
 	[wormhole release];	// OK even if nil
 	wormhole = nil;
@@ -7172,13 +7208,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// Both system_seed & target_system_seed are != nil at all times when this function is called.
 	
-	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_seed];
+	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_id];
 	if ([self isDocked] && [self dockedStation] != [UNIVERSE station])
 	{
 		systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [[self dockedStation] displayName]];
 	}
 
-	targetSystemName =	[UNIVERSE getSystemName:target_system_seed];
+	targetSystemName =	[UNIVERSE getSystemName:target_system_id];
 
 	// GUI stuff
 	{
@@ -7552,11 +7588,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 		
 		OOSystemID 	planet = [dict oo_intForKey:CONTRACT_KEY_DESTINATION];
-		NSString 	*planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
+		NSString 	*planetName = [UNIVERSE getSystemName:planet];
 		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_DESTINATION];
 		[contract setObject:planetName forKey:@"destinationName"];
 		planet = [dict oo_intForKey:CONTRACT_KEY_START];
-		planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
+		planetName = [UNIVERSE getSystemName: planet];
 		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_START];
 		[contract setObject:planetName forKey:@"startName"];
 		
@@ -7595,7 +7631,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSDictionary	*targetSystemData;
 	NSString		*targetSystemName;
 	
-	targetSystemData = [[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
+	targetSystemData = [[UNIVERSE generateSystemData:target_system_id] retain];  // retained
 	targetSystemName = [targetSystemData oo_stringForKey:KEY_NAME];
 	
 	BOOL			sunGoneNova = ([targetSystemData oo_boolForKey:@"sun_gone_nova"]);
@@ -7620,11 +7656,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		int productivity =	[targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
 		int radius =		[targetSystemData oo_intForKey:KEY_RADIUS];
 		
-		NSString	*government_desc =	OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT]);
-		NSString	*economy_desc =		OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY]);
+		NSString	*government_desc =	[targetSystemData oo_stringForKey:KEY_GOVERNMENT_DESC 
+															 defaultValue:OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT])];
+		NSString	*economy_desc =		[targetSystemData oo_stringForKey:KEY_ECONOMY_DESC 
+															 defaultValue:OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY])];
 		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
 		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
-		
+
+		NSString    *population_desc =  [targetSystemData oo_stringForKey:KEY_POPULATION_DESC 
+															 defaultValue:[NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")]];
+
 		if (sunGoneNova)
 		{
 			population = 0;
@@ -7634,8 +7675,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			government_desc = DESC(@"nova-system-government");
 			economy_desc = DESC(@"nova-system-economy");
 			inhabitants = DESC(@"nova-system-inhabitants");
-			system_desc = OOExpandKeyWithSeed(@"nova-system-description", target_system_seed, nil);
+			system_desc = OOExpandKeyWithSeed(@"nova-system-description", kNilRandomSeed, targetSystemName);
+			population_desc = [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")];
 		}
+
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		[UNIVERSE removeDemoShips];
@@ -7645,7 +7688,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-eco"), economy_desc, nil]					forRow:1];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-govt"), government_desc, nil]				forRow:3];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-tl"), [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-pop"), [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")], nil]	forRow:7];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-pop"), population_desc, nil]	forRow:7];
 		[gui setArray:[NSArray arrayWithObjects:@"", [NSString stringWithFormat:@"(%@)", inhabitants], nil]				forRow:8];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-prod"), @"", [NSString stringWithFormat:DESC(@"sysdata-prod-worth"), productivity], nil]	forRow:10];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-radius"), @"", [NSString stringWithFormat:@"%5d km", radius], nil]	forRow:12];
@@ -7677,7 +7720,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
 		RNG_Seed saved_seed = currentRandomSeed();
 		
-		if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
+		if (target_system_id == system_id)
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
 		}
@@ -7785,12 +7828,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
-	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
-	{
-		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	}
+	target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
 	
-	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+	[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
 	
 	// GUI stuff
 	{
@@ -7825,7 +7865,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
 		[gui setBackgroundTextureKey:@"short_range_chart"];
-		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
+		if (found_system_id >= 0)
+		{		
+			[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_id] lowercaseString] exactMatch:YES];
+		}
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
 }
@@ -8220,7 +8263,7 @@ static NSString *last_outfitting_key=nil;
 		skip = 0;
 
 	double priceFactor = 1.0;
-	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] oo_intForKey:KEY_TECHLEVEL];
+	OOTechLevelID techlevel = [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
 
 	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation)
@@ -8273,7 +8316,7 @@ static NSString *last_outfitting_key=nil;
 		if (techlevel < minTechLevel && techlevel + 3 > minTechLevel)
 		{
 			unsigned day = i * 13 + (unsigned)floor([UNIVERSE getTime] / 86400.0);
-			unsigned char dayRnd = (day & 0xff) ^ system_seed.a;
+			unsigned char dayRnd = (day & 0xff) ^ (unsigned char)system_id;
 			OOTechLevelID originalMinTechLevel = minTechLevel;
 			
 			while (minTechLevel > 0 && minTechLevel > originalMinTechLevel - 3 && !(dayRnd & 7))	// bargain tech days every 1/8 days
@@ -9369,7 +9412,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		OOTechLevelID techLevel = NSNotFound;
 		if (dockedStation != nil)  techLevel = [dockedStation equivalentTechLevel];
-		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE generateSystemData:system_seed] oo_unsignedIntForKey:KEY_TECHLEVEL];
+		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE currentSystemData] oo_unsignedIntForKey:KEY_TECHLEVEL];
 		
 		credits -= price;
 		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
@@ -9930,7 +9973,7 @@ static NSString *last_outfitting_key=nil;
 
 		if (dockedStation == nil || dockedStation == [UNIVERSE station])
 		{
-			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_seed]] : DESC(@"commodity-market")];
+			[gui setTitle:[UNIVERSE sun] != NULL ? (NSString *)[NSString stringWithFormat:DESC(@"@-commodity-market"), [UNIVERSE getSystemName:system_id]] : DESC(@"commodity-market")];
 		}
 		else
 		{

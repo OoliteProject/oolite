@@ -2211,7 +2211,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 	SET_COLOR(green_color);
 	
-	OODrawString([UNIVERSE getSystemName:[PLAYER target_system_seed]], x, y, z1, siz);
+	OODrawString([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz);
 
 }
 

@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #import "OOStellarBody.h"
 #import "OOEntityWithDrawable.h"
 #import "OOCommodities.h"
-
+#import "OOSystemDescriptionManager.h"
 
 #if OOLITE_ESPEAK
 #include <espeak/speak_lib.h>
@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 	Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
 	OOVisualEffectEntity, PlayerEntity, OORoleSet, WormholeEntity, 
-	DockEntity, OOJSScript, OOWaypointEntity;
+	DockEntity, OOJSScript, OOWaypointEntity, OOSystemDescriptionManager;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -99,8 +99,11 @@ enum
 
 #define KEY_TECHLEVEL						@"techlevel"
 #define KEY_ECONOMY							@"economy"
+#define KEY_ECONOMY_DESC					@"economy_description"
 #define KEY_GOVERNMENT						@"government"
+#define KEY_GOVERNMENT_DESC					@"government_description"
 #define KEY_POPULATION						@"population"
+#define KEY_POPULATION_DESC					@"population_description"
 #define KEY_PRODUCTIVITY					@"productivity"
 #define KEY_RADIUS							@"radius"
 #define KEY_NAME							@"name"
@@ -134,6 +137,7 @@ enum
 #define PASSENGER_BERTH_SPACE				5
 
 #define PLANETINFO_UNIVERSAL_KEY			@"universal"
+#define PLANETINFO_INTERSTELLAR_KEY			@"interstellar space"
 
 #define OOLITE_EXCEPTION_LOOPING			@"OoliteLoopingException"
 #define OOLITE_EXCEPTION_DATA_NOT_FOUND		@"OoliteDataNotFoundException"
@@ -249,7 +253,8 @@ enum
 	NSDictionary			*customSounds;			// holds descriptive audio for lots of stuff, loaded at initialisation
 	NSDictionary			*characters;			// holds descriptons of characters
 	NSArray					*_scenarios;			// game start scenarios
-	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
+	NSDictionary			*globalSettings;		// miscellaneous global game settings
+	OOSystemDescriptionManager	*systemManager; // planetinfo data manager
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentData;			// holds data on available equipment, loaded at initialisation
 //	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
@@ -259,11 +264,10 @@ enum
 	
 	NSDictionary      *cargoPods; // template cargo pods
 
-	Random_Seed				galaxy_seed;
-	Random_Seed				system_seed;
-	Random_Seed				target_system_seed;
+	OOGalaxyID				galaxyID;
+	OOSystemID				systemID;
+	OOSystemID				targetSystemID;
 	
-	Random_Seed				systems[256];			// hold pregenerated universe info
 	NSString				*system_names[256];		// hold pregenerated universe info
 	BOOL					system_found[256];		// holds matches for input strings
 	
@@ -291,8 +295,6 @@ enum
 #ifndef NDEBUG
 	double					timeAccelerationFactor;
 #endif
-	
-	NSMutableDictionary		*localPlanetInfoOverrides;
 	
 	NSMutableArray			*activeWormholes;
 	
@@ -361,7 +363,7 @@ enum
 - (void) setUpUniverseFromWitchspace;
 - (void) setUpUniverseFromMisjump;
 - (void) setUpWitchspace;
-- (void) setUpWitchspaceBetweenSystem:(Random_Seed)s1 andSystem:(Random_Seed)s2;
+- (void) setUpWitchspaceBetweenSystem:(OOSystemID)s1 andSystem:(OOSystemID)s2;
 - (void) setUpSpace;
 - (void) populateNormalSpace;
 - (void) clearSystemPopulator;
@@ -591,15 +593,11 @@ enum
 
 ///////////////////////////////////////
 
-- (void) setGalaxySeed:(Random_Seed) gal_seed;
-- (void) setGalaxySeed:(Random_Seed) gal_seed andReinit:(BOOL) forced;
+- (void) setGalaxyTo:(OOGalaxyID) g;
+- (void) setGalaxyTo:(OOGalaxyID) g andReinit:(BOOL) forced;
 
-- (void) setSystemTo:(Random_Seed) s_seed;
+- (void) setSystemTo:(OOSystemID) s;
 
-- (Random_Seed) systemSeed;
-- (Random_Seed) systemSeedForSystemNumber:(OOSystemID) n;
-- (Random_Seed) systemSeedForSystemName:(NSString *)sysname;
-- (OOSystemID) systemIDForSystemSeed:(Random_Seed)seed;
 - (OOSystemID) currentSystemID;
 
 - (NSDictionary *) descriptions;
@@ -607,59 +605,52 @@ enum
 - (NSDictionary *) missiontext;
 - (NSArray *) scenarios;
 
+- (OOSystemDescriptionManager *) systemManager;
+
 - (NSString *)descriptionForKey:(NSString *)key;	// String, or random item from array
 - (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index;	// Indexed item from array
 - (BOOL) descriptionBooleanForKey:(NSString *)key;	// Boolean from descriptions.plist, for configuration.
 
-- (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed;
-- (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed;
-- (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
-- (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache;
+- (NSString *) keyForPlanetOverridesForSystem:(OOSystemID) s inGalaxy:(OOGalaxyID) g;
+- (NSString *) keyForInterstellarOverridesForSystems:(OOSystemID) s1 :(OOSystemID) s2 inGalaxy:(OOGalaxyID) g;
+- (NSDictionary *) generateSystemData:(OOSystemID) s;
+- (NSDictionary *) generateSystemData:(OOSystemID) s useCache:(BOOL) useCache;
 - (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
-- (void) resetSystemDataCache;
 
 - (BOOL) inInterstellarSpace;
 
-- (void)setObject:(id)object forKey:(NSString *)key forPlanetKey:(NSString *)planetKey;
-
-- (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
-- (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
+- (void) setSystemDataKey:(NSString*) key value:(NSObject*) object fromManifest:(NSString *)manifest;
+- (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object fromManifest:(NSString *)manifest forLayer:(OOSystemLayer)layer;
 - (id) systemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
 - (NSArray *) systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum;
-- (NSString *) getSystemName:(Random_Seed) s_seed;
-- (OOGovernmentID) getSystemGovernment:(Random_Seed)s_seed;
-- (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
-- (NSString *) getSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
-- (NSString *) generateSystemName:(Random_Seed) system_seed;
-- (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed;
-- (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
-- (NSPoint) coordinatesForSystem:(Random_Seed)s_seed;
-- (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (Random_Seed) findSystemFromName:(NSString *) sysName;
+- (NSString *) getSystemName:(OOSystemID) sys;
+- (OOGovernmentID) getSystemGovernment:(OOSystemID) sys;
+- (NSString *) getSystemInhabitants:(OOSystemID) sys;
+- (NSString *) getSystemInhabitants:(OOSystemID) sys plural:(BOOL)plural;
+
+- (NSPoint) coordinatesForSystem:(OOSystemID)s;
+- (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
+- (OOSystemID) findSystemFromName:(NSString *) sysName;
 
 /**
  * Finds systems within range.  If range is greater than 7.0LY then only look within 7.0LY.
  */
 - (NSMutableArray *) nearbyDestinationsWithinRange:(double) range;
 
-- (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
+- (OOSystemID) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
+- (OOSystemID) findConnectedSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systemsFound;
 - (NSString*) systemNameIndex:(OOSystemID) index;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
-- (NSArray *) neighboursToRandomSeed:(Random_Seed) seed;
 
-- (NSMutableDictionary *) localPlanetInfoOverrides;
-- (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;
-
-- (void) preloadPlanetTexturesForSystem:(Random_Seed)seed;
+- (void) preloadPlanetTexturesForSystem:(OOSystemID)system;
 - (void) preloadSounds;
 
-- (NSDictionary *) planetInfo;
+- (NSDictionary *) globalSettings;
 
 - (NSArray *) equipmentData;
 - (OOCommodityMarket *) commodityMarket;
@@ -667,11 +658,10 @@ enum
 - (NSString *) timeDescription:(OOTimeDelta) interval;
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;
 
-- (Random_Seed) marketSeed;
 - (void) loadStationMarkets:(NSArray *)marketData;
 - (NSArray *) getStationMarkets;
 
-- (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
+- (NSArray *) shipsForSaleForSystem:(OOSystemID) s withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
 
 /* Calculate base cost, before depreciation */
 - (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
@@ -679,8 +669,6 @@ enum
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
 - (HPVector) getWitchspaceExitPosition;
-- (HPVector) randomizeFromSeedAndGetWitchspaceExitPosition;
-- (HPVector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed;
 - (Quaternion) getWitchspaceExitRotation;
 
 - (HPVector) getSunSkimStartPositionForShip:(ShipEntity*) ship;

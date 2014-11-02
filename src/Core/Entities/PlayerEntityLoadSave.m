@@ -715,9 +715,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	
 	OOLog(@"load.progress",@"Creating system");
 	[UNIVERSE setTimeAccelerationFactor:TIME_ACCELERATION_FACTOR_DEFAULT];
-	[UNIVERSE setSystemTo:system_seed];
+	[UNIVERSE setSystemTo:system_id];
 	[UNIVERSE removeAllEntitiesExceptPlayer];
-	[UNIVERSE setGalaxySeed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
+	[UNIVERSE setGalaxyTo: galaxy_number andReinit:YES]; // set overridden planet names on long range map
 	[UNIVERSE setUpSpace];
 	[UNIVERSE setAutoSaveNow:NO];
 	
@@ -1271,26 +1271,18 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
 	
-	// Store the current galaxy seed because findSystemNumberAtCoords may alter it in a while.
-	PlayerEntity		*player = PLAYER;
-	Random_Seed		player_galaxy_seed = [player galaxy_seed];	
-	
 	int			galNumber;
 	NSString		*timeStamp  = nil;
 	NSString 		*locationName = [cdr oo_stringForKey:@"current_system_name"];
 	
-	// If there is no key containing the name of the current system in the savefile, fall back to
-	// extracting the name from the galaxy seed and coordinates information.
+	// If there is no key containing the name of the current system in
+	// the savefile, calculating what it should have been is going to
+	// be tricky now that system generation isn't seed based - but
+	// this implies a save game well over 5 years old.
 	if (locationName == nil)
 	{	
-		Random_Seed		gal_seed;
-		NSPoint			gal_coords;
-		int			locationNumber;
-		
-		gal_coords = PointFromString([cdr oo_stringForKey:@"galaxy_coordinates"]);
-		gal_seed = RandomSeedFromString([cdr oo_stringForKey:@"galaxy_seed"]);
-		locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:gal_seed];
-		locationName = [UNIVERSE systemNameIndex:locationNumber];
+		// Leaving the location blank in this case is probably okay
+		locationName = @"";
 	}
 	
 	galNumber = [cdr oo_intForKey:@"galaxy_number"] + 1;	// Galaxy numbering starts at 0.
@@ -1313,8 +1305,6 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	
 	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];
 	
-	// Restore the seed of the galaxy the player is currently in.
-	[UNIVERSE setGalaxySeed: player_galaxy_seed];
 }
 
 

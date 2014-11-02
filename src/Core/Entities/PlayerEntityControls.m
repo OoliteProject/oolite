@@ -52,7 +52,7 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOTexture.h"
 #import "OODebugFlags.h"
-
+#import "OOSystemDescriptionManager.h"
 #import "OOJoystickManager.h"
 
 #import "OOJSScript.h"
@@ -477,10 +477,10 @@ static NSTimeInterval	time_last_frame;
 
 - (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
-	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:direction];
-	cursor_coordinates.x = target_system_seed.d;
-	cursor_coordinates.y = target_system_seed.b;
-	found_system_seed = target_system_seed;
+	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
+	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+
+	found_system_id = target_system_id;
 	if (!whileTyping)
 	{
 		[self clearPlanetSearchString];
@@ -535,11 +535,13 @@ static NSTimeInterval	time_last_frame;
 		}
 		else 
 		{
+#ifndef OO_DUMP_PLANETINFO
 			if (spin_time < 5) 
 			{
 				witchspaceCountdown = 5;
 			} 
 			else 
+#endif
 			{
 				witchspaceCountdown = spin_time;
 			}
@@ -548,10 +550,10 @@ static NSTimeInterval	time_last_frame;
 		[self playStandardHyperspace];
 		// say it!
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_id], witchspaceCountdown] forCount:1.0];
 		[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
 					withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
-		[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+		[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
 	}
 }
 
@@ -1652,7 +1654,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					else
 					{
-						found_system_seed = kNilRandomSeed;
+						found_system_id = -1;
 						[self clearPlanetSearchString];
 					}
 				}
@@ -1660,7 +1662,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
 					{
-						found_system_seed = kNilRandomSeed;
+						found_system_id = -1;
 						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					}
 					if (planetSearchString) [planetSearchString release];
@@ -1807,7 +1809,7 @@ static NSTimeInterval	time_last_frame;
 					cursor_coordinates = galaxy_coordinates;
 					chart_focus_coordinates = cursor_coordinates;
 					target_chart_centre = galaxy_coordinates;
-					found_system_seed = kNilRandomSeed;
+					found_system_id = -1;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					moving = YES;
 				}
@@ -1911,12 +1913,20 @@ static NSTimeInterval	time_last_frame;
 					pressedArrow =  pressedArrow == key_gui_arrow_up ? 0 : pressedArrow;
 				if ((cursor_moving)&&(!moving))
 				{
-					// if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5
-					if (cursor_coordinates.x != found_system_seed.d && cursor_coordinates.y != found_system_seed.b)
-							target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-					cursor_coordinates.x = target_system_seed.d;
-					cursor_coordinates.y = target_system_seed.b;
-					chart_focus_coordinates = cursor_coordinates;
+					if (found_system_id == -1)
+					{
+						target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+					}
+					else
+					{
+						// if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5
+						NSPoint fpos = [[UNIVERSE systemManager] getCoordinatesForSystem:found_system_id inGalaxy:galaxy_number];
+						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
+						{
+							target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+						}
+					}
+					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 				}
 				if (chart_focus_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X*chart_zoom)
 				{
@@ -3547,8 +3557,8 @@ static NSTimeInterval	time_last_frame;
 				{
 					target_chart_zoom = saved_chart_zoom;
 				}
-				target_chart_centre.x = cursor_coordinates.x = target_system_seed.d;
-				target_chart_centre.y = cursor_coordinates.y = target_system_seed.b;
+				target_chart_centre = cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+
 				[self setGuiToShortRangeChartScreen];
 			}
 		}

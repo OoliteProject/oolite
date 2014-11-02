@@ -48,6 +48,8 @@ MA 02110-1301, USA.
 	
 	Vector					_rotationAxis;
 	float					_rotationalVelocity;
+	Quaternion				_atmosphereOrientation;
+	float					_atmosphereRotationalVelocity;
 	
 	unsigned				_shuttlesOnGround;
 	OOTimeDelta				_lastLaunchTime;
@@ -59,9 +61,9 @@ MA 02110-1301, USA.
 	NSString				*_name;
 }
 
-- (id) initAsMainPlanetForSystemSeed:(Random_Seed)seed;
+- (id) initAsMainPlanetForSystem:(OOSystemID)s;
 
-- (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed;
+- (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID;
 
 - (instancetype) miniatureVersion;
 

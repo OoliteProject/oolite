@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
 #import "PlayerEntityScriptMethods.h"
+#import "PlayerEntity.h"
 
 // Don't bother with syntax warnings in Deployment builds.
 #define WARNINGS			(!defined(NDEBUG))
@@ -240,13 +241,13 @@ NSString *OOExpandWithSeed(NSString *text, Random_Seed seed, NSString *name)
 
 NSString *OOExpand(NSString *string)
 {
-	return OOExpandDescriptionString(string, [UNIVERSE systemSeed], nil, nil, nil, kOOExpandNoOptions);
+	return OOExpandDescriptionString(string, kNilRandomSeed, nil, nil, [UNIVERSE getSystemName:[PLAYER systemID]], kOOExpandNoOptions);
 }
 
 
 NSString *OOExpandKey(NSString *key)
 {
-	return OOExpandKeyWithSeed(key, [UNIVERSE systemSeed], nil);
+	return OOExpandKeyWithSeed(key, kNilRandomSeed, [UNIVERSE getSystemName:[PLAYER systemID]]);
 }
 
 
@@ -255,8 +256,7 @@ NSString *OOExpandKeyRandomized(NSString *key)
 	OORandomState savedRandomState = OOSaveRandomState();
 	OOSetReallyRandomRANROTAndRndSeeds();
 	
-	// N.b.: the systemSeed is used only to retrieve the system name, not for actual randomness.
-	NSString *result = OOExpandKeyWithSeed(key, [UNIVERSE systemSeed], nil);
+	NSString *result = OOExpandKeyWithSeed(key, kNilRandomSeed, [UNIVERSE getSystemName:[PLAYER systemID]]);
 	
 	OORestoreRandomState(savedRandomState);
 	
@@ -977,7 +977,7 @@ static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const
 		return nil;
 	}
 	
-	return [UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:sysID]];
+	return [UNIVERSE getSystemName:sysID];
 }
 
 
@@ -1013,10 +1013,8 @@ static void AppendCharacters(NSMutableString **result, const unichar *characters
 static NSString *GetSystemName(OOStringExpansionContext *context)
 {
 	NSCParameterAssert(context != NULL);
-	
-	if (context->systemName == nil)
-	{
-		context->systemName = [[UNIVERSE getSystemName:context->seed] retain];
+	if (context->systemName == nil) {
+		context->systemName = [[UNIVERSE getSystemName:[PLAYER systemID]] retain];
 	}
 	
 	return context->systemName;

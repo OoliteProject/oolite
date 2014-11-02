@@ -174,12 +174,11 @@ static unsigned RepForRisk(unsigned risk);
 		NSDictionary* passenger_info = [passengers oo_dictionaryAtIndex:i];
 		NSString* passenger_name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
 		int dest = [passenger_info oo_intForKey:CONTRACT_KEY_DESTINATION];
-		Random_Seed dest_seed = [UNIVERSE systemSeedForSystemNumber:dest];
 		// the system name can change via script
-		NSString* passenger_dest_name = [UNIVERSE getSystemName: dest_seed];
+		NSString* passenger_dest_name = [UNIVERSE getSystemName: dest];
 		int dest_eta = [passenger_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
 		
-		if (equal_seeds( system_seed, dest_seed))
+		if (system_id == dest)
 		{
 			// we've arrived in system!
 			if (dest_eta > 0)
@@ -233,10 +232,9 @@ static unsigned RepForRisk(unsigned risk);
 		NSDictionary* parcel_info = [parcels oo_dictionaryAtIndex:i];
 		NSString* parcel_name = [parcel_info oo_stringForKey:PASSENGER_KEY_NAME];
 		int dest = [parcel_info oo_intForKey:CONTRACT_KEY_DESTINATION];
-		Random_Seed dest_seed = [UNIVERSE systemSeedForSystemNumber:dest];
 		int dest_eta = [parcel_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
 		
-		if (equal_seeds( system_seed, dest_seed))
+		if (system_id == dest)
 		{
 			// we've arrived in system!
 			if (dest_eta > 0)
@@ -294,7 +292,7 @@ static unsigned RepForRisk(unsigned risk);
 		int dest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
 		
-		if (equal_seeds(system_seed, [UNIVERSE systemSeedForSystemNumber:dest]))
+		if (system_id == dest)
 		{
 			// no longer needed
 			// int premium = 10 * [contract_info oo_floatForKey:CONTRACT_KEY_PREMIUM];
@@ -343,7 +341,7 @@ static unsigned RepForRisk(unsigned risk);
 					// see if the amount of goods delivered is acceptable
 					
 					float percent_delivered = 100.0 * (float)quantity_on_hand/(float)contract_amount;
-					float acceptable_ratio = 100.0 - 10.0 * system_seed.a / 256.0; // down to 90%
+					float acceptable_ratio = 100.0 - 10.0 * system_id / 256.0; // down to 90%
 					
 					if (percent_delivered >= acceptable_ratio)
 					{
@@ -944,9 +942,9 @@ for (unsigned i=0;i<amount;i++)
 					 destination:(unsigned)Destination eta:(double)eta fee:(double)fee premium:(double)premium
 {
 
-	Random_Seed		r_seed = [UNIVERSE marketSeed];
-	int				sr1 = r_seed.a * 0x10000 + r_seed.c * 0x100 + r_seed.e;
-	int				sr2 = r_seed.b * 0x10000 + r_seed.d * 0x100 + r_seed.f;
+	unsigned		sr1 = Ranrot()&0x111111;
+	int				sr2 = Ranrot()&0x111111;
+
 	NSString		*cargo_ID =[NSString stringWithFormat:@"%06x-%06x", sr1, sr2];
 	
 	if (![[UNIVERSE commodities] goodDefined:type])  return NO;
@@ -1062,7 +1060,7 @@ for (unsigned i=0;i<amount;i++)
 		NSDictionary* contract_info = (NSDictionary *)[contracts_array objectAtIndex:i];
 		NSString* label = [contract_info oo_stringForKey:forCargo ? CARGO_KEY_DESCRIPTION : PASSENGER_KEY_NAME];
 		// the system name can change via script. The following PASSENGER_KEYs are identical to the corresponding CONTRACT_KEYs
-		NSString* dest_name = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:[contract_info oo_intForKey:CONTRACT_KEY_DESTINATION]]];
+		NSString* dest_name = [UNIVERSE getSystemName: [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION]];
 		int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
 		[result addObject:[NSString stringWithFormat:formatString, label, dest_name, [UNIVERSE shortTimeDescription:dest_eta]]];
 	}
@@ -1452,7 +1450,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	}
 	if ([station localShipyard] == nil)
 	{
-		[station setLocalShipyard:[UNIVERSE shipsForSaleForSystem:system_seed withTL:stationTechLevel atTime:ship_clock]];
+		[station setLocalShipyard:[UNIVERSE shipsForSaleForSystem:system_id withTL:stationTechLevel atTime:ship_clock]];
 	}
 		
 	NSMutableArray *shipyard = [station localShipyard];
@@ -1485,7 +1483,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"@-shipyard-title"),[UNIVERSE getSystemName:system_seed]]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"@-shipyard-title"),[UNIVERSE getSystemName:system_id]]];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;

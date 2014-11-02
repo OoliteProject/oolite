@@ -100,7 +100,12 @@
 #define INITIAL_SHOT_TIME				100.0
 
 #define	MIN_FUEL						0				// minimum fuel required for afterburner use
+#ifdef OO_DUMP_PLANETINFO
+// debugging planetinfo needs rapid jumping
+#define MAX_JUMP_RANGE					150.0
+#else
 #define MAX_JUMP_RANGE					7.0				// the 7 ly limit
+#endif
 
 #define ENTITY_PERSONALITY_MAX			0x7FFFU
 #define ENTITY_PERSONALITY_INVALID		0xFFFFU

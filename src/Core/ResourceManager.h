@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "NSFileManagerOOExtensions.h"
 
-@class OOSound, OOMusic;
+@class OOSound, OOMusic, OOSystemDescriptionManager;
 
 
 typedef enum
@@ -110,6 +110,7 @@ typedef enum
 // These have special merging rules.
 + (NSDictionary *) logControlDictionary;
 + (NSDictionary *) roleCategoriesDictionary;
++ (OOSystemDescriptionManager *) systemDescriptionManager;
 
 + (OOSound *)ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (OOMusic *)ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName;

@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 #import "OOWeakSet.h"
 #import "GameController.h"
 #import "MyOpenGLView.h"
-
+#import "OOSystemDescriptionManager.h"
 #import "OOCharacter.h"
 #import "AI.h"
 
@@ -1685,7 +1685,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	NSDictionary		*systeminfo = nil;
 	OOGovernmentID		government;
 
-	systeminfo = [UNIVERSE generateSystemData:[UNIVERSE systemSeed]];
+	systeminfo = [UNIVERSE currentSystemData];
  	government = [systeminfo oo_unsignedCharForKey:KEY_GOVERNMENT];
 
 	OOShipGroup *escortGroup = [self escortGroup];
@@ -7453,7 +7453,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	if (![self isUnpiloted])
 	{
 		OOCharacter *crewMember = [OOCharacter randomCharacterWithRole:crewRole
-												 andOriginalSystemSeed:[UNIVERSE systemSeedForSystemNumber:[self homeSystem]]];
+												 andOriginalSystem:[self homeSystem]];
 		[self setCrew:[NSArray arrayWithObject:crewMember]];
 	}
 }
@@ -11739,8 +11739,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	for (i = 1; i < n_pods; i++)
 	{
 		ShipEntity	*passenger = nil;
-		Random_Seed orig = [UNIVERSE systemSeedForSystemNumber:gen_rnd_number()];
-		passenger = [self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystemSeed:orig]]];
+		passenger = [self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:gen_rnd_number()]]];
 		[passengers addObject:passenger];
 	}
 	
@@ -13385,7 +13384,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 							  [self displayName], @"[self:name]",
 							  [other_ship identFromShip: self], @"[target:name]",
 							  nil];
-	NSString *expandedMessage = OOExpandDescriptionString(message_text, [UNIVERSE systemSeed], specials, nil, nil, kOOExpandNoOptions);
+	NSString *expandedMessage = OOExpandDescriptionString(message_text, [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], specials, nil, nil, kOOExpandNoOptions);
 	
 	[self sendMessage:expandedMessage toShip:other_ship withUnpilotedOverride:NO];
 }

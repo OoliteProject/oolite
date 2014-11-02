@@ -278,6 +278,7 @@ OOLITE_RSRC_MGMT_FILES = \
     OOConvertSystemDescriptions.m \
 	OOOXZManager.m \
     OOPListParsing.m \
+	OOSystemDescriptionManager.m \
     ResourceManager.m \
     TextureStore.m
 

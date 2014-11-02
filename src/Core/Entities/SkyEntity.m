@@ -89,22 +89,26 @@ MA 02110-1301, USA.
 	nebulaCountMultiplier = [systemInfo oo_unsignedIntForKey:@"nebula_count_multiplier" defaultValue:1];
 	if (0 <= starCount)
 	{
-		// nothing
+		// changed for 1.82, default set to 1
+		// lets OXPers modify the broad number without stopping variation
+		starCount *= starCountMultiplier;
 	}
 	else
 	{
-		starCount = starCountMultiplier * SKY_BASIS_STARS * 0.5 * randf() * randf();
+		starCount = starCountMultiplier * SKY_BASIS_STARS * (0.5 + randf());
 	}
 	
 	// ...and nebula count. (Note: simplifying this would change the appearance of stars/blobs.)
 	nebulaCount = [systemInfo oo_floatForKey:@"sky_n_blurs" defaultValue:-1];
 	if (0 <= nebulaCount)
 	{
-		// nothing
+		// changed for 1.82, default set to 1
+		// lets OXPers modify the broad number without stopping variation
+		nebulaCount *= nebulaCountMultiplier;
 	}
 	else
 	{
-		nebulaCount = nebulaCountMultiplier * SKY_BASIS_BLOBS * 0.5 * randf() * randf();
+		nebulaCount = nebulaCountMultiplier * SKY_BASIS_BLOBS * (0.5 + randf());
 	}
 	
 	if ([UNIVERSE reducedDetail]) 
