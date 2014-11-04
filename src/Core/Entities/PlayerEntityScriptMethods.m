@@ -188,13 +188,6 @@ MA 02110-1301, USA.
 }
 
 
-- (OOSystemID) targetSystemID
-{
-	if ([UNIVERSE sun] == nil)  return -1;	// Interstellar space
-	return [UNIVERSE currentSystemID];
-}
-
-
 - (void) setMissionChoice:(NSString *)newChoice
 {
 	[self setMissionChoice:newChoice withEvent:YES];
