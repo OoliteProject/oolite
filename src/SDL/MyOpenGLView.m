@@ -220,6 +220,8 @@ MA 02110-1301, USA.
 	}
 #endif
 
+	grabMouseStatus = NO;
+
 	imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
 	icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] UTF8String]);
 
@@ -795,11 +797,34 @@ MA 02110-1301, USA.
 	return result;
 }
 
-#else // for Linux we assume we are always on the primary monitor for now
 
+- (void) grabMouseInsideGameWindow:(BOOL) value
+{
+	if(value)
+	{
+		RECT gameWindowRect;
+		GetWindowRect(SDL_Window, &gameWindowRect);
+		ClipCursor(&gameWindowRect);
+	}
+	else
+	{
+		ClipCursor(NULL);
+	}
+	grabMouseStatus = !!value;
+}
+
+#else	// Linus stub methods
+
+// for Linux we assume we are always on the primary monitor for now
 - (BOOL) isRunningOnPrimaryDisplayDevice
 {
 	return YES;
+}
+
+
+- (void) grabMouseInsideGameWindow:(BOOL) value
+{
+	// do nothing
 }
 
 #endif //OOLITE_WINDOWS
@@ -2017,7 +2042,16 @@ keys[a] = NO; keys[b] = NO; \
 						{
 							[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
 						}
+						/*
+						 deliberately no break statement here - moving or resizing the window changes its bounds
+						 rectangle. Therefore we must check whether to clip the mouse or not inside the newly
+						 updated rectangle, so just let it fall through
+						*/
+						
+					case WM_ACTIVATEAPP:
+						if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
 						break;
+						
 					default:
 						;
 				}

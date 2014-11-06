@@ -721,6 +721,10 @@ static NSTimeInterval	time_last_frame;
 						 is reset */
 					#if OOLITE_GNUSTEP
 						[gameView resetMouse];
+						if ([[NSUserDefaults standardUserDefaults] boolForKey:@"grab-mouse-on-mouse-control"])
+						{
+							[gameView grabMouseInsideGameWindow:YES];
+						}
 					#endif
 						mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
 						keyboardRollOverride = mouse_x_axis_map_to_yaw;   // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
@@ -730,6 +734,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+						[gameView grabMouseInsideGameWindow:NO];
 					}
 				}
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
@@ -749,6 +754,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				mouse_control_on = NO;
 				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+				[gameView grabMouseInsideGameWindow:NO];
 				
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
 				{

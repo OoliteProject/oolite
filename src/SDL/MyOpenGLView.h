@@ -177,6 +177,8 @@ extern int debug;
 
 #endif
 
+	BOOL				grabMouseStatus;
+
 	NSSize				firstScreen;
 	
 	OOOpenGLMatrixManager		*matrixManager;
@@ -215,6 +217,8 @@ extern int debug;
 - (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
 - (MONITORINFOEX) currentMonitorInfo;
 #endif
+
+- (void) grabMouseInsideGameWindow:(BOOL) value;
 
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
