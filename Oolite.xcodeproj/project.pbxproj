@@ -544,6 +544,10 @@
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		B33A44F1199E6745000B45AE /* OOOpenGLMatrixManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B33A44EF199E6745000B45AE /* OOOpenGLMatrixManager.h */; };
 		B33A44F2199E6745000B45AE /* OOOpenGLMatrixManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B33A44F0199E6745000B45AE /* OOOpenGLMatrixManager.m */; };
+		B3B46C871A0D053D00D6C39B /* OOSystemDescriptionManager.h in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */; };
+		B3B46C881A0D053D00D6C39B /* OOSystemDescriptionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */; };
+		B3B46C891A0D053D00D6C39B /* OOSystemDescriptionManager.m in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */; };
+		B3B46C8A1A0D053D00D6C39B /* OOSystemDescriptionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -696,6 +700,8 @@
 			dstPath = Oolite.app/Contents/PlugIns;
 			dstSubfolderSpec = 16;
 			files = (
+				B3B46C871A0D053D00D6C39B /* OOSystemDescriptionManager.h in Copy Plug-ins */,
+				B3B46C891A0D053D00D6C39B /* OOSystemDescriptionManager.m in Copy Plug-ins */,
 				1ABF219B12D691B300075821 /* Oolite.docktileplugin in Copy Plug-ins */,
 			);
 			name = "Copy Plug-ins";
@@ -1683,6 +1689,8 @@
 		B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur.png"; sourceTree = "<group>"; };
 		B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur2.png"; sourceTree = "<group>"; };
 		B3A96403165EE124001BB5C1 /* oolite-exhaust-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-exhaust-blur.png"; sourceTree = "<group>"; };
+		B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSystemDescriptionManager.h; sourceTree = "<group>"; };
+		B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSystemDescriptionManager.m; sourceTree = "<group>"; };
 		B3EC10B6155C154000778240 /* OOLegalStatusReason.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOLegalStatusReason.tbl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2796,6 +2804,8 @@
 				1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */,
 				1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */,
 				1AAB9A960D779F3C00A9F424 /* OOCocoa.m */,
+				B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */,
+				B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */,
 				1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */,
 				1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */,
 				1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */,
@@ -3288,6 +3298,7 @@
 				1A6B228D0C9B40D4000717CF /* OOJSTimer.h in Headers */,
 				1A6B25EE0C9C2746000717CF /* OOJSClock.h in Headers */,
 				1A2DA2AB0CB4CB5C00DE6823 /* OODebugTCPConsoleProtocol.h in Headers */,
+				B3B46C881A0D053D00D6C39B /* OOSystemDescriptionManager.h in Headers */,
 				1A2DA2AE0CB4CB5C00DE6823 /* OODebugTCPConsoleClient.h in Headers */,
 				1A2DA2AF0CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.h in Headers */,
 				1A2DA2B00CB4CB5C00DE6823 /* OOTCPStreamDecoder.h in Headers */,
@@ -3524,7 +3535,7 @@
 		1A1BB8A41767DD3500050283 /* OoliteUnitTests.octest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = OoliteUnitTests.octest;
+			path = OoliteUnitTests.xctest;
 			remoteRef = 1A1BB8A31767DD3500050283 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -3881,6 +3892,7 @@
 				1A817DA1106D3FF000AA2F97 /* OOPlasmaBurstEntity.m in Sources */,
 				1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */,
 				2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */,
+				B3B46C8A1A0D053D00D6C39B /* OOSystemDescriptionManager.m in Sources */,
 				1AB9AE8C107F459B00B6F3CE /* OOPolygonSprite.m in Sources */,
 				1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */,
 				1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */,
