@@ -7218,7 +7218,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 }
 
 
-- (void) setSystemTo:(OOSystemID) s;
+- (void) setSystemTo:(OOSystemID) s
 {
 	NSDictionary	*systemData;
 	PlayerEntity	*player = PLAYER;

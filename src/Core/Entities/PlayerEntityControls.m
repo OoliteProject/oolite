@@ -734,7 +734,9 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+                    #if OOLITE_GNUSTEP
 						[gameView grabMouseInsideGameWindow:NO];
+                    #endif
 					}
 				}
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
@@ -754,7 +756,9 @@ static NSTimeInterval	time_last_frame;
 			{
 				mouse_control_on = NO;
 				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+            #if OOLITE_GNUSTEP
 				[gameView grabMouseInsideGameWindow:NO];
+            #endif
 				
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
 				{
