@@ -1768,7 +1768,7 @@
 		1A1BB8A01767DD3500050283 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A1BB8A41767DD3500050283 /* OoliteUnitTests.octest */,
+				1A1BB8A41767DD3500050283 /* OoliteUnitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3467,7 +3467,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0600;
+				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
@@ -3532,7 +3532,7 @@
 			remoteRef = 1A01BCE611C569DF0011197F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		1A1BB8A41767DD3500050283 /* OoliteUnitTests.octest */ = {
+		1A1BB8A41767DD3500050283 /* OoliteUnitTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = OoliteUnitTests.xctest;
