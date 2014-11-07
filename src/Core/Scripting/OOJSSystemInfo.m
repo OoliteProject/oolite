@@ -638,7 +638,6 @@ static JSBool SystemInfoSetPropertyMethod(JSContext *context, uintN argc, jsval 
 
 	NSString *property = nil;
 	id value = nil;
-	OOSystemLayer layer = OO_LAYER_OXP_DYNAMIC;
 	NSString *manifest = nil;
 
 	int32 iValue;
@@ -653,12 +652,12 @@ static JSBool SystemInfoSetPropertyMethod(JSContext *context, uintN argc, jsval 
 		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(layer, property, value [,manifest])");
 		return NO;
 	}
-	layer = (OOSystemLayer)iValue;
-	if (layer < 0 || layer >= OO_SYSTEM_LAYERS)
+	if (iValue < 0 || iValue >= OO_SYSTEM_LAYERS)
 	{
 		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"layer must be 0, 1, 2 or 3");
 		return NO;
 	}
+	OOSystemLayer layer = (OOSystemLayer)iValue;
 
 	property = OOStringFromJSValue(context, OOJS_ARGV[1]);
 	if (!JSVAL_IS_NULL(OOJS_ARGV[2]))

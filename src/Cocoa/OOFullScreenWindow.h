@@ -34,8 +34,8 @@ SOFTWARE.
 
 @interface OOFullScreenWindow: NSWindow
 
-@property (nonatomic, readwrite) BOOL canBecomeKeyWindow;
-@property (nonatomic, readwrite) BOOL canBecomeMainWindow;
+@property (readwrite) BOOL canBecomeKeyWindow;
+@property (readwrite) BOOL canBecomeMainWindow;
 
 @end
 

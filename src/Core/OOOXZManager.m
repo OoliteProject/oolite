@@ -194,7 +194,7 @@ static OOOXZManager *sSingleton = nil;
 		[self setOXZList:OOArrayFromFile([self manifestPath])];
 		OOLog(kOOOXZDebugLog,@"Initialised with %@",_oxzList);
 		_interfaceState = OXZ_STATE_NODATA;
-		_currentFilter = [[NSString stringWithString:@"*"] retain];
+		_currentFilter = @"*";
 		
 		_interfaceShowingOXZDetail = NO;
 		_changesMade = NO;
