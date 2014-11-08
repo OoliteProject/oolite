@@ -107,6 +107,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	
 	OOGUITabSettings		tabStops;
 	
+	NSDictionary			*guiUserSettings;
+
 	NSRange					rowRange;
 	
 	OOGUIRow				selectedRow;

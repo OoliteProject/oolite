@@ -44,6 +44,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	return ((int)range.location <= row && row < (int)(range.location + range.length));
 }
 
+static const NSString *kChartLabelScale				= @"chart_label_scale";
+
 
 @interface GuiDisplayGen (Internal)
 
@@ -112,6 +114,8 @@ static BOOL _refreshStarChart = NO;
 		drawPosition = make_vector(0.0f, 0.0f, 640.0f);
 		
 		backgroundSpecial = GUI_BACKGROUND_SPECIAL_NONE;
+
+		guiUserSettings = [[ResourceManager dictionaryFromFilesNamed:@"gui-settings.plist" inFolder:@"Config" andMerge:YES] retain];
 	}
 	return self;
 }
@@ -174,7 +178,8 @@ static BOOL _refreshStarChart = NO;
 	[rowText release];
 	[rowKey release];
 	[rowColor release];
-	
+	[guiUserSettings release];
+
 	[super dealloc];
 }
 
@@ -1808,6 +1813,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	// draw found stars and captions
 	//
+	GLfloat systemNameScale = [guiUserSettings oo_floatForKey:kChartLabelScale defaultValue:1.0];
+
 	OOGL(GLScaledLineWidth(1.5f));
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	int n_matches = 0, foundIndex = -1;
@@ -1853,12 +1860,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					if (zoom > CHART_ZOOM_SHOW_LABELS && advancedNavArrayMode == OPTIMIZED_BY_NONE)
 					{
 						OOGL(glColor4f(0.0f, 1.0f, 1.0f, alpha));
-						OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+						OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10*systemNameScale,10*systemNameScale));
 						OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 					}
 				}
 				else if (zoom > CHART_ZOOM_SHOW_LABELS)
-					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10*systemNameScale,10*systemNameScale));
 			}
 		}
 	}
@@ -1869,7 +1876,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	int targetIdx = -1;
 	struct saved_system *sys;
-	NSSize chSize = NSMakeSize(pixel_row_height/zoom,pixel_row_height/zoom);
+	NSSize chSize = NSMakeSize(pixel_row_height*systemNameScale/zoom,pixel_row_height*systemNameScale/zoom);
 	
 	for (i = 0; i < num_nearby_systems; i++)
 	{

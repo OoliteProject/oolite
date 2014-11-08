@@ -1,0 +1,14 @@
+{
+	/* Graphical User Interface settings. There's not a lot here yet, but
+	 * more will be added gradually. The GUI setup doesn't make it practical
+	 * to add everything at once, or even add broad default settings. */
+	
+	// scale of name labels on F6 chart relative to Oolite default size
+	"chart_label_scale" = 1.0;
+	
+
+
+
+
+
+}
