@@ -9481,7 +9481,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 
 	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];
-	
+	[gui setTextColor:[OOColor colorWithDescription:[[gui userSettings] objectForKey:kGuiDefaultTextColor]]];
+
 	// message_gui and comm_log_gui defaults are set up inside [hud resetGuis:] ( via [player deferredInit], called from the code that calls this method). 
 	[message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc]

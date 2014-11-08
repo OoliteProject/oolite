@@ -7649,6 +7649,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		tab_stops[0] = 0;
 		tab_stops[1] = 96;
 		tab_stops[2] = 144;
+		NSArray *systemdataTabStops = [[gui userSettings] oo_arrayForKey:kGuiSystemdataTabs defaultValue:nil];
+		[gui overrideTabs:tab_stops from:systemdataTabStops length:3];
 		[gui setTabStops:tab_stops];
 		
 		int techlevel =		[targetSystemData oo_intForKey:KEY_TECHLEVEL];

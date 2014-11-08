@@ -44,9 +44,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	return ((int)range.location <= row && row < (int)(range.location + range.length));
 }
 
-static const NSString *kChartLabelScale				= @"chart_label_scale";
-
-
 @interface GuiDisplayGen (Internal)
 
 - (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
@@ -315,6 +312,12 @@ static BOOL _refreshStarChart = NO;
 }
 
 
+- (NSDictionary *) userSettings
+{
+	return guiUserSettings;
+}
+
+
 - (void) fadeOutFromTime:(OOTimeAbsolute) now_time overDuration:(OOTimeDelta) duration
 {
 	if (fade_alpha <= 0.0f) 
@@ -359,11 +362,25 @@ static BOOL _refreshStarChart = NO;
 }
 
 
+// default text colour for rows
 - (void) setTextColor:(OOColor*) color
 {
 	[textColor release];
 	if (color == nil)  color = [[OOColor yellowColor] retain];
 	textColor = [color retain];
+}
+
+
+- (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha
+{
+	GLfloat r,g,b,a;
+	OOColor *col = [OOColor colorWithDescription:[guiUserSettings objectForKey:setting]];
+	if (col == nil) {
+		col = def;
+	}
+	[col getRed:&r green:&g blue:&b alpha:&a];
+
+	OOGL(glColor4f(r, g, b, a*alpha));
 }
 
 
@@ -552,6 +569,22 @@ static BOOL _refreshStarChart = NO;
 - (void) setTabStops:(OOGUITabSettings)stops
 {
 	if (stops != NULL)  memmove(tabStops, stops, sizeof tabStops);
+}
+
+- (void) overrideTabs:(OOGUITabSettings)stops from:(NSArray *)override length:(NSUInteger)len
+{
+	NSUInteger i;
+	if (stops != NULL && override != nil)
+	{
+		if (len > GUI_MAX_COLUMNS)
+		{
+			len = GUI_MAX_COLUMNS;
+		}
+		for (i=0;i<len;i++) 
+		{
+			stops[i] = [override oo_unsignedIntegerAtIndex:i defaultValue:stops[i]];
+		}
+	}
 }
 
 
@@ -1737,6 +1770,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0 + CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER)))
 			continue;
+		
 		float blob_size = (1.0f + 0.5f * ([[systemManager getProperty:@"radius" forSystem:i inGalaxy:galaxy_id] floatValue]/300.0f))/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
 
@@ -1813,7 +1847,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	// draw found stars and captions
 	//
-	GLfloat systemNameScale = [guiUserSettings oo_floatForKey:kChartLabelScale defaultValue:1.0];
+	GLfloat systemNameScale = [guiUserSettings oo_floatForKey:kGuiChartLabelScale defaultValue:1.0];
 
 	OOGL(GLScaledLineWidth(1.5f));
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
@@ -1872,7 +1906,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	// draw names
 	//
-	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
+	[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
+//	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
 	
 	int targetIdx = -1;
 	struct saved_system *sys;
@@ -1929,9 +1964,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	
 	OOGUITabSettings tab_stops;
+	NSArray *travelTimeTabs = [guiUserSettings oo_arrayForKey:kGuiChartTraveltimeTabs defaultValue:nil];
 	tab_stops[0] = 0;
 	tab_stops[1] = 96;
 	tab_stops[2] = 288;
+	[self overrideTabs:tab_stops from:travelTimeTabs length:3];
 	[self setTabStops:tab_stops];
 	targetName = [[UNIVERSE getSystemName:target] retain];
 
@@ -2169,9 +2206,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	
 	OOGUITabSettings tab_stops;
+	NSArray *travelTimeTabs = [guiUserSettings oo_arrayForKey:kGuiChartTraveltimeTabs defaultValue:nil];
 	tab_stops[0] = 0;
 	tab_stops[1] = 96;
 	tab_stops[2] = 288;
+	[self overrideTabs:tab_stops from:travelTimeTabs length:3];
 	[self setTabStops:tab_stops];
 	NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER targetSystemID]] retain];
 

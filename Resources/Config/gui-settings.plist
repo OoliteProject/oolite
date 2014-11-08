@@ -1,14 +1,26 @@
 {
-	/* Graphical User Interface settings. There's not a lot here yet, but
-	 * more will be added gradually. The GUI setup doesn't make it practical
-	 * to add everything at once, or even add broad default settings. */
-	
+	/* Graphical User Interface settings. There's not a lot here yet,
+	 * but more will be added gradually. The GUI setup doesn't make it
+	 * practical to add everything at once, or even sometimes add
+	 * broad default settings. */
+
+	// overrides of this will not necessarily be consistent yet
+	// TODO: remove explicit sets of yellow which actually mean 'default'
+	"default_text_color" = "yellowColor";
+
+
+	// color of name labels on F6 chart
+	"chart_label_color" = "yellowColor";
+
 	// scale of name labels on F6 chart relative to Oolite default size
 	"chart_label_scale" = 1.0;
+
+	// tab stops for chart travel time text line
+	"chart_traveltime_tabs" = (0,96,288);
+
+	// tab stops for system data screen
+	"systemdata_tabs" = (0,96,144);
 	
-
-
-
 
 
 }

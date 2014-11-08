@@ -63,6 +63,13 @@ typedef enum
 #define GUI_KEY_SKIP			@"SKIP-ROW"
 
 
+static NSString * const kGuiDefaultTextColor		= @"default_text_color";
+static NSString * const kGuiChartLabelColor			= @"chart_label_color";
+static NSString * const kGuiChartLabelScale			= @"chart_label_scale";
+static NSString * const kGuiChartTraveltimeTabs		= @"chart_traveltime_tabs";
+static NSString * const kGuiSystemdataTabs			= @"systemdata_tabs";
+
+
 @class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
 
 
@@ -155,6 +162,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setDrawPosition:(Vector) vector;
 - (Vector) drawPosition;
 
+- (NSDictionary *) userSettings;
+
 - (void) fadeOutFromTime:(OOTimeAbsolute) now_time overDuration:(OOTimeDelta) duration;
 - (void) stopFadeOuts;
 
@@ -165,6 +174,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setBackgroundColor:(OOColor*) color;
 
 - (void) setTextColor:(OOColor*) color;
+- (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha;
 
 - (void) setCharacterSize:(NSSize) character_size;
 
@@ -191,6 +201,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setSelectableRange:(NSRange) range;
 
 - (void) setTabStops:(OOGUITabSettings)stops;
+- (void) overrideTabs:(OOGUITabSettings)stops from:(NSArray *)override length:(NSUInteger)len;
+
 
 - (void) clear;
 - (void) clearAndKeepBackground:(BOOL)keepBackground;
