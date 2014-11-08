@@ -301,7 +301,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 - (NSDictionary *) getPropertiesForCurrentSystem
 {
 	OOSystemID s = [UNIVERSE currentSystemID];
-	if (s > 0)
+	if (s >= 0)
 	{
 		NSUInteger index = ([PLAYER galaxyNumber] * OO_SYSTEMS_PER_GALAXY) + s;
 		if (index >= OO_SYSTEM_CACHE_LENGTH)
