@@ -64,8 +64,22 @@ typedef enum
 
 
 static NSString * const kGuiDefaultTextColor		= @"default_text_color";
+static NSString * const kGuiScreenTitleColor		= @"screen_title_color";
+static NSString * const kGuiScreenDividerColor		= @"screen_divider_color";
+static NSString * const kGuiSelectedRowBackgroundColor	= @"selected_row_background_color";
+static NSString * const kGuiSelectedRowColor		= @"selected_row_color";
+static NSString * const kGuiTextInputCursorColor	= @"text_input_cursor_color";
+
 static NSString * const kGuiChartLabelColor			= @"chart_label_color";
 static NSString * const kGuiChartLabelScale			= @"chart_label_scale";
+static NSString * const kGuiChartRangeColor			= @"chart_range_color";
+static NSString * const kGuiChartCrosshairColor		= @"chart_crosshair_color";
+static NSString * const kGuiChartCursorColor		= @"chart_cursor_color";
+static NSString * const kGuiChartMatchBoxColor		= @"chart_match_box_color";
+static NSString * const kGuiChartMatchLabelColor	= @"chart_match_label_color";
+static NSString * const kGuiChartConnectionColor	= @"chart_connection_color";
+static NSString * const kGuiChartRouteShortColor	= @"chart_route_short_color";
+static NSString * const kGuiChartRouteQuickColor	= @"chart_route_quick_color";
 static NSString * const kGuiChartTraveltimeTabs		= @"chart_traveltime_tabs";
 static NSString * const kGuiSystemdataTabs			= @"systemdata_tabs";
 

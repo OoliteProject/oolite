@@ -2,24 +2,66 @@
 	/* Graphical User Interface settings. There's not a lot here yet,
 	 * but more will be added gradually. The GUI setup doesn't make it
 	 * practical to add everything at once, or even sometimes add
-	 * broad default settings. */
+	 * broad default settings. To make overriding of group defaults
+	 * easier for OXPs, most of the values here are commented out
+	 * rather than explicitly set to the default. */
 
-	// overrides of this will not necessarily be consistent yet
-	// TODO: remove explicit sets of yellow which actually mean 'default'
-	"default_text_color" = "yellowColor";
+	/* overrides of this will not necessarily be consistent yet
+	 * TODO: remove explicit sets of yellow which actually mean 'default' */
+	// "default_text_color" = "yellowColor";
 
+	/* the screen title colour */
+	// "screen_title_color" = "redColor";
 
-	// color of name labels on F6 chart
-	"chart_label_color" = "yellowColor";
+	/* the screen divider colour */
+	// "screen_divider_color" = "0.75 0.75 0.75";
 
-	// scale of name labels on F6 chart relative to Oolite default size
-	"chart_label_scale" = 1.0;
+	/* the selected row background colour */
+	// "selected_row_background_color" = "greenColor";
 
-	// tab stops for chart travel time text line
-	"chart_traveltime_tabs" = (0,96,288);
+	/* the selected row text colour */
+	// "selected_row_color" = "yellowColor";
 
-	// tab stops for system data screen
-	"systemdata_tabs" = (0,96,144);
+	/* the text input cursor colour */
+	// "text_input_cursor_color" = "redColor";
+
+	/* color of name labels on F6 chart */
+	// "chart_label_color" = "yellowColor";
+
+	/* scale of name labels on F6 chart relative to Oolite default size */
+	// "chart_label_scale" = 1.0;
+
+	/* color of fuel range circle */
+	// "chart_range_color" = "greenColor";
+
+	/* color of location crosshair */
+	// "chart_crosshair_color" = "greenColor";
+
+	/* color of fuel range circle */
+	// "chart_cursor_color" = "redColor";
+
+	/* color of matched system box when name searching */
+	// "chart_match_color" = "greenColor";
+
+	/* color of matched system label when name searching - if multiple
+	 * matches, this is the currently selected one and the others will
+	 * be in chart_match_color */
+	// "chart_match_label_color" = "cyanColor";
+
+	/* color of connecting lines on nav array */
+	// "chart_connection_color" = "0.25 0.25 0.25";
+
+	/* color of shortest route on nav array */
+	// "chart_route_short_color" = "yellowColor";
+
+	/* color of quickest route on nav array */
+	// "chart_route_quick_color" = "cyanColor";
+
+	/* tab stops for chart travel time text line */
+	// "chart_traveltime_tabs" = (0,96,288);
+
+	/* tab stops for system data screen */
+	// "systemdata_tabs" = (0,96,144);
 	
 
 
