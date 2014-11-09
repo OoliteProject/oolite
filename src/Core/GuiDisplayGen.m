@@ -1636,6 +1636,17 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	NSSize		viewSize = [[UNIVERSE gameView] viewSize];
 	double aspect_ratio = viewSize.width / viewSize.height;
+
+	// default colours - match those in HeadUpDisplay:OODrawPlanetInfo
+	GLfloat govcol[] = {	0.5, 0.0, 0.7,
+							0.7, 0.5, 0.3,
+							0.0, 1.0, 0.3,
+							1.0, 0.8, 0.1,
+							1.0, 0.0, 0.0,
+							0.1, 0.5, 1.0,
+							0.7, 0.7, 0.7,
+							0.7, 1.0, 1.0};
+
 	if (aspect_ratio > 4.0/3.0)
 	{
 		pixelRatio = viewSize.height / 480.0;
@@ -1778,7 +1789,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0 + CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER)))
 			continue;
 		
-		float blob_size = (1.0f + 0.5f * ([[systemManager getProperty:@"radius" forSystem:i inGalaxy:galaxy_id] floatValue]/300.0f))/zoom;
+		float blob_factor = [guiUserSettings oo_floatForKey:kGuiChartCircleScale defaultValue:0.0017];
+		float blob_size = (1.0f + blob_factor * [[systemManager getProperty:@"radius" forSystem:i inGalaxy:galaxy_id] floatValue])/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
 
 		star.x = (float)(sys_coordinates.x * hscale + hoffset);
@@ -1787,32 +1799,42 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		noNova = !nearby_systems[i].nova;
 		NSAssert1(chart_mode <= OOLRC_MODE_TECHLEVEL, @"Long range chart mode %i out of range", (int)chart_mode);
 	
+		NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
+		if (markers != nil)	// is marked
+		{
+			GLfloat base_size = 0.5f * blob_size + 2.5f;
+			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
+		}
+
 		switch (chart_mode)
 		{
 			case OOLRC_MODE_ECONOMY:
 				if (EXPECT(noNova))
 				{
 					systemParameter = nearby_systems[i].eco;
-					r = 0.5;
-					g = 0.3 + (0.1 * (GLfloat)systemParameter);
-					b = 1.0 - (0.1 * (GLfloat)systemParameter);
+					GLfloat ce1 = 1.0f - 0.125f * systemParameter;
+					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, systemParameter]
+								   defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
+										  alpha:1.0];
 				}
 				else
 				{
 					r = g = b = 0.3;
+					OOGL(glColor4f(r, g, b, alpha));
 				}
 				break;
 			case OOLRC_MODE_GOVERNMENT:
 				if (EXPECT(noNova))
 				{
 					systemParameter = nearby_systems[i].gov;
-					r = 1.0 - (0.1 * (GLfloat)systemParameter);
-					g = 0.3 + (0.1 * (GLfloat)systemParameter);
-					b = 0.1;
+					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, systemParameter]
+								   defaultValue:[OOColor colorWithRed:govcol[systemParameter*3] green:govcol[1+(systemParameter*3)] blue:govcol[2+(systemParameter*3)] alpha:1.0f] 
+										  alpha:1.0];
 				}
 				else
 				{
 					r = g = b = 0.3;
+					OOGL(glColor4f(r, g, b, alpha));
 				}
 				break;
 			case OOLRC_MODE_TECHLEVEL:
@@ -1826,11 +1848,17 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				{
 					r = g = b = 0.3;
 				}			
+				OOGL(glColor4f(r, g, b, alpha));
 				break;
 			case OOLRC_MODE_NORMAL:
 				if (EXPECT(noNova))
 				{
 					r = g = b = 1.0;
+					OOColor *sunColor = [OOColor colorWithDescription:[[UNIVERSE systemManager] getProperty:@"sun_color" forSystem:i inGalaxy:galaxy_id]];
+					if (sunColor != nil) {
+						[sunColor getRed:&r green:&g blue:&b alpha:&alpha];
+						alpha = 1.0; // reset
+					}
 				}
 				else
 				{
@@ -1838,16 +1866,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					g = 0.2;
 					b = 0.0;
 				}
+				OOGL(glColor4f(r, g, b, alpha));
 				break;
 		}
-
-		NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
-		if (markers != nil)	// is marked
-		{
-			GLfloat base_size = 0.5f * blob_size + 2.5f;
-			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
-		}
-		OOGL(glColor4f(r, g, b, alpha));
 
 		GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
 	}
@@ -2148,6 +2169,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 // used only on mission screens for long-range charts there
 // takes up slightly less vertical space than the normal chart
+// FIXME: make this a mode of drawStarChart to reduce code duplication
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 
@@ -2155,11 +2177,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint			cursor_coordinates = [player cursor_coordinates];
 	OOGalaxyID		galaxy_id = [player galaxyNumber];
-	OOLongRangeChartMode chart_mode = [player longRangeChartMode];
-	if (![player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
-	{
-		chart_mode = OOLRC_MODE_NORMAL;
-	}
 
 	double fuel = 35.0 * [player dialFuel];
 
@@ -2168,7 +2185,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// get a list of systems marked as contract destinations
 	NSDictionary	*markedDestinations = [player markedDestinations];
 	NSDictionary	*systemData = nil;
-	NSUInteger		systemParameter;
 	GLfloat			r = 1.0, g = 1.0, b = 1.0;
 	BOOL			noNova;
 
@@ -2289,60 +2305,17 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		systemData = [UNIVERSE generateSystemData:i];
 		noNova = ![systemData oo_boolForKey:@"sun_gone_nova"];
-		NSAssert1(chart_mode <= OOLRC_MODE_TECHLEVEL, @"Long range chart mode %i out of range", (int)chart_mode);
-		
-		switch (chart_mode)
+
+		// this chart does not support chartmode
+		if (EXPECT(noNova))
 		{
-			case OOLRC_MODE_ECONOMY:
-				if (EXPECT(noNova))
-				{
-					systemParameter = [systemData oo_unsignedIntForKey:KEY_ECONOMY];
-					r = 0.5;
-					g = 0.3 + (0.1 * (GLfloat)systemParameter);
-					b = 1.0 - (0.1 * (GLfloat)systemParameter);
-				}
-				else
-				{
-					r = g = b = 0.3;
-				}
-				break;
-			case OOLRC_MODE_GOVERNMENT:
-				if (EXPECT(noNova))
-				{
-					systemParameter = [systemData oo_unsignedIntForKey:KEY_GOVERNMENT];
-					r = 1.0 - (0.1 * (GLfloat)systemParameter);
-					g = 0.3 + (0.1 * (GLfloat)systemParameter);
-					b = 0.1;
-				}
-				else
-				{
-					r = g = b = 0.3;
-				}
-				break;
-			case OOLRC_MODE_TECHLEVEL:
-				if (EXPECT(noNova))
-				{
-					systemParameter = [systemData oo_unsignedIntForKey:KEY_TECHLEVEL];				
-					r = 0.6;
-					g = b = 0.20 + (0.05 * (GLfloat)systemParameter);
-				}
-				else
-				{
-					r = g = b = 0.3;
-				}			
-				break;
-			case OOLRC_MODE_NORMAL:
-				if (EXPECT(noNova))
-				{
-					r = g = b = 1.0;
-				}
-				else
-				{
-					r = 1.0;
-					g = 0.2;
-					b = 0.0;
-				}
-				break;
+			r = g = b = 1.0;
+		}
+		else
+		{
+			r = 1.0;
+			g = 0.2;
+			b = 0.0;
 		}
 		OOGL(glColor4f(r, g, b, alpha));
 		

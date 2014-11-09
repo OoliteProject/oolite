@@ -70,8 +70,9 @@ static NSString * const kGuiSelectedRowBackgroundColor	= @"selected_row_backgrou
 static NSString * const kGuiSelectedRowColor		= @"selected_row_color";
 static NSString * const kGuiTextInputCursorColor	= @"text_input_cursor_color";
 
-static NSString * const kGuiChartLabelColor			= @"chart_label_color";
 static NSString * const kGuiChartLabelScale			= @"chart_label_scale";
+static NSString * const kGuiChartCircleScale		= @"chart_circle_scale";
+static NSString * const kGuiChartLabelColor			= @"chart_label_color";
 static NSString * const kGuiChartRangeColor			= @"chart_range_color";
 static NSString * const kGuiChartCrosshairColor		= @"chart_crosshair_color";
 static NSString * const kGuiChartCursorColor		= @"chart_cursor_color";
@@ -81,6 +82,11 @@ static NSString * const kGuiChartConnectionColor	= @"chart_connection_color";
 static NSString * const kGuiChartRouteShortColor	= @"chart_route_short_color";
 static NSString * const kGuiChartRouteQuickColor	= @"chart_route_quick_color";
 static NSString * const kGuiChartTraveltimeTabs		= @"chart_traveltime_tabs";
+
+static NSString * const kGuiChartEconomyUColor		= @"chart_economy_%u_color";
+static NSString * const kGuiChartGovernmentUColor	= @"chart_government_%u_color";
+static NSString * const kGuiChartTechColor			= @"chart_tech_color";
+
 static NSString * const kGuiSystemdataTabs			= @"systemdata_tabs";
 
 

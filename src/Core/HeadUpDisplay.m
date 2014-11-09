@@ -3857,18 +3857,29 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 	[sFontTexture apply];
 
 	OOGLBEGIN(GL_QUADS);
-		glColor4f(ce1, 1.0f, 0.0f, 1.0f);
+	{
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, eco]
+								 defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
+										alpha:1.0];
+
 		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
-		glColor3fv(&govcol[gov * 3]);
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, gov]
+								 defaultValue:[OOColor colorWithRed:govcol[gov*3] green:govcol[1+(gov*3)] blue:govcol[2+(gov*3)] alpha:1.0f] 
+										alpha:1.0];
+
 		cx += drawCharacterQuad(gov, cx, y, z, siz) - sF6KernGovt;		// charcters 0..7 are government symbols
-		glColor4f(0.5f, 1.0f, 1.0f, 1.0f);
+		[[UNIVERSE gui] setGLColorFromSetting:kGuiChartTechColor
+								 defaultValue:[OOColor colorWithRed:0.5 green:1.0f blue:1.0f alpha:1.0f] 
+										alpha:1.0];
+
 		if (tl > 9)
 		{
 			// display TL clamped between 1..16, this must be a '1'!
 			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - sF6KernTL;
 		}
 		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2.0f, z, siz);
+	}
 	OOGLEND();
 	
 	(void)cx;	// Suppress "value not used" analyzer issue.

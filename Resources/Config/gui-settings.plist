@@ -25,11 +25,14 @@
 	/* the text input cursor colour */
 	// "text_input_cursor_color" = "redColor";
 
-	/* color of name labels on F6 chart */
-	// "chart_label_color" = "yellowColor";
-
 	/* scale of name labels on F6 chart relative to Oolite default size */
 	// "chart_label_scale" = 1.0;
+
+	/* scale of star circles on F6 chart relative to the 'radius' property */
+	// "chart_circle_scale" = 0.0017;
+
+	/* color of name labels on F6 chart */
+	// "chart_label_color" = "yellowColor";
 
 	/* color of fuel range circle */
 	// "chart_range_color" = "greenColor";
@@ -56,6 +59,29 @@
 
 	/* color of quickest route on nav array */
 	// "chart_route_quick_color" = "cyanColor";
+
+	/* colors of economy icons on chart */
+	// "chart_economy_0_color" = "1.0 1.0 0.0"; // Rich Ind
+	// "chart_economy_1_color" = "0.875 1.0 0.0";
+	// "chart_economy_2_color" = "0.75 1.0 0.0";
+	// "chart_economy_3_color" = "0.625 1.0 0.0";
+	// "chart_economy_4_color" = "0.5 1.0 0.0";
+	// "chart_economy_5_color" = "0.375 1.0 0.0";
+	// "chart_economy_6_color" = "0.25 1.0 0.0";
+	// "chart_economy_7_color" = "0.125 1.0 0.0"; // Poor Ag
+
+	/* colors of government icons on chart */
+	// "chart_government_0_color" = "0.5 0.0 0.7"; // Anarchy
+	// "chart_government_1_color" = "0.7 0.5 0.3";
+	// "chart_government_2_color" = "0.0 1.0 0.3";
+	// "chart_government_3_color" = "1.0 0.8 0.1";
+	// "chart_government_4_color" = "1.0 0.0 0.0";
+	// "chart_government_5_color" = "0.1 0.5 1.0";
+	// "chart_government_6_color" = "0.7 0.7 0.7";
+	// "chart_government_7_color" = "0.7 1.0 1.0"; // Corp State
+
+	/* colors of tech level numbers on chart */
+	// "chart_tech_color" = "0.5 1.0 1.0";
 
 	/* tab stops for chart travel time text line */
 	// "chart_traveltime_tabs" = (0,96,288);
