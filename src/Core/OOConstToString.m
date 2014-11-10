@@ -247,7 +247,11 @@ NSString *JSTypeToString(int /* JSType */ type)
 
 NSString *OOStringFromWeaponType(OOWeaponType weapon)
 {
-	return [weapon identifier];
+	if (weapon == nil) {
+		return @"EQ_WEAPON_NONE";
+	} else {
+		return [weapon identifier];
+	}
 }
 
 
