@@ -3698,19 +3698,22 @@ void OOHUDResetTextEngine(void)
 
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
-	GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
-	if (chr > 32)  y += ONE_EIGHTH * siz.height;	// Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
+	// 31 (narrow space) and 32 (space) are non-printing characters, so
+	// don't print them, just return their width to move the pointer
+	if (chr > 32 || chr < 31) {
+		GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
+		GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
+		if (chr > 32)  y += ONE_EIGHTH * siz.height;	// Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
 	
-	glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
-	glVertex3f(x, y, z);
-	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
-	glVertex3f(x + siz.width, y, z);
-	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
-	glVertex3f(x + siz.width, y + siz.height, z);
-	glTexCoord2f(texture_x, texture_y);
-	glVertex3f(x, y + siz.height, z);
-	
+		glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
+		glVertex3f(x, y, z);
+		glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
+		glVertex3f(x + siz.width, y, z);
+		glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
+		glVertex3f(x + siz.width, y + siz.height, z);
+		glTexCoord2f(texture_x, texture_y);
+		glVertex3f(x, y + siz.height, z);
+	}
 	return siz.width * sGlyphWidths[chr];
 }
 
@@ -3780,15 +3783,26 @@ void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 
 void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
 {
-	GLfloat			cx = x;
-	NSInteger		i, length;
-	NSData			*data = nil;
-	const uint8_t	*bytes = NULL;
-	
+	OOStartDrawingStrings();
+	OODrawStringQuadsAligned(text,x,y,z,siz,rightAlign);
+	OOStopDrawingStrings();
+}
+
+void OOStartDrawingStrings() {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
+	OOGLBEGIN(GL_QUADS);
+
+}
+
+void OODrawStringQuadsAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
+{
+	GLfloat			cx = x;
+	NSInteger		i, length;
+	NSData			*data = nil;
+	const uint8_t	*bytes = NULL;
 	
 	data = [sEncodingCoverter convertString:text];
 	length = [data length];
@@ -3798,12 +3812,14 @@ void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize
 	{
 		cx -= OORectFromString(text, 0.0f, 0.0f, siz).size.width;
 	}
-	
-	OOGLBEGIN(GL_QUADS);
+
 	for (i = 0; i < length; i++)
 	{
 		cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
 	}
+}
+
+void OOStopDrawingStrings() {
 	OOGLEND();
 	
 	[OOTexture applyNone];

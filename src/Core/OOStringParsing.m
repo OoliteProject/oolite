@@ -261,10 +261,17 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 }
 
 
-NSString *OOPadStringToEms(NSString * string, float numEms)
+NSString *OOPadStringToEms(NSString * string, float padEms)
 {
 	NSString		*result = string;
-	numEms -= OOStringWidthInEm(result);
+	float numEms = padEms - OOStringWidthInEm(result);
+	if (numEms>0)
+	{
+		numEms /= OOStringWidthInEm(@" "); // start with wide space
+		result=[[@"" stringByPaddingToLength:(NSUInteger)numEms withString: @" " startingAtIndex:0] stringByAppendingString: result];
+	}
+	// most of the way there, so switch to narrow space
+	numEms = padEms - OOStringWidthInEm(result);
 	if (numEms>0)
 	{
 		numEms /= OOStringWidthInEm(@"\037"); // 037 is narrow space

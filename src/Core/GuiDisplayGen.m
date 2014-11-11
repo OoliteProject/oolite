@@ -1412,6 +1412,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	// draw each row of text
 	//
+	OOStartDrawingStrings();
 	for (i = 0; i < n_rows; i++)
 	{
 		OOColor* row_color = (OOColor *)[rowColor objectAtIndex:i];
@@ -1451,15 +1452,17 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				{
 					NSRect		block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 					[self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
+					OOStopDrawingStrings();
 					OOGLBEGIN(GL_QUADS);
 						glVertex3f(block.origin.x,						block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 						glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 					OOGLEND();
+					OOStartDrawingStrings();
 					[self setGLColorFromSetting:kGuiSelectedRowColor defaultValue:[OOColor blackColor] alpha:alpha];
 				}
-				OODrawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
+				OODrawStringQuadsAligned(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize, NO);
 				
 				// draw cursor at end of current Row
 				//
@@ -1471,12 +1474,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					tr.size.width = 0.5f * characterSize.width;
 					GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * [UNIVERSE getTime]));
 					[self setGLColorFromSetting:kGuiTextInputCursorColor defaultValue:[OOColor redColor] alpha:row_alpha*g_alpha];
+					OOStopDrawingStrings();
 					OOGLBEGIN(GL_QUADS);
 						glVertex3f(tr.origin.x,					tr.origin.y,					z);
 						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y,					z);
 						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y + tr.size.height,	z);
 						glVertex3f(tr.origin.x,					tr.origin.y + tr.size.height,	z);
 					OOGLEND();
+					OOStartDrawingStrings();
 				}
 			}
 		}
@@ -1537,20 +1542,22 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					if (i == (unsigned)selectedRow)
 					{
 						[self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
+						OOStopDrawingStrings();
 						OOGLBEGIN(GL_QUADS);
 							glVertex3f(block.origin.x,						block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 							glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 						OOGLEND();
+						OOStartDrawingStrings();
 						[self setGLColorFromSetting:kGuiSelectedRowColor defaultValue:[OOColor blackColor] alpha:alpha];
 					}
-					OODrawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
+					OODrawStringQuadsAligned(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize,NO);
 				}
 			}
 		}
 	}
-	
+	OOStopDrawingStrings();
 	[OOTexture applyNone];
 }
 
