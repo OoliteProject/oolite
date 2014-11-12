@@ -7223,10 +7223,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 							*alert_desc = nil, *fuel_desc = nil,
 							*credits_desc = nil;
 		
-		OOGUITabSettings tab_stops;
+		OOGUIRow			i;
+		OOGUITabSettings 	tab_stops;
+		NSArray *statusTabs = [[gui userSettings] oo_arrayForKey:kGuiStatusTabs defaultValue:nil];
 		tab_stops[0] = 20;
 		tab_stops[1] = 160;
 		tab_stops[2] = 290;
+		[gui overrideTabs:tab_stops from:statusTabs length:3];
+		OOLog(@"tab.stops",@"%d %d %d",tab_stops[0],tab_stops[1],tab_stops[2]);
 		[gui setTabStops:tab_stops];
 		
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");
@@ -7251,7 +7255,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-legal-status"), legal_desc, nil]		forRow:6];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-rating"), rating_desc, nil]			forRow:7];
 		
+
+		[gui setColor:[gui colorFromSetting:kGuiStatusShipnameColor defaultValue:nil] forRow:0];
+		for (i = 1 ; i <= 7 ; ++i)
+		{
+			// nil default = fall back to global default colour
+			[gui setColor:[gui colorFromSetting:kGuiStatusDataColor defaultValue:nil] forRow:i];
+		}
+
 		[gui setText:DESC(@"status-equipment") forRow:9];
+
+		[gui setColor:[gui colorFromSetting:kGuiStatusEquipmentHeadingColor defaultValue:nil] forRow:9];
 		
 		[gui setShowTextCursor:NO];
 	}
@@ -7697,9 +7711,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		
 		OOGUIRow i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
 		missionTextRow = i;
-		for (i-- ; i > 14 ; i--)
-			[gui setColor:[OOColor greenColor] forRow:i];
-		
+		for (i-- ; i > 14 ; --i)
+		{
+			[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
+		}
+		for (i = 1 ; i <= 12 ; ++i)
+		{
+			// nil default = fall back to global default colour
+			[gui setColor:[gui colorFromSetting:kGuiSystemdataFactsColor defaultValue:nil] forRow:i];
+		}
+
+
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */

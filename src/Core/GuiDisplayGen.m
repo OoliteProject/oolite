@@ -371,18 +371,26 @@ static BOOL _refreshStarChart = NO;
 }
 
 
-- (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha
+- (OOColor *) colorFromSetting:(NSString *)setting defaultValue:(OOColor *)def
 {
-	GLfloat r,g,b,a;
 	OOColor *col = [OOColor colorWithDescription:[guiUserSettings objectForKey:setting]];
+	OOLog(@"col.debug",@"%@ = %@ => %@",setting,col,def);
 	if (col == nil) {
 		if (def != nil) {
 			col = def;
 			// def = nil => use default_text_color
 		} else {
-			def = textColor;
+			col = textColor;
 		}
 	}
+	return [[col copy] autorelease];
+}
+
+
+- (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha
+{
+	GLfloat r,g,b,a;
+	OOColor *col = [self colorFromSetting:setting defaultValue:def];
 	[col getRed:&r green:&g blue:&b alpha:&a];
 
 	OOGL(glColor4f(r, g, b, a*alpha));
@@ -1195,7 +1203,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (statusPage > 1)
 	{
-		[self setColor:[OOColor greenColor] forRow:firstRow];
+		[self setColor:[self colorFromSetting:kGuiStatusEquipmentScrollColor defaultValue:[OOColor greenColor]] forRow:firstRow];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-back"),  @"", @" <-- ",nil] forRow:firstRow];
 		[self setKey:GUI_KEY_OK forRow:firstRow];
 		firstY -= 16; // start 1 row down!
@@ -1207,7 +1215,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	if (statusPage < pageCount)
 	{
-		[self setColor:[OOColor greenColor] forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setColor:[self colorFromSetting:kGuiStatusEquipmentScrollColor defaultValue:[OOColor greenColor]] forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setKey:GUI_KEY_OK forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
 		if (statusPage == 1)
@@ -1232,8 +1240,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if([name length] > 42)  name = [[name substringToIndex:40] stringByAppendingString:@"..."];
 		
 		damaged = ![info oo_boolAtIndex:1];
-		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f); // Damaged items show up orange.
-		else  glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Normal items in yellow.
+		if (damaged) 
+		{
+			// Damaged items show up orange.
+			[self setGLColorFromSetting:@"status_equipment_damaged_color" defaultValue:[OOColor orangeColor] alpha:1.0];
+		} 
+		else
+		{
+			// Normal items in default colour
+			[self setGLColorFromSetting:@"status_equipment_ok_color" defaultValue:nil alpha:1.0];
+		}
 		
 		if (i - start < itemsPerColumn)
 		{

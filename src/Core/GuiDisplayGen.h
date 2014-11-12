@@ -62,14 +62,22 @@ typedef enum
 #define GUI_KEY_OK				@"OK"
 #define GUI_KEY_SKIP			@"SKIP-ROW"
 
-
+// globals
 static NSString * const kGuiDefaultTextColor		= @"default_text_color";
 static NSString * const kGuiScreenTitleColor		= @"screen_title_color";
 static NSString * const kGuiScreenDividerColor		= @"screen_divider_color";
 static NSString * const kGuiSelectedRowBackgroundColor	= @"selected_row_background_color";
 static NSString * const kGuiSelectedRowColor		= @"selected_row_color";
 static NSString * const kGuiTextInputCursorColor	= @"text_input_cursor_color";
-
+// F5
+static NSString * const kGuiStatusShipnameColor		= @"status_shipname_color";
+static NSString * const kGuiStatusDataColor			= @"status_data_color";
+static NSString * const kGuiStatusEquipmentHeadingColor	= @"status_equipment_heading_color";
+static NSString * const kGuiStatusEquipmentScrollColor	= @"status_equipment_scroll_color";
+static NSString * const kGuiStatusEquipmentOkColor	= @"status_equipment_ok_color";
+static NSString * const kGuiStatusEquipmentDamagedColor	= @"status_equipment_damaged_color";
+static NSString * const kGuiStatusTabs				= @"status_tabs";
+// F6
 static NSString * const kGuiChartLabelScale			= @"chart_label_scale";
 static NSString * const kGuiChartCircleScale		= @"chart_circle_scale";
 static NSString * const kGuiChartLabelColor			= @"chart_label_color";
@@ -86,7 +94,9 @@ static NSString * const kGuiChartTraveltimeTabs		= @"chart_traveltime_tabs";
 static NSString * const kGuiChartEconomyUColor		= @"chart_economy_%u_color";
 static NSString * const kGuiChartGovernmentUColor	= @"chart_government_%u_color";
 static NSString * const kGuiChartTechColor			= @"chart_tech_color";
-
+// F7
+static NSString * const kGuiSystemdataFactsColor		= @"systemdata_facts_color";
+static NSString * const kGuiSystemdataDescriptionColor	= @"systemdata_description_color";
 static NSString * const kGuiSystemdataTabs			= @"systemdata_tabs";
 
 
@@ -194,6 +204,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setBackgroundColor:(OOColor*) color;
 
 - (void) setTextColor:(OOColor*) color;
+- (OOColor *) colorFromSetting:(NSString *)setting defaultValue:(OOColor *)def;
 - (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha;
 
 - (void) setCharacterSize:(NSSize) character_size;

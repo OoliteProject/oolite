@@ -6,10 +6,13 @@
 	 * easier for OXPs, most of the values here are commented out
 	 * rather than explicitly set to the default. */
 
-	/* overrides of this will not necessarily be consistent yet
+	/* overrides of this will not necessarily be consistent yet. Most
+	 * things below specified as 'yellowColor' actually use the
+	 * default colour if no colour is specified.
+	 *
 	 * TODO: remove explicit sets of yellow which actually mean 'default' */
 	// "default_text_color" = "yellowColor";
-
+	
 	/* the screen title colour */
 	// "screen_title_color" = "redColor";
 
@@ -24,6 +27,27 @@
 
 	/* the text input cursor colour */
 	// "text_input_cursor_color" = "redColor";
+
+	/* the ship name on the F5 screen */
+	// "status_shipname_color" = "yellowColor";
+
+	/* the status items on the F5 screen */
+	// "status_data_color" = "yellowColor";
+
+	/* the equipment list heading on the F5 screen */
+	// "status_equipment_heading_color" = "yellowColor";
+
+	/* the colour of the scroll forward/back controls on the equipment list */
+	// "status_equipment_scroll_color" = "greenColor";
+
+	/* the colour of ok equipment */
+	// "status_equipment_ok_color" = "yellowColor";
+
+	/* the colour of damaged equipment */
+	// "status_equipment_damaged_color" = "orangeColor";
+
+	/* the tab spacing on the status page */
+	// "status_tabs" = (20,160,290);
 
 	/* scale of name labels on F6 chart relative to Oolite default size */
 	// "chart_label_scale" = 1.0;
@@ -85,6 +109,12 @@
 
 	/* tab stops for chart travel time text line */
 	// "chart_traveltime_tabs" = (0,96,288);
+
+	/* colour of system data facts lines */
+	// "systemdata_facts_color" = "yellowColor";
+
+	/* colour of system data description lines */
+	// "systemdata_description_color" = "greenColor";
 
 	/* tab stops for system data screen */
 	// "systemdata_tabs" = (0,96,144);
