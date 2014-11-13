@@ -77,6 +77,12 @@ static NSString * const kGuiStatusEquipmentScrollColor	= @"status_equipment_scro
 static NSString * const kGuiStatusEquipmentOkColor	= @"status_equipment_ok_color";
 static NSString * const kGuiStatusEquipmentDamagedColor	= @"status_equipment_damaged_color";
 static NSString * const kGuiStatusTabs				= @"status_tabs";
+// F5 F5
+static NSString * const kGuiManifestSubheadColor	= @"manifest_subhead_color";
+static NSString * const kGuiManifestEntryColor		= @"manifest_entry_color";
+static NSString * const kGuiManifestScrollColor		= @"manifest_scroll_color";
+static NSString * const kGuiManifestNoScrollColor	= @"manifest_no_scroll_color";
+static NSString * const kGuiManifestTabs			= @"manifest_tabs";
 // F6
 static NSString * const kGuiChartLabelScale			= @"chart_label_scale";
 static NSString * const kGuiChartCircleScale		= @"chart_circle_scale";

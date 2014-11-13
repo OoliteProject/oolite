@@ -1069,6 +1069,9 @@ for (unsigned i=0;i<amount;i++)
 }
 
 
+// only use within setGuiToManifestScreen
+#define SET_MANIFEST_ROW(obj,color,row) ([self setManifestScreenRow:obj inColor:color forRow:row ofRows:max_rows andOffset:page_offset inMultipage:multi_page])
+
 - (void) setGuiToManifestScreen
 {
 	OOGUIScreenID	oldScreen = gui_screen;
@@ -1083,6 +1086,11 @@ for (unsigned i=0;i<amount;i++)
 	
 	// GUI stuff
 	{
+		OOColor *subheadColor = [gui colorFromSetting:kGuiManifestSubheadColor defaultValue:[OOColor greenColor]];
+		OOColor *entryColor = [gui colorFromSetting:kGuiManifestEntryColor defaultValue:nil];
+		OOColor *scrollColor = [gui colorFromSetting:kGuiManifestScrollColor defaultValue:[OOColor greenColor]];
+		OOColor *noScrollColor = [gui colorFromSetting:kGuiManifestNoScrollColor defaultValue:[OOColor darkGrayColor]];
+
 		NSArray*	cargoManifest = [self cargoList];
 		NSArray*	missionsManifest = [self missionsList];
 		NSArray*	passengerManifest = [self passengerList];
@@ -1135,6 +1143,8 @@ for (unsigned i=0;i<amount;i++)
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 20;
 		tab_stops[1] = 256;
+		NSArray *manifestTabs = [[gui userSettings] oo_arrayForKey:kGuiManifestTabs defaultValue:nil];
+		[gui overrideTabs:tab_stops from:manifestTabs length:2];
 		[gui setTabStops:tab_stops];
 		
 		// Cargo Manifest
@@ -1143,7 +1153,7 @@ for (unsigned i=0;i<amount;i++)
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"manifest-title")];
 		
-		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), current_cargo, [self maxAvailableCargoSpace]]) , yellowColor, cargoRow - 1);
+		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), current_cargo, [self maxAvailableCargoSpace]]) , entryColor, cargoRow - 1);
 		
 		if (manifestCount > 0)
 		{
@@ -1156,12 +1166,12 @@ for (unsigned i=0;i<amount;i++)
 					[row_info addObject:[cargoManifest objectAtIndex:i + cargoRowCount]];
 				else
 					[row_info addObject:@""];
-				SET_MANIFEST_ROW( (NSArray *)row_info, greenColor, cargoRow + i);
+				SET_MANIFEST_ROW( (NSArray *)row_info, subheadColor, cargoRow + i);
 			}
 		}
 		else
 		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), greenColor, cargoRow);
+			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, cargoRow);
 			cargoRowCount=1;
 		}
 		
@@ -1170,18 +1180,18 @@ for (unsigned i=0;i<amount;i++)
 		// Passengers Manifest
 		manifestCount = [passengerManifest count];
 		
-		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-passengers-d-d"), manifestCount, max_passengers]) , yellowColor, passengersRow - 1);
+		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-passengers-d-d"), manifestCount, max_passengers]) , entryColor, passengersRow - 1);
 
 		if (manifestCount > 0)
 		{
 			for (i = 0; i < manifestCount; i++)
 			{
-				SET_MANIFEST_ROW( ((NSString*)[passengerManifest objectAtIndex:i]) , greenColor, passengersRow + i);
+				SET_MANIFEST_ROW( ((NSString*)[passengerManifest objectAtIndex:i]) , subheadColor, passengersRow + i);
 			}
 		}
 		else
 		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), greenColor, passengersRow);
+			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, passengersRow);
 			manifestCount = 1;
 		}
 
@@ -1190,18 +1200,18 @@ for (unsigned i=0;i<amount;i++)
 		// Parcels Manifest
 		manifestCount = [parcelManifest count];
 		
-		SET_MANIFEST_ROW( (DESC(@"manifest-parcels")) , yellowColor, parcelsRow - 1);
+		SET_MANIFEST_ROW( (DESC(@"manifest-parcels")) , entryColor, parcelsRow - 1);
 
 		if (manifestCount > 0)
 		{
 			for (i = 0; i < manifestCount; i++)
 			{
-				SET_MANIFEST_ROW( ((NSString*)[parcelManifest objectAtIndex:i]) , greenColor, parcelsRow + i);
+				SET_MANIFEST_ROW( ((NSString*)[parcelManifest objectAtIndex:i]) , subheadColor, parcelsRow + i);
 			}
 		}
 		else
 		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), greenColor, parcelsRow);
+			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, parcelsRow);
 			manifestCount = 1;
 		}
 
@@ -1210,18 +1220,18 @@ for (unsigned i=0;i<amount;i++)
 		
 		// Contracts Manifest
 		manifestCount = [contractManifest count];
-		SET_MANIFEST_ROW( (DESC(@"manifest-contracts")) , yellowColor, contractsRow - 1);
+		SET_MANIFEST_ROW( (DESC(@"manifest-contracts")) , entryColor, contractsRow - 1);
 			
 		if (manifestCount > 0)
 		{
 			for (i = 0; i < manifestCount; i++)
 			{
-				SET_MANIFEST_ROW( ((NSString*)[contractManifest objectAtIndex:i]) , greenColor, contractsRow + i);
+				SET_MANIFEST_ROW( ((NSString*)[contractManifest objectAtIndex:i]) , subheadColor, contractsRow + i);
 			}
 		}
 		else
 		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), greenColor, contractsRow);
+			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, contractsRow);
 			manifestCount = 1;
 		}
 
@@ -1236,7 +1246,7 @@ for (unsigned i=0;i<amount;i++)
 			{
 				// then there's at least one without its own heading
 				// to go under the generic 'missions' heading
-				SET_MANIFEST_ROW( (DESC(@"manifest-missions")) , yellowColor, missionsRow - 1);
+				SET_MANIFEST_ROW( (DESC(@"manifest-missions")) , entryColor, missionsRow - 1);
 			}
 			else
 			{
@@ -1251,7 +1261,7 @@ for (unsigned i=0;i<amount;i++)
 				if ([mmEntry isKindOfClass:[NSString class]])
 				{
 					mmItem = [NSString stringWithFormat:@"\t%@",(NSString *)mmEntry];
-					SET_MANIFEST_ROW( (mmItem) , greenColor, missionsRow + mmRow);
+					SET_MANIFEST_ROW( (mmItem) , subheadColor, missionsRow + mmRow);
 					++mmRow;
 				}
 				else if ([mmEntry isKindOfClass:[NSArray class]])
@@ -1261,12 +1271,12 @@ for (unsigned i=0;i<amount;i++)
 					{
 						if (isHeading)
 						{
-							SET_MANIFEST_ROW( ((NSString *)mmItem) , yellowColor , missionsRow + mmRow);
+							SET_MANIFEST_ROW( ((NSString *)mmItem) , entryColor , missionsRow + mmRow);
 						}
 						else
 						{
 							mmItem = [NSString stringWithFormat:@"\t%@",(NSString *)mmItem];
-							SET_MANIFEST_ROW( ((NSString *)mmItem) , greenColor , missionsRow + mmRow);
+							SET_MANIFEST_ROW( ((NSString *)mmItem) , subheadColor , missionsRow + mmRow);
 						}
 						isHeading = NO;
 						++mmRow;
@@ -1278,7 +1288,7 @@ for (unsigned i=0;i<amount;i++)
 /*		if (missions_row + manifest_count >= max_rows )
 		{
 			[gui setText:@" . . ."				forRow:max_rows];
-			[gui setColor:[OOColor greenColor]	forRow:max_rows];
+			[gui setColor:[OOColor subheadColor]	forRow:max_rows];
 			} */
 		if (multi_page)
 		{
@@ -1286,24 +1296,24 @@ for (unsigned i=0;i<amount;i++)
 			OOGUIRow r_end = MANIFEST_SCREEN_ROW_NEXT;
 			if (page_offset > 0)
 			{
-				[gui setColor:[OOColor greenColor] forRow:MANIFEST_SCREEN_ROW_BACK];
+				[gui setColor:scrollColor forRow:MANIFEST_SCREEN_ROW_BACK];
 				[gui setKey:GUI_KEY_OK forRow:MANIFEST_SCREEN_ROW_BACK];
 			}
 			else
 			{
-				[gui setColor:[OOColor darkGrayColor] forRow:MANIFEST_SCREEN_ROW_BACK];
+				[gui setColor:noScrollColor forRow:MANIFEST_SCREEN_ROW_BACK];
 				r_start = MANIFEST_SCREEN_ROW_NEXT;
 			}
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ",nil] forRow:MANIFEST_SCREEN_ROW_BACK];
 
 			if (total_rows > max_rows + page_offset)
 			{
-				[gui setColor:[OOColor greenColor] forRow:MANIFEST_SCREEN_ROW_NEXT];
+				[gui setColor:scrollColor forRow:MANIFEST_SCREEN_ROW_NEXT];
 				[gui setKey:GUI_KEY_OK forRow:MANIFEST_SCREEN_ROW_NEXT];
 			}
 			else
 			{
-				[gui setColor:[OOColor darkGrayColor] forRow:MANIFEST_SCREEN_ROW_NEXT];
+				[gui setColor:noScrollColor forRow:MANIFEST_SCREEN_ROW_NEXT];
 				r_end = MANIFEST_SCREEN_ROW_BACK;
 			}
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ",nil] forRow:MANIFEST_SCREEN_ROW_NEXT];

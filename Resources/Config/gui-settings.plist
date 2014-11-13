@@ -49,6 +49,21 @@
 	/* the tab spacing on the status page */
 	// "status_tabs" = (20,160,290);
 
+	/* the colour of sub-headings on the manifest page */
+	// "manifest_subhead_color" = "greenColor";
+
+	/* the colour of entries on the manifest page */
+	// "manifest_entry_color" = "yellowColor";
+
+	/* the colour of back/next controls on the manifest page */
+	// "manifest_scroll_color" = "greenColor";
+
+	/* the colour of disabled back/next controls on the manifest page */
+	// "manifest_no_scroll_color" = "darkGrayColor";
+
+	/* the tab stops for the manifest (cargo display) */
+	// "manifest_tabs" = (20,256);
+
 	/* scale of name labels on F6 chart relative to Oolite default size */
 	// "chart_label_scale" = 1.0;
 

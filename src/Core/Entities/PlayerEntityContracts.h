@@ -60,9 +60,6 @@ MA 02110-1301, USA.
 
 #define MAX_ROWS_SHIPS_FOR_SALE		12
 
-// only use within setGuiToManifestScreen
-#define SET_MANIFEST_ROW(obj,color,row) ([self setManifestScreenRow:obj inColor:[OOColor color] forRow:row ofRows:max_rows andOffset:page_offset inMultipage:multi_page])
-
 @interface PlayerEntity (Contracts)
 
 - (NSString *) processEscapePods;		// removes pods from cargo bay and treats categories of characters carried
