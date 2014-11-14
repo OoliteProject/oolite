@@ -374,7 +374,6 @@ static BOOL _refreshStarChart = NO;
 - (OOColor *) colorFromSetting:(NSString *)setting defaultValue:(OOColor *)def
 {
 	OOColor *col = [OOColor colorWithDescription:[guiUserSettings objectForKey:setting]];
-	OOLog(@"col.debug",@"%@ = %@ => %@",setting,col,def);
 	if (col == nil) {
 		if (def != nil) {
 			col = def;
