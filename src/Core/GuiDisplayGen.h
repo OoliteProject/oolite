@@ -104,6 +104,18 @@ static NSString * const kGuiChartTechColor			= @"chart_tech_color";
 static NSString * const kGuiSystemdataFactsColor		= @"systemdata_facts_color";
 static NSString * const kGuiSystemdataDescriptionColor	= @"systemdata_description_color";
 static NSString * const kGuiSystemdataTabs			= @"systemdata_tabs";
+// F8
+static NSString * const kGuiMarketHeadingColor		= @"market_heading_color";
+static NSString * const kGuiMarketCommodityColor	= @"market_commodity_color";
+static NSString * const kGuiMarketScrollColor		= @"market_scroll_color";
+static NSString * const kGuiMarketFilteredAllColor	= @"market_filtered_all_color";
+static NSString * const kGuiMarketFilterInfoColor	= @"market_filter_info_color";
+static NSString * const kGuiMarketCashColor			= @"market_cash_color";
+// F8 F8 extras
+static NSString * const kGuiMarketContractedColor	= @"market_contracted_color";
+static NSString * const kGuiMarketDescriptionColor	= @"market_description_color";
+
+static NSString * const kGuiMarketTabs				= @"market_tabs";
 
 
 @class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
@@ -238,7 +250,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setSelectableRange:(NSRange) range;
 
 - (void) setTabStops:(OOGUITabSettings)stops;
-- (void) overrideTabs:(OOGUITabSettings)stops from:(NSArray *)override length:(NSUInteger)len;
+- (void) overrideTabs:(OOGUITabSettings)stops from:(NSString *)setting length:(NSUInteger)len;
 
 
 - (void) clear;

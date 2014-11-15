@@ -1143,8 +1143,7 @@ for (unsigned i=0;i<amount;i++)
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 20;
 		tab_stops[1] = 256;
-		NSArray *manifestTabs = [[gui userSettings] oo_arrayForKey:kGuiManifestTabs defaultValue:nil];
-		[gui overrideTabs:tab_stops from:manifestTabs length:2];
+		[gui overrideTabs:tab_stops from:kGuiManifestTabs length:2];
 		[gui setTabStops:tab_stops];
 		
 		// Cargo Manifest

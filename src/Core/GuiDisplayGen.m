@@ -583,8 +583,9 @@ static BOOL _refreshStarChart = NO;
 	if (stops != NULL)  memmove(tabStops, stops, sizeof tabStops);
 }
 
-- (void) overrideTabs:(OOGUITabSettings)stops from:(NSArray *)override length:(NSUInteger)len
+- (void) overrideTabs:(OOGUITabSettings)stops from:(NSString *)setting length:(NSUInteger)len
 {
+	NSArray *override = [guiUserSettings oo_arrayForKey:setting defaultValue:nil];
 	NSUInteger i;
 	if (stops != NULL && override != nil)
 	{
@@ -2017,11 +2018,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	
 	OOGUITabSettings tab_stops;
-	NSArray *travelTimeTabs = [guiUserSettings oo_arrayForKey:kGuiChartTraveltimeTabs defaultValue:nil];
 	tab_stops[0] = 0;
 	tab_stops[1] = 96;
 	tab_stops[2] = 288;
-	[self overrideTabs:tab_stops from:travelTimeTabs length:3];
+	[self overrideTabs:tab_stops from:kGuiChartTraveltimeTabs length:3];
 	[self setTabStops:tab_stops];
 	targetName = [[UNIVERSE getSystemName:target] retain];
 
@@ -2255,11 +2255,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	
 	OOGUITabSettings tab_stops;
-	NSArray *travelTimeTabs = [guiUserSettings oo_arrayForKey:kGuiChartTraveltimeTabs defaultValue:nil];
 	tab_stops[0] = 0;
 	tab_stops[1] = 96;
 	tab_stops[2] = 288;
-	[self overrideTabs:tab_stops from:travelTimeTabs length:3];
+	[self overrideTabs:tab_stops from:kGuiChartTraveltimeTabs length:3];
 	[self setTabStops:tab_stops];
 	NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER targetSystemID]] retain];
 

@@ -28,6 +28,7 @@
 	/* the text input cursor colour */
 	// "text_input_cursor_color" = "redColor";
 
+
 	/* the ship name on the F5 screen */
 	// "status_shipname_color" = "yellowColor";
 
@@ -49,6 +50,7 @@
 	/* the tab spacing on the status page */
 	// "status_tabs" = (20,160,290);
 
+
 	/* the colour of sub-headings on the manifest page */
 	// "manifest_subhead_color" = "greenColor";
 
@@ -63,6 +65,7 @@
 
 	/* the tab stops for the manifest (cargo display) */
 	// "manifest_tabs" = (20,256);
+
 
 	/* scale of name labels on F6 chart relative to Oolite default size */
 	// "chart_label_scale" = 1.0;
@@ -125,6 +128,7 @@
 	/* tab stops for chart travel time text line */
 	// "chart_traveltime_tabs" = (0,96,288);
 
+
 	/* colour of system data facts lines */
 	// "systemdata_facts_color" = "yellowColor";
 
@@ -133,6 +137,35 @@
 
 	/* tab stops for system data screen */
 	// "systemdata_tabs" = (0,96,144);
+	
+
+	/* colour for market screen column headings */
+	// "market_heading_color" = "greenColor";
+
+	/* colour for market screen commodity lines */
+	// "market_commodity_color" = "yellowColor";	
+
+	/* colour for market screen scroll indicators */
+	// "market_scroll_color" = "greenColor";
+
+	/* colour for market screen 'all goods filtered' message */
+	// "market_filtered_all_color" = "yellowColor";
+
+	/* colour for market screen filter/sort status*/
+	// "market_filter_info_color" = "greenColor";
+
+	/* colour for market screen cash/hold status*/
+	// "market_cash_color" = "yellowColor";
+
+	/* colour for market carrying contract status*/
+	// "market_contracted_color" = "yellowColor";
+
+	/* colour for market good description text */
+	// "market_description_color" = "yellowColor";
+
+	/* tab stops for market screen */
+	// "market_tabs" = (0,137,187,267,321,431);
+
 	
 
 

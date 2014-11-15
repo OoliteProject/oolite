@@ -7225,11 +7225,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		
 		OOGUIRow			i;
 		OOGUITabSettings 	tab_stops;
-		NSArray *statusTabs = [[gui userSettings] oo_arrayForKey:kGuiStatusTabs defaultValue:nil];
 		tab_stops[0] = 20;
 		tab_stops[1] = 160;
 		tab_stops[2] = 290;
-		[gui overrideTabs:tab_stops from:statusTabs length:3];
+		[gui overrideTabs:tab_stops from:kGuiStatusTabs length:3];
 		OOLog(@"tab.stops",@"%d %d %d",tab_stops[0],tab_stops[1],tab_stops[2]);
 		[gui setTabStops:tab_stops];
 		
@@ -7663,8 +7662,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		tab_stops[0] = 0;
 		tab_stops[1] = 96;
 		tab_stops[2] = 144;
-		NSArray *systemdataTabStops = [[gui userSettings] oo_arrayForKey:kGuiSystemdataTabs defaultValue:nil];
-		[gui overrideTabs:tab_stops from:systemdataTabStops length:3];
+		[gui overrideTabs:tab_stops from:kGuiSystemdataTabs length:3];
 		[gui setTabStops:tab_stops];
 		
 		int techlevel =		[targetSystemData oo_intForKey:KEY_TECHLEVEL];
@@ -9828,19 +9826,15 @@ static NSString *last_outfitting_key=nil;
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	OOGUITabSettings tab_stops;
 	tab_stops[0] = 0;
-/*	tab_stops[1] = 137;
-	tab_stops[2] = 217;
-	tab_stops[3] = 271;
-	tab_stops[4] = 381;
-	tab_stops[5] = 431; */
 	tab_stops[1] = 137; 
 	tab_stops[2] = 187;
 	tab_stops[3] = 267;
 	tab_stops[4] = 321;
 	tab_stops[5] = 431;
+	[gui overrideTabs:tab_stops from:kGuiMarketTabs length:6];
 	[gui setTabStops:tab_stops];
 	
-	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
+	[gui setColor:[gui colorFromSetting:kGuiMarketHeadingColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_MARKET_KEY];
 	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), OOPadStringToEms(DESC(@"price-column-title"),3.5),
 						   OOPadStringToEms(DESC(@"for-sale-column-title"),3.75), OOPadStringToEms(DESC(@"in-hold-column-title"),5.75), DESC(@"oolite-legality-column-title"), DESC(@"oolite-extras-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
 	[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), DESC(@"oolite-extras-column-title"), OOPadStringToEms(DESC(@"price-column-title"),3.5),
@@ -9900,6 +9894,7 @@ static NSString *last_outfitting_key=nil;
 	NSString *extradesc = [shipCommodityData shortCommentForGood:good];
 
 	[gui setKey:good forRow:row];
+	[gui setColor:[gui colorFromSetting:kGuiMarketCommodityColor defaultValue:nil] forRow:row];
 	[gui setArray:[NSArray arrayWithObjects: desc, extradesc, price, units_available, units_owned, legaldesc,  nil] forRow:row++];
 
 }
@@ -10046,7 +10041,7 @@ static NSString *last_outfitting_key=nil;
 					active_row = GUI_ROW_MARKET_LAST;
 				}
 				[gui setKey:@">>>" forRow:GUI_ROW_MARKET_LAST];
-				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_LAST];
+				[gui setColor:[gui colorFromSetting:kGuiMarketScrollColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_MARKET_LAST];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @"", @"", @" --> ", nil] forRow:GUI_ROW_MARKET_LAST];
 			}
 			if (marketOffset > 0)
@@ -10056,13 +10051,14 @@ static NSString *last_outfitting_key=nil;
 					active_row = GUI_ROW_MARKET_START;
 				}
 				[gui setKey:@"<<<" forRow:GUI_ROW_MARKET_START];
-				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_START];
+				[gui setColor:[gui colorFromSetting:kGuiMarketScrollColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_MARKET_START];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @"", @"", @" <-- ", nil] forRow:GUI_ROW_MARKET_START];
 			}
 		}
 		else
 		{
 			// filter is excluding everything
+			[gui setColor:[gui colorFromSetting:kGuiMarketFilteredAllColor defaultValue:[OOColor yellowColor]] forRow:GUI_ROW_MARKET_START];
 			[gui setText:DESC(@"oolite-market-filtered-all") forRow:GUI_ROW_MARKET_START];
 			active_row = -1;
 		}
@@ -10076,10 +10072,11 @@ static NSString *last_outfitting_key=nil;
 		NSString *sorterText = [NSString stringWithFormat:@"%@ %@",OOExpand(@"[oolite-market-sorter-line]"), OOExpand([NSString stringWithFormat:@"[oolite-market-sorter-%u]",marketSorterMode])];
 		[gui setArray:[NSArray arrayWithObjects:filterText, @"", sorterText, nil] forRow:GUI_ROW_MARKET_END];
 
-		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_END];
+		[gui setColor:[gui colorFromSetting:kGuiMarketFilterInfoColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_MARKET_END];
 
 
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setColor:[gui colorFromSetting:kGuiMarketCashColor defaultValue:[OOColor yellowColor]] forRow:GUI_ROW_MARKET_CASH];
 		
 		[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
 		[gui setSelectedRow:active_row];
@@ -10166,19 +10163,26 @@ static NSString *last_outfitting_key=nil;
 		if (contracted > 0)
 		{
 			OOMassUnit unit = [shipCommodityData massUnitForGood:marketSelectedCommodity];
+			[gui setColor:[gui colorFromSetting:kGuiMarketContractedColor defaultValue:nil] forRow:GUI_ROW_MARKET_START+1];
 			[gui setText:[NSString stringWithFormat:DESC(@"oolite-commodity-contracted-d-@"), contracted, DisplayStringForMassUnit(unit)] forRow:GUI_ROW_MARKET_START+1];
 		}
 
 		NSString *info = [shipCommodityData commentForGood:marketSelectedCommodity];
+		OOGUIRow i = 0;
 		if (info == nil || [info length] == 0)
 		{
-			[gui addLongText:DESC(@"oolite-commodity-no-comment") startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+			i = [gui addLongText:DESC(@"oolite-commodity-no-comment") startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
 		}
 		else
 		{
-			[gui addLongText:info startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+			i = [gui addLongText:info startingAtRow:GUI_ROW_MARKET_START+2 align:GUI_ALIGN_LEFT];
+		}
+		for (i-- ; i > GUI_ROW_MARKET_START+2 ; --i)
+		{
+			[gui setColor:[gui colorFromSetting:kGuiMarketDescriptionColor defaultValue:nil] forRow:i];
 		}
 
+		[gui setColor:[gui colorFromSetting:kGuiMarketCashColor defaultValue:[OOColor yellowColor]] forRow:GUI_ROW_MARKET_CASH];
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
 
 	}
