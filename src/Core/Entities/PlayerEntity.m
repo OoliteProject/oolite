@@ -8687,6 +8687,7 @@ static NSString *last_outfitting_key=nil;
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = -480;
+		[gui overrideTabs:tab_stops from:kGuiInterfaceTabs length:2];
 		[gui setTabStops:tab_stops];
 		
 		unsigned n_rows = GUI_MAX_ROWS_INTERFACES;
@@ -8712,7 +8713,7 @@ static NSString *last_outfitting_key=nil;
 				}
 				
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
-				[gui setColor:[OOColor greenColor] forRow:row];
+				[gui setColor:[gui colorFromSetting:kGuiInterfaceScrollColor defaultValue:[OOColor greenColor]] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				row++;
 			}
@@ -8722,6 +8723,7 @@ static NSString *last_outfitting_key=nil;
 				NSString *interfaceKey = [interfaceKeys objectAtIndex:i];
 				OOJSInterfaceDefinition *definition = [interfaces objectForKey:interfaceKey];
 
+				[gui setColor:[gui colorFromSetting:kGuiInterfaceEntryColor defaultValue:nil] forRow:row];
 				[gui setKey:interfaceKey forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:[definition title],[definition category], nil] forRow:row];
 
@@ -8731,7 +8733,7 @@ static NSString *last_outfitting_key=nil;
 			if (i < (NSInteger)count)
 			{
 				// just overwrite the last item :-)
-				[gui setColor:[OOColor greenColor] forRow:row - 1];
+				[gui setColor:[gui colorFromSetting:kGuiInterfaceScrollColor defaultValue:[OOColor greenColor]] forRow:row - 1];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row - 1];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", i - 1] forRow:row - 1];
 			}
@@ -8748,7 +8750,7 @@ static NSString *last_outfitting_key=nil;
 		else
 		{
 			[gui setText:DESC(@"interfaces-no-interfaces-available-for-use") forRow:GUI_ROW_NO_INTERFACES align:GUI_ALIGN_LEFT];
-			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_INTERFACES];
+			[gui setColor:[gui colorFromSetting:kGuiInterfaceNoneColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_NO_INTERFACES];
 			
 			[gui setSelectableRange:NSMakeRange(0,0)];
 			[gui setNoSelectedRow];
@@ -8758,7 +8760,7 @@ static NSString *last_outfitting_key=nil;
 		[gui setShowTextCursor:NO];
 
 		NSString *desc = [NSString stringWithFormat:DESC(@"interfaces-for-ship-@-and-station-@"), [self displayName], [[self dockedStation] displayName]];
-		[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_INTERFACES_HEADING];
+		[gui setColor:[gui colorFromSetting:kGuiInterfaceHeadingColor defaultValue:nil] forRow:GUI_ROW_INTERFACES_HEADING];
 		[gui setText:desc forRow:GUI_ROW_INTERFACES_HEADING];
 
 		
@@ -8794,7 +8796,7 @@ static NSString *last_outfitting_key=nil;
 	for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++)
 	{
 		[gui setText:@"" forRow:i];
-		[gui setColor:[OOColor greenColor] forRow:i];
+		[gui setColor:[gui colorFromSetting:kGuiInterfaceDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
 	}
 	
 	if (interfaceKey && ![interfaceKey hasPrefix:@"More:"])

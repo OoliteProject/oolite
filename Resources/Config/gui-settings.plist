@@ -57,6 +57,25 @@
 	// "equipment_tabs" = (0,-360,-480)
 
 
+	/* Interfaces heading colour */
+	// "interface_heading_color" = "yellowColor";
+
+	/* Interfaces scroll colour */
+	// "interface_scroll_color" = "greenColor";
+
+	/* Interfaces entry colour */
+	// "interface_entry_color" = "yellowColor";
+
+	/* Interfaces entry description colour */
+	// "interface_description_color" = "greenColor";
+
+	/* Interfaces none available message colour */
+	// "interface_none_color" = "greenColor";
+
+	/* Interfaces tab settings */
+	// "interface_tabs" = (0,-480);
+
+
 	/* Shipyard screen column headings */
 	// "shipyard_heading_color" = "greenColor";
 

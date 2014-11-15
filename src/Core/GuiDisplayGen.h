@@ -87,6 +87,13 @@ static NSString * const kGuiShipyardNoshipColor		= @"shipyard_noship_color";
 static NSString * const kGuiShipyardTradeinColor	= @"shipyard_tradein_color";
 static NSString * const kGuiShipyardDescriptionColor	= @"shipyard_description_color";
 static NSString * const kGuiShipyardTabs			= @"shipyard_tabs";
+// F4
+static NSString * const kGuiInterfaceHeadingColor	= @"interface_heading_color";
+static NSString * const kGuiInterfaceScrollColor	= @"interface_scroll_color";
+static NSString * const kGuiInterfaceEntryColor		= @"interface_entry_color";
+static NSString * const kGuiInterfaceDescriptionColor	= @"interface_description_color";
+static NSString * const kGuiInterfaceNoneColor		= @"interface_none_color";
+static NSString * const kGuiInterfaceTabs			= @"interface_tabs";
 // F5
 static NSString * const kGuiStatusShipnameColor		= @"status_shipname_color";
 static NSString * const kGuiStatusDataColor			= @"status_data_color";
