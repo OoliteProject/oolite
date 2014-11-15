@@ -79,6 +79,14 @@ static NSString * const kGuiEquipmentDescriptionColor	= @"equipment_description_
 static NSString * const kGuiEquipmentLaserColor		= @"equipment_laser_color";
 static NSString * const kGuiEquipmentLaserFittedColor	= @"equipment_laser_fitted_color";
 static NSString * const kGuiEquipmentTabs			= @"equipment_tabs";
+// F3 F3
+static NSString * const kGuiShipyardHeadingColor	= @"shipyard_heading_color";
+static NSString * const kGuiShipyardScrollColor		= @"shipyard_scroll_color";
+static NSString * const kGuiShipyardEntryColor		= @"shipyard_entry_color";
+static NSString * const kGuiShipyardNoshipColor		= @"shipyard_noship_color";
+static NSString * const kGuiShipyardTradeinColor	= @"shipyard_tradein_color";
+static NSString * const kGuiShipyardDescriptionColor	= @"shipyard_description_color";
+static NSString * const kGuiShipyardTabs			= @"shipyard_tabs";
 // F5
 static NSString * const kGuiStatusShipnameColor		= @"status_shipname_color";
 static NSString * const kGuiStatusDataColor			= @"status_data_color";

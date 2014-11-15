@@ -56,6 +56,29 @@
 	/* Tab settings for equip ship screen */
 	// "equipment_tabs" = (0,-360,-480)
 
+
+	/* Shipyard screen column headings */
+	// "shipyard_heading_color" = "greenColor";
+
+	/* Shipyard screen scroll text */
+	// "shipyard_scroll_color" = "greenColor";
+
+	/* Shipyard screen entries */
+	// "shipyard_entry_color" = "yellowColor";
+
+	/* Shipyard screen no ships message */
+	// "shipyard_noship_color" = "greenColor";
+
+	/* Shipyard screen trade in information */
+	// "shipyard_tradein_color" = "yellowColor";
+
+	/* Shipyard screen ship descriptions */
+	// "shipyard_description_color" = "greenColor";
+
+	/* Shipyard screen tabs */
+	// "shipyard_tabs" = (0,-258,270,370,450);
+
+
 	/* the ship name on the F5 screen */
 	// "status_shipname_color" = "yellowColor";
 

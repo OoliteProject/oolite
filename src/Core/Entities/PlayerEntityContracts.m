@@ -1500,6 +1500,7 @@ static NSMutableDictionary *currentShipyard = nil;
 		tab_stops[2] = 270;
 		tab_stops[3] = 370;
 		tab_stops[4] = 450;
+		[gui overrideTabs:tab_stops from:kGuiShipyardTabs length:5];
 		[gui setTabStops:tab_stops];
 		
 		int rowCount = MAX_ROWS_SHIPS_FOR_SALE;
@@ -1524,13 +1525,13 @@ static NSMutableDictionary *currentShipyard = nil;
 		
 		if (shipCount > 0)
 		{
-			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_LABELS];
+			[gui setColor:[gui colorFromSetting:kGuiShipyardHeadingColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_SHIPYARD_LABELS];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"shipyard-shiptype"), DESC(@"shipyard-price"),
 					DESC(@"shipyard-cargo"), DESC(@"shipyard-speed"), nil] forRow:GUI_ROW_SHIPYARD_LABELS];
 
 			if (skip > 0)
 			{
-				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_START];
+				[gui setColor:[gui colorFromSetting:kGuiShipyardScrollColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_SHIPYARD_START];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_SHIPYARD_START];
 				[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_SHIPYARD_START];
 			}
@@ -1538,7 +1539,7 @@ static NSMutableDictionary *currentShipyard = nil;
 			{
 				NSDictionary* ship_info = [shipyard oo_dictionaryAtIndex:i + skip];
 				OOCreditsQuantity ship_price = [ship_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
-				[gui setColor:[OOColor yellowColor] forRow:startRow + i];
+				[gui setColor:[gui colorFromSetting:kGuiShipyardEntryColor defaultValue:nil] forRow:startRow + i];
 				[gui setArray:[NSArray arrayWithObjects:
 						[NSString stringWithFormat:@" %@ ",[[ship_info oo_dictionaryForKey:SHIPYARD_KEY_SHIP] oo_stringForKey:@"display_name" defaultValue:[[ship_info oo_dictionaryForKey:SHIPYARD_KEY_SHIP] oo_stringForKey:KEY_NAME]]],
 						OOIntCredits(ship_price),
@@ -1548,7 +1549,7 @@ static NSMutableDictionary *currentShipyard = nil;
 			}
 			if (i < shipCount - skip)
 			{
-				[gui setColor:[OOColor greenColor] forRow:startRow + i];
+				[gui setColor:[gui colorFromSetting:kGuiShipyardScrollColor defaultValue:[OOColor greenColor]] forRow:startRow + i];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:startRow + i];
 				[gui setKey:[NSString stringWithFormat:@"More:%ld", rowCount + skip] forRow:startRow + i];
 				i++;
@@ -1560,7 +1561,7 @@ static NSMutableDictionary *currentShipyard = nil;
 		else
 		{
 			[gui setText:DESC(@"shipyard-no-ships-available-for-purchase") forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
-			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_SHIPS];
+			[gui setColor:[gui colorFromSetting:kGuiShipyardNoshipColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_NO_SHIPS];
 			
 			[gui setNoSelectedRow];
 		}
@@ -1607,7 +1608,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH - 1; i++)
 	{
 		[gui setText:@"" forRow:i];
-		[gui setColor:[OOColor greenColor] forRow:i];
+		[gui setColor:[gui colorFromSetting:kGuiShipyardDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
 	}
 	[UNIVERSE removeDemoShips];
 
@@ -1643,8 +1644,8 @@ static NSMutableDictionary *currentShipyard = nil;
 		i = [gui addLongText:salesPitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT];
 		if (i - 1 >= GUI_ROW_MARKET_CASH - 1)
 		{
-			[gui setColor:[OOColor greenColor] forRow:i - 1];
-			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_CASH - 1];
+			[gui setColor:[gui colorFromSetting:kGuiShipyardDescriptionColor defaultValue:[OOColor greenColor]] forRow:i - 1];
+			[gui setColor:[gui colorFromSetting:kGuiShipyardDescriptionColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_MARKET_CASH - 1];
 		}
 		
 		// now display the ship
@@ -1667,8 +1668,8 @@ static NSMutableDictionary *currentShipyard = nil;
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	OOCreditsQuantity tradeIn = [self tradeInValue];
-	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH - 1];
-	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH];
+	[gui setColor:[gui colorFromSetting:kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH - 1];
+	[gui setColor:[gui colorFromSetting:kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];
 	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH - 1];
 	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH];
 }
