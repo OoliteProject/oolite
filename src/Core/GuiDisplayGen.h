@@ -69,6 +69,16 @@ static NSString * const kGuiScreenDividerColor		= @"screen_divider_color";
 static NSString * const kGuiSelectedRowBackgroundColor	= @"selected_row_background_color";
 static NSString * const kGuiSelectedRowColor		= @"selected_row_color";
 static NSString * const kGuiTextInputCursorColor	= @"text_input_cursor_color";
+// F3
+static NSString * const kGuiEquipmentCashColor		= @"equipment_cash_color";
+static NSString * const kGuiEquipmentUnavailableColor	= @"equipment_unavailable_color";
+static NSString * const kGuiEquipmentScrollColor	= @"equipment_scroll_color";
+static NSString * const kGuiEquipmentOptionColor	= @"equipment_option_color";
+static NSString * const kGuiEquipmentRepairColor	= @"equipment_repair_color";
+static NSString * const kGuiEquipmentDescriptionColor	= @"equipment_description_color";
+static NSString * const kGuiEquipmentLaserColor		= @"equipment_laser_color";
+static NSString * const kGuiEquipmentLaserFittedColor	= @"equipment_laser_fitted_color";
+static NSString * const kGuiEquipmentTabs			= @"equipment_tabs";
 // F5
 static NSString * const kGuiStatusShipnameColor		= @"status_shipname_color";
 static NSString * const kGuiStatusDataColor			= @"status_data_color";

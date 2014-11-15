@@ -8394,12 +8394,14 @@ static NSString *last_outfitting_key=nil;
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"equip-title")];
 		
+		[gui setColor:[gui colorFromSetting:kGuiEquipmentCashColor defaultValue:nil] forRow: GUI_ROW_EQUIPMENT_CASH];
 		[gui setText:[NSString stringWithFormat:DESC(@"equip-cash-@"), OOCredits(credits)]  forRow: GUI_ROW_EQUIPMENT_CASH];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
 		tab_stops[1] = -360;
 		tab_stops[2] = -480;
+		[gui overrideTabs:tab_stops from:kGuiEquipmentTabs length:3];
 		[gui setTabStops:tab_stops];
 		
 		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
@@ -8430,7 +8432,7 @@ static NSString *last_outfitting_key=nil;
 				{
 					[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				}
-				[gui setColor:[OOColor greenColor] forRow:row];
+				[gui setColor:[gui colorFromSetting:kGuiEquipmentScrollColor defaultValue:[OOColor greenColor]] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @"", @" <-- ", nil] forRow:row];
 				row++;
 			}
@@ -8444,6 +8446,8 @@ static NSString *last_outfitting_key=nil;
 				NSString			*eq_key_damaged	= [eqInfo damagedIdentifier];
 				double				price;
 				
+				[gui setColor:[gui colorFromSetting:kGuiEquipmentOptionColor defaultValue:nil] forRow:row];
+
 				if ([eqKey isEqual:@"EQ_FUEL"])
 				{
 					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit * [self fuelChargeRate];
@@ -8451,9 +8455,12 @@ static NSString *last_outfitting_key=nil;
 				else if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 				{
 					price = [self renovationCosts];
-					[gui setColor:[OOColor orangeColor] forRow:row]; // color renovation in orange
+					[gui setColor:[gui colorFromSetting:kGuiEquipmentRepairColor defaultValue:[OOColor orangeColor]] forRow:row];
 				}
-				else price = pricePerUnit;
+				else
+				{
+					price = pricePerUnit;
+				}
 				
 				price *= priceFactor;  // increased prices at some stations
 				
@@ -8472,8 +8479,8 @@ static NSString *last_outfitting_key=nil;
 					{
 						installTime = 600 + price;
 					}
+					[gui setColor:[gui colorFromSetting:kGuiEquipmentRepairColor defaultValue:[OOColor orangeColor]] forRow:row];
 
-					[gui setColor:[OOColor orangeColor] forRow:row];	// color repair items in orange
 				}
 				
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
@@ -8517,11 +8524,11 @@ static NSString *last_outfitting_key=nil;
 						
 						if(weaponMounted)
 						{
-							[gui setColor:[OOColor colorWithRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+							[gui setColor:[gui colorFromSetting:kGuiEquipmentLaserFittedColor defaultValue:[OOColor colorWithRed:0.0f green:0.6f blue:0.0f alpha:1.0f]] forRow:row];
 						}
 						else
 						{
-							[gui setColor:[OOColor greenColor] forRow:row];
+							[gui setColor:[gui colorFromSetting:kGuiEquipmentLaserColor defaultValue:[OOColor greenColor]] forRow:row];
 						}
 						if (displayRow)	// Always true for the first pass. The first pass is used to display the name of the weapon being purchased.
 						{
@@ -8544,7 +8551,7 @@ static NSString *last_outfitting_key=nil;
 			if (i < count)
 			{
 				// just overwrite the last item :-)
-				[gui setColor:[OOColor greenColor] forRow:row - 1];
+				[gui setColor:[gui colorFromSetting:kGuiEquipmentScrollColor defaultValue:[OOColor greenColor]] forRow:row-1];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @"", @" --> ", nil] forRow:row - 1];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", i - 1] forRow:row - 1];
 			}
@@ -8567,7 +8574,7 @@ static NSString *last_outfitting_key=nil;
 		else
 		{
 			[gui setText:DESC(@"equip-no-equipment-available-for-purchase") forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
-			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_SHIPS];
+			[gui setColor:[gui colorFromSetting:kGuiEquipmentUnavailableColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_NO_SHIPS];
 			
 			[gui setSelectableRange:NSMakeRange(0,0)];
 			[gui setNoSelectedRow];
@@ -8622,11 +8629,12 @@ static NSString *last_outfitting_key=nil;
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	NSString* eqKey = [gui selectedRowKey];
 	int i;
-	
+
+	OOColor *descColor = [gui colorFromSetting:kGuiEquipmentDescriptionColor defaultValue:[OOColor greenColor]];
 	for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++)
 	{
 		[gui setText:@"" forRow:i];
-		[gui setColor:[OOColor greenColor] forRow:i];
+		[gui setColor:descColor forRow:i];
 	}
 	if (eqKey)
 	{
