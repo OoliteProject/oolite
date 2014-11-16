@@ -1096,7 +1096,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	for (i = EXITROW ; i < ENDROW + 1; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
-		[gui setColor: [OOColor yellowColor] forRow: i];
+//		[gui setColor: [OOColor yellowColor] forRow: i];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
 
@@ -1222,7 +1222,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];
 		return;
 	}
-	[gui setColor: [OOColor yellowColor] forRow: CDRDESCROW];
+	[gui setColor:[gui colorFromSetting:nil defaultValue:nil] forRow: CDRDESCROW];
 
 	if (![cdr oo_boolForKey:@"isSavedGame"])  return;	// don't show things that aren't saved games
 	

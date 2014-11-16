@@ -20,10 +20,10 @@
 	// "screen_divider_color" = "0.75 0.75 0.75";
 
 	/* the selected row background colour */
-	// "selected_row_background_color" = "greenColor";
+	// "selected_row_background_color" = "redColor";
 
 	/* the selected row text colour */
-	// "selected_row_color" = "yellowColor";
+	// "selected_row_color" = "blackColor";
 
 	/* the text input cursor colour */
 	// "text_input_cursor_color" = "redColor";
@@ -236,6 +236,13 @@
 	// "market_tabs" = (0,137,187,267,321,431);
 
 	
+	/* docking report screen report colour */
+	// "docking_report_color" = "yellowColor";
 
+	/* docking report screen cash/cargo summary colour */
+	// "docking_summary_color" = "yellowColor";
+
+	/* docking report screen continue colour */
+	// "docking_continue_color" = "yellowColor";
 
 }

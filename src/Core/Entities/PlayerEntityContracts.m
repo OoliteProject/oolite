@@ -1370,7 +1370,7 @@ for (unsigned i=0;i<amount;i++)
 	gui_screen = GUI_SCREEN_REPORT;
 	BOOL			guiChanged = (oldScreen != gui_screen);	
 	
-	OOGUIRow		text_row = 1;
+	OOGUIRow		i, text_row = 1;
 	
 	[dockingReport setString:[dockingReport stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
 	
@@ -1378,6 +1378,10 @@ for (unsigned i=0;i<amount;i++)
 	{
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:OOExpandKey(@"arrival-report-title")];
+		
+		for (i=1;i<=18;i++) {
+			[gui setColor:[gui colorFromSetting:kGuiDockingReportColor defaultValue:nil] forRow:21];
+		}
 		
 		// dockingReport might be a multi-line message
 		
@@ -1402,9 +1406,10 @@ for (unsigned i=0;i<amount;i++)
 		}
 		
 		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace], [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
-		
+		[gui setColor:[gui colorFromSetting:kGuiDockingSummaryColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];		
+
 		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor yellowColor] forRow:21];
+		[gui setColor:[gui colorFromSetting:kGuiDockingContinueColor defaultValue:nil] forRow:21];
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */

@@ -139,8 +139,12 @@ static NSString * const kGuiMarketCashColor			= @"market_cash_color";
 // F8 F8 extras
 static NSString * const kGuiMarketContractedColor	= @"market_contracted_color";
 static NSString * const kGuiMarketDescriptionColor	= @"market_description_color";
-
 static NSString * const kGuiMarketTabs				= @"market_tabs";
+// Docking report
+static NSString * const kGuiDockingReportColor		= @"docking_report_color";
+static NSString * const kGuiDockingSummaryColor		= @"docking_summary_color";
+static NSString * const kGuiDockingContinueColor	= @"docking_continue_color";
+
 
 
 @class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
