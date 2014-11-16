@@ -7321,11 +7321,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (NSArray *) equipmentList
 {
+	GuiDisplayGen		*gui = [UNIVERSE gui];
 	NSMutableArray		*quip1 = [NSMutableArray array]; // damaged
 	NSMutableArray		*quip2 = [NSMutableArray array]; // working
 	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
+
+	BOOL prioritiseDamaged = [[gui userSettings] oo_boolForKey:kGuiStatusPrioritiseDamaged defaultValue:YES];
 
 	for (eqTypeEnum = [OOEquipmentType reverseEquipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
@@ -7341,7 +7344,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
 				{
 					desc = [NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]];
-					[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+					
+					if (prioritiseDamaged) 
+					{
+						[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+					} 
+					else
+					{
+						// just add in to the normal array
+						[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+					}
 				}
 			}
 		}

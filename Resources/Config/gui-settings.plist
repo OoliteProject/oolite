@@ -119,6 +119,9 @@
 	/* the tab spacing on the status page */
 	// "status_tabs" = (20,160,290);
 
+	/* status screen sort damaged equipment first */
+	// "status_prioritise_damaged" = 1;
+	"status_prioritise_damaged" = 0;
 
 	/* the colour of sub-headings on the manifest page */
 	// "manifest_subhead_color" = "greenColor";
