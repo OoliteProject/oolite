@@ -2375,6 +2375,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
 	NSUInteger		i, j;
+	GLfloat lr,lg,lb,la;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
 	NSPoint			star = NSZeroPoint, 
@@ -2384,7 +2385,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
 	OOGalaxyID		g = [PLAYER galaxyNumber];
 
-	[self setGLColorFromSetting:kGuiChartConnectionColor defaultValue:[OOColor colorWithWhite:0.25 alpha:1.0] alpha:alpha];
+	OOColor *defaultConnectionColor = [self colorFromSetting:kGuiChartConnectionColor defaultValue:[OOColor colorWithWhite:0.25 alpha:1.0]];
+	OOColor *thisConnectionColor = nil;
 	
 	OOGLBEGIN(GL_LINES);
 	for (i = 0; i < 256; i++)
@@ -2401,6 +2403,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 			if (d <= MAX_JUMP_RANGE)	// another_commander - Default to 7.0 LY.
 			{
+				thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %d %d",g,i,j]]];
+				if (thisConnectionColor == nil)
+				{
+					thisConnectionColor = defaultConnectionColor;
+				}
+				[thisConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
+				OOGL(glColor4f(lr, lg, lb, la*alpha));
+
 				star2.x = (float)(star2abs.x * hscale);
 				star2.y = (float)(star2abs.y * vscale);
 				glVertex3f(x+star.x, y+star.y, z);
