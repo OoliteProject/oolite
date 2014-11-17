@@ -323,7 +323,7 @@ typedef enum
 	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
 	NSString				*primaryRole;				// "Main" role of the ship.
 
-	NSString 				*explosionType;				// explosion.plist entry
+	NSArray 				*explosionType;				// explosion.plist entries
 	
 	// AI stuff
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position

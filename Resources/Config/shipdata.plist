@@ -173,6 +173,7 @@
 		bounty = 1;
 		cargo_type = "CARGO_ALLOY";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark");
 		forward_weapon_type = "WEAPON_NONE";
 		heat_insulation = 0.2;
 		is_template = 1;
@@ -528,7 +529,7 @@
 		debris_role = "boulder";
 		density = 5;
 		energy_recharge_rate = 0;
-		explosion_type = "oolite-default-asteroid-explosion";
+		explosion_type = ("oolite-default-asteroid-explosion");
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -586,6 +587,7 @@
 		bounty = 1;
 		cargo_type = "CARGO_RANDOM";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark");
 		forward_weapon_type = "WEAPON_NONE";
 		heat_insulation = 0.3;
 		is_template = 1;
@@ -926,7 +928,7 @@
 		debris_role = "splinter";
 		density = 5;
 		energy_recharge_rate = 0;
-		explosion_type = "oolite-default-asteroid-explosion";
+		explosion_type = ("oolite-default-asteroid-explosion");
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -1945,6 +1947,7 @@
 			"2.60324 -1.47267 -2.7841 0.35 0.35 0.5",
 			"-2.60324 -1.47267 -2.7841 0.35 0.35 0.5"
 		);
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark","oolite-builtin-flash");
 		forward_weapon_type = "WEAPON_NONE";
 		hyperspace_motor = no;
 		is_template = 1;
@@ -2503,6 +2506,7 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
 		exhaust = ("0.0 0.32581 -9.87154 2.0 2.0 1.5");
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark","oolite-builtin-flash"); // not for detonation mode
 		forward_weapon_type = "WEAPON_NONE";
 		is_template = 1;
 		materials = 
@@ -3002,6 +3006,7 @@
 	{
 		ai_type = "oolite-qbombAI.js";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark","oolite-builtin-flash"); // for if it's shot down, not the Q-bomb!
 		is_template = 1;
 		max_energy = 10;
 		max_flight_pitch = 2;
@@ -3396,7 +3401,7 @@
 		bounty = 1;
 		cargo_type = "CARGO_MINERALS";
 		energy_recharge_rate = 0;
-		explosion_type = "oolite-default-asteroid-explosion";
+		explosion_type = ("oolite-default-asteroid-explosion");
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -3952,6 +3957,7 @@
 		ai_type = "nullAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-default-ship-explosion","oolite-fragment-explosion"); // no flash
 		forward_weapon_type = "WEAPON_NONE";
 		fragment_chance = 0.0;
 		is_template = 1;
@@ -4276,21 +4282,25 @@
 	"more-wreckage2" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-default-ship-explosion","oolite-fragment-explosion-b");
 		model = "wreck2.dat";
 	};
 	"more-wreckage3" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-default-ship-explosion");
 		model = "wreck3.dat";
 	};
 	"more-wreckage4" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-fragment-explosion");
 		model = "wreck4.dat";
 	};
 	"more-wreckage5" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-fragment-explosion-b");
 		model = "wreck5.dat";
 	};
 

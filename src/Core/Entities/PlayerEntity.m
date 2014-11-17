@@ -7229,7 +7229,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		tab_stops[1] = 160;
 		tab_stops[2] = 290;
 		[gui overrideTabs:tab_stops from:kGuiStatusTabs length:3];
-		OOLog(@"tab.stops",@"%d %d %d",tab_stops[0],tab_stops[1],tab_stops[2]);
 		[gui setTabStops:tab_stops];
 		
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");

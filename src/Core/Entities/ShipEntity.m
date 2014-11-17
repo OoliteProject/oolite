@@ -448,7 +448,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 
-	explosionType = [[shipDict oo_stringForKey:@"explosion_type" defaultValue:@"oolite-default-ship-explosion"] retain];
+	explosionType = [[shipDict oo_arrayForKey:@"explosion_type" defaultValue:nil] retain];
 	
 	return YES;
 	
@@ -8611,24 +8611,60 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			
 			if (add_debris)
 			{
-				if ([UNIVERSE reducedDetail] || (scanClass == CLASS_CARGO && ![self isHulk]) || scanClass == CLASS_MISSILE || scanClass == CLASS_MINE)
+				if ([UNIVERSE reducedDetail])
 				{
-					// "burst" explosion effect for small explosions
-					// and minimum detail
+					// Quick explosion effects for reduced detail mode
+					
 					// 1. fast sparks
 					[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
 					// 2. slow clouds
 					[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
+					// 3. flash
+					[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];
+					/* This mode used to be the default for
+					 * cargo/munitions but this now must be explicitly
+					 * specified. */
 				}
 				else
 				{
-					NSDictionary *explosion = [UNIVERSE explosionSetting:explosionType];
+					NSString *explosionKey = @"oolite-default-ship-explosion";
+					NSDictionary *explosion = nil;
+					if (explosionType == nil)
+					{
+						explosion = [UNIVERSE explosionSetting:explosionKey];
+						[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSettings:explosion]];
+						// 3. flash
+						[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];
+					}
+					for (NSUInteger i=0;i<[explosionType count];i++)
+					{
+						explosionKey = [explosionType oo_stringAtIndex:i defaultValue:nil];
+						if (explosionKey != nil)
+						{
+							// three special-case builtins
+							if ([explosionKey isEqualToString:@"oolite-builtin-flash"])
+							{
+								[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];
+							}
+							else if ([explosionKey isEqualToString:@"oolite-builtin-slowcloud"])
+							{
+								[UNIVERSE addEntity:[OOBigFragmentBurstEntity fragmentBurstFromEntity:self]];
+							}
+							else if ([explosionKey isEqualToString:@"oolite-builtin-fastspark"])
+							{
+								[UNIVERSE addEntity:[OOSmallFragmentBurstEntity fragmentBurstFromEntity:self]];
+							}
+							else
+							{
+								explosion = [UNIVERSE explosionSetting:explosionKey];
+								[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSettings:explosion]];
+							}
+						}
+					}
 					// "fireball" explosion effect
-					[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSettings:explosion]];								
+
 				}
 			}
-			// 3. flash
-			[UNIVERSE addEntity:[OOFlashEffectEntity explosionFlashFromEntity:self]];
 			 
 			// If UNIVERSE is nearing limit for entities don't add to it!
 			if (add_debris)
