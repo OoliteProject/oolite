@@ -367,7 +367,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// Preload particle effect textures:
 	[OOLightParticleEntity setUpTexture];
 	[OOFlashEffectEntity setUpTexture];
-	[OOExplosionCloudEntity setUpTexture];
+
 	
 	// set up cargopod templates
 	[self setUpCargoPods];

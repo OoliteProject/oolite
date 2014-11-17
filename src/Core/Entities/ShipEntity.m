@@ -8319,7 +8319,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	// and a visual sign of the explosion
 	// "fireball" explosion effect
-	[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSize:range*3.0]];
+	[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSize:range*3.0 andSettings:nil]];
 
 }
 
@@ -8619,7 +8619,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				else
 				{
 					// "fireball" explosion effect
-					[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self]];								
+					[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSettings:nil]];								
 				}
 			}
 			// 3. flash
