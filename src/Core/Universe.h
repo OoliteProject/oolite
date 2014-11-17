@@ -261,7 +261,8 @@ enum
 	NSDictionary			*roleCategories;		// Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist
 	NSDictionary			*autoAIMap;				// Default AIs for roles from autoAImap.plist.
 	NSDictionary			*screenBackgrounds;		// holds filenames for various screens backgrounds, loaded at initialisation
-	
+	NSDictionary			*explosionSettings;		// explosion settings from explosions.plist
+
 	NSDictionary      *cargoPods; // template cargo pods
 
 	OOGalaxyID				galaxyID;
@@ -604,6 +605,7 @@ enum
 - (NSDictionary *) characters;
 - (NSDictionary *) missiontext;
 - (NSArray *) scenarios;
+- (NSDictionary *) explosionSetting:(NSString *)explosion;
 
 - (OOSystemDescriptionManager *) systemManager;
 

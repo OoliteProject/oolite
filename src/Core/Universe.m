@@ -441,6 +441,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[system_repopulator release];
 	[allPlanets release];
 	[allStations release];
+	[explosionSettings release];
 	
 	[activeWormholes release];				
 	[characterPool release];
@@ -7335,6 +7336,12 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
+- (NSDictionary *) explosionSetting:(NSString *)explosion
+{
+	return [explosionSettings oo_dictionaryForKey:explosion defaultValue:nil];
+}
+
+
 - (NSArray *) scenarios
 {
 	return _scenarios;
@@ -9550,8 +9557,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	NSArray *equipmentTemp = [ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES];
 	equipmentData = [[equipmentTemp sortedArrayUsingFunction:equipmentSort context:NULL] retain];
 	
-
 	[OOEquipmentType loadEquipment];
+
+	[explosionSettings autorelease];
+	explosionSettings = [[ResourceManager dictionaryFromFilesNamed:@"explosions.plist" inFolder:@"Config" andMerge:YES] retain];
+
 }
 
 

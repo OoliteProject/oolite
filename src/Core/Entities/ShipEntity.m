@@ -448,6 +448,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 
+	explosionType = [[shipDict oo_stringForKey:@"explosion_type" defaultValue:@"oolite-default-ship-explosion"] retain];
 	
 	return YES;
 	
@@ -1037,6 +1038,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(_beaconLabel);
 	DESTROY(_beaconDrawable);
 	
+	DESTROY(explosionType);
+
 	[super dealloc];
 }
 
@@ -8319,7 +8322,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 	// and a visual sign of the explosion
 	// "fireball" explosion effect
-	[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSize:range*3.0 andSettings:nil]];
+	NSDictionary *explosion = [UNIVERSE explosionSetting:@"oolite-default-ship-explosion"];
+	[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSize:range*3.0 andSettings:explosion]];
 
 }
 
@@ -8618,8 +8622,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				}
 				else
 				{
+					NSDictionary *explosion = [UNIVERSE explosionSetting:explosionType];
 					// "fireball" explosion effect
-					[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSettings:nil]];								
+					[UNIVERSE addEntity:[OOExplosionCloudEntity explosionCloudFromEntity:self withSettings:explosion]];								
 				}
 			}
 			// 3. flash

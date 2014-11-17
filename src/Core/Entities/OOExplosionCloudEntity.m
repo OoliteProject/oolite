@@ -37,13 +37,13 @@ MA 02110-1301, USA.
 #define kExplosionDefaultSize		2.5f
 
 // keys for plist file
-static NSString * const kExplosionGrowth		= @"growth_rate";
 static NSString * const kExplosionAlpha			= @"alpha";
-static NSString * const kExplosionDuration		= @"duration";
-static NSString * const kExplosionTexture		= @"texture";
 static NSString * const kExplosionColors		= @"color_order";
 static NSString * const kExplosionCount			= @"count";
+static NSString * const kExplosionDuration		= @"duration";
+static NSString * const kExplosionGrowth		= @"growth_rate";
 static NSString * const kExplosionSize			= @"size";
+static NSString * const kExplosionTexture		= @"texture";
 
 
 @interface OOExplosionCloudEntity (OOPrivate)

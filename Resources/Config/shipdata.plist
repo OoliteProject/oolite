@@ -525,9 +525,10 @@
 		ai_type = "dumbAI.plist";
 		bounty = 10;
 		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 0;
 		debris_role = "boulder";
 		density = 5;
+		energy_recharge_rate = 0;
+		explosion_type = "oolite-default-asteroid-explosion";
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -925,6 +926,7 @@
 		debris_role = "splinter";
 		density = 5;
 		energy_recharge_rate = 0;
+		explosion_type = "oolite-default-asteroid-explosion";
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -3394,6 +3396,7 @@
 		bounty = 1;
 		cargo_type = "CARGO_MINERALS";
 		energy_recharge_rate = 0;
+		explosion_type = "oolite-default-asteroid-explosion";
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;

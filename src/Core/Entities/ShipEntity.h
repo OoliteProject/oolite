@@ -322,6 +322,8 @@ typedef enum
 	NSString				*displayName;				// name shown on screen
 	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
 	NSString				*primaryRole;				// "Main" role of the ship.
+
+	NSString 				*explosionType;				// explosion.plist entry
 	
 	// AI stuff
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position

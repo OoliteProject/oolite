@@ -1,0 +1,25 @@
+{
+	"oolite-default-ship-explosion" = {
+		"alpha" = 0.85;
+		"color_order" = "rgb";
+		"count" = 25;
+		"duration" = 1.5;
+		"growth_rate" = 1.5;
+		"size" = 2.5;
+		"texture" = "oolite-particle-cloud2.png";
+	};
+
+	
+	"oolite-default-asteroid-explosion" = {
+		"alpha" = 0.15;
+		"color_order" = "white";
+		"count" = 10;
+		"duration" = 1.5;
+		"growth_rate" = 1.2;
+		"size" = 0.6;
+		"texture" = "oolite-particle-cloud.png";
+	};
+
+
+
+}
