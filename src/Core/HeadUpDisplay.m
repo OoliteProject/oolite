@@ -234,7 +234,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
-	mfdArray = [[NSMutableArray alloc] initWithCapacity:4]; // alloc retains
+	mfdArray = [[NSMutableArray alloc] initWithCapacity:8]; // alloc retains
 	
 	// populate arrays
 	NSArray *dials = [hudinfo oo_arrayForKey:DIALS_KEY];
@@ -3148,8 +3148,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 	
-	// TODO: reduce alpha for non-selected MFDs
 	GLfloat mfd_color[4] =		{0.0, 1.0, 0.0, 0.9*alpha};
+	OOColor *mfdcol = [OOColor colorWithDescription:[info objectForKey:COLOR_KEY]];
+	if (mfdcol != nil) 
+	{
+		[mfdcol getRed:&mfd_color[0] green:&mfd_color[1] blue:&mfd_color[2] alpha:&mfd_color[3]];
+	}
 	if (index != [player1 activeMFD])
 	{
 		mfd_color[3] *= 0.75;
