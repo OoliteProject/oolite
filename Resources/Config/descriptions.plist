@@ -1276,6 +1276,9 @@
 	"oolite-oxzmanager-title-install"	= "Select pack to install";
 	"oolite-oxzmanager-title-installed"	= "Select pack to update";
 	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
+	"oolite-oxzmanager-title-setfilter"	= "Set expansion pack filter";
+	"oolite-oxzmanager-title-infopage"	= "Expansion pack details";
+	"oolite-oxzmanager-title-extract"	= "Extract expansion pack";
 	"oolite-oxzmanager-exit"		= "Return to Menu";
 	"oolite-oxzmanager-exit-restart"	= "Return to Menu (applies changes)";
 	"oolite-oxzmanager-acknowledge"	= "Continue";
@@ -1285,12 +1288,15 @@
 	"oolite-oxzmanager-dependencies-no"		= "Do not download additional packs";
 	"oolite-oxzmanager-download-list"	= "Download expansions list";
 	"oolite-oxzmanager-update-list"	= "Update expansions list";
+	"oolite-oxzmanager-download-noupdate"	= "Keep current expansions list";
 	"oolite-oxzmanager-install"		= "Install expansion pack";
 	"oolite-oxzmanager-installed"	= "List installed expansion packs";
 	"oolite-oxzmanager-remove"		= "Remove expansion pack";
 	"oolite-oxzmanager-firstrun"	= "Before Oolite can install your requested expansions automatically, it needs to retrieve the expansions list. You will need to be connected to the internet for this to work. Use the 'Download expansions list' option when you are ready, or 'Return to Menu' if you do not have internet access now or would rather download and install expansions yourself.\n\nImportant: if you have old expansion packs installed in the OXP format, Oolite will not be able to automatically detect that they are the same pack as a new release. When downloading an expansion through this manager, you must first uninstall any old OXP versions of the same expansion to avoid problems.";
+	"oolite-oxzmanager-secondrun"	= "Your expansion list may be out of date. Do you want to download the latest list now?\n\nIf you keep the old list, some installations may fail as the expansion pack is no longer available at that location or for that version. However, if you only want to uninstall expansion packs, you do not need to update the list.\n\nIf you need to update the list later, you can do this by selecting 'Update expansions list' from the menu.";
 	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.\n\nThere are also many more expansion packs not available through the automatic installer.\n\nImportant: if you have old expansion packs installed in the OXP format, Oolite will not be able to automatically detect that they are the same pack as a new release. When downloading an expansion through this manager, you must first uninstall any old OXP versions of the same expansion to avoid problems.\n\nIf an expansion pack requires other expansion packs to run, Oolite will automatically download those other expansion packs for you, if they are available.";
-	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed. Expansion packs which you have installed manually must also be removed manually. Oolite is not able to manage old OXP format expansion packs for you.";
+
+	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed, or all installed packs have been filtered out. Expansion packs which you have installed manually must also be removed manually. Oolite is not able to manage old OXP format expansion packs for you.";
 	"oolite-oxzmanager-restart"				= "As you have changed the expansion packs you have installed, Oolite now needs to reload the game data. This may take a few seconds or several minutes depending on how fast your computer is and how many packs you have installed. Please be patient while this reload completes: Oolite will not respond to the keyboard or mouse until this is done.";
 	"oolite-oxzmanager-progress-@-is-@-of-@"		= "Downloading %@: %@ of %@";
 	"oolite-oxzmanager-download-label-list"	= "OXZ List";
@@ -1320,10 +1326,39 @@
 	"oolite-oxzmanager-installable-manual"	= "Status: Manually installed; cannot also be installed automatically.";
 	"oolite-oxzmanager-installable-version"	= "Status: Incompatible with this version of Oolite.";
 	"oolite-oxzmanager-installable-noremote"= "Status: Installed but no longer available for download.";
-	"oolite-oxzmanager-installer-nonepicked" = "Select a pack and press return to install or upgrade it if possible. Packs in orange can be installed but will require other packs to be installed before they work, or conflict with a pack you have already installed.";
-	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here.";
+	"oolite-oxzmanager-installer-nonepicked" = "Select a pack and press return to install or upgrade it if possible. Packs in orange can be installed but will require other packs to be installed before they work, or conflict with a pack you have already installed. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack.";
+	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack, or '[oolite_key_oxzmanager_extract]' to extract it to your AddOns folder.";
 	"oolite-oxzmanager-remover-nonepicked" = "Select a pack and press return to remove it. If the pack is coloured blue it is no longer available for download and you will not be able to reinstall it if you remove it.";
 
+	"oolite-oxzmanager-text-prompt-@" 		= "New Filter = %@";
+	"oolite-oxzmanager-currentfilter-is-@"  = "Current filter = %@";
+	"oolite-oxzmanager-currentfilter-is-@-@"  = "Filter ('%@' sets): %@";
+	"oolite-oxzmanager-filterhelp" 			= "Enter a filter to restrict the expansion pack lists, or leave blank to keep the current filter. The following filters are available:\n\n'*' - show everything\n'i' - packs not already installed\n'u' - installed packs with updates available\n'k:<keyword>' - keyword search\n'a:<author>' - author search\n't:<tag>' - tag search\n'd:<integer>' - packs updated in last <integer> days\n\nThe filter entry will turn orange if the currently entered filter is invalid.";
+
+	"oolite-oxzmanager-infopage-title-@-version-@"	= "Expansion Pack: %@ %@";
+	"oolite-oxzmanager-infopage-author-@"		= "Author: %@";
+	"oolite-oxzmanager-infopage-license-@"		= "License: %@";
+	"oolite-oxzmanager-infopage-tags-@"			= "Tags: %@";
+	"oolite-oxzmanager-infopage-description-@"	= "Description: %@";
+	"oolite-oxzmanager-infopage-infourl-@"		= "URL: %@";
+	"oolite-oxzmanager-infopage-return"			= "Press '[oolite_key_oxzmanager_showinfo]' again to return";
+
+	"oolite-oxzmanager-extract-info"			= "Extracting an expansion pack installed through the manager will unzip it and place it into your AddOns folder. You do not need to do this to play Oolite with the pack - only if you want to look inside it or modify it.";
+	"oolite-oxzmanager-extract-releasebuild"	= "If you want to modify or build your own expansions, the developer release of Oolite has several useful additional features.";
+	"oolite-oxzmanager-extract-@-already-exists"	= "The extraction target %@ already exists - you have already extracted this pack. If you would like to extract it again, first delete or move the existing folder.";
+	"oolite-oxzmanager-extract-to-@"			= "If you extract this pack, the folder %@ will be created, and the pack's contents will be extracted inside it. Renaming the folder to end in '.oxp' will let Oolite run it, though you will need to remove the managed version to avoid a conflict.\n\nPlease note that large packs may take a little while to extract - please be patient.";
+	"oolite-oxzmanager-extract-unavailable"		= "Extraction unavailable";
+	"oolite-oxzmanager-extract-proceed"			= "Extract now";
+	"oolite-oxzmanager-extract-cancel"			= "Cancel extraction";
+	
+	"oolite-oxzmanager-extract-log-no-original"		= "The original managed expansion pack could not be found. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-bad-original"	= "The original managed expansion pack could not be opened successfully. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-exists"		= "The target folder already exists. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-unmakeable"	= "The target folder could not be created - check your file and directory permissions. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-created"	= "Created target folder and extracting files:\n";
+	"oolite-oxzmanager-extract-log-sub-failed"		= "Extraction failed part way through. This may be caused by insufficient disk space to extract the pack, or other causes. The partial extraction is still in place if you wish to inspect it.";
+	"oolite-oxzmanager-extract-log-num-u-extracted"	= "Extracted %u files successfully.\n";
+	"oolite-oxzmanager-extract-log-extracted-to-@" = "Extraction to %@ is now complete.\n";
 
 	// Loading screen (currently Mac only), also logged under start.progress
 	"loading-ships"					= "Loading ship data";
@@ -1411,12 +1446,43 @@
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";
 	"in-hold-column-title"			= "In hold:";
+	"oolite-legality-column-title"	= "Legal:";
+	"oolite-extras-column-title"	= "";
+//	"oolite-extras-column-title"	= "Extra:"; // title for column is for OXPs
+	"oolite-legality-clear"			= "—";
+	"oolite-legality-export"		= "Ex"; // legal to export
+	"oolite-legality-import"		= "Im"; // legal to import
+	"oolite-legality-neither"		= "Re";
 	"cash-@-load-d-of-d"			= "Cash: %@. Load %d of %d t.";
 	"cargo-tons-symbol"				= "t";
 	"cargo-grams-symbol"			= "g";
 	"cargo-kilograms-symbol"		= "kg";
 	"commodity-quantity-none"		= "—";
-	
+	"oolite-market-filtered-all"	= " Current filter hides all goods ";
+	"oolite-market-filter-line"		= "Filter: ";
+	"oolite-market-filter-0"		= "All goods";
+	"oolite-market-filter-1"		= "Carried or in stock";
+	"oolite-market-filter-2"		= "Carried";
+	"oolite-market-filter-3"		= "In stock";
+	"oolite-market-filter-4"		= "No transport restrictions";
+	"oolite-market-filter-5"		= "Transport restrictions";
+
+	"oolite-market-sorter-line"		= "Sort: ";
+	"oolite-market-sorter-0"		= "Default";
+	"oolite-market-sorter-1"		= "Alphabetical";
+	"oolite-market-sorter-2"		= "Price";
+	"oolite-market-sorter-3"		= "Quantity in stock";
+	"oolite-market-sorter-4"		= "Quantity in hold";
+	"oolite-market-sorter-5"		= "Unit mass";
+
+	"oolite-commodity-no-comment"	= "No additional information available";
+	"oolite-commodity-no-short-comment"	= "";
+//	"oolite-commodity-no-short-comment"	= "—"; // blank for column is for OXPs
+	"oolite-commodity-info-return"	= "Press '[oolite_key_market_info]' to return to commodity list";
+	"oolite-commodity-information-@"	= "Commodity: %@";
+	"oolite-commodity-contracted-d-@"	= "Total cargo contracts: %d %@";
+	"oolite-commodity-illegal"		 = "It is illegal to export this good from Cooperative stations.";
+
 	// System data screen
 	"sysdata-planet-name-@"			= "Data on %@";
 	"sysdata-eco"					= "Economy:";
@@ -1827,6 +1893,7 @@
 							);
 	
 	// Commodity names
+	"oolite-unknown-commodity-name" = "Unknown Commodity";
 	"commodity-name food"			= "Food";
 	"commodity-name textiles"		= "Textiles";
 	"commodity-name radioactives"	= "Radioactives";

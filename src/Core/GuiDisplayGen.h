@@ -62,6 +62,91 @@ typedef enum
 #define GUI_KEY_OK				@"OK"
 #define GUI_KEY_SKIP			@"SKIP-ROW"
 
+// globals
+static NSString * const kGuiDefaultTextColor		= @"default_text_color";
+static NSString * const kGuiScreenTitleColor		= @"screen_title_color";
+static NSString * const kGuiScreenDividerColor		= @"screen_divider_color";
+static NSString * const kGuiSelectedRowBackgroundColor	= @"selected_row_background_color";
+static NSString * const kGuiSelectedRowColor		= @"selected_row_color";
+static NSString * const kGuiTextInputCursorColor	= @"text_input_cursor_color";
+// F3
+static NSString * const kGuiEquipmentCashColor		= @"equipment_cash_color";
+static NSString * const kGuiEquipmentUnavailableColor	= @"equipment_unavailable_color";
+static NSString * const kGuiEquipmentScrollColor	= @"equipment_scroll_color";
+static NSString * const kGuiEquipmentOptionColor	= @"equipment_option_color";
+static NSString * const kGuiEquipmentRepairColor	= @"equipment_repair_color";
+static NSString * const kGuiEquipmentDescriptionColor	= @"equipment_description_color";
+static NSString * const kGuiEquipmentLaserColor		= @"equipment_laser_color";
+static NSString * const kGuiEquipmentLaserFittedColor	= @"equipment_laser_fitted_color";
+static NSString * const kGuiEquipmentTabs			= @"equipment_tabs";
+// F3 F3
+static NSString * const kGuiShipyardHeadingColor	= @"shipyard_heading_color";
+static NSString * const kGuiShipyardScrollColor		= @"shipyard_scroll_color";
+static NSString * const kGuiShipyardEntryColor		= @"shipyard_entry_color";
+static NSString * const kGuiShipyardNoshipColor		= @"shipyard_noship_color";
+static NSString * const kGuiShipyardTradeinColor	= @"shipyard_tradein_color";
+static NSString * const kGuiShipyardDescriptionColor	= @"shipyard_description_color";
+static NSString * const kGuiShipyardTabs			= @"shipyard_tabs";
+// F4
+static NSString * const kGuiInterfaceHeadingColor	= @"interface_heading_color";
+static NSString * const kGuiInterfaceScrollColor	= @"interface_scroll_color";
+static NSString * const kGuiInterfaceEntryColor		= @"interface_entry_color";
+static NSString * const kGuiInterfaceDescriptionColor	= @"interface_description_color";
+static NSString * const kGuiInterfaceNoneColor		= @"interface_none_color";
+static NSString * const kGuiInterfaceTabs			= @"interface_tabs";
+// F5
+static NSString * const kGuiStatusShipnameColor		= @"status_shipname_color";
+static NSString * const kGuiStatusDataColor			= @"status_data_color";
+static NSString * const kGuiStatusEquipmentHeadingColor	= @"status_equipment_heading_color";
+static NSString * const kGuiStatusEquipmentScrollColor	= @"status_equipment_scroll_color";
+static NSString * const kGuiStatusEquipmentOkColor	= @"status_equipment_ok_color";
+static NSString * const kGuiStatusEquipmentDamagedColor	= @"status_equipment_damaged_color";
+static NSString * const kGuiStatusTabs				= @"status_tabs";
+static NSString * const kGuiStatusPrioritiseDamaged	= @"status_prioritise_damaged";
+// F5 F5
+static NSString * const kGuiManifestSubheadColor	= @"manifest_subhead_color";
+static NSString * const kGuiManifestEntryColor		= @"manifest_entry_color";
+static NSString * const kGuiManifestScrollColor		= @"manifest_scroll_color";
+static NSString * const kGuiManifestNoScrollColor	= @"manifest_no_scroll_color";
+static NSString * const kGuiManifestTabs			= @"manifest_tabs";
+// F6
+static NSString * const kGuiChartLabelScale			= @"chart_label_scale";
+static NSString * const kGuiChartCircleScale		= @"chart_circle_scale";
+static NSString * const kGuiChartLabelColor			= @"chart_label_color";
+static NSString * const kGuiChartRangeColor			= @"chart_range_color";
+static NSString * const kGuiChartCrosshairColor		= @"chart_crosshair_color";
+static NSString * const kGuiChartCursorColor		= @"chart_cursor_color";
+static NSString * const kGuiChartMatchBoxColor		= @"chart_match_box_color";
+static NSString * const kGuiChartMatchLabelColor	= @"chart_match_label_color";
+static NSString * const kGuiChartConnectionColor	= @"chart_connection_color";
+static NSString * const kGuiChartRouteShortColor	= @"chart_route_short_color";
+static NSString * const kGuiChartRouteQuickColor	= @"chart_route_quick_color";
+static NSString * const kGuiChartTraveltimeTabs		= @"chart_traveltime_tabs";
+
+static NSString * const kGuiChartEconomyUColor		= @"chart_economy_%u_color";
+static NSString * const kGuiChartGovernmentUColor	= @"chart_government_%u_color";
+static NSString * const kGuiChartTechColor			= @"chart_tech_color";
+// F7
+static NSString * const kGuiSystemdataFactsColor		= @"systemdata_facts_color";
+static NSString * const kGuiSystemdataDescriptionColor	= @"systemdata_description_color";
+static NSString * const kGuiSystemdataTabs			= @"systemdata_tabs";
+// F8
+static NSString * const kGuiMarketHeadingColor		= @"market_heading_color";
+static NSString * const kGuiMarketCommodityColor	= @"market_commodity_color";
+static NSString * const kGuiMarketScrollColor		= @"market_scroll_color";
+static NSString * const kGuiMarketFilteredAllColor	= @"market_filtered_all_color";
+static NSString * const kGuiMarketFilterInfoColor	= @"market_filter_info_color";
+static NSString * const kGuiMarketCashColor			= @"market_cash_color";
+// F8 F8 extras
+static NSString * const kGuiMarketContractedColor	= @"market_contracted_color";
+static NSString * const kGuiMarketDescriptionColor	= @"market_description_color";
+static NSString * const kGuiMarketTabs				= @"market_tabs";
+// Docking report
+static NSString * const kGuiDockingReportColor		= @"docking_report_color";
+static NSString * const kGuiDockingSummaryColor		= @"docking_summary_color";
+static NSString * const kGuiDockingContinueColor	= @"docking_continue_color";
+
+
 
 @class OOSound, OOColor, OOTexture, OOTextureSprite, HeadUpDisplay;
 
@@ -107,6 +192,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	
 	OOGUITabSettings		tabStops;
 	
+	NSDictionary			*guiUserSettings;
+
 	NSRange					rowRange;
 	
 	OOGUIRow				selectedRow;
@@ -153,6 +240,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setDrawPosition:(Vector) vector;
 - (Vector) drawPosition;
 
+- (NSDictionary *) userSettings;
+
 - (void) fadeOutFromTime:(OOTimeAbsolute) now_time overDuration:(OOTimeDelta) duration;
 - (void) stopFadeOuts;
 
@@ -163,6 +252,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setBackgroundColor:(OOColor*) color;
 
 - (void) setTextColor:(OOColor*) color;
+- (OOColor *) colorFromSetting:(NSString *)setting defaultValue:(OOColor *)def;
+- (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha;
 
 - (void) setCharacterSize:(NSSize) character_size;
 
@@ -189,6 +280,8 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setSelectableRange:(NSRange) range;
 
 - (void) setTabStops:(OOGUITabSettings)stops;
+- (void) overrideTabs:(OOGUITabSettings)stops from:(NSString *)setting length:(NSUInteger)len;
+
 
 - (void) clear;
 - (void) clearAndKeepBackground:(BOOL)keepBackground;
@@ -265,6 +358,6 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) refreshStarChart;
 - (void) setStarChartTitle;
 
-- (Random_Seed) targetNextFoundSystem:(int)direction;
+- (OOSystemID) targetNextFoundSystem:(int)direction;
 
 @end

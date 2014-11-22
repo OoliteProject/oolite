@@ -589,12 +589,11 @@ static void PlayTrumbleSqueal(void);
 		float mostYummy = 0.0;
 		NSMutableArray *cargopods = [player cargo];	// the cargo pods
 		NSUInteger i, n_pods = [cargopods count];
-		float foodfactor[17] = { 1.00, 0.25, 0.75, 0.01, 0.95, 1.25, 1.05, 0.00, 0.00, 0.00, 0.00, 0.15, 0.00, 0.00, 0.00, 0.00, 0.00};
 		for (i = 0 ; i < n_pods; i++)
 		{
 			ShipEntity *cargopod = [cargopods objectAtIndex:i];
 			OOCommodityType cargo_type = [cargopod commodityType];
-			float yumminess = (1.0 + randf()) * foodfactor[cargo_type];
+			float yumminess = (1.0 + randf()) * [[UNIVERSE commodityMarket] trumbleOpinionForGood:cargo_type];
 			if (yumminess > mostYummy)
 			{
 				selectedCargopod = cargopod;

@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "PlayerEntityScriptMethods.h"
 #import "OOStringParsing.h"
-
+#import "OODebugStandards.h"
 
 static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 
@@ -168,6 +168,7 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsid propID, 
 			return JS_NewNumberValue(context, [player clockTimeAdjusted], value);
 
 		case kClock_legacy_scriptTimer:
+			OOStandardsDeprecated(@"The legacy_scriptTimer property is deprecated");
 			return JS_NewNumberValue(context, [player scriptTimer], value);
 			
 		default:

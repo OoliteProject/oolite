@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOManifestProperties.h"
 #import "OOCollectionExtractors.h"
 #import "OOPListParsing.h"
+#import "OODebugStandards.h"
 
 #if OO_CACHE_JS_SCRIPTS
 #include <jsxdrapi.h>
@@ -186,8 +187,16 @@ static JSFunctionSpec sScriptMethods[] =
 			if ([key isKindOfClass:[NSString class]])
 			{
 				property = [defaultProperties objectForKey:key];
-				// can be overwritten by script itself
-				[self setProperty:property named:key];
+				if ([key isEqualToString:kLocalManifestProperty])
+				{
+					// this must not be editable
+					[self defineProperty:property named:key];
+				}
+				else
+				{
+					// can be overwritten by script itself
+					[self setProperty:property named:key];
+				}
 			}
 		}
 
@@ -618,6 +627,11 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			[properties setObject:[manifest oo_stringForKey:kOOManifestVersion] forKey:@"version"];
 		}
+		if ([manifest objectForKey:kOOManifestIdentifier] != nil)
+		{
+			// used for system info
+			[properties setObject:[manifest oo_stringForKey:kOOManifestIdentifier] forKey:kLocalManifestProperty];
+		}
 		if ([manifest objectForKey:kOOManifestAuthor] != nil)
 		{
 			[properties setObject:[manifest oo_stringForKey:kOOManifestAuthor] forKey:@"author"];
@@ -706,7 +720,27 @@ static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject
 	if (script == NULL)
 	{
 		fileContents = [NSString stringWithContentsOfUnicodeFile:path];
-		if (fileContents != nil)  data = [fileContents utf16DataWithBOM:NO];
+
+		if (fileContents != nil) 
+		{
+#ifndef NDEBUG
+		/* FIXME: this isn't strictly the right test, since strict
+		 * mode can be enabled with this string within a function
+		 * definition, but it seems unlikely anyone is actually doing
+		 * that here. */
+		if ([fileContents rangeOfString:@"\"use strict\";"].location == NSNotFound && [fileContents rangeOfString:@"'use strict';"].location == NSNotFound)
+		{
+			OOStandardsDeprecated([NSString stringWithFormat:@"Script %@ does not \"use strict\";",path]);
+			if (OOEnforceStandards())
+			{
+				// prepend it anyway
+				// TODO: some time after 1.82, make this required
+				fileContents = [@"\"use strict\";\n" stringByAppendingString:fileContents];
+			}
+		}
+#endif
+			data = [fileContents utf16DataWithBOM:NO];
+		}
 		if (data == nil)  *outErrorMessage = @"could not load file";
 		else
 		{

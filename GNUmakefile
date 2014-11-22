@@ -154,6 +154,7 @@ oolite_C_FILES = \
 
 OOLITE_DEBUG_FILES = \
     OODebugMonitor.m \
+	OODebugStandards.m \
     OODebugSupport.m \
     OODebugTCPConsoleClient.m \
     OOJSConsole.m \
@@ -277,6 +278,7 @@ OOLITE_RSRC_MGMT_FILES = \
     OOConvertSystemDescriptions.m \
 	OOOXZManager.m \
     OOPListParsing.m \
+	OOSystemDescriptionManager.m \
     ResourceManager.m \
     TextureStore.m
 
@@ -394,6 +396,8 @@ OOLITE_MISC_FILES = \
     MyOpenGLView.m \
     OOCharacter.m \
     OOCocoa.m \
+	OOCommodities.m \
+	OOCommodityMarket.m \
     OOEquipmentType.m \
     OOMouseInteractionMode.m \
     OORoleSet.m \

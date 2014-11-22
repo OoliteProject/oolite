@@ -167,10 +167,10 @@ static OOTexture *sBlobTexture = nil;
 	
 	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, components));
 	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
-	[[self texture] apply];
 	
 	OOViewID viewDir = [UNIVERSE viewDirection];
-	if (viewDir != VIEW_GUI_DISPLAY)  GLMultOOMatrix([PLAYER drawRotationMatrix]);
+	if (viewDir != VIEW_GUI_DISPLAY)  OOGLMultModelView([PLAYER drawRotationMatrix]);
+	[[self texture] apply];
 	
 	/*	NOTE: nominal diameter is actual radius, because of the black border
 		in the texture. However, the offset along the view axis is not

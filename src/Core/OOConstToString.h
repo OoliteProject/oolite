@@ -37,7 +37,7 @@ enum
 {
 	// Values used for unknown strings.
 	kOOCargoTypeDefault			= CARGO_NOT_CARGO,
-	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
+//	kOOCommodityTypeDefault		= COMMODITY_UNDEFINED,
 	kOOEnergyUnitTypeDefault	= ENERGY_UNIT_NONE,
 	kOORouteTypeDefault			= OPTIMIZED_BY_JUMPS
 };
@@ -89,8 +89,8 @@ NSString *JSTypeToString(int /* JSType */ type) CONST_FUNC;
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString *string) PURE_FUNC;
 
-NSString *CommodityTypeToString(OOCommodityType commodity) CONST_FUNC;	// returns the commodity identifier
-OOCommodityType StringToCommodityType(NSString *string) PURE_FUNC;		// needs commodity identifier
+//NSString *CommodityTypeToString(OOCommodityType commodity) CONST_FUNC;	// returns the commodity identifier
+//OOCommodityType StringToCommodityType(NSString *string) PURE_FUNC;		// needs commodity identifier
 
 NSString *EnergyUnitTypeToString(OOEnergyUnitType unit) CONST_FUNC;
 OOEnergyUnitType StringToEnergyUnitType(NSString *string) PURE_FUNC;

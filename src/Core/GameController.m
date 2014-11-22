@@ -136,11 +136,13 @@ static GameController *sSharedController = nil;
 		_resumeMode = [self mouseInteractionMode];
 		[self setMouseInteractionModeForUIWithMouseInteraction:NO];
 		gameIsPaused = YES;
+		[PLAYER doScriptEvent:OOJSID("gamePaused")];
 	}
 	else if (!value && gameIsPaused)
 	{
 		[self setMouseInteractionMode:_resumeMode];
 		gameIsPaused = NO;
+		[PLAYER doScriptEvent:OOJSID("gameResumed")];
 	}
 }
 

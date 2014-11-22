@@ -30,6 +30,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOCacheManager.h"
+#import "OODebugStandards.h"
 
 
 static NSArray			*sEquipmentTypes = nil;
@@ -230,6 +231,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
 			_repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
 
+			_weaponInfo = [[extra oo_dictionaryForKey:@"weapon_info" defaultValue:[NSDictionary dictionary]] retain];
+
 			_damageProbability = [extra oo_floatForKey:@"damage_probability" defaultValue:(_isMissileOrMine?0.0:1.0)];
 			
 			id object = [extra objectForKey:@"requires_equipment"];
@@ -265,8 +268,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 			}
 			if (conditions != nil)
 			{
-				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
-				[_conditions retain];
+				OOStandardsDeprecated([NSString stringWithFormat:@"The conditions key is deprecated for equipment %@",_name]);
+				if (!OOEnforceStandards())
+				{
+					_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
+					[_conditions retain];
+				}
 			}
 
 			object = [extra objectForKey:@"condition_script"];
@@ -320,6 +327,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_incompatibleEquipment);
 	DESTROY(_conditions);
 	DESTROY(_condition_script);
+	DESTROY(_weaponInfo);
 	DESTROY(_scriptInfo);
 	DESTROY(_script);
 	
@@ -577,6 +585,60 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
+- (BOOL) isTurretLaser
+{
+	return [_weaponInfo oo_boolForKey:@"is_turret_laser" defaultValue:NO];
+}
+
+
+- (BOOL) isMiningLaser
+{
+	return [_weaponInfo oo_boolForKey:@"is_mining_laser" defaultValue:NO];
+}
+
+
+- (GLfloat) weaponRange
+{
+	return [_weaponInfo oo_floatForKey:@"range" defaultValue:12500.0];
+}
+
+
+- (GLfloat) weaponEnergyUse
+{
+	return [_weaponInfo oo_floatForKey:@"energy" defaultValue:0.8];
+}
+
+
+- (GLfloat) weaponDamage
+{
+	return [_weaponInfo oo_floatForKey:@"damage" defaultValue:15.0];
+}
+
+
+- (GLfloat) weaponRechargeRate
+{
+	return [_weaponInfo oo_floatForKey:@"recharge_rate" defaultValue:0.5];
+}
+
+
+- (GLfloat) weaponShotTemperature
+{
+	return [_weaponInfo oo_floatForKey:@"shot_temperature" defaultValue:7.0];
+}
+
+
+- (GLfloat) weaponThreatAssessment
+{
+	return [_weaponInfo oo_floatForKey:@"threat_assessment" defaultValue:1.0];
+}
+
+
+- (OOColor *) weaponColor
+{
+	return [OOColor brightColorWithDescription:[_weaponInfo objectForKey:@"color"]];
+}
+
+
 /*	This method exists purely to suppress Clang static analyzer warnings that
 	this ivar is unused (but may be used by categories, which it is).
 	FIXME: there must be a feature macro we can use to avoid actually building
@@ -602,8 +664,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 	tl = [self techLevel];
 	if (tl == kOOVariableTechLevel)
 	{
-		missionVar = [PLAYER missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
-		tl = OOUIntegerFromObject(missionVar, tl);
+		OOStandardsDeprecated([NSString stringWithFormat:@"TL99 is deprecated for %@",[self identifier]]);
+		if (!OOEnforceStandards())
+		{
+			missionVar = [PLAYER missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
+			tl = OOUIntegerFromObject(missionVar, tl);
+		}
 	}
 	
 	return tl;

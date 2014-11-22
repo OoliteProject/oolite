@@ -202,7 +202,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		if (activeScript == nil)  activeScript = @"<unidentified script>";
 		OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, messageText);
 		
-		if (!showLocation && sErrorHandlerStackSkip == 0 && report->filename != NULL)
+		if (showLocation && sErrorHandlerStackSkip == 0 && report->filename != NULL)
 		{
 			// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
 			if ([lineBuf length] != 0)

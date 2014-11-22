@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+#import "OOSystemDescriptionManager.h"
 
 #import "OOPlanetTextureGenerator.h"
 #import "OOStandaloneAtmosphereGenerator.h"
@@ -49,6 +50,7 @@ MA 02110-1301, USA.
 #import "OOEntityFilterPredicate.h"
 #import "OOGraphicsResetManager.h"
 #import "OOStringExpander.h"
+#import "OOOpenGLMatrixManager.h"
 
 @interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
@@ -62,20 +64,20 @@ MA 02110-1301, USA.
 @implementation OOPlanetEntity
 
 // this is exclusively called to initialise the main planet.
-- (id) initAsMainPlanetForSystemSeed:(Random_Seed)seed
+- (id) initAsMainPlanetForSystem:(OOSystemID)s
 {
-	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:seed] mutableCopy];
+	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:s] mutableCopy];
 	[planetInfo autorelease];
 	
 	[planetInfo oo_setBool:YES forKey:@"mainForLocalSystem"];
-	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:seed];
+	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
 }
 
 
 static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect starts at 10x the height of the clouds
 
 
-- (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed
+- (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed forSystem:(OOSystemID)systemID
 {
 	if (dict == nil)  dict = [NSDictionary dictionary];
 	RANROTSeed savedRanrotSeed = RANROTGetFullSeed();
@@ -96,7 +98,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	// Generate various planet info.
 	seed_for_planet_description(seed);
-	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:seed] mutableCopy];
+	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:systemID] mutableCopy];
 	[planetInfo autorelease];
 
 	_name = nil;
@@ -114,6 +116,10 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	int percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
+
+	int percent_ice = [planetInfo oo_intForKey:@"percent_ice" defaultValue:5];
+	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_ice] forKey:@"polar_fraction"];
+
 	
 	RNG_Seed savedRndSeed = currentRandomSeed();
 	
@@ -139,8 +145,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		_airColor = [planetInfo objectForKey:@"air_color"];
 		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha",
-															@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", nil]];
 	}
 	else
 #else
@@ -153,7 +158,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
 	{
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", nil]];
 	}
 	[_materialParameters retain];
 	
@@ -165,6 +170,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		
 	// Orientation should be handled by the code that calls this planetEntity. Starting with a default value anyway.
 	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };
+	_atmosphereOrientation = kIdentityQuaternion;
 	_rotationAxis = vector_up_from_quaternion(orientation);
 	
 	// set speed of rotation.
@@ -177,7 +183,9 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		_rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
 		_rotationalVelocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
-	
+
+	_atmosphereRotationalVelocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f * randf()];
+
 	// set energy
 	energy = collision_radius * 1000.0;
 	
@@ -187,7 +195,25 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	// rotate planet based on current time, needs to be done here - backported from PlanetEntity.
 	int		deltaT = floor(fmod([PLAYER clockTimeAdjusted], 86400));
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * deltaT);
+	quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * deltaT);
+
 	
+#ifdef OO_DUMP_PLANETINFO
+#define CPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %@;",[(OOColor *)[planetInfo objectForKey:@#PROP] descriptionComponents]);
+#define FPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %f;",[planetInfo oo_floatForKey:@"" #PROP]);
+	CPROP(air_color);
+	FPROP(cloud_alpha);
+	CPROP(cloud_color);
+	FPROP(cloud_fraction);
+	CPROP(land_color);
+	FPROP(land_fraction);
+	CPROP(polar_cloud_color);
+	CPROP(polar_land_color);
+	CPROP(polar_sea_color);
+	CPROP(sea_color);
+	OOLog(@"planetinfo.record",@"rotation_speed = %f",_rotationalVelocity);
+#endif
+
 	[self setStatus:STATUS_ACTIVE];
 	
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
@@ -221,7 +247,7 @@ static Vector LighterHSBColor(Vector c)
 static Vector HSBColorWithColor(OOColor *color)
 {
 	OOHSBAComponents c = [color hsbaComponents];
-	return (Vector){ c.h, c.s, c.b };
+	return (Vector){ c.h/360, c.s, c.b };
 }
 
 
@@ -280,8 +306,25 @@ static OOColor *ColorWithHSBColor(Vector c)
 		else ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
 		
 		// polar areas are brighter but have less colour (closer to white)
-		landPolarHSB = LighterHSBColor(landHSB);
-		seaPolarHSB = LighterHSBColor(seaHSB);
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_land_color"]];
+		if (color != nil)
+		{
+			landPolarHSB = HSBColorWithColor(color);
+		}
+		else 
+		{
+			landPolarHSB = LighterHSBColor(landHSB);
+		}
+
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_sea_color"]];
+		if (color != nil)
+		{
+			seaPolarHSB = HSBColorWithColor(color);
+		}
+		else
+		{
+			seaPolarHSB = LighterHSBColor(seaHSB);
+		}
 		
 		[targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"land_color"];
 		[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"sea_color"];
@@ -467,6 +510,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * delta_t);
+	// atmosphere orientation is relative to the orientation of the planet
+	quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * delta_t);
 
 	[self orientationChanged];
 	
@@ -513,7 +558,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_planetDrawable renderOpaqueParts];
 		if (_atmosphereDrawable != nil)
 		{
+			OOGLPushModelView();
+			OOGLMultModelView(OOMatrixForQuaternionRotation(_atmosphereOrientation));
 			[_atmosphereDrawable renderTranslucentPartsOnOpaquePass];
+			OOGLPopModelView();
 		}
 	}
 	else 
@@ -524,7 +572,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 		{
 			if (_atmosphereDrawable != nil)
 			{
+				OOGLPushModelView();
+				OOGLMultModelView(OOMatrixForQuaternionRotation(_atmosphereOrientation));
 				[_atmosphereDrawable renderTranslucentParts];
+				OOGLPopModelView();
 			}
 		}
 		else

@@ -1420,7 +1420,7 @@ PriorityAIController.prototype.conditionCombatOddsTerrible = function()
 {
 	if (this.getParameter("oolite_flag_surrendersEarly"))
 	{
-		return this.oddsAssessment() < 0.75;
+		return this.oddsAssessment() < 0.65;
 	}
 	else
 	{
@@ -1437,20 +1437,20 @@ PriorityAIController.prototype.conditionCombatOddsBad = function()
 	}
 	else
 	{
-		return this.oddsAssessment() < 0.75;
+		return this.oddsAssessment() < 0.65;
 	}
 }
 
 
 PriorityAIController.prototype.conditionCombatOddsGood = function()
 {
-	return this.oddsAssessment() >= 1.5;
+	return this.oddsAssessment() >= 1.2;
 }
 
 
 PriorityAIController.prototype.conditionCombatOddsExcellent = function()
 {
-	return this.oddsAssessment() >= 5.0;
+	return this.oddsAssessment() >= 2.5;
 }
 
 

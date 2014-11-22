@@ -220,6 +220,12 @@
 		1A4DF25D12FDC4880027F43D /* OORingEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */; };
 		1A4DF35312FDF0410027F43D /* OOParticleSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4DF35112FDF0410027F43D /* OOParticleSystem.h */; };
 		1A4DF35412FDF0410027F43D /* OOParticleSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4DF35212FDF0410027F43D /* OOParticleSystem.m */; };
+		1A4F917119CEDD1900E18B65 /* OODebugStandards.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4F917019CEDD1900E18B65 /* OODebugStandards.m */; };
+		1A4F917819CEDD7900E18B65 /* OOCommodityMarket.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4F917719CEDD7900E18B65 /* OOCommodityMarket.m */; };
+		1A4F917A19CEDDB200E18B65 /* OOCommodityMarket.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4F917919CEDDB200E18B65 /* OOCommodityMarket.h */; };
+		1A4F917D19CEDDC600E18B65 /* OOCommodities.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4F917B19CEDDC600E18B65 /* OOCommodities.h */; };
+		1A4F917E19CEDDC600E18B65 /* OOCommodities.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4F917C19CEDDC600E18B65 /* OOCommodities.m */; };
+		1A4F918019CEDDFB00E18B65 /* OODebugStandards.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4F917F19CEDDFB00E18B65 /* OODebugStandards.h */; };
 		1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */; };
 		1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */; };
 		1A504D9114DC964A003E5363 /* Oolite.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1A504D9014DC964A003E5363 /* Oolite.xib */; };
@@ -538,6 +544,10 @@
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		B33A44F1199E6745000B45AE /* OOOpenGLMatrixManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B33A44EF199E6745000B45AE /* OOOpenGLMatrixManager.h */; };
 		B33A44F2199E6745000B45AE /* OOOpenGLMatrixManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B33A44F0199E6745000B45AE /* OOOpenGLMatrixManager.m */; };
+		B3B46C871A0D053D00D6C39B /* OOSystemDescriptionManager.h in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */; };
+		B3B46C881A0D053D00D6C39B /* OOSystemDescriptionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */; };
+		B3B46C891A0D053D00D6C39B /* OOSystemDescriptionManager.m in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */; };
+		B3B46C8A1A0D053D00D6C39B /* OOSystemDescriptionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -690,6 +700,8 @@
 			dstPath = Oolite.app/Contents/PlugIns;
 			dstSubfolderSpec = 16;
 			files = (
+				B3B46C871A0D053D00D6C39B /* OOSystemDescriptionManager.h in Copy Plug-ins */,
+				B3B46C891A0D053D00D6C39B /* OOSystemDescriptionManager.m in Copy Plug-ins */,
 				1ABF219B12D691B300075821 /* Oolite.docktileplugin in Copy Plug-ins */,
 			);
 			name = "Copy Plug-ins";
@@ -820,13 +832,11 @@
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315510B9C778400EF0852 /* trumblebox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trumblebox.png; sourceTree = "<group>"; };
 		1A2316DE0B9CFAD700EF0852 /* characters.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = characters.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
-		1A2316DF0B9CFAD700EF0852 /* commodities.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; languageSpecificationIdentifier = plist; path = commodities.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E00B9CFAD700EF0852 /* customsounds.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = customsounds.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E10B9CFAD700EF0852 /* demoships.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = demoships.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E30B9CFAD700EF0852 /* equipment.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = equipment.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E40B9CFAD700EF0852 /* hud-small.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "hud-small.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E50B9CFAD700EF0852 /* hud.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = hud.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
-		1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = illegal_goods.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; languageSpecificationIdentifier = plist; path = keyconfig.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E80B9CFAD700EF0852 /* logcontrol.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = logcontrol.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = missiontext.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
@@ -1139,6 +1149,13 @@
 		1A4DF25A12FDC4420027F43D /* OORingEffectEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORingEffectEntity.m; sourceTree = "<group>"; };
 		1A4DF35112FDF0410027F43D /* OOParticleSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOParticleSystem.h; sourceTree = "<group>"; };
 		1A4DF35212FDF0410027F43D /* OOParticleSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOParticleSystem.m; sourceTree = "<group>"; };
+		1A4F917019CEDD1900E18B65 /* OODebugStandards.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugStandards.m; sourceTree = "<group>"; };
+		1A4F917719CEDD7900E18B65 /* OOCommodityMarket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCommodityMarket.m; sourceTree = "<group>"; };
+		1A4F917919CEDDB200E18B65 /* OOCommodityMarket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCommodityMarket.h; sourceTree = "<group>"; };
+		1A4F917B19CEDDC600E18B65 /* OOCommodities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCommodities.h; sourceTree = "<group>"; };
+		1A4F917C19CEDDC600E18B65 /* OOCommodities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCommodities.m; sourceTree = "<group>"; };
+		1A4F917F19CEDDFB00E18B65 /* OODebugStandards.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugStandards.h; sourceTree = "<group>"; };
+		1A4F918319CEDE5300E18B65 /* trade-goods.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "trade-goods.plist"; sourceTree = "<group>"; };
 		1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSOolite.h; sourceTree = "<group>"; };
 		1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSOolite.m; sourceTree = "<group>"; };
 		1A504D9014DC964A003E5363 /* Oolite.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = Oolite.xib; path = src/Cocoa/Oolite.xib; sourceTree = SOURCE_ROOT; };
@@ -1672,6 +1689,8 @@
 		B3A963FD165D7FB5001BB5C1 /* oolite-laser-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur.png"; sourceTree = "<group>"; };
 		B3A963FE165D7FB5001BB5C1 /* oolite-laser-blur2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-laser-blur2.png"; sourceTree = "<group>"; };
 		B3A96403165EE124001BB5C1 /* oolite-exhaust-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-exhaust-blur.png"; sourceTree = "<group>"; };
+		B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSystemDescriptionManager.h; sourceTree = "<group>"; };
+		B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSystemDescriptionManager.m; sourceTree = "<group>"; };
 		B3EC10B6155C154000778240 /* OOLegalStatusReason.tbl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = OOLegalStatusReason.tbl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1749,7 +1768,7 @@
 		1A1BB8A01767DD3500050283 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A1BB8A41767DD3500050283 /* OoliteUnitTests.octest */,
+				1A1BB8A41767DD3500050283 /* OoliteUnitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1802,7 +1821,6 @@
 				1ABC04260EF872B7003B740A /* crosshairs.plist */,
 				1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */,
 				1A2316DE0B9CFAD700EF0852 /* characters.plist */,
-				1A2316DF0B9CFAD700EF0852 /* commodities.plist */,
 				1A2316E00B9CFAD700EF0852 /* customsounds.plist */,
 				1A2316E10B9CFAD700EF0852 /* demoships.plist */,
 				1A4501E10DBF699A00815C04 /* descriptions.plist */,
@@ -1810,7 +1828,6 @@
 				1AEB48D1119D51BD007BD514 /* gpu-settings.plist */,
 				1A2316E40B9CFAD700EF0852 /* hud-small.plist */,
 				1A2316E50B9CFAD700EF0852 /* hud.plist */,
-				1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */,
 				1A2316E70B9CFAD700EF0852 /* keyconfig.plist */,
 				1A2316E80B9CFAD700EF0852 /* logcontrol.plist */,
 				1A9533890C02089E004EBB58 /* material-defaults.plist */,
@@ -1826,6 +1843,7 @@
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
 				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
 				1A3591820C1C382700E52220 /* startextures.plist */,
+				1A4F918319CEDE5300E18B65 /* trade-goods.plist */,
 				1A3491290BC25EAA00802DA7 /* world-scripts.plist */,
 				1AAF56590F1A27D900A2F2E6 /* whitelist.plist */,
 			);
@@ -2085,9 +2103,11 @@
 		1A2DA2A00CB4CB3500DE6823 /* Debug */ = {
 			isa = PBXGroup;
 			children = (
-				1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */,
 				1A87063D1172029F003FDD2A /* OODebugFlags.h */,
+				1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */,
 				1A2DA3EC0CB4E84900DE6823 /* OODebugSupport.m */,
+				1A4F917F19CEDDFB00E18B65 /* OODebugStandards.h */,
+				1A4F917019CEDD1900E18B65 /* OODebugStandards.m */,
 				1A2DA3540CB4D10800DE6823 /* OODebuggerInterface.h */,
 				1A2DA34A0CB4D0D800DE6823 /* OODebugMonitor.h */,
 				1A2DA34C0CB4D0D800DE6823 /* OODebugMonitor.m */,
@@ -2784,6 +2804,8 @@
 				1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */,
 				1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */,
 				1AAB9A960D779F3C00A9F424 /* OOCocoa.m */,
+				B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */,
+				B3B46C861A0D053D00D6C39B /* OOSystemDescriptionManager.m */,
 				1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */,
 				1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */,
 				1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */,
@@ -3043,6 +3065,10 @@
 				1A3A04610BC547DC00B5E2D9 /* OOTypes.h */,
 				25161144099544390037C2E1 /* Universe.h */,
 				25161143099544390037C2E1 /* Universe.m */,
+				1A4F917B19CEDDC600E18B65 /* OOCommodities.h */,
+				1A4F917C19CEDDC600E18B65 /* OOCommodities.m */,
+				1A4F917919CEDDB200E18B65 /* OOCommodityMarket.h */,
+				1A4F917719CEDD7900E18B65 /* OOCommodityMarket.m */,
 				25161116099544390037C2E1 /* OOSound.h */,
 				25161110099544390037C2E1 /* OOTrumble.h */,
 				25161108099544390037C2E1 /* OOTrumble.m */,
@@ -3272,6 +3298,7 @@
 				1A6B228D0C9B40D4000717CF /* OOJSTimer.h in Headers */,
 				1A6B25EE0C9C2746000717CF /* OOJSClock.h in Headers */,
 				1A2DA2AB0CB4CB5C00DE6823 /* OODebugTCPConsoleProtocol.h in Headers */,
+				B3B46C881A0D053D00D6C39B /* OOSystemDescriptionManager.h in Headers */,
 				1A2DA2AE0CB4CB5C00DE6823 /* OODebugTCPConsoleClient.h in Headers */,
 				1A2DA2AF0CB4CB5C00DE6823 /* OOTCPStreamDecoderAbstractionLayer.h in Headers */,
 				1A2DA2B00CB4CB5C00DE6823 /* OOTCPStreamDecoder.h in Headers */,
@@ -3329,6 +3356,7 @@
 				1A3BA259106555D100C5C6F3 /* NSNumberOOExtensions.h in Headers */,
 				1A00C65510663D3700A8737D /* OOProfilingStopwatch.h in Headers */,
 				1A00C7BA10667D3100A8737D /* OOECMBlastEntity.h in Headers */,
+				1A4F917A19CEDDB200E18B65 /* OOCommodityMarket.h in Headers */,
 				1A00C7DF1066814C00A8737D /* OOAsyncWorkManager.h in Headers */,
 				1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */,
 				1A817DA0106D3FF000AA2F97 /* OOPlasmaBurstEntity.h in Headers */,
@@ -3339,6 +3367,7 @@
 				1AA7FCB010C2BA3B0058FBED /* OOPlanetData.h in Headers */,
 				1AA7FD1E10C2C3750058FBED /* OOPlanetEntity.h in Headers */,
 				1AA7FDDC10C2DC800058FBED /* OOSunEntity.h in Headers */,
+				1A4F917D19CEDDC600E18B65 /* OOCommodities.h in Headers */,
 				1AA7FE2D10C2F2070058FBED /* OOTextureGenerator.h in Headers */,
 				1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */,
 				1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */,
@@ -3393,6 +3422,7 @@
 				1AA08612182578B8007CCAEB /* OOOpenALController.h in Headers */,
 				1A5D5893182525DE00C779AE /* NSDataOOExtensions.h in Headers */,
 				1A1F6D0D180AC324002AD52E /* OOWaypointEntity.h in Headers */,
+				1A4F918019CEDDFB00E18B65 /* OODebugStandards.h in Headers */,
 				1A1F6D16180AC371002AD52E /* OOJSWaypoint.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3437,7 +3467,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
@@ -3502,10 +3532,10 @@
 			remoteRef = 1A01BCE611C569DF0011197F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		1A1BB8A41767DD3500050283 /* OoliteUnitTests.octest */ = {
+		1A1BB8A41767DD3500050283 /* OoliteUnitTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = OoliteUnitTests.octest;
+			path = OoliteUnitTests.xctest;
 			remoteRef = 1A1BB8A31767DD3500050283 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -3759,6 +3789,8 @@
 				1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */,
 				1A5D588A1825241800C779AE /* unzip.c in Sources */,
 				1A2A16680BD10B1200152975 /* OOSingleTextureMaterial.m in Sources */,
+				1A4F917E19CEDDC600E18B65 /* OOCommodities.m in Sources */,
+				1A4F917119CEDD1900E18B65 /* OODebugStandards.m in Sources */,
 				1A2A17D70BD1587D00152975 /* OOCPUInfo.m in Sources */,
 				1A2A1B0A0BD276A900152975 /* OOEntityWithDrawable.m in Sources */,
 				1A2A1B170BD2774300152975 /* OODrawable.m in Sources */,
@@ -3785,6 +3817,7 @@
 				1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */,
 				1A5D5894182525DE00C779AE /* NSDataOOExtensions.m in Sources */,
 				1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */,
+				1A4F917819CEDD7900E18B65 /* OOCommodityMarket.m in Sources */,
 				1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */,
 				1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */,
 				1ACEA6C00C91DA3E00C7CE97 /* OOJSGlobal.m in Sources */,
@@ -3859,6 +3892,7 @@
 				1A817DA1106D3FF000AA2F97 /* OOPlasmaBurstEntity.m in Sources */,
 				1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */,
 				2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */,
+				B3B46C8A1A0D053D00D6C39B /* OOSystemDescriptionManager.m in Sources */,
 				1AB9AE8C107F459B00B6F3CE /* OOPolygonSprite.m in Sources */,
 				1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */,
 				1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */,

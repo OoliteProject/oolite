@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "HeadUpDisplay.h"
+#import "GameController.h"
 #import "ResourceManager.h"
 #import "PlayerEntity.h"
 #import "OOSunEntity.h"
@@ -156,8 +157,14 @@ enum
 - (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
-- (void) drawStickSenitivityIndicator:(NSDictionary *)info;
+- (void) drawStickSensitivityIndicator:(NSDictionary *)info;
+- (void) drawCustomBar:(NSDictionary *)info;
+- (void) drawCustomText:(NSDictionary *)info;
+- (void) drawCustomIndicator:(NSDictionary *)info;
+- (void) drawCustomLight:(NSDictionary *)info;
 
+- (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color;
+- (void) drawSurround:(NSDictionary *)info;
 - (void) drawGreenSurround:(NSDictionary *)info;
 - (void) drawYellowSurround:(NSDictionary *)info;
 
@@ -227,7 +234,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
-	mfdArray = [[NSMutableArray alloc] initWithCapacity:4]; // alloc retains
+	mfdArray = [[NSMutableArray alloc] initWithCapacity:8]; // alloc retains
 	
 	// populate arrays
 	NSArray *dials = [hudinfo oo_arrayForKey:DIALS_KEY];
@@ -247,6 +254,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	_compassActive = isCompassToBeDrawn;
 	
+	_lastWeaponType = nil;
+
 	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
 	for (i = 0; i < [legends count]; i++)
 	{
@@ -307,11 +316,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) dealloc
 {
 	DESTROY(legendArray);
-	DESTROY(dialArray);
+	DESTROY(dialArray);	
+	DESTROY(mfdArray);
 	DESTROY(hudName);
 	DESTROY(deferredHudName);
 	DESTROY(propertiesReticleTargetSensitive);
 	DESTROY(_crosshairOverrides);
+	DESTROY(_crosshairColor);
 	DESTROY(crosshairDefinition);
 	DESTROY(_hiddenSelectors);
 
@@ -877,6 +888,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon
 {
 	NSString					*weaponName = nil;
+	NSString					*weaponName2 = nil;
 	static						NSDictionary *crosshairDefs = nil;
 	NSArray						*result = nil;
 	
@@ -888,7 +900,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	 */
 	
 	weaponName = OOStringFromWeaponType(weapon);
+	weaponName2 = [weaponName substringFromIndex:3]; // strip "EQ_"
 	result = [_crosshairOverrides oo_arrayForKey:weaponName];
+	if (result == nil) 
+	{
+		result = [_crosshairOverrides oo_arrayForKey:weaponName2];
+	}
 	if (result == nil)  result = [_crosshairOverrides oo_arrayForKey:@"OTHER"];
 	if (result == nil)
 	{
@@ -901,6 +918,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		}
 		
 		result = [crosshairDefs oo_arrayForKey:weaponName];
+		if (result == nil) 
+		{
+			result = [crosshairDefs oo_arrayForKey:weaponName2];
+		}
 		if (result == nil)  result = [crosshairDefs oo_arrayForKey:@"OTHER"];
 	}
 	
@@ -931,6 +952,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		if (~alertMask & (1 << alertCondition)) {
 			return;
 		}
+	}
+
+	BOOL viewOnly = [info oo_unsignedIntForKey:VIEWSCREEN_KEY defaultValue:NO];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN)
+	{
+		return;
 	}
 
 	// check association with hidden dials
@@ -996,14 +1024,16 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	if (alertMask < 15)
 	{
 		OOAlertCondition alertCondition = [PLAYER alertCondition];
-		/* Because one of the items here is the scanner, which changes
-		 * the alert condition, this may give inconsistent results
-		 * mid-frame. This is unlikely to be crucial, but it's yet
-		 * another reason to get around to separating out scanner
-		 * display and alert level calculation - CIM */
 		if (~alertMask & (1 << alertCondition)) {
 			return;
 		}
+	}
+
+	BOOL viewOnly = [info oo_unsignedIntForKey:VIEWSCREEN_KEY defaultValue:NO];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN)
+	{
+		return;
 	}
 
 	if (EXPECT_NOT([self hasHidden:[sCurrentDrawItem objectAtIndex:WIDGET_SELECTOR_NAME]]))
@@ -1191,7 +1221,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				relativePosition = [PLAYER vectorTo:scannedEntity];
 				double fuzz = [PLAYER scannerFuzziness];
-				if (fuzz > 0)
+				if (fuzz > 0 && ![[UNIVERSE gameController] isGamePaused])
 				{
 					relativePosition = vector_add(relativePosition,OOVectorRandomRadial(fuzz));
 				}
@@ -1673,6 +1703,146 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
+- (void) drawCustomBar:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	GLfloat				ds = OOClamp_0_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 50);
+	siz.height = useDefined(cached.height, 8);
+	alpha *= cached.alpha;
+	
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	SET_COLOR_SURROUND(green_color);
+	if (draw_surround)
+	{
+		// draw custom surround
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	// draw custom bar
+	if (ds > .75)
+	{
+		SET_COLOR_HIGH(green_color);
+	}
+	else if (ds > .25)
+	{
+		SET_COLOR_MEDIUM(yellow_color);
+	}
+	else
+	{
+		SET_COLOR_LOW(red_color);
+	}
+
+	hudDrawBarAt(x, y, z1, siz, ds);
+}
+
+
+- (void) drawCustomText:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				size;
+	GLfloat				alpha = overallAlpha;
+	NSString			*text = [PLAYER dialCustomString:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	alpha *= cached.alpha;
+	
+	SET_COLOR(yellow_color);
+
+	size.width = useDefined(cached.width, 10.0f);
+	size.height = useDefined(cached.height, 10.0f);
+
+	if ([info oo_intForKey:@"align"] == 1)
+	{
+		OODrawStringAligned(text, x, y, z1, size, YES);
+	}
+	else
+	{
+		OODrawStringAligned(text, x, y, z1, size, NO);
+	}
+
+}
+
+
+- (void) drawCustomIndicator:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	GLfloat				iv = OOClamp_n1_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 50);
+	siz.height = useDefined(cached.height, 8);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	if (draw_surround)
+	{
+		// draw custom surround
+		SET_COLOR_SURROUND(green_color);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	// draw custom indicator
+	SET_COLOR(yellow_color);
+	hudDrawIndicatorAt(x, y, z1, siz, iv);
+}
+
+
+- (void) drawCustomLight:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 8);
+	siz.height = useDefined(cached.height, 8);
+	alpha *= cached.alpha;
+	
+	GLfloat light_color[4] = { 0.25, 0.25, 0.25, 0.0};
+	
+	OOColor *color = [PLAYER dialCustomColor:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	[color getRed:&light_color[0]
+			green:&light_color[1]
+			 blue:&light_color[2]
+			alpha:&light_color[3]];
+
+	GLColorWithOverallAlpha(light_color, alpha);
+	OOGLBEGIN(GL_POLYGON);
+	hudDrawStatusIconAt(x, y, z1, siz);
+	OOGLEND();
+	OOGL(glColor4f(0.25, 0.25, 0.25, alpha));
+	OOGLBEGIN(GL_LINE_LOOP);
+		hudDrawStatusIconAt(x, y, z1, siz);
+	OOGLEND();
+}
+
+
 - (void) drawSpeedBar:(NSDictionary *)info
 {
 	int					x, y;
@@ -2041,7 +2211,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 	SET_COLOR(green_color);
 	
-	OODrawString([UNIVERSE getSystemName:[PLAYER target_system_seed]], x, y, z1, siz);
+	OODrawString([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz);
 
 }
 
@@ -2897,7 +3067,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawSurround:(NSDictionary *)info color:(const GLfloat[4])color
+- (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color
 {
 	NSInteger			x, y;
 	NSSize				siz;
@@ -2923,15 +3093,34 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
+- (void) drawSurround:(NSDictionary *)info
+{
+	GLfloat	itemColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	id		colorDesc = [info objectForKey:COLOR_KEY];
+	if (colorDesc != nil)
+	{
+		OOColor *color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)
+		{
+			itemColor[0] = [color redComponent];
+			itemColor[1] = [color greenComponent];
+			itemColor[2] = [color blueComponent];
+		}
+	}
+
+	[self drawSurroundInternal:info color:itemColor];
+}
+
+
 - (void) drawGreenSurround:(NSDictionary *)info
 {
-	[self drawSurround:info color:green_color];
+	[self drawSurroundInternal:info color:green_color];
 }
 
 
 - (void) drawYellowSurround:(NSDictionary *)info
 {
-	[self drawSurround:info color:yellow_color];
+	[self drawSurroundInternal:info color:yellow_color];
 }
 
 
@@ -2959,13 +3148,17 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 	
-	// TODO: reduce alpha for non-selected MFDs
 	GLfloat mfd_color[4] =		{0.0, 1.0, 0.0, 0.9*alpha};
+	OOColor *mfdcol = [OOColor colorWithDescription:[info objectForKey:COLOR_KEY]];
+	if (mfdcol != nil) 
+	{
+		[mfdcol getRed:&mfd_color[0] green:&mfd_color[1] blue:&mfd_color[2] alpha:&mfd_color[3]];
+	}
 	if (index != [player1 activeMFD])
 	{
 		mfd_color[3] *= 0.75;
 	}
-	[self drawSurround:info color:mfd_color];
+	[self drawSurroundInternal:info color:mfd_color];
 
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	x = cached.x + [[UNIVERSE gameView] x_offset] * cached.x0;
@@ -3509,19 +3702,22 @@ void OOHUDResetTextEngine(void)
 
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
-	GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
-	if (chr > 32)  y += ONE_EIGHTH * siz.height;	// Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
+	// 31 (narrow space) and 32 (space) are non-printing characters, so
+	// don't print them, just return their width to move the pointer
+	if (chr > 32 || chr < 31) {
+		GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
+		GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
+		if (chr > 32)  y += ONE_EIGHTH * siz.height;	// Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
 	
-	glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
-	glVertex3f(x, y, z);
-	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
-	glVertex3f(x + siz.width, y, z);
-	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
-	glVertex3f(x + siz.width, y + siz.height, z);
-	glTexCoord2f(texture_x, texture_y);
-	glVertex3f(x, y + siz.height, z);
-	
+		glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
+		glVertex3f(x, y, z);
+		glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
+		glVertex3f(x + siz.width, y, z);
+		glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
+		glVertex3f(x + siz.width, y + siz.height, z);
+		glTexCoord2f(texture_x, texture_y);
+		glVertex3f(x, y + siz.height, z);
+	}
 	return siz.width * sGlyphWidths[chr];
 }
 
@@ -3591,15 +3787,26 @@ void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 
 void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
 {
-	GLfloat			cx = x;
-	NSInteger		i, length;
-	NSData			*data = nil;
-	const uint8_t	*bytes = NULL;
-	
+	OOStartDrawingStrings();
+	OODrawStringQuadsAligned(text,x,y,z,siz,rightAlign);
+	OOStopDrawingStrings();
+}
+
+void OOStartDrawingStrings() {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
+	OOGLBEGIN(GL_QUADS);
+
+}
+
+void OODrawStringQuadsAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
+{
+	GLfloat			cx = x;
+	NSInteger		i, length;
+	NSData			*data = nil;
+	const uint8_t	*bytes = NULL;
 	
 	data = [sEncodingCoverter convertString:text];
 	length = [data length];
@@ -3609,12 +3816,14 @@ void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize
 	{
 		cx -= OORectFromString(text, 0.0f, 0.0f, siz).size.width;
 	}
-	
-	OOGLBEGIN(GL_QUADS);
+
 	for (i = 0; i < length; i++)
 	{
 		cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
 	}
+}
+
+void OOStopDrawingStrings() {
 	OOGLEND();
 	
 	[OOTexture applyNone];
@@ -3668,18 +3877,29 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 	[sFontTexture apply];
 
 	OOGLBEGIN(GL_QUADS);
-		glColor4f(ce1, 1.0f, 0.0f, 1.0f);
+	{
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, eco]
+								 defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
+										alpha:1.0];
+
 		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
-		glColor3fv(&govcol[gov * 3]);
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, gov]
+								 defaultValue:[OOColor colorWithRed:govcol[gov*3] green:govcol[1+(gov*3)] blue:govcol[2+(gov*3)] alpha:1.0f] 
+										alpha:1.0];
+
 		cx += drawCharacterQuad(gov, cx, y, z, siz) - sF6KernGovt;		// charcters 0..7 are government symbols
-		glColor4f(0.5f, 1.0f, 1.0f, 1.0f);
+		[[UNIVERSE gui] setGLColorFromSetting:kGuiChartTechColor
+								 defaultValue:[OOColor colorWithRed:0.5 green:1.0f blue:1.0f alpha:1.0f] 
+										alpha:1.0];
+
 		if (tl > 9)
 		{
 			// display TL clamped between 1..16, this must be a '1'!
 			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - sF6KernTL;
 		}
 		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2.0f, z, siz);
+	}
 	OOGLEND();
 	
 	(void)cx;	// Suppress "value not used" analyzer issue.

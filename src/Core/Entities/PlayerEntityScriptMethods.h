@@ -40,8 +40,7 @@ MA 02110-1301, USA.
 - (NSString *) dockedStationDisplayName;
 - (BOOL) dockedAtMainStation;
 
-- (BOOL) canAwardCommodityType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
-- (void) awardCommodityType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
+- (void) awardCommodityType:(NSString *)type amount:(OOCargoQuantity)amount;
 
 - (void) resetScannerZoom;
 

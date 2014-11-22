@@ -156,13 +156,13 @@ static JSBool WormholeGetProperty(JSContext *context, JSObject *this, jsid propI
 		return JS_NewNumberValue(context, [entity arrivalTime], value);
 
   case kWormhole_destination:
-		return JS_NewNumberValue(context, [UNIVERSE systemIDForSystemSeed:[entity destination]], value);
+		return JS_NewNumberValue(context, [entity destination], value);
 
   case kWormhole_expiryTime:
 		return JS_NewNumberValue(context, [entity expiryTime], value);
 		
   case kWormhole_origin:
-		return JS_NewNumberValue(context, [UNIVERSE systemIDForSystemSeed:[entity origin]], value);
+		return JS_NewNumberValue(context, [entity origin], value);
 
 	default:
 		OOJSReportBadPropertySelector(context, this, propID, sWormholeProperties);

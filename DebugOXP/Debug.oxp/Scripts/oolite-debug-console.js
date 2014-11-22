@@ -186,7 +186,6 @@ SOFTWARE.
 
 */
 
-
 this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2013 the Oolite team.";
@@ -195,6 +194,7 @@ this.version		= "1.81";
 
 
 (function() {
+"use strict";
 
 this.inputBuffer	= "";
 this.$				= null;

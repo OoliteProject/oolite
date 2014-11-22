@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOScript.h"
 #import "OOJavaScriptEngine.h"
 
+static NSString * const kLocalManifestProperty = @"oolite_manifest_identifier";
 
 @interface OOJSScript: OOScript <OOWeakReferenceSupport>
 {

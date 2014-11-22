@@ -100,7 +100,12 @@
 #define INITIAL_SHOT_TIME				100.0
 
 #define	MIN_FUEL						0				// minimum fuel required for afterburner use
+#ifdef OO_DUMP_PLANETINFO
+// debugging planetinfo needs rapid jumping
+#define MAX_JUMP_RANGE					150.0
+#else
 #define MAX_JUMP_RANGE					7.0				// the 7 ly limit
+#endif
 
 #define ENTITY_PERSONALITY_MAX			0x7FFFU
 #define ENTITY_PERSONALITY_INVALID		0xFFFFU
@@ -127,6 +132,8 @@
 #define COMBAT_AI_USES_SNIPING			8.5f
 // adds BEHAVIOUR_ATTACK_SNIPER
 #define COMBAT_AI_FLEES_BETTER_2		9.0f
+// AI reacts to changes in target path in about 1.5 seconds.
+#define COMBAT_AI_STANDARD_REACTION_TIME	1.5f
 
 
 
@@ -147,7 +154,7 @@ typedef enum OOBehaviour
 #undef ENTRY
 
 
-typedef enum
+/*typedef enum
 {
 	WEAPON_NONE						= 0U,
 	WEAPON_PLASMA_CANNON			= 1,
@@ -157,7 +164,8 @@ typedef enum
 	WEAPON_MILITARY_LASER			= 5,
 	WEAPON_THARGOID_LASER			= 10,
 	WEAPON_UNDEFINED
-} OOWeaponType;
+	} OOWeaponType; */
+typedef OOEquipmentType* OOWeaponType;
 
 
 typedef enum
@@ -218,6 +226,7 @@ typedef enum
 	NSDictionary			*dockingInstructions;
 	
 	OOColor					*laser_color;
+	OOColor					*default_laser_color;
 	OOColor					*exhaust_emissive_color;
 	OOColor					*scanner_display_color1;
 	OOColor					*scanner_display_color2;
@@ -294,7 +303,7 @@ typedef enum
 	GLfloat					weaponRange;				// range of the weapon (in meters)
 	OOWeaponFacing			currentWeaponFacing;		// not necessarily the same as view for the player
 	
-	GLfloat					weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
+	GLfloat					weapon_energy_use, weapon_temp, weapon_shot_temperature; // active weapon temp, delta-temp
 	GLfloat					forward_weapon_temp, aft_weapon_temp, port_weapon_temp, starboard_weapon_temp; // current weapon temperatures
 
 	GLfloat					scannerRange;				// typically 25600
@@ -313,6 +322,8 @@ typedef enum
 	NSString				*displayName;				// name shown on screen
 	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
 	NSString				*primaryRole;				// "Main" role of the ship.
+
+	NSArray 				*explosionType;				// explosion.plist entries
 	
 	// AI stuff
 	Vector					jink;						// x and y set factors for offsetting a pursuing ship's position
@@ -419,6 +430,13 @@ typedef enum
 	OOWeakReference			*_rememberedShip;			// ship being remembered
 	OOWeakReference			*_proximityAlert;			// a ShipEntity within 2x collision_radius
 	
+	// Stuff for the target tracking curve.  The ship records the position of the target every reactionTime/2 seconds, then fits a curve to the
+	// last three recorded positions.  Instead of tracking the primary target's actual position it uses the curve to calculate the target's position.
+	// This introduces a small amount of lag to the target tracking making the NPC more human.
+	float				reactionTime;
+	HPVector			trackingCurvePositions[4];
+	OOTimeAbsolute			trackingCurveTimes[4];
+	HPVector			trackingCurveCoeffs[3];
 	
 
 	
@@ -454,6 +472,7 @@ typedef enum
 	id <OOHUDBeaconIcon>	_beaconDrawable;
 
 	double			_nextAegisCheck;
+	
 }
 
 // ship brains
@@ -620,6 +639,14 @@ typedef enum
 - (float) maxThrust;
 - (float) thrust;
 
+- (void) setMaxThrust:(GLfloat)new;
+- (void) setMaxFlightPitch:(GLfloat)new;
+- (void) setMaxFlightSpeed:(GLfloat)new;
+- (void) setMaxFlightRoll:(GLfloat)new;
+- (void) setMaxFlightYaw:(GLfloat)new;
+- (void) setEnergyRechargeRate:(GLfloat)new;
+
+
 - (void) processBehaviour:(OOTimeDelta)delta_t;
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;
@@ -655,6 +682,13 @@ typedef enum
 - (void) behaviour_track_as_turret:(double) delta_t;
 - (void) behaviour_fly_thru_navpoints:(double) delta_t;
 - (void) behaviour_scripted_ai:(double) delta_t;
+
+- (float) reactionTime;
+- (void) setReactionTime: (float) newReactionTime;
+- (HPVector) calculateTargetPosition;
+- (void) startTrackingCurve;
+- (void) updateTrackingCurve;
+- (void) calculateTrackingCurve;
 
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
 - (void)setScannerDisplayColor1:(OOColor *)color1;
@@ -1210,23 +1244,22 @@ NSDictionary *OODefaultShipShaderMacros(void);
 
 GLfloat getWeaponRangeFromType(OOWeaponType weapon_type);
 
-// Stuff implemented in OOConstToString.m
-enum
-{
-	// Values used for unknown strings.
-	kOOWeaponTypeDefault		= WEAPON_NONE
-};
-
+// Defined in OOConstToString.m
 NSString *OOStringFromBehaviour(OOBehaviour behaviour) CONST_FUNC;
 
 // Weapon strings prefixed with EQ_, used in shipyard.plist.
 NSString *OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString *string) PURE_FUNC;	// Uses suffix match for backwards compatibility.
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string) PURE_FUNC;
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(NSString *string);
+
 
 NSString *OOStringFromWeaponType(OOWeaponType weapon) CONST_FUNC;
 OOWeaponType OOWeaponTypeFromString(NSString *string) PURE_FUNC;
 
+BOOL isWeaponNone(OOWeaponType weapon);
+
 NSString *OODisplayStringFromAlertCondition(OOAlertCondition alertCondition);
 
 NSString *OOStringFromShipDamageType(OOShipDamageType type) CONST_FUNC;
+

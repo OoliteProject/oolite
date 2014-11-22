@@ -1,0 +1,50 @@
+{
+	"oolite-default-ship-explosion" = {
+		"alpha" = 0.85;
+		"color_order" = "rgb";
+		"count" = 25;
+		"duration" = 1.5;
+		"growth_rate" = 1.5;
+		"size" = 2.5;
+		"texture" = "oolite-particle-cloud2.png";
+	};
+
+
+	"oolite-fragment-explosion" = {
+		"alpha" = 0.25;
+		"color_order" = "rgb";
+		"count" = 5;
+		"duration" = 1.2;
+		"growth_rate" = 14;
+		"size" = 1.0;
+		"texture" = "oolite-particle-fragments.png";
+	};
+
+	"oolite-fragment-explosion-b" = {
+		"alpha" = 0.25;
+		"color_order" = "rgb";
+		"count" = 5;
+		"duration" = 1.2;
+		"growth_rate" = 14;
+		"size" = 1.0;
+		"texture" = "oolite-particle-fragments2.png";
+	};
+
+	
+	"oolite-default-asteroid-explosion" = {
+		"alpha" = 0.85;
+		"color_order" = "white";
+		"count" = 10;
+		"duration" = 1.2;
+		"growth_rate" = 1.6;
+		"size" = 1.6;
+		"texture" = "oolite-particle-cloud.png";
+	};
+
+	/* The game provides special explosion effects which cannot (yet)
+	 * be redefined. */
+	// "oolite-builtin-flash"
+	// "oolite-builtin-slowcloud"
+	// "oolite-builtin-fastspark"
+
+}

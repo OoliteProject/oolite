@@ -108,6 +108,8 @@ enum
 																	lodBias:0.0] retain];
 	}	
 
+	collision_radius = DUST_SCALE; // for draw pass calculations
+
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
 
 	return self;
@@ -159,7 +161,8 @@ enum
 - (void) update:(OOTimeDelta) delta_t
 {
 	// [self setPosition:position];
-
+	zero_distance = 0.0;
+			
 #if OO_SHADERS
 	if (EXPECT_NOT(shaderMode == kShaderModeUnknown))  [self checkShaderMode];
 	
@@ -167,8 +170,6 @@ enum
 	if (shaderMode == kShaderModeOn)  return;
 #endif
 	
-	zero_distance = 0.0;
-			
 	Vector offset = vector_flip(cameraRelativePosition);
 	GLfloat  half_scale = DUST_SCALE * 0.50;
 	int vi;
@@ -409,6 +410,7 @@ enum
 #endif
 		{
 			OOGL(glDisable(GL_FOG));
+			OOGL(glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA));
 		}
 	
 		OOGL(glDisable(GL_BLEND));

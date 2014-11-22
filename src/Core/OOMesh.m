@@ -54,7 +54,7 @@ MA 02110-1301, USA.
 #import "NSObjectOOExtensions.h"
 
 #import "OOJavaScriptEngine.h"
-
+#import "OODebugStandards.h"
 
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH		1
@@ -1157,6 +1157,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			{
 				// Model not found
 				OOLog(kOOLogMeshDataNotFound, @"***** ERROR: could not find %@", filename);
+				OOStandardsError(@"Model file not found");
 				return NO;
 			}
 			

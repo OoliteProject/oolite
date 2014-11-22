@@ -108,6 +108,7 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 	DESTROY(sWarningSoundPool);
 	DESTROY(sWeaponSoundPool);
 	DESTROY(sDamageSoundPool);
+	DESTROY(sMiscSoundPool);
 }
 
 

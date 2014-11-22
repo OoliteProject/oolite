@@ -274,6 +274,7 @@ enum
 	kShip_portWeapon,			// the ship's port weapon, equipmentType, read/write
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_primaryRole,			// Primary role, string, read/write
+	kShip_reactionTime,		// AI reaction time, read/write
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
 	kShip_roleWeights,			// roles and weights, dictionary, read-only
 	kShip_roles,				// roles, array, read-only
@@ -351,7 +352,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "destinationSystem",		kShip_destinationSystem,	OOJS_PROP_READWRITE_CB },
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
 	{ "dockingInstructions",	kShip_dockingInstructions,	OOJS_PROP_READONLY_CB },
-	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READONLY_CB },
+	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READWRITE_CB },
 	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
@@ -398,11 +399,11 @@ static JSPropertySpec sShipProperties[] =
 	{ "lightsActive",			kShip_lightsActive,			OOJS_PROP_READWRITE_CB },
 	{ "markedForFines",				kShip_markedForFines,				OOJS_PROP_READONLY_CB },
 	{ "maxEscorts",				kShip_maxEscorts,				OOJS_PROP_READWRITE_CB },
-	{ "maxPitch",				kShip_maxPitch,				OOJS_PROP_READONLY_CB },
-	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READONLY_CB },
-	{ "maxRoll",				kShip_maxRoll,				OOJS_PROP_READONLY_CB },
-	{ "maxYaw",					kShip_maxYaw,				OOJS_PROP_READONLY_CB },
-	{ "maxThrust",				kShip_maxThrust,			OOJS_PROP_READONLY_CB },
+	{ "maxPitch",				kShip_maxPitch,				OOJS_PROP_READWRITE_CB },
+	{ "maxSpeed",				kShip_maxSpeed,				OOJS_PROP_READWRITE_CB },
+	{ "maxRoll",				kShip_maxRoll,				OOJS_PROP_READWRITE_CB },
+	{ "maxYaw",					kShip_maxYaw,				OOJS_PROP_READWRITE_CB },
+	{ "maxThrust",				kShip_maxThrust,			OOJS_PROP_READWRITE_CB },
 	{ "missileCapacity",		kShip_missileCapacity,		OOJS_PROP_READONLY_CB },
 	{ "missileLoadTime",		kShip_missileLoadTime,		OOJS_PROP_READWRITE_CB },
 	{ "missiles",				kShip_missiles,				OOJS_PROP_READONLY_CB },
@@ -416,6 +417,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "portWeapon",				kShip_portWeapon,			OOJS_PROP_READWRITE_CB },
 	{ "potentialCollider",		kShip_potentialCollider,	OOJS_PROP_READONLY_CB },
 	{ "primaryRole",			kShip_primaryRole,			OOJS_PROP_READWRITE_CB },
+	{ "reactionTime",		kShip_reactionTime,		OOJS_PROP_READWRITE_CB },
 	{ "reportAIMessages",		kShip_reportAIMessages,		OOJS_PROP_READWRITE_CB },
 	{ "roleWeights",			kShip_roleWeights,			OOJS_PROP_READONLY_CB },
 	{ "roles",					kShip_roles,				OOJS_PROP_READONLY_CB },
@@ -789,6 +791,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_scannerRange:
 			return JS_NewNumberValue(context, [entity scannerRange], value);
 		
+		case kShip_reactionTime:
+			return JS_NewNumberValue(context, [entity reactionTime], value);
+			
 		case kShip_reportAIMessages:
 			*value = OOJSValueFromBOOL([entity reportAIMessages]);
 			return YES;
@@ -820,7 +825,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_commodity:
 			if ([entity commodityAmount] > 0)
 			{
-				result = CommodityTypeToString([entity commodityType]);
+				result = [entity commodityType];
 			}
 			break;
 			
@@ -1406,6 +1411,16 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 		
+		case kShip_reactionTime:
+			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+			
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setReactionTime:fValue];
+				return YES;
+			}
+			break;
+
 		case kShip_reportAIMessages:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
@@ -1540,7 +1555,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 			
 		case kShip_thrust:
-			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
+//			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
 			
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
@@ -1548,7 +1563,87 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_maxPitch:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxPitch cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightPitch:fValue];
+				return YES;
+			}
+			break;
+
+		
+		case kShip_maxSpeed:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxSpeed cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightSpeed:fValue];
+				return YES;
+			}
+			break;
+		
+		case kShip_maxRoll:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxRoll cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightRoll:fValue];
+				return YES;
+			}
+			break;
+		
+		case kShip_maxYaw:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxYaw cannot be negative.");
+					return NO;
+				}
+				[entity setMaxFlightYaw:fValue];
+				return YES;
+			}
+			break;
+
+		case kShip_maxThrust:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.maxThrust cannot be negative.");
+					return NO;
+				}
+				[entity setMaxThrust:fValue];
+				return YES;
+			}
+			break;
+
+		case kShip_energyRechargeRate:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.energyRechargeRate cannot be negative.");
+					return NO;
+				}
+				[entity setEnergyRechargeRate:fValue];
+				return YES;
+			}
+			break;
 			
+
 		case kShip_lightsActive:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
@@ -2663,25 +2758,26 @@ static JSBool ShipSetCargo(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	ShipEntity				*thisEnt = nil;
-	NSString				*cargoType = nil;
-	OOCommodityType			commodity = COMMODITY_UNDEFINED;
+	OOCommodityType			commodity = nil;
 	int32					count = 1;
 	BOOL					gotCount = YES;
 	
 	GET_THIS_SHIP(thisEnt);
 	
-	if (argc > 0)  cargoType = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (argc > 0)  commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, OOJS_ARGV[1], &count);
-	if (EXPECT_NOT(cargoType == nil || !gotCount || count < 1))
+	if (EXPECT_NOT(commodity == nil || !gotCount || count < 1))
 	{
 		OOJSReportBadArguments(context, @"Ship", @"setCargo", argc, OOJS_ARGV, nil, @"cargo name and optional positive quantity");
 		return NO;
 	}
 	
-	commodity = [UNIVERSE commodityForName:cargoType];
-	if (commodity != COMMODITY_UNDEFINED)  [thisEnt setCommodityForPod:commodity andAmount:count];
+	if ([[UNIVERSE commodities] goodDefined:commodity])
+	{
+		[thisEnt setCommodityForPod:commodity andAmount:count];
+	}
 	
-	OOJS_RETURN_BOOL(commodity != COMMODITY_UNDEFINED);
+	OOJS_RETURN_BOOL([[UNIVERSE commodities] goodDefined:commodity]);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -3650,8 +3746,8 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"Ship", @"threatAssessment", argc, OOJS_ARGV, nil, @"boolean");
 		return NO;
 	}
-	// start with 1 per ship
-	double assessment = 1;
+	// start with 2.5 per ship
+	double assessment = 2.5;
 	// +/- 0.1 for speed, larger subtraction for very slow ships
 	GLfloat maxspeed = [thisEnt maxFlightSpeed];
 	assessment += (maxspeed-300)/1000;
@@ -3705,32 +3801,30 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 		}
 		else
 		{
-			assessment += [thisEnt accuracy]/10;
+			assessment += [thisEnt accuracy]/5;
 		}
 
 		// check lasers
 		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD strict:NO];
-		if (wt == WEAPON_NONE)
+		assessment += ShipThreatAssessmentWeapon(wt);
+		if (isWeaponNone(wt))
 		{
-			assessment -= 1;
+			assessment -= 1.5; // further penalty for ships with no forward laser
 		}
-		else
-		{
-			assessment += ShipThreatAssessmentWeapon(wt);
-		}
+
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_AFT strict:NO];
-		if (wt != WEAPON_NONE)
+		if (!isWeaponNone(wt))
 		{
 			assessment += 1 + ShipThreatAssessmentWeapon(wt);
 		}
 		// port and starboard weapons less important
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_PORT strict:NO];
-		if (wt != WEAPON_NONE)
+		if (!isWeaponNone(wt))
 		{
 			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
 		wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_STARBOARD strict:NO];
-		if (wt != WEAPON_NONE)
+		if (!isWeaponNone(wt))
 		{
 			assessment += 0.2 + ShipThreatAssessmentWeapon(wt)/5.0;
 		}
@@ -3754,7 +3848,7 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 			assessment *= 1.5;
 			if ([thisEnt hasRole:@"thargoid-mothership"])
 			{
-				assessment += 2.5;
+				assessment += 5;
 			}
 		}
 		else
@@ -3767,7 +3861,7 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 			else
 			{
 				// and more than one trick if they can mount multiple lasers
-				assessment += 0.75;
+				assessment += 0.5;
 			}
 		}
 	}
@@ -3795,22 +3889,11 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 
 static double ShipThreatAssessmentWeapon(OOWeaponType wt)
 {
-	switch (wt)
+	if (wt == nil)
 	{
-	case WEAPON_NONE:
-		return -1;
-	case WEAPON_PULSE_LASER:
-		return 0;
-	case WEAPON_BEAM_LASER:
-		return 0.33;
-	case WEAPON_MINING_LASER:
-		return -0.5;
-	case WEAPON_MILITARY_LASER:
-	case WEAPON_THARGOID_LASER:
-		return 1.0;
-	default:
-		return 0;
+		return -1.0;
 	}
+	return [wt weaponThreatAssessment];
 }
 
 

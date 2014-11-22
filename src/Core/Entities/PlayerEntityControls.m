@@ -52,7 +52,7 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOTexture.h"
 #import "OODebugFlags.h"
-
+#import "OOSystemDescriptionManager.h"
 #import "OOJoystickManager.h"
 
 #import "OOJSScript.h"
@@ -126,6 +126,7 @@ static BOOL				escapePodKey_pressed;
 static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
 static BOOL				mouse_left_down;
+static BOOL				oxz_manager_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -153,6 +154,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollViewControls;
 - (void) pollGuiScreenControls;
 - (void) pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
+- (void) pollMarketScreenControls;
 - (void) handleUndockControl;
 - (void) pollGameOverControls:(double) delta_t;
 - (void) pollAutopilotControls:(double) delta_t;
@@ -301,6 +303,9 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING_ALIAS(key_chart_highlight,	key_contract_info,	'\?'	);
 	
+	LOAD_KEY_SETTING(key_market_filter_cycle,	'?'			);
+	LOAD_KEY_SETTING(key_market_sorter_cycle,	'/'			);
+
 	LOAD_KEY_SETTING(key_cycle_mfd,				';'			);
 	LOAD_KEY_SETTING(key_switch_mfd,			':'			);
 
@@ -308,6 +313,10 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_previous_target,		'-'			);
 	
 	LOAD_KEY_SETTING(key_custom_view,			'v'			);
+
+	LOAD_KEY_SETTING(key_oxzmanager_setfilter,	'f'			);
+	LOAD_KEY_SETTING(key_oxzmanager_showinfo,	'i'			);
+	LOAD_KEY_SETTING(key_oxzmanager_extract,	'x'			);
 	
 #ifndef NDEBUG
 	LOAD_KEY_SETTING(key_dump_target_state,		'H'			);
@@ -468,10 +477,10 @@ static NSTimeInterval	time_last_frame;
 
 - (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
-	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:direction];
-	cursor_coordinates.x = target_system_seed.d;
-	cursor_coordinates.y = target_system_seed.b;
-	found_system_seed = target_system_seed;
+	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
+	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+
+	found_system_id = target_system_id;
 	if (!whileTyping)
 	{
 		[self clearPlanetSearchString];
@@ -526,11 +535,13 @@ static NSTimeInterval	time_last_frame;
 		}
 		else 
 		{
+#ifndef OO_DUMP_PLANETINFO
 			if (spin_time < 5) 
 			{
 				witchspaceCountdown = 5;
 			} 
 			else 
+#endif
 			{
 				witchspaceCountdown = spin_time;
 			}
@@ -539,10 +550,10 @@ static NSTimeInterval	time_last_frame;
 		[self playStandardHyperspace];
 		// say it!
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_id], witchspaceCountdown] forCount:1.0];
 		[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
 					withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
-		[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+		[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
 	}
 }
 
@@ -582,7 +593,7 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	GameController *gameController = [UNIVERSE gameController];
 	
-	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE);
+	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE) || (gui_screen == GUI_SCREEN_OXZMANAGER);
 
 	@try
 	{
@@ -710,6 +721,10 @@ static NSTimeInterval	time_last_frame;
 						 is reset */
 					#if OOLITE_GNUSTEP
 						[gameView resetMouse];
+						if ([[NSUserDefaults standardUserDefaults] boolForKey:@"grab-mouse-on-mouse-control"])
+						{
+							[gameView grabMouseInsideGameWindow:YES];
+						}
 					#endif
 						mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
 						keyboardRollOverride = mouse_x_axis_map_to_yaw;   // Getafix: set keyboardRollOverride to TRUE only if yaw is mapped to mouse x-axis
@@ -719,6 +734,9 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+                    #if OOLITE_GNUSTEP
+						[gameView grabMouseInsideGameWindow:NO];
+                    #endif
 					}
 				}
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
@@ -738,6 +756,9 @@ static NSTimeInterval	time_last_frame;
 			{
 				mouse_control_on = NO;
 				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+            #if OOLITE_GNUSTEP
+				[gameView grabMouseInsideGameWindow:NO];
+            #endif
 				
 				if (OOMouseInteractionModeIsFlightMode([gameController mouseInteractionMode]))
 				{
@@ -941,7 +962,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"shoot";
 				//  shoot 'a'
-				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
+				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
 				{
 					if ([self fireMainWeapon])
 					{
@@ -1543,6 +1564,9 @@ static NSTimeInterval	time_last_frame;
 						case GUI_SCREEN_MARKET:
 							[self setGuiToMarketScreen];
 							break;
+						case GUI_SCREEN_MARKETINFO:
+							[self setGuiToMarketInfoScreen];
+							break;
 						case GUI_SCREEN_SYSTEM_DATA:
 							// Do not reset planet rotation if we are already in the system info screen!
 							if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
@@ -1607,6 +1631,14 @@ static NSTimeInterval	time_last_frame;
 	{
 		[gameView setStringInput: gvStringInputAll];
 	}
+#if 0
+	// at the moment this function is never called for GUI_SCREEN_OXZMANAGER
+	// but putting this here in case we do later
+	else if (gui_screen == GUI_SCREEN_OXZMANAGER && [[OOOXZManager sharedManager] isAcceptingTextInput])
+	{
+		[gameView setStringInput: gvStringInputAll];
+	}
+#endif
 	else
 	{
 		[gameView allowStringInput: NO];
@@ -1632,7 +1664,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					else
 					{
-						found_system_seed = kNilRandomSeed;
+						found_system_id = -1;
 						[self clearPlanetSearchString];
 					}
 				}
@@ -1640,7 +1672,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
 					{
-						found_system_seed = kNilRandomSeed;
+						found_system_id = -1;
 						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					}
 					if (planetSearchString) [planetSearchString release];
@@ -1787,7 +1819,7 @@ static NSTimeInterval	time_last_frame;
 					cursor_coordinates = galaxy_coordinates;
 					chart_focus_coordinates = cursor_coordinates;
 					target_chart_centre = galaxy_coordinates;
-					found_system_seed = kNilRandomSeed;
+					found_system_id = -1;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					moving = YES;
 				}
@@ -1891,12 +1923,20 @@ static NSTimeInterval	time_last_frame;
 					pressedArrow =  pressedArrow == key_gui_arrow_up ? 0 : pressedArrow;
 				if ((cursor_moving)&&(!moving))
 				{
-					// if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5
-					if (cursor_coordinates.x != found_system_seed.d && cursor_coordinates.y != found_system_seed.b)
-							target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-					cursor_coordinates.x = target_system_seed.d;
-					cursor_coordinates.y = target_system_seed.b;
-					chart_focus_coordinates = cursor_coordinates;
+					if (found_system_id == -1)
+					{
+						target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+					}
+					else
+					{
+						// if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5
+						NSPoint fpos = [[UNIVERSE systemManager] getCoordinatesForSystem:found_system_id inGalaxy:galaxy_number];
+						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
+						{
+							target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+						}
+					}
+					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 				}
 				if (chart_focus_coordinates.x - target_chart_centre.x <= -CHART_SCROLL_AT_X*chart_zoom)
 				{
@@ -2085,18 +2125,18 @@ static NSTimeInterval	time_last_frame;
 			if ([self handleGUIUpDownArrowKeys])
 			{
 				NSString		*itemText = [gui selectedRowText];
-				OOWeaponType		weaponType = WEAPON_UNDEFINED;
+				OOWeaponType		weaponType = nil;
 				
 				if ([itemText isEqual:FORWARD_FACING_STRING]) weaponType = forward_weapon_type;
 				if ([itemText isEqual:AFT_FACING_STRING]) weaponType = aft_weapon_type;
 				if ([itemText isEqual:PORT_FACING_STRING]) weaponType = port_weapon_type;
 				if ([itemText isEqual:STARBOARD_FACING_STRING]) weaponType = starboard_weapon_type;
 				
-				if (weaponType != WEAPON_UNDEFINED)
+				if (weaponType != nil)
 				{
 					BOOL		sameAs = OOWeaponTypeFromEquipmentIdentifierSloppy([gui selectedRowKey]) == weaponType;
 					// override showInformation _completely_ with itemText
-					if (weaponType == WEAPON_NONE)  itemText = DESC(@"no-weapon-enter-to-install");
+					if ([[weaponType identifier] isEqualToString:@"EQ_WEAPON_NONE"])  itemText = DESC(@"no-weapon-enter-to-install");
 					else
 					{
 						NSString *weaponName = [[OOEquipmentType equipmentTypeWithIdentifier:OOEquipmentIdentifierFromWeaponType(weaponType)] name];
@@ -2208,86 +2248,50 @@ static NSTimeInterval	time_last_frame;
 			}
 			break;
 
+
+		case GUI_SCREEN_MARKETINFO:
+			[self pollMarketScreenControls];
+			break;
+
 		case GUI_SCREEN_MARKET:
-			if ([self status] == STATUS_DOCKED)
+			[self pollMarketScreenControls];
+
+			if ([gameView isDown:key_market_filter_cycle] || [gameView isDown:key_market_sorter_cycle])
 			{
-				[self handleGUIUpDownArrowKeys];
-				
-				if (([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])||([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))
+				if (!queryPressed)
 				{
-					if ([gameView isDown:key_gui_arrow_right])   // -->
+					queryPressed = YES;
+					if ([gameView isDown:key_market_filter_cycle])
 					{
-						if (!wait_for_key_up)
+						if (marketFilterMode >= MARKET_FILTER_MODE_MAX)
 						{
-							int item = [(NSString *)[gui selectedRowKey] intValue];
-							if ([self tryBuyingCommodity:item all:[gameView isShiftDown]])
-							{
-								[self playBuyCommodity];
-								[self setGuiToMarketScreen];
-							}
-							else
-							{
-								[self playCantBuyCommodity];
-							}
-							wait_for_key_up = YES;
+							marketFilterMode = MARKET_FILTER_MODE_OFF;
+						}
+						else
+						{
+							marketFilterMode++;
 						}
 					}
-					if ([gameView isDown:key_gui_arrow_left])   // <--
+					else
 					{
-						if (!wait_for_key_up)
+						if (marketSorterMode >= MARKET_SORTER_MODE_MAX)
 						{
-							int item = [(NSString *)[gui selectedRowKey] intValue];
-							if ([self trySellingCommodity:item all:[gameView isShiftDown]])
-							{
-								[self playSellCommodity];
-								[self setGuiToMarketScreen];
-							}
-							else
-							{
-								[self playCantSellCommodity];
-							}
-							wait_for_key_up = YES;
+							marketSorterMode = MARKET_SORTER_MODE_OFF;
+						}
+						else
+						{
+							marketSorterMode++;
 						}
 					}
-					if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])   // 'enter'
-					{
-						if ([gameView isDown:gvMouseDoubleClick])
-						{
-							wait_for_key_up = NO;
-							[gameView clearMouse];
-						}
-						if (!wait_for_key_up)
-						{
-							int item = [(NSString *)[gui selectedRowKey] intValue];
-							int yours =		[[shipCommodityData oo_arrayAtIndex:item] oo_intAtIndex:1];
-							if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
-							{
-								[self playBuyCommodity];
-								[self setGuiToMarketScreen];
-							}
-							else if ((yours > 0) && [self trySellingCommodity:item all:YES])	// sell all you can
-							{
-								[self playSellCommodity];
-								[self setGuiToMarketScreen];
-							}
-							else if ([self tryBuyingCommodity:item all:YES])			// buy as much as possible
-							{
-								[self playBuyCommodity];
-								[self setGuiToMarketScreen];
-							}
-							else
-							{
-								[self playCantBuyCommodity];
-							}
-							wait_for_key_up = YES;
-						}
-					}
+					[self playChangedOption];
+					[self setGuiToMarketScreen];
 				}
-				else
-				{
-					wait_for_key_up = NO;
-				}
+			} 
+			else
+			{
+				queryPressed = NO;
 			}
+
 			break;
 			
 		case GUI_SCREEN_REPORT:
@@ -2542,6 +2546,213 @@ static NSTimeInterval	time_last_frame;
 	} 
 }
 
+
+- (void) pollMarketScreenControls
+{
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+
+	if (gui_screen == GUI_SCREEN_MARKET)
+	{
+		[self handleGUIUpDownArrowKeys];
+		DESTROY(marketSelectedCommodity);
+		marketSelectedCommodity = [[gui selectedRowKey] retain];
+	}
+	else
+	{
+		// handle up and down slightly differently
+		BOOL			arrow_up = [gameView isDown:key_gui_arrow_up];
+		BOOL			arrow_down = [gameView isDown:key_gui_arrow_down];
+		if (arrow_up || arrow_down)
+		{
+			if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+			{
+				OOCommodityMarket	*localMarket = [self localMarket];
+				NSArray 			*goods = [self applyMarketSorter:[self applyMarketFilter:[localMarket goods] onMarket:localMarket] onMarket:localMarket];
+				if ([goods count] > 0)
+				{
+					NSInteger goodsIndex = [goods indexOfObject:marketSelectedCommodity];
+					if (arrow_down)
+					{
+						++goodsIndex;
+					}
+					else
+					{
+						--goodsIndex;
+					}
+					if (goodsIndex < 0)
+					{
+						goodsIndex = [goods count]-1;
+					}
+					else if (goodsIndex >= (NSInteger)[goods count])
+					{
+						goodsIndex = 0;
+					}
+					DESTROY(marketSelectedCommodity);
+					marketSelectedCommodity = [[goods oo_stringAtIndex:goodsIndex] retain];
+					[self setGuiToMarketInfoScreen];
+				}
+			}
+			upDownKeyPressed = YES;
+			timeLastKeyPress = script_time;
+		}
+		else
+		{
+			upDownKeyPressed = NO;
+		}
+	}
+
+	BOOL isdocked = [self isDocked];
+
+	if (([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])||([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))
+	{
+		if ([gameView isDown:key_gui_arrow_right])   // -->
+		{
+			if (!wait_for_key_up)
+			{
+				if (isdocked && [self tryBuyingCommodity:marketSelectedCommodity all:[gameView isShiftDown]])
+				{
+					[self playBuyCommodity];
+					if (gui_screen == GUI_SCREEN_MARKET)
+					{
+						[self setGuiToMarketScreen];
+					}
+					else
+					{
+						[self setGuiToMarketInfoScreen];
+					}
+				}
+				else
+				{
+					if ([[gui selectedRowKey] isEqualToString:@">>>"])
+					{
+						[self playMenuNavigationDown];
+						[self setGuiToMarketScreen];
+					}
+					else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
+					{
+						[self playMenuNavigationUp];
+						[self setGuiToMarketScreen];
+					}
+					else
+					{
+						[self playCantBuyCommodity];
+					}
+				}
+				wait_for_key_up = YES;
+			}
+		}
+		if ([gameView isDown:key_gui_arrow_left])   // <--
+		{
+			if (!wait_for_key_up)
+			{
+				if (isdocked && [self trySellingCommodity:marketSelectedCommodity all:[gameView isShiftDown]])
+				{
+					[self playSellCommodity];
+					if (gui_screen == GUI_SCREEN_MARKET)
+					{
+						[self setGuiToMarketScreen];
+					}
+					else
+					{
+						[self setGuiToMarketInfoScreen];
+					}
+				}
+				else
+				{
+					if ([[gui selectedRowKey] isEqualToString:@">>>"])
+					{
+						[self playMenuNavigationDown];
+						[self setGuiToMarketScreen];
+					}
+					else if ([[gui selectedRowKey] isEqualToString:@"<<<"])
+					{
+						[self playMenuNavigationUp];
+						[self setGuiToMarketScreen];
+					}
+					else
+					{
+						[self playCantSellCommodity];
+					}
+
+				}
+				wait_for_key_up = YES;
+			}
+		}
+		if ((gui_screen == GUI_SCREEN_MARKET && [gameView isDown:gvMouseDoubleClick]) || [gameView isDown:13])   // 'enter'
+		{
+			if ([gameView isDown:gvMouseDoubleClick])
+			{
+				wait_for_key_up = NO;
+				[gameView clearMouse];
+			}
+			if (!wait_for_key_up)
+			{
+				OOCommodityType item = marketSelectedCommodity;
+				OOCargoQuantity yours =	[shipCommodityData quantityForGood:item];
+				if ([item isEqualToString:@">>>"])
+				{
+					[self tryBuyingCommodity:item all:YES];
+					[self setGuiToMarketScreen];
+				}
+				else if ([item isEqualToString:@"<<<"])
+				{
+					[self trySellingCommodity:item all:YES];
+					[self setGuiToMarketScreen];
+				}
+				else if (isdocked && [gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
+				{
+					[self playBuyCommodity];
+					if (gui_screen == GUI_SCREEN_MARKET)
+					{
+						[self setGuiToMarketScreen];
+					}
+					else
+					{
+						[self setGuiToMarketInfoScreen];
+					}
+				}
+				else if (isdocked && (yours > 0) && [self trySellingCommodity:item all:YES])	// sell all you can
+				{
+					[self playSellCommodity];
+					if (gui_screen == GUI_SCREEN_MARKET)
+					{
+						[self setGuiToMarketScreen];
+					}
+					else
+					{
+						[self setGuiToMarketInfoScreen];
+					}
+				}
+				else if (isdocked && [self tryBuyingCommodity:item all:YES])			// buy as much as possible
+				{
+					[self playBuyCommodity];
+					if (gui_screen == GUI_SCREEN_MARKET)
+					{
+						[self setGuiToMarketScreen];
+					}
+					else
+					{
+						[self setGuiToMarketInfoScreen];
+					}
+				}
+				else if (isdocked)
+				{
+					[self playCantBuyCommodity];
+				}
+				wait_for_key_up = YES;
+			}
+		}
+	}
+	else
+	{
+		wait_for_key_up = NO;
+	}
+
+
+ 
+
+}
 
 - (void) handleGameOptionsScreenKeys
 {
@@ -3356,7 +3567,8 @@ static NSTimeInterval	time_last_frame;
 				{
 					target_chart_zoom = saved_chart_zoom;
 				}
-				target_chart_centre = cursor_coordinates;
+				target_chart_centre = cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+
 				[self setGuiToShortRangeChartScreen];
 			}
 		}
@@ -3373,6 +3585,22 @@ static NSTimeInterval	time_last_frame;
 			showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
 			[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
 			[self setGuiToSystemDataScreen];
+		}
+	}
+
+	if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:key_gui_market]))
+	{
+		if (gui_screen != GUI_SCREEN_MARKET)
+		{
+			[gameView clearKeys];
+			[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
+			[self setGuiToMarketScreen];
+		}
+		else
+		{
+			[gameView clearKeys];
+			[self noteGUIWillChangeTo:GUI_SCREEN_MARKETINFO];
+			[self setGuiToMarketInfoScreen];
 		}
 	}
 	
@@ -3423,22 +3651,6 @@ static NSTimeInterval	time_last_frame;
 			[gui setSelectedRow:GUI_ROW_INTERFACES_START];
 		}
 
-		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:key_gui_market]))
-		{
-			[gameView clearKeys];
-			[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
-			[self setGuiToMarketScreen];
-			[gui setSelectedRow:GUI_ROW_MARKET_START];
-		}
-	}
-	else
-	{
-		if ([gameView isDown:gvFunctionKey8] || [gameView isDown:key_gui_market])
-		{
-			[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
-			[self setGuiToMarketScreen];
-			[gui setSelectedRow:GUI_ROW_MARKET_START];
-		}
 	}
 }
 
@@ -3774,38 +3986,83 @@ static BOOL autopilot_pause;
 			[[OOMusicController sharedController] stopThemeMusic];
 			if (EXPECT(![oxzmanager isRestarting]))
 			{
-				if ([self handleGUIUpDownArrowKeys])
+				if ([oxzmanager isAcceptingGUIInput])
 				{
-					// only has an effect on install/remove selection screens
-					[oxzmanager showOptionsUpdate];
-				}
-				if ([gameView isDown:key_gui_arrow_left])
-				{
-					if ((!leftRightKeyPressed))
+					if ([oxzmanager isAcceptingTextInput])
 					{
-						[oxzmanager showOptionsPrev];
+						[gameView setStringInput: gvStringInputAll];
+						[oxzmanager refreshTextInput:[gameView typedString]];
 					}
-				}
-				if ([gameView isDown:key_gui_arrow_right])
-				{
-					if ((!leftRightKeyPressed))
+					else
 					{
-						[oxzmanager showOptionsNext];
+						[gameView allowStringInput: NO];
 					}
-				}
-				leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
+					if ([self handleGUIUpDownArrowKeys])
+					{
+						// only has an effect on install/remove selection screens
+						[oxzmanager showOptionsUpdate];
+					}
+					if ([gameView isDown:key_gui_arrow_left])
+					{
+						if ((!leftRightKeyPressed))
+						{
+							[oxzmanager processOptionsPrev];
+						}
+					}
+					else if ([gameView isDown:key_gui_arrow_right])
+					{
+						if ((!leftRightKeyPressed))
+						{
+							[oxzmanager processOptionsNext];
+						}
+					}
+					leftRightKeyPressed = [gameView isDown:key_gui_arrow_right]|[gameView isDown:key_gui_arrow_left];
 
-				if (!selectPressed)
-				{
-					if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+					if (!selectPressed)
 					{
-						[oxzmanager processSelection];
+						if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
+						{
+							if ([oxzmanager isAcceptingTextInput])
+							{
+								[oxzmanager processTextInput:[gameView typedString]];
+							}
+							else
+							{
+								[oxzmanager processSelection];
+							}
+						}
+					}
+					selectPressed = [gameView isDown:13];
+					if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+					{
+						[gameView clearMouse];
+					}
+				} // endif isAcceptingGUIInput
+				if ([gameView isDown:key_oxzmanager_setfilter] ||
+					[gameView isDown:key_oxzmanager_showinfo] ||
+					[gameView isDown:key_oxzmanager_extract])
+				{
+					if (!oxz_manager_pressed)
+					{
+						oxz_manager_pressed = YES;
+						if ([gameView isDown:key_oxzmanager_setfilter])
+						{
+							[oxzmanager processFilterKey];
+						}
+						else if ([gameView isDown:key_oxzmanager_showinfo])
+						{
+							[oxzmanager processShowInfoKey];
+						}
+						else if ([gameView isDown:key_oxzmanager_extract])
+						{
+							[oxzmanager processExtractKey];
+						}
+						
 					}
 				}
-				selectPressed = [gameView isDown:13];
-				if ([gameView isDown:gvMouseDoubleClick] || [gameView isDown:gvMouseLeftButton])
+				else
 				{
-					[gameView clearMouse];
+					oxz_manager_pressed = NO;
 				}
 			}
 			break;
@@ -4005,7 +4262,10 @@ static BOOL autopilot_pause;
 	case GUI_SCREEN_MARKET:
 		[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
 		[self setGuiToMarketScreen];
-		[[UNIVERSE gui] setSelectedRow:GUI_ROW_MARKET_START];
+		break;
+	case GUI_SCREEN_MARKETINFO:
+		[self noteGUIWillChangeTo:GUI_SCREEN_MARKETINFO];
+		[self setGuiToMarketInfoScreen];
 		break;
 	case GUI_SCREEN_INTERFACES:
 		[self setGuiToInterfacesScreen:0];

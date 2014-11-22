@@ -192,6 +192,7 @@ MA 02110-1301, USA.
 #define DRAW_SURROUND_KEY		@"draw_surround"
 #define EQUIPMENT_REQUIRED_KEY	@"equipment_required"
 #define ALERT_CONDITIONS_KEY	@"alert_conditions"
+#define VIEWSCREEN_KEY			@"viewscreen_only"
 #define DIAL_REQUIRED_KEY		@"with_dial"
 #define LABELLED_KEY			@"labelled"
 #define TEXT_KEY				@"text"
@@ -203,6 +204,7 @@ MA 02110-1301, USA.
 #define COLOR_KEY_CRITICAL		@"color_critical"
 #define COLOR_KEY_SURROUND		@"color_surround"
 #define N_BARS_KEY				@"n_bars"
+#define CUSTOM_DIAL_KEY			@"data_source"
 
 #define ROWS_KEY				@"rows"
 #define COLUMNS_KEY				@"columns"
@@ -361,6 +363,30 @@ MA 02110-1301, USA.
 
 void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
+
+/* OODrawString(Aligned) handles all the string drawing, but because
+ * it does texture application and GL_QUADS beginning once per string
+ * it's quite slow.
+ *
+ * Where efficiency is needed, call OOStartDrawingStrings(), then
+ * OODrawStringQuadsAligned for each bit of text, then
+ * OOStopDrawingStrings().
+ *
+ * Trying to draw anything else between OOStartDrawingStrings() and
+ * OOStopDrawingStrings() will have messy results. You can safely call
+ * Stop, draw the other thing you want, then call Start again - it's
+ * just a little inefficient. Similarly calling
+ * OODrawStringQuadsAligned() without calling OOStartDrawingStrings()
+ * won't work very well.
+ *
+ * - CIM
+ */
+void OOStartDrawingStrings();
+void OODrawStringQuadsAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
+void OOStopDrawingStrings();
+
+
+
 void OODrawHilightedString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);

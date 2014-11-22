@@ -28,7 +28,7 @@ MA );-);, USA.
 
 #import "Universe.h"
 #import "PlayerEntity.h"
-
+#import "OOEquipmentType.h"
 
 #define CASE(foo) case foo: return @#foo;
 #define REVERSE_CASE(foo) if ([string isEqualToString:@#foo]) return foo;
@@ -247,85 +247,75 @@ NSString *JSTypeToString(int /* JSType */ type)
 
 NSString *OOStringFromWeaponType(OOWeaponType weapon)
 {
-	switch (weapon)
-	{
-		CASE(WEAPON_NONE);
-		CASE(WEAPON_PLASMA_CANNON);
-		CASE(WEAPON_PULSE_LASER);
-		CASE(WEAPON_BEAM_LASER);
-		CASE(WEAPON_MINING_LASER);
-		CASE(WEAPON_MILITARY_LASER);
-		CASE(WEAPON_THARGOID_LASER);
-		CASE(WEAPON_UNDEFINED);
+	if (weapon == nil) {
+		return @"EQ_WEAPON_NONE";
+	} else {
+		return [weapon identifier];
 	}
-	return @"Unknown weapon";
 }
 
 
 OOWeaponType OOWeaponTypeFromString(NSString *string)
 {
-	REVERSE_CASE(WEAPON_PLASMA_CANNON);
-	REVERSE_CASE(WEAPON_PULSE_LASER);
-	REVERSE_CASE(WEAPON_BEAM_LASER);
-	REVERSE_CASE(WEAPON_MINING_LASER);
-	REVERSE_CASE(WEAPON_MILITARY_LASER);
-	REVERSE_CASE(WEAPON_THARGOID_LASER);
-	
-	return kOOWeaponTypeDefault;
+	return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
 }
 
 
 NSString *OOEquipmentIdentifierFromWeaponType(OOWeaponType weapon)
 {
-#define EQ_CASE(foo) case foo: return @"EQ_"#foo;
-	
-	switch (weapon)
-	{
-	//	EQ_CASE(WEAPON_PLASMA_CANNON);
-		case WEAPON_PLASMA_CANNON: return @"EQ_WEAPON_TWIN_PLASMA_CANNON";
-		EQ_CASE(WEAPON_PULSE_LASER);
-		EQ_CASE(WEAPON_BEAM_LASER);
-		EQ_CASE(WEAPON_MINING_LASER);
-		EQ_CASE(WEAPON_MILITARY_LASER);
-		EQ_CASE(WEAPON_THARGOID_LASER);
-		
-		case WEAPON_NONE:
-		case WEAPON_UNDEFINED:
-			break;
-	}
-	return nil;
-#undef EQ_CASE
+	return [weapon identifier];
 }
 
 
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierSloppy(NSString *string)
 {
-#define EQ_REVERSE_CASE(foo) if ([string hasSuffix:@#foo]) return WEAPON_##foo;
-	EQ_REVERSE_CASE(PLASMA_CANNON); // required in playerEntityControls (case GUI_SCREEN_EQUIP_SHIP)
-	EQ_REVERSE_CASE(PULSE_LASER);
-	EQ_REVERSE_CASE(BEAM_LASER);
-	EQ_REVERSE_CASE(MINING_LASER);
-	EQ_REVERSE_CASE(MILITARY_LASER);
-	EQ_REVERSE_CASE(THARGOID_LASER);
-	
-	return kOOWeaponTypeDefault;
-#undef EQ_REVERSE_CASE
+	OOWeaponType w = [OOEquipmentType equipmentTypeWithIdentifier:string];
+	if (w == nil)
+	{
+		if (![string hasPrefix:@"EQ_"])
+		{
+			w = [OOEquipmentType equipmentTypeWithIdentifier:[NSString stringWithFormat:@"EQ_%@",string]];
+			if (w != nil)
+			{
+				return w;
+			}
+		}
+		return [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_WEAPON_NONE"];
+	}
+	return w;
+}
+
+
+/* Previous save games will have weapon types stored as ints to the
+ * various weapon types */
+OOWeaponType OOWeaponTypeFromEquipmentIdentifierLegacy(NSString *string)
+{
+	if ([string intValue] > 0)
+	{
+		switch ([string intValue])
+		{
+		case 2:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_PULSE_LASER");
+		case 3:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_BEAM_LASER");
+		case 4:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_MINING_LASER");
+		case 5:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_MILITARY_LASER");
+		case 10:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(@"EQ_WEAPON_THARGOID_LASER");
+		default:
+			return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
+		}
+	}
+	return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
 }
 
 
 OOWeaponType OOWeaponTypeFromEquipmentIdentifierStrict(NSString *string)
 {
-#define EQ_REVERSE_CASE(foo) if ([string isEqualToString:@"EQ_WEAPON_" #foo]) return WEAPON_##foo;
-//	EQ_REVERSE_CASE(PLASMA_CANNON);
-	if ([string isEqual:@"EQ_WEAPON_TWIN_PLASMA_CANNON"]) return WEAPON_PLASMA_CANNON;
-	EQ_REVERSE_CASE(PULSE_LASER);
-	EQ_REVERSE_CASE(BEAM_LASER);
-	EQ_REVERSE_CASE(MINING_LASER);
-	EQ_REVERSE_CASE(MILITARY_LASER);
-	EQ_REVERSE_CASE(THARGOID_LASER);
-	
-	return kOOWeaponTypeDefault;
-#undef EQ_REVERSE_CASE
+	// there is no difference between the two any more
+	return OOWeaponTypeFromEquipmentIdentifierSloppy(string);
 }
 
 
@@ -361,78 +351,6 @@ OOCargoType StringToCargoType(NSString *string)
 	if ([string isEqual:@"CARGO_CARRIED"]) return CARGO_RANDOM;
 	
 	return kOOCargoTypeDefault;
-}
-
-
-NSString *CommodityTypeToString(OOCommodityType commodity) // returns the commodity identifier
-{
-#define CO_CASE(foo) case COMMODITY_##foo: return [@""#foo lowercaseString];
-	switch (commodity)
-	{
-/*
-		// 'old style' commodity identifiers.
-		case COMMODITY_LIQUOR_WINES: return @"liquor/wines";
-		case COMMODITY_GEM_STONES: return @"gem-stones";
-		case COMMODITY_ALIEN_ITEMS: return @"alien items";
-*/
-
-		// normalised commodity identifiers
-		CO_CASE(LIQUOR_WINES);
-		CO_CASE(GEM_STONES);
-		CO_CASE(ALIEN_ITEMS);
-		
-		CO_CASE(FOOD);
-		CO_CASE(TEXTILES);
-		CO_CASE(RADIOACTIVES);
-		CO_CASE(SLAVES);
-		CO_CASE(LUXURIES);
-		CO_CASE(NARCOTICS);
-		CO_CASE(COMPUTERS);
-		CO_CASE(MACHINERY);
-		CO_CASE(ALLOYS);
-		CO_CASE(FIREARMS);
-		CO_CASE(FURS);
-		CO_CASE(MINERALS);
-		CO_CASE(GOLD);
-		CO_CASE(PLATINUM);
-			
-		case COMMODITY_UNDEFINED:
-			break;
-	}
-	return @"goods";	// was "unknown commodity"
-#undef CO_CASE
-}
-
-
-OOCommodityType StringToCommodityType(NSString *string) // needs commodity identifier
-{
-#define CO_REVERSE_CASE(foo) if ([[string uppercaseString] isEqual:@""#foo]) return COMMODITY_##foo;
-
-	// Backward compatibility - 'old style' commodity identifier strings.
-	if ([[string lowercaseString] isEqual:@"liquor/wines"]) return COMMODITY_LIQUOR_WINES;
-	if ([[string lowercaseString] isEqual:@"gem-stones"]) return COMMODITY_GEM_STONES;
-	if ([[string lowercaseString] isEqual:@"alien items"]) return COMMODITY_ALIEN_ITEMS;
-	
-	CO_REVERSE_CASE(LIQUOR_WINES);
-	CO_REVERSE_CASE(GEM_STONES);
-	CO_REVERSE_CASE(ALIEN_ITEMS);
-	CO_REVERSE_CASE(FOOD);
-	CO_REVERSE_CASE(TEXTILES);
-	CO_REVERSE_CASE(RADIOACTIVES);
-	CO_REVERSE_CASE(SLAVES);
-	CO_REVERSE_CASE(LUXURIES);
-	CO_REVERSE_CASE(NARCOTICS);
-	CO_REVERSE_CASE(COMPUTERS);
-	CO_REVERSE_CASE(MACHINERY);
-	CO_REVERSE_CASE(ALLOYS);
-	CO_REVERSE_CASE(FIREARMS);
-	CO_REVERSE_CASE(FURS);
-	CO_REVERSE_CASE(MINERALS);
-	CO_REVERSE_CASE(GOLD);
-	CO_REVERSE_CASE(PLATINUM);
-	
-	return kOOCommodityTypeDefault;	//COMMODITY_UNDEFINED
-#undef CO_REVERSE_CASE
 }
 
 
@@ -597,7 +515,7 @@ NSString *DisplayStringForMassUnit(OOMassUnit unit)
 
 NSString *DisplayStringForMassUnitForCommodity(OOCommodityType commodity)
 {
-	return DisplayStringForMassUnit([UNIVERSE unitsForCommodity:commodity]);
+	return DisplayStringForMassUnit([[UNIVERSE commodityMarket] massUnitForGood:commodity]);
 }
 
 

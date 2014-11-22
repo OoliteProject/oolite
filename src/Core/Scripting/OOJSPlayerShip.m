@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
 #import "EntityOOJavaScriptExtensions.h"
-
+#import "OOSystemDescriptionManager.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityControls.h"
 #import "PlayerEntityContracts.h"
@@ -75,6 +75,7 @@ static JSBool PlayerShipSetMultiFunctionDisplay(JSContext *context, uintN argc, 
 static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipHideHUDSelector(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipShowHUDSelector(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipSetCustomHUDDial(JSContext *context, uintN argc, jsval *vp);
 
 static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL isCargo, OOSystemID *start, OOSystemID *destination, double *eta, double *fee, double *premium, NSString *functionName, unsigned *risk);
 
@@ -125,6 +126,7 @@ enum
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
+	kPlayerShip_multiFunctionDisplayList,		// active mfd list, array, read-only
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
@@ -179,6 +181,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READONLY_CB },
 	{ "missilesOnline",      kPlayerShip_missilesOnline,      OOJS_PROP_READONLY_CB },
 	{ "multiFunctionDisplays",     		kPlayerShip_multiFunctionDisplays,      OOJS_PROP_READONLY_CB },
+	{ "multiFunctionDisplayList",  		kPlayerShip_multiFunctionDisplayList,      OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
 	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
@@ -222,6 +225,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "resetScannerZoom",				PlayerShipResetScannerZoom,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
+	{ "setCustomHUDDial",				PlayerShipSetCustomHUDDial,					2 },
 	{ "setMultiFunctionDisplay",		PlayerShipSetMultiFunctionDisplay,			1 },
 	{ "setMultiFunctionText",			PlayerShipSetMultiFunctionText,				1 },
 	{ "showHUDSelector",				PlayerShipShowHUDSelector,					1 },
@@ -378,6 +382,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_multiFunctionDisplays:
 			return JS_NewNumberValue(context, [[player hud] mfdCount], value);
 
+		case kPlayerShip_multiFunctionDisplayList:
+			result = [player multiFunctionDisplayList];
+			break;
+
 		case kPlayerShip_missilesOnline:
 			*value = OOJSValueFromBOOL(![player dialIdentEngaged]);
 			return YES;
@@ -395,7 +403,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			return VectorToJSValue(context, OOGalacticCoordinatesFromInternal([player cursor_coordinates]), value);
 			
 		case kPlayerShip_targetSystem:
-			*value = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
+			*value = INT_TO_JSVAL([player targetSystemID]);
 			return YES;
 			
 		case kPlayerShip_scannerNonLinear:
@@ -680,18 +688,20 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				 * consequences of allowing jump destination to be set in
 				 * flight are not as severe and do not allow the 7LY limit to
 				 * be broken. Nevertheless, it is not allowed. - CIM */
+				// (except when compiled in debugging mode)
+#ifndef OO_DUMP_PLANETINFO
 				if (EXPECT_NOT([player status] != STATUS_DOCKED && [player status] != STATUS_LAUNCHING))
 				{
 					OOJSReportError(context, @"player.ship.targetSystem is read-only unless called when docked.");
 					return NO;
 				}
+#endif
 				
 				if (JS_ValueToInt32(context, *value, &iValue))
 				{
-					if (iValue >= 0 && iValue < 256)
+					if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY)
 					{ 
-						Random_Seed seed = [UNIVERSE systemSeedForSystemNumber:(OOSystemID)iValue];
-						[player setTargetSystemSeed:seed];
+						[player setTargetSystemID:iValue];
 						return YES;
 					}
 					else
@@ -1162,6 +1172,10 @@ static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc,
 	if (argc < 1) 
 	{
 		witchspaceSpinUpTime = 0;
+#ifdef OO_DUMP_PLANETINFO
+		// quick intersystem jumps for debugging
+		witchspaceSpinUpTime = 1;
+#endif
 	}
 	else
 	{
@@ -1281,6 +1295,42 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 		NSString *formatted = [gui reflowTextForMFD:value];
 		[player setMultiFunctionText:formatted forKey:key];
 	}
+
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
+// setCustomHUDDial(key,value)
+static JSBool PlayerShipSetCustomHUDDial(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString				*key = nil;
+	id						value = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+
+	if (argc > 0)  
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"setCustomHUDDial", MIN(argc, 1U), OOJS_ARGV, nil, @"string (key), value]");
+		return NO;
+	}
+	if (argc > 1)
+	{
+		value = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[1]);
+	}
+	else
+	{
+		value = @"";
+	}
+
+	[player setDialCustom:value forKey:key];
+	
 
 	OOJS_RETURN_VOID;
 

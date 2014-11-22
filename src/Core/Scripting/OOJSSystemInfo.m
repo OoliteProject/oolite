@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 #import "OOJSVector.h"
 #import "OOIsNumberLiteral.h"
 #import "OOConstToString.h"
+#import "OOSystemDescriptionManager.h"
+#import "OOJSScript.h"
 
 
 static JSObject *sSystemInfoPrototype;
@@ -45,6 +47,9 @@ static JSBool SystemInfoEnumerate(JSContext *context, JSObject *this, JSIterateO
 
 static JSBool SystemInfoDistanceToSystem(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp);
+static JSBool SystemInfoSetPropertyMethod(JSContext *context, uintN argc, jsval *vp);
+
 static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, jsval *vp);
 
 
@@ -89,9 +94,11 @@ static JSPropertySpec sSystemInfoProperties[] =
 static JSFunctionSpec sSystemInfoMethods[] =
 {
 	// JS name					Function					min args
-	{ "toString",				OOJSObjectWrapperToString,	0 },
-	{ "distanceToSystem",		SystemInfoDistanceToSystem,	1 },
-	{ "routeToSystem",			SystemInfoRouteToSystem,	1 },
+	{ "toString",				OOJSObjectWrapperToString,		0 },
+	{ "distanceToSystem",		SystemInfoDistanceToSystem,		1 },
+	{ "routeToSystem",			SystemInfoRouteToSystem,		1 },
+	{ "samplePrice",			SystemInfoSamplePrice,			1 },
+	{ "setProperty",			SystemInfoSetPropertyMethod,	3 },
 	{ 0 }
 };
 
@@ -122,7 +129,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (OOGalaxyID) galaxy;
 - (OOSystemID) system;
-- (Random_Seed) systemSeed;
+//- (Random_Seed) systemSeed;
 
 @end
 
@@ -214,7 +221,9 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInf
 
 - (void) setValue:(id)value forKey:(NSString *)key
 {
-	[UNIVERSE setSystemDataForGalaxy:_galaxy planet:_system key:key value:value];
+	NSString *manifest = [[OOJSScript currentlyRunningScript] propertyNamed:kLocalManifestProperty];
+
+	[UNIVERSE setSystemDataForGalaxy:_galaxy planet:_system key:key value:value  fromManifest:manifest forLayer:OO_LAYER_OXP_DYNAMIC];
 }
 
 
@@ -240,11 +249,11 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInf
 }
 
 
-- (Random_Seed) systemSeed
+/*- (Random_Seed) systemSeed
 {
 	NSAssert([PLAYER currentGalaxyID] == _galaxy, @"Attempt to use -[OOSystemInfo systemSeed] from a different galaxy.");
 	return [UNIVERSE systemSeedForSystemNumber:_system];
-}
+	}*/
 
 
 - (NSPoint) coordinates
@@ -253,7 +262,7 @@ DEFINE_JS_OBJECT_GETTER(JSSystemInfoGetSystemInfo, &sSystemInfoClass, sSystemInf
 	{
 		return [PLAYER galaxy_coordinates];
 	}
-	return [UNIVERSE coordinatesForSystem:[self systemSeed]];
+	return [UNIVERSE coordinatesForSystem:_system];
 }
 
 
@@ -461,14 +470,15 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsid pro
 	{
 		NSString *key = OOStringFromJSString(context, JSID_TO_STRING(propID));
 		
-		if (!sameGalaxy || savedInterstellarInfo)
+		OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
+		id propValue = nil;
+		// interstellar space needs more work at this stage
+		if ([info system] != -1)
 		{
-			OOJSReportError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ?  @"invalid interstellar space reference" : @"other galaxies");
-			*value = JSVAL_VOID;
-			return NO;
+			propValue = [systemManager getProperty:key forSystem:[info system] inGalaxy:[info galaxy]];
+		} else {
+			propValue = [info valueForKey:key];
 		}
-		
-		id propValue = [info valueForKey:key];
 		
 		if (propValue != nil)
 		{
@@ -583,6 +593,89 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp)
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(result);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// samplePrice(commodity)
+static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOSystemInfo			*thisInfo = nil;
+	
+	if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))  return NO;
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"samplePrice", MIN(argc, 1U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
+		return NO;
+	}
+
+	BOOL sameGalaxy = ([thisInfo galaxy] == [PLAYER galaxyNumber]);
+	if (!sameGalaxy)
+	{
+		OOJSReportErrorForCaller(context, @"SystemInfo", @"routeToSystem", @"Cannot calculate sample price for destinations in other galaxies.");
+		return NO;
+	}
+
+	OOCreditsQuantity price = [[UNIVERSE commodities] samplePriceForCommodity:commodity inEconomy:[[thisInfo valueForKey:@"economy"] intValue] withScript:[thisInfo valueForKey:@"commodity_script"] inSystem:[thisInfo system]];
+	
+	OOJS_RETURN_INT(price);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool SystemInfoSetPropertyMethod(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOSystemInfo			*thisInfo = nil;
+	
+	if (!JSSystemInfoGetSystemInfo(context, OOJS_THIS, &thisInfo))  return NO;
+
+	NSString *property = nil;
+	id value = nil;
+	NSString *manifest = nil;
+
+	int32 iValue;
+
+	if (argc < 3)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(layer, property, value [,manifest])");
+		return NO;
+	}
+	if (!JS_ValueToInt32(context, OOJS_ARGV[0], &iValue))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(layer, property, value [,manifest])");
+		return NO;
+	}
+	if (iValue < 0 || iValue >= OO_SYSTEM_LAYERS)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"layer must be 0, 1, 2 or 3");
+		return NO;
+	}
+	OOSystemLayer layer = (OOSystemLayer)iValue;
+
+	property = OOStringFromJSValue(context, OOJS_ARGV[1]);
+	if (!JSVAL_IS_NULL(OOJS_ARGV[2]))
+	{
+		value = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[2]);
+	}
+	if (argc >= 4)
+	{
+		manifest = OOStringFromJSValue(context, OOJS_ARGV[3]);
+	}
+	else
+	{
+		manifest = [[OOJSScript currentlyRunningScript] propertyNamed:kLocalManifestProperty];
+	}
+
+	[UNIVERSE setSystemDataForGalaxy:[thisInfo galaxy] planet:[thisInfo system] key:property value:value fromManifest:manifest forLayer:layer];
+
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

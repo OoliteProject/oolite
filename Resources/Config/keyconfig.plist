@@ -92,6 +92,9 @@
 	// key_contract_info			= "?"; // old name works for compatibility
 	key_chart_highlight			= "?";
 
+	key_market_filter_cycle		= "?";
+	key_market_sorter_cycle		= "/";
+	
 	key_cycle_mfd				= ";";
 	key_switch_mfd				= ":";
 
@@ -101,4 +104,9 @@
 	key_custom_view				= "v";
 
 	key_dump_target_state		= "H";
+
+	key_oxzmanager_setfilter	= "f";
+	key_oxzmanager_showinfo		= "i";
+	key_oxzmanager_extract		= "x";
+
 }

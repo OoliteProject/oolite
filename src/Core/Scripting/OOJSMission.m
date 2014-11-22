@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOMusicController.h"
 #import "GuiDisplayGen.h"
-
+#import "OODebugStandards.h"
 
 static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
@@ -269,7 +269,11 @@ static JSBool MissionMarkSystem(JSContext *context, uintN argc, jsval *vp)
 	{
 		if (JS_ValueToInt32(context, OOJS_ARGV[i], &dest)) 
 		{
-			[player addMissionDestinationMarker:[player defaultMarker:dest]];
+			OOStandardsDeprecated(@"Use of numbers for mission.markSystem is deprecated");
+			if (!OOEnforceStandards())
+			{
+				[player addMissionDestinationMarker:[player defaultMarker:dest]];
+			}
 		}
 		else // must be object, from above
 		{
@@ -316,8 +320,12 @@ static JSBool MissionUnmarkSystem(JSContext *context, uintN argc, jsval *vp)
 	{
 		if (JS_ValueToInt32(context, OOJS_ARGV[i], &dest)) 
 		{
-			if (![player removeMissionDestinationMarker:[player defaultMarker:dest]]) {
-				result = NO;
+			OOStandardsDeprecated(@"Use of numbers for mission.unmarkSystem is deprecated");
+			if (!OOEnforceStandards())
+			{
+				if (![player removeMissionDestinationMarker:[player defaultMarker:dest]]) {
+					result = NO;
+				}
 			}
 		}
 		else // must be object, from above
@@ -562,6 +570,15 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 
 	[UNIVERSE removeDemoShips];	// remove any demoship or miniature planet that may be remaining from previous screens
 	
+	if ([player status] == STATUS_IN_FLIGHT)
+	{
+		OOStandardsError(@"Mission screens should not be used while in flight");
+		if (OOEnforceStandards())
+		{
+			return NO;
+		}
+	}
+
 	ShipEntity *demoShip = nil;
 	if (JS_GetProperty(context, params, "model", &value) && !JSVAL_IS_VOID(value))
 	{

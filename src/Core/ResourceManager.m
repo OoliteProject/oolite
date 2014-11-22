@@ -39,6 +39,8 @@ MA 02110-1301, USA.
 #import "OOOXZManager.h"
 #import "unzip.h"
 #import "HeadUpDisplay.h"
+#import "OODebugStandards.h"
+#import "OOSystemDescriptionManager.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -66,6 +68,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file;
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths;
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths;
++ (void) filterSearchPathsToExcludeScenarioOnlyPaths:(NSMutableArray *)searchPaths;
 + (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths;
 + (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest;
 + (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withIdentifier:(NSString *)identifier;
@@ -259,6 +262,7 @@ static NSMutableDictionary *sStringCache;
 	}
 	
 	// validate default search paths
+	DESTROY(sSearchPaths);
 	sSearchPaths = [NSMutableArray new];
 	foreach(path, existingRootPaths)
 	{
@@ -309,6 +313,13 @@ static NSMutableDictionary *sStringCache;
 	{
 		[self checkPotentialPath:path :sSearchPaths];
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
+	}
+
+	/* If a scenario restriction is *not* in place, remove
+	 * scenario-only OXPs. */
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
+	{
+		[self filterSearchPathsToExcludeScenarioOnlyPaths:sSearchPaths];
 	}
 
 	/* This is a conservative filter. It probably gets rid of more
@@ -592,7 +603,16 @@ static NSMutableDictionary *sStringCache;
 		}
 		else
 		{
-			// make up a basic manifest
+			if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+			{
+				OOStandardsError([NSString stringWithFormat:@"OXP %@ has no manifest.plist", path]);
+				if (OOEnforceStandards())
+				{
+					[self addErrorWithKey:@"oxp-lacks-manifest" param1:[path lastPathComponent] param2:nil];
+					return;
+				}
+			}
+			// make up a basic manifest in relaxed mode or for base folders
 			manifest = [NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"__oolite.tmp.%@",path],kOOManifestIdentifier,@"1",kOOManifestVersion,@"OXP without manifest",kOOManifestTitle,@"1",kOOManifestRequiredOoliteVersion,nil];
 		}
 	}
@@ -944,6 +964,30 @@ static NSMutableDictionary *sStringCache;
 	// either version was okay, or no version info so an unconditional match
 	return YES;
 }
+
+
++ (void) filterSearchPathsToExcludeScenarioOnlyPaths:(NSMutableArray *)searchPaths
+{
+	NSDictionary	*manifest = nil;
+	NSString		*identifier = nil;
+	NSArray			*identifiers = [sOXPManifests allKeys];
+
+	// take a copy because we'll mutate the original
+	// foreach identified add-on
+	foreach (identifier, identifiers)
+	{
+		manifest = [sOXPManifests objectForKey:identifier];
+		if (manifest != nil)
+		{
+			if ([[manifest oo_arrayForKey:kOOManifestTags] containsObject:kOOManifestTagScenarioOnly])
+			{
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
+			}
+		}
+	}
+}
+
 
 
 + (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths
@@ -1491,6 +1535,10 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	/* If the old pirate-victim-roles files exist, merge them in */
 	NSArray *pirateVictims = [ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES];
+	if (OOEnforceStandards() && [pirateVictims count] > 0)
+	{
+		OOStandardsDeprecated(@"pirate-victim-roles.plist is still being used.");
+	}
 	[ResourceManager mergeRoleCategories:[NSDictionary dictionaryWithObject:pirateVictims forKey:@"oolite-pirate-victim"] intoDictionary:roleCategories];
 
 	return [[roleCategories copy] autorelease];
@@ -1515,6 +1563,53 @@ static NSString *LogClassKeyRoot(NSString *key)
 		[contents addObjectsFromArray:catDataEntry];
 	}
 }
+
+
++ (OOSystemDescriptionManager *) systemDescriptionManager
+{
+	OOLog(@"resourceManager.planetinfo.load",@"Initialising manager");
+	OOSystemDescriptionManager *manager = [[OOSystemDescriptionManager alloc] init];
+	
+	NSString *path = nil;
+	NSString *configPath = nil;
+	NSDictionary *categories = nil;
+	NSString *systemKey = nil;
+
+	NSEnumerator *pathEnum = [self pathEnumerator];	
+	while ((path = [pathEnum nextObject]))
+	{
+		configPath = [[path stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"planetinfo.plist"];
+		categories = OODictionaryFromFile(configPath);
+		if (categories != nil)
+		{
+			foreachkey(systemKey,categories)
+			{
+				NSDictionary *values = [categories oo_dictionaryForKey:systemKey defaultValue:nil];
+				if (values != nil)
+				{
+					if ([systemKey isEqualToString:PLANETINFO_UNIVERSAL_KEY])
+					{
+						[manager setUniversalProperties:values];
+					}
+					else if ([systemKey isEqualToString:PLANETINFO_INTERSTELLAR_KEY])
+					{
+						[manager setInterstellarProperties:values];
+					}
+					else
+					{
+						[manager setProperties:values forSystemKey:systemKey];
+					}
+				}
+			}
+		}
+	}
+	OOLog(@"resourceManager.planetinfo.load",@"Caching routes");
+	[manager buildRouteCache];
+	OOLog(@"resourceManager.planetinfo.load",@"Initialised manager");
+	return [manager autorelease];
+}
+
 
 
 + (NSDictionary *) shaderBindingTypesDictionary

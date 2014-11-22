@@ -223,6 +223,37 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 }
 
 
+Quaternion quaternion_rotation_betweenHP(HPVector v0, HPVector v1)
+{
+	Quaternion q;
+	OOScalar s = sqrt((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
+	if (EXPECT(s > 0.0f))
+	{
+		OOScalar is = 1.0f / s;
+		q.x = (v0.y * v1.z - v0.z * v1.y) * is;
+		q.y = (v0.z * v1.x - v0.x * v1.z) * is;
+		q.z = (v0.x * v1.y - v0.y * v1.x) * is;
+		q.w = s * 0.5f;
+	}
+	else
+	{
+		// Is this actually a problem?
+		if (HPvector_equal(v1, kBasisZHPVector) || HPvector_equal(v0, kBasisZHPVector))
+		{
+			q = make_quaternion(0, 1, 0, 0);
+		}
+		else
+		{
+			q = kIdentityQuaternion;
+		}
+		// We arrive here for antiparallel vectors. Rotation axis is then undefined, but not rotating is
+		// wrong. Probably the calling function should exclude this situation. For current
+		// in-game use of this function we return (0,1,0,0), but generally that is also wrong.
+	}
+	return q;
+}
+
+
 Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc)	// vectors both normalised
 {
 	Quaternion q;

@@ -143,6 +143,10 @@ MA 02110-1301, USA.
 		//on average:  0 = .25 , 1 = 2.25  -  the same sun should give the same random component
 		corona_speed_factor=OOClamp_0_1_f(corona_speed_factor) * 2.0 + randf() * randf();
 	}
+#ifdef OO_DUMP_PLANETINFO
+	OOLog(@"planetinfo.record",@"corona_shimmer = %f",corona_speed_factor);
+#endif
+
 	corona_stage = 0.0;
 	for (i = 0; i < SUN_CORONA_SAMPLES; i++)
 		rvalue[i] = randf();
@@ -278,7 +282,10 @@ MA 02110-1301, USA.
 				if (sky_bri == 1.0)
 				{	
 					// This sun has now gone nova!
-					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES]];
+					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES] fromManifest:@"org.oolite.oolite"];
+					// Novas are stored under the core manifest if the
+					// player was there at the time. Default layer 2
+					// is fine.
 					OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
@@ -573,7 +580,9 @@ MA 02110-1301, USA.
 	if (directVisionSunGlare)
 	{
 		NSSize	siz =	[[UNIVERSE gui]	size];
-		GLfloat z = [[UNIVERSE gameView] display_z];
+		MyOpenGLView *gameView = [UNIVERSE gameView];
+		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
 		GLfloat atmosphericReductionFactor =  1.0f - [PLAYER insideAtmosphereFraction];
 		// 182: square of ratio of radius to sun-witchpoint distance
 		// in default Lave
@@ -614,7 +623,9 @@ MA 02110-1301, USA.
 		double alpha = 1-(alt/corona);
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
-		GLfloat z = [[UNIVERSE gameView] display_z];
+		MyOpenGLView *gameView = [UNIVERSE gameView];
+		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
 		OOGL(glColor4fv(glareColor));
 
 		OOGLBEGIN(GL_QUADS);

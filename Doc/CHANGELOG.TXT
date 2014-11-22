@@ -32,6 +32,10 @@ General:
   If multiple entries have the same heading, they are grouped.
 * Subentities now inherit their parent's entity personality - useful
   for shader randomisation.
+* New trade-goods.plist allowing definition of customised trade goods
+* New market scripts for JS-based modification of markets
+* OXP Developer builds will now warn about deprecated code in OXPs.
+
 
 Plists:
 -------
@@ -39,7 +43,22 @@ Plists:
 * equipment.plist: installation_time, repair_time
 * descriptions.plist: long-range-chart-title-G-S now allows chart title
   to vary from system to system
+* commodities.plist and illegal-goods.plist replaced by trade-goods.plist
+* shipdata.plist: market_broadcast, market_capacity, market_definition, market_monitored, market_script properties for stations
+* planetinfo.plist: market_script property for systems
 
+Properties:
+-----------
+* Removed manifest.liquor/wines, manifest.liquorWines, manifest.gemStones
+  manifest.alienItems aliases for trade goods
+
+Methods:
+--------
+* manifest.comment()
+* manifest.setComment()
+* manifest.setShortComment()
+* manifest.shortComment()
+* systemInfo.samplePrice()
 
 
 Bug fixes:
@@ -62,6 +81,15 @@ Changes between Oolite 1.80 and Oolite 1.80.1:
 * Fix errors with escape pod launch from subentities
 * Fix consistency errors on ship library screen
 * Ship registration forms now return to interfaces page
+* Fix error with "OUTER_SYSTEM" positions in very large systems
+* Fix bug where ship.checkScanner would detect a docked player and other
+  invalid targets.
+* Windows and Linux ports: Gamma is now a generic game option, not a save
+  file one. Fixes unexpected gamma resets when starting a new game.
+* Windows port: Fixed unnecessary double OpenGL initializations under
+  certain resize window conditions.
+* Fix return type of EquipmentInfo.requiredCargoSpace
+* Handle sun glare correctly also for too tall or too wide game windows.
 
 -------------------------------------------------------------------------------
 
