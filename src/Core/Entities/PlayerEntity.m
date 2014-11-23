@@ -992,8 +992,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// newer savegames use galaxy_id
 	if ([dict oo_stringForKey:@"galaxy_id"] != nil)
 	{
-		galaxy_number = [dict oo_intForKey:@"galaxy_id"];
-		if (galaxy_number < 0 || galaxy_number >= OO_GALAXIES_AVAILABLE)
+		galaxy_number = [dict oo_unsignedIntegerForKey:@"galaxy_id"];
+		if (galaxy_number >= OO_GALAXIES_AVAILABLE)
 		{
 			return NO;
 		}
@@ -1032,7 +1032,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	else
 		// compatibility for loading 1.80 savegames
 	{
-		galaxy_number = [dict oo_intForKey:@"galaxy_number"];
+		galaxy_number = [dict oo_unsignedIntegerForKey:@"galaxy_number"];
 
 		[UNIVERSE setGalaxyTo: galaxy_number andReinit:YES];
 	
