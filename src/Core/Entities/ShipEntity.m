@@ -5965,7 +5965,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	trackingCurvePositions[3] = trackingCurvePositions[2];
 	trackingCurvePositions[2] = trackingCurvePositions[1];
 	trackingCurvePositions[1] = trackingCurvePositions[0];
-	trackingCurvePositions[0] = [target position];
+	if (EXPECT_NOT([target isShip] && [(ShipEntity *)target isCloaked]))
+	{
+		// if target is cloaked, introduce some more inaccuracy
+		// 0.02 seems to be enough to give them slight difficulty on
+		// a straight-line target and real trouble on anything better
+		trackingCurvePositions[0] = HPvector_add([target position],OOHPVectorRandomSpatial([(ShipEntity *)target flightSpeed]*reactionTime*0.02));
+	}
+	else
+	{
+		trackingCurvePositions[0] = [target position];
+	}
 	trackingCurveTimes[3] = trackingCurveTimes[2];
 	trackingCurveTimes[2] = trackingCurveTimes[1];
 	trackingCurveTimes[1] = trackingCurveTimes[0];
