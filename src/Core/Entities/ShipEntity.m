@@ -4059,14 +4059,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_break_off_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
-	float	max_available_speed = maxFlightSpeed;
-	double  range = [self rangeToPrimaryTarget];
-	if (range > scannerRange || [self primaryTarget] == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+	float	max_available_speed = maxFlightSpeed;
+	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 
 	desired_speed = max_available_speed;
@@ -4132,9 +4132,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_slow_dogfight:(double) delta_t
 {
-	double  range = [self rangeToPrimaryTarget];
-	ShipEntity*	target = [self primaryTarget];
-	if (range > scannerRange || target == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4144,6 +4142,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self avoidCollision];
 		return;
 	} 
+	double  range = [self rangeToPrimaryTarget];
+	ShipEntity*	target = [self primaryTarget];
 	double aspect = [self approachAspectToPrimaryTarget];
 	if (range < 2.5*(collision_radius+target->collision_radius) && [self proximityAlert] == target && aspect > 0) {
 		desired_speed = maxFlightSpeed;
@@ -4454,7 +4454,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (cloakAutomatic) [self activateCloakingDevice];
 
-	if (range > scannerRange || [self primaryTarget] == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4556,7 +4556,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (range > scannerRange)
+		if (![self canStillTrackPrimaryTarget])
 		{
 			[self noteLostTargetAndGoIdle];
 			return;
@@ -4658,7 +4658,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		return;
 	}
-	if (range > scannerRange || [self primaryTarget] == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4701,7 +4701,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		return;
 	}
-	if (range > scannerRange || [self primaryTarget] == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4726,15 +4726,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_sniper:(double) delta_t
 {
-	double  range = [self rangeToPrimaryTarget];
-	float	max_available_speed = maxFlightSpeed;
-
-	if (range > scannerRange || [self primaryTarget] == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
-	else if (range < 15000)
+	double  range = [self rangeToPrimaryTarget];
+	float	max_available_speed = maxFlightSpeed;
+
+	if (range < 15000)
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
@@ -4807,7 +4807,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		return;
 	}
-	if (range > scannerRange || [self primaryTarget] == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
@@ -4924,7 +4924,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_attack_mining_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if ([self primaryTarget] == nil || range > scannerRange) 
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		desired_speed = maxFlightSpeed * 0.375;
@@ -4988,7 +4988,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (range > scannerRange)
+		if (![self canStillTrackPrimaryTarget])
 		{
 			[self noteLostTargetAndGoIdle];
 			return;
@@ -5194,13 +5194,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_running_defense:(double) delta_t
 {
-	double  range = [self rangeToPrimaryTarget];
-	if (range > scannerRange || [self primaryTarget] == nil)
+	if (![self canStillTrackPrimaryTarget])
 	{
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
 
+	double  range = [self rangeToPrimaryTarget];
 	desired_speed = maxFlightSpeed; // not injectors
 	jink = kZeroVector;
 	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
@@ -9459,6 +9459,41 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+/* Checks if the primary target is still trackable.
+ * 
+ * 1.80 behaviour: still exists, is in scanner range, is not cloaked
+ *
+ * 1.81 (planned) behaviour:
+ * - track cloaked ships once primary targeted (but no missiles, and can't keep as a mere defense target, and probably some other penalties)
+ * - track ships at 120% scanner range *if* they are also primary aggressor
+ *
+ * But first, just switch over to this method on 1.80 behaviour and check
+ * that things still work.
+ */
+- (BOOL) canStillTrackPrimaryTarget
+{
+	Entity *target = (Entity *)[self primaryTargetWithoutValidityCheck];
+	if (target == nil)
+	{
+		return NO;
+	}
+	if (![self isValidTarget:target])
+	{
+		return NO;
+	}
+	double range2 = HPmagnitude2(HPvector_subtract([target position], position));
+	if (range2 > scannerRange * scannerRange) 
+	{
+		return NO;
+	}
+	if ([target isShip] && [(ShipEntity*)target isCloaked])
+	{
+		return NO;
+	}
+	return YES;
+}
+
+
 - (id) primaryTarget
 {
 	id result = [_primaryTarget weakRefUnderlyingObject];
@@ -9818,6 +9853,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return 0.0;
 	}
 
+	if (![self canStillTrackPrimaryTarget])
+	{
+		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
+		return 0.0;
+	}
+
+	/* 1.81 change: do the above check first: if a missile can't be
+	 * fired outside scanner range it should self-destruct if the
+	 * target gets far enough away (it's going to miss anyway) -
+	 * CIM */
 	if (scanClass == CLASS_MISSILE)
 		return [self missileTrackPrimaryTarget: delta_t];
 
@@ -9825,13 +9870,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	Vector  relPos = HPVectorToVector(HPvector_subtract([self calculateTargetPosition], position));
 	
-	double	range2 = magnitude2(HPVectorToVector(HPvector_subtract([target position], position)));
-
-	if (range2 > scannerRange * scannerRange)
-	{
-		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
-		return 0.0;
-	}
+	double	range2 = HPmagnitude2(HPvector_subtract([target position], position));
 
 	//jink if retreating
 	if (retreat) // calculate jink position when flying away from target.
@@ -10048,19 +10087,20 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return 0.0;
 	}
 
+	if (![self canStillTrackPrimaryTarget])
+	{
+		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
+		return 0.0;
+	}
+
+
 	if (scanClass == CLASS_MISSILE) // never?
 		return [self missileTrackPrimaryTarget: delta_t];
 
 	GLfloat  d_forward, d_up, d_right;
 	
 	Vector  relPos = HPVectorToVector(HPvector_subtract([self calculateTargetPosition], position));
-	double	range2 = magnitude2(HPVectorToVector(HPvector_subtract([target position], position)));
 
-	if (range2 > scannerRange * scannerRange)
-	{
-		[self noteLostTargetAndGoIdle];	// NOTE: was AI message: rather than reactToMessage:
-		return 0.0;
-	}
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
