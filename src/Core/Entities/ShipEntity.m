@@ -2536,22 +2536,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		ShipEntity *target = [self primaryTarget];
-		
-		if (target == nil || [target scanClass] == CLASS_NO_DRAW || ![target isShip] || [target isCloaked])
-		{
-			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
-			if ([self primaryTarget] != nil)
-			{
-				if ([target isShip] && [target isCloaked])
-				{
-					[self doScriptEvent:OOJSID("shipTargetCloaked") andReactToAIMessage:@"TARGET_CLOAKED"];
-					DESTROY(_lastEscortTarget); // needed to deploy escorts again after decloaking.
-				}
-				[self noteLostTarget];
-			}
-		}
-
 		[self processBehaviour:delta_t];
 
 		// manage energy
@@ -5668,6 +5652,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Entity *target = nil;
 	while ((target = [[targetEnum nextObject] weakRefUnderlyingObject]))
 	{
+		// defense targets cannot be tracked while cloaked
 		if ([target scanClass] == CLASS_NO_DRAW || [(ShipEntity *)target isCloaked] || [target energy] <= 0.0)
 		{
 			[turret_owner removeDefenseTarget:target];
@@ -9221,6 +9206,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	GLfloat scannerRange2 = scannerRange * scannerRange;
 	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
+		// can't scan cloaked ships
 		if (scan->isShip && ![(ShipEntity*)scan isCloaked] && [self isValidTarget:scan])
 		{
 			distance2_scanned_ships[n_scanned_ships] = HPdistance2(position, scan->position);
@@ -9482,14 +9468,16 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;
 	}
 	double range2 = HPmagnitude2(HPvector_subtract([target position], position));
-	if (range2 > scannerRange * scannerRange) 
+	if (range2 > scannerRange * scannerRange * 1.5625) 
 	{
+		// 1.5625 = 1.25*1.25
 		return NO;
 	}
-	if ([target isShip] && [(ShipEntity*)target isCloaked])
+	// 1.81: can retain cloaked ships as a *primary* target now
+/*	if ([target isShip] && [(ShipEntity*)target isCloaked])
 	{
 		return NO;
-	}
+		} */
 	return YES;
 }
 
@@ -11135,6 +11123,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Entity *target = nil;
 	while ((target = [[targetEnum nextObject] weakRefUnderlyingObject]))
 	{
+		// can't fire defensively at cloaked ships
 		if ([target scanClass] == CLASS_NO_DRAW || [(ShipEntity *)target isCloaked] || [target energy] <= 0.0)
 		{
 			[self removeDefenseTarget:target];
@@ -11555,8 +11544,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([target isShip])
 	{
 		target_ship = (ShipEntity*)target;
-		if ([target_ship isCloaked])  return nil;
-		if (![self hasMilitaryScannerFilter] && [target_ship isJammingScanning]) return nil;
+		if ([target_ship isCloaked])
+		{
+			return nil;
+		}
+		// missile fire requires being in scanner range
+		if (HPmagnitude2(HPvector_subtract([target_ship position], position)) > scannerRange * scannerRange)
+		{
+			return nil;
+		}
+		if (![self hasMilitaryScannerFilter] && [target_ship isJammingScanning]) 
+		{
+			return nil;
+		}
 	}
 	
 	unsigned i;
@@ -14040,6 +14040,19 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			if ([ship hasHostileTarget] || ([ship isPlayer] && [PLAYER weaponsOnline]))
 			{
 				if (HPdistance2([ship position],position) < scanrange2)
+				{
+					return ALERT_CONDITION_RED;
+				}
+			}
+		}
+		// also need to check primary target separately
+		Entity *ptarget = [self primaryTargetWithoutValidityCheck];
+		if (ptarget != nil && [ptarget isShip])
+		{
+			ship = (ShipEntity *)ptarget;
+			if ([ship hasHostileTarget] || ([ship isPlayer] && [PLAYER weaponsOnline]))
+			{
+				if (HPdistance2([ship position],position) < scanrange2 * 1.5625)
 				{
 					return ALERT_CONDITION_RED;
 				}
