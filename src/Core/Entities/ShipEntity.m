@@ -4055,7 +4055,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	desired_speed = max_available_speed;
 
-	ShipEntity*	target = [self primaryTarget];
+	Entity*	target = [self primaryTarget];
 
 	if (desired_speed > maxFlightSpeed)
 	{
@@ -4079,7 +4079,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = maxFlightSpeed / 2.0;
 	}
 	double aspect = [self approachAspectToPrimaryTarget];
-	if (range > 3000.0 || [target primaryTarget] != self || frustration - floor(frustration) > fmin(1.6/max_flight_roll,aspect))
+	if (range > 3000.0 || ([target isShip] && [(ShipEntity*)target primaryTarget] != self) || frustration - floor(frustration) > fmin(1.6/max_flight_roll,aspect))
 	{
 		[self trackPrimaryTarget:delta_t:YES];
 	}
@@ -4291,7 +4291,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		starboard_weapon_ready = !isWeaponNone(starboard_weapon_type) && (starboard_weapon_temp < COMBAT_AI_WEAPON_TEMP_USABLE) && in_good_range;
 		}
 
-		ShipEntity*	target = [self primaryTarget];
+		Entity*	target = [self primaryTarget];
 		double aspect = [self approachAspectToPrimaryTarget];
 
 		if (!forward_weapon_ready && !aft_weapon_ready && !port_weapon_ready && !starboard_weapon_ready)
@@ -4336,7 +4336,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 // if our current target isn't targeting us, and we have some idea of how to fight, and our weapons are running hot, and we're fairly nearby
-		else if (weapons_heating && accuracy >= COMBAT_AI_ISNT_AWFUL && [target primaryTarget] != self && range < COMBAT_OUT_RANGE_FACTOR * weaponRange) 
+		else if (weapons_heating && accuracy >= COMBAT_AI_ISNT_AWFUL && [target isShip] && [(ShipEntity *)target primaryTarget] != self && range < COMBAT_OUT_RANGE_FACTOR * weaponRange) 
 		{
 // then back off a bit for weapons to cool so we get a good attack run later, rather than weaving closer
 			float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
@@ -4957,7 +4957,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
-	ShipEntity*	target = [self primaryTarget];
+	Entity*	rawTarget = [self primaryTarget];
+	if (![rawTarget isShip])
+	{
+		// can't attack a wormhole
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+
+	ShipEntity *target = (ShipEntity *)target;
 	if ((range < COMBAT_IN_RANGE_FACTOR * weaponRange)||([self proximityAlert] != nil))
 	{
 		if (![self hasProximityAlertIgnoringTarget:YES])
@@ -4991,7 +4999,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (range < back_off_range)
 		{
-			if (accuracy < COMBAT_AI_IS_SMART || ([target primaryTarget] == self && aspect > 0.8) || aim_tolerance*range > COMBAT_AI_CONFIDENCE_FACTOR)
+			if (accuracy < COMBAT_AI_IS_SMART || ([target isShip] && [(ShipEntity *)target primaryTarget] == self && aspect > 0.8) || aim_tolerance*range > COMBAT_AI_CONFIDENCE_FACTOR)
 			{
 				if (accuracy >= COMBAT_AI_FLEES_BETTER && aspect > 0.8)
 				{
@@ -5011,7 +5019,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		else
 		{
-			if (accuracy < COMBAT_AI_IS_SMART || [target primaryTarget] == self || range > weaponRange / 2.0)
+			if (accuracy < COMBAT_AI_IS_SMART || ([target isShip] && [(ShipEntity *)target primaryTarget] == self) || range > weaponRange / 2.0)
 			{
 				desired_speed = fmax(target_speed * 1.5, maxFlightSpeed);
 			}
@@ -5263,7 +5271,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	[self trackPrimaryTarget:delta_t:YES];
 
-	if (missiles && ([(ShipEntity *)[self primaryTarget] primaryTarget] == self)) 
+	Entity *target = [self primaryTarget];
+
+	if (missiles && [target isShip] && [(ShipEntity *)target primaryTarget] == self)
 	{
 		[self considerFiringMissile:delta_t];
 	}
