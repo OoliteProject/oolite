@@ -5480,7 +5480,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackDestination:delta_t: NO];
 
 	eta = eta / 0.51;	// 2% safety margin assuming an average of half current speed
-	GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / (thrust*SHIP_THRUST_FACTOR) : 4.0;
+	GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / (thrust) : 4.0;
 	GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
 	if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
@@ -5552,7 +5552,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			and the ships runs the risk flying in circles around the target. (exclude active escorts)
 		*/
 		GLfloat eta = ((distance + 1) - desired_range) / (0.51 * flightSpeed * confidenceFactor);	// 2% safety margin assuming an average of half current speed
-		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / (thrust*SHIP_THRUST_FACTOR) : 4.0;
+		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / (thrust) : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 		if (dockingInstructions != nil)
 		{
