@@ -802,7 +802,7 @@ static NSTimeInterval	time_last_frame;
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		
 		BOOL paused = [[UNIVERSE gameController] isGamePaused];
-		double speed_delta = 5.0 * thrust;
+		double speed_delta = SHIP_THRUST_FACTOR * thrust;
 		
 		if (!paused && gui_screen == GUI_SCREEN_MISSION)
 		{

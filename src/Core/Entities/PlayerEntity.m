@@ -2385,7 +2385,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	STAGE_TRACKING_BEGIN
 	
-	double speed_delta = 5.0 * thrust;
+	double speed_delta = SHIP_THRUST_FACTOR * thrust;
 	
 	OOSunEntity	*sun = [UNIVERSE sun];
 	double		external_temp = 0;

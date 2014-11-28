@@ -3989,7 +3989,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		double  distance = [self rangeToDestination];
 		success_factor = distance;
 		//
-		double slowdownTime = 96.0 / thrust;	// more thrust implies better slowing
+		double slowdownTime = 96.0 / (thrust*SHIP_THRUST_FACTOR);	// more thrust implies better slowing
 		double minTurnSpeedFactor = 0.005 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
 		if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
@@ -4715,6 +4715,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self noteLostTargetAndGoIdle];
 		return;
 	}
+	Entity*	rawTarget = [self primaryTarget];
+	if (![rawTarget isShip])
+	{
+		// can't attack a wormhole
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+	ShipEntity *target = (ShipEntity *)rawTarget;
+
 	double  range = [self rangeToPrimaryTarget];
 	float	max_available_speed = maxFlightSpeed;
 
@@ -4726,6 +4735,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (range > weaponRange || range > scannerRange * 0.8)
 		{
+			BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+			if (canBurn && [target weaponRange] > weaponRange && range > weaponRange)
+			{
+				// if outside maximum weapon range, but inside target weapon range
+				// close to fight ASAP!
+				max_available_speed *= [self afterburnerFactor];
+			}
 			desired_speed = max_available_speed;
 		}
 		else
@@ -4799,7 +4815,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// control speed
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
+	BOOL closeQuickly = (canBurn && range > weaponRange);
 	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
+	if (closeQuickly)
+	{
+		slow_down_range = weaponRange * COMBAT_OUT_RANGE_FACTOR;
+	}
 	double	back_off_range = weaponRange * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	ShipEntity*	target = [self primaryTarget];
 	double target_speed = [target speed];
@@ -4965,7 +4986,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return;
 	}
 
-	ShipEntity *target = (ShipEntity *)target;
+	ShipEntity *target = (ShipEntity *)rawTarget;
 	if ((range < COMBAT_IN_RANGE_FACTOR * weaponRange)||([self proximityAlert] != nil))
 	{
 		if (![self hasProximityAlertIgnoringTarget:YES])
@@ -4990,7 +5011,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// control speed
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
+	BOOL closeQuickly = (canBurn && [target weaponRange] > weaponRange && range > weaponRange);
 	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
+	if (closeQuickly)
+	{
+		slow_down_range = weaponRange * COMBAT_OUT_RANGE_FACTOR;
+	}
 	double	back_off_range = 10000 * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	double target_speed = [target speed];
 	double aspect = [self approachAspectToPrimaryTarget];
@@ -4999,7 +5025,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (range < back_off_range)
 		{
-			if (accuracy < COMBAT_AI_IS_SMART || ([target isShip] && [(ShipEntity *)target primaryTarget] == self && aspect > 0.8) || aim_tolerance*range > COMBAT_AI_CONFIDENCE_FACTOR)
+			if (accuracy < COMBAT_AI_IS_SMART || ([target primaryTarget] == self && aspect > 0.8) || aim_tolerance*range > COMBAT_AI_CONFIDENCE_FACTOR)
 			{
 				if (accuracy >= COMBAT_AI_FLEES_BETTER && aspect > 0.8)
 				{
@@ -5038,7 +5064,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		desired_speed = fmax(maxFlightSpeed,fmin(3.0 * target_speed, max_available_speed)); // possibly use afterburner to approach
+		if (closeQuickly)
+		{
+			desired_speed = max_available_speed; // use afterburner to approach
+		}
+		else
+		{
+			desired_speed = fmax(maxFlightSpeed,fmin(3.0 * target_speed, max_available_speed)); // possibly use afterburner to approach
+		}
 	}
 
 
@@ -5447,7 +5480,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackDestination:delta_t: NO];
 
 	eta = eta / 0.51;	// 2% safety margin assuming an average of half current speed
-	GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
+	GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / (thrust*SHIP_THRUST_FACTOR) : 4.0;
 	GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
 	if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
@@ -5519,7 +5552,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			and the ships runs the risk flying in circles around the target. (exclude active escorts)
 		*/
 		GLfloat eta = ((distance + 1) - desired_range) / (0.51 * flightSpeed * confidenceFactor);	// 2% safety margin assuming an average of half current speed
-		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
+		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / (thrust*SHIP_THRUST_FACTOR) : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 		if (dockingInstructions != nil)
 		{
@@ -6305,7 +6338,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 
 - (void) applyThrust:(double) delta_t
 {
-	GLfloat dt_thrust = thrust * delta_t;
+	GLfloat dt_thrust = SHIP_THRUST_FACTOR * thrust * delta_t;
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	BOOL	isUsingAfterburner = (canBurn && (flightSpeed > maxFlightSpeed) && (desired_speed >= flightSpeed));
 	float	max_available_speed = maxFlightSpeed;
@@ -8065,12 +8098,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (void) decrease_flight_speed:(double) delta
 {
 	double factor = 1.0;
-	if (flightSpeed > maxFlightSpeed) factor = [self afterburnerFactor] / 2;
+	if (flightSpeed > maxFlightSpeed) 
+	{
+		factor = MIN_HYPERSPEED_FACTOR;
+	}
 
 	if (flightSpeed > factor * delta)
-		flightSpeed -= factor * delta;  // Player uses here: flightSpeed -= 5 * HYPERSPEED_FACTOR * delta (= 160 * delta);
+	{
+		flightSpeed -= factor * delta;
+	}
 	else
+	{
 		flightSpeed = 0;
+	}
 }
 
 
