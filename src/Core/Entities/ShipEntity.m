@@ -10506,7 +10506,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		return NO;
 	}
-	if (target == nil || [self isDefenseTarget:target])
+	// primary target can be a wormhole, defense targets shouldn't be
+	if (target == nil || [self isDefenseTarget:target] || ![target isShip])
 	{
 		return NO;
 	}

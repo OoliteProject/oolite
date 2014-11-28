@@ -4113,7 +4113,7 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 		{
 			if (this.distance(lt) < this.scannerRange)
 			{
-				if (!lt.isCloaked)
+				if (!lt.isCloaked && lt.isShip)
 				{
 					this.ship.target = lt;
 					this.ship.addDefenseTarget(lt);
@@ -4999,6 +4999,10 @@ PriorityAIController.prototype.responseComponent_standard_escortAccepted = funct
 // overridden for escorts
 PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = function(ally, enemy)
 {
+	if (!enemy.isShip)
+	{
+		return;
+	}
 	if (this.allied(this.ship,enemy))
 	{
 		return;
@@ -5072,7 +5076,7 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 		if (!attacker.isPlayer && attacker.target != victim)
 		{
 			// ignore friendly fire if they were aiming at a pirate/assassin
-			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
+			if (attacker.bounty == 0 && attacker.target && attacker.target.isShip && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
 			{
 				// but we might go after the pirate/assassin ourselves in a bit
 				this.ship.addDefenseTarget(attacker.target);
@@ -5094,7 +5098,10 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 			this.communicate("oolite_offenceDetected",attacker,4);
 		}
 		attacker.setBounty(attacker.bounty | 7,"seen by police");
-		this.ship.addDefenseTarget(attacker);
+		if (attacker.isShip)
+		{
+			this.ship.addDefenseTarget(attacker);
+		}
 		this.reconsiderNow();
 	}
 }
@@ -5911,7 +5918,7 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 		if (!attacker.isPlayer && attacker.target != victim)
 		{
 			// ignore friendly fire if they were aiming at a pirate/assassin
-			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
+			if (attacker.bounty == 0 && attacker.target && attacker.target.isShip && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
 			{
 				// but we might go after the pirate/assassin ourselves in a bit
 				this.ship.addDefenseTarget(attacker.target);
