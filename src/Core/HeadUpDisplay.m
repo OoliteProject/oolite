@@ -3878,13 +3878,13 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 
 	OOGLBEGIN(GL_QUADS);
 	{
-		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, eco]
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, (unsigned long)eco]
 								 defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
 										alpha:1.0];
 
 		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
-		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, gov]
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, (unsigned long)gov]
 								 defaultValue:[OOColor colorWithRed:govcol[gov*3] green:govcol[1+(gov*3)] blue:govcol[2+(gov*3)] alpha:1.0f] 
 										alpha:1.0];
 

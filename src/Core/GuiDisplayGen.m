@@ -1840,7 +1840,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				{
 					systemParameter = nearby_systems[i].eco;
 					GLfloat ce1 = 1.0f - 0.125f * systemParameter;
-					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, systemParameter]
+					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, (unsigned long)systemParameter]
 								   defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
 										  alpha:1.0];
 				}
@@ -1854,7 +1854,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				if (EXPECT(noNova))
 				{
 					systemParameter = nearby_systems[i].gov;
-					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, systemParameter]
+					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, (unsigned long)systemParameter]
 								   defaultValue:[OOColor colorWithRed:govcol[systemParameter*3] green:govcol[1+(systemParameter*3)] blue:govcol[2+(systemParameter*3)] alpha:1.0f] 
 										  alpha:1.0];
 				}
@@ -2403,7 +2403,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 			if (d <= MAX_JUMP_RANGE)	// another_commander - Default to 7.0 LY.
 			{
-				thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %d %d",g,i,j]]];
+				thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)i, (long)j]]];
 				if (thisConnectionColor == nil)
 				{
 					thisConnectionColor = defaultConnectionColor;
