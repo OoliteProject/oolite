@@ -4822,7 +4822,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		slow_down_range = weaponRange * COMBAT_OUT_RANGE_FACTOR;
 	}
 	double	back_off_range = weaponRange * COMBAT_OUT_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
-	ShipEntity*	target = [self primaryTarget];
+	Entity*	rawTarget = [self primaryTarget];
+	if (![rawTarget isShip])
+	{
+		[self noteLostTargetAndGoIdle];
+		return;
+	}
+	ShipEntity*	target = (ShipEntity *)rawTarget;
 	double target_speed = [target speed];
 	double last_success_factor = success_factor;
 	double distance = [self rangeToDestination];
