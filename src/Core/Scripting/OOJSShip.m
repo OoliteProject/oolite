@@ -98,6 +98,8 @@ static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *v
 static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRemoveDefenseTarget(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipAddCollisionException(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipRemoveCollisionException(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
@@ -194,6 +196,7 @@ enum
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
 	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
+	kShip_collisionExceptions,   // collision exception list, array, read-only
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
 	kShip_commodity,			// commodity of a ship, read only
 	kShip_commodityAmount,		// commodityAmount of a ship, read only
@@ -336,6 +339,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },
 	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },
+	{ "collisionExceptions",	kShip_collisionExceptions,	OOJS_PROP_READONLY_CB },
 	{ "commodity",				kShip_commodity,			OOJS_PROP_READONLY_CB },
 	{ "commodityAmount",		kShip_commodityAmount,		OOJS_PROP_READONLY_CB },
 	// contracts instead of cargo to distinguish them from the manifest
@@ -461,6 +465,7 @@ static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
 	{ "abandonShip",			ShipAbandonShip,			0 },
+	{ "addCollisionException",	ShipAddCollisionException,	1 },
 	{ "addDefenseTarget",		ShipAddDefenseTarget,		1 },
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "becomeCascadeExplosion",			ShipBecomeCascadeExplosion,			0 },
@@ -512,6 +517,7 @@ static JSFunctionSpec sShipMethods[] =
 
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
+	{ "removeCollisionException",	ShipRemoveCollisionException,	1 },
 	{ "removeDefenseTarget",   ShipRemoveDefenseTarget,   1 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 0},
@@ -832,6 +838,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_commodityAmount:
 			*value = INT_TO_JSVAL([entity commodityAmount]);
 			return YES;
+
+	  case kShip_collisionExceptions:
+			result = [entity collisionExceptions];
+			break;
+
 			
 		case kShip_speed:
 			return JS_NewNumberValue(context, [entity flightSpeed], value);
@@ -3148,6 +3159,56 @@ static JSBool ShipRemoveDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	[thisEnt removeDefenseTarget:target];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipAddCollisionException(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*target = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"addCollisionException", 1U, OOJS_ARGV, nil, @"other ship");
+		return NO;
+	}
+	
+	// have to do it both ways because it's not defined which order
+	// the collisions get tested in. More efficient to add both ways
+    // than to test both ways
+	[thisEnt addCollisionException:target];
+	[target addCollisionException:thisEnt];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRemoveCollisionException(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*target = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"removeCollisionException", 1U, OOJS_ARGV, nil, @"other ship");
+		return NO;
+	}
+	
+	// doesn't need a check to see if it was already gone
+	[thisEnt removeCollisionException:target];
+	[target removeCollisionException:thisEnt];
 
 	OOJS_RETURN_VOID;
 	

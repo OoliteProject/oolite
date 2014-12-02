@@ -461,6 +461,9 @@ typedef enum
 	
 	OOWeakSet				*_defenseTargets;			 // defense targets
 	
+	// ships in this set can't be collided with
+	OOWeakSet				*_collisionExceptions;
+
 	GLfloat					_profileRadius;
 	
 	OOWeakReference			*_shipHitByLaser;			// entity hit by the last laser shot
@@ -782,6 +785,13 @@ typedef enum
 - (BOOL) isDefenseTarget:(Entity *)target;
 - (void) removeDefenseTarget:(Entity *)target;
 - (void) removeAllDefenseTargets;
+
+// collision exceptions
+- (NSArray *) collisionExceptions;
+- (void) addCollisionException:(ShipEntity *)ship;
+- (void) removeCollisionException:(ShipEntity *)ship;
+- (BOOL) collisionExceptedFor:(ShipEntity *)ship;
+
 
 
 - (GLfloat) weaponRange;

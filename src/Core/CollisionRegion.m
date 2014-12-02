@@ -316,91 +316,101 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region)
 		e1 = entities_to_test[i];
 		p1 = e1->position;
 		r1 = e1->collision_radius;
-		
+	
+	
+
 		// check against the first in the collision chain
 		e2 = e1->collision_chain;
 		while (e2 != nil)
 		{
 			checks_this_tick++;
-			
-			r2 = e2->collision_radius;
-			r0 = r1 + r2;
-			dist2 = HPdistance2(e2->position, p1);
-			min_dist2 = r0 * r0;
-			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
+			if (e1->isShip && e2->isShip && 
+				[(ShipEntity *)e1 collisionExceptedFor:(ShipEntity *)e2]) 
 			{
+				OOLog(@"collision.except",@"ignoring potential collision between %@ and %@",e1,e2);
+			} 
+			else
+			{
+
+				r2 = e2->collision_radius;
+				r0 = r1 + r2;
+				dist2 = HPdistance2(e2->position, p1);
+				min_dist2 = r0 * r0;
+				if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
+				{
 #ifndef NDEBUG
-				if (gDebugFlags & DEBUG_COLLISIONS)
-				{
-					OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
-						  e1, (e1->collisionTestFilter==3)?@"YES":@"NO", e2, (e2->collisionTestFilter==3)?@"YES":@"NO");
-				}
-#endif
-				checks_within_range++;
-				
-				if (e1->isShip && e2->isShip)
-				{
-					if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1))
+					if (gDebugFlags & DEBUG_COLLISIONS)
 					{
-						[(ShipEntity*)e1 setProximityAlert:(ShipEntity*)e2];
-						[(ShipEntity*)e2 setProximityAlert:(ShipEntity*)e1];
+						OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
+							  e1, (e1->collisionTestFilter==3)?@"YES":@"NO", e2, (e2->collisionTestFilter==3)?@"YES":@"NO");
 					}
-				}
-				if (dist2 < min_dist2)
-				{
-					BOOL collision = NO;
-					
-					if (e1->isStation)
+#endif
+					checks_within_range++;
+				
+					if (e1->isShip && e2->isShip)
 					{
-						StationEntity* se1 = (StationEntity *)e1;
-						if ([se1 shipIsInDockingCorridor:(ShipEntity *)e2])
+						if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1))
 						{
-							collision = NO;
+							[(ShipEntity*)e1 setProximityAlert:(ShipEntity*)e2];
+							[(ShipEntity*)e2 setProximityAlert:(ShipEntity*)e1];
+						}
+					}
+					if (dist2 < min_dist2)
+					{
+						BOOL collision = NO;
+					
+						if (e1->isStation)
+						{
+							StationEntity* se1 = (StationEntity *)e1;
+							if ([se1 shipIsInDockingCorridor:(ShipEntity *)e2])
+							{
+								collision = NO;
+							}
+							else
+							{
+								collision = [e1 checkCloseCollisionWith:e2];
+							}
+						}
+						else if (e2->isStation)
+						{
+							StationEntity* se2 = (StationEntity *)e2;
+							if ([se2 shipIsInDockingCorridor:(ShipEntity *)e1])
+							{
+								collision = NO;
+							}
+							else
+							{
+								collision = [e2 checkCloseCollisionWith:e1];
+							}
 						}
 						else
 						{
 							collision = [e1 checkCloseCollisionWith:e2];
 						}
-					}
-					else if (e2->isStation)
-					{
-						StationEntity* se2 = (StationEntity *)e2;
-						if ([se2 shipIsInDockingCorridor:(ShipEntity *)e1])
-						{
-							collision = NO;
-						}
-						else
-						{
-							collision = [e2 checkCloseCollisionWith:e1];
-						}
-					}
-					else
-					{
-						collision = [e1 checkCloseCollisionWith:e2];
-					}
 				
-					if (collision)
-					{
-						// now we have no need to check the e2-e1 collision
-						if (e1->collider)
+						if (collision)
 						{
-							[[e1 collisionArray] addObject:e1->collider];
-						}
-						else
-						{
-							[[e1 collisionArray] addObject:e2];
-						}
-						e1->hasCollided = YES;
+							// now we have no need to check the e2-e1 collision
+							if (e1->collider)
+							{
+								[[e1 collisionArray] addObject:e1->collider];
+							}
+							else
+							{
+								[[e1 collisionArray] addObject:e2];
+							}
+							e1->hasCollided = YES;
 						
-						if (e2->collider)
-						{
-							[[e2 collisionArray] addObject:e2->collider];
+							if (e2->collider)
+							{
+								[[e2 collisionArray] addObject:e2->collider];
+							}
+							else
+							{
+								[[e2 collisionArray] addObject:e1];
+							}
+							e2->hasCollided = YES;
 						}
-						else
-						{
-							[[e2 collisionArray] addObject:e1];
-						}
-						e2->hasCollided = YES;
 					}
 				}
 			}

@@ -1021,6 +1021,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(lastRadioMessage);
 	DESTROY(octree);
 	DESTROY(_defenseTargets);
+	DESTROY(_collisionExceptions);
 	
 	DESTROY(commodity_type);
 
@@ -10536,6 +10537,47 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	return HPdistance(position, destination);
 }
+
+
+- (NSArray *) collisionExceptions
+{
+	if (_collisionExceptions == nil)
+	{
+		return [NSArray array];
+	}
+	return [_collisionExceptions allObjects];
+}
+
+
+- (void) addCollisionException:(ShipEntity *)ship
+{
+	if (_collisionExceptions == nil)
+	{
+		// Allocate lazily for the benefit of the ships that never need this.
+		_collisionExceptions = [[OOWeakSet alloc] init];
+	}
+	[_collisionExceptions addObject:ship];
+}
+
+
+- (void) removeCollisionException:(ShipEntity *)ship
+{
+	if (_collisionExceptions != nil)
+	{
+		[_collisionExceptions removeObject:ship];
+	}
+}
+
+
+- (BOOL) collisionExceptedFor:(ShipEntity *)ship
+{
+	if (_collisionExceptions == nil)
+	{
+		return NO;
+	}
+	return [_collisionExceptions containsObject:ship];
+}
+
 
 
 - (NSUInteger) defenseTargetCount
