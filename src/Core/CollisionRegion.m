@@ -327,7 +327,7 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region)
 			if (e1->isShip && e2->isShip && 
 				[(ShipEntity *)e1 collisionExceptedFor:(ShipEntity *)e2]) 
 			{
-				OOLog(@"collision.except",@"ignoring potential collision between %@ and %@",e1,e2);
+				// nothing happens
 			} 
 			else
 			{
