@@ -1048,6 +1048,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		ANA_mode = OPTIMIZED_BY_NONE;
 		
 		NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
+
 		if (keyStringValue != nil)
 		{
 			coord_vals = ScanTokensFromString(keyStringValue);
@@ -1061,13 +1062,21 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if ([dict objectForKey:@"current_system_name"])
 		{
 			system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"current_system_name"]];
-			target_system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"target_system_name"]];
 		}
 		else
 		{
 			// really old save games don't have system name saved
 			// use coordinates instead - unreliable in zero-distance pairs.
 			system_id = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxy:galaxy_number];
+		}
+		// and current_system_name and target_system_name
+		// were introduced at different times, too
+		if ([dict objectForKey:@"target_system_name"])
+		{
+			target_system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"target_system_name"]];
+		}
+		else
+		{
 			target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
 		}
 		found_system_id = -1;
