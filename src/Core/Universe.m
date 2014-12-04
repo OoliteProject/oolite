@@ -837,6 +837,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[self addEntity:thing];
 	[thing release];
 	
+	ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
 	[self setLighting];	// also sets initial lights positions.
 	
 	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
@@ -985,6 +986,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	{
 		h1 += 0.33;
 	}
+	
+	ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
+	
 	// pick a main sequence colour
 
 	dict_object=[systeminfo objectForKey:@"sun_color"];
@@ -1540,6 +1544,21 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 }
 
 
+- (void) setAmbientLightLevel:(float)newValue
+{
+	NSAssert(UNIVERSE != nil, @"Attempt to set ambient light level with a non yet existent universe.");
+	
+	ambientLightLevel = OOClamp_0_max_f(newValue, 10.0f);
+	return;
+}
+
+
+- (float) ambientLightLevel
+{
+	return ambientLightLevel;
+}
+
+
 - (void) setLighting
 {
 	/*
@@ -1558,7 +1577,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	*/
 	
-	NSDictionary	*systeminfo = [self currentSystemData];
 	OOSunEntity		*the_sun = [self sun];
 	SkyEntity		*the_sky = nil;
 	GLfloat			sun_pos[] = {0.0, 0.0, 0.0, 1.0};	// equivalent to kZeroVector - for interstellar space.
@@ -1601,7 +1619,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		r = r * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[0] * SUN_AMBIENT_INFLUENCE;
 		g = g * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[1] * SUN_AMBIENT_INFLUENCE;
 		b = b * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[2] * SUN_AMBIENT_INFLUENCE;
-		GLfloat ambient_level = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
+		GLfloat ambient_level = [self ambientLightLevel];
 		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
 		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);

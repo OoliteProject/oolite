@@ -282,6 +282,8 @@ enum
 	NSMutableArray			*allPlanets;
 	NSMutableSet			*allStations;
 	
+	float					ambientLightLevel;
+	
 	NSMutableDictionary		*populatorSettings;
 	OOTimeDelta		next_repopulation;
 	NSString		*system_repopulator;
@@ -373,6 +375,8 @@ enum
 - (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
 - (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
+- (void) setAmbientLightLevel:(float)newValue;
+- (float) ambientLightLevel;
 - (void) setLighting;
 - (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;
