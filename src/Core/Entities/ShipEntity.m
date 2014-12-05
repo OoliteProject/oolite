@@ -14155,15 +14155,18 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			}
 		}
 		// also need to check primary target separately
-		Entity *ptarget = [self primaryTargetWithoutValidityCheck];
-		if (ptarget != nil && [ptarget isShip])
+		if ([self hasHostileTarget])
 		{
-			ship = (ShipEntity *)ptarget;
-			if ([ship hasHostileTarget] || ([ship isPlayer] && [PLAYER weaponsOnline]))
+			Entity *ptarget = [self primaryTargetWithoutValidityCheck];
+			if (ptarget != nil && [ptarget isShip])
 			{
-				if (HPdistance2([ship position],position) < scanrange2 * 1.5625)
+				ship = (ShipEntity *)ptarget;
+				if ([ship hasHostileTarget] || ([ship isPlayer] && [PLAYER weaponsOnline]))
 				{
-					return ALERT_CONDITION_RED;
+					if (HPdistance2([ship position],position) < scanrange2 * 1.5625)
+					{
+						return ALERT_CONDITION_RED;
+					}
 				}
 			}
 		}
