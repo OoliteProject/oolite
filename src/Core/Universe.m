@@ -9681,6 +9681,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	cachedStation = nil;
 	
 	[self setUpSettings];
+
+	// reset these in case OXP set has changed
+
+	// set up cargopod templates
+	[self setUpCargoPods];
 	
 	if (![player setUpAndConfirmOK:YES]) 
 	{
