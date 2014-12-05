@@ -7542,9 +7542,9 @@ static void VerifyDesc(NSString *key, id desc)
 	}
 	else if ([key isEqualToString:@"sun_radius"])
 	{
-		if ([object doubleValue] < 1000.0 || [object doubleValue] > 1000000.0 ) 
+		if ([object doubleValue] < 1000.0 || [object doubleValue] > 10000000.0 ) 
 		{
-			object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"1000000.0"); // works!
+			object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"10000000.0"); // works!
 		}
 	}
 	else if ([key hasPrefix:@"corona_"])
