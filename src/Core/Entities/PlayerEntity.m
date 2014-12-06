@@ -2550,6 +2550,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		double  sun_cr = sun->collision_radius;
 		double	alt1 = sun_cr * sun_cr / sun_zd;
 		external_temp = SUN_TEMPERATURE * alt1;
+
 		if ([sun goneNova])
 			external_temp *= 100;
 		// fuel scooping during the nova mission very unlikely

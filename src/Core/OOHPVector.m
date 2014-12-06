@@ -118,6 +118,10 @@ HPVector OORandomPositionInCylinder(HPVector centre1, OOHPScalar exclusion1, HPV
 {
 	OOHPScalar exc12 = exclusion1*exclusion1;
 	OOHPScalar exc22 = exclusion2*exclusion2;
+	if (HPdistance(centre1,centre2) < (exclusion1+exclusion2)*1.2)
+	{
+		OOLog(@"position.cylinder.error",@"Trying to generate cylinder position in range %f long with exclusions %f and %f",HPdistance(centre1,centre2),exclusion1,exclusion2);
+	}
 	HPVector result;
 	do
 	{

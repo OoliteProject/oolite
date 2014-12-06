@@ -283,6 +283,8 @@ MA 02110-1301, USA.
 				{	
 					// This sun has now gone nova!
 					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES] fromManifest:@"org.oolite.oolite"];
+					[UNIVERSE setSystemDataKey:@"corona_flare" value:[NSNumber numberWithFloat:0.3] fromManifest:@"org.oolite.oolite"];
+					[UNIVERSE setSystemDataKey:@"corona_hues" value:[NSNumber numberWithFloat:0.05] fromManifest:@"org.oolite.oolite"];
 					// Novas are stored under the core manifest if the
 					// player was there at the time. Default layer 2
 					// is fine.
@@ -290,8 +292,7 @@ MA 02110-1301, USA.
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
 				_novaExpansionTimer += delta_t;
-				NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate], @"sun_radius", [NSNumber numberWithFloat:0.3], @"corona_flare", [NSNumber numberWithFloat:0.05], @"corona_hues", nil];
-				[self changeSunProperty:@"sun_radius" withDictionary:dict];
+				[UNIVERSE setSystemDataKey:@"sun_radius" value:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate] fromManifest:@"org.oolite.oolite"];
 			}
 			else
 			{
@@ -647,8 +648,7 @@ MA 02110-1301, USA.
 	if ([key isEqualToString:@"sun_radius"])
 	{
 		oldRadius =	[object doubleValue];	// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-		[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-		collision_radius = oldRadius;								
+		[self setRadius:oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
 	}
 	else if ([key isEqualToString:KEY_SUNNAME])
 	{
@@ -656,9 +656,7 @@ MA 02110-1301, USA.
 	}
 	else if ([key isEqualToString:@"corona_flare"])
 	{
-		double rad = collision_radius;
-		[self setRadius: rad + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([object floatValue]))];
-		collision_radius = rad;
+		[self setRadius:collision_radius andCorona:[object floatValue]];
 	}
 	else if ([key isEqualToString:@"corona_shimmer"])
 	{
@@ -679,8 +677,7 @@ MA 02110-1301, USA.
 		{
 			[self setGoingNova:NO inTime:0];
 			// oldRadius is always the radius we had before going nova...
-			[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-			collision_radius = oldRadius;
+			[self setRadius: oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
 
 		}
 	}
@@ -719,12 +716,17 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setRadius:(GLfloat) rad
+- (void) setRadius:(GLfloat) rad andCorona:(GLfloat)corona
 {
 	collision_radius = rad;
-	
-	cor16k =	rad * rad * 16 / 10000000;
-	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
+	if (corona < 0.01f) {
+		corona = 0.01f;
+	}
+	cor16k = rad * 8 * corona;
+
+	GLfloat corouter = rad * (1+(8*corona));
+
+	lim16k = corouter * corouter * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 }
 
 

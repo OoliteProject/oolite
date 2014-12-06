@@ -348,6 +348,9 @@ enum
 
 - (NSString *) useAddOns;
 - (BOOL) setUseAddOns:(NSString *)newUse fromSaveGame: (BOOL)saveGame;
+- (BOOL) setUseAddOns:(NSString *) newUse fromSaveGame:(BOOL) saveGame forceReinit:(BOOL)force;
+
+- (void) setUpSettings;
 
 - (BOOL) reinitAndShowDemo:(BOOL)showDemo;
 

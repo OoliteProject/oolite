@@ -152,12 +152,12 @@ this._flareTransition = function(delta)
 				current -= delta/10;
 		}
 		system.info.corona_flare = current;
-		if (this._flareTarget > 0.375 && current > this._flareTarget)
+		if (this._flareTarget > 0.275 && current > this._flareTarget)
 		{
 				removeFrameCallback(this._flareCallback);
 				delete this._flareCallback;
 		}
-		else if (this._flareTarget < 0.375 && current < this._flareTarget)
+		else if (this._flareTarget < 0.275 && current < this._flareTarget)
 		{
 				removeFrameCallback(this._flareCallback);
 				delete this._flareCallback;
@@ -295,7 +295,11 @@ this.shipWillEnterWitchspace = function ()
 	if (this.willGoNova)
 	{
 		system.info.sun_gone_nova = true;
+		system.info.sun_radius = this._novaRadius;
+		system.info.corona_flare = 0.3;
+		system.info.corona_hues = 0.05;
 		delete this.willGoNova;
+		delete this._novaRadius;
 		// did the player leave the nova system without docking at the main station?
 		if (missionVariables.nova === "TWO_HRS_TO_ZERO")
 		{
@@ -316,6 +320,7 @@ this.shipWillExitWitchspace = function ()
 		// the populator has started the nova mission
 		player.ship.fuelLeakRate = 25;
 		this.willGoNova = true;
+		this._novaRadius = system.sun.radius + 600000;
 		player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
 		this.buoyLoaded = false;  // w-bouy is not in system yet.
 		if (this.novaMissionTimer)
@@ -343,6 +348,9 @@ this.systemWillPopulate = function() // call this as soon as possible so other s
 		{
 			missionVariables.nova = "TWO_HRS_TO_ZERO";
 			system.sun.goNova(7200);
+			if (system.info.corona_flare < 0.15) {
+				system.info.corona_flare = 0.15;
+			}
 			/* the main populator script might have run first. If so, remove
 			 * the ships it added. If it runs after, it'll notice the
 			 * impending nova and not add these lines in the first place */

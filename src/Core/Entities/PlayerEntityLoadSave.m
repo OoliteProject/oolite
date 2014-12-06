@@ -642,14 +642,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			}
 		}
 
-		if (![UNIVERSE setUseAddOns:scenarioRestrict fromSaveGame:YES]) 
+		if (![UNIVERSE setUseAddOns:scenarioRestrict fromSaveGame:YES forceReinit:YES]) 
 		{
 			fail_reason = DESC(@"loadfailed-saved-game-failed-to-load");
 			loadedOK = NO;
 		} 
 	}
 	
-	
+
 	if (loadedOK)
 	{
 		OOLog(@"load.progress",@"Creating player ship");

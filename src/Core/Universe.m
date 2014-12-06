@@ -180,7 +180,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 @interface Universe (OOPrivate)
 
 - (BOOL) doRemoveEntity:(Entity *)entity;
-- (void) setUpSettings;
 - (void) setUpCargoPods;
 - (void) setUpInitialUniverse;
 - (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
@@ -506,10 +505,16 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (BOOL) setUseAddOns:(NSString *) newUse fromSaveGame:(BOOL) saveGame
 {
-	if ([newUse isEqualToString:useAddOns])
+	return [self setUseAddOns:newUse fromSaveGame:saveGame forceReinit:NO];
+}
+
+
+- (BOOL) setUseAddOns:(NSString *) newUse fromSaveGame:(BOOL) saveGame forceReinit:(BOOL)force
+{
+	if (!force && [newUse isEqualToString:useAddOns])
 	{
 		return YES;
-	}
+	} 
 	DESTROY(useAddOns);
 	useAddOns = [newUse retain];
 
@@ -1049,7 +1054,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 	sun_radius = [systeminfo oo_nonNegativeDoubleForKey:@"sun_radius" defaultValue:2.5 * planet_radius];
 	// clamp the sun radius
-	if ((sun_radius < 1000.0) || (sun_radius > sun_distance / 2 ))
+	if ((sun_radius < 1000.0) || (sun_radius > sun_distance / 2  && !sunGoneNova))
 	{
 		OOLogWARN(@"universe.setup.badSun",@"Sun radius of %f is not valid for this system",sun_radius);
 		sun_radius = sun_radius < 1000.0 ? 1000.0 : (sun_distance / 2);
@@ -1057,7 +1062,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"sun_radius = %f",sun_radius);
 #endif
-	safeDistance=16 * sun_radius * sun_radius; // 4 times the sun radius
+	safeDistance=36 * sun_radius * sun_radius; // 6 times the sun radius
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
@@ -1125,7 +1130,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (sunGoneNova)
 	{
-		[a_sun setRadius: sun_radius + MAX_CORONAFLARE];
+		[a_sun setRadius: sun_radius andCorona:0.3];
 		[a_sun setThrowSparks:YES];
 		[a_sun setVelocity: kZeroVector];
 	}
@@ -1421,7 +1426,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
 {
 	HPVector result = kZeroHPVector;
-	if ([code isEqualToString:@"WITCHPOINT"] || sun == nil || planet == nil)
+	if ([code isEqualToString:@"WITCHPOINT"] || sun == nil || planet == nil || [sun goneNova])
 	{
 		result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
 	}
