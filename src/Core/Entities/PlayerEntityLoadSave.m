@@ -795,6 +795,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self startUpComplete];
 
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	gui_screen = GUI_SCREEN_LOAD; // force evaluation of new gui screen on startup
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading
 	OOLog(@"load.progress",@"Loading complete");
