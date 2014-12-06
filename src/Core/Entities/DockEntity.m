@@ -692,18 +692,15 @@ MA 02110-1301, USA.
 
 	BOOL rotatedPort = (ww >= hh) ? NO : YES;
 	BOOL rotatedShip = ((shipbb.max.x - shipbb.min.x) >= (shipbb.max.y - shipbb.min.y)) ? NO : YES;
-	if (rotatedShip == rotatedPort)
+	if (rotatedShip != rotatedPort)
 	{
-		// the ship and port are both bigger in x than y
-		while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
-		while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+		// swap dimensions over
+		ww = port_dimensions.y;
+		hh = port_dimensions.x;
 	}
-	else
-	{
-		// the ship and port have different x/y biggerness
-		while (shipbb.max.x - shipbb.min.x > hh * 0.90)	hh *= 1.25;
-		while (shipbb.max.y - shipbb.min.y > ww * 0.90)	ww *= 1.25;
-	}
+
+	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
+	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
 	
 	ww *= 0.5;
 	hh *= 0.5;
@@ -769,7 +766,7 @@ MA 02110-1301, USA.
 	
 	// if close enough (within 50%) correct and add damage
 	//
-	GLfloat safety = 1.0+(01.0/100.0);
+	GLfloat safety = 1.0+(50.0/100.0);
 
 	if  ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
 	{
