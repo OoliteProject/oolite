@@ -4101,7 +4101,9 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 		{
 			return;
 		}
-		this.ship.removeDefenseTarget(this.ship.target);
+		if (this.ship.target.isShip) {
+			this.ship.removeDefenseTarget(this.ship.target);
+		}
 		this.ship.target = null;
 	}
 
