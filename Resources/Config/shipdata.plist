@@ -4356,7 +4356,6 @@
 		};
 		name = "Ball Turret";
 		roles = "ballturret";
-		setup_actions = ( initialiseTurret );
 		thrust = 1;
 		weapon_energy = 25;
 	};
