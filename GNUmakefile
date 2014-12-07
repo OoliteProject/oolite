@@ -262,6 +262,7 @@ OOLITE_OXP_VERIFIER_FILES = \
     OOAIStateMachineVerifierStage.m \
     OOCheckDemoShipsPListVerifierStage.m \
     OOCheckEquipmentPListVerifierStage.m \
+    OOCheckPListSyntaxVerifierStage.m \
     OOCheckRequiresPListVerifierStage.m \
     OOCheckShipDataPListVerifierStage.m \
     OOFileScannerVerifierStage.m \
