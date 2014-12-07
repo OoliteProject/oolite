@@ -1788,6 +1788,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setMissionBackgroundSpecial:nil];
 	[self setEquipScreenBackgroundDescriptor:nil];
 	marketOffset = 0;
+	DESTROY(marketSelectedCommodity);
 
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
@@ -9991,7 +9992,11 @@ static NSString *last_outfitting_key=nil;
 			if (goodsIndex <= marketOffset)
 			{
 				// is off top of list, move list upwards
-				marketOffset = goodsIndex-1;
+				if (goodsIndex == 0) {
+					marketOffset = 0;
+				} else {
+					marketOffset = goodsIndex-1;
+				}
 			}
 			else if (goodsIndex > marketOffset+(GUI_ROW_MARKET_END-GUI_ROW_MARKET_START)-2)
 			{
@@ -10004,7 +10009,6 @@ static NSString *last_outfitting_key=nil;
 			}
 		}
 	}
-
 
 	// GUI stuff
 	{
