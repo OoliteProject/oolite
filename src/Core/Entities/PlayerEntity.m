@@ -1143,7 +1143,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setFastEquipmentA:[dict oo_stringForKey:@"primed_equipment_a" defaultValue:@"EQ_CLOAKING_DEVICE"]];
 	[self setFastEquipmentB:[dict oo_stringForKey:@"primed_equipment_b" defaultValue:@"EQ_ENERGY_BOMB"]]; // even though there isn't one, for compatibility.
 
-	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
+	if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
 	DESTROY(compassTarget);
 	
@@ -3347,6 +3347,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	witchspaceCountdown = fdim(witchspaceCountdown, delta_t);
 	
 	// damaged gal drive? abort!
+	/* TODO: this check should possibly be hasEquipmentItemProviding:,
+	 * but if it was we'd need to know which item was actually doing
+	 * the providing so it could be removed. */
 	if (EXPECT_NOT(galactic_witchjump && ![self hasEquipmentItem:@"EQ_GAL_DRIVE"]))
 	{
 		galactic_witchjump = NO;
@@ -3410,7 +3413,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_id]] forCount:3.0];
 			// and reset the compass
-			if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
+			if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"])
 				compassMode = COMPASS_MODE_PLANET;
 			else
 				compassMode = COMPASS_MODE_BASIC;
@@ -3513,7 +3516,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	// If target is an unexpired wormhole and the player has bought the Wormhole Scanner and we're in ID mode
 	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW && 
-		[self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"] && ident_engaged)
+		[self hasEquipmentItemProviding:@"EQ_WORMHOLE_SCANNER"] && ident_engaged)
 	{
 		return YES;
 	}
@@ -5061,7 +5064,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (missile_entity[next_missile])
 		{
 			// If we don't have the multi-targeting module installed, clear the active missiles' target
-			if( ![self hasEquipmentItem:@"EQ_MULTI_TARGET"] && [missile_entity[activeMissile] isMissile] )
+			if( ![self hasEquipmentItemProviding:@"EQ_MULTI_TARGET"] && [missile_entity[activeMissile] isMissile] )
 			{
 				[missile_entity[activeMissile] removeTarget:nil];
 			}
@@ -5076,7 +5079,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				// If the newly active pylon contains a missile then work out its target, if any
 				if( [missile_entity[activeMissile] isMissile] )
 				{
-					if( [self hasEquipmentItem:@"EQ_MULTI_TARGET"] &&
+					if( [self hasEquipmentItemProviding:@"EQ_MULTI_TARGET"] &&
 							([missile_entity[next_missile] primaryTarget] != nil))
 					{
 						// copy the missile's target
@@ -5089,7 +5092,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 						/* CIM: seems okay to do this when launching a
 						 * missile to stop multi-target being a bit
 						 * irritating in a fight - 20/8/2014 */
-						if([self hasEquipmentItem:@"EQ_MULTI_TARGET"] && !launchingMissile)
+						if([self hasEquipmentItemProviding:@"EQ_MULTI_TARGET"] && !launchingMissile)
 						{
 							[self noteLostTarget];
 							DESTROY(_primaryTarget);
@@ -5991,7 +5994,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setVelocity:launchVector];
 	
 
-	
+	/* TODO: doing it this way prevents 'providing' on this item */
 	//remove escape pod
 	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 	
@@ -6317,6 +6320,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 		}
 		
+		/* TODO: the nature of this check means that providing
+		 * EQ_DOCK_COMP is difficult. */
 		// if Docking Computers have been selected to take damage and they happen to be on, switch them off
 		if ([system_key isEqualToString:@"EQ_DOCK_COMP"] && autopilot_engaged)  
 		{
@@ -11064,11 +11069,11 @@ static NSString *last_outfitting_key=nil;
 	
 	if ([targetEntity isWormhole])
 	{
-		assert ([self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
+		assert ([self hasEquipmentItemProviding:@"EQ_WORMHOLE_SCANNER"]);
 		[self addScannedWormhole:(WormholeEntity*)targetEntity];
 	}
 	// wormholes don't go in target memory
-	else if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"] && targetEntity != nil)
+	else if ([self hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"] && targetEntity != nil)
 	{
 		OOWeakReference *targetRef = [targetEntity weakSelf];
 		NSUInteger i = [target_memory indexOfObject:targetRef];
@@ -11389,7 +11394,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	else if ([special isEqualToString:@"LONG_RANGE_CHART_SHORTEST"])
 	{
-		if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 		{
 			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST;
 		}
@@ -11400,7 +11405,7 @@ static NSString *last_outfitting_key=nil;
 	}
 	else if ([special isEqualToString:@"LONG_RANGE_CHART_QUICKEST"])
 	{
-		if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 		{
 			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST;
 		}

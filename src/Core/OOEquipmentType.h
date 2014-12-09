@@ -65,6 +65,7 @@ SOFTWARE.
 	NSSet					*_requiresAnyEquipment;
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
+	NSArray					*_provides;
 	NSDictionary			*_scriptInfo;
 	NSDictionary			*_weaponInfo;
 	NSString				*_script;
@@ -131,6 +132,9 @@ SOFTWARE.
 - (NSUInteger) installTime;
 - (NSUInteger) repairTime;
 
+- (BOOL) provides:(NSString *)key;
+
+// weapon properties
 - (BOOL) isTurretLaser;
 - (BOOL) isMiningLaser;
 - (GLfloat) weaponRange;

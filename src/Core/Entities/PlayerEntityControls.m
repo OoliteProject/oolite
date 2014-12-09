@@ -1024,7 +1024,7 @@ static NSTimeInterval	time_last_frame;
 				//	'+' // next target
 				if ([gameView isDown:key_next_target] || joyButtonState[BUTTON_NEXTTARGET])
 				{
-					if ((!next_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
+					if ((!next_target_pressed)&&([self hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"]))
 					{
 						[self moveTargetMemoryBy:+1];
 					}
@@ -1036,7 +1036,7 @@ static NSTimeInterval	time_last_frame;
 				//	'-' // previous target
 				if ([gameView isDown:key_previous_target] || joyButtonState[BUTTON_PREVTARGET])
 				{
-					if ((!previous_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
+					if ((!previous_target_pressed)&&([self hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"]))
 					{
 						[self moveTargetMemoryBy:-1];
 					}
@@ -1349,6 +1349,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"galactic hyperspace";
 				// Galactic hyperspace 'g'
+				/* TODO: Should be Providing check, but GAL_DRIVE is tricky, see comments in PlayerEntity */
 				if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) &&
 					([self hasEquipmentItem:@"EQ_GAL_DRIVE"]))// look for the 'g' key
 				{
@@ -1685,7 +1686,7 @@ static NSTimeInterval	time_last_frame;
 
 		case GUI_SCREEN_SHORT_RANGE_CHART:
 
-			if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+			if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 			{
 				if ([gameView isDown:key_advanced_nav_array])   //  '^' key
 				{

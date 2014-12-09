@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 		[self setDialForwardShield:1.0f];
 		[self setDialAftShield:1.0f];
 		[self setDialFuelScoopStatus:[self hasScoop] ? SCOOP_STATUS_OKAY : SCOOP_STATUS_NOT_INSTALLED];
-		[self setCompassMode:[self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"] ? COMPASS_MODE_PLANET : COMPASS_MODE_BASIC];
+		[self setCompassMode:[self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"] ? COMPASS_MODE_PLANET : COMPASS_MODE_BASIC];
 		[self setTradeInFactor:95];
 	}
 	

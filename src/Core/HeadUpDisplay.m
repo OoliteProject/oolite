@@ -933,7 +933,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	// check if equipment is required
 	NSString *equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipmentRequired != nil && ![PLAYER hasEquipmentItem:equipmentRequired])
+	if (equipmentRequired != nil && ![PLAYER hasEquipmentItemProviding:equipmentRequired])
 	{
 		return;
 	}
@@ -1013,7 +1013,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	NSString	*equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	
-	if (equipment != nil && ![PLAYER hasEquipmentItem:equipment])
+	if (equipment != nil && ![PLAYER hasEquipmentItemProviding:equipment])
 	{
 		return;
 	}
@@ -2536,7 +2536,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		[self drawDirectionCue:info];
 	}
 	// extra feature if extra equipment installed
-	if ([PLAYER hasEquipmentItem:@"EQ_INTEGRATED_TARGETING_SYSTEM"])
+	if ([PLAYER hasEquipmentItemProviding:@"EQ_INTEGRATED_TARGETING_SYSTEM"])
 	{
 		[self drawSecondaryTargetReticle:info];
 	}
@@ -2548,7 +2548,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha * 0.4;
 	
 	PlayerEntity *player = PLAYER;
-	if ([player hasEquipmentItem:@"EQ_TARGET_MEMORY"])
+	if ([player hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"])
 	{
 		// needs target memory to be working in addition to any other equipment
 		// this item may be bound to

@@ -230,6 +230,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 
 			_installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
 			_repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
+			_provides = [[extra oo_arrayForKey:@"provides" defaultValue:[NSArray array]] retain];
 
 			_weaponInfo = [[extra oo_dictionaryForKey:@"weapon_info" defaultValue:[NSDictionary dictionary]] retain];
 
@@ -327,6 +328,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_incompatibleEquipment);
 	DESTROY(_conditions);
 	DESTROY(_condition_script);
+	DESTROY(_provides);
 	DESTROY(_weaponInfo);
 	DESTROY(_scriptInfo);
 	DESTROY(_script);
@@ -585,6 +587,14 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
+- (BOOL) provides:(NSString *)key
+{
+	return [_provides containsObject:key];
+}
+
+
+
+// weapon properties follow
 - (BOOL) isTurretLaser
 {
 	return [_weaponInfo oo_boolForKey:@"is_turret_laser" defaultValue:NO];

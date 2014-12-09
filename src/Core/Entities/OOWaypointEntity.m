@@ -111,7 +111,7 @@ MA 02110-1301, USA.
 		return;
 	}
 
-	if (![PLAYER hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
+	if (![PLAYER hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"])
 	{
 		return;
 	}

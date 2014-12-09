@@ -2946,6 +2946,30 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+/* allows OXP equipment to provide core functions (or indeed OXP
+ * functions, potentially) */
+- (BOOL) hasEquipmentItemProviding:(NSString *)equipmentType
+{
+	NSString *key = nil;
+	foreach (key, _equipment) {
+		if ([key isEqualToString:equipmentType])
+		{
+			// equipment always provides itself
+			return YES;
+		}
+		else
+		{
+			OOEquipmentType *et = [OOEquipmentType equipmentTypeWithIdentifier:key];
+			if (et != nil && [et provides:equipmentType])
+			{
+				return YES;
+			}
+		}
+	}
+	return NO;
+}
+
+
 - (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading
 {
 	NSEnumerator				*keyEnum = nil;
@@ -3661,18 +3685,19 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasScoop
 {
-	return [self hasEquipmentItem:@"EQ_FUEL_SCOOPS"];
+	return [self hasEquipmentItemProviding:@"EQ_FUEL_SCOOPS"];
 }
 
 
 - (BOOL) hasECM
 {
-	return [self hasEquipmentItem:@"EQ_ECM"];
+	return [self hasEquipmentItemProviding:@"EQ_ECM"];
 }
 
 
 - (BOOL) hasCloakingDevice
 {
+	/* TODO: Checks above stop this being 'providing'. */
 	return [self hasEquipmentItem:@"EQ_CLOAKING_DEVICE"];
 }
 
@@ -3680,7 +3705,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (BOOL) hasMilitaryScannerFilter
 {
 #if USEMASC
-	return [self hasEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
+	return [self hasEquipmentItemProviding:@"EQ_MILITARY_SCANNER_FILTER"];
 #else
 	return NO;
 #endif
@@ -3690,7 +3715,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (BOOL) hasMilitaryJammer
 {
 #if USEMASC
-	return [self hasEquipmentItem:@"EQ_MILITARY_JAMMER"];
+	return [self hasEquipmentItemProviding:@"EQ_MILITARY_JAMMER"];
 #else
 	return NO;
 #endif
@@ -3699,54 +3724,63 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasExpandedCargoBay
 {
+	/* Not 'providing' - too many consequences */
 	return [self hasEquipmentItem:@"EQ_CARGO_BAY"];
 }
 
 
 - (BOOL) hasShieldBooster
 {
+	/* Not 'providing' - too many consequences */
 	return [self hasEquipmentItem:@"EQ_SHIELD_BOOSTER"];
 }
 
 
 - (BOOL) hasMilitaryShieldEnhancer
 {
+	/* Not 'providing' - too many consequences */
 	return [self hasEquipmentItem:@"EQ_NAVAL_SHIELD_BOOSTER"];
 }
 
 
 - (BOOL) hasHeatShield
 {
-	return [self hasEquipmentItem:@"EQ_HEAT_SHIELD"];
+	return [self hasEquipmentItemProviding:@"EQ_HEAT_SHIELD"];
 }
 
 
 - (BOOL) hasFuelInjection
 {
-	return [self hasEquipmentItem:@"EQ_FUEL_INJECTION"];
+	return [self hasEquipmentItemProviding:@"EQ_FUEL_INJECTION"];
 }
 
 
 - (BOOL) hasCascadeMine
 {
+	/* TODO: this could be providing since theoretically OXP
+	 * deployable mines could also do cascade effects, but there are
+	 * probably better ways to manage OXP pylon AI */
 	return [self hasEquipmentItem:@"EQ_QC_MINE" includeWeapons:YES whileLoading:NO];
 }
 
 
 - (BOOL) hasEscapePod
 {
+	// TODO: can't be Providing, see comments elsewhere and in PlayerEntity
 	return [self hasEquipmentItem:@"EQ_ESCAPE_POD"];
 }
 
 
 - (BOOL) hasDockingComputer
 {
+	// TODO: can't be Providing - see comments in PlayerEntity
 	return [self hasEquipmentItem:@"EQ_DOCK_COMP"];
 }
 
 
 - (BOOL) hasGalacticHyperdrive
 {
+	// TODO: can't be Providing - see comments in PlayerEntity
 	return [self hasEquipmentItem:@"EQ_GAL_DRIVE"];
 }
 
@@ -12741,6 +12775,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (![self isPlayer])
 		{
 			OK = YES;
+			/* TODO: prevents 'providing' this function */
 			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 			[self setAITo:@"nullAI.plist"];
 			behaviour = BEHAVIOUR_IDLE;
