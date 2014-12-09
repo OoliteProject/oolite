@@ -692,19 +692,23 @@ MA 02110-1301, USA.
 
 	BOOL rotatedPort = (ww >= hh) ? NO : YES;
 	BOOL rotatedShip = ((shipbb.max.x - shipbb.min.x) >= (shipbb.max.y - shipbb.min.y)) ? NO : YES;
-	if (rotatedShip != rotatedPort)
+	BOOL rotationsMatch = (rotatedShip == rotatedPort);
+	if (rotationsMatch)
 	{
-		// swap dimensions over
-		ww = port_dimensions.y;
-		hh = port_dimensions.x;
+		// the ship and port are both bigger in x than y
+		while (shipbb.max.x - shipbb.min.x > ww * 0.90) ww *= 1.25;
+		while (shipbb.max.y - shipbb.min.y > hh * 0.90) hh *= 1.25;
 	}
-
-	while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
-	while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+	else
+	{
+		// the ship and port have different x/y biggerness
+		while (shipbb.max.y - shipbb.min.y > ww * 0.90) ww *= 1.25;
+		while (shipbb.max.x - shipbb.min.x > hh * 0.90) hh *= 1.25;
+	}
 	
 	ww *= 0.5;
 	hh *= 0.5;
-	
+
 #ifndef NDEBUG
 	if ([ship isPlayer] && (gDebugFlags & DEBUG_DOCKING))
 	{
@@ -768,10 +772,19 @@ MA 02110-1301, USA.
 	//
 	GLfloat safety = 1.0+(50.0/100.0);
 
-	if  ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
+	if ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
 	{
 		if (arbb.min.z < 0.0)	// got our nose inside
 		{
+
+			if ((arbb.min.x < -ww && arbb.max.x > ww) || (arbb.min.y < -hh && arbb.max.y > hh))
+			{
+				/* No matter how much safety margin there is, if the
+				 * ship is going off opposite edges of the dock at
+				 * once, that's a fatal collision */
+				return NO;
+			}
+
 			GLfloat correction_factor = -arbb.min.z / (arbb.max.z - arbb.min.z);	// proportion of ship inside
 		
 			// damage the ship according to velocity - don't send collision messages to AIs to avoid problems.
@@ -788,7 +801,7 @@ MA 02110-1301, USA.
 				// x is okay - no need to correct
 				delta.x = 0.0f;
 			}
-			if (arbb.max.y > hh && arbb.min.x > -hh)
+			if (arbb.max.y > hh && arbb.min.y > -hh)
 			{
 				// y is okay - no need to correct
 				delta.y = 0.0f;
