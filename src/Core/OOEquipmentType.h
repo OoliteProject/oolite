@@ -132,6 +132,7 @@ SOFTWARE.
 - (NSUInteger) installTime;
 - (NSUInteger) repairTime;
 
+- (NSArray *) providesForScripting;
 - (BOOL) provides:(NSString *)key;
 
 // weapon properties

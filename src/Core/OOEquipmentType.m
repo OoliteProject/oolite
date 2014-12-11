@@ -587,6 +587,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
+- (NSArray *) providesForScripting
+{
+	return [[_provides copy] autorelease];
+}
+
+
 - (BOOL) provides:(NSString *)key
 {
 	return [_provides containsObject:key];
