@@ -84,6 +84,7 @@ static JSBool ShipPatrolReportIn(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipHasEquipmentProviding(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSelectNewMissile(JSContext *context, uintN argc, jsval *vp);
@@ -494,6 +495,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "getMaterials",			ShipGetMaterials,			0 },
 	{ "getSafeCourseToDestination",		ShipGetSafeCourseToDestination,		0 },
 	{ "getShaders",				ShipGetShaders,				0 },
+	{ "hasEquipmentProviding",	ShipHasEquipmentProviding,		1 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "markTargetForFines",				ShipMarkTargetForFines,				0 },
 	{ "notifyGroupOfWormhole",		ShipNotifyGroupOfWormhole,		0 },
@@ -1961,6 +1963,29 @@ static JSBool ShipDockEscorts(JSContext *context, uintN argc, jsval *vp)
 	
 	[thisEnt dockEscorts];
 	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// hasEquipmentProviding(equipment : String) : Boolean
+static JSBool ShipHasEquipmentProviding(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity				*thisEnt = nil;
+	NSString				*equipment = nil;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	if (argc > 0)  equipment = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(equipment == nil))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"hasEquipmentProviding", MIN(argc, 1U), OOJS_ARGV, nil, @"string (equipment)");
+		return NO;
+	}
+	
+	OOJS_RETURN_BOOL([thisEnt hasEquipmentItemProviding:equipment]);
 	
 	OOJS_NATIVE_EXIT
 }
