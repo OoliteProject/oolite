@@ -2331,7 +2331,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			external_temp = SUN_TEMPERATURE * alt1;
 			if ([sun goneNova])  external_temp *= 100;
 
-			if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
+			if ([self hasFuelScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 			{
 				fuel_accumulator += (float)(delta_t * flightSpeed * 0.010 / [self fuelChargeRate]);
 			// are we fast enough to collect any fuel?
@@ -3683,9 +3683,23 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+/* This is used for e.g. displaying the HUD icon */
 - (BOOL) hasScoop
 {
+	return [self hasEquipmentItemProviding:@"EQ_FUEL_SCOOPS"] || [self hasEquipmentItemProviding:@"EQ_CARGO_SCOOPS"];
+}
+
+
+- (BOOL) hasFuelScoop
+{
 	return [self hasEquipmentItemProviding:@"EQ_FUEL_SCOOPS"];
+}
+
+
+/* No such core equipment item, but EQ_FUEL_SCOOPS provides it */
+- (BOOL) hasCargoScoop
+{
+	return [self hasEquipmentItemProviding:@"EQ_CARGO_SCOOPS"];
 }
 
 
@@ -12327,7 +12341,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) canScoop:(ShipEntity*)other
 {
 	if (other == nil)							return NO;
-	if (![self hasScoop])						return NO;
+	if (![self hasCargoScoop])						return NO;
 	if ([cargo count] >= [self maxAvailableCargoSpace])	return NO;
 	if (scanClass == CLASS_CARGO)				return NO;  // we have no power so we can't scoop
 	if ([other scanClass] != CLASS_CARGO)		return NO;

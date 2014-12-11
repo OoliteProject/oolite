@@ -737,24 +737,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[result setObject:[shipCommodityData savePlayerAmounts]		forKey:@"shipCommodityData"];
 	
-	// Deprecated equipment flags. New equipment shouldn't be added here (it'll be handled by the extra_equipment dictionary).
-	[result oo_setBool:[self hasDockingComputer]		forKey:@"has_docking_computer"];
-	[result oo_setBool:[self hasGalacticHyperdrive]		forKey:@"has_galactic_hyperdrive"];
-	[result oo_setBool:[self hasEscapePod]				forKey:@"has_escape_pod"];
-	[result oo_setBool:[self hasECM]					forKey:@"has_ecm"];
-	[result oo_setBool:[self hasScoop]					forKey:@"has_scoop"];
-	[result oo_setBool:[self hasFuelInjection]			forKey:@"has_fuel_injection"];
-	
-	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
-	{
-		[result oo_setBool:YES forKey:@"has_energy_unit"];
-		[result oo_setInteger:OLD_ENERGY_UNIT_NAVAL forKey:@"energy_unit"];
-	}
-	else if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])
-	{
-		[result oo_setBool:YES forKey:@"has_energy_unit"];
-		[result oo_setInteger:OLD_ENERGY_UNIT_NORMAL forKey:@"energy_unit"];
-	}
 	
 	NSMutableArray *missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
 	
@@ -2559,7 +2541,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			external_temp *= 3;
 			
 		// do Revised sun-skimming check here...
-		if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
+		if ([self hasFuelScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 		{
 			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010 / [self fuelChargeRate]);
 			// are we fast enough to collect any fuel?

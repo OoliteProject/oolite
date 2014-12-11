@@ -46,6 +46,7 @@
 		"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.",
 		{
 			condition_script = "oolite-conditions.js";
+			provides = ("EQ_CARGO_SCOOPS");
 		}
 	),
 	(

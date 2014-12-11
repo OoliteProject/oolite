@@ -618,7 +618,10 @@ typedef enum
 - (NSUInteger) extraCargo;
 
 // Tests for the various special-cased equipment items
+// (Nowadays, more convenience methods)
 - (BOOL) hasScoop;
+- (BOOL) hasFuelScoop;
+- (BOOL) hasCargoScoop;
 - (BOOL) hasECM;
 - (BOOL) hasCloakingDevice;
 - (BOOL) hasMilitaryScannerFilter;

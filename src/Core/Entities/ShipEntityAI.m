@@ -1051,7 +1051,7 @@
 	/*-- Locates the nearest debris in range --*/
 	if (!isStation)
 	{
-		if (![self hasScoop])
+		if (![self hasCargoScoop])
 		{
 			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 			return;
@@ -1100,7 +1100,7 @@
 - (void) scanForRandomLoot
 {
 	/*-- Locates the all debris in range and chooses a piece at random from the first sixteen found --*/
-	if (![self isStation] && ![self hasScoop])
+	if (![self isStation] && ![self hasCargoScoop])
 	{
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 		return;
