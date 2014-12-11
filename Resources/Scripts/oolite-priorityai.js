@@ -1586,7 +1586,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 			this.setParameter("oolite_lastFleeing",null);
 		}
 	}
-	if (this.getParameter("oolite_flag_fleesPreemptively") && this.ship.fuel > 0 && this.ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
+	if (this.getParameter("oolite_flag_fleesPreemptively") && this.ship.fuel > 0 && this.ship.hasEquipmentProviding("EQ_FUEL_INJECTION"))
 	{
 		// ships of this behaviour will run away from anything if they
 		// still have fuel
@@ -1982,7 +1982,7 @@ PriorityAIController.prototype.conditionSunskimPossible = function()
 			!system.sun.hasGoneNova && 
 			!system.sun.isGoingNova && 
 			this.ship.fuel < 7 && 
-			this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" &&
+			this.ship.hasEquipmentProviding("EQ_FUEL_SCOOPS") &&
 			(this.ship.heatInsulation > 1000/this.ship.maxSpeed || this.ship.heatInsulation >= 12));
 }
 
@@ -2074,7 +2074,7 @@ PriorityAIController.prototype.conditionGroupHasEnoughLoot = function()
 	if (!this.ship.group)
 	{
 		used = this.ship.cargoSpaceUsed;
-		if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+		if (this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 		{
 			available = this.ship.cargoSpaceAvailable;
 		}
@@ -2085,7 +2085,7 @@ PriorityAIController.prototype.conditionGroupHasEnoughLoot = function()
 		for (var i = gs.length-1; i >= 0 ; i--)
 		{
 			used += gs[i].cargoSpaceUsed;
-			if (gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+			if (gs[i].hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 			{
 				available += gs[i].cargoSpaceAvailable;
 			}
@@ -2331,7 +2331,7 @@ PriorityAIController.prototype.conditionScannerContainsSalvageForGroup = functio
 			var gs = this.ship.group.ships;
 			for (var i = gs.length-1; i >= 0 ; i--)
 			{
-				if (gs[i].cargoSpaceAvailable > 0 && gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" && gs[i].maxSpeed > maxspeed)
+				if (gs[i].cargoSpaceAvailable > 0 && gs[i].hasEquipmentProviding("EQ_CARGO_SCOOPS") && gs[i].maxSpeed > maxspeed)
 				{
 					maxspeed = gs[i].maxSpeed;
 				}
@@ -2468,7 +2468,7 @@ PriorityAIController.prototype.conditionCanScoopCargo = function()
 	{
 		return this.__cache.oolite_conditionCanScoopCargo;
 	}
-	if (this.ship.cargoSpaceAvailable == 0 || this.ship.equipmentStatus("EQ_FUEL_SCOOPS") != "EQUIPMENT_OK")
+	if (this.ship.cargoSpaceAvailable == 0 || this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 	{
 		this.__cache.oolite_conditionCanScoopCargo = false;
 		return false;
@@ -3603,7 +3603,7 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 		var gc = 1;
 		if (!this.ship.group)
 		{
-			if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+			if (this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 			{
 				maxdemand = this.ship.cargoSpaceAvailable;
 			}
@@ -3614,7 +3614,7 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 			for (var i = 0; i < gc ; i++)
 			{
 				var ship = this.ship.group.ships[i];
-				if (ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+				if (ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 				{
 					maxdemand += ship.cargoSpaceAvailable;
 				}
@@ -5010,7 +5010,7 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 		return;
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 	}
@@ -5186,7 +5186,7 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackedWithMissil
 	{
 		this.broadcastDistressMessage();
 	}
-	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		this.ship.addDefenseTarget(missile);
@@ -5706,7 +5706,7 @@ PriorityAIController.prototype.responseComponent_station_cascadeWeaponDetected =
 PriorityAIController.prototype.responseComponent_station_shipAttackedWithMissile = function(missile,whom)
 {
 	this.ship.alertCondition = 3;
-	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		this.ship.addDefenseTarget(missile);
@@ -5861,7 +5861,7 @@ PriorityAIController.prototype.responseComponent_station_shipTargetLost = functi
 PriorityAIController.prototype.responseComponent_station_helpRequestReceived = function(ally, enemy)
 {
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		return;
@@ -5989,7 +5989,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 		return;
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 	}
@@ -6013,7 +6013,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 		}
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		return;
