@@ -1,6 +1,7 @@
 (
   /* General */
 	"oolite-populator.js",
+	"oolite-equipment-control.js",
 
   /* AI Construction libraries */
 	"oolite-priorityai.js",

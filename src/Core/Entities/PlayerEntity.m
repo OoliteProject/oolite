@@ -1463,6 +1463,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[self setActiveMissile:0];
 	
+	max_forward_shield		= BASELINE_SHIELD_LEVEL;
+	max_aft_shield			= BASELINE_SHIELD_LEVEL;
+
+	forward_shield_recharge_rate	= 2.0;
+	aft_shield_recharge_rate		= 2.0;
+
 	forward_shield = [self maxForwardShieldLevel];
 	aft_shield = [self maxAftShieldLevel];
 	
@@ -1869,6 +1875,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	_scriptedMisjumpRange	= 0.5;
 	scoopOverride			= NO;
 	
+	max_forward_shield		= BASELINE_SHIELD_LEVEL;
+	max_aft_shield			= BASELINE_SHIELD_LEVEL;
+
+	forward_shield_recharge_rate	= 2.0;
+	aft_shield_recharge_rate		= 2.0;
+
 	forward_shield			= [self maxForwardShieldLevel];
 	aft_shield				= [self maxAftShieldLevel];
 	
@@ -2488,9 +2500,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// 2. Calculate shield recharge rates
 	float fwdMax = [self maxForwardShieldLevel];
 	float aftMax = [self maxAftShieldLevel];
-	float shieldRecharge = [self shieldRechargeRate] * delta_t;
-	float rechargeFwd = MIN(shieldRecharge, fwdMax - forward_shield);
-	float rechargeAft = MIN(shieldRecharge, aftMax - aft_shield);
+	float shieldRechargeFwd = [self forwardShieldRechargeRate] * delta_t;
+	float shieldRechargeAft = [self aftShieldRechargeRate] * delta_t;
+	float rechargeFwd = MIN(shieldRechargeFwd, fwdMax - forward_shield);
+	float rechargeAft = MIN(shieldRechargeAft, aftMax - aft_shield);
 	
 	// Note: we've simplified this a little, so if either shield is below
 	//       the critical threshold, we allocate all energy.  Ideally we
@@ -4086,6 +4099,54 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (BOOL) showDemoShips
 {
 	return showDemoShips;
+}
+
+
+- (float) maxForwardShieldLevel
+{
+	return max_forward_shield;
+}
+
+
+- (float) maxAftShieldLevel
+{
+	return max_aft_shield;
+}
+
+
+- (float) forwardShieldRechargeRate
+{
+	return forward_shield_recharge_rate;
+}
+
+
+- (float) aftShieldRechargeRate
+{
+	return aft_shield_recharge_rate;
+}
+
+
+- (void) setMaxForwardShieldLevel:(float)new
+{
+	max_forward_shield = new;
+}
+
+
+- (void) setMaxAftShieldLevel:(float)new
+{
+	max_aft_shield = new;
+}
+
+
+- (void) setForwardShieldRechargeRate:(float)new
+{
+	forward_shield_recharge_rate = new;
+}
+
+
+- (void) setAftShieldRechargeRate:(float)new
+{
+	aft_shield_recharge_rate = new;
 }
 
 

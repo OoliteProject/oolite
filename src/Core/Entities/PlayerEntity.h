@@ -452,6 +452,7 @@ typedef enum
 	GLfloat					launchRoll;
 	
 	GLfloat					forward_shield, aft_shield;
+	GLfloat					max_forward_shield, max_aft_shield, forward_shield_recharge_rate, aft_shield_recharge_rate;
 	OOTimeDelta				forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
 	
 	OOWeaponFacing			chosen_weapon_facing;   // for purchasing weapons
@@ -813,6 +814,14 @@ typedef enum
 
 - (void) setForwardShieldLevel:(GLfloat)level;
 - (void) setAftShieldLevel:(GLfloat)level;
+
+- (float) forwardShieldRechargeRate;
+- (float) aftShieldRechargeRate;
+
+- (void) setMaxForwardShieldLevel:(float)new;
+- (void) setMaxAftShieldLevel:(float)new;
+- (void) setForwardShieldRechargeRate:(float)new;
+- (void) setAftShieldRechargeRate:(float)new;
 
 // return keyconfig.plist settings for scripting
 - (NSDictionary *) keyConfig;

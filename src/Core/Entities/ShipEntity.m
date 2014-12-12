@@ -3809,6 +3809,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+/* These next three are never called as of 12/12/2014, as NPCs don't
+ * have shields and PlayerEntity overrides these. */
 - (float) maxForwardShieldLevel
 {
 	return BASELINE_SHIELD_LEVEL * [self shieldBoostFactor];

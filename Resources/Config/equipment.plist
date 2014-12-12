@@ -374,6 +374,10 @@
 		"Shield boosting technology dramatically increases the capability of standard defensive shields.",
 		{
 			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_shield_increase" = 128;
+				"oolite_shield_recharge_multiplier" = 1.0;
+			};
 		}
 	),
 	(
@@ -382,6 +386,10 @@
 		"Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields.",
 		{
 			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_shield_increase" = 128;
+				"oolite_shield_recharge_multiplier" = 1.5;
+			};
 		}
 	),
 	/* next item was a test item, no longer supported */
