@@ -2468,7 +2468,7 @@ PriorityAIController.prototype.conditionCanScoopCargo = function()
 	{
 		return this.__cache.oolite_conditionCanScoopCargo;
 	}
-	if (this.ship.cargoSpaceAvailable == 0 || this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
+	if (this.ship.cargoSpaceAvailable == 0 || !this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 	{
 		this.__cache.oolite_conditionCanScoopCargo = false;
 		return false;
