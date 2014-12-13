@@ -5503,21 +5503,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	return ENERGY_UNIT_NONE;
 }
 
-/* Is handled slightly differently for player */
-- (float) energyRechargeRate
-{
-	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-	return energy_recharge_rate * energy_multiplier;
-}
-
-
-// needed to stop PS.energyRechargeRate = PS.energyRechargeRate going wrong
-- (void) setEnergyRechargeRate:(GLfloat)new
-{
-	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-	energy_recharge_rate = new / energy_multiplier;
-}
-
 
 - (OOEnergyUnitType) energyUnitType
 {

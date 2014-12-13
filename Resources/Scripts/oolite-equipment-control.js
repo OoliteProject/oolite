@@ -72,7 +72,8 @@ this.equipmentRemoved = function(equip)
 		if (this.$equipmentDisable[equip])
 		{
 			var info = EquipmentInfo.infoForKey(equip);
-			this.$equipmentDisable[equip](info);
+			log(this.name,"Disabling "+info.equipmentKey); //tmp - remove later
+			this.$equipmentDisable[equip].bind(this,info)();
 		}
 	}
 	this.$equipmentEnabled[equip] = 0;
@@ -91,7 +92,8 @@ this.equipmentAdded = function(equip)
 		if (this.$equipmentEnable[equip])
 		{
 			var info = EquipmentInfo.infoForKey(equip);
-			this.$equipmentEnable[equip](info);
+			log(this.name,"Enabling "+info.equipmentKey); //tmp - remove later
+			this.$equipmentEnable[equip].bind(this,info)();
 		}
 	}
 	this.$equipmentEnabled[equip] = 1;
@@ -110,9 +112,10 @@ this.$equipmentEnable = {};
 this.$equipmentDisable = {};
 
 
+
+/* Methods for handling shield boosters / military shield boosters */
 this.$equipmentEnable["EQ_SHIELD_BOOSTER"] = this.$equipmentEnable["EQ_NAVAL_SHIELD_BOOSTER"] = function(info)
 {
-	log(this.name,"Enabling "+info.equipmentKey); //tmp - remove later
 	player.ship.maxForwardShield += parseFloat(info.scriptInfo.oolite_shield_increase);
 	player.ship.maxAftShield += parseFloat(info.scriptInfo.oolite_shield_increase);
 	player.ship.forwardShieldRechargeRate *= parseFloat(info.scriptInfo.oolite_shield_recharge_multiplier);
@@ -127,7 +130,6 @@ this.$equipmentEnable["EQ_SHIELD_BOOSTER"] = this.$equipmentEnable["EQ_NAVAL_SHI
 
 this.$equipmentDisable["EQ_SHIELD_BOOSTER"] = this.$equipmentDisable["EQ_NAVAL_SHIELD_BOOSTER"] = function(info)
 {
-	log(this.name,"Disabling "+info.equipmentKey); //tmp - remove later
 	player.ship.maxForwardShield -= parseFloat(info.scriptInfo.oolite_shield_increase);
 	player.ship.maxAftShield -= parseFloat(info.scriptInfo.oolite_shield_increase);
 	player.ship.forwardShieldRechargeRate /= parseFloat(info.scriptInfo.oolite_shield_recharge_multiplier);
@@ -137,4 +139,20 @@ this.$equipmentDisable["EQ_SHIELD_BOOSTER"] = this.$equipmentDisable["EQ_NAVAL_S
 		player.ship.aftShield = player.ship.maxAftShield;
 		player.ship.forwardShield = player.ship.maxForwardShield;
 	}
+};
+
+
+/* Methods for handling (naval) energy units */
+this.$equipmentEnable["EQ_ENERGY_UNIT"] = this.$equipmentEnable["EQ_NAVAL_ENERGY_UNIT"] = function(info)
+{
+	log(this.name,this.name);
+	var eboost = (parseFloat(info.scriptInfo.oolite_energy_recharge_multiplier)-1.0)*this.$baseline.energyRechargeRate;
+	player.ship.energyRechargeRate += eboost;
+};
+
+
+this.$equipmentDisable["EQ_ENERGY_UNIT"] = this.$equipmentDisable["EQ_NAVAL_ENERGY_UNIT"] = function(info)
+{
+	var eboost = (parseFloat(info.scriptInfo.oolite_energy_recharge_multiplier)-1.0)*this.$baseline.energyRechargeRate;
+	player.ship.energyRechargeRate -= eboost;
 };
