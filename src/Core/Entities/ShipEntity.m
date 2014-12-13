@@ -3380,6 +3380,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	// add the equipment
 	[_equipment addObject:equipmentKey];
+	[self doScriptEvent:OOJSID("equipmentAdded") withArgument:equipmentKey];
 	return YES;
 }
 
@@ -3460,6 +3461,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 		
+		[self doScriptEvent:OOJSID("equipmentRemoved") withArgument:equipmentKey];
+
 		[_equipment removeObject:equipmentKey];
 		if ([_equipment count] == 0)  [self removeAllEquipment];
 	}

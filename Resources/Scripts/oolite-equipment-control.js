@@ -51,15 +51,16 @@ this.startUp = this.playerBoughtNewShip = function()
 	this.$baseline.aftShieldRechargeRate = player.ship.aftShieldRechargeRate;
 
 	var eq = player.ship.equipment;
+	this.$equipmentEnabled = {};
 	for (var i=0; i<eq.length; i++) {
 		// reinitialise equipment already on ship
-		this.playerBoughtEquipment(eq[i].equipmentKey);
+		this.equipmentAdded(eq[i].equipmentKey);
 	}
 };
 
 
 /* Remove equipment effects */
-this.equipmentDamaged = function(equip)
+this.equipmentRemoved = function(equip)
 {
 	if (this.$equipmentEnabled[equip])
 	{
@@ -74,7 +75,7 @@ this.equipmentDamaged = function(equip)
 
 
 /* Add equipment effects */
-this.equipmentRepaired = this.playerBoughtEquipment = function(equip)
+this.equipmentAdded = function(equip)
 {
 	if (!this.$equipmentEnabled[equip])
 	{
