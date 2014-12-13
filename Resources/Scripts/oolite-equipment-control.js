@@ -38,11 +38,12 @@ this.copyright		= "© 2014-2015 the Oolite team.";
 
 
 this.$baseline = {};
-
+this.$started = false;
 
 /* Initialise baseline data and equipment */
 this.startUp = this.playerBoughtNewShip = function()
 {
+	this.$started = true;
 	this.$baseline.maxEnergy = player.ship.maxEnergy;
 	this.$baseline.energyRechargeRate = player.ship.energyRechargeRate;
 	this.$baseline.maxForwardShield = player.ship.maxForwardShield;
@@ -62,6 +63,10 @@ this.startUp = this.playerBoughtNewShip = function()
 /* Remove equipment effects */
 this.equipmentRemoved = function(equip)
 {
+	if (!this.$started)
+	{
+		return;
+	}
 	if (this.$equipmentEnabled[equip])
 	{
 		if (this.$equipmentDisable[equip])
@@ -77,6 +82,10 @@ this.equipmentRemoved = function(equip)
 /* Add equipment effects */
 this.equipmentAdded = function(equip)
 {
+	if (!this.$started)
+	{
+		return;
+	}
 	if (!this.$equipmentEnabled[equip])
 	{
 		if (this.$equipmentEnable[equip])
@@ -95,7 +104,8 @@ this.$equipmentEnabled = {};
 
 
 /* These objects get filled with control methods. Each control method
- * may be individually overridden by an OXP if necessary. */
+ * may be individually overridden by an OXP if necessary, and
+ * additional methods for OXP equipment may be added. */
 this.$equipmentEnable = {};
 this.$equipmentDisable = {};
 
