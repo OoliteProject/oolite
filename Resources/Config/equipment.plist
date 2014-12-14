@@ -412,6 +412,9 @@
 		{
 			available_to_all = true;
 			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_heat_insulation_strength" = 1.0;
+			};
 		}
 	),
 	(

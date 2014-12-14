@@ -50,6 +50,7 @@ this.startUp = this.playerBoughtNewShip = function()
 	this.$baseline.maxAftShield = player.ship.maxAftShield;
 	this.$baseline.forwardShieldRechargeRate = player.ship.forwardShieldRechargeRate;
 	this.$baseline.aftShieldRechargeRate = player.ship.aftShieldRechargeRate;
+	this.$baseline.heatInsulation = player.ship.heatInsulation;
 
 	var eq = player.ship.equipment;
 	this.$equipmentEnabled = {};
@@ -145,7 +146,6 @@ this.$equipmentDisable["EQ_SHIELD_BOOSTER"] = this.$equipmentDisable["EQ_NAVAL_S
 /* Methods for handling (naval) energy units */
 this.$equipmentEnable["EQ_ENERGY_UNIT"] = this.$equipmentEnable["EQ_NAVAL_ENERGY_UNIT"] = function(info)
 {
-	log(this.name,this.name);
 	var eboost = (parseFloat(info.scriptInfo.oolite_energy_recharge_multiplier)-1.0)*this.$baseline.energyRechargeRate;
 	player.ship.energyRechargeRate += eboost;
 };
@@ -155,4 +155,17 @@ this.$equipmentDisable["EQ_ENERGY_UNIT"] = this.$equipmentDisable["EQ_NAVAL_ENER
 {
 	var eboost = (parseFloat(info.scriptInfo.oolite_energy_recharge_multiplier)-1.0)*this.$baseline.energyRechargeRate;
 	player.ship.energyRechargeRate -= eboost;
+};
+
+
+/* Methods for handling heat shielding */
+this.$equipmentEnable["EQ_HEAT_SHIELD"] = function(info)
+{
+	player.ship.heatInsulation += parseFloat(info.scriptInfo.oolite_heat_insulation_strength);
+};
+
+
+this.$equipmentDisable["EQ_HEAT_SHIELD"] = function(info)
+{
+	player.ship.heatInsulation -= parseFloat(info.scriptInfo.oolite_heat_insulation_strength);
 };

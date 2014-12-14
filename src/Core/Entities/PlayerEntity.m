@@ -1463,8 +1463,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[self setActiveMissile:0];
 	
-	max_forward_shield		= BASELINE_SHIELD_LEVEL;
-	max_aft_shield			= BASELINE_SHIELD_LEVEL;
+	[self setHeatInsulation:1.0];
+
+	max_forward_shield				= BASELINE_SHIELD_LEVEL;
+	max_aft_shield					= BASELINE_SHIELD_LEVEL;
 
 	forward_shield_recharge_rate	= 2.0;
 	aft_shield_recharge_rate		= 2.0;
@@ -5511,11 +5513,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"])  return ENERGY_UNIT_NAVAL_DAMAGED;
 	if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"])  return ENERGY_UNIT_NORMAL_DAMAGED;
 	return ENERGY_UNIT_NONE;
-}
-
-- (float) heatInsulation
-{
-	return [self hasHeatShield] ? 2.0f : 1.0f;
 }
 
 
