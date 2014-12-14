@@ -6019,9 +6019,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setVelocity:launchVector];
 	
 
-	/* TODO: doing it this way prevents 'providing' on this item */
-	//remove escape pod
-	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+
+	// if multiple items providing escape pod, remove the first one
+	[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_ESCAPE_POD"]];
+
 	
 	// set up the standard location where the escape pod will dock.
 	target_system_id = system_id;			// we're staying in this system
@@ -6345,13 +6346,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 		}
 		
-		/* TODO: the nature of this check means that providing
-		 * EQ_DOCK_COMP is difficult. */
-		// if Docking Computers have been selected to take damage and they happen to be on, switch them off
-		if ([system_key isEqualToString:@"EQ_DOCK_COMP"] && autopilot_engaged)  
-		{
-			[self disengageAutopilot];
-		}
+		/* There used to be a check for docking computers here, but
+		 * that didn't cover other ways they might fail in flight, so
+		 * it has been moved to the removeEquipment method. */
 		[system_key release];
 		return YES;
 	}
@@ -6925,7 +6922,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[roleWeightFlags removeAllObjects];
 	[roleSystemList removeAllObjects];
 	
-	[self removeEquipmentItem:@"EQ_GAL_DRIVE"];
+	// may be more than one item providing this
+	[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_GAL_DRIVE"]];
 	
 	galaxy_number++;
 	if (EXPECT_NOT(galaxy_number >= OO_GALAXIES_AVAILABLE))

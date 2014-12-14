@@ -80,7 +80,7 @@ this.startUp = function()
 			// so save the current capacity
 			var cap = player.ship.cargoSpaceCapacity;
 			// add the cargo extension back
-			log(this.name,"The large cargo bay was removed when there wasn't enough spare space to contain it. This is probably due to an OXP failing to validate cargo bay removal before trying it. The cargo bay has been restored to prevent inconsistencies."));
+			log(this.name,"The large cargo bay was removed when there wasn't enough spare space to contain it. This is probably due to an OXP failing to validate cargo bay removal before trying it. The cargo bay has been restored to prevent inconsistencies.");
 			// then reset the cargo space to the right amount
 			player.ship.cargoSpaceCapacity = cap;
 			// and stop

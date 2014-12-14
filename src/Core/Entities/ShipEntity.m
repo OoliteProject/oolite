@@ -2970,6 +2970,28 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (NSString *) equipmentItemProviding:(NSString *)equipmentType
+{
+	NSString *key = nil;
+	foreach (key, _equipment) {
+		if ([key isEqualToString:equipmentType])
+		{
+			// equipment always provides itself
+			return [[key copy] autorelease];
+		}
+		else
+		{
+			OOEquipmentType *et = [OOEquipmentType equipmentTypeWithIdentifier:key];
+			if (et != nil && [et provides:equipmentType])
+			{
+				return [[key copy] autorelease];
+			}
+		}
+	}
+	return nil;
+}
+
+
 - (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading
 {
 	NSEnumerator				*keyEnum = nil;
@@ -3459,6 +3481,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[_equipment removeObject:equipmentKey];
 		// this event must come after the item is actually removed
 		[self doScriptEvent:OOJSID("equipmentRemoved") withArgument:equipmentKey];
+		
+		// if all docking computers are damaged while active
+		if ([self isPlayer] && [self status] == STATUS_AUTOPILOT_ENGAGED && ![self hasDockingComputer])
+		{
+			[(PlayerEntity *)self disengageAutopilot];
+		}
+
 
 		if ([_equipment count] == 0)  [self removeAllEquipment];
 	}
@@ -3779,22 +3808,19 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasEscapePod
 {
-	// TODO: can't be Providing, see comments elsewhere and in PlayerEntity
-	return [self hasEquipmentItem:@"EQ_ESCAPE_POD"];
+	return [self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"];
 }
 
 
 - (BOOL) hasDockingComputer
 {
-	// TODO: can't be Providing - see comments in PlayerEntity
-	return [self hasEquipmentItem:@"EQ_DOCK_COMP"];
+	return [self hasEquipmentItemProviding:@"EQ_DOCK_COMP"];
 }
 
 
 - (BOOL) hasGalacticHyperdrive
 {
-	// TODO: can't be Providing - see comments in PlayerEntity
-	return [self hasEquipmentItem:@"EQ_GAL_DRIVE"];
+	return [self hasEquipmentItemProviding:@"EQ_GAL_DRIVE"];
 }
 
 
@@ -12796,8 +12822,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (![self isPlayer])
 		{
 			OK = YES;
-			/* TODO: prevents 'providing' this function */
-			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+			// if multiple items providing escape pod, remove all of them (NPC process)
+			while ([self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"])
+			{
+				[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_ESCAPE_POD"]];
+			}
 			[self setAITo:@"nullAI.plist"];
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
@@ -12829,7 +12858,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	else if (EXPECT([self isSubEntity]))
 	{
 		// may still have launched passenger pods even if no crew
-		[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+		// if multiple items providing escape pod, remove all of them (NPC process)
+		while ([self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"])
+		{
+			[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_ESCAPE_POD"]];
+		}
+
 	}
 	else
 	{
