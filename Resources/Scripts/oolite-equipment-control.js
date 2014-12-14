@@ -41,7 +41,58 @@ this.$baseline = {};
 this.$started = false;
 
 /* Initialise baseline data and equipment */
-this.startUp = this.playerBoughtNewShip = function()
+this.startUp = function()
+{
+	if (this.startUp)
+	{
+		delete this.startUp;
+	}
+
+	// initialise equipment
+	this.playerBoughtNewShip();
+
+	/* Maximum cargo space is already in the save game, so don't
+	 * enable these functions until after startup, or it'll get
+	 * repeatedly applied.
+	 *
+	 * Note: the cargo bay can't be damaged in the core game
+	 * anyway. The removal function is moderately complex just in case
+	 * an OXP offers a way to remove the cargo bay without first doing
+	 * validation that this can be done.
+	 *
+	 * Also may provide a model for conditional removals elsewhere
+	 * (though validation before calling removeEquipment is again the
+	 * correct approach). Checks here should only be necessary as a
+	 * failsafe.
+	 */
+	this.$equipmentEnable["EQ_CARGO_BAY"] = function(item)
+	{
+		player.ship.cargoSpaceCapacity += player.ship.extraCargo;
+	};
+
+	this.$equipmentDisable["EQ_CARGO_BAY"] = function(item)
+	{
+		if (player.ship.cargoSpaceAvailable < player.ship.extraCargo)
+		{
+			/* can't disable this equipment could try throwing out
+			 * cargo, but this isn't guaranteed to work because there
+			 * might be equipment taking up more than the base space. */
+			// so save the current capacity
+			var cap = player.ship.cargoSpaceCapacity;
+			// add the cargo extension back
+			log(this.name,"The large cargo bay was removed when there wasn't enough spare space to contain it. This is probably due to an OXP failing to validate cargo bay removal before trying it. The cargo bay has been restored to prevent inconsistencies."));
+			// then reset the cargo space to the right amount
+			player.ship.cargoSpaceCapacity = cap;
+			// and stop
+			return -1; // doesn't disable this function
+		}
+		player.ship.cargoSpaceCapacity -= player.ship.extraCargo;
+	};
+
+};
+
+
+this.playerBoughtNewShip = function()
 {
 	this.$started = true;
 	this.$baseline.maxEnergy = player.ship.maxEnergy;
@@ -74,7 +125,11 @@ this.equipmentRemoved = function(equip)
 		{
 			var info = EquipmentInfo.infoForKey(equip);
 			log(this.name,"Disabling "+info.equipmentKey); //tmp - remove later
-			this.$equipmentDisable[equip].bind(this,info)();
+			var result = this.$equipmentDisable[equip].bind(this,info)();
+			if (result == -1)
+			{
+				return;
+			}
 		}
 	}
 	this.$equipmentEnabled[equip] = 0;
@@ -94,7 +149,11 @@ this.equipmentAdded = function(equip)
 		{
 			var info = EquipmentInfo.infoForKey(equip);
 			log(this.name,"Enabling "+info.equipmentKey); //tmp - remove later
-			this.$equipmentEnable[equip].bind(this,info)();
+			var result = this.$equipmentEnable[equip].bind(this,info)();
+			if (result == -1)
+			{
+				return;
+			}
 		}
 	}
 	this.$equipmentEnabled[equip] = 1;

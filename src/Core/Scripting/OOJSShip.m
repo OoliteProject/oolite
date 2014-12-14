@@ -195,7 +195,7 @@ enum
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_cargoList,		// cargo on board, array of objects, read-only
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
-	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
+	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read/write
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
 	kShip_collisionExceptions,   // collision exception list, array, read-only
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
@@ -338,7 +338,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "cargoList",			kShip_cargoList,		OOJS_PROP_READONLY_CB },	
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },
-	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
+	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READWRITE_CB },
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },
 	{ "collisionExceptions",	kShip_collisionExceptions,	OOJS_PROP_READONLY_CB },
 	{ "commodity",				kShip_commodity,			OOJS_PROP_READONLY_CB },
@@ -1301,6 +1301,19 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_cargoSpaceCapacity:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < [entity maxAvailableCargoSpace] - [entity availableCargoSpace])
+				{
+					iValue = [entity maxAvailableCargoSpace] - [entity availableCargoSpace];
+				}
+				[entity setMaxAvailableCargoSpace:iValue];
+				return YES;
+			}
+			break;
+
 
 		case kShip_destinationSystem:
 			if (JS_ValueToInt32(context, *value, &iValue))
@@ -2502,7 +2515,8 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 			}
 			else	// EQ_CARGO_BAY
 			{
-				if ([thisEnt extraCargo] <= [thisEnt availableCargoSpace])
+				// player cargo bay removal handled in script
+				if ([thisEnt isPlayer] || [thisEnt extraCargo] <= [thisEnt availableCargoSpace])
 				{
 					[thisEnt removeEquipmentItem:key];
 				}

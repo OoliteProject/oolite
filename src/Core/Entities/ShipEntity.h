@@ -876,6 +876,7 @@ typedef enum
 - (OOCargoQuantity) commodityAmount;
 
 - (OOCargoQuantity) maxAvailableCargoSpace;
+- (void) setMaxAvailableCargoSpace:(OOCargoQuantity)new;
 - (OOCargoQuantity) availableCargoSpace;
 - (OOCargoQuantity) cargoQuantityOnBoard;
 - (OOCargoType) cargoType;

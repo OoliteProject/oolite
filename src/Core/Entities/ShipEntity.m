@@ -3347,28 +3347,26 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	
-	if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+	if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"] && !isRepairedEquipment) 
 	{
-		max_cargo += extra_cargo;
-	}
-	else
-	{
-		if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"] && !isRepairedEquipment) 
+		// Add to equipment_weight with all other equipment.
+		equipment_weight += [eqType requiredCargoSpace];
+		if (equipment_weight > max_cargo)
 		{
-			// Add to equipment_weight with all other equipment.
-			equipment_weight += [eqType requiredCargoSpace];
-			if (equipment_weight > max_cargo)
-			{
-				// should not even happen with old save games. Reject equipment now.
-				equipment_weight -= [eqType requiredCargoSpace];
-				return NO;
-			}
+			// should not even happen with old save games. Reject equipment now.
+			equipment_weight -= [eqType requiredCargoSpace];
+			return NO;
 		}
 	}
 	
+	
 	if (!isPlayer)
 	{
-		if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"]) 
+		if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+		{
+			max_cargo += extra_cargo;
+		}
+		else if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"]) 
 		{
 			maxEnergy += 256.0f;
 		}
@@ -3418,18 +3416,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if ([_equipment containsObject:equipmentKey])
 		{
-			if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+			if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 			{
-				max_cargo -= extra_cargo;
+				equipment_weight -= [eqType requiredCargoSpace]; // all other cases;
 			}
-			else
-			{
-				if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
-				{
-					equipment_weight -= [eqType requiredCargoSpace]; // all other cases;
-				}
-			}
-			
+						
 			if ([equipmentKey isEqualToString:@"EQ_CLOAKING_DEVICE"])
 			{
 				if ([self isCloaked])  [self setCloaked:NO];
@@ -3442,11 +3433,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					maxEnergy -= 256.0f;
 					if (maxEnergy < energy) energy = maxEnergy;
 				}
-				if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
+				else if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
 				{
 					maxEnergy -= 256.0f;
 					energy_recharge_rate /= 1.5;
 					if (maxEnergy < energy) energy = maxEnergy;
+				}
+				else if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+				{
+					max_cargo -= extra_cargo;
 				}
 			}
 		}
@@ -3461,9 +3456,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 		
+		[_equipment removeObject:equipmentKey];
+		// this event must come after the item is actually removed
 		[self doScriptEvent:OOJSID("equipmentRemoved") withArgument:equipmentKey];
 
-		[_equipment removeObject:equipmentKey];
 		if ([_equipment count] == 0)  [self removeAllEquipment];
 	}
 }
@@ -3741,21 +3737,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasExpandedCargoBay
 {
-	/* Not 'providing' - too many consequences */
+	/* Not 'providing' - controlled through scripts */
 	return [self hasEquipmentItem:@"EQ_CARGO_BAY"];
 }
 
 
 - (BOOL) hasShieldBooster
 {
-	/* Not 'providing' - too many consequences */
+	/* Not 'providing' - controlled through scripts */
 	return [self hasEquipmentItem:@"EQ_SHIELD_BOOSTER"];
 }
 
 
 - (BOOL) hasMilitaryShieldEnhancer
 {
-	/* Not 'providing' - too many consequences */
+	/* Not 'providing' - controlled through scripts */
 	return [self hasEquipmentItem:@"EQ_NAVAL_SHIELD_BOOSTER"];
 }
 
@@ -7956,6 +7952,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (OOCargoQuantity) maxAvailableCargoSpace
 {
 	return max_cargo - equipment_weight;
+}
+
+
+- (void) setMaxAvailableCargoSpace:(OOCargoQuantity)new
+{
+	max_cargo = new + equipment_weight;
 }
 
 
