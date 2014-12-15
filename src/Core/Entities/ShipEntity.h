@@ -43,7 +43,6 @@
 
 #define SHIP_THRUST_FACTOR				5.0f
 #define AFTERBURNER_BURNRATE			0.25f
-#define AFTERBURNER_NPC_BURNRATE		0.25f
 
 #define CLOAKING_DEVICE_ENERGY_RATE		12.8f
 #define CLOAKING_DEVICE_MIN_ENERGY		128
@@ -284,6 +283,9 @@ typedef enum
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
 	
+	GLfloat					afterburner_rate;
+	GLfloat					afterburner_speed_factor;
+
 	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for pirates, this is what is spilled as loot)
 	OOCargoQuantity			max_cargo;					// capacity of cargo hold
 	OOCargoQuantity			extra_cargo;				// capacity of cargo hold extension (if any)
@@ -321,6 +323,7 @@ typedef enum
 	NSString				*shipUniqueName;			// uniqish name e.g. "Terror of Lave"
 	NSString				*shipClassName;				// e.g. "Cobra III"
 	NSString				*displayName;				// name shown on screen
+	NSString				*scan_description;			// scan class name
 	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
 	NSString				*primaryRole;				// "Main" role of the ship.
 
@@ -581,6 +584,7 @@ typedef enum
 - (OOWeaponFacingSet) weaponFacings;
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment. If includeWeapons is NO, missiles and primary weapons are not checked.
 - (BOOL) hasEquipmentItem:(id)equipmentKeys;			// Short for hasEquipmentItem:foo includeWeapons:NO whileLoading:NO
+- (NSString *) equipmentItemProviding:(NSString *)equipmentType;
 - (BOOL) hasEquipmentItemProviding:(NSString *)equipmentType;
 - (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading;		// Like hasEquipmentItem:includeWeapons:, but requires _all_ elements in collection.
 - (BOOL) hasAllEquipment:(id)equipmentKeys;				// Short for hasAllEquipment:foo includeWeapons:NO
@@ -644,6 +648,9 @@ typedef enum
 
 - (float) maxHyperspaceDistance;
 - (float) afterburnerFactor;
+- (float) afterburnerRate;
+- (void) setAfterburnerFactor:(GLfloat)new;
+- (void) setAfterburnerRate:(GLfloat)new;
 - (float) maxThrust;
 - (float) thrust;
 
@@ -744,10 +751,13 @@ typedef enum
 - (NSString *) shipUniqueName;
 - (NSString *) shipClassName;
 - (NSString *) displayName;
+- (NSString *) scanDescription;
+- (NSString *) scanDescriptionForScripting;
 - (void) setName:(NSString *)inName;
 - (void) setShipUniqueName:(NSString *)inName;
 - (void) setShipClassName:(NSString *)inName;
 - (void) setDisplayName:(NSString *)inName;
+- (void) setScanDescription:(NSString *)inName;
 - (NSString *) identFromShip:(ShipEntity*) otherShip; // name displayed to other ships
 
 - (BOOL) hasRole:(NSString *)role;
@@ -876,6 +886,7 @@ typedef enum
 - (OOCargoQuantity) commodityAmount;
 
 - (OOCargoQuantity) maxAvailableCargoSpace;
+- (void) setMaxAvailableCargoSpace:(OOCargoQuantity)new;
 - (OOCargoQuantity) availableCargoSpace;
 - (OOCargoQuantity) cargoQuantityOnBoard;
 - (OOCargoType) cargoType;

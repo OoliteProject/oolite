@@ -3329,50 +3329,29 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 
 static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info)
 {
+	if (target == nil || player1 == nil)  
+	{
+		return;
+	}
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	{
+		return;
+	}
+
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
 	
 	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
 	
-	if (target == nil || player1 == nil)  return;
 
 	if ([target isShip])
 	{
 		target_ship = (ShipEntity *)target;
+		legal_desc = [target_ship scanDescription];
 	}
 
 	if ([target_ship isCloaked])  return;
 	
-	switch ([target scanClass])
-	{
-		case CLASS_NEUTRAL:
-			{
-				int target_legal = [target_ship legalStatus];
-				int legal_i = 0;
-				if (target_legal > 0)
-					legal_i =  (target_legal <= 50) ? 1 : 2;
-				legal_desc = [[[UNIVERSE descriptions] oo_arrayForKey:@"legal_status"] oo_stringAtIndex:legal_i];
-			}
-			break;
-	
-		case CLASS_THARGOID:
-			legal_desc = DESC(@"legal-desc-alien");
-			break;
-		
-		case CLASS_POLICE:
-			legal_desc = DESC(@"legal-desc-system-vessel");
-			break;
-		
-		case CLASS_MILITARY:
-			legal_desc = DESC(@"legal-desc-military-vessel");
-			break;
-		
-		default:
-			break;
-	}
-	
-	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
-		return;
 	
 	Vector			p1;
 	

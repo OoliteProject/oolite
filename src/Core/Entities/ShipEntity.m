@@ -271,6 +271,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	max_thrust = [shipDict oo_floatForKey:@"thrust" defaultValue:15.0f];
 	thrust = max_thrust;
+
+	afterburner_rate = [shipDict oo_floatForKey:@"injector_burn_rate" defaultValue:AFTERBURNER_BURNRATE];
+	afterburner_speed_factor = [shipDict oo_floatForKey:@"injector_speed_factor" defaultValue:7.0f];
+
 	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:200.0f];
 	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:1.0f];
 	
@@ -484,6 +488,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 	}
 
+	scan_description = [shipDict oo_stringForKey:@"scan_description" defaultValue:nil];
 
 	// FIXME: give NPCs shields instead.
 	
@@ -1006,6 +1011,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(shipUniqueName);
 	DESTROY(shipClassName);
 	DESTROY(displayName);
+	DESTROY(scan_description);
 	DESTROY(roleSet);
 	DESTROY(primaryRole);
 	DESTROY(laser_color);
@@ -2970,6 +2976,28 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (NSString *) equipmentItemProviding:(NSString *)equipmentType
+{
+	NSString *key = nil;
+	foreach (key, _equipment) {
+		if ([key isEqualToString:equipmentType])
+		{
+			// equipment always provides itself
+			return [[key copy] autorelease];
+		}
+		else
+		{
+			OOEquipmentType *et = [OOEquipmentType equipmentTypeWithIdentifier:key];
+			if (et != nil && [et provides:equipmentType])
+			{
+				return [[key copy] autorelease];
+			}
+		}
+	}
+	return nil;
+}
+
+
 - (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading
 {
 	NSEnumerator				*keyEnum = nil;
@@ -3347,28 +3375,26 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	
-	if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+	if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"] && !isRepairedEquipment) 
 	{
-		max_cargo += extra_cargo;
-	}
-	else
-	{
-		if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"] && !isRepairedEquipment) 
+		// Add to equipment_weight with all other equipment.
+		equipment_weight += [eqType requiredCargoSpace];
+		if (equipment_weight > max_cargo)
 		{
-			// Add to equipment_weight with all other equipment.
-			equipment_weight += [eqType requiredCargoSpace];
-			if (equipment_weight > max_cargo)
-			{
-				// should not even happen with old save games. Reject equipment now.
-				equipment_weight -= [eqType requiredCargoSpace];
-				return NO;
-			}
+			// should not even happen with old save games. Reject equipment now.
+			equipment_weight -= [eqType requiredCargoSpace];
+			return NO;
 		}
 	}
 	
+	
 	if (!isPlayer)
 	{
-		if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"]) 
+		if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+		{
+			max_cargo += extra_cargo;
+		}
+		else if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"]) 
 		{
 			maxEnergy += 256.0f;
 		}
@@ -3380,6 +3406,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	// add the equipment
 	[_equipment addObject:equipmentKey];
+	[self doScriptEvent:OOJSID("equipmentAdded") withArgument:equipmentKey];
 	return YES;
 }
 
@@ -3417,18 +3444,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if ([_equipment containsObject:equipmentKey])
 		{
-			if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+			if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 			{
-				max_cargo -= extra_cargo;
+				equipment_weight -= [eqType requiredCargoSpace]; // all other cases;
 			}
-			else
-			{
-				if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
-				{
-					equipment_weight -= [eqType requiredCargoSpace]; // all other cases;
-				}
-			}
-			
+						
 			if ([equipmentKey isEqualToString:@"EQ_CLOAKING_DEVICE"])
 			{
 				if ([self isCloaked])  [self setCloaked:NO];
@@ -3441,11 +3461,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					maxEnergy -= 256.0f;
 					if (maxEnergy < energy) energy = maxEnergy;
 				}
-				if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
+				else if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
 				{
 					maxEnergy -= 256.0f;
 					energy_recharge_rate /= 1.5;
 					if (maxEnergy < energy) energy = maxEnergy;
+				}
+				else if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+				{
+					max_cargo -= extra_cargo;
 				}
 			}
 		}
@@ -3461,6 +3485,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		[_equipment removeObject:equipmentKey];
+		// this event must come after the item is actually removed
+		[self doScriptEvent:OOJSID("equipmentRemoved") withArgument:equipmentKey];
+		
+		// if all docking computers are damaged while active
+		if ([self isPlayer] && [self status] == STATUS_AUTOPILOT_ENGAGED && ![self hasDockingComputer])
+		{
+			[(PlayerEntity *)self disengageAutopilot];
+		}
+
+
 		if ([_equipment count] == 0)  [self removeAllEquipment];
 	}
 }
@@ -3738,21 +3772,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasExpandedCargoBay
 {
-	/* Not 'providing' - too many consequences */
+	/* Not 'providing' - controlled through scripts */
 	return [self hasEquipmentItem:@"EQ_CARGO_BAY"];
 }
 
 
 - (BOOL) hasShieldBooster
 {
-	/* Not 'providing' - too many consequences */
+	/* Not 'providing' - controlled through scripts */
 	return [self hasEquipmentItem:@"EQ_SHIELD_BOOSTER"];
 }
 
 
 - (BOOL) hasMilitaryShieldEnhancer
 {
-	/* Not 'providing' - too many consequences */
+	/* Not 'providing' - controlled through scripts */
 	return [self hasEquipmentItem:@"EQ_NAVAL_SHIELD_BOOSTER"];
 }
 
@@ -3780,22 +3814,19 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasEscapePod
 {
-	// TODO: can't be Providing, see comments elsewhere and in PlayerEntity
-	return [self hasEquipmentItem:@"EQ_ESCAPE_POD"];
+	return [self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"];
 }
 
 
 - (BOOL) hasDockingComputer
 {
-	// TODO: can't be Providing - see comments in PlayerEntity
-	return [self hasEquipmentItem:@"EQ_DOCK_COMP"];
+	return [self hasEquipmentItemProviding:@"EQ_DOCK_COMP"];
 }
 
 
 - (BOOL) hasGalacticHyperdrive
 {
-	// TODO: can't be Providing - see comments in PlayerEntity
-	return [self hasEquipmentItem:@"EQ_GAL_DRIVE"];
+	return [self hasEquipmentItemProviding:@"EQ_GAL_DRIVE"];
 }
 
 
@@ -3809,6 +3840,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+/* These next three are never called as of 12/12/2014, as NPCs don't
+ * have shields and PlayerEntity overrides these. */
 - (float) maxForwardShieldLevel
 {
 	return BASELINE_SHIELD_LEVEL * [self shieldBoostFactor];
@@ -3834,7 +3867,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (float) afterburnerFactor
 {
-	return 7.0f;
+	return afterburner_speed_factor;
+}
+
+
+- (float) afterburnerRate
+{
+	return afterburner_rate;
+}
+
+
+- (void) setAfterburnerFactor:(GLfloat)new
+{
+	afterburner_speed_factor = new;
+}
+
+
+- (void) setAfterburnerRate:(GLfloat)new
+{
+	afterburner_rate = new;
 }
 
 
@@ -6431,7 +6482,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	// burn fuel at the appropriate rate
 	if (isUsingAfterburner) // no fuelconsumption on slowdown
 	{
-		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
+		fuel_accumulator -= delta_t * afterburner_rate;
 		while (fuel_accumulator < 0.0)
 		{
 			fuel--;
@@ -6796,6 +6847,56 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+// needed so that scan_description = scan_description doesn't have odd effects
+- (NSString *)scanDescriptionForScripting
+{
+	return scan_description;
+}
+
+
+- (NSString *)scanDescription
+{
+	if (scan_description != nil)
+	{
+		return scan_description;
+	}
+	else
+	{
+		NSString *desc = nil;
+		switch ([self scanClass])
+		{
+		case CLASS_NEUTRAL:
+			{
+				int legal = [self legalStatus];
+				int legal_i = 0;
+				if (legal > 0)
+				{
+					legal_i =  (legal <= 50) ? 1 : 2;
+				}
+				desc = [[[UNIVERSE descriptions] oo_arrayForKey:@"legal_status"] oo_stringAtIndex:legal_i];
+			}
+			break;
+	
+		case CLASS_THARGOID:
+			desc = DESC(@"legal-desc-alien");
+			break;
+		
+		case CLASS_POLICE:
+			desc = DESC(@"legal-desc-system-vessel");
+			break;
+		
+		case CLASS_MILITARY:
+			desc = DESC(@"legal-desc-military-vessel");
+			break;
+		
+		default:
+			break;
+		}
+		return desc;
+	}
+}
+
+
 - (void) setName:(NSString *)inName
 {
 	[name release];
@@ -6821,6 +6922,13 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 {
 	[displayName release];
 	displayName = [inName copy];
+}
+
+
+- (void) setScanDescription:(NSString *)inName
+{
+	[scan_description release];
+	scan_description = [inName copy];
 }
 
 
@@ -7951,6 +8059,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (OOCargoQuantity) maxAvailableCargoSpace
 {
 	return max_cargo - equipment_weight;
+}
+
+
+- (void) setMaxAvailableCargoSpace:(OOCargoQuantity)new
+{
+	max_cargo = new + equipment_weight;
 }
 
 
@@ -12789,8 +12903,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		if (![self isPlayer])
 		{
 			OK = YES;
-			/* TODO: prevents 'providing' this function */
-			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+			// if multiple items providing escape pod, remove all of them (NPC process)
+			while ([self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"])
+			{
+				[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_ESCAPE_POD"]];
+			}
 			[self setAITo:@"nullAI.plist"];
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
@@ -12822,7 +12939,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	else if (EXPECT([self isSubEntity]))
 	{
 		// may still have launched passenger pods even if no crew
-		[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+		// if multiple items providing escape pod, remove all of them (NPC process)
+		while ([self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"])
+		{
+			[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_ESCAPE_POD"]];
+		}
+
 	}
 	else
 	{

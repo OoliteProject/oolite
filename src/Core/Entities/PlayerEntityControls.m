@@ -1349,9 +1349,8 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"galactic hyperspace";
 				// Galactic hyperspace 'g'
-				/* TODO: Should be Providing check, but GAL_DRIVE is tricky, see comments in PlayerEntity */
 				if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) &&
-					([self hasEquipmentItem:@"EQ_GAL_DRIVE"]))// look for the 'g' key
+					([self hasEquipmentItemProviding:@"EQ_GAL_DRIVE"]))// look for the 'g' key
 				{
 					if (!galhyperspace_pressed)
 					{

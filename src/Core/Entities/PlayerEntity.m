@@ -140,7 +140,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity;
 
 
-
+- (OOCreditsQuantity) adjustPriceByScriptForEqKey:(NSString *)eqKey withCurrent:(OOCreditsQuantity)price;
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
 // Cargo & passenger contracts
@@ -1463,6 +1463,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[self setActiveMissile:0];
 	
+	[self setHeatInsulation:1.0];
+
+	max_forward_shield				= BASELINE_SHIELD_LEVEL;
+	max_aft_shield					= BASELINE_SHIELD_LEVEL;
+
+	forward_shield_recharge_rate	= 2.0;
+	aft_shield_recharge_rate		= 2.0;
+
 	forward_shield = [self maxForwardShieldLevel];
 	aft_shield = [self maxAftShieldLevel];
 	
@@ -1869,6 +1877,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	_scriptedMisjumpRange	= 0.5;
 	scoopOverride			= NO;
 	
+	max_forward_shield		= BASELINE_SHIELD_LEVEL;
+	max_aft_shield			= BASELINE_SHIELD_LEVEL;
+
+	forward_shield_recharge_rate	= 2.0;
+	aft_shield_recharge_rate		= 2.0;
+
 	forward_shield			= [self maxForwardShieldLevel];
 	aft_shield				= [self maxAftShieldLevel];
 	
@@ -2488,9 +2502,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// 2. Calculate shield recharge rates
 	float fwdMax = [self maxForwardShieldLevel];
 	float aftMax = [self maxAftShieldLevel];
-	float shieldRecharge = [self shieldRechargeRate] * delta_t;
-	float rechargeFwd = MIN(shieldRecharge, fwdMax - forward_shield);
-	float rechargeAft = MIN(shieldRecharge, aftMax - aft_shield);
+	float shieldRechargeFwd = [self forwardShieldRechargeRate] * delta_t;
+	float shieldRechargeAft = [self aftShieldRechargeRate] * delta_t;
+	float rechargeFwd = MIN(shieldRechargeFwd, fwdMax - forward_shield);
+	float rechargeAft = MIN(shieldRechargeAft, aftMax - aft_shield);
 	
 	// Note: we've simplified this a little, so if either shield is below
 	//       the critical threshold, we allocate all energy.  Ideally we
@@ -2688,7 +2703,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				if (flightSpeed > maxInjectionSpeed)
 					flightSpeed = maxInjectionSpeed;
 			}
-			fuel_accumulator -= (float)(delta_t * AFTERBURNER_BURNRATE);
+			fuel_accumulator -= (float)(delta_t * afterburner_rate);
 			while ((fuel_accumulator < 0)&&(fuel > 0))
 			{
 				fuel_accumulator += 1.0f;
@@ -4089,6 +4104,54 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (float) maxForwardShieldLevel
+{
+	return max_forward_shield;
+}
+
+
+- (float) maxAftShieldLevel
+{
+	return max_aft_shield;
+}
+
+
+- (float) forwardShieldRechargeRate
+{
+	return forward_shield_recharge_rate;
+}
+
+
+- (float) aftShieldRechargeRate
+{
+	return aft_shield_recharge_rate;
+}
+
+
+- (void) setMaxForwardShieldLevel:(float)new
+{
+	max_forward_shield = new;
+}
+
+
+- (void) setMaxAftShieldLevel:(float)new
+{
+	max_aft_shield = new;
+}
+
+
+- (void) setForwardShieldRechargeRate:(float)new
+{
+	forward_shield_recharge_rate = new;
+}
+
+
+- (void) setAftShieldRechargeRate:(float)new
+{
+	aft_shield_recharge_rate = new;
+}
+
+
 - (GLfloat) forwardShieldLevel
 {
 	return forward_shield;
@@ -4173,6 +4236,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (GLfloat) dialForwardShield
 {
+	if (EXPECT_NOT([self maxForwardShieldLevel] <= 0))
+	{
+		return 0.0;
+	}
 	GLfloat result = forward_shield / [self maxForwardShieldLevel];
 	return OOClamp_0_1_f(result);
 }
@@ -4180,6 +4247,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (GLfloat) dialAftShield
 {
+	if (EXPECT_NOT([self maxAftShieldLevel] <= 0))
+	{
+		return 0.0;
+	}
 	GLfloat result = aft_shield / [self maxAftShieldLevel];
 	return OOClamp_0_1_f(result);
 }
@@ -5442,21 +5513,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	return ENERGY_UNIT_NONE;
 }
 
-/* Is handled slightly differently for player */
-- (float) energyRechargeRate
-{
-	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-	return energy_recharge_rate * energy_multiplier;
-}
-
-
-// needed to stop PS.energyRechargeRate = PS.energyRechargeRate going wrong
-- (void) setEnergyRechargeRate:(GLfloat)new
-{
-	double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-	energy_recharge_rate = new / energy_multiplier;
-}
-
 
 - (OOEnergyUnitType) energyUnitType
 {
@@ -5465,11 +5521,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"])  return ENERGY_UNIT_NAVAL_DAMAGED;
 	if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"])  return ENERGY_UNIT_NORMAL_DAMAGED;
 	return ENERGY_UNIT_NONE;
-}
-
-- (float) heatInsulation
-{
-	return [self hasHeatShield] ? 2.0f : 1.0f;
 }
 
 
@@ -5976,9 +6027,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setVelocity:launchVector];
 	
 
-	/* TODO: doing it this way prevents 'providing' on this item */
-	//remove escape pod
-	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+
+	// if multiple items providing escape pod, remove the first one
+	[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_ESCAPE_POD"]];
+
 	
 	// set up the standard location where the escape pod will dock.
 	target_system_id = system_id;			// we're staying in this system
@@ -6302,13 +6354,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 		}
 		
-		/* TODO: the nature of this check means that providing
-		 * EQ_DOCK_COMP is difficult. */
-		// if Docking Computers have been selected to take damage and they happen to be on, switch them off
-		if ([system_key isEqualToString:@"EQ_DOCK_COMP"] && autopilot_engaged)  
-		{
-			[self disengageAutopilot];
-		}
+		/* There used to be a check for docking computers here, but
+		 * that didn't cover other ways they might fail in flight, so
+		 * it has been moved to the removeEquipment method. */
 		[system_key release];
 		return YES;
 	}
@@ -6882,7 +6930,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[roleWeightFlags removeAllObjects];
 	[roleSystemList removeAllObjects];
 	
-	[self removeEquipmentItem:@"EQ_GAL_DRIVE"];
+	// may be more than one item providing this
+	[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_GAL_DRIVE"]];
 	
 	galaxy_number++;
 	if (EXPECT_NOT(galaxy_number >= OO_GALAXIES_AVAILABLE))
@@ -8471,6 +8520,8 @@ static NSString *last_outfitting_key=nil;
 					price = pricePerUnit;
 				}
 				
+				price = [self adjustPriceByScriptForEqKey:eqKey withCurrent:price];
+
 				price *= priceFactor;  // increased prices at some stations
 				
 				NSUInteger installTime = [eqInfo installTime];
@@ -9299,6 +9350,44 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (OOCreditsQuantity) adjustPriceByScriptForEqKey:(NSString *)eqKey withCurrent:(OOCreditsQuantity)price
+{
+	NSString *condition_script = [[OOEquipmentType equipmentTypeWithIdentifier:eqKey] conditionScript];
+	if (condition_script != nil)
+	{
+		OOJSScript *condScript = [UNIVERSE getConditionScript:condition_script];
+		if (condScript != nil) // should always be non-nil, but just in case
+		{
+			JSContext			*JScontext = OOJSAcquireContext();
+			BOOL OK;
+			jsval result;
+			int32 newPrice;
+			jsval args[] = { OOJSValueFromNativeObject(JScontext, eqKey) , (jsval)NULL };
+			OK = JS_NewNumberValue(JScontext, price, &args[1]);
+				
+			if (OK)
+			{
+				OK = [condScript callMethod:OOJSID("updateEquipmentPrice")
+								  inContext:JScontext
+							  withArguments:args count:sizeof args / sizeof *args
+									 result:&result];
+			}
+
+			if (OK)
+			{
+				OK = JS_ValueToInt32(JScontext, result, &newPrice);
+				if (OK && newPrice >= 0)
+				{
+					price = (OOCreditsQuantity)newPrice;
+				}
+			}
+			OOJSRelinquishContext(JScontext);
+		}
+	}
+	return price;
+}
+
+
 - (BOOL) tryBuyingItem:(NSString *)eqKey
 {
 	// note this doesn't check the availability by tech-level
@@ -9322,6 +9411,8 @@ static NSString *last_outfitting_key=nil;
 		price = [self renovationCosts];
 	}
 	
+	price = [self adjustPriceByScriptForEqKey:eqKey withCurrent:price];
+
 	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation)
 	{

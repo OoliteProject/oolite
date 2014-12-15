@@ -195,7 +195,7 @@ enum
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_cargoList,		// cargo on board, array of objects, read-only
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
-	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
+	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read/write
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
 	kShip_collisionExceptions,   // collision exception list, array, read-only
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
@@ -232,6 +232,8 @@ enum
 	kShip_heading,				// forwardVector of a ship, read-only
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
 	kShip_homeSystem,			// home system, number, read/write
+	kShip_injectorBurnRate,		// injector burn rate, number, read/write dLY/s
+	kShip_injectorSpeedFactor,  // injector speed factor, number, read/write
 	kShip_isBeacon,				// is beacon, boolean, read-only
 	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
 	kShip_isCargo,				// contains cargo, boolean, read-only
@@ -284,6 +286,7 @@ enum
 	kShip_roles,				// roles, array, read-only
 	kShip_roll,					// roll level, float, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
+	kShip_scanDescription,		// STE scan class label, string, read/write
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_scannerRange,			// scanner range, double, read-only
@@ -338,7 +341,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "cargoList",			kShip_cargoList,		OOJS_PROP_READONLY_CB },	
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },
-	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
+	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READWRITE_CB },
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },
 	{ "collisionExceptions",	kShip_collisionExceptions,	OOJS_PROP_READONLY_CB },
 	{ "commodity",				kShip_commodity,			OOJS_PROP_READONLY_CB },
@@ -375,6 +378,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		OOJS_PROP_READONLY_CB },
 	{ "heatInsulation",			kShip_heatInsulation,		OOJS_PROP_READWRITE_CB },
 	{ "heading",				kShip_heading,				OOJS_PROP_READONLY_CB },
+	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
+	{ "injectorBurnRate",		kShip_injectorBurnRate,		OOJS_PROP_READWRITE_CB },
+	{ "injectorSpeedFactor",	kShip_injectorSpeedFactor,	OOJS_PROP_READWRITE_CB },
 	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
 	{ "isBeacon",				kShip_isBeacon,				OOJS_PROP_READONLY_CB },
 	{ "isCloaked",				kShip_isCloaked,			OOJS_PROP_READWRITE_CB },
@@ -428,6 +434,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "roles",					kShip_roles,				OOJS_PROP_READONLY_CB },
 	{ "roll",					kShip_roll,					OOJS_PROP_READONLY_CB },
 	{ "savedCoordinates",		kShip_savedCoordinates,		OOJS_PROP_READWRITE_CB },
+	{ "scanDescription",		kShip_scanDescription,		OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	OOJS_PROP_READWRITE_CB },
 	{ "scannerRange",			kShip_scannerRange,			OOJS_PROP_READONLY_CB },
@@ -612,6 +619,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity shipClassName];
 			break;
 		
+		case kShip_scanDescription:
+			result = [entity scanDescriptionForScripting];
+			break;
+
 		case kShip_roles:
 			result = [[entity roleSet] sortedRoles];
 			break;
@@ -883,6 +894,12 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_maxYaw:
 			return JS_NewNumberValue(context, [entity maxFlightYaw], value);
+
+		case kShip_injectorBurnRate:
+			return JS_NewNumberValue(context, [entity afterburnerRate], value);
+
+		case kShip_injectorSpeedFactor:
+			return JS_NewNumberValue(context, [entity afterburnerFactor], value);
 			
 		case kShip_script:
 			result = [entity shipScript];
@@ -1211,6 +1228,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 
+
+		case kShip_scanDescription:
+			sValue = OOStringFromJSValue(context,*value);
+			// can set to nil
+			[entity setScanDescription:sValue];
+			return YES;
 		
 		case kShip_primaryRole:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
@@ -1302,6 +1325,19 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 
+		case kShip_cargoSpaceCapacity:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < [entity maxAvailableCargoSpace] - [entity availableCargoSpace])
+				{
+					iValue = [entity maxAvailableCargoSpace] - [entity availableCargoSpace];
+				}
+				[entity setMaxAvailableCargoSpace:iValue];
+				return YES;
+			}
+			break;
+
+
 		case kShip_destinationSystem:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
@@ -1390,8 +1426,6 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 		
 		case kShip_heatInsulation:
-			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
-			
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				fValue = fmax(fValue, 0.125);
@@ -1629,6 +1663,44 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_injectorBurnRate:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.injectorBurnRate cannot be negative.");
+					return NO;
+				}
+				[entity setAfterburnerRate:fValue];
+				return YES;
+			}
+			break;
+
+		case kShip_injectorSpeedFactor:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 1)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be less than 1.0.");
+					return NO;
+				}
+#if OO_VARIABLE_TORUS_SPEED
+				else if (fValue > MIN_HYPERSPEED_FACTOR)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be higher than minimum torus speed factor (%f).",MIN_HYPERSPEED_FACTOR);
+#else
+				else if (fValue > HYPERSPEED_FACTOR)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be higher than torus speed factor (%f).",HYPERSPEED_FACTOR);
+#endif
+					return NO;
+				}
+				[entity setAfterburnerFactor:fValue];
+				return YES;
+			}
+			break;
+
 
 		case kShip_maxThrust:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -2504,7 +2576,8 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 			}
 			else	// EQ_CARGO_BAY
 			{
-				if ([thisEnt extraCargo] <= [thisEnt availableCargoSpace])
+				// player cargo bay removal handled in script
+				if ([thisEnt isPlayer] || [thisEnt extraCargo] <= [thisEnt availableCargoSpace])
 				{
 					[thisEnt removeEquipmentItem:key];
 				}
