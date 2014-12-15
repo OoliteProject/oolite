@@ -4236,6 +4236,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (GLfloat) dialForwardShield
 {
+	if (EXPECT_NOT([self maxForwardShieldLevel] <= 0))
+	{
+		return 0.0;
+	}
 	GLfloat result = forward_shield / [self maxForwardShieldLevel];
 	return OOClamp_0_1_f(result);
 }
@@ -4243,6 +4247,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (GLfloat) dialAftShield
 {
+	if (EXPECT_NOT([self maxAftShieldLevel] <= 0))
+	{
+		return 0.0;
+	}
 	GLfloat result = aft_shield / [self maxAftShieldLevel];
 	return OOClamp_0_1_f(result);
 }
