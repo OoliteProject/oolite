@@ -323,6 +323,7 @@ typedef enum
 	NSString				*shipUniqueName;			// uniqish name e.g. "Terror of Lave"
 	NSString				*shipClassName;				// e.g. "Cobra III"
 	NSString				*displayName;				// name shown on screen
+	NSString				*scan_description;			// scan class name
 	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
 	NSString				*primaryRole;				// "Main" role of the ship.
 
@@ -750,10 +751,13 @@ typedef enum
 - (NSString *) shipUniqueName;
 - (NSString *) shipClassName;
 - (NSString *) displayName;
+- (NSString *) scanDescription;
+- (NSString *) scanDescriptionForScripting;
 - (void) setName:(NSString *)inName;
 - (void) setShipUniqueName:(NSString *)inName;
 - (void) setShipClassName:(NSString *)inName;
 - (void) setDisplayName:(NSString *)inName;
+- (void) setScanDescription:(NSString *)inName;
 - (NSString *) identFromShip:(ShipEntity*) otherShip; // name displayed to other ships
 
 - (BOOL) hasRole:(NSString *)role;

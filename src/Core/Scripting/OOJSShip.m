@@ -286,6 +286,7 @@ enum
 	kShip_roles,				// roles, array, read-only
 	kShip_roll,					// roll level, float, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
+	kShip_scanDescription,		// STE scan class label, string, read/write
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_scannerRange,			// scanner range, double, read-only
@@ -433,6 +434,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "roles",					kShip_roles,				OOJS_PROP_READONLY_CB },
 	{ "roll",					kShip_roll,					OOJS_PROP_READONLY_CB },
 	{ "savedCoordinates",		kShip_savedCoordinates,		OOJS_PROP_READWRITE_CB },
+	{ "scanDescription",		kShip_scanDescription,		OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	OOJS_PROP_READWRITE_CB },
 	{ "scannerRange",			kShip_scannerRange,			OOJS_PROP_READONLY_CB },
@@ -617,6 +619,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity shipClassName];
 			break;
 		
+		case kShip_scanDescription:
+			result = [entity scanDescriptionForScripting];
+			break;
+
 		case kShip_roles:
 			result = [[entity roleSet] sortedRoles];
 			break;
@@ -1222,6 +1228,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 
+
+		case kShip_scanDescription:
+			sValue = OOStringFromJSValue(context,*value);
+			// can set to nil
+			[entity setScanDescription:sValue];
+			return YES;
 		
 		case kShip_primaryRole:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;

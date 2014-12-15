@@ -488,6 +488,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 	}
 
+	scan_description = [shipDict oo_stringForKey:@"scan_description" defaultValue:nil];
 
 	// FIXME: give NPCs shields instead.
 	
@@ -1010,6 +1011,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(shipUniqueName);
 	DESTROY(shipClassName);
 	DESTROY(displayName);
+	DESTROY(scan_description);
 	DESTROY(roleSet);
 	DESTROY(primaryRole);
 	DESTROY(laser_color);
@@ -6845,6 +6847,56 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+// needed so that scan_description = scan_description doesn't have odd effects
+- (NSString *)scanDescriptionForScripting
+{
+	return scan_description;
+}
+
+
+- (NSString *)scanDescription
+{
+	if (scan_description != nil)
+	{
+		return scan_description;
+	}
+	else
+	{
+		NSString *desc = nil;
+		switch ([self scanClass])
+		{
+		case CLASS_NEUTRAL:
+			{
+				int legal = [self legalStatus];
+				int legal_i = 0;
+				if (legal > 0)
+				{
+					legal_i =  (legal <= 50) ? 1 : 2;
+				}
+				desc = [[[UNIVERSE descriptions] oo_arrayForKey:@"legal_status"] oo_stringAtIndex:legal_i];
+			}
+			break;
+	
+		case CLASS_THARGOID:
+			desc = DESC(@"legal-desc-alien");
+			break;
+		
+		case CLASS_POLICE:
+			desc = DESC(@"legal-desc-system-vessel");
+			break;
+		
+		case CLASS_MILITARY:
+			desc = DESC(@"legal-desc-military-vessel");
+			break;
+		
+		default:
+			break;
+		}
+		return desc;
+	}
+}
+
+
 - (void) setName:(NSString *)inName
 {
 	[name release];
@@ -6870,6 +6922,13 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 {
 	[displayName release];
 	displayName = [inName copy];
+}
+
+
+- (void) setScanDescription:(NSString *)inName
+{
+	[scan_description release];
+	scan_description = [inName copy];
 }
 
 
