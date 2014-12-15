@@ -140,7 +140,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity;
 
 
-
+- (OOCreditsQuantity) adjustPriceByScriptForEqKey:(NSString *)eqKey withCurrent:(OOCreditsQuantity)price;
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
 // Cargo & passenger contracts
@@ -8512,6 +8512,8 @@ static NSString *last_outfitting_key=nil;
 					price = pricePerUnit;
 				}
 				
+				price = [self adjustPriceByScriptForEqKey:eqKey withCurrent:price];
+
 				price *= priceFactor;  // increased prices at some stations
 				
 				NSUInteger installTime = [eqInfo installTime];
@@ -9340,6 +9342,44 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (OOCreditsQuantity) adjustPriceByScriptForEqKey:(NSString *)eqKey withCurrent:(OOCreditsQuantity)price
+{
+	NSString *condition_script = [[OOEquipmentType equipmentTypeWithIdentifier:eqKey] conditionScript];
+	if (condition_script != nil)
+	{
+		OOJSScript *condScript = [UNIVERSE getConditionScript:condition_script];
+		if (condScript != nil) // should always be non-nil, but just in case
+		{
+			JSContext			*JScontext = OOJSAcquireContext();
+			BOOL OK;
+			jsval result;
+			int32 newPrice;
+			jsval args[] = { OOJSValueFromNativeObject(JScontext, eqKey) , (jsval)NULL };
+			OK = JS_NewNumberValue(JScontext, price, &args[1]);
+				
+			if (OK)
+			{
+				OK = [condScript callMethod:OOJSID("updateEquipmentPrice")
+								  inContext:JScontext
+							  withArguments:args count:sizeof args / sizeof *args
+									 result:&result];
+			}
+
+			if (OK)
+			{
+				OK = JS_ValueToInt32(JScontext, result, &newPrice);
+				if (OK && newPrice >= 0)
+				{
+					price = (OOCreditsQuantity)newPrice;
+				}
+			}
+			OOJSRelinquishContext(JScontext);
+		}
+	}
+	return price;
+}
+
+
 - (BOOL) tryBuyingItem:(NSString *)eqKey
 {
 	// note this doesn't check the availability by tech-level
@@ -9363,6 +9403,8 @@ static NSString *last_outfitting_key=nil;
 		price = [self renovationCosts];
 	}
 	
+	price = [self adjustPriceByScriptForEqKey:eqKey withCurrent:price];
+
 	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation)
 	{
