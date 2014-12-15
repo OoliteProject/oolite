@@ -271,6 +271,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	max_thrust = [shipDict oo_floatForKey:@"thrust" defaultValue:15.0f];
 	thrust = max_thrust;
+
+	afterburner_rate = [shipDict oo_floatForKey:@"injector_burn_rate" defaultValue:AFTERBURNER_BURNRATE];
+	afterburner_speed_factor = [shipDict oo_floatForKey:@"injector_speed_factor" defaultValue:7.0f];
+
 	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:200.0f];
 	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:1.0f];
 	
@@ -3861,7 +3865,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (float) afterburnerFactor
 {
-	return 7.0f;
+	return afterburner_speed_factor;
+}
+
+
+- (float) afterburnerRate
+{
+	return afterburner_rate;
+}
+
+
+- (void) setAfterburnerFactor:(GLfloat)new
+{
+	afterburner_speed_factor = new;
+}
+
+
+- (void) setAfterburnerRate:(GLfloat)new
+{
+	afterburner_rate = new;
 }
 
 
@@ -6458,7 +6480,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 	// burn fuel at the appropriate rate
 	if (isUsingAfterburner) // no fuelconsumption on slowdown
 	{
-		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
+		fuel_accumulator -= delta_t * afterburner_rate;
 		while (fuel_accumulator < 0.0)
 		{
 			fuel--;

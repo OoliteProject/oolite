@@ -2703,7 +2703,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				if (flightSpeed > maxInjectionSpeed)
 					flightSpeed = maxInjectionSpeed;
 			}
-			fuel_accumulator -= (float)(delta_t * AFTERBURNER_BURNRATE);
+			fuel_accumulator -= (float)(delta_t * afterburner_rate);
 			while ((fuel_accumulator < 0)&&(fuel > 0))
 			{
 				fuel_accumulator += 1.0f;

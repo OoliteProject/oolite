@@ -43,7 +43,6 @@
 
 #define SHIP_THRUST_FACTOR				5.0f
 #define AFTERBURNER_BURNRATE			0.25f
-#define AFTERBURNER_NPC_BURNRATE		0.25f
 
 #define CLOAKING_DEVICE_ENERGY_RATE		12.8f
 #define CLOAKING_DEVICE_MIN_ENERGY		128
@@ -284,6 +283,9 @@ typedef enum
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
 	
+	GLfloat					afterburner_rate;
+	GLfloat					afterburner_speed_factor;
+
 	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for pirates, this is what is spilled as loot)
 	OOCargoQuantity			max_cargo;					// capacity of cargo hold
 	OOCargoQuantity			extra_cargo;				// capacity of cargo hold extension (if any)
@@ -645,6 +647,9 @@ typedef enum
 
 - (float) maxHyperspaceDistance;
 - (float) afterburnerFactor;
+- (float) afterburnerRate;
+- (void) setAfterburnerFactor:(GLfloat)new;
+- (void) setAfterburnerRate:(GLfloat)new;
 - (float) maxThrust;
 - (float) thrust;
 

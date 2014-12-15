@@ -304,7 +304,7 @@ typedef enum
 #define MIN_HYPERSPEED_FACTOR			32.0
 #define MAX_HYPERSPEED_FACTOR			1024.0
 #else
-#define HYPERSPEED_FACTOR				32
+#define HYPERSPEED_FACTOR				32.0
 #endif
 
 #define PLAYER_SHIP_DESC				@"cobra3-player"

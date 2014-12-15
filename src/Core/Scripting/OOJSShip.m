@@ -232,6 +232,8 @@ enum
 	kShip_heading,				// forwardVector of a ship, read-only
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
 	kShip_homeSystem,			// home system, number, read/write
+	kShip_injectorBurnRate,		// injector burn rate, number, read/write dLY/s
+	kShip_injectorSpeedFactor,  // injector speed factor, number, read/write
 	kShip_isBeacon,				// is beacon, boolean, read-only
 	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
 	kShip_isCargo,				// contains cargo, boolean, read-only
@@ -375,6 +377,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		OOJS_PROP_READONLY_CB },
 	{ "heatInsulation",			kShip_heatInsulation,		OOJS_PROP_READWRITE_CB },
 	{ "heading",				kShip_heading,				OOJS_PROP_READONLY_CB },
+	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
+	{ "injectorBurnRate",		kShip_injectorBurnRate,		OOJS_PROP_READWRITE_CB },
+	{ "injectorSpeedFactor",	kShip_injectorSpeedFactor,	OOJS_PROP_READWRITE_CB },
 	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
 	{ "isBeacon",				kShip_isBeacon,				OOJS_PROP_READONLY_CB },
 	{ "isCloaked",				kShip_isCloaked,			OOJS_PROP_READWRITE_CB },
@@ -883,6 +888,12 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_maxYaw:
 			return JS_NewNumberValue(context, [entity maxFlightYaw], value);
+
+		case kShip_injectorBurnRate:
+			return JS_NewNumberValue(context, [entity afterburnerRate], value);
+
+		case kShip_injectorSpeedFactor:
+			return JS_NewNumberValue(context, [entity afterburnerFactor], value);
 			
 		case kShip_script:
 			result = [entity shipScript];
@@ -1640,6 +1651,44 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_injectorBurnRate:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.injectorBurnRate cannot be negative.");
+					return NO;
+				}
+				[entity setAfterburnerRate:fValue];
+				return YES;
+			}
+			break;
+
+		case kShip_injectorSpeedFactor:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 1)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be less than 1.0.");
+					return NO;
+				}
+#if OO_VARIABLE_TORUS_SPEED
+				else if (fValue > MIN_HYPERSPEED_FACTOR)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be higher than minimum torus speed factor (%f).",MIN_HYPERSPEED_FACTOR);
+#else
+				else if (fValue > HYPERSPEED_FACTOR)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be higher than torus speed factor (%f).",HYPERSPEED_FACTOR);
+#endif
+					return NO;
+				}
+				[entity setAfterburnerFactor:fValue];
+				return YES;
+			}
+			break;
+
 
 		case kShip_maxThrust:
 			if (JS_ValueToNumber(context, *value, &fValue))
