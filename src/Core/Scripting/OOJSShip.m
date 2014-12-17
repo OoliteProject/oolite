@@ -1328,7 +1328,8 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 		case kShip_cargoSpaceCapacity:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
-				if (iValue < [entity maxAvailableCargoSpace] - [entity availableCargoSpace])
+				if (iValue < 0)  iValue = 0;
+				if ((OOCargoQuantity)iValue < [entity maxAvailableCargoSpace] - [entity availableCargoSpace])
 				{
 					iValue = [entity maxAvailableCargoSpace] - [entity availableCargoSpace];
 				}
