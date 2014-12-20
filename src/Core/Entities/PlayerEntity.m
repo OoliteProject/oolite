@@ -9362,7 +9362,7 @@ static NSString *last_outfitting_key=nil;
 			BOOL OK;
 			jsval result;
 			int32 newPrice;
-			jsval args[] = { OOJSValueFromNativeObject(JScontext, eqKey) , (jsval)NULL };
+			jsval args[] = { OOJSValueFromNativeObject(JScontext, eqKey) , (jsval)0 };
 			OK = JS_NewNumberValue(JScontext, price, &args[1]);
 				
 			if (OK)
