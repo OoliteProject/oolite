@@ -2941,6 +2941,27 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (void) setMaxFlightPitch:(GLfloat)new
+{
+	max_flight_pitch = new;
+	pitch_delta = 2.0 * new;
+}
+
+
+- (void) setMaxFlightRoll:(GLfloat)new
+{
+	max_flight_roll = new;
+	roll_delta = 2.0 * new;
+}
+
+
+- (void) setMaxFlightYaw:(GLfloat)new
+{
+	max_flight_yaw = new;
+	yaw_delta = 2.0 * new;
+}
+
+
 - (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)theirClass
 {
 	BOOL massLocked = NO;
