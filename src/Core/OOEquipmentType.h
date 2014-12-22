@@ -56,7 +56,8 @@ SOFTWARE.
 							_isAvailableToPlayer: 1,
 							_isAvailableToNPCs: 1,
 							_fastAffinityA: 1,
-							_fastAffinityB: 1;
+							_fastAffinityB: 1,
+							_canCarryMultiple: 1;
 	NSUInteger				_installTime;
 	NSUInteger				_repairTime;
 	GLfloat     			_damageProbability;

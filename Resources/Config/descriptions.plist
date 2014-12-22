@@ -1404,7 +1404,10 @@
 	"equipment-port-weapon-@"		= "Port %@";
 	"equipment-pass-berth-@%0"		= "1 Passenger Berth";
 	"equipment-pass-berth-@%1"		= "%d Passenger Berths";
+	"equipment-plural-d-@"			= "%d %@s";
 	"equipment-@-not-available"		= "%@ (N/A)";
+	"equipment-plural-d-d-@"		= "%d/%d %@s";
+
 	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
 	"oolite-manifest-cargo-quantity-format2" = "%d %@ × %@ (%d TC)";	// $count $units × $commodityName ($containers TC)
 	

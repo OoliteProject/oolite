@@ -2941,6 +2941,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (NSUInteger) countEquipmentItem:(NSString *)eqkey
+{
+	NSString *eq = nil;
+	NSUInteger count = 0;
+	foreach (eq, _equipment)
+	{
+		if ([eqkey isEqualToString:eq])
+		{
+			++count;
+		}
+	}
+	return count;
+}
+
+
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons whileLoading:(BOOL)loading
 {
 	// this method is also used internally to find out if an equipped item is undamaged.
@@ -3188,10 +3203,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
 		// Equipment list,  consistent with the rest of the API - Kaks
-		isDamaged = [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]];
-		if ([self hasEquipmentItem:[eqType identifier]] || isDamaged)
+		if ([eqType canCarryMultiple])
 		{
-			[quip addObject:eqType];
+			NSString *damagedIdentifier = [[eqType identifier] stringByAppendingString:@"_DAMAGED"];
+			NSUInteger i, count = 0;
+			count += [self countEquipmentItem:[eqType identifier]];
+			count += [self countEquipmentItem:damagedIdentifier];
+			for (i=0;i<count;i++)
+			{
+				[quip addObject:eqType];	
+			}
+		}
+		else
+		{
+			isDamaged = [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]];
+			if ([self hasEquipmentItem:[eqType identifier]] || isDamaged)
+			{
+				[quip addObject:eqType];
+			}
 		}
 	}
 	
@@ -3355,15 +3384,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:[equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]]];
 	}
-	else
+	else 
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 		// in case we have the damaged version!
-		damagedKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
-		if ([_equipment containsObject:damagedKey])
+		if (![eqType canCarryMultiple])
 		{
-			[_equipment removeObject:damagedKey];
-			isRepairedEquipment = YES;
+			damagedKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
+			if ([_equipment containsObject:damagedKey])
+			{
+				[_equipment removeObject:damagedKey];
+				isRepairedEquipment = YES;
+			}
 		}
 	}
 	
@@ -3390,7 +3422,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	// end special cases
 	
-	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
+	if (_equipment == nil)  _equipment = [[NSMutableArray alloc] init];
 	
 	if (![equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"] && !isRepairedEquipment) 
 	{
@@ -3444,7 +3476,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	NSString		*equipmentTypeCheckKey = equipmentKey;
 	NSString		*lcEquipmentKey = [equipmentKey lowercaseString];
-	
+	NSUInteger		equipmentIndex = NSNotFound;
 	// determine the equipment type and make sure it works also in the case of damaged equipment
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
@@ -3491,17 +3523,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
 		
-		if (![equipmentKey hasSuffix:@"_DAMAGED"])
+		if (![equipmentKey hasSuffix:@"_DAMAGED"] && ![eqType canCarryMultiple])
 		{
 			NSString *damagedKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
 			if ([_equipment containsObject:damagedKey])
 			{
-				[_equipment removeObject:damagedKey]; // remove the damaged counterpart
+				equipmentIndex = [_equipment indexOfObject:damagedKey];
+				if (equipmentIndex != NSNotFound)
+				{
+					// remove damaged counterpart
+					[_equipment removeObjectAtIndex:equipmentIndex];
+				}
 				equipment_weight -= [eqType requiredCargoSpace];
 			}
 		}
-		
-		[_equipment removeObject:equipmentKey];
+		equipmentIndex = [_equipment indexOfObject:equipmentKey];
+		if (equipmentIndex != NSNotFound)
+		{
+			[_equipment removeObjectAtIndex:equipmentIndex];
+		}
 		// this event must come after the item is actually removed
 		[self doScriptEvent:OOJSID("equipmentRemoved") withArgument:equipmentKey];
 		

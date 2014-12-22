@@ -2670,34 +2670,37 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 	
 	key = [eqType identifier];
 	hasOK = [thisEnt hasEquipmentItem:key];
+	BOOL setOK = [status isEqualToString:@"EQUIPMENT_OK"];
+	BOOL setDamaged = [status isEqualToString:@"EQUIPMENT_DAMAGED"];
 	if ([eqType canBeDamaged])
 	{
 		damagedKey = [key stringByAppendingString:@"_DAMAGED"];
 		hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
 		
-		if (([status isEqualToString:@"EQUIPMENT_OK"] && hasDamaged) || ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK))
+		if ((setOK && hasDamaged) || (setDamaged && hasOK))
 		{
 			// the implementation is identical between player and ship.
-			[thisEnt removeEquipmentItem:key];
+			[thisEnt removeEquipmentItem:(setDamaged ? key : damagedKey)];
 			if ([thisEnt isPlayer])
 			{
 				// these player methods are different to the ship ones.
-				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO inContext:@"scripted"];
-				if (hasOK)
+				[(PlayerEntity*)thisEnt addEquipmentItem:(setDamaged ? damagedKey : key) withValidation:NO inContext:@"scripted"];
+				if (setDamaged)
 				{
 					[(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 				}
-				else if (hasDamaged)
+				else if (setOK)
 				{
 					[(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentRepaired") withArgument:key];
 				}
 				
 				// if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
-				if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
+				// this is now done in a different method
+				// if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
 			}
 			else
 			{
-				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO  inContext:@"scripted"];
+				[thisEnt addEquipmentItem:(setDamaged ? damagedKey : key) withValidation:NO  inContext:@"scripted"];
 				if (hasOK) [thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 			}
 		}
@@ -2740,26 +2743,45 @@ static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 	
 	ShipEntity				*thisEnt = nil;
 	NSString				*key = nil;
-	
+	JSBool					asDict = NO;
+	NSDictionary			*dict = nil;
+
 	GET_THIS_SHIP(thisEnt);
 	
 	if (argc > 0)  key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);
+	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARGV[1], &asDict);
 	if (EXPECT_NOT(key == nil))
 	{
 		if (argc > 0 && JSVAL_IS_STRING(OOJS_ARGV[0]))
 		{
-			OOJS_RETURN(strUnknown);
+			if (asDict)
+			{
+				dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:1],@"EQUIPMENT_UNKNOWN",nil];
+				OOJS_RETURN_OBJECT(dict);
+			}
+			else
+			{
+				OOJS_RETURN(strUnknown);
+			}
 		}
 		
 		OOJSReportBadArguments(context, @"Ship", @"equipmentStatus", MIN(argc, 1U), &OOJS_ARGV[0], nil, @"equipment type");
 		return NO;
 	}
 	
-	if ([thisEnt hasEquipmentItem:key includeWeapons:YES whileLoading:NO])  OOJS_RETURN(strOK);
-	else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
+
+	if (asDict)
+	{
+		dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:[thisEnt countEquipmentItem:key]],@"EQUIPMENT_OK",[NSNumber numberWithInt:[thisEnt countEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]],@"EQUIPMENT_DAMAGED",nil];
+		OOJS_RETURN_OBJECT(dict);
+	}
+	else
+	{
+		if ([thisEnt hasEquipmentItem:key includeWeapons:YES whileLoading:NO])  OOJS_RETURN(strOK);
+		else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
 	
-	OOJS_RETURN(strUnavailable);
-	
+		OOJS_RETURN(strUnavailable);
+	}
 	OOJS_NATIVE_EXIT
 }
 

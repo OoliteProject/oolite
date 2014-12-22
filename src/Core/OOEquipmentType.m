@@ -225,6 +225,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_requiresFullFuel = [extra oo_boolForKey:@"requires_full_fuel" defaultValue:_requiresFullFuel];
 			_requiresNonFullFuel = [extra oo_boolForKey:@"requires_non_full_fuel" defaultValue:_requiresNonFullFuel];
 			_isVisible = [extra oo_boolForKey:@"visible" defaultValue:_isVisible];
+			_canCarryMultiple = [extra oo_boolForKey:@"can_carry_multiple" defaultValue:NO];
 			
 			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
 
@@ -454,18 +455,18 @@ static NSDictionary		*sMissilesRegistry = nil;
 
 - (BOOL) canCarryMultiple
 {
-	/*	Hard-coded for now. What would be the ramifications of making this
-		a plist attribute?
-	*/
 	if ([self isMissileOrMine])  return YES;
+	// technically multiple can be fitted, but not to the same mount.
+	if ([self isPrimaryWeapon])  return NO;
 	
+	// hard-coded as special items
 	if ([_identifier isEqualToString:@"EQ_PASSENGER_BERTH"] ||
 		[_identifier isEqualToString:@"EQ_TRUMBLE"])
 	{
 		return YES;
 	}
 	
-	return NO;
+	return _canCarryMultiple;
 }
 
 

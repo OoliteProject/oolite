@@ -7373,6 +7373,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
+	NSString			*alldesc = nil;
 
 	BOOL prioritiseDamaged = [[gui userSettings] oo_boolForKey:kGuiStatusPrioritiseDamaged defaultValue:YES];
 
@@ -7380,7 +7381,59 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		if ([eqType isVisible])
 		{
-			if ([self hasEquipmentItem:[eqType identifier]])
+			if ([eqType canCarryMultiple] && ![eqType isMissileOrMine])
+			{
+				NSString *damagedIdentifier = [[eqType identifier] stringByAppendingString:@"_DAMAGED"];
+				NSUInteger count = 0, okcount = 0;
+				okcount = [self countEquipmentItem:[eqType identifier]];
+				count = okcount + [self countEquipmentItem:damagedIdentifier];
+				if (count == 0)
+				{
+					// do nothing
+				}
+				// all items okay
+				else if (count == okcount)
+				{
+					// only one installed display normally
+					if (count == 1)
+					{
+						[quip2 addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
+					}
+					// display plural form
+					else
+					{
+						alldesc = [NSString stringWithFormat:DESC(@"equipment-plural-d-@"), count, [eqType name]];
+						[quip2 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:YES], nil]];
+					}
+				}
+				// all broken, only one installed
+				else if (count == 1 && okcount == 0)
+				{
+					desc = [NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]];
+					if (prioritiseDamaged)
+					{
+						[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+					}
+					else
+					{
+						[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+					}
+				}
+				// some broken, multiple installed
+				else
+				{
+					alldesc = [NSString stringWithFormat:DESC(@"equipment-plural-d-d-@"), okcount, count, [eqType name]];
+					if (prioritiseDamaged)
+					{
+						[quip1 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:NO], nil]];
+					}
+					else
+					{
+						[quip2 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:NO], nil]];
+					}
+				}
+			}
+			else if ([self hasEquipmentItem:[eqType identifier]])
 			{
 				[quip2 addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
 			}
