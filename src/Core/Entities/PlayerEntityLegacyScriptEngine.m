@@ -1933,7 +1933,7 @@ static int shipsFound;
 	//
 	
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}
@@ -2451,7 +2451,7 @@ static int shipsFound;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}
@@ -2470,7 +2470,7 @@ static int shipsFound;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}

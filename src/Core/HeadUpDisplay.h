@@ -256,6 +256,8 @@ MA 02110-1301, USA.
 	
 	BOOL				hudHidden;
 	
+	BOOL				allowBigGui;
+
 	int					last_transmitter;
 
 	NSMutableSet		*_hiddenSelectors;
@@ -298,6 +300,8 @@ MA 02110-1301, USA.
 
 - (BOOL) isHidden;
 - (void) setHidden:(BOOL)newValue;
+
+- (BOOL) allowBigGui;
 
 - (BOOL) hasHidden:(NSString *)selectorName;
 - (void) setHiddenSelector:(NSString *)selectorName hidden:(BOOL)hide;
