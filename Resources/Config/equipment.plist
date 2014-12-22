@@ -241,6 +241,7 @@
 		{
 			available_to_all = true;
 			available_to_NPCs = false;
+			can_carry_multiple = true;
 			condition_script = "oolite-conditions.js";
 			requires_cargo_space = 5;
 			damage_probability = 0;

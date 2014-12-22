@@ -780,7 +780,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSString			*eqDesc = nil;
 	for (eqEnum = [self equipmentEnumerator]; (eqDesc = [eqEnum nextObject]); )
 	{
-		[equipment oo_setBool:YES forKey:eqDesc];
+		[equipment oo_setInteger:[self countEquipmentItem:eqDesc] forKey:eqDesc];
 	}
 	if ([equipment count] != 0)
 	{
@@ -1078,13 +1078,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSMutableDictionary *equipment = [NSMutableDictionary dictionaryWithDictionary:[dict oo_dictionaryForKey:@"extra_equipment"]];
 	
 	// Equipment flags	(deprecated in favour of equipment dictionary, keep for compatibility)
-	if ([dict oo_boolForKey:@"has_docking_computer"])		[equipment oo_setBool:YES forKey:@"EQ_DOCK_COMP"];
-	if ([dict oo_boolForKey:@"has_galactic_hyperdrive"])	[equipment oo_setBool:YES forKey:@"EQ_GAL_DRIVE"];
-	if ([dict oo_boolForKey:@"has_escape_pod"])				[equipment oo_setBool:YES forKey:@"EQ_ESCAPE_POD"];
-	if ([dict oo_boolForKey:@"has_ecm"])					[equipment oo_setBool:YES forKey:@"EQ_ECM"];
-	if ([dict oo_boolForKey:@"has_scoop"])					[equipment oo_setBool:YES forKey:@"EQ_FUEL_SCOOPS"];
-	if ([dict oo_boolForKey:@"has_energy_bomb"])			[equipment oo_setBool:YES forKey:@"EQ_ENERGY_BOMB"];
-	if ([dict oo_boolForKey:@"has_fuel_injection"])		[equipment oo_setBool:YES forKey:@"EQ_FUEL_INJECTION"];
+	if ([dict oo_boolForKey:@"has_docking_computer"])		[equipment oo_setInteger:1 forKey:@"EQ_DOCK_COMP"];
+	if ([dict oo_boolForKey:@"has_galactic_hyperdrive"])	[equipment oo_setInteger:1 forKey:@"EQ_GAL_DRIVE"];
+	if ([dict oo_boolForKey:@"has_escape_pod"])				[equipment oo_setInteger:1 forKey:@"EQ_ESCAPE_POD"];
+	if ([dict oo_boolForKey:@"has_ecm"])					[equipment oo_setInteger:1 forKey:@"EQ_ECM"];
+	if ([dict oo_boolForKey:@"has_scoop"])					[equipment oo_setInteger:1 forKey:@"EQ_FUEL_SCOOPS"];
+	if ([dict oo_boolForKey:@"has_energy_bomb"])			[equipment oo_setInteger:1 forKey:@"EQ_ENERGY_BOMB"];
+	if ([dict oo_boolForKey:@"has_fuel_injection"])		[equipment oo_setInteger:1 forKey:@"EQ_FUEL_INJECTION"];
 	
 	
 	// Legacy energy unit type -> energy unit equipment item
@@ -1095,11 +1095,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			// look for NEU first!
 			case OLD_ENERGY_UNIT_NAVAL:
-				[equipment oo_setBool:YES forKey:@"EQ_NAVAL_ENERGY_UNIT"];
+				[equipment oo_setInteger:1 forKey:@"EQ_NAVAL_ENERGY_UNIT"];
 				break;
 			
 			case OLD_ENERGY_UNIT_NORMAL:
-				[equipment oo_setBool:YES forKey:@"EQ_ENERGY_UNIT"];
+				[equipment oo_setInteger:1 forKey:@"EQ_ENERGY_UNIT"];
 				break;
 
 			default:
@@ -10603,7 +10603,8 @@ static NSString *last_outfitting_key=nil;
 	NSDictionary	*dict = nil;
 	NSEnumerator	*eqEnum = nil;
 	NSString	*eqDesc = nil;
-	
+	NSUInteger	i, count;
+
 	// Pass 1: Load the entire collection.
 	if ([equipment isKindOfClass:[NSDictionary class]])
 	{
@@ -10648,7 +10649,11 @@ static NSString *last_outfitting_key=nil;
 		// unintentionally excluding valid equipment, just because the required equipment existed but had
 		// not been yet added to the equipment list at the time of the canAddEquipment validation check.
 		// Nikos, 20080817.
-		[self addEquipmentItem:eqDesc withValidation:NO inContext:@"loading"];
+		count = [dict oo_unsignedIntegerForKey:eqDesc];
+		for (i=0;i<count;i++)
+		{
+			[self addEquipmentItem:eqDesc withValidation:NO inContext:@"loading"];
+		}
 	}
 	
 	// Pass 2: Remove items that do not satisfy validation criteria (like requires_equipment etc.).
