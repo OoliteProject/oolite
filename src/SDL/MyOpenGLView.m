@@ -865,17 +865,17 @@ MA 02110-1301, USA.
 	}
 		
 	RECT wDC;
-	
-	/* initializing gl - better get the current monitor information now
-	   NOTE: If we ever decide to change the default behaviour of launching
-	   always on primary monitor to launching on the monitor the program was 
-	   started on, all that needs to be done is comment out the line below.
-	   Nikos 20140922
-	 */
-	[self getCurrentMonitorInfo: &monitorInfo];
 
 	if (fullScreen)
 	{
+		/*NOTE: If we ever decide to change the default behaviour of launching
+		always on primary monitor to launching on the monitor the program was 
+		started on, all that needs to be done is comment out the line below, as
+		well as the identical one in the else branch further down.
+		Nikos 20141222
+	   */
+	   [self getCurrentMonitorInfo: &monitorInfo];
+		
 		settings.dmPelsWidth = viewSize.width;
 		settings.dmPelsHeight = viewSize.height;
 		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
@@ -911,6 +911,15 @@ MA 02110-1301, USA.
 			saveSize=NO;
 			
 			ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+			/*NOTE: If we ever decide to change the default behaviour of launching
+			always on primary monitor to launching on the monitor the program was 
+			started on, we need to comment out the line below.
+			For now, this line is needed for correct positioning of our window in case
+			we return from a non-native resolution fullscreen and has to come after the
+			display settings have been reverted.
+			Nikos 20141222
+			*/
+			[self getCurrentMonitorInfo: &monitorInfo];
 			
 			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX |
 									WS_MAXIMIZEBOX );
