@@ -284,6 +284,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 										nil];
 	
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
+
+	allowBigGui = [hudinfo oo_boolForKey:@"allow_big_gui" defaultValue:NO];
 	
 	last_transmitter = NO_TARGET;
 	
@@ -537,6 +539,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) setHidden:(BOOL)newValue
 {
 	hudHidden = !!newValue;	// ensure YES or NO
+}
+
+
+- (BOOL) allowBigGui
+{
+	return allowBigGui || hudHidden;
 }
 
 
@@ -995,7 +1003,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 			// randomly chosen default width & height
 			size.width = useDefined(cached.width, 14.0f);
 			size.height = useDefined(cached.height, 8.0f);
-			GLColorWithOverallAlpha(green_color, alpha);
+			SET_COLOR(green_color);
 			if ([info oo_intForKey:@"align"] == 1)
 			{
 				OODrawStringAligned(legendText, x, y, z1, size, YES);
