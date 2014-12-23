@@ -4070,7 +4070,7 @@ static BOOL autopilot_pause;
 
 	
 		case GUI_SCREEN_MISSION:
-			if ([[self hud] isHidden])
+			if ([[self hud] allowBigGui])
 			{
 				end_row = 27;
 			}
@@ -4101,7 +4101,6 @@ static BOOL autopilot_pause;
 					if (!spacePressed)
 					{
 						[[OOMusicController sharedController] stopMissionMusic];
-						
 						[self handleMissionCallback];
 						
 					}
@@ -4116,7 +4115,6 @@ static BOOL autopilot_pause;
 			else
 			{
 				[self handleGUIUpDownArrowKeys];
-				
 				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
 				{
 					if ([gameView isDown:gvMouseDoubleClick])
