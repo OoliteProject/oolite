@@ -3068,6 +3068,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (void) setHyperspaceSpinTime:(float)new
+{
+	hyperspaceMotorSpinTime = new;
+}
+
+
 - (BOOL) canAddEquipment:(NSString *)equipmentKey inContext:(NSString *)context
 {
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])

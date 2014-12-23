@@ -232,6 +232,7 @@ enum
 	kShip_heading,				// forwardVector of a ship, read-only
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
 	kShip_homeSystem,			// home system, number, read/write
+	kShip_hyperspaceSpinTime,	// hyperspace spin time, float, read/write
 	kShip_injectorBurnRate,		// injector burn rate, number, read/write dLY/s
 	kShip_injectorSpeedFactor,  // injector speed factor, number, read/write
 	kShip_isBeacon,				// is beacon, boolean, read-only
@@ -379,6 +380,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "heatInsulation",			kShip_heatInsulation,		OOJS_PROP_READWRITE_CB },
 	{ "heading",				kShip_heading,				OOJS_PROP_READONLY_CB },
 	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
+	{ "hyperspaceSpinTime",		kShip_hyperspaceSpinTime,	OOJS_PROP_READWRITE_CB },
 	{ "injectorBurnRate",		kShip_injectorBurnRate,		OOJS_PROP_READWRITE_CB },
 	{ "injectorSpeedFactor",	kShip_injectorSpeedFactor,	OOJS_PROP_READWRITE_CB },
 	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
@@ -784,6 +786,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			*value = OOJSValueFromBOOL([entity hasHyperspaceMotor]);
 			return YES;
 		
+		case kShip_hyperspaceSpinTime:
+			return JS_NewNumberValue(context, [entity hyperspaceSpinTime], value);
+
 		case kShip_weaponRange:
 			return JS_NewNumberValue(context, [entity weaponRange], value);
 
@@ -1312,6 +1317,14 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			{
 				fValue = OOClamp_0_max_d(fValue, MAX_JUMP_RANGE);
 				[entity setFuel:lround(fValue * 10.0)];
+				return YES;
+			}
+			break;
+
+		case kShip_hyperspaceSpinTime:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setHyperspaceSpinTime:fValue];
 				return YES;
 			}
 			break;

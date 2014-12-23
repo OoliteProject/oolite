@@ -122,7 +122,6 @@ enum
 	kPlayerShip_galaxyCoordinatesInLY,			// galaxy coordinates (in LY), Vector3D, read only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
-	kPlayerShip_hyperspaceSpinTime,                         // hyperspace spin time, read only
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
@@ -175,7 +174,6 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinatesInLY",			kPlayerShip_galaxyCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
-	{ "hyperspaceSpinTime",                         kPlayerShip_hyperspaceSpinTime,                         OOJS_PROP_READONLY_CB },
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READWRITE_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READWRITE_CB },
@@ -321,9 +319,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	switch (JSID_TO_INT(propID))
 	{
-		case kPlayerShip_hyperspaceSpinTime:
-			return JS_NewNumberValue(context, [player hyperspaceSpinTime], value);
-                       
+                      
 		case kPlayerShip_fuelLeakRate:
 			return JS_NewNumberValue(context, [player fuelLeakRate], value);
 			
