@@ -8727,7 +8727,7 @@ static OOComparisonResult compareName(id dict1, id dict2, void *context)
 	NSString		*name1 = [ship1 oo_stringForKey:KEY_NAME];
 	NSString		*name2 = [ship2 oo_stringForKey:KEY_NAME];
 	
-	NSComparisonResult result = [name1 compare:name2];
+	NSComparisonResult result = [[name1 lowercaseString] compare:[name2 lowercaseString]];
 	if (result != NSOrderedSame)
 		return result;
 	else
