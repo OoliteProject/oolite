@@ -1431,6 +1431,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 					OOLogWARN(@"load.failed.missileNotFound", @"couldn't find missile with role '%@' in [PlayerEntity setCommanderDataFromDictionary:], missile entry discarded.", missile_desc);
 				}
 			}
+			missiles = missileCount;
 		}
 	}
 	else	// no missile_roles
@@ -5109,8 +5110,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	// Make sure there's no gaps between missiles, synchronise missile_entity & missile_list.
 	int i, pylon = 0;
+	OOLog(@"missile.tidying.debug",@"Tidying fitted %d of possible %d missiles",missiles,PLAYER_MAX_MISSILES);
 	for(i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
+		OOLog(@"missile.tidying.debug",@"%d %@ %@",i,missile_entity[i],missile_list[i]);
 		if(missile_entity[i] != nil)
 		{
 			missile_entity[pylon] = missile_entity[i];
@@ -5123,6 +5126,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	for(i = pylon; i < PLAYER_MAX_MISSILES; i++)
 	{
 		missile_entity[i] = nil;
+		// not strictly needed, but helps clear things up
+		missile_list[i] = nil;
 	}
 }
 
