@@ -5573,6 +5573,12 @@ PriorityAIController.prototype.responseComponent_standard_wormholeSuggested = fu
 	this.ship.desiredSpeed = this.ship.maxSpeed;
 	this.ship.performFlyToRangeFromDestination();
 	this.setParameter("oolite_witchspaceWormhole",hole);
+	// wormhole suggestions include setting primary target
+	// so unset it
+	this.ship.target = null;
+	// also clear defense targets to make it more likely that the ship
+	// will reach the wormhole
+	this.ship.clearDefenseTargets();
 	// don't reconsider
 }
 
