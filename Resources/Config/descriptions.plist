@@ -1391,6 +1391,7 @@
 	"status-commander-@"			= "Commander %@";
 	"status-present-system"			= "Present System:";
 	"status-hyperspace-system"		= "Hyperspace System:";
+	"status-hyperspace-system-multi-@-@" = "%@ (next: %@)";
 	"status-condition"				= "Condition:";
 	"status-fuel"					= "Fuel:";
 	"status-light-years-desc"		= "Light Years";

@@ -643,6 +643,35 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+// just return target system id if no valid next hop
+- (OOSystemID) nextHopTargetSystemID
+{
+	// not available if no ANA
+	if (![self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	{
+		return target_system_id;
+	}
+	// not available if ANA is turned off
+	if (ANA_mode == OPTIMIZED_BY_NONE)
+	{
+		return target_system_id;
+	}
+	// easy case
+	if (system_id == target_system_id)
+	{
+		return system_id; // no need to calculate
+	}
+	NSDictionary *routeInfo = nil;
+	routeInfo = [UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode];
+	// no route to destination
+	if (routeInfo == nil)
+	{
+		return target_system_id;
+	}
+	return [[routeInfo oo_arrayForKey:@"route"] oo_intAtIndex:1];
+}
+
+
 - (WormholeEntity *) wormhole
 {
 	return wormhole;
@@ -3384,7 +3413,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	else
 	{
-		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_id], witchspaceCountdown] forCount:1.0];
+		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:[self nextHopTargetSystemID]], witchspaceCountdown] forCount:1.0];
 	}
 	
 	if (witchspaceCountdown == 0.0)
@@ -6871,7 +6900,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (double) hyperspaceJumpDistance
 {
-	NSPoint targetCoordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:target_system_id inGalaxy:galaxy_number]);
+	NSPoint targetCoordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:[self nextHopTargetSystemID] inGalaxy:galaxy_number]);
 	return distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
 }
 
@@ -7030,6 +7059,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (![self witchJumpChecklist:false])  return;
 	
+	OOSystemID jumpTarget = [self nextHopTargetSystemID];
+
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
@@ -7065,7 +7096,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	fuel -= [self fuelRequiredForJump];
 	
 	// Create the players' wormhole
-	wormhole = [[WormholeEntity alloc] initWormholeTo:target_system_id fromShip:self];
+	wormhole = [[WormholeEntity alloc] initWormholeTo:jumpTarget fromShip:self];
 	[UNIVERSE addEntity:wormhole]; // Add new wormhole to Universe to let other ships target it. Required for ships following the player.
 	[self addScannedWormhole:wormhole];
 	
@@ -7115,7 +7146,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		[wormhole setMisjumpWithRange:[self scriptedMisjumpRange]];
 	}
-	[self witchJumpTo:target_system_id misjump:misjump];
+	[self witchJumpTo:jumpTarget misjump:misjump];
 }
 
 
@@ -7288,6 +7319,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 
 	targetSystemName =	[UNIVERSE getSystemName:target_system_id];
+	OOSystemID nextHop = [self nextHopTargetSystemID];
+	if (nextHop != target_system_id) {
+		targetSystemName = [NSString stringWithFormat:DESC(@"status-hyperspace-system-multi-@-@"),targetSystemName,[UNIVERSE getSystemName:nextHop]];
+	}
 
 	// GUI stuff
 	{

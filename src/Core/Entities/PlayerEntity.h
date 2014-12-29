@@ -759,6 +759,7 @@ typedef enum
 - (void) setSystemID:(OOSystemID) sid;
 - (OOSystemID) targetSystemID;
 - (void) setTargetSystemID:(OOSystemID) sid;
+- (OOSystemID) nextHopTargetSystemID;
 
 
 - (NSDictionary *) commanderDataDictionary;

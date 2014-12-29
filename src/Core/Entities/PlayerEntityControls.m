@@ -550,7 +550,7 @@ static NSTimeInterval	time_last_frame;
 		[self playStandardHyperspace];
 		// say it!
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_id], witchspaceCountdown] forCount:1.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:[self nextHopTargetSystemID]], witchspaceCountdown] forCount:1.0];
 		[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
 					withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 		[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
@@ -1685,43 +1685,6 @@ static NSTimeInterval	time_last_frame;
 
 		case GUI_SCREEN_SHORT_RANGE_CHART:
 
-			if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
-			{
-				if ([gameView isDown:key_advanced_nav_array])   //  '^' key
-				{
-					if (!pling_pressed)
-					{
-						if ([gameView isCtrlDown])
-						{
-							switch (ANA_mode)
-							{
-								case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_TIME;	break;
-								case OPTIMIZED_BY_TIME:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
-								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
-							}
-						}
-						else
-						{
-							switch (ANA_mode)
-							{
-								case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
-								case OPTIMIZED_BY_JUMPS:ANA_mode = OPTIMIZED_BY_TIME;	break;
-								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
-							}
-						}
-					}
-					pling_pressed = YES;
-				}
-				else
-				{
-					pling_pressed = NO;
-				}
-			}
-			else
-			{
-				ANA_mode = OPTIMIZED_BY_NONE;
-			}
-
 			if ([gameView isDown:key_chart_highlight])   // '?' toggle chart colours
 			{
 				if (!queryPressed)
@@ -1765,6 +1728,43 @@ static NSTimeInterval	time_last_frame;
 			
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
+				if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+				{
+					if ([gameView isDown:key_advanced_nav_array])   //  '^' key
+					{
+						if (!pling_pressed)
+						{
+							if ([gameView isCtrlDown])
+							{
+								switch (ANA_mode)
+								{
+								case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_TIME;	break;
+								case OPTIMIZED_BY_TIME:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
+								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
+								}
+							}
+							else
+							{
+								switch (ANA_mode)
+								{
+								case OPTIMIZED_BY_NONE:	ANA_mode = OPTIMIZED_BY_JUMPS;	break;
+								case OPTIMIZED_BY_JUMPS:ANA_mode = OPTIMIZED_BY_TIME;	break;
+								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
+								}
+							}
+						}
+						pling_pressed = YES;
+					}
+					else
+					{
+						pling_pressed = NO;
+					}
+				}
+				else
+				{
+					ANA_mode = OPTIMIZED_BY_NONE;
+				}
+
 				if ([gameView isDown:gvMouseLeftButton])
 				{
 					NSPoint maus = [gameView virtualJoystickPosition];
