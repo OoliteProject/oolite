@@ -259,6 +259,11 @@ this._initialisePassengerContractsForSystem = function()
 		// get the SystemInfo object for the destination
 		var destinationInfo = System.infoForSystem(galaxyNumber,destination);
 
+		if (destinationInfo.sun_gone_nova)
+		{
+			continue;
+		}
+
 		var daysUntilDeparture = 1+(Math.random()*(7+player.passengerReputationPrecise-destinationInfo.government));
 		if (daysUntilDeparture <= 0)
 		{ 
