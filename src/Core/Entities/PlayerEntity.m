@@ -11461,11 +11461,11 @@ static NSString *last_outfitting_key=nil;
 
 - (void) resetCustomView
 {
-	[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
+	[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex] withScaling:NO];
 }
 
 
-- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict
+- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict withScaling:(BOOL)withScaling
 {
 	customViewMatrix = kIdentityMatrix;
 	customViewOffset = kZeroVector;
@@ -11482,7 +11482,15 @@ static NSString *last_outfitting_key=nil;
 	customViewMatrix = OOMatrixForQuaternionRotation(q1);
 	
 	// easier to do the multiplication at this point than at load time
-	customViewOffset = vector_multiply_scalar([viewDict oo_vectorForKey:@"view_position"],_scaleFactor);
+	if (withScaling)
+	{
+		customViewOffset = vector_multiply_scalar([viewDict oo_vectorForKey:@"view_position"],_scaleFactor);
+	}
+	else
+	{
+		// but don't do this when the custom view is set through JS
+		customViewOffset = [viewDict oo_vectorForKey:@"view_position"];
+	}
 	customViewDescription = [viewDict oo_stringForKey:@"view_description"];
 	
 	NSString *facing = [[viewDict oo_stringForKey:@"weapon_facing"] lowercaseString];

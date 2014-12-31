@@ -3118,7 +3118,7 @@ static NSTimeInterval	time_last_frame;
 				_customViewIndex = (_customViewIndex + 1) % [_customViews count];
 			}
 	
-			[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
+			[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex] withScaling:YES];
 	
 			[self switchToThisView:VIEW_CUSTOM andProcessWeaponFacing:NO]; // weapon facing must not change, we just want an external view
 		}
