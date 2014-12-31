@@ -53,8 +53,8 @@ enum
 	uint8_t			_nextFrame;
 }
 
-+ (id) exhaustForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition;
-- (id) initForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition;
++ (id) exhaustForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition andScale:(float)scale;
+- (id) initForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition andScale:(float)scale;
 
 - (void) resetPlume;
 
