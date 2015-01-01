@@ -479,6 +479,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		aftWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset];
 		portWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset];
 		starboardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset];
+
+		// fuel scoop destination position (where cargo gets sucked into)
+		tractor_position = [shipDict oo_vectorForKey:@"scoop_position"];
+
 	}
 	else
 	{
@@ -486,10 +490,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		aftWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset],_scaleFactor);
 		portWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset],_scaleFactor);
 		starboardWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset],_scaleFactor);
+
+		tractor_position = vector_multiply_scalar([shipDict oo_vectorForKey:@"scoop_position"],_scaleFactor);
 	}
 
-	// fuel scoop destination position (where cargo gets sucked into)
-	tractor_position = [shipDict oo_vectorForKey:@"scoop_position"];
 	
 	// sun glare filter - default is no filter
 	[self setSunGlareFilter:[shipDict oo_floatForKey:@"sun_glare_filter" defaultValue:0.0f]];
@@ -11867,6 +11871,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	// custom launching position
 	start = [shipinfoDictionary oo_vectorForKey:@"missile_launch_position" defaultValue:start];
+	if (EXPECT_NOT(_scaleFactor != 1.0))
+	{
+		start = vector_multiply_scalar(start,_scaleFactor);
+	}
 	
 	if (start.x == 0.0f && start.y == 0.0f && start.z <= 0.0f) // The kZeroVector as start is illegal also.
 	{
