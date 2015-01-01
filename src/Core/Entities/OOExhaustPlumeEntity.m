@@ -58,13 +58,13 @@ static OOTexture *sPlumeTexture = nil;
 
 @implementation OOExhaustPlumeEntity
 
-+ (id) exhaustForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition
++ (id) exhaustForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition andScale:(float)scale
 {
-	return [[[self alloc] initForShip:ship withDefinition:definition] autorelease];
+	return [[[self alloc] initForShip:ship withDefinition:definition andScale:(float)scale] autorelease];
 }
 
 
-- (id) initForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition
+- (id) initForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition andScale:(float)scaleFactor
 {
 	if ([definition count] == 0)
 	{
@@ -75,9 +75,10 @@ static OOTexture *sPlumeTexture = nil;
 	if ((self = [super init]))
 	{
 		[self setOwner:ship];
-		HPVector pos = { [definition oo_floatAtIndex:0], [definition oo_floatAtIndex:1], [definition oo_floatAtIndex:2] };
+		HPVector pos = { [definition oo_floatAtIndex:0]*scaleFactor, [definition oo_floatAtIndex:1]*scaleFactor, [definition oo_floatAtIndex:2]*scaleFactor };
 		[self setPosition:pos];
-		Vector scale = { [definition oo_floatAtIndex:3], [definition oo_floatAtIndex:4], [definition oo_floatAtIndex:5] };
+		// scale.z is special and *not* multiplied by scaleFactor
+		Vector scale = { [definition oo_floatAtIndex:3]*scaleFactor, [definition oo_floatAtIndex:4]*scaleFactor, [definition oo_floatAtIndex:5] };
 		[self setScale:scale];
 	}
 	

@@ -2070,11 +2070,21 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// set view offsets
 	[self setDefaultViewOffsets];
 	
-	forwardViewOffset = [shipDict oo_vectorForKey:@"view_position_forward" defaultValue:forwardViewOffset];
-	aftViewOffset = [shipDict oo_vectorForKey:@"view_position_aft" defaultValue:aftViewOffset];
-	portViewOffset = [shipDict oo_vectorForKey:@"view_position_port" defaultValue:portViewOffset];
-	starboardViewOffset = [shipDict oo_vectorForKey:@"view_position_starboard" defaultValue:starboardViewOffset];
-	
+	if (EXPECT(_scaleFactor == 1.0f))
+	{
+		forwardViewOffset = [shipDict oo_vectorForKey:@"view_position_forward" defaultValue:forwardViewOffset];
+		aftViewOffset = [shipDict oo_vectorForKey:@"view_position_aft" defaultValue:aftViewOffset];
+		portViewOffset = [shipDict oo_vectorForKey:@"view_position_port" defaultValue:portViewOffset];
+		starboardViewOffset = [shipDict oo_vectorForKey:@"view_position_starboard" defaultValue:starboardViewOffset];
+	}
+	else
+	{
+		forwardViewOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"view_position_forward" defaultValue:forwardViewOffset],_scaleFactor);
+		aftViewOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"view_position_aft" defaultValue:aftViewOffset],_scaleFactor);
+		portViewOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"view_position_port" defaultValue:portViewOffset],_scaleFactor);
+		starboardViewOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"view_position_starboard" defaultValue:starboardViewOffset],_scaleFactor);
+	}
+
 	[self setDefaultCustomViews];
 	
 	NSArray *customViews = [shipDict oo_arrayForKey:@"custom_views"];
@@ -11451,11 +11461,11 @@ static NSString *last_outfitting_key=nil;
 
 - (void) resetCustomView
 {
-	[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
+	[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex] withScaling:NO];
 }
 
 
-- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict
+- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict withScaling:(BOOL)withScaling
 {
 	customViewMatrix = kIdentityMatrix;
 	customViewOffset = kZeroVector;
@@ -11471,7 +11481,16 @@ static NSString *last_outfitting_key=nil;
 	q1.w = -q1.w;
 	customViewMatrix = OOMatrixForQuaternionRotation(q1);
 	
-	customViewOffset = [viewDict oo_vectorForKey:@"view_position"];
+	// easier to do the multiplication at this point than at load time
+	if (withScaling)
+	{
+		customViewOffset = vector_multiply_scalar([viewDict oo_vectorForKey:@"view_position"],_scaleFactor);
+	}
+	else
+	{
+		// but don't do this when the custom view is set through JS
+		customViewOffset = [viewDict oo_vectorForKey:@"view_position"];
+	}
 	customViewDescription = [viewDict oo_stringForKey:@"view_description"];
 	
 	NSString *facing = [[viewDict oo_stringForKey:@"weapon_facing"] lowercaseString];

@@ -3591,9 +3591,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (ShipEntity *) newSubentityWithName:(NSString *)shipKey
+- (ShipEntity *) newSubentityWithName:(NSString *)shipKey andScaleFactor:(float)scale
 {
-	return [self newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES];
+	return [self newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES andScaleFactor:scale];
 }
 
 
@@ -3602,8 +3602,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:NO];
 }
 
-
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity
+{
+	return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:isSubentity andScaleFactor:1.0f];
+}
+
+- (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale
 {
 	OOJS_PROFILE_ENTER
 	
@@ -3629,6 +3633,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	
 	@try
 	{
+		if (scale != 1.0f)
+		{
+			NSMutableDictionary *mShipDict = [shipDict mutableCopy];
+			[mShipDict setObject:[NSNumber numberWithFloat:scale] forKey:@"model_scale_factor"];
+			shipDict = [NSDictionary dictionaryWithDictionary:mShipDict];
+			[mShipDict release];
+		}
 		ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
 	}
 	@catch (NSException *exception)
@@ -3650,7 +3661,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (DockEntity *) newDockWithName:(NSString *)shipDataKey
+- (DockEntity *) newDockWithName:(NSString *)shipDataKey andScaleFactor:(float)scale
 {
 	OOJS_PROFILE_ENTER
 	
@@ -3662,6 +3673,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	
 	@try
 	{
+		if (scale != 1.0f)
+		{
+			NSMutableDictionary *mShipDict = [shipDict mutableCopy];
+			[mShipDict setObject:[NSNumber numberWithFloat:scale] forKey:@"model_scale_factor"];
+			shipDict = [NSDictionary dictionaryWithDictionary:mShipDict];
+			[mShipDict release];
+		}
 		dock = [[DockEntity alloc] initWithKey:shipDataKey definition:shipDict];
 	}
 	@catch (NSException *exception)

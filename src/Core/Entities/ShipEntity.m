@@ -260,8 +260,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	suppressExplosion = NO;
 	_lightsActive = YES;
 	
-	
+
 	// set things from dictionary from here out - default values might require adjustment -- Kaks 20091130
+	_scaleFactor = [shipDict oo_floatForKey:@"model_scale_factor" defaultValue:1.0f];
+
+
 	float defaultSpeed = isStation ? 0.0f : 160.0f;
 	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:defaultSpeed];
 	max_flight_roll = [shipDict oo_floatForKey:@"max_flight_roll" defaultValue:2.0f];
@@ -381,13 +384,28 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	NSString *modelName = [shipDict oo_stringForKey:@"model"];
 	if (modelName != nil)
 	{
-		OOMesh *mesh = [OOMesh meshWithName:modelName
-								   cacheKey:_shipKey
-						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
-						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
-									 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-							   shaderMacros:OODefaultShipShaderMacros()
-						shaderBindingTarget:self];
+		OOMesh *mesh = nil;
+		if (EXPECT(_scaleFactor == 1.0f))
+		{
+			mesh = [OOMesh meshWithName:modelName
+							   cacheKey:_shipKey
+					 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
+					  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
+								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
+						   shaderMacros:OODefaultShipShaderMacros()
+						   shaderBindingTarget:self];
+		}
+		else
+		{
+			mesh = [OOMesh meshWithName:modelName
+							   cacheKey:[NSString stringWithFormat:@"%@-%.3f",_shipKey,_scaleFactor]
+					 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
+					  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
+								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
+						   shaderMacros:OODefaultShipShaderMacros()
+						   shaderBindingTarget:self
+							scaleFactor:_scaleFactor];
+		}
 		if (mesh == nil)  return NO;
 		[self setMesh:mesh];
 	}
@@ -455,10 +473,20 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
 	
-	forwardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset];
-	aftWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset];
-	portWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset];
-	starboardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset];
+	if (EXPECT(_scaleFactor == 1.0))
+	{
+		forwardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset];
+		aftWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset];
+		portWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset];
+		starboardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset];
+	}
+	else
+	{
+		forwardWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset],_scaleFactor);
+		aftWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset],_scaleFactor);
+		portWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset],_scaleFactor);
+		starboardWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset],_scaleFactor);
+	}
 
 	// fuel scoop destination position (where cargo gets sucked into)
 	tractor_position = [shipDict oo_vectorForKey:@"scoop_position"];
@@ -807,7 +835,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	for (i = 0; i < [plumes count]; i++)
 	{
 		NSArray *definition = ScanTokensFromString([plumes oo_stringAtIndex:i]);
-		OOExhaustPlumeEntity *exhaust = [OOExhaustPlumeEntity exhaustForShip:self withDefinition:definition];
+		OOExhaustPlumeEntity *exhaust = [OOExhaustPlumeEntity exhaustForShip:self withDefinition:definition andScale:_scaleFactor];
 		[self addSubEntity:exhaust];
 	}
 	
@@ -857,7 +885,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict
 {
 	OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:subentDict];
-	[flasher setPosition:[subentDict oo_hpvectorForKey:@"position"]];
+	[flasher setPosition:HPvector_multiply_scalar([subentDict oo_hpvectorForKey:@"position"],_scaleFactor)];
+	[flasher rescaleBy:_scaleFactor];
 	[self addSubEntity:flasher];
 	return YES;
 }
@@ -878,18 +907,18 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
-		subentity = [UNIVERSE newDockWithName:subentKey];
+		subentity = [UNIVERSE newDockWithName:subentKey andScaleFactor:_scaleFactor];
 	}
 	else 
 	{
-		subentity = [UNIVERSE newSubentityWithName:subentKey];
+		subentity = [UNIVERSE newSubentityWithName:subentKey andScaleFactor:_scaleFactor];
 	}
 	if (subentity == nil) {
 		OOLog(@"setup.ship.badEntry.subentities",@"Failed to set up entity %@",subentKey);
 		return NO;
 	}
 	
-	subPosition = vectorToHPVector([subentDict oo_vectorForKey:@"position"]);
+	subPosition = HPvector_multiply_scalar([subentDict oo_hpvectorForKey:@"position"],_scaleFactor);
 	subOrientation = [subentDict oo_quaternionForKey:@"orientation"];
 	
 	[subentity setPosition:subPosition];
