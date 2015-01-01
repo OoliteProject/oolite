@@ -281,6 +281,7 @@
 			"cargo_carried",
 			"cargo_type",
 			"model",
+			"model_scale_factor",
 			"materials",
 			"shaders",
 			"smooth",
