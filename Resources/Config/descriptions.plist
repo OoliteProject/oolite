@@ -1,4 +1,31 @@
 {
+	/*
+		Most of the text in the game comes from description.plist. It is
+	    processed in different ways in different contexts.
+	 
+		In general, the following expansions are possible:
+		  %H - "homeworld", the name of the current system.
+		  %I - The possessive form of the current system's name, in English
+		       homeworld+ian.
+		  %R - random word. Use %N instead for any new strings.
+		  %N - better random word.
+		  %@ - Placeholder for text to be inserted by the game.
+		  %d, %.1f etc. - placeholders for numbers, using printf syntax.
+		  [$text] - will be replaced with variable $text provided by the
+		            game or a script. If no matching variable is provided, the
+			        key $text will be looked up in descriptions.plist. The
+		            following variabes are always(ish) available:
+		              commander_name
+		              commander_shipname (the type of the ship)
+		              commander_shipdisplayname
+		              commander_rank ("Mosty Harmless", etc)
+		              commander_legal_status ("Clean", etc)
+		              commander_bounty
+		              credits_number
+		  [$number] = a random line from item $number of system_description
+		              (defined below) is is used.
+	*/
+	
 	// Plural-form handling.
 	// * The format is an array of rules, each one a string, as set out below.
 	// * |index| is, by default, 0 for the first rule.
@@ -39,16 +66,6 @@
 	"number-group-threshold" = 5;
 	"number-decimal-separator" = ".";
 	"number-group-separator" = " ";		// Non-breaking space.
-	
-	/*	%H - homeworld
-		%I - homeworld+ian
-		%R - random digrams
-		%N - better random digrams
-		%@ - text to be inserted at this point
-		%d, %.1f etc. - printf type variables to be inserted
-		[$text] = $text is an entry here that will be expanded
-		[$number] = a random line from item $number of system_description is is used.
-	*/
 	
 	// *** Basic lists ***
 	condition =
