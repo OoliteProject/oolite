@@ -1771,7 +1771,8 @@
 	"legal-desc-alien"				= "Alien";
 	"legal-desc-system-vessel"		= "System Vessel";
 	"legal-desc-military-vessel"	= "Military Vessel";
-	"planetname-derivative-suffix"	= "ian";	// This is the suffix used with %I (producing 'Laveian' for example)
+	"planetname-possessive"			= "%H[planetname-derivative-suffix]"; // %I expands to this (producing 'Laveian' for example)
+	"planetname-derivative-suffix"	= "ian";
 	"wormhole-desc"				= "Wormhole";
 	"wormhole-to-@"				= "Wormhole to %@";
 	"wormhole-destination-computed-@"	= "Wormhole Scanner - Destination computed: %@";

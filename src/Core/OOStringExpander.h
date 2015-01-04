@@ -33,11 +33,12 @@ MA 02110-1301, USA.
 // Option flags for OOExpandDescriptionString().
 enum
 {
-	kOOExpandForJavaScript		= 0x00000001,	/// Report warnings through JavaScript runtime system instead of normal logging.
-	kOOExpandBackslashN			= 0x00000002,	/// Convert literal "\\n"s to line breaks (used for missiontext.plist for historical reasons).
-	kOOExpandGoodRNG			= 0x00000004,	/// Use RANDROT for selecting from description arrays and for %N expansion.
-	kOOExpandReseedRNG			= 0x00000008,	/// Set "really random" seeds while expanding.
-	kOOExpandKey				= 0x00000010,	/// Treat string as a key. Expand(@"foo", kOOExpandKey) == Expand(@"[foo]", kOOExpandNoOptions).
+	kOOExpandForJavaScript		= 0x00000001,	///< Report warnings through JavaScript runtime system instead of normal logging.
+	kOOExpandBackslashN			= 0x00000002,	///< Convert literal "\\n"s to line breaks (used for missiontext.plist for historical reasons).
+	kOOExpandGoodRNG			= 0x00000004,	///< Use RANDROT for selecting from description arrays and for %N expansion.
+	kOOExpandReseedRNG			= 0x00000008,	///< Set "really random" seeds while expanding.
+	kOOExpandKey				= 0x00000010,	///< Treat string as a key. Expand(@"foo", kOOExpandKey) == Expand(@"[foo]", kOOExpandNoOptions).
+	kOOExpandDisallowPercentI	= 0x00000020,	///< Disallow %I expansion (used when expanding %I itself).
 
 	kOOExpandNoOptions			= 0
 };

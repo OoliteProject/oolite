@@ -75,6 +75,7 @@ typedef struct
 	bool				convertBackslashN;
 	bool				hasPercentR;		// Set to indicate we need an ExpandPercentR() pass.
 	bool				useGoodRNG;
+	bool				disallowPercentI;
 	
 	NSString			*systemNameWithIan;	// Cache for %I
 	NSString			*randomNameN;		// Cache for %N
@@ -166,8 +167,13 @@ NSString *OOExpandDescriptionString(Random_Seed seed, NSString *string, NSDictio
 		.legacyLocals = [legacyLocals retain],
 		.isJavaScript = options & kOOExpandForJavaScript,
 		.convertBackslashN = options & kOOExpandBackslashN,
-		.useGoodRNG = options & kOOExpandGoodRNG,
+		.useGoodRNG = options & kOOExpandGoodRNG
 	};
+	
+	// Avoid recursive %I expansion by pre-seeding cache with literal %I.
+	if (options & kOOExpandDisallowPercentI) {
+		context.systemNameWithIan = @"%I";
+	}
 	
 	OORandomState savedRandomState;
 	if (options & kOOExpandReseedRNG)
@@ -1112,7 +1118,7 @@ static NSString *GetSystemNameIan(OOStringExpansionContext *context)
 	
 	if (context->systemNameWithIan == nil)
 	{
-		context->systemNameWithIan = [[GetSystemName(context) stringByAppendingString:DESC(@"planetname-derivative-suffix")] retain];
+		context->systemNameWithIan = [OOExpandWithOptions(context->seed, kOOExpandDisallowPercentI | kOOExpandGoodRNG | kOOExpandKey, @"planetname-possessive") retain];
 	}
 	
 	return context->systemNameWithIan;
