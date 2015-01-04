@@ -25,13 +25,18 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 #import "OOMouseInteractionMode.h"
+#import "OOOpenGLMatrixManager.h"
 
 
-#define MAX_CLEAR_DEPTH		100000000.0
-// 100 000 km.
+#define MAX_CLEAR_DEPTH		10000000000.0
+// 10 000 000 km.
+#define INTERMEDIATE_CLEAR_DEPTH		100.0
+// 100 m.
+
 
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
+#define OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL	0.05
 
 @class Entity, GameController;
 
@@ -70,14 +75,32 @@ enum GameViewKeys
 	gvNumberKey6,
 	gvNumberKey7,
 	gvNumberKey8,
-	gvNumberKey9
+	gvNumberKey9,
+    gvNumberPadKey0 = 310,
+	gvNumberPadKey1,
+	gvNumberPadKey2,
+	gvNumberPadKey3,
+	gvNumberPadKey4,
+	gvNumberPadKey5,
+	gvNumberPadKey6,
+	gvNumberPadKey7,
+	gvNumberPadKey8,
+	gvNumberPadKey9 //319
+};
+
+enum MouseWheelStatus
+{
+	gvMouseWheelDown = -1,
+	gvMouseWheelNeutral,
+	gvMouseWheelUp
 };
 
 enum StringInput
 {
 	gvStringInputNo = 0,
 	gvStringInputAlpha = 1,
-	gvStringInputAll = 2
+	gvStringInputLoadSave = 2,
+	gvStringInputAll = 3
 };
 
 extern int debug;
@@ -114,6 +137,9 @@ extern int debug;
 	
 	int					_virtualScreen;
 	NSData				*_pixelFormatAttributes;
+	
+	OOOpenGLMatrixManager		*matrixManager;
+
 }
 
 
@@ -160,6 +186,7 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (int) numKeys;
+- (int) mouseWheelState;
 
 // Command-key combinations need special handling.
 - (BOOL) isCommandQDown;
@@ -168,6 +195,8 @@ extern int debug;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;
+
+- (OOOpenGLMatrixManager *) getOpenGLMatrixManager;
 
 #ifndef NDEBUG
 // General image-dumping methods.

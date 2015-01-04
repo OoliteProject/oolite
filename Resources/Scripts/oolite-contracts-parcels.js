@@ -37,7 +37,6 @@ this.name			= "oolite-contracts-parcels";
 this.author			= "cim";
 this.copyright		= "© 2012-2013 the Oolite team.";
 this.description	= "Parcel delivery contracts.";
-this.version		= "1.79";
 
 /**** Configuration options and API ****/
 
@@ -288,6 +287,11 @@ this._initialiseParcelContractsForSystem = function()
 		// get the SystemInfo object for the destination
 		var destinationInfo = System.infoForSystem(galaxyNumber,destination);
 		
+		if (destinationInfo.sun_gone_nova)
+		{
+			continue;
+		}
+
 		// check that a route to the destination exists
 		var routeToDestination = system.info.routeToSystem(destinationInfo);
 
@@ -346,19 +350,31 @@ this._initialiseParcelContractsForSystem = function()
 			var prudence = (2*Math.random())-1;
 
 			var desperation = (Math.random()*(0.5+parcel.risk)) * (1+1/(Math.max(0.5,dtime-(routeToDestination.time * 3600))));
-			var competency = Math.max(50,(routeToDestination.route.length-1)*(1+(parcel.risk*2)));
+			var competency = Math.max(50,(routeToDestination.route.length-1)*(0.5+(parcel.risk*2)));
 			if(parcel.risk == 0)
 			{
-				competency -= 10;
+				competency -= 30;
 			}
 			parcel.payment = Math.floor(parcel.payment * (1+(0.4*prudence)));
 			parcel.payment += (parcel.risk * 200);
+			if (parcel.payment < 100)
+			{
+				competency -= 15;
+				// paying this little probably can't ask for anyone good
+			}
 			parcel.skill = competency + 20*(prudence-desperation);
 		}
 		else
 		{
 			parcel.skill = -1; // always available
 		}
+
+		if (parcel.skill > 60)
+		{
+			parcel.skill = 60;
+		}
+
+//		log(this.name,parcel.payment,parcel.skill,parcel.risk);
 
 		// add parcel to contract list
 		this._addParcelToSystem(parcel);
@@ -770,6 +786,18 @@ this._acceptContract = function()
 		"oolite-parcel-contents" : this._formatPackageName(parcel.description)
 	});
 	player.ship.addParcel(desc,system.ID,parcel.destination,parcel.deadline,parcel.payment,0,parcel.risk);
+
+	if (parcel.risk > 0)
+	{
+		// once for medium risk
+		worldScripts["oolite-contracts-helpers"]._setClientName(parcel.sender);
+		if (parcel.risk > 1)
+		{
+			// three times for high risk
+			worldScripts["oolite-contracts-helpers"]._setClientName(parcel.sender);
+			worldScripts["oolite-contracts-helpers"]._setClientName(parcel.sender);
+		}
+	}
 	
 	// remove the parcel from the station list
 	this.$parcels.splice(this.$contractIndex,1);

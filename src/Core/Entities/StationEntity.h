@@ -79,7 +79,10 @@ typedef enum
 
 	NSString				*allegiance;
 	
-	NSMutableArray			*localMarket;
+	OOCommodityMarket		*localMarket;
+	OOCargoQuantity			marketCapacity;
+	NSArray					*marketDefinition;
+	NSString				*marketScriptName;
 //	NSMutableArray			*localPassengers;
 //	NSMutableArray			*localContracts;
 	NSMutableArray			*localShipyard;
@@ -103,10 +106,20 @@ typedef enum
 							allowsFastDocking: 1,
 							allowsSaving: 1,
 							allowsAutoDocking: 1,
-							hasBreakPattern: 1;
+							hasBreakPattern: 1,
+							marketMonitored: 1,
+							marketBroadcast: 1;
 }
 
-- (NSMutableArray *) localMarket;
+
+- (OOCargoQuantity) marketCapacity;
+- (NSArray *) marketDefinition;
+- (NSString *) marketScriptName;
+- (BOOL) marketMonitored;
+- (BOOL) marketBroadcast;
+- (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export;
+
+- (OOCommodityMarket *) localMarket;
 - (void) setLocalMarket:(NSArray *)market;
 - (NSDictionary *) localMarketForScripting;
 - (void) setPrice:(NSUInteger) price forCommodity:(OOCommodityType) commodity;
@@ -121,8 +134,7 @@ typedef enum
 - (NSMutableDictionary *) localInterfaces;
 - (void) setInterfaceDefinition:(OOJSInterfaceDefinition *)definition forKey:(NSString *)key;
 
-- (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int)random_factor;
-- (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed)seed andRandomFactor:(int)random_factor;
+- (OOCommodityMarket *) initialiseLocalMarket;
 
 - (OOTechLevelID) equivalentTechLevel;
 - (void) setEquivalentTechLevel:(OOTechLevelID)value;
@@ -235,4 +247,4 @@ typedef enum
 
 
 
-NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation);
+NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation, int docking_stage);

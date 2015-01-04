@@ -393,6 +393,16 @@
 		};
 		$aiFileName =
 		{
+			type = "oneOf";
+			options = 
+			(
+				"$aiFileNamePlist",
+				"$aiFileNameJs"
+			);
+			key = "aiFileName";
+		};
+		$aiFileNamePlist =
+		{
 			type = "delegatedType";
 			baseType =
 			{
@@ -400,7 +410,16 @@
 				filter = "lowerCase";
 				requiredSuffix = ".plist";
 			};
-			key = "aiFileName";
+		};
+		$aiFileNameJs =
+		{
+			type = "delegatedType";
+			baseType =
+			{
+				type = "string";
+				filter = "lowerCase";
+				requiredSuffix = ".js";
+			};
 		};
 		$shaderFileName =
 		{

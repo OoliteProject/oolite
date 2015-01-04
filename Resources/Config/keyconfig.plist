@@ -21,6 +21,13 @@
 	key_gui_arrow_up			= 255;
 	key_gui_arrow_down			= 254;
 
+/* // alternative settings to use numpad instead
+	key_gui_arrow_left			= 314; //numpad 4
+	key_gui_arrow_right			= 316; //numpad 6
+	key_gui_arrow_up			= 318; //numpad 8
+	key_gui_arrow_down			= 312; //numpad 2
+*/
+
 	key_increase_speed			= "w";
 	key_decrease_speed			= "s";
 	key_inject_fuel				= "i";
@@ -53,7 +60,7 @@
 	key_hyperspace				= "h";
 	key_jumpdrive				= "j";
 
-	key_dump_cargo				= "d";
+	key_dump_cargo				= "D";
 	key_rotate_cargo			= "R";
 
 	key_autopilot				= "c";
@@ -85,6 +92,9 @@
 	// key_contract_info			= "?"; // old name works for compatibility
 	key_chart_highlight			= "?";
 
+	key_market_filter_cycle		= "?";
+	key_market_sorter_cycle		= "/";
+	
 	key_cycle_mfd				= ";";
 	key_switch_mfd				= ":";
 
@@ -94,4 +104,9 @@
 	key_custom_view				= "v";
 
 	key_dump_target_state		= "H";
+
+	key_oxzmanager_setfilter	= "f";
+	key_oxzmanager_showinfo		= "i";
+	key_oxzmanager_extract		= "x";
+
 }

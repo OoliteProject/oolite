@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Q-bomb AI";
-this.version = "1.79";
 
 this.shipWasDumped = function() {
 		// don't need a priority AI for this one

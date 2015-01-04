@@ -37,6 +37,8 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
+#import "Universe.h"
+#import "MyOpenGLView.h"
 
 
 static NSMutableDictionary		*sShaderCache = nil;
@@ -58,6 +60,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 							 key:(NSString *)key;
 
 - (void) bindAttributes:(NSDictionary *)attributeBindings;
+- (void) bindStandardMatrixUniforms;
 
 @end
 
@@ -165,6 +168,10 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		[key release];
 	}
 	
+	if (standardMatrixUniformLocations != nil) {
+		[standardMatrixUniformLocations release];
+	}
+	
 	OOGL(glDeleteObjectARB(program));
 	
 	[super dealloc];
@@ -180,6 +187,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		[sActiveProgram release];
 		sActiveProgram = [self retain];
 		OOGL(glUseProgramObjectARB(program));
+		[self bindStandardMatrixUniforms];
 	}
 }
 
@@ -296,6 +304,8 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	self = [super init];
 	if (self == nil)  OK = NO;
 	
+	standardMatrixUniformLocations = nil;
+	
 	if (OK && vertexSource == nil && fragmentSource == nil)  OK = NO;	// Must have at least one shader!
 	
 	if (OK && prefixString != nil)
@@ -357,7 +367,12 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	if (vertexShader != NULL_SHADER)  OOGL(glDeleteObjectARB(vertexShader));
 	if (fragmentShader != NULL_SHADER)  OOGL(glDeleteObjectARB(fragmentShader));
 	
-	if (!OK)
+	if (OK)
+	{
+		OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+		standardMatrixUniformLocations = [matrixManager standardMatrixUniformLocations: program];
+	}
+	else
 	{
 		if (self != nil && program != NULL_SHADER)
 		{
@@ -384,6 +399,39 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));
 	}
 }
+
+- (void) bindStandardMatrixUniforms
+{
+	if (standardMatrixUniformLocations != nil)
+	{
+		OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
+		NSEnumerator *enumerator = [standardMatrixUniformLocations objectEnumerator];
+		id obj;
+		NSArray *pair;
+		
+		OO_ENTER_OPENGL();
+
+		[matrixManager syncModelView];
+		while ((obj = [enumerator nextObject]))
+		{
+			if ([obj isKindOfClass:[NSArray class]])
+			{
+				pair = (NSArray*)obj;
+				if ([[pair oo_stringAtIndex: 2] compare: @"mat3"] == 0)
+				{
+					OOGL(GLUniformMatrix3([pair oo_intAtIndex: 0], [matrixManager getMatrix: [pair oo_intAtIndex: 1]]));
+				}
+				else
+				{
+					GLUniformMatrix([pair oo_intAtIndex: 0], [matrixManager getMatrix: [pair oo_intAtIndex: 1]]);
+				}
+			}
+		}
+	}
+	return;
+}
+
+
 
 @end
 

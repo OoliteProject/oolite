@@ -53,8 +53,8 @@ typedef enum
 	double			estimated_arrival_time;	// Time when wormhole should open (be different to arrival_time for misjump wormholes)
 	double			scan_time;		// Time when wormhole was scanned
 	
-	Random_Seed		origin;
-	Random_Seed		destination;
+	OOSystemID		origin;
+	OOSystemID		destination;
 
 	NSPoint			originCoords;      // May not equal our origin system if the wormhole opens from Interstellar Space
 	NSPoint			destinationCoords; // May not equal the destination system if the wormhole misjumps
@@ -74,14 +74,14 @@ typedef enum
 }
 
 - (WormholeEntity*) initWithDict:(NSDictionary*)dict;
-- (WormholeEntity*) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship;
+- (WormholeEntity*) initWormholeTo:(OOSystemID) s fromShip:(ShipEntity *) ship;
 
 - (BOOL) suckInShip:(ShipEntity *) ship;
 - (void) disgorgeShips;
 - (void) setExitPosition:(HPVector)pos;
 
-- (Random_Seed) origin;
-- (Random_Seed) destination;
+- (OOSystemID) origin;
+- (OOSystemID) destination;
 - (NSPoint) originCoordinates;
 - (NSPoint) destinationCoordinates;
 

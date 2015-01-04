@@ -51,6 +51,8 @@ MA 02110-1301, USA.
 
 #import "OOFilteringEnumerator.h"
 
+#import "MyOpenGLView.h"
+
 @interface OOVisualEffectEntity (Private)
 
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;
@@ -393,13 +395,13 @@ MA 02110-1301, USA.
 	{
 		return; // TOO FAR AWAY
 	}
-	OOGL(glPushMatrix());
+	OOGLPushModelView();
 	// HPVect: camera position
-	GLTranslateOOVector(HPVectorToVector(position));
-	GLMultOOMatrix(rotMatrix);
+	OOGLTranslateModelView(HPVectorToVector(position));
+	OOGLMultModelView(rotMatrix);
 	[self drawImmediate:immediate translucent:translucent];
 
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 
@@ -644,14 +646,14 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};
 	{
 		return; // too far away to draw
 	}
-	OOGL(glPushMatrix());
-	OOGL(glScalef(scaleX,scaleY,scaleZ));
+	OOGLPushModelView();
+	OOGLScaleModelView(make_vector(scaleX,scaleY,scaleZ));
 
 	if ([self mesh] != nil)
 	{
 		[super drawImmediate:immediate translucent:translucent];
 	}
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?

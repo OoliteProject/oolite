@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOStringParsing.h"
 #import "OOMaths.h"
+#import "MyOpenGLView.h"
 
 
 static void InitTrumbleSounds(void);
@@ -382,12 +383,13 @@ static void PlayTrumbleSqueal(void);
 	GLfloat ht = 96 * size;
 	OOGL(glShadeModel(GL_SMOOTH));
 	OOGL(glEnable(GL_TEXTURE_2D));
+	
+	OOGLPushModelView();
+	
+	OOGLTranslateModelView(make_vector(position.x, position.y, z));
+	OOGLMultModelView(OOMatrixForRotationZ(rotation));
+
 	[texture apply];
-	
-	OOGL(glPushMatrix());
-	
-	OOGL(glTranslatef( position.x, position.y, z));
-	OOGL(glRotatef( rotation, 0.0, 0.0, 1.0));
 
 	//
 	// Body..
@@ -433,7 +435,7 @@ static void PlayTrumbleSqueal(void);
 			eyeTextureOffset = 0.5;	break;
 	}
 	
-	OOGL(glTranslatef( eye_position.x * wd, eye_position.y * ht, 0.0));
+	OOGLTranslateModelView(make_vector(eye_position.x * wd, eye_position.y * ht, 0.0));
 	
 	OOGL(glColor4fv(colorEyes));
 	OOGLBEGIN(GL_QUADS);
@@ -467,7 +469,7 @@ static void PlayTrumbleSqueal(void);
 			mouthTextureOffset = 0.875;	break;
 	}
 	
-	OOGL(glTranslatef( mouth_position.x * wd, mouth_position.y * ht, 0.0));
+	OOGLTranslateModelView(make_vector(mouth_position.x * wd, mouth_position.y * ht, 0.0));
 	
 	OOGL(glColor4fv(colorBase));
 	OOGLBEGIN(GL_QUADS);
@@ -485,7 +487,7 @@ static void PlayTrumbleSqueal(void);
 	OOGLEND();	
 	
 	// finally..
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
@@ -587,12 +589,11 @@ static void PlayTrumbleSqueal(void);
 		float mostYummy = 0.0;
 		NSMutableArray *cargopods = [player cargo];	// the cargo pods
 		NSUInteger i, n_pods = [cargopods count];
-		float foodfactor[17] = { 1.00, 0.25, 0.75, 0.01, 0.95, 1.25, 1.05, 0.00, 0.00, 0.00, 0.00, 0.15, 0.00, 0.00, 0.00, 0.00, 0.00};
 		for (i = 0 ; i < n_pods; i++)
 		{
 			ShipEntity *cargopod = [cargopods objectAtIndex:i];
 			OOCommodityType cargo_type = [cargopod commodityType];
-			float yumminess = (1.0 + randf()) * foodfactor[cargo_type];
+			float yumminess = (1.0 + randf()) * [[UNIVERSE commodityMarket] trumbleOpinionForGood:cargo_type];
 			if (yumminess > mostYummy)
 			{
 				selectedCargopod = cargopod;

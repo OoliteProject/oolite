@@ -46,6 +46,7 @@
 #import "OOJSScript.h"
 #import "OODebugGLDrawing.h"
 #import "OODebugFlags.h"
+#import "OODebugStandards.h"
 #import "OOWeakSet.h"
 
 
@@ -74,6 +75,13 @@
 
 
 @implementation StationEntity
+
+/* Override ShipEntity: stations of CLASS_ROCK or CLASS_CARGO are not automatically unpiloted. */
+- (BOOL)isUnpiloted
+{
+	return [self isExplicitlyUnpiloted] || [self isHulk];
+}
+
 
 - (OOTechLevelID) equivalentTechLevel
 {
@@ -115,11 +123,76 @@
 }
 
 
-- (NSMutableArray *) localMarket
+- (OOCargoQuantity) marketCapacity
 {
+	return marketCapacity;
+}
+
+
+- (NSArray *) marketDefinition
+{
+	return marketDefinition;
+}
+
+
+- (NSString *) marketScriptName
+{
+	return marketScriptName;
+}
+
+
+- (BOOL) marketMonitored
+{
+	if (self == [UNIVERSE station])
+	{
+		return YES;
+	}
+	return marketMonitored;
+}
+
+
+- (BOOL) marketBroadcast
+{
+	if (self == [UNIVERSE station])
+	{
+		return YES;
+	}
+	return marketBroadcast;
+}
+
+
+- (OOCreditsQuantity) legalStatusOfManifest:(OOCommodityMarket *)manifest export:(BOOL)export
+{
+	OOCreditsQuantity penalty, status = 0;
+	OOCommodityMarket *market = [self localMarket];
+	OOCommodityType good = nil;
+	foreach (good, [market goods])
+	{
+		if (export)
+		{
+			penalty = [market exportLegalityForGood:good];
+		}
+		else
+		{
+			penalty = [market importLegalityForGood:good];
+		}
+		status += penalty * [manifest quantityForGood:good];
+	}
+	return status;
+}
+
+
+- (OOCommodityMarket *) localMarket
+{
+	if (self == [UNIVERSE station])
+	{
+		// main stations use the system market
+		// just return a reference
+		return [UNIVERSE commodityMarket];
+	}
 	if (!localMarket)
 	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
+		[self initialiseLocalMarket];
 	}
 	return localMarket;
 }
@@ -127,111 +200,26 @@
 
 - (void) setLocalMarket:(NSArray *) some_market
 {
-	if (localMarket)
-		[localMarket release];
-	localMarket = [[NSMutableArray alloc] initWithArray:some_market];
+	[[self localMarket] loadStationAmounts:some_market];
 }
 
 
 - (NSDictionary *) localMarketForScripting
 {
-	if (!localMarket)
-	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
-	}
-
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:17];
-	OOCommodityType cType;
-	NSString *commodityKey = nil;
-
-	NSArray *commodityKeys = [[NSArray alloc] initWithObjects:@"displayName",@"quantity",@"price",@"marketBasePrice",@"marketEcoAdjustPrice",@"marketEcoAdjustQuantity",@"marketBaseQuantity",@"marketMaskPrice",@"marketMaskQuantity",@"quantityUnit",nil];
-	// displayName not numeric, price and quantity already are
-	// have I missed an obvious "slice of array" function here? - CIM
-	NSArray *numericKeys = [[NSArray alloc] initWithObjects:@"marketBasePrice",@"marketEcoAdjustPrice",@"marketEcoAdjustQuantity",@"marketBaseQuantity",@"marketMaskPrice",@"marketMaskQuantity",@"quantityUnit",nil]; 
-	
-	for (cType=COMMODITY_FOOD; cType <= COMMODITY_ALIEN_ITEMS; cType++)
-	{
-		NSArray *marketLine = [localMarket objectAtIndex:cType];
-		NSMutableDictionary *commodity = [NSMutableDictionary dictionaryWithObjects:marketLine forKeys:commodityKeys];
-		NSEnumerator	*keyEnum = [numericKeys objectEnumerator];
-		while ((commodityKey = [keyEnum nextObject]))
-		{
-			// convert value to int from string
-			[commodity setObject:[NSNumber numberWithInt:[commodity oo_intForKey:commodityKey]] forKey:commodityKey];
-		}
-		if (self == [UNIVERSE station])
-		{
-			[commodity setObject:[NSNumber numberWithInt:[UNIVERSE legalStatusOfCommodity:[commodity oo_stringForKey:@"displayName"]]] forKey:@"legalPenalty"];
-		} 
-		else
-		{
-			[commodity setObject:[NSNumber numberWithInt:0] forKey:@"legalPenalty"];
-		}
-
-		[result setObject:commodity forKey:CommodityTypeToString(cType)];
-	}
-
-	[commodityKeys release];
-	[numericKeys release];
-
-  return [NSDictionary dictionaryWithDictionary:result];
+	return [[self localMarket] dictionaryForScripting];
 }
 
 
 - (void) setPrice:(NSUInteger)price forCommodity:(OOCommodityType)commodity
 {
-	if (!localMarket)
-	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
-	}
-	
-	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
-	[commodityData replaceObjectAtIndex:MARKET_PRICE withObject:[NSNumber numberWithUnsignedInteger:price]];
-	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
-	[commodityData release];
+	[[self localMarket] setPrice:price forGood:commodity];
 }
 
 
 - (void) setQuantity:(NSUInteger)quantity forCommodity:(OOCommodityType)commodity
 {
-	if (!localMarket)
-	{
-		[self initialiseLocalMarketWithRandomFactor:[PLAYER random_factor]];
-	}
-	
-	NSMutableArray *commodityData = [[NSMutableArray alloc] initWithArray:[localMarket objectAtIndex:commodity]];
-	[commodityData replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithUnsignedInteger:quantity]];
-	[localMarket replaceObjectAtIndex:commodity withObject:[NSArray arrayWithArray:commodityData]];
-	[commodityData release];
+	[[self localMarket] setQuantity:quantity forGood:commodity];
 }
-
-
-/*- (NSMutableArray *) localPassengers
-	{
-	return localPassengers;
-	}
-
-
-	- (void) setLocalPassengers:(NSArray *) some_market
-	{
-	if (localPassengers)
-	[localPassengers release];
-	localPassengers = [[NSMutableArray alloc] initWithArray:some_market];
-	}
-
-
-	- (NSMutableArray *) localContracts
-	{
-	return localContracts;
-	}
-
-
-	- (void) setLocalContracts:(NSArray *) some_market
-	{
-	if (localContracts)
-	[localContracts release];
-	localContracts = [[NSMutableArray alloc] initWithArray:some_market];
-	} */
 
 
 - (NSMutableArray *) localShipyard
@@ -267,21 +255,10 @@
 }
 
 
-- (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int) random_factor
+- (OOCommodityMarket *) initialiseLocalMarket
 {
-	return [self initialiseMarketWithSeed:[PLAYER system_seed] andRandomFactor:random_factor];
-}
-
-
-- (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed) s_seed andRandomFactor:(int) random_factor
-{
-	int tmp_seed = ranrot_rand();
-	int rf = (random_factor ^ universalID) & 0xff;
-	int economy = [[UNIVERSE generateSystemData:s_seed] oo_intForKey:KEY_ECONOMY];
-	if (localMarket)
-		[localMarket release];
-	localMarket = [[NSMutableArray alloc] initWithArray:[UNIVERSE commodityDataForEconomy:economy andStation:self andRandomFactor:rf]];
-	ranrot_srand(tmp_seed);
+	DESTROY(localMarket);
+	localMarket = [[[UNIVERSE commodities] generateMarketForStation:self] retain];	
 	return localMarket;
 }
 
@@ -462,7 +439,7 @@
 }
 
 
-NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation)
+NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords, float speed, float range, NSString *ai_message, NSString *comms_message, BOOL match_rotation, int docking_stage)
 {
 	NSMutableDictionary *acc = [NSMutableDictionary dictionaryWithCapacity:8];
 	[acc oo_setHPVector:coords forKey:@"destination"];
@@ -470,6 +447,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	[acc oo_setFloat:range forKey:@"range"];
 	[acc setObject:[[station weakRetain] autorelease] forKey:@"station"];
 	[acc oo_setBool:match_rotation forKey:@"match_rotation"];
+	[acc oo_setInteger:docking_stage forKey:@"docking_stage"];
 	if (ai_message)
 	{
 		[acc setObject:ai_message forKey:@"ai_message"];
@@ -496,7 +474,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	if ([ship isPlayer] && [ship legalStatus] > 50)	// note: non-player fugitives dock as normal
 	{
 		// refuse docking to the fugitive player
-		return OOMakeDockingInstructions(self, [ship position], 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO);
+		return OOMakeDockingInstructions(self, [ship position], 0, 100, @"DOCKING_REFUSED", @"[station-docking-refused-to-fugitive]", NO, -1);
 	}
 	
 	if	(magnitude2(velocity) > 1.0 ||
@@ -529,7 +507,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			// can't allocate a new queue while player is manually docking
 			continue;
 		}
-		if (sub != player_reserved_dock)
+		if (sub != player_reserved_dock || [ship isPlayer])
 		{
 			docking = [sub canAcceptShipForDocking:ship];
 			if ([docking isEqualToString:@"DOCK_CLOSED"])
@@ -573,7 +551,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	}	
 	if (chosenDock == nil)
 	{
-		if (player_is_ahead || ([docking isEqualToString:@"TOO_BIG_TO_DOCK"] && !alldockstoosmall))
+		if (player_is_ahead || ([docking isEqualToString:@"TOO_BIG_TO_DOCK"] && !alldockstoosmall) || docking == nil)
 		{
 			// either player is manually docking and we can't allocate new docks,
 			// or the last dock was too small, and there may be an acceptable one
@@ -581,7 +559,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			docking = @"TRY_AGAIN_LATER";
 		}
 		// no docks accept this ship (or the player is blocking them)
-		return OOMakeDockingInstructions(self, [ship position], 0, 100, docking, nil, NO);
+		return OOMakeDockingInstructions(self, [ship position], 200, 100, docking, nil, NO, -1);
 	}
 
 
@@ -609,7 +587,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		[_shipsOnHold addObject:ship];
 	}
 	
-	return OOMakeDockingInstructions(self, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
+	return OOMakeDockingInstructions(self, [ship position], 0, 100, @"HOLD_POSITION", nil, NO, -1);
 }
 
 
@@ -659,6 +637,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 - (void) dealloc
 {
 	DESTROY(_shipsOnHold);
+	DESTROY(marketDefinition);
+	DESTROY(marketScriptName);
 	DESTROY(localMarket);
 	DESTROY(allegiance);
 //	DESTROY(localPassengers);
@@ -680,17 +660,21 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	port_radius = [dict oo_nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
 	
-	// port_dimensions can be set for rock-hermits and other specials
+	// port_dimensions is deprecated
 	port_dimensions = make_vector(69, 69, 250);
 	NSString *portDimensionsStr = [dict oo_stringForKey:@"port_dimensions"];
-	if (portDimensionsStr != nil)   // this can be set for rock-hermits and other specials
+	if (portDimensionsStr != nil)  
 	{
-		NSArray* tokens = [portDimensionsStr componentsSeparatedByString:@"x"];
-		if ([tokens count] == 3)
+		OOStandardsDeprecated(@"The port_dimensions key is deprecated");
+		if (!OOEnforceStandards())
 		{
-			port_dimensions = make_vector([[tokens objectAtIndex:0] floatValue],
-																		[[tokens objectAtIndex:1] floatValue],
-																		[[tokens objectAtIndex:2] floatValue]);
+			NSArray* tokens = [portDimensionsStr componentsSeparatedByString:@"x"];
+			if ([tokens count] == 3)
+			{
+				port_dimensions = make_vector([[tokens objectAtIndex:0] floatValue],
+											  [[tokens objectAtIndex:1] floatValue],
+											  [[tokens objectAtIndex:2] floatValue]);
+			}
 		}
 	}
 	
@@ -706,7 +690,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	hasPatrolShips = [dict oo_fuzzyBooleanForKey:@"has_patrol_ships" defaultValue:NO];
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
 	[self setAllegiance:[dict oo_stringForKey:@"allegiance"]];
-	
+
+	marketCapacity = [dict oo_unsignedIntegerForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+	marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
+	marketScriptName = [[dict oo_stringForKey:@"market_script" defaultValue:nil] retain];
+	marketMonitored = [dict oo_boolForKey:@"market_monitored" defaultValue:NO];
+	marketBroadcast = [dict oo_boolForKey:@"market_broadcast" defaultValue:YES];
+
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.
 	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:[UNIVERSE dockingClearanceProtocolActive]];
@@ -783,6 +773,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		return YES;
 	}
 
+	OOStandardsDeprecated([NSString stringWithFormat:@"No docks set up for %@",self]);
 	OOLog(@"ship.setup.docks",@"No docks set up for %@, making virtual dock",self);
 
 	// no real docks, make a virtual one
@@ -875,6 +866,11 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	
 	double unitime = [UNIVERSE getTime];
 	
+	if (!isMainStation && localMarket == nil)
+	{
+		[self initialiseLocalMarket];
+	}
+
 	[super update:delta_t];
 
 	PlayerEntity *player = PLAYER;
@@ -1027,7 +1023,10 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		if ([sub allowsDocking] && [sub countOfShipsInLaunchQueue] == 0 && [sub countOfShipsInDockingQueue] == 0)
 		{
-			return YES;
+			if ([[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"DOCKING_POSSIBLE"])
+			{
+				return YES;
+			}
 		}
 	}
 	return NO;
@@ -1105,22 +1104,20 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 		{
-			if (sub != player_reserved_dock)
+			/* so this time as long as it allows launching only check
+			 * the docking queue size so long as enumerator order is
+			 * deterministic, this will assign every launch this
+			 * update to the same dock (edge case where new docking
+			 * ship appears in the middle, probably not a problem) */
+			if ([sub allowsLaunching] && [sub countOfShipsInDockingQueue] <= threshold)
 			{
-				// so this time as long as it allows launching only check the docking queue size
-				// so long as enumerator order is deterministic, this will assign
-				// every launch this update to the same dock
-				// (edge case where new docking ship appears in the middle, probably
-				// not a problem)
-				if ([sub allowsLaunching] && [sub countOfShipsInDockingQueue] <= threshold)
+				if ([sub allowsLaunchingOf:ship])
 				{
-					if ([sub allowsLaunchingOf:ship])
-					{
-						[sub addShipToLaunchQueue:ship withPriority:priority];
-						return;
-					}
+					[sub addShipToLaunchQueue:ship withPriority:priority];
+					return;
 				}
 			}
+
 		}
 		threshold++;
 	}
@@ -2027,12 +2024,15 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		// TODO: We're potentially cancelling docking at another station, so
 		//       ensure we clear the timer to allow NPC traffic.  If we
 		//       don't, normal traffic will resume once the timer runs out.
-		
 		// No clearance is needed, but don't send friendly messages to hostile ships!
 		if (!(([other isPlayer] && [other hasHostileTarget]) || (self == [UNIVERSE station] && [other bounty] > 50)))
+		{
 			[self sendExpandedMessage:@"[station-docking-clearance-not-required]" toShip:other];
+		}
 		if ([other isPlayer])
+		{
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
+		}
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
 

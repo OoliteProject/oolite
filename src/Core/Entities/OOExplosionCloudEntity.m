@@ -29,70 +29,158 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
-
+#import "OOCollectionExtractors.h"
 
 #define kExplosionCloudDuration		0.9f
 #define kGrowthRateFactor			1.5f
 #define kExplosionCloudAlpha		0.85f
+#define kExplosionDefaultSize		2.5f
 
-static OOTexture *sCloudTexture1 = nil;
-static OOTexture *sCloudTexture2 = nil;
+// keys for plist file
+static NSString * const kExplosionAlpha			= @"alpha";
+static NSString * const kExplosionColors		= @"color_order";
+static NSString * const kExplosionCount			= @"count";
+static NSString * const kExplosionDuration		= @"duration";
+static NSString * const kExplosionGrowth		= @"growth_rate";
+static NSString * const kExplosionSize			= @"size";
+static NSString * const kExplosionTexture		= @"texture";
 
 
-@interface OOExplosionCloudEntity (Private)
-
-+ (void) resetGraphicsState;
-
-@end
-
+@interface OOExplosionCloudEntity (OOPrivate)
+- (id) initExplosionCloudWithEntity:(Entity *)entity size:(float)size andSettings:(NSDictionary *)settings;
+@end 
 
 @implementation OOExplosionCloudEntity
 
-- (id) initExplosionCloudWithPosition:(HPVector)pos velocity:(Vector)vel size:(float)size
+- (id) initExplosionCloudWithEntity:(Entity *)entity size:(float)size andSettings:(NSDictionary *)settings
 {
 	unsigned i;
-	unsigned count = 25;
+	unsigned maxCount = [UNIVERSE detailLevel] <= DETAIL_LEVEL_SHADERS ? 10 : 25;
+	HPVector pos = [entity position];
+	Vector vel = [entity velocity];
+
+	if (settings == nil) {
+		_settings = [[NSDictionary dictionary] retain];
+	} else {
+		_settings = [settings retain];
+	}
+
+	unsigned count = [_settings oo_unsignedIntegerForKey:kExplosionCount defaultValue:25];
+	if (count > maxCount) {
+		count = maxCount;
+	}
+
+	if (size == 0.0) {
+		size = [entity collisionRadius]*[_settings oo_floatForKey:kExplosionSize defaultValue:kExplosionDefaultSize];
+	}
+
+	_growthRate = [_settings oo_floatForKey:kExplosionGrowth defaultValue:kGrowthRateFactor] * size;
+	_alpha = [_settings oo_floatForKey:kExplosionAlpha defaultValue:kExplosionCloudAlpha];
+	_cloudDuration = [_settings oo_floatForKey:kExplosionDuration defaultValue:kExplosionCloudDuration];
+
+	NSString *textureFile = [_settings oo_stringForKey:kExplosionTexture defaultValue:@"oolite-particle-cloud2.png"];
+	
+	_texture = [[OOTexture textureWithName:textureFile
+								  inFolder:@"Textures"
+								   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+								anisotropy:kOOTextureDefaultAnisotropy
+								   lodBias:0.0] retain];	
+	if (_texture == nil) 
+	{
+		[self release];
+		return nil;
+	}
+
 	GLfloat baseColor[4] = {1.0,1.0,1.0,1.0};
-	_growthRate = kGrowthRateFactor * size;
 
 	if (magnitude2(vel) > 1000000)
 	{
+		// slow down rapidly translating explosions
 		vel = vector_multiply_scalar(vector_normal(vel),1000);
 	}
 
-	if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size*0.8 maxSpeed:size*1.2 duration:kExplosionCloudDuration baseColor:baseColor]))
+	if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size*0.8 maxSpeed:size*1.2 duration:_cloudDuration baseColor:baseColor]))
 	{
+		NSString *color_order = [_settings oo_stringForKey:kExplosionColors defaultValue:@"rgb"];
+		
 		for (i=0;i<count;i++) 
 		{
-			float r,g,b;
-			r = randf();
-			g = randf();
-			if (g > r) {
-				r = 1.0f;
+			if ([color_order isEqualToString:@"white"]) {
+				// grey
+				_particleColor[i][0] = _particleColor[i][1] = _particleColor[i][2] = randf();
+			} else {
+				float c1 = randf();
+				float c2 = randf();
+				float c3 = randf();
+				if (c2 > c1) {
+					c2 = c1;
+				}
+				if (c3 > c2) {
+					c3 = c2;
+				}
+				if ([color_order isEqualToString:@"rgb"]) 
+				{
+					_particleColor[i][0] = c1;
+					_particleColor[i][1] = c2;
+					_particleColor[i][2] = c3;
+				}
+				else if ([color_order isEqualToString:@"rbg"]) 
+				{
+					_particleColor[i][0] = c1;
+					_particleColor[i][1] = c3;
+					_particleColor[i][2] = c2;
+				}
+				else if ([color_order isEqualToString:@"grb"]) 
+				{
+					_particleColor[i][0] = c2;
+					_particleColor[i][1] = c1;
+					_particleColor[i][2] = c3;
+				}
+				else if ([color_order isEqualToString:@"gbr"]) 
+				{
+					_particleColor[i][0] = c3;
+					_particleColor[i][1] = c1;
+					_particleColor[i][2] = c2;
+				}
+				else if ([color_order isEqualToString:@"brg"]) 
+				{
+					_particleColor[i][0] = c2;
+					_particleColor[i][1] = c3;
+					_particleColor[i][2] = c1;
+				}
+				else if ([color_order isEqualToString:@"bgr"]) 
+				{
+					_particleColor[i][0] = c3;
+					_particleColor[i][1] = c2;
+					_particleColor[i][2] = c1;
+				}
+
 			}
-			b = randf();
-			if (b > g) {
-				b = g;
-			}
-			_particleColor[i][0] = r;
-			_particleColor[i][1] = g;
-			_particleColor[i][2] = b;
-			_particleColor[i][3] = kExplosionCloudAlpha;
+
+			_particleColor[i][3] = _alpha;
 		}
 	}
 	return self;
 }
 
 
-+ (instancetype) explosionCloudFromEntity:(Entity *)entity
+- (void) dealloc 
 {
-	return [[[self alloc] initExplosionCloudWithPosition:[entity position] velocity:[entity velocity] size:[entity collisionRadius]*2.5] autorelease];
+	DESTROY(_texture);
+	DESTROY(_settings);
+	[super dealloc];
 }
 
 
-+ (instancetype) explosionCloudFromEntity:(Entity *)entity withSize:(float)size
++ (instancetype) explosionCloudFromEntity:(Entity *)entity withSettings:(NSDictionary *)settings
 {
-	return [[[self alloc] initExplosionCloudWithPosition:[entity position] velocity:[entity velocity] size:size] autorelease];
+	return [[[self alloc] initExplosionCloudWithEntity:entity size:0 andSettings:settings] autorelease];
+}
+
+
++ (instancetype) explosionCloudFromEntity:(Entity *)entity withSize:(float)size andSettings:(NSDictionary *)settings
+{
+	return [[[self alloc] initExplosionCloudWithEntity:entity size:size andSettings:settings] autorelease];
 }
 
 
@@ -101,38 +189,85 @@ static OOTexture *sCloudTexture2 = nil;
 	[super update:delta_t];
 	
 	// Fade out.
+	GLfloat		fadeRate = _count / 25.0;
 	unsigned	i, count = _count;
 	GLfloat		(*particleColor)[4] = _particleColor;
 	
-	float newAlpha = kExplosionCloudAlpha * (1-(_timePassed / kExplosionCloudDuration));
+	float newAlpha = _alpha * (1-(_timePassed / _cloudDuration));
+	NSString *color_order = [_settings oo_stringForKey:kExplosionColors defaultValue:@"rgb"];
+	NSUInteger primary = 0, secondary = 1, tertiary = 2;
+			
+	if ([color_order isEqualToString:@"rgb"]) 
+	{
+		primary = 0;
+		secondary = 1;
+		tertiary = 2;
+	}
+	else if ([color_order isEqualToString:@"rbg"]) 
+	{
+		primary = 0;
+		secondary = 2;
+		tertiary = 1;
+	}
+	else if ([color_order isEqualToString:@"grb"]) 
+	{
+		primary = 1;
+		secondary = 0;
+		tertiary = 2;
+	}
+	else if ([color_order isEqualToString:@"gbr"]) 
+	{
+		primary = 1;
+		secondary = 2;
+		tertiary = 0;
+	}
+	else if ([color_order isEqualToString:@"brg"]) 
+	{
+		primary = 2;
+		secondary = 0;
+		tertiary = 1;
+	}
+	else if ([color_order isEqualToString:@"bgr"]) 
+	{
+		primary = 2;
+		secondary = 1;
+		tertiary = 0;
+	}
+
+
 	for (i=0;i<count;i++) {
 		
 		_particleSize[i] += delta_t * _growthRate;
 
 		particleColor[i][3] = newAlpha;
-		if (particleColor[i][2] > 0.0) // fade blue (white to yellow)
+		if (![color_order isEqualToString:@"white"])
 		{
-			particleColor[i][2] -= delta_t/2.0;
-			if (particleColor[i][2] < 0.0)
+
+			if (particleColor[i][tertiary] > 0.0) // fade blue (white to yellow)
 			{
-				particleColor[i][2] = 0.0f;
+				particleColor[i][tertiary] -= delta_t*0.5*fadeRate;
+				if (particleColor[i][tertiary] < 0.0)
+				{
+					particleColor[i][tertiary] = 0.0f;
+				}
 			}
-		}
-		else if (particleColor[i][1] > 0.0) // fade green (yellow to red)
-		{
-			particleColor[i][1] -= delta_t;
-			if (particleColor[i][1] < 0.0)
+			else if (particleColor[i][secondary] > 0.0) // fade green (yellow to red)
 			{
-				particleColor[i][1] = 0.0f;
+				particleColor[i][secondary] -= delta_t*fadeRate;
+				if (particleColor[i][secondary] < 0.0)
+				{
+					particleColor[i][secondary] = 0.0f;
+				}
 			}
-		}
-		else if (particleColor[i][0] > 0.0) // fade red (red to black)
-		{
-			particleColor[i][0] -= delta_t*2.0;
-			if (particleColor[i][0] < 0.0)
+			else if (particleColor[i][primary] > 0.0) // fade red (red to black)
 			{
-				particleColor[i][0] = 0.0f;
+				particleColor[i][primary] -= delta_t*2.0*fadeRate;
+				if (particleColor[i][primary] < 0.0)
+				{
+					particleColor[i][primary] = 0.0f;
+				}
 			}
+
 		}
 	}
 	
@@ -141,37 +276,7 @@ static OOTexture *sCloudTexture2 = nil;
 
 - (OOTexture *) texture
 {
-	// TODO: some way to vary cloud textures
-	if (sCloudTexture2 == nil)  [OOExplosionCloudEntity	setUpTexture];
-	return sCloudTexture2;
-}
-
-
-+ (void) setUpTexture
-{
-	if (sCloudTexture1 == nil)
-	{
-		sCloudTexture1 = [[OOTexture textureWithName:@"oolite-particle-cloud.png"
-										   inFolder:@"Textures"
-											options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-										 anisotropy:kOOTextureDefaultAnisotropy
-											lodBias:0.0] retain];
-		sCloudTexture2 = [[OOTexture textureWithName:@"oolite-particle-cloud2.png"
-										   inFolder:@"Textures"
-											options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
-										 anisotropy:kOOTextureDefaultAnisotropy
-											lodBias:0.0] retain];
-		[[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOExplosionCloudEntity class]];
-	}
-}
-
-
-+ (void) resetGraphicsState
-{
-	[sCloudTexture1 release];
-	sCloudTexture1 = nil;
-	[sCloudTexture2 release];
-	sCloudTexture2 = nil;
+	return _texture;
 }
 
 @end

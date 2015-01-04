@@ -54,7 +54,7 @@ MA 02110-1301, USA.
 #import "NSObjectOOExtensions.h"
 
 #import "OOJavaScriptEngine.h"
-
+#import "OODebugStandards.h"
 
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH		1
@@ -82,8 +82,6 @@ typedef enum
 
 
 static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFound";
-static NSString * const kOOLogMeshTooManyVertices			= @"mesh.load.failed.tooManyVertices";
-static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFaces";
 static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooManyMaterials";
 
 
@@ -1159,6 +1157,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			{
 				// Model not found
 				OOLog(kOOLogMeshDataNotFound, @"***** ERROR: could not find %@", filename);
+				OOStandardsError(@"Model file not found");
 				return NO;
 			}
 			

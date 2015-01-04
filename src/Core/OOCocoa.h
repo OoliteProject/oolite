@@ -108,7 +108,10 @@ MA 02110-1301, USA.
 #define OOLITE_SDL					1
 
 #ifdef WIN32
-#define OOLITE_WINDOWS				1
+	#define OOLITE_WINDOWS				1
+	#if defined(_WIN64)
+		#define OOLITE_64_BIT			1
+	#endif
 #endif
 
 #ifdef LINUX

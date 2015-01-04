@@ -30,6 +30,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOCacheManager.h"
+#import "OODebugStandards.h"
 
 
 static NSArray			*sEquipmentTypes = nil;
@@ -141,6 +142,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
++ (NSEnumerator *) reverseEquipmentEnumerator
+{
+	return [sEquipmentTypes reverseObjectEnumerator];
+}
+
+
 + (OOEquipmentType *) equipmentTypeWithIdentifier:(NSString *)identifier
 {
 	return [sEquipmentTypesByIdentifier objectForKey:identifier];
@@ -218,8 +225,15 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_requiresFullFuel = [extra oo_boolForKey:@"requires_full_fuel" defaultValue:_requiresFullFuel];
 			_requiresNonFullFuel = [extra oo_boolForKey:@"requires_non_full_fuel" defaultValue:_requiresNonFullFuel];
 			_isVisible = [extra oo_boolForKey:@"visible" defaultValue:_isVisible];
+			_canCarryMultiple = [extra oo_boolForKey:@"can_carry_multiple" defaultValue:NO];
 			
 			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
+
+			_installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
+			_repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
+			_provides = [[extra oo_arrayForKey:@"provides" defaultValue:[NSArray array]] retain];
+
+			_weaponInfo = [[extra oo_dictionaryForKey:@"weapon_info" defaultValue:[NSDictionary dictionary]] retain];
 
 			_damageProbability = [extra oo_floatForKey:@"damage_probability" defaultValue:(_isMissileOrMine?0.0:1.0)];
 			
@@ -256,8 +270,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 			}
 			if (conditions != nil)
 			{
-				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
-				[_conditions retain];
+				OOStandardsDeprecated([NSString stringWithFormat:@"The conditions key is deprecated for equipment %@",_name]);
+				if (!OOEnforceStandards())
+				{
+					_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
+					[_conditions retain];
+				}
 			}
 
 			object = [extra objectForKey:@"condition_script"];
@@ -311,6 +329,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_incompatibleEquipment);
 	DESTROY(_conditions);
 	DESTROY(_condition_script);
+	DESTROY(_provides);
+	DESTROY(_weaponInfo);
 	DESTROY(_scriptInfo);
 	DESTROY(_script);
 	
@@ -435,18 +455,18 @@ static NSDictionary		*sMissilesRegistry = nil;
 
 - (BOOL) canCarryMultiple
 {
-	/*	Hard-coded for now. What would be the ramifications of making this
-		a plist attribute?
-	*/
 	if ([self isMissileOrMine])  return YES;
+	// technically multiple can be fitted, but not to the same mount.
+	if ([self isPrimaryWeapon])  return NO;
 	
+	// hard-coded as special items
 	if ([_identifier isEqualToString:@"EQ_PASSENGER_BERTH"] ||
 		[_identifier isEqualToString:@"EQ_TRUMBLE"])
 	{
 		return YES;
 	}
 	
-	return NO;
+	return _canCarryMultiple;
 }
 
 
@@ -548,6 +568,94 @@ static NSDictionary		*sMissilesRegistry = nil;
 	return _fastAffinityB;
 }
 
+
+- (NSUInteger) installTime
+{
+	return _installTime;
+}
+
+
+- (NSUInteger) repairTime
+{
+	if (_repairTime > 0)
+	{
+		return _repairTime;
+	}
+	else 
+	{
+		return _installTime / 2;
+	}
+}
+
+
+- (NSArray *) providesForScripting
+{
+	return [[_provides copy] autorelease];
+}
+
+
+- (BOOL) provides:(NSString *)key
+{
+	return [_provides containsObject:key];
+}
+
+
+
+// weapon properties follow
+- (BOOL) isTurretLaser
+{
+	return [_weaponInfo oo_boolForKey:@"is_turret_laser" defaultValue:NO];
+}
+
+
+- (BOOL) isMiningLaser
+{
+	return [_weaponInfo oo_boolForKey:@"is_mining_laser" defaultValue:NO];
+}
+
+
+- (GLfloat) weaponRange
+{
+	return [_weaponInfo oo_floatForKey:@"range" defaultValue:12500.0];
+}
+
+
+- (GLfloat) weaponEnergyUse
+{
+	return [_weaponInfo oo_floatForKey:@"energy" defaultValue:0.8];
+}
+
+
+- (GLfloat) weaponDamage
+{
+	return [_weaponInfo oo_floatForKey:@"damage" defaultValue:15.0];
+}
+
+
+- (GLfloat) weaponRechargeRate
+{
+	return [_weaponInfo oo_floatForKey:@"recharge_rate" defaultValue:0.5];
+}
+
+
+- (GLfloat) weaponShotTemperature
+{
+	return [_weaponInfo oo_floatForKey:@"shot_temperature" defaultValue:7.0];
+}
+
+
+- (GLfloat) weaponThreatAssessment
+{
+	return [_weaponInfo oo_floatForKey:@"threat_assessment" defaultValue:1.0];
+}
+
+
+- (OOColor *) weaponColor
+{
+	return [OOColor brightColorWithDescription:[_weaponInfo objectForKey:@"color"]];
+}
+
+
 /*	This method exists purely to suppress Clang static analyzer warnings that
 	this ivar is unused (but may be used by categories, which it is).
 	FIXME: there must be a feature macro we can use to avoid actually building
@@ -573,8 +681,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 	tl = [self techLevel];
 	if (tl == kOOVariableTechLevel)
 	{
-		missionVar = [PLAYER missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
-		tl = OOUIntegerFromObject(missionVar, tl);
+		OOStandardsDeprecated([NSString stringWithFormat:@"TL99 is deprecated for %@",[self identifier]]);
+		if (!OOEnforceStandards())
+		{
+			missionVar = [PLAYER missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
+			tl = OOUIntegerFromObject(missionVar, tl);
+		}
 	}
 	
 	return tl;

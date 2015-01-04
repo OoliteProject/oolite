@@ -1,0 +1,222 @@
+(
+	/* Ordered to match shipdata.plist to make it easier to edit; will
+	 * be re-ordered by Oolite to a more sensible order later. Classes
+	 * currently defined by Oolite are "ship", "station", "weapon",
+	 * "thargoid", and "misc". Other classes may be created by
+	 * defining "oolite-ship-library-category-X" and
+	 * "oolite-ship-library-category-plural-X" description.plist
+	 * keys */
+	{
+		ship = "adder";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LT]";
+		description = "[oolite-ship-library-description-adder]";
+	},
+	{
+		ship = "anaconda";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-HFr]";
+		description = "[oolite-ship-library-description-anaconda]";
+		cargo = "750 TC"; // because the NPC isn't really this big
+	},
+	{
+		ship = "asp";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-HF]";
+		description = "[oolite-ship-library-description-asp]";
+	},
+	{
+		ship = "asteroid";
+		class = "misc";
+		summary = "[oolite-ship-library-summary-NB]";
+		description = "[oolite-ship-library-description-asteroid]";
+	},
+	{
+		ship = "barrel";
+		class = "misc";
+		summary = "[oolite-ship-library-summary-CG]";
+		description = "[oolite-ship-library-description-barrel]";
+	},
+	{
+		ship = "boa";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-MFr]";
+		description = "[oolite-ship-library-description-boa]";
+	},
+	{
+		ship = "boa-mk2";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-MFr]";
+		description = "[oolite-ship-library-description-boa-mk2]";
+	},
+	{
+		ship = "buoy";
+		class = "misc";
+		summary = "[oolite-ship-library-summary-SA]";
+		description = "[oolite-ship-library-description-buoy]";
+	},
+	{
+		ship = "cobramk1";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LM]";
+		description = "[oolite-ship-library-description-cobramk1]";
+	},
+	{
+		ship = "cobra3-trader";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-HM]";
+		description = "[oolite-ship-library-description-cobra3]";
+	},
+	{
+		ship = "coriolis-station";
+		class = "station";
+		summary = "[oolite-ship-library-summary-SO]";
+		description = "[oolite-ship-library-description-coriolis]";
+	},
+	{
+		ship = "dodecahedron-station";
+		class = "station";
+		summary = "[oolite-ship-library-summary-SO]";
+		description = "[oolite-ship-library-description-dodec]";
+	},
+	{
+		ship = "ecm-proof-missile";
+		class = "weapon";
+		summary = "[oolite-ship-library-summary-WMs]";
+		description = "[oolite-ship-library-description-hardmissile]";
+	},
+	{
+		ship = "escape-capsule";
+		class = "misc";
+		ship_data = true; // it's a ship, sort of
+		summary = "[oolite-ship-library-summary-CP]";
+		description = "[oolite-ship-library-description-escape]";
+	},
+	{
+		ship = "ferdelance";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-MT]";
+		description = "[oolite-ship-library-description-ferdelance]";
+	},
+	{
+		ship = "gecko";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-MF]";
+		description = "[oolite-ship-library-description-gecko]";
+	},
+	{
+		ship = "icosahedron-station";
+		class = "station";
+		summary = "[oolite-ship-library-summary-SO]";
+		description = "[oolite-ship-library-description-ico]";
+	},
+	{
+		ship = "krait";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LF]";
+		description = "[oolite-ship-library-description-krait]";
+	},
+	{
+		ship = "mamba";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LF]";
+		description = "[oolite-ship-library-description-mamba]";
+	},
+	{
+		ship = "missile";
+		class = "weapon";
+		summary = "[oolite-ship-library-summary-WMs]";
+		description = "[oolite-ship-library-description-missile]";
+	},
+	{
+		ship = "moray";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LM]";
+		description = "[oolite-ship-library-description-moray]";
+	},
+	{
+		ship = "python";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-MFr]";
+		description = "[oolite-ship-library-description-python]";
+	},
+	{
+		ship = "qbomb";
+		class = "weapon";
+		summary = "[oolite-ship-library-summary-WMn]";
+		description = "[oolite-ship-library-description-qbomb]";
+	},
+	{
+		ship = "rock-hermit";
+		class = "station";
+		summary = "[oolite-ship-library-summary-SM]";
+		description = "[oolite-ship-library-description-rockhermit]";
+	},
+	{
+		ship = "shuttle";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LT]";
+		description = "[oolite-ship-library-description-shuttle]";
+	},
+	{
+		ship = "sidewinder";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LF]";
+		description = "[oolite-ship-library-description-sidewinder]";
+	},
+	{
+		ship = "tharglet";
+		class = "thargoid";
+		summary = "[oolite-ship-library-summary-LF]";
+		description = "[oolite-ship-library-description-tharglet]";
+		ship_data = true;
+		speed = "[oolite-ship-library-unknown]";
+		turn_rate = "[oolite-ship-library-unknown]";
+		generator = "[oolite-ship-library-unknown]";
+		shields = "[oolite-ship-library-unknown]";
+	},
+	{
+		ship = "thargoid";
+		class = "thargoid";
+		summary = "[oolite-ship-library-summary-RW]";
+		description = "[oolite-ship-library-description-thargoid]";
+		ship_data = true;
+		speed = "[oolite-ship-library-unknown]";
+		cargo = "[oolite-ship-library-unknown]";
+		turn_rate = "[oolite-ship-library-unknown]";
+		generator = "[oolite-ship-library-unknown]";
+		shields = "[oolite-ship-library-unknown]";
+		weapons = "[oolite-ship-library-description-thargoid-weapons]";
+	},
+	{
+		ship = "transporter";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-MT]";
+		description = "[oolite-ship-library-description-transporter]";
+	},
+	{
+		ship = "viper";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-PLF]";		
+		description = "[oolite-ship-library-description-viper]";
+		turn_rate = "[oolite-ship-library-classified]";
+		generator = "[oolite-ship-library-classified]";
+		shields = "[oolite-ship-library-classified]";
+	},
+	{
+		ship = "viper-interceptor";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-PHF]";		
+		description = "[oolite-ship-library-description-viperinterceptor]";
+		turn_rate = "[oolite-ship-library-classified]";
+		generator = "[oolite-ship-library-classified]";
+		shields = "[oolite-ship-library-classified]";
+	},
+	{
+		ship = "worm";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-LT]";
+		description = "[oolite-ship-library-description-worm]";
+	}
+
+)

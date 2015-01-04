@@ -120,18 +120,18 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 /**
 	Expand a string with default options.
 */
-#define OOExpand(string, ...) OOExpandWithSeed([UNIVERSE systemSeed], string, __VA_ARGS__)
+#define OOExpand(string, ...) OOExpandWithSeed(OOStringExpanderDefaultRandomSeed(), string, __VA_ARGS__)
 
 /**
 	Expand a string as though it were surrounded by brackets;
 	OOExpandKey(@"foo", ...) is equivalent to OOExpand(@"[foo]", ...).
 */
-#define OOExpandKey(key, ...) OOExpandKeyWithSeed([UNIVERSE systemSeed], key, __VA_ARGS__)
+#define OOExpandKey(key, ...) OOExpandKeyWithSeed(OOStringExpanderDefaultRandomSeed(), key, __VA_ARGS__)
 
 /**
 	Like OOExpandKey(), but uses a random-er random seed to avoid repeatability.
  */
-#define OOExpandKeyRandomized(key, ...) OOExpandWithOptions([UNIVERSE systemSeed], kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
+#define OOExpandKeyRandomized(key, ...) OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandKey | kOOExpandGoodRNG | kOOExpandReseedRNG, key, __VA_ARGS__)
 
 #define OOExpandWithSeed(seed, string, ...) OOExpandWithOptions(seed, kOOExpandNoOptions, string, __VA_ARGS__)
 
@@ -140,6 +140,10 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name);
 
 #define OOExpandWithOptions(seed, options, string, ...) \
 	OOExpandDescriptionString(seed, string, OOEXPAND_ARG_DICTIONARY(__VA_ARGS__), nil, nil, options)
+
+
+// Equivalent to [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], without pulling in Universe.h.
+Random_Seed OOStringExpanderDefaultRandomSeed(void);
 
 
 // MARK: Danger zone! Everything beyond this point is scary.

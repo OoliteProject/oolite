@@ -36,7 +36,6 @@ MA 02110-1301, USA.
 this.name			= "oolite-constrictor";
 this.author			= "Eric Walch";
 this.copyright		= "© 2008-2013 the Oolite team.";
-this.version		= "1.79";
 
 
 /*
@@ -69,7 +68,8 @@ this.shipSpawned = function ()
 
 this.shipDied = function (killer)
 {
-    if (killer.isPlayer)
+	// check mission variable, just in case
+    if (killer && killer.isPlayer && missionVariables.conhunt === "STAGE_1")
 	{
 		missionVariables.conhunt = "CONSTRICTOR_DESTROYED";
 	}

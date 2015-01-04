@@ -50,7 +50,7 @@ else
     LIBJS = js_static
 
     ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++ -lopenal -lvorbisfile
+    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++ -lopenal -lz -lvorbisfile
     ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
     ADDITIONAL_OBJCFLAGS         = -Wall -std=gnu99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
     oolite_LIB_DIRS              += -L$(LIBJS_LIB_DIR) -L/usr/X11R6/lib/
@@ -154,6 +154,7 @@ oolite_C_FILES = \
 
 OOLITE_DEBUG_FILES = \
     OODebugMonitor.m \
+	OODebugStandards.m \
     OODebugSupport.m \
     OODebugTCPConsoleClient.m \
     OOJSConsole.m \
@@ -175,6 +176,7 @@ OOLITE_ENTITY_FILES = \
     PlayerEntityScriptMethods.m \
     PlayerEntitySound.m \
     PlayerEntityStickMapper.m \
+    PlayerEntityStickProfile.m \
     ProxyPlayerEntity.m \
     OOBreakPatternEntity.m \
     ShipEntity.m \
@@ -213,6 +215,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
     OOMaterial.m \
     OONullTexture.m \
     OOPlanetTextureGenerator.m \
+    OOStandaloneAtmosphereGenerator.m \
     OOPNGTextureLoader.m \
     OOShaderMaterial.m \
     OOShaderProgram.m \
@@ -238,6 +241,7 @@ OOLITE_GRAPHICS_MISC_FILES = \
     OOOpenGL.m \
     OOOpenGLStateManager.m \
     OOOpenGLExtensionManager.m \
+    OOOpenGLMatrixManager.m \
     OOProbabilisticTextureManager.m \
     OOSkyDrawable.m \
     OOTextureSprite.m \
@@ -258,6 +262,7 @@ OOLITE_OXP_VERIFIER_FILES = \
     OOAIStateMachineVerifierStage.m \
     OOCheckDemoShipsPListVerifierStage.m \
     OOCheckEquipmentPListVerifierStage.m \
+    OOCheckPListSyntaxVerifierStage.m \
     OOCheckRequiresPListVerifierStage.m \
     OOCheckShipDataPListVerifierStage.m \
     OOFileScannerVerifierStage.m \
@@ -272,7 +277,9 @@ OOLITE_RSRC_MGMT_FILES = \
     OOCache.m \
     OOCacheManager.m \
     OOConvertSystemDescriptions.m \
+	OOOXZManager.m \
     OOPListParsing.m \
+	OOSystemDescriptionManager.m \
     ResourceManager.m \
     TextureStore.m
 
@@ -323,17 +330,6 @@ OOLITE_SCRIPTING_FILES = \
     OOScriptTimer.m \
     OOJSFrameCallbacks.m \
     OOJSFont.m
-
-#OOLITE_SOUND_FILES = \
-#    OOBasicSoundReferencePoint.m \
-#    
-#    OOSDLConcreteSound.m \
-#    OOSDLSound.m \
-#    OOSDLSoundChannel.m \
-#    OOSDLSoundMixer.m \
-#    OOSoundSource.m \
-#    OOSoundSourcePool.m \
-#    SDLMusic.m
 
 OOLITE_SOUND_FILES = \
 	OOOpenALController.m \
@@ -395,14 +391,18 @@ OOLITE_MISC_FILES = \
     GameController.m \
     GameController+SDLFullScreen.m \
     OOJoystickManager.m \
+    OOJoystickProfile.m \
     OOSDLJoystickManager.m \
     main.m \
     MyOpenGLView.m \
     OOCharacter.m \
     OOCocoa.m \
+	OOCommodities.m \
+	OOCommodityMarket.m \
     OOEquipmentType.m \
     OOMouseInteractionMode.m \
     OORoleSet.m \
+    OOShipLibraryDescriptions.m \
     OOShipRegistry.m \
     OOSpatialReference.m \
     OOTrumble.m \

@@ -5,8 +5,8 @@ installers/autopackage/default.x86.apspec
 installers/autopackage/default.x86_64.apspec
 src/Cocoa/Info-Oolite.plist
 src/Cocoa/oolite-version.xcconfig
-Resources/Scripts/*
 Resources/InfoPlist.strings (twice. note: UTF-16)
+DebugOXP/Debug.oxp/manifest.plist
 
 - Major versions:
 Doc/OoliteReadMe.doc
@@ -20,6 +20,6 @@ On release:
 
 http://www.oolite.org/download (current version six times, previous version for Windows updater once)
 Topic of #oolite
-latest news at berlios.de
+latest news at http://www.oolite.org/
 update changelog link on freshmeat.net project page
 Submit A Release, freshmeat

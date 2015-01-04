@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 @interface DockEntity (OOPrivate)
 
 - (void) clearIdLocks:(ShipEntity *)ship;
+- (void) clearAllIdLocks;
 - (void) autoDockShipsInQueue:(NSMutableDictionary *)queue;
 - (void) addShipToShipsOnApproach:(ShipEntity *)ship;
 - (void) pullInShipIfPermitted:(ShipEntity *)ship;
@@ -78,7 +79,6 @@ MA 02110-1301, USA.
 		{
 			last_launch_time = [UNIVERSE getTime];
 		}
-		approach_spacing = 0.0;
 	}
 	
 	return [shipsOnApproach count];
@@ -125,8 +125,10 @@ MA 02110-1301, USA.
 
 	}
 	
+	// mark docking queue flight pattern as clear
+	[self clearAllIdLocks];
+
 	last_launch_time = [UNIVERSE getTime] + playerExtraTime;
-	approach_spacing = 0.0;
 }
 
 
@@ -294,26 +296,26 @@ MA 02110-1301, USA.
 		if (ship_distance > SCANNER_MAX_RANGE)
 		{
 			// too far away - don't claim a docking slot by not putting on approachlist for now.
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO, -1);
 		}
 
 		[self addShipToShipsOnApproach: ship];
 		
 		if (ship_distance < 1000.0 + [station collisionRadius] + ship->collision_radius)	// too close - back off
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 5000, @"BACK_OFF", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 5000, @"BACK_OFF", nil, NO, -1);
 		
 		float dot = HPdot_product(launchVector, delta);
 		if (dot < 0) // approaching from the wrong side of the station - construct a vector to the side of the station.
 		{
 			HPVector approachVector = HPcross_product(HPvector_normal(delta), launchVector);
 			approachVector = HPcross_product(launchVector, approachVector); // vector, 90 degr rotated from launchVector towards target.
-			return OOMakeDockingInstructions(station, OOHPVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , [ship maxFlightSpeed], 1000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, OOHPVectorTowards([self absolutePositionForSubentity], approachVector, [station collisionRadius] + 5000) , [ship maxFlightSpeed], 1000, @"APPROACH", nil, NO, -1);
 		}
 		
 		if (ship_distance > 12500.0)
 		{
 			// long way off - approach more closely
-			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO);
+			return OOMakeDockingInstructions(station, [self absolutePositionForSubentity], [ship maxFlightSpeed], 10000, @"APPROACH", nil, NO, -1);
 		}
 	}
 	
@@ -322,7 +324,7 @@ MA 02110-1301, USA.
 		// some error has occurred - log it, and send the try-again message
 		OOLogERR(@"station.issueDockingInstructions.failed", @"couldn't addShipToShipsOnApproach:%@ in %@, retrying later -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
 		
-		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"TRY_AGAIN_LATER", nil, NO);
+		return OOMakeDockingInstructions(station, [ship position], 200, 100, @"TRY_AGAIN_LATER", nil, NO, -1);
 	}
 
 
@@ -334,7 +336,7 @@ MA 02110-1301, USA.
 	{
 		OOLogERR(@"station.issueDockingInstructions.failed", @" -- coordinatesStack = %@", coordinatesStack);
 		
-		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"HOLD_POSITION", nil, NO);
+		return OOMakeDockingInstructions(station, [ship position], 0, 100, @"HOLD_POSITION", nil, NO, -1);
 	}
 	
 	// get the docking information from the instructions	
@@ -362,80 +364,73 @@ MA 02110-1301, USA.
 		if ((docking_stage == 1) &&(HPmagnitude2(delta) < 1000000.0))	// 1km*1km
 			speedAdvised *= 0.5;	// half speed
 		
-		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO);
+		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, NO, docking_stage);
 	}
-	else
-	{
-		// reached the current coordinates okay..
 	
-		// get the NEXT coordinates
-		nextCoords = (NSMutableDictionary *)[coordinatesStack oo_dictionaryAtIndex:1];
-		if (nextCoords == nil)
-		{
-			return nil;
-		}
-		
-		docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
-		speedAdvised = [nextCoords oo_floatForKey:@"speed"];
-		rangeAdvised = [nextCoords oo_floatForKey:@"range"];
-		BOOL match_rotation = [nextCoords oo_boolForKey:@"match_rotation"];
-		NSString *comms_message = [nextCoords oo_stringForKey:@"comms_message"];
-		
-		if (comms_message)
-		{
-			[station sendExpandedMessage:comms_message toShip:ship];
-		}
-				
-		// calculate world coordinates from relative coordinates
-		rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
-		rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
-		rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
-		coords = [self absolutePositionForSubentity];
-		coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
-		coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
-		coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
-		
-		if([id_lock[docking_stage] weakRefUnderlyingObject] == nil &&
-		   [id_lock[docking_stage + 1] weakRefUnderlyingObject] == nil &&
-		   [id_lock[docking_stage + 2] weakRefUnderlyingObject] == nil)	// check three stages ahead
-		{
-			// approach is clear - move to next position
-			//
-			
-			// clear any previously owned docking stages
-			[self clearIdLocks:ship];
-					
-			if (docking_stage > 1)	// don't claim first docking stage
-			{
-				[id_lock[docking_stage] release];
-				id_lock[docking_stage] = [ship weakRetain];	// otherwise - claim this docking stage
-			}
-			
-			//remove the previous stage from the stack
-			[coordinatesStack removeObjectAtIndex:0];
-			
-			return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation);
-		}
-		else
-		{
-			// approach isn't clear - hold position..
-			//
-			[[ship getAI] message:@"HOLD_POSITION"];
-			
-			if (![nextCoords objectForKey:@"hold_message_given"])
-			{
-				// COMM-CHATTER
-				[UNIVERSE clearPreviousMessage];
-				[self sendExpandedMessage: @"[station-hold-position]" toShip: ship];
-				[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
-			}
+	// else, reached the current coordinates okay..
 
-			return OOMakeDockingInstructions(station, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
-		}
+	// get the NEXT coordinates
+	nextCoords = (NSMutableDictionary *)[coordinatesStack oo_dictionaryAtIndex:1];
+	if (nextCoords == nil)
+	{
+		return nil;
 	}
 	
-	// we should never reach here.
-	return OOMakeDockingInstructions(station, coords, 50, 10, @"APPROACH_COORDINATES", nil, NO);
+	docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
+	speedAdvised = [nextCoords oo_floatForKey:@"speed"];
+	rangeAdvised = [nextCoords oo_floatForKey:@"range"];
+	BOOL match_rotation = [nextCoords oo_boolForKey:@"match_rotation"];
+	NSString *comms_message = [nextCoords oo_stringForKey:@"comms_message"];
+	
+	if (comms_message)
+	{
+		[station sendExpandedMessage:comms_message toShip:ship];
+	}
+			
+	// calculate world coordinates from relative coordinates
+	rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
+	rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
+	rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
+	coords = [self absolutePositionForSubentity];
+	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
+	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
+	coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
+	
+	if([id_lock[docking_stage] weakRefUnderlyingObject] == nil &&
+	   [id_lock[docking_stage + 1] weakRefUnderlyingObject] == nil &&
+	   [id_lock[docking_stage + 2] weakRefUnderlyingObject] == nil)	// check three stages ahead
+	{
+		// approach is clear - move to next position
+		//
+		
+		// clear any previously owned docking stages
+		[self clearIdLocks:ship];
+				
+		if (docking_stage > 1)	// don't claim first docking stage
+		{
+			[id_lock[docking_stage] release];
+			id_lock[docking_stage] = [ship weakRetain];	// otherwise - claim this docking stage
+		}
+		
+		//remove the previous stage from the stack
+		[coordinatesStack removeObjectAtIndex:0];
+		
+		return OOMakeDockingInstructions(station, coords, speedAdvised, rangeAdvised, @"APPROACH_COORDINATES", nil, match_rotation, docking_stage);
+	}
+	
+	// else, approach isn't clear - hold position..
+	//
+	[[ship getAI] message:@"HOLD_POSITION"];
+	
+	if (![nextCoords objectForKey:@"hold_message_given"])
+	{
+		// COMM-CHATTER
+		[UNIVERSE clearPreviousMessage];
+		[self sendExpandedMessage: @"[station-hold-position]" toShip: ship];
+		[nextCoords setObject:@"YES" forKey:@"hold_message_given"];
+	}
+
+	return OOMakeDockingInstructions(station, ship->position, 0, 100, @"HOLD_POSITION", nil, NO, -1);
 }
 
 
@@ -495,21 +490,46 @@ MA 02110-1301, USA.
 	{
 		NSMutableDictionary *nextCoords = [NSMutableDictionary dictionaryWithCapacity:3];
 		int offset = corridor_offset[i];
+		float corridor_length = port_depth * corridor_distance[i];
 		
-		// space out first coordinate further if there are many ships
-		if ((i == corridor_count - 1) && offset)
+		float rx = s * port_depth * offset;
+		float ry = c * port_depth * offset;
+		float rz = corridor_length;
+		// if there are many ships on approach, randomise coordinates a bit
+		if ((i == corridor_count - 1) && [self countOfShipsInDockingQueue])
 		{
-			offset += approach_spacing / port_depth;
+			/* This used to try to just space the ships further out
+			 * along the 16 approach lanes - this had various problems
+			 * with putting ship coordinates on top of each other
+			 * and/or spacing them out all the way back to the
+			 * witchpoint. Instead, use a few more bits of
+			 * entityPersonalityInt to shuffle the holding coordinates
+			 * a bit more. It still doesn't guarantee two ships won't
+			 * want the same space, but it makes it considerably more
+			 * unlikely - I dropped 100 docking ships into the aegis
+			 * at once, and they all got allocated positions far
+			 * enough from the others to avoid collisions or near
+			 * misses - CIM: 27 May 2014 */
+
+			int offset_id2 = ([ship entityPersonalityInt] & 0xf0)>>4;	// 16  point compass
+			int offset_id3 = ([ship entityPersonalityInt] & 0xf00)>>8;	// 16  point step position
+			float c2 = cos(offset_id2 * M_PI * ONE_EIGHTH);
+			float s2 = sin(offset_id2 * M_PI * ONE_EIGHTH);
+			float ssize = MAX(port_depth,1500.0);
+			rx += c2 * ssize; 
+			ry += s2 * ssize; 
+			rz += ssize * ((float)offset_id3 / 4.0);
+
+//			OOLog(@"docking.debug",@"Adjusted coordinates by %f x %f x %f",c2 * ssize,s2 * ssize,ssize * ((float)offset_id3 / 4.0));
 		}
 		
-		float corridor_length = port_depth * corridor_distance[i];
 		// add the lenght inside the station to the corridor, except for the final position, inside the dock.
 		if (corridor_distance[i] > 0)  corridor_length += port_corridor;
 		
 		[nextCoords oo_setInteger:corridor_count - i	forKey:@"docking_stage"];
-		[nextCoords oo_setFloat:s * port_depth * offset	forKey:@"rx"];
-		[nextCoords oo_setFloat:c * port_depth * offset	forKey:@"ry"];
-		[nextCoords oo_setFloat:corridor_length			forKey:@"rz"];
+		[nextCoords oo_setFloat:rx						forKey:@"rx"];
+		[nextCoords oo_setFloat:ry						forKey:@"ry"];
+		[nextCoords oo_setFloat:rz						forKey:@"rz"];
 		[nextCoords oo_setFloat:corridor_speed[i]		forKey:@"speed"];
 		[nextCoords oo_setFloat:corridor_range[i]		forKey:@"range"];
 		
@@ -535,17 +555,6 @@ MA 02110-1301, USA.
 	
 	[shipsOnApproach setObject:coordinatesStack forKey:shipID];
 	
-	approach_spacing += 500;  // space out incoming ships by 500m
-	
-	// FIXME: Eric 23-10-2011: Below is a quick fix to prevent the approach_spacing from blowing up
-	// to high values because of bad AI's for docking ships that keep requesting and aborting docking.
-	// Post 1.76 this probably should replace it with a proper list of holding slots so  that close by slots
-	// can be used again once the ship has left the Approach queue. In the current fix, resetting can
-	// result in two ships getting the same holding position.
-	if (approach_spacing > 2 * SCANNER_MAX_RANGE && approach_spacing / 500 > 5 * [shipsOnApproach count])
-	{
-		approach_spacing = 0;
-	}
 	
 	// COMM-CHATTER
 	if (station == [UNIVERSE station])
@@ -631,6 +640,11 @@ MA 02110-1301, USA.
 	{
 		return YES;
 	}
+	// player docking manually
+	if ([ship isPlayer] && [[self owner] playerReservedDock] == self)
+	{
+		return YES;
+	}
 	return NO;
 }
 
@@ -680,22 +694,23 @@ MA 02110-1301, USA.
 
 	BOOL rotatedPort = (ww >= hh) ? NO : YES;
 	BOOL rotatedShip = ((shipbb.max.x - shipbb.min.x) >= (shipbb.max.y - shipbb.min.y)) ? NO : YES;
-	if (rotatedShip == rotatedPort)
+	BOOL rotationsMatch = (rotatedShip == rotatedPort);
+	if (rotationsMatch)
 	{
 		// the ship and port are both bigger in x than y
-		while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
-		while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+		while (shipbb.max.x - shipbb.min.x > ww * 0.90) ww *= 1.25;
+		while (shipbb.max.y - shipbb.min.y > hh * 0.90) hh *= 1.25;
 	}
 	else
 	{
 		// the ship and port have different x/y biggerness
-		while (shipbb.max.x - shipbb.min.x > hh * 0.90)	hh *= 1.25;
-		while (shipbb.max.y - shipbb.min.y > ww * 0.90)	ww *= 1.25;
+		while (shipbb.max.y - shipbb.min.y > ww * 0.90) ww *= 1.25;
+		while (shipbb.max.x - shipbb.min.x > hh * 0.90) hh *= 1.25;
 	}
 	
 	ww *= 0.5;
 	hh *= 0.5;
-	
+
 #ifndef NDEBUG
 	if ([ship isPlayer] && (gDebugFlags & DEBUG_DOCKING))
 	{
@@ -757,12 +772,21 @@ MA 02110-1301, USA.
 	
 	// if close enough (within 50%) correct and add damage
 	//
-	GLfloat safety = 1.0+(01.0/100.0);
+	GLfloat safety = 1.0+(50.0/100.0);
 
-	if  ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
+	if ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
 	{
 		if (arbb.min.z < 0.0)	// got our nose inside
 		{
+
+			if ((arbb.min.x < -ww && arbb.max.x > ww) || (arbb.min.y < -hh && arbb.max.y > hh))
+			{
+				/* No matter how much safety margin there is, if the
+				 * ship is going off opposite edges of the dock at
+				 * once, that's a fatal collision */
+				return NO;
+			}
+
 			GLfloat correction_factor = -arbb.min.z / (arbb.max.z - arbb.min.z);	// proportion of ship inside
 		
 			// damage the ship according to velocity - don't send collision messages to AIs to avoid problems.
@@ -779,7 +803,7 @@ MA 02110-1301, USA.
 				// x is okay - no need to correct
 				delta.x = 0.0f;
 			}
-			if (arbb.max.y > hh && arbb.min.x > -hh)
+			if (arbb.max.y > hh && arbb.min.y > -hh)
 			{
 				// y is okay - no need to correct
 				delta.y = 0.0f;
@@ -951,8 +975,15 @@ MA 02110-1301, USA.
 		return NO;
 	}
 	
-	// check against all ships
+
 	StationEntity	*station = (StationEntity *)[self parentEntity];
+	if ([station playerReservedDock] == self)
+	{
+		// player probably will not appreciate a ship launch right now
+		return NO;
+	}
+
+	// check against all ships
 	BOOL			isEmpty = YES;
 	int				ent_count =		UNIVERSE->n_entities;
 	Entity			**uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
@@ -1166,6 +1197,16 @@ MA 02110-1301, USA.
 }
 
 
+- (void) clearAllIdLocks
+{
+	int i;
+	for (i = 1; i < MAX_DOCKING_STAGES; i++)
+	{
+		DESTROY(id_lock[i]);
+	}
+}
+
+
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
 	OOJS_PROFILE_ENTER
@@ -1188,7 +1229,11 @@ MA 02110-1301, USA.
 	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
 	{
 		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
-		[self launchShip:se];
+		// check to make sure ship has not been destroyed in queue by script
+		if ([se status] == STATUS_DOCKED)
+		{
+			[self launchShip:se];
+		}
 		[launchQueue removeObjectAtIndex:0];
 	}
 	if (([launchQueue count] == 0) && no_docking_while_launching)
@@ -1196,11 +1241,6 @@ MA 02110-1301, USA.
 		no_docking_while_launching = NO;	// launching complete
 	}
 	
-	if (approach_spacing > 0.0)
-	{
-		approach_spacing -= delta_t * 10.0;	// reduce by 10 m/s
-		if (approach_spacing < 0.0)   approach_spacing = 0.0;
-	}
 }
 
 

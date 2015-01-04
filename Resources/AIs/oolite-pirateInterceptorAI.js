@@ -28,7 +28,6 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Pirate Interceptor AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	this.ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
@@ -38,17 +37,27 @@ this.aiStarted = function() {
 
 	// to hunt the hunters, go where they go
 	var searchalgorithm = ai.conditionScannerContainsHunters;
+	var commsrole = "pirate";
 	if (this.ship.primaryRole == "pirate-aegis-raider")
 	{
+		if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("pirate-aegis-raider").length > 0)
+		{
+			commsrole = "pirate-aegis-raider";
+		}
 		searchalgorithm = ai.conditionScannerContainsCleanShip;
 		ai.setWaypointGenerator(ai.waypointsStationPatrol);
 	}
 	else
 	{
+		if (worldScripts["oolite-libPriorityAI"]._getCommunicationPersonalities("pirate-aegis-raider").length > 0)
+		{
+			commsrole = "pirate-interceptor";
+		}
 		ai.setWaypointGenerator(ai.waypointsSpacelanePatrol);
 	}
 
-	ai.setCommunicationsRole("pirate");
+	ai.setParameter("oolite_personalityMatchesLeader",0.95);
+	ai.setCommunicationsRole(commsrole);
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate"]);
 	

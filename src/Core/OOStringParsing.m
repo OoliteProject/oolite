@@ -32,19 +32,14 @@ MA 02110-1301, USA.
 #import "OOFunctionAttributes.h"
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
+#import "HeadUpDisplay.h"
 
 #import "OOJavaScriptEngine.h"
 #import "OOJSEngineTimeManagement.h"
 
 
-#if DEBUG_GRAPHVIZ
-#define NSMakeRange(loc, len) ((NSRange){loc, len})
-#endif
-
-
 static NSString * const kOOLogStringVectorConversion			= @"strings.conversion.vector";
 static NSString * const kOOLogStringQuaternionConversion		= @"strings.conversion.quaternion";
-static NSString * const kOOLogStringVecAndQuatConversion		= @"strings.conversion.vectorAndQuaternion";
 static NSString * const kOOLogStringRandomSeedConversion		= @"strings.conversion.randomSeed";
 
 
@@ -56,7 +51,7 @@ NSMutableArray *ScanTokensFromString(NSString *values)
 	static NSCharacterSet	*space_set = nil;
 	
 	// Note: Shark suggests we're getting a lot of early exits, but testing showed a pretty steady 2% early exit rate.
-	if (EXPECT_NOT(values == nil))  return [NSArray array];
+	if (EXPECT_NOT(values == nil))  return [NSMutableArray array];
 	if (EXPECT_NOT(space_set == nil)) space_set = [[NSCharacterSet whitespaceAndNewlineCharacterSet] retain];
 	
 	result = [NSMutableArray array];
@@ -266,13 +261,21 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 }
 
 
-NSString *OOPadStringTo(NSString * string, float numSpaces)
+NSString *OOPadStringToEms(NSString * string, float padEms)
 {
 	NSString		*result = string;
-	numSpaces -= [result length];
-	if (numSpaces>0)
+	float numEms = padEms - OOStringWidthInEm(result);
+	if (numEms>0)
 	{
-		result=[[@"" stringByPaddingToLength: numSpaces*2 withString: @" " startingAtIndex:0] stringByAppendingString: result];
+		numEms /= OOStringWidthInEm(@" "); // start with wide space
+		result=[[@"" stringByPaddingToLength:(NSUInteger)numEms withString: @" " startingAtIndex:0] stringByAppendingString: result];
+	}
+	// most of the way there, so switch to narrow space
+	numEms = padEms - OOStringWidthInEm(result);
+	if (numEms>0)
+	{
+		numEms /= OOStringWidthInEm(@"\037"); // 037 is narrow space
+		result=[[@"" stringByPaddingToLength:(NSUInteger)numEms withString: @"\037" startingAtIndex:0] stringByAppendingString: result];
 	}
 	return result;
 }
@@ -422,11 +425,6 @@ NSString *ClockToString(double clock, BOOL adjusting)
 
 #if DEBUG_GRAPHVIZ
 
-// Workaround for Xcode auto-indent bug
-static NSString * const kQuotationMark = @"\"";
-static NSString * const kEscapedQuotationMark = @"\\\"";
-
-
 NSString *EscapedGraphVizString(NSString *string)
 {
 	NSString * const srcStrings[] =
@@ -451,7 +449,7 @@ NSString *EscapedGraphVizString(NSString *string)
 		[mutable replaceOccurrencesOfString:*src++
 								 withString:*sub++
 									options:0
-									  range:NSMakeRange(0, [mutable length])];
+									  range:(NSRange){ 0, [mutable length] }];
 	}
 	
 	if ([mutable length] == [string length])

@@ -40,14 +40,14 @@
 	{
 		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_MAP = 1;
-		OOSTD_NORMAL_AND_SPECULAR_MAP = "!OO_REDUCED_COMPLEXITY";
+		OOSTD_NORMAL_AND_SPECULAR_MAP = 1;
 		OOSTD_CUBE_MAP = 0;
 	};
 	"moon-dynamic-macros" =
 	{
 		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_MAP = 1;
-		OOSTD_NORMAL_AND_SPECULAR_MAP = "!OO_REDUCED_COMPLEXITY";
+		OOSTD_NORMAL_AND_SPECULAR_MAP = 1;
 		OOSTD_CUBE_MAP = 0;
 		OOSTD_HARSH_MISTRESS = 1;
 	};
@@ -62,6 +62,19 @@
 		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_MAP = 1;
 		OOSTD_CUBE_MAP = 0;
+		OOSTD_HARSH_MISTRESS = 1;
+	};
+	"planet-customized-cubemap-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_CUBE_MAP = 1;
+	};
+	"moon-customized-cubemap-macros" =
+	{
+		IS_OOLITE = 1;
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_CUBE_MAP = 1;
 		OOSTD_HARSH_MISTRESS = 1;
 	};
 }

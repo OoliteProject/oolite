@@ -36,19 +36,74 @@ MA 02110-1301, USA.
 this.name			= "oolite-populator";
 this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
-this.version		= "1.79";
 
 
 this.startUp = function()
 {
-	// for translations
+	/* For translations: the Moray Medical Boat gets different cargo */
 	this.$medicalReg = new RegExp(expandDescription("[medical-word]"),"i");
+
+	/* The global level of bias in weapon selection. A few useful
+	 * threshold values if modifying this:
+	 *
+	 * 0: default weapon selection
+	 *
+	 * 0.2: above this military lasers start being granted to rare ships
+	 *
+	 * 1.2: above this aft military lasers start appearing; forward
+	 * military/aft beam is common
+	 *
+	 * -0.8: no ships have aft beam laser; forward beam is rare
+	 *
+	 * -1.8: no ships have beam lasers
+	 *
+	 * A few ships (e.g. police ships) do not have variable lasers and
+	 * are not affected by this setting.
+	 */
+	this.$weaponLevelBias = 0;
+
+	/* The global level of bias in AI skill selection. Per-ship bias
+	 * varies between +3 and -3. Ships with accuracy already >= 5 are
+	 * not affected by this biasing.
+	 *
+	 * At -3, no ships will get an accuracy higher than the random
+	 * -5..5 they spawned with; at +3 no ships will get an accuracy
+	 * lower than that.
+	 *
+	 * Regardless of this parameter, 
+	 */
+	this.$skillLevelBias = 0;
+
+	/* The maximum accuracy a ship can be granted by skill
+	 * biasing. Values >10 can be set and will make it more likely
+	 * that any ship with positive skill bias will get accuracy
+	 * 10. Setting a negative value here will have odd results.  
+	 */
+	this.$skillLevelMaximum = 4.99;
+
+
+	// internal variables; do not modify outside this script
+	this.$populatorRun = 0;
+	delete this.startUp;
 }
 
+
+/* This allows this.systemWillPopulate to be called by scripts running
+ * before it, so that its entries are in place before they try to
+ * modify them. Generally useful if you want to modify the basic
+ * system population. */
+this.shipWillEnterWitchspace = function()
+{
+	this.$populatorRun = 0; // reset variable after all population complete
+}
 
 /* Basic system population */
 this.systemWillPopulate = function() 
 {
+	if (this.$populatorRun)
+	{
+		return;
+	}
 
 	/* Priority range 0-99 used by Oolite default populator */
 	// anything added here with priority > 20 will be cancelled by the
@@ -66,6 +121,7 @@ this.systemWillPopulate = function()
 								var nb = system.addShips("buoy",1,pos,0)[0];
 								nb.scanClass = "CLASS_BUOY";
 								nb.reactToAIMessage("START_TUMBLING");
+								nb.beaconLabel = "[oolite-beacon-label-station]";
 							},
 							deterministic: true
 						});
@@ -79,6 +135,7 @@ this.systemWillPopulate = function()
 								var wb = system.addShips("buoy-witchpoint",1,pos,0)[0];
 								wb.scanClass = "CLASS_BUOY";
 								wb.reactToAIMessage("START_TUMBLING");
+								wb.beaconLabel = "[oolite-beacon-label-witchpoint]";
 							},
 							deterministic: true
 						});
@@ -96,9 +153,20 @@ this.systemWillPopulate = function()
 		// don't add rock hermits if the sun is about to explode
 		if (hermit && !system.sun.isGoingNova) 
 		{
-			var rh = system.addShips("rockhermit",1,pos,0)[0];
+			var allegiance = this._hermitAllegiance(pos,system.info.government);
+			var role = "rockhermit";
+			if (allegiance == "chaotic")
+			{
+				role = "rockhermit-chaotic";
+			}
+			else if (allegiance == "pirate")
+			{
+				role = "rockhermit-pirate";
+			}
+
+			var rh = system.addShips(role,1,pos,0)[0];
 			rh.scanClass = "CLASS_ROCK";
-			rh.allegiance = this._hermitAllegiance(pos,system.info.government);
+
 		}
 	}.bind(this);
 
@@ -129,11 +197,20 @@ this.systemWillPopulate = function()
 							locationSeed: 71258,
 							groupCount: 1,
 							callback: function(pos) {
-								if (system.countShipsWithPrimaryRole("rockhermit")==0) {
-									var rh = system.addShips("rockhermit",1,pos,0)[0];
-									rh.scanClass = "CLASS_ROCK";
-									rh.allegiance = this._hermitAllegiance(pos,system.info.government);
+								if (system.countShipsWithPrimaryRole("rockhermit")+system.countShipsWithPrimaryRole("rockhermit-chaotic")+system.countShipsWithPrimaryRole("rockhermit-pirate")==0) {
+									var allegiance = this._hermitAllegiance(pos,system.info.government);
+									var role = "rockhermit";
+									if (allegiance == "chaotic")
+									{
+										role = "rockhermit-chaotic";
+									}
+									else if (allegiance == "pirate")
+									{
+										role = "rockhermit-pirate";
+									}
+									var rh = system.addShips(role,1,pos,0)[0];
 									// just the hermit, no other rocks
+									rh.scanClass = "CLASS_ROCK";
 								}
 							}.bind(this),
 							deterministic: true
@@ -629,19 +706,19 @@ this.systemWillPopulate = function()
 
 	// hunters
 	// 5/6 go route 1, and back. 50% faster ships than traders, on average
-	initial = hlight * 5/6 * (l1length*2 / 900000) * (1.0-0.1*(7-system.info.government));
-	system.setPopulator("oolite-hunters-route1",
-						{
-							priority: 40,
-							location: "LANE_WP",
-							groupCount: randomise(initial),
-							callback: this._addLightHunter.bind(this)
-						});
 	initial = hlight * 1/6 * (trilength / 900000) * (1.0-0.1*(7-system.info.government));
 	system.setPopulator("oolite-hunters-triangle",
 						{
 							priority: 40,
 							location: "LANE_WPS",
+							groupCount: randomise(initial),
+							callback: this._addLightHunter.bind(this)
+						});
+	initial = hlight * 5/6 * (l1length*2 / 900000) * (1.0-0.1*(7-system.info.government));
+	system.setPopulator("oolite-hunters-route1",
+						{
+							priority: 40,
+							location: "LANE_WP",
 							groupCount: randomise(initial),
 							callback: this._addLightHunter.bind(this)
 						});
@@ -783,6 +860,7 @@ this.systemWillPopulate = function()
 						});
 	// assassins
 	initial = assassins;
+	var maxas = 2;
 	if (system.info.government < 3)
 	{
 		// if carrying high-risk contracts through dangerous systems,
@@ -799,6 +877,7 @@ this.systemWillPopulate = function()
 				} 
 				if (cs[i].risk == 2 && Math.random() < 0.5)
 				{
+					maxas += 2;
 					initial++;
 				}
 			}
@@ -820,6 +899,7 @@ this.systemWillPopulate = function()
 				} 
 				if (cs[i].risk == 2 && Math.random() < 0.5)
 				{
+					maxas += 2;
 					initial++;
 				}
 			}
@@ -829,11 +909,21 @@ this.systemWillPopulate = function()
 			}
 		}
 	}
+	var agc = randomise(initial);
+	/* Because the assassin groups all appear at the witchpoint it can
+	 * end up ridiculously populated in certain systems. Cap the
+	 * number of initial assassin groups at 2, unless the player is
+	 * carrying high-risk items, in which case they deserve whatever
+	 * shows up for jumping into an Anarchy bottleneck. */
+	if (agc > maxas)
+	{
+		agc = maxas;
+	}
 	system.setPopulator("oolite-assassins",
 						{
 							priority: 40,
 							location: "WITCHPOINT",
-							groupCount: randomise(initial),
+							groupCount: agc,
 							callback: this._addAssassin.bind(this)
 						});
 	
@@ -936,7 +1026,7 @@ this.systemWillPopulate = function()
 	this._debugP("Thargoid (ST)",pset["oolite-thargoid-strike"].groupCount);
 
 	// and the initial ships are done...
-
+	this.$populatorRun = 1;
 }
 
 
@@ -1226,6 +1316,10 @@ this.systemWillRepopulate = function()
 
 this.interstellarSpaceWillPopulate = function() 
 {
+	if (this.$populatorRun)
+	{
+		return;
+	}
 	system.setPopulator("oolite-interstellar-thargoids",
 						{
 							priority: 10,
@@ -1235,20 +1329,24 @@ this.interstellarSpaceWillPopulate = function()
 								system.addShips("thargoid",1,pos,0);
 							}
 						});
+	this.$populatorRun = 1;
 }
 
 this.interstellarSpaceWillRepopulate = function()
 {
-	if (system.countShipsWithPrimaryRole("thargoid") < 2)
+	if (Math.random() < 0.25)
 	{
-		if (Math.random() > 0.01)
+		if (system.countShipsWithPrimaryRole("thargoid") < 3)
 		{
-			system.addShips("thargoid",1,[0,0,0],25600);
-		}
-		else
-		{
-			// everyone's getting ambushed today
-			system.addShips("trader",1,[0,0,0],6400);
+			if (Math.random() > 0.05)
+			{
+				system.addShips("thargoid",1+Math.floor(Math.random()*3),[0,0,0],25600);
+			}
+			else
+			{
+				// everyone's getting ambushed today
+				system.addShips("trader",1,[0,0,0],6400);
+			}
 		}
 	}
 }
@@ -1257,6 +1355,10 @@ this.interstellarSpaceWillRepopulate = function()
 
 this.novaSystemWillPopulate = function()
 {
+	if (this.$populatorRun)
+	{
+		return;
+	}
 	// just burnt-out rubble
 	system.setPopulator("oolite-nova-cinders",
 						{
@@ -1269,7 +1371,7 @@ this.novaSystemWillPopulate = function()
 								system.addShips("cinder",10,pos,25600);
 							}
 						});
-
+	this.$populatorRun = 1;
 }
 
 
@@ -1296,6 +1398,7 @@ this._addFreighter = function(pos)
 			t[0].homeSystem = system.ID;
 			t[0].destinationSystem = this._weightedNearbyTradeSystem();
 			goods = "PLENTIFUL_GOODS";
+			t[0].fuel = 7;
 		}
 		else
 		{
@@ -1323,9 +1426,15 @@ this._addFreighter = function(pos)
 			{
 				t[0].bounty = Math.ceil(Math.random()*20);
 				// half of the offender traders are a bit more sinister
-				if (Math.random() < 0.5)
+				// can only happen with ships which allow autoAI
+				if (Math.random() < 0.5 && t[0].autoAI)
 				{
 					t[0].switchAI("oolite-traderOpportunistAI.js");
+					if (t[0].autoWeapons)
+					{
+						this._setSkill(t[0],2); // need to be decent pilots to make this work
+						this._setWeapons(t[0],2.5); // boost weapons
+					}
 					goods = "PIRATE_GOODS";
 				} 
 				var eg = t[0].escortGroup.ships;
@@ -1495,13 +1604,13 @@ this._addMediumHunterRemote = function(pos)
 
 this._addMediumHunterReturn = function(pos)
 {
-	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-medium",true);
+	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(4),"hunter-medium",true);
 }
 
 
 this._addMediumHunterOutbound = function(pos)
 {
-	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(1),"hunter-medium",false);
+	this._addHunterPack(pos,system.ID,this._nearbyDangerousSystem(4),"hunter-medium",false);
 }
 
 
@@ -1537,6 +1646,8 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 	{
 		t[0].bounty = 0;
 		t[0].homeSystem = home;
+		t[0].destinationSystem = dest;
+		
 		if (returning)
 		{
 			this._setMissiles(t[0],-1);
@@ -1547,8 +1658,6 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			this._setFuel(t[0]);
 		}
 
-		t[0].destinationSystem = dest;
-		
 		var group = new ShipGroup("hunter group",t[0]);
 		t[0].group = group;
 
@@ -1578,7 +1687,12 @@ this._addHunterPack = function(pos,home,dest,role,returning)
 			this._setWeapons(t[0],1.9);
 		}
 		this._setSkill(t[0],3); // likely to be good pilot
-		t[0].switchAI("oolite-bountyHunterLeaderAI.js");
+		if (t[0].autoAI)
+		{
+			t[0].switchAI("oolite-bountyHunterLeaderAI.js"); 
+// auto AI will normally get this already but not if the hunter
+// addition used fallback roles
+		}
 	}
 }
 
@@ -1638,7 +1752,14 @@ this._addPirateAssistant = function(role,lead,pos)
 	asst[0].destinationSystem = lead.destinationSystem;
 	if (role == "pirate-interceptor")
 	{
-		asst[0].switchAI("oolite-pirateInterceptorAI.js");
+		// autoAI gets this (except if we've fallen back to generic
+		// pirates) once OXPs have caught up and we can be confident
+		// that the new roles will be available, this can be
+		// simplified.
+		if (asst[0].autoAI)
+		{
+			asst[0].switchAI("oolite-pirateInterceptorAI.js");
+		}
 		asst[0].setBounty(50+system.government+Math.floor(Math.random()*36),"setup actions");
 		// interceptors not actually part of group: they just get the
 		// same destinations
@@ -1652,7 +1773,12 @@ this._addPirateAssistant = function(role,lead,pos)
 	{ 
 		asst[0].group = lead.group;
 		lead.group.addShip(asst[0]);
-		asst[0].switchAI("oolite-pirateFighterAI.js");
+		// autoAI gets this (except if we've fallen back to generic
+		// pirates - see above)
+		if (asst[0].autoAI)
+		{
+			asst[0].switchAI("oolite-pirateFighterAI.js");
+		}
 		asst[0].setBounty(20+system.government+Math.floor(Math.random()*12),"setup actions");
 		if (role == "pirate-light-fighter")
 		{
@@ -1741,7 +1867,11 @@ this._addPiratePack = function(pos,leader,lf,mf,hf,thug,home,destination,returni
 		lead[0].setCargoType("PIRATE_GOODS");
 	}
 	this._setEscortWeapons(lead[0]);
-	lead[0].switchAI("oolite-pirateFreighterAI.js");
+	if (lead[0].autoAI)
+	{
+		// may have fallen back to generic 'pirate' role, so make sure
+		lead[0].switchAI("oolite-pirateFreighterAI.js");
+	}
 	return lead[0];
 }
 
@@ -1881,36 +2011,41 @@ this._addAssassin = function(pos)
 		{
 			main.awardEquipment("EQ_SHIELD_BOOSTER"); 
 		}
+		// assassins don't respect escape pods and won't expect anyone
+		// else to either.
+		main.removeEquipment("EQ_ESCAPE_POD");
 		main.fuel = 7;
 		this._setWeapons(main,ws);
 		this._setSkill(main,extra);
 	}
 	//	main.bounty = 1+Math.floor(Math.random()*10);
-	main.switchAI("oolite-assassinAI.js");
+//	main.switchAI("oolite-assassinAI.js"); // autoAI can get this
 	if (extra > 0)
 	{
 		var g = new ShipGroup("assassin group",main);
 		main.group = g;
+		var numext = Math.floor(Math.random()*3)+1;
 		if (role == "assassin-heavy")
 		{
-			var extras = this._addShips("assassin-medium",2,pos,3E3);
+			var extras = this._addShips("assassin-medium",numext,pos,3E3);
 		}
 		else
 		{
-			var extras = this._addShips("assassin-light",2,pos,3E3);
+			var extras = this._addShips("assassin-light",numext,pos,3E3);
 		}
-		for (var i=0;i<2;i++)
+		for (var i=0;i<numext;i++)
 		{
 			extras[i].group = g;
 			g.addShip(extras[i]);
 			if (extras[i].autoWeapons)
 			{
 				extras[i].awardEquipment("EQ_FUEL_INJECTION");
+				extras[i].removeEquipment("EQ_ESCAPE_POD");
 				extras[i].fuel = 7;
 				this._setWeapons(extras[i],1.8);
 			}
 			//			extras[i].bounty = 1+Math.floor(Math.random()*5);
-			extras[i].switchAI("oolite-assassinAI.js");
+//			extras[i].switchAI("oolite-assassinAI.js");
 		}
 	}
 }
@@ -1953,7 +2088,7 @@ this._addPoliceStationPatrol = function(pos)
 	p.primaryRole = "police-station-patrol";
 	p.group = system.mainStation.group;
 	p.group.addShip(p);
-	p.switchAI("oolite-policeAI.js");
+	// p.switchAI("oolite-policeAI.js");// autoAI gets this
 	p.bounty = 0;
 	p.maxEscorts = 16;
 	if (system.info.techlevel >= 14)
@@ -1974,7 +2109,7 @@ this._addInterceptors = function(pos)
 		h.ships[i].maxEscorts = 16;
 		h.ships[i].homeSystem = system.ID;
 		h.ships[i].destinationSystem = system.ID;
-		h.ships[i].switchAI("oolite-policeAI.js");
+//		h.ships[i].switchAI("oolite-policeAI.js"); // auto AI
 		// only +1 as core already gives police ships better AI
 		this._setSkill(h.ships[i],1);
 
@@ -2079,6 +2214,7 @@ this._setEscortWeapons = function(mothership)
  */
 this._setWeapons = function(ship,level)
 {
+	level += this.$weaponLevelBias;
 	if (!ship.autoWeapons)
 	{
 		// default is not to change anything
@@ -2137,10 +2273,11 @@ this._setWeapons = function(ship,level)
 
 this._setSkill = function(ship,bias)
 {
+	bias += this.$skillLevelBias;
 	if (ship.autoWeapons && ship.accuracy < 5 && bias != 0)
 	{
 		// shift skill towards end of accuracy range
-		var target = 4.99;
+		var target = this.$skillLevelMaximum;
 		if (bias < 0)
 		{
 			target = -5;
@@ -2209,7 +2346,7 @@ this._setReturnFuel = function(ship)
 this._wormholePos = function()
 {
 	var v = Vector3D.randomDirection().multiply(2000+Math.random()*3000);
-	if (v.z < 0 && v.x+v.y < 500)
+	if (v.z < 0 && Math.abs(v.x)+Math.abs(v.y) < 1000)
 	{
 		v.z = -v.z; // avoid collision risk with witchbuoy
 	}
@@ -2474,28 +2611,55 @@ this._weightedNearbyTradeSystem = function()
 		}
 	}
 	// fallback
+	if (locals.length > 0)
+	{
+		return locals[0].systemID;
+	}
 	return system.ID;
 }
 
 /* Station selectors */
 
+this._launchReady = function(station)
+{
+	var docks = station.subEntities;
+	var space = 0;
+	for (var i=0; i<docks.length;i++)
+	{
+		if (docks[i].isDock)
+		{
+			space += 16 - docks[i].launchingQueueLength;
+		}
+	}
+//	log("station.debug",station.displayName+" has "+space +" in docking queue");
+	return (space >= 8);
+}
+
+
 // station for launching traders
 this._tradeStation = function(usemain)
 {
 	// usemain biases, but does not guarantee or forbid
-	if (usemain && Math.random() < 0.67)
+	if (usemain && Math.random() < 0.67 && this._launchReady(system.mainStation))
 	{
 		return system.mainStation;
 	}
 	var stats = system.stations;
-	var stat = system.stations[Math.floor(Math.random()*stats.length)];
-	if (stat.hasNPCTraffic)
+	var tries = 0;
+	do
 	{
-		if (stat.allegiance == "neutral" || stat.allegiance == "galcop" || stat.allegiance == "chaotic")
+		var stat = system.stations[Math.floor(Math.random()*stats.length)];
+		if (stat.hasNPCTraffic)
 		{
-			return stat;
+			if (stat.allegiance == "neutral" || stat.allegiance == "galcop" || stat.allegiance == "chaotic")
+			{
+				if (this._launchReady(stat))
+				{
+					return stat;
+				}
+			}
 		}
-	}
+	} while (tries < 5 && tries < stats.length);
 	return system.mainStation;
 }
 
@@ -2508,7 +2672,10 @@ this._pirateLaunch = function()
 	{
 		if (stat.allegiance == "pirate" || stat.allegiance == "chaotic")
 		{
-			return stat;
+			if (this._launchReady(stat))
+			{
+				return stat;
+			}
 		}
 	}
 	return system.mainPlanet;
@@ -2524,7 +2691,10 @@ this._hunterLaunch = function()
 	{
 		if (stat.allegiance == "hunter" || stat.allegiance == "galcop")
 		{
-			return stat;
+			if (this._launchReady(stat))
+			{
+				return stat;
+			}
 		}
 	}
 	return system.mainStation;
@@ -2540,7 +2710,10 @@ this._policeLaunch = function()
 	{
 		if (stat.allegiance == "galcop")
 		{
-			return stat;
+			if (this._launchReady(stat))
+			{
+				return stat;
+			}
 		}
 	}
 	return system.mainStation;

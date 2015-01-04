@@ -167,7 +167,7 @@
 	"oolite-registership-instructions-part2" = "Please enter your ship's new name. Registering a name here is important to distinguish your ship from others of the same type.\n\nFor example, if you enter 'Pride of %H' here, your ship will be registered as '[commander_shipname]: Pride of %H'\n\nYour ship is currently registered as '[commander_shipdisplayname]'. To keep this name, press 'Enter' now.";
 
 	"oolite-registership-title-part3" = "Thank you for completing registration";
-	"oolite-registership-instructions-part3" = "Thank you. Your selected personal name and new ship name have been recorded, and will be transmitted to public ship registries in the next daily feed.\n\nIf at any point you wish to change either your own name or that of your ship, you may do so by docking at any Galactice Cooperative station, returning to this interface and entering the new data.";
+	"oolite-registership-instructions-part3" = "Thank you. Your selected personal name and new ship name have been recorded, and will be transmitted to public ship registries in the next daily feed.\n\nIf at any point you wish to change either your own name or that of your ship, you may do so by docking at any Galactic Cooperative station, returning to this interface and entering the new data.";
 
 	// primable equipment management
 	"oolite-primablemanager-interface-title" = "Manage primable equipment";
@@ -182,5 +182,308 @@
 	"oolite-primablemanager-selected-text" = "(selected)";
 
 	"oolite-primablemanager-completed" = "Equipment configuration is complete.\n\nFirst fast activation (defensive):\n  [oolite-primable-a]\n\nSecond fast activation (offensive):\n  [oolite-primable-b]";
+
+
+	// tutorial
+	"oolite-tutorial-no-witchspace" = "Witchspace controls are not available in this simulator.";
+
+	"oolite-tutorial-no-torus" = "The torus drive is not available during this lesson.";
+
+	"oolite-tutorial-no-death" = "If this wasn't a simulator, that would have killed you. Be more careful this time!";
+
+	"oolite-tutorial-no-advance" = "Advancing with '[oolite_key_activate_equipment]' is not currently available.";
+
+	"oolite-tutorial-controls-mode0" = "Mode: next stage in lesson";
+	"oolite-tutorial-controls-mode1" = "Mode: next lesson";
+	"oolite-tutorial-controls-mode2" = "Mode: restart lesson";
+
+	"oolite-tutorial-0-0-title" = "Flight Training Course";
+	"oolite-tutorial-0-0-message" = "Welcome to the Cooperative Flight Training Course, pilot. This course will demonstrate the basic functionality of Cooperative ships to you, in a specially-prepared simulator.\n\nThe course is in multiple lessons. While in the simulator, you can usually use the '[oolite_key_activate_equipment]' key to advance to the next entry in the current lesson once you have finished reading the instructions. Occasionally this will not work, as you will be expected to demonstrate what you have just learned.\n\nUsing the '[oolite_key_mode_equipment]' key will temporarily change the functionality of the '[oolite_key_activate_equipment]' key, and allow you to skip lessons you have previously completed, or restart the current lessons.\n\nOnce the simulation begins, a panel on your screen will display instructions, which you should follow to progress through the course. If you wish to temporarily hide the panel, press the '[oolite_key_cycle_mfd]' key. You can bring it back with the same key, or it will automatically reappear when there are new instructions.\n\nWhere an instruction asks you to press a letter key, press the letter key alone if it is lower case (e.g. 'i'), and press shift and the key together if it is upper case (e.g. 'K').\n\nWhen you are ready, press the Enter key to begin the simulation with the first lesson.";
+	"oolite-tutorial-0-0-choices" = { "1" = "Begin Course"; };
+	
+	"oolite-tutorial-0-2" = "Welcome to the pilot's training course. The lesson information will be displayed on this panel.\n\nYou will often need to press '[oolite_key_activate_equipment]' to go to the next step - do this now to start the first lesson.\n\nRemember, you can also press '[oolite_key_mode_equipment]' to skip or restart lessons.";
+
+	"oolite-tutorial-1-0" = "Lesson 1: the HUD\nThis lesson introduces the Head-Up Display (HUD) components in turn.\nWhen you start, the HUD components will all be hidden. As you go through this lesson, they will be made visible and introduced.";
+
+	"oolite-tutorial-1-1" = "Energy banks: 1/3\nThe energy bank gauge shows the stored energy in your ship's capacitors, which are used to power various high-energy systems.\nThey are continually recharged from your ship's power plant, but intensive activity will drain them faster than they can be charged.";
+
+	"oolite-tutorial-1-2" = "Energy banks: 2/3\nA crucial system powered by the banks is the emergency hull shield. This will protect your ship and most of its systems from high-energy impact. If your energy banks are too empty to power this shield, this may be fatal.";
+	
+	"oolite-tutorial-1-3" = "Energy banks: 3/3\nIf your energy banks are low, the gauge will change colour to alert you. Watch how long it takes to recharge from nearly empty, and avoid placing too much strain on the banks.";
+
+	"oolite-tutorial-1-4" = "Primary Shields: 1/3\nTo protect your ship further from high energy impacts it is fitted with two shield generators. A pre-charged shield is much more reliable than the emergency hull shield.\nOne generator protects your forward arc...\n";
+	
+	"oolite-tutorial-1-5" = "Primary Shields: 2/3\n...while the other protects your aft.\nThe charge levels are independent, so try to take impacts on the stronger shield.";
+	
+	"oolite-tutorial-1-6" = "Primary Shields: 3/3\nThe shields will slowly recharge from the energy banks if they are drained, and the bars will change colour to highlight a drained state. As with the energy banks, a full recharge will take some time.";
+
+	"oolite-tutorial-1-7" = "Fuel: 1/2\nThis bar shows the amount of witchspace fuel currently available. The full capacity is sufficient for a seven light-year witchspace intersystem jump. With the optional Fuel Injectors upgrade fitted, fuel can also be used to significantly boost your speed in normal space.";
+
+	"oolite-tutorial-1-8" = "Fuel: 2/2\nThe vertical line shows the amount of fuel needed to reach the currently selected witchspace destination. If the fuel is insufficient, this will change colour.";
+
+	"oolite-tutorial-1-9" = "Cabin Temperature: 1/2\nIn normal flight, your ship will maintain a steady-state temperature, with waste heat gradually being radiated into space. If you are near a hot object such as a star, or travelling quickly through a planet's upper atmosphere, the temperature will rise.";
+
+	"oolite-tutorial-1-10" = "Cabin Temperature: 2/2\nAt extremely high temperatures your life support systems will fail. Emergency loops will drain power from your shields and energy banks to buy a few more seconds, but you should have got out long before then.";
+
+	"oolite-tutorial-1-11" = "Laser Temperature: 1/2\nFiring your laser generates a significant amount of waste heat. Coolant pumps will diffuse it harmlessly through the much greater mass of your ship, but most types of laser generate heat far faster than the pumps can remove it.";
+
+	"oolite-tutorial-1-12" = "Laser Temperature: 2/2\nHold the '[oolite_key_fire_lasers]' key to fire your laser for a while, and note the temperature slowly rises. More powerful lasers generate a much larger volume of waste heat. At high temperatures, your laser will automatically cut out to prevent meltdown.";
+
+	"oolite-tutorial-1-13" = "Altitude:\nThis bar shows your height above the nearest major body - a star, planet or moon. Your ship is neither authorised nor equipped for planetary approach. As long as you remain in the upper atmosphere or higher - some bar still showing - you will be safe.";
+
+	"oolite-tutorial-1-14" = "Speed:\nThis bar shows your flight speed as a proportion of the maximum speed generated by your ship's inertialess drive. Use the '[oolite_key_increase_speed]' and '[oolite_key_decrease_speed]' keys to speed up and slow down.";
+	
+	"oolite-tutorial-1-15" = "Roll:\nYour ship's rate of roll is indicated by this dial. Use the '[oolite_key_roll_left]' and '[oolite_key_roll_right]' keys to turn.";
+
+	"oolite-tutorial-1-16" = "Pitch:\nYour ship's rate of pitch is indicated by this dial. Use the '[oolite_key_pitch_forward]' and '[oolite_key_pitch_back]' keys to turn in this axis.\nNotice that the dial is relative to your ship's maximum turn rate in the axis. Almost all ships can roll faster than they can pitch.";
+
+	"oolite-tutorial-1-17" = "Pylon Status:\nThe icons here show the missiles, mines and other deployable equipment attached to your external pylons. Currently your ship has three standard missiles fitted. Other types of pylon-mounted item have different icons.";
+
+	"oolite-tutorial-1-18" = "Scanner:\nThe scanner is perhaps the most important part of your HUD, and using it to locate and identify nearby objects will be the subject of the next lesson.";
+	
+	"oolite-tutorial-1-19" = "Compass:\nThe compass is used to locate more distant objects outside scanner range. The basic model is used to detect the system's major planet, which appears as a circle on the compass. If the circle is green, the planet is in front of you. Otherwise, it is behind you. Use of the compass for navigation will be covered in a later lesson.";
+
+	"oolite-tutorial-1-20" = "Status light: 1/2\nThe status light summarises the local situation. If it is green, as now, there are no large or powered objects nearby. Yellow, which is most common, indicates that there are nearby large or powered objects, and care should be taken while flying.";
+
+	"oolite-tutorial-1-21" = "Status light: 2/2\nA red status light indicates that something nearby presents a direct danger to your ship. An alarm will sound to indicate a change to this status.";
+
+	"oolite-tutorial-1-22" = "Clock: 1/2\nThe clock shows the current galactic standard time. The first seven digit number is the count of standard days since the start of the calendar. The remaining digits are the time on that standard day. For historical reasons, the standard day does not correspond exactly to that of any Cooperative planet, though it is close to many.";
+
+	"oolite-tutorial-1-23" = "Clock: 2/2\nIf the clock becomes unsynchronised with standard time, it will display 'adjusting' while it resynchronises. This is normal after witchspace jumps and when restarting the system after maintenance.";
+
+	"oolite-tutorial-1-24" = "This concludes the introduction to the HUD. There are a few additional HUD indicators which depend either on particular equipment or special circumstances, and these will be described in later lessons.";
+
+	"oolite-tutorial-2-0" = "Lesson 2: Using the Scanner\nThis lesson introduces use of the scanner for navigation and identification, and the basic flight controls used in space.\n\nStart by bringing your ship to a complete stop using the '[oolite_key_decrease_speed]' key, then press '[oolite_key_activate_equipment]' to start the lesson.";
+
+	"oolite-tutorial-2-1-error" = "First bring your ship to a complete stop using the '[oolite_key_decrease_speed]' key.";
+
+	"oolite-tutorial-2-1" = "Scanner use: 1/9\nWe have added several asteroids around you, which appear on your scanner as a white marker.\nThe circle of the scanner represents the horizontal plane around your ship, with the diagonal lines approximately indicating your field of view. Maximum range is just over 25km.";
+
+	"oolite-tutorial-2-2" = "Scanner use: 2/9\nThe position of an object above or below the plane is then marked with a stick. The further the object is from the plane, the longer the stick will be.";
+
+	"oolite-tutorial-2-3" = "Scanner use: 3/9\nTo bring an object on the scanner into your forward view, first roll your ship with the '[oolite_key_roll_left]' and '[oolite_key_roll_right]' keys until the object is on the forward/back line of the scanner. Then, use the '[oolite_key_pitch_forward]' and '[oolite_key_pitch_back]' keys to turn your ship so that it is in front of you.";
+
+	"oolite-tutorial-2-4" = "Scanner use: 4/9\nThe scanner can detect objects up to a substantial distance. Pick one of the asteroids and fly towards it. Accelerate with the '[oolite_key_increase_speed]' key, and decelerate again when nearby with the '[oolite_key_decrease_speed]' key.\nBe careful not to collide with it!";
+	
+	"oolite-tutorial-2-5" = "Scanner use: 5/9\nWhen concentrating on close-up objects, it may be useful to zoom the scanner, sacrificing range for detail. Press the '[oolite_key_scanner_zoom]' key to zoom in, up to 5x zoom.\nYou can reset the zoom to maximum range using the '[oolite_key_scanner_unzoom]' key. Note the zoom level indicator by the scanner.";
+
+	"oolite-tutorial-2-6" = "Scanner use: 6/9\nThe horizontal lines on the scanner mark out range. The major lines are 5km apart, and as you zoom the scanner in, minor lines 1km apart will also be added.";
+
+	"oolite-tutorial-2-7" = "Scanner use: 7/9\nThe colour of the marker is used to indicate something about its nature. Asteroids are unpowered objects and appear white. Other objects which will appear white include debris, cargo containers, and escape capsules";
+
+	"oolite-tutorial-2-8" = "Scanner use: 8/9\nPowered ships usually appear yellow on the scanner, unless they are attacking, when they appear red. Don't worry - this one isn't actually attacking!\nPolice and other official ships are indicated with a purple marker - be careful not to accidentally hit them as this is an illegal act.";
+	
+	"oolite-tutorial-2-9" = "Scanner use: 9/9\nOther common colours include yellow/green flashing for navigation buoys, light blue for missiles, and red/yellow flashing for mines. Again, don't worry, these are all disarmed!";
+
+	"oolite-tutorial-2-10" = "View controls: 1/2\nYour ship is fitted with four view cameras. Use the '[oolite_key_view_forward]', '[oolite_key_view_aft]', '[oolite_key_view_port]' and '[oolite_key_view_starboard]' keys to switch between them. The view lines on the scanner will move as you do. Notice that the crosshair is replaced on the other views, as you have no other weapons mounted.";
+
+	"oolite-tutorial-2-11" = "View controls: 2/2\nYour ship can also simulate an external view for you. Press '[oolite_key_custom_view]' to switch to external view mode and to cycle through the available external views. Any of the internal view keys will return you to internal viewing.";
+
+	"oolite-tutorial-3-0" = "Lesson 3: Flight Training\nThis lesson gives you opportunity to practice basic piloting skills. Your ship has been disarmed temporarily to focus on movement over weapon use.";
+	
+	"oolite-tutorial-3-1" = "To refresh your memory, the basic flight controls are:\n[oolite_key_roll_left]: roll left\n[oolite_key_roll_right]: roll right\n[oolite_key_pitch_forward]: pitch forward\n[oolite_key_pitch_back]: pitch back\n[oolite_key_increase_speed]: increase speed\n[oolite_key_decrease_speed]: decrease speed\nHolding the Ctrl key while turning will increase precision.";
+
+	"oolite-tutorial-3-2" = "We have added a dense asteroid cluster nearby. Use your scanner to locate the buoy within it, then fly within 500m of the buoy and come to a complete stop.\n\nTip: use the range lines on the scanner to judge distance and zoom in with the '[oolite_key_scanner_zoom]' key to separate the closely-packed blobs";
+
+	"oolite-tutorial-3-3-error" = "To continue, come to a stop near the buoy. Use your '[oolite_key_scanner_unzoom]' key to maximise scan range if you are having trouble finding it.";
+
+	"oolite-tutorial-3-3" = "Some of the asteroids will now start moving towards you. Staying within 5000m of the buoy, use your scanner to spot the moving asteroids, and the movement controls to avoid them.\nTo help you, the asteroids will be highlighted red on your scanner. Keep moving!\nIf it gets too much, just fly further from the buoy.";
+
+	"oolite-tutorial-3-3-toofar" = "You moved too far from the buoy";
+
+	"oolite-tutorial-3-3-win" = "That's enough practice for now";
+	
+	"oolite-tutorial-3-4" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, come to a complete stop before pressing '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_activate_equipment]' while moving to finish the lesson.\n\nTip: use the '[oolite_key_scanner_zoom]' key to magnify your scanner.";
+
+	"oolite-tutorial-3-4a" = "You survived [mission_oolite_tutorial_asteroids] seconds.\n\nIf you would like to try this challenge again, this time without the scanner highlighting, come to a complete stop and press '[oolite_key_activate_equipment]'. Otherwise, press '[oolite_key_activate_equipment]' while moving to go to the next lesson.";
+
+	"oolite-tutorial-3-4b" = "You survived [mission_oolite_tutorial_asteroids] seconds without scanner assistance.\nThat's as much as this lesson can teach you, so press '[oolite_key_activate_equipment]' to go to the next lesson.";
+
+	"oolite-tutorial-4-0" = "Lesson 4: Weapons systems\nThis lesson will give you the chance to practice basic targeting and laser usage skills.";
+
+	"oolite-tutorial-4-1" = "Three asteroids have been added near you. Use the '[oolite_key_ident_system]' key to activate your identification system. Then, turn your ship so that one of the asteroids is directly in front of you. The ident system will then lock on to the asteroid.";
+
+	"oolite-tutorial-4-2" = "Three splinters (tiny rock fragments) have also been added now. Press '[oolite_key_ident_system]' again to reset the identification system to search mode, making sure you are not pointed at an asteroid. Then, use your scanner to search for the splinters. You may find you need to move closer to effectively identify such a small object.";
+	
+	"oolite-tutorial-4-3" = "The rocks have now been removed. As your identification system loses a target, it will automatically reset to search mode. The 'Scanner Targeting Enhancement' and 'Target System Memory Expansion' optional addons will further improve the operation of the ident system.";
+
+	"oolite-tutorial-4-4" = "Your ship is equipped with a basic pulse laser. This weapon is not recommended for use in live combat, due to its slow rate of fire, but that property makes it an ideal training weapon.\nIt also has the advantage that it will take much longer to overheat than a beam laser.";
+	
+	"oolite-tutorial-4-5" = "The '[oolite_key_fire_lasers]' key is used to fire your laser. We have added five stationary asteroids to use as target practice. Once you are confident of your ability to hit a large unmoving target, move on to the next stage.\nNote that your laser has a maximum range of 12.5km, so you may need to get closer.";
+
+	"oolite-tutorial-4-6" = "For the second stage, we have added some smaller boulders, and set them moving. Again, move on once you are confident in your ability to destroy these targets.";
+
+	"oolite-tutorial-4-7" = "Finally, we have added some tiny rock splinters for you to hunt down. Make sure your aim is precise! Once you are ready, press '[oolite_key_activate_equipment]' to start the next lesson.";
+
+	"oolite-tutorial-5-0" = "Lesson 5: Missiles\nThis lesson covers basic missile use and anti-missile tactics.";
+
+	"oolite-tutorial-5-1" = "The Cobra III can carry up to four pylon weapons. We have loaded three of them with standard ship-to-ship missiles. Press '[oolite_key_target_missile]' to arm a missile. The missile icon will turn yellow.";
+
+	"oolite-tutorial-5-2" = "We have added two asteroids, specially toughened so that your pulse laser will be ineffective. Turn to face one of them, and the armed missile will turn red as it locks on. You can use '[oolite_key_untarget_missile]' to break the lock, or '[oolite_key_target_missile]' to try to lock on to another target.";
+
+	"oolite-tutorial-5-3" = "If you wish to change the missile you are using, press '[oolite_key_next_missile]'. As for now all your missiles are identical, however, you can launch the missile with '[oolite_key_launch_missile]'. If it doesn't destroy the asteroid, launch another!";
+	
+	"oolite-tutorial-5-4" = "You can launch missiles, but what if a missile is launched at you? A standard missile contains enough explosives to destroy or seriously damage a Cobra III. The second half of this lesson describes missile avoidance techniques.";
+
+	"oolite-tutorial-5-5" = "Missile avoidance: 1/6\nMissiles can be destroyed by laser fire, but this is tricky to get right, especially with only a pulse laser, so for now we recommend that you try to avoid them. Use your scanner to locate the light blue marker, and try to keep it behind you and off to one side as it closes in.";
+	
+	"oolite-tutorial-5-6" = "Missile avoidance: 2/6\nOnce the missile gets closer, start making sharp turns away from it to throw it off. Even if you don't avoid it, if it explodes behind you then your engines are likely to help you away from the blast, reducing the damage you take. A head-on collision is likely to be lethal.";
+
+	"oolite-tutorial-5-7" = "Missile avoidance: 3/6\nIf you find missile avoidance difficult, the 'ECM (Electronic Counter-Measures) System' is available from most shipyards as an addon to your ship. It will confuse most but not all missiles into losing you as a target, and they will harmlessly self-destruct.";
+
+	"oolite-tutorial-5-8" = "Missile avoidance: 4/6\nIn live combat, if you do not have an ECM, one of your enemies might. So, if you get a missile fired at you, fire one right back at them - the ECM field is indiscriminate and will destroy both missiles.";
+
+	"oolite-tutorial-5-9" = "Missile avoidance: 5/6\nAnother approach is to outrun the missile - their fuel supply is extremely limited. If the missile has been fired from long-range, turning away from it and flying at full speed may get you clear.";
+
+	"oolite-tutorial-5-10" = "Missile avoidance: 6/6\nOkay, that's enough talking - time for some practice. When you next press '[oolite_key_activate_equipment]', we will fire a missile at you. Avoid it by whatever means you can, and note the warnings your HUD gives.";
+
+	"oolite-tutorial-5-11" = "Here it comes. Good luck!\n\nOnce you have survived the missile, press '[oolite_key_activate_equipment]' to start the next lesson.";
+
+	"oolite-tutorial-6-0" = "Lesson 6: Combat practice\nNow it's time to put everything you've learned in the previous lessons together, and fight some more challenging opponents.";
+
+	"oolite-tutorial-6-1" = "You'll be fighting simulated Krait fighters. The Krait is an old design, nowadays mostly superseded by the Mamba and Sidewinder, but it's cheap and easy to repair, and the large hull makes it easy to fit extra equipment, so it's still popular with some pilots. Press '[oolite_key_activate_equipment]' to start.";
+
+	"oolite-tutorial-6-2" = "This first Krait is unarmed - destroy it as fast as you can. This one should be easy, but if you ever feel out of your depth in later stages, we've also added a marker buoy. Shoot the buoy to end the lesson.\nYou only get three missiles for the entire course, so use them wisely.";
+
+	"oolite-tutorial-6-3" = "Now we move on to targets which can fight back. This Krait has a pulse laser like your own. It's not too much of a threat to your ship, but you should finish it quickly.";
+
+	"oolite-tutorial-6-4" = "Good work. Here's two more to take on. While fighting one, don't lose track of what the other is up to.\n\nTip: Zoom your scanner in so that you can see where the one you're firing at is going and keep on it. If you split your fire between both, you won't do enough damage.";
+
+	"oolite-tutorial-6-5" = "Excellent. That's the basics done. You can either end the lesson now by shooting the buoy, or you can continue to face harder targets by pressing '[oolite_key_activate_equipment]'.\nIf you want to wait a little for your shields to recharge, that's okay.";
+
+	"oolite-tutorial-6-6" = "This Krait has been upgraded to carry a beam laser. It'll tear up your shields in no time if you let it. Move!\n\nTip: Your weapon is weaker, so dodge and close the range rather than getting into a long-range shooting match.";
+
+	"oolite-tutorial-6-7" = "So far, so good. See if you can handle two at once.\n\nTip: when outnumbered like this, use a missile to distract one while you fight the other.";
+
+	"oolite-tutorial-6-8" = "You did it! We do have a third stage available if you're feeling up to it - press '[oolite_key_activate_equipment]' to start it. If that last fight was any trouble, though, maybe you'd be better stopping now by shooting the buoy to complete the lesson.";
+
+	"oolite-tutorial-6-9" = "As you wish. This Krait is well-armed, well-equipped, and we've got a local escort pilot in the next simulator booth to fly it for us. Your Cobra might still be a superior ship, but you'll have to make every shot count.";
+
+	"oolite-tutorial-6-10" = "Very well done! If you fly like that, you might stand a chance when the pirates come for you. That's all we've got for combat training. Press '[oolite_key_activate_equipment]' to start the next lesson.";
+
+	"oolite-tutorial-7-0" = "Lesson 7: Docking practice\nThis lesson will teach you how to dock your ship with a standard Cooperative station, and do so safely.";
+
+	"oolite-tutorial-7-1" = "Docking with the station is one of the things novice pilots often find the most difficult, and due to the size and solidity of the station, failing to dock successfully is often fatal. In this lesson, you'll learn the slow, safe way to dock. There are many shortcuts often taken by experienced pilots.";
+
+	"oolite-tutorial-7-2" = "We have added a Coriolis station to the simulator, coloured green on your scanner. As you can see, it rotates a few times every minute to provide cheap artificial gravity. There is a single docking bay, on the axis of rotation.";
+
+	"oolite-tutorial-7-3" = "In front of the station is the navigation buoy. For primary system stations this will always be on the side facing the planet - other stations may face in any direction. Fly close to the buoy, then press '[oolite_key_activate_equipment]'.";
+
+	"oolite-tutorial-7-4" = "Turn to face the station now. As you can see the docking bay is rectangular. The Cobra III is much wider than it is tall, so when you dock, you need to have the long axis of the bay as near to horizontal as possible.";
+
+	"oolite-tutorial-7-5" = "We'll start with the pre-docking checklist. Firstly, to avoid accidentally shooting your weapons at the station, put them into safe mode with the '[oolite_key_weapons_online_toggle]' key, and note the HUD message that appears. You can rearm them later with the same key.";
+
+	"oolite-tutorial-7-6" = "The next step is to request docking clearance. Target the station with your identification system (press '[oolite_key_ident_system]') and then press '[oolite_key_docking_clearance_request]' to request clearance. The station will respond, giving you a docking deadline (or if traffic is busy, requesting you wait)";
+
+	"oolite-tutorial-7-7" = "Okay, now it's time to dock. You need to do two things to dock safely - come in straight down the line extending from the docking bay, and keep the bay horizontal. If you get into trouble, just turn around, back off to the buoy, and start over. Press '[oolite_key_activate_equipment]' for a few more tips before you start.";
+
+	"oolite-tutorial-7-8" = "Docking Tips: 1/5\nOn your first few attempts, clearance might expire. The station will warn you - press '[oolite_key_docking_clearance_request]' to request an extension, which is almost always granted.";
+
+	"oolite-tutorial-7-9" = "Docking Tips: 2/5\nIf you're coming in on course, you'll be able to see all five interior walls of the bay at once. If you can't see a wall, temporarily point your nose well past the walls you can see.";
+
+	"oolite-tutorial-7-10" = "Docking Tips: 3/5\nIf you try to match the rotation before you're on course, you might get disoriented. Don't worry about the rotation until you're a kilometre or so out.";
+
+	"oolite-tutorial-7-11" = "Docking Tips: 4/5\nNormally if it's going wrong you should just stop, turn round, and try again. If you're too close, though, concentrate on getting the rotation right - your shields will bounce you in if you're reasonably close, but you just won't fit in sideways.";
+
+	"oolite-tutorial-7-12" = "Docking Tips: 5/5\nFinally, keep practicing! It will get easier.\n\nPress '[oolite_key_activate_equipment]' again to bring up a summary of your docking status.";
+
+	"oolite-tutorial-7-13-title" = "Lesson 7: Docking";
+	"oolite-tutorial-7-13-message" = "Well done - you've docked with some degree of success.\n\nYou can try again for some more practice, especially if this attempt didn't go particularly well, or you scraped the shields. Alternatively, if when feel ready, you can move on to the next lesson.";
+	"oolite-tutorial-7-13-choices" = { "01_AGAIN" = "Try again"; "02_CONTINUE" = "Continue to next lesson"; };
+
+	"oolite-tutorial-8-0" = "Lesson 8: Information screens\nThis lesson covers various screens which are used to examine ship status and other information. After the docking lesson we thought you might need a short break from flying.";
+
+	"oolite-tutorial-8-1" = "Status screen: 1/4\nPressing '[oolite_key_gui_screen_status]' or 'F5' will bring up the status screen. You can use '[oolite_key_view_forward]' to return to forward view at any time while viewing it. Try it now, then come back to the forward view before continuing.";
+
+	"oolite-tutorial-8-2" = "Status screen: 2/4\nThe top of the status screen shows your current location and witchspace destination, a text description of your alert condition (remember the status light from the first lesson), your current fuel and cash, and your legal status and combat rating.";
+
+	"oolite-tutorial-8-3" = "Status screen: 3/4\nThe bottom of the screen lists your ship's fitted equipment. We have added a few extra items to your ship which you can inspect now.";
+
+	"oolite-tutorial-8-4" = "Status screen: 4/4\nIf your equipment is damaged in combat or through failure to keep your ship well maintained, it will be coloured orange on the screen, with 'n/a' appended to its description. Check the screen again for an example.";
+
+	"oolite-tutorial-8-5" = "Manifest screen: 1/2\nPressing '[oolite_key_gui_screen_status]' or 'F5' while already on the status screen will display the manifest screen (so press either key twice from elsewhere). This displays your current cargo and a log of outstanding work contracts you have taken.";
+
+	"oolite-tutorial-8-6" = "Manifest screen: 2/2\nA number of cargo pods have been added to your hold to demonstrate the manifest screen, and a sample work contract entry has been added.";
+	
+	"oolite-tutorial-8-6-info" = "Training course: complete the course";
+
+	"oolite-tutorial-8-7" = "Short range chart: 1/10\nThe short range chart is reached by pressing '[oolite_key_gui_chart_screens]' or 'F6'. It shows the nearby systems, and your current position is marked with a green cross. A green circle shows the limits of your current witchspace fuel.";
+
+	"oolite-tutorial-8-8" = "Short range chart: 2/10\nWhere systems may be relevant to a contract of employment, they are often marked on the chart. An example of this has now been added to the nearby Leesti system.";
+
+	"oolite-tutorial-8-9" = "Short range chart: 3/10\nThe information screens share common directional controls - '[oolite_key_gui_arrow_left]', '[oolite_key_gui_arrow_right]', '[oolite_key_gui_arrow_up]', and '[oolite_key_gui_arrow_down]'. On this screen, they can be used to select a destination system.";
+
+	"oolite-tutorial-8-10" = "Short range chart: 4/10\nPressing the '[oolite_key_map_info]' key while on the short range chart will replace the system names with symbols reflecting key aspects of those systems - government, economy, and technological level.";
+
+	"oolite-tutorial-8-11" = "Short range chart: 5/10\nGovernment symbols:\n\007 - Corporate State\n\006 - Democracy\n\005 - Confederacy\n\004 - Communist\n\003 - Dictatorship\n\002 - Multi-Government\n\001 - Feudal\n\000 - Anarchy";
+
+	"oolite-tutorial-8-12" = "Short range chart: 6/10\nThe government type approximately corresponds to the level of control the planet has over its orbital space and therefore the likelihood of pirate attacks, with Corporate States being the safest, and Anarchies the most dangerous.";
+
+	"oolite-tutorial-8-13" = "Short range chart: 7/10\nEconomic symbols:\n\020 - Poor Agricultural\n\021 - Average Agricultural\n\022 - Rich Agricultural\n\023 - Mainly Agricultural\n\024 - Mainly Industrial\n\025 - Poor Industrial\n\026 - Average Industrial\n\027 - Rich Industrial";
+	
+	"oolite-tutorial-8-14" = "Short range chart: 8/10\nThe economy gives an idea of the types of trade goods which are likely to be cheap to buy or profitable to sell in this system. Most trade routes are between Agricultural and Industrial worlds.";
+
+	"oolite-tutorial-8-15" = "Short range chart: 9/10\nThe number is the technological level (TL) and represents the planet's capabilities at ship construction and maintenance, on a scale from 1 to 15. At higher TL systems, more equipment and ships will be available from stations.";
+
+	"oolite-tutorial-8-16" = "Short range chart: 10/10\nOnce you have selected a destination on the short range chart, the '[oolite_key_hyperspace]' key will activate the witchspace jump sequence. You are recommended to fly straight and level while the sequence is underway. Once the sequence is complete, you will travel through witchspace to your chosen destination.";
+
+	"oolite-tutorial-8-17" = "Long range chart: 1/2\nPressing '[oolite_key_gui_chart_screens]' or 'F6' again while on the short range chart screen displays the long range chart. This displays the wider region of space you are in, with your current position, witchspace range, and markers displayed as on the short range chart.";
+
+	"oolite-tutorial-8-18" = "Long range chart: 2/2\nThe scale is too wide to display name labels, but you can type letters to search for systems. Try going to the chart and typing 'ti' to discover all systems beginning with 'ti', which will be highlighted with a green square. You can hold shift while pressing the direction keys to switch between possibilities.";
+
+	"oolite-tutorial-8-19" = "System information: 1/1\nPressing '[oolite_key_gui_system_data]' or 'F7' will display information on the current witchspace destination system. This includes the government, economy and technological level mentioned earlier, as well as other key data for visitors.";
+
+	"oolite-tutorial-8-20" = "Market information: 1/1\nPressing '[oolite_key_gui_market]' or 'F8' will display the current market prices in this system, or, if docked at a station, for that station. When docked, cargo may be bought and sold using the direction controls.";
+
+	"oolite-tutorial-8-21" = "Station screens: 1/4\nWhile docked at a station, the view controls take on different functions, as external views are not required.";
+
+	"oolite-tutorial-8-22" = "Station screens: 2/4\nThe '[oolite_key_view_port]' or 'F3' key gives access to purchase fuel and equipment for your ship, and pressing it twice accesses the shipyard (if available) where other ships may be viewed and purchased.";
+
+	"oolite-tutorial-8-23" = "Station screens: 3/4\nThe '[oolite_key_view_starboard]' or 'F4' key meanwhile gives access to a range of ship and station systems and communications channels, where you may configure ship settings and look for information or work offers.";
+
+	"oolite-tutorial-8-24" = "Station screens: 4/4\nFinally, while docked at a station, the '[oolite_key_view_forward]' or 'F1' key is repurposed to request a launch slot, shortly after which you will be launched from the station.";
+
+	"oolite-tutorial-9-0" = "Lesson 9: System navigation\nThis lesson will cover navigation from the witchpoint to the system station.";
+
+	"oolite-tutorial-9-1" = "We have transported your ship near to the witchpoint buoy. This buoy marks a stable exit point from witchspace, and ships entering the system will do so near this buoy.";
+
+	"oolite-tutorial-9-2" = "The compass is used to direct you towards the planet. If you are facing the planet, the indicator will be green and centred. If you are facing directly away from the planet, it will be red and centred. Otherwise the off-centre position indicates the direction of the planet.";
+
+	"oolite-tutorial-9-3" = "Turn towards the planet and accelerate to maximum speed. Even at your top normal speed, it can take up to an hour to reach orbit. You can speed your flight up using the torus drive. Press '[oolite_key_jumpdrive]' to activate it.";
+
+	"oolite-tutorial-9-4" = "The torus drive provides significant acceleration and speed. Notice how quickly you have left the witchpoint buoy behind, and how fast the planet is coming closer. The torus drive is only able to operate far from large masses and high-density energy sources (other than those on your ship it is precisely calibrated for).";
+
+	"oolite-tutorial-9-5" = "The drive will automatically cut out and decelerate you to conventional speeds if you near such an object, and can only be reactivated when your alert condition is Green once again. Ahead is a simulated trade ship, such as you might meet on a routine journey to the planet.";
+
+	"oolite-tutorial-9-6" = "Not all ships will be as friendly as the trader. Pirates will attack shipping even occasionally in safe systems. If you are attacked, unable to run, and outnumbered too much to fight, then you can dump cargo to distract them. Use the '[oolite_key_rotate_cargo]' key to select the item to dump, then the '[oolite_key_dump_cargo]' key to drop it.";
+
+	"oolite-tutorial-9-7" = "It can take a long time to get past another ship without the torus drive. If you're in a hurry, it's often quicker to go fly a few kilometres perpendicular to their travel, and go around them.";
+
+	"oolite-tutorial-9-8" = "We have removed the trade ship now, so you should be back at condition Green. Re-engage the torus drive with '[oolite_key_jumpdrive]' and continue approaching the planet. Watch your altitude bar - don't get too close to the surface";
+
+	"oolite-tutorial-9-8-sun" = "This is the sun, not the planet. Easy mistake to make, so try again.";
+
+	"oolite-tutorial-9-8-toofar" = "Approach the planet to move to the next stage";
+
+	"oolite-tutorial-9-9" = "Now that you are near the planet, your compass has changed to track the main station. Stop the torus drive with the '[oolite_key_jumpdrive]' key, then use the compass to locate the station.";
+
+	"oolite-tutorial-9-10" = "Head towards the station. If you stopped far enough from the planet, you will still be able to use your torus drive. Otherwise, travel there at conventional speeds, or for a faster journey temporarily head further from the planet until your condition returns to Green.";
+
+	"oolite-tutorial-9-10-toofar" = "Approach the station to move to the next stage";
+
+	"oolite-tutorial-9-11" = "When you are close enough to the station, the aegis indicator - a large S - will appear. This indicates that you are within sensor range of the station and will be protected against pirate attack by the station's police ships.";
+
+	"oolite-tutorial-9-12" = "Between the station and the planet you will see the navigation buoy. As covered in previous lessons, you should now dock with the station. Remember to ask for clearance first by targeting the station and using the '[oolite_key_docking_clearance_request]' key.";
+
+	"oolite-tutorial-end-mfd" = "You have completed the course. Press '[oolite_key_activate_equipment]' to view your test scores.";
+
+	"oolite-tutorial-end-title" = "Course Complete";
+	"oolite-tutorial-end-message" = "You have now completed the Pilot's Training Course. Your scores:\n\nDeaths: [mission_oolite_tutorial_deaths]\n\nAsteroid navigation: [mission_oolite_tutorial_asteroids_result] ([mission_oolite_tutorial_asteroids] seconds)\nCombat practice: [mission_oolite_tutorial_combat_result] ([mission_oolite_tutorial_combat_duration] seconds)\n\nWe wish you luck in your future career.";
+	"oolite-tutorial-end-choices" = { "1" = "Exit Simulator"; };
+
+	"oolite-tutorial-end-notry" = "Incomplete";
+	"oolite-tutorial-end-try" = "Completed";
+	"oolite-tutorial-end-win" = "Gold qualification";
+	"oolite-tutorial-end-bonus" = "Platinum qualification";
 
 }

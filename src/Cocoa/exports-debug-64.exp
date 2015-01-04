@@ -66,6 +66,7 @@ _OOStringFromShaderSetting
 _OOJSProfileEnter
 _OOJSProfileExit
 _OOJSUnreachable
+_OOStringFromGraphicsDetail
 
 # Debug value formatter support
 _JSValueToStrDbg

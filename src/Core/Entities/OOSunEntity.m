@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOCollectionExtractors.h"
 #import "OODebugFlags.h"
-
+#import "OOStringExpander.h"
 
 @interface OOSunEntity (Private)
 
@@ -126,6 +126,10 @@ MA 02110-1301, USA.
 	scanClass = CLASS_NO_DRAW;
 	
 	[self setSunColor:sun_color];
+
+	[self setName:OOExpand([dict oo_stringForKey:KEY_SUNNAME defaultValue:@"[oolite-default-star-name]"])];
+
+
 		
 	corona_blending=OOClamp_0_1_f([dict oo_floatForKey:@"corona_hues" defaultValue:1.0f]);
 	corona_speed_factor=[dict oo_floatForKey:@"corona_shimmer" defaultValue:-1.0];
@@ -139,6 +143,10 @@ MA 02110-1301, USA.
 		//on average:  0 = .25 , 1 = 2.25  -  the same sun should give the same random component
 		corona_speed_factor=OOClamp_0_1_f(corona_speed_factor) * 2.0 + randf() * randf();
 	}
+#ifdef OO_DUMP_PLANETINFO
+	OOLog(@"planetinfo.record",@"corona_shimmer = %f",corona_speed_factor);
+#endif
+
 	corona_stage = 0.0;
 	for (i = 0; i < SUN_CORONA_SAMPLES; i++)
 		rvalue[i] = randf();
@@ -194,6 +202,7 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
+	DESTROY(_name);
 	[super dealloc];
 }
 
@@ -273,13 +282,17 @@ MA 02110-1301, USA.
 				if (sky_bri == 1.0)
 				{	
 					// This sun has now gone nova!
-					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES]];
+					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES] fromManifest:@"org.oolite.oolite"];
+					[UNIVERSE setSystemDataKey:@"corona_flare" value:[NSNumber numberWithFloat:0.3] fromManifest:@"org.oolite.oolite"];
+					[UNIVERSE setSystemDataKey:@"corona_hues" value:[NSNumber numberWithFloat:0.05] fromManifest:@"org.oolite.oolite"];
+					// Novas are stored under the core manifest if the
+					// player was there at the time. Default layer 2
+					// is fine.
 					OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
 				_novaExpansionTimer += delta_t;
-				NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate], @"sun_radius", [NSNumber numberWithFloat:0.3], @"corona_flare", [NSNumber numberWithFloat:0.05], @"corona_hues", nil];
-				[self changeSunProperty:@"sun_radius" withDictionary:dict];
+				[UNIVERSE setSystemDataKey:@"sun_radius" value:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate] fromManifest:@"org.oolite.oolite"];
 			}
 			else
 			{
@@ -299,7 +312,7 @@ MA 02110-1301, USA.
 	if (![UNIVERSE reducedDetail])
 	{
 		corona_stage += corona_speed_factor * delta_t;
-		if (corona_stage > 1.0)
+		while (corona_stage > 1.0)
 		{
 			int i;
 			corona_stage -= 1.0;
@@ -555,6 +568,44 @@ MA 02110-1301, USA.
 }
 
 
+- (void) drawDirectVisionSunGlare
+{
+#if SUN_DIRECT_VISION_GLARE
+	OO_ENTER_OPENGL();
+	
+	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
+	
+	GLfloat sunGlareAngularSize = atan([self radius]/HPdistance([PLAYER viewpointPosition], [self position])) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
+
+	GLfloat	directVisionSunGlare = [PLAYER lookingAtSunWithThresholdAngleCos:cos(sunGlareAngularSize)];
+	if (directVisionSunGlare)
+	{
+		NSSize	siz =	[[UNIVERSE gui]	size];
+		MyOpenGLView *gameView = [UNIVERSE gameView];
+		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
+		GLfloat atmosphericReductionFactor =  1.0f - [PLAYER insideAtmosphereFraction];
+		// 182: square of ratio of radius to sun-witchpoint distance
+		// in default Lave
+		GLfloat distanceReductionFactor = OOClamp_0_1_f(([self radius] * [self radius] * 182.0) / HPdistance2([PLAYER position], [self position]));
+		GLfloat	sunGlareFilterMultiplierLocal = [PLAYER sunGlareFilter];
+		GLfloat directVisionSunGlareColor[4] = {discColor[0], discColor[1], discColor[2], directVisionSunGlare *
+													atmosphericReductionFactor * distanceReductionFactor * 
+													(1.0f - sunGlareFilterMultiplierLocal) * 0.85f};
+													
+		OOGL(glColor4fv(directVisionSunGlareColor));
+		
+		OOGLBEGIN(GL_QUADS);
+		glVertex3f(siz.width, siz.height, z);
+		glVertex3f(siz.width, -siz.height, z);
+		glVertex3f(-siz.width, -siz.height, z);
+		glVertex3f(-siz.width, siz.height, z);
+		OOGLEND();
+	}
+#endif
+}
+
+
 - (void) drawStarGlare
 {
 	OO_ENTER_OPENGL();
@@ -567,13 +618,15 @@ MA 02110-1301, USA.
 	{
 		return;
 	}
-	double corona = cor16k/1.5;
+	double corona = cor16k/SUN_GLARE_CORONA_FACTOR;
 	if (corona > alt)
 	{
 		double alpha = 1-(alt/corona);
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
-		GLfloat z = [[UNIVERSE gameView] display_z];
+		MyOpenGLView *gameView = [UNIVERSE gameView];
+		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
 		OOGL(glColor4fv(glareColor));
 
 		OOGLBEGIN(GL_QUADS);
@@ -595,14 +648,15 @@ MA 02110-1301, USA.
 	if ([key isEqualToString:@"sun_radius"])
 	{
 		oldRadius =	[object doubleValue];	// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-		[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-		collision_radius = oldRadius;								
+		[self setRadius:oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
+	}
+	else if ([key isEqualToString:KEY_SUNNAME])
+	{
+		[self setName:[dict oo_stringForKey:KEY_SUNNAME]];
 	}
 	else if ([key isEqualToString:@"corona_flare"])
 	{
-		double rad = collision_radius;
-		[self setRadius: rad + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([object floatValue]))];
-		collision_radius = rad;
+		[self setRadius:collision_radius andCorona:[object floatValue]];
 	}
 	else if ([key isEqualToString:@"corona_shimmer"])
 	{
@@ -623,8 +677,7 @@ MA 02110-1301, USA.
 		{
 			[self setGoingNova:NO inTime:0];
 			// oldRadius is always the radius we had before going nova...
-			[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-			collision_radius = oldRadius;
+			[self setRadius: oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
 
 		}
 	}
@@ -663,12 +716,17 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setRadius:(GLfloat) rad
+- (void) setRadius:(GLfloat) rad andCorona:(GLfloat)corona
 {
 	collision_radius = rad;
-	
-	cor16k =	rad * rad * 16 / 10000000;
-	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
+	if (corona < 0.01f) {
+		corona = 0.01f;
+	}
+	cor16k = rad * 8 * corona;
+
+	GLfloat corouter = rad * (1+(8*corona));
+
+	lim16k = corouter * corouter * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 }
 
 
@@ -715,5 +773,19 @@ MA 02110-1301, USA.
 {
 	return YES;
 }
+
+
+- (NSString *) name
+{
+	return _name;
+}
+
+
+- (void) setName:(NSString *)name
+{
+	[_name release];
+	_name = [name retain];
+}
+
 
 @end

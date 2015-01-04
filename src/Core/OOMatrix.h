@@ -78,7 +78,7 @@ OOINLINE OOMatrix OOMatrixRotateY(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotateZ(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotateQuaternion(OOMatrix m, Quaternion quat) INLINE_CONST_FUNC;
-
+OOINLINE OOMatrix OOMatrixTranspose(OOMatrix m) INLINE_CONST_FUNC;
 
 bool OOMatrixEqual(OOMatrix a, OOMatrix b) CONST_FUNC;
 OOINLINE bool OOMatrixIsIdentity(OOMatrix m) INLINE_CONST_FUNC;
@@ -106,6 +106,7 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 #define GLMultTransposeOOMatrix(M) do { OOMatrix m_ = M; OOGL(glMultTransposeMatrixf(OOMatrixValuesForOpenGL(m_))); } while (0)
 #define GLLoadTransposeOOMatrix(M) do { OOMatrix m_ = M; OOGL(glLoadTransposeMatrixf(OOMatrixValuesForOpenGL(m_))); } while (0)
 #define GLUniformMatrix(location, M) do { OOGL(glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(M))); } while (0)
+void GLUniformMatrix3(GLint location, OOMatrix M);
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 #endif
@@ -115,7 +116,36 @@ OOINLINE OOMatrix OOMatrixLoadGLMatrix(GLenum matrixID) ALWAYS_INLINE_FUNC;
 NSString *OOMatrixDescription(OOMatrix matrix);		// @"{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
 #endif
 
+// Row operations
 
+// swap row1 and row2 of M
+void OOMatrixRowSwap(OOMatrix *M, int row1, int row2);
+// scale row of M by factor
+void OOMatrixRowScale(OOMatrix *m, int row, OOScalar factor);
+// replace row 1 of M with factor1 * row1 + factor2 * row2
+void OOMatrixRowOperation(OOMatrix *M, int row1, OOScalar factor1, int row2, OOScalar factor2 );
+
+// Column operations
+
+// swap column1 and column2 of M
+void OOMatrixColumnSwap(OOMatrix *M, int column1, int column2);
+// scale column of M by factor
+void OOMatrixColumnScale(OOMatrix *M, int column, OOScalar factor);
+//replace column1 of M with factor1 * column1 + factor2 + row2
+void OOMatrixColumnOperation(OOMatrix *M, int column1, OOScalar factor1, int column2, OOScalar factor2);
+
+// Transforms between square matrices
+
+// return matrix X such that XA = B, or zero matrix if X doesn't exist.
+OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B);
+// return matrix X such that AX = B, or zero matrix if X doesn't exist.
+OOMatrix OOMatrixRightTransform(OOMatrix A, OOMatrix B);
+
+// Matrix inversion
+
+OOMatrix OOMatrixInverse(OOMatrix M);
+// Inverts matrix returning determinant of inverse in 
+OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *determinant);
 
 /*** Only inline definitions beyond this point ***/
 
@@ -320,6 +350,17 @@ OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outU
 	*outRight	= make_vector(m.m[0][0], m.m[1][0], m.m[2][0]);
 	*outUp		= make_vector(m.m[0][1], m.m[1][1], m.m[2][1]);
 	*outForward	= make_vector(m.m[0][2], m.m[1][2], m.m[2][2]);
+}
+
+OOINLINE OOMatrix OOMatrixTranspose(OOMatrix m)
+{
+	return OOMatrixConstruct
+	(
+		m.m[0][0], m.m[1][0], m.m[2][0], m.m[3][0],
+		m.m[0][1], m.m[1][1], m.m[2][1], m.m[3][1],
+		m.m[0][2], m.m[1][2], m.m[2][2], m.m[3][2],
+		m.m[0][3], m.m[1][3], m.m[2][3], m.m[3][3]
+	);
 }
 
 

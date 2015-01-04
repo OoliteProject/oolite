@@ -50,13 +50,13 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOEquipmentType.h"
 #import "HeadUpDisplay.h"
+#import "OOSystemDescriptionManager.h"
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
 static NSString * const kOOLogScriptMissionDescNoText		= @"script.missionDescription.noMissionText";
 static NSString * const kOOLogScriptMissionDescNoKey		= @"script.missionDescription.noMissionKey";
 
-static NSString * const kOOLogDebug							= @"script.debug";
 static NSString * const kOOLogDebugOnMetaClass				= @"$scriptDebugOn";
 static NSString * const kOOLogDebugMessage					= @"script.debug.message";
 static NSString * const kOOLogDebugOnOff					= @"script.debug.onOff";
@@ -65,7 +65,6 @@ static NSString * const kOOLogDebugReplaceVariablesInString	= @"script.debug.rep
 static NSString * const kOOLogDebugProcessSceneStringAddScene = @"script.debug.processSceneString.addScene";
 static NSString * const kOOLogDebugProcessSceneStringAddModel = @"script.debug.processSceneString.addModel";
 static NSString * const kOOLogDebugProcessSceneStringAddMiniPlanet = @"script.debug.processSceneString.addMiniPlanet";
-static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
 
 static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
 static NSString * const kOOLogNoteUseSpecialCargo			= @"script.debug.note.useSpecialCargo";
@@ -76,11 +75,6 @@ static NSString * const kOOLogNoteFuelLeak					= @"script.debug.note.setFuelLeak
 static NSString * const kOOLogNoteAddPlanet					= @"script.debug.note.addPlanet";
 static NSString * const kOOLogNoteProcessSceneString		= @"script.debug.note.processSceneString";
 
-static NSString * const kOOLogSyntaxBadConditional			= @"script.debug.syntax.badConditional";
-static NSString * const kOOLogSyntaxNoAction				= @"script.debug.syntax.action.noneSpecified";
-static NSString * const kOOLogSyntaxBadAction				= @"script.debug.syntax.action.badSelector";
-static NSString * const kOOLogSyntaxNoScriptCondition		= @"script.debug.syntax.scriptCondition.noneSpecified";
-static NSString * const kOOLogSyntaxBadScriptCondition		= @"script.debug.syntax.scriptCondition.badSelector";
 static NSString * const kOOLogSyntaxSetPlanetInfo			= @"script.debug.syntax.setPlanetInfo";
 static NSString * const kOOLogSyntaxAwardCargo				= @"script.debug.syntax.awardCargo";
 static NSString * const kOOLogSyntaxAwardEquipment			= @"script.debug.syntax.awardEquipment";
@@ -99,7 +93,6 @@ static NSString * const kOOLogRemoveAllCargoNotDocked		= @"script.error.removeAl
 
 #define	ACTIONS_TEMP_PREFIX									"__oolite_actions_temp"
 static NSString * const kActionTempPrefix					= @ ACTIONS_TEMP_PREFIX;
-static NSString * const kActionTempFormat					= @ ACTIONS_TEMP_PREFIX ".%u";
 
 
 static NSString		*sMissionStringValue = nil;
@@ -128,12 +121,6 @@ static NSString *CurrentScriptNameOr(NSString *alternative)
 		return [NSString stringWithFormat:@"\"%@\"", sCurrentMissionKey];
 	}
 	return alternative;
-}
-
-
-OOINLINE NSString *CurrentScriptName(void)
-{
-	return CurrentScriptNameOr(nil);
 }
 
 
@@ -229,7 +216,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	{
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
-		expandedString = OOExpandDescriptionString([player system_seed], argumentString, nil, locals, nil, kOOExpandNoOptions);
+		expandedString = OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), argumentString, nil, locals, nil, kOOExpandNoOptions);
 		
 		[target performSelector:selector withObject:expandedString];
 	}
@@ -724,20 +711,50 @@ static BOOL sRunningScript = NO;
 	NSEnumerator			*scriptEnum = nil;
 	NSString				*scriptName = nil;
 	NSString				*vars = nil;
-	NSMutableArray			*result = nil;
+	NSMutableArray			*result1 = nil;
+	NSMutableArray			*result2 = nil;
 	
-	result = [NSMutableArray array];
-	
+	result1 = [NSMutableArray array];
+	result2 = [NSMutableArray array];
+
+	/* For proper display, array entries need to all be after string
+	 * entries, so sort them now */	
 	for (scriptEnum = [worldScripts keyEnumerator]; (scriptName = [scriptEnum nextObject]); )
 	{
 		vars = [mission_variables objectForKey:scriptName];
 		
 		if (vars != nil)
 		{
-			[result addObject:[NSString stringWithFormat:@"\t%@", vars]];
+			if ([vars isKindOfClass:[NSString class]])
+			{
+				[result1 addObject:vars];
+			}
+			else if ([vars isKindOfClass:[NSArray class]])
+			{
+				BOOL found = NO;
+				NSArray *element = nil;
+				foreach (element, result2)
+				{
+					if ([[element oo_stringAtIndex:0] isEqualToString:[(NSArray*)vars oo_stringAtIndex:0]])
+					{
+
+						[result2 removeObject:element];
+						NSRange notTheHeader;
+						notTheHeader.location = 1;
+						notTheHeader.length = [(NSArray*)vars count]-1;
+						[result2 addObject:[element arrayByAddingObjectsFromArray:[(NSArray*)vars subarrayWithRange:notTheHeader]]];
+						found = YES;
+						break;
+					}
+				}
+				if (!found)
+				{
+					[result2 addObject:vars];
+				}
+			}
 		}
 	}
-	return result;
+	return [result1 arrayByAddingObjectsFromArray:result2];
 }
 
 
@@ -817,6 +834,32 @@ static BOOL sRunningScript = NO;
 	text = [self replaceVariablesInString: text];
 
 	[mission_variables setObject:text forKey:key];
+}
+
+
+- (void) setMissionInstructionsList:(NSArray *)list forMission:(NSString *)key
+{
+	if (!key)
+	{
+		OOLogERR(kOOLogScriptMissionDescNoKey, @"in %@, mission key not set", CurrentScriptDesc());
+		return;
+	}
+
+	NSString *text = nil;
+	NSUInteger i,ct = [list count];
+	NSMutableArray *expandedList = [NSMutableArray arrayWithCapacity:ct];
+	for (i=0 ; i<ct ; i++)
+	{
+		text = [list oo_stringAtIndex:i defaultValue:nil];
+		if (text != nil)
+		{
+			text = OOExpand(text);
+			text = [self replaceVariablesInString: text];
+			[expandedList addObject:text];
+		}
+	}
+
+	[mission_variables setObject:expandedList forKey:key];
 }
 
 
@@ -913,12 +956,8 @@ static int shipsFound;
 }
 
 
-static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSNumber *) d100_number
 {
-	if (scriptRandomSeed == -1)	scriptRandomSeed = floor(1301 * ship_clock);	// stop predictable sequences
-	ranrot_srand(scriptRandomSeed);
-	scriptRandomSeed = ranrot_rand();
 	int d100 = ranrot_rand() % 100;
 	return [NSNumber numberWithInt:d100];
 }
@@ -932,9 +971,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) d256_number
 {
-	if (scriptRandomSeed == -1)	scriptRandomSeed = floor(1301 * ship_clock);	// stop predictable sequences
-	ranrot_srand(scriptRandomSeed);
-	scriptRandomSeed = ranrot_rand();
 	int d256 = ranrot_rand() % 256;
 	return [NSNumber numberWithInt:d256];
 }
@@ -1046,7 +1082,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) systemGovernment_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_GOVERNMENT];
 }
 
@@ -1063,28 +1099,28 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) systemEconomy_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_ECONOMY];
 }
 
 
 - (NSNumber *) systemTechLevel_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_TECHLEVEL];
 }
 
 
 - (NSNumber *) systemPopulation_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_POPULATION];
 }
 
 
 - (NSNumber *) systemProductivity_number
 {
-	NSDictionary *systeminfo = [UNIVERSE generateSystemData:system_seed];
+	NSDictionary *systeminfo = [UNIVERSE currentSystemData];
 	return [systeminfo objectForKey:KEY_PRODUCTIVITY];
 }
 
@@ -1250,7 +1286,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	keyString = [[tokens objectAtIndex:0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [[tokens objectAtIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	
-	[UNIVERSE setSystemDataKey:keyString value:valueString];
+	/* Legacy script planetinfo settings are now non-persistent over save/load
+	 * Virtually nothing uses them any more, and expecting them to have a
+	 * manifest and identifying what it is if so seems unnecessary */
+	[UNIVERSE setSystemDataKey:keyString value:valueString fromManifest:@""];
 
 }
 
@@ -1273,7 +1312,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	keyString = [[tokens objectAtIndex:2] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [[tokens objectAtIndex:3] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
-	[UNIVERSE setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString];
+	[UNIVERSE setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString fromManifest:@"" forLayer:OO_LAYER_OXP_DYNAMIC];
 }
 
 
@@ -1282,11 +1321,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (scriptTarget != self)  return;
 
 	NSArray					*tokens = ScanTokensFromString(amount_typeString);
-	NSString				*typeString = nil;
 	OOCargoQuantityDelta	amount;
 	OOCommodityType			type;
 	OOMassUnit				unit;
-	NSArray					*commodityArray = nil;
 
 	if ([tokens count] != 2)
 	{
@@ -1294,13 +1331,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
-	typeString = [tokens objectAtIndex:1];
-	type = [UNIVERSE commodityForName:typeString];
-	if (type == COMMODITY_UNDEFINED)  type = [typeString intValue];
-	
-	commodityArray = [UNIVERSE commodityDataForType:type];
-	
-	if (commodityArray == nil)
+
+	type = [tokens oo_stringAtIndex:1];
+	if (![[UNIVERSE commodities] goodDefined:type])
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"unknown type");
 		return;
@@ -1313,7 +1346,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
-	unit = [UNIVERSE unitsForCommodity:type];
+	unit = [shipCommodityData massUnitForGood:type];
 	if (specialCargo && unit == UNITS_TONS)
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"cargo hold full with special cargo");
@@ -1333,7 +1366,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	// Misnamed method. It only removes cargo measured in TONS, g & Kg items are not removed. --Kaks 20091004
 	OOCommodityType			type;
-	OOMassUnit				unit;
 	
 	if (scriptTarget != self)  return;
 	
@@ -1345,19 +1377,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
-	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-	for (type = 0; (NSUInteger)type < [manifest count]; type++)
+	foreach(type, [shipCommodityData goods])
 	{
-		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
-		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
-		unit = [UNIVERSE unitsForCommodity:type]; // will return tons for unknown types
-		if (unit == UNITS_TONS)
+		if ([shipCommodityData massUnitForGood:type] == UNITS_TONS)
 		{
-			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
+			[shipCommodityData setQuantity:0 forGood:type];
 		}
 	}
-	
+
+
 	if (forceRemoval && [self status] != STATUS_DOCKED)
 	{
 		NSInteger i;
@@ -1370,9 +1398,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			[cargo removeObjectAtIndex:i];
 		}
 	}
-	
-	[shipCommodityData release];
-	shipCommodityData = [manifest mutableCopy];
 	
 	DESTROY(specialCargo);
 	
@@ -1849,7 +1874,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// Replace literal \n in strings with line breaks and perform expansions.
 	text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (text == nil)  return;
-	text = OOExpandDescriptionString([UNIVERSE systemSeed], text, nil, nil, nil, kOOExpandBackslashN);
+	text = OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandBackslashN, text);
 	text = [self replaceVariablesInString:text];
 	
 	[self addLiteralMissionText:text];
@@ -1908,7 +1933,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}
@@ -2245,7 +2270,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return nil;
-	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:planetKey];
+	NSDictionary* dict = [[UNIVERSE systemManager] getPropertiesForSystemKey:planetKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", planetKey);
@@ -2254,7 +2279,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	/*- add planet -*/
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initPlanetFromDictionary: %@", dict);
-	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[UNIVERSE systemSeed]] autorelease];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
@@ -2297,7 +2322,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return nil;
-	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:moonKey];
+	NSDictionary* dict = [[UNIVERSE systemManager] getPropertiesForSystemKey:moonKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", moonKey);
@@ -2305,7 +2330,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initMoonFromDictionary: %@", dict);
-	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[UNIVERSE systemSeed]] autorelease];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[[UNIVERSE systemManager] getRandomSeedForCurrentSystem] forSystem:system_id] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
@@ -2426,7 +2451,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}
@@ -2445,7 +2470,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}
@@ -2702,13 +2727,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			return NO;				//		   0........... 1 2 3
 		
 		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
-		if (target_system_seed.b & 8)
+		if (target_system_id & 8)
 		{
-			_sysInfoLight = (target_system_seed.b & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
+			_sysInfoLight = (target_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
 		}
 		else
 		{
-			_sysInfoLight = (target_system_seed.d & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
+			_sysInfoLight = (target_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
 		}
 
 		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
@@ -2721,7 +2746,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 		else
 		{
-			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:target_system_seed] autorelease];
+			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:target_system_id] autorelease];
 		}
 		OOPlanetEntity *doppelganger = [originalPlanet miniatureVersion];
 		if (doppelganger == nil)  return NO;

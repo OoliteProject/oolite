@@ -22,6 +22,9 @@
 */
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
+uniform mat3			ooliteNormalMatrix;
+uniform mat4			ooliteModelView;
+uniform mat4			ooliteModelViewProjection;
 varying vec3			vEyeVector;
 varying vec2			vTexCoords;
 varying vec3			vLight1Vector;
@@ -33,18 +36,19 @@ void main(void)
 	vCoords = gl_Vertex.xyz;
 	
 	// Build tangent basis.
-	vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
-	vec3 binormal = cross(normal, gl_NormalMatrix * vec3(0, 1, 0));
+	vec3 normal = normalize(ooliteNormalMatrix * gl_Normal);
+	vec3 binormal = normalize(cross(normal, ooliteNormalMatrix * vec3(0, 1, 0)));
 	vec3 tangent = -cross(normal, binormal);
 	
 	mat3 TBN = mat3(tangent, binormal, normal);
 	
-	vec3 eyeVector = -vec3(gl_ModelViewMatrix * gl_Vertex);
+	vec3 eyeVector = -vec3(ooliteModelView * gl_Vertex);
 	vEyeVector = eyeVector * TBN;
 
 	vec3 light1Vector = gl_LightSource[1].position.xyz + eyeVector;
 	vLight1Vector = light1Vector * TBN;
 	
 	vTexCoords = gl_MultiTexCoord0.st;
-	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_Position = ooliteModelViewProjection * gl_Vertex;
 }
+

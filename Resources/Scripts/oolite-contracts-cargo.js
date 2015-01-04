@@ -37,7 +37,7 @@ this.name			= "oolite-contracts-cargo";
 this.author			= "cim";
 this.copyright		= "© 2012-2013 the Oolite team.";
 this.description	= "Cargo delivery contracts.";
-this.version		= "1.79";
+
 
 /**** Configuration options and API ****/
 
@@ -262,6 +262,10 @@ this._initialiseCargoContractsForSystem = function()
 
 				// get the SystemInfo object for the destination
 				var destinationInfo = System.infoForSystem(galaxyNumber,destination);
+			if (destinationInfo.sun_gone_nova)
+			{
+				continue;
+			}
 
 				var daysUntilDeparture = 1+(Math.random()*(7+player.contractReputationPrecise-destinationInfo.government));
 				if (daysUntilDeparture <= 0)
@@ -277,7 +281,7 @@ this._initialiseCargoContractsForSystem = function()
 						attempts++;
 						var commodity = commodities[Math.floor(Math.random()*commodities.length)];
 						// sub-tc contracts only available for top rep
-						if (system.mainStation.market[commodity].quantityUnit != 0 && player.contractReputationPrecise < 6.5) 
+						if (system.mainStation.market[commodity]["quantity_unit"] != 0 && player.contractReputationPrecise < 6.5) 
 						{
 						} 
 						// ignore commodities with 0 availability here
@@ -286,7 +290,7 @@ this._initialiseCargoContractsForSystem = function()
 						}
 						else
 						{
-								remotePrice = this._priceForCommodity(system.mainStation.market[commodity],destinationInfo.economy);
+								remotePrice = this._priceForCommodity(commodity,destinationInfo);
 						}
 				} while (remotePrice < system.mainStation.market[commodity].price/20 && attempts < 10);
 				if (attempts == 10)
@@ -301,18 +305,18 @@ this._initialiseCargoContractsForSystem = function()
 				{
 						var unitsize = 1;
 						// larger unit sizes for kg/g commodities
-						if (system.mainStation.market[commodity].quantityUnit == 1)
+						if (system.mainStation.market[commodity]["quantity_unit"] == 1)
 						{
 								unitsize += Math.floor(Math.random()*6)+Math.floor(Math.random()*6)+Math.floor(Math.random()*6);
 						}
-						else if (system.mainStation.market[commodity].quantityUnit == 2)
+						else if (system.mainStation.market[commodity]["quantity_unit"] == 2)
 						{
 								unitsize += Math.floor(Math.random()*16)+Math.floor(Math.random()*11)+Math.floor(Math.random()*6);
 						}
 						amount += (1+Math.floor(Math.random()*32))*(1+Math.floor(Math.random()*16))*unitsize;
 				}
 
-				if (amount > 125 && system.mainStation.market[commodity].quantityUnit == 0)
+				if (amount > 125 && system.mainStation.market[commodity]["quantity_unit"] == 0)
 				{
 						// reduce the number of contracts only suitable for Anacondas
 						amount = Math.floor(amount/Math.floor(1+(Math.random()*4)));
@@ -863,22 +867,21 @@ this._validateContracts = function()
 /* Utility functions */
 
 // calculates a sample price for a commodity in a distant system
-this._priceForCommodity = function(commodity,economy) 
+this._priceForCommodity = function(commodity,systeminfo) 
 {
-		var rnd = Math.floor(Math.random()*256);
-		var price = 0.4*(Math.floor(parseInt(commodity.marketBasePrice,10) + (rnd & parseInt(commodity.marketMaskPrice,10)) + (economy*parseInt(commodity.marketEcoAdjustPrice,10)))&255);
-		return price;
+	//sample price returns decicredits, need credits
+	return systeminfo.samplePrice(commodity)/10;
 }
 
 // description of the cargo
 this._descriptionForGoods = function(cargo)
 {
 		var unit = "tons";
-		if (system.mainStation.market[cargo.commodity].quantityUnit == "1")
+		if (system.mainStation.market[cargo.commodity]["quantity_unit"] == "1")
 		{
 				unit = "kilograms";
 		}
-		else if (system.mainStation.market[cargo.commodity].quantityUnit == "2")
+		else if (system.mainStation.market[cargo.commodity]["quantity_unit"] == "2")
 		{
 				unit = "grams";
 		}
@@ -894,7 +897,7 @@ this._hasSpaceFor = function(cargo)
 				return false;
 		}
 		var amountInTC = cargo.size;
-		if (system.mainStation.market[cargo.commodity].quantityUnit == "1")
+		if (system.mainStation.market[cargo.commodity]["quantity_unit"] == "1")
 		{
 				var spareSafe = 499-(player.ship.manifest[cargo.commodity] % 1000);
 				amountInTC -= spareSafe;
@@ -904,7 +907,7 @@ this._hasSpaceFor = function(cargo)
 						amountInTC = 0;
 				}
 		}
-		else if (system.mainStation.market[cargo.commodity].quantityUnit == "2")
+		else if (system.mainStation.market[cargo.commodity]["quantity_unit"] == "2")
 		{
 				var spareSafe = 499999-(player.ship.manifest[cargo.commodity] % 1000000);
 				amountInTC -= spareSafe;

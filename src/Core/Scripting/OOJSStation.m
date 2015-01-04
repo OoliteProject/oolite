@@ -507,10 +507,12 @@ static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *v
 	}
 	
 	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARGV[1], &abortAllDockings);
-	
+
+	OOJS_BEGIN_FULL_NATIVE(context)
 	result = [station launchIndependentShip:shipRole];
 	if (abortAllDockings) [station abortAllDockings];
-	
+	OOJS_END_FULL_NATIVE
+
 	OOJS_RETURN_OBJECT(result);
 	OOJS_NATIVE_EXIT
 }
@@ -522,8 +524,13 @@ static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp
 	
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
-	
-	OOJS_RETURN_OBJECT([station launchDefenseShip]);
+
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchDefenseShip];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -535,7 +542,12 @@ static JSBool StationLaunchEscort(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchEscort]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchEscort];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -546,8 +558,13 @@ static JSBool StationLaunchScavenger(JSContext *context, uintN argc, jsval *vp)
 	
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
-	
-	OOJS_RETURN_OBJECT([station launchScavenger]);
+
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchScavenger];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -559,7 +576,11 @@ static JSBool StationLaunchMiner(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchMiner]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchMiner];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
@@ -571,7 +592,12 @@ static JSBool StationLaunchPirateShip(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchPirateShip]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchPirateShip];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
+
 	OOJS_NATIVE_EXIT
 }
 
@@ -583,7 +609,11 @@ static JSBool StationLaunchShuttle(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchShuttle]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchShuttle];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
@@ -595,7 +625,11 @@ static JSBool StationLaunchPatrol(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchPatrol]);
+	ShipEntity *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchPatrol];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
@@ -607,7 +641,11 @@ static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp)
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 	
-	OOJS_RETURN_OBJECT([station launchPolice]);
+	NSArray *launched = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	launched = [station launchPolice];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(launched);
 	OOJS_NATIVE_EXIT
 }
 
@@ -735,9 +773,8 @@ static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	OOCommodityType commodity = StringToCommodityType(commodityString);
-	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
 	{
 		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
 		return NO;
@@ -745,9 +782,9 @@ static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp)
 
 	int32 price;
 	BOOL gotPrice = JS_ValueToInt32(context, OOJS_ARGV[1], &price);
-	if (EXPECT_NOT(!gotPrice || price < 0 || price > 1020))
+	if (EXPECT_NOT(!gotPrice || price < 0))
 	{
-		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be between 0 and 1020 decicredits");
+		OOJSReportBadArguments(context, @"Station", @"setMarketPrice", MIN(argc, 2U), OOJS_ARGV, NULL, @"Price must be at least 0 decicredits");
 		return NO;
 	}
 
@@ -777,9 +814,8 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 		return NO;
 	}
 	
-	NSString *commodityString = OOStringFromJSValue(context, OOJS_ARGV[0]);
-	OOCommodityType commodity = StringToCommodityType(commodityString);
-	if (EXPECT_NOT(commodity == COMMODITY_UNDEFINED))
+	OOCommodityType commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(![[UNIVERSE commodities] goodDefined:commodity]))
 	{
 		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Unrecognised commodity type");
 		return NO;
@@ -787,9 +823,9 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 
 	int32 quantity;
 	BOOL gotQuantity = JS_ValueToInt32(context, OOJS_ARGV[1], &quantity);
-	if (EXPECT_NOT(!gotQuantity || quantity < 0 || quantity > 127))
+	if (EXPECT_NOT(!gotQuantity || quantity < 0 || (OOCargoQuantity)quantity > [[station localMarket] capacityForGood:commodity]))
 	{
-		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and 127 units");
+		OOJSReportBadArguments(context, @"Station", @"setMarketQuantity", MIN(argc, 2U), OOJS_ARGV, NULL, @"Quantity must be between 0 and the station market capacity");
 		return NO;
 	}
 

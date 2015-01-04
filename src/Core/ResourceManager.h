@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "NSFileManagerOOExtensions.h"
 
-@class OOSound, OOMusic;
+@class OOSound, OOMusic, OOSystemDescriptionManager;
 
 
 typedef enum
@@ -38,19 +38,48 @@ typedef enum
 	MERGE_SMART		// Merge files by merging the top-level elements of each file (second-order merge, but not recursive)
 } OOResourceMergeMode;
 
+/* 'All' doesn't quite mean 'all' - OXPs with the tag
+ * "oolite-scenario-only" will only be loaded if required by a
+ * scenario.
+ *
+ * Note that this means that the scenario itself must be in a
+ * different OXP, or it'll never be loaded when on the start-game
+ * screen.
+ */
+#define SCENARIO_OXP_DEFINITION_ALL    @""
+#define SCENARIO_OXP_DEFINITION_NONE   @"strict"
+#define SCENARIO_OXP_DEFINITION_BYID   @"id:"
+#define SCENARIO_OXP_DEFINITION_BYTAG  @"tag:"
+#define SCENARIO_OXP_DEFINITION_NOPLIST  @"exc:"
 
 @interface ResourceManager : NSObject
 
++ (void) reset;
++ (void) resetManifestKnowledgeForOXZManager;
+
+
 + (NSArray *)rootPaths;			// Places add-ons are searched for, not including add-on paths.
++ (NSArray *)userRootPaths;		// Places users are expected to place add-ons, not including built-in data or managed add-ons directory.
 + (NSString *)builtInPath;		// Path for built-in data only.
 + (NSArray *)pathsWithAddOns;	// Root paths + add-on paths.
 + (NSArray *)paths;				// builtInPath or pathsWithAddOns, depending on useAddOns state.
-+ (BOOL)useAddOns;
++ (NSString *)useAddOns;
 + (NSArray *)OXPsWithMessagesFound;
-+ (void)setUseAddOns:(BOOL)useAddOns;
++ (void)setUseAddOns:(NSString *)useAddOns;
 + (void)addExternalPath:(NSString *)fileName;
 + (NSEnumerator *)pathEnumerator;
 + (NSEnumerator *)reversePathEnumerator;
+
+// get manifest data for identifier
++ (NSDictionary *)manifestForIdentifier:(NSString *)identifier;
+// compatibility checks
++ (BOOL) checkVersionCompatibility:(NSDictionary *)manifest forOXP:(NSString *)title;
++ (BOOL) manifestHasConflicts:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
++ (BOOL) manifestHasMissingDependencies:(NSDictionary *)manifest logErrors:(BOOL)logErrors;
++ (BOOL) manifest:(NSDictionary *)manifest HasUnmetDependency:(NSDictionary *)required logErrors:(BOOL)logErrors;
++ (BOOL) matchVersions:(NSDictionary *)rangeDict withVersion:(NSString *)version;
+
+
 
 + (void)handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex;
 
@@ -58,6 +87,8 @@ typedef enum
 
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache;
+
++ (BOOL) corePlist:(NSString *)fileName excludedAt:(NSString *)path;
 
 + (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
 								  inFolder:(NSString *)folderName
@@ -82,6 +113,7 @@ typedef enum
 // These have special merging rules.
 + (NSDictionary *) logControlDictionary;
 + (NSDictionary *) roleCategoriesDictionary;
++ (OOSystemDescriptionManager *) systemDescriptionManager;
 
 + (OOSound *)ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (OOMusic *)ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName;

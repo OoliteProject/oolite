@@ -108,6 +108,11 @@ MA 02110-1301, USA.
 #define FUEL_BAR_WIDTH				80
 #define FUEL_BAR_HEIGHT				8
 
+#define WITCHDEST_CENTRE_X			-200
+#define WITCHDEST_CENTRE_Y			-179
+#define WITCHDEST_WIDTH				80
+#define WITCHDEST_HEIGHT				8
+
 #define CABIN_TEMP_BAR_CENTRE_X		-200
 #define CABIN_TEMP_BAR_CENTRE_Y		-189
 #define CABIN_TEMP_BAR_WIDTH		80
@@ -187,6 +192,8 @@ MA 02110-1301, USA.
 #define DRAW_SURROUND_KEY		@"draw_surround"
 #define EQUIPMENT_REQUIRED_KEY	@"equipment_required"
 #define ALERT_CONDITIONS_KEY	@"alert_conditions"
+#define VIEWSCREEN_KEY			@"viewscreen_only"
+#define DIAL_REQUIRED_KEY		@"with_dial"
 #define LABELLED_KEY			@"labelled"
 #define TEXT_KEY				@"text"
 #define RGB_COLOR_KEY			@"rgb_color"
@@ -197,6 +204,7 @@ MA 02110-1301, USA.
 #define COLOR_KEY_CRITICAL		@"color_critical"
 #define COLOR_KEY_SURROUND		@"color_surround"
 #define N_BARS_KEY				@"n_bars"
+#define CUSTOM_DIAL_KEY			@"data_source"
 
 #define ROWS_KEY				@"rows"
 #define COLUMNS_KEY				@"columns"
@@ -205,6 +213,7 @@ MA 02110-1301, USA.
 #define TITLE_KEY				@"title"
 #define BACKGROUND_RGBA_KEY		@"background_rgba"
 #define OVERALL_ALPHA_KEY		@"overall_alpha"
+#define NONLINEAR_SCANNER		@"nonlinear_scanner"
 
 #define Z1						[(MyOpenGLView *)[[player universe] gameView] display_z]
 
@@ -247,7 +256,11 @@ MA 02110-1301, USA.
 	
 	BOOL				hudHidden;
 	
+	BOOL				allowBigGui;
+
 	int					last_transmitter;
+
+	NSMutableSet		*_hiddenSelectors;
 	
 	// Crosshairs
 	OOCrosshairs		*_crosshairs;
@@ -260,6 +273,10 @@ MA 02110-1301, USA.
 	GLfloat				_crosshairWidth;
 	NSString			*crosshairDefinition;
 	BOOL				_compassActive;
+	
+	// Nonlinear scanner
+	BOOL			nonlinear_scanner;
+	BOOL			scanner_ultra_zoom;
 
 }
 
@@ -283,6 +300,13 @@ MA 02110-1301, USA.
 
 - (BOOL) isHidden;
 - (void) setHidden:(BOOL)newValue;
+
+- (BOOL) allowBigGui;
+
+- (BOOL) hasHidden:(NSString *)selectorName;
+- (void) setHiddenSelector:(NSString *)selectorName hidden:(BOOL)hide;
+- (void) clearHiddenSelectors;
+
 - (BOOL) isCompassActive;
 - (void) setCompassActive:(BOOL)newValue;
 
@@ -305,7 +329,12 @@ MA 02110-1301, USA.
 - (void) setLineWidth:(GLfloat)value;
 - (GLfloat) lineWidth;
 
-- (void) drawWatermarkString:(NSString *)watermarkString;
++ (Vector) nonlinearScannerScale:(Vector) V Zoom:(GLfloat) zoom Scale:(double) scale;
+- (BOOL) nonlinearScanner;
+- (void) setNonlinearScanner: (BOOL)newValue;
+
+- (BOOL) scannerUltraZoom;
+- (void) setScannerUltraZoom: (BOOL)newValue;
 
 @end
 
@@ -338,8 +367,34 @@ MA 02110-1301, USA.
 
 void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
+
+/* OODrawString(Aligned) handles all the string drawing, but because
+ * it does texture application and GL_QUADS beginning once per string
+ * it's quite slow.
+ *
+ * Where efficiency is needed, call OOStartDrawingStrings(), then
+ * OODrawStringQuadsAligned for each bit of text, then
+ * OOStopDrawingStrings().
+ *
+ * Trying to draw anything else between OOStartDrawingStrings() and
+ * OOStopDrawingStrings() will have messy results. You can safely call
+ * Stop, draw the other thing you want, then call Start again - it's
+ * just a little inefficient. Similarly calling
+ * OODrawStringQuadsAligned() without calling OOStartDrawingStrings()
+ * won't work very well.
+ *
+ * - CIM
+ */
+void OOStartDrawingStrings();
+void OODrawStringQuadsAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
+void OOStopDrawingStrings();
+
+
+
 void OODrawHilightedString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 NSRect OORectFromString(NSString *text, GLfloat x, GLfloat y, NSSize siz);
 CGFloat OOStringWidthInEm(NSString *text);
+
+void OOHUDResetTextEngine(void);

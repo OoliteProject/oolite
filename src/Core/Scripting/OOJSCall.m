@@ -64,18 +64,6 @@ typedef enum
 } MethodType;
 
 
-OOINLINE BOOL IsIntegerMethodType(MethodType type)
-{
-	return (kMethodTypeCharVoid <= type && type <= kMethodTypeUnsignedLongVoid);
-}
-
-
-OOINLINE BOOL IsFloatMethodType(MethodType type)
-{
-	return (kMethodTypeFloatVoid <= type && type <= kMethodTypeDoubleVoid);
-}
-
-
 static MethodType GetMethodType(id object, SEL selector);
 OOINLINE BOOL MethodExpectsParameter(MethodType type)	{ return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
 

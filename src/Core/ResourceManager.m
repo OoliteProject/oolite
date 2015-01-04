@@ -36,10 +36,16 @@ MA 02110-1301, USA.
 #import "OOLogOutputHandler.h"
 #import "NSFileManagerOOExtensions.h"
 #import "OldSchoolPropertyListWriting.h"
+#import "OOOXZManager.h"
+#import "unzip.h"
+#import "HeadUpDisplay.h"
+#import "OODebugStandards.h"
+#import "OOSystemDescriptionManager.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
 
+#import "OOManifestProperties.h"
 
 static NSString * const kOOLogCacheUpToDate				= @"dataCache.upToDate";
 static NSString * const kOOLogCacheExplicitFlush		= @"dataCache.rebuild.explicitFlush";
@@ -50,32 +56,6 @@ static NSString * const kOOCacheKeySearchPaths			= @"search paths";
 static NSString * const kOOCacheKeyModificationDates	= @"modification dates";
 
 
-
-static NSString * const kOOManifestIdentifier			= @"identifier";
-static NSString * const kOOManifestVersion				= @"version";
-static NSString * const kOOManifestRequiredOoliteVersion= @"required_oolite_version";
-static NSString * const kOOManifestMaximumOoliteVersion = @"maximum_oolite_version";
-static NSString * const kOOManifestTitle				= @"title";
-static NSString * const kOOManifestRequiresOXPs			= @"requires_oxps";
-static NSString * const kOOManifestConflictOXPs			= @"conflict_oxps";
-// this property is not contained in the manifest.plist but is
-// calculated by Oolite
-static NSString * const kOOManifestFilePath				= @"file_path";
-// following manifest.plist properties not yet implemented
-static NSString * const kOOManifestDescription			= @"description";
-static NSString * const kOOManifestCategory				= @"category";
-static NSString * const kOOManifestTags					= @"tags";
-static NSString * const kOOManifestAuthor				= @"author";
-static NSString * const kOOManifestLicense				= @"license";
-static NSString * const kOOManifestOptionalOXPs			= @"optional_oxps";
-static NSString * const kOOManifestDownloadURL			= @"download_url";
-static NSString * const kOOManifestInformationURL		= @"information_url";
-
-// properties for within requires/optional/conflicts entries
-static NSString * const kOOManifestRelationIdentifier	= @"identifier";
-static NSString * const kOOManifestRelationVersion		= @"version";
-static NSString * const kOOManifestRelationMaxVersion	= @"maximum_version";
-static NSString * const kOOManifestRelationDescription	= @"description";
 
 extern NSDictionary* ParseOOSScripts(NSString* script);
 
@@ -88,30 +68,67 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path andFile:(NSString *)file;
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths;
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths;
-+ (BOOL) matchVersions:(NSDictionary *)rangeDict withVersion:(NSString *)version;
++ (void) filterSearchPathsToExcludeScenarioOnlyPaths:(NSMutableArray *)searchPaths;
++ (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths;
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest;
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withIdentifier:(NSString *)identifier;
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withTag:(NSString *)tag;
+
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
-+ (void) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
++ (BOOL) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (void) logPaths;
 + (void) mergeRoleCategories:(NSDictionary *)catData intoDictionary:(NSMutableDictionary *)category;
++ (void) preloadFileLists;
++ (void) preloadFileListFromOXZ:(NSString *)path forFolders:(NSArray *)folders;
++ (void) preloadFileListFromFolder:(NSString *)path forFolders:(NSArray *)folders;
++ (void) preloadFilePathFor:(NSString *)fileName inFolder:(NSString *)subFolder atPath:(NSString *)path;
 
 @end
 
 
 static NSMutableArray	*sSearchPaths;
-static BOOL				sUseAddOns = YES;
+static NSString			*sUseAddOns;
+static NSArray			*sUseAddOnsParts;
 static BOOL				sFirstRun = YES;
+static BOOL				sAllMet = NO;
 static NSMutableArray	*sOXPsWithMessagesFound;
 static NSMutableArray	*sExternalPaths;
 static NSMutableArray	*sErrors;
+static NSMutableDictionary *sOXPManifests;
+
+
 
 // caches allow us to load any given file once only
 //
 static NSMutableDictionary *sSoundCache;
 static NSMutableDictionary *sStringCache;
-static NSMutableDictionary *sOXPManifests;
+
 
 
 @implementation ResourceManager
+
++ (void) reset
+{
+	sFirstRun = YES;
+	DESTROY(sUseAddOns);
+	DESTROY(sUseAddOnsParts);
+	DESTROY(sSearchPaths);
+	DESTROY(sOXPsWithMessagesFound);
+	DESTROY(sExternalPaths);
+	DESTROY(sErrors);
+	DESTROY(sOXPManifests);
+}
+
+
++ (void) resetManifestKnowledgeForOXZManager
+{
+	DESTROY(sUseAddOns);
+	DESTROY(sUseAddOnsParts);
+	DESTROY(sSearchPaths);
+	DESTROY(sOXPManifests);
+	[ResourceManager pathsWithAddOns];
+}
+
 
 + (NSString *) errors
 {
@@ -145,40 +162,52 @@ static NSMutableDictionary *sOXPManifests;
 
 + (NSArray *)rootPaths
 {
-	static NSArray			*sRootPaths = nil;
+	static NSArray *sRootPaths = nil;
+	if (sRootPaths == nil) {
+		/* Built-in data, then managed OXZs, then manually installed ones,
+		 * which may be useful for debugging/testing purposes. */
+		sRootPaths = [NSArray arrayWithObjects:[self builtInPath], [[OOOXZManager sharedManager] installPath], nil];
+		sRootPaths = [[sRootPaths arrayByAddingObjectsFromArray:[self userRootPaths]] retain];
+	}
+	return sRootPaths;
+}
+
+
++ (NSArray *)userRootPaths
+{
+	static NSArray			*sUserRootPaths = nil;
 	
-	if (sRootPaths == nil)
+	if (sUserRootPaths == nil)
 	{
 		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
 		
-		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath],
+		sUserRootPaths = [[NSArray alloc] initWithObjects:
 
 #if OOLITE_MAC_OS_X
-	/* 1st mac path */		[[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
-								stringByAppendingPathComponent:@"Application Support"]
-								stringByAppendingPathComponent:@"Oolite"]
-								stringByAppendingPathComponent:@"AddOns"],
-	/* 2nd mac path */		[[[[NSBundle mainBundle] bundlePath]
-								stringByDeletingLastPathComponent]
-								stringByAppendingPathComponent:@"AddOns"],
+					  [[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
+						 stringByAppendingPathComponent:@"Application Support"]
+						 stringByAppendingPathComponent:@"Oolite"]
+					    stringByAppendingPathComponent:@"AddOns"],
+					  [[[[NSBundle mainBundle] bundlePath]
+						 stringByDeletingLastPathComponent]
+					    stringByAppendingPathComponent:@"AddOns"],
 
 #elif OOLITE_WINDOWS
-	/* windows path */		@"../AddOns",
+					  @"../AddOns",
 #else	
-	/* 1st *nix path */		@"AddOns",
+					  @"AddOns",
 #endif
 
 #if !OOLITE_WINDOWS
-	/*	2nd *nix path, 3rd mac path */
-							[[NSHomeDirectory()
-								stringByAppendingPathComponent:@".Oolite"]
-								stringByAppendingPathComponent:@"AddOns"],
+					  [[NSHomeDirectory()
+						stringByAppendingPathComponent:@".Oolite"]
+					   stringByAppendingPathComponent:@"AddOns"],
 #endif
 		
 						nil];
 	}
-	
-	return sRootPaths;
+	OOLog(@"searchPaths.debug",@"%@",sUserRootPaths);
+	return sUserRootPaths;
 }
 
 
@@ -198,7 +227,20 @@ static NSMutableDictionary *sOXPManifests;
 + (NSArray *)pathsWithAddOns
 {
 	if ([sSearchPaths count] > 0)  return sSearchPaths;
+
+	if (sUseAddOns == nil)
+	{
+		sUseAddOns = [[NSString alloc] initWithString:SCENARIO_OXP_DEFINITION_ALL];
+		sUseAddOnsParts = [[sUseAddOns componentsSeparatedByString:@";"] retain];
+	}
 	
+	/* Handle special case of 'strict mode' efficiently */
+	// testing actual string
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_NONE])
+	{
+		return (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
+	}
+
 	[sErrors release];
 	sErrors = nil;
 	
@@ -224,6 +266,7 @@ static NSMutableDictionary *sOXPManifests;
 	}
 	
 	// validate default search paths
+	DESTROY(sSearchPaths);
 	sSearchPaths = [NSMutableArray new];
 	foreach(path, existingRootPaths)
 	{
@@ -276,6 +319,14 @@ static NSMutableDictionary *sOXPManifests;
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 	}
 
+	/* If a scenario restriction is *not* in place, remove
+	 * scenario-only OXPs. */
+	// test string
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
+	{
+		[self filterSearchPathsToExcludeScenarioOnlyPaths:sSearchPaths];
+	}
+
 	/* This is a conservative filter. It probably gets rid of more
 	 * OXPs than it technically needs to in certain situations with
 	 * dependency chains, but really any conflict here needs to be
@@ -283,6 +334,7 @@ static NSMutableDictionary *sOXPManifests;
 	 * loading OXPs which we shouldn't; if doing so takes out other
 	 * OXPs which would have been safe, that's not important. */
 	[self filterSearchPathsForConflicts:sSearchPaths];
+
 	/* This one needs to be run repeatedly to be sure. Take the chain
 	 * A depends on B depends on C. A and B are installed. A is
 	 * checked first, and depends on B, which is thought to be
@@ -295,41 +347,163 @@ static NSMutableDictionary *sOXPManifests;
 	 */
 	while (![self filterSearchPathsForRequirements:sSearchPaths]) {}
 
+	/* If a scenario restriction is in place, restrict OXPs to the
+	 * ones valid for the scenario only. */
+	// test string
+	if (![sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
+	{
+		[self filterSearchPathsByScenario:sSearchPaths];
+	}
+
 	[self checkCacheUpToDateForPaths:sSearchPaths];
 	
 	return sSearchPaths;
 }
 
 
++ (void) preloadFileLists
+{
+	NSString 		 *path = nil;
+	NSEnumerator *pathEnum = nil;
+
+	// folders which may contain files to be cached
+	NSArray *folders = [NSArray arrayWithObjects:@"AIs",@"Images",@"Models",@"Music",@"Scenarios",@"Scripts",@"Shaders",@"Sounds",@"Textures",nil];
+
+	for (pathEnum = [[ResourceManager paths] reverseObjectEnumerator]; (path = [pathEnum nextObject]); )
+	{
+		if ([path hasSuffix:@".oxz"])
+		{
+			[self preloadFileListFromOXZ:path forFolders:folders];
+		}
+		else
+		{
+			[self preloadFileListFromFolder:path forFolders:folders];
+		}
+	}
+}
+
+
++ (void) preloadFileListFromOXZ:(NSString *)path forFolders:(NSArray *)folders
+{
+	unzFile uf = NULL;
+	const char* zipname = [path UTF8String];
+	char componentName[512];
+
+	if (zipname != NULL)
+	{
+		uf = unzOpen64(zipname);
+	}
+	if (uf == NULL)
+	{
+		OOLog(@"resourceManager.error",@"Could not open .oxz at %@ as zip file",path);
+		return;
+	}
+	if (unzGoToFirstFile(uf) == UNZ_OK)
+	{
+		do 
+		{
+			unzGetCurrentFileInfo64(uf, NULL,
+									componentName, 512,
+									NULL, 0,
+									NULL, 0);
+			NSString *zipEntry = [NSString stringWithUTF8String:componentName];
+			NSArray *pathBits = [zipEntry pathComponents];
+			if ([pathBits count] >= 2)
+			{
+				NSString *folder = [pathBits oo_stringAtIndex:0];
+				if ([folders containsObject:folder])
+				{
+					NSRange bitRange;
+					bitRange.location = 1;
+					bitRange.length = [pathBits count]-1;
+					NSString *file = [NSString pathWithComponents:[pathBits subarrayWithRange:bitRange]];
+					NSString *fullPath = [[path stringByAppendingPathComponent:folder] stringByAppendingPathComponent:file];
+					
+					[self preloadFilePathFor:file inFolder:folder atPath:fullPath];
+				}
+			}
+
+		} 
+		while (unzGoToNextFile(uf) == UNZ_OK);
+	}
+	unzClose(uf);
+
+}
+
+
++ (void) preloadFileListFromFolder:(NSString *)path forFolders:(NSArray *)folders
+{
+	NSFileManager *fmgr 		= [NSFileManager defaultManager];
+	NSString *subFolder 		= nil;
+	NSString *subFolderPath 	= nil;
+	NSArray *fileList			= nil;
+	NSString *fileName			= nil;
+
+	// search each subfolder for files
+	foreach (subFolder, folders)
+	{
+		subFolderPath = [path stringByAppendingPathComponent:subFolder];
+		fileList = [fmgr oo_directoryContentsAtPath:subFolderPath];
+		foreach (fileName, fileList)
+		{
+			[self preloadFilePathFor:fileName inFolder:subFolder atPath:[subFolderPath stringByAppendingPathComponent:fileName]];
+		}
+	}
+
+}
+
+
++ (void) preloadFilePathFor:(NSString *)fileName inFolder:(NSString *)subFolder atPath:(NSString *)path
+{
+	OOCacheManager	*cache = [OOCacheManager sharedCache];
+	NSString *cacheKey = [NSString stringWithFormat:@"%@/%@", subFolder, fileName];
+	NSString *result = [cache objectForKey:cacheKey inCache:@"resolved paths"];
+	// if nil, not found in another OXP already
+	if (result == nil)
+	{
+		OOLog(@"resourceManager.foundFile.preLoad", @"Found %@/%@ at %@", subFolder, fileName, path);
+		[cache setObject:path forKey:cacheKey inCache:@"resolved paths"];
+	}
+}
+
+
+
 + (NSArray *)paths
 {
 	if (EXPECT_NOT(sSearchPaths == nil))
 	{
-		if (!sUseAddOns)
-		{
-			sSearchPaths = [[NSMutableArray alloc] init];
-		}
+		sSearchPaths = [[NSMutableArray alloc] init];
 	}
-	return sUseAddOns ? [self pathsWithAddOns] : (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
+	return [self pathsWithAddOns];
 }
 
 
-+ (BOOL)useAddOns
++ (NSString *)useAddOns
 {
 	return sUseAddOns;
 }
 
 
-+ (void)setUseAddOns:(BOOL)useAddOns
++ (void)setUseAddOns:(NSString *)useAddOns
 {
-	if (sFirstRun || sUseAddOns != useAddOns)
+	if (sFirstRun || ![useAddOns isEqualToString:sUseAddOns])
 	{
+		[self reset];
 		sFirstRun = NO;
-		sUseAddOns = useAddOns;
+		DESTROY(sUseAddOnsParts);
+		DESTROY(sUseAddOns);
+		sUseAddOns = [useAddOns retain];
+		sUseAddOnsParts = [[sUseAddOns componentsSeparatedByString:@";"] retain];
+
 		[ResourceManager clearCaches];
-		
+		OOHUDResetTextEngine();
+
 		OOCacheManager *cmgr = [OOCacheManager sharedCache];
-		if (sUseAddOns)
+		/* only allow cache writes for the "all OXPs" default
+		 *
+		 * cache should be less necessary for restricted sets anyway */
+		// testing the actual string here
+		if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
 		{
 			[cmgr reloadAllCaches];
 			[cmgr setAllowCacheWrites:YES];
@@ -342,6 +516,10 @@ static NSMutableDictionary *sOXPManifests;
 		
 		[self checkCacheUpToDateForPaths:[self paths]];
 		[self logPaths];
+		/* preloading the file lists at this stage helps efficiency a
+		 * lot when many OXZs are installed */
+		[self preloadFileLists];
+
 	}
 }
 
@@ -374,6 +552,12 @@ static NSMutableDictionary *sOXPManifests;
 + (NSArray *)OXPsWithMessagesFound
 {
 	return [[sOXPsWithMessagesFound copy] autorelease];
+}
+
+
++ (NSDictionary *)manifestForIdentifier:(NSString *)identifier
+{
+	return [sOXPManifests objectForKey:identifier];
 }
 
 
@@ -428,11 +612,24 @@ static NSMutableDictionary *sOXPManifests;
 			[self addErrorWithKey:@"oxz-lacks-manifest" param1:[path lastPathComponent] param2:nil];
 			return;
 		}
+		else
+		{
+			if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+			{
+				OOStandardsError([NSString stringWithFormat:@"OXP %@ has no manifest.plist", path]);
+				if (OOEnforceStandards())
+				{
+					[self addErrorWithKey:@"oxp-lacks-manifest" param1:[path lastPathComponent] param2:nil];
+					return;
+				}
+			}
+			// make up a basic manifest in relaxed mode or for base folders
+			manifest = [NSDictionary dictionaryWithObjectsAndKeys:[NSString stringWithFormat:@"__oolite.tmp.%@",path],kOOManifestIdentifier,@"1",kOOManifestVersion,@"OXP without manifest",kOOManifestTitle,@"1",kOOManifestRequiredOoliteVersion,nil];
+		}
 	}
-	else
-	{
-		requirementsMet = [self validateManifest:manifest forOXP:path];
-	}
+	
+	requirementsMet = [self validateManifest:manifest forOXP:path];
+
 
 	if (requirementsMet) 
 	{
@@ -443,7 +640,7 @@ static NSMutableDictionary *sOXPManifests;
 
 + (BOOL) validateManifest:(NSDictionary*)manifest forOXP:(NSString *)path
 {
-	if (sOXPManifests == nil)
+	if (EXPECT_NOT(sOXPManifests == nil))
 	{
 		sOXPManifests = [[NSMutableDictionary alloc] initWithCapacity:32];
 	}
@@ -482,15 +679,8 @@ static NSMutableDictionary *sOXPManifests;
 	{
 		return NO;
 	}
-	NSString *maxRequired = [manifest oo_stringForKey:kOOManifestMaximumOoliteVersion defaultValue:nil];
-	if (maxRequired == nil)
-	{
-		OK = [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", nil] forOXP:title andFile:@"manifest.plist"];
-	}
-	else
-	{
-		OK = [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", maxRequired, @"max_version", nil] forOXP:title andFile:@"manifest.plist"];
-	}
+	OK = [self checkVersionCompatibility:manifest forOXP:title];
+
 	if (!OK)
 	{
 		NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -511,6 +701,22 @@ static NSMutableDictionary *sOXPManifests;
 	// add an extra key
 	[sOXPManifests setObject:mData forKey:identifier];
 	return YES;
+}
+
+
++ (BOOL) checkVersionCompatibility:(NSDictionary *)manifest forOXP:(NSString *)title
+{
+	NSString 	*required = [manifest oo_stringForKey:kOOManifestRequiredOoliteVersion defaultValue:nil];
+	NSString *maxRequired = [manifest oo_stringForKey:kOOManifestMaximumOoliteVersion defaultValue:nil];
+	// ignore empty max version string rather than treating as "version 0"
+	if (maxRequired == nil || [maxRequired length] == 0)
+	{
+		return [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", nil] forOXP:title andFile:@"manifest.plist"];
+	}
+	else
+	{
+		return [self areRequirementsFulfilled:[NSDictionary dictionaryWithObjectsAndKeys:required, @"version", maxRequired, @"max_version", nil] forOXP:title andFile:@"manifest.plist"];
+	}
 }
 
 
@@ -584,15 +790,47 @@ static NSMutableDictionary *sOXPManifests;
 }
 
 
++ (BOOL) manifestHasConflicts:(NSDictionary *)manifest logErrors:(BOOL)logErrors
+{
+	NSDictionary	*conflicting = nil;
+	NSDictionary	*conflictManifest = nil;
+	NSString		*conflictID = nil;
+	NSArray			*conflicts = nil;
+	
+	conflicts = [manifest oo_arrayForKey:kOOManifestConflictOXPs defaultValue:nil];
+	// if it has a non-empty conflict_oxps list 
+	if (conflicts != nil && [conflicts count] > 0)
+	{
+		// iterate over that list
+		foreach (conflicting, conflicts)
+		{
+			conflictID = [conflicting oo_stringForKey:kOOManifestRelationIdentifier];
+			conflictManifest = [sOXPManifests objectForKey:conflictID];
+			// if the other OXP is in the list
+			if (conflictManifest != nil)
+			{
+				// then check versions
+				if ([self matchVersions:conflicting withVersion:[conflictManifest oo_stringForKey:kOOManifestVersion]])
+				{
+					if (logErrors)
+					{
+						[self addErrorWithKey:@"oxp-conflict" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[conflictManifest oo_stringForKey:kOOManifestTitle]];
+						OOLog(@"oxp.conflict",@"OXP %@ conflicts with %@ and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent],[[conflictManifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
+					}
+					return YES;
+				}
+			}
+		}
+	}
+	return NO;
+}
+
+
 + (void) filterSearchPathsForConflicts:(NSMutableArray *)searchPaths
 {
 	NSDictionary	*manifest = nil;
-	NSDictionary	*conflicting = nil;
-	NSDictionary	*conflictManifest = nil;
 	NSString		*identifier = nil;
-	NSString		*conflictID = nil;
 	NSArray			*identifiers = [sOXPManifests allKeys];
-	NSArray			*conflicts = nil;
 
 	// take a copy because we'll mutate the original
 	// foreach identified add-on
@@ -601,47 +839,93 @@ static NSMutableDictionary *sOXPManifests;
 		manifest = [sOXPManifests objectForKey:identifier];
 		if (manifest != nil)
 		{
-			conflicts = [manifest oo_arrayForKey:kOOManifestConflictOXPs defaultValue:nil];
-			// if it has a non-empty conflict_oxps list 
-			if (conflicts != nil && [conflicts count] > 0)
+			if ([self manifestHasConflicts:manifest logErrors:YES])
 			{
-				// iterate over that list
-				foreach (conflicting, conflicts)
-				{
-					conflictID = [conflicting oo_stringForKey:kOOManifestRelationIdentifier];
-					conflictManifest = [sOXPManifests objectForKey:conflictID];
-					// if the other OXP is in the list
-					if (conflictManifest != nil)
-					{
-						// then check versions
-						if ([self matchVersions:conflicting withVersion:[conflictManifest oo_stringForKey:kOOManifestVersion]])
-						{
-							// then we have a conflict, so remove this path
-							[self addErrorWithKey:@"oxp-conflict" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[conflictManifest oo_stringForKey:kOOManifestTitle]];
-							OOLog(@"oxp.conflict",@"OXP %@ conflicts with %@ and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent],[[conflictManifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
-							[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
-							[sOXPManifests removeObjectForKey:identifier];
-							break;
-						}
-					}
-				}
+				// then we have a conflict, so remove this path
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
 			}
 		}
 	}
 }
 
 
++ (BOOL) manifestHasMissingDependencies:(NSDictionary *)manifest logErrors:(BOOL)logErrors
+{
+	NSDictionary	*required = nil;
+	NSArray			*requireds = nil;
+
+	requireds = [manifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
+	// if it has a non-empty required_oxps list 
+	if (requireds != nil && [requireds count] > 0)
+	{
+		// iterate over that list
+		foreach (required, requireds)
+		{
+			if ([ResourceManager manifest:manifest HasUnmetDependency:required logErrors:logErrors])
+			{
+				return YES;
+			}
+		}
+	}
+	return NO;
+}
+
+
++ (BOOL) manifest:(NSDictionary *)manifest HasUnmetDependency:(NSDictionary *)required logErrors:(BOOL)logErrors
+{
+	NSString		*requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
+	NSMutableDictionary	*requiredManifest = [sOXPManifests objectForKey:requiredID];
+	// if the other OXP is in the list
+	BOOL requirementsMet = NO;
+	if (requiredManifest != nil)
+	{
+		// then check versions
+		if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]])
+		{
+			requirementsMet = YES;
+			/* Mark the requiredManifest as a dependency of the
+			 * requiring manifest */
+			NSSet *reqby = [requiredManifest oo_setForKey:kOOManifestRequiredBy defaultValue:[NSSet set]];
+			NSUInteger reqbycount = [reqby count];
+			/* then add this manifest to its required set. This is
+			 * done without checking if it's already there, because
+			 * the list of nested requirements may have changed. */
+			reqby = [reqby setByAddingObject:[manifest oo_stringForKey:kOOManifestIdentifier]];
+			// *and* anything that requires this OXP to be installed
+			reqby = [reqby setByAddingObjectsFromSet:[manifest oo_setForKey:kOOManifestRequiredBy]];
+			if (reqbycount < [reqby count])
+			{
+				/* Then the set has increased in size. To handle
+				 * potential cases with nested dependencies, need to
+				 * re-run the requirement filter until all the sets
+				 * stabilise. */
+				sAllMet = NO;
+			}
+			// and push back into the requiring manifest
+			[requiredManifest setObject:reqby forKey:kOOManifestRequiredBy];
+		}
+	}
+	if (!requirementsMet)
+	{
+		if (logErrors)
+		{
+			[self addErrorWithKey:@"oxp-required" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[required oo_stringForKey:kOOManifestRelationDescription defaultValue:[required oo_stringForKey:kOOManifestRelationIdentifier]]];
+			OOLog(@"oxp.requirementMissing",@"OXP %@ had unmet requirements and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
+		}
+		return YES;
+	}
+	return NO;
+}
+
+
 + (BOOL) filterSearchPathsForRequirements:(NSMutableArray *)searchPaths
 {
 	NSDictionary	*manifest = nil;
-	NSDictionary	*required = nil;
-	NSDictionary	*requiredManifest = nil;
 	NSString		*identifier = nil;
-	NSString		*requiredID = nil;
 	NSArray			*identifiers = [sOXPManifests allKeys];
-	NSArray			*requireds = nil;
 
-	BOOL			allMet = YES;
+	sAllMet = YES;
 
 	// take a copy because we'll mutate the original
 	// foreach identified add-on
@@ -650,41 +934,17 @@ static NSMutableDictionary *sOXPManifests;
 		manifest = [sOXPManifests objectForKey:identifier];
 		if (manifest != nil)
 		{
-			requireds = [manifest oo_arrayForKey:kOOManifestRequiresOXPs defaultValue:nil];
-			// if it has a non-empty required_oxps list 
-			if (requireds != nil && [requireds count] > 0)
+			if ([self manifestHasMissingDependencies:manifest logErrors:YES])
 			{
-				// iterate over that list
-				foreach (required, requireds)
-				{
-					requiredID = [required oo_stringForKey:kOOManifestRelationIdentifier];
-					requiredManifest = [sOXPManifests objectForKey:requiredID];
-					// if the other OXP is in the list
-					BOOL requirementsMet = NO;
-					if (requiredManifest != nil)
-					{
-						// then check versions
-						if ([self matchVersions:required withVersion:[requiredManifest oo_stringForKey:kOOManifestVersion]])
-						{
-							requirementsMet = YES;
-						}
-					}
-					if (!requirementsMet)
-					{
-						// then we have a missing requirement, so remove this path
-						[self addErrorWithKey:@"oxp-required" param1:[manifest oo_stringForKey:kOOManifestTitle] param2:[required oo_stringForKey:kOOManifestRelationDescription defaultValue:[required oo_stringForKey:kOOManifestRelationIdentifier]]];
-						OOLog(@"oxp.requirementMissing",@"OXP %@ had unmet requirements and was removed from the loading list",[[manifest oo_stringForKey:kOOManifestFilePath] lastPathComponent]);
-						[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
-						[sOXPManifests removeObjectForKey:identifier];
-						allMet = NO;
-						break;
-					}
-				}
+				// then we have a missing requirement, so remove this path
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
+				sAllMet = NO;
 			}
 		}
 	}
 
-	return allMet;
+	return sAllMet;
 }
 
 
@@ -717,6 +977,139 @@ static NSMutableDictionary *sOXPManifests;
 }
 
 
++ (void) filterSearchPathsToExcludeScenarioOnlyPaths:(NSMutableArray *)searchPaths
+{
+	NSDictionary	*manifest = nil;
+	NSString		*identifier = nil;
+	NSArray			*identifiers = [sOXPManifests allKeys];
+
+	// take a copy because we'll mutate the original
+	// foreach identified add-on
+	foreach (identifier, identifiers)
+	{
+		manifest = [sOXPManifests objectForKey:identifier];
+		if (manifest != nil)
+		{
+			if ([[manifest oo_arrayForKey:kOOManifestTags] containsObject:kOOManifestTagScenarioOnly])
+			{
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
+			}
+		}
+	}
+}
+
+
+
++ (void) filterSearchPathsByScenario:(NSMutableArray *)searchPaths
+{
+	NSDictionary	*manifest = nil;
+	NSString		*identifier = nil;
+	NSArray			*identifiers = [sOXPManifests allKeys];
+
+	// take a copy because we'll mutate the original
+	// foreach identified add-on
+	foreach (identifier, identifiers)
+	{
+		manifest = [sOXPManifests objectForKey:identifier];
+		if (manifest != nil)
+		{
+			if (![ResourceManager manifestAllowedByScenario:manifest])
+			{
+				// then we don't need this one
+				[searchPaths removeObject:[manifest oo_stringForKey:kOOManifestFilePath]];
+				[sOXPManifests removeObjectForKey:identifier];
+			}
+		}
+	}
+}
+
+
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest
+{
+	/* Checks for a couple of "never happens" cases */
+#ifndef NDEBUG
+	// test string
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
+	{
+		OOLog(@"scenario.check",@"Checked scenario allowances in all state - this is an internal error; please report this");
+		return YES;
+	}
+	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_NONE])
+	{
+		OOLog(@"scenario.check",@"Checked scenario allowances in none state - this is an internal error; please report this");
+		return NO;
+	}
+#endif
+	if ([[manifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:@"org.oolite.oolite"])
+	{
+		// the core data is always allowed!
+		return YES;
+	}
+
+	NSString *uaoBit = nil;
+	BOOL result = NO;
+	foreach (uaoBit, sUseAddOnsParts)
+	{
+		if ([uaoBit hasPrefix:SCENARIO_OXP_DEFINITION_BYID])
+		{
+			result |= [ResourceManager manifestAllowedByScenario:manifest withIdentifier:[uaoBit substringFromIndex:[SCENARIO_OXP_DEFINITION_BYID length]]];
+		}
+		else if ([uaoBit hasPrefix:SCENARIO_OXP_DEFINITION_BYTAG])
+		{
+			result |= [ResourceManager manifestAllowedByScenario:manifest withTag:[uaoBit substringFromIndex:[SCENARIO_OXP_DEFINITION_BYTAG length]]];
+		}
+	}
+	return result;
+}
+
+
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withIdentifier:(NSString *)identifier
+{
+	if ([[manifest oo_stringForKey:kOOManifestIdentifier] isEqualToString:identifier])
+	{
+		// manifest has the identifier - easy
+		return YES;
+	}
+	// manifest is also allowed if a manifest with that identifier
+	// requires it to be installed
+	if ([[manifest oo_setForKey:kOOManifestRequiredBy] containsObject:identifier])
+	{
+		return YES;
+	}
+	// otherwise, no
+	return NO;
+}
+
+
++ (BOOL) manifestAllowedByScenario:(NSDictionary *)manifest withTag:(NSString *)tag
+{
+	if ([[manifest oo_arrayForKey:kOOManifestTags] containsObject:tag])
+	{
+		// manifest has the tag - easy
+		return YES;
+	}
+	// manifest is also allowed if a manifest with that tag
+	// requires it to be installed
+	NSSet *reqby = [manifest oo_setForKey:kOOManifestRequiredBy];
+	if (reqby != nil)
+	{
+		NSString *identifier = nil;
+		foreach (identifier, reqby)
+		{
+			NSDictionary *reqManifest = [sOXPManifests oo_dictionaryForKey:identifier defaultValue:nil];
+			// need to check for nil as this one may already have been ruled out
+			if (reqManifest != nil && [[reqManifest oo_arrayForKey:kOOManifestTags] containsObject:tag])
+			{
+				return YES;
+			}
+		}
+	}
+	// otherwise, no
+	return NO;
+}
+
+
 
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2
 {
@@ -728,7 +1121,7 @@ static NSMutableDictionary *sOXPManifests;
 }
 
 
-+ (void)checkCacheUpToDateForPaths:(NSArray *)searchPaths
++ (BOOL)checkCacheUpToDateForPaths:(NSArray *)searchPaths
 {
 	/*	Check if caches are up to date.
 		The strategy is to use a two-entry cache. One entry is an array
@@ -791,6 +1184,41 @@ static NSMutableDictionary *sOXPManifests;
 		[cacheMgr setObject:modDates forKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
 	}
 	else OOLog(kOOLogCacheUpToDate, @"Data cache is up to date.");
+
+	return upToDate;
+}
+
+
+/* This method allows the exclusion of particular files from the plist
+ * building when they're in builtInPath. The point of this is to allow
+ * scenarios to avoid merging in core files without having to override
+ * every individual entry (which may not always be possible
+ * anyway). It only works on plists, but of course worldscripts can be
+ * excluded by not including the plists which reference them, and
+ * everything else can be excluded by not referencing it from a plist.
+ */
++ (BOOL) corePlist:(NSString *)fileName excludedAt:(NSString *)path
+{
+	if (![path isEqualToString:[self builtInPath]])
+	{
+		// non-core paths always okay
+		return NO;
+	}
+	NSString *uaoBit = nil;
+	foreach (uaoBit, sUseAddOnsParts)
+	{
+		if ([uaoBit hasPrefix:SCENARIO_OXP_DEFINITION_NOPLIST])
+		{
+			NSString *plist = [uaoBit substringFromIndex:[SCENARIO_OXP_DEFINITION_NOPLIST length]];
+			if ([plist isEqualToString:fileName])
+			{
+				// this core plist file should not be loaded at all
+				return YES;
+			}
+		}
+	}
+	// then not excluded
+	return NO;
 }
 
 
@@ -877,6 +1305,10 @@ static NSMutableDictionary *sOXPManifests;
 		results = [NSMutableArray array];
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
+			if ([ResourceManager corePlist:fileName excludedAt:path])
+			{
+				continue;
+			}
 			dictPath = [path stringByAppendingPathComponent:fileName];
 			dict = OODictionaryFromFile(dictPath);
 			if (dict != nil)  [results addObject:dict];
@@ -957,6 +1389,11 @@ static NSMutableDictionary *sOXPManifests;
 		results = [NSMutableArray array];
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
+			if ([ResourceManager corePlist:fileName excludedAt:path])
+			{
+				continue;
+			}
+
 			arrayPath = [path stringByAppendingPathComponent:fileName];
 			array = [[OOArrayFromFile(arrayPath) mutableCopy] autorelease];
 			if (array != nil) [results addObject:array];
@@ -1147,6 +1584,11 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSEnumerator *pathEnum = [self pathEnumerator];
 	while ((path = [pathEnum nextObject]))
 	{
+		if ([ResourceManager corePlist:@"role-categories.plist" excludedAt:path])
+		{
+			continue;
+		}
+
 		configPath = [[path stringByAppendingPathComponent:@"Config"]
 					  stringByAppendingPathComponent:@"role-categories.plist"];
 		categories = OODictionaryFromFile(configPath);
@@ -1158,6 +1600,10 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	/* If the old pirate-victim-roles files exist, merge them in */
 	NSArray *pirateVictims = [ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES];
+	if (OOEnforceStandards() && [pirateVictims count] > 0)
+	{
+		OOStandardsDeprecated(@"pirate-victim-roles.plist is still being used.");
+	}
 	[ResourceManager mergeRoleCategories:[NSDictionary dictionaryWithObject:pirateVictims forKey:@"oolite-pirate-victim"] intoDictionary:roleCategories];
 
 	return [[roleCategories copy] autorelease];
@@ -1182,6 +1628,57 @@ static NSString *LogClassKeyRoot(NSString *key)
 		[contents addObjectsFromArray:catDataEntry];
 	}
 }
+
+
++ (OOSystemDescriptionManager *) systemDescriptionManager
+{
+	OOLog(@"resourceManager.planetinfo.load",@"Initialising manager");
+	OOSystemDescriptionManager *manager = [[OOSystemDescriptionManager alloc] init];
+	
+	NSString *path = nil;
+	NSString *configPath = nil;
+	NSDictionary *categories = nil;
+	NSString *systemKey = nil;
+
+	NSEnumerator *pathEnum = [self pathEnumerator];	
+	while ((path = [pathEnum nextObject]))
+	{
+		if ([ResourceManager corePlist:@"planetinfo.plist" excludedAt:path])
+		{
+			continue;
+		}
+		configPath = [[path stringByAppendingPathComponent:@"Config"]
+					  stringByAppendingPathComponent:@"planetinfo.plist"];
+		categories = OODictionaryFromFile(configPath);
+		if (categories != nil)
+		{
+			foreachkey(systemKey,categories)
+			{
+				NSDictionary *values = [categories oo_dictionaryForKey:systemKey defaultValue:nil];
+				if (values != nil)
+				{
+					if ([systemKey isEqualToString:PLANETINFO_UNIVERSAL_KEY])
+					{
+						[manager setUniversalProperties:values];
+					}
+					else if ([systemKey isEqualToString:PLANETINFO_INTERSTELLAR_KEY])
+					{
+						[manager setInterstellarProperties:values];
+					}
+					else
+					{
+						[manager setProperties:values forSystemKey:systemKey];
+					}
+				}
+			}
+		}
+	}
+	OOLog(@"resourceManager.planetinfo.load",@"Caching routes");
+	[manager buildRouteCache];
+	OOLog(@"resourceManager.planetinfo.load",@"Initialised manager");
+	return [manager autorelease];
+}
+
 
 
 + (NSDictionary *) shaderBindingTypesDictionary
@@ -1236,6 +1733,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 }
 
 
+/* This is extremely expensive to call with useCache:NO */
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache
 {
 	NSString		*result = nil;
@@ -1258,6 +1756,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	// Search for file
 	fmgr = [NSFileManager defaultManager];
+	// reverse object enumerator allows OXPs to override core
 	for (pathEnum = [[ResourceManager paths] reverseObjectEnumerator]; (path = [pathEnum nextObject]); )
 	{
 		filePath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
@@ -1287,6 +1786,8 @@ static NSString *LogClassKeyRoot(NSString *key)
 }
 
 
+/* use extreme caution in calling with usePathCache:NO - this can be
+ * an extremely expensive operation */
 + (id) retrieveFileNamed:(NSString *)fileName
 				inFolder:(NSString *)folderName
 				   cache:(NSMutableDictionary **)ioCache
@@ -1366,7 +1867,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 		}
 	}
 	
-	path = [self pathForFileNamed:fileName inFolder:folderName cache:useCache];
+	path = [self pathForFileNamed:fileName inFolder:folderName cache:YES];
 	if (path != nil)  result = [NSString stringWithContentsOfUnicodeFile:path];
 	
 	if (result != nil && useCache)
@@ -1397,29 +1898,35 @@ static NSString *LogClassKeyRoot(NSString *key)
 	paths = [ResourceManager paths];
 	for (pathEnum = [paths objectEnumerator]; (path = [pathEnum nextObject]); )
 	{
-		pool = [[NSAutoreleasePool alloc] init];
-		
-		@try
+		// excluding world-scripts.plist also excludes script.js / script.plist
+		// though as those core files don't and won't exist this is not
+		// a problem.
+		if (![ResourceManager corePlist:@"world-scripts.plist" excludedAt:path])
 		{
-			results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
-			if (results == nil) results = [OOScript worldScriptsAtPath:path];
-			if (results != nil)
+			pool = [[NSAutoreleasePool alloc] init];
+		
+			@try
 			{
-				for (scriptEnum = [results objectEnumerator]; (script = [scriptEnum nextObject]); )
+				results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
+				if (results == nil) results = [OOScript worldScriptsAtPath:path];
+				if (results != nil)
 				{
-					name = [script name];
-					if (name != nil)  [loadedScripts setObject:script forKey:name];
-					else  OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
+					for (scriptEnum = [results objectEnumerator]; (script = [scriptEnum nextObject]); )
+					{
+						name = [script name];
+						if (name != nil)  [loadedScripts setObject:script forKey:name];
+						else  OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
+					}
 				}
 			}
-		}
-		@catch (NSException *exception)
-		{
-			OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [exception name], [exception reason], path);
-			// Ignore exception and keep loading other scripts.
-		}
+			@catch (NSException *exception)
+			{
+				OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [exception name], [exception reason], path);
+				// Ignore exception and keep loading other scripts.
+			}
 		
-		[pool release];
+			[pool release];
+		}
 	}
 	
 	if (OOLogWillDisplayMessagesInClass(@"script.load.world.listAll"))
@@ -1541,22 +2048,15 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSEnumerator			*pathEnum = nil;
 	NSString				*path = nil;
 
-	if (sUseAddOns)
+	// Prettify paths for logging.
+	displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
+	for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
 	{
-		// Prettify paths for logging.
-		displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
-		for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
-		{
-			[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
-		}
-		
-		OOLog(@"searchPaths.dumpAll", @"Unrestricted mode - resource paths:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
+		[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
 	}
-	else
-	{
-		OOLog(@"searchPaths.dumpAll", @"Strict mode - resource path:\n    %@",
-			[[[self builtInPath] stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]);
-	}
+	
+	OOLog(@"searchPaths.dumpAll", @"Resource paths: %@\n    %@", sUseAddOns, [displayPaths componentsJoinedByString:@"\n    "]);
+
 }
 
 
@@ -1566,8 +2066,6 @@ static NSString *LogClassKeyRoot(NSString *key)
 	sSoundCache = nil;
 	[sStringCache release];
 	sStringCache = nil;
-	[sOXPManifests release];
-	sOXPManifests = nil;
 }
 
 @end

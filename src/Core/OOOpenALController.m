@@ -52,12 +52,14 @@ static id sSingleton = nil;
 		if (!device)
 		{
 			OOLog(kOOLogSoundInitError,@"Failed to open default sound device");
+			[self release];
 			return nil;
 		}
 		context = alcCreateContext(device,NULL); // default context
 		if (!alcMakeContextCurrent(context))
 		{
 			OOLog(kOOLogSoundInitError,@"Failed to create default sound context");
+			[self release];
 			return nil;
 		}
 		if ((error = alGetError()) != AL_NO_ERROR)

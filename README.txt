@@ -85,7 +85,7 @@ On Linux/BSD/Unix, in a terminal, type 'openapp oolite'
 
 The Oolite source is available from github.  Use
 
- git clone https://OoliteProject/oolite
+ git clone https://github.com/OoliteProject/oolite
 
 to retrieve.  Then
 

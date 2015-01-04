@@ -56,14 +56,19 @@ SOFTWARE.
 							_isAvailableToPlayer: 1,
 							_isAvailableToNPCs: 1,
 							_fastAffinityA: 1,
-							_fastAffinityB: 1;
+							_fastAffinityB: 1,
+							_canCarryMultiple: 1;
+	NSUInteger				_installTime;
+	NSUInteger				_repairTime;
 	GLfloat     			_damageProbability;
 	OOCargoQuantity			_requiredCargoSpace;
 	NSSet					*_requiresEquipment;
 	NSSet					*_requiresAnyEquipment;
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
+	NSArray					*_provides;
 	NSDictionary			*_scriptInfo;
+	NSDictionary			*_weaponInfo;
 	NSString				*_script;
 	NSString				*_condition_script;
 	
@@ -78,6 +83,7 @@ SOFTWARE.
 
 + (NSArray *) allEquipmentTypes;
 + (NSEnumerator *) equipmentEnumerator;
++ (NSEnumerator *) reverseEquipmentEnumerator;
 
 + (OOEquipmentType *) equipmentTypeWithIdentifier:(NSString *)identifier;
 
@@ -124,6 +130,22 @@ SOFTWARE.
 - (BOOL) fastAffinityDefensive;
 - (BOOL) fastAffinityOffensive;
 
+- (NSUInteger) installTime;
+- (NSUInteger) repairTime;
+
+- (NSArray *) providesForScripting;
+- (BOOL) provides:(NSString *)key;
+
+// weapon properties
+- (BOOL) isTurretLaser;
+- (BOOL) isMiningLaser;
+- (GLfloat) weaponRange;
+- (GLfloat) weaponEnergyUse;
+- (GLfloat) weaponDamage;
+- (GLfloat) weaponRechargeRate;
+- (GLfloat) weaponShotTemperature;
+- (GLfloat) weaponThreatAssessment;
+- (OOColor *) weaponColor;
 
 @end
 

@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 #import "OOStringExpander.h"
-#import "OOStringParsing.h"
+#import "OOSystemDescriptionManager.h"
 
 #import "StationEntity.h"
 
@@ -79,30 +79,18 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL) canAwardCommodityType:(OOCommodityType)type amount:(OOCargoQuantity)amount
-{
-	if (type == CARGO_NOT_CARGO)  return NO;
-	if ([UNIVERSE unitsForCommodity:type] == UNITS_TONS)
-	{
-		if ([self specialCargo] != nil)  return NO;
-		if (amount > [self availableCargoSpace])  return NO;
-	}
-	
-	return YES;
-}
-
-
 - (void) awardCommodityType:(OOCommodityType)type amount:(OOCargoQuantity)amount
 {
 	OOMassUnit				unit;
-	NSArray					*commodityArray = nil;
+
+	if (![[UNIVERSE commodities] goodDefined:type])
+	{
+		return;
+	}
 	
-	commodityArray = [UNIVERSE commodityDataForType:type];
-	if (commodityArray == nil)  return;
+	OOLog(@"script.debug.note.awardCargo", @"Going to award cargo: %d x '%@'", amount, type);
 	
-	OOLog(@"script.debug.note.awardCargo", @"Going to award cargo: %d x '%@'", amount, CommodityDisplayNameForCommodityArray(commodityArray));
-	
-	unit = [UNIVERSE unitsForCommodity:type];
+	unit = [shipCommodityData massUnitForGood:type];
 	
 	if ([self status] != STATUS_DOCKED)
 	{
@@ -113,15 +101,8 @@ MA 02110-1301, USA.
 			{
 				if (specialCargo)
 				{
-					NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-					NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]];
-					int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
-					manifest_quantity += amount;
-					amount = 0;
-					[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-					[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
-					[shipCommodityData release];
-					shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+					// is this correct behaviour?
+					[shipCommodityData addQuantity:amount forGood:type];
 				}
 				else
 				{
@@ -147,7 +128,8 @@ MA 02110-1301, USA.
 					}
 				}
 			}
-			else
+			else if (!specialCargo)
+			// no adding TCs while special cargo in hold
 			{
 				// put each ton in a separate container
 				while (amount)
@@ -174,21 +156,22 @@ MA 02110-1301, USA.
 	else
 	{	// docked
 		// like purchasing a commodity
-		NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
-		int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
+		int manifest_quantity = [shipCommodityData quantityForGood:type];
 		while ((amount)&&(current_cargo < [self maxAvailableCargoSpace]))
 		{
 			manifest_quantity++;
 			amount--;
 			if (unit == UNITS_TONS)  current_cargo++;
 		}
-		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+		[shipCommodityData setQuantity:manifest_quantity forGood:type];
 	}
 	[self calculateCurrentCargo];
+}
+
+
+- (void) resetScannerZoom
+{
+	scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
 }
 
 
@@ -244,28 +227,29 @@ MA 02110-1301, USA.
 }
 
 
+/* FIXME: these next three functions seed the RNG when called. That
+ * could cause unwanted effects - should save its state, and then
+ * reset it after generating the number. */
 - (unsigned) systemPseudoRandom100
 {
-	seed_RNG_only_for_planet_description(system_seed);
+	seed_RNG_only_for_planet_description([[UNIVERSE systemManager] getRandomSeedForCurrentSystem]);
 	return (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
 }
 
 
 - (unsigned) systemPseudoRandom256
 {
-	seed_RNG_only_for_planet_description(system_seed);
+	seed_RNG_only_for_planet_description([[UNIVERSE systemManager] getRandomSeedForCurrentSystem]);
 	return gen_rnd_number();
 }
 
 
 - (double) systemPseudoRandomFloat
 {
-	Random_Seed seed = system_seed;
-	seed_RNG_only_for_planet_description(system_seed);
+	seed_RNG_only_for_planet_description([[UNIVERSE systemManager] getRandomSeedForCurrentSystem]);
 	unsigned a = gen_rnd_number();
 	unsigned b = gen_rnd_number();
 	unsigned c = gen_rnd_number();
-	system_seed = seed;
 	
 	a = (a << 16) | (b << 8) | c;
 	return (double)a / (double)0x01000000;
@@ -377,11 +361,13 @@ MA 02110-1301, USA.
 
 - (NSString *) keyBindingDescription:(NSString *)binding
 {
-	OOKeyCode key = (OOKeyCode)[keyconfig_settings oo_unsignedCharForKey:binding];
-	if (key == 0)
+	if ([keyconfig_settings objectForKey:binding] == nil)
 	{
+		// no such setting
 		return nil;
 	}
+	OOKeyCode key = (OOKeyCode)[keyconfig_settings oo_unsignedShortForKey:binding];
+	// 0 = key not set
 	return [self keyCodeDescription:key];
 }
 
@@ -390,6 +376,8 @@ MA 02110-1301, USA.
 {
 	switch (code)
 	{
+	case 0:
+		return DESC(@"oolite-keycode-unset");
 	case 9:
 		return DESC(@"oolite-keycode-tab");
 	case 27:
@@ -438,6 +426,27 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-pageup");
 	case gvPageDownKey:
 		return DESC(@"oolite-keycode-pagedown");
+	case gvNumberPadKey0:
+		return DESC(@"oolite-keycode-numpad0");
+	case gvNumberPadKey1:
+		return DESC(@"oolite-keycode-numpad1");
+	case gvNumberPadKey2:
+		return DESC(@"oolite-keycode-numpad2");
+	case gvNumberPadKey3:
+		return DESC(@"oolite-keycode-numpad3");
+	case gvNumberPadKey4:
+		return DESC(@"oolite-keycode-numpad4");
+	case gvNumberPadKey5:
+		return DESC(@"oolite-keycode-numpad5");
+	case gvNumberPadKey6:
+		return DESC(@"oolite-keycode-numpad6");
+	case gvNumberPadKey7:
+		return DESC(@"oolite-keycode-numpad7");
+	case gvNumberPadKey8:
+		return DESC(@"oolite-keycode-numpad8");
+	case gvNumberPadKey9:
+		return DESC(@"oolite-keycode-numpad9");
+
 	default:
 		return [NSString stringWithFormat:@"%C",code];
 	}

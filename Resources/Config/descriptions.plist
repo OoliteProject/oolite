@@ -803,6 +803,35 @@
 		"You docked without any clearance. For violating the station's docking protocol you have been fined %@."
 	);
 		
+	// components of the tutorial's docking helper
+	"oolite-tutorial-dock-notarget" = "Use your identification system to target the station you wish to dock with to activate the docking assessment system.";
+
+	"oolite-tutorial-dock-weapons" = "Weapons: ";
+	"oolite-tutorial-dock-weapons-good" = "Disarmed\n";
+	"oolite-tutorial-dock-weapons-bad" = "Armed (press '[oolite_key_weapons_online_toggle]')\n";
+	
+	"oolite-tutorial-dock-clearance" = "Clearance: ";
+	"oolite-tutorial-dock-clearance-good" = "Granted\n";
+	"oolite-tutorial-dock-clearance-expiring" = "Expiring ('[oolite_key_docking_clearance_request]' to extend)\n";
+	"oolite-tutorial-dock-clearance-bad" = "None (press '[oolite_key_docking_clearance_request]' to request)\n";
+	"oolite-tutorial-dock-clearance-wait" = "Waiting\n";
+
+	"oolite-tutorial-dock-approach" = "Approach: ";
+	"oolite-tutorial-dock-approach-good" = "On course\n";
+	"oolite-tutorial-dock-approach-okay" = "Adequate\n";
+	"oolite-tutorial-dock-approach-off" = "Off centre\n";
+	"oolite-tutorial-dock-approach-bad" = "Off course\n";
+
+	"oolite-tutorial-dock-speed" = "Speed: ";
+	"oolite-tutorial-dock-speed-fast" = "Too fast\n";
+	"oolite-tutorial-dock-speed-good" = "Good\n";
+	"oolite-tutorial-dock-speed-slow" = "Too slow\n";
+
+	"oolite-tutorial-dock-roll" = "Roll: ";
+	"oolite-tutorial-dock-roll-good" = "Matched\n";
+	"oolite-tutorial-dock-roll-okay" = "Adequate\n";
+	"oolite-tutorial-dock-roll-bad" = "Off course\n";
+
 	// system description after a nova
 	"nova-system-description" =
 	(
@@ -818,6 +847,12 @@
 	"@-damaged"						= "%@ damaged.";
 	"@-destroyed"					= "%@ destroyed.";
 	
+	// beacon labels
+	"oolite-beacon-label-station"		= "%H Station";
+	"oolite-beacon-label-witchpoint"	= "Witchpoint";
+	"oolite-beacon-label-target"		= "Target";
+	"oolite-default-star-name"			= "Star";
+
 	// icons for the hud
 	"EQ_HARDENED_MISSILE" =
 	(
@@ -1000,12 +1035,328 @@
 	"unknown-ship-@"				= "Unknown Ship '%@'.";
 
 	// Intro1 screen
-	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2013";
+	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2014";
 	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
 	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
 	"load-previous-commander-yes"	= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
 	"load-previous-commander-no"	= "n"; // Defines the key that corresponds to the no answer to load-previous-commander.
 	
+	"oolite-start-option-1"			= " Start New Commander ";
+	"oolite-start-option-2"			= " Load Commander ";
+	"oolite-start-option-3"			= " View Ship Library ";
+	"oolite-start-option-4"			= " View Keyboard Settings ";
+	"oolite-start-option-5"			= " Manage Expansion Packs ";
+	"oolite-start-option-6"			= " Exit Game ";
+
+
+	"oolite-newgame-title"			= "Start New Commander";
+
+	"oolite-ship-library-title"		= "Ship Library";
+	"oolite-ship-library-exit"		= "Use arrow keys to view ships; press space to exit library";
+	
+	"oolite-ship-library-classified"	= "Classified";	
+	"oolite-ship-library-unknown"	= "Unknown";
+
+	"oolite-ship-library-category-ship"		= "Ship";
+	"oolite-ship-library-category-station"	= "Installation";
+	"oolite-ship-library-category-weapon"	= "Weapon";
+	"oolite-ship-library-category-thargoid"	= "Thargoid Ship";	
+	"oolite-ship-library-category-misc"	= "Miscellaneous";
+
+	"oolite-ship-library-category-plural-ship"		= "Ships";
+	"oolite-ship-library-category-plural-station"	= "Installations";
+	"oolite-ship-library-category-plural-weapon"	= "Weapons";
+	"oolite-ship-library-category-plural-thargoid"	= "Thargoid Ships";	
+	"oolite-ship-library-category-plural-misc"		= "Miscellaneous";
+
+	"oolite-ship-library-speed-custom"		= "Speed: %@";
+	"oolite-ship-library-speed-stationary"	= "Speed: Stationary";
+	"oolite-ship-library-speed-veryslow"	= "Speed: Very Slow";
+	"oolite-ship-library-speed-slow"		= "Speed: Slow";
+	"oolite-ship-library-speed-average"		= "Speed: Average";
+	"oolite-ship-library-speed-fast"		= "Speed: Fast";
+	"oolite-ship-library-speed-veryfast"	= "Speed: Very Fast";
+
+	"oolite-ship-library-turn-custom"	= "Turn rate: %@";
+	"oolite-ship-library-turn-veryslow"	= "Turn rate: Very Slow";
+	"oolite-ship-library-turn-slow"		= "Turn rate: Slow";
+	"oolite-ship-library-turn-average"	= "Turn rate: Average";
+	"oolite-ship-library-turn-fast"		= "Turn rate: Fast";
+	"oolite-ship-library-turn-veryfast"	= "Turn rate: Very Fast";
+
+	"oolite-ship-library-cargo-custom"		= "Cargo: %@";
+	"oolite-ship-library-cargo-none"		= "Cargo: None";
+	"oolite-ship-library-cargo-carried-u"	= "Cargo: %u TC";
+
+	"oolite-ship-library-generator-custom"	= "Generator: %@";
+	"oolite-ship-library-generator-weak"	= "Generator: Weak";
+	"oolite-ship-library-generator-average"	= "Generator: Average";
+	"oolite-ship-library-generator-strong"	= "Generator: Strong";
+
+	"oolite-ship-library-shields-custom"		= "Shields: %@";
+	"oolite-ship-library-shields-veryweak"		= "Shields: Very Weak";
+	"oolite-ship-library-shields-weak"			= "Shields: Weak";
+	"oolite-ship-library-shields-average"		= "Shields: Average";
+	"oolite-ship-library-shields-strong"		= "Shields: Strong";
+	"oolite-ship-library-shields-verystrong"	= "Shields: Very Strong";
+
+	"oolite-ship-library-witchspace-custom"	= "Witchspace: %@";
+	"oolite-ship-library-witchspace-yes"	= "Witchspace: Yes";
+	"oolite-ship-library-witchspace-no"		= "Witchspace: No";
+
+	"oolite-ship-library-weapons-custom"	= "Weapons: %@";
+	"oolite-ship-library-weapons-none"		= "Weapons: None";
+	"oolite-ship-library-weapons-u-u"		= "Weapons: %u fixed, %u pylons";
+
+	"oolite-ship-library-size-custom"	= "Size: %@";
+	"oolite-ship-library-size-u-u-u"	= "Size: %um x %um x %um";
+
+
+	"oolite-ship-library-summary-CG"	= "Goods container";
+	"oolite-ship-library-summary-CP"	= "Evacuation ship";
+	"oolite-ship-library-summary-HF"	= "Heavy fighter";
+	"oolite-ship-library-summary-HFr"	= "Heavy freighter";
+	"oolite-ship-library-summary-HT"	= "Heavy transport";
+	"oolite-ship-library-summary-HM"	= "Heavy multi-role";
+	"oolite-ship-library-summary-LF"	= "Light fighter";
+	"oolite-ship-library-summary-LFr"	= "Light freighter";
+	"oolite-ship-library-summary-LM"	= "Light multi-role";
+	"oolite-ship-library-summary-LT"	= "Light transport";
+	"oolite-ship-library-summary-MF"	= "Medium fighter";
+	"oolite-ship-library-summary-MFr"	= "Medium freighter";
+	"oolite-ship-library-summary-MM"	= "Medium multi-role";
+	"oolite-ship-library-summary-MT"	= "Medium transport";
+	"oolite-ship-library-summary-NB"	= "Natural body";
+	"oolite-ship-library-summary-PHF"	= "Police heavy fighter";
+	"oolite-ship-library-summary-PLF"	= "Police light fighter";
+	"oolite-ship-library-summary-RW"	= "Recon warship";
+	"oolite-ship-library-summary-SM"	= "Mining installation";
+	"oolite-ship-library-summary-SA"	= "Navigation aid";
+	"oolite-ship-library-summary-SO"	= "Orbital station";
+	"oolite-ship-library-summary-WMn"	= "Timed explosive";
+	"oolite-ship-library-summary-WMs"	= "Fire-and-forget missile";
+
+	"oolite-ship-library-description-adder"	= "The Adder is the smallest ship capable of fitting a witchdrive. It has little else to recommend it other than extreme manoeuvrability, but its low price and reliability makes it useful in high-risk mining and salvage operations";
+	"oolite-ship-library-description-anaconda"	= "The Anaconda's large interior is almost entirely cargo space, leaving the ship little room for engines or generators. As a bulk cargo hauler, however, no other ship can carry anywhere near as much - but it requires a strong escort in all but the safest systems.";
+	"oolite-ship-library-description-asp"	= "The Asp is a pure fighter, with powerful shields and excellent speed. It is most popular with military organisations where the lack of cargo space and singular missile pylon are not significant disadvantages, but it also sees some more peaceful use as a fast courier.";
+	"oolite-ship-library-description-asteroid"	= "Asteroids and other smaller rocky bodies are found throughout Cooperative space. As a minor hazard to navigation there is a small fee paid for their destruction, but more usually they are broken apart by mining ships for possible mineral content.";
+	"oolite-ship-library-description-barrel"	= "The majority of trade goods are shipped in standard 1 TC containers. The containers are relatively sturdy and occasionally survive the destruction of the ship carrying them - all traders are recommended to travel with sufficient escort to deter this form of piracy.";
+	"oolite-ship-library-description-boa"	= "The Boa is the modern mainstay of the freight corporations, largely replacing the older Python design, which it outclasses in most respects - it is larger, faster, and better able to protect itself.";
+	"oolite-ship-library-description-boa-mk2"	= "The Boa Cruiser is a significant refinement of the basic Boa design, using the latest advances in system miniaturisation, and the fitting of a military-grade drive system, to give a fast freighter with 40 percent more cargo space than the basic Boa. So far, it has only been practical to produce in relatively small quantities.";
+	"oolite-ship-library-description-buoy"	= "The standard navigation buoy marks places of interest such as Cooperative orbital stations and the system witchspace exit point. It is equipped with a powerful radio transmitter which can be detected across the entire system by an Advanced Space Compass.";
+	"oolite-ship-library-description-cobra3"	= "The first truly successful multi-role design, with enough cargo space to trade or salvage effectively, and enough firepower not to need an escort while doing so. Its introduction led to a significant rise in the number of independent pilots - traders, bounty hunters and pirates - operating outside traditional corporate and criminal power structures.";
+	"oolite-ship-library-description-cobramk1"	= "The original Cobra design was the first attempt at a multi-role craft. While relatively good for its day, more modern craft have superseded it. It still sees use from those who need flexibility and can't afford better, especially pirates and miners.";
+	"oolite-ship-library-description-coriolis"	= "The Coriolis Station is the standard Cooperative orbital station seen in almost all systems. A kilometre across, with room for over a hundred ships and tens of thousands of inhabitants, these stations are key trading hubs for their systems, as well as housing several police Viper patrols.";
+	"oolite-ship-library-description-dodec"	= "The Dodecahedron station has replaced the Coriolis in many richer systems as its internal layout provides a greater number of decks at a suitable gravity for luxury space-side accommodation. The easy access to corporate executives makes them centres of trade for entire regions.";
+	"oolite-ship-library-description-hardmissile"	= "With countermeasures (and the Thargoid equivalent) sufficient to render standard missiles almost useless, military forces and wealthy civilians are often willing to pay over ten times the cost of a standard missile for the HMX5. The payload and range is the same as the HM3, but it has a sophisticated sensor suite almost immune to modern countermeasures systems.";
+	"oolite-ship-library-description-escape"	= "The Escape Capsule provides a last-resort means of evacuation from a doomed ship. It is fragile and slow, but even criminal pilots will usually scoop them up and bring them to safety for a no-questions-asked recovery fee.";
+	"oolite-ship-library-description-ferdelance"	= "The Fer-de-lance is officially classified as a medium transport, fitted out with luxury passenger cabins for rich travellers. Hunters, pirates, and assassins, however, have discovered that if refitted for combat its narrow profile and high speed makes an excellent hit-and-run fighter.";
+	"oolite-ship-library-description-gecko"		= "The Gecko is an extremely effective combat ship, not far behind the Asp in effectiveness but considerably easier to maintain - the space saved by not fitting a witchdrive means that far less miniaturisation is required for the remaining components. Very popular both as a heavy escort and a pirate fighter";
+	"oolite-ship-library-description-ico"	= "The Icosahedron station is a modern design slowly replacing the Coriolis in richer systems. Its internal layout is designed around its shipyard and hangar - while it has less accommodation and cargo space than the Coriolis, it can carry twice as many ships, supported by fully-equipped maintenance bays.";
+	"oolite-ship-library-description-krait"		= "The Krait is an old light fighter design, originally made in the millions, but rarely produced today. Its only remaining advantage is ease of customisation - the Mamba has superseded it in almost every niche as a light fighter.";
+	"oolite-ship-library-description-mamba"		= "The premier modern civilian light fighter, this is one of the most common escort craft, used by traders, pirates and bounty hunters alike. Cheap and easy to maintain, it can still hold its own against much larger ships.";
+	"oolite-ship-library-description-missile"	= "The HM3 missile available at almost all stations, this is faster than even the fastest Cooperative ship, and has a maximum range of 30km, continuing to home in even if the launching ship is destroyed. It is extremely vulnerable to counter-measures systems, which will cause it to lose target lock and explode";
+	"oolite-ship-library-description-moray"		= "This light ship is popular for small transport jobs, especially of medical supplies, due to its agility and ability to operate in a wide range of environments. This also makes it popular with smaller pirate bands, who are unable to acquire a dedicated freighter.";
+	"oolite-ship-library-description-python"		= "The aging Python design is falling out of favour with traders as the more modern Boa supersedes it. It is still extremely popular with pirates as it is famously easy to repair, and new traders may find they are unable to afford anything better.";
+	"oolite-ship-library-description-qbomb"		= "The Quirium Cascade Mine is an extremely powerful timed weapon, rarely used by civilians due to its ability to destroy a wide area including the launching ship. Fuel stores aboard ships hit by its blast create a secondary explosion of equal power, making the exact level of destruction hard to control.";
+	"oolite-ship-library-description-rockhermit"		= "The largest asteroids are often hollowed out, both for internal mining operations and as a convenient base for mining ships to operate from. Their isolated nature also makes them a common pirate haunt, especially in the less stable systems.";
+	"oolite-ship-library-description-shuttle"		= "These light unarmed ships are regularly used to transfer personnel and cargo between a planet's surface and its orbital stations. Their slow speed and poor endurance means that they are rarely seen away from the planet.";
+	"oolite-ship-library-description-sidewinder"	= "An excellent light fighter often deployed by military forces to support larger ships such as the Asp, it is also commonly used by trading corporations as an escort fighter. Pirates rarely use this ship as its military heritage makes it difficult to maintain.";
+	"oolite-ship-library-description-tharglet"	= "The Thargon Drone fighter is carried in large numbers by Thargoid warships. It is lightly armed and fragile, though its tiny size makes it almost impossible to hit. Most pilots ignore these as much as possible and concentrate on destroying the warship, which will make these ships enter an inert state.";
+	"oolite-ship-library-description-thargoid"	= "The Thargoid Warship is the smallest independent Thargoid craft generally encountered, and appears to currently be used as a recon ship and opportunistic raider. It is faster than most Cooperative ships, and incredibly well-shielded. Its primary weapon is a laser turret with full sphere coverage, but its drone fighters often do more damage.";
+	"oolite-ship-library-description-thargoid-weapons"	= "1 laser turret, drone fighters.";
+	"oolite-ship-library-description-transporter"	= "The Transporter is the most common ship used for in-system cargo and personnel transfers, with more range and capacity than the orbital shuttle. It is usually unarmed, though some fit a mining laser to make asteroid mining more efficient.";
+	"oolite-ship-library-description-viper"	= "The Viper patrol craft is seen in every system - in greater or lesser numbers - protecting the space lanes and the Cooperative stations. Its design is starting to show its age especially against modern fighter craft, but most criminals will still retreat when confronted by a full patrol wing.";
+	"oolite-ship-library-description-viperinterceptor"	= "This next generation police fighter has recently been introduced as a replacement for the aging Viper design. Expensive to build and maintain, it is rarely seen except in the richest systems, where it is extremely effective in securing the space lanes against piracy.";
+	"oolite-ship-library-description-worm"	= "A light transport craft similar to the orbital shuttle in capacity but with a longer range. Its weapon mounting is usually used by miners for a cheap mining ship, but particularly desperate pilots have been known to fit it with a pulse laser and use it as a (very) light escort craft.";
+
+	"oolite-keysetting-screen" 		= "Keyboard Settings";
+	"oolite-keysetting-text" 		= "See documentation for more information. Press space to return to the menu";
+
+	"oolite-keydesc-key_roll_left"				= "Roll left";
+	"oolite-keydesc-key_roll_right"				= "Roll right";
+	"oolite-keydesc-key_pitch_forward"			= "Pitch down";
+	"oolite-keydesc-key_pitch_back"				= "Pitch up";
+	"oolite-keydesc-key_yaw_left"				= "Yaw left";
+	"oolite-keydesc-key_yaw_right"				= "Yaw right";
+
+	"oolite-keydesc-key_view_forward"			= "Forward view";
+	"oolite-keydesc-key_view_aft"				= "Aft view";
+	"oolite-keydesc-key_view_port"				= "Port view";
+	"oolite-keydesc-key_view_starboard"			= "Starboard view";
+
+	"oolite-keydesc-key_gui_screen_status"		= "Status screens";
+	"oolite-keydesc-key_gui_chart_screens"		= "Chart screens";
+	"oolite-keydesc-key_gui_system_data"		= "System screens";
+	"oolite-keydesc-key_gui_market"				= "Market screens";
+
+	"oolite-keydesc-key_gui_arrow_left"			= "GUI Left";
+	"oolite-keydesc-key_gui_arrow_right"		= "GUI Right";
+	"oolite-keydesc-key_gui_arrow_up"			= "GUI Up";
+	"oolite-keydesc-key_gui_arrow_down"			= "GUI Down";
+
+	"oolite-keydesc-key_increase_speed"			= "Accelerate";
+	"oolite-keydesc-key_decrease_speed"			= "Decelerate";
+	"oolite-keydesc-key_inject_fuel"			= "Fuel Injectors";
+
+	"oolite-keydesc-key_fire_lasers"			= "Fire laser";
+	"oolite-keydesc-key_weapons_online_toggle"	= "Weapons toggle";
+	"oolite-keydesc-key_launch_missile"			= "Launch missile";
+	"oolite-keydesc-key_next_missile"			= "Next missile";
+	"oolite-keydesc-key_ecm"					= "ECM";
+
+	"oolite-keydesc-key_prime_equipment"		= "Select item";
+	"oolite-keydesc-key_activate_equipment"		= "Item button 1";
+	"oolite-keydesc-key_mode_equipment"			= "Item button 2";
+	"oolite-keydesc-key_fastactivate_equipment_a" = "Item shortcut 1";
+	"oolite-keydesc-key_fastactivate_equipment_b" = "Item shortcut 2";
+
+	"oolite-keydesc-key_target_incoming_missile"	= "Target incoming";
+	"oolite-keydesc-key_target_missile"			= "Target missile";
+	"oolite-keydesc-key_untarget_missile"		= "Untarget missile";
+	"oolite-keydesc-key_ident_system"			= "Ident system";
+
+	"oolite-keydesc-key_scanner_zoom"			= "Zoom scanner";
+	"oolite-keydesc-key_scanner_unzoom"			= "Unzoom scanner";
+
+	"oolite-keydesc-key_launch_escapepod"		= "Escape Pod";
+
+	"oolite-keydesc-key_galactic_hyperspace"	= "Galactic jump";
+	"oolite-keydesc-key_hyperspace"				= "Witchspace jump";
+	"oolite-keydesc-key_jumpdrive"				= "Torus drive";
+
+	"oolite-keydesc-key_dump_cargo"				= "Dump cargo";
+	"oolite-keydesc-key_rotate_cargo"			= "Rotate cargo";
+
+	"oolite-keydesc-key_autopilot"				= "Docking computer";
+	"oolite-keydesc-key_autodock"				= "Fast docking";
+	"oolite-keydesc-key_docking_clearance_request"	= "Request clearance";
+
+	"oolite-keydesc-key_snapshot"				= "Take snapshot";
+	"oolite-keydesc-key_docking_music"			= "Docking music";
+
+	"oolite-keydesc-key_advanced_nav_array"		= "Route planner";
+	"oolite-keydesc-key_map_home"				= "Home map";
+	"oolite-keydesc-key_map_info"				= "Show chart icons";
+
+	"oolite-keydesc-key_pausebutton"			= "Pause";
+	"oolite-keydesc-key_show_fps"				= "Show FPS";
+	"oolite-keydesc-key_mouse_control"			= "Mouse control";
+	"oolite-keydesc-key_hud_toggle"				= "Toggle HUD";
+
+	"oolite-keydesc-key_comms_log"				= "Comms log";
+	"oolite-keydesc-key_prev_compass_mode"		= "ASC back";
+	"oolite-keydesc-key_next_compass_mode"		= "ASC forward";
+
+	"oolite-keydesc-key_chart_highlight"			= "Chart highlight";
+
+	"oolite-keydesc-key_cycle_mfd"				= "Cycle MFD";
+	"oolite-keydesc-key_switch_mfd"				= "Select MFD";
+
+	"oolite-keydesc-key_next_target"				= "Next target";
+	"oolite-keydesc-key_previous_target"			= "Previous target";
+
+	"oolite-keydesc-key_custom_view"				= "External view";
+
+	"oolite-loadsave-exit"			= "Return to Menu";
+	"oolite-scenario-exit"			= "Return to Menu";
+	"oolite-scenario-standard-name" = "Normal Start";
+	"oolite-scenario-strict-name"	= "Strict Mode";
+	"oolite-scenario-tutorial-name" = "Tutorial";
+	"oolite-scenario-standard-description"	= "Start with a Cobra Mk III and 100 credits at Lave station, and try to make a living.";
+	"oolite-scenario-strict-description"	= "Strict Mode starts like the normal start, but all expansion packs are permanently disabled for this Commander.";
+	"oolite-scenario-tutorial-description"	= "Take a standard Cooperative flight training course, including simulated combat and docking practice.";
+
+	"oolite-oxzmanager-title"		= "Expansion Pack Manager";
+	"oolite-oxzmanager-title-downloading"	= "Downloading file...";
+	"oolite-oxzmanager-title-dependencies"	= "Additional packs required...";
+	"oolite-oxzmanager-title-install"	= "Select pack to install";
+	"oolite-oxzmanager-title-installed"	= "Select pack to update";
+	"oolite-oxzmanager-title-remove"	= "Select pack to remove";
+	"oolite-oxzmanager-title-setfilter"	= "Set expansion pack filter";
+	"oolite-oxzmanager-title-infopage"	= "Expansion pack details";
+	"oolite-oxzmanager-title-extract"	= "Extract expansion pack";
+	"oolite-oxzmanager-exit"		= "Return to Menu";
+	"oolite-oxzmanager-exit-restart"	= "Return to Menu (applies changes)";
+	"oolite-oxzmanager-acknowledge"	= "Continue";
+	"oolite-oxzmanager-cancel"		= "Cancel Download";
+	"oolite-oxzmanager-dependencies-yes-all"	= "Download all additional required packs";
+	"oolite-oxzmanager-dependencies-yes"	= "Download next additional required pack";
+	"oolite-oxzmanager-dependencies-no"		= "Do not download additional packs";
+	"oolite-oxzmanager-download-list"	= "Download expansions list";
+	"oolite-oxzmanager-update-list"	= "Update expansions list";
+	"oolite-oxzmanager-download-noupdate"	= "Keep current expansions list";
+	"oolite-oxzmanager-install"		= "Install expansion pack";
+	"oolite-oxzmanager-installed"	= "List installed expansion packs";
+	"oolite-oxzmanager-remove"		= "Remove expansion pack";
+	"oolite-oxzmanager-firstrun"	= "Before Oolite can install your requested expansions automatically, it needs to retrieve the expansions list. You will need to be connected to the internet for this to work. Use the 'Download expansions list' option when you are ready, or 'Return to Menu' if you do not have internet access now or would rather download and install expansions yourself.\n\nImportant: if you have old expansion packs installed in the OXP format, Oolite will not be able to automatically detect that they are the same pack as a new release. When downloading an expansion through this manager, you must first uninstall any old OXP versions of the same expansion to avoid problems.";
+	"oolite-oxzmanager-secondrun"	= "Your expansion list may be out of date. Do you want to download the latest list now?\n\nIf you keep the old list, some installations may fail as the expansion pack is no longer available at that location or for that version. However, if you only want to uninstall expansion packs, you do not need to update the list.\n\nIf you need to update the list later, you can do this by selecting 'Update expansions list' from the menu.";
+	"oolite-oxzmanager-intro"		= "Oolite can automatically install some expansions for you if you are connected to the internet. Use the 'Update expansions list' option to retrieve the latest expansions list, and the 'Install expansions' and 'Remove expansions' options to add and remove expansion packs.\n\nThere are also many more expansion packs not available through the automatic installer.\n\nImportant: if you have old expansion packs installed in the OXP format, Oolite will not be able to automatically detect that they are the same pack as a new release. When downloading an expansion through this manager, you must first uninstall any old OXP versions of the same expansion to avoid problems.\n\nIf an expansion pack requires other expansion packs to run, Oolite will automatically download those other expansion packs for you, if they are available.";
+
+	"oolite-oxzmanager-nothing-removable"	= "Oolite can only remove expansion packs which have been added through this system, and there are currently none installed, or all installed packs have been filtered out. Expansion packs which you have installed manually must also be removed manually. Oolite is not able to manage old OXP format expansion packs for you.";
+	"oolite-oxzmanager-restart"				= "As you have changed the expansion packs you have installed, Oolite now needs to reload the game data. This may take a few seconds or several minutes depending on how fast your computer is and how many packs you have installed. Please be patient while this reload completes: Oolite will not respond to the keyboard or mouse until this is done.";
+	"oolite-oxzmanager-progress-@-is-@-of-@"		= "Downloading %@: %@ of %@";
+	"oolite-oxzmanager-download-label-list"	= "OXZ List";
+	"oolite-oxzmanager-download-label-oxz"	= "Expansion";
+	"oolite-oxzmanager-progress-done-%u-%u"	= "Download complete. There are now %u expansion packs available for download, and %u pack(s) have been installed here.";
+	"oolite-oxzmanager-removal-done"		= "Expansion pack removed";
+	"oolite-oxzmanager-progress-error"		= "Download failed! See Latest.log for more details. Using the '[oolite-oxzmanager-update-list]' menu option if you have not done so already and re-attempting the download may sometimes fix the problem.";
+	"oolite-oxzmanager-progress-requires-@" = "Unmet requirement: %@\n";
+	"oolite-oxzmanager-progress-now-has-@"  = "Now met requirement: %@\n";
+	"oolite-oxzmanager-progress-get-required"	= "Download additional OXZ to meet requirements?\n";	
+	"oolite-oxzmanager-progress-required-@-not-found"	= "Unable to meet requirement: %@\n  You will need to resolve this manually.\n";
+	"oolite-oxzmanager-dependencies-decision"	= "Additional installs are required: do you wish to proceed?";
+	"oolite-oxzmanager-heading-category"	= "Category";
+	"oolite-oxzmanager-heading-title"		= "Title";
+	"oolite-oxzmanager-heading-version"		= "Version";
+	"oolite-oxzmanager-heading-downloadable"= "Available";
+	"oolite-oxzmanager-heading-installed"	= "Installed";
+	"oolite-oxzmanager-infoline-url"		= "URL: ";
+	"oolite-oxzmanager-infoline-size"		= "Download size: ";
+	"oolite-oxzmanager-missing-field"		= "Unknown";
+	"oolite-oxzmanager-version-none"		= "-";
+	"oolite-oxzmanager-installable-okay"	= "Status: Ready to download and install.";	
+	"oolite-oxzmanager-installable-update"	= "Status: Installed; updated pack available for download.";
+	"oolite-oxzmanager-installable-depend"	= "Status: Ready to download, but Oolite will also download extra packs to make it work.";
+	"oolite-oxzmanager-installable-conflicts"	= "Status: Conflicts with an already installed pack.";
+	"oolite-oxzmanager-installable-already"	= "Status: Installed and at the current version.";
+	"oolite-oxzmanager-installable-manual"	= "Status: Manually installed; cannot also be installed automatically.";
+	"oolite-oxzmanager-installable-version"	= "Status: Incompatible with this version of Oolite.";
+	"oolite-oxzmanager-installable-noremote"= "Status: Installed but no longer available for download.";
+	"oolite-oxzmanager-installer-nonepicked" = "Select a pack and press return to install or upgrade it if possible. Packs in orange can be installed but will require other packs to be installed before they work, or conflict with a pack you have already installed. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack.";
+	"oolite-oxzmanager-installed-nonepicked" = "Select a pack and press return to upgrade it if upgrades are available. Manually installed packs are not listed here. Press '[oolite_key_oxzmanager_showinfo]' to get more information on a selected pack, or '[oolite_key_oxzmanager_extract]' to extract it to your AddOns folder.";
+	"oolite-oxzmanager-remover-nonepicked" = "Select a pack and press return to remove it. If the pack is coloured blue it is no longer available for download and you will not be able to reinstall it if you remove it.";
+
+	"oolite-oxzmanager-text-prompt-@" 		= "New Filter = %@";
+	"oolite-oxzmanager-currentfilter-is-@"  = "Current filter = %@";
+	"oolite-oxzmanager-currentfilter-is-@-@"  = "Filter ('%@' sets): %@";
+	"oolite-oxzmanager-filterhelp" 			= "Enter a filter to restrict the expansion pack lists, or leave blank to keep the current filter. The following filters are available:\n\n'*' - show everything\n'i' - packs not already installed\n'u' - installed packs with updates available\n'k:<keyword>' - keyword search\n'a:<author>' - author search\n't:<tag>' - tag search\n'd:<integer>' - packs updated in last <integer> days\n\nThe filter entry will turn orange if the currently entered filter is invalid.";
+
+	"oolite-oxzmanager-infopage-title-@-version-@"	= "Expansion Pack: %@ %@";
+	"oolite-oxzmanager-infopage-author-@"		= "Author: %@";
+	"oolite-oxzmanager-infopage-license-@"		= "License: %@";
+	"oolite-oxzmanager-infopage-tags-@"			= "Tags: %@";
+	"oolite-oxzmanager-infopage-description-@"	= "Description: %@";
+	"oolite-oxzmanager-infopage-infourl-@"		= "URL: %@";
+	"oolite-oxzmanager-infopage-return"			= "Press '[oolite_key_oxzmanager_showinfo]' again to return";
+
+	"oolite-oxzmanager-extract-info"			= "Extracting an expansion pack installed through the manager will unzip it and place it into your AddOns folder. You do not need to do this to play Oolite with the pack - only if you want to look inside it or modify it.";
+	"oolite-oxzmanager-extract-releasebuild"	= "If you want to modify or build your own expansions, the developer release of Oolite has several useful additional features.";
+	"oolite-oxzmanager-extract-@-already-exists"	= "The extraction target %@ already exists - you have already extracted this pack. If you would like to extract it again, first delete or move the existing folder.";
+	"oolite-oxzmanager-extract-to-@"			= "If you extract this pack, the folder %@ will be created, and the pack's contents will be extracted inside it. Renaming the folder to end in '.oxp' will let Oolite run it, though you will need to remove the managed version to avoid a conflict.\n\nPlease note that large packs may take a little while to extract - please be patient.";
+	"oolite-oxzmanager-extract-unavailable"		= "Extraction unavailable";
+	"oolite-oxzmanager-extract-proceed"			= "Extract now";
+	"oolite-oxzmanager-extract-cancel"			= "Cancel extraction";
+	
+	"oolite-oxzmanager-extract-log-no-original"		= "The original managed expansion pack could not be found. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-bad-original"	= "The original managed expansion pack could not be opened successfully. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-exists"		= "The target folder already exists. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-unmakeable"	= "The target folder could not be created - check your file and directory permissions. Cancelling extraction.\n";
+	"oolite-oxzmanager-extract-log-main-created"	= "Created target folder and extracting files:\n";
+	"oolite-oxzmanager-extract-log-sub-failed"		= "Extraction failed part way through. This may be caused by insufficient disk space to extract the pack, or other causes. The partial extraction is still in place if you wish to inspect it.";
+	"oolite-oxzmanager-extract-log-num-u-extracted"	= "Extracted %u files successfully.\n";
+	"oolite-oxzmanager-extract-log-extracted-to-@" = "Extraction to %@ is now complete.\n";
+
 	// Loading screen (currently Mac only), also logged under start.progress
 	"loading-ships"					= "Loading ship data";
 	"populating-space"				= "Populating space";
@@ -1037,6 +1388,7 @@
 	"status-commander-@"			= "Commander %@";
 	"status-present-system"			= "Present System:";
 	"status-hyperspace-system"		= "Hyperspace System:";
+	"status-hyperspace-system-multi" = "[targetSystemName] (next: [nextHopSystemName])";
 	"status-condition"				= "Condition:";
 	"status-fuel"					= "Fuel:";
 	"status-light-years-desc"		= "Light Years";
@@ -1050,8 +1402,12 @@
 	"equipment-port-weapon-@"		= "Port %@";
 	"equipment-pass-berth-@%0"		= "1 Passenger Berth";
 	"equipment-pass-berth-@%1"		= "%d Passenger Berths";
-	"equipment-@-not-available"		= "%@ (N/A)";
+	"equipment-plural"				= "[count] [equipmentName]s";			// plural form
+	"equipment-@-not-available"		= "%@ (N/A)";							// all broken, only one installed
+	"equipment-plural-some-na"		= "[okcount]/[count] [equipmentName]s";	// some broken, multiple installed
+	
 	"manifest-cargo-quantity"		= "[quantity] [units] × [commodityName]";
+	"manifest-cargo-quantity-extended" = "[quantity] [units] × [commodityName] ([containers] TC)";
 	
 	// Short and Long Range Chart Overrides
 	"charts-distance"				= "Distance: [distance|precision:1] Light Years";
@@ -1072,6 +1428,11 @@
 	"long-range-chart-title-5"		= "Galactic Chart 6";
 	"long-range-chart-title-6"		= "Galactic Chart 7";
 	"long-range-chart-title-7"		= "Galactic Chart 8";
+	/* Also possible for OXP use */
+	/* 	"long-range-chart-title-0-7"		= "Near Lave"; */
+
+
+
 	"long-range-chart-distance"		= "[charts-distance]";
 	"long-range-chart-est-travel-time" = "[charts-est-travel-time]";
 	"long-range-chart-find-planet-@" = "Find planet: %@";
@@ -1085,12 +1446,43 @@
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";
 	"in-hold-column-title"			= "In hold:";
+	"oolite-legality-column-title"	= "Legal:";
+	"oolite-extras-column-title"	= "";
+//	"oolite-extras-column-title"	= "Extra:"; // title for column is for OXPs
+	"oolite-legality-clear"			= "—";
+	"oolite-legality-export"		= "Ex"; // legal to export
+	"oolite-legality-import"		= "Im"; // legal to import
+	"oolite-legality-neither"		= "Re";
 	"market-cash-and-load"			= "Cash: [credits|dcr]. Load [currentCargo] of [cargoCapacity] t.";
 	"cargo-tons-symbol"				= "t";
 	"cargo-grams-symbol"			= "g";
 	"cargo-kilograms-symbol"		= "kg";
 	"commodity-quantity-none"		= "—";
-	
+	"oolite-market-filtered-all"	= " Current filter hides all goods ";
+	"oolite-market-filter-line"		= "Filter: [filterMode]";
+	"oolite-market-filter-0"		= "All goods";
+	"oolite-market-filter-1"		= "Carried or in stock";
+	"oolite-market-filter-2"		= "Carried";
+	"oolite-market-filter-3"		= "In stock";
+	"oolite-market-filter-4"		= "No transport restrictions";
+	"oolite-market-filter-5"		= "Transport restrictions";
+
+	"oolite-market-sorter-line"		= "Sort: [sortMode]";
+	"oolite-market-sorter-0"		= "Default";
+	"oolite-market-sorter-1"		= "Alphabetical";
+	"oolite-market-sorter-2"		= "Price";
+	"oolite-market-sorter-3"		= "Quantity in stock";
+	"oolite-market-sorter-4"		= "Quantity in hold";
+	"oolite-market-sorter-5"		= "Unit mass";
+
+	"oolite-commodity-no-comment"	= "No additional information available";
+	"oolite-commodity-no-short-comment"	= "";
+//	"oolite-commodity-no-short-comment"	= "—"; // blank for column is for OXPs
+	"oolite-commodity-info-return"	= "Press '[oolite_key_market_info]' to return to commodity list";
+	"oolite-commodity-information-@"	= "Commodity: %@";
+	"oolite-commodity-contracted-d-@"	= "Total cargo contracts: %d %@";
+	"oolite-commodity-illegal"		 = "It is illegal to export this good from Cooperative stations.";
+
 	// System data screen
 	"sysdata-data-on-system"		= "Data on [system]";
 	"sysdata-eco"					= "Economy:";
@@ -1098,7 +1490,8 @@
 	"sysdata-tl"					= "Tech Level:";
 	"sysdata-tl-value"				= "[techLevel|add:1]";
 	"sysdata-pop"					= "Population:";
-	"sysdata-pop-value"				= "[population|multiply:0.1|precision:1] Billion\n([inhabitants])";
+	"sysdata-pop-value"				= "[sysdata-pop-value-short]\n([inhabitants])";
+	"sysdata-pop-value-short"		= "[population|multiply:0.1|precision:1] Billion";
 	"sysdata-prod"					= "Gross productivity:";
 	"sysdata-prod-value"			= "[productivity] M₢";
 	"sysdata-radius"				= "Average radius:";
@@ -1110,6 +1503,7 @@
 	"options-save-commander"		= " Save Commander ";
 	"options-load-commander"		= " Load Commander ";
 	"options-begin-new-game"		= " Begin New Game ";
+	"options-return-to-menu"		= " End Game and Return to Menu ";
 	"options-game-options"			= " Game Options… ";
 	"options-exit-game"				= " Exit Game ";
 	"options-reset-to-unrestricted-play" = " Reset and enable OXPs ";
@@ -1123,6 +1517,7 @@
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
 	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
+	"gameoptions-spoken-messages-comms"		= " Spoken Messages: Comms only ";
 	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
 	"gameoptions-voice-name"				= " Voice: [voiceName] ";
 	"gameoptions-voice-M"					= " Gender: Male ";
@@ -1137,21 +1532,27 @@
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
 	"gameoptions-procedurally-textured-planets-no"	= " Detailed Planets: Off ";
-	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
+	"gameoptions-detaillevel-0"				= " Graphics Detail: Minimum Detail ";
+	"gameoptions-detaillevel-1"				= " Graphics Detail: Normal Detail ";
+	"gameoptions-detaillevel-2"				= " Graphics Detail: Shaders Enabled ";
+	"gameoptions-detaillevel-3"				= " Graphics Detail: Extra Detail ";
+// next eight no longer used
+/*	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
 	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
 	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";
 	"gameoptions-shaderfx"					= " Shader Effects: [shaderEffectsLevel] ";
-	"gameoptions-docking-clearance-yes"		= " Docking Clearance Protocol: On ";
-	"gameoptions-docking-clearance-no"		= " Docking Clearance Protocol: Off ";
 	"shaderfx-not-available"				= "Not available";
 	"shaderfx-off"							= "Off";
 	"shaderfx-simple"						= "Simple";
-	"shaderfx-full"							= "Full";
+	"shaderfx-full"							= "Full"; */
+	"gameoptions-docking-clearance-yes"		= " Docking Clearance Protocol: On ";
+	"gameoptions-docking-clearance-no"		= " Docking Clearance Protocol: Off ";
 	
 	// StickMapper screen
 	"stickmapper-roll"				= "Roll";
 	"stickmapper-pitch"				= "Pitch";
 	"stickmapper-yaw"				= "Yaw";
+	"stickmapper-profile"				= "Edit Axis Profiles";
 	"stickmapper-increase-thrust"	= "Increase thrust";
 	"stickmapper-decrease-thrust"	= "Decrease thrust";
 	"stickmapper-primary-weapon"	= "Primary weapon";
@@ -1175,9 +1576,26 @@
 	"stickmapper-view-starboard"	= "View starboard";
 	"stickmapper-prime-equipment"	= "Prime equipment";
 	"stickmapper-activate-equipment"	= "Activate equipment";
+	"stickmapper-mode-equipment"	= "Set equipment mode";
+	"stickmapper-fastactivate-a"	= "Activate first fast equipment slot";
+	"stickmapper-fastactivate-b"	= "Activate second fast equipment slot";
 	"stickmapper-escape-pod"		= "Escape pod";
 	"stickmapper-cloak"				= "Cloaking device";
 	"stickmapper-scanner-zoom"		= "Scanner zoom";
+	
+	"oolite-stickprofile-title"			= "Joystick Profile";
+	"oolite-stickprofile-back"			= "Back";
+	"oolite-stickprofile-axis"			= "Axis:";
+	"oolite-stickprofile-deadzone"			= "Deadzone:";
+	"oolite-stickprofile-profile-type"		= "Profile Type:";
+	"oolite-stickprofile-type-standard"		= "Standard";
+	"oolite-stickprofile-type-spline"		= "Spline";
+	"oolite-stickprofile-range"			= "Range:";
+	"oolite-stickprofile-sensitivity"		= "Sensitivity:";
+	"oolite-stickprofile-spline-instructions"	= "Click and Drag to set control points. Select and <Del> to delete points.";
+	"oolite-stickprofile-movement"			= "Movement";
+	"oolite-stickprofile-response"			= "Response";
+	
 	
 	"music-mode" =
 	(
@@ -1291,7 +1709,7 @@
 	"shipyard-price"				= " Price [price|icr].";
 	
 	// Load/Save screens shared information
-	"loadsavescreen-commander-name" = "Commander Name";
+	"loadsavescreen-commander-name" = "Commander";
 	"loadsavescreen-rating"			= "Rating";
 	"loadsavescreen-no-commanders-found" = "No commanders found";
 	"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-timestamp-@" = "Commander %@ is rated %@ and has %@ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@";
@@ -1316,8 +1734,8 @@
 	
 	// Save/Overwrite commander screens
 	"savescreen-title"				= "Save Commander";
-	"savescreen-commander-name-@"	= "Commander name: %@";
-	"savescreen-commander-name"		= "Commander name: ";
+	"savescreen-commander-name-@"	= "Save name: %@";
+	"savescreen-commander-name"		= "Save name: ";
 	"overwrite-save-commander-@"	= "Save Commander %@";
 	"overwritescreen-commander-@-already-exists-overwrite-query" = "A file named %@ already exists. Do you wish to overwrite it?";
 	"overwritescreen-yes"			= " Overwrite ";
@@ -1476,6 +1894,7 @@
 							);
 	
 	// Commodity names
+	"oolite-unknown-commodity-name" = "Unknown Commodity";
 	"commodity-name food"			= "Food";
 	"commodity-name textiles"		= "Textiles";
 	"commodity-name radioactives"	= "Radioactives";
@@ -1523,8 +1942,9 @@
 	"speech-synthesis-incoming-message-@"	= "[speech-synthesis-incoming-message]: %@";
 	
 	// translations of special keys
+	"oolite-keycode-unset"	= "(not set)";
 	"oolite-keycode-tab"	= "Tab";
-	"oolite-keycode-esc"	= "Escape";
+	"oolite-keycode-esc"	= "Esc";
 	"oolite-keycode-space"	= "Space";
 	"oolite-keycode-f1"		= "F1";
 	"oolite-keycode-f2"		= "F2";
@@ -1537,16 +1957,26 @@
 	"oolite-keycode-f9"		= "F9";
 	"oolite-keycode-f10"	= "F10";
 	"oolite-keycode-f11"	= "F11";
-	"oolite-keycode-right"	= "Right Arrow";
-	"oolite-keycode-left"	= "Left Arrow";
-	"oolite-keycode-down"	= "Down Arrow";
-	"oolite-keycode-up"		= "Up Arrow";
+	"oolite-keycode-right"	= "Right";
+	"oolite-keycode-left"	= "Left";
+	"oolite-keycode-down"	= "Down";
+	"oolite-keycode-up"		= "Up";
 	"oolite-keycode-home"	= "Home";
 	"oolite-keycode-end"	= "End";
 	"oolite-keycode-insert"	= "Insert";
 	"oolite-keycode-delete"	= "Delete";
 	"oolite-keycode-pageup"	= "Page Up";
 	"oolite-keycode-pagedown" = "Page Down";
+	"oolite-keycode-numpad0" = "Numpad 0";
+	"oolite-keycode-numpad1" = "Numpad 1";
+	"oolite-keycode-numpad2" = "Numpad 2";
+	"oolite-keycode-numpad3" = "Numpad 3";
+	"oolite-keycode-numpad4" = "Numpad 4";
+	"oolite-keycode-numpad5" = "Numpad 5";
+	"oolite-keycode-numpad6" = "Numpad 6";
+	"oolite-keycode-numpad7" = "Numpad 7";
+	"oolite-keycode-numpad8" = "Numpad 8";
+	"oolite-keycode-numpad9" = "Numpad 9";
 	
 
 	// Mac multi-screen handling

@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "MyOpenGLView.h"
 #import "ResourceManager.h"
-
+#import "OOSystemDescriptionManager.h"
 #import "NSFileManagerOOExtensions.h"
 
 
@@ -288,7 +288,7 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
-	string = OOExpandDescriptionString([PLAYER system_seed], string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandGoodRNG);
+	string = OOExpandDescriptionString(kNilRandomSeed, string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandGoodRNG);
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(string);
@@ -317,7 +317,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
-	string = OOExpandDescriptionString([PLAYER system_seed], string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandBackslashN | kOOExpandGoodRNG);
+	string = OOExpandDescriptionString(kNilRandomSeed, string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandBackslashN | kOOExpandGoodRNG);
 	
 	OOJS_RETURN_OBJECT(string);
 	
@@ -382,7 +382,7 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc,
 	}
 	
 	make_pseudo_random_seed(&aSeed);
-	string = [UNIVERSE generateSystemInhabitants:aSeed plural:isPlural];
+	string = [UNIVERSE getSystemInhabitants:Ranrot()%OO_SYSTEMS_PER_GALAXY plural:isPlural];
 	OOJS_RETURN_OBJECT(string);
 	
 	OOJS_NATIVE_EXIT

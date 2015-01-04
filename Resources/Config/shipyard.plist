@@ -74,6 +74,7 @@
 		"optional_equipment" =
 		(
 			"EQ_ECM",
+			"EQ_FUEL_SCOOPS",
 			"EQ_ESCAPE_POD",
 			"EQ_ENERGY_BOMB",
 			"EQ_ENERGY_UNIT",

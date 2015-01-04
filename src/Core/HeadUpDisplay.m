@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "HeadUpDisplay.h"
+#import "GameController.h"
 #import "ResourceManager.h"
 #import "PlayerEntity.h"
 #import "OOSunEntity.h"
@@ -58,7 +59,7 @@ MA 02110-1301, USA.
 #define WIDGET_INFO					0
 #define WIDGET_CACHE				1
 #define	WIDGET_SELECTOR				2
-
+#define	WIDGET_SELECTOR_NAME		3
 
 /* Convenience macros to make set-colour-or-default quicker. 'info' must be the NSDictionary and 'alpha' must be the overall alpha or these won't work */
 #define DO_SET_COLOR(t,d)		SetGLColourFromInfo(info,t,d,alpha)
@@ -96,8 +97,9 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info);
 static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected, GLfloat scale);
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1);
-static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom);
-
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear);
+static GLfloat nonlinearScannerFunc(GLfloat distance, GLfloat zoom, GLfloat scale);
+static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha );
 
 static OOTexture			*sFontTexture = nil;
 static OOEncodingConverter	*sEncodingCoverter = nil;
@@ -138,6 +140,7 @@ enum
 - (void) drawForwardShieldBar:(NSDictionary *)info;
 - (void) drawAftShieldBar:(NSDictionary *)info;
 - (void) drawFuelBar:(NSDictionary *)info;
+- (void) drawWitchspaceDestination:(NSDictionary *)info;
 - (void) drawCabinTempBar:(NSDictionary *)info;
 - (void) drawWeaponTempBar:(NSDictionary *)info;
 - (void) drawAltitudeBar:(NSDictionary *)info;
@@ -154,8 +157,14 @@ enum
 - (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index;
 - (void) drawFPSInfoCounter:(NSDictionary *)info;
 - (void) drawScoopStatus:(NSDictionary *)info;
-- (void) drawStickSenitivityIndicator:(NSDictionary *)info;
+- (void) drawStickSensitivityIndicator:(NSDictionary *)info;
+- (void) drawCustomBar:(NSDictionary *)info;
+- (void) drawCustomText:(NSDictionary *)info;
+- (void) drawCustomIndicator:(NSDictionary *)info;
+- (void) drawCustomLight:(NSDictionary *)info;
 
+- (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color;
+- (void) drawSurround:(NSDictionary *)info;
 - (void) drawGreenSurround:(NSDictionary *)info;
 - (void) drawYellowSurround:(NSDictionary *)info;
 
@@ -163,8 +172,6 @@ enum
 
 - (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon;
 
-- (void) checkMassLock;
-- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass;
 - (BOOL) checkPlayerInFlight;
 - (BOOL) checkPlayerInSystemFlight;
 
@@ -184,9 +191,9 @@ static const GLfloat black_color[4] =		{0.0, 0.0, 0.0, 1.0};
 static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 
 static float	sGlyphWidths[256];
-static BOOL		_scannerUpdated;
+static float    sF6KernGovt;
+static float    sF6KernTL;
 static BOOL		_compassUpdated;
-static BOOL 	hostiles;
 
 
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz);
@@ -227,7 +234,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
-	mfdArray = [[NSMutableArray alloc] initWithCapacity:4]; // alloc retains
+	mfdArray = [[NSMutableArray alloc] initWithCapacity:8]; // alloc retains
 	
 	// populate arrays
 	NSArray *dials = [hudinfo oo_arrayForKey:DIALS_KEY];
@@ -247,6 +254,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	_compassActive = isCompassToBeDrawn;
 	
+	_lastWeaponType = nil;
+
 	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
 	for (i = 0; i < [legends count]; i++)
 	{
@@ -262,6 +271,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	hudHidden = NO;
 	
+	_hiddenSelectors = [[NSMutableSet alloc] initWithCapacity:16];
+
 	hudUpdating = NO;
 	
 	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
@@ -273,6 +284,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 										nil];
 	
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
+
+	allowBigGui = [hudinfo oo_boolForKey:@"allow_big_gui" defaultValue:NO];
 	
 	last_transmitter = NO_TARGET;
 	
@@ -295,6 +308,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	_crosshairScale = [hudinfo oo_floatForKey:@"crosshair_scale" defaultValue:32.0f];
 	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
 	
+	nonlinear_scanner = [hudinfo oo_boolForKey:@"scanner_non_linear" defaultValue:NO];
+	scanner_ultra_zoom = [hudinfo oo_boolForKey:@"scanner_ultra_zoom" defaultValue:NO];
+	
 	return self;
 }
 
@@ -302,13 +318,16 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) dealloc
 {
 	DESTROY(legendArray);
-	DESTROY(dialArray);
+	DESTROY(dialArray);	
+	DESTROY(mfdArray);
 	DESTROY(hudName);
 	DESTROY(deferredHudName);
 	DESTROY(propertiesReticleTargetSensitive);
 	DESTROY(_crosshairOverrides);
+	DESTROY(_crosshairColor);
 	DESTROY(crosshairDefinition);
-	
+	DESTROY(_hiddenSelectors);
+
 	[super dealloc];
 }
 
@@ -523,6 +542,41 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
+- (BOOL) allowBigGui
+{
+	return allowBigGui || hudHidden;
+}
+
+
+- (BOOL) hasHidden:(NSString *)selectorName
+{
+	if (selectorName == nil)
+	{
+		return NO;
+	}
+	return [_hiddenSelectors containsObject:selectorName];
+}
+
+
+- (void) setHiddenSelector:(NSString *)selectorName hidden:(BOOL)hide
+{
+	if (hide)
+	{
+		[_hiddenSelectors addObject:selectorName];
+	}
+	else
+	{
+		[_hiddenSelectors removeObject:selectorName];
+	}
+}
+
+
+- (void) clearHiddenSelectors
+{
+	[_hiddenSelectors removeAllObjects];
+}
+
+
 - (BOOL) isCompassActive
 {
 	return _compassActive;
@@ -638,9 +692,9 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	// valid dial, now prefetch data
 	struct CachedInfo cache;
 	prefetchData(info, &cache);
-	// add WIDGET_INFO, WIDGET_CACHE, WIDGET_SELECTOR to array
+	// add WIDGET_INFO, WIDGET_CACHE, WIDGET_SELECTOR, WIDGET_SELECTOR_NAME to array
 	[dialArray addObject:[NSArray arrayWithObjects:info, [NSValue valueWithBytes:&cache objCType:@encode(struct CachedInfo)],
-								[NSValue valueWithPointer:selector], nil]];
+						 [NSValue valueWithPointer:selector], selectorString, nil]];
 }
 
 
@@ -731,7 +785,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {	
 	z1 = [[UNIVERSE gameView] display_z];
 	// reset drawScanner flag.
-	_scannerUpdated = NO;
 	_compassUpdated = NO;
 	
 	// tight loop, we assume dialArray doesn't change in mid-draw.
@@ -749,9 +802,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[PLAYER doScriptEvent:OOJSID("compassTargetChanged") withArguments:[NSArray arrayWithObjects:[NSNull null], OOStringFromCompassMode([PLAYER compassMode]), nil]];
 	}
 	
-	// We always need to check the mass lock status. It's normally checked inside drawScanner,
-	// but if drawScanner wasn't called, we can check mass lock explicitly.
-	if (!_scannerUpdated)  [self checkMassLock];
 }
 
 
@@ -846,6 +896,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon
 {
 	NSString					*weaponName = nil;
+	NSString					*weaponName2 = nil;
 	static						NSDictionary *crosshairDefs = nil;
 	NSArray						*result = nil;
 	
@@ -857,7 +908,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	 */
 	
 	weaponName = OOStringFromWeaponType(weapon);
+	weaponName2 = [weaponName substringFromIndex:3]; // strip "EQ_"
 	result = [_crosshairOverrides oo_arrayForKey:weaponName];
+	if (result == nil) 
+	{
+		result = [_crosshairOverrides oo_arrayForKey:weaponName2];
+	}
 	if (result == nil)  result = [_crosshairOverrides oo_arrayForKey:@"OTHER"];
 	if (result == nil)
 	{
@@ -870,6 +926,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		}
 		
 		result = [crosshairDefs oo_arrayForKey:weaponName];
+		if (result == nil) 
+		{
+			result = [crosshairDefs oo_arrayForKey:weaponName2];
+		}
 		if (result == nil)  result = [crosshairDefs oo_arrayForKey:@"OTHER"];
 	}
 	
@@ -881,7 +941,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	// check if equipment is required
 	NSString *equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipmentRequired != nil && ![PLAYER hasEquipmentItem:equipmentRequired])
+	if (equipmentRequired != nil && ![PLAYER hasEquipmentItemProviding:equipmentRequired])
 	{
 		return;
 	}
@@ -900,6 +960,19 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		if (~alertMask & (1 << alertCondition)) {
 			return;
 		}
+	}
+
+	BOOL viewOnly = [info oo_unsignedIntForKey:VIEWSCREEN_KEY defaultValue:NO];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN)
+	{
+		return;
+	}
+
+	// check association with hidden dials
+	if ([self hasHidden:[info oo_stringForKey:DIAL_REQUIRED_KEY defaultValue:nil]])
+	{
+		return;
 	}
 
 	OOTextureSprite				*legendSprite = nil;
@@ -930,8 +1003,15 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 			// randomly chosen default width & height
 			size.width = useDefined(cached.width, 14.0f);
 			size.height = useDefined(cached.height, 8.0f);
-			GLColorWithOverallAlpha(green_color, alpha);
-			OODrawString(legendText, x, y, z1, size);
+			SET_COLOR(green_color);
+			if ([info oo_intForKey:@"align"] == 1)
+			{
+				OODrawStringAligned(legendText, x, y, z1, size, YES);
+			}
+			else
+			{
+				OODrawStringAligned(legendText, x, y, z1, size, NO);
+			}
 		}
 	}
 }
@@ -941,7 +1021,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	NSString	*equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	
-	if (equipment != nil && ![PLAYER hasEquipmentItem:equipment])
+	if (equipment != nil && ![PLAYER hasEquipmentItemProviding:equipment])
 	{
 		return;
 	}
@@ -952,14 +1032,21 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	if (alertMask < 15)
 	{
 		OOAlertCondition alertCondition = [PLAYER alertCondition];
-		/* Because one of the items here is the scanner, which changes
-		 * the alert condition, this may give inconsistent results
-		 * mid-frame. This is unlikely to be crucial, but it's yet
-		 * another reason to get around to separating out scanner
-		 * display and alert level calculation - CIM */
 		if (~alertMask & (1 << alertCondition)) {
 			return;
 		}
+	}
+
+	BOOL viewOnly = [info oo_unsignedIntForKey:VIEWSCREEN_KEY defaultValue:NO];
+	// 1=docked, 2=green, 4=yellow, 8=red
+	if (viewOnly && [PLAYER guiScreen] != GUI_SCREEN_MAIN)
+	{
+		return;
+	}
+
+	if (EXPECT_NOT([self hasHidden:[sCurrentDrawItem objectAtIndex:WIDGET_SELECTOR_NAME]]))
+	{
+		return;
 	}
 
 	// use the selector value stored during init.
@@ -987,96 +1074,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) checkMassLock
-{	
-	if ([self checkPlayerInFlight])
-	{
-		int				i, scanClass, ent_count = UNIVERSE->n_entities;
-		Entity			**uni_entities	= UNIVERSE->sortedEntities;	// grab the public sorted list
-		Entity			*my_entities[ent_count];
-		Entity			*scannedEntity = nil;
-		BOOL			massLocked = NO;
-		
-		for (i = 0; i < ent_count; i++)
-		{
-			my_entities[i] = [uni_entities[i] retain];	// retained
-		}
-	
-		for (i = 0; i < ent_count && !massLocked; i++)
-		{
-			scannedEntity = my_entities[i];
-			scanClass = [scannedEntity scanClass];
-			
-			massLocked = [self checkEntityForMassLock:scannedEntity withScanClass:scanClass];
-		}
-		[PLAYER setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
-
-		for (i = 0; i < ent_count; i++)
-		{
-			[my_entities[i] release];	//	released
-		}
-	}
-}
-
-
-- (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)scanClass
-{
-	BOOL massLocked = NO;
-	
-	if (EXPECT_NOT([ent isStellarObject]))
-	{
-		Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)ent;
-		if (EXPECT([stellar planetType] != STELLAR_TYPE_MINIATURE))
-		{
-			double dist = stellar->zero_distance;
-			double rad = stellar->collision_radius;
-			double factor = ([stellar isSun]) ? 2.0 : 4.0;
-			// plus ensure mass lock when 25 km or less from the surface of small stellar bodies
-			// dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
-			if (dist < rad*rad*factor || dist < rad*rad + 50000*rad + 625000000 ) 
-			{
-				massLocked = YES;
-			}
-		}
-	}
-	else if (scanClass != CLASS_NO_DRAW)
-	{
-		// cloaked ships do not mass lock!
-		if (EXPECT_NOT ([ent isShip] && [(ShipEntity *)ent isCloaked]))
-		{
-			scanClass = CLASS_NO_DRAW;
-		}
-	}
-
-	if (!massLocked && ent->zero_distance <= SCANNER_MAX_RANGE2)
-	{
-		switch (scanClass)
-		{
-			case CLASS_NO_DRAW:
-			case CLASS_PLAYER:
-			case CLASS_BUOY:
-			case CLASS_ROCK:
-			case CLASS_CARGO:
-			case CLASS_MINE:
-			case CLASS_VISUAL_EFFECT:
-				break;
-				
-			case CLASS_THARGOID:
-			case CLASS_MISSILE:
-			case CLASS_STATION:
-			case CLASS_POLICE:
-			case CLASS_MILITARY:
-			case CLASS_WORMHOLE:
-			default:
-				massLocked = YES;
-				break;
-		}
-	}
-	
-	return massLocked;
-}
-
-
 static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 {
 	data->x = [info oo_floatForKey:X_KEY defaultValue:NOT_DEFINED];
@@ -1092,9 +1089,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 
 - (void) drawScanner:(NSDictionary *)info
 {
-	//	if (_scannerUpdated)  return;		// there's never the need to draw the scanner twice per frame!
-	// apparently there are HUDs out there that do this. CIM 6/12/12
-	
 	int				i, x, y;
 	NSSize			siz;
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
@@ -1102,8 +1096,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	BOOL			emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
 		
 	BOOL			isHostile = NO;
-	BOOL			foundHostiles = NO;
-	BOOL			massLocked = NO;
 	
 	if (emptyDial)
 	{
@@ -1139,7 +1131,14 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	
 	int				scannerFootprint = SCANNER_MAX_RANGE * 2.5 / siz.width;
 	
-	GLfloat			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0 / (scanner_zoom * scanner_zoom);
+	GLfloat			zoom = scanner_zoom;
+	if (scanner_ultra_zoom)
+		zoom = pow(2, zoom - 1.0);
+	GLfloat			max_zoomed_range2 = SCANNER_SCALE * SCANNER_SCALE * 10000.0;
+	if (!nonlinear_scanner)
+	{
+		max_zoomed_range2 /= zoom * zoom;
+	}
 	GLfloat			max_zoomed_range = sqrt(max_zoomed_range2);
 	
 	if (PLAYER == nil)  return;
@@ -1162,17 +1161,28 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (!emptyDial)
 	{
 		OOGL(glColor4fv(scanner_color));
-		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, scanner_zoom);
+		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, zoom, nonlinear_scanner);
 	}
 	
 	if ([self checkPlayerInFlight])
 	{
-		GLfloat upscale = scanner_zoom * 1.25 / scannerFootprint;
+		GLfloat upscale = zoom * 1.25 / scannerFootprint;
 		GLfloat max_blip = 0.0;
 		int drawClass;
 		
 		OOVerifyOpenGLState();
 		
+		// Debugging code for nonlinear scanner - draws three fake cascade weapons, which looks pretty and enables me
+		// to debug the code without the mass slaughter of innocent civillians.
+		//if (nonlinear_scanner)
+		//{
+		//	Vector p = OOVectorMultiplyMatrix(make_vector(10000.0, 0.0, 0.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 5000, zoom, alpha );
+		//	p = OOVectorMultiplyMatrix(make_vector(10000.0, 4500.0, 0.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 2000, zoom, alpha );
+		//	p = OOVectorMultiplyMatrix(make_vector(0.0, 0.0, 20000.0), rotMatrix);
+		//	GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, p, 6000, zoom, alpha );
+		//}
 		for (i = 0; i < ent_count; i++)  // scanner lollypops
 		{
 			scannedEntity = my_entities[i];
@@ -1184,8 +1194,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 			{
 				drawClass = CLASS_NO_DRAW;
 			}
-			
-			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:drawClass];	// we just need one masslocker..
 			
 			if (drawClass != CLASS_NO_DRAW)
 			{
@@ -1201,6 +1209,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				GLfloat	act_dist = sqrt(scannedEntity->zero_distance);
 				GLfloat	lim_dist = act_dist - scannedEntity->collision_radius;
 				
+				// for efficiency, assume no scannable entity > 10km radius
+				if (act_dist > max_zoomed_range + 10000.0)
+					break;
+
 				if (lim_dist > max_zoomed_range)
 					continue;
 				
@@ -1216,6 +1228,12 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				ms_blip -= floor(ms_blip);
 				
 				relativePosition = [PLAYER vectorTo:scannedEntity];
+				double fuzz = [PLAYER scannerFuzziness];
+				if (fuzz > 0 && ![[UNIVERSE gameController] isGamePaused])
+				{
+					relativePosition = vector_add(relativePosition,OOVectorRandomRadial(fuzz));
+				}
+
 				Vector rp = relativePosition;
 				
 				if (act_dist > max_zoomed_range)
@@ -1223,8 +1241,16 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				// rotate the view
 				relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);
+				Vector rrp = relativePosition;
 				// scale the view
-				scale_vector(&relativePosition, upscale);
+				if (nonlinear_scanner)
+				{
+					relativePosition = [HeadUpDisplay nonlinearScannerScale: relativePosition Zoom: zoom Scale: 0.5*siz.width];
+				}
+				else
+				{
+					scale_vector(&relativePosition, upscale);
+				}
 				
 				x1 = relativePosition.x;
 				y1 = z_factor * relativePosition.z;
@@ -1252,34 +1278,12 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				// position the scanner
 				x1 += scanner_cx;   y1 += scanner_cy;   y2 += scanner_cy;
-				
-				switch (drawClass)
-				{
-					case CLASS_VISUAL_EFFECT:
-						break;
 
-					case CLASS_THARGOID:
-						foundHostiles = YES;
-						break;
-
-					case CLASS_ROCK:
-					case CLASS_CARGO:
-					case CLASS_MISSILE:
-					case CLASS_STATION:
-					case CLASS_BUOY:
-					case CLASS_POLICE:
-					case CLASS_MILITARY:
-					case CLASS_MINE:
-					case CLASS_WORMHOLE:
-					default:
-						foundHostiles |= isHostile;
-						break;
-				}
-				
 				if ([scannedEntity isShip])
 				{
 					ShipEntity* ship = (ShipEntity*)scannedEntity;
-					if (ship->collision_radius * upscale > 4.5)
+					if ((!nonlinear_scanner && ship->collision_radius * upscale > 4.5) ||
+						(nonlinear_scanner && nonlinearScannerFunc(act_dist, zoom, siz.width) - nonlinearScannerFunc(lim_dist, zoom, siz.width) > 4.5 ))
 					{
 						Vector bounds[6];
 						BoundingBox bb = ship->totalBoundingBox;
@@ -1294,7 +1298,14 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 						for (i = 0; i < 6; i++)
 						{
 							bounds[i] = OOVectorMultiplyMatrix(vector_add(bounds[i], rp), rotMatrix);
-							scale_vector(&bounds[i], upscale);
+							if (nonlinear_scanner)
+							{
+								bounds[i] = [HeadUpDisplay nonlinearScannerScale:bounds[i] Zoom: zoom Scale: 0.5*siz.width];
+							}
+							else
+							{
+								scale_vector(&bounds[i], upscale);
+							}
 							bounds[i] = make_vector(bounds[i].x + scanner_cx, bounds[i].z * z_factor + bounds[i].y * y_factor + scanner_cy, z1 );
 						}
 						// draw the diamond
@@ -1317,16 +1328,23 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				}
 				if ([scannedEntity isCascadeWeapon])
 				{
-					GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
-					GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
-					GLfloat r0 = (l2 > 0)? sqrt(l2): 0;
-					if (r0 > 0)
+					if (nonlinear_scanner)
 					{
-						OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
-						GLDrawOval(x1  - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
+						GLDrawNonlinearCascadeWeapon( scanner_cx, scanner_cy, z1, siz, rrp, scannedEntity->collision_radius, zoom, alpha );
 					}
-					OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
-					GLDrawFilledOval(x1  - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
+					else
+					{
+						GLfloat r1 = 2.5 + scannedEntity->collision_radius * upscale;
+						GLfloat l2 = r1 * r1 - relativePosition.y * relativePosition.y;
+						GLfloat r0 = (l2 > 0)? sqrt(l2): 0;
+						if (r0 > 0)
+						{
+							OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+							GLDrawOval(x1  - 0.5, y1 + 1.5, z1, NSMakeSize(r0, r0 * siz.height / siz.width), 20);
+						}
+						OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+						GLDrawFilledOval(x1  - 0.5, y2 + 1.5, z1, NSMakeSize(r1, r1), 15);
+					}
 				}
 				else
 				{
@@ -1349,18 +1367,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 			}
 		}
 		
-		[PLAYER setAlertFlag:ALERT_FLAG_MASS_LOCK to:massLocked];
-		
-		[PLAYER setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
-		
-		if ((foundHostiles)&&(!hostiles))
-		{
-			hostiles = YES;
-		}
-		if ((!foundHostiles)&&(hostiles))
-		{
-			hostiles = NO;					// there are now no hostiles on scope, relax
-		}
 	}
 	
 	for (i = 0; i < ent_count; i++)
@@ -1370,7 +1376,37 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	
 	OOVerifyOpenGLState();
 	
-	_scannerUpdated = YES;
+}
+
++ (Vector) nonlinearScannerScale: (Vector) V Zoom:(GLfloat)zoom Scale:(double) scale
+{
+	OOScalar mag = magnitude(V);
+	Vector unit = vector_normal(V);
+	return vector_multiply_scalar(unit, nonlinearScannerFunc(mag, zoom, scale));
+}
+
+
+- (BOOL) nonlinearScanner
+{
+	return nonlinear_scanner;
+}
+
+
+- (void) setNonlinearScanner: (BOOL) newValue
+{
+	nonlinear_scanner = !!newValue;
+}
+
+
+- (BOOL) scannerUltraZoom
+{
+	return scanner_ultra_zoom;
+}
+
+
+- (void) setScannerUltraZoom: (BOOL) newValue
+{
+	scanner_ultra_zoom = !!newValue;
 }
 
 
@@ -1411,12 +1447,16 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
 	if (zl == 1) zoom_color[3] *= 0.75;
+	if (scanner_ultra_zoom)
+		zl = pow(2, zl - 1);
 	GLColorWithOverallAlpha(zoom_color, alpha);
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
 	OOGLBEGIN(GL_QUADS);
-		drawCharacterQuad(48 + zl, cx - 0.4 * siz.width, cy, z1, siz);
+		if (zl / 10 > 0)
+			drawCharacterQuad(48 + zl / 10, cx - 0.8 * siz.width, cy, z1, siz);
+		drawCharacterQuad(48 + zl % 10, cx - 0.4 * siz.width, cy, z1, siz);
 		drawCharacterQuad(58, cx, cy, z1, siz);
 		drawCharacterQuad(49, cx + 0.3 * siz.width, cy, z1, siz);
 	OOGLEND();
@@ -1481,7 +1521,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		
 		siz.width *= 0.2;
 		siz.height *= 0.2;
-		OOGL(GLScaledLineWidth(2.0));
+		OOGL(GLScaledLineWidth(2.0*lineWidth));
 		switch ([PLAYER compassMode])
 		{
 			case COMPASS_MODE_INACTIVE:
@@ -1513,6 +1553,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				[[beacon beaconDrawable] oo_drawHUDBeaconIconAt:NSMakePoint(x, y) size:siz alpha:alpha z:z1];
 				break;
 		}
+		OOGL(GLScaledLineWidth(lineWidth));	// reset
+
 		_compassUpdated = YES;
 		_compassActive = YES;
 	}
@@ -1652,9 +1694,9 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 	OOGLEND();
 #else
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x, y, z1));
-	OOGL(glScalef(w, -h, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x, y, z1));
+	OOGLScaleModelView(make_vector(w, -h, 1.0f));
 	
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	OOGL(glVertexPointer(2, GL_FLOAT, 0, strip));
@@ -1663,9 +1705,149 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-	
-	OOGL(glPopMatrix());
+
+	OOGLPopModelView();
 #endif
+}
+
+
+- (void) drawCustomBar:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	GLfloat				ds = OOClamp_0_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 50);
+	siz.height = useDefined(cached.height, 8);
+	alpha *= cached.alpha;
+	
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	SET_COLOR_SURROUND(green_color);
+	if (draw_surround)
+	{
+		// draw custom surround
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	// draw custom bar
+	if (ds > .75)
+	{
+		SET_COLOR_HIGH(green_color);
+	}
+	else if (ds > .25)
+	{
+		SET_COLOR_MEDIUM(yellow_color);
+	}
+	else
+	{
+		SET_COLOR_LOW(red_color);
+	}
+
+	hudDrawBarAt(x, y, z1, siz, ds);
+}
+
+
+- (void) drawCustomText:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				size;
+	GLfloat				alpha = overallAlpha;
+	NSString			*text = [PLAYER dialCustomString:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	alpha *= cached.alpha;
+	
+	SET_COLOR(yellow_color);
+
+	size.width = useDefined(cached.width, 10.0f);
+	size.height = useDefined(cached.height, 10.0f);
+
+	if ([info oo_intForKey:@"align"] == 1)
+	{
+		OODrawStringAligned(text, x, y, z1, size, YES);
+	}
+	else
+	{
+		OODrawStringAligned(text, x, y, z1, size, NO);
+	}
+
+}
+
+
+- (void) drawCustomIndicator:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	BOOL				draw_surround;
+	GLfloat				alpha = overallAlpha;
+	GLfloat				iv = OOClamp_n1_1_f([PLAYER dialCustomFloat:[info oo_stringForKey:CUSTOM_DIAL_KEY]]);
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 50);
+	siz.height = useDefined(cached.height, 8);
+	alpha *= cached.alpha;
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:NO];
+	
+	if (draw_surround)
+	{
+		// draw custom surround
+		SET_COLOR_SURROUND(green_color);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	// draw custom indicator
+	SET_COLOR(yellow_color);
+	hudDrawIndicatorAt(x, y, z1, siz, iv);
+}
+
+
+- (void) drawCustomLight:(NSDictionary *)info
+{
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, 8);
+	siz.height = useDefined(cached.height, 8);
+	alpha *= cached.alpha;
+	
+	GLfloat light_color[4] = { 0.25, 0.25, 0.25, 0.0};
+	
+	OOColor *color = [PLAYER dialCustomColor:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	[color getRed:&light_color[0]
+			green:&light_color[1]
+			 blue:&light_color[2]
+			alpha:&light_color[3]];
+
+	GLColorWithOverallAlpha(light_color, alpha);
+	OOGLBEGIN(GL_POLYGON);
+	hudDrawStatusIconAt(x, y, z1, siz);
+	OOGLEND();
+	OOGL(glColor4f(0.25, 0.25, 0.25, alpha));
+	OOGLBEGIN(GL_LINE_LOOP);
+		hudDrawStatusIconAt(x, y, z1, siz);
+	OOGLEND();
 }
 
 
@@ -1830,21 +2012,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	drawSurround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
 	labelled = [info oo_boolForKey:LABELLED_KEY defaultValue:YES];
 	if (n_bars > 8)  labelled = NO;
-	
-	// MKW - ensure we don't alert the player every time they use energy if they only have 1 energybank
-	//[player setAlertFlag:ALERT_FLAG_ENERGY to:((energy < 1.0)&&([player status] == STATUS_IN_FLIGHT))];
-	if(EXPECT([self checkPlayerInFlight]))
-	{
-		if(n_bars > 1)
-		{
-			energyCritical = energy < 1.0 ;
-		}
-		else
-		{
-			energyCritical = energy < 0.8;
-		}
-		[player setAlertFlag:ALERT_FLAG_ENERGY to:energyCritical];
-	}
 	
 	if (drawSurround)
 	{
@@ -2024,6 +2191,36 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 		hudDrawMarkerAt(x, y, z1, siz, hr);
 	}
+
+}
+
+
+- (void) drawWitchspaceDestination:(NSDictionary *)info
+{
+	// A zero-distance jump counts as 0.1LY
+	if ([PLAYER dialHyperRange] == 0.0f)
+	{
+		return;
+	}
+
+	int					x, y;
+	NSSize				siz;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, WITCHDEST_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, WITCHDEST_CENTRE_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	siz.width = useDefined(cached.width, WITCHDEST_WIDTH);
+	siz.height = useDefined(cached.height, WITCHDEST_HEIGHT);
+	alpha *= cached.alpha;
+
+	SET_COLOR(green_color);
+	
+	OODrawString([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz);
+
 }
 
 
@@ -2069,7 +2266,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 			SET_COLOR_LOW(green_color);
 	}
 
-	[PLAYER setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([self checkPlayerInFlight]))];
+	
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
@@ -2154,7 +2351,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
-	[PLAYER setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([self checkPlayerInFlight]))];
 }
 
 
@@ -2213,20 +2409,20 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	if (selected)
 	{
 		// Draw yellow outline.
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-		OOGL(glScalef(width, height, 1.0f));
+		OOGLPushModelView();
+		OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGLScaleModelView(make_vector(width, height, 1.0f));
 		GLColorWithOverallAlpha(yellow_color, alpha);
 		[sprite drawOutline];
-		OOGL(glPopMatrix());
+		OOGLPopModelView();
 		
 		// Draw black backing, so outline colour isn’t blended into missile colour.
-		OOGL(glPushMatrix());
-		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-		OOGL(glScalef(width, height, 1.0f));
+		OOGLPushModelView();
+		OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGLScaleModelView(make_vector(width, height, 1.0f));
 		GLColorWithOverallAlpha(black_color, alpha);
 		[sprite drawFilled];
-		OOGL(glPopMatrix());
+		OOGLPopModelView();
 		
 		switch (status)
 		{
@@ -2244,11 +2440,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		else  GLColorWithOverallAlpha(red_color, alpha);
 	}
 	
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-	OOGL(glScalef(width, height, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	[sprite drawFilled];
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 
@@ -2259,12 +2455,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	OOPolygonSprite *sprite = IconForMissileRole(kDefaultMissileIconKey);
 	
 	// Draw gray outline.
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-	OOGL(glScalef(width, height, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	GLColorWithOverallAlpha(lightgray_color, alpha);
 	[sprite drawOutline];
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 
@@ -2348,7 +2544,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		[self drawDirectionCue:info];
 	}
 	// extra feature if extra equipment installed
-	if ([PLAYER hasEquipmentItem:@"EQ_INTEGRATED_TARGETING_SYSTEM"])
+	if ([PLAYER hasEquipmentItemProviding:@"EQ_INTEGRATED_TARGETING_SYSTEM"])
 	{
 		[self drawSecondaryTargetReticle:info];
 	}
@@ -2360,7 +2556,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha * 0.4;
 	
 	PlayerEntity *player = PLAYER;
-	if ([player hasEquipmentItem:@"EQ_TARGET_MEMORY"])
+	if ([player hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"])
 	{
 		// needs target memory to be working in addition to any other equipment
 		// this item may be bound to
@@ -2605,7 +2801,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	else
 	{
-		NSInteger negative = (lines % 2) ? (lines - 1) / 2 : lines / 2;
+		NSInteger negative = (lines - 1) / 2;
 		NSInteger positive = lines / 2;
 		for (NSInteger i = -negative; i <= positive; i++)
 		{
@@ -2625,9 +2821,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawASCTarget:(NSDictionary *)info
 {
-	if ([PLAYER status] == STATUS_DOCKED || [PLAYER compassMode] != COMPASS_MODE_BEACONS)
+	if (!([self checkPlayerInSystemFlight] && [PLAYER status] != STATUS_LAUNCHING)) // normal system
 	{
-		// Can't have compass target when docked, and only needed in beacon mode
+		// Can't have compass target when docked, etc. (matches blip condition)
 		return;
 	}
 	
@@ -2663,6 +2859,18 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 
 - (void) drawWeaponsOfflineText:(NSDictionary *)info
 {
+	OOViewID					viewID = [UNIVERSE viewDirection];
+
+	if (viewID == VIEW_CUSTOM ||
+		overallAlpha == 0.0f ||
+		!([PLAYER status] == STATUS_IN_FLIGHT || [PLAYER status] == STATUS_WITCHSPACE_COUNTDOWN) ||
+		[UNIVERSE displayGUI]
+		)
+	{
+		// Don't draw weapons offline text
+		return;
+	}
+
 	if (![PLAYER weaponsOnline])
 	{
 		int					x, y;
@@ -2824,6 +3032,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	struct CachedInfo	cached;
 	
+	if (![stickHandler joystickCount])
+	{
+		return; // no need to draw if no joystick fitted
+	}
+
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
 	x = useDefined(cached.x, STATUS_LIGHT_CENTRE_X) + [[UNIVERSE gameView] x_offset] * cached.x0;
@@ -2851,19 +3064,18 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				GLColorWithOverallAlpha(lightgray_color, alpha);
 		}
 		
-		if ([stickHandler joystickCount])
-		{
-			siz.width -= _crosshairWidth * lineWidth / 2;
-			siz.height -= _crosshairWidth * lineWidth / 2;
-			GLDrawOval(x, y, z1, siz, 10);
-		}
+		siz.width -= _crosshairWidth * lineWidth / 2;
+		siz.height -= _crosshairWidth * lineWidth / 2;
+		GLDrawOval(x, y, z1, siz, 10);
 	}
 	else if (div < 1.0) // insensitive mode (shouldn't happen)
 		GLDrawFilledOval(x, y, z1, siz, 10);
+
+	OOGL(GLScaledLineWidth(lineWidth)); // reset
 }
 
 
-- (void) drawSurround:(NSDictionary *)info color:(const GLfloat[4])color
+- (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color
 {
 	NSInteger			x, y;
 	NSSize				siz;
@@ -2889,15 +3101,34 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
+- (void) drawSurround:(NSDictionary *)info
+{
+	GLfloat	itemColor[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	id		colorDesc = [info objectForKey:COLOR_KEY];
+	if (colorDesc != nil)
+	{
+		OOColor *color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)
+		{
+			itemColor[0] = [color redComponent];
+			itemColor[1] = [color greenComponent];
+			itemColor[2] = [color blueComponent];
+		}
+	}
+
+	[self drawSurroundInternal:info color:itemColor];
+}
+
+
 - (void) drawGreenSurround:(NSDictionary *)info
 {
-	[self drawSurround:info color:green_color];
+	[self drawSurroundInternal:info color:green_color];
 }
 
 
 - (void) drawYellowSurround:(NSDictionary *)info
 {
-	[self drawSurround:info color:yellow_color];
+	[self drawSurroundInternal:info color:yellow_color];
 }
 
 
@@ -2913,17 +3144,6 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawWatermarkString:(NSString *) watermarkString
-{
-	NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
-	
-	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
-	// position the watermark string on the top right hand corner of the game window and right-align it
-	OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
-						MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, z1, NSMakeSize(10,10));
-}
-
-
 - (void) drawMultiFunctionDisplay:(NSDictionary *)info withText:(NSString *)text asIndex:(NSUInteger)index
 {
 	PlayerEntity		*player1 = PLAYER;
@@ -2936,13 +3156,17 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	}
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 	
-	// TODO: reduce alpha for non-selected MFDs
 	GLfloat mfd_color[4] =		{0.0, 1.0, 0.0, 0.9*alpha};
+	OOColor *mfdcol = [OOColor colorWithDescription:[info objectForKey:COLOR_KEY]];
+	if (mfdcol != nil) 
+	{
+		[mfdcol getRed:&mfd_color[0] green:&mfd_color[1] blue:&mfd_color[2] alpha:&mfd_color[3]];
+	}
 	if (index != [player1 activeMFD])
 	{
 		mfd_color[3] *= 0.75;
 	}
-	[self drawSurround:info color:mfd_color];
+	[self drawSurroundInternal:info color:mfd_color];
 
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	x = cached.x + [[UNIVERSE gameView] x_offset] * cached.x0;
@@ -3113,50 +3337,29 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 
 static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info)
 {
+	if (target == nil || player1 == nil)  
+	{
+		return;
+	}
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	{
+		return;
+	}
+
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
 	
 	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
-
-	if (target == nil || player1 == nil)  return;
+	
 
 	if ([target isShip])
 	{
 		target_ship = (ShipEntity *)target;
+		legal_desc = [target_ship scanDescription];
 	}
 
 	if ([target_ship isCloaked])  return;
 	
-	switch ([target scanClass])
-	{
-		case CLASS_NEUTRAL:
-			{
-				int target_legal = [target_ship legalStatus];
-				int legal_i = 0;
-				if (target_legal > 0)
-					legal_i =  (target_legal <= 50) ? 1 : 2;
-				legal_desc = [[[UNIVERSE descriptions] oo_arrayForKey:@"legal_status"] oo_stringAtIndex:legal_i];
-			}
-			break;
-	
-		case CLASS_THARGOID:
-			legal_desc = DESC(@"legal-desc-alien");
-			break;
-		
-		case CLASS_POLICE:
-			legal_desc = DESC(@"legal-desc-system-vessel");
-			break;
-		
-		case CLASS_MILITARY:
-			legal_desc = DESC(@"legal-desc-military-vessel");
-			break;
-		
-		default:
-			break;
-	}
-	
-	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
-		return;
 	
 	Vector			p1;
 	
@@ -3172,6 +3375,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	GLfloat			rs0 = rsize;
 	GLfloat			rs2 = rsize * 0.50;
 	
+	OOGLPushModelView();
 	hudRotateViewpointForVirtualDepth(player1,p1);
 
 	// draw the reticle
@@ -3326,7 +3530,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		}
 	}
 	
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 
@@ -3336,9 +3540,11 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 	{
 		return;
 	}
+	
 
 	Vector	p1 = HPVectorToVector(HPvector_subtract([waypoint position], [player1 viewpointPosition]));
 
+	OOGLPushModelView();
 	hudRotateViewpointForVirtualDepth(player1,p1);
 	
 	// either close enough that single precision is fine or far enough
@@ -3386,7 +3592,7 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 		OODrawString(infoline, rs0 * 0.5, -rs2 - line_height, 0, textsize);
 	}
 
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
@@ -3396,8 +3602,6 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
 
-	OOGL(glPushMatrix());
-	
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
 	switch ([UNIVERSE viewDirection])
@@ -3428,16 +3632,16 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 			back_q = quaternion_multiply([player1 customViewQuaternion], back_q);
 			break;
 	}
-	OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
+	OOGLLookAt(view_dir, kZeroVector, view_up);
 	
 	back_mat = OOMatrixForQuaternionRotation(back_q);
 	
 	// rotate the view
-	GLMultOOMatrix([player1 rotationMatrix]);
+	OOGLMultModelView([player1 rotationMatrix]);
 	// translate the view
-	OOGL(glTranslatef(p1.x, p1.y, p1.z));
+	OOGLTranslateModelView(p1);
 	//rotate to face player1
-	GLMultOOMatrix(back_mat);
+	OOGLMultModelView(back_mat);
 	// draw the waypoint
 
 }
@@ -3462,6 +3666,9 @@ static void InitTextEngine(void)
 									  lodBias:-0.75f];
 	[sFontTexture retain];
 	
+	sF6KernGovt = [fontSpec oo_floatForKey:@"f6KernGovernment" defaultValue:1.0];	
+	sF6KernTL = [fontSpec oo_floatForKey:@"f6KernTechLevel" defaultValue:2.0];
+
 	sEncodingCoverter = [[OOEncodingConverter alloc] initWithFontPList:fontSpec];
 	widths = [fontSpec oo_arrayForKey:@"widths"];
 	count = [widths count];
@@ -3473,21 +3680,31 @@ static void InitTextEngine(void)
 }
 
 
+void OOHUDResetTextEngine(void)
+{
+	DESTROY(sFontTexture);
+	DESTROY(sEncodingCoverter);
+}
+
+
 static GLfloat drawCharacterQuad(uint8_t chr, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
-	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
-	GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
-	if (chr > 32)  y += ONE_EIGHTH * siz.height;	// Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
+	// 31 (narrow space) and 32 (space) are non-printing characters, so
+	// don't print them, just return their width to move the pointer
+	if (chr > 32 || chr < 31) {
+		GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
+		GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
+		if (chr > 32)  y += ONE_EIGHTH * siz.height;	// Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
 	
-	glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
-	glVertex3f(x, y, z);
-	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
-	glVertex3f(x + siz.width, y, z);
-	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
-	glVertex3f(x + siz.width, y + siz.height, z);
-	glTexCoord2f(texture_x, texture_y);
-	glVertex3f(x, y + siz.height, z);
-	
+		glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
+		glVertex3f(x, y, z);
+		glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
+		glVertex3f(x + siz.width, y, z);
+		glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
+		glVertex3f(x + siz.width, y + siz.height, z);
+		glTexCoord2f(texture_x, texture_y);
+		glVertex3f(x, y + siz.height, z);
+	}
 	return siz.width * sGlyphWidths[chr];
 }
 
@@ -3557,15 +3774,26 @@ void OODrawString(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 
 void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
 {
-	GLfloat			cx = x;
-	NSInteger		i, length;
-	NSData			*data = nil;
-	const uint8_t	*bytes = NULL;
-	
+	OOStartDrawingStrings();
+	OODrawStringQuadsAligned(text,x,y,z,siz,rightAlign);
+	OOStopDrawingStrings();
+}
+
+void OOStartDrawingStrings() {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
+	OOGLBEGIN(GL_QUADS);
+
+}
+
+void OODrawStringQuadsAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign)
+{
+	GLfloat			cx = x;
+	NSInteger		i, length;
+	NSData			*data = nil;
+	const uint8_t	*bytes = NULL;
 	
 	data = [sEncodingCoverter convertString:text];
 	length = [data length];
@@ -3575,12 +3803,14 @@ void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize
 	{
 		cx -= OORectFromString(text, 0.0f, 0.0f, siz).size.width;
 	}
-	
-	OOGLBEGIN(GL_QUADS);
+
 	for (i = 0; i < length; i++)
 	{
 		cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
 	}
+}
+
+void OOStopDrawingStrings() {
 	OOGLEND();
 	
 	[OOTexture applyNone];
@@ -3632,20 +3862,31 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
-	
+
 	OOGLBEGIN(GL_QUADS);
-		glColor4f(ce1, 1.0f, 0.0f, 1.0f);
+	{
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, (unsigned long)eco]
+								 defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
+										alpha:1.0];
+
 		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
-		glColor3fv(&govcol[gov * 3]);
-		cx += drawCharacterQuad(gov, cx, y, z, siz) - 1.0f;		// charcters 0..7 are government symbols
-		glColor4f(0.5f, 1.0f, 1.0f, 1.0f);
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, (unsigned long)gov]
+								 defaultValue:[OOColor colorWithRed:govcol[gov*3] green:govcol[1+(gov*3)] blue:govcol[2+(gov*3)] alpha:1.0f] 
+										alpha:1.0];
+
+		cx += drawCharacterQuad(gov, cx, y, z, siz) - sF6KernGovt;		// charcters 0..7 are government symbols
+		[[UNIVERSE gui] setGLColorFromSetting:kGuiChartTechColor
+								 defaultValue:[OOColor colorWithRed:0.5 green:1.0f blue:1.0f alpha:1.0f] 
+										alpha:1.0];
+
 		if (tl > 9)
 		{
 			// display TL clamped between 1..16, this must be a '1'!
-			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - 2.0f;
+			cx += drawCharacterQuad(49, cx, y - 2, z, siz) - sF6KernTL;
 		}
 		cx += drawCharacterQuad(48 + (tl % 10), cx, y - 2.0f, z, siz);
+	}
 	OOGLEND();
 	
 	(void)cx;	// Suppress "value not used" analyzer issue.
@@ -3688,8 +3929,93 @@ void OODrawHilightedPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, 
 	OOVerifyOpenGLState();
 }
 
+static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha )
+{
+	Vector spacepos, scannerpos;
+	GLfloat theta, phi;
+	GLfloat z_factor = siz.height / siz.width;	// approx 1/4
+	GLfloat y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
+	OOGLVector *points = malloc(sizeof(OOGLVector)*25);
+	int i, j;
+	
+	if (radius*radius > centre.y*centre.y)
+	{
+		GLfloat r0 = sqrt(radius*radius-centre.y*centre.y);
+		OOGL(glColor4f(1.0, 0.5, 1.0, alpha));
+		spacepos.y = 0;
+		for (i = 0; i < 24; i++)
+		{
+			theta = i*2*M_PI/24;
+			spacepos.x = centre.x + r0 * cos(theta);
+			spacepos.z = centre.z + r0 * sin(theta);
+			scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+			points[i].x = x + scannerpos.x;
+			points[i].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+			points[i].z = z;
+		}
+		spacepos.x = centre.x + r0;
+		spacepos.y = 0;
+		spacepos.z = centre.z;
+		scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+		points[24].x = x + scannerpos.x;
+		points[24].y = y + scannerpos.z * z_factor + scannerpos.y * y_factor;
+		points[24].z = z;
+		GLDrawPoints(points,25);
+	}
+	OOGL(glColor4f(0.5, 0.0, 1.0, 0.33333 * alpha));
+	free(points);
+	// Here, we draw a sphere distorted by the nonlinear function. We draw the sphere as a set of horizontal strips
+	// The even indices of points are the points on the upper edge of the strip, while odd indices are points
+	// on the bottom edge.
+	points = malloc(sizeof(OOGLVector)*50);
+	spacepos.x = centre.x;
+	spacepos.y = centre.y + radius;
+	spacepos.z = centre.z;
+	scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+	for (i = 0; i <= 24; i++)
+	{
+		points[2*i+1].x = x + scannerpos.x;
+		points[2*i+1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
+		points[2*i+1].z = z;
+	}
+	for (i = 1; i <= 24; i++)
+	{
+		theta = i*M_PI/24;
+		for (j = 0; j <= 24; j++)
+		{
+			phi = j*M_PI/12;
+			// copy point from bottom edge of previous strip into top edge position
+			points[2*j] = points[2*j+1];
 
-static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom)
+			spacepos.x = centre.x + radius * sin(theta) * cos(phi);
+			spacepos.y = centre.y + radius * cos(theta);
+			spacepos.z = centre.z + radius * sin(theta) * sin(phi);
+			scannerpos = [HeadUpDisplay nonlinearScannerScale: spacepos Zoom: zoom Scale: 0.5*siz.width];
+			points[2*j+1].x = x + scannerpos.x;
+			points[2*j+1].y = y + scannerpos.y * y_factor + scannerpos.z * z_factor;
+			points[2*j+1].z = z;
+		}
+		GLDrawQuadStrip(points, 50);
+	}
+	free(points);
+	return;
+}
+
+static GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat scale )
+{
+	GLfloat x = fabs(distance / SCANNER_MAX_RANGE);
+	if (x >= 1.0)
+		return scale;
+	if (zoom <= 1.0)
+		return scale * x;
+	GLfloat c = 1 / ( zoom - 1 );
+	GLfloat b = c * ( c + 1 );
+	GLfloat a = c + 1;
+	return scale * ( a - b / ( x + c ) );
+}
+
+
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear)
 {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
@@ -3700,42 +4026,92 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 	GLfloat w2 = 0.250 * siz.width;
 	GLfloat h2 = 0.250 * siz.height;
 	
-	GLfloat km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
-	GLfloat hdiv = 0.5 * siz.height / km_scan;
-	GLfloat wdiv = 0.25 * siz.width / km_scan;
+	GLfloat km_scan;
+	GLfloat hdiv;
+	GLfloat wdiv;
+	BOOL drawdiv = NO, drawdiv1 = NO, drawdiv5 = NO;
 	
 	int i, ii;
 	
-	if (wdiv < 4.0)
-	{
-		wdiv *= 2.0;
-		ii = 5;
-	}
-	else
-	{
-		ii = 1;
-	}
-	
 	OOGL(GLScaledLineWidth(2.0 * thickness));
-	GLDrawOval(x, y, z, siz, 4);	
-	OOGL(GLScaledLineWidth(thickness));
+	GLDrawOval(x, y, z, siz, 4);
+	OOGL(GLScaledLineWidth(thickness)); // reset (thickness = lineWidth)
 	
 	OOGLBEGIN(GL_LINES);
 		glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);
 		glVertex3f(x - ww, y, z);	glVertex3f(x + ww, y, z);
 
-		for (i = ii; 2.0 * hdiv * i < siz.height; i += ii)
+		if (nonlinear)
 		{
-			h1 = i * hdiv;
-			w1 = wdiv;
-			if (i % 5 == 0)
-				w1 = w1 * 2.5;
-			if (i % 10 == 0)
-				w1 = w1 * 2.0;
-			if (w1 > 3.5)	// don't draw tiny marks
+			if (nonlinearScannerFunc(4000.0, zoom, hh)-nonlinearScannerFunc(3000.0, zoom ,hh) > 2) drawdiv1 = YES;
+			if (nonlinearScannerFunc(10000.0, zoom, hh)-nonlinearScannerFunc(5000.0, zoom, hh) > 2) drawdiv5 = YES;
+			wdiv = ww/(0.001*SCANNER_MAX_RANGE);
+			for (i = 1; 1000.0*i < SCANNER_MAX_RANGE; i++)
 			{
-				glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
-				glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+				drawdiv = drawdiv1;
+				w1 = wdiv;
+				if (i % 10 == 0)
+				{
+					w1 = wdiv*4;
+					drawdiv = YES;
+					if (nonlinearScannerFunc((i+5)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
+					{
+						drawdiv5 = YES;
+					}
+					else
+					{
+						drawdiv5 = NO;
+					}
+				}
+				else if (i % 5 == 0)
+				{
+					w1 = wdiv*2;
+					drawdiv = drawdiv5;
+					if (nonlinearScannerFunc((i+1)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
+					{
+						drawdiv1 = YES;
+					}
+					else
+					{
+						drawdiv1 = NO;
+					}
+				}
+				if (drawdiv)
+				{
+					h1 = nonlinearScannerFunc(i*1000.0,zoom,hh);
+					glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
+					glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+				}
+			}
+		}
+		else
+		{
+			km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
+			hdiv = 0.5 * siz.height / km_scan;
+			wdiv = 0.25 * siz.width / km_scan;
+			if (wdiv < 4.0)
+			{
+				wdiv *= 2.0;
+				ii = 5;
+			}
+			else
+			{
+				ii = 1;
+			}
+	
+			for (i = ii; 2.0 * hdiv * i < siz.height; i += ii)
+			{
+				h1 = i * hdiv;
+				w1 = wdiv;
+				if (i % 5 == 0)
+					w1 = w1 * 2.5;
+				if (i % 10 == 0)
+					w1 = w1 * 2.0;
+				if (w1 > 3.5)	// don't draw tiny marks
+				{
+					glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
+					glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+				}
 			}
 		}
 
@@ -3839,13 +4215,13 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	GLfloat width = size.width * (1.0f / 6.0f);
 	GLfloat height = size.height * (1.0f / 6.0f);
 	
-	OOGL(glPushMatrix());
-	OOGL(glTranslatef(ox, oy, z));
-	OOGL(glScalef(width, height, 1.0f));
+	OOGLPushModelView();
+	OOGLTranslateModelView(make_vector(ox, oy, z));
+	OOGLScaleModelView(make_vector(width, height, 1.0f));
 	[self drawFilled];
 	glColor4f(0.0, 0.0, 0.0, 0.5 * alpha);
 	[self drawOutline];
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 }
 
 @end

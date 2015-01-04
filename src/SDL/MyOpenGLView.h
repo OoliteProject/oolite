@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 #import "OOMouseInteractionMode.h"
+#import "OOOpenGLMatrixManager.h"
+
 
 #include <SDL.h>
 
@@ -33,11 +35,15 @@ MA 02110-1301, USA.
 #define MOUSEX_MAXIMUM 0.6
 #define MOUSEY_MAXIMUM 0.6
 
-#define MAX_CLEAR_DEPTH		100000000.0
-// 100 000 km.
+#define MAX_CLEAR_DEPTH		10000000000.0
+// 10 000 000 km.
+#define INTERMEDIATE_CLEAR_DEPTH		100.0
+// 100 m.
+
 
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
+#define OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL	0.05
 
 #define SNAPSHOTS_PNG_FORMAT		1
 
@@ -59,7 +65,7 @@ enum GameViewKeys
 	gvArrowKeyRight,
 	gvArrowKeyLeft,
 	gvArrowKeyDown,
-	gvArrowKeyUp,
+	gvArrowKeyUp, // 255
 	gvMouseLeftButton = 301,
 	gvMouseDoubleClick,
 	gvHomeKey,
@@ -67,7 +73,7 @@ enum GameViewKeys
 	gvInsertKey,
 	gvDeleteKey,
 	gvPageUpKey,
-	gvPageDownKey,
+	gvPageDownKey, // 308
 	gvNumberKey0 = 48,
 	gvNumberKey1,
 	gvNumberKey2,
@@ -90,11 +96,19 @@ enum GameViewKeys
 	gvNumberPadKey9 //319
 };
 
+enum MouseWheelStatus
+{
+	gvMouseWheelDown = -1,
+	gvMouseWheelNeutral,
+	gvMouseWheelUp
+};
+
 enum StringInput
 {
 	gvStringInputNo = 0,
 	gvStringInputAlpha = 1,
-	gvStringInputAll = 2
+	gvStringInputLoadSave = 2,	
+	gvStringInputAll = 3
 };
 
 enum KeyboardType
@@ -124,6 +138,7 @@ extern int debug;
 	BOOL				mouseWarped;
 
 	NSTimeInterval		timeIntervalAtLastClick;
+	NSTimeInterval		timeSinceLastMouseWheel;
 	BOOL				doubleClick;
 
 	NSMutableString		*typedString;
@@ -157,13 +172,21 @@ extern int debug;
 	BOOL				saveSize;
 	unsigned			keyboardMap;
 	HWND 				SDL_Window;
+	MONITORINFOEX		monitorInfo;
+	RECT				lastGoodRect;
 
 #endif
 
+	BOOL				grabMouseStatus;
+
 	NSSize				firstScreen;
+	
+	OOOpenGLMatrixManager		*matrixManager;
 
    // Mouse mode indicator (for mouse movement model)
-   BOOL  mouseInDeltaMode;
+   BOOL					mouseInDeltaMode;
+   
+   int					_mouseWheelState;
 }
 
 - (void) initSplashScreen;
@@ -189,6 +212,13 @@ extern int debug;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;
+- (BOOL) isRunningOnPrimaryDisplayDevice;
+#if OOLITE_WINDOWS
+- (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
+- (MONITORINFOEX) currentMonitorInfo;
+#endif
+
+- (void) grabMouseInsideGameWindow:(BOOL) value;
 
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
@@ -237,6 +267,7 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (int) numKeys;
+- (int) mouseWheelState;
 
 // Command-key combinations need special handling. SDL stubs for these mac functions.
 - (BOOL) isCommandQDown;
@@ -251,6 +282,8 @@ extern int debug;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;
+
+- (OOOpenGLMatrixManager *) getOpenGLMatrixManager;
 
 #ifndef NDEBUG
 // General image-dumping method.

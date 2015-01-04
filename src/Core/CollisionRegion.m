@@ -316,91 +316,101 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region)
 		e1 = entities_to_test[i];
 		p1 = e1->position;
 		r1 = e1->collision_radius;
-		
+	
+	
+
 		// check against the first in the collision chain
 		e2 = e1->collision_chain;
 		while (e2 != nil)
 		{
 			checks_this_tick++;
-			
-			r2 = e2->collision_radius;
-			r0 = r1 + r2;
-			dist2 = HPdistance2(e2->position, p1);
-			min_dist2 = r0 * r0;
-			if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
+			if (e1->isShip && e2->isShip && 
+				[(ShipEntity *)e1 collisionExceptedFor:(ShipEntity *)e2]) 
 			{
+				// nothing happens
+			} 
+			else
+			{
+
+				r2 = e2->collision_radius;
+				r0 = r1 + r2;
+				dist2 = HPdistance2(e2->position, p1);
+				min_dist2 = r0 * r0;
+				if (dist2 < PROXIMITY_WARN_DISTANCE2 * min_dist2)
+				{
 #ifndef NDEBUG
-				if (gDebugFlags & DEBUG_COLLISIONS)
-				{
-					OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
-						  e1, (e1->collisionTestFilter==3)?@"YES":@"NO", e2, (e2->collisionTestFilter==3)?@"YES":@"NO");
-				}
-#endif
-				checks_within_range++;
-				
-				if (e1->isShip && e2->isShip)
-				{
-					if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1))
+					if (gDebugFlags & DEBUG_COLLISIONS)
 					{
-						[(ShipEntity*)e1 setProximityAlert:(ShipEntity*)e2];
-						[(ShipEntity*)e2 setProximityAlert:(ShipEntity*)e1];
+						OOLog(@"collisionRegion.debug", @"DEBUG Testing collision between %@ (%@) and %@ (%@)",
+							  e1, (e1->collisionTestFilter==3)?@"YES":@"NO", e2, (e2->collisionTestFilter==3)?@"YES":@"NO");
 					}
-				}
-				if (dist2 < min_dist2)
-				{
-					BOOL collision = NO;
-					
-					if (e1->isStation)
+#endif
+					checks_within_range++;
+				
+					if (e1->isShip && e2->isShip)
 					{
-						StationEntity* se1 = (StationEntity *)e1;
-						if ([se1 shipIsInDockingCorridor:(ShipEntity *)e2])
+						if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1))
 						{
-							collision = NO;
+							[(ShipEntity*)e1 setProximityAlert:(ShipEntity*)e2];
+							[(ShipEntity*)e2 setProximityAlert:(ShipEntity*)e1];
+						}
+					}
+					if (dist2 < min_dist2)
+					{
+						BOOL collision = NO;
+					
+						if (e1->isStation)
+						{
+							StationEntity* se1 = (StationEntity *)e1;
+							if ([se1 shipIsInDockingCorridor:(ShipEntity *)e2])
+							{
+								collision = NO;
+							}
+							else
+							{
+								collision = [e1 checkCloseCollisionWith:e2];
+							}
+						}
+						else if (e2->isStation)
+						{
+							StationEntity* se2 = (StationEntity *)e2;
+							if ([se2 shipIsInDockingCorridor:(ShipEntity *)e1])
+							{
+								collision = NO;
+							}
+							else
+							{
+								collision = [e2 checkCloseCollisionWith:e1];
+							}
 						}
 						else
 						{
 							collision = [e1 checkCloseCollisionWith:e2];
 						}
-					}
-					else if (e2->isStation)
-					{
-						StationEntity* se2 = (StationEntity *)e2;
-						if ([se2 shipIsInDockingCorridor:(ShipEntity *)e1])
-						{
-							collision = NO;
-						}
-						else
-						{
-							collision = [e2 checkCloseCollisionWith:e1];
-						}
-					}
-					else
-					{
-						collision = [e1 checkCloseCollisionWith:e2];
-					}
 				
-					if (collision)
-					{
-						// now we have no need to check the e2-e1 collision
-						if (e1->collider)
+						if (collision)
 						{
-							[[e1 collisionArray] addObject:e1->collider];
-						}
-						else
-						{
-							[[e1 collisionArray] addObject:e2];
-						}
-						e1->hasCollided = YES;
+							// now we have no need to check the e2-e1 collision
+							if (e1->collider)
+							{
+								[[e1 collisionArray] addObject:e1->collider];
+							}
+							else
+							{
+								[[e1 collisionArray] addObject:e2];
+							}
+							e1->hasCollided = YES;
 						
-						if (e2->collider)
-						{
-							[[e2 collisionArray] addObject:e2->collider];
+							if (e2->collider)
+							{
+								[[e2 collisionArray] addObject:e2->collider];
+							}
+							else
+							{
+								[[e2 collisionArray] addObject:e1];
+							}
+							e2->hasCollided = YES;
 						}
-						else
-						{
-							[[e2 collisionArray] addObject:e1];
-						}
-						e2->hasCollided = YES;
 					}
 				}
 			}
@@ -421,13 +431,18 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region)
 // an outValue of 1 means it's just being occluded.
 static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *the_sun, float *outValue)
 {
-	*outValue = 1.5f;	// initial 'fully lit' value
-	
 	if (EXPECT_NOT(e1 == e2))
 	{
 		// you can't shade self
 		return NO;
 	}
+	return shadowAtPointOcclusionToValue(e1->position,e1->collision_radius,e2,the_sun,outValue);
+}
+
+// an outValue of 1 means it's just being occluded.
+BOOL shadowAtPointOcclusionToValue(HPVector e1pos, GLfloat e1rad, Entity *e2, OOSunEntity *the_sun, float *outValue)
+{
+	*outValue = 1.5f;	// initial 'fully lit' value
 	
 	GLfloat cr_e2;
 	if ([e2 isShip])
@@ -439,7 +454,7 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	{
 		cr_e2 = e2->collision_radius;
 	}
-	if (cr_e2 < e1->collision_radius)
+	if (cr_e2 < e1rad)
 	{
 		// smaller can't shade bigger
 		return NO;
@@ -450,15 +465,50 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 //		return NO;	// things already /in/ shade can't shade things more.
 	//
 	// check projected sizes of discs
-	GLfloat d2_sun = HPdistance2(e1->position, the_sun->position);
+	GLfloat d2_sun = HPdistance2(e1pos, the_sun->position);
 	GLfloat d2_e2sun = HPdistance2(e2->position, the_sun->position);
+	GLfloat d2_e2 = HPdistance2( e1pos, e2->position);
+
 	if (d2_e2sun > d2_sun)
 	{
-		// you are nearer the sun than the potential occluder, so it can't shade you
+		// you are nearer the sun than the potential occluder, so it
+		// probably can't shade you
+		if (d2_e2 < cr_e2 * cr_e2 && [e2 isShip])
+		{
+			// exception: if within the collision radius of the other
+			// object, might still be shadowed by it.
+			GLfloat bbx = 0.0f, bby = 0.0f, bbz = 0.0f;
+			BoundingBox bb = [(ShipEntity*)e2 totalBoundingBox];
+			bounding_box_get_dimensions(bb,&bbx,&bby,&bbz);
+			float minbb = bbx;
+			if (bby < minbb) { minbb = bby; }
+			if (bbz < minbb) { minbb = bbz; }
+			minbb -= e1rad; // subtract object's size
+			/* closer to the object than the shortest axis. This check
+			 * branch is basically for docking at a rock hermit facing
+			 * away from the sun, but it checks the shortest bounding
+			 * box size rather than the collision radius to avoid
+			 * getting weird shadowing effects around large planar
+			 * entities like the OXP Torus Station.
+			 *
+			 * Well... more weird shadowing effects than there already
+			 * are, anyway.
+			 *
+			 * There are more accurate ways to check "sphere inside
+			 * bounding box" but this seems accurate enough and is
+			 * simpler.
+			 *
+			 * - CIM
+			 */ 
+			if (d2_e2 < minbb * minbb)
+			{
+				*outValue = 0.1;
+				return YES;
+			}
+		}
 		return NO;
 	}
 	
-	GLfloat d2_e2 = HPdistance2( e1->position, e2->position);
 	GLfloat cr_sun = the_sun->collision_radius;
 	
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
@@ -472,11 +522,22 @@ static BOOL entityByEntityOcclusionToValue(Entity *e1, Entity *e2, OOSunEntity *
 	// double theta_sun = asin( cr_sun / sqrt(d2_sun));	// 1/2 angle subtended by sun
 	// double theta_e2 = asin( cr_e2 / sqrt(d2_e2));		// 1/2 angle subtended by e2
 	// find the difference between the angles subtended by occluder and sun
-	float theta_diff = asin(cr_e2 / sqrt(d2_e2)) - asin(cr_sun / sqrt(d2_sun));
+	float d2_e = sqrt(d2_e2);
+	float theta_diff;
+	if (d2_e < cr_e2)
+	{
+		// then we're "inside" the object. Calculate as if we were on
+		// the edge of it to avoid taking asin(x>1)
+		theta_diff = asin(1) - asin(cr_sun / sqrt(d2_sun));
+	}
+	else
+	{
+		theta_diff = asin(cr_e2 / d2_e) - asin(cr_sun / sqrt(d2_sun));
+	}
 	
 	HPVector p_sun = the_sun->position;
 	HPVector p_e2 = e2->position;
-	HPVector p_e1 = e1->position;
+	HPVector p_e1 = e1pos;
 	Vector v_sun = HPVectorToVector(HPvector_subtract(p_sun, p_e1));
 	v_sun = vector_normal_or_zbasis(v_sun);
 	

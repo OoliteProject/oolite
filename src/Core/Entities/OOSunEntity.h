@@ -35,6 +35,18 @@ MA 02110-1301, USA.
 #define SUN_CORONA_SAMPLES		729			// Samples at half-degree intervals, with a bit of overlap.
 #define MAX_CORONAFLARE			600000.0	// nova flare
 
+#ifndef	SUN_DIRECT_VISION_GLARE
+#define	SUN_DIRECT_VISION_GLARE	1
+#endif
+
+#if SUN_DIRECT_VISION_GLARE
+#define SUN_GLARE_MULT_FACTOR 3.0
+#define SUN_GLARE_ADD_FACTOR (M_PI/16.0)
+#define SUN_GLARE_CORONA_FACTOR 0.5
+#else
+#define SUN_GLARE_CORONA_FACTOR 1.5
+#endif
+
 
 @class ShipEntity;
 
@@ -62,6 +74,8 @@ MA 02110-1301, USA.
 	OOTimeDelta				_novaCountdown;
 	OOTimeDelta				_novaExpansionTimer;
 	float					_novaExpansionRate;
+
+	NSString				*_name;
 }
 
 - (id) initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*) dict;
@@ -73,13 +87,13 @@ MA 02110-1301, USA.
 - (void) getDiffuseComponents:(GLfloat[4])components;
 - (void) getSpecularComponents:(GLfloat[4])components;
 
-- (void) setRadius:(GLfloat) rad;
+- (void) setRadius:(GLfloat) rad andCorona:(GLfloat)corona;
 
 - (BOOL) willGoNova;
 - (BOOL) goneNova;
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
 
 - (void) drawStarGlare;
-
+- (void) drawDirectVisionSunGlare;
 
 @end

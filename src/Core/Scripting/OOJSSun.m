@@ -60,7 +60,8 @@ enum
 	// Property IDs
 	kSun_radius,				// Radius of sun in metres, number, read-only
 	kSun_hasGoneNova,			// Has sun gone nova, boolean, read-only
-	kSun_isGoingNova			// Will sun go nova, boolean, read-only
+	kSun_isGoingNova,			// Will sun go nova, boolean, read-only
+	kSun_name					// Name of sun, string, read-only (writable via systeminfo)
 };
 
 
@@ -69,6 +70,7 @@ static JSPropertySpec sSunProperties[] =
 	// JS name					ID							flags
 	{ "hasGoneNova",			kSun_hasGoneNova,			OOJS_PROP_READONLY_CB },
 	{ "isGoingNova",			kSun_isGoingNova,			OOJS_PROP_READONLY_CB },
+	{ "name",					kSun_name,					OOJS_PROP_READONLY_CB },
 	{ "radius",					kSun_radius,				OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
@@ -131,6 +133,10 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsid propID, js
 	{
 		case kSun_radius:
 			return JS_NewNumberValue(context, [sun radius], value);
+
+		case kSun_name:
+			*value = OOJSValueFromNativeObject(context, [sun name]);
+			return YES;
 			
 		case kSun_hasGoneNova:
 			*value = OOJSValueFromBOOL([sun goneNova]);

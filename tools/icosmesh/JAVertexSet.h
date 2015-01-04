@@ -10,8 +10,7 @@
 
 - (NSUInteger) indexForVertex:(Vertex)vertex;
 - (Vertex) vertexAtIndex:(NSUInteger)index;
-
-@property (readonly) NSUInteger count;
+- (NSUInteger) count;
 
 - (NSArray *) positionArray;	// Array of 3 * count numbers representing vertex positions
 #if OUTPUT_BINORMALS

@@ -342,8 +342,6 @@ enum
 		 "    tell application \"iTunes\"\n"
 		 "        copy playlist \"%@\" to thePlaylist\n"
 		 "        if thePlaylist exists then\n"
-		 "            set song repeat of thePlaylist to all\n"
-		 "            set shuffle of thePlaylist to true\n"
 		 "            play some track of thePlaylist\n"
 		 "        end if\n"
 		 "    end tell\n"

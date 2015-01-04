@@ -299,7 +299,7 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 	}
 	else
 	{
-		rhs = [NSArray array];
+		rhs = [NSMutableArray array];
 	}
 	
 	NSString *rawString = nil;

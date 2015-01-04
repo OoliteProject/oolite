@@ -195,13 +195,17 @@
 	
 	
 	missile.damage.calc						= no; // Debugging of missile damage curves
-	
+	missile.tidying.debug					= no;
+
 	
 	oxp.conflict							= $error;
 	oxp.duplicate							= $error;
 	oxp.noManifest							= $error;
 	oxp.requirementMissing					= $error;
 	oxp.versionMismatch						= $error;
+
+	oxz.manager.error						= $error;
+	oxz.manager.debug						= no;
 
 	player.ship								= no;
 	player.ship.damage						= no;
@@ -223,15 +227,17 @@
 	rendering.reset							= yes;
 	rendering.reset.start					= inherit;
 	rendering.reset.end						= no;
+
 	
-	
+	resourceManager.error					= yes;
 	resourceManager.foundFile				= no;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
-	
+	resourceManager.planetinfo				= no;
 	
 	save.failed								= $error;
 	save.success							= no;
 	quickSave.failed						= $error;
 	load.failed								= $error;
+	load.progress							= no;
 	
 	
 	setup.ship.badEntry.subentities			= inherit;
@@ -290,6 +296,7 @@
 	script.javaScript.init.success			= no;
 	script.javaScript.init.error			= $error;				// Fatal start-up error
 	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
+	script.javaScript.timeLimit.debug		= no;					// Time limiter debugging info
 	script.javaScript.willLoad				= no;
 	
 	script.load								= no;
@@ -318,7 +325,7 @@
 	
 	
 	searchPaths.dumpAll						= $troubleShootingDump;
-	
+	searchPaths.debug						= no;
 	
 	$shaderDebug							= $shaderDebugOn;
 	$shaderError							= $error;

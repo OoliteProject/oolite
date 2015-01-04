@@ -547,6 +547,13 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 }
 
 
+- (NSMutableDictionary *) oo_mutableDictionaryForKey:(id)key defaultValue:(NSDictionary *)value
+{
+	return [self oo_objectOfClass:[NSMutableDictionary class] forKey:key defaultValue:value];
+}
+
+
+
 - (NSData *) oo_dataForKey:(id)key defaultValue:(NSData *)value
 {
 	return [self oo_objectOfClass:[NSData class] forKey:key defaultValue:value];
@@ -709,6 +716,12 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 - (NSDictionary *) oo_dictionaryForKey:(id)key
 {
 	return [self oo_dictionaryForKey:key defaultValue:nil];
+}
+
+
+- (NSMutableDictionary *) oo_mutableDictionaryForKey:(id)key
+{
+	return [self oo_mutableDictionaryForKey:key defaultValue:nil];
 }
 
 

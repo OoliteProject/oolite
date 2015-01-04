@@ -3,7 +3,7 @@
 OOTextureLoader.m
 
 
-Copyright (C) 2007-2013 Jens Ayton
+Copyright (C) 2007-2014 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,9 +37,20 @@ SOFTWARE.
 #include <stdlib.h>
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OODebugStandards.h"
 
 
 #define DUMP_CONVERTED_CUBE_MAPS	0
+
+enum
+{
+	// Thresholds for reduced-detail texture shrinking in different circumstances.
+	kNeverShrinkThreshold		= UINT32_MAX,
+	kDefaultShrinkThreshold		= 512,
+	kExtraShrinkThreshold		= 128,
+	kExtraShrinkMaxSize			= 256,
+	kCubeShrinkThreshold		= 256
+};
 
 
 static unsigned				sGLMaxSize;
@@ -107,6 +118,7 @@ static BOOL					sHaveSetUp = NO;
 		if (!(options & kOOTextureNoFNFMessage))
 		{
 			OOLogWARN(kOOLogFileNotFound, @"Could not find texture file \"%@\".", name);
+			OOStandardsError(@"Texture file not found");
 		}
 		return nil;
 	}
@@ -129,9 +141,23 @@ static BOOL					sHaveSetUp = NO;
 	
 	_options = options;
 	
+	_maxSize = MIN(sUserMaxSize, sGLMaxSize);
+	
 	_generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	_avoidShrinking = (options & kOOTextureNoShrink) != 0;
 	_noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
+	if (_avoidShrinking || _noScalingWhatsoever)
+	{
+		_shrinkThreshold = kNeverShrinkThreshold;
+	}
+	else if (options & kOOTextureExtraShrink)
+	{
+		_shrinkThreshold = kExtraShrinkThreshold;
+		_maxSize = MIN(_maxSize, (uint32_t)kExtraShrinkMaxSize);
+	}
+	else {
+		_shrinkThreshold = kDefaultShrinkThreshold;
+	}
 #if OO_TEXTURE_CUBE_MAP
 	_allowCubeMap = (options & kOOTextureAllowCubeMap) != 0;
 #endif
@@ -170,7 +196,7 @@ static BOOL					sHaveSetUp = NO;
 - (void)dealloc
 {
 	[_path autorelease];
-	_path = NULL;
+	_path = nil;
 	free(_data);
 	_data = NULL;
 	
@@ -386,7 +412,7 @@ static BOOL					sHaveSetUp = NO;
 	{
 		OOPixMapToRGBA(&pixMap);
 		desiredHeight = MIN(desiredWidth * 2, 512U);
-		if (sReducedDetail && desiredHeight > 256)  desiredHeight /= 2;
+		if (sReducedDetail && desiredHeight > kCubeShrinkThreshold)  desiredHeight /= 2;
 		desiredWidth = desiredHeight * 2;
 		
 		OOPixMap converted = OOConvertCubeMapToLatLong(pixMap, desiredHeight, _generateMipMaps);
@@ -494,14 +520,14 @@ static BOOL					sHaveSetUp = NO;
 			
 			if (!_avoidShrinking)
 			{
-				desiredWidth = MIN(desiredWidth, sUserMaxSize);
-				desiredHeight = MIN(desiredHeight, sUserMaxSize);
-				
 				if (sReducedDetail)
 				{
-					if (512 < desiredWidth)  desiredWidth /= 2;
-					if (512 < desiredHeight)  desiredHeight /= 2;
+					if (_shrinkThreshold < desiredWidth)  desiredWidth /= 2;
+					if (_shrinkThreshold < desiredHeight)  desiredHeight /= 2;
 				}
+				
+				desiredWidth = MIN(desiredWidth, _maxSize);
+				desiredHeight = MIN(desiredHeight, _maxSize);
 			}
 		}
 	}

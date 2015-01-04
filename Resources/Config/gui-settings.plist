@@ -1,0 +1,251 @@
+{
+	/* Graphical User Interface settings. There's not a lot here yet,
+	 * but more will be added gradually. The GUI setup doesn't make it
+	 * practical to add everything at once, or even sometimes add
+	 * broad default settings. To make overriding of group defaults
+	 * easier for OXPs, most of the values here are commented out
+	 * rather than explicitly set to the default. */
+
+	/* overrides of this will not necessarily be consistent yet. Most
+	 * things below specified as 'yellowColor' actually use the
+	 * default colour if no colour is specified.
+	 *
+	 * TODO: remove explicit sets of yellow which actually mean 'default' */
+	// "default_text_color" = "yellowColor";
+	
+	/* the screen title colour */
+	// "screen_title_color" = "redColor";
+
+	/* the screen divider colour */
+	// "screen_divider_color" = "0.75 0.75 0.75";
+
+	/* the selected row background colour */
+	// "selected_row_background_color" = "redColor";
+
+	/* the selected row text colour */
+	// "selected_row_color" = "blackColor";
+
+	/* the text input cursor colour */
+	// "text_input_cursor_color" = "redColor";
+
+
+	/* Equipment cash row colour */
+	// "equipment_cash_color" = "yellowColor";
+
+	/* Equipment unavailable colour */
+	// "equipment_unavailable_color" = "greenColor";
+
+	/* Equipment scroll colour */
+	// "equipment_scroll_color" = "greenColor";
+
+	/* Equipment option colour */
+	// "equipment_option_color" = "yellowColor";
+
+	/* Equipment repair colour, also for renovation */
+	// "equipment_repair_color" = "orangeColor";
+
+	/* Equipment description colour */
+	// "equipment_description_color" = "greenColor";
+
+	/* Laser mount selection colour */
+	// "equipment_laser_color" = "greenColor";
+
+	/* Laser mount already fitted selection colour */
+	// "equipment_laser_fitted_color" = "0.0 0.6 0.0";
+
+	/* Tab settings for equip ship screen */
+	// "equipment_tabs" = (0,-360,-480)
+
+
+	/* Interfaces heading colour */
+	// "interface_heading_color" = "yellowColor";
+
+	/* Interfaces scroll colour */
+	// "interface_scroll_color" = "greenColor";
+
+	/* Interfaces entry colour */
+	// "interface_entry_color" = "yellowColor";
+
+	/* Interfaces entry description colour */
+	// "interface_description_color" = "greenColor";
+
+	/* Interfaces none available message colour */
+	// "interface_none_color" = "greenColor";
+
+	/* Interfaces tab settings */
+	// "interface_tabs" = (0,-480);
+
+
+	/* Shipyard screen column headings */
+	// "shipyard_heading_color" = "greenColor";
+
+	/* Shipyard screen scroll text */
+	// "shipyard_scroll_color" = "greenColor";
+
+	/* Shipyard screen entries */
+	// "shipyard_entry_color" = "yellowColor";
+
+	/* Shipyard screen no ships message */
+	// "shipyard_noship_color" = "greenColor";
+
+	/* Shipyard screen trade in information */
+	// "shipyard_tradein_color" = "yellowColor";
+
+	/* Shipyard screen ship descriptions */
+	// "shipyard_description_color" = "greenColor";
+
+	/* Shipyard screen tabs */
+	// "shipyard_tabs" = (0,-258,270,370,450);
+
+
+	/* the ship name on the F5 screen */
+	// "status_shipname_color" = "yellowColor";
+
+	/* the status items on the F5 screen */
+	// "status_data_color" = "yellowColor";
+
+	/* the equipment list heading on the F5 screen */
+	// "status_equipment_heading_color" = "yellowColor";
+
+	/* the colour of the scroll forward/back controls on the equipment list */
+	// "status_equipment_scroll_color" = "greenColor";
+
+	/* the colour of ok equipment */
+	// "status_equipment_ok_color" = "yellowColor";
+
+	/* the colour of damaged equipment */
+	// "status_equipment_damaged_color" = "orangeColor";
+
+	/* the tab spacing on the status page */
+	// "status_tabs" = (20,160,290);
+
+	/* status screen sort damaged equipment first */
+	// "status_prioritise_damaged" = 1;
+
+
+	/* the colour of sub-headings on the manifest page */
+	// "manifest_subhead_color" = "greenColor";
+
+	/* the colour of entries on the manifest page */
+	// "manifest_entry_color" = "yellowColor";
+
+	/* the colour of back/next controls on the manifest page */
+	// "manifest_scroll_color" = "greenColor";
+
+	/* the colour of disabled back/next controls on the manifest page */
+	// "manifest_no_scroll_color" = "darkGrayColor";
+
+	/* the tab stops for the manifest (cargo display) */
+	// "manifest_tabs" = (20,256);
+
+
+	/* scale of name labels on F6 chart relative to Oolite default size */
+	// "chart_label_scale" = 1.0;
+
+	/* scale of star circles on F6 chart relative to the 'radius' property */
+	// "chart_circle_scale" = 0.0017;
+
+	/* color of name labels on F6 chart */
+	// "chart_label_color" = "yellowColor";
+
+	/* color of fuel range circle */
+	// "chart_range_color" = "greenColor";
+
+	/* color of location crosshair */
+	// "chart_crosshair_color" = "greenColor";
+
+	/* color of fuel range circle */
+	// "chart_cursor_color" = "redColor";
+
+	/* color of matched system box when name searching */
+	// "chart_match_color" = "greenColor";
+
+	/* color of matched system label when name searching - if multiple
+	 * matches, this is the currently selected one and the others will
+	 * be in chart_match_color */
+	// "chart_match_label_color" = "cyanColor";
+
+	/* color of connecting lines on nav array */
+	// "chart_connection_color" = "0.25 0.25 0.25";
+
+	/* color of shortest route on nav array */
+	// "chart_route_short_color" = "yellowColor";
+
+	/* color of quickest route on nav array */
+	// "chart_route_quick_color" = "cyanColor";
+
+	/* colors of economy icons on chart */
+	// "chart_economy_0_color" = "1.0 1.0 0.0"; // Rich Ind
+	// "chart_economy_1_color" = "0.875 1.0 0.0";
+	// "chart_economy_2_color" = "0.75 1.0 0.0";
+	// "chart_economy_3_color" = "0.625 1.0 0.0";
+	// "chart_economy_4_color" = "0.5 1.0 0.0";
+	// "chart_economy_5_color" = "0.375 1.0 0.0";
+	// "chart_economy_6_color" = "0.25 1.0 0.0";
+	// "chart_economy_7_color" = "0.125 1.0 0.0"; // Poor Ag
+
+	/* colors of government icons on chart */
+	// "chart_government_0_color" = "0.5 0.0 0.7"; // Anarchy
+	// "chart_government_1_color" = "0.7 0.5 0.3";
+	// "chart_government_2_color" = "0.0 1.0 0.3";
+	// "chart_government_3_color" = "1.0 0.8 0.1";
+	// "chart_government_4_color" = "1.0 0.0 0.0";
+	// "chart_government_5_color" = "0.1 0.5 1.0";
+	// "chart_government_6_color" = "0.7 0.7 0.7";
+	// "chart_government_7_color" = "0.7 1.0 1.0"; // Corp State
+
+	/* colors of tech level numbers on chart */
+	// "chart_tech_color" = "0.5 1.0 1.0";
+
+	/* tab stops for chart travel time text line */
+	// "chart_traveltime_tabs" = (0,96,288);
+
+
+	/* colour of system data facts lines */
+	// "systemdata_facts_color" = "yellowColor";
+
+	/* colour of system data description lines */
+	// "systemdata_description_color" = "greenColor";
+
+	/* tab stops for system data screen */
+	// "systemdata_tabs" = (0,96,144);
+	
+
+	/* colour for market screen column headings */
+	// "market_heading_color" = "greenColor";
+
+	/* colour for market screen commodity lines */
+	// "market_commodity_color" = "yellowColor";	
+
+	/* colour for market screen scroll indicators */
+	// "market_scroll_color" = "greenColor";
+
+	/* colour for market screen 'all goods filtered' message */
+	// "market_filtered_all_color" = "yellowColor";
+
+	/* colour for market screen filter/sort status*/
+	// "market_filter_info_color" = "greenColor";
+
+	/* colour for market screen cash/hold status*/
+	// "market_cash_color" = "yellowColor";
+
+	/* colour for market carrying contract status*/
+	// "market_contracted_color" = "yellowColor";
+
+	/* colour for market good description text */
+	// "market_description_color" = "yellowColor";
+
+	/* tab stops for market screen */
+	// "market_tabs" = (0,137,187,267,321,431);
+
+	
+	/* docking report screen report colour */
+	// "docking_report_color" = "yellowColor";
+
+	/* docking report screen cash/cargo summary colour */
+	// "docking_summary_color" = "yellowColor";
+
+	/* docking report screen continue colour */
+	// "docking_continue_color" = "yellowColor";
+
+}

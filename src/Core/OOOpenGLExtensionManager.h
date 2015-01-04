@@ -154,8 +154,8 @@ SOFTWARE.
 - (BOOL)haveExtension:(NSString *)extension;
 
 - (BOOL)shadersSupported;
-- (OOShaderSetting)defaultShaderSetting;
-- (OOShaderSetting)maximumShaderSetting;
+- (OOGraphicsDetail)defaultDetailLevel;
+- (OOGraphicsDetail)maximumDetailLevel;
 - (GLint)textureImageUnitCount;			// Fragment shader sampler count limit. Does not apply to fixed function multitexturing. (GL_MAX_TEXTURE_IMAGE_UNITS_ARB)
 
 - (BOOL)vboSupported;					// Vertex buffer objects
@@ -200,6 +200,7 @@ PFNGLUSEPROGRAMOBJECTARBPROC			glUseProgramObjectARB;
 PFNGLGETUNIFORMLOCATIONARBPROC			glGetUniformLocationARB;
 PFNGLUNIFORM1IARBPROC					glUniform1iARB;
 PFNGLUNIFORM1FARBPROC					glUniform1fARB;
+PFNGLUNIFORMMATRIX3FVARBPROC			glUniformMatrix3fvARB;
 PFNGLUNIFORMMATRIX4FVARBPROC			glUniformMatrix4fvARB;
 PFNGLUNIFORM4FVARBPROC					glUniform4fvARB;
 PFNGLGETOBJECTPARAMETERIVARBPROC		glGetObjectParameterivARB;

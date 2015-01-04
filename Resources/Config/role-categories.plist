@@ -1,8 +1,6 @@
 /* List of roles in various groupings. Used to determine initial
  * reactions of ships to each other, among other things. Roles may be
  * in more than one grouping.
- *
- * player-unknown should probably *only* be in oolite-pirate-victim
  */ 
 {
 	/* Roles which pirates think might have tasty cargo. Equivalent in
@@ -121,8 +119,11 @@
 	"oolite-scavenger" = (
 		"miner",
 		"rockhermit",
+		"rockhermit-chaotic",
 		"scavenger"
 	);
+
+	
 
 	/* Roles the police are more likely to side with in a clean v
 	 * clean fight */
@@ -135,7 +136,9 @@
 		"hunter",
 		"hunter-medium",
 		"hunter-heavy",
-		"escape-capsule"
+		"escape-capsule",
+		"police",
+		"rockhermit"
 	);
 
 	/* Roles the police are less likely to side with in a clean v
@@ -157,5 +160,56 @@
 	);
 
 
+	/* Roles that a trader will try to avoid being near */
+	"oolite-trader-dislike" = (
+		"pirate",
+		"pirate-light-fighter",
+		"pirate-medium-fighter",
+		"pirate-heavy-fighter",
+		"pirate-light-freighter",
+		"pirate-medium-freighter",
+		"pirate-heavy-freighter",
+		"pirate-aegis-raider",
+		"pirate-interceptor",
+		"assassin-light",
+		"assassin-medium",
+		"assassin-heavy",
+		"assassin-player",
+		"player-unknown",
+		"rockhermit-pirate"
+	);
 
+
+	/* Roles that a smuggler will try to avoid being near */
+	"oolite-smuggler-dislike" = (
+		"pirate",
+		"pirate-light-fighter",
+		"pirate-medium-fighter",
+		"pirate-heavy-fighter",
+		"pirate-light-freighter",
+		"pirate-medium-freighter",
+		"pirate-heavy-freighter",
+		"pirate-aegis-raider",
+		"pirate-interceptor",
+		"assassin-light",
+		"assassin-medium",
+		"assassin-heavy",
+		"assassin-player",
+		"player-unknown",
+		"hunter",
+		"hunter-medium",
+		"hunter-heavy",
+		"interceptor",
+		"police",
+		"police-station-patrol",
+		"police-witchpoint-patrol"
+	);
+
+	/* Roles of rock hermits */
+	"oolite-rockhermits" = (
+		"rockhermit",
+		"rockhermit-chaotic",
+		"rockhermit-pirate"
+	);
+	
 }

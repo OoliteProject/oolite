@@ -9,6 +9,10 @@
 								above. Default: "SHADERS_FULL". If set to
 								"SHADERS_OFF", shaders are treated as not
 								available.
+
+								Note that from 1.79 onwards	SHADERS_SIMPLE
+								is treated as SHADERS_OFF
+
 		smooth_points			Enable or disable use of point smoothing.
 								Default: true.
 		smooth_lines			Enable or disable use of line smoothing.
@@ -80,6 +84,24 @@
 		smooth_points = false;		// Point smoothing is not supported in hardware.
 		use_dust_shader = false;	// Vertex shaders are emulated on CPU.
 	};
+
+
+	"Intel GMA 3100 family" =
+	{
+		match =
+		{
+			vendor = "Tungsten|Intel";
+			/*	e.g. "Mesa DRI Intel(R) G33" - as above entry, mesa
+			 *	drivers use chipset number
+			 */
+			renderer = "(Intel|GMA).*\\bG?3[13](\\b|$)";
+		};
+		maximum_shader_level = "SHADERS_SIMPLE";
+		default_shader_level = "SHADERS_SIMPLE";
+		smooth_points = false;		// Point smoothing is not supported in hardware.
+		use_dust_shader = false;	// Vertex shaders are emulated on CPU.
+	};
+
 	
 	"ATI R300 family" =
 	{

@@ -27,7 +27,6 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Shuttle AI";
-this.version = "1.79";
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
@@ -35,7 +34,14 @@ this.aiStarted = function() {
 	ai.setParameter("oolite_flag_sendsDistressCalls",true);
 	ai.setParameter("oolite_flag_allowPlanetaryLanding",true);
 
-	ai.setCommunicationsRole("shuttle");
+	if (this.ship.primaryRole == "escape-capsule")
+	{
+		ai.setCommunicationsRole("escapepod");
+	}
+	else
+	{
+		ai.setCommunicationsRole("shuttle");
+	}
 
 	ai.setParameter("oolite_friendlyRoles",["oolite-pirate-victim"]);
 

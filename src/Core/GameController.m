@@ -40,6 +40,9 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOOpenALController.h"
 #import "OODebugSupport.h"
+#import "legacy_random.h"
+#import "OOOXZManager.h"
+#import "OOOpenGLMatrixManager.h"
 
 #if OOLITE_MAC_OS_X
 #import "JAPersistentFileReference.h"
@@ -88,7 +91,12 @@ static GameController *sSharedController = nil;
 	if ((self = [super init]))
 	{
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
-		delta_t = 0.01; // one hundredth of a second
+		delta_t = 0.01; // one hundredth of a second 
+		_animationTimerInterval = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"animation_timer_interval" defaultValue:0.005];
+		
+		// rather than seeding this with the date repeatedly, seed it
+		// once here at startup
+		ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 		
 		_splashStart = [[NSDate alloc] init];
 	}
@@ -128,11 +136,13 @@ static GameController *sSharedController = nil;
 		_resumeMode = [self mouseInteractionMode];
 		[self setMouseInteractionModeForUIWithMouseInteraction:NO];
 		gameIsPaused = YES;
+		[PLAYER doScriptEvent:OOJSID("gamePaused")];
 	}
 	else if (!value && gameIsPaused)
 	{
 		[self setMouseInteractionMode:_resumeMode];
 		gameIsPaused = NO;
+		[PLAYER doScriptEvent:OOJSID("gameResumed")];
 	}
 }
 
@@ -234,6 +244,9 @@ static GameController *sSharedController = nil;
 			}
 		}
 		
+		// initialise OXZ manager
+		[OOOXZManager sharedManager];
+
 		// moved here to try to avoid initialising this before having an Open GL context
 		//[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
 		[[Universe alloc] initWithGameView:gameView];
@@ -273,7 +286,11 @@ static GameController *sSharedController = nil;
 	if (playerFileToLoad != nil)
 	{
 		[self logProgress:DESC(@"loading-player")];
-		[PLAYER loadPlayerFromFile:playerFileToLoad];
+		// fix problem with non-shader lighting when starting skips
+		// the splash screen
+		[UNIVERSE useGUILightSource:YES];
+		[UNIVERSE useGUILightSource:NO];
+		[PLAYER loadPlayerFromFile:playerFileToLoad asNew:NO];
 	}
 }
 
@@ -331,9 +348,13 @@ static GameController *sSharedController = nil;
 		}
 		
 		[UNIVERSE update:delta_t];
+		if (EXPECT_NOT([PLAYER status] == STATUS_RESTART_GAME))
+		{
+			[UNIVERSE reinitAndShowDemo:YES];
+		}
+		[OOSound update];
 		if (!gameIsPaused)
 		{
-			[OOSound update];
 			OOJSFrameCallbacksInvoke(delta_t);
 		}
 	}
@@ -354,13 +375,15 @@ static GameController *sSharedController = nil;
 {
 	if (timer == nil)
 	{   
-		NSTimeInterval ti = 0.01;
+		NSTimeInterval ti = _animationTimerInterval; // default one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
+		
 		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
 		
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
 #if OOLITE_MAC_OS_X
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSEventTrackingRunLoopMode];
 #endif
+
 	}
 }
 
@@ -506,27 +529,58 @@ static void RemovePreference(NSString *key)
 
 - (IBAction) showAddOnsAction:sender
 {
-	if ([[ResourceManager paths] count] > 1)
-	{
-		// Show the first populated AddOns folder (paths are in order of preference, path[0] is always Resources).
-		[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:(NSString *)[[ResourceManager paths] objectAtIndex:1]]];
+	NSArray *paths = ResourceManager.userRootPaths;
+	
+	// Look for an AddOns directory that actually contains some AddOns.
+	for (NSString *path in paths) {
+		if ([self addOnsExistAtPath:path]) {
+			[self openPath:path];
+			return;
+		}
 	}
-	else
-	{
-		// No AddOns at all. Show the first existing AddOns folder (paths are in order of preference, etc...).
-		BOOL		pathIsDirectory;
-		NSString	*path = nil;
-		NSUInteger	i = 1;
-		
-		while (i < [[ResourceManager rootPaths] count])
-		{
-			path = (NSString *)[[ResourceManager rootPaths] objectAtIndex:i];
-			if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&pathIsDirectory] && pathIsDirectory) break;
-			// else
-			i++;
-		} 
-		if (i < [[ResourceManager rootPaths] count]) [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:path]];
+	
+	// If that failed, look for an AddOns directory that actually exists.
+	for (NSString *path in paths) {
+		if ([self isDirectoryAtPath:path]) {
+			[self openPath:path];
+			return;
+		}
 	}
+	
+	// None found, create the default path.
+	[NSFileManager.defaultManager createDirectoryAtPath:paths[0]
+							withIntermediateDirectories:YES
+											 attributes:nil
+												  error:NULL];
+	[self openPath:paths[0]];
+}
+
+
+- (BOOL) isDirectoryAtPath:(NSString *)path
+{
+	BOOL isDirectory;
+	return [NSFileManager.defaultManager fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory;
+}
+
+
+- (BOOL) addOnsExistAtPath:(NSString *)path
+{
+	if (![self isDirectoryAtPath:path])  return NO;
+	
+	NSWorkspace *workspace = NSWorkspace.sharedWorkspace;
+	for (NSString *subPath in [NSFileManager.defaultManager enumeratorAtPath:path]) {
+		subPath = [path stringByAppendingPathComponent:subPath];
+		NSString *type = [workspace typeOfFile:subPath error:NULL];
+		if ([workspace type:type conformsToType:@"org.aegidian.oolite.expansion"])  return YES;
+	}
+	
+	return NO;
+}
+
+
+- (void) openPath:(NSString *)path
+{
+	[NSWorkspace.sharedWorkspace openURL:[NSURL fileURLWithPath:path]];
 }
 
 
@@ -879,15 +933,12 @@ static NSMutableArray *sMessageStack;
 	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
 	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	
-	OOGL(glClearDepth(MAX_CLEAR_DEPTH));
+	OOGL(glClearDepth(1.0));
 	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
 	
-	OOGL(glMatrixMode(GL_PROJECTION));
-	OOGL(glLoadIdentity());	// reset matrix
-	OOGL(glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH));	// set projection matrix
-	
-	OOGL(glMatrixMode(GL_MODELVIEW));
-	
+	OOGLResetProjection(); // reset matrix
+	OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
+		
 	OOGL(glDepthFunc(GL_LESS));			// depth buffer
 	
 	if (UNIVERSE)

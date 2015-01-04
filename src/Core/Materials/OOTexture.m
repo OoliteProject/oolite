@@ -47,6 +47,7 @@ NSString * const kOOTextureSpecifierSwizzleKey				= @"extract_channel";
 NSString * const kOOTextureSpecifierMinFilterKey			= @"min_filter";
 NSString * const kOOTextureSpecifierMagFilterKey			= @"mag_filter";
 NSString * const kOOTextureSpecifierNoShrinkKey				= @"no_shrink";
+NSString * const kOOTextureSpecifierExtraShrinkKey			= @"extra_shrink";
 NSString * const kOOTextureSpecifierRepeatSKey				= @"repeat_s";
 NSString * const kOOTextureSpecifierRepeatTKey				= @"repeat_t";
 NSString * const kOOTextureSpecifierCubeMapKey				= @"cube_map";
@@ -157,7 +158,7 @@ static NSString *sGlobalTraceContext = nil;
 	options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
 	
 	// Look for existing texture
-	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+	key = OOGenerateTextureCacheKey(directory, name, options, anisotropy, lodBias);
 	result = [OOTexture existingTextureForKey:key];
 	if (result == nil)
 	{
@@ -470,9 +471,24 @@ static NSString *sGlobalTraceContext = nil;
 	if (cacheKey == nil)  return;
 	
 	[sLiveTextureCache removeObjectForKey:cacheKey];
-	NSAssert2([sRecentTextures objectForKey:cacheKey] != self, @"Texture retain count error for %@; cacheKey is %@.", self, cacheKey); //miscount in autorelease
-	// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
-	[sRecentTextures removeObjectForKey:cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+	if (EXPECT_NOT([sRecentTextures objectForKey:cacheKey] == self))
+	{
+		/* Experimental for now: I think the recent crash problems may
+		 * be because if the last reference to a texture is in
+		 * sRecentTextures, and the texture is regenerated, it
+		 * replaces the texture, causing a release. Therefore, if this
+		 * texture *isn't* overretained in the texture cache, the 2009
+		 * crash avoider will delete its replacement from the cache
+		 * ... possibly before that texture has been fully added to
+		 * the cache itself. So, the texture is only removed from the
+		 * cache by key if it was in it with that key. The extra time
+		 * needed to generate a planet texture compared with loading a
+		 * standard one may be why this problem shows up.  - CIM 20140122
+		 */
+		NSAssert2(0, @"Texture retain count error for %@; cacheKey is %@.", self, cacheKey); //miscount in autorelease
+		// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
+		[sRecentTextures removeObjectForKey:cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
+	}
 #endif
 }
 
@@ -707,6 +723,7 @@ BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, OOTextureFlag
 			else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
 			
 			if ([specifier oo_boolForKey:kOOTextureSpecifierNoShrinkKey defaultValue:NO])  options |= kOOTextureNoShrink;
+			if ([specifier oo_boolForKey:kOOTextureSpecifierExtraShrinkKey defaultValue:NO])  options |= kOOTextureExtraShrink;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatSKey defaultValue:NO])  options |= kOOTextureRepeatS;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierRepeatTKey defaultValue:NO])  options |= kOOTextureRepeatT;
 			if ([specifier oo_boolForKey:kOOTextureSpecifierCubeMapKey defaultValue:NO])  options |= kOOTextureAllowCubeMap;
@@ -879,4 +896,32 @@ OOTextureFlags OOApplyTextureOptionDefaults(OOTextureFlags options)
 	options &= kOOTextureDefinedFlags;
 	
 	return options;
+}
+
+
+NSString *OOGenerateTextureCacheKey(NSString *directory, NSString *name, OOTextureFlags options, float anisotropy, float lodBias)
+{
+	if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		anisotropy = 0.0f;
+	}
+	if (!gOOTextureInfo.textureLODBiasAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	{
+		lodBias = 0.0f;
+	}
+	options = OOApplyTextureOptionDefaults(options & ~kOOTextureNoFNFMessage);
+	
+	return [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+}
+
+
+NSString *OOTextureCacheKeyForSpecifier(id specifier)
+{
+	NSString *name;
+	OOTextureFlags options;
+	float anisotropy;
+	float lodBias;
+	
+	OOInterpretTextureSpecifier(specifier, &name, &options, &anisotropy, &lodBias, NO);
+	return OOGenerateTextureCacheKey(@"Textures", name, options, anisotropy, lodBias);
 }

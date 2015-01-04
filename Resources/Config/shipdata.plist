@@ -134,7 +134,7 @@
 				{
 					name = "oolite_adder_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		max_cargo = 5;
@@ -147,7 +147,7 @@
 		missiles = 1;
 		model = "oolite_adder.dat";
 		name = "Adder";
-		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate-independent(0.2) scavenger shuttle hermit-ship";
+		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate(0.2) scavenger shuttle hermit-ship";
 		scoop_position = "0.0 -5.1 22.724";
 		thrust = 30;
 		view_position_aft = "0.0 5.0 -22.5";
@@ -173,9 +173,23 @@
 		bounty = 1;
 		cargo_type = "CARGO_ALLOY";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark");
 		forward_weapon_type = "WEAPON_NONE";
 		heat_insulation = 0.2;
 		is_template = 1;
+		materials =
+		{
+			"oolite_alloy_diffuse.png" =
+			{
+				specular_color = (0.3, 0.4, 0.4);
+				shininess = 16;
+				emission_map = 
+				{
+					name = "oolite_alloy_diffuse.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.9926, 0.2686, 0.0325, 1.0);
+			};
+		};
 		max_energy = 1;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -186,14 +200,6 @@
 		roles = "alloy";
 		scan_class = "CLASS_CARGO";
 		thrust = 0;
-		materials =
-		{
-			"metal.png" =
-			{
-				shininess = 20;
-				specular_color = (0.75, 0.75, 0.8, 1.0);
-			};
-		};
 	};
 	"oolite_template_anaconda" =
 	{
@@ -299,7 +305,7 @@
 				{
 					name = "oolite_anaconda_diffuse.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 
 			};
 			"Engine" = 
 			{ 
@@ -310,7 +316,7 @@
 				{
 					name = "oolite_anaconda_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);				
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0);				
 			};
 			"Gun" = 
 			{ 
@@ -459,7 +465,7 @@
 				{
 					name = "oolite_asp_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Gun" = 
 			{ 
@@ -520,9 +526,10 @@
 		ai_type = "dumbAI.plist";
 		bounty = 10;
 		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 0;
 		debris_role = "boulder";
 		density = 5;
+		energy_recharge_rate = 0;
+		explosion_type = ("oolite-default-asteroid-explosion");
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -566,12 +573,21 @@
 		};
 		model = "oolite_alt_asteroid.dat";
 	};
+	"oolite_template_tutorial-asteroid" =
+	{
+		like_ship = "oolite_template_asteroid";
+		is_template = 1;
+		energy_recharge_rate = 50; // effectively immune to pulse fire
+		name = "Training Asteroid";
+		roles = "tutorial-asteroid";
+	};
 	"oolite_template_barrel" =
 	{
 		ai_type = "dumbAI.plist";
 		bounty = 1;
 		cargo_type = "CARGO_RANDOM";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark");
 		forward_weapon_type = "WEAPON_NONE";
 		heat_insulation = 0.3;
 		is_template = 1;
@@ -704,7 +720,7 @@
 					{
 						name = "oolite_boa_subents.png"; extract_channel = "a";
 					};
-					emission_modulate_color = (0.75, 0.80, 0.80);					
+					emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0);					
 				};
 			};		
 		max_cargo = 125;
@@ -851,7 +867,7 @@
 				{
 					name = "oolite_boa-mk2_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Engine" = 
 			{ 
@@ -862,7 +878,7 @@
 				{
 					name = "oolite_boa-mk2_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);				
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0);				
 			}; 				
 		};
 		max_cargo = 175;
@@ -912,12 +928,14 @@
 		debris_role = "splinter";
 		density = 5;
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-default-asteroid-explosion");
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
 		has_scoop = no;
 		heat_insulation = 3;
 		is_template = 1;
+		likely_cargo = 4;
 		materials =
 		{
 			"oolite_boulder_diffuse.png" =
@@ -929,7 +947,7 @@
 		max_energy = 25;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
-		max_flight_speed = 5;
+		max_flight_speed = 50;
 		missiles = 0;
 		model = "oolite_boulder.dat";
 		name = "Boulder";
@@ -958,7 +976,8 @@
 	{
 		ai_type = "buoyAI.plist";
 		beacon = "N0100 Navigation Buoy";
-		beacon_label = "%H Station";
+/* Beacon label for now set in populator, not shipdata, for compatibility
+ * with old OXP like_ship entries */
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		forward_weapon_type = "WEAPON_NONE";
@@ -987,12 +1006,23 @@
 			};
 		};
 	};
+	"oolite_template_tutorial-buoy" = 
+	{
+		like_ship = "oolite_template_buoy";
+		is_template = 1;
+		beacon = "Buoy (training)";
+		beacon_label = "Training Buoy";
+		density = 10000;
+		max_energy = 100000;
+		name = "Training Buoy";
+		roles = "oolite-tutorial-buoy";
+		thrust = 100000;
+	};
 	"oolite_template_buoy-witchpoint" = 
 	{
 		like_ship = "oolite_template_buoy";
 		is_template = 1;
 		beacon = "W0100 Navigation Buoy (Witchpoint)";
-		beacon_label = "Witchpoint";
 		name = "Witchpoint Beacon";
 		roles = "buoy-witchpoint";
 		subentities = (
@@ -1083,7 +1113,7 @@
 				{
 					name = "oolite_barrel2_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		max_energy = 5;
@@ -1184,7 +1214,7 @@
 				specular_color = ( 0.2, 0.2, 0.2 );
 				shininess = 5; 
 				emission_map = { name = "oolite_cobra3_diffuse.png"; extract_channel = "a"; }; 
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Gun" = 
 				{ 
@@ -1241,7 +1271,7 @@
 				{
 					name = "oolite_cobra3_diffuse_alt.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Gun" = 
 				{ 
@@ -1274,7 +1304,7 @@
 				{
 					name = "oolite_cobra3_diffuse_pirate.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Gun" = 
 				{ 
@@ -1387,7 +1417,7 @@
 				{
 					name = "oolite_cobramk1_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		max_cargo = 10;
@@ -1400,7 +1430,7 @@
 		missiles = 1;
 		model = "oolite_cobramk1.dat";
 		name = "Cobra Mark I";
-		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort-light(0.25) assassin-light";
+		roles = "pirate(0.5) pirate-medium-fighter hunter-medium scavenger trader trader-smuggler hermit-ship escort-medium(0.75) escort(0.25) assassin-light";
 		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		view_position_aft = "0.0 3.75 -27.5";
@@ -1434,7 +1464,7 @@
 				{
 					name = "oolite_cobramk1_diffuse_alt.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		roles = "pirate(0.25) pirate-light-freighter(0.5) escort-heavy(0.5) escort-medium(0.25)";
@@ -1458,7 +1488,7 @@
 				{
 					name = "oolite_cobramk1_diffuse_miner.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		roles = "miner";
@@ -1505,7 +1535,7 @@
 					specular_color = ( 0.2, 0.2, 0.2 ); 
 					shininess = 5;
 					emission_map = { name = "oolite_constrictor_subents.png"; extract_channel = "a"; }; 
-					emission_modulate_color = (0.75, 0.80, 0.80); 	
+					emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 	
 				}; 			
 			};		
 		max_cargo = 15;
@@ -1538,6 +1568,11 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		market_definition = (
+			// empty array matches system prices
+			// leaving the key out entirely is a blank market
+		);
+		"market_monitored" = yes;
 		materials = 
 		{ 
 			"oolite_coriolis_diffuse.png" = 
@@ -1561,6 +1596,7 @@
 		name = "Coriolis Station";
 		roles = "coriolis station";
 		rotating = yes;
+		scan_class = "CLASS_STATION";
 		station_roll = "0.08"; // 1G at rim
 		subentities = 
 		( 
@@ -1710,6 +1746,11 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		market_definition = (
+			// empty array matches system prices
+			// leaving the key out entirely is a blank market
+		);
+		"market_monitored" = yes;
 		materials = 
 		{ 
 			"oolite_dodo_diffuse.png" = 
@@ -1886,9 +1927,9 @@
 		name = "ECM Hardened Missile";
 		script_info = 
 		{
-			oolite_missile_blastPower = 170;
+			oolite_missile_blastPower = 180;
 			oolite_missile_blastRadius = 32.5;
-			oolite_missile_blastShaping = 0.25;
+			oolite_missile_blastShaping = 0.1;
 			oolite_missile_ecmResponse = "_ecmProofMissileResponse";				
 			oolite_missile_proximity = 25;
 			oolite_missile_range = 30000;
@@ -1906,7 +1947,9 @@
 			"2.60324 -1.47267 -2.7841 0.35 0.35 0.5",
 			"-2.60324 -1.47267 -2.7841 0.35 0.35 0.5"
 		);
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark","oolite-builtin-flash");
 		forward_weapon_type = "WEAPON_NONE";
+		hyperspace_motor = no;
 		is_template = 1;
 		materials =
 		{
@@ -1919,7 +1962,7 @@
 				{
 					name = "oolite_escape_capsule_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		max_energy = 25;
@@ -2032,7 +2075,7 @@
 				{
 					name = "oolite_ferdelance_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Engine" = 
 			{ 
@@ -2043,7 +2086,7 @@
 				{
 					name = "oolite_ferdelance_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0);
 			}; 			
 		};
 		max_cargo = 12;
@@ -2056,7 +2099,7 @@
 		missiles = 2;
 		model = "oolite_ferdelance.dat";
 		name = "Fer-de-Lance";
-		roles = "trader-freighter(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
+		roles = "trader(0.25) trader-courier trader-smuggler(0.5) pirate-medium-fighter(0.75) pirate-heavy-fighter(0.75) pirate-interceptor pirate-aegis-raider(0.75) pirate(0.25) hunter-medium(0.75) hunter-heavy assassin-medium";
 		scoop_position = "0.0 -10.0322 21.6829";
 		thrust = 36;
 		view_position_aft = "0.0 12.0 -32.5";
@@ -2102,7 +2145,7 @@
 				{
 					name = "oolite_gecko_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Gun" = 
 			{ 
@@ -2141,6 +2184,11 @@
 		has_escape_pod = no;
 		has_scoop = no;
 		is_template = 1;
+		market_definition = (
+			// empty array matches system prices
+			// leaving the key out entirely is a blank market
+		);
+		"market_monitored" = yes;
 		materials = 
 		{ 
 			"oolite_ico_diffuse.png" = 
@@ -2328,7 +2376,7 @@
 				{
 					name = "oolite_krait_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		max_cargo = 2;
@@ -2348,6 +2396,24 @@
 		weapon_position_forward = "0.0 -1.6045 41.5081";
 		weapon_position_port = "-45.0 0.0 -13.5";
 		weapon_position_starboard = "45.0 0.0 -13.5";
+	};
+	"oolite_template_tutorial-krait" = {
+		like_ship = "oolite_template_krait";
+		is_template = 1;
+		ai_type = "oolite-tutorialFighterAI.js";
+		forward_weapon_type = "WEAPON_PULSE_LASER";
+		has_fuel_injection = 0;
+		has_scoop = 0;
+		has_shield_booster = 0;
+		has_shield_enhancer = 0;
+		name = "Training Fighter";
+		roles = "oolite-tutorial-fighter";
+		script = "oolite-tutorial-fighter.js";
+	};
+	"oolite_template_tutorial-krait-wave1" = {
+		like_ship = "oolite_template_tutorial-krait";
+	    energy_recharge_rate = 0.25; /* significant reduction */
+		roles = "oolite-tutorial-fighter-wave1";
 	};
 	"oolite_template_mamba" = {
 		aft_eject_position = "0.0 -9.26 -35.1";
@@ -2379,7 +2445,7 @@
 				{
 					name = "oolite_mamba_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Gun" = 
 			{ 
@@ -2422,7 +2488,7 @@
 				{
 					name = "oolite_mamba_diffuse_escort.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Gun" = 
 			{ 
@@ -2440,6 +2506,7 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
 		exhaust = ("0.0 0.32581 -9.87154 2.0 2.0 1.5");
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark","oolite-builtin-flash"); // not for detonation mode
 		forward_weapon_type = "WEAPON_NONE";
 		is_template = 1;
 		materials = 
@@ -2464,9 +2531,9 @@
 		scan_class = "CLASS_MISSILE";
 		script_info = 
 		{
-			oolite_missile_blastPower = 170;
+			oolite_missile_blastPower = 180;
 			oolite_missile_blastRadius = 32.5;
-			oolite_missile_blastShaping = 0.25;
+			oolite_missile_blastShaping = 0.1;
 			oolite_missile_proximity = 25;
 			oolite_missile_range = 30000;
 		};
@@ -2564,7 +2631,7 @@
 				{
 					name = "oolite_moray_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Engine" = 
 			{ 
@@ -2575,7 +2642,7 @@
 				{
 					name = "oolite_moray_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0);
 			};			
 		};
 		max_cargo = 7;
@@ -2625,7 +2692,7 @@
 				{
 					name = "oolite_moray_diffuse_med.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Engine" = 
 			{ 
@@ -2658,7 +2725,7 @@
 				{
 					name = "oolite_moray_diffuse_med.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Engine" = 
 			{ 
@@ -2669,7 +2736,7 @@
 				{
 					name = "oolite_moray_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};			
 		};
 		name = "Moray Medical Boat";
@@ -2769,7 +2836,7 @@
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5; 
 				emission_map = { name = "oolite_python_diffuse.png"; extract_channel = "a"; }; 
-				emission_modulate_color = (0.75, 0.80, 0.80);				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);				
 			};
 			"Engine" = 
 			{ 
@@ -2780,7 +2847,7 @@
 				{
 					name = "oolite_python_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);				
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0);				
 			}; 
 			"Gun" = 
 			{ 
@@ -2835,7 +2902,7 @@
 				{
 					name = "oolite_python_diffuse_blackdog.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 			"Engine" = 
 			{ 
@@ -2846,7 +2913,7 @@
 				{
 					name = "oolite_python_subents.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0);
 			}; 
 			"Gun" = 
 			{ 
@@ -2887,7 +2954,7 @@
 				{
 					name = "oolite_python_subents_trader.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			}; 			
 		};
 		model = "oolite_python_trader.dat";
@@ -2928,7 +2995,7 @@
 					{
 						name = "oolite_python_subents_trader.png"; extract_channel = "a";
 					};
-					emission_modulate_color = (0.75, 0.80, 0.80);					
+					emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);					
 					}; 			
 			};
 		model = "oolite_python_trader.dat";
@@ -2939,6 +3006,7 @@
 	{
 		ai_type = "oolite-qbombAI.js";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-builtin-slowcloud","oolite-builtin-fastspark","oolite-builtin-flash"); // for if it's shot down, not the Q-bomb!
 		is_template = 1;
 		max_energy = 10;
 		max_flight_pitch = 2;
@@ -2946,6 +3014,7 @@
 		max_flight_speed = 1000;
 		model = "qbomb.dat";
 		name = "Quirium Cascade Mine";
+		scan_class = "CLASS_MINE";
 		roles = "energy-bomb EQ_QC_MINE";
 		thrust = 0;
 	};
@@ -2964,6 +3033,54 @@
 		has_scoop = no;
 		is_carrier = 1;
 		is_template = 1;
+		"market_capacity" = 31; // maximum capacity for any good
+		"market_definition" = (
+			{
+				// export cheap mining products
+				"type" = "class";
+				"name" = "oolite-mining";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.1;
+				"quantity_multiplier" = 3.5;
+				"quantity_randomiser" = 3.0;
+			},
+			{
+				// import supplies a bit
+				"type" = "class";
+				"name" = "oolite-edible";
+				"price_multiplier" = 1.05;
+				"price_randomiser" = 0.05;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 15;
+			},
+			{
+				// sometimes need clothes, but usually have enough already
+				"type" = "class";
+				"name" = "oolite-wearable";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// sometimes need new mining equipment
+				"type" = "class";
+				"name" = "oolite-machinery";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// not really interested
+				"type" = "default";
+				"price_multiplier" = 0.55;
+				"price_randomiser" = 0.25;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 3;
+			}
+		);
+		"market_monitored" = no;
 		materials = 
 		{ 
 			"oolite_rock_hermit_diffuse.png" = 
@@ -3023,23 +3140,137 @@
 		tunnel_aspect_ratio = 1;
 		weapon_energy = 0;
 	};
+
+	"oolite_template_rock-hermit-chaotic" = 
+	{
+		like_ship = "oolite_template_rock-hermit";
+		is_template = 1;
+		allegiance = "chaotic";
+		"market_definition" = (
+			{
+				// export cheap mining products
+				"type" = "class";
+				"name" = "oolite-mining";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.1;
+				"quantity_multiplier" = 3.5;
+				"quantity_randomiser" = 3.0;
+			},
+			{
+				// import supplies a bit
+				"type" = "class";
+				"name" = "oolite-edible";
+				"price_multiplier" = 1.05;
+				"price_randomiser" = 0.05;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 15;
+			},
+			{
+				// sometimes need clothes, but usually have enough already
+				"type" = "class";
+				"name" = "oolite-wearable";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// sometimes need new mining equipment
+				"type" = "class";
+				"name" = "oolite-machinery";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.4;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// alien items never in stock
+				"type" = "class";
+				"name" = "oolite-thargoid";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.15;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// small-scale trading out of way of authorities 
+				"type" = "default";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.15;
+				"quantity_adder" = 2;
+				"quantity_multiplier" = 0.85; // capacity will do most of the work
+				"quantity_randomiser" = 1.0;
+				"capacity" = 7;
+			}
+		);
+		roles = "rockhermit-chaotic station";
+	};
+
+	"oolite_template_rock-hermit-pirate" = 
+	{
+		like_ship = "oolite_template_rock-hermit";
+		is_template = 1;
+		allegiance = "pirate";
+		"market_capacity" = 15;
+		"market_definition" = (
+			{
+				// export slightly cheap mining products, but not many
+				"type" = "class";
+				"name" = "oolite-mining";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.1;
+				"quantity_multiplier" = 1.75;
+				"quantity_randomiser" = 1.0;
+			},
+			{
+				// common salvage from piracy
+				"type" = "class";
+				"name" = "oolite-salvage";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.1;
+				"quantity_adder" = 2;
+				"quantity_multiplier" = 2.75;
+				"quantity_randomiser" = 2.0;
+			},
+			{
+				// alien items never in stock
+				"type" = "class";
+				"name" = "oolite-thargoid";
+				"price_multiplier" = 0.8;
+				"price_randomiser" = 0.15;
+				"quantity_multiplier" = 0.0;
+				"capacity" = 7;
+			},
+			{
+				// fencing stolen goods
+				"type" = "default";
+				"price_multiplier" = 0.9;
+				"price_randomiser" = 0.15;
+				"quantity_adder" = 2;
+				"quantity_multiplier" = 0.55;
+				"quantity_randomiser" = 3.85;
+				"capacity" = 7;
+			}
+		);
+		roles = "rockhermit-pirate station";
+	};
+
 	"oolite_template_scarred-alloy" = {
 		like_ship = "oolite_template_alloy";
 		is_template = 1;
-		model = "scarred_alloy.dat";
 		roles = "alloy";
 		materials =
 		{
-			"scarred_metal.png" =
+			"oolite_alloy_diffuse.png" =
 			{
-				shininess = 20;
-				specular_color = (0.75, 0.75, 0.8, 1.0);
-				specular_map = "oolite-scarred-metal-specular.png";
-			};
-			"metal.png" =
-			{
-				shininess = 20;
-				specular_color = (0.75, 0.75, 0.8, 1.0);
+				diffuse_map = "oolite_alloy_diffuse_scarred.png";
+				specular_color = (0.3, 0.4, 0.4);
+				shininess = 16;
+				emission_map = 
+				{
+					name = "oolite_alloy_diffuse_scarred.png"; extract_channel = "a";
+				};
+				emission_modulate_color = (0.9926, 0.2686, 0.0325, 1.0);
 			};
 		};
 	};
@@ -3067,7 +3298,7 @@
 				{
 					name = "oolite_shuttle_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		max_cargo = 30;
@@ -3087,7 +3318,19 @@
 		weapon_position_port = "-9.0 0.0 11.5";
 		weapon_position_starboard = "9.0 0.0 11.5";
 	};
-	"oolite_template_sidewinder" = {
+	"oolite_template_tutorial-station" =
+	{
+		is_template = 1;
+		like_ship = "oolite_template_coriolis-station";
+		ai_type = "nullAI.plist";
+		is_carrier = 1;
+		name = "Training Station";
+		requires_docking_clearance = 1;
+		roles = "oolite-tutorial-station";
+		scan_class = "CLASS_STATION";
+	};
+	"oolite_template_sidewinder" = 
+	{
 		aft_eject_position = "0.0 -11.5 -22.5";
 		ai_type = "oolite-pirateAI.js";
 		auto_ai = yes;
@@ -3109,7 +3352,7 @@
 				{
 					name = "oolite_sidewinder_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		max_energy = 240;
@@ -3146,7 +3389,7 @@
 				{
 					name = "oolite_sidewinder_diffuse_escort.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.75, 0.80, 0.80);
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
 			};
 		};
 		model = "oolite_sidewinder_escort.dat"; 
@@ -3158,6 +3401,7 @@
 		bounty = 1;
 		cargo_type = "CARGO_MINERALS";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-default-asteroid-explosion");
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -3174,7 +3418,7 @@
 		max_energy = 5;
 		max_flight_pitch = 1;
 		max_flight_roll = 1;
-		max_flight_speed = 10;
+		max_flight_speed = 20;
 		missiles = 0;
 		model = "oolite_splinter.dat";
 		name = "Splinter";
@@ -3198,6 +3442,7 @@
 		cargo_type = "CARGO_THARGOID";
 		energy_recharge_rate = 3;
 		forward_weapon_type = "WEAPON_PULSE_LASER";
+		hyperspace_motor = no;
 		is_template = 1;
 		laser_color = "greenColor";
 		materials =
@@ -3205,13 +3450,13 @@
 			"Hull" = 
 			{
 				diffuse_map = "oolite_thargon_diffuse.png";
-				specular_color = (0.2, 0.8, 0.2);
+				specular_color = (0.5, 0.9, 0.3);
 				shininess = 25;
 				emission_map = 
 				{
 					name = "oolite_thargon_diffuse.png"; extract_channel = "a";
 				};
-				emission_modulate_color = (0.6, 0.5, 0.2);
+				emission_modulate_color = (0.6, 0.9, 0.8);
 			};
 		};
 		max_energy = 150;
@@ -3250,10 +3495,10 @@
 			"Hull" = 
 			{ 
 				diffuse_map = "oolite_thargoid_diffuse.png"; 
-				specular_color = (0.2, 0.8, 0.2);
+				specular_color = (0.2, 0.3, 0.2);
 				shininess = 25; 
 				emission_map = { name = "oolite_thargoid_diffuse.png"; extract_channel = "a"; }; 
-				emission_modulate_color = (0.8, 0.2, 0.0); 				
+				emission_modulate_color = (0.965, 0.656, 0.242); 				
 			}; 
 		};
 		max_energy = 600;
@@ -3295,7 +3540,7 @@
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5; 
 				emission_map = { name = "oolite_transporter_diffuse.png"; extract_channel = "a"; }; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
 			}; 
 		};	
 		max_cargo = 12;
@@ -3331,7 +3576,7 @@
 				specular_color = (0.2, 0.2, 0.2);
 				shininess = 5; 
 				emission_map = { name = "oolite_transporter_diffuse_miner.png"; extract_channel = "a"; }; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
 			}; 
 		};
 		name = "Mining Transporter";
@@ -3352,6 +3597,7 @@
 		frangible = 0;
 		has_ecm = yes;
 		has_escape_pod = yes;
+		hyperspace_motor = no;
 		is_template = 1;
 		laser_color = "magentaColor";
 		materials = 
@@ -3359,13 +3605,13 @@
 			"Hull" = 
 			{
 				diffuse_map = "oolite_viper_diffuse.png";
-				specular_color = (0.6, 0.5, 0.5 );
+				specular_color = (0.3, 0.3, 0.3 );
 				shininess = 9; 
 				emission_map = 
 				{
 					name = "oolite_viper_diffuse.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
 			}; 
 			"Engine" = 
 				{ 
@@ -3377,7 +3623,7 @@
 				{
 					name = "oolite_viper_diffuse.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 				
 		};
 		max_energy = 180;
 		max_flight_pitch = 1.8;
@@ -3496,24 +3742,24 @@
 			"Hull" = 
 			{
 				diffuse_map = "oolite_viper_interceptor_diffuse.png"; 
-				specular_color = (0.6, 0.7, 0.6);
+				specular_color = (0.3, 0.3, 0.3);
 				shininess = 9; 
 				emission_map = 
 				{
 					name = "oolite_viper_interceptor_diffuse.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
 			};
 			"Engine" = 
 			{ 
 				diffuse_map = "oolite_viper_interceptor_diffuse.png"; 
-				specular_color = ( 0.6, 0.5, 0.5 );
+				specular_color = ( 0.3, 0.3, 0.3 );
 				shininess = 9; 
 				emission_map = 
 				{
 					name = "oolite_viper_interceptor_diffuse.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 
 			};			
 		};
 		max_energy = 280;
@@ -3624,7 +3870,7 @@
 				{
 					name = "oolite_viper_diffuse_pursuit.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.75, 0.80, 0.80); 				
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 				
 			}; 
 		};
 		roles = "wingman";
@@ -3658,7 +3904,7 @@
 				{
 					name = "oolite_worm_diffuse.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.96, 0.90, 0.75); 				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
 			}; 
 		};
 		max_cargo = 2;
@@ -3700,7 +3946,7 @@
 				{
 					name = "oolite_worm_diffuse_miner.png"; extract_channel = "a";
 				}; 
-				emission_modulate_color = (0.96, 0.90, 0.75); 				
+				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
 			}; 
 		};
 		roles = "miner";
@@ -3711,8 +3957,9 @@
 		ai_type = "nullAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
+		explosion_type = ("oolite-default-ship-explosion","oolite-fragment-explosion"); // no flash
 		forward_weapon_type = "WEAPON_NONE";
-		fragment_chance = 0.2;
+		fragment_chance = 0.0;
 		is_template = 1;
 		max_energy = 2000;
 		max_flight_pitch = 2;
@@ -3960,6 +4207,14 @@
 	{
 		like_ship = "oolite_template_rock-hermit";
 	};
+	"rock-hermit-chaotic" =
+	{
+		like_ship = "oolite_template_rock-hermit-chaotic";
+	};
+	"rock-hermit-pirate" =
+	{
+		like_ship = "oolite_template_rock-hermit-pirate";
+	};
 	"scarred-alloy" =
 	{
 		like_ship = "oolite_template_scarred-alloy";
@@ -4027,22 +4282,49 @@
 	"more-wreckage2" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-default-ship-explosion","oolite-fragment-explosion-b");
 		model = "wreck2.dat";
 	};
 	"more-wreckage3" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-default-ship-explosion");
 		model = "wreck3.dat";
 	};
 	"more-wreckage4" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-fragment-explosion");
 		model = "wreck4.dat";
 	};
 	"more-wreckage5" =
 	{
 		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-fragment-explosion-b");
 		model = "wreck5.dat";
+	};
+
+
+	/* Begin definitions for entities used in the tutorial */
+	"oolite-tutorial-asteroid" =
+	{
+		"like_ship" = "oolite_template_tutorial-asteroid";
+	};
+	"oolite-tutorial-buoy" =
+	{
+		"like_ship" = "oolite_template_tutorial-buoy";
+	};
+	"oolite-tutorial-krait" = 
+	{
+		"like_ship" = "oolite_template_tutorial-krait";
+	};
+	"oolite-tutorial-krait-wave1" = 
+	{
+		"like_ship" = "oolite_template_tutorial-krait-wave1";
+	};
+	"oolite-tutorial-station" = 
+	{
+		"like_ship" = "oolite_template_tutorial-station";
 	};
 
 
@@ -4074,7 +4356,6 @@
 		};
 		name = "Ball Turret";
 		roles = "ballturret";
-		setup_actions = ( initialiseTurret );
 		thrust = 1;
 		weapon_energy = 25;
 	};
@@ -4385,5 +4666,11 @@
 		roles = "oolite-unknown-ship";
 		smooth = yes;
 	};
+	"oolite-cobra3-strict" =
+	{
+		like_ship = "oolite_template_cobra3-player";
+		roles = "oolite-cobra3-strict";
+	};
+
 
 }

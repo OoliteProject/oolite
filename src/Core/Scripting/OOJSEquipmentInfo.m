@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOEquipmentType.h"
 #import "OOJSPlayer.h"
-
+#import "OODebugStandards.h"
 
 static JSObject *sEquipmentInfoPrototype;
 
@@ -62,6 +62,7 @@ enum
 	kEquipmentInfo_isVisible,
 	kEquipmentInfo_name,
 	kEquipmentInfo_price,
+	kEquipmentInfo_provides,
 	kEquipmentInfo_requiredCargoSpace,
 	kEquipmentInfo_requiresAnyEquipment,
 	kEquipmentInfo_requiresCleanLegalRecord,
@@ -98,6 +99,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "isVisible",						kEquipmentInfo_isVisible,					OOJS_PROP_READONLY_CB },
 	{ "name",							kEquipmentInfo_name,						OOJS_PROP_READONLY_CB },
 	{ "price",							kEquipmentInfo_price,						OOJS_PROP_READONLY_CB },
+	{ "provides",						kEquipmentInfo_provides,					OOJS_PROP_READONLY_CB },
 	{ "requiredCargoSpace",				kEquipmentInfo_requiredCargoSpace,			OOJS_PROP_READONLY_CB },
 	{ "requiresAnyEquipment",			kEquipmentInfo_requiresAnyEquipment,		OOJS_PROP_READONLY_CB },
 	{ "requiresCleanLegalRecord",		kEquipmentInfo_requiresCleanLegalRecord,	OOJS_PROP_READONLY_CB },
@@ -284,6 +286,10 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			
 		case kEquipmentInfo_price:
 			return JS_NewNumberValue(context, [eqType price], value);
+
+		case kEquipmentInfo_provides:
+			result = [eqType providesForScripting];
+			break;
 			
 		case kEquipmentInfo_isAvailableToAll:
 			*value = OOJSValueFromBOOL([eqType isAvailableToAll]);
@@ -338,7 +344,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			return YES;
 			
 		case kEquipmentInfo_requiredCargoSpace:
-			*value = OOJSValueFromBOOL([eqType requiredCargoSpace]);
+			*value = INT_TO_JSVAL((int32_t)[eqType requiredCargoSpace]);
 			return YES;
 			
 		case kEquipmentInfo_requiresEquipment:
@@ -389,7 +395,8 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 	switch (JSID_TO_INT(propID))
 	{
 		case kEquipmentInfo_effectiveTechLevel:
-			if ([eqType techLevel] == kOOVariableTechLevel)
+			OOStandardsDeprecated([NSString stringWithFormat:@"TL99 for variable tech level is deprecated for %@",[eqType identifier]]);
+			if (!OOEnforceStandards() && [eqType techLevel] == kOOVariableTechLevel)
 			{
 				if (JSVAL_IS_NULL(*value)) 
 				{

@@ -75,12 +75,12 @@ enum {
 	BUTTON_UNARM,
 	BUTTON_TARGETINCOMINGMISSILE,
 	BUTTON_CYCLEMISSILE,
-	BUTTON_ENERGYBOMB,
+	BUTTON_ENERGYBOMB, // now fast activate B
 	BUTTON_WEAPONSONLINETOGGLE,
 	BUTTON_ID,
 	BUTTON_ECM,
 	BUTTON_ESCAPE,
-	BUTTON_CLOAK,
+	BUTTON_CLOAK, // now fast activate A
 	BUTTON_PRECISION,
 	BUTTON_VIEWFORWARD,
 	BUTTON_VIEWAFT,
@@ -89,6 +89,7 @@ enum {
 	BUTTON_SNAPSHOT,
 	BUTTON_PREVTARGET,
 	BUTTON_NEXTTARGET,
+	BUTTON_MODEEQUIPMENT,
 	BUTTON_end
 };
 
@@ -100,15 +101,19 @@ enum {
 #define MAX_BUTTONS (MAX_REAL_BUTTONS + 4 * MAX_HATS)
 #define STICK_NOFUNCTION -1
 #define STICK_AXISUNASSIGNED -10.0
-#define STICK_PRECISIONDIV 98304 // 3 times more precise
+
+#define STICK_PRECISIONFAC 3
 #define STICK_NORMALDIV 32768
-#define STICK_PRECISIONFAC (STICK_PRECISIONDIV/STICK_NORMALDIV)
+#define STICK_PRECISIONDIV (STICK_PRECISIONFAC*STICK_NORMALDIV)
 
 #if OOLITE_MAC_OS_X
 #define STICK_DEADZONE	0.0025
 #else
 #define STICK_DEADZONE	0.05
 #endif
+
+#define STICK_MAX_DEADZONE	(STICK_DEADZONE * 2)
+
 
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
@@ -126,6 +131,9 @@ enum {
 #define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
 #define STICK_AXBUT  @"stickAxBt"   // Axis or button number
 #define STICK_FUNCTION @"stickFunc" // Function of axis/button
+#define STICK_ROLL_AXIS_PROFILE_SETTING @"RollAxisProfile" // Joystick Profiles
+#define STICK_PITCH_AXIS_PROFILE_SETTING @"PitchAxisProfile" // Joystick Profiles
+#define STICK_YAW_AXIS_PROFILE_SETTING @"YawAxisProfile" // Joystick Profiles
 // shortcut to make code more readable when using enum as key for
 // an NSDictionary
 #define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
@@ -214,6 +222,8 @@ typedef struct
 #endif //OOLITE_SDL
 
 
+#import "OOJoystickProfile.h"
+
 @interface OOJoystickManager: NSObject 
 {
 @private
@@ -224,6 +234,9 @@ typedef struct
 	BOOL		butstate[BUTTON_end];
 	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
 	BOOL		precisionMode;
+	OOJoystickAxisProfile *roll_profile;
+	OOJoystickAxisProfile *pitch_profile;
+	OOJoystickAxisProfile *yaw_profile;
 	
 	// Handle callbacks - the object, selector to call
 	// the desired function, and the hardware (axis or button etc.)
@@ -231,6 +244,7 @@ typedef struct
 	SEL			cbSelector;
 	char		cbHardware;
 	BOOL		invertPitch;
+
 }
 
 + (id) sharedStickHandler;
@@ -261,6 +275,12 @@ typedef struct
 - (BOOL) getButtonState:(int)function;
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;
+
+// Axis profile handling
+- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis:(int) axis;
+- (OOJoystickAxisProfile *) getProfileForAxis: (int) axis;
+- (void) saveProfileForAxis: (int) axis;
+- (void) loadProfileForAxis: (int) axis;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg

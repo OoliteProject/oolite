@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityStickMapper.h
+PlayerEntityStickMapper.m
 
 Oolite
 Copyright (C) 2004-2013 Giles C Williams and contributors
@@ -24,10 +24,10 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityControls.h"
+#import "PlayerEntityStickProfile.h"
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
-
 
 @interface PlayerEntity (StickMapperInternal)
 
@@ -44,6 +44,11 @@ MA 02110-1301, USA.
 @implementation PlayerEntity (StickMapper)
 
 - (void) setGuiToStickMapperScreen:(unsigned)skip
+{
+	[self setGuiToStickMapperScreen: skip resetCurrentRow: NO];
+}
+
+- (void) setGuiToStickMapperScreen:(unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
@@ -68,13 +73,18 @@ MA 02110-1301, USA.
 					   nil]
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
-	
+
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"stickmapper-profile"), nil] forRow: GUI_ROW_STICKPROFILE];
+	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE];
 	[self displayFunctionList:gui skip:skip];
 	
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
 		   forRow:GUI_ROW_INSTRUCT];
 	
-	[gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
+	if (resetCurrentRow)
+	{
+		[gui setSelectedRow: GUI_ROW_STICKPROFILE];
+	}
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"settings"];
@@ -85,7 +95,7 @@ MA 02110-1301, USA.
 							view:(MyOpenGLView *)gameView
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	
+
 	// Don't do anything if the user is supposed to be selecting
 	// a function - other than look for Escape.
 	if(waitingForStickCallback)
@@ -104,6 +114,12 @@ MA 02110-1301, USA.
 	}
 	
 	[self handleGUIUpDownArrowKeys];
+	
+	if ([gui selectedRow] == GUI_ROW_STICKPROFILE && [gameView isDown: 13])
+	{
+		[self setGuiToStickProfileScreen: gui];
+		return;
+	}
 	
 	NSString* key = [gui keyForRow: [gui selectedRow]];
 	if ([key hasPrefix:@"Index:"])
@@ -360,7 +376,7 @@ MA 02110-1301, USA.
 			i++;
 		}
 		
-		[gui setSelectableRange: NSMakeRange(GUI_ROW_FUNCSTART, i + start_row - GUI_ROW_FUNCSTART)];
+		[gui setSelectableRange: NSMakeRange(GUI_ROW_STICKPROFILE, i + start_row - GUI_ROW_STICKPROFILE)];
 	}
 	
 }
@@ -493,6 +509,21 @@ MA 02110-1301, USA.
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_ACTIVATEEQUIPMENT]];
 	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-mode-equipment")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_MODEEQUIPMENT]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-fastactivate-a")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_CLOAK]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-fastactivate-b")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_ENERGYBOMB]];
+	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-ECM")
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
@@ -538,11 +569,6 @@ MA 02110-1301, USA.
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_ESCAPE]];
 	[funcList addObject:
-	 [self makeStickGuiDict:DESC(@"stickmapper-cloak")
-				  allowable:HW_BUTTON
-					 axisfn:STICK_NOFUNCTION
-					  butfn:BUTTON_CLOAK]];
-	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-view-forward")
 				  allowable:HW_AXIS|HW_BUTTON
 					 axisfn:AXIS_VIEWY
@@ -584,7 +610,7 @@ MA 02110-1301, USA.
 		[guiDict setObject: [NSNumber numberWithInt: butfn]
 					forKey: KEY_BUTTONFN];
 	return guiDict;
-} 
+}
 
 @end
 

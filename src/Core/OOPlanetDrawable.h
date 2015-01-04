@@ -60,4 +60,7 @@ MA 02110-1301, USA.
 - (void) setLevelOfDetail:(float)lod;
 - (void) calculateLevelOfDetailForViewDistance:(float)distance;
 
+// depth-buffer hack
+- (void) renderTranslucentPartsOnOpaquePass;
+
 @end

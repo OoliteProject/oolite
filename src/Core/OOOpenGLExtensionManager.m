@@ -61,6 +61,7 @@ PFNGLUSEPROGRAMOBJECTARBPROC			glUseProgramObjectARB			= (PFNGLUSEPROGRAMOBJECTA
 PFNGLGETUNIFORMLOCATIONARBPROC			glGetUniformLocationARB			= (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLUNIFORM1IARBPROC					glUniform1iARB					= (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLUNIFORM1FARBPROC					glUniform1fARB					= (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORMMATRIX3FVARBPROC			glUniformMatrix3fvARB			= (PFNGLUNIFORMMATRIX3FVARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLUNIFORMMATRIX4FVARBPROC			glUniformMatrix4fvARB			= (PFNGLUNIFORMMATRIX4FVARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLUNIFORM4FVARBPROC					glUniform4fvARB					= (PFNGLUNIFORM4FVARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLGETOBJECTPARAMETERIVARBPROC		glGetObjectParameterivARB		= (PFNGLGETOBJECTPARAMETERIVARBPROC)&OOBadOpenGLExtensionUsed;
@@ -333,22 +334,36 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 }
 
 
-- (OOShaderSetting)defaultShaderSetting
+- (OOGraphicsDetail)defaultDetailLevel
 {
 #if OO_SHADERS
-	return defaultShaderSetting;
+	if (defaultShaderSetting < SHADERS_FULL)
+	{
+		return DETAIL_LEVEL_MINIMUM;
+	}
+	else
+	{
+		return DETAIL_LEVEL_MAXIMUM;
+	}
 #else
 	return SHADERS_NOT_SUPPORTED;
 #endif
 }
 
 
-- (OOShaderSetting)maximumShaderSetting
+- (OOGraphicsDetail)maximumDetailLevel
 {
 #if OO_SHADERS
-	return maximumShaderSetting;
+	if (maximumShaderSetting < SHADERS_FULL)
+	{
+		return DETAIL_LEVEL_MINIMUM;
+	}
+	else
+	{
+		return DETAIL_LEVEL_MAXIMUM;
+	}
 #else
-	return SHADERS_NOT_SUPPORTED;
+	return DETAIL_LEVEL_MINIMUM;
 #endif
 }
 
@@ -492,7 +507,25 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 - (void)checkShadersSupported
 {
 	shadersAvailable = NO;
-	
+
+	/* Some cards claim to support shaders but do so extremely
+	 * badly. These are listed in gpu-settings.plist where we know
+	 * about them; for those we don't being able to run with
+	 * -noshaders may help get the game up and running at a frame rate
+	 * where thegraphics settings can be changed.  - CIM */
+	NSArray 		*arguments = [[NSProcessInfo processInfo] arguments];
+	NSEnumerator 	*argEnum = nil;
+	NSString 		*arg = nil;
+	// scan for shader overrides: -noshaders || --noshaders
+	for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
+	{
+		if ([arg isEqual:@"-noshaders"] || [arg isEqual:@"--noshaders"])
+		{
+			OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disabled on command line).");
+			return;
+		}
+	}	
+
 	NSString * const requiredExtension[] = 
 						{
 							@"GL_ARB_shading_language_100",
@@ -528,6 +561,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	glGetUniformLocationARB		=	(PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
 	glUniform1iARB				=	(PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
 	glUniform1fARB				=	(PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+	glUniformMatrix3fvARB		=	(PFNGLUNIFORMMATRIX3FVARBPROC)wglGetProcAddress("glUniformMatrix3fvARB");
 	glUniformMatrix4fvARB		=	(PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
 	glUniform4fvARB				=	(PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
 	glUniform2fvARB				=	(PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");

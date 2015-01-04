@@ -33,15 +33,16 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
-#define LABELROW 1
-#define BACKROW 2 
-#define STARTROW 3
-#define ENDROW 16
-#define MOREROW 16
+#define EXITROW 1
+#define LABELROW 2
+#define BACKROW 3 
+#define STARTROW 4
+#define ENDROW 17
+#define MOREROW 17
 #define NUMROWS 13
 #define COLUMNS 2
 #define INPUTROW 21
-#define CDRDESCROW 18
+#define CDRDESCROW 19
 #define SAVE_OVERWRITE_WARN_ROW	5
 #define SAVE_OVERWRITE_YES_ROW	8
 #define SAVE_OVERWRITE_NO_ROW	9
@@ -67,6 +68,12 @@ MA 02110-1301, USA.
 - (void) quicksavePlayer;
 - (void) autosavePlayer;
 
+- (void) setGuiToScenarioScreen:(int)page;
+- (void) addScenarioModel:(NSString *)shipKey;
+- (void) showScenarioDetails;
+- (BOOL) startScenario;
+
+
 #if OO_USE_CUSTOM_LOAD_SAVE
 
 // Interface for PlayerEntityControls
@@ -76,7 +83,7 @@ MA 02110-1301, USA.
 
 #endif
 
-- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen;
+- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen asNew:(BOOL)asNew;
 
 @end
 

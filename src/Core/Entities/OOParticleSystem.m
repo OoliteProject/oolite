@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOLightParticleEntity.h"
 #import "OOMacroOpenGL.h"
+#import "MyOpenGLView.h"
 
 
 //	Testing toy: cause particle systems to stop after half a second.
@@ -163,8 +164,8 @@ do { \
 	if ([UNIVERSE reducedDetail])
 	{
 		// Quick rendering - particle cloud is effectively a 2D billboard.
-		OOGL(glPushMatrix());
-		GLMultOOMatrix(OOMatrixForBillboard(selfPosition, viewPosition));
+		OOGLPushModelView();
+		OOGLMultModelView(OOMatrixForBillboard(selfPosition, viewPosition));
 		
 		OOGLBEGIN(GL_QUADS);
 		for (i = 0; i < count; i++)
@@ -174,7 +175,7 @@ do { \
 		}
 		OOGLEND();
 		
-		OOGL(glPopMatrix());
+		OOGLPopModelView();
 	}
 	else
 	{
@@ -192,16 +193,16 @@ do { \
 			
 			for (i = 0; i < count; i++)
 			{
-				OOGL(glPushMatrix());
-				GLTranslateOOVector(particlePosition[i]);
-				GLMultOOMatrix(bbMatrix);
+				OOGLPushModelView();
+				OOGLTranslateModelView(particlePosition[i]);
+				OOGLMultModelView(bbMatrix);
 				
 				glColor4fv(particleColor[i]);
 				OOGLBEGIN(GL_QUADS);
 					DrawQuadForView(0, 0, 0, particleSize[i]);
 				OOGLEND();
 				
-				OOGL(glPopMatrix());
+				OOGLPopModelView();
 			}
 		}
 		else
@@ -215,16 +216,16 @@ do { \
 			
 			for (i = 0; i < count; i++)
 			{
-				OOGL(glPushMatrix());
-				GLTranslateOOVector(particlePosition[i]);
-				GLMultOOMatrix(OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition));
+				OOGLPushModelView();
+				OOGLTranslateModelView(particlePosition[i]);
+				OOGLMultModelView(OOMatrixForBillboard(HPvector_add(selfPosition, vectorToHPVector(vector_multiply_scalar(particlePosition[i], individuality))), viewPosition));
 				
 				glColor4fv(particleColor[i]);
 				OOGLBEGIN(GL_QUADS);
 				DrawQuadForView(0, 0, 0, particleSize[i]);
 				OOGLEND();
 				
-				OOGL(glPopMatrix());
+				OOGLPopModelView();
 			}
 		}
 

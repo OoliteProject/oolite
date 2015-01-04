@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 	
 	An NSMutableDictionary performs the first three operations efficiently but
 	has no support for pruning - specifically no support for finding the
-	least-recently-accessed element. Using standard Foundation containers, i
+	least-recently-accessed element. Using standard Foundation containers, it
 	would be necessary to use several dictionaries and arrays, which would be
 	quite inefficient since small NSArrays aren’t very good at head insertion
 	or deletion. Alternatively, a standard dictionary whose value objects
@@ -123,14 +123,11 @@ MA 02110-1301, USA.
 @end
 
 
-static NSString * const kOOLogCacheIntegrityCheck	= @"dataCache.integrityCheck";
-
-
 typedef struct OOCacheImpl OOCacheImpl;
 typedef struct OOCacheNode OOCacheNode;
 
 
-enum { kCountUnknown = -1UL };
+enum { kCountUnknown = -1U };
 
 
 static NSString * const kSerializedEntryKeyKey		= @"key";
@@ -151,11 +148,12 @@ static NSString *CacheGetName(OOCacheImpl *cache);
 static void CacheSetName(OOCacheImpl *cache, NSString *name);
 
 #if OOCACHE_PERFORM_INTEGRITY_CHECKS
-	static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
-	
-	#define CHECK_INTEGRITY(context)	CacheCheckIntegrity(cache, (context))
+static NSString * const kOOLogCacheIntegrityCheck	= @"dataCache.integrityCheck";
+static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
+
+#define CHECK_INTEGRITY(context)	CacheCheckIntegrity(cache, (context))
 #else
-	#define CHECK_INTEGRITY(context)	do {} while (0)
+#define CHECK_INTEGRITY(context)	do {} while (0)
 #endif
 
 
@@ -389,7 +387,7 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 @end
 
 
-/***** Most of the implementation. In C. Because I'm inconsistent and slightly mad. *****/
+/***** Most of the implementation. In C. Because I'm inconsistent and slightly m. *****/
 
 struct OOCacheImpl
 {
@@ -663,9 +661,10 @@ static id CacheNodeGetValue(OOCacheNode *node)
 static void CacheNodeSetValue(OOCacheNode *node, id value)
 {
 	if (node == NULL) return;
-	
-	[node->value release];
+
+	id tmp = node->value;
 	node->value = [value retain];
+	[tmp release];
 }
 
 
@@ -702,6 +701,16 @@ static OOCacheNode *TreeSplay(OOCacheNode **root, id<OOCacheComparable> key)
 	
 	for (;;)
 	{
+#ifndef NDEBUG
+		if (node == NULL)
+		{
+			OOLog(@"node.error",@"node is NULL");
+		}
+		else if (node->key == NULL)
+		{
+			OOLog(@"node.error",@"node->key is NULL");
+		}
+#endif
 		order = [key compare:node->key];
 		if (order == NSOrderedAscending)
 		{
@@ -854,7 +863,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		{
 			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@'s left child %@ is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->leftChild));
 			CacheNodeFree(cache, node->leftChild);
-			node->leftChild = nil;
+			node->leftChild = NULL;
 			cache->count = kCountUnknown;
 		}
 		else
@@ -869,7 +878,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		{
 			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node \"%@\"'s right child \"%@\" is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->rightChild));
 			CacheNodeFree(cache, node->rightChild);
-			node->rightChild = nil;
+			node->rightChild = NULL;
 			cache->count = kCountUnknown;
 		}
 		else
@@ -941,7 +950,7 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	{
 		next = node->older;
 		++seenCount;
-		if (next == nil) break;
+		if (next == NULL) break;
 		
 		if (next->younger != node)
 		{
@@ -955,6 +964,41 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	{
 		// This is especially bad since this function is called just after verifying that the count field reflects the number of objects in the tree.
 		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): expected %u nodes, found %u. Cannot repair; clearing cache.", context, cache->name, cache->count, seenCount);
+
+		/* Start of temporary extra logging */
+		node = cache->youngest;
+	
+		if (node)  
+		{
+			for (;;)
+			{
+				next = node->older;
+				++seenCount;
+				if (next == NULL) break;
+				
+				if (node->key != NULL)
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Key is: %@",node->key);
+				}
+				else
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Key is: NULL");
+				}
+
+				if (node->value != NULL)
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Value is: %@",node->value);
+				}
+				else
+				{
+					OOLog(kOOLogCacheIntegrityCheck,@"Value is: NULL");
+				}
+				
+				node = next;
+			}
+		}
+		/* End of temporary extra logging */
+
 		cache->count = 0;
 		CacheNodeFree(cache, cache->root);
 		cache->root = NULL;

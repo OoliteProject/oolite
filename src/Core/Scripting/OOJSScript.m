@@ -37,6 +37,10 @@ MA 02110-1301, USA.
 #import "NSStringOOExtensions.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OOConstToJSString.h"
+#import "OOManifestProperties.h"
+#import "OOCollectionExtractors.h"
+#import "OOPListParsing.h"
+#import "OODebugStandards.h"
 
 #if OO_CACHE_JS_SCRIPTS
 #include <jsxdrapi.h>
@@ -98,6 +102,7 @@ static JSFunctionSpec sScriptMethods[] =
 @interface OOJSScript (OOPrivate)
 
 - (NSString *)scriptNameFromPath:(NSString *)path;
+- (NSDictionary *)defaultPropertiesFromPath:(NSString *)path;
 
 @end
 
@@ -175,7 +180,27 @@ static JSFunctionSpec sScriptMethods[] =
 		}
 		OOLogIndentIf(@"script.javaScript.willLoad");
 		
-		// Set properties.
+		// Set default properties from manifest.plist
+		NSDictionary *defaultProperties = [self defaultPropertiesFromPath:path];
+		for (keyEnum = [defaultProperties keyEnumerator]; (key = [keyEnum nextObject]); )
+		{
+			if ([key isKindOfClass:[NSString class]])
+			{
+				property = [defaultProperties objectForKey:key];
+				if ([key isEqualToString:kLocalManifestProperty])
+				{
+					// this must not be editable
+					[self defineProperty:property named:key];
+				}
+				else
+				{
+					// can be overwritten by script itself
+					[self setProperty:property named:key];
+				}
+			}
+		}
+
+		// Set properties. (read-only)
 		if (!problem && properties != nil)
 		{
 			for (keyEnum = [properties keyEnumerator]; (key = [keyEnum nextObject]); )
@@ -587,6 +612,38 @@ static JSFunctionSpec sScriptMethods[] =
 	return StrippedName([theName stringByAppendingString:@".anon-script"]);
 }
 
+
+- (NSDictionary *) defaultPropertiesFromPath:(NSString *)path
+{
+	// remove file name, remove OXP subfolder, add manifest.plist
+	NSString *manifestPath = [[[path stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"manifest.plist"];
+	NSDictionary *manifest = OODictionaryFromFile(manifestPath);
+	NSMutableDictionary *properties = [NSMutableDictionary dictionaryWithCapacity:3];
+	/* __oolite.tmp.* is allocated for OXPs without manifests. Its
+	 * values are meaningless and shouldn't be used here */
+	if (manifest != nil && ![[manifest oo_stringForKey:kOOManifestIdentifier] hasPrefix:@"__oolite.tmp."])
+	{
+		if ([manifest objectForKey:kOOManifestVersion] != nil)
+		{
+			[properties setObject:[manifest oo_stringForKey:kOOManifestVersion] forKey:@"version"];
+		}
+		if ([manifest objectForKey:kOOManifestIdentifier] != nil)
+		{
+			// used for system info
+			[properties setObject:[manifest oo_stringForKey:kOOManifestIdentifier] forKey:kLocalManifestProperty];
+		}
+		if ([manifest objectForKey:kOOManifestAuthor] != nil)
+		{
+			[properties setObject:[manifest oo_stringForKey:kOOManifestAuthor] forKey:@"author"];
+		}
+		if ([manifest objectForKey:kOOManifestLicense] != nil)
+		{
+			[properties setObject:[manifest oo_stringForKey:kOOManifestLicense] forKey:@"license"];
+		}
+	}
+	return properties;
+}
+
 @end
 
 
@@ -663,7 +720,27 @@ static JSScript *LoadScriptWithName(JSContext *context, NSString *path, JSObject
 	if (script == NULL)
 	{
 		fileContents = [NSString stringWithContentsOfUnicodeFile:path];
-		if (fileContents != nil)  data = [fileContents utf16DataWithBOM:NO];
+
+		if (fileContents != nil) 
+		{
+#ifndef NDEBUG
+		/* FIXME: this isn't strictly the right test, since strict
+		 * mode can be enabled with this string within a function
+		 * definition, but it seems unlikely anyone is actually doing
+		 * that here. */
+		if ([fileContents rangeOfString:@"\"use strict\";"].location == NSNotFound && [fileContents rangeOfString:@"'use strict';"].location == NSNotFound)
+		{
+			OOStandardsDeprecated([NSString stringWithFormat:@"Script %@ does not \"use strict\";",path]);
+			if (OOEnforceStandards())
+			{
+				// prepend it anyway
+				// TODO: some time after 1.82, make this required
+				fileContents = [@"\"use strict\";\n" stringByAppendingString:fileContents];
+			}
+		}
+#endif
+			data = [fileContents utf16DataWithBOM:NO];
+		}
 		if (data == nil)  *outErrorMessage = @"could not load file";
 		else
 		{

@@ -33,6 +33,7 @@ SOFTWARE.
 #if OO_SHADERS || !defined(NDEBUG)
 
 #import "OOMaths.h"
+#import "OOHPVector.h"
 
 
 typedef enum
@@ -52,6 +53,7 @@ typedef enum
 	kOOShaderUniformTypeFloat,				// Binding or constant
 	kOOShaderUniformTypeDouble,				// Binding only
 	kOOShaderUniformTypeVector,				// Binding or constant
+	kOOShaderUniformTypeHPVector,			// Binding only
 	kOOShaderUniformTypeQuaternion,			// Binding or constant
 	kOOShaderUniformTypeMatrix,				// Binding or constant
 	kOOShaderUniformTypePoint,				// Binding only
@@ -80,6 +82,7 @@ typedef unsigned long long (*UnsignedLongLongReturnMsgSend)(id, SEL);
 typedef float (*FloatReturnMsgSend)(id, SEL);
 typedef double (*DoubleReturnMsgSend)(id, SEL);
 typedef Vector (*VectorReturnMsgSend)(id, SEL);
+typedef HPVector (*HPVectorReturnMsgSend)(id, SEL);
 typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
 typedef OOMatrix (*MatrixReturnMsgSend)(id, SEL);
 typedef NSPoint (*PointReturnMsgSend)(id, SEL);

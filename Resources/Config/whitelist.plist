@@ -330,7 +330,9 @@
 		"drawAftShieldBar:",
 		"drawYellowSurround:",
 		"drawGreenSurround:",
+		"drawSurround:",
 		"drawFuelBar:",
+		"drawWitchspaceDestination:",
 		"drawCabinTempBar:",
 		"drawWeaponTempBar:",
 		"drawAltitudeBar:",
@@ -340,7 +342,11 @@
 		"drawPrimedEquipment:",
 		"drawASCTarget:",
 		"drawWeaponsOfflineText:",
-		"drawFPSInfoCounter:"
+		"drawFPSInfoCounter:",
+		"drawCustomBar:",
+		"drawCustomText:",
+		"drawCustomIndicator:",
+		"drawCustomLight:"
 	);
 	
 	shader_entity_binding_methods =
@@ -348,6 +354,7 @@
 		"position",
 		"orientation",
 		"relativePosition",
+		"cameraRelativePosition",
 		"viewpointOffset",
 		"collisionRadius",
 		"mass",

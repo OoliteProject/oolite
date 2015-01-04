@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "ResourceManager.h"
 #import "PlayerEntityScriptMethods.h"
+#import "PlayerEntity.h"
 
 // Don't bother with syntax warnings in Deployment builds.
 #define WARNINGS			(!defined(NDEBUG))
@@ -223,6 +224,12 @@ NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name)
 {
 	seed_RNG_only_for_planet_description(seed);
 	return OOExpandDescriptionString(seed, @"system-description-string", nil, nil, name, kOOExpandKey);
+}
+
+
+Random_Seed OOStringExpanderDefaultRandomSeed(void)
+{
+	return [[UNIVERSE systemManager] getRandomSeedForCurrentSystem];
 }
 
 
@@ -1055,7 +1062,7 @@ static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const
 		return nil;
 	}
 	
-	return [UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:sysID]];
+	return [UNIVERSE getSystemName:sysID];
 }
 
 
@@ -1091,10 +1098,8 @@ static void AppendCharacters(NSMutableString **result, const unichar *characters
 static NSString *GetSystemName(OOStringExpansionContext *context)
 {
 	NSCParameterAssert(context != NULL);
-	
-	if (context->systemName == nil)
-	{
-		context->systemName = [[UNIVERSE getSystemName:context->seed] retain];
+	if (context->systemName == nil) {
+		context->systemName = [[UNIVERSE getSystemName:[PLAYER systemID]] retain];
 	}
 	
 	return context->systemName;

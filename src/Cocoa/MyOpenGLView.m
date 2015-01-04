@@ -87,6 +87,8 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	}
 #endif
 	
+	matrixManager = [[OOOpenGLMatrixManager alloc] init];
+
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
 	NSOpenGLPixelFormatAttribute attrs[] =
 	{
@@ -155,6 +157,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 {
 	DESTROY(typedString);
 	DESTROY(_pixelFormatAttributes);
+	DESTROY(matrixManager);
 	
 	[super dealloc];
 }
@@ -645,10 +648,16 @@ FAIL:
 				}
 			}
 			
-			// full input for load-save screen
-			if (allowingStringInput == gvStringInputAll)
+			// full input for load-save screen or 'all' input
+			if (allowingStringInput >= gvStringInputLoadSave)
 			{
+				// except '/' for loadsave
 				if (isprint(key) && key != '/')
+				{
+					isAlphabetKeyDown = YES;
+					[typedString appendFormat:@"%c", key];
+				}
+				else if (key == '/' && allowingStringInput == gvStringInputAll)
 				{
 					isAlphabetKeyDown = YES;
 					[typedString appendFormat:@"%c", key];
@@ -965,6 +974,13 @@ FAIL:
 }
 
 
+- (int) mouseWheelState
+{
+	// FIXME: Mousewheel in-game implementaiton for Macs needed
+	return gvMouseWheelNeutral;
+}
+
+
 - (BOOL) isCommandQDown
 {
 	return commandQ;
@@ -993,6 +1009,10 @@ FAIL:
 	return KEYMAP_GET(map, 56) || KEYMAP_GET(map, 60);	// Left shift or right shift -- although 60 shouldn't occur.
 }
 
+- (OOOpenGLMatrixManager *) getOpenGLMatrixManager
+{
+	return matrixManager;
+}
 
 #ifndef NDEBUG
 // General image-dumping method.

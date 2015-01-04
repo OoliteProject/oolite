@@ -251,6 +251,11 @@
 
 - (void) setAITo:(NSString *)aiString
 {
+	// don't try to load real AIs if the game hasn't started yet
+	if (![PLAYER scriptsLoaded])
+	{
+		aiString = @"oolite-nullAI.js";
+	}
 	if ([aiString hasSuffix:@".plist"])
 	{
 		[[self getAI] setStateMachine:aiString withJSScript:@"oolite-nullAI.js"];
@@ -293,7 +298,7 @@
 	else
 	{
 		aiScriptWakeTime = 0;
-		[self doScriptEvent:OOJSID("aiStarted")];
+		haveStartedJSAI = NO;
 	}
 	[aiScript retain];
 }
@@ -372,9 +377,12 @@
 
 - (void) performAttack
 {
-	behaviour = BEHAVIOUR_ATTACK_TARGET;
-	desired_range = 1250 * randf() + 750; // 750 til 2000
-	frustration = 0.0;
+	if (behaviour != BEHAVIOUR_EVASIVE_ACTION)
+	{
+		behaviour = BEHAVIOUR_ATTACK_TARGET;
+		desired_range = 1250 * randf() + 750; // 750 til 2000
+		frustration = 0.0;	
+	}
 }
 
 
@@ -404,11 +412,12 @@
 
 - (void) performFlee
 {
-	behaviour = BEHAVIOUR_FLEE_TARGET;
-
-	[self setEvasiveJink:400.0];
-
-	frustration = 0.0;
+	if (behaviour != BEHAVIOUR_FLEE_EVASIVE_ACTION)
+	{
+		behaviour = BEHAVIOUR_FLEE_TARGET;
+		[self setEvasiveJink:400.0];
+		frustration = 0.0;
+	}
 }
 
 
@@ -1042,7 +1051,7 @@
 	/*-- Locates the nearest debris in range --*/
 	if (!isStation)
 	{
-		if (![self hasScoop])
+		if (![self hasCargoScoop])
 		{
 			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 			return;
@@ -1073,7 +1082,7 @@
 		ShipEntity *other = (ShipEntity *)scanned_ships[i];
 		if ([other scanClass] == CLASS_CARGO && [other cargoType] != CARGO_NOT_CARGO && [other status] != STATUS_BEING_SCOOPED)
 		{
-			if ((![self isPolice]) || ([other commodityType] == 3)) // police only rescue lifepods and slaves
+			if ((![self isPolice]) || ([[other commodityType] isEqualToString:@"slaves"])) // police only rescue lifepods and slaves
 			{
 				GLfloat d2 = distance2_scanned_ships[i];
 				if (d2 < found_d2)
@@ -1091,7 +1100,7 @@
 - (void) scanForRandomLoot
 {
 	/*-- Locates the all debris in range and chooses a piece at random from the first sixteen found --*/
-	if (![self isStation] && ![self hasScoop])
+	if (![self isStation] && ![self hasCargoScoop])
 	{
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 		return;
@@ -2753,7 +2762,7 @@
 	}
 	
 	NSArray			*sDests = nil;
-	Random_Seed		targetSystem;
+	OOSystemID		targetSystem;
 	NSUInteger		i = 0;
 	
 	// get a list of destinations within range
@@ -2789,12 +2798,12 @@
 			i = ranrot_rand() % n_dests;
 		}
 		
-		NSString *systemSeedKey = [[sDests oo_dictionaryAtIndex:i] objectForKey:@"system_seed"];
-		targetSystem = RandomSeedFromString(systemSeedKey);
+		
+		targetSystem = [[sDests oo_dictionaryAtIndex:i] oo_intForKey:@"sysID"];
 	}
 	else
 	{
-		targetSystem = [UNIVERSE systemSeedForSystemNumber:systemID];
+		targetSystem = systemID;
 		
 		for (i = 0; i < n_dests; i++)
 		{

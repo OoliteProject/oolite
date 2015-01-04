@@ -27,12 +27,13 @@ MA 02110-1301, USA.
 "use strict";
 
 this.name = "Oolite Thargoid AI";
-this.version = "1.79";
+
 
 this.aiStarted = function() {
 	var ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
 
 	ai.setParameter("oolite_flag_fightsNearHostileStations",true);
+	ai.setParameter("oolite_flag_likesInterstellarSpace",true);
 
 	ai.setCommunicationsRole("_thargoid");
 	ai.setCommunicationsPersonality("thargoid");

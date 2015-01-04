@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OOGraphicsResetManager.h"
 
+#import "MyOpenGLView.h"
+
 
 #define kLaserDuration		(0.09)	// seconds
 
@@ -99,7 +101,7 @@ static OOTexture *sShotTexture2 = nil;
 	
 	[self setOrientation:quaternion_multiply(q,q0)];
 	[self setOwner:ship];
-	_range = [srcEntity weaponRange];
+	[self setRange:[srcEntity weaponRange]];
 	_lifetime = kLaserDuration;
 	
 	_color[0] = kLaserRed/3.0;
@@ -146,6 +148,7 @@ static OOTexture *sShotTexture2 = nil;
 - (void) setRange:(GLfloat)range
 {
 	_range = range;
+	[self setCollisionRadius:range];
 }
 
 
@@ -162,7 +165,7 @@ static OOTexture *sShotTexture2 = nil;
 			velocity in -[Entity update:], which is considered sufficient for
 			NPC ships.
 		*/
-		position = HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix])));
+		[self setPosition:HPvector_add([ship position], vectorToHPVector(OOVectorMultiplyMatrix(_offset, [ship drawRotationMatrix])))];
 		[self setOrientation:quaternion_multiply(_relOrientation, [ship normalOrientation])];
 	}
 
@@ -190,7 +193,7 @@ static const GLfloat kLaserVertices[] =
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
-	
+
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_ADDITIVE_BLENDING);
 	
@@ -201,8 +204,9 @@ static const GLfloat kLaserVertices[] =
 	*/
 	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glEnable(GL_TEXTURE_2D));
-	OOGL(glPushMatrix());
+	OOGLPushModelView();
 	
+	OOGLScaleModelView(make_vector(kLaserHalfWidth, kLaserHalfWidth, _range));
 	[[self texture1] apply];
 	GLfloat s = sin([UNIVERSE getTime]);
 	GLfloat phase = s*(_range/200.0);
@@ -224,22 +228,21 @@ static const GLfloat kLaserVertices[] =
 		};
 	
 	OOGL(glColor4fv(_color));
-	glScaled(kLaserHalfWidth, kLaserHalfWidth, _range);
 	glVertexPointer(3, GL_FLOAT, 0, kLaserVertices);
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords2);
 	glDrawArrays(GL_QUADS, 0, 8);
 	
-	glScaled(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0);
+	OOGLScaleModelView(make_vector(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0));
 	OOGL(glColor4f(1.0,1.0,1.0,0.9));
 	glDrawArrays(GL_QUADS, 0, 8);
 
 	[[self texture2] apply];
-	glScaled(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0);
+	OOGLScaleModelView(make_vector(kLaserFlareWidth / kLaserCoreWidth, kLaserFlareWidth / kLaserCoreWidth, 1.0));
 	OOGL(glColor4f(_color[0],_color[1],_color[2],0.9));
 	glTexCoordPointer(2, GL_FLOAT, 0, laserTexCoords);
 	glDrawArrays(GL_QUADS, 0, 8);
 	
-	OOGL(glPopMatrix());
+	OOGLPopModelView();
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glDisable(GL_TEXTURE_2D));
 	

@@ -6,6 +6,10 @@
 ; Basic-debug.OXP as an optional installation component
 !include "Sections.nsh"
 
+; Include the x64 library, required for checking whether the user has
+; attempted to run the 64-bit installer flavor under a 32-bit OS
+!include "x64.nsh"
+
 ; Need to include the versions as we can't pass them in as parameters
 ; and it's too much work to try to dynamically edit this file
 !include /NONFATAL "OoliteVersions.nsh"
@@ -50,9 +54,9 @@ SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
 OutFile "${OUTDIR}\OoliteInstall-${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITHASH}${EXTVER}.exe"
-BrandingText "(C) 2003-2013 Giles Williams, Jens Ayton and contributors"
+BrandingText "(C) 2003-2014 Giles Williams, Jens Ayton and contributors"
 Name "Oolite"
-Caption "Oolite ${VER}${EXTVER} (git ${VER_GITHASH}) Setup"
+Caption "Oolite ${VER}${EXTVER} Setup"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -72,8 +76,9 @@ RequestExecutionLevel user
 
 VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
-VIAddVersionKey "LegalCopyright" "© 2003-2013 Giles Williams, Jens Ayton and contributors"
+VIAddVersionKey "LegalCopyright" "© 2003-2014 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
+VIAddVersionKey "ProductVersion" "${VER}"
 !ifdef SNAPSHOT
 VIAddVersionKey "GIT Revision" "${VER_GITHASH}"
 !endif
@@ -135,11 +140,22 @@ SectionEnd
 !endif
 
 Function .onInit
- ; 1. Get the system drive
+ ; 1. Check that we are not attempting to run a 64-bit installer on a 32-bit operating system
+ ${IfNot} ${RunningX64}
+   ${If} ${BUILDHOST_IS64BIT} == "1"
+     MessageBox MB_OK|MB_ICONEXCLAMATION \
+	 "This application installs the 64-bit version of Oolite and $\n \
+	 cannot be run under a 32-bit environment. Click OK to abort $\n \
+	 the installation."
+	 Abort
+   ${EndIf}
+ ${EndIf}
+ 
+ ; 2. Get the system drive
  StrCpy $R9 $WINDIR 2
  StrCpy $INSTDIR $R9\Oolite
 
- ; 2. Check for multiple running installers
+ ; 3. Check for multiple running installers
  System::Call 'kernel32::CreateMutexA(i 0, i 0, t "OoliteInstallerMutex") i .r1 ?e'
  Pop $R0
  
@@ -147,10 +163,10 @@ Function .onInit
    MessageBox MB_OK|MB_ICONEXCLAMATION "Another instance of the Oolite installer is already running."
    Abort
    
-  ;3a. Skip checks, don't uninstall previous versions. Comment out the following line to re-enable 3b.
+  ;4a. Skip checks, don't uninstall previous versions. Comment out the following line to re-enable 4b.
   Goto done
   
-  ; 3b. Checks for previous versions of Oolite and offers to uninstall
+  ; 4b. Checks for previous versions of Oolite and offers to uninstall
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite" \
   "UninstallString"
@@ -269,7 +285,17 @@ RMDir /r "$SMPROGRAMS\Oolite"
 
 ; Remove Package files (but leave any generated content behind)
 RMDir /r "$INSTDIR\oolite.app\Contents"
+
+; Managed OXZs, if present, must survive the uninstall
+IfFileExists "$INSTDIR\oolite.app\GNUstep\Library\ApplicationSupport\Oolite\ManagedAddOns\*.oxz" NoRemoveOXZFolder RemoveOXZFolder
+NoRemoveOXZFolder:
+RMDir /r "$INSTDIR\oolite.app\GNUstep\Defaults"
+RMDir /r "$INSTDIR\oolite.app\GNUstep\Library\Caches"
+goto EndOfOXZFolderCheck
+RemoveOXZFolder:
 RMDir /r "$INSTDIR\oolite.app\GNUstep"
+EndOfOXZFolderCheck:
+
 RMDir /r "$INSTDIR\oolite.app\oolite.app"
 RMDir /r "$INSTDIR\oolite.app\Resources"
 RMDir /r "$INSTDIR\oolite.app\Logs"

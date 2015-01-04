@@ -18,6 +18,10 @@
 /*	Coordinates of icosahedron with poles on the Y axis.
 	Based on http://www.csee.umbc.edu/~squire/reference/polyhedra.shtml#icosahedron
 */
+
+
+/* Original vertices with the poles on the y axis
+
 static const Vector kBaseVertices[12] =
 {
 	{ +0.000000000000, +1.000000000000, +0.000000000000 },
@@ -32,10 +36,31 @@ static const Vector kBaseVertices[12] =
 	{ -0.276393205089, -0.447213577125, -0.850650817090 },
 	{ +0.723606805183, -0.447213577125, -0.525731117519 },
 	{ +0.000000000000, -1.000000000000, +0.000000000000 }
+};*/
+
+/* New coordinates with y axis through the centre of the top face
+*/
+static const Vector kBaseVertices[12] =
+{
+	{ +0.607061998207, +0.794654472292, +0.000000000000 },
+	{ +0.982246946377, -0.187592474085, +0.000000000000 },
+	{ +0.491123473188, +0.187592474085, +0.850650808352 },
+	{ -0.303530999103, +0.794654472292, +0.525731112119 },
+	{ -0.303530999103, +0.794654472292, -0.525731112119 },
+	{ +0.491123473188, +0.187592474085, -0.850650808352 },
+	{ +0.303530999103, -0.794654472292, +0.525731112119 },
+	{ -0.491123473188, -0.187592474085, +0.850650808352 },
+	{ -0.982246946377, +0.187592474085, +0.000000000000 },
+	{ -0.491123473188, -0.187592474085, -0.850650808352 },
+	{ +0.303530999103, -0.794654472292, -0.525731112119 },
+	{ -0.607061998207, -0.794654472292, +0.000000000000 }
 };
 
 
 #define kBaseFaceCount 20
+
+/* Original faces 
+
 static const struct { unsigned a, b, c; } kBaseTriangles[kBaseFaceCount] =
 {
 	{ 0, 1, 2 },
@@ -58,6 +83,33 @@ static const struct { unsigned a, b, c; } kBaseTriangles[kBaseFaceCount] =
 	{ 8, 9, 4 },
 	{ 9, 10, 5 },
 	{ 10, 6, 1 }
+};*/
+
+
+/* new faces with consistent winding */
+
+static const struct { unsigned a, b, c; } kBaseTriangles[kBaseFaceCount] =
+{
+	{ 1, 0, 2 },
+	{ 2, 0, 3 },
+	{ 3, 0, 4 },
+	{ 4, 0, 5 },
+	{ 5, 0, 1 },
+	{ 1, 2, 6 },
+	{ 2, 3, 7 },
+	{ 3, 4, 8 },
+	{ 4, 5, 9 },
+	{ 5, 1, 10 },
+	{ 6, 10, 1 },
+	{ 7, 6, 2 },
+	{ 8, 7, 3 },
+	{ 9, 8, 4 },
+	{ 10, 9, 5 },
+	{ 6, 11, 10 },
+	{ 7, 11, 6 },
+	{ 8, 11, 7 },
+	{ 9, 11, 8 },
+	{ 10, 11, 9 }
 };
 
 
@@ -135,10 +187,13 @@ int main (int argc, const char * argv[])
 
 static NSArray *SubdivideMesh(NSArray *triangles)
 {
-	NSMutableArray *result = [NSMutableArray arrayWithCapacity:triangles.count * 4];
-	
-	for (JAIcosTriangle *triangle in triangles)
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[triangles count] * 4];
+
+	JAIcosTriangle *triangle;
+        NSInteger i;
+	for( i = 0; i < [triangles count]; i++ )
 	{
+		triangle = (JAIcosTriangle*)[triangles objectAtIndex: i];
 		[result addObjectsFromArray:[triangle subdivide]];
 	}
 	
@@ -191,7 +246,7 @@ static void WritePrelude(FILE *header, FILE *source)
 
 static void WriteVertices(FILE *header, FILE *source, JAVertexSet *vertices)
 {
-	unsigned i, count = vertices.count;
+	unsigned i, count = [vertices count];
 	
 	fprintf(header, "\n\n#define kOOPlanetDataVertexCount %u\n\n", count);
 	fprintf(header, "extern const GLfloat kOOPlanetVertices[kOOPlanetDataVertexCount * 3];\n");
@@ -236,17 +291,17 @@ static void WriteMeshForTriangles(FILE *source, unsigned level, NSArray *triangl
 	[mesh addTriangles:triangles];
 	WriteMesh(source, level, mesh);
 	
-	*faceCount = mesh.faceCount;
-	*maxVertex = mesh.maxIndex + 1;
+	*faceCount = [mesh faceCount];
+	*maxVertex = [mesh maxIndex] + 1;
 }
 
 
 static void WriteMesh(FILE *source, unsigned level, JAIcosMesh *mesh)
 {
-	unsigned i, count = mesh.faceCount;
+	unsigned i, count = [mesh faceCount];
 	NSArray *indices = [mesh indexArray];
 	
-	fprintf(source, "\n\n/*  Level %u index array\n    %u faces\n*/\nstatic const %s kFaceIndicesLevel%u[%u] =\n{\n", level, count, SizeTypeForMaximum(mesh.maxIndex), level, count * 3);
+	fprintf(source, "\n\n/*  Level %u index array\n    %u faces\n*/\nstatic const %s kFaceIndicesLevel%u[%u] =\n{\n", level, count, SizeTypeForMaximum([mesh maxIndex]), level, count * 3);
 	for (i = 0; i < count; i++)
 	{
 		if (i != 0)  fprintf(source, ",\n");
@@ -317,7 +372,7 @@ static const char *SizeEnumeratorForMaximum(unsigned maxValue)
 }
 
 
-static const char *SizeTypeForMaximum(unsigned maxValue)
+const char *SizeTypeForMaximum(unsigned maxValue)
 {
 	if (maxValue <= UCHAR_MAX)  return "GLubyte";
 	if (maxValue <= USHRT_MAX)  return "GLushort";

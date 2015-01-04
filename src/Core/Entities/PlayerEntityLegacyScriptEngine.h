@@ -134,6 +134,7 @@ typedef enum
 - (void) setMissionDescription:(NSString *)textKey;
 - (void) clearMissionDescription;
 - (void) setMissionInstructions:(NSString *)text forMission:(NSString *)key;
+- (void) setMissionInstructionsList:(NSArray *)list forMission:(NSString *)key;
 - (void) setMissionDescription:(NSString *)textKey forMission:(NSString *)key;
 - (void) clearMissionDescriptionForMission:(NSString *)key;
 
