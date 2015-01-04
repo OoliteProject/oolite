@@ -138,6 +138,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 // Shopping
 - (void) showMarketScreenHeaders;
 - (void) showMarketScreenDataLine:(OOGUIRow)row forGood:(OOCommodityType)good inMarket:(OOCommodityMarket *)localMarket holdQuantity:(OOCargoQuantity)quantity;
+- (void) showMarketCashAndLoadLine;
 
 
 - (OOCreditsQuantity) adjustPriceByScriptForEqKey:(NSString *)eqKey withCurrent:(OOCreditsQuantity)price;
@@ -7824,8 +7825,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	gui_screen = GUI_SCREEN_SYSTEM_DATA;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 
-	Random_Seed		target_system_seed = [[UNIVERSE systemManager] getRandomSeedForSystem:target_system_id
-																			  inGalaxy:[self galaxyNumber]];
+	Random_Seed		targetSystemRandomSeed = [[UNIVERSE systemManager] getRandomSeedForSystem:target_system_id
+																				  inGalaxy:[self galaxyNumber]];
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 	
@@ -7859,11 +7860,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			productivity = 0;
 			radius = 0;
 			techLevel = -1;	// So it displays as 0 on the system info screen
-			government_desc = OOExpandKeyWithSeed(target_system_seed, @"nova-system-government");
-			economy_desc = OOExpandKeyWithSeed(target_system_seed, @"nova-system-economy");
-			inhabitants = OOExpandKeyWithSeed(target_system_seed, @"nova-system-inhabitants");
-			system_desc = OOExpandKeyWithSeed(target_system_seed, @"nova-system-description");
-			population_desc = OOExpandKeyWithSeed(target_system_seed, @"sysdata-pop-value-short", population);
+			government_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-government");
+			economy_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-economy");
+			inhabitants = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-inhabitants");
+			system_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-description");
+			population_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop-value-short", population);
 		}
 
 		
@@ -7872,31 +7873,31 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		
 		{
 			NSString *system = targetSystemName;
-			[gui setTitle:OOExpandKeyWithSeed(target_system_seed, @"sysdata-data-on-system", system)];
+			[gui setTitle:OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-data-on-system", system)];
 		}
 		
-		NSString *populationDesc = OOExpandKeyWithSeed(target_system_seed, @"sysdata-pop-value", population, inhabitants);
+		NSString *populationDesc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop-value", population, inhabitants);
 		NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
 		NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
 		NSString *populationDesc2 = [populationDescLines lastObject];
 		
 		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-eco"),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-eco"),
 					   economy_desc,
 					   nil]
 			   forRow:1];
 		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-govt"),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-govt"),
 					   government_desc,
 					   nil]
 			   forRow:3];
 		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-tl"),
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-tl-value", techLevel),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl"),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl-value", techLevel),
 					   nil]
 			   forRow:5];
 		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-pop"),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop"),
 					   populationDesc1,
 					   nil]
 			   forRow:7];
@@ -7905,15 +7906,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 					   nil]
 			   forRow:8];
 		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-prod"),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod"),
 					   @"",
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-prod-value", productivity),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod-value", productivity),
 					   nil]
 			   forRow:10];
 		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-radius"),
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius"),
 					   @"",
-					   OOExpandKeyWithSeed(target_system_seed, @"sysdata-radius-value",
+					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius-value",
 										   radius),
 					   nil]
 			   forRow:12];
@@ -10372,12 +10373,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		[gui setColor:[gui colorFromSetting:kGuiMarketFilterInfoColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_MARKET_END];
 
-		{
-			OOCargoQuantity currentCargo = current_cargo;
-			OOCargoQuantity cargoCapacity = [self maxAvailableCargoSpace];
-			[gui setText:OOExpandKey(@"market-cash-and-load", credits, currentCargo, cargoCapacity) forRow:GUI_ROW_MARKET_CASH];
-			[gui setColor:[gui colorFromSetting:kGuiMarketCashColor defaultValue:[OOColor yellowColor]] forRow:GUI_ROW_MARKET_CASH];
-		}
+		[self showMarketCashAndLoadLine];
 		
 		[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
 		[gui setSelectedRow:active_row];
@@ -10483,8 +10479,7 @@ static NSString *last_outfitting_key=nil;
 			[gui setColor:[gui colorFromSetting:kGuiMarketDescriptionColor defaultValue:nil] forRow:i];
 		}
 
-		[gui setColor:[gui colorFromSetting:kGuiMarketCashColor defaultValue:[OOColor yellowColor]] forRow:GUI_ROW_MARKET_CASH];
-		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, [self maxAvailableCargoSpace]]  forRow: GUI_ROW_MARKET_CASH];
+		[self showMarketCashAndLoadLine];
 
 	}
 
@@ -10499,7 +10494,15 @@ static NSString *last_outfitting_key=nil;
 		[gui setBackgroundTextureKey:@"marketinfo"];
 		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	}
+}
 
+- (void) showMarketCashAndLoadLine
+{
+	GuiDisplayGen *gui = [UNIVERSE gui];
+	OOCargoQuantity currentCargo = current_cargo;
+	OOCargoQuantity cargoCapacity = [self maxAvailableCargoSpace];
+	[gui setText:OOExpandKey(@"market-cash-and-load", credits, currentCargo, cargoCapacity) forRow:GUI_ROW_MARKET_CASH];
+	[gui setColor:[gui colorFromSetting:kGuiMarketCashColor defaultValue:[OOColor yellowColor]] forRow:GUI_ROW_MARKET_CASH];
 }
 
 - (OOGUIScreenID) guiScreen
