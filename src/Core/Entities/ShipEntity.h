@@ -380,6 +380,8 @@ typedef enum
 	
 	Vector					collision_vector;			// direction of colliding thing.
 	
+	GLfloat					_scaleFactor;  // scale factor for size variation
+
 	//position of gun ports
 	Vector					forwardWeaponOffset,
 							aftWeaponOffset,

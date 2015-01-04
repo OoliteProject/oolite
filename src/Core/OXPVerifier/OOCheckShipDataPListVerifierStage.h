@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 	NSSet						*_roles;
 	uint32_t					_isStation: 1,
 								_isPlayer: 1,
+								_isTemplate: 1,
 								_havePrintedMessage: 1;
 }
 @end

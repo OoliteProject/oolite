@@ -1130,7 +1130,7 @@ static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp)
 		[viewData setObject:facing forKey:@"weapon_facing"];
 	} 
 
-	[player setCustomViewDataFromDictionary:viewData];
+	[player setCustomViewDataFromDictionary:viewData withScaling:NO];
 	[player noteSwitchToView:VIEW_CUSTOM fromView:VIEW_CUSTOM];
 
 	[positionstr release];

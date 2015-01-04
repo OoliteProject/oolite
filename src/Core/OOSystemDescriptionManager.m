@@ -286,6 +286,18 @@ static NSString *kOOSystemLayerProperty = @"layer";
 						  toValue:[legacyChanges objectForKey:propertyKey]
 					 fromManifest:defaultManifest];
 			}
+			/* Fix for older savegames not having a larger sun radius
+			 * property set from the Nova mission. */
+			id sr = [self getProperty:@"sun_radius" forSystemKey:systemKey];
+			float sr_num = [sr floatValue];
+			if (sr_num < 600000) {
+				// fix sun radius values
+				[self setProperty:@"sun_radius"
+					 forSystemKey:systemKey
+						 andLayer:OO_LAYER_OXP_DYNAMIC
+						  toValue:[NSNumber numberWithFloat:sr_num+600000.0]
+					 fromManifest:defaultManifest];
+			}
 		}
 	}
 
