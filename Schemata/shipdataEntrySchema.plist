@@ -294,6 +294,7 @@
 			values =
 			(
 				"CLASS_NOT_SET",
+				"CLASS_NO_DRAW",
 				"CLASS_BUOY",
 				"CLASS_CARGO",
 				"CLASS_MILITARY",

@@ -344,7 +344,8 @@
 			"cloak_automatic",
 			"debris_role",
 			"has_scoop_message",
-			"counts_as_kill"
+			"counts_as_kill",
+			"explosion_type"
 		);
 		knownStationKeys =
 		(
@@ -367,10 +368,12 @@
 			"tunnel_corners",
 			"tunnel_start_angle",
 			"tunnel_aspect_ratio",
-			"market",
 			"interstellar_undocking",
 			"allows_fast_docking",
-			"allows_auto_docking"
+			"allows_auto_docking",
+			"allegiance",
+			"market_monitored",
+			"market_definition"
 		);
 		knownPlayerKeys =
 		(
