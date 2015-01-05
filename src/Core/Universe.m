@@ -8424,10 +8424,8 @@ static void VerifyDesc(NSString *key, id desc)
 			int passengerBerthCount = 0;
 			BOOL customised = NO;
 			BOOL weaponCustomized = NO;
-			BOOL otherWeaponAdded = NO;
 			
 			NSString *fwdWeaponDesc = nil;
-			NSString *aftWeaponDesc = nil;
 			
 			NSString *shortExtrasKey = @"shipyard-first-extra";
 			
@@ -8590,8 +8588,6 @@ static void VerifyDesc(NSString *key, id desc)
 								aftWeaponString = equipmentKey;
 								aftWeapon = new_weapon;
 								[shipDict setObject:aftWeaponString forKey:KEY_EQUIPMENT_AFT_WEAPON];
-								otherWeaponAdded = YES;
-								aftWeaponDesc = eqShortDesc;
 							}
 							else 
 							{
