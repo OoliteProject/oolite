@@ -7849,7 +7849,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui overrideTabs:tab_stops from:kGuiSystemdataTabs length:3];
 		[gui setTabStops:tab_stops];
 		
-		OOTechLevelID techLevel = [targetSystemData oo_intForKey:KEY_TECHLEVEL];
+		NSUInteger techLevel = [targetSystemData oo_intForKey:KEY_TECHLEVEL] + 1;
 		int population = [targetSystemData oo_intForKey:KEY_POPULATION];
 		int productivity = [targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
 		int radius = [targetSystemData oo_intForKey:KEY_RADIUS];
@@ -7861,20 +7861,20 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
 		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
 
-		NSString    *population_desc =  [targetSystemData oo_stringForKey:KEY_POPULATION_DESC 
-															 defaultValue:OOExpandKeyWithSeed(kNilRandomSeed, @"sysdata-pop-value-short", population)];
+		NSString    *populationDesc =   [targetSystemData oo_stringForKey:KEY_POPULATION_DESC
+															 defaultValue:OOExpandKeyWithSeed(kNilRandomSeed, @"sysdata-pop-value", population, inhabitants)];
 
 		if (sunGoneNova)
 		{
 			population = 0;
 			productivity = 0;
 			radius = 0;
-			techLevel = -1;	// So it displays as 0 on the system info screen
+			techLevel = 0;
 			government_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-government");
 			economy_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-economy");
 			inhabitants = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-inhabitants");
 			system_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-description");
-			population_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop-value-short", population);
+			populationDesc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop-value", population, inhabitants);
 		}
 
 		
@@ -7886,7 +7886,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[gui setTitle:OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-data-on-system", system)];
 		}
 		
-		NSString *populationDesc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop-value", population, inhabitants);
 		NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
 		NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
 		NSString *populationDesc2 = [populationDescLines lastObject];

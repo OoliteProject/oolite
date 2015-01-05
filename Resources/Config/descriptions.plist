@@ -1505,10 +1505,9 @@
 	"sysdata-eco"					= "Economy:";
 	"sysdata-govt"					= "Government:";
 	"sysdata-tl"					= "Tech Level:";
-	"sysdata-tl-value"				= "[techLevel|add:1]";
+	"sysdata-tl-value"				= "[techLevel]";
 	"sysdata-pop"					= "Population:";
-	"sysdata-pop-value"				= "[sysdata-pop-value-short]\n([inhabitants])";
-	"sysdata-pop-value-short"		= "[population|multiply:0.1|precision:1] Billion";
+	"sysdata-pop-value"				= "[population|multiply:0.1|precision:1] Billion\n([inhabitants])";
 	"sysdata-prod"					= "Gross productivity:";
 	"sysdata-prod-value"			= "[productivity] M₢";
 	"sysdata-radius"				= "Average radius:";
