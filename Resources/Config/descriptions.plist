@@ -1720,7 +1720,6 @@
 	"shipyard-first-extra"			= " Plus [item].";
 	"shipyard-additional-extra"		= " [item].";
 	"shipyard-standard-customer-model" = " Standard customer model.";
-	"shipyard-forward-weapon-upgraded-long" = " Forward weapon has been upgraded to a [weapon].";
 	"shipyard-forward-weapon-upgraded" = " Forward weapon upgraded to [weapon].";
 	"shipyard-price"				= " Price [price|icr].";
 	
