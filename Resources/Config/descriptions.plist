@@ -22,6 +22,21 @@
 		              commander_legal_status ("Clean", etc)
 		              commander_bounty
 		              credits_number
+		            [$text] expansions can have one or more formatting operators
+		            appended using a pipe character: [text|operator1|operator2].
+		            The supported operators are:
+		              cr - Formats a number as a credits value, with one decimal
+		                   place.
+		              dcr - Decicredits: like cr, but divides the number by 10.
+		              icr - Integer credits: like cr, but with no decimal place.
+		              idcr – Integer decicredits: divides a number by ten,
+		                     rounds the result to an integer, then like icr.
+		              precision:N - Converts a number to a string with n decimal
+		                     places.
+		              multiply:N - Multiplies a number with N.
+		              add:N - Adds N to a number.
+		            Example: if foo = 10, the operator sequence
+		            [foo|multiply:0.3333333|add:2|precision:2] produces "5.33".
 		  [$number] = a random line from item $number of system_description
 		              (defined below) is is used.
 	*/
