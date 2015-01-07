@@ -43,6 +43,8 @@ Plists:
 * equipment.plist: installation_time, repair_time
 * descriptions.plist: long-range-chart-title-G-S now allows chart title
   to vary from system to system
+  Numerous changes due to unification of string formatting systems, see separate
+  "Format strings" section below
 * commodities.plist and illegal-goods.plist replaced by trade-goods.plist
 * shipdata.plist: market_broadcast, market_capacity, market_definition, market_monitored, market_script properties for stations
 * planetinfo.plist: market_script property for systems
@@ -59,6 +61,60 @@ Methods:
 * manifest.setShortComment()
 * manifest.shortComment()
 * systemInfo.samplePrice()
+
+Format strings:
+---------------
+Work has begun on replacing the %@-type formatting strings in descriptions.plist
+with ones that work the same as format strings used in scripts. In most cases,
+a placeholder like %@ or %d has been replaced with one like [destination] or
+[population].
+* witch-to-@-in-f-seconds -> witch-to-x-in-y-seconds
+* witch-galactic-in-f-seconds -> witch-galactic-in-x-seconds
+* station-docking-clearance-abort-cancelled-in-f -> station-docking-clearance-abort-cancelled-in-time
+* status-hyperspace-system-multi-@-@ -> status-hyperspace-system-multi
+* equipment-plural-d-@ -> equipment-plural
+* equipment-plural-d-d-@ -> equipment-plural-some-na
+* manifest-cargo-quantity-format -> manifest-cargo-quantity
+* manifest-cargo-quantity-format2 -> manifest-cargo-quantity-extended
+* charts-distance-f -> charts-distance
+* charts-est-travel-time-f -> charts-est-travel-time
+* short-range-chart-distance-f -> short-range-chart-distance
+* short-range-chart-est-travel-time-f -> short-range-chart-est-travel-time
+* long-range-chart-distance-f -> long-range-chart-distance
+* long-range-chart-est-travel-time-f -> long-range-chart-est-travel-time
+* @-commodity-market -> system-commodity-market
+* @-station-commodity-market -> station-commodity-market
+* cash-@-load-d-of-d -> market-cash-and-load
+* sysdata-planet-name-@ -> sysdata-data-on-system
+* sysdata-prod-worth -> sysdata-prod-value
+* gameoptions-voice-@ -> gameoptions-voice-name
+* gameoptions-music-mode-@ -> gameoptions-music-mode
+* gameoptions-fullscreen-mode-d-by-d-at-g-hz -> gameoptions-fullscreen-with-refresh-rate
+* gameoptions-fullscreen-mode-d-by-d -> gameoptions-fullscreen
+* equip-cash-@ -> equip-cash-value
+* @-equip-cash-value -> equip-cash-value
+* shipyard-price -> shipyard-price-label
+* shipyard-cargo -> shipyard-cargo-label
+* shipyard-cargo-d-tc -> shipyard-cargo-value
+* shipyard-speed -> shipyard-speed-label
+* shipyard-speed-f-ls -> shipyard-speed-value
+* shipyard-your-@-trade-in-value-@ -> shipyard-trade-in-value
+* shipyard-total-available-%@-%@-plus-%@-trade -> shipyard-total-available-with-trade-in
+* plus-@ -> shipyard-first-extra and shipyard-additional-extra
+* shipyard-forward-weapon-upgraded-to-@ -> shipyard-forward-weapon-upgraded
+* shipyard-price-@ -> shipyard-price
+* character-a-@-from-@ -> character-generic-description
+* sysdata-billion-word has been replaced with sysdata-pop-value, which allows
+  more flexible formatting of population values
+* planetname-derivative-suffix has been replaced with planetname-possessive.
+  The default planetname-possessive references planetname-derivative-suffix for
+  compatibility (it isn't used anywhere else).
+* New: sysdata-tl-value
+* New: sysdata-radius-value
+* Removed: extra-@-@-(long-description)
+* Removed: extra-@-@-@-(passenger-berth-long-description)
+* Removed: shipyard-forward-weapon-upgraded-long
+* Removed: shipyard-selling-price-@
 
 
 Bug fixes:

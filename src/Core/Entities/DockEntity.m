@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "OOCollectionExtractors.h"
 #import "OOStringParsing.h"
+#import "OOStringExpander.h"
 
 #import "Universe.h"
 #import "HeadUpDisplay.h"
@@ -117,7 +118,8 @@ MA 02110-1301, USA.
 		else
 		{
 			playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
-			[station sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
+			int seconds = round(playerExtraTime);
+			[station sendExpandedMessage:OOExpandKey(@"station-docking-clearance-abort-cancelled-in-time", seconds) toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 		}
 
@@ -599,8 +601,8 @@ MA 02110-1301, USA.
 			}
 			else
 			{
-				int playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
-				[[self parentEntity] sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
+				int seconds = 10; // when very close to the port, give the player a few seconds to react on the abort message.
+				[[self parentEntity] sendExpandedMessage:OOExpandKey(@"station-docking-clearance-abort-cancelled-in-time", seconds) toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 			}
 		}

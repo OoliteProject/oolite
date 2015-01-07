@@ -1497,7 +1497,8 @@ static NSMutableDictionary *currentShipyard = nil;
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"@-shipyard-title"),[UNIVERSE getSystemName:system_id]]];
+		NSString *system = [UNIVERSE getSystemName:target_system_id];
+		[gui setTitle:OOExpandKey(@"shipyard-title", system)];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -1531,8 +1532,8 @@ static NSMutableDictionary *currentShipyard = nil;
 		if (shipCount > 0)
 		{
 			[gui setColor:[gui colorFromSetting:kGuiShipyardHeadingColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_SHIPYARD_LABELS];
-			[gui setArray:[NSArray arrayWithObjects:DESC(@"shipyard-shiptype"), DESC(@"shipyard-price"),
-					DESC(@"shipyard-cargo"), DESC(@"shipyard-speed"), nil] forRow:GUI_ROW_SHIPYARD_LABELS];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"shipyard-shiptype"), DESC(@"shipyard-price-label"),
+					DESC(@"shipyard-cargo-label"), DESC(@"shipyard-speed-label"), nil] forRow:GUI_ROW_SHIPYARD_LABELS];
 
 			if (skip > 0)
 			{
@@ -1623,26 +1624,26 @@ static NSMutableDictionary *currentShipyard = nil;
 		NSString *salesPitch = [info oo_stringForKey:KEY_SHORT_DESCRIPTION];
 		NSDictionary *shipDict = [info oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
 		
-		int cargo_rating = [shipDict oo_intForKey:@"max_cargo"];
+		int cargoRating = [shipDict oo_intForKey:@"max_cargo"];
 		int cargo_extra;
 		cargo_extra = [shipDict oo_intForKey:@"extra_cargo" defaultValue:15];
-		float speed_rating = 0.001 * [shipDict oo_intForKey:@"max_flight_speed"];
+		float speedRating = 0.001 * [shipDict oo_intForKey:@"max_flight_speed"];
 		
 		NSArray *shipExtras = [info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
 		for (i = 0; i < [shipExtras count]; i++)
 		{
 			if ([[shipExtras oo_stringAtIndex:i] isEqualToString:@"EQ_CARGO_BAY"])
 			{
-				cargo_rating += cargo_extra;
+				cargoRating += cargo_extra;
 			}
 			else if ([[shipExtras oo_stringAtIndex:i] isEqualToString:@"EQ_PASSENGER_BERTH"])
 			{
-				cargo_rating -= PASSENGER_BERTH_SPACE;
+				cargoRating -= PASSENGER_BERTH_SPACE;
 			}
 		}
 		
-		[row_info replaceObjectAtIndex:2 withObject:[NSString stringWithFormat:DESC(@"shipyard-cargo-d-tc"), cargo_rating]];
-		[row_info replaceObjectAtIndex:3 withObject:[NSString stringWithFormat:DESC(@"shipyard-speed-f-ls"), speed_rating]];
+		[row_info replaceObjectAtIndex:2 withObject:OOExpandKey(@"shipyard-cargo-value", cargoRating)];
+		[row_info replaceObjectAtIndex:3 withObject:OOExpandKey(@"shipyard-speed-value", speedRating)];
 		
 		// Show footer first. It'll be overwritten by the sales_pitch if that text is longer than usual.
 		[self showTradeInInformationFooter];
@@ -1673,10 +1674,13 @@ static NSMutableDictionary *currentShipyard = nil;
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	OOCreditsQuantity tradeIn = [self tradeInValue];
+	OOCreditsQuantity total = tradeIn + credits;
+	NSString *shipType = [self displayName];
+	
 	[gui setColor:[gui colorFromSetting:kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH - 1];
 	[gui setColor:[gui colorFromSetting:kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH - 1];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH];
+	[gui setText:OOExpandKey(@"shipyard-trade-in-value", shipType, tradeIn) forRow: GUI_ROW_MARKET_CASH - 1];
+	[gui setText:OOExpandKey(@"shipyard-total-available-with-trade-in", shipType, total, credits, tradeIn) forRow: GUI_ROW_MARKET_CASH];
 }
 
 

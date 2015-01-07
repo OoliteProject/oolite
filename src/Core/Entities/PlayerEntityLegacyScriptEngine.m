@@ -216,7 +216,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	{
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
-		expandedString = OOExpandDescriptionString(argumentString, [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], nil, locals, nil, kOOExpandNoOptions);
+		expandedString = OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), argumentString, nil, locals, nil, kOOExpandNoOptions);
 		
 		[target performSelector:selector withObject:expandedString];
 	}
@@ -1874,7 +1874,7 @@ static int shipsFound;
 	// Replace literal \n in strings with line breaks and perform expansions.
 	text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (text == nil)  return;
-	text = OOExpandDescriptionString(text, [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], nil, nil, nil, kOOExpandBackslashN);
+	text = OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandBackslashN, text);
 	text = [self replaceVariablesInString:text];
 	
 	[self addLiteralMissionText:text];

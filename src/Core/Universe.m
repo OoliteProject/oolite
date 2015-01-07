@@ -8389,61 +8389,54 @@ static void VerifyDesc(NSString *key, id desc)
 		double chance = 1.0 - pow(1.0 - [ship_info oo_doubleForKey:KEY_CHANCE], MAX((OOTechLevelID)1, techlevel - ship_techlevel));
 		
 		// seed random number generator
-		int super_rand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
-		uint32_t super_rand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
-		ranrot_srand(super_rand2);
+		int superRand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
+		uint32_t superRand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
+		ranrot_srand(superRand2);
 		
-		NSDictionary* ship_base_dict = nil;
+		NSDictionary* shipBaseDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_key];
 		
-		ship_base_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_key];
-		
-		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (ship_base_dict != nil))
+		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (shipBaseDict != nil))
 		{			
-			NSMutableDictionary* ship_dict = [NSMutableDictionary dictionaryWithDictionary:ship_base_dict];
-			NSMutableString* description = [NSMutableString stringWithCapacity:256];
-			NSMutableString* short_description = [NSMutableString stringWithCapacity:256];
-			NSString *shipName = [ship_dict oo_stringForKey:@"display_name" defaultValue:[ship_dict oo_stringForKey:KEY_NAME]];
+			NSMutableDictionary* shipDict = [NSMutableDictionary dictionaryWithDictionary:shipBaseDict];
+			NSMutableString* shortShipDescription = [NSMutableString stringWithCapacity:256];
+			NSString *shipName = [shipDict oo_stringForKey:@"display_name" defaultValue:[shipDict oo_stringForKey:KEY_NAME]];
 			OOCreditsQuantity price = [ship_info oo_unsignedIntForKey:KEY_PRICE];
 			OOCreditsQuantity base_price = price;
 			NSMutableArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-			NSString* fwd_weapon_string = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-			NSString* aft_weapon_string = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
+			NSString* fwdWeaponString = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+			NSString* aftWeaponString = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
 			
 			NSMutableArray* options = [NSMutableArray arrayWithArray:[ship_info oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
-			OOCargoQuantity max_cargo = [ship_dict oo_unsignedIntForKey:@"max_cargo"];
+			OOCargoQuantity maxCargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
 			
 			// more info for potential purchasers - how to reveal this I'm not yet sure...
 			//NSString* brochure_desc = [self brochureDescriptionWithDictionary: ship_dict standardEquipment: extras optionalEquipment: options];
 			//NSLog(@"%@ Brochure description : \"%@\"", [ship_dict objectForKey:KEY_NAME], brochure_desc);
 			
-			[description appendFormat:@"%@:", shipName];
-			[short_description appendFormat:@"%@:", shipName];
+			[shortShipDescription appendFormat:@"%@:", shipName];
 			
-			OOWeaponFacingSet available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
+			OOWeaponFacingSet availableFacings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
 
-			OOWeaponType fwd_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwd_weapon_string);
-			OOWeaponType aft_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aft_weapon_string);
+			OOWeaponType fwdWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwdWeaponString);
+			OOWeaponType aftWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aftWeaponString);
 			//port and starboard weapons are not modified in the shipyard
 			
-			int passenger_berths = 0;
+			int passengerBerthCount = 0;
 			BOOL customised = NO;
-			BOOL weapon_customised = NO;
-			BOOL other_weapon_added = NO;
+			BOOL weaponCustomized = NO;
 			
-			NSString *fwd_weapon_desc = nil;
-			NSString *aft_weapon_desc = nil;
+			NSString *fwdWeaponDesc = nil;
 			
-			NSString *short_extras_string = DESC(@"plus-@");
-			NSString *passengerBerthLongDesc = nil;
+			NSString *shortExtrasKey = @"shipyard-first-extra";
 			
 			// for testing condition scripts
-			ShipEntity *testship = [[ProxyPlayerEntity alloc] initWithKey:ship_key definition:ship_dict];
+			ShipEntity *testship = [[ProxyPlayerEntity alloc] initWithKey:ship_key definition:shipDict];
 			// customise the ship (if chance = 1, then ship will get all possible add ons)
 			while ((randf() < chance) && ([options count]))
 			{
 				chance *= chance;	//decrease the chance of a further customisation (unless it is 1, which might be a bug)
-				int				option_index = Ranrot() % [options count];
-				NSString		*equipmentKey = [options oo_stringAtIndex:option_index];
+				int				optionIndex = Ranrot() % [options count];
+				NSString		*equipmentKey = [options oo_stringAtIndex:optionIndex];
 				OOEquipmentType	*item = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 				
 				if (item != nil)
@@ -8451,7 +8444,6 @@ static void VerifyDesc(NSString *key, id desc)
 					OOTechLevelID		eqTechLevel = [item techLevel];
 					OOCreditsQuantity	eqPrice = [item price] / 10;	// all amounts are x/10 due to being represented in tenths of credits.
 					NSString			*eqShortDesc = [item name];
-					NSString			*eqLongDesc = [item descriptiveText];
 					
 					if ([item techLevel] > techlevel)
 					{
@@ -8575,29 +8567,27 @@ static void VerifyDesc(NSString *key, id desc)
 					{
 						OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
 						//fit best weapon forward
-						if (available_facings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwd_weapon weaponThreatAssessment])
+						if (availableFacings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwdWeapon weaponThreatAssessment])
 						{
 							//again remember to divide price by 10 to get credits from tenths of credit
-							price -= [self getEquipmentPriceForKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
+							price -= [self getEquipmentPriceForKey:fwdWeaponString] * 90 / 1000;	// 90% credits
 							price += eqPrice;
-							fwd_weapon_string = equipmentKey;
-							fwd_weapon = new_weapon;
-							[ship_dict setObject:fwd_weapon_string forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-							weapon_customised = YES;
-							fwd_weapon_desc = eqShortDesc;
+							fwdWeaponString = equipmentKey;
+							fwdWeapon = new_weapon;
+							[shipDict setObject:fwdWeaponString forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+							weaponCustomized = YES;
+							fwdWeaponDesc = eqShortDesc;
 						}
 						else 
 						{
 							//if less good than current forward, try fitting is to rear
-							if (available_facings & WEAPON_FACING_AFT && (isWeaponNone(aft_weapon) || [new_weapon weaponThreatAssessment] > [aft_weapon weaponThreatAssessment]))
+							if (availableFacings & WEAPON_FACING_AFT && (isWeaponNone(aftWeapon) || [new_weapon weaponThreatAssessment] > [aftWeapon weaponThreatAssessment]))
 							{
-								price -= [self getEquipmentPriceForKey:aft_weapon_string] * 90 / 1000;	// 90% credits
+								price -= [self getEquipmentPriceForKey:aftWeaponString] * 90 / 1000;	// 90% credits
 								price += eqPrice;
-								aft_weapon_string = equipmentKey;
-								aft_weapon = new_weapon;
-								[ship_dict setObject:aft_weapon_string forKey:KEY_EQUIPMENT_AFT_WEAPON];
-								other_weapon_added = YES;
-								aft_weapon_desc = eqShortDesc;
+								aftWeaponString = equipmentKey;
+								aftWeapon = new_weapon;
+								[shipDict setObject:aftWeaponString forKey:KEY_EQUIPMENT_AFT_WEAPON];
 							}
 							else 
 							{
@@ -8610,19 +8600,12 @@ static void VerifyDesc(NSString *key, id desc)
 					{
 						if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 						{
-							if ((max_cargo >= PASSENGER_BERTH_SPACE) && (randf() < chance))
+							if ((maxCargo >= PASSENGER_BERTH_SPACE) && (randf() < chance))
 							{
-								max_cargo -= PASSENGER_BERTH_SPACE;
+								maxCargo -= PASSENGER_BERTH_SPACE;
 								price += eqPrice;
 								[extras addObject:equipmentKey];
-								if (passenger_berths == 0)
-								{
-									// This will be needed to construct the description for passenger berths.
-									// Note: use of lowercaseString is bad from an i18n perspective,
-									// but the string is never actually shown anyway...
-									passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eqLongDesc lowercaseString]];
-								}
-								passenger_berths++;
+								passengerBerthCount++;
 								customised = YES;
 							}
 							else
@@ -8637,9 +8620,9 @@ static void VerifyDesc(NSString *key, id desc)
 							[extras addObject:equipmentKey];
 							if ([item isVisible])
 							{
-								[description appendFormat:DESC(@"extra-@-@-(long-description)"), eqShortDesc, [eqLongDesc lowercaseString]];
-								[short_description appendFormat:short_extras_string, eqShortDesc];
-								short_extras_string = @" %@.";
+								NSString *item = eqShortDesc;
+								[shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
+								shortExtrasKey = @"shipyard-additional-extra";
 							}
 							customised = YES;
 							[options removeObject:equipmentKey]; //dont add twice
@@ -8655,56 +8638,48 @@ static void VerifyDesc(NSString *key, id desc)
 			// i18n: Some languages require that no conversion to lower case string takes place.
 			BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"];
 			
-			if (passenger_berths)
+			if (passengerBerthCount)
 			{
-				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : (id)@"";
-				NSString* ppb = DESC_PLURAL(@"passenger-berth", passenger_berths);
+				NSString* npb = (passengerBerthCount > 1)? [NSString stringWithFormat:@"%d ", passengerBerthCount] : (id)@"";
+				NSString* ppb = DESC_PLURAL(@"passenger-berth", passengerBerthCount);
 				NSString* extraPassengerBerthsDescription = [NSString stringWithFormat:DESC(@"extra-@-@-(passenger-berths)"), npb, ppb];
-				[description appendFormat:DESC(@"extra-@-@-@-(passenger-berth-long-description)"), npb, ppb, passengerBerthLongDesc];
-				[short_description appendFormat:short_extras_string, extraPassengerBerthsDescription];
+				NSString *item = extraPassengerBerthsDescription;
+				[shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
+				shortExtrasKey = @"shipyard-additional-extra";
 			}
 			
 			if (!customised)
 			{
-				[description appendString:DESC(@"shipyard-standard-customer-model")];
-				[short_description appendString:DESC(@"shipyard-standard-customer-model")];
+				[shortShipDescription appendString:OOExpandKey(@"shipyard-standard-customer-model")];
 			}
 			
-			if (weapon_customised)
+			if (weaponCustomized)
 			{
-				[description appendFormat:DESC(@"shipyard-forward-weapon-has-been-upgraded-to-a-@"), 
-								(lowercaseIgnore ? fwd_weapon_desc : [fwd_weapon_desc lowercaseString])];
-				[short_description appendFormat:DESC(@"shipyard-forward-weapon-upgraded-to-@"),
-								(lowercaseIgnore ? fwd_weapon_desc : [fwd_weapon_desc lowercaseString])];
-			}
-			if (other_weapon_added)
-			{
-				[description appendFormat:@"aft %@", (lowercaseIgnore ? aft_weapon_desc : [aft_weapon_desc lowercaseString])];
+				NSString *weapon = (lowercaseIgnore ? fwdWeaponDesc : [fwdWeaponDesc lowercaseString]);
+				[shortShipDescription appendString:OOExpandKey(@"shipyard-forward-weapon-upgraded", weapon)];
 			}
 			if (price > base_price)
 			{
 				price = base_price + cunningFee(price - base_price, 0.05);
 			}
 			
-			[description appendFormat:DESC(@"shipyard-selling-price-@"), OOIntCredits(price)];
-			[short_description appendFormat:DESC(@"shipyard-price-@"), OOIntCredits(price)];
+			[shortShipDescription appendString:OOExpandKey(@"shipyard-price", price)];
 			
-			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
+			NSString *shipID = [NSString stringWithFormat:@"%06x-%06x", superRand1, superRand2];
 			
 			uint16_t personality = RanrotWithSeed(&personalitySeed) & ENTITY_PERSONALITY_MAX;
 			
-			NSDictionary* ship_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-				ship_id,							SHIPYARD_KEY_ID,
+			NSDictionary *ship_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+				shipID,								SHIPYARD_KEY_ID,
 				ship_key,							SHIPYARD_KEY_SHIPDATA_KEY,
-				ship_dict,							SHIPYARD_KEY_SHIP,
-				description,						SHIPYARD_KEY_DESCRIPTION,
-				short_description,					KEY_SHORT_DESCRIPTION,
+				shipDict,							SHIPYARD_KEY_SHIP,
+				shortShipDescription,				KEY_SHORT_DESCRIPTION,
 				[NSNumber numberWithUnsignedLongLong:price], SHIPYARD_KEY_PRICE,
 				extras,								KEY_EQUIPMENT_EXTRAS,
 				[NSNumber numberWithUnsignedShort:personality], SHIPYARD_KEY_PERSONALITY,								  
 				NULL];
 			
-			[resultDictionary setObject:ship_info_dictionary forKey:ship_id];	// should order them fairly randomly
+			[resultDictionary setObject:ship_info_dictionary forKey:shipID];	// should order them fairly randomly
 		}
 		
 		// next contract

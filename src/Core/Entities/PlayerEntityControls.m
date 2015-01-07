@@ -52,6 +52,8 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOTexture.h"
 #import "OODebugFlags.h"
+#import "OOStringExpander.h"
+
 #import "OOSystemDescriptionManager.h"
 #import "OOJoystickManager.h"
 
@@ -550,7 +552,9 @@ static NSTimeInterval	time_last_frame;
 		[self playStandardHyperspace];
 		// say it!
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:[self nextHopTargetSystemID]], witchspaceCountdown] forCount:1.0];
+		int seconds = round(witchspaceCountdown);
+		NSString *destination = [UNIVERSE getSystemName:[self nextHopTargetSystemID]];
+		[UNIVERSE displayCountdownMessage:OOExpandKey(@"witch-to-x-in-y-seconds", seconds, destination) forCount:1.0];
 		[self doScriptEvent:OOJSID("playerStartedJumpCountdown")
 					withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 		[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
@@ -2880,7 +2884,8 @@ static NSTimeInterval	time_last_frame;
 				else
 					voice_no = [UNIVERSE prevVoice: voice_no];
 				[UNIVERSE setVoice: voice_no withGenderM:voice_gender_m];
-				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-voice-@"), [UNIVERSE voiceName: voice_no]];
+				NSString *voiceName = [UNIVERSE voiceName:voice_no];
+				NSString *message = OOExpandKey(@"gameoptions-voice-name", voiceName);
 				[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
 				if (isSpeechOn == OOSPEECHSETTINGS_ALL)
 				{
@@ -2939,8 +2944,9 @@ static NSTimeInterval	time_last_frame;
 			if ((int)[musicController mode] != initialMode)
 			{
 				[self playChangedOption];
-				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:mode]];
-				[gui setText:message forRow:GUI_ROW(GAME,MUSIC)  align:GUI_ALIGN_CENTER];
+				NSString *musicMode = [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]];
+				NSString *message = OOExpandKey(@"gameoptions-music-mode", musicMode);
+				[gui setText:message forRow:GUI_ROW(GAME,MUSIC) align:GUI_ALIGN_CENTER];
 			}
 		}
 		musicModeKeyPressed = YES;
@@ -3067,8 +3073,8 @@ static NSTimeInterval	time_last_frame;
 			OOGraphicsDetail detailLevel = [UNIVERSE detailLevel] + direction;
 			[UNIVERSE setDetailLevel:detailLevel];
 			detailLevel = [UNIVERSE detailLevel];
-			
-			NSString *shaderEffectsOptionsString = [NSString stringWithFormat:@"gameoptions-detaillevel-%d",detailLevel];
+
+			NSString *shaderEffectsOptionsString = OOExpand(@"gameoptions-detaillevel-[detailLevel]", detailLevel);
 			[gui setText:OOExpandKey(shaderEffectsOptionsString) forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
 
