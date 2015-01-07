@@ -157,7 +157,7 @@ Random_Seed OOStringExpanderDefaultRandomSeed(void);
  */
 #define OOEXPAND_ARG_DICTIONARY(...) ( \
 	(OOEXPAND_ARGUMENT_COUNT(__VA_ARGS__) == 0) ? \
-	(NSDictionary *)nil : \
+	nil : \
 	[NSDictionary dictionaryWithObjects:OOEXPAND_OBJECTS_FROM_ARGS(__VA_ARGS__) \
 	                            forKeys:OOEXPAND_NAMES_FROM_ARGS(__VA_ARGS__) \
 	                              count:OOEXPAND_ARGUMENT_COUNT(__VA_ARGS__)] )
