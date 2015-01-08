@@ -2676,7 +2676,10 @@ PriorityAIController.prototype.conditionPatrolIsOver = function()
 	/* patrol is over after 200km, or if supplies are low after 20km
 	 * 20km to prevent patrol being over on launch if a ship is set up
 	 * to always have low supplies on creation */
-	return this.ship.distanceTravelled > 200000 || (this.ship.distanceTravelled > 20000 && this.conditionSuppliesLow());
+	var plength = this.getParameter("oolite_patrolLength");
+	var pdist = plength ? plength : 200000;
+
+	return this.ship.distanceTravelled > pdist || (this.ship.distanceTravelled > 20000 && this.conditionSuppliesLow());
 }
 
 
