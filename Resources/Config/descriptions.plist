@@ -1599,6 +1599,7 @@
 	"stickmapper-next-target"		= "Select next target";
 	"stickmapper-fuel-injection"	= "Fuel injection";
 	"stickmapper-hyperspeed"		= "Hyperspeed";
+	"stickmapper-hyperdrive"		= "Engage hyperdrive";
 	"stickmapper-roll/pitch-precision-toggle"	= "Roll/pitch precision toggle";
 	"stickmapper-snapshot"			= "Take snapshot";
 	"stickmapper-view-forward"		= "View forward";

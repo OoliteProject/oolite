@@ -554,6 +554,11 @@ MA 02110-1301, USA.
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_HYPERSPEED]];
 	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-hyperdrive")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_HYPERDRIVE]];
+	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-roll/pitch-precision-toggle")
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
