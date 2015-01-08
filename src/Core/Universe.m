@@ -3368,9 +3368,14 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (void) defineWaypoint:(NSDictionary *)definition forKey:(NSString *)key
 {
 	OOWaypointEntity *waypoint = nil;
+	BOOL preserveCompass = NO;
 	waypoint = [waypoints objectForKey:key];
 	if (waypoint != nil)
 	{
+		if ([PLAYER compassTarget] == waypoint) 
+		{
+			preserveCompass = YES;
+		}
 		[self removeEntity:waypoint];
 		[waypoints removeObjectForKey:key];
 	}
@@ -3381,6 +3386,11 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		{
 			[self addEntity:waypoint];
 			[waypoints setObject:waypoint forKey:key];
+			if (preserveCompass)
+			{
+				[PLAYER setCompassTarget:waypoint];
+				[PLAYER setNextBeacon:waypoint];
+			}
 		}
 	}
 }

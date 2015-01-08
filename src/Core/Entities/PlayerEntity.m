@@ -10729,7 +10729,10 @@ static NSString *last_outfitting_key=nil;
 	
 	if (OK)
 	{
-		if ([equipmentKey isEqual:@"EQ_ADVANCED_COMPASS"])	[self setCompassMode:COMPASS_MODE_PLANET];
+		if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"] && [self compassMode] == COMPASS_MODE_BASIC)
+		{
+			[self setCompassMode:COMPASS_MODE_PLANET];
+		}
 		
 		[self addEqScriptForKey:equipmentKey];
 	}
@@ -10740,7 +10743,10 @@ static NSString *last_outfitting_key=nil;
 - (void) removeEquipmentItem:(NSString *)equipmentKey
 {
 	[self removeEqScriptForKey:equipmentKey];
-	if([equipmentKey isEqualToString:@"EQ_ADVANCED_COMPASS"]) [self setCompassMode:COMPASS_MODE_BASIC];
+	if(![self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"] && [self compassMode] != COMPASS_MODE_BASIC)
+	{
+		[self setCompassMode:COMPASS_MODE_BASIC];
+	}
 	[super removeEquipmentItem:equipmentKey];
 }
 
