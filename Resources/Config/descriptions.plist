@@ -1613,6 +1613,8 @@
 	"stickmapper-escape-pod"		= "Escape pod";
 	"stickmapper-cloak"				= "Cloaking device";
 	"stickmapper-scanner-zoom"		= "Scanner zoom";
+	"stickmapper-scanner-unzoom"	= "Scanner unzoom";
+	"stickmapper-jettison"			= "Jettison cargo";
 	
 	"oolite-stickprofile-title"			= "Joystick Profile";
 	"oolite-stickprofile-back"			= "Back";

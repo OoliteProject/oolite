@@ -3203,7 +3203,7 @@ static NSTimeInterval	time_last_frame;
 		zoom_pressed = NO;
 	
 	// Unzoom scanner 'Z'
-	if ([gameView isDown:key_scanner_unzoom] && ([gameView allowingStringInput] == gvStringInputNo)) // look for the 'Z' key
+	if (([gameView isDown:key_scanner_unzoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERUNZOOM]) // look for the 'Z' key
 	{
 		if ((!scanner_zoom_rate)&&([hud scannerZoom] > 1.0))
 			scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;

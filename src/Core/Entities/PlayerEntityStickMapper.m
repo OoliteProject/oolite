@@ -569,6 +569,21 @@ MA 02110-1301, USA.
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_ESCAPE]];
 	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-scanner-zoom")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_SCANNERZOOM]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-scanner-unzoom")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_SCANNERUNZOOM]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-jettison")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_JETTISON]];
+	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-view-forward")
 				  allowable:HW_AXIS|HW_BUTTON
 					 axisfn:AXIS_VIEWY
