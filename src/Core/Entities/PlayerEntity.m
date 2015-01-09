@@ -5116,7 +5116,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) selectNextMultiFunctionDisplay
 {
 	activeMFD = (activeMFD + 1) % [[self hud] mfdCount];
-	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"mfd-d-selected") ,activeMFD + 1] forCount:3.0 ];
+	NSUInteger mfdID = activeMFD + 1;
+	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
 }
 
 
@@ -6151,14 +6152,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (flightSpeed > 4.0 * maxFlightSpeed)
 	{
-		[UNIVERSE addMessage:DESC(@"hold-locked") forCount:3.0];
+		[UNIVERSE addMessage:OOExpandKey(@"hold-locked") forCount:3.0];
 		return nil;
 	}
 
 	OOCommodityType result = [super dumpCargo];
 	if (result != nil)
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ejected") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0 forceDisplay:YES];
+		NSString *commodity = [UNIVERSE displayNameForCommodity:result];
+		[UNIVERSE addMessage:OOExpandKey(@"commodity-ejected", commodity) forCount:3.0 forceDisplay:YES];
 		[self playCargoJettisioned];
 	}
 	return result;
@@ -6186,7 +6188,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	} while ([contents isEqualToString:current_contents]&&(rotates < n_cargo));
 	[pod release];
 	
-	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ready-to-eject"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
+	NSString *commodity = [UNIVERSE displayNameForCommodity:contents];
+	[UNIVERSE addMessage:OOExpandKey(@"commodity-ready-to-eject", commodity) forCount:3.0];
 
 	// now scan through the remaining 1..(n_cargo - rotates) places moving similar cargo to the last place
 	// this means the cargo gets to be sorted as it is rotated through
@@ -6830,7 +6833,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (blocker)
 		{
 			[UNIVERSE clearPreviousMessage];
-			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
+			NSString *blockerName = [blocker name];
+			[UNIVERSE addMessage:OOExpandKey(@"witch-blocked", blockerName) forCount:4.5];
 			[self playWitchjumpBlocked];
 			[self setStatus:STATUS_IN_FLIGHT];
 			ShipScriptEventNoCx(self, "playerJumpFailed", OOJSSTR("blocked"));
@@ -6850,7 +6854,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		//dont allow player to hyperspace to current location.
 		//Note interstellar space will have a system_seed place we came from
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:DESC(@"witch-no-target") forCount: 4.5];
+		[UNIVERSE addMessage:OOExpandKey(@"witch-no-target") forCount: 4.5];
 		if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 		{
 			[self playWitchjumpInsufficientFuel];
@@ -11483,14 +11487,11 @@ static NSString *last_outfitting_key=nil;
 
 - (void) printIdentLockedOnForMissile:(BOOL)missile
 {
-	NSString			*fmt = nil;
 	if ([self primaryTarget] == nil) return;
 	
-	if (missile)  fmt = DESC(@"missile-locked-onto-@");
-	else  fmt = DESC(@"ident-locked-onto-@");
-	
-	[UNIVERSE addMessage:[NSString stringWithFormat:fmt, [[self primaryTarget] identFromShip:self]]
-				forCount:4.5];
+	NSString *fmt = missile ? @"missile-locked-onto-target" : @"ident-locked-onto-target";
+	NSString *target = [[self primaryTarget] identFromShip:self];
+	[UNIVERSE addMessage:OOExpandKey(fmt, target) forCount:4.5];
 }
 
 

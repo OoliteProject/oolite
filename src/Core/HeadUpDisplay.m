@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOJoystickManager.h"
 #import "OOJavaScriptEngine.h"
+#import "OOStringExpander.h"
 
 
 #define ONE_SIXTEENTH				0.0625
@@ -2797,7 +2798,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	if (lines == 1)
 	{
 		OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
-		OODrawString([NSString stringWithFormat:DESC(@"equipment-primed-hud-@"), [PLAYER primedEquipmentName:0]], x, y, z1, size);
+		NSString *equipmentName = [PLAYER primedEquipmentName:0];
+		OODrawString(OOExpandKey(@"equipment-primed-hud", equipmentName), x, y, z1, size);
 	}
 	else
 	{

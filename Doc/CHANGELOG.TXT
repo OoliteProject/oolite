@@ -71,8 +71,23 @@ a placeholder like %@ or %d has been replaced with one like [destination] or
 * @-credits -> credits-format
 * oxp-containing-messages-list-@ -> oxp-containing-messages-list
 * bounty-@-total-@ -> bounty-awarded
+* autopilot-station-@-does-not-allow-autodocking -> autopilot-station-does-not-allow-autodocking
 * witch-to-@-in-f-seconds -> witch-to-x-in-y-seconds
+* witch-blocked-by-@ -> witch-blocked
 * witch-galactic-in-f-seconds -> witch-galactic-in-x-seconds
+* game-paused-@ -> game-paused
+* game-paused-docked-@ -> game-paused-docked
+* missile-locked-onto-@ -> missile-locked-onto-target
+* ident-locked-onto-@ -> ident-locked-onto-target
+* @-armed -> missile-armed and mine-armed
+* @-ejected -> commodity-ejected
+* @-ready-to-eject and ready-to-eject-@ -> ready-to-eject-commodity
+* @-scooped -> scripted-item-scooped
+* scoop-captured-@ -> scoop-captured-character
+* scoop-rescued-@ -> scoop-rescued-character
+* equipment-primed-@ -> equipment-primed
+* equipment-primed-hud-@ -> equipment-primed-hud
+* mfd-d-selected -> mfd-N-selected
 * station-docking-clearance-abort-cancelled-in-f -> station-docking-clearance-abort-cancelled-in-time
 * status-hyperspace-system-multi-@-@ -> status-hyperspace-system-multi
 * equipment-plural-d-@ -> equipment-plural

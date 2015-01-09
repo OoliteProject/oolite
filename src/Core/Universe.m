@@ -566,6 +566,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	PlayerEntity 	*player = PLAYER;
 	
 	[self setPauseMessageVisible:NO];
+	NSString *pauseKey = [PLAYER keyBindingDescription:@"key_pausebutton"];
 	
 	if ([player status] == STATUS_DOCKED)
 	{
@@ -576,7 +577,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-docked-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:OOExpandKey(@"game-paused-docked", pauseKey) forCount:1.0];
 		}
 	}
 	else
@@ -588,7 +589,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:OOExpandKey(@"game-paused", pauseKey) forCount:1.0];
 		}
 	}
 	

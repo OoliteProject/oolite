@@ -12642,15 +12642,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				{
 					co_type = [other commodityType];
 					co_amount = [other commodityAmount];
-					// don't show scoop message now, wil happen later.
+					// don't show scoop message now, will happen later.
 				}
 				else
 				{
 					if (isPlayer && [other showScoopMessage])
 					{
-						NSString* scoopedMS = [NSString stringWithFormat:DESC(@"@-scooped"), [other displayName]];
 						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:scoopedMS forCount:4];
+						NSString *shipName = [other displayName];
+						[UNIVERSE addMessage:OOExpandKey(@"scripted-item-scooped", shipName) forCount:4];
 					}
 					[other setCommodityForPod:nil andAmount:0];
 					co_amount = 0;
@@ -12695,13 +12695,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					for (i = 0; i < [[other crew] count]; i++)
 					{
 						OOCharacter *rescuee = [[other crew] objectAtIndex:i];
+						NSString *characterName = [rescuee name];
 						if ([rescuee legalStatus])
 						{
-							[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-captured-@"), [rescuee name]] forCount: 4.5];
+							[UNIVERSE addMessage:OOExpandKey(@"scoop-captured-character", characterName) forCount: 4.5];
 						}
 						else if ([rescuee insuranceCredits])
 						{
-							[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-rescued-@"), [rescuee name]] forCount: 4.5];
+							[UNIVERSE addMessage:OOExpandKey(@"scoop-rescued-character", characterName) forCount: 4.5];
 						}
 						else
 						{

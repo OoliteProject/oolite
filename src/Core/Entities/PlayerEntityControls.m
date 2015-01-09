@@ -1097,7 +1097,8 @@ static NSTimeInterval	time_last_frame;
 						else
 						{
 							[self playNextEquipmentSelected];
-							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"equipment-primed-@"), [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name]] forCount:2.0];
+							NSString *equipmentName = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name];
+							[UNIVERSE addMessage:OOExpandKey(@"equipment-primed", equipmentName) forCount:2.0];
 						}
 					}
 					prime_equipment_pressed = YES;
@@ -4354,7 +4355,7 @@ static BOOL autopilot_pause;
 	if (fastDocking && ([self alertCondition] == ALERT_CONDITION_RED))
 	{
 		[self playAutopilotCannotDockWithTarget];
-		message = DESC(@"autopilot-red-alert");
+		message = OOExpandKey(@"autopilot-red-alert");
 		goto abort;
 	}
 	
@@ -4389,12 +4390,12 @@ static BOOL autopilot_pause;
 			if (nStations == 0)
 			{
 				[self playAutopilotOutOfRange];
-				message = DESC(@"autopilot-out-of-range");
+				message = OOExpandKey(@"autopilot-out-of-range");
 			}
 			else
 			{
 				[self playAutopilotCannotDockWithTarget];
-				message = DESC(@"autopilot-multiple-targets");
+				message = OOExpandKey(@"autopilot-multiple-targets");
 			}
 			goto abort;
 		}
@@ -4402,19 +4403,20 @@ static BOOL autopilot_pause;
 	
 	// We found a dockable, check whether we can dock with it
 	// NSAssert([target isKindOfClass:[StationEntity class]], @"Expected entity with isStation flag set to be a station.");		// no need for asserts. Tested enough already.
-	StationEntity *ts = (StationEntity*)target;
+	StationEntity *ts = (StationEntity *)target;
+	NSString *stationName = [ts displayName];
 	
 	// If station is not transmitting docking instructions, we cannot use autopilot.
 	if (![ts allowsAutoDocking])
 	{
 		[self playAutopilotCannotDockWithTarget];
-		message = [NSString stringWithFormat:DESC(@"autopilot-station-@-does-not-allow-autodocking"), [ts displayName]];
+		message = OOExpandKey(@"autopilot-station-does-not-allow-autodocking", stationName);
 	}
 	// Deny if station is hostile or player is a fugitive trying to dock at the main station.
 	else if ((legalStatus > 50 && ts == [UNIVERSE station]) || [ts isHostileTo:self])
 	{
 		[self playAutopilotCannotDockWithTarget];
-		message = (ts == [UNIVERSE station] ? DESC(@"autopilot-denied") : DESC(@"autopilot-target-docking-instructions-denied"));
+		message = OOExpandKey((ts == [UNIVERSE station]) ? @"autopilot-denied" : @"autopilot-target-docking-instructions-denied", stationName);
 	}
 	// If we're fast-docking, perform the docking logic
 	else if (fastDocking && [ts allowsFastDocking])
@@ -4444,7 +4446,7 @@ static BOOL autopilot_pause;
 	{
 		// Standard docking - engage autopilot
 		[self engageAutopilotToStation:ts];
-		message = DESC(@"autopilot-on");
+		message = OOExpandKey(@"autopilot-on");
 	}
 	
 abort:
@@ -4464,7 +4466,7 @@ abort:
 	if ([self primaryTarget] == nil)
 	{
 		[self playIdentOn];
-		[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
+		[UNIVERSE addMessage:OOExpandKey(@"ident-on") forCount:2.0];
 	}
 	else
 	{
@@ -4507,13 +4509,15 @@ abort:
 				[self noteLostTarget];
 			}
 			[missile_entity[activeMissile] noteLostTarget];
-			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
+			NSString *weaponName = [missile_entity[activeMissile] name];
+			[UNIVERSE addMessage:OOExpandKey(@"missile-armed", weaponName) forCount:2.0];
 			[self playMissileArmed];
 		}
 	}
 	else if ([missile_entity[activeMissile] isMine])
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
+		NSString *weaponName = [missile_entity[activeMissile] name];
+		[UNIVERSE addMessage:OOExpandKey(@"mine-armed", weaponName) forCount:2.0];
 		[self playMineArmed];
 	}
 	ident_engaged = NO;

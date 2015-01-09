@@ -775,6 +775,8 @@ OOINLINE Universe *OOGetUniverse(void)
 
 
 // Only for use with string literals, and only for looking up strings.
+// DESC() is deprecated in favour of OOExpandKey() except in known performance-
+// critical contexts.
 #define DESC(key)	(OOLookUpDescriptionPRIV(key ""))
 #define DESC_PLURAL(key,count)	(OOLookUpPluralDescriptionPRIV(key "", count))
 

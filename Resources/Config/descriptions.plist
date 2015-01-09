@@ -480,14 +480,14 @@
 	"autopilot-on"					= "Autopilot engaged.";
 	"autopilot-off"					= "Autopilot disengaged.";
 	"autopilot-out-of-range"		= "Could not contact station for docking instructions.";
-	"autopilot-station-@-does-not-allow-autodocking" = "Could not establish SinCorn RemLock protocol link with %@.";
+	"autopilot-station-does-not-allow-autodocking" = "Could not establish SinCorn RemLock protocol link with [stationName].";
 	"autopilot-cannot-dock-with-target" = "Target is not capable of autopilot-docking.";	// string not used at the moment. Remove? kaks 20101031
-	"autopilot-target-docking-instructions-denied" = "Target has denied broadcast of docking instructions.";
-	"autopilot-denied"				= "Station refuses to issue docking instructions.";
+	"autopilot-target-docking-instructions-denied" = "Target has denied broadcast of docking instructions.";	// [stationName] is available here
+	"autopilot-denied"				= "Station refuses to issue docking instructions.";	// Used for main station only; [stationName] is available here
 	"autopilot-multiple-targets"	= "Multiple autopilot targets in vicinity.";
 	"autopilot-red-alert"			= "Red Alert! Cannot engage autopilot.";
 	"witch-to-x-in-y-seconds"		= "Witchspace to [destination] in [seconds] s.";
-	"witch-blocked-by-@"			= "Witchspace jump aborted (too close to %@).";
+	"witch-blocked"					= "Witchspace jump aborted (too close to [blockerName]).";
 	"witch-user-abort"				= "Witchspace jump aborted.";
 	"witch-no-motor"				= "Ship incapable of witchspace jump.";
 	"witch-no-target"				= "No target system set.";
@@ -496,8 +496,8 @@
 	"witch-engine-malfunction"		= "Witchspace engine malfunction!";
 	"witch-galactic-in-x-seconds"	= "Intergalactic jump in [seconds] s.";
 	"witch-user-galactic-abort"		= "Intergalactic jump aborted.";
-	"game-paused-@"					= "Game paused.\nPress F2 for options, '%@' to resume.";
-	"game-paused-docked-@"			= "Game paused. Press '%@' to resume.";
+	"game-paused"					= "Game paused.\nPress F2 for options, '[pauseKey]' to resume.";
+	"game-paused-docked"			= "Game paused. Press '[pauseKey]' to resume.";
 	"game-saved"					= "Game saved.";
 	"mouse-on"						= "Mouse control on.";
 	"mouse-off"						= "Mouse control off.";
@@ -510,9 +510,10 @@
 	"fuel-out"						= "Witchdrive fuel exhausted.";
 	"ident-on"						= "Ident system active.";
 	"ident-off"						= "Ident system deactivated.";
-	"missile-locked-onto-@"			= "Missile locked onto %@.";
-	"ident-locked-onto-@"			= "Ident system locked onto %@.";
-	"@-armed"						= "%@ armed.";
+	"missile-locked-onto-target"	= "Missile locked onto [target].";
+	"ident-locked-onto-target"		= "Ident system locked onto [target].";
+	"missile-armed"					= "[weaponName] armed.";
+	"mine-armed"					= "[missile-armed]";
 	"missile-safe"					= "Missiles on safety.";
 	"incoming-missile"				= "Incoming missile.";
 	"energy-low"					= "Energy low.";
@@ -522,12 +523,11 @@
 	"weapons-systems-online"		= "Weapons systems online.";
 	"weapons-systems-offline"		= "Weapons systems offline.";
 	"escape-sequence"				= "Escape sequence active.";
-	"@-ejected"						= "%@ ejected.";
-	"@-ready-to-eject"				= "Ready to eject %@.";
-	"ready-to-eject-@"				= "Ready to eject %@.";
-	"@-scooped"						= "%@ scooped.";
-	"scoop-captured-@"				= "You captured %@.";
-	"scoop-rescued-@"				= "You rescued %@.";
+	"commodity-ejected"				= "[commodity] ejected.";
+	"ready-to-eject-commodity"		= "Ready to eject [commodity].";
+	"scripted-item-scooped"			= "[shipName] scooped.";
+	"scoop-captured-character"		= "You captured [characterName].";
+	"scoop-rescued-character"		= "You rescued [characterName].";
 	"scoop-got-slave"				= "You captured a slave.";
 	"fuel-scoop-active"				= "Fuel scoop active.";
 	"hold-locked"					= "Cargo ejection system offline (speed too high).";
@@ -537,10 +537,10 @@
 	"cloak-off"						= "Cloaking device deactivated.";
 	"cloak-low-juice"				= "Not enough energy to activate cloaking device.";
 	// equipment usage
-	"equipment-primed-@"			= "Equipment primed: %@.";
-	"equipment-primed-none"			= "Equipment primed: none.";
-	"equipment-primed-none-hud-label"			= "None";
-	"equipment-primed-hud-@"			= "Primed: %@";
+	"equipment-primed"					= "Equipment primed: [equipmentName].";
+	"equipment-primed-none"				= "Equipment primed: none.";
+	"equipment-primed-none-hud-label"	= "None";
+	"equipment-primed-hud"				= "Primed: [equipmentName]";
 	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
 	"oolite-primablemanager-notify-setup" = "Adjust settings on interface screen if necessary";
@@ -549,7 +549,7 @@
 	"oolite-primablemanager-slot-offensive" = "offensive";
 
 
-	"mfd-d-selected"				= "Multi-function display %d selected.";
+	"mfd-N-selected"				= "Multi-function display [mfdID] selected.";
 
 	// Assorted messages sent out by ships etc..
 	"beg-for-mercy" =
