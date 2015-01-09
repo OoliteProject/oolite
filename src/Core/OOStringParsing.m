@@ -292,6 +292,15 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 	jsval				exception;
 	BOOL				hadException;
 	
+	/*	Because the |cr etc. formatting operators call this, and the
+		implementation may use string expansion, we need to ensure recursion
+		can't happen.
+	*/
+	static BOOL reentrancyLock;
+	if (reentrancyLock)  return [NSString stringWithFormat:@"%0.1f", tenthsOfCredits * 0.1];
+	
+	reentrancyLock = YES;
+	
 	hadException = JS_GetPendingException(context, &exception);
 	JS_ClearPendingException(context);
 	
@@ -316,6 +325,8 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 	OOJSRelinquishContext(context);
 	
 	if (EXPECT_NOT(result == nil))  result = [NSString stringWithFormat:@"%li", (long)(tenthsOfCredits) / 10];
+	
+	reentrancyLock = NO;
 	
 	return result;
 }

@@ -68,6 +68,7 @@ Work has begun on replacing the %@-type formatting strings in descriptions.plist
 with ones that work the same as format strings used in scripts. In most cases,
 a placeholder like %@ or %d has been replaced with one like [destination] or
 [population].
+* @-credits -> credits-format
 * witch-to-@-in-f-seconds -> witch-to-x-in-y-seconds
 * witch-galactic-in-f-seconds -> witch-galactic-in-x-seconds
 * station-docking-clearance-abort-cancelled-in-f -> station-docking-clearance-abort-cancelled-in-time
@@ -109,6 +110,8 @@ a placeholder like %@ or %d has been replaced with one like [destination] or
 * planetname-derivative-suffix has been replaced with planetname-possessive.
   The default planetname-possessive references planetname-derivative-suffix for
   compatibility (it isn't used anywhere else).
+* New: number-negative
+* New: credits-negative
 * New: sysdata-tl-value
 * New: sysdata-radius-value
 * Removed: extra-@-@-(long-description)

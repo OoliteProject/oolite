@@ -77,10 +77,11 @@
 	//	"!1"	// index 1: plural
 	);
 	
-	"number-group-size" = 3;
-	"number-group-threshold" = 5;
-	"number-decimal-separator" = ".";
-	"number-group-separator" = " ";		// Non-breaking space.
+	"number-group-size"			= 3;
+	"number-group-threshold"	= 5;
+	"number-decimal-separator"	= ".";
+	"number-group-separator"	= " ";		// Non-breaking space.
+	"number-negative"			= "-[value]";
 	
 	// *** Basic lists ***
 	condition =
@@ -458,7 +459,8 @@
 	"not-applicable"				= "N/A";
 	
 	// Currency format
-	"@-credits"						= "%@ ₢";
+	"credits-negative"				= "[number-negative]";
+	"credits-format"				= "[value] ₢";
 	
 	// Fancy-schmancy symbols
 	"multiplication-sign"			= "×";
