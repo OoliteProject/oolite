@@ -9186,16 +9186,12 @@ static NSString *last_outfitting_key=nil;
 			// a certain number of them exist
 			if ([OXPsWithMessages count] < 5)
 			{
-				unsigned i;
-				for (i = 0; i < [OXPsWithMessages count]; i++)
-				{
-					messageToDisplay = [messageToDisplay stringByAppendingString:
-															[NSString stringWithFormat:([messageToDisplay isEqualToString:@""] ? @"%@" : @", %@"),
-															[OXPsWithMessages oo_stringAtIndex:i]]];
-				}
-				messageToDisplay = [NSString stringWithFormat:DESC(@"oxp-containing-messages-list-@"), messageToDisplay];
+				NSString *messageSourceList = [OXPsWithMessages componentsJoinedByString:@", "];
+				messageToDisplay = OOExpandKey(@"oxp-containing-messages-list", messageSourceList);
+			} else {
+				messageToDisplay = OOExpandKey(@"oxp-containing-messages-found");
 			}
-			messageToDisplay = [NSString stringWithFormat:@"%@%@",DESC(@"oxp-containing-messages-found"), messageToDisplay];
+			
 			OOGUIRow ms_start = msgLine;
 			OOGUIRow i = msgLine = [gui addLongText:messageToDisplay startingAtRow:ms_start align:GUI_ALIGN_LEFT];
 			for (i--; i >= ms_start; i--)
