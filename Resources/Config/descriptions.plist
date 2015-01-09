@@ -473,7 +473,7 @@
 	"oxp-containing-messages-list"		= "[oxp-containing-messages-found] from: [messageSourceList]";
 	
 	// Messages used when awarding bounties
-	"bounty-@-total-@"				= "Bounty: %@\nTotal: %@";
+	"bounty-awarded"				= "Bounty: [score|dcr]\nTotal: [credits|dcr]";
 	"right-on-commander"			= "Right On, Commander!";
 	
 	// Assorted messages used by the onboard computer

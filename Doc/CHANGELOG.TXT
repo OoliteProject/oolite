@@ -70,6 +70,7 @@ a placeholder like %@ or %d has been replaced with one like [destination] or
 [population].
 * @-credits -> credits-format
 * oxp-containing-messages-list-@ -> oxp-containing-messages-list
+* bounty-@-total-@ -> bounty-awarded
 * witch-to-@-in-f-seconds -> witch-to-x-in-y-seconds
 * witch-galactic-in-f-seconds -> witch-galactic-in-x-seconds
 * station-docking-clearance-abort-cancelled-in-f -> station-docking-clearance-abort-cancelled-in-time

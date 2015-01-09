@@ -6318,9 +6318,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	if (score > 9)
 	{
-		NSString *bonusMsg = [NSString stringWithFormat:DESC(@"bounty-@-total-@"), OOCredits(score), OOCredits(credits)];
-		
-		[UNIVERSE addDelayedMessage:bonusMsg forCount:6 afterDelay:0.15];
+		NSString *bonusMessage = OOExpandKey(@"bounty-awarded", score, credits);
+		[UNIVERSE addDelayedMessage:bonusMessage forCount:6 afterDelay:0.15];
 	}
 	
 	if (killAward)
