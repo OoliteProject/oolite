@@ -6189,7 +6189,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[pod release];
 	
 	NSString *commodity = [UNIVERSE displayNameForCommodity:contents];
-	[UNIVERSE addMessage:OOExpandKey(@"commodity-ready-to-eject", commodity) forCount:3.0];
+	[UNIVERSE addMessage:OOExpandKey(@"ready-to-eject-commodity", commodity) forCount:3.0];
 
 	// now scan through the remaining 1..(n_cargo - rotates) places moving similar cargo to the last place
 	// this means the cargo gets to be sorted as it is rotated through
