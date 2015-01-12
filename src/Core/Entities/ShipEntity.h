@@ -230,6 +230,8 @@ typedef enum
 	OOColor					*exhaust_emissive_color;
 	OOColor					*scanner_display_color1;
 	OOColor					*scanner_display_color2;
+	OOColor					*scanner_display_color_hostile1;
+	OOColor					*scanner_display_color_hostile2;
 	
 	// per ship-type variables
 	//
@@ -709,11 +711,15 @@ typedef enum
 - (void) updateTrackingCurve;
 - (void) calculateTrackingCurve;
 
-- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2 :(OOColor *)scannerDisplayColorH1 :(OOColor *)scannerDisplayColorH2;
 - (void)setScannerDisplayColor1:(OOColor *)color1;
 - (void)setScannerDisplayColor2:(OOColor *)color2;
 - (OOColor *)scannerDisplayColor1;
 - (OOColor *)scannerDisplayColor2;
+- (void)setScannerDisplayColorHostile1:(OOColor *)color1;
+- (void)setScannerDisplayColorHostile2:(OOColor *)color2;
+- (OOColor *)scannerDisplayColorHostile1;
+- (OOColor *)scannerDisplayColorHostile2;
 
 - (BOOL)isCloaked;
 - (void)setCloaked:(BOOL)cloak;

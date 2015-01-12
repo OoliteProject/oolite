@@ -1262,7 +1262,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				{
 					ShipEntity *ship = (ShipEntity *)scannedEntity;
 					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
-					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
+					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash
+																		:[ship scannerDisplayColor1] :[ship scannerDisplayColor2]
+																		:[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]
+						];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				else if ([scannedEntity isVisualEffect])
@@ -3449,7 +3452,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 			{
 				ShipEntity *ship = (ShipEntity *)target;
 				BOOL isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
-				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]],alpha);
+				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2] :[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]],alpha);
 			}
 			else if ([target isVisualEffect])
 			{

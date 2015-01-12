@@ -290,6 +290,8 @@ enum
 	kShip_scanDescription,		// STE scan class label, string, read/write
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
+	kShip_scannerHostileDisplayColor1,	// color of lollipop shown on scanner, array, read/write
+	kShip_scannerHostileDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_script,				// script, Script, read-only
 	kShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
@@ -439,6 +441,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "scanDescription",		kShip_scanDescription,		OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	OOJS_PROP_READWRITE_CB },
+	{ "scannerHostileDisplayColor1",	kShip_scannerHostileDisplayColor1,	OOJS_PROP_READWRITE_CB },
+	{ "scannerHostileDisplayColor2",	kShip_scannerHostileDisplayColor2,	OOJS_PROP_READWRITE_CB },
 	{ "scannerRange",			kShip_scannerRange,			OOJS_PROP_READONLY_CB },
 	{ "script",					kShip_script,				OOJS_PROP_READONLY_CB },
 	{ "scriptedMisjump",		kShip_scriptedMisjump,		OOJS_PROP_READWRITE_CB },
@@ -1100,6 +1104,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_scannerDisplayColor2:
 			result = [[entity scannerDisplayColor2] normalizedArray];
 			break;
+
+		case kShip_scannerHostileDisplayColor1:
+			result = [[entity scannerDisplayColorHostile1] normalizedArray];
+			break;
+			
+		case kShip_scannerHostileDisplayColor2:
+			result = [[entity scannerDisplayColorHostile2] normalizedArray];
+			break;
 			
 		case kShip_exhaustEmissiveColor:
 			result = [[entity exhaustEmissiveColor] normalizedArray];
@@ -1562,6 +1574,24 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			if (colorForScript != nil || JSVAL_IS_NULL(*value))
 			{
 				[entity setScannerDisplayColor2:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kShip_scannerHostileDisplayColor1:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColorHostile1:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kShip_scannerHostileDisplayColor2:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColorHostile2:colorForScript];
 				return YES;
 			}
 			break;

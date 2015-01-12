@@ -639,6 +639,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	// these are the colors used for the "lollipop" of the ship. Any of the two (or both, for flash effect) can be defined. nil means use default from shipData.
 	[self setScannerDisplayColor1:nil];
 	[self setScannerDisplayColor2:nil];
+	// and the same for the "hostile" colours
+	[self setScannerDisplayColorHostile1:nil];
+	[self setScannerDisplayColorHostile2:nil];
+
 
 	// Populate the missiles here. Must come after scanClass.
 	_missileRole = [shipDict oo_stringForKey:@"missile_role"];
@@ -1058,6 +1062,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(exhaust_emissive_color);
 	DESTROY(scanner_display_color1);
 	DESTROY(scanner_display_color2);
+	DESTROY(scanner_display_color_hostile1);
+	DESTROY(scanner_display_color_hostile2);
 	DESTROY(script);
 	DESTROY(aiScript);
 	DESTROY(previousCondition);
@@ -6353,8 +6359,37 @@ static GLfloat mascem_color1[4] =	{ 0.3, 0.3, 0.3, 1.0};	// dark gray
 static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by script
 
-- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2 :(OOColor *)scannerDisplayColorH1 :(OOColor *)scannerDisplayColorH2
 {
+	if (isHostile)
+	{
+		/* if there are any scripted scanner hostile display colours
+		 * for the ship, use them - otherwise fall through to the
+		 * normal scripted colours, then the scan class colours */
+		if (scannerDisplayColorH1 || scannerDisplayColorH2)
+		{
+			if (scannerDisplayColorH1 && !scannerDisplayColorH2)
+			{
+				[scannerDisplayColorH1 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			}
+		
+			if (!scannerDisplayColorH1 && scannerDisplayColorH2)
+			{
+				[scannerDisplayColorH2 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			}
+		
+			if (scannerDisplayColorH1 && scannerDisplayColorH2)
+			{
+				if (flash)
+					[scannerDisplayColorH1 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+				else
+					[scannerDisplayColorH2 getRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			}
+		
+			return scripted_color;
+		}
+	}
+
 	// if there are any scripted scanner display colors for the ship, use them
 	if (scannerDisplayColor1 || scannerDisplayColor2)
 	{
@@ -6463,6 +6498,36 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 - (OOColor *)scannerDisplayColor2
 {
 	return [[scanner_display_color2 retain] autorelease];
+}
+
+
+- (void)setScannerDisplayColorHostile1:(OOColor *)color
+{
+	DESTROY(scanner_display_color_hostile1);
+	
+	if (color == nil)  color = [OOColor colorWithDescription:[[self shipInfoDictionary] objectForKey:@"scanner_hostile_display_color1"]];
+	scanner_display_color_hostile1 = [color retain];
+}
+
+
+- (void)setScannerDisplayColorHostile2:(OOColor *)color
+{
+	DESTROY(scanner_display_color_hostile2);
+	
+	if (color == nil)  color = [OOColor colorWithDescription:[[self shipInfoDictionary] objectForKey:@"scanner_hostile_display_color2"]];
+	scanner_display_color_hostile2 = [color retain];
+}
+
+
+- (OOColor *)scannerDisplayColorHostile1
+{
+	return [[scanner_display_color_hostile1 retain] autorelease];
+}
+
+
+- (OOColor *)scannerDisplayColorHostile2
+{
+	return [[scanner_display_color_hostile2 retain] autorelease];
 }
 
 
