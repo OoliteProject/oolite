@@ -50,8 +50,14 @@ MA 02110-1301, USA.
 	self = [super init];
 	if (EXPECT_NOT(self == nil))  return nil;
 
+	oriented = YES;
 	position = [info oo_hpvectorForKey:OOWAYPOINT_KEY_POSITION];
-	[self setOrientation:[info oo_quaternionForKey:OOWAYPOINT_KEY_ORIENTATION]];
+	Quaternion q = [info oo_quaternionForKey:OOWAYPOINT_KEY_ORIENTATION];
+	if (quaternion_equal(q,kZeroQuaternion)) {
+		q = kIdentityQuaternion;
+		oriented = NO;
+	}
+	[self setOrientation:q];
 	[self setSize:[info oo_nonNegativeFloatForKey:OOWAYPOINT_KEY_SIZE defaultValue:1000.0]];
 	[self setBeaconCode:[info oo_stringForKey:OOWAYPOINT_KEY_CODE defaultValue:@"W"]];
 	[self setBeaconLabel:[info oo_stringForKey:OOWAYPOINT_KEY_LABEL defaultValue:@"Waypoint"]];
@@ -156,13 +162,16 @@ MA 02110-1301, USA.
 			}
 		}
 	}
-	while (s1 > 20.0)
+	if (oriented)
 	{
-		glVertex3f(-20.0,0,-s1-20.0);	glVertex3f(0,0,-s1);
-		glVertex3f(20.0,0,-s1-20.0);	glVertex3f(0,0,-s1);
-		glVertex3f(-20.0,0,s1-20.0);	glVertex3f(0,0,s1);
-		glVertex3f(20.0,0,s1-20.0);		glVertex3f(0,0,s1);
-		s1 *= 0.5;
+		while (s1 > 20.0)
+		{
+			glVertex3f(-20.0,0,-s1-20.0);	glVertex3f(0,0,-s1);
+			glVertex3f(20.0,0,-s1-20.0);	glVertex3f(0,0,-s1);
+			glVertex3f(-20.0,0,s1-20.0);	glVertex3f(0,0,s1);
+			glVertex3f(20.0,0,s1-20.0);		glVertex3f(0,0,s1);
+			s1 *= 0.5;
+		}
 	}
 	OOGLEND();
 
