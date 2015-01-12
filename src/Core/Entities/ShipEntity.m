@@ -385,27 +385,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	if (modelName != nil)
 	{
 		OOMesh *mesh = nil;
-		if (EXPECT(_scaleFactor == 1.0f))
-		{
-			mesh = [OOMesh meshWithName:modelName
-							   cacheKey:_shipKey
-					 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
-					  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
-								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-						   shaderMacros:OODefaultShipShaderMacros()
-						   shaderBindingTarget:self];
-		}
-		else
-		{
-			mesh = [OOMesh meshWithName:modelName
-							   cacheKey:[NSString stringWithFormat:@"%@-%.3f",_shipKey,_scaleFactor]
-					 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
-					  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
-								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-						   shaderMacros:OODefaultShipShaderMacros()
-						   shaderBindingTarget:self
-							scaleFactor:_scaleFactor];
-		}
+
+		mesh = [OOMesh meshWithName:modelName
+						   cacheKey:[NSString stringWithFormat:@"%@-%.3f",_shipKey,_scaleFactor]
+				 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
+				  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
+							 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
+					   shaderMacros:OODefaultShipShaderMacros()
+					   shaderBindingTarget:self
+						scaleFactor:_scaleFactor];
+
 		if (mesh == nil)  return NO;
 		[self setMesh:mesh];
 	}
