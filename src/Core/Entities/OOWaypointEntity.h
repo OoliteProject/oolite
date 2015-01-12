@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 
 - (id) initWithDictionary:(NSDictionary *)info;
 
+- (BOOL) oriented;
 - (OOScalar) size;
 - (void) setSize:(OOScalar)newSize;
 

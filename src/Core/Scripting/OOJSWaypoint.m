@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOJSWaypoint.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 #import "OOJavaScriptEngine.h"
 #import "OOCollectionExtractors.h"
 #import "EntityOOJavaScriptExtensions.h"
@@ -61,6 +62,7 @@ enum
 	// Property IDs
 	kWaypoint_beaconCode,
 	kWaypoint_beaconLabel,
+	kWaypoint_orientation, // overrides entity as waypoints can be unoriented
 	kWaypoint_size
 };
 
@@ -70,6 +72,7 @@ static JSPropertySpec sWaypointProperties[] =
 	// JS name						ID						flags
 	{ "beaconCode",	    kWaypoint_beaconCode,	OOJS_PROP_READWRITE_CB },
 	{ "beaconLabel",	kWaypoint_beaconLabel,	OOJS_PROP_READWRITE_CB },
+	{ "orientation",	kWaypoint_orientation,	OOJS_PROP_READWRITE_CB },
 	{ "size",	     	kWaypoint_size,	      	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
@@ -143,7 +146,8 @@ static JSBool WaypointGetProperty(JSContext *context, JSObject *this, jsid propI
 	
 	OOWaypointEntity				*entity = nil;
 	id result = nil;
-	
+	Quaternion q = kIdentityQuaternion;
+
 	if (!JSWaypointGetWaypointEntity(context, this, &entity))  return NO;
 	if (entity == nil)  { *value = JSVAL_VOID; return YES; }
 	
@@ -156,6 +160,14 @@ static JSBool WaypointGetProperty(JSContext *context, JSObject *this, jsid propI
 	case kWaypoint_beaconLabel:
 		result = [entity beaconLabel];
 		break;
+
+	case kWaypoint_orientation:
+		q = [entity orientation];
+		if (![entity oriented])
+		{
+			q = kZeroQuaternion;
+		}
+		return QuaternionToJSValue(context, q, value);
 		
 	case kWaypoint_size:
 		return JS_NewNumberValue(context, [entity size], value);
@@ -181,6 +193,7 @@ static JSBool WaypointSetProperty(JSContext *context, JSObject *this, jsid propI
 	OOWaypointEntity				*entity = nil;
 	jsdouble        fValue;
 	NSString					*sValue = nil;
+	Quaternion			qValue;
 
 	if (!JSWaypointGetWaypointEntity(context, this, &entity)) return NO;
 	if (entity == nil)  return YES;
@@ -220,6 +233,14 @@ static JSBool WaypointSetProperty(JSContext *context, JSObject *this, jsid propI
 			if (sValue != nil)
 			{
 				[entity setBeaconLabel:sValue];
+				return YES;
+			}
+			break;
+
+		case kWaypoint_orientation:
+			if (JSValueToQuaternion(context, *value, &qValue))
+			{
+				[entity setNormalOrientation:qValue];
 				return YES;
 			}
 			break;

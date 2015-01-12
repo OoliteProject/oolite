@@ -53,10 +53,6 @@ MA 02110-1301, USA.
 	oriented = YES;
 	position = [info oo_hpvectorForKey:OOWAYPOINT_KEY_POSITION];
 	Quaternion q = [info oo_quaternionForKey:OOWAYPOINT_KEY_ORIENTATION];
-	if (quaternion_equal(q,kZeroQuaternion)) {
-		q = kIdentityQuaternion;
-		oriented = NO;
-	}
 	[self setOrientation:q];
 	[self setSize:[info oo_nonNegativeFloatForKey:OOWAYPOINT_KEY_SIZE defaultValue:1000.0]];
 	[self setBeaconCode:[info oo_stringForKey:OOWAYPOINT_KEY_CODE defaultValue:@"W"]];
@@ -78,6 +74,25 @@ MA 02110-1301, USA.
 	DESTROY(_beaconDrawable);
 
 	[super dealloc];
+}
+
+
+// override
+- (void) setOrientation:(Quaternion)q
+{
+	if (quaternion_equal(q,kZeroQuaternion)) {
+		q = kIdentityQuaternion;
+		oriented = NO;
+	} else {
+		oriented = YES;
+	}
+	[super setOrientation:q];
+}
+
+
+- (BOOL) oriented
+{
+	return oriented;
 }
 
 
