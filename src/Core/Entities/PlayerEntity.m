@@ -6953,8 +6953,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (![self witchJumpChecklist:true])
 		return;
 
+
+	OOGalaxyID destGalaxy = galaxy_number + 1;
+	if (EXPECT_NOT(destGalaxy >= OO_GALAXIES_AVAILABLE))
+	{
+		destGalaxy = 0;
+	}
+
+
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("galactic jump"));
+	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("galactic jump"), INT_TO_JSVAL(destGalaxy));
 	[self noteCompassLostTarget];
 	
 	[self witchStart];
@@ -7004,11 +7012,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// may be more than one item providing this
 	[self removeEquipmentItem:[self equipmentItemProviding:@"EQ_GAL_DRIVE"]];
 	
-	galaxy_number++;
-	if (EXPECT_NOT(galaxy_number >= OO_GALAXIES_AVAILABLE))
-	{
-		galaxy_number = 0;
-	}
+	galaxy_number = destGalaxy;
 
 	[UNIVERSE setGalaxyTo:galaxy_number];
 
@@ -7055,7 +7059,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	wormhole = [w_hole retain];
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("wormhole"));
+	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("wormhole"), INT_TO_JSVAL([w_hole destination]));
 	if ([self scriptedMisjump]) 
 	{
 		misjump = YES; // a script could just have changed this to true;
@@ -7117,7 +7121,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self addScannedWormhole:wormhole];
 	
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"));
+	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"), INT_TO_JSVAL(jumpTarget));
 
 	[self updateSystemMemory];
 	NSUInteger legality = [self legalStatusOfCargoList];
