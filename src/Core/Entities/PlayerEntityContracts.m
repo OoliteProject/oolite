@@ -90,6 +90,7 @@ static unsigned RepForRisk(unsigned risk);
 	for (i = 0; i < [rescuees count]; i++)
 	{
 		OOCharacter *rescuee = [rescuees objectAtIndex:i];
+		
 		if ([rescuee script])
 		{
 			[rescuee doScriptEvent:OOJSID("unloadCharacter")];
@@ -111,7 +112,7 @@ static unsigned RepForRisk(unsigned risk);
 				[result appendFormat:DESC(@"capture-reward-for-@@-@-credits-@-alt"),
 				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO),
 				 OOStringFromDeciCredits(insurance, YES, NO)];
-				
+				[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArgument:[NSNumber numberWithUnsignedInteger:reward] andArgument:@"bounty"];
 			}
 			else
 			{
@@ -120,6 +121,7 @@ static unsigned RepForRisk(unsigned risk);
 				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(insurance - reward, YES, NO),
 				 OOStringFromDeciCredits(reward, YES, NO)];
 				reward = insurance - reward;
+				[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArgument:[NSNumber numberWithUnsignedInteger:reward] andArgument:@"insurance"];
 			}
 			credits += reward;
 			added_entry = YES;
@@ -130,6 +132,8 @@ static unsigned RepForRisk(unsigned risk);
 			[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO)];
 			credits += 10 * [rescuee insuranceCredits];
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArgument:[NSNumber numberWithUnsignedInteger:(10 * [rescuee insuranceCredits])] andArgument:@"insurance"];
+				
 			added_entry = YES;
 		}
 		else if ([rescuee legalStatus])
@@ -139,12 +143,15 @@ static unsigned RepForRisk(unsigned risk);
 			[result appendFormat:DESC(@"capture-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO)];
 			credits += reward;
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArgument:[NSNumber numberWithUnsignedInteger:reward] andArgument:@"bounty"];
 			added_entry = YES;
 		}
 		else
 		{
 			// sell as slave - increase no. of slaves in manifest
 			[shipCommodityData addQuantity:1 forGood:@"slaves"];
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArgument:[NSNumber numberWithUnsignedInteger:0] andArgument:@"slave"];
+
 		}
 		if ((i < [rescuees count] - 1) && added_entry)
 			[result appendString:@"\n"];
