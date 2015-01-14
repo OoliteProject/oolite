@@ -366,6 +366,19 @@ MA 02110-1301, USA.
 }
 
 
+- (NSDictionary *) infoForScripting
+{
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+		  [self name], @"name",
+		  [self shortDescription], @"description",
+		  [self species], @"species",
+		  [NSNumber numberWithInt:[self legalStatus]], @"legalStatus",
+	      [NSNumber numberWithUnsignedInt:[self insuranceCredits]], @"insuranceCredits",
+		  [NSNumber numberWithInt:[self planetIDOfOrigin]], @"homeSystem",
+		  nil];
+}
+
+
 - (void)setName:(NSString *)value
 {
 	[_name autorelease];
