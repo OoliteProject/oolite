@@ -143,14 +143,14 @@ static unsigned RepForRisk(unsigned risk);
 			[result appendFormat:DESC(@"capture-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO)];
 			credits += reward;
-			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArgument:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"bounty",[rescuee infoForScripting],nil]];
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"bounty",[rescuee infoForScripting],nil]];
 			added_entry = YES;
 		}
 		else
 		{
 			// sell as slave - increase no. of slaves in manifest
 			[shipCommodityData addQuantity:1 forGood:@"slaves"];
-			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArgument:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:0],@"slave",[rescuee infoForScripting],nil]];
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:0],@"slave",[rescuee infoForScripting],nil]];
 
 		}
 		if ((i < [rescuees count] - 1) && added_entry)
@@ -178,7 +178,7 @@ static unsigned RepForRisk(unsigned risk);
 	// check passenger contracts
 	for (i = 0; i < [passengers count]; i++)
 	{
-		NSDictionary* passenger_info = [passengers oo_dictionaryAtIndex:i];
+		NSDictionary* passenger_info = [[passengers oo_dictionaryAtIndex:i] retain];
 		NSString* passenger_name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
 		int dest = [passenger_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		// the system name can change via script
@@ -205,6 +205,7 @@ static unsigned RepForRisk(unsigned risk);
 
 				[self increasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[passengers removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger",@"success",[NSNumber numberWithUnsignedInteger:(10*fee)],passenger_info,nil]];
 			}
 			else
 			{
@@ -218,6 +219,8 @@ static unsigned RepForRisk(unsigned risk);
 				[self addRoleToPlayer:@"trader-courier+"];
 
 				[passengers removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger",@"late",[NSNumber numberWithUnsignedInteger:10*fee],passenger_info,nil]];
+
 			}
 		}
 		else
@@ -229,14 +232,16 @@ static unsigned RepForRisk(unsigned risk);
 				
 				[self decreasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[passengers removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger",@"failed",[NSNumber numberWithUnsignedInteger:0],passenger_info,nil]];
 			}
 		}
+		[passenger_info release];
 	}
 
 	// check parcel contracts
 	for (i = 0; i < [parcels count]; i++)
 	{
-		NSDictionary* parcel_info = [parcels oo_dictionaryAtIndex:i];
+		NSDictionary* parcel_info = [[parcels oo_dictionaryAtIndex:i] retain];
 		NSString* parcel_name = [parcel_info oo_stringForKey:PASSENGER_KEY_NAME];
 		int dest = [parcel_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		int dest_eta = [parcel_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
@@ -263,6 +268,8 @@ static unsigned RepForRisk(unsigned risk);
 
 				[parcels removeObjectAtIndex:i--];
 				[self addRoleToPlayer:@"trader-courier+"];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"success",[NSNumber numberWithUnsignedInteger:10*fee],parcel_info,nil]];
+
 			}
 			else
 			{
@@ -275,6 +282,7 @@ static unsigned RepForRisk(unsigned risk);
 				[result appendFormatLine:DESC(@"parcel-delivered-late-@-@"), parcel_name, OOIntCredits(fee)];
 				[self addRoleToPlayer:@"trader-courier+"];
 				[parcels removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"late",[NSNumber numberWithUnsignedInteger:10*fee],parcel_info,nil]];
 			}
 		}
 		else
@@ -286,15 +294,17 @@ static unsigned RepForRisk(unsigned risk);
 				
 				[self decreaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[parcels removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"failed",[NSNumber numberWithUnsignedInteger:0],parcel_info,nil]];
 			}
 		}
+		[parcel_info release];
 	}
 
 	
 	// check cargo contracts
 	for (i = 0; i < [contracts count]; i++)
 	{
-		NSDictionary* contract_info = [contracts oo_dictionaryAtIndex:i];
+		NSDictionary* contract_info = [[contracts oo_dictionaryAtIndex:i] retain];
 		NSString* contract_cargo_desc = [contract_info oo_stringForKey:CARGO_KEY_DESCRIPTION];
 		int dest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
@@ -342,6 +352,8 @@ static unsigned RepForRisk(unsigned risk);
 					// repute++
 					// +10 as cargo contracts don't have risk modifiers
 					[self increaseContractReputation:10];
+					[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"success",[NSNumber numberWithUnsignedInteger:fee],contract_info,nil]];
+
 				}
 				else
 				{
@@ -373,6 +385,8 @@ static unsigned RepForRisk(unsigned risk);
 						
 						[contracts removeObjectAtIndex:i--];
 						// repute unchanged
+						[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"short",[NSNumber numberWithUnsignedInteger:payment],contract_info,nil]];
+
 					}
 					else
 					{
@@ -389,6 +403,7 @@ static unsigned RepForRisk(unsigned risk);
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation:10];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"late",[NSNumber numberWithUnsignedInteger:0],contract_info,nil]];
 			}
 		}
 		else
@@ -401,8 +416,10 @@ static unsigned RepForRisk(unsigned risk);
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation:10];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"failed",[NSNumber numberWithUnsignedInteger:0],contract_info,nil]];
 			}
 		}
+		[contract_info release];
 	}
 	
 	// check passenger_record for expired contracts
