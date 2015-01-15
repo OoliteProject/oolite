@@ -885,6 +885,9 @@ for (unsigned i=0;i<amount;i++)
 
 	[passengers addObject:passenger_info];
 	[passenger_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
+
+	[self doScriptEvent:OOJSID("playerEnteredContract") withArguments:[NSArray arrayWithObjects:@"passenger",passenger_info,nil]];
+
 	return YES;
 }
 
@@ -935,6 +938,9 @@ for (unsigned i=0;i<amount;i++)
 		
 	[parcels addObject:parcel_info];
 	[parcel_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
+
+	[self doScriptEvent:OOJSID("playerEnteredContract") withArguments:[NSArray arrayWithObjects:@"parcel",parcel_info,nil]];
+
 	return YES;
 }
 
@@ -1021,6 +1027,8 @@ for (unsigned i=0;i<amount;i++)
 
 	[contracts addObject:cargo_info];
 	[contract_record setObject:[NSNumber numberWithDouble:eta] forKey:cargo_ID];
+
+	[self doScriptEvent:OOJSID("playerEnteredContract") withArguments:[NSArray arrayWithObjects:@"cargo",cargo_info,nil]];
 
 	return YES;
 }
