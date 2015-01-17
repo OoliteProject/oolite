@@ -17,10 +17,10 @@
 		accuracy = "float";
 		max_energy = "positiveFloat";
 		energy_recharge_rate = "positiveFloat";
-		forward_weapon_type = "$weaponType";
-		aft_weapon_type = "$weaponType";
-		port_weapon_type = "$weaponType";
-		starboard_weapon_type = "$weaponType";
+		forward_weapon_type = "string";
+		aft_weapon_type = "string";
+		port_weapon_type = "string";
+		starboard_weapon_type = "string";
 		weapon_facings = "positiveInteger";
 		weapon_energy = "positiveFloat";
 		weapon_range = "positiveFloat";
@@ -165,20 +165,6 @@
 	$definitions =
 	{
 		// "Special" types referred to above.
-		$weaponType =
-		{
-			type = "enumeration";
-			values = 
-			(
-				"WEAPON_NONE",
-				"WEAPON_PLASMA_CANNON",
-				"WEAPON_PULSE_LASER",
-				"WEAPON_BEAM_LASER",
-				"WEAPON_MINING_LASER",
-				"WEAPON_MILITARY_LASER",
-				"WEAPON_THARGOID_LASER"
-			);
-		};
 		$materialDict =
 		{
 			type = "dictionary";
