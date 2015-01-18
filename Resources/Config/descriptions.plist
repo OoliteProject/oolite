@@ -836,7 +836,8 @@
 		"You have been fined %@ for violating the station's docking protocol. Docking without clearance is not allowed here.",
 		"You docked without any clearance. For violating the station's docking protocol you have been fined %@."
 	);
-		
+	"oolite-station-docking-requires-clearance" = "Warning: you do not have docking clearance";		
+
 	// components of the tutorial's docking helper
 	"oolite-tutorial-dock-notarget" = "Use your identification system to target the station you wish to dock with to activate the docking assessment system.";
 

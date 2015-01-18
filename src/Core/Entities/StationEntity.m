@@ -810,6 +810,16 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	{
 		if ([sub shipIsInDockingCorridor:ship])
 		{
+
+			if ([self requiresDockingClearance] && [ship isPlayer] && [ship status] != STATUS_LAUNCHING && [ship status] != STATUS_AUTOPILOT_ENGAGED)
+			{
+				if ([PLAYER getDockingClearanceStatus] < DOCKING_CLEARANCE_STATUS_GRANTED)
+				{
+					// player is in docking corridor
+					[UNIVERSE addMessage:DESC(@"oolite-station-docking-requires-clearance") forCount:3];
+				}
+			}
+
 			return YES;
 		}
 	}
