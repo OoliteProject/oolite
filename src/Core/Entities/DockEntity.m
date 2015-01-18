@@ -732,6 +732,19 @@ MA 02110-1301, USA.
 			range);
 	}
 #endif
+
+	if ((arbb.max.x < ww * 3.0)&&(arbb.min.x > -ww * 3.0)&&(arbb.max.y < hh * 3.0)&&(arbb.min.y > -hh * 3.0))
+	{
+		if ([station requiresDockingClearance] && [ship isPlayer] && [ship status] != STATUS_LAUNCHING && [ship status] != STATUS_AUTOPILOT_ENGAGED && [PLAYER getDockingClearanceStatus] < DOCKING_CLEARANCE_STATUS_GRANTED)
+		{
+			if ((0.90 * arbb.max.z + 0.10 * arbb.min.z < 3000) && (dot_product(vk,[ship forwardVector]) < -0.9))
+			{
+				// player is in docking corridor and facing dock
+				// and within 3km
+				[UNIVERSE addMessage:DESC(@"oolite-station-docking-requires-clearance") forCount:3];
+			}
+		}
+	}
 	
 	if (arbb.max.z < -dd)
 	{

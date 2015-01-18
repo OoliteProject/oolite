@@ -354,6 +354,21 @@ static BOOL positionIsWithinBorders(HPVector position, CollisionRegion *region)
 							[(ShipEntity*)e1 setProximityAlert:(ShipEntity*)e2];
 							[(ShipEntity*)e2 setProximityAlert:(ShipEntity*)e1];
 						}
+
+						if (dist2 >= min_dist2)
+						{
+							if (e1->isStation)
+							{
+								StationEntity* se1 = (StationEntity *)e1;
+								[se1 shipIsInDockingCorridor:(ShipEntity *)e2];
+							}
+							else if (e2->isStation)
+							{
+								StationEntity* se2 = (StationEntity *)e2;
+								[se2 shipIsInDockingCorridor:(ShipEntity *)e1];
+							}
+						}
+
 					}
 					if (dist2 < min_dist2)
 					{
