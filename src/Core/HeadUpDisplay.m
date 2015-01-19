@@ -163,6 +163,7 @@ enum
 - (void) drawCustomText:(NSDictionary *)info;
 - (void) drawCustomIndicator:(NSDictionary *)info;
 - (void) drawCustomLight:(NSDictionary *)info;
+- (void) drawCustomImage:(NSDictionary *)info;
 
 - (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color;
 - (void) drawSurround:(NSDictionary *)info;
@@ -1852,6 +1853,52 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	OOGLBEGIN(GL_LINE_LOOP);
 		hudDrawStatusIconAt(x, y, z1, siz);
 	OOGLEND();
+}
+
+
+- (void) drawCustomImage:(NSDictionary *)info
+{
+	int					x, y;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	alpha *= cached.alpha;
+
+	NSString *textureFile = [PLAYER dialCustomString:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	if (textureFile == nil || [textureFile length] == 0) {
+		return;
+	}
+
+	OOTexture *texture = [OOTexture textureWithName:textureFile
+										   inFolder:@"Images"
+											options:kOOTextureDefaultOptions | kOOTextureNoShrink
+										 anisotropy:kOOTextureDefaultAnisotropy
+											lodBias:kOOTextureDefaultLODBias];
+	if (texture == nil)
+	{
+		OOLogERR(kOOLogFileNotFound, @"HeadUpDisplay couldn't get an image texture name for %@", textureFile);
+		return;
+	}
+		
+	NSSize imageSize = [texture dimensions];
+	imageSize.width = useDefined(cached.width, imageSize.width);
+	imageSize.height = useDefined(cached.height, imageSize.height);
+
+	/* There's possibly some optimisation which could be done by
+	 * caching the sprite, but regenerating it each frame doesn't
+	 * appear to take any significant amount of time compared with the
+	 * time taken to actually render it and the texture will be
+	 * returned from the cache anyway. - CIM */
+	OOTextureSprite *sprite = [[OOTextureSprite alloc] initWithTexture:texture size:imageSize];
+
+	[sprite blitCentredToX:x Y:y Z:z1 alpha:alpha];
+	[sprite release];
+
 }
 
 
