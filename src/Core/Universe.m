@@ -6342,7 +6342,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			[self speakWithSubstitutions:text];
 		}
 		
-		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
+		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
 		
 		[currentMessage release];
 		currentMessage = [text retain];
@@ -6374,7 +6374,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
 			}
 			
-			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:count key:nil addToArray:nil];
+			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
 			
 			[currentMessage release];
 			currentMessage = [text retain];
@@ -9464,6 +9464,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 - (void) setPauseMessageVisible:(BOOL)value
 {
 	_pauseMessage = value;
+}
+
+
+- (BOOL) permanentMessageLog
+{
+	return _permanentMessageLog;
+}
+
+
+- (void) setPermanentMessageLog:(BOOL)value
+{
+	_permanentMessageLog = value;
 }
 
 

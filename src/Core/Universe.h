@@ -332,6 +332,7 @@ enum
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
+	BOOL					_permanentMessageLog;
 	BOOL					_witchspaceBreakPattern;
 	BOOL					_dockingClearanceProtocolActive;
 	BOOL					_doingStartUp;
@@ -750,6 +751,8 @@ enum
 - (BOOL) permanentCommLog;
 - (void) setPermanentCommLog:(BOOL)value;
 - (void) setAutoCommLog:(BOOL)value;
+- (BOOL) permanentMessageLog;
+- (void) setPermanentMessageLog:(BOOL)value;
 
 - (BOOL) blockJSPlayerShipProps;
 - (void) setBlockJSPlayerShipProps:(BOOL)value;

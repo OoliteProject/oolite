@@ -366,6 +366,7 @@
 		x = 128;
 		y = -60;
 		row_height = 14;
+		permanent = no;
 	};
 	comm_log_gui = {
 		alpha = "0.75";

@@ -389,18 +389,22 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		NSArray*	lastLines = [gui getLastLines];	// text, colour, fade time - text, colour, fade time
 		BOOL		line1 = ![[lastLines oo_stringAtIndex:0] isEqualToString:@""];
 		[self resetGui:gui withInfo:gui_info];
-		
+
+		BOOL permanent = [gui_info oo_boolForKey:@"permanent" defaultValue:NO];
+		[UNIVERSE setPermanentMessageLog:permanent];
+	
+
 		if (line1)
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:0] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:1]] 
-					  fadeTime:[lastLines oo_floatAtIndex:2] key:nil addToArray:nil];
+					  fadeTime:(permanent?[lastLines oo_floatAtIndex:2]:0.0) key:nil addToArray:nil];
 		}
 		if ([lastLines count] > 3 && (line1 || ![[lastLines oo_stringAtIndex:3] isEqualToString:@""]))
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:3] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:4]] 
-					  fadeTime:[lastLines oo_floatAtIndex:5] key:nil addToArray:nil];
+					  fadeTime:(permanent?[lastLines oo_floatAtIndex:5]:0.0) key:nil addToArray:nil];
 		}
 	}
 	
@@ -411,6 +415,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
 		[gui resizeTo:NSMakeSize(480, 160) characterHeight:19 title:nil];
 		[gui setCharacterSize:NSMakeSize(16,20)];	// narrow characters
+		[UNIVERSE setPermanentMessageLog:NO];
 	}
 	
 	[gui setAlpha: 1.0];	// message_gui is always visible.
