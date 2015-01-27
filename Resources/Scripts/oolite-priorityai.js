@@ -217,7 +217,7 @@ this.PriorityAIController = function(ship)
 			return false;
 		}
 
-		if (this.getParameter("oolite_flag_behaviourLogging"))
+		if (this.getParameter("oolite_flag_behaviourLogging") && this.getParameter("oolite_flag_behaviourLoggingVerbose"))
 		{
 			log(this.ship.name,newBehaviour);
 		}
@@ -3692,6 +3692,15 @@ PriorityAIController.prototype.behaviourTumble = function()
 {
 	this.applyHandlers({});
 	this.ship.performTumble();
+}
+
+
+PriorityAIController.prototype.behaviourWaitHere = function()
+{
+	var handlers = {};
+	this.responsesAddStandard(handlers);
+	this.applyHandlers(handlers);
+	this.ship.performStop();
 }
 
 
