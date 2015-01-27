@@ -12,7 +12,8 @@
 		OOCheckEquipmentPListVerifierStage,
 		OOTextureVerifierStage,
 		OOCheckShipDataPListVerifierStage,
-		OOAIStateMachineVerifierStage
+		OOAIStateMachineVerifierStage,
+		OOCheckJSSyntaxVerifierStage
 	);
 	excludeStages =
 	(
@@ -42,6 +43,7 @@
 		"Images",
 		"Models",
 		"Music",
+		"Scenarios",
 		"Schemata",
 		"Scripts",
 		"Shaders",
