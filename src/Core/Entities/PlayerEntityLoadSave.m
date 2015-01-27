@@ -1098,7 +1098,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	for (i = EXITROW ; i < ENDROW + 1; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
-//		[gui setColor: [OOColor yellowColor] forRow: i];
+		[gui setColor: [OOColor yellowColor] forRow: i];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
 
