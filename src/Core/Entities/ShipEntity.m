@@ -8161,8 +8161,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	if (co_type != nil && cargo_type != CARGO_SCRIPTED_ITEM)
 	{
+		/* The tmp variable is needed as scoopUp can cause the method
+		 * to be passed a reference to self.commodity_type, so DESTROY
+		 * then copying the parameter segfaults */
+		NSString *tmp = [co_type copy];
 		DESTROY(commodity_type);
-		commodity_type = [co_type copy];
+		commodity_type = tmp;
 		commodity_amount = co_amount;
 	}
 }
