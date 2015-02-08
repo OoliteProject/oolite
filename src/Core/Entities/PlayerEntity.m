@@ -8143,7 +8143,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		GUI_ROW_INIT(gui);
 
-		int first_sel_row = GUI_FIRST_ROW(GAME)-5; // repositioned menu
+		int first_sel_row = GUI_FIRST_ROW(GAME)-4; // repositioned menu
 
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), [self commanderName]]]; // Same title as status screen.
@@ -8285,6 +8285,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,STICKMAPPER)];
 		}
+
+		[gui setText:DESC(@"gameoptions-keyboard-configuration") forRow: GUI_ROW(GAME,KEYMAPPER) align: GUI_ALIGN_CENTER];
+		[gui setKey: GUI_KEY_OK forRow: GUI_ROW(GAME,KEYMAPPER)];
+
 		
 		NSString *musicMode = [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]];
 		NSString *message = OOExpandKey(@"gameoptions-music-mode", musicMode);
@@ -9357,7 +9361,10 @@ static NSString *last_outfitting_key=nil;
 	[gui setText:DESC(@"oolite-keysetting-text") forRow:27 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor whiteColor] forRow:27];
 		 
-	[[OOMusicController sharedController] playThemeMusic];
+	if ([self status] == STATUS_START_GAME)
+	{
+		[[OOMusicController sharedController] playThemeMusic];
+	}
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }

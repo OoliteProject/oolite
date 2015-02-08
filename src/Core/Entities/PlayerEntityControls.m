@@ -1432,7 +1432,7 @@ static NSTimeInterval	time_last_frame;
 			[self pollCustomViewControls];	// allow custom views during pause
 			#endif
 			
-			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE )
+			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD)
 			{
 				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE messageGUI] leaveLastLine];
 				else [[UNIVERSE messageGUI] clear];
@@ -2045,6 +2045,13 @@ static NSTimeInterval	time_last_frame;
 			
 		case GUI_SCREEN_GAMEOPTIONS:
 			[self handleGameOptionsScreenKeys];
+			break;
+
+		case GUI_SCREEN_KEYBOARD:
+			if ([gameView isDown:' '])
+			{
+				[self setGuiToGameOptionsScreen];
+			}
 			break;
 			
 		case GUI_SCREEN_OPTIONS:
@@ -2774,6 +2781,11 @@ static NSTimeInterval	time_last_frame;
 	{
 		selFunctionIdx = 0;
 		[self setGuiToStickMapperScreen: 0 resetCurrentRow: YES];
+	}
+	if ((guiSelectedRow == GUI_ROW(GAME,KEYMAPPER)) && selectKeyPress)
+	{
+		selFunctionIdx = 0;
+		[self setGuiToKeySettingsScreen];
 	}
 	
 #if OO_RESOLUTION_OPTION

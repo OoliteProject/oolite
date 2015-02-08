@@ -1562,6 +1562,7 @@
 	"gameoptions-play-in-window"			= " Play in Window ";
 	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
+	"gameoptions-keyboard-configuration"	= " View Keyboard Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";

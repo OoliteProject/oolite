@@ -4675,8 +4675,15 @@ static const OOMatrix	starboard_matrix =
 				// no HUD rendering in these modes
 				break;
 			default:
-				[theHUD setLineWidth:lineWidth];
-				[theHUD renderHUD];
+				switch ([player guiScreen])
+				{
+				case GUI_SCREEN_KEYBOARD:
+					// no HUD rendering on this screen
+					break;
+				default:
+					[theHUD setLineWidth:lineWidth];
+					[theHUD renderHUD];
+				}
 			}
 			
 #if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
