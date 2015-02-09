@@ -1529,7 +1529,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
-		NSString *system = [UNIVERSE getSystemName:target_system_id];
+		NSString *system = [UNIVERSE getSystemName:system_id];
 		[gui setTitle:OOExpandKey(@"shipyard-title", system)];
 		
 		OOGUITabSettings tab_stops;
