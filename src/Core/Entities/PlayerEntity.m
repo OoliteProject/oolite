@@ -7700,7 +7700,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		NSInteger containers = [commodity oo_intForKey:@"containers"];
 		BOOL extended = ![units isEqualToString:DESC(@"cargo-tons-symbol")] && containers > 0;
 
-		[manifest addObject:OOExpandKey(extended ? @"manifest-cargo-quantity-extended" : @"manifest-cargo-quantity", quantity, units, commodityName)];
+		if (extended) {
+			[manifest addObject:OOExpandKey(@"manifest-cargo-quantity-extended", quantity, units, commodityName, containers)];
+		} else {
+			[manifest addObject:OOExpandKey(@"manifest-cargo-quantity", quantity, units, commodityName)];
+		}
 	}
 	
 	return manifest;
