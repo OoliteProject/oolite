@@ -30,7 +30,7 @@
     <key>docked_station_role</key>
     <string>coriolis</string>
     <key>docking_clearance_protocol</key>
-    <false/>
+    <true/>
     <key>entity_personality</key>
     <integer>27313</integer>
     <key>forward_weapon</key>
