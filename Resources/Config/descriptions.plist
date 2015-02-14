@@ -1716,14 +1716,17 @@
 	
 	// Ship’s manifest screen
 	"manifest-title"				= "Ship’s Manifest";
-	"manifest-none"					= " None.";
+	"manifest-none"					= " No cargo carried.";
 	"manifest-cargo-d-d"			= "Cargo %d t (%d t):";
+	"oolite-manifest-cargo"			= "Cargo [current] t ([max] t)";
+	"oolite-manifest-cabins"		= "Passenger Cabins [current] / [max]";
 	"manifest-passengers-d-d"		= "Passengers %d (%d):";
+	"manifest-passengers"			= "Passengers:";
 	"manifest-parcels"				= "Parcels:";
 	"manifest-contracts"			= "Contracts:";
 	"manifest-missions"				= "Missions:";
-	"manifest-@-travelling-to-@-to-arrive-within-@"	= " %@ travelling to %@ to arrive within %@.";
-	"manifest-deliver-@-to-@within-@"	= " Deliver %@ to %@ within %@.";
+	"manifest-@-travelling-to-@-to-arrive-within-@"	= "%@ travelling to %@ to arrive within %@.";
+	"manifest-deliver-@-to-@within-@"	= "Deliver %@ to %@ within %@.";
 	
 	// Shipyard screen
 	"shipyard-title"				= "[system] Ships For Sale";

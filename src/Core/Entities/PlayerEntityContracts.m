@@ -1133,6 +1133,7 @@ for (unsigned i=0;i<amount;i++)
 	
 	// GUI stuff
 	{
+		NSInteger current, max;
 		OOColor *subheadColor = [gui colorFromSetting:kGuiManifestSubheadColor defaultValue:[OOColor greenColor]];
 		OOColor *entryColor = [gui colorFromSetting:kGuiManifestEntryColor defaultValue:nil];
 		OOColor *scrollColor = [gui colorFromSetting:kGuiManifestScrollColor defaultValue:[OOColor greenColor]];
@@ -1140,18 +1141,12 @@ for (unsigned i=0;i<amount;i++)
 
 		NSArray*	cargoManifest = [self cargoList];
 		NSArray*	missionsManifest = [self missionsList];
-		NSArray*	passengerManifest = [self passengerList];
-		NSArray*	contractManifest = [self contractList];
-		NSArray*	parcelManifest = [self parcelList];
 		
 		NSUInteger	i = 0;
 		NSUInteger	max_rows = 20;
 		NSUInteger	manifestCount = [cargoManifest count];
 		NSUInteger	cargoRowCount = (manifestCount + 1)/2;
 		OOGUIRow	cargoRow = 2;
-		OOGUIRow	passengersRow = 2;
-		OOGUIRow	contractsRow = 2;
-		OOGUIRow	parcelsRow = 2;
 		OOGUIRow	missionsRow = 2;
 		
 		// show extra lines if no HUD is displayed.
@@ -1173,7 +1168,8 @@ for (unsigned i=0;i<amount;i++)
 		
 		NSInteger page_offset = 0;
 		BOOL multi_page = NO;
-		NSUInteger total_rows = cargoRowCount + MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) + mmRows + MAX(1U,[parcelManifest count]) + 5;
+//		NSUInteger total_rows = cargoRowCount + MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) + mmRows + MAX(1U,[parcelManifest count]) + 5;
+		NSUInteger total_rows = cargoRowCount + mmRows + 5;
 		if (total_rows > max_rows)
 		{
 			max_rows -= 2;
@@ -1199,7 +1195,15 @@ for (unsigned i=0;i<amount;i++)
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"manifest-title")];
 		
-		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), current_cargo, [self maxAvailableCargoSpace]]) , entryColor, cargoRow - 1);
+		current = current_cargo;
+		max = [self maxAvailableCargoSpace];
+		NSString *cargoString = OOExpandKey(@"oolite-manifest-cargo", current, max);
+		current = [[self passengerList] count];
+		max = max_passengers;
+		NSString *cabinString = OOExpandKey(@"oolite-manifest-cabins", current, max);
+		NSArray *manifestHeader = [NSArray arrayWithObjects:cargoString,cabinString,nil];
+
+		SET_MANIFEST_ROW( manifestHeader , entryColor, cargoRow - 1);
 		
 		if (manifestCount > 0)
 		{
@@ -1221,67 +1225,7 @@ for (unsigned i=0;i<amount;i++)
 			cargoRowCount=1;
 		}
 		
-		passengersRow = cargoRow + cargoRowCount + 1;
-		
-		// Passengers Manifest
-		manifestCount = [passengerManifest count];
-		
-		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-passengers-d-d"), manifestCount, max_passengers]) , entryColor, passengersRow - 1);
-
-		if (manifestCount > 0)
-		{
-			for (i = 0; i < manifestCount; i++)
-			{
-				SET_MANIFEST_ROW( ((NSString*)[passengerManifest objectAtIndex:i]) , subheadColor, passengersRow + i);
-			}
-		}
-		else
-		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, passengersRow);
-			manifestCount = 1;
-		}
-
-		parcelsRow = passengersRow + manifestCount + 1;
-
-		// Parcels Manifest
-		manifestCount = [parcelManifest count];
-		
-		SET_MANIFEST_ROW( (DESC(@"manifest-parcels")) , entryColor, parcelsRow - 1);
-
-		if (manifestCount > 0)
-		{
-			for (i = 0; i < manifestCount; i++)
-			{
-				SET_MANIFEST_ROW( ((NSString*)[parcelManifest objectAtIndex:i]) , subheadColor, parcelsRow + i);
-			}
-		}
-		else
-		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, parcelsRow);
-			manifestCount = 1;
-		}
-
-
-		contractsRow = parcelsRow + manifestCount + 1;
-		
-		// Contracts Manifest
-		manifestCount = [contractManifest count];
-		SET_MANIFEST_ROW( (DESC(@"manifest-contracts")) , entryColor, contractsRow - 1);
-			
-		if (manifestCount > 0)
-		{
-			for (i = 0; i < manifestCount; i++)
-			{
-				SET_MANIFEST_ROW( ((NSString*)[contractManifest objectAtIndex:i]) , subheadColor, contractsRow + i);
-			}
-		}
-		else
-		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, contractsRow);
-			manifestCount = 1;
-		}
-
-		missionsRow = contractsRow + manifestCount + 1;
+		missionsRow = cargoRow + cargoRowCount + 1;
 		
 		// Missions Manifest
 		manifestCount = [missionsManifest count];
@@ -1331,11 +1275,6 @@ for (unsigned i=0;i<amount;i++)
 			}
 		}
 		
-/*		if (missions_row + manifest_count >= max_rows )
-		{
-			[gui setText:@" . . ."				forRow:max_rows];
-			[gui setColor:[OOColor subheadColor]	forRow:max_rows];
-			} */
 		if (multi_page)
 		{
 			OOGUIRow r_start = MANIFEST_SCREEN_ROW_BACK;
