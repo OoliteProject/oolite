@@ -8140,6 +8140,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 #endif
 	
+	[[UNIVERSE gameView] clearMouse];
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
 	// GUI stuff
@@ -9370,7 +9371,7 @@ static NSString *last_outfitting_key=nil;
 		[[OOMusicController sharedController] playThemeMusic];
 	}
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 }
 
 
