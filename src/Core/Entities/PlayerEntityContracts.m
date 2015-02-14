@@ -201,7 +201,10 @@ static unsigned RepForRisk(unsigned risk);
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-okay-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
 
 				[self increasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[passengers removeObjectAtIndex:i--];
@@ -216,7 +219,10 @@ static unsigned RepForRisk(unsigned risk);
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-late-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
 
 				[passengers removeObjectAtIndex:i--];
 				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger",@"late",[NSNumber numberWithUnsignedInteger:10*fee],passenger_info,nil]];
@@ -267,7 +273,10 @@ static unsigned RepForRisk(unsigned risk);
 				[self increaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 
 				[parcels removeObjectAtIndex:i--];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
 				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"success",[NSNumber numberWithUnsignedInteger:10*fee],parcel_info,nil]];
 
 			}
@@ -280,7 +289,10 @@ static unsigned RepForRisk(unsigned risk);
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"parcel-delivered-late-@-@"), parcel_name, OOIntCredits(fee)];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
 				[parcels removeObjectAtIndex:i--];
 				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"late",[NSNumber numberWithUnsignedInteger:10*fee],parcel_info,nil]];
 			}
@@ -881,7 +893,10 @@ for (unsigned i=0;i<amount;i++)
 	// extra checks, just in case.
 	if ([passengers count] >= max_passengers || [passenger_record objectForKey:Name] != nil) return NO;
 		
-	[self addRoleToPlayer:@"trader-courier+"];
+	if (risk > 1)
+	{
+		[self addRoleToPlayer:@"trader-courier+"];
+	}
 
 	[passengers addObject:passenger_info];
 	[passenger_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
@@ -931,7 +946,7 @@ for (unsigned i=0;i<amount;i++)
 	// extra checks, just in case.
 	if ([parcel_record objectForKey:Name] != nil) return NO;
 
-	if ([parcels count] == 0 || risk > 0)
+	if (risk > 1)
 	{
 		[self addRoleToPlayer:@"trader-courier+"];
 	}
