@@ -3571,7 +3571,13 @@ static NSTimeInterval	time_last_frame;
 		if  (!switching_chart_screens)
 		{
 			switching_chart_screens = YES;
-			if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart))
+			// handles http://aegidian.org/bb/viewtopic.php?p=233189#p233189
+			if (EXPECT_NOT([self status] == STATUS_WITCHSPACE_COUNTDOWN && gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)) 
+			{
+				// don't switch to LRC if countdown in progress
+				switching_chart_screens = NO;
+			}
+			else if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART || (gui_screen == GUI_SCREEN_SYSTEM_DATA && showingLongRangeChart))
 			{
 				if (target_chart_zoom != CHART_MAX_ZOOM)
 				{
