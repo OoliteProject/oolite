@@ -8159,7 +8159,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setCommodity:(OOCommodityType)co_type andAmount:(OOCargoQuantity)co_amount
 {
-	if (co_type != nil && cargo_type != CARGO_SCRIPTED_ITEM)
+	if (co_type != nil)
 	{
 		/* The tmp variable is needed as scoopUp can cause the method
 		 * to be passed a reference to self.commodity_type, so DESTROY
