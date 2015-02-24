@@ -529,6 +529,9 @@ typedef enum
 
 - (void) clearSubEntities;	// Releases and clears subentity array, after making sure subentities don't think ship is owner.
 
+- (Quaternion) subEntityRotationalVelocity;
+- (void) setSubEntityRotationalVelocity:(Quaternion)rv;
+
 // subentities management
 - (NSString *) serializeShipSubEntities;
 - (void) deserializeShipSubEntitiesFrom:(NSString *)string;

@@ -1117,6 +1117,18 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
+- (Quaternion) subEntityRotationalVelocity
+{
+	return subentityRotationalVelocity;
+}
+
+
+- (void) setSubEntityRotationalVelocity:(Quaternion)rv
+{
+	subentityRotationalVelocity = rv;
+}
+
+
 - (NSString *)descriptionComponents
 {
 	if (![self isSubEntity])
@@ -2627,15 +2639,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// subentity rotation
-	if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
-		!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
+	if (isSubEnt)
 	{
-		Quaternion qf = subentityRotationalVelocity;
-		qf.w *= (1.0 - delta_t);
-		qf.x *= delta_t;
-		qf.y *= delta_t;
-		qf.z *= delta_t;
-		[self setOrientation:quaternion_multiply(qf, orientation)];
+		if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
+			!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
+		{
+			Quaternion qf = subentityRotationalVelocity;
+			qf.w *= (1.0 - delta_t);
+			qf.x *= delta_t;
+			qf.y *= delta_t;
+			qf.z *= delta_t;
+			[self setOrientation:quaternion_multiply(qf, orientation)];
+		}
 	}
 	
 	//	reset totalBoundingBox

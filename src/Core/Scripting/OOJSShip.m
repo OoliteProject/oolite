@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJSWormhole.h"
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 #import "OOJSEquipmentInfo.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
@@ -303,6 +304,7 @@ enum
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
 	kShip_subEntityCapacity,	// max subentities for this ship, int, read-only
+	kShip_subEntityRotation,	// subentity rotation velocity, quaternion, read/write
 	kShip_sunGlareFilter,		// sun glare filter multiplier, float, read/write
 	kShip_target,				// target, Ship, read/write
 	kShip_temperature,			// hull temperature, double, read/write
@@ -454,6 +456,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "subEntities",			kShip_subEntities,			OOJS_PROP_READONLY_CB },
 	{ "subEntityCapacity",		kShip_subEntityCapacity,	OOJS_PROP_READONLY_CB },
+	{ "subEntityRotation",		kShip_subEntityRotation,	OOJS_PROP_READWRITE_CB },
 	{ "sunGlareFilter",			kShip_sunGlareFilter,		OOJS_PROP_READWRITE_CB },
 	{ "target",					kShip_target,				OOJS_PROP_READWRITE_CB },
 	{ "temperature",			kShip_temperature,			OOJS_PROP_READWRITE_CB },
@@ -697,6 +700,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity maxShipSubEntities], value);
 			return YES;
 			
+		case kShip_subEntityRotation:
+			return QuaternionToJSValue(context, [entity subEntityRotationalVelocity], value);
+
 		case kShip_hasSuspendedAI:
 			*value = OOJSValueFromBOOL([[entity getAI] hasSuspendedStateMachines]);
 			return YES;
@@ -1193,6 +1199,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	int32						iValue;
 	JSBool						bValue;
 	Vector						vValue;
+	Quaternion					qValue;
 	HPVector						hpvValue;
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
@@ -1628,6 +1635,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				}
 			}
 			break;
+
+		case kShip_subEntityRotation:
+			if (JSValueToQuaternion(context, *value, &qValue))
+			{
+				[entity setSubEntityRotationalVelocity:qValue];
+				return YES;
+			}
+			break;
+
 			
 		case kShip_sunGlareFilter:
 			if (JS_ValueToNumber(context, *value, &fValue))
