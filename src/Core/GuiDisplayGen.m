@@ -1759,8 +1759,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_id];
-		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		OOSystemID planetNumber = [PLAYER systemID];
+		OOSystemID destNumber = [PLAYER targetSystemID];
 		if (routeInfo == nil || planetNumber != savedPlanetNumber || destNumber != savedDestNumber)
 		{
 			[routeInfo release];
@@ -1782,6 +1782,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
 			time = [routeInfo oo_doubleForKey:@"time"];
+
+			if (distance == 0.0 && planetNumber != destNumber)
+			{
+				// zero-distance double fix
+				distance = 0.1;
+				time = 0.01;
+			}
 		}
 	}
 	NSPoint targetCoordinates = (NSPoint){0,0};
@@ -1791,6 +1798,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		targetCoordinates = [systemManager getCoordinatesForSystem:target inGalaxy:galaxy_id];
 
 		distance = distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
+		if (distance == 0.0)
+		{
+			if (target != [PLAYER systemID])
+			{
+				// looking at the other half of a zero-distance double
+				// distance is treated as 0.1 LY
+				distance = 0.1;
+			}
+		}
 		if ([player hasHyperspaceMotor] && distance <= [player fuel]/10.0)
 		{
 			time = distance * distance;
@@ -2237,10 +2253,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_id];
-		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		OOSystemID planetNumber = [PLAYER systemID];
+		OOSystemID destNumber = [PLAYER targetSystemID];
 		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
-		
+		OOLog(@"route.test",@"%d %d %@",planetNumber,destNumber,routeInfo);
 		if (!routeInfo)  routeExists = NO;
 		
 		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: CHART_MAX_ZOOM];
@@ -2248,13 +2264,24 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
 			time = [routeInfo oo_doubleForKey:@"time"];
-		}
+		
+			if (distance == 0.0 && planetNumber != destNumber)
+			{
+				// zero-distance double fix
+				distance = 0.1;
+				time = 0.01;
+			}
+		}		
 	}
 	else
 	{
 		OOSystemID dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_id];
 		NSPoint dest_coordinates = [systemManager getCoordinatesForSystem:dest inGalaxy:galaxy_id];
 		distance = distanceBetweenPlanetPositions(dest_coordinates.x,dest_coordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
+		if (distance == 0.0 && dest != [PLAYER systemID])
+		{
+			distance = 0.1; // fix for zero-distance doubles
+		}
 		time = distance * distance;
 	}
 	
