@@ -462,9 +462,12 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 // this method does initial traffic control, before passing the ship
 // to an appropriate dock for docking coordinates and instructions.
+// used for NPCs, and the player when they use the docking computer
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
 {	
 	if (ship == nil)  return nil;
+
+	[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:ship];
 
 	if ([ship isPlayer])
 	{
@@ -573,7 +576,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	[_shipsOnHold removeObject:ship];
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
-	[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:ship];
+	[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:ship];
 
 	return [chosenDock dockingInstructionsForShip:ship];
 }
@@ -2029,6 +2032,9 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	double		timeNow = [UNIVERSE getTime];
 	PlayerEntity	*player = PLAYER;
 	
+	[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+
+
 	[UNIVERSE clearPreviousMessage];
 
 	[self sanityCheckShipsOnApproach];
@@ -2050,7 +2056,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
 		}
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
-		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+		[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
 
 		last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
 		result = @"DOCKING_CLEARANCE_NOT_REQUIRED";
@@ -2229,7 +2235,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 		result = @"DOCKING_CLEARANCE_GRANTED";
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
-		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+		[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
 
 	}
 	return result;
