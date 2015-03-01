@@ -2256,7 +2256,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		OOSystemID planetNumber = [PLAYER systemID];
 		OOSystemID destNumber = [PLAYER targetSystemID];
 		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
-		OOLog(@"route.test",@"%d %d %@",planetNumber,destNumber,routeInfo);
+
 		if (!routeInfo)  routeExists = NO;
 		
 		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: CHART_MAX_ZOOM];

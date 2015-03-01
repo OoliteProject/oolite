@@ -1042,7 +1042,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	DockEntity* sub = nil;
 	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		if ([sub allowsDocking] && [[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"DOCKING_POSSIBLE"])
+		// TRY_AGAIN_LATER in this context means "ships launching now"
+		if ([sub allowsDocking] && ([[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"DOCKING_POSSIBLE"] || [[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"TRY_AGAIN_LATER"]))
 		{
 			return YES;
 		}
