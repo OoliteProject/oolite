@@ -7878,14 +7878,14 @@ static void VerifyDesc(NSString *key, id desc)
 	*/
 	OOSystemID	system = kOOMinimumSystemID;
 	unsigned	distance, dx, dy;
-	unsigned	i;
+	OOSystemID	i;
 	unsigned	min_dist = 10000;
 	
 	for (i = 0; i < 256; i++)
 	{
 		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
-		dx = abs(coords.x - ipos.x);
-		dy = abs(coords.y - ipos.y);
+		dx = ABS(coords.x - ipos.x);
+		dy = ABS(coords.y - ipos.y);
 		
 		if (dx > dy)	distance = (dx + dx + dy) / 2;
 		else			distance = (dx + dy + dy) / 2;
