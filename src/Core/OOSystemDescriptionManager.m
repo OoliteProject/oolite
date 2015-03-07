@@ -67,7 +67,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		universalProperties = [[NSMutableDictionary alloc] initWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
 		interstellarSpace = [[OOSystemDescriptionEntry alloc] init];
 		// assume specific interstellar settings are rare
-		systemDescriptions = [[NSMutableDictionary alloc] initWithCapacity:OO_SYSTEM_CACHE_LENGTH];
+		systemDescriptions = [[NSMutableDictionary alloc] initWithCapacity:OO_SYSTEM_CACHE_LENGTH+20];
 		for (NSUInteger i=0;i<OO_SYSTEM_CACHE_LENGTH;i++)
 		{
 			propertyCache[i] = [[NSMutableDictionary alloc] initWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
