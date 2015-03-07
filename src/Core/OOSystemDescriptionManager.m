@@ -204,6 +204,11 @@ static NSString *kOOSystemLayerProperty = @"layer";
 			[self updateCacheEntry:index forProperty:property];
 		}
 	}
+	// for interstellar updates, save but don't update cache
+	else if ([tokens count] == 4 && [tokens oo_unsignedIntegerAtIndex:1] < OO_GALAXIES_AVAILABLE && [tokens oo_unsignedIntegerAtIndex:2] < OO_SYSTEMS_PER_GALAXY && [tokens oo_unsignedIntegerAtIndex:3] < OO_SYSTEMS_PER_GALAXY)
+	{
+		[self saveScriptedChangeToProperty:property forSystemKey:key andLayer:layer toValue:value fromManifest:manifest];
+	}
 }
 
 

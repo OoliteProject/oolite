@@ -837,9 +837,9 @@ static JSBool SystemInfoStaticSetInterstellarProperty(JSContext *context, uintN 
 	{
 		value = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[5]);
 	}
-	if (argc >= 6)
+	if (argc >= 7)
 	{
-		manifest = OOStringFromJSValue(context, OOJS_ARGV[5]);
+		manifest = OOStringFromJSValue(context, OOJS_ARGV[6]);
 	}
 	else
 	{
