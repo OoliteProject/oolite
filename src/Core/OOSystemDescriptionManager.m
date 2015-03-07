@@ -476,6 +476,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	{
 		if (![key isEqualToString:kOOSystemLayerProperty])
 		{
+			[propertiesInUse addObject:key];
 			[desc setProperty:key forLayer:layer toValue:[properties objectForKey:key]];
 		}
 	}
