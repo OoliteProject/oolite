@@ -712,7 +712,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[result setObject:gal_id		forKey:@"galaxy_id"];
 	[result setObject:sys_id	forKey:@"system_id"];
 	[result setObject:tgt_id	forKey:@"target_id"];
-	
+	[result setObject:[NSNumber numberWithFloat:chart_zoom] forKey:@"chart_zoom"];
+	[result setObject:[NSNumber numberWithInt:ANA_mode] forKey:@"chart_ana_mode"];
+
+
 	if (found_system_id >= 0)
 	{
 		NSString *found_id = [NSString stringWithFormat:@"%d", found_system_id];
@@ -1025,10 +1028,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		chart_centre_coordinates = galaxy_coordinates;
 		target_chart_centre = chart_centre_coordinates;
 		cursor_coordinates = galaxy_coordinates;
-		chart_zoom = 1.0;
-		target_chart_zoom = 1.0;
-		saved_chart_zoom = 1.0;
-		ANA_mode = OPTIMIZED_BY_NONE;
+		chart_zoom = [dict oo_floatForKey:@"chart_zoom" defaultValue:1.0];
+		target_chart_zoom = chart_zoom;
+		saved_chart_zoom = chart_zoom;
+		ANA_mode = [dict oo_intForKey:@"chart_ana_mode" defaultValue:OPTIMIZED_BY_NONE];
 
 
 		target_system_id = [dict oo_intForKey:@"target_id" defaultValue:system_id];
