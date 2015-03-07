@@ -807,7 +807,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) setUpWitchspace
 {
-	[self setUpWitchspaceBetweenSystem:[PLAYER systemID] andSystem:[PLAYER targetSystemID]];
+	[self setUpWitchspaceBetweenSystem:[PLAYER systemID] andSystem:[PLAYER nextHopTargetSystemID]];
 }
 
 
@@ -820,6 +820,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	Quaternion			randomQ;
 	
 	NSString*		override_key = [self keyForInterstellarOverridesForSystems:s1 :s2 inGalaxy:galaxyID];
+	OOLog(@"i.debug",@"%@",override_key);
 
 	NSDictionary *systeminfo = [systemManager getPropertiesForSystemKey:override_key];
 	
