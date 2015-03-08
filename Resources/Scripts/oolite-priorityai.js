@@ -1496,6 +1496,16 @@ PriorityAIController.prototype.conditionGroupSuppliesLow = function()
 
 PriorityAIController.prototype.conditionInCombat = function()
 {
+	/* Overrides normal considerations - if fleeing, make the ship
+	 * flee faster to the wormhole. Taking a further hit may change
+	 * the target anyway, but this should prevent trying to actually
+	 * attack a wormhole */
+	if (this.ship.target && this.ship.target.isWormhole)
+	{
+		// but don't cache in case target changes later in evaluation
+		return false;
+	}
+
 	if (this.__cache.oolite_conditionInCombat !== undefined)
 	{
 		return this.__cache.oolite_conditionInCombat;

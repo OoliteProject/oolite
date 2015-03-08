@@ -7301,11 +7301,15 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 // Exposed to shaders.
 - (BOOL) hasHostileTarget
 {
-	if ([self primaryTarget] == nil)
+	Entity *t = [self primaryTarget];
+	if (t == nil || ![t isShip])
+	{
 		return NO;
+	}
 	if ([self isMissile])
+	{
 		return YES;	// missiles are always fired against a hostile target
-
+	}
 	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
 		int old_behaviour = [previousCondition oo_intForKey:@"behaviour"];
