@@ -109,4 +109,6 @@
 	key_oxzmanager_showinfo		= "i";
 	key_oxzmanager_extract		= "x";
 
+	key_inc_field_of_view		= "l";
+	key_dec_field_of_view		= "k";
 }

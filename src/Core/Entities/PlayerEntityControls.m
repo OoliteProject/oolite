@@ -153,7 +153,7 @@ static NSTimeInterval	time_last_frame;
 - (void) handleGameOptionsScreenKeys;
 - (void) pollApplicationControls;
 - (void) pollCustomViewControls;
-- (void) pollViewControls;
+- (void) pollViewControls:(double) delta_t;
 - (void) pollGuiScreenControls;
 - (void) pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
 - (void) pollMarketScreenControls;
@@ -320,6 +320,8 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_oxzmanager_showinfo,	'i'			);
 	LOAD_KEY_SETTING(key_oxzmanager_extract,	'x'			);
 	
+	LOAD_KEY_SETTING(key_inc_field_of_view,		'l'			);
+	LOAD_KEY_SETTING(key_dec_field_of_view,		'k'			);
 #ifndef NDEBUG
 	LOAD_KEY_SETTING(key_dump_target_state,		'H'			);
 #endif
@@ -872,7 +874,7 @@ static NSTimeInterval	time_last_frame;
 				[self pollFlightArrowKeyControls:delta_t];
 			
 			//  view keys
-			[self pollViewControls];
+			[self pollViewControls:delta_t];
 			
 			if (OOMouseInteractionModeIsFlightMode([[UNIVERSE gameController] mouseInteractionMode]))
 			{
@@ -3148,7 +3150,7 @@ static NSTimeInterval	time_last_frame;
 }
 
 
-- (void) pollViewControls
+- (void) pollViewControls:(double)delta_t
 {
 	if(!pollControls)
 		return;
@@ -3285,6 +3287,23 @@ static NSTimeInterval	time_last_frame;
 	{
 		[UNIVERSE showCommsLog: 1.5];
 		[hud refreshLastTransmitter];
+	}
+
+	if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < maxFieldOfView))
+		fieldOfView *= pow(fov_delta, delta_t);
+
+	if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]))
+		fieldOfView /= pow(fov_delta, delta_t);
+
+	NSDictionary *functionForFovAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]];
+	if ([stickHandler joystickCount] != 0 && functionForFovAxis != nil)
+	{
+		// TODO think reqFov through
+		double reqFov = [stickHandler getAxisState: AXIS_FIELD_OF_VIEW];
+		if (fieldOfView < maxFieldOfView * reqFov)
+			fieldOfView *= pow(fov_delta, delta_t);
+		if (fieldOfView > maxFieldOfView * reqFov)
+			fieldOfView /= pow(fov_delta, delta_t);
 	}
 }
 
@@ -3710,7 +3729,7 @@ static BOOL autopilot_pause;
 	if (![[UNIVERSE gameController] isGamePaused])
 	{
 		//  view keys
-		[self pollViewControls];
+		[self pollViewControls:delta_t];
 		
 		//  text displays
 		[self pollGuiScreenControls];

@@ -181,6 +181,8 @@ enum
 	Entity					*x_list_start, *y_list_start, *z_list_start;
 	
 	GLfloat					stars_ambient[4];
+
+	float					fov;
 	
 @private
 	NSUInteger				_sessionID;
@@ -760,6 +762,8 @@ enum
 - (void) loadConditionScripts;
 - (void) addConditionScripts:(NSEnumerator *)scripts;
 - (OOJSScript *) getConditionScript:(NSString *)scriptname;
+
+- (void)fov:(float)value;
 
 @end
 

@@ -263,6 +263,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	_doingStartUp = YES;
 	OOInitReallyRandom([NSDate timeIntervalSinceReferenceDate] * 1e9);
+
+	fov = 0.5;
 	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	
@@ -4401,7 +4403,8 @@ static const OOMatrix	starboard_matrix =
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
-				float   ratio = 0.5 * nearPlane;
+				float   ratio = fov * nearPlane;
+				OOLog(@"FOV",@"Universe ratio: %f", ratio);
 				
 				OOGLResetProjection();
 				OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
@@ -10276,6 +10279,11 @@ static void PreloadOneSound(NSString *soundName)
 - (OOJSScript*) getConditionScript:(NSString *)scriptname
 {
 	return [conditionScripts objectForKey:scriptname];
+}
+
+- (void) fov:(float)value
+{
+	fov = value;
 }
 
 @end

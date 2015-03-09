@@ -603,6 +603,7 @@ static id sSharedStickHandler = nil;
 		case AXIS_VIEWY:
 			axstate[function] = axisvalue / STICK_NORMALDIV;
 			break;
+		// TODO AXIS_FIELD_OF_VIEW
 		default:
 			// set the state with no modification.
 			axstate[function] = axisvalue / 32768;         

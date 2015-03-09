@@ -197,6 +197,11 @@ MA 02110-1301, USA.
 			[stickHandler unsetButtonFunction:BUTTON_INCTHRUST];
 			[stickHandler unsetButtonFunction:BUTTON_DECTHRUST];
 		}
+		if (function == AXIS_FIELD_OF_VIEW)
+		{
+			[stickHandler unsetButtonFunction:BUTTON_INC_FIELD_OF_VIEW];
+			[stickHandler unsetButtonFunction:BUTTON_DEC_FIELD_OF_VIEW];
+		}
 		if (function == AXIS_VIEWX)
 		{
 			[stickHandler unsetButtonFunction:BUTTON_VIEWPORT];
@@ -214,6 +219,10 @@ MA 02110-1301, USA.
 		if (function == BUTTON_INCTHRUST || function == BUTTON_DECTHRUST)
 		{
 			[stickHandler unsetAxisFunction:AXIS_THRUST];
+		}
+		if (function == BUTTON_INC_FIELD_OF_VIEW || function == BUTTON_DEC_FIELD_OF_VIEW)
+		{
+			[stickHandler unsetAxisFunction:AXIS_FIELD_OF_VIEW];
 		}
 		if (function == BUTTON_VIEWPORT || function == BUTTON_VIEWSTARBOARD)
 		{
@@ -608,6 +617,16 @@ MA 02110-1301, USA.
 				  allowable:HW_AXIS|HW_BUTTON
 					 axisfn:AXIS_VIEWX
 					  butfn:BUTTON_VIEWSTARBOARD]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-increase-field-of-view")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_FIELD_OF_VIEW
+					  butfn:BUTTON_INC_FIELD_OF_VIEW]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-decrease-field-of-view")
+				  allowable:HW_AXIS|HW_BUTTON
+					 axisfn:AXIS_FIELD_OF_VIEW
+					  butfn:BUTTON_DEC_FIELD_OF_VIEW]];
 	return funcList;
 }
 
