@@ -863,7 +863,15 @@ MA 02110-1301, USA.
 			lastWindowPlacementMaximized = YES;
 		}
 	}
-		
+	
+	// are we attempting to go to a different screen resolution? Note: this also takes care of secondary monitor situations because only
+	// native resolution is supported on the secondary monitor. On a secondary monitor, changingResolution may become YES when going to 
+	// windowed mode from full screen, but since we did not change display mode at the time of going full screen, doing a
+	// ChangeDisplaySettingsEx while returning to windowed mode is not expected to have any side effects - Nikos 20150309
+	BOOL changingResolution = 	(fullScreen && settings.dmPelsWidth != viewSize.width && settings.dmPelsHeight != viewSize.height) ||
+								(wasFullScreen && settings.dmPelsWidth != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
+								&& settings.dmPelsHeight != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]);
+			
 	RECT wDC;
 
 	if (fullScreen)
@@ -880,6 +888,7 @@ MA 02110-1301, USA.
 		settings.dmPelsHeight = viewSize.height;
 		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
 		
+		
 		// just before going fullscreen, save the location of the current window. It
 		// may be needed in case of potential attempts to move our fullscreen window
 		// in a maximized state (yes, in Windows this is entirely possible).
@@ -895,22 +904,24 @@ MA 02110-1301, USA.
 			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
 		}
 		SetForegroundWindow(SDL_Window);
-		if (ChangeDisplaySettingsEx(monitorInfo.szDevice, &settings, NULL, CDS_FULLSCREEN, NULL)==DISP_CHANGE_SUCCESSFUL)
+		if (changingResolution)
 		{
-			MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+			if (ChangeDisplaySettingsEx(monitorInfo.szDevice, &settings, NULL, CDS_FULLSCREEN, NULL) != DISP_CHANGE_SUCCESSFUL)
+			{
+				m_glContextInitialized = YES;
+				OOLogERR(@"displayMode.change.error", @"Could not switch to requested display mode.");
+				return;
+			}
 		}
-		else
-		{
-			m_glContextInitialized = YES;
-			return;
-		}
+		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
 	}
 	else if ( wasFullScreen )
 	{
 			// stop saveWindowSize from reacting to caption & frame
 			saveSize=NO;
 			
-			ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+			if (changingResolution)  ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+			
 			/*NOTE: If we ever decide to change the default behaviour of launching
 			always on primary monitor to launching on the monitor the program was 
 			started on, we need to comment out the line below.
