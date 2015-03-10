@@ -2480,6 +2480,13 @@ static NSTimeInterval	time_last_frame;
 				if (!selectPressed)
 				{
 					// try to buy the ship!
+					NSString *key = [gui keyForRow:[gui selectedRow]];
+					OOCreditsQuantity shipprice = 0;
+					if (![key hasPrefix:@"More:"])
+					{
+						shipprice = [self priceForShipKey:key];
+					}
+
 					OOCreditsQuantity money = credits;
 					if ([self buySelectedShip])
 					{
@@ -2488,7 +2495,7 @@ static NSTimeInterval	time_last_frame;
 							[UNIVERSE removeDemoShips];
 							[self setGuiToStatusScreen];
 							[self playBuyShip];
-							[self doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:self]; // some equipment.oxp might want to know everything has changed.
+							[self doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:self andArgument:[NSNumber numberWithInt:shipprice]]; // some equipment.oxp might want to know everything has changed.
 						}
 					}
 					else

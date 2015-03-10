@@ -1425,6 +1425,14 @@ for (unsigned i=0;i<amount;i++)
 
 static NSMutableDictionary *currentShipyard = nil;
 
+
+- (OOCreditsQuantity) priceForShipKey:(NSString *)key
+{
+	NSDictionary *shipInfo = [currentShipyard oo_dictionaryForKey:key];
+	return [shipInfo oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
+}
+
+
 - (void) setGuiToShipyardScreen:(NSUInteger)skip
 {
 	OOGUIScreenID	oldScreen = gui_screen;

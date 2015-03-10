@@ -552,7 +552,7 @@ static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
 
 	if (success) 
 	{ // slightly misnamed world event now
-		[player doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:player];
+		[player doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:player andArgument:[NSNumber numberWithInt:0]];
 	}
 
 	OOJS_RETURN_BOOL(success);
