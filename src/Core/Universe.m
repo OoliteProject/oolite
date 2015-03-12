@@ -4403,7 +4403,7 @@ static const OOMatrix	starboard_matrix =
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
-				float   ratio = fov * nearPlane;
+				float   ratio = (displayGUI ? 0.5 : fov) * nearPlane; // 0.5 is field of view ratio for GUIs
 				OOLog(@"FOV",@"Universe ratio: %f", ratio);
 				
 				OOGLResetProjection();
