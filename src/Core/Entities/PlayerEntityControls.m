@@ -103,6 +103,10 @@ static BOOL				switching_resolution;
 #endif
 #if OOLITE_SPEECH_SYNTH
 static BOOL				speech_settings_pressed;
+#if OOLITE_ESPEAK
+static BOOL				speechVoiceSelectKeyPressed;
+static BOOL				speechGenderSelectKeyPressed;
+#endif
 #endif
 static BOOL				wait_for_key_up;
 static BOOL				upDownKeyPressed;
@@ -2896,7 +2900,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ([gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left])
 		{
-			if (!leftRightKeyPressed && script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)
+			if (!speechVoiceSelectKeyPressed || script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)
 			{
 				[self playChangedOption];
 				if ([gameView isDown:key_gui_arrow_right])
@@ -2912,18 +2916,19 @@ static NSTimeInterval	time_last_frame;
 					[UNIVERSE stopSpeaking];
 					[UNIVERSE startSpeakingString:[UNIVERSE voiceName: voice_no]];
 				}
+				timeLastKeyPress = script_time;
 			}
-			leftRightKeyPressed = YES;
+			speechVoiceSelectKeyPressed = YES;
 		}
 		else
-			leftRightKeyPressed = NO;
+			speechVoiceSelectKeyPressed = NO;
 	}
 
 	if (guiSelectedRow == GUI_ROW(GAME,SPEECH_GENDER))
 	{
 		if ([gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left])
 		{
-			if (!leftRightKeyPressed && script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)
+			if (!speechGenderSelectKeyPressed)
 			{
 				[self playChangedOption];
 				BOOL m = [gameView isDown:key_gui_arrow_right];
@@ -2940,10 +2945,10 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 			}
-			leftRightKeyPressed = YES;
+			speechGenderSelectKeyPressed = YES;
 		}
 		else
-			leftRightKeyPressed = NO;
+			speechGenderSelectKeyPressed = NO;
 	}
 #endif
 #endif
