@@ -119,6 +119,7 @@ static NSString * const kGuiChartCursorColor		= @"chart_cursor_color";
 static NSString * const kGuiChartMatchBoxColor		= @"chart_match_box_color";
 static NSString * const kGuiChartMatchLabelColor	= @"chart_match_label_color";
 static NSString * const kGuiChartConnectionColor	= @"chart_connection_color";
+static NSString * const kGuiChartCurrentJumpColor	= @"chart_currentjump_color";
 static NSString * const kGuiChartRouteShortColor	= @"chart_route_short_color";
 static NSString * const kGuiChartRouteQuickColor	= @"chart_route_quick_color";
 static NSString * const kGuiChartTraveltimeTabs		= @"chart_traveltime_tabs";

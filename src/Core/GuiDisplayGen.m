@@ -1791,6 +1791,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			}
 		}
 	}
+	else
+	{
+		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute:nil optimizedBy:OPTIMIZED_BY_NONE zoom: zoom];
+	}
 	NSPoint targetCoordinates = (NSPoint){0,0};
 	if (!routeExists)
 	{
@@ -2275,6 +2279,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	else
 	{
+		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute:nil optimizedBy:OPTIMIZED_BY_NONE zoom: CHART_MAX_ZOOM];
+
 		OOSystemID dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_id];
 		NSPoint dest_coordinates = [systemManager getCoordinatesForSystem:dest inGalaxy:galaxy_id];
 		distance = distanceBetweenPlanetPositions(dest_coordinates.x,dest_coordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
@@ -2401,7 +2407,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
-	NSUInteger		i, j;
+	NSUInteger		i, j, loopstart;
 	GLfloat lr,lg,lb,la;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
@@ -2411,26 +2417,51 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		star2abs = NSZeroPoint;
 	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
 	OOGalaxyID		g = [PLAYER galaxyNumber];
+	OOSystemID planetNumber = [PLAYER systemID];
 
 	OOColor *defaultConnectionColor = [self colorFromSetting:kGuiChartConnectionColor defaultValue:[OOColor colorWithWhite:0.25 alpha:1.0]];
+	OOColor *defaultCurrentJumpColor = [self colorFromSetting:kGuiChartCurrentJumpColor defaultValue:[OOColor colorWithWhite:0.25 alpha:0.0]];
+
 	OOColor *thisConnectionColor = nil;
 	
+	float jumpRange = MAX_JUMP_RANGE * ((optimizeBy == OPTIMIZED_BY_NONE) ? [PLAYER dialFuel] : 1.0);
+
 	OOGLBEGIN(GL_LINES);
 	for (i = 0; i < 256; i++)
 	{
+		if (optimizeBy == OPTIMIZED_BY_NONE && i != planetNumber)
+		{
+			continue;
+		}
+
 		starabs = [systemManager getCoordinatesForSystem:i inGalaxy:g];
 
 		star.x = (float)(starabs.x * hscale);
 		star.y = (float)(starabs.y * vscale);
 
-		for (j = i + 1; j < 256; j++)
+		// if in non-route mode, we're always starting from i, so need
+		// to do <i here too.
+		loopstart = (optimizeBy == OPTIMIZED_BY_NONE) ? 0 : (i+1);
+
+		for (j = loopstart; j < 256; j++)
 		{
+			if (i == j)
+			{
+				continue; // for OPTIMIZED_BY_NONE case
+			}
 			star2abs = [systemManager getCoordinatesForSystem:j inGalaxy:g];
 			double d = distanceBetweenPlanetPositions(starabs.x, starabs.y, star2abs.x, star2abs.y);
 		
-			if (d <= MAX_JUMP_RANGE)	// another_commander - Default to 7.0 LY.
+			if (d <= jumpRange)	// another_commander - Default to 7.0 LY.
 			{
-				thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)i, (long)j]]];
+				if (optimizeBy == OPTIMIZED_BY_NONE)
+				{
+					thisConnectionColor = defaultCurrentJumpColor;
+				}
+				else
+				{
+					thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)i, (long)j]]];
+				}
 				if (thisConnectionColor == nil)
 				{
 					thisConnectionColor = defaultConnectionColor;
@@ -2447,6 +2478,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	OOGLEND();
 	
+	if (optimizeBy == OPTIMIZED_BY_NONE)
+	{
+		return;
+	}
+
 	if (routeInfo)
 	{
 		NSUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;

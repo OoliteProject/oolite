@@ -165,8 +165,13 @@
 	 * be in chart_match_color */
 	// "chart_match_label_color" = "cyanColor";
 
-	/* color of connecting lines on nav array */
+	/* color of connecting lines on nav array (Advanced Nav Array on) */
 	// "chart_connection_color" = "0.25 0.25 0.25";
+
+	/* color of lines for current jumps only on nav array (Advanced
+	 * Nav Array off).  This is hidden by default - set a non-zero
+	 * alpha to show them. */
+	// "chart_currentjump_color" = "0.25 0.25 0.25 0.0";
 
 	/* color of shortest route on nav array */
 	// "chart_route_short_color" = "yellowColor";
