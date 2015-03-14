@@ -13142,7 +13142,17 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// oops we hit too hard!!!
 	if (energy <= 0.0)
 	{
-		being_mined = YES;  // same as using a mining laser
+		float frag_chance = [ent mass]*10/[self mass];
+		/* impacts from heavier entities produce fragments
+		 * impacts from lighter entities might do but not always
+		 * asteroid-asteroid impacts likely to fragment
+		 * ship-asteroid impacts might, or might just vaporise it
+		 * projectile weapons just get the default chance
+		 */
+		if (randf() < frag_chance)
+		{
+			being_mined = YES;  // same as using a mining laser
+		}
 		if ([ent isShip])
 		{
 			[(ShipEntity *)ent noteTargetDestroyed:self];
