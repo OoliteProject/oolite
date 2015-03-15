@@ -1704,9 +1704,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if ([player hasHyperspaceMotor])
 	{
 		// draw fuel range circle
+		OOGL(GLScaledLineWidth(2.0f));
 		[self setGLColorFromSetting:kGuiChartRangeColor defaultValue:[OOColor greenColor] alpha:alpha];
 						
-		OOGL(GLScaledLineWidth(2.0f));
 		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 	}
 		
@@ -2408,7 +2408,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
 	NSUInteger		i, j, loopstart;
-	GLfloat lr,lg,lb,la;
+	GLfloat lr,lg,lb,la,lr2,lg2,lb2,la2;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
 	NSPoint			star = NSZeroPoint, 
@@ -2420,7 +2420,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOSystemID planetNumber = [PLAYER systemID];
 
 	OOColor *defaultConnectionColor = [self colorFromSetting:kGuiChartConnectionColor defaultValue:[OOColor colorWithWhite:0.25 alpha:1.0]];
-	OOColor *defaultCurrentJumpColor = [self colorFromSetting:kGuiChartCurrentJumpColor defaultValue:[OOColor colorWithWhite:0.25 alpha:0.0]];
+	OOColor *currentJumpColorStart = [self colorFromSetting:kGuiChartCurrentJumpStartColor defaultValue:[OOColor colorWithWhite:0.25 alpha:0.0]];
+	OOColor *currentJumpColorEnd = [self colorFromSetting:kGuiChartCurrentJumpEndColor defaultValue:[OOColor colorWithWhite:0.25 alpha:0.0]];
 
 	OOColor *thisConnectionColor = nil;
 	
@@ -2454,25 +2455,39 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 			if (d <= jumpRange)	// another_commander - Default to 7.0 LY.
 			{
+				star2.x = (float)(star2abs.x * hscale);
+				star2.y = (float)(star2abs.y * vscale);
 				if (optimizeBy == OPTIMIZED_BY_NONE)
 				{
-					thisConnectionColor = defaultCurrentJumpColor;
+					[currentJumpColorStart getRed:&lr green:&lg blue:&lb alpha:&la];
+					[currentJumpColorEnd getRed:&lr2 green:&lg2 blue:&lb2 alpha:&la2];
+					OOGL(glColor4f(lr, lg, lb, la*alpha));
+					glVertex3f(x+star.x, y+star.y, z);
+
+					float frac = (d/jumpRange);
+					OOGL(glColor4f(
+							 OOLerp(lr,lr2,frac),
+							 OOLerp(lg,lg2,frac),
+							 OOLerp(lb,lb2,frac),
+							 OOLerp(la,la2,frac)
+							 ));
+					glVertex3f(x+star2.x, y+star2.y, z);
+
 				}
 				else
 				{
 					thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)i, (long)j]]];
-				}
-				if (thisConnectionColor == nil)
-				{
-					thisConnectionColor = defaultConnectionColor;
-				}
-				[thisConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
-				OOGL(glColor4f(lr, lg, lb, la*alpha));
+				
+					if (thisConnectionColor == nil)
+					{
+						thisConnectionColor = defaultConnectionColor;
+					}
+					[thisConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
+					OOGL(glColor4f(lr, lg, lb, la*alpha));
 
-				star2.x = (float)(star2abs.x * hscale);
-				star2.y = (float)(star2abs.y * vscale);
-				glVertex3f(x+star.x, y+star.y, z);
-				glVertex3f(x+star2.x, y+star2.y, z);
+					glVertex3f(x+star.x, y+star.y, z);
+					glVertex3f(x+star2.x, y+star2.y, z);
+				}
 			}
 		}
 	}

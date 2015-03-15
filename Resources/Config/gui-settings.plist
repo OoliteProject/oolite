@@ -141,6 +141,7 @@
 
 	/* scale of name labels on F6 chart relative to Oolite default size */
 	// "chart_label_scale" = 1.0;
+	"chart_label_scale" = 0.75;
 
 	/* scale of star circles on F6 chart relative to the 'radius' property */
 	// "chart_circle_scale" = 0.0017;
@@ -170,8 +171,11 @@
 
 	/* color of lines for current jumps only on nav array (Advanced
 	 * Nav Array off).  This is hidden by default - set a non-zero
-	 * alpha to show them. */
-	// "chart_currentjump_color" = "0.25 0.25 0.25 0.0";
+	 * alpha to show them. The lines are a gradient between the start
+	 * and end colors, with the full gradient visible on a maximum
+	 * range jump. */
+	// "chart_currentjumpstart_color" = "0.25 0.25 0.25 0.0";
+	// "chart_currentjumpend_color" = "0.25 0.25 0.25 0.0";
 
 	/* color of shortest route on nav array */
 	// "chart_route_short_color" = "yellowColor";
