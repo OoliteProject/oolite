@@ -141,7 +141,6 @@
 
 	/* scale of name labels on F6 chart relative to Oolite default size */
 	// "chart_label_scale" = 1.0;
-	"chart_label_scale" = 0.75;
 
 	/* scale of star circles on F6 chart relative to the 'radius' property */
 	// "chart_circle_scale" = 0.0017;
