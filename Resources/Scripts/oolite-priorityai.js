@@ -1364,7 +1364,7 @@ PriorityAIController.prototype.stationAllegiance = function(station)
 				}
 			}
 		}
-		if (allegiance == "neutral" && system.mainStation.position.distanceTo(station) < 51200)
+		if (allegiance == "neutral" && system.mainStation && system.mainStation.position.distanceTo(station) < 51200)
 		{
 			allegiance = "galcop"; // neutral stations in aegis
 		}
