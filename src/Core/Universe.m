@@ -100,8 +100,6 @@ MA 02110-1301, USA.
 #include <espeak/speak_lib.h>
 #endif
 
-static int matrixcount = 0;
-
 enum
 {
 	DEMO_FLY_IN			= 101,
@@ -4362,9 +4360,6 @@ static const OOMatrix	starboard_matrix =
 				else [UNIVERSE setMainLightPosition:kZeroVector];
 			}
 			wasDisplayGUI = displayGUI;
-			if (matrixcount % 100 == 0)
-	                        OOLog(@"kja", @"start drawUniverse: modelViewStack count: %d", [[gameView getOpenGLMatrixManager] countModelView]);
-			
 			// use a non-mutable copy so this can't be changed under us.
 			for (i = 0; i < ent_count; i++)
 			{
@@ -4705,9 +4700,6 @@ static const OOMatrix	starboard_matrix =
 			{
 				framesDoneThisUpdate++;
 			}
-			if (matrixcount % 100 == 0)
-				OOLog(@"kja", @"end drawUniverse: modelViewStack count: %d", [[gameView getOpenGLMatrixManager] countModelView]);
-			matrixcount++;
 		}
 		@catch (NSException *exception)
 		{
