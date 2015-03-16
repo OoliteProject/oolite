@@ -1849,7 +1849,7 @@ static NSTimeInterval	time_last_frame;
 					target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					moving = YES;
-					target_chart_centre = cursor_coordinates;
+					//target_chart_centre = cursor_coordinates;
 					chart_focus_coordinates = target_chart_centre;
 				}
 				
@@ -1959,7 +1959,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					target_chart_centre.y = chart_focus_coordinates.y + CHART_SCROLL_AT_Y*chart_zoom;
 				}
-					else if (chart_focus_coordinates.y - target_chart_centre.y >= CHART_SCROLL_AT_Y*chart_zoom)
+				else if (chart_focus_coordinates.y - target_chart_centre.y >= CHART_SCROLL_AT_Y*chart_zoom)
 				{
 					target_chart_centre.y = chart_focus_coordinates.y - CHART_SCROLL_AT_Y*chart_zoom;
 				}
@@ -3604,7 +3604,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					target_chart_zoom = saved_chart_zoom;
 				}
-				target_chart_centre = cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+				//target_chart_centre = cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 
 				[self setGuiToShortRangeChartScreen];
 			}
