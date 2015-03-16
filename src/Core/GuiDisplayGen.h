@@ -113,6 +113,7 @@ static NSString * const kGuiManifestTabs			= @"manifest_tabs";
 static NSString * const kGuiChartLabelScale			= @"chart_label_scale";
 static NSString * const kGuiChartCircleScale		= @"chart_circle_scale";
 static NSString * const kGuiChartLabelColor			= @"chart_label_color";
+static NSString * const kGuiChartLabelReachableColor	= @"chart_labelreachable_color";
 static NSString * const kGuiChartRangeColor			= @"chart_range_color";
 static NSString * const kGuiChartCrosshairColor		= @"chart_crosshair_color";
 static NSString * const kGuiChartCursorColor		= @"chart_cursor_color";

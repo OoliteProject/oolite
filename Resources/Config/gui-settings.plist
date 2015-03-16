@@ -148,6 +148,10 @@
 	/* color of name labels on F6 chart */
 	// "chart_label_color" = "yellowColor";
 
+	/* color of name labels on F6 chart (alternative colour for
+	 * systems currently in jump range) */
+	// "chart_labelreachable_color" = "yellowColor";
+
 	/* color of fuel range circle */
 	// "chart_range_color" = "greenColor";
 

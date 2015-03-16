@@ -1984,13 +1984,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	// draw names
 	//
-	[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
 //	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
 	
 	int targetIdx = -1;
 	struct saved_system *sys;
 	NSSize chSize = NSMakeSize(pixel_row_height*systemNameScale/zoom,pixel_row_height*systemNameScale/zoom);
 	
+	double jumpRange = MAX_JUMP_RANGE * [PLAYER dialFuel];
 	for (i = 0; i < num_nearby_systems; i++)
 	{
 		sys = nearby_systems + i;
@@ -2012,6 +2012,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			if (![player showInfoFlag])	// System's name
 			{
+
+				double d = distanceBetweenPlanetPositions(galaxy_coordinates.x, galaxy_coordinates.y, sys_coordinates.x, sys_coordinates.y);
+				if (d <= jumpRange)
+				{
+					[self setGLColorFromSetting:kGuiChartLabelReachableColor defaultValue:[OOColor yellowColor] alpha:alpha];
+				}
+				else
+				{
+					[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
+
+				}
+
 				OODrawString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
 			}
 			else if (EXPECT(sys->gov >= 0))	// Not a nova? Show the info.
