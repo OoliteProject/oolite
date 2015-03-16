@@ -90,6 +90,7 @@ static unsigned RepForRisk(unsigned risk);
 	for (i = 0; i < [rescuees count]; i++)
 	{
 		OOCharacter *rescuee = [rescuees objectAtIndex:i];
+		
 		if ([rescuee script])
 		{
 			[rescuee doScriptEvent:OOJSID("unloadCharacter")];
@@ -111,7 +112,7 @@ static unsigned RepForRisk(unsigned risk);
 				[result appendFormat:DESC(@"capture-reward-for-@@-@-credits-@-alt"),
 				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO),
 				 OOStringFromDeciCredits(insurance, YES, NO)];
-				
+				[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"bounty",[rescuee infoForScripting],nil]];
 			}
 			else
 			{
@@ -120,6 +121,7 @@ static unsigned RepForRisk(unsigned risk);
 				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(insurance - reward, YES, NO),
 				 OOStringFromDeciCredits(reward, YES, NO)];
 				reward = insurance - reward;
+				[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"insurance",[rescuee infoForScripting],nil]];
 			}
 			credits += reward;
 			added_entry = YES;
@@ -130,6 +132,8 @@ static unsigned RepForRisk(unsigned risk);
 			[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO)];
 			credits += 10 * [rescuee insuranceCredits];
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:(10 * [rescuee insuranceCredits])],@"insurance",[rescuee infoForScripting],nil]];
+				
 			added_entry = YES;
 		}
 		else if ([rescuee legalStatus])
@@ -139,12 +143,15 @@ static unsigned RepForRisk(unsigned risk);
 			[result appendFormat:DESC(@"capture-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO)];
 			credits += reward;
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"bounty",[rescuee infoForScripting],nil]];
 			added_entry = YES;
 		}
 		else
 		{
 			// sell as slave - increase no. of slaves in manifest
 			[shipCommodityData addQuantity:1 forGood:@"slaves"];
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:0],@"slave",[rescuee infoForScripting],nil]];
+
 		}
 		if ((i < [rescuees count] - 1) && added_entry)
 			[result appendString:@"\n"];
@@ -171,7 +178,7 @@ static unsigned RepForRisk(unsigned risk);
 	// check passenger contracts
 	for (i = 0; i < [passengers count]; i++)
 	{
-		NSDictionary* passenger_info = [passengers oo_dictionaryAtIndex:i];
+		NSDictionary* passenger_info = [[passengers oo_dictionaryAtIndex:i] retain];
 		NSString* passenger_name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
 		int dest = [passenger_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		// the system name can change via script
@@ -194,10 +201,14 @@ static unsigned RepForRisk(unsigned risk);
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-okay-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
 
 				[self increasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[passengers removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger",@"success",[NSNumber numberWithUnsignedInteger:(10*fee)],passenger_info,nil]];
 			}
 			else
 			{
@@ -208,9 +219,14 @@ static unsigned RepForRisk(unsigned risk);
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"passenger-delivered-late-@-@-@"), passenger_name, OOIntCredits(fee), passenger_dest_name];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
 
 				[passengers removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger",@"late",[NSNumber numberWithUnsignedInteger:10*fee],passenger_info,nil]];
+
 			}
 		}
 		else
@@ -222,14 +238,16 @@ static unsigned RepForRisk(unsigned risk);
 				
 				[self decreasePassengerReputation:RepForRisk([passenger_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[passengers removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"passenger",@"failed",[NSNumber numberWithUnsignedInteger:0],passenger_info,nil]];
 			}
 		}
+		[passenger_info release];
 	}
 
 	// check parcel contracts
 	for (i = 0; i < [parcels count]; i++)
 	{
-		NSDictionary* parcel_info = [parcels oo_dictionaryAtIndex:i];
+		NSDictionary* parcel_info = [[parcels oo_dictionaryAtIndex:i] retain];
 		NSString* parcel_name = [parcel_info oo_stringForKey:PASSENGER_KEY_NAME];
 		int dest = [parcel_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		int dest_eta = [parcel_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
@@ -255,7 +273,12 @@ static unsigned RepForRisk(unsigned risk);
 				[self increaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 
 				[parcels removeObjectAtIndex:i--];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"success",[NSNumber numberWithUnsignedInteger:10*fee],parcel_info,nil]];
+
 			}
 			else
 			{
@@ -266,8 +289,12 @@ static unsigned RepForRisk(unsigned risk);
 				credits += 10 * fee;
 				
 				[result appendFormatLine:DESC(@"parcel-delivered-late-@-@"), parcel_name, OOIntCredits(fee)];
-				[self addRoleToPlayer:@"trader-courier+"];
+				if ([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0] > 0)
+				{
+					[self addRoleToPlayer:@"trader-courier+"];
+				}
 				[parcels removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"late",[NSNumber numberWithUnsignedInteger:10*fee],parcel_info,nil]];
 			}
 		}
 		else
@@ -279,15 +306,17 @@ static unsigned RepForRisk(unsigned risk);
 				
 				[self decreaseParcelReputation:RepForRisk([parcel_info oo_unsignedIntForKey:CONTRACT_KEY_RISK defaultValue:0])];
 				[parcels removeObjectAtIndex:i--];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"parcel",@"failed",[NSNumber numberWithUnsignedInteger:0],parcel_info,nil]];
 			}
 		}
+		[parcel_info release];
 	}
 
 	
 	// check cargo contracts
 	for (i = 0; i < [contracts count]; i++)
 	{
-		NSDictionary* contract_info = [contracts oo_dictionaryAtIndex:i];
+		NSDictionary* contract_info = [[contracts oo_dictionaryAtIndex:i] retain];
 		NSString* contract_cargo_desc = [contract_info oo_stringForKey:CARGO_KEY_DESCRIPTION];
 		int dest = [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION];
 		int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
@@ -335,6 +364,8 @@ static unsigned RepForRisk(unsigned risk);
 					// repute++
 					// +10 as cargo contracts don't have risk modifiers
 					[self increaseContractReputation:10];
+					[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"success",[NSNumber numberWithUnsignedInteger:fee],contract_info,nil]];
+
 				}
 				else
 				{
@@ -366,6 +397,8 @@ static unsigned RepForRisk(unsigned risk);
 						
 						[contracts removeObjectAtIndex:i--];
 						// repute unchanged
+						[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"short",[NSNumber numberWithUnsignedInteger:payment],contract_info,nil]];
+
 					}
 					else
 					{
@@ -382,6 +415,7 @@ static unsigned RepForRisk(unsigned risk);
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation:10];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"late",[NSNumber numberWithUnsignedInteger:0],contract_info,nil]];
 			}
 		}
 		else
@@ -394,8 +428,10 @@ static unsigned RepForRisk(unsigned risk);
 				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation:10];
+				[self doScriptEvent:OOJSID("playerCompletedContract") withArguments:[NSArray arrayWithObjects:@"cargo",@"failed",[NSNumber numberWithUnsignedInteger:0],contract_info,nil]];
 			}
 		}
+		[contract_info release];
 	}
 	
 	// check passenger_record for expired contracts
@@ -857,10 +893,16 @@ for (unsigned i=0;i<amount;i++)
 	// extra checks, just in case.
 	if ([passengers count] >= max_passengers || [passenger_record objectForKey:Name] != nil) return NO;
 		
-	[self addRoleToPlayer:@"trader-courier+"];
+	if (risk > 1)
+	{
+		[self addRoleToPlayer:@"trader-courier+"];
+	}
 
 	[passengers addObject:passenger_info];
 	[passenger_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
+
+	[self doScriptEvent:OOJSID("playerEnteredContract") withArguments:[NSArray arrayWithObjects:@"passenger",passenger_info,nil]];
+
 	return YES;
 }
 
@@ -904,13 +946,16 @@ for (unsigned i=0;i<amount;i++)
 	// extra checks, just in case.
 	if ([parcel_record objectForKey:Name] != nil) return NO;
 
-	if ([parcels count] == 0 || risk > 0)
+	if (risk > 1)
 	{
 		[self addRoleToPlayer:@"trader-courier+"];
 	}
 		
 	[parcels addObject:parcel_info];
 	[parcel_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
+
+	[self doScriptEvent:OOJSID("playerEnteredContract") withArguments:[NSArray arrayWithObjects:@"parcel",parcel_info,nil]];
+
 	return YES;
 }
 
@@ -997,6 +1042,8 @@ for (unsigned i=0;i<amount;i++)
 
 	[contracts addObject:cargo_info];
 	[contract_record setObject:[NSNumber numberWithDouble:eta] forKey:cargo_ID];
+
+	[self doScriptEvent:OOJSID("playerEnteredContract") withArguments:[NSArray arrayWithObjects:@"cargo",cargo_info,nil]];
 
 	return YES;
 }
@@ -1086,6 +1133,7 @@ for (unsigned i=0;i<amount;i++)
 	
 	// GUI stuff
 	{
+		NSInteger current, max;
 		OOColor *subheadColor = [gui colorFromSetting:kGuiManifestSubheadColor defaultValue:[OOColor greenColor]];
 		OOColor *entryColor = [gui colorFromSetting:kGuiManifestEntryColor defaultValue:nil];
 		OOColor *scrollColor = [gui colorFromSetting:kGuiManifestScrollColor defaultValue:[OOColor greenColor]];
@@ -1093,18 +1141,12 @@ for (unsigned i=0;i<amount;i++)
 
 		NSArray*	cargoManifest = [self cargoList];
 		NSArray*	missionsManifest = [self missionsList];
-		NSArray*	passengerManifest = [self passengerList];
-		NSArray*	contractManifest = [self contractList];
-		NSArray*	parcelManifest = [self parcelList];
 		
 		NSUInteger	i = 0;
 		NSUInteger	max_rows = 20;
 		NSUInteger	manifestCount = [cargoManifest count];
 		NSUInteger	cargoRowCount = (manifestCount + 1)/2;
 		OOGUIRow	cargoRow = 2;
-		OOGUIRow	passengersRow = 2;
-		OOGUIRow	contractsRow = 2;
-		OOGUIRow	parcelsRow = 2;
 		OOGUIRow	missionsRow = 2;
 		
 		// show extra lines if no HUD is displayed.
@@ -1126,7 +1168,8 @@ for (unsigned i=0;i<amount;i++)
 		
 		NSInteger page_offset = 0;
 		BOOL multi_page = NO;
-		NSUInteger total_rows = cargoRowCount + MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) + mmRows + MAX(1U,[parcelManifest count]) + 5;
+//		NSUInteger total_rows = cargoRowCount + MAX(1U,[passengerManifest count]) + MAX(1U,[contractManifest count]) + mmRows + MAX(1U,[parcelManifest count]) + 5;
+		NSUInteger total_rows = cargoRowCount + mmRows + 5;
 		if (total_rows > max_rows)
 		{
 			max_rows -= 2;
@@ -1152,7 +1195,15 @@ for (unsigned i=0;i<amount;i++)
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"manifest-title")];
 		
-		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), current_cargo, [self maxAvailableCargoSpace]]) , entryColor, cargoRow - 1);
+		current = current_cargo;
+		max = [self maxAvailableCargoSpace];
+		NSString *cargoString = OOExpandKey(@"oolite-manifest-cargo", current, max);
+		current = [[self passengerList] count];
+		max = max_passengers;
+		NSString *cabinString = OOExpandKey(@"oolite-manifest-cabins", current, max);
+		NSArray *manifestHeader = [NSArray arrayWithObjects:cargoString,cabinString,nil];
+
+		SET_MANIFEST_ROW( manifestHeader , entryColor, cargoRow - 1);
 		
 		if (manifestCount > 0)
 		{
@@ -1174,67 +1225,7 @@ for (unsigned i=0;i<amount;i++)
 			cargoRowCount=1;
 		}
 		
-		passengersRow = cargoRow + cargoRowCount + 1;
-		
-		// Passengers Manifest
-		manifestCount = [passengerManifest count];
-		
-		SET_MANIFEST_ROW( ([NSString stringWithFormat:DESC(@"manifest-passengers-d-d"), manifestCount, max_passengers]) , entryColor, passengersRow - 1);
-
-		if (manifestCount > 0)
-		{
-			for (i = 0; i < manifestCount; i++)
-			{
-				SET_MANIFEST_ROW( ((NSString*)[passengerManifest objectAtIndex:i]) , subheadColor, passengersRow + i);
-			}
-		}
-		else
-		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, passengersRow);
-			manifestCount = 1;
-		}
-
-		parcelsRow = passengersRow + manifestCount + 1;
-
-		// Parcels Manifest
-		manifestCount = [parcelManifest count];
-		
-		SET_MANIFEST_ROW( (DESC(@"manifest-parcels")) , entryColor, parcelsRow - 1);
-
-		if (manifestCount > 0)
-		{
-			for (i = 0; i < manifestCount; i++)
-			{
-				SET_MANIFEST_ROW( ((NSString*)[parcelManifest objectAtIndex:i]) , subheadColor, parcelsRow + i);
-			}
-		}
-		else
-		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, parcelsRow);
-			manifestCount = 1;
-		}
-
-
-		contractsRow = parcelsRow + manifestCount + 1;
-		
-		// Contracts Manifest
-		manifestCount = [contractManifest count];
-		SET_MANIFEST_ROW( (DESC(@"manifest-contracts")) , entryColor, contractsRow - 1);
-			
-		if (manifestCount > 0)
-		{
-			for (i = 0; i < manifestCount; i++)
-			{
-				SET_MANIFEST_ROW( ((NSString*)[contractManifest objectAtIndex:i]) , subheadColor, contractsRow + i);
-			}
-		}
-		else
-		{
-			SET_MANIFEST_ROW( (DESC(@"manifest-none")), subheadColor, contractsRow);
-			manifestCount = 1;
-		}
-
-		missionsRow = contractsRow + manifestCount + 1;
+		missionsRow = cargoRow + cargoRowCount + 1;
 		
 		// Missions Manifest
 		manifestCount = [missionsManifest count];
@@ -1284,11 +1275,6 @@ for (unsigned i=0;i<amount;i++)
 			}
 		}
 		
-/*		if (missions_row + manifest_count >= max_rows )
-		{
-			[gui setText:@" . . ."				forRow:max_rows];
-			[gui setColor:[OOColor subheadColor]	forRow:max_rows];
-			} */
 		if (multi_page)
 		{
 			OOGUIRow r_start = MANIFEST_SCREEN_ROW_BACK;
@@ -1439,6 +1425,14 @@ for (unsigned i=0;i<amount;i++)
 
 static NSMutableDictionary *currentShipyard = nil;
 
+
+- (OOCreditsQuantity) priceForShipKey:(NSString *)key
+{
+	NSDictionary *shipInfo = [currentShipyard oo_dictionaryForKey:key];
+	return [shipInfo oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
+}
+
+
 - (void) setGuiToShipyardScreen:(NSUInteger)skip
 {
 	OOGUIScreenID	oldScreen = gui_screen;
@@ -1497,7 +1491,8 @@ static NSMutableDictionary *currentShipyard = nil;
 	// GUI stuff
 	{
 		[gui clearAndKeepBackground:!guiChanged];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"@-shipyard-title"),[UNIVERSE getSystemName:system_id]]];
+		NSString *system = [UNIVERSE getSystemName:system_id];
+		[gui setTitle:OOExpandKey(@"shipyard-title", system)];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -1531,8 +1526,8 @@ static NSMutableDictionary *currentShipyard = nil;
 		if (shipCount > 0)
 		{
 			[gui setColor:[gui colorFromSetting:kGuiShipyardHeadingColor defaultValue:[OOColor greenColor]] forRow:GUI_ROW_SHIPYARD_LABELS];
-			[gui setArray:[NSArray arrayWithObjects:DESC(@"shipyard-shiptype"), DESC(@"shipyard-price"),
-					DESC(@"shipyard-cargo"), DESC(@"shipyard-speed"), nil] forRow:GUI_ROW_SHIPYARD_LABELS];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"shipyard-shiptype"), DESC(@"shipyard-price-label"),
+					DESC(@"shipyard-cargo-label"), DESC(@"shipyard-speed-label"), nil] forRow:GUI_ROW_SHIPYARD_LABELS];
 
 			if (skip > 0)
 			{
@@ -1623,26 +1618,26 @@ static NSMutableDictionary *currentShipyard = nil;
 		NSString *salesPitch = [info oo_stringForKey:KEY_SHORT_DESCRIPTION];
 		NSDictionary *shipDict = [info oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
 		
-		int cargo_rating = [shipDict oo_intForKey:@"max_cargo"];
+		int cargoRating = [shipDict oo_intForKey:@"max_cargo"];
 		int cargo_extra;
 		cargo_extra = [shipDict oo_intForKey:@"extra_cargo" defaultValue:15];
-		float speed_rating = 0.001 * [shipDict oo_intForKey:@"max_flight_speed"];
+		float speedRating = 0.001 * [shipDict oo_intForKey:@"max_flight_speed"];
 		
 		NSArray *shipExtras = [info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
 		for (i = 0; i < [shipExtras count]; i++)
 		{
 			if ([[shipExtras oo_stringAtIndex:i] isEqualToString:@"EQ_CARGO_BAY"])
 			{
-				cargo_rating += cargo_extra;
+				cargoRating += cargo_extra;
 			}
 			else if ([[shipExtras oo_stringAtIndex:i] isEqualToString:@"EQ_PASSENGER_BERTH"])
 			{
-				cargo_rating -= PASSENGER_BERTH_SPACE;
+				cargoRating -= PASSENGER_BERTH_SPACE;
 			}
 		}
 		
-		[row_info replaceObjectAtIndex:2 withObject:[NSString stringWithFormat:DESC(@"shipyard-cargo-d-tc"), cargo_rating]];
-		[row_info replaceObjectAtIndex:3 withObject:[NSString stringWithFormat:DESC(@"shipyard-speed-f-ls"), speed_rating]];
+		[row_info replaceObjectAtIndex:2 withObject:OOExpandKey(@"shipyard-cargo-value", cargoRating)];
+		[row_info replaceObjectAtIndex:3 withObject:OOExpandKey(@"shipyard-speed-value", speedRating)];
 		
 		// Show footer first. It'll be overwritten by the sales_pitch if that text is longer than usual.
 		[self showTradeInInformationFooter];
@@ -1673,10 +1668,13 @@ static NSMutableDictionary *currentShipyard = nil;
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	OOCreditsQuantity tradeIn = [self tradeInValue];
+	OOCreditsQuantity total = tradeIn + credits;
+	NSString *shipType = [self displayName];
+	
 	[gui setColor:[gui colorFromSetting:kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH - 1];
 	[gui setColor:[gui colorFromSetting:kGuiShipyardTradeinColor defaultValue:nil] forRow:GUI_ROW_MARKET_CASH];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH - 1];
-	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOIntCredits(tradeIn/10)]  forRow: GUI_ROW_MARKET_CASH];
+	[gui setText:OOExpandKey(@"shipyard-trade-in-value", shipType, tradeIn) forRow: GUI_ROW_MARKET_CASH - 1];
+	[gui setText:OOExpandKey(@"shipyard-total-available-with-trade-in", shipType, total, credits, tradeIn) forRow: GUI_ROW_MARKET_CASH];
 }
 
 

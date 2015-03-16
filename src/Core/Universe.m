@@ -181,7 +181,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 @interface Universe (OOPrivate)
 
 - (BOOL) doRemoveEntity:(Entity *)entity;
-- (void) setUpSettings;
 - (void) setUpCargoPods;
 - (void) setUpInitialUniverse;
 - (HPVector) fractionalPositionFrom:(HPVector)point0 to:(HPVector)point1 withFraction:(double)routeFraction;
@@ -507,10 +506,16 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (BOOL) setUseAddOns:(NSString *) newUse fromSaveGame:(BOOL) saveGame
 {
-	if ([newUse isEqualToString:useAddOns])
+	return [self setUseAddOns:newUse fromSaveGame:saveGame forceReinit:NO];
+}
+
+
+- (BOOL) setUseAddOns:(NSString *) newUse fromSaveGame:(BOOL) saveGame forceReinit:(BOOL)force
+{
+	if (!force && [newUse isEqualToString:useAddOns])
 	{
 		return YES;
-	}
+	} 
 	DESTROY(useAddOns);
 	useAddOns = [newUse retain];
 
@@ -562,6 +567,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	PlayerEntity 	*player = PLAYER;
 	
 	[self setPauseMessageVisible:NO];
+	NSString *pauseKey = [PLAYER keyBindingDescription:@"key_pausebutton"];
 	
 	if ([player status] == STATUS_DOCKED)
 	{
@@ -572,7 +578,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-docked-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:OOExpandKey(@"game-paused-docked", pauseKey) forCount:1.0];
 		}
 	}
 	else
@@ -584,7 +590,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		else
 		{
 			[self setPauseMessageVisible:YES];
-			[self addMessage:[NSString stringWithFormat:DESC(@"game-paused-@"),[PLAYER keyBindingDescription:@"key_pausebutton"]] forCount:1.0];
+			[self addMessage:OOExpandKey(@"game-paused", pauseKey) forCount:1.0];
 		}
 	}
 	
@@ -802,7 +808,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) setUpWitchspace
 {
-	[self setUpWitchspaceBetweenSystem:[PLAYER systemID] andSystem:[PLAYER targetSystemID]];
+	[self setUpWitchspaceBetweenSystem:[PLAYER systemID] andSystem:[PLAYER nextHopTargetSystemID]];
 }
 
 
@@ -838,6 +844,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[self addEntity:thing];
 	[thing release];
 	
+	ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
 	[self setLighting];	// also sets initial lights positions.
 	
 	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
@@ -880,7 +887,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 	NSMutableDictionary *planetDict = [NSMutableDictionary dictionaryWithDictionary:[systemManager getPropertiesForCurrentSystem]];
 	[planetDict oo_setBool:YES forKey:@"mainForLocalSystem"];
-	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:YES andSeed:systemSeed forSystem:systemID];
+	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:[planetDict oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:systemSeed forSystem:systemID];
 	
 	double planet_zpos = [planetDict oo_floatForKey:@"planet_distance" defaultValue:500000];
 	planet_zpos *= [planetDict oo_floatForKey:@"planet_distance_multiplier" defaultValue:1.0];
@@ -986,6 +993,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	{
 		h1 += 0.33;
 	}
+	
+	ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
+	
 	// pick a main sequence colour
 
 	dict_object=[systeminfo objectForKey:@"sun_color"];
@@ -1046,7 +1056,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 	sun_radius = [systeminfo oo_nonNegativeDoubleForKey:@"sun_radius" defaultValue:2.5 * planet_radius];
 	// clamp the sun radius
-	if ((sun_radius < 1000.0) || (sun_radius > sun_distance / 2 ))
+	if ((sun_radius < 1000.0) || (sun_radius > sun_distance / 2  && !sunGoneNova))
 	{
 		OOLogWARN(@"universe.setup.badSun",@"Sun radius of %f is not valid for this system",sun_radius);
 		sun_radius = sun_radius < 1000.0 ? 1000.0 : (sun_distance / 2);
@@ -1054,7 +1064,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #ifdef OO_DUMP_PLANETINFO
 	OOLog(@"planetinfo.record",@"sun_radius = %f",sun_radius);
 #endif
-	safeDistance=16 * sun_radius * sun_radius; // 4 times the sun radius
+	safeDistance=36 * sun_radius * sun_radius; // 6 times the sun radius
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
@@ -1122,7 +1132,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (sunGoneNova)
 	{
-		[a_sun setRadius: sun_radius + MAX_CORONAFLARE];
+		[a_sun setRadius: sun_radius andCorona:0.3];
 		[a_sun setThrowSparks:YES];
 		[a_sun setVelocity: kZeroVector];
 	}
@@ -1418,7 +1428,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 - (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet
 {
 	HPVector result = kZeroHPVector;
-	if ([code isEqualToString:@"WITCHPOINT"] || sun == nil || planet == nil)
+	if ([code isEqualToString:@"WITCHPOINT"] || sun == nil || planet == nil || [sun goneNova])
 	{
 		result = OOHPVectorRandomSpatial(SCANNER_MAX_RANGE);
 	}
@@ -1541,6 +1551,21 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 }
 
 
+- (void) setAmbientLightLevel:(float)newValue
+{
+	NSAssert(UNIVERSE != nil, @"Attempt to set ambient light level with a non yet existent universe.");
+	
+	ambientLightLevel = OOClamp_0_max_f(newValue, 10.0f);
+	return;
+}
+
+
+- (float) ambientLightLevel
+{
+	return ambientLightLevel;
+}
+
+
 - (void) setLighting
 {
 	/*
@@ -1559,7 +1584,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	*/
 	
-	NSDictionary	*systeminfo = [self currentSystemData];
 	OOSunEntity		*the_sun = [self sun];
 	SkyEntity		*the_sky = nil;
 	GLfloat			sun_pos[] = {0.0, 0.0, 0.0, 1.0};	// equivalent to kZeroVector - for interstellar space.
@@ -1602,7 +1626,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		r = r * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[0] * SUN_AMBIENT_INFLUENCE;
 		g = g * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[1] * SUN_AMBIENT_INFLUENCE;
 		b = b * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[2] * SUN_AMBIENT_INFLUENCE;
-		GLfloat ambient_level = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
+		GLfloat ambient_level = [self ambientLightLevel];
 		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
 		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
@@ -3346,9 +3370,14 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (void) defineWaypoint:(NSDictionary *)definition forKey:(NSString *)key
 {
 	OOWaypointEntity *waypoint = nil;
+	BOOL preserveCompass = NO;
 	waypoint = [waypoints objectForKey:key];
 	if (waypoint != nil)
 	{
+		if ([PLAYER compassTarget] == waypoint) 
+		{
+			preserveCompass = YES;
+		}
 		[self removeEntity:waypoint];
 		[waypoints removeObjectForKey:key];
 	}
@@ -3359,6 +3388,11 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		{
 			[self addEntity:waypoint];
 			[waypoints setObject:waypoint forKey:key];
+			if (preserveCompass)
+			{
+				[PLAYER setCompassTarget:waypoint];
+				[PLAYER setNextBeacon:waypoint];
+			}
 		}
 	}
 }
@@ -3569,9 +3603,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (ShipEntity *) newSubentityWithName:(NSString *)shipKey
+- (ShipEntity *) newSubentityWithName:(NSString *)shipKey andScaleFactor:(float)scale
 {
-	return [self newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES];
+	return [self newShipWithName:shipKey usePlayerProxy:NO isSubentity:YES andScaleFactor:scale];
 }
 
 
@@ -3580,8 +3614,12 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:NO];
 }
 
-
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity
+{
+	return [self newShipWithName:shipKey usePlayerProxy:usePlayerProxy isSubentity:isSubentity andScaleFactor:1.0f];
+}
+
+- (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale
 {
 	OOJS_PROFILE_ENTER
 	
@@ -3607,6 +3645,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	
 	@try
 	{
+		if (scale != 1.0f)
+		{
+			NSMutableDictionary *mShipDict = [shipDict mutableCopy];
+			[mShipDict setObject:[NSNumber numberWithFloat:scale] forKey:@"model_scale_factor"];
+			shipDict = [NSDictionary dictionaryWithDictionary:mShipDict];
+			[mShipDict release];
+		}
 		ship = [[shipClass alloc] initWithKey:shipKey definition:shipDict];
 	}
 	@catch (NSException *exception)
@@ -3628,7 +3673,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (DockEntity *) newDockWithName:(NSString *)shipDataKey
+- (DockEntity *) newDockWithName:(NSString *)shipDataKey andScaleFactor:(float)scale
 {
 	OOJS_PROFILE_ENTER
 	
@@ -3640,6 +3685,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	
 	@try
 	{
+		if (scale != 1.0f)
+		{
+			NSMutableDictionary *mShipDict = [shipDict mutableCopy];
+			[mShipDict setObject:[NSNumber numberWithFloat:scale] forKey:@"model_scale_factor"];
+			shipDict = [NSDictionary dictionaryWithDictionary:mShipDict];
+			[mShipDict release];
+		}
 		dock = [[DockEntity alloc] initWithKey:shipDataKey definition:shipDict];
 	}
 	@catch (NSException *exception)
@@ -4626,8 +4678,15 @@ static const OOMatrix	starboard_matrix =
 				// no HUD rendering in these modes
 				break;
 			default:
-				[theHUD setLineWidth:lineWidth];
-				[theHUD renderHUD];
+				switch ([player guiScreen])
+				{
+				case GUI_SCREEN_KEYBOARD:
+					// no HUD rendering on this screen
+					break;
+				default:
+					[theHUD setLineWidth:lineWidth];
+					[theHUD renderHUD];
+				}
 			}
 			
 #if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
@@ -6296,7 +6355,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			[self speakWithSubstitutions:text];
 		}
 		
-		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
+		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
 		
 		[currentMessage release];
 		currentMessage = [text retain];
@@ -6328,7 +6387,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
 			}
 			
-			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:count key:nil addToArray:nil];
+			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
 			
 			[currentMessage release];
 			currentMessage = [text retain];
@@ -7530,9 +7589,9 @@ static void VerifyDesc(NSString *key, id desc)
 	}
 	else if ([key isEqualToString:@"sun_radius"])
 	{
-		if ([object doubleValue] < 1000.0 || [object doubleValue] > 1000000.0 ) 
+		if ([object doubleValue] < 1000.0 || [object doubleValue] > 10000000.0 ) 
 		{
-			object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"1000000.0"); // works!
+			object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"10000000.0"); // works!
 		}
 	}
 	else if ([key hasPrefix:@"corona_"])
@@ -7825,14 +7884,14 @@ static void VerifyDesc(NSString *key, id desc)
 	*/
 	OOSystemID	system = kOOMinimumSystemID;
 	unsigned	distance, dx, dy;
-	unsigned	i;
+	OOSystemID	i;
 	unsigned	min_dist = 10000;
 	
 	for (i = 0; i < 256; i++)
 	{
 		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
-		dx = abs(coords.x - ipos.x);
-		dy = abs(coords.y - ipos.y);
+		dx = ABS(coords.x - ipos.x);
+		dy = ABS(coords.y - ipos.y);
 		
 		if (dx > dy)	distance = (dx + dx + dy) / 2;
 		else			distance = (dx + dy + dy) / 2;
@@ -7842,8 +7901,13 @@ static void VerifyDesc(NSString *key, id desc)
 			min_dist = distance;
 			system = i;
 		}
-		
-		if ((distance == min_dist)&&(coords.y > ipos.y))	// with coincident systems choose only if ABOVE
+		// with coincident systems choose only if ABOVE
+		if ((distance == min_dist)&&(coords.y > ipos.y))
+		{
+			system = i;
+		}
+		// or if EQUAL but already selected
+		else if ((distance == min_dist)&&(coords.y == ipos.y)&&(i==[PLAYER targetSystemID]))
 		{
 			system = i;
 		}
@@ -8354,61 +8418,54 @@ static void VerifyDesc(NSString *key, id desc)
 		double chance = 1.0 - pow(1.0 - [ship_info oo_doubleForKey:KEY_CHANCE], MAX((OOTechLevelID)1, techlevel - ship_techlevel));
 		
 		// seed random number generator
-		int super_rand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
-		uint32_t super_rand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
-		ranrot_srand(super_rand2);
+		int superRand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
+		uint32_t superRand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
+		ranrot_srand(superRand2);
 		
-		NSDictionary* ship_base_dict = nil;
+		NSDictionary* shipBaseDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_key];
 		
-		ship_base_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_key];
-		
-		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (ship_base_dict != nil))
+		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (shipBaseDict != nil))
 		{			
-			NSMutableDictionary* ship_dict = [NSMutableDictionary dictionaryWithDictionary:ship_base_dict];
-			NSMutableString* description = [NSMutableString stringWithCapacity:256];
-			NSMutableString* short_description = [NSMutableString stringWithCapacity:256];
-			NSString *shipName = [ship_dict oo_stringForKey:@"display_name" defaultValue:[ship_dict oo_stringForKey:KEY_NAME]];
+			NSMutableDictionary* shipDict = [NSMutableDictionary dictionaryWithDictionary:shipBaseDict];
+			NSMutableString* shortShipDescription = [NSMutableString stringWithCapacity:256];
+			NSString *shipName = [shipDict oo_stringForKey:@"display_name" defaultValue:[shipDict oo_stringForKey:KEY_NAME]];
 			OOCreditsQuantity price = [ship_info oo_unsignedIntForKey:KEY_PRICE];
 			OOCreditsQuantity base_price = price;
 			NSMutableArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-			NSString* fwd_weapon_string = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-			NSString* aft_weapon_string = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
+			NSString* fwdWeaponString = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+			NSString* aftWeaponString = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
 			
 			NSMutableArray* options = [NSMutableArray arrayWithArray:[ship_info oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
-			OOCargoQuantity max_cargo = [ship_dict oo_unsignedIntForKey:@"max_cargo"];
+			OOCargoQuantity maxCargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
 			
 			// more info for potential purchasers - how to reveal this I'm not yet sure...
 			//NSString* brochure_desc = [self brochureDescriptionWithDictionary: ship_dict standardEquipment: extras optionalEquipment: options];
 			//NSLog(@"%@ Brochure description : \"%@\"", [ship_dict objectForKey:KEY_NAME], brochure_desc);
 			
-			[description appendFormat:@"%@:", shipName];
-			[short_description appendFormat:@"%@:", shipName];
+			[shortShipDescription appendFormat:@"%@:", shipName];
 			
-			OOWeaponFacingSet available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
+			OOWeaponFacingSet availableFacings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
 
-			OOWeaponType fwd_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwd_weapon_string);
-			OOWeaponType aft_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aft_weapon_string);
+			OOWeaponType fwdWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwdWeaponString);
+			OOWeaponType aftWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aftWeaponString);
 			//port and starboard weapons are not modified in the shipyard
 			
-			int passenger_berths = 0;
+			int passengerBerthCount = 0;
 			BOOL customised = NO;
-			BOOL weapon_customised = NO;
-			BOOL other_weapon_added = NO;
+			BOOL weaponCustomized = NO;
 			
-			NSString *fwd_weapon_desc = nil;
-			NSString *aft_weapon_desc = nil;
+			NSString *fwdWeaponDesc = nil;
 			
-			NSString *short_extras_string = DESC(@"plus-@");
-			NSString *passengerBerthLongDesc = nil;
+			NSString *shortExtrasKey = @"shipyard-first-extra";
 			
 			// for testing condition scripts
-			ShipEntity *testship = [[ProxyPlayerEntity alloc] initWithKey:ship_key definition:ship_dict];
+			ShipEntity *testship = [[ProxyPlayerEntity alloc] initWithKey:ship_key definition:shipDict];
 			// customise the ship (if chance = 1, then ship will get all possible add ons)
 			while ((randf() < chance) && ([options count]))
 			{
 				chance *= chance;	//decrease the chance of a further customisation (unless it is 1, which might be a bug)
-				int				option_index = Ranrot() % [options count];
-				NSString		*equipmentKey = [options oo_stringAtIndex:option_index];
+				int				optionIndex = Ranrot() % [options count];
+				NSString		*equipmentKey = [options oo_stringAtIndex:optionIndex];
 				OOEquipmentType	*item = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 				
 				if (item != nil)
@@ -8416,7 +8473,6 @@ static void VerifyDesc(NSString *key, id desc)
 					OOTechLevelID		eqTechLevel = [item techLevel];
 					OOCreditsQuantity	eqPrice = [item price] / 10;	// all amounts are x/10 due to being represented in tenths of credits.
 					NSString			*eqShortDesc = [item name];
-					NSString			*eqLongDesc = [item descriptiveText];
 					
 					if ([item techLevel] > techlevel)
 					{
@@ -8540,29 +8596,27 @@ static void VerifyDesc(NSString *key, id desc)
 					{
 						OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
 						//fit best weapon forward
-						if (available_facings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwd_weapon weaponThreatAssessment])
+						if (availableFacings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwdWeapon weaponThreatAssessment])
 						{
 							//again remember to divide price by 10 to get credits from tenths of credit
-							price -= [self getEquipmentPriceForKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
+							price -= [self getEquipmentPriceForKey:fwdWeaponString] * 90 / 1000;	// 90% credits
 							price += eqPrice;
-							fwd_weapon_string = equipmentKey;
-							fwd_weapon = new_weapon;
-							[ship_dict setObject:fwd_weapon_string forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-							weapon_customised = YES;
-							fwd_weapon_desc = eqShortDesc;
+							fwdWeaponString = equipmentKey;
+							fwdWeapon = new_weapon;
+							[shipDict setObject:fwdWeaponString forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+							weaponCustomized = YES;
+							fwdWeaponDesc = eqShortDesc;
 						}
 						else 
 						{
 							//if less good than current forward, try fitting is to rear
-							if (available_facings & WEAPON_FACING_AFT && (isWeaponNone(aft_weapon) || [new_weapon weaponThreatAssessment] > [aft_weapon weaponThreatAssessment]))
+							if (availableFacings & WEAPON_FACING_AFT && (isWeaponNone(aftWeapon) || [new_weapon weaponThreatAssessment] > [aftWeapon weaponThreatAssessment]))
 							{
-								price -= [self getEquipmentPriceForKey:aft_weapon_string] * 90 / 1000;	// 90% credits
+								price -= [self getEquipmentPriceForKey:aftWeaponString] * 90 / 1000;	// 90% credits
 								price += eqPrice;
-								aft_weapon_string = equipmentKey;
-								aft_weapon = new_weapon;
-								[ship_dict setObject:aft_weapon_string forKey:KEY_EQUIPMENT_AFT_WEAPON];
-								other_weapon_added = YES;
-								aft_weapon_desc = eqShortDesc;
+								aftWeaponString = equipmentKey;
+								aftWeapon = new_weapon;
+								[shipDict setObject:aftWeaponString forKey:KEY_EQUIPMENT_AFT_WEAPON];
 							}
 							else 
 							{
@@ -8575,19 +8629,12 @@ static void VerifyDesc(NSString *key, id desc)
 					{
 						if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 						{
-							if ((max_cargo >= PASSENGER_BERTH_SPACE) && (randf() < chance))
+							if ((maxCargo >= PASSENGER_BERTH_SPACE) && (randf() < chance))
 							{
-								max_cargo -= PASSENGER_BERTH_SPACE;
+								maxCargo -= PASSENGER_BERTH_SPACE;
 								price += eqPrice;
 								[extras addObject:equipmentKey];
-								if (passenger_berths == 0)
-								{
-									// This will be needed to construct the description for passenger berths.
-									// Note: use of lowercaseString is bad from an i18n perspective,
-									// but the string is never actually shown anyway...
-									passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eqLongDesc lowercaseString]];
-								}
-								passenger_berths++;
+								passengerBerthCount++;
 								customised = YES;
 							}
 							else
@@ -8602,9 +8649,9 @@ static void VerifyDesc(NSString *key, id desc)
 							[extras addObject:equipmentKey];
 							if ([item isVisible])
 							{
-								[description appendFormat:DESC(@"extra-@-@-(long-description)"), eqShortDesc, [eqLongDesc lowercaseString]];
-								[short_description appendFormat:short_extras_string, eqShortDesc];
-								short_extras_string = @" %@.";
+								NSString *item = eqShortDesc;
+								[shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
+								shortExtrasKey = @"shipyard-additional-extra";
 							}
 							customised = YES;
 							[options removeObject:equipmentKey]; //dont add twice
@@ -8620,56 +8667,48 @@ static void VerifyDesc(NSString *key, id desc)
 			// i18n: Some languages require that no conversion to lower case string takes place.
 			BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"];
 			
-			if (passenger_berths)
+			if (passengerBerthCount)
 			{
-				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : (id)@"";
-				NSString* ppb = DESC_PLURAL(@"passenger-berth", passenger_berths);
+				NSString* npb = (passengerBerthCount > 1)? [NSString stringWithFormat:@"%d ", passengerBerthCount] : (id)@"";
+				NSString* ppb = DESC_PLURAL(@"passenger-berth", passengerBerthCount);
 				NSString* extraPassengerBerthsDescription = [NSString stringWithFormat:DESC(@"extra-@-@-(passenger-berths)"), npb, ppb];
-				[description appendFormat:DESC(@"extra-@-@-@-(passenger-berth-long-description)"), npb, ppb, passengerBerthLongDesc];
-				[short_description appendFormat:short_extras_string, extraPassengerBerthsDescription];
+				NSString *item = extraPassengerBerthsDescription;
+				[shortShipDescription appendString:OOExpandKey(shortExtrasKey, item)];
+				shortExtrasKey = @"shipyard-additional-extra";
 			}
 			
 			if (!customised)
 			{
-				[description appendString:DESC(@"shipyard-standard-customer-model")];
-				[short_description appendString:DESC(@"shipyard-standard-customer-model")];
+				[shortShipDescription appendString:OOExpandKey(@"shipyard-standard-customer-model")];
 			}
 			
-			if (weapon_customised)
+			if (weaponCustomized)
 			{
-				[description appendFormat:DESC(@"shipyard-forward-weapon-has-been-upgraded-to-a-@"), 
-								(lowercaseIgnore ? fwd_weapon_desc : [fwd_weapon_desc lowercaseString])];
-				[short_description appendFormat:DESC(@"shipyard-forward-weapon-upgraded-to-@"),
-								(lowercaseIgnore ? fwd_weapon_desc : [fwd_weapon_desc lowercaseString])];
-			}
-			if (other_weapon_added)
-			{
-				[description appendFormat:@"aft %@", (lowercaseIgnore ? aft_weapon_desc : [aft_weapon_desc lowercaseString])];
+				NSString *weapon = (lowercaseIgnore ? fwdWeaponDesc : [fwdWeaponDesc lowercaseString]);
+				[shortShipDescription appendString:OOExpandKey(@"shipyard-forward-weapon-upgraded", weapon)];
 			}
 			if (price > base_price)
 			{
 				price = base_price + cunningFee(price - base_price, 0.05);
 			}
 			
-			[description appendFormat:DESC(@"shipyard-selling-price-@"), OOIntCredits(price)];
-			[short_description appendFormat:DESC(@"shipyard-price-@"), OOIntCredits(price)];
+			[shortShipDescription appendString:OOExpandKey(@"shipyard-price", price)];
 			
-			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
+			NSString *shipID = [NSString stringWithFormat:@"%06x-%06x", superRand1, superRand2];
 			
 			uint16_t personality = RanrotWithSeed(&personalitySeed) & ENTITY_PERSONALITY_MAX;
 			
-			NSDictionary* ship_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-				ship_id,							SHIPYARD_KEY_ID,
+			NSDictionary *ship_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+				shipID,								SHIPYARD_KEY_ID,
 				ship_key,							SHIPYARD_KEY_SHIPDATA_KEY,
-				ship_dict,							SHIPYARD_KEY_SHIP,
-				description,						SHIPYARD_KEY_DESCRIPTION,
-				short_description,					KEY_SHORT_DESCRIPTION,
+				shipDict,							SHIPYARD_KEY_SHIP,
+				shortShipDescription,				KEY_SHORT_DESCRIPTION,
 				[NSNumber numberWithUnsignedLongLong:price], SHIPYARD_KEY_PRICE,
 				extras,								KEY_EQUIPMENT_EXTRAS,
 				[NSNumber numberWithUnsignedShort:personality], SHIPYARD_KEY_PERSONALITY,								  
 				NULL];
 			
-			[resultDictionary setObject:ship_info_dictionary forKey:ship_id];	// should order them fairly randomly
+			[resultDictionary setObject:ship_info_dictionary forKey:shipID];	// should order them fairly randomly
 		}
 		
 		// next contract
@@ -8710,7 +8749,7 @@ static OOComparisonResult compareName(id dict1, id dict2, void *context)
 	NSString		*name1 = [ship1 oo_stringForKey:KEY_NAME];
 	NSString		*name2 = [ship2 oo_stringForKey:KEY_NAME];
 	
-	NSComparisonResult result = [name1 compare:name2];
+	NSComparisonResult result = [[name1 lowercaseString] compare:[name2 lowercaseString]];
 	if (result != NSOrderedSame)
 		return result;
 	else
@@ -9446,6 +9485,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 }
 
 
+- (BOOL) permanentMessageLog
+{
+	return _permanentMessageLog;
+}
+
+
+- (void) setPermanentMessageLog:(BOOL)value
+{
+	_permanentMessageLog = value;
+}
+
+
 - (BOOL) permanentCommLog
 {
 	return _permanentCommLog;
@@ -9669,6 +9720,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	cachedStation = nil;
 	
 	[self setUpSettings];
+
+	// reset these in case OXP set has changed
+
+	// set up cargopod templates
+	[self setUpCargoPods];
 	
 	if (![player setUpAndConfirmOK:YES]) 
 	{

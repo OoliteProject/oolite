@@ -7,11 +7,13 @@
 	stages =
 	(
 		OOCheckRequiresPListVerifierStage,
+		OOCheckPListSyntaxVerifierStage,
 		OOCheckDemoShipsPListVerifierStage,
 		OOCheckEquipmentPListVerifierStage,
 		OOTextureVerifierStage,
 		OOCheckShipDataPListVerifierStage,
-		OOAIStateMachineVerifierStage
+		OOAIStateMachineVerifierStage,
+		OOCheckJSSyntaxVerifierStage
 	);
 	excludeStages =
 	(
@@ -41,6 +43,7 @@
 		"Images",
 		"Models",
 		"Music",
+		"Scenarios",
 		"Schemata",
 		"Scripts",
 		"Shaders",
@@ -56,11 +59,15 @@
 			"autoAImap.plist",
 			"characters.plist",
 			"commodities.plist",
+			"crosshairs.plist",
 			"customsounds.plist",
 			"demoships.plist",
 			"descriptions.plist",
 			"effectdata.plist",
 			"equipment.plist",
+			"explosions.plist",
+			"global-settings.plist",
+			"gui-settings.plist",
 			"hud.plist",
 			"illegal_goods.plist",
 			"keyconfig.plist",
@@ -68,15 +75,62 @@
 			"missiontext.plist",
 			"nebulatextures.plist",
 			"planetinfo.plist",
-			"requires.plist",
+			"role-categories.plist",
+			"scenarios.plist",
+			"screenbackgrounds.plist",
 			"script.plist",
 			"script.js",
 			"shipdata.plist",
 			"shipyard.plist",
+			"shiplibrary.plist",
+			"speech_pronunciation_guide.plist",
+			"startextures.plist",
+			"trade-goods.plist",
+			"world-scripts.plist"
+		);
+
+		// the files in the "Config" list which are arrays
+		"ConfigArrays" =
+		(
+			"demoships.plist",
+			"equipment.plist",
+			"nebulatextures.plist",
+			"scenarios.plist",
+			"shiplibrary.plist",
 			"speech_pronunciation_guide.plist",
 			"startextures.plist",
 			"world-scripts.plist"
 		);
+
+		// the files in the "Config" list which are dictionaries
+		"ConfigDictionaries" =
+		(
+			"autoAImap.plist",
+			"characters.plist",
+			"commodities.plist",
+			"crosshairs.plist",
+			"customsounds.plist",
+			"descriptions.plist",
+			"effectdata.plist",
+			"explosions.plist",
+			"global-settings.plist",
+			"gui-settings.plist",
+			"hud.plist",
+			"illegal_goods.plist",
+			"keyconfig.plist",
+			"material-defaults.plist",
+			"missiontext.plist",
+			"planetinfo.plist",
+			"role-categories.plist",
+			"screenbackgrounds.plist",
+			"script.plist",
+			"script.js",
+			"shipdata.plist",
+			"shipyard.plist",
+			"startextures.plist",
+			"trade-goods.plist"
+		);
+
 		"Sounds" =
 		(
 			"afterburner1.ogg",
@@ -229,6 +283,7 @@
 			"cargo_carried",
 			"cargo_type",
 			"model",
+			"model_scale_factor",
 			"materials",
 			"shaders",
 			"smooth",
@@ -263,6 +318,7 @@
 			"heat_insulation",
 			"pilot",
 			"unpiloted",
+			"escort_roles",
 			"escort_role",
 			"escort-role",
 			"escort_ship",
@@ -291,7 +347,8 @@
 			"cloak_automatic",
 			"debris_role",
 			"has_scoop_message",
-			"counts_as_kill"
+			"counts_as_kill",
+			"explosion_type"
 		);
 		knownStationKeys =
 		(
@@ -314,10 +371,12 @@
 			"tunnel_corners",
 			"tunnel_start_angle",
 			"tunnel_aspect_ratio",
-			"market",
 			"interstellar_undocking",
 			"allows_fast_docking",
-			"allows_auto_docking"
+			"allows_auto_docking",
+			"allegiance",
+			"market_monitored",
+			"market_definition"
 		);
 		knownPlayerKeys =
 		(

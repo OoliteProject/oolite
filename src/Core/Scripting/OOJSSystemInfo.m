@@ -50,6 +50,7 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, uintN argc, jsval *vp)
 static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemInfoSetPropertyMethod(JSContext *context, uintN argc, jsval *vp);
 
+static JSBool SystemInfoStaticSetInterstellarProperty(JSContext *context, uintN argc, jsval *vp);
 static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, jsval *vp);
 
 
@@ -107,6 +108,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 {
 	// JS name					Function					min args
 	{ "filteredSystems",		SystemInfoStaticFilteredSystems, 2 },
+	{ "setInterstellarProperty",SystemInfoStaticSetInterstellarProperty,	4 },
 	{ 0 }
 };
 
@@ -751,6 +753,104 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, uintN argc, js
 	
 	OOJSResumeTimeLimiter();
 	return OK;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool SystemInfoStaticSetInterstellarProperty(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString *property = nil;
+	id value = nil;
+	NSString *manifest = nil;
+
+	int32 iValue;
+	OOGalaxyID g;
+	OOSystemID s1,s2;
+
+	if (argc < 6)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(galaxy, fromsystem, tosystem, layer, property, value [,manifest])");
+		return NO;
+	}
+	if (!JS_ValueToInt32(context, OOJS_ARGV[0], &iValue))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(galaxy, fromsystem, tosystem, layer, property, value [,manifest])");
+		return NO;
+	}
+	if (iValue < 0 || iValue > kOOMaximumGalaxyID)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"galaxy out of range");
+		return NO;
+	}
+	else
+	{
+		g = (OOGalaxyID)iValue;
+	}
+
+	if (!JS_ValueToInt32(context, OOJS_ARGV[1], &iValue))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(galaxy, fromsystem, tosystem, layer, property, value [,manifest])");
+		return NO;
+	}
+	if (iValue < 0 || iValue > kOOMaximumSystemID)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"fromsystem out of range");
+		return NO;
+	}
+	else
+	{
+		s1 = (OOSystemID)iValue;
+	}
+
+	if (!JS_ValueToInt32(context, OOJS_ARGV[2], &iValue))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(galaxy, fromsystem, tosystem, layer, property, value [,manifest])");
+		return NO;
+	}
+	if (iValue < 0 || iValue > kOOMaximumSystemID)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"tosystem out of range");
+		return NO;
+	}
+	else
+	{
+		s2 = (OOSystemID)iValue;
+	}
+
+	if (!JS_ValueToInt32(context, OOJS_ARGV[3], &iValue))
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"setProperty(galaxy, fromsystem, tosystem, layer, property, value [,manifest])");
+		return NO;
+	}
+	if (iValue < 0 || iValue >= OO_SYSTEM_LAYERS)
+	{
+		OOJSReportBadArguments(context, @"SystemInfo", @"setInterstellarProperty", MIN(argc, 3U), OOJS_ARGV, NULL, @"layer must be 0, 1, 2 or 3");
+		return NO;
+	}
+	OOSystemLayer layer = (OOSystemLayer)iValue;
+
+	property = OOStringFromJSValue(context, OOJS_ARGV[4]);
+	if (!JSVAL_IS_NULL(OOJS_ARGV[5]))
+	{
+		value = OOJSNativeObjectFromJSValue(context, OOJS_ARGV[5]);
+	}
+	if (argc >= 7)
+	{
+		manifest = OOStringFromJSValue(context, OOJS_ARGV[6]);
+	}
+	else
+	{
+		manifest = [[OOJSScript currentlyRunningScript] propertyNamed:kLocalManifestProperty];
+	}
+
+	NSString *key = [NSString stringWithFormat:@"interstellar: %u %u %u",g,s1,s2];
+	
+	[[UNIVERSE systemManager] setProperty:property forSystemKey:key andLayer:layer toValue:value fromManifest:manifest];
+
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

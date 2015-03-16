@@ -87,7 +87,7 @@ MA 02110-1301, USA.
 - (void) getDiffuseComponents:(GLfloat[4])components;
 - (void) getSpecularComponents:(GLfloat[4])components;
 
-- (void) setRadius:(GLfloat) rad;
+- (void) setRadius:(GLfloat) rad andCorona:(GLfloat)corona;
 
 - (BOOL) willGoNova;
 - (BOOL) goneNova;

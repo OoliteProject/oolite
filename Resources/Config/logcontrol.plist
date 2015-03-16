@@ -195,7 +195,8 @@
 	
 	
 	missile.damage.calc						= no; // Debugging of missile damage curves
-	
+	missile.tidying.debug					= no;
+
 	
 	oxp.conflict							= $error;
 	oxp.duplicate							= $error;

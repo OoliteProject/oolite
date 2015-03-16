@@ -83,12 +83,12 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (void) preloadFileListFromFolder:(NSString *)path forFolders:(NSArray *)folders;
 + (void) preloadFilePathFor:(NSString *)fileName inFolder:(NSString *)subFolder atPath:(NSString *)path;
 
-
 @end
 
 
 static NSMutableArray	*sSearchPaths;
 static NSString			*sUseAddOns;
+static NSArray			*sUseAddOnsParts;
 static BOOL				sFirstRun = YES;
 static BOOL				sAllMet = NO;
 static NSMutableArray	*sOXPsWithMessagesFound;
@@ -111,6 +111,7 @@ static NSMutableDictionary *sStringCache;
 {
 	sFirstRun = YES;
 	DESTROY(sUseAddOns);
+	DESTROY(sUseAddOnsParts);
 	DESTROY(sSearchPaths);
 	DESTROY(sOXPsWithMessagesFound);
 	DESTROY(sExternalPaths);
@@ -122,6 +123,7 @@ static NSMutableDictionary *sStringCache;
 + (void) resetManifestKnowledgeForOXZManager
 {
 	DESTROY(sUseAddOns);
+	DESTROY(sUseAddOnsParts);
 	DESTROY(sSearchPaths);
 	DESTROY(sOXPManifests);
 	[ResourceManager pathsWithAddOns];
@@ -229,9 +231,11 @@ static NSMutableDictionary *sStringCache;
 	if (sUseAddOns == nil)
 	{
 		sUseAddOns = [[NSString alloc] initWithString:SCENARIO_OXP_DEFINITION_ALL];
+		sUseAddOnsParts = [[sUseAddOns componentsSeparatedByString:@";"] retain];
 	}
 	
 	/* Handle special case of 'strict mode' efficiently */
+	// testing actual string
 	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_NONE])
 	{
 		return (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
@@ -317,6 +321,7 @@ static NSMutableDictionary *sStringCache;
 
 	/* If a scenario restriction is *not* in place, remove
 	 * scenario-only OXPs. */
+	// test string
 	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
 	{
 		[self filterSearchPathsToExcludeScenarioOnlyPaths:sSearchPaths];
@@ -344,6 +349,7 @@ static NSMutableDictionary *sStringCache;
 
 	/* If a scenario restriction is in place, restrict OXPs to the
 	 * ones valid for the scenario only. */
+	// test string
 	if (![sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
 	{
 		[self filterSearchPathsByScenario:sSearchPaths];
@@ -484,7 +490,11 @@ static NSMutableDictionary *sStringCache;
 	{
 		[self reset];
 		sFirstRun = NO;
+		DESTROY(sUseAddOnsParts);
+		DESTROY(sUseAddOns);
 		sUseAddOns = [useAddOns retain];
+		sUseAddOnsParts = [[sUseAddOns componentsSeparatedByString:@";"] retain];
+
 		[ResourceManager clearCaches];
 		OOHUDResetTextEngine();
 
@@ -492,6 +502,7 @@ static NSMutableDictionary *sStringCache;
 		/* only allow cache writes for the "all OXPs" default
 		 *
 		 * cache should be less necessary for restricted sets anyway */
+		// testing the actual string here
 		if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
 		{
 			[cmgr reloadAllCaches];
@@ -1018,6 +1029,7 @@ static NSMutableDictionary *sStringCache;
 {
 	/* Checks for a couple of "never happens" cases */
 #ifndef NDEBUG
+	// test string
 	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
 	{
 		OOLog(@"scenario.check",@"Checked scenario allowances in all state - this is an internal error; please report this");
@@ -1035,14 +1047,20 @@ static NSMutableDictionary *sStringCache;
 		return YES;
 	}
 
-	if ([sUseAddOns hasPrefix:SCENARIO_OXP_DEFINITION_BYID])
+	NSString *uaoBit = nil;
+	BOOL result = NO;
+	foreach (uaoBit, sUseAddOnsParts)
 	{
-		return [ResourceManager manifestAllowedByScenario:manifest withIdentifier:[sUseAddOns substringFromIndex:[SCENARIO_OXP_DEFINITION_BYID length]]];
+		if ([uaoBit hasPrefix:SCENARIO_OXP_DEFINITION_BYID])
+		{
+			result |= [ResourceManager manifestAllowedByScenario:manifest withIdentifier:[uaoBit substringFromIndex:[SCENARIO_OXP_DEFINITION_BYID length]]];
+		}
+		else if ([uaoBit hasPrefix:SCENARIO_OXP_DEFINITION_BYTAG])
+		{
+			result |= [ResourceManager manifestAllowedByScenario:manifest withTag:[uaoBit substringFromIndex:[SCENARIO_OXP_DEFINITION_BYTAG length]]];
+		}
 	}
-	else
-	{
-		return [ResourceManager manifestAllowedByScenario:manifest withTag:[sUseAddOns substringFromIndex:[SCENARIO_OXP_DEFINITION_BYTAG length]]];
-	}
+	return result;
 }
 
 
@@ -1171,6 +1189,39 @@ static NSMutableDictionary *sStringCache;
 }
 
 
+/* This method allows the exclusion of particular files from the plist
+ * building when they're in builtInPath. The point of this is to allow
+ * scenarios to avoid merging in core files without having to override
+ * every individual entry (which may not always be possible
+ * anyway). It only works on plists, but of course worldscripts can be
+ * excluded by not including the plists which reference them, and
+ * everything else can be excluded by not referencing it from a plist.
+ */
++ (BOOL) corePlist:(NSString *)fileName excludedAt:(NSString *)path
+{
+	if (![path isEqualToString:[self builtInPath]])
+	{
+		// non-core paths always okay
+		return NO;
+	}
+	NSString *uaoBit = nil;
+	foreach (uaoBit, sUseAddOnsParts)
+	{
+		if ([uaoBit hasPrefix:SCENARIO_OXP_DEFINITION_NOPLIST])
+		{
+			NSString *plist = [uaoBit substringFromIndex:[SCENARIO_OXP_DEFINITION_NOPLIST length]];
+			if ([plist isEqualToString:fileName])
+			{
+				// this core plist file should not be loaded at all
+				return YES;
+			}
+		}
+	}
+	// then not excluded
+	return NO;
+}
+
+
 + (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
 								  inFolder:(NSString *)folderName
 								  andMerge:(BOOL) mergeFiles
@@ -1254,6 +1305,10 @@ static NSMutableDictionary *sStringCache;
 		results = [NSMutableArray array];
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
+			if ([ResourceManager corePlist:fileName excludedAt:path])
+			{
+				continue;
+			}
 			dictPath = [path stringByAppendingPathComponent:fileName];
 			dict = OODictionaryFromFile(dictPath);
 			if (dict != nil)  [results addObject:dict];
@@ -1334,6 +1389,11 @@ static NSMutableDictionary *sStringCache;
 		results = [NSMutableArray array];
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
+			if ([ResourceManager corePlist:fileName excludedAt:path])
+			{
+				continue;
+			}
+
 			arrayPath = [path stringByAppendingPathComponent:fileName];
 			array = [[OOArrayFromFile(arrayPath) mutableCopy] autorelease];
 			if (array != nil) [results addObject:array];
@@ -1524,6 +1584,11 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSEnumerator *pathEnum = [self pathEnumerator];
 	while ((path = [pathEnum nextObject]))
 	{
+		if ([ResourceManager corePlist:@"role-categories.plist" excludedAt:path])
+		{
+			continue;
+		}
+
 		configPath = [[path stringByAppendingPathComponent:@"Config"]
 					  stringByAppendingPathComponent:@"role-categories.plist"];
 		categories = OODictionaryFromFile(configPath);
@@ -1578,6 +1643,10 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSEnumerator *pathEnum = [self pathEnumerator];	
 	while ((path = [pathEnum nextObject]))
 	{
+		if ([ResourceManager corePlist:@"planetinfo.plist" excludedAt:path])
+		{
+			continue;
+		}
 		configPath = [[path stringByAppendingPathComponent:@"Config"]
 					  stringByAppendingPathComponent:@"planetinfo.plist"];
 		categories = OODictionaryFromFile(configPath);
@@ -1829,29 +1898,35 @@ static NSString *LogClassKeyRoot(NSString *key)
 	paths = [ResourceManager paths];
 	for (pathEnum = [paths objectEnumerator]; (path = [pathEnum nextObject]); )
 	{
-		pool = [[NSAutoreleasePool alloc] init];
-		
-		@try
+		// excluding world-scripts.plist also excludes script.js / script.plist
+		// though as those core files don't and won't exist this is not
+		// a problem.
+		if (![ResourceManager corePlist:@"world-scripts.plist" excludedAt:path])
 		{
-			results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
-			if (results == nil) results = [OOScript worldScriptsAtPath:path];
-			if (results != nil)
+			pool = [[NSAutoreleasePool alloc] init];
+		
+			@try
 			{
-				for (scriptEnum = [results objectEnumerator]; (script = [scriptEnum nextObject]); )
+				results = [OOScript worldScriptsAtPath:[path stringByAppendingPathComponent:@"Config"]];
+				if (results == nil) results = [OOScript worldScriptsAtPath:path];
+				if (results != nil)
 				{
-					name = [script name];
-					if (name != nil)  [loadedScripts setObject:script forKey:name];
-					else  OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
+					for (scriptEnum = [results objectEnumerator]; (script = [scriptEnum nextObject]); )
+					{
+						name = [script name];
+						if (name != nil)  [loadedScripts setObject:script forKey:name];
+						else  OOLog(@"script.load.unnamed", @"Discarding anonymous script %@", script);
+					}
 				}
 			}
-		}
-		@catch (NSException *exception)
-		{
-			OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [exception name], [exception reason], path);
-			// Ignore exception and keep loading other scripts.
-		}
+			@catch (NSException *exception)
+			{
+				OOLog(@"script.load.exception", @"***** %s encountered exception %@ (%@) while trying to load script from %@ -- ignoring this location.", __PRETTY_FUNCTION__, [exception name], [exception reason], path);
+				// Ignore exception and keep loading other scripts.
+			}
 		
-		[pool release];
+			[pool release];
+		}
 	}
 	
 	if (OOLogWillDisplayMessagesInClass(@"script.load.world.listAll"))

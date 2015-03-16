@@ -269,7 +269,7 @@ static BOOL stickProfileArrow_pressed;
 	gui = gui_display_gen;
 	[self startEdit];
 	[gui clear];
-	[gui setTitle: [NSString stringWithFormat: DESC(@"oolite-stickprofile-title")]];
+	[gui setTitle:DESC(@"oolite-stickprofile-title")];
 	[self showScreen];
 	[gui setSelectedRow: GUI_ROW_STICKPROFILE_AXIS];
 	return;

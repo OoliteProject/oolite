@@ -288,7 +288,7 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
-	string = OOExpandDescriptionString(string, kNilRandomSeed, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandGoodRNG);
+	string = OOExpandDescriptionString(kNilRandomSeed, string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandGoodRNG);
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(string);
@@ -317,7 +317,7 @@ static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
-	string = OOExpandDescriptionString(string, kNilRandomSeed, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandBackslashN | kOOExpandGoodRNG);
+	string = OOExpandDescriptionString(kNilRandomSeed, string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandBackslashN | kOOExpandGoodRNG);
 	
 	OOJS_RETURN_OBJECT(string);
 	

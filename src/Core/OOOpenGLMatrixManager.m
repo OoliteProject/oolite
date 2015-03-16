@@ -201,24 +201,17 @@ const char* ooliteStandardMatrixUniforms[] =
 
 - (void) lookAtWithEye: (Vector) eye center: (Vector) center up: (Vector) up
 {
-	Vector z = vector_normal(vector_subtract(eye, center));
-	Vector x = vector_normal(cross_product(up, z));
-	Vector y = cross_product(z, x);
+	Vector k = vector_normal(vector_subtract(eye, center));
+	Vector i = cross_product(up, k);
+	Vector j = cross_product(k, i);
 	OOMatrix m1 = OOMatrixConstruct
 	(
-		x.x + eye.x,	x.y + eye.y,	x.z + eye.z,	1.0,
-		y.x + eye.x,	y.y + eye.y,	y.z + eye.z,	1.0,
-		z.x + eye.x,	z.y + eye.y,	z.z + eye.z,	1.0,
-		eye.x,		eye.y,		eye.z,		1.0
+		i.x,	j.x,	k.x,	0.0,
+		i.y,	j.y,	k.y,	0.0,
+		i.z,	j.z,	k.z,	0.0,
+		-eye.x,	-eye.y,	-eye.z,	1.0
 	);
-	OOMatrix m2 = OOMatrixConstruct
-	(
-		1.0,	0.0,	0.0,	1.0,
-		0.0,	1.0,	0.0,	1.0,
-		0.0,	0.0,	1.0,	1.0,
-		0.0,	0.0,	0.0,	1.0
-	);
-	[self multModelView: OOMatrixRightTransform(m1, m2)];
+	[self multModelView: m1];
 	return;
 }
 

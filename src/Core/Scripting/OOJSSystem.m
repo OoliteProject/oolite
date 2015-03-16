@@ -114,6 +114,7 @@ enum
 	kSystem_allDemoShips,				// demo ships, array of Ship, read-only
 	kSystem_allShips,				// ships in system, array of Ship, read-only
 	kSystem_allVisualEffects,				// VEs in system, array of VEs, read-only
+	kSystem_ambientLevel,			// ambient light level, float, read/write
 	kSystem_breakPattern, // witchspace break pattern shown
 	kSystem_description,			// description, string, read/write
 	kSystem_economy,				// economy ID, integer, read/write
@@ -149,6 +150,7 @@ static JSPropertySpec sSystemProperties[] =
 	{ "allDemoShips",			kSystem_allDemoShips,			OOJS_PROP_READONLY_CB },
 	{ "allShips",				kSystem_allShips,				OOJS_PROP_READONLY_CB },
 	{ "allVisualEffects",	 kSystem_allVisualEffects,		OOJS_PROP_READONLY_CB },
+	{ "ambientLevel",			kSystem_ambientLevel,			OOJS_PROP_READWRITE_CB },
 	{ "breakPattern",			kSystem_breakPattern,			OOJS_PROP_READWRITE_CB },
 	{ "description",			kSystem_description,			OOJS_PROP_READWRITE_CB },
 	{ "economy",				kSystem_economy,				OOJS_PROP_READWRITE_CB },
@@ -311,6 +313,9 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsid propID,
 			handled = YES;
 			break;
 			
+		case kSystem_ambientLevel:
+			return JS_NewNumberValue(context, [UNIVERSE ambientLightLevel], value);
+			
 		case kSystem_info:
 			*value = GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID]);
 			return YES;
@@ -461,6 +466,7 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOSystemID					system;
 	NSString					*stringValue = nil;
 	NSString					*manifest = nil;
+	jsdouble					fValue;
 	int32						iValue;
 	JSBool            bValue;
 	
@@ -471,6 +477,15 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsid propID,
 
 	switch (JSID_TO_INT(propID))
 	{
+		case kSystem_ambientLevel:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[UNIVERSE setAmbientLightLevel:fValue];
+				[UNIVERSE setLighting];
+				return YES;
+			}
+			break;
+			
 		case kSystem_breakPattern:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{

@@ -217,7 +217,7 @@ this.PriorityAIController = function(ship)
 			return false;
 		}
 
-		if (this.getParameter("oolite_flag_behaviourLogging"))
+		if (this.getParameter("oolite_flag_behaviourLogging") && this.getParameter("oolite_flag_behaviourLoggingVerbose"))
 		{
 			log(this.ship.name,newBehaviour);
 		}
@@ -1364,7 +1364,7 @@ PriorityAIController.prototype.stationAllegiance = function(station)
 				}
 			}
 		}
-		if (allegiance == "neutral" && system.mainStation.position.distanceTo(station) < 51200)
+		if (allegiance == "neutral" && system.mainStation && system.mainStation.position.distanceTo(station) < 51200)
 		{
 			allegiance = "galcop"; // neutral stations in aegis
 		}
@@ -1496,6 +1496,16 @@ PriorityAIController.prototype.conditionGroupSuppliesLow = function()
 
 PriorityAIController.prototype.conditionInCombat = function()
 {
+	/* Overrides normal considerations - if fleeing, make the ship
+	 * flee faster to the wormhole. Taking a further hit may change
+	 * the target anyway, but this should prevent trying to actually
+	 * attack a wormhole */
+	if (this.ship.target && this.ship.target.isWormhole)
+	{
+		// but don't cache in case target changes later in evaluation
+		return false;
+	}
+
 	if (this.__cache.oolite_conditionInCombat !== undefined)
 	{
 		return this.__cache.oolite_conditionInCombat;
@@ -1506,49 +1516,6 @@ PriorityAIController.prototype.conditionInCombat = function()
 		delete this.ship.AIScript.oolite_intership.cargodemandpaid;
 	}
 	return this.__cache.oolite_conditionInCombat;
-/*
-	if (this.isFighting(this.ship))
-	{
-		this.__cache.oolite_conditionInCombat = true;
-		return true;
-	}
-	var dts = this.ship.defenseTargets;
-	for (var i=dts.length-1; i >= 0; i--)
-	{
-		if (this.isFighting(dts[i]) && this.distance(dts[i]) < this.scannerRange)
-		{
-			this.__cache.oolite_conditionInCombat = true;
-			return true;
-		}
-	}
-	if (this.ship.group != null)
-	{
-		var gs = this.ship.group.ships;
-		for (var i = gs.length-1 ; i >= 0 ; i--)
-		{
-			if (this.isFighting(gs[i]) && this.distance(gs[i]) < this.scannerRange)
-			{
-				this.__cache.oolite_conditionInCombat = true;
-				return true;
-			}
-		}
-	}
-	if (this.ship.escortGroup != null)
-	{
-		var gs = this.ship.escortGroup.ships;
-		for (var i = gs.length-1 ; i >= 0 ; i--)
-		{
-			if (this.isFighting(gs[i]) && this.distance(gs[i]) < this.scannerRange)
-			{
-				this.__cache.oolite_conditionInCombat = true;
-				return true;
-			}
-		}
-	}
-	this.__cache.oolite_conditionInCombat = false;
-	delete this.ship.AIScript.oolite_intership.cargodemandpaid;
-	return false;
-*/
 }
 
 /* Ships being attacked are firing back */
@@ -1629,7 +1596,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 			this.setParameter("oolite_lastFleeing",null);
 		}
 	}
-	if (this.getParameter("oolite_flag_fleesPreemptively") && this.ship.fuel > 0 && this.ship.equipmentStatus("EQ_FUEL_INJECTION") == "EQUIPMENT_OK")
+	if (this.getParameter("oolite_flag_fleesPreemptively") && this.ship.fuel > 0 && this.ship.hasEquipmentProviding("EQ_FUEL_INJECTION"))
 	{
 		// ships of this behaviour will run away from anything if they
 		// still have fuel
@@ -1637,7 +1604,7 @@ PriorityAIController.prototype.conditionLosingCombat = function()
 	}
 	
 	var lastThreat = this.getParameter("oolite_lastFleeing");
-	if (lastThreat != null && this.distance(lastThreat) < this.scannerRange)
+	if (lastThreat != null && this.distance(lastThreat) < this.scannerRange * 1.25)
 	{
 		// the thing that attacked us is still nearby
 		return true;
@@ -2025,7 +1992,7 @@ PriorityAIController.prototype.conditionSunskimPossible = function()
 			!system.sun.hasGoneNova && 
 			!system.sun.isGoingNova && 
 			this.ship.fuel < 7 && 
-			this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" &&
+			this.ship.hasEquipmentProviding("EQ_FUEL_SCOOPS") &&
 			(this.ship.heatInsulation > 1000/this.ship.maxSpeed || this.ship.heatInsulation >= 12));
 }
 
@@ -2117,7 +2084,7 @@ PriorityAIController.prototype.conditionGroupHasEnoughLoot = function()
 	if (!this.ship.group)
 	{
 		used = this.ship.cargoSpaceUsed;
-		if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+		if (this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 		{
 			available = this.ship.cargoSpaceAvailable;
 		}
@@ -2128,7 +2095,7 @@ PriorityAIController.prototype.conditionGroupHasEnoughLoot = function()
 		for (var i = gs.length-1; i >= 0 ; i--)
 		{
 			used += gs[i].cargoSpaceUsed;
-			if (gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+			if (gs[i].hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 			{
 				available += gs[i].cargoSpaceAvailable;
 			}
@@ -2374,7 +2341,7 @@ PriorityAIController.prototype.conditionScannerContainsSalvageForGroup = functio
 			var gs = this.ship.group.ships;
 			for (var i = gs.length-1; i >= 0 ; i--)
 			{
-				if (gs[i].cargoSpaceAvailable > 0 && gs[i].equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK" && gs[i].maxSpeed > maxspeed)
+				if (gs[i].cargoSpaceAvailable > 0 && gs[i].hasEquipmentProviding("EQ_CARGO_SCOOPS") && gs[i].maxSpeed > maxspeed)
 				{
 					maxspeed = gs[i].maxSpeed;
 				}
@@ -2511,7 +2478,7 @@ PriorityAIController.prototype.conditionCanScoopCargo = function()
 	{
 		return this.__cache.oolite_conditionCanScoopCargo;
 	}
-	if (this.ship.cargoSpaceAvailable == 0 || this.ship.equipmentStatus("EQ_FUEL_SCOOPS") != "EQUIPMENT_OK")
+	if (this.ship.cargoSpaceAvailable == 0 || !this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 	{
 		this.__cache.oolite_conditionCanScoopCargo = false;
 		return false;
@@ -2719,7 +2686,10 @@ PriorityAIController.prototype.conditionPatrolIsOver = function()
 	/* patrol is over after 200km, or if supplies are low after 20km
 	 * 20km to prevent patrol being over on launch if a ship is set up
 	 * to always have low supplies on creation */
-	return this.ship.distanceTravelled > 200000 || (this.ship.distanceTravelled > 20000 && this.conditionSuppliesLow());
+	var plength = this.getParameter("oolite_patrolLength");
+	var pdist = plength ? plength : 200000;
+
+	return this.ship.distanceTravelled > pdist || (this.ship.distanceTravelled > 20000 && this.conditionSuppliesLow());
 }
 
 
@@ -3213,7 +3183,7 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 			this.setParameter("oolite_cascadeDetected",null);
 		}
 	}
-	if (!this.ship.target || this.distance(this.ship.target) > this.scannerRange)
+	if (!this.ship.target || this.distance(this.ship.target) > this.scannerRange * 1.25)
 	{
 		var aggressor = this.ship.AIPrimaryAggressor;
 		if (aggressor && aggressor.isInSpace && this.distance(aggressor) < this.scannerRange)
@@ -3646,7 +3616,7 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 		var gc = 1;
 		if (!this.ship.group)
 		{
-			if (this.ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+			if (this.ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 			{
 				maxdemand = this.ship.cargoSpaceAvailable;
 			}
@@ -3657,7 +3627,7 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 			for (var i = 0; i < gc ; i++)
 			{
 				var ship = this.ship.group.ships[i];
-				if (ship.equipmentStatus("EQ_FUEL_SCOOPS") == "EQUIPMENT_OK")
+				if (ship.hasEquipmentProviding("EQ_CARGO_SCOOPS"))
 				{
 					maxdemand += ship.cargoSpaceAvailable;
 				}
@@ -3732,6 +3702,15 @@ PriorityAIController.prototype.behaviourTumble = function()
 {
 	this.applyHandlers({});
 	this.ship.performTumble();
+}
+
+
+PriorityAIController.prototype.behaviourWaitHere = function()
+{
+	var handlers = {};
+	this.responsesAddStandard(handlers);
+	this.applyHandlers(handlers);
+	this.ship.performStop();
 }
 
 
@@ -4144,7 +4123,9 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 		{
 			return;
 		}
-		this.ship.removeDefenseTarget(this.ship.target);
+		if (this.ship.target.isShip) {
+			this.ship.removeDefenseTarget(this.ship.target);
+		}
 		this.ship.target = null;
 	}
 
@@ -4156,7 +4137,7 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 		{
 			if (this.distance(lt) < this.scannerRange)
 			{
-				if (!lt.isCloaked)
+				if (!lt.isCloaked && lt.isShip)
 				{
 					this.ship.target = lt;
 					this.ship.addDefenseTarget(lt);
@@ -5042,12 +5023,16 @@ PriorityAIController.prototype.responseComponent_standard_escortAccepted = funct
 // overridden for escorts
 PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = function(ally, enemy)
 {
+	if (!enemy.isShip)
+	{
+		return;
+	}
 	if (this.allied(this.ship,enemy))
 	{
 		return;
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 	}
@@ -5115,7 +5100,7 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 		if (!attacker.isPlayer && attacker.target != victim)
 		{
 			// ignore friendly fire if they were aiming at a pirate/assassin
-			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
+			if (attacker.bounty == 0 && attacker.target && attacker.target.isShip && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
 			{
 				// but we might go after the pirate/assassin ourselves in a bit
 				this.ship.addDefenseTarget(attacker.target);
@@ -5137,7 +5122,10 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 			this.communicate("oolite_offenceDetected",attacker,4);
 		}
 		attacker.setBounty(attacker.bounty | 7,"seen by police");
-		this.ship.addDefenseTarget(attacker);
+		if (attacker.isShip)
+		{
+			this.ship.addDefenseTarget(attacker);
+		}
 		this.reconsiderNow();
 	}
 }
@@ -5220,7 +5208,7 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackedWithMissil
 	{
 		this.broadcastDistressMessage();
 	}
-	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		this.ship.addDefenseTarget(missile);
@@ -5337,7 +5325,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 			whom.setBounty(whom.bounty | 63,"attacked main station");
 		}
 	}
-	if (this.ship.target && !this.ship.hasHostileTarget)
+	if (this.ship.target && !this.ship.hasHostileTarget && this.ship.target != this.ship.AIPrimaryAggressor)
 	{
 		// don't get confused and shoot the station!
 		this.ship.target = null;
@@ -5392,6 +5380,11 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 	{
 		this.communicate("oolite_newAssailiant",whom,3);
 		this.ship.addDefenseTarget(whom);
+		// for military laser reactions
+		if (!this.ship.target && this.distance(whom) > this.scannerRange) 
+		{
+			this.ship.target = whom;
+		}
 	}
 	else 
 	{
@@ -5453,6 +5446,11 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 	if (this.ship.escortGroup != null)
 	{
 		this.ship.requestHelpFromGroup();
+	}
+	if (!this.ship.hasHostileTarget && this.distance(whom) > this.scannerRange)
+	{
+		// deal with being shot at from outside scanner range
+		this.ship.performAttack();
 	}
 	this.reconsiderNow();
 }
@@ -5597,6 +5595,12 @@ PriorityAIController.prototype.responseComponent_standard_wormholeSuggested = fu
 	this.ship.desiredSpeed = this.ship.maxSpeed;
 	this.ship.performFlyToRangeFromDestination();
 	this.setParameter("oolite_witchspaceWormhole",hole);
+	// wormhole suggestions include setting primary target
+	// so unset it
+	this.ship.target = null;
+	// also clear defense targets to make it more likely that the ship
+	// will reach the wormhole
+	this.ship.clearDefenseTargets();
 	// don't reconsider
 }
 
@@ -5730,7 +5734,7 @@ PriorityAIController.prototype.responseComponent_station_cascadeWeaponDetected =
 PriorityAIController.prototype.responseComponent_station_shipAttackedWithMissile = function(missile,whom)
 {
 	this.ship.alertCondition = 3;
-	if (this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		this.ship.addDefenseTarget(missile);
@@ -5885,7 +5889,7 @@ PriorityAIController.prototype.responseComponent_station_shipTargetLost = functi
 PriorityAIController.prototype.responseComponent_station_helpRequestReceived = function(ally, enemy)
 {
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		return;
@@ -5944,7 +5948,7 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 		if (!attacker.isPlayer && attacker.target != victim)
 		{
 			// ignore friendly fire if they were aiming at a pirate/assassin
-			if (attacker.bounty == 0 && attacker.target && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
+			if (attacker.bounty == 0 && attacker.target && attacker.target.isShip && this.shipInRoleCategory(attacker.target,"oolite-police-dislike"))
 			{
 				// but we might go after the pirate/assassin ourselves in a bit
 				this.ship.addDefenseTarget(attacker.target);
@@ -6013,7 +6017,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 		return;
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 	}
@@ -6037,7 +6041,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 		}
 	}
 	this.ship.addDefenseTarget(enemy);
-	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK")
+	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
 		return;
@@ -6747,5 +6751,10 @@ this._threatAssessment = function(ship,full)
 {
 	// experimenting without this one for a while
 	//	full = full || ship.hasHostileTarget || (ship.isPlayer && player.alertCondition == 3);
-	return ship.threatAssessment(full);
+	if (ship.isShip) {
+		return ship.threatAssessment(full);
+	} else {
+		// might have a wormhole targeted?
+		return 0;
+	}
 }

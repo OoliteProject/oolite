@@ -56,7 +56,8 @@ SOFTWARE.
 							_isAvailableToPlayer: 1,
 							_isAvailableToNPCs: 1,
 							_fastAffinityA: 1,
-							_fastAffinityB: 1;
+							_fastAffinityB: 1,
+							_canCarryMultiple: 1;
 	NSUInteger				_installTime;
 	NSUInteger				_repairTime;
 	GLfloat     			_damageProbability;
@@ -65,6 +66,7 @@ SOFTWARE.
 	NSSet					*_requiresAnyEquipment;
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
+	NSArray					*_provides;
 	NSDictionary			*_scriptInfo;
 	NSDictionary			*_weaponInfo;
 	NSString				*_script;
@@ -131,6 +133,10 @@ SOFTWARE.
 - (NSUInteger) installTime;
 - (NSUInteger) repairTime;
 
+- (NSArray *) providesForScripting;
+- (BOOL) provides:(NSString *)key;
+
+// weapon properties
 - (BOOL) isTurretLaser;
 - (BOOL) isMiningLaser;
 - (GLfloat) weaponRange;

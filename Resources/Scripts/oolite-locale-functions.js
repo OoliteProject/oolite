@@ -9,7 +9,7 @@ any “normal” world scripts.
 
 
 Oolite
-Copyright © 2004-2013 Giles C Williams and contributors
+Copyright © 2004-2015 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 
 this.name			= "oolite-locale-functions";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2012-2013 the Oolite team.";
+this.copyright		= "© 2012-2015 the Oolite team.";
 
 
 (function () {
@@ -46,7 +46,6 @@ const maxTotalDigits	= 16;	// This is near the limit of numerical precision.
 const maxIntegerValue	= Math.pow(10, maxTotalDigits);
 const radix				= expandDescription("[number-decimal-separator]");
 const groupSep			= expandDescription("[number-group-separator]");
-const currencyFormat	= expandDescription("[@-credits]");
 
 
 // Utility to define non-enumerable, non-configurable, permanent methods, to match the behaviour of native methods.
@@ -118,7 +117,7 @@ global.formatInteger = function formatInteger(value)
 	
 	var string = formatPositiveIntegerInternal(value)[0];
 	
-	if (negative)  string = "-" + string;
+	if (negative)  string = expandDescription("[number-negative]", { value: string });
 	return string;
 }
 
@@ -142,12 +141,13 @@ global.formatCredits = function formatCredits(value, includeDeciCredits, include
 		string = string.concat(radix, frac.toString());
 	}
 	
+	if (negative)  string = expandDescription("[credits-negative]", { value: string });
+	
 	if (includeCurrencySymbol)
 	{
-		string = currencyFormat.replace("%@", string);
+		string = expandDescription("[credits-format]", { value: string });
 	}
 	
-	if (negative)  string = "-" + string;
 	return string;
 }
 

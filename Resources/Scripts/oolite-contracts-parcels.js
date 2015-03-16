@@ -287,6 +287,11 @@ this._initialiseParcelContractsForSystem = function()
 		// get the SystemInfo object for the destination
 		var destinationInfo = System.infoForSystem(galaxyNumber,destination);
 		
+		if (destinationInfo.sun_gone_nova)
+		{
+			continue;
+		}
+
 		// check that a route to the destination exists
 		var routeToDestination = system.info.routeToSystem(destinationInfo);
 

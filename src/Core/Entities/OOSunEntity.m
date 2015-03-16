@@ -283,6 +283,8 @@ MA 02110-1301, USA.
 				{	
 					// This sun has now gone nova!
 					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES] fromManifest:@"org.oolite.oolite"];
+					[UNIVERSE setSystemDataKey:@"corona_flare" value:[NSNumber numberWithFloat:0.3] fromManifest:@"org.oolite.oolite"];
+					[UNIVERSE setSystemDataKey:@"corona_hues" value:[NSNumber numberWithFloat:0.05] fromManifest:@"org.oolite.oolite"];
 					// Novas are stored under the core manifest if the
 					// player was there at the time. Default layer 2
 					// is fine.
@@ -290,8 +292,7 @@ MA 02110-1301, USA.
 				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
 				_novaExpansionTimer += delta_t;
-				NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate], @"sun_radius", [NSNumber numberWithFloat:0.3], @"corona_flare", [NSNumber numberWithFloat:0.05], @"corona_hues", nil];
-				[self changeSunProperty:@"sun_radius" withDictionary:dict];
+				[UNIVERSE setSystemDataKey:@"sun_radius" value:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate] fromManifest:@"org.oolite.oolite"];
 			}
 			else
 			{
@@ -352,9 +353,37 @@ MA 02110-1301, USA.
 }
 
 
+- (void) updateCameraRelativePosition
+{
+	HPVector cr_temp = HPvector_subtract([self absolutePositionForSubentity],[PLAYER viewpointPosition]);
+	/* Special calculation as suns viewed over ~1E9 - and the bigger
+	 * ones are still just about visible at this range - get floating
+	 * point errors messing up the display */
+	if (EXPECT_NOT(HPmagnitude2(cr_temp) > 1E18))
+	{
+		cr_temp = HPvector_multiply_scalar(cr_temp,1E9/HPmagnitude(cr_temp));
+	}
+	cameraRelativePosition = HPVectorToVector(cr_temp);
+}
+
+
 - (void) drawOpaqueParts
 {
 	float sqrt_zero_distance = sqrt(cam_zero_distance);
+	float effective_radius = collision_radius;
+	float effective_cor16k = cor16k;
+
+	/* At very long ranges the floating point inaccuracies make a
+	 * complete mess of the calculations, so if the sun is more than
+	 * 1E9 away, draw it closer but smaller. Painter's algorithm
+	 * should stop oddities with planets transiting it */
+	float large_distance_compensator = sqrt_zero_distance / 1000000000.0; //1E9
+	if (large_distance_compensator > 1.0)
+	{
+		sqrt_zero_distance /= large_distance_compensator;
+		effective_radius /= large_distance_compensator;
+		effective_cor16k /= large_distance_compensator;
+	}
 
 	OO_ENTER_OPENGL();
 	
@@ -364,7 +393,7 @@ MA 02110-1301, USA.
 	{	
 		int subdivideLevel = 2;		// 4 is probably the maximum!
 		float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
-		float drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
+		float drawRatio2 = drawFactor * effective_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
 	
 		if (cam_zero_distance > 0.0)
 		{
@@ -382,7 +411,7 @@ MA 02110-1301, USA.
 	distances.
 	 
 	*/
-		BOOL ignoreDepthBuffer = cam_zero_distance > collision_radius * collision_radius * 25;
+		BOOL ignoreDepthBuffer = cam_zero_distance > effective_radius * effective_radius * 25;
 	
 		int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
 
@@ -393,7 +422,7 @@ MA 02110-1301, USA.
 		// FIXME: use vertex arrays
 		OOGL(glDisable(GL_BLEND));
 		OOGLBEGIN(GL_TRIANGLE_FAN);
-		GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
+		GLDrawBallBillboard(effective_radius, steps, sqrt_zero_distance);
 		OOGLEND();
 		OOGL(glEnable(GL_BLEND));
 
@@ -402,9 +431,9 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		[self calculateGLArrays:collision_radius
-											width:cor16k
-									zDistance:sqrt_zero_distance];
+		[self calculateGLArrays:effective_radius
+						  width:effective_cor16k
+					  zDistance:sqrt_zero_distance];
 		OOGL(glDisable(GL_BLEND));
 		OOGL(glVertexPointer(3, GL_FLOAT, 0, sunVertices));
 		
@@ -647,8 +676,7 @@ MA 02110-1301, USA.
 	if ([key isEqualToString:@"sun_radius"])
 	{
 		oldRadius =	[object doubleValue];	// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-		[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-		collision_radius = oldRadius;								
+		[self setRadius:oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
 	}
 	else if ([key isEqualToString:KEY_SUNNAME])
 	{
@@ -656,9 +684,7 @@ MA 02110-1301, USA.
 	}
 	else if ([key isEqualToString:@"corona_flare"])
 	{
-		double rad = collision_radius;
-		[self setRadius: rad + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([object floatValue]))];
-		collision_radius = rad;
+		[self setRadius:collision_radius andCorona:[object floatValue]];
 	}
 	else if ([key isEqualToString:@"corona_shimmer"])
 	{
@@ -679,8 +705,7 @@ MA 02110-1301, USA.
 		{
 			[self setGoingNova:NO inTime:0];
 			// oldRadius is always the radius we had before going nova...
-			[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-			collision_radius = oldRadius;
+			[self setRadius: oldRadius andCorona:[dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]];
 
 		}
 	}
@@ -719,12 +744,17 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setRadius:(GLfloat) rad
+- (void) setRadius:(GLfloat) rad andCorona:(GLfloat)corona
 {
 	collision_radius = rad;
-	
-	cor16k =	rad * rad * 16 / 10000000;
-	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
+	if (corona < 0.01f) {
+		corona = 0.01f;
+	}
+	cor16k = rad * 8 * corona;
+
+	GLfloat corouter = rad * (1+(8*corona));
+
+	lim16k = corouter * corouter * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 }
 
 

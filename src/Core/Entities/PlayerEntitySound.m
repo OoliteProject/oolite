@@ -289,7 +289,7 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 
 - (void) playHyperspaceBlocked
 {
-	[self playInterfaceBeep:@"[witch-blocked-by-@]"];
+	[self playInterfaceBeep:@"[hyperspace-blocked]"];
 }
 
 - (void) playHyperspaceDistanceTooGreat

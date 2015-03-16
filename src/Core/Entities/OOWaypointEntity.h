@@ -37,12 +37,14 @@ MA 02110-1301, USA.
 	OOWeakReference			*_prevBeacon;
 	OOWeakReference			*_nextBeacon;
 	id <OOHUDBeaconIcon>	_beaconDrawable;
+	BOOL					oriented;
 }
 
 + (instancetype) waypointWithDictionary:(NSDictionary *)info;
 
 - (id) initWithDictionary:(NSDictionary *)info;
 
+- (BOOL) oriented;
 - (OOScalar) size;
 - (void) setSize:(OOScalar)newSize;
 

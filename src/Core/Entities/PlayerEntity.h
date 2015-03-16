@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 #define GUI_ROW_INIT(GUI) /*int n_rows = [(GUI) rows]*/
 #define GUI_FIRST_ROW(GROUP) ((GUI_DEFAULT_ROWS - GUI_ROW_##GROUP##OPTIONS_END_OF_LIST) / 2)
 // reposition menu
-#define GUI_ROW(GROUP,ITEM) (GUI_FIRST_ROW(GROUP) - 5 + GUI_ROW_##GROUP##OPTIONS_##ITEM)
+#define GUI_ROW(GROUP,ITEM) (GUI_FIRST_ROW(GROUP) - 4 + GUI_ROW_##GROUP##OPTIONS_##ITEM)
 
 
 #define ENTRY(label, value) label,
@@ -196,6 +196,7 @@ enum
 #endif
 	GUI_ROW_GAMEOPTIONS_SPACER_STICKMAPPER,
 	GUI_ROW_GAMEOPTIONS_STICKMAPPER,
+	GUI_ROW_GAMEOPTIONS_KEYMAPPER,
 	GUI_ROW_GAMEOPTIONS_SPACER3,
 	GUI_ROW_GAMEOPTIONS_BACK,
 	
@@ -304,7 +305,7 @@ typedef enum
 #define MIN_HYPERSPEED_FACTOR			32.0
 #define MAX_HYPERSPEED_FACTOR			1024.0
 #else
-#define HYPERSPEED_FACTOR				32
+#define HYPERSPEED_FACTOR				32.0
 #endif
 
 #define PLAYER_SHIP_DESC				@"cobra3-player"
@@ -452,6 +453,7 @@ typedef enum
 	GLfloat					launchRoll;
 	
 	GLfloat					forward_shield, aft_shield;
+	GLfloat					max_forward_shield, max_aft_shield, forward_shield_recharge_rate, aft_shield_recharge_rate;
 	OOTimeDelta				forward_shot_time, aft_shot_time, port_shot_time, starboard_shot_time;
 	
 	OOWeaponFacing			chosen_weapon_facing;   // for purchasing weapons
@@ -758,6 +760,7 @@ typedef enum
 - (void) setSystemID:(OOSystemID) sid;
 - (OOSystemID) targetSystemID;
 - (void) setTargetSystemID:(OOSystemID) sid;
+- (OOSystemID) nextHopTargetSystemID;
 
 
 - (NSDictionary *) commanderDataDictionary;
@@ -813,6 +816,14 @@ typedef enum
 
 - (void) setForwardShieldLevel:(GLfloat)level;
 - (void) setAftShieldLevel:(GLfloat)level;
+
+- (float) forwardShieldRechargeRate;
+- (float) aftShieldRechargeRate;
+
+- (void) setMaxForwardShieldLevel:(float)new;
+- (void) setMaxAftShieldLevel:(float)new;
+- (void) setForwardShieldRechargeRate:(float)new;
+- (void) setAftShieldRechargeRate:(float)new;
 
 // return keyconfig.plist settings for scripting
 - (NSDictionary *) keyConfig;
@@ -1054,7 +1065,7 @@ typedef enum
 - (Vector)customViewRightVector;
 - (NSString *)customViewDescription;
 - (void)resetCustomView;
-- (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
+- (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict withScaling:(BOOL)withScaling;
 - (HPVector) viewpointPosition;
 - (HPVector) breakPatternPosition;
 - (Vector) viewpointOffset;

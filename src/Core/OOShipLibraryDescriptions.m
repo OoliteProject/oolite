@@ -28,13 +28,13 @@ MA 02110-1301, USA.
 
 NSString *OOShipLibraryCategorySingular(NSString *category)
 {
-	return OOExpandKey([NSString stringWithFormat:@"oolite-ship-library-category-%@",category]);
+	return OOExpandKey(OOExpand(@"oolite-ship-library-category-[category]", category));
 }
 
 
 NSString *OOShipLibraryCategoryPlural(NSString *category)
 {
-	return OOExpandKey([NSString stringWithFormat:@"oolite-ship-library-category-plural-%@",category]);
+	return OOExpandKey(OOExpand(@"oolite-ship-library-category-plural-[category]", category));
 }
 
 

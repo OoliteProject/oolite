@@ -65,6 +65,7 @@
 	"[witch-blocked-by-@]"			= "[@witchabort]";
 	"[witch-too-far]"				= "[@witchabort]";
 	"[witch-no-fuel]"				= "[@witchabort]";
+	"[hyperspace-blocked]"			= "[witch-blocked-by-@]";
 	
 	// Damage
 	"[player-hit-by-weapon]"		= "hit.ogg";			// Hit by weapon

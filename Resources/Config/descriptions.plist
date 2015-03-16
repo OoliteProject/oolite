@@ -1,4 +1,46 @@
 {
+	/*
+		Most of the text in the game comes from description.plist. It is
+	    processed in different ways in different contexts.
+	 
+		In general, the following expansions are possible:
+		  %H - "homeworld", the name of the current system.
+		  %I - The possessive form of the current system's name, in English
+		       homeworld+ian.
+		  %R - random word. Use %N instead for any new strings.
+		  %N - better random word.
+		  %@ - Placeholder for text to be inserted by the game.
+		  %d, %.1f etc. - placeholders for numbers, using printf syntax.
+		  [$text] - will be replaced with variable $text provided by the
+		            game or a script. If no matching variable is provided, the
+			        key $text will be looked up in descriptions.plist. The
+		            following variabes are always(ish) available:
+		              commander_name
+		              commander_shipname (the type of the ship)
+		              commander_shipdisplayname
+		              commander_rank ("Mosty Harmless", etc)
+		              commander_legal_status ("Clean", etc)
+		              commander_bounty
+		              credits_number
+		            [$text] expansions can have one or more formatting operators
+		            appended using a pipe character: [text|operator1|operator2].
+		            The supported operators are:
+		              cr - Formats a number as a credits value, with one decimal
+		                   place.
+		              dcr - Decicredits: like cr, but divides the number by 10.
+		              icr - Integer credits: like cr, but with no decimal place.
+		              idcr – Integer decicredits: divides a number by ten,
+		                     rounds the result to an integer, then like icr.
+		              precision:N - Converts a number to a string with n decimal
+		                     places.
+		              multiply:N - Multiplies a number with N.
+		              add:N - Adds N to a number.
+		            Example: if foo = 10, the operator sequence
+		            [foo|multiply:0.3333333|add:2|precision:2] produces "5.33".
+		  [$number] = a random line from item $number of system_description
+		              (defined below) is is used.
+	*/
+	
 	// Plural-form handling.
 	// * The format is an array of rules, each one a string, as set out below.
 	// * |index| is, by default, 0 for the first rule.
@@ -35,20 +77,11 @@
 	//	"!1"	// index 1: plural
 	);
 	
-	"number-group-size" = 3;
-	"number-group-threshold" = 5;
-	"number-decimal-separator" = ".";
-	"number-group-separator" = " ";		// Non-breaking space.
-	
-	/*	%H - homeworld
-		%I - homeworld+ian
-		%R - random digrams
-		%N - better random digrams
-		%@ - text to be inserted at this point
-		%d, %.1f etc. - printf type variables to be inserted
-		[$text] = $text is an entry here that will be expanded
-		[$number] = a random line from item $number of system_description is is used.
-	*/
+	"number-group-size"			= 3;
+	"number-group-threshold"	= 5;
+	"number-decimal-separator"	= ".";
+	"number-group-separator"	= " ";		// Non-breaking space.
+	"number-negative"			= "-[value]";
 	
 	// *** Basic lists ***
 	condition =
@@ -426,7 +459,8 @@
 	"not-applicable"				= "N/A";
 	
 	// Currency format
-	"@-credits"						= "%@ ₢";
+	"credits-negative"				= "[number-negative]";
+	"credits-format"				= "[value] ₢";
 	
 	// Fancy-schmancy symbols
 	"multiplication-sign"			= "×";
@@ -436,34 +470,34 @@
 	
 	// OXP containing messages that are echoed to Latest.log
 	"oxp-containing-messages-found"		= "OXP message(s) written to the log";
-	"oxp-containing-messages-list-@"	= " from: %@";
+	"oxp-containing-messages-list"		= "[oxp-containing-messages-found] from: [messageSourceList]";
 	
 	// Messages used when awarding bounties
-	"bounty-@-total-@"				= "Bounty: %@\nTotal: %@";
+	"bounty-awarded"				= "Bounty: [score|dcr]\nTotal: [credits|dcr]";
 	"right-on-commander"			= "Right On, Commander!";
 	
 	// Assorted messages used by the onboard computer
 	"autopilot-on"					= "Autopilot engaged.";
 	"autopilot-off"					= "Autopilot disengaged.";
 	"autopilot-out-of-range"		= "Could not contact station for docking instructions.";
-	"autopilot-station-@-does-not-allow-autodocking" = "Could not establish SinCorn RemLock protocol link with %@.";
+	"autopilot-station-does-not-allow-autodocking" = "Could not establish SinCorn RemLock protocol link with [stationName].";
 	"autopilot-cannot-dock-with-target" = "Target is not capable of autopilot-docking.";	// string not used at the moment. Remove? kaks 20101031
-	"autopilot-target-docking-instructions-denied" = "Target has denied broadcast of docking instructions.";
-	"autopilot-denied"				= "Station refuses to issue docking instructions.";
+	"autopilot-target-docking-instructions-denied" = "Target has denied broadcast of docking instructions.";	// [stationName] is available here
+	"autopilot-denied"				= "Station refuses to issue docking instructions.";	// Used for main station only; [stationName] is available here
 	"autopilot-multiple-targets"	= "Multiple autopilot targets in vicinity.";
 	"autopilot-red-alert"			= "Red Alert! Cannot engage autopilot.";
-	"witch-to-@-in-f-seconds"		= "Witchspace to %@ in %.0f s.";
-	"witch-blocked-by-@"			= "Witchspace jump aborted (too close to %@).";
+	"witch-to-x-in-y-seconds"		= "Witchspace to [destination] in [seconds] s.";
+	"witch-blocked"					= "Witchspace jump aborted (too close to [blockerName]).";
 	"witch-user-abort"				= "Witchspace jump aborted.";
 	"witch-no-motor"				= "Ship incapable of witchspace jump.";
 	"witch-no-target"				= "No target system set.";
 	"witch-no-fuel"					= "Insufficient fuel for witchspace jump.";
 	"witch-too-far"					= "Engines incapable of witchspace jump to designated destination.";
 	"witch-engine-malfunction"		= "Witchspace engine malfunction!";
-	"witch-galactic-in-f-seconds"	= "Intergalactic jump in %.0f s.";
+	"witch-galactic-in-x-seconds"	= "Intergalactic jump in [seconds] s.";
 	"witch-user-galactic-abort"		= "Intergalactic jump aborted.";
-	"game-paused-@"					= "Game paused.\nPress F2 for options, '%@' to resume.";
-	"game-paused-docked-@"			= "Game paused. Press '%@' to resume.";
+	"game-paused"					= "Game paused.\nPress F2 for options, '[pauseKey]' to resume.";
+	"game-paused-docked"			= "Game paused. Press '[pauseKey]' to resume.";
 	"game-saved"					= "Game saved.";
 	"mouse-on"						= "Mouse control on.";
 	"mouse-off"						= "Mouse control off.";
@@ -476,9 +510,10 @@
 	"fuel-out"						= "Witchdrive fuel exhausted.";
 	"ident-on"						= "Ident system active.";
 	"ident-off"						= "Ident system deactivated.";
-	"missile-locked-onto-@"			= "Missile locked onto %@.";
-	"ident-locked-onto-@"			= "Ident system locked onto %@.";
-	"@-armed"						= "%@ armed.";
+	"missile-locked-onto-target"	= "Missile locked onto [target].";
+	"ident-locked-onto-target"		= "Ident system locked onto [target].";
+	"missile-armed"					= "[weaponName] armed.";
+	"mine-armed"					= "[missile-armed]";
 	"missile-safe"					= "Missiles on safety.";
 	"incoming-missile"				= "Incoming missile.";
 	"energy-low"					= "Energy low.";
@@ -488,12 +523,11 @@
 	"weapons-systems-online"		= "Weapons systems online.";
 	"weapons-systems-offline"		= "Weapons systems offline.";
 	"escape-sequence"				= "Escape sequence active.";
-	"@-ejected"						= "%@ ejected.";
-	"@-ready-to-eject"				= "Ready to eject %@.";
-	"ready-to-eject-@"				= "Ready to eject %@.";
-	"@-scooped"						= "%@ scooped.";
-	"scoop-captured-@"				= "You captured %@.";
-	"scoop-rescued-@"				= "You rescued %@.";
+	"commodity-ejected"				= "[commodity] ejected.";
+	"ready-to-eject-commodity"		= "Ready to eject [commodity].";
+	"scripted-item-scooped"			= "[shipName] scooped.";
+	"scoop-captured-character"		= "You captured [characterName].";
+	"scoop-rescued-character"		= "You rescued [characterName].";
 	"scoop-got-slave"				= "You captured a slave.";
 	"fuel-scoop-active"				= "Fuel scoop active.";
 	"hold-locked"					= "Cargo ejection system offline (speed too high).";
@@ -503,10 +537,10 @@
 	"cloak-off"						= "Cloaking device deactivated.";
 	"cloak-low-juice"				= "Not enough energy to activate cloaking device.";
 	// equipment usage
-	"equipment-primed-@"			= "Equipment primed: %@.";
-	"equipment-primed-none"			= "Equipment primed: none.";
-	"equipment-primed-none-hud-label"			= "None";
-	"equipment-primed-hud-@"			= "Primed: %@";
+	"equipment-primed"					= "Equipment primed: [equipmentName].";
+	"equipment-primed-none"				= "Equipment primed: none.";
+	"equipment-primed-none-hud-label"	= "None";
+	"equipment-primed-hud"				= "Primed: [equipmentName]";
 	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
 	"oolite-primablemanager-notify-setup" = "Adjust settings on interface screen if necessary";
@@ -515,7 +549,7 @@
 	"oolite-primablemanager-slot-offensive" = "offensive";
 
 
-	"mfd-d-selected"				= "Multi-function display %d selected.";
+	"mfd-N-selected"				= "Multi-function display [mfdID] selected.";
 
 	// Assorted messages sent out by ships etc..
 	"beg-for-mercy" =
@@ -795,17 +829,15 @@
 	(
 		"Due to an emergency your docking clearance has been revoked.  Please clear the station approach immediately."
 	);
-	"station-docking-clearance-abort-cancelled-in-f" =
-	(
-		"Due to an emergency your docking clearance will be revoked in %.0f seconds.  Please clear the station approach immediately."
-	);
+	"station-docking-clearance-abort-cancelled-in-time" = "Due to an emergency your docking clearance will be revoked in [seconds] seconds.  Please clear the station approach immediately.";
 	"station-docking-clearance-fined-@-cr" =
 	(
 		"You have been fined %@ for unauthorized docking. Docking without asking for clearance is not allowed here.",
 		"You have been fined %@ for violating the station's docking protocol. Docking without clearance is not allowed here.",
 		"You docked without any clearance. For violating the station's docking protocol you have been fined %@."
 	);
-		
+	"oolite-station-docking-requires-clearance" = "Warning: you do not have docking clearance";		
+
 	// components of the tutorial's docking helper
 	"oolite-tutorial-dock-notarget" = "Use your identification system to target the station you wish to dock with to activate the docking assessment system.";
 
@@ -1038,7 +1070,7 @@
 	"unknown-ship-@"				= "Unknown Ship '%@'.";
 
 	// Intro1 screen
-	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2014";
+	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2015";
 	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
 	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
 	"load-previous-commander-yes"	= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
@@ -1391,6 +1423,7 @@
 	"status-commander-@"			= "Commander %@";
 	"status-present-system"			= "Present System:";
 	"status-hyperspace-system"		= "Hyperspace System:";
+	"status-hyperspace-system-multi" = "[targetSystemName] (next: [nextHopSystemName])";
 	"status-condition"				= "Condition:";
 	"status-fuel"					= "Fuel:";
 	"status-light-years-desc"		= "Light Years";
@@ -1404,19 +1437,21 @@
 	"equipment-port-weapon-@"		= "Port %@";
 	"equipment-pass-berth-@%0"		= "1 Passenger Berth";
 	"equipment-pass-berth-@%1"		= "%d Passenger Berths";
-	"equipment-@-not-available"		= "%@ (N/A)";
-	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
-	"oolite-manifest-cargo-quantity-format2" = "%d %@ × %@ (%d TC)";	// $count $units × $commodityName ($containers TC)
+	"equipment-plural"				= "[count] [equipmentName]s";			// plural form
+	"equipment-@-not-available"		= "%@ (N/A)";							// all broken, only one installed
+	"equipment-plural-some-na"		= "[okcount]/[count] [equipmentName]s";	// some broken, multiple installed
 	
+	"manifest-cargo-quantity"		= "[quantity] [units] × [commodityName]";
+	"manifest-cargo-quantity-extended" = "[quantity] [units] × [commodityName] ([containers] TC)";
 	
 	// Short and Long Range Chart Overrides
-	"charts-distance-f"	= "Distance: %.1f Light Years";
-	"charts-est-travel-time-f" = "Estimated Travel Time: %.1f Hours";
+	"charts-distance"				= "Distance: [distance|precision:1] Light Years";
+	"charts-est-travel-time"		= "Estimated Travel Time: [time|precision:1] Hours";
 	
 	// Short Range Chart Screen
 	"short-range-chart-title"		= "Short Range Chart";
-	"short-range-chart-distance-f"	= "[charts-distance-f]";
-	"short-range-chart-est-travel-time-f" = "[charts-est-travel-time-f]";
+	"short-range-chart-distance"	= "[charts-distance]";
+	"short-range-chart-est-travel-time" = "[charts-est-travel-time]";
 	
 	// Long Range Chart Screen
 	"long-range-chart-title-d"		= "Galactic Chart %d";
@@ -1433,15 +1468,15 @@
 
 
 
-	"long-range-chart-distance-f"	= "[charts-distance-f]";
-	"long-range-chart-est-travel-time-f" = "[charts-est-travel-time-f]";
+	"long-range-chart-distance"		= "[charts-distance]";
+	"long-range-chart-est-travel-time" = "[charts-est-travel-time]";
 	"long-range-chart-find-planet-@" = "Find planet: %@";
 	"long-range-chart-system-unreachable" = "System Unreachable";
 	
 	// Market screen
 	"commodity-market"				= "Commodity Market";	// used if we're in witchspace. Needed for non-english languages.
-	"@-commodity-market"			= "%@ Commodity Market";
-	"@-station-commodity-market"			= "%@ Market"; // non-main stations
+	"system-commodity-market"		= "[system] Commodity Market";
+	"station-commodity-market"		= "[station] Market"; // non-main stations
 	"commodity-column-title"		= "Commodity:";
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";
@@ -1453,13 +1488,13 @@
 	"oolite-legality-export"		= "Ex"; // legal to export
 	"oolite-legality-import"		= "Im"; // legal to import
 	"oolite-legality-neither"		= "Re";
-	"cash-@-load-d-of-d"			= "Cash: %@. Load %d of %d t.";
+	"market-cash-and-load"			= "Cash: [credits|dcr]. Load [currentCargo] of [cargoCapacity] t.";
 	"cargo-tons-symbol"				= "t";
 	"cargo-grams-symbol"			= "g";
 	"cargo-kilograms-symbol"		= "kg";
 	"commodity-quantity-none"		= "—";
 	"oolite-market-filtered-all"	= " Current filter hides all goods ";
-	"oolite-market-filter-line"		= "Filter: ";
+	"oolite-market-filter-line"		= "Filter: [filterMode]";
 	"oolite-market-filter-0"		= "All goods";
 	"oolite-market-filter-1"		= "Carried or in stock";
 	"oolite-market-filter-2"		= "Carried";
@@ -1467,7 +1502,7 @@
 	"oolite-market-filter-4"		= "No transport restrictions";
 	"oolite-market-filter-5"		= "Transport restrictions";
 
-	"oolite-market-sorter-line"		= "Sort: ";
+	"oolite-market-sorter-line"		= "Sort: [sortMode]";
 	"oolite-market-sorter-0"		= "Default";
 	"oolite-market-sorter-1"		= "Alphabetical";
 	"oolite-market-sorter-2"		= "Price";
@@ -1484,15 +1519,17 @@
 	"oolite-commodity-illegal"		 = "It is illegal to export this good from Cooperative stations.";
 
 	// System data screen
-	"sysdata-planet-name-@"			= "Data on %@";
+	"sysdata-data-on-system"		= "Data on [system]";
 	"sysdata-eco"					= "Economy:";
 	"sysdata-govt"					= "Government:";
 	"sysdata-tl"					= "Tech Level:";
+	"sysdata-tl-value"				= "[techLevel]";
 	"sysdata-pop"					= "Population:";
-	"sysdata-billion-word"			= "Billion";
+	"sysdata-pop-value"				= "[population|multiply:0.1|precision:1] Billion\n([inhabitants])";
 	"sysdata-prod"					= "Gross productivity:";
-	"sysdata-prod-worth"			= " %5d M ₢";
+	"sysdata-prod-value"			= "[productivity] M₢";
 	"sysdata-radius"				= "Average radius:";
+	"sysdata-radius-value"			= "[radius] km";
 	"system-description-string"		= "[14] is [22].";
 	
 	// Options / Loadsave screen
@@ -1509,22 +1546,23 @@
 	// Gameoptions screen
 	"gameoptions-autosave-yes"				= " Autosave: On ";
 	"gameoptions-autosave-no"				= " Autosave: Off ";
-	"gameoptions-sound-volume"				= " Sound Volume: ";
 	"gameoptions-gamma-value"				= " Gamma: ";
+	"gameoptions-sound-volume"				= " Sound Volume: ";
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
 	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
 	"gameoptions-spoken-messages-comms"		= " Spoken Messages: Comms only ";
 	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
-	"gameoptions-voice-@"					= " Voice: %@ ";
+	"gameoptions-voice-name"				= " Voice: [voiceName] ";
 	"gameoptions-voice-M"					= " Gender: Male ";
 	"gameoptions-voice-F"					= " Gender: Female ";
-	"gameoptions-music-mode-@"				= " Music: %@ ";
-	"gameoptions-fullscreen-mode-d-by-d-at-g-hz" = " Full Screen Mode: %d × %d at %.3g Hz ";
-	"gameoptions-fullscreen-mode-d-by-d"	= " Full Screen Mode: %d × %d ";
+	"gameoptions-music-mode"				= " Music: [musicMode] ";
+	"gameoptions-fullscreen-with-refresh-rate" = " Full Screen Mode: [width] × [height] at [refreshRate|precision:3] Hz ";
+	"gameoptions-fullscreen"				= " Full Screen Mode: [width] × [height] ";
 	"gameoptions-play-in-window"			= " Play in Window ";
 	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
+	"gameoptions-keyboard-configuration"	= " View Keyboard Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
@@ -1537,8 +1575,8 @@
 /*	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
 	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
 	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";
-	"gameoptions-shaderfx-@"				= " Shader Effects: %@ "; */
-/*	"shaderfx-not-available"				= "Not available";
+	"gameoptions-shaderfx"					= " Shader Effects: [shaderEffectsLevel] ";
+	"shaderfx-not-available"				= "Not available";
 	"shaderfx-off"							= "Off";
 	"shaderfx-simple"						= "Simple";
 	"shaderfx-full"							= "Full"; */
@@ -1565,6 +1603,7 @@
 	"stickmapper-next-target"		= "Select next target";
 	"stickmapper-fuel-injection"	= "Fuel injection";
 	"stickmapper-hyperspeed"		= "Hyperspeed";
+	"stickmapper-hyperdrive"		= "Engage hyperdrive";
 	"stickmapper-roll/pitch-precision-toggle"	= "Roll/pitch precision toggle";
 	"stickmapper-snapshot"			= "Take snapshot";
 	"stickmapper-view-forward"		= "View forward";
@@ -1579,6 +1618,8 @@
 	"stickmapper-escape-pod"		= "Escape pod";
 	"stickmapper-cloak"				= "Cloaking device";
 	"stickmapper-scanner-zoom"		= "Scanner zoom";
+	"stickmapper-scanner-unzoom"	= "Scanner unzoom";
+	"stickmapper-jettison"			= "Jettison cargo";
 	
 	"oolite-stickprofile-title"			= "Joystick Profile";
 	"oolite-stickprofile-back"			= "Back";
@@ -1603,7 +1644,7 @@
 	
 	// Equip ship screen
 	"equip-title"					= "Ship Outfitting";
-	"equip-cash-@"					= "Cash: %@.";
+	"equip-cash-value"				= "Cash: [credits|dcr].";
 	"equip-no-equipment-available-for-purchase" = "No equipment available for purchase.";
 	"equip-repair-@"				= " Repair:%@";
 	"upgradeinfo-@-price-is-for-repairing" = "%@ (Price is for repairing the existing system).";
@@ -1675,37 +1716,37 @@
 	
 	// Ship’s manifest screen
 	"manifest-title"				= "Ship’s Manifest";
-	"manifest-none"					= " None.";
+	"manifest-none"					= " No cargo carried.";
 	"manifest-cargo-d-d"			= "Cargo %d t (%d t):";
+	"oolite-manifest-cargo"			= "Cargo [current] t ([max] t)";
+	"oolite-manifest-cabins"		= "Passenger Cabins [current] / [max]";
 	"manifest-passengers-d-d"		= "Passengers %d (%d):";
+	"manifest-passengers"			= "Passengers:";
 	"manifest-parcels"				= "Parcels:";
 	"manifest-contracts"			= "Contracts:";
 	"manifest-missions"				= "Missions:";
-	"manifest-@-travelling-to-@-to-arrive-within-@"	= " %@ travelling to %@ to arrive within %@.";
-	"manifest-deliver-@-to-@within-@"	= " Deliver %@ to %@ within %@.";
+	"manifest-@-travelling-to-@-to-arrive-within-@"	= "%@ travelling to %@ to arrive within %@.";
+	"manifest-deliver-@-to-@within-@"	= "Deliver %@ to %@ within %@.";
 	
 	// Shipyard screen
-	"@-shipyard-title"				= "%@ Ships For Sale";
+	"shipyard-title"				= "[system] Ships For Sale";
 	"shipyard-shiptype"				= "Ship Type:";
-	"shipyard-price"				= "Price:    ";
-	"shipyard-cargo"				= "Cargo:";
-	"shipyard-cargo-d-tc"			= "Cargo: %d TC";
-	"shipyard-speed"				= "Speed:";
-	"shipyard-speed-f-ls"			= "Speed: %.3f LS";
+	"shipyard-price-label"			= "Price:    ";
+	"shipyard-cargo-label"			= "Cargo:";
+	"shipyard-cargo-value"			= "Cargo: [cargoRating] TC";
+	"shipyard-speed-label"			= "Speed:";
+	"shipyard-speed-value"			= "Speed: [speedRating|precision:3] LS";
 	"shipyard-no-ships-available-for-purchase" = "No ships available for purchase.";
-	"shipyard-your-@-trade-in-value-@" = "Your %@’s trade-in value: %@.";
-	"shipyard-total-available-%@-%@-plus-%@-trade" = "Total available: %@. (%@ Cash + %@ Trade.)";
+	"shipyard-trade-in-value"		= "Your [shipType]’s trade-in value: [tradeIn|idcr].";
+	"shipyard-total-available-with-trade-in" = "Total available: [total|dcr]. ([credits|dcr] Cash + [tradeIn|idcr] Trade.)";
 	"passenger-berth%0"				= "Passenger Berth";
 	"passenger-berth%1"				= "Passenger Berths";
-	"extra-@-@-(long-description)"			= " Extra %@ (%@)";
 	"extra-@-@-(passenger-berths)"			= " Extra %@ %@";
-	"extra-@-@-@-(passenger-berth-long-description)" =	"Extra %@%@ (%@)";
-	"plus-@"						= " Plus %@.";
+	"shipyard-first-extra"			= " Plus [item].";
+	"shipyard-additional-extra"		= " [item].";
 	"shipyard-standard-customer-model" = " Standard customer model.";
-	"shipyard-forward-weapon-has-been-upgraded-to-a-@" = " Forward weapon has been upgraded to a %@.";
-	"shipyard-forward-weapon-upgraded-to-@" = " Forward weapon upgraded to %@.";
-	"shipyard-selling-price-@"		= " Selling price %@.";
-	"shipyard-price-@"				= " Price %@.";
+	"shipyard-forward-weapon-upgraded" = " Forward weapon upgraded to [weapon].";
+	"shipyard-price"				= " Price [price|icr].";
 	
 	// Load/Save screens shared information
 	"loadsavescreen-commander-name" = "Commander";
@@ -1770,7 +1811,8 @@
 	"legal-desc-alien"				= "Alien";
 	"legal-desc-system-vessel"		= "System Vessel";
 	"legal-desc-military-vessel"	= "Military Vessel";
-	"planetname-derivative-suffix"	= "ian";	// This is the suffix used with %I (producing 'Laveian' for example)
+	"planetname-possessive"			= "%H[planetname-derivative-suffix]"; // %I expands to this (producing 'Laveian' for example)
+	"planetname-derivative-suffix"	= "ian";
 	"wormhole-desc"				= "Wormhole";
 	"wormhole-to-@"				= "Wormhole to %@";
 	"wormhole-destination-computed-@"	= "Wormhole Scanner - Destination computed: %@";
@@ -1876,7 +1918,7 @@
 	
 	// character descriptions
 	// basic short desc - “A $species from $homeworld”
-	"character-a-@-from-@"			= "a %@ from %@";
+	"character-generic-description"	= "a [species] from [planet]";
 	"character-a-thargoid"			= "an alien from outer space";
 	"character-thargoid-name"		= "a thargoid";
 	

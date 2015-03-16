@@ -2659,7 +2659,7 @@ this._tradeStation = function(usemain)
 				}
 			}
 		}
-	} while (tries < 5 && tries < stats.length);
+	} while (++tries < 5 && tries < stats.length);
 	return system.mainStation;
 }
 

@@ -62,6 +62,7 @@ enum
 	kEquipmentInfo_isVisible,
 	kEquipmentInfo_name,
 	kEquipmentInfo_price,
+	kEquipmentInfo_provides,
 	kEquipmentInfo_requiredCargoSpace,
 	kEquipmentInfo_requiresAnyEquipment,
 	kEquipmentInfo_requiresCleanLegalRecord,
@@ -98,6 +99,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "isVisible",						kEquipmentInfo_isVisible,					OOJS_PROP_READONLY_CB },
 	{ "name",							kEquipmentInfo_name,						OOJS_PROP_READONLY_CB },
 	{ "price",							kEquipmentInfo_price,						OOJS_PROP_READONLY_CB },
+	{ "provides",						kEquipmentInfo_provides,					OOJS_PROP_READONLY_CB },
 	{ "requiredCargoSpace",				kEquipmentInfo_requiredCargoSpace,			OOJS_PROP_READONLY_CB },
 	{ "requiresAnyEquipment",			kEquipmentInfo_requiresAnyEquipment,		OOJS_PROP_READONLY_CB },
 	{ "requiresCleanLegalRecord",		kEquipmentInfo_requiresCleanLegalRecord,	OOJS_PROP_READONLY_CB },
@@ -284,6 +286,10 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			
 		case kEquipmentInfo_price:
 			return JS_NewNumberValue(context, [eqType price], value);
+
+		case kEquipmentInfo_provides:
+			result = [eqType providesForScripting];
+			break;
 			
 		case kEquipmentInfo_isAvailableToAll:
 			*value = OOJSValueFromBOOL([eqType isAvailableToAll]);

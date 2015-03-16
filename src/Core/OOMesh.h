@@ -148,6 +148,16 @@ typedef struct
 				 shaderMacros:(NSDictionary *)macros
 		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
++ (instancetype) meshWithName:(NSString *)name
+					 cacheKey:(NSString *)cacheKey
+		   materialDictionary:(NSDictionary *)materialDict
+			shadersDictionary:(NSDictionary *)shadersDict
+					   smooth:(BOOL)smooth
+				 shaderMacros:(NSDictionary *)macros
+		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object
+				  scaleFactor:(float)factor;
+
+
 + (OOMaterial *) placeholderMaterial;
 
 - (NSString *) modelName;

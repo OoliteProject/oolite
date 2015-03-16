@@ -50,6 +50,7 @@ typedef enum
 #define SCENARIO_OXP_DEFINITION_NONE   @"strict"
 #define SCENARIO_OXP_DEFINITION_BYID   @"id:"
 #define SCENARIO_OXP_DEFINITION_BYTAG  @"tag:"
+#define SCENARIO_OXP_DEFINITION_NOPLIST  @"exc:"
 
 @interface ResourceManager : NSObject
 
@@ -86,6 +87,8 @@ typedef enum
 
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache;
+
++ (BOOL) corePlist:(NSString *)fileName excludedAt:(NSString *)path;
 
 + (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
 								  inFolder:(NSString *)folderName

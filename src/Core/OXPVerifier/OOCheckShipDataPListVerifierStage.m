@@ -254,7 +254,8 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 				 [rolesString rangeOfString:@"station"].location != NSNotFound ||
 				 [rolesString rangeOfString:@"carrier"].location != NSNotFound;
 	// the is_carrier or isCarrier key will be missed when it was insise a like_ship definition.
-	
+	_isTemplate = [_info oo_boolForKey:@"is_template" defaultValue:NO];
+
 	if (_isPlayer && _isStation)
 	{
 		[self message:@"***** ERROR: ship is both a player ship and a station. Treating as non-station."];
@@ -279,7 +280,12 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 		{
 			if ([_allKeys containsObject:key])
 			{
-				[self message:@"----- WARNING: key \"%@\" does not apply to this category of ship.", key];
+				if (!_isTemplate)
+				{
+					// if it's a template, this key might apply to a descendant
+					// as happens in the core files
+					[self message:@"----- WARNING: key \"%@\" does not apply to this category of ship.", key];
+				}
 			}
 			else
 			{

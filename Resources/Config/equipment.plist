@@ -46,6 +46,7 @@
 		"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.",
 		{
 			condition_script = "oolite-conditions.js";
+			provides = ("EQ_CARGO_SCOOPS");
 		}
 	),
 	(
@@ -66,6 +67,9 @@
 		{
 			condition_script = "oolite-conditions.js";
 			incompatible_with_equipment = "EQ_NAVAL_ENERGY_UNIT";
+			script_info = {
+				"oolite_energy_recharge_multiplier" = 1.8;
+			};
 		}
 	),
 	/* condition script blocks this one from appearing normally */
@@ -75,6 +79,9 @@
 		"A special improved efficiency energy recharge unit, as supplied to Navy vessels.",
 		{
 			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_energy_recharge_multiplier" = 2.6;
+			};
 		}
 		/* Special case: this eq MUST STAY COMPATIBLE with EQ_ENERGY_UNIT - It's all handled properly in code.
 		Full details at http://developer.berlios.de/bugs/?func=detailbug&bug_id=13507&group_id=3577
@@ -234,6 +241,7 @@
 		{
 			available_to_all = true;
 			available_to_NPCs = false;
+			can_carry_multiple = true;
 			condition_script = "oolite-conditions.js";
 			requires_cargo_space = 5;
 			damage_probability = 0;
@@ -373,6 +381,10 @@
 		"Shield boosting technology dramatically increases the capability of standard defensive shields.",
 		{
 			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_shield_increase" = 128;
+				"oolite_shield_recharge_multiplier" = 1.0;
+			};
 		}
 	),
 	(
@@ -381,6 +393,10 @@
 		"Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields.",
 		{
 			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_shield_increase" = 128;
+				"oolite_shield_recharge_multiplier" = 1.5;
+			};
 		}
 	),
 	/* next item was a test item, no longer supported */
@@ -397,6 +413,9 @@
 		{
 			available_to_all = true;
 			condition_script = "oolite-conditions.js";
+			script_info = {
+				"oolite_heat_insulation_strength" = 1.0;
+			};
 		}
 	),
 	(

@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJSWormhole.h"
 #import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 #import "OOJSEquipmentInfo.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
@@ -84,6 +85,7 @@ static JSBool ShipPatrolReportIn(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRestoreSubEntities(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipHasEquipmentProviding(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipSelectNewMissile(JSContext *context, uintN argc, jsval *vp);
@@ -98,6 +100,8 @@ static JSBool ShipUpdateEscortFormation(JSContext *context, uintN argc, jsval *v
 static JSBool ShipClearDefenseTargets(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRemoveDefenseTarget(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipAddCollisionException(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipRemoveCollisionException(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetMaterials(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipGetShaders(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipBecomeCascadeExplosion(JSContext *context, uintN argc, jsval *vp);
@@ -192,8 +196,9 @@ enum
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_cargoList,		// cargo on board, array of objects, read-only
 	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
-	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
+	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read/write
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
+	kShip_collisionExceptions,   // collision exception list, array, read-only
 	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
 	kShip_commodity,			// commodity of a ship, read only
 	kShip_commodityAmount,		// commodityAmount of a ship, read only
@@ -228,6 +233,9 @@ enum
 	kShip_heading,				// forwardVector of a ship, read-only
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
 	kShip_homeSystem,			// home system, number, read/write
+	kShip_hyperspaceSpinTime,	// hyperspace spin time, float, read/write
+	kShip_injectorBurnRate,		// injector burn rate, number, read/write dLY/s
+	kShip_injectorSpeedFactor,  // injector speed factor, number, read/write
 	kShip_isBeacon,				// is beacon, boolean, read-only
 	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
 	kShip_isCargo,				// contains cargo, boolean, read-only
@@ -280,8 +288,11 @@ enum
 	kShip_roles,				// roles, array, read-only
 	kShip_roll,					// roll level, float, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
+	kShip_scanDescription,		// STE scan class label, string, read/write
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
+	kShip_scannerHostileDisplayColor1,	// color of lollipop shown on scanner, array, read/write
+	kShip_scannerHostileDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_script,				// script, Script, read-only
 	kShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
@@ -293,6 +304,7 @@ enum
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
 	kShip_subEntityCapacity,	// max subentities for this ship, int, read-only
+	kShip_subEntityRotation,	// subentity rotation velocity, quaternion, read/write
 	kShip_sunGlareFilter,		// sun glare filter multiplier, float, read/write
 	kShip_target,				// target, Ship, read/write
 	kShip_temperature,			// hull temperature, double, read/write
@@ -334,8 +346,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "bounty",					kShip_bounty,				OOJS_PROP_READWRITE_CB },
 	{ "cargoList",			kShip_cargoList,		OOJS_PROP_READONLY_CB },	
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		OOJS_PROP_READONLY_CB },
-	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READONLY_CB },
+	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	OOJS_PROP_READWRITE_CB },
 	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	OOJS_PROP_READONLY_CB },
+	{ "collisionExceptions",	kShip_collisionExceptions,	OOJS_PROP_READONLY_CB },
 	{ "commodity",				kShip_commodity,			OOJS_PROP_READONLY_CB },
 	{ "commodityAmount",		kShip_commodityAmount,		OOJS_PROP_READONLY_CB },
 	// contracts instead of cargo to distinguish them from the manifest
@@ -370,6 +383,10 @@ static JSPropertySpec sShipProperties[] =
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		OOJS_PROP_READONLY_CB },
 	{ "heatInsulation",			kShip_heatInsulation,		OOJS_PROP_READWRITE_CB },
 	{ "heading",				kShip_heading,				OOJS_PROP_READONLY_CB },
+	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
+	{ "hyperspaceSpinTime",		kShip_hyperspaceSpinTime,	OOJS_PROP_READWRITE_CB },
+	{ "injectorBurnRate",		kShip_injectorBurnRate,		OOJS_PROP_READWRITE_CB },
+	{ "injectorSpeedFactor",	kShip_injectorSpeedFactor,	OOJS_PROP_READWRITE_CB },
 	{ "homeSystem",				kShip_homeSystem,			OOJS_PROP_READWRITE_CB },
 	{ "isBeacon",				kShip_isBeacon,				OOJS_PROP_READONLY_CB },
 	{ "isCloaked",				kShip_isCloaked,			OOJS_PROP_READWRITE_CB },
@@ -423,8 +440,11 @@ static JSPropertySpec sShipProperties[] =
 	{ "roles",					kShip_roles,				OOJS_PROP_READONLY_CB },
 	{ "roll",					kShip_roll,					OOJS_PROP_READONLY_CB },
 	{ "savedCoordinates",		kShip_savedCoordinates,		OOJS_PROP_READWRITE_CB },
+	{ "scanDescription",		kShip_scanDescription,		OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	OOJS_PROP_READWRITE_CB },
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	OOJS_PROP_READWRITE_CB },
+	{ "scannerHostileDisplayColor1",	kShip_scannerHostileDisplayColor1,	OOJS_PROP_READWRITE_CB },
+	{ "scannerHostileDisplayColor2",	kShip_scannerHostileDisplayColor2,	OOJS_PROP_READWRITE_CB },
 	{ "scannerRange",			kShip_scannerRange,			OOJS_PROP_READONLY_CB },
 	{ "script",					kShip_script,				OOJS_PROP_READONLY_CB },
 	{ "scriptedMisjump",		kShip_scriptedMisjump,		OOJS_PROP_READWRITE_CB },
@@ -436,6 +456,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "starboardWeapon",		kShip_starboardWeapon,		OOJS_PROP_READWRITE_CB },
 	{ "subEntities",			kShip_subEntities,			OOJS_PROP_READONLY_CB },
 	{ "subEntityCapacity",		kShip_subEntityCapacity,	OOJS_PROP_READONLY_CB },
+	{ "subEntityRotation",		kShip_subEntityRotation,	OOJS_PROP_READWRITE_CB },
 	{ "sunGlareFilter",			kShip_sunGlareFilter,		OOJS_PROP_READWRITE_CB },
 	{ "target",					kShip_target,				OOJS_PROP_READWRITE_CB },
 	{ "temperature",			kShip_temperature,			OOJS_PROP_READWRITE_CB },
@@ -461,6 +482,7 @@ static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
 	{ "abandonShip",			ShipAbandonShip,			0 },
+	{ "addCollisionException",	ShipAddCollisionException,	1 },
 	{ "addDefenseTarget",		ShipAddDefenseTarget,		1 },
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "becomeCascadeExplosion",			ShipBecomeCascadeExplosion,			0 },
@@ -489,6 +511,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "getMaterials",			ShipGetMaterials,			0 },
 	{ "getSafeCourseToDestination",		ShipGetSafeCourseToDestination,		0 },
 	{ "getShaders",				ShipGetShaders,				0 },
+	{ "hasEquipmentProviding",	ShipHasEquipmentProviding,		1 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "markTargetForFines",				ShipMarkTargetForFines,				0 },
 	{ "notifyGroupOfWormhole",		ShipNotifyGroupOfWormhole,		0 },
@@ -512,6 +535,7 @@ static JSFunctionSpec sShipMethods[] =
 
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
 	{ "remove",					ShipRemove,					0 },
+	{ "removeCollisionException",	ShipRemoveCollisionException,	1 },
 	{ "removeDefenseTarget",   ShipRemoveDefenseTarget,   1 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "requestHelpFromGroup", ShipRequestHelpFromGroup, 0},
@@ -604,6 +628,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			result = [entity shipClassName];
 			break;
 		
+		case kShip_scanDescription:
+			result = [entity scanDescriptionForScripting];
+			break;
+
 		case kShip_roles:
 			result = [[entity roleSet] sortedRoles];
 			break;
@@ -672,6 +700,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity maxShipSubEntities], value);
 			return YES;
 			
+		case kShip_subEntityRotation:
+			return QuaternionToJSValue(context, [entity subEntityRotationalVelocity], value);
+
 		case kShip_hasSuspendedAI:
 			*value = OOJSValueFromBOOL([[entity getAI] hasSuspendedStateMachines]);
 			return YES;
@@ -765,6 +796,9 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			*value = OOJSValueFromBOOL([entity hasHyperspaceMotor]);
 			return YES;
 		
+		case kShip_hyperspaceSpinTime:
+			return JS_NewNumberValue(context, [entity hyperspaceSpinTime], value);
+
 		case kShip_weaponRange:
 			return JS_NewNumberValue(context, [entity weaponRange], value);
 
@@ -832,6 +866,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_commodityAmount:
 			*value = INT_TO_JSVAL([entity commodityAmount]);
 			return YES;
+
+	  case kShip_collisionExceptions:
+			result = [entity collisionExceptions];
+			break;
+
 			
 		case kShip_speed:
 			return JS_NewNumberValue(context, [entity flightSpeed], value);
@@ -870,6 +909,12 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		
 		case kShip_maxYaw:
 			return JS_NewNumberValue(context, [entity maxFlightYaw], value);
+
+		case kShip_injectorBurnRate:
+			return JS_NewNumberValue(context, [entity afterburnerRate], value);
+
+		case kShip_injectorSpeedFactor:
+			return JS_NewNumberValue(context, [entity afterburnerFactor], value);
 			
 		case kShip_script:
 			result = [entity shipScript];
@@ -1065,6 +1110,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 		case kShip_scannerDisplayColor2:
 			result = [[entity scannerDisplayColor2] normalizedArray];
 			break;
+
+		case kShip_scannerHostileDisplayColor1:
+			result = [[entity scannerDisplayColorHostile1] normalizedArray];
+			break;
+			
+		case kShip_scannerHostileDisplayColor2:
+			result = [[entity scannerDisplayColorHostile2] normalizedArray];
+			break;
 			
 		case kShip_exhaustEmissiveColor:
 			result = [[entity exhaustEmissiveColor] normalizedArray];
@@ -1146,6 +1199,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 	int32						iValue;
 	JSBool						bValue;
 	Vector						vValue;
+	Quaternion					qValue;
 	HPVector						hpvValue;
 	OOShipGroup					*group = nil;
 	OOColor						*colorForScript = nil;
@@ -1198,6 +1252,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 
+
+		case kShip_scanDescription:
+			sValue = OOStringFromJSValue(context,*value);
+			// can set to nil
+			[entity setScanDescription:sValue];
+			return YES;
 		
 		case kShip_primaryRole:
 			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
@@ -1279,6 +1339,14 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_hyperspaceSpinTime:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[entity setHyperspaceSpinTime:fValue];
+				return YES;
+			}
+			break;
 			
 		case kShip_bounty:
 			if (JS_ValueToInt32(context, *value, &iValue))
@@ -1288,6 +1356,20 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_cargoSpaceCapacity:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < 0)  iValue = 0;
+				if ((OOCargoQuantity)iValue < [entity maxAvailableCargoSpace] - [entity availableCargoSpace])
+				{
+					iValue = [entity maxAvailableCargoSpace] - [entity availableCargoSpace];
+				}
+				[entity setMaxAvailableCargoSpace:iValue];
+				return YES;
+			}
+			break;
+
 
 		case kShip_destinationSystem:
 			if (JS_ValueToInt32(context, *value, &iValue))
@@ -1377,8 +1459,6 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			break;
 		
 		case kShip_heatInsulation:
-			if (EXPECT_NOT([entity isPlayer]))  goto playerReadOnly;
-			
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				fValue = fmax(fValue, 0.125);
@@ -1505,6 +1585,24 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			break;
 			
+		case kShip_scannerHostileDisplayColor1:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColorHostile1:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kShip_scannerHostileDisplayColor2:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColorHostile2:colorForScript];
+				return YES;
+			}
+			break;
+			
 		case kShip_exhaustEmissiveColor:
 			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
 			if (colorForScript != nil || JSVAL_IS_NULL(*value))
@@ -1537,6 +1635,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				}
 			}
 			break;
+
+		case kShip_subEntityRotation:
+			if (JSValueToQuaternion(context, *value, &qValue))
+			{
+				[entity setSubEntityRotationalVelocity:qValue];
+				return YES;
+			}
+			break;
+
 			
 		case kShip_sunGlareFilter:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -1616,6 +1723,44 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_injectorBurnRate:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 0)
+				{
+					OOJSReportError(context, @"ship.injectorBurnRate cannot be negative.");
+					return NO;
+				}
+				[entity setAfterburnerRate:fValue];
+				return YES;
+			}
+			break;
+
+		case kShip_injectorSpeedFactor:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				if (fValue < 1)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be less than 1.0.");
+					return NO;
+				}
+#if OO_VARIABLE_TORUS_SPEED
+				else if (fValue > MIN_HYPERSPEED_FACTOR)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be higher than minimum torus speed factor (%f).",MIN_HYPERSPEED_FACTOR);
+#else
+				else if (fValue > HYPERSPEED_FACTOR)
+				{
+					OOJSReportError(context, @"ship.injectorSpeedFactor cannot be higher than torus speed factor (%f).",HYPERSPEED_FACTOR);
+#endif
+					return NO;
+				}
+				[entity setAfterburnerFactor:fValue];
+				return YES;
+			}
+			break;
+
 
 		case kShip_maxThrust:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -1950,6 +2095,29 @@ static JSBool ShipDockEscorts(JSContext *context, uintN argc, jsval *vp)
 	
 	[thisEnt dockEscorts];
 	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// hasEquipmentProviding(equipment : String) : Boolean
+static JSBool ShipHasEquipmentProviding(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	ShipEntity				*thisEnt = nil;
+	NSString				*equipment = nil;
+	
+	GET_THIS_SHIP(thisEnt);
+	
+	if (argc > 0)  equipment = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(equipment == nil))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"hasEquipmentProviding", MIN(argc, 1U), OOJS_ARGV, nil, @"string (equipment)");
+		return NO;
+	}
+	
+	OOJS_RETURN_BOOL([thisEnt hasEquipmentItemProviding:equipment]);
 	
 	OOJS_NATIVE_EXIT
 }
@@ -2468,7 +2636,8 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 			}
 			else	// EQ_CARGO_BAY
 			{
-				if ([thisEnt extraCargo] <= [thisEnt availableCargoSpace])
+				// player cargo bay removal handled in script
+				if ([thisEnt isPlayer] || [thisEnt extraCargo] <= [thisEnt availableCargoSpace])
 				{
 					[thisEnt removeEquipmentItem:key];
 				}
@@ -2561,34 +2730,37 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 	
 	key = [eqType identifier];
 	hasOK = [thisEnt hasEquipmentItem:key];
+	BOOL setOK = [status isEqualToString:@"EQUIPMENT_OK"];
+	BOOL setDamaged = [status isEqualToString:@"EQUIPMENT_DAMAGED"];
 	if ([eqType canBeDamaged])
 	{
 		damagedKey = [key stringByAppendingString:@"_DAMAGED"];
 		hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
 		
-		if (([status isEqualToString:@"EQUIPMENT_OK"] && hasDamaged) || ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK))
+		if ((setOK && hasDamaged) || (setDamaged && hasOK))
 		{
 			// the implementation is identical between player and ship.
-			[thisEnt removeEquipmentItem:key];
+			[thisEnt removeEquipmentItem:(setDamaged ? key : damagedKey)];
 			if ([thisEnt isPlayer])
 			{
 				// these player methods are different to the ship ones.
-				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO inContext:@"scripted"];
-				if (hasOK)
+				[(PlayerEntity*)thisEnt addEquipmentItem:(setDamaged ? damagedKey : key) withValidation:NO inContext:@"scripted"];
+				if (setDamaged)
 				{
 					[(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 				}
-				else if (hasDamaged)
+				else if (setOK)
 				{
 					[(PlayerEntity*)thisEnt doScriptEvent:OOJSID("equipmentRepaired") withArgument:key];
 				}
 				
 				// if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
-				if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
+				// this is now done in a different method
+				// if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
 			}
 			else
 			{
-				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key) withValidation:NO  inContext:@"scripted"];
+				[thisEnt addEquipmentItem:(setDamaged ? damagedKey : key) withValidation:NO  inContext:@"scripted"];
 				if (hasOK) [thisEnt doScriptEvent:OOJSID("equipmentDamaged") withArgument:key];
 			}
 		}
@@ -2631,26 +2803,45 @@ static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 	
 	ShipEntity				*thisEnt = nil;
 	NSString				*key = nil;
-	
+	JSBool					asDict = NO;
+	NSDictionary			*dict = nil;
+
 	GET_THIS_SHIP(thisEnt);
 	
 	if (argc > 0)  key = JSValueToEquipmentKey(context, OOJS_ARGV[0]);
+	if (argc > 1)  JS_ValueToBoolean(context, OOJS_ARGV[1], &asDict);
 	if (EXPECT_NOT(key == nil))
 	{
 		if (argc > 0 && JSVAL_IS_STRING(OOJS_ARGV[0]))
 		{
-			OOJS_RETURN(strUnknown);
+			if (asDict)
+			{
+				dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:1],@"EQUIPMENT_UNKNOWN",nil];
+				OOJS_RETURN_OBJECT(dict);
+			}
+			else
+			{
+				OOJS_RETURN(strUnknown);
+			}
 		}
 		
 		OOJSReportBadArguments(context, @"Ship", @"equipmentStatus", MIN(argc, 1U), &OOJS_ARGV[0], nil, @"equipment type");
 		return NO;
 	}
 	
-	if ([thisEnt hasEquipmentItem:key includeWeapons:YES whileLoading:NO])  OOJS_RETURN(strOK);
-	else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
+
+	if (asDict)
+	{
+		dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:[thisEnt countEquipmentItem:key]],@"EQUIPMENT_OK",[NSNumber numberWithInt:[thisEnt countEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]],@"EQUIPMENT_DAMAGED",nil];
+		OOJS_RETURN_OBJECT(dict);
+	}
+	else
+	{
+		if ([thisEnt hasEquipmentItem:key includeWeapons:YES whileLoading:NO])  OOJS_RETURN(strOK);
+		else if ([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]])  OOJS_RETURN(strDamaged);
 	
-	OOJS_RETURN(strUnavailable);
-	
+		OOJS_RETURN(strUnavailable);
+	}
 	OOJS_NATIVE_EXIT
 }
 
@@ -3148,6 +3339,56 @@ static JSBool ShipRemoveDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	[thisEnt removeDefenseTarget:target];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipAddCollisionException(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*target = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"addCollisionException", 1U, OOJS_ARGV, nil, @"other ship");
+		return NO;
+	}
+	
+	// have to do it both ways because it's not defined which order
+	// the collisions get tested in. More efficient to add both ways
+    // than to test both ways
+	[thisEnt addCollisionException:target];
+	[target addCollisionException:thisEnt];
+
+	OOJS_RETURN_VOID;
+	
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipRemoveCollisionException(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	ShipEntity				*target = nil;
+
+	GET_THIS_SHIP(thisEnt);
+	if (EXPECT_NOT(argc == 0 || (argc > 0 && (JSVAL_IS_NULL(OOJS_ARGV[0]) || !JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"removeCollisionException", 1U, OOJS_ARGV, nil, @"other ship");
+		return NO;
+	}
+	
+	// doesn't need a check to see if it was already gone
+	[thisEnt removeCollisionException:target];
+	[target removeCollisionException:thisEnt];
 
 	OOJS_RETURN_VOID;
 	

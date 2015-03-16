@@ -462,9 +462,12 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 // this method does initial traffic control, before passing the ship
 // to an appropriate dock for docking coordinates and instructions.
+// used for NPCs, and the player when they use the docking computer
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *) ship
 {	
 	if (ship == nil)  return nil;
+
+	[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:ship];
 
 	if ([ship isPlayer])
 	{
@@ -573,7 +576,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	[_shipsOnHold removeObject:ship];
 	
 	[shipAI reactToMessage:@"DOCKING_REQUESTED" context:@"requestDockingCoordinates"];	// react to the request	
-	[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:ship];
+	[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:ship];
 
 	return [chosenDock dockingInstructionsForShip:ship];
 }
@@ -1027,6 +1030,22 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			{
 				return YES;
 			}
+		}
+	}
+	return NO;
+}
+
+
+- (BOOL) hasEligibleDock
+{
+	NSEnumerator	*subEnum = nil;
+	DockEntity* sub = nil;
+	for (subEnum = [self dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		// TRY_AGAIN_LATER in this context means "ships launching now"
+		if ([sub allowsDocking] && ([[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"DOCKING_POSSIBLE"] || [[sub canAcceptShipForDocking:PLAYER] isEqualToString:@"TRY_AGAIN_LATER"]))
+		{
+			return YES;
 		}
 	}
 	return NO;
@@ -2006,13 +2025,17 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 }
 
 
-// used by player
+// used by player - "other" should always be a reference to the player
+// there are some checks in the function from possibly when this wasn't true?
 - (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
 	NSString	*result = nil;
 	double		timeNow = [UNIVERSE getTime];
 	PlayerEntity	*player = PLAYER;
 	
+	[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+
+
 	[UNIVERSE clearPreviousMessage];
 
 	[self sanityCheckShipsOnApproach];
@@ -2034,7 +2057,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
 		}
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
-		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+		[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
 
 		last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
 		result = @"DOCKING_CLEARANCE_NOT_REQUIRED";
@@ -2105,7 +2128,17 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		result = @"DOCKING_CLEARANCE_DENIED_SHIP_HOSTILE";
 	}
 
-	if (![self hasClearDock]) // skip check if at least one dock clear
+	if (![self hasEligibleDock]) // make sure at least one dock could plausibly accept the player
+	{
+		if ([other isPlayer])
+		{
+			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+		}
+		[self sendExpandedMessage:@"[station-docking-clearance-denied-no-docks]" toShip:other];
+
+		result = @"DOCKING_CLEARANCE_DENIED_NO_DOCKS";
+	}
+	else if (![self hasClearDock]) // skip check if at least one dock clear
 	{
 		// Put ship in queue if we've got incoming or outgoing traffic or
 		// if the player is waiting for manual clearance and we are not
@@ -2203,7 +2236,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 
 		result = @"DOCKING_CLEARANCE_GRANTED";
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
-		[self doScriptEvent:OOJSID("stationReceivedDockingRequest") withArgument:other];
+		[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
 
 	}
 	return result;

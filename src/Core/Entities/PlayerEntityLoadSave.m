@@ -245,7 +245,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		for (i = page*n_rows ; i < count && row < start_row + n_rows ; i++)
 		{
 			scenario = [[UNIVERSE scenarios] objectAtIndex:i];
-			[gui setText:OOExpand([NSString stringWithFormat:@" %@ ",[scenario oo_stringForKey:@"name"]]) forRow:row];
+			NSString *scenarioName = [NSString stringWithFormat:@" %@ ",[scenario oo_stringForKey:@"name"]];
+			[gui setText:OOExpand(scenarioName) forRow:row];
 			[gui setKey:[NSString stringWithFormat:@"Scenario:%lu", (unsigned long)i] forRow:row];
 			++row;
 		}
@@ -642,14 +643,14 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			}
 		}
 
-		if (![UNIVERSE setUseAddOns:scenarioRestrict fromSaveGame:YES]) 
+		if (![UNIVERSE setUseAddOns:scenarioRestrict fromSaveGame:YES forceReinit:YES]) 
 		{
 			fail_reason = DESC(@"loadfailed-saved-game-failed-to-load");
 			loadedOK = NO;
 		} 
 	}
 	
-	
+
 	if (loadedOK)
 	{
 		OOLog(@"load.progress",@"Creating player ship");
@@ -795,6 +796,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[self startUpComplete];
 
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	gui_screen = GUI_SCREEN_LOAD; // force evaluation of new gui screen on startup
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading
 	OOLog(@"load.progress",@"Loading complete");
@@ -1096,7 +1098,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	for (i = EXITROW ; i < ENDROW + 1; i++)
 	{
 		[gui setText:@"" forRow:i align:GUI_ALIGN_LEFT];
-//		[gui setColor: [OOColor yellowColor] forRow: i];
+		[gui setColor: [OOColor yellowColor] forRow: i];
 		[gui setKey:GUI_KEY_SKIP forRow:i];
 	}
 

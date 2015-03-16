@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "OOCollectionExtractors.h"
 #import "OOStringParsing.h"
+#import "OOStringExpander.h"
 
 #import "Universe.h"
 #import "HeadUpDisplay.h"
@@ -117,7 +118,8 @@ MA 02110-1301, USA.
 		else
 		{
 			playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
-			[station sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
+			int seconds = round(playerExtraTime);
+			[station sendExpandedMessage:OOExpandKey(@"station-docking-clearance-abort-cancelled-in-time", seconds) toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 		}
 
@@ -599,8 +601,8 @@ MA 02110-1301, USA.
 			}
 			else
 			{
-				int playerExtraTime = 10; // when very close to the port, give the player a few seconds to react on the abort message.
-				[[self parentEntity] sendExpandedMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-abort-cancelled-in-f"), playerExtraTime] toShip:player];
+				int seconds = 10; // when very close to the port, give the player a few seconds to react on the abort message.
+				[[self parentEntity] sendExpandedMessage:OOExpandKey(@"station-docking-clearance-abort-cancelled-in-time", seconds) toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
 			}
 		}
@@ -692,22 +694,23 @@ MA 02110-1301, USA.
 
 	BOOL rotatedPort = (ww >= hh) ? NO : YES;
 	BOOL rotatedShip = ((shipbb.max.x - shipbb.min.x) >= (shipbb.max.y - shipbb.min.y)) ? NO : YES;
-	if (rotatedShip == rotatedPort)
+	BOOL rotationsMatch = (rotatedShip == rotatedPort);
+	if (rotationsMatch)
 	{
 		// the ship and port are both bigger in x than y
-		while (shipbb.max.x - shipbb.min.x > ww * 0.90)	ww *= 1.25;
-		while (shipbb.max.y - shipbb.min.y > hh * 0.90)	hh *= 1.25;
+		while (shipbb.max.x - shipbb.min.x > ww * 0.90) ww *= 1.25;
+		while (shipbb.max.y - shipbb.min.y > hh * 0.90) hh *= 1.25;
 	}
 	else
 	{
 		// the ship and port have different x/y biggerness
-		while (shipbb.max.x - shipbb.min.x > hh * 0.90)	hh *= 1.25;
-		while (shipbb.max.y - shipbb.min.y > ww * 0.90)	ww *= 1.25;
+		while (shipbb.max.y - shipbb.min.y > ww * 0.90) ww *= 1.25;
+		while (shipbb.max.x - shipbb.min.x > hh * 0.90) hh *= 1.25;
 	}
 	
 	ww *= 0.5;
 	hh *= 0.5;
-	
+
 #ifndef NDEBUG
 	if ([ship isPlayer] && (gDebugFlags & DEBUG_DOCKING))
 	{
@@ -729,6 +732,19 @@ MA 02110-1301, USA.
 			range);
 	}
 #endif
+
+	if ((arbb.max.x < ww * 3.0)&&(arbb.min.x > -ww * 3.0)&&(arbb.max.y < hh * 3.0)&&(arbb.min.y > -hh * 3.0))
+	{
+		if ([station requiresDockingClearance] && [ship isPlayer] && [ship status] != STATUS_LAUNCHING && [ship status] != STATUS_AUTOPILOT_ENGAGED && [PLAYER getDockingClearanceStatus] < DOCKING_CLEARANCE_STATUS_GRANTED)
+		{
+			if ((0.90 * arbb.max.z + 0.10 * arbb.min.z < 3000) && (dot_product(vk,[ship forwardVector]) < -0.9))
+			{
+				// player is in docking corridor and facing dock
+				// and within 3km
+				[UNIVERSE addMessage:DESC(@"oolite-station-docking-requires-clearance") forCount:3];
+			}
+		}
+	}
 	
 	if (arbb.max.z < -dd)
 	{
@@ -769,12 +785,21 @@ MA 02110-1301, USA.
 	
 	// if close enough (within 50%) correct and add damage
 	//
-	GLfloat safety = 1.0+(01.0/100.0);
+	GLfloat safety = 1.0+(50.0/100.0);
 
-	if  ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
+	if ((arbb.min.x > -safety * ww)&&(arbb.max.x < safety * ww)&&(arbb.min.y > -safety * hh)&&(arbb.max.y < safety * hh))
 	{
 		if (arbb.min.z < 0.0)	// got our nose inside
 		{
+
+			if ((arbb.min.x < -ww && arbb.max.x > ww) || (arbb.min.y < -hh && arbb.max.y > hh))
+			{
+				/* No matter how much safety margin there is, if the
+				 * ship is going off opposite edges of the dock at
+				 * once, that's a fatal collision */
+				return NO;
+			}
+
 			GLfloat correction_factor = -arbb.min.z / (arbb.max.z - arbb.min.z);	// proportion of ship inside
 		
 			// damage the ship according to velocity - don't send collision messages to AIs to avoid problems.
@@ -791,7 +816,7 @@ MA 02110-1301, USA.
 				// x is okay - no need to correct
 				delta.x = 0.0f;
 			}
-			if (arbb.max.y > hh && arbb.min.x > -hh)
+			if (arbb.max.y > hh && arbb.min.y > -hh)
 			{
 				// y is okay - no need to correct
 				delta.y = 0.0f;

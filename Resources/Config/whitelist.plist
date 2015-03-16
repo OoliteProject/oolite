@@ -346,7 +346,8 @@
 		"drawCustomBar:",
 		"drawCustomText:",
 		"drawCustomIndicator:",
-		"drawCustomLight:"
+		"drawCustomLight:",
+		"drawCustomImage:"
 	);
 	
 	shader_entity_binding_methods =

@@ -89,7 +89,7 @@ void OOStandardsInternal(NSString *type, NSString *message)
 		return;
 	}
 
-	OOLog(type,message);
+	OOLog(type, @"%@", message);
 
 	if (sEnforcement == STANDARDS_ENFORCEMENT_QUIT)
 	{

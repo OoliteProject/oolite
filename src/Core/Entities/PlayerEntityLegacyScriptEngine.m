@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityScriptMethods.h"
 #import "PlayerEntitySound.h"
+#import "PlayerEntityContracts.h"
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "ResourceManager.h"
@@ -216,7 +217,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	{
 		// Method with argument; substitute [description] expressions.
 		locals = [player localVariablesForMission:sCurrentMissionKey];
-		expandedString = OOExpandDescriptionString(argumentString, [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], nil, locals, nil, kOOExpandNoOptions);
+		expandedString = OOExpandDescriptionString(OOStringExpanderDefaultRandomSeed(), argumentString, nil, locals, nil, kOOExpandNoOptions);
 		
 		[target performSelector:selector withObject:expandedString];
 	}
@@ -716,6 +717,25 @@ static BOOL sRunningScript = NO;
 	
 	result1 = [NSMutableArray array];
 	result2 = [NSMutableArray array];
+
+	NSArray*	passengerManifest = [self passengerList];
+	NSArray*	contractManifest = [self contractList];
+	NSArray*	parcelManifest = [self parcelList]; 
+
+	if ([passengerManifest count] > 0)
+	{
+		[result2 addObject:[[NSArray arrayWithObject:DESC(@"manifest-passengers")] arrayByAddingObjectsFromArray:passengerManifest]];
+	}
+
+	if ([parcelManifest count] > 0)
+	{
+		[result2 addObject:[[NSArray arrayWithObject:DESC(@"manifest-parcels")] arrayByAddingObjectsFromArray:parcelManifest]];
+	}
+
+	if ([contractManifest count] > 0)
+	{
+		[result2 addObject:[[NSArray arrayWithObject:DESC(@"manifest-contracts")] arrayByAddingObjectsFromArray:contractManifest]];
+	}
 
 	/* For proper display, array entries need to all be after string
 	 * entries, so sort them now */	
@@ -1874,7 +1894,7 @@ static int shipsFound;
 	// Replace literal \n in strings with line breaks and perform expansions.
 	text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (text == nil)  return;
-	text = OOExpandDescriptionString(text, [[UNIVERSE systemManager] getRandomSeedForCurrentSystem], nil, nil, nil, kOOExpandBackslashN);
+	text = OOExpandWithOptions(OOStringExpanderDefaultRandomSeed(), kOOExpandBackslashN, text);
 	text = [self replaceVariablesInString:text];
 	
 	[self addLiteralMissionText:text];
@@ -1933,7 +1953,7 @@ static int shipsFound;
 	//
 	
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}
@@ -2451,7 +2471,7 @@ static int shipsFound;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}
@@ -2470,7 +2490,7 @@ static int shipsFound;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOGUIScreenID	oldScreen = gui_screen;
 	NSUInteger end_row = 21;
-	if ([[self hud] isHidden]) 
+	if ([[self hud] allowBigGui]) 
 	{
 		end_row = 27;
 	}

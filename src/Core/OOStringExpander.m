@@ -75,6 +75,7 @@ typedef struct
 	bool				convertBackslashN;
 	bool				hasPercentR;		// Set to indicate we need an ExpandPercentR() pass.
 	bool				useGoodRNG;
+	bool				disallowPercentI;
 	
 	NSString			*systemNameWithIan;	// Cache for %I
 	NSString			*randomNameN;		// Cache for %N
@@ -121,6 +122,9 @@ static NSString *ExpandPercentR(OOStringExpansionContext *context, NSString *inp
 static void ReportWarningForUnknownKey(OOStringExpansionContext *context, NSString *key);
 #endif
 
+static NSString *ApplyOperators(NSString *string, NSString *operatorsString);
+static NSString *ApplyOneOperator(NSString *string, NSString *op, NSString *param);
+
 
 /*	SyntaxWarning(context, logMessageClass, format, ...)
  	SyntaxError(context, logMessageClass, format, ...)
@@ -151,7 +155,7 @@ static void SyntaxIssue(OOStringExpansionContext *context, const char *function,
 // MARK: -
 // MARK: Public functions
 
-NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *systemName, OOExpandOptions options)
+NSString *OOExpandDescriptionString(Random_Seed seed, NSString *string, NSDictionary *overrides, NSDictionary *legacyLocals, NSString *systemName, OOExpandOptions options)
 {
 	if (string == nil)  return nil;
 	
@@ -163,15 +167,34 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 		.legacyLocals = [legacyLocals retain],
 		.isJavaScript = options & kOOExpandForJavaScript,
 		.convertBackslashN = options & kOOExpandBackslashN,
-		.useGoodRNG = options & kOOExpandGoodRNG,
+		.useGoodRNG = options & kOOExpandGoodRNG
 	};
+	
+	// Avoid recursive %I expansion by pre-seeding cache with literal %I.
+	if (options & kOOExpandDisallowPercentI) {
+		context.systemNameWithIan = @"%I";
+	}
+	
+	OORandomState savedRandomState;
+	if (options & kOOExpandReseedRNG)
+	{
+		savedRandomState = OOSaveRandomState();
+		OOSetReallyRandomRANROTAndRndSeeds();
+	}
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSString *result = nil, *intermediate = nil;
 	@try
 	{
 		// TODO: profile caching the results. Would need to keep track of whether we've done something nondeterministic (array selection, %R etc).
-		intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+		if (options & kOOExpandKey)
+		{
+			intermediate = ExpandStringKey(&context, string, kStackAllocationLimit, kRecursionLimit);
+		}
+		else
+		{
+			intermediate = Expand(&context, string, kStackAllocationLimit, kRecursionLimit);
+		}
 		if (!context.hasPercentR)
 		{
 			result = intermediate;
@@ -192,82 +215,27 @@ NSString *OOExpandDescriptionString(NSString *string, Random_Seed seed, NSDictio
 		[context.systemDescriptions release];
 	}
 	
-	result = [result copy];
-	[pool release];
-	return [result autorelease];
-}
-
-
-NSString *OOExpandKeyWithSeed(NSString *key, Random_Seed seed, NSString *systemName)
-{
-	if (key == nil)  return nil;
-	
-	/*	Key variants, including OOGenerateSystemDescription(), get their own
-		"driver" for a minor efficiency bonus.
-	*/
-	OOStringExpansionContext context =
+	if (options & kOOExpandReseedRNG)
 	{
-		.seed = seed,
-		.systemName = [systemName retain]
-	};
-	
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSString *result = nil, *intermediate = nil;
-	@try
-	{
-		intermediate = ExpandStringKey(&context, key, kStackAllocationLimit, kRecursionLimit);
-		result = ExpandPercentR(&context, intermediate);
-	}
-	@finally
-	{
-		[context.systemName release];
-		[context.systemNameWithIan release];
-		[context.randomNameN release];
-		[context.randomNameR release];
-		[context.systemDescriptions release];
+		OORestoreRandomState(savedRandomState);
 	}
 	
 	result = [result copy];
 	[pool release];
 	return [result autorelease];
-}
-
-
-NSString *OOExpandWithSeed(NSString *text, Random_Seed seed, NSString *name)
-{
-	return OOExpandDescriptionString(text, seed, nil, nil, name, kOOExpandNoOptions);
-}
-
-
-NSString *OOExpand(NSString *string)
-{
-	return OOExpandDescriptionString(string, kNilRandomSeed, nil, nil, [UNIVERSE getSystemName:[PLAYER systemID]], kOOExpandNoOptions);
-}
-
-
-NSString *OOExpandKey(NSString *key)
-{
-	return OOExpandKeyWithSeed(key, kNilRandomSeed, [UNIVERSE getSystemName:[PLAYER systemID]]);
-}
-
-
-NSString *OOExpandKeyRandomized(NSString *key)
-{
-	OORandomState savedRandomState = OOSaveRandomState();
-	OOSetReallyRandomRANROTAndRndSeeds();
-	
-	NSString *result = OOExpandKeyWithSeed(key, kNilRandomSeed, [UNIVERSE getSystemName:[PLAYER systemID]]);
-	
-	OORestoreRandomState(savedRandomState);
-	
-	return result;
 }
 
 
 NSString *OOGenerateSystemDescription(Random_Seed seed, NSString *name)
 {
 	seed_RNG_only_for_planet_description(seed);
-	return OOExpandKeyWithSeed(@"system-description-string", seed, name);
+	return OOExpandDescriptionString(seed, @"system-description-string", nil, nil, name, kOOExpandKey);
+}
+
+
+Random_Seed OOStringExpanderDefaultRandomSeed(void)
+{
+	return [[UNIVERSE systemManager] getRandomSeedForCurrentSystem];
 }
 
 
@@ -401,6 +369,10 @@ static NSString *Expand(OOStringExpansionContext *context, NSString *string, NSU
 	for the balancing closing bracket, and if it is found dispatches to either
 	ExpandDigitKey() (for a key consisting only of digits) or ExpandStringKey()
 	(for anything else).
+	
+	The key may be terminated by a vertical bar |, followed by an operator. An
+	operator is an identifier, optionally followed by a colon and additional
+	text, and may be terminated with another bar and operator.
 */
 static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength, NSUInteger sizeLimit, NSUInteger recursionLimit)
 {
@@ -408,7 +380,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 	NSCParameterAssert(characters[idx] == '[');
 	
 	// Find the balancing close bracket.
-	NSUInteger end, balanceCount = 1;
+	NSUInteger end, balanceCount = 1, firstBar = 0;
 	bool allDigits = true;
 	
 	for (end = idx + 1; end < size && balanceCount > 0; end++)
@@ -416,8 +388,9 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		if (characters[end] == ']')  balanceCount--;
 		else
 		{
-			if (!isdigit(characters[end]))  allDigits = false;
 			if (characters[end] == '[')  balanceCount++;
+			else if (characters[end] == '|' && firstBar == 0)  firstBar = end;
+			if (!isdigit(characters[end]) && firstBar == 0)  allDigits = false;
 		}
 	}
 	
@@ -428,8 +401,10 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		return nil;
 	}
 	
-	*replaceLength = end - idx;
-	NSUInteger keyStart = idx + 1, keyLength = *replaceLength - 2;
+	NSUInteger totalLength = end - idx;
+	*replaceLength = totalLength;
+	NSUInteger keyStart = idx + 1, keyLength = totalLength - 2;
+	if (firstBar != 0)  keyLength = firstBar - idx - 1;
 	
 	if (EXPECT_NOT(keyLength == 0))
 	{
@@ -437,19 +412,135 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 		return nil;
 	}
 	
+	NSString *expanded = nil;
 	if (allDigits)
 	{
-		return ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit);
+		expanded = ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit);
 	}
 	else
 	{
 		NSString *key = [NSString stringWithCharacters:characters + keyStart length:keyLength];
-		return ExpandStringKey(context, key, sizeLimit, recursionLimit);
+		expanded = ExpandStringKey(context, key, sizeLimit, recursionLimit);
 	}
+	
+	if (firstBar != 0)
+	{
+		NSString *operators = [NSString stringWithCharacters:characters + firstBar + 1 length:end - firstBar - 2];
+		expanded = ApplyOperators(expanded, operators);
+	}
+	
+	return expanded;
 }
 
 
-/*	ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit
+/*	ApplyOperators(string, operatorsString)
+	
+	Given a string and a series of formatting operators separated by vertical
+	bars (or a single formatting operator), apply the operators, in sequence,
+	to the string.
+ */
+static NSString *ApplyOperators(NSString *string, NSString *operatorsString)
+{
+	NSArray *operators = [operatorsString componentsSeparatedByString:@"|"];
+	NSString *op = nil;
+	
+	foreach(op, operators)
+	{
+		NSString *param = nil;
+		NSRange colon = [op rangeOfString:@":"];
+		if (colon.location != NSNotFound)
+		{
+			param = [op substringFromIndex:colon.location + colon.length];
+			op = [op substringToIndex:colon.location];
+		}
+		string = ApplyOneOperator(string, op, param);
+	}
+	
+	return string;
+}
+
+
+static NSString *Operator_cr(NSString *string, NSString *param)
+{
+	return OOCredits([string doubleValue] * 10);
+}
+
+
+static NSString *Operator_dcr(NSString *string, NSString *param)
+{
+	return OOCredits([string longLongValue]);
+}
+
+
+static NSString *Operator_icr(NSString *string, NSString *param)
+{
+	return OOIntCredits([string longLongValue]);
+}
+
+
+static NSString *Operator_idcr(NSString *string, NSString *param)
+{
+	return OOIntCredits(round([string doubleValue] / 10.0));
+}
+
+
+static NSString *Operator_precision(NSString *string, NSString *param)
+{
+	return [NSString stringWithFormat:@"%.*f", [param intValue], [string doubleValue]];
+}
+
+
+static NSString *Operator_multiply(NSString *string, NSString *param)
+{
+	return [NSString stringWithFormat:@"%g", [string doubleValue] * [param doubleValue]];
+}
+
+
+static NSString *Operator_add(NSString *string, NSString *param)
+{
+	return [NSString stringWithFormat:@"%g", [string doubleValue] + [param doubleValue]];
+}
+
+
+/*	ApplyOneOperator(string, op, param)
+	
+	Apply a single formatting operator to a string.
+	
+	For example, the expansion expression "[distance|precision:1]" will be
+	expanded by a call to ApplyOneOperator(@"distance", @"precision", @"1").
+	
+	<param> may be nil, indicating an operator with no parameter (no colon).
+ */
+static NSString *ApplyOneOperator(NSString *string, NSString *op, NSString *param)
+{
+	static NSDictionary *operators = nil;
+	
+	if (operators == nil)
+	{
+		#define OPERATOR(name) [NSValue valueWithPointer:Operator_##name], @#name
+		operators = [[NSDictionary alloc] initWithObjectsAndKeys:
+					 OPERATOR(dcr),
+					 OPERATOR(cr),
+					 OPERATOR(icr),
+					 OPERATOR(idcr),
+					 OPERATOR(precision),
+					 OPERATOR(multiply),
+					 OPERATOR(add),
+					 nil];
+	}
+	
+	NSString *(*operator)(NSString *string, NSString *param) = [[operators objectForKey:op] pointerValue];
+	if (operator != NULL)
+	{
+		return operator(string, param);
+	}
+	
+	OOLogERR(@"strings.expand.invalidOperator", @"Unknown string expansion operator %@", op);
+	return string;
+}
+
+
+/*	ExpandDigitKey(context, characters, keyStart, keyLength, sizeLimit, recursionLimit)
 	
 	Expand a key (as per ExpandKey()) consisting entirely of digits. <keyStart>
 	and <keyLength> specify the range of characters containing the key.
@@ -492,7 +583,7 @@ static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar
 	// Select a random sub-entry.
 	NSUInteger selection, count = [entry count];
 	NSUInteger rnd = OO_EXPANDER_RANDOM;
-	if (count == 5)
+	if (count == 5 && !context->useGoodRNG)
 	{
 		// Time-honoured Elite-compatible way for five items.
 		if (rnd >= 0xCC)  selection = 4;
@@ -1027,7 +1118,7 @@ static NSString *GetSystemNameIan(OOStringExpansionContext *context)
 	
 	if (context->systemNameWithIan == nil)
 	{
-		context->systemNameWithIan = [[GetSystemName(context) stringByAppendingString:DESC(@"planetname-derivative-suffix")] retain];
+		context->systemNameWithIan = [OOExpandWithOptions(context->seed, kOOExpandDisallowPercentI | kOOExpandGoodRNG | kOOExpandKey, @"planetname-possessive") retain];
 	}
 	
 	return context->systemNameWithIan;

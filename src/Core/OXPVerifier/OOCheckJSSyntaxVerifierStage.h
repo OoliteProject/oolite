@@ -1,8 +1,8 @@
 /*
 
-OOCheckShipDataPListVerifierStage.h
+OOCheckJSSyntaxVerifierStage.h
 
-OOOXPVerifierStage which checks shipdata.plist.
+OOOXPVerifierStage which checks that JS scripts compile
 
 
 Oolite
@@ -25,33 +25,11 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOTextureVerifierStage.h"
+#import "OOFileScannerVerifierStage.h"
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@class OOPListSchemaVerifier, OOAIStateMachineVerifierStage;
-
-@interface OOCheckShipDataPListVerifierStage: OOTextureHandlingStage
-{
-@private
-	NSDictionary				*_shipdataPList;
-	NSSet						*_ooliteShipNames;
-	NSSet						*_basicKeys,
-								*_stationKeys,
-								*_playerKeys,
-								*_allKeys;
-	OOPListSchemaVerifier		*_schemaVerifier;
-	OOAIStateMachineVerifierStage *_aiVerifierStage;
-	
-	// Info about ship currently being checked.
-	NSString					*_name;
-	NSDictionary				*_info;
-	NSSet						*_roles;
-	uint32_t					_isStation: 1,
-								_isPlayer: 1,
-								_isTemplate: 1,
-								_havePrintedMessage: 1;
-}
+@interface OOCheckJSSyntaxVerifierStage: OOFileHandlingVerifierStage
 @end
 
 #endif

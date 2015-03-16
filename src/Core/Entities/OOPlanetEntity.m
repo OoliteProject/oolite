@@ -70,7 +70,7 @@ MA 02110-1301, USA.
 	[planetInfo autorelease];
 	
 	[planetInfo oo_setBool:YES forKey:@"mainForLocalSystem"];
-	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
+	return [self initFromDictionary:planetInfo withAtmosphere:[planetInfo oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
 }
 
 

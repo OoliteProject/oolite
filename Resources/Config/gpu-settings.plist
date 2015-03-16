@@ -64,8 +64,6 @@
 			renderer = "GeForce.*\\b5\\d{3}(?!\\d)|NV3\\dMAP";
 		};
 		default_shader_level = "SHADERS_SIMPLE";
-		
-		// FIXME: dust apparently invisible with shaders on Mac OS X 10.4.11 if smooth_points. Other systems?
 	};
 	
 	"Intel GMA 900/950 family" =

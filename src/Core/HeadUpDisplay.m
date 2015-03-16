@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOJoystickManager.h"
 #import "OOJavaScriptEngine.h"
+#import "OOStringExpander.h"
 
 
 #define ONE_SIXTEENTH				0.0625
@@ -162,6 +163,7 @@ enum
 - (void) drawCustomText:(NSDictionary *)info;
 - (void) drawCustomIndicator:(NSDictionary *)info;
 - (void) drawCustomLight:(NSDictionary *)info;
+- (void) drawCustomImage:(NSDictionary *)info;
 
 - (void) drawSurroundInternal:(NSDictionary *)info color:(const GLfloat[4])color;
 - (void) drawSurround:(NSDictionary *)info;
@@ -284,6 +286,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 										nil];
 	
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
+
+	allowBigGui = [hudinfo oo_boolForKey:@"allow_big_gui" defaultValue:NO];
 	
 	last_transmitter = NO_TARGET;
 	
@@ -385,18 +389,22 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		NSArray*	lastLines = [gui getLastLines];	// text, colour, fade time - text, colour, fade time
 		BOOL		line1 = ![[lastLines oo_stringAtIndex:0] isEqualToString:@""];
 		[self resetGui:gui withInfo:gui_info];
-		
+
+		BOOL permanent = [gui_info oo_boolForKey:@"permanent" defaultValue:NO];
+		[UNIVERSE setPermanentMessageLog:permanent];
+	
+
 		if (line1)
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:0] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:1]] 
-					  fadeTime:[lastLines oo_floatAtIndex:2] key:nil addToArray:nil];
+					  fadeTime:(permanent?[lastLines oo_floatAtIndex:2]:0.0) key:nil addToArray:nil];
 		}
 		if ([lastLines count] > 3 && (line1 || ![[lastLines oo_stringAtIndex:3] isEqualToString:@""]))
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:3] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:4]] 
-					  fadeTime:[lastLines oo_floatAtIndex:5] key:nil addToArray:nil];
+					  fadeTime:(permanent?[lastLines oo_floatAtIndex:5]:0.0) key:nil addToArray:nil];
 		}
 	}
 	
@@ -407,6 +415,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
 		[gui resizeTo:NSMakeSize(480, 160) characterHeight:19 title:nil];
 		[gui setCharacterSize:NSMakeSize(16,20)];	// narrow characters
+		[UNIVERSE setPermanentMessageLog:NO];
 	}
 	
 	[gui setAlpha: 1.0];	// message_gui is always visible.
@@ -537,6 +546,12 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) setHidden:(BOOL)newValue
 {
 	hudHidden = !!newValue;	// ensure YES or NO
+}
+
+
+- (BOOL) allowBigGui
+{
+	return allowBigGui || hudHidden;
 }
 
 
@@ -933,7 +948,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	// check if equipment is required
 	NSString *equipmentRequired = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipmentRequired != nil && ![PLAYER hasEquipmentItem:equipmentRequired])
+	if (equipmentRequired != nil && ![PLAYER hasEquipmentItemProviding:equipmentRequired])
 	{
 		return;
 	}
@@ -995,7 +1010,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 			// randomly chosen default width & height
 			size.width = useDefined(cached.width, 14.0f);
 			size.height = useDefined(cached.height, 8.0f);
-			GLColorWithOverallAlpha(green_color, alpha);
+			SET_COLOR(green_color);
 			if ([info oo_intForKey:@"align"] == 1)
 			{
 				OODrawStringAligned(legendText, x, y, z1, size, YES);
@@ -1013,7 +1028,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	NSString	*equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	
-	if (equipment != nil && ![PLAYER hasEquipmentItem:equipment])
+	if (equipment != nil && ![PLAYER hasEquipmentItemProviding:equipment])
 	{
 		return;
 	}
@@ -1253,7 +1268,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				{
 					ShipEntity *ship = (ShipEntity *)scannedEntity;
 					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
-					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
+					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash
+																		:[ship scannerDisplayColor1] :[ship scannerDisplayColor2]
+																		:[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]
+						];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				else if ([scannedEntity isVisualEffect])
@@ -1840,6 +1858,52 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	OOGLBEGIN(GL_LINE_LOOP);
 		hudDrawStatusIconAt(x, y, z1, siz);
 	OOGLEND();
+}
+
+
+- (void) drawCustomImage:(NSDictionary *)info
+{
+	int					x, y;
+	GLfloat				alpha = overallAlpha;
+
+	struct CachedInfo	cached;
+	
+	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
+	
+	x = useDefined(cached.x, 0) + [[UNIVERSE gameView] x_offset] * cached.x0;
+	y = useDefined(cached.y, 0) + [[UNIVERSE gameView] y_offset] * cached.y0;
+	alpha *= cached.alpha;
+
+	NSString *textureFile = [PLAYER dialCustomString:[info oo_stringForKey:CUSTOM_DIAL_KEY]];
+	if (textureFile == nil || [textureFile length] == 0) {
+		return;
+	}
+
+	OOTexture *texture = [OOTexture textureWithName:textureFile
+										   inFolder:@"Images"
+											options:kOOTextureDefaultOptions | kOOTextureNoShrink
+										 anisotropy:kOOTextureDefaultAnisotropy
+											lodBias:kOOTextureDefaultLODBias];
+	if (texture == nil)
+	{
+		OOLogERR(kOOLogFileNotFound, @"HeadUpDisplay couldn't get an image texture name for %@", textureFile);
+		return;
+	}
+		
+	NSSize imageSize = [texture dimensions];
+	imageSize.width = useDefined(cached.width, imageSize.width);
+	imageSize.height = useDefined(cached.height, imageSize.height);
+
+	/* There's possibly some optimisation which could be done by
+	 * caching the sprite, but regenerating it each frame doesn't
+	 * appear to take any significant amount of time compared with the
+	 * time taken to actually render it and the texture will be
+	 * returned from the cache anyway. - CIM */
+	OOTextureSprite *sprite = [[OOTextureSprite alloc] initWithTexture:texture size:imageSize];
+
+	[sprite blitCentredToX:x Y:y Z:z1 alpha:alpha];
+	[sprite release];
+
 }
 
 
@@ -2536,7 +2600,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		[self drawDirectionCue:info];
 	}
 	// extra feature if extra equipment installed
-	if ([PLAYER hasEquipmentItem:@"EQ_INTEGRATED_TARGETING_SYSTEM"])
+	if ([PLAYER hasEquipmentItemProviding:@"EQ_INTEGRATED_TARGETING_SYSTEM"])
 	{
 		[self drawSecondaryTargetReticle:info];
 	}
@@ -2548,7 +2612,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha * 0.4;
 	
 	PlayerEntity *player = PLAYER;
-	if ([player hasEquipmentItem:@"EQ_TARGET_MEMORY"])
+	if ([player hasEquipmentItemProviding:@"EQ_TARGET_MEMORY"])
 	{
 		// needs target memory to be working in addition to any other equipment
 		// this item may be bound to
@@ -2789,7 +2853,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	if (lines == 1)
 	{
 		OOGL(glColor4f(itemColor[0], itemColor[1], itemColor[2], itemColor[3]));
-		OODrawString([NSString stringWithFormat:DESC(@"equipment-primed-hud-@"), [PLAYER primedEquipmentName:0]], x, y, z1, size);
+		NSString *equipmentName = [PLAYER primedEquipmentName:0];
+		OODrawString(OOExpandKey(@"equipment-primed-hud", equipmentName), x, y, z1, size);
 	}
 	else
 	{
@@ -3329,50 +3394,29 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 
 static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info)
 {
+	if (target == nil || player1 == nil)  
+	{
+		return;
+	}
+	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
+	{
+		return;
+	}
+
 	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
 	
 	GLfloat			scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
 	
-	if (target == nil || player1 == nil)  return;
 
 	if ([target isShip])
 	{
 		target_ship = (ShipEntity *)target;
+		legal_desc = [target_ship scanDescription];
 	}
 
 	if ([target_ship isCloaked])  return;
 	
-	switch ([target scanClass])
-	{
-		case CLASS_NEUTRAL:
-			{
-				int target_legal = [target_ship legalStatus];
-				int legal_i = 0;
-				if (target_legal > 0)
-					legal_i =  (target_legal <= 50) ? 1 : 2;
-				legal_desc = [[[UNIVERSE descriptions] oo_arrayForKey:@"legal_status"] oo_stringAtIndex:legal_i];
-			}
-			break;
-	
-		case CLASS_THARGOID:
-			legal_desc = DESC(@"legal-desc-alien");
-			break;
-		
-		case CLASS_POLICE:
-			legal_desc = DESC(@"legal-desc-system-vessel");
-			break;
-		
-		case CLASS_MILITARY:
-			legal_desc = DESC(@"legal-desc-military-vessel");
-			break;
-		
-		default:
-			break;
-	}
-	
-	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
-		return;
 	
 	Vector			p1;
 	
@@ -3460,7 +3504,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 			{
 				ShipEntity *ship = (ShipEntity *)target;
 				BOOL isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
-				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]],alpha);
+				GLColorWithOverallAlpha([ship scannerDisplayColorForShip:PLAYER :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2] :[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]],alpha);
 			}
 			else if ([target isVisualEffect])
 			{
@@ -3878,13 +3922,13 @@ void OODrawPlanetInfo(int gov, int eco, int tec, GLfloat x, GLfloat y, GLfloat z
 
 	OOGLBEGIN(GL_QUADS);
 	{
-		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, eco]
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, (unsigned long)eco]
 								 defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
 										alpha:1.0];
 
 		// see OODrawHilightedPlanetInfo
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
-		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, gov]
+		[[UNIVERSE gui] setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, (unsigned long)gov]
 								 defaultValue:[OOColor colorWithRed:govcol[gov*3] green:govcol[1+(gov*3)] blue:govcol[2+(gov*3)] alpha:1.0f] 
 										alpha:1.0];
 

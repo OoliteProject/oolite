@@ -471,7 +471,7 @@ static id sSharedStickHandler = nil;
 - (void) unsetButtonFunction:(int)function
 {
 	int i,j;
-	for (i = 0; i < MAX_AXES; i++)
+	for (i = 0; i < MAX_BUTTONS; i++)
 	{
 		for (j = 0; j < MAX_STICKS; j++)
 		{

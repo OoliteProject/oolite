@@ -1471,16 +1471,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				if (i == (unsigned)selectedRow)
 				{
 					NSRect		block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
-					[self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
 					OOStopDrawingStrings();
+					[self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
 					OOGLBEGIN(GL_QUADS);
 						glVertex3f(block.origin.x,						block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 						glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 					OOGLEND();
-					OOStartDrawingStrings();
 					[self setGLColorFromSetting:kGuiSelectedRowColor defaultValue:[OOColor blackColor] alpha:alpha];
+					OOStartDrawingStrings();
 				}
 				OODrawStringQuadsAligned(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize, NO);
 				
@@ -1493,8 +1493,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					tr.origin = cu;
 					tr.size.width = 0.5f * characterSize.width;
 					GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * [UNIVERSE getTime]));
-					[self setGLColorFromSetting:kGuiTextInputCursorColor defaultValue:[OOColor redColor] alpha:row_alpha*g_alpha];
 					OOStopDrawingStrings();
+					[self setGLColorFromSetting:kGuiTextInputCursorColor defaultValue:[OOColor redColor] alpha:row_alpha*g_alpha];
 					OOGLBEGIN(GL_QUADS);
 						glVertex3f(tr.origin.x,					tr.origin.y,					z);
 						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y,					z);
@@ -1561,16 +1561,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					
 					if (i == (unsigned)selectedRow)
 					{
-						[self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
 						OOStopDrawingStrings();
+						[self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
 						OOGLBEGIN(GL_QUADS);
 							glVertex3f(block.origin.x,						block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 							glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 						OOGLEND();
-						OOStartDrawingStrings();
 						[self setGLColorFromSetting:kGuiSelectedRowColor defaultValue:[OOColor blackColor] alpha:alpha];
+						OOStartDrawingStrings();
 					}
 					OODrawStringQuadsAligned(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize,NO);
 				}
@@ -1704,9 +1704,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if ([player hasHyperspaceMotor])
 	{
 		// draw fuel range circle
+		OOGL(GLScaledLineWidth(2.0f));
 		[self setGLColorFromSetting:kGuiChartRangeColor defaultValue:[OOColor greenColor] alpha:alpha];
 						
-		OOGL(GLScaledLineWidth(2.0f));
 		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 	}
 		
@@ -1757,10 +1757,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOSystemID savedDestNumber = 0;
 	static NSDictionary *routeInfo = nil;
 	
-	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_id];
-		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		OOSystemID planetNumber = [PLAYER systemID];
+		OOSystemID destNumber = [PLAYER targetSystemID];
 		if (routeInfo == nil || planetNumber != savedPlanetNumber || destNumber != savedDestNumber)
 		{
 			[routeInfo release];
@@ -1782,7 +1782,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
 			time = [routeInfo oo_doubleForKey:@"time"];
+
+			if (distance == 0.0 && planetNumber != destNumber)
+			{
+				// zero-distance double fix
+				distance = 0.1;
+				time = 0.01;
+			}
 		}
+	}
+	else
+	{
+		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute:nil optimizedBy:OPTIMIZED_BY_NONE zoom: zoom];
 	}
 	NSPoint targetCoordinates = (NSPoint){0,0};
 	if (!routeExists)
@@ -1791,6 +1802,15 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		targetCoordinates = [systemManager getCoordinatesForSystem:target inGalaxy:galaxy_id];
 
 		distance = distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
+		if (distance == 0.0)
+		{
+			if (target != [PLAYER systemID])
+			{
+				// looking at the other half of a zero-distance double
+				// distance is treated as 0.1 LY
+				distance = 0.1;
+			}
+		}
 		if ([player hasHyperspaceMotor] && distance <= [player fuel]/10.0)
 		{
 			time = distance * distance;
@@ -1840,7 +1860,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				{
 					systemParameter = nearby_systems[i].eco;
 					GLfloat ce1 = 1.0f - 0.125f * systemParameter;
-					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, systemParameter]
+					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartEconomyUColor, (unsigned long)systemParameter]
 								   defaultValue:[OOColor colorWithRed:ce1 green:1.0f blue:0.0f alpha:1.0f] 
 										  alpha:1.0];
 				}
@@ -1854,7 +1874,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				if (EXPECT(noNova))
 				{
 					systemParameter = nearby_systems[i].gov;
-					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, systemParameter]
+					[self setGLColorFromSetting:[NSString stringWithFormat:kGuiChartGovernmentUColor, (unsigned long)systemParameter]
 								   defaultValue:[OOColor colorWithRed:govcol[systemParameter*3] green:govcol[1+(systemParameter*3)] blue:govcol[2+(systemParameter*3)] alpha:1.0f] 
 										  alpha:1.0];
 				}
@@ -1964,13 +1984,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	// draw names
 	//
-	[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
 //	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
 	
 	int targetIdx = -1;
 	struct saved_system *sys;
 	NSSize chSize = NSMakeSize(pixel_row_height*systemNameScale/zoom,pixel_row_height*systemNameScale/zoom);
 	
+	double jumpRange = MAX_JUMP_RANGE * [PLAYER dialFuel];
 	for (i = 0; i < num_nearby_systems; i++)
 	{
 		sys = nearby_systems + i;
@@ -1992,6 +2012,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			if (![player showInfoFlag])	// System's name
 			{
+
+				double d = distanceBetweenPlanetPositions(galaxy_coordinates.x, galaxy_coordinates.y, sys_coordinates.x, sys_coordinates.y);
+				if (d <= jumpRange)
+				{
+					[self setGLColorFromSetting:kGuiChartLabelReachableColor defaultValue:[OOColor yellowColor] alpha:alpha];
+				}
+				else
+				{
+					[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
+
+				}
+
 				OODrawString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
 			}
 			else if (EXPECT(sys->gov >= 0))	// Not a nova? Show the info.
@@ -2033,12 +2065,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSString *travelDistLine = @"";
 	if (distance > 0)
 	{
-		travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
+		travelDistLine = OOExpandKey(@"long-range-chart-distance", distance);
 	}
 	NSString *travelTimeLine = @"";
 	if (time > 0)
 	{
-		travelTimeLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-est-travel-time-f"), time];
+		travelTimeLine = OOExpandKey(@"long-range-chart-est-travel-time", time);
 	}
 	
 	[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:GUI_ROW_CHART_SYSTEM];
@@ -2235,12 +2267,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		advancedNavArrayMode = OPTIMIZED_BY_TIME;
 	}
 	
-	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		OOSystemID planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_id];
-		OOSystemID destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		OOSystemID planetNumber = [PLAYER systemID];
+		OOSystemID destNumber = [PLAYER targetSystemID];
 		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
-		
+
 		if (!routeInfo)  routeExists = NO;
 		
 		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: CHART_MAX_ZOOM];
@@ -2248,13 +2280,26 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
 			time = [routeInfo oo_doubleForKey:@"time"];
-		}
+		
+			if (distance == 0.0 && planetNumber != destNumber)
+			{
+				// zero-distance double fix
+				distance = 0.1;
+				time = 0.01;
+			}
+		}		
 	}
 	else
 	{
+		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute:nil optimizedBy:OPTIMIZED_BY_NONE zoom: CHART_MAX_ZOOM];
+
 		OOSystemID dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_id];
 		NSPoint dest_coordinates = [systemManager getCoordinatesForSystem:dest inGalaxy:galaxy_id];
 		distance = distanceBetweenPlanetPositions(dest_coordinates.x,dest_coordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
+		if (distance == 0.0 && dest != [PLAYER systemID])
+		{
+			distance = 0.1; // fix for zero-distance doubles
+		}
 		time = distance * distance;
 	}
 	
@@ -2269,11 +2314,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if (routeExists)
 	{
 		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		NSString *travelDistLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-distance-f"), distance];
+		NSString *travelDistLine = OOExpandKey(@"long-range-chart-distance", distance);
 		NSString *travelTimeLine = @"";
 		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
 		{
-			travelTimeLine = [NSString stringWithFormat:OOExpandKey(@"long-range-chart-est-travel-time-f"), time];
+			travelTimeLine = OOExpandKey(@"long-range-chart-est-travel-time", time);
 		}
 			
 		[self setArray:[NSArray arrayWithObjects:targetSystemName, travelDistLine,travelTimeLine,nil] forRow:16];
@@ -2374,8 +2419,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
-	NSUInteger		i, j;
-	GLfloat lr,lg,lb,la;
+	NSUInteger		i, j, loopstart;
+	GLfloat lr,lg,lb,la,lr2,lg2,lb2,la2;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
 	NSPoint			star = NSZeroPoint, 
@@ -2384,42 +2429,87 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		star2abs = NSZeroPoint;
 	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
 	OOGalaxyID		g = [PLAYER galaxyNumber];
+	OOSystemID planetNumber = [PLAYER systemID];
 
 	OOColor *defaultConnectionColor = [self colorFromSetting:kGuiChartConnectionColor defaultValue:[OOColor colorWithWhite:0.25 alpha:1.0]];
+	OOColor *currentJumpColorStart = [self colorFromSetting:kGuiChartCurrentJumpStartColor defaultValue:[OOColor colorWithWhite:0.25 alpha:0.0]];
+	OOColor *currentJumpColorEnd = [self colorFromSetting:kGuiChartCurrentJumpEndColor defaultValue:[OOColor colorWithWhite:0.25 alpha:0.0]];
+
 	OOColor *thisConnectionColor = nil;
 	
+	float jumpRange = MAX_JUMP_RANGE * ((optimizeBy == OPTIMIZED_BY_NONE) ? [PLAYER dialFuel] : 1.0);
+
 	OOGLBEGIN(GL_LINES);
 	for (i = 0; i < 256; i++)
 	{
+		if (optimizeBy == OPTIMIZED_BY_NONE && i != planetNumber)
+		{
+			continue;
+		}
+
 		starabs = [systemManager getCoordinatesForSystem:i inGalaxy:g];
 
 		star.x = (float)(starabs.x * hscale);
 		star.y = (float)(starabs.y * vscale);
 
-		for (j = i + 1; j < 256; j++)
+		// if in non-route mode, we're always starting from i, so need
+		// to do <i here too.
+		loopstart = (optimizeBy == OPTIMIZED_BY_NONE) ? 0 : (i+1);
+
+		for (j = loopstart; j < 256; j++)
 		{
+			if (i == j)
+			{
+				continue; // for OPTIMIZED_BY_NONE case
+			}
 			star2abs = [systemManager getCoordinatesForSystem:j inGalaxy:g];
 			double d = distanceBetweenPlanetPositions(starabs.x, starabs.y, star2abs.x, star2abs.y);
 		
-			if (d <= MAX_JUMP_RANGE)	// another_commander - Default to 7.0 LY.
+			if (d <= jumpRange)	// another_commander - Default to 7.0 LY.
 			{
-				thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %d %d",g,i,j]]];
-				if (thisConnectionColor == nil)
-				{
-					thisConnectionColor = defaultConnectionColor;
-				}
-				[thisConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
-				OOGL(glColor4f(lr, lg, lb, la*alpha));
-
 				star2.x = (float)(star2abs.x * hscale);
 				star2.y = (float)(star2abs.y * vscale);
-				glVertex3f(x+star.x, y+star.y, z);
-				glVertex3f(x+star2.x, y+star2.y, z);
+				if (optimizeBy == OPTIMIZED_BY_NONE)
+				{
+					[currentJumpColorStart getRed:&lr green:&lg blue:&lb alpha:&la];
+					[currentJumpColorEnd getRed:&lr2 green:&lg2 blue:&lb2 alpha:&la2];
+					OOGL(glColor4f(lr, lg, lb, la*alpha));
+					glVertex3f(x+star.x, y+star.y, z);
+
+					float frac = (d/jumpRange);
+					OOGL(glColor4f(
+							 OOLerp(lr,lr2,frac),
+							 OOLerp(lg,lg2,frac),
+							 OOLerp(lb,lb2,frac),
+							 OOLerp(la,la2,frac)
+							 ));
+					glVertex3f(x+star2.x, y+star2.y, z);
+
+				}
+				else
+				{
+					thisConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)i, (long)j]]];
+				
+					if (thisConnectionColor == nil)
+					{
+						thisConnectionColor = defaultConnectionColor;
+					}
+					[thisConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
+					OOGL(glColor4f(lr, lg, lb, la*alpha));
+
+					glVertex3f(x+star.x, y+star.y, z);
+					glVertex3f(x+star2.x, y+star2.y, z);
+				}
 			}
 		}
 	}
 	OOGLEND();
 	
+	if (optimizeBy == OPTIMIZED_BY_NONE)
+	{
+		return;
+	}
+
 	if (routeInfo)
 	{
 		NSUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;

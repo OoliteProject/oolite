@@ -132,7 +132,6 @@ enum
 #define SHIPYARD_KEY_SHIP					@"ship"
 #define SHIPYARD_KEY_PRICE					@"price"
 #define SHIPYARD_KEY_PERSONALITY			@"personality"
-#define SHIPYARD_KEY_DESCRIPTION			@"description"
 // default passenger berth required space
 #define PASSENGER_BERTH_SPACE				5
 
@@ -282,6 +281,8 @@ enum
 	NSMutableArray			*allPlanets;
 	NSMutableSet			*allStations;
 	
+	float					ambientLightLevel;
+	
 	NSMutableDictionary		*populatorSettings;
 	OOTimeDelta		next_repopulation;
 	NSString		*system_repopulator;
@@ -331,6 +332,7 @@ enum
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
+	BOOL					_permanentMessageLog;
 	BOOL					_witchspaceBreakPattern;
 	BOOL					_dockingClearanceProtocolActive;
 	BOOL					_doingStartUp;
@@ -346,6 +348,9 @@ enum
 
 - (NSString *) useAddOns;
 - (BOOL) setUseAddOns:(NSString *)newUse fromSaveGame: (BOOL)saveGame;
+- (BOOL) setUseAddOns:(NSString *) newUse fromSaveGame:(BOOL) saveGame forceReinit:(BOOL)force;
+
+- (void) setUpSettings;
 
 - (BOOL) reinitAndShowDemo:(BOOL)showDemo;
 
@@ -373,6 +378,8 @@ enum
 - (NSDictionary *) getPopulatorSettings;
 - (void) setPopulatorSetting:(NSString *)key to:(NSDictionary *)setting;
 - (HPVector) locationByCode:(NSString *)code withSun:(OOSunEntity *)sun andPlanet:(OOPlanetEntity *)planet;
+- (void) setAmbientLightLevel:(float)newValue;
+- (float) ambientLightLevel;
 - (void) setLighting;
 - (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;
@@ -452,11 +459,12 @@ enum
 - (NSString *) randomShipKeyForRoleRespectingConditions:(NSString *)role;
 - (ShipEntity *) newShipWithRole:(NSString *)role OO_RETURNS_RETAINED;		// Selects ship using role weights, applies auto_ai, respects conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
-- (ShipEntity *) newSubentityWithName:(NSString *)shipKey OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
+- (ShipEntity *) newSubentityWithName:(NSString *)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
 - (OOVisualEffectEntity *) newVisualEffectWithName:(NSString *)effectKey OO_RETURNS_RETAINED;
-- (DockEntity *) newDockWithName:(NSString *)shipKey OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
+- (DockEntity *) newDockWithName:(NSString *)shipKey andScaleFactor:(float)scale OO_RETURNS_RETAINED;	// Does not apply auto_ai or respect conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy OO_RETURNS_RETAINED;	// If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity OO_RETURNS_RETAINED;
+- (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy isSubentity:(BOOL)isSubentity andScaleFactor:(float)scale OO_RETURNS_RETAINED;
 
 - (Class) shipClassForShipDictionary:(NSDictionary *)dict;
 
@@ -743,6 +751,8 @@ enum
 - (BOOL) permanentCommLog;
 - (void) setPermanentCommLog:(BOOL)value;
 - (void) setAutoCommLog:(BOOL)value;
+- (BOOL) permanentMessageLog;
+- (void) setPermanentMessageLog:(BOOL)value;
 
 - (BOOL) blockJSPlayerShipProps;
 - (void) setBlockJSPlayerShipProps:(BOOL)value;
@@ -768,6 +778,8 @@ OOINLINE Universe *OOGetUniverse(void)
 
 
 // Only for use with string literals, and only for looking up strings.
+// DESC() is deprecated in favour of OOExpandKey() except in known performance-
+// critical contexts.
 #define DESC(key)	(OOLookUpDescriptionPRIV(key ""))
 #define DESC_PLURAL(key,count)	(OOLookUpPluralDescriptionPRIV(key "", count))
 

@@ -67,7 +67,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		universalProperties = [[NSMutableDictionary alloc] initWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
 		interstellarSpace = [[OOSystemDescriptionEntry alloc] init];
 		// assume specific interstellar settings are rare
-		systemDescriptions = [[NSMutableDictionary alloc] initWithCapacity:OO_SYSTEM_CACHE_LENGTH];
+		systemDescriptions = [[NSMutableDictionary alloc] initWithCapacity:OO_SYSTEM_CACHE_LENGTH+20];
 		for (NSUInteger i=0;i<OO_SYSTEM_CACHE_LENGTH;i++)
 		{
 			propertyCache[i] = [[NSMutableDictionary alloc] initWithCapacity:OO_LIKELY_PROPERTIES_PER_SYSTEM];
@@ -204,6 +204,11 @@ static NSString *kOOSystemLayerProperty = @"layer";
 			[self updateCacheEntry:index forProperty:property];
 		}
 	}
+	// for interstellar updates, save but don't update cache
+	else if ([tokens count] == 4 && [tokens oo_unsignedIntegerAtIndex:1] < OO_GALAXIES_AVAILABLE && [tokens oo_unsignedIntegerAtIndex:2] < OO_SYSTEMS_PER_GALAXY && [tokens oo_unsignedIntegerAtIndex:3] < OO_SYSTEMS_PER_GALAXY)
+	{
+		[self saveScriptedChangeToProperty:property forSystemKey:key andLayer:layer toValue:value fromManifest:manifest];
+	}
 }
 
 
@@ -284,6 +289,18 @@ static NSString *kOOSystemLayerProperty = @"layer";
 					 forSystemKey:systemKey
 						 andLayer:OO_LAYER_OXP_DYNAMIC
 						  toValue:[legacyChanges objectForKey:propertyKey]
+					 fromManifest:defaultManifest];
+			}
+			/* Fix for older savegames not having a larger sun radius
+			 * property set from the Nova mission. */
+			id sr = [self getProperty:@"sun_radius" forSystemKey:systemKey];
+			float sr_num = [sr floatValue];
+			if (sr_num < 600000) {
+				// fix sun radius values
+				[self setProperty:@"sun_radius"
+					 forSystemKey:systemKey
+						 andLayer:OO_LAYER_OXP_DYNAMIC
+						  toValue:[NSNumber numberWithFloat:sr_num+600000.0]
 					 fromManifest:defaultManifest];
 			}
 		}
@@ -464,6 +481,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	{
 		if (![key isEqualToString:kOOSystemLayerProperty])
 		{
+			[propertiesInUse addObject:key];
 			[desc setProperty:key forLayer:layer toValue:[properties objectForKey:key]];
 		}
 	}

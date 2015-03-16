@@ -76,4 +76,6 @@ MA 02110-1301, USA.
 - (void) setCharacterScript:(NSString *)scriptName;
 - (void) doScriptEvent:(jsid)message;
 
+- (NSDictionary *) infoForScripting;
+
 @end
