@@ -1652,7 +1652,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - vcenter - chart_centre_coordinates.y*vscale;
 	int			i;
-	double		distance = 0.0, time = 0.0;
+	double		d, distance = 0.0, time = 0.0;
 	NSPoint		star;
 	OOScalar	pixelRatio;
 	NSRect		clipRect;
@@ -2013,7 +2013,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			if (![player showInfoFlag])	// System's name
 			{
 
-				double d = distanceBetweenPlanetPositions(galaxy_coordinates.x, galaxy_coordinates.y, sys_coordinates.x, sys_coordinates.y);
+				d = distanceBetweenPlanetPositions(galaxy_coordinates.x, galaxy_coordinates.y, sys_coordinates.x, sys_coordinates.y);
 				if (d <= jumpRange)
 				{
 					[self setGLColorFromSetting:kGuiChartLabelReachableColor defaultValue:[OOColor yellowColor] alpha:alpha];
@@ -2034,7 +2034,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	
 	// highlight the name of the currently selected system
-	//
+	// (needed to get things right in closely-overlapping systems)
 	if( targetIdx != -1 && zoom <= CHART_ZOOM_SHOW_LABELS)
 	{
 		sys = nearby_systems + targetIdx;
@@ -2045,6 +2045,17 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		
 		if (![player showInfoFlag])
 		{
+			d = distanceBetweenPlanetPositions(galaxy_coordinates.x, galaxy_coordinates.y, sys_coordinates.x, sys_coordinates.y);
+			if (d <= jumpRange)
+			{
+				[self setGLColorFromSetting:kGuiChartLabelReachableColor defaultValue:[OOColor yellowColor] alpha:alpha];
+			}
+			else
+			{
+				[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
+				
+			}
+
 			OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
 		}
 		else if (sys->gov >= 0)	// Not a nova? Show the info.
