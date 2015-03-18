@@ -2430,7 +2430,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy zoom: (OOScalar) zoom
 {
-	NSUInteger		i, j, loopstart;
 	GLfloat lr,lg,lb,la,lr2,lg2,lb2,la2;
 	double			hscale = size_in_pixels.width / (CHART_WIDTH_AT_MAX_ZOOM*zoom);
 	double			vscale = -1.0 * size_in_pixels.height / (2*CHART_HEIGHT_AT_MAX_ZOOM*zoom);
@@ -2451,7 +2450,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	float jumpRange = MAX_JUMP_RANGE * ((optimizeBy == OPTIMIZED_BY_NONE) ? [PLAYER dialFuel] : 1.0);
 
 	OOGLBEGIN(GL_LINES);
-	for (i = 0; i < 256; i++)
+	for (OOSystemID i = 0; i < 256; i++)
 	{
 		if (optimizeBy == OPTIMIZED_BY_NONE && i != planetNumber)
 		{
@@ -2465,9 +2464,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 		// if in non-route mode, we're always starting from i, so need
 		// to do <i here too.
-		loopstart = (optimizeBy == OPTIMIZED_BY_NONE) ? 0 : (i+1);
+		OOSystemID loopstart = (optimizeBy == OPTIMIZED_BY_NONE) ? 0 : (i+1);
 
-		for (j = loopstart; j < 256; j++)
+		for (OOSystemID j = loopstart; j < 256; j++)
 		{
 			if (i == j)
 			{
@@ -2523,7 +2522,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	if (routeInfo)
 	{
-		NSUInteger route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
+		NSUInteger i, route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 		
 		if (optimizeBy == OPTIMIZED_BY_JUMPS)
 		{
