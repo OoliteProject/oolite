@@ -139,7 +139,8 @@ enum
 	kPlanetScale4096x4096,
 	
 	kPlanetScaleReducedDetail	= kPlanetScale512x512,
-	kPlanetScaleFullDetail		= kPlanetScale1024x1024
+	kPlanetScaleFullDetail		= kPlanetScale1024x1024,
+	kPlanetScaleExtraDetail		= kPlanetScale2048x2048
 };
 
 
@@ -176,9 +177,13 @@ enum
 		{
 			_planetScale = kPlanetScaleReducedDetail;
 		}
-		else
+		else if ([UNIVERSE detailLevel] == DETAIL_LEVEL_SHADERS)
 		{
 			_planetScale = kPlanetScaleFullDetail;
+		}
+		else
+		{
+			_planetScale = kPlanetScaleExtraDetail;
 		}
 #else
 		_planetScale = kPlanetScale4096x4096;
