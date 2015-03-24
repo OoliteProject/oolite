@@ -3046,14 +3046,14 @@ PriorityAIController.prototype.behaviourEnterWitchspace = function()
 		// wait for escorts to launch
 		if (!this.conditionAllEscortsInFlight())
 		{
-			if (this.__ltcache.oolite_nearestStation && this.__ltcache.oolite_nearestStation.isValid && this.distance(this.__ltcache.oolite_nearestStation) < 5000)
+			if (this.__ltcache.oolite_nearestStation && this.__ltcache.oolite_nearestStation.isValid && this.distance(this.__ltcache.oolite_nearestStation) < 15000)
 			{
 				var launchpos = this.ship.position.add(this.__ltcache.oolite_nearestStation.vectorForward.multiply(12000).add(this.__ltcache.oolite_nearestStation.vectorRight.multiply(30000)));
 				this.ship.destination = launchpos;
 			}
 			else
 			{
-				this.ship.destination = this.ship.position.add(this.ship.vectorForward.multiply(30000));
+				this.ship.destination = this.ship.position.add(this.ship.vectorForward.multiply(300000));
 			}
 
 			this.ship.desiredRange = 10000;
@@ -5579,9 +5579,16 @@ PriorityAIController.prototype.responseComponent_standard_shipWillEnterWormhole 
 PriorityAIController.prototype.responseComponent_standard_shipWitchspaceBlocked = function(blocker)
 {
 	this.communicate("oolite_witchspaceBlocked",blocker,3);
-	this.ship.setDestination = blocker.position;
-	this.ship.setDesiredRange = 30000;
-	this.ship.setDesiredSpeed = this.cruiseSpeed();
+	if (blocker.isStation) {
+		// fixed exitVector to stop problems with rotating stations
+		var exitVector = blocker.vectorForward.direction().cross([0,0,1]);
+		this.ship.destination = this.ship.position.add(blocker.vectorForward.multiply(12000).add(exitVector.multiply(40000)));
+		this.ship.desiredRange = 10000;
+	} else {
+		this.ship.destination = blocker.position;
+		this.ship.desiredRange = 30000;
+	}
+	this.ship.desiredSpeed = this.cruiseSpeed();
 	this.ship.performFlyToRangeFromDestination();
 	this.setParameter("oolite_witchspaceEntry",null);
 	// no reconsidering yet
