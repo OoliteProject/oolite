@@ -1623,6 +1623,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
+	fieldOfView = 0.5;
 	unsigned i;
 	
 	showDemoShips = NO;
