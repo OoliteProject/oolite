@@ -1398,7 +1398,28 @@ static NSTimeInterval	time_last_frame;
 					galhyperspace_pressed = NO;
 
 			}
-			
+
+			// Field of view controls
+			if (![UNIVERSE displayGUI])
+			{
+				if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < maxFieldOfView))
+					fieldOfView *= pow(fov_delta, delta_t);
+
+				if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]))
+					fieldOfView /= pow(fov_delta, delta_t);
+
+				NSDictionary *functionForFovAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]];
+				if ([stickHandler joystickCount] != 0 && functionForFovAxis != nil)
+				{
+					// TODO think reqFov through
+					double reqFov = [stickHandler getAxisState: AXIS_FIELD_OF_VIEW];
+					if (fieldOfView < maxFieldOfView * reqFov)
+						fieldOfView *= pow(fov_delta, delta_t);
+					if (fieldOfView > maxFieldOfView * reqFov)
+						fieldOfView /= pow(fov_delta, delta_t);
+				}
+			}
+
 	#ifndef NDEBUG
 			exceptionContext = @"dump target state";
 			if ([gameView isDown:key_dump_target_state])
@@ -3287,23 +3308,6 @@ static NSTimeInterval	time_last_frame;
 	{
 		[UNIVERSE showCommsLog: 1.5];
 		[hud refreshLastTransmitter];
-	}
-
-	if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < maxFieldOfView))
-		fieldOfView *= pow(fov_delta, delta_t);
-
-	if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]))
-		fieldOfView /= pow(fov_delta, delta_t);
-
-	NSDictionary *functionForFovAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]];
-	if ([stickHandler joystickCount] != 0 && functionForFovAxis != nil)
-	{
-		// TODO think reqFov through
-		double reqFov = [stickHandler getAxisState: AXIS_FIELD_OF_VIEW];
-		if (fieldOfView < maxFieldOfView * reqFov)
-			fieldOfView *= pow(fov_delta, delta_t);
-		if (fieldOfView > maxFieldOfView * reqFov)
-			fieldOfView /= pow(fov_delta, delta_t);
 	}
 }
 
