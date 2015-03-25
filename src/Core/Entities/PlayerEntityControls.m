@@ -153,7 +153,7 @@ static NSTimeInterval	time_last_frame;
 - (void) handleGameOptionsScreenKeys;
 - (void) pollApplicationControls;
 - (void) pollCustomViewControls;
-- (void) pollViewControls:(double) delta_t;
+- (void) pollViewControls;
 - (void) pollGuiScreenControls;
 - (void) pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
 - (void) pollMarketScreenControls;
@@ -874,7 +874,7 @@ static NSTimeInterval	time_last_frame;
 				[self pollFlightArrowKeyControls:delta_t];
 			
 			//  view keys
-			[self pollViewControls:delta_t];
+			[self pollViewControls];
 			
 			if (OOMouseInteractionModeIsFlightMode([[UNIVERSE gameController] mouseInteractionMode]))
 			{
@@ -3171,7 +3171,7 @@ static NSTimeInterval	time_last_frame;
 }
 
 
-- (void) pollViewControls:(double)delta_t
+- (void) pollViewControls
 {
 	if(!pollControls)
 		return;
@@ -3733,7 +3733,7 @@ static BOOL autopilot_pause;
 	if (![[UNIVERSE gameController] isGamePaused])
 	{
 		//  view keys
-		[self pollViewControls:delta_t];
+		[self pollViewControls];
 		
 		//  text displays
 		[self pollGuiScreenControls];
