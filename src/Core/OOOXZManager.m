@@ -315,7 +315,11 @@ static OOOXZManager *sSingleton = nil;
 
 - (NSString *) humanSize:(NSUInteger)bytes
 {
-	if (bytes < 1024)
+	if (bytes == 0)
+	{
+		return DESC(@"oolite-oxzmanager-missing-field");
+	}
+	else if (bytes < 1024)
 	{
 		return @"<1 kB";
 	}
@@ -1693,16 +1697,33 @@ static OOOXZManager *sSingleton = nil;
 			
 			[gui setText:[self installStatusForManifest:manifest] forRow:OXZ_GUI_ROW_LISTSTATUS];
 			[gui setColor:[OOColor greenColor] forRow:OXZ_GUI_ROW_LISTSTATUS];
-			[gui addLongText:[[[manifest oo_stringForKey:kOOManifestDescription] componentsSeparatedByString:@"\n"] oo_stringAtIndex:0] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
 
+			[gui addLongText:[[[manifest oo_stringForKey:kOOManifestDescription] componentsSeparatedByString:@"\n"] oo_stringAtIndex:0] startingAtRow:OXZ_GUI_ROW_LISTDESC align:GUI_ALIGN_LEFT];
+			
 			NSString *infoUrl = [manifest oo_stringForKey:kOOManifestInformationURL];
 			if (infoUrl != nil)
 			{
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-url"),infoUrl,nil] forRow:OXZ_GUI_ROW_LISTINFO1];
 			}
 			NSUInteger size = [manifest oo_unsignedIntForKey:kOOManifestFileSize defaultValue:0];
-			if (size > 0)
+			NSString *updatedDesc = nil;
+
+			NSUInteger timestamp = [manifest oo_unsignedIntegerForKey:kOOManifestUploadDate defaultValue:0];
+			if (timestamp > 0)
 			{
+				// list of installable OXZs
+				NSDate *updated = [NSDate dateWithTimeIntervalSince1970:timestamp];
+			
+				NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+				[dateFormatter setDateFormat:@"yyyy-MM-dd"];
+				updatedDesc = [dateFormatter stringFromDate:updated];
+				
+				[dateFormatter release];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-size"),[self humanSize:size],DESC(@"oolite-oxzmanager-infoline-date"),updatedDesc,nil] forRow:OXZ_GUI_ROW_LISTINFO2];
+			} 
+			else if (size > 0)
+			{
+				// list of installed/removable OXZs
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-size"),[self humanSize:size],nil] forRow:OXZ_GUI_ROW_LISTINFO2];
 			}
 			

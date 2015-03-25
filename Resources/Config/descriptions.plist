@@ -1348,6 +1348,8 @@
 	"oolite-oxzmanager-heading-installed"	= "Installed";
 	"oolite-oxzmanager-infoline-url"		= "URL: ";
 	"oolite-oxzmanager-infoline-size"		= "Download size: ";
+	"oolite-oxzmanager-infoline-date"       = "Last update: ";
+
 	"oolite-oxzmanager-missing-field"		= "Unknown";
 	"oolite-oxzmanager-version-none"		= "-";
 	"oolite-oxzmanager-installable-okay"	= "Status: Ready to download and install.";	
