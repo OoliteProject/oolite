@@ -1399,6 +1399,7 @@ static NSTimeInterval	time_last_frame;
 
 			}
 
+#if OO_FOV_BY_KEY_ENABLED
 			// Field of view controls
 			if (![UNIVERSE displayGUI])
 			{
@@ -1419,6 +1420,7 @@ static NSTimeInterval	time_last_frame;
 						fieldOfView /= pow(fov_delta, delta_t);
 				}
 			}
+#endif
 
 	#ifndef NDEBUG
 			exceptionContext = @"dump target state";
