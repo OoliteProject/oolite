@@ -6724,6 +6724,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	scanner_zoom_rate = 0.0f;
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
+	[self currentWeaponStats];
 	
 	forward_weapon_temp = 0.0f;
 	aft_weapon_temp = 0.0f;
