@@ -574,7 +574,7 @@
     <key>ship_name</key>
     <string>Cobra Mark III</string>
     <key>ship_trade_in_factor</key>
-    <integer>95</integer>
+    <integer>100</integer>
     <key>ship_unique_name</key>
     <string></string>
     <key>shipyard_record</key>
