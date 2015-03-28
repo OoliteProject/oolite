@@ -6785,6 +6785,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self safeAllMissiles];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
+	[self currentWeaponStats];
 
 	[self transitionToAegisNone];
 	suppressAegisMessages=YES;
