@@ -7090,7 +7090,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
-		    malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
+	{
+		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
+	}
+	else if (ship_trade_in_factor >= 100)
+	{
+		malfunc_chance = 256; // force no misjumps on first jump
+	}
 
 #ifdef OO_DUMP_PLANETINFO
 	BOOL misjump = NO; // debugging
