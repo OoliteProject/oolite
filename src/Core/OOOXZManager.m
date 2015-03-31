@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOStringExpander.h"
 #import "MyOpenGLView.h"
+#import "Foundation/NSDate.h"
 
 #import "unzip.h"
 
