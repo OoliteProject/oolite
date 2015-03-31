@@ -9633,7 +9633,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	n_scanned_ships = 0;
 	//
 	GLfloat scannerRange2 = scannerRange * scannerRange;
-	scan = z_previous;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_previous;	// skip non-ships
+	scan = z_previous;	
+	while ((scan)&&((scan->isShip == NO)||(scan->scanClass==CLASS_ROCK)||(scan->scanClass==CLASS_CARGO)))	
+	{
+		scan = scan->z_previous;	// skip non-ships
+	}
 	while ((scan)&&(scan->position.z > position.z - scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
@@ -9642,10 +9646,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
-		scan = scan->z_previous;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_previous;
+		scan = scan->z_previous;
+		while ((scan)&&((scan->isShip == NO)||(scan->scanClass==CLASS_ROCK)||(scan->scanClass==CLASS_CARGO)))	
+		{
+			scan = scan->z_previous;	// skip non-ships
+		}
 	}
 	//
-	scan = z_next;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_next;	// skip non-ships
+	scan = z_next;	
+	while ((scan)&&((scan->isShip == NO)||(scan->scanClass==CLASS_ROCK)||(scan->scanClass==CLASS_CARGO)))	
+	{
+		scan = scan->z_next;	// skip non-ships
+	}
+
 	while ((scan)&&(scan->position.z < position.z + scannerRange)&&(n_scanned_ships < MAX_SCAN_NUMBER))
 	{
 		if (scan->isShip && ![(ShipEntity*)scan isCloaked])
@@ -9654,7 +9667,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			if (distance2_scanned_ships[n_scanned_ships] < scannerRange2)
 				scanned_ships[n_scanned_ships++] = (ShipEntity*)scan;
 		}
-		scan = scan->z_next;	while ((scan)&&(scan->isShip == NO)&&(scan->scanClass!=CLASS_ROCK)&&(scan->scanClass!=CLASS_CARGO))	scan = scan->z_next;	// skip non-ships
+		scan = scan->z_next;
+		while ((scan)&&((scan->isShip == NO)||(scan->scanClass==CLASS_ROCK)||(scan->scanClass==CLASS_CARGO)))	
+		{
+			scan = scan->z_next;	// skip non-ships
+		}
 	}
 	//
 	scanned_ships[n_scanned_ships] = nil;	// terminate array
