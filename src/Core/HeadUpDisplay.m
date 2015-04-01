@@ -1087,8 +1087,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	data->x0 = [info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
 	data->y = [info oo_floatForKey:Y_KEY defaultValue:NOT_DEFINED];
 	data->y0 = [info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	data->width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:NOT_DEFINED];
-	data->height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:NOT_DEFINED];
+	data->width = [info oo_floatForKey:WIDTH_KEY defaultValue:NOT_DEFINED];
+	data->height = [info oo_floatForKey:HEIGHT_KEY defaultValue:NOT_DEFINED];
 	data->alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];	
 }
 
