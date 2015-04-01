@@ -2275,7 +2275,14 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 	SET_COLOR(green_color);
 	
-	OODrawString([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz);
+	if ([info oo_intForKey:@"align"] == 1)
+	{
+		OODrawStringAligned([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz, YES);
+	}
+	else
+	{
+		OODrawStringAligned([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz, NO);
+	}
 
 }
 
