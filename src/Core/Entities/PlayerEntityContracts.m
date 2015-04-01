@@ -1184,9 +1184,10 @@ for (unsigned i=0;i<amount;i++)
 
 
 		OOGUITabSettings tab_stops;
-		tab_stops[0] = 20;
-		tab_stops[1] = 256;
-		[gui overrideTabs:tab_stops from:kGuiManifestTabs length:2];
+		tab_stops[0] = 0;
+		tab_stops[1] = 20;
+		tab_stops[2] = 256;
+		[gui overrideTabs:tab_stops from:kGuiManifestTabs length:3];
 		[gui setTabStops:tab_stops];
 		
 		// Cargo Manifest
@@ -1201,7 +1202,7 @@ for (unsigned i=0;i<amount;i++)
 		current = [[self passengerList] count];
 		max = max_passengers;
 		NSString *cabinString = OOExpandKey(@"oolite-manifest-cabins", current, max);
-		NSArray *manifestHeader = [NSArray arrayWithObjects:cargoString,cabinString,nil];
+		NSArray *manifestHeader = [NSArray arrayWithObjects:cargoString,@"",cabinString,nil];
 
 		SET_MANIFEST_ROW( manifestHeader , entryColor, cargoRow - 1);
 		
@@ -1209,13 +1210,18 @@ for (unsigned i=0;i<amount;i++)
 		{
 			for (i = 0; i < cargoRowCount; i++)
 			{
-				NSMutableArray*		row_info = [NSMutableArray arrayWithCapacity:2];
+				NSMutableArray*		row_info = [NSMutableArray arrayWithCapacity:3];
+				[row_info addObject:@""];
 				// i is always smaller than manifest_count, no need to test.
 				[row_info addObject:[cargoManifest objectAtIndex:i]];
 				if (i + cargoRowCount < manifestCount)
+				{
 					[row_info addObject:[cargoManifest objectAtIndex:i + cargoRowCount]];
+				}
 				else
+				{
 					[row_info addObject:@""];
+				}
 				SET_MANIFEST_ROW( (NSArray *)row_info, subheadColor, cargoRow + i);
 			}
 		}

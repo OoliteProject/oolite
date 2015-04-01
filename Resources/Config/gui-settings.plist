@@ -136,7 +136,7 @@
 	// "manifest_no_scroll_color" = "darkGrayColor";
 
 	/* the tab stops for the manifest (cargo display) */
-	// "manifest_tabs" = (20,256);
+	// "manifest_tabs" = (0,20,256);
 
 
 	/* scale of name labels on F6 chart relative to Oolite default size */
