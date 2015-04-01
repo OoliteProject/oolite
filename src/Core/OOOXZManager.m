@@ -40,6 +40,7 @@ MA 02110-1301, USA.
 #import "OOStringExpander.h"
 #import "MyOpenGLView.h"
 #import "Foundation/NSDate.h"
+#import "Foundation/NSDateFormatter.h"
 
 #import "unzip.h"
 
