@@ -2468,7 +2468,15 @@ this._hermitAllegiance = function(position,government)
 
 this._nearbySystem = function(range)
 {
-	var poss = this.$populatorLocals;
+	var poss;
+	if (!range)
+	{
+		poss = this.$populatorLocals;
+	}
+	else
+	{
+		poss = system.info.systemsInRange(range);
+	}
 	if (poss.length == 0)
 	{
 		return system.ID;
