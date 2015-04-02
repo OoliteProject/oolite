@@ -80,6 +80,7 @@ static JSBool ShipFireECM(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAbandonShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipAwardEquipment(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipAdjustCargo(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipRequestHelpFromGroup(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipPatrolReportIn(JSContext *context, uintN argc, jsval *vp);
 
@@ -303,7 +304,7 @@ enum
 	kShip_speed,				// current flight speed, double, read-only
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
-	kShip_subEntityCapacity,	// max subentities for this ship, int, read-only
+ 	kShip_subEntityCapacity,	// max subentities for this ship, int, read-only
 	kShip_subEntityRotation,	// subentity rotation velocity, quaternion, read/write
 	kShip_sunGlareFilter,		// sun glare filter multiplier, float, read/write
 	kShip_target,				// target, Ship, read/write
@@ -484,6 +485,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "abandonShip",			ShipAbandonShip,			0 },
 	{ "addCollisionException",	ShipAddCollisionException,	1 },
 	{ "addDefenseTarget",		ShipAddDefenseTarget,		1 },
+	{ "adjustCargo",			ShipAdjustCargo,			2 },
 	{ "awardEquipment",			ShipAwardEquipment,			1 },
 	{ "becomeCascadeExplosion",			ShipBecomeCascadeExplosion,			0 },
 	{ "broadcastCascadeImminent",			ShipBroadcastCascadeImminent,			0 },
@@ -3936,6 +3938,55 @@ static JSBool ShipCheckScanner(JSContext *context, uintN argc, jsval *vp)
 		[scanResult addObject:scannedShips[i]];
 	}
 	OOJS_RETURN_OBJECT(scanResult);
+
+	OOJS_PROFILE_EXIT
+}
+
+
+static JSBool ShipAdjustCargo(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_PROFILE_ENTER
+	
+	ShipEntity *thisEnt = nil;
+	NSString *commodity = @"";
+	int32 adjustment = 0;
+
+	GET_THIS_SHIP(thisEnt);
+	
+	if (argc < 2)
+	{
+		OOJSReportBadArguments(context, @"Ship", @"adjustCargo", argc, OOJS_ARGV, nil, @"commodity, amount");
+		return NO;
+	}
+
+	commodity = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (!JS_ValueToInt32(context, OOJS_ARGV[1], &adjustment))
+	{
+		OOJSReportBadArguments(context, @"Ship", @"adjustCargo", argc, OOJS_ARGV, nil, @"commodity, amount");
+		return NO;
+	}
+
+	if ([thisEnt cargoType] != CARGO_NOT_CARGO || [thisEnt isPlayer])
+	{
+		OOJSReportError(context, @"ship.adjustCargo may only be used on NPC cargo carriers");
+		return NO;
+	}
+
+	BOOL ok = YES;
+
+	if (adjustment > 0)
+	{
+		NSArray *cargo = [UNIVERSE getContainersOfCommodity:commodity :adjustment]; // non-reified templates
+		ok = [thisEnt addCargo:cargo];
+	}
+	else if (adjustment < 0)
+	{
+		OOCargoQuantity r = (OOCargoQuantity)(-adjustment);
+		ok = [thisEnt removeCargo:commodity amount:r];
+	}
+
+
+	OOJS_RETURN_BOOL(ok);
 
 	OOJS_PROFILE_EXIT
 }

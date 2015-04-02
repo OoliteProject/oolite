@@ -143,6 +143,7 @@ Methods:
 * manifest.shortComment()
 * systemInfo.samplePrice()
 * ship.addCollisionException(ship)
+* ship.adjustCargo(commodity,amount)
 * ship.removeCollisionException(ship)
 * ship.hasEquipmentProviding(eq)
 * player.ship.equipmentStatus(eqKey,true) second parameter

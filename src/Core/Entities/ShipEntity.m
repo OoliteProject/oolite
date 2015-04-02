@@ -8309,6 +8309,56 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	[cargo addObjectsFromArray:some_cargo];
 }
 
+
+- (BOOL) addCargo:(NSArray *) some_cargo
+{
+	if ([cargo count] + [some_cargo count] > [self maxAvailableCargoSpace])
+	{
+		return NO;
+	}
+	else
+	{
+		[cargo addObjectsFromArray:some_cargo];
+		return YES;
+	}
+}
+
+
+- (BOOL) removeCargo:(OOCommodityType)commodity amount:(OOCargoQuantity) amount
+{
+	OOCargoQuantity found = 0;
+	ShipEntity *pod = nil;
+	foreach (pod, cargo)
+	{
+		if ([[pod commodityType] isEqualToString:commodity])
+		{
+			found++;
+		}
+	}
+	if (found < amount)
+	{
+		// don't remove any if there aren't enough to remove the full amount
+		return NO;
+	}
+	
+	NSUInteger i = [cargo count] - 1;
+	// iterate downwards to be safe removing during iteration
+	while (amount > 0)
+	{
+		if ([[[cargo objectAtIndex:i] commodityType] isEqualToString:commodity])
+		{
+			amount--;
+			[cargo removeObjectAtIndex:i];
+		}
+		// check above means array index can't underflow here
+		i--;
+	}
+
+	return YES;
+}
+
+
+
 - (BOOL) showScoopMessage
 {
 	return hasScoopMessage;

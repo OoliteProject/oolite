@@ -3887,9 +3887,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		return [NSArray array]; // empty array
 	}
 	
+	ShipEntity *container = [cargoPods objectForKey:commodity_name];
 	while (how_much > 0)
 	{
-		ShipEntity *container = [cargoPods objectForKey:commodity_name];
 		if (container)
 		{
 			[accumulator addObject:container];

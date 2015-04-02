@@ -906,6 +906,8 @@ typedef enum
 - (NSArray *) cargoListForScripting;
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *)some_cargo;
+- (BOOL) addCargo:(NSArray *) some_cargo;
+- (BOOL) removeCargo:(OOCommodityType)commodity amount:(OOCargoQuantity) amount;
 - (BOOL) showScoopMessage;
 
 - (NSArray *) passengerListForScripting;
