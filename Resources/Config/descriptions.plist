@@ -1443,8 +1443,8 @@
 	"equipment-@-not-available"		= "%@ (N/A)";							// all broken, only one installed
 	"equipment-plural-some-na"		= "[okcount]/[count] [equipmentName]s";	// some broken, multiple installed
 	
-	"manifest-cargo-quantity"		= "[quantity] [units] × [commodityName]";
-	"manifest-cargo-quantity-extended" = "[quantity] [units] × [commodityName] ([containers] TC)";
+	"manifest-cargo-quantity"		= " [quantity] [units] × [commodityName]";
+	"manifest-cargo-quantity-extended" = " [quantity] [units] × [commodityName] ([containers] TC)";
 	
 	// Short and Long Range Chart Overrides
 	"charts-distance"				= "Distance: [distance|precision:1] Light Years";
