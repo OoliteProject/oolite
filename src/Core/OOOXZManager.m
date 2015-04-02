@@ -39,8 +39,6 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOStringExpander.h"
 #import "MyOpenGLView.h"
-#import "Foundation/NSDate.h"
-#import "Foundation/NSDateFormatter.h"
 
 #import "unzip.h"
 
@@ -1716,11 +1714,9 @@ static OOOXZManager *sSingleton = nil;
 				// list of installable OXZs
 				NSDate *updated = [NSDate dateWithTimeIntervalSince1970:timestamp];
 			
-				NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-				[dateFormatter setDateFormat:@"yyyy-MM-dd"];
-				updatedDesc = [dateFormatter stringFromDate:updated];
+				//keep only the first part of the date string description, which should be in YYYY-MM-DD format
+				updatedDesc = [[[updated description] componentsSeparatedByString:@" "] oo_stringAtIndex:0];
 				
-				[dateFormatter release];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-oxzmanager-infoline-size"),[self humanSize:size],DESC(@"oolite-oxzmanager-infoline-date"),updatedDesc,nil] forRow:OXZ_GUI_ROW_LISTINFO2];
 			} 
 			else if (size > 0)
