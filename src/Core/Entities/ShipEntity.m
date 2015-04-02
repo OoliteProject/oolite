@@ -12341,7 +12341,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 // This is a documented AI method; do not change semantics. (Note: AIs don't have access to the return value.)
 - (OOCommodityType) dumpCargo
 {
-	ShipEntity *jetto = [self dumpCargoItem];
+	ShipEntity *jetto = [self dumpCargoItem:nil];
 	if (jetto != nil)
 	{
 		return [jetto commodityType];
@@ -12353,17 +12353,40 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (ShipEntity *) dumpCargoItem
+- (ShipEntity *) dumpCargoItem:(OOCommodityType)preferred
 {
 	ShipEntity				*jetto = nil;
+	NSUInteger				 i = 0;
 	
 	if (([cargo count] > 0)&&([UNIVERSE getTime] - cargo_dump_time > 0.5))  // space them 0.5s or 10m apart
 	{
-		jetto = [[[cargo objectAtIndex:0] retain] autorelease];
+		if (preferred == nil)
+		{
+			jetto = [[[cargo objectAtIndex:0] retain] autorelease];
+		}
+		else
+		{
+			BOOL found = NO;
+			for (i=0;i<[cargo count];i++)
+			{
+				if ([[[cargo objectAtIndex:i] commodityType] isEqualToString:preferred])
+				{
+					jetto = [[[cargo objectAtIndex:i] retain] autorelease];
+					found = YES;
+					break;
+				}
+			}
+			if (found == NO)
+			{
+				// dump anything
+				jetto = [[[cargo objectAtIndex:0] retain] autorelease];
+				i = 0;
+			}
+		}
 		if (jetto != nil)
 		{
 			[self dumpItem:jetto];	// CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
-			[cargo removeObjectAtIndex:0];
+			[cargo removeObjectAtIndex:i];
 			[self broadcastAIMessage:@"CARGO_DUMPED"]; // goes only to 16 nearby ships in range, but that should be enough.
 			unsigned i;
 			// only send script event to powered entities

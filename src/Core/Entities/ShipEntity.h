@@ -1122,7 +1122,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) launchCascadeMine;
 - (ShipEntity *) launchEscapeCapsule;
 - (OOCommodityType) dumpCargo;
-- (ShipEntity *) dumpCargoItem;
+- (ShipEntity *) dumpCargoItem:(OOCommodityType)preferred;
 - (OOCargoType) dumpItem: (ShipEntity*) jetto;
 
 - (void) manageCollisions;

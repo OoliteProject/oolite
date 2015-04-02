@@ -2200,7 +2200,8 @@ static JSBool ShipDumpCargo(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	
 	ShipEntity				*thisEnt = nil;
-	
+	OOCommodityType			pref = nil;
+
 	GET_THIS_SHIP(thisEnt);
 	
 	if (EXPECT_NOT([thisEnt isPlayer] && [(PlayerEntity *)thisEnt isDocked]))
@@ -2208,6 +2209,12 @@ static JSBool ShipDumpCargo(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportWarningForCaller(context, @"PlayerShip", @"dumpCargo", @"Can't dump cargo while docked, ignoring.");
 		OOJS_RETURN_NULL;
 	}
+	
+	if (argc > 1)
+	{
+		pref = OOStringFromJSValue(context, OOJS_ARGV[1]);
+	}
+
 	// NPCs can queue multiple items to dump
 	if (!EXPECT_NOT([thisEnt isPlayer]))
 	{
@@ -2216,7 +2223,7 @@ static JSBool ShipDumpCargo(JSContext *context, uintN argc, jsval *vp)
 		if (argc > 0)  gotCount = JS_ValueToInt32(context, OOJS_ARGV[0], &count);
 		if (EXPECT_NOT(!gotCount || count < 1 || count > 64))
 		{
-			OOJSReportBadArguments(context, @"Ship", @"dumpCargo", MIN(argc, 1U), OOJS_ARGV, nil, @"optional quantity (1 to 64)");
+			OOJSReportBadArguments(context, @"Ship", @"dumpCargo", MIN(argc, 1U), OOJS_ARGV, nil, @"optional quantity (1 to 64), optional preferred commodity");
 			return NO;
 		}
 
@@ -2226,7 +2233,7 @@ static JSBool ShipDumpCargo(JSContext *context, uintN argc, jsval *vp)
 		}
 	}
 
-	OOJS_RETURN_OBJECT([thisEnt dumpCargoItem]);
+	OOJS_RETURN_OBJECT([thisEnt dumpCargoItem:pref]);
 	
 	OOJS_NATIVE_EXIT
 }

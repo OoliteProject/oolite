@@ -146,6 +146,7 @@ Methods:
 * ship.adjustCargo(commodity,amount)
 * ship.removeCollisionException(ship)
 * ship.hasEquipmentProviding(eq)
+* ship.dumpCargo(amount, preferredtype) second parameter
 * player.ship.equipmentStatus(eqKey,true) second parameter
 * SystemInfo.setInterstellarProperty(g,s1,s2,l,k,v,[m]) 
 
