@@ -135,6 +135,8 @@ extern int debug;
 	GLfloat				display_z;
 	GLfloat				x_offset, y_offset;
 	
+	float				_fov;
+	
 	int					_virtualScreen;
 	NSData				*_pixelFormatAttributes;
 	
@@ -236,5 +238,8 @@ extern int debug;
 // no-ops to allow gamma value to be easily saved/restored
 - (void) setGammaValue: (float) value;
 - (float) gammaValue;
+
+- (void) setFov:(float)value fromRadians:(BOOL)fromRadians;
+- (float) fov:(BOOL)inRadians;
 
 @end

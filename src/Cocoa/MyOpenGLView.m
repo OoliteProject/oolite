@@ -1226,4 +1226,16 @@ static void UnapplyCursorState(OOMouseInteractionMode mode)
 	return 1.0;
 }
 
+
+- (void) setFov:(float)value fromRadians:(BOOL)fromRadians
+{
+	_fov = fromRadians ? value : tan((value / 2) * M_PI / 180);
+}
+
+
+- (float) fov:(BOOL)inRadians
+{
+	return inRadians ? _fov : 2 * atan(_fov) * 180 / M_PI;
+}
+
 @end
