@@ -1583,7 +1583,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	maxFieldOfView = 4.0;
 	fov_delta = 2.0; // multiply by 2 each second
-	fieldOfView = 0.5;
 	
 	compassMode = COMPASS_MODE_BASIC;
 	
@@ -1623,7 +1622,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
-	fieldOfView = 0.5;
+	fieldOfView = [[UNIVERSE gameView] fov:YES];
 	unsigned i;
 	
 	showDemoShips = NO;
@@ -2827,7 +2826,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[hud setScannerZoom:z1];
 	}
 
-	[UNIVERSE fov:fieldOfView];
+	[[UNIVERSE gameView] setFov:fieldOfView fromRadians:YES];;
 	
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];

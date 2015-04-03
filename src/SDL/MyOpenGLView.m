@@ -2320,6 +2320,19 @@ keys[a] = NO; keys[b] = NO; \
 	return _gamma;
 }
 
+
+- (void) setFov:(float)value fromRadians:(BOOL)fromRadians
+{
+	_fov = fromRadians ? value : tan((value / 2) * M_PI / 180);
+}
+
+
+- (float) fov:(BOOL)inRadians
+{
+	return inRadians ? _fov : 2 * atan(_fov) * 180 / M_PI;
+}
+
+
 - (OOOpenGLMatrixManager *) getOpenGLMatrixManager
 {
 	return matrixManager;

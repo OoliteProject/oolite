@@ -153,6 +153,7 @@ extern int debug;
 	NSRect				bounds;
 
 	float				_gamma;
+	float				_fov;
 
    // Full screen sizes
 	NSMutableArray		*screenSizes;
@@ -279,6 +280,9 @@ extern int debug;
 
 - (void) setGammaValue: (float) value;
 - (float) gammaValue;
+
+- (void) setFov:(float)value fromRadians:(BOOL)fromRadians;
+- (float) fov:(BOOL)inRadians;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;

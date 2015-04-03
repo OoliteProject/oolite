@@ -262,8 +262,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	_doingStartUp = YES;
 	OOInitReallyRandom([NSDate timeIntervalSinceReferenceDate] * 1e9);
-
-	fov = 0.5;
 	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	
@@ -308,6 +306,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 	[inGameView setGammaValue:[prefs oo_floatForKey:@"gamma-value" defaultValue:1.0f]];
+	[inGameView setFov:OOClamp_0_max_f([prefs oo_floatForKey:@"fov-value" defaultValue:57.2f], 75.0f) fromRadians:NO];
+	if ([inGameView fov:NO] < 30.0f)  [inGameView setFov:30.0f fromRadians:NO];
 	
 	// Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
@@ -4400,8 +4400,7 @@ static const OOMatrix	starboard_matrix =
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
-				float   ratio = (displayGUI ? 0.5 : fov) * nearPlane; // 0.5 is field of view ratio for GUIs
-				OOLog(@"FOV",@"Universe ratio: %f", ratio);
+				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane; // 0.5 is field of view ratio for GUIs
 				
 				OOGLResetProjection();
 				OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
@@ -10337,11 +10336,6 @@ static void PreloadOneSound(NSString *soundName)
 - (OOJSScript*) getConditionScript:(NSString *)scriptname
 {
 	return [conditionScripts objectForKey:scriptname];
-}
-
-- (void) fov:(float)value
-{
-	fov = value;
 }
 
 @end
