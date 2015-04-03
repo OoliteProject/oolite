@@ -265,6 +265,8 @@ typedef enum
 							cloakPassive: 1,			// cloak deactivates when main weapons or missiles are fired
 							cloakAutomatic: 1,			// cloak activates itself automatic during attack
 							canFragment: 1,				// Can it break into wreckage?
+							isWreckage: 1,              // Is it wreckage?
+							_showDamage: 1,             // Show damage?
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
 							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
 							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
@@ -976,6 +978,8 @@ typedef enum
 - (void) becomeLargeExplosion:(double) factor;
 - (void) becomeEnergyBlast;
 - (void) broadcastEnergyBlastImminent;
+- (void) setIsWreckage:(BOOL)isw;
+- (BOOL) showDamage;
 
 - (Vector) positionOffsetForAlignment:(NSString*) align;
 Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q, NSString* align);

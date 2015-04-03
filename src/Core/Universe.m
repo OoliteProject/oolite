@@ -5473,6 +5473,67 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
+- (ShipEntity*) addWreckageFrom:(ShipEntity *)ship withRole:(NSString *)wreckRole at:(HPVector)rpos scale:(GLfloat)scale lifetime:(GLfloat)lifetime
+{
+	ShipEntity* wreck = [UNIVERSE newShipWithRole:wreckRole];   // retain count = 1
+	Quaternion q;
+	if (wreck)
+	{
+		GLfloat expected_mass = 0.1f * [ship mass] * (0.75 + 0.5 * randf());
+		GLfloat wreck_mass = [wreck mass];
+		GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f) * scale;	// cube root of volume ratio
+		[wreck rescaleBy: scale_factor];
+
+		[wreck setPosition:rpos];
+
+		[wreck setVelocity:[ship velocity]];
+
+		quaternion_set_random(&q);
+		[wreck setOrientation:q];
+							
+		[wreck setTemperature: 1000.0];		// take 1000e heat damage per second
+		[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
+		[wreck setEnergy: lifetime];
+							
+		[wreck setIsWreckage:YES];
+
+		[UNIVERSE addEntity:wreck];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		[wreck performTumble];
+		//	[wreck rescaleBy: 1.0/scale_factor];
+		[wreck release];
+	}
+	return wreck;
+}
+
+
+
+- (void) addLaserHitEffectsAt:(HPVector)pos against:(ShipEntity *)target damage:(float)damage color:(OOColor *)color
+{
+	// low energy, start getting small surface explosions
+	if ([target showDamage] && [target energy] < [target maxEnergy]/2)
+	{
+		NSString *key = (randf() < 0.5) ? @"oolite-hull-spark" : @"oolite-hull-spark-b";
+		NSDictionary *settings = [UNIVERSE explosionSetting:key];
+		OOExplosionCloudEntity* burst = [OOExplosionCloudEntity explosionCloudFromEntity:target withSettings:settings];
+		[burst setPosition:pos];
+		[self addEntity: burst];
+		if ([target energy] * randf() < damage)
+		{
+			ShipEntity *wreck = [self addWreckageFrom:target withRole:@"oolite-wreckage-chunk" at:pos scale:0.05 lifetime:(125.0+(randf()*200.0))];
+			if (wreck)
+			{
+				Vector direction = HPVectorToVector(HPvector_normal(HPvector_subtract(pos,[target position])));
+				[wreck setVelocity:vector_add([wreck velocity],vector_multiply_scalar(direction,10+20*randf()))];
+			}
+		}
+	}
+	else
+	{
+		[self addEntity:[OOFlashEffectEntity laserFlashWithPosition:pos velocity:[target velocity] color:color]];
+	}
+}
+
+
 - (ShipEntity *) firstShipHitByLaserFromShip:(ShipEntity *)srcEntity inDirection:(OOWeaponFacing)direction offset:(Vector)offset gettingRangeFound:(GLfloat *)range_ptr
 {
 	if (srcEntity == nil) return nil;

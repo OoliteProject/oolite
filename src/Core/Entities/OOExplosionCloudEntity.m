@@ -43,6 +43,7 @@ static NSString * const kExplosionCount			= @"count";
 static NSString * const kExplosionDuration		= @"duration";
 static NSString * const kExplosionGrowth		= @"growth_rate";
 static NSString * const kExplosionSize			= @"size";
+static NSString * const kExplosionSpread		= @"spread";
 static NSString * const kExplosionTexture		= @"texture";
 
 
@@ -78,6 +79,8 @@ static NSString * const kExplosionTexture		= @"texture";
 	_alpha = [_settings oo_floatForKey:kExplosionAlpha defaultValue:kExplosionCloudAlpha];
 	_cloudDuration = [_settings oo_floatForKey:kExplosionDuration defaultValue:kExplosionCloudDuration];
 
+	GLfloat spread = [_settings oo_floatForKey:kExplosionSpread defaultValue:1.0];
+
 	NSString *textureFile = [_settings oo_stringForKey:kExplosionTexture defaultValue:@"oolite-particle-cloud2.png"];
 	
 	_texture = [[OOTexture textureWithName:textureFile
@@ -99,7 +102,7 @@ static NSString * const kExplosionTexture		= @"texture";
 		vel = vector_multiply_scalar(vector_normal(vel),1000);
 	}
 
-	if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size*0.8 maxSpeed:size*1.2 duration:_cloudDuration baseColor:baseColor]))
+	if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size*0.8*spread maxSpeed:size*1.2*spread duration:_cloudDuration baseColor:baseColor]))
 	{
 		NSString *color_order = [_settings oo_stringForKey:kExplosionColors defaultValue:@"rgb"];
 		

@@ -298,6 +298,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:200.0f];
 	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:1.0f];
 	
+	_showDamage = [shipDict oo_boolForKey:@"show_damage" defaultValue:(energy_recharge_rate > 0)];
 	// Each new ship should start in seemingly good operating condition, unless specifically told not to - this does not affect the ship's energy levels
 	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
 	
@@ -359,6 +360,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// can it be 'mined' for alloys?
 	canFragment = [shipDict oo_fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
+	isWreckage = NO;
+
 	// can subentities be destroyed separately?
 	isFrangible = [shipDict oo_boolForKey:@"frangible" defaultValue:YES];
 	
@@ -2007,6 +2010,12 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{	
 		return NO;
 	}
+
+	if (isWreckage)
+	{
+		// wreckage won't collide
+		return NO;
+	}
 	
 	if (isMissile && [self shotTime] < 0.25) // not yet fused
 	{
@@ -2430,7 +2439,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self takeHeatDamage: delta_t * ship_temperature];
 
 	// are we burning due to low energy
-	if ((energy < maxEnergy * 0.20)&&(energy_recharge_rate > 0.0))	// prevents asteroid etc. from burning
+	if ((energy < maxEnergy * 0.20)&&_showDamage)	// prevents asteroid etc. from burning
 		throw_sparks = YES;
 	
 	// burning effects
@@ -8796,9 +8805,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				double ecr = [e2 collisionRadius];
 				double d2 = magnitude2(p2) - ecr * ecr;
 				// limit momentum transfer to relatively sensible levels
-				if (d2 < 1.0)
+				if (d2 < 0.1)
 				{
-					d2 = 1.0;
+					d2 = 0.1;
 				}
 				double moment = amount*desired_range/d2;
 				[e2 addImpactMoment:vector_normal(p2) fraction:moment];
@@ -8893,9 +8902,26 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) rescaleBy:(GLfloat)factor
 {
-	// rescale mesh (and collision detection stuff)
-	[self setMesh:[[self mesh] meshRescaledBy:factor]];
-	
+	_scaleFactor *= factor;
+	OOMesh *mesh = nil;
+
+	NSDictionary *shipDict = [self shipInfoDictionary];
+	NSString *modelName = [shipDict oo_stringForKey:@"model"];
+	if (modelName != nil)
+	{
+		mesh = [OOMesh meshWithName:modelName
+						   cacheKey:[NSString stringWithFormat:@"%@-%.3f",_shipKey,_scaleFactor]
+				 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
+				  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
+							 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
+					   shaderMacros:OODefaultShipShaderMacros()
+					   shaderBindingTarget:self
+						scaleFactor:factor];
+
+		if (mesh == nil)  return;
+		[self setMesh:mesh];
+	}
+
 	// rescale subentities
 	Entity<OOSubEntity>	*se = nil;
 	foreach (se, [self subEntities])
@@ -8981,6 +9007,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 }
 
+
+- (void) setIsWreckage:(BOOL)isw
+{
+	isWreckage = isw;
+}
+
+
+- (BOOL) showDamage
+{
+	return _showDamage;
+}
+
+
 - (void) becomeExplosion
 {
 	
@@ -9010,6 +9049,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	int speed_low = 200;
 	GLfloat n_alloys = sqrtf(sqrtf(mass / 6000.0f));
 	NSUInteger numAlloys = 0;
+	BOOL canReleaseSubWreckage = isWreckage && ([UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS);
 
 	if ([self status] == STATUS_DEAD)
 	{
@@ -9024,7 +9064,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		
 		if (!suppressExplosion)
 		{
-			if (mass > 500000.0f && randf() < 0.25f) // big!
+			if (!isWreckage && mass > 500000.0f && randf() < 0.25f) // big!
 			{
 				// draw an expanding ring
 				OORingEffectEntity *ring = [OORingEffectEntity ringFromEntity:self];
@@ -9164,7 +9204,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 				// throw out burning chunks of wreckage
 				//
-				if (n_alloys && canFragment)
+				if ((n_alloys && canFragment) || canReleaseSubWreckage)
 				{
 					NSUInteger n_wreckage = 0;
 					
@@ -9173,42 +9213,27 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						// Create wreckage only when UNIVERSE is less than half full.
 						// (condition set in r906 - was < 0.75 before) --Kaks 2011.10.17
 						NSUInteger maxWrecks = 3;
-						// if it can cope with extra detail, allow more wreckage
-						if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS)
+						if (n_alloys == 0)
 						{
-							maxWrecks = 8;
+							// must be sub-wreckage here
+							n_wreckage = (mass > 600.0 && randf() < 0.2)?2:0;
 						}
-						n_wreckage = (n_alloys < maxWrecks)? floorf(n_alloys) : maxWrecks;
+						else
+						{
+							n_wreckage = (n_alloys < maxWrecks)? floorf(randf()*(n_alloys+2)) : maxWrecks;
+						}
 					}
 					
 					for (i = 0; i < n_wreckage; i++)
 					{
-						ShipEntity* wreck = [UNIVERSE newShipWithRole:@"wreckage"];   // retain count = 1
-						if (wreck)
-						{
-							GLfloat expected_mass = 0.1f * mass * (0.75 + 0.5 * randf());
-							GLfloat wreck_mass = [wreck mass];
-							GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f);	// cube root of volume ratio
-							[wreck rescaleBy: scale_factor];
-							
-							Vector r1 = [octree randomPoint];
-							HPVector rpos = HPvector_add(vectorToHPVector(quaternion_rotate_vector([self normalOrientation], r1)), xposition);
-							[wreck setPosition:rpos];
-							
-							[wreck setVelocity:[self velocity]];
+						Vector r1 = [octree randomPoint];
+						Vector dir = quaternion_rotate_vector([self normalOrientation], r1);
+						HPVector rpos = HPvector_add(vectorToHPVector(dir), xposition);
+						GLfloat lifetime = 750.0 * randf() + 250.0 * i + 100.0;
+						ShipEntity *wreck = [UNIVERSE addWreckageFrom:self withRole:@"wreckage" at:rpos scale:1.0 lifetime:lifetime/2];
 
-							quaternion_set_random(&q);
-							[wreck setOrientation:q];
-							
-							[wreck setTemperature: 1000.0];		// take 1000e heat damage per second
-							[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
-							[wreck setEnergy: 750.0 * randf() + 250.0 * i + 100.0];	// burn for 0.25s -> 1.25s
-							
-							[UNIVERSE addEntity:wreck];	// STATUS_IN_FLIGHT, AI state GLOBAL
-							[wreck performTumble];
-							[wreck rescaleBy: 1.0/scale_factor];
-							[wreck release];
-						}
+						[wreck setVelocity:vector_add([wreck velocity],vector_multiply_scalar(vector_normal(dir),randf()*[wreck collisionRadius]))];
+
 					}
 					n_alloys = randf() * n_alloys;
 				}
@@ -11575,7 +11600,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[shot setRange:hitAtRange];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hitAtRange)));
-			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
+			[UNIVERSE addLaserHitEffectsAt:flash_pos against:victim damage:weapon_damage color:laser_color];
 		}
 	}
 	else
@@ -11700,7 +11725,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[shot setRange:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
-			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
+			[UNIVERSE addLaserHitEffectsAt:flash_pos against:victim damage:weapon_damage color:laser_color];
 		}
 	}
 	
@@ -11787,7 +11812,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[shot setRange:hit_at_range];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
 			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
-			[UNIVERSE addEntity:[OOFlashEffectEntity laserFlashWithPosition:flash_pos velocity:[victim velocity] color:laser_color]];
+			[UNIVERSE addLaserHitEffectsAt:flash_pos against:victim damage:weapon_damage color:laser_color];
 		}
 	}
 	else

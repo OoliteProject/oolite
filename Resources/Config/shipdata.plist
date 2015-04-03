@@ -3108,6 +3108,7 @@
 		rotating = yes;
 		requires_docking_clearance = no;
 		scan_class = "CLASS_ROCK";
+		show_damage = no;
 		smooth = yes;
 		station_roll = "0.06"; // 0.5G at rim
 		subentities = 
@@ -3957,13 +3958,13 @@
 		ai_type = "nullAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
-		explosion_type = ("oolite-default-ship-explosion","oolite-fragment-explosion"); // no flash
+		explosion_type = ("oolite-wreckage-explosion","oolite-fragment-explosion"); // no flash
 		forward_weapon_type = "WEAPON_NONE";
 		fragment_chance = 0.0;
 		is_template = 1;
-		max_energy = 2000;
-		max_flight_pitch = 2;
-		max_flight_roll = 2;
+		max_energy = 20000;
+		max_flight_pitch = 0.2;
+		max_flight_roll = 0.2;
 		max_flight_speed = 500;
 		model = "wreck1.dat";
 		name = "Wreckage";
@@ -3971,6 +3972,13 @@
 		scan_class = "CLASS_NO_DRAW";
 		thrust = 0;
 		counts_as_kill = false;
+	};
+
+	"oolite_template_wreckage-chunk" = 
+	{
+		like_ship = "oolite_template_wreckage-component";
+		explosion_type = ("oolite-wreckage-chunk-explosion");
+		roles = "oolite-wreckage-chunk";
 	};
 
 		/* Begin entity definitions. Graphics-modifying OXPs should
@@ -4282,13 +4290,13 @@
 	"more-wreckage2" =
 	{
 		like_ship = "oolite_template_wreckage-component";
-		explosion_type = ("oolite-default-ship-explosion","oolite-fragment-explosion-b");
+		explosion_type = ("oolite-wreckage-explosion","oolite-fragment-explosion-b");
 		model = "wreck2.dat";
 	};
 	"more-wreckage3" =
 	{
 		like_ship = "oolite_template_wreckage-component";
-		explosion_type = ("oolite-default-ship-explosion");
+		explosion_type = ("oolite-wreckage-explosion");
 		model = "wreck3.dat";
 	};
 	"more-wreckage4" =
@@ -4303,6 +4311,21 @@
 		explosion_type = ("oolite-fragment-explosion-b");
 		model = "wreck5.dat";
 	};
+	"wreckage-chunk" = 
+	{
+		like_ship = "oolite_template_wreckage-chunk";
+	};
+	"wreckage-chunk2" = 
+	{
+		like_ship = "oolite_template_wreckage-chunk";
+		explosion_type = ("oolite-wreckage-chunk-fragment");
+	};
+	"wreckage-chunk3" = 
+	{
+		like_ship = "oolite_template_wreckage-chunk";
+		explosion_type = ("oolite-wreckage-chunk-fragment-b");
+	};
+
 
 
 	/* Begin definitions for entities used in the tutorial */

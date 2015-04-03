@@ -1,4 +1,5 @@
 {
+	// main ship explosion
 	"oolite-default-ship-explosion" = {
 		"alpha" = 0.85;
 		"color_order" = "rgb";
@@ -9,13 +10,24 @@
 		"texture" = "oolite-particle-cloud2.png";
 	};
 
+	// slower clouds from fragment explosions
+	"oolite-wreckage-explosion" = {
+		"alpha" = 0.85;
+		"color_order" = "rgb";
+		"count" = 10;
+		"duration" = 4.5;
+		"growth_rate" = 0.6;
+		"size" = 2.5;
+		"texture" = "oolite-particle-cloud2.png";
+	};
 
 	"oolite-fragment-explosion" = {
 		"alpha" = 0.25;
 		"color_order" = "rgb";
 		"count" = 5;
-		"duration" = 1.2;
-		"growth_rate" = 14;
+		"duration" = 1.85;
+		"growth_rate" = 7;
+		"spread" = 0.3;
 		"size" = 1.0;
 		"texture" = "oolite-particle-fragments.png";
 	};
@@ -24,13 +36,68 @@
 		"alpha" = 0.25;
 		"color_order" = "rgb";
 		"count" = 5;
-		"duration" = 1.2;
-		"growth_rate" = 14;
+		"duration" = 1.75;
+		"growth_rate" = 5;
 		"size" = 1.0;
 		"texture" = "oolite-particle-fragments2.png";
 	};
 
-	
+
+	// spark effects as ships badly hit
+	"oolite-wreckage-chunk" = {
+		"alpha" = 0.85;
+		"color_order" = "rgb";
+		"count" = 10;
+		"duration" = 1.2;
+		"growth_rate" = 2.6;
+		"size" = 2.5;
+		"texture" = "oolite-particle-cloud2.png";
+	};
+
+	"oolite-wreckage-chunk-fragment" = {
+		"alpha" = 0.25;
+		"color_order" = "rgb";
+		"count" = 5;
+		"duration" = 0.3;
+		"growth_rate" = 18;
+		"spread" = 0.3;
+		"size" = 1.0;
+		"texture" = "oolite-particle-fragments.png";
+	};
+
+	"oolite-wreckage-chunk-fragment-b" = {
+		"alpha" = 0.25;
+		"color_order" = "rgb";
+		"count" = 5;
+		"duration" = 0.4;
+		"growth_rate" = 12;
+		"size" = 1.0;
+		"texture" = "oolite-particle-fragments2.png";
+	};
+
+	"oolite-hull-spark" = {
+		"alpha" = 0.65;
+		"color_order" = "bgr";
+		"count" = 5;
+		"duration" = 0.22;
+		"growth_rate" = 3;
+		"spread" = 0.5;
+		"size" = 0.12;
+		"texture" = "oolite-particle-fragments.png";
+	};
+
+	"oolite-hull-spark-b" = {
+		"alpha" = 0.85;
+		"color_order" = "white";
+		"count" = 5;
+		"duration" = 0.25;
+		"growth_rate" = 3;
+		"spread" = 0.5;
+		"size" = 0.15;
+		"texture" = "oolite-particle-fragments2.png";
+	};
+
+	// explosion for rocky bodies
 	"oolite-default-asteroid-explosion" = {
 		"alpha" = 0.85;
 		"color_order" = "white";
