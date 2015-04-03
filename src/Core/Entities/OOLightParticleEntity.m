@@ -319,6 +319,13 @@ static OOTexture *sBlobTexture = nil;
 }
 
 
+- (BOOL) canCollide
+{
+	return NO;
+}
+
+
+
 #ifndef NDEBUG
 - (NSSet *) allTextures
 {
