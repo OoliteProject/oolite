@@ -1403,7 +1403,7 @@ static NSTimeInterval	time_last_frame;
 
 			}
 
-#if OO_FOV_BY_KEY_ENABLED
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 			// Field of view controls
 			if (![UNIVERSE displayGUI])
 			{

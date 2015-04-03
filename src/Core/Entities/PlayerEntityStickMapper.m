@@ -197,11 +197,13 @@ MA 02110-1301, USA.
 			[stickHandler unsetButtonFunction:BUTTON_INCTHRUST];
 			[stickHandler unsetButtonFunction:BUTTON_DECTHRUST];
 		}
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 		if (function == AXIS_FIELD_OF_VIEW)
 		{
 			[stickHandler unsetButtonFunction:BUTTON_INC_FIELD_OF_VIEW];
 			[stickHandler unsetButtonFunction:BUTTON_DEC_FIELD_OF_VIEW];
 		}
+#endif
 		if (function == AXIS_VIEWX)
 		{
 			[stickHandler unsetButtonFunction:BUTTON_VIEWPORT];
@@ -220,10 +222,12 @@ MA 02110-1301, USA.
 		{
 			[stickHandler unsetAxisFunction:AXIS_THRUST];
 		}
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 		if (function == BUTTON_INC_FIELD_OF_VIEW || function == BUTTON_DEC_FIELD_OF_VIEW)
 		{
 			[stickHandler unsetAxisFunction:AXIS_FIELD_OF_VIEW];
 		}
+#endif
 		if (function == BUTTON_VIEWPORT || function == BUTTON_VIEWSTARBOARD)
 		{
 			[stickHandler unsetAxisFunction:AXIS_VIEWX];
@@ -617,6 +621,7 @@ MA 02110-1301, USA.
 				  allowable:HW_AXIS|HW_BUTTON
 					 axisfn:AXIS_VIEWX
 					  butfn:BUTTON_VIEWSTARBOARD]];
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	[funcList addObject:
 	 [self makeStickGuiDict:DESC(@"stickmapper-increase-field-of-view")
 				  allowable:HW_AXIS|HW_BUTTON
@@ -627,6 +632,7 @@ MA 02110-1301, USA.
 				  allowable:HW_AXIS|HW_BUTTON
 					 axisfn:AXIS_FIELD_OF_VIEW
 					  butfn:BUTTON_DEC_FIELD_OF_VIEW]];
+#endif
 	return funcList;
 }
 
