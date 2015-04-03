@@ -324,6 +324,8 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_oxzmanager_showinfo,	'i'			);
 	LOAD_KEY_SETTING(key_oxzmanager_extract,	'x'			);
 	
+	LOAD_KEY_SETTING(key_inc_field_of_view,		'l'			);
+	LOAD_KEY_SETTING(key_dec_field_of_view,		'k'			);
 #ifndef NDEBUG
 	LOAD_KEY_SETTING(key_dump_target_state,		'H'			);
 #endif
@@ -1400,7 +1402,30 @@ static NSTimeInterval	time_last_frame;
 					galhyperspace_pressed = NO;
 
 			}
-			
+
+#if OO_FOV_BY_KEY_ENABLED
+			// Field of view controls
+			if (![UNIVERSE displayGUI])
+			{
+				if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < maxFieldOfView))
+					fieldOfView *= pow(fov_delta, delta_t);
+
+				if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]))
+					fieldOfView /= pow(fov_delta, delta_t);
+
+				NSDictionary *functionForFovAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]];
+				if ([stickHandler joystickCount] != 0 && functionForFovAxis != nil)
+				{
+					// TODO think reqFov through
+					double reqFov = [stickHandler getAxisState: AXIS_FIELD_OF_VIEW];
+					if (fieldOfView < maxFieldOfView * reqFov)
+						fieldOfView *= pow(fov_delta, delta_t);
+					if (fieldOfView > maxFieldOfView * reqFov)
+						fieldOfView /= pow(fov_delta, delta_t);
+				}
+			}
+#endif
+
 	#ifndef NDEBUG
 			exceptionContext = @"dump target state";
 			if ([gameView isDown:key_dump_target_state])

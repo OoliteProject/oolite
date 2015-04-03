@@ -21,3 +21,4 @@ OO_OXP_VERIFIER_ENABLED        = yes
 OO_LOCALIZATION_TOOLS          = yes
 DEBUG_GRAPHVIZ                 = yes
 OO_JAVASCRIPT_TRACE            = yes
+OO_FOV_BY_KEY_ENABLED          = yes

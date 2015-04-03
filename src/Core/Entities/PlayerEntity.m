@@ -1580,6 +1580,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	NSAssert(gOOPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
 	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
+
+	maxFieldOfView = 4.0;
+	fov_delta = 2.0; // multiply by 2 each second
+	fieldOfView = 0.5;
 	
 	compassMode = COMPASS_MODE_BASIC;
 	
@@ -1619,6 +1623,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
+	fieldOfView = 0.5;
 	unsigned i;
 	
 	showDemoShips = NO;
@@ -2821,6 +2826,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 		[hud setScannerZoom:z1];
 	}
+
+	[UNIVERSE fov:fieldOfView];
 	
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];
@@ -9340,7 +9347,7 @@ static NSString *last_outfitting_key=nil;
 		 @"key_prime_equipment",@"key_activate_equipment",@"key_mode_equipment",
 		 @"key_fastactivate_equipment_a",@"key_fastactivate_equipment_b",@"", //
 		 @"",@"",@"",
-		 @"key_pausebutton",@"key_show_fps",@"key_hud_toggle",
+		 @"key_pausebutton",@"key_show_fps",@"key_hud_toggle",@"key_inc_field_of_view",@"key_dec_field_of_view",
 		nil];
 
 	OOGUIRow row = 0;
@@ -12330,6 +12337,8 @@ else _dockTarget = NO_TARGET;
 	key_gui_arrow_down &&
 	key_increase_speed &&
 	key_decrease_speed &&
+	key_inc_field_of_view &&
+	key_dec_field_of_view &&
 	key_inject_fuel &&
 	key_fire_lasers &&
 	key_launch_missile &&

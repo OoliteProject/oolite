@@ -614,6 +614,9 @@ typedef enum
 	OOKeyCode				key_oxzmanager_showinfo;
 	OOKeyCode				key_oxzmanager_extract;
 	
+	OOKeyCode				key_inc_field_of_view;
+	OOKeyCode				key_dec_field_of_view;
+
 	// save-file
 	NSString				*save_path;
 	NSString				*scenarioKey;
@@ -714,6 +717,10 @@ typedef enum
 	OOLaserShotEntity *lastShot; // used to correctly position laser shots on first frame of firing
 	
 	StickProfileScreen		*stickProfileScreen;
+
+	double					maxFieldOfView;
+	double					fov_delta;
+	double					fieldOfView;
 }
 
 + (PlayerEntity *) sharedPlayer;
