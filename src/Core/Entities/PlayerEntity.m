@@ -1582,7 +1582,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
 
 	maxFieldOfView = 4.0;
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	fov_delta = 2.0; // multiply by 2 each second
+#endif
 	
 	compassMode = COMPASS_MODE_BASIC;
 	

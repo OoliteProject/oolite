@@ -719,8 +719,10 @@ typedef enum
 	StickProfileScreen		*stickProfileScreen;
 
 	double					maxFieldOfView;
-	double					fov_delta;
 	double					fieldOfView;
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
+	double					fov_delta;
+#endif
 }
 
 + (PlayerEntity *) sharedPlayer;
