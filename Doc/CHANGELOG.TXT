@@ -93,6 +93,7 @@ Modified Plists:
 * shipdata.plist: weapon_energy property no longer affects lasers
 * shipdata.plist: model_scale_factor property for easy size variations
 * shipdata.plist: scanner_hostile_display_color1, scanner_hostile_display_color2
+* shipdata.plist: show_damage to control sparks and other damage effects
 * planetinfo.plist: all major properties are now coded into the main
   planetinfo.plist rather than being generated using random numbers.
 * planetinfo.plist: layer property allows overrides of planetinfo to
