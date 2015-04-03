@@ -124,7 +124,7 @@ this.equipmentRemoved = function(equip)
 		if (this.$equipmentDisable[equip])
 		{
 			var info = EquipmentInfo.infoForKey(equip);
-			log(this.name,"Disabling "+info.equipmentKey); //tmp - remove later
+//			log(this.name,"Disabling "+info.equipmentKey); //tmp - remove later
 			var result = this.$equipmentDisable[equip].bind(this,info)();
 			if (result == -1)
 			{
@@ -148,7 +148,7 @@ this.equipmentAdded = function(equip)
 		if (this.$equipmentEnable[equip])
 		{
 			var info = EquipmentInfo.infoForKey(equip);
-			log(this.name,"Enabling "+info.equipmentKey); //tmp - remove later
+//			log(this.name,"Enabling "+info.equipmentKey); //tmp - remove later
 			var result = this.$equipmentEnable[equip].bind(this,info)();
 			if (result == -1)
 			{
