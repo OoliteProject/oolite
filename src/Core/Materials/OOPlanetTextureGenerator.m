@@ -173,7 +173,7 @@ enum
 		}
 		
 #ifndef TEXGEN_TEST_RIG
-		if ([UNIVERSE detailLevel] < DETAIL_LEVEL_SHADERS)
+		if ([UNIVERSE detailLevel] < DETAIL_LEVEL_SHADERS || [planetInfo oo_boolForKey:@"isMiniature" defaultValue:NO])
 		{
 			_planetScale = kPlanetScaleReducedDetail;
 		}
@@ -185,6 +185,7 @@ enum
 		{
 			_planetScale = kPlanetScaleExtraDetail;
 		}
+		OOLog(@"planet.debug",@"Generating planet at scale %d",_planetScale);
 #else
 		_planetScale = kPlanetScale4096x4096;
 #endif

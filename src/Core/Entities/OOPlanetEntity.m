@@ -57,6 +57,7 @@ MA 02110-1301, USA.
 - (void) setUpLandParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 - (void) setUpAtmosphereParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 - (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo isAtmosphere:(BOOL)isAtmosphere;
+- (void) setUpTypeParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 
 @end
 
@@ -70,6 +71,10 @@ MA 02110-1301, USA.
 	[planetInfo autorelease];
 	
 	[planetInfo oo_setBool:YES forKey:@"mainForLocalSystem"];
+	if (s != [PLAYER systemID])
+	{
+		[planetInfo oo_setBool:YES forKey:@"isMiniature"];
+	}
 	return [self initFromDictionary:planetInfo withAtmosphere:[planetInfo oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:[[UNIVERSE systemManager] getRandomSeedForSystem:s inGalaxy:[PLAYER galaxyNumber]] forSystem:s];
 }
 
@@ -100,6 +105,9 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	seed_for_planet_description(seed);
 	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:systemID] mutableCopy];
 	[planetInfo autorelease];
+
+	[self setUpTypeParametersWithSourceInfo:dict targetInfo:planetInfo];
+
 
 	_name = nil;
 	[self setName:OOExpand([dict oo_stringForKey:KEY_PLANETNAME defaultValue:[planetInfo oo_stringForKey:KEY_PLANETNAME defaultValue:@"%H"]])];
@@ -145,7 +153,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		_airColor = [planetInfo objectForKey:@"air_color"];
 		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", nil]];
 	}
 	else
 #else
@@ -158,7 +166,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
 	{
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction",  @"isMiniature",  nil]];
 	}
 	[_materialParameters retain];
 	
@@ -254,6 +262,14 @@ static Vector HSBColorWithColor(OOColor *color)
 static OOColor *ColorWithHSBColor(Vector c)
 {
 	return [OOColor colorWithHue:c.x saturation:c.y brightness:c.z alpha:1.0];
+}
+
+
+- (void) setUpTypeParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
+{
+	[targetInfo oo_setBool:[sourceInfo oo_boolForKey:@"mainForLocalSystem"] forKey:@"mainForLocalSystem"];
+	[targetInfo oo_setBool:[sourceInfo oo_boolForKey:@"isMiniature"] forKey:@"isMiniature"];
+
 }
 
 
