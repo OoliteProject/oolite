@@ -116,6 +116,7 @@ static BOOL				volumeControlPressed;
 #if OOLITE_SDL
 static BOOL				gammaControlPressed;
 #endif
+static BOOL				fovControlPressed;
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
 static BOOL				queryPressed;
@@ -3085,7 +3086,39 @@ static NSTimeInterval	time_last_frame;
 	else
 		gammaControlPressed = NO;
 #endif
-	
+
+
+	if ((guiSelectedRow == GUI_ROW(GAME,FOV))
+		&&(([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])))
+	{
+		if (!fovControlPressed ||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+		{
+			BOOL rightKeyDown = [gameView isDown:key_gui_arrow_right];
+			BOOL leftKeyDown = [gameView isDown:key_gui_arrow_left];
+			float fov = [gameView fov:NO];
+			float fovStep = (MAX_FOV_DEG - MIN_FOV_DEG) / 20.0f;
+			fov += (((rightKeyDown && (fov < MAX_FOV_DEG)) ?
+						fovStep : 0.0f) - ((leftKeyDown && (fov > MIN_FOV_DEG)) ? fovStep : 0.0f));
+			if (fov > MAX_FOV_DEG) fov = MAX_FOV_DEG;
+			if (fov < MIN_FOV_DEG) fov = MIN_FOV_DEG;
+			[gameView setFov:fov fromRadians:NO];
+			fieldOfView = [gameView fov:YES];
+			int fovTicks = (int)((fov - MIN_FOV_DEG) / fovStep);
+			NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
+			NSString* v1_string = @"|||||||||||||||||||||||||";
+			NSString* v0_string = @".........................";
+			v1_string = [v1_string substringToIndex:fovTicks];
+			v0_string = [v0_string substringToIndex:20 - fovTicks];
+			[gui setText:[NSString stringWithFormat:@"%@%@%@ (%d%c) ", fovWordDesc, v1_string, v0_string, (int)fov, 176 /*176 is the degrees symbol ASCII code*/]	forRow:GUI_ROW(GAME,FOV)  align:GUI_ALIGN_CENTER];
+			[[NSUserDefaults standardUserDefaults] setFloat:[gameView fov:NO] forKey:@"fov-value"];
+			timeLastKeyPress = script_time;
+		}
+		fovControlPressed = YES;
+	}
+	else
+		fovControlPressed = NO;
+
+		
 	if ((guiSelectedRow == GUI_ROW(GAME,WIREFRAMEGRAPHICS))&&(([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])))
 	{
 		if ([gameView isDown:key_gui_arrow_right] != [UNIVERSE wireframeGraphics])
@@ -3097,6 +3130,7 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
 	}
 	
+#if !NEW_PLANETS
 	if ((guiSelectedRow == GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS))&&(([gameView isDown:key_gui_arrow_right])||([gameView isDown:key_gui_arrow_left])))
 	{
 		if ([gameView isDown:key_gui_arrow_right] != [UNIVERSE doProcedurallyTexturedPlanets])
@@ -3113,7 +3147,7 @@ static NSTimeInterval	time_last_frame;
 		else
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no")  forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)  align:GUI_ALIGN_CENTER];
 	}
-	
+#endif
 	
 	if (guiSelectedRow == GUI_ROW(GAME,SHADEREFFECTS) && ([gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left]))
 	{

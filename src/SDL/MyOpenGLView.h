@@ -30,6 +30,10 @@ MA 02110-1301, USA.
 
 #include <SDL.h>
 
+#define	MIN_FOV_DEG		30.0f
+#define	MAX_FOV_DEG		80.0f
+#define MIN_FOV			(tan((MIN_FOV_DEG / 2) * M_PI / 180.0f))
+#define MAX_FOV			(tan((MAX_FOV_DEG / 2) * M_PI / 180.0f))
 
 #define MOUSEVIRTUALSTICKSENSITIVITYFACTOR	0.95f
 #define MOUSEX_MAXIMUM 0.6

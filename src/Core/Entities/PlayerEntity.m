@@ -1581,7 +1581,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSAssert(gOOPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
 	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
 
-	maxFieldOfView = 4.0;
+	maxFieldOfView = MAX_FOV;
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	fov_delta = 2.0; // multiply by 2 each second
 #endif
@@ -2828,7 +2828,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[hud setScannerZoom:z1];
 	}
 
-	[[UNIVERSE gameView] setFov:fieldOfView fromRadians:YES];;
+	[[UNIVERSE gameView] setFov:fieldOfView fromRadians:YES];
 	
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];
@@ -8259,6 +8259,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GAMMA)];
 #endif
+
+		// field of view control
+		float fov = [gameView fov:NO];
+		int fovTicks = (int)((fov - MIN_FOV_DEG) * 20 / (MAX_FOV_DEG - MIN_FOV_DEG));
+		NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
+		v1_string = @"|||||||||||||||||||||||||";
+		v0_string = @".........................";
+		v1_string = [v1_string substringToIndex:fovTicks];
+		v0_string = [v0_string substringToIndex:20 - fovTicks];
+		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%d%c) ", fovWordDesc, v1_string, v0_string, (int)fov, 176 /*176 is the degrees symbol ASCII code*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,FOV)];
 		
 #if OOLITE_SPEECH_SYNTH
 		// Speech control

@@ -1549,6 +1549,7 @@
 	"gameoptions-autosave-yes"				= " Autosave: On ";
 	"gameoptions-autosave-no"				= " Autosave: Off ";
 	"gameoptions-gamma-value"				= " Gamma: ";
+	"gameoptions-fov-value"					= " Field Of View: ";
 	"gameoptions-sound-volume"				= " Sound Volume: ";
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
