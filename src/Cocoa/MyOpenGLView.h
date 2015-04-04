@@ -33,6 +33,10 @@ MA 02110-1301, USA.
 #define INTERMEDIATE_CLEAR_DEPTH		100.0
 // 100 m.
 
+#define	MIN_FOV_DEG		30.0f
+#define	MAX_FOV_DEG		80.0f
+#define MIN_FOV			(tan((MIN_FOV_DEG / 2) * M_PI / 180.0f))
+#define MAX_FOV			(tan((MAX_FOV_DEG / 2) * M_PI / 180.0f))
 
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
