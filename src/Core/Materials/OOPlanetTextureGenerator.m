@@ -185,7 +185,6 @@ enum
 		{
 			_planetScale = kPlanetScaleExtraDetail;
 		}
-		OOLog(@"planet.debug",@"Generating planet at scale %d",_planetScale);
 #else
 		_planetScale = kPlanetScale4096x4096;
 #endif
