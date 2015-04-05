@@ -4032,9 +4032,9 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (NSDictionary *) gameSettings
 {
 #if OOLITE_SDL
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:10];
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:11];
 #else
- 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:9];
+ 	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:10];
 #endif
 	
 	[result oo_setInteger:[PLAYER isSpeechOn] forKey:@"speechOn"];
@@ -4044,6 +4044,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 #if OOLITE_SDL
 	[result oo_setFloat:[gameView gammaValue] forKey:@"gammaValue"];
 #endif
+
+	[result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
 	
 	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	
