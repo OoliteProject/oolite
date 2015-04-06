@@ -135,6 +135,7 @@ Properties:
   player.ship.forwardShieldRechargeRate, player.ship.aftShield,
   player.ship.maxAftShield, player.ship.aftShieldRechargeRate are all
   now writable.
+* player.ship.injectorsEngaged and player.ship.torusEngaged
 
 Methods:
 --------

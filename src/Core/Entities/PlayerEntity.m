@@ -3347,6 +3347,18 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 #endif
 
 
+- (BOOL) injectorsEngaged
+{
+	return afterburner_engaged;
+}
+
+
+- (BOOL) hyperspeedEngaged
+{
+	return hyperspeed_engaged;
+}
+
+
 - (void) performInFlightUpdates:(OOTimeDelta)delta_t
 {
 	STAGE_TRACKING_BEGIN

@@ -871,6 +871,9 @@ typedef enum
 #if OO_VARIABLE_TORUS_SPEED
 - (GLfloat) hyperspeedFactor;
 #endif
+- (BOOL) injectorsEngaged;
+- (BOOL) hyperspeedEngaged;
+
 
 - (double) clockTime;			// Note that this is not an OOTimeAbsolute
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute

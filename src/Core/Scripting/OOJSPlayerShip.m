@@ -122,6 +122,7 @@ enum
 	kPlayerShip_galaxyCoordinatesInLY,			// galaxy coordinates (in LY), Vector3D, read only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
+	kPlayerShip_injectorsEngaged,				// injectors in use, boolean, read-only
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
@@ -139,6 +140,7 @@ enum
 	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
+	kPlayerShip_torusEngaged,					// torus in use, boolean, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
 	kPlayerShip_viewPositionAft,					// view position offset, vector, read-only
 	kPlayerShip_viewPositionForward,					// view position offset, vector, read-only
@@ -174,6 +176,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinatesInLY",			kPlayerShip_galaxyCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
+	{ "injectorsEngaged",				kPlayerShip_injectorsEngaged,				OOJS_PROP_READONLY_CB },
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READWRITE_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READWRITE_CB },
@@ -192,6 +195,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
+	{ "torusEngaged",					kPlayerShip_torusEngaged,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionAft",					kPlayerShip_viewPositionAft,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionForward",					kPlayerShip_viewPositionForward,					OOJS_PROP_READONLY_CB },
@@ -415,6 +419,14 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_scoopOverride:
 			*value = OOJSValueFromBOOL([player scoopOverride]);
+			return YES;
+
+		case kPlayerShip_injectorsEngaged:
+			*value = OOJSValueFromBOOL([player injectorsEngaged]);
+			return YES;
+
+		case kPlayerShip_torusEngaged:
+			*value = OOJSValueFromBOOL([player hyperspeedEngaged]);
 			return YES;
 			
 		case kPlayerShip_compassTarget:
