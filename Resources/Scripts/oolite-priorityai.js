@@ -3933,7 +3933,10 @@ PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 	}
 	if (target && (target.scanClass == "CLASS_CARGO" || target.scanClass == "CLASS_BUOY"))
 	{
-		this.ship.removeDefenseTarget(target);
+		if (target.isShip)
+		{
+			this.ship.removeDefenseTarget(target);
+		}
 		this.ship.target = null;
 	}
 	/* Iff the ship does not currently have a target, select a new one
@@ -3944,7 +3947,10 @@ PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 		{
 			return;
 		}
-		this.ship.removeDefenseTarget(target);
+		if (this.ship.target.isShip)
+		{
+			this.ship.removeDefenseTarget(target);
+		}
 		this.ship.target = null;
 	}
 	var dts = this.ship.defenseTargets
@@ -4014,7 +4020,10 @@ PriorityAIController.prototype.configurationAcquireDefensiveEscortTarget = funct
 		{
 			return;
 		}
-		this.ship.removeDefenseTarget(this.ship.target);
+		if (this.ship.target.isShip)
+		{
+			this.ship.removeDefenseTarget(this.ship.target);
+		}
 		this.ship.target = null;
 	}
 
@@ -4060,7 +4069,10 @@ PriorityAIController.prototype.configurationAcquireHostileCombatTarget = functio
 		{
 			return;
 		}
-		this.ship.removeDefenseTarget(this.ship.target);
+		if (this.ship.target.isShip)
+		{
+			this.ship.removeDefenseTarget(this.ship.target);
+		}
 		this.ship.target = null;
 	}
 	var dts = this.ship.defenseTargets
