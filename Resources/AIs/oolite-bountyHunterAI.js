@@ -60,6 +60,10 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourEnterWitchspace,
 			reconsider: 15
 		},
+		{
+			condition: ai.conditionInNovaSpace,
+			truebranch: ai.templateWitchspaceJumpAnywhere()
+		},
 		/* Check for distress calls */
 		{
 			condition: ai.conditionHasReceivedDistressCall,

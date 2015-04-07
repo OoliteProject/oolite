@@ -1919,6 +1919,12 @@ PriorityAIController.prototype.conditionInInterstellarSpace = function()
 }
 
 
+PriorityAIController.prototype.conditionInNovaSpace = function()
+{
+	return system.sun && (system.sun.hasGoneNova || system.sun.isGoingNova);
+}
+
+
 PriorityAIController.prototype.conditionMainPlanetNearby = function()
 {
 	if (!system.mainPlanet)
@@ -6210,6 +6216,10 @@ PriorityAIController.prototype.templateLeadPirateMission = function()
 	return [
 		{
 			label: "Pirate mission",
+			condition: this.conditionInNovaSpace,
+			truebranch: this.templateWitchspaceJumpAnywhere()
+		},
+		{
 			preconfiguration: this.configurationForgetCargoDemand,
 			condition: this.conditionScannerContainsPirateVictims,
 			configuration: this.configurationAcquireScannedTarget,
@@ -6417,8 +6427,8 @@ PriorityAIController.prototype.templateWitchspaceJumpOutbound = function()
 
 PriorityAIController.prototype.waypointsSpacelanePatrol = function()
 {
-	// interstellar space exception
-	if (!system.sun)
+	// nova/interstellar space exception
+	if (!system.sun || !system.mainPlanet)
 	{
 		this.setParameter("oolite_waypoint",new Vector3D(0,0,0));
 		this.setParameter("oolite_waypointRange",7500);
@@ -6577,7 +6587,7 @@ PriorityAIController.prototype.waypointsStationPatrol = function()
 
 PriorityAIController.prototype.waypointsWitchpointPatrol = function()
 {
-	if (this.ship.distanceTravelled > system.mainPlanet.position.z + 200000)
+	if (system.mainPlanet && this.ship.distanceTravelled > system.mainPlanet.position.z + 200000)
 	{
 		this.setParameter("oolite_waypoint",system.mainStation.position);
 		this.setParameter("oolite_waypointRange",10000);

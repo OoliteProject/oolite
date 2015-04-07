@@ -61,6 +61,10 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 5
 		},
+		{
+			condition: ai.conditionInNovaSpace,
+			truebranch: ai.templateWitchspaceJumpAnywhere()
+		},
 		/* Follow targets to witchspace */
 		{
 			condition: ai.conditionWitchspaceEntryRequested,

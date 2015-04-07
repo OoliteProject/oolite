@@ -53,6 +53,10 @@ this.aiStarted = function() {
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 5
 		},
+		{
+			condition: ai.conditionInNovaSpace,
+			truebranch: ai.templateWitchspaceJumpAnywhere()
+		},
 		/* Check for distress calls */
 		{
 			condition: ai.conditionHasReceivedDistressCall,
