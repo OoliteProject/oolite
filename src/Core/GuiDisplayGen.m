@@ -1158,7 +1158,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	if ([eqptList count] == 0) return;
 	
 	OOGUIRow		firstRow = STATUS_EQUIPMENT_FIRST_ROW;
-	NSUInteger		itemsPerColumn = STATUS_EQUIPMENT_MAX_ROWS;
+	NSUInteger		maxRows = STATUS_EQUIPMENT_MAX_ROWS;
+	if ([[PLAYER hud] allowBigGui])
+	{
+		maxRows += 6;
+	}
+	NSUInteger		itemsPerColumn = maxRows;
+
 
 	NSInteger		firstY = 40;	// firstRow =10 :-> 40  - firstRow=11 -> 24 etc...
 	NSUInteger		eqptCount = [eqptList count];
@@ -1219,20 +1225,20 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	if (statusPage < pageCount)
 	{
-		[self setColor:[self colorFromSetting:kGuiStatusEquipmentScrollColor defaultValue:[OOColor greenColor]] forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
-		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
-		[self setKey:GUI_KEY_OK forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setColor:[self colorFromSetting:kGuiStatusEquipmentScrollColor defaultValue:[OOColor greenColor]] forRow:firstRow + maxRows];
+		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:firstRow + maxRows];
+		[self setKey:GUI_KEY_OK forRow:firstRow + maxRows];
 		if (statusPage == 1)
 		{
-			[self setSelectableRange:NSMakeRange(firstRow + STATUS_EQUIPMENT_MAX_ROWS, 1)];
-			[self setSelectedRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+			[self setSelectableRange:NSMakeRange(firstRow + maxRows, 1)];
+			[self setSelectedRow:firstRow + maxRows];
 		}
 	}
 	if (statusPage > 1 && statusPage < pageCount)
 	{
-		[self setSelectableRange:NSMakeRange(firstRow, firstRow + STATUS_EQUIPMENT_MAX_ROWS)];
+		[self setSelectableRange:NSMakeRange(firstRow, firstRow + maxRows)];
 		// default selected row to 'More -->' if we are looking at one of the middle pages
-		if ([self selectedRow] == -1)  [self setSelectedRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+		if ([self selectedRow] == -1)  [self setSelectedRow:firstRow + maxRows];
 	}
 
 	if (statusPage == 1 || statusPage == pageCount) itemsPerColumn++;
