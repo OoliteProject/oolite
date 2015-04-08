@@ -1278,6 +1278,9 @@
 	"oolite-keydesc-key_show_fps"				= "Show FPS";
 	"oolite-keydesc-key_mouse_control"			= "Mouse control";
 	"oolite-keydesc-key_hud_toggle"				= "Toggle HUD";
+	
+	"oolite-keydesc-key_inc_field_of_view"		= "Increase FOV";
+	"oolite-keydesc-key_dec_field_of_view"		= "Decrease FOV";
 
 	"oolite-keydesc-key_comms_log"				= "Comms log";
 	"oolite-keydesc-key_prev_compass_mode"		= "ASC back";

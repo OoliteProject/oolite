@@ -9370,8 +9370,12 @@ static NSString *last_outfitting_key=nil;
 		 @"",@"",@"",
 		 @"key_prime_equipment",@"key_activate_equipment",@"key_mode_equipment",
 		 @"key_fastactivate_equipment_a",@"key_fastactivate_equipment_b",@"", //
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
+		@"key_inc_field_of_view",@"key_dec_field_of_view",@"",
+#else
 		 @"",@"",@"",
-		 @"key_pausebutton",@"key_show_fps",@"key_hud_toggle",@"key_inc_field_of_view",@"key_dec_field_of_view",
+#endif
+		 @"key_pausebutton",@"key_show_fps",@"key_hud_toggle",
 		nil];
 
 	OOGUIRow row = 0;
