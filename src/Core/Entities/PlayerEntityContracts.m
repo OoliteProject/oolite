@@ -1099,17 +1099,21 @@ for (unsigned i=0;i<amount;i++)
 {
 	// check  contracts
 	NSMutableArray	*result = [NSMutableArray arrayWithCapacity:5];
-	NSString		*formatString = (forCargo||forParcels) ? DESC(@"manifest-deliver-@-to-@within-@")
-											: DESC(@"manifest-@-travelling-to-@-to-arrive-within-@");
+	NSString		*formatString = (forCargo||forParcels) ? @"oolite-manifest-item-delivery" : @"oolite-manifest-person-travelling";
 	unsigned i;
 	for (i = 0; i < [contracts_array count]; i++)
 	{
 		NSDictionary* contract_info = (NSDictionary *)[contracts_array objectAtIndex:i];
 		NSString* label = [contract_info oo_stringForKey:forCargo ? CARGO_KEY_DESCRIPTION : PASSENGER_KEY_NAME];
 		// the system name can change via script. The following PASSENGER_KEYs are identical to the corresponding CONTRACT_KEYs
-		NSString* dest_name = [UNIVERSE getSystemName: [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION]];
+		NSString* destination = [UNIVERSE getSystemName: [contract_info oo_intForKey:CONTRACT_KEY_DESTINATION]];
 		int dest_eta = [contract_info oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
-		[result addObject:[NSString stringWithFormat:formatString, label, dest_name, [UNIVERSE shortTimeDescription:dest_eta]]];
+		NSString *deadline = [UNIVERSE shortTimeDescription:dest_eta];
+
+		OOCreditsQuantity fee = [contract_info oo_intForKey:CONTRACT_KEY_FEE];
+
+		[result addObject:OOExpandKey(formatString, label, destination, deadline, fee)];
+
 	}
 	
 	return result;

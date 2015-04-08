@@ -1730,6 +1730,10 @@
 	"manifest-missions"				= "Missions:";
 	"manifest-@-travelling-to-@-to-arrive-within-@"	= "%@ travelling to %@ to arrive within %@.";
 	"manifest-deliver-@-to-@within-@"	= "Deliver %@ to %@ within %@.";
+
+	"oolite-manifest-person-travelling"	= "[label] travelling to [destination] to arrive within [deadline] for [fee] ₢.";
+	"oolite-manifest-item-delivery"	= "Deliver [label] to [destination] within [deadline] for [fee] ₢.";
+
 	
 	// Shipyard screen
 	"shipyard-title"				= "[system] Ships For Sale";

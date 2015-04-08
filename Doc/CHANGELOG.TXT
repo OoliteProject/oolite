@@ -202,6 +202,8 @@ a placeholder like %@ or %d has been replaced with one like [destination] or
 * equipment-plural-d-d-@ -> equipment-plural-some-na
 * manifest-cargo-quantity-format -> manifest-cargo-quantity
 * manifest-cargo-quantity-format2 -> manifest-cargo-quantity-extended
+* manifest-@-travelling-to-@-to-arrive-within-@ -> oolite-manifest-person-travelling
+* manifest-deliver-@-to-@within-@ -> oolite-manifest-item-delivery
 * charts-distance-f -> charts-distance
 * charts-est-travel-time-f -> charts-est-travel-time
 * short-range-chart-distance-f -> short-range-chart-distance
