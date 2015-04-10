@@ -145,6 +145,10 @@ void OOPrintLogHeader(void)
 		#endif
 	#endif
 	
+	#if OO_FOV_INFLIGHT_CONTROL_ENABLED
+		@"FOV in-flight control",
+	#endif
+	
 		nil];
 	
 	// systemString: NSString with system type and possibly version.
