@@ -3431,7 +3431,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	p1 = HPVectorToVector(HPvector_subtract([target position], [player1 viewpointPosition]));
 	
 	GLfloat			rdist = magnitude(p1);
-	GLfloat			rsize = [target collisionRadius];
+	GLfloat			rsize = [target collisionRadius] / (2 * [[UNIVERSE gameView] fov:true]); // FIXME integrate 2 into fov to remove magic number
 	
 	if (rsize < rdist * scale)
 		rsize = rdist * scale;
@@ -3661,10 +3661,14 @@ static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, G
 
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 {
-	OOMatrix		back_mat;
 	Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
+
+	// The field of view transformation is really a scale operation on the view window.
+	// We must unapply it through these transformations for them to be right.
+	float ratio = 2 * [[UNIVERSE gameView] fov:true]; // FIXME 2 is magic number; fov should integrate it
+	OOGLScaleModelView(make_vector(1/ratio, 1/ratio, 1.0f));
 
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
@@ -3697,17 +3701,17 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 			break;
 	}
 	OOGLLookAt(view_dir, kZeroVector, view_up);
-	
-	back_mat = OOMatrixForQuaternionRotation(back_q);
-	
+
 	// rotate the view
 	OOGLMultModelView([player1 rotationMatrix]);
 	// translate the view
 	OOGLTranslateModelView(p1);
-	//rotate to face player1
-	OOGLMultModelView(back_mat);
-	// draw the waypoint
+	// rotate to face player1
+	OOGLMultModelView(OOMatrixForQuaternionRotation(back_q));
 
+	// We come back now to the previous scale.
+	OOGLScaleModelView(make_vector(ratio, ratio, 1.0f));
+	// draw the waypoint
 }
 
 
