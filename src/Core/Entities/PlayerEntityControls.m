@@ -3113,7 +3113,7 @@ static NSTimeInterval	time_last_frame;
 						fovStep : 0.0f) - ((leftKeyDown && (fov > MIN_FOV_DEG)) ? fovStep : 0.0f));
 			if (fov > MAX_FOV_DEG) fov = MAX_FOV_DEG;
 			if (fov < MIN_FOV_DEG) fov = MIN_FOV_DEG;
-			[gameView setFov:fov fromRadians:NO];
+			[gameView setFov:fov fromFraction:NO];
 			fieldOfView = [gameView fov:YES];
 			int fovTicks = (int)((fov - MIN_FOV_DEG) / fovStep);
 			NSString* fovWordDesc = DESC(@"gameoptions-fov-value");

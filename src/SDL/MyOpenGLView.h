@@ -285,8 +285,8 @@ extern int debug;
 - (void) setGammaValue: (float) value;
 - (float) gammaValue;
 
-- (void) setFov:(float)value fromRadians:(BOOL)fromRadians;
-- (float) fov:(BOOL)inRadians;
+- (void) setFov:(float)value fromFraction:(BOOL)fromFraction;
+- (float) fov:(BOOL)inFraction;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;

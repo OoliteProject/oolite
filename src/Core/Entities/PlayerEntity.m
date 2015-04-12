@@ -2828,7 +2828,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[hud setScannerZoom:z1];
 	}
 
-	[[UNIVERSE gameView] setFov:fieldOfView fromRadians:YES];
+	[[UNIVERSE gameView] setFov:fieldOfView fromFraction:YES];
 	
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];
