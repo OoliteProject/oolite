@@ -1408,11 +1408,17 @@ static NSTimeInterval	time_last_frame;
 			// Field of view controls
 			if (![UNIVERSE displayGUI])
 			{
-				if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < maxFieldOfView))
+				if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < MAX_FOV))
+				{
 					fieldOfView *= pow(fov_delta, delta_t);
+					if (fieldOfView > MAX_FOV)  fieldOfView = MAX_FOV;
+				}
 
-				if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]))
+				if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]) && (fieldOfView > MIN_FOV))
+				{
 					fieldOfView /= pow(fov_delta, delta_t);
+					if (fieldOfView < MIN_FOV)  fieldOfView = MIN_FOV;
+				}
 
 				NSDictionary *functionForFovAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]];
 				if ([stickHandler joystickCount] != 0 && functionForFovAxis != nil)
@@ -1420,9 +1426,15 @@ static NSTimeInterval	time_last_frame;
 					// TODO think reqFov through
 					double reqFov = [stickHandler getAxisState: AXIS_FIELD_OF_VIEW];
 					if (fieldOfView < maxFieldOfView * reqFov)
+					{
 						fieldOfView *= pow(fov_delta, delta_t);
+						if (fieldOfView > MAX_FOV)  fieldOfView = MAX_FOV;
+					}
 					if (fieldOfView > maxFieldOfView * reqFov)
+					{
 						fieldOfView /= pow(fov_delta, delta_t);
+						if (fieldOfView < MIN_FOV)  fieldOfView = MIN_FOV;
+					}
 				}
 			}
 #endif
