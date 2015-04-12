@@ -25,6 +25,11 @@ General:
 * Keyboard settings can be viewed from game options
 * Scrape damage now does not automatically mine asteroids
 * Extra detail graphics mode now has more detailed planet textures
+* Field of View added as a game option
+* Windows port: Improved multi-monitor support
+* Windows port: Added support for grabbing mouse inside the game window when
+  mouse control is active
+* Windows and Linux ports: V-Sync can now be controlled via user preferences
 
 Graphics:
 =========
@@ -136,6 +141,7 @@ Properties:
   player.ship.maxAftShield, player.ship.aftShieldRechargeRate are all
   now writable.
 * player.ship.injectorsEngaged and player.ship.torusEngaged
+* system.ambientLevel
 
 Methods:
 --------
@@ -286,6 +292,9 @@ Bug fixes:
   file one. Fixes unexpected gamma resets when starting a new game.
 * Windows port: Fixed unnecessary double OpenGL initializations under
   certain resize window conditions.
+* Windows port: Fixed bugs in handling a maximized game window.
+* Windows and Linux ports: Fix for inability to unset joystick buttons
+  beyond 16.
 * Fix return type of EquipmentInfo.requiredCargoSpace
 * Handle sun glare correctly also for too tall or too wide game windows.
 * Redefining the currently selected waypoint no longer resets the compass
