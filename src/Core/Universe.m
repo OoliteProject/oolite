@@ -2753,7 +2753,10 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		// always, even if it's the cobra, because it's repositioned
 		[self removeDemoShips];
 	}
-	[player setStatus: STATUS_START_GAME];
+	if (justCobra)
+	{
+		[player setStatus: STATUS_START_GAME];
+	}
 	[player setShowDemoShips: YES];
 	displayGUI = YES;
 	
@@ -6519,7 +6522,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			time_delta = delta_t;
 			universal_time += delta_t;
 			
-			if (EXPECT_NOT([player showDemoShips] && [player guiScreen] == GUI_SCREEN_INTRO2))
+			if (EXPECT_NOT([player showDemoShips] && [player guiScreen] == GUI_SCREEN_SHIPLIBRARY))
 			{
 				update_stage = @"demo management";
 				

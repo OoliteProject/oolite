@@ -2381,8 +2381,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self updateTrumbles:delta_t];
 	
 	OOEntityStatus status = [self status];
-	if (EXPECT_NOT(status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2 && gui_screen != GUI_SCREEN_NEWGAME && gui_screen != GUI_SCREEN_OXZMANAGER && gui_screen != GUI_SCREEN_LOAD && gui_screen != GUI_SCREEN_KEYBOARD))
+	/* Validate that if the status is STATUS_START_GAME we're on one
+	 * of the few GUI screens which that makes sense for */
+	if (EXPECT_NOT(status == STATUS_START_GAME && 
+				   gui_screen != GUI_SCREEN_INTRO1 && 
+				   gui_screen != GUI_SCREEN_SHIPLIBRARY && 
+				   gui_screen != GUI_SCREEN_NEWGAME && 
+				   gui_screen != GUI_SCREEN_OXZMANAGER && 
+				   gui_screen != GUI_SCREEN_LOAD && 
+				   gui_screen != GUI_SCREEN_KEYBOARD))
 	{
+		// and if not, do a restart of the GUI
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
 		[self setGuiToIntroFirstGo:YES];	//set up demo mode
 	}
@@ -3205,7 +3214,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			// Screens where no world script tickles are performed
 			case GUI_SCREEN_MAIN:
 			case GUI_SCREEN_INTRO1:
-			case GUI_SCREEN_INTRO2:
+			case GUI_SCREEN_SHIPLIBRARY:
 			case GUI_SCREEN_KEYBOARD:
 			case GUI_SCREEN_NEWGAME:
 			case GUI_SCREEN_OXZMANAGER:
@@ -9306,9 +9315,12 @@ static NSString *last_outfitting_key=nil;
 	
 	if (gui != nil)  
 	{
-		gui_screen = justCobra ? GUI_SCREEN_INTRO1 : GUI_SCREEN_INTRO2;
+		gui_screen = justCobra ? GUI_SCREEN_INTRO1 : GUI_SCREEN_SHIPLIBRARY;
 	}
-	[[OOMusicController sharedController] playThemeMusic];
+	if ([self status] == STATUS_START_GAME)
+	{
+		[[OOMusicController sharedController] playThemeMusic];
+	}
 	
 	[self setShowDemoShips:YES];
 	if (justCobra)

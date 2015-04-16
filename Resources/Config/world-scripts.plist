@@ -13,6 +13,7 @@
 	"oolite-contracts-passengers.js",
 	"oolite-primable-equipment-manager.js",
 	"oolite-registership.js",
+	"oolite-ship-library.js",
 
   /* Missions */
 	"oolite-constrictor-hunt-mission.js",

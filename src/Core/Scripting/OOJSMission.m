@@ -45,6 +45,7 @@ static JSBool MissionAddMessageText(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionSetInstructions(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionSetInstructionsKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp);
+static JSBool MissionRunShipLibrary(JSContext *context, uintN argc, jsval *vp);
 
 static JSBool MissionSetInstructionsInternal(JSContext *context, uintN argc, jsval *vp, BOOL isKey);
 
@@ -98,6 +99,7 @@ static JSFunctionSpec sMissionMethods[] =
 	{ "setInstructions",		MissionSetInstructions,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
 	{ "unmarkSystem",			MissionUnmarkSystem,		1 },
+	{ "runShipLibrary",			MissionRunShipLibrary,		0 },
 	{ 0 }
 };
 
@@ -498,8 +500,10 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	JSObject			*params = NULL;
 	
 	// No mission screens during intro.
-	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
+	if ([player status] == STATUS_START_GAME)
 	{
+		// (though no JS should be loaded at this stage, so this
+		// check may be obsolete - CIM)
 		OOJS_RETURN_BOOL(NO);
 	}
 	
@@ -706,6 +710,28 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	OOJSResumeTimeLimiter();
 	
 	OOJS_RETURN_BOOL(YES);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool MissionRunShipLibrary(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity	*player = OOPlayerForScripting();
+	BOOL			OK = YES;
+	if ([player status] != STATUS_DOCKED)
+	{
+		OOJSReportWarning(context, @"Mission.runShipLibrary: must be docked.");
+		OK = NO;
+	}
+	else
+	{
+		[PLAYER setGuiToIntroFirstGo:NO];
+	}
+	
+	OOJS_RETURN_BOOL(OK);
 	
 	OOJS_NATIVE_EXIT
 }

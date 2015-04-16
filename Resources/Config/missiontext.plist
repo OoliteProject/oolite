@@ -169,6 +169,11 @@
 	"oolite-registership-title-part3" = "Thank you for completing registration";
 	"oolite-registership-instructions-part3" = "Thank you. Your selected personal name and new ship name have been recorded, and will be transmitted to public ship registries in the next daily feed.\n\nIf at any point you wish to change either your own name or that of your ship, you may do so by docking at any Galactic Cooperative station, returning to this interface and entering the new data.";
 
+	// ship library management
+	"oolite-shiplibrary-interface-title" = "View Ship Specifications";
+	"oolite-shiplibrary-interface-category" = "[interfaces-category-ship-systems]";
+	"oolite-shiplibrary-interface-summary" = "View specifications of known ships and space objects in the Cooperative databases.";
+
 	// primable equipment management
 	"oolite-primablemanager-interface-title" = "Manage primable equipment";
 	"oolite-primablemanager-interface-category" = "[interfaces-category-ship-systems]";
