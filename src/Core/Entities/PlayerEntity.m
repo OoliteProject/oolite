@@ -1581,7 +1581,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSAssert(gOOPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
 	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
 
-	maxFieldOfView = MAX_FOV;
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	fov_delta = 2.0; // multiply by 2 each second
 #endif
@@ -1624,7 +1623,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
-	fieldOfView = [[UNIVERSE gameView] fov:YES];
 	unsigned i;
 	
 	showDemoShips = NO;
@@ -2837,8 +2835,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[hud setScannerZoom:z1];
 	}
 
-	[[UNIVERSE gameView] setFov:fieldOfView fromFraction:YES];
-	
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];
 	if (primeTarget && HPdistance2([primeTarget position], [self position]) > SCANNER_MAX_RANGE2 && !autopilot_engaged)
@@ -12434,6 +12430,16 @@ else _dockTarget = NO_TARGET;
 	_missionTextEntry;
 }
 #endif
+
+- (void) viewFov:(float)fovDegrees
+{
+	[[UNIVERSE gameView] setFov:fovDegrees fromFraction:NO];
+}
+
+- (float) viewFov
+{
+	return [[UNIVERSE gameView] fov:NO];
+}
 
 @end
 

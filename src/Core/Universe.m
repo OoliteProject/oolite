@@ -4048,7 +4048,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	[result oo_setFloat:[gameView gammaValue] forKey:@"gammaValue"];
 #endif
 
-	[result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	[result oo_setFloat:[prefs oo_floatForKey:@"fov-value" defaultValue:57.2f] forKey:@"fovValue"];
 	
 	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	

@@ -146,6 +146,7 @@ enum
 	kPlayerShip_viewPositionForward,					// view position offset, vector, read-only
 	kPlayerShip_viewPositionPort,					// view position offset, vector, read-only
 	kPlayerShip_viewPositionStarboard,					// view position offset, vector, read-only
+	kPlayerShip_viewFov,						// view fov in degrees, positive float, read/write
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
 	kPlayerShip_yaw,							// yaw (overrules Ship)
 };
@@ -201,6 +202,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "viewPositionForward",					kPlayerShip_viewPositionForward,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionPort",					kPlayerShip_viewPositionPort,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionStarboard",					kPlayerShip_viewPositionStarboard,					OOJS_PROP_READONLY_CB },
+	{ "viewFov",						kPlayerShip_viewFov,						OOJS_PROP_READWRITE_CB },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
 	{ "yaw",							kPlayerShip_yaw,							OOJS_PROP_READONLY_CB },
 	{ 0 }			
@@ -469,6 +471,9 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_viewPositionStarboard:
 			return VectorToJSValue(context, [player viewpointOffsetStarboard], value);
 
+		case kPlayerShip_viewFov:
+			return JS_NewNumberValue(context, [player viewFov], value);
+
 		case kPlayerShip_currentWeapon:
 			result = [player weaponTypeForFacing:[player currentWeaponFacing] strict:NO];
 			break;
@@ -709,7 +714,15 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				[player adjustTradeInFactorBy:(newLevel-[player tradeInFactor])];
 				return YES;
 			}
-			
+
+		case kPlayerShip_viewFov:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[player viewFov:fValue];
+				return YES;
+			}
+			break;
+
 		case kPlayerShip_currentWeapon:
 		{
 			BOOL exists = NO;
