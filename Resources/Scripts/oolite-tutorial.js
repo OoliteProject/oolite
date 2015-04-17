@@ -411,7 +411,7 @@ this.startUp = function()
 	}
 
 
-	this.$HUDSelectors = ["drawEnergyGauge:","drawForwardShieldBar:","drawAftShieldBar:","drawSpeedBar:","drawRollBar:","drawPitchBar:","drawYellowSurround:","drawFuelBar:","drawCabinTempBar:","drawWeaponTempBar:","drawAltitudeBar:","drawMissileDisplay:","drawStatusLight:","drawClock:","drawCompass:","drawScanner:","drawScannerZoomIndicator:"];
+	this.$HUDSelectors = ["drawEnergyGauge:","drawForwardShieldBar:","drawAftShieldBar:","drawSpeedBar:","drawRollBar:","drawPitchBar:","drawSurround:","drawFuelBar:","drawCabinTempBar:","drawWeaponTempBar:","drawAltitudeBar:","drawMissileDisplay:","drawStatusLight:","drawClock:","drawCompass:","drawScanner:","drawScannerZoomIndicator:"];
 	this.$HUDHighlighter = null;
 	this.$HUDHighlighterSelector = null;	
 	this.$HUDHighlighterCycles = 10;
@@ -604,7 +604,7 @@ this.startUp = function()
 	{
 		player.ship.fuel = 5;
 		this._setInstructions("oolite-tutorial-1-7");
-		this._showHUDItem("drawYellowSurround:");
+		this._showHUDItem("drawSurround:");
 		this._showHUDItem("drawFuelBar:");
 	}
 
