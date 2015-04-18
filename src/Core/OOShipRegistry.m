@@ -41,6 +41,7 @@ SOFTWARE.
 #import "OOStringExpander.h"
 #import "OOShipLibraryDescriptions.h"
 #import "Universe.h"
+#import "OOJSScript.h"
 
 #import "OODebugStandards.h"
 
@@ -58,7 +59,6 @@ static OOShipRegistry	*sSingleton = nil;
 static NSString * const	kShipRegistryCacheName = @"ship registry";
 static NSString * const	kShipDataCacheKey = @"ship data";
 static NSString * const	kPlayerShipsCacheKey = @"player ships";
-static NSString * const	kDemoShipsCacheKey = @"demo ships";
 static NSString * const	kRoleWeightsCacheKey = @"role weights";
 static NSString * const	kDefaultDemoShip = @"coriolis-station";
 static NSString * const	kVisualEffectRegistryCacheName = @"visual effect registry";
@@ -68,6 +68,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 @interface OOShipRegistry (OODataLoader)
 
 - (void) loadShipData;
+- (void) loadDemoShipConditions;
 - (void) loadDemoShips;
 - (void) loadCachedRoleProbabilitySets;
 - (void) buildRoleProbabilitySets;
@@ -169,14 +170,11 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			}
 		}
 		
-		_demoShips = [[cache objectForKey:kDemoShipsCacheKey inCache:kShipRegistryCacheName] retain];
+		[self loadDemoShipConditions];
+		[self loadDemoShips]; // testing only
 		if ([_demoShips count] == 0)
 		{
-			[self loadDemoShips];
-			if ([_demoShips count] == 0)
-			{
-				[NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load or synthesize any demo ships."];
-			}
+			[NSException raise:@"OOShipRegistryLoadFailure" format:@"Could not load or synthesize any demo ships."];
 		}
 		
 		[self loadCachedRoleProbabilitySets];
@@ -233,7 +231,10 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 - (NSArray *) demoShipKeys
 {
-	return _demoShips;
+	// with condition scripts in use, can't cache this value
+	[self loadDemoShips];
+
+	return [[_demoShips copy] autorelease]; 
 }
 
 
@@ -380,6 +381,32 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 }
 
 
+- (void) loadDemoShipConditions
+{
+	NSMutableArray *conditionScripts = [[NSMutableArray alloc] init];
+	NSEnumerator			*enumerator = nil;
+	NSDictionary			*key = nil;
+	NSArray					*initialDemoShips = nil;
+
+	initialDemoShips = [ResourceManager arrayFromFilesNamed:@"shiplibrary.plist"
+												   inFolder:@"Config"
+												   andMerge:YES
+													  cache:NO];
+
+	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )
+	{
+		NSString *conditions = [key oo_stringForKey:kOODemoShipConditions defaultValue:nil];
+		if (conditions != nil)
+		{
+			[conditionScripts addObject:conditions];
+		}
+	}
+
+	[[OOCacheManager sharedCache] setObject:conditionScripts forKey:@"demoship conditions" inCache:@"condition scripts"];
+	[conditionScripts release];
+}
+
+
 /*	-loadDemoShips
 	
 	Load demoships.plist, and filter out non-existent ships. If no existing
@@ -393,8 +420,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	NSArray					*initialDemoShips = nil;
 	NSMutableArray			*demoShips = nil;
 	
-	[_demoShips release];
-	_demoShips = nil;
+	DESTROY(_demoShips);
 	
 	initialDemoShips = [ResourceManager arrayFromFilesNamed:@"shiplibrary.plist"
 												   inFolder:@"Config"
@@ -405,9 +431,50 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	// Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
 	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )
 	{
-		if (![key isKindOfClass:[NSDictionary class]] || [self shipInfoForKey:[key oo_stringForKey:kOODemoShipKey]] == nil)
+		NSString *shipKey = [key oo_stringForKey:kOODemoShipKey];
+		if (![key isKindOfClass:[NSDictionary class]] || [self shipInfoForKey:shipKey] == nil)
 		{
 			[demoShips removeObject:key];
+		}
+		else 
+		{
+			NSString *conditions = [key oo_stringForKey:kOODemoShipConditions defaultValue:nil];
+			if (conditions != nil)
+			{
+				if ([PLAYER status] == STATUS_START_GAME)
+				{
+					// conditions always false here
+					[demoShips removeObject:key];
+				}
+				else
+				{
+					OOJSScript *condScript = [UNIVERSE getConditionScript:conditions];
+					if (condScript != nil) // should always be non-nil, but just in case
+					{
+						JSContext			*context = OOJSAcquireContext();
+						BOOL OK;
+						JSBool allow_use;
+						jsval result;
+						jsval args[] = { OOJSValueFromNativeObject(context, shipKey) };
+						
+						OK = [condScript callMethod:OOJSID("allowShowLibraryShip")
+										  inContext:context
+									  withArguments:args count:sizeof args / sizeof *args
+											 result:&result];
+
+						if (OK) OK = JS_ValueToBoolean(context, result, &allow_use);
+			
+						OOJSRelinquishContext(context);
+						if (OK && !allow_use)
+						{
+							/* if the script exists, the function exists, the function
+							 * returns a bool, and that bool is false, hide the
+							 * ship. Otherwise allow it as default */
+							[demoShips removeObject:key];
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -461,7 +528,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 	// and then sort the ship list list by class name
 	_demoShips = [[[demoList allValues] sortedArrayUsingFunction:SortDemoCategoriesByName context:NULL] retain];
-	[[OOCacheManager sharedCache] setObject:_demoShips forKey:kDemoShipsCacheKey inCache:kShipRegistryCacheName];
 }
 
 

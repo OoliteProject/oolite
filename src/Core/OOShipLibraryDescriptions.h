@@ -40,6 +40,7 @@ static NSString * const kOODemoShipShields		= @"shields";
 static NSString * const kOODemoShipWitchspace	= @"witchspace";
 static NSString * const kOODemoShipWeapons		= @"weapons";
 static NSString * const kOODemoShipSize			= @"size";
+static NSString * const kOODemoShipConditions	= @"condition_script";
 
 NSString *OOShipLibraryCategorySingular(NSString *category);
 NSString *OOShipLibraryCategoryPlural(NSString *category);
