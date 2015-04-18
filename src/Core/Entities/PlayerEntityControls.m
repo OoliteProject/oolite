@@ -2177,7 +2177,7 @@ static NSTimeInterval	time_last_frame;
 				if ((guiSelectedRow == GUI_ROW(,BEGIN_NEW))&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
-					[UNIVERSE reinitAndShowDemo:YES];
+					[UNIVERSE setUseAddOns:SCENARIO_OXP_DEFINITION_ALL fromSaveGame:NO forceReinit:YES]; // calls reinitAndShowDemo
 				}
 				
 				if ([gameView isDown:gvMouseDoubleClick])
