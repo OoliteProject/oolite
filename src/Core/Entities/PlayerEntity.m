@@ -8176,11 +8176,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+static NSString *SliderString(NSInteger amountIn20ths)
+{
+	NSString *filledSlider = [@"|||||||||||||||||||||||||" substringToIndex:amountIn20ths];
+	NSString *emptySlider =  [@"........................." substringToIndex:20 - amountIn20ths];
+	return [NSString stringWithFormat:@"%@%@", filledSlider, emptySlider];
+}
+
+
 - (void) setGuiToGameOptionsScreen
 {
-#ifdef GNUSTEP
-	MyOpenGLView	*gameView = [UNIVERSE gameView];
-#endif
+	MyOpenGLView *gameView = [UNIVERSE gameView];
 	
 	[[UNIVERSE gameView] clearMouse];
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
@@ -8252,12 +8258,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			double volume = 100.0 * [OOSound masterVolume];
 			int vol = (volume / 5.0 + 0.5); // avoid rounding errors
 			NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");
-			NSString* v1_string = @"|||||||||||||||||||||||||";
-			NSString* v0_string = @".........................";
-			v1_string = [v1_string substringToIndex:vol];
-			v0_string = [v0_string substringToIndex:20 - vol];
 			if (vol > 0)
-				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string] forRow:GUI_ROW(GAME,VOLUME) align:GUI_ALIGN_CENTER];
+				[gui setText:[NSString stringWithFormat:@"%@%@ ", soundVolumeWordDesc, SliderString(vol)] forRow:GUI_ROW(GAME,VOLUME) align:GUI_ALIGN_CENTER];
 			else
 				[gui setText:DESC(@"gameoptions-sound-volume-mute") forRow:GUI_ROW(GAME,VOLUME) align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,VOLUME)];
@@ -8273,11 +8275,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		float gamma = [gameView gammaValue];
 		int gamma5 = (gamma * 5);
 		NSString* gammaWordDesc = DESC(@"gameoptions-gamma-value");
-		NSString* v1_string = @"|||||||||||||||||||||||||";
-		NSString* v0_string = @".........................";
-		v1_string = [v1_string substringToIndex:gamma5];
-		v0_string = [v0_string substringToIndex:20 - gamma5];
-		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%.1f) ", gammaWordDesc, v1_string, v0_string, gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
+		[gui setText:[NSString stringWithFormat:@"%@%@ (%.1f) ", gammaWordDesc, SliderString(gamma5), gamma] forRow:GUI_ROW(GAME,GAMMA) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,GAMMA)];
 #endif
 
@@ -8285,11 +8283,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		float fov = [gameView fov:NO];
 		int fovTicks = (int)((fov - MIN_FOV_DEG) * 20 / (MAX_FOV_DEG - MIN_FOV_DEG));
 		NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
-		v1_string = @"|||||||||||||||||||||||||";
-		v0_string = @".........................";
-		v1_string = [v1_string substringToIndex:fovTicks];
-		v0_string = [v0_string substringToIndex:20 - fovTicks];
-		[gui setText:[NSString stringWithFormat:@"%@%@%@ (%d%c) ", fovWordDesc, v1_string, v0_string, (int)fov, 176 /*176 is the degrees symbol ASCII code*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
+		[gui setText:[NSString stringWithFormat:@"%@%@ (%d%c) ", fovWordDesc, SliderString(fovTicks), (int)fov, 176 /*176 is the degrees symbol ASCII code*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,FOV)];
 		
 #if OOLITE_SPEECH_SYNTH
