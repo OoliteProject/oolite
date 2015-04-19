@@ -1153,8 +1153,13 @@ for (unsigned i=0;i<amount;i++)
 		OOGUIRow	cargoRow = 2;
 		OOGUIRow	missionsRow = 2;
 		
+		OOGUIRow	nextPageRow = MANIFEST_SCREEN_ROW_NEXT;
 		// show extra lines if no HUD is displayed.
-		if ([[self hud] isHidden]) max_rows += 7;
+		if ([[self hud] isHidden] || [[self hud] allowBigGui])
+		{
+			max_rows += 7;
+			nextPageRow += 7;
+		}
 
 		NSUInteger mmRows = 0;
 		id mmEntry = nil;
@@ -1286,7 +1291,7 @@ for (unsigned i=0;i<amount;i++)
 		if (multi_page)
 		{
 			OOGUIRow r_start = MANIFEST_SCREEN_ROW_BACK;
-			OOGUIRow r_end = MANIFEST_SCREEN_ROW_NEXT;
+			OOGUIRow r_end = nextPageRow;
 			if (page_offset > 0)
 			{
 				[gui setColor:scrollColor forRow:MANIFEST_SCREEN_ROW_BACK];
@@ -1295,21 +1300,21 @@ for (unsigned i=0;i<amount;i++)
 			else
 			{
 				[gui setColor:noScrollColor forRow:MANIFEST_SCREEN_ROW_BACK];
-				r_start = MANIFEST_SCREEN_ROW_NEXT;
+				r_start = nextPageRow;
 			}
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ",nil] forRow:MANIFEST_SCREEN_ROW_BACK];
 
 			if (total_rows > max_rows + page_offset)
 			{
-				[gui setColor:scrollColor forRow:MANIFEST_SCREEN_ROW_NEXT];
-				[gui setKey:GUI_KEY_OK forRow:MANIFEST_SCREEN_ROW_NEXT];
+				[gui setColor:scrollColor forRow:nextPageRow];
+				[gui setKey:GUI_KEY_OK forRow:nextPageRow];
 			}
 			else
 			{
-				[gui setColor:noScrollColor forRow:MANIFEST_SCREEN_ROW_NEXT];
+				[gui setColor:noScrollColor forRow:nextPageRow];
 				r_end = MANIFEST_SCREEN_ROW_BACK;
 			}
-			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ",nil] forRow:MANIFEST_SCREEN_ROW_NEXT];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ",nil] forRow:nextPageRow];
 
 			[gui setSelectableRange:NSMakeRange(r_start,r_end+1-r_start)];
 			[gui setSelectedRow:r_start];

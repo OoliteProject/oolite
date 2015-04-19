@@ -356,7 +356,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor;
 - (void) drawGUIBackground;
-- (void) setStatusPage:(NSUInteger) pageNum;
+- (void) setStatusPage:(NSInteger) pageNum;
 - (NSUInteger) statusPage;
 - (void) refreshStarChart;
 - (void) setStarChartTitle;
