@@ -8283,7 +8283,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		float fov = [gameView fov:NO];
 		int fovTicks = (int)((fov - MIN_FOV_DEG) * 20 / (MAX_FOV_DEG - MIN_FOV_DEG));
 		NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
-		[gui setText:[NSString stringWithFormat:@"%@%@ (%d%c) ", fovWordDesc, SliderString(fovTicks), (int)fov, 176 /*176 is the degrees symbol ASCII code*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
+		[gui setText:[NSString stringWithFormat:@"%@%@ (%d%c) ", fovWordDesc, SliderString(fovTicks), (int)fov, 176 /*176 is the degrees symbol Unicode code point*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,FOV)];
 		
 #if OOLITE_SPEECH_SYNTH
