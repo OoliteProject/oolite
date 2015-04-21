@@ -10115,13 +10115,13 @@ static NSString *last_outfitting_key=nil;
 			[filteredGoods addObject:good];
 			break;
 		case MARKET_FILTER_MODE_TRADE:
-			if ([market quantityForGood:good] > 0 || [shipCommodityData quantityForGood:good] > 0)
+			if ([market quantityForGood:good] > 0 || [self cargoQuantityForType:good] > 0)
 			{
 				[filteredGoods addObject:good];
 			}
 			break;
 		case MARKET_FILTER_MODE_HOLD:
-			if ([shipCommodityData quantityForGood:good] > 0)
+			if ([self cargoQuantityForType:good] > 0)
 			{
 				[filteredGoods addObject:good];
 			}
@@ -10314,7 +10314,11 @@ static NSString *last_outfitting_key=nil;
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
 		NSUInteger goodsIndex = [goods indexOfObject:[container commodityType]];
-		quantityInHold[goodsIndex] += [container commodityAmount];
+		// can happen with filters
+		if (goodsIndex != NSNotFound)
+		{
+			quantityInHold[goodsIndex] += [container commodityAmount];
+		}
 	}
 
 	if (marketSelectedCommodity != nil && ([marketSelectedCommodity isEqualToString:@"<<<"] || [marketSelectedCommodity isEqualToString:@">>>"]))
