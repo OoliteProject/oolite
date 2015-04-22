@@ -8278,7 +8278,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 #endif
 
 		// field of view control
-		float fov = [gameView fov:NO];
+		float fov = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
 		int fovTicks = (int)((fov - MIN_FOV_DEG) * 20 / (MAX_FOV_DEG - MIN_FOV_DEG));
 		NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
 		v1_string = @"|||||||||||||||||||||||||";

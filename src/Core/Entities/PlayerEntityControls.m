@@ -3142,7 +3142,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			BOOL rightKeyDown = [gameView isDown:key_gui_arrow_right];
 			BOOL leftKeyDown = [gameView isDown:key_gui_arrow_left];
-			float fov = [gameView fov:NO];
+			float fov = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
 			float fovStep = (MAX_FOV_DEG - MIN_FOV_DEG) / 20.0f;
 			fov += (((rightKeyDown && (fov < MAX_FOV_DEG)) ?
 						fovStep : 0.0f) - ((leftKeyDown && (fov > MIN_FOV_DEG)) ? fovStep : 0.0f));
@@ -3156,7 +3156,7 @@ static NSTimeInterval	time_last_frame;
 			v1_string = [v1_string substringToIndex:fovTicks];
 			v0_string = [v0_string substringToIndex:20 - fovTicks];
 			[gui setText:[NSString stringWithFormat:@"%@%@%@ (%d%c) ", fovWordDesc, v1_string, v0_string, (int)fov, 176 /*176 is the degrees symbol ASCII code*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
-			[[NSUserDefaults standardUserDefaults] setFloat:[gameView fov:NO] forKey:@"fov-value"];
+			[[NSUserDefaults standardUserDefaults] setFloat:fov forKey:@"fov-value"];
 			timeLastKeyPress = script_time;
 		}
 		fovControlPressed = YES;
