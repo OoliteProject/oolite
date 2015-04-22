@@ -3431,7 +3431,7 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	p1 = HPVectorToVector(HPvector_subtract([target position], [player1 viewpointPosition]));
 	
 	GLfloat			rdist = magnitude(p1);
-	GLfloat			rsize = [target collisionRadius] / (2 * [[UNIVERSE gameView] fov:YES]); // FIXME integrate 2 into fov to remove magic number
+	GLfloat			rsize = [target collisionRadius] / [[UNIVERSE gameView] fov:YES];
 	
 	if (rsize < rdist * scale)
 		rsize = rdist * scale;
@@ -3667,7 +3667,7 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 
 	// The field of view transformation is really a scale operation on the view window.
 	// We must unapply it through these transformations for them to be right.
-	float ratio = 2 * [[UNIVERSE gameView] fov:YES]; // FIXME 2 is magic number; fov should integrate it
+	float ratio = [[UNIVERSE gameView] fov:YES];
 	OOGLScaleModelView(make_vector(1/ratio, 1/ratio, 1.0f));
 
 	// deal with view directions

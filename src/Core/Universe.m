@@ -4406,10 +4406,10 @@ static const OOMatrix	starboard_matrix =
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
-				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane; // 0.5 is field of view ratio for GUIs
+				float   ratio = (displayGUI ? 1.0 : [gameView fov:YES]) * nearPlane; // 1.0 is field of view ratio for GUIs
 				
 				OOGLResetProjection();
-				OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
+				OOGLFrustum(-ratio/2, ratio/2, -aspect*ratio/2, aspect*ratio/2, nearPlane, farPlane);
 
 				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 

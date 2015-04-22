@@ -35,8 +35,8 @@ MA 02110-1301, USA.
 
 #define	MIN_FOV_DEG		30.0f
 #define	MAX_FOV_DEG		80.0f
-#define MIN_FOV			(tan((MIN_FOV_DEG / 2) * M_PI / 180.0f))
-#define MAX_FOV			(tan((MAX_FOV_DEG / 2) * M_PI / 180.0f))
+#define MIN_FOV			(2 * tan((MIN_FOV_DEG / 2) * M_PI / 180.0f))
+#define MAX_FOV			(2 * tan((MAX_FOV_DEG / 2) * M_PI / 180.0f))
 
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
