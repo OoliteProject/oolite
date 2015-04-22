@@ -1138,12 +1138,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (void) setStatusPage:(NSUInteger)pageNum
+- (void) setStatusPage:(NSInteger)pageNum
 {
-	if (pageNum==0) 
+	if (pageNum==0 || (pageNum < 0 && -pageNum >= statusPage))
+	{ 
 		statusPage=1;
+	}
 	else 
+	{
 		statusPage += pageNum;
+	}
 }
 
 

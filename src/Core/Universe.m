@@ -355,8 +355,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
-
 	waypoints = [[NSMutableDictionary alloc] init];
 	
 	[self setUpSettings];
@@ -2730,14 +2728,14 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) handleGameOver
 {
-  if ([[self gameController] playerFileToLoad])
-  {
-    [[self gameController] loadPlayerIfRequired];
-  }
-  else
-  {
-    [self reinitAndShowDemo:YES];
-  } 
+	if ([[self gameController] playerFileToLoad])
+	{
+		[[self gameController] loadPlayerIfRequired];
+	}
+	else
+	{
+		[self setUseAddOns:SCENARIO_OXP_DEFINITION_ALL fromSaveGame:NO forceReinit:YES]; // calls reinitAndShowDemo
+	} 
 }
 
 
@@ -2750,6 +2748,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// in status demo draw ships and display text
 	if (!justCobra)
 	{
+		DESTROY(demo_ships);
+		demo_ships = [[[OOShipRegistry sharedRegistry] demoShipKeys] retain];
 		// always, even if it's the cobra, because it's repositioned
 		[self removeDemoShips];
 	}
@@ -4642,6 +4642,7 @@ static const OOMatrix	starboard_matrix =
 
 			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
 			if (lineWidth < 1.0)  lineWidth = 1.0;
+			if (lineWidth > 1.5)  lineWidth = 1.5; // don't overscale; think of ultra-wide screen setups
 			OOGL(GLScaledLineWidth(lineWidth));
 
 			[self drawMessage];
@@ -9769,7 +9770,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	if(showDemo)
 	{
 		[demo_ships release];
-		demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
+		demo_ships = [[[OOShipRegistry sharedRegistry] demoShipKeys] retain];
 		demo_ship_index = 0;
 		demo_ship_subindex = 0;
 	}
@@ -10319,6 +10320,8 @@ static void PreloadOneSound(NSString *soundName)
 	[self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"equipment conditions" inCache:@"condition scripts"] objectEnumerator]];
 	
 	[self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"ship conditions" inCache:@"condition scripts"] objectEnumerator]];
+
+	[self addConditionScripts:[[[OOCacheManager sharedCache] objectForKey:@"demoship conditions" inCache:@"condition scripts"] objectEnumerator]];
 }
 
 

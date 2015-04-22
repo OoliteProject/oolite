@@ -68,6 +68,20 @@
 		description = "[oolite-ship-library-description-cobra3]";
 	},
 	{
+		ship = "constrictor";
+		class = "ship";
+		summary = "[oolite-ship-library-summary-HF]";
+		description = "[oolite-ship-library-description-constrictor]";
+		condition_script = "oolite-constrictor-library.js";
+		turn_rate = "[oolite-ship-library-classified]";
+		generator = "[oolite-ship-library-classified]";
+		shields = "[oolite-ship-library-classified]";
+		weapons = "[oolite-ship-library-classified]";		
+		cargo = "[oolite-ship-library-classified]";
+		speed = "[oolite-ship-library-classified]";
+		size = "[oolite-ship-library-classified]";
+	},
+	{
 		ship = "coriolis-station";
 		class = "station";
 		summary = "[oolite-ship-library-summary-SO]";

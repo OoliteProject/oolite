@@ -120,6 +120,7 @@ Modified Plists:
 * hud.plist: 'permanent' can be set on message_gui
 * hud.plist: hyperspace destination can be right-aligned
 * hud.plist: negative height/width can be applied to HUD bars
+* shiplibrary.plist: condition_script property added
 
 Properties:
 -----------
@@ -149,6 +150,7 @@ Methods:
 * manifest.setComment()
 * manifest.setShortComment()
 * manifest.shortComment()
+* mission.runShipLibrary()
 * systemInfo.samplePrice()
 * ship.addCollisionException(ship)
 * ship.adjustCargo(commodity,amount)
@@ -164,6 +166,7 @@ Events:
 * gamePaused and gameResumed world events (useful for sound OXPs)
 * equipmentAdded and equipmentRemoved ship events
 * updateEquipmentPrice(eq,price) condition script event
+* allowShowLibraryShip(key) condition script event
 * shipWillEnterWitchspace event has second parameter (destination)
 * playerRescuedEscapePod(decicredits, reason, rescuee) event
 * playerCompletedContract(type,result,fee,contract) event

@@ -5018,6 +5018,10 @@ PriorityAIController.prototype.responseComponent_standard_distressMessageReceive
 	{
 		return;
 	}
+	if (aggressor.scanClass == "CLASS_POLICE" || (aggressor.isStation && aggressor.allegiance == "galcop"))
+	{
+		return;
+	}
 	if (this.ship.scanClass == "CLASS_POLICE" || (this.ship.isStation && this.ship.allegiance == "galcop"))
 	{
 		if (this.distance(aggressor) < this.scannerRange)
@@ -5224,6 +5228,7 @@ PriorityAIController.prototype.responseComponent_standard_shipAttackedWithMissil
 {
 	if (this.getParameter("oolite_flag_sendsDistressCalls"))
 	{
+		this.ship.AIPrimaryAggressor = whom;
 		this.broadcastDistressMessage();
 	}
 	if (this.ship.hasEquipmentProviding("EQ_ECM"))
@@ -5478,6 +5483,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttackedUnsuc
 {
 	if (this.getParameter("oolite_flag_sendsDistressCalls"))
 	{
+		this.ship.primaryAggressor = whom;
 		this.broadcastDistressMessage();
 	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
@@ -5932,6 +5938,10 @@ PriorityAIController.prototype.responseComponent_station_helpRequestReceived = f
 PriorityAIController.prototype.responseComponent_station_distressMessageReceived = function(aggressor, sender)
 {
 	if (this.getParameter("oolite_flag_listenForDistressCall") != true)
+	{
+		return;
+	}
+	if (aggressor.scanClass == "CLASS_POLICE" || (aggressor.isStation && aggressor.allegiance == "galcop"))
 	{
 		return;
 	}

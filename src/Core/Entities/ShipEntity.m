@@ -13409,7 +13409,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 
-	while (abs(d1) < min_d1)
+	while (fabs(d1) < min_d1)
 	{
 		// not scannerRange - has no effect on witchspace exit
 		d1 = SCANNER_MAX_RANGE * (randf() - randf());

@@ -2181,7 +2181,7 @@ static NSTimeInterval	time_last_frame;
 				if ((guiSelectedRow == GUI_ROW(,BEGIN_NEW))&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
-					[UNIVERSE reinitAndShowDemo:YES];
+					[UNIVERSE setUseAddOns:SCENARIO_OXP_DEFINITION_ALL fromSaveGame:NO forceReinit:YES]; // calls reinitAndShowDemo
 				}
 				
 				if ([gameView isDown:gvMouseDoubleClick])
@@ -2481,12 +2481,16 @@ static NSTimeInterval	time_last_frame;
 			}
 			if ([gameView isDown:key_gui_arrow_right])
 			{
-
+				OOGUIRow nextRow = MANIFEST_SCREEN_ROW_NEXT;
+				if ([[self hud] isHidden] || [[self hud] allowBigGui])
+				{
+					nextRow += 7;
+				}
 				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 				{
-					if ([[gui keyForRow:MANIFEST_SCREEN_ROW_NEXT] isEqual:GUI_KEY_OK])
+					if ([[gui keyForRow:nextRow] isEqual:GUI_KEY_OK])
 					{
-						[gui setSelectedRow:MANIFEST_SCREEN_ROW_NEXT];
+						[gui setSelectedRow:nextRow];
 						[self playMenuPageNext];
 						[gui setStatusPage:+1];
 						[self setGuiToManifestScreen];

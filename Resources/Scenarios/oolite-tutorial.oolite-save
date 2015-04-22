@@ -271,16 +271,6 @@
 	    <string>0</string>
 	</array>
     </array>
-    <key>local_planetinfo_overrides</key>
-    <dict>
-	<key>0 7</key>
-	<dict>
-	    <key>populator</key>
-	    <string>ooliteTutorialWillPopulate</string>
-	    <key>repopulator</key>
-	    <string>ooliteTutorialWillRepopulate</string>
-	</dict>
-    </dict>
     <key>market_rnd</key>
     <integer>0</integer>
     <key>max_cargo</key>
@@ -376,6 +366,13 @@
     </array>
 	<key>scenario_restriction</key>
 	<string>tag:oolite-tutorial-compatible</string>
+    <key>scripted_planetinfo_overrides</key>
+    <dict>
+	<key>org.oolite.oolite~|~0 7~|~populator~|~2</key>
+	<string>ooliteTutorialWillPopulate</string>
+	<key>org.oolite.oolite~|~0 7~|~repopulator~|~2</key>
+	<string>ooliteTutorialWillRepopulate</string>
+    </dict>
     <key>shipCommodityData</key>
     <array>
 	<array>

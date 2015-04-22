@@ -379,7 +379,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 					min_d1 *= 3.0;
 				}
 
-				if (abs(d1) < min_d1)	// no closer than 750m to edge of buoy
+				if (fabs(d1) < min_d1)	// no closer than 750m to edge of buoy
 				{
 					d1 += ((d1 > 0.0)? min_d1: -min_d1);
 				}
