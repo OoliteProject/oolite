@@ -146,7 +146,7 @@ enum
 	kPlayerShip_viewPositionForward,					// view position offset, vector, read-only
 	kPlayerShip_viewPositionPort,					// view position offset, vector, read-only
 	kPlayerShip_viewPositionStarboard,					// view position offset, vector, read-only
-	kPlayerShip_viewFov,						// view fov in degrees, positive float, read/write
+	kPlayerShip_viewFov,						// view fov as a multiplier of game options fov, positive float, read/write
 	kPlayerShip_weaponsOnline,					// weapons online status, boolean, read-only
 	kPlayerShip_yaw,							// yaw (overrules Ship)
 };

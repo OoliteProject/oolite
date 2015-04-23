@@ -12429,14 +12429,18 @@ else _dockTarget = NO_TARGET;
 }
 #endif
 
-- (void) viewFov:(float)fovDegrees
+- (void) viewFov:(float)fovMultiplier
 {
-	[[UNIVERSE gameView] setFov:fovDegrees fromFraction:NO];
+	float gameOptionsFovInDegrees = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
+	float gameOptionsFovInFraction = (2 * tan(gameOptionsFovInDegrees / 2 * M_PI / 180));
+	[[UNIVERSE gameView] setFov:gameOptionsFovInFraction*fovMultiplier fromFraction:YES];
 }
 
 - (float) viewFov
 {
-	return [[UNIVERSE gameView] fov:NO];
+	float gameOptionsFovInDegrees = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
+	float gameOptionsFovInFraction = (2 * tan(gameOptionsFovInDegrees / 2 * M_PI / 180));
+	return [[UNIVERSE gameView] fov:YES] / gameOptionsFovInFraction;
 }
 
 @end

@@ -1159,7 +1159,7 @@ typedef enum
 */
 - (GLfloat) insideAtmosphereFraction;
 
-- (void) viewFov:(float)fovDegrees;
+- (void) viewFov:(float)fovMultiplier;
 - (float) viewFov;
 
 @end
