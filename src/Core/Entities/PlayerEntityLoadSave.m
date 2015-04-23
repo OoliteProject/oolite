@@ -277,7 +277,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 - (void) addScenarioModel:(NSString *)shipKey
 {
-	[self showShipModelWithKey:shipKey shipData:nil personality:ENTITY_PERSONALITY_INVALID factorX:1.2 factorY:0.8 factorZ:6.4 inContext:@"scenario"];
+	[self showShipModelWithKey:shipKey shipData:nil personality:0 factorX:1.2 factorY:0.8 factorZ:6.4 inContext:@"scenario"];
 }
 
 

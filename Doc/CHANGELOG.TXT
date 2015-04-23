@@ -136,6 +136,7 @@ Properties:
   just player
 * ship.scannerHostileDisplayColor1, ship.scannerHostileDisplayColor2
 * ship.subEntityRotation
+* ship.entityPersonality is now writable
 * equipmentInfo.provides
 * player.ship.forwardShield, player.ship.maxForwardShield,
   player.ship.forwardShieldRechargeRate, player.ship.aftShield,
