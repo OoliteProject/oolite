@@ -134,6 +134,7 @@ enum
 	kPlayerShip_renovationMultiplier,			// float read-only multiplier for renovation costs
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_roll,							// roll (overrules Ship)
+	kPlayerShip_routeMode,						// ANA mode
 	kPlayerShip_scannerNonLinear,				// non linear scanner setting, boolean, read/write
 	kPlayerShip_scannerUltraZoom,				// scanner zoom in powers of 2, boolean, read/write
 	kPlayerShip_scoopOverride,					// Scooping
@@ -189,6 +190,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "renovationMultiplier",			kPlayerShip_renovationMultiplier,			OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "roll",							kPlayerShip_roll,							OOJS_PROP_READONLY_CB },
+	{ "routeMode",						kPlayerShip_routeMode,						OOJS_PROP_READONLY_CB },
 	{ "scannerNonLinear",				kPlayerShip_scannerNonLinear,				OOJS_PROP_READWRITE_CB },
 	{ "scannerUltraZoom",				kPlayerShip_scannerUltraZoom,				OOJS_PROP_READWRITE_CB },
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
@@ -408,6 +410,24 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_targetSystem:
 			*value = INT_TO_JSVAL([player targetSystemID]);
 			return YES;
+
+		case kPlayerShip_routeMode:
+		{
+			OORouteType route = [player ANAMode];
+			switch (route)
+			{
+			case OPTIMIZED_BY_TIME:
+				result = @"OPTIMIZED_BY_TIME";
+				break;
+			case OPTIMIZED_BY_JUMPS:
+				result = @"OPTIMIZED_BY_JUMPS";
+				break;
+			case OPTIMIZED_BY_NONE:
+				result = @"OPTIMIZED_BY_NONE";
+				break;
+			}
+			break;
+		}
 			
 		case kPlayerShip_scannerNonLinear:
 			*value = OOJSValueFromBOOL([[player hud] nonlinearScanner]);

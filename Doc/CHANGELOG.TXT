@@ -143,6 +143,7 @@ Properties:
   player.ship.maxAftShield, player.ship.aftShieldRechargeRate are all
   now writable.
 * player.ship.injectorsEngaged and player.ship.torusEngaged
+* player.ship.routeMode
 * system.ambientLevel
 
 Methods:
