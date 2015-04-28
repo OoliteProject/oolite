@@ -311,6 +311,9 @@ Bug fixes:
 * NPC ships entering hyperspace near massive stations should be clearer
 * Destination systems for long-range NPCs now set correctly
 * checkScanner method now correctly excludes unpowered ships
+* Plasma turrets won't fire when cloaked if cloakPassive is true
+* AI errors related to system ID 0 fixed
+
 
 -------------------------------------------------------------------------------
 
