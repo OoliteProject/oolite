@@ -163,6 +163,8 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 
 - (void) noteFrustration:(NSString *)context;
 
+- (BOOL) cloakPassive;
+
 @end
 
 
@@ -6561,6 +6563,12 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (BOOL) cloakPassive
+{
+	return cloakPassive;
+}
+
+
 - (void)setCloaked:(BOOL)cloak
 {
 	if (cloak)  [self activateCloakingDevice];
@@ -11476,8 +11484,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;
 	if (range > weaponRange * 1.01) // 1% more than max range - open up just slightly early
 		return NO;
-	if ([[self rootShipEntity] isPlayer] && ![PLAYER weaponsOnline])
+	ShipEntity *root = [self rootShipEntity];
+	if ([root isPlayer] && ![PLAYER weaponsOnline])
 		return NO;
+
+	if ([root isCloaked] && [root cloakPassive])
+	{
+		// can't fire turrets while cloaked
+		return NO;
+	}
 
 	Vector		vel;	
 	HPVector		origin = [self position];
