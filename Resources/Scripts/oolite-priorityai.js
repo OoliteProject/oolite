@@ -1238,7 +1238,7 @@ PriorityAIController.prototype.respondToThargoids = function(whom,passon)
 
 PriorityAIController.prototype.setWitchspaceRouteTo = function(dest) 
 {
-	if (!dest)
+	if (dest === null || dest < 0)
 	{
 		return this.configurationSelectWitchspaceDestination();
 	}
@@ -1784,7 +1784,7 @@ PriorityAIController.prototype.conditionCanWitchspaceOnRoute = function()
 		return false;
 	}
 	var dest = this.getParameter("oolite_witchspaceDestination");
-	if (dest == null || dest == -1)
+	if (dest === null || dest == -1)
 	{
 		return false;
 	}
