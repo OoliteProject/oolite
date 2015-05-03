@@ -1689,6 +1689,13 @@ static NSTimeInterval	time_last_frame;
 	else
 	{
 		[gameView allowStringInput: NO];
+		// If we have entered this screen with the injectors key pressed, make sure
+		// that injectors switch off when we release it - Nikos.
+		if (afterburner_engaged && ![gameView isDown:key_inject_fuel])
+		{
+			afterburner_engaged = NO;
+		}
+			
 	}
 	
 	switch (gui_screen)
@@ -1764,13 +1771,6 @@ static NSTimeInterval	time_last_frame;
 			else
 			{
 				chartInfoPressed = NO;
-			}
-			
-			// If we have entered this screen with the injectors key pressed, make sure
-			// that injectors switch off when we release it - Nikos.
-			if (afterburner_engaged && ![gameView isDown:key_inject_fuel])
-			{
-				afterburner_engaged = NO;
 			}
 			
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
