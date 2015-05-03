@@ -712,7 +712,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[result setObject:gal_id		forKey:@"galaxy_id"];
 	[result setObject:sys_id	forKey:@"system_id"];
 	[result setObject:tgt_id	forKey:@"target_id"];
-	[result setObject:[NSNumber numberWithFloat:chart_zoom] forKey:@"chart_zoom"];
+	[result setObject:[NSNumber numberWithFloat:saved_chart_zoom] forKey:@"chart_zoom"];
 	[result setObject:[NSNumber numberWithInt:ANA_mode] forKey:@"chart_ana_mode"];
 	[result setObject:[NSNumber numberWithInt:longRangeChartMode] forKey:@"chart_colour_mode"];
 
