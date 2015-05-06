@@ -778,17 +778,21 @@ static OOOXZManager *sSingleton = nil;
 	}
 	NSDictionary *requirement = nil;
 	NSMutableString *progress = [NSMutableString stringWithCapacity:2048];
+	OOLog(kOOOXZDebugLog,@"Dependency stack has %u elements",[_dependencyStack count]);
+
 	if ([_dependencyStack count] > 0)
 	{
 		// will remove as iterate, so create a temp copy to iterate over
 		NSSet *tempStack = [NSSet setWithSet:_dependencyStack];
 		foreach (requirement, tempStack)
 		{
+			OOLog(kOOOXZDebugLog,@"Dependency stack: checking %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
 			if (![ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO])
 			{
 				[progress appendFormat:DESC(@"oolite-oxzmanager-progress-now-has-@"),[requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
 				// it was unmet, but now it's met
 				[_dependencyStack removeObject:requirement];
+				OOLog(kOOOXZDebugLog,@"Dependency stack: requirement met");
 			}
 		}
 	}
@@ -798,6 +802,7 @@ static OOOXZManager *sSingleton = nil;
 		{
 			if ([ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO])
 			{
+				OOLog(kOOOXZDebugLog,@"Dependency stack: adding %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
 				[_dependencyStack addObject:requirement];
 				[progress appendFormat:DESC(@"oolite-oxzmanager-progress-requires-@"),[requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
 			}
@@ -808,6 +813,7 @@ static OOOXZManager *sSingleton = nil;
 		// get an object from the requirements list, and download it
 		// if it can be found
 		requirement = [_dependencyStack anyObject];
+		OOLog(kOOOXZDebugLog,@"Dependency stack: next is %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
 		if (!_downloadAllDependencies)
 		{
 			[progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
@@ -823,6 +829,7 @@ static OOOXZManager *sSingleton = nil;
 			{
 				if ([ResourceManager matchVersions:requirement withVersion:[availableDownload oo_stringForKey:kOOManifestVersion]])
 				{
+					OOLog(kOOOXZDebugLog,@"Dependency stack: found download for next item");
 					foundDownload = YES;
 					index = [_oxzList indexOfObject:availableDownload];
 					break;
@@ -838,7 +845,19 @@ static OOOXZManager *sSingleton = nil;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 			if (_downloadAllDependencies)
 			{
-				[self installOXZ:index];
+				OOLog(kOOOXZDebugLog,@"Dependency stack: installing %u from list",index);
+				if (![self installOXZ:index]) {
+					// if a required dependency is somehow uninstallable
+					// e.g. required+maximum version don't match this Oolite
+					[progress appendFormat:DESC(@"oolite-oxzmanager-progress-required-@-not-found"),[requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
+					[self setProgressStatus:progress];
+					OOLog(kOOOXZErrorLog,@"OXZ dependency %@ could not be found for automatic download.",needsIdentifier);
+					_downloadStatus = OXZ_DOWNLOAD_ERROR;
+					OOLog(kOOOXZErrorLog,@"Downloaded OXZ could not be installed.");
+					_interfaceState = OXZ_STATE_TASKDONE;
+					[self gui];
+					return NO;
+				}
 			}
 			else
 			{
