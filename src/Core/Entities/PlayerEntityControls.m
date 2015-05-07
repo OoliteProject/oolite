@@ -3203,6 +3203,29 @@ static NSTimeInterval	time_last_frame;
 		if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
 			int direction = ([gameView isDown:key_gui_arrow_right]) ? 1 : -1;
+
+			/* (Getafix - 2015/05/07)
+			Fix bug coincidentally resulting in Graphics Detail value cycling 
+			when left arrow is pressed.
+			
+			OOGraphicsDetail is an enum type and as such it will never go 
+			negative. The following code adjusts "direction" to avoid illegal
+			detailLevel values.
+			
+			Perhaps a more elegant solution could be set in place, restructuring 
+			in Universe.m the logic behing setDetailLevelDirectly and 
+			setDetailLevel, not forgetting to consider Graphic Detail assigned 
+			from various sources (i.e. menu, user prefs file, javascript, etc.). 
+			This is postponed in order not to risk the recently announced 
+			plans for v1.82 release.
+			
+			Generally we should decide whether the menu values should cycle or 
+			not and apply it for all menu entries.
+			*/ 
+			if ((([UNIVERSE detailLevel] == DETAIL_LEVEL_MINIMUM) && (direction == -1)) || 
+					(([UNIVERSE detailLevel] == DETAIL_LEVEL_MAXIMUM) && (direction == 1)))
+				direction = 0;
+			
 			OOGraphicsDetail detailLevel = [UNIVERSE detailLevel] + direction;
 			[UNIVERSE setDetailLevel:detailLevel];
 			detailLevel = [UNIVERSE detailLevel];
