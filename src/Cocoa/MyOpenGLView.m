@@ -324,7 +324,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 
 - (void) initialiseGLWithSize:(NSSize)v_size
 {
-	NSInteger issue_136_fix = [[NSUserDefaults standardUserDefaults] integerForKey @"issue_136_fix"];
+	NSInteger issue_136_fix = [[NSUserDefaults standardUserDefaults] integerForKey: @"issue_136_fix"];
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * viewSize.width/viewSize.height;
