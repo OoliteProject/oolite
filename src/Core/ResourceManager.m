@@ -236,7 +236,6 @@ static NSMutableDictionary *sStringCache;
 	NSFileManager			*fmgr = [NSFileManager defaultManager];
 	NSArray					*rootPaths = nil;
 	NSMutableArray			*existingRootPaths = nil;
-	NSEnumerator			*pathEnum = nil;
 	NSString				*root = nil;
 	NSDirectoryEnumerator	*dirEnum = nil;
 	NSString				*subPath = nil;
@@ -246,7 +245,7 @@ static NSMutableDictionary *sStringCache;
 	// Copy those root paths that actually exist to search paths.
 	rootPaths = [self rootPaths];
 	existingRootPaths = [NSMutableArray arrayWithCapacity:[rootPaths count]];
-	for (pathEnum = [rootPaths objectEnumerator]; (root = [pathEnum nextObject]); )
+	foreach (root, rootPaths)
 	{
 		if ([fmgr fileExistsAtPath:root isDirectory:&isDirectory] && isDirectory)
 		{
@@ -257,13 +256,13 @@ static NSMutableDictionary *sStringCache;
 	// validate default search paths
 	DESTROY(sSearchPaths);
 	sSearchPaths = [NSMutableArray new];
-	foreach(path, existingRootPaths)
+	foreach (path, existingRootPaths)
 	{
 		[self checkPotentialPath:path :sSearchPaths];
 	}
 	
 	// Iterate over root paths.
-	for (pathEnum = [existingRootPaths objectEnumerator]; (root = [pathEnum nextObject]); )
+	foreach (root, existingRootPaths)
 	{
 		// Iterate over each root path's contents.
 		if ([fmgr fileExistsAtPath:root isDirectory:&isDirectory] && isDirectory)
@@ -302,7 +301,7 @@ static NSMutableDictionary *sStringCache;
 		}
 	}
 	
-	for (pathEnum = [sExternalPaths objectEnumerator]; (path = [pathEnum nextObject]); )
+	foreach (path, sExternalPaths)
 	{
 		[self checkPotentialPath:path :sSearchPaths];
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
@@ -1151,7 +1150,6 @@ static NSMutableDictionary *sStringCache;
 	BOOL				upToDate = YES;
 	id					oldPaths = nil;
 	NSMutableArray		*modDates = nil;
-	NSEnumerator		*pathEnum = nil;
 	NSString			*path = nil;
 	id					modDate = nil;
 	
@@ -1177,7 +1175,7 @@ static NSMutableDictionary *sStringCache;
 	// Build modification date list. (We need this regardless of whether the search paths matched.)
 	
 	modDates = [NSMutableArray arrayWithCapacity:[searchPaths count]];
-	for (pathEnum = [searchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
+	foreach(path, searchPaths)
 	{
 		modDate = [[fmgr oo_fileAttributesAtPath:path traverseLink:YES] objectForKey:NSFileModificationDate];
 		if (modDate != nil)
@@ -1728,8 +1726,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSDictionary *dict = nil;
 	
 	// Look for logcontrol.plists inside OXPs (but not in root paths). These are not allowed to define keys in hierarchies used by the build-in one.
-	NSEnumerator *pathEnum = [self pathEnumerator];
-	while ((path = [pathEnum nextObject]))
+	foreach(path, [self pathEnumerator])
 	{
 		if ([rootPaths containsObject:path])  continue;
 		
@@ -1751,8 +1748,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	}
 	
 	// Now, look for logcontrol.plists in root paths, i.e. not within OXPs. These are allowed to override the built-in copy.
-	pathEnum = [rootPaths objectEnumerator];
-	while ((path = [pathEnum nextObject]))
+	foreach(path, rootPaths)
 	{
 		configPath = [[path stringByAppendingPathComponent:@"Config"]
 					  stringByAppendingPathComponent:@"logcontrol.plist"];
@@ -1784,8 +1780,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSString *configPath = nil;
 	NSDictionary *categories = nil;
 	
-	NSEnumerator *pathEnum = [self pathEnumerator];
-	while ((path = [pathEnum nextObject]))
+	foreach(path, [self pathEnumerator])
 	{
 		if ([ResourceManager corePlist:@"role-categories.plist" excludedAt:path])
 		{
@@ -1843,8 +1838,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSDictionary *categories = nil;
 	NSString *systemKey = nil;
 
-	NSEnumerator *pathEnum = [self pathEnumerator];	
-	while ((path = [pathEnum nextObject]))
+	foreach (path, [self pathEnumerator])
 	{
 		if ([ResourceManager corePlist:@"planetinfo.plist" excludedAt:path])
 		{
@@ -1855,7 +1849,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 		categories = OODictionaryFromFile(configPath);
 		if (categories != nil)
 		{
-			foreachkey(systemKey,categories)
+			foreachkey (systemKey,categories)
 			{
 				NSDictionary *values = [categories oo_dictionaryForKey:systemKey defaultValue:nil];
 				if (values != nil)
@@ -1942,7 +1936,6 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSString		*result = nil;
 	NSString		*cacheKey = nil;
 	OOCacheManager	*cache = [OOCacheManager sharedCache];
-	NSEnumerator	*pathEnum = nil;
 	NSString		*path = nil;
 	NSString		*filePath = nil;
 	NSFileManager	*fmgr = nil;
@@ -1960,7 +1953,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	// Search for file
 	fmgr = [NSFileManager defaultManager];
 	// reverse object enumerator allows OXPs to override core
-	for (pathEnum = [[ResourceManager paths] reverseObjectEnumerator]; (path = [pathEnum nextObject]); )
+	foreach(path, [[ResourceManager paths] reverseObjectEnumerator])
 	{
 		filePath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 		if ([fmgr oo_oxzFileExistsAtPath:filePath])
@@ -2088,9 +2081,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSMutableDictionary			*loadedScripts = nil;
 	NSArray						*results = nil;
 	NSArray						*paths = nil;
-	NSEnumerator				*pathEnum = nil;
 	NSString					*path = nil;
-	NSEnumerator				*scriptEnum = nil;
 	OOScript					*script = nil;
 	NSString					*name = nil;
 	NSAutoreleasePool			*pool = nil;
@@ -2099,7 +2090,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	
 	loadedScripts = [NSMutableDictionary dictionary];
 	paths = [ResourceManager paths];
-	for (pathEnum = [paths objectEnumerator]; (path = [pathEnum nextObject]); )
+	foreach (path, paths)
 	{
 		// excluding world-scripts.plist also excludes script.js / script.plist
 		// though as those core files don't and won't exist this is not
@@ -2114,7 +2105,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 				if (results == nil) results = [OOScript worldScriptsAtPath:path];
 				if (results != nil)
 				{
-					for (scriptEnum = [results objectEnumerator]; (script = [scriptEnum nextObject]); )
+					foreach (script, results)
 					{
 						name = [script name];
 						if (name != nil)  [loadedScripts setObject:script forKey:name];
@@ -2138,13 +2129,12 @@ static NSString *LogClassKeyRoot(NSString *key)
 		if (count != 0)
 		{
 			NSMutableArray		*displayNames = nil;
-			NSEnumerator		*scriptEnum = nil;
 			OOScript			*script = nil;
 			NSString			*displayString = nil;
 			
 			displayNames = [NSMutableArray arrayWithCapacity:count];
 			
-			for (scriptEnum = [loadedScripts objectEnumerator]; (script = [scriptEnum nextObject]); )
+			foreach (script, [loadedScripts allValues])
 			{
 				[displayNames addObject:[script displayName]];
 			}
@@ -2248,12 +2238,11 @@ static NSString *LogClassKeyRoot(NSString *key)
 + (void) logPaths
 {
 	NSMutableArray			*displayPaths = nil;
-	NSEnumerator			*pathEnum = nil;
 	NSString				*path = nil;
 
 	// Prettify paths for logging.
 	displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
-	for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
+	foreach(path, sSearchPaths)
 	{
 		[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
 	}
