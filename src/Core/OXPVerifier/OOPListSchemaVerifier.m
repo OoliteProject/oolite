@@ -285,13 +285,12 @@ VERIFY_PROTO(DelegatedType);
 + (NSString *)descriptionForKeyPath:(NSArray *)keyPath
 {
 	NSMutableString				*result = nil;
-	NSEnumerator				*componentEnum = nil;
 	id							component = nil;
 	BOOL						first = YES;
 	
 	result = [NSMutableString string];
 	
-	for (componentEnum = [keyPath objectEnumerator]; (component = [componentEnum nextObject]); )
+	foreach (component, keyPath)
 	{
 		if ([component isKindOfClass:[NSNumber class]])
 		{
@@ -1207,7 +1206,6 @@ static NSError *Verify_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictio
 {
 	NSArray					*options = nil;
 	BOOL					OK = NO, stop = NO;
-	NSEnumerator			*optionEnum = nil;
 	id						option = nil;
 	NSError					*error;
 	NSMutableDictionary		*errors = nil;
@@ -1223,7 +1221,7 @@ static NSError *Verify_OneOf(OOPListSchemaVerifier *verifier, id value, NSDictio
 	
 	errors = [[NSMutableDictionary alloc] initWithCapacity:[options count]];
 	
-	for (optionEnum = [options objectEnumerator]; (option = [optionEnum nextObject]) ;)
+	foreach (option, options)
 	{
 		if ([verifier verifyPList:rootPList
 							named:name

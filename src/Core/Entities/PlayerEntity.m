@@ -810,9 +810,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// extra equipment flags
 	NSMutableDictionary	*equipment = [NSMutableDictionary dictionary];
-	NSEnumerator		*eqEnum = nil;
 	NSString			*eqDesc = nil;
-	for (eqEnum = [self equipmentEnumerator]; (eqDesc = [eqEnum nextObject]); )
+	foreach(eqDesc, [self equipmentEnumerator])
 	{
 		[equipment oo_setInteger:[self countEquipmentItem:eqDesc] forKey:eqDesc];
 	}
@@ -902,9 +901,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	// wormhole information
 	NSMutableArray *wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
-	NSEnumerator *wormholes = [scannedWormholes objectEnumerator];
 	WormholeEntity *wh = nil;
-	foreach(wh, wormholes)
+	foreach (wh, scannedWormholes)
 	{
 		[wormholeDicts addObject:[wh getDict]];
 	}
@@ -1519,11 +1517,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// wormholes
 	NSArray * whArray;
 	whArray = [dict objectForKey:@"wormholes"];
-	NSEnumerator * whDicts = [whArray objectEnumerator];
 	NSDictionary * whCurrDict;
 	[scannedWormholes release];
 	scannedWormholes = [[NSMutableArray alloc] initWithCapacity:[whArray count]];
-	while ((whCurrDict = [whDicts nextObject]) != nil)
+	foreach(whCurrDict, whArray)
 	{
 		WormholeEntity * wh = [[WormholeEntity alloc] initWithDict:whCurrDict];
 		[scannedWormholes addObject:wh];
@@ -5791,9 +5788,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		shields = true;
 	}
 	
-	NSEnumerator	*subEnum = nil;
 	ShipEntity		*se = nil;
-	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
+	foreach(se, [self shipSubEntityEnumerator])
 	{
 		HPVector p0 = [se absolutePositionForSubentity];
 		Triangle ijk = [se absoluteIJKForSubentity];
@@ -7494,14 +7490,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	NSMutableArray		*quip1 = [NSMutableArray array]; // damaged
 	NSMutableArray		*quip2 = [NSMutableArray array]; // working
-	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
 	NSString			*alldesc = nil;
 
 	BOOL prioritiseDamaged = [[gui userSettings] oo_boolForKey:kGuiStatusPrioritiseDamaged defaultValue:YES];
 
-	for (eqTypeEnum = [OOEquipmentType reverseEquipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	foreach(eqType, [OOEquipmentType reverseEquipmentEnumerator])
 	{
 		if ([eqType isVisible])
 		{
@@ -7729,12 +7724,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	NSMutableArray	*manifest = [NSMutableArray array];
 	NSArray			*list = [self cargoListForScripting];
-	NSEnumerator	*cargoEnum = nil;
 	NSDictionary	*commodity;
 	
 	if (specialCargo) [manifest addObject:specialCargo];
 	
-	for (cargoEnum = [list objectEnumerator]; (commodity = [cargoEnum nextObject]); )
+	foreach(commodity, list)
 	{
 		NSInteger quantity = [commodity oo_integerForKey:@"quantity"];
 		NSString *units = [commodity oo_stringForKey:@"unit"];
@@ -8083,10 +8077,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[self prepareMarkedDestination:destinations:marker];
 	}
 
-	NSEnumerator				*keyEnum = nil;
 	NSString					*key = nil;
 
-	for (keyEnum = [missionDestinations keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey(key, missionDestinations)
 	{
 		marker = [missionDestinations objectForKey:key];
 		[self prepareMarkedDestination:destinations:marker];
@@ -11897,10 +11890,9 @@ static NSString *last_outfitting_key=nil;
 {
 	NSParameterAssert(context != NULL && JS_IsInRequest(context));
 	
-	NSEnumerator			*scriptEnum = nil;
 	OOScript				*theScript = nil;
 	
-	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
+	foreachkey (theScript, worldScripts)
 	{
 		OOJSStartTimeLimiterWithTimeLimit(limit);
 		[theScript callMethod:message inContext:context withArguments:argv count:argc result:NULL];
@@ -12142,9 +12134,8 @@ else _dockTarget = NO_TARGET;
 	assert(whole != nil);
 	
 	// Only add if we don't have it already!
-	NSEnumerator *wormholes = [scannedWormholes objectEnumerator];
 	WormholeEntity *wh = nil;
-	while ((wh = [wormholes nextObject]))
+	foreach (wh, scannedWormholes)
 	{
 		if (wh == whole)  return;
 	}
@@ -12165,10 +12156,9 @@ else _dockTarget = NO_TARGET;
 	double now = [self clockTimeAdjusted];
 
 	NSMutableArray * savedWormholes = [[NSMutableArray alloc] initWithCapacity:[scannedWormholes count]];
-	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
 	WormholeEntity *wh;
 
-	while ((wh = (WormholeEntity*)[wormholes nextObject]))
+	foreachkey (wh, scannedWormholes)
 	{
 		// TODO: Start drawing wormhole exit a few seconds before the first
 		//       ship is disgorged.
@@ -12200,7 +12190,6 @@ else _dockTarget = NO_TARGET;
 
 - (void) initialiseMissionDestinations:(NSDictionary *)destinations andLegacy:(NSArray *)legacy
 {
-	NSEnumerator				*keyEnum = nil;
 	NSString					*key = nil;
 	id							value = nil;
 
@@ -12209,7 +12198,7 @@ else _dockTarget = NO_TARGET;
 	[missionDestinations release];
 	missionDestinations = [[NSMutableDictionary alloc] init];
 
-	for (keyEnum = [destinations keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, destinations)
 	{
 		value = [destinations objectForKey:key];
 		if (value != nil)
@@ -12227,7 +12216,7 @@ else _dockTarget = NO_TARGET;
 	{
 		OOSystemID dest;
 		NSNumber *legacyMarker;
-		for (keyEnum = [legacy objectEnumerator]; (legacyMarker = [keyEnum nextObject]); )
+		foreach (legacyMarker, legacy)
 		{
 			dest = [legacyMarker intValue];
 			[self addMissionDestinationMarker:[self defaultMarker:dest]];
