@@ -3865,7 +3865,7 @@ static BOOL autopilot_pause;
 		if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU]
 			|| [gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'c' and 'C' key
 		{
-			if ([self hasDockingComputer] && !autopilot_key_pressed)
+			if ([self hasDockingComputer] && !autopilot_key_pressed && !fast_autopilot_key_pressed)
 			{
 				[self disengageAutopilot];
 				[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
@@ -3879,6 +3879,7 @@ static BOOL autopilot_pause;
 		else
 		{
 			autopilot_key_pressed = NO;
+			fast_autopilot_key_pressed = NO;
 		}
 		
 		if (([gameView isDown:key_docking_music]))   // look for the 's' key
