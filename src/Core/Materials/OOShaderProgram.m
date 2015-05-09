@@ -404,14 +404,13 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	if (standardMatrixUniformLocations != nil)
 	{
 		OOOpenGLMatrixManager *matrixManager = [[UNIVERSE gameView] getOpenGLMatrixManager];
-		NSEnumerator *enumerator = [standardMatrixUniformLocations objectEnumerator];
 		id obj;
 		NSArray *pair;
 		
 		OO_ENTER_OPENGL();
 
 		[matrixManager syncModelView];
-		foreachkey(obj, enumerator)
+		foreachkey(obj, standardMatrixUniformLocations)
 		{
 			if ([obj isKindOfClass:[NSArray class]])
 			{

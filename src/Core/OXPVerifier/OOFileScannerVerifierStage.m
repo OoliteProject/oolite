@@ -442,14 +442,13 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (void)checkConfigFiles
 {
 	NSArray					*knownNames = nil;
-	NSEnumerator			*nameEnum = nil;
 	NSString				*name = nil,
 		*lcName = nil,
 		*realFileName = nil;
 	BOOL					inConfigDir;
 	
 	knownNames = [[self verifier] configurationArrayForKey:@"knownConfigFiles"];
-	for (nameEnum = [knownNames objectEnumerator]; (name = [nameEnum nextObject]); )
+	foreach (name, knownNames)
 	{
 		if (![name isKindOfClass:[NSString class]])  continue;
 		
@@ -475,22 +474,20 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 - (void)checkKnownFiles
 {
 	NSDictionary			*directories = nil;
-	NSEnumerator			*directoryEnum = nil;
 	NSString				*directory = nil,
 							*lcDirectory = nil;
 	NSArray					*fileList = nil;
-	NSEnumerator			*nameEnum = nil;
 	NSString				*name = nil,
 							*lcName = nil,
 							*realFileName = nil;
 	BOOL					inDirectory;
 	
 	directories = [[self verifier] configurationDictionaryForKey:@"knownFiles"];
-	for (directoryEnum = [directories keyEnumerator]; (directory = [directoryEnum nextObject]); )
+	foreachkey(directory, directories)
 	{
 		fileList = [directories objectForKey:directory];
 		lcDirectory = [directory lowercaseString];
-		for (nameEnum = [fileList objectEnumerator]; (name = [nameEnum nextObject]); )
+		foreach (name, fileList)
 		{
 			if (![name isKindOfClass:[NSString class]])  continue;
 			

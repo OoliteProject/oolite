@@ -2442,7 +2442,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		NSEnumerator	*onHoldEnum = [_shipsOnHold objectEnumerator];
 		ShipEntity		*ship = nil;
 		unsigned		i = 1;
-		while ((ship = [onHoldEnum nextObject]))
+		foreach(ship, onHoldEnum)
 		{
 			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i++, [ship displayName], HPdistance([self position], [ship position]), [ship primaryRole]);
 		}

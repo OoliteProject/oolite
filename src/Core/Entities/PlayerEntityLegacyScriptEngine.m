@@ -1981,7 +1981,6 @@ static int shipsFound;
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES]; // enables mouse selection of the choices list items
 	
 	OOGUIRow			choicesRow = (end_row+1) - [choiceKeys count];
-	NSEnumerator		*choiceEnum = nil;
 	NSString			*choiceKey = nil;
 	id            choiceValue = nil;
 	NSString			*choiceText = nil;
@@ -1989,7 +1988,7 @@ static int shipsFound;
 	BOOL selectableRowExists = NO;
 	NSUInteger firstSelectableRow = end_row;
 
-	for (choiceEnum = [choiceKeys objectEnumerator]; (choiceKey = [choiceEnum nextObject]); )
+	foreach(choiceKey, choiceKeys)
 	{
 		choiceValue = [choicesDict objectForKey:choiceKey];
 		OOGUIAlignment alignment = GUI_ALIGN_CENTER;

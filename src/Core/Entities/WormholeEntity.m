@@ -119,12 +119,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		
 		// Setup shipsInTransit
 		NSArray * shipDictsArray = [dict oo_arrayForKey:@"ships"];
-		NSEnumerator *shipDicts = [shipDictsArray objectEnumerator];
  		NSDictionary *currShipDict = nil;
 		[shipsInTransit removeAllObjects];
 		NSMutableDictionary *restoreContext = [NSMutableDictionary dictionary];
 		
-		while ((currShipDict = [shipDicts nextObject]) != nil)
+		foreach (currShipDict, shipDictsArray)
 		{
 			NSDictionary *shipInfo = [currShipDict oo_dictionaryForKey:@"ship_info"];
 			if (shipInfo != nil)

@@ -338,7 +338,6 @@
 
 - (void) groupAttackTarget
 {
-	NSEnumerator		*shipEnum = nil;
 	ShipEntity			*target = nil, *ship = nil;
 
 	target = [self primaryTarget];
@@ -353,7 +352,7 @@
 		return;
 	}
 	
-	for (shipEnum = [[self group] mutationSafeEnumerator]; (ship = [shipEnum nextObject]); )
+	foreach (ship, [[self group] mutationSafeEnumerator])
 	{
 		[ship setFoundTarget:target];
 		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
@@ -362,9 +361,8 @@
 		if ([ship escortGroup] != [ship group] && [[ship escortGroup] count] > 1) // Ship has a seperate escort group.
 		{
 			ShipEntity		*escort = nil;
-			NSEnumerator	*shipEnum = nil;
 			NSArray			*escortMembers = [[ship escortGroup] memberArrayExcludingLeader];
-			for (shipEnum = [escortMembers objectEnumerator]; (escort = [shipEnum nextObject]); )
+			foreach (escort, escortMembers)
 			{
 				[escort setFoundTarget:target];
 				[escort reactToAIMessage:@"GROUP_ATTACK_TARGET" context:@"groupAttackTarget"];
@@ -675,7 +673,6 @@
 // FIXME: resolve this stuff.
 - (void) wormholeEscorts
 {
-	NSEnumerator		*shipEnum = nil;
 	ShipEntity			*ship = nil;
 	NSString			*context = nil;
 	WormholeEntity		*whole = nil;
@@ -687,7 +684,7 @@
 	context = [NSString stringWithFormat:@"%@ wormholeEscorts", [self shortDescription]];
 #endif
 	
-	for (shipEnum = [self escortEnumerator]; (ship = [shipEnum nextObject]); )
+	foreach(ship, [self escortEnumerator])
 	{
 		[ship addTarget:whole];
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:context];
@@ -867,12 +864,11 @@
 - (void) dropMessages:(NSString *)messageString
 {
 	NSArray				*messages = nil;
-	NSEnumerator		*messageEnum = nil;
 	NSString			*message = nil;
 	NSCharacterSet		*whiteSpace = [NSCharacterSet whitespaceCharacterSet];
 	
 	messages = [messageString componentsSeparatedByString:@","];
-	for (messageEnum = [messages objectEnumerator]; (message = [messageEnum nextObject]); )
+	foreach(message, messages)
 	{
 		[shipAI dropMessage:[message stringByTrimmingCharactersInSet:whiteSpace]];
 	}
@@ -1226,7 +1222,6 @@
 	//
 	ShipEntity			*missile =  nil;
 	unsigned			i;
-	NSEnumerator		*escortEnum = nil;
 	ShipEntity			*escort = nil;
 	ShipEntity			*target = nil;
 	
@@ -1244,7 +1239,7 @@
 			}
 			else
 			{
-				for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
+				foreach (escort, [self escortEnumerator])
 				{
 					if (target == escort)
 					{
@@ -1269,10 +1264,9 @@
 	{
 		// Notify other police in group of attacker.
 		// Note: prior to 1.73 this was done only if we had ECM.
-		NSEnumerator	*policeEnum = nil;
 		ShipEntity		*police = nil;
 		
-		for (policeEnum = [[self group] mutationSafeEnumerator]; (police = [policeEnum nextObject]); )
+		foreach (police, [[self group] mutationSafeEnumerator])
 		{
 			[police setFoundTarget:hunter];
 			[police setPrimaryAggressor:hunter];
@@ -1638,14 +1632,13 @@
 
 - (void) wormholeGroup
 {
-	NSEnumerator		*shipEnum = nil;
 	ShipEntity			*ship = nil;
 	WormholeEntity		*whole = nil;
 	
 	whole = [self primaryTarget];
 	if (![whole isWormhole])  return;
 	
-	for (shipEnum = [[self group] mutationSafeEnumerator]; (ship = [shipEnum nextObject]); )
+	foreach(ship, [[self group] mutationSafeEnumerator])
 	{
 		[ship addTarget:whole];
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:@"wormholeGroup"];
