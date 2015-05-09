@@ -363,14 +363,13 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
 
 - (void)loadFromArray:(NSArray *)array
 {
-	NSEnumerator			*entryEnum = nil;
 	NSDictionary			*entry = nil;
 	NSString				*key = nil;
 	id						value = nil;
 	
 	if (array == nil) return;
 	
-	for (entryEnum = [array objectEnumerator]; (entry = [entryEnum nextObject]); )
+	foreach (entry, array)
 	{
 		if ([entry isKindOfClass:[NSDictionary class]])
 		{

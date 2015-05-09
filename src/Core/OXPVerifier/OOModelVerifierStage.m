@@ -94,7 +94,6 @@ static id NSNULL = nil;
 
 - (void)run
 {
-	NSEnumerator				*nameEnum = nil;
 	NSDictionary				*info = nil;
 	NSAutoreleasePool			*pool = nil;
 	NSString					*name = nil,
@@ -104,7 +103,7 @@ static id NSNULL = nil;
 	
 	OOLog(@"verifyOXP.models.unimplemented", @"TODO: implement model verifier.");
 	
-	for (nameEnum = [_modelsToCheck objectEnumerator]; (info = [nameEnum nextObject]); )
+	foreach (info, _modelsToCheck)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		

@@ -1281,7 +1281,6 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 	
 	JSObject				*result = NULL;
 	BOOL					OK = YES;
-	NSEnumerator			*keyEnum = nil;
 	id						key = nil;
 	jsval					value;
 	jsint					index;
@@ -1293,7 +1292,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 		result = JS_NewObject(context, NULL, NULL, NULL);	// create object of class Object
 		if (result != NULL)
 		{
-			for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
+			foreachkey (key, dictionary)
 			{
 				if ([key isKindOfClass:[NSString class]] && [key length] != 0)
 				{

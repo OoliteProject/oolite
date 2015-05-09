@@ -93,14 +93,13 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 
 - (void)runCheckWithEquipment:(NSArray *)equipmentPList
 {
-	NSEnumerator				*entryEnum = nil;
 	NSArray						*entry = nil;
 	unsigned					entryIndex = 0;
 	NSUInteger					elemCount;
 	NSString					*name = nil;
 	NSString					*entryDesc = nil;
 	
-	for (entryEnum = [equipmentPList objectEnumerator]; (entry = [entryEnum nextObject]); )
+	foreach (entry, equipmentPList)
 	{
 		++entryIndex;
 		
