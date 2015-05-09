@@ -82,11 +82,11 @@ static NSString * const kStageName	= @"Testing textures and images";
 
 - (void)run
 {
-	NSEnumerator				*nameEnum = nil;
+	NSArray						*nameEnum = nil;
 	NSString					*name = nil;
 	NSAutoreleasePool			*pool = nil;
 	
-	for (nameEnum = [_usedTextures objectEnumerator]; (name = [nameEnum nextObject]); )
+	foreach (name, _usedTextures)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		[self checkTextureNamed:name inFolder:@"Textures"];
@@ -96,8 +96,8 @@ static NSString * const kStageName	= @"Testing textures and images";
 	_usedTextures = nil;
 	
 	// All "images" are considered used, since we don't have a reasonable way to look for images referenced in JavaScript scripts.
-	nameEnum = [[[[self verifier] fileScannerStage] filesInFolder:@"Images"] objectEnumerator];
-	while ((name = [nameEnum nextObject]))
+	nameEnum = [[[self verifier] fileScannerStage] filesInFolder:@"Images"];
+	foreach (name, nameEnum)
 	{
 		[self checkTextureNamed:name inFolder:@"Images"];
 	}

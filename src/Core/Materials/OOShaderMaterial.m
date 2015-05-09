@@ -496,7 +496,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 -(void)addUniformsFromDictionary:(NSDictionary *)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-	NSEnumerator			*uniformEnum = nil;
 	NSString				*name = nil;
 	id						definition = nil;
 	id						value = nil;
@@ -523,7 +522,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	ranrot_srand(randomSeed);
 	
 	keys = [[uniformDefs allKeys] sortedArrayUsingSelector:@selector(compare:)];
-	for (uniformEnum = [keys objectEnumerator]; (name = [uniformEnum nextObject]); )
+	foreach(name, keys)
 	{
 		gotValue = NO;
 		definition = [uniformDefs objectForKey:name];
@@ -673,7 +672,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (BOOL)doApply
 {
-	NSEnumerator			*uniformEnum = nil;
 	OOShaderUniform			*uniform = nil;
 	uint32_t				i;
 	
@@ -691,7 +689,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	@try
 	{
-		for (uniformEnum = [uniforms objectEnumerator]; (uniform = [uniformEnum nextObject]); )
+		foreach(uniform, uniforms)
 		{
 			[uniform apply];
 		}
@@ -831,13 +829,12 @@ static NSString *MacrosToString(NSDictionary *macros);
 static NSString *MacrosToString(NSDictionary *macros)
 {
 	NSMutableString			*result = nil;
-	NSEnumerator			*macroEnum = nil;
 	id						key = nil, value = nil;
 	
 	if (macros == nil)  return nil;
 	
 	result = [NSMutableString string];
-	for (macroEnum = [macros keyEnumerator]; (key = [macroEnum nextObject]); )
+	foreachkey(key, macros)
 	{
 		if (![key isKindOfClass:[NSString class]]) continue;
 		value = [macros objectForKey:key];
@@ -861,7 +858,6 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 {
 	NSString				*result = nil;
 	NSArray					*extensions = nil;
-	NSEnumerator			*extEnum = nil;
 	NSString				*extension = nil;
 	NSString				*nameWithExtension = nil;
 	
@@ -875,7 +871,7 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 		// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
 		if (![fileName pathHasExtensionInArray:extensions])
 		{
-			for (extEnum = [extensions objectEnumerator]; (extension = [extEnum nextObject]); )
+			foreachkey(extension, extensions)
 			{
 				nameWithExtension = [fileName stringByAppendingPathExtension:extension];
 				result = [ResourceManager stringFromFilesNamed:nameWithExtension

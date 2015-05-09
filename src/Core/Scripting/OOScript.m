@@ -143,14 +143,13 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 
 + (NSArray *)scriptsFromList:(NSArray *)fileNames
 {
-	NSEnumerator		*nameEnum = nil;
 	NSString			*name = nil;
 	NSMutableArray		*result = nil;
 	NSArray				*scripts = nil;
 	
 	result = [NSMutableArray arrayWithCapacity:[fileNames count]];
 	
-	for (nameEnum = [fileNames objectEnumerator]; (name = [nameEnum nextObject]); )
+	foreach(name, fileNames)
 	{
 		scripts = [self scriptsFromFileNamed:name];
 		if (scripts != nil)  [result addObjectsFromArray:scripts];

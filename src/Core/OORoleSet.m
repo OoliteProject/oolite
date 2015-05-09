@@ -115,7 +115,6 @@ SOFTWARE.
 - (NSString *)roleString
 {
 	NSArray					*roles = nil;
-	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	float					probability;
 	NSMutableString			*result = nil;
@@ -126,7 +125,7 @@ SOFTWARE.
 		// Construct role string. We always do this so that it's in a normalized form.
 		result = [NSMutableString string];
 		roles = [self sortedRoles];
-		for (roleEnum = [roles objectEnumerator]; (role = [roleEnum nextObject]); )
+		foreach(role, roles)
 		{
 			if (!first)  [result appendString:@" "];
 			else  first = NO;
@@ -192,7 +191,6 @@ SOFTWARE.
 
 - (NSString *)anyRole
 {
-	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	float					prob, selected;
 	
@@ -201,7 +199,7 @@ SOFTWARE.
 	
 	if ([_rolesAndProbabilities count] == 0)  return nil;
 	
-	for (roleEnum = [_rolesAndProbabilities keyEnumerator]; (role = [roleEnum nextObject]); )
+	foreachkey (role, _rolesAndProbabilities)
 	{
 		prob += [_rolesAndProbabilities oo_floatForKey:role];
 		if (selected <= prob)  break;
@@ -263,7 +261,6 @@ SOFTWARE.
 
 - (id)initWithRolesAndProbabilities:(NSDictionary *)dict
 {
-	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	float					prob;
 	
@@ -293,7 +290,7 @@ SOFTWARE.
 	
 	_rolesAndProbabilities = [tDict copy];
 	
-	for (roleEnum = [dict keyEnumerator]; (role = [roleEnum nextObject]); )
+	foreachkey(role, dict)
 	{
 		prob = [dict oo_floatForKey:role defaultValue:-1];
 		if (prob < 0)

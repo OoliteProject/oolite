@@ -232,11 +232,10 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 
 static BOOL TestScriptConditions(NSArray *conditions)
 {
-	NSEnumerator			*condEnum = nil;
 	NSArray					*condition = nil;
 	PlayerEntity			*player = PLAYER;
 	
-	for (condEnum = [conditions objectEnumerator]; (condition = [condEnum nextObject]); )
+	foreach(condition, conditions)
 	{
 		if (![player scriptTestCondition:condition])  return NO;
 	}
@@ -610,13 +609,12 @@ static BOOL sRunningScript = NO;
 - (NSString *) expandScriptRightHandSide:(NSArray *)rhsComponents
 {
 	NSMutableArray			*result = nil;
-	NSEnumerator			*componentEnum = nil;
 	NSArray					*component = nil;
 	NSString				*value = nil;
 	
 	result = [NSMutableArray arrayWithCapacity:[rhsComponents count]];
 	
-	for (componentEnum = [rhsComponents objectEnumerator]; (component = [componentEnum nextObject]); )
+	foreach (component, rhsComponents)
 	{
 		/*	Each component is a two-element array. The second element is a
 			string. The first element is a boolean indicating whether the
