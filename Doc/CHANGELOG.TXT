@@ -315,7 +315,7 @@ Bug fixes:
 * AI errors related to system ID 0 fixed
 * Bug making tutorial extremely difficult to complete if player obtained a
   bounty fixed.
-
+* Fix error with cargo dumping when reloading save after death
 
 -------------------------------------------------------------------------------
 

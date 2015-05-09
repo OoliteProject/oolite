@@ -476,6 +476,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[self loadCargoPodsForType:good fromManifest:shipCommodityData];
 	}
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
+	cargo_dump_time = 0;
 }
 
 
