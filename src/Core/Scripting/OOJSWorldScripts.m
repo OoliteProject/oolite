@@ -105,12 +105,11 @@ static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 	*/
 	
 	NSArray					*names = nil;
-	NSEnumerator			*nameEnum = nil;
 	NSString				*name = nil;
 	
 	names = [OOPlayerForScripting() worldScriptNames];
 	
-	for (nameEnum = [names objectEnumerator]; (name = [nameEnum nextObject]); )
+	foreach (name, names)
 	{
 		if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, OOJS_PROP_READONLY_CB))  return NO;
 	}

@@ -78,8 +78,7 @@ MA 02110-1301, USA.
 {
 	NSMutableArray *colors = [NSMutableArray arrayWithCapacity:[colorSpecifiers count]];
 	id specifier = nil;
-	NSEnumerator *specEnum = [colorSpecifiers objectEnumerator];
-	while ((specifier = [specEnum nextObject]))
+	foreach (specifier, colorSpecifiers)
 	{
 		[colors addObject:[OOColor colorWithDescription:specifier saturationFactor:0.75f]];
 	}

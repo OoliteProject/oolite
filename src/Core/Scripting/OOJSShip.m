@@ -3006,9 +3006,8 @@ static JSBool ShipFindNearestStation(JSContext *context, uintN argc, jsval *vp)
 
 	double				sdist, distance = 1E32;
 	
-	NSEnumerator		*statEnum = [[UNIVERSE stations] objectEnumerator];
 	StationEntity		*se = nil;
-	while ((se = [statEnum nextObject]))
+	foreach (se, [UNIVERSE stations])
 	{
 		sdist = HPdistance2([thisEnt position],[se position]);
 
