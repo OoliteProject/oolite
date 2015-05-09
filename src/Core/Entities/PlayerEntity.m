@@ -811,7 +811,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// extra equipment flags
 	NSMutableDictionary	*equipment = [NSMutableDictionary dictionary];
 	NSString			*eqDesc = nil;
-	foreach(eqDesc, [self equipmentEnumerator])
+	foreach (eqDesc, [self equipmentEnumerator])
 	{
 		[equipment oo_setInteger:[self countEquipmentItem:eqDesc] forKey:eqDesc];
 	}
@@ -1520,7 +1520,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSDictionary * whCurrDict;
 	[scannedWormholes release];
 	scannedWormholes = [[NSMutableArray alloc] initWithCapacity:[whArray count]];
-	foreach(whCurrDict, whArray)
+	foreach (whCurrDict, whArray)
 	{
 		WormholeEntity * wh = [[WormholeEntity alloc] initWithDict:whCurrDict];
 		[scannedWormholes addObject:wh];
@@ -5789,7 +5789,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	ShipEntity		*se = nil;
-	foreach(se, [self shipSubEntityEnumerator])
+	foreach (se, [self shipSubEntityEnumerator])
 	{
 		HPVector p0 = [se absolutePositionForSubentity];
 		Triangle ijk = [se absoluteIJKForSubentity];
@@ -7496,7 +7496,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	BOOL prioritiseDamaged = [[gui userSettings] oo_boolForKey:kGuiStatusPrioritiseDamaged defaultValue:YES];
 
-	foreach(eqType, [OOEquipmentType reverseEquipmentEnumerator])
+	foreach (eqType, [OOEquipmentType reverseEquipmentEnumerator])
 	{
 		if ([eqType isVisible])
 		{
@@ -7728,7 +7728,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	if (specialCargo) [manifest addObject:specialCargo];
 	
-	foreach(commodity, list)
+	foreach (commodity, list)
 	{
 		NSInteger quantity = [commodity oo_integerForKey:@"quantity"];
 		NSString *units = [commodity oo_stringForKey:@"unit"];
@@ -8079,7 +8079,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	NSString					*key = nil;
 
-	foreachkey(key, missionDestinations)
+	foreachkey (key, missionDestinations)
 	{
 		marker = [missionDestinations objectForKey:key];
 		[self prepareMarkedDestination:destinations:marker];

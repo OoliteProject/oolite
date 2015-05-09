@@ -400,7 +400,7 @@ static NSString *sGlobalTraceContext = nil;
 {
 	NSMutableSet *result = [NSMutableSet setWithCapacity:[sAllLiveTextures count]];
 	NSValue *box = nil;
-	foreach(box, sAllLiveTextures)
+	foreach (box, sAllLiveTextures)
 	{
 		[result addObject:[box pointerValue]];
 	}

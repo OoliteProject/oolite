@@ -205,7 +205,7 @@ static NSMutableArray	*sDeferredTimers;
 	
 	// Intermediate array is required so we don't get stuck in an endless loop over reinserted timers. Note that -sortedObjects also clears the queue!
 	timers = [sTimers sortedObjects];
-	foreach(timer, timers)
+	foreach (timer, timers)
 	{
 		timer->_isScheduled = NO;
 	}

@@ -6671,7 +6671,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			{
 				update_stage = @"shootin' zombies";
 				Entity *zombie = nil;
-				foreach(zombie, zombies)
+				foreach (zombie, zombies)
 				{
 					OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
 					[self removeEntity:zombie];
@@ -8611,7 +8611,7 @@ static void VerifyDesc(NSString *key, id desc)
 						id							key = nil;
 						BOOL						missing = NO;
 						
-						foreach(key, [item requiresEquipment])
+						foreach (key, [item requiresEquipment])
 						{
 							if (![extras containsObject:key])
 							{
@@ -8626,7 +8626,7 @@ static void VerifyDesc(NSString *key, id desc)
 						id							key = nil;
 						BOOL						missing = YES;
 						
-						foreach(key, [item requiresAnyEquipment])
+						foreach (key, [item requiresAnyEquipment])
 						{
 							if ([extras containsObject:key])
 							{
@@ -10271,7 +10271,7 @@ static void PreloadOneSound(NSString *soundName)
 	
 	arguments = [[NSProcessInfo processInfo] arguments];
 	
-	foreach(arg, arguments)
+	foreach (arg, arguments)
 	{
 		if ([arg isEqual:@"--compile-sysdesc"])  compileSysDesc = YES;
 		else if ([arg isEqual:@"--export-sysdesc"])  exportSysDesc = YES;

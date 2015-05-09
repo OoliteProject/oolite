@@ -1158,7 +1158,7 @@ static NSMutableDictionary *sStringCache;
 	// Build modification date list. (We need this regardless of whether the search paths matched.)
 	
 	modDates = [NSMutableArray arrayWithCapacity:[searchPaths count]];
-	foreach(path, searchPaths)
+	foreach (path, searchPaths)
 	{
 		modDate = [[fmgr oo_fileAttributesAtPath:path traverseLink:YES] objectForKey:NSFileModificationDate];
 		if (modDate != nil)
@@ -1513,7 +1513,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	// Build list of root log message classes that appear in the built-in list.
 	NSMutableSet *coreRoots = [NSMutableSet set];
 	NSString *key = nil;
-	foreachkey(key, logControl)
+	foreachkey (key, logControl)
 	{
 		[coreRoots addObject:LogClassKeyRoot(key)];
 	}
@@ -1523,7 +1523,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSDictionary *dict = nil;
 	
 	// Look for logcontrol.plists inside OXPs (but not in root paths). These are not allowed to define keys in hierarchies used by the build-in one.
-	foreach(path, [self pathEnumerator])
+	foreach (path, [self pathEnumerator])
 	{
 		if ([rootPaths containsObject:path])  continue;
 		
@@ -1545,7 +1545,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	}
 	
 	// Now, look for logcontrol.plists in root paths, i.e. not within OXPs. These are allowed to override the built-in copy.
-	foreach(path, rootPaths)
+	foreach (path, rootPaths)
 	{
 		configPath = [[path stringByAppendingPathComponent:@"Config"]
 					  stringByAppendingPathComponent:@"logcontrol.plist"];
@@ -1577,7 +1577,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSString *configPath = nil;
 	NSDictionary *categories = nil;
 	
-	foreach(path, [self pathEnumerator])
+	foreach (path, [self pathEnumerator])
 	{
 		if ([ResourceManager corePlist:@"role-categories.plist" excludedAt:path])
 		{
@@ -1610,7 +1610,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSMutableSet *contents = nil;
 	NSArray *catDataEntry = nil;
 	NSString *key;
-	foreachkey(key, catData)
+	foreachkey (key, catData)
 	{
 		contents = [categories objectForKey:key];
 		if (contents == nil)
@@ -1750,7 +1750,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	// Search for file
 	fmgr = [NSFileManager defaultManager];
 	// reverse object enumerator allows OXPs to override core
-	foreach(path, [[ResourceManager paths] reverseObjectEnumerator])
+	foreach (path, [[ResourceManager paths] reverseObjectEnumerator])
 	{
 		filePath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 		if ([fmgr oo_oxzFileExistsAtPath:filePath])
@@ -2039,7 +2039,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 
 	// Prettify paths for logging.
 	displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
-	foreach(path, sSearchPaths)
+	foreach (path, sSearchPaths)
 	{
 		[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
 	}

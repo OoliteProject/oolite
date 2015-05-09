@@ -1770,7 +1770,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	_maxEscortCount = 0;
 	int8_t i = 0;
-	foreach(escortDefinition, escortRoles)
+	foreach (escortDefinition, escortRoles)
 	{
 		if (currentEscortCount >= MAX_ESCORTS)
 		{
@@ -2631,7 +2631,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				ShipEntity	*escort = nil;
 				unsigned	i = 0;
 				// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
-				foreach(escort, [self escortArray])
+				foreach (escort, [self escortArray])
 				{
 					[escort setEscortDestination:[self coordinatesForEscortPosition:i++]];
 				}
@@ -2982,7 +2982,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return YES;
 	}
 
-	foreach(subEntity, [self shipSubEntityEnumerator])
+	foreach (subEntity, [self shipSubEntityEnumerator])
 	{
 		if ([subEntity hasPrimaryWeapon:weaponType])  return YES;
 	}
@@ -3255,7 +3255,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	OOEquipmentType		*eqType = nil;
 	BOOL				isDamaged;
 	
-	foreach(eqType, eqTypes)
+	foreach (eqType, eqTypes)
 	{
 		// Equipment list,  consistent with the rest of the API - Kaks
 		if ([eqType canCarryMultiple])
@@ -3682,7 +3682,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			id 				value;
 			
-			foreach(value, [[missile roleSet] roles])
+			foreach (value, [[missile roleSet] roles])
 			{
 				role = (NSString *)value;
 				missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
@@ -9287,7 +9287,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		
 		// Explode subentities.
 		ShipEntity		*se = nil;
-		foreach(se, [self shipSubEntityEnumerator])
+		foreach (se, [self shipSubEntityEnumerator])
 		{
 			[se setSuppressExplosion:suppressExplosion];
 			[se becomeExplosion];
@@ -9520,7 +9520,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self releaseCargoPodsDebris];
 		
 		ShipEntity		*se = nil;
-		foreach(se, [self shipSubEntityEnumerator])
+		foreach (se, [self shipSubEntityEnumerator])
 		{
 			[se setSuppressExplosion:suppressExplosion];
 			[se becomeExplosion];
@@ -9652,7 +9652,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	OOExhaustPlumeEntity *exEnt = nil;
 	
-	foreach(exEnt, [self exhaustEnumerator])
+	foreach (exEnt, [self exhaustEnumerator])
 	{
 		[exEnt resetPlume];
 	}
@@ -11370,7 +11370,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	{
 		//can we fire lasers from our subentities?
 		ShipEntity		*se = nil;
-		foreach(se, [self shipSubEntityEnumerator])
+		foreach (se, [self shipSubEntityEnumerator])
 		{
 			if ([se fireSubentityLaserShot:range])  fired = YES;
 		}
@@ -13772,7 +13772,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ShipEntity			*target = [self primaryTarget];
 	unsigned			i = 0;
 	// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
-	foreach(escort, [self escortArray])
+	foreach (escort, [self escortArray])
 	{
 		float		delay = i++ * 3.0 + 1.5;		// send them off at three second intervals
 		AI			*ai = [escort getAI];

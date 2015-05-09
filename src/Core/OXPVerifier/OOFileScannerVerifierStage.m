@@ -483,7 +483,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	BOOL					inDirectory;
 	
 	directories = [[self verifier] configurationDictionaryForKey:@"knownFiles"];
-	foreachkey(directory, directories)
+	foreachkey (directory, directories)
 	{
 		fileList = [directories objectForKey:directory];
 		lcDirectory = [directory lowercaseString];
