@@ -138,7 +138,7 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 	metadata = [dictionary objectForKey:kKeyMetadata];
 	if (![metadata isKindOfClass:[NSDictionary class]]) metadata = nil;
 	
-	foreachkey(key, dictionary)
+	foreachkey (key, dictionary)
 	{
 		scriptArray = [dictionary objectForKey:key];
 		if ([key isKindOfClass:[NSString class]] &&
@@ -172,7 +172,7 @@ static NSString * const kCacheName			= @"sanitized legacy scripts";
 	
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[cachedScripts count]];
 	
-	foreachkey(key, cachedScripts)
+	foreachkey (key, cachedScripts)
 	{
 		NSDictionary *cacheValue = [cachedScripts oo_dictionaryForKey:key];
 		NSArray *scriptArray = [cacheValue oo_arrayForKey:kKeyScript];

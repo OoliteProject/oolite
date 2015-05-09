@@ -692,7 +692,7 @@
 	context = [NSString stringWithFormat:@"%@ wormholeEscorts", [self shortDescription]];
 #endif
 	
-	foreach(ship, [self escortEnumerator])
+	foreach (ship, [self escortEnumerator])
 	{
 		[ship addTarget:whole];
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:context];
@@ -876,7 +876,7 @@
 	NSCharacterSet		*whiteSpace = [NSCharacterSet whitespaceCharacterSet];
 	
 	messages = [messageString componentsSeparatedByString:@","];
-	foreach(message, messages)
+	foreach (message, messages)
 	{
 		[shipAI dropMessage:[message stringByTrimmingCharactersInSet:whiteSpace]];
 	}
@@ -1646,7 +1646,7 @@
 	whole = [self primaryTarget];
 	if (![whole isWormhole])  return;
 	
-	foreach(ship, [[self group] mutationSafeEnumerator])
+	foreach (ship, [[self group] mutationSafeEnumerator])
 	{
 		[ship addTarget:whole];
 		[ship reactToAIMessage:@"ENTER WORMHOLE" context:@"wormholeGroup"];

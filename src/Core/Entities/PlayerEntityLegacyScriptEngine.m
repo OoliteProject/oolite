@@ -235,7 +235,7 @@ static BOOL TestScriptConditions(NSArray *conditions)
 	NSArray					*condition = nil;
 	PlayerEntity			*player = PLAYER;
 	
-	foreach(condition, conditions)
+	foreach (condition, conditions)
 	{
 		if (![player scriptTestCondition:condition])  return NO;
 	}
@@ -1402,7 +1402,7 @@ static int shipsFound;
 	
 	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
-	foreach(type, [shipCommodityData goods])
+	foreach (type, [shipCommodityData goods])
 	{
 		if ([shipCommodityData massUnitForGood:type] == UNITS_TONS)
 		{
@@ -2009,7 +2009,7 @@ static int shipsFound;
 	BOOL selectableRowExists = NO;
 	NSUInteger firstSelectableRow = end_row;
 
-	foreach(choiceKey, choiceKeys)
+	foreach (choiceKey, choiceKeys)
 	{
 		choiceValue = [choicesDict objectForKey:choiceKey];
 		OOGUIAlignment alignment = GUI_ALIGN_CENTER;

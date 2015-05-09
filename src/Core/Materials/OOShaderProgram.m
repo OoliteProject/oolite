@@ -391,7 +391,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	
 	NSString				*attrKey = nil;
 	
-	foreachkey(attrKey, attributeBindings)
+	foreachkey (attrKey, attributeBindings)
 	{
 		OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));
 	}
@@ -408,7 +408,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		OO_ENTER_OPENGL();
 
 		[matrixManager syncModelView];
-		foreachkey(obj, standardMatrixUniformLocations)
+		foreachkey (obj, standardMatrixUniformLocations)
 		{
 			if ([obj isKindOfClass:[NSArray class]])
 			{
@@ -453,7 +453,7 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 		// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
 		if (![fileName pathHasExtensionInArray:extensions])
 		{
-			foreach(extension, extensions)
+			foreach (extension, extensions)
 			{
 				nameWithExtension = [fileName stringByAppendingPathExtension:extension];
 				result = [ResourceManager stringFromFilesNamed:nameWithExtension

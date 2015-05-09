@@ -125,7 +125,7 @@ SOFTWARE.
 		// Construct role string. We always do this so that it's in a normalized form.
 		result = [NSMutableString string];
 		roles = [self sortedRoles];
-		foreach(role, roles)
+		foreach (role, roles)
 		{
 			if (!first)  [result appendString:@" "];
 			else  first = NO;
@@ -290,7 +290,7 @@ SOFTWARE.
 	
 	_rolesAndProbabilities = [tDict copy];
 	
-	foreachkey(role, dict)
+	foreachkey (role, dict)
 	{
 		prob = [dict oo_floatForKey:role defaultValue:-1];
 		if (prob < 0)

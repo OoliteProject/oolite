@@ -522,7 +522,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	ranrot_srand(randomSeed);
 	
 	keys = [[uniformDefs allKeys] sortedArrayUsingSelector:@selector(compare:)];
-	foreach(name, keys)
+	foreach (name, keys)
 	{
 		gotValue = NO;
 		definition = [uniformDefs objectForKey:name];
@@ -689,7 +689,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	@try
 	{
-		foreach(uniform, uniforms)
+		foreach (uniform, uniforms)
 		{
 			[uniform apply];
 		}
@@ -834,7 +834,7 @@ static NSString *MacrosToString(NSDictionary *macros)
 	if (macros == nil)  return nil;
 	
 	result = [NSMutableString string];
-	foreachkey(key, macros)
+	foreachkey (key, macros)
 	{
 		if (![key isKindOfClass:[NSString class]]) continue;
 		value = [macros objectForKey:key];
@@ -871,7 +871,7 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 		// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
 		if (![fileName pathHasExtensionInArray:extensions])
 		{
-			foreachkey(extension, extensions)
+			foreachkey (extension, extensions)
 			{
 				nameWithExtension = [fileName stringByAppendingPathExtension:extension];
 				result = [ResourceManager stringFromFilesNamed:nameWithExtension

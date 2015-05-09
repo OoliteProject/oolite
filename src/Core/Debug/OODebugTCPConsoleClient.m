@@ -584,7 +584,7 @@ noteChangedConfigrationValue:(in id)newValue
 	configuration = [packet oo_dictionaryForKey:kOOTCPConfiguration];
 	if (configuration != nil)
 	{
-		foreachkey(key, configuration)
+		foreachkey (key, configuration)
 		{
 			value = [configuration objectForKey:key];
 			[_monitor setConfigurationValue:value forKey:key];

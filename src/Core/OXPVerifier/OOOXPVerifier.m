@@ -336,7 +336,7 @@ static void OpenLogFile(NSString *name);
 	OOLogSetShowMessageClassTemporary([_verifierPList oo_boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
 	
 	overrides = [_verifierPList oo_dictionaryForKey:@"logControlOverride"];
-	foreachkey(messageClass, overrides)
+	foreachkey (messageClass, overrides)
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, [overrides oo_boolForKey:messageClass defaultValue:NO]);
 	}
@@ -444,7 +444,7 @@ static void OpenLogFile(NSString *name);
 	// Iterate over all stages, resolving dependencies.
 	stageKeys = [_stagesByName allKeys];	// Get the keys up front because we may need to remove entries from dictionary.
 	
-	foreach(stageKey, stageKeys)
+	foreach (stageKey, stageKeys)
 	{
 		stage = [_stagesByName objectForKey:stageKey];
 		if (stage == nil)  continue;
@@ -585,7 +585,7 @@ static void OpenLogFile(NSString *name);
 	OOOXPVerifierStage		*depStage = nil;
 	
 	// Iterate over dependencies, connecting them up.
-	foreach(depName, dependencies)
+	foreach (depName, dependencies)
 	{
 		depStage = [_stagesByName objectForKey:depName];
 		if (depStage == nil)
@@ -615,7 +615,7 @@ static void OpenLogFile(NSString *name);
 	OOOXPVerifierStage		*depStage = nil;
 	
 	// Iterate over dependents, connecting them up.
-	foreach(depName, dependents)
+	foreach (depName, dependents)
 	{
 		depStage = [_stagesByName objectForKey:depName];
 		if (depStage == nil)
@@ -653,7 +653,7 @@ static void OpenLogFile(NSString *name);
 		We use pointers as node names for simplicity of generation.
 	*/
 	template = [graphVizTemplate oo_stringForKey:@"node"];
-	foreach(stage, [_stagesByName allValues])
+	foreach (stage, [_stagesByName allValues])
 	{
 		[graphViz appendFormat:template, stage, [stage class], [stage name]];
 	}

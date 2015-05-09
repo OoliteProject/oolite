@@ -221,13 +221,13 @@ static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *con
 	
 	[ship removeAllEquipment];
 	NSString *eqKey = nil;
-	foreach(eqKey, [dict oo_arrayForKey:KEY_EQUIPMENT])
+	foreach (eqKey, [dict oo_arrayForKey:KEY_EQUIPMENT])
 	{
 		[ship addEquipmentItem:eqKey withValidation:NO inContext:@"loading"];
 	}
 	
 	[ship removeMissiles];
-	foreach(eqKey, [dict oo_arrayForKey:KEY_MISSILES])
+	foreach (eqKey, [dict oo_arrayForKey:KEY_MISSILES])
 	{
 		[ship addEquipmentItem:eqKey withValidation:NO inContext:@"loading"];
 	}
@@ -275,7 +275,7 @@ static OOShipGroup *GroupForGroupID(NSUInteger groupID, NSMutableDictionary *con
 	// Note items that are in referenceData, but not data.
 	NSMutableArray *foundDeletes = [NSMutableArray array];
 	NSString *key = nil;
-	foreachkey(key, referenceData)
+	foreachkey (key, referenceData)
 	{
 		if ([data objectForKey:key] == nil)
 		{
@@ -308,7 +308,7 @@ static void StripIgnoredKeys(NSMutableDictionary *dict)
 	if (ignoredKeys == nil)  ignoredKeys = [[NSArray alloc] initWithObjects:@"ai_type", @"has_ecm", @"has_scoop", @"has_escape_pod", @"has_energy_bomb", @"has_fuel_injection", @"has_cloaking_device", @"has_military_jammer", @"has_military_scanner_filter", @"has_shield_booster", @"has_shield_enhancer", @"escorts", @"escort_role", @"escort-ship", @"conditions", @"missiles", @"auto_ai", nil];
 	
 	NSString *key = nil;
-	foreachkey(key, ignoredKeys)
+	foreachkey (key, ignoredKeys)
 	{
 		[dict removeObjectForKey:key];
 	}
