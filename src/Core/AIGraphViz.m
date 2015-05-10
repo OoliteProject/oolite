@@ -50,21 +50,19 @@ void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSString *smN
 	 "\tnode [shape=box height=0.2 width=3.5 fontname=Helvetica color=\"#808080\"]\n\t\n"
 	 "\tspecial_start [shape=ellipse color=\"#0000C0\" label=\"Start\"]\n\tspecial_start -> %@ [lhead=\"cluster_GLOBAL\" color=\"#0000A0\"]\n", EscapedGraphVizString(smName), HandlerToken(@"GLOBAL", @"ENTER", handlerKeys, uniqueSet)];
 	
-	NSEnumerator *stateKeyEnum = [stateMachine keyEnumerator];
 	NSString *stateKey = nil;
 	
 	NSMutableSet *specialNodes = [NSMutableSet set];
 	
-	while ((stateKey = [stateKeyEnum nextObject]))
+	foreachkey (stateKey, stateMachine)
 	{
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 		
 		[graphViz appendFormat:@"\t\n\tsubgraph cluster_%@\n\t{\n\t\tlabel=\"%@\"\n", stateKey, EscapedGraphVizString(stateKey)];
 		
 		NSDictionary *state = [stateMachine oo_dictionaryForKey:stateKey];
-		NSEnumerator *handlerKeyEnum = [state keyEnumerator];
 		NSString *handlerKey = nil;
-		while ((handlerKey = [handlerKeyEnum nextObject]))
+		foreachkey (handlerKey, state)
 		{
 			[graphViz appendFormat:@"\t\t%@ [label=\"%@\"]\n", HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet), EscapedGraphVizString(handlerKey)];
 		}
@@ -78,8 +76,7 @@ void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSString *smN
 		[graphViz appendString:@"\t}\n"];
 		
 		// Go through each handler looking for interesting methods.
-		handlerKeyEnum = [state keyEnumerator];
-		while ((handlerKey = [handlerKeyEnum nextObject]))
+		foreachkey (handlerKey, state)
 		{
 			NSArray *handlerCommands = [state oo_arrayForKey:handlerKey];
 			NSUInteger commandIter, commandCount = [handlerCommands count];
@@ -98,9 +95,8 @@ void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSString *smN
 	{
 		[graphViz appendString:@"\t\n"];
 		
-		NSEnumerator *specialEnum = [specialNodes objectEnumerator];
 		NSString *special = nil;
-		while ((special = [specialEnum nextObject]))
+		foreach (special, specialNodes)
 		{
 			[graphViz appendString:special];
 		}

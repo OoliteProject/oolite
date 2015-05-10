@@ -574,7 +574,6 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)buildCachesFromDictionary:(NSDictionary *)inDict
 {
-	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
 	id							value = nil;
 	NSMutableDictionary			*cache = nil;
@@ -584,7 +583,7 @@ static OOCacheManager *sSingleton = nil;
 	[_caches release];
 	_caches = [[NSMutableDictionary alloc] initWithCapacity:[inDict count]];
 	
-	for (keyEnum = [inDict keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, inDict)
 	{
 		value = [inDict oo_dictionaryForKey:key];
 		if (value != nil)

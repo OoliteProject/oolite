@@ -2654,11 +2654,10 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 	GLfloat scale = [info oo_floatForKey:@"reticle_scale" defaultValue:ONE_SIXTYFOURTH];
 
-	NSEnumerator *waypoints = [[UNIVERSE currentWaypoints] objectEnumerator];
 	OOWaypointEntity *waypoint = nil;
 	Entity *compass = [PLAYER compassTarget];
 	
-	while ((waypoint = [waypoints nextObject]))
+	foreach (waypoint, [[UNIVERSE currentWaypoints] allValues])
 	{
 		hudDrawWaypoint(waypoint, PLAYER, z1, alpha, waypoint==compass, scale);
 	}

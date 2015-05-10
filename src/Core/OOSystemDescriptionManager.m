@@ -240,7 +240,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	NSArray *key = nil;
 	NSString *keyStr = nil;
 	NSString *manifest = nil;
-	foreachkey(keyStr, scripted)
+	foreachkey (keyStr, scripted)
 	{
 		key = [keyStr componentsSeparatedByString:kOOScriptedChangeJoiner];
 		if ([key count] == 4)
@@ -276,7 +276,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	NSString *propertyKey = nil;
 	NSString *defaultManifest = @"org.oolite.oolite";
 	
-	foreachkey(systemKey,scripted)
+	foreachkey (systemKey,scripted)
 	{
 		NSDictionary *legacyChanges = [scripted oo_dictionaryForKey:systemKey];
 		if ([legacyChanges objectForKey:@"sun_gone_nova"] != nil)
@@ -477,7 +477,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		layer = OO_LAYER_OXP_PRIORITY;
 	}
 	NSString *key = nil;
-	foreachkey(key, properties)
+	foreachkey (key, properties)
 	{
 		if (![key isEqualToString:kOOSystemLayerProperty])
 		{

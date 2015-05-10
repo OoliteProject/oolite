@@ -451,12 +451,11 @@ static void QueueDeferredOperation(NSString *opType, uint32 trackingID, OOJSValu
 static void RunDeferredOperations(JSContext *context)
 {
 	NSDictionary		*operation = nil;
-	NSEnumerator		*operationEnum = nil;
 	
 	FCBLog(@"script.frameCallback.debug.run-deferred", @"Running %lu deferred frame callback operations.", (long)[sDeferredOps count]);
 	FCBLogIndentIf(@"script.frameCallback.debug.run-deferred");
 	
-	for (operationEnum = [sDeferredOps objectEnumerator]; (operation = [operationEnum nextObject]); )
+	foreach (operation, sDeferredOps)
 	{
 		NSString	*opType = [operation objectForKey:@"operation"];
 		uint32		trackingID = [operation oo_intForKey:@"trackingID"];

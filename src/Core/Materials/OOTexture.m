@@ -400,8 +400,7 @@ static NSString *sGlobalTraceContext = nil;
 {
 	NSMutableSet *result = [NSMutableSet setWithCapacity:[sAllLiveTextures count]];
 	NSValue *box = nil;
-	NSEnumerator *texEnum = nil;
-	for (texEnum = [sAllLiveTextures objectEnumerator]; (box = [texEnum nextObject]); )
+	foreach (box, sAllLiveTextures)
 	{
 		[result addObject:[box pointerValue]];
 	}

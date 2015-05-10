@@ -403,7 +403,7 @@ static OOOXZManager *sSingleton = nil;
 		[invocation setArgument:&parameter atIndex:3];
 	}
 
-	foreach(manifest, list)
+	foreach (manifest, list)
 	{
 		[invocation setArgument:&manifest atIndex:2];
 		[invocation invoke];

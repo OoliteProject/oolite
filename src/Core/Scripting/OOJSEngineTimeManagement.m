@@ -760,9 +760,8 @@ static void UpdateProfileForFrame(OOHighResTimeValue now, OOJSProfileStackFrame 
 {
 	NSArray *profileEntries = [self profileEntries];
 	NSMutableArray *convertedEntries = [NSMutableArray arrayWithCapacity:[profileEntries count]];
-	NSEnumerator *entryEnum = nil;
 	OOTimeProfileEntry *entry = nil;
-	for (entryEnum = [profileEntries objectEnumerator]; (entry = [entryEnum nextObject]); )
+	foreachkey (entry, profileEntries)
 	{
 		[convertedEntries addObject:[entry propertyListRepresentation]];
 	}

@@ -148,9 +148,8 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 {
 	NSArray *components = [extensionString componentsSeparatedByString:@" "];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[components count]];
-	NSEnumerator *extEnum = nil;
 	NSString *extStr = nil;
-	for (extEnum = [components objectEnumerator]; (extStr = [extEnum nextObject]); )
+	foreach (extStr, components)
 	{
 		if ([extStr length] > 0)  [result addObject:extStr];
 	}
@@ -514,10 +513,9 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	 * -noshaders may help get the game up and running at a frame rate
 	 * where thegraphics settings can be changed.  - CIM */
 	NSArray 		*arguments = [[NSProcessInfo processInfo] arguments];
-	NSEnumerator 	*argEnum = nil;
 	NSString 		*arg = nil;
 	// scan for shader overrides: -noshaders || --noshaders
-	for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
+	foreach (arg, arguments)
 	{
 		if ([arg isEqual:@"-noshaders"] || [arg isEqual:@"--noshaders"])
 		{
@@ -712,11 +710,10 @@ NSComparisonResult CompareGPUSettingsByPriority(id a, id b, void *context)
 	
 	NSArray *keys = [[configurations allKeys] sortedArrayUsingFunction:CompareGPUSettingsByPriority context:configurations];
 	
-	NSEnumerator *keyEnum = nil;
 	NSString *key = nil;
 	NSDictionary *config = nil;
 	
-	for (keyEnum = [keys objectEnumerator]; (key = [keyEnum nextObject]); )
+	foreach (key, keys)
 	{
 		config = [configurations oo_dictionaryForKey:key];
 		if (EXPECT_NOT(config == nil))  continue;

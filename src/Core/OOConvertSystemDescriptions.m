@@ -159,7 +159,6 @@ NSArray *OOConvertSystemDescriptionsToArrayFormat(NSDictionary *descriptionsInDi
 	NSAutoreleasePool		*pool = nil;
 	NSString				*key = nil;
 	NSArray					*entry = nil;
-	NSEnumerator			*keyEnum = nil;
 	NSMutableDictionary		*keysToIndices = nil;
 	NSMutableSet			*usedIndices = nil;
 	NSUInteger				slotCache = 0;
@@ -174,7 +173,7 @@ NSArray *OOConvertSystemDescriptionsToArrayFormat(NSDictionary *descriptionsInDi
 	
 	keysToIndices = InitKeyToIndexDict(indicesToKeys, &usedIndices);
 	
-	for (keyEnum = [descriptionsInDictionaryFormat keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, descriptionsInDictionaryFormat)
 	{
 		entry = ConvertKeysToIndices([descriptionsInDictionaryFormat objectForKey:key], keysToIndices, usedIndices, &slotCache);
 		index = KeyToIndex(key, keysToIndices, usedIndices, &slotCache);
@@ -202,14 +201,13 @@ NSDictionary *OOConvertSystemDescriptionsToDictionaryFormat(NSArray *description
 	NSMutableDictionary		*result = nil;
 	NSAutoreleasePool		*pool = nil;
 	NSArray					*entry = nil;
-	NSEnumerator			*entryEnum = nil;
 	NSString				*key = nil;
 	NSUInteger				i = 0;
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:[descriptionsInArrayFormat count]];
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	for (entryEnum = [descriptionsInArrayFormat objectEnumerator]; (entry = [entryEnum nextObject]); )
+	foreach (entry, descriptionsInArrayFormat)
 	{
 		entry = ConvertIndicesToKeys(entry, indicesToKeys);
 		key = IndexToKey(i, indicesToKeys, YES);
@@ -261,7 +259,6 @@ NSString *OOStringifySystemDescriptionLine(NSString *line, NSDictionary *indices
 
 static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet **outUsedIndices)
 {
-	NSEnumerator			*keyEnum = nil;
 	NSString				*key = nil;
 	NSNumber				*number = nil;
 	NSMutableDictionary		*result = nil;
@@ -272,7 +269,7 @@ static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet 
 	result = [NSMutableDictionary dictionaryWithCapacity:[dict count]];
 	used = [NSMutableSet setWithCapacity:[dict count]];
 	
-	for (keyEnum = [dict keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, dict)
 	{
 		// Convert keys of dict to array indices
 		number = [NSNumber numberWithInt:[key intValue]];
@@ -296,13 +293,12 @@ static NSString *IndexToKey(NSUInteger index, NSDictionary *indicesToKeys, BOOL 
 
 static NSArray *ConvertIndicesToKeys(NSArray *entry, NSDictionary *indicesToKeys)
 {
-	NSEnumerator			*lineEnum = nil;
 	NSString				*line = nil;
 	NSMutableArray			*result = nil;
 	
 	result = [NSMutableArray arrayWithCapacity:[entry count]];
 	
-	for (lineEnum = [entry objectEnumerator]; (line = [lineEnum nextObject]); )
+	foreach (line, entry)
 	{
 		[result addObject:OOStringifySystemDescriptionLine(line, indicesToKeys, YES)];
 	}
@@ -338,7 +334,6 @@ static NSNumber *KeyToIndex(NSString *key, NSMutableDictionary *ioKeysToIndices,
 
 static NSArray *ConvertKeysToIndices(NSArray *entry, NSMutableDictionary *ioKeysToIndices, NSMutableSet *ioUsedIndicies, NSUInteger *ioSlotCache)
 {
-	NSEnumerator			*lineEnum = nil;
 	NSString				*line = nil;
 	NSUInteger				p1, p2;
 	NSRange					searchRange;
@@ -347,7 +342,7 @@ static NSArray *ConvertKeysToIndices(NSArray *entry, NSMutableDictionary *ioKeys
 	
 	result = [NSMutableArray arrayWithCapacity:[entry count]];
 	
-	for (lineEnum = [entry objectEnumerator]; (line = [lineEnum nextObject]); )
+	foreach (line, entry)
 	{
 		searchRange.location = 0;
 		searchRange.length = [line length];
@@ -380,11 +375,10 @@ static NSArray *ConvertKeysToIndices(NSArray *entry, NSMutableDictionary *ioKeys
 
 static NSUInteger HighestIndex(NSMutableDictionary *sparseArray)
 {
-	NSEnumerator			*keyEnum = nil;
 	NSNumber				*key = nil;
 	NSUInteger				curr, highest = 0;
 	
-	for (keyEnum = [sparseArray keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, sparseArray)
 	{
 		curr = [key intValue];
 		if (highest < curr)  highest = curr;

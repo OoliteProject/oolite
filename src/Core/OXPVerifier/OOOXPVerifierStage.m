@@ -128,7 +128,6 @@ SOFTWARE.
 
 - (BOOL)isDependentOf:(OOOXPVerifierStage *)stage
 {
-	NSEnumerator			*directDepEnum = nil;
 	OOOXPVerifierStage		*directDep = nil;
 	
 	if (stage == nil)  return NO;
@@ -137,7 +136,7 @@ SOFTWARE.
 	if ([_dependencies containsObject:stage])  return YES;
 	
 	// Recursive dependency check.
-	for (directDepEnum = [_dependencies objectEnumerator]; (directDep = [directDepEnum nextObject]); )
+	foreach (directDep, _dependencies)
 	{
 		if ([directDep isDependentOf:stage])  return YES;
 	}
