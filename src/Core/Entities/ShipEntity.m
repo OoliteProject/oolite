@@ -813,10 +813,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (NSString *) serializeShipSubEntities
 {	
 	NSMutableString		*result = [NSMutableString stringWithCapacity:4];
+	NSEnumerator		*subEnum = nil;
 	ShipEntity			*se = nil;
 	NSUInteger			diff, i = 0;
 	
-	foreach (se, [self shipSubEntityEnumerator])
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
 		diff = [se subIdx] - i;
 		i += diff + 1;
@@ -1463,8 +1464,9 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 			hitEntity[0] = self;
 	}
 	
+	NSEnumerator	*subEnum = nil;
 	ShipEntity		*se = nil;
-	foreach (se, [self shipSubEntityEnumerator])
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
 		HPVector p0 = [se absolutePositionForSubentity];
 		Triangle ijk = [se absoluteIJKForSubentity];
@@ -3066,6 +3068,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType
 {
+	NSEnumerator				*subEntEnum = nil;
 	ShipEntity					*subEntity = nil;
 	
 	if ([[forward_weapon_type identifier] isEqualToString:[weaponType identifier]] ||
@@ -3076,7 +3079,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return YES;
 	}
 
-	foreach (subEntity, [self shipSubEntityEnumerator])
+	for (subEntEnum = [self shipSubEntityEnumerator]; (subEntity = [subEntEnum nextObject]); )
 	{
 		if ([subEntity hasPrimaryWeapon:weaponType])  return YES;
 	}
