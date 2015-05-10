@@ -801,13 +801,14 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 {
 	NSString				*shipKey = nil;
 	NSMutableDictionary		*shipEntry = nil;
+	NSEnumerator			*attrKeyEnum = nil;
 	NSString				*attrKey = nil;
 	
 	foreachkey (shipKey, ioData)
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		
-		foreachkey (attrKey, shipEntry)
+		for (attrKeyEnum = [shipEntry keyEnumerator]; (attrKey = [attrKeyEnum nextObject]); )
 		{
 			if ([attrKey hasPrefix:@"_oo_"])
 			{
@@ -1647,7 +1648,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	
 	setupActions = [[shipData oo_dictionaryForKey:shipKey] oo_arrayForKey:@"setup_actions"];
 	
-	foreachkey (action, setupActions)
+	foreach (action, setupActions)
 	{
 		if ([[ScanTokensFromString(action) objectAtIndex:0] isEqualToString:@"initialiseTurret"])  return YES;
 	}
@@ -1733,7 +1734,7 @@ static void DumpStringAddrs(NSDictionary *dict, NSString *context)
 	GatherStringAddrs(dict, strings, context);
 	
 	NSDictionary *entry = nil;
-	foreachkey (entry, strings)
+	foreach (entry, strings)
 	{
 		NSString *string = [entry objectForKey:@"string"];
 		NSString *context = [entry objectForKey:@"context"];
