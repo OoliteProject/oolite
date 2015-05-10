@@ -410,7 +410,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		OO_ENTER_OPENGL();
 
 		[matrixManager syncModelView];
-		foreachkey (obj, standardMatrixUniformLocations)
+		foreach (obj, standardMatrixUniformLocations)
 		{
 			if ([obj isKindOfClass:[NSArray class]])
 			{

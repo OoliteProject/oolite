@@ -853,7 +853,7 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 		// Futureproofing -- in future, we may wish to support automatic selection between supported shader languages.
 		if (![fileName pathHasExtensionInArray:extensions])
 		{
-			foreachkey (extension, extensions)
+			foreach (extension, extensions)
 			{
 				nameWithExtension = [fileName stringByAppendingPathExtension:extension];
 				result = [ResourceManager stringFromFilesNamed:nameWithExtension

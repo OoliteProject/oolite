@@ -308,7 +308,7 @@ static void StripIgnoredKeys(NSMutableDictionary *dict)
 	if (ignoredKeys == nil)  ignoredKeys = [[NSArray alloc] initWithObjects:@"ai_type", @"has_ecm", @"has_scoop", @"has_escape_pod", @"has_energy_bomb", @"has_fuel_injection", @"has_cloaking_device", @"has_military_jammer", @"has_military_scanner_filter", @"has_shield_booster", @"has_shield_enhancer", @"escorts", @"escort_role", @"escort-ship", @"conditions", @"missiles", @"auto_ai", nil];
 	
 	NSString *key = nil;
-	foreachkey (key, ignoredKeys)
+	foreach (key, ignoredKeys)
 	{
 		[dict removeObjectForKey:key];
 	}

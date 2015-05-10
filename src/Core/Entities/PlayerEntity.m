@@ -12161,7 +12161,7 @@ else _dockTarget = NO_TARGET;
 	NSMutableArray * savedWormholes = [[NSMutableArray alloc] initWithCapacity:[scannedWormholes count]];
 	WormholeEntity *wh;
 
-	foreachkey (wh, scannedWormholes)
+	foreach (wh, scannedWormholes)
 	{
 		// TODO: Start drawing wormhole exit a few seconds before the first
 		//       ship is disgorged.
