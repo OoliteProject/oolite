@@ -444,7 +444,7 @@ static NSString *ApplyOperators(NSString *string, NSString *operatorsString)
 	NSArray *operators = [operatorsString componentsSeparatedByString:@"|"];
 	NSString *op = nil;
 	
-	foreach(op, operators)
+	foreach (op, operators)
 	{
 		NSString *param = nil;
 		NSRange colon = [op rangeOfString:@":"];

@@ -255,9 +255,8 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2, BOOL hue
 {
 	NSMutableSet *result = [NSMutableSet setWithCapacity:[_quadSets count]];
 	
-	NSEnumerator *quadSetEnum = nil;
 	OOSkyQuadSet *quadSet = nil;
-	for (quadSetEnum = [_quadSets objectEnumerator]; (quadSet = [quadSetEnum nextObject]); )
+	foreach (quadSet, _quadSets)
 	{
 		[result addObject:[quadSet texture]];
 	}
@@ -270,9 +269,8 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2, BOOL hue
 {
 	size_t result = [super totalSize];
 	
-	NSEnumerator *quadSetEnum = nil;
 	OOSkyQuadSet *quadSet = nil;
-	for (quadSetEnum = [_quadSets objectEnumerator]; (quadSet = [quadSetEnum nextObject]); )
+	foreach (quadSet, _quadSets)
 	{
 		result += [quadSet totalSize];
 	}

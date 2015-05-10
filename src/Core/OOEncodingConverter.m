@@ -165,13 +165,12 @@ static unsigned				sCacheMisses = 0;
 - (NSData *) performConversionForString:(NSString *)string
 {
 	NSString			*subst = nil;
-	NSEnumerator		*substEnum = nil;
 	NSMutableString		*mutable = nil;
 	
 	mutable = [[string mutableCopy] autorelease];
 	if (mutable == nil)  return nil;
 	
-	for (substEnum = [_substitutions keyEnumerator]; (subst = [substEnum nextObject]); )
+	foreachkey (subst, _substitutions)
 	{
 		[mutable replaceOccurrencesOfString:subst
 								 withString:[_substitutions objectForKey:subst]

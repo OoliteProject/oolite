@@ -2917,9 +2917,8 @@ static JSBool ShipFindNearestStation(JSContext *context, uintN argc, jsval *vp)
 
 	double				sdist, distance = 1E32;
 	
-	NSEnumerator		*statEnum = [[UNIVERSE stations] objectEnumerator];
 	StationEntity		*se = nil;
-	while ((se = [statEnum nextObject]))
+	foreach (se, [UNIVERSE stations])
 	{
 		sdist = HPdistance2([thisEnt position],[se position]);
 
@@ -4084,9 +4083,8 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 	}
 
 	/* Turret count is public knowledge */
-	NSEnumerator	*subEnum = [thisEnt shipSubEntityEnumerator];
 	ShipEntity		*se = nil;
-	while ((se = [subEnum nextObject]))
+	foreach (se, [thisEnt shipSubEntityEnumerator])
 	{
 		if ([se isTurret])
 		{

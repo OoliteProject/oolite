@@ -384,7 +384,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 - (void) loadDemoShipConditions
 {
 	NSMutableArray *conditionScripts = [[NSMutableArray alloc] init];
-	NSEnumerator			*enumerator = nil;
 	NSDictionary			*key = nil;
 	NSArray					*initialDemoShips = nil;
 
@@ -393,7 +392,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 												   andMerge:YES
 													  cache:NO];
 
-	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )
+	foreach (key, initialDemoShips)
 	{
 		NSString *conditions = [key oo_stringForKey:kOODemoShipConditions defaultValue:nil];
 		if (conditions != nil)
@@ -415,7 +414,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 */
 - (void) loadDemoShips
 {
-	NSEnumerator			*enumerator = nil;
 	NSDictionary			*key = nil;
 	NSArray					*initialDemoShips = nil;
 	NSMutableArray			*demoShips = nil;
@@ -429,7 +427,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	demoShips = [NSMutableArray arrayWithArray:initialDemoShips];
 	
 	// Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
-	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )
+	foreach (key, initialDemoShips)
 	{
 		NSString *shipKey = [key oo_stringForKey:kOODemoShipKey];
 		if (![key isKindOfClass:[NSDictionary class]] || [self shipInfoForKey:shipKey] == nil)
@@ -495,7 +493,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	// now separate out the demoships by class, and add some extra keys
 	NSMutableDictionary *demoList = [NSMutableDictionary dictionaryWithCapacity:8];
 	NSMutableArray *demoClass = nil;
-	foreach(key, demoShips)
+	foreach (key, demoShips)
 	{
 		NSString *class = [key oo_stringForKey:kOODemoShipClass defaultValue:@"ship"];
 		if ([OOShipLibraryCategoryPlural(class) length] == 0)
@@ -521,7 +519,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	}
 	// sort each ship list by name
 	NSString *demoClassName = nil;
-	foreach(demoClassName, demoList)
+	foreach (demoClassName, demoList)
 	{
 		[[demoList objectForKey:demoClassName] sortUsingFunction:SortDemoShipsByName context:NULL];
 	}
@@ -535,14 +533,13 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 {
 	NSDictionary			*cachedSets = nil;
 	NSMutableDictionary		*restoredSets = nil;
-	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	
 	cachedSets = [[OOCacheManager sharedCache] objectForKey:kRoleWeightsCacheKey inCache:kShipRegistryCacheName];
 	if (cachedSets == nil)  return;
 	
 	restoredSets = [NSMutableDictionary dictionaryWithCapacity:[cachedSets count]];
-	for (roleEnum = [cachedSets keyEnumerator]; (role = [roleEnum nextObject]); )
+	foreachkey (role, cachedSets)
 	{
 		[restoredSets setObject:[OOProbabilitySet probabilitySetWithPropertyListRepresentation:[cachedSets objectForKey:role]] forKey:role];
 	}
@@ -554,11 +551,9 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 - (void) buildRoleProbabilitySets
 {
 	NSMutableDictionary		*probabilitySets = nil;
-	NSEnumerator			*shipEnum = nil;
 	NSString				*shipKey = nil;
 	NSDictionary			*shipEntry = nil;
 	NSString				*roles = nil;
-	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	OOProbabilitySet		*pset = nil;
 	NSMutableDictionary		*cacheEntry = nil;
@@ -566,7 +561,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	probabilitySets = [NSMutableDictionary dictionary];
 	
 	// Build role sets
-	for (shipEnum = [_shipData keyEnumerator]; (shipKey = [shipEnum nextObject]); )
+	foreachkey (shipKey, _shipData)
 	{
 		shipEntry = [_shipData objectForKey:shipKey];
 		roles = [shipEntry oo_stringForKey:@"roles"];
@@ -576,7 +571,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	// Convert role sets to immutable form, and build cache entry.
 	// Note: we iterate over a copy of the keys to avoid mutating while iterating.
 	cacheEntry = [NSMutableDictionary dictionaryWithCapacity:[probabilitySets count]];
-	for (roleEnum = [[probabilitySets allKeys] objectEnumerator]; (role = [roleEnum nextObject]); )
+	foreach (role, [probabilitySets allKeys])
 	{
 		pset = [probabilitySets objectForKey:role];
 		pset = [[pset copy] autorelease];
@@ -606,7 +601,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 - (BOOL) applyLikeShips:(NSMutableDictionary *)ioData withKey:(NSString *)likeKey
 {
 	NSMutableSet			*remainingLikeShips = nil;
-	NSEnumerator			*enumerator = nil;
 	NSString				*key = nil;
 	NSString				*parentKey = nil;
 	NSDictionary			*shipEntry = nil;
@@ -616,7 +610,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	
 	// Build set of ships with like_ship references
 	remainingLikeShips = [NSMutableSet set];
-	for (enumerator = [ioData keyEnumerator]; (key = [enumerator nextObject]); )
+	foreachkey (key, ioData)
 	{
 		shipEntry = [ioData objectForKey:key];
 		if ([shipEntry oo_stringForKey:likeKey] != nil)
@@ -628,7 +622,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	count = lastCount = [remainingLikeShips count];
 	while (count != 0)
 	{
-		for (enumerator = [[[remainingLikeShips copy] autorelease] objectEnumerator]; (key = [enumerator nextObject]); )
+		foreach (key, [[remainingLikeShips copy] autorelease])
 		{
 			// Look up like_ship entry
 			shipEntry = [ioData objectForKey:key];
@@ -654,7 +648,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 				don't have is_external_dependency set.
 			*/
 			reportedBadShips = [NSMutableArray array];
-			for (enumerator = [remainingLikeShips objectEnumerator]; (key = [enumerator nextObject]); )
+			foreach (key, remainingLikeShips)
 			{
 				if (![[ioData oo_dictionaryForKey:key] oo_boolForKey:@"is_external_dependency"])
 				{
@@ -737,11 +731,10 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 - (BOOL) makeShipEntriesMutable:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSDictionary			*shipEntry = nil;
 	
-	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreach (shipKey, [ioData allKeys])
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		if (![shipEntry isKindOfClass:[NSDictionary class]])
@@ -764,7 +757,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSMutableDictionary		*shipEntry = nil;
 	NSDictionary			*overrides = nil;
@@ -775,7 +767,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 												mergeMode:MERGE_SMART
 													cache:NO];
 	
-	for (shipKeyEnum = [overrides keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreachkey (shipKey, overrides)
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		if (shipEntry != nil)
@@ -798,13 +790,12 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 - (BOOL) stripPrivateKeys:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSMutableDictionary		*shipEntry = nil;
 	NSEnumerator			*attrKeyEnum = nil;
 	NSString				*attrKey = nil;
 	
-	for (shipKeyEnum = [ioData keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreachkey (shipKey, ioData)
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		
@@ -830,7 +821,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 */
 - (BOOL) loadAndMergeShipyard:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSMutableDictionary		*shipEntry = nil;
 	NSDictionary			*shipyard = nil;
@@ -840,7 +830,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	NSMutableArray			*playerShips = nil;
 	
 	// Strip out any shipyard stuff in shipdata (there shouldn't be any).
-	for (shipKeyEnum = [ioData keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreachkey (shipKey, ioData)
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		if ([shipEntry objectForKey:@"_oo_shipyard"] != nil)
@@ -861,7 +851,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	playerShips = [NSMutableArray arrayWithCapacity:[shipyard count]];
 	
 	// Insert merged shipyard and shipyardOverrides entries.
-	for (shipKeyEnum = [shipyard keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreachkey (shipKey, shipyard)
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		if (shipEntry != nil)
@@ -889,11 +879,9 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 - (BOOL) canonicalizeAndTagSubentities:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSMutableDictionary		*shipEntry = nil;
 	NSArray					*subentityDeclarations = nil;
-	NSEnumerator			*subentityEnum = nil;
 	id						subentityDecl = nil;
 	NSDictionary			*subentityDict = nil;
 	NSString				*subentityKey = nil;
@@ -907,7 +895,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	// _oo_is_subentity=YES to all entries used as subentities.
 	
 	// Iterate over all ships. (Iterates over a copy of keys since it mutates the dictionary.)
-	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreach (shipKey, [ioData allKeys])
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		remove = NO;
@@ -918,7 +906,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 		if (subentityDeclarations != nil)
 		{
 			okSubentities = [NSMutableArray arrayWithCapacity:[subentityDeclarations count]];
-			for (subentityEnum = [subentityDeclarations objectEnumerator]; (subentityDecl = [subentityEnum nextObject]); )
+			foreach (subentityDecl, subentityDeclarations)
 			{
 				subentityDict = [self canonicalizeSubentityDeclaration:subentityDecl forShip:shipKey shipData:ioData fatalError:&fatal];
 				
@@ -987,14 +975,13 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 - (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData shipMode:(BOOL)shipMode
 {
-	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSMutableDictionary		*shipEntry = nil;
 	BOOL					remove;
 	NSString				*modelName = nil;
 	
 	// Clean out invalid entries and templates. (Iterates over a copy of keys since it mutates the dictionary.)
-	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreach (shipKey, [ioData allKeys])
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		remove = NO;
@@ -1035,7 +1022,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 */
 - (BOOL) sanitizeConditions:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSMutableDictionary		*shipEntry = nil;
 	NSMutableDictionary		*mutableShipyard = nil;
@@ -1047,7 +1033,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	
 	NSMutableArray *conditionScripts = [[NSMutableArray alloc] init];
 
-	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	foreach (shipKey, [ioData allKeys])
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		conditions = [shipEntry objectForKey:@"conditions"];
@@ -1216,7 +1202,6 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	 intoProbabilityMap:(NSMutableDictionary *)probabilitySets
 {
 	NSDictionary			*rolesAndWeights = nil;
-	NSEnumerator			*roleEnum = nil;
 	NSString				*role = nil;
 	OOMutableProbabilitySet	*probSet = nil;
 
@@ -1243,7 +1228,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 		rolesAndWeights = mutable;
 	}
 	
-	for (roleEnum = [rolesAndWeights keyEnumerator]; (role = [roleEnum nextObject]); )
+	foreachkey (role, rolesAndWeights)
 	{
 		probSet = [probabilitySets objectForKey:role];
 		if (probSet == nil)
@@ -1650,12 +1635,11 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 {
 	// Test for presence of setup_actions containing initialiseTurret.
 	NSArray					*setupActions = nil;
-	NSEnumerator			*actionEnum = nil;
 	NSString				*action = nil;
 	
 	setupActions = [[shipData oo_dictionaryForKey:shipKey] oo_arrayForKey:@"setup_actions"];
 	
-	for (actionEnum = [setupActions objectEnumerator]; (action = [actionEnum nextObject]); )
+	foreach (action, setupActions)
 	{
 		if ([[ScanTokensFromString(action) objectAtIndex:0] isEqualToString:@"initialiseTurret"])  return YES;
 	}
@@ -1733,9 +1717,8 @@ static void DumpStringAddrs(NSDictionary *dict, NSString *context)
 	NSMutableSet *strings = [NSMutableSet set];
 	GatherStringAddrs(dict, strings, context);
 	
-	NSEnumerator *entryEnum = nil;
 	NSDictionary *entry = nil;
-	for (entryEnum = [strings objectEnumerator]; (entry = [entryEnum nextObject]); )
+	foreach (entry, strings)
 	{
 		NSString *string = [entry objectForKey:@"string"];
 		NSString *context = [entry objectForKey:@"context"];
@@ -1754,10 +1737,9 @@ static void DumpStringAddrs(NSDictionary *dict, NSString *context)
 
 static void GatherStringAddrsDict(NSDictionary *dict, NSMutableSet *strings, NSString *context)
 {
-	NSEnumerator *keyEnum = nil;
 	id key = nil;
 	NSString *keyContext = [context stringByAppendingString:@" key"];
-	for (keyEnum = [dict keyEnumerator]; (key = [keyEnum nextObject]); )
+	foreachkey (key, dict)
 	{
 		GatherStringAddrs(key, strings, keyContext);
 		GatherStringAddrs([dict objectForKey:key], strings, [context stringByAppendingFormat:@".%@", key]);
@@ -1767,10 +1749,9 @@ static void GatherStringAddrsDict(NSDictionary *dict, NSMutableSet *strings, NSS
 
 static void GatherStringAddrsArray(NSArray *array, NSMutableSet *strings, NSString *context)
 {
-	NSEnumerator *vEnum = nil;
 	NSString *v = nil;
 	unsigned i = 0;
-	for (vEnum = [array objectEnumerator]; (v = [vEnum nextObject]); )
+	foreach (v, array)
 	{
 		GatherStringAddrs(v, strings, [context stringByAppendingFormat:@"[%u]", i++]);
 	}

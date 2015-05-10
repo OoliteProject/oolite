@@ -306,14 +306,13 @@ static void OpenLogFile(NSString *name);
 - (void)setUpLogOverrides
 {
 	NSDictionary			*overrides = nil;
-	NSEnumerator			*messageClassEnum = nil;
 	NSString				*messageClass = nil;
 	id						verbose = nil;
 	
 	OOLogSetShowMessageClassTemporary([_verifierPList oo_boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
 	
 	overrides = [_verifierPList oo_dictionaryForKey:@"logControlOverride"];
-	for (messageClassEnum = [overrides keyEnumerator]; (messageClass = [messageClassEnum nextObject]); )
+	foreachkey (messageClass, overrides)
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, [overrides oo_boolForKey:messageClass defaultValue:NO]);
 	}
@@ -332,7 +331,6 @@ static void OpenLogFile(NSString *name);
 	NSAutoreleasePool		*pool = nil;
 	NSSet					*stages = nil;
 	NSSet					*excludeStages = nil;
-	NSEnumerator			*stageEnum = nil;
 	NSString				*stageName = nil;
 	Class					stageClass = Nil;
 	OOOXPVerifierStage		*stage = nil;
@@ -347,7 +345,7 @@ static void OpenLogFile(NSString *name);
 		stages = [[stages mutableCopy] autorelease];
 		[(NSMutableSet *)stages minusSet:excludeStages];
 	}
-	for (stageEnum = [stages objectEnumerator]; (stageName = [stageEnum nextObject]); )
+	foreach (stageName, stages)
 	{
 		if ([stageName isKindOfClass:[NSString class]])
 		{
@@ -371,7 +369,6 @@ static void OpenLogFile(NSString *name);
 {
 	NSAutoreleasePool		*pool = nil;
 	NSArray					*stageKeys = nil;
-	NSEnumerator			*stageEnum = nil;
 	NSString				*stageKey = nil;
 	OOOXPVerifierStage		*stage = nil;
 	NSString				*name = nil;
@@ -423,7 +420,7 @@ static void OpenLogFile(NSString *name);
 	// Iterate over all stages, resolving dependencies.
 	stageKeys = [_stagesByName allKeys];	// Get the keys up front because we may need to remove entries from dictionary.
 	
-	for (stageEnum = [stageKeys objectEnumerator]; (stageKey = [stageEnum nextObject]); )
+	foreach (stageKey, stageKeys)
 	{
 		stage = [_stagesByName objectForKey:stageKey];
 		if (stage == nil)  continue;
@@ -453,7 +450,7 @@ static void OpenLogFile(NSString *name);
 	*/
 	stageKeys = [_stagesByName allKeys];
 	
-	for (stageEnum = [stageKeys objectEnumerator]; (stageKey = [stageEnum nextObject]); )
+	foreach (stageKey, stageKeys)
 	{
 		stage = [_stagesByName objectForKey:stageKey];
 		if (stage == nil)  continue;
@@ -483,7 +480,6 @@ static void OpenLogFile(NSString *name);
 - (void)runStages
 {
 	NSAutoreleasePool		*pool = nil;
-	NSEnumerator			*stageEnum = nil;
 	OOOXPVerifierStage		*candidateStage = nil,
 							*stageToRun = nil;
 	NSString				*stageName = nil;
@@ -495,7 +491,7 @@ static void OpenLogFile(NSString *name);
 		
 		// Look through queue for a stage that's ready
 		stageToRun = nil;
-		for (stageEnum = [_waitingStages objectEnumerator]; (candidateStage = [stageEnum nextObject]); )
+		foreach (candidateStage, _waitingStages)
 		{
 			if ([candidateStage canRun])
 			{
@@ -545,7 +541,7 @@ static void OpenLogFile(NSString *name);
 	{
 		OOLog(@"verifyOXP.incomplete", @"Some verifier stages could not be run:");
 		OOLogIndent();
-		for (stageEnum = [_waitingStages objectEnumerator]; (candidateStage = [stageEnum nextObject]); )
+		foreach (candidateStage, _waitingStages)
 		{
 			OOLog(@"verifyOXP.incomplete.item", @"%@", candidateStage);
 		}
@@ -562,11 +558,10 @@ static void OpenLogFile(NSString *name);
 				 forStage:(OOOXPVerifierStage *)stage
 {
 	NSString				*depName = nil;
-	NSEnumerator			*depEnum = nil;
 	OOOXPVerifierStage		*depStage = nil;
 	
 	// Iterate over dependencies, connecting them up.
-	for (depEnum = [dependencies objectEnumerator]; (depName = [depEnum nextObject]); )
+	foreach (depName, dependencies)
 	{
 		depStage = [_stagesByName objectForKey:depName];
 		if (depStage == nil)
@@ -593,11 +588,10 @@ static void OpenLogFile(NSString *name);
 			   forStage:(OOOXPVerifierStage *)stage
 {
 	NSString				*depName = nil;
-	NSEnumerator			*depEnum = nil;
 	OOOXPVerifierStage		*depStage = nil;
 	
 	// Iterate over dependents, connecting them up.
-	for (depEnum = [dependents objectEnumerator]; (depName = [depEnum nextObject]); )
+	foreach (depName, dependents)
 	{
 		depStage = [_stagesByName objectForKey:depName];
 		if (depStage == nil)
@@ -624,10 +618,8 @@ static void OpenLogFile(NSString *name);
 	NSString					*template = nil,
 								*startTemplate = nil,
 								*endTemplate = nil;
-	NSEnumerator				*stageEnum = nil;
 	OOOXPVerifierStage			*stage = nil;
 	NSSet						*deps = nil;
-	NSEnumerator				*depEnum = nil;
 	OOOXPVerifierStage			*dep = nil;
 	
 	graphVizTemplate = [self configurationDictionaryForKey:@"debugGraphvizTempate"];
@@ -637,7 +629,7 @@ static void OpenLogFile(NSString *name);
 		We use pointers as node names for simplicity of generation.
 	*/
 	template = [graphVizTemplate oo_stringForKey:@"node"];
-	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
+	foreach (stage, [_stagesByName allValues])
 	{
 		[graphViz appendFormat:template, stage, [stage class], [stage name]];
 	}
@@ -648,12 +640,12 @@ static void OpenLogFile(NSString *name);
 	*/
 	template = [graphVizTemplate oo_stringForKey:@"forwardArc"];
 	startTemplate = [graphVizTemplate oo_stringForKey:@"startArc"];
-	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
+	foreach (stage, [_stagesByName allValues])
 	{
 		deps = [stage resolvedDependencies];
 		if ([deps count] != 0)
 		{
-			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
+			foreach (dep, deps)
 			{
 				[graphViz appendFormat:template, dep, stage];
 			}
@@ -670,12 +662,12 @@ static void OpenLogFile(NSString *name);
 	*/
 	template = [graphVizTemplate oo_stringForKey:@"backwardArc"];
 	endTemplate = [graphVizTemplate oo_stringForKey:@"endArc"];
-	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
+	foreach (stage, [_stagesByName allValues])
 	{
 		deps = [stage resolvedDependents];
 		if ([deps count] != 0)
 		{
-			for (depEnum = [deps objectEnumerator]; (dep = [depEnum nextObject]); )
+			foreach (dep, deps)
 			{
 				[graphViz appendFormat:template, dep, stage];
 			}

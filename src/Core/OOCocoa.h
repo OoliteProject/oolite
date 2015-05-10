@@ -352,8 +352,10 @@ enum {
 #define foreach(VAR, COLLECTION)	for(VAR in COLLECTION)
 #define foreachkey(VAR, DICT)		for(VAR in DICT)
 #else
-#define foreach(VAR, COLLECTION)	for (NSEnumerator *ooForEachEnum = [(COLLECTION) objectEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
-#define foreachkey(VAR, DICT)		for (NSEnumerator *ooForEachEnum = [(DICT) keyEnumerator]; ((VAR) = [ooForEachEnum nextObject]); )
+#define foreachLinewrapper2(x, y) x ## y
+#define foreachLine(x, y) foreachLinewrapper2(x, y)
+#define foreach(VAR, COLLECTION)	for (NSEnumerator * foreachLine(ooForEachEnum, __LINE__) = [(COLLECTION) objectEnumerator]; ((VAR) = [ foreachLine(ooForEachEnum, __LINE__) nextObject]); )
+#define foreachkey(VAR, DICT)		for (NSEnumerator * foreachLine(ooForEachEnum, __LINE__) = [(DICT) keyEnumerator]; ((VAR) = [ foreachLine(ooForEachEnum, __LINE__) nextObject]); )
 #endif
 
 

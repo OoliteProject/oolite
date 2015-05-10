@@ -403,7 +403,7 @@ static OOOXZManager *sSingleton = nil;
 		[invocation setArgument:&parameter atIndex:3];
 	}
 
-	foreach(manifest, list)
+	foreach (manifest, list)
 	{
 		[invocation setArgument:&manifest atIndex:2];
 		[invocation invoke];
@@ -778,7 +778,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	NSDictionary *requirement = nil;
 	NSMutableString *progress = [NSMutableString stringWithCapacity:2048];
-	OOLog(kOOOXZDebugLog,@"Dependency stack has %u elements",[_dependencyStack count]);
+	OOLog(kOOOXZDebugLog,@"Dependency stack has %lu elements", (unsigned long)[_dependencyStack count]);
 
 	if ([_dependencyStack count] > 0)
 	{
@@ -845,7 +845,7 @@ static OOOXZManager *sSingleton = nil;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 			if (_downloadAllDependencies)
 			{
-				OOLog(kOOOXZDebugLog,@"Dependency stack: installing %u from list",index);
+				OOLog(kOOOXZDebugLog,@"Dependency stack: installing %lu from list",(unsigned long)index);
 				if (![self installOXZ:index]) {
 					// if a required dependency is somehow uninstallable
 					// e.g. required+maximum version don't match this Oolite
