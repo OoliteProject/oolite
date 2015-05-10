@@ -810,8 +810,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// extra equipment flags
 	NSMutableDictionary	*equipment = [NSMutableDictionary dictionary];
+	NSEnumerator		*eqEnum = nil;
 	NSString			*eqDesc = nil;
-	foreach (eqDesc, [self equipmentEnumerator])
+	for (eqEnum = [self equipmentEnumerator]; (eqDesc = [eqEnum nextObject]); )
 	{
 		[equipment oo_setInteger:[self countEquipmentItem:eqDesc] forKey:eqDesc];
 	}
@@ -5788,8 +5789,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		shields = true;
 	}
 	
+	NSEnumerator	*subEnum = nil;
 	ShipEntity		*se = nil;
-	foreach (se, [self shipSubEntityEnumerator])
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
 		HPVector p0 = [se absolutePositionForSubentity];
 		Triangle ijk = [se absoluteIJKForSubentity];
@@ -7490,13 +7492,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	NSMutableArray		*quip1 = [NSMutableArray array]; // damaged
 	NSMutableArray		*quip2 = [NSMutableArray array]; // working
+	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
 	NSString			*alldesc = nil;
 
 	BOOL prioritiseDamaged = [[gui userSettings] oo_boolForKey:kGuiStatusPrioritiseDamaged defaultValue:YES];
 
-	foreach (eqType, [OOEquipmentType reverseEquipmentEnumerator])
+	for (eqTypeEnum = [OOEquipmentType reverseEquipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
 		if ([eqType isVisible])
 		{

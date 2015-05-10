@@ -231,10 +231,11 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 
 static BOOL TestScriptConditions(NSArray *conditions)
 {
+	NSEnumerator			*condEnum = nil;
 	NSArray					*condition = nil;
 	PlayerEntity			*player = PLAYER;
 	
-	foreach (condition, conditions)
+	for (condEnum = [conditions objectEnumerator]; (condition = [condEnum nextObject]); )
 	{
 		if (![player scriptTestCondition:condition])  return NO;
 	}
