@@ -11892,7 +11892,7 @@ static NSString *last_outfitting_key=nil;
 	
 	OOScript				*theScript = nil;
 	
-	foreachkey (theScript, worldScripts)
+	foreach (theScript, [worldScripts allValues])
 	{
 		OOJSStartTimeLimiterWithTimeLimit(limit);
 		[theScript callMethod:message inContext:context withArguments:argv count:argc result:NULL];
