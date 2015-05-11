@@ -9218,6 +9218,8 @@ static NSString *last_outfitting_key=nil;
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 	[[UNIVERSE gameView] clearMouse];
+	[[UNIVERSE gameView] clearKeys];
+
 
 	if (justCobra)
 	{
