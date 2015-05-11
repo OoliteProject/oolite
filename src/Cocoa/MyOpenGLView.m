@@ -336,7 +336,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		y_offset = 320.0 * viewSize.height/viewSize.width;
 	}
 	
-	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
+	if (issue_136_fix != 3 && [self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
 		// High resolution mode support.
 		if ([self respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)] && issue_136_fix >= 1)
