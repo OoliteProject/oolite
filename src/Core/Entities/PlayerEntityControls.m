@@ -2101,7 +2101,8 @@ static NSTimeInterval	time_last_frame;
 		case GUI_SCREEN_SHIPLIBRARY:
 			if ([gameView isDown:' '])	//  '<space>'
 			{
-				[self setGuiToStatusScreen];
+				// viewed in game, return to interfaces as that's where it's accessed from
+				[self setGuiToInterfacesScreen:0];
 			}
 			if ([gameView isDown:key_gui_arrow_up])	//  '<--'
 			{
@@ -4097,6 +4098,7 @@ static BOOL autopilot_pause;
 		case GUI_SCREEN_SHIPLIBRARY:
 			if ([gameView isDown:' '])	//  '<space>'
 			{
+				// viewed from start screen, return to it
 				[self setGuiToIntroFirstGo:YES];
 			}
 			if ([gameView isDown:key_gui_arrow_up])	//  '<--'
