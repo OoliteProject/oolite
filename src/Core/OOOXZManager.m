@@ -1629,7 +1629,7 @@ static OOOXZManager *sSingleton = nil;
 			[gui setSelectedRow:OXZ_GUI_ROW_LISTSTART];
 		}
 		[gui setText:@"" forRow:OXZ_GUI_ROW_LISTPREV align:GUI_ALIGN_LEFT];
-		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTNEXT];
+		[gui setKey:GUI_KEY_SKIP forRow:OXZ_GUI_ROW_LISTPREV];
 	}
 	if (_offset + 10 < optCount)
 	{
