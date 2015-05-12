@@ -324,7 +324,6 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 
 - (void) initialiseGLWithSize:(NSSize)v_size
 {
-	NSInteger issue_136_fix = [[NSUserDefaults standardUserDefaults] integerForKey: @"issue_136_fix"];
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * viewSize.width/viewSize.height;
@@ -336,18 +335,10 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		y_offset = 320.0 * viewSize.height/viewSize.width;
 	}
 	
-	if (issue_136_fix != 3 && [self respondsToSelector:@selector(convertSizeToBacking:)])
+	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
 		// High resolution mode support.
-		if ([self respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)] && issue_136_fix >= 1)
-		{
-			[self setWantsBestResolutionOpenGLSurface:YES];
-		}
 		v_size = [self convertSizeToBacking:v_size];
-		if (issue_136_fix >= 2)
-		{
-			viewSize = v_size;
-		}
 	}
 	
 	[self openGLContext];	// Force lazy setup if needed.
