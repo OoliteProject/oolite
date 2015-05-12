@@ -386,16 +386,16 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 - (BOOL) snapShot:(NSString *)filename
 {
 	BOOL snapShotOK = YES;
-	int w = viewSize.width;
-	int h = viewSize.height;
-	
-	// Fix for issue 136
-	if ([[NSUserDefaults standardUserDefaults] integerForKey: @"issue_136_fix"])
+        NSSize v_size = viewSize;
+	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
-		w *= 2;
-		h *= 2;
+		// High resolution mode support.
+		v_size = [self convertSizeToBacking:v_size];
 	}
-
+	
+	int w = v_size.width;
+	int h = v_size.height;
+	
 	if (w & 3)
 		w = w + 4 - (w & 3);
 	
