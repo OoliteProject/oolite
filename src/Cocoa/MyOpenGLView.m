@@ -389,6 +389,13 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	int w = viewSize.width;
 	int h = viewSize.height;
 	
+	// Fix for issue 136
+	if ([[NSUserDefaults standardUserDefaults] integerForKey: @"issue_136_fix"])
+	{
+		w *= 2;
+		h *= 2;
+	}
+
 	if (w & 3)
 		w = w + 4 - (w & 3);
 	
