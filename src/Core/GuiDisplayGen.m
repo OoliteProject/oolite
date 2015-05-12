@@ -1705,6 +1705,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// Fix for issue 136
 	if (issue_136_fix)
 	{
+		clipRect.origin.x *= 2;
+		clipRect.origin.y *= 2;
 		clipRect.size.width *= 2;
 		clipRect.size.height *= 2;
 	}
