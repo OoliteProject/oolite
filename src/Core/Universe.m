@@ -4388,6 +4388,8 @@ static const OOMatrix	starboard_matrix =
 			
 			OOSetOpenGLState(OPENGL_STATE_OPAQUE);  // FIXME: should be redundant.
 			
+			OOGL(glClear(GL_COLOR_BUFFER_BIT));
+
 			if (!displayGUI)
 			{
 				OOGL(glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]));
@@ -4395,12 +4397,15 @@ static const OOMatrix	starboard_matrix =
 			else
 			{
 				OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+				// If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
+				OOGLResetProjection();
+				OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
+				[gui drawGUIBackground];
+			
 			}
 
 			BOOL		fogging, bpHide = [self breakPatternHide];
 			
-			OOGL(glClear(GL_COLOR_BUFFER_BIT));
-
 			for (vdist=0;vdist<=1;vdist++)
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
@@ -4445,9 +4450,6 @@ static const OOMatrix	starboard_matrix =
 				 * handled a little more carefully than before.
 				 */
 
-				// If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
-				if (displayGUI)  [gui drawGUIBackground];
-			
 				OOSetOpenGLState(OPENGL_STATE_OPAQUE); 
 				// clearing the depth buffer waits until we've set
 				// STATE_OPAQUE so that depth writes are definitely
