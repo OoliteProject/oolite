@@ -4408,7 +4408,7 @@ static const OOMatrix	starboard_matrix =
 				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane; // 0.5 is field of view ratio for GUIs
 				
 				OOGLResetProjection();
-				if (!displayGUI || 3*aspect >= 4 )
+				if (!displayGUI || 4*aspect >= 3 )
 				{
 					OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
 				}
