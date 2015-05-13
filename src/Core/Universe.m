@@ -4414,7 +4414,7 @@ static const OOMatrix	starboard_matrix =
 				}
 				else
 				{
-					OOGLFrustum(-ratio/aspect, ratio/aspect, -ratio, ratio, nearPlane, farPlane);
+					OOGLFrustum(-3*ratio/aspect/4, 3*ratio/aspect/4, -3*ratio/4, 3*ratio/4, nearPlane, farPlane);
 				}
 
 				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
