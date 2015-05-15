@@ -3645,17 +3645,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipData == nil)  return;
 	
-	// Correct the position of the displayed model in the status screen when viewed in non-4/3 resolutions. Other screens displaying
-	// demoship models remain unaltered - Nikos 20140129
-	NSSize screenSize = [[UNIVERSE gameView] viewSize];
-	GLfloat screenSizeCorrectionFactor = 1.0f;
-	if ([context isEqualToString:@"GUI_SCREEN_STATUS"])
-	{
-		screenSizeCorrectionFactor = screenSize.height <= screenSize.width ?
-										screenSize.height / screenSize.width * (4.0f/3.0f) :
-										screenSize.height / screenSize.width * (3.0f/4.0f);
-	}
-	
 	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
 	// MKW - retrieve last demo ships' orientation and release it
 	if( demoShip != nil )
@@ -3673,7 +3662,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	GLfloat cr = [ship collisionRadius];
 	[ship setOrientation: q2];
-	[ship setPositionX:factorX * cr * screenSizeCorrectionFactor y:factorY * cr * screenSizeCorrectionFactor z:factorZ * cr];
+	[ship setPositionX:factorX * cr y:factorY * cr z:factorZ * cr];
 	[ship setScanClass: CLASS_NO_DRAW];
 	[ship setRoll: M_PI/10.0];
 	[ship setPitch: M_PI/25.0];
