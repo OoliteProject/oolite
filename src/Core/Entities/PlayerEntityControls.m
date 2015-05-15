@@ -1812,6 +1812,15 @@ static NSTimeInterval	time_last_frame;
 					ANA_mode = OPTIMIZED_BY_NONE;
 				}
 
+				if ([gameView isDown:gvMouseDoubleClick])
+				{
+					[gameView clearMouse];
+					mouse_left_down = NO;
+					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
+					showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
+					[self setGuiToSystemDataScreen];
+					break;
+				}
 				if ([gameView isDown:gvMouseLeftButton])
 				{
 					NSPoint maus = [gameView virtualJoystickPosition];
@@ -1851,14 +1860,6 @@ static NSTimeInterval	time_last_frame;
 						dragging = YES;
 					}
 					mouse_left_down = NO;
-				}
-				if ([gameView isDown:gvMouseDoubleClick])
-				{
-					[gameView clearMouse];
-					mouse_left_down = NO;
-					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
-					[self setGuiToSystemDataScreen];
-					break;
 				}
 				if ([gameView isDown:key_map_home])
 				{
