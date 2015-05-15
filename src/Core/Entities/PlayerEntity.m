@@ -9342,6 +9342,9 @@ static NSString *last_outfitting_key=nil;
 	tab_stops[5] = 455;
 	[gui setTabStops:tab_stops];
 
+	[gui setSelectableRange:NSMakeRange(0,0)];
+	[gui setNoSelectedRow];
+
 	NSArray *keys = [NSArray arrayWithObjects:
 		 @"key_roll_left",@"key_pitch_forward",@"key_yaw_left",
 		 @"key_roll_right",@"key_pitch_back",@"key_yaw_right",
