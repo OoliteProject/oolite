@@ -496,6 +496,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 
 	explosionType = [[shipDict oo_arrayForKey:@"explosion_type" defaultValue:nil] retain];
+
+	isDemoShip = NO;
 	
 	return YES;
 	
@@ -14494,6 +14496,42 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	return [self rootShipEntity];
 }
 
+- (void) setDemoShip: (BOOL) demo
+{
+	isDemoShip = !!demo;
+}
+
+- (BOOL) isDemoShip
+{
+	return isDemoShip;
+}
+
+- (void) setDemoStartTime: (OOTimeAbsolute) time
+{
+	demoStartTime = time;
+}
+
+- (OOTimeAbsolute) getDemoStartTime
+{
+	return demoStartTime;
+}
+
+- (Quaternion) orientation
+{
+	if (isDemoShip)
+	{
+		OOScalar cos1 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) / 7);
+		OOScalar sin1 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) / 7);
+		OOScalar cos2 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) / 9);
+		OOScalar sin2 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) / 9);
+		Quaternion q1 = make_quaternion(0.75 * cos1, 0.433012 * sin1, 0.433012 * sin1, -0.25* sin1);
+		Quaternion q2 = make_quaternion(0.75 * cos2, 0.433012 * sin2, -0.433012 * sin2, -0.25* sin2);
+		Quaternion q3 = quaternion_multiply(q2, quaternion_multiply(q1, orientation));
+		rotMatrix = OOMatrixForQuaternionRotation(q3);
+		return q3;
+	}
+	return orientation;
+}		
 
 // *** Script event dispatch.
 - (void) doScriptEvent:(jsid)message

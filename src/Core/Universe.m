@@ -2794,7 +2794,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		}
 
 
-		if (!demo_ship) ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
+		if (!demo_ship)	ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 		// stop consistency problems on the ship library screen
 		[ship removeEquipmentItem:@"EQ_SHIELD_BOOSTER"];
 		[ship removeEquipmentItem:@"EQ_SHIELD_ENHANCER"];
@@ -2813,17 +2813,19 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			// main screen Cobra is closer
 			[ship setPositionX:0.0f y:0.0f z:3.6 * ship->collision_radius];
 		}
+		[ship setDemoShip: YES];
+		[ship setDemoStartTime: universal_time];
 		[ship setScanClass: CLASS_NO_DRAW];
-		if (justCobra)
-		{
-			[ship setRoll:M_PI/7.5];
-			[ship setPitch:M_PI/15.0];
-		}
-		else
-		{
-			[ship setRoll:M_PI/10.0];
-			[ship setPitch:M_PI/20.0];
-		}
+		//if (justCobra)
+		//{
+		//	[ship setRoll:M_PI/7.5];
+		//	[ship setPitch:M_PI/15.0];
+		//}
+		//else
+		//{
+		//	[ship setRoll:M_PI/10.0];
+		//	[ship setPitch:M_PI/20.0];
+		//}
 		[ship switchAITo:@"nullAI.plist"];
 		if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -5242,11 +5244,12 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		
 		[UNIVERSE addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL
 		
-		if (spinning)
-		{
-			[ship setRoll:M_PI/5.0];	// roll must be set after addEntity or stations will not roll in demo.
-			[ship setPitch:M_PI/10.0];
-		}
+		[ship setDemoShip: YES];
+		//if (spinning)
+		//{
+		//	[ship setRoll:M_PI/5.0];	// roll must be set after addEntity or stations will not roll in demo.
+		//	[ship setPitch:M_PI/10.0];
+		//}
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		// stop problems on the ship library screen
 		// demo ships shouldn't have this equipment
@@ -6579,6 +6582,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 									[demo_ship setOrientation:q2];
 									[demo_ship setScanClass: CLASS_NO_DRAW];
 									[demo_ship setStatus: STATUS_COCKPIT_DISPLAY]; // prevents it getting escorts on addition
+									[demo_ship setDemoShip: YES];
+									[demo_ship setDemoStartTime: universal_time];
 									if ([self addEntity:demo_ship])
 									{
 										[demo_ship release];		// We now own a reference through the entity list.
@@ -6588,8 +6593,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 										[demo_ship setDestination: make_HPvector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
 										[demo_ship setVelocity:kZeroVector];
 										[demo_ship setScanClass: CLASS_NO_DRAW];
-										[demo_ship setRoll:M_PI/10.0];
-										[demo_ship setPitch:M_PI/20.0];
+										//[demo_ship setRoll:M_PI/10.0];
+										//[demo_ship setPitch:M_PI/20.0];
 //										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 										
 										[self setLibraryTextForDemoShip];
