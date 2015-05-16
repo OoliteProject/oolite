@@ -3664,11 +3664,21 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
+	NSSize			viewSize = [[UNIVERSE gameView] viewSize];
+	float			aspect = viewSize.width / viewSize.height;
 
 	// The field of view transformation is really a scale operation on the view window.
 	// We must unapply it through these transformations for them to be right.
+	// We must also take into account the window aspect ratio.
 	float ratio = 2 * [[UNIVERSE gameView] fov:YES]; // FIXME 2 is magic number; fov should integrate it
-	OOGLScaleModelView(make_vector(1/ratio, 1/ratio, 1.0f));
+	if (3.0f * aspect >= 4.0f)
+	{
+		OOGLScaleModelView(make_vector(1/ratio, 1/ratio, 1.0f));
+	}
+	else
+	{
+		OOGLScaleModelView(make_vector((4.0f/3.0f)/(aspect*ratio), (4.0f/3.0f)/(aspect*ratio), 1.0f));
+	}
 
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;
