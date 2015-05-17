@@ -31,7 +31,7 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 #import "NSDataOOExtensions.h"
 
-void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;
+//void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;
 
 
 static void PNGError(png_structp png, png_const_charp message);
