@@ -10238,8 +10238,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	vector_to_target = HPVectorToVector(HPvector_subtract([target position], my_position));
 	// this is in absolute coordinates, so now rotate it
 
-	OOLog(@"turret.debug",@"abs:[%f %f %f], vector:[%f %f %f]",my_position.x,my_position.y,my_position.z,vector_to_target.x,vector_to_target.y,vector_to_target.z);
-
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
 
@@ -10263,8 +10261,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// q now contains the rotation to the turret's reference system
 
 	vector_to_target = quaternion_rotate_vector(q,vector_to_target);
-
-	OOLog(@"turret.debug",@"adjvector:[%f %f %f]",vector_to_target.x,vector_to_target.y,vector_to_target.z);
 
 	leading = quaternion_rotate_vector(q,leading);
 	// rotate the vector to target and its velocity
