@@ -489,6 +489,7 @@ typedef enum
 	// Demo ship state
 	BOOL			isDemoShip;
 	OOTimeAbsolute		demoStartTime;
+	Quaternion		demoStartOrientation;
 }
 
 // ship brains
@@ -1242,8 +1243,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) setDemoShip: (BOOL) demo;
 - (BOOL) isDemoShip;
 - (void) setDemoStartTime: (OOTimeAbsolute) time;
-// override orientation
-- (Quaternion) orientation;
 
 /*	*** Script events.
 	For NPC ships, these call doEvent: on the ship script.

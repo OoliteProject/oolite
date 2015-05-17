@@ -2272,6 +2272,36 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	bool isSubEnt = [self isSubEntity];
 
+	if (isDemoShip)
+	{
+		OOScalar cos1 = cos(-M_PI * ([UNIVERSE getTime] - demoStartTime) / 7);
+		OOScalar sin1 = sin(-M_PI * ([UNIVERSE getTime] - demoStartTime) / 7);
+		OOScalar cos2 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) / 9);
+		OOScalar sin2 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) / 9);
+		Quaternion q1 = make_quaternion(cos1, sin1/M_SQRT2, sin1/M_SQRT2, 0);
+		Quaternion q2 = make_quaternion(cos2, -sin2*sqrt(3)/2, 0, sin2/2);
+		[self setOrientation: quaternion_multiply(q2, quaternion_multiply(q1, demoStartOrientation))];
+
+		[super update:delta_t];
+		if ([self subEntityCount] > 0)
+		{
+			// only copy the subent array if there are subentities
+			ShipEntity *se = nil;
+			foreach (se, [self subEntities])
+			{
+				[se update:delta_t];
+				if ([se isShip])
+				{
+					BoundingBox sebb = [se findSubentityBoundingBox];
+					bounding_box_add_vector(&totalBoundingBox, sebb.max);
+					bounding_box_add_vector(&totalBoundingBox, sebb.min);
+				}
+			}
+		}
+		return;
+	}
+
+
 	if (!isSubEnt)
 	{
 		if (scanClass == CLASS_NOT_SET)
@@ -2286,6 +2316,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// deal with collisions
 		//
 		[self manageCollisions];
+
     // subentity collisions managed via parent entity
 	
 		//
@@ -14498,6 +14529,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) setDemoShip: (BOOL) demo
 {
+	demoStartOrientation = orientation;
 	isDemoShip = !!demo;
 }
 
@@ -14515,23 +14547,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 {
 	return demoStartTime;
 }
-
-- (Quaternion) orientation
-{
-	if (isDemoShip)
-	{
-		OOScalar cos1 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) / 7);
-		OOScalar sin1 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) / 7);
-		OOScalar cos2 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) / 9);
-		OOScalar sin2 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) / 9);
-		Quaternion q1 = make_quaternion(0.75 * cos1, 0.433012 * sin1, 0.433012 * sin1, -0.25* sin1);
-		Quaternion q2 = make_quaternion(0.75 * cos2, 0.433012 * sin2, -0.433012 * sin2, -0.25* sin2);
-		Quaternion q3 = quaternion_multiply(q2, quaternion_multiply(q1, orientation));
-		rotMatrix = OOMatrixForQuaternionRotation(q3);
-		return q3;
-	}
-	return orientation;
-}		
 
 // *** Script event dispatch.
 - (void) doScriptEvent:(jsid)message
