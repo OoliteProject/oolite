@@ -646,12 +646,24 @@ static OOOXZManager *sSingleton = nil;
 				[adjManifest setObject:fullpath forKey:kOOManifestFilePath];
 
 				NSDictionary *stored = nil;
+				/* The list is already sorted to put the latest
+				 * versions first. This flag means that it stops
+				 * checking the list for versions once it finds one
+				 * that is plausibly installable */
+				BOOL foundInstallable = NO;
 				foreach (stored, _oxzList)
 				{
 					if ([[stored oo_stringForKey:kOOManifestIdentifier] isEqualToString:[manifest oo_stringForKey:kOOManifestIdentifier]])
 					{
-						[adjManifest setObject:[stored oo_stringForKey:kOOManifestVersion] forKey:kOOManifestAvailableVersion];
-						[adjManifest setObject:[stored oo_stringForKey:kOOManifestDownloadURL] forKey:kOOManifestDownloadURL];
+						if (foundInstallable == NO)
+						{
+							[adjManifest setObject:[stored oo_stringForKey:kOOManifestVersion] forKey:kOOManifestAvailableVersion];
+							[adjManifest setObject:[stored oo_stringForKey:kOOManifestDownloadURL] forKey:kOOManifestDownloadURL];
+							if ([ResourceManager checkVersionCompatibility:manifest forOXP:nil])
+							{
+								foundInstallable = YES;
+							}
+						}
 					}
 				}
 
