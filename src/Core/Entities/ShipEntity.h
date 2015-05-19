@@ -488,6 +488,7 @@ typedef enum
 
 	// Demo ship state
 	BOOL			isDemoShip;
+	OOScalar		demoRate;
 	OOTimeAbsolute		demoStartTime;
 	Quaternion		demoStartOrientation;
 }
@@ -1240,7 +1241,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (Entity *)entityForShaderProperties;
 
 // Demo ship
-- (void) setDemoShip: (BOOL) demo;
+- (void) setDemoShip: (OOScalar) demoRate;
 - (BOOL) isDemoShip;
 - (void) setDemoStartTime: (OOTimeAbsolute) time;
 

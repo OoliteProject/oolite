@@ -2813,7 +2813,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			// main screen Cobra is closer
 			[ship setPositionX:0.0f y:0.0f z:3.6 * ship->collision_radius];
 		}
-		[ship setDemoShip: YES];
+		[ship setDemoShip: 1.0f];
 		[ship setDemoStartTime: universal_time];
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship switchAITo:@"nullAI.plist"];
@@ -5234,7 +5234,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		
 		[UNIVERSE addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL
 		
-		[ship setDemoShip: YES];
+		[ship setDemoShip: 1.0f];
 		//if (spinning)
 		//{
 		//	[ship setRoll:M_PI/5.0];	// roll must be set after addEntity or stations will not roll in demo.
@@ -6572,7 +6572,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 									[demo_ship setOrientation:q2];
 									[demo_ship setScanClass: CLASS_NO_DRAW];
 									[demo_ship setStatus: STATUS_COCKPIT_DISPLAY]; // prevents it getting escorts on addition
-									[demo_ship setDemoShip: YES];
+									[demo_ship setDemoShip: 1.0f];
 									[demo_ship setDemoStartTime: universal_time];
 									if ([self addEntity:demo_ship])
 									{

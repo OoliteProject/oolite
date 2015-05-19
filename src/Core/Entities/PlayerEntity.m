@@ -3664,7 +3664,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[ship setOrientation: q2];
 	[ship setPositionX:factorX * cr y:factorY * cr z:factorZ * cr];
 	[ship setScanClass: CLASS_NO_DRAW];
-	[ship setDemoShip: YES];
+	[ship setDemoShip: 0.6];
 	[ship setDemoStartTime: [UNIVERSE getTime]];
 	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
 	[ship setAITo: @"nullAI.plist"];
