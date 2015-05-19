@@ -1689,12 +1689,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		if (dsAC * dtAB > dsAB * dtAC)
 		{
-			dsAB = -dsAB;
-			dsAC = -dsAC;
+			face->tangent = vector_subtract(vector_multiply_scalar(vProjAC, dtAB), vector_multiply_scalar(vProjAB, dtAC));
 		}
-		
-		Vector tangent = vector_subtract(vector_multiply_scalar(vProjAB, dsAC), vector_multiply_scalar(vProjAC, dsAB));
-		face->tangent = cross_product(nA, tangent);	// Rotate 90 degrees. Done this way because I'm too lazy to grok the code above.
+		else
+		{
+			face->tangent = vector_subtract(vector_multiply_scalar(vProjAB, dtAC), vector_multiply_scalar(vProjAC, dtAB));
+		}			
 	}
 	
 	OOJS_PROFILE_EXIT_VOID
