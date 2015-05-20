@@ -827,30 +827,62 @@ static OOOXZManager *sSingleton = nil;
 	{
 		// get an object from the requirements list, and download it
 		// if it can be found
-		requirement = [_dependencyStack anyObject];
-		OOLog(kOOOXZDebugLog,@"Dependency stack: next is %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
-		if (!_downloadAllDependencies)
-		{
-			[progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
-		}
-		NSString *needsIdentifier = [requirement oo_stringForKey:kOOManifestRelationIdentifier];
-		
+		BOOL undownloadedRequirement = NO;
 		NSDictionary *availableDownload = nil;
 		BOOL foundDownload = NO;
 		NSUInteger index = 0;
-		foreach (availableDownload, _oxzList)
+		NSString *needsIdentifier = nil;
+
+		do
 		{
-			if ([[availableDownload oo_stringForKey:kOOManifestIdentifier] isEqualToString:needsIdentifier])
+			undownloadedRequirement = YES;
+			requirement = [_dependencyStack anyObject];
+			OOLog(kOOOXZDebugLog,@"Dependency stack: next is %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+
+			if (!_downloadAllDependencies)
 			{
-				if ([ResourceManager matchVersions:requirement withVersion:[availableDownload oo_stringForKey:kOOManifestVersion]])
+				[progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
+			}
+			needsIdentifier = [requirement oo_stringForKey:kOOManifestRelationIdentifier];
+		
+			foreach (availableDownload, _oxzList)
+			{
+				if ([[availableDownload oo_stringForKey:kOOManifestIdentifier] isEqualToString:needsIdentifier])
 				{
-					OOLog(kOOOXZDebugLog,@"Dependency stack: found download for next item");
-					foundDownload = YES;
-					index = [_oxzList indexOfObject:availableDownload];
-					break;
+					if ([ResourceManager matchVersions:requirement withVersion:[availableDownload oo_stringForKey:kOOManifestVersion]])
+					{
+						OOLog(kOOOXZDebugLog,@"Dependency stack: found download for next item");
+						foundDownload = YES;
+						index = [_oxzList indexOfObject:availableDownload];
+						break;
+					}
+				}
+			}
+			
+			if (foundDownload)
+			{
+				if ([self installableState:[_oxzList objectAtIndex:index]] == OXZ_UNINSTALLABLE_ALREADY)
+				{
+					OOLog(kOOOXZDebugLog,@"Dependency stack: %@ is downloaded but not yet loadable, removing from list.",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+					// then this has already been downloaded, but
+					// can't be configured yet presumably because
+					// another dependency is still to be loaded
+					[_dependencyStack removeObject:requirement];
+					if ([_dependencyStack count] > 0)
+					{
+						// try again
+						undownloadedRequirement = NO;
+					}
+					else
+					{
+						// this case should probably never happen
+						// is handled below just in case
+						foundDownload = NO;
+					}
 				}
 			}
 		}
+		while (!undownloadedRequirement);
 
 		if (foundDownload)
 		{
@@ -883,7 +915,8 @@ static OOOXZManager *sSingleton = nil;
 			[self gui];
 			return YES;
 		}
-		else
+		// this is probably always the case, see above
+		else if ([_dependencyStack count] > 0)
 		{
 			[progress appendFormat:DESC(@"oolite-oxzmanager-progress-required-@-not-found"),[requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
 			[self setProgressStatus:progress];
