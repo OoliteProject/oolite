@@ -805,6 +805,9 @@ static OOOXZManager *sSingleton = nil;
 				// it was unmet, but now it's met
 				[_dependencyStack removeObject:requirement];
 				OOLog(kOOOXZDebugLog,@"Dependency stack: requirement met");
+			} else if ([[requirement oo_stringForKey:kOOManifestRelationIdentifier] isEqualToString:[downloadedManifest oo_stringForKey:kOOManifestIdentifier]]) {
+				// remove the requirement for the just downloaded OXP
+				[_dependencyStack removeObject:requirement];
 			}
 		}
 	}
@@ -857,7 +860,7 @@ static OOOXZManager *sSingleton = nil;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 			if (_downloadAllDependencies)
 			{
-                          OOLog(kOOOXZDebugLog,@"Dependency stack: installing %lu from list",index);
+				OOLog(kOOOXZDebugLog,@"Dependency stack: installing %lu from list",index);
 				if (![self installOXZ:index]) {
 					// if a required dependency is somehow uninstallable
 					// e.g. required+maximum version don't match this Oolite
