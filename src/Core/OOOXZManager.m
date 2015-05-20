@@ -1004,7 +1004,9 @@ static OOOXZManager *sSingleton = nil;
 	{
 		if (installed != nil) 
 		{
-			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([installed oo_stringForKey:kOOManifestAvailableVersion])) == NSOrderedDescending)
+			OOLog(@"version.debug",@"%@ mv:%@ mav:%@",identifier,[installed oo_stringForKey:kOOManifestVersion],[manifest oo_stringForKey:kOOManifestVersion]);
+//			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([installed oo_stringForKey:kOOManifestAvailableVersion])) == NSOrderedDescending)
+			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([manifest oo_stringForKey:kOOManifestVersion])) == NSOrderedDescending)
 			{
 				// the installed copy is more recent than the server copy
 				return OXZ_UNINSTALLABLE_NOREMOTE;
