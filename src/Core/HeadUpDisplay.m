@@ -398,13 +398,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:0] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:1]] 
-					  fadeTime:(permanent?[lastLines oo_floatAtIndex:2]:0.0) key:nil addToArray:nil];
+					  fadeTime:(permanent?0.0:[lastLines oo_floatAtIndex:2]) key:nil addToArray:nil];
 		}
 		if ([lastLines count] > 3 && (line1 || ![[lastLines oo_stringAtIndex:3] isEqualToString:@""]))
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:3] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:4]] 
-					  fadeTime:(permanent?[lastLines oo_floatAtIndex:5]:0.0) key:nil addToArray:nil];
+					  fadeTime:(permanent?0.0:[lastLines oo_floatAtIndex:5]) key:nil addToArray:nil];
 		}
 	}
 	
