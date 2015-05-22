@@ -646,12 +646,24 @@ static OOOXZManager *sSingleton = nil;
 				[adjManifest setObject:fullpath forKey:kOOManifestFilePath];
 
 				NSDictionary *stored = nil;
+				/* The list is already sorted to put the latest
+				 * versions first. This flag means that it stops
+				 * checking the list for versions once it finds one
+				 * that is plausibly installable */
+				BOOL foundInstallable = NO;
 				foreach (stored, _oxzList)
 				{
 					if ([[stored oo_stringForKey:kOOManifestIdentifier] isEqualToString:[manifest oo_stringForKey:kOOManifestIdentifier]])
 					{
-						[adjManifest setObject:[stored oo_stringForKey:kOOManifestVersion] forKey:kOOManifestAvailableVersion];
-						[adjManifest setObject:[stored oo_stringForKey:kOOManifestDownloadURL] forKey:kOOManifestDownloadURL];
+						if (foundInstallable == NO)
+						{
+							[adjManifest setObject:[stored oo_stringForKey:kOOManifestVersion] forKey:kOOManifestAvailableVersion];
+							[adjManifest setObject:[stored oo_stringForKey:kOOManifestDownloadURL] forKey:kOOManifestDownloadURL];
+							if ([ResourceManager checkVersionCompatibility:manifest forOXP:nil])
+							{
+								foundInstallable = YES;
+							}
+						}
 					}
 				}
 
@@ -793,6 +805,9 @@ static OOOXZManager *sSingleton = nil;
 				// it was unmet, but now it's met
 				[_dependencyStack removeObject:requirement];
 				OOLog(kOOOXZDebugLog,@"Dependency stack: requirement met");
+			} else if ([[requirement oo_stringForKey:kOOManifestRelationIdentifier] isEqualToString:[downloadedManifest oo_stringForKey:kOOManifestIdentifier]]) {
+				// remove the requirement for the just downloaded OXP
+				[_dependencyStack removeObject:requirement];
 			}
 		}
 	}
@@ -812,30 +827,62 @@ static OOOXZManager *sSingleton = nil;
 	{
 		// get an object from the requirements list, and download it
 		// if it can be found
-		requirement = [_dependencyStack anyObject];
-		OOLog(kOOOXZDebugLog,@"Dependency stack: next is %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
-		if (!_downloadAllDependencies)
-		{
-			[progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
-		}
-		NSString *needsIdentifier = [requirement oo_stringForKey:kOOManifestRelationIdentifier];
-		
+		BOOL undownloadedRequirement = NO;
 		NSDictionary *availableDownload = nil;
 		BOOL foundDownload = NO;
 		NSUInteger index = 0;
-		foreach (availableDownload, _oxzList)
+		NSString *needsIdentifier = nil;
+
+		do
 		{
-			if ([[availableDownload oo_stringForKey:kOOManifestIdentifier] isEqualToString:needsIdentifier])
+			undownloadedRequirement = YES;
+			requirement = [_dependencyStack anyObject];
+			OOLog(kOOOXZDebugLog,@"Dependency stack: next is %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+
+			if (!_downloadAllDependencies)
 			{
-				if ([ResourceManager matchVersions:requirement withVersion:[availableDownload oo_stringForKey:kOOManifestVersion]])
+				[progress appendString:DESC(@"oolite-oxzmanager-progress-get-required")];
+			}
+			needsIdentifier = [requirement oo_stringForKey:kOOManifestRelationIdentifier];
+		
+			foreach (availableDownload, _oxzList)
+			{
+				if ([[availableDownload oo_stringForKey:kOOManifestIdentifier] isEqualToString:needsIdentifier])
 				{
-					OOLog(kOOOXZDebugLog,@"Dependency stack: found download for next item");
-					foundDownload = YES;
-					index = [_oxzList indexOfObject:availableDownload];
-					break;
+					if ([ResourceManager matchVersions:requirement withVersion:[availableDownload oo_stringForKey:kOOManifestVersion]])
+					{
+						OOLog(kOOOXZDebugLog,@"Dependency stack: found download for next item");
+						foundDownload = YES;
+						index = [_oxzList indexOfObject:availableDownload];
+						break;
+					}
+				}
+			}
+			
+			if (foundDownload)
+			{
+				if ([self installableState:[_oxzList objectAtIndex:index]] == OXZ_UNINSTALLABLE_ALREADY)
+				{
+					OOLog(kOOOXZDebugLog,@"Dependency stack: %@ is downloaded but not yet loadable, removing from list.",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
+					// then this has already been downloaded, but
+					// can't be configured yet presumably because
+					// another dependency is still to be loaded
+					[_dependencyStack removeObject:requirement];
+					if ([_dependencyStack count] > 0)
+					{
+						// try again
+						undownloadedRequirement = NO;
+					}
+					else
+					{
+						// this case should probably never happen
+						// is handled below just in case
+						foundDownload = NO;
+					}
 				}
 			}
 		}
+		while (!undownloadedRequirement);
 
 		if (foundDownload)
 		{
@@ -845,7 +892,7 @@ static OOOXZManager *sSingleton = nil;
 			_downloadStatus = OXZ_DOWNLOAD_NONE;
 			if (_downloadAllDependencies)
 			{
-                          OOLog(kOOOXZDebugLog,@"Dependency stack: installing %lu from list",index);
+				OOLog(kOOOXZDebugLog,@"Dependency stack: installing %lu from list",index);
 				if (![self installOXZ:index]) {
 					// if a required dependency is somehow uninstallable
 					// e.g. required+maximum version don't match this Oolite
@@ -868,7 +915,8 @@ static OOOXZManager *sSingleton = nil;
 			[self gui];
 			return YES;
 		}
-		else
+		// this is probably always the case, see above
+		else if ([_dependencyStack count] > 0)
 		{
 			[progress appendFormat:DESC(@"oolite-oxzmanager-progress-required-@-not-found"),[requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
 			[self setProgressStatus:progress];
@@ -956,7 +1004,9 @@ static OOOXZManager *sSingleton = nil;
 	{
 		if (installed != nil) 
 		{
-			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([installed oo_stringForKey:kOOManifestAvailableVersion])) == NSOrderedDescending)
+			OOLog(@"version.debug",@"%@ mv:%@ mav:%@",identifier,[installed oo_stringForKey:kOOManifestVersion],[manifest oo_stringForKey:kOOManifestVersion]);
+//			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([installed oo_stringForKey:kOOManifestAvailableVersion])) == NSOrderedDescending)
+			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([manifest oo_stringForKey:kOOManifestVersion])) == NSOrderedDescending)
 			{
 				// the installed copy is more recent than the server copy
 				return OXZ_UNINSTALLABLE_NOREMOTE;
