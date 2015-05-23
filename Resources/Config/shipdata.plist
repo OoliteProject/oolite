@@ -3615,16 +3615,16 @@
 				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
 			}; 
 			"Engine" = 
-				{ 
-					diffuse_map = "oolite_viper_diffuse.png"; 
-					specular_color = (0.6, 0.5, 0.5 ); 
-					shininess = 9; 
-				};
+			{ 
+				diffuse_map = "oolite_viper_diffuse.png"; 
+				specular_color = (0.6, 0.5, 0.5 ); 
+				shininess = 9; 
 				emission_map = 
 				{
 					name = "oolite_viper_diffuse.png"; extract_channel = "a";
 				}; 
 				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 				
+			};
 		};
 		max_energy = 180;
 		max_flight_pitch = 1.8;
@@ -3873,6 +3873,17 @@
 				}; 
 				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 				
 			}; 
+			"Engine" = 
+			{ 
+				diffuse_map = "oolite_viper_diffuse_pursuit.png"; 
+				specular_color = (0.6, 0.5, 0.5 ); 
+				shininess = 9; 
+				emission_map = 
+				{
+					name = "oolite_viper_diffuse_pursuit.png"; extract_channel = "a";
+				}; 
+				emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 				
+			};
 		};
 		roles = "wingman";
 		thrust = 36;
