@@ -136,12 +136,14 @@ Properties:
   just player
 * ship.scannerHostileDisplayColor1, ship.scannerHostileDisplayColor2
 * ship.subEntityRotation
+* ship.entityPersonality is now writable
 * equipmentInfo.provides
 * player.ship.forwardShield, player.ship.maxForwardShield,
   player.ship.forwardShieldRechargeRate, player.ship.aftShield,
   player.ship.maxAftShield, player.ship.aftShieldRechargeRate are all
   now writable.
 * player.ship.injectorsEngaged and player.ship.torusEngaged
+* player.ship.routeMode
 * system.ambientLevel
 
 Methods:
@@ -309,6 +311,13 @@ Bug fixes:
 * NPC ships entering hyperspace near massive stations should be clearer
 * Destination systems for long-range NPCs now set correctly
 * checkScanner method now correctly excludes unpowered ships
+* Plasma turrets won't fire when cloaked if cloakPassive is true
+* AI errors related to system ID 0 fixed
+* Bug making tutorial extremely difficult to complete if player obtained a
+  bounty fixed.
+* Fix error with cargo dumping when reloading save after death
+* Fix NPC turret aim
+* Some OXZ manager bugs related to duplicate manifest IDs fixed
 
 -------------------------------------------------------------------------------
 

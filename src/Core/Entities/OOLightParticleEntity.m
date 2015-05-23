@@ -125,6 +125,9 @@ static OOTexture *sBlobTexture = nil;
 	OOMatrix temp_matrix = OOGLPopModelView();
 	OOGLPushModelView();
 
+	/* Flashers are drawn using the absolute view matrix */
+	OOGLLoadModelView([UNIVERSE viewMatrix]);
+	/* ...modified by the aggregate translation calculated above */
 	OOGLTranslateModelView(HPVectorToVector(HPvector_subtract(abspos,[PLAYER viewpointPosition])));	// move to camera-relative position	
 	[self drawImmediate:immediate translucent:translucent];
 

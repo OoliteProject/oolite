@@ -476,6 +476,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[self loadCargoPodsForType:good fromManifest:shipCommodityData];
 	}
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
+	cargo_dump_time = 0;
 }
 
 
@@ -712,7 +713,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[result setObject:gal_id		forKey:@"galaxy_id"];
 	[result setObject:sys_id	forKey:@"system_id"];
 	[result setObject:tgt_id	forKey:@"target_id"];
-	[result setObject:[NSNumber numberWithFloat:chart_zoom] forKey:@"chart_zoom"];
+	[result setObject:[NSNumber numberWithFloat:saved_chart_zoom] forKey:@"chart_zoom"];
 	[result setObject:[NSNumber numberWithInt:ANA_mode] forKey:@"chart_ana_mode"];
 	[result setObject:[NSNumber numberWithInt:longRangeChartMode] forKey:@"chart_colour_mode"];
 
@@ -3640,17 +3641,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipData == nil)  return;
 	
-	// Correct the position of the displayed model in the status screen when viewed in non-4/3 resolutions. Other screens displaying
-	// demoship models remain unaltered - Nikos 20140129
-	NSSize screenSize = [[UNIVERSE gameView] viewSize];
-	GLfloat screenSizeCorrectionFactor = 1.0f;
-	if ([context isEqualToString:@"GUI_SCREEN_STATUS"])
-	{
-		screenSizeCorrectionFactor = screenSize.height <= screenSize.width ?
-										screenSize.height / screenSize.width * (4.0f/3.0f) :
-										screenSize.height / screenSize.width * (3.0f/4.0f);
-	}
-	
 	Quaternion		q2 = { (GLfloat)M_SQRT1_2, (GLfloat)M_SQRT1_2, (GLfloat)0.0f, (GLfloat)0.0f };
 	// MKW - retrieve last demo ships' orientation and release it
 	if( demoShip != nil )
@@ -3668,7 +3658,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	GLfloat cr = [ship collisionRadius];
 	[ship setOrientation: q2];
-	[ship setPositionX:factorX * cr * screenSizeCorrectionFactor y:factorY * cr * screenSizeCorrectionFactor z:factorZ * cr];
+	[ship setPositionX:factorX * cr y:factorY * cr z:factorZ * cr];
 	[ship setScanClass: CLASS_NO_DRAW];
 	[ship setRoll: M_PI/10.0];
 	[ship setPitch: M_PI/25.0];
@@ -9213,6 +9203,8 @@ static NSString *last_outfitting_key=nil;
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 	[[UNIVERSE gameView] clearMouse];
+	[[UNIVERSE gameView] clearKeys];
+
 
 	if (justCobra)
 	{
@@ -9345,6 +9337,9 @@ static NSString *last_outfitting_key=nil;
 	tab_stops[4] = 340;
 	tab_stops[5] = 455;
 	[gui setTabStops:tab_stops];
+
+	[gui setSelectableRange:NSMakeRange(0,0)];
+	[gui setNoSelectedRow];
 
 	NSArray *keys = [NSArray arrayWithObjects:
 		 @"key_roll_left",@"key_pitch_forward",@"key_yaw_left",

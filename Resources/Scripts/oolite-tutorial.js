@@ -479,6 +479,7 @@ this.startUp = function()
 		player.ship.energy = 256;		
 		player.ship.forwardShield = 128;
 		player.ship.aftShield = 128;
+		player.bounty = 0;
 		player.ship.forwardWeapon = "EQ_WEAPON_PULSE_LASER";
 		for (var i=0;i<4;i++)
 		{

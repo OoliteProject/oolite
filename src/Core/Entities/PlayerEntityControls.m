@@ -1693,6 +1693,13 @@ static NSTimeInterval	time_last_frame;
 	else
 	{
 		[gameView allowStringInput: NO];
+		// If we have entered this screen with the injectors key pressed, make sure
+		// that injectors switch off when we release it - Nikos.
+		if (afterburner_engaged && ![gameView isDown:key_inject_fuel])
+		{
+			afterburner_engaged = NO;
+		}
+			
 	}
 	
 	switch (gui_screen)
@@ -1770,13 +1777,6 @@ static NSTimeInterval	time_last_frame;
 				chartInfoPressed = NO;
 			}
 			
-			// If we have entered this screen with the injectors key pressed, make sure
-			// that injectors switch off when we release it - Nikos.
-			if (afterburner_engaged && ![gameView isDown:key_inject_fuel])
-			{
-				afterburner_engaged = NO;
-			}
-			
 			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
 				if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
@@ -1816,6 +1816,15 @@ static NSTimeInterval	time_last_frame;
 					ANA_mode = OPTIMIZED_BY_NONE;
 				}
 
+				if ([gameView isDown:gvMouseDoubleClick])
+				{
+					[gameView clearMouse];
+					mouse_left_down = NO;
+					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
+					showingLongRangeChart = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART);
+					[self setGuiToSystemDataScreen];
+					break;
+				}
 				if ([gameView isDown:gvMouseLeftButton])
 				{
 					NSPoint maus = [gameView virtualJoystickPosition];
@@ -1856,14 +1865,6 @@ static NSTimeInterval	time_last_frame;
 					}
 					mouse_left_down = NO;
 				}
-				if ([gameView isDown:gvMouseDoubleClick])
-				{
-					[gameView clearMouse];
-					mouse_left_down = NO;
-					[self noteGUIWillChangeTo:GUI_SCREEN_SYSTEM_DATA];
-					[self setGuiToSystemDataScreen];
-					break;
-				}
 				if ([gameView isDown:key_map_home])
 				{
 					[gameView resetTypedString];
@@ -1878,6 +1879,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom > CHART_MAX_ZOOM) target_chart_zoom = CHART_MAX_ZOOM;
+					saved_chart_zoom = target_chart_zoom;
 					moving = YES;
 				}
 				if ([gameView isDown:gvPageUpKey] || [gameView mouseWheelState] == gvMouseWheelUp)
@@ -1890,6 +1892,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
+					saved_chart_zoom = target_chart_zoom;
 					moving = YES;
 					//target_chart_centre = cursor_coordinates;
 					chart_focus_coordinates = target_chart_centre;
@@ -2103,7 +2106,8 @@ static NSTimeInterval	time_last_frame;
 		case GUI_SCREEN_SHIPLIBRARY:
 			if ([gameView isDown:' '])	//  '<space>'
 			{
-				[self setGuiToStatusScreen];
+				// viewed in game, return to interfaces as that's where it's accessed from
+				[self setGuiToInterfacesScreen:0];
 			}
 			if ([gameView isDown:key_gui_arrow_up])	//  '<--'
 			{
@@ -3204,6 +3208,29 @@ static NSTimeInterval	time_last_frame;
 		if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
 			int direction = ([gameView isDown:key_gui_arrow_right]) ? 1 : -1;
+
+			/* (Getafix - 2015/05/07)
+			Fix bug coincidentally resulting in Graphics Detail value cycling 
+			when left arrow is pressed.
+			
+			OOGraphicsDetail is an enum type and as such it will never go 
+			negative. The following code adjusts "direction" to avoid illegal
+			detailLevel values.
+			
+			Perhaps a more elegant solution could be set in place, restructuring 
+			in Universe.m the logic behing setDetailLevelDirectly and 
+			setDetailLevel, not forgetting to consider Graphic Detail assigned 
+			from various sources (i.e. menu, user prefs file, javascript, etc.). 
+			This is postponed in order not to risk the recently announced 
+			plans for v1.82 release.
+			
+			Generally we should decide whether the menu values should cycle or 
+			not and apply it for all menu entries.
+			*/ 
+			if ((([UNIVERSE detailLevel] == DETAIL_LEVEL_MINIMUM) && (direction == -1)) || 
+					(([UNIVERSE detailLevel] == DETAIL_LEVEL_MAXIMUM) && (direction == 1)))
+				direction = 0;
+			
 			OOGraphicsDetail detailLevel = [UNIVERSE detailLevel] + direction;
 			[UNIVERSE setDetailLevel:detailLevel];
 			detailLevel = [UNIVERSE detailLevel];
@@ -3843,7 +3870,7 @@ static BOOL autopilot_pause;
 		if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU]
 			|| [gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'c' and 'C' key
 		{
-			if ([self hasDockingComputer] && !autopilot_key_pressed)
+			if ([self hasDockingComputer] && !autopilot_key_pressed && !fast_autopilot_key_pressed)
 			{
 				[self disengageAutopilot];
 				[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
@@ -3857,6 +3884,7 @@ static BOOL autopilot_pause;
 		else
 		{
 			autopilot_key_pressed = NO;
+			fast_autopilot_key_pressed = NO;
 		}
 		
 		if (([gameView isDown:key_docking_music]))   // look for the 's' key
@@ -4074,6 +4102,7 @@ static BOOL autopilot_pause;
 		case GUI_SCREEN_SHIPLIBRARY:
 			if ([gameView isDown:' '])	//  '<space>'
 			{
+				// viewed from start screen, return to it
 				[self setGuiToIntroFirstGo:YES];
 			}
 			if ([gameView isDown:key_gui_arrow_up])	//  '<--'

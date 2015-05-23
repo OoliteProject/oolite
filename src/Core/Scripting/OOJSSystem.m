@@ -1555,7 +1555,7 @@ static BOOL GetRelativeToAndRange(JSContext *context, NSString *methodName, uint
 	// Get optional argument relativeTo : Entity
 	if (*ioArgc != 0)
 	{
-		if (EXPECT_NOT(!JSValueToEntity(context, **ioArgv, outRelativeTo)))
+		if (EXPECT_NOT(JSVAL_IS_NULL(**ioArgv) || !JSValueToEntity(context, **ioArgv, outRelativeTo)))
 		{
 			OOJSReportBadArguments(context, @"System", methodName, 1, *ioArgv, nil, @"entity");
 			return NO;

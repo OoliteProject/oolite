@@ -398,13 +398,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:0] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:1]] 
-					  fadeTime:(permanent?[lastLines oo_floatAtIndex:2]:0.0) key:nil addToArray:nil];
+					  fadeTime:(permanent?0.0:[lastLines oo_floatAtIndex:2]) key:nil addToArray:nil];
 		}
 		if ([lastLines count] > 3 && (line1 || ![[lastLines oo_stringAtIndex:3] isEqualToString:@""]))
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:3] align:GUI_ALIGN_CENTER
 						 color:[OOColor colorFromString:[lastLines oo_stringAtIndex:4]] 
-					  fadeTime:(permanent?[lastLines oo_floatAtIndex:5]:0.0) key:nil addToArray:nil];
+					  fadeTime:(permanent?0.0:[lastLines oo_floatAtIndex:5]) key:nil addToArray:nil];
 		}
 	}
 	
@@ -3664,11 +3664,21 @@ static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1)
 	Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
+	NSSize			viewSize = [[UNIVERSE gameView] viewSize];
+	float			aspect = viewSize.width / viewSize.height;
 
 	// The field of view transformation is really a scale operation on the view window.
 	// We must unapply it through these transformations for them to be right.
+	// We must also take into account the window aspect ratio.
 	float ratio = [[UNIVERSE gameView] fov:YES];
-	OOGLScaleModelView(make_vector(1/ratio, 1/ratio, 1.0f));
+	if (3.0f * aspect >= 4.0f)
+	{
+		OOGLScaleModelView(make_vector(1/ratio, 1/ratio, 1.0f));
+	}
+	else
+	{
+		OOGLScaleModelView(make_vector((4.0f/3.0f)/(aspect*ratio), (4.0f/3.0f)/(aspect*ratio), 1.0f));
+	}
 
 	// deal with view directions
 	Vector view_dir, view_up = kBasisYVector;

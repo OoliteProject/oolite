@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 
 */
 
+"use strict";
+
 this.name = "Oolite Constrictor Ship Library Conditions";
 this.author			= "cim";
 this.copyright		= "© 2008-2015 the Oolite team.";

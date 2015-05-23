@@ -1238,7 +1238,7 @@ PriorityAIController.prototype.respondToThargoids = function(whom,passon)
 
 PriorityAIController.prototype.setWitchspaceRouteTo = function(dest) 
 {
-	if (!dest)
+	if (dest === null || dest < 0)
 	{
 		return this.configurationSelectWitchspaceDestination();
 	}
@@ -1784,7 +1784,7 @@ PriorityAIController.prototype.conditionCanWitchspaceOnRoute = function()
 		return false;
 	}
 	var dest = this.getParameter("oolite_witchspaceDestination");
-	if (dest == null || dest == -1)
+	if (dest === null || dest == -1)
 	{
 		return false;
 	}
@@ -2501,14 +2501,14 @@ PriorityAIController.prototype.conditionCargoIsProfitableHere = function()
 	{
 		// cargo is always considered profitable in the designated
 		// destination system (assume they have a prepared buyer)
-		if (this.ship.destinationSystem && this.ship.destinationSystem == system.ID)
+		if (this.ship.destinationSystem > -1 && this.ship.destinationSystem == system.ID)
 		{
 			return true;
 		}
 		// cargo is never considered profitable in the designated source
 		// system (or you could get ships launching and immediately
 		// redocking)
-		if (this.ship.homeSystem && this.ship.homeSystem == system.ID)
+		if (this.ship.homeSystem > -1 && this.ship.homeSystem == system.ID)
 		{
 			return false;
 		}

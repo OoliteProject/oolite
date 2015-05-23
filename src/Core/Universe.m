@@ -4389,6 +4389,8 @@ static const OOMatrix	starboard_matrix =
 			
 			OOSetOpenGLState(OPENGL_STATE_OPAQUE);  // FIXME: should be redundant.
 			
+			OOGL(glClear(GL_COLOR_BUFFER_BIT));
+
 			if (!displayGUI)
 			{
 				OOGL(glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]));
@@ -4396,12 +4398,15 @@ static const OOMatrix	starboard_matrix =
 			else
 			{
 				OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+				// If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
+				OOGLResetProjection();
+				OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
+				[gui drawGUIBackground];
+			
 			}
 
 			BOOL		fogging, bpHide = [self breakPatternHide];
 			
-			OOGL(glClear(GL_COLOR_BUFFER_BIT));
-
 			for (vdist=0;vdist<=1;vdist++)
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
@@ -4409,7 +4414,14 @@ static const OOMatrix	starboard_matrix =
 				float   ratio = (displayGUI ? 1.0 : [gameView fov:YES]) * nearPlane; // 1.0 is field of view ratio for GUIs
 				
 				OOGLResetProjection();
-				OOGLFrustum(-ratio/2, ratio/2, -aspect*ratio/2, aspect*ratio/2, nearPlane, farPlane);
+				if ((displayGUI && 4*aspect >= 3) || (!displayGUI && 4*aspect <= 3))
+				{
+					OOGLFrustum(-ratio/2, ratio/2, -aspect*ratio/2, aspect*ratio/2, nearPlane, farPlane);
+				}
+				else
+				{
+					OOGLFrustum(-3*ratio/aspect/8, 3*ratio/aspect/8, -3*ratio/8, 3*ratio/8, nearPlane, farPlane);
+				}
 
 				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 
@@ -4439,9 +4451,6 @@ static const OOMatrix	starboard_matrix =
 				 * handled a little more carefully than before.
 				 */
 
-				// If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
-				if (displayGUI)  [gui drawGUIBackground];
-			
 				OOSetOpenGLState(OPENGL_STATE_OPAQUE); 
 				// clearing the depth buffer waits until we've set
 				// STATE_OPAQUE so that depth writes are definitely
@@ -4485,7 +4494,7 @@ static const OOMatrix	starboard_matrix =
 				
 					OOGL([self useGUILightSource:demoShipMode]);
 				
-					// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
+					// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets, flashers).
 					viewMatrix = OOGLGetModelView();
 
 					int			furthest = draw_count - 1;

@@ -437,17 +437,24 @@
 			condition_script = "oolite-conditions.js";
 		}
 	),
-	/* next item has a TL too high to be available */
+	/* next two items are very old experimental items and are unsupported */
+	/* next item is blocked from purchase by condition script */
 	(
-		99, 1500000, "Military Anti-Scanner Countermeasures (MASC'M)",
+		0, 1500000, "Military Anti-Scanner Countermeasures (MASC'M)",
 		"EQ_MILITARY_JAMMER",
-		"Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft."
+		"Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft.",
+		{
+			condition_script = "oolite-conditions.js";
+		}
 	),
-	/* next item has a TL too high to be available */
+	/* next item is blocked from purchase by condition script */
 	(
-		99, 250000, "Military Scanner Filtering",
+		0, 250000, "Military Scanner Filtering",
 		"EQ_MILITARY_SCANNER_FILTER",
-		"Filters out the jamming signals from MASC'M devices."
+		"Filters out the jamming signals from MASC'M devices.",
+		{
+			condition_script = "oolite-conditions.js";
+		}
 	),
 	/* NPC equipment, incompatible with player ship. Not buyable because of its TL. */
 	(

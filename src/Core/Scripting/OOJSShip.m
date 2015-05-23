@@ -367,7 +367,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "displayName",			kShip_displayName,			OOJS_PROP_READWRITE_CB },
 	{ "dockingInstructions",	kShip_dockingInstructions,	OOJS_PROP_READONLY_CB },
 	{ "energyRechargeRate",		kShip_energyRechargeRate,	OOJS_PROP_READWRITE_CB },
-	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READONLY_CB },
+	{ "entityPersonality",		kShip_entityPersonality,	OOJS_PROP_READWRITE_CB },
 	{ "equipment",				kShip_equipment,			OOJS_PROP_READONLY_CB },
 	{ "escorts",				kShip_escorts,				OOJS_PROP_READONLY_CB },
 	{ "escortGroup",			kShip_escortGroup,			OOJS_PROP_READONLY_CB },
@@ -1341,6 +1341,18 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 				return YES;
 			}
 			break;
+
+		case kShip_entityPersonality:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < 0 || iValue > ENTITY_PERSONALITY_MAX)
+				{
+					OOJSReportError(context, @"ship.%@ must be >= 0 and <= %u.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties),ENTITY_PERSONALITY_MAX);
+					return NO;
+				}
+				[entity setEntityPersonalityInt: iValue];
+				return YES;
+			}
 
 		case kShip_hyperspaceSpinTime:
 			if (JS_ValueToNumber(context, *value, &fValue))

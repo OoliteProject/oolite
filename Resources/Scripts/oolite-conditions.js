@@ -65,6 +65,36 @@ this.allowAwardEquipment = function(equipment, ship, context)
 		}
 	}
 
+	if (equipment == "EQ_MILITARY_JAMMER" || equipment == "EQ_MILITARY_SCANNER_FILTER")
+	{
+		// This equipment uses the TL:99 hack
+		// and as it's unsupported equipment that probably doesn't work
+		// that's the only way to obtain it.
+		// Reimplement the hack here...
+		if (context == "purchase")
+		{
+			// check the special mission variable
+			var effectivetl = missionVariables["TL_FOR_"+equipment];
+			if (!effectivetl)
+			{
+				// if it's not set, then just use 99
+				effectivetl = 99;
+			}
+			// check the local tech level
+			var localtl = system.info.techlevel;
+			if (player.ship.dockedStation && !player.ship.dockedStation.isMainStation)
+			{
+				// or the local station if docked at a secondary
+				localtl = player.ship.dockedStation.equivalentTechLevel;
+			}
+			// if too high tech, return false
+			if (localtl < effectivetl)
+			{
+				return false;
+			}
+		}
+	}
+
 	if (equipment == "EQ_OOLITE_TUTORIAL_CONTROLS")
 	{
 		if (context == "purchase" || context == "npc" || context == "newShip" || context == "scripted")

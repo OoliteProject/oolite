@@ -163,6 +163,8 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 
 - (void) noteFrustration:(NSString *)context;
 
+- (BOOL) cloakPassive;
+
 @end
 
 
@@ -6561,6 +6563,12 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (BOOL) cloakPassive
+{
+	return cloakPassive;
+}
+
+
 - (void)setCloaked:(BOOL)cloak
 {
 	if (cloak)  [self activateCloakingDevice];
@@ -10203,7 +10211,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	Quaternion  q = kIdentityQuaternion;
 	while ((father)&&(father != last) && (father != NO_TARGET))
 	{
-		q = quaternion_multiply(q,quaternion_conjugate([father orientation]));
+		/* Fix orientation */
+		Quaternion fo = [father normalOrientation];
+		fo.w = -fo.w;
+		/* The below code works for player turrets where the
+		 * orientation is different, but not for NPC turrets. Taking
+		 * the normal orientation with -w works: there is probably a
+		 * neater way which someone who understands quaternions can
+		 * find, but this works well enough for 1.82 - CIM */
+		q = quaternion_multiply(q,quaternion_conjugate(fo));
 		last = father;
 		if (![last isSubEntity]) break;
 		father = [father owner];
@@ -10212,6 +10228,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	// q now contains the rotation to the turret's reference system
 
 	vector_to_target = quaternion_rotate_vector(q,vector_to_target);
+
 	leading = quaternion_rotate_vector(q,leading);
 	// rotate the vector to target and its velocity
 	
@@ -11476,8 +11493,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		return NO;
 	if (range > weaponRange * 1.01) // 1% more than max range - open up just slightly early
 		return NO;
-	if ([[self rootShipEntity] isPlayer] && ![PLAYER weaponsOnline])
+	ShipEntity *root = [self rootShipEntity];
+	if ([root isPlayer] && ![PLAYER weaponsOnline])
 		return NO;
+
+	if ([root isCloaked] && [root cloakPassive])
+	{
+		// can't fire turrets while cloaked
+		return NO;
+	}
 
 	Vector		vel;	
 	HPVector		origin = [self position];
