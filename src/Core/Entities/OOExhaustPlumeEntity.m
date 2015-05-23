@@ -110,7 +110,7 @@ static OOTexture *sPlumeTexture = nil;
 
 - (double)findCollisionRadius
 {
-	return 0;	// FIXME: something sensible. Where does plume length come from anyway?
+	return 40;
 }
 
 
@@ -131,6 +131,9 @@ static OOTexture *sPlumeTexture = nil;
 	}
 
 	//GLfloat ex_emissive[4]	= {0.7f, 0.9, 1.0f, 0.9f * kOverallAlpha};   // pale blue - old definition
+	collision_radius = 0;
+	GLfloat length;
+	Vector vertex;
 	GLfloat ex_emissive[4];
 	[[ship exhaustEmissiveColor] getRed:&ex_emissive[0] green:&ex_emissive[1] blue:&ex_emissive[2] alpha:&ex_emissive[3]];
 	const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2};
@@ -218,9 +221,11 @@ static OOTexture *sPlumeTexture = nil;
 	ex_emissive[3] = flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = red_factor;		// diminish red part towards rear of exhaust
-	_vertices[iv++] = f01.position.x + b01.x;// + zero.k.x * flare_factor * 4.0;
-	_vertices[iv++] = f01.position.y + b01.y;// + zero.k.y * flare_factor * 4.0;
-	_vertices[iv++] = f01.position.z + b01.z;// + zero.k.z * flare_factor * 4.0;
+	vertex = vector_add(HPVectorToVector(f01.position), b01);
+	collision_radius = magnitude(vertex);
+	_vertices[iv++] = vertex.x;// + zero.k.x * flare_factor * 4.0;
+	_vertices[iv++] = vertex.y;// + zero.k.y * flare_factor * 4.0;
+	_vertices[iv++] = vertex.z;// + zero.k.z * flare_factor * 4.0;
 	_exhaustBaseColors[ci++] = ex_emissive[0];
 	_exhaustBaseColors[ci++] = ex_emissive[1];
 	_exhaustBaseColors[ci++] = ex_emissive[2];
@@ -234,9 +239,18 @@ static OOTexture *sPlumeTexture = nil;
 
 	for (i = 0; i < 8; i++)
 	{
-		_vertices[iv++] = f01.position.x + b01.x + s1[i] * i1.x + c1[i] * j1.x;
-		_vertices[iv++] = f01.position.y + b01.y + s1[i] * i1.y + c1[i] * j1.y;
-		_vertices[iv++] = f01.position.z + b01.z + s1[i] * i1.z + c1[i] * j1.z;
+		vertex = vector_add(HPVectorToVector(f01.position),
+							vector_add(b01,
+									   vector_add(vector_multiply_scalar(i1,s1[i]),
+												  vector_multiply_scalar(j1,c1[i]))));
+		length = magnitude(vertex);
+		if (length > collision_radius)
+		{
+			collision_radius = length;
+		}
+		_vertices[iv++] = vertex.x;
+		_vertices[iv++] = vertex.y;
+		_vertices[iv++] = vertex.z;
 		_exhaustBaseColors[ci++] = ex_emissive[0];
 		_exhaustBaseColors[ci++] = ex_emissive[1];
 		_exhaustBaseColors[ci++] = ex_emissive[2];
@@ -253,9 +267,19 @@ static OOTexture *sPlumeTexture = nil;
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		_vertices[iv++] = f03.position.x + b03.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		_vertices[iv++] = f03.position.y + b03.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		_vertices[iv++] = f03.position.z + b03.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		vertex = vector_add(HPVectorToVector(f03.position),
+							vector_add(b03,
+									   vector_add(vector_multiply_scalar(i1,s1[i]),
+												  vector_add(vector_multiply_scalar(j1,c1[i]),
+															 vector_multiply_scalar(k1,r1)))));
+		length = magnitude(vertex);
+		if (length > collision_radius)
+		{
+			collision_radius = length;
+		}
+		_vertices[iv++] = vertex.x;
+		_vertices[iv++] = vertex.y;
+		_vertices[iv++] = vertex.z;
 		_exhaustBaseColors[ci++] = ex_emissive[0];
 		_exhaustBaseColors[ci++] = ex_emissive[1];
 		_exhaustBaseColors[ci++] = ex_emissive[2];
@@ -272,9 +296,19 @@ static OOTexture *sPlumeTexture = nil;
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		_vertices[iv++] = f06.position.x + b06.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		_vertices[iv++] = f06.position.y + b06.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		_vertices[iv++] = f06.position.z + b06.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		vertex = vector_add(HPVectorToVector(f06.position),
+							vector_add(b06,
+									   vector_add(vector_multiply_scalar(i1,s1[i]),
+												  vector_add(vector_multiply_scalar(j1,c1[i]),
+															 vector_multiply_scalar(k1,r1)))));
+		length = magnitude(vertex);
+		if (length > collision_radius)
+		{
+			collision_radius = length;
+		}
+		_vertices[iv++] = vertex.x;
+		_vertices[iv++] = vertex.y;
+		_vertices[iv++] = vertex.z;
 		_exhaustBaseColors[ci++] = ex_emissive[0];
 		_exhaustBaseColors[ci++] = ex_emissive[1];
 		_exhaustBaseColors[ci++] = ex_emissive[2];
@@ -290,9 +324,19 @@ static OOTexture *sPlumeTexture = nil;
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		_vertices[iv++] = f08.position.x + b08.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		_vertices[iv++] = f08.position.y + b08.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		_vertices[iv++] = f08.position.z + b08.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		vertex = vector_add(HPVectorToVector(f08.position),
+							vector_add(b08,
+									   vector_add(vector_multiply_scalar(i1,s1[i]),
+												  vector_add(vector_multiply_scalar(j1,c1[i]),
+															 vector_multiply_scalar(k1,r1)))));
+		length = magnitude(vertex);
+		if (length > collision_radius)
+		{
+			collision_radius = length;
+		}
+		_vertices[iv++] = vertex.x;
+		_vertices[iv++] = vertex.y;
+		_vertices[iv++] = vertex.z;
 		_exhaustBaseColors[ci++] = ex_emissive[0];
 		_exhaustBaseColors[ci++] = ex_emissive[1];
 		_exhaustBaseColors[ci++] = ex_emissive[2];
@@ -302,6 +346,11 @@ static OOTexture *sPlumeTexture = nil;
 	ex_emissive[3] = 0.0;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.0;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.0;	// diminish red part towards rear of exhaust
+	length = magnitude(HPVectorToVector(f10.position));
+	if (length > collision_radius)
+	{
+		collision_radius = length;
+	}
 	_vertices[iv++] = f10.position.x;
 	_vertices[iv++] = f10.position.y;
 	_vertices[iv++] = f10.position.z;
