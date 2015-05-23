@@ -542,6 +542,10 @@
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
+		4F1F155D1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1F155C1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m */; };
+		4F1F155F1B0FCB76001C1591 /* OOCheckPListSyntaxVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4F1F155E1B0FCB76001C1591 /* OOCheckPListSyntaxVerifierStage.h */; };
+		4F1F15611B0FCBFA001C1591 /* OOCheckJSSyntaxVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1F15601B0FCBFA001C1591 /* OOCheckJSSyntaxVerifierStage.m */; };
+		4F1F15631B0FCC17001C1591 /* OOCheckJSSyntaxVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 4F1F15621B0FCC17001C1591 /* OOCheckJSSyntaxVerifierStage.h */; };
 		B33A44F1199E6745000B45AE /* OOOpenGLMatrixManager.h in Headers */ = {isa = PBXBuildFile; fileRef = B33A44EF199E6745000B45AE /* OOOpenGLMatrixManager.h */; };
 		B33A44F2199E6745000B45AE /* OOOpenGLMatrixManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B33A44F0199E6745000B45AE /* OOOpenGLMatrixManager.m */; };
 		B3B46C871A0D053D00D6C39B /* OOSystemDescriptionManager.h in Copy Plug-ins */ = {isa = PBXBuildFile; fileRef = B3B46C851A0D053D00D6C39B /* OOSystemDescriptionManager.h */; };
@@ -1457,7 +1461,7 @@
 		1A9406820BAF66D6005F6CF3 /* OOVoxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOVoxel.h; sourceTree = "<group>"; };
 		1A9406830BAF66D6005F6CF3 /* OOVoxel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOVoxel.m; sourceTree = "<group>"; };
 		1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTriangle.h; sourceTree = "<group>"; };
-		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; usesTabs = 0; xcLanguageSpecificationIdentifier = xcode.lang.make; };
+		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; usesTabs = 0; };
 		1A9438CD17F84C560011F80B /* OOExplosionCloudEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExplosionCloudEntity.h; sourceTree = "<group>"; };
 		1A9438CE17F84C560011F80B /* OOExplosionCloudEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOExplosionCloudEntity.m; sourceTree = "<group>"; };
 		1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = delayedReactToAttackAI.plist; sourceTree = "<group>"; };
@@ -1682,6 +1686,10 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "javascript-errors.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
+		4F1F155C1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckPListSyntaxVerifierStage.m; sourceTree = "<group>"; };
+		4F1F155E1B0FCB76001C1591 /* OOCheckPListSyntaxVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckPListSyntaxVerifierStage.h; sourceTree = "<group>"; };
+		4F1F15601B0FCBFA001C1591 /* OOCheckJSSyntaxVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckJSSyntaxVerifierStage.m; sourceTree = "<group>"; };
+		4F1F15621B0FCC17001C1591 /* OOCheckJSSyntaxVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckJSSyntaxVerifierStage.h; sourceTree = "<group>"; };
 		B33A44EF199E6745000B45AE /* OOOpenGLMatrixManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLMatrixManager.h; sourceTree = "<group>"; };
 		B33A44F0199E6745000B45AE /* OOOpenGLMatrixManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLMatrixManager.m; sourceTree = "<group>"; };
 		B3460D4315285BDE002592D0 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; explicitFileType = sourcecode.glsl; fileEncoding = 4; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
@@ -3003,6 +3011,10 @@
 		1AB2AAE70C4CDF890008CF4E /* OXP Verification */ = {
 			isa = PBXGroup;
 			children = (
+				4F1F15621B0FCC17001C1591 /* OOCheckJSSyntaxVerifierStage.h */,
+				4F1F15601B0FCBFA001C1591 /* OOCheckJSSyntaxVerifierStage.m */,
+				4F1F155E1B0FCB76001C1591 /* OOCheckPListSyntaxVerifierStage.h */,
+				4F1F155C1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m */,
 				1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */,
 				1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */,
 				1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */,
@@ -3334,6 +3346,7 @@
 				1A71D8AB0E5F17410088C456 /* OOSoundSource.h in Headers */,
 				1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */,
 				1A8BB8EA0E8311F900122974 /* OONullTexture.h in Headers */,
+				4F1F15631B0FCC17001C1591 /* OOCheckJSSyntaxVerifierStage.h in Headers */,
 				1AB812900E90179D00A84923 /* TextureStore.h in Headers */,
 				1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */,
 				1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */,
@@ -3382,6 +3395,7 @@
 				1A1F7DB7117B5D8200332757 /* OOMaterialSpecifier.h in Headers */,
 				1A19783E117F81B10060DB56 /* OOPixMapChannelOperations.h in Headers */,
 				1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */,
+				4F1F155F1B0FCB76001C1591 /* OOCheckPListSyntaxVerifierStage.h in Headers */,
 				1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */,
 				1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */,
 				1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */,
@@ -3840,6 +3854,7 @@
 				1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */,
 				1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */,
 				1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */,
+				4F1F155D1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m in Sources */,
 				1A69FFF818A64CF70062EAC8 /* OOJoystickProfile.m in Sources */,
 				1AC545070D4D228400C90E5B /* OOEncodingConverter.m in Sources */,
 				1A28AA170D55438200BC0CE4 /* OOJSSound.m in Sources */,
@@ -3927,6 +3942,7 @@
 				1AC0F29E12E1DADC00ECBBB0 /* OOJSEngineDebuggerHelpers.m in Sources */,
 				1A35257312E1FFA900244C9D /* OOConstToJSString.m in Sources */,
 				1A127F4412EC6A4400B65D9F /* OOTextureSprite.m in Sources */,
+				4F1F15611B0FCBFA001C1591 /* OOCheckJSSyntaxVerifierStage.m in Sources */,
 				1A1280F912ECA4ED00B65D9F /* OOJSFont.m in Sources */,
 				1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */,
 				1A97D77F12FDBB9B0009D74A /* OOQuiriumCascadeEntity.m in Sources */,
