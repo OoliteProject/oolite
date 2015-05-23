@@ -317,6 +317,7 @@ Bug fixes:
   bounty fixed.
 * Fix error with cargo dumping when reloading save after death
 * Fix NPC turret aim
+* Some OXZ manager bugs related to duplicate manifest IDs fixed
 
 -------------------------------------------------------------------------------
 

@@ -166,6 +166,7 @@ MA 02110-1301, USA.
 		good = [NSMutableDictionary dictionaryWithDictionary:[_commodityLists oo_dictionaryForKey:commodity]];
 		[good oo_setUnsignedInteger:0 forKey:kOOCommodityPriceCurrent];
 		[good oo_setUnsignedInteger:0 forKey:kOOCommodityQuantityCurrent];
+		[good oo_setUnsignedInteger:0 forKey:kOOCommodityCapacity];
 		[good setObject:commodity forKey:kOOCommodityKey];
 		
 		[market setGood:commodity withInfo:good];
