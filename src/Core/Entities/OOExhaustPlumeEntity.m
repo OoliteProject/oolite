@@ -110,7 +110,7 @@ static OOTexture *sPlumeTexture = nil;
 
 - (double)findCollisionRadius
 {
-	return 40;
+	return collision_radius;
 }
 
 
