@@ -4405,11 +4405,13 @@ static const OOMatrix	starboard_matrix =
 			}
 
 			BOOL		fogging, bpHide = [self breakPatternHide];
+
+			float pass1FarPlane = INTERMEDIATE_CLEAR_DEPTH;
 			
 			for (vdist=0;vdist<=1;vdist++)
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
-				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
+				float   farPlane = vdist ? pass1FarPlane : MAX_CLEAR_DEPTH;
 				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane; // 0.5 is field of view ratio for GUIs
 				
 				OOGLResetProjection();
@@ -4520,8 +4522,12 @@ static const OOMatrix	starboard_matrix =
 						OOEntityStatus d_status = [drawthing status];
 					
 						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
-						if (vdist == 1 && [drawthing cameraRangeFront] > farPlane*1.5) continue;
-						if (vdist == 0 && [drawthing cameraRangeBack] < nearPlane) continue;
+						if (vdist == 1 && [drawthing cameraRangeFront] > farPlane) continue;
+						if (vdist == 0 && [drawthing cameraRangeFront] < nearPlane)
+						{
+							if ([drawthing cameraRangeBack] > pass1FarPlane) pass1FarPlane = [drawthing cameraRangeBack];
+							continue;
+						}
 //						if (vdist == 1 && [drawthing isPlanet]) continue;
 
 						if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either demo ship mode or in flight
