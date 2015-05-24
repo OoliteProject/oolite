@@ -4911,6 +4911,7 @@ static const OOMatrix	starboard_matrix =
 			BOOL		fogging, bpHide = [self breakPatternHide];
 
 			float pass1FarPlane = INTERMEDIATE_CLEAR_DEPTH;
+			OOTimeAbsolute drawTime = universal_time;
 			
 			for (vdist=0;vdist<=1;vdist++)
 			{
@@ -5032,13 +5033,12 @@ static const OOMatrix	starboard_matrix =
 						OOEntityStatus d_status = [drawthing status];
 					
 						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
-						if (vdist == 1 && [drawthing cameraRangeFront] > farPlane) continue;
-						if (vdist == 0 && [drawthing cameraRangeFront] < nearPlane)
+						if ([drawthing lastDrawTime] >= drawTime) continue;
+						if (vdist == 0 && [drawthing cameraRangeFront] < nearPlane * 1.1)
 						{
-							if ([drawthing cameraRangeBack] > pass1FarPlane) pass1FarPlane = [drawthing cameraRangeBack];
+							if ([drawthing cameraRangeBack] > pass1FarPlane) pass1FarPlane = [drawthing cameraRangeBack]*1.1;
 							continue;
 						}
-//						if (vdist == 1 && [drawthing isPlanet]) continue;
 
 						if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either demo ship mode or in flight
 						{
@@ -5084,6 +5084,7 @@ static const OOMatrix	starboard_matrix =
 							[self lightForEntity:demoShipMode || drawthing->isSunlit];
 						
 							// draw the thing
+							[drawthing setLastDrawTime: drawTime];
 							[drawthing drawImmediate:false translucent:false];
 						
 							OOGLPopModelView();
@@ -5134,6 +5135,7 @@ static const OOMatrix	starboard_matrix =
 							}
 						
 							// draw the thing
+							[drawthing setLastDrawTime: drawTime];
 							[drawthing drawImmediate:false translucent:true];
 						
 							// atmospheric fog

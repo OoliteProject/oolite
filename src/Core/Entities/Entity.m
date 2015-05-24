@@ -94,6 +94,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	gTotalEntityMemory += [self oo_objectSize];
 #endif
 	
+	lastDrawTime = 0;
 	return self;
 }
 
@@ -1050,6 +1051,19 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 - (void)subEntityReallyDied:(ShipEntity *)sub
 {
 	OOLog(@"entity.bug", @"%s called for non-ship entity %p by %p", __PRETTY_FUNCTION__, self, sub);
+}
+
+
+- (OOTimeAbsolute) lastDrawTime
+{
+	return lastDrawTime;
+}
+
+
+- (void) setLastDrawTime: (OOTimeAbsolute) drawTime
+{
+	lastDrawTime = drawTime;
+	return;
 }
 
 
