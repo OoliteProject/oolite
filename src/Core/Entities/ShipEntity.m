@@ -860,7 +860,17 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (GLfloat) frustumRadius
 {
-	return _profileRadius;
+	OOScalar exhaust_length = 0;
+	NSEnumerator *exEnum = nil;
+	OOExhaustPlumeEntity *exEnt = nil;
+	for (exEnum = [self exhaustEnumerator]; (exEnt = [exEnum nextObject]); )
+	{
+		if ([exEnt findCollisionRadius] > exhaust_length)
+		{
+			exhaust_length = [exEnt findCollisionRadius];
+		}
+	}
+	return _profileRadius + exhaust_length;
 }
 
 

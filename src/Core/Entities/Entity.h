@@ -258,6 +258,7 @@ enum OOScanClass
 
 - (BOOL) canCollide;
 - (GLfloat) collisionRadius;
+- (GLfloat) frustumRadius;
 - (void) setCollisionRadius:(GLfloat)amount;
 - (NSMutableArray *)collisionArray;
 
