@@ -10249,6 +10249,16 @@ static NSString *last_outfitting_key=nil;
 - (NSString *)marketScreenTitle
 {
 	StationEntity *dockedStation = [self dockedStation];
+
+	/* Override normal behaviour if station broadcasts market */
+	if (dockedStation == nil)  
+	{
+		if ([[self primaryTarget] isStation] && [(StationEntity *)[self primaryTarget] marketBroadcast])
+		{
+			dockedStation = [self primaryTarget];
+		}
+	}
+
 	NSString *system = nil;
 	if ([UNIVERSE sun] != nil)  system = [UNIVERSE getSystemName:system_id];
 	
