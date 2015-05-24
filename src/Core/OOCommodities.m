@@ -180,6 +180,11 @@ MA 02110-1301, USA.
 	NSMutableDictionary *definition = [NSMutableDictionary dictionaryWithDictionary:good];
 	[definition oo_setUnsignedInteger:p forKey:kOOCommodityPriceCurrent];
 	[definition oo_setUnsignedInteger:q forKey:kOOCommodityQuantityCurrent];
+	if (station == nil && [definition objectForKey:kOOCommodityCapacity] == nil)
+	{
+		[definition oo_setInteger:MAIN_SYSTEM_MARKET_LIMIT forKey:kOOCommodityCapacity];
+	}
+
 	[definition setObject:key forKey:kOOCommodityKey];
 	if (station != nil && ![station marketMonitored])
 	{
@@ -279,6 +284,7 @@ MA 02110-1301, USA.
 		}
 		OOCreditsQuantity p = [self generatePriceForGood:good inEconomy:economy];
 		good = [self createDefinitionFrom:good price:p andQuantity:q forKey:commodity atStation:nil inSystem:[UNIVERSE currentSystemID]];
+
 		if (script != nil)
 		{
 			good = [self modifyGood:good withScript:script atStation:nil inSystem:[UNIVERSE currentSystemID] localMode:YES];
