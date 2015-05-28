@@ -476,6 +476,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSSize) backingViewSize
+{
+	return viewSize;
+}
+
+
 - (GLfloat) display_z
 {
 	return display_z;

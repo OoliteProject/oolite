@@ -1671,12 +1671,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	BOOL		routeExists = NO;
 
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
-	NSSize		viewSize = [[UNIVERSE gameView] viewSize];
+	NSSize		viewSize = [[UNIVERSE gameView] backingViewSize];
 	double aspect_ratio = viewSize.width / viewSize.height;
-#if OOLITE_MAC_OS_X
-	// Fix for issue 136
-	BOOL issue_136_fix = [[NSUserDefaults standardUserDefaults] integerForKey: @"issue_136_fix"];
-#endif
 
 	// default colours - match those in HeadUpDisplay:OODrawPlanetInfo
 	GLfloat govcol[] = {	0.5, 0.0, 0.7,
@@ -1700,17 +1696,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (GUI_ROW_CHART_SYSTEM-2)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
 				size_in_pixels.width * pixelRatio,
 				(GUI_ROW_CHART_SYSTEM-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
-
-#if OOLITE_MAC_OS_X
-	// Fix for issue 136
-	if (issue_136_fix)
-	{
-		clipRect.origin.x *= 2;
-		clipRect.origin.y *= 2;
-		clipRect.size.width *= 2;
-		clipRect.size.height *= 2;
-	}
-#endif
 
 	OOSystemID target = [PLAYER targetSystemID];
 	NSString *targetName = [UNIVERSE getSystemName:target];

@@ -206,6 +206,7 @@ extern int debug;
 - (void) setTypedString:(NSString*) value;
 
 - (NSSize) viewSize;
+- (NSSize) backingViewSize;
 - (GLfloat) display_z;
 - (GLfloat) x_offset;
 - (GLfloat) y_offset;
