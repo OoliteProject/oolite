@@ -344,7 +344,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
 		// High resolution mode support.
-		backingViewsize = [self convertSizeToBacking:viewSize];
+		backingViewSize = [self convertSizeToBacking:viewSize];
 	}
 	else
 	{
