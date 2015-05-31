@@ -92,7 +92,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	gTotalEntityMemory += [self oo_objectSize];
 #endif
 	
-	lastDrawTime = 0;
+	lastDrawCounter = 0;
 	return self;
 }
 
@@ -1045,15 +1045,15 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 }
 
 
-- (OOTimeAbsolute) lastDrawTime
+- (NSUInteger) lastDrawCounter
 {
-	return lastDrawTime;
+	return lastDrawCounter;
 }
 
 
-- (void) setLastDrawTime: (OOTimeAbsolute) drawTime
+- (void) setLastDrawCounter: (NSUInteger) drawCounter
 {
-	lastDrawTime = drawTime;
+	lastDrawCounter = drawCounter;
 	return;
 }
 
