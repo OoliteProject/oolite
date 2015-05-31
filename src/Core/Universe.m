@@ -836,6 +836,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];
 	entitiesDeadThisUpdate = [[NSMutableSet alloc] init];
 	framesDoneThisUpdate = 0;
+	drawCounter = 0;
 	
 	[[GameController sharedController] logProgress:DESC(@"initializing-debug-support")];
 	OOInitDebugSupport();
@@ -4911,7 +4912,7 @@ static const OOMatrix	starboard_matrix =
 			BOOL		fogging, bpHide = [self breakPatternHide];
 
 			float pass1FarPlane = INTERMEDIATE_CLEAR_DEPTH;
-			OOTimeAbsolute drawTime = universal_time;
+			drawCounter++;
 			
 			for (vdist=0;vdist<=1;vdist++)
 			{
@@ -5034,7 +5035,7 @@ static const OOMatrix	starboard_matrix =
 						OOEntityStatus d_status = [drawthing status];
 					
 						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
-						if ([drawthing lastDrawTime] >= drawTime) continue;
+						if ([drawthing lastDrawCounter] == drawCounter) continue;
 						if (vdist == 0 && [drawthing cameraRangeFront] < nearDistance)
 						{
 							if ([drawthing cameraRangeBack] > pass1FarPlane) pass1FarPlane = [drawthing cameraRangeBack]*1.1;
@@ -5085,7 +5086,7 @@ static const OOMatrix	starboard_matrix =
 							[self lightForEntity:demoShipMode || drawthing->isSunlit];
 						
 							// draw the thing
-							[drawthing setLastDrawTime: drawTime];
+							[drawthing setLastDrawCounter: drawCounter];
 							[drawthing drawImmediate:false translucent:false];
 						
 							OOGLPopModelView();
@@ -5136,7 +5137,7 @@ static const OOMatrix	starboard_matrix =
 							}
 						
 							// draw the thing
-							[drawthing setLastDrawTime: drawTime];
+							[drawthing setLastDrawCounter: drawCounter];
 							[drawthing drawImmediate:false translucent:true];
 						
 							// atmospheric fog
