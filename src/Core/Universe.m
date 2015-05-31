@@ -4414,6 +4414,7 @@ static const OOMatrix	starboard_matrix =
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
 				float   farPlane = vdist ? pass1FarPlane : MAX_CLEAR_DEPTH;
 				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane; // 0.5 is field of view ratio for GUIs
+				float	nearDistance = sqrt(nearPlane*nearPlane + ratio*ratio*(1+1/(aspect*aspect)));  // distance to object that's on the near plane and in the corner of the screen
 				
 				OOGLResetProjection();
 				if ((displayGUI && 4*aspect >= 3) || (!displayGUI && 4*aspect <= 3))
@@ -4524,7 +4525,7 @@ static const OOMatrix	starboard_matrix =
 					
 						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
 						if ([drawthing lastDrawTime] >= drawTime) continue;
-						if (vdist == 0 && [drawthing cameraRangeFront] < nearPlane * 1.1)
+						if (vdist == 0 && [drawthing cameraRangeFront] < nearDistance)
 						{
 							if ([drawthing cameraRangeBack] > pass1FarPlane) pass1FarPlane = [drawthing cameraRangeBack]*1.1;
 							continue;
