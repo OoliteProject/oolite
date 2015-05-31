@@ -4421,8 +4421,6 @@ static const OOMatrix	starboard_matrix =
 				}
 			}
 
-			OOLog( @"kja", @"breakPlane: %f", breakPlane );
-			
 			// We need to bring forward the near plane of the frustum on the long distance pass by this factor to avoid clipping objects at the corner of the window
 			float distanceFactor = sqrt(1 + ([gameView fov:YES]*[gameView fov:YES] * (1.0 + 1.0/(aspect*aspect)))); 
 
