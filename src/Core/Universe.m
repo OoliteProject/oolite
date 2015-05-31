@@ -4407,24 +4407,39 @@ static const OOMatrix	starboard_matrix =
 
 			BOOL		fogging, bpHide = [self breakPatternHide];
 
-			float pass1FarPlane = INTERMEDIATE_CLEAR_DEPTH;
 			drawCounter++;
+			float breakPlane = INTERMEDIATE_CLEAR_DEPTH;
+			for( int i = 0; i < draw_count; i++ )
+			{
+				if ([my_entities[i] cameraRangeFront] > breakPlane)
+				{
+					continue;
+				}
+				if ([my_entities[i] cameraRangeBack] > breakPlane)
+				{
+					breakPlane = [my_entities[i] cameraRangeBack];
+				}
+			}
+
+			OOLog( @"kja", @"breakPlane: %f", breakPlane );
 			
+			// We need to bring forward the near plane of the frustum on the long distance pass by this factor to avoid clipping objects at the corner of the window
+			float distanceFactor = sqrt(1 + ([gameView fov:YES]*[gameView fov:YES] * (1.0 + 1.0/(aspect*aspect)))); 
+
 			for (vdist=0;vdist<=1;vdist++)
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
-				float   farPlane = vdist ? pass1FarPlane : MAX_CLEAR_DEPTH;
-				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane; // 0.5 is field of view ratio for GUIs
-				float	nearDistance = sqrt(nearPlane*nearPlane + ratio*ratio*(1+1/(aspect*aspect)));  // distance to object that's on the near plane and in the corner of the screen
+				float   farPlane = vdist ? breakPlane : MAX_CLEAR_DEPTH;
+				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane / distanceFactor; // 0.5 is field of view ratio for GUIs
 				
 				OOGLResetProjection();
 				if ((displayGUI && 4*aspect >= 3) || (!displayGUI && 4*aspect <= 3))
 				{
-					OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
+					OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane / distanceFactor, farPlane);
 				}
 				else
 				{
-					OOGLFrustum(-3*ratio/aspect/4, 3*ratio/aspect/4, -3*ratio/4, 3*ratio/4, nearPlane, farPlane);
+					OOGLFrustum(-3*ratio/aspect/4, 3*ratio/aspect/4, -3*ratio/4, 3*ratio/4, nearPlane / distanceFactor, farPlane);
 				}
 
 				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
@@ -4484,7 +4499,7 @@ static const OOMatrix	starboard_matrix =
 						{
 							[self setMainLightPosition:[cachedSun cameraRelativePosition]];
 						}
-						OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));					
+						OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));	
 					}
 					else
 					{
@@ -4508,11 +4523,11 @@ static const OOMatrix	starboard_matrix =
 					double 		fog_scale, half_scale;
 					GLfloat 	flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
 					GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing			
-				
+
 					OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
-				
+
 					[self defineFrustum]; // camera is set up for this frame
-				
+
 					OOVerifyOpenGLState();
 					OOCheckOpenGLErrors(@"Universe after setting up for opaque pass");
 					OOLog(@"universe.profile.draw",@"Begin opaque pass");
@@ -4526,9 +4541,8 @@ static const OOMatrix	starboard_matrix =
 					
 						if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
 						if ([drawthing lastDrawCounter] == drawCounter) continue;
-						if (vdist == 0 && [drawthing cameraRangeFront] < nearDistance)
+						if (vdist == 0 && [drawthing cameraRangeFront] < nearPlane)
 						{
-							if ([drawthing cameraRangeBack] > pass1FarPlane) pass1FarPlane = [drawthing cameraRangeBack]*1.1;
 							continue;
 						}
 
