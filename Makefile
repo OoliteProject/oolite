@@ -236,7 +236,7 @@ help:
 	@echo
 	@echo "Development Targets:"
 	@echo "  debug               - builds a debug executable in oolite.app/oolite.dbg"
-	@echo "  release             - builds a release executable in oolite.app/oolite"
+	@echo "  release             - builds a test release executable in oolite.app/oolite"
 	@echo "  release-deployment  - builds a release executable in oolite.app/oolite"
 	@echo "  release-snapshot    - builds a snapshot release in oolite.app/oolite"
 	@echo "  all                 - builds the above targets"
