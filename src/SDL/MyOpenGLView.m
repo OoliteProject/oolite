@@ -865,12 +865,11 @@ MA 02110-1301, USA.
 	}
 	
 	// are we attempting to go to a different screen resolution? Note: this also takes care of secondary monitor situations because 
-	// EnumDisplaySettings was called with zero as first parameter, hence it yields settings for the display device the main application
-	// thread is running on (i.e. primary). Since we only uae native resolution for full screen on secondaty moniors, changingResolution
-	// is expected to always be false for non-primary display devices - Nikos 20150310
-	BOOL changingResolution = 	(fullScreen && settings.dmPelsWidth != viewSize.width && settings.dmPelsHeight != viewSize.height) ||
-								(wasFullScreen && settings.dmPelsWidth != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
-								&& settings.dmPelsHeight != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]);
+	// by design the only resolution available for fullscreen on a secondary display device is its native one - Nikos 20150605
+	BOOL changingResolution = 	[self isRunningOnPrimaryDisplayDevice] &&
+								((fullScreen && (settings.dmPelsWidth != viewSize.width || settings.dmPelsHeight != viewSize.height)) ||
+								(wasFullScreen && (settings.dmPelsWidth != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
+								|| settings.dmPelsHeight != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayHeight] intValue])));
 			
 	RECT wDC;
 
