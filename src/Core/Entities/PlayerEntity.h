@@ -356,6 +356,7 @@ typedef enum
 @private
 	OOSystemID				system_id;
 	OOSystemID				target_system_id;
+	OOSystemID				info_system_id;
 
 	float					occlusion_dial;
 	
@@ -581,6 +582,8 @@ typedef enum
 	OOKeyCode				key_docking_music;
 	
 	OOKeyCode				key_advanced_nav_array;
+	OOKeyCode				key_info_next_system;
+	OOKeyCode				key_info_previous_system;
 	OOKeyCode				key_map_home;
 	OOKeyCode				key_map_info;
 	
@@ -773,6 +776,11 @@ typedef enum
 - (OOSystemID) targetSystemID;
 - (void) setTargetSystemID:(OOSystemID) sid;
 - (OOSystemID) nextHopTargetSystemID;
+- (OOSystemID) infoSystemID;
+- (void) setInfoSystemID: (OOSystemID) sid;
+- (void) nextInfoSystem;
+- (void) previousInfoSystem;
+- (BOOL) infoSystemOnRoute;
 
 
 - (NSDictionary *) commanderDataDictionary;

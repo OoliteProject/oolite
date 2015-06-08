@@ -1272,6 +1272,8 @@
 	"oolite-keydesc-key_docking_music"			= "Docking music";
 
 	"oolite-keydesc-key_advanced_nav_array"		= "Route planner";
+	"oolite-keydesc-key_next_info_system"		= "Next Planet Info";
+	"oolite-keydesc-key_previous_info_system"	= "Previous Planet Info";
 	"oolite-keydesc-key_map_home"				= "Home map";
 	"oolite-keydesc-key_map_info"				= "Show chart icons";
 

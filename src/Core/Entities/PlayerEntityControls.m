@@ -134,6 +134,8 @@ static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
 static BOOL				mouse_left_down;
 static BOOL				oxz_manager_pressed;
+static BOOL				next_planet_info_pressed;
+static BOOL				previous_planet_info_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -296,6 +298,8 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_docking_music,			's'			);
 	
 	LOAD_KEY_SETTING(key_advanced_nav_array,	'^'			);
+	LOAD_KEY_SETTING(key_info_next_system,		'>'			);
+	LOAD_KEY_SETTING(key_info_previous_system, 	'<'			);
 	LOAD_KEY_SETTING(key_map_home,				gvHomeKey	);
 	LOAD_KEY_SETTING(key_map_info,				'i'			);
 	
@@ -487,6 +491,7 @@ static NSTimeInterval	time_last_frame;
 - (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
 	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
+	info_system_id = target_system_id;
 	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 
 	found_system_id = target_system_id;
@@ -1760,6 +1765,31 @@ static NSTimeInterval	time_last_frame;
 				queryPressed = NO;
 			}
 
+			if ([gameView isDown: key_info_next_system])
+			{
+				if (!next_planet_info_pressed)
+				{
+					[self nextInfoSystem];
+					next_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				next_planet_info_pressed = NO;
+			}
+			if ([gameView isDown: key_info_previous_system])
+			{
+				if (!previous_planet_info_pressed)
+				{
+					[self previousInfoSystem];
+					previous_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				previous_planet_info_pressed = NO;
+			}
+			
 			if ([gameView isDown:key_map_info] && chart_zoom <= CHART_ZOOM_SHOW_LABELS)
 			{
 				if (!chartInfoPressed)
@@ -1798,6 +1828,10 @@ static NSTimeInterval	time_last_frame;
 								case OPTIMIZED_BY_JUMPS:ANA_mode = OPTIMIZED_BY_TIME;	break;
 								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
 								}
+							}
+							if (![self infoSystemOnRoute])
+							{
+								info_system_id = target_system_id;
 							}
 						}
 						pling_pressed = YES;
@@ -1976,6 +2010,7 @@ static NSTimeInterval	time_last_frame;
 					if (found_system_id == -1)
 					{
 						target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+						info_system_id = target_system_id;
 					}
 					else
 					{
@@ -1984,6 +2019,7 @@ static NSTimeInterval	time_last_frame;
 						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
 						{
 							target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+							info_system_id = target_system_id;
 						}
 					}
 					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
@@ -2014,6 +2050,32 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 		case GUI_SCREEN_SYSTEM_DATA:
+			if ([gameView isDown: key_info_next_system])
+			{
+				if (!next_planet_info_pressed)
+				{
+					[self nextInfoSystem];
+					[self setGuiToSystemDataScreen];
+					next_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				next_planet_info_pressed = NO;
+			}
+			if ([gameView isDown: key_info_previous_system])
+			{
+				if (!previous_planet_info_pressed)
+				{
+					[self previousInfoSystem];
+					[self setGuiToSystemDataScreen];
+					previous_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				previous_planet_info_pressed = NO;
+			}
 			break;
 			
 #if OO_USE_CUSTOM_LOAD_SAVE
