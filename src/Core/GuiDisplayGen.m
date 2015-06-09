@@ -2128,7 +2128,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 
 	// draw planet info circle
 	OOGL(GLScaledLineWidth(2.0f));
-	[self setGLColorFromSetting: kGuiChartInfoColor defaultValue:[OOColor blueColor] alpha:alpha];
+	[self setGLColorFromSetting: kGuiChartInfoMarkerColor defaultValue:[OOColor blueColor] alpha:alpha];
 	cu = NSMakePoint((float)(hscale*info_system_coordinates.x+hoffset),(float)(vscale*info_system_coordinates.y+voffset));
 	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(8.0f, 8.0f), 5);
 
@@ -2397,7 +2397,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	[self drawCrossHairsWithSize:6 x:x + cu.x y:y + cu.y z:z];
 	
 	// draw planet info marker
-	[self setGLColorFromSetting: kGuiChartInfoColor defaultValue:[OOColor blueColor] alpha:alpha];
+	[self setGLColorFromSetting: kGuiChartInfoMarkerColor defaultValue:[OOColor blueColor] alpha:alpha];
 	cu = NSMakePoint((float)(hscale*info_system_coordinates.x+hoffset),(float)(vscale*info_system_coordinates.y+voffset));
 	OOGL(GLScaledLineWidth(2.0f));
 	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(8.0f, 8.0f), 5.0f);

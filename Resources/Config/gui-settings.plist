@@ -162,7 +162,7 @@
 	// "chart_cursor_color" = "redColor";
 
 	/* color of info system marker */
-	// "chart_info_color" = "blueColor";
+	// "chart_info_marker_color" = "blueColor";
 
 	/* color of matched system box when name searching */
 	// "chart_match_color" = "greenColor";
