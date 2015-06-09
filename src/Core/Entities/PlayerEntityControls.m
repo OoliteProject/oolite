@@ -1829,7 +1829,7 @@ static NSTimeInterval	time_last_frame;
 								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
 								}
 							}
-							if (![self infoSystemOnRoute])
+							if (ANA_mode == OPTIMIZED_BY_NONE || ![self infoSystemOnRoute])
 							{
 								info_system_id = target_system_id;
 							}
