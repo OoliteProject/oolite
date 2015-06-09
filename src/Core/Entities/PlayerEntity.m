@@ -688,6 +688,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) nextInfoSystem
 {
+	if (ANA_mode == OPTIMIZED_BY_NONE)
+	{
+		info_system_id = target_system_id;
+		return;
+	}
 	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
 	NSUInteger i;
 	if (route == nil)
@@ -713,11 +718,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) previousInfoSystem
 {
+	if (ANA_mode == OPTIMIZED_BY_NONE)
+	{
+		info_system_id = system_id;
+		return;
+	}
 	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
 	NSUInteger i;
 	if (route == nil)
 	{
-		info_system_id = target_system_id;
+		info_system_id = system_id;
 		return;
 	}
 	for (i = 0; i < [route count]; i++)
