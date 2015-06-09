@@ -158,8 +158,11 @@
 	/* color of location crosshair */
 	// "chart_crosshair_color" = "greenColor";
 
-	/* color of fuel range circle */
+	/* color of chart cursor */
 	// "chart_cursor_color" = "redColor";
+
+	/* color of info system marker */
+	// "chart_info_color" = "blueColor";
 
 	/* color of matched system box when name searching */
 	// "chart_match_color" = "greenColor";
