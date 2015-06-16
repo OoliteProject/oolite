@@ -680,7 +680,8 @@ static NSTimeInterval	time_last_frame;
 		
 		// snapshot
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
-		if ([gameView isDown:key_snapshot] || joyButtonState[BUTTON_SNAPSHOT])   //  '*' key
+		if (([gameView isDown:key_snapshot] || joyButtonState[BUTTON_SNAPSHOT]) &&
+			![[OOOXZManager sharedManager] isAcceptingTextInput])   //  '*' key but not while filtering inside OXZ Mnaager
 		{
 			exceptionContext = @"snapshot";
 			if (!taking_snapshot)
