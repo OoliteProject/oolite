@@ -7916,7 +7916,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			government_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-government");
 			economy_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-economy");
 			inhabitants = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-inhabitants");
-			system_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-description");
+			{
+				NSString *system = targetSystemName;
+				system_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-description", system);
+			}
 			populationDesc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop-value", population, inhabitants);
 		}
 

@@ -870,7 +870,7 @@
 	// system description after a nova
 	"nova-system-description" =
 	(
-		"The %I sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system."
+		"The [system][planetname-derivative-suffix] sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system."
 	);
 	"nova-system-government"		= "Uninhabited system - no government";
 	"nova-system-economy"			= "Uninhabited system - no economy";
