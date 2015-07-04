@@ -133,7 +133,7 @@ static OOTexture *sPlumeTexture = nil;
 	//GLfloat ex_emissive[4]	= {0.7f, 0.9, 1.0f, 0.9f * kOverallAlpha};   // pale blue - old definition
 	collision_radius = 0;
 	GLfloat length;
-	Vector vertex;
+	HPVector vertex;
 	GLfloat ex_emissive[4];
 	[[ship exhaustEmissiveColor] getRed:&ex_emissive[0] green:&ex_emissive[1] blue:&ex_emissive[2] alpha:&ex_emissive[3]];
 	const GLfloat s1[8] = { 0.0, M_SQRT1_2, 1.0, M_SQRT1_2, 0.0, -M_SQRT1_2, -1.0, -M_SQRT1_2};
@@ -221,8 +221,8 @@ static OOTexture *sPlumeTexture = nil;
 	ex_emissive[3] = flare_factor * kOverallAlpha;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = red_factor;		// diminish red part towards rear of exhaust
-	vertex = vector_add(HPVectorToVector(f01.position), b01);
-	collision_radius = magnitude(vector_subtract(vertex, HPVectorToVector(currentPos)));
+	vertex = HPvector_add(f01.position, vectorToHPVector(b01));
+	collision_radius = HPmagnitude(HPvector_subtract(vertex, currentPos));
 	_vertices[iv++] = vertex.x;// + zero.k.x * flare_factor * 4.0;
 	_vertices[iv++] = vertex.y;// + zero.k.y * flare_factor * 4.0;
 	_vertices[iv++] = vertex.z;// + zero.k.z * flare_factor * 4.0;
@@ -239,11 +239,11 @@ static OOTexture *sPlumeTexture = nil;
 
 	for (i = 0; i < 8; i++)
 	{
-		vertex = vector_add(HPVectorToVector(f01.position),
-							vector_add(b01,
-									   vector_add(vector_multiply_scalar(i1,s1[i]),
-												  vector_multiply_scalar(j1,c1[i]))));
-		length = magnitude(vector_subtract(vertex, HPVectorToVector(currentPos)));
+		vertex = HPvector_add(f01.position,
+							  vectorToHPVector(vector_add(b01,
+														  vector_add(vector_multiply_scalar(i1,s1[i]),
+																	 vector_multiply_scalar(j1,c1[i])))));
+		length = HPmagnitude(HPvector_subtract(vertex, currentPos));
 		if (length > collision_radius)
 		{
 			collision_radius = length;
@@ -267,12 +267,12 @@ static OOTexture *sPlumeTexture = nil;
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		vertex = vector_add(HPVectorToVector(f03.position),
-							vector_add(b03,
+		vertex = HPvector_add(f03.position,
+							  vectorToHPVector(vector_add(b03,
 									   vector_add(vector_multiply_scalar(i1,s1[i]),
 												  vector_add(vector_multiply_scalar(j1,c1[i]),
-															 vector_multiply_scalar(k1,r1)))));
-		length = magnitude(vector_subtract(vertex, HPVectorToVector(currentPos)));
+															 vector_multiply_scalar(k1,r1))))));
+		length = HPmagnitude(HPvector_subtract(vertex, currentPos));
 		if (length > collision_radius)
 		{
 			collision_radius = length;
@@ -296,12 +296,12 @@ static OOTexture *sPlumeTexture = nil;
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		vertex = vector_add(HPVectorToVector(f06.position),
-							vector_add(b06,
+		vertex = HPvector_add(f06.position,
+							  vectorToHPVector(vector_add(b06,
 									   vector_add(vector_multiply_scalar(i1,s1[i]),
 												  vector_add(vector_multiply_scalar(j1,c1[i]),
-															 vector_multiply_scalar(k1,r1)))));
-		length = magnitude(vector_subtract(vertex, HPVectorToVector(currentPos)));
+															 vector_multiply_scalar(k1,r1))))));
+		length = HPmagnitude(HPvector_subtract(vertex, currentPos));
 		if (length > collision_radius)
 		{
 			collision_radius = length;
@@ -324,12 +324,12 @@ static OOTexture *sPlumeTexture = nil;
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		vertex = vector_add(HPVectorToVector(f08.position),
-							vector_add(b08,
+		vertex = HPvector_add(f08.position,
+							  vectorToHPVector(vector_add(b08,
 									   vector_add(vector_multiply_scalar(i1,s1[i]),
 												  vector_add(vector_multiply_scalar(j1,c1[i]),
-															 vector_multiply_scalar(k1,r1)))));
-		length = magnitude(vector_subtract(vertex, HPVectorToVector(currentPos)));
+															 vector_multiply_scalar(k1,r1))))));
+		length = HPmagnitude(HPvector_subtract(vertex, currentPos));
 		if (length > collision_radius)
 		{
 			collision_radius = length;
@@ -346,7 +346,7 @@ static OOTexture *sPlumeTexture = nil;
 	ex_emissive[3] = 0.0;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.0;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.0;	// diminish red part towards rear of exhaust
-	length = magnitude(vector_subtract(vertex, HPVectorToVector(currentPos)));
+	length = HPmagnitude(HPvector_subtract(vertex, currentPos));
 	if (length > collision_radius)
 	{
 		collision_radius = length;

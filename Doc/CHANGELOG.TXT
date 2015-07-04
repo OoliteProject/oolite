@@ -1,3 +1,18 @@
+Changes between Oolite 1.82 and Oolite 1.84:
+
+
+Bug fixes:
+==========
+* Fix some full-screen resolution changes on Windows
+* Fix entry of '*' OXZ filter taking screenshot
+* Fix nova system description
+* Fix exhaust drawing when far from origin
+
+
+
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.80 and Oolite 1.82:
 
 General:
