@@ -8,7 +8,7 @@ Bug fixes:
 * Fix nova system description
 * Fix exhaust drawing when far from origin
 * Fix some docking computer/queue problems
-
+* Again allow commodity name as well as key in cargo_carried
 
 
 -------------------------------------------------------------------------------

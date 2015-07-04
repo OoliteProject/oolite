@@ -99,6 +99,7 @@ static NSString * const kOOCommodityMarketTypeValueGood			= @"good";
 - (NSUInteger) count;
 - (NSArray *) goods;
 - (BOOL) goodDefined:(NSString *)key;
+- (NSString *) goodNamed:(NSString *)name;
 - (NSString *) getRandomCommodity;
 - (OOMassUnit) massUnitForGood:(NSString *)good;
 

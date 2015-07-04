@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOJSScript.h"
 #import "PlayerEntity.h"
-
+#import "OOStringExpander.h"
 
 @interface OOCommodities (OOPrivate)
 
@@ -373,6 +373,20 @@ MA 02110-1301, USA.
 {
 	return ([_commodityLists oo_dictionaryForKey:key] != nil);
 }
+
+- (NSString *) goodNamed:(NSString *)name
+{
+	NSString *commodity = nil;
+	foreachkey (commodity, _commodityLists)
+	{
+		NSDictionary *good = [_commodityLists oo_dictionaryForKey:commodity];
+		if ([OOExpand([good oo_stringForKey:kOOCommodityName]) isEqualToString:name]) {
+			return commodity;
+		}
+	}
+	return nil;
+}
+
 
 
 - (NSString *) getRandomCommodity

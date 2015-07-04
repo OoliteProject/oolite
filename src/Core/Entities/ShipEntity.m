@@ -600,7 +600,15 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 				if ([[UNIVERSE commodities] goodDefined:c_commodity])
 				{
 					[self setCommodityForPod:c_commodity andAmount:c_amount];
-				}
+				} 
+				else
+				{
+					c_commodity = [[UNIVERSE commodities] goodNamed:c_commodity];
+					if ([[UNIVERSE commodities] goodDefined:c_commodity])
+					{
+						[self setCommodityForPod:c_commodity andAmount:c_amount];
+					}
+				}					
 			}
 			else
 			{
@@ -609,6 +617,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 				if ([[UNIVERSE commodities] goodDefined:c_commodity])
 				{
 					[self setCommodityForPod:c_commodity andAmount:c_amount];
+				} 
+				else
+				{
+					c_commodity = [[UNIVERSE commodities] goodNamed:c_commodity];
+					if ([[UNIVERSE commodities] goodDefined:c_commodity])
+					{
+						[self setCommodityForPod:c_commodity andAmount:c_amount];
+					}
 				}
 			}
 		}
