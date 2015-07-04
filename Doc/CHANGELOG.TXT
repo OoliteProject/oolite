@@ -7,7 +7,7 @@ Bug fixes:
 * Fix entry of '*' OXZ filter taking screenshot
 * Fix nova system description
 * Fix exhaust drawing when far from origin
-
+* Fix some docking computer/queue problems
 
 
 

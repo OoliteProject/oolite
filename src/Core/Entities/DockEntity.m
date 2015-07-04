@@ -67,9 +67,17 @@ MA 02110-1301, USA.
 	foreach (idObj, [shipsOnApproach allKeys])
 	{
 		ShipEntity *ship = [UNIVERSE entityForUniversalID:[idObj unsignedIntValue]];
-		if (ship == nil)
+		/* Remove ships from the approach queue if they are dead, or
+		 * are more than 25.6km from the dock.
+		 */
+		if (ship == nil || HPmagnitude2(HPvector_subtract([ship position],[self absolutePositionForSubentity])) > SCANNER_MAX_RANGE2)
 		{
 			[shipsOnApproach removeObjectForKey:idObj];
+			if (ship != nil) {
+				// notify ship if it's alive
+				[ship sendAIMessage:@"DOCKING_ABORTED"];
+				[ship doScriptEvent:OOJSID("stationWithdrewDockingClearance")];
+			}
 		}
 	}
 	

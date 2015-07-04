@@ -2203,6 +2203,11 @@
 - (void) setDestinationToDockingAbort
 {
 	Entity *the_target = [self targetStation];
+	if (!the_target) {
+		/* Probably the player trying to dock with docking computer
+		 * from out of scanner range */
+		the_target = [UNIVERSE station];
+	}
 	double bo_distance = 8000; //	8km back off
 	HPVector v0 = position;
 	HPVector d0 = (the_target) ? the_target->position : kZeroHPVector;
