@@ -2471,6 +2471,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOColor *currentJumpColorEnd = [self colorFromSetting:kGuiChartCurrentJumpEndColor defaultValue:[OOColor colorWithWhite:0.25 alpha:0.0]];
 
 	OOColor *thisConnectionColor = nil;
+	OOColor *thatConnectionColor = nil;
 	
 	float jumpRange = MAX_JUMP_RANGE * ((optimizeBy == OPTIMIZED_BY_NONE) ? [PLAYER dialFuel] : 1.0);
 
@@ -2533,6 +2534,17 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					OOGL(glColor4f(lr, lg, lb, la*alpha));
 
 					glVertex3f(x+star.x, y+star.y, z);
+
+					// and the other colour for the other end
+					thatConnectionColor = [OOColor colorWithDescription:[systemManager getProperty:@"link_color" forSystemKey:[NSString stringWithFormat:@"interstellar: %d %ld %ld", g, (long)j, (long)i]]];
+				
+					if (thatConnectionColor == nil)
+					{
+						thatConnectionColor = thisConnectionColor;
+					}
+					[thatConnectionColor getRed:&lr green:&lg blue:&lb alpha:&la];
+					OOGL(glColor4f(lr, lg, lb, la*alpha));
+
 					glVertex3f(x+star2.x, y+star2.y, z);
 				}
 			}
