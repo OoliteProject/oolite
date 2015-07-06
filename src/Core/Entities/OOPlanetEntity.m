@@ -549,7 +549,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 {
 	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
-	
+
+	// too far away to be drawn
+	if (magnitude(cameraRelativePosition) > [self radius]*3000) {
+		return;
+	}
 	if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:([self radius] + ATMOSPHERE_DEPTH)])
 	{
 		// Don't draw

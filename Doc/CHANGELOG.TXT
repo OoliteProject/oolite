@@ -1,5 +1,13 @@
 Changes between Oolite 1.82 and Oolite 1.84:
 
+Expansion pack development:
+===========================
+
+Modified Plists:
+----------------
+* planetinfo.plist: link_color can be defined both ways in interstellar space
+  for gradient effects (also works via JS)
+
 
 Bug fixes:
 ==========

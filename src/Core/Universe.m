@@ -7625,10 +7625,13 @@ static void VerifyDesc(NSString *key, id desc)
 		return;
 	}
 
+	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
+	BOOL sameSystem = (sameGalaxy && pnum == [self currentSystemID]);
+
 	// trying to set  unsettable properties?  
-	if ([key isEqualToString:KEY_RADIUS]) // buggy if we allow this key to be set
+	if ([key isEqualToString:KEY_RADIUS] && sameGalaxy && sameSystem) // buggy if we allow this key to be set while in the system
 	{
-		OOLogERR(@"script.error", @"System property '%@' cannot be set.",key);
+		OOLogERR(@"script.error", @"System property '%@' cannot be set while in the system.",key);
 		return;
 	}
 
@@ -7640,8 +7643,6 @@ static void VerifyDesc(NSString *key, id desc)
 
 	
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
-	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
-	BOOL sameSystem = (sameGalaxy && pnum == [self currentSystemID]);
 	NSDictionary *sysInfo = nil;
 	
 	// short range map fix
