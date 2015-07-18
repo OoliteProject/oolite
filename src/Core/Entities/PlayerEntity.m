@@ -10823,12 +10823,15 @@ static NSString *last_outfitting_key=nil;
 
 - (void) removeEquipmentItem:(NSString *)equipmentKey
 {
-	[self removeEqScriptForKey:equipmentKey];
 	if(![self hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"] && [self compassMode] != COMPASS_MODE_BASIC)
 	{
 		[self setCompassMode:COMPASS_MODE_BASIC];
 	}
 	[super removeEquipmentItem:equipmentKey];
+	if(![self hasEquipmentItem:equipmentKey]) {
+		// removed the last one
+		[self removeEqScriptForKey:equipmentKey];
+	}
 }
 
 
