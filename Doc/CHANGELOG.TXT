@@ -8,6 +8,10 @@ Modified Plists:
 * planetinfo.plist: link_color can be defined both ways in interstellar space
   for gradient effects (also works via JS)
 
+Scripting:
+----------
+* Main planet radius can now be set by script if not in the same system
+
 
 Bug fixes:
 ==========
@@ -17,7 +21,8 @@ Bug fixes:
 * Fix exhaust drawing when far from origin
 * Fix some docking computer/queue problems
 * Again allow commodity name as well as key in cargo_carried
-
+* Fix texture generation on secondary planets inheriting too many properties from primary
+* Fix bug with equipment scripts and can_carry_multiple
 
 -------------------------------------------------------------------------------
 

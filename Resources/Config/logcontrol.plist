@@ -255,6 +255,8 @@
 	script.debug.message					= inherit;				// debugMessage: script action
 	script.debug.onOff						= inherit;				// debugOn/debugOff script actions
 	script.debug.setSunNovaIn				= inherit;
+
+	script.debug.addPlanet					= inherit;
 	
 	script.debug.note						= inherit;
 	script.debug.note.awardCargo			= inherit;
