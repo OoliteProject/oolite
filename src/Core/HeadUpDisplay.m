@@ -4097,6 +4097,8 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
+	MyOpenGLView* gameView = [UNIVERSE gameView];
+
 	GLfloat w1, h1;
 	GLfloat ww = 0.5 * siz.width;
 	GLfloat hh = 0.5 * siz.height;
@@ -4190,7 +4192,12 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 			}
 		}
 
-		double tanfov = [[UNIVERSE gameView] fov:YES];
+		double tanfov = [gameView fov:YES];
+		GLfloat aspect = [gameView viewSize].width / [gameView viewSize].height;
+		if (aspect < 4.0/3.0)
+		{
+			tanfov *= 0.75 * aspect;
+		}
 		double cosfov = 1.0/sqrt(1+tanfov*tanfov);
 		double sinfov = tanfov * cosfov;
 
