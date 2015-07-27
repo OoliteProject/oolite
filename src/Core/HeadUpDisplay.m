@@ -4101,9 +4101,6 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 	GLfloat ww = 0.5 * siz.width;
 	GLfloat hh = 0.5 * siz.height;
 	
-	//GLfloat w2 = 0.250 * siz.width;
-	//GLfloat h2 = 0.250 * siz.height;
-	
 	GLfloat km_scan;
 	GLfloat hdiv;
 	GLfloat wdiv;
