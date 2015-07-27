@@ -4096,13 +4096,13 @@ static GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat sca
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear)
 {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
-	
+
 	GLfloat w1, h1;
 	GLfloat ww = 0.5 * siz.width;
 	GLfloat hh = 0.5 * siz.height;
 	
-	GLfloat w2 = 0.250 * siz.width;
-	GLfloat h2 = 0.250 * siz.height;
+	//GLfloat w2 = 0.250 * siz.width;
+	//GLfloat h2 = 0.250 * siz.height;
 	
 	GLfloat km_scan;
 	GLfloat hdiv;
@@ -4193,29 +4193,33 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 			}
 		}
 
+		double tanfov = [[UNIVERSE gameView] fov:YES];
+		double cosfov = 1.0/sqrt(1+tanfov*tanfov);
+		double sinfov = tanfov * cosfov;
+
 		switch (v_dir)
 		{
 			case VIEW_BREAK_PATTERN:
 			case VIEW_GUI_DISPLAY:
 			case VIEW_FORWARD:
 			case VIEW_NONE:
-				glVertex3f(x, y, z); glVertex3f(x - w2, y + hh, z);
-				glVertex3f(x, y, z); glVertex3f(x + w2, y + hh, z);
+				glVertex3f(x, y, z); glVertex3f(x - ww * sinfov, y + hh * cosfov, z);
+				glVertex3f(x, y, z); glVertex3f(x + ww * sinfov, y + hh * cosfov, z);
 				break;
 				
 			case VIEW_AFT:
-				glVertex3f(x, y, z); glVertex3f(x - w2, y - hh, z);
-				glVertex3f(x, y, z); glVertex3f(x + w2, y - hh, z);
+				glVertex3f(x, y, z); glVertex3f(x - ww * sinfov, y - hh * cosfov, z);
+				glVertex3f(x, y, z); glVertex3f(x + ww * sinfov, y - hh * cosfov, z);
 				break;
 				
 			case VIEW_PORT:
-				glVertex3f(x, y, z); glVertex3f(x - ww, y + h2, z);
-				glVertex3f(x, y, z); glVertex3f(x - ww, y - h2, z);
+				glVertex3f(x, y, z); glVertex3f(x - ww * cosfov, y + hh * sinfov, z);
+				glVertex3f(x, y, z); glVertex3f(x - ww * cosfov, y - hh * sinfov, z);
 				break;
 				
 			case VIEW_STARBOARD:
-				glVertex3f(x, y, z); glVertex3f(x + ww, y + h2, z);
-				glVertex3f(x, y, z); glVertex3f(x + ww, y - h2, z);
+				glVertex3f(x, y, z); glVertex3f(x + ww * cosfov, y + hh * sinfov, z);
+				glVertex3f(x, y, z); glVertex3f(x + ww * cosfov, y - hh * sinfov, z);
 				break;
 		}
 	OOGLEND();
