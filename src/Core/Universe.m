@@ -4653,8 +4653,6 @@ static const OOMatrix	starboard_matrix =
 			if (lineWidth > 1.5)  lineWidth = 1.5; // don't overscale; think of ultra-wide screen setups
 			OOGL(GLScaledLineWidth(lineWidth));
 
-			[self drawMessage];
-			
 			HeadUpDisplay *theHUD = [player hud];
 			
 			// If the HUD has a non-nil deferred name string, it means that a HUD switch was requested while it was being rendered.
@@ -4700,6 +4698,9 @@ static const OOMatrix	starboard_matrix =
 					[theHUD renderHUD];
 				}
 			}
+
+			// should come after the HUD to avoid it being overlapped by it
+			[self drawMessage];
 			
 #if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
 			[self drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
