@@ -376,7 +376,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		pos.y = [gui_info oo_floatForKey:Y_KEY] + 
 			[[UNIVERSE gameView] y_offset] *
 			[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	OOLog(@"gui.resetpos",@"Resetting gui to %f %f (offsets are %f %f)",pos.x,pos.y,[[UNIVERSE gameView] x_offset],[[UNIVERSE gameView] y_offset]);
+
 	[gui setDrawPosition:pos];
 }
 
