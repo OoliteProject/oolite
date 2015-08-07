@@ -177,6 +177,10 @@ enum
 - (BOOL) checkPlayerInFlight;
 - (BOOL) checkPlayerInSystemFlight;
 
+- (void) resetGui:(GuiDisplayGen*)gui withInfo:(NSDictionary *)gui_info;
+- (void) resetGuiPosition:(GuiDisplayGen*)gui withInfo:(NSDictionary *)gui_info;
+
+
 @end
 
 
@@ -338,16 +342,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) resetGui:(GuiDisplayGen*)gui withInfo:(NSDictionary *)gui_info
 {
-	Vector pos = [gui drawPosition];
-	if ([gui_info objectForKey:X_KEY])
-		pos.x = [gui_info oo_floatForKey:X_KEY] +
-			[[UNIVERSE gameView] x_offset] *
-			[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
-	if ([gui_info objectForKey:Y_KEY])
-		pos.y = [gui_info oo_floatForKey:Y_KEY] + 
-			[[UNIVERSE gameView] y_offset] *
-			[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
-	[gui setDrawPosition:pos];
+	[self resetGuiPosition:gui withInfo:gui_info];
+	
 	NSSize		siz =	[gui	size];
 	int			rht =	[gui	rowHeight];
 	NSString*	title =	[gui	title];
@@ -366,6 +362,43 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[gui setMaxAlpha: OOClamp_0_max_f([gui_info oo_floatForKey:ALPHA_KEY],1.0f)];
 	else
 		[gui setMaxAlpha: 1.0f];
+}
+
+
+- (void) resetGuiPosition:(GuiDisplayGen*)gui withInfo:(NSDictionary *)gui_info
+{
+	Vector pos = [gui drawPosition];
+	if ([gui_info objectForKey:X_KEY])
+		pos.x = [gui_info oo_floatForKey:X_KEY] +
+			[[UNIVERSE gameView] x_offset] *
+			[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	if ([gui_info objectForKey:Y_KEY])
+		pos.y = [gui_info oo_floatForKey:Y_KEY] + 
+			[[UNIVERSE gameView] y_offset] *
+			[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
+	OOLog(@"gui.resetpos",@"Resetting gui to %f %f (offsets are %f %f)",pos.x,pos.y,[[UNIVERSE gameView] x_offset],[[UNIVERSE gameView] y_offset]);
+	[gui setDrawPosition:pos];
+}
+
+
+- (void) resetGuiPositions
+{
+	NSDictionary *hudDict = [ResourceManager dictionaryFromFilesNamed:[self hudName] inFolder:@"Config" andMerge:YES];
+
+	GuiDisplayGen*	gui = [UNIVERSE messageGUI];
+	NSDictionary*	gui_info = [hudDict oo_dictionaryForKey:@"message_gui"];
+	if (gui && gui_info)
+	{
+		[self resetGuiPosition:gui withInfo:gui_info];
+	}
+
+	gui = [UNIVERSE commLogGUI];
+	gui_info = [hudDict oo_dictionaryForKey:@"comm_log_gui"];
+	if (gui && gui_info)
+	{
+		[self resetGuiPosition:gui withInfo:gui_info];
+	}
+
 }
 
 

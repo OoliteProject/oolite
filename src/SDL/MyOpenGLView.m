@@ -551,6 +551,13 @@ MA 02110-1301, USA.
 	}
 	else
 		[self initialiseGLWithSize: currentWindowSize];
+
+
+	// do screen resizing updates
+	if ([PlayerEntity sharedPlayer])
+	{
+		[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+	}
 }
 
 
@@ -1767,9 +1774,6 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 
 					case SDLK_F12:
 						[self toggleScreenMode];
-						// normally we would want to do a gui screen resize update here, but
-						// toggling full screen mode executes an SDL_VIDEORESIZE event, which
-						// takes care of this for us - Nikos 20140129
 						break;
 
 					case SDLK_ESCAPE:

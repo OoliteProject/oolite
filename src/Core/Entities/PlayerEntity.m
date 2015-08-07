@@ -3700,6 +3700,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		default:
 			break;
 	}
+
+
+	[hud resetGuiPositions];
 }
 
 
