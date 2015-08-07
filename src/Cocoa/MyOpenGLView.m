@@ -1047,7 +1047,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 
@@ -1075,7 +1075,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 
@@ -1104,7 +1104,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 
@@ -1133,7 +1133,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 
