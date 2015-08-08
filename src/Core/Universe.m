@@ -664,7 +664,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		StationEntity	*dockedStation = [player dockedStation];
 		NSPoint			coords = [player galaxy_coordinates];
 		// check the nearest system
-		OOSystemID sys = [self findSystemAtCoords:coords withGalaxy:[player galaxyNumber]];
+		OOSystemID sys = [self findSystemNumberAtCoords:coords withGalaxy:[player galaxyNumber] includingHidden:YES];
 		BOOL interstel =[dockedStation interstellarUndockingAllowed];// && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
 		
 		// remove everything except the player and the docked station
@@ -7825,7 +7825,8 @@ static void VerifyDesc(NSString *key, id desc)
 
 - (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) g
 {
-	return [self findSystemNumberAtCoords:coords withGalaxy:g];
+	OOLog(@"deprecated.function",@"findSystemAtCoords");
+	return [self findSystemNumberAtCoords:coords withGalaxy:g includingHidden:YES];
 }
 
 
@@ -7946,7 +7947,7 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
-- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID)g
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID)g includingHidden:(BOOL)hidden
 {
 	/*
 		NOTE: this previously used NSNotFound as the default value, but
@@ -7961,6 +7962,14 @@ static void VerifyDesc(NSString *key, id desc)
 	
 	for (i = 0; i < 256; i++)
 	{
+		if (!hidden) {
+			NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:g];
+			NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+			if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+				// system is not known
+				continue;
+			}
+		}
 		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
 		dx = ABS(coords.x - ipos.x);
 		dy = ABS(coords.y - ipos.y);
@@ -8006,6 +8015,14 @@ static void VerifyDesc(NSString *key, id desc)
 		system_name = [system_names[i] lowercaseString];
 		if ((exactMatch && [system_name isEqualToString:p_fix]) || (!exactMatch && [system_name hasPrefix:p_fix]))
 		{
+			/* Only used in player-based search routines */
+			NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxyID];
+			NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+			if (concealment >= OO_SYSTEMCONCEALMENT_NONAME) {
+				// system is not known
+				continue;
+			}
+			
 			system_found[i] = YES;
 			if (result < 0)
 			{
@@ -8063,9 +8080,21 @@ static void VerifyDesc(NSString *key, id desc)
 	if (start > 255 || goal > 255) return nil;
 	
 	NSArray *neighbours[256];
+	BOOL concealed[256];
 	for (i = 0; i < 256; i++)
 	{
-		neighbours[i] = [self neighboursToSystem:i];
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxyID];
+		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+		if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+			// system is not known
+			neighbours[i] = [NSArray array];
+			concealed[i] = YES;
+		}
+		else
+		{
+			neighbours[i] = [self neighboursToSystem:i];
+			concealed[i] = NO;
+		}
 	}
 	
 	RouteElement *cheapest[256] = {0};
@@ -8085,6 +8114,10 @@ static void VerifyDesc(NSString *key, id desc)
 			{
 				RouteElement *ce = cheapest[[elemI location]];
 				OOSystemID n = [ns oo_intAtIndex:j];
+				if (concealed[n])
+				{
+					continue;
+				}
 				OOSystemID c = [ce location];
 				
 				NSPoint cpos = [systemManager getCoordinatesForSystem:c inGalaxy:galaxyID];

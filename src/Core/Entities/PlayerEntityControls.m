@@ -1976,7 +1976,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (found_system_id == -1)
 					{
-						target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+						target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
 					}
 					else
 					{
@@ -1984,7 +1984,7 @@ static NSTimeInterval	time_last_frame;
 						NSPoint fpos = [[UNIVERSE systemManager] getCoordinatesForSystem:found_system_id inGalaxy:galaxy_number];
 						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
 						{
-							target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+							target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
 						}
 					}
 					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];

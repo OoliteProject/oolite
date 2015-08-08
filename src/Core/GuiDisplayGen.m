@@ -1611,7 +1611,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 {
 	PlayerEntity *player = PLAYER;
 	OOGalaxyID galaxy_number = [player galaxyNumber];
-	NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxy:[player galaxyNumber]];
+	NSInteger system_id = [UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxy:[player galaxyNumber] includingHidden:NO];
 
 	NSString *location_key = [NSString stringWithFormat:@"long-range-chart-title-%d-%ld", galaxy_number, (long)system_id];
 	if ([[UNIVERSE descriptions] valueForKey:location_key] == nil)
@@ -1823,7 +1823,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint targetCoordinates = (NSPoint){0,0};
 	if (!routeExists)
 	{
-		target = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		target = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id includingHidden:NO];
 		targetCoordinates = [systemManager getCoordinatesForSystem:target inGalaxy:galaxy_id];
 
 		distance = distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
@@ -1860,9 +1860,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0 + CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER)))
 			continue;
+
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
+		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+		if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+			// system is not known
+			continue;
+		}
 		
 		float blob_factor = [guiUserSettings oo_floatForKey:kGuiChartCircleScale defaultValue:0.0017];
-		float blob_size = (1.0f + blob_factor * [[systemManager getProperty:@"radius" forSystem:i inGalaxy:galaxy_id] floatValue])/zoom;
+		float blob_size = (1.0f + blob_factor * [systemInfo oo_floatForKey:@"radius"])/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
 
 		star.x = (float)(sys_coordinates.x * hscale + hoffset);
@@ -1878,8 +1885,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
 		}
 
-		switch (chart_mode)
-		{
+		if (concealment >= OO_SYSTEMCONCEALMENT_NODATA) {
+			// no system data available
+			r = g = b = 0.7;
+			OOGL(glColor4f(r, g, b, alpha));
+		} else {
+			switch (chart_mode)
+			{
 			case OOLRC_MODE_ECONOMY:
 				if (EXPECT(noNova))
 				{
@@ -1940,8 +1952,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				}
 				OOGL(glColor4f(r, g, b, alpha));
 				break;
+			}
 		}
-
+		
 		GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
 	}
 	
@@ -1972,6 +1985,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		for (i = 0; i < 256; i++)
 		{
+			NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
+			NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+			if (concealment >= OO_SYSTEMCONCEALMENT_NONAME)
+			{
+				continue;
+			}
+			
 			BOOL mark = systemsFound[i];
 			float marker_size = 8.0/zoom;
 			NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
@@ -2018,6 +2038,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double jumpRange = MAX_JUMP_RANGE * [PLAYER dialFuel];
 	for (i = 0; i < num_nearby_systems; i++)
 	{
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
+		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+		if (concealment >= OO_SYSTEMCONCEALMENT_NONAME)
+		{
+			continue;
+		}
+
 		sys = nearby_systems + i;
 		NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:sys->sysid inGalaxy:galaxy_id];
 
@@ -2032,6 +2059,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			 targetIdx = i;		// we have a winner!
 		}
+
+
 		
 		if (zoom < CHART_ZOOM_SHOW_LABELS)
 		{
@@ -2053,7 +2082,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			}
 			else if (EXPECT(sys->gov >= 0))	// Not a nova? Show the info.
 			{
-				OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
+				if (concealment >= OO_SYSTEMCONCEALMENT_NODATA)
+				{
+					OODrawHilightedString(@"???", x + star.x + 2.0, y + star.y, z, chSize);
+				}
+				else
+				{
+					OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
+				}
 			}
 		}
 	}
@@ -2062,30 +2098,42 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// (needed to get things right in closely-overlapping systems)
 	if( targetIdx != -1 && zoom <= CHART_ZOOM_SHOW_LABELS)
 	{
-		sys = nearby_systems + targetIdx;
-		NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:sys->sysid inGalaxy:galaxy_id];
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:targetIdx inGalaxy:galaxy_id];
+		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+		if (concealment < OO_SYSTEMCONCEALMENT_NONAME)
+		{
+			sys = nearby_systems + targetIdx;
+			NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:sys->sysid inGalaxy:galaxy_id];
 
-		star.x = (float)(sys_coordinates.x * hscale + hoffset);
-		star.y = (float)(sys_coordinates.y * vscale + voffset);
+			star.x = (float)(sys_coordinates.x * hscale + hoffset);
+			star.y = (float)(sys_coordinates.y * vscale + voffset);
 		
-		if (![player showInfoFlag])
-		{
-			d = distanceBetweenPlanetPositions(galaxy_coordinates.x, galaxy_coordinates.y, sys_coordinates.x, sys_coordinates.y);
-			if (d <= jumpRange)
+			if (![player showInfoFlag])
 			{
-				[self setGLColorFromSetting:kGuiChartLabelReachableColor defaultValue:[OOColor yellowColor] alpha:alpha];
-			}
-			else
-			{
-				[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
+				d = distanceBetweenPlanetPositions(galaxy_coordinates.x, galaxy_coordinates.y, sys_coordinates.x, sys_coordinates.y);
+				if (d <= jumpRange)
+				{
+					[self setGLColorFromSetting:kGuiChartLabelReachableColor defaultValue:[OOColor yellowColor] alpha:alpha];
+				}
+				else
+				{
+					[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
 				
-			}
+				}
 
-			OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
-		}
-		else if (sys->gov >= 0)	// Not a nova? Show the info.
-		{
-			OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
+				OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, chSize);
+			}
+			else if (sys->gov >= 0)	// Not a nova? Show the info.
+			{
+				if (concealment >= OO_SYSTEMCONCEALMENT_NODATA)
+				{
+					OODrawHilightedString(@"???", x + star.x + 2.0, y + star.y, z, chSize);
+				}
+				else
+				{
+					OODrawHilightedPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, chSize);
+				}
+			}
 		}
 	}
 	
@@ -2329,7 +2377,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute:nil optimizedBy:OPTIMIZED_BY_NONE zoom: CHART_MAX_ZOOM];
 
-		OOSystemID dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_id];
+		OOSystemID dest = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id includingHidden:NO];
 		NSPoint dest_coordinates = [systemManager getCoordinatesForSystem:dest inGalaxy:galaxy_id];
 		distance = distanceBetweenPlanetPositions(dest_coordinates.x,dest_coordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
 		if (distance == 0.0 && dest != [PLAYER systemID])
@@ -2478,6 +2526,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGLBEGIN(GL_LINES);
 	for (OOSystemID i = 0; i < 256; i++)
 	{
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:g];
+		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+		if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+			// system is not known
+			continue;
+		}
+		
+		/* Concealment */
 		if (optimizeBy == OPTIMIZED_BY_NONE && i != planetNumber)
 		{
 			continue;
@@ -2498,6 +2554,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			{
 				continue; // for OPTIMIZED_BY_NONE case
 			}
+
+			NSDictionary *JsystemInfo = [systemManager getPropertiesForSystem:j inGalaxy:g];
+			NSInteger Jconcealment = [JsystemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+			if (Jconcealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+				// system is not known
+				continue;
+			}
+			
 			star2abs = [systemManager getCoordinatesForSystem:j inGalaxy:g];
 			double d = distanceBetweenPlanetPositions(starabs.x, starabs.y, star2abs.x, star2abs.y);
 		

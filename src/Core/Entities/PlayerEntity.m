@@ -1085,7 +1085,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			// really old save games don't have system name saved
 			// use coordinates instead - unreliable in zero-distance pairs.
-			system_id = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxy:galaxy_number];
+			system_id = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_number includingHidden:YES];
 		}
 		// and current_system_name and target_system_name
 		// were introduced at different times, too
@@ -1095,7 +1095,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 		else
 		{
-			target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+			target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:YES];
 		}
 		found_system_id = -1;
 	}		
@@ -1977,7 +1977,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	entity_personality = ranrot_rand() & 0x7FFF;
 	
-	[self setSystemID:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxy:galaxy_number]];
+	[self setSystemID:[UNIVERSE findSystemNumberAtCoords:[self galaxy_coordinates] withGalaxy:galaxy_number includingHidden:YES]];
 	[UNIVERSE setGalaxyTo:galaxy_number];
 	[UNIVERSE setSystemTo:system_id];
 
@@ -2009,10 +2009,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setDockedStation:[UNIVERSE station]];
 	[self setLastAegisLock:[UNIVERSE planet]];
 		
-	// If loading from a savegame don't reset the targetted system.
-	// Always loading from a savegame nowadays, so... - CIM
-	//	if (setTarget) target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	
 	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
 	OOJSRelinquishContext(context);
@@ -7053,10 +7049,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	switch (galacticHyperspaceBehaviour)
 	{
 		case GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES:			
-			system_id = [UNIVERSE findSystemAtCoords:galacticHyperspaceFixedCoords withGalaxy:galaxy_number];
+			system_id = [UNIVERSE findSystemNumberAtCoords:galacticHyperspaceFixedCoords withGalaxy:galaxy_number includingHidden:YES];
 			break;
 		case GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE:
-			system_id = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxy:galaxy_number];
+			system_id = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_number includingHidden:YES];
 			break;
 		case GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD:
 		default:
@@ -7872,6 +7868,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSString		*targetSystemName;
 	
 	targetSystemData = [[UNIVERSE generateSystemData:target_system_id] retain];  // retained
+	NSInteger concealment = [targetSystemData oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+	
 	targetSystemName = [targetSystemData oo_stringForKey:KEY_NAME];
 	
 	BOOL			sunGoneNova = ([targetSystemData oo_boolForKey:@"sun_gone_nova"]);
@@ -7929,66 +7927,85 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		
 		[gui clearAndKeepBackground:!guiChanged];
 		[UNIVERSE removeDemoShips];
-		
+
+		if (concealment < OO_SYSTEMCONCEALMENT_NONAME)
 		{
+			
 			NSString *system = targetSystemName;
 			[gui setTitle:OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-data-on-system", system)];
 		}
-		
-		NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
-		NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
-		NSString *populationDesc2 = [populationDescLines lastObject];
-		
-		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-eco"),
-					   economy_desc,
-					   nil]
-			   forRow:1];
-		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-govt"),
-					   government_desc,
-					   nil]
-			   forRow:3];
-		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl"),
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl-value", techLevel),
-					   nil]
-			   forRow:5];
-		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop"),
-					   populationDesc1,
-					   nil]
-			   forRow:7];
-		[gui setArray:[NSArray arrayWithObjects:@"",
-					   populationDesc2,
-					   nil]
-			   forRow:8];
-		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod"),
-					   @"",
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod-value", productivity),
-					   nil]
-			   forRow:10];
-		[gui setArray:[NSArray arrayWithObjects:
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius"),
-					   @"",
-					   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius-value",
-										   radius),
-					   nil]
-			   forRow:12];
-		
-		OOGUIRow i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
-		missionTextRow = i;
-		for (i-- ; i > 14 ; --i)
+		else
 		{
-			[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
-		}
-		for (i = 1 ; i <= 12 ; ++i)
-		{
-			// nil default = fall back to global default colour
-			[gui setColor:[gui colorFromSetting:kGuiSystemdataFactsColor defaultValue:nil] forRow:i];
+			[gui setTitle:OOExpandKey(@"sysdata-data-on-system-no-name")];			
 		}
 
+		if (concealment >= OO_SYSTEMCONCEALMENT_NODATA)
+		{
+			OOGUIRow i = [gui addLongText:OOExpandKey(@"sysdata-data-on-system-no-data") startingAtRow:15 align:GUI_ALIGN_LEFT];
+			missionTextRow = i;
+			for (i-- ; i > 14 ; --i)
+			{
+				[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
+			}
+
+		}
+		else
+		{
+			
+			NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
+			NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
+			NSString *populationDesc2 = [populationDescLines lastObject];
+		
+			[gui setArray:[NSArray arrayWithObjects:
+									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-eco"),
+								   economy_desc,
+								   nil]
+				   forRow:1];
+			[gui setArray:[NSArray arrayWithObjects:
+									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-govt"),
+								   government_desc,
+								   nil]
+				   forRow:3];
+			[gui setArray:[NSArray arrayWithObjects:
+									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl"),
+								   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl-value", techLevel),
+								   nil]
+				   forRow:5];
+			[gui setArray:[NSArray arrayWithObjects:
+									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop"),
+								   populationDesc1,
+								   nil]
+				   forRow:7];
+			[gui setArray:[NSArray arrayWithObjects:@"",
+								   populationDesc2,
+								   nil]
+				   forRow:8];
+			[gui setArray:[NSArray arrayWithObjects:
+									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod"),
+								   @"",
+								   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod-value", productivity),
+								   nil]
+				   forRow:10];
+			[gui setArray:[NSArray arrayWithObjects:
+									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius"),
+								   @"",
+								   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius-value",
+													   radius),
+								   nil]
+				   forRow:12];
+		
+			OOGUIRow i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
+			missionTextRow = i;
+			for (i-- ; i > 14 ; --i)
+			{
+				[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
+			}
+			for (i = 1 ; i <= 12 ; ++i)
+			{
+				// nil default = fall back to global default colour
+				[gui setColor:[gui colorFromSetting:kGuiSystemdataFactsColor defaultValue:nil] forRow:i];
+			}
+		}
 
 		[gui setShowTextCursor:NO];
 	}
@@ -8005,7 +8022,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	
 	// if the system has gone nova, there's no planet to display
-	if (!sunGoneNova)
+	if (!sunGoneNova && concealment < OO_SYSTEMCONCEALMENT_NODATA)
 	{
 		// The next code is generating the miniature planets.
 		// When normal planets are displayed, the PRNG is reset. This happens not with procedural planet display.
@@ -8120,7 +8137,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
-	target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+	target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
 	
 	[UNIVERSE preloadPlanetTexturesForSystem:target_system_id];
 	

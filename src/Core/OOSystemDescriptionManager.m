@@ -357,6 +357,18 @@ static NSString *kOOSystemLayerProperty = @"layer";
 }
 
 
+- (NSDictionary *) getPropertiesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+{
+	NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+	if (index >= OO_SYSTEM_CACHE_LENGTH)
+	{
+		OOLog(@"system.description.error",@"'%u, %u' is an invalid system. This is an internal error. Please report it.",g,s);
+		return [NSDictionary dictionary];
+	}
+	return propertyCache[index];
+}
+
+
 - (id) getProperty:(NSString *)property forSystemKey:(NSString *)key
 {
 	return [self getProperty:property forSystemKey:key withUniversal:YES];
@@ -575,6 +587,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
 		return nil;
 	}
+
 	return neighbourCache[index];
 }
 

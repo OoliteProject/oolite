@@ -1526,6 +1526,8 @@
 
 	// System data screen
 	"sysdata-data-on-system"		= "Data on [system]";
+	"sysdata-data-on-system-no-name"	= "No data available";
+	"sysdata-data-on-system-no-data"	= "No data on this system is currently available";
 	"sysdata-eco"					= "Economy:";
 	"sysdata-govt"					= "Government:";
 	"sysdata-tl"					= "Tech Level:";
