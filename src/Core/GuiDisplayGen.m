@@ -1670,6 +1670,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OORouteType	advancedNavArrayMode = [player ANAMode];
 	BOOL		routeExists = NO;
 
+	NSInteger concealment[256];
+	for (i=0;i<256;i++) {
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
+		concealment[i] = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+	}
+	
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
 	NSSize		viewSize = [[UNIVERSE gameView] viewSize];
 	double aspect_ratio = viewSize.width / viewSize.height;
@@ -1861,13 +1867,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if ((dx > zoom*(CHART_WIDTH_AT_MAX_ZOOM/2.0 + CHART_CLIP_BORDER))||(dy > zoom*(CHART_HEIGHT_AT_MAX_ZOOM + CHART_CLIP_BORDER)))
 			continue;
 
-		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
-		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
-		if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+
+		if (concealment[i] >= OO_SYSTEMCONCEALMENT_NOTHING) {
 			// system is not known
 			continue;
 		}
-		
+
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
 		float blob_factor = [guiUserSettings oo_floatForKey:kGuiChartCircleScale defaultValue:0.0017];
 		float blob_size = (1.0f + blob_factor * [systemInfo oo_floatForKey:@"radius"])/zoom;
 		if (blob_size < 0.5) blob_size = 0.5;
@@ -1885,7 +1891,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:base_size];
 		}
 
-		if (concealment >= OO_SYSTEMCONCEALMENT_NODATA) {
+		if (concealment[i] >= OO_SYSTEMCONCEALMENT_NODATA) {
 			// no system data available
 			r = g = b = 0.7;
 			OOGL(glColor4f(r, g, b, alpha));
@@ -1985,9 +1991,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		for (i = 0; i < 256; i++)
 		{
-			NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
-			NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
-			if (concealment >= OO_SYSTEMCONCEALMENT_NONAME)
+			if (concealment[i] >= OO_SYSTEMCONCEALMENT_NONAME)
 			{
 				continue;
 			}
@@ -2038,9 +2042,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double jumpRange = MAX_JUMP_RANGE * [PLAYER dialFuel];
 	for (i = 0; i < num_nearby_systems; i++)
 	{
-		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxy_id];
-		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
-		if (concealment >= OO_SYSTEMCONCEALMENT_NONAME)
+		if (concealment[i] >= OO_SYSTEMCONCEALMENT_NONAME)
 		{
 			continue;
 		}
@@ -2082,7 +2084,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			}
 			else if (EXPECT(sys->gov >= 0))	// Not a nova? Show the info.
 			{
-				if (concealment >= OO_SYSTEMCONCEALMENT_NODATA)
+				if (concealment[i] >= OO_SYSTEMCONCEALMENT_NODATA)
 				{
 					OODrawHilightedString(@"???", x + star.x + 2.0, y + star.y, z, chSize);
 				}
@@ -2098,9 +2100,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// (needed to get things right in closely-overlapping systems)
 	if( targetIdx != -1 && zoom <= CHART_ZOOM_SHOW_LABELS)
 	{
-		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:targetIdx inGalaxy:galaxy_id];
-		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
-		if (concealment < OO_SYSTEMCONCEALMENT_NONAME)
+		if (concealment[targetIdx] < OO_SYSTEMCONCEALMENT_NONAME)
 		{
 			sys = nearby_systems + targetIdx;
 			NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:sys->sysid inGalaxy:galaxy_id];
@@ -2125,7 +2125,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			}
 			else if (sys->gov >= 0)	// Not a nova? Show the info.
 			{
-				if (concealment >= OO_SYSTEMCONCEALMENT_NODATA)
+				if (concealment[targetIdx] >= OO_SYSTEMCONCEALMENT_NODATA)
 				{
 					OODrawHilightedString(@"???", x + star.x + 2.0, y + star.y, z, chSize);
 				}
@@ -2312,6 +2312,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 // used only on mission screens for long-range charts there
 // takes up slightly less vertical space than the normal chart
 // FIXME: make this a mode of drawStarChart to reduce code duplication
+/* FIXME: doesn't support concealment yet - do the above to fix this */
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 
@@ -2523,12 +2524,18 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	float jumpRange = MAX_JUMP_RANGE * ((optimizeBy == OPTIMIZED_BY_NONE) ? [PLAYER dialFuel] : 1.0);
 
+	NSInteger concealment[256];
+	for (NSUInteger i=0;i<256;i++) {
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:g];
+		concealment[i] = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+	}
+
+	
 	OOGLBEGIN(GL_LINES);
 	for (OOSystemID i = 0; i < 256; i++)
 	{
-		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:g];
-		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
-		if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+
+		if (concealment[i] >= OO_SYSTEMCONCEALMENT_NOTHING) {
 			// system is not known
 			continue;
 		}
@@ -2555,9 +2562,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				continue; // for OPTIMIZED_BY_NONE case
 			}
 
-			NSDictionary *JsystemInfo = [systemManager getPropertiesForSystem:j inGalaxy:g];
-			NSInteger Jconcealment = [JsystemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
-			if (Jconcealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+			if (concealment[j] >= OO_SYSTEMCONCEALMENT_NOTHING) {
 				// system is not known
 				continue;
 			}
