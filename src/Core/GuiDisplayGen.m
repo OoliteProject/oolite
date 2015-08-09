@@ -49,8 +49,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 
 - (void) drawCrossHairsWithSize:(GLfloat) size x:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
-- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
-- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha :(BOOL) compact;
 - (void) drawSystemMarkers:(NSArray *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
 - (void) drawSystemMarker:(NSDictionary *)marker atX:(GLfloat)x andY:(GLfloat)y andZ:(GLfloat)z withAlpha:(GLfloat)alpha andScale:(GLfloat)scale;
 
@@ -1313,13 +1312,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART || [player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART || backgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
 			{
-				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
+				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha :NO];
 			}
 			if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG || 
 					backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
 					backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
 			{
-				[self drawGalaxyChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
+				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha :YES];
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
@@ -1633,7 +1632,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 }
 
 
-- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
+- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha :(BOOL)compact
 {
 	PlayerEntity* player = PLAYER;
 
@@ -1661,6 +1660,19 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	double		vcenter = CHART_SCREEN_VERTICAL_CENTRE;
 	double		hoffset = hcenter - chart_centre_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - vcenter - chart_centre_coordinates.y*vscale;
+
+	if (compact)
+	{
+		hscale = size_in_pixels.width / 256.0;
+		vscale = -1.0 * size_in_pixels.height / 512.0;
+		hoffset = 0.0f;
+		voffset = size_in_pixels.height - pixel_title_size.height - 5;
+		vcenter = CHART_SCREEN_VERTICAL_CENTRE_COMPACT;
+		chart_centre_coordinates.x = 128.0;
+		chart_centre_coordinates.y = 128.0;
+		zoom = CHART_MAX_ZOOM;
+	}
+	
 	int			i;
 	double		d, distance = 0.0, time = 0.0;
 	NSPoint		star;
@@ -1702,10 +1714,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		pixelRatio = viewSize.width / 640.0;
 	}
+
+	NSInteger textRow = compact ? GUI_ROW_CHART_SYSTEM_COMPACT : GUI_ROW_CHART_SYSTEM;
+	
 	clipRect = NSMakeRect((viewSize.width - size_in_pixels.width*pixelRatio)/2.0,
-				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (GUI_ROW_CHART_SYSTEM-2)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
+				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (textRow-2)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
 				size_in_pixels.width * pixelRatio,
-				(GUI_ROW_CHART_SYSTEM-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
+				(textRow-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
 
 #if OOLITE_MAC_OS_X
 	// Fix for issue 136
@@ -1732,15 +1747,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOGL(glEnable(GL_SCISSOR_TEST));
 	OOGL(glScissor(clipRect.origin.x, clipRect.origin.y, clipRect.size.width, clipRect.size.height));
 
-	if ([player hasHyperspaceMotor])
-	{
-		// draw fuel range circle
-		OOGL(GLScaledLineWidth(2.0f));
-		[self setGLColorFromSetting:kGuiChartRangeColor defaultValue:[OOColor greenColor] alpha:alpha];
-						
-		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
-	}
-		
 	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
 	// Caching code submitted by Y A J, 20091022
 	
@@ -1851,6 +1857,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			time = 0.0;
 		}
 	}
+
+	if ([player hasHyperspaceMotor])
+	{
+		// draw fuel range circle
+		OOGL(GLScaledLineWidth(2.0f));
+		[self setGLColorFromSetting:kGuiChartRangeColor defaultValue:[OOColor greenColor] alpha:alpha];
+						
+		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
+	}
+
 	
 	// draw marks and stars
 	//
@@ -2157,7 +2173,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		travelTimeLine = OOExpandKey(@"long-range-chart-est-travel-time", time);
 	}
 	
-	[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:GUI_ROW_CHART_SYSTEM];
+	[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:textRow];
 	[targetName release];
 
 	// draw crosshairs over current location
@@ -2179,10 +2195,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// Draw bottom divider
 	[self setGLColorFromSetting:kGuiScreenDividerColor defaultValue:[OOColor colorWithWhite:0.75 alpha:1.0] alpha:alpha];
 	OOGLBEGIN(GL_QUADS);
-		glVertex3f(x + 0, (float)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height),	z);
-		glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height), z);
-		glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
-		glVertex3f(x + 0, (GLfloat)(y + size_in_pixels.height - (GUI_ROW_CHART_SYSTEM-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
+		glVertex3f(x + 0, (float)(y + size_in_pixels.height - (textRow-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height),	z);
+		glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (textRow-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height), z);
+		glVertex3f(x + size_in_pixels.width, (GLfloat)(y + size_in_pixels.height - (textRow-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
+		glVertex3f(x + 0, (GLfloat)(y + size_in_pixels.height - (textRow-1)*MAIN_GUI_ROW_HEIGHT - pixel_title_size.height - 2), z);
 	OOGLEND();
 }
 
@@ -2309,196 +2325,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	return sys;
 }
 
-// used only on mission screens for long-range charts there
-// takes up slightly less vertical space than the normal chart
-// FIXME: make this a mode of drawStarChart to reduce code duplication
-/* FIXME: doesn't support concealment yet - do the above to fix this */
-- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
-{
-
-	PlayerEntity	*player = PLAYER;
-	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
-	NSPoint			cursor_coordinates = [player cursor_coordinates];
-	OOGalaxyID		galaxy_id = [player galaxyNumber];
-
-	double fuel = 35.0 * [player dialFuel];
-
-	OOSystemDescriptionManager *systemManager = [UNIVERSE systemManager];
-	
-	// get a list of systems marked as contract destinations
-	NSDictionary	*markedDestinations = [player markedDestinations];
-	NSDictionary	*systemData = nil;
-	GLfloat			r = 1.0, g = 1.0, b = 1.0;
-	BOOL			noNova;
-
-	NSPoint		star, cu;
-	
-	double		hscale = size_in_pixels.width / 256.0;
-	double		vscale = -1.0 * size_in_pixels.height / 512.0;
-	double		hoffset = 0.0f;
-	double		voffset = size_in_pixels.height - pixel_title_size.height - 5;
-	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
-	BOOL		routeExists = YES;
-	
-	int			i;
-	double		distance = 0.0, time = 0.0;
-	
-	if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
-	{
-		advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
-	}
-	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
-	{
-		advancedNavArrayMode = OPTIMIZED_BY_TIME;
-	}
-	
-	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
-	{
-		OOSystemID planetNumber = [PLAYER systemID];
-		OOSystemID destNumber = [PLAYER targetSystemID];
-		NSDictionary *routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
-
-		if (!routeInfo)  routeExists = NO;
-		
-		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode zoom: CHART_MAX_ZOOM];
-		if (routeExists)
-		{
-			distance = [routeInfo oo_doubleForKey:@"distance"];
-			time = [routeInfo oo_doubleForKey:@"time"];
-		
-			if (distance == 0.0 && planetNumber != destNumber)
-			{
-				// zero-distance double fix
-				distance = 0.1;
-				time = 0.01;
-			}
-		}		
-	}
-	else
-	{
-		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute:nil optimizedBy:OPTIMIZED_BY_NONE zoom: CHART_MAX_ZOOM];
-
-		OOSystemID dest = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id includingHidden:NO];
-		NSPoint dest_coordinates = [systemManager getCoordinatesForSystem:dest inGalaxy:galaxy_id];
-		distance = distanceBetweenPlanetPositions(dest_coordinates.x,dest_coordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
-		if (distance == 0.0 && dest != [PLAYER systemID])
-		{
-			distance = 0.1; // fix for zero-distance doubles
-		}
-		time = distance * distance;
-	}
-	
-	OOGUITabSettings tab_stops;
-	tab_stops[0] = 0;
-	tab_stops[1] = 96;
-	tab_stops[2] = 288;
-	[self overrideTabs:tab_stops from:kGuiChartTraveltimeTabs length:3];
-	[self setTabStops:tab_stops];
-	NSString *targetSystemName = [[UNIVERSE getSystemName:[PLAYER targetSystemID]] retain];
-
-	if (routeExists)
-	{
-		// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
-		NSString *travelDistLine = OOExpandKey(@"long-range-chart-distance", distance);
-		NSString *travelTimeLine = @"";
-		if (advancedNavArrayMode != OPTIMIZED_BY_NONE && distance > 0)
-		{
-			travelTimeLine = OOExpandKey(@"long-range-chart-est-travel-time", time);
-		}
-			
-		[self setArray:[NSArray arrayWithObjects:targetSystemName, travelDistLine,travelTimeLine,nil] forRow:16];
-	}
-	else
-	{
-		[self setArray:[NSArray arrayWithObjects:targetSystemName, DESC(@"long-range-chart-system-unreachable"), nil] forRow:16];
-	}
-	[targetSystemName release];
-	
-
-	[self setGLColorFromSetting:kGuiChartRangeColor defaultValue:[OOColor greenColor] alpha:alpha];
-	OOGL(GLScaledLineWidth(2.0f));
-	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
-	
-	if ([player hasHyperspaceMotor])
-	{
-		// draw fuel range circle
-		GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
-	}
-	
-	// draw cross-hairs over current location
-	//
-	[self setGLColorFromSetting:kGuiChartCrosshairColor defaultValue:[OOColor greenColor] alpha:alpha];
-	[self drawCrossHairsWithSize:12 x:x + cu.x y:y + cu.y z:z];
-	
-	// draw cross hairs over cursor
-	//
-	[self setGLColorFromSetting:kGuiChartCursorColor defaultValue:[OOColor redColor] alpha:alpha];
-	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
-	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
-	[self drawCrossHairsWithSize:6 x:x + cu.x y:y + cu.y z:z];
-	
-	// draw marks
-	//
-	OOGL(GLScaledLineWidth(1.5f));
-	for (i = 0; i < 256; i++)
-	{
-		NSArray *markers = [markedDestinations objectForKey:[NSNumber numberWithInt:i]];
-		if (markers != nil)
-		{
-			NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
-			star.x = (float)(sys_coordinates.x * hscale + hoffset);
-			star.y = (float)(sys_coordinates.y * vscale + voffset);
-			
-			[self drawSystemMarkers:markers atX:x+star.x andY:y+star.y andZ:z withAlpha:alpha andScale:2.5f];
-		}
-	}
-	
-	// draw stars
-	//
-	OOGL(glColor4f(1.0f, 1.0f, 1.0f, alpha));
-	for (i = 0; i < 256; i++)
-	{
-		systemData = [UNIVERSE generateSystemData:i];
-		noNova = ![systemData oo_boolForKey:@"sun_gone_nova"];
-
-		// this chart does not support chartmode
-		if (EXPECT(noNova))
-		{
-			r = g = b = 1.0;
-		}
-		else
-		{
-			r = 1.0;
-			g = 0.2;
-			b = 0.0;
-		}
-		OOGL(glColor4f(r, g, b, alpha));
-		
-		NSPoint sys_coordinates = [systemManager getCoordinatesForSystem:i inGalaxy:galaxy_id];
-
-		star.x = (float)(sys_coordinates.x * hscale + hoffset);
-		star.y = (float)(sys_coordinates.y * vscale + voffset);
-		
-		float sz = (1.0f + 0.5f * ([[systemManager getProperty:@"radius" forSystem:i inGalaxy:galaxy_id] floatValue]/300.0f))/7.0f;
-
-		OOGLBEGIN(GL_QUADS);
-		glVertex3f(x + star.x, y + star.y + sz, z);
-		glVertex3f(x + star.x + sz,	y + star.y, z);
-		glVertex3f(x + star.x, y + star.y - sz, z);
-		glVertex3f(x + star.x - sz,	y + star.y, z);
-		OOGLEND();
-	}
-	
-	// draw bottom horizontal divider
-	//
-	[self setGLColorFromSetting:kGuiScreenDividerColor defaultValue:[OOColor colorWithWhite:0.75 alpha:1.0] alpha:alpha];
-	OOGLBEGIN(GL_QUADS);
-		glVertex3f(x + 0, (float)(y + voffset + 260.0f*vscale + 0),	z);
-		glVertex3f(x + size_in_pixels.width, y + (float)(voffset + 260.0f*vscale + 0), z);
-		glVertex3f(x + size_in_pixels.width, (float)(y + voffset + 260.0f*vscale - 2), z);
-		glVertex3f(x + 0, (float)(y + voffset + 260.0f*vscale - 2), z);
-	OOGLEND();
-}
 
 
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
