@@ -2204,7 +2204,7 @@ static int shipsFound;
 	{
 		[self playFuelLeak];
 		[UNIVERSE addMessage:DESC(@"danger-fuel-leak") forCount:6];
-		OOLog(kOOLogNoteFuelLeak, @"FUEL LEAK activated!");
+		OOLog(kOOLogNoteFuelLeak, @"%@", @"FUEL LEAK activated!");
 	}
 }
 
@@ -2389,13 +2389,13 @@ static int shipsFound;
 - (void) debugOn
 {
 	OOLogSetDisplayMessagesInClass(kOOLogDebugOnMetaClass, YES);
-	OOLog(kOOLogDebugOnOff, @"SCRIPT debug messages ON");
+	OOLog(kOOLogDebugOnOff, @"%@", @"SCRIPT debug messages ON");
 }
 
 
 - (void) debugOff
 {
-	OOLog(kOOLogDebugOnOff, @"SCRIPT debug messages OFF");
+	OOLog(kOOLogDebugOnOff, @"%@", @"SCRIPT debug messages OFF");
 	OOLogSetDisplayMessagesInClass(kOOLogDebugOnMetaClass, NO);
 }
 
@@ -2946,7 +2946,7 @@ static int shipsFound;
 	NSArray *coord_vals = ScanTokensFromString(galacticHyperspaceFixedCoordsString);
 	if ([coord_vals count] < 2)	// Will be 0 if string is nil
 	{
-		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput",
+		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput", @"%@",
 			  @"setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");
 		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
 	}
