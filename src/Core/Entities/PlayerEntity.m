@@ -1610,8 +1610,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	DESTROY(dockingReport);
 	dockingReport = [[NSMutableString alloc] init];
-	[hud resetGuis:[NSDictionary dictionaryWithObjectsAndKeys:[NSDictionary dictionaryWithObjectsAndKeys:nil], @"message_gui",
-														[NSDictionary dictionaryWithObjectsAndKeys:nil], @"comm_log_gui", nil]];
+	[hud resetGuis:[NSDictionary dictionaryWithObjectsAndKeys:[NSDictionary dictionary], @"message_gui",
+														[NSDictionary dictionary], @"comm_log_gui", nil]];
 	
 	[self initControls];
 }

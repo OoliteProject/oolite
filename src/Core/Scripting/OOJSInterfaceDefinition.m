@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 @implementation OOJSInterfaceDefinition
 
 - (id) init {
+	self = [super init];
 	_callback = JSVAL_VOID;
 	_callbackThis = NULL;
 
