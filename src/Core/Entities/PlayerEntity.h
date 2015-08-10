@@ -1002,6 +1002,8 @@ typedef enum
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
 - (BOOL) setWeaponMount:(OOWeaponFacing)chosen_weapon_facing toWeapon:(NSString *)eqKey;
+- (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey inContext:(NSString *) context;
+
 - (BOOL) changePassengerBerths:(int) addRemove;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type;
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;

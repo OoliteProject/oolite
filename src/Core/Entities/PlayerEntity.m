@@ -9871,6 +9871,13 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey
 {
+	return [self setWeaponMount:facing toWeapon:eqKey inContext:@"purchase"];
+}
+
+
+- (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey inContext:(NSString *) context
+{
+
 	NSDictionary		*shipyardInfo = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:[self shipDataKey]];
 	unsigned			available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:[self weaponFacings]];	// use defaults  explicitly
 	
@@ -9883,7 +9890,7 @@ static NSString *last_outfitting_key=nil;
 	// weapon allowed (or NONE)?
 	if (![eqKey isEqualToString:@"EQ_WEAPON_NONE"]) 
 	{
-		if (![self canAddEquipment:eqKey inContext:@"purchase"]) 
+		if (![self canAddEquipment:eqKey inContext:context]) 
 		{
 			return NO;
 		}

@@ -738,7 +738,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			{
 				sValue = @"EQ_WEAPON_NONE";
 			}
-			[player setWeaponMount:[player currentWeaponFacing] toWeapon:sValue];
+			[player setWeaponMount:[player currentWeaponFacing] toWeapon:sValue inContext:@"scripted"];
 			return YES;
 		}
 		
