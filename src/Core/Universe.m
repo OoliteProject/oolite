@@ -4639,7 +4639,7 @@ static const OOMatrix	starboard_matrix =
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
 			OOLog(@"universe.profile.draw",@"Begin HUD");
 			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
-			if (EXPECT(!displayGUI || demoShipMode))
+			if (EXPECT(!displayGUI))
 			{
 				if (!bpHide && cachedSun)
 				{
