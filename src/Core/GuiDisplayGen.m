@@ -1793,6 +1793,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOSystemID savedPlanetNumber = 0;
 	OOSystemID savedDestNumber = 0;
 	static NSDictionary *routeInfo = nil;
+
+	/* May override current mode for mission screens */
+	if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
+	{
+		advancedNavArrayMode = OPTIMIZED_BY_JUMPS;
+	}
+	else if (backgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
+	{
+		advancedNavArrayMode = OPTIMIZED_BY_TIME;
+	}
 	
 	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && [player hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
