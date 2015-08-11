@@ -106,7 +106,8 @@ this.missionScreenOpportunity = function missionScreenOpportunity()
 			titleKey: "oolite_trumble_title",
 			messageKey: "oolite_trumble_offer",
 			background: "trumblebox.png",
-			choicesKey: "oolite_trumble_offer_yesno"
+			choicesKey: "oolite_trumble_offer_yesno",
+			screenID: "oolite-trumbles"
 		},
 		function (choice)
 		{

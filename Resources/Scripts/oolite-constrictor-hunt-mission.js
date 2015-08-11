@@ -131,7 +131,8 @@ this.missionScreenOpportunity = function ()
 			mission.runScreen({
 				titleKey: "constrictor_hunt_title",
 				messageKey: "constrictor_hunt_brief1",
-				model: "constrictor"
+				model: "constrictor",
+				screenID: "oolite-constrictor-hunt-briefing"
 			});
 			if (galaxyNumber === 0)
 			{
@@ -150,7 +151,8 @@ this.missionScreenOpportunity = function ()
 			mission.runScreen({
 				titleKey: "constrictor_hunt_title",
 				messageKey: "constrictor_hunt_debrief",
-				model: "constrictor"
+				model: "constrictor",
+				screenID: "oolite-constrictor-hunt-debriefing"
 			});
 			player.credits += 5000;
 			player.bounty = 0;	  // legal status

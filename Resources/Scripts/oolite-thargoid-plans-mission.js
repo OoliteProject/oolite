@@ -85,7 +85,8 @@ this.missionScreenOpportunity = function ()
 			{
 				mission.runScreen({
 					titleKey: "thargoid_plans_title",
-					messageKey: "thargoid_plans_brief1"
+					messageKey: "thargoid_plans_brief1",
+					screenID: "oolite-thargoid-plans-briefing1"
 				});
 				missionVariables.thargplans = "PRELUDE";
 				mission.setInstructionsKey("thargoid_plans_info1");
@@ -98,7 +99,8 @@ this.missionScreenOpportunity = function ()
 				mission.runScreen({
 					titleKey: "thargoid_plans_title",
 					messageKey: "thargoid_plans_brief2",
-					model: "thargoid"
+					model: "thargoid",
+					screenID: "oolite-thargoid-plans-briefing2"
 				});
 				missionVariables.thargplans = "RUNNING";
 				mission.setInstructionsKey("thargoid_plans_info2");
@@ -110,7 +112,8 @@ this.missionScreenOpportunity = function ()
 				mission.runScreen({
 					titleKey: "thargoid_plans_title",
 					messageKey: "thargoid_plans_debrief",
-					model: "thargoid"
+					model: "thargoid",
+					screenID: "oolite-thargoid-plans-debriefing"
 				});
 				player.score += 256; // ship kills
 				mission.setInstructions(null);  // reset the mission briefing
