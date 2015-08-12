@@ -121,6 +121,7 @@ enum
 	kPlayerShip_galaxyCoordinates,				// galaxy coordinates (unscaled), Vector3D, read only
 	kPlayerShip_galaxyCoordinatesInLY,			// galaxy coordinates (in LY), Vector3D, read only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
+	kPlayerShip_hudAllowsBigGui,				// hud big gui, string, read only 
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_injectorsEngaged,				// injectors in use, boolean, read-only
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
@@ -176,6 +177,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinates",				kPlayerShip_galaxyCoordinates,				OOJS_PROP_READONLY_CB },
 	{ "galaxyCoordinatesInLY",			kPlayerShip_galaxyCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
+	{ "hudAllowsBigGui",				kPlayerShip_hudAllowsBigGui,				OOJS_PROP_READONLY_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	{ "injectorsEngaged",				kPlayerShip_injectorsEngaged,				OOJS_PROP_READONLY_CB },
 	// manifest defined in OOJSManifest.m
@@ -464,6 +466,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_crosshairs:
 			result = [[player hud] crosshairDefinition];
 			break;
+
+		case kPlayerShip_hudAllowsBigGui:
+			*value = OOJSValueFromBOOL([[player hud] allowBigGui]);
+			return YES;
 
 		case kPlayerShip_hudHidden:
 			*value = OOJSValueFromBOOL([[player hud] isHidden]);
