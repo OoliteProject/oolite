@@ -552,7 +552,7 @@ this._parcelContractSummaryPage = function()
 	// now need to add further spacing to fill the remaining rows, or
 	// the options will end up at the bottom of the screen.
 	var rowsToFill = 21;
-	if (player.ship.hudHidden)
+	if (player.ship.hudAllowsBigGui)
 	{
 		rowsToFill = 27;
 	}
@@ -597,7 +597,7 @@ this._parcelContractSinglePage = function()
 	// We therefore need to hide the player's HUD, to get the full 27
 	// lines.
 
-	if (!player.ship.hudHidden)
+	if (!player.ship.hudAllowsBigGui)
 	{
 		this.$suspendedHUD = true; // note that we hid it, for later
 		player.ship.hudHidden = true;
