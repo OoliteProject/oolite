@@ -2274,12 +2274,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	if (isDemoShip)
 	{
-		OOScalar cos1 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 6);
-		OOScalar sin1 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 6);
-		OOScalar cos2 = cos(-M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 5);
-		OOScalar sin2 = sin(-M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 5);
-		Quaternion q1 = make_quaternion(cos1, sin1*sqrt(3)/2, -sin1/2, 0);
-		Quaternion q2 = make_quaternion(cos2, -sin2*sqrt(3)/sqrt(5), 0, sin2*sqrt(2)/sqrt(5));
+		OOScalar cos1 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 11);
+		OOScalar sin1 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 11);
+		OOScalar cos2 = cos(-M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 15);
+		OOScalar sin2 = sin(-M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 15);
+		Quaternion q1 = make_quaternion(cos1, sin1*sqrt(3)/2, sin1/2, 0);
+		Quaternion q2 = make_quaternion(cos2, -sin2*sqrt(4)/sqrt(5), 0, sin2*sqrt(1)/sqrt(5));
 		[self setOrientation: quaternion_multiply(q2, quaternion_multiply(q1, demoStartOrientation))];
 
 		[super update:delta_t];
