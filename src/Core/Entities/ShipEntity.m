@@ -496,6 +496,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 
 	explosionType = [[shipDict oo_arrayForKey:@"explosion_type" defaultValue:nil] retain];
+
+	isDemoShip = NO;
 	
 	return YES;
 	
@@ -2296,6 +2298,36 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	bool isSubEnt = [self isSubEntity];
 
+	if (isDemoShip)
+	{
+		OOScalar cos1 = cos(M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 11);
+		OOScalar sin1 = sin(M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 11);
+		OOScalar cos2 = cos(-M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 15);
+		OOScalar sin2 = sin(-M_PI * ([UNIVERSE getTime] - demoStartTime) * demoRate / 15);
+		Quaternion q1 = make_quaternion(cos1, sin1*sqrt(3)/2, sin1/2, 0);
+		Quaternion q2 = make_quaternion(cos2, -sin2*sqrt(4)/sqrt(5), 0, sin2*sqrt(1)/sqrt(5));
+		[self setOrientation: quaternion_multiply(q2, quaternion_multiply(q1, demoStartOrientation))];
+
+		[super update:delta_t];
+		if ([self subEntityCount] > 0)
+		{
+			// only copy the subent array if there are subentities
+			ShipEntity *se = nil;
+			foreach (se, [self subEntities])
+			{
+				[se update:delta_t];
+				if ([se isShip])
+				{
+					BoundingBox sebb = [se findSubentityBoundingBox];
+					bounding_box_add_vector(&totalBoundingBox, sebb.max);
+					bounding_box_add_vector(&totalBoundingBox, sebb.min);
+				}
+			}
+		}
+		return;
+	}
+
+
 	if (!isSubEnt)
 	{
 		if (scanClass == CLASS_NOT_SET)
@@ -2310,6 +2342,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		// deal with collisions
 		//
 		[self manageCollisions];
+
     // subentity collisions managed via parent entity
 	
 		//
@@ -14516,6 +14549,27 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	return [self rootShipEntity];
 }
 
+- (void) setDemoShip: (OOScalar) rate
+{
+	demoStartOrientation = orientation;
+	demoRate = rate;
+	isDemoShip = YES;
+}
+
+- (BOOL) isDemoShip
+{
+	return isDemoShip;
+}
+
+- (void) setDemoStartTime: (OOTimeAbsolute) time
+{
+	demoStartTime = time;
+}
+
+- (OOTimeAbsolute) getDemoStartTime
+{
+	return demoStartTime;
+}
 
 // *** Script event dispatch.
 - (void) doScriptEvent:(jsid)message

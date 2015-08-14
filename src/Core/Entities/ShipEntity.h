@@ -485,7 +485,12 @@ typedef enum
 	id <OOHUDBeaconIcon>	_beaconDrawable;
 
 	double			_nextAegisCheck;
-	
+
+	// Demo ship state
+	BOOL			isDemoShip;
+	OOScalar		demoRate;
+	OOTimeAbsolute		demoStartTime;
+	Quaternion		demoStartOrientation;
 }
 
 // ship brains
@@ -1221,6 +1226,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) pilotArrived;
 #endif
 
+
+
 - (OOJSScript *) script;
 - (NSDictionary *) scriptInfo;
 - (void) overrideScriptInfo:(NSDictionary *)override;	// Add items from override (if not nil) to scriptInfo, replacing in case of duplicates. Used for subentities.
@@ -1232,6 +1239,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 
 - (Entity *)entityForShaderProperties;
+
+// Demo ship
+- (void) setDemoShip: (OOScalar) demoRate;
+- (BOOL) isDemoShip;
+- (void) setDemoStartTime: (OOTimeAbsolute) time;
 
 /*	*** Script events.
 	For NPC ships, these call doEvent: on the ship script.

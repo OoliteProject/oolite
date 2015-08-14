@@ -1662,7 +1662,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 - (void) generateFaceTangents
 {
 	OOJS_PROFILE_ENTER
-	BOOL lighting_fix = [[NSUserDefaults standardUserDefaults] boolForKey: @"lighting-fix-tentative"];
 	
 	OOMeshFaceCount	i;
 	for (i = 0; i < faceCount; i++)
@@ -1688,28 +1687,14 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		GLfloat dtAB = face->t[1] - face->t[0];
 		GLfloat dtAC = face->t[2] - face->t[0];
 		
-		if (lighting_fix)
+		if (dsAC * dtAB > dsAB * dtAC)
 		{
-			if (dsAC * dtAB > dsAB * dtAC)
-			{
-				face->tangent = vector_subtract(vector_multiply_scalar(vProjAC, dtAB), vector_multiply_scalar(vProjAB, dtAC));
-			}
-			else
-			{
-				face->tangent = vector_subtract(vector_multiply_scalar(vProjAB, dtAC), vector_multiply_scalar(vProjAC, dtAB));
-			}
+			face->tangent = vector_subtract(vector_multiply_scalar(vProjAC, dtAB), vector_multiply_scalar(vProjAB, dtAC));
 		}
 		else
 		{
-			if (dsAC * dtAB > dsAB * dtAC)
-			{
-				dsAB = -dsAB;
-				dsAC = -dsAC;
-			}
-			
-			Vector tangent = vector_subtract(vector_multiply_scalar(vProjAB, dsAC), vector_multiply_scalar(vProjAC, dsAB));
-			face->tangent = cross_product(nA, tangent);	// Rotate 90 degrees. Done this way because I'm too lazy to grok the code above.
-		}
+			face->tangent = vector_subtract(vector_multiply_scalar(vProjAB, dtAC), vector_multiply_scalar(vProjAC, dtAB));
+		}			
 	}
 	
 	OOJS_PROFILE_EXIT_VOID
