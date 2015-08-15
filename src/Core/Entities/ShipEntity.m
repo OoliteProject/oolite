@@ -12595,6 +12595,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[jettoAI exitStateMachineWithMessage:nil]; // exit nullAI.
 	}
 	[jetto doScriptEvent:OOJSID("shipWasDumped") withArgument:self];
+	[self doScriptEvent:OOJSID("shipDumpedCargo") withArgument:jetto];
 	
 	cargo_dump_time = [UNIVERSE getTime];
 	return result;
