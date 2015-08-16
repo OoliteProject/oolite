@@ -20,6 +20,22 @@
 # MA 02110-1301, USA.
 
 
+# When running this updater, the following folder structure must
+# exist directly below the updater's folder:
+# OoliteRootFolder
+# |
+# --AddOns
+# |   |
+# |   --Basic-debug.oxp
+# |--oolite.app
+#
+# Basic-debug.oxp should contain the Debug OXP files, while
+# oolite.app should contain only the Test Release executable.
+# The updater will pack everything it finds below the folder
+# named OoliteRootFolder, so it is important that the folder
+# structure be maintained.
+
+
 SetCompressor LZMA
 # -------------------------------------------------------------------------
 # Always ensure that these are correct for the version we are updating!
