@@ -5639,7 +5639,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (Vector) currentLaserOffset
+- (NSArray *) currentLaserOffset
 {
 	return [self laserPortOffset:currentWeaponFacing];
 }
@@ -5656,7 +5656,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT)
 	{
-		[self playWeaponOverheated:[self currentLaserOffset]];
+		[self playWeaponOverheated:[[self currentLaserOffset] oo_vectorAtIndex:0]];
 		[UNIVERSE addMessage:DESC(@"weapon-overheat") forCount:3.0];
 		return NO;
 	}

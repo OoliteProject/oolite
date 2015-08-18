@@ -5745,28 +5745,28 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	{
 		case VIEW_FORWARD:
 			targetFacing = WEAPON_FACING_FORWARD;
-			laserPortOffset = [player forwardWeaponOffset];
+			laserPortOffset = [[player forwardWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		case VIEW_AFT:
 			targetFacing = WEAPON_FACING_AFT;
-			laserPortOffset = [player aftWeaponOffset];
+			laserPortOffset = [[player aftWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		case VIEW_PORT:
 			targetFacing = WEAPON_FACING_PORT;
-			laserPortOffset = [player portWeaponOffset];
+			laserPortOffset = [[player portWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		case VIEW_STARBOARD:
 			targetFacing = WEAPON_FACING_STARBOARD;
-			laserPortOffset = [player starboardWeaponOffset];
+			laserPortOffset = [[player starboardWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		default:
 			// Match behaviour of -firstEntityTargetedByPlayer.
 			targetFacing = WEAPON_FACING_FORWARD;
-			laserPortOffset = [player forwardWeaponOffset];
+			laserPortOffset = [[player forwardWeaponOffset] oo_vectorAtIndex:0];
 	}
 	
 	return [self firstShipHitByLaserFromShip:PLAYER inDirection:targetFacing offset:laserPortOffset gettingRangeFound:NULL];

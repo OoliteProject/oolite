@@ -386,11 +386,13 @@ typedef enum
 	
 	GLfloat					_scaleFactor;  // scale factor for size variation
 
+
+	BOOL					_multiplyWeapons; // multiply instead of splitting weapons
 	//position of gun ports
-	Vector					forwardWeaponOffset,
-							aftWeaponOffset,
-							portWeaponOffset,
-							starboardWeaponOffset;
+	NSArray					*forwardWeaponOffset,
+							*aftWeaponOffset,
+							*portWeaponOffset,
+							*starboardWeaponOffset;
 	
 	// crew (typically one OOCharacter - the pilot)
 	NSArray					*crew;
@@ -582,11 +584,11 @@ typedef enum
 
 - (NSDictionary *)shipInfoDictionary;
 
-- (void) setDefaultWeaponOffsets;
-- (Vector) aftWeaponOffset;
-- (Vector) forwardWeaponOffset;
-- (Vector) portWeaponOffset;
-- (Vector) starboardWeaponOffset;
+- (NSArray *) getWeaponOffsetFrom:(NSDictionary *)dict withKey:(NSString *)key inMode:(NSString *)mode;
+- (NSArray *) aftWeaponOffset;
+- (NSArray *) forwardWeaponOffset;
+- (NSArray *) portWeaponOffset;
+- (NSArray *) starboardWeaponOffset;
 - (BOOL) hasAutoWeapons;
 
 - (BOOL) isFrangible;
@@ -1110,11 +1112,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireDirectLaserShot:(double)range;
 - (BOOL) fireDirectLaserDefensiveShot;
 - (BOOL) fireDirectLaserShotAt:(Entity *)my_target;
-- (Vector) laserPortOffset:(OOWeaponFacing)direction;
+- (NSArray *) laserPortOffset:(OOWeaponFacing)direction;
 - (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction;
 - (void) adjustMissedShots:(int)delta;
 - (int) missedShots;
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;
 - (void) considerFiringMissile:(double)delta_t;
 - (Vector) missileLaunchPosition;
 - (ShipEntity *) fireMissile;

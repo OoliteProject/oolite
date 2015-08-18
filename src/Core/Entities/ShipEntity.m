@@ -154,8 +154,6 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 - (void) addSubentityToCollisionRadius:(Entity<OOSubEntity> *) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
 
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOWeaponFacing)direction;
-
 // equipment
 - (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
 
@@ -465,28 +463,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 
 	// set weapon offsets
-	[self setDefaultWeaponOffsets];
+	NSString *weaponMountMode = [shipDict oo_stringForKey:@"weapon_mount_mode" defaultValue:@"single"];
+	_multiplyWeapons = [weaponMountMode isEqualToString:@"multiply"];
+	forwardWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_forward" inMode:weaponMountMode] retain];
+	aftWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_aft" inMode:weaponMountMode] retain];
+	portWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_port" inMode:weaponMountMode] retain];
+	starboardWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_starboard" inMode:weaponMountMode] retain];
+
 	
-	if (EXPECT(_scaleFactor == 1.0))
-	{
-		forwardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset];
-		aftWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset];
-		portWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset];
-		starboardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset];
-
-		// fuel scoop destination position (where cargo gets sucked into)
-		tractor_position = [shipDict oo_vectorForKey:@"scoop_position"];
-
-	}
-	else
-	{
-		forwardWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset],_scaleFactor);
-		aftWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset],_scaleFactor);
-		portWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset],_scaleFactor);
-		starboardWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset],_scaleFactor);
-
-		tractor_position = vector_multiply_scalar([shipDict oo_vectorForKey:@"scoop_position"],_scaleFactor);
-	}
+	tractor_position = vector_multiply_scalar([shipDict oo_vectorForKey:@"scoop_position"],_scaleFactor);
+	
 
 	
 	// sun glare filter - default is no filter
@@ -1106,6 +1092,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(octree);
 	DESTROY(_defenseTargets);
 	DESTROY(_collisionExceptions);
+
+	DESTROY(forwardWeaponOffset);
+	DESTROY(aftWeaponOffset);
+	DESTROY(portWeaponOffset);
+	DESTROY(starboardWeaponOffset);
 	
 	DESTROY(commodity_type);
 
@@ -1980,34 +1971,53 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (void) setDefaultWeaponOffsets
+#define MAKE_VECTOR_ARRAY(v) [NSArray arrayWithObjects:[NSNumber numberWithFloat:v.x], [NSNumber numberWithFloat:v.y], [NSNumber numberWithFloat:v.z], nil]
+
+- (NSArray *) getWeaponOffsetFrom:(NSDictionary *)dict withKey:(NSString *)key inMode:(NSString *)mode
 {
-	forwardWeaponOffset = kZeroVector;
-	aftWeaponOffset = kZeroVector;
-	portWeaponOffset = kZeroVector;
-	starboardWeaponOffset = kZeroVector;
+	Vector offset;
+	if ([mode isEqualToString:@"single"])
+	{
+		offset = vector_multiply_scalar([dict oo_vectorForKey:key defaultValue:kZeroVector],_scaleFactor);
+		return [NSArray arrayWithObject:MAKE_VECTOR_ARRAY(offset)];
+	}
+	else
+	{
+		NSArray *offsets = [dict oo_arrayForKey:key defaultValue:nil];
+		if (offsets == nil) {
+			offset = kZeroVector;
+			return [NSArray arrayWithObject:MAKE_VECTOR_ARRAY(offset)];
+		}
+		NSMutableArray *output = [NSMutableArray arrayWithCapacity:[offsets count]];
+		NSUInteger i;
+		for (i=0;i<[offsets count];i++) {
+			offset = vector_multiply_scalar([offsets oo_vectorAtIndex:i defaultValue:kZeroVector],_scaleFactor);
+			[output addObject:MAKE_VECTOR_ARRAY(offset)];
+		}
+		return [NSArray arrayWithArray:output];
+	}
 }
 
 
-- (Vector) aftWeaponOffset
+- (NSArray *) aftWeaponOffset
 {
 	return aftWeaponOffset;
 }
 
 
-- (Vector) forwardWeaponOffset
+- (NSArray *) forwardWeaponOffset
 {
 	return forwardWeaponOffset;
 }
 
 
-- (Vector) portWeaponOffset
+- (NSArray *) portWeaponOffset
 {
 	return portWeaponOffset;
 }
 
 
-- (Vector) starboardWeaponOffset
+- (NSArray *) starboardWeaponOffset
 {
 	return starboardWeaponOffset;
 }
@@ -11820,9 +11830,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (Vector) laserPortOffset:(OOWeaponFacing)direction
+- (NSArray *) laserPortOffset:(OOWeaponFacing)direction
 {
-	Vector laserPortOffset = kZeroVector;
+	NSArray *laserPortOffset = nil;
 	switch (direction)
 	{
 		case WEAPON_FACING_FORWARD:
@@ -11851,8 +11861,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	double			range_limit2 = weaponRange * weaponRange;
 	GLfloat			hit_at_range;
 	Vector			vel = vector_multiply_scalar(v_forward, flightSpeed);
-	Vector			laserPortOffset = [self laserPortOffset:direction];
+	NSArray 		*laserPortOffsets = [self laserPortOffset:direction];
 
+	Vector 			laserPortOffset = [laserPortOffsets oo_vectorAtIndex:0];
+	
 	last_shot_time = [UNIVERSE getTime];
 
 	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:laserPortOffset gettingRangeFound:&hit_at_range];
@@ -12006,89 +12018,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[spark release];
 
 	next_spark_time = randf();
-}
-
-
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color
-{
-	return [self firePlasmaShotAtOffset:offset speed:speed color:color direction:WEAPON_FACING_FORWARD];
-}
-
-
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOWeaponFacing)direction
-{
-	Vector  vel, rt;
-	HPVector  origin = position;
-	double  start = collision_radius + 0.5;
-
-	speed += flightSpeed;
-
-	if (++shot_counter % 2)
-		offset = -offset;
-
-	vel = v_forward;
-	rt = v_right;
-	Vector	plasmaPortOffset = forwardWeaponOffset;
-
-	if (isPlayer)					// player can fire into multiple views!
-	{
-		switch ([UNIVERSE viewDirection])
-		{
-			case VIEW_AFT :
-				plasmaPortOffset = aftWeaponOffset;
-				vel = vector_flip(v_forward);
-				rt = vector_flip(v_right);
-				break;
-			case VIEW_STARBOARD :
-				plasmaPortOffset = starboardWeaponOffset;
-				vel = v_right;
-				rt = vector_flip(v_forward);
-				break;
-			case VIEW_PORT :
-				plasmaPortOffset = portWeaponOffset;
-				vel = vector_flip(v_right);
-				rt = v_forward;
-				break;
-			
-			default:
-				break;
-		}
-	}
-	else
-	{
-		if (direction == (OOWeaponFacing)VIEW_AFT)	// two different enums being compared here
-		{
-			plasmaPortOffset = aftWeaponOffset;
-			vel = vector_flip(v_forward);
-			rt = vector_flip(v_right);
-		}
-	}
-	
-	if (vector_equal(plasmaPortOffset, kZeroVector))
-	{
-		origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(vel, start))); // no WeaponOffset defined
-	}
-	else
-	{
-		origin = HPvector_add(origin, vectorToHPVector(quaternion_rotate_vector([self normalOrientation], plasmaPortOffset)));
-	}
-	origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(rt, offset))); // With 'offset > 0' we get a twin-cannon.
-	
-	vel = vector_multiply_scalar(vel, speed);
-	
-	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
-																   velocity:vel
-																	 energy:weapon_damage
-																   duration:MAIN_PLASMA_DURATION
-																	  color:color];
-	
-	[UNIVERSE addEntity:shot];
-	[shot setOwner:[self rootShipEntity]];
-	[shot release];
-	
-	[self resetShotTime];
-	
-	return YES;
 }
 
 
