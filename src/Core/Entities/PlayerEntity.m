@@ -5668,7 +5668,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	[self currentWeaponStats];
 
-	if (energy <= weapon_energy_use)
+	NSUInteger multiplier = 1;
+	if (_multiplyWeapons)
+	{
+		// multiple fitted
+		multiplier = [[self laserPortOffset:currentWeaponFacing] count];
+	}
+	
+	if (energy <= weapon_energy_use * multiplier)
 	{
 		[UNIVERSE addMessage:DESC(@"weapon-out-of-juice") forCount:3.0];
 		return NO;
@@ -5676,27 +5683,27 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	using_mining_laser = [weapon_to_be_fired isMiningLaser];
 
-	energy -= weapon_energy_use;
+	energy -= weapon_energy_use * multiplier;
 
 	switch (currentWeaponFacing)
 	{
 		case WEAPON_FACING_FORWARD:
-			forward_weapon_temp += weapon_shot_temperature;
+			forward_weapon_temp += weapon_shot_temperature * multiplier;
 			forward_shot_time = 0.0;
 			break;
 			
 		case WEAPON_FACING_AFT:
-			aft_weapon_temp += weapon_shot_temperature;
+			aft_weapon_temp += weapon_shot_temperature * multiplier;
 			aft_shot_time = 0.0;
 			break;
 			
 		case WEAPON_FACING_PORT:
-			port_weapon_temp += weapon_shot_temperature;
+			port_weapon_temp += weapon_shot_temperature * multiplier;
 			port_shot_time = 0.0;
 			break;
 			
 		case WEAPON_FACING_STARBOARD:
-			starboard_weapon_temp += weapon_shot_temperature;
+			starboard_weapon_temp += weapon_shot_temperature * multiplier;
 			starboard_shot_time = 0.0;
 			break;
 			

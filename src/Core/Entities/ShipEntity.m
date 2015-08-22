@@ -11403,7 +11403,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return NO;
 
-	if (energy <= weapon_energy_use) return NO;
+	NSUInteger multiplier = 1;
+	if (_multiplyWeapons)
+	{
+		// multiple fitted
+		multiplier = [[self laserPortOffset:direction] count];
+	}
+
+	if (energy <= weapon_energy_use * multiplier) return NO;
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	if (![weapon_type isTurretLaser])
 	{ // thargoid laser may just pick secondary target in this case
@@ -11429,23 +11436,23 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	if (fired)
 	{
-		energy -= weapon_energy_use;
+		energy -= weapon_energy_use * multiplier;
 		switch (direction)
 		{
 			case WEAPON_FACING_FORWARD:
-				forward_weapon_temp += weapon_shot_temperature;
+				forward_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_AFT:
-				aft_weapon_temp += weapon_shot_temperature;
+				aft_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_PORT:
-				port_weapon_temp += weapon_shot_temperature;
+				port_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_STARBOARD:
-				starboard_weapon_temp += weapon_shot_temperature;
+				starboard_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_NONE:
@@ -11860,92 +11867,110 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	double			range_limit2 = weaponRange * weaponRange;
 	GLfloat			hit_at_range;
+	NSUInteger		i, barrels;
 	Vector			vel = vector_multiply_scalar(v_forward, flightSpeed);
 	NSArray 		*laserPortOffsets = [self laserPortOffset:direction];
+	OOLaserShotEntity *shot = nil;
 
-	Vector 			laserPortOffset = [laserPortOffsets oo_vectorAtIndex:0];
 	
-	last_shot_time = [UNIVERSE getTime];
+	barrels = [laserPortOffsets count];
 
-	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:laserPortOffset gettingRangeFound:&hit_at_range];
-	[self setShipHitByLaser:victim];
-	
-	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self direction:direction offset:laserPortOffset];
-	
-	[shot setColor:laser_color];
-	[shot setScanClass: CLASS_NO_DRAW];
-	[shot setVelocity: vel];
-	
-	if (victim != nil)
+	GLfloat			effective_damage = weapon_damage;
+	if (barrels > 1 && !_multiplyWeapons)
 	{
-		[self adjustMissedShots:-1];
-		if ([self isPlayer])
-		{
-			[PLAYER addRoleForAggression:victim];
-		}
-		
-		/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
-			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
-			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
-			the latter. Probable solution: dying subentities must cause parent to clean up
-			properly. This was probably obscured by the entity recycling scheme in the past.
-			Fix: made subentity_taking_damage a weak reference accessed via a method.
-			-- Ahruman 20070706, 20080304
-		*/
-		ShipEntity *subent = [victim subEntityTakingDamage];
-		if (subent != nil && [victim isFrangible])
-		{
-			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf:self];
-			victim = subent;
-		}
-		
-		if (hit_at_range * hit_at_range < range_limit2)
-		{
-			[victim takeEnergyDamage:weapon_damage from:self becauseOf:self];	// a very palpable hit
-
-			[shot setRange:hit_at_range];
-			Vector vd = vector_forward_from_quaternion([shot orientation]);
-			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
-			[UNIVERSE addLaserHitEffectsAt:flash_pos against:victim damage:weapon_damage color:laser_color];
-		}
+		// then divide the shot power between the shots
+		effective_damage /= (GLfloat)barrels;
 	}
-	else
+	
+	for (i=0;i<barrels;i++)
 	{
-		[self adjustMissedShots:+1];
+		Vector 			laserPortOffset = [laserPortOffsets oo_vectorAtIndex:i];
+	
+		last_shot_time = [UNIVERSE getTime];
 
-		// shot missed
-		if (![self isCloaked])
+		ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:laserPortOffset gettingRangeFound:&hit_at_range];
+		[self setShipHitByLaser:victim];
+	
+		shot = [OOLaserShotEntity laserFromShip:self direction:direction offset:laserPortOffset];
+	
+		[shot setColor:laser_color];
+		[shot setScanClass: CLASS_NO_DRAW];
+		[shot setVelocity: vel];
+	
+		if (victim != nil)
 		{
-			victim = [self primaryTarget];
-			if ([victim isShip]) // it might not be - fixes crash bug
+			[self adjustMissedShots:-1];
+			if ([self isPlayer])
 			{
+				[PLAYER addRoleForAggression:victim];
+			}
+		
+			/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
+				Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
+				object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
+				the latter. Probable solution: dying subentities must cause parent to clean up
+				properly. This was probably obscured by the entity recycling scheme in the past.
+				Fix: made subentity_taking_damage a weak reference accessed via a method.
+				-- Ahruman 20070706, 20080304
+			*/
+			ShipEntity *subent = [victim subEntityTakingDamage];
+			if (subent != nil && [victim isFrangible])
+			{
+				// do 1% bleed-through damage...
+				[victim takeEnergyDamage: 0.01 * effective_damage from:self becauseOf:self];
+				victim = subent;
+			}
+		
+			if (hit_at_range * hit_at_range < range_limit2)
+			{
+				[victim takeEnergyDamage:effective_damage from:self becauseOf:self];	// a very palpable hit
 
-				/* player currently gets a bit of an advantage here if they ambush
-				 * without having their target actually targeted. Though in those
-				 * circumstances they shouldn't be missing their first shot
-				 * anyway. */
-				if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal([self vectorTo:victim])) > 0.995)
+				[shot setRange:hit_at_range];
+				Vector vd = vector_forward_from_quaternion([shot orientation]);
+				HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
+				[UNIVERSE addLaserHitEffectsAt:flash_pos against:victim damage:effective_damage color:laser_color];
+			}
+		}
+		else
+		{
+			[self adjustMissedShots:+1];
+
+			// shot missed
+			if (![self isCloaked])
+			{
+				victim = [self primaryTarget];
+				if ([victim isShip]) // it might not be - fixes crash bug
 				{
-					/* plausibly aimed at target. Allows reaction before attacker
-					 * actually hits. But we need to be able to distinguish in AI
-					 * from ATTACKED so that ships in combat aren't bothered by
-					 * amateurs. So should only respond to ATTACKER_MISSED if not
-					 * already fighting */
-					if ([self isPlayer])
+
+					/* player currently gets a bit of an advantage here if
+					 * they ambush without having their target actually
+					 * targeted. Though in those circumstances they
+					 * shouldn't be missing their first shot anyway. */
+					if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal([self vectorTo:victim])) > 0.995)
 					{
-						[PLAYER addRoleForAggression:victim];
+						/* plausibly aimed at target. Allows reaction
+						 * before attacker actually hits. But we need to
+						 * be able to distinguish in AI from ATTACKED so
+						 * that ships in combat aren't bothered by
+						 * amateurs. So should only respond to
+						 * ATTACKER_MISSED if not already fighting */
+						if ([self isPlayer])
+						{
+							[PLAYER addRoleForAggression:victim];
+						}
+						[victim setPrimaryAggressor:self];
+						[victim setFoundTarget:self];
+						[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+						[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
 					}
-					[victim setPrimaryAggressor:self];
-					[victim setFoundTarget:self];
-					[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
-					[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
 				}
 			}
 		}
+	
+		[UNIVERSE addEntity:shot];
+
 	}
 	
-	[UNIVERSE addEntity:shot];
 	if ([self isPlayer])
 	{
 		[(PlayerEntity *)self setLastShot:shot];
