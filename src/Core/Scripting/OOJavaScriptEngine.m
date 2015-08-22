@@ -1904,6 +1904,17 @@ NSString *OOJSDescribeValue(JSContext *context, jsval value, BOOL abbreviateObje
 
 @end
 
+@implementation OONativeVector (OOJavaScriptConversion)
+
+- (jsval)oo_jsValueInContext:(JSContext *)context
+{
+	jsval value = JSVAL_VOID;
+	VectorToJSValue(context, v, &value);
+	return value;
+}
+
+@end
+
 
 @implementation NSDictionary (OOJavaScriptConversion)
 

@@ -4122,6 +4122,9 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 
 		// check lasers
 		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD strict:NO];
+		/* Not affected by multiple mounts here: they're either just a
+		 * split of the power, or only more dangerous until they
+		 * overheat */
 		assessment += ShipThreatAssessmentWeapon(wt);
 		if (isWeaponNone(wt))
 		{

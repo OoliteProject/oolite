@@ -1971,7 +1971,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-#define MAKE_VECTOR_ARRAY(v) [NSArray arrayWithObjects:[NSNumber numberWithFloat:v.x], [NSNumber numberWithFloat:v.y], [NSNumber numberWithFloat:v.z], nil]
+#define MAKE_VECTOR_ARRAY(v) [[[OONativeVector alloc] initWithVector:v] autorelease]
 
 - (NSArray *) getWeaponOffsetFrom:(NSDictionary *)dict withKey:(NSString *)key inMode:(NSString *)mode
 {
@@ -11467,7 +11467,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		ShipEntity		*se = nil;
 		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 		{
-			if ([se fireSubentityLaserShot:range])  fired = YES;
+			if ([se fireSubentityLaserShot:range])
+			{
+				fired = YES;
+			}
 		}
 	}
 	
