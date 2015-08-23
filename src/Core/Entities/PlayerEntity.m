@@ -8796,15 +8796,15 @@ static NSString *last_outfitting_key=nil;
 
 				}
 				
+				NSString *timeString = [UNIVERSE shortTimeDescription:installTime];
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
 
-				NSString *timeString = [UNIVERSE shortTimeDescription:installTime];
-				
 				if ([eqKeyForSelectFacing isEqualToString:eqKey])
 				{
 					// Weapons purchase subscreen.
 					while (facing_count < 5)
 					{
+						NSUInteger multiplier = 1;
 						switch (facing_count)
 						{
 							case 0:
@@ -8814,24 +8814,40 @@ static NSString *last_outfitting_key=nil;
 								displayRow = available_facings & WEAPON_FACING_FORWARD;
 								desc = FORWARD_FACING_STRING;
 								weaponMounted = !isWeaponNone(forward_weapon_type);
+								if (_multiplyWeapons)
+								{
+									multiplier = [forwardWeaponOffset count];
+								}
 								break;
 								
 							case 2:
 								displayRow = available_facings & WEAPON_FACING_AFT;
 								desc = AFT_FACING_STRING;
 								weaponMounted = !isWeaponNone(aft_weapon_type);
+								if (_multiplyWeapons)
+								{
+									multiplier = [aftWeaponOffset count];
+								}
 								break;
 								
 							case 3:
 								displayRow = available_facings & WEAPON_FACING_PORT;
 								desc = PORT_FACING_STRING;
 								weaponMounted = !isWeaponNone(port_weapon_type);
+								if (_multiplyWeapons)
+								{
+									multiplier = [portWeaponOffset count];
+								}
 								break;
 								
 							case 4:
 								displayRow = available_facings & WEAPON_FACING_STARBOARD;
 								desc = STARBOARD_FACING_STRING;
 								weaponMounted = !isWeaponNone(starboard_weapon_type);
+								if (_multiplyWeapons)
+								{
+									multiplier = [starboardWeaponOffset count];
+								}
 								break;
 						}
 						
@@ -8845,6 +8861,9 @@ static NSString *last_outfitting_key=nil;
 						}
 						if (displayRow)	// Always true for the first pass. The first pass is used to display the name of the weapon being purchased.
 						{
+
+							priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price*multiplier)];
+
 							[gui setKey:eqKey forRow:row];
 							[gui setArray:[NSArray arrayWithObjects:desc, (facing_count > 0 ? priceString : (NSString *)@""), timeString, nil] forRow:row];
 							row++;
@@ -9702,39 +9721,63 @@ static NSString *last_outfitting_key=nil;
 		
 		OOWeaponType chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
 		OOWeaponType current_weapon = nil;
+
+		NSUInteger multiplier = 1;
 		
 		switch (chosen_weapon_facing)
 		{
 			case WEAPON_FACING_FORWARD:
 				current_weapon = forward_weapon_type;
 				forward_weapon_type = chosen_weapon;
+				if (_multiplyWeapons)
+				{
+					multiplier = [forwardWeaponOffset count];
+				}
 				break;
 				
 			case WEAPON_FACING_AFT:
 				current_weapon = aft_weapon_type;
 				aft_weapon_type = chosen_weapon;
+				if (_multiplyWeapons)
+				{
+					multiplier = [aftWeaponOffset count];
+				}
 				break;
 				
 			case WEAPON_FACING_PORT:
 				current_weapon = port_weapon_type;
 				port_weapon_type = chosen_weapon;
+				if (_multiplyWeapons)
+				{
+					multiplier = [portWeaponOffset count];
+				}
 				break;
 				
 			case WEAPON_FACING_STARBOARD:
 				current_weapon = starboard_weapon_type;
 				starboard_weapon_type = chosen_weapon;
+				if (_multiplyWeapons)
+				{
+					multiplier = [starboardWeaponOffset count];
+				}
 				break;
 				
 			case WEAPON_FACING_NONE:
 				break;
 		}
+
+		price *= multiplier;
 		
 		credits -= price;
+		if (price > credits)
+		{
+			return NO;
+		}
 		
 		// Refund current_weapon
 		if (current_weapon != nil)
 		{
-			tradeIn = [UNIVERSE getEquipmentPriceForKey:OOEquipmentIdentifierFromWeaponType(current_weapon)];
+			tradeIn = [UNIVERSE getEquipmentPriceForKey:OOEquipmentIdentifierFromWeaponType(current_weapon)] * multiplier;
 		}
 		
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
