@@ -154,8 +154,6 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 - (void) addSubentityToCollisionRadius:(Entity<OOSubEntity> *) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
 
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOWeaponFacing)direction;
-
 // equipment
 - (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
 
@@ -465,28 +463,16 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 
 	// set weapon offsets
-	[self setDefaultWeaponOffsets];
+	NSString *weaponMountMode = [shipDict oo_stringForKey:@"weapon_mount_mode" defaultValue:@"single"];
+	_multiplyWeapons = [weaponMountMode isEqualToString:@"multiply"];
+	forwardWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_forward" inMode:weaponMountMode] retain];
+	aftWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_aft" inMode:weaponMountMode] retain];
+	portWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_port" inMode:weaponMountMode] retain];
+	starboardWeaponOffset = [[self getWeaponOffsetFrom:shipDict withKey:@"weapon_position_starboard" inMode:weaponMountMode] retain];
+
 	
-	if (EXPECT(_scaleFactor == 1.0))
-	{
-		forwardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset];
-		aftWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset];
-		portWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset];
-		starboardWeaponOffset = [shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset];
-
-		// fuel scoop destination position (where cargo gets sucked into)
-		tractor_position = [shipDict oo_vectorForKey:@"scoop_position"];
-
-	}
-	else
-	{
-		forwardWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_forward" defaultValue:forwardWeaponOffset],_scaleFactor);
-		aftWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_aft" defaultValue:aftWeaponOffset],_scaleFactor);
-		portWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_port" defaultValue:portWeaponOffset],_scaleFactor);
-		starboardWeaponOffset = vector_multiply_scalar([shipDict oo_vectorForKey:@"weapon_position_starboard" defaultValue:starboardWeaponOffset],_scaleFactor);
-
-		tractor_position = vector_multiply_scalar([shipDict oo_vectorForKey:@"scoop_position"],_scaleFactor);
-	}
+	tractor_position = vector_multiply_scalar([shipDict oo_vectorForKey:@"scoop_position"],_scaleFactor);
+	
 
 	
 	// sun glare filter - default is no filter
@@ -1106,6 +1092,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	DESTROY(octree);
 	DESTROY(_defenseTargets);
 	DESTROY(_collisionExceptions);
+
+	DESTROY(forwardWeaponOffset);
+	DESTROY(aftWeaponOffset);
+	DESTROY(portWeaponOffset);
+	DESTROY(starboardWeaponOffset);
 	
 	DESTROY(commodity_type);
 
@@ -1980,34 +1971,53 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 }
 
 
-- (void) setDefaultWeaponOffsets
+#define MAKE_VECTOR_ARRAY(v) [[[OONativeVector alloc] initWithVector:v] autorelease]
+
+- (NSArray *) getWeaponOffsetFrom:(NSDictionary *)dict withKey:(NSString *)key inMode:(NSString *)mode
 {
-	forwardWeaponOffset = kZeroVector;
-	aftWeaponOffset = kZeroVector;
-	portWeaponOffset = kZeroVector;
-	starboardWeaponOffset = kZeroVector;
+	Vector offset;
+	if ([mode isEqualToString:@"single"])
+	{
+		offset = vector_multiply_scalar([dict oo_vectorForKey:key defaultValue:kZeroVector],_scaleFactor);
+		return [NSArray arrayWithObject:MAKE_VECTOR_ARRAY(offset)];
+	}
+	else
+	{
+		NSArray *offsets = [dict oo_arrayForKey:key defaultValue:nil];
+		if (offsets == nil) {
+			offset = kZeroVector;
+			return [NSArray arrayWithObject:MAKE_VECTOR_ARRAY(offset)];
+		}
+		NSMutableArray *output = [NSMutableArray arrayWithCapacity:[offsets count]];
+		NSUInteger i;
+		for (i=0;i<[offsets count];i++) {
+			offset = vector_multiply_scalar([offsets oo_vectorAtIndex:i defaultValue:kZeroVector],_scaleFactor);
+			[output addObject:MAKE_VECTOR_ARRAY(offset)];
+		}
+		return [NSArray arrayWithArray:output];
+	}
 }
 
 
-- (Vector) aftWeaponOffset
+- (NSArray *) aftWeaponOffset
 {
 	return aftWeaponOffset;
 }
 
 
-- (Vector) forwardWeaponOffset
+- (NSArray *) forwardWeaponOffset
 {
 	return forwardWeaponOffset;
 }
 
 
-- (Vector) portWeaponOffset
+- (NSArray *) portWeaponOffset
 {
 	return portWeaponOffset;
 }
 
 
-- (Vector) starboardWeaponOffset
+- (NSArray *) starboardWeaponOffset
 {
 	return starboardWeaponOffset;
 }
@@ -11393,7 +11403,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	if (weapon_temp / NPC_MAX_WEAPON_TEMP >= WEAPON_COOLING_CUTOUT) return NO;
 
-	if (energy <= weapon_energy_use) return NO;
+	NSUInteger multiplier = 1;
+	if (_multiplyWeapons)
+	{
+		// multiple fitted
+		multiplier = [[self laserPortOffset:direction] count];
+	}
+
+	if (energy <= weapon_energy_use * multiplier) return NO;
 	if ([self shotTime] < weapon_recharge_rate)  return NO;
 	if (![weapon_type isTurretLaser])
 	{ // thargoid laser may just pick secondary target in this case
@@ -11419,23 +11436,23 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 	if (fired)
 	{
-		energy -= weapon_energy_use;
+		energy -= weapon_energy_use * multiplier;
 		switch (direction)
 		{
 			case WEAPON_FACING_FORWARD:
-				forward_weapon_temp += weapon_shot_temperature;
+				forward_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_AFT:
-				aft_weapon_temp += weapon_shot_temperature;
+				aft_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_PORT:
-				port_weapon_temp += weapon_shot_temperature;
+				port_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_STARBOARD:
-				starboard_weapon_temp += weapon_shot_temperature;
+				starboard_weapon_temp += weapon_shot_temperature * multiplier;
 				break;
 				
 			case WEAPON_FACING_NONE:
@@ -11450,7 +11467,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		ShipEntity		*se = nil;
 		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 		{
-			if ([se fireSubentityLaserShot:range])  fired = YES;
+			if ([se fireSubentityLaserShot:range])
+			{
+				fired = YES;
+			}
 		}
 	}
 	
@@ -11820,9 +11840,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (Vector) laserPortOffset:(OOWeaponFacing)direction
+- (NSArray *) laserPortOffset:(OOWeaponFacing)direction
 {
-	Vector laserPortOffset = kZeroVector;
+	NSArray *laserPortOffset = nil;
 	switch (direction)
 	{
 		case WEAPON_FACING_FORWARD:
@@ -11850,90 +11870,110 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	double			range_limit2 = weaponRange * weaponRange;
 	GLfloat			hit_at_range;
+	NSUInteger		i, barrels;
 	Vector			vel = vector_multiply_scalar(v_forward, flightSpeed);
-	Vector			laserPortOffset = [self laserPortOffset:direction];
+	NSArray 		*laserPortOffsets = [self laserPortOffset:direction];
+	OOLaserShotEntity *shot = nil;
 
-	last_shot_time = [UNIVERSE getTime];
+	
+	barrels = [laserPortOffsets count];
 
-	ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:laserPortOffset gettingRangeFound:&hit_at_range];
-	[self setShipHitByLaser:victim];
-	
-	OOLaserShotEntity *shot = [OOLaserShotEntity laserFromShip:self direction:direction offset:laserPortOffset];
-	
-	[shot setColor:laser_color];
-	[shot setScanClass: CLASS_NO_DRAW];
-	[shot setVelocity: vel];
-	
-	if (victim != nil)
+	GLfloat			effective_damage = weapon_damage;
+	if (barrels > 1 && !_multiplyWeapons)
 	{
-		[self adjustMissedShots:-1];
-		if ([self isPlayer])
-		{
-			[PLAYER addRoleForAggression:victim];
-		}
-		
-		/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
-			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
-			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
-			the latter. Probable solution: dying subentities must cause parent to clean up
-			properly. This was probably obscured by the entity recycling scheme in the past.
-			Fix: made subentity_taking_damage a weak reference accessed via a method.
-			-- Ahruman 20070706, 20080304
-		*/
-		ShipEntity *subent = [victim subEntityTakingDamage];
-		if (subent != nil && [victim isFrangible])
-		{
-			// do 1% bleed-through damage...
-			[victim takeEnergyDamage: 0.01 * weapon_damage from:self becauseOf:self];
-			victim = subent;
-		}
-		
-		if (hit_at_range * hit_at_range < range_limit2)
-		{
-			[victim takeEnergyDamage:weapon_damage from:self becauseOf:self];	// a very palpable hit
-
-			[shot setRange:hit_at_range];
-			Vector vd = vector_forward_from_quaternion([shot orientation]);
-			HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
-			[UNIVERSE addLaserHitEffectsAt:flash_pos against:victim damage:weapon_damage color:laser_color];
-		}
+		// then divide the shot power between the shots
+		effective_damage /= (GLfloat)barrels;
 	}
-	else
+	
+	for (i=0;i<barrels;i++)
 	{
-		[self adjustMissedShots:+1];
+		Vector 			laserPortOffset = [laserPortOffsets oo_vectorAtIndex:i];
+	
+		last_shot_time = [UNIVERSE getTime];
 
-		// shot missed
-		if (![self isCloaked])
+		ShipEntity *victim = [UNIVERSE firstShipHitByLaserFromShip:self inDirection:direction offset:laserPortOffset gettingRangeFound:&hit_at_range];
+		[self setShipHitByLaser:victim];
+	
+		shot = [OOLaserShotEntity laserFromShip:self direction:direction offset:laserPortOffset];
+	
+		[shot setColor:laser_color];
+		[shot setScanClass: CLASS_NO_DRAW];
+		[shot setVelocity: vel];
+	
+		if (victim != nil)
 		{
-			victim = [self primaryTarget];
-			if ([victim isShip]) // it might not be - fixes crash bug
+			[self adjustMissedShots:-1];
+			if ([self isPlayer])
 			{
+				[PLAYER addRoleForAggression:victim];
+			}
+		
+			/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
+				Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
+				object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
+				the latter. Probable solution: dying subentities must cause parent to clean up
+				properly. This was probably obscured by the entity recycling scheme in the past.
+				Fix: made subentity_taking_damage a weak reference accessed via a method.
+				-- Ahruman 20070706, 20080304
+			*/
+			ShipEntity *subent = [victim subEntityTakingDamage];
+			if (subent != nil && [victim isFrangible])
+			{
+				// do 1% bleed-through damage...
+				[victim takeEnergyDamage: 0.01 * effective_damage from:self becauseOf:self];
+				victim = subent;
+			}
+		
+			if (hit_at_range * hit_at_range < range_limit2)
+			{
+				[victim takeEnergyDamage:effective_damage from:self becauseOf:self];	// a very palpable hit
 
-				/* player currently gets a bit of an advantage here if they ambush
-				 * without having their target actually targeted. Though in those
-				 * circumstances they shouldn't be missing their first shot
-				 * anyway. */
-				if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal([self vectorTo:victim])) > 0.995)
+				[shot setRange:hit_at_range];
+				Vector vd = vector_forward_from_quaternion([shot orientation]);
+				HPVector flash_pos = HPvector_add([shot position], vectorToHPVector(vector_multiply_scalar(vd, hit_at_range)));
+				[UNIVERSE addLaserHitEffectsAt:flash_pos against:victim damage:effective_damage color:laser_color];
+			}
+		}
+		else
+		{
+			[self adjustMissedShots:+1];
+
+			// shot missed
+			if (![self isCloaked])
+			{
+				victim = [self primaryTarget];
+				if ([victim isShip]) // it might not be - fixes crash bug
 				{
-					/* plausibly aimed at target. Allows reaction before attacker
-					 * actually hits. But we need to be able to distinguish in AI
-					 * from ATTACKED so that ships in combat aren't bothered by
-					 * amateurs. So should only respond to ATTACKER_MISSED if not
-					 * already fighting */
-					if ([self isPlayer])
+
+					/* player currently gets a bit of an advantage here if
+					 * they ambush without having their target actually
+					 * targeted. Though in those circumstances they
+					 * shouldn't be missing their first shot anyway. */
+					if (dot_product(vector_forward_from_quaternion([shot orientation]),vector_normal([self vectorTo:victim])) > 0.995)
 					{
-						[PLAYER addRoleForAggression:victim];
+						/* plausibly aimed at target. Allows reaction
+						 * before attacker actually hits. But we need to
+						 * be able to distinguish in AI from ATTACKED so
+						 * that ships in combat aren't bothered by
+						 * amateurs. So should only respond to
+						 * ATTACKER_MISSED if not already fighting */
+						if ([self isPlayer])
+						{
+							[PLAYER addRoleForAggression:victim];
+						}
+						[victim setPrimaryAggressor:self];
+						[victim setFoundTarget:self];
+						[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
+						[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
 					}
-					[victim setPrimaryAggressor:self];
-					[victim setFoundTarget:self];
-					[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
-					[victim doScriptEvent:OOJSID("shipBeingAttackedUnsuccessfully") withArgument:self];
 				}
 			}
 		}
+	
+		[UNIVERSE addEntity:shot];
+
 	}
 	
-	[UNIVERSE addEntity:shot];
 	if ([self isPlayer])
 	{
 		[(PlayerEntity *)self setLastShot:shot];
@@ -12006,89 +12046,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	[spark release];
 
 	next_spark_time = randf();
-}
-
-
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color
-{
-	return [self firePlasmaShotAtOffset:offset speed:speed color:color direction:WEAPON_FACING_FORWARD];
-}
-
-
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOWeaponFacing)direction
-{
-	Vector  vel, rt;
-	HPVector  origin = position;
-	double  start = collision_radius + 0.5;
-
-	speed += flightSpeed;
-
-	if (++shot_counter % 2)
-		offset = -offset;
-
-	vel = v_forward;
-	rt = v_right;
-	Vector	plasmaPortOffset = forwardWeaponOffset;
-
-	if (isPlayer)					// player can fire into multiple views!
-	{
-		switch ([UNIVERSE viewDirection])
-		{
-			case VIEW_AFT :
-				plasmaPortOffset = aftWeaponOffset;
-				vel = vector_flip(v_forward);
-				rt = vector_flip(v_right);
-				break;
-			case VIEW_STARBOARD :
-				plasmaPortOffset = starboardWeaponOffset;
-				vel = v_right;
-				rt = vector_flip(v_forward);
-				break;
-			case VIEW_PORT :
-				plasmaPortOffset = portWeaponOffset;
-				vel = vector_flip(v_right);
-				rt = v_forward;
-				break;
-			
-			default:
-				break;
-		}
-	}
-	else
-	{
-		if (direction == (OOWeaponFacing)VIEW_AFT)	// two different enums being compared here
-		{
-			plasmaPortOffset = aftWeaponOffset;
-			vel = vector_flip(v_forward);
-			rt = vector_flip(v_right);
-		}
-	}
-	
-	if (vector_equal(plasmaPortOffset, kZeroVector))
-	{
-		origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(vel, start))); // no WeaponOffset defined
-	}
-	else
-	{
-		origin = HPvector_add(origin, vectorToHPVector(quaternion_rotate_vector([self normalOrientation], plasmaPortOffset)));
-	}
-	origin = HPvector_add(origin, vectorToHPVector(vector_multiply_scalar(rt, offset))); // With 'offset > 0' we get a twin-cannon.
-	
-	vel = vector_multiply_scalar(vel, speed);
-	
-	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
-																   velocity:vel
-																	 energy:weapon_damage
-																   duration:MAIN_PLASMA_DURATION
-																	  color:color];
-	
-	[UNIVERSE addEntity:shot];
-	[shot setOwner:[self rootShipEntity]];
-	[shot release];
-	
-	[self resetShotTime];
-	
-	return YES;
 }
 
 

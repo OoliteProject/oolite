@@ -813,16 +813,21 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsid propID, j
 			return JS_NewNumberValue(context, [entity weaponFacings], value);
 		
 		case kShip_weaponPositionAft:
-			return VectorToJSValue(context, [entity aftWeaponOffset], value);
+			result = [entity aftWeaponOffset];
+			break;
 		
 		case kShip_weaponPositionForward:
-			return VectorToJSValue(context, [entity forwardWeaponOffset], value);
+			result = [entity forwardWeaponOffset];
+			break;
+//			return VectorToJSValue(context, [entity forwardWeaponOffset], value);
 		
 		case kShip_weaponPositionPort:
-			return VectorToJSValue(context, [entity portWeaponOffset], value);
+			result = [entity portWeaponOffset];
+			break;
 		
 		case kShip_weaponPositionStarboard:
-			return VectorToJSValue(context, [entity starboardWeaponOffset], value);
+			result = [entity starboardWeaponOffset];
+			break;
 		
 		case kShip_scannerRange:
 			return JS_NewNumberValue(context, [entity scannerRange], value);
@@ -4117,6 +4122,9 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 
 		// check lasers
 		OOWeaponType wt = [thisEnt weaponTypeIDForFacing:WEAPON_FACING_FORWARD strict:NO];
+		/* Not affected by multiple mounts here: they're either just a
+		 * split of the power, or only more dangerous until they
+		 * overheat */
 		assessment += ShipThreatAssessmentWeapon(wt);
 		if (isWeaponNone(wt))
 		{
