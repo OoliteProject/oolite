@@ -5234,13 +5234,11 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		[ship setPendingEscortCount:0];
 		
 		[UNIVERSE addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL
-		
-		[ship setDemoShip: 1.0f];
-		//if (spinning)
-		//{
-		//	[ship setRoll:M_PI/5.0];	// roll must be set after addEntity or stations will not roll in demo.
-		//	[ship setPitch:M_PI/10.0];
-		//}
+
+		if (spinning)
+		{
+			[ship setDemoShip: 1.0f];
+		}
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		// stop problems on the ship library screen
 		// demo ships shouldn't have this equipment
