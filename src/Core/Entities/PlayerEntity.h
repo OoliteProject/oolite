@@ -720,7 +720,7 @@ typedef enum
 	WormholeEntity			*wormhole;
 
 	ShipEntity				*demoShip; // Used while docked to maintain demo ship rotation.
-	OOLaserShotEntity *lastShot; // used to correctly position laser shots on first frame of firing
+	NSArray                 *lastShot; // used to correctly position laser shots on first frame of firing
 	
 	StickProfileScreen		*stickProfileScreen;
 
@@ -1155,7 +1155,7 @@ typedef enum
 - (BOOL) removeMissionDestinationMarker:(NSDictionary *)marker;
 - (NSMutableDictionary*) getMissionDestinations;
 
-- (void) setLastShot:(OOLaserShotEntity *)shot;
+- (void) setLastShot:(NSArray *)shot;
 
 - (void) showShipModelWithKey:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality factorX:(GLfloat)factorX factorY:(GLfloat)factorY factorZ:(GLfloat)factorZ inContext:(NSString *)context;
 

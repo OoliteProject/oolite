@@ -11875,9 +11875,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	NSArray 		*laserPortOffsets = [self laserPortOffset:direction];
 	OOLaserShotEntity *shot = nil;
 
-	
 	barrels = [laserPortOffsets count];
+	NSMutableArray *shotEntities = [NSMutableArray arrayWithCapacity:barrels];
 
+	
 	GLfloat			effective_damage = weapon_damage;
 	if (barrels > 1 && !_multiplyWeapons)
 	{
@@ -11895,6 +11896,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[self setShipHitByLaser:victim];
 	
 		shot = [OOLaserShotEntity laserFromShip:self direction:direction offset:laserPortOffset];
+		if ([self isPlayer])
+		{
+			[shotEntities addObject:shot];
+		}
 	
 		[shot setColor:laser_color];
 		[shot setScanClass: CLASS_NO_DRAW];
@@ -11976,7 +11981,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	
 	if ([self isPlayer])
 	{
-		[(PlayerEntity *)self setLastShot:shot];
+		[(PlayerEntity *)self setLastShot:shotEntities];
 	}
 	
 	[self resetShotTime];

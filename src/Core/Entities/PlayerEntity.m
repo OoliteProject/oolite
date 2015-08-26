@@ -2174,7 +2174,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	DESTROY(scenarioKey);
 	
 	DESTROY(_customViews);
-	
+	DESTROY(lastShot);
+
 	DESTROY(dockingReport);
 	
 	[self destroySound];
@@ -2864,8 +2865,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// mispositioned laser beams particularly noticeable on side view.
 	if (lastShot != nil)
 	{
-		[lastShot update:0.0];
-		lastShot = nil;
+		OOLaserShotEntity *lse = nil;
+		foreach (lse, lastShot)
+		{
+			[lse update:0.0];
+		}
+		DESTROY(lastShot);
 	}
 	
 	STAGE_TRACKING_END
@@ -12365,15 +12370,9 @@ else _dockTarget = NO_TARGET;
 }
 
 
-- (void) setLastShot:(OOLaserShotEntity *)shot
+- (void) setLastShot:(NSArray *)shot
 {
-	lastShot = shot; 
-/* No need to retain it, since the universe will be for as long as we
- * reference it. This is needed because the laser shot update routine
- * is used to correct its position relative to the ship, but isn't
- * called by Universe on the frame the shot is added (because updates
- * never are)
- */
+	lastShot = [shot retain]; 
 }
 
 #ifndef NDEBUG
