@@ -2043,7 +2043,10 @@ keys[a] = NO; keys[b] = NO; \
 									SetWindowPlacement(SDL_Window, &wp);
 								}
 			
-								MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+								if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
+								{
+									MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+								}
 								
 								if (fullScreenMaximized)
 								{
