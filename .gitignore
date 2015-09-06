@@ -23,6 +23,7 @@ obj.win.spk
 obj.spk.dbg
 obj.win.spk.dbg
 AddOns/
+tools/icosmesh/obj
 
 # Debug output
 /core
