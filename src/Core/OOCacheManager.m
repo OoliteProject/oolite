@@ -181,7 +181,7 @@ static OOCacheManager *sSingleton = nil;
 	}
 	else
 	{
-		OODebugLog(kOOLogDataCacheRetrieveFailed, @"Failed to retreive \"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
+		OODebugLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrieve \"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
 	}
 	
 	return result;
