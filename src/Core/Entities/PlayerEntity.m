@@ -203,7 +203,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		else 
 		{
 			// This happened on startup when [UNIVERSE setUpSpace] was called before player init, inside [UNIVERSE setUpInitialUniverse].
-			OOLog(@"fuelPrices", @"Player ship not initialised properly yet, using precalculated base mass.");
+			OOLog(@"fuelPrices", @"%@", @"Player ship not initialised properly yet, using precalculated base mass.");
 			return 185580.0;
 		}
 	}
@@ -324,7 +324,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	else
 	{
-		OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
+		OOLogERR(@"player.loadCargoPods.noContainer", @"%@", @"couldn't create a container in [PlayerEntity loadCargoPods]");
 		// throw an exception here...
 		[NSException raise:OOLITE_EXCEPTION_FATAL
 								format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
@@ -1489,12 +1489,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		*/
 		if ([self mountMissileWithRole:@"EQ_QC_MINE"])
 		{
-			OOLog(@"load.upgrade.replacedEnergyBomb", @"Replaced legacy energy bomb with Quirium cascade mine.");
+			OOLog(@"load.upgrade.replacedEnergyBomb", @"%@", @"Replaced legacy energy bomb with Quirium cascade mine.");
 		}
 		else
 		{
 			credits += 9000;
-			OOLog(@"load.upgrade.replacedEnergyBomb", @"Compensated legacy energy bomb with 900 credits.");
+			OOLog(@"load.upgrade.replacedEnergyBomb", @"%@", @"Compensated legacy energy bomb with 900 credits.");
 		}
 	}
 	
@@ -1663,7 +1663,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		// set up STATUS_DEAD
 		[self setDockedStation:nil];	// needed for STATUS_DEAD
 		[self setStatus:STATUS_DEAD];
-		OOLog(@"script.javascript.init.error", @"Scheduling new JavaScript reset.");
+		OOLog(@"script.javascript.init.error", @"%@", @"Scheduling new JavaScript reset.");
 		shot_time = kDeadResetTime - 0.02f;	// schedule reinit 20 milliseconds from now.
 		
 		if (![gc inFullScreenMode])	[gc startAnimationTimer];	// keep the game ticking over.
@@ -3786,7 +3786,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		switch ([wh scanInfo])
 		{
 			case WH_SCANINFO_NONE:
-				OOLog(kOOLogInconsistentState, @"Internal Error - WH_SCANINFO_NONE reached in [PlayerEntity updateTargeting:]");
+				OOLog(kOOLogInconsistentState, @"%@", @"Internal Error - WH_SCANINFO_NONE reached in [PlayerEntity updateTargeting:]");
 				[self dumpState];
 				[wh dumpState];
 				// Workaround a reported hit of the assert here.  We really
@@ -4512,7 +4512,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		// Invariant/safety interlock: weapons offline implies missiles safe. -- Ahruman 2012-07-21
 		if (missile_status != MISSILE_STATUS_SAFE)
 		{
-			OOLogERR(@"player.missilesUnsafe", @"Missile state is not SAFE when weapons are offline. This is a bug, please report it.");
+			OOLogERR(@"player.missilesUnsafe", @"%@", @"Missile state is not SAFE when weapons are offline. This is a bug, please report it.");
 			[self safeAllMissiles];
 		}
 		return MISSILE_STATUS_SAFE;
@@ -6833,7 +6833,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	if ( ![self wormhole] && !galactic_witchjump)	// galactic hyperspace does not generate a wormhole
 	{
-		OOLog(kOOLogInconsistentState, @"Internal Error : Player entering witchspace with no wormhole.");
+		OOLog(kOOLogInconsistentState, @"%@", @"Internal Error : Player entering witchspace with no wormhole.");
 	}
 	[UNIVERSE allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
 	
@@ -8232,7 +8232,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		NSUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
 		if (displayModeIndex == NSNotFound)
 		{
-			OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
+			OOLogWARN(@"display.currentMode.notFound", @"%@", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
 		}
 		
@@ -9793,7 +9793,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if ([eqType isMissileOrMine] && missiles >= max_missiles)
 	{
-		OOLog(@"equip.buy.mounted.failed.full", @"rejecting missile because already full");
+		OOLog(@"equip.buy.mounted.failed.full", @"%@", @"rejecting missile because already full");
 		return NO;
 	}
 	
@@ -11383,7 +11383,7 @@ static NSString *last_outfitting_key=nil;
 		
 		if (info_failed)
 		{
-			OOLog(@"cheat.tentative", @"POSSIBLE CHEAT DETECTED");
+			OOLog(@"cheat.tentative", @"%@", @"POSSIBLE CHEAT DETECTED");
 			possible_cheat = YES;
 		}
 		
@@ -11403,7 +11403,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		if (possible_cheat && !info_failed)
-			OOLog(@"cheat.verified", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
+			OOLog(@"cheat.verified", @"%@", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
 	
 	if (info_failed && [[NSUserDefaults standardUserDefaults] objectForKey:namekey])
@@ -11425,7 +11425,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		if (!info_failed)
-			OOLog(@"cheat.verified", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
+			OOLog(@"cheat.verified", @"%@", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
 	// at this stage we've done the best we can to stop cheaters
 	trumbleCount = putativeNTrumbles;

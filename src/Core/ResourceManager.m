@@ -1140,12 +1140,12 @@ static NSMutableDictionary *sStringCache;
 	
 	if (EXPECT_NOT([[NSUserDefaults standardUserDefaults] boolForKey:@"always-flush-cache"]))
 	{
-		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
+		OOLog(kOOLogCacheExplicitFlush, @"%@", @"Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
 		upToDate = NO;
 	}
 	else if ([MyOpenGLView pollShiftKey])
 	{
-		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with shift key. Rebuilding from scratch.");
+		OOLog(kOOLogCacheExplicitFlush, @"%@", @"Cache explicitly flushed with shift key. Rebuilding from scratch.");
 		upToDate = NO;
 	}
 	
@@ -1153,7 +1153,7 @@ static NSMutableDictionary *sStringCache;
 	if (upToDate && ![oldPaths isEqual:searchPaths])
 	{
 		// OXPs added/removed
-		if (oldPaths != nil) OOLog(kOOLogCacheStalePaths, @"Cache is stale (search paths have changed). Rebuilding from scratch.");
+		if (oldPaths != nil) OOLog(kOOLogCacheStalePaths, @"%@", @"Cache is stale (search paths have changed). Rebuilding from scratch.");
 		upToDate = NO;
 	}
 	
@@ -1173,7 +1173,7 @@ static NSMutableDictionary *sStringCache;
 		
 	if (upToDate && ![[cacheMgr objectForKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates] isEqual:modDates])
 	{
-		OOLog(kOOLogCacheStaleDates, @"Cache is stale (modification dates have changed). Rebuilding from scratch.");
+		OOLog(kOOLogCacheStaleDates, @"%@", @"Cache is stale (modification dates have changed). Rebuilding from scratch.");
 		upToDate = NO;
 	}
 	
@@ -1183,7 +1183,7 @@ static NSMutableDictionary *sStringCache;
 		[cacheMgr setObject:searchPaths forKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
 		[cacheMgr setObject:modDates forKey:kOOCacheKeyModificationDates inCache:kOOCacheSearchPathModDates];
 	}
-	else OOLog(kOOLogCacheUpToDate, @"Data cache is up to date.");
+	else OOLog(kOOLogCacheUpToDate, @"%@", @"Data cache is up to date.");
 
 	return upToDate;
 }
@@ -1632,7 +1632,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 
 + (OOSystemDescriptionManager *) systemDescriptionManager
 {
-	OOLog(@"resourceManager.planetinfo.load",@"Initialising manager");
+	OOLog(@"resourceManager.planetinfo.load", @"%@", @"Initialising manager");
 	OOSystemDescriptionManager *manager = [[OOSystemDescriptionManager alloc] init];
 	
 	NSString *path = nil;
@@ -1673,9 +1673,9 @@ static NSString *LogClassKeyRoot(NSString *key)
 			}
 		}
 	}
-	OOLog(@"resourceManager.planetinfo.load",@"Caching routes");
+	OOLog(@"resourceManager.planetinfo.load", @"%@", @"Caching routes");
 	[manager buildRouteCache];
-	OOLog(@"resourceManager.planetinfo.load",@"Initialised manager");
+	OOLog(@"resourceManager.planetinfo.load", @"%@", @"Initialised manager");
 	return [manager autorelease];
 }
 
@@ -1892,7 +1892,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 	NSString					*name = nil;
 	NSAutoreleasePool			*pool = nil;
 	
-	OOLog(@"script.load.world.begin", @"Loading world scripts...");
+	OOLog(@"script.load.world.begin", @"%@", @"Loading world scripts...");
 	
 	loadedScripts = [NSMutableDictionary dictionary];
 	paths = [ResourceManager paths];
@@ -1951,7 +1951,7 @@ static NSString *LogClassKeyRoot(NSString *key)
 		}
 		else
 		{
-			OOLog(@"script.load.world.listAll", @"*** No world scripts loaded.");
+			OOLog(@"script.load.world.listAll", @"%@", @"*** No world scripts loaded.");
 		}
 	}
 	

@@ -517,7 +517,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 - (void) warnAboutHostiles
 {
 	// do nothing for now, this can be expanded in sub classes
-	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"***** Entity does nothing in warnAboutHostiles");
+	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"%@", @"***** Entity does nothing in warnAboutHostiles");
 }
 
 

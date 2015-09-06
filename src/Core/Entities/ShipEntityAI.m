@@ -1337,7 +1337,7 @@
 	}
 	else
 	{
-		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"***** Error. Planet not found during take off!");
+		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"%@", @"***** Error. Planet not found during take off!");
 	}
 }
 

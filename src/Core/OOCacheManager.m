@@ -344,7 +344,7 @@ static OOCacheManager *sSingleton = nil;
 	if (cache != nil)
 	{
 		// We have a cache
-		OOLog(kOOLogDataCacheFound, @"Found data cache.");
+		OOLog(kOOLogDataCacheFound, @"%@", @"Found data cache.");
 		OOLogIndentIf(kOOLogDataCacheFound);
 		
 		cacheVersion = [cache objectForKey:kCacheKeyVersion];
@@ -366,7 +366,7 @@ static OOCacheManager *sSingleton = nil;
 			endianTag = [cache objectForKey:kCacheKeyEndianTag];
 			if (![endianTag isKindOfClass:[NSData class]] || [endianTag length] != sizeof endianTagValue)
 			{
-				OOLog(kOOLogDataCacheRebuild, @"Data cache endian tag is invalid, rebuilding cache.");
+				OOLog(kOOLogDataCacheRebuild, @"%@", @"Data cache endian tag is invalid, rebuilding cache.");
 				accept = NO;
 			}
 			else
@@ -374,7 +374,7 @@ static OOCacheManager *sSingleton = nil;
 				endianTagValue = *(const uint64_t *)[endianTag bytes];
 				if (endianTagValue != kEndianTagValue)
 				{
-					OOLog(kOOLogDataCacheRebuild, @"Data cache endianness is inappropriate for this system, rebuilding cache.");
+					OOLog(kOOLogDataCacheRebuild, @"%@", @"Data cache endianness is inappropriate for this system, rebuilding cache.");
 					accept = NO;
 				}
 			}
@@ -391,7 +391,7 @@ static OOCacheManager *sSingleton = nil;
 	else
 	{
 		// No cache
-		OOLog(kOOLogDataCacheNotFound, @"No data cache found, starting from scratch.");
+		OOLog(kOOLogDataCacheNotFound, @"%@", @"No data cache found, starting from scratch.");
 	}
 	
 	// If loading failed, or there was a version or endianness conflict
@@ -417,9 +417,9 @@ static OOCacheManager *sSingleton = nil;
 #endif
 	
 #if WRITE_ASYNC
-	OOLog(@"dataCache.willWrite", @"Scheduling data cache write.");
+	OOLog(@"dataCache.willWrite", @"%@", @"Scheduling data cache write.");
 #else
-	OOLog(@"dataCache.willWrite", @"About to write cache.");
+	OOLog(@"dataCache.willWrite", @"%@", @"About to write cache.");
 #endif
 	
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
@@ -429,7 +429,7 @@ static OOCacheManager *sSingleton = nil;
 	pListRep = [self dictionaryOfCaches];
 	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)
 	{
-		OOLog(@"dataCache.cantWrite", @"Failed to write data cache -- prerequisites not fulfilled. %@",@"This is an internal error, please report it.");
+		OOLog(@"dataCache.cantWrite", @"%@", @"Failed to write data cache -- prerequisites not fulfilled. This is an internal error, please report it.");
 		return;
 	}
 	
@@ -461,11 +461,11 @@ static OOCacheManager *sSingleton = nil;
 	if ([self writeDict:newCache])
 	{
 		[self markClean];
-		OOLog(kOOLogDataCacheWriteSuccess, @"Wrote data cache.");
+		OOLog(kOOLogDataCacheWriteSuccess, @"%@", @"Wrote data cache.");
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheWriteFailed, @"Failed to write data cache.");
+		OOLog(kOOLogDataCacheWriteFailed, @"%@", @"Failed to write data cache.");
 	}
 #endif
 }
@@ -733,11 +733,11 @@ static OOCacheManager *sSingleton = nil;
 {
 	if ([[OOCacheManager sharedCache] writeDict:_cacheContents])
 	{
-		OOLog(kOOLogDataCacheWriteSuccess, @"Wrote data cache.");
+		OOLog(kOOLogDataCacheWriteSuccess, @"%@", @"Wrote data cache.");
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheWriteFailed, @"Failed to write data cache.");
+		OOLog(kOOLogDataCacheWriteFailed, @"%@", @"Failed to write data cache.");
 	}
 	DESTROY(_cacheContents);
 }

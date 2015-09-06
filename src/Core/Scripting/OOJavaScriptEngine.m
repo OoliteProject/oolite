@@ -283,7 +283,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// if runtime creation failed, end the program here.
 	if (_runtime == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript runtime.");
+		OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript runtime.");
 		exit(1);
 	}
 	
@@ -306,7 +306,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// if context creation failed, end the program here.
 	if (gOOJSMainThreadContext == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript context.");
+		OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript context.");
 		exit(1);
 	}
 	
@@ -334,7 +334,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JS_InitStandardClasses(gOOJSMainThreadContext, _globalObject);
 	if (![self lookUpStandardClassPointers])
 	{
-		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to look up standard JavaScript classes.");
+		OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to look up standard JavaScript classes.");
 		exit(1);
 	}
 	[self registerStandardObjectConverters];
@@ -383,7 +383,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	JS_EndRequest(gOOJSMainThreadContext);
 	
-	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
+	OOLog(@"script.javaScript.init.success", @"%@", @"Set up JavaScript context.");
 }
 
 
@@ -425,12 +425,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	static int counter = 3;		// loading a savegame with different strict mode calls js reset twice
 	if (counter-- == 0) {
 	counter = 3;
-	OOLog(@"script.javascript.init.error", @"JavaScript processes still pending. Can't reset JavaScript engine.");
+	OOLog(@"script.javascript.init.error", @"%@", @"JavaScript processes still pending. Can't reset JavaScript engine.");
 		return NO;
 	}
 	else
 	{
-		OOLog(@"script.javascript.init", @"JavaScript reset successful.");
+		OOLog(@"script.javascript.init", @"%@", @"JavaScript reset successful.");
 	}
 #endif
 		
@@ -440,12 +440,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	if (JS_IsInRequest(gOOJSMainThreadContext))
 	{
 		// some threads are still pending, this should mean timers are still being removed.
-		OOLog(@"script.javascript.init.error", @"JavaScript processes still pending. Can't reset JavaScript engine.");
+		OOLog(@"script.javascript.init.error", @"%@", @"JavaScript processes still pending. Can't reset JavaScript engine.");
 		return NO;
 	}
 	else
 	{
-		OOLog(@"script.javascript.init", @"JavaScript reset successful.");
+		OOLog(@"script.javascript.init", @"%@", @"JavaScript reset successful.");
 	}
 #endif
 	

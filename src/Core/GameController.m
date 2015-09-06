@@ -835,7 +835,7 @@ static NSMutableArray *sMessageStack;
 	[[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
 #endif
 	[[NSUserDefaults standardUserDefaults] synchronize];
-	OOLog(@"gameController.exitApp",@".GNUstepDefaults synchronized.");
+	OOLog(@"gameController.exitApp", @"%@", @".GNUstepDefaults synchronized.");
 	OOLoggingTerminate();
 	SDL_Quit();
 	[[OOOpenALController sharedController] shutdown];

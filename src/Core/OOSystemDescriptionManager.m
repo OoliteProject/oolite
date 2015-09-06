@@ -330,7 +330,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	}
 	else
 	{
-		OOLog(@"system.description.error",@"getPropertiesForCurrentSystem called while player in interstellar space. This is an internal error. Please report it.");
+		OOLog(@"system.description.error", @"%@", @"getPropertiesForCurrentSystem called while player in interstellar space. This is an internal error. Please report it.");
 		// this shouldn't be called for interstellar space
 		return [NSDictionary dictionary];
 	}

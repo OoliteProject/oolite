@@ -2151,7 +2151,7 @@ static NSTimeInterval	time_last_frame;
 						OOLog(kOOLogException, @"\n\n***** Handling exception: %@ : %@ *****\n\n",[exception name], [exception reason]);
 						if ([[exception name] isEqual:@"GameNotSavedException"])	// try saving game instead
 						{
-							OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
+							OOLog(kOOLogException, @"%@", @"\n\n***** Trying a normal save instead *****\n\n");
 							if ([controller inFullScreenMode])
 								[controller pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
 							else
@@ -2889,7 +2889,7 @@ static NSTimeInterval	time_last_frame;
 		
 		if (displayModeIndex == (NSInteger)NSNotFound)
 		{
-			OOLogWARN(@"graphics.mode.notFound", @"couldn't find current fullscreen setting, switching to default.");
+			OOLogWARN(@"graphics.mode.notFound", @"%@", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
 		}
 		else

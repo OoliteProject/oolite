@@ -845,7 +845,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
 	[self setLighting];	// also sets initial lights positions.
 	
-	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
+	OOLog(kOOLogUniversePopulateWitchspace, @"%@", @"Populating witchspace ...");
 	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
 	
 	[self clearSystemPopulator];
@@ -1198,7 +1198,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			a_station = (StationEntity *)[self newShipWithName:@"coriolis-station"];
 			if (![a_station isStation] || ![a_station validForAddToUniverse])
 			{
-				OOLog(@"universe.setup.badStation", @"Could not create built-in Coriolis station! Generating a stationless system.");
+				OOLog(@"universe.setup.badStation", @"%@", @"Could not create built-in Coriolis station! Generating a stationless system.");
 				DESTROY(a_station);
 			}
 		}
@@ -4332,7 +4332,7 @@ static const OOMatrix	starboard_matrix =
 
 - (void) drawUniverse
 {
-	OOLog(@"universe.profile.draw",@"Begin draw");
+	OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
 	if (!no_update)
 	{
 		@try
@@ -4502,7 +4502,7 @@ static const OOMatrix	starboard_matrix =
 				
 					OOVerifyOpenGLState();
 					OOCheckOpenGLErrors(@"Universe after setting up for opaque pass");
-					OOLog(@"universe.profile.draw",@"Begin opaque pass");
+					OOLog(@"universe.profile.draw", @"%@", @"Begin opaque pass");
 
 				
 					//		DRAW ALL THE OPAQUE ENTITIES
@@ -4629,7 +4629,7 @@ static const OOMatrix	starboard_matrix =
 			OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
 
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
-			OOLog(@"universe.profile.draw",@"Begin HUD");
+			OOLog(@"universe.profile.draw", @"%@", @"Begin HUD");
 			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
 			if (EXPECT(!displayGUI))
 			{
@@ -4726,7 +4726,7 @@ static const OOMatrix	starboard_matrix =
 			}
 		}
 	}
-	OOLog(@"universe.profile.draw",@"End drawing");
+	OOLog(@"universe.profile.draw", @"%@", @"End drawing");
 }
 
 
@@ -5375,7 +5375,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	if (!e1)
 	{
-		OOLog(kOOLogParameterError, @"***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
+		OOLog(kOOLogParameterError, @"%@", @"***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
 		return kZeroHPVector;
 	}
 	
@@ -6487,7 +6487,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
 	NSUInteger sessionID = _sessionID;
-	OOLog(@"universe.profile.update",@"Begin update");
+	OOLog(@"universe.profile.update", @"%@", @"Begin update");
 	if (EXPECT(!no_update))
 	{
 		next_repopulation -= delta_t;
@@ -6770,7 +6770,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	[self prunePreloadingPlanetMaterials];
 #endif
 
-	OOLog(@"universe.profile.update",@"Update complete");
+	OOLog(@"universe.profile.update", @"%@", @"Update complete");
 }
 
 
@@ -7616,7 +7616,7 @@ static void VerifyDesc(NSString *key, id desc)
 	static BOOL sysdataLocked = NO;
 	if (sysdataLocked)
 	{
-		OOLogERR(@"script.error", @"System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
+		OOLogERR(@"script.error", @"%@", @"System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
 		return;
 	}
 
@@ -9160,14 +9160,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 {
 	if (!ship)
 	{
-		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimStartPositionForShip:");
+		OOLog(kOOLogParameterError, @"%@", @"***** No ship set in Universe getSunSkimStartPositionForShip:");
 		return kZeroHPVector;
 	}
 	OOSunEntity* the_sun = [self sun];
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
-		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimStartPositionForShip:");
+		OOLog(kOOLogInconsistentState, @"%@", @"***** No sun set in Universe getSunSkimStartPositionForShip:");
 		return kZeroHPVector;
 	}
 	HPVector v0 = the_sun->position;
@@ -9190,13 +9190,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	OOSunEntity* the_sun = [self sun];
 	if (!ship)
 	{
-		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimEndPositionForShip:");
+		OOLog(kOOLogParameterError, @"%@", @"***** No ship set in Universe getSunSkimEndPositionForShip:");
 		return kZeroHPVector;
 	}
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
-		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimEndPositionForShip:");
+		OOLog(kOOLogInconsistentState, @"%@", @"***** No sun set in Universe getSunSkimEndPositionForShip:");
 		return kZeroHPVector;
 	}
 	HPVector v0 = the_sun->position;

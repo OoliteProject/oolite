@@ -13220,7 +13220,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	BOOL OK = NO;
 	if ([self isPlayer] && [(PlayerEntity *)self isDocked])
 	{
-		OOLog(@"ShipEntity.abandonShip.failed", @"Player cannot abandon ship while docked.");
+		OOLog(@"ShipEntity.abandonShip.failed", @"%@", @"Player cannot abandon ship while docked.");
 		return OK;
 	}
 	

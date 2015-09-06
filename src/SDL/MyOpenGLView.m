@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		OOLog(@"display.mode.list.native.failed", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
+		OOLog(@"display.mode.list.native.failed", @"%@", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
 #elif OOLITE_WINDOWS
 	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -180,7 +180,7 @@ MA 02110-1301, USA.
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
-	OOLog(@"sdl.init", @"initialising SDL");
+	OOLog(@"sdl.init", @"%@", @"initialising SDL");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
 	{
 		OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
@@ -263,7 +263,7 @@ MA 02110-1301, USA.
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	}
 
-	OOLog(@"display.mode.list", @"CREATING MODE LIST");
+	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
 
@@ -275,19 +275,19 @@ MA 02110-1301, USA.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
-	OOLog(@"display.initGL",@"Trying 32-bit depth buffer");
+	OOLog(@"display.initGL", @"%@", @"Trying 32-bit depth buffer");
 	[self createSurface];
 	if (surface == NULL)
 	{
 		// Retry with a 24-bit depth buffer
-		OOLog(@"display.initGL",@"Trying 24-bit depth buffer");
+		OOLog(@"display.initGL", @"%@", @"Trying 24-bit depth buffer");
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		[self createSurface];
 		if (surface == NULL)
 		{
 			// Still not working? One last go...
 			// Retry, allowing 16-bit contexts.
-			OOLog(@"display.initGL",@"Trying 16-bit depth buffer");
+			OOLog(@"display.initGL", @"%@", @"Trying 16-bit depth buffer");
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -661,7 +661,7 @@ MA 02110-1301, USA.
 	if (image == NULL)
 	{
 		SDL_FreeSurface(image);
-		OOLogWARN(@"sdl.gameStart", @"image 'splash.bmp' not found!");
+		OOLogWARN(@"sdl.gameStart", @"%@", @"image 'splash.bmp' not found!");
 		[self endSplashScreen];
 		return;
 	}
@@ -729,7 +729,7 @@ MA 02110-1301, USA.
 			texture_format = GL_BGR;
 	} else {
 		SDL_FreeSurface(image);
-		OOLog(@"Sdl.GameStart", @"----- Encoding error within image 'splash.bmp'");
+		OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
 		[self endSplashScreen];
 		return;
 	}
@@ -1173,7 +1173,7 @@ MA 02110-1301, USA.
 	infoPtr = png_create_info_struct(pngPtr);
 	if (infoPtr == NULL) {
 		png_destroy_write_struct(&pngPtr, (png_infopp)NULL);
-		OOLog(@"pngSaveSurface.info_struct.failed", @"png_create_info_struct error");
+		OOLog(@"pngSaveSurface.info_struct.failed", @"%@", @"png_create_info_struct error");
 		exit(-1);
 	}
 
@@ -2164,13 +2164,13 @@ keys[a] = NO; keys[b] = NO; \
 	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
 	if(modes == (SDL_Rect **)NULL)
 	{
-		OOLog(@"display.mode.list.none", @"SDL didn't return any screen modes");
+		OOLog(@"display.mode.list.none", @"%@", @"SDL didn't return any screen modes");
 		return;
 	}
 
 	if(modes == (SDL_Rect **)-1)
 	{
-		OOLog(@"display.mode.list.none", @"SDL claims 'all resolutions available' which is unhelpful in the extreme");
+		OOLog(@"display.mode.list.none", @"%@", @"SDL claims 'all resolutions available' which is unhelpful in the extreme");
 		return;
 	}
 
@@ -2298,7 +2298,7 @@ keys[a] = NO; keys[b] = NO; \
 		return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
 				[[mode objectForKey: kOODisplayHeight] intValue]);
 	}
-	OOLog(@"display.mode.unknown", @"Screen size unknown!");
+	OOLog(@"display.mode.unknown", @"%@", @"Screen size unknown!");
 	return NSMakeSize(800, 600);
 }
 

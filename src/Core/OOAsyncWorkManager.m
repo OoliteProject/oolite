@@ -121,7 +121,7 @@ static void InitAsyncWorkManager(void)
 	
 	if (sSingleton == nil)
 	{
-		OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"***** FATAL ERROR: could not set up async work manager!");
+		OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"%@", @"***** FATAL ERROR: could not set up async work manager!");
 		exit(EXIT_FAILURE);
 	}
 	

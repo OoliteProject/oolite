@@ -148,12 +148,12 @@ enum
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo
 {
-	OOLog(@"texture.planet.generate",@"Initialising planetary generator");
+	OOLog(@"texture.planet.generate", @"%@", @"Initialising planetary generator");
 
 	// AllowCubeMap not used yet but might be in future
 	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
-		OOLog(@"texture.planet.generate",@"Extracting parameters for generator %@",self);
+		OOLog(@"texture.planet.generate", @"Extracting parameters for generator %@",self);
 
 		_info.landFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"land_fraction" defaultValue:0.3]);
 		_info.polarFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"polar_fraction" defaultValue:0.05]);
@@ -164,7 +164,7 @@ enum
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_info.seed];
 		if ([planetInfo objectForKey:@"cloud_alpha"])
 		{
-			OOLog(@"texture.planet.generate",@"Extracting atmosphere parameters");
+			OOLog(@"texture.planet.generate", @"%@", @"Extracting atmosphere parameters");
 			// we have an atmosphere:
 			_info.cloudAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
 			_info.cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);
@@ -1324,7 +1324,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 
 - (void) completeWithData:(void *)data_ width:(unsigned)width_ height:(unsigned)height_
 {
-	OOLog(@"texture.planet.generate",@"Completing atmosphere generator");
+	OOLog(@"texture.planet.generate", @"%@", @"Completing atmosphere generator");
 
 	_data = data_;
 	_width = width_;

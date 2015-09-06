@@ -195,7 +195,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		OOLog(@"sky.warning",@"PLAYER is nil");
+		OOLog(@"sky.warning", @"%@", @"PLAYER is nil");
 	}
 }
 

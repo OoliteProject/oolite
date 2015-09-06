@@ -349,7 +349,7 @@ BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDime
 	}
 	if (EXPECT_NOT(textureBytes == NULL))
 	{
-		OOLog(kOOLogParameterError, @"NULL texutre pointer passed to GenerateMipMaps().");
+		OOLog(kOOLogParameterError, @"%@", @"NULL texture pointer passed to GenerateMipMaps().");
 		return NO;
 	}
 	
