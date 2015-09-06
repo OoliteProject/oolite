@@ -7446,11 +7446,15 @@ static void VerifyDesc(NSString *key, id desc)
 		-- Ahruman 2011-05-05
 	*/
 	
-	NSDictionary *descriptions = [self descriptions];
 	NSString *key = nil;
-	foreachkey (key, descriptions)
+	if (_descriptions == nil)
 	{
-		VerifyDesc(key, [descriptions objectForKey:key]);
+		OOLog(@"descriptions.verify",@"***** FATAL: Tried to verify descriptions, but descriptions was nil - unable to load any descriptions.plist file.");
+		exit(EXIT_FAILURE);
+	}
+	foreachkey (key, _descriptions)
+	{
+		VerifyDesc(key, [_descriptions objectForKey:key]);
 	}
 }
 
@@ -7479,7 +7483,6 @@ static void VerifyDesc(NSString *key, id desc)
 {
 	[_scenarios autorelease];
 	_scenarios = [[ResourceManager arrayFromFilesNamed:@"scenarios.plist" inFolder:@"Config" andMerge:YES] retain];
-	[self verifyDescriptions];
 }
 
 
