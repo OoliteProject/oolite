@@ -60,42 +60,42 @@ endif
 #
 .PHONY: debug
 debug: $(DEPS_DBG)
-	$(MAKE) -f GNUmakefile debug=yes
+	$(MAKE) -f GNUmakefile debug=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: release
 release: $(DEPS)
-	$(MAKE) -f GNUmakefile debug=no
+	$(MAKE) -f GNUmakefile debug=no strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
+	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no strip=yes
 
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 # Here are targets using the provided dependencies
 .PHONY: deps-debug
 deps-debug: $(DEPS_DBG)
-	$(MAKE) -f GNUmakefile debug=yes use_deps=yes
+	$(MAKE) -f GNUmakefile debug=yes use_deps=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-release
 deps-release: $(DEPS)
-	$(MAKE) -f GNUmakefile debug=no use_deps=yes
+	$(MAKE) -f GNUmakefile debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
-	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes
+	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes strip=yes
 
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: LIBJS_DBG
