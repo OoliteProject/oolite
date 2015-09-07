@@ -4529,11 +4529,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (OOFuelScoopStatus) dialFuelScoopStatus
 {
+	// need to account for the different ways of calculating cargo on board when docked/in-flight
+	OOCargoQuantity cargoOnBoard = [self status] == STATUS_DOCKED ? current_cargo : [cargo count];
 	if ([self hasScoop])
 	{
 		if (scoopsActive)
 			return SCOOP_STATUS_ACTIVE;
-		if ([cargo count] >= [self maxAvailableCargoSpace] || specialCargo)
+		if (cargoOnBoard >= [self maxAvailableCargoSpace] || specialCargo)
 			return SCOOP_STATUS_FULL_HOLD;
 		return SCOOP_STATUS_OKAY;
 	}
