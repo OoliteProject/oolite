@@ -1350,7 +1350,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 		case kShip_entityPersonality:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
-				if (iValue < 0 || iValue > ENTITY_PERSONALITY_MAX)
+				if (iValue < 0 || iValue > (int32)ENTITY_PERSONALITY_MAX)
 				{
 					OOJSReportError(context, @"ship.%@ must be >= 0 and <= %u.", OOStringFromJSPropertyIDAndSpec(context, propID, sShipProperties),ENTITY_PERSONALITY_MAX);
 					return NO;

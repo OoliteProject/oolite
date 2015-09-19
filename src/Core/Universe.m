@@ -10542,7 +10542,7 @@ NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count)
 					continue;
 			}
 			
-			long int param = strtol (cond, (char **)&cond, 10);
+			long int param = strtol(cond, (char **)&cond, 10);
 			
 			switch (command)
 			{
