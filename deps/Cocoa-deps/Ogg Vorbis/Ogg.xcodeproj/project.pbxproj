@@ -118,7 +118,7 @@
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0630;
+				LastUpgradeCheck = 0700;
 			};
 			buildConfigurationList = 730F235809181A3A00AB638C /* Build configuration list for PBXProject "Ogg" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -175,6 +175,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1AE344D312CB6F4F00FD8C62 /* oolite-targets.xcconfig */;
 			buildSettings = {
+				ENABLE_TESTABILITY = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = __MACOSX__;
 				ONLY_ACTIVE_ARCH = YES;
 			};
