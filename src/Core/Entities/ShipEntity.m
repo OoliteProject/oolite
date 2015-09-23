@@ -14517,6 +14517,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	demoStartOrientation = orientation;
 	demoRate = rate;
 	isDemoShip = YES;
+	[self setPitch: 0.0f];
+	[self setRoll: 0.0f];
 }
 
 - (BOOL) isDemoShip
