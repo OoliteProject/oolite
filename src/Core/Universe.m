@@ -5239,6 +5239,10 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		{
 			[ship setDemoShip: 1.0f];
 		}
+		else
+		{
+			[ship setDemoShip: 0.0f];
+		}
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		// stop problems on the ship library screen
 		// demo ships shouldn't have this equipment
