@@ -7870,7 +7870,7 @@ static void VerifyDesc(NSString *key, id desc)
 		for (i = 0; i < 256; i++)   // flood fill out from system zero
 		{
 			NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
-			for (j = i+1; j < 256; j++)
+			for (j = 0; j < 256; j++)
 			{
 				NSPoint jpos = [systemManager getCoordinatesForSystem:j inGalaxy:g];
 				double dist = distanceBetweenPlanetPositions(ipos.x,ipos.y,jpos.x,jpos.y);
