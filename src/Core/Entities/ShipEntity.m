@@ -3279,7 +3279,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (NSArray *) missilesList
 {
-	return [NSArray arrayWithObjects:missile_list count:missiles];
+	// if missile_list is empty, avoid exception and return empty NSArray instead
+	return missile_list[0] != nil ?	[NSArray arrayWithObjects:missile_list count:missiles] :
+									[NSArray array];
 }
 
 
