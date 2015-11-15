@@ -3379,6 +3379,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey whileLoading:(BOOL)loading inContext:(NSString *)context
 {
 	OOEquipmentType			*eqType = nil;
+	BOOL					validationForDamagedEquipment = NO;
 	
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
@@ -3388,11 +3389,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	if (eqType == nil)  return NO;
 	
+	// need to know if we are trying to add a Repair version of the equipment. In some cases
+	// (e.g. available cargo space required), it makes sense to deny installation of equipment
+	// if the condition is not satisfied, but it doesn't make sense to deny repair when the
+	// equipment is already installed. For now, we are checking only the cargo space condition,
+	// but other conditions might need to be revised too. - Nikos, 20151115
+	if ([self hasEquipmentItem:[eqType damagedIdentifier]])
+	{
+		validationForDamagedEquipment = YES;
+	}
+	
 	// not all conditions make sence checking while loading a game with already purchaged equipment.
 	// while loading, we mainly need to catch changes when the installed oxps set has changed since saving. 
 	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity] && !loading)  return NO;
 	if ([eqType  requiresMountedPylon] && [self missileCount] == 0 && !loading)  return NO;
-	if ([self availableCargoSpace] < [eqType requiredCargoSpace] && !loading)  return NO;
+	if ([self availableCargoSpace] < [eqType requiredCargoSpace] && !validationForDamagedEquipment && !loading)  return NO;
 	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment] includeWeapons:YES whileLoading:loading])  return NO;
 	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment] includeWeapons:YES whileLoading:loading])  return NO;
 	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment] includeWeapons:YES whileLoading:loading])  return NO;
