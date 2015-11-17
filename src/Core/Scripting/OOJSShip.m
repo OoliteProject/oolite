@@ -1380,6 +1380,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;
+				// OXPs using equipment with weight requirements may make us end up with more allocated
+				// cargo space than what we have available. Do not let iValue become negative.
+				if ([entity maxAvailableCargoSpace] < [entity availableCargoSpace])
+				{
+					iValue = 0;
+				}
 				if ((OOCargoQuantity)iValue < [entity maxAvailableCargoSpace] - [entity availableCargoSpace])
 				{
 					iValue = [entity maxAvailableCargoSpace] - [entity availableCargoSpace];
