@@ -11407,6 +11407,13 @@ static NSString *last_outfitting_key=nil;
 		if (possible_cheat && !info_failed)
 			OOLog(@"cheat.verified", @"%@", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
+	else
+	// if trumbleValue comes in as nil, then probably someone has toyed with the save file
+	// by removing the entire trumbles array
+	{
+		OOLog(@"cheat.tentative", @"%@", @"POSSIBLE CHEAT DETECTED");
+		info_failed = YES;
+	}
 	
 	if (info_failed && [[NSUserDefaults standardUserDefaults] objectForKey:namekey])
 	{
