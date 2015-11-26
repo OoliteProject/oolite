@@ -8642,6 +8642,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		NSString			*eqKey = [eqType identifier];
 		OOTechLevelID		minTechLevel = [eqType effectiveTechLevel];
+		//OOTechLevelID		minTechLevelSell = [eqType effectiveTechLevel];
 		
 		// set initial availability to NO
 		BOOL isOK = NO;
@@ -8676,7 +8677,7 @@ static NSString *last_outfitting_key=nil;
 		if (isOK)
 		{
 			if (techlevel < minTechLevel) isOK = NO;
-			if (![self canAddEquipment:eqKey inContext:@"purchase"]) isOK = NO;
+			if (![self canAddEquipment:eqKey inContext:@"purchase"] && ![self canAddEquipmentForSale:eqKey /*inContext:@"purchase"*/]) isOK = NO;
 			if (available_facings == 0 && [eqType isPrimaryWeapon]) isOK = NO;
 			if (isOK)  [equipmentAllowed addObject:eqKey];
 		}
@@ -8802,6 +8803,21 @@ static NSString *last_outfitting_key=nil;
 					[gui setColor:[gui colorFromSetting:kGuiEquipmentRepairColor defaultValue:[OOColor orangeColor]] forRow:row];
 
 				}
+				// is this item already on board, only once installable and sellable? 
+				if (([self hasEquipmentItem:eqKey]) && ([eqInfo canBeSold]))
+				{
+					desc = [NSString stringWithFormat:DESC(@"equip-sell-@"), desc];
+					//price *= -1.0;
+					installTime = [eqInfo repairTime]; //Same as repairtime.
+					if (installTime == 0)
+					{
+						installTime = 600 + price;
+					}
+					[gui setColor:[gui colorFromSetting:kGuiEquipmentSellColor defaultValue:[OOColor orangeColor]] forRow:row];
+					//[gui setColor:[gui colorFromSetting:kGuiEquipmentRepairColor defaultValue:[OOColor orangeColor]] forRow:row];
+
+				}
+				
 				
 				NSString *timeString = [UNIVERSE shortTimeDescription:installTime];
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
@@ -8990,7 +9006,13 @@ static NSString *last_outfitting_key=nil;
 			{
 				if([eqKey hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
 					desc = [NSString stringWithFormat:DESC(@"@-will-replace-other-energy"), desc];
-				if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-weight-d-of-equipment"), desc, weight];
+				
+				// In case the menu entry is for selling an item:
+				if ([self canAddEquipmentForSale:eqKey /*inContext:@"purchase"*/]) {
+					desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-refunding"), desc];
+					if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-frees-weight-d-of-equipment"), desc, weight];
+				}
+				else if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-weight-d-of-equipment"), desc, weight];
 			}
 			if (formatString) desc = [NSString stringWithFormat:formatString, desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
@@ -9690,12 +9712,19 @@ static NSString *last_outfitting_key=nil;
 	double					priceFactor		= 1.0;
 	OOCreditsQuantity		tradeIn			= 0;
 	BOOL	isRepair = NO;
-	
+	BOOL	isSell = NO;
+
 	// repairs cost 50%
 	if ([self hasEquipmentItem:eqKeyDamaged])
 	{
 		price /= 2.0;
 		isRepair = YES;
+	}
+	
+	// item already installed and saleable?
+	else if ([self canAddEquipmentForSale:eqKey /*inContext:@"purchase"*/])
+	{
+		isSell = YES;
 	}
 	
 	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
@@ -9713,7 +9742,7 @@ static NSString *last_outfitting_key=nil;
 	
 	price *= priceFactor;  // increased prices at some stations
 	
-	if (price > credits)
+	if (price > credits && !isSell)
 	{
 		return NO;
 	}
@@ -9775,12 +9804,11 @@ static NSString *last_outfitting_key=nil;
 
 		price *= multiplier;
 		
-		credits -= price;
 		if (price > credits)
 		{
 			return NO;
 		}
-		
+				
 		// Refund current_weapon
 		if (current_weapon != nil)
 		{
@@ -9909,6 +9937,16 @@ static NSString *last_outfitting_key=nil;
 		tradeIn += [self removeMissiles];
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		return YES;
+	}
+	
+	if ([self canAddEquipmentForSale:eqKey /*inContext:@"purchase"*/])
+	{
+		if (isSell)
+		{
+			credits += price;
+			[self removeEquipmentItem:eqKey];
+			return YES;
+		}
 	}
 	
 	if ([self canAddEquipment:eqKey inContext:@"purchase"])
@@ -10855,13 +10893,18 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) canAddEquipment:(NSString *)equipmentKey inContext:(NSString *)context
 {
 	if ([equipmentKey isEqualToString:@"EQ_RENOVATION"] && !(ship_trade_in_factor < 85 || [[[self shipSubEntityEnumerator] allObjects] count] < [self maxShipSubEntities]))  return NO;
-	if (![super canAddEquipment:equipmentKey inContext:context])  return NO;
+	if (![super canAddEquipment:equipmentKey inContext:context] /*&& ![super canAddEquipmentForSale:equipmentKey inContext:context]*/)  return NO;
 	
 	NSArray *conditions = [[OOEquipmentType equipmentTypeWithIdentifier:equipmentKey] conditions];
 	if (conditions != nil && ![self scriptTestConditions:conditions])  return NO;
 	
 	return YES;
 }
+
+/*- (BOOL) canAddEquipmentForSale:(NSString *)equipmentKey inContext:(NSString *)context
+{
+	return [super canAddEquipmentForSale:equipmentKey inContext:context];
+}*/
 
 
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey inContext:(NSString *)context
