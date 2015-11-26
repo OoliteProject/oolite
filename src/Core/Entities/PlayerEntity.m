@@ -8814,10 +8814,7 @@ static NSString *last_outfitting_key=nil;
 						installTime = 600 + price;
 					}
 					[gui setColor:[gui colorFromSetting:kGuiEquipmentSellColor defaultValue:[OOColor orangeColor]] forRow:row];
-					//[gui setColor:[gui colorFromSetting:kGuiEquipmentRepairColor defaultValue:[OOColor orangeColor]] forRow:row];
-
 				}
-				
 				
 				NSString *timeString = [UNIVERSE shortTimeDescription:installTime];
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
@@ -9809,7 +9806,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			return NO;
 		}
-				
+
 		// Refund current_weapon
 		if (current_weapon != nil)
 		{
@@ -10894,18 +10891,13 @@ static NSString *last_outfitting_key=nil;
 - (BOOL) canAddEquipment:(NSString *)equipmentKey inContext:(NSString *)context
 {
 	if ([equipmentKey isEqualToString:@"EQ_RENOVATION"] && !(ship_trade_in_factor < 85 || [[[self shipSubEntityEnumerator] allObjects] count] < [self maxShipSubEntities]))  return NO;
-	if (![super canAddEquipment:equipmentKey inContext:context] /*&& ![super canAddEquipmentForSale:equipmentKey inContext:context]*/)  return NO;
+	if (![super canAddEquipment:equipmentKey inContext:context])  return NO;
 	
 	NSArray *conditions = [[OOEquipmentType equipmentTypeWithIdentifier:equipmentKey] conditions];
 	if (conditions != nil && ![self scriptTestConditions:conditions])  return NO;
 	
 	return YES;
 }
-
-/*- (BOOL) canAddEquipmentForSale:(NSString *)equipmentKey inContext:(NSString *)context
-{
-	return [super canAddEquipmentForSale:equipmentKey inContext:context];
-}*/
 
 
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey inContext:(NSString *)context
