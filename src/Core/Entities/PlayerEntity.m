@@ -9775,11 +9775,11 @@ static NSString *last_outfitting_key=nil;
 
 		price *= multiplier;
 		
-		credits -= price;
 		if (price > credits)
 		{
 			return NO;
 		}
+		credits -= price;
 		
 		// Refund current_weapon
 		if (current_weapon != nil)
