@@ -3221,6 +3221,23 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	return YES;
 }
 
+- (BOOL) canAddEquipmentForSale:(NSString *)equipmentKey /*inContext:(NSString *)context*/
+{
+	
+	// If equipment is a sell configuration for something aboard, allow it to pass.
+	/*if ([equipmentKey hasSuffix:@"_SELL"])
+	{
+		if ([self hasEquipmentItem:[equipmentKey substringToIndex:[equipmentKey length] - [@"_SELL" length]]])  return YES;
+	}*/
+	
+	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	
+	// If the equipment is already installed and can be sold, it's okay. (TODO: Make it work with multiple same items.)
+	if (![eqType canCarryMultiple] && [self hasEquipmentItem:equipmentKey] && [eqType canBeSold])  return YES;
+
+	return NO;
+}
+
 
 - (OOWeaponFacingSet) weaponFacings
 {

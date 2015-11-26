@@ -57,6 +57,7 @@ SOFTWARE.
 							_isAvailableToNPCs: 1,
 							_fastAffinityA: 1,
 							_fastAffinityB: 1,
+							_canBeSold: 1,
 							_canCarryMultiple: 1;
 	NSUInteger				_installTime;
 	NSUInteger				_repairTime;
@@ -89,6 +90,7 @@ SOFTWARE.
 
 - (NSString *) identifier;
 - (NSString *) damagedIdentifier;
+- (NSString *) sellIdentifier;
 - (NSString *) name;			// localized
 - (NSString *) descriptiveText;	// localized
 - (OOTechLevelID) techLevel;
@@ -107,6 +109,7 @@ SOFTWARE.
 - (BOOL) isPortableBetweenShips;
 
 - (BOOL) canCarryMultiple;
+- (BOOL) canBeSold;
 - (GLfloat) damageProbability;
 - (BOOL) canBeDamaged;
 - (BOOL) isVisible;				// Visible in UI?

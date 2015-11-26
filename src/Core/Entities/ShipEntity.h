@@ -607,6 +607,7 @@ typedef enum
 - (BOOL) hasAllEquipment:(id)equipmentKeys;				// Short for hasAllEquipment:foo includeWeapons:NO
 - (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey;
 - (BOOL) canAddEquipment:(NSString *)equipmentKey inContext:(NSString *)context;		// Test ability to add equipment, taking equipment-specific constriants into account. 
+- (BOOL) canAddEquipmentForSale:(NSString *)equipmentKey /*inContext:(NSString *)context*/;		// Test ability to add equipment, taking equipment-specific constriants into account and if there is sellable. 
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey inContext:(NSString *)context;	// Actual test if equipment satisfies validation criteria.
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey whileLoading:(BOOL)loading inContext:(NSString *)context;
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey inContext:(NSString *)context;

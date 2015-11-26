@@ -227,6 +227,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_isVisible = [extra oo_boolForKey:@"visible" defaultValue:_isVisible];
 			_canCarryMultiple = [extra oo_boolForKey:@"can_carry_multiple" defaultValue:NO];
 			
+			_canBeSold = [extra oo_boolForKey:@"can_be_sold" defaultValue:_canBeSold];
+			
 			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
 
 			_installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
@@ -362,6 +364,11 @@ static NSDictionary		*sMissilesRegistry = nil;
 	return [_identifier stringByAppendingString:@"_DAMAGED"];
 }
 
+- (NSString *) sellIdentifier
+{
+	return [_identifier stringByAppendingString:@"_SELL"];
+}
+
 
 - (NSString *) name
 {
@@ -469,6 +476,11 @@ static NSDictionary		*sMissilesRegistry = nil;
 	return _canCarryMultiple;
 }
 
+
+- (BOOL) canBeSold
+{
+	return _canBeSold;
+}
 
 - (GLfloat) damageProbability 
 {
