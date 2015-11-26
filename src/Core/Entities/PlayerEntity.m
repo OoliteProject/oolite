@@ -9804,6 +9804,7 @@ static NSString *last_outfitting_key=nil;
 
 		price *= multiplier;
 		
+		credits -= price;
 		if (price > credits)
 		{
 			return NO;
