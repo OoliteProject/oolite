@@ -3736,7 +3736,14 @@ PriorityAIController.prototype.behaviourMissileInterceptTarget = function()
 		this.ship.desiredRange = 25;					
 	}
 
-	this.ship.performIntercept();
+	if (this.ship.target && !this.ship.target.isCloaked)
+	{
+		this.ship.performIntercept();
+	}
+	else
+	{
+		this.ship.performIdle();
+	}
 }
 
 PriorityAIController.prototype.behaviourMissileInterceptCoordinates = function()
