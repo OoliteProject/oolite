@@ -1111,8 +1111,9 @@ for (unsigned i=0;i<amount;i++)
 		NSString *deadline = [UNIVERSE shortTimeDescription:dest_eta];
 
 		OOCreditsQuantity fee = [contract_info oo_intForKey:CONTRACT_KEY_FEE];
+		NSString *feeDesc = OOIntCredits(fee);
 
-		[result addObject:OOExpandKey(formatString, label, destination, deadline, fee)];
+		[result addObject:OOExpandKey(formatString, label, destination, deadline, feeDesc)];
 
 	}
 	
