@@ -242,7 +242,7 @@ MA 02110-1301, USA.
 	
 	// Update the GUI (this will refresh the function list).
 	unsigned skip;
-	if (selFunctionIdx < MAX_ROWS_FUNCTIONS)
+	if (selFunctionIdx < MAX_ROWS_FUNCTIONS - 1)
 	{
 		skip = 0;
 	}
@@ -276,7 +276,7 @@ MA 02110-1301, USA.
 	[stickHandler saveStickSettings];
 	
 	unsigned skip;
-	if (selFunctionIdx < MAX_ROWS_FUNCTIONS)
+	if (selFunctionIdx < MAX_ROWS_FUNCTIONS - 1)
 		skip = 0;
 	else
 		skip = ((selFunctionIdx - 1) / (MAX_ROWS_FUNCTIONS - 2)) * (MAX_ROWS_FUNCTIONS - 2) + 1;
