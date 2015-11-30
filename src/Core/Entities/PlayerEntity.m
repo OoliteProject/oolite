@@ -8677,7 +8677,6 @@ static NSString *last_outfitting_key=nil;
 		{
 			if (techlevel < minTechLevel) isOK = NO;
 			if (![self canAddEquipment:eqKey inContext:@"purchase"]) isOK = NO;
-			//if ([self isEquipmentSellOption:eqKey] && ![canAddEquipmentSellOption]) isOK = NO;
 			if (available_facings == 0 && [eqType isPrimaryWeapon]) isOK = NO;
 			if (isOK)  [equipmentAllowed addObject:eqKey];
 		}
@@ -8807,6 +8806,7 @@ static NSString *last_outfitting_key=nil;
 				// is this item a sell option?
 				if ([self isEquipmentSellOption:eqKey])
 				{
+					//desc = [NSString stringWithFormat:DESC(@"equip-sell-@"), desc]; //Uncomment to add "equip sell" string ("Sell: ") at the beginning to the entry.
 					if (installTime == 0)
 					{
 						installTime = 600 + price;
@@ -9005,7 +9005,7 @@ static NSString *last_outfitting_key=nil;
 				
 				// In case the menu entry is for selling items:
 				if ([self isEquipmentSellOption:eqKey]) {
-					desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-refunding"), desc];
+					//desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-refunding"), desc]; //Uncomment to enable "price is for refunding" infotext at the end of the description text.
 					if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-frees-weight-d-of-equipment"), desc, weight];
 				}
 				else if (weight > 0) desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-weight-d-of-equipment"), desc, weight];
@@ -9928,7 +9928,6 @@ static NSString *last_outfitting_key=nil;
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		return YES;
 	}
-	
 	
 	if ([self canAddEquipment:eqKey inContext:@"purchase"])
 	{
