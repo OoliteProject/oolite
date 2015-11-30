@@ -75,6 +75,7 @@ static NSString * const kGuiEquipmentUnavailableColor	= @"equipment_unavailable_
 static NSString * const kGuiEquipmentScrollColor	= @"equipment_scroll_color";
 static NSString * const kGuiEquipmentOptionColor	= @"equipment_option_color";
 static NSString * const kGuiEquipmentRepairColor	= @"equipment_repair_color";
+static NSString * const kGuiEquipmentSellColor		= @"equipment_sell_color";
 static NSString * const kGuiEquipmentDescriptionColor	= @"equipment_description_color";
 static NSString * const kGuiEquipmentLaserColor		= @"equipment_laser_color";
 static NSString * const kGuiEquipmentLaserFittedColor	= @"equipment_laser_fitted_color";
