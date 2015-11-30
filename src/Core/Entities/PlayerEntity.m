@@ -9731,7 +9731,7 @@ static NSString *last_outfitting_key=nil;
 	
 	price *= priceFactor;  // increased prices at some stations
 	
-	if (price > credits)
+	if (price > credits && ![self isEquipmentSellOption:eqKey])
 	{
 		return NO;
 	}
