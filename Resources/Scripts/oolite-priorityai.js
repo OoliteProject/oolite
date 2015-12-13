@@ -6018,10 +6018,13 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 
 PriorityAIController.prototype.responseComponent_docking_shipAchievedDesiredRange = function()
 {
-	var message = this.ship.dockingInstructions.ai_message;
-	if (message == "APPROACH" || message == "BACK_OFF" || message == "APPROACH_COORDINATES")
+	if (this.ship.dockingInstructions != null)
 	{
-		this.reconsiderNow();
+		var message = this.ship.dockingInstructions.ai_message;
+		if (message == "APPROACH" || message == "BACK_OFF" || message == "APPROACH_COORDINATES")
+		{
+			this.reconsiderNow();
+		}
 	}
 }
 
