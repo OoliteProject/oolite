@@ -14464,6 +14464,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		@catch (id exception) {}
 		OOLogPopIndent();
 	}
+	OOLog(@"dumpState.shipEntity", @"Accuracy: %g", accuracy);
 	OOLog(@"dumpState.shipEntity", @"Jink position: %@", VectorDescription(jink));
 	OOLog(@"dumpState.shipEntity", @"Frustration: %g", frustration);
 	OOLog(@"dumpState.shipEntity", @"Success factor: %g", success_factor);
