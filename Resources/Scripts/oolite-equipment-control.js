@@ -191,7 +191,9 @@ this.$equipmentEnable["EQ_SHIELD_BOOSTER"] = this.$equipmentEnable["EQ_NAVAL_SHI
 this.$equipmentDisable["EQ_SHIELD_BOOSTER"] = this.$equipmentDisable["EQ_NAVAL_SHIELD_BOOSTER"] = function(info)
 {
 	player.ship.maxForwardShield -= parseFloat(info.scriptInfo.oolite_shield_increase);
+	if (player.ship.forwardShield > player.ship.maxForwardShield)  player.ship.forwardShield = player.ship.maxForwardShield;
 	player.ship.maxAftShield -= parseFloat(info.scriptInfo.oolite_shield_increase);
+	if (player.ship.aftShield > player.ship.maxAftShield)  player.ship.aftShield = player.ship.maxAftShield;
 	player.ship.forwardShieldRechargeRate /= parseFloat(info.scriptInfo.oolite_shield_recharge_multiplier);
 	player.ship.aftShieldRechargeRate /= parseFloat(info.scriptInfo.oolite_shield_recharge_multiplier);
 	if (player.ship.docked)

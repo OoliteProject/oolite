@@ -2563,6 +2563,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	float aftMax = [self maxAftShieldLevel];
 	float shieldRechargeFwd = [self forwardShieldRechargeRate] * delta_t;
 	float shieldRechargeAft = [self aftShieldRechargeRate] * delta_t;
+	/* there is potential for negative rechargeFwd and rechargeAFt values here
+	   (e.g. getting shield boosters damaged while shields are full). This may
+	   lead to energy being gained rather than consumed when recharging. Leaving
+	   as-is for now, as there might be OXPs that rely in such behaviour.
+	   Boosters case example mentioned above is the only known core equipment
+	   occurrence at this time and it has been fixed inside the
+	   oolite-equipment-control.js script. - Nikos 20160104.
+	 */
 	float rechargeFwd = MIN(shieldRechargeFwd, fwdMax - forward_shield);
 	float rechargeAft = MIN(shieldRechargeAft, aftMax - aft_shield);
 	
