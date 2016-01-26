@@ -316,6 +316,9 @@ MA 02110-1301, USA.
 	{
 		good = [_commodityLists oo_dictionaryForKey:commodity];
 		OOCargoQuantity baseCapacity = [good oo_unsignedIntegerForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+		
+		// important - ensure baseCapacity cannot be zero
+		if (!baseCapacity)  baseCapacity = MAIN_SYSTEM_MARKET_LIMIT;
 
 		OOCargoQuantity q = [mainMarket quantityForGood:commodity];
 		OOCreditsQuantity p = [mainMarket priceForGood:commodity];
