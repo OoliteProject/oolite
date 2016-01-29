@@ -278,9 +278,10 @@ MA 02110-1301, USA.
 		good = [_commodityLists oo_dictionaryForKey:commodity];
 		OOCargoQuantity q = [self generateQuantityForGood:good inEconomy:economy];
 		// main system market limited to 127 units of each item
-		if (q > MAIN_SYSTEM_MARKET_LIMIT)
+		OOCargoQuantity cap = [good oo_unsignedIntegerForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+		if (q > cap)
 		{
-			q = MAIN_SYSTEM_MARKET_LIMIT;
+			q = cap;
 		}
 		OOCreditsQuantity p = [self generatePriceForGood:good inEconomy:economy];
 		good = [self createDefinitionFrom:good price:p andQuantity:q forKey:commodity atStation:nil inSystem:[UNIVERSE currentSystemID]];
