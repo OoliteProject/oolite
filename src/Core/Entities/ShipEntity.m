@@ -138,6 +138,7 @@ static GLfloat calcFuelChargeRate (GLfloat myMass)
 #endif
 
 - (void) rescaleBy:(GLfloat)factor;
+- (void) rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache;
 
 - (BOOL) setUpOneSubentity:(NSDictionary *) subentDict;
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict;
@@ -396,7 +397,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 							 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
 					   shaderMacros:OODefaultShipShaderMacros()
 					   shaderBindingTarget:self
-						scaleFactor:_scaleFactor];
+						scaleFactor:_scaleFactor
+					 cacheWriteable:YES];
 
 		if (mesh == nil)  return NO;
 		[self setMesh:mesh];
@@ -8995,6 +8997,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) rescaleBy:(GLfloat)factor
 {
+	[self rescaleBy:factor writeToCache:YES];
+}
+
+
+- (void) rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
+{
 	_scaleFactor *= factor;
 	OOMesh *mesh = nil;
 
@@ -9009,7 +9017,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
 					   shaderMacros:OODefaultShipShaderMacros()
 					   shaderBindingTarget:self
-						scaleFactor:factor];
+						scaleFactor:factor
+					 cacheWriteable:writeToCache];
 
 		if (mesh == nil)  return;
 		[self setMesh:mesh];
@@ -9020,7 +9029,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	foreach (se, [self subEntities])
 	{
 		[se setPosition:HPvector_multiply_scalar([se position], factor)];
-		[se rescaleBy:factor];
+		[se rescaleBy:factor writeToCache:writeToCache];
 	}
 	
 	// rescale mass

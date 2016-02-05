@@ -5492,7 +5492,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		GLfloat expected_mass = 0.1f * [ship mass] * (0.75 + 0.5 * randf());
 		GLfloat wreck_mass = [wreck mass];
 		GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f) * scale;	// cube root of volume ratio
-		[wreck rescaleBy: scale_factor];
+		[wreck rescaleBy:scale_factor writeToCache:NO];
 
 		[wreck setPosition:rpos];
 

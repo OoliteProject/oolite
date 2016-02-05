@@ -424,6 +424,13 @@ MA 02110-1301, USA.
 }
 
 
+- (void) rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
+{
+	/* Do nothing; this is only needed because of OOEntityWithDrawable
+	   implementation requirements */
+}
+
+
 - (GLfloat) scaleMax
 {
 	GLfloat scale = 1.0;

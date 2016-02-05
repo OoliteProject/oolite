@@ -136,7 +136,8 @@ materialDictionary:(NSDictionary *)materialDict
 			smooth:(BOOL)smooth
 	  shaderMacros:(NSDictionary *)macros
 shaderBindingTarget:(id<OOWeakReferenceSupport>)object
-	   scaleFactor:(float)scale;
+	   scaleFactor:(float)scale
+	cacheWriteable:(BOOL)cacheWriteable;
 
 - (BOOL) loadData:(NSString *)filename scaleFactor:(float)scale;
 - (void) checkNormalsAndAdjustWinding;
@@ -244,7 +245,8 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 								smooth:smooth
 						  shaderMacros:macros
 				   shaderBindingTarget:object
-						   scaleFactor:1.0f] autorelease];
+						   scaleFactor:1.0f
+						cacheWriteable:YES] autorelease];
 }
 
 + (instancetype) meshWithName:(NSString *)name
@@ -255,6 +257,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 				 shaderMacros:(NSDictionary *)macros
 		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 				  scaleFactor:(float)scale
+			   cacheWriteable:(BOOL)cacheWriteable
 {
 	return [[[self alloc] initWithName:name
 							  cacheKey:cacheKey
@@ -263,7 +266,8 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 								smooth:smooth
 						  shaderMacros:macros
 				   shaderBindingTarget:object
-						   scaleFactor:scale] autorelease];
+						   scaleFactor:scale
+						cacheWriteable:cacheWriteable] autorelease];
 }
 
 
@@ -286,6 +290,8 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 	if (self == nil)  return nil;
 	
 	baseFile = @"No Model";
+	baseFileOctreeCacheRef = @"No Model-0.000";
+	_cacheWriteable = YES;
 #if OO_MULTITEXTURE
 	_textureUnitCount = NSNotFound;
 #endif
@@ -302,6 +308,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 {
 	unsigned				i;
 	
+	DESTROY(baseFileOctreeCacheRef);
 	DESTROY(baseFile);
 	DESTROY(octree);
 	
@@ -652,7 +659,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	if (octree == nil)
 	{
-		octree = [[OOCacheManager octreeForModel:baseFile] retain];
+		octree = [[OOCacheManager octreeForModel:baseFileOctreeCacheRef] retain];
 		if (octree == nil)
 		{
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -671,9 +678,16 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 			
 			octree = [converter findOctreeToDepth:[self octreeDepth]];
 			[octree retain];
-			[OOCacheManager setOctree:octree forModel:baseFile];
+			if (EXPECT(_cacheWriteable))
+			{
+				[OOCacheManager setOctree:octree forModel:baseFileOctreeCacheRef];
+			}
 			
 			[pool release];
+		}
+		else
+		{
+			OOLog(@"mesh.load.octreeCached", @"Retrieved octree \"%@\" from cache.", baseFileOctreeCacheRef);
 		}
 	}
 	
@@ -850,6 +864,7 @@ materialDictionary:(NSDictionary *)materialDict
 	  shaderMacros:(NSDictionary *)macros
 shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	   scaleFactor:(float)scale
+	cacheWriteable:(BOOL)cacheWriteable
 {
 	OOJS_PROFILE_ENTER
 	
@@ -858,6 +873,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
  	_normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
+	_cacheWriteable = cacheWriteable;
 	
 #if OOMESH_PROFILE
 	_stopwatch = [[OOProfilingStopwatch alloc] init];
@@ -869,6 +885,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		PROFILE(@"finished calculateBoundingVolumes (again\?\?)");
 		
 		baseFile = [name copy];
+		baseFileOctreeCacheRef = [[NSString stringWithFormat:@"%@-%.3f", baseFile, scale] copy];
 		
 		/*	New in r3033: save the material-defining parameters here so we
 			can rebind the materials at any time.
@@ -917,6 +934,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	if (result != nil)
 	{
 		[result->baseFile retain];
+		[result->baseFileOctreeCacheRef retain];
 		[result->octree retain];
 		[result->_retainedObjects retain];
 		[result->_materialDict retain];
@@ -1154,7 +1172,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	if (!using_preloaded)
 	{
-		OOLog(@"mesh.load.uncached", @"Mesh \"%@\" is not in cache, loading.", filename);
+		OOLog(@"mesh.load.uncached", @"Mesh \"%@\" is not in cache, loading.", cacheKey);
 		
 		NSCharacterSet	*whitespaceCharSet = [NSCharacterSet whitespaceCharacterSet];
 		NSCharacterSet	*whitespaceAndNewlineCharSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
@@ -1587,8 +1605,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		}
 		
 		// save the resulting data for possible reuse
-		[OOCacheManager setMeshData:[self modelData] forName:cacheKey];
-		PROFILE(@"saved to cache");
+		if (EXPECT(_cacheWriteable))
+		{
+			[OOCacheManager setMeshData:[self modelData] forName:cacheKey];
+			PROFILE(@"saved to cache");
+		}
 		
 		if (failFlag)
 		{
@@ -2004,6 +2025,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	[self calculateBoundingVolumes];
 	DESTROY(octree);
 	DESTROY(baseFile);	// Avoid octree cache.
+	DESTROY(baseFileOctreeCacheRef);
 }
 
 

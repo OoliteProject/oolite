@@ -98,6 +98,8 @@ typedef struct
 	OOMeshFaceCount			faceCount;
 	
 	NSString				*baseFile;
+	NSString				*baseFileOctreeCacheRef;
+	BOOL					_cacheWriteable;
 	
 	Vector					*_vertices;
 	Vector					*_normals;
@@ -155,7 +157,8 @@ typedef struct
 					   smooth:(BOOL)smooth
 				 shaderMacros:(NSDictionary *)macros
 		  shaderBindingTarget:(id<OOWeakReferenceSupport>)object
-				  scaleFactor:(float)factor;
+				  scaleFactor:(float)factor
+			   cacheWriteable:(BOOL)cacheWriteable;
 
 
 + (OOMaterial *) placeholderMaterial;
