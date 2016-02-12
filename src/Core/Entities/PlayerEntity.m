@@ -537,6 +537,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (OOScalar) chart_zoom
 {
+	if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
+	{
+		return 1.0;
+	}
+	else if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG)
+	{
+		return CHART_MAX_ZOOM;
+	}
 	return chart_zoom;
 }
 
@@ -546,6 +554,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSPoint acc;		// adjusted chart centre
 	double scroll_pos;	// cursor coordinate at which we'd want to scoll chart in the direction we're currently considering
 	double ecc;		// chart centre coordinate we'd want if the cursor was on the edge of the galaxy in the current direction
+
+	if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
+	{
+		return galaxy_coordinates;
+	}
+	else if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG)
+	{
+		return NSMakePoint(128.0, 128.0);
+	}
 
 	// When fully zoomed in we want to centre chart on chart_centre_coordinates.  When zoomed out we want the chart centred on
 	// (128.0, 128.0) so the galaxy fits the screen width.  For intermediate zoom we interpolate.
