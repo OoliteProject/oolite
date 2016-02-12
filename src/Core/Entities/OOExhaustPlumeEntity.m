@@ -622,6 +622,13 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 }
 
 
+- (void) rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
+{
+	/* Do nothing; this is only needed because of OOEntityWithDrawable
+	   implementation requirements */
+}
+
+
 - (OOTexture *) texture
 {
 	return [OOExhaustPlumeEntity plumeTexture];

@@ -184,6 +184,7 @@
 	mesh.load.cached						= inherit;
 	mesh.load.uncached						= inherit;
 	mesh.load.octree.size					= no;
+	mesh.load.octreeCached					= inherit;
 	
 	mesh.load.error							= $error;
 	mesh.load.error.badCacheData			= inherit;
