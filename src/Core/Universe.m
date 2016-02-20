@@ -7646,27 +7646,29 @@ static void VerifyDesc(NSString *key, id desc)
 	
 	// short range map fix
 	[gui refreshStarChart];
-	
-	// long range map fixes
-	if ([key isEqualToString:KEY_NAME])
-	{	
-		object=(id)[[(NSString *)object lowercaseString] capitalizedString];
-		if(sameGalaxy)
-		{
-			if (system_names[pnum]) [system_names[pnum] release];
-			system_names[pnum] = [(NSString *)object retain];
+
+	if (object != nil) {
+		// long range map fixes
+		if ([key isEqualToString:KEY_NAME])
+		{	
+			object=(id)[[(NSString *)object lowercaseString] capitalizedString];
+			if(sameGalaxy)
+			{
+				if (system_names[pnum]) [system_names[pnum] release];
+				system_names[pnum] = [(NSString *)object retain];
+			}
 		}
-	}
-	else if ([key isEqualToString:@"sun_radius"])
-	{
-		if ([object doubleValue] < 1000.0 || [object doubleValue] > 10000000.0 ) 
+		else if ([key isEqualToString:@"sun_radius"])
 		{
-			object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"10000000.0"); // works!
+			if ([object doubleValue] < 1000.0 || [object doubleValue] > 10000000.0 ) 
+			{
+				object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"10000000.0"); // works!
+			}
 		}
-	}
-	else if ([key hasPrefix:@"corona_"])
-	{
-		object = (id)[NSString stringWithFormat:@"%f",OOClamp_0_1_f([object floatValue])];
+		else if ([key hasPrefix:@"corona_"])
+		{
+			object = (id)[NSString stringWithFormat:@"%f",OOClamp_0_1_f([object floatValue])];
+		}
 	}
 	
 	[systemManager setProperty:key forSystemKey:overrideKey andLayer:layer toValue:object fromManifest:manifest];
