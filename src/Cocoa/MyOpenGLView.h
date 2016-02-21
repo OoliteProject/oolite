@@ -117,7 +117,7 @@ extern int debug;
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;	// DJS
 
-	BOOL				opt, ctrl, command, shift;
+	BOOL				opt, ctrl, command, shift, capsLock;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 	BOOL				commandQ;
@@ -191,6 +191,7 @@ extern int debug;
 - (BOOL) isCtrlDown;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
+- (BOOL) isCapsLockOn;
 - (int) numKeys;
 - (int) mouseWheelState;
 

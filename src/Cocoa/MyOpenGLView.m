@@ -975,6 +975,13 @@ FAIL:
 }
 
 
+- (BOOL) isCapsLockOn
+{
+	// TODO: Implement CapsLock check for Mac
+	return NO;
+}
+
+
 - (int) numKeys
 {
 	return NUM_KEYS;
