@@ -1796,7 +1796,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						//OOLog(@"keys.test", @"Keydown scancode: %d", kbd_event->keysym.scancode);
 						;
 				}
-				// Check Caps Lock state check - we only need to do this on key down.
+				// Caps Lock state check - we only need to do this on key down.
 				// This effectively gives us an alternate keyboard state to play with
 				// and, in the future, we could assign different behaviours to existing
 				// keys, depending on the state of Caps Lock. - Nikos 20160221
