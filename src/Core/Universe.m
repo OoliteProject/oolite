@@ -4494,7 +4494,8 @@ static const OOMatrix	starboard_matrix =
 					GLfloat		fogFactor = 0.5 / airResistanceFactor;
 					double 		fog_scale, half_scale;
 					GLfloat 	flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
-					GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing			
+					GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
+					GLfloat		fog_blend;
 				
 					OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				
@@ -4553,6 +4554,8 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
 								OOGL(glFogf(GL_FOG_START, half_scale));
 								OOGL(glFogf(GL_FOG_END, fog_scale));
+								fog_blend = ([drawthing cameraRangeFront] - half_scale)/half_scale;
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: skyClearColor[0] green: skyClearColor[1] blue: skyClearColor[3] alpha: fog_blend]];
 							}
 						
 							[self lightForEntity:demoShipMode || drawthing->isSunlit];
@@ -4565,6 +4568,7 @@ static const OOMatrix	starboard_matrix =
 							// atmospheric fog
 							if (fogging)
 							{
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: 0.0 green: 0.0 blue: 0.0 alpha: 0.0]];
 								OOGL(glDisable(GL_FOG));
 							}
 						
@@ -4602,6 +4606,8 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
 								OOGL(glFogf(GL_FOG_START, half_scale));
 								OOGL(glFogf(GL_FOG_END, fog_scale));
+								fog_blend = ([drawthing cameraRangeFront] - half_scale)/half_scale;
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: skyClearColor[0] green: skyClearColor[1] blue: skyClearColor[3] alpha: fog_blend]];
 							}
 						
 							// draw the thing
@@ -4610,6 +4616,7 @@ static const OOMatrix	starboard_matrix =
 							// atmospheric fog
 							if (fogging)
 							{
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: 0.0 green: 0.0 blue: 0.0 alpha: 0.0]];
 								OOGL(glDisable(GL_FOG));
 							}
 						
