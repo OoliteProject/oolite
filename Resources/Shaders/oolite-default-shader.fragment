@@ -166,6 +166,7 @@ vec4 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 
 uniform float			uHullHeatLevel;
 uniform float			uTime;
+uniform vec4			uFogColor;
 
 
 // Irregular flickering function.
@@ -320,5 +321,5 @@ void main(void)
 	hullHeat = Pulse(hullHeat * hullHeat, 0.1);
 	totalColor += TemperatureGlow(hullHeat);
 	
-	gl_FragColor = totalColor;
+	gl_FragColor = uFogColor.w * vec4(uFogColor.xyz, 0.0) + (1.0 - uFogColor.w) * totalColor;
 }
