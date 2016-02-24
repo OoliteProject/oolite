@@ -321,5 +321,5 @@ void main(void)
 	hullHeat = Pulse(hullHeat * hullHeat, 0.1);
 	totalColor += TemperatureGlow(hullHeat);
 	
-	gl_FragColor = uFogColor.w * vec4(uFogColor.xyz, 0.0) + (1.0 - uFogColor.w) * totalColor;
+	gl_FragColor = mix(totalColor, vec4(uFogColor.xyz, 1.0), uFogColor.w);
 }

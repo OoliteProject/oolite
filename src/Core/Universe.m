@@ -4554,7 +4554,7 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
 								OOGL(glFogf(GL_FOG_START, half_scale));
 								OOGL(glFogf(GL_FOG_END, fog_scale));
-								fog_blend = OOClamp_0_1_f(([drawthing cameraRangeFront] - half_scale)/half_scale);
+								fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale)/half_scale);
 								[drawthing setAtmosphereFogging: [OOColor colorWithRed: skyClearColor[0] green: skyClearColor[1] blue: skyClearColor[2] alpha: fog_blend]];
 							}
 						
@@ -4606,7 +4606,7 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
 								OOGL(glFogf(GL_FOG_START, half_scale));
 								OOGL(glFogf(GL_FOG_END, fog_scale));
-								fog_blend = OOClamp_0_1_f(([drawthing cameraRangeFront] - half_scale)/half_scale);
+								fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale)/half_scale);
 								[drawthing setAtmosphereFogging: [OOColor colorWithRed: skyClearColor[0] green: skyClearColor[1] blue: skyClearColor[2] alpha: fog_blend]];
 							}
 						
