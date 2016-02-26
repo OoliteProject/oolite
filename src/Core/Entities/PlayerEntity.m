@@ -3320,9 +3320,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self resetAutopilotAI];
 	[shipAI setState:@"BEGIN_DOCKING"];	// reboot the AI
 	[self playAutopilotOn];
+	[[OOMusicController sharedController] playDockingMusic];
 	[self doScriptEvent:OOJSID("playerStartedAutoPilot") withArgument:stationForDocking];
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-	[[OOMusicController sharedController] playDockingMusic];
 		
 	if (afterburner_engaged)
 	{
