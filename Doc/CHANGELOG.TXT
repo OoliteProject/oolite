@@ -18,7 +18,7 @@ Modified Plists:
 ----------------
 * planetinfo.plist: link_color can be defined both ways in interstellar space
   for gradient effects (also works via JS)
-* planetinfo.plistStar and nebula count multipliers are now floats rather
+* planetinfo.plist: Star and nebula count multipliers are now floats rather
   than unsigned integers, making multipliers like 0.5 etc. possible
 
 Scripting:
@@ -72,10 +72,10 @@ Bug fixes:
 * Applied tentative fix for occasional null docking instructions in priority AI
   JS script
 * Fixed potential energy gain when shield boosters got damaged
-* F$ixed incorrect model reference in alloy shipdata definition
+* Fixed incorrect model reference in alloy shipdata definition
 * Fixed potential division by zero crash in station market creation
 * Capacities are now honoured for main system market
-* Fixed long standing cacheed octree issues, resulting in interesting and quite
+* Fixed long standing cached octree issues, resulting in interesting and quite
   hard to reproduce collision bugs
 * Fixed mission screen when background special is a chart so the chart is fully zoomed
   in (for SHORT_RANGE_CHART) or fully zoomed out (for LONG_RANGE_CHART)
