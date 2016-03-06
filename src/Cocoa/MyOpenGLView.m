@@ -504,6 +504,12 @@ FAIL:
 }
 
 
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	// TODO: implement string clipboard copy for Mac
+}
+
+
 - (BOOL) acceptsFirstResponder
 {
 	return YES;

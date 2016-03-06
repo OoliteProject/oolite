@@ -1558,9 +1558,13 @@ static OOOXZManager *sSingleton = nil;
 				  startingAtRow:7  align:GUI_ALIGN_LEFT];
 
 // infoURL		
+			NSString *infoURLString = [manifest oo_stringForKey:kOOManifestInformationURL];
 			[gui setText:[NSString stringWithFormat:DESC(@"oolite-oxzmanager-infopage-infourl-@"),
-								   [manifest oo_stringForKey:kOOManifestInformationURL]]
+								   infoURLString]
 				  forRow:25 align:GUI_ALIGN_LEFT];
+			// copy url info text to clipboard automatically once we are in the oxz info page
+			[[UNIVERSE gameView] stringToClipboard:infoURLString];	  
+				  
 // instructions
 			[gui setText:OOExpand(DESC(@"oolite-oxzmanager-infopage-return")) forRow:27 align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor greenColor] forRow:27];

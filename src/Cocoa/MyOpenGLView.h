@@ -173,6 +173,8 @@ extern int debug;
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
 
+- (void) stringToClipboard:(NSString *)stringToCopy;
+
 - (BOOL) snapShot:(NSString *)filename;
 
 - (void)mouseDown:(NSEvent *)theEvent;

@@ -225,6 +225,8 @@ extern int debug;
 
 - (void) grabMouseInsideGameWindow:(BOOL) value;
 
+- (void) stringToClipboard:(NSString *)stringToCopy;
+
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
 - (void) updateScreenWithVideoMode:(BOOL) v_mode;

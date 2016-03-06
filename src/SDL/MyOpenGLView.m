@@ -820,6 +820,34 @@ MA 02110-1301, USA.
 	grabMouseStatus = !!value;
 }
 
+
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	if (stringToCopy)
+	{
+		const char *clipboardText = [stringToCopy cStringUsingEncoding:NSUTF8StringEncoding];
+		const size_t clipboardTextLength = strlen(clipboardText) + 1;
+		HGLOBAL clipboardMem = GlobalAlloc(GMEM_MOVEABLE, clipboardTextLength);
+		if (clipboardMem)
+		{
+			memcpy(GlobalLock(clipboardMem), clipboardText, clipboardTextLength);
+			GlobalUnlock(clipboardMem);
+			OpenClipboard(0);
+			EmptyClipboard();
+			if (!SetClipboardData(CF_TEXT, clipboardMem))
+			{
+				OOLog(@"stringToClipboard.failed", @"Failed to copy string %@ to clipboard", stringToCopy);
+				// free global allocated memory if clipboard copy failed
+				// note: no need to free it if copy succeeded; the OS becomes
+				// the owner of the copied memory once SetClipboardData has
+				// been executed successfully
+				GlobalFree(clipboardMem);
+			}
+			CloseClipboard();
+		}
+	}
+}
+
 #else	// Linus stub methods
 
 // for Linux we assume we are always on the primary monitor for now
@@ -832,6 +860,12 @@ MA 02110-1301, USA.
 - (void) grabMouseInsideGameWindow:(BOOL) value
 {
 	// do nothing
+}
+
+
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	// TODO: implement string clipboard copy for Linux
 }
 
 #endif //OOLITE_WINDOWS
