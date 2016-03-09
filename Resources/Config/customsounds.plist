@@ -61,7 +61,6 @@
 	"[galactic-hyperspace-countdown-begun]" = "[@beep]";
 	"[hyperspace-countdown-aborted]" = "[@boop]";
 	"[witch-no-target]"				= "[@boop]";
-	"[witch-no-fuel]"				= "[@boop]";
 	"[witch-blocked-by-@]"			= "[@witchabort]";
 	"[witch-too-far]"				= "[@witchabort]";
 	"[witch-no-fuel]"				= "[@witchabort]";
