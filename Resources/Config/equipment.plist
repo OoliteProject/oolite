@@ -129,7 +129,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 12500;
+				range = 6250;
 				energy = 0.8;
 				damage = 15.0;
 				recharge_rate = 0.5;
@@ -147,7 +147,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 15000;
+				range = 7500;
 				energy = 0.5;
 				damage = 6.0;
 				recharge_rate = 0.1;
@@ -166,7 +166,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 12500;
+				range = 6250;
 				energy = 1.4;
 				damage = 50.0;
 				recharge_rate = 2.5;
@@ -185,7 +185,7 @@
 			condition_script = "oolite-conditions.js";
 			available_to_all = true;
 			weapon_info = {
-				range = 30000;
+				range = 15000;
 				energy = 1.1;
 				damage = 12.0;
 				recharge_rate = 0.1;
@@ -351,7 +351,7 @@
 		{
 			available_to_player = false;
 			weapon_info = {
-				range = 17500;
+				range = 8750;
 				energy = 1.1;
 				damage = 12.5;
 				recharge_rate = 1.0;

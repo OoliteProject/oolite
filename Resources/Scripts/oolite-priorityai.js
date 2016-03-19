@@ -1999,7 +1999,7 @@ PriorityAIController.prototype.conditionSunskimPossible = function()
 			!system.sun.isGoingNova && 
 			this.ship.fuel < 7 && 
 			this.ship.hasEquipmentProviding("EQ_FUEL_SCOOPS") &&
-			(this.ship.heatInsulation > 1000/this.ship.maxSpeed || this.ship.heatInsulation >= 12));
+			(this.ship.heatInsulation > 3300/this.ship.maxSpeed || this.ship.heatInsulation >= 12));
 }
 
 
