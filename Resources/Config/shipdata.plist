@@ -341,7 +341,6 @@
 		missile_launch_position = "0.0 -11.2 71.0";
 		missiles = 7;
 		model = "oolite_anaconda.dat";
-		model_scale_factor = 1.5;
 		name = "Anaconda";
 		roles = "trader(0.5) trader-courier(0.1)";
 		scoop_position = "0.0 -30.0 -60";
@@ -737,7 +736,6 @@
 		missile_launch_position = "0.0 2.322665 56.223506";
 		missiles = 4;
 		model = "oolite_boa.dat";
-		model_scale_factor = 0.33;	// check it
 		name = "Boa";
 		roles = "trader";
 		scoop_position = "0.0 3.029881 49.396415";
@@ -896,7 +894,6 @@
 		missile_launch_position = "0.0 -4.888735 48.6764";
 		missiles = 5;
 		model = "oolite_boa-mk2.dat";
-		model_scale_factor = 0.33;	// check it
 		name = "Boa Class Cruiser";
 		roles = "trader(0.25) trader-courier(0.05)";
 		scoop_position = "0.0 -6.100643 44.2919";
@@ -2887,7 +2884,6 @@
 		missile_launch_position = "0.0 -2.2 63.5";
 		missiles = 2;
 		model = "oolite_python.dat";
-		model_scale_factor = 0.33;	// check it
 		name = "Python";
 		roles = "trader(0.5) trader-smuggler(0.2) pirate(0.2) pirate-light-freighter(0.2)";
 		scoop_position = "0.0 -15.0 -21.5";
@@ -3127,7 +3123,6 @@
 		"max_scavengers" = 1;
 		missiles = 0;
 		model = "oolite_rock_hermit.dat";
-		model_scale_factor = 0.33;
 		name = "Rock Hermit";
 		roles = "rockhermit station";
 		rotating = yes;
@@ -3299,6 +3294,7 @@
 				emission_modulate_color = (0.9926, 0.2686, 0.0325, 1.0);
 			};
 		};
+		model_scale_factor = 0.33;
 	};
 	"oolite_template_shuttle" = {
 		aft_eject_position = "0.0 -15.0 -21.0";
@@ -3335,7 +3331,6 @@
 		missile_launch_position = "0.0 -7.25 15.0";
 		missiles = 0;
 		model = "oolite_shuttle.dat";
-		model_scale_factor = 0.33;	// check it
 		name = "Orbital Shuttle";
 		roles = "shuttle";
 		thrust = 8;
@@ -3583,7 +3578,6 @@
 		missile_launch_position = "0.0 -6.79 21.0";
 		missiles = 0;
 		model = "oolite_transporter.dat";
-		model_scale_factor = 0.33;	// check it
 		name = "Transporter";
 		roles = "shuttle";
 		scoop_position = "0.0 -6.0 -10.5";
