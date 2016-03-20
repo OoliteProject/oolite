@@ -112,8 +112,8 @@ enum
 
 #define MAX_NUMBER_OF_ENTITIES				200
 #define STANDARD_STATION_ROLL				0.4
-// currently twice scanner radius
-#define LANE_WIDTH			51200.0
+
+#define LANE_WIDTH		(4.0 * SCANNER_MAX_RANGE)
 
 static NSString * const kOOLogUniversePopulateError			= @"universe.populate.error";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
@@ -1456,7 +1456,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		}
 		else if ([code isEqualToString:@"LANE_WP"])
 		{
-			result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[planet position],[planet radius]*3,LANE_WIDTH);
+			result = OORandomPositionInCylinder(kZeroHPVector,SCANNER_MAX_RANGE,[planet position],[planet radius]*1.1,LANE_WIDTH);
 		}
 		else if ([code isEqualToString:@"LANE_WS"])
 		{
@@ -1464,7 +1464,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		}
 		else if ([code isEqualToString:@"LANE_PS"])
 		{
-			result = OORandomPositionInCylinder([planet position],[planet radius]*3,[sun position],[sun radius]*3,LANE_WIDTH);
+			result = OORandomPositionInCylinder([planet position],[planet radius]*1.1,[sun position],[sun radius]*3,LANE_WIDTH);
 		}
 		else if ([code isEqualToString:@"STATION_AEGIS"])
 		{
