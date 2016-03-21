@@ -552,7 +552,7 @@ this._parcelContractSummaryPage = function()
 	{
 		icstr = "0"+this.$contractIndex;
 	}
-	var initialChoice = ["01_CONTRACT_"+this.icstr];
+	var initialChoice = ["01_CONTRACT_"+icstr];
 
 	// next, an empty string gives an unselectable row
 	options["02_SPACER"] = ""; 
