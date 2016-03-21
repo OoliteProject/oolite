@@ -213,8 +213,8 @@ MA 02110-1301, USA.
 	JSContext			*context = OOJSAcquireContext();
 	jsval				rval;
 	jsval				args[] = { 
-		[good oo_jsValueInContext:context], 
-		[station oo_jsValueInContext:context], 
+		OOJSValueFromNativeObject(context, good),
+		OOJSValueFromNativeObject(context, station),
 		INT_TO_JSVAL(system) 
 	};
 	BOOL				OK = YES;
