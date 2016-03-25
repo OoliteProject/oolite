@@ -448,7 +448,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		}
 		if (isWeaponNone(weapon_type) && hasTurrets)
 		{ // safety for ships only equipped with turrets
-			weaponRange = 3300.0;
+			weaponRange = 5000.0;
 		}
 		else
 		{
@@ -4692,7 +4692,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink = kZeroVector; // almost all behaviours
 
 				// TODO: good pilots use behaviour_attack_sniper sometimes
-				if (getWeaponRangeFromType(forward_weapon_real_type) > 4125 && range > 4125)
+				if (getWeaponRangeFromType(forward_weapon_real_type) > 6250 && range > 6250)
 				{
 					behaviour = BEHAVIOUR_ATTACK_SNIPER;
 				}
@@ -11538,7 +11538,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		if (isWeaponNone(weapon_type) && hasTurrets)
 		{ // no forward weapon but has turrets, so set up range calculations accordingly
-			weaponRange = 3300.0;
+			weaponRange = 5000.0;
 		}
 		else
 		{
