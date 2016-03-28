@@ -1582,10 +1582,10 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			fireRate = 0.25f;
 		}
 		weaponRange = [declaration oo_floatForKey:@"weapon_range" defaultValue:-1.0f];
-		if (weaponRange > 7500.0f)
+		if (weaponRange > TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR)
 		{
-			OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subenitity of ship %@ is too high, using 7500.", weaponRange, shipKey);
-			weaponRange = 7500.0f; // range of primary plasma canon.
+			OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subenitity of ship %@ is too high, using %.1f.", weaponRange, shipKey, TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR);
+			weaponRange = TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR; // approx. range of primary plasma canon.
 		}
 
 		weaponEnergy = [declaration oo_floatForKey:@"weapon_energy" defaultValue:-1.0f];
