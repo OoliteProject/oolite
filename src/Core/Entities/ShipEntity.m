@@ -447,8 +447,13 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 			}
 		}
 		if (isWeaponNone(weapon_type) && hasTurrets)
-		{ // safety for ships only equipped with turrets
-			weaponRange = 10000.0;
+		{ /* safety for ships only equipped with turrets
+		     note: this was hard-coded to 10000.0, although turrets have a notably 
+		     shorter range. We are using a multiplier of 1.667 in order to not change
+		     something that already works, but probably it would be best to use
+		     TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR here
+		  */
+			weaponRange = TURRET_SHOT_RANGE * 1.667;
 		}
 		else
 		{
@@ -11537,8 +11542,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			}
 		}
 		if (isWeaponNone(weapon_type) && hasTurrets)
-		{ // no forward weapon but has turrets, so set up range calculations accordingly
-			weaponRange = 10000.0;
+		{ /* no forward weapon but has turrets, so set up range calculations accordingly
+		     note: this was hard-coded to 10000.0, although turrets have a notably 
+		     shorter range. We are using a multiplier of 1.667 in order to not change
+		     something that already works, but probably it would be best to use
+		     TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR here
+		  */
+			 weaponRange = TURRET_SHOT_RANGE * 1.667;
 		}
 		else
 		{
