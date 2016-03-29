@@ -79,6 +79,7 @@ Bug fixes:
   hard to reproduce collision bugs
 * Fixed mission screen when background special is a chart so the chart is fully zoomed
   in (for SHORT_RANGE_CHART) or fully zoomed out (for LONG_RANGE_CHART)
+* Fix for chart on Mac retina screen
 
 -------------------------------------------------------------------------------
 
