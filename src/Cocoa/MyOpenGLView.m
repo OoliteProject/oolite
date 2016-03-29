@@ -211,6 +211,12 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 }
 
 
+- (NSSize) backingViewSize
+{
+	return backingViewSize;
+}
+
+
 - (GLfloat) display_z
 {
 	return display_z;
@@ -334,11 +340,19 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		x_offset = 320.0;
 		y_offset = 320.0 * viewSize.height/viewSize.width;
 	}
-	
+
+	if ([self respondsToSelector:@selector(wantsBestResolutionOpenGLSurface:)])
+	{
+		[self wantsBestResolutionOpenGLSurface:NO];
+	}
 	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
 		// High resolution mode support.
-		v_size = [self convertSizeToBacking:v_size];
+		backingViewSize = [self convertSizeToBacking:viewSize];
+	}
+	else
+	{
+		backingViewSize = viewSize;
 	}
 	
 	[self openGLContext];	// Force lazy setup if needed.
@@ -386,12 +400,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 - (BOOL) snapShot:(NSString *)filename
 {
 	BOOL snapShotOK = YES;
-        NSSize v_size = viewSize;
-	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
-	{
-		// High resolution mode support.
-		v_size = [self convertSizeToBacking:v_size];
-	}
+	NSSize v_size = backingViewSize;
 	
 	int w = v_size.width;
 	int h = v_size.height;
