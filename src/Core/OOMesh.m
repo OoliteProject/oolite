@@ -1710,11 +1710,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		if (dsAC * dtAB > dsAB * dtAC)
 		{
-			face->tangent = vector_subtract(vector_multiply_scalar(vProjAC, dtAB), vector_multiply_scalar(vProjAB, dtAC));
+			face->tangent = vector_normal(vector_subtract(vector_multiply_scalar(vProjAC, dtAB), vector_multiply_scalar(vProjAB, dtAC)));
 		}
 		else
 		{
-			face->tangent = vector_subtract(vector_multiply_scalar(vProjAB, dtAC), vector_multiply_scalar(vProjAC, dtAB));
+			face->tangent = vector_normal(vector_subtract(vector_multiply_scalar(vProjAB, dtAC), vector_multiply_scalar(vProjAC, dtAB)));
 		}			
 	}
 	
