@@ -1764,6 +1764,7 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 		}
 		
 		normal_sum = vector_normal_or_fallback(normal_sum, kBasisZVector);
+		tangent_sum = vector_subtract(tangent_sum, vector_multiply_scalar(normal_sum, dot_product(tangent_sum, normal_sum)));
 		tangent_sum = vector_normal_or_fallback(tangent_sum, kBasisXVector);
 		
 		_normals[i] = normal_sum;
@@ -1829,6 +1830,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 			tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, t));
 		}
 		
+		tangent_sum = vector_subtract(tangent_sum, vector_multiply_scalar(_normals[i], dot_product(_normals[i], tangent_sum)));
 		tangent_sum = vector_normal_or_fallback(tangent_sum, kBasisXVector);
 		
 		_tangents[i] = tangent_sum;
