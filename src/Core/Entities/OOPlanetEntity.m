@@ -533,9 +533,13 @@ static OOColor *ColorWithHSBColor(Vector c)
 				[_atmosphereDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
 			}
 		}
-		else if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
+		else
 		{
-			[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+			if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
+			{
+				[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+			}
+			[UNIVERSE setAirResistanceFactor:0.0f];	// out of atmosphere - no air friction
 		}
 		
 		double time = [UNIVERSE getTime];

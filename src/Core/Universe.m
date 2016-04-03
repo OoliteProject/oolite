@@ -3405,7 +3405,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	skyClearColor[1] = green;
 	skyClearColor[2] = blue;
 	skyClearColor[3] = alpha;
-	airResistanceFactor = alpha;
+	[self setAirResistanceFactor:alpha];
 }
 
 
@@ -9462,6 +9462,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 - (GLfloat)airResistanceFactor
 {
 	return airResistanceFactor;
+}
+
+
+- (void) setAirResistanceFactor:(GLfloat)newFactor
+{
+	airResistanceFactor = OOClamp_0_1_f(newFactor);
 }
 
 

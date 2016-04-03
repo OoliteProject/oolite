@@ -721,6 +721,7 @@ enum
 - (void) handleOoliteException:(NSException *)ooliteException;
 
 - (GLfloat)airResistanceFactor;
+- (void) setAirResistanceFactor:(GLfloat)newFactor;
 
 // speech routines
 //
