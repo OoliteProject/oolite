@@ -1225,7 +1225,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			[self setKey:GUI_KEY_SKIP forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
 			[self setSelectableRange:NSMakeRange(0,0)];
 			
-			[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+			[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
 		}
 	}
 	
