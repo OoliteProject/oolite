@@ -1212,6 +1212,21 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		statusPage = pageCount; // one page
 		start = 0;
+		// if we have mouse interaction active, it means that we had more than one
+		// pages earlier, but only one now, as e.g. in the case of a hud that wss
+		// subsequently hidden, resulting in the equip list fitting in one page,
+		// so we need to deactivate it
+		if (OOMouseInteractionModeIsUIScreen([[UNIVERSE gameController] mouseInteractionMode]))
+		{
+			// clear the gui-more and gui-back key rows first
+			[self setText:@"" forRow:firstRow];
+			[self setKey:GUI_KEY_SKIP forRow:firstRow];
+			[self setText:@"" forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+			[self setKey:GUI_KEY_SKIP forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+			[self setSelectableRange:NSMakeRange(0,0)];
+			
+			[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+		}
 	}
 	
 	if (statusPage > 1)
