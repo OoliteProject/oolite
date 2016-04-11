@@ -647,7 +647,7 @@ typedef enum
 	// custom view points
 	Quaternion				customViewQuaternion;
 	OOMatrix				customViewMatrix;
-	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
+	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector, customViewRotationCenter;
 	NSString				*customViewDescription;
 	
 	

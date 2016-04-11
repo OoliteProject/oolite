@@ -11716,83 +11716,99 @@ static NSString *last_outfitting_key=nil;
 
 - (void) customViewZoomIn
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	customViewOffset = vector_multiply_scalar(customViewOffset, 1/1.1);
 	OOScalar m = magnitude(customViewOffset);
-	if (m < collision_radius)
+	if (m < 1.2 * collision_radius)
 	{
-		scale_vector(&customViewOffset, collision_radius / m);
+		scale_vector(&customViewOffset, 1.2 * collision_radius / m);
 	}
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
 - (void) customViewZoomOut
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	customViewOffset = vector_multiply_scalar(customViewOffset, 1.1);
 	OOScalar m = magnitude(customViewOffset);
 	if (m > 10 * collision_radius)
 	{
 		scale_vector(&customViewOffset, 10 * collision_radius / m);
 	}
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
 - (void) customViewRotateLeft
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	OOScalar m = magnitude(customViewOffset);
 	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, -0.01);
 	[self setCustomViewData];
 	customViewOffset = vector_flip(customViewForwardVector);
 	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
 - (void) customViewRotateRight
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	OOScalar m = magnitude(customViewOffset);
 	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, 0.01);
 	[self setCustomViewData];
 	customViewOffset = vector_flip(customViewForwardVector);
 	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
 - (void) customViewRotateUp
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	OOScalar m = magnitude(customViewOffset);
 	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, -0.01);
 	[self setCustomViewData];
 	customViewOffset = vector_flip(customViewForwardVector);
 	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
 - (void) customViewRotateDown
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	OOScalar m = magnitude(customViewOffset);
 	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, 0.01);
 	[self setCustomViewData];
 	customViewOffset = vector_flip(customViewForwardVector);
 	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
 - (void) customViewRollRight
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	OOScalar m = magnitude(customViewOffset);
 	quaternion_rotate_about_axis(&customViewQuaternion, customViewForwardVector, -0.01);
 	[self setCustomViewData];
 	customViewOffset = vector_flip(customViewForwardVector);
 	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
 - (void) customViewRollLeft
 {
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	OOScalar m = magnitude(customViewOffset);
 	quaternion_rotate_about_axis(&customViewQuaternion, customViewForwardVector, 0.01);
 	[self setCustomViewData];
 	customViewOffset = vector_flip(customViewForwardVector);
 	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
@@ -11856,6 +11872,7 @@ static NSString *last_outfitting_key=nil;
 		// but don't do this when the custom view is set through JS
 		customViewOffset = [viewDict oo_vectorForKey:@"view_position"];
 	}
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
 	customViewDescription = [viewDict oo_stringForKey:@"view_description"];
 	
 	NSString *facing = [[viewDict oo_stringForKey:@"weapon_facing"] lowercaseString];
