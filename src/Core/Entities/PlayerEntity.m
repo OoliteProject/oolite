@@ -11714,6 +11714,88 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) customViewZoomIn
+{
+	customViewOffset = vector_multiply_scalar(customViewOffset, 1/1.1);
+	OOScalar m = magnitude(customViewOffset);
+	if (m < collision_radius)
+	{
+		scale_vector(&customViewOffset, collision_radius / m);
+	}
+}
+
+
+- (void) customViewZoomOut
+{
+	customViewOffset = vector_multiply_scalar(customViewOffset, 1.1);
+	OOScalar m = magnitude(customViewOffset);
+	if (m > 10 * collision_radius)
+	{
+		scale_vector(&customViewOffset, 10 * collision_radius / m);
+	}
+}
+
+
+- (void) customViewRotateLeft
+{
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, -0.01);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+}
+
+
+- (void) customViewRotateRight
+{
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, 0.01);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+}
+
+
+- (void) customViewRotateUp
+{
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, -0.01);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+}
+
+
+- (void) customViewRotateDown
+{
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, 0.01);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+}
+
+
+- (void) customViewRollRight
+{
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewForwardVector, -0.01);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+}
+
+
+- (void) customViewRollLeft
+{
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewForwardVector, 0.01);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+}
+
+
 - (Vector) customViewForwardVector
 {
 	return customViewForwardVector;
@@ -11744,14 +11826,8 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict withScaling:(BOOL)withScaling
+- (void) setCustomViewData
 {
-	customViewMatrix = kIdentityMatrix;
-	customViewOffset = kZeroVector;
-	if (viewDict == nil)  return;
-	
-	customViewQuaternion = [viewDict oo_quaternionForKey:@"view_orientation"];
-	
 	customViewRightVector = vector_right_from_quaternion(customViewQuaternion);
 	customViewUpVector = vector_up_from_quaternion(customViewQuaternion);
 	customViewForwardVector = vector_forward_from_quaternion(customViewQuaternion);
@@ -11759,6 +11835,16 @@ static NSString *last_outfitting_key=nil;
 	Quaternion q1 = customViewQuaternion;
 	q1.w = -q1.w;
 	customViewMatrix = OOMatrixForQuaternionRotation(q1);
+}
+
+- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict withScaling:(BOOL)withScaling
+{
+	customViewMatrix = kIdentityMatrix;
+	customViewOffset = kZeroVector;
+	if (viewDict == nil)  return;
+	
+	customViewQuaternion = [viewDict oo_quaternionForKey:@"view_orientation"];
+	[self setCustomViewData];
 	
 	// easier to do the multiplication at this point than at load time
 	if (withScaling)

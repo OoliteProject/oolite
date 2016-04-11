@@ -3273,7 +3273,8 @@ static NSTimeInterval	time_last_frame;
 
 - (void) pollCustomViewControls
 {
-	if ([[UNIVERSE gameView] isDown:key_custom_view])
+	MyOpenGLView *gameView = [UNIVERSE gameView];
+	if ([gameView isDown:key_custom_view])
 	{
 		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
 		{
@@ -3291,6 +3292,41 @@ static NSTimeInterval	time_last_frame;
 	}
 	else
 		customView_pressed = NO;
+	if ([UNIVERSE viewDirection] && [gameView isCapsLockOn])
+	{
+		if ([gameView isDown:gvPageDownKey] && ![gameView isDown:gvPageUpKey])
+		{
+			[self customViewZoomOut];
+		}
+		if ([gameView isDown:gvPageUpKey] && ![gameView isDown:gvPageDownKey])
+		{
+			[self customViewZoomIn];
+		}
+		if ([gameView isDown:key_roll_left] && ![gameView isDown:key_roll_right])
+		{
+			[self customViewRollLeft];
+		}
+		if ([gameView isDown:key_roll_right] && ![gameView isDown:key_roll_left])
+		{
+			[self customViewRollRight];
+		}
+		if ([gameView isDown:key_pitch_back] && ![gameView isDown:key_pitch_forward])
+		{
+			[self customViewRotateUp];
+		}
+		if ([gameView isDown:key_pitch_forward] && ![gameView isDown:key_pitch_back])
+		{
+			[self customViewRotateDown];
+		}
+		if ([gameView isDown:key_yaw_left] && ![gameView isDown:key_yaw_right])
+		{
+			[self customViewRotateLeft];
+		}
+		if ([gameView isDown:key_yaw_right] && ![gameView isDown:key_yaw_left])
+		{
+			[self customViewRotateRight];
+		}
+	}
 }
 
 
@@ -3513,14 +3549,14 @@ static NSTimeInterval	time_last_frame;
 			keyboardRollOverride = YES;
 			flightRoll = 0.0;
 		}
-		else if ([gameView isDown:key_roll_left])
+		else if ([gameView isDown:key_roll_left] && !([UNIVERSE viewDirection] == VIEW_CUSTOM && [gameView isCapsLockOn]))
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll > 0.0)  flightRoll = 0.0;
 			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
 		}
-		else if ([gameView isDown:key_roll_right])
+		else if ([gameView isDown:key_roll_right] && !([UNIVERSE viewDirection] == VIEW_CUSTOM && [gameView isCapsLockOn]))
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll < 0.0)  flightRoll = 0.0;
@@ -3568,14 +3604,14 @@ static NSTimeInterval	time_last_frame;
 			keyboardPitchOverride=YES;
 			flightPitch = 0.0;
 		}
-		else if ([gameView isDown:key_pitch_back])
+		else if ([gameView isDown:key_pitch_back] && !([UNIVERSE viewDirection] == VIEW_CUSTOM && [gameView isCapsLockOn]))
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch < 0.0)  flightPitch = 0.0;
 			[self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
 			pitching = YES;
 		}
-		else if ([gameView isDown:key_pitch_forward])
+		else if ([gameView isDown:key_pitch_forward] && !([UNIVERSE viewDirection] == VIEW_CUSTOM && [gameView isCapsLockOn]))
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch > 0.0)  flightPitch = 0.0;
@@ -3623,14 +3659,14 @@ static NSTimeInterval	time_last_frame;
 			keyboardYawOverride=YES;
 			flightYaw = 0.0;
 		}
-		else if ([gameView isDown:key_yaw_left])
+		else if ([gameView isDown:key_yaw_left] && !([UNIVERSE viewDirection] == VIEW_CUSTOM && [gameView isCapsLockOn]))
 		{
 			keyboardYawOverride=YES;
 			if (flightYaw < 0.0)  flightYaw = 0.0;
 			[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
 			yawing = YES;
 		}
-		else if ([gameView isDown:key_yaw_right])
+		else if ([gameView isDown:key_yaw_right] && !([UNIVERSE viewDirection] == VIEW_CUSTOM && [gameView isCapsLockOn]))
 		{
 			keyboardYawOverride=YES;
 			if (flightYaw > 0.0)  flightYaw = 0.0;
