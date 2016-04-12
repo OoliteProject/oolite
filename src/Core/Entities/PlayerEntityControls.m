@@ -1472,7 +1472,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 			#if (ALLOW_CUSTOM_VIEWS_WHILE_PAUSED)
-			[self pollCustomViewControls: delta_t];	// allow custom views during pause
+			[self pollCustomViewControls: OOClamp_0_max_d([NSDate timeIntervalSinceReferenceDate] - time_last_frame, MINIMUM_GAME_TICK/10)];	// allow custom views during pause
 			#endif
 			
 			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD)
