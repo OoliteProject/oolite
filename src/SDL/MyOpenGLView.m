@@ -945,10 +945,6 @@ MA 02110-1301, USA.
 		else  GetWindowRect(SDL_Window, &lastGoodRect);
 		
 		// ok, can go fullscreen now
-		if(!wasFullScreen)
-		{
-			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
-		}
 		SetForegroundWindow(SDL_Window);
 		if (changingResolution)
 		{
@@ -960,6 +956,10 @@ MA 02110-1301, USA.
 			}
 		}
 		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+		if(!wasFullScreen)
+		{
+			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
+		}
 	}
 	else if ( wasFullScreen )
 	{
