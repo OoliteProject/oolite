@@ -403,12 +403,12 @@ OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *d)
 	*d = 1.0;
 	for (i = 0; i < 4; i++)
 	{
-		if (M.m[i][i] == 0.0)
+		if (fabs(M.m[i][i]) < 1e-4)
 		{
 			found = NO;
 			for (j = i+1; j < 4; j++)
 			{
-				if (M.m[j][i] != 0.0)
+				if (fabs(M.m[j][i]) > 1e-4)
 				{
 					found = YES;
 					OOMatrixRowSwap(&M,i,j);
