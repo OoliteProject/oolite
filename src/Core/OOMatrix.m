@@ -398,30 +398,32 @@ OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *d)
 {
 	int i, j;
 	OOMatrix B = kIdentityMatrix;
-	BOOL found;
+	int best_row;
+	float max_value;
 
 	*d = 1.0;
 	for (i = 0; i < 4; i++)
 	{
-		if (fabs(M.m[i][i]) < 1e-4)
+		max_value = fabs(M.m[i][i]);
+		best_row = i;
+		for (j = i+1; j < 4; j++)
 		{
-			found = NO;
-			for (j = i+1; j < 4; j++)
+			if (fabs(M.m[j][i]) > max_value)
 			{
-				if (fabs(M.m[j][i]) > 1e-4)
-				{
-					found = YES;
-					OOMatrixRowSwap(&M,i,j);
-					OOMatrixRowSwap(&B,i,j);
-					*d *= -1;
-					break;
-				}
+				best_row = j;
+				max_value = fabs(M.m[j][i]);
 			}
-			if (!found)
-			{
-				*d = 0.0;
-				return kZeroMatrix;
-			}
+		}
+		if (max_value == 0.0)
+		{
+			*d = 0.0;
+			return kZeroMatrix;
+		}
+		if (best_row != i)
+		{
+			OOMatrixRowSwap(&M,i,best_row);
+			OOMatrixRowSwap(&B,i,best_row);
+			*d *= -1;
 		}
 		*d /= M.m[i][i];
 		OOMatrixRowScale(&B, i, 1/M.m[i][i]);
