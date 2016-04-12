@@ -157,8 +157,8 @@ static NSTimeInterval	time_last_frame;
 - (void) pollGuiArrowKeyControls:(double) delta_t;
 - (void) handleGameOptionsScreenKeys;
 - (void) pollApplicationControls;
-- (void) pollCustomViewControls;
-- (void) pollViewControls;
+- (void) pollCustomViewControls:(double) delta_t;
+- (void) pollViewControls:(double) delta_t;
 - (void) pollGuiScreenControls;
 - (void) pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
 - (void) pollMarketScreenControls;
@@ -880,7 +880,7 @@ static NSTimeInterval	time_last_frame;
 				[self pollFlightArrowKeyControls:delta_t];
 			
 			//  view keys
-			[self pollViewControls];
+			[self pollViewControls: delta_t];
 			
 			if (OOMouseInteractionModeIsFlightMode([[UNIVERSE gameController] mouseInteractionMode]))
 			{
@@ -1472,7 +1472,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 			#if (ALLOW_CUSTOM_VIEWS_WHILE_PAUSED)
-			[self pollCustomViewControls];	// allow custom views during pause
+			[self pollCustomViewControls: delta_t];	// allow custom views during pause
 			#endif
 			
 			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD)
@@ -3271,7 +3271,7 @@ static NSTimeInterval	time_last_frame;
 }
 
 
-- (void) pollCustomViewControls
+- (void) pollCustomViewControls:(double) delta_t
 {
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	if ([gameView isDown:key_custom_view])
@@ -3306,59 +3306,59 @@ static NSTimeInterval	time_last_frame;
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanLeft];
+				[self customViewPanLeft:delta_t];
 			}
 			else
 			{
-				[self customViewRollLeft];
+				[self customViewRollLeft:delta_t];
 			}
 		}
 		if ([gameView isDown:key_roll_right] && ![gameView isDown:key_roll_left])
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanRight];
+				[self customViewPanRight:delta_t];
 			}
 			else
 			{
-				[self customViewRollRight];
+				[self customViewRollRight:delta_t];
 			}
 		}
 		if ([gameView isDown:key_pitch_back] && ![gameView isDown:key_pitch_forward])
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanDown];
+				[self customViewPanDown:delta_t];
 			}
 			else
 			{
-				[self customViewRotateUp];
+				[self customViewRotateUp:delta_t];
 			}
 		}
 		if ([gameView isDown:key_pitch_forward] && ![gameView isDown:key_pitch_back])
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanUp];
+				[self customViewPanUp:delta_t];
 			}
 			else
 			{
-				[self customViewRotateDown];
+				[self customViewRotateDown:delta_t];
 			}
 		}
 		if ([gameView isDown:key_yaw_left] && ![gameView isDown:key_yaw_right])
 		{
-			[self customViewRotateLeft];
+			[self customViewRotateLeft:delta_t];
 		}
 		if ([gameView isDown:key_yaw_right] && ![gameView isDown:key_yaw_left])
 		{
-			[self customViewRotateRight];
+			[self customViewRotateRight:delta_t];
 		}
 	}
 }
 
 
-- (void) pollViewControls
+- (void) pollViewControls:(double) delta_t
 {
 	if(!pollControls)
 		return;
@@ -3402,7 +3402,7 @@ static NSTimeInterval	time_last_frame;
 		[self switchToThisView:VIEW_STARBOARD];
 	}
 	
-	[self pollCustomViewControls];
+	[self pollCustomViewControls: delta_t];
 	
 	// Zoom scanner 'z'
 	if (([gameView isDown:key_scanner_zoom] && ([gameView allowingStringInput] == gvStringInputNo)) || joyButtonState[BUTTON_SCANNERZOOM]) // look for the 'z' key
@@ -3920,7 +3920,7 @@ static BOOL autopilot_pause;
 	if (![[UNIVERSE gameController] isGamePaused])
 	{
 		//  view keys
-		[self pollViewControls];
+		[self pollViewControls:delta_t];
 		
 		//  text displays
 		[self pollGuiScreenControls];
