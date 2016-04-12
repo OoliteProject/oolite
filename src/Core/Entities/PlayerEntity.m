@@ -11812,6 +11812,38 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) customViewPanUp
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, 0.01);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
+}
+
+
+- (void) customViewPanDown
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, -0.01);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
+}
+
+
+- (void) customViewPanLeft
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, 0.01);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
+}
+
+
+- (void) customViewPanRight
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, -0.01);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
+}
+
+
 - (Vector) customViewForwardVector
 {
 	return customViewForwardVector;

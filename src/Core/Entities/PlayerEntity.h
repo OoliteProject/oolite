@@ -1088,6 +1088,10 @@ typedef enum
 - (void)customViewRotateDown;
 - (void)customViewRollLeft;
 - (void)customViewRollRight;
+- (void)customViewPanUp;
+- (void)customViewPanDown;
+- (void)customViewPanLeft;
+- (void)customViewPanRight;
 - (Vector)customViewForwardVector;
 - (Vector)customViewUpVector;
 - (Vector)customViewRightVector;

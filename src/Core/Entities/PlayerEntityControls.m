@@ -3304,19 +3304,47 @@ static NSTimeInterval	time_last_frame;
 		}
 		if ([gameView isDown:key_roll_left] && ![gameView isDown:key_roll_right])
 		{
-			[self customViewRollLeft];
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanLeft];
+			}
+			else
+			{
+				[self customViewRollLeft];
+			}
 		}
 		if ([gameView isDown:key_roll_right] && ![gameView isDown:key_roll_left])
 		{
-			[self customViewRollRight];
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanRight];
+			}
+			else
+			{
+				[self customViewRollRight];
+			}
 		}
 		if ([gameView isDown:key_pitch_back] && ![gameView isDown:key_pitch_forward])
 		{
-			[self customViewRotateUp];
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanDown];
+			}
+			else
+			{
+				[self customViewRotateUp];
+			}
 		}
 		if ([gameView isDown:key_pitch_forward] && ![gameView isDown:key_pitch_back])
 		{
-			[self customViewRotateDown];
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanUp];
+			}
+			else
+			{
+				[self customViewRotateDown];
+			}
 		}
 		if ([gameView isDown:key_yaw_left] && ![gameView isDown:key_yaw_right])
 		{
