@@ -51,6 +51,8 @@ MA 02110-1301, USA.
 // reposition menu
 #define GUI_ROW(GROUP,ITEM) (GUI_FIRST_ROW(GROUP) - 4 + GUI_ROW_##GROUP##OPTIONS_##ITEM)
 
+#define CUSTOM_VIEW_MAX_ZOOM_IN		1.5
+#define CUSTOM_VIEW_MAX_ZOOM_OUT	25
 
 #define ENTRY(label, value) label,
 
@@ -1084,8 +1086,8 @@ typedef enum
 - (void)setCustomViewOffset:(Vector)offset;
 - (Vector)customViewRotationCenter;
 - (void)setCustomViewRotationCenter:(Vector)center;
-- (void)customViewZoomOut;
-- (void)customViewZoomIn;
+- (void)customViewZoomOut:(OOScalar) rate;
+- (void)customViewZoomIn: (OOScalar) rate;
 - (void)customViewRotateLeft:(OOScalar) angle;
 - (void)customViewRotateRight:(OOScalar) angle;
 - (void)customViewRotateUp:(OOScalar) angle;

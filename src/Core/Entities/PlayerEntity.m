@@ -11739,27 +11739,27 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) customViewZoomIn
+- (void) customViewZoomIn:(OOScalar) rate
 {
 	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
-	customViewOffset = vector_multiply_scalar(customViewOffset, 1/1.1);
+	customViewOffset = vector_multiply_scalar(customViewOffset, 1.0/rate);
 	OOScalar m = magnitude(customViewOffset);
-	if (m < 1.5 * collision_radius)
+	if (m < CUSTOM_VIEW_MAX_ZOOM_IN * collision_radius)
 	{
-		scale_vector(&customViewOffset, 1.5 * collision_radius / m);
+		scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_IN * collision_radius / m);
 	}
 	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
 
 
-- (void) customViewZoomOut
+- (void) customViewZoomOut:(OOScalar) rate
 {
 	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
-	customViewOffset = vector_multiply_scalar(customViewOffset, 1.1);
+	customViewOffset = vector_multiply_scalar(customViewOffset, rate);
 	OOScalar m = magnitude(customViewOffset);
-	if (m > 25 * collision_radius)
+	if (m > CUSTOM_VIEW_MAX_ZOOM_OUT * collision_radius)
 	{
-		scale_vector(&customViewOffset, 25 * collision_radius / m);
+		scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_OUT * collision_radius / m);
 	}
 	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
