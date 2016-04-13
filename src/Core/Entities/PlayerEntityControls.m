@@ -3280,6 +3280,7 @@ static NSTimeInterval	time_last_frame;
 	static Vector right;
 	static BOOL mouse_clicked = NO;
 	static NSPoint mouse_clicked_position;
+	static BOOL shift_down;
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	if ([gameView isDown:key_custom_view])
 	{
@@ -3363,7 +3364,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		if ([gameView isDown:gvMouseLeftButton])
 		{
-			if(!mouse_clicked)
+			if(!mouse_clicked || shift_down != [gameView isShiftDown])
 			{
 				mouse_clicked = YES;
 				viewQuaternion = [PLAYER customViewQuaternion];
@@ -3372,6 +3373,7 @@ static NSTimeInterval	time_last_frame;
 				up = [PLAYER customViewUpVector];
 				right = [PLAYER customViewRightVector];
 				mouse_clicked_position = [gameView virtualJoystickPosition];
+				shift_down = [gameView isShiftDown];
 			}
 			NSPoint mouse_position = [gameView virtualJoystickPosition];
 			Vector axis = vector_add(vector_multiply_scalar(up, mouse_position.x - mouse_clicked_position.x),
