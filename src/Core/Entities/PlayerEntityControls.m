@@ -3301,11 +3301,11 @@ static NSTimeInterval	time_last_frame;
 		customView_pressed = NO;
 	if ([UNIVERSE viewDirection] && [gameView isCapsLockOn])
 	{
-		if ([gameView isDown:gvPageDownKey] && ![gameView isDown:gvPageUpKey])
+		if (([gameView isDown:gvPageDownKey] && ![gameView isDown:gvPageUpKey]) || [gameView mouseWheelState] == gvMouseWheelDown)
 		{
 			[self customViewZoomOut];
 		}
-		if ([gameView isDown:gvPageUpKey] && ![gameView isDown:gvPageDownKey])
+		if (([gameView isDown:gvPageUpKey] && ![gameView isDown:gvPageDownKey]) || [gameView mouseWheelState] == gvMouseWheelUp)
 		{
 			[self customViewZoomIn];
 		}
