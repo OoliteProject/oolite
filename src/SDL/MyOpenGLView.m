@@ -1454,8 +1454,20 @@ MA 02110-1301, USA.
 	   the future, we could assign different behaviours
 	   to existing controls, depending on the state of
 	   Caps Lock. - Nikos 20160304
+	
+	   Note: SDL on Windows does not re-read the keyboard
+	   state when window focus is regained. As a result,
+	   the CapsLock status can be mis-identified if we
+	   switch to another app, toggle it there and return
+	   to Oolite. For this reason, and with deep regret,
+	   we need to use direct Windows API calls here and
+	   add yet one more #ifdef. - Nikos 20160413
 	*/
+#if OOLITE_WINDOWS
+	return GetKeyState(VK_CAPITAL) & 0x0001;
+#else
 	return (SDL_GetModState() & KMOD_CAPS) == KMOD_CAPS;
+#endif
 }
 
 
