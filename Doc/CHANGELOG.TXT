@@ -10,6 +10,7 @@ General:
 * Removing the entire trumbles array from the savefile is now recognized
   as a cheat
 * Atmospheric fog is now applied also with shaders enabled
+* Add mobile external view camera
 
 Expansion pack development:
 ===========================
