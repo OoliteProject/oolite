@@ -3309,7 +3309,6 @@ static NSTimeInterval	time_last_frame;
 		OOTimeDelta delta_t = this_time - last_time;
 		if (([gameView isDown:gvPageDownKey] && ![gameView isDown:gvPageUpKey]) || [gameView mouseWheelState] == gvMouseWheelDown)
 		{
-			OOLog(@"kja", @"delta_t: %f", delta_t);
 			[self customViewZoomOut: pow(CUSTOM_VIEW_ZOOM_SPEED, delta_t)];
 		}
 		if (([gameView isDown:gvPageUpKey] && ![gameView isDown:gvPageDownKey]) || [gameView mouseWheelState] == gvMouseWheelUp)
