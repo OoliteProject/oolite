@@ -51,6 +51,8 @@ MA 02110-1301, USA.
 // reposition menu
 #define GUI_ROW(GROUP,ITEM) (GUI_FIRST_ROW(GROUP) - 4 + GUI_ROW_##GROUP##OPTIONS_##ITEM)
 
+#define CUSTOM_VIEW_MAX_ZOOM_IN		1.5
+#define CUSTOM_VIEW_MAX_ZOOM_OUT	25
 
 #define ENTRY(label, value) label,
 
@@ -647,7 +649,7 @@ typedef enum
 	// custom view points
 	Quaternion				customViewQuaternion;
 	OOMatrix				customViewMatrix;
-	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
+	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector, customViewRotationCenter;
 	NSString				*customViewDescription;
 	
 	
@@ -1078,13 +1080,30 @@ typedef enum
 
 // custom view points
 - (Quaternion)customViewQuaternion;
+- (void)setCustomViewQuaternion:(Quaternion)q1;
 - (OOMatrix)customViewMatrix;
 - (Vector)customViewOffset;
+- (void)setCustomViewOffset:(Vector)offset;
+- (Vector)customViewRotationCenter;
+- (void)setCustomViewRotationCenter:(Vector)center;
+- (void)customViewZoomOut:(OOScalar) rate;
+- (void)customViewZoomIn: (OOScalar) rate;
+- (void)customViewRotateLeft:(OOScalar) angle;
+- (void)customViewRotateRight:(OOScalar) angle;
+- (void)customViewRotateUp:(OOScalar) angle;
+- (void)customViewRotateDown:(OOScalar) angle;
+- (void)customViewRollLeft:(OOScalar) angle;
+- (void)customViewRollRight:(OOScalar) angle;
+- (void)customViewPanUp:(OOScalar) angle;
+- (void)customViewPanDown:(OOScalar) angle;
+- (void)customViewPanLeft:(OOScalar) angle;
+- (void)customViewPanRight:(OOScalar) angle;
 - (Vector)customViewForwardVector;
 - (Vector)customViewUpVector;
 - (Vector)customViewRightVector;
 - (NSString *)customViewDescription;
 - (void)resetCustomView;
+- (void)setCustomViewData;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict withScaling:(BOOL)withScaling;
 - (HPVector) viewpointPosition;
 - (HPVector) breakPatternPosition;
