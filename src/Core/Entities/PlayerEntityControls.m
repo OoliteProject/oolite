@@ -3273,6 +3273,13 @@ static NSTimeInterval	time_last_frame;
 
 - (void) pollCustomViewControls:(double) delta_t
 {
+	static Quaternion viewQuaternion;
+	static Vector viewOffset;
+	static Vector rotationCenter;
+	static Vector up;
+	static Vector right;
+	static BOOL mouse_clicked = NO;
+	static NSPoint mouse_clicked_position;
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	if ([gameView isDown:key_custom_view])
 	{
@@ -3354,6 +3361,50 @@ static NSTimeInterval	time_last_frame;
 		{
 			[self customViewRotateRight:delta_t];
 		}
+		if ([gameView isDown:gvMouseLeftButton])
+		{
+			if(!mouse_clicked)
+			{
+				mouse_clicked = YES;
+				viewQuaternion = [PLAYER customViewQuaternion];
+				viewOffset = [PLAYER customViewOffset];
+				rotationCenter = [PLAYER customViewRotationCenter];
+				up = [PLAYER customViewUpVector];
+				right = [PLAYER customViewRightVector];
+				mouse_clicked_position = [gameView virtualJoystickPosition];
+			}
+			NSPoint mouse_position = [gameView virtualJoystickPosition];
+			Vector axis = vector_add(vector_multiply_scalar(up, mouse_position.x - mouse_clicked_position.x),
+				vector_multiply_scalar(right, mouse_position.y - mouse_clicked_position.y));
+			float angle = magnitude(axis);
+			axis = vector_normal(axis);
+			Quaternion newViewQuaternion = viewQuaternion;
+			if ([gameView isShiftDown])
+			{
+				quaternion_rotate_about_axis(&newViewQuaternion, axis, angle);
+				[PLAYER setCustomViewQuaternion: newViewQuaternion];
+				[PLAYER setCustomViewRotationCenter: vector_subtract(viewOffset,
+					vector_multiply_scalar([PLAYER customViewForwardVector],
+						dot_product([PLAYER customViewForwardVector], viewOffset)))];
+			}
+			else
+			{
+				quaternion_rotate_about_axis(&newViewQuaternion, axis, -angle);
+				OOScalar m = magnitude(vector_subtract(viewOffset, rotationCenter));
+				[PLAYER setCustomViewQuaternion: newViewQuaternion];
+				Vector offset = vector_flip([PLAYER customViewForwardVector]);
+				scale_vector(&offset, m / magnitude(offset));
+				[PLAYER setCustomViewOffset:vector_add(offset, rotationCenter)];
+			}
+		}
+		else
+		{
+			mouse_clicked = NO;
+		}
+	}
+	else
+	{
+		mouse_clicked = NO;
 	}
 }
 

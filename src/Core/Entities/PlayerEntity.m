@@ -11702,6 +11702,13 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setCustomViewQuaternion:(Quaternion)q
+{
+	customViewQuaternion = q;
+	[self setCustomViewData];
+}
+
+
 - (OOMatrix) customViewMatrix
 {
 	return customViewMatrix;
@@ -11714,14 +11721,32 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setCustomViewOffset:(Vector) offset
+{
+	customViewOffset = offset;
+}
+
+
+- (Vector) customViewRotationCenter
+{
+	return customViewRotationCenter;
+}
+
+
+- (void) setCustomViewRotationCenter:(Vector) center
+{
+	customViewRotationCenter = center;
+}
+
+
 - (void) customViewZoomIn
 {
 	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	customViewOffset = vector_multiply_scalar(customViewOffset, 1/1.1);
 	OOScalar m = magnitude(customViewOffset);
-	if (m < 1.2 * collision_radius)
+	if (m < 1.5 * collision_radius)
 	{
-		scale_vector(&customViewOffset, 1.2 * collision_radius / m);
+		scale_vector(&customViewOffset, 1.5 * collision_radius / m);
 	}
 	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }
@@ -11732,9 +11757,9 @@ static NSString *last_outfitting_key=nil;
 	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
 	customViewOffset = vector_multiply_scalar(customViewOffset, 1.1);
 	OOScalar m = magnitude(customViewOffset);
-	if (m > 10 * collision_radius)
+	if (m > 25 * collision_radius)
 	{
-		scale_vector(&customViewOffset, 10 * collision_radius / m);
+		scale_vector(&customViewOffset, 25 * collision_radius / m);
 	}
 	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
 }

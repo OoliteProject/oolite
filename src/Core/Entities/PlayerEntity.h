@@ -1078,8 +1078,12 @@ typedef enum
 
 // custom view points
 - (Quaternion)customViewQuaternion;
+- (void)setCustomViewQuaternion:(Quaternion)q1;
 - (OOMatrix)customViewMatrix;
 - (Vector)customViewOffset;
+- (void)setCustomViewOffset:(Vector)offset;
+- (Vector)customViewRotationCenter;
+- (void)setCustomViewRotationCenter:(Vector)center;
 - (void)customViewZoomOut;
 - (void)customViewZoomIn;
 - (void)customViewRotateLeft:(OOScalar) angle;
