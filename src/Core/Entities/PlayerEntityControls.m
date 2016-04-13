@@ -976,7 +976,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"shoot";
 				//  shoot 'a'
-				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
+				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
 				{
 					if ([self fireMainWeapon])
 					{
@@ -3653,7 +3653,7 @@ static NSTimeInterval	time_last_frame;
 			rolling = YES;
 		}
 	}
-	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride)
+	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride && !capsLockCustomView)
 	{
 		stick_roll = max_flight_roll * virtualStick.x;
 		if (flightRoll < stick_roll)
@@ -3708,7 +3708,7 @@ static NSTimeInterval	time_last_frame;
 			pitching = YES;
 		}
 	}
-	if(mouse_control_on || (numSticks && !keyboardPitchOverride))
+	if((mouse_control_on || (numSticks && !keyboardPitchOverride)) && !capsLockCustomView)
 	{
 		stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flightPitch < stick_pitch)
@@ -3763,7 +3763,7 @@ static NSTimeInterval	time_last_frame;
 			yawing = YES;
 		}
 	}
-	if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride)
+	if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride && !capsLockCustomView)
 	{
 		// I think yaw is handled backwards in the code,
 		// which is why the negative sign is here.
