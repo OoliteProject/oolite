@@ -705,6 +705,10 @@ FAIL:
 	ctrl = (flags & NSControlKeyMask) ? YES : NO;
 	command = (flags & NSCommandKeyMask) ? YES : NO;
 	shift = ( flags & NSShiftKeyMask ) ? YES : NO;
+	if ([theEvent keyCode] == 0x39) // 57 = key code for caps lock
+    {
+        capsLockOn = (flags & NSAlphaShiftKeyMask) ? YES : NO;
+    }
 }
 
 
@@ -992,8 +996,7 @@ FAIL:
 
 - (BOOL) isCapsLockOn
 {
-	// TODO: Implement CapsLock check for Mac
-	return NO;
+	return capsLockOn;
 }
 
 

@@ -117,7 +117,7 @@ extern int debug;
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;	// DJS
 
-	BOOL				opt, ctrl, command, shift;
+	BOOL				opt, ctrl, command, shift, capsLockOn;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 	BOOL				commandQ;
