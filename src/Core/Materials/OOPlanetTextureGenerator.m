@@ -61,19 +61,6 @@ enum
 };
 
 
-@interface OOPlanetTextureGenerator (Private)
-
-- (NSString *) cacheKeyForType:(NSString *)type;
-- (OOTextureGenerator *) normalMapGenerator;	// Must be called before generator is enqueued for rendering.
-- (OOTextureGenerator *) atmosphereGenerator;	// Must be called before generator is enqueued for rendering.
-
-#if DEBUG_DUMP_RAW
-- (void) dumpNoiseBuffer:(float *)noise;
-#endif
-
-@end
-
-
 /*	The planet generator actually generates two textures when shaders are
 	active, but the texture loader interface assumes we only load/generate
 	one texture per loader. Rather than complicate that, we use a mock
@@ -82,6 +69,7 @@ enum
 @interface OOPlanetNormalMapGenerator: OOTextureGenerator
 {
 @private
+	BOOL					_enqueued;
 	NSString				*_cacheKey;
 	RANROTSeed				_seed;
 }
@@ -90,6 +78,8 @@ enum
 
 - (void) completeWithData:(void *)data width:(unsigned)width height:(unsigned)height;
 
+- (BOOL) enqueued;
+
 @end
 
 
@@ -97,6 +87,7 @@ enum
 @interface OOPlanetAtmosphereGenerator: OOTextureGenerator
 {
 @private
+	BOOL				_enqueued;
 	NSString				*_cacheKey;
 	RANROTSeed				_seed;
 	OOPlanetTextureGenerator	*_parent;
@@ -105,6 +96,21 @@ enum
 - (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed andParent:(OOPlanetTextureGenerator *)parent;
 
 - (void) completeWithData:(void *)data width:(unsigned)width height:(unsigned)height;
+
+- (BOOL) enqueued;
+
+@end
+
+
+@interface OOPlanetTextureGenerator (Private)
+
+- (NSString *) cacheKeyForType:(NSString *)type;
+- (OOPlanetNormalMapGenerator *) normalMapGenerator;	// Must be called before generator is enqueued for rendering.
+- (OOPlanetAtmosphereGenerator *) atmosphereGenerator;	// Must be called before generator is enqueued for rendering.
+
+#if DEBUG_DUMP_RAW
+- (void) dumpNoiseBuffer:(float *)noise;
+#endif
 
 @end
 
@@ -215,13 +221,13 @@ enum
 	OOPlanetTextureGenerator *diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo] autorelease];
 	if (diffuseGen == nil)  return NO;
 	
-	OOTextureGenerator *atmoGen = [diffuseGen atmosphereGenerator];
+	OOPlanetAtmosphereGenerator *atmoGen = [diffuseGen atmosphereGenerator];
 	if (atmoGen == nil)  return NO;
 	
 	*atmosphere = [OOTexture textureWithGenerator:atmoGen];
 	if (*atmosphere == nil)  return NO;
 	
-	*texture = [OOTexture textureWithGenerator:diffuseGen];
+	*texture = [OOTexture textureWithGenerator:diffuseGen enqueue: [atmoGen enqueued]];
 	
 	return *texture != nil;
 }
@@ -230,20 +236,23 @@ enum
 + (BOOL) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture withInfo:(NSDictionary *)planetInfo
 {
 	NSParameterAssert(texture != NULL);
+
+	BOOL enqueue = NO;
 	
 	OOPlanetTextureGenerator *diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo] autorelease];
 	if (diffuseGen == nil)  return NO;
 	
 	if (secondaryTexture != NULL)
 	{
-		OOTextureGenerator *normalGen = [diffuseGen normalMapGenerator];
+		OOPlanetNormalMapGenerator *normalGen = [diffuseGen normalMapGenerator];
 		if (normalGen == nil)  return NO;
 		
 		*secondaryTexture = [OOTexture textureWithGenerator:normalGen];
 		if (*secondaryTexture == nil)  return NO;
+		enqueue = [normalGen enqueued];
 	}
 	
-	*texture = [OOTexture textureWithGenerator:diffuseGen];
+	*texture = [OOTexture textureWithGenerator:diffuseGen enqueue: enqueue];
 	
 	return *texture != nil;
 }
@@ -253,19 +262,22 @@ enum
 {
 	NSParameterAssert(texture != NULL);
 	
+	BOOL enqueue = NO;
+
 	OOPlanetTextureGenerator *diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo] autorelease];
 	if (diffuseGen == nil)  return NO;
 	
 	if (secondaryTexture != NULL)
 	{
-		OOTextureGenerator *normalGen = [diffuseGen normalMapGenerator];
+		OOPlanetNormalMapGenerator *normalGen = [diffuseGen normalMapGenerator];
 		if (normalGen == nil)  return NO;
 		
 		*secondaryTexture = [OOTexture textureWithGenerator:normalGen];
 		if (*secondaryTexture == nil)  return NO;
+		enqueue = [normalGen enqueued];
 	}
 	
-	OOTextureGenerator *atmoGen = [diffuseGen atmosphereGenerator];
+	OOPlanetAtmosphereGenerator *atmoGen = [diffuseGen atmosphereGenerator];
 	if (atmoGen == nil)  return NO;
 	
 	*atmosphere = [OOTexture textureWithGenerator:atmoGen];
@@ -276,10 +288,11 @@ enum
 		}
 		return NO;
 	}
+	enqueue = enqueue || [atmoGen enqueued];
 
 	OOLog(@"texture.planet.generate",@"Generator %@ has atmosphere %@",diffuseGen,*atmosphere);
 	
-	*texture = [OOTexture textureWithGenerator:diffuseGen];
+	*texture = [OOTexture textureWithGenerator:diffuseGen enqueue: enqueue];
 	return *texture != nil;
 }
 
@@ -325,7 +338,7 @@ enum
 }
 
 
-- (OOTextureGenerator *) normalMapGenerator
+- (OOPlanetNormalMapGenerator *) normalMapGenerator
 {
 	if (_nMapGenerator == nil)
 	{
@@ -335,7 +348,7 @@ enum
 }
 
 
-- (OOTextureGenerator *) atmosphereGenerator
+- (OOPlanetAtmosphereGenerator *) atmosphereGenerator
 {
 	if (_atmoGenerator == nil)
 	{
@@ -1178,6 +1191,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 	// AllowCubeMap not used yet but might be in future
 	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOPlanetNormalTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
+		_enqueued = NO;
 		_cacheKey = [cacheKey copy];
 		_seed = seed;
 	}
@@ -1212,7 +1226,14 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 		(The alternative would be for it to block a work thread waiting for
 		the real generator to complete, which seemed silly.)
 	*/
+	_enqueued = YES;
 	return YES;
+}
+
+
+- (BOOL) enqueued
+{
+	return _enqueued;
 }
 
 
@@ -1259,6 +1280,7 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 		_cacheKey = [cacheKey copy];
 		_seed = seed;
 		_parent = [parent retain];
+		_enqueued = NO;
 	}
 	return self;
 }
@@ -1286,7 +1308,14 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 
 - (BOOL) enqueue
 {
+	_enqueued = YES;
 	return YES;
+}
+
+
+- (BOOL) enqueued
+{
+	return _enqueued;
 }
 
 
