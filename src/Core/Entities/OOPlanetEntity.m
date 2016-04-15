@@ -489,7 +489,12 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (EXPECT_NOT(_atmosphereDrawable && cam_zero_distance < _mesopause2))
 		{
 			NSAssert(_airColor != nil, @"Expected a non-nil air colour for normal planet. Exiting.");
-			double		alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere;
+			double		alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere; // the viewpoint altitude
+			double		trueAlt = (sqrt(zero_distance) - collision_radius) / kMesosphere; // the actual ship altitude
+			// if at long distance external view, rotating the camera could potentially end up with it being
+			// at negative altitude. Since we know we are already inside the atmosphere at this point, just make sure
+			// that altitude is kept to a minimum positive value to avoid sudden black skies
+			if (alt <= 0.0)  alt = 1e-4;
 			if (EXPECT_NOT(alt > 0 && alt <= 1.0))	// ensure aleph is clamped between 0 and 1
 			{
 				double	aleph = 1.0 - alt;
@@ -531,6 +536,9 @@ static OOColor *ColorWithHSBColor(Vector c)
 									blue:[mixColor blueComponent] * aleph
 								   alpha:aleph];
 				[_atmosphereDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
+				// apply air resistance for the ship, not the camera. Although setSkyColorRed
+				// has already set the air resistance to aleph, override it immediately
+				[UNIVERSE setAirResistanceFactor:OOClamp_0_1_f(1.0 - trueAlt)];
 			}
 		}
 		else
