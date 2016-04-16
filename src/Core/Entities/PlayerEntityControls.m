@@ -1929,11 +1929,15 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_left)
 					{
-						if (nextSystem)  [self targetNewSystem:-1];
+						if (nextSystem)
+						{
+							[self targetNewSystem:-1];
+							target_chart_focus = cursor_coordinates;
+						}
 						else
 						{
 							[self previousInfoSystem];
-							chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 						}
 						pressedArrow = key_gui_arrow_left;
 					}
@@ -1943,8 +1947,8 @@ static NSTimeInterval	time_last_frame;
 						cursor_coordinates.x -= cursor_speed*delta_t;
 						if (cursor_coordinates.x < 0.0) cursor_coordinates.x = 0.0;
 						moving = YES;
+						target_chart_focus = cursor_coordinates;
 					}
-					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_left ? 0 : pressedArrow;
@@ -1953,11 +1957,15 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_right)
 					{
-						if (nextSystem)  [self targetNewSystem:+1];
+						if (nextSystem)
+						{
+							[self targetNewSystem:+1];
+							target_chart_focus = cursor_coordinates;
+						}
 						else
 						{
 							[self nextInfoSystem];
-							chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 						}
 						pressedArrow = key_gui_arrow_right;
 					}
@@ -1967,8 +1975,8 @@ static NSTimeInterval	time_last_frame;
 						cursor_coordinates.x += cursor_speed*delta_t;
 						if (cursor_coordinates.x > 256.0) cursor_coordinates.x = 256.0;
 						moving = YES;
+						target_chart_focus = cursor_coordinates;
 					}
-					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_right ? 0 : pressedArrow;
