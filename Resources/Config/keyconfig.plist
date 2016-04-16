@@ -71,8 +71,6 @@
 	key_docking_music			= "s";
 
 	key_advanced_nav_array		= "^";
-	key_next_planet_info		= ">";
-	key_previous_planet_info	= "<";
 	key_map_home				= 303;		// Home
 	key_map_info				= "i";
 

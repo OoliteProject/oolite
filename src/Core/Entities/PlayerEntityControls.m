@@ -300,8 +300,6 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_docking_music,			's'			);
 	
 	LOAD_KEY_SETTING(key_advanced_nav_array,	'^'			);
-	LOAD_KEY_SETTING(key_info_next_system,		'>'			);
-	LOAD_KEY_SETTING(key_info_previous_system, 	'<'			);
 	LOAD_KEY_SETTING(key_map_home,				gvHomeKey	);
 	LOAD_KEY_SETTING(key_map_info,				'i'			);
 	
@@ -1768,7 +1766,7 @@ static NSTimeInterval	time_last_frame;
 				queryPressed = NO;
 			}
 
-			if ([gameView isDown: key_info_next_system])
+			if ([gameView isCtrlDown] && [gameView isDown: key_gui_arrow_right])
 			{
 				if (!next_planet_info_pressed)
 				{
@@ -1780,7 +1778,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				next_planet_info_pressed = NO;
 			}
-			if ([gameView isDown: key_info_previous_system])
+			if ([gameView isCtrlDown] && [gameView isDown: key_gui_arrow_left])
 			{
 				if (!previous_planet_info_pressed)
 				{
@@ -1933,7 +1931,7 @@ static NSTimeInterval	time_last_frame;
 				
 				BOOL nextSystem = [gameView isShiftDown];
 				
-				if ([gameView isDown:key_gui_arrow_left])
+				if ([gameView isDown:key_gui_arrow_left] && ![gameView isCtrlDown])
 				{
 					if (nextSystem && pressedArrow != key_gui_arrow_left)
 					{
@@ -1952,7 +1950,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_left ? 0 : pressedArrow;
 				
-				if ([gameView isDown:key_gui_arrow_right])
+				if ([gameView isDown:key_gui_arrow_right] && ![gameView isCtrlDown])
 				{
 					if (nextSystem && pressedArrow != key_gui_arrow_right)
 					{
@@ -1971,7 +1969,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_right ? 0 : pressedArrow;
 				
-				if ([gameView isDown:key_gui_arrow_down])
+				if ([gameView isDown:key_gui_arrow_down] && ![gameView isCtrlDown])
 				{
 					if (nextSystem && pressedArrow != key_gui_arrow_down)
 					{
@@ -1990,7 +1988,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_down ? 0 : pressedArrow;
 				
-				if ([gameView isDown:key_gui_arrow_up])
+				if ([gameView isDown:key_gui_arrow_up] && ![gameView isCtrlDown])
 				{
 					if (nextSystem && pressedArrow != key_gui_arrow_up)
 					{
@@ -2051,9 +2049,10 @@ static NSTimeInterval	time_last_frame;
 				if (cursor_moving || dragging) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
 				cursor_moving = moving;
 			}
+			break;
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-			if ([gameView isDown: key_info_next_system])
+			if ([gameView isDown: key_gui_arrow_right])
 			{
 				if (!next_planet_info_pressed)
 				{
@@ -2066,7 +2065,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				next_planet_info_pressed = NO;
 			}
-			if ([gameView isDown: key_info_previous_system])
+			if ([gameView isDown: key_gui_arrow_left])
 			{
 				if (!previous_planet_info_pressed)
 				{
