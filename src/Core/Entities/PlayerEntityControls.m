@@ -302,8 +302,6 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_docking_music,			's'			);
 	
 	LOAD_KEY_SETTING(key_advanced_nav_array,	'^'			);
-	LOAD_KEY_SETTING(key_info_next_system,		'>'			);
-	LOAD_KEY_SETTING(key_info_previous_system, 	'<'			);
 	LOAD_KEY_SETTING(key_map_home,				gvHomeKey	);
 	LOAD_KEY_SETTING(key_map_info,				'i'			);
 	
@@ -2066,7 +2064,7 @@ static NSTimeInterval	time_last_frame;
 			break;
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-			if ([gameView isDown: key_info_next_system] || [gameView isDown: key_gui_arrow_right])
+			if ([gameView isDown: key_gui_arrow_right])
 			{
 				if (!next_planet_info_pressed)
 				{
@@ -2079,7 +2077,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				next_planet_info_pressed = NO;
 			}
-			if ([gameView isDown: key_info_previous_system] || [gameView isDown: key_gui_arrow_left])
+			if ([gameView isDown: key_gui_arrow_left])
 			{
 				if (!previous_planet_info_pressed)
 				{
