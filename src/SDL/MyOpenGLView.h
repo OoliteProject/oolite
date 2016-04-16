@@ -270,7 +270,7 @@ extern int debug;
 - (BOOL) isAlphabetKeyDown;
 - (void) supressKeysUntilKeyUp; // DJS
 - (BOOL) isDown: (int) key;
-- (BOOL) isOptDown;
+- (BOOL) isOptDown; // opt == alt key
 - (BOOL) isCtrlDown;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;

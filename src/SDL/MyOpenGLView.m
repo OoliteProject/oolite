@@ -1836,6 +1836,11 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_RCTRL:
 						ctrl = YES;
 						break;
+						
+					case SDLK_LALT:
+					case SDLK_RALT:
+						opt = YES;
+						break;
 
 					case SDLK_F12:
 						[self toggleScreenMode];
@@ -2020,6 +2025,11 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_LCTRL:
 					case SDLK_RCTRL:
 						ctrl = NO;
+						break;
+						
+					case SDLK_LALT:
+					case SDLK_RALT:
+						opt = NO;
 						break;
 
 					case SDLK_ESCAPE:

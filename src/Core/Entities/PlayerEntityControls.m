@@ -1769,33 +1769,6 @@ static NSTimeInterval	time_last_frame;
 			{
 				queryPressed = NO;
 			}
-
-			if ([gameView isDown: key_info_next_system])
-			{
-				if (!next_planet_info_pressed)
-				{
-					[self nextInfoSystem];
-					next_planet_info_pressed = YES;
-					target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
-				}
-			}
-			else
-			{
-				next_planet_info_pressed = NO;
-			}
-			if ([gameView isDown: key_info_previous_system])
-			{
-				if (!previous_planet_info_pressed)
-				{
-					[self previousInfoSystem];
-					previous_planet_info_pressed = YES;
-					target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
-				}
-			}
-			else
-			{
-				previous_planet_info_pressed = NO;
-			}
 			
 			if ([gameView isDown:key_map_info] && chart_zoom <= CHART_ZOOM_SHOW_LABELS)
 			{
@@ -1950,15 +1923,21 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				BOOL nextSystem = [gameView isShiftDown];
+				BOOL nextSystemOnRoute = [gameView isOptDown];
 				
 				if ([gameView isDown:key_gui_arrow_left])
 				{
-					if (nextSystem && pressedArrow != key_gui_arrow_left)
+					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_left)
 					{
-						[self targetNewSystem:-1];
+						if (nextSystem)  [self targetNewSystem:-1];
+						else
+						{
+							[self previousInfoSystem];
+							chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+						}
 						pressedArrow = key_gui_arrow_left;
 					}
-					else if (!nextSystem)
+					else if (!nextSystem && !nextSystemOnRoute)
 					{
 						[gameView resetTypedString];
 						cursor_coordinates.x -= cursor_speed*delta_t;
@@ -1972,12 +1951,17 @@ static NSTimeInterval	time_last_frame;
 				
 				if ([gameView isDown:key_gui_arrow_right])
 				{
-					if (nextSystem && pressedArrow != key_gui_arrow_right)
+					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_right)
 					{
-						[self targetNewSystem:+1];
+						if (nextSystem)  [self targetNewSystem:+1];
+						else
+						{
+							[self nextInfoSystem];
+							chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+						}
 						pressedArrow = key_gui_arrow_right;
 					}
-					else if (!nextSystem)
+					else if (!nextSystem && !nextSystemOnRoute)
 					{
 						[gameView resetTypedString];
 						cursor_coordinates.x += cursor_speed*delta_t;
