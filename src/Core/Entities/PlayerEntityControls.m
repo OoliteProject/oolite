@@ -2054,7 +2054,7 @@ static NSTimeInterval	time_last_frame;
 			break;
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-			if ([gameView isDown: key_info_next_system])
+			if ([gameView isDown: key_info_next_system] || [gameView isDown: key_gui_arrow_right])
 			{
 				if (!next_planet_info_pressed)
 				{
@@ -2067,7 +2067,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				next_planet_info_pressed = NO;
 			}
-			if ([gameView isDown: key_info_previous_system])
+			if ([gameView isDown: key_info_previous_system] || [gameView isDown: key_gui_arrow_left])
 			{
 				if (!previous_planet_info_pressed)
 				{
