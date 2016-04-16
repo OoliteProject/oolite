@@ -2051,6 +2051,7 @@ static NSTimeInterval	time_last_frame;
 				if (cursor_moving || dragging) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
 				cursor_moving = moving;
 			}
+			break;
 			
 		case GUI_SCREEN_SYSTEM_DATA:
 			if ([gameView isDown: key_info_next_system])
