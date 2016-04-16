@@ -1902,7 +1902,6 @@ static NSTimeInterval	time_last_frame;
 					target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom > CHART_MAX_ZOOM) target_chart_zoom = CHART_MAX_ZOOM;
 					saved_chart_zoom = target_chart_zoom;
-					moving = YES;
 				}
 				if ([gameView isDown:gvPageUpKey] || [gameView mouseWheelState] == gvMouseWheelUp)
 				{
@@ -1915,7 +1914,6 @@ static NSTimeInterval	time_last_frame;
 					target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					saved_chart_zoom = target_chart_zoom;
-					moving = YES;
 					//target_chart_centre = cursor_coordinates;
 					target_chart_focus = target_chart_centre;
 				}
