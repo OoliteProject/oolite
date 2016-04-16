@@ -489,6 +489,7 @@ typedef enum
 	NSPoint					chart_centre_coordinates;
 	// where we want the chart centre to be - used for smooth transitions
 	NSPoint					target_chart_centre;
+	NSPoint					target_chart_focus;
 	// Chart zoom is 1.0 when fully zoomed in and increases as we zoom out.  The reason I've done it that way round
 	// is because we might want to implement bigger galaxies one day, and thus may need to zoom out indefinitely.
 	OOScalar				chart_zoom;

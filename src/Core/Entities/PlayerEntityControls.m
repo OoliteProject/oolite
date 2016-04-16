@@ -1774,7 +1774,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[self nextInfoSystem];
 					next_planet_info_pressed = YES;
-					chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+					target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 				}
 			}
 			else
@@ -1787,7 +1787,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[self previousInfoSystem];
 					previous_planet_info_pressed = YES;
-					chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+					target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 				}
 			}
 			else
@@ -1873,6 +1873,7 @@ static NSTimeInterval	time_last_frame;
 						mouse_click_position = maus;
 						chart_focus_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 						chart_focus_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+						target_chart_focus = chart_focus_coordinates;
 					}
 					if (fabs(maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH > 2 ||
 						fabs(maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT > 2)
@@ -1904,7 +1905,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView resetTypedString];
 					cursor_coordinates = galaxy_coordinates;
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 					target_chart_centre = galaxy_coordinates;
 					found_system_id = -1;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
@@ -1930,7 +1931,7 @@ static NSTimeInterval	time_last_frame;
 					saved_chart_zoom = target_chart_zoom;
 					moving = YES;
 					//target_chart_centre = cursor_coordinates;
-					chart_focus_coordinates = target_chart_centre;
+					target_chart_focus = target_chart_centre;
 				}
 				
 				BOOL nextSystem = [gameView isShiftDown];
@@ -1949,7 +1950,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.x < 0.0) cursor_coordinates.x = 0.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_left ? 0 : pressedArrow;
@@ -1968,7 +1969,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.x > 256.0) cursor_coordinates.x = 256.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_right ? 0 : pressedArrow;
@@ -1987,7 +1988,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y > 256.0) cursor_coordinates.y = 256.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_down ? 0 : pressedArrow;
@@ -2006,7 +2007,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y < 0.0) cursor_coordinates.y = 0.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_up ? 0 : pressedArrow;
@@ -2050,6 +2051,8 @@ static NSTimeInterval	time_last_frame;
 				chart_zoom = (3.0*chart_zoom + target_chart_zoom)/4.0;
 				chart_cursor_coordinates.x = (3.0*chart_cursor_coordinates.x + cursor_coordinates.x)/4.0;
 				chart_cursor_coordinates.y = (3.0*chart_cursor_coordinates.y + cursor_coordinates.y)/4.0;
+				chart_focus_coordinates.x = (3.0*chart_focus_coordinates.x + target_chart_focus.x)/4.0;
+				chart_focus_coordinates.y = (3.0*chart_focus_coordinates.y + target_chart_focus.y)/4.0;
 				if (cursor_moving || dragging) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
 				cursor_moving = moving;
 			}

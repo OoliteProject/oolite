@@ -1153,6 +1153,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 		chart_cursor_coordinates = cursor_coordinates;
 		chart_focus_coordinates = chart_centre_coordinates;
+		target_chart_focus = chart_focus_coordinates;
 
 		found_system_id = [dict oo_intForKey:@"found_system_id" defaultValue:-1];
 	}
@@ -1184,6 +1185,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 		chart_cursor_coordinates = cursor_coordinates;
 		chart_focus_coordinates = chart_centre_coordinates;
+		target_chart_focus = chart_focus_coordinates;
 
 		// calculate system ID, target ID
 		if ([dict objectForKey:@"current_system_name"])
@@ -2020,6 +2022,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	cursor_coordinates		= galaxy_coordinates;
 	chart_cursor_coordinates	= cursor_coordinates;
 	chart_focus_coordinates		= cursor_coordinates;
+	target_chart_focus		= chart_focus_coordinates;
 	chart_zoom			= 1.0;
 	target_chart_zoom		= 1.0;
 	saved_chart_zoom		= 1.0;
