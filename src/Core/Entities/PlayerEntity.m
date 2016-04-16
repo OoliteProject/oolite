@@ -763,6 +763,20 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (void) homeInfoSystem
+{
+	info_system_id = system_id;
+	return;
+}
+
+
+- (void) targetInfoSystem
+{
+	info_system_id = target_system_id;
+	return;
+}
+
+
 - (BOOL) infoSystemOnRoute
 {
 	NSArray *route = [[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"];

@@ -786,6 +786,8 @@ typedef enum
 - (void) setInfoSystemID: (OOSystemID) sid;
 - (void) nextInfoSystem;
 - (void) previousInfoSystem;
+- (void) homeInfoSystem;
+- (void) targetInfoSystem;
 - (BOOL) infoSystemOnRoute;
 
 

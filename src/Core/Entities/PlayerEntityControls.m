@@ -138,6 +138,8 @@ static BOOL				mouse_left_down;
 static BOOL				oxz_manager_pressed;
 static BOOL				next_planet_info_pressed;
 static BOOL				previous_planet_info_pressed;
+static BOOL				home_info_pressed;
+static BOOL				target_info_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -1903,13 +1905,26 @@ static NSTimeInterval	time_last_frame;
 				}
 				if ([gameView isDown:key_map_home])
 				{
-					[gameView resetTypedString];
-					cursor_coordinates = galaxy_coordinates;
+					if ([gameView isOptDown])
+					{
+						[self homeInfoSystem];
+						target_chart_focus = galaxy_coordinates;
+					}
+					else
+					{
+						[gameView resetTypedString];
+						cursor_coordinates = galaxy_coordinates;
+						target_chart_focus = cursor_coordinates;
+						target_chart_centre = galaxy_coordinates;
+						found_system_id = -1;
+						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
+						moving = YES;
+					}
+				}
+				if ([gameView isDown:gvEndKey] && [gameView isOptDown])
+				{
+					[self targetInfoSystem];
 					target_chart_focus = cursor_coordinates;
-					target_chart_centre = galaxy_coordinates;
-					found_system_id = -1;
-					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
-					moving = YES;
 				}
 				if ([gameView isDown:gvPageDownKey] || [gameView mouseWheelState] == gvMouseWheelDown)
 				{
@@ -2084,6 +2099,32 @@ static NSTimeInterval	time_last_frame;
 			else
 			{
 				previous_planet_info_pressed = NO;
+			}
+			if ([gameView isDown: gvHomeKey])
+			{
+				if (!home_info_pressed)
+				{
+					[self homeInfoSystem];
+					[self setGuiToSystemDataScreen];
+					home_info_pressed = YES;
+				}
+			}
+			else
+			{
+				home_info_pressed = NO;
+			}
+			if ([gameView isDown: gvEndKey])
+			{
+				if (!target_info_pressed)
+				{
+					[self targetInfoSystem];
+					[self setGuiToSystemDataScreen];
+					target_info_pressed = YES;
+				}
+			}
+			else
+			{
+				target_info_pressed = NO;
 			}
 			break;
 			
