@@ -47,6 +47,8 @@ static JSObject		*sPlayerObject;
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
 static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
+static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerAudioMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerCommsMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerConsoleMessage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerEndScenario(JSContext *context, uintN argc, jsval *vp);
@@ -56,10 +58,10 @@ static JSBool PlayerIncreasePassengerReputation(JSContext *context, uintN argc, 
 static JSBool PlayerDecreasePassengerReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerIncreaseParcelReputation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerDecreaseParcelReputation(JSContext *context, uintN argc, jsval *vp);
-static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerSetEscapePodDestination(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerSetPlayerRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerStopAudioMessage(JSContext *context, uintN argc, jsval *vp);
 
 
 static JSClass sPlayerClass =
@@ -138,6 +140,7 @@ static JSFunctionSpec sPlayerMethods[] =
 {
 	// JS name							Function							min args
 	{ "addMessageToArrivalReport",		PlayerAddMessageToArrivalReport,	1 },
+	{ "audioMessage",					PlayerAudioMessage,					1 },
 	{ "commsMessage",					PlayerCommsMessage,					1 },
 	{ "consoleMessage",					PlayerConsoleMessage,				1 },
 	{ "decreaseContractReputation",		PlayerDecreaseContractReputation,	0 },
@@ -150,6 +153,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "replaceShip",					PlayerReplaceShip,					1 },
 	{ "setEscapePodDestination",		PlayerSetEscapePodDestination,		1 },	// null destination must be set explicitly
 	{ "setPlayerRole",					PlayerSetPlayerRole,				1 },
+	{ "stopAudioMessage",				PlayerStopAudioMessage,				0 },
 	{ 0 }
 };
 
@@ -517,6 +521,27 @@ static JSBool PlayerAddMessageToArrivalReport(JSContext *context, uintN argc, js
 }
 
 
+static JSBool PlayerAudioMessage(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString				*audioMessage = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+	
+	if (argc > 0)  audioMessage = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (audioMessage == nil)
+	{
+		OOJSReportBadArguments(context, @"Player", @"audioMessage", argc, OOJS_ARGV, nil, @"audiomessage (string)");
+		return NO;
+	}
+	
+	if ([player isSpeechOn] >= OOSPEECHSETTINGS_COMMS)  [UNIVERSE startSpeakingString:audioMessage];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
 // replaceShip (shipyard-key : String)
 static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
 {
@@ -679,5 +704,15 @@ static JSBool PlayerSetPlayerRole(JSContext *context, uintN argc, jsval *vp)
 	[player addRoleToPlayer:role];
 	return YES;
 
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool PlayerStopAudioMessage(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	if ([UNIVERSE isSpeaking])  [UNIVERSE stopSpeaking];
+	OOJS_RETURN_VOID;
+	
 	OOJS_NATIVE_EXIT
 }

@@ -623,7 +623,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	}
 	else
 	{
-		OOLogERR(kOOLogInconsistentState, @"Wormhole identified when ship has no EQ_WORMHOLE_SCANNER.");
+		OOLogERR(kOOLogInconsistentState, @"%@", @"Wormhole identified when ship has no EQ_WORMHOLE_SCANNER.");
 		/*
 			This was previously an assertion, but a player reported hitting it.
 			http://aegidian.org/bb/viewtopic.php?p=128110#p128110

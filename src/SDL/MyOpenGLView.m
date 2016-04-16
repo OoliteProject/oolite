@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		OOLog(@"display.mode.list.native.failed", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
+		OOLog(@"display.mode.list.native.failed", @"%@", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
 #elif OOLITE_WINDOWS
 	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -180,7 +180,7 @@ MA 02110-1301, USA.
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
-	OOLog(@"sdl.init", @"initialising SDL");
+	OOLog(@"sdl.init", @"%@", @"initialising SDL");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
 	{
 		OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
@@ -263,7 +263,7 @@ MA 02110-1301, USA.
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	}
 
-	OOLog(@"display.mode.list", @"CREATING MODE LIST");
+	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
 
@@ -275,19 +275,19 @@ MA 02110-1301, USA.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
-	OOLog(@"display.initGL",@"Trying 32-bit depth buffer");
+	OOLog(@"display.initGL", @"%@", @"Trying 32-bit depth buffer");
 	[self createSurface];
 	if (surface == NULL)
 	{
 		// Retry with a 24-bit depth buffer
-		OOLog(@"display.initGL",@"Trying 24-bit depth buffer");
+		OOLog(@"display.initGL", @"%@", @"Trying 24-bit depth buffer");
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		[self createSurface];
 		if (surface == NULL)
 		{
 			// Still not working? One last go...
 			// Retry, allowing 16-bit contexts.
-			OOLog(@"display.initGL",@"Trying 16-bit depth buffer");
+			OOLog(@"display.initGL", @"%@", @"Trying 16-bit depth buffer");
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -476,6 +476,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSSize) backingViewSize
+{
+	return viewSize;
+}
+
+
 - (GLfloat) display_z
 {
 	return display_z;
@@ -551,6 +557,13 @@ MA 02110-1301, USA.
 	}
 	else
 		[self initialiseGLWithSize: currentWindowSize];
+
+
+	// do screen resizing updates
+	if ([PlayerEntity sharedPlayer])
+	{
+		[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+	}
 }
 
 
@@ -654,7 +667,7 @@ MA 02110-1301, USA.
 	if (image == NULL)
 	{
 		SDL_FreeSurface(image);
-		OOLogWARN(@"sdl.gameStart", @"image 'splash.bmp' not found!");
+		OOLogWARN(@"sdl.gameStart", @"%@", @"image 'splash.bmp' not found!");
 		[self endSplashScreen];
 		return;
 	}
@@ -722,7 +735,7 @@ MA 02110-1301, USA.
 			texture_format = GL_BGR;
 	} else {
 		SDL_FreeSurface(image);
-		OOLog(@"Sdl.GameStart", @"----- Encoding error within image 'splash.bmp'");
+		OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
 		[self endSplashScreen];
 		return;
 	}
@@ -813,6 +826,34 @@ MA 02110-1301, USA.
 	grabMouseStatus = !!value;
 }
 
+
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	if (stringToCopy)
+	{
+		const char *clipboardText = [stringToCopy cStringUsingEncoding:NSUTF8StringEncoding];
+		const size_t clipboardTextLength = strlen(clipboardText) + 1;
+		HGLOBAL clipboardMem = GlobalAlloc(GMEM_MOVEABLE, clipboardTextLength);
+		if (clipboardMem)
+		{
+			memcpy(GlobalLock(clipboardMem), clipboardText, clipboardTextLength);
+			GlobalUnlock(clipboardMem);
+			OpenClipboard(0);
+			EmptyClipboard();
+			if (!SetClipboardData(CF_TEXT, clipboardMem))
+			{
+				OOLog(@"stringToClipboard.failed", @"Failed to copy string %@ to clipboard", stringToCopy);
+				// free global allocated memory if clipboard copy failed
+				// note: no need to free it if copy succeeded; the OS becomes
+				// the owner of the copied memory once SetClipboardData has
+				// been executed successfully
+				GlobalFree(clipboardMem);
+			}
+			CloseClipboard();
+		}
+	}
+}
+
 #else	// Linus stub methods
 
 // for Linux we assume we are always on the primary monitor for now
@@ -825,6 +866,12 @@ MA 02110-1301, USA.
 - (void) grabMouseInsideGameWindow:(BOOL) value
 {
 	// do nothing
+}
+
+
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	// TODO: implement string clipboard copy for Linux
 }
 
 #endif //OOLITE_WINDOWS
@@ -898,10 +945,6 @@ MA 02110-1301, USA.
 		else  GetWindowRect(SDL_Window, &lastGoodRect);
 		
 		// ok, can go fullscreen now
-		if(!wasFullScreen)
-		{
-			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
-		}
 		SetForegroundWindow(SDL_Window);
 		if (changingResolution)
 		{
@@ -913,6 +956,10 @@ MA 02110-1301, USA.
 			}
 		}
 		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+		if(!wasFullScreen)
+		{
+			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
+		}
 	}
 	else if ( wasFullScreen )
 	{
@@ -1166,7 +1213,7 @@ MA 02110-1301, USA.
 	infoPtr = png_create_info_struct(pngPtr);
 	if (infoPtr == NULL) {
 		png_destroy_write_struct(&pngPtr, (png_infopp)NULL);
-		OOLog(@"pngSaveSurface.info_struct.failed", @"png_create_info_struct error");
+		OOLog(@"pngSaveSurface.info_struct.failed", @"%@", @"png_create_info_struct error");
 		exit(-1);
 	}
 
@@ -1397,6 +1444,31 @@ MA 02110-1301, USA.
 - (BOOL) isShiftDown
 {
 	return shift;
+}
+
+
+- (BOOL) isCapsLockOn
+{
+	/* Caps Lock state check - This effectively gives us
+	   an alternate keyboard state to play with and, in
+	   the future, we could assign different behaviours
+	   to existing controls, depending on the state of
+	   Caps Lock. - Nikos 20160304
+	
+	   Note: SDL on Windows does not refresh keyboard
+	   state correctly if state is changed while focus
+	   is on another window. As a result, the CapsLock
+	   status can be mis-identified if we switch to
+	   another app, toggle it there and return to Oolite.
+	   For this reason, and with deep regret, we need to
+	   use a direct Windows API calls here and add yet
+	   one more #ifdef. - Nikos 20160413
+	*/
+#if OOLITE_WINDOWS
+	return GetKeyState(VK_CAPITAL) & 0x0001;
+#else
+	return (SDL_GetModState() & KMOD_CAPS) == KMOD_CAPS;
+#endif
 }
 
 
@@ -1767,9 +1839,6 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 
 					case SDLK_F12:
 						[self toggleScreenMode];
-						// normally we would want to do a gui screen resize update here, but
-						// toggling full screen mode executes an SDL_VIDEORESIZE event, which
-						// takes care of this for us - Nikos 20140129
 						break;
 
 					case SDLK_ESCAPE:
@@ -2039,7 +2108,10 @@ keys[a] = NO; keys[b] = NO; \
 									SetWindowPlacement(SDL_Window, &wp);
 								}
 			
-								MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+								if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
+								{
+									MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+								}
 								
 								if (fullScreenMaximized)
 								{
@@ -2157,13 +2229,13 @@ keys[a] = NO; keys[b] = NO; \
 	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
 	if(modes == (SDL_Rect **)NULL)
 	{
-		OOLog(@"display.mode.list.none", @"SDL didn't return any screen modes");
+		OOLog(@"display.mode.list.none", @"%@", @"SDL didn't return any screen modes");
 		return;
 	}
 
 	if(modes == (SDL_Rect **)-1)
 	{
-		OOLog(@"display.mode.list.none", @"SDL claims 'all resolutions available' which is unhelpful in the extreme");
+		OOLog(@"display.mode.list.none", @"%@", @"SDL claims 'all resolutions available' which is unhelpful in the extreme");
 		return;
 	}
 
@@ -2291,7 +2363,7 @@ keys[a] = NO; keys[b] = NO; \
 		return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
 				[[mode objectForKey: kOODisplayHeight] intValue]);
 	}
-	OOLog(@"display.mode.unknown", @"Screen size unknown!");
+	OOLog(@"display.mode.unknown", @"%@", @"Screen size unknown!");
 	return NSMakeSize(800, 600);
 }
 

@@ -49,7 +49,7 @@ SOFTWARE.
 		OOAL(alGenSources(1,&_source));
 		if ((error = alGetError()) != AL_NO_ERROR)
 		{
-			OOLog(kOOLogSoundInitError, @"Could not create OpenAL source");
+			OOLog(kOOLogSoundInitError, @"%@", @"Could not create OpenAL source");
 			[self release];
 			self = nil;
 		}

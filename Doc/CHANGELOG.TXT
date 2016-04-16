@@ -1,3 +1,89 @@
+Changes between Oolite 1.82 and Oolite 1.84:
+
+General:
+========
+* Added shipdata property to OXP verifier
+* HUD messages can now be drawn under the console messages
+* Tumbling ships on demo screens now do so in a more interesting way,
+  more reminiscent of the original BBC Elite way of tumbling
+* All ships can now carry multiple lasers
+* Removing the entire trumbles array from the savefile is now recognized
+  as a cheat
+* Atmospheric fog is now applied also with shaders enabled
+* Add mobile external view camera
+
+Expansion pack development:
+===========================
+
+Modified Plists:
+----------------
+* planetinfo.plist: link_color can be defined both ways in interstellar space
+  for gradient effects (also works via JS)
+* planetinfo.plist: Star and nebula count multipliers are now floats rather
+  than unsigned integers, making multipliers like 0.5 etc. possible
+
+Scripting:
+----------
+* Main planet radius can now be set by script if not in the same system
+* Allow "concealment" parameter in systeminfo for selectively displaying information
+  about a system
+* playerDockingClearanceExpired world event 
+* player.ship.hudAllowsBigGui property
+* shipDumpedCargo ship script event
+* oolite.resourcePaths property for retrieving the list of currently running OXPs
+  in Javascript
+* player.audioMessage method, speaks a message without displaying anything on screen
+* player.stopAudioMessage method, stops any message currently being spoken
+* Allow setting of null values (i.e. unset) for sun/corona properties
+* playerStartedAutopilot event now fires after the docking music has started playing
+
+Bug fixes:
+==========
+* Fix some full-screen resolution changes on Windows
+* Fix entry of '*' OXZ filter taking screenshot
+* Fix nova system description
+* Fix exhaust drawing when far from origin
+* Fix some docking computer/queue problems
+* Again allow commodity name as well as key in cargo_carried
+* Fix texture generation on secondary planets inheriting too many properties from primary
+* Fix bug with equipment scripts and can_carry_multiple
+* Scanner "V" now follows FOV changes
+* Comms / console GUIs are now properly repositioned on screen resize
+* Tidied up drawing of galactic chart so that behaviour is consistent on chart based
+  mission screens
+* Fixed mission screen charts to show routes properly
+* Fixed rare case of memory leak under Windows, when the game was getting minimuzed by
+  means of Windows hotkey combinations while running in fullscreen 
+* Cargo hold status is now reported correctly on fuel scoop icon also when docked
+* Missile desired speed is now set to maximum speed on launch
+* Fixed bug in search for connected systems while galactic jumping
+* Fixed rare exception that could happen when switching to a player ship without missiles
+  and back
+* More than one connected joysticks are now listed correctly in the stick mapper screen
+* Fixed repair of cargo space requiring equipment requiring cargo space as well
+* Fixed rare case of not being able to set max cargo space capacity via JS
+* Fixed inability to refresh equip ship screen in the cases where buying a laser would
+  result in the player remaining with less cash than the laser's price
+* Fixed missile AI apparently ignoring cloak activation
+* Fixed trumble mission so it ends after nova if not before
+* Fixed case of unintended reset to stick mapper first page when setting or unsetting
+  stick functions
+* Credit values for contracts in the manifest screen are now formattable
+* Fixed distorted sound on some Windows 32-bit systems
+* Applied tentative fix for occasional null docking instructions in priority AI
+  JS script
+* Fixed potential energy gain when shield boosters got damaged
+* Fixed incorrect model reference in alloy shipdata definition
+* Fixed potential division by zero crash in station market creation
+* Capacities are now honoured for main system market
+* Fixed long standing cached octree issues, resulting in interesting and quite
+  hard to reproduce collision bugs
+* Fixed mission screen when background special is a chart so the chart is fully zoomed
+  in (for SHORT_RANGE_CHART) or fully zoomed out (for LONG_RANGE_CHART)
+* Fix for chart on Mac retina screen
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.80 and Oolite 1.82:
 
 General:

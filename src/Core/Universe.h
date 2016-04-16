@@ -641,7 +641,6 @@ enum
 - (NSString *) getSystemInhabitants:(OOSystemID) sys plural:(BOOL)plural;
 
 - (NSPoint) coordinatesForSystem:(OOSystemID)s;
-- (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
 - (OOSystemID) findSystemFromName:(NSString *) sysName;
 
 /**
@@ -651,7 +650,9 @@ enum
 
 - (OOSystemID) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
 - (OOSystemID) findConnectedSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
-- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
+// old alias for findSystemNumberAtCoords
+- (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal;
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) gal includingHidden:(BOOL)hidden;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix;
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systemsFound;
@@ -720,6 +721,7 @@ enum
 - (void) handleOoliteException:(NSException *)ooliteException;
 
 - (GLfloat)airResistanceFactor;
+- (void) setAirResistanceFactor:(GLfloat)newFactor;
 
 // speech routines
 //

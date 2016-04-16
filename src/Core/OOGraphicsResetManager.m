@@ -74,7 +74,7 @@ static OOGraphicsResetManager *sSingleton = nil;
 	
 	OOGL(glFinish());
 	
-	OOLog(@"rendering.reset.start", @"Resetting graphics state.");
+	OOLog(@"rendering.reset.start", @"%@", @"Resetting graphics state.");
 	OOLogIndentIf(@"rendering.reset.start");
 	
 	[[OOOpenGLExtensionManager sharedManager] reset];
@@ -93,7 +93,7 @@ static OOGraphicsResetManager *sSingleton = nil;
 	}
 	
 	OOLogOutdentIf(@"rendering.reset.start");
-	OOLog(@"rendering.reset.end", @"End of graphics state reset.");
+	OOLog(@"rendering.reset.end", @"%@", @"End of graphics state reset.");
 }
 
 @end

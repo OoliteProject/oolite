@@ -51,6 +51,8 @@ MA 02110-1301, USA.
 // reposition menu
 #define GUI_ROW(GROUP,ITEM) (GUI_FIRST_ROW(GROUP) - 4 + GUI_ROW_##GROUP##OPTIONS_##ITEM)
 
+#define CUSTOM_VIEW_MAX_ZOOM_IN		1.5
+#define CUSTOM_VIEW_MAX_ZOOM_OUT	25
 
 #define ENTRY(label, value) label,
 
@@ -111,6 +113,7 @@ typedef enum
 #define CHART_SCROLL_AT_Y		31.0
 #define CHART_CLIP_BORDER		10.0
 #define CHART_SCREEN_VERTICAL_CENTRE	(10*MAIN_GUI_ROW_HEIGHT)
+#define CHART_SCREEN_VERTICAL_CENTRE_COMPACT	(7*MAIN_GUI_ROW_HEIGHT)
 #define CHART_ZOOM_SPEED_FACTOR		1.05
 
 #define CHART_ZOOM_SHOW_LABELS		2.0
@@ -161,8 +164,10 @@ enum
 	GUI_MAX_ROWS_SCENARIOS				= 12,
 	GUI_ROW_SCENARIOS_DETAIL			= GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS + 2,
 	GUI_ROW_CHART_SYSTEM				= 19,
+	GUI_ROW_CHART_SYSTEM_COMPACT		= 17,
 	GUI_ROW_PLANET_FINDER				= 20
 };
+
 #if GUI_FIRST_ROW() < 0
 # error Too many items in OPTIONS list!
 #endif
@@ -647,7 +652,7 @@ typedef enum
 	// custom view points
 	Quaternion				customViewQuaternion;
 	OOMatrix				customViewMatrix;
-	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
+	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector, customViewRotationCenter;
 	NSString				*customViewDescription;
 	
 	
@@ -720,7 +725,7 @@ typedef enum
 	WormholeEntity			*wormhole;
 
 	ShipEntity				*demoShip; // Used while docked to maintain demo ship rotation.
-	OOLaserShotEntity *lastShot; // used to correctly position laser shots on first frame of firing
+	NSArray                 *lastShot; // used to correctly position laser shots on first frame of firing
 	
 	StickProfileScreen		*stickProfileScreen;
 
@@ -946,7 +951,7 @@ typedef enum
 
 - (OOWeaponType) weaponForFacing:(OOWeaponFacing)facing;
 - (OOWeaponType) currentWeapon;
-- (Vector) currentLaserOffset;
+- (NSArray *) currentLaserOffset;
 
 - (void) rotateCargo;
 
@@ -1007,6 +1012,8 @@ typedef enum
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
 - (BOOL) setWeaponMount:(OOWeaponFacing)chosen_weapon_facing toWeapon:(NSString *)eqKey;
+- (BOOL) setWeaponMount:(OOWeaponFacing)facing toWeapon:(NSString *)eqKey inContext:(NSString *) context;
+
 - (BOOL) changePassengerBerths:(int) addRemove;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type;
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
@@ -1081,13 +1088,30 @@ typedef enum
 
 // custom view points
 - (Quaternion)customViewQuaternion;
+- (void)setCustomViewQuaternion:(Quaternion)q1;
 - (OOMatrix)customViewMatrix;
 - (Vector)customViewOffset;
+- (void)setCustomViewOffset:(Vector)offset;
+- (Vector)customViewRotationCenter;
+- (void)setCustomViewRotationCenter:(Vector)center;
+- (void)customViewZoomOut:(OOScalar) rate;
+- (void)customViewZoomIn: (OOScalar) rate;
+- (void)customViewRotateLeft:(OOScalar) angle;
+- (void)customViewRotateRight:(OOScalar) angle;
+- (void)customViewRotateUp:(OOScalar) angle;
+- (void)customViewRotateDown:(OOScalar) angle;
+- (void)customViewRollLeft:(OOScalar) angle;
+- (void)customViewRollRight:(OOScalar) angle;
+- (void)customViewPanUp:(OOScalar) angle;
+- (void)customViewPanDown:(OOScalar) angle;
+- (void)customViewPanLeft:(OOScalar) angle;
+- (void)customViewPanRight:(OOScalar) angle;
 - (Vector)customViewForwardVector;
 - (Vector)customViewUpVector;
 - (Vector)customViewRightVector;
 - (NSString *)customViewDescription;
 - (void)resetCustomView;
+- (void)setCustomViewData;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict withScaling:(BOOL)withScaling;
 - (HPVector) viewpointPosition;
 - (HPVector) breakPatternPosition;
@@ -1158,7 +1182,7 @@ typedef enum
 - (BOOL) removeMissionDestinationMarker:(NSDictionary *)marker;
 - (NSMutableDictionary*) getMissionDestinations;
 
-- (void) setLastShot:(OOLaserShotEntity *)shot;
+- (void) setLastShot:(NSArray *)shot;
 
 - (void) showShipModelWithKey:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality factorX:(GLfloat)factorX factorY:(GLfloat)factorY factorZ:(GLfloat)factorZ inContext:(NSString *)context;
 

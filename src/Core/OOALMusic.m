@@ -102,6 +102,7 @@ static OOSoundSource	*sMusicSource = nil;
 	{
 		sPlayingMusic = nil;
 		[sMusicSource stop];
+		[sMusicSource setSound:nil];
 	}
 }
 

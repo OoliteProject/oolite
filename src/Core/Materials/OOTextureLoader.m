@@ -329,7 +329,7 @@ static BOOL					sHaveSetUp = NO;
 		
 		if (_data != NULL)  [self applySettings];
 		
-		OOLog(@"texture.load.asyncLoad.done", @"Loading complete.");
+		OOLog(@"texture.load.asyncLoad.done", @"%@", @"Loading complete.");
 	}
 	@catch (NSException *exception)
 	{

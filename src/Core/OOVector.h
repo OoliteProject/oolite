@@ -131,6 +131,18 @@ OOINLINE Vector normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FUNC;
 
 #if __OBJC__
 NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
+
+/* For storing vectors in NSArrays */
+@interface OONativeVector: NSObject
+{
+@private
+	Vector v;
+}
+- (id) initWithVector:(Vector)vect;
+- (Vector) getVector;
+
+@end
+
 #endif
 
 #if OOMATHS_OPENGL_INTEGRATION

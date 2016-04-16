@@ -386,11 +386,13 @@ typedef enum
 	
 	GLfloat					_scaleFactor;  // scale factor for size variation
 
+
+	BOOL					_multiplyWeapons; // multiply instead of splitting weapons
 	//position of gun ports
-	Vector					forwardWeaponOffset,
-							aftWeaponOffset,
-							portWeaponOffset,
-							starboardWeaponOffset;
+	NSArray					*forwardWeaponOffset,
+							*aftWeaponOffset,
+							*portWeaponOffset,
+							*starboardWeaponOffset;
 	
 	// crew (typically one OOCharacter - the pilot)
 	NSArray					*crew;
@@ -485,7 +487,12 @@ typedef enum
 	id <OOHUDBeaconIcon>	_beaconDrawable;
 
 	double			_nextAegisCheck;
-	
+
+	// Demo ship state
+	BOOL			isDemoShip;
+	OOScalar		demoRate;
+	OOTimeAbsolute		demoStartTime;
+	Quaternion		demoStartOrientation;
 }
 
 // ship brains
@@ -577,11 +584,11 @@ typedef enum
 
 - (NSDictionary *)shipInfoDictionary;
 
-- (void) setDefaultWeaponOffsets;
-- (Vector) aftWeaponOffset;
-- (Vector) forwardWeaponOffset;
-- (Vector) portWeaponOffset;
-- (Vector) starboardWeaponOffset;
+- (NSArray *) getWeaponOffsetFrom:(NSDictionary *)dict withKey:(NSString *)key inMode:(NSString *)mode;
+- (NSArray *) aftWeaponOffset;
+- (NSArray *) forwardWeaponOffset;
+- (NSArray *) portWeaponOffset;
+- (NSArray *) starboardWeaponOffset;
 - (BOOL) hasAutoWeapons;
 
 - (BOOL) isFrangible;
@@ -1105,11 +1112,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireDirectLaserShot:(double)range;
 - (BOOL) fireDirectLaserDefensiveShot;
 - (BOOL) fireDirectLaserShotAt:(Entity *)my_target;
-- (Vector) laserPortOffset:(OOWeaponFacing)direction;
+- (NSArray *) laserPortOffset:(OOWeaponFacing)direction;
 - (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction;
 - (void) adjustMissedShots:(int)delta;
 - (int) missedShots;
-- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;
 - (void) considerFiringMissile:(double)delta_t;
 - (Vector) missileLaunchPosition;
 - (ShipEntity *) fireMissile;
@@ -1221,6 +1227,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) pilotArrived;
 #endif
 
+
+
 - (OOJSScript *) script;
 - (NSDictionary *) scriptInfo;
 - (void) overrideScriptInfo:(NSDictionary *)override;	// Add items from override (if not nil) to scriptInfo, replacing in case of duplicates. Used for subentities.
@@ -1232,6 +1240,11 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 
 - (Entity *)entityForShaderProperties;
+
+// Demo ship
+- (void) setDemoShip: (OOScalar) demoRate;
+- (BOOL) isDemoShip;
+- (void) setDemoStartTime: (OOTimeAbsolute) time;
 
 /*	*** Script events.
 	For NPC ships, these call doEvent: on the ship script.

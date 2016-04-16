@@ -284,6 +284,7 @@ MA 02110-1301, USA.
 - (id) initWithDictionary:(NSDictionary *)hudinfo inFile:(NSString *)hudFileName;
 
 - (void) resetGuis:(NSDictionary *)info;
+- (void) resetGuiPositions;
 
 - (NSString *) hudName;
 - (void) setHudName:(NSString *)newHudName;

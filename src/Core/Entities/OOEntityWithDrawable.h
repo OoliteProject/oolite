@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 @protocol OOSubEntity
 
 - (void) rescaleBy:(GLfloat)factor;
+- (void) rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache;
 
 // Separate drawing path for subentities of ships.
 - (void) drawSubEntityImmediate:(bool)immediate translucent:(bool)translucent;

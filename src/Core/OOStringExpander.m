@@ -575,7 +575,7 @@ static NSString *ExpandDigitKey(OOStringExpansionContext *context, const unichar
 		else
 		{
 			// This is out of the scope of whatever triggered it, so shouldn't be a JS warning.
-			OOLogERR(@"strings.expand.invalidData", @"descriptions.plist entry system_description must be an array of arrays of strings.");
+			OOLogERR(@"strings.expand.invalidData", @"%@", @"descriptions.plist entry system_description must be an array of arrays of strings.");
 		}
 		return nil;
 	}
@@ -1047,7 +1047,7 @@ static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const
 	if (EXPECT_NOT(size - idx < 5))
 	{
 		// Too close to end of string to actually have three characters, let alone three digits.
-		SyntaxError(context, @"strings.expand.invalidJEscape", kInvalidJEscapeMessage);
+		SyntaxError(context, @"strings.expand.invalidJEscape", @"%@", kInvalidJEscapeMessage);
 		return nil;
 	}
 	
@@ -1057,7 +1057,7 @@ static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const
 	
 	if (!(isdigit(hundreds) && isdigit(tens) && isdigit(units)))
 	{
-		SyntaxError(context, @"strings.expand.invalidJEscape", kInvalidJEscapeMessage);
+		SyntaxError(context, @"strings.expand.invalidJEscape", @"%@", kInvalidJEscapeMessage);
 		return nil;
 	}
 	

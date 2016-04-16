@@ -101,14 +101,14 @@ enum
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo
 {
-	OOLog(@"texture.planet.generate",@"Initialising standalone atmosphere generator");
+	OOLog(@"texture.planet.generate", @"%@", @"Initialising standalone atmosphere generator");
 
 	// AllowCubeMap not used yet but might be in future
 	if ((self = [super initWithPath:[NSString stringWithFormat:@"OOStandaloneAtmosphereTexture@%p", self] options:kOOTextureAllowCubeMap]))
 	{
 		OOLog(@"texture.planet.generate",@"Extracting parameters for generator %@",self);
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_info.seed];
-		OOLog(@"texture.planet.generate",@"Extracting atmosphere parameters");
+		OOLog(@"texture.planet.generate", @"%@", @"Extracting atmosphere parameters");
 		// we are an atmosphere:
 		_info.cloudAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
 		_info.cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);

@@ -306,6 +306,7 @@
 			"setup_actions",
 			"escorts",
 			"beacon",
+			"beacon_label",
 			"rotational_velocity",
 			"track_contacts",
 			"weapon_position_forward",

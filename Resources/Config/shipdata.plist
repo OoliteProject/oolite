@@ -195,7 +195,7 @@
 		max_flight_roll = 0.5;
 		max_flight_speed = 50;
 		missiles = 0;
-		model = "alloy.dat";
+		model = "oolite_alloy.dat";
 		name = "Metal fragment";
 		roles = "alloy";
 		scan_class = "CLASS_CARGO";

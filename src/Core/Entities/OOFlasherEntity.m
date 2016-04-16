@@ -234,6 +234,13 @@ MA 02110-1301, USA.
 	[self setDiameter:[self diameter] * factor];
 }
 
+
+- (void) rescaleBy:(GLfloat)factor writeToCache:(BOOL)writeToCache
+{
+	/* Do nothing; this is only needed because of OOEntityWithDrawable
+	   implementation requirements */
+}
+
 @end
 
 

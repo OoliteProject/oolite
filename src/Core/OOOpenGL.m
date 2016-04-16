@@ -449,7 +449,7 @@ static void GLDumpFogState(void)
 		OOLog(kOOLogOpenGLStateDump, @"Fog colour: %@", OOGLColorToString(color));
 		
 		OOGL(glGetFloatv(GL_FOG_START, &start));
-		OOGL(glGetFloatv(GL_FOG_START, &end));
+		OOGL(glGetFloatv(GL_FOG_END, &end));
 		OOLog(kOOLogOpenGLStateDump, @"Fog start, end: %g, %g", start, end);
 		
 		OOGL(glGetFloatv(GL_FOG_DENSITY, &density));

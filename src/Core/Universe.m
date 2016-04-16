@@ -664,7 +664,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		StationEntity	*dockedStation = [player dockedStation];
 		NSPoint			coords = [player galaxy_coordinates];
 		// check the nearest system
-		OOSystemID sys = [self findSystemAtCoords:coords withGalaxy:[player galaxyNumber]];
+		OOSystemID sys = [self findSystemNumberAtCoords:coords withGalaxy:[player galaxyNumber] includingHidden:YES];
 		BOOL interstel =[dockedStation interstellarUndockingAllowed];// && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
 		
 		// remove everything except the player and the docked station
@@ -845,7 +845,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	ambientLightLevel = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
 	[self setLighting];	// also sets initial lights positions.
 	
-	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
+	OOLog(kOOLogUniversePopulateWitchspace, @"%@", @"Populating witchspace ...");
 	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
 	
 	[self clearSystemPopulator];
@@ -1198,7 +1198,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			a_station = (StationEntity *)[self newShipWithName:@"coriolis-station"];
 			if (![a_station isStation] || ![a_station validForAddToUniverse])
 			{
-				OOLog(@"universe.setup.badStation", @"Could not create built-in Coriolis station! Generating a stationless system.");
+				OOLog(@"universe.setup.badStation", @"%@", @"Could not create built-in Coriolis station! Generating a stationless system.");
 				DESTROY(a_station);
 			}
 		}
@@ -2794,7 +2794,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		}
 
 
-		if (!demo_ship) ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
+		if (!demo_ship)	ship = [self newShipWithName:[[[demo_ships oo_arrayAtIndex:demo_ship_index] oo_dictionaryAtIndex:demo_ship_subindex] oo_stringForKey:kOODemoShipKey] usePlayerProxy:NO];
 		// stop consistency problems on the ship library screen
 		[ship removeEquipmentItem:@"EQ_SHIELD_BOOSTER"];
 		[ship removeEquipmentItem:@"EQ_SHIELD_ENHANCER"];
@@ -2813,17 +2813,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			// main screen Cobra is closer
 			[ship setPositionX:0.0f y:0.0f z:3.6 * ship->collision_radius];
 		}
+		[ship setDemoShip: 1.0f];
+		[ship setDemoStartTime: universal_time];
 		[ship setScanClass: CLASS_NO_DRAW];
-		if (justCobra)
-		{
-			[ship setRoll:M_PI/7.5];
-			[ship setPitch:M_PI/15.0];
-		}
-		else
-		{
-			[ship setRoll:M_PI/10.0];
-			[ship setPitch:M_PI/20.0];
-		}
 		[ship switchAITo:@"nullAI.plist"];
 		if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -3413,7 +3405,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	skyClearColor[1] = green;
 	skyClearColor[2] = blue;
 	skyClearColor[3] = alpha;
-	airResistanceFactor = alpha;
+	[self setAirResistanceFactor:alpha];
 }
 
 
@@ -4340,7 +4332,7 @@ static const OOMatrix	starboard_matrix =
 
 - (void) drawUniverse
 {
-	OOLog(@"universe.profile.draw",@"Begin draw");
+	OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
 	if (!no_update)
 	{
 		@try
@@ -4502,7 +4494,8 @@ static const OOMatrix	starboard_matrix =
 					GLfloat		fogFactor = 0.5 / airResistanceFactor;
 					double 		fog_scale, half_scale;
 					GLfloat 	flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
-					GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing			
+					GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
+					GLfloat		fog_blend;
 				
 					OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				
@@ -4510,7 +4503,7 @@ static const OOMatrix	starboard_matrix =
 				
 					OOVerifyOpenGLState();
 					OOCheckOpenGLErrors(@"Universe after setting up for opaque pass");
-					OOLog(@"universe.profile.draw",@"Begin opaque pass");
+					OOLog(@"universe.profile.draw", @"%@", @"Begin opaque pass");
 
 				
 					//		DRAW ALL THE OPAQUE ENTITIES
@@ -4561,6 +4554,8 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
 								OOGL(glFogf(GL_FOG_START, half_scale));
 								OOGL(glFogf(GL_FOG_END, fog_scale));
+								fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale)/half_scale);
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: skyClearColor[0] green: skyClearColor[1] blue: skyClearColor[2] alpha: fog_blend]];
 							}
 						
 							[self lightForEntity:demoShipMode || drawthing->isSunlit];
@@ -4573,6 +4568,7 @@ static const OOMatrix	starboard_matrix =
 							// atmospheric fog
 							if (fogging)
 							{
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: 0.0 green: 0.0 blue: 0.0 alpha: 0.0]];
 								OOGL(glDisable(GL_FOG));
 							}
 						
@@ -4610,6 +4606,8 @@ static const OOMatrix	starboard_matrix =
 								OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
 								OOGL(glFogf(GL_FOG_START, half_scale));
 								OOGL(glFogf(GL_FOG_END, fog_scale));
+								fog_blend = OOClamp_0_1_f((magnitude([drawthing cameraRelativePosition]) - half_scale)/half_scale);
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: skyClearColor[0] green: skyClearColor[1] blue: skyClearColor[2] alpha: fog_blend]];
 							}
 						
 							// draw the thing
@@ -4618,6 +4616,7 @@ static const OOMatrix	starboard_matrix =
 							// atmospheric fog
 							if (fogging)
 							{
+								[drawthing setAtmosphereFogging: [OOColor colorWithRed: 0.0 green: 0.0 blue: 0.0 alpha: 0.0]];
 								OOGL(glDisable(GL_FOG));
 							}
 						
@@ -4637,9 +4636,9 @@ static const OOMatrix	starboard_matrix =
 			OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
 
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
-			OOLog(@"universe.profile.draw",@"Begin HUD");
+			OOLog(@"universe.profile.draw", @"%@", @"Begin HUD");
 			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
-			if (EXPECT(!displayGUI || demoShipMode))
+			if (EXPECT(!displayGUI))
 			{
 				if (!bpHide && cachedSun)
 				{
@@ -4653,8 +4652,6 @@ static const OOMatrix	starboard_matrix =
 			if (lineWidth > 1.5)  lineWidth = 1.5; // don't overscale; think of ultra-wide screen setups
 			OOGL(GLScaledLineWidth(lineWidth));
 
-			[self drawMessage];
-			
 			HeadUpDisplay *theHUD = [player hud];
 			
 			// If the HUD has a non-nil deferred name string, it means that a HUD switch was requested while it was being rendered.
@@ -4700,6 +4697,9 @@ static const OOMatrix	starboard_matrix =
 					[theHUD renderHUD];
 				}
 			}
+
+			// should come after the HUD to avoid it being overlapped by it
+			[self drawMessage];
 			
 #if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
 			[self drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
@@ -4733,7 +4733,7 @@ static const OOMatrix	starboard_matrix =
 			}
 		}
 	}
-	OOLog(@"universe.profile.draw",@"End drawing");
+	OOLog(@"universe.profile.draw", @"%@", @"End drawing");
 }
 
 
@@ -5241,11 +5241,14 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		[ship setPendingEscortCount:0];
 		
 		[UNIVERSE addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL
-		
+
 		if (spinning)
 		{
-			[ship setRoll:M_PI/5.0];	// roll must be set after addEntity or stations will not roll in demo.
-			[ship setPitch:M_PI/10.0];
+			[ship setDemoShip: 1.0f];
+		}
+		else
+		{
+			[ship setDemoShip: 0.0f];
 		}
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		// stop problems on the ship library screen
@@ -5383,7 +5386,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	if (!e1)
 	{
-		OOLog(kOOLogParameterError, @"***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
+		OOLog(kOOLogParameterError, @"%@", @"***** No entity set in Universe getSafeVectorFromEntity:toDistance:fromPoint:");
 		return kZeroHPVector;
 	}
 	
@@ -5496,7 +5499,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		GLfloat expected_mass = 0.1f * [ship mass] * (0.75 + 0.5 * randf());
 		GLfloat wreck_mass = [wreck mass];
 		GLfloat scale_factor = powf(expected_mass / wreck_mass, 0.33333333f) * scale;	// cube root of volume ratio
-		[wreck rescaleBy: scale_factor];
+		[wreck rescaleBy:scale_factor writeToCache:NO];
 
 		[wreck setPosition:rpos];
 
@@ -5751,28 +5754,28 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	{
 		case VIEW_FORWARD:
 			targetFacing = WEAPON_FACING_FORWARD;
-			laserPortOffset = [player forwardWeaponOffset];
+			laserPortOffset = [[player forwardWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		case VIEW_AFT:
 			targetFacing = WEAPON_FACING_AFT;
-			laserPortOffset = [player aftWeaponOffset];
+			laserPortOffset = [[player aftWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		case VIEW_PORT:
 			targetFacing = WEAPON_FACING_PORT;
-			laserPortOffset = [player portWeaponOffset];
+			laserPortOffset = [[player portWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		case VIEW_STARBOARD:
 			targetFacing = WEAPON_FACING_STARBOARD;
-			laserPortOffset = [player starboardWeaponOffset];
+			laserPortOffset = [[player starboardWeaponOffset] oo_vectorAtIndex:0];
 			break;
 			
 		default:
 			// Match behaviour of -firstEntityTargetedByPlayer.
 			targetFacing = WEAPON_FACING_FORWARD;
-			laserPortOffset = [player forwardWeaponOffset];
+			laserPortOffset = [[player forwardWeaponOffset] oo_vectorAtIndex:0];
 	}
 	
 	return [self firstShipHitByLaserFromShip:PLAYER inDirection:targetFacing offset:laserPortOffset gettingRangeFound:NULL];
@@ -6495,7 +6498,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
 	NSUInteger sessionID = _sessionID;
-	OOLog(@"universe.profile.update",@"Begin update");
+	OOLog(@"universe.profile.update", @"%@", @"Begin update");
 	if (EXPECT(!no_update))
 	{
 		next_repopulation -= delta_t;
@@ -6579,6 +6582,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 									[demo_ship setOrientation:q2];
 									[demo_ship setScanClass: CLASS_NO_DRAW];
 									[demo_ship setStatus: STATUS_COCKPIT_DISPLAY]; // prevents it getting escorts on addition
+									[demo_ship setDemoShip: 1.0f];
+									[demo_ship setDemoStartTime: universal_time];
 									if ([self addEntity:demo_ship])
 									{
 										[demo_ship release];		// We now own a reference through the entity list.
@@ -6588,8 +6593,6 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 										[demo_ship setDestination: make_HPvector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
 										[demo_ship setVelocity:kZeroVector];
 										[demo_ship setScanClass: CLASS_NO_DRAW];
-										[demo_ship setRoll:M_PI/10.0];
-										[demo_ship setPitch:M_PI/20.0];
 //										[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 										
 										[self setLibraryTextForDemoShip];
@@ -6778,7 +6781,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	[self prunePreloadingPlanetMaterials];
 #endif
 
-	OOLog(@"universe.profile.update",@"Update complete");
+	OOLog(@"universe.profile.update", @"%@", @"Update complete");
 }
 
 
@@ -7454,11 +7457,15 @@ static void VerifyDesc(NSString *key, id desc)
 		-- Ahruman 2011-05-05
 	*/
 	
-	NSDictionary *descriptions = [self descriptions];
 	NSString *key = nil;
-	foreachkey (key, descriptions)
+	if (_descriptions == nil)
 	{
-		VerifyDesc(key, [descriptions objectForKey:key]);
+		OOLog(@"descriptions.verify",@"***** FATAL: Tried to verify descriptions, but descriptions was nil - unable to load any descriptions.plist file.");
+		exit(EXIT_FAILURE);
+	}
+	foreachkey (key, _descriptions)
+	{
+		VerifyDesc(key, [_descriptions objectForKey:key]);
 	}
 }
 
@@ -7487,7 +7494,6 @@ static void VerifyDesc(NSString *key, id desc)
 {
 	[_scenarios autorelease];
 	_scenarios = [[ResourceManager arrayFromFilesNamed:@"scenarios.plist" inFolder:@"Config" andMerge:YES] retain];
-	[self verifyDescriptions];
 }
 
 
@@ -7621,14 +7627,17 @@ static void VerifyDesc(NSString *key, id desc)
 	static BOOL sysdataLocked = NO;
 	if (sysdataLocked)
 	{
-		OOLogERR(@"script.error", @"System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
+		OOLogERR(@"script.error", @"%@", @"System properties cannot be set during 'systemInformationChanged' events to avoid infinite loops.");
 		return;
 	}
 
+	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
+	BOOL sameSystem = (sameGalaxy && pnum == [self currentSystemID]);
+
 	// trying to set  unsettable properties?  
-	if ([key isEqualToString:KEY_RADIUS]) // buggy if we allow this key to be set
+	if ([key isEqualToString:KEY_RADIUS] && sameGalaxy && sameSystem) // buggy if we allow this key to be set while in the system
 	{
-		OOLogERR(@"script.error", @"System property '%@' cannot be set.",key);
+		OOLogERR(@"script.error", @"System property '%@' cannot be set while in the system.",key);
 		return;
 	}
 
@@ -7640,33 +7649,33 @@ static void VerifyDesc(NSString *key, id desc)
 
 	
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
-	BOOL sameGalaxy = (gnum == [PLAYER currentGalaxyID]);
-	BOOL sameSystem = (sameGalaxy && pnum == [self currentSystemID]);
 	NSDictionary *sysInfo = nil;
 	
 	// short range map fix
 	[gui refreshStarChart];
-	
-	// long range map fixes
-	if ([key isEqualToString:KEY_NAME])
-	{	
-		object=(id)[[(NSString *)object lowercaseString] capitalizedString];
-		if(sameGalaxy)
-		{
-			if (system_names[pnum]) [system_names[pnum] release];
-			system_names[pnum] = [(NSString *)object retain];
+
+	if (object != nil) {
+		// long range map fixes
+		if ([key isEqualToString:KEY_NAME])
+		{	
+			object=(id)[[(NSString *)object lowercaseString] capitalizedString];
+			if(sameGalaxy)
+			{
+				if (system_names[pnum]) [system_names[pnum] release];
+				system_names[pnum] = [(NSString *)object retain];
+			}
 		}
-	}
-	else if ([key isEqualToString:@"sun_radius"])
-	{
-		if ([object doubleValue] < 1000.0 || [object doubleValue] > 10000000.0 ) 
+		else if ([key isEqualToString:@"sun_radius"])
 		{
-			object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"10000000.0"); // works!
+			if ([object doubleValue] < 1000.0 || [object doubleValue] > 10000000.0 ) 
+			{
+				object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"10000000.0"); // works!
+			}
 		}
-	}
-	else if ([key hasPrefix:@"corona_"])
-	{
-		object = (id)[NSString stringWithFormat:@"%f",OOClamp_0_1_f([object floatValue])];
+		else if ([key hasPrefix:@"corona_"])
+		{
+			object = (id)[NSString stringWithFormat:@"%f",OOClamp_0_1_f([object floatValue])];
+		}
 	}
 	
 	[systemManager setProperty:key forSystemKey:overrideKey andLayer:layer toValue:object fromManifest:manifest];
@@ -7823,7 +7832,8 @@ static void VerifyDesc(NSString *key, id desc)
 
 - (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) g
 {
-	return [self findSystemNumberAtCoords:coords withGalaxy:g];
+	OOLog(@"deprecated.function",@"findSystemAtCoords");
+	return [self findSystemNumberAtCoords:coords withGalaxy:g includingHidden:YES];
 }
 
 
@@ -7869,7 +7879,7 @@ static void VerifyDesc(NSString *key, id desc)
 		for (i = 0; i < 256; i++)   // flood fill out from system zero
 		{
 			NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
-			for (j = i+1; j < 256; j++)
+			for (j = 0; j < 256; j++)
 			{
 				NSPoint jpos = [systemManager getCoordinatesForSystem:j inGalaxy:g];
 				double dist = distanceBetweenPlanetPositions(ipos.x,ipos.y,jpos.x,jpos.y);
@@ -7916,7 +7926,7 @@ static void VerifyDesc(NSString *key, id desc)
 		for (i = 0; i < 256; i++)   // flood fill out from system zero
 		{
 			NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
-			for (j = i+1; j < 256; j++)
+			for (j = 0; j < 256; j++)
 			{
 				NSPoint jpos = [systemManager getCoordinatesForSystem:j inGalaxy:g];
 				double dist = distanceBetweenPlanetPositions(ipos.x,ipos.y,jpos.x,jpos.y);
@@ -7944,7 +7954,7 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
-- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID)g
+- (OOSystemID) findSystemNumberAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID)g includingHidden:(BOOL)hidden
 {
 	/*
 		NOTE: this previously used NSNotFound as the default value, but
@@ -7959,6 +7969,14 @@ static void VerifyDesc(NSString *key, id desc)
 	
 	for (i = 0; i < 256; i++)
 	{
+		if (!hidden) {
+			NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:g];
+			NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+			if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+				// system is not known
+				continue;
+			}
+		}
 		NSPoint ipos = [systemManager getCoordinatesForSystem:i inGalaxy:g];
 		dx = ABS(coords.x - ipos.x);
 		dy = ABS(coords.y - ipos.y);
@@ -8004,6 +8022,14 @@ static void VerifyDesc(NSString *key, id desc)
 		system_name = [system_names[i] lowercaseString];
 		if ((exactMatch && [system_name isEqualToString:p_fix]) || (!exactMatch && [system_name hasPrefix:p_fix]))
 		{
+			/* Only used in player-based search routines */
+			NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxyID];
+			NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+			if (concealment >= OO_SYSTEMCONCEALMENT_NONAME) {
+				// system is not known
+				continue;
+			}
+			
 			system_found[i] = YES;
 			if (result < 0)
 			{
@@ -8061,9 +8087,21 @@ static void VerifyDesc(NSString *key, id desc)
 	if (start > 255 || goal > 255) return nil;
 	
 	NSArray *neighbours[256];
+	BOOL concealed[256];
 	for (i = 0; i < 256; i++)
 	{
-		neighbours[i] = [self neighboursToSystem:i];
+		NSDictionary *systemInfo = [systemManager getPropertiesForSystem:i inGalaxy:galaxyID];
+		NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+		if (concealment >= OO_SYSTEMCONCEALMENT_NOTHING) {
+			// system is not known
+			neighbours[i] = [NSArray array];
+			concealed[i] = YES;
+		}
+		else
+		{
+			neighbours[i] = [self neighboursToSystem:i];
+			concealed[i] = NO;
+		}
 	}
 	
 	RouteElement *cheapest[256] = {0};
@@ -8083,6 +8121,10 @@ static void VerifyDesc(NSString *key, id desc)
 			{
 				RouteElement *ce = cheapest[[elemI location]];
 				OOSystemID n = [ns oo_intAtIndex:j];
+				if (concealed[n])
+				{
+					continue;
+				}
 				OOSystemID c = [ce location];
 				
 				NSPoint cpos = [systemManager getCoordinatesForSystem:c inGalaxy:galaxyID];
@@ -9131,14 +9173,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 {
 	if (!ship)
 	{
-		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimStartPositionForShip:");
+		OOLog(kOOLogParameterError, @"%@", @"***** No ship set in Universe getSunSkimStartPositionForShip:");
 		return kZeroHPVector;
 	}
 	OOSunEntity* the_sun = [self sun];
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
-		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimStartPositionForShip:");
+		OOLog(kOOLogInconsistentState, @"%@", @"***** No sun set in Universe getSunSkimStartPositionForShip:");
 		return kZeroHPVector;
 	}
 	HPVector v0 = the_sun->position;
@@ -9161,13 +9203,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	OOSunEntity* the_sun = [self sun];
 	if (!ship)
 	{
-		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimEndPositionForShip:");
+		OOLog(kOOLogParameterError, @"%@", @"***** No ship set in Universe getSunSkimEndPositionForShip:");
 		return kZeroHPVector;
 	}
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
-		OOLog(kOOLogInconsistentState, @"***** No sun set in Universe getSunSkimEndPositionForShip:");
+		OOLog(kOOLogInconsistentState, @"%@", @"***** No sun set in Universe getSunSkimEndPositionForShip:");
 		return kZeroHPVector;
 	}
 	HPVector v0 = the_sun->position;
@@ -9420,6 +9462,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 - (GLfloat)airResistanceFactor
 {
 	return airResistanceFactor;
+}
+
+
+- (void) setAirResistanceFactor:(GLfloat)newFactor
+{
+	airResistanceFactor = OOClamp_0_1_f(newFactor);
 }
 
 
@@ -10513,7 +10561,7 @@ NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count)
 					continue;
 			}
 			
-			long int param = strtol (cond, (char **)&cond, 10);
+			long int param = strtol(cond, (char **)&cond, 10);
 			
 			switch (command)
 			{

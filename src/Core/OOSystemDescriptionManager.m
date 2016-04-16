@@ -330,7 +330,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	}
 	else
 	{
-		OOLog(@"system.description.error",@"getPropertiesForCurrentSystem called while player in interstellar space. This is an internal error. Please report it.");
+		OOLog(@"system.description.error", @"%@", @"getPropertiesForCurrentSystem called while player in interstellar space. This is an internal error. Please report it.");
 		// this shouldn't be called for interstellar space
 		return [NSDictionary dictionary];
 	}
@@ -354,6 +354,18 @@ static NSString *kOOSystemLayerProperty = @"layer";
 	}
 	// interstellar spaces aren't cached
 	return [self calculatePropertiesForSystemKey:key];
+}
+
+
+- (NSDictionary *) getPropertiesForSystem:(OOSystemID)s inGalaxy:(OOGalaxyID)g
+{
+	NSUInteger index = (g * OO_SYSTEMS_PER_GALAXY) + s;
+	if (index >= OO_SYSTEM_CACHE_LENGTH)
+	{
+		OOLog(@"system.description.error",@"'%u, %u' is an invalid system. This is an internal error. Please report it.",g,s);
+		return [NSDictionary dictionary];
+	}
+	return propertyCache[index];
 }
 
 
@@ -575,6 +587,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 		OOLog(@"system.description.error",@"'%d %d' is an invalid system key. This is an internal error. Please report it.",g,s);
 		return nil;
 	}
+
 	return neighbourCache[index];
 }
 

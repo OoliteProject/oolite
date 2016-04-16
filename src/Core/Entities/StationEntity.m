@@ -892,6 +892,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			{
 				[self sendExpandedMessage:@"[station-docking-clearance-expired]" toShip:player];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
+				[player doScriptEvent:OOJSID("playerDockingClearanceExpired")];
 				if ([self currentlyInDockingQueues] == 0) 
 				{
 					[[self getAI] message:@"DOCKING_COMPLETE"];

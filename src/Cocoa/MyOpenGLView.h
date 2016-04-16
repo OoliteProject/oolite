@@ -136,6 +136,7 @@ extern int debug;
 	NSPoint				virtualJoystickPosition;
 	
 	NSSize				viewSize;
+	NSSize				backingViewSize;
 	GLfloat				display_z;
 	GLfloat				x_offset, y_offset;
 	
@@ -157,6 +158,7 @@ extern int debug;
 - (void) setTypedString:(NSString*) value;
 
 - (NSSize) viewSize;
+- (NSSize) backingViewSize;
 - (GLfloat) display_z;
 - (GLfloat) x_offset;
 - (GLfloat) y_offset;
@@ -172,6 +174,8 @@ extern int debug;
 
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
+
+- (void) stringToClipboard:(NSString *)stringToCopy;
 
 - (BOOL) snapShot:(NSString *)filename;
 
@@ -191,6 +195,7 @@ extern int debug;
 - (BOOL) isCtrlDown;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
+- (BOOL) isCapsLockOn;
 - (int) numKeys;
 - (int) mouseWheelState;
 
