@@ -1774,6 +1774,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[self nextInfoSystem];
 					next_planet_info_pressed = YES;
+					chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 				}
 			}
 			else
@@ -1786,6 +1787,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[self previousInfoSystem];
 					previous_planet_info_pressed = YES;
+					chart_focus_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 				}
 			}
 			else
