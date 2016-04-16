@@ -136,6 +136,10 @@ static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
 static BOOL				mouse_left_down;
 static BOOL				oxz_manager_pressed;
+static BOOL				next_planet_info_pressed;
+static BOOL				previous_planet_info_pressed;
+static BOOL				home_info_pressed;
+static BOOL				target_info_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -489,6 +493,7 @@ static NSTimeInterval	time_last_frame;
 - (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
 	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
+	info_system_id = target_system_id;
 	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 
 	found_system_id = target_system_id;
@@ -1762,7 +1767,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				queryPressed = NO;
 			}
-
+			
 			if ([gameView isDown:key_map_info] && chart_zoom <= CHART_ZOOM_SHOW_LABELS)
 			{
 				if (!chartInfoPressed)
@@ -1802,6 +1807,10 @@ static NSTimeInterval	time_last_frame;
 								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
 								}
 							}
+							if (ANA_mode == OPTIMIZED_BY_NONE || ![self infoSystemOnRoute])
+							{
+								info_system_id = target_system_id;
+							}
 						}
 						pling_pressed = YES;
 					}
@@ -1837,6 +1846,7 @@ static NSTimeInterval	time_last_frame;
 						mouse_click_position = maus;
 						chart_focus_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 						chart_focus_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+						target_chart_focus = chart_focus_coordinates;
 					}
 					if (fabs(maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH > 2 ||
 						fabs(maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT > 2)
@@ -1866,20 +1876,32 @@ static NSTimeInterval	time_last_frame;
 				}
 				if ([gameView isDown:key_map_home])
 				{
-					[gameView resetTypedString];
-					cursor_coordinates = galaxy_coordinates;
-					chart_focus_coordinates = cursor_coordinates;
-					target_chart_centre = galaxy_coordinates;
-					found_system_id = -1;
-					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
-					moving = YES;
+					if ([gameView isOptDown])
+					{
+						[self homeInfoSystem];
+						target_chart_focus = galaxy_coordinates;
+					}
+					else
+					{
+						[gameView resetTypedString];
+						cursor_coordinates = galaxy_coordinates;
+						target_chart_focus = cursor_coordinates;
+						target_chart_centre = galaxy_coordinates;
+						found_system_id = -1;
+						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
+						moving = YES;
+					}
+				}
+				if ([gameView isDown:gvEndKey] && [gameView isOptDown])
+				{
+					[self targetInfoSystem];
+					target_chart_focus = cursor_coordinates;
 				}
 				if ([gameView isDown:gvPageDownKey] || [gameView mouseWheelState] == gvMouseWheelDown)
 				{
 					target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom > CHART_MAX_ZOOM) target_chart_zoom = CHART_MAX_ZOOM;
 					saved_chart_zoom = target_chart_zoom;
-					moving = YES;
 				}
 				if ([gameView isDown:gvPageUpKey] || [gameView mouseWheelState] == gvMouseWheelUp)
 				{
@@ -1892,47 +1914,65 @@ static NSTimeInterval	time_last_frame;
 					target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					saved_chart_zoom = target_chart_zoom;
-					moving = YES;
 					//target_chart_centre = cursor_coordinates;
-					chart_focus_coordinates = target_chart_centre;
+					target_chart_focus = target_chart_centre;
 				}
 				
 				BOOL nextSystem = [gameView isShiftDown];
+				BOOL nextSystemOnRoute = [gameView isOptDown];
 				
 				if ([gameView isDown:key_gui_arrow_left])
 				{
-					if (nextSystem && pressedArrow != key_gui_arrow_left)
+					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_left)
 					{
-						[self targetNewSystem:-1];
+						if (nextSystem)
+						{
+							[self targetNewSystem:-1];
+							target_chart_focus = cursor_coordinates;
+						}
+						else
+						{
+							[self previousInfoSystem];
+							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+						}
 						pressedArrow = key_gui_arrow_left;
 					}
-					else if (!nextSystem)
+					else if (!nextSystem && !nextSystemOnRoute)
 					{
 						[gameView resetTypedString];
 						cursor_coordinates.x -= cursor_speed*delta_t;
 						if (cursor_coordinates.x < 0.0) cursor_coordinates.x = 0.0;
 						moving = YES;
+						target_chart_focus = cursor_coordinates;
 					}
-					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_left ? 0 : pressedArrow;
 				
 				if ([gameView isDown:key_gui_arrow_right])
 				{
-					if (nextSystem && pressedArrow != key_gui_arrow_right)
+					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_right)
 					{
-						[self targetNewSystem:+1];
+						if (nextSystem)
+						{
+							[self targetNewSystem:+1];
+							target_chart_focus = cursor_coordinates;
+						}
+						else
+						{
+							[self nextInfoSystem];
+							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+						}
 						pressedArrow = key_gui_arrow_right;
 					}
-					else if (!nextSystem)
+					else if (!nextSystem && !nextSystemOnRoute)
 					{
 						[gameView resetTypedString];
 						cursor_coordinates.x += cursor_speed*delta_t;
 						if (cursor_coordinates.x > 256.0) cursor_coordinates.x = 256.0;
 						moving = YES;
+						target_chart_focus = cursor_coordinates;
 					}
-					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_right ? 0 : pressedArrow;
@@ -1951,7 +1991,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y > 256.0) cursor_coordinates.y = 256.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_down ? 0 : pressedArrow;
@@ -1970,7 +2010,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y < 0.0) cursor_coordinates.y = 0.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_up ? 0 : pressedArrow;
@@ -1979,6 +2019,7 @@ static NSTimeInterval	time_last_frame;
 					if (found_system_id == -1)
 					{
 						target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
+						info_system_id = target_system_id;
 					}
 					else
 					{
@@ -1987,6 +2028,7 @@ static NSTimeInterval	time_last_frame;
 						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
 						{
 							target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
+							info_system_id = target_system_id;
 						}
 					}
 					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
@@ -2012,11 +2054,66 @@ static NSTimeInterval	time_last_frame;
 				chart_zoom = (3.0*chart_zoom + target_chart_zoom)/4.0;
 				chart_cursor_coordinates.x = (3.0*chart_cursor_coordinates.x + cursor_coordinates.x)/4.0;
 				chart_cursor_coordinates.y = (3.0*chart_cursor_coordinates.y + cursor_coordinates.y)/4.0;
+				chart_focus_coordinates.x = (3.0*chart_focus_coordinates.x + target_chart_focus.x)/4.0;
+				chart_focus_coordinates.y = (3.0*chart_focus_coordinates.y + target_chart_focus.y)/4.0;
 				if (cursor_moving || dragging) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
 				cursor_moving = moving;
 			}
+			break;
 			
 		case GUI_SCREEN_SYSTEM_DATA:
+			if ([gameView isDown: key_gui_arrow_right])
+			{
+				if (!next_planet_info_pressed)
+				{
+					[self nextInfoSystem];
+					[self setGuiToSystemDataScreen];
+					next_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				next_planet_info_pressed = NO;
+			}
+			if ([gameView isDown: key_gui_arrow_left])
+			{
+				if (!previous_planet_info_pressed)
+				{
+					[self previousInfoSystem];
+					[self setGuiToSystemDataScreen];
+					previous_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				previous_planet_info_pressed = NO;
+			}
+			if ([gameView isDown: gvHomeKey])
+			{
+				if (!home_info_pressed)
+				{
+					[self homeInfoSystem];
+					[self setGuiToSystemDataScreen];
+					home_info_pressed = YES;
+				}
+			}
+			else
+			{
+				home_info_pressed = NO;
+			}
+			if ([gameView isDown: gvEndKey])
+			{
+				if (!target_info_pressed)
+				{
+					[self targetInfoSystem];
+					[self setGuiToSystemDataScreen];
+					target_info_pressed = YES;
+				}
+			}
+			else
+			{
+				target_info_pressed = NO;
+			}
 			break;
 			
 #if OO_USE_CUSTOM_LOAD_SAVE

@@ -11,6 +11,7 @@ General:
   as a cheat
 * Atmospheric fog is now applied also with shaders enabled
 * Add mobile external view camera
+* Add ability to inspect system information for all systems along ANA route
 
 Expansion pack development:
 ===========================

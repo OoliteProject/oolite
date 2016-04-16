@@ -1660,6 +1660,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint	chart_centre_coordinates = [player adjusted_chart_centre];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
+	NSPoint info_system_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem: [player infoSystemID] inGalaxy: [player galaxyNumber]];
 	OOLongRangeChartMode chart_mode = [player longRangeChartMode];
 	OOGalaxyID		galaxy_id = [player galaxyNumber];
 	GLfloat			r = 1.0, g = 1.0, b = 1.0;
@@ -2199,6 +2200,12 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
 	[self drawCrossHairsWithSize:7 x:x + cu.x y:y + cu.y z:z];
 
+	// draw planet info circle
+	OOGL(GLScaledLineWidth(2.0f));
+	[self setGLColorFromSetting: kGuiChartInfoMarkerColor defaultValue:[OOColor blueColor] alpha:alpha];
+	cu = NSMakePoint((float)(hscale*info_system_coordinates.x+hoffset),(float)(vscale*info_system_coordinates.y+voffset));
+	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(8.0f, 8.0f), 5);
+
 	// disable draw clipping
 	OOGL(glDisable(GL_SCISSOR_TEST));
 
@@ -2334,7 +2341,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	foundSystem = systemIndex;
 	return sys;
 }
-
 
 
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).

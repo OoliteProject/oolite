@@ -361,6 +361,7 @@ typedef enum
 @private
 	OOSystemID				system_id;
 	OOSystemID				target_system_id;
+	OOSystemID				info_system_id;
 
 	float					occlusion_dial;
 	
@@ -488,6 +489,7 @@ typedef enum
 	NSPoint					chart_centre_coordinates;
 	// where we want the chart centre to be - used for smooth transitions
 	NSPoint					target_chart_centre;
+	NSPoint					target_chart_focus;
 	// Chart zoom is 1.0 when fully zoomed in and increases as we zoom out.  The reason I've done it that way round
 	// is because we might want to implement bigger galaxies one day, and thus may need to zoom out indefinitely.
 	OOScalar				chart_zoom;
@@ -586,6 +588,8 @@ typedef enum
 	OOKeyCode				key_docking_music;
 	
 	OOKeyCode				key_advanced_nav_array;
+	OOKeyCode				key_info_next_system;
+	OOKeyCode				key_info_previous_system;
 	OOKeyCode				key_map_home;
 	OOKeyCode				key_map_info;
 	
@@ -778,6 +782,13 @@ typedef enum
 - (OOSystemID) targetSystemID;
 - (void) setTargetSystemID:(OOSystemID) sid;
 - (OOSystemID) nextHopTargetSystemID;
+- (OOSystemID) infoSystemID;
+- (void) setInfoSystemID: (OOSystemID) sid;
+- (void) nextInfoSystem;
+- (void) previousInfoSystem;
+- (void) homeInfoSystem;
+- (void) targetInfoSystem;
+- (BOOL) infoSystemOnRoute;
 
 
 - (NSDictionary *) commanderDataDictionary;

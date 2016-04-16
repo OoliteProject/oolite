@@ -2747,13 +2747,13 @@ static int shipsFound;
 			return NO;				//		   0........... 1 2 3
 		
 		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
-		if (target_system_id & 8)
+		if (info_system_id & 8)
 		{
-			_sysInfoLight = (target_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
+			_sysInfoLight = (info_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
 		}
 		else
 		{
-			_sysInfoLight = (target_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
+			_sysInfoLight = (info_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
 		}
 
 		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
@@ -2766,7 +2766,7 @@ static int shipsFound;
 		}
 		else
 		{
-			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:target_system_id] autorelease];
+			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:info_system_id] autorelease];
 		}
 		OOPlanetEntity *doppelganger = [originalPlanet miniatureVersion];
 		if (doppelganger == nil)  return NO;

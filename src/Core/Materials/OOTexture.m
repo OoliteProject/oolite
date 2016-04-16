@@ -216,11 +216,17 @@ static NSString *sGlobalTraceContext = nil;
 
 + (id) textureWithGenerator:(OOTextureGenerator *)generator
 {
+	return [self textureWithGenerator:generator enqueue: NO];
+}
+
+
++ (id) textureWithGenerator:(OOTextureGenerator *)generator enqueue:(BOOL) enqueue
+{
 	if (generator == nil)  return nil;
 	
 #ifndef OOTEXTURE_NO_CACHE
 	OOTexture *existing = [OOTexture existingTextureForKey:[generator cacheKey]];
-	if (existing != nil)  return [[existing retain] autorelease];
+	if (existing != nil && !enqueue)  return [[existing retain] autorelease];
 #endif
 	
 	if (![generator enqueue])
