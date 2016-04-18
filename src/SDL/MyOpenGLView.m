@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 
 @interface MyOpenGLView (OOPrivate)
 
+- (void) resetSDLKeyModifiers;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
 @end
 
@@ -854,6 +855,102 @@ MA 02110-1301, USA.
 	}
 }
 
+
+- (void) resetSDLKeyModifiers
+{
+	// this is used when we regain focus to ensure that all
+	// modifier keys are reset to their correct status
+	SDLMod modState = SDL_GetModState();
+	Uint8 *keyState = SDL_GetKeyState(NULL);
+	BYTE keyboardStatus[256];
+	if (GetKeyboardState(keyboardStatus))
+	{
+		// Alt key
+		if (keyboardStatus[VK_LMENU] & 0x0080)
+		{
+			modState |= KMOD_LALT;
+			keyState[SDLK_LALT] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_LALT;
+			keyState[SDLK_LALT] = SDL_RELEASED;
+		}
+		if (keyboardStatus[VK_RMENU] & 0x0080)
+		{
+			modState |= KMOD_RALT;
+			keyState[SDLK_RALT] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_RALT;
+			keyState[SDLK_RALT] = SDL_RELEASED;
+		}
+		opt =  (modState & KMOD_LALT || modState & KMOD_RALT);
+		
+		//Ctrl key
+		if (keyboardStatus[VK_LCONTROL] & 0x0080)
+		{
+			modState |= KMOD_LCTRL;
+			keyState[SDLK_LCTRL] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_LCTRL;
+			keyState[SDLK_LCTRL] = SDL_RELEASED;
+		}
+		if (keyboardStatus[VK_RCONTROL] & 0x0080)
+		{
+			modState |= KMOD_RCTRL;
+			keyState[SDLK_RCTRL] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_RCTRL;
+			keyState[SDLK_RCTRL] = SDL_RELEASED;
+		}
+		ctrl =  (modState & KMOD_LCTRL || modState & KMOD_RCTRL);
+		
+		// Shift key
+		if (keyboardStatus[VK_LSHIFT] & 0x0080)
+		{
+			modState |= KMOD_LSHIFT;
+			keyState[SDLK_LSHIFT] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_LSHIFT;
+			keyState[SDLK_LSHIFT] = SDL_RELEASED;
+		}
+		if (keyboardStatus[VK_RSHIFT] & 0x0080)
+		{
+			modState |= KMOD_RSHIFT;
+			keyState[SDLK_RSHIFT] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_RSHIFT;
+			keyState[SDLK_RSHIFT] = SDL_RELEASED;
+		}
+		shift =  (modState & KMOD_LSHIFT || modState & KMOD_RSHIFT);
+		
+		// Caps Lock key state
+		if (GetKeyState(VK_CAPITAL) & 0x0001)
+		{
+			modState |= KMOD_CAPS;
+			keyState[SDLK_CAPSLOCK] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_CAPS;
+			keyState[SDLK_CAPSLOCK] = SDL_RELEASED;
+		}
+	}
+	
+	SDL_SetModState(modState);
+}
+
+
 #else	// Linus stub methods
 
 // for Linux we assume we are always on the primary monitor for now
@@ -872,6 +969,12 @@ MA 02110-1301, USA.
 - (void) stringToClipboard:(NSString *)stringToCopy
 {
 	// TODO: implement string clipboard copy for Linux
+}
+
+
+- (void) resetSDLKeyModifiers
+{
+	// probably not needed for Linux
 }
 
 #endif //OOLITE_WINDOWS
@@ -1454,21 +1557,8 @@ MA 02110-1301, USA.
 	   the future, we could assign different behaviours
 	   to existing controls, depending on the state of
 	   Caps Lock. - Nikos 20160304
-	
-	   Note: SDL on Windows does not refresh keyboard
-	   state correctly if state is changed while focus
-	   is on another window. As a result, the CapsLock
-	   status can be mis-identified if we switch to
-	   another app, toggle it there and return to Oolite.
-	   For this reason, and with deep regret, we need to
-	   use a direct Windows API calls here and add yet
-	   one more #ifdef. - Nikos 20160413
 	*/
-#if OOLITE_WINDOWS
-	return GetKeyState(VK_CAPITAL) & 0x0001;
-#else
 	return (SDL_GetModState() & KMOD_CAPS) == KMOD_CAPS;
-#endif
 }
 
 
@@ -2153,6 +2243,17 @@ keys[a] = NO; keys[b] = NO; \
 						if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
 						break;
 						
+					case WM_SETFOCUS:
+						/*
+	`					make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
+	`					are set correctly to what they should be when we get focus. We have
+	`					to do it ourselves because SDL on Windows has problems with this
+	`					when focus change events occur, like e.g. Alt-Tab in/out of the
+						application
+	`					*/
+						[self resetSDLKeyModifiers];
+						break;
+						
 					default:
 						;
 				}
@@ -2422,16 +2523,7 @@ keys[a] = NO; keys[b] = NO; \
 
 + (BOOL)pollShiftKey
 {
-#if OOLITE_WINDOWS
-	// SDL_GetModState() does not seem to do exactly what is intended under Windows. For this reason,
-	// the GetKeyState Windows API call is used to detect the Shift keypress. -- Nikos.
-
-	return 0 != (GetKeyState(VK_SHIFT) & 0x100);
-
-#else
 	return 0 != (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT));
-
-#endif
 }
 
 
