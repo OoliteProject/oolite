@@ -863,75 +863,33 @@ MA 02110-1301, USA.
 	SDLMod modState = SDL_GetModState();
 	Uint8 *keyState = SDL_GetKeyState(NULL);
 	BYTE keyboardStatus[256];
+	#define OO_RESET_SDLKEY_MODIFIER(vkCode, kModCode, sdlkCode)	do {\
+	if (keyboardStatus[vkCode] & 0x0080) \
+	{ \
+		modState |= kModCode; \
+		keyState[sdlkCode] = SDL_PRESSED; \
+	} \
+	else \
+	{ \
+		modState &= ~kModCode; \
+		keyState[sdlkCode] = SDL_RELEASED; \
+	} \
+	} while(0)
 	if (GetKeyboardState(keyboardStatus))
 	{
 		// Alt key
-		if (keyboardStatus[VK_LMENU] & 0x0080)
-		{
-			modState |= KMOD_LALT;
-			keyState[SDLK_LALT] = SDL_PRESSED;
-		}
-		else
-		{
-			modState &= ~KMOD_LALT;
-			keyState[SDLK_LALT] = SDL_RELEASED;
-		}
-		if (keyboardStatus[VK_RMENU] & 0x0080)
-		{
-			modState |= KMOD_RALT;
-			keyState[SDLK_RALT] = SDL_PRESSED;
-		}
-		else
-		{
-			modState &= ~KMOD_RALT;
-			keyState[SDLK_RALT] = SDL_RELEASED;
-		}
+		OO_RESET_SDLKEY_MODIFIER(VK_LMENU, KMOD_LALT, SDLK_LALT);
+		OO_RESET_SDLKEY_MODIFIER(VK_RMENU, KMOD_RALT, SDLK_RALT);
 		opt =  (modState & KMOD_LALT || modState & KMOD_RALT);
 		
 		//Ctrl key
-		if (keyboardStatus[VK_LCONTROL] & 0x0080)
-		{
-			modState |= KMOD_LCTRL;
-			keyState[SDLK_LCTRL] = SDL_PRESSED;
-		}
-		else
-		{
-			modState &= ~KMOD_LCTRL;
-			keyState[SDLK_LCTRL] = SDL_RELEASED;
-		}
-		if (keyboardStatus[VK_RCONTROL] & 0x0080)
-		{
-			modState |= KMOD_RCTRL;
-			keyState[SDLK_RCTRL] = SDL_PRESSED;
-		}
-		else
-		{
-			modState &= ~KMOD_RCTRL;
-			keyState[SDLK_RCTRL] = SDL_RELEASED;
-		}
+		OO_RESET_SDLKEY_MODIFIER(VK_LCONTROL, KMOD_LCTRL, SDLK_LCTRL);
+		OO_RESET_SDLKEY_MODIFIER(VK_RCONTROL, KMOD_RCTRL, SDLK_RCTRL);
 		ctrl =  (modState & KMOD_LCTRL || modState & KMOD_RCTRL);
 		
 		// Shift key
-		if (keyboardStatus[VK_LSHIFT] & 0x0080)
-		{
-			modState |= KMOD_LSHIFT;
-			keyState[SDLK_LSHIFT] = SDL_PRESSED;
-		}
-		else
-		{
-			modState &= ~KMOD_LSHIFT;
-			keyState[SDLK_LSHIFT] = SDL_RELEASED;
-		}
-		if (keyboardStatus[VK_RSHIFT] & 0x0080)
-		{
-			modState |= KMOD_RSHIFT;
-			keyState[SDLK_RSHIFT] = SDL_PRESSED;
-		}
-		else
-		{
-			modState &= ~KMOD_RSHIFT;
-			keyState[SDLK_RSHIFT] = SDL_RELEASED;
-		}
+		OO_RESET_SDLKEY_MODIFIER(VK_LSHIFT, KMOD_LSHIFT, SDLK_LSHIFT);
+		OO_RESET_SDLKEY_MODIFIER(VK_RSHIFT, KMOD_RSHIFT, SDLK_RSHIFT);
 		shift =  (modState & KMOD_LSHIFT || modState & KMOD_RSHIFT);
 		
 		// Caps Lock key state
