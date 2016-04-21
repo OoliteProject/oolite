@@ -7281,6 +7281,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (![self witchJumpChecklist:false])  return;
 	
 	OOSystemID jumpTarget = [self nextHopTargetSystemID];
+	if (info_system_id == system_id)
+	{
+		info_system_id = jumpTarget;
+	}
 
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
