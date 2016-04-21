@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 @interface MyOpenGLView (OOPrivate)
 
 - (void) resetSDLKeyModifiers;
+- (void) setWindowBorderless:(BOOL)borderless;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
 @end
 
@@ -96,7 +97,6 @@ MA 02110-1301, USA.
 		NSSize tmp = currentWindowSize;
 		ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
 		updateContext = NO;	//don't update the (splash screen) window yet!
-		MoveWindow(SDL_Window,GetSystemMetrics(SM_CXSCREEN)/2,GetSystemMetrics(SM_CYSCREEN)/2,1,1,TRUE); // centre the splash screen
 
 		// Initialise the SDL surface. (need custom SDL.dll)
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
@@ -935,6 +935,12 @@ MA 02110-1301, USA.
 	// probably not needed for Linux
 }
 
+
+- (void) setWindowBorderless:(BOOL)borderless
+{
+	// do nothing on Linux
+}
+
 #endif //OOLITE_WINDOWS
 
 
@@ -961,15 +967,22 @@ MA 02110-1301, USA.
 	settings.dmDriverExtra = 0;
 	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
 	
-	static BOOL lastWindowPlacementMaximized = NO;
 	WINDOWPLACEMENT windowPlacement;
 	windowPlacement.length = sizeof(WINDOWPLACEMENT);
-	if (fullScreen && GetWindowPlacement(SDL_Window, &windowPlacement) && (windowPlacement.showCmd == SW_SHOWMAXIMIZED))
+	GetWindowPlacement(SDL_Window, &windowPlacement);
+	
+	static BOOL lastWindowPlacementMaximized = NO;
+	if (fullScreen && (windowPlacement.showCmd == SW_SHOWMAXIMIZED))
 	{
 		if (!wasFullScreen)
 		{
 			lastWindowPlacementMaximized = YES;
 		}
+	}
+	
+	if (lastWindowPlacementMaximized)
+	{
+		windowPlacement.showCmd = SW_SHOWMAXIMIZED;
 	}
 	
 	// are we attempting to go to a different screen resolution? Note: this also takes care of secondary monitor situations because 
@@ -994,14 +1007,16 @@ MA 02110-1301, USA.
 		settings.dmPelsWidth = viewSize.width;
 		settings.dmPelsHeight = viewSize.height;
 		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
-		
-		
+				
 		// just before going fullscreen, save the location of the current window. It
 		// may be needed in case of potential attempts to move our fullscreen window
 		// in a maximized state (yes, in Windows this is entirely possible).
 		if(lastWindowPlacementMaximized)
 		{
 			CopyRect(&lastGoodRect, &windowPlacement.rcNormalPosition);
+			// if maximized, switch to normal placement before going full screen
+			windowPlacement.showCmd = SW_SHOWNORMAL;
+			SetWindowPlacement(SDL_Window, &windowPlacement);
 		}
 		else  GetWindowRect(SDL_Window, &lastGoodRect);
 		
@@ -1016,47 +1031,46 @@ MA 02110-1301, USA.
 				return;
 			}
 		}
+		
 		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
 		if(!wasFullScreen)
 		{
-			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
+			[self setWindowBorderless:YES];
 		}
 	}
+	
 	else if ( wasFullScreen )
 	{
-			// stop saveWindowSize from reacting to caption & frame
-			saveSize=NO;
-			
-			if (changingResolution)  ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
-			
-			/*NOTE: If we ever decide to change the default behaviour of launching
-			always on primary monitor to launching on the monitor the program was 
-			started on, we need to comment out the line below.
-			For now, this line is needed for correct positioning of our window in case
-			we return from a non-native resolution fullscreen and has to come after the
-			display settings have been reverted.
-			Nikos 20141222
-			*/
-			[self getCurrentMonitorInfo: &monitorInfo];
-			
-			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX |
-									WS_MAXIMIZEBOX );
-									
-			if (!lastWindowPlacementMaximized)
-			{
-				windowPlacement.showCmd = SW_SHOWNORMAL;
-				SetWindowPlacement(SDL_Window, &windowPlacement);
-			}
-
-			MoveWindow(SDL_Window,	(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - (int)viewSize.width)/2 + 
-									monitorInfo.rcMonitor.left,
-									(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - (int)viewSize.height)/2 +
-									monitorInfo.rcMonitor.top - (lastWindowPlacementMaximized ? 32 : 16),
-									(int)viewSize.width,(int)viewSize.height,TRUE);
-									
-			lastWindowPlacementMaximized = NO;
-
-			ShowWindow(SDL_Window,SW_SHOW);
+		// stop saveWindowSize from reacting to caption & frame
+		saveSize=NO;
+		
+		if (changingResolution)  ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+		
+		/*NOTE: If we ever decide to change the default behaviour of launching
+		always on primary monitor to launching on the monitor the program was 
+		started on, we need to comment out the line below.
+		For now, this line is needed for correct positioning of our window in case
+		we return from a non-native resolution fullscreen and has to come after the
+		display settings have been reverted.
+		Nikos 20141222
+		*/
+		[self getCurrentMonitorInfo: &monitorInfo];
+		
+		if (lastWindowPlacementMaximized)  CopyRect(&windowPlacement.rcNormalPosition, &lastGoodRect);
+		SetWindowPlacement(SDL_Window, &windowPlacement);
+		if (!lastWindowPlacementMaximized)
+		{
+			MoveWindow(SDL_Window,	(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - (int)viewSize.width)/2 +
+								monitorInfo.rcMonitor.left,
+								(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - (int)viewSize.height)/2 +
+								monitorInfo.rcMonitor.top,
+								(int)viewSize.width, (int)viewSize.height, TRUE);
+		}
+		
+		[self setWindowBorderless:NO];
+								
+		lastWindowPlacementMaximized = NO;
+		ShowWindow(SDL_Window,SW_SHOW);
 	}
 
 	GetClientRect(SDL_Window, &wDC);
@@ -1064,28 +1078,23 @@ MA 02110-1301, USA.
 	if (!fullScreen && (bounds.size.width != wDC.right - wDC.left
 					|| bounds.size.height != wDC.bottom - wDC.top))
 	{
-		RECT wDCtemp;
-
-		// MoveWindow is used below to resize the game window when required. The resized window it
-		// creates includes the client plus the non-client area. This means that although dimensions
-		// capable of containing our wanted client area size are requested, the actual window generated has a
-		// slightly smaller client area than intended. We fix this by calculating nonClientAreaCorrection
-		// and adding it to the needed size when necessary (i.e. after splash screen or when switching from
-		// full screen to window) - Nikos 20091024
-		NSSize nonClientAreaCorrection = NSMakeSize(0,0);
-
-		GetWindowRect(SDL_Window, &wDC);
-		if (wasFullScreen) // this is true when switching from full screen or when starting in windowed mode after the splash screen has ended
+		// Resize the game window if needed. When we ask for a W x H
+		// window, we intend that the client area be W x H. The actual
+		// window itself must become big enough to accomodate an area
+		// of such size. 
+		if (wasFullScreen)	// this is true when switching from full screen or when starting in windowed mode
+							//after the splash screen has ended
 		{
-			wDCtemp.top = wDC.top; wDCtemp.bottom = wDC.bottom; wDCtemp.left = wDC.left; wDCtemp.right = wDC.right;
-			AdjustWindowRect(&wDCtemp, WS_CAPTION | WS_THICKFRAME, FALSE);
-			nonClientAreaCorrection.width = fabs((wDCtemp.right - wDCtemp.left) - (wDC.right - wDC.left));
-			nonClientAreaCorrection.height = fabs((wDCtemp.bottom - wDCtemp.top) - (wDC.bottom - wDC.top));
+			RECT desiredClientRect;
+			GetWindowRect(SDL_Window, &desiredClientRect);
+			AdjustWindowRect(&desiredClientRect, WS_CAPTION | WS_THICKFRAME, FALSE);
+			SetWindowPos(SDL_Window, NULL,	desiredClientRect.left, desiredClientRect.top,
+											desiredClientRect.right - desiredClientRect.left,
+											desiredClientRect.bottom - desiredClientRect.top, 0);
 		}
+		GetClientRect(SDL_Window, &wDC);
 		viewSize.width = wDC.right - wDC.left;
 		viewSize.height = wDC.bottom - wDC.top;
-		MoveWindow(SDL_Window,wDC.left,wDC.top,viewSize.width + nonClientAreaCorrection.width,viewSize.height + nonClientAreaCorrection.height,TRUE);
-		GetClientRect(SDL_Window, &wDC);
 	}
 
 	// Reset bounds and viewSize to current values
@@ -1155,6 +1164,27 @@ MA 02110-1301, USA.
 	squareX = 0.0f;
 
 	m_glContextInitialized = YES;
+}
+
+
+- (void) setWindowBorderless:(BOOL)borderless
+{
+	LONG currentWindowStyle = GetWindowLong(SDL_Window, GWL_STYLE);
+	
+	// window already has the desired style?
+	if ((!borderless && (currentWindowStyle & WS_CAPTION)) ||
+		(borderless && !(currentWindowStyle & WS_CAPTION)))  return;
+		
+	if (borderless)
+	{
+		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle & ~WS_CAPTION & ~WS_THICKFRAME);
+	}
+	else
+	{
+		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle |
+						WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
+	}
+	SetWindowPos(SDL_Window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
 
@@ -2122,8 +2152,23 @@ keys[a] = NO; keys[b] = NO; \
 				}
 				break;
 			}
-				
-#if OOLITE_WINDOWS	
+			
+#if OOLITE_WINDOWS
+			// if we minimize the window while in fullscreen (e.g. via
+			// Win+M or Win+DownArrow), restore the non-borderless window
+			// style before minimuzing and reset it when we return, otherwise
+			// there might be issues with the game window remaining stuck on
+			// top in some cases (seen with some Intel gfx chips).
+			// N.B. active event gain of zero means app is iconified
+			case SDL_ACTIVEEVENT:
+			{			
+				if ((event.active.state & SDL_APPACTIVE) && fullScreen)
+				{
+					[self setWindowBorderless:event.active.gain];
+				}
+				break;
+			}
+			
 			// need to track this because the user may move the game window
 			// to a secondary monitor, in which case we must potentially
 			// refresh the information displayed (e.g. Game Options screen)
