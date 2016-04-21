@@ -711,11 +711,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			target_chart_centre = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 			target_chart_focus = target_chart_centre;
 		}
-		else if(gui_screen == GUI_SCREEN_SYSTEM_DATA)
+		else
 		{
-			[self setGuiToSystemDataScreen];
+			if(gui_screen == GUI_SCREEN_SYSTEM_DATA)
+			{
+				[self setGuiToSystemDataScreen];
+			}
 			chart_centre_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+			target_chart_centre = chart_centre_coordinates;
 			chart_focus_coordinates = chart_centre_coordinates;
+			target_chart_focus = chart_focus_coordinates;
 		}
 	}
 }
