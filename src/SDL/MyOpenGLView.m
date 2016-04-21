@@ -909,6 +909,27 @@ MA 02110-1301, USA.
 }
 
 
+- (void) setWindowBorderless:(BOOL)borderless
+{
+	LONG currentWindowStyle = GetWindowLong(SDL_Window, GWL_STYLE);
+	
+	// window already has the desired style?
+	if ((!borderless && (currentWindowStyle & WS_CAPTION)) ||
+		(borderless && !(currentWindowStyle & WS_CAPTION)))  return;
+		
+	if (borderless)
+	{
+		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle & ~WS_CAPTION & ~WS_THICKFRAME);
+	}
+	else
+	{
+		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle |
+						WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
+	}
+	SetWindowPos(SDL_Window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+}
+
+
 #else	// Linus stub methods
 
 // for Linux we assume we are always on the primary monitor for now
@@ -1164,27 +1185,6 @@ MA 02110-1301, USA.
 	squareX = 0.0f;
 
 	m_glContextInitialized = YES;
-}
-
-
-- (void) setWindowBorderless:(BOOL)borderless
-{
-	LONG currentWindowStyle = GetWindowLong(SDL_Window, GWL_STYLE);
-	
-	// window already has the desired style?
-	if ((!borderless && (currentWindowStyle & WS_CAPTION)) ||
-		(borderless && !(currentWindowStyle & WS_CAPTION)))  return;
-		
-	if (borderless)
-	{
-		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle & ~WS_CAPTION & ~WS_THICKFRAME);
-	}
-	else
-	{
-		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle |
-						WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
-	}
-	SetWindowPos(SDL_Window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
 }
 
 
