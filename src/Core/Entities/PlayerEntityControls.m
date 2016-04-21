@@ -493,7 +493,7 @@ static NSTimeInterval	time_last_frame;
 - (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
 	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
-	info_system_id = target_system_id;
+	[self setInfoSystemID: target_system_id];
 	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 
 	found_system_id = target_system_id;
@@ -1809,7 +1809,7 @@ static NSTimeInterval	time_last_frame;
 							}
 							if (ANA_mode == OPTIMIZED_BY_NONE || ![self infoSystemOnRoute])
 							{
-								info_system_id = target_system_id;
+								[self setInfoSystemID: target_system_id];
 							}
 						}
 						pling_pressed = YES;
@@ -2019,7 +2019,7 @@ static NSTimeInterval	time_last_frame;
 					if (found_system_id == -1)
 					{
 						target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
-						info_system_id = target_system_id;
+						[self setInfoSystemID: target_system_id];
 					}
 					else
 					{
@@ -2028,7 +2028,7 @@ static NSTimeInterval	time_last_frame;
 						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
 						{
 							target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
-							info_system_id = target_system_id;
+							[self setInfoSystemID: target_system_id];
 						}
 					}
 					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
@@ -2067,7 +2067,6 @@ static NSTimeInterval	time_last_frame;
 				if (!next_planet_info_pressed)
 				{
 					[self nextInfoSystem];
-					[self setGuiToSystemDataScreen];
 					next_planet_info_pressed = YES;
 				}
 			}
@@ -2080,7 +2079,6 @@ static NSTimeInterval	time_last_frame;
 				if (!previous_planet_info_pressed)
 				{
 					[self previousInfoSystem];
-					[self setGuiToSystemDataScreen];
 					previous_planet_info_pressed = YES;
 				}
 			}
@@ -2093,7 +2091,6 @@ static NSTimeInterval	time_last_frame;
 				if (!home_info_pressed)
 				{
 					[self homeInfoSystem];
-					[self setGuiToSystemDataScreen];
 					home_info_pressed = YES;
 				}
 			}
@@ -2106,7 +2103,6 @@ static NSTimeInterval	time_last_frame;
 				if (!target_info_pressed)
 				{
 					[self targetInfoSystem];
-					[self setGuiToSystemDataScreen];
 					target_info_pressed = YES;
 				}
 			}

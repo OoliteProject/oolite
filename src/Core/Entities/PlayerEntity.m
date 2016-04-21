@@ -659,6 +659,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	target_system_id = sid;
 	cursor_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystemKey:[UNIVERSE keyForPlanetOverridesForSystem:sid inGalaxy:galaxy_number]]);
+	[self setInfoSystemID: sid];
 }
 
 
@@ -699,7 +700,24 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) setInfoSystemID: (OOSystemID) sid
 {
-	info_system_id = sid;
+	if (sid != info_system_id)
+	{
+		JSContext *context = OOJSAcquireContext();
+		ShipScriptEvent(context, self, "infoSystemChanged", INT_TO_JSVAL(info_system_id), INT_TO_JSVAL(sid));
+		OOJSRelinquishContext(context);
+		info_system_id = sid;
+		if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART || gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
+		{
+			target_chart_centre = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+			target_chart_focus = target_chart_centre;
+		}
+		else if(gui_screen == GUI_SCREEN_SYSTEM_DATA)
+		{
+			[self setGuiToSystemDataScreen];
+			chart_centre_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+			chart_focus_coordinates = chart_centre_coordinates;
+		}
+	}
 }
 
 
@@ -707,14 +725,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (ANA_mode == OPTIMIZED_BY_NONE)
 	{
-		info_system_id = target_system_id;
+		[self setInfoSystemID: target_system_id];
 		return;
 	}
 	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
 	NSUInteger i;
 	if (route == nil)
 	{
-		info_system_id = target_system_id;
+		[self setInfoSystemID: target_system_id];
 		return;
 	}
 	for (i = 0; i < [route count]; i++)
@@ -723,12 +741,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			if (i + 1 < [route count])
 			{
-				info_system_id = [[route objectAtIndex:i + 1] unsignedIntValue];
+				[self setInfoSystemID:[[route objectAtIndex:i + 1] unsignedIntValue]];
+				[route release];
+				return;
 			}
 			break;
 		}
 	}
 	[route release];
+	[self setInfoSystemID: target_system_id];
 	return;
 }
 
@@ -737,14 +758,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (ANA_mode == OPTIMIZED_BY_NONE)
 	{
-		info_system_id = system_id;
+		[self setInfoSystemID: system_id];
 		return;
 	}
 	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
 	NSUInteger i;
 	if (route == nil)
 	{
-		info_system_id = system_id;
+		[self setInfoSystemID: system_id];
 		return;
 	}
 	for (i = 0; i < [route count]; i++)
@@ -753,26 +774,29 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			if (i > 0)
 			{
-				info_system_id = [[route objectAtIndex: i - 1] unsignedIntValue];
+				[self setInfoSystemID: [[route objectAtIndex: i - 1] unsignedIntValue]];
+				[route release];
+				return;
 			}
 			break;
 		}
 	}
 	[route release];
+	[self setInfoSystemID: system_id];
 	return;
 }
 
 
 - (void) homeInfoSystem
 {
-	info_system_id = system_id;
+	[self setInfoSystemID: system_id];
 	return;
 }
 
 
 - (void) targetInfoSystem
 {
-	info_system_id = target_system_id;
+	[self setInfoSystemID: target_system_id];
 	return;
 }
 

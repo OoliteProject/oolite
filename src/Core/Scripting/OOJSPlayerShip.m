@@ -142,6 +142,7 @@ enum
 	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
+	kPlayerShip_infoSystem,						// info (F7 screen) system id, int, read-write
 	kPlayerShip_torusEngaged,					// torus in use, boolean, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
 	kPlayerShip_viewPositionAft,					// view position offset, vector, read-only
@@ -199,6 +200,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
+	{ "infoSystem",						kPlayerShip_infoSystem,						OOJS_PROP_READWRITE_CB },
 	{ "torusEngaged",					kPlayerShip_torusEngaged,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionAft",					kPlayerShip_viewPositionAft,					OOJS_PROP_READONLY_CB },
@@ -411,6 +413,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_targetSystem:
 			*value = INT_TO_JSVAL([player targetSystemID]);
+			return YES;
+
+		case kPlayerShip_infoSystem:
+			*value = INT_TO_JSVAL([player infoSystemID]);
 			return YES;
 
 		case kPlayerShip_routeMode:
@@ -785,6 +791,20 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return NO;
 			}
 		
+		case kPlayerShip_infoSystem:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY)
+				{ 
+					[player setInfoSystemID:iValue];
+					return YES;
+				}
+				else
+				{
+					return NO;
+				}
+			}
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 			return NO;
