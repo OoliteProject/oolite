@@ -708,8 +708,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		info_system_id = sid;
 		if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART || gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 		{
-			target_chart_centre = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
-			target_chart_focus = target_chart_centre;
+			target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 		}
 		else
 		{
