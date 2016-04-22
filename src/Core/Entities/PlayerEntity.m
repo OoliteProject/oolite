@@ -702,9 +702,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (sid != info_system_id)
 	{
-		JSContext *context = OOJSAcquireContext();
-		ShipScriptEvent(context, self, "infoSystemChanged", INT_TO_JSVAL(info_system_id), INT_TO_JSVAL(sid));
-		OOJSRelinquishContext(context);
+		OOSystemID old = info_system_id;
 		info_system_id = sid;
 		if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART || gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 		{
@@ -721,6 +719,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			chart_focus_coordinates = chart_centre_coordinates;
 			target_chart_focus = chart_focus_coordinates;
 		}
+		JSContext *context = OOJSAcquireContext();
+		ShipScriptEvent(context, self, "infoSystemChanged", INT_TO_JSVAL(info_system_id), INT_TO_JSVAL(old));
+		OOJSRelinquishContext(context);
 	}
 }
 
