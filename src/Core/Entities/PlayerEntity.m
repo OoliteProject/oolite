@@ -1194,7 +1194,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 
-		chart_cursor_coordinates = cursor_coordinates;
 		chart_focus_coordinates = chart_centre_coordinates;
 		target_chart_focus = chart_focus_coordinates;
 
@@ -1226,7 +1225,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 			cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 		}
-		chart_cursor_coordinates = cursor_coordinates;
 		chart_focus_coordinates = chart_centre_coordinates;
 		target_chart_focus = chart_focus_coordinates;
 
@@ -2063,7 +2061,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	chart_centre_coordinates	= galaxy_coordinates;
 	target_chart_centre		= chart_centre_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
-	chart_cursor_coordinates	= cursor_coordinates;
 	chart_focus_coordinates		= cursor_coordinates;
 	target_chart_focus		= chart_focus_coordinates;
 	chart_zoom			= 1.0;
