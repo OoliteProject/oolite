@@ -44,7 +44,29 @@ NSString *VectorDescription(Vector vector)
 {
 	return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
 }
+
+@implementation OONativeVector
+
+- (id) initWithVector:(Vector)vect
+{
+	self = [super init];
+	if (EXPECT_NOT(self == nil))  return nil;
+
+	v = vect;
+
+	return self;
+}
+
+- (Vector) getVector
+{
+	return v;
+}
+
+
+@end
+
 #endif
+
 
 
 #if !OOMATHS_STANDALONE

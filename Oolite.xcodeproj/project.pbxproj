@@ -203,7 +203,7 @@
 		1A3D03161173536C005BF5E6 /* OOMultiTextureMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3D03141173536C005BF5E6 /* OOMultiTextureMaterial.m */; };
 		1A3D034A11736EDA005BF5E6 /* OOMaterialConvenienceCreators.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3D034811736EDA005BF5E6 /* OOMaterialConvenienceCreators.h */; };
 		1A3D034B11736EDA005BF5E6 /* OOMaterialConvenienceCreators.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3D034911736EDA005BF5E6 /* OOMaterialConvenienceCreators.m */; };
-		1A3E019B11C574C2000FF226 /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A3E019611C574AC000FF226 /* Oolite.mdimporter */; };
+		1A3E019B11C574C2000FF226 /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A3E019611C574AC000FF226 /* Oolite.mdimporter */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1A401F8815E7AF7B004CDF95 /* OOPrimaryWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A401F8615E7AF7B004CDF95 /* OOPrimaryWindow.h */; };
 		1A401F8915E7AF7B004CDF95 /* OOPrimaryWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A401F8715E7AF7B004CDF95 /* OOPrimaryWindow.m */; };
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
@@ -493,7 +493,7 @@
 		1AE7325012F75D470045513D /* OOLaserShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE7324E12F75D470045513D /* OOLaserShotEntity.h */; };
 		1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE7324F12F75D470045513D /* OOLaserShotEntity.m */; };
 		1AE8837412EF91560075814F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
-		1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
+		1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1AE8838012EF91E80075814F /* SparkleVerificationKey.pem in Resources */ = {isa = PBXBuildFile; fileRef = 1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */; };
 		1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEA229D12CBD18600EC0F43 /* CoreServices.framework */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
@@ -3481,7 +3481,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 0630;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
@@ -4060,6 +4060,7 @@
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
@@ -4101,6 +4102,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
@@ -4114,6 +4116,7 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				ONLY_ACTIVE_ARCH = YES;
 			};
@@ -4156,6 +4159,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(DEPS_INCLUDE_PATH)/ogg\" \"$(DEPS_INCLUDE_PATH)/js\" \"$(DEPS_INCLUDE_PATH)/vorbis\" \"$(DEPS_INCLUDE_PATH)/png\" \"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Tables/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";

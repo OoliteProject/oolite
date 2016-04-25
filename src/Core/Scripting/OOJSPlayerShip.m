@@ -121,6 +121,7 @@ enum
 	kPlayerShip_galaxyCoordinates,				// galaxy coordinates (unscaled), Vector3D, read only
 	kPlayerShip_galaxyCoordinatesInLY,			// galaxy coordinates (in LY), Vector3D, read only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
+	kPlayerShip_hudAllowsBigGui,				// hud big gui, string, read only 
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_injectorsEngaged,				// injectors in use, boolean, read-only
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
@@ -141,6 +142,7 @@ enum
 	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
+	kPlayerShip_infoSystem,						// info (F7 screen) system id, int, read-write
 	kPlayerShip_torusEngaged,					// torus in use, boolean, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
 	kPlayerShip_viewPositionAft,					// view position offset, vector, read-only
@@ -176,6 +178,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinates",				kPlayerShip_galaxyCoordinates,				OOJS_PROP_READONLY_CB },
 	{ "galaxyCoordinatesInLY",			kPlayerShip_galaxyCoordinatesInLY,			OOJS_PROP_READONLY_CB },
 	{ "hud",							kPlayerShip_hud,							OOJS_PROP_READWRITE_CB },
+	{ "hudAllowsBigGui",				kPlayerShip_hudAllowsBigGui,				OOJS_PROP_READONLY_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	{ "injectorsEngaged",				kPlayerShip_injectorsEngaged,				OOJS_PROP_READONLY_CB },
 	// manifest defined in OOJSManifest.m
@@ -197,6 +200,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
+	{ "infoSystem",						kPlayerShip_infoSystem,						OOJS_PROP_READWRITE_CB },
 	{ "torusEngaged",					kPlayerShip_torusEngaged,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionAft",					kPlayerShip_viewPositionAft,					OOJS_PROP_READONLY_CB },
@@ -411,6 +415,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = INT_TO_JSVAL([player targetSystemID]);
 			return YES;
 
+		case kPlayerShip_infoSystem:
+			*value = INT_TO_JSVAL([player infoSystemID]);
+			return YES;
+
 		case kPlayerShip_routeMode:
 		{
 			OORouteType route = [player ANAMode];
@@ -464,6 +472,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_crosshairs:
 			result = [[player hud] crosshairDefinition];
 			break;
+
+		case kPlayerShip_hudAllowsBigGui:
+			*value = OOJSValueFromBOOL([[player hud] allowBigGui]);
+			return YES;
 
 		case kPlayerShip_hudHidden:
 			*value = OOJSValueFromBOOL([[player hud] isHidden]);
@@ -738,7 +750,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			{
 				sValue = @"EQ_WEAPON_NONE";
 			}
-			[player setWeaponMount:[player currentWeaponFacing] toWeapon:sValue];
+			[player setWeaponMount:[player currentWeaponFacing] toWeapon:sValue inContext:@"scripted"];
 			return YES;
 		}
 		
@@ -779,6 +791,20 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return NO;
 			}
 		
+		case kPlayerShip_infoSystem:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY)
+				{ 
+					[player setInfoSystemID:iValue];
+					return YES;
+				}
+				else
+				{
+					return NO;
+				}
+			}
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 			return NO;

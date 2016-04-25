@@ -522,26 +522,37 @@ this._parcelContractSummaryPage = function()
 		priceText = this.$helper._paddingText(priceText, 2.5)+priceText;
 		optionText += priceText
 		
+		// need to pad the number in the key to maintain alphabetical order
+		var istr = i;
+		if (i < 10)
+		{
+			istr = "0"+i;
+		}
 		// maximum of seven contracts available, so no need to pad the number
 		// in the key to maintain alphabetical order
 		// needs to be aligned left to line up with the heading
-		options["01_CONTRACT_"+i] = { text: optionText, alignment: "LEFT" };
+		options["01_CONTRACT_"+istr] = { text: optionText, alignment: "LEFT" };
 		
 		// if the player isn't good enough
 		if (parcel.skill > playerrep)
 		{
-			options["01_CONTRACT_"+i].color = "darkGrayColor";
+			options["01_CONTRACT_"+istr].color = "darkGrayColor";
 		}
 		// if there doesn't appear to be sufficient time remaining
 		else if (this.$helper._timeRemainingSeconds(parcel) < this.$helper._timeEstimateSeconds(parcel))
 		{
-			options["01_CONTRACT_"+i].color = "orangeColor";
+			options["01_CONTRACT_"+istr].color = "orangeColor";
 		}
 
 	}
 	// if we've come from the detail screen, make sure the last
 	// contract shown there is selected here
-	var initialChoice = ["01_CONTRACT_"+this.$contractIndex];
+	var icstr = this.$contractIndex;
+	if (icstr < 10)
+	{
+		icstr = "0"+this.$contractIndex;
+	}
+	var initialChoice = ["01_CONTRACT_"+icstr];
 
 	// next, an empty string gives an unselectable row
 	options["02_SPACER"] = ""; 
@@ -552,7 +563,7 @@ this._parcelContractSummaryPage = function()
 	// now need to add further spacing to fill the remaining rows, or
 	// the options will end up at the bottom of the screen.
 	var rowsToFill = 21;
-	if (player.ship.hudHidden)
+	if (player.ship.hudAllowsBigGui)
 	{
 		rowsToFill = 27;
 	}
@@ -597,7 +608,7 @@ this._parcelContractSinglePage = function()
 	// We therefore need to hide the player's HUD, to get the full 27
 	// lines.
 
-	if (!player.ship.hudHidden)
+	if (!player.ship.hudAllowsBigGui)
 	{
 		this.$suspendedHUD = true; // note that we hid it, for later
 		player.ship.hudHidden = true;

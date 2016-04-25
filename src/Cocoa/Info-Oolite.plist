@@ -70,7 +70,7 @@
 	<key>CFBundleIconFile</key>
 	<string>oolite-icon</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.aegidian.oolite</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -80,7 +80,7 @@
 	<key>CFBundleSignature</key>
 	<string>Ool8</string>
 	<key>CFBundleVersion</key>
-	<string>1.82</string>
+	<string>1.83</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.games</string>
 	<key>LSMinimumSystemVersionByArchitecture</key>

@@ -54,6 +54,7 @@ MA 02110-1301, USA.
 
 @interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
+- (void) setUpTerrainParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 - (void) setUpLandParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 - (void) setUpAtmosphereParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
 - (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo isAtmosphere:(BOOL)isAtmosphere;
@@ -92,6 +93,14 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	scanClass = CLASS_NO_DRAW;
 	
+	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:systemID] mutableCopy];
+	[planetInfo autorelease];
+
+	[self setUpTypeParametersWithSourceInfo:dict targetInfo:planetInfo];
+
+	[self setUpTerrainParametersWithSourceInfo:dict targetInfo:planetInfo];
+
+
 	// Load random seed override.
 	NSString *seedStr = [dict oo_stringForKey:@"seed"];
 	if (seedStr != nil)
@@ -103,11 +112,6 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	// Generate various planet info.
 	seed_for_planet_description(seed);
-	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:systemID] mutableCopy];
-	[planetInfo autorelease];
-
-	[self setUpTypeParametersWithSourceInfo:dict targetInfo:planetInfo];
-
 
 	_name = nil;
 	[self setName:OOExpand([dict oo_stringForKey:KEY_PLANETNAME defaultValue:[planetInfo oo_stringForKey:KEY_PLANETNAME defaultValue:@"%H"]])];
@@ -269,6 +273,20 @@ static OOColor *ColorWithHSBColor(Vector c)
 {
 	[targetInfo oo_setBool:[sourceInfo oo_boolForKey:@"mainForLocalSystem"] forKey:@"mainForLocalSystem"];
 	[targetInfo oo_setBool:[sourceInfo oo_boolForKey:@"isMiniature"] forKey:@"isMiniature"];
+
+}
+
+
+- (void) setUpTerrainParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
+{
+	NSArray *keys = [NSArray arrayWithObjects:@"atmosphere_rotational_velocity",@"rotational_velocity",@"cloud_alpha",@"has_atmosphere",@"percent_cloud",@"percent_ice",@"percent_land",@"radius",@"seed",nil];
+	NSString *key = nil;
+	foreach (key, keys) {
+		id sval = [sourceInfo objectForKey:key];
+		if (sval != nil) {
+			[targetInfo setObject:sval forKey:key];
+		}
+	}
 
 }
 
@@ -471,7 +489,12 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (EXPECT_NOT(_atmosphereDrawable && cam_zero_distance < _mesopause2))
 		{
 			NSAssert(_airColor != nil, @"Expected a non-nil air colour for normal planet. Exiting.");
-			double		alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere;
+			double		alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere; // the viewpoint altitude
+			double		trueAlt = (sqrt(zero_distance) - collision_radius) / kMesosphere; // the actual ship altitude
+			// if at long distance external view, rotating the camera could potentially end up with it being
+			// at negative altitude. Since we know we are already inside the atmosphere at this point, just make sure
+			// that altitude is kept to a minimum positive value to avoid sudden black skies
+			if (alt <= 0.0)  alt = 1e-4;
 			if (EXPECT_NOT(alt > 0 && alt <= 1.0))	// ensure aleph is clamped between 0 and 1
 			{
 				double	aleph = 1.0 - alt;
@@ -513,11 +536,18 @@ static OOColor *ColorWithHSBColor(Vector c)
 									blue:[mixColor blueComponent] * aleph
 								   alpha:aleph];
 				[_atmosphereDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
+				// apply air resistance for the ship, not the camera. Although setSkyColorRed
+				// has already set the air resistance to aleph, override it immediately
+				[UNIVERSE setAirResistanceFactor:OOClamp_0_1_f(1.0 - trueAlt)];
 			}
 		}
-		else if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
+		else
 		{
-			[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+			if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
+			{
+				[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+			}
+			[UNIVERSE setAirResistanceFactor:0.0f];	// out of atmosphere - no air friction
 		}
 		
 		double time = [UNIVERSE getTime];
@@ -549,7 +579,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 {
 	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
-	
+
+	// too far away to be drawn
+	if (magnitude(cameraRelativePosition) > [self radius]*3000) {
+		return;
+	}
 	if (![UNIVERSE viewFrustumIntersectsSphereAt:cameraRelativePosition withRadius:([self radius] + ATMOSPHERE_DEPTH)])
 	{
 		// Don't draw

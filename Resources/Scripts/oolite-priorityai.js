@@ -3736,7 +3736,14 @@ PriorityAIController.prototype.behaviourMissileInterceptTarget = function()
 		this.ship.desiredRange = 25;					
 	}
 
-	this.ship.performIntercept();
+	if (this.ship.target && !this.ship.target.isCloaked)
+	{
+		this.ship.performIntercept();
+	}
+	else
+	{
+		this.ship.performIdle();
+	}
 }
 
 PriorityAIController.prototype.behaviourMissileInterceptCoordinates = function()
@@ -6011,10 +6018,13 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 
 PriorityAIController.prototype.responseComponent_docking_shipAchievedDesiredRange = function()
 {
-	var message = this.ship.dockingInstructions.ai_message;
-	if (message == "APPROACH" || message == "BACK_OFF" || message == "APPROACH_COORDINATES")
+	if (this.ship.dockingInstructions != null)
 	{
-		this.reconsiderNow();
+		var message = this.ship.dockingInstructions.ai_message;
+		if (message == "APPROACH" || message == "BACK_OFF" || message == "APPROACH_COORDINATES")
+		{
+			this.reconsiderNow();
+		}
 	}
 }
 

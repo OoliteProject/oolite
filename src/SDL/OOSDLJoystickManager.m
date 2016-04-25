@@ -83,7 +83,7 @@ MA 02110-1301, USA.
 			rc=YES;
 			break;
 		default:
-			OOLog(@"handleSDLEvent.unknownEvent", @"JoystickHandler was sent an event it doesn't know");
+			OOLog(@"handleSDLEvent.unknownEvent", @"%@", @"JoystickHandler was sent an event it doesn't know");
 	}
 	return rc;
 }

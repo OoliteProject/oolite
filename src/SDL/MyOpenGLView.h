@@ -206,6 +206,7 @@ extern int debug;
 - (void) setTypedString:(NSString*) value;
 
 - (NSSize) viewSize;
+- (NSSize) backingViewSize;
 - (GLfloat) display_z;
 - (GLfloat) x_offset;
 - (GLfloat) y_offset;
@@ -224,6 +225,8 @@ extern int debug;
 #endif
 
 - (void) grabMouseInsideGameWindow:(BOOL) value;
+
+- (void) stringToClipboard:(NSString *)stringToCopy;
 
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
@@ -267,10 +270,11 @@ extern int debug;
 - (BOOL) isAlphabetKeyDown;
 - (void) supressKeysUntilKeyUp; // DJS
 - (BOOL) isDown: (int) key;
-- (BOOL) isOptDown;
+- (BOOL) isOptDown; // opt == alt key
 - (BOOL) isCtrlDown;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
+- (BOOL) isCapsLockOn;
 - (int) numKeys;
 - (int) mouseWheelState;
 

@@ -47,7 +47,7 @@
 	system_data			= "system-data.png";
 	
 	market				= "market.png";
-	contracts			= "contracts.png";			// if not defined, same as market
+	marketinfo			= "marketinfo.png";
 	
 	settings			= "settings.png";			// game options / settings
 	load_save			= "load-save.png";			// load / save game screens

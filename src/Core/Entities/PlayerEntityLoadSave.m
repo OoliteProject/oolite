@@ -191,7 +191,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	if (!path)  path = [[gameView gameController] playerFileToLoad];
 	if (!path)
 	{
-		OOLog(@"quickSave.failed.noName", @"ERROR no file name returned by [[gameView gameController] playerFileToLoad]");
+		OOLog(@"quickSave.failed.noName", @"%@", @"ERROR no file name returned by [[gameView gameController] playerFileToLoad]");
 		[NSException raise:@"OoliteGameNotSavedException"
 					format:@"ERROR no file name returned by [[gameView gameController] playerFileToLoad]"];
 	}

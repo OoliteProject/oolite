@@ -304,46 +304,46 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	
 	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
 	if (![self makeShipEntriesMutable:result])  return;
-	OOLog(@"shipData.load.progress", @"Finished initial cleanup...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished initial cleanup...");
 	
 	// Apply patches.
 	if (![self loadAndApplyShipDataOverrides:result])  return;
-	OOLog(@"shipData.load.progress", @"Finished applying patches...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished applying patches...");
 	
 	// Strip private keys (anything starting with _oo_).
 	if (![self stripPrivateKeys:result])  return;
-	OOLog(@"shipData.load.progress", @"Finished stripping private keys...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished stripping private keys...");
 	
 	// Resolve like_ship entries.
 	if (![self applyLikeShips:result withKey:@"like_ship"])  return;
-	OOLog(@"shipData.load.progress", @"Finished resolving like_ships...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished resolving like_ships...");
 	
 	// Clean up subentity declarations and tag subentities so they won't be pruned.
 	if (![self canonicalizeAndTagSubentities:result])  return;
-	OOLog(@"shipData.load.progress", @"Finished cleaning up subentities...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished cleaning up subentities...");
 	
 	// Clean out templates and invalid entries.
 	if (![self removeUnusableEntries:result shipMode:YES])  return;
-	OOLog(@"shipData.load.progress", @"Finished removing invalid entries...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished removing invalid entries...");
 	
 	// Add shipyard entries into shipdata entries.
 	if (![self loadAndMergeShipyard:result])  return;
-	OOLog(@"shipData.load.progress", @"Finished adding shipyard entries...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished adding shipyard entries...");
 	
 	// Sanitize conditions.
 	if (![self sanitizeConditions:result])  return;
-	OOLog(@"shipData.load.progress", @"Finished validating data...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished validating data...");
 	
 #if PRELOAD
 	// Preload and cache meshes.
 	if (![self preloadShipMeshes:result])  return;
-	OOLog(@"shipData.load.progress", @"Finished loading meshes...");
+	OOLog(@"shipData.load.progress", @"%@", @"Finished loading meshes...");
 #endif
 	
 	_shipData = OODeepCopy(result);
 	[[OOCacheManager sharedCache] setObject:_shipData forKey:kShipDataCacheKey inCache:kShipRegistryCacheName];
 	
-	OOLog(@"shipData.load.done", @"Ship data loaded.");
+	OOLog(@"shipData.load.done", @"%@", @"Ship data loaded.");
 
 	[_effectData release];
 	_effectData = nil;
@@ -356,28 +356,28 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 
 	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
 	if (![self makeShipEntriesMutable:result])  return;
-	OOLog(@"effectData.load.progress", @"Finished initial cleanup...");
+	OOLog(@"effectData.load.progress", @"%@", @"Finished initial cleanup...");
 
 	// Strip private keys (anything starting with _oo_).
 	if (![self stripPrivateKeys:result])  return;
-	OOLog(@"effectData.load.progress", @"Finished stripping private keys...");
+	OOLog(@"effectData.load.progress", @"%@", @"Finished stripping private keys...");
 	
 	// Resolve like_effect entries.
 	if (![self applyLikeShips:result withKey:@"like_effect"])  return;
-	OOLog(@"effectData.load.progress", @"Finished resolving like_effects...");
+	OOLog(@"effectData.load.progress", @"%@", @"Finished resolving like_effects...");
 	
 	// Clean up subentity declarations and tag subentities so they won't be pruned.
 	if (![self canonicalizeAndTagSubentities:result])  return;
-	OOLog(@"effectData.load.progress", @"Finished cleaning up subentities...");
+	OOLog(@"effectData.load.progress", @"%@", @"Finished cleaning up subentities...");
 	
 	// Clean out templates and invalid entries.
 	if (![self removeUnusableEntries:result shipMode:NO])  return;
-	OOLog(@"effectData.load.progress", @"Finished removing invalid entries...");
+	OOLog(@"effectData.load.progress", @"%@", @"Finished removing invalid entries...");
 	
 	_effectData = OODeepCopy(result);
 	[[OOCacheManager sharedCache] setObject:_effectData forKey:kVisualEffectDataCacheKey inCache:kVisualEffectRegistryCacheName];
 	
-	OOLog(@"effectData.load.done", @"Effect data loaded.");
+	OOLog(@"effectData.load.done", @"%@", @"Effect data loaded.");
 }
 
 
@@ -1582,10 +1582,10 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			fireRate = 0.25f;
 		}
 		weaponRange = [declaration oo_floatForKey:@"weapon_range" defaultValue:-1.0f];
-		if (weaponRange > 7500.0f)
+		if (weaponRange > TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR)
 		{
-			OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subenitity of ship %@ is too high, using 7500.", weaponRange, shipKey);
-			weaponRange = 7500.0f; // range of primary plasma canon.
+			OOLogWARN(@"shipData.load.warning.turret.badWeaponRange", @"ball turret weapon range of %g for subenitity of ship %@ is too high, using %.1f.", weaponRange, shipKey, TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR);
+			weaponRange = TURRET_SHOT_RANGE * COMBAT_WEAPON_RANGE_FACTOR; // approx. range of primary plasma canon.
 		}
 
 		weaponEnergy = [declaration oo_floatForKey:@"weapon_energy" defaultValue:-1.0f];
@@ -1686,7 +1686,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 {
 	if (sSingleton == nil)
 	{
-		OOLog(@"shipData.load.begin", @"Loading ship data.");
+		OOLog(@"shipData.load.begin", @"%@", @"Loading ship data.");
 		sSingleton = [super allocWithZone:inZone];
 		return sSingleton;
 	}

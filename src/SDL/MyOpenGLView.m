@@ -44,6 +44,8 @@ MA 02110-1301, USA.
 
 @interface MyOpenGLView (OOPrivate)
 
+- (void) resetSDLKeyModifiers;
+- (void) setWindowBorderless:(BOOL)borderless;
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
 @end
 
@@ -66,7 +68,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		OOLog(@"display.mode.list.native.failed", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
+		OOLog(@"display.mode.list.native.failed", @"%@", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
 #elif OOLITE_WINDOWS
 	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -95,7 +97,6 @@ MA 02110-1301, USA.
 		NSSize tmp = currentWindowSize;
 		ShowWindow(SDL_Window,SW_SHOWMINIMIZED);
 		updateContext = NO;	//don't update the (splash screen) window yet!
-		MoveWindow(SDL_Window,GetSystemMetrics(SM_CXSCREEN)/2,GetSystemMetrics(SM_CYSCREEN)/2,1,1,TRUE); // centre the splash screen
 
 		// Initialise the SDL surface. (need custom SDL.dll)
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
@@ -180,7 +181,7 @@ MA 02110-1301, USA.
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
-	OOLog(@"sdl.init", @"initialising SDL");
+	OOLog(@"sdl.init", @"%@", @"initialising SDL");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
 	{
 		OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
@@ -263,7 +264,7 @@ MA 02110-1301, USA.
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	}
 
-	OOLog(@"display.mode.list", @"CREATING MODE LIST");
+	OOLog(@"display.mode.list", @"%@", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
 
@@ -275,19 +276,19 @@ MA 02110-1301, USA.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
-	OOLog(@"display.initGL",@"Trying 32-bit depth buffer");
+	OOLog(@"display.initGL", @"%@", @"Trying 32-bit depth buffer");
 	[self createSurface];
 	if (surface == NULL)
 	{
 		// Retry with a 24-bit depth buffer
-		OOLog(@"display.initGL",@"Trying 24-bit depth buffer");
+		OOLog(@"display.initGL", @"%@", @"Trying 24-bit depth buffer");
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		[self createSurface];
 		if (surface == NULL)
 		{
 			// Still not working? One last go...
 			// Retry, allowing 16-bit contexts.
-			OOLog(@"display.initGL",@"Trying 16-bit depth buffer");
+			OOLog(@"display.initGL", @"%@", @"Trying 16-bit depth buffer");
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -476,6 +477,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSSize) backingViewSize
+{
+	return viewSize;
+}
+
+
 - (GLfloat) display_z
 {
 	return display_z;
@@ -551,6 +558,13 @@ MA 02110-1301, USA.
 	}
 	else
 		[self initialiseGLWithSize: currentWindowSize];
+
+
+	// do screen resizing updates
+	if ([PlayerEntity sharedPlayer])
+	{
+		[[PlayerEntity sharedPlayer] doGuiScreenResizeUpdates];
+	}
 }
 
 
@@ -654,7 +668,7 @@ MA 02110-1301, USA.
 	if (image == NULL)
 	{
 		SDL_FreeSurface(image);
-		OOLogWARN(@"sdl.gameStart", @"image 'splash.bmp' not found!");
+		OOLogWARN(@"sdl.gameStart", @"%@", @"image 'splash.bmp' not found!");
 		[self endSplashScreen];
 		return;
 	}
@@ -722,7 +736,7 @@ MA 02110-1301, USA.
 			texture_format = GL_BGR;
 	} else {
 		SDL_FreeSurface(image);
-		OOLog(@"Sdl.GameStart", @"----- Encoding error within image 'splash.bmp'");
+		OOLog(@"Sdl.GameStart", @"%@", @"----- Encoding error within image 'splash.bmp'");
 		[self endSplashScreen];
 		return;
 	}
@@ -813,6 +827,109 @@ MA 02110-1301, USA.
 	grabMouseStatus = !!value;
 }
 
+
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	if (stringToCopy)
+	{
+		const char *clipboardText = [stringToCopy cStringUsingEncoding:NSUTF8StringEncoding];
+		const size_t clipboardTextLength = strlen(clipboardText) + 1;
+		HGLOBAL clipboardMem = GlobalAlloc(GMEM_MOVEABLE, clipboardTextLength);
+		if (clipboardMem)
+		{
+			memcpy(GlobalLock(clipboardMem), clipboardText, clipboardTextLength);
+			GlobalUnlock(clipboardMem);
+			OpenClipboard(0);
+			EmptyClipboard();
+			if (!SetClipboardData(CF_TEXT, clipboardMem))
+			{
+				OOLog(@"stringToClipboard.failed", @"Failed to copy string %@ to clipboard", stringToCopy);
+				// free global allocated memory if clipboard copy failed
+				// note: no need to free it if copy succeeded; the OS becomes
+				// the owner of the copied memory once SetClipboardData has
+				// been executed successfully
+				GlobalFree(clipboardMem);
+			}
+			CloseClipboard();
+		}
+	}
+}
+
+
+- (void) resetSDLKeyModifiers
+{
+	// this is used when we regain focus to ensure that all
+	// modifier keys are reset to their correct status
+	SDLMod modState = SDL_GetModState();
+	Uint8 *keyState = SDL_GetKeyState(NULL);
+	BYTE keyboardStatus[256];
+	#define OO_RESET_SDLKEY_MODIFIER(vkCode, kModCode, sdlkCode)	do {\
+	if (keyboardStatus[vkCode] & 0x0080) \
+	{ \
+		modState |= kModCode; \
+		keyState[sdlkCode] = SDL_PRESSED; \
+	} \
+	else \
+	{ \
+		modState &= ~kModCode; \
+		keyState[sdlkCode] = SDL_RELEASED; \
+	} \
+	} while(0)
+	if (GetKeyboardState(keyboardStatus))
+	{
+		// Alt key
+		OO_RESET_SDLKEY_MODIFIER(VK_LMENU, KMOD_LALT, SDLK_LALT);
+		OO_RESET_SDLKEY_MODIFIER(VK_RMENU, KMOD_RALT, SDLK_RALT);
+		opt =  (modState & KMOD_LALT || modState & KMOD_RALT);
+		
+		//Ctrl key
+		OO_RESET_SDLKEY_MODIFIER(VK_LCONTROL, KMOD_LCTRL, SDLK_LCTRL);
+		OO_RESET_SDLKEY_MODIFIER(VK_RCONTROL, KMOD_RCTRL, SDLK_RCTRL);
+		ctrl =  (modState & KMOD_LCTRL || modState & KMOD_RCTRL);
+		
+		// Shift key
+		OO_RESET_SDLKEY_MODIFIER(VK_LSHIFT, KMOD_LSHIFT, SDLK_LSHIFT);
+		OO_RESET_SDLKEY_MODIFIER(VK_RSHIFT, KMOD_RSHIFT, SDLK_RSHIFT);
+		shift =  (modState & KMOD_LSHIFT || modState & KMOD_RSHIFT);
+		
+		// Caps Lock key state
+		if (GetKeyState(VK_CAPITAL) & 0x0001)
+		{
+			modState |= KMOD_CAPS;
+			keyState[SDLK_CAPSLOCK] = SDL_PRESSED;
+		}
+		else
+		{
+			modState &= ~KMOD_CAPS;
+			keyState[SDLK_CAPSLOCK] = SDL_RELEASED;
+		}
+	}
+	
+	SDL_SetModState(modState);
+}
+
+
+- (void) setWindowBorderless:(BOOL)borderless
+{
+	LONG currentWindowStyle = GetWindowLong(SDL_Window, GWL_STYLE);
+	
+	// window already has the desired style?
+	if ((!borderless && (currentWindowStyle & WS_CAPTION)) ||
+		(borderless && !(currentWindowStyle & WS_CAPTION)))  return;
+		
+	if (borderless)
+	{
+		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle & ~WS_CAPTION & ~WS_THICKFRAME);
+	}
+	else
+	{
+		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle |
+						WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
+	}
+	SetWindowPos(SDL_Window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+}
+
+
 #else	// Linus stub methods
 
 // for Linux we assume we are always on the primary monitor for now
@@ -825,6 +942,24 @@ MA 02110-1301, USA.
 - (void) grabMouseInsideGameWindow:(BOOL) value
 {
 	// do nothing
+}
+
+
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	// TODO: implement string clipboard copy for Linux
+}
+
+
+- (void) resetSDLKeyModifiers
+{
+	// probably not needed for Linux
+}
+
+
+- (void) setWindowBorderless:(BOOL)borderless
+{
+	// do nothing on Linux
 }
 
 #endif //OOLITE_WINDOWS
@@ -853,10 +988,12 @@ MA 02110-1301, USA.
 	settings.dmDriverExtra = 0;
 	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
 	
-	static BOOL lastWindowPlacementMaximized = NO;
 	WINDOWPLACEMENT windowPlacement;
 	windowPlacement.length = sizeof(WINDOWPLACEMENT);
-	if (fullScreen && GetWindowPlacement(SDL_Window, &windowPlacement) && (windowPlacement.showCmd == SW_SHOWMAXIMIZED))
+	GetWindowPlacement(SDL_Window, &windowPlacement);
+	
+	static BOOL lastWindowPlacementMaximized = NO;
+	if (fullScreen && (windowPlacement.showCmd == SW_SHOWMAXIMIZED))
 	{
 		if (!wasFullScreen)
 		{
@@ -864,13 +1001,17 @@ MA 02110-1301, USA.
 		}
 	}
 	
+	if (lastWindowPlacementMaximized)
+	{
+		windowPlacement.showCmd = SW_SHOWMAXIMIZED;
+	}
+	
 	// are we attempting to go to a different screen resolution? Note: this also takes care of secondary monitor situations because 
-	// EnumDisplaySettings was called with zero as first parameter, hence it yields settings for the display device the main application
-	// thread is running on (i.e. primary). Since we only uae native resolution for full screen on secondaty moniors, changingResolution
-	// is expected to always be false for non-primary display devices - Nikos 20150310
-	BOOL changingResolution = 	(fullScreen && settings.dmPelsWidth != viewSize.width && settings.dmPelsHeight != viewSize.height) ||
-								(wasFullScreen && settings.dmPelsWidth != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
-								&& settings.dmPelsHeight != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]);
+	// by design the only resolution available for fullscreen on a secondary display device is its native one - Nikos 20150605
+	BOOL changingResolution = 	[self isRunningOnPrimaryDisplayDevice] &&
+								((fullScreen && (settings.dmPelsWidth != viewSize.width || settings.dmPelsHeight != viewSize.height)) ||
+								(wasFullScreen && (settings.dmPelsWidth != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
+								|| settings.dmPelsHeight != [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayHeight] intValue])));
 			
 	RECT wDC;
 
@@ -887,22 +1028,20 @@ MA 02110-1301, USA.
 		settings.dmPelsWidth = viewSize.width;
 		settings.dmPelsHeight = viewSize.height;
 		settings.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
-		
-		
+				
 		// just before going fullscreen, save the location of the current window. It
 		// may be needed in case of potential attempts to move our fullscreen window
 		// in a maximized state (yes, in Windows this is entirely possible).
 		if(lastWindowPlacementMaximized)
 		{
 			CopyRect(&lastGoodRect, &windowPlacement.rcNormalPosition);
+			// if maximized, switch to normal placement before going full screen
+			windowPlacement.showCmd = SW_SHOWNORMAL;
+			SetWindowPlacement(SDL_Window, &windowPlacement);
 		}
 		else  GetWindowRect(SDL_Window, &lastGoodRect);
 		
 		// ok, can go fullscreen now
-		if(!wasFullScreen)
-		{
-			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
-		}
 		SetForegroundWindow(SDL_Window);
 		if (changingResolution)
 		{
@@ -913,43 +1052,46 @@ MA 02110-1301, USA.
 				return;
 			}
 		}
+		
 		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+		if(!wasFullScreen)
+		{
+			[self setWindowBorderless:YES];
+		}
 	}
+	
 	else if ( wasFullScreen )
 	{
-			// stop saveWindowSize from reacting to caption & frame
-			saveSize=NO;
-			
-			if (changingResolution)  ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
-			
-			/*NOTE: If we ever decide to change the default behaviour of launching
-			always on primary monitor to launching on the monitor the program was 
-			started on, we need to comment out the line below.
-			For now, this line is needed for correct positioning of our window in case
-			we return from a non-native resolution fullscreen and has to come after the
-			display settings have been reverted.
-			Nikos 20141222
-			*/
-			[self getCurrentMonitorInfo: &monitorInfo];
-			
-			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX |
-									WS_MAXIMIZEBOX );
-									
-			if (!lastWindowPlacementMaximized)
-			{
-				windowPlacement.showCmd = SW_SHOWNORMAL;
-				SetWindowPlacement(SDL_Window, &windowPlacement);
-			}
-
-			MoveWindow(SDL_Window,	(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - (int)viewSize.width)/2 + 
-									monitorInfo.rcMonitor.left,
-									(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - (int)viewSize.height)/2 +
-									monitorInfo.rcMonitor.top - (lastWindowPlacementMaximized ? 32 : 16),
-									(int)viewSize.width,(int)viewSize.height,TRUE);
-									
-			lastWindowPlacementMaximized = NO;
-
-			ShowWindow(SDL_Window,SW_SHOW);
+		// stop saveWindowSize from reacting to caption & frame
+		saveSize=NO;
+		
+		if (changingResolution)  ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+		
+		/*NOTE: If we ever decide to change the default behaviour of launching
+		always on primary monitor to launching on the monitor the program was 
+		started on, we need to comment out the line below.
+		For now, this line is needed for correct positioning of our window in case
+		we return from a non-native resolution fullscreen and has to come after the
+		display settings have been reverted.
+		Nikos 20141222
+		*/
+		[self getCurrentMonitorInfo: &monitorInfo];
+		
+		if (lastWindowPlacementMaximized)  CopyRect(&windowPlacement.rcNormalPosition, &lastGoodRect);
+		SetWindowPlacement(SDL_Window, &windowPlacement);
+		if (!lastWindowPlacementMaximized)
+		{
+			MoveWindow(SDL_Window,	(monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - (int)viewSize.width)/2 +
+								monitorInfo.rcMonitor.left,
+								(monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - (int)viewSize.height)/2 +
+								monitorInfo.rcMonitor.top,
+								(int)viewSize.width, (int)viewSize.height, TRUE);
+		}
+		
+		[self setWindowBorderless:NO];
+								
+		lastWindowPlacementMaximized = NO;
+		ShowWindow(SDL_Window,SW_SHOW);
 	}
 
 	GetClientRect(SDL_Window, &wDC);
@@ -957,28 +1099,23 @@ MA 02110-1301, USA.
 	if (!fullScreen && (bounds.size.width != wDC.right - wDC.left
 					|| bounds.size.height != wDC.bottom - wDC.top))
 	{
-		RECT wDCtemp;
-
-		// MoveWindow is used below to resize the game window when required. The resized window it
-		// creates includes the client plus the non-client area. This means that although dimensions
-		// capable of containing our wanted client area size are requested, the actual window generated has a
-		// slightly smaller client area than intended. We fix this by calculating nonClientAreaCorrection
-		// and adding it to the needed size when necessary (i.e. after splash screen or when switching from
-		// full screen to window) - Nikos 20091024
-		NSSize nonClientAreaCorrection = NSMakeSize(0,0);
-
-		GetWindowRect(SDL_Window, &wDC);
-		if (wasFullScreen) // this is true when switching from full screen or when starting in windowed mode after the splash screen has ended
+		// Resize the game window if needed. When we ask for a W x H
+		// window, we intend that the client area be W x H. The actual
+		// window itself must become big enough to accomodate an area
+		// of such size. 
+		if (wasFullScreen)	// this is true when switching from full screen or when starting in windowed mode
+							//after the splash screen has ended
 		{
-			wDCtemp.top = wDC.top; wDCtemp.bottom = wDC.bottom; wDCtemp.left = wDC.left; wDCtemp.right = wDC.right;
-			AdjustWindowRect(&wDCtemp, WS_CAPTION | WS_THICKFRAME, FALSE);
-			nonClientAreaCorrection.width = fabs((wDCtemp.right - wDCtemp.left) - (wDC.right - wDC.left));
-			nonClientAreaCorrection.height = fabs((wDCtemp.bottom - wDCtemp.top) - (wDC.bottom - wDC.top));
+			RECT desiredClientRect;
+			GetWindowRect(SDL_Window, &desiredClientRect);
+			AdjustWindowRect(&desiredClientRect, WS_CAPTION | WS_THICKFRAME, FALSE);
+			SetWindowPos(SDL_Window, NULL,	desiredClientRect.left, desiredClientRect.top,
+											desiredClientRect.right - desiredClientRect.left,
+											desiredClientRect.bottom - desiredClientRect.top, 0);
 		}
+		GetClientRect(SDL_Window, &wDC);
 		viewSize.width = wDC.right - wDC.left;
 		viewSize.height = wDC.bottom - wDC.top;
-		MoveWindow(SDL_Window,wDC.left,wDC.top,viewSize.width + nonClientAreaCorrection.width,viewSize.height + nonClientAreaCorrection.height,TRUE);
-		GetClientRect(SDL_Window, &wDC);
 	}
 
 	// Reset bounds and viewSize to current values
@@ -1167,7 +1304,7 @@ MA 02110-1301, USA.
 	infoPtr = png_create_info_struct(pngPtr);
 	if (infoPtr == NULL) {
 		png_destroy_write_struct(&pngPtr, (png_infopp)NULL);
-		OOLog(@"pngSaveSurface.info_struct.failed", @"png_create_info_struct error");
+		OOLog(@"pngSaveSurface.info_struct.failed", @"%@", @"png_create_info_struct error");
 		exit(-1);
 	}
 
@@ -1398,6 +1535,18 @@ MA 02110-1301, USA.
 - (BOOL) isShiftDown
 {
 	return shift;
+}
+
+
+- (BOOL) isCapsLockOn
+{
+	/* Caps Lock state check - This effectively gives us
+	   an alternate keyboard state to play with and, in
+	   the future, we could assign different behaviours
+	   to existing controls, depending on the state of
+	   Caps Lock. - Nikos 20160304
+	*/
+	return (SDL_GetModState() & KMOD_CAPS) == KMOD_CAPS;
 }
 
 
@@ -1765,12 +1914,14 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_RCTRL:
 						ctrl = YES;
 						break;
+						
+					case SDLK_LALT:
+					case SDLK_RALT:
+						opt = YES;
+						break;
 
 					case SDLK_F12:
 						[self toggleScreenMode];
-						// normally we would want to do a gui screen resize update here, but
-						// toggling full screen mode executes an SDL_VIDEORESIZE event, which
-						// takes care of this for us - Nikos 20140129
 						break;
 
 					case SDLK_ESCAPE:
@@ -1953,6 +2104,11 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_RCTRL:
 						ctrl = NO;
 						break;
+						
+					case SDLK_LALT:
+					case SDLK_RALT:
+						opt = NO;
+						break;
 
 					case SDLK_ESCAPE:
 						keys[27] = NO;
@@ -1996,8 +2152,23 @@ keys[a] = NO; keys[b] = NO; \
 				}
 				break;
 			}
-				
-#if OOLITE_WINDOWS	
+			
+#if OOLITE_WINDOWS
+			// if we minimize the window while in fullscreen (e.g. via
+			// Win+M or Win+DownArrow), restore the non-borderless window
+			// style before minimuzing and reset it when we return, otherwise
+			// there might be issues with the game window remaining stuck on
+			// top in some cases (seen with some Intel gfx chips).
+			// N.B. active event gain of zero means app is iconified
+			case SDL_ACTIVEEVENT:
+			{			
+				if ((event.active.state & SDL_APPACTIVE) && fullScreen)
+				{
+					[self setWindowBorderless:event.active.gain];
+				}
+				break;
+			}
+			
 			// need to track this because the user may move the game window
 			// to a secondary monitor, in which case we must potentially
 			// refresh the information displayed (e.g. Game Options screen)
@@ -2040,7 +2211,10 @@ keys[a] = NO; keys[b] = NO; \
 									SetWindowPlacement(SDL_Window, &wp);
 								}
 			
-								MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+								if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
+								{
+									MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+								}
 								
 								if (fullScreenMaximized)
 								{
@@ -2070,6 +2244,17 @@ keys[a] = NO; keys[b] = NO; \
 						
 					case WM_ACTIVATEAPP:
 						if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
+						break;
+						
+					case WM_SETFOCUS:
+						/*
+	`					make sure that all modifier keys like Shift, Alt, Ctrl and Caps Lock
+	`					are set correctly to what they should be when we get focus. We have
+	`					to do it ourselves because SDL on Windows has problems with this
+	`					when focus change events occur, like e.g. Alt-Tab in/out of the
+						application
+	`					*/
+						[self resetSDLKeyModifiers];
 						break;
 						
 					default:
@@ -2158,13 +2343,13 @@ keys[a] = NO; keys[b] = NO; \
 	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
 	if(modes == (SDL_Rect **)NULL)
 	{
-		OOLog(@"display.mode.list.none", @"SDL didn't return any screen modes");
+		OOLog(@"display.mode.list.none", @"%@", @"SDL didn't return any screen modes");
 		return;
 	}
 
 	if(modes == (SDL_Rect **)-1)
 	{
-		OOLog(@"display.mode.list.none", @"SDL claims 'all resolutions available' which is unhelpful in the extreme");
+		OOLog(@"display.mode.list.none", @"%@", @"SDL claims 'all resolutions available' which is unhelpful in the extreme");
 		return;
 	}
 
@@ -2292,7 +2477,7 @@ keys[a] = NO; keys[b] = NO; \
 		return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
 				[[mode objectForKey: kOODisplayHeight] intValue]);
 	}
-	OOLog(@"display.mode.unknown", @"Screen size unknown!");
+	OOLog(@"display.mode.unknown", @"%@", @"Screen size unknown!");
 	return NSMakeSize(800, 600);
 }
 
@@ -2341,16 +2526,7 @@ keys[a] = NO; keys[b] = NO; \
 
 + (BOOL)pollShiftKey
 {
-#if OOLITE_WINDOWS
-	// SDL_GetModState() does not seem to do exactly what is intended under Windows. For this reason,
-	// the GetKeyState Windows API call is used to detect the Shift keypress. -- Nikos.
-
-	return 0 != (GetKeyState(VK_SHIFT) & 0x100);
-
-#else
 	return 0 != (SDL_GetModState() & (KMOD_LSHIFT | KMOD_RSHIFT));
-
-#endif
 }
 
 

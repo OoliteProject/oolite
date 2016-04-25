@@ -3,6 +3,7 @@
 	Tool to generate subdivided icosahedron mesh data.
 */
 
+#import <locale.h>
 #import <stdio.h>
 #import "icosmesh.h"
 #import "JAIcosTriangle.h"
@@ -130,6 +131,15 @@ int main (int argc, const char * argv[])
 		autorelease pool to suppress warnings when running without gc.
 	*/
 	(void)[NSAutoreleasePool new];
+
+	/* Let printf ignore local number formatting conventions. */
+	/* For example, use a dot as decimal separator. */
+	if (setlocale (LC_NUMERIC, "C") == NULL)
+	{
+		fprintf(stderr, "Failed to set locale.\n");
+		return EXIT_FAILURE;
+	}
+
 	
 	FILE *header = fopen(kFileName ".h", "w");
 	FILE *source = fopen(kFileName ".c", "w");

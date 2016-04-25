@@ -73,3 +73,6 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	Like VectorFromArgumentList(), but does not report an error on failure.
 */
 BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, HPVector *outVector, uintN *outConsumed)  GCC_ATTR((nonnull (1, 3, 4)));
+
+
+

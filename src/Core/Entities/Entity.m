@@ -86,6 +86,8 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	spawnTime = [UNIVERSE getTime];
 	
 	isSunlit = YES;
+
+	atmosphereFogging = [[OOColor colorWithRed: 0.0 green: 0.0 blue: 0.0 alpha: 0.0] retain];
 	
 #ifndef NDEBUG
 	gLiveEntityCount++;
@@ -104,6 +106,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	DESTROY(collisionRegion);
 	[self deleteJSSelf];
 	[self setOwner:nil];
+	[atmosphereFogging release];
 	
 #ifndef NDEBUG
 	gLiveEntityCount--;
@@ -518,7 +521,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 - (void) warnAboutHostiles
 {
 	// do nothing for now, this can be expanded in sub classes
-	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"***** Entity does nothing in warnAboutHostiles");
+	OOLog(@"general.error.subclassResponsibility.Entity-warnAboutHostiles", @"%@", @"***** Entity does nothing in warnAboutHostiles");
 }
 
 
@@ -1076,6 +1079,17 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	return [UNIVERSE getTime] - spawnTime;
 }
 
+
+- (void) setAtmosphereFogging: (OOColor *)fogging
+{
+	[atmosphereFogging release];
+	atmosphereFogging = [fogging retain];
+}
+
+- (OOColor *) fogUniform
+{
+	return [[atmosphereFogging retain] autorelease];
+}
 
 #ifndef NDEBUG
 - (NSString *) descriptionForObjDumpBasic

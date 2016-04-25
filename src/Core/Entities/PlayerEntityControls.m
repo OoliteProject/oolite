@@ -63,6 +63,8 @@ MA 02110-1301, USA.
 #import "OODebugSupport.h"
 #import "OODebugMonitor.h"
 
+#define CUSTOM_VIEW_ROTATE_SPEED	1.0
+#define CUSTOM_VIEW_ZOOM_SPEED		5.0
 
 static BOOL				jump_pressed;
 static BOOL				hyperspace_pressed;
@@ -134,6 +136,10 @@ static BOOL				cycleMFD_pressed;
 static BOOL				switchMFD_pressed;
 static BOOL				mouse_left_down;
 static BOOL				oxz_manager_pressed;
+static BOOL				next_planet_info_pressed;
+static BOOL				previous_planet_info_pressed;
+static BOOL				home_info_pressed;
+static BOOL				target_info_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -487,6 +493,7 @@ static NSTimeInterval	time_last_frame;
 - (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
 	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
+	[self setInfoSystemID: target_system_id];
 	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 
 	found_system_id = target_system_id;
@@ -680,7 +687,8 @@ static NSTimeInterval	time_last_frame;
 		
 		// snapshot
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
-		if ([gameView isDown:key_snapshot] || joyButtonState[BUTTON_SNAPSHOT])   //  '*' key
+		if (([gameView isDown:key_snapshot] || joyButtonState[BUTTON_SNAPSHOT]) &&
+			![[OOOXZManager sharedManager] isAcceptingTextInput])   //  '*' key but not while filtering inside OXZ Manager
 		{
 			exceptionContext = @"snapshot";
 			if (!taking_snapshot)
@@ -973,11 +981,11 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"shoot";
 				//  shoot 'a'
-				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
+				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
 				{
 					if ([self fireMainWeapon])
 					{
-						[self playLaserHit:([self shipHitByLaser] != nil) offset:[self currentLaserOffset]];
+						[self playLaserHit:([self shipHitByLaser] != nil) offset:[[self currentLaserOffset] oo_vectorAtIndex:0]];
 					}
 				}
 				
@@ -1759,7 +1767,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				queryPressed = NO;
 			}
-
+			
 			if ([gameView isDown:key_map_info] && chart_zoom <= CHART_ZOOM_SHOW_LABELS)
 			{
 				if (!chartInfoPressed)
@@ -1799,6 +1807,10 @@ static NSTimeInterval	time_last_frame;
 								default:		ANA_mode = OPTIMIZED_BY_NONE;	break;
 								}
 							}
+							if (ANA_mode == OPTIMIZED_BY_NONE || ![self infoSystemOnRoute])
+							{
+								[self setInfoSystemID: target_system_id];
+							}
 						}
 						pling_pressed = YES;
 					}
@@ -1834,12 +1846,14 @@ static NSTimeInterval	time_last_frame;
 						mouse_click_position = maus;
 						chart_focus_coordinates.x = OOClamp_0_max_f(centre.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale, 256.0);
 						chart_focus_coordinates.y = OOClamp_0_max_f(centre.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale, 256.0);
+						target_chart_focus = chart_focus_coordinates;
 					}
 					if (fabs(maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH > 2 ||
 						fabs(maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT > 2)
 					{
-						target_chart_centre.x = OOClamp_0_max_f(centre_at_mouse_click.x - (maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH/hscale, 256.0);
-						target_chart_centre.y = OOClamp_0_max_f(centre_at_mouse_click.y - (maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT/vscale, 256.0);
+						chart_centre_coordinates.x = OOClamp_0_max_f(centre_at_mouse_click.x - (maus.x - mouse_click_position.x)*MAIN_GUI_PIXEL_WIDTH/hscale, 256.0);
+						chart_centre_coordinates.y = OOClamp_0_max_f(centre_at_mouse_click.y - (maus.y - mouse_click_position.y)*MAIN_GUI_PIXEL_HEIGHT/vscale, 256.0);
+						target_chart_centre = chart_centre_coordinates;
 						dragging = YES;
 					}
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
@@ -1863,20 +1877,32 @@ static NSTimeInterval	time_last_frame;
 				}
 				if ([gameView isDown:key_map_home])
 				{
-					[gameView resetTypedString];
-					cursor_coordinates = galaxy_coordinates;
-					chart_focus_coordinates = cursor_coordinates;
-					target_chart_centre = galaxy_coordinates;
-					found_system_id = -1;
-					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
-					moving = YES;
+					if ([gameView isOptDown])
+					{
+						[self homeInfoSystem];
+						target_chart_focus = galaxy_coordinates;
+					}
+					else
+					{
+						[gameView resetTypedString];
+						cursor_coordinates = galaxy_coordinates;
+						target_chart_focus = cursor_coordinates;
+						target_chart_centre = galaxy_coordinates;
+						found_system_id = -1;
+						[UNIVERSE findSystemCoordinatesWithPrefix:@""];
+						moving = YES;
+					}
+				}
+				if ([gameView isDown:gvEndKey] && [gameView isOptDown])
+				{
+					[self targetInfoSystem];
+					target_chart_focus = cursor_coordinates;
 				}
 				if ([gameView isDown:gvPageDownKey] || [gameView mouseWheelState] == gvMouseWheelDown)
 				{
 					target_chart_zoom *= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom > CHART_MAX_ZOOM) target_chart_zoom = CHART_MAX_ZOOM;
 					saved_chart_zoom = target_chart_zoom;
-					moving = YES;
 				}
 				if ([gameView isDown:gvPageUpKey] || [gameView mouseWheelState] == gvMouseWheelUp)
 				{
@@ -1889,47 +1915,65 @@ static NSTimeInterval	time_last_frame;
 					target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
 					saved_chart_zoom = target_chart_zoom;
-					moving = YES;
 					//target_chart_centre = cursor_coordinates;
-					chart_focus_coordinates = target_chart_centre;
+					target_chart_focus = target_chart_centre;
 				}
 				
 				BOOL nextSystem = [gameView isShiftDown];
+				BOOL nextSystemOnRoute = [gameView isOptDown];
 				
 				if ([gameView isDown:key_gui_arrow_left])
 				{
-					if (nextSystem && pressedArrow != key_gui_arrow_left)
+					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_left)
 					{
-						[self targetNewSystem:-1];
+						if (nextSystem)
+						{
+							[self targetNewSystem:-1];
+							target_chart_focus = cursor_coordinates;
+						}
+						else
+						{
+							[self previousInfoSystem];
+							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+						}
 						pressedArrow = key_gui_arrow_left;
 					}
-					else if (!nextSystem)
+					else if (!nextSystem && !nextSystemOnRoute)
 					{
 						[gameView resetTypedString];
 						cursor_coordinates.x -= cursor_speed*delta_t;
 						if (cursor_coordinates.x < 0.0) cursor_coordinates.x = 0.0;
 						moving = YES;
+						target_chart_focus = cursor_coordinates;
 					}
-					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_left ? 0 : pressedArrow;
 				
 				if ([gameView isDown:key_gui_arrow_right])
 				{
-					if (nextSystem && pressedArrow != key_gui_arrow_right)
+					if ((nextSystem || nextSystemOnRoute) && pressedArrow != key_gui_arrow_right)
 					{
-						[self targetNewSystem:+1];
+						if (nextSystem)
+						{
+							[self targetNewSystem:+1];
+							target_chart_focus = cursor_coordinates;
+						}
+						else
+						{
+							[self nextInfoSystem];
+							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+						}
 						pressedArrow = key_gui_arrow_right;
 					}
-					else if (!nextSystem)
+					else if (!nextSystem && !nextSystemOnRoute)
 					{
 						[gameView resetTypedString];
 						cursor_coordinates.x += cursor_speed*delta_t;
 						if (cursor_coordinates.x > 256.0) cursor_coordinates.x = 256.0;
 						moving = YES;
+						target_chart_focus = cursor_coordinates;
 					}
-					chart_focus_coordinates = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_right ? 0 : pressedArrow;
@@ -1948,7 +1992,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y > 256.0) cursor_coordinates.y = 256.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_down ? 0 : pressedArrow;
@@ -1967,7 +2011,7 @@ static NSTimeInterval	time_last_frame;
 						if (cursor_coordinates.y < 0.0) cursor_coordinates.y = 0.0;
 						moving = YES;
 					}
-					chart_focus_coordinates = cursor_coordinates;
+					target_chart_focus = cursor_coordinates;
 				}
 				else
 					pressedArrow =  pressedArrow == key_gui_arrow_up ? 0 : pressedArrow;
@@ -1975,7 +2019,8 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (found_system_id == -1)
 					{
-						target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+						target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
+						[self setInfoSystemID: target_system_id];
 					}
 					else
 					{
@@ -1983,7 +2028,8 @@ static NSTimeInterval	time_last_frame;
 						NSPoint fpos = [[UNIVERSE systemManager] getCoordinatesForSystem:found_system_id inGalaxy:galaxy_number];
 						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
 						{
-							target_system_id = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxy:galaxy_number];
+							target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
+							[self setInfoSystemID: target_system_id];
 						}
 					}
 					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
@@ -2007,13 +2053,62 @@ static NSTimeInterval	time_last_frame;
 				chart_centre_coordinates.x = (3.0*chart_centre_coordinates.x + target_chart_centre.x)/4.0;
 				chart_centre_coordinates.y = (3.0*chart_centre_coordinates.y + target_chart_centre.y)/4.0;
 				chart_zoom = (3.0*chart_zoom + target_chart_zoom)/4.0;
-				chart_cursor_coordinates.x = (3.0*chart_cursor_coordinates.x + cursor_coordinates.x)/4.0;
-				chart_cursor_coordinates.y = (3.0*chart_cursor_coordinates.y + cursor_coordinates.y)/4.0;
+				chart_focus_coordinates.x = (3.0*chart_focus_coordinates.x + target_chart_focus.x)/4.0;
+				chart_focus_coordinates.y = (3.0*chart_focus_coordinates.y + target_chart_focus.y)/4.0;
 				if (cursor_moving || dragging) [self setGuiToChartScreenFrom: gui_screen]; // update graphics
 				cursor_moving = moving;
 			}
+			break;
 			
 		case GUI_SCREEN_SYSTEM_DATA:
+			if ([gameView isDown: key_gui_arrow_right])
+			{
+				if (!next_planet_info_pressed)
+				{
+					[self nextInfoSystem];
+					next_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				next_planet_info_pressed = NO;
+			}
+			if ([gameView isDown: key_gui_arrow_left])
+			{
+				if (!previous_planet_info_pressed)
+				{
+					[self previousInfoSystem];
+					previous_planet_info_pressed = YES;
+				}
+			}
+			else
+			{
+				previous_planet_info_pressed = NO;
+			}
+			if ([gameView isDown: gvHomeKey])
+			{
+				if (!home_info_pressed)
+				{
+					[self homeInfoSystem];
+					home_info_pressed = YES;
+				}
+			}
+			else
+			{
+				home_info_pressed = NO;
+			}
+			if ([gameView isDown: gvEndKey])
+			{
+				if (!target_info_pressed)
+				{
+					[self targetInfoSystem];
+					target_info_pressed = YES;
+				}
+			}
+			else
+			{
+				target_info_pressed = NO;
+			}
 			break;
 			
 #if OO_USE_CUSTOM_LOAD_SAVE
@@ -2150,7 +2245,7 @@ static NSTimeInterval	time_last_frame;
 						OOLog(kOOLogException, @"\n\n***** Handling exception: %@ : %@ *****\n\n",[exception name], [exception reason]);
 						if ([[exception name] isEqual:@"GameNotSavedException"])	// try saving game instead
 						{
-							OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
+							OOLog(kOOLogException, @"%@", @"\n\n***** Trying a normal save instead *****\n\n");
 							if ([controller inFullScreenMode])
 								[controller pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
 							else
@@ -2888,7 +2983,7 @@ static NSTimeInterval	time_last_frame;
 		
 		if (displayModeIndex == (NSInteger)NSNotFound)
 		{
-			OOLogWARN(@"graphics.mode.notFound", @"couldn't find current fullscreen setting, switching to default.");
+			OOLogWARN(@"graphics.mode.notFound", @"%@", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
 		}
 		else
@@ -3272,7 +3367,17 @@ static NSTimeInterval	time_last_frame;
 
 - (void) pollCustomViewControls
 {
-	if ([[UNIVERSE gameView] isDown:key_custom_view])
+	static Quaternion viewQuaternion;
+	static Vector viewOffset;
+	static Vector rotationCenter;
+	static Vector up;
+	static Vector right;
+	static BOOL mouse_clicked = NO;
+	static NSPoint mouse_clicked_position;
+	static BOOL shift_down;
+	static NSTimeInterval last_time = 0.0;
+	MyOpenGLView *gameView = [UNIVERSE gameView];
+	if ([gameView isDown:key_custom_view])
 	{
 		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
 		{
@@ -3290,6 +3395,117 @@ static NSTimeInterval	time_last_frame;
 	}
 	else
 		customView_pressed = NO;
+	NSTimeInterval this_time = [NSDate timeIntervalSinceReferenceDate];
+	if ([UNIVERSE viewDirection] && [gameView isCapsLockOn])
+	{
+		OOTimeDelta delta_t = this_time - last_time;
+		if (([gameView isDown:gvPageDownKey] && ![gameView isDown:gvPageUpKey]) || [gameView mouseWheelState] == gvMouseWheelDown)
+		{
+			[self customViewZoomOut: pow(CUSTOM_VIEW_ZOOM_SPEED, delta_t)];
+		}
+		if (([gameView isDown:gvPageUpKey] && ![gameView isDown:gvPageDownKey]) || [gameView mouseWheelState] == gvMouseWheelUp)
+		{
+			[self customViewZoomIn: pow(CUSTOM_VIEW_ZOOM_SPEED, delta_t)];
+		}
+		if ([gameView isDown:key_roll_left] && ![gameView isDown:key_roll_right])
+		{
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanLeft:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+			else
+			{
+				[self customViewRollLeft:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+		}
+		if ([gameView isDown:key_roll_right] && ![gameView isDown:key_roll_left])
+		{
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanRight:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+			else
+			{
+				[self customViewRollRight:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+		}
+		if ([gameView isDown:key_pitch_back] && ![gameView isDown:key_pitch_forward])
+		{
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanDown:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+			else
+			{
+				[self customViewRotateUp:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+		}
+		if ([gameView isDown:key_pitch_forward] && ![gameView isDown:key_pitch_back])
+		{
+			if ([gameView isShiftDown])
+			{
+				[self customViewPanUp:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+			else
+			{
+				[self customViewRotateDown:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			}
+		}
+		if ([gameView isDown:key_yaw_left] && ![gameView isDown:key_yaw_right])
+		{
+			[self customViewRotateLeft:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+		}
+		if ([gameView isDown:key_yaw_right] && ![gameView isDown:key_yaw_left])
+		{
+			[self customViewRotateRight:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+		}
+		if ([gameView isDown:gvMouseLeftButton])
+		{
+			if(!mouse_clicked || shift_down != [gameView isShiftDown])
+			{
+				mouse_clicked = YES;
+				viewQuaternion = [PLAYER customViewQuaternion];
+				viewOffset = [PLAYER customViewOffset];
+				rotationCenter = [PLAYER customViewRotationCenter];
+				up = [PLAYER customViewUpVector];
+				right = [PLAYER customViewRightVector];
+				mouse_clicked_position = [gameView virtualJoystickPosition];
+				shift_down = [gameView isShiftDown];
+			}
+			NSPoint mouse_position = [gameView virtualJoystickPosition];
+			Vector axis = vector_add(vector_multiply_scalar(up, mouse_position.x - mouse_clicked_position.x),
+				vector_multiply_scalar(right, mouse_position.y - mouse_clicked_position.y));
+			float angle = magnitude(axis);
+			axis = vector_normal(axis);
+			Quaternion newViewQuaternion = viewQuaternion;
+			if ([gameView isShiftDown])
+			{
+				quaternion_rotate_about_axis(&newViewQuaternion, axis, angle);
+				[PLAYER setCustomViewQuaternion: newViewQuaternion];
+				[PLAYER setCustomViewRotationCenter: vector_subtract(viewOffset,
+					vector_multiply_scalar([PLAYER customViewForwardVector],
+						dot_product([PLAYER customViewForwardVector], viewOffset)))];
+			}
+			else
+			{
+				quaternion_rotate_about_axis(&newViewQuaternion, axis, -angle);
+				OOScalar m = magnitude(vector_subtract(viewOffset, rotationCenter));
+				[PLAYER setCustomViewQuaternion: newViewQuaternion];
+				Vector offset = vector_flip([PLAYER customViewForwardVector]);
+				scale_vector(&offset, m / magnitude(offset));
+				[PLAYER setCustomViewOffset:vector_add(offset, rotationCenter)];
+			}
+		}
+		else
+		{
+			mouse_clicked = NO;
+		}
+	}
+	else
+	{
+		mouse_clicked = NO;
+	}
+	last_time = this_time;
 }
 
 
@@ -3496,6 +3712,7 @@ static NSTimeInterval	time_last_frame;
 	double roll_dampner = ROLL_DAMPING_FACTOR * delta_t;
 	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
 	double yaw_dampner = YAW_DAMPING_FACTOR * delta_t;
+	BOOL capsLockCustomView = [UNIVERSE viewDirection] == VIEW_CUSTOM && [gameView isCapsLockOn];
 	
 	BOOL	isCtrlDown = [gameView isCtrlDown];
 	
@@ -3512,14 +3729,14 @@ static NSTimeInterval	time_last_frame;
 			keyboardRollOverride = YES;
 			flightRoll = 0.0;
 		}
-		else if ([gameView isDown:key_roll_left])
+		else if ([gameView isDown:key_roll_left] && !capsLockCustomView)
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll > 0.0)  flightRoll = 0.0;
 			[self decrease_flight_roll:isCtrlDown ? flightArrowKeyPrecisionFactor*roll_dampner*roll_delta : delta_t*roll_delta];
 			rolling = YES;
 		}
-		else if ([gameView isDown:key_roll_right])
+		else if ([gameView isDown:key_roll_right] && !capsLockCustomView)
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll < 0.0)  flightRoll = 0.0;
@@ -3527,7 +3744,7 @@ static NSTimeInterval	time_last_frame;
 			rolling = YES;
 		}
 	}
-	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride)
+	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollOverride && !capsLockCustomView)
 	{
 		stick_roll = max_flight_roll * virtualStick.x;
 		if (flightRoll < stick_roll)
@@ -3567,14 +3784,14 @@ static NSTimeInterval	time_last_frame;
 			keyboardPitchOverride=YES;
 			flightPitch = 0.0;
 		}
-		else if ([gameView isDown:key_pitch_back])
+		else if ([gameView isDown:key_pitch_back] && !capsLockCustomView)
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch < 0.0)  flightPitch = 0.0;
 			[self increase_flight_pitch:isCtrlDown ? flightArrowKeyPrecisionFactor*pitch_dampner*pitch_delta : delta_t*pitch_delta];
 			pitching = YES;
 		}
-		else if ([gameView isDown:key_pitch_forward])
+		else if ([gameView isDown:key_pitch_forward] && !capsLockCustomView)
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch > 0.0)  flightPitch = 0.0;
@@ -3582,7 +3799,7 @@ static NSTimeInterval	time_last_frame;
 			pitching = YES;
 		}
 	}
-	if(mouse_control_on || (numSticks && !keyboardPitchOverride))
+	if((mouse_control_on || (numSticks && !keyboardPitchOverride)) && !capsLockCustomView)
 	{
 		stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flightPitch < stick_pitch)
@@ -3622,14 +3839,14 @@ static NSTimeInterval	time_last_frame;
 			keyboardYawOverride=YES;
 			flightYaw = 0.0;
 		}
-		else if ([gameView isDown:key_yaw_left])
+		else if ([gameView isDown:key_yaw_left] && !capsLockCustomView)
 		{
 			keyboardYawOverride=YES;
 			if (flightYaw < 0.0)  flightYaw = 0.0;
 			[self increase_flight_yaw:isCtrlDown ? flightArrowKeyPrecisionFactor*yaw_dampner*yaw_delta : delta_t*yaw_delta];
 			yawing = YES;
 		}
-		else if ([gameView isDown:key_yaw_right])
+		else if ([gameView isDown:key_yaw_right] && !capsLockCustomView)
 		{
 			keyboardYawOverride=YES;
 			if (flightYaw > 0.0)  flightYaw = 0.0;
@@ -3637,7 +3854,7 @@ static NSTimeInterval	time_last_frame;
 			yawing = YES;
 		}
 	}
-	if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride)
+	if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride && !capsLockCustomView)
 	{
 		// I think yaw is handled backwards in the code,
 		// which is why the negative sign is here.

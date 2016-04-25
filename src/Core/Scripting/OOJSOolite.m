@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOStringParsing.h"
 #import "OOJSPlayer.h"
+#import "ResourceManager.h"
 
 
 static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
@@ -63,6 +64,7 @@ enum
 	kOolite_jsVersion,			// JavaScript version, integer, read-only
 	kOolite_jsVersionString,	// JavaScript version as string, string, read-only
 	kOolite_gameSettings,		// Various game settings, object, read-only
+	kOolite_resourcePaths,		// Paths containing resources, built-in plus oxp/oxz, read-only
 };
 
 
@@ -74,6 +76,7 @@ static JSPropertySpec sOoliteProperties[] =
 	{ "jsVersionString",		kOolite_jsVersionString,	OOJS_PROP_READONLY_CB },
 	{ "version",				kOolite_version,			OOJS_PROP_READONLY_CB },
 	{ "versionString",			kOolite_versionString,		OOJS_PROP_READONLY_CB },
+	{ "resourcePaths",			kOolite_resourcePaths,		OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -121,6 +124,10 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 		
 		case kOolite_gameSettings:
 			result = [UNIVERSE gameSettings];
+			break;
+			
+		case kOolite_resourcePaths:
+			result = [ResourceManager paths];
 			break;
 		
 		default:

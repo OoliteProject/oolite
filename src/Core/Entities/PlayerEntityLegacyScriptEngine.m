@@ -2204,7 +2204,7 @@ static int shipsFound;
 	{
 		[self playFuelLeak];
 		[UNIVERSE addMessage:DESC(@"danger-fuel-leak") forCount:6];
-		OOLog(kOOLogNoteFuelLeak, @"FUEL LEAK activated!");
+		OOLog(kOOLogNoteFuelLeak, @"%@", @"FUEL LEAK activated!");
 	}
 }
 
@@ -2389,13 +2389,13 @@ static int shipsFound;
 - (void) debugOn
 {
 	OOLogSetDisplayMessagesInClass(kOOLogDebugOnMetaClass, YES);
-	OOLog(kOOLogDebugOnOff, @"SCRIPT debug messages ON");
+	OOLog(kOOLogDebugOnOff, @"%@", @"SCRIPT debug messages ON");
 }
 
 
 - (void) debugOff
 {
-	OOLog(kOOLogDebugOnOff, @"SCRIPT debug messages OFF");
+	OOLog(kOOLogDebugOnOff, @"%@", @"SCRIPT debug messages OFF");
 	OOLogSetDisplayMessagesInClass(kOOLogDebugOnMetaClass, NO);
 }
 
@@ -2747,13 +2747,13 @@ static int shipsFound;
 			return NO;				//		   0........... 1 2 3
 		
 		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
-		if (target_system_id & 8)
+		if (info_system_id & 8)
 		{
-			_sysInfoLight = (target_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
+			_sysInfoLight = (info_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
 		}
 		else
 		{
-			_sysInfoLight = (target_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
+			_sysInfoLight = (info_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
 		}
 
 		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
@@ -2766,7 +2766,7 @@ static int shipsFound;
 		}
 		else
 		{
-			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:target_system_id] autorelease];
+			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:info_system_id] autorelease];
 		}
 		OOPlanetEntity *doppelganger = [originalPlanet miniatureVersion];
 		if (doppelganger == nil)  return NO;
@@ -2946,7 +2946,7 @@ static int shipsFound;
 	NSArray *coord_vals = ScanTokensFromString(galacticHyperspaceFixedCoordsString);
 	if ([coord_vals count] < 2)	// Will be 0 if string is nil
 	{
-		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput",
+		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput", @"%@",
 			  @"setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");
 		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
 	}

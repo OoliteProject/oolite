@@ -57,11 +57,11 @@ MA 02110-1301, USA.
 	OOSkyDrawable			*skyDrawable;
 	float					clusterChance,
 							alpha,
-							scale;
+							scale,
+							starCountMultiplier, 
+							nebulaCountMultiplier;
 	signed					starCount,	// Need to be able to hold -1...
 							nebulaCount;
-	unsigned				starCountMultiplier, 
-							nebulaCountMultiplier;
 	
 	self = [super init];
 	if (self == nil)  return nil;
@@ -85,8 +85,8 @@ MA 02110-1301, USA.
 	
 	// Load star count
 	starCount = [systemInfo oo_floatForKey:@"sky_n_stars" defaultValue:-1];
-	starCountMultiplier = [systemInfo oo_unsignedIntForKey:@"star_count_multiplier" defaultValue:1];
-	nebulaCountMultiplier = [systemInfo oo_unsignedIntForKey:@"nebula_count_multiplier" defaultValue:1];
+	starCountMultiplier = [systemInfo oo_floatForKey:@"star_count_multiplier" defaultValue:1.0f];
+	if (starCountMultiplier < 0.0f)  starCountMultiplier *= -1.0f;
 	if (0 <= starCount)
 	{
 		// changed for 1.82, default set to 1
@@ -100,6 +100,8 @@ MA 02110-1301, USA.
 	
 	// ...and nebula count. (Note: simplifying this would change the appearance of stars/blobs.)
 	nebulaCount = [systemInfo oo_floatForKey:@"sky_n_blurs" defaultValue:-1];
+	nebulaCountMultiplier = [systemInfo oo_floatForKey:@"nebula_count_multiplier" defaultValue:1.0f];
+	if (nebulaCountMultiplier < 0.0f)  nebulaCountMultiplier *= -1.0f;
 	if (0 <= nebulaCount)
 	{
 		// changed for 1.82, default set to 1
@@ -195,7 +197,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		OOLog(@"sky.warning",@"PLAYER is nil");
+		OOLog(@"sky.warning", @"%@", @"PLAYER is nil");
 	}
 }
 

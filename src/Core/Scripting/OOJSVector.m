@@ -1136,3 +1136,5 @@ static JSBool VectorStaticRandomDirectionAndLength(JSContext *context, uintN arg
 	
 	OOJS_PROFILE_EXIT
 }
+
+

@@ -44,6 +44,8 @@ this.aiStarted = function() {
 		this.oolite_priorityai.setParameter("oolite_flag_launchAdjustMissile",true);
 	}
 
+	// prevent deceleration on launch
+	this.ship.desiredSpeed = this.ship.maxSpeed;
 
 	ai.setPriorities([
 		{

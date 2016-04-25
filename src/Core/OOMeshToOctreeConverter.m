@@ -922,7 +922,7 @@ static NO_INLINE_FUNC void AddTriangle_slow(GeometryData *data, Triangle tri)
 	
 	if (EXPECT_NOT(data->triangles == NULL))
 	{
-		OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
+		OOLog(kOOLogAllocationFailure, @"%@", @"!!!!! Ran out of memory to allocate more geometry!");
 		exit(EXIT_FAILURE);
 	}
 	

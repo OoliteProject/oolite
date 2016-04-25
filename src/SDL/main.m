@@ -43,11 +43,6 @@ uint32_t gDebugFlags = 0;
 #endif
 
 
-#ifdef OOLITE_SDL_MAC
-#define main SDL_main
-#endif
-
-
 int main(int argc, char *argv[])
 {
 #ifdef GNUSTEP
@@ -85,7 +80,8 @@ int main(int argc, char *argv[])
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	OOLoggingInit();
 	
-	NS_DURING
+	@try
+	{
 		// dajt: allocate and set the NSApplication delegate manually because not
 		// using NIB to do this
 		controller = [[GameController alloc] init];
@@ -95,16 +91,6 @@ int main(int argc, char *argv[])
 
 		for (i = 1; i < argc; i++)
 		{
-			// The commented out lines below do not seem to do anything, at least on Windows.
-			// The -fullscreen argument processing has been implemented in the loadFullscreenSettings
-			// method, inside src/SDL/MyOpenGLView.m.
-			/*
-			 -------- Begin commented out section --------
-			if (strcmp("-fullscreen", argv[i]) == 0)
-				[controller setFullScreenMode: YES];
-			--------- End commented out section --------
-			*/
-
 			if (strcmp("-load", argv[i]) == 0)
 			{
 				i++;
@@ -118,24 +104,14 @@ int main(int argc, char *argv[])
 		// Call applicationDidFinishLaunching because NSApp is not running in
 		// GNUstep port.
 		[controller applicationDidFinishLaunching: nil];
-	NS_HANDLER
-		OOLogERR(kOOLogException, @"Root exception handler hit - terminating. This is an internal error, please report it. Exception name: %@, reason: %@", [localException name], [localException reason]);
+	}
+	@catch (NSException *exception)
+	{
+		OOLogERR(kOOLogException, @"Root exception handler hit - terminating. This is an internal error, please report it. Exception name: %@, reason: %@", [exception name], [exception reason]);
 		return EXIT_FAILURE;
-	NS_ENDHANDLER
+	}
 #endif
 
 	// never reached
 	return 0;
 }
-
-
-#if OOLITE_SDL_MAC
-
-@implementation NSWindow (SDLBugWorkaround)
-
-- (void)release
-{}
-
-@end
-
-#endif

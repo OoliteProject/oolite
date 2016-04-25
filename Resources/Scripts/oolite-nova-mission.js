@@ -219,7 +219,8 @@ this.missionScreenOpportunity = function ()
 					titleKey: "oolite_nova_title",
 					messageKey: "oolite_nova_brief",
 					background: "solar.png",
-					choicesKey: "oolite_nova_yesno"
+					choicesKey: "oolite_nova_yesno",
+					screenID: "oolite-nova-briefing"
 				},
 				choiceEvaluation);
 				
@@ -234,7 +235,8 @@ this.missionScreenOpportunity = function ()
 				mission.runScreen({
 					titleKey: "oolite_nova_title",
 					messageKey: "oolite_nova_hero",
-					background: "solar.png"
+					background: "solar.png",
+					screenID: "oolite-nova-hero"
 				});
 				player.ship.manifest["gem_stones"] += 100;
 				this._endTheMission();
@@ -246,7 +248,8 @@ this.missionScreenOpportunity = function ()
 				{
 					titleKey: "oolite_nova_title",
 					messageKey: "oolite_nova_disappointed",
-					background: "solar.png"
+					background: "solar.png",
+					screenID: "oolite-nova-disappointed"
 				});
 				this._endTheMission();
 			}
@@ -255,7 +258,8 @@ this.missionScreenOpportunity = function ()
 				mission.runScreen({
 					titleKey: "oolite_nova_title",
 					messageKey: "oolite_nova_ignored",
-					background: "solar.png"
+					background: "solar.png",
+					screenID: "oolite-nova-ignored"
 				});
 				this._endTheMission();
 			}
@@ -266,7 +270,8 @@ this.missionScreenOpportunity = function ()
 				mission.runScreen({
 					titleKey: "oolite_nova_title",
 					messageKey: "oolite_nova_disappointed",
-					background: "solar.png"
+					background: "solar.png",
+					screenID: "oolite-nova-coward"
 				});
 				this._endTheMission();
 			}

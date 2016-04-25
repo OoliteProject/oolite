@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOCacheManager.h"
 #import "OOTypes.h"
 #import "OOWeakReference.h"
+#import "OOColor.h"
 
 @class Universe, CollisionRegion, ShipEntity, OOVisualEffectEntity;
 
@@ -111,6 +112,7 @@ enum OOScanClass
 	HPVector					position; // use high-precision vectors for global position
 	Vector						cameraRelativePosition;
 	Quaternion				orientation;
+	OOColor					*atmosphereFogging;
 	
 	int						zero_index;
 	
@@ -287,6 +289,8 @@ enum OOScanClass
 - (GLfloat) universalTime;
 - (GLfloat) spawnTime;
 - (GLfloat) timeElapsedSinceSpawn;
+- (void) setAtmosphereFogging: (OOColor *) fogging;
+- (OOColor *) fogUniform;
 
 #ifndef NDEBUG
 - (NSString *) descriptionForObjDumpBasic;

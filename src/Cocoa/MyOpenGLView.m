@@ -211,6 +211,12 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 }
 
 
+- (NSSize) backingViewSize
+{
+	return backingViewSize;
+}
+
+
 - (GLfloat) display_z
 {
 	return display_z;
@@ -334,11 +340,19 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		x_offset = 320.0;
 		y_offset = 320.0 * viewSize.height/viewSize.width;
 	}
-	
+
+	if ([self respondsToSelector:@selector(wantsBestResolutionOpenGLSurface:)])
+	{
+		[self wantsBestResolutionOpenGLSurface:NO];
+	}
 	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
 		// High resolution mode support.
-		v_size = [self convertSizeToBacking:v_size];
+		backingViewSize = [self convertSizeToBacking:viewSize];
+	}
+	else
+	{
+		backingViewSize = viewSize;
 	}
 	
 	[self openGLContext];	// Force lazy setup if needed.
@@ -386,12 +400,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 - (BOOL) snapShot:(NSString *)filename
 {
 	BOOL snapShotOK = YES;
-        NSSize v_size = viewSize;
-	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
-	{
-		// High resolution mode support.
-		v_size = [self convertSizeToBacking:v_size];
-	}
+	NSSize v_size = backingViewSize;
 	
 	int w = v_size.width;
 	int h = v_size.height;
@@ -501,6 +510,12 @@ FAIL:
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 	return snapShotOK;
+}
+
+
+- (void) stringToClipboard:(NSString *)stringToCopy
+{
+	// TODO: implement string clipboard copy for Mac
 }
 
 
@@ -690,6 +705,10 @@ FAIL:
 	ctrl = (flags & NSControlKeyMask) ? YES : NO;
 	command = (flags & NSCommandKeyMask) ? YES : NO;
 	shift = ( flags & NSShiftKeyMask ) ? YES : NO;
+	if ([theEvent keyCode] == 0x39) // 57 = key code for caps lock
+	{
+		capsLockOn = (flags & NSAlphaShiftKeyMask) ? YES : NO;
+	}
 }
 
 
@@ -975,6 +994,12 @@ FAIL:
 }
 
 
+- (BOOL) isCapsLockOn
+{
+	return capsLockOn;
+}
+
+
 - (int) numKeys
 {
 	return NUM_KEYS;
@@ -1047,7 +1072,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 
@@ -1075,7 +1100,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 
@@ -1104,7 +1129,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 
@@ -1133,7 +1158,7 @@ FAIL:
 		[bitmap autorelease];
 		
 		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
-		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+		[[bitmap representationUsingType:NSPNGFileType properties:[NSDictionary dictionary]] writeToFile:filepath atomically:YES];
 	}
 }
 

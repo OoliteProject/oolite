@@ -471,7 +471,7 @@ static void RemovePreference(NSString *key)
 			
 			// did we put the old directory in the trash?
 			Boolean inTrash = false;
-			const UInt8* utfPath = (UInt8*)[[url path] UTF8String];
+			const UInt8 *utfPath = (const UInt8 *)[[url path] UTF8String];
 			
 			OSStatus err = DetermineIfPathIsEnclosedByFolder(kOnAppropriateDisk, kTrashFolderType, utfPath, false, &inTrash);
 			// if so, create a new directory.
@@ -835,7 +835,7 @@ static NSMutableArray *sMessageStack;
 	[[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
 #endif
 	[[NSUserDefaults standardUserDefaults] synchronize];
-	OOLog(@"gameController.exitApp",@".GNUstepDefaults synchronized.");
+	OOLog(@"gameController.exitApp", @"%@", @".GNUstepDefaults synchronized.");
 	OOLoggingTerminate();
 	SDL_Quit();
 	[[OOOpenALController sharedController] shutdown];

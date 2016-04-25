@@ -1409,7 +1409,11 @@ Vector OOVectorFromObject(id object, Vector defaultValue)
 	Vector				result = defaultValue;
 	NSDictionary		*dict = nil;
 	
-	if ([object isKindOfClass:[NSString class]])
+	if ([object isKindOfClass:[OONativeVector class]])
+	{
+		result = [object getVector];
+	}
+	else if ([object isKindOfClass:[NSString class]])
 	{
 		// This will only write result if a valid vector is found, and will write an error message otherwise.
 		ScanVectorFromString(object, &result);

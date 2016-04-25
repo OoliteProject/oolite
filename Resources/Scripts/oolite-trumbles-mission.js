@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 
 this.name			= "oolite-trumbles";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2008-2013 the Oolite team.";
+this.copyright		= "© 2008-2016 the Oolite team.";
 this.description	= "Random offers of trumbles.";
 
 
@@ -76,11 +76,16 @@ this.startUp = function startUp()
 this.shipDockedWithStation = function shipDockedWithStation(station)
 {
 	pendingOffer = false;
+	if (missionVariables.novacount || missionVariables.nova)
+	{
+		// So the offers eventually stop for long-time players who keep refusing.
+		return;
+	}
+
 	
 	if (station.isMainStation)
 	{
-		if (!missionVariables.trumbles &&
-			!missionVariables.novacount)	// So the offers eventually stop for long-time players who keep refusing.
+		if (!missionVariables.trumbles)	
 		{
 			missionVariables.trumbles = "BUY_ME";
 		}
@@ -106,7 +111,8 @@ this.missionScreenOpportunity = function missionScreenOpportunity()
 			titleKey: "oolite_trumble_title",
 			messageKey: "oolite_trumble_offer",
 			background: "trumblebox.png",
-			choicesKey: "oolite_trumble_offer_yesno"
+			choicesKey: "oolite_trumble_offer_yesno",
+			screenID: "oolite-trumbles"
 		},
 		function (choice)
 		{

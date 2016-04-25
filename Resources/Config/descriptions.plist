@@ -870,7 +870,7 @@
 	// system description after a nova
 	"nova-system-description" =
 	(
-		"The %I sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system."
+		"The [system][planetname-derivative-suffix] sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system."
 	);
 	"nova-system-government"		= "Uninhabited system - no government";
 	"nova-system-economy"			= "Uninhabited system - no economy";
@@ -1070,7 +1070,7 @@
 	"unknown-ship-@"				= "Unknown Ship '%@'.";
 
 	// Intro1 screen
-	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2015";
+	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2016";
 	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
 	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
 	"load-previous-commander-yes"	= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
@@ -1272,6 +1272,8 @@
 	"oolite-keydesc-key_docking_music"			= "Docking music";
 
 	"oolite-keydesc-key_advanced_nav_array"		= "Route planner";
+	"oolite-keydesc-key_next_info_system"		= "Next Planet Info";
+	"oolite-keydesc-key_previous_info_system"	= "Previous Planet Info";
 	"oolite-keydesc-key_map_home"				= "Home map";
 	"oolite-keydesc-key_map_info"				= "Show chart icons";
 
@@ -1526,6 +1528,8 @@
 
 	// System data screen
 	"sysdata-data-on-system"		= "Data on [system]";
+	"sysdata-data-on-system-no-name"	= "No data available";
+	"sysdata-data-on-system-no-data"	= "No data on this system is currently available";
 	"sysdata-eco"					= "Economy:";
 	"sysdata-govt"					= "Government:";
 	"sysdata-tl"					= "Tech Level:";
@@ -1735,8 +1739,8 @@
 	"manifest-@-travelling-to-@-to-arrive-within-@"	= "%@ travelling to %@ to arrive within %@.";
 	"manifest-deliver-@-to-@within-@"	= "Deliver %@ to %@ within %@.";
 
-	"oolite-manifest-person-travelling"	= "[label] travelling to [destination] to arrive within [deadline] for [fee] ₢.";
-	"oolite-manifest-item-delivery"	= "Deliver [label] to [destination] within [deadline] for [fee] ₢.";
+	"oolite-manifest-person-travelling"	= "[label] travelling to [destination] to arrive within [deadline] for [feeDesc].";
+	"oolite-manifest-item-delivery"	= "Deliver [label] to [destination] within [deadline] for [feeDesc].";
 
 	
 	// Shipyard screen
