@@ -1416,32 +1416,36 @@ static NSTimeInterval	time_last_frame;
 			// Field of view controls
 			if (![UNIVERSE displayGUI])
 			{
-				if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fieldOfView < MAX_FOV))
+				float fov = [gameView fov:YES];
+				if (([gameView isDown:key_inc_field_of_view] || joyButtonState[BUTTON_INC_FIELD_OF_VIEW]) && (fov < MAX_FOV))
 				{
-					fieldOfView *= pow(fov_delta, delta_t);
-					if (fieldOfView > MAX_FOV)  fieldOfView = MAX_FOV;
+					fov *= pow(fov_delta, delta_t);
+					if (fov > MAX_FOV)  fov = MAX_FOV;
+					[gameView setFov:(fov) fromFraction:YES];
 				}
 
-				if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]) && (fieldOfView > MIN_FOV))
+				if (([gameView isDown:key_dec_field_of_view] || joyButtonState[BUTTON_DEC_FIELD_OF_VIEW]) && (fov > MIN_FOV))
 				{
-					fieldOfView /= pow(fov_delta, delta_t);
-					if (fieldOfView < MIN_FOV)  fieldOfView = MIN_FOV;
+					fov /= pow(fov_delta, delta_t);
+					if (fov < MIN_FOV)  fov = MIN_FOV;
+					[gameView setFov:(fov) fromFraction:YES];
 				}
 
 				NSDictionary *functionForFovAxis = [[stickHandler axisFunctions] oo_dictionaryForKey:[[NSNumber numberWithInt:AXIS_FIELD_OF_VIEW] stringValue]];
 				if ([stickHandler joystickCount] != 0 && functionForFovAxis != nil)
 				{
-					// TODO think reqFov through
 					double reqFov = [stickHandler getAxisState: AXIS_FIELD_OF_VIEW];
-					if (fieldOfView < maxFieldOfView * reqFov)
+					if (fov < MAX_FOV * reqFov)
 					{
-						fieldOfView *= pow(fov_delta, delta_t);
-						if (fieldOfView > MAX_FOV)  fieldOfView = MAX_FOV;
+						fov *= pow(fov_delta, delta_t);
+						if (fov > MAX_FOV)  fov = MAX_FOV;
+						[gameView setFov:(fov) fromFraction:YES];
 					}
-					if (fieldOfView > maxFieldOfView * reqFov)
+					if (fov > MAX_FOV * reqFov)
 					{
-						fieldOfView /= pow(fov_delta, delta_t);
-						if (fieldOfView < MIN_FOV)  fieldOfView = MIN_FOV;
+						fov /= pow(fov_delta, delta_t);
+						if (fov < MIN_FOV)  fov = MIN_FOV;
+						[gameView setFov:(fov) fromFraction:YES];
 					}
 				}
 			}
@@ -3241,22 +3245,21 @@ static NSTimeInterval	time_last_frame;
 		{
 			BOOL rightKeyDown = [gameView isDown:key_gui_arrow_right];
 			BOOL leftKeyDown = [gameView isDown:key_gui_arrow_left];
-			float fov = [gameView fov:NO];
+			float fov = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
 			float fovStep = (MAX_FOV_DEG - MIN_FOV_DEG) / 20.0f;
 			fov += (((rightKeyDown && (fov < MAX_FOV_DEG)) ?
 						fovStep : 0.0f) - ((leftKeyDown && (fov > MIN_FOV_DEG)) ? fovStep : 0.0f));
 			if (fov > MAX_FOV_DEG) fov = MAX_FOV_DEG;
 			if (fov < MIN_FOV_DEG) fov = MIN_FOV_DEG;
 			[gameView setFov:fov fromFraction:NO];
-			fieldOfView = [gameView fov:YES];
 			int fovTicks = (int)((fov - MIN_FOV_DEG) / fovStep);
 			NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
 			NSString* v1_string = @"|||||||||||||||||||||||||";
 			NSString* v0_string = @".........................";
 			v1_string = [v1_string substringToIndex:fovTicks];
 			v0_string = [v0_string substringToIndex:20 - fovTicks];
-			[gui setText:[NSString stringWithFormat:@"%@%@%@ (%d%c) ", fovWordDesc, v1_string, v0_string, (int)fov, 176 /*176 is the degrees symbol ASCII code*/]	forRow:GUI_ROW(GAME,FOV)  align:GUI_ALIGN_CENTER];
-			[[NSUserDefaults standardUserDefaults] setFloat:[gameView fov:NO] forKey:@"fov-value"];
+			[gui setText:[NSString stringWithFormat:@"%@%@%@ (%d%c) ", fovWordDesc, v1_string, v0_string, (int)fov, 176 /*176 is the degrees symbol ASCII code*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
+			[[NSUserDefaults standardUserDefaults] setFloat:fov forKey:@"fov-value"];
 			timeLastKeyPress = script_time;
 		}
 		fovControlPressed = YES;

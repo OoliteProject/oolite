@@ -729,8 +729,6 @@ typedef enum
 	
 	StickProfileScreen		*stickProfileScreen;
 
-	double					maxFieldOfView;
-	double					fieldOfView;
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	double					fov_delta;
 #endif
@@ -1194,6 +1192,9 @@ typedef enum
    1.0f is fully in and is normally associated with the point of ship destruct due to altitude.
 */
 - (GLfloat) insideAtmosphereFraction;
+
+- (void) viewFov:(float)fovMultiplier;
+- (float) viewFov;
 
 @end
 

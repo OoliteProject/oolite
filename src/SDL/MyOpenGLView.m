@@ -2508,13 +2508,13 @@ keys[a] = NO; keys[b] = NO; \
 
 - (void) setFov:(float)value fromFraction:(BOOL)fromFraction
 {
-	_fov = fromFraction ? value : tan((value / 2) * M_PI / 180);
+	_fov = fromFraction ? value : 2 * tan((value / 2) * M_PI / 180);
 }
 
 
 - (float) fov:(BOOL)inFraction
 {
-	return inFraction ? _fov : 2 * atan(_fov) * 180 / M_PI;
+	return inFraction ? _fov : 2 * atan(_fov / 2) * 180 / M_PI;
 }
 
 

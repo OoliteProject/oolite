@@ -4040,7 +4040,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	[result oo_setFloat:[gameView gammaValue] forKey:@"gammaValue"];
 #endif
 
-	[result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	[result oo_setFloat:[prefs oo_floatForKey:@"fov-value" defaultValue:57.2f] forKey:@"fovValue"];
 	
 	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	
@@ -4402,16 +4403,16 @@ static const OOMatrix	starboard_matrix =
 			{
 				float   nearPlane = vdist ? 1.0 : INTERMEDIATE_CLEAR_DEPTH;
 				float   farPlane = vdist ? INTERMEDIATE_CLEAR_DEPTH : MAX_CLEAR_DEPTH;
-				float   ratio = (displayGUI ? 0.5 : [gameView fov:YES]) * nearPlane; // 0.5 is field of view ratio for GUIs
+				float   ratio = (displayGUI ? 1.0 : [gameView fov:YES]) * nearPlane; // 1.0 is field of view ratio for GUIs
 				
 				OOGLResetProjection();
 				if ((displayGUI && 4*aspect >= 3) || (!displayGUI && 4*aspect <= 3))
 				{
-					OOGLFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, nearPlane, farPlane);
+					OOGLFrustum(-ratio/2, ratio/2, -aspect*ratio/2, aspect*ratio/2, nearPlane, farPlane);
 				}
 				else
 				{
-					OOGLFrustum(-3*ratio/aspect/4, 3*ratio/aspect/4, -3*ratio/4, 3*ratio/4, nearPlane, farPlane);
+					OOGLFrustum(-3*ratio/aspect/8, 3*ratio/aspect/8, -3*ratio/8, 3*ratio/8, nearPlane, farPlane);
 				}
 
 				[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];

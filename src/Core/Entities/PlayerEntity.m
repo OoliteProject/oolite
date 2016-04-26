@@ -1734,7 +1734,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSAssert(gOOPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
 	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
 
-	maxFieldOfView = MAX_FOV;
 #if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	fov_delta = 2.0; // multiply by 2 each second
 #endif
@@ -1777,7 +1776,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (BOOL) setUpAndConfirmOK:(BOOL)stopOnError saveGame:(BOOL)saveGame
 {
-	fieldOfView = [[UNIVERSE gameView] fov:YES];
 	unsigned i;
 	
 	showDemoShips = NO;
@@ -2996,8 +2994,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[hud setScannerZoom:z1];
 	}
 
-	[[UNIVERSE gameView] setFov:fieldOfView fromFraction:YES];
-	
 	// scanner sanity check - lose any targets further than maximum scanner range
 	ShipEntity *primeTarget = [self primaryTarget];
 	if (primeTarget && HPdistance2([primeTarget position], [self position]) > SCANNER_MAX_RANGE2 && !autopilot_engaged)
@@ -8464,7 +8460,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 #endif
 
 		// field of view control
-		float fov = [gameView fov:NO];
+		float fov = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
 		int fovTicks = (int)((fov - MIN_FOV_DEG) * 20 / (MAX_FOV_DEG - MIN_FOV_DEG));
 		NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
 		[gui setText:[NSString stringWithFormat:@"%@%@ (%d%c) ", fovWordDesc, SliderString(fovTicks), (int)fov, 176 /*176 is the degrees symbol Unicode code point*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
@@ -12845,6 +12841,20 @@ else _dockTarget = NO_TARGET;
 	_missionTextEntry;
 }
 #endif
+
+- (void) viewFov:(float)fovMultiplier
+{
+	float gameOptionsFovInDegrees = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
+	float gameOptionsFovInFraction = (2 * tan(gameOptionsFovInDegrees / 2 * M_PI / 180));
+	[[UNIVERSE gameView] setFov:gameOptionsFovInFraction*fovMultiplier fromFraction:YES];
+}
+
+- (float) viewFov
+{
+	float gameOptionsFovInDegrees = [[NSUserDefaults standardUserDefaults] floatForKey:@"fov-value"];
+	float gameOptionsFovInFraction = (2 * tan(gameOptionsFovInDegrees / 2 * M_PI / 180));
+	return [[UNIVERSE gameView] fov:YES] / gameOptionsFovInFraction;
+}
 
 @end
 
