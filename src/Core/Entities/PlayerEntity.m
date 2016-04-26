@@ -659,7 +659,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	target_system_id = sid;
 	cursor_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystemKey:[UNIVERSE keyForPlanetOverridesForSystem:sid inGalaxy:galaxy_number]]);
-	[self setInfoSystemID: sid];
 }
 
 
