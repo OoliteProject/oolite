@@ -1053,7 +1053,7 @@ MA 02110-1301, USA.
 			}
 		}
 		
-		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, (int)viewSize.width, (int)viewSize.height, TRUE);
 		if(!wasFullScreen)
 		{
 			[self setWindowBorderless:YES];
@@ -2213,7 +2213,8 @@ keys[a] = NO; keys[b] = NO; \
 			
 								if (wp.showCmd != SW_SHOWMINIMIZED && wp.showCmd != SW_MINIMIZE)
 								{
-									MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, viewSize.width, viewSize.height, TRUE);
+									MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
+													(int)viewSize.width, (int)viewSize.height, TRUE);
 								}
 								
 								if (fullScreenMaximized)
