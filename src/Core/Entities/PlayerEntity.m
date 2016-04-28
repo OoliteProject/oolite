@@ -697,7 +697,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (void) setInfoSystemID: (OOSystemID) sid
+- (void) setInfoSystemID: (OOSystemID) sid moveChart: (BOOL) moveChart
 {
 	if (sid != info_system_id)
 	{
@@ -705,7 +705,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		info_system_id = sid;
 		if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART || gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 		{
-			target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+			if(moveChart)
+			{
+				target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+			}
 		}
 		else
 		{
@@ -713,10 +716,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			{
 				[self setGuiToSystemDataScreen];
 			}
-			chart_centre_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
-			target_chart_centre = chart_centre_coordinates;
-			chart_focus_coordinates = chart_centre_coordinates;
-			target_chart_focus = chart_focus_coordinates;
+			if(moveChart)
+			{
+				chart_centre_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+				target_chart_centre = chart_centre_coordinates;
+				chart_focus_coordinates = chart_centre_coordinates;
+				target_chart_focus = chart_focus_coordinates;
+			}
 		}
 		JSContext *context = OOJSAcquireContext();
 		ShipScriptEvent(context, self, "infoSystemChanged", INT_TO_JSVAL(info_system_id), INT_TO_JSVAL(old));
@@ -729,14 +735,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (ANA_mode == OPTIMIZED_BY_NONE)
 	{
-		[self setInfoSystemID: target_system_id];
+		[self setInfoSystemID: target_system_id moveChart: YES];
 		return;
 	}
 	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
 	NSUInteger i;
 	if (route == nil)
 	{
-		[self setInfoSystemID: target_system_id];
+		[self setInfoSystemID: target_system_id moveChart: YES];
 		return;
 	}
 	for (i = 0; i < [route count]; i++)
@@ -745,7 +751,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			if (i + 1 < [route count])
 			{
-				[self setInfoSystemID:[[route objectAtIndex:i + 1] unsignedIntValue]];
+				[self setInfoSystemID:[[route objectAtIndex:i + 1] unsignedIntValue] moveChart: YES];
 				[route release];
 				return;
 			}
@@ -753,7 +759,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 	}
 	[route release];
-	[self setInfoSystemID: target_system_id];
+	[self setInfoSystemID: target_system_id moveChart: YES];
 	return;
 }
 
@@ -762,14 +768,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (ANA_mode == OPTIMIZED_BY_NONE)
 	{
-		[self setInfoSystemID: system_id];
+		[self setInfoSystemID: system_id moveChart: YES];
 		return;
 	}
 	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
 	NSUInteger i;
 	if (route == nil)
 	{
-		[self setInfoSystemID: system_id];
+		[self setInfoSystemID: system_id moveChart: YES];
 		return;
 	}
 	for (i = 0; i < [route count]; i++)
@@ -778,7 +784,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			if (i > 0)
 			{
-				[self setInfoSystemID: [[route objectAtIndex: i - 1] unsignedIntValue]];
+				[self setInfoSystemID: [[route objectAtIndex: i - 1] unsignedIntValue] moveChart: YES];
 				[route release];
 				return;
 			}
@@ -786,21 +792,21 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 	}
 	[route release];
-	[self setInfoSystemID: system_id];
+	[self setInfoSystemID: system_id moveChart: YES];
 	return;
 }
 
 
 - (void) homeInfoSystem
 {
-	[self setInfoSystemID: system_id];
+	[self setInfoSystemID: system_id moveChart: YES];
 	return;
 }
 
 
 - (void) targetInfoSystem
 {
-	[self setInfoSystemID: target_system_id];
+	[self setInfoSystemID: target_system_id moveChart: YES];
 	return;
 }
 
@@ -7383,7 +7389,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self witchStart];
 	if (info_system_id == system_id)
 	{
-		[self setInfoSystemID: sTo];
+		[self setInfoSystemID: sTo moveChart: YES];
 	}
 	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
 	if (2 * market_rnd < ship_trade_in_factor)

@@ -796,7 +796,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			{
 				if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY)
 				{ 
-					[player setInfoSystemID:iValue];
+					[player setInfoSystemID:iValue moveChart: YES];
 					return YES;
 				}
 				else

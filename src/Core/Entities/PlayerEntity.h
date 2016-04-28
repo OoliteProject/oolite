@@ -782,7 +782,7 @@ typedef enum
 - (void) setTargetSystemID:(OOSystemID) sid;
 - (OOSystemID) nextHopTargetSystemID;
 - (OOSystemID) infoSystemID;
-- (void) setInfoSystemID: (OOSystemID) sid;
+- (void) setInfoSystemID: (OOSystemID) sid moveChart:(BOOL) moveChart;
 - (void) nextInfoSystem;
 - (void) previousInfoSystem;
 - (void) homeInfoSystem;

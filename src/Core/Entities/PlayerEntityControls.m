@@ -493,8 +493,7 @@ static NSTimeInterval	time_last_frame;
 - (void) targetNewSystem:(int) direction whileTyping:(BOOL) whileTyping
 {
 	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
-	[self setInfoSystemID: target_system_id];
-	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
+	[self setInfoSystemID: target_system_id moveChart: YES];
 
 	found_system_id = target_system_id;
 	if (!whileTyping)
@@ -1809,7 +1808,7 @@ static NSTimeInterval	time_last_frame;
 							}
 							if (ANA_mode == OPTIMIZED_BY_NONE || ![self infoSystemOnRoute])
 							{
-								[self setInfoSystemID: target_system_id];
+								[self setInfoSystemID: target_system_id moveChart: NO];
 							}
 						}
 						pling_pressed = YES;
@@ -2020,7 +2019,7 @@ static NSTimeInterval	time_last_frame;
 					if (found_system_id == -1)
 					{
 						target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
-						[self setInfoSystemID: target_system_id];
+						[self setInfoSystemID: target_system_id moveChart: YES];
 					}
 					else
 					{
@@ -2029,7 +2028,7 @@ static NSTimeInterval	time_last_frame;
 						if (fpos.x != cursor_coordinates.x && fpos.y != cursor_coordinates.y)
 						{
 							target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:NO];
-							[self setInfoSystemID: target_system_id];
+							[self setInfoSystemID: target_system_id moveChart: YES];
 						}
 					}
 					cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
