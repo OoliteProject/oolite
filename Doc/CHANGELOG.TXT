@@ -37,6 +37,8 @@ Scripting:
 * player.stopAudioMessage method, stops any message currently being spoken
 * Allow setting of null values (i.e. unset) for sun/corona properties
 * playerStartedAutopilot event now fires after the docking music has started playing
+* player.ship.infoSystem property
+* infoSystemChanged world script event
 
 Bug fixes:
 ==========
