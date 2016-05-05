@@ -25,18 +25,14 @@ MA 02110-1301, USA.
 #include "OOMaths.h"
 
 
-const HPVector			kZeroHPVector = { 0.0f, 0.0f, 0.0f };
-const HPVector			kBasisXHPVector = { 1.0f, 0.0f, 0.0f };
-const HPVector			kBasisYHPVector = { 0.0f, 1.0f, 0.0f };
-const HPVector			kBasisZHPVector = { 0.0f, 0.0f, 1.0f };
+const HPVector			kZeroHPVector = { 0.0, 0.0, 0.0 };
+const HPVector			kBasisXHPVector = { 1.0, 0.0, 0.0 };
+const HPVector			kBasisYHPVector = { 0.0, 1.0, 0.0 };
+const HPVector			kBasisZHPVector = { 0.0, 0.0, 1.0 };
 
-const HPVector2D			kZeroHPVector2D = { 0.0f, 0.0f };
-const HPVector2D			kBasisXHPVector2D = { 1.0f, 0.0f };
-const HPVector2D			kBasisYHPVector2D = { 0.0f, 1.0f };
-
-/*#if !OOMATHS_STANDALONE
-const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
-#endif*/
+const HPVector2D			kZeroHPVector2D = { 0.0, 0.0 };
+const HPVector2D			kBasisXHPVector2D = { 1.0, 0.0 };
+const HPVector2D			kBasisYHPVector2D = { 0.0, 1.0 };
 
 
 #if __OBJC__
@@ -77,7 +73,7 @@ HPVector OORandomUnitHPVector(void)
 		v = make_HPvector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
 		m = HPmagnitude2(v);
 	}
-	while (m > 0.25f || m == 0.0f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
+	while (m > 0.25 || m == 0.0);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
 	
 	return HPvector_normal(v);
 }
@@ -93,9 +89,9 @@ HPVector OOHPVectorRandomSpatial(OOHPScalar maxLength)
 		v = make_HPvector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
 		m = HPmagnitude2(v);
 	}
-	while (m > 0.25f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
+	while (m > 0.25);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
 	
-	return HPvector_multiply_scalar(v, maxLength * 2.0f);	// 2.0 is to compensate for the 0.5-radius sphere.
+	return HPvector_multiply_scalar(v, maxLength * 2.0);	// 2.0 is to compensate for the 0.5-radius sphere.
 }
 
 

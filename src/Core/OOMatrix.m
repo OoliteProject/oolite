@@ -404,7 +404,7 @@ OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *d)
 	*d = 1.0;
 	for (i = 0; i < 4; i++)
 	{
-		max_value = fabs(M.m[i][i]);
+		max_value = fabsf(M.m[i][i]);
 		best_row = i;
 		for (j = i+1; j < 4; j++)
 		{

@@ -39,6 +39,7 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 
 /* Linear interpolation. */
 OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
+OOINLINE double OOLerpd(double v0, double v1, double fraction) INLINE_CONST_FUNC;
 
 
 /* Round integer up to nearest power of 2. NOTE: these return 0 if the high bit of value is set. */
@@ -100,6 +101,13 @@ OOINLINE float OOLerp(float v0, float v1, float fraction)
 	// Linear interpolation - equivalent to v0 * (1.0f - fraction) + v1 * fraction.
 	return v0 + fraction * (v1 - v0);
 }
+
+OOINLINE double OOLerpd(double v0, double v1, double fraction)
+{
+	// Linear interpolation - equivalent to v0 * (1.0 - fraction) + v1 * fraction.
+	return v0 + fraction * (v1 - v0);
+}
+
 
 
 #endif	/* INCLUDED_OOMATHS_h */
