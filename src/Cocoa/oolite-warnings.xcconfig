@@ -5,8 +5,8 @@ OO_ARCH_WARNING_FLAGS					=
 OO_ARCH_WARNING_FLAGS[arch=i386]		= -Wno-format
 
 
-// Start off with all possible warnings, and make a stable subset errors.
-OO_LOTS_OF_WARNINGS						= -Weverything -Werror=all
+// Start off with all possible warnings.
+OO_LOTS_OF_WARNINGS						= -Weverything
 
 // Trim off stylistic warnings from -Wall or -Wextra that we don't want.
 OO_WARNING_EXCEPTIONS					= -Wno-unused-parameter -Wno-missing-field-initializers
