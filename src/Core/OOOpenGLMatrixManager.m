@@ -368,7 +368,7 @@ const char* ooliteStandardMatrixUniforms[] =
 		matrices[which] = OOMatrixTranspose(OOMatrixInverseWithDeterminant(matrices[which], &d));
 		if (d != 0.0)
 		{
-			d = pow(fabs(d), 1.0/3);
+			d = powf(fabsf(d), 1.0/3);
 			for (int i = 0; i < 3; i++)
 			{
 				for (int j = 0; j < 3; j++)

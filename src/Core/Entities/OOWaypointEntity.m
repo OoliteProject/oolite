@@ -148,15 +148,15 @@ MA 02110-1301, USA.
 	{
 		// dim out as gets further away; 2-D HUD display more
 		// important at long range
-		a -=  0.004*(sqrt(cam_zero_distance) / _size);
+		a -=  0.004f*(sqrtf(cam_zero_distance) / _size);
 	}
-	if (a < 0.01)
+	if (a < 0.01f)
 	{
 		return;
 	}
 
 	GLfloat s0 = _size;
-	GLfloat s1 = _size * 0.75;
+	GLfloat s1 = _size * 0.75f;
 
 	OO_ENTER_OPENGL();
 	OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
@@ -179,12 +179,12 @@ MA 02110-1301, USA.
 	}
 	if (oriented)
 	{
-		while (s1 > 20.0)
+		while (s1 > 20.0f)
 		{
-			glVertex3f(-20.0,0,-s1-20.0);	glVertex3f(0,0,-s1);
-			glVertex3f(20.0,0,-s1-20.0);	glVertex3f(0,0,-s1);
-			glVertex3f(-20.0,0,s1-20.0);	glVertex3f(0,0,s1);
-			glVertex3f(20.0,0,s1-20.0);		glVertex3f(0,0,s1);
+			glVertex3f(-20.0,0,-s1-20.0f);	glVertex3f(0,0,-s1);
+			glVertex3f(20.0,0,-s1-20.0f);	glVertex3f(0,0,-s1);
+			glVertex3f(-20.0,0,s1-20.0f);	glVertex3f(0,0,s1);
+			glVertex3f(20.0,0,s1-20.0f);	glVertex3f(0,0,s1);
 			s1 *= 0.5;
 		}
 	}

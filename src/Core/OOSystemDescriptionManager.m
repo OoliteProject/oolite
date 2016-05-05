@@ -300,7 +300,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 				[self setProperty:@"sun_radius"
 					 forSystemKey:systemKey
 						 andLayer:OO_LAYER_OXP_DYNAMIC
-						  toValue:[NSNumber numberWithFloat:sr_num+600000.0]
+						  toValue:[NSNumber numberWithFloat:sr_num+600000.0f]
 					 fromManifest:defaultManifest];
 			}
 		}

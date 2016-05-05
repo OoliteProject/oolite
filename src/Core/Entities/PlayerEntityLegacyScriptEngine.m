@@ -1575,7 +1575,7 @@ static int shipsFound;
 	yString = [tokens objectAtIndex:4];
 	zString = [tokens objectAtIndex:5];
 
-	HPVector posn = make_HPvector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	HPVector posn = make_HPvector([xString doubleValue], [yString doubleValue], [zString doubleValue]);
 
 	int number = [numberString intValue];
 	if (number < 1)
@@ -1617,7 +1617,7 @@ static int shipsFound;
 	yString = [tokens objectAtIndex:4];
 	zString = [tokens objectAtIndex:5];
 
-	HPVector posn = make_HPvector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	HPVector posn = make_HPvector([xString doubleValue], [yString doubleValue], [zString doubleValue]);
 
 	int number = [numberString intValue];
 	if (number < 1)
@@ -1648,11 +1648,11 @@ static int shipsFound;
 	NSString* roleString = [tokens objectAtIndex:0];
 	int number = [[tokens objectAtIndex:1] intValue];
 	NSString* systemString = [tokens objectAtIndex:2];
-	GLfloat x = [[tokens objectAtIndex:3] floatValue];
-	GLfloat y = [[tokens objectAtIndex:4] floatValue];
-	GLfloat z = [[tokens objectAtIndex:5] floatValue];
+	double x = [[tokens objectAtIndex:3] doubleValue];
+	double y = [[tokens objectAtIndex:4] doubleValue];
+	double z = [[tokens objectAtIndex:5] doubleValue];
 	GLfloat r = [[tokens objectAtIndex:6] floatValue];
-	HPVector posn = make_HPvector( x, y, z);
+	HPVector posn = make_HPvector(x, y, z);
 
 	if (number < 1)
 	{

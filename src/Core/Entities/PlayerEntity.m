@@ -5991,7 +5991,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	HPVector		rel_pos;
-	double		d_forward, d_right, d_up;
+	OOScalar		d_forward, d_right, d_up;
 	BOOL		internal_damage = NO;	// base chance
 	
 	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
@@ -6106,7 +6106,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent
 {
 	HPVector  rel_pos;
-	double  d_forward, d_right, d_up;
+	OOScalar  d_forward, d_right, d_up;
 	BOOL	internal_damage = NO;	// base chance
 	
 	if ([self status] == STATUS_DEAD)  return;
@@ -7436,12 +7436,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) leaveWitchspace
 {
-	float		d1 = (float)(SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5));
+	double		d1 = SCANNER_MAX_RANGE * ((Ranrot() & 255)/256.0 - 0.5);
 	HPVector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
 	HPVector		whpos, exitpos;
 
-	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
+	double min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 	quaternion_set_random(&q1);
 	if (abs((int)d1) < min_d1)
 	{
@@ -10187,7 +10187,7 @@ static NSString *last_outfitting_key=nil;
 {
 	if (tradeInValue != 0)
 	{
-		if (priceFactor < 1.0f)  tradeInValue *= priceFactor;
+		if (priceFactor < 1.0)  tradeInValue *= priceFactor;
 		credits += tradeInValue;
 	}
 }

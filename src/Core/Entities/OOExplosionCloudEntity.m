@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OOCollectionExtractors.h"
 
-#define kExplosionCloudDuration		0.9f
+#define kExplosionCloudDuration		0.9
 #define kGrowthRateFactor			1.5f
 #define kExplosionCloudAlpha		0.85f
 #define kExplosionDefaultSize		2.5f
@@ -77,7 +77,7 @@ static NSString * const kExplosionTexture		= @"texture";
 
 	_growthRate = [_settings oo_floatForKey:kExplosionGrowth defaultValue:kGrowthRateFactor] * size;
 	_alpha = [_settings oo_floatForKey:kExplosionAlpha defaultValue:kExplosionCloudAlpha];
-	_cloudDuration = [_settings oo_floatForKey:kExplosionDuration defaultValue:kExplosionCloudDuration];
+	_cloudDuration = [_settings oo_doubleForKey:kExplosionDuration defaultValue:kExplosionCloudDuration];
 
 	GLfloat spread = [_settings oo_floatForKey:kExplosionSpread defaultValue:1.0];
 
@@ -102,7 +102,7 @@ static NSString * const kExplosionTexture		= @"texture";
 		vel = vector_multiply_scalar(vector_normal(vel),1000);
 	}
 
-	if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size*0.8*spread maxSpeed:size*1.2*spread duration:_cloudDuration baseColor:baseColor]))
+	if ((self = [super initWithPosition:pos velocity:vel count:count minSpeed:size*0.8f*spread maxSpeed:size*1.2f*spread duration:_cloudDuration baseColor:baseColor]))
 	{
 		NSString *color_order = [_settings oo_stringForKey:kExplosionColors defaultValue:@"rgb"];
 		
@@ -238,6 +238,7 @@ static NSString * const kExplosionTexture		= @"texture";
 	}
 
 
+	float fdelta_t = delta_t;
 	for (i=0;i<count;i++) {
 		
 		_particleSize[i] += delta_t * _growthRate;
@@ -246,26 +247,26 @@ static NSString * const kExplosionTexture		= @"texture";
 		if (![color_order isEqualToString:@"white"])
 		{
 
-			if (particleColor[i][tertiary] > 0.0) // fade blue (white to yellow)
+			if (particleColor[i][tertiary] > 0.0f) // fade blue (white to yellow)
 			{
-				particleColor[i][tertiary] -= delta_t*0.5*fadeRate;
-				if (particleColor[i][tertiary] < 0.0)
+				particleColor[i][tertiary] -= fdelta_t * 0.5f * fadeRate;
+				if (particleColor[i][tertiary] < 0.0f)
 				{
 					particleColor[i][tertiary] = 0.0f;
 				}
 			}
-			else if (particleColor[i][secondary] > 0.0) // fade green (yellow to red)
+			else if (particleColor[i][secondary] > 0.0f) // fade green (yellow to red)
 			{
-				particleColor[i][secondary] -= delta_t*fadeRate;
-				if (particleColor[i][secondary] < 0.0)
+				particleColor[i][secondary] -= fdelta_t * fadeRate;
+				if (particleColor[i][secondary] < 0.0f)
 				{
 					particleColor[i][secondary] = 0.0f;
 				}
 			}
-			else if (particleColor[i][primary] > 0.0) // fade red (red to black)
+			else if (particleColor[i][primary] > 0.0f) // fade red (red to black)
 			{
-				particleColor[i][primary] -= delta_t*2.0*fadeRate;
-				if (particleColor[i][primary] < 0.0)
+				particleColor[i][primary] -= fdelta_t * 2.0f * fadeRate;
+				if (particleColor[i][primary] < 0.0f)
 				{
 					particleColor[i][primary] = 0.0f;
 				}
