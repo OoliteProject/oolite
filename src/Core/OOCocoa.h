@@ -60,15 +60,6 @@ MA 02110-1301, USA.
 		#define OOLITE_64_BIT		1
 	#endif
 	
-	/*	Enforce type-clean use of nil and Nil under OS X. (They are untyped in
-		Cocoa, apparently for compatibility with legacy Mac OS code, but typed in
-		GNUstep.)
-	*/
-	#undef nil
-	#define nil ((id)0)
-	#undef Nil
-	#define Nil ((Class)nil)
-	
 	/*	Useful macro copied from GNUstep.
 	*/
 	#ifndef DESTROY
