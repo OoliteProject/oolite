@@ -410,7 +410,7 @@ const char* ooliteStandardMatrixUniforms[] =
 	return matrices[which];
 }
 
-- (NSArray*) standardMatrixUniformLocations: (GLuint) program
+- (NSArray*) standardMatrixUniformLocations: (GLhandleARB) program
 {
 	GLint location;
 	NSUInteger i;
