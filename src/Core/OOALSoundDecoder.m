@@ -141,7 +141,7 @@ static int OOCloseOXZVorbis (void *datasource);
 
 		_name = [[path lastPathComponent] retain];
 
-		unsigned i, cl;
+		NSUInteger i, cl;
 		NSArray *components = [path pathComponents];
 		cl = [components count];
 		for (i = 0 ; i < cl ; i++)

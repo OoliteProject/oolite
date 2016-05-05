@@ -66,7 +66,7 @@ static NSString * const kExplosionTexture		= @"texture";
 		_settings = [settings retain];
 	}
 
-	unsigned count = [_settings oo_unsignedIntegerForKey:kExplosionCount defaultValue:25];
+	unsigned count = [_settings oo_unsignedIntForKey:kExplosionCount defaultValue:25];
 	if (count > maxCount) {
 		count = maxCount;
 	}

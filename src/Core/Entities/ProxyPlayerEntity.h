@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 	OOCompassMode			_compassMode;
 	OOAlertCondition		_alertCondition;
 	NSUInteger				_trumbleCount;
-	NSUInteger				_tradeInFactor;
+	int						_tradeInFactor;
 	unsigned				_massLocked: 1,
 							_atHyperspeed: 1,
 							_dialIdentEngaged: 1;

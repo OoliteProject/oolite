@@ -156,7 +156,7 @@ static NSString * const kGuiDockingContinueColor	= @"docking_continue_color";
 
 
 typedef NSInteger OOGUIRow;	// -1 for none
-typedef int OOGUITabStop; // negative value = right align text
+typedef NSInteger OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 

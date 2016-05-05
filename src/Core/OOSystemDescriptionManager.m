@@ -118,8 +118,8 @@ static NSString *kOOSystemLayerProperty = @"layer";
 				if (distanceBetweenPlanetPositions(coordinatesCache[jIndex].x,coordinatesCache[jIndex].y,coordinatesCache[kIndex].x,coordinatesCache[kIndex].y) <= MAX_JUMP_RANGE)
 				{
 					// arrays are of system number only
-					[neighbourCache[jIndex] addObject:[NSNumber numberWithInt:k]];
-					[neighbourCache[kIndex] addObject:[NSNumber numberWithInt:j]];
+					[neighbourCache[jIndex] addObject:[NSNumber numberWithUnsignedInteger:k]];
+					[neighbourCache[kIndex] addObject:[NSNumber numberWithUnsignedInteger:j]];
 				}
 			}
 		}
@@ -482,7 +482,7 @@ static NSString *kOOSystemLayerProperty = @"layer";
 
 - (void) setProperties:(NSDictionary *)properties inDescription:(OOSystemDescriptionEntry *)desc
 {
-	OOSystemLayer layer = [properties oo_unsignedIntegerForKey:kOOSystemLayerProperty defaultValue:OO_LAYER_OXP_STATIC];
+	OOSystemLayer layer = [properties oo_unsignedIntForKey:kOOSystemLayerProperty defaultValue:OO_LAYER_OXP_STATIC];
 	if (layer > OO_LAYER_OXP_PRIORITY)
 	{
 		OOLog(@"system.description.error",@"Layer %u is not a valid layer number in system information.",layer);

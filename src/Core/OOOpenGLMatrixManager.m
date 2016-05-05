@@ -81,7 +81,7 @@ const char* ooliteStandardMatrixUniforms[] =
 	return matrix;
 }
 
-- (unsigned int) stackCount
+- (NSUInteger) stackCount
 {
 	return [stack count];
 }
@@ -233,7 +233,7 @@ const char* ooliteStandardMatrixUniforms[] =
 	return matrices[OOLITE_GL_MATRIX_MODELVIEW];
 }
 
-- (unsigned int) countModelView
+- (NSUInteger) countModelView
 {
 	return [modelViewStack stackCount];
 }
@@ -426,7 +426,7 @@ const char* ooliteStandardMatrixUniforms[] =
 				[locationSet addObject:
 					[NSArray arrayWithObjects:
 						[NSNumber numberWithInt: location],
-						[NSNumber numberWithInt: i],
+						[NSNumber numberWithInteger: i],
 						@"mat3",
 						nil]];
 			}
@@ -435,7 +435,7 @@ const char* ooliteStandardMatrixUniforms[] =
 				[locationSet addObject:
 					[NSArray arrayWithObjects:
 						[NSNumber numberWithInt: location],
-						[NSNumber numberWithInt: i],
+						[NSNumber numberWithInteger: i],
 						@"mat4",
 						nil]];
 			}

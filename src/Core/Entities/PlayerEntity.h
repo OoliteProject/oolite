@@ -647,7 +647,7 @@ typedef enum
 	// target memory
 	// TODO: this should use weakrefs
 	NSMutableArray  		*target_memory;
-	int						target_memory_index;
+	NSUInteger				target_memory_index;
 	
 	// custom view points
 	Quaternion				customViewQuaternion;
@@ -1080,7 +1080,7 @@ typedef enum
 
 - (void) clearTargetMemory;
 - (NSMutableArray *) targetMemory;
-- (BOOL) moveTargetMemoryBy:(int)delta;
+- (BOOL) moveTargetMemoryBy:(NSInteger)delta;
 
 - (void) printIdentLockedOnForMissile:(BOOL)missile;
 
