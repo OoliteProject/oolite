@@ -42,6 +42,7 @@
 #import "OOFilteringEnumerator.h"
 #import "OOJSPopulatorDefinition.h"
 #import "OODebugStandards.h"
+#import "EntityOOJavaScriptExtensions.h"
 
 static JSObject *sSystemPrototype;
 
