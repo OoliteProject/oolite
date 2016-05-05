@@ -548,11 +548,11 @@ static void RemovePreference(NSString *key)
 	}
 	
 	// None found, create the default path.
-	[NSFileManager.defaultManager createDirectoryAtPath:paths[0]
+	[NSFileManager.defaultManager createDirectoryAtPath:[paths objectAtIndex:0]
 							withIntermediateDirectories:YES
 											 attributes:nil
 												  error:NULL];
-	[self openPath:paths[0]];
+	[self openPath:[paths objectAtIndex:0]];
 }
 
 
