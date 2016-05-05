@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "HeadUpDisplay.h"
 #import "OOSystemDescriptionManager.h"
+#import "OOEntityFilterPredicate.h"
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
@@ -1470,7 +1471,15 @@ static int shipsFound;
 	[tokens removeObjectAtIndex:0];
 	messageString = [tokens componentsJoinedByString:@" "];
 
-	[UNIVERSE sendShipsWithPrimaryRole:roleString messageToAI:messageString];
+	NSArray *targets = [UNIVERSE findShipsMatchingPredicate:HasPrimaryRolePredicate
+												  parameter:roleString
+													inRange:-1
+												   ofEntity:nil];
+
+	ShipEntity *target;
+	foreach(target, targets) {
+		[[target getAI] reactToMessage:messageString context:@"messageShipAIs:"];
+	}
 }
 
 
