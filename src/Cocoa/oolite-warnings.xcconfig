@@ -36,25 +36,17 @@ OO_WARNING_EXCEPTIONS					= -Wno-unused-parameter -Wno-missing-field-initializer
 // -Wassign-enum: Correctly warns about Cocoa's abuse of enum types for bit
 //     masks, which we can't do anything sensible about.
 // -Wvla: We use variable-length arrays with reckless abandon.
-OO_EXTRA_WARNING_EXCEPTIONS				= -Wno-pedantic -Wno-gnu -Wno-undef -Wno-objc-interface-ivars -Wno-direct-ivar-access -Wno-receiver-forward-class -Wno-padded -Wno-float-equal -Wno-switch-enum -Wno-cast-align -Wno-unused-exception-parameter -Wno-missing-noreturn -Wno-unreachable-code -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-conditional-uninitialized -Wno-bad-function-cast -Wno-assign-enum -Wno-vla -Wno-auto-import $(OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_$(XCODE_VERSION_MINOR))
-
-// New warnings in Xcode 6.3:
 // -Rmodule-build: Very chatty remarks about the Clang module system that we
 //     don't care about
 // -Wcstring-format-directive Warning when using %s in NSString formatting,
 //     unfortunately this is triggered by NSParameterAssert
-OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_0630 = -Rno-module-build -Wno-cstring-format-directive
-OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_0640 = $OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_0630
-
-// New warnings in Xcode 7:
 // -Wreserved-id-macro: use of initial underscores in macros, invalid but used
 //     in libaries
 // -Wnullable-to-nonnull-conversion: ill-considered Swift compatibilit feature
 //     we don't care about
 // -Wcast-qual: strict checking of const/volatile qualifier cast rules, which
 //     are incompatible with most real code. Including the C standard library.
-OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_0700 = $OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_0640 -Wno-reserved-id-macro -Wno-nullable-to-nonnull-conversion -Wno-cast-qual
-OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_0710 = $OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_0700
+OO_EXTRA_WARNING_EXCEPTIONS				= -Wno-pedantic -Wno-gnu -Wno-undef -Wno-objc-interface-ivars -Wno-direct-ivar-access -Wno-receiver-forward-class -Wno-padded -Wno-float-equal -Wno-switch-enum -Wno-cast-align -Wno-unused-exception-parameter -Wno-missing-noreturn -Wno-unreachable-code -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-conditional-uninitialized -Wno-bad-function-cast -Wno-assign-enum -Wno-vla -Wno-auto-import -Rno-module-build -Wno-cstring-format-directive -Wno-reserved-id-macro -Wno-nullable-to-nonnull-conversion -Wno-cast-qual $(OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_$(XCODE_VERSION_MINOR))
 
 // Things we don't want to break the build when they're introduced by devs on other platforms.
 OO_WARNING_NO_ERROR						= -Wno-error=deprecated-declarations -Wno-error=semicolon-before-method-body
