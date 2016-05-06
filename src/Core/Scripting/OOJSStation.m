@@ -829,7 +829,7 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 		return NO;
 	}
 
-	[station setQuantity:(NSUInteger)quantity forCommodity:commodity];
+	[station setQuantity:(OOCargoQuantity)quantity forCommodity:commodity];
 	
 	if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_MARKET)
 	{

@@ -2864,7 +2864,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, uintN argc, jsval *vp)
 
 	if (asDict)
 	{
-		dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:[thisEnt countEquipmentItem:key]],@"EQUIPMENT_OK",[NSNumber numberWithInt:[thisEnt countEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]],@"EQUIPMENT_DAMAGED",nil];
+		dict = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithUnsignedInteger:[thisEnt countEquipmentItem:key]],@"EQUIPMENT_OK",[NSNumber numberWithUnsignedInteger:[thisEnt countEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]],@"EQUIPMENT_DAMAGED",nil];
 		OOJS_RETURN_OBJECT(dict);
 	}
 	else
@@ -4028,7 +4028,7 @@ static JSBool ShipDamageAssessment(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	ShipEntity *thisEnt = nil;
-	NSUInteger	assessment = 0;
+	int			assessment = 0;
 	
 	GET_THIS_SHIP(thisEnt);
 	

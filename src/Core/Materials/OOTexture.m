@@ -343,7 +343,7 @@ static NSString *sGlobalTraceContext = nil;
 
 - (NSSize)texCoordsScale
 {
-	return NSMakeSize(1.0f, 1.0f);
+	return NSMakeSize(1.0, 1.0);
 }
 
 

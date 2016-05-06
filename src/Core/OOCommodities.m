@@ -278,7 +278,7 @@ MA 02110-1301, USA.
 		good = [_commodityLists oo_dictionaryForKey:commodity];
 		OOCargoQuantity q = [self generateQuantityForGood:good inEconomy:economy];
 		// main system market limited to 127 units of each item
-		OOCargoQuantity cap = [good oo_unsignedIntegerForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+		OOCargoQuantity cap = [good oo_unsignedIntForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 		if (q > cap)
 		{
 			q = cap;
@@ -316,7 +316,7 @@ MA 02110-1301, USA.
 	foreachkey (commodity, _commodityLists)
 	{
 		good = [_commodityLists oo_dictionaryForKey:commodity];
-		OOCargoQuantity baseCapacity = [good oo_unsignedIntegerForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+		OOCargoQuantity baseCapacity = [good oo_unsignedIntForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 		
 		// important - ensure baseCapacity cannot be zero
 		if (!baseCapacity)  baseCapacity = MAIN_SYSTEM_MARKET_LIMIT;
@@ -331,7 +331,7 @@ MA 02110-1301, USA.
 			p = [self adjustPrice:p byRule:modifier];
 		
 			// first, scale to this station's capacity for this good
-			OOCargoQuantity localCapacity = [good oo_unsignedIntegerForKey:kOOCommodityCapacity];
+			OOCargoQuantity localCapacity = [good oo_unsignedIntForKey:kOOCommodityCapacity];
 			if (localCapacity > capacity)
 			{
 				localCapacity = capacity;
@@ -408,7 +408,7 @@ MA 02110-1301, USA.
 	{
 		return UNITS_TONS;
 	}
-	return [definition oo_unsignedIntegerForKey:kOOCommodityContainer];
+	return [definition oo_unsignedIntForKey:kOOCommodityContainer];
 }
 
 

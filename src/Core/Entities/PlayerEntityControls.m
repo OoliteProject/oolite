@@ -2670,7 +2670,7 @@ static NSTimeInterval	time_last_frame;
 							[UNIVERSE removeDemoShips];
 							[self setGuiToStatusScreen];
 							[self playBuyShip];
-							[self doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:self andArgument:[NSNumber numberWithInt:shipprice]]; // some equipment.oxp might want to know everything has changed.
+							[self doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:self andArgument:[NSNumber numberWithUnsignedLongLong:shipprice]]; // some equipment.oxp might want to know everything has changed.
 						}
 					}
 					else

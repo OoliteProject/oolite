@@ -664,7 +664,7 @@ typedef enum
 - (float) maxAftShieldLevel;
 - (float) shieldRechargeRate;
 
-- (float) maxHyperspaceDistance;
+- (double) maxHyperspaceDistance;
 - (float) afterburnerFactor;
 - (float) afterburnerRate;
 - (void) setAfterburnerFactor:(GLfloat)new;

@@ -156,7 +156,7 @@ static OOTexture *sPlumeTexture = nil;
 	GLfloat hyper_fade = 8.0f / (8.0f + speed * speed * speed);
 	
 	GLfloat flare_factor = fmaxf(speed,1.0) * ex_emissive[3] * hyper_fade;
-	GLfloat red_factor = speed * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
+	GLfloat red_factor = speed * ex_emissive[0] * (ranrot_rand() % 11) * 0.1f;	// random fluctuations
 	GLfloat green_factor = speed * ex_emissive[1] * hyper_fade;
 	
 	if (speed > 1.0f)	// afterburner!
@@ -173,7 +173,7 @@ static OOTexture *sPlumeTexture = nil;
 	
 	HPVector currentPos = ship->position;
 	Vector vfwd = [ship forwardVector];
-	GLfloat	spd = 0.5 * [ship flightSpeed];
+	GLfloat	spd = 0.5f * [ship flightSpeed];
 	vfwd = vector_multiply_scalar(vfwd, spd);
 	Vector master_i = [ship rightVector];
 	Vector vi,vj,vk;
@@ -184,22 +184,22 @@ static OOTexture *sPlumeTexture = nil;
 								currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
 								currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
 	
-	GLfloat speedScale = fminf(1.0,speed*5.0);
+	GLfloat speedScale = fminf(1.0f,speed * 5.0f);
 
 	GLfloat exhaust_factor = _exhaustScale.z;
-	GLfloat i01 = -0.00 * hyper_fade;
-	GLfloat i03 = -0.12 * exhaust_factor;
-	GLfloat i06 = -0.25 * exhaust_factor;
-	GLfloat i08 = -0.32 * exhaust_factor;
-	GLfloat i10 = -0.40 * exhaust_factor;
+	GLfloat i01 = -0.00f * hyper_fade;
+	GLfloat i03 = -0.12f * exhaust_factor;
+	GLfloat i06 = -0.25f * exhaust_factor;
+	GLfloat i08 = -0.32f * exhaust_factor;
+	GLfloat i10 = -0.40f * exhaust_factor;
 	GLfloat q01 = i01/i10;	// factor for trail
 	GLfloat q03 = i03/i10;
 	GLfloat q06 = i06/i10;
 	GLfloat q08 = i08/i10;
-	GLfloat r01 = 1.0 - q01;	// factor for jet
-	GLfloat r03 = 1.0 - q03;
-	GLfloat r06 = 1.0 - q06;
-	GLfloat r08 = 1.0 - q08;
+	GLfloat r01 = 1.0f - q01;	// factor for jet
+	GLfloat r03 = 1.0f - q03;
+	GLfloat r06 = 1.0f - q06;
+	GLfloat r08 = 1.0f - q08;
 	Frame	f01 = [self frameAtTime: i01 fromFrame: zero];
 	Vector	b01 = make_vector(r01 * i01 * vfwd.x, r01 * i01 * vfwd.y, r01 * i01 * vfwd.z);
 	Frame	f03 = [self frameAtTime: i03 fromFrame: zero];
@@ -474,15 +474,15 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 
 	/* Need a different texture and color array for this segment */
 	GLfloat fanTextures[18] = {
-		0.5, 0.0+phase,
-		0.2, 0.0+phase,
-		0.2, 0.1+phase,
-		0.2, 0.2+phase,
-		0.2, 0.3+phase,
-		0.2, 0.4+phase,
-		0.2, 0.3+phase,
-		0.2, 0.2+phase,
-		0.2, 0.1+phase
+		0.5f, 0.0f+phase,
+		0.2f, 0.0f+phase,
+		0.2f, 0.1f+phase,
+		0.2f, 0.2f+phase,
+		0.2f, 0.3f+phase,
+		0.2f, 0.4f+phase,
+		0.2f, 0.3f+phase,
+		0.2f, 0.2f+phase,
+		0.2f, 0.1f+phase
 	};
 	OOGL(glTexCoordPointer(2, GL_FLOAT, 0, fanTextures));
 	
@@ -579,10 +579,10 @@ static GLfloat pA[6] = { 0.01, 0.0, 2.0, 4.0, 6.0, 10.0 }; // phase adjustments
 	posn.y =	f0 * frame_zero.position.y + f1 * frame_one.position.y;
 	posn.z =	f0 * frame_zero.position.z + f1 * frame_one.position.z;
 	Quaternion qrot;
-	qrot.w =	f0 * frame_zero.orientation.w + f1 * frame_one.orientation.w;
-	qrot.x =	f0 * frame_zero.orientation.x + f1 * frame_one.orientation.x;
-	qrot.y =	f0 * frame_zero.orientation.y + f1 * frame_one.orientation.y;
-	qrot.z =	f0 * frame_zero.orientation.z + f1 * frame_one.orientation.z;
+	qrot.w =	(float)f0 * frame_zero.orientation.w + (float)f1 * frame_one.orientation.w;
+	qrot.x =	(float)f0 * frame_zero.orientation.x + (float)f1 * frame_one.orientation.x;
+	qrot.y =	(float)f0 * frame_zero.orientation.y + (float)f1 * frame_one.orientation.y;
+	qrot.z =	(float)f0 * frame_zero.orientation.z + (float)f1 * frame_one.orientation.z;
 	
 	Frame result;
 	result.position = posn;

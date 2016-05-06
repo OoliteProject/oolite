@@ -46,7 +46,7 @@ enum
 {
 	kCircleSegments					= 65
 };
-static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a unit circle
+static struct { float x, y; } sCircleVerts[kCircleSegments];	// holds vector coordinates for a unit circle
 
 
 @implementation OORingEffectEntity
@@ -56,8 +56,8 @@ static NSPoint sCircleVerts[kCircleSegments];	// holds vector coordinates for a 
 	unsigned			i;
 	for (i = 0; i < kCircleSegments; i++)
 	{
-		sCircleVerts[i].x = sin(i * 2 * M_PI / (kCircleSegments - 1));
-		sCircleVerts[i].y = cos(i * 2 * M_PI / (kCircleSegments - 1));
+		sCircleVerts[i].x = sinf(i * 2 * M_PI / (kCircleSegments - 1));
+		sCircleVerts[i].y = cosf(i * 2 * M_PI / (kCircleSegments - 1));
 	}
 }
 

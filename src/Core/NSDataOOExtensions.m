@@ -36,7 +36,7 @@ SOFTWARE.
 
 + (instancetype) oo_dataWithOXZFile:(NSString *)path
 {
-	unsigned i, cl;
+	NSUInteger i, cl;
 	NSArray *components = [path pathComponents];
 	cl = [components count];
 	for (i = 0 ; i < cl ; i++)

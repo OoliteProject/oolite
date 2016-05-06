@@ -192,14 +192,14 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	}
 	else
 	{
-		_rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
+		_rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005f * randf()]; // 0.0 .. 0.005 avr 0.0025
 		_rotationalVelocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
 
 	_atmosphereRotationalVelocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f * randf()];
 
 	// set energy
-	energy = collision_radius * 1000.0;
+	energy = collision_radius * 1000.0f;
 	
 	setRandomSeed(savedRndSeed);
 	RANROTSetFullSeed(savedRanrotSeed);
@@ -323,7 +323,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		{
 			seaHSB = RandomHSBColor();
 		}
-		while (dot_product(landHSB, seaHSB) > .80); // make sure land and sea colors differ significantly
+		while (dot_product(landHSB, seaHSB) > .80f); // make sure land and sea colors differ significantly
 		
 		// saturation bias - avoids really grey oceans
 		if (seaHSB.y < 0.22f) seaHSB.y = seaHSB.y * 0.3f + 0.2f;

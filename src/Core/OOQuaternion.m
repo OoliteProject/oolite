@@ -226,14 +226,14 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 Quaternion quaternion_rotation_betweenHP(HPVector v0, HPVector v1)
 {
 	Quaternion q;
-	OOScalar s = sqrt((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
-	if (EXPECT(s > 0.0f))
+	OOHPScalar s = sqrt((1.0 + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0);
+	if (EXPECT(s > 0.0))
 	{
-		OOScalar is = 1.0f / s;
+		OOHPScalar is = 1.0 / s;
 		q.x = (v0.y * v1.z - v0.z * v1.y) * is;
 		q.y = (v0.z * v1.x - v0.x * v1.z) * is;
 		q.z = (v0.x * v1.y - v0.y * v1.x) * is;
-		q.w = s * 0.5f;
+		q.w = s * 0.5;
 	}
 	else
 	{
@@ -257,16 +257,16 @@ Quaternion quaternion_rotation_betweenHP(HPVector v0, HPVector v1)
 Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc)	// vectors both normalised
 {
 	Quaternion q;
-	OOScalar min_s = 2.0f * cos(0.5f * maxArc);
-	OOScalar s = sqrt((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
+	OOScalar min_s = 2.0f * cosf(0.5f * maxArc);
+	OOScalar s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
 	// for some antiparallel vectors, s returns a NaN instead of 0. Testing s > 0 catches both.
 	if (EXPECT(s > 0.0f))
 	{
 		if (s < min_s)	// larger angle => smaller cos
 		{
 			OOScalar a = maxArc * 0.5f;
-			OOScalar w = cos(a);
-			OOScalar scale = sin(a);
+			OOScalar w = cosf(a);
+			OOScalar scale = sinf(a);
 			q.x = (v0.y * v1.z - v0.z * v1.y) * scale;
 			q.y = (v0.z * v1.x - v0.x * v1.z) * scale;
 			q.z = (v0.x * v1.y - v0.y * v1.x) * scale;
@@ -294,8 +294,8 @@ void quaternion_rotate_about_x(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
 	OOScalar a = angle * 0.5f;
-	OOScalar w = cos(a);
-	OOScalar scale = sin(a);
+	OOScalar w = cosf(a);
+	OOScalar scale = sinf(a);
 	
 	result.w = quat->w * w - quat->x * scale;
 	result.x = quat->w * scale + quat->x * w;
@@ -313,8 +313,8 @@ void quaternion_rotate_about_y(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
 	OOScalar a = angle * 0.5f;
-	OOScalar w = cos(a);
-	OOScalar scale = sin(a);
+	OOScalar w = cosf(a);
+	OOScalar scale = sinf(a);
 	
 	result.w = quat->w * w - quat->y * scale;
 	result.x = quat->x * w - quat->z * scale;
@@ -332,8 +332,8 @@ void quaternion_rotate_about_z(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
 	OOScalar a = angle * 0.5f;
-	OOScalar w = cos(a);
-	OOScalar scale = sin(a);
+	OOScalar w = cosf(a);
+	OOScalar scale = sinf(a);
 	
 	result.w = quat->w * w - quat->z * scale;
 	result.x = quat->x * w + quat->y * scale;
@@ -351,8 +351,8 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle)
 {
 	Quaternion q2 /*, result */;
 	OOScalar a = angle * 0.5f;
-	OOScalar w = cos(a);
-	OOScalar scale = sin(a);
+	OOScalar w = cosf(a);
+	OOScalar scale = sinf(a);
 	
 	q2.w = w;
 	q2.x = axis.x * scale;
@@ -369,9 +369,9 @@ NSString *QuaternionDescription(Quaternion quaternion)
 	float			x, y, z;
 	char			xs, ys, zs;
 	
-	x = fabs(quaternion.x);
-	y = fabs(quaternion.y);
-	z = fabs(quaternion.z);
+	x = fabsf(quaternion.x);
+	y = fabsf(quaternion.y);
+	z = fabsf(quaternion.z);
 	
 	xs = (quaternion.x >= 0.0f) ? '+' : '-';
 	ys = (quaternion.y >= 0.0f) ? '+' : '-';
@@ -400,16 +400,16 @@ Vector quaternion_rotate_vector(Quaternion q, Vector v)
 
 HPVector quaternion_rotate_HPvector(Quaternion q, HPVector v)
 {
-	Quaternion				qv;
+	OOHPScalar qvw, qvx, qvy, qvz;
 	
-	qv.w = 0.0f - q.x * v.x - q.y * v.y - q.z * v.z;
-	qv.x = -q.w * v.x + q.y * v.z - q.z * v.y;
-	qv.y = -q.w * v.y + q.z * v.x - q.x * v.z;
-	qv.z = -q.w * v.z + q.x * v.y - q.y * v.x;
+	qvw = 0.0 - q.x * v.x - q.y * v.y - q.z * v.z;
+	qvx = -q.w * v.x + q.y * v.z - q.z * v.y;
+	qvy = -q.w * v.y + q.z * v.x - q.x * v.z;
+	qvz = -q.w * v.z + q.x * v.y - q.y * v.x;
 	
-	v.x = qv.w * -q.x + qv.x * -q.w + qv.y * -q.z - qv.z * -q.y;
-	v.y = qv.w * -q.y + qv.y * -q.w + qv.z * -q.x - qv.x * -q.z;
-	v.z = qv.w * -q.z + qv.z * -q.w + qv.x * -q.y - qv.y * -q.x;
+	v.x = qvw * -q.x + qvx * -q.w + qvy * -q.z - qvz * -q.y;
+	v.y = qvw * -q.y + qvy * -q.w + qvz * -q.x - qvx * -q.z;
+	v.z = qvw * -q.z + qvz * -q.w + qvx * -q.y - qvy * -q.x;
 	
 	return v;
 }

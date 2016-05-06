@@ -747,7 +747,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	for (i = 0; i < [route count]; i++)
 	{
-		if ([[route objectAtIndex: i] unsignedIntValue] == info_system_id)
+		if ([[route objectAtIndex: i] intValue] == info_system_id)
 		{
 			if (i + 1 < [route count])
 			{
@@ -780,7 +780,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	for (i = 0; i < [route count]; i++)
 	{
-		if ([[route objectAtIndex: i] unsignedIntValue] == info_system_id)
+		if ([[route objectAtIndex: i] intValue] == info_system_id)
 		{
 			if (i > 0)
 			{
@@ -821,7 +821,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	for (i = 0; i < [route count]; i++)
 	{
-		if ([[route objectAtIndex: i] unsignedIntValue] == info_system_id)
+		if ([[route objectAtIndex: i] intValue] == info_system_id)
 		{
 			return YES;
 		}
@@ -1608,7 +1608,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
-		for (NSUInteger roleIndex = 0, missileCount = 0; roleIndex < [missileRoles count] && missileCount < max_missiles; roleIndex++)
+		unsigned missileCount = 0;
+		for (NSUInteger roleIndex = 0; roleIndex < [missileRoles count] && missileCount < max_missiles; roleIndex++)
 		{
 			NSString *missile_desc = [missileRoles oo_stringAtIndex:roleIndex];
 			if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"])
@@ -4697,7 +4698,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (OOFuelScoopStatus) dialFuelScoopStatus
 {
 	// need to account for the different ways of calculating cargo on board when docked/in-flight
-	OOCargoQuantity cargoOnBoard = [self status] == STATUS_DOCKED ? current_cargo : [cargo count];
+	OOCargoQuantity cargoOnBoard = [self status] == STATUS_DOCKED ? current_cargo : (OOCargoQuantity)[cargo count];
 	if ([self hasScoop])
 	{
 		if (scoopsActive)
@@ -4781,7 +4782,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
 	times++;
-	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	[roleWeightFlags setObject:[NSNumber numberWithUnsignedInteger:times] forKey:role];
 	if ((times & (times-1)) == 0) // is power of 2
 	{
 		[self addRoleToPlayer:role];
@@ -4794,7 +4795,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSString *role = @"miner";
 	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
 	times++;
-	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	[roleWeightFlags setObject:[NSNumber numberWithUnsignedInteger:times] forKey:role];
 	if ((times & (times-1)) == 0) // is power of 2
 	{
 		[self addRoleToPlayer:role];
@@ -5991,7 +5992,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	HPVector		rel_pos;
-	double		d_forward, d_right, d_up;
+	OOScalar		d_forward, d_right, d_up;
 	BOOL		internal_damage = NO;	// base chance
 	
 	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
@@ -6106,7 +6107,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent
 {
 	HPVector  rel_pos;
-	double  d_forward, d_right, d_up;
+	OOScalar  d_forward, d_right, d_up;
 	BOOL	internal_damage = NO;	// base chance
 	
 	if ([self status] == STATUS_DEAD)  return;
@@ -7436,12 +7437,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) leaveWitchspace
 {
-	float		d1 = (float)(SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5));
+	double		d1 = SCANNER_MAX_RANGE * ((Ranrot() & 255)/256.0 - 0.5);
 	HPVector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
 	HPVector		whpos, exitpos;
 
-	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
+	double min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 	quaternion_set_random(&q1);
 	if (abs((int)d1) < min_d1)
 	{
@@ -10187,7 +10188,7 @@ static NSString *last_outfitting_key=nil;
 {
 	if (tradeInValue != 0)
 	{
-		if (priceFactor < 1.0f)  tradeInValue *= priceFactor;
+		if (priceFactor < 1.0)  tradeInValue *= priceFactor;
 		credits += tradeInValue;
 	}
 }
@@ -10960,10 +10961,10 @@ static NSString *last_outfitting_key=nil;
 	
 	OOCommodityMarket *localMarket = [self localMarket];
 	int available_units = [shipCommodityData quantityForGood:index];
-	int pricePerUnit = [localMarket priceForGood:index];
+	OOCreditsQuantity pricePerUnit = [localMarket priceForGood:index];
 	
 	if (available_units == 0)  return NO;
-	
+
 	int market_quantity = [localMarket quantityForGood:index];
 
 	int capacity = [localMarket capacityForGood:index];
@@ -10997,7 +10998,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	
-	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
+	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:sell], [NSNumber numberWithUnsignedLongLong: pricePerUnit], nil]];
 	
 	return YES;
 }
@@ -11748,11 +11749,10 @@ static NSString *last_outfitting_key=nil;
 
 - (void) clearTargetMemory
 {
-	int i = 0;
-	int j = [target_memory count];
-	for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+	NSUInteger memoryCount = [target_memory count];
+	for (NSUInteger i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
 	{
-		if (j > i)
+		if (i < memoryCount)
 		{
 			[target_memory replaceObjectAtIndex:i withObject:[NSNull null]];
 		}
@@ -11770,14 +11770,15 @@ static NSString *last_outfitting_key=nil;
 	return target_memory;
 }
 
-- (BOOL) moveTargetMemoryBy:(int)delta
+- (BOOL) moveTargetMemoryBy:(NSInteger)delta
 {
 	unsigned i = 0;
 	while (i++ < PLAYER_TARGET_MEMORY_SIZE)	// limit loops
 	{
-		target_memory_index += delta;
-		while (target_memory_index < 0)  target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
-		while (target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)  target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
+		NSInteger idx = (NSInteger)target_memory_index + delta;
+		while (idx < 0)  idx += PLAYER_TARGET_MEMORY_SIZE;
+		target_memory_index = idx;
+
 		id targ_id = [target_memory objectAtIndex:target_memory_index];
 		if ([targ_id isProxy])
 		{

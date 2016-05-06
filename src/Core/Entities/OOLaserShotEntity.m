@@ -208,11 +208,11 @@ static const GLfloat kLaserVertices[] =
 	
 	OOGLScaleModelView(make_vector(kLaserHalfWidth, kLaserHalfWidth, _range));
 	[[self texture1] apply];
-	GLfloat s = sin([UNIVERSE getTime]);
-	GLfloat phase = s*(_range/200.0);
-	GLfloat phase2 = (1.0+s)*(_range/200.0);
-	GLfloat phase3 = -s*(_range/500.0);
-	GLfloat phase4 = -(1.0+s)*(_range/500.0);
+	GLfloat s = sinf([UNIVERSE getTime]);
+	GLfloat phase = s*(_range/200.0f);
+	GLfloat phase2 = (1.0f+s)*(_range/200.0f);
+	GLfloat phase3 = -s*(_range/500.0f);
+	GLfloat phase4 = -(1.0f+s)*(_range/500.0f);
 
 	GLfloat laserTexCoords[] = 
 		{

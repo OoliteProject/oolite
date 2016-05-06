@@ -1970,7 +1970,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	OOJS_PROFILE_ENTER
 	
 	OOMeshVertexCount	i;
-	double				d_squared, length_longest_axis, length_shortest_axis;
+	float				d_squared, length_longest_axis, length_shortest_axis;
 	GLfloat				result;
 	
 	result = 0.0f;
@@ -1999,7 +1999,7 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 	d_squared = (length_longest_axis + length_shortest_axis) * (length_longest_axis + length_shortest_axis) * 0.25; // square of average length
 	maxDrawDistance = d_squared * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;	// no longer based on the collision radius
 	
-	collisionRadius = sqrt(result);
+	collisionRadius = sqrtf(result);
 	
 	OOJS_PROFILE_EXIT_VOID
 }

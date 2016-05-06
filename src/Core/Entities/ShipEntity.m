@@ -405,7 +405,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	}
 	
 	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
-	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
+	if (octree)  mass = (GLfloat)(density * 20.0f * [octree volume]);
 	
 	DESTROY(default_laser_color);
 	default_laser_color = [[OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]] retain];
@@ -1144,7 +1144,7 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	collision_radius = [self findCollisionRadius];
 	_profileRadius = collision_radius;
 	float density = [[self shipInfoDictionary] oo_floatForKey:@"density" defaultValue:1.0f];
-	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
+	if (octree)  mass = (GLfloat)(density * 20.0f * [octree volume]);
 }
 
 
@@ -4069,9 +4069,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (float) maxHyperspaceDistance
+- (double) maxHyperspaceDistance
 {
-	return (float)MAX_JUMP_RANGE;
+	return MAX_JUMP_RANGE;
 }
 
 - (float) afterburnerFactor

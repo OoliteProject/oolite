@@ -5832,19 +5832,6 @@ static BOOL MaintainLinkedLists(Universe *uni)
 }
 
 
-- (void) sendShipsWithPrimaryRole:(NSString *)role messageToAI:(NSString *)ms
-{
-	NSArray			*targets = nil;
-	
-	targets = [self findShipsMatchingPredicate:HasPrimaryRolePredicate
-									 parameter:role
-									   inRange:-1
-									  ofEntity:nil];
-	
-	[targets makeObjectsPerformSelector:@selector(reactToMessage:) withObject:ms];
-}
-
-
 - (unsigned) countEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
 								  parameter:(void *)parameter
 									inRange:(double)range

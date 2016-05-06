@@ -159,7 +159,7 @@ MA 02110-1301, USA.
 
 	if (_frequency != 0)
 	{
-		float wave = sin(_frequency * M_PI * (_time + _phase));
+		float wave = sinf(_frequency * M_PI * (_time + _phase));
 		NSUInteger count = [_colors count];
 		if (count > 1 && wave < 0) 
 		{
@@ -176,7 +176,7 @@ MA 02110-1301, USA.
 			_justSwitched = NO;
 		}
 
-		float threshold = cos(_brightfraction * M_PI);
+		float threshold = cosf(_brightfraction * M_PI);
 		
 		float brightness = _brightfraction;
 		if (wave > threshold)
