@@ -11777,6 +11777,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		NSInteger idx = (NSInteger)target_memory_index + delta;
 		while (idx < 0)  idx += PLAYER_TARGET_MEMORY_SIZE;
+		while (idx >= PLAYER_TARGET_MEMORY_SIZE) idx -= PLAYER_TARGET_MEMORY_SIZE;
 		target_memory_index = idx;
 
 		id targ_id = [target_memory objectAtIndex:target_memory_index];
