@@ -1522,7 +1522,7 @@ static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL is
 
 	if (!isCargo)
 	{
-		if (argc > offset+5 && JS_ValueToECMAUint32(context, OOJS_ARGV[offset + 5], &uValue) && isfinite(uValue))
+		if (argc > offset+5 && JS_ValueToECMAUint32(context, OOJS_ARGV[offset + 5], &uValue) && isfinite((double)uValue))
 		{
 			*risk = uValue;
 		}
