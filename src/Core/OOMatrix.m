@@ -24,8 +24,9 @@ MA 02110-1301, USA.
 
 
 #include "OOMaths.h"
+#if OOMATHS_OPENGL_INTEGRATION
 #import "OOOpenGLExtensionManager.h"
-
+#endif
 
 const OOMatrix	kIdentityMatrix = 
 								{ .m = {
