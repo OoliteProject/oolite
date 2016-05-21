@@ -301,17 +301,17 @@ void OOMatrixColumnOperation(OOMatrix *M, int column1, OOScalar factor1, int col
 OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B)
 {
 	int i, j;
-	BOOL found;
+	bool found;
 	for (i = 0; i < 4; i++)
 	{
 		if (A.m[i][i] == 0.0)
 		{
-			found = NO;
+			found = false;
 			for (j = i+1; j < 4; j++)
 			{
 				if (A.m[j][i] != 0.0)
 				{
-					found = YES;
+					found = true;
 					OOMatrixColumnSwap(&A,i,j);
 					OOMatrixColumnSwap(&B,i,j);
 					break;
@@ -344,17 +344,17 @@ OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B)
 OOMatrix OOMatrixRightTransform(OOMatrix A, OOMatrix B)
 {
 	int i, j;
-	BOOL found;
+	bool found;
 	for (i = 0; i < 4; i++)
 	{
 		if (A.m[i][i] == 0.0)
 		{
-			found = NO;
+			found = false;
 			for (j = i+1; j < 4; j++)
 			{
 				if (A.m[j][i] != 0.0)
 				{
-					found = YES;
+					found = true;
 					OOMatrixRowSwap(&A,i,j);
 					OOMatrixRowSwap(&B,i,j);
 					break;
