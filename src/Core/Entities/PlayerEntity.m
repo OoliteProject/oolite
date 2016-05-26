@@ -8161,14 +8161,34 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 											   radius),
 					   	nil]
 				   forRow:12];
+
+			NSPoint infoSystemCoordinates = [[UNIVERSE systemManager] getCoordinatesForSystem: info_system_id inGalaxy: galaxy_number];
+			double distance = distanceBetweenPlanetPositions(infoSystemCoordinates.x, infoSystemCoordinates.y, galaxy_coordinates.x, galaxy_coordinates.y);
+			NSString *distanceInfo = [NSString stringWithFormat: @"%.1f ly", distance];
+			if (ANA_mode != OPTIMIZED_BY_NONE)
+			{
+				NSDictionary *routeInfo = nil;
+				routeInfo = [UNIVERSE routeFromSystem: system_id toSystem: info_system_id optimizedBy: ANA_mode];
+				if (routeInfo != nil)
+				{
+					double routeDistance = [[routeInfo objectForKey: @"distance"] doubleValue];
+					double routeTime = [[routeInfo objectForKey: @"time"] doubleValue];
+					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f Hours", routeDistance, routeTime];
+				}
+			}
+			[gui setArray:[NSArray arrayWithObjects:
+						@"Distance:",
+						distanceInfo,
+						nil]
+				forRow: 14];
 		
-			OOGUIRow i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
+			OOGUIRow i = [gui addLongText:system_desc startingAtRow:17 align:GUI_ALIGN_LEFT];
 			missionTextRow = i;
-			for (i-- ; i > 14 ; --i)
+			for (i-- ; i > 16 ; --i)
 			{
 				[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
 			}
-			for (i = 1 ; i <= 12 ; ++i)
+			for (i = 1 ; i <= 14 ; ++i)
 			{
 				// nil default = fall back to global default colour
 				[gui setColor:[gui colorFromSetting:kGuiSystemdataFactsColor defaultValue:nil] forRow:i];
