@@ -269,6 +269,7 @@ MA 02110-1301, USA.
 	currentSize = 0;
 
 	// Find what the full screen and windowed settings are.
+	fullScreen = NO;
 	[self loadFullscreenSettings];
 	[self loadWindowSize];
 
@@ -2426,13 +2427,15 @@ keys[a] = NO; keys[b] = NO; \
 	if([userDefaults objectForKey:@"fullscreen"])
 		fullScreen=[userDefaults boolForKey:@"fullscreen"];
 
-	// Check if -fullscreen has been passed on the command line. If yes, set it regardless of
-	// what is set by .GNUstepDefaults.
-   	for (i = 0; i < [cmdline_arguments count]; i++)
-   	{
-   		if ([[cmdline_arguments objectAtIndex:i] isEqual:@"-fullscreen"]) fullScreen = YES;
-   	}
-
+	// Check if -fullscreen or -windowed has been passed on the command line. If yes,
+	// set it regardless of what is set by .GNUstepDefaults. If both are found in the
+	// arguments list, the one that comes last wins.
+	for (i = 0; i < [cmdline_arguments count]; i++)
+	{
+		if ([[cmdline_arguments objectAtIndex:i] isEqual:@"-fullscreen"]) fullScreen = YES;
+		if ([[cmdline_arguments objectAtIndex:i] isEqual:@"-windowed"]) fullScreen = NO;
+	}
+	
    	if(width && height)
    	{
       		currentSize=[self findDisplayModeForWidth: width Height: height Refresh: refresh];
