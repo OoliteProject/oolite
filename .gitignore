@@ -7,8 +7,8 @@ ehthumbs.db
 Icon?
 
 # Xcode cruft
-project.xcworkspace/
 xcuserdata/
+*.xcscmblueprint
 
 
 # Used for downloaded code
