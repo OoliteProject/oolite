@@ -2,59 +2,43 @@
 
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
-
-## Guidelines
-
-Nothing except makefiles/xcode projects, directories, and this readme file
-should appear in the top level directory.
-The deps directory should contain dependencies that are useful to carry along
-to build binary packages. The dependencies directory should be named:
-   Opsys-cpuarch-deps
-Opsys should be exactly as reported by 'uname' with no flags (case
-sensitive!). The cpuarch should be the cpu architecture reported by `uname -p`
-(except i686, i586 etc should be translated to x86). This allows build scripts
-to automatically package up the right dependency tree in tarball installers.
-Cocoa-deps is an exception, because a different build system is used under
-Mac OS X.
+ 
+For end-user documentation, see [oolite.org](http://www.oolite.org/) and
+[Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
 ## Contents
-- **autopackage**:       Directory for the apspec file for the Linux
-                         autopackage
-- **Asset Source**:      Files used to create the various PNG and sound files
-- **debian**:            Files to enable automatic setup under Linux using
-                         dpkg (Debian package manager) tools
-- **deps**:              Dependencies for all plaforms:
-   - **Cocoa-deps**:     Dependencies for Mac OS X (macppc and macintel
-                         platforms)
-   - **Linux-deps**:     Dependencies for Linux on x86 and x86_64 processors
-   - **scripts**:        Scripts and script fragments for tarball/autopackage
-- **Doc**:               Documentation (including user guides)
-- **FreeDesktop**:       Files for GNOME/KDE desktop launchers
-- **installers**:        Files used to create various installers
-- **Oolite-importer**:   (OS X) The oolite Spotlight metadata importer
+- **debian**:  Files to enable automatic setup under Linux using dpkg (Debian package manager) tools
+- **DebugOXP**:  [Debug.oxp](http://wiki.alioth.net/index.php/Debug_OXP), the expansion pack that enables console support in debug and test release builds
+- **deps**
+   - **Cocoa-deps**:  Dependencies for Mac OS X
+   - **Cross-platform-deps**:  Dependencies for platforms other than Mac OS X
+   - **Linux-deps**:  Dependencies for Linux on x86 and x86_64 processors
+   - **URLs**:  URLs used for binary dependecies on Mac OS X
+   - **Windows-deps**:  Dependencies for Windows on x86 and x86_64 processors
+- **Doc**:  Documentation (including user guides)
+- **installers**:  Files used to create various installers
+- **Mac-specific**:  Additional projects used only on Mac OS X
+   - **DataFormatters**:  Debugger configurations for Xcode
+   - **DebugBundle**:  Implements the [Debug menu and in-app console](http://wiki.alioth.net/index.php/Debug_OXP#Mac_OS_X-specific_features)
+   - **OCUnitTest**:  A small number of unit tests
+   - **Oolite-docktile:**  An embedded plug-in which implements the Oolite dock menu when Oolite is not running
+   - **Oolite-importer**:  A Spotlight importer to make saved games and OXPs searchable
 - **Oolite.xcodeproj**:  The OS X Xcode project to build Oolite
-- **OSX-SDL**:           Project files for the SDL version of Oolite on OS X
-                         (*very* seldom used, more of a curiosity)
-- **Resources**:         Files that live in the application bundle's
-                         Contents/Resources directory (AI, config, textures
-                         etc).
-- **src**:               Objective-C and C sources, incuding header files:
-   - **Core**:           Files that are compiled on all platforms
-   - **SDL**:            Files that are only compiled for platforms that use
-                         SDL
-   - **Cocoa**:          Files that are only compiled on Mac OS X without SDL
-   - **BSDCompat**:      Support for BSDisms that gnu libc doesn't have
-                         (strl*)
-- **tools**:             Various tools for preparing files, builds, releases
-                         etc.
+- **Resources**:  Game assets and resource files for Mac and GNUstep application bundles
+- **Schemata**:  Plist schema files for the [OXP Verifier](http://wiki.alioth.net/index.php/OXP_howto#OXP_Verifier)
+- **src**:  Objective-C and C sources, incuding header files
+   - **BSDCompat**:  Support for BSDisms that gnu libc doesn't have (strl*)
+   - **Cocoa**:  Files that are only compiled on Mac OS X
+   - **Core**:  Files that are compiled on all platforms
+   - **SDL**:  Files that are only compiled for platforms that use SDL
+- **tests**:  A mixed bag of test cases for manual testing and ad-hoc code tests.
+- **tools**:  Various tools for preparing files, builds, releases etc.
 
 ## Building
-On Mac OS X, you will need the latest version of Xcode and OS X 10.4 (Tiger).
-You will also need all the relevant frameworks (they come with Xcode). If you
-don't yet have Xcode you can get it from the Apple Developer Connection (see
-the Apple web site) - ADC membership to get Xcode is free, and it's a rather
-nice IDE.
-Then double click on the Xcode project in the Finder, and hit Build.
+On Mac OS X, you will need the latest version of Xcode from the App Store.
+Then double click on the Xcode project in the Finder, select one of the Oolite
+targets from the Scheme pop-up, and hit Build and Run (the play button in the
+toolbar).
 
 For Windows, see the Oolite wiki:
 http://wiki.alioth.net/index.php/Running_Oolite-Windows
@@ -74,13 +58,9 @@ base SDL development kit. Then just type `make`, or, if you're using GNU make,
 `make -f Makefile`. On some systems, such as Gentoo, you may need to run
 `make -f Makefile OBJCFLAGS=-fobjc-exceptions`.
 
-If you want to make the Linux autopackage, after getting the Autopackage
-development kit, just type `makeinstaller`, and a package file will be
-deposited in the top level.
-
 ## Running
 On OS X, you can run from Xcode by clicking on the appropriate icon
-(or choosing 'Build and Run').
+(or choosing 'Run' from the 'Product' menu).
 On Linux/BSD/Unix, in a terminal, type `openapp oolite`
 
 ## Git
