@@ -40,12 +40,20 @@ SOFTWARE.
 
 #import "OOCocoa.h"
 
+#ifndef OO_PQ_STRONG
+#if __has_feature(objc_arc)
+#define OO_PQ_STRONG __strong
+#else
+#define OO_PQ_STRONG
+#endif
+#endif
+
 
 @interface OOPriorityQueue: NSObject <NSCopying>
 {
 @private
 	SEL						_comparator;
-	id						*_heap;
+	OO_PQ_STRONG id			*_heap;
 	NSUInteger				_count,
 							_capacity;
 }
