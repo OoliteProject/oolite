@@ -1,3 +1,5 @@
+[![Build Status (Mac)](https://api.travis-ci.org/OoliteProject/oolite.svg)](https://travis-ci.org/OoliteProject/oolite)
+
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
 
