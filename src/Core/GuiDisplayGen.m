@@ -1879,6 +1879,19 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 
 	
+	// draw crosshairs over current location
+	//
+	[self setGLColorFromSetting:kGuiChartCrosshairColor defaultValue:[OOColor greenColor] alpha:alpha];
+
+	[self drawCrossHairsWithSize:12/zoom+2 x:x + cu.x y:y + cu.y z:z];
+
+
+	// draw crosshairs over cursor
+	//
+	[self setGLColorFromSetting:kGuiChartCursorColor defaultValue:[OOColor redColor] alpha:alpha];
+	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
+	[self drawCrossHairsWithSize:7/zoom+2 x:x + cu.x y:y + cu.y z:z];
+
 	// draw marks and stars
 	//
 	OOGL(GLScaledLineWidth(1.5f));
@@ -2187,24 +2200,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:textRow];
 	[targetName release];
 
-	// draw crosshairs over current location
-	//
-	[self setGLColorFromSetting:kGuiChartCrosshairColor defaultValue:[OOColor greenColor] alpha:alpha];
-
-	[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
-
-
-	// draw crosshairs over cursor
-	//
-	[self setGLColorFromSetting:kGuiChartCursorColor defaultValue:[OOColor redColor] alpha:alpha];
-	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
-	[self drawCrossHairsWithSize:7 x:x + cu.x y:y + cu.y z:z];
-
 	// draw planet info circle
 	OOGL(GLScaledLineWidth(2.0f));
 	[self setGLColorFromSetting: kGuiChartInfoMarkerColor defaultValue:[OOColor blueColor] alpha:alpha];
 	cu = NSMakePoint((float)(hscale*info_system_coordinates.x+hoffset),(float)(vscale*info_system_coordinates.y+voffset));
-	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(8.0f, 8.0f), 5);
+	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(6.0f/zoom+2.0f, 6.0f/zoom+2.0f), 5);
 
 	// disable draw clipping
 	OOGL(glDisable(GL_SCISSOR_TEST));
