@@ -1164,7 +1164,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSUInteger		maxRows = STATUS_EQUIPMENT_MAX_ROWS;
 	if ([[PLAYER hud] allowBigGui])
 	{
-		maxRows += 6;
+		maxRows += STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS;
 	}
 	NSUInteger		itemsPerColumn = maxRows;
 

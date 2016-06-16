@@ -2523,9 +2523,10 @@ static NSTimeInterval	time_last_frame;
 
 				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 				{
-					if ([[gui keyForRow:STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS] isEqual:GUI_KEY_OK])
+					NSUInteger maxRows = [[self hud] allowBigGui] ? STATUS_EQUIPMENT_MAX_ROWS + STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS : STATUS_EQUIPMENT_MAX_ROWS;
+					if ([[gui keyForRow:STATUS_EQUIPMENT_FIRST_ROW + maxRows] isEqual:GUI_KEY_OK])
 					{
-						[gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS];
+						[gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW + maxRows];
 						[self playMenuPageNext];
 						[gui setStatusPage:+1];
 						[self setGuiToStatusScreen];
