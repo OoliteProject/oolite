@@ -10,8 +10,11 @@ General:
 * Removing the entire trumbles array from the savefile is now recognized
   as a cheat
 * Atmospheric fog is now applied also with shaders enabled
-* Add mobile external view camera
-* Add ability to inspect system information for all systems along ANA route
+* Windows only: Entering the OXZ info screen in the OXZ Manager copies
+  the OXZ's info URL to clipboard automatically
+* Added mobile external view camera
+* Added ability to inspect system information for all systems along ANA route
+* Added distance information to system info screen
 
 Expansion pack development:
 ===========================
@@ -84,6 +87,23 @@ Bug fixes:
 * Fixed mission screen when background special is a chart so the chart is fully zoomed
   in (for SHORT_RANGE_CHART) or fully zoomed out (for LONG_RANGE_CHART)
 * Fix for chart on Mac retina screen
+* Fixed crash when attempting to modify goods properties on a nil station
+* Fixed incorrect parcel contracts indexing when more than ten parcel contracts
+  were present
+* Fixed problem with tangent vectors not being orthogonal to normals
+* Fixed a bug where diving into the atmosphere and then resetting player ship
+  position into open space via script would not reset the air resistance factor
+  to zero, with catastrophic results on sun glare, fog and cabin temperature
+* Fixed bug where turning off the hud in a multi-page status screen would result
+  in the More and Back selections remaining, even if the equipment could fit in one page
+* Fixed inability to remove OXZs with ogg files in the Music folder on Windows
+* Fixed some Alt-Tab and fullscreen handling issues on Windows
+* Fixed applying air resistance to the camera viewpoint rather than the ship
+* Fixed sudden switch to black sky in certain external views in atmosphere, when the
+  camera was positioned far away from the ship
+* Fixed bug where contracts would disappear upon assignment if the sender's name was
+  already existing in a different contract. Senders of the same name are now possible
+* Fixed right arrow key (More) not working on status screen with big GUI enabled
 
 -------------------------------------------------------------------------------
 
