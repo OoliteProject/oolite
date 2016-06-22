@@ -104,6 +104,7 @@ Bug fixes:
 * Fixed bug where contracts would disappear upon assignment if the sender's name was
   already existing in a different contract. Senders of the same name are now possible
 * Fixed right arrow key (More) not working on status screen with big GUI enabled
+* Fixed stray soft edge on Boa model
 
 -------------------------------------------------------------------------------
 
