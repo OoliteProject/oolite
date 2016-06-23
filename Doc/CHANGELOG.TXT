@@ -105,6 +105,10 @@ Bug fixes:
   already existing in a different contract. Senders of the same name are now possible
 * Fixed right arrow key (More) not working on status screen with big GUI enabled
 * Fixed stray soft edge on Boa model
+* missile_role had 10% chance of not being set for non-Thargoid ships (random missile
+  role was selected instead). This is fixed and changed so that the 10% chance of
+  random missile role selection happens only when auto_weapons is set in a ship's
+  shipdata.plist entry
 
 -------------------------------------------------------------------------------
 
