@@ -3837,8 +3837,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		// All other ships: random role 10% of the cases, if a missile_role is defined.
-		if (chance < 0.9f && _missileRole != nil) 
+		// All other ships: random role 10% of the cases when auto weapons is set, if a missile_role is defined.
+		// Without auto weapons, never random.
+		float randomSelectionChance = chance;
+		if(![self hasAutoWeapons])  randomSelectionChance = 0.0f;
+		if (randomSelectionChance < 0.9f && _missileRole != nil)
 		{
 			missileType = [self verifiedMissileTypeFromRole:_missileRole];
 		}
