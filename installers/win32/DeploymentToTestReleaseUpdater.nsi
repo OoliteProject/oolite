@@ -41,7 +41,7 @@ SetCompressor LZMA
 # Always ensure that these are correct for the version we are updating!
 # TODO: Automate retrieval of these values from game installation image,
 #       so we won't need to change this by hand.
-!define OOVERSION				1.82
+!define OOVERSION				1.84
 !define	OOLITEDEPLOYMENTSIZE	4195854
 !define	OOBITNESS				32
 # -------------------------------------------------------------------------
