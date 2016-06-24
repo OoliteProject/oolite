@@ -39,11 +39,18 @@
 SetCompressor LZMA
 # -------------------------------------------------------------------------
 # Always ensure that these are correct for the version we are updating!
-# TODO: Automate retrieval of these values from game installation image,
-#       so we won't need to change this by hand.
-!define OOVERSION				1.84
-!define	OOLITEDEPLOYMENTSIZE	4195854
-!define	OOBITNESS				32
+# The parameters must be defined on the command line when calling makensis.
+!ifndef OOVERSION
+!error "OOVERSION not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64] DeploymentToTestReleaseUpdater.nsi"
+!endif
+
+!ifndef OOLITEDEPLOYMENTSIZE
+!error "OOLITEDEPLOYMENTSIZE not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64]"
+!endif
+
+!ifndef OOBITNESS
+!error "OOBITNESS not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64]"
+!endif
 # -------------------------------------------------------------------------
 
 !define APPNAME "Deployment to Test Release Updater"
