@@ -58,7 +58,7 @@ Bug fixes:
 * Tidied up drawing of galactic chart so that behaviour is consistent on chart based
   mission screens
 * Fixed mission screen charts to show routes properly
-* Fixed rare case of memory leak under Windows, when the game was getting minimuzed by
+* Fixed rare case of memory leak under Windows, when the game was getting minimized by
   means of Windows hotkey combinations while running in fullscreen 
 * Cargo hold status is now reported correctly on fuel scoop icon also when docked
 * Missile desired speed is now set to maximum speed on launch
