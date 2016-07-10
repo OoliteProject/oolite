@@ -1,0 +1,297 @@
+/*
+	oolite-default-planet.fragment
+	Default fragment shader for Oolite NEW_PLANETS.
+	
+	
+	© 2009–2013 Jens Ayton
+	
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+*/
+
+#define IS_OOLITE  1
+#define OOSTD_DIFFUSE_MAP 1
+#define OOSTD_SPECULAR_MAP 0
+#define OOSTD_NORMAL_AND_SPECULAR_MAP 0
+#define OOSTD_HARSH_MISTRESS 1
+
+#ifndef IS_OOLITE
+#define IS_OOLITE 0
+#endif
+
+#if IS_OOLITE
+#define SPECULAR_LIGHT		(gl_LightSource[1].specular.rgb)
+#define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb)
+#define AMBIENT_LIGHT		(gl_LightModel.ambient.rgb)
+#else
+#define SPECULAR_LIGHT 						vec3(0.8)
+#define DIFFUSE_LIGHT 						vec3(0.8)
+#define AMBIENT_LIGHT						vec3(0.2)
+#define OOSTD_ILLUMINATION_MAP				1
+#define OOSTD_NORMAL_MAP					1
+#define OOSTD_SPECULAR_MAP					1
+#endif
+
+
+#ifndef OOSTD_ILLUMINATION_MAP
+#define OOSTD_ILLUMINATION_MAP 0
+#endif
+#ifndef OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
+#define OOSTD_DIFFUSE_AND_ILLUMINATION_MAP 0
+#endif
+#ifndef OOSTD_NORMAL_MAP
+#define OOSTD_NORMAL_MAP 0
+#endif
+#ifndef OOSTD_SPECULAR_MAP
+#define OOSTD_SPECULAR_MAP 0
+#endif
+#ifndef OOSTD_NORMAL_AND_SPECULAR_MAP
+#define OOSTD_NORMAL_AND_SPECULAR_MAP 0
+#endif
+#ifndef OOSTD_HARSH_MISTRESS
+#define OOSTD_HARSH_MISTRESS 0
+#endif
+
+
+// Illumination map parameters.
+#define USE_ILLUMINATION OOSTD_ILLUMINATION_MAP || OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
+#if OOSTD_ILLUMINATION_MAP
+uniform sampler2D		uIlluminationMap;
+#define ILLUMINATION_COLOR texture2D(uIlluminationMap, texCoords).rgb
+#elif OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
+#define ILLUMINATION_COLOR (diffuseMapSample.a * vec3(0.8, 0.8, 0.4))
+#endif
+
+
+// Specular map parameters.
+// Separate OOSTD_SPECULAR_MAP is for testing in OpenGL Shader Builder, which doesn’t deal with alpha channels sensibly.
+#define USE_SPECULAR OOSTD_SPECULAR_MAP || OOSTD_NORMAL_AND_SPECULAR_MAP
+#if (OOSTD_SPECULAR_MAP)
+uniform sampler2D		uSpecularMap;
+#define SPECULAR_FACTOR (texture2D(uSpecularMap, texCoords).r)
+#elif OOSTD_NORMAL_AND_SPECULAR_MAP
+#define SPECULAR_FACTOR (normalMapSample.a)
+#endif
+
+
+// Normal map parameters.
+#define USE_NORMAL_MAP OOSTD_NORMAL_MAP || OOSTD_NORMAL_AND_SPECULAR_MAP
+
+/*	"Harsh shadow factor": degree to which normal map affects global diffuse light
+	with terminator and full shadow, as opposed to "local light" which is a normal
+	Lambertian light.
+	
+	Terminator threshold: defines the width and colour of the terminator. The
+	numbers are cosines of the angle where it transitions to full light.
+	
+	Both of these factors are ignored in simple shader mode.
+*/
+#if OOSTD_HARSH_MISTRESS
+const float 			kHarshShadowFactor	= 0.3;
+const vec3				kTerminatorThreshold = vec3(0.08);
+#else
+const float 			kHarshShadowFactor	= 0.05;
+const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
+#endif
+
+
+// Texture coordinate calcuation.
+#define TEXTURE_COORDS vec2(TexLongitude(coords.x, coords.z), vTexCoords.t)
+
+
+#if OOSTD_CUBE_MAP
+uniform samplerCube		uDiffuseMap;
+#if USE_NORMAL_MAP
+uniform samplerCube		uNormalMap;
+#endif
+#else
+uniform sampler2D		uDiffuseMap;
+#if USE_NORMAL_MAP
+uniform sampler2D		uNormalMap;
+#endif
+#endif
+
+uniform vec4			atmPosition;
+uniform float			atmRadius;
+
+// No vNormal, because normal is always 0,0,1 in tangent space.
+varying vec3			vEyeVector;
+varying vec2			vTexCoords;
+varying vec3			vLight1Vector;
+varying vec3			vCoords;
+
+
+vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
+{
+	float LdotN = lightVector.z;
+	
+#if USE_NORMAL_MAP
+	float globalTerm = dot(normalize(mix(vec3(0.0, 0.0, 1.0), normal, kHarshShadowFactor)), lightVector);
+#else
+	float globalTerm = LdotN;
+#endif
+	
+	// Hard terminator with slight redish-orange tinge. Note: threshold values are cosines.
+	vec3 baseLight = smoothstep(vec3(0.0), kTerminatorThreshold, vec3(globalTerm));
+	
+#if USE_NORMAL_MAP
+	// Modulate with normal-mapped "local" illumination.
+	float local = dot(lightVector, normal);
+	local -= LdotN;
+	
+	baseLight *= local + 1.0;
+#endif
+	
+	return baseLight;
+}
+
+
+vec3 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent, in vec3 normal, in vec3 lightColor)
+{
+#if USE_NORMAL_MAP
+	vec3 reflection = -reflect(lightVector, normal);
+	float NdotE = dot(normal, eyeVector);
+#else
+	/*	reflect(I, N) is defined as I - 2 * dot(N, I) * N
+		If N is (0,0,1), this becomes (I.x,I.y,-I.z).
+		Note that we want it negated as per above.
+	*/
+	vec3 reflection = vec3(-lightVector.x, -lightVector.y, lightVector.z);
+	float NdotE = eyeVector.z;
+#endif
+	
+	float RdotE = max(dot(reflection, eyeVector), 0.0);
+	float intensity = pow(max(RdotE, 0.0), exponent);
+	
+	// Approximate Fresnel term.
+	float kRefract = 1.0/1.33;	// Index of refraction of water.
+	float F0 = ((kRefract - 1.0) * (kRefract - 1.0)) / ((kRefract + 1.0) * (kRefract + 1.0));
+	float Fa = F0 + pow((1.0 - NdotE), 4.0) * (1.0 - F0);
+	intensity *= 0.4 + Fa;
+	
+	return lightColor * intensity;
+}
+
+
+/*	Approximation of atan(y/z) with quadrant rectification, scaled to -0.5..0.5 instead of -pi..pi.
+	It is assumed that the values are in range. You are not expected to understand this.
+*/
+float TexLongitude(float z, float y)
+{
+	const float	k2Pi = 6.283185307179586;
+	const float	kMagic = 0.2732395447351;	// (4 - pi) / pi
+	
+	float ratio = z / y;
+	
+	float r1 = 1.0 / ((ratio + kMagic / ratio) * k2Pi);	// Result when abs(z) >= abs(x).
+	float r2 = 0.25 * sign(ratio) - ratio / ((1.0 + kMagic * ratio * ratio) * k2Pi);  // Result when abs(z) <= abs(x).
+	
+	float result = (abs(ratio) > 1.0) ? r1 : r2;
+	
+	// Adjust for sector.
+	// Equivalent to (z < 0.0) ? ((y > 0.0) ? 0.75 : -0.25) : 0.25.
+	// Well, technically not equivalent for z < 0, y = 0, but you'll very rarely see that exact case.
+	return result + step(z, 0.0) * sign(y) * 0.5 + 0.25;
+}
+
+
+void main()
+{
+	vec3 totalColor = vec3(0);
+	vec3 coords = normalize(vCoords);
+	vec2 texCoords = TEXTURE_COORDS;
+	
+	/*	Fun sphere facts: the normalized coordinates of a point on a sphere at the origin
+		is equal to the object-space normal of the surface at that point.
+		Furthermore, we can construct the binormal (a vector pointing westward along the
+		surface) as the cross product of the normal with the Y axis. (This produces
+		singularities at the pole, but there have to be singularities according to the
+		Hairy Ball Theorem.) The tangent (a vector north along the surface) is then the
+		inverse of the cross product of the normal and binormal.
+	*/
+#if USE_NORMAL_MAP
+#if OOSTD_CUBE_MAP
+	vec4 normalMapSample = textureCube(uNormalMap, vCoords);
+#else
+	vec4 normalMapSample = texture2D(uNormalMap, texCoords);
+#endif
+	vec3 normal = normalize(normalMapSample.xyz - vec3(0.5));
+#else
+	vec3 normal = vec3(0, 0, 1);
+#endif
+	
+	// Diffuse light
+	vec3 light1Vector = normalize(vLight1Vector);
+	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
+	vec3 diffuseLight = diffuseIntensity * DIFFUSE_LIGHT;
+#if OOSTD_CUBE_MAP
+	vec4 diffuseMapSample = textureCube(uDiffuseMap, vCoords);
+#else
+	vec4 diffuseMapSample = texture2D(uDiffuseMap, texCoords);
+#endif
+// ignore uDiffuseMap totaly
+//	vec3 diffuseColor = diffuseMapSample.rgb;
+	vec3 diffuseColor = DIFFUSE_LIGHT;
+	totalColor += diffuseColor * diffuseLight;
+	
+	// Ambient light, biased towards blue.
+	vec3 ambientColor = diffuseColor;
+#if !OOSTD_HARSH_MISTRESS
+	ambientColor *= vec3(0.8, 0.8, 1.0);
+#endif
+	totalColor += AMBIENT_LIGHT * ambientColor;
+	
+	// Specular light.
+#if USE_SPECULAR
+	float specularFactor = SPECULAR_FACTOR;
+	vec3 specularLight = CalcSpecularLight(light1Vector, normalize(vEyeVector), 30.0 * specularFactor, normal, SPECULAR_LIGHT);
+	totalColor += specularLight * 0.6 * specularFactor;
+#endif
+	
+#if USE_ILLUMINATION
+	vec3 illuminationColor = ILLUMINATION_COLOR;
+	totalColor += (1.0 - diffuseIntensity.r) * illuminationColor;
+#endif
+
+	float atmDistance = sqrt(pow(atmPosition.x,2) + pow(atmPosition.y,2) + pow(atmPosition.z,2) );
+	float minDistance = atmRadius + 3500.0;
+	float newOpacity = 0.0;
+	if ( ( atmDistance < 600000.0 ) && ( atmDistance > minDistance ) )
+	{
+		float quant = 1.0;
+		quant = ( atmDistance > 560000.0 ? ( 40000.0 - (atmDistance - 560000.0 ) ) / 40000.0 : ( atmDistance < (minDistance + 2000.0 ) ? ( atmDistance - minDistance ) / 2000.0 : quant) );
+		
+		vec3 nvEyeVector = normalize(vEyeVector);
+
+		
+		float dp = abs(dot(nvEyeVector, vec3(0.0,0.0,1.0)));
+		if (dp > 0.16) {
+			newOpacity = min(1.0, pow(0.16/dp,2.0)) * quant;
+		}
+		else
+		{
+			newOpacity = pow(dp/0.16,5.0) * quant;
+		}
+	}
+//	float termBorder = dot(vec3(0,0,1), light1Vector);
+  
+//  newOpacity = (dot(vec3(0,0,1), light1Vector) > kHarshShadowFactor ? newOpacity:smoothstep(0.0,0.15,0.05));
+
+//	gl_FragColor = vec4((termBorder > 0?totalColor:diffuseLight) * pow((kHarshShadowFactor + termBorder),0.33), newOpacity);
+	gl_FragColor = vec4(totalColor, newOpacity);
+}

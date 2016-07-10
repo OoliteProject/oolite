@@ -830,6 +830,35 @@ static OOColor *ColorWithHSBColor(Vector c)
 	/* Generate atmosphere texture */
 	if (!isMoon)
 	{
+#if OO_SHADERS
+		NSMutableDictionary *aConfig = [[[materialDefaults oo_dictionaryForKey:@"atmosphere-material"] mutableCopy] autorelease];
+		[aConfig setObject:[NSArray arrayWithObjects:diffuseMap, normalMap, nil] forKey:@"_oo_texture_objects"];
+		
+		NSDictionary *amacros = [materialDefaults oo_dictionaryForKey:@"atmosphere-dynamic-macros"];
+		
+		OOMaterial *dynamicMaterial = [OOShaderMaterial shaderMaterialWithName:@"dynamic"
+																configuration:aConfig
+																macros:amacros
+																bindingTarget:self];
+																
+		if (dynamicMaterial == nil)
+		{
+			/* Backup plan */
+			OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
+			/* Generate a standalone atmosphere texture */
+			OOTexture *atmosphere = nil;
+			[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
+									withInfo:_materialParameters];
+		
+			OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
+			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic"
+														texture:atmosphere configuration:nil];
+			[dynamicMaterial autorelease];
+		}
+		
+		[_atmosphereDrawable setMaterial:dynamicMaterial];
+
+#else
 		OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
 		/* Generate a standalone atmosphere texture */
 		OOTexture *atmosphere = nil;
@@ -841,6 +870,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
 		[_atmosphereDrawable setMaterial:dynamicMaterial];
 		[dynamicMaterial release];
+#endif
 	}
 
 	OOMaterial *material = nil;

@@ -12,6 +12,7 @@ Nicolas Boulenguez
 CaptSolo
 Eugene Chernyakov (seventh)
 colinh
+Commander_X
 Commander McLane
 Paul Cooper (PhantorGorth)
 Dermot Costello
