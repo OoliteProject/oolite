@@ -157,7 +157,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 #ifndef NDEBUG
 	if (EXPECT_NOT(sActiveProgram == self))
 	{
-		OOLog(@"shader.dealloc.imbalance", @"***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
+		OOLog(@"shader.dealloc.imbalance", @"%@", @"***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
 		[OOShaderProgram applyNone];
 	}
 #endif

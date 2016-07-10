@@ -324,7 +324,7 @@ void OOJSBeginProfiling(BOOL trace)
 	
 	if (trace)
 	{
-		OOLog(@"script.javaScript.trace", @">>>> Beginning trace.");
+		OOLog(@"script.javaScript.trace", @"%@", @">>>> Beginning trace.");
 		OOLogIndent();
 	}
 }
@@ -358,7 +358,7 @@ OOTimeProfile *OOJSEndProfiling(void)
 	if (sTracing)
 	{
 		OOLogOutdent();
-		OOLog(@"script.javaScript.trace", @"<<<< End of trace.");
+		OOLog(@"script.javaScript.trace", @"%@", @"<<<< End of trace.");
 		sTracing = NO;
 	}
 	
