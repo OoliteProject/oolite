@@ -851,7 +851,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 									withInfo:_materialParameters];
 		
 			OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
-			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic"
+			dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic"
 														texture:atmosphere configuration:nil];
 			[dynamicMaterial autorelease];
 		}
