@@ -1907,9 +1907,8 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
 					{
-						gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 						target_chart_zoom = CHART_MAX_ZOOM;
-						[gui clearAndKeepBackground: YES];
+						[self setGuiToShortRangeChartScreen];
 					}
 					target_chart_zoom /= CHART_ZOOM_SPEED_FACTOR;
 					if (target_chart_zoom < 1.0) target_chart_zoom = 1.0;
