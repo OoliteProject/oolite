@@ -8312,6 +8312,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	[gui clearAndKeepBackground:NO];
 	[gui setBackgroundTextureKey:@"short_range_chart"];
+	[self setMissionBackgroundSpecial: nil];
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	target_chart_zoom = CHART_MAX_ZOOM;
 	[self setGuiToChartScreenFrom: oldScreen];
@@ -8323,6 +8324,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	[gui clearAndKeepBackground:NO];
 	[gui setBackgroundTextureKey:@"short_range_chart"];
+	[self setMissionBackgroundSpecial: nil];
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	[self setGuiToChartScreenFrom: oldScreen];
 }
