@@ -637,15 +637,6 @@ static NSTimeInterval	time_last_frame;
 		}
 	#endif
 		
-	#if OOLITE_WINDOWS
-		if ( !onTextEntryScreen && ([gameView isDown:'Q']) )
-		{
-			exceptionContext = @"windows - Q";
-			[gameController exitAppWithContext:@"Q pressed [Windows]"];
-			exit(0); // Force it
-		}
-	#endif
-		
 		// handle pressing Q or [esc] in error-handling mode
 		if ([self status] == STATUS_HANDLING_ERROR)
 		{
