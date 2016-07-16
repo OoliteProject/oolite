@@ -110,6 +110,8 @@ Bug fixes:
   random missile role selection happens only when auto_weapons is set in a ship's
   shipdata.plist entry
 * Removed inconsistency in Windows build, where Shift+Q was used as instant quit
+* Assigning the player ship as group leader was resulting in JS AI related exceptions.
+  This has been mitigated by disallowing setting of the player as group leader
 
 -------------------------------------------------------------------------------
 
