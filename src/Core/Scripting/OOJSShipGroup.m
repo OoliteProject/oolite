@@ -223,6 +223,11 @@ static JSBool ShipGroupConstruct(JSContext *context, uintN argc, jsval *vp)
 			OOJSReportBadArguments(context, nil, @"ShipGroup()", 1, OOJS_ARGV + 1, @"Could not create ShipGroup", @"ship");
 			return NO;
 		}
+		else if ([leader isPlayer])
+		{
+			OOJSReportWarning(context, @"Cannot set player ship as a ship group leader.");
+			return NO;
+		}
 	}
 	
 	OOJS_RETURN_OBJECT([OOShipGroup groupWithName:name leader:leader]);
