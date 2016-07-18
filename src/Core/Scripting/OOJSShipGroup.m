@@ -158,19 +158,10 @@ static JSBool ShipGroupSetProperty(JSContext *context, JSObject *this, jsid prop
 	{
 		case kShipGroup_leader:
 			shipValue = OOJSNativeObjectOfClassFromJSValue(context, *value, [ShipEntity class]);
-			if ((shipValue != nil && ![shipValue isPlayer]) || JSVAL_IS_NULL(*value))
+			if (shipValue != nil || JSVAL_IS_NULL(*value))
 			{
 				[group setLeader:shipValue];
 				return YES;
-			}
-			else if ([shipValue isPlayer])
-			{
-				// setting player ship as leader causes AI related exceptions because the player
-				// does not have an assigned JS AI; so do not allow it for now
-				// TODO: ambitious plans: maybe enable it in the future, with updates to NPC AIs to
-				// handle a human leader properly
-				OOJSReportWarning(context, @"Cannot set player ship as a ship group leader.");
-				return NO;
 			}
 			break;
 			
@@ -221,11 +212,6 @@ static JSBool ShipGroupConstruct(JSContext *context, uintN argc, jsval *vp)
 		if (leader == nil && !JSVAL_IS_NULL(OOJS_ARGV[1]))
 		{
 			OOJSReportBadArguments(context, nil, @"ShipGroup()", 1, OOJS_ARGV + 1, @"Could not create ShipGroup", @"ship");
-			return NO;
-		}
-		else if ([leader isPlayer])
-		{
-			OOJSReportWarning(context, @"Cannot set player ship as a ship group leader.");
 			return NO;
 		}
 	}
