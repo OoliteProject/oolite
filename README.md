@@ -1,7 +1,15 @@
 [![Build Status (Mac)](https://api.travis-ci.org/OoliteProject/oolite.svg)](https://travis-ci.org/OoliteProject/oolite)
 
 [![GitHub release](https://img.shields.io/github/release/OoliteProject/Oolite.svg)](https://github.com/OoliteProject/Oolite/releases/latest)
-[![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.84_x64.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.84_x86.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84-test.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84-test.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest) [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.84-Mac-TestRelease.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest)
+     
+
+| Windows             | Linux               | OSX            |
+|---------------------|---------------------|----------------|
+| [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.84_x64.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest) |
+[![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.84_x86.exe.svg)](https://github.com/OoliteProject/oolite/releases/latest)| [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/Oolite-1.84-Mac-TestRelease.zip.svg)](https://github.com/OoliteProject/oolite/releases/latest) |
+| | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84-test.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
+| | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.84-test.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
+
 
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
