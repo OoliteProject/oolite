@@ -494,6 +494,7 @@ static NSTimeInterval	time_last_frame;
 {
 	target_system_id = [[UNIVERSE gui] targetNextFoundSystem:direction];
 	[self setInfoSystemID: target_system_id moveChart: YES];
+	cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
 
 	found_system_id = target_system_id;
 	if (!whileTyping)
@@ -1922,6 +1923,7 @@ static NSTimeInterval	time_last_frame;
 						}
 						else
 						{
+							[self clearPlanetSearchString];
 							[self previousInfoSystem];
 							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 						}
@@ -1950,6 +1952,7 @@ static NSTimeInterval	time_last_frame;
 						}
 						else
 						{
+							[self clearPlanetSearchString];
 							[self nextInfoSystem];
 							target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
 						}
