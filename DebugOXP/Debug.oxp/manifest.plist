@@ -2,8 +2,8 @@
 	title = "Oolite Debug OXP";
 	identifier = "org.oolite.oolite.debug";
 	
-	version = "1.84";
-	required_oolite_version = "1.84";
+	version = "1.85";
+	required_oolite_version = "1.85";
 	
 	license = "GPL 2+ / CC-BY-NC-SA 3.0 - see LICENSE.TXT for details";
 	author = "Giles Williams, Jens Ayton and contributors";
