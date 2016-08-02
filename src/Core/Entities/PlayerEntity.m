@@ -8164,6 +8164,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 			NSPoint infoSystemCoordinates = [[UNIVERSE systemManager] getCoordinatesForSystem: info_system_id inGalaxy: galaxy_number];
 			double distance = distanceBetweenPlanetPositions(infoSystemCoordinates.x, infoSystemCoordinates.y, galaxy_coordinates.x, galaxy_coordinates.y);
+			if(distance == 0.0 && info_system_id != system_id)
+			{
+				distance = 0.1;
+			}
 			NSString *distanceInfo = [NSString stringWithFormat: @"%.1f ly", distance];
 			if (ANA_mode != OPTIMIZED_BY_NONE)
 			{
@@ -8173,6 +8177,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				{
 					double routeDistance = [[routeInfo objectForKey: @"distance"] doubleValue];
 					double routeTime = [[routeInfo objectForKey: @"time"] doubleValue];
+					if(routeDistance == 0.0 && info_system_id != system_id) {
+						routeDistance = 0.1;
+						routeTime = 0.01;
+					}
 					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f Hours", routeDistance, routeTime];
 				}
 			}
