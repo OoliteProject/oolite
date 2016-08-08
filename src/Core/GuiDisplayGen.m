@@ -2197,7 +2197,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		travelTimeLine = OOExpandKey(@"long-range-chart-est-travel-time", time);
 	}
 	
-	[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:textRow];
+	if(concealment[target] < OO_SYSTEMCONCEALMENT_NONAME)
+	{
+		[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:textRow];
+	}
+	else
+	{
+		[self setArray:[NSArray arrayWithObjects:@"", travelDistLine,travelTimeLine,nil] forRow:textRow];
+	}
 	[targetName release];
 
 	// draw planet info circle
