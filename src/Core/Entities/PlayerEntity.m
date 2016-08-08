@@ -8120,6 +8120,23 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			NSString *system = infoSystemName;
 			[gui setTitle:OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-data-on-system", system)];
+		}
+		else
+		{
+			[gui setTitle:OOExpandKey(@"sysdata-data-on-system-no-name")];
+		}
+
+		if (concealment >= OO_SYSTEMCONCEALMENT_NODATA)
+		{
+			OOGUIRow i = [gui addLongText:OOExpandKey(@"sysdata-data-on-system-no-data") startingAtRow:15 align:GUI_ALIGN_LEFT];
+			missionTextRow = i;
+			for (i-- ; i > 14 ; --i)
+			{
+				[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
+			}
+		}
+		else
+		{
 			NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
 			NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
 			NSString *populationDesc2 = [populationDescLines lastObject];
@@ -8200,16 +8217,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			{
 				// nil default = fall back to global default colour
 				[gui setColor:[gui colorFromSetting:kGuiSystemdataFactsColor defaultValue:nil] forRow:i];
-			}
-		}
-		else
-		{
-			[gui setTitle:OOExpandKey(@"sysdata-data-on-system-no-name")];			
-			OOGUIRow i = [gui addLongText:OOExpandKey(@"sysdata-data-on-system-no-data") startingAtRow:15 align:GUI_ALIGN_LEFT];
-			missionTextRow = i;
-			for (i-- ; i > 14 ; --i)
-			{
-				[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
 			}
 		}
 

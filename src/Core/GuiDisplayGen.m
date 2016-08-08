@@ -2502,7 +2502,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			OOGLEND();
 			
 			// Label the route, if not already labelled
-			if (zoom > CHART_ZOOM_SHOW_LABELS)
+			if (zoom > CHART_ZOOM_SHOW_LABELS && concealment[loc] < OO_SYSTEMCONCEALMENT_NONAME)
 			{
 				OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y, z, NSMakeSize(8,8));
 			}
@@ -2511,7 +2511,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if (zoom > CHART_ZOOM_SHOW_LABELS)
 		{
 			loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];
-			OODrawString([UNIVERSE systemNameIndex:loc], x + star2.x + 2.0, y + star2.y, z, NSMakeSize(10,10));
+			if(concealment[loc] < OO_SYSTEMCONCEALMENT_NONAME)
+			{
+				OODrawString([UNIVERSE systemNameIndex:loc], x + star2.x + 2.0, y + star2.y, z, NSMakeSize(10,10));
+			}
 		}
 	}
 }
