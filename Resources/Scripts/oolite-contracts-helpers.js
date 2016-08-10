@@ -159,11 +159,15 @@ this._formatTravelTime = function(seconds) {
 this._systemName = function(id)
 {
 		var info = System.infoForSystem(galaxyNumber,id);
-		var name = info.name+" (";
-		name += String.fromCharCode(info.government); //chr 0-7 are gov icons
-		name += ",";
-		name += String.fromCharCode(23-info.economy); //chr 16-23 are eco icons, in reverse order...
-		return name +")";
+		var name = info.name;
+		if(info.concealment < 200) {
+			name += " (";
+			name += String.fromCharCode(info.government); //chr 0-7 are gov icons
+			name += ",";
+			name += String.fromCharCode(23-info.economy); //chr 16-23 are eco icons, in reverse order...
+			name += ")";
+		}
+		return name;
 }
 
 // sounds
