@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 
 #ifdef GNUSTEP
 #import <Foundation/NSAutoreleasePool.h>
-#ifdef OOLITE_LINUX
+#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 #import <Foundation/NSDate.h>
 #endif
 #import <Foundation/NSString.h>
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 #ifdef GNUSTEP
 	int i;
 
-#ifdef OOLITE_LINUX
+#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 	[NSDate class]; // See github issue #202
 #endif
 	
