@@ -25,6 +25,9 @@ MA 02110-1301, USA.
 
 #ifdef GNUSTEP
 #import <Foundation/NSAutoreleasePool.h>
+#ifdef OOLITE_LINUX
+#import <Foundation/NSDate.h>
+#endif
 #import <Foundation/NSString.h>
 
 #import "GameController.h"
@@ -47,6 +50,10 @@ int main(int argc, char *argv[])
 {
 #ifdef GNUSTEP
 	int i;
+
+#ifdef OOLITE_LINUX
+	[NSDate class]; // See github issue #202
+#endif
 	
 #if OOLITE_WINDOWS
 
