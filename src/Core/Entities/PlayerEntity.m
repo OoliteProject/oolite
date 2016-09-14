@@ -1068,7 +1068,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	// docked station
 	StationEntity *dockedStation = [self dockedStation];
-	[result setObject:dockedStation != nil ? [dockedStation primaryRole]:@"" forKey:@"docked_station_role"];
+	[result setObject:dockedStation != nil ? [dockedStation primaryRole]:(NSString *)@"" forKey:@"docked_station_role"];
 	if (dockedStation)
 	{
 		HPVector dpos = [dockedStation position];
