@@ -1,5 +1,5 @@
 /*
-	oolite-default-planet.fragment
+	oolite-default-atmosphere.fragment
 	Default fragment shader for Oolite NEW_PLANETS.
 	
 	
@@ -247,7 +247,8 @@ void main()
 // ignore uDiffuseMap totaly
 //	vec3 diffuseColor = diffuseMapSample.rgb;
 	vec3 diffuseColor = DIFFUSE_LIGHT;
-	totalColor += diffuseColor * diffuseLight;
+	// mix in some light blue color
+	totalColor += diffuseColor * diffuseLight * vec3(0.8, 0.8, 1.0);
 	
 	// Ambient light, biased towards blue.
 	vec3 ambientColor = diffuseColor;
