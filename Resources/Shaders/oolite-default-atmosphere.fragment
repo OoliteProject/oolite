@@ -24,11 +24,6 @@
 	SOFTWARE.
 */
 
-#define IS_OOLITE  1
-#define OOSTD_DIFFUSE_MAP 1
-#define OOSTD_SPECULAR_MAP 0
-#define OOSTD_NORMAL_AND_SPECULAR_MAP 0
-#define OOSTD_HARSH_MISTRESS 1
 
 #ifndef IS_OOLITE
 #define IS_OOLITE 0
@@ -271,11 +266,14 @@ void main()
 
 	float atmDistance = sqrt(pow(atmPosition.x,2) + pow(atmPosition.y,2) + pow(atmPosition.z,2) );
 	float minDistance = atmRadius + 3500.0;
+	float fadeDist = atmRadius * 12.0;
+	float fadeRate = 140000.0;
+	float fadeStart = fadeDist - fadeRate;
 	float newOpacity = 0.0;
-	if ( ( atmDistance < 600000.0 ) && ( atmDistance > minDistance ) )
+	if ( ( atmDistance < fadeDist ) && ( atmDistance > minDistance ) )
 	{
 		float quant = 1.0;
-		quant = ( atmDistance > 560000.0 ? ( 40000.0 - (atmDistance - 560000.0 ) ) / 40000.0 : ( atmDistance < (minDistance + 2000.0 ) ? ( atmDistance - minDistance ) / 2000.0 : quant) );
+		quant = ( atmDistance > fadeStart ? ( fadeRate - (atmDistance - fadeStart) ) / fadeRate : ( atmDistance < (minDistance + 2000.0 ) ? ( atmDistance - minDistance ) / 2000.0 : quant) );
 		
 		vec3 nvEyeVector = normalize(vEyeVector);
 
@@ -289,10 +287,6 @@ void main()
 			newOpacity = pow(dp/0.16,5.0) * quant;
 		}
 	}
-//	float termBorder = dot(vec3(0,0,1), light1Vector);
-  
-//  newOpacity = (dot(vec3(0,0,1), light1Vector) > kHarshShadowFactor ? newOpacity:smoothstep(0.0,0.15,0.05));
 
-//	gl_FragColor = vec4((termBorder > 0?totalColor:diffuseLight) * pow((kHarshShadowFactor + termBorder),0.33), newOpacity);
 	gl_FragColor = vec4(totalColor, newOpacity);
 }
