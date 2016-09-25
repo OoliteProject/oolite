@@ -88,6 +88,11 @@
 		<key>x86_64</key>
 		<string>10.6.0</string>
 	</dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>NSDockTilePlugIn</key>
 	<string>Oolite.docktileplugin</string>
 	<key>NSMainNibFile</key>
