@@ -160,7 +160,7 @@ this._systemName = function(id)
 {
 		var info = System.infoForSystem(galaxyNumber,id);
 		var name = info.name;
-		if(info.concealment < 200) {
+		if(info.concealment == null || info.concealment < 200) {
 			name += " (";
 			name += String.fromCharCode(info.government); //chr 0-7 are gov icons
 			name += ",";
