@@ -7254,8 +7254,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[self setBounty:0 withReason:kOOLegalStatusReasonNewGalaxy];	// let's make a fresh start!
 	cursor_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:system_id inGalaxy:galaxy_number]);
-	
-	[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
 
 	[self witchEnd]; // sets coordinates, calls exiting witchspace JS events
 }
@@ -7530,6 +7528,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[self clearRoleFromPlayer:NO];
 		}
 	}
+	
+	if (galactic_witchjump)
+	{
+		[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
+	}
+	
 	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
 }
