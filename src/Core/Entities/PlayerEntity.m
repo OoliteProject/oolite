@@ -10575,7 +10575,7 @@ static NSString *last_outfitting_key=nil;
 	else
 	{
 		NSString *station = [dockedStation displayName];
-		return OOExpandKey(@"station-commodity-market", system, station);
+		return OOExpandKey(@"station-commodity-market", station);
 	}
 }
 
