@@ -196,13 +196,14 @@ static JSBool SoundStaticLoad(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-// playMusic(name : String [, loop : Boolean])
+// playMusic(name : String [, loop : Boolean] [, gain : float])
 static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
 	NSString					*name = nil;
 	JSBool						loop = NO;
+	double						gain = OO_DEFAULT_SOUNDSOURCE_GAIN;
 	
 	if (argc > 0)  name = OOStringFromJSValue(context, OOJS_ARGV[0]);
 	if (name == nil)
@@ -219,8 +220,17 @@ static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp)
 		}
 	}
 	
+	if (argc > 2)
+	{
+		if (!OOJSArgumentListGetNumber(context, @"Sound", @"playMusic", 2, OOJS_ARGV + 2, &gain, NULL))
+		{
+			OOJSReportBadArguments(context, @"Sound", @"playMusic", 1, OOJS_ARGV + 2, nil, @"float");
+			return NO;
+		}
+	}
+	
 	OOJS_BEGIN_FULL_NATIVE(context)
-	[[OOMusicController sharedController] playMusicNamed:name loop:loop];
+	[[OOMusicController sharedController] playMusicNamed:name loop:loop gain:(float)gain];
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_VOID;

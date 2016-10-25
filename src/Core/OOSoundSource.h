@@ -33,6 +33,10 @@ OUT OF OR
 #import "OOSoundSource.h"
 #import "OOMaths.h"
 
+#ifndef OO_DEFAULT_SOUNDSOURCE_GAIN
+#define OO_DEFAULT_SOUNDSOURCE_GAIN	1.0f
+#endif
+
 @class OOSound, OOSoundChannel, OOSoundReferencePoint;
 
 

@@ -59,6 +59,7 @@ typedef enum
 + (OOMusicController *) sharedController;
 
 - (void) playMusicNamed:(NSString *)name loop:(BOOL)loop;
+- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop gain:(float)gain;
 
 - (void) playThemeMusic;
 - (void) playDockingMusic;

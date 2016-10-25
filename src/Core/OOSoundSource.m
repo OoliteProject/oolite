@@ -47,7 +47,7 @@ static NSMutableSet *sPlayingSoundSources;
 	
 	_positional = NO;
 	_position = kZeroVector;
-	_gain = 1.0;
+	_gain = OO_DEFAULT_SOUNDSOURCE_GAIN;
 	return self;
 }
 

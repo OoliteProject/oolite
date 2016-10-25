@@ -42,5 +42,7 @@ SOFTWARE.
 - (void) playLooped:(BOOL)looped;
 - (void) stop;
 - (BOOL) isPlaying;
+- (void) setMusicGain:(float)newValue;
+- (float) musicGain;
 
 @end
