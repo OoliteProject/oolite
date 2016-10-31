@@ -40,6 +40,7 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsid propID, 
 
 // Static methods
 static JSBool SoundStaticLoad(JSContext *context, uintN argc, jsval *vp);
+static JSBool SoundStaticMusicSoundSource(JSContext *context, uintN argc, jsval *vp);
 static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp);
 static JSBool SoundStaticStopMusic(JSContext *context, uintN argc, jsval *vp);
 
@@ -88,6 +89,7 @@ static JSFunctionSpec sSoundStaticMethods[] =
 {
 	// JS name					Function					min args
 	{ "load",					SoundStaticLoad,			1, },
+	{ "musicSoundSource",		SoundStaticMusicSoundSource,0, },
 	{ "playMusic",				SoundStaticPlayMusic,		1, },
 	{ "stopMusic",				SoundStaticStopMusic,		0, },
 	{ 0 }
@@ -192,6 +194,18 @@ static JSBool SoundStaticLoad(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_RETURN_OBJECT(sound);
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool SoundStaticMusicSoundSource(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	OOSoundSource *musicSource = nil;
+	OOJS_BEGIN_FULL_NATIVE(context)
+	musicSource = [[OOMusicController sharedController] soundSource];
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_OBJECT(musicSource);
 	OOJS_NATIVE_EXIT
 }
 

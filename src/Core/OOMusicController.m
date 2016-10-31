@@ -224,6 +224,12 @@ enum
 }
 
 
+- (OOSoundSource *) soundSource
+{
+	return [_current musicSoundSource];
+}
+
+
 - (NSString *) playingMusic
 {
 	return [_current name];

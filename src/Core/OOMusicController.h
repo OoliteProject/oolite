@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOCocoa.h"
+#import "OOSoundSource.h"
 
 @class OOMusic;
 
@@ -76,6 +77,8 @@ typedef enum
 - (void) stopMissionMusic;
 
 - (void) toggleDockingMusic;	// Start docking music if none playing, stop docking music if currently playing docking music.
+
+- (OOSoundSource *) soundSource;
 
 - (NSString *) playingMusic;
 - (BOOL) isPlaying;

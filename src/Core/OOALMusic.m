@@ -27,7 +27,6 @@ SOFTWARE.
 */
 
 #import "OOALMusic.h"
-#import "OOSoundSource.h"
 
 static OOMusic			*sPlayingMusic = nil;
 static OOSoundSource	*sMusicSource = nil;
@@ -103,6 +102,12 @@ static OOSoundSource	*sMusicSource = nil;
 		
 		sPlayingMusic = self;
 	}
+}
+
+
+- (OOSoundSource *)musicSoundSource
+{
+	return sMusicSource;
 }
 
 
