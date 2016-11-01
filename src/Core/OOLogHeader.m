@@ -214,9 +214,20 @@ static NSString *AdditionalLogHeaderInfo(void)
 	return [NSString stringWithFormat:@"Machine type: %@, %llu MiB memory, %@.", sysModel, sysPhysMem >> 20, GetCPUDescription()];
 }
 
+#ifndef CPUFAMILY_INTEL_MEROM
+	#define CPUFAMILY_INTEL_MEROM		0x426f69ef
+#endif
 
 #ifndef CPUFAMILY_INTEL_HASWELL
-	#define CPUFAMILY_INTEL_HASWELL 0x10b282dc
+	#define CPUFAMILY_INTEL_HASWELL		0x10b282dc
+#endif
+
+#ifndef CPUFAMILY_INTEL_BROADWELL
+	#define CPUFAMILY_INTEL_BROADWELL	0x582ed09c
+#endif
+
+#ifndef CPUFAMILY_INTEL_SKYLAKE
+	#define CPUFAMILY_INTEL_SKYLAKE		0x37fc219f
 #endif
 
 
@@ -271,6 +282,14 @@ static NSString *GetCPUDescription(void)
 					
 				case CPUFAMILY_INTEL_HASWELL:
 					subTypeStr = @" (Haswell)";
+					break;
+					
+				case CPUFAMILY_INTEL_BROADWELL:
+					subTypeStr = @" (Broadwell)";
+					break;
+					
+				case CPUFAMILY_INTEL_SKYLAKE:
+					subTypeStr = @" (Skylake)";
 					break;
 					
 				default:
