@@ -4276,6 +4276,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	BOOL 			wasHidden = NO;
 	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
+	NSUInteger		lastMFD = 0;
 	NSUInteger		i;
 
 	if (!hudFileName)  return NO;
@@ -4301,6 +4302,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		wasHidden = [hud isHidden];
 		wasCompassActive = [hud isCompassActive];
 		scannerZoom = [hud scannerZoom];
+		lastMFD = activeMFD;
 	}
 	
 	// buggy oxp could override hud.plist with a non-dictionary.
@@ -4328,6 +4330,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				[multiFunctionDisplaySettings addObject:[NSNull null]];
 			}
 		}
+		if (lastMFD < [hud mfdCount]) activeMFD = lastMFD;
 	}
 	
 	return YES;

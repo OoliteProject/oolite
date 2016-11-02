@@ -40,6 +40,7 @@ Vladimir A. Pavlov (pv4)
 Dennis Pedersen (Frame)
 David Pradier (Day)
 Erich Ritz (drumz)
+Nick Rogers (phkb)
 Jay Roper (Halfhand)
 Darren Salt (dsalt/_ds_)
 Adam Sampson
