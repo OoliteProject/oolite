@@ -47,6 +47,16 @@ static id sSingleton = nil;
 	self = [super init];
 	if (self != nil)
 	{
+		NSArray				*arguments = nil;
+		NSEnumerator		*argEnum = nil;
+		NSString			*arg = nil;
+	
+		arguments = [[NSProcessInfo processInfo] arguments];
+		for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
+		{
+			if ([arg isEqual:@"-nosound"] || [arg isEqual:@"--nosound"])  return nil;
+		}
+
 		ALuint error;
 		device = alcOpenDevice(NULL); // default device
 		if (!device)

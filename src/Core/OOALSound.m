@@ -96,6 +96,8 @@ static BOOL sIsSoundOK = NO;
 
 - (id) initWithContentsOfFile:(NSString *)path
 {
+	if (!sIsSoundOK)  return nil;
+	
 	[self release];
 	if (!sIsSetUp && ![OOSound setUp])  return nil;
 

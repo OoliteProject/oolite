@@ -8494,7 +8494,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,AUTOSAVE)];
 	
 		// volume control
-		if ([OOSound respondsToSelector:@selector(masterVolume)])
+		if ([OOSound respondsToSelector:@selector(masterVolume)] && [OOSound isSoundOK])
 		{
 			double volume = 100.0 * [OOSound masterVolume];
 			int vol = (volume / 5.0 + 0.5); // avoid rounding errors
