@@ -54,7 +54,11 @@ static id sSingleton = nil;
 		arguments = [[NSProcessInfo processInfo] arguments];
 		for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
 		{
-			if ([arg isEqual:@"-nosound"] || [arg isEqual:@"--nosound"])  return nil;
+			if ([arg isEqual:@"-nosound"] || [arg isEqual:@"--nosound"])  
+			{
+				[self release];
+				return nil;
+			}
 		}
 
 		ALuint error;
