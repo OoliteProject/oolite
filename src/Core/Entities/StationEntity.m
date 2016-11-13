@@ -85,7 +85,14 @@
 
 - (OOTechLevelID) equivalentTechLevel
 {
-	return equivalentTechLevel;
+	if (equivalentTechLevel == NSNotFound)
+	{
+		return [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
+	}
+	else
+	{
+		return equivalentTechLevel;
+	}
 }
 
 
