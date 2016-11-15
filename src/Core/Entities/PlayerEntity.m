@@ -6994,7 +6994,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[hud setScannerZoom: 1.0];
 	}
 	[self safeAllMissiles];
+	
+	OOViewID	previousViewDirection = [UNIVERSE viewDirection];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
+	[self noteSwitchToView:VIEW_FORWARD fromView:previousViewDirection]; // notifies scripts of the switch
+	
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	[self currentWeaponStats];
 
