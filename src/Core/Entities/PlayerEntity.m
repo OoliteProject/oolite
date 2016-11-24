@@ -880,7 +880,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	// Write the name of the current system. Useful for looking up saved game information and for overlapping systems.
-	[result setObject:[UNIVERSE getSystemName:[self currentSystemID]] forKey:@"current_system_name"];
+	if (![UNIVERSE inInterstellarSpace])
+	{
+		[result setObject:[UNIVERSE getSystemName:[self currentSystemID]] forKey:@"current_system_name"];
+	}
 	
 	[result setObject:[self commanderName] forKey:@"player_name"];
 	[result setObject:[self lastsaveName] forKey:@"player_save_name"];
