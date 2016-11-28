@@ -883,6 +883,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (![UNIVERSE inInterstellarSpace])
 	{
 		[result setObject:[UNIVERSE getSystemName:[self currentSystemID]] forKey:@"current_system_name"];
+		OOGovernmentID government = [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];
+		OOTechLevelID techlevel = [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
+		OOEconomyID economy = [[UNIVERSE currentSystemData] oo_intForKey:KEY_ECONOMY];
+		[result setObject:[NSNumber numberWithUnsignedShort:government] forKey:@"current_system_government"];
+		[result setObject:[NSNumber numberWithUnsignedInt:techlevel] forKey:@"current_system_techlevel"];
+		[result setObject:[NSNumber numberWithUnsignedShort:economy] forKey:@"current_system_economy"];
 	}
 	
 	[result setObject:[self commanderName] forKey:@"player_name"];

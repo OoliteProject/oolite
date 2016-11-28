@@ -1276,7 +1276,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	int			galNumber;
 	NSString		*timeStamp  = nil;
 	NSString 		*locationName = [cdr oo_stringForKey:@"current_system_name"];
-	
+
 	// If there is no key containing the name of the current system in
 	// the savefile, calculating what it should have been is going to
 	// be tricky now that system generation isn't seed based - but
@@ -1288,6 +1288,16 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	}
 	
 	galNumber = [cdr oo_intForKey:@"galaxy_number"] + 1;	// Galaxy numbering starts at 0.
+
+	NSString *locationGov = @"";
+	NSString *locationEco = @"";
+	NSString *locationTL = [cdr objectForKey:@"current_system_techlevel"] ? [NSString stringWithFormat:@"%u", [cdr oo_unsignedIntForKey:@"current_system_techlevel"] + 1] : nil;
+	if (locationTL)
+	{
+		locationGov = [NSString stringWithFormat:@"%u", [cdr oo_unsignedShortForKey:@"current_system_government"]];
+		locationEco = [NSString stringWithFormat:@" %u", [cdr oo_unsignedShortForKey:@"current_system_economy"]];
+	}
+	else  locationTL = @"";
 	
 	timeStamp = ClockToString([cdr oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START], NO);
 	
@@ -1295,7 +1305,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	
 	NSString		*cdrDesc = nil;
 	
-	cdrDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-timestamp-@"),
+	cdrDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-eco-@-gov-@-tl-@-timestamp-@"),
 		[cdr oo_stringForKey:@"player_name"],
 		rating,
 		OOCredits(money),
@@ -1303,7 +1313,12 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 		shipName,
 		locationName,
 		galNumber,
+		locationEco,
+		locationGov,
+		locationTL,
 		timeStamp];
+	
+	//-------------------------------------------------------------------------------------------------------------------------
 	
 	[gui addLongText:cdrDesc startingAtRow:CDRDESCROW align:GUI_ALIGN_LEFT];
 	
