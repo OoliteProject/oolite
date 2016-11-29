@@ -1295,7 +1295,7 @@ NSComparisonResult sortCommanders(id cdr1, id cdr2, void *context)
 	if (locationTL)
 	{
 		locationGov = [NSString stringWithFormat:@"%c", [cdr oo_unsignedCharForKey:@"current_system_government"]];
-		locationEco = [NSString stringWithFormat:@" %c", [cdr oo_unsignedCharForKey:@"current_system_economy"]];
+		locationEco = [NSString stringWithFormat:@" %c", (7 - [cdr oo_unsignedCharForKey:@"current_system_economy"]) + 16];
 	}
 	else  locationTL = @"";
 	
