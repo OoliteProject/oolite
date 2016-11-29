@@ -8166,6 +8166,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
 			NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
 			NSString *populationDesc2 = [populationDescLines lastObject];
+			
+			if ([populationDesc1 isEqualToString:populationDesc2])  populationDesc2 = @"";
 		
 			[gui setArray:[NSArray arrayWithObjects:
 						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-eco"),
