@@ -1252,6 +1252,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if ([dict objectForKey:@"current_system_name"])
 		{
 			system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"current_system_name"]];
+			if (system_id == -1)  system_id = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_number includingHidden:YES];
 		}
 		else
 		{
@@ -1264,6 +1265,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if ([dict objectForKey:@"target_system_name"])
 		{
 			target_system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"target_system_name"]];
+			if (target_system_id == -1)  target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:YES];
 		}
 		else
 		{
