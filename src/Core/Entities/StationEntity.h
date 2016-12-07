@@ -242,6 +242,8 @@ typedef enum
 - (BOOL) hasBreakPattern;
 - (void) setHasBreakPattern:(BOOL)newValue;
 
+- (BOOL) fitsInDock:(ShipEntity *)ship;
+- (BOOL) fitsInDock:(ShipEntity *)ship andLogNoFit:(BOOL)logNoFit;
 
 @end
 
