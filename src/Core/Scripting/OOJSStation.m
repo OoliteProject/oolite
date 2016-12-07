@@ -361,7 +361,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 /*				if (fValue < -2.0)  fValue = -2.0;
-				if (fValue > 2.0)  fValue = 2.0;	// clamping to -2.0...2.0 gives us ±M_PI actual maximum rotation
+				if (fValue > 2.0)  fValue = 2.0;	// clamping to -2.0...2.0 gives us Â±M_PI actual maximum rotation
 				[entity setRoll:fValue]; */
 				// use setRawRoll to make the units here equal to those in kShip_roll
 				if (fValue < -M_PI)  fValue = -M_PI;
@@ -441,6 +441,7 @@ static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *
 			OOJSReportBadArguments(context, @"Station", @"abortDockingForShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship in docking queue");
 		return NO;
 	}
+	if (!JSVAL_IS_OBJECT(OOJS_ARGV[0]))  return NO;
 	ShipEntity *ship = nil;
 	JSStationGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &ship);
 	if (ship != nil)
