@@ -194,7 +194,7 @@ static NSTimeInterval	time_last_frame;
 - (void) initControls
 {
 	NSMutableDictionary	*kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
-	
+
 	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
 	
 	unsigned		i;

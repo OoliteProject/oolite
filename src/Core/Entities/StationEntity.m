@@ -52,7 +52,6 @@
 
 @interface StationEntity (OOPrivate)
 
-- (BOOL) fitsInDock:(ShipEntity *)ship;
 - (void) pullInShipIfPermitted:(ShipEntity *)ship;
 - (void) addShipToStationCount:(ShipEntity *)ship;
 
