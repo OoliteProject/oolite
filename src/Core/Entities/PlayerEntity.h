@@ -700,7 +700,9 @@ typedef enum
 							weapons_online: 1,
 							
 							launchingMissile: 1,
-							replacingMissile: 1;
+							replacingMissile: 1,
+							
+							massLockable: 1;
 #if OOLITE_ESPEAK
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
@@ -797,6 +799,8 @@ typedef enum
 - (void) doBookkeeping:(double) delta_t;
 - (BOOL) isValidTarget:(Entity*)target;
 
+- (void) setMassLockable:(BOOL)newValue;
+- (BOOL) massLockable;
 - (BOOL) massLocked;
 - (BOOL) atHyperspeed;
 

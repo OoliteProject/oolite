@@ -1536,6 +1536,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
 	
+	massLockable = [dict oo_boolForKey:@"mass_lockable" defaultValue:YES];
+	
 	legalStatus = [dict oo_intForKey:@"legal_status"];
 	market_rnd = [dict oo_intForKey:@"market_rnd"];
 	ship_kills = [dict oo_intForKey:@"ship_kills"];
@@ -3124,7 +3126,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
 			int theirClass = [scannedEntity scanClass];
-			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+			// here we could also force masslock for higher than yellow alert, but
+			// if we are going to hand over masslock control to scripting, might as well
+			// hand it over fully
+			if ([self massLockable] /*|| alertFlags > ALERT_FLAG_YELLOW_LIMIT*/)
+			{
+				massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+			}
 			if (theirClass != CLASS_NO_DRAW)
 			{
 				if (theirClass == CLASS_THARGOID || [scannedEntity isCascadeWeapon])
@@ -4207,6 +4215,19 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	[super drawImmediate:immediate translucent:translucent];
+}
+
+
+- (void) setMassLockable:(BOOL)newValue
+{
+	massLockable = !!newValue;
+	[self updateAlertCondition];
+}
+
+
+- (BOOL) massLockable
+{
+	return massLockable;
 }
 
 

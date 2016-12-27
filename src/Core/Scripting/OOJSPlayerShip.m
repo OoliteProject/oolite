@@ -124,6 +124,7 @@ enum
 	kPlayerShip_hudAllowsBigGui,				// hud big gui, string, read only 
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_injectorsEngaged,				// injectors in use, boolean, read-only
+	kPlayerShip_massLockable,					// mass-lockability of player ship, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
@@ -181,6 +182,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "hudAllowsBigGui",				kPlayerShip_hudAllowsBigGui,				OOJS_PROP_READONLY_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	{ "injectorsEngaged",				kPlayerShip_injectorsEngaged,				OOJS_PROP_READONLY_CB },
+	{ "massLockable",					kPlayerShip_massLockable,					OOJS_PROP_READWRITE_CB },
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READWRITE_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READWRITE_CB },
@@ -452,6 +454,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_injectorsEngaged:
 			*value = OOJSValueFromBOOL([player injectorsEngaged]);
 			return YES;
+			
+		case kPlayerShip_massLockable:
+			*value = OOJSValueFromBOOL([player massLockable]);
+			return YES;
 
 		case kPlayerShip_torusEngaged:
 			*value = OOJSValueFromBOOL([player hyperspeedEngaged]);
@@ -563,6 +569,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setFuelLeakRate:fValue];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_massLockable:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[player setMassLockable:bValue];
 				return YES;
 			}
 			break;
