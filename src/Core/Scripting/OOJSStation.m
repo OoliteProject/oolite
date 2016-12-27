@@ -440,7 +440,7 @@ static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *
 	JSStationGetStationEntity(context, OOJS_THIS, &station); 
 	if (argc == 0)
 	{
-			OOJSReportBadArguments(context, @"Station", @"abortDockingForShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship in docking queue");
+		OOJSReportBadArguments(context, @"Station", @"abortDockingForShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship in docking queue");
 		return NO;
 	}
 	if (!JSVAL_IS_OBJECT(OOJS_ARGV[0]))  return NO;
