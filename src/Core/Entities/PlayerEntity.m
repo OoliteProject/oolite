@@ -1536,8 +1536,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	weapons_online = [dict oo_boolForKey:@"weapons_online" defaultValue:YES];
 	
-	massLockable = [dict oo_boolForKey:@"mass_lockable" defaultValue:YES];
-	
 	legalStatus = [dict oo_intForKey:@"legal_status"];
 	market_rnd = [dict oo_intForKey:@"market_rnd"];
 	ship_kills = [dict oo_intForKey:@"ship_kills"];
@@ -2281,6 +2279,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		_customViews = [customViews retain];
 		_customViewIndex = 0;
 	}
+	
+	massLockable = [dict oo_boolForKey:@"mass_lockable" defaultValue:YES];
 	
 	// Load js script
 	[script autorelease];
