@@ -2280,7 +2280,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		_customViewIndex = 0;
 	}
 	
-	massLockable = [dict oo_boolForKey:@"mass_lockable" defaultValue:YES];
+	massLockable = [shipDict oo_boolForKey:@"mass_lockable" defaultValue:YES];
 	
 	// Load js script
 	[script autorelease];
