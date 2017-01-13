@@ -230,3 +230,16 @@ this.$equipmentDisable["EQ_HEAT_SHIELD"] = function(info)
 {
 	player.ship.heatInsulation -= parseFloat(info.scriptInfo.oolite_heat_insulation_strength);
 };
+
+
+this.$equipmentEnable["EQ_ADVANCED_COMPASS"] = function(info)
+{
+	// do not enable if we are loading a game that has it already damaged
+	if (!this.$started)  player.ship.compassType = "OO_COMPASSTYPE_ADVANCED";
+};
+
+
+this.$equipmentDisable["EQ_ADVANCED_COMPASS"] = function(info)
+{
+	player.ship.compassType = "OO_COMPASSTYPE_BASIC";
+};

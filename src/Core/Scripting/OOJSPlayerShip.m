@@ -104,6 +104,7 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_compassType,					// basic / advanced, string, read/write
 	kPlayerShip_currentWeapon,					// shortcut property to _aftWeapon, etc. overrides kShip generic version
 	kPlayerShip_crosshairs,						// custom plist file defining crosshairs
 	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
@@ -162,6 +163,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READWRITE_CB },
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
+	{ "compassType",					kPlayerShip_compassType,					OOJS_PROP_READWRITE_CB },
 	{ "currentWeapon",					kPlayerShip_currentWeapon,					OOJS_PROP_READWRITE_CB },
 	{ "crosshairs",						kPlayerShip_crosshairs,						OOJS_PROP_READWRITE_CB },
 	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
@@ -467,6 +469,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			result = [player compassTarget];
 			break;
 			
+		case kPlayerShip_compassType:
+			result = [OOStringFromCompassMode([player compassMode]) isEqualToString:@"COMPASS_MODE_BASIC"] ?
+														@"OO_COMPASSTYPE_BASIC" : @"OO_COMPASSTYPE_ADVANCED";
+			break;
+			
 		case kPlayerShip_compassMode:
 			*value = OOJSValueFromCompassMode(context, [player compassMode]);
 			return YES;
@@ -585,6 +592,31 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setReticleTargetSensitive:bValue];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_compassType:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil)
+			{
+				if ([sValue isEqualToString:@"OO_COMPASSTYPE_BASIC"])
+				{
+					[player setCompassMode:COMPASS_MODE_BASIC];
+				}
+				else  if([sValue isEqualToString:@"OO_COMPASSTYPE_ADVANCED"])
+				{
+					if (![player hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"])
+					{
+						OOJSReportWarning(context, @"Advanced Compass type requested and set but player ship does not carry the EQ_ADVANCED_COMPASS equipment or has it damaged.");
+					}
+					[player setCompassMode:COMPASS_MODE_PLANET];
+				}
+				else
+				{
+					OOJSReportError(context, @"Unknown compass type specified - must be either OO_COMPASSTYPE_BASIC or OO_COMPASSTYPE_ADVANCED.");
+					return NO;
+				}
 				return YES;
 			}
 			break;
