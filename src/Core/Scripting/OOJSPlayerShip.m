@@ -144,6 +144,7 @@ enum
 	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
+	kPlayerShip_nextSystem,						// next hop system id, read-only
 	kPlayerShip_infoSystem,						// info (F7 screen) system id, int, read-write
 	kPlayerShip_torusEngaged,					// torus in use, boolean, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
@@ -204,6 +205,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
+	{ "nextSystem",                     kPlayerShip_nextSystem,                     OOJS_PROP_READONLY_CB },
 	{ "infoSystem",						kPlayerShip_infoSystem,						OOJS_PROP_READWRITE_CB },
 	{ "torusEngaged",					kPlayerShip_torusEngaged,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
@@ -419,6 +421,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = INT_TO_JSVAL([player targetSystemID]);
 			return YES;
 
+		case kPlayerShip_nextSystem:
+			*value = INT_TO_JSVAL([player nextHopTargetSystemID]);
+			return YES;
+			
 		case kPlayerShip_infoSystem:
 			*value = INT_TO_JSVAL([player infoSystemID]);
 			return YES;
