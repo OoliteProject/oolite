@@ -1,3 +1,24 @@
+Changes between Oolite 1.84 and Oolite 1.86:
+
+General:
+========
+* Added number of jumps to route information on F7 screen
+
+Expansion pack development:
+===========================
+
+Modified Plists:
+----------------
+
+Scripting:
+----------
+
+Bug fixes:
+==========
+
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.82 and Oolite 1.84:
 
 General:
