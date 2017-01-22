@@ -467,7 +467,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
-	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
+	if ([shipDict objectForKey:@"rotational_velocity"])
+	{
+		subentityRotationalVelocity = [shipDict oo_quaternionForKey:@"rotational_velocity"];
+	}
 
 	// set weapon offsets
 	NSString *weaponMountMode = [shipDict oo_stringForKey:@"weapon_mount_mode" defaultValue:@"single"];
@@ -2728,19 +2731,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	// subentity rotation
-	if (isSubEnt)
+	// rotational velocity
+	if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
+		!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
 	{
-		if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
-			!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
-		{
-			Quaternion qf = subentityRotationalVelocity;
-			qf.w *= (1.0 - delta_t);
-			qf.x *= delta_t;
-			qf.y *= delta_t;
-			qf.z *= delta_t;
-			[self setOrientation:quaternion_multiply(qf, orientation)];
-		}
+		Quaternion qf = subentityRotationalVelocity;
+		qf.w *= (1.0 - delta_t);
+		qf.x *= delta_t;
+		qf.y *= delta_t;
+		qf.z *= delta_t;
+		[self setOrientation:quaternion_multiply(qf, orientation)];
 	}
 	
 	//	reset totalBoundingBox
