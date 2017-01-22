@@ -141,6 +141,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 @private
 	OOSystemID _location, _parent;
 	double _cost, _distance, _time;
+	int _jumps;
 }
 
 + (instancetype) elementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
@@ -149,12 +150,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (double) cost;
 - (double) distance;
 - (double) time;
+- (int) jumps;
 
 @end
 
 @implementation RouteElement
 
-+ (instancetype) elementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time
++ (instancetype) elementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time jumps:(int) jumps
 {
 	RouteElement *r = [[RouteElement alloc] init];
 	
@@ -163,6 +165,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	r->_cost = cost;
 	r->_distance = distance;
 	r->_time = time;
+	r->_jumps = jumps;
 	
 	return [r autorelease];
 }
@@ -172,6 +175,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (double) cost { return _cost; }
 - (double) distance { return _distance; }
 - (double) time { return _time; }
+- (int) jumps { return _jumps; }
 
 @end
 
@@ -8096,7 +8100,7 @@ static void VerifyDesc(NSString *key, id desc)
 	double maxCost = optimizeBy == OPTIMIZED_BY_TIME ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
 	
 	NSMutableArray *curr = [NSMutableArray arrayWithCapacity:256];
-	[curr addObject:cheapest[start] = [RouteElement elementWithLocation:start parent:-1 cost:0 distance:0 time:0]];
+	[curr addObject:cheapest[start] = [RouteElement elementWithLocation:start parent:-1 cost:0 distance:0 time:0 jumps: 0]];
 	
 	NSMutableArray *next = [NSMutableArray arrayWithCapacity:256];
 	while ([curr count] != 0)
@@ -8123,14 +8127,15 @@ static void VerifyDesc(NSString *key, id desc)
 				double distance = [ce distance] + lastDistance;
 				double time = [ce time] + lastTime;
 				double cost = [ce cost] + (optimizeBy == OPTIMIZED_BY_TIME ? lastTime : 7 * 256 + lastDistance);
+				int jumps = [ce jumps] + 1;
 				
 				if (cost < maxCost && (cheapest[n] == nil || [cheapest[n] cost] > cost)) {
-					RouteElement *e = [RouteElement elementWithLocation:n parent:c cost:cost distance:distance time:time];
+					RouteElement *e = [RouteElement elementWithLocation:n parent:c cost:cost distance:distance time:time jumps:jumps];
 					cheapest[n] = e;
 					[next addObject:e];
 					
 					if (n == goal && cost < maxCost)
-						maxCost = cost;					
+						maxCost = cost;
 				}
 			}
 		}
@@ -8163,6 +8168,7 @@ static void VerifyDesc(NSString *key, id desc)
 			route, @"route",
 			[NSNumber numberWithDouble:[cheapest[goal] distance]], @"distance",
 			[NSNumber numberWithDouble:[cheapest[goal] time]], @"time",
+			[NSNumber numberWithInt:[cheapest[goal] jumps]], @"jumps",
 			nil];
 #endif
 }

@@ -8245,11 +8245,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				{
 					double routeDistance = [[routeInfo objectForKey: @"distance"] doubleValue];
 					double routeTime = [[routeInfo objectForKey: @"time"] doubleValue];
+					int routeJumps = [[routeInfo objectForKey: @"jumps"] intValue];
 					if(routeDistance == 0.0 && info_system_id != system_id) {
 						routeDistance = 0.1;
 						routeTime = 0.01;
+						routeJumps = 0;
 					}
-					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f Hours", routeDistance, routeTime];
+					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f Hours / %d Jumps", routeDistance, routeTime, routeJumps];
 				}
 			}
 			[gui setArray:[NSArray arrayWithObjects:
