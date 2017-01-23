@@ -8251,7 +8251,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 						routeTime = 0.01;
 						routeJumps = 0;
 					}
-					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f Hours / %d Jumps", routeDistance, routeTime, routeJumps];
+					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f %@ / %d %@",
+							routeDistance,
+							routeTime,
+							OOExpandKey(@"sysdata-route-hours"),
+							routeJumps,
+							OOExpandKey(@"sysdata-route-jumps")];
 				}
 			}
 			[gui setArray:[NSArray arrayWithObjects:

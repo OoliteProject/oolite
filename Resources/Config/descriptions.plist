@@ -1541,6 +1541,8 @@
 	"sysdata-radius"				= "Average radius:";
 	"sysdata-radius-value"			= "[radius] km";
 	"system-description-string"		= "[14] is [22].";
+	"sysdata-route-hours"			= "Hours";
+	"sysdata-route-jumps"			= "Jumps";
 	
 	// Options / Loadsave screen
 	"options-quick-save"			= " Quick-Save ";
