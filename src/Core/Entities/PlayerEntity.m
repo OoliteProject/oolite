@@ -8254,7 +8254,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f %@ / %d %@",
 							routeDistance,
 							routeTime,
-							DESC_PLURAL(@"sysdata-route-hours", routeTime),
+							// don't rely on DESC_PLURAL for routeTime since it is of type double
+							routeTime > 1.05 || routeTime < 0.95 ? DESC(@"sysdata-route-hours%1") : DESC(@"sysdata-route-hours%0"),
 							routeJumps,
 							DESC_PLURAL(@"sysdata-route-jumps", routeJumps)];
 				}
