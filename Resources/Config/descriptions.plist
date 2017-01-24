@@ -1455,11 +1455,13 @@
 	// Short and Long Range Chart Overrides
 	"charts-distance"				= "Distance: [distance|precision:1] Light Years";
 	"charts-est-travel-time"		= "Estimated Travel Time: [time|precision:1] Hours";
+	"charts-jumps"				= "Jumps: [jumps]";
 	
 	// Short Range Chart Screen
 	"short-range-chart-title"		= "Short Range Chart";
 	"short-range-chart-distance"	= "[charts-distance]";
 	"short-range-chart-est-travel-time" = "[charts-est-travel-time]";
+	"short-range-chart-jumps"	= "[charts-jumps]";
 	
 	// Long Range Chart Screen
 	"long-range-chart-title-d"		= "Galactic Chart %d";
@@ -1478,6 +1480,7 @@
 
 	"long-range-chart-distance"		= "[charts-distance]";
 	"long-range-chart-est-travel-time" = "[charts-est-travel-time]";
+	"long-range-chart-jumps"		= "[charts-jumps]";
 	"long-range-chart-find-planet-@" = "Find planet: %@";
 	"long-range-chart-system-unreachable" = "System Unreachable";
 	

@@ -1691,6 +1691,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	int			i;
 	double		d, distance = 0.0, time = 0.0;
+	int		jumps = 0;
 	NSPoint		star;
 	OOScalar	pixelRatio;
 	NSRect		clipRect;
@@ -1830,6 +1831,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
 			time = [routeInfo oo_doubleForKey:@"time"];
+			jumps = [routeInfo oo_intForKey:@"jumps"];
 
 			if (distance == 0.0 && planetNumber != destNumber)
 			{
@@ -2205,6 +2207,14 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	else
 	{
 		[self setArray:[NSArray arrayWithObjects:@"", travelDistLine,travelTimeLine,nil] forRow:textRow];
+	}
+	if (jumps > 0)
+	{
+		[self setArray:[NSArray arrayWithObjects: @"", OOExpandKey(@"long-range-chart-jumps", jumps), nil] forRow: textRow + 1];
+	}
+	else
+	{
+		[self setArray:[NSArray arrayWithObjects: nil] forRow: textRow + 1];
 	}
 	[targetName release];
 
