@@ -144,7 +144,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	int _jumps;
 }
 
-+ (instancetype) elementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
++ (instancetype) elementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time jumps:(int) jumps;
 - (OOSystemID) parent;
 - (OOSystemID) location;
 - (double) cost;
