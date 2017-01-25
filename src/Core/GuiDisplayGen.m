@@ -2208,13 +2208,16 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		[self setArray:[NSArray arrayWithObjects:@"", travelDistLine,travelTimeLine,nil] forRow:textRow];
 	}
-	if (jumps > 0)
+	if ([PLAYER guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
 	{
-		[self setArray:[NSArray arrayWithObjects: @"", OOExpandKey(@"long-range-chart-jumps", jumps), nil] forRow: textRow + 1];
-	}
-	else
-	{
-		[self setArray:[NSArray arrayWithObjects: nil] forRow: textRow + 1];
+		if (jumps > 0)
+		{
+			[self setArray:[NSArray arrayWithObjects: @"", OOExpandKey(@"short-range-chart-jumps", jumps), nil] forRow: textRow + 1];
+		}
+		else
+		{
+			[self setArray:[NSArray arrayWithObjects: nil] forRow: textRow + 1];
+		}
 	}
 	[targetName release];
 
