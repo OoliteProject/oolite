@@ -2,7 +2,18 @@ Changes between Oolite 1.84 and Oolite 1.86:
 
 General:
 ========
-* Added number of jumps to route information on F7 screen
+* Added number of jumps to route information on F6 and F7 screens
+* Reinstated rotational velocity also for base entities
+* SDL builds: Expansion Pack Manager can now download OXZs from HTTPS
+  addresses
+* Economy, government and Tech Level icons added to commander load
+  screen information
+* Default sound volume is now set to mid-scale rather than full-scale
+* Shader now used for rendering planet atmospheres. Old style atmos
+  are still available at detail levels less than Extra Detail or if
+  the newly introduced shader is not found or fails to compile
+* -nosound command line parameter now available for those who want
+  their game to be silent
 
 Expansion pack development:
 ===========================
@@ -12,10 +23,38 @@ Modified Plists:
 
 Scripting:
 ----------
+* player.ship.nextSystem property
+* player.ship.compassType read/write property (use with caution)
+* player.ship.massLockable property
+* station.canDockShip(shipEnetity) method
+* Scripts are now notified of the change to forward view when a witchjump
+  begins
+* Sound.musicSoundSource() method, returns the music sound source object,
+  enabling direct control on music (volume etc.)
+* Added optional volume gain parameter to the Sound.playMusic function.
+  Gain is capped between 0.0 and 1.0 and is relative to the master gain
 
 Bug fixes:
 ==========
-
+* Fixed Advanced Space Compass not breaking when damaged
+* Fixed fee column alignment in passenger and parcel contract screens
+* Fixed weird behaviour when a startup scenario planet name could not be found
+  in planetinfo.plist
+* Fixed custom population description duplication in system data screen
+* Fixed exception when accessing shipyard in interstellar space
+* Fixed equivalentTechLevel sometimes returning NSNotFound
+* Fixed MFDs resetting to number 1 when a HUD change occurred
+* Fixed exception when accessing the market screen while docked in
+  interstellar space
+* Fixed event order - now playerEnteredNewGalaxy is executed correctly before
+  shipWillExitWitchspace
+* Fixed broken concealment behaviour
+* Fixed native exception when a commander dictionary was requested while not
+  docked
+ * Linux builds: Fixed freezes when using GNUstep 1.24.9 or later
+ * Fixed adjacent systems distances not being equal on F6 and F7 screens
+ * Fixed planet strings searching not targeting found planets and inability to
+   use Alt + arrows during planet string search
 
 -------------------------------------------------------------------------------
 
