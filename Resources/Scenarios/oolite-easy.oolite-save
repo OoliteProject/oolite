@@ -65,11 +65,6 @@
 	    <integer>69</integer>
 	</array>
 	<array>
-	    <string>testcommodity</string>
-	    <integer>8</integer>
-	    <integer>70</integer>
-	</array>
-	<array>
 	    <string>textiles</string>
 	    <integer>12</integer>
 	    <integer>85</integer>
@@ -261,10 +256,6 @@
 	    <integer>0</integer>
 	</array>
 	<array>
-	    <string>testcommodity</string>
-	    <integer>0</integer>
-	</array>
-	<array>
 	    <string>textiles</string>
 	    <integer>0</integer>
 	</array>
@@ -361,11 +352,6 @@
 	    <array>
 		<array>
 		    <string>food</string>
-		    <integer>0</integer>
-		    <integer>74</integer>
-		</array>
-		<array>
-		    <string>testcommodity</string>
 		    <integer>0</integer>
 		    <integer>74</integer>
 		</array>
