@@ -319,6 +319,11 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	cloakAutomatic = [shipDict oo_boolForKey:@"cloak_automatic" defaultValue:YES];
 
 	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
+	unsigned i;
+	for (i = 0; i < missiles; i++)
+	{
+		missile_list[i] = nil;
+	}
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles) missiles = max_missiles;
@@ -3044,7 +3049,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if ([itemKey isEqualToString:@"thargon"]) itemKey = @"EQ_THARGON";
 		for (i = 0; i < missiles; i++)
 		{
-			if ([[missile_list[i] identifier] isEqualTo:itemKey])  return YES;
+			if (missile_list[i] != nil && [[missile_list[i] identifier] isEqualTo:itemKey])  return YES;
 		}
 	}
 	
