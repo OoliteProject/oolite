@@ -319,6 +319,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	cloakAutomatic = [shipDict oo_boolForKey:@"cloak_automatic" defaultValue:YES];
 
 	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
+	/* TODO: The following initializes the missile list to be blank, which prevents a crash caused by hasOneEquipmentItem trying to access a missile list
+	         previously initialized but then released.  See issue #204.  We need to investigate further the cause of the missile list being released.
+ 			- kanthoney 10/03/2017
+	*/
 	unsigned i;
 	for (i = 0; i < missiles; i++)
 	{
