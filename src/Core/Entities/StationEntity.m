@@ -943,6 +943,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			}
 			player_reserved_dock = dock;
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+			[player doScriptEvent:OOJSID("playerDockingClearanceGranted")];
+
 		}
 	}
 	
@@ -2249,7 +2251,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		result = @"DOCKING_CLEARANCE_GRANTED";
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 		[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
-
 	}
 	return result;
 }

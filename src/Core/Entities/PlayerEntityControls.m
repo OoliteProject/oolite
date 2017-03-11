@@ -1318,6 +1318,10 @@ static NSTimeInterval	time_last_frame;
 							if (stationDockingClearanceStatus != nil)
 							{
 								[self doScriptEvent:OOJSID("playerRequestedDockingClearance") withArgument:stationDockingClearanceStatus];
+								if ([stationDockingClearanceStatus isEqualToString:@"DOCKING_CLEARANCE_GRANTED"]) 
+								{
+									[self doScriptEvent:OOJSID("playerDockingClearanceGranted")];
+								}
 							}
 						}
 					}
