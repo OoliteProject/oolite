@@ -26,7 +26,8 @@ Scripting:
 * player.ship.nextSystem property
 * player.ship.compassType read/write property (use with caution)
 * player.ship.massLockable property
-* station.canDockShip(shipEnetity) method
+* station.canDockShip(shipEntity) method
+* playerDockingClearanceGranted world event
 * Scripts are now notified of the change to forward view when a witchjump
   begins
 * Sound.musicSoundSource() method, returns the music sound source object,
