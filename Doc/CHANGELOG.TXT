@@ -56,6 +56,7 @@ Bug fixes:
  * Fixed adjacent systems distances not being equal on F6 and F7 screens
  * Fixed planet strings searching not targeting found planets and inability to
    use Alt + arrows during planet string search
+ * Fixed crash due to uninitialized missile_list (issue #204)
 
 -------------------------------------------------------------------------------
 
