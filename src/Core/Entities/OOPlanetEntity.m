@@ -147,6 +147,9 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 #if NEW_ATMOSPHERE
 	if (atmosphere)
 	{
+		// shader atmosphere always has a radius of collision_radius + ATMOSPHERE_DEPTH. For texture atmosphere, we need to check
+		// if a shader atmosphere is also used. If yes, set its radius to just cover the planet so that it doesn't conflict with 
+		// the shader atmosphere at the planet edges. If no shader atmosphere is used, then set it to the standard radius
 		double atmosphereRadius = [UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS ? collision_radius : collision_radius + ATMOSPHERE_DEPTH;
 		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:atmosphereRadius] retain];
 		_atmosphereShaderDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
@@ -559,6 +562,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 			}
 			if (canDrawShaderAtmosphere && [_atmosphereDrawable radius] != collision_radius)
 			{
+				// if shader atmo is in use, force texture atmo radius to just collision_radius for cosmetic purposes
 				[_atmosphereDrawable setRadius:collision_radius];
 			}
 			[UNIVERSE setAirResistanceFactor:0.0f];	// out of atmosphere - no air friction
