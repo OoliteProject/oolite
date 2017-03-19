@@ -419,6 +419,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	collision_radius = planet->collision_radius * PLANET_MINIATURE_FACTOR;
 	orientation = planet->orientation;
 	_rotationAxis = planet->_rotationAxis;
+	_atmosphereOrientation = planet->_atmosphereOrientation;
 	_rotationalVelocity = 0.04;
 	
 	_miniature = YES;
