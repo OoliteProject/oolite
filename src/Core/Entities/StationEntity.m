@@ -52,7 +52,6 @@
 
 @interface StationEntity (OOPrivate)
 
-- (BOOL) fitsInDock:(ShipEntity *)ship;
 - (void) pullInShipIfPermitted:(ShipEntity *)ship;
 - (void) addShipToStationCount:(ShipEntity *)ship;
 
@@ -85,7 +84,14 @@
 
 - (OOTechLevelID) equivalentTechLevel
 {
-	return equivalentTechLevel;
+	if (equivalentTechLevel == NSNotFound)
+	{
+		return [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
+	}
+	else
+	{
+		return equivalentTechLevel;
+	}
 }
 
 
@@ -210,13 +216,13 @@
 }
 
 
-- (void) setPrice:(NSUInteger)price forCommodity:(OOCommodityType)commodity
+- (void) setPrice:(OOCreditsQuantity)price forCommodity:(OOCommodityType)commodity
 {
 	[[self localMarket] setPrice:price forGood:commodity];
 }
 
 
-- (void) setQuantity:(NSUInteger)quantity forCommodity:(OOCommodityType)commodity
+- (void) setQuantity:(OOCargoQuantity)quantity forCommodity:(OOCommodityType)commodity
 {
 	[[self localMarket] setQuantity:quantity forGood:commodity];
 }
@@ -694,7 +700,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	suppress_arrival_reports = [dict oo_boolForKey:@"suppress_arrival_reports" defaultValue:NO];
 	[self setAllegiance:[dict oo_stringForKey:@"allegiance"]];
 
-	marketCapacity = [dict oo_unsignedIntegerForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+	marketCapacity = [dict oo_unsignedIntForKey:@"market_capacity" defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 	marketDefinition = [[dict oo_arrayForKey:@"market_definition" defaultValue:nil] retain];
 	marketScriptName = [[dict oo_stringForKey:@"market_script" defaultValue:nil] retain];
 	marketMonitored = [dict oo_boolForKey:@"market_monitored" defaultValue:NO];
@@ -937,6 +943,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			}
 			player_reserved_dock = dock;
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+			[player doScriptEvent:OOJSID("playerDockingClearanceGranted")];
+
 		}
 	}
 	
@@ -1159,8 +1167,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	return result;
 }
 
+- (BOOL) fitsInDock:(ShipEntity *)ship
+{
+   return [self fitsInDock:ship andLogNoFit:YES];
+}
 
-- (BOOL) fitsInDock:(ShipEntity *) ship
+
+- (BOOL) fitsInDock:(ShipEntity *)ship andLogNoFit:(BOOL)logNoFit
 {
 	if (![ship isShip])  return NO;
 	
@@ -1174,7 +1187,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		}
 	}
 
-	OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
+	if (logNoFit) OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
 			  [ship displayName], [ship primaryRole], self);
 	return NO;
 }	
@@ -2238,7 +2251,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		result = @"DOCKING_CLEARANCE_GRANTED";
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 		[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
-
 	}
 	return result;
 }

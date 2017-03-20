@@ -13,7 +13,7 @@
 		:bgColor general "0.8 0.8 0.9"
 	
 	Settings like this are saved in Oolite's preferences and always override
-	settings in jsConsoleConfig.plist. An override can be removed in
+	settings in debugConfig.plist. An override can be removed in
 	JavaScript like this:
 	
 		delete console.settings["font-face"];

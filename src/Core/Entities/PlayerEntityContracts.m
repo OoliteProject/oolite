@@ -944,7 +944,10 @@ for (unsigned i=0;i<amount;i++)
 		NULL];
 	
 	// extra checks, just in case.
-	if ([parcel_record objectForKey:Name] != nil) return NO;
+	// FIXME: do we absolutely need this check? can we live
+	// with parcels of senders who happen to have the same
+	// name? - Nikos 20160527
+	//if ([parcel_record objectForKey:Name] != nil) return NO;
 
 	if (risk > 1)
 	{

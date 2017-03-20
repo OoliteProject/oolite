@@ -147,7 +147,12 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 #if NEW_ATMOSPHERE
 	if (atmosphere)
 	{
-		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
+		// shader atmosphere always has a radius of collision_radius + ATMOSPHERE_DEPTH. For texture atmosphere, we need to check
+		// if a shader atmosphere is also used. If yes, set its radius to just cover the planet so that it doesn't conflict with 
+		// the shader atmosphere at the planet edges. If no shader atmosphere is used, then set it to the standard radius
+		double atmosphereRadius = [UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS ? collision_radius : collision_radius + ATMOSPHERE_DEPTH;
+		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:atmosphereRadius] retain];
+		_atmosphereShaderDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
 		
 		// convert the atmosphere settings to generic 'material parameters'
 		percent_land = 100 - [dict oo_intForKey:@"percent_cloud" defaultValue:100 - (3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31))];
@@ -192,14 +197,14 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	}
 	else
 	{
-		_rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
+		_rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005f * randf()]; // 0.0 .. 0.005 avr 0.0025
 		_rotationalVelocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
 
 	_atmosphereRotationalVelocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f * randf()];
 
 	// set energy
-	energy = collision_radius * 1000.0;
+	energy = collision_radius * 1000.0f;
 	
 	setRandomSeed(savedRndSeed);
 	RANROTSetFullSeed(savedRanrotSeed);
@@ -323,7 +328,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		{
 			seaHSB = RandomHSBColor();
 		}
-		while (dot_product(landHSB, seaHSB) > .80); // make sure land and sea colors differ significantly
+		while (dot_product(landHSB, seaHSB) > .80f); // make sure land and sea colors differ significantly
 		
 		// saturation bias - avoids really grey oceans
 		if (seaHSB.y < 0.22f) seaHSB.y = seaHSB.y * 0.3f + 0.2f;
@@ -414,6 +419,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	collision_radius = planet->collision_radius * PLANET_MINIATURE_FACTOR;
 	orientation = planet->orientation;
 	_rotationAxis = planet->_rotationAxis;
+	_atmosphereOrientation = planet->_atmosphereOrientation;
 	_rotationalVelocity = 0.04;
 	
 	_miniature = YES;
@@ -423,10 +429,13 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	// FIXME: in old planet code, atmosphere (if textured) is set to 0.6 alpha.
 	_atmosphereDrawable = [planet->_atmosphereDrawable copy];
+	_atmosphereShaderDrawable = [planet->_atmosphereShaderDrawable copy];
 	[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR * 2.0]; //not to scale: invisible otherwise
+	if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR * 2.0];
 	
 	[_planetDrawable setLevelOfDetail:0.8f];
 	[_atmosphereDrawable setLevelOfDetail:0.8f];
+	if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setLevelOfDetail:0.8f];
 	
 	return self;
 }
@@ -437,6 +446,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	DESTROY(_name);
 	DESTROY(_planetDrawable);
 	DESTROY(_atmosphereDrawable);
+	DESTROY(_atmosphereShaderDrawable);
 	//DESTROY(_airColor);	// this CTDs on loading savegames.. :(
 	DESTROY(_materialParameters);
 	DESTROY(_textureName);
@@ -486,10 +496,16 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	if (EXPECT(!_miniature))
 	{
+		BOOL canDrawShaderAtmosphere = _atmosphereShaderDrawable && [UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS;
 		if (EXPECT_NOT(_atmosphereDrawable && cam_zero_distance < _mesopause2))
 		{
 			NSAssert(_airColor != nil, @"Expected a non-nil air colour for normal planet. Exiting.");
-			double		alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere;
+			double		alt = (sqrt(cam_zero_distance) - collision_radius) / kMesosphere; // the viewpoint altitude
+			double		trueAlt = (sqrt(zero_distance) - collision_radius) / kMesosphere; // the actual ship altitude
+			// if at long distance external view, rotating the camera could potentially end up with it being
+			// at negative altitude. Since we know we are already inside the atmosphere at this point, just make sure
+			// that altitude is kept to a minimum positive value to avoid sudden black skies
+			if (alt <= 0.0)  alt = 1e-4;
 			if (EXPECT_NOT(alt > 0 && alt <= 1.0))	// ensure aleph is clamped between 0 and 1
 			{
 				double	aleph = 1.0 - alt;
@@ -530,12 +546,27 @@ static OOColor *ColorWithHSBColor(Vector c)
 								   green:[mixColor greenComponent] * aleph2
 									blue:[mixColor blueComponent] * aleph
 								   alpha:aleph];
-				[_atmosphereDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
+				double atmosphereRadius = canDrawShaderAtmosphere ? collision_radius : collision_radius + (ATMOSPHERE_DEPTH * alt);
+				[_atmosphereDrawable setRadius:atmosphereRadius];
+				if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setRadius:collision_radius + (ATMOSPHERE_DEPTH * alt)];
+				// apply air resistance for the ship, not the camera. Although setSkyColorRed
+				// has already set the air resistance to aleph, override it immediately
+				[UNIVERSE setAirResistanceFactor:OOClamp_0_1_f(1.0 - trueAlt)];
 			}
 		}
-		else if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
+		else
 		{
-			[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+			if (EXPECT_NOT([_atmosphereDrawable radius] < collision_radius + ATMOSPHERE_DEPTH))
+			{
+				[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+				if (_atmosphereShaderDrawable)  [_atmosphereShaderDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH];
+			}
+			if (canDrawShaderAtmosphere && [_atmosphereDrawable radius] != collision_radius)
+			{
+				// if shader atmo is in use, force texture atmo radius to just collision_radius for cosmetic purposes
+				[_atmosphereDrawable setRadius:collision_radius];
+			}
+			[UNIVERSE setAirResistanceFactor:0.0f];	// out of atmosphere - no air friction
 		}
 		
 		double time = [UNIVERSE getTime];
@@ -559,12 +590,16 @@ static OOColor *ColorWithHSBColor(Vector c)
 	if (material != nil && ![material isFinishedLoading])  return NO;
 	material = [self atmosphereMaterial];
 	if (material != nil && ![material isFinishedLoading])  return NO;
+	material = [self atmosphereShaderMaterial];
+	if (material != nil && ![material isFinishedLoading])  return NO;
 	return YES;
 }
 
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
+	BOOL canDrawShaderAtmosphere = _atmosphereShaderDrawable && [UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS;
+	
 	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
 
@@ -584,6 +619,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		[_planetDrawable calculateLevelOfDetailForViewDistance:cam_zero_distance];
 		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
+		if (canDrawShaderAtmosphere)  [_atmosphereShaderDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	}
 
 	// 500km squared
@@ -604,6 +640,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 			OOGLPushModelView();
 			OOGLMultModelView(OOMatrixForQuaternionRotation(_atmosphereOrientation));
 			[_atmosphereDrawable renderTranslucentPartsOnOpaquePass];
+			if (canDrawShaderAtmosphere)  [_atmosphereShaderDrawable renderTranslucentPartsOnOpaquePass];
 			OOGLPopModelView();
 		}
 	}
@@ -619,6 +656,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 				OOGLPushModelView();
 				OOGLMultModelView(OOMatrixForQuaternionRotation(_atmosphereOrientation));
 				[_atmosphereDrawable renderTranslucentParts];
+				if (canDrawShaderAtmosphere)  [_atmosphereShaderDrawable renderTranslucentParts];
 				OOGLPopModelView();
 			}
 		}
@@ -818,11 +856,33 @@ static OOColor *ColorWithHSBColor(Vector c)
 	/* Generate atmosphere texture */
 	if (!isMoon)
 	{
+		if (shadersOn)
+		{
+			NSMutableDictionary *aConfig = [[[materialDefaults oo_dictionaryForKey:@"atmosphere-material"] mutableCopy] autorelease];
+			[aConfig setObject:[NSArray arrayWithObjects:diffuseMap, normalMap, nil] forKey:@"_oo_texture_objects"];
+			
+			NSDictionary *amacros = [materialDefaults oo_dictionaryForKey:@"atmosphere-dynamic-macros"];
+			
+			OOMaterial *dynamicShaderMaterial = [OOShaderMaterial shaderMaterialWithName:@"dynamic"
+																	configuration:aConfig
+																	macros:amacros
+																	bindingTarget:self];
+																	
+			if (dynamicShaderMaterial == nil)
+			{
+				DESTROY(_atmosphereShaderDrawable);
+			}
+			else
+			{
+				[_atmosphereShaderDrawable setMaterial:dynamicShaderMaterial];
+			}
+		}
+		
 		OOLog(@"texture.planet.generate",@"Preparing atmosphere for planet %@",self);
 		/* Generate a standalone atmosphere texture */
 		OOTexture *atmosphere = nil;
 		[OOStandaloneAtmosphereGenerator generateAtmosphereTexture:&atmosphere
-														  withInfo:_materialParameters];
+														withInfo:_materialParameters];
 		
 		OOLog(@"texture.planet.generate",@"Planet %@ has atmosphere %@",self,atmosphere);
 		
@@ -870,6 +930,13 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (OOMaterial *) atmosphereMaterial
 {
 	return [_atmosphereDrawable material];
+}
+
+
+- (OOMaterial *) atmosphereShaderMaterial
+{
+	if(!_atmosphereShaderDrawable)  return nil;
+	return [_atmosphereShaderDrawable material];
 }
 
 

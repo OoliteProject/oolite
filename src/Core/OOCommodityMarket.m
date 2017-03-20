@@ -218,7 +218,7 @@ static NSComparisonResult goodsSorter(id a, id b, void *context);
 	{
 		return 0;
 	}
-	return [definition oo_unsignedIntegerForKey:kOOCommodityQuantityCurrent];
+	return [definition oo_unsignedIntForKey:kOOCommodityQuantityCurrent];
 }
 
 
@@ -229,7 +229,7 @@ static NSComparisonResult goodsSorter(id a, id b, void *context);
 	{
 		return UNITS_TONS;
 	}
-	return [definition oo_unsignedIntegerForKey:kOOCommodityContainer];
+	return [definition oo_unsignedIntForKey:kOOCommodityContainer];
 }
 
 
@@ -264,7 +264,7 @@ static NSComparisonResult goodsSorter(id a, id b, void *context);
 	}
 	// should only be undefined for main system markets, not secondary stations
 	// meaningless for player ship, though
-	return [definition oo_unsignedIntegerForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
+	return [definition oo_unsignedIntForKey:kOOCommodityCapacity defaultValue:MAIN_SYSTEM_MARKET_LIMIT];
 }
 
 
@@ -315,7 +315,7 @@ static NSComparisonResult goodsSorter(id a, id b, void *context);
 	{
 		loadedOK = NO;
 		good = [loaded oo_stringAtIndex:0];
-		q = [loaded oo_unsignedIntegerAtIndex:1];
+		q = [loaded oo_unsignedIntAtIndex:1];
 		// old save games might have more in the array, but we don't care
 		if (![self setQuantity:q forGood:good])
 		{
@@ -351,7 +351,7 @@ static NSComparisonResult goodsSorter(id a, id b, void *context);
 	OOCommodityType good = nil;
 	foreach (good, [self goods])
 	{
-		[amounts addObject:[NSArray arrayWithObjects:good,[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],[NSNumber numberWithUnsignedInt:[self priceForGood:good]],nil]];
+		[amounts addObject:[NSArray arrayWithObjects:good,[NSNumber numberWithUnsignedInt:[self quantityForGood:good]],[NSNumber numberWithUnsignedInteger:[self priceForGood:good]],nil]];
 	}
 	return [NSArray arrayWithArray:amounts];
 }
@@ -369,7 +369,7 @@ static NSComparisonResult goodsSorter(id a, id b, void *context);
 	{
 		loadedOK = NO;
 		good = [loaded oo_stringAtIndex:0];
-		q = [loaded oo_unsignedIntegerAtIndex:1];
+		q = [loaded oo_unsignedIntAtIndex:1];
 		p = [loaded oo_unsignedIntegerAtIndex:2];
 		// old save games might have more in the array, but we don't care
 		if (![self setQuantity:q forGood:good])

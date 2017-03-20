@@ -39,11 +39,18 @@
 SetCompressor LZMA
 # -------------------------------------------------------------------------
 # Always ensure that these are correct for the version we are updating!
-# TODO: Automate retrieval of these values from game installation image,
-#       so we won't need to change this by hand.
-!define OOVERSION				1.82
-!define	OOLITEDEPLOYMENTSIZE	4195854
-!define	OOBITNESS				32
+# The parameters must be defined on the command line when calling makensis.
+!ifndef OOVERSION
+!error "OOVERSION not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64] DeploymentToTestReleaseUpdater.nsi"
+!endif
+
+!ifndef OOLITEDEPLOYMENTSIZE
+!error "OOLITEDEPLOYMENTSIZE not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64]"
+!endif
+
+!ifndef OOBITNESS
+!error "OOBITNESS not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64]"
+!endif
 # -------------------------------------------------------------------------
 
 !define APPNAME "Deployment to Test Release Updater"
@@ -59,7 +66,7 @@ RequestExecutionLevel user ;Require normal user rights on NT6+ (When UAC is turn
 
 VIAddVersionKey "ProductName" "Oolite Deployment to Test Release Updater"
 VIAddVersionKey "FileDescription" "Oolite Deployment -> Test Release (${OOBITNESS}-bit)"
-VIAddVersionKey "LegalCopyright" "© 2003-2016 Giles Williams, Jens Ayton and contributors"
+VIAddVersionKey "LegalCopyright" "© 2003-2017 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "1.0.0.0"
 VIAddVersionKey "ProductVersion" "${OOVERSION}"
 VIProductVersion "1.0.0.0"
@@ -67,7 +74,7 @@ VIProductVersion "1.0.0.0"
  
 InstallDir "C:\${COMPANYNAME}"
 InstallButtonText "Update"
-BrandingText "(C) 2003-2016 Giles Williams, Jens Ayton and contributors"
+BrandingText "(C) 2003-2017 Giles Williams, Jens Ayton and contributors"
 DirText "This application will update an existing ${OOBITNESS}-bit Oolite v${OOVERSION}$\n\
 		Deployment configuration installation to a Test Release$\n\
 		type one. Please select the root folder where the existing$\n\

@@ -8,7 +8,7 @@ cd ..
 
 # Paths relative to .., i.e. Cocoa-deps.
 TEMPDIR="temp-download-$LIBNAME"
-TARGETDIR="../Cross-platform-deps/$LIBNAME"
+TARGETDIR="../$LIBNAME"
 
 URLFILE="../URLs/$LIBNAME.url"
 VERSIONFILE="$TARGETDIR/current.url"

@@ -266,12 +266,12 @@ MA 02110-1301, USA.
 
 - (BOOL) isOffCentre
 {
-	if (fabs(position.x) + fabs(position.y) > 5.0f)
+	if (fabs(position.x) + fabs(position.y) > 5.0)
 	{
 		return YES;
 	}
 	Vector dir = vector_forward_from_quaternion(orientation);
-	if (fabs(dir.x) + fabs(dir.y) > 0.1f)
+	if (fabs(dir.x) + fabs(dir.y) > 0.1)
 	{
 		return YES;
 	}
@@ -364,7 +364,7 @@ MA 02110-1301, USA.
 	coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 	
 	// check if the ship is at the control point
-	double max_allowed_range = 2.0 * rangeAdvised + ship->collision_radius;	// maximum distance permitted from control point - twice advised range
+	double max_allowed_range = 2.0f * rangeAdvised + ship->collision_radius;	// maximum distance permitted from control point - twice advised range
 	HPVector delta = HPvector_subtract(ship->position, coords);
 	
 	if (HPmagnitude2(delta) > max_allowed_range * max_allowed_range)	// too far from the coordinates - do not remove them from the stack!
@@ -396,9 +396,9 @@ MA 02110-1301, USA.
 	}
 			
 	// calculate world coordinates from relative coordinates
-	rel_coords.x = [nextCoords oo_floatForKey:@"rx"];
-	rel_coords.y = [nextCoords oo_floatForKey:@"ry"];
-	rel_coords.z = [nextCoords oo_floatForKey:@"rz"];
+	rel_coords.x = [nextCoords oo_doubleForKey:@"rx"];
+	rel_coords.y = [nextCoords oo_doubleForKey:@"ry"];
+	rel_coords.z = [nextCoords oo_doubleForKey:@"rz"];
 	coords = [self absolutePositionForSubentity];
 	coords.x += rel_coords.x * vi.x + rel_coords.y * vj.x + rel_coords.z * vk.x;
 	coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
@@ -468,8 +468,8 @@ MA 02110-1301, USA.
 	
 	// will select a direction for offset based on the entity personality (was ship ID)
 	int offset_id = [ship entityPersonalityInt] & 0xf;	// 16  point compass
-	float c = cos(offset_id * M_PI * ONE_EIGHTH);
-	float s = sin(offset_id * M_PI * ONE_EIGHTH);
+	double c = cos(offset_id * M_PI * ONE_EIGHTH);
+	double s = sin(offset_id * M_PI * ONE_EIGHTH);
 	
 	// test if this points at the ship
 	HPVector point1 = [self absolutePositionForSubentity];
@@ -1104,9 +1104,9 @@ MA 02110-1301, USA.
 					else
 						r_pos.z = 1.0;
 					//
-					double vdp = dot_product(v_out, r_pos); //== cos of the angle between r_pos and v_out
+					float vdp = dot_product(v_out, r_pos); //== cos of the angle between r_pos and v_out
 					//
-					if (vdp > 0.86)
+					if (vdp > 0.86f)
 					{
 						isClear = NO;
 						

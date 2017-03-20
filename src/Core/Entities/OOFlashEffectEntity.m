@@ -108,7 +108,7 @@ static OOTexture *sFlashTexture = nil;
 {
 	[super update:delta_t];
 	
-	float tf = _duration * 0.667;
+	float tf = _duration * 0.667f;
 	float tf1 = _duration - tf;
 	
 	// Scale up.

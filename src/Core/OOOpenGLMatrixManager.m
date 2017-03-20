@@ -81,7 +81,7 @@ const char* ooliteStandardMatrixUniforms[] =
 	return matrix;
 }
 
-- (unsigned int) stackCount
+- (NSUInteger) stackCount
 {
 	return [stack count];
 }
@@ -233,7 +233,7 @@ const char* ooliteStandardMatrixUniforms[] =
 	return matrices[OOLITE_GL_MATRIX_MODELVIEW];
 }
 
-- (unsigned int) countModelView
+- (NSUInteger) countModelView
 {
 	return [modelViewStack stackCount];
 }
@@ -368,7 +368,7 @@ const char* ooliteStandardMatrixUniforms[] =
 		matrices[which] = OOMatrixTranspose(OOMatrixInverseWithDeterminant(matrices[which], &d));
 		if (d != 0.0)
 		{
-			d = pow(fabs(d), 1.0/3);
+			d = powf(fabsf(d), 1.0/3);
 			for (int i = 0; i < 3; i++)
 			{
 				for (int j = 0; j < 3; j++)
@@ -410,7 +410,7 @@ const char* ooliteStandardMatrixUniforms[] =
 	return matrices[which];
 }
 
-- (NSArray*) standardMatrixUniformLocations: (GLuint) program
+- (NSArray*) standardMatrixUniformLocations: (GLhandleARB) program
 {
 	GLint location;
 	NSUInteger i;
@@ -426,7 +426,7 @@ const char* ooliteStandardMatrixUniforms[] =
 				[locationSet addObject:
 					[NSArray arrayWithObjects:
 						[NSNumber numberWithInt: location],
-						[NSNumber numberWithInt: i],
+						[NSNumber numberWithInteger: i],
 						@"mat3",
 						nil]];
 			}
@@ -435,7 +435,7 @@ const char* ooliteStandardMatrixUniforms[] =
 				[locationSet addObject:
 					[NSArray arrayWithObjects:
 						[NSNumber numberWithInt: location],
-						[NSNumber numberWithInt: i],
+						[NSNumber numberWithInteger: i],
 						@"mat4",
 						nil]];
 			}

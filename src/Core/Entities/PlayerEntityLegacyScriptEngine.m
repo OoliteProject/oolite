@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "HeadUpDisplay.h"
 #import "OOSystemDescriptionManager.h"
+#import "OOEntityFilterPredicate.h"
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
@@ -1470,7 +1471,15 @@ static int shipsFound;
 	[tokens removeObjectAtIndex:0];
 	messageString = [tokens componentsJoinedByString:@" "];
 
-	[UNIVERSE sendShipsWithPrimaryRole:roleString messageToAI:messageString];
+	NSArray *targets = [UNIVERSE findShipsMatchingPredicate:HasPrimaryRolePredicate
+												  parameter:roleString
+													inRange:-1
+												   ofEntity:nil];
+
+	ShipEntity *target;
+	foreach(target, targets) {
+		[[target getAI] reactToMessage:messageString context:@"messageShipAIs:"];
+	}
 }
 
 
@@ -1566,7 +1575,7 @@ static int shipsFound;
 	yString = [tokens objectAtIndex:4];
 	zString = [tokens objectAtIndex:5];
 
-	HPVector posn = make_HPvector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	HPVector posn = make_HPvector([xString doubleValue], [yString doubleValue], [zString doubleValue]);
 
 	int number = [numberString intValue];
 	if (number < 1)
@@ -1608,7 +1617,7 @@ static int shipsFound;
 	yString = [tokens objectAtIndex:4];
 	zString = [tokens objectAtIndex:5];
 
-	HPVector posn = make_HPvector( [xString floatValue], [yString floatValue], [zString floatValue]);
+	HPVector posn = make_HPvector([xString doubleValue], [yString doubleValue], [zString doubleValue]);
 
 	int number = [numberString intValue];
 	if (number < 1)
@@ -1639,11 +1648,11 @@ static int shipsFound;
 	NSString* roleString = [tokens objectAtIndex:0];
 	int number = [[tokens objectAtIndex:1] intValue];
 	NSString* systemString = [tokens objectAtIndex:2];
-	GLfloat x = [[tokens objectAtIndex:3] floatValue];
-	GLfloat y = [[tokens objectAtIndex:4] floatValue];
-	GLfloat z = [[tokens objectAtIndex:5] floatValue];
+	double x = [[tokens objectAtIndex:3] doubleValue];
+	double y = [[tokens objectAtIndex:4] doubleValue];
+	double z = [[tokens objectAtIndex:5] doubleValue];
 	GLfloat r = [[tokens objectAtIndex:6] floatValue];
-	HPVector posn = make_HPvector( x, y, z);
+	HPVector posn = make_HPvector(x, y, z);
 
 	if (number < 1)
 	{
@@ -2747,13 +2756,13 @@ static int shipsFound;
 			return NO;				//		   0........... 1 2 3
 		
 		// sunlight position for F7 screen is chosen pseudo randomly from  4 different positions.
-		if (target_system_id & 8)
+		if (info_system_id & 8)
 		{
-			_sysInfoLight = (target_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
+			_sysInfoLight = (info_system_id & 2) ? (Vector){ -10000.0, 4000.0, -10000.0 } : (Vector){ -12000.0, -5000.0, -10000.0 };
 		}
 		else
 		{
-			_sysInfoLight = (target_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
+			_sysInfoLight = (info_system_id & 2) ? (Vector){ 6000.0, -5000.0, -10000.0 } : (Vector){ 6000.0, 4000.0, -10000.0 };
 		}
 
 		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin
@@ -2766,7 +2775,7 @@ static int shipsFound;
 		}
 		else
 		{
-			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:target_system_id] autorelease];
+			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystem:info_system_id] autorelease];
 		}
 		OOPlanetEntity *doppelganger = [originalPlanet miniatureVersion];
 		if (doppelganger == nil)  return NO;

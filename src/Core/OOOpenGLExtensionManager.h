@@ -83,7 +83,7 @@ SOFTWARE.
 #if GL_EXT_framebuffer_object
 #define OO_USE_FBO				1
 #else
-#define OO_USE_VBO				0
+#define OO_USE_FBO				0
 #warning Building without frame buffer object support, are your OpenGL headers up to date?
 #endif
 

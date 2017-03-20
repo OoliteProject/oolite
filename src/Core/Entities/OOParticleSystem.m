@@ -369,7 +369,7 @@ do { \
 	
 	for (i = 0; i < count; i++)
 	{
-		GLfloat du = duration * (0.5 + di * i);
+		GLfloat du = duration * (0.5f + di * i);
 		particleColor[i][3] = OOClamp_0_1_f(1.0f - timePassed / du);
 		
 		particleSize[i] = size;

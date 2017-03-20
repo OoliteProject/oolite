@@ -51,6 +51,8 @@ MA 02110-1301, USA.
 // reposition menu
 #define GUI_ROW(GROUP,ITEM) (GUI_FIRST_ROW(GROUP) - 4 + GUI_ROW_##GROUP##OPTIONS_##ITEM)
 
+#define CUSTOM_VIEW_MAX_ZOOM_IN		1.5
+#define CUSTOM_VIEW_MAX_ZOOM_OUT	25
 
 #define ENTRY(label, value) label,
 
@@ -141,6 +143,7 @@ enum
 	
 	STATUS_EQUIPMENT_FIRST_ROW 			= 10,
 	STATUS_EQUIPMENT_MAX_ROWS 			= 8,
+	STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS	= 6,
 
 	GUI_ROW_EQUIPMENT_START				= 3,
 	GUI_MAX_ROWS_EQUIPMENT				= 12,
@@ -359,6 +362,7 @@ typedef enum
 @private
 	OOSystemID				system_id;
 	OOSystemID				target_system_id;
+	OOSystemID				info_system_id;
 
 	float					occlusion_dial;
 	
@@ -481,11 +485,11 @@ typedef enum
 	OOCargoQuantity			current_cargo;
 	
 	NSPoint					cursor_coordinates;
-	NSPoint					chart_cursor_coordinates;
 	NSPoint					chart_focus_coordinates;
 	NSPoint					chart_centre_coordinates;
 	// where we want the chart centre to be - used for smooth transitions
 	NSPoint					target_chart_centre;
+	NSPoint					target_chart_focus;
 	// Chart zoom is 1.0 when fully zoomed in and increases as we zoom out.  The reason I've done it that way round
 	// is because we might want to implement bigger galaxies one day, and thus may need to zoom out indefinitely.
 	OOScalar				chart_zoom;
@@ -584,6 +588,8 @@ typedef enum
 	OOKeyCode				key_docking_music;
 	
 	OOKeyCode				key_advanced_nav_array;
+	OOKeyCode				key_info_next_system;
+	OOKeyCode				key_info_previous_system;
 	OOKeyCode				key_map_home;
 	OOKeyCode				key_map_info;
 	
@@ -642,12 +648,12 @@ typedef enum
 	// target memory
 	// TODO: this should use weakrefs
 	NSMutableArray  		*target_memory;
-	int						target_memory_index;
+	NSUInteger				target_memory_index;
 	
 	// custom view points
 	Quaternion				customViewQuaternion;
 	OOMatrix				customViewMatrix;
-	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
+	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector, customViewRotationCenter;
 	NSString				*customViewDescription;
 	
 	
@@ -694,7 +700,9 @@ typedef enum
 							weapons_online: 1,
 							
 							launchingMissile: 1,
-							replacingMissile: 1;
+							replacingMissile: 1,
+							
+							massLockable: 1;
 #if OOLITE_ESPEAK
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
@@ -776,6 +784,13 @@ typedef enum
 - (OOSystemID) targetSystemID;
 - (void) setTargetSystemID:(OOSystemID) sid;
 - (OOSystemID) nextHopTargetSystemID;
+- (OOSystemID) infoSystemID;
+- (void) setInfoSystemID: (OOSystemID) sid moveChart:(BOOL) moveChart;
+- (void) nextInfoSystem;
+- (void) previousInfoSystem;
+- (void) homeInfoSystem;
+- (void) targetInfoSystem;
+- (BOOL) infoSystemOnRoute;
 
 
 - (NSDictionary *) commanderDataDictionary;
@@ -784,6 +799,8 @@ typedef enum
 - (void) doBookkeeping:(double) delta_t;
 - (BOOL) isValidTarget:(Entity*)target;
 
+- (void) setMassLockable:(BOOL)newValue;
+- (BOOL) massLockable;
 - (BOOL) massLocked;
 - (BOOL) atHyperspeed;
 
@@ -1068,7 +1085,7 @@ typedef enum
 
 - (void) clearTargetMemory;
 - (NSMutableArray *) targetMemory;
-- (BOOL) moveTargetMemoryBy:(int)delta;
+- (BOOL) moveTargetMemoryBy:(NSInteger)delta;
 
 - (void) printIdentLockedOnForMissile:(BOOL)missile;
 
@@ -1078,13 +1095,30 @@ typedef enum
 
 // custom view points
 - (Quaternion)customViewQuaternion;
+- (void)setCustomViewQuaternion:(Quaternion)q1;
 - (OOMatrix)customViewMatrix;
 - (Vector)customViewOffset;
+- (void)setCustomViewOffset:(Vector)offset;
+- (Vector)customViewRotationCenter;
+- (void)setCustomViewRotationCenter:(Vector)center;
+- (void)customViewZoomOut:(OOScalar) rate;
+- (void)customViewZoomIn: (OOScalar) rate;
+- (void)customViewRotateLeft:(OOScalar) angle;
+- (void)customViewRotateRight:(OOScalar) angle;
+- (void)customViewRotateUp:(OOScalar) angle;
+- (void)customViewRotateDown:(OOScalar) angle;
+- (void)customViewRollLeft:(OOScalar) angle;
+- (void)customViewRollRight:(OOScalar) angle;
+- (void)customViewPanUp:(OOScalar) angle;
+- (void)customViewPanDown:(OOScalar) angle;
+- (void)customViewPanLeft:(OOScalar) angle;
+- (void)customViewPanRight:(OOScalar) angle;
 - (Vector)customViewForwardVector;
 - (Vector)customViewUpVector;
 - (Vector)customViewRightVector;
 - (NSString *)customViewDescription;
 - (void)resetCustomView;
+- (void)setCustomViewData;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict withScaling:(BOOL)withScaling;
 - (HPVector) viewpointPosition;
 - (HPVector) breakPatternPosition;

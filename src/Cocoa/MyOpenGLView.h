@@ -117,7 +117,7 @@ extern int debug;
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;	// DJS
 
-	BOOL				opt, ctrl, command, shift;
+	BOOL				opt, ctrl, command, shift, capsLockOn;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 	BOOL				commandQ;
@@ -136,6 +136,7 @@ extern int debug;
 	NSPoint				virtualJoystickPosition;
 	
 	NSSize				viewSize;
+	NSSize				backingViewSize;
 	GLfloat				display_z;
 	GLfloat				x_offset, y_offset;
 	
@@ -157,6 +158,7 @@ extern int debug;
 - (void) setTypedString:(NSString*) value;
 
 - (NSSize) viewSize;
+- (NSSize) backingViewSize;
 - (GLfloat) display_z;
 - (GLfloat) x_offset;
 - (GLfloat) y_offset;

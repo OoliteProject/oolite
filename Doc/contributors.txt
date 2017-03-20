@@ -4,6 +4,7 @@ This list is in alphabetical order, and almost certainly incomplete.
 
 The Man: Giles Williams (aegidian)
 
+AndSDev
 Kevin Anthoney (kanthoney)
 Jens Ayton (Ahruman)
 Nikos Barkas (another_commander)
@@ -12,6 +13,7 @@ Nicolas Boulenguez
 CaptSolo
 Eugene Chernyakov (seventh)
 colinh
+Commander_X
 Commander McLane
 Paul Cooper (PhantorGorth)
 Dermot Costello
@@ -20,6 +22,7 @@ Blake Deakins (Cmd. Cheyd)
 Griff
 Jelmer Graafstra
 James Hobson (Cmdr James)
+Sergey Ilinykh (rion)
 Influence D
 Kaks
 Olli Krienke (Svengali)
@@ -38,11 +41,11 @@ Dennis Pedersen (Frame)
 David Pradier (Day)
 Redspear
 Erich Ritz (drumz)
+Nick Rogers (phkb)
 Jay Roper (Halfhand)
 Darren Salt (dsalt/_ds_)
 Adam Sampson
 Chip Richards (caracal)
-rion
 Rob C. Skilton (KZ9999)
 Alex Smith
 Dylan Smith (winston)

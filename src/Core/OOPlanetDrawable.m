@@ -160,7 +160,7 @@
 
 - (void) setRadius:(float)radius
 {
-	_radius = fabs(radius);
+	_radius = fabsf(radius);
 	[self recalculateTransform];
 }
 
@@ -173,17 +173,17 @@
 
 - (void) setLevelOfDetail:(float)lod
 {
-	_lod = round(OOClamp_0_1_f(lod) * LOD_GRANULARITY);
+	_lod = roundf(OOClamp_0_1_f(lod) * LOD_GRANULARITY);
 }
 
 
 - (void) calculateLevelOfDetailForViewDistance:(float)distance
 {
 	BOOL simple = [UNIVERSE reducedDetail];
-	float	drawFactor = [[UNIVERSE gameView] viewSize].width / (simple ? 100.0f : 40.0f);
-	float	drawRatio2 = drawFactor * _radius / sqrt(distance); // proportional to size on screen in pixels
+	float	drawFactor = [[UNIVERSE gameView] viewSize].width / (simple ? 100.0 : 40.0);
+	float	drawRatio2 = drawFactor * _radius / sqrtf(distance); // proportional to size on screen in pixels
 	
-	float lod = sqrt(drawRatio2 * LOD_FACTOR);
+	float lod = sqrtf(drawRatio2 * LOD_FACTOR);
 	if (simple)
 	{
 		lod -= 0.5f / LOD_GRANULARITY;	// Make LOD transitions earlier.

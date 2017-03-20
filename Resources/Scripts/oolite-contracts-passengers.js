@@ -521,12 +521,12 @@ this._passengerContractSummaryPage = function()
 		optionText += this.$helper._paddingText(optionText, columns[2]);
 		// right-align the fee so that the credits signs line up
 		var priceText = formatCredits(passenger.advance,false,true);
-		priceText = this.$helper._paddingText(priceText, 3)+priceText;
+		priceText = this.$helper._paddingText(priceText, 3.25)+priceText;
 		optionText += priceText
 		optionText += this.$helper._paddingText(optionText, columns[3]);
 		// right-align the fee so that the credits signs line up
 		priceText = formatCredits(passenger.payment,false,true);
-		priceText = this.$helper._paddingText(priceText, 3)+priceText;
+		priceText = this.$helper._paddingText(priceText, 3.25)+priceText;
 		optionText += priceText
 		
 		// need to pad the number in the key to maintain alphabetical order

@@ -122,8 +122,8 @@ typedef enum
 - (OOCommodityMarket *) localMarket;
 - (void) setLocalMarket:(NSArray *)market;
 - (NSDictionary *) localMarketForScripting;
-- (void) setPrice:(NSUInteger) price forCommodity:(OOCommodityType) commodity;
-- (void) setQuantity:(NSUInteger) quantity forCommodity:(OOCommodityType) commodity;
+- (void) setPrice:(OOCreditsQuantity) price forCommodity:(OOCommodityType) commodity;
+- (void) setQuantity:(OOCargoQuantity) quantity forCommodity:(OOCommodityType) commodity;
 
 /*- (NSMutableArray *) localPassengers;
 - (void) setLocalPassengers:(NSArray *)market;
@@ -242,6 +242,8 @@ typedef enum
 - (BOOL) hasBreakPattern;
 - (void) setHasBreakPattern:(BOOL)newValue;
 
+- (BOOL) fitsInDock:(ShipEntity *)ship;
+- (BOOL) fitsInDock:(ShipEntity *)ship andLogNoFit:(BOOL)logNoFit;
 
 @end
 

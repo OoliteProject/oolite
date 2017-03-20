@@ -1,0 +1,54 @@
+/*
+	oolite-default-atmosphere.vertex
+	Default vertex shader for Oolite's NEW_PLANETS
+	
+	
+	© 2009–2013 Jens Ayton
+	
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+	MA 02110-1301, USA.
+*/
+
+// No vNormal, because normal is always 0,0,1 in tangent space.
+uniform mat3			ooliteNormalMatrix;
+uniform mat4			ooliteModelView;
+uniform mat4			ooliteModelViewProjection;
+varying vec3			vEyeVector;
+varying vec2			vTexCoords;
+varying vec3			vLight1Vector;
+varying vec3			vCoords;
+
+
+void main(void)
+{
+	vCoords = gl_Vertex.xyz;
+	
+	// Build tangent basis.
+	vec3 normal = normalize(ooliteNormalMatrix * gl_Normal);
+	vec3 binormal = normalize(cross(normal, ooliteNormalMatrix * vec3(0, 1, 0)));
+	vec3 tangent = -cross(normal, binormal);
+	
+	mat3 TBN = mat3(tangent, binormal, normal);
+	
+	vec3 eyeVector = -vec3(ooliteModelView * gl_Vertex);
+	vEyeVector = eyeVector * TBN;
+
+	vec3 light1Vector = gl_LightSource[1].position.xyz + eyeVector;
+	vLight1Vector = light1Vector * TBN;
+	
+	vTexCoords = gl_MultiTexCoord0.st;
+	gl_Position = ooliteModelViewProjection * gl_Vertex;
+}
+

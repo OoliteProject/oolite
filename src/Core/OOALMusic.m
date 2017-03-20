@@ -27,7 +27,6 @@ SOFTWARE.
 */
 
 #import "OOALMusic.h"
-#import "OOSoundSource.h"
 
 static OOMusic			*sPlayingMusic = nil;
 static OOSoundSource	*sMusicSource = nil;
@@ -72,6 +71,22 @@ static OOSoundSource	*sMusicSource = nil;
 }
 
 
+- (void)setMusicGain:(float)newValue
+{
+	if (nil != sMusicSource)
+	{
+		[sMusicSource setGain:newValue];
+	}
+}
+
+
+- (float) musicGain
+{
+	if (nil == sMusicSource)  return 0.0f;
+	return [sMusicSource gain];
+}
+
+
 - (void)playLooped:(BOOL)inLoop
 {
 	if (sPlayingMusic != self)
@@ -90,6 +105,12 @@ static OOSoundSource	*sMusicSource = nil;
 }
 
 
+- (OOSoundSource *)musicSoundSource
+{
+	return sMusicSource;
+}
+
+
 - (BOOL)isPlaying
 {
 	return sPlayingMusic == self && [sMusicSource isPlaying];
@@ -102,6 +123,7 @@ static OOSoundSource	*sMusicSource = nil;
 	{
 		sPlayingMusic = nil;
 		[sMusicSource stop];
+		[sMusicSource setSound:nil];
 	}
 }
 

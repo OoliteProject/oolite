@@ -43,6 +43,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 
 static JSBool StationAbortAllDockings(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationCanDockShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp);
@@ -124,8 +125,9 @@ static JSPropertySpec sStationProperties[] =
 static JSFunctionSpec sStationMethods[] =
 {
 	// JS name					Function						min args
-	{ "abortAllDockings",				StationAbortAllDockings,				0 },
-	{ "abortDockingForShip",				StationAbortDockingForShip,				1 },
+	{ "abortAllDockings",		StationAbortAllDockings,		0 },
+	{ "abortDockingForShip",	StationAbortDockingForShip,		1 },
+	{ "canDockShip",            StationCanDockShip,				1 },	
 	{ "dockPlayer",				StationDockPlayer,				0 },
 	{ "launchDefenseShip",		StationLaunchDefenseShip,		0 },
 	{ "launchEscort",			StationLaunchEscort,			0 },
@@ -138,7 +140,7 @@ static JSFunctionSpec sStationMethods[] =
 	{ "launchShuttle",			StationLaunchShuttle,			0 },
 	{ "setInterface",			StationSetInterface,			0 },
 	{ "setMarketPrice",			StationSetMarketPrice,			2 },
-	{ "setMarketQuantity",			StationSetMarketQuantity,			2 },
+	{ "setMarketQuantity",		StationSetMarketQuantity,		2 },
 	{ 0 }
 };
 
@@ -361,7 +363,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsid propID
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 /*				if (fValue < -2.0)  fValue = -2.0;
-				if (fValue > 2.0)  fValue = 2.0;	// clamping to -2.0...2.0 gives us ±M_PI actual maximum rotation
+				if (fValue > 2.0)  fValue = 2.0;	// clamping to -2.0...2.0 gives us Â±M_PI actual maximum rotation
 				[entity setRoll:fValue]; */
 				// use setRawRoll to make the units here equal to those in kShip_roll
 				if (fValue < -M_PI)  fValue = -M_PI;
@@ -438,9 +440,10 @@ static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *
 	JSStationGetStationEntity(context, OOJS_THIS, &station); 
 	if (argc == 0)
 	{
-			OOJSReportBadArguments(context, @"Station", @"abortDockingForShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship in docking queue");
+		OOJSReportBadArguments(context, @"Station", @"abortDockingForShip", MIN(argc, 1U), OOJS_ARGV, nil, @"ship in docking queue");
 		return NO;
 	}
+	if (!JSVAL_IS_OBJECT(OOJS_ARGV[0]))  return NO;
 	ShipEntity *ship = nil;
 	JSStationGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &ship);
 	if (ship != nil)
@@ -451,6 +454,39 @@ static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
+}
+
+// canDockShip(shipEntity) : boolean
+// Proposed by phkb (Nick Rogers) 20161206
+static JSBool StationCanDockShip(JSContext *context, uintN argc, jsval *vp)
+{
+   OOJS_NATIVE_ENTER(context)
+
+   BOOL         result = YES;
+   ShipEntity      *shipToCheck = nil;
+
+   if (argc > 0)
+   {
+      if (!JSVAL_IS_OBJECT(OOJS_ARGV[0]) || !JSStationGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &shipToCheck))
+      {
+         return NO;
+      }
+   }
+   if (EXPECT_NOT(shipToCheck == nil))
+   {
+      OOJSReportBadArguments(context, @"Station", @"canDockShip", MIN(argc, 1U), OOJS_ARGV, nil, @"shipEntity");
+      return NO;
+   }
+   
+   StationEntity *station = nil;
+   if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
+   
+   OOJS_BEGIN_FULL_NATIVE(context)
+   result = [station fitsInDock:shipToCheck andLogNoFit:NO];
+   OOJS_END_FULL_NATIVE
+
+   OOJS_RETURN_BOOL(result);
+   OOJS_NATIVE_EXIT
 }
 
 
@@ -829,7 +865,7 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 		return NO;
 	}
 
-	[station setQuantity:(NSUInteger)quantity forCommodity:commodity];
+	[station setQuantity:(OOCargoQuantity)quantity forCommodity:commodity];
 	
 	if (station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_MARKET)
 	{
