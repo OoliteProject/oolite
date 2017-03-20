@@ -24,8 +24,9 @@ MA 02110-1301, USA.
 
 
 #include "OOMaths.h"
+#if OOMATHS_OPENGL_INTEGRATION
 #import "OOOpenGLExtensionManager.h"
-
+#endif
 
 const OOMatrix	kIdentityMatrix = 
 								{ .m = {
@@ -300,17 +301,17 @@ void OOMatrixColumnOperation(OOMatrix *M, int column1, OOScalar factor1, int col
 OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B)
 {
 	int i, j;
-	BOOL found;
+	bool found;
 	for (i = 0; i < 4; i++)
 	{
 		if (A.m[i][i] == 0.0)
 		{
-			found = NO;
+			found = false;
 			for (j = i+1; j < 4; j++)
 			{
 				if (A.m[j][i] != 0.0)
 				{
-					found = YES;
+					found = true;
 					OOMatrixColumnSwap(&A,i,j);
 					OOMatrixColumnSwap(&B,i,j);
 					break;
@@ -343,17 +344,17 @@ OOMatrix OOMatrixLeftTransform(OOMatrix A, OOMatrix B)
 OOMatrix OOMatrixRightTransform(OOMatrix A, OOMatrix B)
 {
 	int i, j;
-	BOOL found;
+	bool found;
 	for (i = 0; i < 4; i++)
 	{
 		if (A.m[i][i] == 0.0)
 		{
-			found = NO;
+			found = false;
 			for (j = i+1; j < 4; j++)
 			{
 				if (A.m[j][i] != 0.0)
 				{
-					found = YES;
+					found = true;
 					OOMatrixRowSwap(&A,i,j);
 					OOMatrixRowSwap(&B,i,j);
 					break;
@@ -398,30 +399,32 @@ OOMatrix OOMatrixInverseWithDeterminant(OOMatrix M, OOScalar *d)
 {
 	int i, j;
 	OOMatrix B = kIdentityMatrix;
-	BOOL found;
+	int best_row;
+	float max_value;
 
 	*d = 1.0;
 	for (i = 0; i < 4; i++)
 	{
-		if (M.m[i][i] == 0.0)
+		max_value = fabsf(M.m[i][i]);
+		best_row = i;
+		for (j = i+1; j < 4; j++)
 		{
-			found = NO;
-			for (j = i+1; j < 4; j++)
+			if (fabs(M.m[j][i]) > max_value)
 			{
-				if (M.m[j][i] != 0.0)
-				{
-					found = YES;
-					OOMatrixRowSwap(&M,i,j);
-					OOMatrixRowSwap(&B,i,j);
-					*d *= -1;
-					break;
-				}
+				best_row = j;
+				max_value = fabs(M.m[j][i]);
 			}
-			if (!found)
-			{
-				*d = 0.0;
-				return kZeroMatrix;
-			}
+		}
+		if (max_value == 0.0)
+		{
+			*d = 0.0;
+			return kZeroMatrix;
+		}
+		if (best_row != i)
+		{
+			OOMatrixRowSwap(&M,i,best_row);
+			OOMatrixRowSwap(&B,i,best_row);
+			*d *= -1;
 		}
 		*d /= M.m[i][i];
 		OOMatrixRowScale(&B, i, 1/M.m[i][i]);

@@ -52,7 +52,7 @@ static BOOL sIsSoundOK = NO;
 		if (controller != nil)
 		{
 			sIsSoundOK = YES;
-			float volume = [[NSUserDefaults standardUserDefaults] oo_floatForKey:KEY_VOLUME_CONTROL defaultValue:1.0];
+			float volume = [[NSUserDefaults standardUserDefaults] oo_floatForKey:KEY_VOLUME_CONTROL defaultValue:0.5];
 			[self setMasterVolume:volume];
 		}
 	}
@@ -96,6 +96,8 @@ static BOOL sIsSoundOK = NO;
 
 - (id) initWithContentsOfFile:(NSString *)path
 {
+	if (!sIsSoundOK)  return nil;
+	
 	[self release];
 	if (!sIsSetUp && ![OOSound setUp])  return nil;
 

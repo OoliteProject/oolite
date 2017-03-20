@@ -10,7 +10,9 @@
 	included from js-config.h as well.
 */
 
+#if __cplusplus
 #define __STDC_LIMIT_MACROS				1
+#endif
 
 #ifdef DEBUG
 // Thread safety required for API compatibility testing, not actually used.

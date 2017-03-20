@@ -534,7 +534,6 @@ enum
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity;
 - (unsigned) countShipsWithPrimaryRole:(NSString *)role;
 - (unsigned) countShipsWithScanClass:(OOScanClass)scanClass inRange:(double)range ofEntity:(Entity *)entity;
-- (void) sendShipsWithPrimaryRole:(NSString *)role messageToAI:(NSString *)message;
 
 
 // General count/search methods. Pass range of -1 and entity of nil to search all of system.
@@ -721,6 +720,7 @@ enum
 - (void) handleOoliteException:(NSException *)ooliteException;
 
 - (GLfloat)airResistanceFactor;
+- (void) setAirResistanceFactor:(GLfloat)newFactor;
 
 // speech routines
 //

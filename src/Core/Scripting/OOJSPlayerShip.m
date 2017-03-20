@@ -104,6 +104,7 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_compassType,					// basic / advanced, string, read/write
 	kPlayerShip_currentWeapon,					// shortcut property to _aftWeapon, etc. overrides kShip generic version
 	kPlayerShip_crosshairs,						// custom plist file defining crosshairs
 	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
@@ -124,6 +125,7 @@ enum
 	kPlayerShip_hudAllowsBigGui,				// hud big gui, string, read only 
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_injectorsEngaged,				// injectors in use, boolean, read-only
+	kPlayerShip_massLockable,					// mass-lockability of player ship, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
@@ -142,6 +144,8 @@ enum
 	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
+	kPlayerShip_nextSystem,						// next hop system id, read-only
+	kPlayerShip_infoSystem,						// info (F7 screen) system id, int, read-write
 	kPlayerShip_torusEngaged,					// torus in use, boolean, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
 	kPlayerShip_viewPositionAft,					// view position offset, vector, read-only
@@ -160,6 +164,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READWRITE_CB },
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
+	{ "compassType",					kPlayerShip_compassType,					OOJS_PROP_READWRITE_CB },
 	{ "currentWeapon",					kPlayerShip_currentWeapon,					OOJS_PROP_READWRITE_CB },
 	{ "crosshairs",						kPlayerShip_crosshairs,						OOJS_PROP_READWRITE_CB },
 	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
@@ -180,6 +185,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "hudAllowsBigGui",				kPlayerShip_hudAllowsBigGui,				OOJS_PROP_READONLY_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	{ "injectorsEngaged",				kPlayerShip_injectorsEngaged,				OOJS_PROP_READONLY_CB },
+	{ "massLockable",					kPlayerShip_massLockable,					OOJS_PROP_READWRITE_CB },
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READWRITE_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READWRITE_CB },
@@ -199,6 +205,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
+	{ "nextSystem",                     kPlayerShip_nextSystem,                     OOJS_PROP_READONLY_CB },
+	{ "infoSystem",						kPlayerShip_infoSystem,						OOJS_PROP_READWRITE_CB },
 	{ "torusEngaged",					kPlayerShip_torusEngaged,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionAft",					kPlayerShip_viewPositionAft,					OOJS_PROP_READONLY_CB },
@@ -413,6 +421,14 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = INT_TO_JSVAL([player targetSystemID]);
 			return YES;
 
+		case kPlayerShip_nextSystem:
+			*value = INT_TO_JSVAL([player nextHopTargetSystemID]);
+			return YES;
+			
+		case kPlayerShip_infoSystem:
+			*value = INT_TO_JSVAL([player infoSystemID]);
+			return YES;
+
 		case kPlayerShip_routeMode:
 		{
 			OORouteType route = [player ANAMode];
@@ -446,6 +462,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_injectorsEngaged:
 			*value = OOJSValueFromBOOL([player injectorsEngaged]);
 			return YES;
+			
+		case kPlayerShip_massLockable:
+			*value = OOJSValueFromBOOL([player massLockable]);
+			return YES;
 
 		case kPlayerShip_torusEngaged:
 			*value = OOJSValueFromBOOL([player hyperspeedEngaged]);
@@ -453,6 +473,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_compassTarget:
 			result = [player compassTarget];
+			break;
+			
+		case kPlayerShip_compassType:
+			result = [OOStringFromCompassMode([player compassMode]) isEqualToString:@"COMPASS_MODE_BASIC"] ?
+														@"OO_COMPASSTYPE_BASIC" : @"OO_COMPASSTYPE_ADVANCED";
 			break;
 			
 		case kPlayerShip_compassMode:
@@ -561,10 +586,43 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 			
+		case kPlayerShip_massLockable:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[player setMassLockable:bValue];
+				return YES;
+			}
+			break;
+			
 		case kPlayerShip_reticleTargetSensitive:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setReticleTargetSensitive:bValue];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_compassType:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil)
+			{
+				if ([sValue isEqualToString:@"OO_COMPASSTYPE_BASIC"])
+				{
+					[player setCompassMode:COMPASS_MODE_BASIC];
+				}
+				else  if([sValue isEqualToString:@"OO_COMPASSTYPE_ADVANCED"])
+				{
+					if (![player hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"])
+					{
+						OOJSReportWarning(context, @"Advanced Compass type requested and set but player ship does not carry the EQ_ADVANCED_COMPASS equipment or has it damaged.");
+					}
+					[player setCompassMode:COMPASS_MODE_PLANET];
+				}
+				else
+				{
+					OOJSReportError(context, @"Unknown compass type specified - must be either OO_COMPASSTYPE_BASIC or OO_COMPASSTYPE_ADVANCED.");
+					return NO;
+				}
 				return YES;
 			}
 			break;
@@ -785,6 +843,20 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return NO;
 			}
 		
+		case kPlayerShip_infoSystem:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue >= 0 && iValue < OO_SYSTEMS_PER_GALAXY)
+				{ 
+					[player setInfoSystemID:iValue moveChart: YES];
+					return YES;
+				}
+				else
+				{
+					return NO;
+				}
+			}
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 			return NO;
@@ -1502,7 +1574,7 @@ static BOOL ValidateContracts(JSContext *context, uintN argc, jsval *vp, BOOL is
 
 	if (!isCargo)
 	{
-		if (argc > offset+5 && JS_ValueToECMAUint32(context, OOJS_ARGV[offset + 5], &uValue) && isfinite(uValue))
+		if (argc > offset+5 && JS_ValueToECMAUint32(context, OOJS_ARGV[offset + 5], &uValue) && isfinite((double)uValue))
 		{
 			*risk = uValue;
 		}

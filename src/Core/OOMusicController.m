@@ -87,6 +87,12 @@ enum
 
 - (void) playMusicNamed:(NSString *)name loop:(BOOL)loop
 {
+	[self playMusicNamed:name loop:loop gain:OO_DEFAULT_SOUNDSOURCE_GAIN];
+}
+
+
+- (void) playMusicNamed:(NSString *)name loop:(BOOL)loop gain:(float)gain
+{
 	if ([self isPlaying] && [name isEqual:[self playingMusic]])  return;
 	
 	if (_mode == kOOMusicOn || (_mode == kOOMusicITunes && [name isEqualToString:@"OoliteTheme.ogg"]))
@@ -96,6 +102,7 @@ enum
 		{
 			[_current stop];
 			
+			[music setMusicGain:OOClamp_0_1_f(gain)];
 			[music playLooped:loop];
 			
 			[_current release];
@@ -214,6 +221,12 @@ enum
 	
 	if (![self isPlaying])  [self playDockingMusic];
 	else if (_special == kSpecialDocking)  [self stop];
+}
+
+
+- (OOSoundSource *) soundSource
+{
+	return [_current musicSoundSource];
 }
 
 

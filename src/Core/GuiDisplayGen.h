@@ -117,6 +117,7 @@ static NSString * const kGuiChartLabelReachableColor	= @"chart_labelreachable_co
 static NSString * const kGuiChartRangeColor			= @"chart_range_color";
 static NSString * const kGuiChartCrosshairColor		= @"chart_crosshair_color";
 static NSString * const kGuiChartCursorColor		= @"chart_cursor_color";
+static NSString * const kGuiChartInfoMarkerColor  	= @"chart_info_marker_color";
 static NSString * const kGuiChartMatchBoxColor		= @"chart_match_box_color";
 static NSString * const kGuiChartMatchLabelColor	= @"chart_match_label_color";
 static NSString * const kGuiChartConnectionColor	= @"chart_connection_color";
@@ -155,7 +156,7 @@ static NSString * const kGuiDockingContinueColor	= @"docking_continue_color";
 
 
 typedef NSInteger OOGUIRow;	// -1 for none
-typedef int OOGUITabStop; // negative value = right align text
+typedef NSInteger OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 

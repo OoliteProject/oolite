@@ -75,7 +75,7 @@ MA 02110-1301, USA.
 
 - (void) setFullScreenMode:(BOOL)value
 {
-	if (!value == self.fullScreenMode)
+	if (value != self.fullScreenMode)
 	{
 		OOPrimaryWindow *window = (OOPrimaryWindow *)self.gameView.window;
 		NSAssert([window isKindOfClass:OOPrimaryWindow.class], @"Incorrect UI setup; main game window should be OOPrimaryWindow.");

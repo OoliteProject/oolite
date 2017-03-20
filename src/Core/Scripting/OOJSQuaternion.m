@@ -633,7 +633,7 @@ static JSBool QuaternionDot(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	Quaternion				thisq, thatq;
-	double					result;
+	OOScalar				result;
 	
 	if (EXPECT_NOT(!GetThisQuaternion(context, OOJS_THIS, &thisq, @"dot"))) return NO;
 	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"dot", argc, OOJS_ARGV, &thatq, NULL)))  return NO;

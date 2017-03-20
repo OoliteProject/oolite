@@ -78,16 +78,16 @@ MA 02110-1301, USA.
 */
 	
 	// anything more than a minimal hue drift will wipe out the original colour.
-	float hue_drift = 0.038f * fabs(randf() - randf());
+	float hue_drift = 0.038f * fabsf(randf() - randf());
 	
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
 	[sun_color getRed:&r green:&g blue:&b alpha:&a];
 	
 	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// real ambient light inside gl_LightModel.ambient
-	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
-	sun_diffuse[1] = 0.5 * (1.0 + g);	// paler
-	sun_diffuse[2] = 0.5 * (1.0 + b);	// paler
+	sun_diffuse[0] = 0.5f * (1.0f + r);	// paler
+	sun_diffuse[1] = 0.5f * (1.0f + g);	// paler
+	sun_diffuse[2] = 0.5f * (1.0f + b);	// paler
 	sun_diffuse[3] = 1.0;
 	sun_specular[0] = r;
 	sun_specular[1] = g;
@@ -377,8 +377,8 @@ MA 02110-1301, USA.
 	 * complete mess of the calculations, so if the sun is more than
 	 * 1E9 away, draw it closer but smaller. Painter's algorithm
 	 * should stop oddities with planets transiting it */
-	float large_distance_compensator = sqrt_zero_distance / 1000000000.0; //1E9
-	if (large_distance_compensator > 1.0)
+	float large_distance_compensator = sqrt_zero_distance / 1000000000.0f; //1E9
+	if (large_distance_compensator > 1.0f)
 	{
 		sqrt_zero_distance /= large_distance_compensator;
 		effective_radius /= large_distance_compensator;
@@ -395,9 +395,9 @@ MA 02110-1301, USA.
 		float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 		float drawRatio2 = drawFactor * effective_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
 	
-		if (cam_zero_distance > 0.0)
+		if (cam_zero_distance > 0.0f)
 		{
-			subdivideLevel = 2 + floor(drawRatio2);
+			subdivideLevel = 2 + floorf(drawRatio2);
 			if (subdivideLevel > 4)
 				subdivideLevel = 4;
 		}
@@ -504,13 +504,13 @@ MA 02110-1301, USA.
 			r += width;
 			break;
 		case 3:
-			r += width/1.5;
+			r += width/1.5f;
 			break;
 		case 2:
-			r += width/3.0;
+			r += width/3.0f;
 			break;
 		case 1:
-			r += width/15.0;
+				r += width/15.0f;
 			break;
 		}
 		theta = 0.0;
@@ -522,8 +522,8 @@ MA 02110-1301, USA.
 				rm = 1.0 + ((0.04/j)*(pt0 * (rvalue[i]+rvalue[i+1]+rvalue[i+2]) + pt1 * (rvalue[i+360]+rvalue[i+361]+rvalue[i+362])))/3;
 			}
 			GLfloat z = r * r * rm * rm / z_distance;
-			si = sin(theta);
-			ci = cos(theta);
+			si = sinf(theta);
+			ci = cosf(theta);
 			theta += delta;
 			sunVertices[k++] = si * r * rm;
 			sunVertices[k++] = ci * r * rm;
@@ -605,13 +605,13 @@ MA 02110-1301, USA.
 	
 	GLfloat sunGlareAngularSize = atan([self radius]/HPdistance([PLAYER viewpointPosition], [self position])) * SUN_GLARE_MULT_FACTOR + (SUN_GLARE_ADD_FACTOR);
 
-	GLfloat	directVisionSunGlare = [PLAYER lookingAtSunWithThresholdAngleCos:cos(sunGlareAngularSize)];
+	GLfloat	directVisionSunGlare = [PLAYER lookingAtSunWithThresholdAngleCos:cosf(sunGlareAngularSize)];
 	if (directVisionSunGlare)
 	{
 		NSSize	siz =	[[UNIVERSE gui]	size];
 		MyOpenGLView *gameView = [UNIVERSE gameView];
 		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
-		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0f/3.0f ? aspectRatio : 1.0f / aspectRatio);
 		GLfloat atmosphericReductionFactor =  1.0f - [PLAYER insideAtmosphereFraction];
 		// 182: square of ratio of radius to sun-witchpoint distance
 		// in default Lave
@@ -640,21 +640,21 @@ MA 02110-1301, USA.
 
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
-	float sqrt_zero_distance = sqrt(cam_zero_distance);
-	double alt = sqrt_zero_distance - collision_radius;
+	float sqrt_zero_distance = sqrtf(cam_zero_distance);
+	float alt = sqrt_zero_distance - collision_radius;
 	if (EXPECT_NOT(alt < 0))
 	{
 		return;
 	}
-	double corona = cor16k/SUN_GLARE_CORONA_FACTOR;
+	float corona = cor16k/SUN_GLARE_CORONA_FACTOR;
 	if (corona > alt)
 	{
-		double alpha = 1-(alt/corona);
+		float alpha = 1-(alt/corona);
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
 		MyOpenGLView *gameView = [UNIVERSE gameView];
 		GLfloat aspectRatio = ([gameView viewSize].width / [gameView viewSize].height);
-		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0/3.0 ? aspectRatio : 1.0 / aspectRatio);
+		GLfloat z  = [gameView display_z] / (aspectRatio > 4.0f/3.0f ? aspectRatio : 1.0f / aspectRatio);
 		OOGL(glColor4fv(glareColor));
 
 		OOGLBEGIN(GL_QUADS);

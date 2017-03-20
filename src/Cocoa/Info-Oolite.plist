@@ -80,13 +80,18 @@
 	<key>CFBundleSignature</key>
 	<string>Ool8</string>
 	<key>CFBundleVersion</key>
-	<string>1.83</string>
+	<string>1.85</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.games</string>
 	<key>LSMinimumSystemVersionByArchitecture</key>
 	<dict>
 		<key>x86_64</key>
 		<string>10.6.0</string>
+	</dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
 	</dict>
 	<key>NSDockTilePlugIn</key>
 	<string>Oolite.docktileplugin</string>

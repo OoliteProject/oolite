@@ -31,6 +31,7 @@ SOFTWARE.
 
 #import <Foundation/Foundation.h>
 #import "OOALSound.h"
+#import "OOSoundSource.h"
 
 
 @interface OOMusic: OOSound
@@ -42,5 +43,8 @@ SOFTWARE.
 - (void) playLooped:(BOOL)looped;
 - (void) stop;
 - (BOOL) isPlaying;
+- (void) setMusicGain:(float)newValue;
+- (float) musicGain;
+- (OOSoundSource *)musicSoundSource;
 
 @end

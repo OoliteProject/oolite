@@ -211,6 +211,12 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 }
 
 
+- (NSSize) backingViewSize
+{
+	return backingViewSize;
+}
+
+
 - (GLfloat) display_z
 {
 	return display_z;
@@ -338,7 +344,11 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
 	{
 		// High resolution mode support.
-		v_size = [self convertSizeToBacking:v_size];
+		backingViewSize = [self convertSizeToBacking:viewSize];
+	}
+	else
+	{
+		backingViewSize = viewSize;
 	}
 	
 	[self openGLContext];	// Force lazy setup if needed.
@@ -386,12 +396,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 - (BOOL) snapShot:(NSString *)filename
 {
 	BOOL snapShotOK = YES;
-        NSSize v_size = viewSize;
-	if ([self respondsToSelector:@selector(convertSizeToBacking:)])
-	{
-		// High resolution mode support.
-		v_size = [self convertSizeToBacking:v_size];
-	}
+	NSSize v_size = backingViewSize;
 	
 	int w = v_size.width;
 	int h = v_size.height;
@@ -696,6 +701,10 @@ FAIL:
 	ctrl = (flags & NSControlKeyMask) ? YES : NO;
 	command = (flags & NSCommandKeyMask) ? YES : NO;
 	shift = ( flags & NSShiftKeyMask ) ? YES : NO;
+	if ([theEvent keyCode] == 0x39) // 57 = key code for caps lock
+	{
+		capsLockOn = (flags & NSAlphaShiftKeyMask) ? YES : NO;
+	}
 }
 
 
@@ -729,7 +738,7 @@ FAIL:
 {
 	double mx = [theEvent locationInWindow].x - viewSize.width/2.0;
 	double my = [theEvent locationInWindow].y - viewSize.height/2.0;
-		
+
 	if (display_z > 640.0)
 	{
 		mx /= viewSize.width * MAIN_GUI_PIXEL_WIDTH / display_z;
@@ -983,8 +992,7 @@ FAIL:
 
 - (BOOL) isCapsLockOn
 {
-	// TODO: Implement CapsLock check for Mac
-	return NO;
+	return capsLockOn;
 }
 
 
@@ -1249,13 +1257,13 @@ static void UnapplyCursorState(OOMouseInteractionMode mode)
 
 - (void) setFov:(float)value fromFraction:(BOOL)fromFraction
 {
-	_fov = fromFraction ? value : tan((value / 2) * M_PI / 180);
+	_fov = fromFraction ? value : tanf((value / 2.0f) * M_PI / 180.0f);
 }
 
 
 - (float) fov:(BOOL)inFraction
 {
-	return inFraction ? _fov : 2 * atan(_fov) * 180 / M_PI;
+	return inFraction ? _fov : 2 * atanf(_fov) * 180.0f / M_PI;
 }
 
 @end

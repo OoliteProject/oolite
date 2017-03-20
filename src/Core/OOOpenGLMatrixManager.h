@@ -56,7 +56,7 @@ enum
 - (void) dealloc;
 - (void) push: (OOMatrix) matrix;
 - (OOMatrix) pop;
-- (unsigned int) stackCount;
+- (NSUInteger) stackCount;
 
 @end
 
@@ -81,7 +81,7 @@ enum
 - (void) pushModelView;
 - (OOMatrix) popModelView;
 - (OOMatrix) getModelView;
-- (unsigned int) countModelView;
+- (NSUInteger) countModelView;
 - (void) syncModelView;
 - (void) loadProjection: (OOMatrix) matrix;
 - (void) multProjection: (OOMatrix) matrix;
@@ -97,7 +97,7 @@ enum
 - (OOMatrix) getProjection;
 - (void) syncProjection;
 - (OOMatrix) getMatrix: (int) which;
-- (NSArray*) standardMatrixUniformLocations: (GLuint) program;
+- (NSArray*) standardMatrixUniformLocations: (GLhandleARB) program;
 
 @end
 

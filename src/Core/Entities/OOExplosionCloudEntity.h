@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 {
 @private
 	float				_growthRate;
-	float				_cloudDuration;
+	OOTimeDelta			_cloudDuration;
 	float				_alpha;
 	OOTexture			*_texture;
 	NSDictionary		*_settings;

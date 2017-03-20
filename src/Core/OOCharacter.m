@@ -373,7 +373,7 @@ MA 02110-1301, USA.
 		  [self shortDescription], @"description",
 		  [self species], @"species",
 		  [NSNumber numberWithInt:[self legalStatus]], @"legalStatus",
-	      [NSNumber numberWithUnsignedInt:[self insuranceCredits]], @"insuranceCredits",
+	      [NSNumber numberWithUnsignedLongLong:[self insuranceCredits]], @"insuranceCredits",
 		  [NSNumber numberWithInt:[self planetIDOfOrigin]], @"homeSystem",
 		  nil];
 }

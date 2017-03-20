@@ -1070,7 +1070,7 @@
 	"unknown-ship-@"				= "Unknown Ship '%@'.";
 
 	// Intro1 screen
-	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2016";
+	"game-copyright"				= "by Giles Williams, Jens Ayton and contributors © 2003–2017";
 	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
 	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
 	"load-previous-commander-yes"	= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
@@ -1272,6 +1272,8 @@
 	"oolite-keydesc-key_docking_music"			= "Docking music";
 
 	"oolite-keydesc-key_advanced_nav_array"		= "Route planner";
+	"oolite-keydesc-key_next_info_system"		= "Next Planet Info";
+	"oolite-keydesc-key_previous_info_system"	= "Previous Planet Info";
 	"oolite-keydesc-key_map_home"				= "Home map";
 	"oolite-keydesc-key_map_info"				= "Show chart icons";
 
@@ -1300,9 +1302,11 @@
 	"oolite-loadsave-exit"			= "Return to Menu";
 	"oolite-scenario-exit"			= "Return to Menu";
 	"oolite-scenario-standard-name" = "Normal Start";
+	"oolite-scenario-easy-name"		= "Easy Start";
 	"oolite-scenario-strict-name"	= "Strict Mode";
 	"oolite-scenario-tutorial-name" = "Tutorial";
 	"oolite-scenario-standard-description"	= "Start with a Cobra Mk III and 100 credits at Lave station, and try to make a living.";
+	"oolite-scenario-easy-description"	= "Start with a Cobra Mk III and 1000 credits at Tionisla station, and try to make a living.";
 	"oolite-scenario-strict-description"	= "Strict Mode starts like the normal start, but all expansion packs are permanently disabled for this Commander.";
 	"oolite-scenario-tutorial-description"	= "Take a standard Cooperative flight training course, including simulated combat and docking practice.";
 
@@ -1458,6 +1462,7 @@
 	"short-range-chart-title"		= "Short Range Chart";
 	"short-range-chart-distance"	= "[charts-distance]";
 	"short-range-chart-est-travel-time" = "[charts-est-travel-time]";
+	"short-range-chart-jumps"	= "Jumps: [jumps]";
 	
 	// Long Range Chart Screen
 	"long-range-chart-title-d"		= "Galactic Chart %d";
@@ -1539,6 +1544,10 @@
 	"sysdata-radius"				= "Average radius:";
 	"sysdata-radius-value"			= "[radius] km";
 	"system-description-string"		= "[14] is [22].";
+	"sysdata-route-hours%0"			= "Hour";
+	"sysdata-route-hours%1"			= "Hours";
+	"sysdata-route-jumps%0"			= "Jump";
+	"sysdata-route-jumps%1"			= "Jumps";
 	
 	// Options / Loadsave screen
 	"options-quick-save"			= " Quick-Save ";
@@ -1765,7 +1774,7 @@
 	"loadsavescreen-commander-name" = "Commander";
 	"loadsavescreen-rating"			= "Rating";
 	"loadsavescreen-no-commanders-found" = "No commanders found";
-	"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-timestamp-@" = "Commander %@ is rated %@ and has %@ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@";
+	"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-eco-@-gov-@-tl-@-timestamp-@" = "Commander %@ is rated %@ and has %@ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d%@%@%@). Timestamp: %@";
 	"loadsavescreen-hold-@-and-press-return-to-open-folder-@"= "Hold %@ and press return to open folder: %@";
 	"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@" = "Hold %@ and press return to open parent folder: %@";
 	

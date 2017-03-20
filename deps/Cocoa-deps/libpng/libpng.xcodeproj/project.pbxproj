@@ -99,7 +99,7 @@
 				1A78B59D12D74BE900D42EE7 /* pngwutil.c */,
 			);
 			name = libpng;
-			path = "../../Cross-platform-deps/libpng";
+			path = ../../libpng;
 			sourceTree = "<group>";
 		};
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
@@ -187,7 +187,7 @@
 			);
 			name = "Update Code";
 			outputPaths = (
-				"$(SRCROOT)/../../Cross-platform-deps/libpng/current.url",
+				"$(SRCROOT)/../../libpng/current.url",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

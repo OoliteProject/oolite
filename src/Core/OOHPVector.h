@@ -228,17 +228,17 @@ OOINLINE HPVector HPvector_add(HPVector a, HPVector b)
 
 OOINLINE HPVector OOHPVectorInterpolate(HPVector a, HPVector b, OOHPScalar where)
 {
-	return make_HPvector(OOLerp(a.x, b.x, where),
-					   OOLerp(a.y, b.y, where),
-					   OOLerp(a.z, b.z, where));
+	return make_HPvector(OOLerpd(a.x, b.x, where),
+						OOLerpd(a.y, b.y, where),
+						OOLerpd(a.z, b.z, where));
 }
 
 
 OOINLINE HPVector OOHPVectorTowards(HPVector a, HPVector b, OOHPScalar where)
 {
 	return make_HPvector(a.x + b.x * where,
-					   a.y + b.y * where,
-					   a.z + b.z * where);
+						a.y + b.y * where,
+						a.z + b.z * where);
 }
 
 
@@ -279,8 +279,8 @@ OOINLINE OOHPScalar HPmagnitude(HPVector vec)
 OOINLINE HPVector HPvector_normal_or_fallback(HPVector vec, HPVector fallback)
 {
 	OOHPScalar mag2 = HPmagnitude2(vec);
-	if (EXPECT_NOT(mag2 == 0.0f))  return fallback;
-	return HPvector_multiply_scalar(vec, 1.0f / sqrt(mag2));
+	if (EXPECT_NOT(mag2 == 0.0))  return fallback;
+	return HPvector_multiply_scalar(vec, 1.0 / sqrt(mag2));
 }
 
 

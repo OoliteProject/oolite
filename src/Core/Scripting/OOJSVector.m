@@ -721,7 +721,7 @@ static JSBool VectorDistanceTo(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv, thatv;
-	GLfloat					result;
+	double						result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"distanceTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"distanceTo", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
@@ -740,7 +740,7 @@ static JSBool VectorSquaredDistanceTo(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv, thatv;
-	GLfloat					result;
+	double						result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"squaredDistanceTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"squaredDistanceTo", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
@@ -759,7 +759,7 @@ static JSBool VectorMultiply(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv, result;
-	double					scalar;
+	double						scalar;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"multiply"))) return NO;
 	if (EXPECT_NOT(!OOJSArgumentListGetNumber(context, @"Vector3D", @"multiply", argc, OOJS_ARGV, &scalar, NULL)))  return NO;
@@ -778,7 +778,7 @@ static JSBool VectorDot(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv, thatv;
-	GLfloat					result;
+	double						result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"dot"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"dot", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
@@ -797,15 +797,15 @@ static JSBool VectorAngleTo(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv, thatv;
-	GLfloat					result;
+	double						result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"angleTo"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"angleTo", argc, OOJS_ARGV, &thatv, NULL)))  return NO;
 	
 	result = HPdot_product(HPvector_normal(thisv), HPvector_normal(thatv));
-	if (result > 1.0f) result = 1.0f;
-	if (result < -1.0f) result = -1.0f;
-	// for identical vectors the dot_product sometimes returnes a value > 1.0 because of rounding errors, resulting
+	if (result > 1.0) result = 1.0;
+	if (result < -1.0) result = -1.0;
+	// for identical vectors the dot_product sometimes returns a value > 1.0 because of rounding errors, resulting
 	// in an undefined result for the acos.
 	result = acos(result);
 	
@@ -839,9 +839,9 @@ static JSBool VectorTripleProduct(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv, thatv, theotherv;
-	GLfloat					result;
-	uintN					consumed;
-	jsval					*argv = OOJS_ARGV;
+	double						result;
+	uintN						consumed;
+	jsval						*argv = OOJS_ARGV;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"tripleProduct"))) return NO;
 	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Vector3D", @"tripleProduct", argc, argv, &thatv, &consumed)))  return NO;
@@ -880,7 +880,7 @@ static JSBool VectorMagnitude(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv;
-	GLfloat					result;
+	double						result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"magnitude"))) return NO;
 	
@@ -898,7 +898,7 @@ static JSBool VectorSquaredMagnitude(JSContext *context, uintN argc, jsval *vp)
 	OOJS_PROFILE_ENTER
 	
 	HPVector					thisv;
-	GLfloat					result;
+	double						result;
 	
 	if (EXPECT_NOT(!GetThisVector(context, OOJS_THIS, &thisv, @"squaredMagnitude"))) return NO;
 	

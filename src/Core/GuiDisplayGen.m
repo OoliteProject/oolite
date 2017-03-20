@@ -1164,7 +1164,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSUInteger		maxRows = STATUS_EQUIPMENT_MAX_ROWS;
 	if ([[PLAYER hud] allowBigGui])
 	{
-		maxRows += 6;
+		maxRows += STATUS_EQUIPMENT_BIGGUI_EXTRA_ROWS;
 	}
 	NSUInteger		itemsPerColumn = maxRows;
 
@@ -1212,6 +1212,21 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		statusPage = pageCount; // one page
 		start = 0;
+		// if we have mouse interaction active, it means that we had more than one
+		// pages earlier, but only one now, as e.g. in the case of a hud that wss
+		// subsequently hidden, resulting in the equip list fitting in one page,
+		// so we need to deactivate it
+		if (OOMouseInteractionModeIsUIScreen([[UNIVERSE gameController] mouseInteractionMode]))
+		{
+			// clear the gui-more and gui-back key rows first
+			[self setText:@"" forRow:firstRow];
+			[self setKey:GUI_KEY_SKIP forRow:firstRow];
+			[self setText:@"" forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+			[self setKey:GUI_KEY_SKIP forRow:firstRow + STATUS_EQUIPMENT_MAX_ROWS];
+			[self setSelectableRange:NSMakeRange(0,0)];
+			
+			[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
+		}
 	}
 	
 	if (statusPage > 1)
@@ -1526,7 +1541,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				if ([text length] != 0)
 				{
 					isLeftAligned = tabStops[j] >= 0;
-					rowPosition[i].x = abs(tabStops[j]);
+					rowPosition[i].x = labs(tabStops[j]);
 					
 					// we don't want to highlight leading space(s) or narrow spaces (\037s)
 					NSString	*hilitedText = [text stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" \037"]];
@@ -1645,6 +1660,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint	chart_centre_coordinates = [player adjusted_chart_centre];
 	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
 	NSPoint	cursor_coordinates = [player cursor_coordinates];
+	NSPoint info_system_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem: [player infoSystemID] inGalaxy: [player galaxyNumber]];
 	OOLongRangeChartMode chart_mode = [player longRangeChartMode];
 	OOGalaxyID		galaxy_id = [player galaxyNumber];
 	GLfloat			r = 1.0, g = 1.0, b = 1.0;
@@ -1675,6 +1691,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	
 	int			i;
 	double		d, distance = 0.0, time = 0.0;
+	int		jumps = 0;
 	NSPoint		star;
 	OOScalar	pixelRatio;
 	NSRect		clipRect;
@@ -1689,12 +1706,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	
 	BOOL		*systemsFound = [UNIVERSE systemsFound];
-	NSSize		viewSize = [[UNIVERSE gameView] viewSize];
+	NSSize		viewSize = [[UNIVERSE gameView] backingViewSize];
 	double aspect_ratio = viewSize.width / viewSize.height;
-#if OOLITE_MAC_OS_X
-	// Fix for issue 136
-	BOOL issue_136_fix = [[NSUserDefaults standardUserDefaults] integerForKey: @"issue_136_fix"];
-#endif
 
 	// default colours - match those in HeadUpDisplay:OODrawPlanetInfo
 	GLfloat govcol[] = {	0.5, 0.0, 0.7,
@@ -1721,17 +1734,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				(viewSize.height + size_in_pixels.height*pixelRatio)/2.0 - (pixel_title_size.height + 15 + (textRow-2)*MAIN_GUI_ROW_HEIGHT) * pixelRatio,
 				size_in_pixels.width * pixelRatio,
 				(textRow-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
-
-#if OOLITE_MAC_OS_X
-	// Fix for issue 136
-	if (issue_136_fix)
-	{
-		clipRect.origin.x *= 2;
-		clipRect.origin.y *= 2;
-		clipRect.size.width *= 2;
-		clipRect.size.height *= 2;
-	}
-#endif
 
 	OOSystemID target = [PLAYER targetSystemID];
 	NSString *targetName = [UNIVERSE getSystemName:target];
@@ -1829,6 +1831,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
 			time = [routeInfo oo_doubleForKey:@"time"];
+			jumps = [routeInfo oo_intForKey:@"jumps"];
 
 			if (distance == 0.0 && planetNumber != destNumber)
 			{
@@ -1845,7 +1848,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	NSPoint targetCoordinates = (NSPoint){0,0};
 	if (!routeExists)
 	{
-		target = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_id includingHidden:NO];
 		targetCoordinates = [systemManager getCoordinatesForSystem:target inGalaxy:galaxy_id];
 
 		distance = distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
@@ -1878,6 +1880,19 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 
 	
+	// draw crosshairs over current location
+	//
+	[self setGLColorFromSetting:kGuiChartCrosshairColor defaultValue:[OOColor greenColor] alpha:alpha];
+
+	[self drawCrossHairsWithSize:12/zoom+2 x:x + cu.x y:y + cu.y z:z];
+
+
+	// draw crosshairs over cursor
+	//
+	[self setGLColorFromSetting:kGuiChartCursorColor defaultValue:[OOColor redColor] alpha:alpha];
+	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
+	[self drawCrossHairsWithSize:7/zoom+2 x:x + cu.x y:y + cu.y z:z];
+
 	// draw marks and stars
 	//
 	OOGL(GLScaledLineWidth(1.5f));
@@ -2112,6 +2127,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			{
 				if (concealment[i] >= OO_SYSTEMCONCEALMENT_NODATA)
 				{
+					[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
 					OODrawHilightedString(@"???", x + star.x + 2.0, y + star.y, z, chSize);
 				}
 				else
@@ -2153,6 +2169,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			{
 				if (concealment[targetIdx] >= OO_SYSTEMCONCEALMENT_NODATA)
 				{
+					[self setGLColorFromSetting:kGuiChartLabelColor defaultValue:[OOColor yellowColor] alpha:alpha];
 					OODrawHilightedString(@"???", x + star.x + 2.0, y + star.y, z, chSize);
 				}
 				else
@@ -2183,21 +2200,32 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		travelTimeLine = OOExpandKey(@"long-range-chart-est-travel-time", time);
 	}
 	
-	[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:textRow];
+	if(concealment[target] < OO_SYSTEMCONCEALMENT_NONAME)
+	{
+		[self setArray:[NSArray arrayWithObjects:targetName, travelDistLine,travelTimeLine,nil] forRow:textRow];
+	}
+	else
+	{
+		[self setArray:[NSArray arrayWithObjects:@"", travelDistLine,travelTimeLine,nil] forRow:textRow];
+	}
+	if ([PLAYER guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
+	{
+		if (jumps > 0)
+		{
+			[self setArray:[NSArray arrayWithObjects: @"", OOExpandKey(@"short-range-chart-jumps", jumps), nil] forRow: textRow + 1];
+		}
+		else
+		{
+			[self setArray:[NSArray arrayWithObjects: nil] forRow: textRow + 1];
+		}
+	}
 	[targetName release];
 
-	// draw crosshairs over current location
-	//
-	[self setGLColorFromSetting:kGuiChartCrosshairColor defaultValue:[OOColor greenColor] alpha:alpha];
-
-	[self drawCrossHairsWithSize:14 x:x + cu.x y:y + cu.y z:z];
-
-
-	// draw crosshairs over cursor
-	//
-	[self setGLColorFromSetting:kGuiChartCursorColor defaultValue:[OOColor redColor] alpha:alpha];
-	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
-	[self drawCrossHairsWithSize:7 x:x + cu.x y:y + cu.y z:z];
+	// draw planet info circle
+	OOGL(GLScaledLineWidth(2.0f));
+	[self setGLColorFromSetting: kGuiChartInfoMarkerColor defaultValue:[OOColor blueColor] alpha:alpha];
+	cu = NSMakePoint((float)(hscale*info_system_coordinates.x+hoffset),(float)(vscale*info_system_coordinates.y+voffset));
+	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(6.0f/zoom+2.0f, 6.0f/zoom+2.0f), 5);
 
 	// disable draw clipping
 	OOGL(glDisable(GL_SCISSOR_TEST));
@@ -2334,7 +2362,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	foundSystem = systemIndex;
 	return sys;
 }
-
 
 
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
@@ -2496,7 +2523,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			OOGLEND();
 			
 			// Label the route, if not already labelled
-			if (zoom > CHART_ZOOM_SHOW_LABELS)
+			if (zoom > CHART_ZOOM_SHOW_LABELS && concealment[loc] < OO_SYSTEMCONCEALMENT_NONAME)
 			{
 				OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y, z, NSMakeSize(8,8));
 			}
@@ -2505,7 +2532,10 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		if (zoom > CHART_ZOOM_SHOW_LABELS)
 		{
 			loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];
-			OODrawString([UNIVERSE systemNameIndex:loc], x + star2.x + 2.0, y + star2.y, z, NSMakeSize(10,10));
+			if(concealment[loc] < OO_SYSTEMCONCEALMENT_NONAME)
+			{
+				OODrawString([UNIVERSE systemNameIndex:loc], x + star2.x + 2.0, y + star2.y, z, NSMakeSize(10,10));
+			}
 		}
 	}
 }

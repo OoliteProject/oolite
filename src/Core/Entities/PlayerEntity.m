@@ -691,6 +691,145 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (OOSystemID) infoSystemID
+{
+	return info_system_id;
+}
+
+
+- (void) setInfoSystemID: (OOSystemID) sid moveChart: (BOOL) moveChart
+{
+	if (sid != info_system_id)
+	{
+		OOSystemID old = info_system_id;
+		info_system_id = sid;
+		if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART || gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
+		{
+			if(moveChart)
+			{
+				target_chart_focus = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+			}
+		}
+		else
+		{
+			if(gui_screen == GUI_SCREEN_SYSTEM_DATA)
+			{
+				[self setGuiToSystemDataScreen];
+			}
+			if(moveChart)
+			{
+				chart_centre_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:info_system_id inGalaxy:galaxy_number];
+				target_chart_centre = chart_centre_coordinates;
+				chart_focus_coordinates = chart_centre_coordinates;
+				target_chart_focus = chart_focus_coordinates;
+			}
+		}
+		JSContext *context = OOJSAcquireContext();
+		ShipScriptEvent(context, self, "infoSystemChanged", INT_TO_JSVAL(info_system_id), INT_TO_JSVAL(old));
+		OOJSRelinquishContext(context);
+	}
+}
+
+
+- (void) nextInfoSystem
+{
+	if (ANA_mode == OPTIMIZED_BY_NONE)
+	{
+		[self setInfoSystemID: target_system_id moveChart: YES];
+		return;
+	}
+	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
+	NSUInteger i;
+	if (route == nil)
+	{
+		[self setInfoSystemID: target_system_id moveChart: YES];
+		return;
+	}
+	for (i = 0; i < [route count]; i++)
+	{
+		if ([[route objectAtIndex: i] intValue] == info_system_id)
+		{
+			if (i + 1 < [route count])
+			{
+				[self setInfoSystemID:[[route objectAtIndex:i + 1] unsignedIntValue] moveChart: YES];
+				[route release];
+				return;
+			}
+			break;
+		}
+	}
+	[route release];
+	[self setInfoSystemID: target_system_id moveChart: YES];
+	return;
+}
+
+
+- (void) previousInfoSystem
+{
+	if (ANA_mode == OPTIMIZED_BY_NONE)
+	{
+		[self setInfoSystemID: system_id moveChart: YES];
+		return;
+	}
+	NSArray *route = [[[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"] retain];
+	NSUInteger i;
+	if (route == nil)
+	{
+		[self setInfoSystemID: system_id moveChart: YES];
+		return;
+	}
+	for (i = 0; i < [route count]; i++)
+	{
+		if ([[route objectAtIndex: i] intValue] == info_system_id)
+		{
+			if (i > 0)
+			{
+				[self setInfoSystemID: [[route objectAtIndex: i - 1] unsignedIntValue] moveChart: YES];
+				[route release];
+				return;
+			}
+			break;
+		}
+	}
+	[route release];
+	[self setInfoSystemID: system_id moveChart: YES];
+	return;
+}
+
+
+- (void) homeInfoSystem
+{
+	[self setInfoSystemID: system_id moveChart: YES];
+	return;
+}
+
+
+- (void) targetInfoSystem
+{
+	[self setInfoSystemID: target_system_id moveChart: YES];
+	return;
+}
+
+
+- (BOOL) infoSystemOnRoute
+{
+	NSArray *route = [[UNIVERSE routeFromSystem:system_id toSystem:target_system_id optimizedBy:ANA_mode] oo_arrayForKey: @"route"];
+	NSUInteger i;
+	if (route == nil)
+	{
+		return NO;
+	}
+	for (i = 0; i < [route count]; i++)
+	{
+		if ([[route objectAtIndex: i] intValue] == info_system_id)
+		{
+			return YES;
+		}
+	}
+	return NO;
+}
+	
+
 - (WormholeEntity *) wormhole
 {
 	return wormhole;
@@ -713,7 +852,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (NSDictionary *) commanderDataDictionary
 {
-	NSAssert([self isDocked], @"Cannot create commander data dictionary unless docked.");
 	int i;
 
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
@@ -742,7 +880,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	// Write the name of the current system. Useful for looking up saved game information and for overlapping systems.
-	[result setObject:[UNIVERSE getSystemName:[self currentSystemID]] forKey:@"current_system_name"];
+	if (![UNIVERSE inInterstellarSpace])
+	{
+		[result setObject:[UNIVERSE getSystemName:[self currentSystemID]] forKey:@"current_system_name"];
+		OOGovernmentID government = [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];
+		OOTechLevelID techlevel = [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
+		OOEconomyID economy = [[UNIVERSE currentSystemData] oo_intForKey:KEY_ECONOMY];
+		[result setObject:[NSNumber numberWithUnsignedShort:government] forKey:@"current_system_government"];
+		[result setObject:[NSNumber numberWithUnsignedInt:techlevel] forKey:@"current_system_techlevel"];
+		[result setObject:[NSNumber numberWithUnsignedShort:economy] forKey:@"current_system_economy"];
+	}
 	
 	[result setObject:[self commanderName] forKey:@"player_name"];
 	[result setObject:[self lastsaveName] forKey:@"player_save_name"];
@@ -930,9 +1077,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	// docked station
 	StationEntity *dockedStation = [self dockedStation];
-	[result setObject:[dockedStation primaryRole] forKey:@"docked_station_role"];
-	HPVector dpos = [dockedStation position];
-	[result setObject:ArrayFromHPVector(dpos) forKey:@"docked_station_position"];
+	[result setObject:dockedStation != nil ? [dockedStation primaryRole]:(NSString *)@"" forKey:@"docked_station_role"];
+	if (dockedStation)
+	{
+		HPVector dpos = [dockedStation position];
+		[result setObject:ArrayFromHPVector(dpos) forKey:@"docked_station_position"];
+	}
+	else
+	{
+		[result setObject:[NSArray array] forKey:@"docked_station_position"];
+	}
 	[result setObject:[UNIVERSE getStationMarkets] forKey:@"station_markets"];
 
 	// scenario information
@@ -1055,12 +1209,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 
 		target_system_id = [dict oo_intForKey:@"target_id" defaultValue:system_id];
+		info_system_id = target_system_id;
 		coord_vals = ScanTokensFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:target_system_id inGalaxy:galaxy_number]);		
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 
-		chart_cursor_coordinates = cursor_coordinates;
-		chart_focus_coordinates = cursor_coordinates;
+		chart_focus_coordinates = chart_centre_coordinates;
+		target_chart_focus = chart_focus_coordinates;
 
 		found_system_id = [dict oo_intForKey:@"found_system_id" defaultValue:-1];
 	}
@@ -1090,13 +1245,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 			cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 		}
-		chart_cursor_coordinates = cursor_coordinates;
-		chart_focus_coordinates = cursor_coordinates;
+		chart_focus_coordinates = chart_centre_coordinates;
+		target_chart_focus = chart_focus_coordinates;
 
 		// calculate system ID, target ID
 		if ([dict objectForKey:@"current_system_name"])
 		{
 			system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"current_system_name"]];
+			if (system_id == -1)  system_id = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxy:galaxy_number includingHidden:YES];
 		}
 		else
 		{
@@ -1109,11 +1265,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if ([dict objectForKey:@"target_system_name"])
 		{
 			target_system_id = [UNIVERSE findSystemFromName:[dict oo_stringForKey:@"target_system_name"]];
+			if (target_system_id == -1)  target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:YES];
 		}
 		else
 		{
 			target_system_id = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxy:galaxy_number includingHidden:YES];
 		}
+		info_system_id = target_system_id;
 		found_system_id = -1;
 	}		
 
@@ -1467,7 +1625,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
-		for (NSUInteger roleIndex = 0, missileCount = 0; roleIndex < [missileRoles count] && missileCount < max_missiles; roleIndex++)
+		unsigned missileCount = 0;
+		for (NSUInteger roleIndex = 0; roleIndex < [missileRoles count] && missileCount < max_missiles; roleIndex++)
 		{
 			NSString *missile_desc = [missileRoles oo_stringAtIndex:roleIndex];
 			if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"])
@@ -1925,8 +2084,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	chart_centre_coordinates	= galaxy_coordinates;
 	target_chart_centre		= chart_centre_coordinates;
 	cursor_coordinates		= galaxy_coordinates;
-	chart_cursor_coordinates	= cursor_coordinates;
 	chart_focus_coordinates		= cursor_coordinates;
+	target_chart_focus		= chart_focus_coordinates;
 	chart_zoom			= 1.0;
 	target_chart_zoom		= 1.0;
 	saved_chart_zoom		= 1.0;
@@ -2120,6 +2279,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		_customViews = [customViews retain];
 		_customViewIndex = 0;
 	}
+	
+	massLockable = [shipDict oo_boolForKey:@"mass_lockable" defaultValue:YES];
 	
 	// Load js script
 	[script autorelease];
@@ -2697,6 +2858,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (EXPECT_NOT(target_system_id != system_id)) // overridden: we're going to a nearby system!
 		{
 			system_id = target_system_id;
+			info_system_id = target_system_id;
 			[UNIVERSE setSystemTo:system_id];
 			galaxy_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:system_id inGalaxy:galaxy_number]);
 			
@@ -2964,7 +3126,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
 			int theirClass = [scannedEntity scanClass];
-			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+			// here we could also force masslock for higher than yellow alert, but
+			// if we are going to hand over masslock control to scripting, might as well
+			// hand it over fully
+			if ([self massLockable] /*|| alertFlags > ALERT_FLAG_YELLOW_LIMIT*/)
+			{
+				massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+			}
 			if (theirClass != CLASS_NO_DRAW)
 			{
 				if (theirClass == CLASS_THARGOID || [scannedEntity isCascadeWeapon])
@@ -4050,6 +4218,19 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (void) setMassLockable:(BOOL)newValue
+{
+	massLockable = !!newValue;
+	[self updateAlertCondition];
+}
+
+
+- (BOOL) massLockable
+{
+	return massLockable;
+}
+
+
 - (BOOL) massLocked
 {
 	return ((alertFlags & ALERT_FLAG_MASS_LOCK) != 0);
@@ -4127,6 +4308,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	BOOL 			wasHidden = NO;
 	BOOL 			wasCompassActive = YES;
 	double			scannerZoom = 1.0;
+	NSUInteger		lastMFD = 0;
 	NSUInteger		i;
 
 	if (!hudFileName)  return NO;
@@ -4152,6 +4334,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		wasHidden = [hud isHidden];
 		wasCompassActive = [hud isCompassActive];
 		scannerZoom = [hud scannerZoom];
+		lastMFD = activeMFD;
 	}
 	
 	// buggy oxp could override hud.plist with a non-dictionary.
@@ -4179,6 +4362,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				[multiFunctionDisplaySettings addObject:[NSNull null]];
 			}
 		}
+		if (lastMFD < [hud mfdCount]) activeMFD = lastMFD;
 	}
 	
 	return YES;
@@ -4555,7 +4739,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (OOFuelScoopStatus) dialFuelScoopStatus
 {
 	// need to account for the different ways of calculating cargo on board when docked/in-flight
-	OOCargoQuantity cargoOnBoard = [self status] == STATUS_DOCKED ? current_cargo : [cargo count];
+	OOCargoQuantity cargoOnBoard = [self status] == STATUS_DOCKED ? current_cargo : (OOCargoQuantity)[cargo count];
 	if ([self hasScoop])
 	{
 		if (scoopsActive)
@@ -4639,7 +4823,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
 	times++;
-	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	[roleWeightFlags setObject:[NSNumber numberWithUnsignedInteger:times] forKey:role];
 	if ((times & (times-1)) == 0) // is power of 2
 	{
 		[self addRoleToPlayer:role];
@@ -4652,7 +4836,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSString *role = @"miner";
 	NSUInteger times = [roleWeightFlags oo_intForKey:role defaultValue:0];
 	times++;
-	[roleWeightFlags setObject:[NSNumber numberWithInt:times] forKey:role];
+	[roleWeightFlags setObject:[NSNumber numberWithUnsignedInteger:times] forKey:role];
 	if ((times & (times-1)) == 0) // is power of 2
 	{
 		[self addRoleToPlayer:role];
@@ -5849,7 +6033,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	HPVector		rel_pos;
-	double		d_forward, d_right, d_up;
+	OOScalar		d_forward, d_right, d_up;
 	BOOL		internal_damage = NO;	// base chance
 	
 	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
@@ -5964,7 +6148,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent
 {
 	HPVector  rel_pos;
-	double  d_forward, d_right, d_up;
+	OOScalar  d_forward, d_right, d_up;
 	BOOL	internal_damage = NO;	// base chance
 	
 	if ([self status] == STATUS_DEAD)  return;
@@ -6165,6 +6349,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// set up the standard location where the escape pod will dock.
 	target_system_id = system_id;			// we're staying in this system
+	info_system_id = system_id;
 	[self setDockTarget:[UNIVERSE station]];	// we're docking at the main station, if there is one
 	
 	[self doScriptEvent:OOJSID("shipLaunchedEscapePod") withArgument:escapePod];	// no player.ship properties should be available to script
@@ -6841,7 +7026,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[hud setScannerZoom: 1.0];
 	}
 	[self safeAllMissiles];
+	
+	OOViewID	previousViewDirection = [UNIVERSE viewDirection];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
+	[self noteSwitchToView:VIEW_FORWARD fromView:previousViewDirection]; // notifies scripts of the switch
+	
 	currentWeaponFacing = WEAPON_FACING_FORWARD;
 	[self currentWeaponStats];
 
@@ -7100,13 +7289,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			break;
 	}
 	target_system_id = system_id;
+	info_system_id = system_id;
 	
 	[self setBounty:0 withReason:kOOLegalStatusReasonNewGalaxy];	// let's make a fresh start!
 	cursor_coordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:system_id inGalaxy:galaxy_number]);
 
-	[self witchEnd]; // sets coordinates
-	
-	[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
+	[self witchEnd]; // sets coordinates, calls exiting witchspace JS events
 }
 
 
@@ -7243,6 +7431,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) witchJumpTo:(OOSystemID)sTo misjump:(BOOL)misjump
 {
 	[self witchStart];
+	if (info_system_id == system_id)
+	{
+		[self setInfoSystemID: sTo moveChart: YES];
+	}
 	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
 	if (2 * market_rnd < ship_trade_in_factor)
 	{
@@ -7288,12 +7480,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) leaveWitchspace
 {
-	float		d1 = (float)(SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5));
+	double		d1 = SCANNER_MAX_RANGE * ((Ranrot() & 255)/256.0 - 0.5);
 	HPVector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
 	HPVector		whpos, exitpos;
 
-	GLfloat min_d1 = [UNIVERSE safeWitchspaceExitDistance];
+	double min_d1 = [UNIVERSE safeWitchspaceExitDistance];
 	quaternion_set_random(&q1);
 	if (abs((int)d1) < min_d1)
 	{
@@ -7375,6 +7567,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[self clearRoleFromPlayer:NO];
 		}
 	}
+	
+	if (galactic_witchjump)
+	{
+		[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
+	}
+	
 	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
 }
@@ -7903,22 +8101,21 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) setGuiToSystemDataScreen
 {
-	NSDictionary	*targetSystemData;
-	NSString		*targetSystemName;
+	NSDictionary	*infoSystemData;
+	NSString		*infoSystemName;
 	
-	targetSystemData = [[UNIVERSE generateSystemData:target_system_id] retain];  // retained
-	NSInteger concealment = [targetSystemData oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+	infoSystemData = [[UNIVERSE generateSystemData:info_system_id] retain];  // retained
+	NSInteger concealment = [infoSystemData oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+	infoSystemName = [infoSystemData oo_stringForKey:KEY_NAME];
 	
-	targetSystemName = [targetSystemData oo_stringForKey:KEY_NAME];
-	
-	BOOL			sunGoneNova = ([targetSystemData oo_boolForKey:@"sun_gone_nova"]);
+	BOOL			sunGoneNova = ([infoSystemData oo_boolForKey:@"sun_gone_nova"]);
 	OOGUIScreenID	oldScreen = gui_screen;
 	
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	gui_screen = GUI_SCREEN_SYSTEM_DATA;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 
-	Random_Seed		targetSystemRandomSeed = [[UNIVERSE systemManager] getRandomSeedForSystem:target_system_id
+	Random_Seed		infoSystemRandomSeed = [[UNIVERSE systemManager] getRandomSeedForSystem:info_system_id
 																				  inGalaxy:[self galaxyNumber]];
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
@@ -7932,19 +8129,19 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui overrideTabs:tab_stops from:kGuiSystemdataTabs length:3];
 		[gui setTabStops:tab_stops];
 		
-		NSUInteger techLevel = [targetSystemData oo_intForKey:KEY_TECHLEVEL] + 1;
-		int population = [targetSystemData oo_intForKey:KEY_POPULATION];
-		int productivity = [targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
-		int radius = [targetSystemData oo_intForKey:KEY_RADIUS];
+		NSUInteger techLevel = [infoSystemData oo_intForKey:KEY_TECHLEVEL] + 1;
+		int population = [infoSystemData oo_intForKey:KEY_POPULATION];
+		int productivity = [infoSystemData oo_intForKey:KEY_PRODUCTIVITY];
+		int radius = [infoSystemData oo_intForKey:KEY_RADIUS];
 		
-		NSString	*government_desc =	[targetSystemData oo_stringForKey:KEY_GOVERNMENT_DESC 
-															 defaultValue:OODisplayStringFromGovernmentID([targetSystemData oo_intForKey:KEY_GOVERNMENT])];
-		NSString	*economy_desc =		[targetSystemData oo_stringForKey:KEY_ECONOMY_DESC 
-															 defaultValue:OODisplayStringFromEconomyID([targetSystemData oo_intForKey:KEY_ECONOMY])];
-		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
-		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
+		NSString	*government_desc =	[infoSystemData oo_stringForKey:KEY_GOVERNMENT_DESC 
+															 defaultValue:OODisplayStringFromGovernmentID([infoSystemData oo_intForKey:KEY_GOVERNMENT])];
+		NSString	*economy_desc =		[infoSystemData oo_stringForKey:KEY_ECONOMY_DESC 
+															 defaultValue:OODisplayStringFromEconomyID([infoSystemData oo_intForKey:KEY_ECONOMY])];
+		NSString	*inhabitants =		[infoSystemData oo_stringForKey:KEY_INHABITANTS];
+		NSString	*system_desc =		[infoSystemData oo_stringForKey:KEY_DESCRIPTION];
 
-		NSString    *populationDesc =   [targetSystemData oo_stringForKey:KEY_POPULATION_DESC
+		NSString    *populationDesc =   [infoSystemData oo_stringForKey:KEY_POPULATION_DESC
 															 defaultValue:OOExpandKeyWithSeed(kNilRandomSeed, @"sysdata-pop-value", population, inhabitants)];
 
 		if (sunGoneNova)
@@ -7953,14 +8150,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			productivity = 0;
 			radius = 0;
 			techLevel = 0;
-			government_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-government");
-			economy_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-economy");
-			inhabitants = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-inhabitants");
+
+			government_desc = OOExpandKeyWithSeed(infoSystemRandomSeed, @"nova-system-government");
+			economy_desc = OOExpandKeyWithSeed(infoSystemRandomSeed, @"nova-system-economy");
+			inhabitants = OOExpandKeyWithSeed(infoSystemRandomSeed, @"nova-system-inhabitants");
 			{
-				NSString *system = targetSystemName;
-				system_desc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"nova-system-description", system);
+				NSString *system = infoSystemName;
+				system_desc = OOExpandKeyWithSeed(infoSystemRandomSeed, @"nova-system-description", system);
 			}
-			populationDesc = OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop-value", population, inhabitants);
+			populationDesc = OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-pop-value", population, inhabitants);
 		}
 
 		
@@ -7969,13 +8167,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 		if (concealment < OO_SYSTEMCONCEALMENT_NONAME)
 		{
-			
-			NSString *system = targetSystemName;
-			[gui setTitle:OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-data-on-system", system)];
+			NSString *system = infoSystemName;
+			[gui setTitle:OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-data-on-system", system)];
 		}
 		else
 		{
-			[gui setTitle:OOExpandKey(@"sysdata-data-on-system-no-name")];			
+			[gui setTitle:OOExpandKey(@"sysdata-data-on-system-no-name")];
 		}
 
 		if (concealment >= OO_SYSTEMCONCEALMENT_NODATA)
@@ -7986,60 +8183,96 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			{
 				[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
 			}
-
 		}
 		else
 		{
-			
 			NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
 			NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
 			NSString *populationDesc2 = [populationDescLines lastObject];
+			
+			if ([populationDesc1 isEqualToString:populationDesc2])  populationDesc2 = @"";
 		
 			[gui setArray:[NSArray arrayWithObjects:
-									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-eco"),
-								   economy_desc,
-								   nil]
-				   forRow:1];
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-eco"),
+						   economy_desc,
+						   nil]
+			   	   forRow:1];
 			[gui setArray:[NSArray arrayWithObjects:
-									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-govt"),
-								   government_desc,
-								   nil]
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-govt"),
+						   government_desc,
+						   nil]
 				   forRow:3];
 			[gui setArray:[NSArray arrayWithObjects:
-									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl"),
-								   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-tl-value", techLevel),
-								   nil]
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-tl"),
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-tl-value", techLevel),
+						   nil]
 				   forRow:5];
 			[gui setArray:[NSArray arrayWithObjects:
-									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-pop"),
-								   populationDesc1,
-								   nil]
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-pop"),
+						   populationDesc1,
+						   nil]
 				   forRow:7];
 			[gui setArray:[NSArray arrayWithObjects:@"",
-								   populationDesc2,
-								   nil]
+						   populationDesc2,
+						   nil]
 				   forRow:8];
 			[gui setArray:[NSArray arrayWithObjects:
-									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod"),
-								   @"",
-								   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-prod-value", productivity),
-								   nil]
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-prod"),
+						   @"",
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-prod-value", productivity),
+					   	nil]
 				   forRow:10];
 			[gui setArray:[NSArray arrayWithObjects:
-									   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius"),
-								   @"",
-								   OOExpandKeyWithSeed(targetSystemRandomSeed, @"sysdata-radius-value",
-													   radius),
-								   nil]
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-radius"),
+						   @"",
+						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-radius-value",
+											   radius),
+					   	nil]
 				   forRow:12];
+
+			NSPoint infoSystemCoordinates = [[UNIVERSE systemManager] getCoordinatesForSystem: info_system_id inGalaxy: galaxy_number];
+			double distance = distanceBetweenPlanetPositions(infoSystemCoordinates.x, infoSystemCoordinates.y, galaxy_coordinates.x, galaxy_coordinates.y);
+			if(distance == 0.0 && info_system_id != system_id)
+			{
+				distance = 0.1;
+			}
+			NSString *distanceInfo = [NSString stringWithFormat: @"%.1f ly", distance];
+			if (ANA_mode != OPTIMIZED_BY_NONE)
+			{
+				NSDictionary *routeInfo = nil;
+				routeInfo = [UNIVERSE routeFromSystem: system_id toSystem: info_system_id optimizedBy: ANA_mode];
+				if (routeInfo != nil)
+				{
+					double routeDistance = [[routeInfo objectForKey: @"distance"] doubleValue];
+					double routeTime = [[routeInfo objectForKey: @"time"] doubleValue];
+					int routeJumps = [[routeInfo objectForKey: @"jumps"] intValue];
+					if(routeDistance == 0.0 && info_system_id != system_id) {
+						routeDistance = 0.1;
+						routeTime = 0.01;
+						routeJumps = 0;
+					}
+					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f %@ / %d %@",
+							routeDistance,
+							routeTime,
+							// don't rely on DESC_PLURAL for routeTime since it is of type double
+							routeTime > 1.05 || routeTime < 0.95 ? DESC(@"sysdata-route-hours%1") : DESC(@"sysdata-route-hours%0"),
+							routeJumps,
+							DESC_PLURAL(@"sysdata-route-jumps", routeJumps)];
+				}
+			}
+			[gui setArray:[NSArray arrayWithObjects:
+						@"Distance:",
+						distanceInfo,
+						nil]
+				forRow: 14];
 		
-			OOGUIRow i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
+			OOGUIRow i = [gui addLongText:system_desc startingAtRow:17 align:GUI_ALIGN_LEFT];
 			missionTextRow = i;
-			for (i-- ; i > 14 ; --i)
+			for (i-- ; i > 16 ; --i)
 			{
 				[gui setColor:[gui colorFromSetting:kGuiSystemdataDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
 			}
-			for (i = 1 ; i <= 12 ; ++i)
+			for (i = 1 ; i <= 14 ; ++i)
 			{
 				// nil default = fall back to global default colour
 				[gui setColor:[gui colorFromSetting:kGuiSystemdataFactsColor defaultValue:nil] forRow:i];
@@ -8055,7 +8288,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	[[UNIVERSE gameView] clearMouse];
 	
-	[targetSystemData release];
+	[infoSystemData release];
 	
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
@@ -8068,7 +8301,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
 		RNG_Seed saved_seed = currentRandomSeed();
 		
-		if (target_system_id == system_id)
+		if (info_system_id == system_id)
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
 		}
@@ -8153,6 +8386,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	[gui clearAndKeepBackground:NO];
 	[gui setBackgroundTextureKey:@"short_range_chart"];
+	[self setMissionBackgroundSpecial: nil];
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	target_chart_zoom = CHART_MAX_ZOOM;
 	[self setGuiToChartScreenFrom: oldScreen];
@@ -8164,6 +8398,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	[gui clearAndKeepBackground:NO];
 	[gui setBackgroundTextureKey:@"short_range_chart"];
+	[self setMissionBackgroundSpecial: nil];
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	[self setGuiToChartScreenFrom: oldScreen];
 }
@@ -8305,7 +8540,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,AUTOSAVE)];
 	
 		// volume control
-		if ([OOSound respondsToSelector:@selector(masterVolume)])
+		if ([OOSound respondsToSelector:@selector(masterVolume)] && [OOSound isSoundOK])
 		{
 			double volume = 100.0 * [OOSound masterVolume];
 			int vol = (volume / 5.0 + 0.5); // avoid rounding errors
@@ -10049,7 +10284,7 @@ static NSString *last_outfitting_key=nil;
 {
 	if (tradeInValue != 0)
 	{
-		if (priceFactor < 1.0f)  tradeInValue *= priceFactor;
+		if (priceFactor < 1.0)  tradeInValue *= priceFactor;
 		credits += tradeInValue;
 	}
 }
@@ -10389,7 +10624,7 @@ static NSString *last_outfitting_key=nil;
 	else
 	{
 		NSString *station = [dockedStation displayName];
-		return OOExpandKey(@"station-commodity-market", system, station);
+		return OOExpandKey(@"station-commodity-market", station);
 	}
 }
 
@@ -10822,10 +11057,10 @@ static NSString *last_outfitting_key=nil;
 	
 	OOCommodityMarket *localMarket = [self localMarket];
 	int available_units = [shipCommodityData quantityForGood:index];
-	int pricePerUnit = [localMarket priceForGood:index];
+	OOCreditsQuantity pricePerUnit = [localMarket priceForGood:index];
 	
 	if (available_units == 0)  return NO;
-	
+
 	int market_quantity = [localMarket quantityForGood:index];
 
 	int capacity = [localMarket capacityForGood:index];
@@ -10859,7 +11094,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	
-	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:sell], [NSNumber numberWithInt: pricePerUnit], nil]];
+	[self doScriptEvent:OOJSID("playerSoldCargo") withArguments:[NSArray arrayWithObjects:index, [NSNumber numberWithInt:sell], [NSNumber numberWithUnsignedLongLong: pricePerUnit], nil]];
 	
 	return YES;
 }
@@ -11610,11 +11845,10 @@ static NSString *last_outfitting_key=nil;
 
 - (void) clearTargetMemory
 {
-	int i = 0;
-	int j = [target_memory count];
-	for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+	NSUInteger memoryCount = [target_memory count];
+	for (NSUInteger i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
 	{
-		if (j > i)
+		if (i < memoryCount)
 		{
 			[target_memory replaceObjectAtIndex:i withObject:[NSNull null]];
 		}
@@ -11632,14 +11866,16 @@ static NSString *last_outfitting_key=nil;
 	return target_memory;
 }
 
-- (BOOL) moveTargetMemoryBy:(int)delta
+- (BOOL) moveTargetMemoryBy:(NSInteger)delta
 {
 	unsigned i = 0;
 	while (i++ < PLAYER_TARGET_MEMORY_SIZE)	// limit loops
 	{
-		target_memory_index += delta;
-		while (target_memory_index < 0)  target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
-		while (target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)  target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
+		NSInteger idx = (NSInteger)target_memory_index + delta;
+		while (idx < 0)  idx += PLAYER_TARGET_MEMORY_SIZE;
+		while (idx >= PLAYER_TARGET_MEMORY_SIZE) idx -= PLAYER_TARGET_MEMORY_SIZE;
+		target_memory_index = idx;
+
 		id targ_id = [target_memory objectAtIndex:target_memory_index];
 		if ([targ_id isProxy])
 		{
@@ -11702,6 +11938,13 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (void) setCustomViewQuaternion:(Quaternion)q
+{
+	customViewQuaternion = q;
+	[self setCustomViewData];
+}
+
+
 - (OOMatrix) customViewMatrix
 {
 	return customViewMatrix;
@@ -11711,6 +11954,154 @@ static NSString *last_outfitting_key=nil;
 - (Vector) customViewOffset
 {
 	return customViewOffset;
+}
+
+
+- (void) setCustomViewOffset:(Vector) offset
+{
+	customViewOffset = offset;
+}
+
+
+- (Vector) customViewRotationCenter
+{
+	return customViewRotationCenter;
+}
+
+
+- (void) setCustomViewRotationCenter:(Vector) center
+{
+	customViewRotationCenter = center;
+}
+
+
+- (void) customViewZoomIn:(OOScalar) rate
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	customViewOffset = vector_multiply_scalar(customViewOffset, 1.0/rate);
+	OOScalar m = magnitude(customViewOffset);
+	if (m < CUSTOM_VIEW_MAX_ZOOM_IN * collision_radius)
+	{
+		scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_IN * collision_radius / m);
+	}
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewZoomOut:(OOScalar) rate
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	customViewOffset = vector_multiply_scalar(customViewOffset, rate);
+	OOScalar m = magnitude(customViewOffset);
+	if (m > CUSTOM_VIEW_MAX_ZOOM_OUT * collision_radius)
+	{
+		scale_vector(&customViewOffset, CUSTOM_VIEW_MAX_ZOOM_OUT * collision_radius / m);
+	}
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewRotateLeft:(OOScalar) angle
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, -angle);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewRotateRight:(OOScalar) angle
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, angle);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewRotateUp:(OOScalar) angle
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, -angle);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewRotateDown:(OOScalar) angle
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, angle);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewRollRight:(OOScalar) angle
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewForwardVector, -angle);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewRollLeft:(OOScalar) angle
+{
+	customViewOffset = vector_subtract(customViewOffset, customViewRotationCenter);
+	OOScalar m = magnitude(customViewOffset);
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewForwardVector, angle);
+	[self setCustomViewData];
+	customViewOffset = vector_flip(customViewForwardVector);
+	scale_vector(&customViewOffset, m / magnitude(customViewOffset));
+	customViewOffset = vector_add(customViewOffset, customViewRotationCenter);
+}
+
+
+- (void) customViewPanUp:(OOScalar) angle
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, angle);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
+}
+
+
+- (void) customViewPanDown:(OOScalar) angle
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewRightVector, -angle);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
+}
+
+
+- (void) customViewPanLeft:(OOScalar) angle
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, angle);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
+}
+
+
+- (void) customViewPanRight:(OOScalar) angle
+{
+	quaternion_rotate_about_axis(&customViewQuaternion, customViewUpVector, -angle);
+	[self setCustomViewData];
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
 }
 
 
@@ -11744,14 +12135,8 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict withScaling:(BOOL)withScaling
+- (void) setCustomViewData
 {
-	customViewMatrix = kIdentityMatrix;
-	customViewOffset = kZeroVector;
-	if (viewDict == nil)  return;
-	
-	customViewQuaternion = [viewDict oo_quaternionForKey:@"view_orientation"];
-	
 	customViewRightVector = vector_right_from_quaternion(customViewQuaternion);
 	customViewUpVector = vector_up_from_quaternion(customViewQuaternion);
 	customViewForwardVector = vector_forward_from_quaternion(customViewQuaternion);
@@ -11759,6 +12144,16 @@ static NSString *last_outfitting_key=nil;
 	Quaternion q1 = customViewQuaternion;
 	q1.w = -q1.w;
 	customViewMatrix = OOMatrixForQuaternionRotation(q1);
+}
+
+- (void) setCustomViewDataFromDictionary:(NSDictionary *)viewDict withScaling:(BOOL)withScaling
+{
+	customViewMatrix = kIdentityMatrix;
+	customViewOffset = kZeroVector;
+	if (viewDict == nil)  return;
+	
+	customViewQuaternion = [viewDict oo_quaternionForKey:@"view_orientation"];
+	[self setCustomViewData];
 	
 	// easier to do the multiplication at this point than at load time
 	if (withScaling)
@@ -11770,6 +12165,7 @@ static NSString *last_outfitting_key=nil;
 		// but don't do this when the custom view is set through JS
 		customViewOffset = [viewDict oo_vectorForKey:@"view_position"];
 	}
+	customViewRotationCenter = vector_subtract(customViewOffset, vector_multiply_scalar(customViewForwardVector, dot_product(customViewOffset, customViewForwardVector)));
 	customViewDescription = [viewDict oo_stringForKey:@"view_description"];
 	
 	NSString *facing = [[viewDict oo_stringForKey:@"weapon_facing"] lowercaseString];
