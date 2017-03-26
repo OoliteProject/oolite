@@ -6,6 +6,7 @@ The Man: Giles Williams (aegidian)
 
 AndSDev
 Kevin Anthoney (kanthoney)
+Astrobe
 Jens Ayton (Ahruman)
 Nikos Barkas (another_commander)
 Andrey Belov (timer)

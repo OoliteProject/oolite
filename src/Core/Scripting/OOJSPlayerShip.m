@@ -102,7 +102,7 @@ enum
 	// Property IDs
 	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
-	kPlayerShip_compassMode,					// compass mode, string, read-only
+	kPlayerShip_compassMode,					// compass mode, string, read/write
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
 	kPlayerShip_compassType,					// basic / advanced, string, read/write
 	kPlayerShip_currentWeapon,					// shortcut property to _aftWeapon, etc. overrides kShip generic version
@@ -162,7 +162,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	// JS name							ID											flags
 	{ "aftShield",						kPlayerShip_aftShield,						OOJS_PROP_READWRITE_CB },
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READWRITE_CB },
-	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
+	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READWRITE_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
 	{ "compassType",					kPlayerShip_compassType,					OOJS_PROP_READWRITE_CB },
 	{ "currentWeapon",					kPlayerShip_currentWeapon,					OOJS_PROP_READWRITE_CB },
@@ -598,6 +598,17 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setReticleTargetSensitive:bValue];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_compassMode:
+			sValue = OOStringFromJSValue(context, *value);
+			if(sValue != nil)
+			{
+				OOCompassMode mode = OOCompassModeFromJSValue(context, *value);
+				[player setCompassMode:mode];
+				[player validateCompassTarget];
 				return YES;
 			}
 			break;
