@@ -1312,18 +1312,7 @@ static NSTimeInterval	time_last_frame;
 					if (!docking_clearance_request_key_pressed)
 					{
 						Entity *primeTarget = [self primaryTarget];
-						if (primeTarget != nil && [primeTarget isStation] && [primeTarget isKindOfClass:[StationEntity class]])
-						{
-							NSString *stationDockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
-							if (stationDockingClearanceStatus != nil)
-							{
-								[self doScriptEvent:OOJSID("playerRequestedDockingClearance") withArgument:stationDockingClearanceStatus];
-								if ([stationDockingClearanceStatus isEqualToString:@"DOCKING_CLEARANCE_GRANTED"]) 
-								{
-									[self doScriptEvent:OOJSID("playerDockingClearanceGranted")];
-								}
-							}
-						}
+						[self requestDockingClearance:(StationEntity*)primeTarget];
 					}
 					docking_clearance_request_key_pressed = YES;
 				}

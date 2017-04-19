@@ -812,7 +812,7 @@ typedef enum
 // Dumb setter; callers are responsible for sanity.
 - (void) setDockedStation:(StationEntity *)station;
 
-
+- (void) requestDockingClearance:(StationEntity *)stationForDocking;
 - (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking;
 - (void) disengageAutopilot;
 

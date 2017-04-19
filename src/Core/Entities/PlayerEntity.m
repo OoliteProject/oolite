@@ -3467,6 +3467,26 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self doBookkeeping:delta_t];
 }
 
+- (void) requestDockingClearance:(StationEntity *)stationForDocking
+{
+	if (stationForDocking == nil) return;
+	if (![stationForDocking isStation] || ![stationForDocking isKindOfClass:[StationEntity class]]) return;
+	if ([self isDocked])  return;
+	if (autopilot_engaged && [self targetStation] == stationForDocking)	return;
+	if (autopilot_engaged && [self targetStation] != stationForDocking)
+	{
+		[self disengageAutopilot];
+	}
+	NSString *stationDockingClearanceStatus = [stationForDocking acceptDockingClearanceRequestFrom:self];
+	if (stationDockingClearanceStatus != nil)
+	{
+		[self doScriptEvent:OOJSID("playerRequestedDockingClearance") withArgument:stationDockingClearanceStatus];
+		if ([stationDockingClearanceStatus isEqualToString:@"DOCKING_CLEARANCE_GRANTED"]) 
+		{
+			[self doScriptEvent:OOJSID("playerDockingClearanceGranted")];
+		}
+	} 
+}
 
 - (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking
 {

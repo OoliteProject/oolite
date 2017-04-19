@@ -58,6 +58,7 @@ static JSBool PlayerShipRemoveAllCargo(JSContext *context, uintN argc, jsval *vp
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipRequestDockingClearance(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
@@ -236,6 +237,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "removeContract",					PlayerShipRemoveContract,					2 },
 	{ "removeParcel",                   PlayerShipRemoveParcel,                     1 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
+	{ "requestDockingClearance",        PlayerShipRequestDockingClearance,          1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "resetScannerZoom",				PlayerShipResetScannerZoom,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
@@ -601,7 +603,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return YES;
 			}
 			break;
-			
+		
 		case kPlayerShip_compassMode:
 			sValue = OOStringFromJSValue(context, *value);
 			if(sValue != nil)
@@ -980,6 +982,27 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval
 	OOJS_NATIVE_EXIT
 }
 
+static JSBool PlayerShipRequestDockingClearance(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
+
+	PlayerEntity			*player = OOPlayerForScripting();
+	StationEntity			*stationForDocking = nil;
+	
+	if (argc > 0)  stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
+	if (stationForDocking == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"requestDockingClearance", MIN(argc, 1U), OOJS_ARGV, nil, @"station");
+		return NO;
+	}
+
+	[player requestDockingClearance:stationForDocking];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
 
 // awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression) : Boolean
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp)

@@ -30,6 +30,8 @@ Scripting:
 * playerDockingClearanceGranted world event
 * Scripts are now notified of the change to forward view when a witchjump
   begins
+* player.ship.requestDockingClearance(station) method can be used to request 
+  docking clearance from a particular station.
 * Sound.musicSoundSource() method, returns the music sound source object,
   enabling direct control on music (volume etc.)
 * Added optional volume gain parameter to the Sound.playMusic function.
