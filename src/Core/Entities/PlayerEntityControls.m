@@ -1312,7 +1312,7 @@ static NSTimeInterval	time_last_frame;
 					if (!docking_clearance_request_key_pressed)
 					{
 						Entity *primeTarget = [self primaryTarget];
-						[self requestDockingClearance:(StationEntity*)primeTarget];
+						[self performDockingRequest:(StationEntity*)primeTarget];
 					}
 					docking_clearance_request_key_pressed = YES;
 				}

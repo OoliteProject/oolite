@@ -3467,7 +3467,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self doBookkeeping:delta_t];
 }
 
-- (void) requestDockingClearance:(StationEntity *)stationForDocking
+- (void) performDockingRequest:(StationEntity *)stationForDocking
 {
 	if (stationForDocking == nil) return;
 	if (![stationForDocking isStation] || ![stationForDocking isKindOfClass:[StationEntity class]]) return;
@@ -3486,6 +3486,34 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			[self doScriptEvent:OOJSID("playerDockingClearanceGranted")];
 		}
 	} 
+}
+
+- (void) requestDockingClearance:(StationEntity *)stationForDocking
+{
+	if (dockingClearanceStatus != DOCKING_CLEARANCE_STATUS_REQUESTED && dockingClearanceStatus != DOCKING_CLEARANCE_STATUS_GRANTED)
+	{
+		[self performDockingRequest:stationForDocking];
+	}
+}
+
+- (void) cancelDockingRequest:(StationEntity *)stationForDocking
+{
+	if (stationForDocking == nil) return;
+	if (![stationForDocking isStation] || ![stationForDocking isKindOfClass:[StationEntity class]]) return;
+	if ([self isDocked])  return;
+	if (autopilot_engaged && [self targetStation] == stationForDocking)	return;
+	if (autopilot_engaged && [self targetStation] != stationForDocking)
+	{
+		[self disengageAutopilot];
+	}
+	if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_GRANTED || dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_REQUESTED)
+	{
+		NSString *stationDockingClearanceStatus = [stationForDocking acceptDockingClearanceRequestFrom:self];
+		if (stationDockingClearanceStatus != nil && [stationDockingClearanceStatus isEqualToString:@"DOCKING_CLEARANCE_CANCELLED"])
+		{
+			[self doScriptEvent:OOJSID("playerDockingClearanceCancelled")];
+		} 
+	}
 }
 
 - (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking

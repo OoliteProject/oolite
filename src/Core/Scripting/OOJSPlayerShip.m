@@ -59,6 +59,7 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *v
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRequestDockingClearance(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipCancelDockingRequest(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
@@ -228,6 +229,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "awardContract",					PlayerShipAwardContract,					0 },
 	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
 	{ "beginHyperspaceCountdown",       PlayerShipBeginHyperspaceCountdown,         0 },
+	{ "cancelDockingRequest",			PlayerShipCancelDockingRequest,             1 },
 	{ "cancelHyperspaceCountdown",      PlayerShipCancelHyperspaceCountdown,        0 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
@@ -999,6 +1001,28 @@ static JSBool PlayerShipRequestDockingClearance(JSContext *context, uintN argc, 
 	}
 
 	[player requestDockingClearance:stationForDocking];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool PlayerShipCancelDockingRequest(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
+
+	PlayerEntity			*player = OOPlayerForScripting();
+	StationEntity			*stationForDocking = nil;
+	
+	if (argc > 0)  stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
+	if (stationForDocking == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"cancelDockingRequest", MIN(argc, 1U), OOJS_ARGV, nil, @"station");
+		return NO;
+	}
+
+	[player cancelDockingRequest:stationForDocking];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
