@@ -999,6 +999,7 @@ static NSTimeInterval	time_last_frame;
 							[self playWeaponsOffline];
 						}
 						[UNIVERSE addMessage:weaponsOnlineToggleMsg forCount:2.0];
+						[self doScriptEvent:OOJSID("weaponsSystemsToggled") withArgument:[NSNumber numberWithBool:[self weaponsOnline]]];
 						weaponsOnlineToggle_pressed = YES;
 					}
 				}
