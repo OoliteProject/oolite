@@ -162,7 +162,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		_airColor = [planetInfo objectForKey:@"air_color"];
 		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", nil]];
 	}
 	else
 #else
@@ -175,7 +175,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
 	{
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction",  @"isMiniature",  nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction",  @"isMiniature", @"perlin_3d", nil]];
 	}
 	[_materialParameters retain];
 	
@@ -213,7 +213,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	int		deltaT = floor(fmod([PLAYER clockTimeAdjusted], 86400));
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * deltaT);
 	quaternion_rotate_about_axis(&_atmosphereOrientation, kBasisYVector, _atmosphereRotationalVelocity * deltaT);
-
+	
 	
 #ifdef OO_DUMP_PLANETINFO
 #define CPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %@;",[(OOColor *)[planetInfo objectForKey:@#PROP] descriptionComponents]);

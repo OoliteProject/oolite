@@ -29,7 +29,6 @@ MA 02110-1301, USA.
 #import "OOTextureGenerator.h"
 #import "OOMaths.h"
 
-#define PERLIN_3D			0
 
 typedef struct OOStandaloneAtmosphereGeneratorInfo
 {
@@ -48,9 +47,11 @@ typedef struct OOStandaloneAtmosphereGeneratorInfo
 	// Noise generation stuff.
 	float							*fbmBuffer;
 	
-#if PERLIN_3D
 	uint16_t						*permutations;
-#endif
+	
+	unsigned						planetAspectRatio;
+	unsigned						planetScaleOffset;
+	BOOL							perlin3d;
 } OOStandaloneAtmosphereGeneratorInfo;
 
 
