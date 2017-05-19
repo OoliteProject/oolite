@@ -247,6 +247,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 // Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is used for ambient, 0.0 means only sky colour is used.
 // TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322
 #define SUN_AMBIENT_INFLUENCE		0.75
+// How dark the default ambient level of 1.0 will be
+#define SKY_AMBIENT_ADJUSTMENT		(0.0625 / 4.0)
 
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
@@ -1629,9 +1631,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		g = g * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[1] * SUN_AMBIENT_INFLUENCE;
 		b = b * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[2] * SUN_AMBIENT_INFLUENCE;
 		GLfloat ambient_level = [self ambientLightLevel];
-		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
-		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
-		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
+		stars_ambient[0] = ambient_level * SKY_AMBIENT_ADJUSTMENT * (1.0 + r) * (1.0 + r);
+		stars_ambient[1] = ambient_level * SKY_AMBIENT_ADJUSTMENT * (1.0 + g) * (1.0 + g);
+		stars_ambient[2] = ambient_level * SKY_AMBIENT_ADJUSTMENT * (1.0 + b) * (1.0 + b);
 		stars_ambient[3] = 1.0;
 	}
 	
