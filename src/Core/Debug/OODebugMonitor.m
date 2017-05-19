@@ -508,7 +508,7 @@ typedef struct
 
 - (void) dumpMemoryStatistics
 {
-	OOLog(@"debug.memStats", @"Memory statistics:");
+	OOLog(@"debug.memStats", @"%@", @"Memory statistics:");
 	OOLogIndent();
 	
 	//	Get texture retain counts before the entity dumper starts messing with them.
