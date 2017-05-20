@@ -248,7 +248,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 // TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322
 #define SUN_AMBIENT_INFLUENCE		0.75
 // How dark the default ambient level of 1.0 will be
-#define SKY_AMBIENT_ADJUSTMENT		(0.0625 / 4.0)
+#define SKY_AMBIENT_ADJUSTMENT		0.0625
 
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
