@@ -1538,17 +1538,35 @@
 	"sysdata-tl"					= "Tech Level:";
 	"sysdata-tl-value"				= "[techLevel]";
 	"sysdata-pop"					= "Population:";
-	"sysdata-pop-value"				= "[population|multiply:0.1|precision:1] Billion\n([inhabitants])";
+	"sysdata-pop-value"				= "[population|multiply:0.1|precision:1] Billion";
 	"sysdata-prod"					= "Gross productivity:";
 	"sysdata-prod-value"			= "[productivity] M₢";
 	"sysdata-radius"				= "Average radius:";
 	"sysdata-radius-value"			= "[radius] km";
+	"sysdata-distance"				= "Distance:";
 	"system-description-string"		= "[14] is [22].";
 	"sysdata-route-hours%0"			= "Hour";
 	"sysdata-route-hours%1"			= "Hours";
 	"sysdata-route-jumps%0"			= "Jump";
 	"sysdata-route-jumps%1"			= "Jumps";
-	
+
+	"sysdata-line-1"				= "[sysdata-eco]\t[economy_desc]";
+	"sysdata-line-2"				= "";
+	"sysdata-line-3"				= "[sysdata-govt]\t[government_desc]";
+	"sysdata-line-4"				= "";
+	"sysdata-line-5"				= "[sysdata-tl]\t[sysdata-tl-value]";
+	"sysdata-line-6"				= "";
+	"sysdata-line-7"				= "[sysdata-pop]\t[populationDesc]";
+	"sysdata-line-8"				= "\t([inhabitants])";
+	"sysdata-line-9"				= "";
+	"sysdata-line-10"				= "[sysdata-prod]\t\t[sysdata-prod-value]";
+	"sysdata-line-11"				= "";
+	"sysdata-line-12"				= "[sysdata-radius]\t\t[sysdata-radius-value]";
+	"sysdata-line-13"				= "";
+	"sysdata-line-14"				= "[sysdata-distance]\t[distanceInfo]";
+	"sysdata-line-15"				= "";
+	"sysdata-line-16"				= "";
+
 	// Options / Loadsave screen
 	"options-quick-save"			= " Quick-Save ";
 	"options-save-commander"		= " Save Commander ";
