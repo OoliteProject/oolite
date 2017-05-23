@@ -319,6 +319,15 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	cloakAutomatic = [shipDict oo_boolForKey:@"cloak_automatic" defaultValue:YES];
 
 	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
+	/* TODO: The following initializes the missile list to be blank, which prevents a crash caused by hasOneEquipmentItem trying to access a missile list
+	         previously initialized but then released.  See issue #204.  We need to investigate further the cause of the missile list being released.
+ 			- kanthoney 10/03/2017
+	*/
+	unsigned i;
+	for (i = 0; i < missiles; i++)
+	{
+		missile_list[i] = nil;
+	}
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles) missiles = max_missiles;
@@ -467,7 +476,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
-	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
+	if ([shipDict objectForKey:@"rotational_velocity"])
+	{
+		subentityRotationalVelocity = [shipDict oo_quaternionForKey:@"rotational_velocity"];
+	}
 
 	// set weapon offsets
 	NSString *weaponMountMode = [shipDict oo_stringForKey:@"weapon_mount_mode" defaultValue:@"single"];
@@ -2728,19 +2740,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	// subentity rotation
-	if (isSubEnt)
+	// rotational velocity
+	if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
+		!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
 	{
-		if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
-			!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
-		{
-			Quaternion qf = subentityRotationalVelocity;
-			qf.w *= (1.0 - delta_t);
-			qf.x *= delta_t;
-			qf.y *= delta_t;
-			qf.z *= delta_t;
-			[self setOrientation:quaternion_multiply(qf, orientation)];
-		}
+		Quaternion qf = subentityRotationalVelocity;
+		qf.w *= (1.0 - delta_t);
+		qf.x *= delta_t;
+		qf.y *= delta_t;
+		qf.z *= delta_t;
+		[self setOrientation:quaternion_multiply(qf, orientation)];
 	}
 	
 	//	reset totalBoundingBox
@@ -3044,7 +3053,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if ([itemKey isEqualToString:@"thargon"]) itemKey = @"EQ_THARGON";
 		for (i = 0; i < missiles; i++)
 		{
-			if ([[missile_list[i] identifier] isEqualTo:itemKey])  return YES;
+			if (missile_list[i] != nil && [[missile_list[i] identifier] isEqualTo:itemKey])  return YES;
 		}
 	}
 	

@@ -2280,6 +2280,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		_customViewIndex = 0;
 	}
 	
+	massLockable = [shipDict oo_boolForKey:@"mass_lockable" defaultValue:YES];
+	
 	// Load js script
 	[script autorelease];
 	NSDictionary *scriptProperties = [NSDictionary dictionaryWithObject:self forKey:@"ship"];
@@ -3124,7 +3126,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (scannedEntity->zero_distance < SCANNER_MAX_RANGE2 || !scannedEntity->isShip)
 		{
 			int theirClass = [scannedEntity scanClass];
-			massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+			// here we could also force masslock for higher than yellow alert, but
+			// if we are going to hand over masslock control to scripting, might as well
+			// hand it over fully
+			if ([self massLockable] /*|| alertFlags > ALERT_FLAG_YELLOW_LIMIT*/)
+			{
+				massLocked |= [self checkEntityForMassLock:scannedEntity withScanClass:theirClass];	// we just need one masslocker..
+			}
 			if (theirClass != CLASS_NO_DRAW)
 			{
 				if (theirClass == CLASS_THARGOID || [scannedEntity isCascadeWeapon])
@@ -3459,6 +3467,54 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self doBookkeeping:delta_t];
 }
 
+- (void) performDockingRequest:(StationEntity *)stationForDocking
+{
+	if (stationForDocking == nil) return;
+	if (![stationForDocking isStation] || ![stationForDocking isKindOfClass:[StationEntity class]]) return;
+	if ([self isDocked])  return;
+	if (autopilot_engaged && [self targetStation] == stationForDocking)	return;
+	if (autopilot_engaged && [self targetStation] != stationForDocking)
+	{
+		[self disengageAutopilot];
+	}
+	NSString *stationDockingClearanceStatus = [stationForDocking acceptDockingClearanceRequestFrom:self];
+	if (stationDockingClearanceStatus != nil)
+	{
+		[self doScriptEvent:OOJSID("playerRequestedDockingClearance") withArgument:stationDockingClearanceStatus];
+		if ([stationDockingClearanceStatus isEqualToString:@"DOCKING_CLEARANCE_GRANTED"]) 
+		{
+			[self doScriptEvent:OOJSID("playerDockingClearanceGranted")];
+		}
+	} 
+}
+
+- (void) requestDockingClearance:(StationEntity *)stationForDocking
+{
+	if (dockingClearanceStatus != DOCKING_CLEARANCE_STATUS_REQUESTED && dockingClearanceStatus != DOCKING_CLEARANCE_STATUS_GRANTED)
+	{
+		[self performDockingRequest:stationForDocking];
+	}
+}
+
+- (void) cancelDockingRequest:(StationEntity *)stationForDocking
+{
+	if (stationForDocking == nil) return;
+	if (![stationForDocking isStation] || ![stationForDocking isKindOfClass:[StationEntity class]]) return;
+	if ([self isDocked])  return;
+	if (autopilot_engaged && [self targetStation] == stationForDocking)	return;
+	if (autopilot_engaged && [self targetStation] != stationForDocking)
+	{
+		[self disengageAutopilot];
+	}
+	if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_GRANTED || dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_REQUESTED)
+	{
+		NSString *stationDockingClearanceStatus = [stationForDocking acceptDockingClearanceRequestFrom:self];
+		if (stationDockingClearanceStatus != nil && [stationDockingClearanceStatus isEqualToString:@"DOCKING_CLEARANCE_CANCELLED"])
+		{
+			[self doScriptEvent:OOJSID("playerDockingClearanceCancelled")];
+		} 
+	}
+}
 
 - (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking
 {
@@ -4207,6 +4263,19 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	
 	[super drawImmediate:immediate translucent:translucent];
+}
+
+
+- (void) setMassLockable:(BOOL)newValue
+{
+	massLockable = !!newValue;
+	[self updateAlertCondition];
+}
+
+
+- (BOOL) massLockable
+{
+	return massLockable;
 }
 
 
@@ -8224,11 +8293,19 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				{
 					double routeDistance = [[routeInfo objectForKey: @"distance"] doubleValue];
 					double routeTime = [[routeInfo objectForKey: @"time"] doubleValue];
+					int routeJumps = [[routeInfo objectForKey: @"jumps"] intValue];
 					if(routeDistance == 0.0 && info_system_id != system_id) {
 						routeDistance = 0.1;
 						routeTime = 0.01;
+						routeJumps = 0;
 					}
-					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f Hours", routeDistance, routeTime];
+					distanceInfo = [NSString stringWithFormat: @"%.1f ly / %.1f %@ / %d %@",
+							routeDistance,
+							routeTime,
+							// don't rely on DESC_PLURAL for routeTime since it is of type double
+							routeTime > 1.05 || routeTime < 0.95 ? DESC(@"sysdata-route-hours%1") : DESC(@"sysdata-route-hours%0"),
+							routeJumps,
+							DESC_PLURAL(@"sysdata-route-jumps", routeJumps)];
 				}
 			}
 			[gui setArray:[NSArray arrayWithObjects:

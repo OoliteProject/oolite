@@ -58,6 +58,8 @@ static JSBool PlayerShipRemoveAllCargo(JSContext *context, uintN argc, jsval *vp
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipRequestDockingClearance(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipCancelDockingRequest(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAddPassenger(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemovePassenger(JSContext *context, uintN argc, jsval *vp);
@@ -102,8 +104,9 @@ enum
 	// Property IDs
 	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
-	kPlayerShip_compassMode,					// compass mode, string, read-only
+	kPlayerShip_compassMode,					// compass mode, string, read/write
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_compassType,					// basic / advanced, string, read/write
 	kPlayerShip_currentWeapon,					// shortcut property to _aftWeapon, etc. overrides kShip generic version
 	kPlayerShip_crosshairs,						// custom plist file defining crosshairs
 	kPlayerShip_cursorCoordinates,				// cursor coordinates (unscaled), Vector3D, read only
@@ -124,6 +127,7 @@ enum
 	kPlayerShip_hudAllowsBigGui,				// hud big gui, string, read only 
 	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
 	kPlayerShip_injectorsEngaged,				// injectors in use, boolean, read-only
+	kPlayerShip_massLockable,					// mass-lockability of player ship, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
@@ -142,6 +146,7 @@ enum
 	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
 	kPlayerShip_targetSystem,					// target system id, int, read-write
+	kPlayerShip_nextSystem,						// next hop system id, read-only
 	kPlayerShip_infoSystem,						// info (F7 screen) system id, int, read-write
 	kPlayerShip_torusEngaged,					// torus in use, boolean, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
@@ -159,8 +164,9 @@ static JSPropertySpec sPlayerShipProperties[] =
 	// JS name							ID											flags
 	{ "aftShield",						kPlayerShip_aftShield,						OOJS_PROP_READWRITE_CB },
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READWRITE_CB },
-	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READONLY_CB },
+	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READWRITE_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
+	{ "compassType",					kPlayerShip_compassType,					OOJS_PROP_READWRITE_CB },
 	{ "currentWeapon",					kPlayerShip_currentWeapon,					OOJS_PROP_READWRITE_CB },
 	{ "crosshairs",						kPlayerShip_crosshairs,						OOJS_PROP_READWRITE_CB },
 	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				OOJS_PROP_READONLY_CB },
@@ -181,6 +187,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "hudAllowsBigGui",				kPlayerShip_hudAllowsBigGui,				OOJS_PROP_READONLY_CB },
 	{ "hudHidden",						kPlayerShip_hudHidden,						OOJS_PROP_READWRITE_CB },
 	{ "injectorsEngaged",				kPlayerShip_injectorsEngaged,				OOJS_PROP_READONLY_CB },
+	{ "massLockable",					kPlayerShip_massLockable,					OOJS_PROP_READWRITE_CB },
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READWRITE_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READWRITE_CB },
@@ -200,6 +207,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
+	{ "nextSystem",                     kPlayerShip_nextSystem,                     OOJS_PROP_READONLY_CB },
 	{ "infoSystem",						kPlayerShip_infoSystem,						OOJS_PROP_READWRITE_CB },
 	{ "torusEngaged",					kPlayerShip_torusEngaged,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
@@ -221,6 +229,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "awardContract",					PlayerShipAwardContract,					0 },
 	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
 	{ "beginHyperspaceCountdown",       PlayerShipBeginHyperspaceCountdown,         0 },
+	{ "cancelDockingRequest",			PlayerShipCancelDockingRequest,             1 },
 	{ "cancelHyperspaceCountdown",      PlayerShipCancelHyperspaceCountdown,        0 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
@@ -230,6 +239,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "removeContract",					PlayerShipRemoveContract,					2 },
 	{ "removeParcel",                   PlayerShipRemoveParcel,                     1 },
 	{ "removePassenger",				PlayerShipRemovePassenger,					1 },
+	{ "requestDockingClearance",        PlayerShipRequestDockingClearance,          1 },
 	{ "resetCustomView",				PlayerShipResetCustomView,					0 },
 	{ "resetScannerZoom",				PlayerShipResetScannerZoom,					0 },
 	{ "setCustomView",					PlayerShipSetCustomView,					2 },
@@ -415,6 +425,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = INT_TO_JSVAL([player targetSystemID]);
 			return YES;
 
+		case kPlayerShip_nextSystem:
+			*value = INT_TO_JSVAL([player nextHopTargetSystemID]);
+			return YES;
+			
 		case kPlayerShip_infoSystem:
 			*value = INT_TO_JSVAL([player infoSystemID]);
 			return YES;
@@ -452,6 +466,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_injectorsEngaged:
 			*value = OOJSValueFromBOOL([player injectorsEngaged]);
 			return YES;
+			
+		case kPlayerShip_massLockable:
+			*value = OOJSValueFromBOOL([player massLockable]);
+			return YES;
 
 		case kPlayerShip_torusEngaged:
 			*value = OOJSValueFromBOOL([player hyperspeedEngaged]);
@@ -459,6 +477,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			
 		case kPlayerShip_compassTarget:
 			result = [player compassTarget];
+			break;
+			
+		case kPlayerShip_compassType:
+			result = [OOStringFromCompassMode([player compassMode]) isEqualToString:@"COMPASS_MODE_BASIC"] ?
+														@"OO_COMPASSTYPE_BASIC" : @"OO_COMPASSTYPE_ADVANCED";
 			break;
 			
 		case kPlayerShip_compassMode:
@@ -567,10 +590,54 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 			
+		case kPlayerShip_massLockable:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[player setMassLockable:bValue];
+				return YES;
+			}
+			break;
+			
 		case kPlayerShip_reticleTargetSensitive:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setReticleTargetSensitive:bValue];
+				return YES;
+			}
+			break;
+		
+		case kPlayerShip_compassMode:
+			sValue = OOStringFromJSValue(context, *value);
+			if(sValue != nil)
+			{
+				OOCompassMode mode = OOCompassModeFromJSValue(context, *value);
+				[player setCompassMode:mode];
+				[player validateCompassTarget];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_compassType:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil)
+			{
+				if ([sValue isEqualToString:@"OO_COMPASSTYPE_BASIC"])
+				{
+					[player setCompassMode:COMPASS_MODE_BASIC];
+				}
+				else  if([sValue isEqualToString:@"OO_COMPASSTYPE_ADVANCED"])
+				{
+					if (![player hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"])
+					{
+						OOJSReportWarning(context, @"Advanced Compass type requested and set but player ship does not carry the EQ_ADVANCED_COMPASS equipment or has it damaged.");
+					}
+					[player setCompassMode:COMPASS_MODE_PLANET];
+				}
+				else
+				{
+					OOJSReportError(context, @"Unknown compass type specified - must be either OO_COMPASSTYPE_BASIC or OO_COMPASSTYPE_ADVANCED.");
+					return NO;
+				}
 				return YES;
 			}
 			break;
@@ -917,6 +984,49 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, uintN argc, jsval
 	OOJS_NATIVE_EXIT
 }
 
+static JSBool PlayerShipRequestDockingClearance(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
+
+	PlayerEntity			*player = OOPlayerForScripting();
+	StationEntity			*stationForDocking = nil;
+	
+	if (argc > 0)  stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
+	if (stationForDocking == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"requestDockingClearance", MIN(argc, 1U), OOJS_ARGV, nil, @"station");
+		return NO;
+	}
+
+	[player requestDockingClearance:stationForDocking];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool PlayerShipCancelDockingRequest(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(OOIsPlayerStale()))  OOJS_RETURN_VOID;
+
+	PlayerEntity			*player = OOPlayerForScripting();
+	StationEntity			*stationForDocking = nil;
+	
+	if (argc > 0)  stationForDocking = OOJSNativeObjectOfClassFromJSValue(context, OOJS_ARGV[0], [StationEntity class]);
+	if (stationForDocking == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"cancelDockingRequest", MIN(argc, 1U), OOJS_ARGV, nil, @"station");
+		return NO;
+	}
+
+	[player cancelDockingRequest:stationForDocking];
+	OOJS_RETURN_VOID;
+	
+	OOJS_NATIVE_EXIT
+}
 
 // awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression) : Boolean
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, uintN argc, jsval *vp)

@@ -519,7 +519,7 @@ this._parcelContractSummaryPage = function()
 		optionText += this.$helper._paddingText(optionText, columns[2]);
 		// right-align the fee so that the credits signs line up
 		var priceText = formatCredits(parcel.payment,false,true);
-		priceText = this.$helper._paddingText(priceText, 2.5)+priceText;
+		priceText = this.$helper._paddingText(priceText, 3.25)+priceText;
 		optionText += priceText
 		
 		// need to pad the number in the key to maintain alphabetical order

@@ -6,6 +6,12 @@
 		"model" = "cobra3-player";
 	},
 	{
+		"file" = "oolite-easy.oolite-save";
+		"name" = "[oolite-scenario-easy-name]";
+		"description" = "[oolite-scenario-easy-description]";
+		"model" = "cobra3-player";
+	},
+	{
 		"file" = "oolite-tutorial.oolite-save";
 		"name" = "[oolite-scenario-tutorial-name]";
 		"description" = "[oolite-scenario-tutorial-description]";

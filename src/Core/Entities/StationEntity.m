@@ -52,7 +52,6 @@
 
 @interface StationEntity (OOPrivate)
 
-- (BOOL) fitsInDock:(ShipEntity *)ship;
 - (void) pullInShipIfPermitted:(ShipEntity *)ship;
 - (void) addShipToStationCount:(ShipEntity *)ship;
 
@@ -944,6 +943,8 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 			}
 			player_reserved_dock = dock;
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+			[player doScriptEvent:OOJSID("playerDockingClearanceGranted")];
+
 		}
 	}
 	
@@ -1166,8 +1167,13 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	return result;
 }
 
+- (BOOL) fitsInDock:(ShipEntity *)ship
+{
+   return [self fitsInDock:ship andLogNoFit:YES];
+}
 
-- (BOOL) fitsInDock:(ShipEntity *) ship
+
+- (BOOL) fitsInDock:(ShipEntity *)ship andLogNoFit:(BOOL)logNoFit
 {
 	if (![ship isShip])  return NO;
 	
@@ -1181,7 +1187,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		}
 	}
 
-	OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
+	if (logNoFit) OOLog(@"station.launchShip.failed", @"Cancelled launch for a %@ with role %@, as it is too large for the docking port of the %@.",
 			  [ship displayName], [ship primaryRole], self);
 	return NO;
 }	
@@ -2245,7 +2251,6 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 		result = @"DOCKING_CLEARANCE_GRANTED";
 		[shipAI reactToMessage:@"DOCKING_REQUESTED" context:nil];	// react to the request	
 		[self doScriptEvent:OOJSID("stationAcceptedDockingRequest") withArgument:other];
-
 	}
 	return result;
 }

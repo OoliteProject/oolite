@@ -131,13 +131,6 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 
 enum
 {
-#if PERLIN_3D && !TEXGEN_TEST_RIG
-	kPlanetAspectRatio			= 2,
-#else
-	kPlanetAspectRatio			= 1,		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
-#endif
-	kPlanetScaleOffset			= 8 - kPlanetAspectRatio,
-	
 	kPlanetScale256x256			= 1,
 	kPlanetScale512x512,
 	kPlanetScale1024x1024,
@@ -194,6 +187,9 @@ enum
 #else
 		_planetScale = kPlanetScale4096x4096;
 #endif
+		_info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:NO];
+		_info.planetAspectRatio = _info.perlin3d ? 2 : 1;
+		_info.planetScaleOffset = 8 - _info.planetAspectRatio;
 	}
 	
 	return self;
@@ -398,8 +394,8 @@ enum
 	uint8_t		*aBuffer = NULL, *apx = NULL;
 	float		*randomBuffer = NULL;
 	
-	_height = _info.height = 1 << (_planetScale + kPlanetScaleOffset);
-	_width = _info.width = _height * kPlanetAspectRatio;
+	_height = _info.height = 1 << (_planetScale + _info.planetScaleOffset);
+	_width = _info.width = _height * _info.planetAspectRatio;
 	
 #define FAIL_IF(cond)  do { if (EXPECT_NOT(cond))  goto END; } while (0)
 #define FAIL_IF_NULL(x)  FAIL_IF((x) == NULL)
@@ -784,6 +780,7 @@ OOINLINE int32_t fast_floor(double val)
 
 
 static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info);
+static BOOL GenerateFBMNoise3D(OOPlanetTextureGeneratorInfo *info);
 
 
 static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info)
@@ -794,7 +791,14 @@ static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info)
 	info->fbmBuffer = calloc(info->width * info->height, sizeof (float));
 	if (info->fbmBuffer != NULL)
 	{
-		GenerateFBMNoise(info);
+		if (!info->perlin3d)
+		{
+			GenerateFBMNoise(info);
+		}
+		else
+		{
+			GenerateFBMNoise3D(info);
+		}
 	
 		return YES;
 	}
@@ -802,7 +806,6 @@ static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info)
 }
 
 
-#if PERLIN_3D
 
 enum
 {
@@ -982,7 +985,7 @@ static BOOL MakePermutationTable(OOPlanetTextureGeneratorInfo *info)
 }
 
 
-static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info)
+static BOOL GenerateFBMNoise3D(OOPlanetTextureGeneratorInfo *info)
 {
 	BOOL OK = NO;
 	
@@ -1045,7 +1048,7 @@ END:
 	return OK;
 }
 
-#else
+
 // Old 2D value noise.
 
 static void FillRandomBuffer(float *randomBuffer, RANROTSeed seed)
@@ -1126,7 +1129,7 @@ static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info)
 	
 	// Generate basic fBM noise.
 	unsigned height = info->height;
-	unsigned octaveMask = 8 * kPlanetAspectRatio;
+	unsigned octaveMask = 8 * info->planetAspectRatio;
 	float octave = octaveMask;
 	octaveMask -= 1;
 	float scale = 0.5f;
@@ -1143,7 +1146,6 @@ static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info)
 	return YES;
 }
 
-#endif
 
 
 static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y)

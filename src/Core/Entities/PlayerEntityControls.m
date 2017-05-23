@@ -194,7 +194,7 @@ static NSTimeInterval	time_last_frame;
 - (void) initControls
 {
 	NSMutableDictionary	*kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
-	
+
 	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
 	
 	unsigned		i;
@@ -999,6 +999,7 @@ static NSTimeInterval	time_last_frame;
 							[self playWeaponsOffline];
 						}
 						[UNIVERSE addMessage:weaponsOnlineToggleMsg forCount:2.0];
+						[self doScriptEvent:OOJSID("weaponsSystemsToggled") withArgument:[NSNumber numberWithBool:[self weaponsOnline]]];
 						weaponsOnlineToggle_pressed = YES;
 					}
 				}
@@ -1312,14 +1313,7 @@ static NSTimeInterval	time_last_frame;
 					if (!docking_clearance_request_key_pressed)
 					{
 						Entity *primeTarget = [self primaryTarget];
-						if (primeTarget != nil && [primeTarget isStation] && [primeTarget isKindOfClass:[StationEntity class]])
-						{
-							NSString *stationDockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
-							if (stationDockingClearanceStatus != nil)
-							{
-								[self doScriptEvent:OOJSID("playerRequestedDockingClearance") withArgument:stationDockingClearanceStatus];
-							}
-						}
+						[self performDockingRequest:(StationEntity*)primeTarget];
 					}
 					docking_clearance_request_key_pressed = YES;
 				}
