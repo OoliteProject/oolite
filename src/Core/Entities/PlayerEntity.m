@@ -714,7 +714,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			if(gui_screen == GUI_SCREEN_SYSTEM_DATA)
 			{
-				[self setGuiToSystemDataScreen];
+				[self setGuiToSystemDataScreenRefreshBackground: YES];
 			}
 			if(moveChart)
 			{
@@ -8146,8 +8146,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	return [self contractsListForScriptingFromArray:contracts forCargo:YES];
 }
 
-
 - (void) setGuiToSystemDataScreen
+{
+	[self setGuiToSystemDataScreenRefreshBackground: NO];
+}
+
+- (void) setGuiToSystemDataScreenRefreshBackground: (BOOL) refreshBackground
 {
 	NSDictionary	*infoSystemData;
 	NSString		*infoSystemName;
@@ -8210,7 +8214,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 
 		
-		[gui clearAndKeepBackground:!guiChanged];
+		[gui clearAndKeepBackground:!refreshBackground && !guiChanged];
 		[UNIVERSE removeDemoShips];
 
 		if (concealment < OO_SYSTEMCONCEALMENT_NONAME)
@@ -8362,13 +8366,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		RANROTSetFullSeed(ranrotSavedSeed);
 	}
 	
-	if (guiChanged)
+	if (refreshBackground || guiChanged)
 	{
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		[gui setBackgroundTextureKey:sunGoneNova ? @"system_data_nova" : @"system_data"];
 		
-		[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
-		[self checkScript];	// Still needed by some OXPs?
+		if (guiChanged)
+		{
+			[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+			[self checkScript];	// Still needed by some OXPs?
+		}
 	}
 }
 

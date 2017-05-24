@@ -1003,6 +1003,7 @@ typedef enum
 - (unsigned) legalStatusOfCargoList;
 
 - (void) setGuiToSystemDataScreen;
+- (void) setGuiToSystemDataScreenRefreshBackground: (bool) refreshBackground;
 - (NSDictionary *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;
 - (void) setGuiToShortRangeChartScreen;
