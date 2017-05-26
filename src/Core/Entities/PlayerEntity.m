@@ -703,6 +703,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		OOSystemID old = info_system_id;
 		info_system_id = sid;
+		JSContext *context = OOJSAcquireContext();
+		ShipScriptEvent(context, self, "infoSystemWillChange", INT_TO_JSVAL(info_system_id), INT_TO_JSVAL(old));
 		if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART || gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 		{
 			if(moveChart)
@@ -724,7 +726,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				target_chart_focus = chart_focus_coordinates;
 			}
 		}
-		JSContext *context = OOJSAcquireContext();
 		ShipScriptEvent(context, self, "infoSystemChanged", INT_TO_JSVAL(info_system_id), INT_TO_JSVAL(old));
 		OOJSRelinquishContext(context);
 	}
@@ -8194,7 +8195,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		NSString	*system_desc =		[infoSystemData oo_stringForKey:KEY_DESCRIPTION];
 
 		NSString    *populationDesc =   [infoSystemData oo_stringForKey:KEY_POPULATION_DESC
-															 defaultValue:OOExpandKeyWithSeed(kNilRandomSeed, @"sysdata-pop-value", population, inhabitants)];
+															 defaultValue:OOExpandKeyWithSeed(kNilRandomSeed, @"sysdata-pop-value", population)];
 
 		if (sunGoneNova)
 		{
@@ -8210,7 +8211,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				NSString *system = infoSystemName;
 				system_desc = OOExpandKeyWithSeed(infoSystemRandomSeed, @"nova-system-description", system);
 			}
-			populationDesc = OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-pop-value", population, inhabitants);
+			populationDesc = OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-pop-value", population);
 		}
 
 		
@@ -8238,50 +8239,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 		else
 		{
-			NSArray *populationDescLines = [populationDesc componentsSeparatedByString:@"\n"];
-			NSString *populationDesc1 = [populationDescLines objectAtIndex:0];
-			NSString *populationDesc2 = [populationDescLines lastObject];
-			
-			if ([populationDesc1 isEqualToString:populationDesc2])  populationDesc2 = @"";
-		
-			[gui setArray:[NSArray arrayWithObjects:
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-eco"),
-						   economy_desc,
-						   nil]
-			   	   forRow:1];
-			[gui setArray:[NSArray arrayWithObjects:
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-govt"),
-						   government_desc,
-						   nil]
-				   forRow:3];
-			[gui setArray:[NSArray arrayWithObjects:
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-tl"),
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-tl-value", techLevel),
-						   nil]
-				   forRow:5];
-			[gui setArray:[NSArray arrayWithObjects:
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-pop"),
-						   populationDesc1,
-						   nil]
-				   forRow:7];
-			[gui setArray:[NSArray arrayWithObjects:@"",
-						   populationDesc2,
-						   nil]
-				   forRow:8];
-			[gui setArray:[NSArray arrayWithObjects:
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-prod"),
-						   @"",
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-prod-value", productivity),
-					   	nil]
-				   forRow:10];
-			[gui setArray:[NSArray arrayWithObjects:
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-radius"),
-						   @"",
-						   OOExpandKeyWithSeed(infoSystemRandomSeed, @"sysdata-radius-value",
-											   radius),
-					   	nil]
-				   forRow:12];
-
 			NSPoint infoSystemCoordinates = [[UNIVERSE systemManager] getCoordinatesForSystem: info_system_id inGalaxy: galaxy_number];
 			double distance = distanceBetweenPlanetPositions(infoSystemCoordinates.x, infoSystemCoordinates.y, galaxy_coordinates.x, galaxy_coordinates.y);
 			if(distance == 0.0 && info_system_id != system_id)
@@ -8312,13 +8269,57 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 							DESC_PLURAL(@"sysdata-route-jumps", routeJumps)];
 				}
 			}
-			[gui setArray:[NSArray arrayWithObjects:
-						@"Distance:",
-						distanceInfo,
-						nil]
-				forRow: 14];
-		
-			OOGUIRow i = [gui addLongText:system_desc startingAtRow:17 align:GUI_ALIGN_LEFT];
+
+			OOGUIRow i;
+
+			for (i = 1; i <= 16; i++) {
+				NSString *ln = [NSString stringWithFormat:@"sysdata-line-%d", i];
+				NSString *line = OOExpandKeyWithSeed(infoSystemRandomSeed, ln, economy_desc, government_desc, techLevel, populationDesc, inhabitants, productivity, radius, distanceInfo);
+				if (![line isEqualToString:@""])
+				{
+					NSArray *lines = [line componentsSeparatedByString:@"\t"];
+					if ([lines count] == 1) 
+					{
+						[gui setArray:[NSArray arrayWithObjects:[lines objectAtIndex:0],
+									nil]
+							forRow:i];
+					} 
+					if ([lines count] == 2) 
+					{
+						[gui setArray:[NSArray arrayWithObjects:[lines objectAtIndex:0],
+										[lines objectAtIndex:1],
+									nil]
+							forRow:i];
+					}
+					if ([lines count] == 3) 
+					{
+						if ([[lines objectAtIndex:2] isEqualToString:@""]) 
+						{
+							[gui setArray:[NSArray arrayWithObjects:[lines objectAtIndex:0],
+											[lines objectAtIndex:1],
+										nil]
+								forRow:i];
+						} 
+						else
+						{
+							[gui setArray:[NSArray arrayWithObjects:[lines objectAtIndex:0],
+											[lines objectAtIndex:1],
+											[lines objectAtIndex:2],
+										nil]
+								forRow:i];
+						}
+					}
+				}
+				else 
+				{
+					[gui setArray:[NSArray arrayWithObjects:@"",
+								nil]
+						forRow:i];
+				}
+			}
+
+
+			i = [gui addLongText:system_desc startingAtRow:17 align:GUI_ALIGN_LEFT];
 			missionTextRow = i;
 			for (i-- ; i > 16 ; --i)
 			{
