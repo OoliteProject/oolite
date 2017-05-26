@@ -8372,11 +8372,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		[gui setBackgroundTextureKey:sunGoneNova ? @"system_data_nova" : @"system_data"];
 		
-		if (guiChanged)
-		{
-			[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
-			[self checkScript];	// Still needed by some OXPs?
-		}
+		[self noteGUIDidChangeFrom:oldScreen to:gui_screen refresh: refreshBackground];
+		[self checkScript];	// Still needed by some OXPs?
 	}
 }
 
@@ -9828,8 +9825,14 @@ static NSString *last_outfitting_key=nil;
 
 - (void) noteGUIDidChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen
 {
+	[self noteGUIDidChangeFrom: fromScreen to: toScreen refresh: NO];
+}
+
+
+- (void) noteGUIDidChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen refresh: (BOOL) refresh
+{
 	// No events triggered if we're changing screens while paused, or if screen never actually changed.
-	if (fromScreen != toScreen)
+	if (fromScreen != toScreen || refresh)
 	{
 		// MKW - release GUI Screen ship, if we have one
 		switch (fromScreen)
