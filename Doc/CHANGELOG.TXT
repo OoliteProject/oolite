@@ -20,7 +20,9 @@ Expansion pack development:
 
 Modified Plists:
 ----------------
-
+* descriptions.plist now contains "sysdata-line-1" thru "sysdata-line-16"
+  for controlling the layout of information on the F7 system data screen.
+  
 Scripting:
 ----------
 * player.ship.nextSystem property
