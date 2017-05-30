@@ -12890,6 +12890,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void) scoopUp:(ShipEntity *)other
 {
+	[self scoopUpProcess:other processEvents:YES processMessages:YES];
+}
+
+
+- (void) scoopUpProcess:(ShipEntity *)other processEvents:(BOOL) proc_events processMessages:(BOOL) proc_messages
+{
 	if (other == nil)  return;
 	
 	OOCommodityType	co_type = nil;
@@ -12914,7 +12920,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				//scripting
 				PlayerEntity *player = PLAYER;
 				[player setScriptTarget:self];
-				[other doScriptEvent:OOJSID("shipWasScooped") withArgument:self];
+				if (proc_events)
+				{
+					[other doScriptEvent:OOJSID("shipWasScooped") withArgument:self];
+				}
 				
 				if ([other commodityType] != nil)
 				{
@@ -12924,7 +12933,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				}
 				else
 				{
-					if (isPlayer && [other showScoopMessage])
+					if (isPlayer && [other showScoopMessage] && proc_messages)
 					{
 						[UNIVERSE clearPreviousMessage];
 						NSString *shipName = [other displayName];
@@ -12964,9 +12973,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		
 		if (isPlayer)
 		{
-			if ([other crew])
+			if ([other crew])			
 			{
-				if ([other showScoopMessage])
+				if ([other showScoopMessage] && proc_messages)
 				{
 					[UNIVERSE clearPreviousMessage];
 					unsigned i;
@@ -12988,11 +12997,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 						}
 					}
 				}
-				[(PlayerEntity *)self playEscapePodScooped];
+				if (proc_events) 
+				{
+					[(PlayerEntity *)self playEscapePodScooped];
+				}
 			}
 			else
 			{
-				if ([other showScoopMessage])
+				if ([other showScoopMessage] && proc_messages)
 				{
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE addMessage:[UNIVERSE describeCommodity:co_type amount:co_amount] forCount:4.5];
@@ -13005,7 +13017,10 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])  [shipAI message:@"HOLD_FULL"];
 	}
-	[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // always fire, even without commodity.
+	if (proc_events)
+	{
+		[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // always fire, even without commodity.
+	}
 
 	// if shipScoopedOther does something strange to the object, we must
 	// then remove it from the hold, or it will be over-retained
