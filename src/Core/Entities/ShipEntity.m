@@ -12894,7 +12894,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) scoopUpProcess:(ShipEntity *)other processEvents:(BOOL) proc_events processMessages:(BOOL) proc_messages
+- (void) scoopUpProcess:(ShipEntity *)other processEvents:(BOOL) procEvents processMessages:(BOOL) procMessages
 {
 	if (other == nil)  return;
 	
@@ -12920,7 +12920,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				//scripting
 				PlayerEntity *player = PLAYER;
 				[player setScriptTarget:self];
-				if (proc_events)
+				if (procEvents)
 				{
 					[other doScriptEvent:OOJSID("shipWasScooped") withArgument:self];
 				}
@@ -12933,7 +12933,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				}
 				else
 				{
-					if (isPlayer && [other showScoopMessage] && proc_messages)
+					if (isPlayer && [other showScoopMessage] && procMessages)
 					{
 						[UNIVERSE clearPreviousMessage];
 						NSString *shipName = [other displayName];
@@ -12975,7 +12975,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		{
 			if ([other crew])			
 			{
-				if ([other showScoopMessage] && proc_messages)
+				if ([other showScoopMessage] && procMessages)
 				{
 					[UNIVERSE clearPreviousMessage];
 					unsigned i;
@@ -12997,14 +12997,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 						}
 					}
 				}
-				if (proc_events) 
+				if (procEvents) 
 				{
 					[(PlayerEntity *)self playEscapePodScooped];
 				}
 			}
 			else
 			{
-				if ([other showScoopMessage] && proc_messages)
+				if ([other showScoopMessage] && procMessages)
 				{
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE addMessage:[UNIVERSE describeCommodity:co_type amount:co_amount] forCount:4.5];
@@ -13017,7 +13017,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		[shipAI message:@"CARGO_SCOOPED"];
 		if (max_cargo && [cargo count] >= [self maxAvailableCargoSpace])  [shipAI message:@"HOLD_FULL"];
 	}
-	if (proc_events)
+	if (procEvents)
 	{
 		[self doScriptEvent:OOJSID("shipScoopedOther") withArgument:other]; // always fire, even without commodity.
 	}

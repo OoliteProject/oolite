@@ -2202,8 +2202,8 @@ static JSBool ShipAddCargoEntity(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	ShipEntity				*thisEnt = nil;
 	ShipEntity              *target = nil;
-	JSBool					proc_events = NO;
-	JSBool					proc_messages = NO;
+	JSBool					procEvents = NO;
+	JSBool					procMessages = NO;
 
 	GET_THIS_SHIP(thisEnt);
 
@@ -2213,6 +2213,7 @@ static JSBool ShipAddCargoEntity(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	if (EXPECT_NOT(argc == 0 ||
+				   JSVAL_IS_NULL(OOJS_ARGV[0]) ||
 				   !JSVAL_IS_OBJECT(OOJS_ARGV[0]) ||
 				   !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))
 	{
@@ -2229,30 +2230,21 @@ static JSBool ShipAddCargoEntity(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportWarningForCaller(context, @"PlayerShip", @"addCargoEntity", @"Scoopable entity not in flight.");
 		return NO;
 	}
-	if (argc >= 2 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[1], &proc_events)))
+	if (argc >= 2 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[1], &procEvents)))
 	{
 		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", MIN(argc, 2U), OOJS_ARGV, nil, @"boolean");
 		return NO;
 	}
-	if (argc == 3 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[2], &proc_messages)))
+	if (argc == 3 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[2], &procMessages)))
 	{
 		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", MIN(argc, 3U), OOJS_ARGV, nil, @"boolean");
 		return NO;
 	}
 	
-	// scoop the object, but don't process any events/messages
-	if (proc_events && proc_messages) 
-	{
-		[thisEnt scoopUpProcess:target processEvents:YES processMessages:YES];
-	}
-	if (proc_events && !proc_messages) 
-	{
-		[thisEnt scoopUpProcess:target processEvents:YES processMessages:NO];
-	}
-	if (!proc_events && !proc_messages) 
-	{
-		[thisEnt scoopUpProcess:target processEvents:NO processMessages:NO];
-	}
+	// scoop the object, but don't process any events/messages unless requested
+	OOJS_BEGIN_FULL_NATIVE(context)
+	[thisEnt scoopUpProcess:target processEvents:procEvents processMessages:procMessages];
+	OOJS_END_FULL_NATIVE
 
 	OOJS_RETURN_BOOL([target status] == STATUS_IN_HOLD);
 
