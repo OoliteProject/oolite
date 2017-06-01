@@ -2202,8 +2202,8 @@ static JSBool ShipAddCargoEntity(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_ENTER(context)
 	ShipEntity				*thisEnt = nil;
 	ShipEntity              *target = nil;
-	BOOL					proc_events = NO;
-	BOOL					proc_messages = NO;
+	JSBool					proc_events = NO;
+	JSBool					proc_messages = NO;
 
 	GET_THIS_SHIP(thisEnt);
 
@@ -2216,7 +2216,7 @@ static JSBool ShipAddCargoEntity(JSContext *context, uintN argc, jsval *vp)
 				   !JSVAL_IS_OBJECT(OOJS_ARGV[0]) ||
 				   !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]), &target)))
 	{
-		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", argc, OOJS_ARGV, nil, @"scoopable entity.");
+		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", MIN(argc, 1U), OOJS_ARGV, nil, @"scoopable entity.");
 		return NO;
 	}
 	if ([target scanClass] != CLASS_CARGO) 
@@ -2231,17 +2231,28 @@ static JSBool ShipAddCargoEntity(JSContext *context, uintN argc, jsval *vp)
 	}
 	if (argc >= 2 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[1], &proc_events)))
 	{
-		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", argc, OOJS_ARGV, nil, @"boolean");
+		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", MIN(argc, 2U), OOJS_ARGV, nil, @"boolean");
 		return NO;
 	}
 	if (argc == 3 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[2], &proc_messages)))
 	{
-		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", argc, OOJS_ARGV, nil, @"boolean");
+		OOJSReportBadArguments(context, @"PlayerShip", @"addCargoEntity", MIN(argc, 3U), OOJS_ARGV, nil, @"boolean");
 		return NO;
 	}
 	
 	// scoop the object, but don't process any events/messages
-	[thisEnt scoopUpProcess:target processEvents:proc_events processMessages:proc_messages];
+	if (proc_events && proc_messages) 
+	{
+		[thisEnt scoopUpProcess:target processEvents:YES processMessages:YES];
+	}
+	if (proc_events && !proc_messages) 
+	{
+		[thisEnt scoopUpProcess:target processEvents:YES processMessages:NO];
+	}
+	if (!proc_events && !proc_messages) 
+	{
+		[thisEnt scoopUpProcess:target processEvents:NO processMessages:NO];
+	}
 
 	OOJS_RETURN_BOOL([target status] == STATUS_IN_HOLD);
 
