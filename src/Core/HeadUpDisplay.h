@@ -386,9 +386,9 @@ void OODrawStringAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize
  *
  * - CIM
  */
-void OOStartDrawingStrings();
+void OOStartDrawingStrings(void);
 void OODrawStringQuadsAligned(NSString *text, GLfloat x, GLfloat y, GLfloat z, NSSize siz, BOOL rightAlign);
-void OOStopDrawingStrings();
+void OOStopDrawingStrings(void);
 
 
 

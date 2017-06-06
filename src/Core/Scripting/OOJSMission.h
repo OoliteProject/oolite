@@ -29,4 +29,4 @@ MA 02110-1301, USA.
 #include <jsapi.h>
 
 void InitOOJSMission(JSContext *context, JSObject *global);
-void MissionRunCallback();
+void MissionRunCallback(void);
