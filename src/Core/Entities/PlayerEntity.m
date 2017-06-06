@@ -6820,8 +6820,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSParameterAssert(station != nil);
 	if ([self status] == STATUS_DEAD)  return;
 	
-	OOProfilerStartMarker(@"dock");
-	
 	[self setStatus:STATUS_DOCKING];
 	[self setDockedStation:station];
 	[self doScriptEvent:OOJSID("shipWillDockWithStation") withArgument:station];
@@ -6858,8 +6856,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) docked
 {
-	OOProfilerPointMarker(@"-docked called");
-	
 	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation == nil)
 	{
@@ -6956,8 +6952,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// When a mission screen is started, any on-screen message is removed immediately.
 	[self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];	// also displays docking reports first.
-	
-	OOProfilerEndMarker(@"dock");
 }
 
 
@@ -6965,8 +6959,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 {
 	if (station == nil)  return;
 	NSParameterAssert(station == [self dockedStation]);
-	
-	OOProfilerStartMarker(@"undock");
 	
 	// ensure we've not left keyboard entry on
 	[[UNIVERSE gameView] allowStringInput: NO];
@@ -7056,16 +7048,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[demoShip release];
 	demoShip = nil;
 	
-	OOProfilerEndMarker(@"undock");
-	
 	[self playLaunchFromStation];
 }
 
 
 - (void) witchStart
 {
-	OOProfilerStartMarker(@"witchspace");
-	
 	// chances of entering witchspace with autopilot on are very low, but as Berlios bug #18307 has shown us, entirely possible
 	// so in such cases we need to ensure that at least the docking music stops playing
 	if (autopilot_engaged)  [self disengageAutopilot];
@@ -7120,7 +7108,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	chart_centre_coordinates = galaxy_coordinates;
 	target_chart_centre = chart_centre_coordinates;
-	OOProfilerEndMarker(@"witchspace");
 }
 
 

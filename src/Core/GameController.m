@@ -662,8 +662,6 @@ static void RemovePreference(NSString *key)
 #if OOLITE_MAC_OS_X
 	[splashProgressTextField setStringValue:message];
 	[splashProgressTextField display];
-	
-	OOProfilerPointMarker(message);
 #endif
 	if([message length] > 0)
 	{
