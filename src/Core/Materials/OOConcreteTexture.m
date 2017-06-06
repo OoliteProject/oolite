@@ -391,7 +391,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 	else
 	{
 		// Not loaded
-		if (!_options & kOOTextureAllowRectTexture)
+		if (!(_options & kOOTextureAllowRectTexture))
 		{
 			return NSMakeSize(1.0f, 1.0f);
 		}
