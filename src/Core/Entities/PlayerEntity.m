@@ -888,7 +888,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		OOTechLevelID techlevel = [[UNIVERSE currentSystemData] oo_intForKey:KEY_TECHLEVEL];
 		OOEconomyID economy = [[UNIVERSE currentSystemData] oo_intForKey:KEY_ECONOMY];
 		[result setObject:[NSNumber numberWithUnsignedShort:government] forKey:@"current_system_government"];
-		[result setObject:[NSNumber numberWithUnsignedInt:techlevel] forKey:@"current_system_techlevel"];
+		[result setObject:[NSNumber numberWithUnsignedInteger:techlevel] forKey:@"current_system_techlevel"];
 		[result setObject:[NSNumber numberWithUnsignedShort:economy] forKey:@"current_system_economy"];
 	}
 	
@@ -6327,7 +6327,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if ([UNIVERSE displayGUI]) [self switchToMainView];	// Clear the F7 screen!
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	
-	if ([self status] == STATUS_DEAD) return NO;
+	if ([self status] == STATUS_DEAD)  return nil;
 	
 	/*
 		While inside the escape pod, we need to block access to all player.ship properties,
@@ -8273,7 +8273,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			OOGUIRow i;
 
 			for (i = 1; i <= 16; i++) {
-				NSString *ln = [NSString stringWithFormat:@"sysdata-line-%d", i];
+				NSString *ln = [NSString stringWithFormat:@"sysdata-line-%ld", (long)i];
 				NSString *line = OOExpandKeyWithSeed(infoSystemRandomSeed, ln, economy_desc, government_desc, techLevel, populationDesc, inhabitants, productivity, radius, distanceInfo);
 				if (![line isEqualToString:@""])
 				{

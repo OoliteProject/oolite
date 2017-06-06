@@ -216,7 +216,7 @@ FAIL:
 	}
 #else
 	// Mac and Linux can do it properly
-	if (![_lock tryLockWhenCondition:kConditionQueuedData])  return NO;
+	if (![_lock tryLockWhenCondition:kConditionQueuedData])  return nil;
 #endif
 	return [self doDequeAndUnlockWithAcquiredLock];
 }
