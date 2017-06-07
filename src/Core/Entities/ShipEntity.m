@@ -9424,7 +9424,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (isPlayer)
 			{
 	#ifndef NDEBUG
-				OOLog(@"becomeExplosion.suspectedGhost.confirm", @"Ship spotted with isPlayer set when not actually the player.");
+				OOLog(@"becomeExplosion.suspectedGhost.confirm", @"%@", @"Ship spotted with isPlayer set when not actually the player.");
 	#endif
 				isPlayer = NO;
 			}
@@ -14500,7 +14500,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 	if (shipAI != nil && OOLogWillDisplayMessagesInClass(@"dumpState.shipEntity.ai"))
 	{
-		OOLog(@"dumpState.shipEntity.ai", @"AI:");
+		OOLog(@"dumpState.shipEntity.ai", @"%@", @"AI:");
 		OOLogPushIndent();
 		OOLogIndent();
 		@try

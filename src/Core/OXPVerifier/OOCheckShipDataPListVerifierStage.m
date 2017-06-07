@@ -115,7 +115,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	// Check that it's a dictionary
 	if (![_shipdataPList isKindOfClass:[NSDictionary class]])
 	{
-		OOLog(@"verifyOXP.shipdataPList.notDict", @"***** ERROR: shipdata.plist is not a dictionary.");
+		OOLog(@"verifyOXP.shipdataPList.notDict", @"%@", @"***** ERROR: shipdata.plist is not a dictionary.");
 		return;
 	}
 	

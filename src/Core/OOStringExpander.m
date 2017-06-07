@@ -301,7 +301,7 @@ static NSString *Expand(OOStringExpansionContext *context, NSString *string, NSU
 		}
 		else if (thisChar == ']')
 		{
-			SyntaxWarning(context, @"strings.expand.warning.unbalancedClosingBracket", @"Unbalanced ] in string.");
+			SyntaxWarning(context, @"strings.expand.warning.unbalancedClosingBracket", @"%@", @"Unbalanced ] in string.");
 		}
 		else if (thisChar == '\\' && context->convertBackslashN)
 		{
@@ -397,7 +397,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 	// Fail if no balancing bracket.
 	if (EXPECT_NOT(balanceCount != 0))
 	{
-		SyntaxWarning(context, @"strings.expand.warning.unbalancedOpeningBracket", @"Unbalanced [ in string.");
+		SyntaxWarning(context, @"strings.expand.warning.unbalancedOpeningBracket", @"%@", @"Unbalanced [ in string.");
 		return nil;
 	}
 	
@@ -408,7 +408,7 @@ static NSString *ExpandKey(OOStringExpansionContext *context, const unichar *cha
 	
 	if (EXPECT_NOT(keyLength == 0))
 	{
-		SyntaxWarning(context, @"strings.expand.warning.emptyKey", @"Invalid expansion code [] string. (To avoid this message, use %%[%%].)");
+		SyntaxWarning(context, @"strings.expand.warning.emptyKey", @"%@", @"Invalid expansion code [] string. (To avoid this message, use %%[%%].)");
 		return nil;
 	}
 	

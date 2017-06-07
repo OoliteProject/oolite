@@ -259,7 +259,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one Universe to exist at a time.", __PRETTY_FUNCTION__];
 	}
 	
-	OO_DEBUG_PROGRESS(@"Universe initWithGameView:");
+	OO_DEBUG_PROGRESS(@"%@", @"Universe initWithGameView:");
 	
 	self = [super init];
 	if (self == nil)  return nil;
@@ -943,7 +943,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova" defaultValue:NO];
 	
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - clearSubRegions, sky, dust");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - clearSubRegions, sky, dust");
 	[universeRegion clearSubregions];
 	
 	// fixed entities (part of the graphics system really) come first...
@@ -1026,7 +1026,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	// actual entities next...
 	
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - planet");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - planet");
 	a_planet=[self setUpPlanet]; // resets RNG when called
 	double planet_radius = [a_planet radius];
 	OO_DEBUG_POP_PROGRESS();
@@ -1034,7 +1034,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// set the system seed for random number generation
 	seed_for_planet_description(systemSeed);
 	
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - sun");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - sun");
 	/*- space sun -*/
 	double		sun_radius;
 	double		sun_distance;
@@ -1141,7 +1141,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[self setLighting];
 	OO_DEBUG_POP_PROGRESS();
 	
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - main station");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - main station");
 	/*- space station -*/
 	stationPos = [a_planet position];
 
@@ -1228,7 +1228,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OO_DEBUG_POP_PROGRESS();
 	
 	
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from wormholes");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - populate from wormholes");
 	[self populateSpaceFromActiveWormholes];
 	OO_DEBUG_POP_PROGRESS();
 
@@ -1245,7 +1245,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	// check for nova
 	if (sunGoneNova)
 	{
-	 	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - post-nova");
+	 	OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - post-nova");
 		
 	 	HPVector v0 = make_HPvector(0,0,34567.89);
 	 	double min_safe_dist2 = 6000000.0 * 6000000.0;
@@ -1265,7 +1265,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	 	cachedStation = nil;	
 	}
 
-	OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - populate from hyperpoint");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - populate from hyperpoint");
 //	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	[self clearSystemPopulator];
 
@@ -1290,7 +1290,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		OOStandardsDeprecated([NSString stringWithFormat:@"The script_actions system info key is deprecated for %@.",[self getSystemName:systemID]]);
 		if (!OOEnforceStandards()) 
 		{
-			OO_DEBUG_PUSH_PROGRESS(@"setUpSpace - legacy script_actions");
+			OO_DEBUG_PUSH_PROGRESS(@"%@", @"setUpSpace - legacy script_actions");
 			[PLAYER runUnsanitizedScriptActions:script_actions
 							  allowingAIMethods:NO
 								withContextName:@"<system script_actions>"
@@ -4857,7 +4857,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			OOExtraLog(kOOLogEntityVerificationError, @"Broken x_previous %@ list (%d) ***", uni->x_list_start, n);
 			if (result)
 			{
-				OOExtraLog(kOOLogEntityVerificationRebuild, @"REBUILDING x_previous list from x_next list");
+				OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"REBUILDING x_previous list from x_next list");
 				checkEnt = uni->x_list_start;
 				checkEnt->x_previous = nil;
 				while (checkEnt->x_next)
@@ -4890,7 +4890,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			OOExtraLog(kOOLogEntityVerificationError, @"Broken y_previous %@ list (%d) ***", uni->y_list_start, n);
 			if (result)
 			{
-				OOExtraLog(kOOLogEntityVerificationRebuild, @"REBUILDING y_previous list from y_next list");
+				OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"REBUILDING y_previous list from y_next list");
 				checkEnt = uni->y_list_start;
 				checkEnt->y_previous = nil;
 				while (checkEnt->y_next)
@@ -4923,7 +4923,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 			OOExtraLog(kOOLogEntityVerificationError, @"Broken z_previous %@ list (%d) ***", uni->z_list_start, n);
 			if (result)
 			{
-				OOExtraLog(kOOLogEntityVerificationRebuild, @"REBUILDING z_previous list from z_next list");
+				OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"REBUILDING z_previous list from z_next list");
 				checkEnt = uni->z_list_start;
 				NSCAssert(checkEnt != nil, @"Expected z-list to be non-empty.");	// Previously an implicit assumption. -- Ahruman 2011-01-25
 				checkEnt->z_previous = nil;
@@ -4939,7 +4939,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	
 	if (!result)
 	{
-		OOExtraLog(kOOLogEntityVerificationRebuild, @"Rebuilding all linked lists from scratch");
+		OOExtraLog(kOOLogEntityVerificationRebuild, @"%@", @"Rebuilding all linked lists from scratch");
 		NSArray *allEntities = uni->entities;
 		uni->x_list_start = nil;
 		uni->y_list_start = nil;
@@ -5168,7 +5168,7 @@ static BOOL MaintainLinkedLists(Universe *uni)
 	Entity* p0 = [entities objectAtIndex:0];
 	if (!(p0->isPlayer))
 	{
-		OOLog(kOOLogInconsistentState, @"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
+		OOLog(kOOLogInconsistentState, @"%@", @"***** First entity is not the player in Universe.removeAllEntitiesExceptPlayer - exiting.");
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -7449,7 +7449,7 @@ static void VerifyDesc(NSString *key, id desc)
 	NSString *key = nil;
 	if (_descriptions == nil)
 	{
-		OOLog(@"descriptions.verify",@"***** FATAL: Tried to verify descriptions, but descriptions was nil - unable to load any descriptions.plist file.");
+		OOLog(@"descriptions.verify", @"%@", @"***** FATAL: Tried to verify descriptions, but descriptions was nil - unable to load any descriptions.plist file.");
 		exit(EXIT_FAILURE);
 	}
 	foreachkey (key, _descriptions)
@@ -7821,7 +7821,7 @@ static void VerifyDesc(NSString *key, id desc)
 
 - (OOSystemID) findSystemAtCoords:(NSPoint) coords withGalaxy:(OOGalaxyID) g
 {
-	OOLog(@"deprecated.function",@"findSystemAtCoords");
+	OOLog(@"deprecated.function", @"%@", @"findSystemAtCoords");
 	return [self findSystemNumberAtCoords:coords withGalaxy:g includingHidden:YES];
 }
 
@@ -9893,19 +9893,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 {
 	PlayerEntity* player = PLAYER;
 	
-	OO_DEBUG_PUSH_PROGRESS(@"Wormhole and character reset");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"Wormhole and character reset");
 	if (activeWormholes) [activeWormholes autorelease];
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
 	if (characterPool) [characterPool autorelease];
 	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
 	OO_DEBUG_POP_PROGRESS();
 	
-	OO_DEBUG_PUSH_PROGRESS(@"Galaxy reset");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"Galaxy reset");
 	[self setGalaxyTo: [player galaxyNumber] andReinit:YES];
 	systemID = [player systemID];
 	OO_DEBUG_POP_PROGRESS();
 	
-	OO_DEBUG_PUSH_PROGRESS(@"Player init: setUpShipFromDictionary");
+	OO_DEBUG_PUSH_PROGRESS(@"%@", @"Player init: setUpShipFromDictionary");
 	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player shipDataKey]]];	// the standard cobra at this point
 	[player baseMass]; // bootstrap the base mass used in all fuel charge calculations.
 	OO_DEBUG_POP_PROGRESS();

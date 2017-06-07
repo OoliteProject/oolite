@@ -261,7 +261,7 @@ static void OpenLogFile(NSString *name);
 	if (_verifierPList == nil ||
 		_basePath == nil)
 	{
-		OOLog(@"verifyOXP.setup.failed", @"***** ERROR: failed to set up OXP verifier.");
+		OOLog(@"verifyOXP.setup.failed", @"%@", @"***** ERROR: failed to set up OXP verifier.");
 		[self release];
 		return nil;
 	}
@@ -297,7 +297,7 @@ static void OpenLogFile(NSString *name);
 	[self runStages];
 	
 	NoteVerificationStage(_displayName, @"");
-	OOLog(@"verifyOXP.done", @"OXP verification complete.");
+	OOLog(@"verifyOXP.done", @"%@", @"OXP verification complete.");
 	
 	OpenLogFile(_displayName);
 }
@@ -543,7 +543,7 @@ static void OpenLogFile(NSString *name);
 	
 	if ([_waitingStages count] != 0)
 	{
-		OOLog(@"verifyOXP.incomplete", @"Some verifier stages could not be run:");
+		OOLog(@"verifyOXP.incomplete", @"%@", @"Some verifier stages could not be run:");
 		OOLogIndent();
 		for (stageEnum = [_waitingStages objectEnumerator]; (candidateStage = [stageEnum nextObject]); )
 		{
