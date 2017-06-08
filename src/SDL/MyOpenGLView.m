@@ -2329,6 +2329,7 @@ keys[a] = NO; keys[b] = NO; \
 	}
 }
 
+
 // Full screen mode enumerator.
 - (void) populateFullScreenModelist
 {
@@ -2374,13 +2375,17 @@ keys[a] = NO; keys[b] = NO; \
 					forKey: kOODisplayHeight];
 			[mode setValue: [NSNumber numberWithInt: 0]
 					forKey: kOODisplayRefreshRate];
-			[screenSizes addObject: mode];
-			OOLog(@"display.mode.list", @"Added res %d x %d", modes[i]->w, modes[i]->h);
-			lastw=modes[i]->w;
-			lasth=modes[i]->h;
+			if (![screenSizes containsObject:mode])
+			{
+				[screenSizes addObject: mode];
+				OOLog(@"display.mode.list", @"Added res %d x %d", modes[i]->w, modes[i]->h);
+				lastw=modes[i]->w;
+				lasth=modes[i]->h;
+			}
 		}
 	}
 }
+
 
 // Save and restore window sizes to/from defaults.
 - (void) saveWindowSize: (NSSize) windowSize
