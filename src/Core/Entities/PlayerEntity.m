@@ -5376,6 +5376,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) cycleMultiFunctionDisplay:(NSUInteger) index
 {
 	NSArray *keys = [multiFunctionDisplayText allKeys];
+	NSString *key = nil;
 	if ([keys count] == 0)
 	{
 		[self setMultiFunctionDisplay:index toKey:nil];
@@ -5384,20 +5385,27 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	id current = [multiFunctionDisplaySettings objectAtIndex:index];
 	if (current == [NSNull null])
 	{
-		[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:0]];
+		key = [keys objectAtIndex:0];
+		[self setMultiFunctionDisplay:index toKey:key];
 	}
 	else
 	{
 		NSUInteger cIndex = [keys indexOfObject:current];
 		if (cIndex == NSNotFound || cIndex + 1 >= [keys count])
 		{
+			key = nil;
 			[self setMultiFunctionDisplay:index toKey:nil];
 		}
 		else 
 		{
-			[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:(cIndex+1)]];
+			key = [keys objectAtIndex:(cIndex+1)];
+			[self setMultiFunctionDisplay:index toKey:key];
 		}
 	}
+	JSContext *context = OOJSAcquireContext();
+	jsval keyVal = OOJSValueFromNativeObject(context,key);
+	ShipScriptEvent(context, self, "mfdKeyChanged", INT_TO_JSVAL(activeMFD), keyVal);
+	OOJSRelinquishContext(context);
 }
 
 
@@ -5406,6 +5414,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	activeMFD = (activeMFD + 1) % [[self hud] mfdCount];
 	NSUInteger mfdID = activeMFD + 1;
 	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
+	JSContext *context = OOJSAcquireContext();
+	ShipScriptEvent(context, self, "selectedMFDChanged", INT_TO_JSVAL(activeMFD));
+	OOJSRelinquishContext(context);
 }
 
 
@@ -7897,6 +7908,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		return [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:idx] oo_stringAtIndex:0]] name];
 	}
+}
+
+
+- (void) setPrimedEquipment:(NSString *)eqKey
+{
+	primedEquipment = [self eqScriptIndexForKey:eqKey];	// if key not found primedEquipment is set to primed-none
 }
 
 

@@ -68,6 +68,7 @@ static JSBool PlayerShipRemoveParcel(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipAwardContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipRemoveContract(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetCustomView(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipResetCustomView(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipResetScannerZoom(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
@@ -246,6 +247,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "setCustomHUDDial",				PlayerShipSetCustomHUDDial,					2 },
 	{ "setMultiFunctionDisplay",		PlayerShipSetMultiFunctionDisplay,			1 },
 	{ "setMultiFunctionText",			PlayerShipSetMultiFunctionText,				1 },
+	{ "setPrimedEquipment",				PlayerShipSetPrimedEquipment,               1 },
 	{ "showHUDSelector",				PlayerShipShowHUDSelector,					1 },
 	{ "takeInternalDamage",				PlayerShipTakeInternalDamage,				0 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
@@ -1494,6 +1496,31 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 		NSString *formatted = [gui reflowTextForMFD:value];
 		[player setMultiFunctionText:formatted forKey:key];
 	}
+
+	OOJS_RETURN_VOID;
+
+	OOJS_NATIVE_EXIT
+}
+
+
+// setPrimedEquipment(key)
+static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	NSString				*key = nil;
+	PlayerEntity			*player = OOPlayerForScripting();
+
+	if (argc > 0)  
+	{
+		key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	}
+	if (key == nil)
+	{
+		OOJSReportBadArguments(context, @"PlayerShip", @"setPrimedEquipment", MIN(argc, 1U), OOJS_ARGV, nil, @"string (key)");
+		return NO;
+	}
+	[player setPrimedEquipment:key];
 
 	OOJS_RETURN_VOID;
 
