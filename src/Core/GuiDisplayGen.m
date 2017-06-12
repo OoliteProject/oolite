@@ -2216,7 +2216,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		}
 		else
 		{
-			[self setArray:[NSArray arrayWithObjects: nil] forRow: textRow + 1];
+			[self setArray:[NSArray array] forRow: textRow + 1];
 		}
 	}
 	[targetName release];

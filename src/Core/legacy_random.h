@@ -65,7 +65,7 @@ extern const Random_Seed	kNilRandomSeed;
 
 
 // checksum stuff
-void clear_checksum();
+void clear_checksum(void);
 int16_t munge_checksum(long long value);
 
 // cunning price rounding routine:

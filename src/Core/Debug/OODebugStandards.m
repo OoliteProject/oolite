@@ -41,7 +41,7 @@ void OOSetStandardsForOXPVerifierMode() {}
 
 #else
 
-void OOStandardsSetup();
+void OOStandardsSetup(void);
 void OOStandardsInternal(NSString *type, NSString *message);
 
 static BOOL sSetup = NO;

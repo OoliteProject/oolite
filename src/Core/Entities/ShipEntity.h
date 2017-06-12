@@ -1143,6 +1143,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (void) getTractoredBy:(ShipEntity *)other;
 - (void) scoopIn:(ShipEntity *)other;
 - (void) scoopUp:(ShipEntity *)other;
+- (void) scoopUpProcess:(ShipEntity *)other processEvents:(BOOL) proc_events processMessages:(BOOL) proc_messages;
 
 - (BOOL) abandonShip;
 

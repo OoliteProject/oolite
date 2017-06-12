@@ -28,6 +28,8 @@ Scripting:
 * player.ship.nextSystem property
 * player.ship.compassType read/write property (use with caution)
 * player.ship.massLockable property
+* player.ship.addCargoEntity(cargoEntity) method allows cargo ship entities 
+  to be added to the player ship directly when in space.
 * station.canDockShip(shipEntity) method
 * playerDockingClearanceGranted world event
 * playerDockingClearanceCancelled world event

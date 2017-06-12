@@ -253,8 +253,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
 {
-	OOProfilerStartMarker(@"startup");
-	
 	if (gSharedUniverse != nil)
 	{
 		[self release];
@@ -409,8 +407,6 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	[player startUpComplete];
 	_doingStartUp = NO;
-	
-	OOProfilerEndMarker(@"startup");
 	
 	return self;
 }

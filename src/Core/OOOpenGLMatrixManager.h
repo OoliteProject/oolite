@@ -101,10 +101,10 @@ enum
 
 @end
 
-void OOGLPushModelView();
-OOMatrix OOGLPopModelView();
-OOMatrix OOGLGetModelView();
-void OOGLResetModelView();
+void OOGLPushModelView(void);
+OOMatrix OOGLPopModelView(void);
+OOMatrix OOGLGetModelView(void);
+void OOGLResetModelView(void);
 void OOGLLoadModelView(OOMatrix matrix);
 void OOGLMultModelView(OOMatrix matrix);
 void OOGLTranslateModelView(Vector vector);
@@ -112,10 +112,10 @@ void OOGLRotateModelView(GLfloat angle, Vector axis);
 void OOGLScaleModelView(Vector scale);
 void OOGLLookAt(Vector eye, Vector center, Vector up);
 
-void OOGLResetProjection();
-void OOGLPushProjection();
-OOMatrix OOGLPopProjection();
-OOMatrix OOGLGetProjection();
+void OOGLResetProjection(void);
+void OOGLPushProjection(void);
+OOMatrix OOGLPopProjection(void);
+OOMatrix OOGLGetProjection(void);
 void OOGLLoadProjection(OOMatrix matrix);
 void OOGLMultProjection(OOMatrix matrix);
 void OOGLTranslateProjection(Vector vector);
@@ -125,5 +125,5 @@ void OOGLFrustum(double left, double right, double bottom, double top, double ne
 void OOGLOrtho(double left, double right, double bottom, double top, double near, double far);
 void OOGLPerspective(double fovy, double aspect, double zNear, double zFar);
 
-OOMatrix OOGLGetModelViewProjection();
+OOMatrix OOGLGetModelViewProjection(void);
 

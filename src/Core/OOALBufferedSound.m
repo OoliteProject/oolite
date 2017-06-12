@@ -91,11 +91,11 @@ SOFTWARE.
 	{
 		if (!_stereo)
 		{
-			alBufferData(buffer,AL_FORMAT_MONO16,_buffer,_size,_sampleRate);
+			alBufferData(buffer,AL_FORMAT_MONO16,_buffer,(ALsizei)_size,_sampleRate);
 		}
 		else
 		{
-			alBufferData(buffer,AL_FORMAT_STEREO16,_buffer,_size,_sampleRate);
+			alBufferData(buffer,AL_FORMAT_STEREO16,_buffer,(ALsizei)_size,_sampleRate);
 		}
 		return buffer;
 	}

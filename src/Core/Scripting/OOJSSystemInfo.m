@@ -618,13 +618,13 @@ static JSBool SystemInfoSamplePrice(JSContext *context, uintN argc, jsval *vp)
 	BOOL sameGalaxy = ([thisInfo galaxy] == [PLAYER galaxyNumber]);
 	if (!sameGalaxy)
 	{
-		OOJSReportErrorForCaller(context, @"SystemInfo", @"routeToSystem", @"Cannot calculate sample price for destinations in other galaxies.");
+		OOJSReportErrorForCaller(context, @"SystemInfo", @"samplePrice", @"Cannot calculate sample price for destinations in other galaxies.");
 		return NO;
 	}
 
 	OOCreditsQuantity price = [[UNIVERSE commodities] samplePriceForCommodity:commodity inEconomy:[[thisInfo valueForKey:@"economy"] intValue] withScript:[thisInfo valueForKey:@"commodity_script"] inSystem:[thisInfo system]];
-	
-	OOJS_RETURN_INT(price);
+
+	return JS_NewNumberValue(context, price, &OOJS_RVAL);
 	
 	OOJS_NATIVE_EXIT
 }

@@ -37,8 +37,8 @@ void OOStandardsError(NSString *message);
 // Return true if in standard enforcing mode
 // Always false in release builds
 // This will *not* exit in "exit on error" mode
-BOOL OOEnforceStandards();
+BOOL OOEnforceStandards(void);
 
-void OOSetStandardsForOXPVerifierMode();
+void OOSetStandardsForOXPVerifierMode(void);
 
 
