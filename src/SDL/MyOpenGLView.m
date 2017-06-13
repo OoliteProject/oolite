@@ -241,17 +241,10 @@ MA 02110-1301, USA.
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
-	// V-sync settings
+	// V-sync settings - we set here, but can only verify after SDL_SetVideoMode has been called.
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vSyncPreference);	// V-sync on by default.
 	OOLog(@"display.initGL", @"V-Sync %@requested.", vSyncPreference ? @"" : @"not ");
-	// Verify V-sync successfully set - report it if not
-	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
-	{
-		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
-					OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
-	}
-
-
+	
 	/* Multisampling significantly improves graphics quality with
 	 * basically no extra programming effort on our part, especially
 	 * for curved surfaces like the planet, but is also expensive - in
@@ -316,6 +309,13 @@ MA 02110-1301, USA.
 				exit(1);
 			}
 		}
+	}
+	
+	// Verify V-sync successfully set - report it if not
+	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
+	{
+		OOLogWARN(@"display.initGL", @"Could not enable V-Sync. Please check that your graphics driver supports the %@_swap_control extension.",
+					OOLITE_WINDOWS ? @"WGL_EXT" : @"[GLX_SGI/GLX_MESA]");
 	}
 
 	bounds.size.width = surface->w;
