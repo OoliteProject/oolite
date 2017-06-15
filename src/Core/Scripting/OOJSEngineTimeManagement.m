@@ -463,10 +463,10 @@ static void TraceEnterJSFunction(JSContext *context, JSFunction *function, OOTim
 static void FunctionCallback(JSFunction *function, JSScript *script, JSContext *context, int entering)
 {
 	if (EXPECT(!sProfiling))  return;
+	if (EXPECT_NOT(function == NULL))  return;
 	
 	// Ignore native functions. Ours get their own entries anyway, SpiderMonkey's are elided.
 	if (!sTracing && JS_GetFunctionNative(context, function) != NULL)  return;
-	if (EXPECT_NOT(function == NULL))  return;
 	
 	OOHighResTimeValue start = OOGetHighResTime();
 	
