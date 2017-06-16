@@ -1520,9 +1520,8 @@ static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval
 		OOJSReportBadArguments(context, @"PlayerShip", @"setPrimedEquipment", MIN(argc, 1U), OOJS_ARGV, nil, @"string (key)");
 		return NO;
 	}
-	[player setPrimedEquipment:key];
-
-	OOJS_RETURN_VOID;
+	
+	OOJS_RETURN_BOOL([player setPrimedEquipment:key]);
 
 	OOJS_NATIVE_EXIT
 }

@@ -7911,9 +7911,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (void) setPrimedEquipment:(NSString *)eqKey
+- (BOOL) setPrimedEquipment:(NSString *)eqKey
 {
 	primedEquipment = [self eqScriptIndexForKey:eqKey];	// if key not found primedEquipment is set to primed-none
+	return (primedEquipment != [eqScripts count]);
 }
 
 
