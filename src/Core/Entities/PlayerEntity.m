@@ -7913,8 +7913,21 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (BOOL) setPrimedEquipment:(NSString *)eqKey
 {
+	NSUInteger c = [eqScripts count];
+	NSUInteger current = primedEquipment;
 	primedEquipment = [self eqScriptIndexForKey:eqKey];	// if key not found primedEquipment is set to primed-none
-	return (primedEquipment != [eqScripts count]);
+	BOOL result = YES;
+	if (primedEquipment == c)
+	{
+		primedEquipment = current;
+		result = NO;
+	}
+	else 
+	{
+		NSString *equipmentName = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name];
+		[UNIVERSE addMessage:OOExpandKey(@"equipment-primed", equipmentName) forCount:2.0];
+	}
+	return result;
 }
 
 
