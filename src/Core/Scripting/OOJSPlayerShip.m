@@ -1503,13 +1503,15 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 }
 
 
-// setPrimedEquipment(key)
+// setPrimedEquipment(key, [noMessage])
 static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 
 	NSString				*key = nil;
 	PlayerEntity			*player = OOPlayerForScripting();
+	JSBool					showMsg = YES;
+	BOOL					result = NO;
 
 	if (argc > 0)  
 	{
@@ -1520,8 +1522,14 @@ static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval
 		OOJSReportBadArguments(context, @"PlayerShip", @"setPrimedEquipment", MIN(argc, 1U), OOJS_ARGV, nil, @"string (key)");
 		return NO;
 	}
-	
-	OOJS_RETURN_BOOL([player setPrimedEquipment:key]);
+	if (argc > 1 && EXPECT_NOT(!JS_ValueToBoolean(context, OOJS_ARGV[1], &showMsg)))
+ 	{
+ 		OOJSReportBadArguments(context, @"PlayerShip", @"setPrimedEquipment", MIN(argc, 2U), OOJS_ARGV, nil, @"boolean");
+ 		return NO;
+ 	}
+
+	result = [player setPrimedEquipment:key showMessage:showMsg];
+	OOJS_RETURN_BOOL(result);
 
 	OOJS_NATIVE_EXIT
 }
