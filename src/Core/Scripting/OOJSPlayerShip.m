@@ -1511,7 +1511,6 @@ static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval
 	NSString				*key = nil;
 	PlayerEntity			*player = OOPlayerForScripting();
 	JSBool					showMsg = YES;
-	BOOL					result = NO;
 
 	if (argc > 0)  
 	{
@@ -1528,8 +1527,7 @@ static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval
  		return NO;
  	}
 
-	result = [player setPrimedEquipment:key showMessage:showMsg];
-	OOJS_RETURN_BOOL(result);
+	OOJS_RETURN_BOOL([player setPrimedEquipment:key showMessage:showMsg]);
 
 	OOJS_NATIVE_EXIT
 }
