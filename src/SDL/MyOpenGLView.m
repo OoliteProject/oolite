@@ -1122,9 +1122,6 @@ MA 02110-1301, USA.
 	
 	else if ( wasFullScreen )
 	{
-		// stop saveWindowSize from reacting to caption & frame
-		saveSize=NO;
-		
 		if (changingResolution)  ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
 		
 		/*NOTE: If we ever decide to change the default behaviour of launching
@@ -1153,6 +1150,9 @@ MA 02110-1301, USA.
 		lastWindowPlacementMaximized = NO;
 		ShowWindow(SDL_Window,SW_SHOW);
 	}
+	
+	// stop saveWindowSize from reacting to caption & frame if necessary
+	saveSize = !wasFullScreen;
 
 	GetClientRect(SDL_Window, &wDC);
 
