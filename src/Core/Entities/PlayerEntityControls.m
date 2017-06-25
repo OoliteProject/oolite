@@ -3933,6 +3933,7 @@ static NSTimeInterval	time_last_frame;
 					saved_chart_zoom = target_chart_zoom;
 				}
 				target_chart_zoom = CHART_MAX_ZOOM;
+				[self noteGUIWillChangeTo:GUI_SCREEN_LONG_RANGE_CHART];
 				[self setGuiToLongRangeChartScreen];
 			}
 			else
@@ -3942,7 +3943,7 @@ static NSTimeInterval	time_last_frame;
 					target_chart_zoom = saved_chart_zoom;
 				}
 				//target_chart_centre = cursor_coordinates = [[UNIVERSE systemManager] getCoordinatesForSystem:target_system_id inGalaxy:galaxy_number];
-
+				[self noteGUIWillChangeTo:GUI_SCREEN_SHORT_RANGE_CHART];
 				[self setGuiToShortRangeChartScreen];
 			}
 		}
