@@ -166,7 +166,8 @@ extern int debug;
 
 	// Windowed mode
 	NSSize				currentWindowSize;
-	SDL_Surface			*surface;
+	SDL_Window			*mainWindow;
+	SDL_GLContext			*glContext;
 
 	BOOL				showSplashScreen;
 
@@ -176,7 +177,7 @@ extern int debug;
 	BOOL				updateContext;
 	BOOL				saveSize;
 	unsigned			keyboardMap;
-	HWND 				SDL_Window;
+	HWND 				Main_Window;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
 

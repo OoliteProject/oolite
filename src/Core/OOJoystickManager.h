@@ -151,7 +151,6 @@ enum {
 //SDL Abstracted constants
 
 #if OOLITE_SDL
-
 #import <SDL.h>
 
 enum

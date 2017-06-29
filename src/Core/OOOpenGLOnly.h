@@ -57,6 +57,10 @@ MA 02110-1301, USA.
 // the standard SDL_opengl.h
 #include <SDL_opengl.h>
 
+#if OO_ENABLE_SDL2
+#include <GL/glu.h>
+#endif
+
 // include an up-to-date version of glext.h
 #include <GL/glext.h>
 
