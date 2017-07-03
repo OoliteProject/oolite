@@ -225,6 +225,7 @@
 			width		= 10;
 			x		= -51;
 			y		= -51;
+			rgb_color	= (0.0, 1.0, 0.0, 1.0);
 		},
 		{	// fps counter, x and y give the location, the size defines the character size
 			height		= 18;
@@ -233,6 +234,7 @@
 			x		= -300;
 			y		= -20;
 			y_origin	= 1;
+			rgb_color	= (0.0, 1.0, 0.0, 1.0);
 		}
 	);
 	

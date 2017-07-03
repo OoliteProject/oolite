@@ -84,6 +84,7 @@
 			width		= 10;
 			x		= -51;
 			y		= -51;
+			rgb_color	= (0.0, 1.0, 0.0, 1.0);
 		},
 		{ /* speed bar, can draw a surround 2 units out from the dial size specified */
 			draw_surround = true;
@@ -199,6 +200,7 @@
 			width = 18;
 			x = -300;
 			y = 220;
+			rgb_color = (0.0, 1.0, 0.0, 1.0);
 		},
 	);
 	/* these are drawn, in order, before the dials, add any other images you want here */

@@ -2953,6 +2953,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 - (void) drawWeaponsOfflineText:(NSDictionary *)info
 {
 	OOViewID					viewID = [UNIVERSE viewDirection];
+	GLfloat						textColor[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 
 	if (viewID == VIEW_CUSTOM ||
 		overallAlpha == 0.0f ||
@@ -2979,7 +2980,10 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		siz.height = useDefined(cached.height, WEAPONSOFFLINETEXT_HEIGHT);
 		alpha *= cached.alpha;
 		
-		GLColorWithOverallAlpha(green_color, alpha);
+		GetRGBAArrayFromInfo(info, textColor);
+		textColor[3] *= overallAlpha;
+		
+		OOGL(glColor4f(textColor[0], textColor[1], textColor[2], textColor[3]));
 		// TODO: some caching required...
 		OODrawString(DESC(@"weapons-systems-offline"), x, y, z1, siz);
 	}
@@ -2993,6 +2997,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	int					x, y;
 	NSSize				siz;
 	struct CachedInfo	cached;
+	GLfloat				textColor[4] = {0.0, 1.0, 0.0, 1.0};
 	
 	[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
 	
@@ -3007,7 +3012,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	// We would normally set a variable alpha value here, but in this case we don't.
 	// We prefer the FPS counter to be always visible - Nikos 20100405
-	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
+	GetRGBAArrayFromInfo(info, textColor);
+	OOGL(glColor4f(textColor[0], textColor[1], textColor[2], 1.0f));
 	OODrawString([PLAYER dial_fpsinfo], x, y, z1, siz);
 	
 #ifndef NDEBUG
