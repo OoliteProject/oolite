@@ -451,7 +451,15 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[UNIVERSE setPermanentMessageLog:NO];
 	}
 	
-	[gui setAlpha: 1.0];	// message_gui is always visible.
+	if ([UNIVERSE permanentMessageLog])
+	{
+		[gui stopFadeOuts];
+		[gui setAlpha:1.0];
+	}
+	else
+	{
+		[gui setAlpha:0.0];
+	}
 	
 	// And now set up the comms log
 	

@@ -6418,6 +6418,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		}
 		
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
+		[self fadeOutMessageGuiBackground:count];
 		
 		[currentMessage release];
 		currentMessage = [text retain];
@@ -6450,6 +6451,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			}
 			
 			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
+			[self fadeOutMessageGuiBackground:count];
 			
 			[currentMessage release];
 			currentMessage = [text retain];
@@ -6467,6 +6469,13 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	[comm_log_gui setAlpha:1.0];
 	if (![self permanentCommLog]) [comm_log_gui fadeOutFromTime:[self getTime] overDuration:how_long];
+}
+
+
+- (void) fadeOutMessageGuiBackground:(OOTimeDelta)how_long
+{
+	[message_gui setAlpha:1.0];
+	if (![self permanentMessageLog]) [message_gui fadeOutFromTime:[self getTime] overDuration:how_long];
 }
 
 
