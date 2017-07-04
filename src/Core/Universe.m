@@ -6325,6 +6325,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		currentMessage = [text retain];
 		countdown_messageRepeatTime=universal_time + count;
 		[message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
+		[message_gui setAlpha:[[PLAYER hud] overallAlpha]];
 	}
 }
 
