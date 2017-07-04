@@ -1411,7 +1411,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	// don't draw it on the intro screens
 	if (backgroundColor)
 	{
-		if ([PLAYER status] != STATUS_START_GAME)
+		int playerStatus = [PLAYER status];
+		if (playerStatus != STATUS_START_GAME && playerStatus != STATUS_DEAD)
 		{
 			OOGL(glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]));
 			OOGLBEGIN(GL_QUADS);
