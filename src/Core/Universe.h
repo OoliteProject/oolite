@@ -592,7 +592,7 @@ enum
 - (void) addCommsMessage:(NSString *) text forCount:(OOTimeDelta) count;
 - (void) addCommsMessage:(NSString *) text forCount:(OOTimeDelta) count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly;
 - (void) showCommsLog:(OOTimeDelta) how_long;
-- (void) showGUIMessage:(NSString *)text withScroll:(BOOL)scroll overDuration:(OOTimeDelta)how_long;
+- (void) showGUIMessage:(NSString *)text withScroll:(BOOL)scroll andColor:(OOColor *)selectedColor overDuration:(OOTimeDelta)how_long;
 
 - (void) update:(OOTimeDelta)delta_t;
 

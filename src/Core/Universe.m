@@ -6312,7 +6312,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		messageRepeatTime=universal_time + 6.0;
-		[self showGUIMessage:text withScroll:YES overDuration:count];
+		[self showGUIMessage:text withScroll:YES andColor:[OOColor yellowColor] overDuration:count];
 	}
 }
 
@@ -6324,7 +6324,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		countdown_messageRepeatTime=universal_time + count;
-		[self showGUIMessage:text withScroll:NO overDuration:count];
+		[self showGUIMessage:text withScroll:NO andColor:[OOColor yellowColor] overDuration:count];
 	}
 }
 
@@ -6417,7 +6417,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			[self speakWithSubstitutions:text];
 		}
 		
-		[self showGUIMessage:text withScroll:YES overDuration:count];
+		[self showGUIMessage:text withScroll:YES andColor:[OOColor yellowColor] overDuration:count];
 		
 		[currentMessage release];
 		currentMessage = [text retain];
@@ -6449,7 +6449,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
 			}
 			
-			[self showGUIMessage:text withScroll:YES overDuration:count];
+			[self showGUIMessage:text withScroll:YES andColor:[OOColor greenColor] overDuration:count];
 			
 			[currentMessage release];
 			currentMessage = [text retain];
@@ -6470,18 +6470,17 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 }
 
 
-- (void) showGUIMessage:(NSString *)text withScroll:(BOOL)scroll overDuration:(OOTimeDelta)how_long
+- (void) showGUIMessage:(NSString *)text withScroll:(BOOL)scroll andColor:(OOColor *)selectedColor overDuration:(OOTimeDelta)how_long
 {
 	if (scroll)
 	{
-		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:how_long key:nil addToArray:nil];
+		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:nil addToArray:nil];
 	}
 	else
 	{
-		[message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:how_long key:nil addToArray:nil];
+		[message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:nil addToArray:nil];
 	}
 	[message_gui setAlpha:1.0f];
-	if (![self permanentMessageLog]) [message_gui fadeOutFromTime:[self getTime] overDuration:how_long];
 }
 
 

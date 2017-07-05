@@ -1405,6 +1405,39 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOTimeDelta	delta_t = [UNIVERSE getTimeDelta];
 	NSSize		characterSize = pixel_text_size;
 	NSSize		titleCharacterSize = pixel_title_size;
+	float		backgroundAlpha = self == [UNIVERSE messageGUI] && ![UNIVERSE permanentMessageLog] ? 0.0f : alpha;
+	float		row_alpha[n_rows];
+	
+	// calculate fade out time and alpha for each row. Do it before
+	// applying a potential background because we need the maximum alpha
+	// of all rows to be the alpha applied to the background color
+	for (i = 0; i < n_rows; i++)
+	{
+		row_alpha[i] = alpha;
+		
+		// comment line below to make a gui that fades out with its messages
+		if([PLAYER guiScreen] == GUI_SCREEN_MAIN)  backgroundAlpha = alpha;
+		
+		if (rowFadeTime[i] > 0.0f && ![UNIVERSE permanentMessageLog])
+		{
+			rowFadeTime[i] -= (float)delta_t;
+			if (rowFadeTime[i] <= 0.0f)
+			{
+				[rowText replaceObjectAtIndex:i withObject:@""];
+				rowFadeTime[i] = 0.0f;
+				continue;
+			}
+			if ((rowFadeTime[i] > 0.0f)&&(rowFadeTime[i] < 1.0))
+			{
+				row_alpha[i] *= rowFadeTime[i];
+				if (backgroundAlpha < row_alpha[i])  backgroundAlpha = row_alpha[i];
+			}
+			else
+			{
+				backgroundAlpha = alpha;
+			}
+		}
+	}
 	
 	// do backdrop
 	// don't draw it if docked, unless message_gui is permanent
@@ -1414,7 +1447,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		int playerStatus = [PLAYER status];
 		if (playerStatus != STATUS_START_GAME && playerStatus != STATUS_DEAD)
 		{
-			OOGL(glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]));
+			OOGL(glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], backgroundAlpha * [backgroundColor alphaComponent]));
 			OOGLBEGIN(GL_QUADS);
 				glVertex3f(x + 0.0f,					y + 0.0f,					z);
 				glVertex3f(x + size_in_pixels.width,	y + 0.0f,					z);
@@ -1465,19 +1498,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	for (i = 0; i < n_rows; i++)
 	{
 		OOColor* row_color = (OOColor *)[rowColor objectAtIndex:i];
-		GLfloat row_alpha = alpha;
-		if (rowFadeTime[i] > 0.0f)
-		{
-			rowFadeTime[i] -= (float)delta_t;
-			if (rowFadeTime[i] <= 0.0f)
-			{
-				[rowText replaceObjectAtIndex:i withObject:@""];
-				rowFadeTime[i] = 0.0f;
-			}
-			if ((rowFadeTime[i] > 0.0f)&&(rowFadeTime[i] < 1.0))
-				row_alpha *= rowFadeTime[i];
-		}
-		glColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha);
+		glColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha[i]);
 		
 		if ([[rowText objectAtIndex:i] isKindOfClass:[NSString class]])
 		{
@@ -1501,7 +1522,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				{
 					NSRect		block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 					OOStopDrawingStrings();
-					[self setGLColorFromSetting:kGuiSelectedRowBackgroundColor defaultValue:[OOColor redColor] alpha:alpha];
+					[self setGLColorFromSetting:kGuiTextInputCursorColor defaultValue:[OOColor redColor] alpha:row_alpha[i]*g_alpha];
 					OOGLBEGIN(GL_QUADS);
 						glVertex3f(block.origin.x,						block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
