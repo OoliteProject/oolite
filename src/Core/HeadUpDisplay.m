@@ -425,8 +425,10 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 		BOOL permanent = [gui_info oo_boolForKey:@"permanent" defaultValue:NO];
 		[UNIVERSE setPermanentMessageLog:permanent];
-	
-
+		
+		BOOL automaticBg = [gui_info oo_boolForKey:@"background_automatic" defaultValue:YES];
+		[UNIVERSE setAutoMessageLogBg:automaticBg];
+		
 		if (line1)
 		{
 			[gui printLongText:[lastLines oo_stringAtIndex:0] align:GUI_ALIGN_CENTER
@@ -449,6 +451,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[gui resizeTo:NSMakeSize(480, 160) characterHeight:19 title:nil];
 		[gui setCharacterSize:NSMakeSize(16,20)];	// narrow characters
 		[UNIVERSE setPermanentMessageLog:NO];
+		[UNIVERSE setAutoMessageLogBg:YES];
 	}
 	
 	[gui setAlpha: 1.0f];	// message_gui is always visible.

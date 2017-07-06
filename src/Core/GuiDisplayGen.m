@@ -1415,8 +1415,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		row_alpha[i] = alpha;
 		
-		// comment line below to make a gui that fades out with its messages
-		if([PLAYER guiScreen] == GUI_SCREEN_MAIN)  backgroundAlpha = alpha;
+		if(![UNIVERSE autoMessageLogBg] && [PLAYER guiScreen] == GUI_SCREEN_MAIN)  backgroundAlpha = alpha;
 		
 		if (rowFadeTime[i] > 0.0f && ![UNIVERSE permanentMessageLog])
 		{

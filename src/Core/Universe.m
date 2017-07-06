@@ -9620,6 +9620,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 }
 
 
+- (BOOL) autoMessageLogBg
+{
+	return _autoMessageLogBg;
+}
+
+
+- (void) setAutoMessageLogBg:(BOOL)value
+{
+	_autoMessageLogBg = !!value;
+}
+
+
 - (BOOL) permanentCommLog
 {
 	return _permanentCommLog;
