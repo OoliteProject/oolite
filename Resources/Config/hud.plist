@@ -369,6 +369,7 @@
 		y = -60;
 		row_height = 14;
 		permanent = no;
+		background_automatic = yes;
 	};
 	comm_log_gui = {
 		alpha = "0.75";
