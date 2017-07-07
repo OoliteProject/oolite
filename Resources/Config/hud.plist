@@ -370,6 +370,8 @@
 		row_height = 14;
 		permanent = no;
 		background_automatic = yes;
+		// default background transparent
+		background_rgba = "0.0 0.05 0.45 0.0";
 	};
 	comm_log_gui = {
 		alpha = "0.75";
