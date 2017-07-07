@@ -6312,7 +6312,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		messageRepeatTime=universal_time + 6.0;
-		[self showGUIMessage:text withScroll:YES andColor:[OOColor yellowColor] overDuration:count];
+		[self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
 	}
 }
 
@@ -6324,7 +6324,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		countdown_messageRepeatTime=universal_time + count;
-		[self showGUIMessage:text withScroll:NO andColor:[OOColor yellowColor] overDuration:count];
+		[self showGUIMessage:text withScroll:NO andColor:[message_gui textColor] overDuration:count];
 	}
 }
 
@@ -6417,7 +6417,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			[self speakWithSubstitutions:text];
 		}
 		
-		[self showGUIMessage:text withScroll:YES andColor:[OOColor yellowColor] overDuration:count];
+		[self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
 		
 		[currentMessage release];
 		currentMessage = [text retain];
@@ -6449,7 +6449,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
 			}
 			
-			[self showGUIMessage:text withScroll:YES andColor:[OOColor greenColor] overDuration:count];
+			[self showGUIMessage:text withScroll:YES andColor:[message_gui textCommsColor] overDuration:count];
 			
 			[currentMessage release];
 			currentMessage = [text retain];

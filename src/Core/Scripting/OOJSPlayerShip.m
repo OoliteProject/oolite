@@ -131,6 +131,8 @@ enum
 	kPlayerShip_massLockable,					// mass-lockability of player ship, read/write
 	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_messageGuiTextColor,			// message gui standard text color, array, read/write
+	kPlayerShip_messageGuiTextCommsColor,		// message gui incoming comms text color, array, read/write
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
 	kPlayerShip_multiFunctionDisplayList,		// active mfd list, array, read-only
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
@@ -192,9 +194,11 @@ static JSPropertySpec sPlayerShipProperties[] =
 	// manifest defined in OOJSManifest.m
 	{ "maxAftShield",					kPlayerShip_maxAftShield,					OOJS_PROP_READWRITE_CB },
 	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				OOJS_PROP_READWRITE_CB },
-	{ "missilesOnline",      kPlayerShip_missilesOnline,      OOJS_PROP_READONLY_CB },
-	{ "multiFunctionDisplays",     		kPlayerShip_multiFunctionDisplays,      OOJS_PROP_READONLY_CB },
-	{ "multiFunctionDisplayList",  		kPlayerShip_multiFunctionDisplayList,      OOJS_PROP_READONLY_CB },
+	{ "messageGuiTextColor",			kPlayerShip_messageGuiTextColor,			OOJS_PROP_READWRITE_CB },
+	{ "messageGuiTextCommsColor",		kPlayerShip_messageGuiTextCommsColor,		OOJS_PROP_READWRITE_CB },
+	{ "missilesOnline",					kPlayerShip_missilesOnline,					OOJS_PROP_READONLY_CB },
+	{ "multiFunctionDisplays",			kPlayerShip_multiFunctionDisplays,			OOJS_PROP_READONLY_CB },
+	{ "multiFunctionDisplayList",  		kPlayerShip_multiFunctionDisplayList,		OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
 	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
@@ -553,8 +557,15 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 
 		case kPlayerShip_yaw:
 			return JS_NewNumberValue(context, -[player flightYaw], value);
-
-
+			
+		case kPlayerShip_messageGuiTextColor:
+			result = [[[UNIVERSE messageGUI] textColor] normalizedArray];
+			break;
+			
+		case kPlayerShip_messageGuiTextCommsColor:
+			result = [[[UNIVERSE messageGUI] textCommsColor] normalizedArray];
+			break;
+			
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);
 	}
@@ -581,6 +592,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 	NSString					*sValue = nil;
 	OOGalacticHyperspaceBehaviour ghBehaviour;
 	Vector						vValue;
+	OOColor						*colorForScript = nil;
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -873,6 +885,25 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 					return NO;
 				}
 			}
+			break;
+			
+		case kPlayerShip_messageGuiTextColor:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[[UNIVERSE messageGUI] setTextColor:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_messageGuiTextCommsColor:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[[UNIVERSE messageGUI] setTextCommsColor:colorForScript];
+				return YES;
+			}
+			break;
 
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerShipProperties);

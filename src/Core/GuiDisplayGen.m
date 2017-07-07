@@ -361,12 +361,32 @@ static BOOL _refreshStarChart = NO;
 }
 
 
+- (OOColor *) textColor
+{
+	return textColor;
+}
+
+
 // default text colour for rows
 - (void) setTextColor:(OOColor*) color
 {
 	[textColor release];
 	if (color == nil)  color = [[OOColor yellowColor] retain];
 	textColor = [color retain];
+}
+
+
+- (OOColor *) textCommsColor
+{
+	return textCommsColor;
+}
+
+
+- (void) setTextCommsColor:(OOColor*) color
+{
+	[textCommsColor release];
+	if (color == nil)  color = [[OOColor yellowColor] retain];
+	textCommsColor = [color retain];
 }
 
 
