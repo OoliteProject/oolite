@@ -7035,6 +7035,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop keybounces
 	
+	if ([self isMouseControlOn])
+	{
+		[[UNIVERSE gameView] resetMouse];
+	}
+	
 	[[OOMusicController sharedController] stop];
 
 	[UNIVERSE forceWitchspaceEntries];
