@@ -432,7 +432,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		// set message gui text colors - one for standard messages, one for incoming comms
 		// incoming comms message color must default to green for compatibility with older huds that
 		// don't have this key
-		[gui setTextColor:[OOColor colorWithDescription:[gui_info objectForKey:@"text_standard_color"]]];
+		[gui setTextColor:[OOColor colorWithDescription:[gui_info objectForKey:@"text_color"]]];
 		OOColor *textCommsColor = [OOColor colorWithDescription:[gui_info objectForKey:@"text_comms_color"]];
 		if (!textCommsColor)  textCommsColor = [OOColor greenColor];
 		[gui setTextCommsColor:textCommsColor];

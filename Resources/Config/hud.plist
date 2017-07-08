@@ -372,7 +372,7 @@
 		background_automatic = yes;
 		// default background transparent
 		background_rgba = "0.0 0.05 0.45 0.0";
-		text_standard_color = "yellowColor";
+		text_color = "yellowColor";
 		text_comms_color = "greenColor";
 	};
 	comm_log_gui = {
