@@ -529,6 +529,7 @@ static NSTimeInterval	time_last_frame;
 		[UNIVERSE removeDemoShips];
 	}
 	[(MyOpenGLView *)[UNIVERSE gameView] allowStringInput:NO];
+	if ([self isMouseControlOn])  [[UNIVERSE gameView] resetMouse];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
