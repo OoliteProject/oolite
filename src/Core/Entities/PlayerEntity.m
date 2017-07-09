@@ -9878,6 +9878,18 @@ static NSString *last_outfitting_key=nil;
 				break;
 
 		}
+		
+		if (toScreen == GUI_SCREEN_SYSTEM_DATA)
+		{
+			// system data screen: ensure correct sun light color is used on miniature planet
+			[[UNIVERSE sun] setSunColor:[OOColor colorWithDescription:[[UNIVERSE systemManager] getProperty:@"sun_color" forSystem:info_system_id inGalaxy:[self galaxyNumber]]]];
+		}
+		else
+		{
+			// any other screen: reset local sun light color
+			[[UNIVERSE sun] setSunColor:[OOColor colorWithDescription:[[UNIVERSE systemManager] getProperty:@"sun_color" forSystem:system_id inGalaxy:[self galaxyNumber]]]];
+		}
+		
 		if (![[UNIVERSE gameController] isGamePaused])
 		{
 			JSContext *context = OOJSAcquireContext();
