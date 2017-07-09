@@ -6588,6 +6588,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
+	if ([self status] == STATUS_DEAD)  return; // no bounty if we died while trying
+	
 	if (other == nil || [other isSubEntity])  return;
 	
 	if (other == [UNIVERSE station])
