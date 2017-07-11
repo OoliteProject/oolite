@@ -3363,6 +3363,7 @@ static NSTimeInterval	time_last_frame;
 	static BOOL mouse_clicked = NO;
 	static NSPoint mouse_clicked_position;
 	static BOOL shift_down;
+	static BOOL caps_on = NO;
 	static NSTimeInterval last_time = 0.0;
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	if ([gameView isDown:key_custom_view])
@@ -3386,6 +3387,8 @@ static NSTimeInterval	time_last_frame;
 	NSTimeInterval this_time = [NSDate timeIntervalSinceReferenceDate];
 	if ([UNIVERSE viewDirection] && [gameView isCapsLockOn])
 	{
+		if (!caps_on)  caps_on = YES;
+		
 		OOTimeDelta delta_t = this_time - last_time;
 		if (([gameView isDown:gvPageDownKey] && ![gameView isDown:gvPageUpKey]) || [gameView mouseWheelState] == gvMouseWheelDown)
 		{
@@ -3492,6 +3495,11 @@ static NSTimeInterval	time_last_frame;
 	else
 	{
 		mouse_clicked = NO;
+		if (caps_on)
+		{
+			caps_on = NO;
+			if ([self isMouseControlOn])  [gameView resetMouse];
+		}
 	}
 	last_time = this_time;
 }
