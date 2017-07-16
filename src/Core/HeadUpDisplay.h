@@ -223,6 +223,12 @@ MA 02110-1301, USA.
 #define ACCURACY_PROBABILITY_DECREASE_FACTOR	0.000035f   // for every 1000km decrease by 3.5% the chance of high accuracy
 #define MIN_PROBABILITY_ACCURACY		0.35f   // floor value for probability of high accuracy is 35%
 
+enum
+{
+	OO_RETICLE_COLOR_TARGET	= 0,
+	OO_RETICLE_COLOR_TARGET_SENSITIVE,
+	OO_RETICLE_COLOR_WORMHOLE
+};
 
 
 @class Entity, PlayerEntity, OOTextureSprite;
@@ -273,6 +279,8 @@ MA 02110-1301, USA.
 	GLfloat				_crosshairWidth;
 	NSString			*crosshairDefinition;
 	BOOL				_compassActive;
+	
+	NSMutableArray		*_reticleColors;
 	
 	// Nonlinear scanner
 	BOOL			nonlinear_scanner;
@@ -336,6 +344,9 @@ MA 02110-1301, USA.
 
 - (BOOL) scannerUltraZoom;
 - (void) setScannerUltraZoom: (BOOL)newValue;
+
+- (OOColor *) reticleColorForIndex:(NSUInteger)idx;
+- (BOOL) setReticleColorForIndex:(NSUInteger)idx toColor:(OOColor *)newColor;
 
 @end
 

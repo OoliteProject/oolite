@@ -8,6 +8,9 @@
 			equipment_required 	= "EQ_SCANNER_SHOW_MISSILE_TARGET";
 			selector		= "drawTargetReticle:";
 			// reticle_scale = 0.015625 /* 1/64 is default */
+			target_rgba = "greenColor";
+			target_sensitive_rgba = "redColor";
+			wormhole_rgba = "cyanColor";
 		},
 		{	// Waypoint display
 			equipment_required 	= "EQ_ADVANCED_COMPASS";

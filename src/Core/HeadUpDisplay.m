@@ -95,7 +95,9 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info);
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1,
+				GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive,
+				BOOL colourFromScannerColour, BOOL showText, NSDictionary *info, NSMutableArray *reticleColors);
 static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected, GLfloat scale);
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1);
 static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear);
@@ -242,6 +244,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
 	mfdArray = [[NSMutableArray alloc] initWithCapacity:8]; // alloc retains
 	
+	_reticleColors = nil;
+	
 	// populate arrays
 	NSArray *dials = [hudinfo oo_arrayForKey:DIALS_KEY];
 	for (i = 0; i < [dials count]; i++)
@@ -249,7 +253,20 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		NSDictionary	*dial_info = [dials oo_dictionaryAtIndex:i];
 		if (!areTrumblesToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])  areTrumblesToBeDrawn = YES;
 		if (!isCompassToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawCompass:"])  isCompassToBeDrawn = YES;
+		if ([[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTargetReticle:"])
+		{
+			_reticleColors = [[NSMutableArray arrayWithObjects:[OOColor colorWithDescription:[dial_info oo_objectForKey:@"target_rgba" defaultValue:@"greenColor"]],
+												[OOColor colorWithDescription:[dial_info oo_objectForKey:@"target_sensitive_rgba" defaultValue:@"redColor"]],
+												[OOColor colorWithDescription:[dial_info oo_objectForKey:@"wormhole_rgba" defaultValue:@"cyanColor"]],
+												nil] retain];
+		}
 		[self addDial:dial_info];
+	}
+	
+	// reticle colors should be set at this point, but just be safe in case they are not
+	if (!_reticleColors)
+	{
+		_reticleColors = [[NSMutableArray arrayWithObjects:[OOColor greenColor], [OOColor redColor], [OOColor cyanColor], nil] retain];
 	}
 	
 	if (!areTrumblesToBeDrawn)	// naughty - a hud with no built-in drawTrumbles: - one must be added!
@@ -331,6 +348,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	DESTROY(propertiesReticleTargetSensitive);
 	DESTROY(_crosshairOverrides);
 	DESTROY(_crosshairColor);
+	DESTROY(_reticleColors);
 	DESTROY(crosshairDefinition);
 	DESTROY(_hiddenSelectors);
 
@@ -539,6 +557,27 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[hudName release];
 		hudName = [newHudName copy];
 	}
+}
+
+
+- (OOColor *) reticleColorForIndex:(NSUInteger)idx
+{
+	if (idx < [_reticleColors count])
+	{
+		return [_reticleColors objectAtIndex:idx];
+	}
+	return nil;
+}
+
+
+- (BOOL) setReticleColorForIndex:(NSUInteger)idx toColor:(OOColor *)newColor
+{
+	if (newColor && idx < [_reticleColors count])
+	{
+		[_reticleColors replaceObjectAtIndex:idx withObject:newColor];
+		return YES;
+	}
+	return NO;
 }
 
 
@@ -2645,7 +2684,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if ([PLAYER primaryTarget] != nil)
 	{
-		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES, info);
+		hudDrawReticleOnTarget([PLAYER primaryTarget], PLAYER, z1, alpha, reticleTargetSensitive, propertiesReticleTargetSensitive, NO, YES, info, _reticleColors);
 		[self drawDirectionCue:info];
 	}
 	// extra feature if extra equipment installed
@@ -2682,7 +2721,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 				{
 					if ([secondary zeroDistance] <= SCANNER_MAX_RANGE2 && [secondary isInSpace])
 					{
-						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO, info);	
+						hudDrawReticleOnTarget(secondary, PLAYER, z1, alpha, NO, nil, YES, NO, info, _reticleColors);	
 					}			
 				}
 			}
@@ -2828,12 +2867,17 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		
 		if (alpha > 0.0f)
 		{
+			NSUInteger cueColorIndex = [target isWormhole] ? OO_RETICLE_COLOR_WORMHOLE : OO_RETICLE_COLOR_TARGET;
+			GLfloat directionCueColorArray[4] = {[[_reticleColors objectAtIndex:cueColorIndex] redComponent],
+												[[_reticleColors objectAtIndex:cueColorIndex] greenComponent],
+												[[_reticleColors objectAtIndex:cueColorIndex] blueComponent],
+												[[_reticleColors objectAtIndex:cueColorIndex] alphaComponent]};
 			drawPos.z = 0.0f;	// flatten vector
 			drawPos = vector_normal(drawPos);
 			OOGLBEGIN(GL_LINE_STRIP);
 				glColor4fv(clear_color);
 				glVertex3f(drawPos.x * innerSize - drawPos.y * width, drawPos.y * innerSize + drawPos.x * width, z1);
-				GLColorWithOverallAlpha(green_color, alpha);
+				GLColorWithOverallAlpha(directionCueColorArray, alpha);
 				glVertex3f(drawPos.x * outerSize, drawPos.y * outerSize, z1);
 				glColor4fv(clear_color);
 				glVertex3f(drawPos.x * innerSize + drawPos.y * width, drawPos.y * innerSize - drawPos.x * width, z1);
@@ -3447,7 +3491,9 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive, BOOL colourFromScannerColour, BOOL showText, NSDictionary *info)
+static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloat z1, 
+				GLfloat alpha, BOOL reticleTargetSensitive, NSMutableDictionary *propertiesReticleTargetSensitive,
+				BOOL colourFromScannerColour, BOOL showText, NSDictionary *info, NSMutableArray *reticleColors)
 {
 	if (target == nil || player1 == nil)  
 	{
@@ -3499,7 +3545,11 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	// Draw reticle cyan for Wormholes
 	if ([target isWormhole])
 	{
-		GLColorWithOverallAlpha(cyan_color, alpha);
+		GLfloat wormholeReticleColorArray[4] = {[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] redComponent],
+												[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] greenComponent],
+												[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] blueComponent],
+												[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] alphaComponent]};
+		GLColorWithOverallAlpha(wormholeReticleColorArray, alpha);
 	}
 	else
 	{
@@ -3573,14 +3623,22 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 		}
 		else
 		{
+			OOColor *reticleDisplayColor = nil;
 			if (reticleTargetSensitive && isTargeted)
 			{
-				GLColorWithOverallAlpha(red_color, alpha);
+				reticleDisplayColor = [reticleColors objectAtIndex:OO_RETICLE_COLOR_TARGET_SENSITIVE];
+				if (!reticleDisplayColor)  reticleDisplayColor = [OOColor redColor];
 			}
 			else
 			{
-				GLColorWithOverallAlpha(green_color, alpha);
+				reticleDisplayColor = [reticleColors objectAtIndex:OO_RETICLE_COLOR_TARGET];
+				if (!reticleDisplayColor)  reticleDisplayColor = [OOColor greenColor];
 			}
+			GLfloat reticleDisplayColorArray[4] = {	[reticleDisplayColor redComponent],
+													[reticleDisplayColor greenComponent],
+													[reticleDisplayColor blueComponent],
+													[reticleDisplayColor alphaComponent] };
+			GLColorWithOverallAlpha(reticleDisplayColorArray, alpha);
 		}
 	}
 	OOGLBEGIN(GL_LINES);
