@@ -2814,7 +2814,6 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if ([UNIVERSE displayGUI])  return;
 	
-	GLfloat		clear_color[4] = {0.0f, 1.0f, 0.0f, 0.0f};
 	Entity		*target = [PLAYER primaryTarget];
 	if (target == nil)  return;
 	
@@ -2868,6 +2867,10 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		if (alpha > 0.0f)
 		{
 			NSUInteger cueColorIndex = [target isWormhole] ? OO_RETICLE_COLOR_WORMHOLE : OO_RETICLE_COLOR_TARGET;
+			GLfloat	clear_color[4] =	{[[_reticleColors objectAtIndex:cueColorIndex] redComponent],
+										[[_reticleColors objectAtIndex:cueColorIndex] greenComponent],
+										[[_reticleColors objectAtIndex:cueColorIndex] blueComponent],
+										0.0f};
 			GLfloat directionCueColorArray[4] = {[[_reticleColors objectAtIndex:cueColorIndex] redComponent],
 												[[_reticleColors objectAtIndex:cueColorIndex] greenComponent],
 												[[_reticleColors objectAtIndex:cueColorIndex] blueComponent],
