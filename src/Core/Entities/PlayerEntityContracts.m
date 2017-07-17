@@ -1753,9 +1753,24 @@ static NSMutableDictionary *currentShipyard = nil;
 		if (fromShip == 0)
 		{
 			[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
-			 // next bit or the first ship on the list gets wrongly previewed
-			[UNIVERSE removeDemoShips];
 		}
+		// next bit or the first ship on the list gets wrongly previewed
+		// clean up the display
+		NSMutableArray *row_info = [NSMutableArray arrayWithArray:(NSArray*)[gui objectForRow:GUI_ROW_SHIPYARD_LABELS]];
+		while ([row_info count] < 4)
+		{
+			[row_info addObject:@""];
+		}
+		[row_info replaceObjectAtIndex:2 withObject:@""];
+		[row_info replaceObjectAtIndex:3 withObject:@""];
+		NSUInteger		i;
+		for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH - 1; i++)
+		{
+			[gui setText:@"" forRow:i];
+			[gui setColor:[gui colorFromSetting:kGuiShipyardDescriptionColor defaultValue:[OOColor greenColor]] forRow:i];
+		}
+		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_SHIPYARD_LABELS];
+		[UNIVERSE removeDemoShips];
 		return YES;
 	}
 
