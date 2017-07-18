@@ -6312,7 +6312,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		messageRepeatTime=universal_time + 6.0;
-		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
+		[self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
 	}
 }
 
@@ -6324,7 +6324,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		countdown_messageRepeatTime=universal_time + count;
-		[message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
+		[self showGUIMessage:text withScroll:NO andColor:[message_gui textColor] overDuration:count];
 	}
 }
 
@@ -6417,7 +6417,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			[self speakWithSubstitutions:text];
 		}
 		
-		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
+		[self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
 		
 		[currentMessage release];
 		currentMessage = [text retain];
@@ -6449,7 +6449,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
 			}
 			
-			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:([self permanentMessageLog]?0.0:count) key:nil addToArray:nil];
+			[self showGUIMessage:text withScroll:YES andColor:[message_gui textCommsColor] overDuration:count];
 			
 			[currentMessage release];
 			currentMessage = [text retain];
@@ -6467,6 +6467,20 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	[comm_log_gui setAlpha:1.0];
 	if (![self permanentCommLog]) [comm_log_gui fadeOutFromTime:[self getTime] overDuration:how_long];
+}
+
+
+- (void) showGUIMessage:(NSString *)text withScroll:(BOOL)scroll andColor:(OOColor *)selectedColor overDuration:(OOTimeDelta)how_long
+{
+	if (scroll)
+	{
+		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:nil addToArray:nil];
+	}
+	else
+	{
+		[message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:selectedColor fadeTime:how_long key:nil addToArray:nil];
+	}
+	[message_gui setAlpha:1.0f];
 }
 
 
@@ -9603,6 +9617,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 - (void) setPermanentMessageLog:(BOOL)value
 {
 	_permanentMessageLog = value;
+}
+
+
+- (BOOL) autoMessageLogBg
+{
+	return _autoMessageLogBg;
+}
+
+
+- (void) setAutoMessageLogBg:(BOOL)value
+{
+	_autoMessageLogBg = !!value;
 }
 
 

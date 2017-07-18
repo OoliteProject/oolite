@@ -177,6 +177,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	
 	OOColor					*backgroundColor;
 	OOColor					*textColor;
+	OOColor					*textCommsColor;
 	
 	OOTextureSprite			*backgroundSprite;
 	OOTextureSprite			*foregroundSprite;
@@ -255,7 +256,10 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (void) setBackgroundColor:(OOColor*) color;
 
+- (OOColor *) textColor;
 - (void) setTextColor:(OOColor*) color;
+- (OOColor *) textCommsColor;
+- (void) setTextCommsColor:(OOColor*) color;
 - (OOColor *) colorFromSetting:(NSString *)setting defaultValue:(OOColor *)def;
 - (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha;
 

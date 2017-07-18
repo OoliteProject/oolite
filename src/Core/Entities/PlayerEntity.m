@@ -5376,6 +5376,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) cycleMultiFunctionDisplay:(NSUInteger) index
 {
 	NSArray *keys = [multiFunctionDisplayText allKeys];
+	NSString *key = nil;
 	if ([keys count] == 0)
 	{
 		[self setMultiFunctionDisplay:index toKey:nil];
@@ -5384,20 +5385,27 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	id current = [multiFunctionDisplaySettings objectAtIndex:index];
 	if (current == [NSNull null])
 	{
-		[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:0]];
+		key = [keys objectAtIndex:0];
+		[self setMultiFunctionDisplay:index toKey:key];
 	}
 	else
 	{
 		NSUInteger cIndex = [keys indexOfObject:current];
 		if (cIndex == NSNotFound || cIndex + 1 >= [keys count])
 		{
+			key = nil;
 			[self setMultiFunctionDisplay:index toKey:nil];
 		}
 		else 
 		{
-			[self setMultiFunctionDisplay:index toKey:[keys objectAtIndex:(cIndex+1)]];
+			key = [keys objectAtIndex:(cIndex+1)];
+			[self setMultiFunctionDisplay:index toKey:key];
 		}
 	}
+	JSContext *context = OOJSAcquireContext();
+	jsval keyVal = OOJSValueFromNativeObject(context,key);
+	ShipScriptEvent(context, self, "mfdKeyChanged", INT_TO_JSVAL(activeMFD), keyVal);
+	OOJSRelinquishContext(context);
 }
 
 
@@ -5406,6 +5414,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	activeMFD = (activeMFD + 1) % [[self hud] mfdCount];
 	NSUInteger mfdID = activeMFD + 1;
 	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
+	JSContext *context = OOJSAcquireContext();
+	ShipScriptEvent(context, self, "selectedMFDChanged", INT_TO_JSVAL(activeMFD));
+	OOJSRelinquishContext(context);
 }
 
 
@@ -6577,6 +6588,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
+	if ([self status] == STATUS_DEAD)  return; // no bounty if we died while trying
+	
 	if (other == nil || [other isSubEntity])  return;
 	
 	if (other == [UNIVERSE station])
@@ -7023,6 +7036,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[[UNIVERSE gameController] setMouseInteractionModeForFlight];
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop keybounces
+	
+	if ([self isMouseControlOn])
+	{
+		[[UNIVERSE gameView] resetMouse];
+	}
 	
 	[[OOMusicController sharedController] stop];
 
@@ -7897,6 +7915,31 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		return [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:idx] oo_stringAtIndex:0]] name];
 	}
+}
+
+
+- (BOOL) setPrimedEquipment:(NSString *)eqKey showMessage:(BOOL)showMsg
+{
+	NSUInteger c = [eqScripts count];
+	NSUInteger current = primedEquipment;
+	primedEquipment = [self eqScriptIndexForKey:eqKey];	// if key not found primedEquipment is set to primed-none
+	BOOL unprimeEq = [eqKey isEqualToString:@""];
+	BOOL result = YES;
+
+	if (primedEquipment == c && !unprimeEq)
+	{
+		primedEquipment = current;
+		result = NO;
+	}
+	else 
+	{
+		if (primedEquipment != current && showMsg == YES)
+		{
+			NSString *equipmentName = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name];
+			[UNIVERSE addMessage:unprimeEq ? OOExpandKey(@"equipment-primed-none") : OOExpandKey(@"equipment-primed", equipmentName) forCount:2.0];
+		}
+	}
+	return result;
 }
 
 
@@ -9835,6 +9878,18 @@ static NSString *last_outfitting_key=nil;
 				break;
 
 		}
+		
+		if (toScreen == GUI_SCREEN_SYSTEM_DATA)
+		{
+			// system data screen: ensure correct sun light color is used on miniature planet
+			[[UNIVERSE sun] setSunColor:[OOColor colorWithDescription:[[UNIVERSE systemManager] getProperty:@"sun_color" forSystem:info_system_id inGalaxy:[self galaxyNumber]]]];
+		}
+		else
+		{
+			// any other screen: reset local sun light color
+			[[UNIVERSE sun] setSunColor:[OOColor colorWithDescription:[[UNIVERSE systemManager] getProperty:@"sun_color" forSystem:system_id inGalaxy:[self galaxyNumber]]]];
+		}
+		
 		if (![[UNIVERSE gameController] isGamePaused])
 		{
 			JSContext *context = OOJSAcquireContext();

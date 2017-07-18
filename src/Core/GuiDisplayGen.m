@@ -361,12 +361,32 @@ static BOOL _refreshStarChart = NO;
 }
 
 
+- (OOColor *) textColor
+{
+	return textColor;
+}
+
+
 // default text colour for rows
 - (void) setTextColor:(OOColor*) color
 {
 	[textColor release];
 	if (color == nil)  color = [[OOColor yellowColor] retain];
 	textColor = [color retain];
+}
+
+
+- (OOColor *) textCommsColor
+{
+	return textCommsColor;
+}
+
+
+- (void) setTextCommsColor:(OOColor*) color
+{
+	[textCommsColor release];
+	if (color == nil)  color = [[OOColor yellowColor] retain];
+	textCommsColor = [color retain];
 }
 
 
@@ -1405,18 +1425,55 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	OOTimeDelta	delta_t = [UNIVERSE getTimeDelta];
 	NSSize		characterSize = pixel_text_size;
 	NSSize		titleCharacterSize = pixel_title_size;
+	float		backgroundAlpha = self == [UNIVERSE messageGUI] && ![UNIVERSE permanentMessageLog] ? 0.0f : alpha;
+	float		row_alpha[n_rows];
+	
+	// calculate fade out time and alpha for each row. Do it before
+	// applying a potential background because we need the maximum alpha
+	// of all rows to be the alpha applied to the background color
+	for (i = 0; i < n_rows; i++)
+	{
+		row_alpha[i] = alpha;
+		
+		if(![UNIVERSE autoMessageLogBg] && [PLAYER guiScreen] == GUI_SCREEN_MAIN)  backgroundAlpha = alpha;
+		
+		if (rowFadeTime[i] > 0.0f && ![UNIVERSE permanentMessageLog])
+		{
+			rowFadeTime[i] -= (float)delta_t;
+			if (rowFadeTime[i] <= 0.0f)
+			{
+				[rowText replaceObjectAtIndex:i withObject:@""];
+				rowFadeTime[i] = 0.0f;
+				continue;
+			}
+			if ((rowFadeTime[i] > 0.0f)&&(rowFadeTime[i] < 1.0))
+			{
+				row_alpha[i] *= rowFadeTime[i];
+				if (backgroundAlpha < row_alpha[i])  backgroundAlpha = row_alpha[i];
+			}
+			else
+			{
+				backgroundAlpha = alpha;
+			}
+		}
+	}
 	
 	// do backdrop
-	//
+	// don't draw it if docked, unless message_gui is permanent
+	// don't draw it on the intro screens
 	if (backgroundColor)
 	{
-		OOGL(glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]));
-		OOGLBEGIN(GL_QUADS);
-			glVertex3f(x + 0.0f,					y + 0.0f,					z);
-			glVertex3f(x + size_in_pixels.width,	y + 0.0f,					z);
-			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height,	z);
-			glVertex3f(x + 0.0f,					y + size_in_pixels.height,	z);
-		OOGLEND();
+		int playerStatus = [PLAYER status];
+		if (playerStatus != STATUS_START_GAME && playerStatus != STATUS_DEAD)
+		{
+			OOGL(glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], backgroundAlpha * [backgroundColor alphaComponent]));
+			OOGLBEGIN(GL_QUADS);
+				glVertex3f(x + 0.0f,					y + 0.0f,					z);
+				glVertex3f(x + size_in_pixels.width,	y + 0.0f,					z);
+				glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height,	z);
+				glVertex3f(x + 0.0f,					y + size_in_pixels.height,	z);
+			OOGLEND();
+		}
 	}
 	
 	// show the 'foreground', aka overlay!
@@ -1460,19 +1517,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	for (i = 0; i < n_rows; i++)
 	{
 		OOColor* row_color = (OOColor *)[rowColor objectAtIndex:i];
-		GLfloat row_alpha = alpha;
-		if (rowFadeTime[i] > 0.0f)
-		{
-			rowFadeTime[i] -= (float)delta_t;
-			if (rowFadeTime[i] <= 0.0f)
-			{
-				[rowText replaceObjectAtIndex:i withObject:@""];
-				rowFadeTime[i] = 0.0f;
-			}
-			if ((rowFadeTime[i] > 0.0f)&&(rowFadeTime[i] < 1.0))
-				row_alpha *= rowFadeTime[i];
-		}
-		glColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha);
+		glColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha[i]);
 		
 		if ([[rowText objectAtIndex:i] isKindOfClass:[NSString class]])
 		{
@@ -1518,7 +1563,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 					tr.size.width = 0.5f * characterSize.width;
 					GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * [UNIVERSE getTime]));
 					OOStopDrawingStrings();
-					[self setGLColorFromSetting:kGuiTextInputCursorColor defaultValue:[OOColor redColor] alpha:row_alpha*g_alpha];
+					[self setGLColorFromSetting:kGuiTextInputCursorColor defaultValue:[OOColor redColor] alpha:row_alpha[i]*g_alpha];
 					OOGLBEGIN(GL_QUADS);
 						glVertex3f(tr.origin.x,					tr.origin.y,					z);
 						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y,					z);

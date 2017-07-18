@@ -332,6 +332,7 @@ enum
 	BOOL					_pauseMessage;
 	BOOL					_autoCommLog;
 	BOOL					_permanentCommLog;
+	BOOL					_autoMessageLogBg;
 	BOOL					_permanentMessageLog;
 	BOOL					_witchspaceBreakPattern;
 	BOOL					_dockingClearanceProtocolActive;
@@ -592,6 +593,7 @@ enum
 - (void) addCommsMessage:(NSString *) text forCount:(OOTimeDelta) count;
 - (void) addCommsMessage:(NSString *) text forCount:(OOTimeDelta) count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly;
 - (void) showCommsLog:(OOTimeDelta) how_long;
+- (void) showGUIMessage:(NSString *)text withScroll:(BOOL)scroll andColor:(OOColor *)selectedColor overDuration:(OOTimeDelta)how_long;
 
 - (void) update:(OOTimeDelta)delta_t;
 
@@ -756,6 +758,8 @@ enum
 - (void) setAutoCommLog:(BOOL)value;
 - (BOOL) permanentMessageLog;
 - (void) setPermanentMessageLog:(BOOL)value;
+- (BOOL) autoMessageLogBg;
+- (void) setAutoMessageLogBg:(BOOL)value;
 
 - (BOOL) blockJSPlayerShipProps;
 - (void) setBlockJSPlayerShipProps:(BOOL)value;

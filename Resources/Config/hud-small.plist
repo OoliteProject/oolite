@@ -5,6 +5,9 @@
 		{ /* Targeting enhancement */
 			"equipment_required" = "EQ_SCANNER_SHOW_MISSILE_TARGET";
 			selector = "drawTargetReticle:";
+			target_rgba = "greenColor";
+			target_sensitive_rgba = "redColor";
+			wormhole_rgba = "cyanColor";
 		},
 		{	// Waypoint display
 			equipment_required 	= "EQ_ADVANCED_COMPASS";
@@ -84,6 +87,7 @@
 			width		= 10;
 			x		= -51;
 			y		= -51;
+			rgb_color	= (0.0, 1.0, 0.0, 1.0);
 		},
 		{ /* speed bar, can draw a surround 2 units out from the dial size specified */
 			draw_surround = true;
@@ -199,6 +203,7 @@
 			width = 18;
 			x = -300;
 			y = 220;
+			rgb_color = (0.0, 1.0, 0.0, 1.0);
 		},
 	);
 	/* these are drawn, in order, before the dials, add any other images you want here */
@@ -289,6 +294,11 @@
 		x = 0;
 		y = -104;
 		row_height = 14;
+		background_automatic = yes;
+		// default background transparent
+		background_rgba = "0.0 0.05 0.45 0.0";
+		text_color = "yellowColor";
+		text_comms_color = "greenColor";
 	};
 	comm_log_gui = {
 		alpha = "0.75";
