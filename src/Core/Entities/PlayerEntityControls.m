@@ -4400,6 +4400,34 @@ static BOOL autopilot_pause;
 				[self showScenarioDetails];
 			}
 
+			if (!pageUpDownKeyPressed) 
+			{
+				if ([gameView isDown:gvPageUpKey])
+				{
+					//  find the Back <<< line, select it and press it
+					if ([[gui keyForRow:GUI_ROW_SCENARIOS_START - 1] hasPrefix:@"__page"]) 
+					{
+						if ([gui setSelectedRow:GUI_ROW_SCENARIOS_START - 1]) 
+						{
+							[self startScenario];
+						}
+					}
+
+				}
+				else if ([gameView isDown:gvPageDownKey])
+				{
+					// find the Next >>> line, select it and press it
+					if ([[gui keyForRow:GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS] hasPrefix:@"__page"]) 
+					{
+						if ([gui setSelectedRow:GUI_ROW_SCENARIOS_START + GUI_MAX_ROWS_SCENARIOS]) 
+						{
+							[self startScenario];
+						}
+					}
+				}
+			}
+			pageUpDownKeyPressed = [gameView isDown:gvPageDownKey]|[gameView isDown:gvPageUpKey];
+
 			if (!selectPressed)
 			{
 				if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]) // enter
