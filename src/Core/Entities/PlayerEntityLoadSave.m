@@ -389,7 +389,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	
 	// handle page <-- and page --> keys
-	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
+	if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvPageUpKey]) && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage--;
 		[self playMenuPagePrevious];
@@ -397,7 +397,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[gameView supressKeysUntilKeyUp];
 	}
 	//
-	if ([gameView isDown:gvArrowKeyRight] && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
+	if (([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvPageDownKey]) && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage++;
 		[self playMenuPageNext];
@@ -495,7 +495,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	
 	// handle page <-- and page --> keys, and on-screen buttons
-	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == BACKROW) || [gameView isDown:gvArrowKeyLeft])
+	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == BACKROW) || ([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvPageUpKey]))
 					&& [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage--;
@@ -503,7 +503,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[gameView supressKeysUntilKeyUp];
 	}
 	//
-	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == MOREROW) || [gameView isDown:gvArrowKeyRight])
+	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == MOREROW) || ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvPageDownKey]))
 					&& [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage++;
