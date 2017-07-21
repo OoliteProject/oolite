@@ -233,7 +233,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
 			_provides = [[extra oo_arrayForKey:@"provides" defaultValue:[NSArray array]] retain];
 
-			id dispColor = [extra oo_objectForKey:@"display_color" defaultValue:nil]; //@"yellowColor"
+			id dispColor = [extra oo_objectForKey:@"display_color" defaultValue:nil];
 			_displayColor = [[OOColor colorWithDescription:dispColor] retain];
 
 			_weaponInfo = [[extra oo_dictionaryForKey:@"weapon_info" defaultValue:[NSDictionary dictionary]] retain];
