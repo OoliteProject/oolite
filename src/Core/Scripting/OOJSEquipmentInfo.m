@@ -49,6 +49,7 @@ enum
 	kEquipmentInfo_canCarryMultiple,
 	kEquipmentInfo_damageProbability,
 	kEquipmentInfo_description,
+	kEquipmentInfo_displayColor,
 	kEquipmentInfo_effectiveTechLevel,
 	kEquipmentInfo_equipmentKey,
 	kEquipmentInfo_fastAffinityDefensive,
@@ -86,6 +87,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			OOJS_PROP_READONLY_CB },
 	{ "damageProbability",				kEquipmentInfo_damageProbability,			OOJS_PROP_READONLY_CB },
 	{ "description",					kEquipmentInfo_description,					OOJS_PROP_READONLY_CB },
+	{ "displayColor",					kEquipmentInfo_displayColor,				OOJS_PROP_READONLY_CB },
 	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			OOJS_PROP_READWRITE_CB },
 	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				OOJS_PROP_READONLY_CB },
 	{ "fastAffinityDefensive",			kEquipmentInfo_fastAffinityDefensive,		OOJS_PROP_READONLY_CB },
@@ -267,6 +269,10 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 			
 		case kEquipmentInfo_damageProbability:
 			return JS_NewNumberValue(context, [eqType damageProbability], value);
+
+		case kEquipmentInfo_displayColor:
+			result = [[eqType displayColor] normalizedArray];
+			break;
 
 		case kEquipmentInfo_fastAffinityDefensive:
 			*value = OOJSValueFromBOOL([eqType fastAffinityDefensive]);

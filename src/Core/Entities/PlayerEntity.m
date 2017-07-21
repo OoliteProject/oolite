@@ -9106,8 +9106,10 @@ static NSString *last_outfitting_key=nil;
 				NSString			*desc = [NSString stringWithFormat:@" %@ ", [eqInfo name]];
 				NSString			*eq_key_damaged	= [eqInfo damagedIdentifier];
 				double				price;
-				
-				[gui setColor:[gui colorFromSetting:kGuiEquipmentOptionColor defaultValue:nil] forRow:row];
+
+				OOColor				*dispCol = [eqInfo displayColor];
+				if (dispCol == nil) dispCol = [gui colorFromSetting:kGuiEquipmentOptionColor defaultValue:nil];
+				[gui setColor:dispCol forRow:row]; 
 
 				if ([eqKey isEqual:@"EQ_FUEL"])
 				{

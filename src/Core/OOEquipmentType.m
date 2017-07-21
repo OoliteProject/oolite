@@ -233,6 +233,9 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_repairTime = [extra oo_unsignedIntForKey:@"repair_time" defaultValue:0];
 			_provides = [[extra oo_arrayForKey:@"provides" defaultValue:[NSArray array]] retain];
 
+			id dispColor = [extra oo_objectForKey:@"display_color" defaultValue:nil]; //@"yellowColor"
+			_displayColor = [[OOColor colorWithDescription:dispColor] retain];
+
 			_weaponInfo = [[extra oo_dictionaryForKey:@"weapon_info" defaultValue:[NSDictionary dictionary]] retain];
 
 			_damageProbability = [extra oo_floatForKey:@"damage_probability" defaultValue:(_isMissileOrMine?0.0:1.0)];
@@ -324,6 +327,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_name);
 	DESTROY(_identifier);
 	DESTROY(_description);
+	DESTROY(_displayColor);
 	DESTROY(_requiresEquipment);
 	DESTROY(_requiresAnyEquipment);
 	DESTROY(_incompatibleEquipment);
@@ -530,6 +534,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 - (NSSet *) incompatibleEquipment
 {
 	return _incompatibleEquipment;
+}
+
+
+- (OOColor *) displayColor
+{
+	return _displayColor;
 }
 
 
