@@ -14,6 +14,8 @@ General:
   the newly introduced shader is not found or fails to compile
 * -nosound command line parameter now available for those who want
   their game to be silent
+* Page Up and Page Down keys are now used on all screens that can have
+  more than one page of information.
 
 Expansion pack development:
 ===========================
@@ -61,11 +63,15 @@ Bug fixes:
 * Fixed broken concealment behaviour
 * Fixed native exception when a commander dictionary was requested while not
   docked
- * Linux builds: Fixed freezes when using GNUstep 1.24.9 or later
- * Fixed adjacent systems distances not being equal on F6 and F7 screens
- * Fixed planet strings searching not targeting found planets and inability to
-   use Alt + arrows during planet string search
- * Fixed crash due to uninitialized missile_list (issue #204)
+* Linux builds: Fixed freezes when using GNUstep 1.24.9 or later
+* Fixed adjacent systems distances not being equal on F6 and F7 screens
+* Fixed planet strings searching not targeting found planets and inability to
+  use Alt + arrows during planet string search
+* Fixed crash due to uninitialized missile_list (issue #204)
+* Fixed issue where, when there is more than one page of ships available on the
+  Ships For Sale screen, and the display is moved back one page, information
+  for the first ship on the page will be displayed, even though the "More"
+  item is actually the selected item.
 
 -------------------------------------------------------------------------------
 
