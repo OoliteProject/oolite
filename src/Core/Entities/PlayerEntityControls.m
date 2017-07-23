@@ -919,15 +919,13 @@ static NSTimeInterval	time_last_frame;
 				{
 					flightSpeed += speed_delta * delta_t;
 				}
-					
-				// ** tgape ** - decrease obviously means no hyperspeed
+				
 				if (([gameView isDown:key_decrease_speed] ||
 						joyButtonState[BUTTON_DECTHRUST] ||
 						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelDown) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn])))
 					&& (!afterburner_engaged))
 				{
-					flightSpeed -= speed_delta * delta_t;
-						
+					flightSpeed -= speed_delta * delta_t;	
 					// ** tgape ** - decrease obviously means no hyperspeed
 					hyperspeed_engaged = NO;
 				}
