@@ -16,6 +16,12 @@ General:
   their game to be silent
 * Page Up and Page Down keys are now used on all screens that can have
   more than one page of information.
+* Mouse wheel can now be used to control speed when mouse control is on
+* Easy start scenario added - start at Tionisla with Cobra MkIII and
+  1000Cr
+* Oolite is now DPI-aware on Windows
+* Default ambient light level is now set to 0.25 for all core systems
+* Planets can now use Perlin3D textures for improved appearance
 
 Expansion pack development:
 ===========================
@@ -24,11 +30,30 @@ Modified Plists:
 ----------------
 * descriptions.plist now contains "sysdata-line-1" thru "sysdata-line-16"
   for controlling the layout of information on the F7 system data screen.
+* hud.plist: In the drawTargetReticle: selector section, the keys
+  target_rgba, target_sensitive_rgba and wormhole_rgba can be used to set
+  the target reticle colors for standard targets and wormholes
+* hud.plist: In the message_gui section, text_color and text_comms_color
+  can be used to set the color of standard and communication gui messages
+  respectively
+* hud.plist: In the message_gui section, background_rgba can now set the
+  background color of the message gui area
+* hud.plist: In the message_gui section, background_automatic can now be
+  used to define the behaviour of the message gui. Default is yes, which
+  makes the background fade out together with the messages. If set to no,
+  the background persists while on in-flight screens
+* hud.plist: In the drawWeaponsOfflineText: selector section, the key
+  rgb_color can be used to set the color of the Weapons Offline text
+* hud.plist: In the drawFPSInfoCounter: selector section, the key
+  rgb_color can be used to set the color of the FPS and objects info text
+* planetinfo.plist: The boolean key perlin_3d can be used for each system
+  to determine whether a Perlin3D or a normal texture will be used for it
   
 Scripting:
 ----------
 * player.ship.nextSystem property
 * player.ship.compassType read/write property (use with caution)
+* player.ship.compassMode read/write property (use with caution)
 * player.ship.massLockable property
 * player.ship.addCargoEntity(cargoEntity) method allows cargo ship entities 
   to be added to the player ship directly when in space.
@@ -45,6 +70,19 @@ Scripting:
   enabling direct control on music (volume etc.)
 * Added optional volume gain parameter to the Sound.playMusic function.
   Gain is capped between 0.0 and 1.0 and is relative to the master gain
+* player.ship.reticleColorTarget can set the target reticle's color
+* player.ship.reticleColorTargetSensitive can set the target reticle's
+  color when the target is lined up for a direct hit
+* player.ship.reticleColorWormhole can be used to set the reticle color
+  when a wormhole is targeted
+* player.ship.messageGuiTextColor property now sets the color of the
+  standard gui messages
+* player.ship.messageGuiTextCommsColor property now sets the color of
+  the gui messages that are tagged as communications
+* selectedMFDChanged and mfdKeyChanged scripting events added
+* player.ship.setPrimedEquipment method now available
+* weaponsSystemsToggled script event handler. Takes the new weapons
+  state as argument
 
 Bug fixes:
 ==========
@@ -72,6 +110,24 @@ Bug fixes:
   Ships For Sale screen, and the display is moved back one page, information
   for the first ship on the page will be displayed, even though the "More"
   item is actually the selected item.
+* Fixed mouse control issues where mouse was not reset properly when external
+  camera was toggled on and off (issue #237)
+* Fixed light color on the system data screen being that of the current system
+  than that of the system shown (issue #239)
+* Fixed awarding bounty even when the player died while trying (e.g. when
+  crashing into an asteroid)
+* noteGuiWillChange notification is now emitted also when going to short and
+  long range chart screens (issue #233)
+* Windows port: Fixed broken first-time window resize when starting the game
+  with -nosplash
+* Fixed crash in JavaScript profiler
+* Fixed bogus warning about not setting v-sync even when v-sync was corrrectly
+  set
+* Fixed potential mode duplication in screen modes list, which in some cases
+  could result in not being able to select desired fullscreen resolution
+  properly
+* Fixed nova screen backgrounds when traversing route (issue #225)
+* Fixed clouds not being drawn on the system data sceen
 
 -------------------------------------------------------------------------------
 
