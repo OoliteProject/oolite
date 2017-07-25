@@ -112,6 +112,7 @@ SOFTWARE.
 - (BOOL) canBeDamaged;
 - (BOOL) isVisible;				// Visible in UI?
 - (OOColor *) displayColor;
+- (void) setDisplayColor:(OOColor *)newColor;
 
 - (BOOL) isAvailableToPlayer;
 - (BOOL) isAvailableToNPCs;

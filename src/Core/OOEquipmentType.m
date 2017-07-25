@@ -543,6 +543,13 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
+- (void) setDisplayColor:(OOColor *)color
+{
+	[_displayColor release];
+	_displayColor = [color retain];
+}
+
+
 - (NSArray *) conditions
 {
 	return _conditions;

@@ -87,7 +87,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			OOJS_PROP_READONLY_CB },
 	{ "damageProbability",				kEquipmentInfo_damageProbability,			OOJS_PROP_READONLY_CB },
 	{ "description",					kEquipmentInfo_description,					OOJS_PROP_READONLY_CB },
-	{ "displayColor",					kEquipmentInfo_displayColor,				OOJS_PROP_READONLY_CB },
+	{ "displayColor",					kEquipmentInfo_displayColor,				OOJS_PROP_READWRITE_CB },
 	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			OOJS_PROP_READWRITE_CB },
 	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				OOJS_PROP_READONLY_CB },
 	{ "fastAffinityDefensive",			kEquipmentInfo_fastAffinityDefensive,		OOJS_PROP_READONLY_CB },
@@ -395,11 +395,20 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsid 
 	
 	OOEquipmentType				*eqType = nil;
 	int32						iValue;
+	OOColor						*colorForScript = nil;
 	
 	if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kEquipmentInfo_displayColor:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[eqType setDisplayColor:colorForScript];
+				return YES;
+			}
+			break;
 		case kEquipmentInfo_effectiveTechLevel:
 			OOStandardsDeprecated([NSString stringWithFormat:@"TL99 for variable tech level is deprecated for %@",[eqType identifier]]);
 			if (!OOEnforceStandards() && [eqType techLevel] == kOOVariableTechLevel)
