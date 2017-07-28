@@ -989,7 +989,7 @@ typedef enum
 - (void) docked;
 
 - (void) setGuiToStatusScreen;
-- (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
+- (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged), then a color (or nil for default color).
 - (BOOL) setPrimedEquipment:(NSString *)eqKey showMessage:(BOOL)showMsg;
 - (NSString *) primedEquipmentName:(NSInteger)offset;
 - (NSUInteger) primedEquipmentCount;
