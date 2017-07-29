@@ -69,8 +69,8 @@ static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetScreenBackground(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp);
-static JSBool GlobalGetScreenBackgroundDefault(JSContext *context, uintN argc, jsval *vp);
-static JSBool GlobalSetScreenBackgroundDefault(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalSetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
@@ -135,8 +135,8 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
 	{ "setScreenBackground",			GlobalSetScreenBackground,			1 },
 	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
-	{ "getScreenBackgroundDefault",     GlobalGetScreenBackgroundDefault,   1 },
-	{ "setScreenBackgroundDefault",     GlobalSetScreenBackgroundDefault,   2 },
+	{ "getScreenBackgroundForKey",      GlobalGetScreenBackgroundForKey,    1 },
+	{ "setScreenBackgroundForKey",      GlobalSetScreenBackgroundForKey,    2 },
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
 #endif
