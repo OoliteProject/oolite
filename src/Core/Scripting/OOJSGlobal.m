@@ -460,7 +460,7 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp)
 }
 
 
-static JSBool GlobalGetScreenBackgroundDefault(JSContext *context, uintN argc, jsval *vp) 
+static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp) 
 {
 	OOJS_NATIVE_ENTER(context)
 	
@@ -483,7 +483,7 @@ static JSBool GlobalGetScreenBackgroundDefault(JSContext *context, uintN argc, j
 } 
 
 // setScreenBackgroundDefault (key : NSString, descriptor : guiTextureDescriptor) : boolean
-static JSBool GlobalSetScreenBackgroundDefault(JSContext *context, uintN argc, jsval *vp) 
+static JSBool GlobalSetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp) 
 {
 	OOJS_NATIVE_ENTER(context)
 	
