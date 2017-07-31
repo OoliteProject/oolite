@@ -1293,10 +1293,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			// Damaged items show up orange.
 			[self setGLColorFromSetting:@"status_equipment_damaged_color" defaultValue:[OOColor orangeColor] alpha:1.0];
 		} 
-		else
+		else /// add color selection here
 		{
+			OOColor				*dispCol = [info oo_objectAtIndex:2];
 			// Normal items in default colour
-			[self setGLColorFromSetting:@"status_equipment_ok_color" defaultValue:nil alpha:1.0];
+			[self setGLColorFromSetting:@"status_equipment_ok_color" defaultValue:dispCol alpha:1.0];
 		}
 		
 		if (i - start < itemsPerColumn)

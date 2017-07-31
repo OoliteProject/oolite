@@ -7801,14 +7801,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 					// only one installed display normally
 					if (count == 1)
 					{
-						[quip2 addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
+						[quip2 addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], [eqType displayColor], nil]];
 					}
 					// display plural form
 					else
 					{
 						NSString *equipmentName = [eqType name];
 						alldesc = OOExpandKey(@"equipment-plural", count, equipmentName);
-						[quip2 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:YES], nil]];
+						[quip2 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:YES], [eqType displayColor], nil]];
 					}
 				}
 				// all broken, only one installed
@@ -7817,11 +7817,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 					desc = [NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]];
 					if (prioritiseDamaged)
 					{
-						[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+						[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], [eqType displayColor], nil]];
 					}
 					else
 					{
-						[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+						[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], [eqType displayColor], nil]];
 					}
 				}
 				// some broken, multiple installed
@@ -7831,17 +7831,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 					alldesc = OOExpandKey(@"equipment-plural-some-na", okcount, count, equipmentName);
 					if (prioritiseDamaged)
 					{
-						[quip1 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:NO], nil]];
+						[quip1 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:NO], [eqType displayColor], nil]];
 					}
 					else
 					{
-						[quip2 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:NO], nil]];
+						[quip2 addObject:[NSArray arrayWithObjects:alldesc, [NSNumber numberWithBool:NO], [eqType displayColor], nil]];
 					}
 				}
 			}
 			else if ([self hasEquipmentItem:[eqType identifier]])
 			{
-				[quip2 addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
+				[quip2 addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], [eqType displayColor], nil]];
 			}
 			else 
 			{
@@ -7852,12 +7852,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 					
 					if (prioritiseDamaged) 
 					{
-						[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+						[quip1 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], [eqType displayColor], nil]];
 					} 
 					else
 					{
 						// just add in to the normal array
-						[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+						[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], [eqType displayColor], nil]];
 					}
 				}
 			}
@@ -7867,28 +7867,28 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (max_passengers > 0)
 	{
 		desc = [NSString stringWithFormat:DESC_PLURAL(@"equipment-pass-berth-@", max_passengers), max_passengers];
-		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] displayColor], nil]];
 	}
 	
 	if (!isWeaponNone(forward_weapon_type))
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[forward_weapon_type name]];
-		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], [forward_weapon_type displayColor], nil]];
 	}
 	if (!isWeaponNone(aft_weapon_type))
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[aft_weapon_type name]];
-		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], [aft_weapon_type displayColor], nil]];
 	}
 	if (!isWeaponNone(port_weapon_type))
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[port_weapon_type name]];
-		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], [port_weapon_type displayColor], nil]];
 	}
 	if (!isWeaponNone(starboard_weapon_type))
 	{
 		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[starboard_weapon_type name]];
-		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+		[quip2 addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], [starboard_weapon_type displayColor], nil]];
 	}
 	
 	// list damaged first, then working
@@ -9106,8 +9106,10 @@ static NSString *last_outfitting_key=nil;
 				NSString			*desc = [NSString stringWithFormat:@" %@ ", [eqInfo name]];
 				NSString			*eq_key_damaged	= [eqInfo damagedIdentifier];
 				double				price;
-				
-				[gui setColor:[gui colorFromSetting:kGuiEquipmentOptionColor defaultValue:nil] forRow:row];
+
+				OOColor				*dispCol = [eqInfo displayColor];
+				if (dispCol == nil) dispCol = [gui colorFromSetting:kGuiEquipmentOptionColor defaultValue:nil];
+				[gui setColor:dispCol forRow:row]; 
 
 				if ([eqKey isEqual:@"EQ_FUEL"])
 				{

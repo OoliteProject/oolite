@@ -912,16 +912,20 @@ static NSTimeInterval	time_last_frame;
 				// DJS: Thrust can be an axis or a button. Axis takes precidence.
 				double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
 				// Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
-				if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
+				if (([gameView isDown:key_increase_speed] ||
+						joyButtonState[BUTTON_INCTHRUST] ||
+						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelUp) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn])))
+					&& (flightSpeed < maxFlightSpeed) && (!afterburner_engaged))
 				{
 					flightSpeed += speed_delta * delta_t;
 				}
-					
-				// ** tgape ** - decrease obviously means no hyperspeed
-				if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
+				
+				if (([gameView isDown:key_decrease_speed] ||
+						joyButtonState[BUTTON_DECTHRUST] ||
+						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelDown) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn])))
+					&& (!afterburner_engaged))
 				{
-					flightSpeed -= speed_delta * delta_t;
-						
+					flightSpeed -= speed_delta * delta_t;	
 					// ** tgape ** - decrease obviously means no hyperspeed
 					hyperspeed_engaged = NO;
 				}
