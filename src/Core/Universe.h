@@ -581,6 +581,7 @@ enum
 
 - (NSString *) soundNameForCustomSoundKey:(NSString *)key;
 - (NSDictionary *) screenTextureDescriptorForKey:(NSString *)key;
+- (void) setScreenTextureDescriptorForKey:(NSString *) key descriptor:(NSDictionary *)desc;
 
 - (void) clearPreviousMessage;
 - (void) setMessageGuiBackgroundColor:(OOColor *) some_color;
