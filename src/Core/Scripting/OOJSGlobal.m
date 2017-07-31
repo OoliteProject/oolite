@@ -69,6 +69,8 @@ static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetScreenBackground(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalSetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
@@ -132,6 +134,8 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "randomName",						GlobalRandomName,					0 },
 	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
 	{ "setScreenBackground",			GlobalSetScreenBackground,			1 },
+	{ "getScreenBackgroundForKey",      GlobalGetScreenBackgroundForKey,    1 },
+	{ "setScreenBackgroundForKey",      GlobalSetScreenBackgroundForKey,    2 },
 	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
@@ -417,6 +421,61 @@ static JSBool GlobalSetScreenBackground(JSContext *context, uintN argc, jsval *v
 		// add some permanence to the override if we're in the equip ship screen
 		if (result && [PLAYER guiScreen] == GUI_SCREEN_EQUIP_SHIP)  [PLAYER setEquipScreenBackgroundDescriptor:descriptor];
 	}
+	
+	OOJS_RETURN_BOOL(result);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp) 
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(argc == 0))
+	{
+		OOJSReportBadArguments(context, nil, @"getScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"missing arguments");
+		return NO;
+	}
+	NSString		*key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(key == nil || [key isEqualToString:@""]))
+	{
+		OOJSReportBadArguments(context, nil, @"getScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"key");
+		return NO;
+	}
+	id descriptor = [UNIVERSE screenTextureDescriptorForKey:key];
+
+	OOJS_RETURN_OBJECT(descriptor);
+	
+	OOJS_NATIVE_EXIT
+} 
+
+// setScreenBackgroundDefault (key : NSString, descriptor : guiTextureDescriptor) : boolean
+static JSBool GlobalSetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp) 
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	BOOL			result = NO;
+	
+	if (EXPECT_NOT(argc < 2))
+	{
+		OOJSReportBadArguments(context, nil, @"setScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"missing arguments");
+		return NO;
+	}
+
+	NSString		*key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	jsval			value = OOJS_ARGV[1];
+	if (EXPECT_NOT(key == nil || [key isEqualToString:@""]))
+	{
+		OOJSReportBadArguments(context, nil, @"setScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"key");
+		return NO;
+	}
+
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSDictionary	*descriptor = [gui textureDescriptorFromJSValue:value inContext:context callerDescription:@"setScreenBackgroundDefault()"];
+	
+	[UNIVERSE setScreenTextureDescriptorForKey:key descriptor:descriptor];
+	result = YES;
 	
 	OOJS_RETURN_BOOL(result);
 	
