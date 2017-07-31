@@ -443,7 +443,7 @@ static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, js
 		OOJSReportBadArguments(context, nil, @"getScreenBackgroundDefault", 0, OOJS_ARGV, nil, @"key");
 		return NO;
 	}
-	NSDictionary descriptor = [UNIVERSE screenTextureDescriptorForKey:key];
+	NSDictionary *descriptor = [UNIVERSE screenTextureDescriptorForKey:key];
 
 	OOJS_RETURN_OBJECT(descriptor);
 	
