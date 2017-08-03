@@ -28,7 +28,7 @@ Expansion pack development:
 
 Modified Plists:
 ----------------
-* descriptions.plist now contains "sysdata-line-1" thru "sysdata-line-16"
+* descriptions.plist: Contains "sysdata-line-1" thru "sysdata-line-16"
   for controlling the layout of information on the F7 system data screen.
 * hud.plist: In the drawTargetReticle: selector section, the keys
   target_rgba, target_sensitive_rgba and wormhole_rgba can be used to set
@@ -48,6 +48,9 @@ Modified Plists:
   rgb_color can be used to set the color of the FPS and objects info text
 * planetinfo.plist: The boolean key perlin_3d can be used for each system
   to determine whether a Perlin3D or a normal texture will be used for it
+* equipment.plist: A "display_color" property has been added, which 
+  controls the color used to display this item on the Ship Outfitting and
+  Status screens.
   
 Scripting:
 ----------
@@ -83,6 +86,9 @@ Scripting:
 * player.ship.setPrimedEquipment method now available
 * weaponsSystemsToggled script event handler. Takes the new weapons
   state as argument
+* EquipmentInfo.infoForKey().displayColor can read and write the display
+  color used to display equipment items on the ship outfitting and status
+  screens.
 
 Bug fixes:
 ==========
