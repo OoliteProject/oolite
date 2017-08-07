@@ -89,6 +89,9 @@ Scripting:
 * EquipmentInfo.infoForKey().displayColor can read and write the display
   color used to display equipment items on the ship outfitting and status
   screens.
+* global.getScreenBackgroundForKey() and global.setScreenBackgroundForKey()
+  added to allow scripting access to background image information held in
+  screenbackgrounds.plist.
 
 Bug fixes:
 ==========
