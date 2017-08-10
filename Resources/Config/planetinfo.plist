@@ -19667,7 +19667,7 @@
 		corona_flare = 0.042188;
 		corona_hues = 0.763069;
 		corona_shimmer = 0.606725;
-		description = "Teceri is well known for the Teceriian spotted leopard but plagued by lethal lethal yaks.";
+		description = "Teceri is well known for the Teceriian spotted leopard but plagued by lethal yaks.";
 		economy = 6;
 		government = 1;
 		inhabitant = "Blue Slimy Rodent";
