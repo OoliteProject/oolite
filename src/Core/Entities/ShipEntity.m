@@ -322,6 +322,10 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	/* TODO: The following initializes the missile list to be blank, which prevents a crash caused by hasOneEquipmentItem trying to access a missile list
 	         previously initialized but then released.  See issue #204.  We need to investigate further the cause of the missile list being released.
  			- kanthoney 10/03/2017
+		Update 20170818: The issue seems to have been resolved properly using the fix below and the problem was apparently an access of the
+		missile_list array elements before their initialization and while we were checking whether equipment can be added or not. There is
+		probably not much more that can be done here, unless someone would like to have a go at refactoring the entire ship initialization
+		code. In any case, the crash is no more and the applied solution is both simple and logical - Nikos
 	*/
 	unsigned i;
 	for (i = 0; i < missiles; i++)

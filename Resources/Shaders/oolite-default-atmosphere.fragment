@@ -1,20 +1,20 @@
 /*
 	oolite-default-atmosphere.fragment
 	Default fragment shader for Oolite NEW_PLANETS.
-	
-	
+
+
 	© 2009–2013 Jens Ayton
-	
+
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal
 	in the Software without restriction, including without limitation the rights
 	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 	copies of the Software, and to permit persons to whom the Software is
 	furnished to do so, subject to the following conditions:
-	
+
 	The above copyright notice and this permission notice shall be included in all
 	copies or substantial portions of the Software.
-	
+
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,57 +24,20 @@
 	SOFTWARE.
 */
 
-#ifndef IS_OOLITE
-#define IS_OOLITE 0
-#endif
-
-#if IS_OOLITE
 #define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb)
 #define AMBIENT_LIGHT		(gl_LightModel.ambient.rgb)
-#else
-#define DIFFUSE_LIGHT 						vec3(0.8)
-#define AMBIENT_LIGHT						vec3(0.2)
-#define OOSTD_ILLUMINATION_MAP				1
-#endif
 
-
-#ifndef OOSTD_ILLUMINATION_MAP
-#define OOSTD_ILLUMINATION_MAP 0
-#endif
-#ifndef OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
-#define OOSTD_DIFFUSE_AND_ILLUMINATION_MAP 0
-#endif
-#ifndef OOSTD_NORMAL_MAP
-#define OOSTD_NORMAL_MAP 0
-#endif
-#ifndef OOSTD_SPECULAR_MAP
-#define OOSTD_SPECULAR_MAP 0
-#endif
-#ifndef OOSTD_NORMAL_AND_SPECULAR_MAP
-#define OOSTD_NORMAL_AND_SPECULAR_MAP 0
-#endif
 #ifndef OOSTD_HARSH_MISTRESS
 #define OOSTD_HARSH_MISTRESS 0
 #endif
 
-
-// Illumination map parameters.
-#define USE_ILLUMINATION OOSTD_ILLUMINATION_MAP || OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
-#if OOSTD_ILLUMINATION_MAP
-uniform sampler2D		uIlluminationMap;
-#define ILLUMINATION_COLOR texture2D(uIlluminationMap, texCoords).rgb
-#elif OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
-#define ILLUMINATION_COLOR (diffuseMapSample.a * vec3(0.8, 0.8, 0.4))
-#endif
-
-
 /*	"Harsh shadow factor": degree to which normal map affects global diffuse light
 	with terminator and full shadow, as opposed to "local light" which is a normal
 	Lambertian light.
-	
+
 	Terminator threshold: defines the width and colour of the terminator. The
 	numbers are cosines of the angle where it transitions to full light.
-	
+
 	Both of these factors are ignored in simple shader mode.
 */
 #if OOSTD_HARSH_MISTRESS
@@ -83,35 +46,27 @@ const vec3				kTerminatorThreshold = vec3(0.08);
 const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
 #endif
 
-
 uniform vec4			atmPosition;
 uniform float			atmRadius;
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
-varying vec2			vTexCoords;
 varying vec3			vLight1Vector;
-varying vec3			vCoords;
-
 
 vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
 {
 	float LdotN = lightVector.z;
 	float globalTerm = LdotN;
-	
 	// Hard terminator with slight redish-orange tinge. Note: threshold values are cosines.
 	vec3 baseLight = smoothstep(vec3(0.0), kTerminatorThreshold, vec3(globalTerm));
-	
 	return baseLight;
 }
 
 void main()
 {
 	vec3 totalColor = vec3(0);
-	vec3 coords = normalize(vCoords);
-
 	vec3 normal = vec3(0, 0, 1);
-	
+
 	// Diffuse light
 	vec3 light1Vector = normalize(vLight1Vector);
 	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
@@ -119,42 +74,24 @@ void main()
 	vec3 diffuseColor = DIFFUSE_LIGHT;
 	// mix in some light blue color
 	totalColor += diffuseColor * diffuseLight * vec3(0.8, 0.8, 1.0);
-	
+
 	// Ambient light, biased towards blue.
 	vec3 ambientColor = diffuseColor;
 #if !OOSTD_HARSH_MISTRESS
 	ambientColor *= vec3(0.8, 0.8, 1.0);
 #endif
 	totalColor += AMBIENT_LIGHT * ambientColor;
-		
-#if USE_ILLUMINATION
-	vec3 illuminationColor = ILLUMINATION_COLOR;
-	totalColor += (1.0 - diffuseIntensity.r) * illuminationColor;
-#endif
 
-
-	float atmDistance = sqrt(pow(atmPosition.x,2.0) + pow(atmPosition.y,2.0) + pow(atmPosition.z,2.0) );
+	float atmDistance = length(atmPosition.xyz);
 	float minDistance = atmRadius + 3500.0;
 	float fadeDist = atmRadius * 12.0;
 	float fadeRate = 140000.0;
 	float fadeStart = fadeDist - fadeRate;
-	float newOpacity = 0.0;
-	if ( ( atmDistance < fadeDist ) && ( atmDistance > minDistance ) )
-	{
-		float quant = 1.0;
-		quant = ( atmDistance > fadeStart ? ( fadeRate - (atmDistance - fadeStart) ) / fadeRate : ( atmDistance < (minDistance + 2000.0 ) ? ( atmDistance - minDistance ) / 2000.0 : quant) );
-		
-		vec3 nvEyeVector = normalize(vEyeVector);
-
-		float dp = abs(dot(nvEyeVector, vec3(0.0,0.0,1.0)));
-		if (dp > 0.16) {
-			newOpacity = min(1.0, pow(0.16/dp,2.0)) * quant;
-		}
-		else
-		{
-			newOpacity = pow(dp/0.16,5.0) * quant;
-		}
-	}
+	float quant = ( atmDistance > fadeStart ? ( fadeRate - (atmDistance - fadeStart) ) / fadeRate : ( atmDistance < (minDistance + 2000.0 ) ? ( atmDistance - minDistance ) / 2000.0 : 1.0) );
+	float dp = abs(dot(normalize(vEyeVector), vec3(0.0,0.0,1.0)));
+	float gta = step(minDistance, atmDistance) * max(sign(fadeDist - atmDistance), 0.0);
+	float newOpacity = (dp > 0.16) ? min(1.0, pow(0.16 / dp, 2.0)) : pow(dp / 0.16, 5.0);
+	newOpacity *= gta*quant;
 
 	gl_FragColor = vec4(totalColor, newOpacity);
 }

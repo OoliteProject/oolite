@@ -6292,6 +6292,22 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 }
 
 
+- (void) setScreenTextureDescriptorForKey:(NSString *)key descriptor:(NSDictionary *)desc
+{
+	NSMutableDictionary *sbCopy = [screenBackgrounds mutableCopy];
+	if (desc == nil)
+	{
+		[sbCopy removeObjectForKey:key];
+	} 
+	else
+	{
+		[sbCopy setObject:desc forKey:key];
+	}
+	[screenBackgrounds release];
+	screenBackgrounds = [sbCopy copy];
+}
+
+
 - (void) clearPreviousMessage
 {
 	if (currentMessage)	[currentMessage release];
