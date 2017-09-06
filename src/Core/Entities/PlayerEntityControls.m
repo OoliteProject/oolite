@@ -1113,7 +1113,7 @@ static NSTimeInterval	time_last_frame;
 						{
 							[self playNextEquipmentSelected];
 							NSString *equipmentName = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name];
-							eqKey = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] identifier];
+							eqKey = [[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0];
 							[UNIVERSE addMessage:OOExpandKey(@"equipment-primed", equipmentName) forCount:2.0];
 						}
 						[self doScriptEvent:OOJSID("playerChangedPrimedEquipment") withArgument:eqKey];

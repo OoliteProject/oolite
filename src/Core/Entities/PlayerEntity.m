@@ -7923,7 +7923,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSString *result = @"";
 	NSUInteger c = [eqScripts count];
 	if (primedEquipment != c) {
-		result = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] identifier];
+		result = [[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0];
 	}
 	return result;
 }
