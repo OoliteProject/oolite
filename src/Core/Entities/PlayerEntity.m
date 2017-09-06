@@ -7918,6 +7918,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (NSString *) currentPrimedEquipment
+{
+	NSString *result = @"";
+	NSUInteger c = [eqScripts count];
+	if (primedEquipment != c) {
+		result = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] identifier];
+	}
+	return result;
+}
+
+
 - (BOOL) setPrimedEquipment:(NSString *)eqKey showMessage:(BOOL)showMsg
 {
 	NSUInteger c = [eqScripts count];
