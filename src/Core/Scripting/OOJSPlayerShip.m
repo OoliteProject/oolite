@@ -205,7 +205,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "multiFunctionDisplayList",  		kPlayerShip_multiFunctionDisplayList,		OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
-	{ "primedEquipment",				kPlayerShip_primedEquipment,				OOJS_PROP_READONLY_CB },
+	{ "primedEquipment",				kPlayerShip_primedEquipment,				OOJS_PROP_READWRITE_CB },
 	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
 	{ "reticleColorTarget",				kPlayerShip_reticleColorTarget,				OOJS_PROP_READWRITE_CB },
 	{ "reticleColorTargetSensitive",	kPlayerShip_reticleColorTargetSensitive,	OOJS_PROP_READWRITE_CB },
@@ -720,6 +720,15 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (sValue != nil)
 			{
 				[player setFastEquipmentB:sValue];
+				return YES;
+			}
+			break;
+
+		case kPlayerShip_primedEquipment:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil)
+			{
+				[player setPrimedEquipment:sValue showMessage:YES];
 				return YES;
 			}
 			break;
