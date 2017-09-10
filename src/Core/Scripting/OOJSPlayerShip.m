@@ -728,8 +728,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			sValue = OOStringFromJSValue(context, *value);
 			if (sValue != nil)
 			{
-				[player setPrimedEquipment:sValue showMessage:YES];
-				return YES;
+				return [player setPrimedEquipment:sValue showMessage:NO];
 			}
 			break;
 
