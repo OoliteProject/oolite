@@ -138,7 +138,7 @@ enum
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
-	kPlayerShip_primedEquipment,                // currently primed equipment
+	kPlayerShip_primedEquipment,                // currently primed equipment, string, read/write
 	kPlayerShip_renovationCost,					// int read-only current renovation cost
 	kPlayerShip_reticleColorTarget,				// Reticle color for normal targets, array, read/write
 	kPlayerShip_reticleColorTargetSensitive,	// Reticle color for targets picked up when sensitive mode is on, array, read/write
