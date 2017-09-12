@@ -1098,6 +1098,8 @@ static NSTimeInterval	time_last_frame;
 							else  primedEquipment = c;
 						}
 						
+						NSString *eqKey = @"";
+
 						if (primedEquipment == c)
 						{
 							if (c > 0)
@@ -1111,10 +1113,13 @@ static NSTimeInterval	time_last_frame;
 						{
 							[self playNextEquipmentSelected];
 							NSString *equipmentName = [[OOEquipmentType equipmentTypeWithIdentifier:[[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0]] name];
+							eqKey = [[eqScripts oo_arrayAtIndex:primedEquipment] oo_stringAtIndex:0];
 							[UNIVERSE addMessage:OOExpandKey(@"equipment-primed", equipmentName) forCount:2.0];
 						}
+						[self doScriptEvent:OOJSID("playerChangedPrimedEquipment") withArgument:eqKey];
 					}
 					prime_equipment_pressed = YES;
+					
 				}
 				else  prime_equipment_pressed = NO;
 				
