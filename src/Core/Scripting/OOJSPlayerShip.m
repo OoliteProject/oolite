@@ -106,7 +106,7 @@ enum
 	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read/write
-	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read/write
 	kPlayerShip_compassType,					// basic / advanced, string, read/write
 	kPlayerShip_currentWeapon,					// shortcut property to _aftWeapon, etc. overrides kShip generic version
 	kPlayerShip_crosshairs,						// custom plist file defining crosshairs
@@ -172,7 +172,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "aftShield",						kPlayerShip_aftShield,						OOJS_PROP_READWRITE_CB },
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READWRITE_CB },
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READWRITE_CB },
-	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READONLY_CB },
+	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READWRITE_CB },
 	{ "compassType",					kPlayerShip_compassType,					OOJS_PROP_READWRITE_CB },
 	{ "currentWeapon",					kPlayerShip_currentWeapon,					OOJS_PROP_READWRITE_CB },
 	{ "crosshairs",						kPlayerShip_crosshairs,						OOJS_PROP_READWRITE_CB },
@@ -616,7 +616,8 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 	OOGalacticHyperspaceBehaviour ghBehaviour;
 	Vector						vValue;
 	OOColor						*colorForScript = nil;
-	
+	Entity						*eValue = nil;
+
 	switch (JSID_TO_INT(propID))
 	{
 		case kPlayerShip_fuelLeakRate:
@@ -678,7 +679,41 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return YES;
 			}
 			break;
-			
+		
+		case kPlayerShip_compassTarget:
+			// can't change compass target in basic mode
+			if (![player hasEquipmentItemProviding:@"EQ_ADVANCED_COMPASS"]) 
+			{
+				OOJSReportError(context, @"Compass target cannot be set with a basic compass.");
+				return NO;
+			}
+			// make sure we have a valid entity
+			if (!JSVAL_IS_NULL(*value) && JSValueToEntity(context, *value, &eValue)) 
+			{
+				Entity *current = [player compassTarget];
+				[player setNextCompassMode];
+				[player validateCompassTarget];
+				// cycle the targets until we either get back to the start (entity not found) or we find the one we're looking for
+				while ([player compassTarget] != current && [player compassTarget] != eValue)
+				{
+					[player setNextCompassMode];
+					[player validateCompassTarget];
+				}
+				if ([player compassTarget] == current)
+				{ 
+					return NO;
+				}
+				else
+				{
+					return YES;
+				}
+			}
+			else 
+			{
+				return NO;
+			}
+			break;
+
 		case kPlayerShip_galacticHyperspaceBehaviour:
 			ghBehaviour = OOGalacticHyperspaceBehaviourFromJSValue(context, *value);
 			if (ghBehaviour != GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
