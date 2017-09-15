@@ -701,6 +701,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				}
 				if ([player compassTarget] == current)
 				{ 
+					OOJSReportWarning(context, @"Compass target not found.");
 					return NO;
 				}
 				else
@@ -710,6 +711,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			else 
 			{
+				OOJSReportError(context, @"Invalid compass target entity provided.");
 				return NO;
 			}
 			break;
