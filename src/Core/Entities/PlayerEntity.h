@@ -992,6 +992,7 @@ typedef enum
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged), then a color (or nil for default color).
 - (BOOL) setPrimedEquipment:(NSString *)eqKey showMessage:(BOOL)showMsg;
 - (NSString *) primedEquipmentName:(NSInteger)offset;
+- (NSString *) currentPrimedEquipment;
 - (NSUInteger) primedEquipmentCount;
 - (void) activatePrimableEquipment:(NSUInteger)index withMode:(OOPrimedEquipmentMode)mode;
 - (NSString *) fastEquipmentA;

@@ -138,6 +138,7 @@ enum
 	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
+	kPlayerShip_primedEquipment,                // currently primed equipment, string, read/write
 	kPlayerShip_renovationCost,					// int read-only current renovation cost
 	kPlayerShip_reticleColorTarget,				// Reticle color for normal targets, array, read/write
 	kPlayerShip_reticleColorTargetSensitive,	// Reticle color for targets picked up when sensitive mode is on, array, read/write
@@ -204,6 +205,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "multiFunctionDisplayList",  		kPlayerShip_multiFunctionDisplayList,		OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
 	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
+	{ "primedEquipment",				kPlayerShip_primedEquipment,				OOJS_PROP_READWRITE_CB },
 	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
 	{ "reticleColorTarget",				kPlayerShip_reticleColorTarget,				OOJS_PROP_READWRITE_CB },
 	{ "reticleColorTargetSensitive",	kPlayerShip_reticleColorTargetSensitive,	OOJS_PROP_READWRITE_CB },
@@ -401,7 +403,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			result = [player fastEquipmentB];
 			break;
 
-			
+		case kPlayerShip_primedEquipment:
+			result = [player currentPrimedEquipment];
+			break;
+
 		case kPlayerShip_forwardShield:
 			return JS_NewNumberValue(context, [player forwardShieldLevel], value);
 			
@@ -716,6 +721,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			{
 				[player setFastEquipmentB:sValue];
 				return YES;
+			}
+			break;
+
+		case kPlayerShip_primedEquipment:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil)
+			{
+				return [player setPrimedEquipment:sValue showMessage:NO];
 			}
 			break;
 
@@ -1574,7 +1587,6 @@ static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsv
 
 	OOJS_NATIVE_EXIT
 }
-
 
 // setPrimedEquipment(key, [noMessage])
 static JSBool PlayerShipSetPrimedEquipment(JSContext *context, uintN argc, jsval *vp)

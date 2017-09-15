@@ -54,38 +54,40 @@ Modified Plists:
   
 Scripting:
 ----------
-* player.ship.nextSystem property
-* player.ship.compassType read/write property (use with caution)
-* player.ship.compassMode read/write property (use with caution)
-* player.ship.massLockable property
+* player.ship.nextSystem property.
+* player.ship.compassType read/write property (use with caution).
+* player.ship.compassMode read/write property (use with caution).
+* player.ship.massLockable property.
+* player.ship.primedEquipment read/write property.
 * player.ship.addCargoEntity(cargoEntity) method allows cargo ship entities 
   to be added to the player ship directly when in space.
-* station.canDockShip(shipEntity) method
-* playerDockingClearanceGranted world event
-* playerDockingClearanceCancelled world event
+* station.canDockShip(shipEntity) method.
+* playerDockingClearanceGranted world event.
+* playerDockingClearanceCancelled world event.
+* playerChangedPrimedEquipment world event.
 * Scripts are now notified of the change to forward view when a witchjump
-  begins
+  begins.
 * player.ship.requestDockingClearance(station) method can be used to request 
   docking clearance from a particular station.
 * player.ship.cancelDockingRequest(station) method can be used to cancel a 
   previous docking request at a particular station.
 * Sound.musicSoundSource() method, returns the music sound source object,
-  enabling direct control on music (volume etc.)
+  enabling direct control on music (volume etc.).
 * Added optional volume gain parameter to the Sound.playMusic function.
   Gain is capped between 0.0 and 1.0 and is relative to the master gain
-* player.ship.reticleColorTarget can set the target reticle's color
+* player.ship.reticleColorTarget can set the target reticle's color.
 * player.ship.reticleColorTargetSensitive can set the target reticle's
-  color when the target is lined up for a direct hit
+  color when the target is lined up for a direct hit.
 * player.ship.reticleColorWormhole can be used to set the reticle color
-  when a wormhole is targeted
+  when a wormhole is targeted.
 * player.ship.messageGuiTextColor property now sets the color of the
-  standard gui messages
+  standard gui messages.
 * player.ship.messageGuiTextCommsColor property now sets the color of
-  the gui messages that are tagged as communications
-* selectedMFDChanged and mfdKeyChanged scripting events added
-* player.ship.setPrimedEquipment method now available
+  the gui messages that are tagged as communications.
+* selectedMFDChanged and mfdKeyChanged scripting events added.
+* player.ship.setPrimedEquipment method now available.
 * weaponsSystemsToggled script event handler. Takes the new weapons
-  state as argument
+  state as argument.
 * EquipmentInfo.infoForKey().displayColor can read and write the display
   color used to display equipment items on the ship outfitting and status
   screens.
