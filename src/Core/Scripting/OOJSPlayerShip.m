@@ -699,15 +699,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 					[player setNextCompassMode];
 					[player validateCompassTarget];
 				}
-				if ([player compassTarget] == current)
-				{ 
-					OOJSReportWarning(context, @"Compass target not found.");
-					return NO;
-				}
-				else
-				{
-					return YES;
-				}
+				return [player compassTarget] != current;
 			}
 			else 
 			{
