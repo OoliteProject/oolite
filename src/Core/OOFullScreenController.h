@@ -48,8 +48,8 @@ MA 02110-1301, USA.
 #define DISPLAY_MIN_COLOURS		32
 #define DISPLAY_MIN_WIDTH		640
 #define DISPLAY_MIN_HEIGHT		480
-#define DISPLAY_MAX_WIDTH		5040		// to cope with DaddyHoggy's 3840x1024 & up to 3 x 1680x1050 displays...
-#define DISPLAY_MAX_HEIGHT		1800
+#define DISPLAY_MAX_WIDTH		7680		// 8K gaming, yay!!
+#define DISPLAY_MAX_HEIGHT		4320
 
 
 @interface OOFullScreenController: NSObject

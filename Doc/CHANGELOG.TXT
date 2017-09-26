@@ -22,6 +22,7 @@ General:
 * Oolite is now DPI-aware on Windows
 * Default ambient light level is now set to 0.25 for all core systems
 * Planets can now use Perlin3D textures for improved appearance
+* SDL builds: Max supported resolution upped to 7680x4320. 8K-ready.
 
 Expansion pack development:
 ===========================
