@@ -953,31 +953,17 @@ static float SampleNoise3D(OOPlanetTextureGeneratorInfo *info, Vector p)
 }
 
 
-/*	Generate shuffled permutation order - each value from 0 to
-	kPermutationCount - 1 occurs exactly once. This shuffling provides all the
-	randomness in the resulting noise. Don't worry, though - for
-	kPermutationCount = 1024 this allows for 4e2567 different noise maps,
-	which is a lot more than RanRot will actually give us.
-*/
+//	Noise map generator
 static BOOL MakePermutationTable(OOPlanetTextureGeneratorInfo *info)
 {
 	uint16_t *perms = malloc(sizeof *info->permutations * kPermutationCount);
 	if (EXPECT_NOT(perms == NULL))  return NO;
 	
-	/*	Fisher-Yates/Durstenfeld/Knuth shuffle, "inside-out" variant.
-		Based on pseudocode from http://en.wikipedia.org/wiki/Fisher-Yates_shuffle
-		
-		When comparing to the pseudocode, note that it generates a one-based
-		series, but this version generates a zero-based series.
-	*/
 	perms[0] = 0;
-	uint16_t *curr = perms;
 	uint16_t n;
 	for (n = 1; n < kPermutationCount; n++)
 	{
-		uint16_t j = RanrotWithSeed(&info->seed) & kPermutationMask;
-		*++curr = perms[j];
-		perms[j] = n - 1;
+		perms[n] = RanrotWithSeed(&info->seed) & kPermutationMask;
 	}
 	
 	info->permutations = perms;
