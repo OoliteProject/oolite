@@ -171,12 +171,14 @@ enum
 			_info.paleCloudColor = FloatRGBFromDictColor(planetInfo, @"polar_cloud_color");
 		}
 		
+		OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
+		
 #ifndef TEXGEN_TEST_RIG
-		if ([UNIVERSE detailLevel] < DETAIL_LEVEL_SHADERS || [planetInfo oo_boolForKey:@"isMiniature" defaultValue:NO])
+		if (detailLevel < DETAIL_LEVEL_SHADERS || [planetInfo oo_boolForKey:@"isMiniature" defaultValue:NO])
 		{
 			_planetScale = kPlanetScaleReducedDetail;
 		}
-		else if ([UNIVERSE detailLevel] == DETAIL_LEVEL_SHADERS)
+		else if (detailLevel == DETAIL_LEVEL_SHADERS)
 		{
 			_planetScale = kPlanetScaleFullDetail;
 		}
@@ -187,7 +189,7 @@ enum
 #else
 		_planetScale = kPlanetScale4096x4096;
 #endif
-		_info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:NO];
+		_info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:detailLevel > DETAIL_LEVEL_SHADERS];
 		_info.planetAspectRatio = _info.perlin3d ? 2 : 1;
 		_info.planetScaleOffset = 8 - _info.planetAspectRatio;
 	}
