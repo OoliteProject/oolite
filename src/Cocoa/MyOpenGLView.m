@@ -511,7 +511,9 @@ FAIL:
 
 - (void) stringToClipboard:(NSString *)stringToCopy
 {
-	// TODO: implement string clipboard copy for Mac
+	NSPasteboard *clipBoard = [NSPasteboard generalPasteboard];
+	[clipBoard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:nil];
+	[clipBoard setString:stringToCopy forType:NSPasteboardTypeString];
 }
 
 
