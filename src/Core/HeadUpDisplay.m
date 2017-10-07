@@ -3549,10 +3549,11 @@ static void hudDrawReticleOnTarget(Entity *target, PlayerEntity *player1, GLfloa
 	// Draw reticle cyan for Wormholes
 	if ([target isWormhole])
 	{
-		GLfloat wormholeReticleColorArray[4] = {[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] redComponent],
-												[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] greenComponent],
-												[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] blueComponent],
-												[[reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE] alphaComponent]};
+		OOColor *wormholeReticleColor = [reticleColors objectAtIndex:OO_RETICLE_COLOR_WORMHOLE];
+		GLfloat wormholeReticleColorArray[4] = {[wormholeReticleColor redComponent],
+												[wormholeReticleColor greenComponent],
+												[wormholeReticleColor blueComponent],
+												[wormholeReticleColor alphaComponent]};
 		GLColorWithOverallAlpha(wormholeReticleColorArray, alpha);
 	}
 	else
