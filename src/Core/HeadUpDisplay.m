@@ -2867,22 +2867,23 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		if (alpha > 0.0f)
 		{
 			NSUInteger cueColorIndex = [target isWormhole] ? OO_RETICLE_COLOR_WORMHOLE : OO_RETICLE_COLOR_TARGET;
-			GLfloat	clear_color[4] =	{[[_reticleColors objectAtIndex:cueColorIndex] redComponent],
-										[[_reticleColors objectAtIndex:cueColorIndex] greenComponent],
-										[[_reticleColors objectAtIndex:cueColorIndex] blueComponent],
-										0.0f};
-			GLfloat directionCueColorArray[4] = {[[_reticleColors objectAtIndex:cueColorIndex] redComponent],
-												[[_reticleColors objectAtIndex:cueColorIndex] greenComponent],
-												[[_reticleColors objectAtIndex:cueColorIndex] blueComponent],
-												[[_reticleColors objectAtIndex:cueColorIndex] alphaComponent]};
+			OOColor *directionCueColor = [_reticleColors objectAtIndex:cueColorIndex];
+			GLfloat	clearColorArray[4] =	{[directionCueColor redComponent],
+											[directionCueColor greenComponent],
+											[directionCueColor blueComponent],
+											0.0f};
+			GLfloat directionCueColorArray[4] = {[directionCueColor redComponent],
+												[directionCueColor greenComponent],
+												[directionCueColor blueComponent],
+												[directionCueColor alphaComponent]};
 			drawPos.z = 0.0f;	// flatten vector
 			drawPos = vector_normal(drawPos);
 			OOGLBEGIN(GL_LINE_STRIP);
-				glColor4fv(clear_color);
+				glColor4fv(clearColorArray);
 				glVertex3f(drawPos.x * innerSize - drawPos.y * width, drawPos.y * innerSize + drawPos.x * width, z1);
 				GLColorWithOverallAlpha(directionCueColorArray, alpha);
 				glVertex3f(drawPos.x * outerSize, drawPos.y * outerSize, z1);
-				glColor4fv(clear_color);
+				glColor4fv(clearColorArray);
 				glVertex3f(drawPos.x * innerSize + drawPos.y * width, drawPos.y * innerSize - drawPos.x * width, z1);
 			OOGLEND();
 		}
