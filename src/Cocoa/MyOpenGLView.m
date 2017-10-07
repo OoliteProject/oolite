@@ -736,6 +736,14 @@ FAIL:
 }
 
 
+- (void)resetMouse
+{
+	// TODO: This should recenter the virtual joystick and warp the mouse
+	// cursor to the center of the screen, in order to have the same
+	// functionality as its SDL equivalent resetMouse method. 
+}
+
+
 - (void)mouseMoved:(NSEvent *)theEvent
 {
 	double mx = [theEvent locationInWindow].x - viewSize.width/2.0;
