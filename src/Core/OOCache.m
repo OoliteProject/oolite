@@ -704,11 +704,11 @@ static OOCacheNode *TreeSplay(OOCacheNode **root, id<OOCacheComparable> key)
 #ifndef NDEBUG
 		if (node == NULL)
 		{
-			OOLog(@"node.error",@"node is NULL");
+			OOLog(@"node.error", @"%@", @"node is NULL");
 		}
 		else if (node->key == NULL)
 		{
-			OOLog(@"node.error",@"node->key is NULL");
+			OOLog(@"node.error", @"%@", @"node->key is NULL");
 		}
 #endif
 		order = [key compare:node->key];

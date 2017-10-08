@@ -180,7 +180,7 @@ MA 02110-1301, USA.
 	// high-DPI awareness; must be done before any SDL initialization
 	if (![self enableDPIAwareness])
 	{
-		OOLogWARN(@"display.initGL.dpiAwareness", @"Could not declare application as DPI-aware.");
+		OOLogWARN(@"display.initGL.dpiAwareness", @"%@", @"Could not declare application as DPI-aware.");
 	}
 	
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
@@ -201,7 +201,7 @@ MA 02110-1301, USA.
 	// end TODO
 
 	[OOSound setUp];
-	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"Sound system disabled.");
+	if (![OOSound isSoundOK])  OOLog(@"sound.init", @"%@", @"Sound system disabled.");
 
 	// Generate the window caption, containing the version number and the date the executable was compiled.
 	static char windowCaption[128];
