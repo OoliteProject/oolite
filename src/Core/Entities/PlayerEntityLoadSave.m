@@ -339,7 +339,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	NSString *path = [ResourceManager pathForFileNamed:file inFolder:@"Scenarios"];
 	if (path == nil)
 	{
-		OOLog(@"scenario.init.error", @"%@", @"Game file not found for scenario %@",file);
+		OOLog(@"scenario.init.error", @"Game file not found for scenario %@",file);
 		return NO;
 	}
 	BOOL result = [self loadPlayerFromFile:path asNew:YES];

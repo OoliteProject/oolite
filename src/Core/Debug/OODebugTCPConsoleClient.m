@@ -421,7 +421,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if (!sentOK)
 	{
-		OOLog(@"debugTCP.send.error", @"%@", @"The following packet could not be sent: %@", dictionary);
+		OOLog(@"debugTCP.send.error", @"The following packet could not be sent: %@", dictionary);
 		if(![[OODebugMonitor sharedDebugMonitor] TCPIgnoresDroppedPackets])
 		{
 			[self breakConnectionWithBadStream:_outStream];
