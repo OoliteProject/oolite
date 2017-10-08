@@ -226,6 +226,8 @@ MA 02110-1301, USA.
 	{
 		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
 	}
+	
+	atDesktopResolution = YES;
 #endif
 
 	grabMouseStatus = NO;
@@ -984,6 +986,12 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL) atDesktopResolution
+{
+	return atDesktopResolution;
+}
+
+
 #else	// Linus stub methods
 
 - (BOOL) enableDPIAwareness
@@ -1111,6 +1119,8 @@ MA 02110-1301, USA.
 				OOLogERR(@"displayMode.change.error", @"Could not switch to requested display mode.");
 				return;
 			}
+			atDesktopResolution = settings.dmPelsWidth == [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayWidth] intValue]
+								&& settings.dmPelsHeight == [[[screenSizes objectAtIndex:0] objectForKey: kOODisplayHeight] intValue];
 		}
 		
 		MoveWindow(SDL_Window, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top, (int)viewSize.width, (int)viewSize.height, TRUE);
@@ -1122,7 +1132,14 @@ MA 02110-1301, USA.
 	
 	else if ( wasFullScreen )
 	{
-		if (changingResolution)  ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+		if (changingResolution)
+		{
+			// restore original desktop resolution
+			if (ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL) == DISP_CHANGE_SUCCESSFUL)
+			{
+				atDesktopResolution = YES;
+			}
+		}
 		
 		/*NOTE: If we ever decide to change the default behaviour of launching
 		always on primary monitor to launching on the monitor the program was 

@@ -511,7 +511,9 @@ FAIL:
 
 - (void) stringToClipboard:(NSString *)stringToCopy
 {
-	// TODO: implement string clipboard copy for Mac
+	NSPasteboard *clipBoard = [NSPasteboard generalPasteboard];
+	[clipBoard declareTypes:[NSArray arrayWithObject:NSPasteboardTypeString] owner:nil];
+	[clipBoard setString:stringToCopy forType:NSPasteboardTypeString];
 }
 
 
@@ -731,6 +733,14 @@ FAIL:
 	}
 	
 	keys[gvMouseLeftButton] = NO;  // 'a' up
+}
+
+
+- (void)resetMouse
+{
+	// TODO: This should recenter the virtual joystick and warp the mouse
+	// cursor to the center of the screen, in order to have the same
+	// functionality as its SDL equivalent resetMouse method. 
 }
 
 

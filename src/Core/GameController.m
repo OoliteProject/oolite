@@ -832,6 +832,15 @@ static NSMutableArray *sMessageStack;
 #if (OOLITE_GNUSTEP && !defined(NDEBUG))
 	[[OODebugMonitor sharedDebugMonitor] applicationWillTerminate];
 #endif
+#if OOLITE_WINDOWS
+	// This should not be required normally but we have to ensure that
+	// desktop resolution is restored also on some Intel cards on Win10
+	if (![gameView atDesktopResolution])
+	{
+		OOLog(@"gameController.exitApp", @"%@", @"Restoring desktop resolution.");
+		ChangeDisplaySettingsEx(NULL, NULL, NULL, 0, NULL);
+	}
+#endif
 	[[NSUserDefaults standardUserDefaults] synchronize];
 	OOLog(@"gameController.exitApp", @"%@", @".GNUstepDefaults synchronized.");
 	OOLoggingTerminate();
