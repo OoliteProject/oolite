@@ -435,7 +435,7 @@ static BOOL isHitByLine(const int *octbuffer, unsigned char *collbuffer, int lev
 	
 	collbuffer[level] = 1;	// red
 	
-	OctreeDebugLog(@"----> testing octants...");
+	OctreeDebugLog(@"%@", @"----> testing octants...");
 	
 	int nextLevel = level + octbuffer[level];
 		
@@ -487,7 +487,7 @@ static BOOL isHitByLine(const int *octbuffer, unsigned char *collbuffer, int lev
 	}
 	else
 	{
-		OctreeDebugLog(@"DEBUG Missed!");
+		OctreeDebugLog(@"%@", @"DEBUG Missed!");
 		_hasCollision = hasCollided;
 		return 0.0f;
 	}
@@ -502,19 +502,19 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 
 	if (axialBuffer[0] == 0)
 	{
-		OctreeDebugLog(@"DEBUG Axial octree is empty.");
+		OctreeDebugLog(@"%@", @"DEBUG Axial octree is empty.");
 		return NO;
 	}
 	
 	if (!otherBuffer)
 	{
-		OctreeDebugLog(@"DEBUG Other octree is undefined.");
+		OctreeDebugLog(@"%@", @"DEBUG Other octree is undefined.");
 		return NO;
 	}
 	
 	if (otherBuffer[0] == 0)
 	{
-		OctreeDebugLog(@"DEBUG Other octree is empty.");
+		OctreeDebugLog(@"%@", @"DEBUG Other octree is empty.");
 		return NO;
 	}
 	
@@ -528,7 +528,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 			(otherPosition.y + otherRadius < -axialRadius)||(otherPosition.y - otherRadius > axialRadius)||
 			(otherPosition.z + otherRadius < -axialRadius)||(otherPosition.z - otherRadius > axialRadius))
 		{
-			OctreeDebugLog(@"----> Other sphere does not intersect axial cube");
+			OctreeDebugLog(@"%@", @"----> Other sphere does not intersect axial cube");
 			return NO;
 		}
 	}
@@ -540,7 +540,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 			(axialPosition.y + axialRadius < -otherRadius)||(axialPosition.y - axialRadius > otherRadius)||
 			(axialPosition.z + axialRadius < -otherRadius)||(axialPosition.z - axialRadius > otherRadius))
 		{
-			OctreeDebugLog(@"----> Axial sphere does not intersect other cube");
+			OctreeDebugLog(@"%@", @"----> Axial sphere does not intersect other cube");
 			return NO;
 		}
 	}
@@ -557,7 +557,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 			axialCollisionBuffer[0] = (unsigned char)255;	// mark
 			otherCollisionBuffer[0] = (unsigned char)255;	// mark
 			
-			OctreeDebugLog(@"DEBUG Octrees collide!");
+			OctreeDebugLog(@"%@", @"DEBUG Octrees collide!");
 			return YES;
 		}
 		// the other octree must be decomposed
@@ -565,7 +565,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 		// if any of them collides with this octant
 		// then we have a solid collision
 		
-		OctreeDebugLog(@"----> testing other octants...");
+		OctreeDebugLog(@"%@", @"----> testing other octants...");
 		
 		// work out the nearest octant to the axial octree
 		int	nearest_oct = ((otherPosition.x > 0.0)? 0:4)|((otherPosition.y > 0.0)? 0:2)|((otherPosition.z > 0.0)? 0:1);
@@ -601,7 +601,7 @@ static BOOL isHitByOctree(Octree_details axialDetails,
 	// the other octree, if any of them collide
 	// we have a solid collision
 	
-	OctreeDebugLog(@"----> testing axial octants...");
+	OctreeDebugLog(@"%@", @"----> testing axial octants...");
 	
 	// work out the nearest octant to the other octree
 	int	nearest_oct = ((otherPosition.x > 0.0)? 4:0)|((otherPosition.y > 0.0)? 2:0)|((otherPosition.z > 0.0)? 1:0);

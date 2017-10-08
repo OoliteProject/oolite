@@ -102,7 +102,7 @@ static id NSNULL = nil;
 	NSDictionary				*materials = nil,
 								*shaders = nil;
 	
-	OOLog(@"verifyOXP.models.unimplemented", @"TODO: implement model verifier.");
+	OOLog(@"verifyOXP.models.unimplemented", @"%@", @"TODO: implement model verifier.");
 	
 	for (nameEnum = [_modelsToCheck objectEnumerator]; (info = [nameEnum nextObject]); )
 	{

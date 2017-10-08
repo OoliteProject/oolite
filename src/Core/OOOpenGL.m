@@ -261,14 +261,14 @@ void LogOpenGLState(void)
 	
 	OO_ENTER_OPENGL();
 	
-	OOLog(kOOLogOpenGLStateDump, @"OpenGL state dump:");
+	OOLog(kOOLogOpenGLStateDump, @"%@", @"OpenGL state dump:");
 	OOLogIndent();
 	
 	GLDumpMaterialState();
 	GLDumpCullingState();
 	if (glIsEnabled(GL_LIGHTING))
 	{
-		OOLog(kOOLogOpenGLStateDump, @"Lighting: ENABLED");
+		OOLog(kOOLogOpenGLStateDump, @"%@", @"Lighting: ENABLED");
 		for (i = 0; i != 8; ++i)
 		{
 			GLDumpLightState(i);
@@ -276,7 +276,7 @@ void LogOpenGLState(void)
 	}
 	else
 	{
-		OOLog(kOOLogOpenGLStateDump, @"Lighting: disabled");
+		OOLog(kOOLogOpenGLStateDump, @"%@", @"Lighting: disabled");
 	}
 
 	GLDumpFogState();
@@ -346,7 +346,7 @@ static void GLDumpMaterialState(void)
 	
 	OO_ENTER_OPENGL();
 	
-	OOLog(kOOLogOpenGLStateDump, @"Material state:");
+	OOLog(kOOLogOpenGLStateDump, @"%@", @"Material state:");
 	OOLogIndent();
 	
 	OOGL(glGetMaterialfv(GL_FRONT, GL_AMBIENT, color));
@@ -470,7 +470,7 @@ static void GLDumpStateFlags(void)
 #define DUMP_STATE_FLAG(x) OOLog(kOOLogOpenGLStateDump, @ #x ": %@", OOGLFlagToString(glIsEnabled(x)))
 #define DUMP_GET_FLAG(x) do { GLboolean flag; glGetBooleanv(x, &flag); OOLog(kOOLogOpenGLStateDump, @ #x ": %@", OOGLFlagToString(flag)); } while (0)
 	
-	OOLog(kOOLogOpenGLStateDump, @"Selected state flags:");
+	OOLog(kOOLogOpenGLStateDump, @"%@", @"Selected state flags:");
 	OOLogIndent();
 	
 	DUMP_STATE_FLAG(GL_VERTEX_ARRAY);

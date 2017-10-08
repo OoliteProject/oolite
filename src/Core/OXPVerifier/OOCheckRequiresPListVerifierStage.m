@@ -76,7 +76,7 @@ static NSString * const kStageName	= @"Checking requires.plist";
 	// Check that it's a dictionary
 	if (![requiresPList isKindOfClass:[NSDictionary class]])
 	{
-		OOLog(@"verifyOXP.requiresPList.notDict", @"***** ERROR: requires.plist is not a dictionary.");
+		OOLog(@"verifyOXP.requiresPList.notDict", @"%@", @"***** ERROR: requires.plist is not a dictionary.");
 		return;
 	}
 	
@@ -97,7 +97,7 @@ static NSString * const kStageName	= @"Checking requires.plist";
 	{
 		if (![version isKindOfClass:[NSString class]])
 		{
-			OOLog(@"verifyOXP.requiresPList.badValue", @"***** ERROR: Value for 'version' is not a string.");
+			OOLog(@"verifyOXP.requiresPList.badValue", @"%@", @"***** ERROR: Value for 'version' is not a string.");
 			version = nil;
 		}
 	}
@@ -107,7 +107,7 @@ static NSString * const kStageName	= @"Checking requires.plist";
 	{
 		if (![maxVersion isKindOfClass:[NSString class]])
 		{
-			OOLog(@"verifyOXP.requiresPList.badValue", @"***** ERROR: Value for 'max_version' is not a string.");
+			OOLog(@"verifyOXP.requiresPList.badValue", @"%@", @"***** ERROR: Value for 'max_version' is not a string.");
 			maxVersion = nil;
 		}
 	}
@@ -117,7 +117,7 @@ static NSString * const kStageName	= @"Checking requires.plist";
 		ooVersionComponents = ComponentsFromVersionString([[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]);
 		if (ooVersionComponents == nil)
 		{
-			OOLog(@"verifyOXP.requiresPList.cantFindOoliteVersion", @"----- WARNING: could not find Oolite's version for requires.plist sanity check.");
+			OOLog(@"verifyOXP.requiresPList.cantFindOoliteVersion", @"%@", @"----- WARNING: could not find Oolite's version for requires.plist sanity check.");
 		}
 		if (version != nil)
 		{
