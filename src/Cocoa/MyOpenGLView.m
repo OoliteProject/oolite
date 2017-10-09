@@ -738,9 +738,9 @@ FAIL:
 
 - (void)resetMouse
 {
-	// TODO: This should recenter the virtual joystick and warp the mouse
-	// cursor to the center of the screen, in order to have the same
-	// functionality as its SDL equivalent resetMouse method. 
+	CGPoint centerPoint = CGPointMake(viewSize.width / 2.0, viewSize.height / 2.0);
+	CGWarpMouseCursorPosition(centerPoint);
+	[self setVirtualJoystick:0.0 :0.0];
 }
 
 
