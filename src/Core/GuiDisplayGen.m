@@ -1838,8 +1838,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		saved_galaxy_id = [player galaxyNumber];
 	}
 	
-	OOSystemID savedPlanetNumber = 0;
-	OOSystemID savedDestNumber = 0;
+	static OOSystemID savedPlanetNumber = 0;
+	static OOSystemID savedDestNumber = 0;
 	static NSDictionary *routeInfo = nil;
 
 	/* May override current mode for mission screens */
