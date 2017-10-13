@@ -1838,8 +1838,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 		saved_galaxy_id = [player galaxyNumber];
 	}
 	
-	OOSystemID savedPlanetNumber = 0;
-	OOSystemID savedDestNumber = 0;
+	static OOSystemID savedPlanetNumber = 0;
+	static OOSystemID savedDestNumber = 0;
+	static OORouteType savedArrayMode = OPTIMIZED_BY_NONE;
 	static NSDictionary *routeInfo = nil;
 
 	/* May override current mode for mission screens */
@@ -1856,12 +1857,13 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		OOSystemID planetNumber = [PLAYER systemID];
 		OOSystemID destNumber = [PLAYER targetSystemID];
-		if (routeInfo == nil || planetNumber != savedPlanetNumber || destNumber != savedDestNumber)
+		if (routeInfo == nil || planetNumber != savedPlanetNumber || destNumber != savedDestNumber || advancedNavArrayMode != savedArrayMode)
 		{
 			[routeInfo release];
 			routeInfo = [[UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode] retain];
 			savedPlanetNumber = planetNumber;
 			savedDestNumber = destNumber;
+			savedArrayMode = advancedNavArrayMode;
 		}
 		target = destNumber;
 		
