@@ -1182,8 +1182,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 	
 	BOOL			emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
-		
-	BOOL			isHostile = NO;
 	
 	if (emptyDial)
 	{
@@ -1344,11 +1342,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				y1 = z_factor * relativePosition.z;
 				y2 = y1 + y_factor * relativePosition.y;
 				
-				isHostile = NO;
 				if ([scannedEntity isShip])
 				{
 					ShipEntity *ship = (ShipEntity *)scannedEntity;
-					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
+					BOOL isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
 					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash
 																		:[ship scannerDisplayColor1] :[ship scannerDisplayColor2]
 																		:[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]
