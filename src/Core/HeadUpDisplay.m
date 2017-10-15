@@ -3027,7 +3027,6 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	{
 		int					x, y;
 		NSSize				siz;
-		GLfloat				alpha = overallAlpha;
 		struct CachedInfo	cached;
 	
 		[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
@@ -3036,8 +3035,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		y = useDefined(cached.y, WEAPONSOFFLINETEXT_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
 		siz.width = useDefined(cached.width, WEAPONSOFFLINETEXT_WIDTH);
 		siz.height = useDefined(cached.height, WEAPONSOFFLINETEXT_HEIGHT);
-		alpha *= cached.alpha;
 		
+		textColor[3] = cached.alpha;
 		GetRGBAArrayFromInfo(info, textColor);
 		textColor[3] *= overallAlpha;
 		
