@@ -6558,20 +6558,20 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (void) markAsOffender:(int)offence_value
+- (void) markAsOffender:(OOCreditsQuantity)offence_value
 {
 	[self markAsOffender:offence_value withReason:kOOLegalStatusReasonUnknown];
 }
 
 
-- (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason
+- (void) markAsOffender:(OOCreditsQuantity)offence_value withReason:(OOLegalStatusReason)reason
 {
 	if (![self isCloaked])
 	{
 		JSContext *context = OOJSAcquireContext();
 	
 		jsval amountVal = JSVAL_VOID;
-		int amountVal2 = (legalStatus | offence_value) - legalStatus;
+		OOCreditsQuantity amountVal2 = (legalStatus | offence_value) - legalStatus;
 		JS_NewNumberValue(context, amountVal2, &amountVal);
 
 		legalStatus |= offence_value; // can't set the new bounty until the size of the change is known
