@@ -375,7 +375,7 @@ MA 02110-1301, USA.
 }
 
 
-- (int) addControl: (NSPoint) point
+- (NSInteger) addControl: (NSPoint) point
 {
 	NSPoint left, right;
 	NSUInteger i;
@@ -438,7 +438,7 @@ MA 02110-1301, USA.
 	return point;
 }
 
-- (int) countPoints
+- (NSInteger) countPoints
 {
 	return [controlPoints count];
 }

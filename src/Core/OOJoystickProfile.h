@@ -78,9 +78,9 @@ MA 02110-1301, USA.
 - (id) init;
 - (void) dealloc;
 - (id) copyWithZone: (NSZone *) zone;
-- (int) addControl: (NSPoint) point;
+- (NSInteger) addControl: (NSPoint) point;
 - (NSPoint) pointAtIndex: (NSInteger) index;
-- (int) countPoints;
+- (NSInteger) countPoints;
 - (void) removeControl: (NSInteger) index;
 - (void) clearControlPoints;
 - (void) moveControl: (NSInteger) index point: (NSPoint) point;
