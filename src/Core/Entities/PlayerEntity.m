@@ -5404,7 +5404,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	JSContext *context = OOJSAcquireContext();
 	jsval keyVal = OOJSValueFromNativeObject(context,key);
-	ShipScriptEvent(context, self, "mfdKeyChanged", INT_TO_JSVAL(activeMFD), keyVal);
+	ShipScriptEvent(context, self, "mfdKeyChanged", INT_TO_JSVAL((int32)activeMFD), keyVal);
 	OOJSRelinquishContext(context);
 }
 
@@ -5415,7 +5415,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSUInteger mfdID = activeMFD + 1;
 	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
 	JSContext *context = OOJSAcquireContext();
-	ShipScriptEvent(context, self, "selectedMFDChanged", INT_TO_JSVAL(activeMFD));
+	ShipScriptEvent(context, self, "selectedMFDChanged", INT_TO_JSVAL((int32)activeMFD));
 	OOJSRelinquishContext(context);
 }
 
