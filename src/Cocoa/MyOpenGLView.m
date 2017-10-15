@@ -87,8 +87,6 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	}
 #endif
 	
-	matrixManager = [[OOOpenGLMatrixManager alloc] init];
-
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
 	NSOpenGLPixelFormatAttribute attrs[] =
 	{
@@ -137,6 +135,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 			[self setWantsBestResolutionOpenGLSurface:YES];
 		}
 		
+		matrixManager = [[OOOpenGLMatrixManager alloc] init];
 		_pixelFormatAttributes = [[NSData alloc] initWithBytes:attrs length:sizeof attrs];
 		virtualJoystickPosition = NSMakePoint(0.0,0.0);
 		
