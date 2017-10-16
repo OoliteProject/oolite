@@ -430,7 +430,12 @@ enum
 	float seaBias = _info.landFraction - 1.0f;
 	
 	_info.paleSeaColor = Blend(0.35f, _info.polarSeaColor, Blend(0.7f, _info.seaColor, _info.landColor));
-	float normalScale = 1 << _planetScale;
+	float normalScale = (1 << _planetScale)
+#ifndef NDEBUG
+						// test-release only, make normalScale adjustable from within user defaults
+						* [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"p3dnsf" defaultValue:1.0f]
+#endif
+						; // float normalScale = ...
 	if (!generateNormalMap)  normalScale *= 3.0f;
 	
 	// Deep sea colour: sea darker past the continental shelf.
