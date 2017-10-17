@@ -51,13 +51,13 @@ to Yes and shader effects set to Simple:
     NSGlobalDomain = {
     };
     oolite.exe = {
-    display_width = <*I800>;
-    display_height = <*I600>;
-    fullscreen = <*BY>;
-    "reduced-detail-graphics" = <*BN>;
-    "shader-effects-level" = <*I2>;
-    volume_control = <*R0.26>;
-    "wireframe-graphics" = <*BY>;
+    display_width = 800;
+    display_height = 600;
+    fullscreen = YES;
+    "reduced-detail-graphics" = NO;
+    "shader-effects-level" = 2;
+    volume_control = 0.26;
+    "wireframe-graphics" = YES;
     };
 }
 
@@ -69,13 +69,13 @@ set to No and shader effects set to Full:
     NSGlobalDomain = {
     };
     oolite.exe = {
-    display_width = <*I1400>;
-    display_height = <*I1050>;
-    fullscreen = <*BY>;
-    "reduced-detail-graphics" = <*BN>;
-    "shader-effects-level" = <*I3>;
-    volume_control = <*R1>;
-    "wireframe-graphics" = <*BN>;
+    display_width = 1400;
+    display_height = I1050;
+    fullscreen = YES;
+    "reduced-detail-graphics" = NO;
+    "shader-effects-level" = 3;
+    volume_control = 1;
+    "wireframe-graphics" = NO;
     };
 }
 
@@ -100,11 +100,11 @@ Oolite website at: http://www.oolite.org
 
 Oolite Message Board at: http://www.aegidian.org/bb
 
-Oolite Development Project Page at: https://developer.berlios.de/projects/oolite-linux/
+Oolite Development Project Page at: https://github.com/OoliteProject
 
 Browse the Oolite wiki at: http://wiki.alioth.net/index.php/Oolite_Main_Page
 
-Get OXPs at: 	http://wiki.alioth.net/index.php/OXP
+Get OXPs at http://www.oolite.org/oxps/ or use the in-game Expansion Pack Manager
 
 
 
@@ -292,4 +292,4 @@ Oolite game. The fact that certain elements from OXPs are mentioned does not nec
 these OXPs are recommended by the Oolite Team, as OXP selection and usage is subject to user personal
 preferences. The OXPs mentioned in Advice for New Commanders are Rusties, Bank of the Black Monks,
 Ore Processor, Communist flavour pack, Dictatorship flavour pack, Your Ad Here. All Oolite OXPs are
-available for download from http://wiki.alioth.net/index.php/OXP
+available for download from http://www.oolite.org/oxps/ or from the in-game Expansion Pack Manager.
