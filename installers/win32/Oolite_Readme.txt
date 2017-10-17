@@ -70,7 +70,7 @@ set to No and shader effects set to Full:
     };
     oolite.exe = {
     display_width = 1400;
-    display_height = I1050;
+    display_height = 1050;
     fullscreen = YES;
     "reduced-detail-graphics" = NO;
     "shader-effects-level" = 3;
