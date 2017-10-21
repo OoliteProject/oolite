@@ -304,8 +304,6 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	self = [super init];
 	if (self == nil)  OK = NO;
 	
-	standardMatrixUniformLocations = nil;
-	
 	if (OK && vertexSource == nil && fragmentSource == nil)  OK = NO;	// Must have at least one shader!
 	
 	if (OK && prefixString != nil)
