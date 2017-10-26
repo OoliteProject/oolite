@@ -261,6 +261,11 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	}
 }
 
+- (void) pollControls
+{
+	if ([NSDate timeIntervalSinceReferenceDate] > timeIntervalAtLastMouseWheel + OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL)
+		_mouseWheelState = gvMouseWheelNeutral;
+}
 
 - (void) drawRect:(NSRect)rect
 {
@@ -740,6 +745,7 @@ FAIL:
 	CGPoint centerPoint = CGPointMake(viewSize.width / 2.0, viewSize.height / 2.0);
 	CGWarpMouseCursorPosition(centerPoint);
 	[self setVirtualJoystick:0.0 :0.0];
+	_mouseWheelState = gvMouseWheelNeutral;
 }
 
 
@@ -768,6 +774,20 @@ FAIL:
 	[self mouseMoved:theEvent];
 }
 
+- (void)scrollWheel:(NSEvent *)theEvent
+{
+	float dy = [theEvent scrollingDeltaY];
+	
+	if (dy == 0)
+		return;
+	
+	if (dy > 0)
+		_mouseWheelState = gvMouseWheelUp;
+	else
+		_mouseWheelState = gvMouseWheelDown;
+
+	timeIntervalAtLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
+}
 
 - (void) otherMouseDragged:(NSEvent *)theEvent
 {
@@ -1013,8 +1033,7 @@ FAIL:
 
 - (int) mouseWheelState
 {
-	// FIXME: Mousewheel in-game implementaiton for Macs needed
-	return gvMouseWheelNeutral;
+	return _mouseWheelState;
 }
 
 
