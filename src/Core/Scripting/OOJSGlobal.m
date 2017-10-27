@@ -72,6 +72,7 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
 static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp);
@@ -140,6 +141,7 @@ static JSFunctionSpec sGlobalMethods[] =
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
 #endif
+	{ "pauseGame",						GlobalPauseGame,					0 },
 	{ 0 }
 };
 
@@ -579,6 +581,20 @@ static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp)
 	NSString *autoAI = [autoAIMap oo_stringForKey:string];
 
 	OOJS_RETURN_OBJECT(autoAI);
+	
+	OOJS_NATIVE_EXIT
+}
+
+// pauseGame() : Boolean
+static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	BOOL			result = YES;
+	
+	[UNIVERSE pauseGame];
+	
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_NATIVE_EXIT
 }
