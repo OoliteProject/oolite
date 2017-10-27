@@ -204,7 +204,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "multiFunctionDisplays",			kPlayerShip_multiFunctionDisplays,			OOJS_PROP_READONLY_CB },
 	{ "multiFunctionDisplayList",  		kPlayerShip_multiFunctionDisplayList,		OOJS_PROP_READONLY_CB },
 	{ "price",							kPlayerShip_price,							OOJS_PROP_READONLY_CB },
-	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READONLY_CB },
+	{ "pitch",							kPlayerShip_pitch,							OOJS_PROP_READWRITE_CB },
 	{ "primedEquipment",				kPlayerShip_primedEquipment,				OOJS_PROP_READWRITE_CB },
 	{ "renovationCost",					kPlayerShip_renovationCost,					OOJS_PROP_READONLY_CB },
 	{ "reticleColorTarget",				kPlayerShip_reticleColorTarget,				OOJS_PROP_READWRITE_CB },
@@ -212,7 +212,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "reticleColorWormhole",			kPlayerShip_reticleColorWormhole,			OOJS_PROP_READWRITE_CB },
 	{ "renovationMultiplier",			kPlayerShip_renovationMultiplier,			OOJS_PROP_READONLY_CB },
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
-	{ "roll",							kPlayerShip_roll,							OOJS_PROP_READONLY_CB },
+	{ "roll",							kPlayerShip_roll,							OOJS_PROP_READWRITE_CB },
 	{ "routeMode",						kPlayerShip_routeMode,						OOJS_PROP_READONLY_CB },
 	{ "scannerNonLinear",				kPlayerShip_scannerNonLinear,				OOJS_PROP_READWRITE_CB },
 	{ "scannerUltraZoom",				kPlayerShip_scannerUltraZoom,				OOJS_PROP_READWRITE_CB },
@@ -229,7 +229,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "viewPositionPort",				kPlayerShip_viewPositionPort,				OOJS_PROP_READONLY_CB },
 	{ "viewPositionStarboard",			kPlayerShip_viewPositionStarboard,			OOJS_PROP_READONLY_CB },
 	{ "weaponsOnline",					kPlayerShip_weaponsOnline,					OOJS_PROP_READONLY_CB },
-	{ "yaw",							kPlayerShip_yaw,							OOJS_PROP_READONLY_CB },
+	{ "yaw",							kPlayerShip_yaw,							OOJS_PROP_READWRITE_CB },
 	{ 0 }			
 };
 
@@ -761,6 +761,30 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 
+		case kPlayerShip_pitch:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[player decrease_flight_pitch:[player flightPitch] + fValue];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_roll:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[player decrease_flight_roll:[player flightRoll] + fValue];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_yaw:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[player decrease_flight_yaw:[player flightYaw] + fValue];
+				return YES;
+			}
+			break;
+			
 		case kPlayerShip_forwardShield:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
