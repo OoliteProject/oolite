@@ -8827,7 +8827,7 @@
 		corona_flare = 0.031999;
 		corona_hues = 0.891350;
 		corona_shimmer = 0.372842;
-		description = "This world is reasonably notable for its great volcanoes but ravaged by vicious vicious shrews.";
+		description = "This world is reasonably notable for its great volcanoes but ravaged by vicious shrews.";
 		economy = 2;
 		government = 6;
 		inhabitant = "Green Furry Rodent";
@@ -18067,7 +18067,7 @@
 		corona_flare = 0.061824;
 		corona_hues = 0.823860;
 		corona_shimmer = 0.361897;
-		description = "This world is reasonably well known for its vast oceans but ravaged by vicious vicious wolfs.";
+		description = "This world is reasonably well known for its vast oceans but ravaged by vicious wolfs.";
 		economy = 3;
 		government = 5;
 		inhabitant = "Human Colonial";
@@ -18387,7 +18387,7 @@
 		corona_flare = 0.019038;
 		corona_hues = 0.611084;
 		corona_shimmer = 0.520135;
-		description = "This world is reasonably well known for its vast oceans but ravaged by vicious vicious wolfs.";
+		description = "This world is reasonably well known for its vast oceans but ravaged by vicious wolfs.";
 		economy = 6;
 		government = 1;
 		inhabitant = "Fierce Green Furry Feline";
@@ -19787,7 +19787,7 @@
 		corona_flare = 0.050288;
 		corona_hues = 0.503136;
 		corona_shimmer = 0.363338;
-		description = "This world is most notable for vicious Za brew but ravaged by vicious vicious shrews.";
+		description = "This world is most notable for vicious Za brew but ravaged by vicious shrews.";
 		economy = 3;
 		government = 1;
 		inhabitant = "Small Green Horned Bird";
@@ -20707,7 +20707,7 @@
 		corona_flare = 0.034705;
 		corona_hues = 0.796341;
 		corona_shimmer = 0.337804;
-		description = "Lezaer is cursed by vicious vicious shrews.";
+		description = "Lezaer is cursed by vicious shrews.";
 		economy = 0;
 		government = 7;
 		inhabitant = "Human Colonial";
@@ -22427,7 +22427,7 @@
 		corona_flare = 0.051167;
 		corona_hues = 0.801163;
 		corona_shimmer = 0.316611;
-		description = "The planet Leistean is well known for its inhabitants’ ancient loathing of sit coms but ravaged by vicious vicious wolfs.";
+		description = "The planet Leistean is well known for its inhabitants’ ancient loathing of sit coms but ravaged by vicious wolfs.";
 		economy = 6;
 		government = 4;
 		inhabitant = "Human Colonial";
@@ -23587,7 +23587,7 @@
 		corona_flare = 0.092245;
 		corona_hues = 0.800514;
 		corona_shimmer = 0.349689;
-		description = "Usrage is reasonably well known for the Usrageian tree ant but ravaged by vicious vicious wolfs.";
+		description = "Usrage is reasonably well known for the Usrageian tree ant but ravaged by vicious wolfs.";
 		economy = 6;
 		government = 3;
 		inhabitant = "Human Colonial";
@@ -54747,7 +54747,7 @@
 		corona_flare = 0.022052;
 		corona_hues = 0.970154;
 		corona_shimmer = 0.285809;
-		description = "The planet Rabi is very noted for its unusual sit coms but ravaged by vicious vicious Alzaats.";
+		description = "The planet Rabi is very noted for its unusual sit coms but ravaged by vicious Alzaats.";
 		economy = 4;
 		government = 3;
 		inhabitant = "Human Colonial";
@@ -60707,7 +60707,7 @@
 		corona_flare = 0.011597;
 		corona_hues = 0.959282;
 		corona_shimmer = 0.272746;
-		description = "Oranxe is cursed by vicious vicious ants.";
+		description = "Oranxe is cursed by vicious ants.";
 		economy = 4;
 		government = 5;
 		inhabitant = "Human Colonial";
