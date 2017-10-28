@@ -288,13 +288,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		OOLog(@"ship.setup.injectorSpeed",@"injector_speed_factor cannot be higher than minimum torus speed factor (%f) for %@.",MIN_HYPERSPEED_FACTOR,self);
 		afterburner_speed_factor = MIN_HYPERSPEED_FACTOR;
+	}
 #else
 	else if (afterburner_speed_factor > HYPERSPEED_FACTOR)
 	{
 		OOLog(@"ship.setup.injectorSpeed",@"injector_speed_factor cannot be higher than torus speed factor (%f) for %@.",HYPERSPEED_FACTOR,self);
 		afterburner_speed_factor = HYPERSPEED_FACTOR;
-#endif
 	}
+#endif
 
 	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:200.0f];
 	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:1.0f];
