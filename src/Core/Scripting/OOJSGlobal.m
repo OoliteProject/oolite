@@ -590,9 +590,22 @@ static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context)
 	
-	BOOL			result = YES;
+	BOOL			result = NO;
+	PlayerEntity	*player = PLAYER;
 	
-	[UNIVERSE pauseGame];
+	if (player)
+	{
+		OOGUIScreenID guiScreen = [player guiScreen];
+		
+		if 	(guiScreen != GUI_SCREEN_LONG_RANGE_CHART &&
+			 guiScreen != GUI_SCREEN_MISSION &&
+			 guiScreen != GUI_SCREEN_REPORT &&
+			 guiScreen != GUI_SCREEN_SAVE)
+		{
+			[UNIVERSE pauseGame];
+			result = YES;
+		}
+	}
 	
 	OOJS_RETURN_BOOL(result);
 	
