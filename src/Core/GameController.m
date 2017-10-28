@@ -315,6 +315,7 @@ static GameController *sSharedController = nil;
 
 - (void) performGameTick:(id)sender
 {
+	[gameView pollControls];
 	[self doPerformGameTick];
 }
 

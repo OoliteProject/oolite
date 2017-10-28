@@ -129,11 +129,13 @@ extern int debug;
 	BOOL				m_glContextInitialized;
 	
 	NSTimeInterval		timeIntervalAtLastClick;
+	NSTimeInterval		timeIntervalAtLastMouseWheel;
 	BOOL				doubleClick;
 	
 	NSMutableString		*typedString;
 	
 	NSPoint				virtualJoystickPosition;
+	enum MouseWheelStatus	_mouseWheelState;
 	
 	NSSize				viewSize;
 	NSSize				backingViewSize;
@@ -174,6 +176,7 @@ extern int debug;
 
 - (void) drawRect:(NSRect)rect;
 - (void) updateScreen;
+- (void) pollControls;
 
 - (void) stringToClipboard:(NSString *)stringToCopy;
 
