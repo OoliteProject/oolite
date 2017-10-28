@@ -8627,54 +8627,60 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) increase_flight_roll:(double) delta
 {
-	if (flightRoll < max_flight_roll)
-		flightRoll += delta;
+	flightRoll += delta;
 	if (flightRoll > max_flight_roll)
 		flightRoll = max_flight_roll;
+	else if (flightRoll < -max_flight_roll)
+		flightRoll = -max_flight_roll;
 }
 
 
 - (void) decrease_flight_roll:(double) delta
 {
-	if (flightRoll > -max_flight_roll)
-		flightRoll -= delta;
-	if (flightRoll < -max_flight_roll)
+	flightRoll -= delta;
+	if (flightRoll > max_flight_roll)
+		flightRoll = max_flight_roll;
+	else if (flightRoll < -max_flight_roll)
 		flightRoll = -max_flight_roll;
 }
 
 
 - (void) increase_flight_pitch:(double) delta
 {
-	if (flightPitch < max_flight_pitch)
-		flightPitch += delta;
+	flightPitch += delta;
 	if (flightPitch > max_flight_pitch)
 		flightPitch = max_flight_pitch;
+	else if (flightPitch < -max_flight_pitch)
+		flightPitch = -max_flight_pitch;
 }
 
 
 - (void) decrease_flight_pitch:(double) delta
 {
-	if (flightPitch > -max_flight_pitch)
-		flightPitch -= delta;
-	if (flightPitch < -max_flight_pitch)
+	flightPitch -= delta;
+	if (flightPitch > max_flight_pitch)
+		flightPitch = max_flight_pitch;
+	else if (flightPitch < -max_flight_pitch)
 		flightPitch = -max_flight_pitch;
 }
 
 
 - (void) increase_flight_yaw:(double) delta
 {
-	if (flightYaw < max_flight_yaw)
-		flightYaw += delta;
+	flightYaw += delta;
 	if (flightYaw > max_flight_yaw)
 		flightYaw = max_flight_yaw;
+	else if (flightYaw < -max_flight_yaw)
+		flightYaw = -max_flight_yaw;
 }
 
 
 - (void) decrease_flight_yaw:(double) delta
 {
-	if (flightYaw > -max_flight_yaw)
-		flightYaw -= delta;
-	if (flightYaw < -max_flight_yaw)
+	flightYaw -= delta;
+	if (flightYaw > max_flight_yaw)
+		flightYaw = max_flight_yaw;
+	else if (flightYaw < -max_flight_yaw)
 		flightYaw = -max_flight_yaw;
 }
 
