@@ -1782,7 +1782,6 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				(textRow-1) * MAIN_GUI_ROW_HEIGHT * pixelRatio);
 
 	OOSystemID target = [PLAYER targetSystemID];
-	NSString *targetName = [UNIVERSE getSystemName:target];
 	double dx, dy;
 	
 	// get a list of systems marked as contract destinations
@@ -1893,10 +1892,9 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	{
 		[self drawAdvancedNavArrayAtX:x+hoffset y:y+voffset z:z alpha:alpha usingRoute:nil optimizedBy:OPTIMIZED_BY_NONE zoom: zoom];
 	}
-	NSPoint targetCoordinates = (NSPoint){0,0};
 	if (!routeExists)
 	{
-		targetCoordinates = [systemManager getCoordinatesForSystem:target inGalaxy:galaxy_id];
+		NSPoint targetCoordinates = [systemManager getCoordinatesForSystem:target inGalaxy:galaxy_id];
 
 		distance = distanceBetweenPlanetPositions(targetCoordinates.x,targetCoordinates.y,galaxy_coordinates.x,galaxy_coordinates.y);
 		if (distance == 0.0)
@@ -2234,7 +2232,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	tab_stops[2] = 288;
 	[self overrideTabs:tab_stops from:kGuiChartTraveltimeTabs length:3];
 	[self setTabStops:tab_stops];
-	targetName = [[UNIVERSE getSystemName:target] retain];
+	NSString *targetName = [[UNIVERSE getSystemName:target] retain];
 
 	// distance-f & est-travel-time-f are identical between short & long range charts in standard Oolite, however can be alterered separately via OXPs
 	NSString *travelDistLine = @"";
