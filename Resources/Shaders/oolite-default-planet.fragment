@@ -229,8 +229,7 @@ void main()
 	// Diffuse light
 	vec3 light1Vector = normalize(vLight1Vector);
 	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
-	vec3 diffuseLight = diffuseIntensity * 
-						(gl_LightSource[1].diffuse * max(0.0, dot(normal, light1Vector)) + gl_LightModel.ambient).rgb;
+	vec3 diffuseLight = diffuseIntensity * (DIFFUSE_LIGHT * max(0.0, dot(normal, light1Vector)) + AMBIENT_LIGHT);
 #if OOSTD_CUBE_MAP
 	vec4 diffuseMapSample = textureCube(uDiffuseMap, vCoords);
 #else
