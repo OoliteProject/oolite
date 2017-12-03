@@ -108,10 +108,13 @@ NSUInteger OOCPUCount(void)
 #if OOLITE_WINDOWS
 NSString* operatingSystemFullVersion(void)
 {
-	OSVERSIONINFOW	osver;
-
+	typedef LONG NTSTATUS;
+	NTSTATUS (WINAPI* rtlGetVersion)(PRTL_OSVERSIONINFOEXW) = NULL; 
+	RTL_OSVERSIONINFOEXW osver = {0};
 	osver.dwOSVersionInfoSize = sizeof(osver);
-	GetVersionExW (&osver);
+
+	rtlGetVersion = (NTSTATUS (WINAPI*)(PRTL_OSVERSIONINFOEXW))GetProcAddress(GetModuleHandle("ntdll.dll"), "RtlGetVersion");
+	if(rtlGetVersion)  rtlGetVersion(&osver);
 	
 	return [NSString stringWithFormat:@"%d.%d.%d %S", 
 				osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, osver.szCSDVersion];
