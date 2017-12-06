@@ -177,12 +177,6 @@ MA 02110-1301, USA.
 		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
 	}
 	
-	// high-DPI awareness; must be done before any SDL initialization
-	if (![self enableDPIAwareness])
-	{
-		OOLogWARN(@"display.initGL.dpiAwareness", @"%@", @"Could not declare application as DPI-aware.");
-	}
-	
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
 	// TODO: This code up to and including stickHandler really ought
@@ -791,52 +785,6 @@ MA 02110-1301, USA.
 
 
 #if OOLITE_WINDOWS
-- (BOOL) enableDPIAwareness
-{
-	/*
-		Declare the application as DPI-aware, so that Windows Vista and later
-		versions' automatic DPI virtualization does not kick-in. Attempt to
-		load the SetProcessDpiAwareness WinAPI function and execute it if available.
-		If not available (as would be the case in Windows versions prior to 8.1),
-		attempt to load and execute the older SetProcessDPIAware instead.
-	*/
-	BOOL dpiAwarenessSet = NO;
-	BOOL dpiAwareSet = NO;
-	// the following enum is supposed to be part of the Windows API headers,
-	// but it looks like MinGW does not declare it
-	#ifndef DPI_ENUMS_DECLARED
-	typedef enum PROCESS_DPI_AWARENESS
-	{
-		PROCESS_DPI_UNAWARE = 0,
-		PROCESS_SYSTEM_DPI_AWARE = 1,
-		PROCESS_PER_MONITOR_DPI_AWARE = 2
-	} PROCESS_DPI_AWARENESS;
-	#endif
-	HRESULT(WINAPI *setProcessDpiAwareness)(PROCESS_DPI_AWARENESS) = NULL;
-	setProcessDpiAwareness = (HRESULT(WINAPI*)(PROCESS_DPI_AWARENESS))
-							(void*)GetProcAddress(GetModuleHandle("shcore.dll"), "SetProcessDpiAwareness");
-	if (setProcessDpiAwareness)
-	{
-		dpiAwarenessSet = (setProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) == S_OK);
-	}
-	else
-	{
-		BOOL(WINAPI *setProcessDPIAware)() = NULL;
-		setProcessDPIAware = (BOOL(WINAPI*)())(void*)GetProcAddress(GetModuleHandle("user32.dll"), "SetProcessDPIAware");
-		if (setProcessDPIAware)
-		{
-			dpiAwareSet = setProcessDPIAware();
-		}
-	}
-	
-	OOLog(@"display.initGL.dpiAwareness", @"%@ loaded and executed", 
-			dpiAwarenessSet ? @"SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE)" : dpiAwareSet ? 
-			@"SetProcessDPIAware()" : @"No DPI awareness method");
-	
-	return dpiAwarenessSet || dpiAwareSet;
-}
-
-
 - (MONITORINFOEX) currentMonitorInfo
 {
 	return monitorInfo;
@@ -993,12 +941,6 @@ MA 02110-1301, USA.
 
 
 #else	// Linus stub methods
-
-- (BOOL) enableDPIAwareness
-{
-	return NO;
-}
-
 
 // for Linux we assume we are always on the primary monitor for now
 - (BOOL) isRunningOnPrimaryDisplayDevice

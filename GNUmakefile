@@ -11,6 +11,7 @@ endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 HOST_ARCH                        := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
+    vpath %.rc src/SDL/OOResourcesWin
     ifeq ($(GNUSTEP_HOST_CPU),x86_64)
         WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
     else
@@ -156,7 +157,11 @@ oolite_C_FILES = \
     OOPlanetData.c \
 	ioapi.c \
 	unzip.c
-
+	
+ifeq ($(GNUSTEP_HOST_OS),mingw32)
+oolite_WINDRES_FILES = \
+	OOResourcesWin.rc
+endif
 
 OOLITE_DEBUG_FILES = \
     OODebugMonitor.m \
