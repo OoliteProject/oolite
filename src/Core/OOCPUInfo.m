@@ -108,28 +108,10 @@ NSUInteger OOCPUCount(void)
 #if OOLITE_WINDOWS
 NSString* operatingSystemFullVersion(void)
 {
-	typedef LONG NTSTATUS;
-#ifndef RTL_OSVERSIONINFOEXW // old MinGW headers may be missing this definition
-	typedef struct _RTL_OSVERSIONINFOEXW {
-		ULONG  dwOSVersionInfoSize;
-		ULONG  dwMajorVersion;
-		ULONG  dwMinorVersion;
-		ULONG  dwBuildNumber;
-		ULONG  dwPlatformId;
-		WCHAR  szCSDVersion[128];
-		USHORT  wServicePackMajor;
-		USHORT  wServicePackMinor;
-		USHORT  wSuiteMask;
-		UCHAR  wProductType;
-		UCHAR  wReserved;
-	} RTL_OSVERSIONINFOEXW, *PRTL_OSVERSIONINFOEXW;
-#endif
-	NTSTATUS (WINAPI *rtlGetVersion)(PRTL_OSVERSIONINFOEXW) = NULL; 
-	RTL_OSVERSIONINFOEXW osver = {0};
-	osver.dwOSVersionInfoSize = sizeof(osver);
+	OSVERSIONINFOW	osver;
 
-	rtlGetVersion = (NTSTATUS (WINAPI*)(PRTL_OSVERSIONINFOEXW))GetProcAddress(GetModuleHandle("ntdll.dll"), "RtlGetVersion");
-	if(rtlGetVersion)  rtlGetVersion(&osver);
+	osver.dwOSVersionInfoSize = sizeof(osver);
+	GetVersionExW (&osver);
 	
 	return [NSString stringWithFormat:@"%d.%d.%d %S", 
 			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, osver.szCSDVersion];
