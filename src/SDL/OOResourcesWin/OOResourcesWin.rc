@@ -1,0 +1,4 @@
+#include "OOResourcesWin.h"
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "oolite.exe.manifest"
+IDI_OOLITE ICON "installers/win32/oolite.ico"

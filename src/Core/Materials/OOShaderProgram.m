@@ -157,7 +157,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 #ifndef NDEBUG
 	if (EXPECT_NOT(sActiveProgram == self))
 	{
-		OOLog(@"shader.dealloc.imbalance", @"***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
+		OOLog(@"shader.dealloc.imbalance", @"%@", @"***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
 		[OOShaderProgram applyNone];
 	}
 #endif
@@ -303,8 +303,6 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	
 	self = [super init];
 	if (self == nil)  OK = NO;
-	
-	standardMatrixUniformLocations = nil;
 	
 	if (OK && vertexSource == nil && fragmentSource == nil)  OK = NO;	// Must have at least one shader!
 	

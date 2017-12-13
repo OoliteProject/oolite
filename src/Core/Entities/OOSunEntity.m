@@ -234,7 +234,7 @@ MA 02110-1301, USA.
 {
 	if (gDebugFlags & DEBUG_COLLISIONS)
 	{
-		OOLog(@"sun.collide", @"SUN Collision!");
+		OOLog(@"sun.collide", @"%@", @"SUN Collision!");
 	}
 	
 	return [super checkCloseCollisionWith:other];

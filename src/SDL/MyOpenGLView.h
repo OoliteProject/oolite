@@ -175,6 +175,7 @@ extern int debug;
 	BOOL				wasFullScreen;
 	BOOL				updateContext;
 	BOOL				saveSize;
+	BOOL				atDesktopResolution;
 	unsigned			keyboardMap;
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
@@ -219,10 +220,10 @@ extern int debug;
 - (void) initialiseGLWithSize:(NSSize) v_size;
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;
 - (BOOL) isRunningOnPrimaryDisplayDevice;
-- (BOOL) enableDPIAwareness;
 #if OOLITE_WINDOWS
 - (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
 - (MONITORINFOEX) currentMonitorInfo;
+- (BOOL) atDesktopResolution;
 #endif
 
 - (void) grabMouseInsideGameWindow:(BOOL) value;

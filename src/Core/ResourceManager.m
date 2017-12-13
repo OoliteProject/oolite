@@ -1032,12 +1032,12 @@ static NSMutableDictionary *sStringCache;
 	// test string
 	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_ALL])
 	{
-		OOLog(@"scenario.check",@"Checked scenario allowances in all state - this is an internal error; please report this");
+		OOLog(@"scenario.check", @"%@", @"Checked scenario allowances in all state - this is an internal error; please report this");
 		return YES;
 	}
 	if ([sUseAddOns isEqualToString:SCENARIO_OXP_DEFINITION_NONE])
 	{
-		OOLog(@"scenario.check",@"Checked scenario allowances in none state - this is an internal error; please report this");
+		OOLog(@"scenario.check", @"%@", @"Checked scenario allowances in none state - this is an internal error; please report this");
 		return NO;
 	}
 #endif

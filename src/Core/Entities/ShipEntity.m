@@ -288,13 +288,14 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	{
 		OOLog(@"ship.setup.injectorSpeed",@"injector_speed_factor cannot be higher than minimum torus speed factor (%f) for %@.",MIN_HYPERSPEED_FACTOR,self);
 		afterburner_speed_factor = MIN_HYPERSPEED_FACTOR;
+	}
 #else
 	else if (afterburner_speed_factor > HYPERSPEED_FACTOR)
 	{
 		OOLog(@"ship.setup.injectorSpeed",@"injector_speed_factor cannot be higher than torus speed factor (%f) for %@.",HYPERSPEED_FACTOR,self);
 		afterburner_speed_factor = HYPERSPEED_FACTOR;
-#endif
 	}
+#endif
 
 	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:200.0f];
 	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:1.0f];
@@ -8626,54 +8627,60 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) increase_flight_roll:(double) delta
 {
-	if (flightRoll < max_flight_roll)
-		flightRoll += delta;
+	flightRoll += delta;
 	if (flightRoll > max_flight_roll)
 		flightRoll = max_flight_roll;
+	else if (flightRoll < -max_flight_roll)
+		flightRoll = -max_flight_roll;
 }
 
 
 - (void) decrease_flight_roll:(double) delta
 {
-	if (flightRoll > -max_flight_roll)
-		flightRoll -= delta;
-	if (flightRoll < -max_flight_roll)
+	flightRoll -= delta;
+	if (flightRoll > max_flight_roll)
+		flightRoll = max_flight_roll;
+	else if (flightRoll < -max_flight_roll)
 		flightRoll = -max_flight_roll;
 }
 
 
 - (void) increase_flight_pitch:(double) delta
 {
-	if (flightPitch < max_flight_pitch)
-		flightPitch += delta;
+	flightPitch += delta;
 	if (flightPitch > max_flight_pitch)
 		flightPitch = max_flight_pitch;
+	else if (flightPitch < -max_flight_pitch)
+		flightPitch = -max_flight_pitch;
 }
 
 
 - (void) decrease_flight_pitch:(double) delta
 {
-	if (flightPitch > -max_flight_pitch)
-		flightPitch -= delta;
-	if (flightPitch < -max_flight_pitch)
+	flightPitch -= delta;
+	if (flightPitch > max_flight_pitch)
+		flightPitch = max_flight_pitch;
+	else if (flightPitch < -max_flight_pitch)
 		flightPitch = -max_flight_pitch;
 }
 
 
 - (void) increase_flight_yaw:(double) delta
 {
-	if (flightYaw < max_flight_yaw)
-		flightYaw += delta;
+	flightYaw += delta;
 	if (flightYaw > max_flight_yaw)
 		flightYaw = max_flight_yaw;
+	else if (flightYaw < -max_flight_yaw)
+		flightYaw = -max_flight_yaw;
 }
 
 
 - (void) decrease_flight_yaw:(double) delta
 {
-	if (flightYaw > -max_flight_yaw)
-		flightYaw -= delta;
-	if (flightYaw < -max_flight_yaw)
+	flightYaw -= delta;
+	if (flightYaw > max_flight_yaw)
+		flightYaw = max_flight_yaw;
+	else if (flightYaw < -max_flight_yaw)
 		flightYaw = -max_flight_yaw;
 }
 
@@ -9428,7 +9435,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (isPlayer)
 			{
 	#ifndef NDEBUG
-				OOLog(@"becomeExplosion.suspectedGhost.confirm", @"Ship spotted with isPlayer set when not actually the player.");
+				OOLog(@"becomeExplosion.suspectedGhost.confirm", @"%@", @"Ship spotted with isPlayer set when not actually the player.");
 	#endif
 				isPlayer = NO;
 			}
@@ -14504,7 +14511,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 	if (shipAI != nil && OOLogWillDisplayMessagesInClass(@"dumpState.shipEntity.ai"))
 	{
-		OOLog(@"dumpState.shipEntity.ai", @"AI:");
+		OOLog(@"dumpState.shipEntity.ai", @"%@", @"AI:");
 		OOLogPushIndent();
 		OOLogIndent();
 		@try

@@ -171,12 +171,14 @@ enum
 			_info.paleCloudColor = FloatRGBFromDictColor(planetInfo, @"polar_cloud_color");
 		}
 		
+		OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
+		
 #ifndef TEXGEN_TEST_RIG
-		if ([UNIVERSE detailLevel] < DETAIL_LEVEL_SHADERS || [planetInfo oo_boolForKey:@"isMiniature" defaultValue:NO])
+		if (detailLevel < DETAIL_LEVEL_SHADERS || [planetInfo oo_boolForKey:@"isMiniature" defaultValue:NO])
 		{
 			_planetScale = kPlanetScaleReducedDetail;
 		}
-		else if ([UNIVERSE detailLevel] == DETAIL_LEVEL_SHADERS)
+		else if (detailLevel == DETAIL_LEVEL_SHADERS)
 		{
 			_planetScale = kPlanetScaleFullDetail;
 		}
@@ -187,7 +189,7 @@ enum
 #else
 		_planetScale = kPlanetScale4096x4096;
 #endif
-		_info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:NO];
+		_info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:detailLevel > DETAIL_LEVEL_SHADERS];
 		_info.planetAspectRatio = _info.perlin3d ? 2 : 1;
 		_info.planetScaleOffset = 8 - _info.planetAspectRatio;
 	}
@@ -428,7 +430,12 @@ enum
 	float seaBias = _info.landFraction - 1.0f;
 	
 	_info.paleSeaColor = Blend(0.35f, _info.polarSeaColor, Blend(0.7f, _info.seaColor, _info.landColor));
-	float normalScale = 1 << _planetScale;
+	float normalScale = (1 << _planetScale)
+#ifndef NDEBUG
+						// test-release only, make normalScale adjustable from within user defaults
+						* [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"p3dnsf" defaultValue:1.0f]
+#endif
+						; // float normalScale = ...
 	if (!generateNormalMap)  normalScale *= 3.0f;
 	
 	// Deep sea colour: sea darker past the continental shelf.
@@ -953,31 +960,17 @@ static float SampleNoise3D(OOPlanetTextureGeneratorInfo *info, Vector p)
 }
 
 
-/*	Generate shuffled permutation order - each value from 0 to
-	kPermutationCount - 1 occurs exactly once. This shuffling provides all the
-	randomness in the resulting noise. Don't worry, though - for
-	kPermutationCount = 1024 this allows for 4e2567 different noise maps,
-	which is a lot more than RanRot will actually give us.
-*/
+//	Noise map generator
 static BOOL MakePermutationTable(OOPlanetTextureGeneratorInfo *info)
 {
 	uint16_t *perms = malloc(sizeof *info->permutations * kPermutationCount);
 	if (EXPECT_NOT(perms == NULL))  return NO;
 	
-	/*	Fisher-Yates/Durstenfeld/Knuth shuffle, "inside-out" variant.
-		Based on pseudocode from http://en.wikipedia.org/wiki/Fisher-Yates_shuffle
-		
-		When comparing to the pseudocode, note that it generates a one-based
-		series, but this version generates a zero-based series.
-	*/
 	perms[0] = 0;
-	uint16_t *curr = perms;
 	uint16_t n;
 	for (n = 1; n < kPermutationCount; n++)
 	{
-		uint16_t j = RanrotWithSeed(&info->seed) & kPermutationMask;
-		*++curr = perms[j];
-		perms[j] = n - 1;
+		perms[n] = RanrotWithSeed(&info->seed) & kPermutationMask;
 	}
 	
 	info->permutations = perms;

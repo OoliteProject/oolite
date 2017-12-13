@@ -114,7 +114,7 @@ NSString* operatingSystemFullVersion(void)
 	GetVersionExW (&osver);
 	
 	return [NSString stringWithFormat:@"%d.%d.%d %S", 
-				osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, osver.szCSDVersion];
+			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, osver.szCSDVersion];
 }
 
 /*

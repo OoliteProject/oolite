@@ -2,7 +2,7 @@
 # DeploymentToTestReleaseUpdater.nsi
 
 # Oolite
-# Copyright (C) 2004-2013 Giles C Williams and contributors
+# Copyright (C) 2004-2017 Giles C Williams and contributors
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -41,15 +41,15 @@ SetCompressor LZMA
 # Always ensure that these are correct for the version we are updating!
 # The parameters must be defined on the command line when calling makensis.
 !ifndef OOVERSION
-!error "OOVERSION not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64] DeploymentToTestReleaseUpdater.nsi"
+!error "OOVERSION not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBITNESS=[32|64] DeploymentToTestReleaseUpdater.nsi"
 !endif
 
 !ifndef OOLITEDEPLOYMENTSIZE
-!error "OOLITEDEPLOYMENTSIZE not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64]"
+!error "OOLITEDEPLOYMENTSIZE not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBITNESS=[32|64]"
 !endif
 
 !ifndef OOBITNESS
-!error "OOBITNESS not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBTINESS=[32|64]"
+!error "OOBITNESS not set - use makensis /DOOVERSION=<Maj.Min> /DOOLITEDEPLOYMENTSIZE=<bytes> /DOOBITNESS=[32|64]"
 !endif
 # -------------------------------------------------------------------------
 

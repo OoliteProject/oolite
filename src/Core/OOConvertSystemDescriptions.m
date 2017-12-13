@@ -57,7 +57,7 @@ void CompileSystemDescriptions(BOOL asXML)
 												   andMerge:NO];
 	if (sysDescDict == nil)
 	{
-		OOLog(@"sysdesc.compile.failed.fileNotFound", @"Could not load a dictionary from sysdesc.plist, ignoring --compile-sysdesc option.");
+		OOLog(@"sysdesc.compile.failed.fileNotFound", @"%@", @"Could not load a dictionary from sysdesc.plist, ignoring --compile-sysdesc option.");
 		return;
 	}
 	
@@ -69,7 +69,7 @@ void CompileSystemDescriptions(BOOL asXML)
 	sysDescArray = OOConvertSystemDescriptionsToArrayFormat(sysDescDict, keyMap);
 	if (sysDescArray == nil)
 	{
-		OOLog(@"sysdesc.compile.failed.conversion", @"Could not convert sysdesc.plist to descriptions.plist format for some reason.");
+		OOLog(@"sysdesc.compile.failed.conversion", @"%@", @"Could not convert sysdesc.plist to descriptions.plist format for some reason.");
 		return;
 	}
 	
@@ -94,11 +94,11 @@ void CompileSystemDescriptions(BOOL asXML)
 	
 	if ([ResourceManager writeDiagnosticData:data toFileNamed:@"sysdesc-compiled.plist"])
 	{
-		OOLog(@"sysdesc.compile.success", @"Wrote translated sysdesc.plist to sysdesc-compiled.plist.");
+		OOLog(@"sysdesc.compile.success", @"%@", @"Wrote translated sysdesc.plist to sysdesc-compiled.plist.");
 	}
 	else
 	{
-		OOLog(@"sysdesc.compile.failed.writeFailure", @"Could not write translated sysdesc.plist to sysdesc-compiled.plist.");
+		OOLog(@"sysdesc.compile.failed.writeFailure", @"%@", @"Could not write translated sysdesc.plist to sysdesc-compiled.plist.");
 	}
 }
 
@@ -121,7 +121,7 @@ void ExportSystemDescriptions(BOOL asXML)
 	sysDescDict = OOConvertSystemDescriptionsToDictionaryFormat(sysDescArray, keyMap);
 	if (sysDescArray == nil)
 	{
-		OOLog(@"sysdesc.export.failed.conversion", @"Could not convert system_description do sysdesc.plist format for some reason.");
+		OOLog(@"sysdesc.export.failed.conversion", @"%@", @"Could not convert system_description do sysdesc.plist format for some reason.");
 		return;
 	}
 	
@@ -144,11 +144,11 @@ void ExportSystemDescriptions(BOOL asXML)
 	
 	if ([ResourceManager writeDiagnosticData:data toFileNamed:@"sysdesc.plist"])
 	{
-		OOLog(@"sysdesc.export.success", @"Wrote translated system_description to sysdesc.plist.");
+		OOLog(@"sysdesc.export.success", @"%@", @"Wrote translated system_description to sysdesc.plist.");
 	}
 	else
 	{
-		OOLog(@"sysdesc.export.failed.writeFailure", @"Could not write translated system_description to sysdesc.plist.");
+		OOLog(@"sysdesc.export.failed.writeFailure", @"%@", @"Could not write translated system_description to sysdesc.plist.");
 	}
 }
 

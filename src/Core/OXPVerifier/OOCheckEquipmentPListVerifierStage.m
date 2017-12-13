@@ -78,7 +78,7 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 	// Check that it's an array
 	if (![equipmentPList isKindOfClass:[NSArray class]])
 	{
-		OOLog(@"verifyOXP.equipmentPList.notArray", @"***** ERROR: equipment.plist is not an array.");
+		OOLog(@"verifyOXP.equipmentPList.notArray", @"%@", @"***** ERROR: equipment.plist is not an array.");
 		return;
 	}
 	

@@ -53,9 +53,12 @@ SOFTWARE.
 			[self release];
 			self = nil;
 		}
-		// sources are all relative to listener, defaulting to zero vector
-		OOAL(alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE));
-		OOAL(alSource3f(_source, AL_POSITION, 0.0f, 0.0f, 0.0f));
+		else
+		{
+			// sources are all relative to listener, defaulting to zero vector
+			OOAL(alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE));
+			OOAL(alSource3f(_source, AL_POSITION, 0.0f, 0.0f, 0.0f));
+		}
 	}
 	return self;
 }

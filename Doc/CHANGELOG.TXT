@@ -3,25 +3,32 @@ Changes between Oolite 1.84 and Oolite 1.86:
 General:
 ========
 * Added number of jumps to route information on F6 and F7 screens
-* Reinstated rotational velocity also for base entities
+* Reinstated rotational velocity also for base entities.
 * SDL builds: Expansion Pack Manager can now download OXZs from HTTPS
-  addresses
+  addresses.
 * Economy, government and Tech Level icons added to commander load
-  screen information
-* Default sound volume is now set to mid-scale rather than full-scale
+  screen information.
+* Default sound volume is now set to mid-scale rather than full-scale.
 * Shader now used for rendering planet atmospheres. Old style atmos
   are still available at detail levels less than Extra Detail or if
-  the newly introduced shader is not found or fails to compile
+  the newly introduced shader is not found or fails to compile.
 * -nosound command line parameter now available for those who want
-  their game to be silent
+  their game to be silent.
 * Page Up and Page Down keys are now used on all screens that can have
   more than one page of information.
 * Mouse wheel can now be used to control speed when mouse control is on
 * Easy start scenario added - start at Tionisla with Cobra MkIII and
-  1000Cr
-* Oolite is now DPI-aware on Windows
+  1000Cr.
+* Oolite is now DPI-aware on Windows.
 * Default ambient light level is now set to 0.25 for all core systems
-* Planets can now use Perlin3D textures for improved appearance
+* Improved planets surface appearance using Perlin3D textures when the 
+  in-game option Graphic Detail is set to Extra Detail.
+* SDL builds: Max supported resolution upped to 7680x4320. 8K-ready.
+* OSX port: Entering the OXZ info screen in the OXZ Manager copies
+  the OXZ's info URL to clipboard automatically.
+* Test Release builds: The planet's relief intensity can now be
+  adjusted using the user defaults "p3dnsf" key, which takes a float
+  value. Default is 1.0.
 
 Expansion pack development:
 ===========================
@@ -32,22 +39,22 @@ Modified Plists:
   for controlling the layout of information on the F7 system data screen.
 * hud.plist: In the drawTargetReticle: selector section, the keys
   target_rgba, target_sensitive_rgba and wormhole_rgba can be used to set
-  the target reticle colors for standard targets and wormholes
+  the target reticle colors for standard targets and wormholes.
 * hud.plist: In the message_gui section, text_color and text_comms_color
   can be used to set the color of standard and communication gui messages
-  respectively
+  respectively.
 * hud.plist: In the message_gui section, background_rgba can now set the
-  background color of the message gui area
+  background color of the message gui area.
 * hud.plist: In the message_gui section, background_automatic can now be
   used to define the behaviour of the message gui. Default is yes, which
   makes the background fade out together with the messages. If set to no,
-  the background persists while on in-flight screens
+  the background persists while on in-flight screens.
 * hud.plist: In the drawWeaponsOfflineText: selector section, the key
-  rgb_color can be used to set the color of the Weapons Offline text
+  rgb_color can be used to set the color of the Weapons Offline text.
 * hud.plist: In the drawFPSInfoCounter: selector section, the key
-  rgb_color can be used to set the color of the FPS and objects info text
+  rgb_color can be used to set the color of the FPS and objects info text.
 * planetinfo.plist: The boolean key perlin_3d can be used for each system
-  to determine whether a Perlin3D or a normal texture will be used for it
+  to determine whether a Perlin3D or a normal texture will be used for it.
 * equipment.plist: A "display_color" property has been added, which 
   controls the color used to display this item on the Ship Outfitting and
   Status screens.
@@ -88,6 +95,7 @@ Scripting:
 * player.ship.setPrimedEquipment method now available.
 * weaponsSystemsToggled script event handler. Takes the new weapons
   state as argument.
+* player.ship.compassTarget is now a read/write property.
 * EquipmentInfo.infoForKey().displayColor can read and write the display
   color used to display equipment items on the ship outfitting and status
   screens.
@@ -97,48 +105,55 @@ Scripting:
 
 Bug fixes:
 ==========
-* Fixed Advanced Space Compass not breaking when damaged
-* Fixed fee column alignment in passenger and parcel contract screens
+* Fixed Advanced Space Compass not breaking when damaged.
+* Fixed fee column alignment in passenger and parcel contract screens.
 * Fixed weird behaviour when a startup scenario planet name could not be found
-  in planetinfo.plist
-* Fixed custom population description duplication in system data screen
-* Fixed exception when accessing shipyard in interstellar space
-* Fixed equivalentTechLevel sometimes returning NSNotFound
-* Fixed MFDs resetting to number 1 when a HUD change occurred
+  in planetinfo.plist.
+* Fixed custom population description duplication in system data screen.
+* Fixed exception when accessing shipyard in interstellar space.
+* Fixed equivalentTechLevel sometimes returning NSNotFound.
+* Fixed MFDs resetting to number 1 when a HUD change occurred.
 * Fixed exception when accessing the market screen while docked in
-  interstellar space
+  interstellar space.
 * Fixed event order - now playerEnteredNewGalaxy is executed correctly before
-  shipWillExitWitchspace
-* Fixed broken concealment behaviour
+  shipWillExitWitchspace.
+* Fixed broken concealment behaviour.
 * Fixed native exception when a commander dictionary was requested while not
-  docked
-* Linux builds: Fixed freezes when using GNUstep 1.24.9 or later
-* Fixed adjacent systems distances not being equal on F6 and F7 screens
+  docked.
+* Linux builds: Fixed freezes when using GNUstep 1.24.9 or later.
+* Fixed adjacent systems distances not being equal on F6 and F7 screens.
 * Fixed planet strings searching not targeting found planets and inability to
-  use Alt + arrows during planet string search
-* Fixed crash due to uninitialized missile_list (issue #204)
+  use Alt + arrows during planet string search.
+* Fixed crash due to uninitialized missile_list (issue #204).
 * Fixed issue where, when there is more than one page of ships available on the
   Ships For Sale screen, and the display is moved back one page, information
   for the first ship on the page will be displayed, even though the "More"
   item is actually the selected item.
 * Fixed mouse control issues where mouse was not reset properly when external
-  camera was toggled on and off (issue #237)
+  camera was toggled on and off (issue #237).
 * Fixed light color on the system data screen being that of the current system
-  than that of the system shown (issue #239)
+  than that of the system shown (issue #239).
 * Fixed awarding bounty even when the player died while trying (e.g. when
-  crashing into an asteroid)
+  crashing into an asteroid).
 * noteGuiWillChange notification is now emitted also when going to short and
-  long range chart screens (issue #233)
+  long range chart screens (issue #233).
 * Windows port: Fixed broken first-time window resize when starting the game
-  with -nosplash
-* Fixed crash in JavaScript profiler
+  with -nosplash.
+* Fixed crash in JavaScript profiler.
 * Fixed bogus warning about not setting v-sync even when v-sync was corrrectly
-  set
+  set.
 * Fixed potential mode duplication in screen modes list, which in some cases
   could result in not being able to select desired fullscreen resolution
-  properly
-* Fixed nova screen backgrounds when traversing route (issue #225)
-* Fixed clouds not being drawn on the system data sceen
+  properly.
+* Fixed nova screen backgrounds when traversing route (issue #225).
+* Fixed clouds not being drawn on the system data sceen.
+* Windows port: Reset to desktop resolution is now forced on exit, if the game
+  was run fullscreen and in a resolution different to that of the desktop.
+* OSX port: Fixed broken target reticle direction cue indicator.
+* OSX port: Mouse can now be reset.
+* Route is not calculated on every frame now when on the Chart screens; it is
+  calculated only when the departure system, destination system or Advanced
+  Navigation Array mode change.
 
 -------------------------------------------------------------------------------
 
