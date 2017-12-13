@@ -178,6 +178,8 @@
 	"oolite-primablemanager-interface-title" = "Manage primable equipment";
 	"oolite-primablemanager-interface-category" = "[interfaces-category-ship-systems]";
 	"oolite-primablemanager-interface-summary" = "Assign primable equipment fitted to your ship to the two fast activation controls, for easy access in emergencies.";
+	"oolite-primablemanager-next" = "Next page";
+	"oolite-primablemanager-previous" = "Previous page";
 
 	"oolite-primablemanager-page1-title" = "Set first fast activation (defensive)";
 	"oolite-primablemanager-page2-title" = "Set second fast activation (offensive)";
