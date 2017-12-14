@@ -176,7 +176,6 @@ this._equipmentChoices = function(current) {
 			}
 		}
 	}
-	
 	for (var i=start;i<=end;i++)
 	{
 		choice = {
@@ -204,8 +203,8 @@ this._equipmentChoices = function(current) {
 	{
 		choice = {
 			text: expandMissionText("oolite-primablemanager-next"), 
-			selectable:(end < equipment.length ? true : false), 
-			color:(end < equipment.length ? "yellowColor" : "grayColor")
+			selectable:(end < equipment.length - 1 ? true : false), 
+			color:(end < equipment.length - 1 ? "yellowColor" : "grayColor")
 		};
 		choices["ZZZZZZZ_OOLITE_1_NEXT"] = choice;
 		choice = {
