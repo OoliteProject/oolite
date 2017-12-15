@@ -204,13 +204,13 @@ this._equipmentChoices = function(current) {
 		choice = {
 			text: expandMissionText("oolite-primablemanager-next"), 
 			unselectable: end >= equipment.length - 1, 
-			color:(end < equipment.length - 1 ? "yellowColor" : "grayColor")
+			color: end >= equipment.length - 1 ? "grayColor" : "yellowColor"
 		};
 		choices["ZZZZZZZ_OOLITE_1_NEXT"] = choice;
 		choice = {
 			text: expandMissionText("oolite-primablemanager-previous"), 
 			unselectable: start <= 0, 
-			color:(start > 0 ? "yellowColor" : "grayColor")
+			color: start <= 0 ? "grayColor" : "yellowColor"
 		};
 		choices["ZZZZZZZ_OOLITE_2_PREV"] = choice;
 	}
