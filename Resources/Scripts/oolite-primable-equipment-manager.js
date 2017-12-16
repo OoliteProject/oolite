@@ -37,6 +37,7 @@ this.name			= "oolite-primable-equipment-register";
 this.author			= "cim";
 this.copyright		= "© 2008-2013 the Oolite team.";
 
+this.$page = 0;
 
 this.startUpComplete = this.shipDockedWithStation = this.playerBoughtNewShip = function()
 {
@@ -142,7 +143,40 @@ this._equipmentChoices = function(current) {
 	var equipment = this._equipmentWithScripts();
 	var chosen = false;
 	var choice;
-	for (var i=0;i<equipment.length;i++)
+
+	var rows = this._calculateRows() - 3; // 1 for text line, 1 for "select none", 1 for space
+	var addNextPrev = false;
+	if (equipment.length > (rows - 2)) 
+	{
+		addNextPrev = true;
+		rows -= 2;
+	}
+	var start = (this.$page * rows);
+	var end = (start + rows) - 1;
+	if (end > equipment.length - 1) end = equipment.length - 1;
+
+	// work out if the currently selected item is not visible on the current page and make sure it's always visible
+	if (addNextPrev === true) {
+		for (var i = 0; i < equipment.length; i++) 
+		{
+			if (equipment[i].equipmentKey == current) 
+			{
+				if (i < start || i > end) {
+					choice = {
+						text: equipment[i].name
+					}
+					if (equipment[i].equipmentKey == current)
+					{
+						choice.color = "greenColor";
+						choice.text += " "+expandMissionText("oolite-primablemanager-selected-text");
+						chosen = true;
+					}
+					choices[equipment[i].equipmentKey] = choice;
+				}
+			}
+		}
+	}
+	for (var i=start;i<=end;i++)
 	{
 		choice = {
 			text: equipment[i].name
@@ -164,6 +198,22 @@ this._equipmentChoices = function(current) {
 		choice.text += " "+expandMissionText("oolite-primablemanager-selected-text");
 	}
 	choices["ZZZZZZ_OOLITE_EQ_NONE"] = choice;
+
+	if (addNextPrev) 
+	{
+		choice = {
+			text: expandMissionText("oolite-primablemanager-next"), 
+			unselectable: end >= equipment.length - 1, 
+			color: end >= equipment.length - 1 ? "grayColor" : "yellowColor"
+		};
+		choices["ZZZZZZZ_OOLITE_1_NEXT"] = choice;
+		choice = {
+			text: expandMissionText("oolite-primablemanager-previous"), 
+			unselectable: start <= 0, 
+			color: start <= 0 ? "grayColor" : "yellowColor"
+		};
+		choices["ZZZZZZZ_OOLITE_2_PREV"] = choice;
+	}
 
 	return choices;
 }
@@ -191,9 +241,22 @@ this._configurePrimableEquipment = function()
 
 this._configureStage2 = function(choice)
 {
-	if (choice != "") 
+	if (choice === "ZZZZZZZ_OOLITE_1_NEXT") 
+	{
+		this.$page++;
+		this._configurePrimableEquipment();
+		return;
+	}
+	if (choice === "ZZZZZZZ_OOLITE_2_PREV")
+	{
+		this.$page--;
+		this._configurePrimableEquipment();
+		return;
+	}
+	if (choice != "" && choice != null) 
 	{
 		player.ship.fastEquipmentA = choice;
+		this.$page = 0;
 	}
 	mission.runScreen({
 		titleKey: "oolite-primablemanager-page2-title",
@@ -207,9 +270,22 @@ this._configureStage2 = function(choice)
 
 this._configureStage3 = function(choice)
 {
-	if (choice != "") 
+	if (choice === "ZZZZZZZ_OOLITE_1_NEXT") 
+	{
+		this.$page++;
+		this._configureStage2();
+		return;
+	}
+	if (choice === "ZZZZZZZ_OOLITE_2_PREV")
+	{
+		this.$page--;
+		this._configureStage2();
+		return;
+	}
+	if (choice != "" && choice != null) 
 	{
 		player.ship.fastEquipmentB = choice;
+		this.$page = 0;
 	}
 	var message = expandMissionText("oolite-primablemanager-completed",{
 		"oolite-primable-a" : this._nameEquipment(player.ship.fastEquipmentA),
@@ -222,4 +298,19 @@ this._configureStage3 = function(choice)
 		exitScreen: "GUI_SCREEN_INTERFACES",
 		screenID: "oolite-primablemanager"
 	});
+}
+
+this._calculateRows = function() {
+	var p = player.ship;
+	var reset = false;
+	if (p.hudHidden === true) {
+		reset = true;
+		p.hudHidden = false;
+	}
+	var check = p.hudAllowsBigGui;
+	if (reset === true) p.hudHidden = true;
+	if (check) {
+		return 27;
+	}
+	return 21;
 }
