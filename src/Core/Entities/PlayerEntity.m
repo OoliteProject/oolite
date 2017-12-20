@@ -537,15 +537,48 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (OOScalar) chart_zoom
 {
-	if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
+	if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT ||
+		_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST ||
+		_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST)
 	{
 		return 1.0;
 	}
-	else if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG)
+	else if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST)
 	{
 		return CHART_MAX_ZOOM;
 	}
+	else if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST)
+	{
+		return custom_chart_zoom;
+	}
 	return chart_zoom;
+}
+
+- (OOScalar) custom_chart_zoom
+{
+	return custom_chart_zoom;
+}
+
+- (void) setCustomChartZoom:(OOScalar)zoom
+{
+	custom_chart_zoom = zoom;
+}
+
+
+- (NSPoint) custom_chart_centre_coordinates
+{
+	return custom_chart_centre_coordinates;
+}
+
+
+- (void) setCustomChartCentre:(NSPoint)coords
+{
+	custom_chart_centre_coordinates.x = coords.x;
+	custom_chart_centre_coordinates.y = coords.y;
 }
 
 
@@ -555,15 +588,24 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	double scroll_pos;	// cursor coordinate at which we'd want to scoll chart in the direction we're currently considering
 	double ecc;		// chart centre coordinate we'd want if the cursor was on the edge of the galaxy in the current direction
 
-	if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT)
+	if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT ||
+		_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST || 
+		_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST)
 	{
 		return galaxy_coordinates;
 	}
-	else if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG)
+	else if(_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_QUICKEST ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_LONG_ANA_SHORTEST)
 	{
 		return NSMakePoint(128.0, 128.0);
 	}
-
+	else if (_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST ||
+			_missionBackgroundSpecial == GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST)
+	{
+		return custom_chart_centre_coordinates;
+	}
 	// When fully zoomed in we want to centre chart on chart_centre_coordinates.  When zoomed out we want the chart centred on
 	// (128.0, 128.0) so the galaxy fits the screen width.  For intermediate zoom we interpolate.
 	acc.x = chart_centre_coordinates.x + (128.0 - chart_centre_coordinates.x) * (chart_zoom - 1.0) / (CHART_MAX_ZOOM - 1.0);
@@ -1319,6 +1361,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		}
 	}
 	
+	custom_chart_zoom = 1.0;
+	custom_chart_centre_coordinates = NSMakePoint(galaxy_coordinates.y, galaxy_coordinates.y);
+
 	/*	Energy bombs are no longer supported without OXPs. As compensation,
 		we'll award either a Q-mine or some cash. We can't determine what to
 		award until we've handled missiles later on, though.
@@ -12389,6 +12434,54 @@ static NSString *last_outfitting_key=nil;
 	{
 		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT;
 	}
+	else if ([special isEqualToString:@"SHORT_RANGE_CHART_SHORTEST"])
+	{
+		if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT_ANA_SHORTEST;
+		}
+		else
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT;
+		}
+	}
+	else if ([special isEqualToString:@"SHORT_RANGE_CHART_QUICKEST"])
+	{
+		if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT_ANA_QUICKEST;
+		}
+		else
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_SHORT;
+		}
+	} 
+	else if ([special isEqualToString:@"CUSTOM_CHART"])
+	{
+		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM;
+	}
+	else if ([special isEqualToString:@"CUSTOM_CHART_SHORTEST"])
+	{
+		if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_SHORTEST;
+		}
+		else
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM;
+		}
+	}
+	else if ([special isEqualToString:@"CUSTOM_CHART_QUICKEST"])
+	{
+		if ([self hasEquipmentItemProviding:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM_ANA_QUICKEST;
+		}
+		else
+		{
+			_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_CUSTOM;
+		}
+	} 
 	else if ([special isEqualToString:@"LONG_RANGE_CHART"])
 	{
 		_missionBackgroundSpecial = GUI_BACKGROUND_SPECIAL_LONG;
