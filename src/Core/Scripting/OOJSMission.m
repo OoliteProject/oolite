@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
 #import "OOConstToJSString.h"
+#import "OOJSVector.h"
 
 #import "OOJSPlayer.h"
 #import "PlayerEntityScriptMethods.h"
@@ -571,6 +572,51 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	[player setMissionOverlayDescriptor:GetParameterImageDescriptor(context, params, "overlay")];
 	[player setMissionBackgroundDescriptor:GetParameterImageDescriptor(context, params, "background")];
 	[player setMissionBackgroundSpecial:GetParameterString(context, params, "backgroundSpecial")];
+
+	if (JS_GetProperty(context, params, "customChartZoom", &value) && !JSVAL_IS_VOID(value))
+	{
+		jsdouble zoom;
+		if (JS_ValueToNumber(context, value, &zoom))
+		{
+			if (zoom >= 1 && zoom <= CHART_MAX_ZOOM)
+			{
+				[player setCustomChartZoom:zoom];
+			}
+			else 
+			{
+				OOJSReportWarning(context, @"Mission.runScreen: invalid customChartZoom value specified.");
+				[player setCustomChartZoom:1];
+			}
+		}
+	}
+	if (JS_GetProperty(context, params, "customChartCentre", &value) && !JSVAL_IS_VOID(value))
+	{
+		Vector vValue;
+		if (JSValueToVector(context, value, &vValue))
+		{
+			NSPoint coords = { vValue.x, vValue.y };
+			[player setCustomChartCentre:coords];
+		}
+		else 
+		{
+			[player setCustomChartCentre:[player galaxy_coordinates]];
+			OOJSReportWarning(context, @"Mission.runScreen: invalid value for customChartCentre. Must be valid vector. Defaulting to current location.");
+		}
+	}
+	if (JS_GetProperty(context, params, "customChartCentreInLY", &value) && !JSVAL_IS_VOID(value))
+	{
+		Vector vValue;
+		if (JSValueToVector(context, value, &vValue))
+		{
+			NSPoint coords = OOInternalCoordinatesFromGalactic(vValue);
+			[player setCustomChartCentre:coords];
+		}
+		else 
+		{
+			[player setCustomChartCentre:[player galaxy_coordinates]];
+			OOJSReportWarning(context, @"Mission.runScreen: invalid value for customChartCentreInLY. Must be valid vector. Defaulting to current location.");
+		}
+	}
 
 	[UNIVERSE removeDemoShips];	// remove any demoship or miniature planet that may be remaining from previous screens
 	

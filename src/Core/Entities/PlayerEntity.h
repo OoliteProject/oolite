@@ -487,12 +487,14 @@ typedef enum
 	NSPoint					cursor_coordinates;
 	NSPoint					chart_focus_coordinates;
 	NSPoint					chart_centre_coordinates;
+	NSPoint					custom_chart_centre_coordinates;
 	// where we want the chart centre to be - used for smooth transitions
 	NSPoint					target_chart_centre;
 	NSPoint					target_chart_focus;
 	// Chart zoom is 1.0 when fully zoomed in and increases as we zoom out.  The reason I've done it that way round
 	// is because we might want to implement bigger galaxies one day, and thus may need to zoom out indefinitely.
 	OOScalar				chart_zoom;
+	OOScalar				custom_chart_zoom;
 	OOScalar				target_chart_zoom;
 	OOScalar				saved_chart_zoom;
 	OORouteType				ANA_mode;
@@ -772,9 +774,13 @@ typedef enum
 - (OOGalaxyID) galaxyNumber;
 - (NSPoint) galaxy_coordinates;
 - (void) setGalaxyCoordinates:(NSPoint)newPosition;
+- (void) setCustomChartCentre:(NSPoint)coords;
 - (NSPoint) cursor_coordinates;
 - (NSPoint) chart_centre_coordinates;
+- (NSPoint) custom_chart_centre_coordinates;
 - (OOScalar) chart_zoom;
+- (OOScalar) custom_chart_zoom;
+- (void) setCustomChartZoom:(OOScalar)zoom;
 - (NSPoint) adjusted_chart_centre;
 - (OORouteType) ANAMode;
 
