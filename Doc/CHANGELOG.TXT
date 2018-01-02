@@ -1,3 +1,38 @@
+Changes between Oolite 1.86 and Oolite 1.88:
+
+General:
+========
+* Improved planet lighting to make planets look more like spheres.
+* Windows DPI awareness applied to all monitors.
+
+Expansion pack development:
+===========================
+
+Modified Plists:
+----------------
+Scripting:
+----------
+* New mission screen properties:
+  "customChartZoom" sets the zoom level of a CUSTOM_CHART, must be between
+  1 and 4.
+  "customChartCentre" and "customChartCentreInLY" sets the centrepoint for 
+  a CUSTOM_CHART.
+* New "backgroundSpecial" options for mission screens:
+  "SHORT_RANGE_CHART_SHORTEST" to show the shortest distance between the 
+  current system and destination. ANA equipment required.
+  "SHORT_RANGE_CHART_QUICKEST" to show the quickest distnace between the 
+  current system and destination. ANA equipment required.
+  "CUSTOM_CHART", "CUSTOM_CHART_SHORTEST", "CUSTOM_CHART_QUICKEST" displays a 
+  custom chart, based on the customChartZoom and customChartCentre 
+  properties. ANA equipment required for "SHORTEST" and "QUICKEST" options.
+
+Bug fixes:
+==========
+* Fixed issue with the primable equipment manager not being able to handle
+  more than 21 items.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.84 and Oolite 1.86:
 
 General:
