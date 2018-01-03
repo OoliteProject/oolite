@@ -2,7 +2,7 @@
 # DeploymentToTestReleaseUpdater.nsi
 
 # Oolite
-# Copyright (C) 2004-2017 Giles C Williams and contributors
+# Copyright (C) 2004-2018 Giles C Williams and contributors
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -66,7 +66,7 @@ RequestExecutionLevel user ;Require normal user rights on NT6+ (When UAC is turn
 
 VIAddVersionKey "ProductName" "Oolite Deployment to Test Release Updater"
 VIAddVersionKey "FileDescription" "Oolite Deployment -> Test Release (${OOBITNESS}-bit)"
-VIAddVersionKey "LegalCopyright" "© 2003-2017 Giles Williams, Jens Ayton and contributors"
+VIAddVersionKey "LegalCopyright" "© 2003-2018 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "1.0.0.0"
 VIAddVersionKey "ProductVersion" "${OOVERSION}"
 VIProductVersion "1.0.0.0"
@@ -74,7 +74,7 @@ VIProductVersion "1.0.0.0"
  
 InstallDir "C:\${COMPANYNAME}"
 InstallButtonText "Update"
-BrandingText "(C) 2003-2017 Giles Williams, Jens Ayton and contributors"
+BrandingText "(C) 2003-2018 Giles Williams, Jens Ayton and contributors"
 DirText "This application will update an existing ${OOBITNESS}-bit Oolite v${OOVERSION}$\n\
 		Deployment configuration installation to a Test Release$\n\
 		type one. Please select the root folder where the existing$\n\
