@@ -109,12 +109,25 @@ NSUInteger OOCPUCount(void)
 NSString* operatingSystemFullVersion(void)
 {
 	OSVERSIONINFOW	osver;
+	DWORD			UBRValue = 0;
 
 	osver.dwOSVersionInfoSize = sizeof(osver);
 	GetVersionExW (&osver);
 	
-	return [NSString stringWithFormat:@"%d.%d.%d %S", 
-			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, osver.szCSDVersion];
+	// get the Update Build Revision from the Registry
+	HKEY hKey;
+	if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+	{
+		DWORD dwUBRSize = sizeof(DWORD);
+		DWORD dwUBR = 0;
+		if (RegQueryValueEx(hKey,"UBR", NULL, NULL, (BYTE*)&dwUBR, &dwUBRSize) == ERROR_SUCCESS)
+		{
+			UBRValue = dwUBR;
+		}
+	}
+	
+	return [NSString stringWithFormat:@"%d.%d.%d.%d %S", 
+			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, UBRValue, osver.szCSDVersion];
 }
 
 /*
