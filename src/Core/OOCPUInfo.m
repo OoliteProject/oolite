@@ -109,7 +109,7 @@ NSUInteger OOCPUCount(void)
 NSString* operatingSystemFullVersion(void)
 {
 	OSVERSIONINFOW	osver;
-	DWORD			UBRValue = 0;
+	char				outUBRString[65] = "";
 
 	osver.dwOSVersionInfoSize = sizeof(osver);
 	GetVersionExW (&osver);
@@ -122,12 +122,15 @@ NSString* operatingSystemFullVersion(void)
 		DWORD dwUBR = 0;
 		if (RegQueryValueEx(hKey,"UBR", NULL, NULL, (BYTE*)&dwUBR, &dwUBRSize) == ERROR_SUCCESS)
 		{
-			UBRValue = dwUBR;
+			char strUBR[64] = "";
+			ltoa(dwUBR, strUBR, 10);
+			strcpy(outUBRString, ".");
+			strcat(outUBRString, strUBR);
 		}
 	}
 	
-	return [NSString stringWithFormat:@"%d.%d.%d.%d %S", 
-			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, UBRValue, osver.szCSDVersion];
+	return [NSString stringWithFormat:@"%d.%d.%d%s %S", 
+			osver.dwMajorVersion, osver.dwMinorVersion, osver.dwBuildNumber, outUBRString, osver.szCSDVersion];
 }
 
 /*
