@@ -33,7 +33,8 @@
 	long_range_chart8	= "long-range-chart8.png";	// if not defined, same as long_range_chart
 
   short_range_chart_mission = "short-range-chart-mission.png"; // if not defined, same as short_range_chart
-  long_range_chart_mission = "long-range-chart-mission.png"; // if not defined, same as long_range_chart
+  custom_chart_mission      = "custom-chart-mission.png";     // if not defined, same as short_range_chart_mission and then short_range_chart
+  long_range_chart_mission  = "long-range-chart-mission.png"; // if not defined, same as long_range_chart
   long_range_chart1_mission = "long-range-chart-mission.png"; // if not defined, same as long_range_chart_mission and then long_range_chart1
   long_range_chart2_mission = "long-range-chart-mission.png"; // if not defined, same as long_range_chart_mission and then long_range_chart2
   long_range_chart3_mission = "long-range-chart-mission.png"; // if not defined, same as long_range_chart_mission and then long_range_chart3

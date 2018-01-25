@@ -1045,7 +1045,11 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 			bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"custom_chart_mission"];
 			if (bgDescriptor == nil) 
 			{
-				bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"short_range_chart"];
+				bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"short_range_chart_mission"];
+				if (bgDescriptor == nil) 
+				{
+					bgDescriptor = [UNIVERSE screenTextureDescriptorForKey:@"short_range_chart"];
+				}
 			}
 			break;
 		case GUI_BACKGROUND_SPECIAL_SHORT:
