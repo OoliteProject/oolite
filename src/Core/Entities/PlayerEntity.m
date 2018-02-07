@@ -2484,11 +2484,161 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
     port_weapon_temp = fdim(port_weapon_temp, coolAmount);
     starboard_weapon_temp = fdim(starboard_weapon_temp, coolAmount);
 
-    // update shot times.
-    forward_shot_time += delta_t;
-    aft_shot_time += delta_t;
-    port_shot_time += delta_t;
-    starboard_shot_time += delta_t;
+			[self setDockTarget:[UNIVERSE station]];
+			// send world script events to let oxps know we're in a new system.
+			// all player.ship properties are still disabled at this stage.
+			[UNIVERSE setWitchspaceBreakPattern:YES];
+			[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
+			[self doScriptEvent:OOJSID("shipExitedWitchspace")];
+			
+			[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
+			[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
+		}
+		
+		Entity	*dockTargetEntity = [UNIVERSE entityForUniversalID:_dockTarget];	// main station in the original system, unless overridden.
+		if ([dockTargetEntity isStation]) // fails if _dockTarget is NO_TARGET
+		{
+			[doppelganger becomeExplosion];	// blow up the doppelganger
+			// restore player ship
+			ShipEntity *player_ship = [UNIVERSE newShipWithName:[self shipDataKey]];	// retained
+			if (player_ship)
+			{
+				// FIXME: this should use OOShipType, which should exist. -- Ahruman
+				[self setMesh:[player_ship mesh]];
+				[player_ship release];						// we only wanted it for its polygons!
+			}
+			[UNIVERSE setViewDirection:VIEW_FORWARD];
+			[UNIVERSE setBlockJSPlayerShipProps:NO];	// re-enable player.ship!
+			[self enterDock:(StationEntity *)dockTargetEntity];
+		}
+		else	// no dock target? dock target is not a station? game over!
+		{
+			[self setStatus:STATUS_DEAD];
+			//[self playGameOver];	// no death explosion sounds for player pods
+			// no shipDied events for player pods, either
+			[UNIVERSE displayMessage:DESC(@"gameoverscreen-escape-pod") forCount:kDeadResetTime];
+			[UNIVERSE displayMessage:@"" forCount:kDeadResetTime];
+			[self showGameOver];
+		}
+	}
+	
+	
+	// MOVED THE FOLLOWING FROM PLAYERENTITY POLLFLIGHTCONTROLS:
+	travelling_at_hyperspeed = (flightSpeed > maxFlightSpeed);
+	if (hyperspeed_engaged)
+	{
+		UPDATE_STAGE(@"updating hyperspeed");
+		
+		// increase speed up to maximum hyperspeed
+		if (flightSpeed < maxFlightSpeed * HYPERSPEED_FACTOR)
+			flightSpeed += (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
+		if (flightSpeed > maxFlightSpeed * HYPERSPEED_FACTOR)
+			flightSpeed = (float)(maxFlightSpeed * HYPERSPEED_FACTOR);
+		
+		// check for mass lock
+		hyperspeed_locked = [self massLocked];
+		// check for mass lock & external temperature?
+		//hyperspeed_locked = flightSpeed * air_friction > 40.0f+(ship_temperature - external_temp ) * SHIP_COOLING_FACTOR || [self massLocked];
+		
+		if (hyperspeed_locked)
+		{
+			[self playJumpMassLocked];
+			[UNIVERSE addMessage:DESC(@"jump-mass-locked") forCount:4.5];
+			hyperspeed_engaged = NO;
+		}
+	}
+	else
+	{
+		if (afterburner_engaged)
+		{
+			UPDATE_STAGE(@"updating afterburner");
+			
+			float abFactor = [self afterburnerFactor];
+			float maxInjectionSpeed = maxFlightSpeed * abFactor;
+			if (flightSpeed > maxInjectionSpeed)
+			{
+				// decellerate to maxInjectionSpeed but slower than without afterburner.
+				flightSpeed -= (float)(speed_delta * delta_t * abFactor);
+			}
+			else
+			{
+				if (flightSpeed < maxInjectionSpeed)
+					flightSpeed += (float)(speed_delta * delta_t * abFactor);
+				if (flightSpeed > maxInjectionSpeed)
+					flightSpeed = maxInjectionSpeed;
+			}
+			fuel_accumulator -= (float)(delta_t * afterburner_rate);
+			while ((fuel_accumulator < 0)&&(fuel > 0))
+			{
+				fuel_accumulator += 1.0f;
+				if (--fuel <= MIN_FUEL)
+					afterburner_engaged = NO;
+			}
+		}
+		else
+		{
+			UPDATE_STAGE(@"slowing from hyperspeed");
+			
+			// slow back down...
+			if (travelling_at_hyperspeed)
+			{
+				// decrease speed to maximum normal speed
+				float deceleration = (speed_delta * delta_t * HYPERSPEED_FACTOR * 8);	// * 8 to compensate for increased speeds
+				if (alertFlags & ALERT_FLAG_MASS_LOCK)
+				{
+					// decelerate much quicker in masslocks
+					// this does also apply to injector deceleration
+					// but it's not very noticeable
+					deceleration *= 3;
+				}
+				flightSpeed -= deceleration;
+				if (flightSpeed < maxFlightSpeed)
+					flightSpeed = maxFlightSpeed;
+			}
+		}
+	}
+	
+	
+	
+	// fuel leakage
+	if ((fuel_leak_rate > 0.0)&&(fuel > 0))
+	{
+		UPDATE_STAGE(@"updating fuel leakage");
+		
+		fuel_accumulator -= (float)(fuel_leak_rate * delta_t);
+		while ((fuel_accumulator < 0)&&(fuel > 0))
+		{
+			fuel_accumulator += 1.0f;
+			fuel--;
+		}
+		if (fuel == 0)
+			fuel_leak_rate = 0;
+	}
+	
+	// smart_zoom
+	UPDATE_STAGE(@"updating scanner zoom");
+	if (scanner_zoom_rate)
+	{
+		double z = [hud scannerZoom];
+		double z1 = z + scanner_zoom_rate * delta_t;
+		if (scanner_zoom_rate > 0.0)
+		{
+			if (floor(z1) > floor(z))
+			{
+				z1 = floor(z1);
+				scanner_zoom_rate = 0.0f;
+			}
+		}
+		else
+		{
+			if (z1 < 1.0)
+			{
+				z1 = 1.0;
+				scanner_zoom_rate = 0.0f;
+			}
+		}
+		[hud setScannerZoom:z1];
+	}
 
     // copy new temp & shot time to main temp & shot time
     switch (currentWeaponFacing) {
@@ -3013,8 +3163,32 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void* market);
 
 - (BOOL)checkEntityForMassLock:(Entity*)ent withScanClass:(int)theirClass
 {
-    BOOL massLocked = NO;
-    BOOL entIsCloakedShip = [ent isShip] && [(ShipEntity*)ent isCloaked];
+	BOOL massLocked = NO;
+	BOOL entIsCloakedShip = [ent isShip] && [(ShipEntity *)ent isCloaked];
+	
+	if (EXPECT_NOT([ent isStellarObject]))
+	{
+		Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)ent;
+		if (EXPECT([stellar planetType] != STELLAR_TYPE_MINIATURE))
+		{
+			double dist = stellar->zero_distance;
+			double rad = stellar->collision_radius;
+			double factor = ([stellar isSun]) ? 1.8 : 1.3;	// Adjusted for bigger suns and relatively lower station orbits
+			// plus ensure mass lock when 25 km or less from the surface of small stellar bodies
+			// dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
+			if (dist < rad*rad*factor || dist < rad*rad + 50000*rad + 625000000 ) 
+			{
+				massLocked = YES;
+			}
+		}
+	}
+	else if (theirClass != CLASS_NO_DRAW)
+	{
+		if (EXPECT_NOT (entIsCloakedShip))
+		{
+			theirClass = CLASS_NO_DRAW;
+		}
+	}
 
     if (EXPECT_NOT([ent isStellarObject])) {
         Entity<OOStellarBody>* stellar = (Entity<OOStellarBody>*)ent;
