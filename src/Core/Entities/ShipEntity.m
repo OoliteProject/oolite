@@ -4714,7 +4714,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink = kZeroVector; // almost all behaviours
 
 				// TODO: good pilots use behaviour_attack_sniper sometimes
-				if (getWeaponRangeFromType(forward_weapon_real_type) > 12500 && range > 12500)
+				if (getWeaponRangeFromType(forward_weapon_real_type) > 8250 && range > 8250)	// Shorter laser ranges: 0.66
 				{
 					behaviour = BEHAVIOUR_ATTACK_SNIPER;
 				}
@@ -5053,7 +5053,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	float	max_available_speed = maxFlightSpeed;
 
-	if (range < 15000)
+	if (range < 9900)	// Adjusted for laser ranges at 0.66
 	{
 		behaviour = BEHAVIOUR_ATTACK_TARGET;
 	}
