@@ -98,7 +98,21 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH; // atmosphere effect 
 
     [self setUpTypeParametersWithSourceInfo:dict targetInfo:planetInfo];
 
-    [self setUpTerrainParametersWithSourceInfo:dict targetInfo:planetInfo];
+	_name = nil;
+	[self setName:OOExpand([dict oo_stringForKey:KEY_PLANETNAME defaultValue:[planetInfo oo_stringForKey:KEY_PLANETNAME defaultValue:@"%H"]])];
+	
+	int radius_km = [dict oo_intForKey:KEY_RADIUS defaultValue:[planetInfo oo_intForKey:KEY_RADIUS]];
+	collision_radius = radius_km * 66.0;	// Scale down by a factor of 100 ...and then multiply by 6.6
+	OOTechLevelID techLevel = [dict oo_intForKey:KEY_TECHLEVEL defaultValue:[planetInfo oo_intForKey:KEY_TECHLEVEL]];
+	
+	if (techLevel > 14)  techLevel = 14;
+	_shuttlesOnGround = 1 + techLevel / 2;
+	_shuttleLaunchInterval = 3600.0 / (double)_shuttlesOnGround;	// All are launched in one hour.
+	_lastLaunchTime = [UNIVERSE getTime] + 30.0 - _shuttleLaunchInterval;	// launch 30s after player enters universe.
+																			// make delay > 0 to allow scripts adding a station nearby.
+	
+	int percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
+	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 
     // Load random seed override.
     NSString* seedStr = [dict oo_stringForKey:@"seed"];
