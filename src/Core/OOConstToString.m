@@ -69,6 +69,17 @@ NSString *OOStringFromCompassMode(OOCompassMode value)
 	return @"UNDEFINED";
 }
 
+NSString *OOStringFromLongRangeChartMode(OOLongRangeChartMode value)
+{
+	switch (value)
+	{
+		case OOLRC_MODE_NORMAL: return @"CHART_MODE_SUNCOLOR";
+		case OOLRC_MODE_ECONOMY: return @"CHART_MODE_ECONOMY";
+		case OOLRC_MODE_GOVERNMENT: return @"CHART_MODE_GOVERNMENT";
+		case OOLRC_MODE_TECHLEVEL: return @"CHART_MODE_TECHLEVEL";
+	}
+	return @"UNDEFINED";
+}
 
 NSString *OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour value)
 {

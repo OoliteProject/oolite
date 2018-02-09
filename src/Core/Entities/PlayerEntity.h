@@ -95,14 +95,6 @@ typedef enum
 } OOSpeechSettings;
 
 
-typedef enum
-{
-	OOLRC_MODE_NORMAL = 0,
-	OOLRC_MODE_ECONOMY = 1,
-	OOLRC_MODE_GOVERNMENT = 2,
-	OOLRC_MODE_TECHLEVEL = 3
-} OOLongRangeChartMode;
-
 // When fully zoomed in, chart shows area of galaxy that's 64x64 galaxy units.
 #define CHART_WIDTH_AT_MAX_ZOOM		64.0
 #define CHART_HEIGHT_AT_MAX_ZOOM	64.0

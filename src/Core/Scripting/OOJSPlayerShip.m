@@ -105,6 +105,7 @@ enum
 	// Property IDs
 	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
+	kPlayerShip_chartHightlightMode,            // what type of information is being shown on the chart
 	kPlayerShip_compassMode,					// compass mode, string, read/write
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read/write
 	kPlayerShip_compassType,					// basic / advanced, string, read/write
@@ -171,6 +172,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	// JS name							ID											flags
 	{ "aftShield",						kPlayerShip_aftShield,						OOJS_PROP_READWRITE_CB },
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READWRITE_CB },
+	{ "chartHighlightMode",             kPlayerShip_chartHightlightMode,            OOJS_PROP_READWRITE_CB },
 	{ "compassMode",					kPlayerShip_compassMode,					OOJS_PROP_READWRITE_CB },
 	{ "compassTarget",					kPlayerShip_compassTarget,					OOJS_PROP_READWRITE_CB },
 	{ "compassType",					kPlayerShip_compassType,					OOJS_PROP_READWRITE_CB },
@@ -438,6 +440,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = OOJSValueFromBOOL(![player dialIdentEngaged]);
 			return YES;
 
+		case kPlayerShip_chartHightlightMode:
+			result = OOStringFromLongRangeChartMode([player longRangeChartMode]);
+			break;
+
 		case kPlayerShip_galaxyCoordinates:
 			return NSPointToVectorJSValue(context, [player galaxy_coordinates], value);
 			
@@ -644,6 +650,36 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 		
+		case kPlayerShip_chartHightlightMode:
+			sValue = OOStringFromJSValue(context, *value);
+			if (sValue != nil) 
+			{
+				if ([sValue isEqualToString:@"CHART_MODE_SUNCOLOR"])
+				{
+					[player setLongRangeChartMode:OOLRC_MODE_NORMAL];
+				}
+				else if ([sValue isEqualToString:@"CHART_MODE_ECONOMY"])
+				{
+					[player setLongRangeChartMode:OOLRC_MODE_ECONOMY];
+				}
+				else if ([sValue isEqualToString:@"CHART_MODE_GOVERNMENT"])
+				{
+					[player setLongRangeChartMode:OOLRC_MODE_GOVERNMENT];
+				}
+				else if ([sValue isEqualToString:@"CHART_MODE_TECHLEVEL"])
+				{
+					[player setLongRangeChartMode:OOLRC_MODE_TECHLEVEL];
+				}
+				else
+				{
+					OOJSReportError(context, @"Unknown chart hightlight mode specified - must be either CHART_MODE_SUNCOLOR, CHART_MODE_ECONOMY, CHART_MODE_GOVERNMENT or CHART_MODE_TECHLEVEL.");
+					return NO;
+				}
+				[player doScriptEvent:OOJSID("chartHighlightModeChanged") withArgument:OOStringFromLongRangeChartMode([player longRangeChartMode])];
+				return YES;
+			}
+			break;
+
 		case kPlayerShip_compassMode:
 			sValue = OOStringFromJSValue(context, *value);
 			if(sValue != nil)
