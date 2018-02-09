@@ -4124,45 +4124,37 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
             BOOL nearby = range < COMBAT_IN_RANGE_FACTOR * getWeaponRangeFromType(forward_weapon_type);
             BOOL midrange = range < COMBAT_OUT_RANGE_FACTOR * getWeaponRangeFromType(aft_weapon_type);
 
-				// TODO: good pilots use behaviour_attack_sniper sometimes
-				if (getWeaponRangeFromType(forward_weapon_real_type) > 8250 && range > 8250)	// Shorter laser ranges: 0.66
-				{
-					behaviour = BEHAVIOUR_ATTACK_SNIPER;
-				}
-// generally not good tactics the next two
-				else if (accuracy < COMBAT_AI_ISNT_AWFUL && aspect < 0)
-				{
-					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
-				}
-				else if (accuracy < COMBAT_AI_ISNT_AWFUL)
-				{
-					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
-				}
-				else
-				{
-					behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
-				}
-			}
-			else if (port_weapon_ready || starboard_weapon_ready)
-			{
-				jink = kZeroVector; // almost all behaviours
-				behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
-			}
-			else if (aft_weapon_ready && midrange)
-			{
-				jink = kZeroVector; // almost all behaviours
-				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
-			} 
-			else
-			{
-				jink = kZeroVector; // almost all behaviours
-				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
-			}
-		}
-	}
+            if (nearby && aft_weapon_ready) {
+                jink = kZeroVector; // almost all behaviours
+                behaviour = BEHAVIOUR_RUNNING_DEFENSE;
+            } else if (nearby && (port_weapon_ready || starboard_weapon_ready)) {
+                jink = kZeroVector; // almost all behaviours
+                behaviour = BEHAVIOUR_ATTACK_BROADSIDE;
+            } else if (nearby) {
+                if (!pitching_over) // don't change jink in the middle of a sharp turn.
+                {
+                    /*
+                            For most AIs, is behaviour_attack_target called as starting behaviour on every hit.
+                            Target can both fly towards or away from ourselves here. Both situations
+                            need a different jink.z for optimal collision avoidance at high speed approach and low speed dogfighting.
+                            The COMBAT_JINK_OFFSET intentionally over-compensates the range for collision radii to send ships towards
+                            the target at low speeds.
+                    */
+                    float relativeSpeed = magnitude(vector_subtract([self velocity], [target velocity]));
+                    [self setEvasiveJink:(range + COMBAT_JINK_OFFSET - relativeSpeed / max_flight_pitch)];
+                }
+                // good pilots use behaviour_attack_break_off_target instead
+                if (accuracy >= COMBAT_AI_FLEES_BETTER) {
+                    behaviour = BEHAVIOUR_ATTACK_BREAK_OFF_TARGET;
+                } else {
+                    behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+                }
+            } else if (forward_weapon_ready) {
+                jink = kZeroVector; // almost all behaviours
 
                 // TODO: good pilots use behaviour_attack_sniper sometimes
-                if (getWeaponRangeFromType(forward_weapon_real_type) > 12500 && range > 12500) {
+                if (getWeaponRangeFromType(forward_weapon_real_type) > 8250 && range > 8250) // Shorter laser ranges: 0.66
+                {
                     behaviour = BEHAVIOUR_ATTACK_SNIPER;
                 }
                 // generally not good tactics the next two
@@ -4416,27 +4408,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
     double range = [self rangeToPrimaryTarget];
     float max_available_speed = maxFlightSpeed;
 
-	if (range < 9900)	// Adjusted for laser ranges at 0.66
-	{
-		behaviour = BEHAVIOUR_ATTACK_TARGET;
-	}
-	else 
-	{
-		if (range > weaponRange || range > scannerRange * 0.8)
-		{
-			BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
-			if (canBurn && [target weaponRange] > weaponRange && range > weaponRange)
-			{
-				// if outside maximum weapon range, but inside target weapon range
-				// close to fight ASAP!
-				max_available_speed *= [self afterburnerFactor];
-			}
-			desired_speed = max_available_speed;
-		}
-		else
-		{
-			desired_speed = max_available_speed / 10.0f;
-		}
+    if (range < 9900) // Adjusted for laser ranges at 0.66
+    {
+        behaviour = BEHAVIOUR_ATTACK_TARGET;
+    } else {
+        if (range > weaponRange || range > scannerRange * 0.8) {
+            BOOL canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+            if (canBurn && [target weaponRange] > weaponRange && range > weaponRange) {
+                // if outside maximum weapon range, but inside target weapon range
+                // close to fight ASAP!
+                max_available_speed *= [self afterburnerFactor];
+            }
+            desired_speed = max_available_speed;
+        } else {
+            desired_speed = max_available_speed / 10.0f;
+        }
 
         double last_success_factor = success_factor;
         success_factor = [self trackPrimaryTarget:delta_t retreat:NO];

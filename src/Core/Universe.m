@@ -106,17 +106,10 @@ enum {
 #define DEMO2_VANISHING_DISTANCE 650.0
 #define DEMO2_FLY_IN_STAGE_TIME 0.4
 
-
-#define MAX_NUMBER_OF_ENTITIES				200
-#define STANDARD_STATION_ROLL				0.4
+#define MAX_NUMBER_OF_ENTITIES 200
+#define STANDARD_STATION_ROLL 0.4
 // currently twice scanner radius ...not any more
-#define LANE_WIDTH			102400.0
-
-static NSString * const kOOLogUniversePopulateError			= @"universe.populate.error";
-static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
-static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.verify.error";
-static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
-
+#define LANE_WIDTH 102400.0
 
 static NSString* const kOOLogUniversePopulateError = @"universe.populate.error";
 static NSString* const kOOLogUniversePopulateWitchspace = @"universe.populate.witchspace";
@@ -1294,15 +1287,8 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOPlanetEntity* a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:[planetDict oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:systemSeed forSystem:systemID];
 
     double planet_zpos = [planetDict oo_floatForKey:@"planet_distance" defaultValue:500000];
-    planet_zpos *= [planetDict oo_floatForKey:@"planet_distance_multiplier" defaultValue:1.0];
+    planet_zpos *= [planetDict oo_floatForKey:@"planet_distance_multiplier" defaultValue:8.0]; // longer space lane
 
-	NSMutableDictionary *planetDict = [NSMutableDictionary dictionaryWithDictionary:[systemManager getPropertiesForCurrentSystem]];
-	[planetDict oo_setBool:YES forKey:@"mainForLocalSystem"];
-	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:[planetDict oo_boolForKey:@"has_atmosphere" defaultValue:YES] andSeed:systemSeed forSystem:systemID];
-	
-	double planet_zpos = [planetDict oo_floatForKey:@"planet_distance" defaultValue:500000];
-	planet_zpos *= [planetDict oo_floatForKey:@"planet_distance_multiplier" defaultValue:8.0];	// longer space lane
-	
 #ifdef OO_DUMP_PLANETINFO
     OOLog(@"planetinfo.record", @"planet zpos = %f", planet_zpos);
 #endif
@@ -1487,8 +1473,6 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     OOLog(@"planetinfo.record", @"sun_vector = %.3f %.3f %.3f", vf.x, vf.y, vf.z);
     OOLog(@"planetinfo.record", @"sun_distance = %.0f", sun_distance);
 #endif
-	stationPos = HPvector_subtract(stationPos, vectorToHPVector(vector_multiply_scalar(vf, 1.5 * planet_radius)));	// orbit = 1/2 planet radius
-	
 
     NSMutableDictionary* sun_dict = [NSMutableDictionary dictionaryWithCapacity:5];
     [sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
@@ -1541,7 +1525,7 @@ static GLfloat docked_light_specular[4] = { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #ifdef OO_DUMP_PLANETINFO
     OOLog(@"planetinfo.record", @"station_vector = %.3f %.3f %.3f", vf.x, vf.y, vf.z);
 #endif
-    stationPos = HPvector_subtract(stationPos, vectorToHPVector(vector_multiply_scalar(vf, 2.0 * planet_radius)));
+    stationPos = HPvector_subtract(stationPos, vectorToHPVector(vector_multiply_scalar(vf, 1.5 * planet_radius))); // orbit = 1/2 planet radius
 
     //// possibly systeminfo has an override for the station
     stationDesc = [systeminfo oo_stringForKey:@"station" defaultValue:@"coriolis"];
