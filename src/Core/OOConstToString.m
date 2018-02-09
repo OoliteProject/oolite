@@ -73,11 +73,9 @@ NSString *OOStringFromLongRangeChartMode(OOLongRangeChartMode value)
 {
 	switch (value)
 	{
-		case OOLRC_MODE_NORMAL: return @"CHART_MODE_SUNCOLOR";
-		case OOLRC_MODE_ECONOMY: return @"CHART_MODE_ECONOMY";
-		case OOLRC_MODE_GOVERNMENT: return @"CHART_MODE_GOVERNMENT";
-		case OOLRC_MODE_TECHLEVEL: return @"CHART_MODE_TECHLEVEL";
+		#include "OOLongRangeChartMode.tbl"
 	}
+
 	return @"UNDEFINED";
 }
 
@@ -187,6 +185,13 @@ OOScanClass OOScanClassFromString(NSString *string)
 	#include "OOScanClass.tbl"
 	
 	return kOOScanClassDefault;
+}
+
+OOLongRangeChartMode OOLongRangeChartModeFromString(NSString *string)
+{
+	#include "OOLongRangeChartMode.tbl"
+	
+	return kOOLongRangeChartModeDefault;
 }
 
 #undef ENTRY

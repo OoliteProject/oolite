@@ -654,30 +654,19 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			sValue = OOStringFromJSValue(context, *value);
 			if (sValue != nil) 
 			{
-				if ([sValue isEqualToString:@"CHART_MODE_SUNCOLOR"])
+				OOLongRangeChartMode chartMode = OOLongRangeChartModeFromString(sValue);
+				if (chartMode > OOLRC_MODE_UNKNOWN)
 				{
-					[player setLongRangeChartMode:OOLRC_MODE_NORMAL];
-				}
-				else if ([sValue isEqualToString:@"CHART_MODE_ECONOMY"])
-				{
-					[player setLongRangeChartMode:OOLRC_MODE_ECONOMY];
-				}
-				else if ([sValue isEqualToString:@"CHART_MODE_GOVERNMENT"])
-				{
-					[player setLongRangeChartMode:OOLRC_MODE_GOVERNMENT];
-				}
-				else if ([sValue isEqualToString:@"CHART_MODE_TECHLEVEL"])
-				{
-					[player setLongRangeChartMode:OOLRC_MODE_TECHLEVEL];
+					[player setLongRangeChartMode:chartMode];
+					[player doScriptEvent:OOJSID("chartHighlightModeChanged") withArgument:OOStringFromLongRangeChartMode([player longRangeChartMode])];
+					return YES;
 				}
 				else
 				{
-					OOJSReportError(context, @"Unknown chart hightlight mode specified - must be either CHART_MODE_SUNCOLOR, CHART_MODE_ECONOMY, CHART_MODE_GOVERNMENT or CHART_MODE_TECHLEVEL.");
-					return NO;
+					OOJSReportError(context, @"Unknown chart hightlight mode specified - must be either OOLRC_MODE_SUNCOLOR, OOLRC_MODE_ECONOMY, OOLRC_MODE_GOVERNMENT or OOLRC_MODE_TECHLEVEL.");
 				}
-				[player doScriptEvent:OOJSID("chartHighlightModeChanged") withArgument:OOStringFromLongRangeChartMode([player longRangeChartMode])];
-				return YES;
 			}
+			return NO;	// not reachable if successfully set
 			break;
 
 		case kPlayerShip_compassMode:

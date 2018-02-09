@@ -37,15 +37,6 @@ typedef enum
 } OORouteType;
 
 
-typedef enum
-{
-	OOLRC_MODE_NORMAL = 0,
-	OOLRC_MODE_ECONOMY = 1,
-	OOLRC_MODE_GOVERNMENT = 2,
-	OOLRC_MODE_TECHLEVEL = 3
-} OOLongRangeChartMode;
-
-
 #define ENTRY(label, value) label,
 
 typedef enum
@@ -54,6 +45,13 @@ typedef enum
 		
 	kOOViewIDDefault = VIEW_NONE
 } OOViewID;
+
+typedef enum
+{
+	#include "OOLongRangeChartMode.tbl"
+
+	kOOLongRangeChartModeDefault = OOLRC_MODE_SUNCOLOR
+} OOLongRangeChartMode;
 
 #undef ENTRY
 

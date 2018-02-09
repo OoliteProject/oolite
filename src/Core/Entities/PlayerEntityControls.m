@@ -1754,7 +1754,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					else
 					{
-						[self setLongRangeChartMode:OOLRC_MODE_NORMAL];
+						[self setLongRangeChartMode:OOLRC_MODE_SUNCOLOR];
 					}
 					[self doScriptEvent:OOJSID("chartHighlightModeChanged") withArgument:OOStringFromLongRangeChartMode([self longRangeChartMode])];
 				}

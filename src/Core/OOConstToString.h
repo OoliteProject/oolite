@@ -105,6 +105,7 @@ NSString *OOStringFromCompassMode(OOCompassMode mode);
 OOCompassMode OOCompassModeFromString(NSString *string);
 
 NSString *OOStringFromLongRangeChartMode(OOLongRangeChartMode chartMode);
+OOLongRangeChartMode OOLongRangeChartModeFromString(NSString *string);
 
 NSString *OOStringFromLegalStatusReason(OOLegalStatusReason reason);
 

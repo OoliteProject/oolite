@@ -116,6 +116,10 @@ static TableEntry sOOLegalStatusReasonTableEntries[] =
 	#include "OOLegalStatusReason.tbl"
 };
 
+static TableEntry sOOLongRangeChartModeTableEntries[] =
+{
+	#include "OOLongRangeChartMode.tbl"
+};
 
 #undef ENTRY
 #undef GALACTIC_HYPERSPACE_ENTRY
@@ -130,6 +134,7 @@ ConstTable gOOScanClassConstTable					= TABLE(sOOScanClassTableEntries);
 ConstTable gOOViewIDConstTable						= TABLE(sOOViewIDTableEntries);
 ConstTable gOOShipDamageTypeConstTable				= TABLE(sOOShipDamageTypeTableEntries);
 ConstTable gOOLegalStatusReasonConstTable			= TABLE(sOOLegalStatusReasonTableEntries);
+ConstTable gOOLongRangeChartModeConstTable			= TABLE(sOOLongRangeChartModeTableEntries);
 
 static void InitTable(JSContext *context, ConstTable *table);
 
@@ -151,7 +156,8 @@ void OOConstToJSStringInit(JSContext *context)
 	InitTable(context, &gOOViewIDConstTable);
 	InitTable(context, &gOOShipDamageTypeConstTable);
 	InitTable(context, &gOOLegalStatusReasonConstTable);
-
+	InitTable(context, &gOOLongRangeChartModeConstTable);
+	
 	sInited = YES;
 }
 

@@ -143,6 +143,33 @@ OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext *context, jsval value)
 }
 
 
+OOINLINE JSString *OOJSStringFromLongRangeChartMode(JSContext *context, OOLongRangeChartMode value)
+{
+	extern struct ConstTable gOOLongRangeChartModeConstTable;
+	return OOJSStringFromConstantPRIVATE(context, value, &gOOLongRangeChartModeConstTable);
+}
+
+
+OOINLINE jsval OOJSValueFromLongRangeChartMode(JSContext *context, OOLongRangeChartMode value)
+{
+	return STRING_TO_JSVAL(OOJSStringFromLongRangeChartMode(context, value));
+}
+
+
+OOINLINE OOLongRangeChartMode OOLongRangeChartModeFromJSString(JSContext *context, JSString *string)
+{
+	extern struct ConstTable gOOLongRangeChartModeConstTable;
+	return (OOLongRangeChartMode)OOConstantFromJSStringPRIVATE(context, string, &gOOLongRangeChartModeConstTable, kOOLongRangeChartModeDefault);
+}
+
+
+OOINLINE OOLongRangeChartMode OOLongRangeChartModeFromJSValue(JSContext *context, jsval value)
+{
+	extern struct ConstTable gOOLongRangeChartModeConstTable;
+	return (OOLongRangeChartMode)OOConstantFromJSValuePRIVATE(context, value, &gOOLongRangeChartModeConstTable, kOOLongRangeChartModeDefault);
+}
+
+
 /*	JSString *OOJSStringFromGUIScreenID(JSContext *, OOGUIScreenID)
 	jsval OOJSValueFromGUIScreenID(JSContext *, OOGUIScreenID)
 	OOGUIScreenID OOGUIScreenIDFromJSString(JSContext *, JSString *)
