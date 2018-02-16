@@ -143,19 +143,6 @@ OOINLINE OOCompassMode OOCompassModeFromJSValue(JSContext *context, jsval value)
 }
 
 
-OOINLINE JSString *OOJSStringFromLongRangeChartMode(JSContext *context, OOLongRangeChartMode value)
-{
-	extern struct ConstTable gOOLongRangeChartModeConstTable;
-	return OOJSStringFromConstantPRIVATE(context, value, &gOOLongRangeChartModeConstTable);
-}
-
-
-OOINLINE jsval OOJSValueFromLongRangeChartMode(JSContext *context, OOLongRangeChartMode value)
-{
-	return STRING_TO_JSVAL(OOJSStringFromLongRangeChartMode(context, value));
-}
-
-
 /*	JSString *OOJSStringFromGUIScreenID(JSContext *, OOGUIScreenID)
 	jsval OOJSValueFromGUIScreenID(JSContext *, OOGUIScreenID)
 	OOGUIScreenID OOGUIScreenIDFromJSString(JSContext *, JSString *)
