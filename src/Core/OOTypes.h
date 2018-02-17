@@ -50,7 +50,7 @@ typedef enum
 {
 	#include "OOLongRangeChartMode.tbl"
 
-	kOOLongRangeChartModeDefault = OOLRC_MODE_SUNCOLOR
+	kOOLongRangeChartModeDefault = OOLRC_MODE_UNKNOWN
 } OOLongRangeChartMode;
 
 #undef ENTRY
