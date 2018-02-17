@@ -1248,8 +1248,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		target_chart_zoom = chart_zoom;
 		saved_chart_zoom = chart_zoom;
 		ANA_mode = [dict oo_intForKey:@"chart_ana_mode" defaultValue:OPTIMIZED_BY_NONE];
-		longRangeChartMode = [dict oo_intForKey:@"chart_colour_mode" defaultValue:OOLRC_MODE_NORMAL];
-
+		longRangeChartMode = [dict oo_intForKey:@"chart_colour_mode" defaultValue:OOLRC_MODE_SUNCOLOR];
+		if (longRangeChartMode == OOLRC_MODE_UNKNOWN) longRangeChartMode = OOLRC_MODE_SUNCOLOR;
 
 		target_system_id = [dict oo_intForKey:@"target_id" defaultValue:system_id];
 		info_system_id = target_system_id;
@@ -1954,7 +1954,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
-	longRangeChartMode = OOLRC_MODE_NORMAL;
+	longRangeChartMode = OOLRC_MODE_SUNCOLOR;
 
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];

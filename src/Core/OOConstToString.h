@@ -104,6 +104,9 @@ NSString *DisplayStringForMassUnitForCommodity(OOCommodityType commodity);
 NSString *OOStringFromCompassMode(OOCompassMode mode);
 OOCompassMode OOCompassModeFromString(NSString *string);
 
+NSString *OOStringFromLongRangeChartMode(OOLongRangeChartMode chartMode);
+OOLongRangeChartMode OOLongRangeChartModeFromString(NSString *string);
+
 NSString *OOStringFromLegalStatusReason(OOLegalStatusReason reason);
 
 NSString *RouteTypeToString(OORouteType routeType);
@@ -113,3 +116,4 @@ NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearan
 
 NSString *OOStringFromGraphicsDetail(OOGraphicsDetail detail);
 OOGraphicsDetail OOGraphicsDetailFromString(NSString *string);
+

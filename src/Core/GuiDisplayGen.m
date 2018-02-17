@@ -2052,7 +2052,8 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 				}			
 				OOGL(glColor4f(r, g, b, alpha));
 				break;
-			case OOLRC_MODE_NORMAL:
+			case OOLRC_MODE_UNKNOWN:
+			case OOLRC_MODE_SUNCOLOR:
 				if (EXPECT(noNova))
 				{
 					r = g = b = 1.0;

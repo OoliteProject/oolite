@@ -69,6 +69,15 @@ NSString *OOStringFromCompassMode(OOCompassMode value)
 	return @"UNDEFINED";
 }
 
+NSString *OOStringFromLongRangeChartMode(OOLongRangeChartMode value)
+{
+	switch (value)
+	{
+		#include "OOLongRangeChartMode.tbl"
+	}
+
+	return @"UNDEFINED";
+}
 
 NSString *OOStringFromGalacticHyperspaceBehaviour(OOGalacticHyperspaceBehaviour value)
 {
@@ -176,6 +185,13 @@ OOScanClass OOScanClassFromString(NSString *string)
 	#include "OOScanClass.tbl"
 	
 	return kOOScanClassDefault;
+}
+
+OOLongRangeChartMode OOLongRangeChartModeFromString(NSString *string)
+{
+	#include "OOLongRangeChartMode.tbl"
+	
+	return kOOLongRangeChartModeDefault;
 }
 
 #undef ENTRY

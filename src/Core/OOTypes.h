@@ -46,6 +46,13 @@ typedef enum
 	kOOViewIDDefault = VIEW_NONE
 } OOViewID;
 
+typedef enum
+{
+	#include "OOLongRangeChartMode.tbl"
+
+	kOOLongRangeChartModeDefault = OOLRC_MODE_SUNCOLOR
+} OOLongRangeChartMode;
+
 #undef ENTRY
 
 
