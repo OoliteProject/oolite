@@ -638,6 +638,7 @@ enum
 - (id) systemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
 - (NSArray *) systemDataKeysForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum;
 - (NSString *) getSystemName:(OOSystemID) sys;
+- (NSString *) getSystemName:(OOSystemID) sys forGalaxy:(OOGalaxyID) gnum;
 - (OOGovernmentID) getSystemGovernment:(OOSystemID) sys;
 - (NSString *) getSystemInhabitants:(OOSystemID) sys;
 - (NSString *) getSystemInhabitants:(OOSystemID) sys plural:(BOOL)plural;
