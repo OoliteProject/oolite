@@ -6452,7 +6452,9 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 	if ([PLAYER showDemoShips]) return;
 	
-	if (![currentMessage isEqualToString:text] || universal_time >= messageRepeatTime)
+	NSString *expandedMessage = OOExpand(text);
+	
+	if (![currentMessage isEqualToString:expandedMessage] || universal_time >= messageRepeatTime)
 	{
 		PlayerEntity* player = PLAYER;
 		
@@ -6462,17 +6464,17 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 			{
 				// EMMSTRAN: should say "Incoming message from ..." when prefixed with sender name.
 				NSString *format = OOExpandKey(@"speech-synthesis-incoming-message-@");
-				[self speakWithSubstitutions:[NSString stringWithFormat:format, text]];
+				[self speakWithSubstitutions:[NSString stringWithFormat:format, expandedMessage]];
 			}
 			
-			[self showGUIMessage:text withScroll:YES andColor:[message_gui textCommsColor] overDuration:count];
+			[self showGUIMessage:expandedMessage withScroll:YES andColor:[message_gui textCommsColor] overDuration:count];
 			
 			[currentMessage release];
-			currentMessage = [text retain];
+			currentMessage = [expandedMessage retain];
 			messageRepeatTime=universal_time + 6.0;
 		}
 		
-		[comm_log_gui printLongText:text align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:nil addToArray:[player commLog]];
+		[comm_log_gui printLongText:expandedMessage align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:nil addToArray:[player commLog]];
 		
 		if (showComms)  [self showCommsLog:6.0];
 	}
