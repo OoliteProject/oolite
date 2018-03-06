@@ -116,6 +116,7 @@ static NSString *ExpandLegacyScriptSelectorKey(OOStringExpansionContext *context
 static SEL LookUpLegacySelector(NSString *key);
 
 static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
+static NSString *ExpandSystemNameForGalaxyEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
 static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength);
 static NSString *ExpandPercentR(OOStringExpansionContext *context, NSString *input);
 #if WARNINGS
@@ -921,6 +922,7 @@ static void ReportWarningForUnknownKey(OOStringExpansionContext *context, NSStri
 		%N
 		%R
 		%J###, where ### are three digits
+		%G######, where ### are six digits
 		%%
 		%[
 		%]
@@ -936,7 +938,7 @@ static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const un
 	NSCParameterAssert(context != NULL && characters != NULL && replaceLength != NULL);
 	NSCParameterAssert(characters[idx] == '%');
 	
-	// All %-escapes except %J are 2 characters.
+	// All %-escapes except %J and %G are 2 characters.
 	*replaceLength = 2;
 	unichar selector = characters[idx + 1];
 	
@@ -956,6 +958,9 @@ static NSString *ExpandPercentEscape(OOStringExpansionContext *context, const un
 			// this must be done after all other substitutions in a second pass.
 			context->hasPercentR = true;
 			return @"%R";
+			
+		case 'G':
+			return ExpandSystemNameForGalaxyEscape(context, characters, size, idx, replaceLength);
 			
 		case 'J':
 			return ExpandSystemNameEscape(context, characters, size, idx, replaceLength);
@@ -1030,6 +1035,58 @@ static NSString *ExpandPercentR(OOStringExpansionContext *context, NSString *inp
 }
 
 
+/*	ExpandSystemNameForGalaxyEscape(context, characters, size, idx, replaceLength)
+	
+	Expand a %G###### code by looking up the corresponding system name in any
+	cgalaxy.
+*/
+static NSString *ExpandSystemNameForGalaxyEscape(OOStringExpansionContext *context, const unichar *characters, NSUInteger size, NSUInteger idx, NSUInteger *replaceLength)
+{
+	NSCParameterAssert(context != NULL && characters != NULL && replaceLength != NULL);
+	NSCParameterAssert(characters[idx + 1] == 'G');
+	
+	// A valid %G escape is always eight characters including the six digits.
+	*replaceLength = 8;
+	
+	#define kInvalidGEscapeMessage @"String escape code %G must be followed by six integers."
+	if (EXPECT_NOT(size - idx < 8))
+	{
+		// Too close to end of string to actually have six characters, let alone six digits.
+		SyntaxError(context, @"strings.expand.invalidJEscape", @"%@", kInvalidGEscapeMessage);
+		return nil;
+	}
+	
+	char hundreds = characters[idx + 2];
+	char tens = characters[idx + 3];
+	char units = characters[idx + 4];
+	char galHundreds = characters[idx + 5];
+	char galTens = characters[idx + 6];
+	char galUnits = characters[idx + 7];
+	
+	if (!(isdigit(hundreds) && isdigit(tens) && isdigit(units) && isdigit(galHundreds) && isdigit(galTens) && isdigit(galUnits)))
+	{
+		SyntaxError(context, @"strings.expand.invalidJEscape", @"%@", kInvalidGEscapeMessage);
+		return nil;
+	}
+	
+	OOSystemID sysID = (hundreds - '0') * 100 + (tens - '0') * 10 + (units - '0');
+	if (sysID > kOOMaximumSystemID)
+	{
+		SyntaxError(context, @"strings.expand.invalidJEscape.range", @"String escape code %%G%3u for system is out of range (must be less than %u).", sysID, kOOMaximumSystemID + 1);
+		return nil;
+	}
+	
+	OOGalaxyID galID = (galHundreds - '0') * 100 + (galTens - '0') * 10 + (galUnits - '0');
+	if (galID > kOOMaximumGalaxyID)
+	{
+		SyntaxError(context, @"strings.expand.invalidJEscape.range", @"String escape code %%G%3u for galaxy is out of range (must be less than %u).", galID, kOOMaximumGalaxyID + 1);
+		return nil;
+	}
+	
+	return [UNIVERSE getSystemName:sysID forGalaxy:galID];
+}
+
+
 /*	ExpandSystemNameEscape(context, characters, size, idx, replaceLength)
 	
 	Expand a %J### code by looking up the corresponding system name in the
@@ -1043,7 +1100,7 @@ static NSString *ExpandSystemNameEscape(OOStringExpansionContext *context, const
 	// A valid %J escape is always five characters including the three digits.
 	*replaceLength = 5;
 	
-	#define kInvalidJEscapeMessage @"String escape code %%J must be followed by three integers."
+	#define kInvalidJEscapeMessage @"String escape code %J must be followed by three integers."
 	if (EXPECT_NOT(size - idx < 5))
 	{
 		// Too close to end of string to actually have three characters, let alone three digits.

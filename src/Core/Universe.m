@@ -7792,7 +7792,13 @@ static void VerifyDesc(NSString *key, id desc)
 
 - (NSString *) getSystemName:(OOSystemID) sys
 {
-	return [systemManager getProperty:@"name" forSystem:sys inGalaxy:galaxyID];
+	return [self getSystemName:sys forGalaxy:galaxyID];
+}
+
+
+- (NSString *) getSystemName:(OOSystemID) sys forGalaxy:(OOGalaxyID) gnum
+{
+	return [systemManager getProperty:@"name" forSystem:sys inGalaxy:gnum];
 }
 
 
@@ -10242,7 +10248,8 @@ static void PreloadOneSound(NSString *soundName)
 	 @"\tpercent_I [label=\"%I\\nInhabitants\" shape=diamond]\n"
 	 "\tpercent_H [label=\"%H\\nSystem name\" shape=diamond]\n"
 	 "\tpercent_RN [label=\"%R/%N\\nRandom name\" shape=diamond]\n"
-	 "\tpercent_J [label=\"%J\\nNumbered system name\" shape=diamond]\n\t\n"];
+	 "\tpercent_J [label=\"%J\\nNumbered system name\" shape=diamond]\n"
+	 "\tpercent_G [label=\"%G\\nNumbered system name in chart number\" shape=diamond]\n\t\n"];
 	
 	// Toss in the Thargoid curses, too
 	[graphViz appendString:@"\tsubgraph cluster_thargoid_curses\n\t{\n\t\tlabel = \"Thargoid curses\"\n"];
@@ -10351,10 +10358,15 @@ static void PreloadOneSound(NSString *soundName)
 		[graphViz appendFormat:@"\t%@ -> percent_RN [color=\"0,0,0.65\"]\n", fromNode];
 	}
 	
-	// TODO: test graphViz output for @"%Jxxx"
+	// TODO: test graphViz output for @"%Jxxx" and @"%Gxxxxxx"
 	if ([string rangeOfString:@"%J"].location != NSNotFound)
 	{
 		[graphViz appendFormat:@"\t%@ -> percent_J [color=\"0,0,0.75\"]\n", fromNode];
+	}
+	
+	if ([string rangeOfString:@"%G"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_G [color=\"0,0,0.85\"]\n", fromNode];
 	}
 }
 
