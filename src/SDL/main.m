@@ -29,14 +29,18 @@ MA 02110-1301, USA.
 #import <Foundation/NSDate.h>
 #endif
 #import <Foundation/NSString.h>
-
 #import "GameController.h"
 #import "OOLoggingExtended.h"
 
 #if OOLITE_WINDOWS
 #include <locale.h>
 #include <SDL.h>
+// Make sure that a high performance GPU is
+// selected, if more than one are available
+__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #endif
+
 GameController* controller;
 #endif
 
@@ -93,9 +97,6 @@ int main(int argc, char *argv[])
 		// using NIB to do this
 		controller = [[GameController alloc] init];
 		
-		// Release anything allocated during the controller initialisation that
-		// is no longer required.
-
 		for (i = 1; i < argc; i++)
 		{
 			if (strcmp("-load", argv[i]) == 0)
@@ -105,7 +106,9 @@ int main(int argc, char *argv[])
 					[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
 			}
 		}
-
+		
+		// Release anything allocated during the controller initialisation that
+		// is no longer required.
 		DESTROY(pool);
 		
 		// Call applicationDidFinishLaunching because NSApp is not running in
