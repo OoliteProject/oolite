@@ -566,7 +566,10 @@ static OOColor *ColorWithHSBColor(Vector c)
 				// if shader atmo is in use, force texture atmo radius to just collision_radius for cosmetic purposes
 				[_atmosphereDrawable setRadius:collision_radius];
 			}
-			[UNIVERSE setAirResistanceFactor:0.0f];	// out of atmosphere - no air friction
+			if ([PLAYER findNearestPlanet] == self) // ensure no problems in case of more than one planets
+			{
+				[UNIVERSE setAirResistanceFactor:0.0f];	// out of atmosphere - no air friction
+			}
 		}
 		
 		double time = [UNIVERSE getTime];
