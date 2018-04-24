@@ -3106,6 +3106,21 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		DESTROY(lastShot);
 	}
 	
+	// update mousewheel status
+	UPDATE_STAGE(@"updating mousewheel delta");
+	MyOpenGLView *gView = [UNIVERSE gameView];
+	float mouseWheelDelta = [gView mouseWheelDelta];
+	if (mouseWheelDelta > 0.0f)
+	{
+		if (mouseWheelDelta < delta_t)  [gView setMouseWheelDelta:0.0f];
+		else  [gView setMouseWheelDelta:mouseWheelDelta - delta_t];
+	}
+	else if (mouseWheelDelta < 0.0f)
+	{
+		if (mouseWheelDelta > -delta_t)  [gView setMouseWheelDelta:0.0f];
+		else  [gView setMouseWheelDelta:mouseWheelDelta + delta_t];
+	}
+	
 	STAGE_TRACKING_END
 }
 
