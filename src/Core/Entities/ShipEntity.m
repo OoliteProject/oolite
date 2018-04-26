@@ -9192,7 +9192,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		if ([self isThargoid] && [roleSet hasRole:@"thargoid-mothership"])  [self broadcastThargoidDestroyed];
 		
-		if (!suppressExplosion)
+		if (!suppressExplosion && ([self isVisible] || HPdistance2([self position], [PLAYER position]) < SCANNER_MAX_RANGE2))
 		{
 			if (!isWreckage && mass > 500000.0f && randf() < 0.25f) // big!
 			{
