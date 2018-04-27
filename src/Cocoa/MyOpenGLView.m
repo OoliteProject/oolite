@@ -782,10 +782,19 @@ FAIL:
 		return;
 	
 	if (dy > 0)
-		_mouseWheelState = gvMouseWheelUp;
+	{
+		if (_mouseWheelDelta >= 0)
+			_mouseWheelDelta += dy;
+		else
+			_mouseWheelDelta = 0;
+	}
 	else
-		_mouseWheelState = gvMouseWheelDown;
-
+	{
+		if (_mouseWheelDelta <= 0)
+			_mouseWheelDelta += dy;
+		else
+			_mouseWheelDelta = 0;
+	}
 	timeIntervalAtLastMouseWheel = [NSDate timeIntervalSinceReferenceDate];
 }
 
@@ -1033,7 +1042,25 @@ FAIL:
 
 - (int) mouseWheelState
 {
-	return _mouseWheelState;
+	if (_mouseWheelDelta > 0.0f)
+		return gvMouseWheelUp;
+	else if (_mouseWheelDelta < 0.0f)
+		return gvMouseWheelDown;
+	else
+		return gvMouseWheelNeutral;
+}
+
+
+- (float) mouseWheelDelta
+{
+	return _mouseWheelDelta / OOMOUSEWHEEL_DELTA;
+}
+
+
+- (void) setMouseWheelDelta: (float) newWheelDelta
+{
+	_mouseWheelDelta = newWheelDelta * OOMOUSEWHEEL_DELTA;
+}
 }
 
 

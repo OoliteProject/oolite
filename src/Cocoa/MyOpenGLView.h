@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 #define OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL	0.05
+#define OOMOUSEWHEEL_DELTA	1.0
 
 @class Entity, GameController;
 
@@ -135,7 +136,7 @@ extern int debug;
 	NSMutableString		*typedString;
 	
 	NSPoint				virtualJoystickPosition;
-	enum MouseWheelStatus	_mouseWheelState;
+	float				_mouseWheelDelta;
 	
 	NSSize				viewSize;
 	NSSize				backingViewSize;
@@ -202,6 +203,8 @@ extern int debug;
 - (BOOL) isCapsLockOn;
 - (int) numKeys;
 - (int) mouseWheelState;
+- (float) mouseWheelDelta;
+- (void) setMouseWheelDelta: (float) newWheelDelta;
 
 // Command-key combinations need special handling.
 - (BOOL) isCommandQDown;
