@@ -264,7 +264,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 - (void) pollControls
 {
 	if ([NSDate timeIntervalSinceReferenceDate] > timeIntervalAtLastMouseWheel + OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL)
-		_mouseWheelState = gvMouseWheelNeutral;
+		_mouseWheelDelta = 0.0f;
 }
 
 - (void) drawRect:(NSRect)rect
@@ -745,7 +745,6 @@ FAIL:
 	CGPoint centerPoint = CGPointMake(viewSize.width / 2.0, viewSize.height / 2.0);
 	CGWarpMouseCursorPosition(centerPoint);
 	[self setVirtualJoystick:0.0 :0.0];
-	_mouseWheelState = gvMouseWheelNeutral;
 }
 
 
@@ -1060,7 +1059,6 @@ FAIL:
 - (void) setMouseWheelDelta: (float) newWheelDelta
 {
 	_mouseWheelDelta = newWheelDelta * OOMOUSEWHEEL_DELTA;
-}
 }
 
 
