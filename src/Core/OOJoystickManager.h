@@ -102,7 +102,7 @@ enum {
 };
 
 // Stick constants
-#define MAX_STICKS 2
+#define MAX_STICKS 4
 #define MAX_AXES  16
 #define MAX_REAL_BUTTONS  64
 #define MAX_HATS  4

@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOJoystickManager.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
+#import "HeadUpDisplay.h"
 
 @interface PlayerEntity (StickMapperInternal)
 
@@ -52,7 +53,8 @@ MA 02110-1301, USA.
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
-	NSArray			*stickList = [stickHandler listSticks];
+	NSArray		*stickList = [stickHandler listSticks];
+	unsigned		stickCount = [stickList count];
 	unsigned		i;
 	
 	OOGUITabStop	tabStop[GUI_MAX_COLUMNS];
@@ -65,11 +67,36 @@ MA 02110-1301, USA.
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:@"Configure Joysticks"]];
 	
-	for(i=0; i < [stickList count]; i++)
-	{
+	for(i=0; i < stickCount; i++)
+ 	{
+		NSString *stickNameForThisRow = [NSString stringWithFormat: @"Stick %d %@", i+1, [stickList objectAtIndex: i]];
+		// for more than 2 sticks, the stick name rows are populated by more than one name if needed
+		NSString *stickNameAdditional = nil;
+		if (stickCount > 2 && OOStringWidthInEm(stickNameForThisRow) > 18.0)
+		{
+			// string is too long, truncate it until its length gets below threshold
+			do {
+				stickNameForThisRow = [[stickNameForThisRow substringToIndex:[stickNameForThisRow length] - 5] 
+										stringByAppendingString:@"..."];
+			} while (OOStringWidthInEm(stickNameForThisRow) > 18.0);
+		}
+		unsigned j = i + 2;
+		if (j < stickCount)
+		{
+			stickNameAdditional = [NSString stringWithFormat: @"Stick %d %@", j+1, [stickList objectAtIndex: j]];
+			if (OOStringWidthInEm(stickNameAdditional) > 11.0)
+			{
+				// string is too long, truncate it until its length gets below threshold
+				do {
+				stickNameAdditional = [[stickNameAdditional substringToIndex:[stickNameAdditional length] - 5] 
+										stringByAppendingString:@"..."];
+				} while (OOStringWidthInEm(stickNameAdditional) > 11.0);
+			}
+		}
 		[gui setArray:[NSArray arrayWithObjects:
-					   [NSString stringWithFormat: @"Stick %d", i+1],
-					   [stickList objectAtIndex: i],
+					   stickNameForThisRow,
+					   @"",	// skip one column
+					   stickNameAdditional,
 					   nil]
 			   forRow:i + GUI_ROW_STICKNAME];
 	}
