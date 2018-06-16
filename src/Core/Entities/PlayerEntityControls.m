@@ -911,13 +911,14 @@ static NSTimeInterval	time_last_frame;
 				exceptionContext = @"thrust";
 				// DJS: Thrust can be an axis or a button. Axis takes precidence.
 				double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
+				float mouseWheelDeltaFactor = mouse_control_on ? fabs([gameView mouseWheelDelta]) : 1.0f;
 				// Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
 				if (([gameView isDown:key_increase_speed] ||
 						joyButtonState[BUTTON_INCTHRUST] ||
 						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelUp) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn])))
 					&& (flightSpeed < maxFlightSpeed) && (!afterburner_engaged))
 				{
-					flightSpeed += speed_delta * delta_t;
+					flightSpeed += speed_delta * delta_t * mouseWheelDeltaFactor;
 				}
 				
 				if (([gameView isDown:key_decrease_speed] ||
@@ -925,7 +926,7 @@ static NSTimeInterval	time_last_frame;
 						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelDown) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn])))
 					&& (!afterburner_engaged))
 				{
-					flightSpeed -= speed_delta * delta_t;	
+					flightSpeed -= speed_delta * delta_t * mouseWheelDeltaFactor;	
 					// ** tgape ** - decrease obviously means no hyperspeed
 					hyperspeed_engaged = NO;
 				}
