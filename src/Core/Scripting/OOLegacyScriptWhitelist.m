@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCocoa.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOStringParsing.h"
 #import	"ResourceManager.h"
@@ -32,7 +33,7 @@ MA 02110-1301, USA.
 #import "OODeepCopy.h"
 
 
-#define INCLUDE_RAW_STRING !defined(NDEBUG)	// If nonzero, raw condition strings are included; if zero, a placeholder is used.
+#define INCLUDE_RAW_STRING OOLITE_DEBUG	// If nonzero, raw condition strings are included; if zero, a placeholder is used.
 
 
 typedef struct SanStackElement SanStackElement;

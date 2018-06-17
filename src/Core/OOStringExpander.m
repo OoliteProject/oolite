@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCocoa.h"
 #import "OOStringExpander.h"
 #import "Universe.h"
 #import "OOJavaScriptEngine.h"
@@ -33,7 +34,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 
 // Don't bother with syntax warnings in Deployment builds.
-#define WARNINGS			(!defined(NDEBUG))
+#define WARNINGS			OOLITE_DEBUG
 
 #define OO_EXPANDER_RANDOM	(context->useGoodRNG ? (Ranrot()&0xFF) : gen_rnd_number())
 

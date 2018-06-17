@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCocoa.h"
 #import "TextureStore.h"
 #if !NEW_PLANETS
 
@@ -36,7 +37,7 @@ MA 02110-1301, USA.
 
 #import "OOCollectionExtractors.h"
 
-#define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
+#define DEBUG_DUMP			(	0	&& OOLITE_DEBUG)
 
 
 static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";

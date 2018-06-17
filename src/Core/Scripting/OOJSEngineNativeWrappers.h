@@ -44,10 +44,10 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCocoa.h"
 
-#ifndef OOJS_PROFILE
-#define OOJS_PROFILE (!defined(NDEBUG))
-#endif
+
+#define OOJS_PROFILE OOLITE_DEBUG
 
 #if OOJS_PROFILE
 

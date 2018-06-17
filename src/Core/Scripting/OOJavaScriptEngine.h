@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #include <jsapi.h>
 
 
-#define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))
+#define OOJSENGINE_MONITOR_SUPPORT OOLITE_DEBUG
 
 
 #import "OOJSPropID.h"

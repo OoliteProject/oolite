@@ -24,12 +24,13 @@
 	MA 02110-1301, USA.
 */
 
+#import "OOCocoa.h"
 #import "OOStellarBody.h"
 
 #if NEW_PLANETS
 
 
-#define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
+#define DEBUG_DUMP			(	0	&& OOLITE_DEBUG)
 #define DEBUG_DUMP_RAW		(	1	&& DEBUG_DUMP)
 
 #define ALBEDO_FACTOR		0.7f	// Overall darkening of everything, allowing better contrast for snow and specular highlights.

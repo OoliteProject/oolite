@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCocoa.h"
 #import "HeadUpDisplay.h"
 #import "GameController.h"
 #import "ResourceManager.h"
@@ -53,7 +54,7 @@ MA 02110-1301, USA.
 #define ONE_SIXTYFOURTH				0.015625
 #define DEFAULT_OVERALL_ALPHA		0.75
 #define GLYPH_SCALE_FACTOR			0.13		// 0.13 is an inherited magic number
-#define IDENTIFY_SCANNER_LOLLIPOPS	(	0	&& !defined(NDEBUG))
+#define IDENTIFY_SCANNER_LOLLIPOPS	(	0	&& OOLITE_DEBUG)
 
 
 #define NOT_DEFINED					INFINITY
