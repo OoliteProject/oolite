@@ -45,7 +45,11 @@ typedef enum
 
 
 // Whether to use state verifier. Will be changed to equal OO_CHECK_GL_HEAVY in future.
-#define OO_GL_STATE_VERIFICATION (!defined(NDEBUG))
+#ifdef NDEBUG
+#define OO_GL_STATE_VERIFICATION 0
+#else
+#define OO_GL_STATE_VERIFICATION 1
+#endif
 
 /*
 	OOSetOpenGLState(stateType)

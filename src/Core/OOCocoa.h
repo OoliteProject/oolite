@@ -370,7 +370,11 @@ enum {
 	can only be one and there's no way to switch back to @required.
 */
 #ifndef OOLITE_HAVE_PROTOCOL_OPTIONAL
-#define OOLITE_HAVE_PROTOCOL_OPTIONAL	(OOLITE_MAC_OS_X || defined(__clang__) || OOLITE_GCC_VERSION >= 40700)
+#if (OOLITE_MAC_OS_X || defined(__clang__) || OOLITE_GCC_VERSION >= 40700)
+#define OOLITE_HAVE_PROTOCOL_OPTIONAL 1
+#else
+#define OOLITE_HAVE_PROTOCOL_OPTIONAL 0
+#endif
 #endif
 
 #if OOLITE_HAVE_PROTOCOL_OPTIONAL
