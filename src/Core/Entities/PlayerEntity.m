@@ -3593,6 +3593,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	ident_engaged = NO;
 	[self safeAllMissiles];
 	velocity = kZeroVector;
+	if ([self status] == STATUS_WITCHSPACE_COUNTDOWN) [self cancelWitchspaceCountdown]; // cancel witchspace countdown properly
 	[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 	[self resetAutopilotAI];
 	[shipAI setState:@"BEGIN_DOCKING"];	// reboot the AI
