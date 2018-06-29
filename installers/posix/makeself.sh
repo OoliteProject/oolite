@@ -71,7 +71,8 @@
 # Please read the license at http://www.gnu.org/copyleft/gpl.html
 #
 #
-# Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011): Altered TAR arguments (lines 137 and 353) for Oolite purposes.
+# Konstantinos Sykas <getafix@oolite.org> (26-Mar-2011): Altered TAR arguments (lines 138 and 354) for Oolite purposes.
+# Konstantinos Sykas <getafix@oolite.org> (29-Jun-2018): Altered TAR arguments (line 354) to exclude git files
 #
 
 MS_VERSION=2.1.5
@@ -350,7 +351,7 @@ exec 3<> "$tmpfile"
 #   directory 
 #   not found or temporary file: "$tmpfile" could not be created.; exec 3>&-; rm -f "$tmpfile"; exit 1; }
 # 
-(cd "$archdir" && ( tar $TAR_ARGS - . --exclude .svn | eval "$GZIP_CMD" >&3 ) ) || { echo Aborting: Archive 
+(cd "$archdir" && ( tar $TAR_ARGS - . --exclude-vcs | eval "$GZIP_CMD" >&3 ) ) || { echo Aborting: Archive 
 directory 
 not found or temporary file: "$tmpfile" could not be created.; exec 3>&-; rm -f "$tmpfile"; exit 1; }
 exec 3>&- # try to close the archive
