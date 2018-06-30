@@ -94,6 +94,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 	gTotalEntityMemory += [self oo_objectSize];
 #endif
 	
+	lastDrawCounter = 0;
 	return self;
 }
 
@@ -1044,6 +1045,19 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 - (void)subEntityReallyDied:(ShipEntity *)sub
 {
 	OOLog(@"entity.bug", @"%s called for non-ship entity %p by %p", __PRETTY_FUNCTION__, self, sub);
+}
+
+
+- (NSUInteger) lastDrawCounter
+{
+	return lastDrawCounter;
+}
+
+
+- (void) setLastDrawCounter: (NSUInteger) drawCounter
+{
+	lastDrawCounter = drawCounter;
+	return;
 }
 
 

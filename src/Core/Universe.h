@@ -309,6 +309,7 @@ enum
 	
 	NSMutableSet			*entitiesDeadThisUpdate;
 	int						framesDoneThisUpdate;
+	NSUInteger				drawCounter;
 	
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X

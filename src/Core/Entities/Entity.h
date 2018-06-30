@@ -150,6 +150,7 @@ enum OOScanClass
 	OOTimeAbsolute			spawnTime;
 	
 	struct JSObject			*_jsSelf;
+	NSUInteger				lastDrawCounter;
 	
 @private
 	NSUInteger				_sessionID;
@@ -273,6 +274,9 @@ enum OOScanClass
 
 - (void) dumpState;		// General "describe situtation verbosely in log" command.
 - (void) dumpSelfState;	// Subclasses should override this, not -dumpState, and call throught to super first.
+
+- (NSUInteger) lastDrawCounter;
+- (void) setLastDrawCounter: (NSUInteger) drawCounter;
 
 // Subclass repsonsibilities
 - (double) findCollisionRadius;
