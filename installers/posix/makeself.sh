@@ -71,8 +71,8 @@
 # Please read the license at http://www.gnu.org/copyleft/gpl.html
 #
 #
-# Konstantinos Sykas <getafix@oolite.org> (26-Mar-2011): Altered TAR arguments (lines 138 and 354) for Oolite purposes.
-# Konstantinos Sykas <getafix@oolite.org> (29-Jun-2018): Altered TAR arguments (line 354) to exclude git files
+# Konstantinos Sykas <getafix@oolite.org> (26-Mar-2011): Altered TAR arguments (lines 136 and 350) for Oolite purposes.
+# Konstantinos Sykas <getafix@oolite.org> (29-Jun-2018): Altered TAR arguments (line 350) to exclude git files
 #
 
 MS_VERSION=2.1.5
@@ -129,8 +129,6 @@ CURRENT=n
 NOX11=n
 APPEND=n
 COPY=none
-# 
-# Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011): Altered for Oolite packaging purposes. TAR not to verbosely list files processed.
 # 
 # original source: 
 #   TAR_ARGS=cvf
@@ -343,8 +341,6 @@ test -d "$archdir" || { echo "Error: $archdir does not exist."; rm -f "$tmpfile"
 echo About to compress $USIZE KB of data...
 echo Adding files to archive named \"$archname\"...
 exec 3<> "$tmpfile"
-# 
-# Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011): Altered for Oolite packaging purposes. TAR is excluding subversion files.
 # 
 # original source:
 #   (cd "$archdir" && ( tar $TAR_ARGS - . | eval "$GZIP_CMD" >&3 ) ) || { echo Aborting: Archive 

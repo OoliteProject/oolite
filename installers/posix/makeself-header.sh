@@ -1,3 +1,15 @@
+
+# 
+# Original by Stephane Peter <megastep@megastep.org>
+#
+#        Type: shell script
+# Description: The package self-extraction wrapper script
+# 
+# Konstantinos Sykas <getafix@oolite.org> changes follow:
+#	(02-Jul-2018): Added list of Oolite setup arguments (only one at this time)
+# 
+
+
 cat << EOF  > "$archname"
 #!/bin/sh
 # This script was generated using Makeself $MS_VERSION
@@ -58,7 +70,8 @@ MS_dd()
 MS_Help()
 {
     cat << EOH >&2
-Makeself version $MS_VERSION
+Oolite v\$scriptargs Self-Extracting Installer Package Help
+(made with Makeself version $MS_VERSION)
  1) Getting help or info about \$0 :
   \$0 --help   Print this message
   \$0 --info   Print embedded info : title, default target directory, embedded script ...
@@ -67,17 +80,21 @@ Makeself version $MS_VERSION
   \$0 --check  Checks integrity of the archive
  
  2) Running \$0 :
-  \$0 [options] [--] [additional arguments to embedded script]
+  \$0 [options] [--] [additional arguments for Oolite setup script]
   with following options (in that order)
-  --confirm             Ask before running embedded script
-  --noexec              Do not run embedded script
-  --keep                Do not erase target directory after running
-			the embedded script
-  --nox11               Do not spawn an xterm
-  --nochown             Do not give the extracted files to the current user
-  --target NewDirectory Extract in NewDirectory
-  --tar arg1 [arg2 ...] Access the contents of the archive through the tar command
-  --                    Following arguments will be passed to the embedded script
+  --confirm             	Ask before running embedded script
+  --noexec              	Do not run embedded script
+  --keep                	Do not erase target directory after running the embedded script
+  --nox11               	Do not spawn an xterm
+  --nochown             	Do not give the extracted files to the current user
+  --target NewDirectory 	Extract in NewDirectory
+  --tar arg1 [arg2 ...] 	Access the contents of the archive through the tar command
+  -- [--arg1 --arg2 ...]	Arguments will be passed to the Oolite setup script
+
+  List of Oolite setup arguments (in that order):
+     --systemwide-directory DIRECTORY	(default: /opt) Set the systemwide installation directory
+
+Report bugs to https://github.com/OoliteProject/oolite/issues
 EOH
 }
 

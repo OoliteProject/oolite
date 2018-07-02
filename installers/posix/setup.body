@@ -1,6 +1,6 @@
 
 # 
-# Original by Konstantinos Sykas <ksykas@gmail.com> (26-Mar-2011)
+# Original by Konstantinos Sykas <getafix@oolite.org> (26-Mar-2011)
 #
 #        Type: shell script
 # Description: The Oolite installation script, executed following the package self-extraction. 
@@ -8,15 +8,44 @@
 # 2011-04-03: Updated to facilitate rsync repository setup for oolite-update script
 # 2011-04-04: Redirected "which" stderr to /dev/null. In some distros (e.g. Fedora 11, Mint 10 Julia etc.)
 #             the "which <filename>" command uses stderr to report a file not found or other warnings
+# 2018-07-02: Add command line arguments support. 
+#			  First argument added is "--systemwide-path Directory"
 # 
 
 
+# Handle the command line arguments
+OOLITE_VERSION=$1	# This value is given in the make_installer.sh script. Check the line where makeself.sh is called; the last argument.
+shift
+while true
+do
+	case "$1" in
+	--systemwide-directory)
+	INSTALL_ROOT_SYSTEMWIDE=${2:-.}/dummy
+	INSTALL_ROOT_SYSTEMWIDE=`dirname $INSTALL_ROOT_SYSTEMWIDE`
+	if [ ! -d "$INSTALL_ROOT_SYSTEMWIDE" ]; then
+	  echo System directory $INSTALL_ROOT_SYSTEMWIDE does not exist. Exiting...
+	  exit 1
+	fi
+	shift 2
+	;;
+	-*)
+	echo Unrecognized Oolite setup flag : "$1" >&2
+	exit 1
+	;;
+    *)
+	break ;;
+    esac
+done
+
+
 # Environment vars init part 1 of 2
-OOLITE_VERSION=$1
 INSTALL_ROOT=""
 OOLITE_ROOT_NAME="Oolite${TRUNK}"
 OOLITEAPP_NAME="oolite.app"
+if [ ! ${INSTALL_ROOT_SYSTEMWIDE} ] 
+then
 INSTALL_ROOT_SYSTEMWIDE="/opt"
+fi
 INSTALL_ROOT_USERHOME="GNUstep/Applications"   # CAUTION! Depending on the usage, this should be sometimes manually pre-pended with $HOME/
 STARTUP_SCRIPTS_PATH_SYSTEMWIDE="/usr/local/bin"
 STARTUP_SCRIPTS_PATH_USERHOME="${INSTALL_ROOT_USERHOME}/${OOLITE_ROOT_NAME}"   # CAUTION! Depending on the usage, this should be sometimes manually pre-pended with $HOME/

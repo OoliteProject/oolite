@@ -14,7 +14,7 @@ RootName: @oolite-linux.berlios.de/oolite:$SOFTWAREVERSION
 DisplayName: Oolite for Linux
 ShortName: oolite
 Maintainer: Dylan Smith <dyls@alioth.net>
-Packager: Konstantinos Sykas <ksykas@gmail.com>
+Packager: Konstantinos Sykas <getafix@oolite.org>
 Summary: Oolite is an Elite tribute game that is easily expandable.
 URL: http://oolite.aegidian.org
 License: GNU GPL version 2
