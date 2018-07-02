@@ -419,6 +419,22 @@ static BOOL _refreshStarChart = NO;
 }
 
 
+- (void) setGuiColorSettingFromKey:(NSString *)key color:(OOColor *)col
+{
+	NSMutableDictionary *guiCopy = [guiUserSettings mutableCopy];
+	if (col == nil)
+	{
+		[guiCopy removeObjectForKey:key];
+	} 
+	else
+	{
+		[guiCopy setObject:col forKey:key];
+	}
+	[guiUserSettings release];
+	guiUserSettings = [guiCopy copy];
+}
+
+
 - (void) setCharacterSize:(NSSize) character_size
 {
 	pixel_text_size = character_size;
