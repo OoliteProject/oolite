@@ -789,7 +789,10 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_pitch:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				[player decrease_flight_pitch:[player flightPitch] + fValue];
+				if (!isnan(fValue)) // guard against undefined
+				{
+					[player decrease_flight_pitch:[player flightPitch] + fValue];
+				}
 				return YES;
 			}
 			break;
@@ -797,7 +800,10 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_roll:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				[player decrease_flight_roll:[player flightRoll] + fValue];
+				if (!isnan(fValue)) // guard against undefined
+				{
+					[player decrease_flight_roll:[player flightRoll] + fValue];
+				}
 				return YES;
 			}
 			break;
@@ -805,7 +811,10 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_yaw:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				[player decrease_flight_yaw:[player flightYaw] + fValue];
+				if (!isnan(fValue)) // guard against undefined
+				{
+					[player decrease_flight_yaw:[player flightYaw] + fValue];
+				}
 				return YES;
 			}
 			break;
