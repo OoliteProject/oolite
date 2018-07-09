@@ -432,6 +432,7 @@ static BOOL _refreshStarChart = NO;
 	}
 	[guiUserSettings release];
 	guiUserSettings = [guiCopy copy];
+	[guiCopy release];
 }
 
 
