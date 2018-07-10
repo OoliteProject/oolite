@@ -73,6 +73,8 @@ static JSBool GlobalGetScreenBackgroundForKey(JSContext *context, uintN argc, js
 static JSBool GlobalSetScreenBackgroundForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalGetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
 static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp);
@@ -138,6 +140,8 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "getScreenBackgroundForKey",      GlobalGetScreenBackgroundForKey,    1 },
 	{ "setScreenBackgroundForKey",      GlobalSetScreenBackgroundForKey,    2 },
 	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
+	{ "getGuiColorSettingForKey",       GlobalGetGuiColorSettingForKey,     1 },
+	{ "setGuiColorSettingForKey",       GlobalSetGuiColorSettingForKey,     2 },
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
 #endif
@@ -510,6 +514,83 @@ static JSBool GlobalSetScreenOverlay(JSContext *context, uintN argc, jsval *vp)
 		
 		result = [gui setForegroundTextureDescriptor:descriptor];
 	}
+	
+	OOJS_RETURN_BOOL(result);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool GlobalGetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	if (EXPECT_NOT(argc == 0))
+	{
+		OOJSReportBadArguments(context, nil, @"getGuiColorForKey", 0, OOJS_ARGV, nil, @"missing arguments");
+		return NO;
+	}
+	NSString		*key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(key == nil || [key isEqualToString:@""]))
+	{
+		OOJSReportBadArguments(context, nil, @"getGuiColorForKey", 0, OOJS_ARGV, nil, @"key");
+		return NO;
+	}
+	if ([key rangeOfString:@"color"].location == NSNotFound)
+	{
+		OOJSReportBadArguments(context, nil, @"getGuiColorForKey", 0, OOJS_ARGV, nil, @"valid color key setting");
+		return NO;
+	}
+
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	OOColor *col = [gui colorFromSetting:key defaultValue:nil];
+
+	OOJS_RETURN_OBJECT([col normalizedArray]);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// setGuiColorForKey(descriptor : OOColor) : boolean
+static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	BOOL			result = NO;
+	OOColor			*col = nil;
+	
+	if (EXPECT_NOT(argc != 2))
+	{
+		OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 0, OOJS_ARGV, nil, @"missing arguments");
+		return NO;
+	}
+
+	NSString		*key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	jsval			value = OOJS_ARGV[1];
+	if (EXPECT_NOT(key == nil || [key isEqualToString:@""]))
+	{
+		OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 0, OOJS_ARGV, nil, @"key");
+		return NO;
+	}
+	if ([key rangeOfString:@"color"].location == NSNotFound)
+	{
+		OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 0, OOJS_ARGV, nil, @"valid color key setting");
+		return NO;
+	}
+
+	if (!JSVAL_IS_NULL(value))
+	{
+		col = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, value)];
+		if (col == nil)
+		{
+			OOJSReportBadArguments(context, nil, @"setGuiColorForKey", 1, OOJS_ARGV, nil, @"color descriptor");
+			return NO;
+		}
+	}
+
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	[gui setGuiColorSettingFromKey:key color:col];
+	result = YES;
 	
 	OOJS_RETURN_BOOL(result);
 	

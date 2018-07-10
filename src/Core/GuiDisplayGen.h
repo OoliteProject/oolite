@@ -267,6 +267,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setTextCommsColor:(OOColor*) color;
 - (OOColor *) colorFromSetting:(NSString *)setting defaultValue:(OOColor *)def;
 - (void) setGLColorFromSetting:(NSString *)setting defaultValue:(OOColor *)def alpha:(GLfloat)alpha;
+- (void) setGuiColorSettingFromKey:(NSString *) key color:(OOColor *)col;
 
 - (void) setCharacterSize:(NSSize) character_size;
 
