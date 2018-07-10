@@ -114,11 +114,21 @@ SELF_FILENAME=$(basename $0)
 #        if there is an Oolite installation in any
 #        user home directory.
 
-# Uninstall if possible the system-wide installation
-${INSTALL_ROOT_SYSTEMWIDE}/${OOLITE_ROOT_NAME}/uninstall 2> /dev/null
-if [ $? -eq ${ERROR_CODE_UNINSTALL_FAILED} ]
+# Uninstall, if possible, the current active system-wide installation
+if [ ${USER_IS_ROOT} ]
 then
-  exit ${ERROR_CODE_UNINSTALL_FAILED}
+  OOLITE_SHORTCUT=${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}
+  if [ -e ${OOLITE_SHORTCUT} ]
+  then
+    INSTALL_ROOT_SYSTEMWIDE_ACTIVE=`cat ${OOLITE_SHORTCUT} | head -2 | tail -1`
+    INSTALL_ROOT_SYSTEMWIDE_ACTIVE=${INSTALL_ROOT_SYSTEMWIDE_ACTIVE%%/Oolite*}
+    
+    ${INSTALL_ROOT_SYSTEMWIDE_ACTIVE}/${OOLITE_ROOT_NAME}/uninstall 2> /dev/null
+    if [ $? -eq ${ERROR_CODE_UNINSTALL_FAILED} ]
+    then
+      exit ${ERROR_CODE_UNINSTALL_FAILED}
+    fi
+  fi
 fi
 
 # Uninstall user's instalation
