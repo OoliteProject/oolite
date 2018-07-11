@@ -6305,6 +6305,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 	}
 	[screenBackgrounds release];
 	screenBackgrounds = [sbCopy copy];
+	[sbCopy release];
 }
 
 
