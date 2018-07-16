@@ -915,7 +915,7 @@ static NSTimeInterval	time_last_frame;
 				// Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
 				if (([gameView isDown:key_increase_speed] ||
 						joyButtonState[BUTTON_INCTHRUST] ||
-						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelUp) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn])))
+						 ((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelUp) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
 					&& (flightSpeed < maxFlightSpeed) && (!afterburner_engaged))
 				{
 					flightSpeed += speed_delta * delta_t * mouseWheelDeltaFactor;
@@ -923,7 +923,7 @@ static NSTimeInterval	time_last_frame;
 				
 				if (([gameView isDown:key_decrease_speed] ||
 						joyButtonState[BUTTON_DECTHRUST] ||
-						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelDown) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn])))
+						((mouse_control_on)&&([gameView mouseWheelState] == gvMouseWheelDown) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn])))
 					&& (!afterburner_engaged))
 				{
 					flightSpeed -= speed_delta * delta_t * mouseWheelDeltaFactor;	
@@ -979,7 +979,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"shoot";
 				//  shoot 'a'
-				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]) && !([UNIVERSE viewDirection] && [gameView isCapsLockOn]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
+				 if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
 				{
 					if ([self fireMainWeapon])
 					{
@@ -3447,7 +3447,7 @@ static NSTimeInterval	time_last_frame;
 	else
 		customView_pressed = NO;
 	NSTimeInterval this_time = [NSDate timeIntervalSinceReferenceDate];
-	if ([UNIVERSE viewDirection] && [gameView isCapsLockOn])
+	if ([UNIVERSE viewDirection] > VIEW_STARBOARD && [gameView isCapsLockOn])
 	{
 		if (!caps_on)  caps_on = YES;
 		
