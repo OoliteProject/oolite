@@ -912,6 +912,7 @@ static NSTimeInterval	time_last_frame;
 				// DJS: Thrust can be an axis or a button. Axis takes precidence.
 				double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
 				float mouseWheelDeltaFactor = mouse_control_on ? fabs([gameView mouseWheelDelta]) : 1.0f;
+				if (mouseWheelDeltaFactor == 0.0f)  mouseWheelDeltaFactor = 1.0f;
 				// Updated DJS original code to fix BUG #17482 - (Getafix 2010/09/13)
 				if (([gameView isDown:key_increase_speed] ||
 						joyButtonState[BUTTON_INCTHRUST] ||
