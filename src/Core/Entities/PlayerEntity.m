@@ -6160,6 +6160,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
 	
 	if ([self status] == STATUS_DEAD)  return;
+	if ([self status] == STATUS_ESCAPE_SEQUENCE) return; // if the player has ejected, don't deal more damage
 	if (amount == 0.0)  return;
 	
 	BOOL cascadeWeapon = [ent isCascadeWeapon];
