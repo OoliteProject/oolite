@@ -148,6 +148,7 @@ enum
 	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_roll,							// roll (overrules Ship)
 	kPlayerShip_routeMode,						// ANA mode
+	kPlayerShip_scannerMinimalistic	,			// essentially scanner without gridlines	
 	kPlayerShip_scannerNonLinear,				// non linear scanner setting, boolean, read/write
 	kPlayerShip_scannerUltraZoom,				// scanner zoom in powers of 2, boolean, read/write
 	kPlayerShip_scoopOverride,					// Scooping
@@ -216,6 +217,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			OOJS_PROP_READWRITE_CB },
 	{ "roll",							kPlayerShip_roll,							OOJS_PROP_READWRITE_CB },
 	{ "routeMode",						kPlayerShip_routeMode,						OOJS_PROP_READONLY_CB },
+	{ "scannerMinimalistic",				kPlayerShip_scannerMinimalistic,			OOJS_PROP_READWRITE_CB },
 	{ "scannerNonLinear",				kPlayerShip_scannerNonLinear,				OOJS_PROP_READWRITE_CB },
 	{ "scannerUltraZoom",				kPlayerShip_scannerUltraZoom,				OOJS_PROP_READWRITE_CB },
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
@@ -485,6 +487,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			}
 			break;
 		}
+		
+		case kPlayerShip_scannerMinimalistic:
+			*value = OOJSValueFromBOOL([[player hud] minimalisticScanner]);
+			return YES;
 			
 		case kPlayerShip_scannerNonLinear:
 			*value = OOJSValueFromBOOL([[player hud] nonlinearScanner]);
@@ -863,6 +869,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setAftShieldRechargeRate:fValue];
+				return YES;
+			}
+			break;
+			
+		case kPlayerShip_scannerMinimalistic:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[[player hud] setMinimalisticScanner:bValue];
 				return YES;
 			}
 			break;

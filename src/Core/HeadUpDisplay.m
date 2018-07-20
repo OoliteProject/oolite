@@ -101,7 +101,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 				BOOL colourFromScannerColour, BOOL showText, NSDictionary *info, NSMutableArray *reticleColors);
 static void hudDrawWaypoint(OOWaypointEntity *waypoint, PlayerEntity *player1, GLfloat z1, GLfloat alpha, BOOL selected, GLfloat scale);
 static void hudRotateViewpointForVirtualDepth(PlayerEntity * player1, Vector p1);
-static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear);
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear, BOOL minimalistic);
 static GLfloat nonlinearScannerFunc(GLfloat distance, GLfloat zoom, GLfloat scale);
 static void GLDrawNonlinearCascadeWeapon( GLfloat x, GLfloat y, GLfloat z, NSSize siz, Vector centre, GLfloat radius, GLfloat zoom, GLfloat alpha );
 
@@ -331,6 +331,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	_crosshairColor = [[OOColor colorWithDescription:crosshairColor] retain];
 	_crosshairScale = [hudinfo oo_floatForKey:@"crosshair_scale" defaultValue:32.0f];
 	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
+	
+	minimalistic_scanner = [hudinfo oo_boolForKey:@"scanner_minimalistic" defaultValue:NO];
 	
 	nonlinear_scanner = [hudinfo oo_boolForKey:@"scanner_non_linear" defaultValue:NO];
 	scanner_ultra_zoom = [hudinfo oo_boolForKey:@"scanner_ultra_zoom" defaultValue:NO];
@@ -1250,7 +1252,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	if (!emptyDial)
 	{
 		OOGL(glColor4fv(scanner_color));
-		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, zoom, nonlinear_scanner);
+		drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], lineWidth, zoom, nonlinear_scanner, minimalistic_scanner);
 	}
 	
 	if ([self checkPlayerInFlight])
@@ -1469,6 +1471,19 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	OOVerifyOpenGLState();
 	
 }
+
+
+- (BOOL) minimalisticScanner
+{
+	return minimalistic_scanner;
+}
+
+
+- (void) setMinimalisticScanner: (BOOL) newValue
+{
+	minimalistic_scanner = !!newValue;
+}
+
 
 + (Vector) nonlinearScannerScale: (Vector) V Zoom:(GLfloat)zoom Scale:(double) scale
 {
@@ -4205,7 +4220,7 @@ static GLfloat nonlinearScannerFunc( GLfloat distance, GLfloat zoom, GLfloat sca
 }
 
 
-static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear)
+static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_dir, GLfloat thickness, GLfloat zoom, BOOL nonlinear, BOOL minimalistic)
 {
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 
@@ -4227,79 +4242,82 @@ static void drawScannerGrid(GLfloat x, GLfloat y, GLfloat z, NSSize siz, int v_d
 	OOGL(GLScaledLineWidth(thickness)); // reset (thickness = lineWidth)
 	
 	OOGLBEGIN(GL_LINES);
-		glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);
-		glVertex3f(x - ww, y, z);	glVertex3f(x + ww, y, z);
-
-		if (nonlinear)
+		if (!minimalistic)
 		{
-			if (nonlinearScannerFunc(4000.0, zoom, hh)-nonlinearScannerFunc(3000.0, zoom ,hh) > 2) drawdiv1 = YES;
-			if (nonlinearScannerFunc(10000.0, zoom, hh)-nonlinearScannerFunc(5000.0, zoom, hh) > 2) drawdiv5 = YES;
-			wdiv = ww/(0.001*SCANNER_MAX_RANGE);
-			for (i = 1; 1000.0*i < SCANNER_MAX_RANGE; i++)
+			glVertex3f(x, y - hh, z);	glVertex3f(x, y + hh, z);
+			glVertex3f(x - ww, y, z);	glVertex3f(x + ww, y, z);
+	
+			if (nonlinear)
 			{
-				drawdiv = drawdiv1;
-				w1 = wdiv;
-				if (i % 10 == 0)
+				if (nonlinearScannerFunc(4000.0, zoom, hh)-nonlinearScannerFunc(3000.0, zoom ,hh) > 2) drawdiv1 = YES;
+				if (nonlinearScannerFunc(10000.0, zoom, hh)-nonlinearScannerFunc(5000.0, zoom, hh) > 2) drawdiv5 = YES;
+				wdiv = ww/(0.001*SCANNER_MAX_RANGE);
+				for (i = 1; 1000.0*i < SCANNER_MAX_RANGE; i++)
 				{
-					w1 = wdiv*4;
-					drawdiv = YES;
-					if (nonlinearScannerFunc((i+5)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
+					drawdiv = drawdiv1;
+					w1 = wdiv;
+					if (i % 10 == 0)
 					{
-						drawdiv5 = YES;
+						w1 = wdiv*4;
+						drawdiv = YES;
+						if (nonlinearScannerFunc((i+5)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
+						{
+							drawdiv5 = YES;
+						}
+						else
+						{
+							drawdiv5 = NO;
+						}
 					}
-					else
+					else if (i % 5 == 0)
 					{
-						drawdiv5 = NO;
+						w1 = wdiv*2;
+						drawdiv = drawdiv5;
+						if (nonlinearScannerFunc((i+1)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
+						{
+							drawdiv1 = YES;
+						}
+						else
+						{
+							drawdiv1 = NO;
+						}
+					}
+					if (drawdiv)
+					{
+						h1 = nonlinearScannerFunc(i*1000.0,zoom,hh);
+						glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
+						glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
 					}
 				}
-				else if (i % 5 == 0)
-				{
-					w1 = wdiv*2;
-					drawdiv = drawdiv5;
-					if (nonlinearScannerFunc((i+1)*1000,zoom,hh) - nonlinearScannerFunc(i*1000.0,zoom,hh)>2)
-					{
-						drawdiv1 = YES;
-					}
-					else
-					{
-						drawdiv1 = NO;
-					}
-				}
-				if (drawdiv)
-				{
-					h1 = nonlinearScannerFunc(i*1000.0,zoom,hh);
-					glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
-					glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
-				}
-			}
-		}
-		else
-		{
-			km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
-			hdiv = 0.5 * siz.height / km_scan;
-			wdiv = 0.25 * siz.width / km_scan;
-			if (wdiv < 4.0)
-			{
-				wdiv *= 2.0;
-				ii = 5;
 			}
 			else
 			{
-				ii = 1;
-			}
-	
-			for (i = ii; 2.0 * hdiv * i < siz.height; i += ii)
-			{
-				h1 = i * hdiv;
-				w1 = wdiv;
-				if (i % 5 == 0)
-					w1 = w1 * 2.5;
-				if (i % 10 == 0)
-					w1 = w1 * 2.0;
-				if (w1 > 3.5)	// don't draw tiny marks
+				km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
+				hdiv = 0.5 * siz.height / km_scan;
+				wdiv = 0.25 * siz.width / km_scan;
+				if (wdiv < 4.0)
 				{
-					glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
-					glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+					wdiv *= 2.0;
+					ii = 5;
+				}
+				else
+				{
+					ii = 1;
+				}
+		
+				for (i = ii; 2.0 * hdiv * i < siz.height; i += ii)
+				{
+					h1 = i * hdiv;
+					w1 = wdiv;
+					if (i % 5 == 0)
+						w1 = w1 * 2.5;
+					if (i % 10 == 0)
+						w1 = w1 * 2.0;
+					if (w1 > 3.5)	// don't draw tiny marks
+					{
+						glVertex3f(x - w1, y + h1, z);	glVertex3f(x + w1, y + h1, z);
+						glVertex3f(x - w1, y - h1, z);	glVertex3f(x + w1, y - h1, z);
+					}
 				}
 			}
 		}

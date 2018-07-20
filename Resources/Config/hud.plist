@@ -392,6 +392,7 @@
 	overall_alpha	= 0.75;
 	reticle_target_sensitive = no;
 	cloak_indicator_on_status_light = yes;
+	scanner_minimalistic = no;
 	scanner_non_linear = no;
 	scanner_ultra_zoom = no;
 }

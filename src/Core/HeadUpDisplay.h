@@ -282,6 +282,9 @@ enum
 	
 	NSMutableArray		*_reticleColors;
 	
+	// essentially scanner without gridlines
+	BOOL			minimalistic_scanner;
+	
 	// Nonlinear scanner
 	BOOL			nonlinear_scanner;
 	BOOL			scanner_ultra_zoom;
@@ -337,6 +340,9 @@ enum
 
 - (void) setLineWidth:(GLfloat)value;
 - (GLfloat) lineWidth;
+
+- (BOOL) minimalisticScanner;
+- (void) setMinimalisticScanner: (BOOL) newValue;
 
 + (Vector) nonlinearScannerScale:(Vector) V Zoom:(GLfloat) zoom Scale:(double) scale;
 - (BOOL) nonlinearScanner;
