@@ -10398,25 +10398,23 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		jink.x = (ranrot_rand() % 256) - 128.0;
 		jink.y = (ranrot_rand() % 256) - 128.0;
 		jink.z = z;
-		if (accuracy >= COMBAT_AI_IS_SMART)
+		
+		// make sure we don't accidentally have near-zero jink
+		if (jink.x < 0.0) 
 		{
-			// make sure we don't accidentally have near-zero jink
-			if (jink.x < 0.0) 
-			{
-				jink.x -= 128.0;
-			}
-			else
-			{
-				jink.x += 128.0;
-			}
-			if (jink.y < 0) 
-			{
-				jink.y -= 128.0;
-			}
-			else
-			{
-				jink.y += 128.0;
-			}
+			jink.x -= 128.0;
+		}
+		else
+		{
+			jink.x += 128.0;
+		}
+		if (jink.y < 0) 
+		{
+			jink.y -= 128.0;
+		}
+		else
+		{
+			jink.y += 128.0;
 		}
 	}
 }

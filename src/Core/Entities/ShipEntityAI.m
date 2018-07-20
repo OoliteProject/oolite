@@ -417,6 +417,14 @@
 		behaviour = BEHAVIOUR_FLEE_TARGET;
 		[self setEvasiveJink:400.0];
 		frustration = 0.0;
+		if (accuracy > COMBAT_AI_ISNT_AWFUL)
+		{
+			// alert! they've got us in their sights! react!!
+			if ([self approachAspectToPrimaryTarget] > 0.9995)
+			{
+				behaviour = randf() < 0.15 ? BEHAVIOUR_EVASIVE_ACTION : BEHAVIOUR_FLEE_EVASIVE_ACTION;
+			}
+		}
 	}
 }
 
