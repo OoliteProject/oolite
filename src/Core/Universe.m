@@ -61,6 +61,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
+#import "PlayerEntityControls.h"
 #import "PlayerEntityScriptMethods.h"
 #import "StationEntity.h"
 #import "DockEntity.h"
