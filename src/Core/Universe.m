@@ -9907,6 +9907,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	if(showDemo)
 	{
 		[player setStatus:STATUS_START_GAME];
+		// re-read keyconfig.plist just in case we've loaded a keyboard
+		// configuration expansion
+		[player initControls];
 	}
 	else
 	{
