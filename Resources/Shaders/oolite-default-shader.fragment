@@ -133,6 +133,12 @@ uniform float			uParallaxScale;
 uniform float			uParallaxBias;
 #endif
 
+#ifndef OOSPECULAR_NEW_MODEL
+#define OOSPECULAR_NEW_MODEL		1
+#ifndef OOSPECULAR_NEW_MODEL_GGX
+#define OOSPECULAR_NEW_MODEL_GGX	0
+#endif
+#endif
 
 vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
 {
@@ -173,14 +179,14 @@ vec3 FresnelSchlick(vec3 specColor, vec3 light, vec3 halfVec)
 }
 
 
-vec3 SpecularBlinnPhong(vec3 specColor, vec3 light, vec3 normal, vec3 halfVec, float specPower, float fresnel)
+vec3 CalcSpecularBlinnPhong(vec3 light, vec3 normal, vec3 halfVec, float specPower, float fresnel, vec3 specColor)
 {
 	float NdotL = dot(normal, light);
 	return mix(specColor, FresnelSchlick(specColor, light, halfVec), fresnel) * ((specPower + 2.0) / 8.0 ) * pow(clamp(dot(normal, halfVec), 0.0, 1.0), specPower) * NdotL;
 }
 
 
-vec3 SpecularGGX(vec3 specColor, vec3 light, vec3 normal, vec3 halfVec, vec3 view, float gloss, float fresnelFactor)
+vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float gloss, float fresnelFactor, vec3 specColor)
 {
 	float NdotL = dot(normal, light);
 	float roughness = clamp(1.0f - gloss, 0.0f, 1.0f);
@@ -332,12 +338,18 @@ void main(void)
 	vec4 specularLight = vec4(0);
 	float exponent = gl_FrontMaterial.shininess;
 	APPLY_MAPPED_EXPONENT;
-	// Old specular calculation commented out - swap comments on specularLight lines below as required
-	// to enable the spec model you want. Also, GGX experimental support. We do need proper gloss handling
-	// to be able to use that one, though. For now, leaving Blinn-Phong as the active model.
-	// specularLight += CalcSpecularLight(lightVector, eyeVector, exponent, normal, gl_LightSource[1].specular);
-	// specularLight = vec4(SpecularGGX(gl_LightSource[1].specular.rgb, lightVector, normal, halfVector, eyeVector, clamp(exponent / 10.0, 0.0f, 0.95f), 1.0), 0.0);
-	specularLight = vec4(SpecularBlinnPhong(gl_LightSource[1].specular.rgb, lightVector, normal, halfVector, exponent * 10, 1.0), 0.0);
+	#if !OOSPECULAR_NEW_MODEL
+		specularLight += CalcSpecularLight(lightVector, eyeVector, exponent, normal, gl_LightSource[1].specular);
+	#else
+		#if OOSPECULAR_NEW_MODEL_GGX
+			// We do need proper gloss handling via texture to be able to take full advantage of this one.
+			// Gloss is expected to be between 0.0 and 1.0 but we clamp it to 0.95 for practical reasons.
+			specularLight = vec4(CalcSpecularGGX(lightVector, normal, halfVector, eyeVector, clamp(exponent / 10.0, 0.0f, 0.95f), 1.0, gl_LightSource[1].specular.rgb), 0.0);
+		#else
+			// New Blinn-Phong is the current default.
+			specularLight = vec4(CalcSpecularBlinnPhong(lightVector, normal, halfVector, exponent * 10, 1.0, gl_LightSource[1].specular.rgb), 0.0);
+		#endif
+	#endif
 	specularLight.a = 1.0;
 #endif
 	
