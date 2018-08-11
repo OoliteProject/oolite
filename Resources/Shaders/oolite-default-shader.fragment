@@ -136,7 +136,7 @@ uniform float			uParallaxBias;
 #ifndef OOSPECULAR_NEW_MODEL
 #define OOSPECULAR_NEW_MODEL		1
 #ifndef OOSPECULAR_NEW_MODEL_GGX
-#define OOSPECULAR_NEW_MODEL_GGX	0
+#define OOSPECULAR_NEW_MODEL_GGX	1
 #endif
 #endif
 
@@ -188,7 +188,7 @@ vec3 CalcSpecularBlinnPhong(vec3 light, vec3 normal, vec3 halfVec, float specPow
 
 vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float gloss, float fresnelFactor, vec3 specColor)
 {
-	float NdotL = dot(normal, light);
+	float NdotL = clamp(dot(normal, light), 0.0f, 1.0f);
 	float roughness = clamp(1.0f - gloss, 0.0f, 1.0f);
 	float alpha = roughness * roughness;
 
@@ -204,9 +204,9 @@ vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float glo
 
 	float alphaPrime = roughness + 1.0f;
 	float k = alphaPrime * alphaPrime / 8.0f;
-	float g1vNH = 1.0f / (NdotH * (1.0f - k) + k);
+	float g1vNL = 1.0f / (NdotL * (1.0f - k) + k);
 	float g1vNV = 1.0f / (NdotV * (1.0f - k) + k);
-	float visibility = g1vNH * g1vNV;
+	float visibility = g1vNL * g1vNV;
 
 	return distribution * fresnel * visibility * NdotL;
 }
