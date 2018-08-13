@@ -344,7 +344,7 @@ void main(void)
 		#if OOSPECULAR_NEW_MODEL_GGX
 			// We do need proper gloss handling via texture to be able to take full advantage of this one.
 			// Gloss is expected to be between 0.0 and 1.0 but we clamp it to 0.95 for practical reasons.
-			specularLight = vec4(CalcSpecularGGX(lightVector, normal, halfVector, eyeVector, clamp(exponent / (37.5 + exponent), 0.0f, 0.95f), 1.0, gl_LightSource[1].specular.rgb), 0.0);
+			specularLight = vec4(CalcSpecularGGX(lightVector, normal, halfVector, eyeVector, exponent * 0.007421875, 1.0, gl_LightSource[1].specular.rgb), 0.0);
 		#else
 			// New Blinn-Phong
 			specularLight = vec4(CalcSpecularBlinnPhong(lightVector, normal, halfVector, exponent, 1.0, gl_LightSource[1].specular.rgb), 0.0);
