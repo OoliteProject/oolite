@@ -302,17 +302,14 @@ void main()
 	float specularFactor = SPECULAR_FACTOR;
 	#if !OOSPECULAR_NEW_MODEL
 		vec3 specularLight = CalcSpecularLight(light1Vector, eyeVector, 30.0 * specularFactor, normal, SPECULAR_LIGHT);
+		totalColor += specularLight * 0.6 * specularFactor;
 	#else
 		#if OOSPECULAR_NEW_MODEL_GGX
 			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, specularFactor / 2.0, 1.0, gl_LightSource[1].specular.rgb);
 		#else
 			// New Blinn-Phong
-			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 7.5 * specularFactor, 1.0, gl_LightSource[1].specular.rgb);
+			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 30.0 * specularFactor, 1.0, gl_LightSource[1].specular.rgb);
 		#endif
-	#endif
-	#if !OOSPECULAR_NEW_MODEL
-		totalColor += specularLight * 0.6 * specularFactor;
-	#else
 		totalColor += specularLight * 0.1;
 	#endif
 #endif
