@@ -133,6 +133,9 @@ uniform float			uParallaxScale;
 uniform float			uParallaxBias;
 #endif
 
+uniform float			uIOR;
+uniform float			uGloss;
+
 #ifndef OOSPECULAR_NEW_MODEL
 #define OOSPECULAR_NEW_MODEL		1
 #ifndef OOSPECULAR_NEW_MODEL_GGX
@@ -339,12 +342,17 @@ void main(void)
 	float exponent = gl_FrontMaterial.shininess;
 	APPLY_MAPPED_EXPONENT;
 	#if !OOSPECULAR_NEW_MODEL
+		float f0 = 0.0f;
 		specularLight += CalcSpecularLight(lightVector, eyeVector, exponent, normal, gl_LightSource[1].specular);
 	#else
+		float f0SqRt = ((1 - uIOR) / (1 + uIOR));
+		float f0 = f0SqRt * f0SqRt;
 		#if OOSPECULAR_NEW_MODEL_GGX
-			// We do need proper gloss handling via texture to be able to take full advantage of this one.
-			// Gloss is expected to be between 0.0 and 1.0 but we clamp it to 0.95 for practical reasons.
-			specularLight = vec4(CalcSpecularGGX(lightVector, normal, halfVector, eyeVector, exponent * 0.007421875, 1.0, gl_LightSource[1].specular.rgb), 0.0);
+			float gloss = uGloss;
+			#if OOSTD_SPECULAR_MAP
+				gloss *= specularMapColor.a;
+			#endif
+			specularLight = vec4(CalcSpecularGGX(lightVector, normal, halfVector, eyeVector, gloss, f0, gl_LightSource[1].specular.rgb), 0.0);
 		#else
 			// New Blinn-Phong
 			specularLight = vec4(CalcSpecularBlinnPhong(lightVector, normal, halfVector, exponent, 1.0, gl_LightSource[1].specular.rgb), 0.0);
@@ -373,7 +381,8 @@ void main(void)
 	ambientColor *= diffuseMapColor;
 #endif
 	
-	totalColor += ambientColor * ambientLight + diffuseColor * diffuseLight;
+	// light energy conservation here
+	totalColor += (ambientColor * ambientLight + diffuseColor * diffuseLight) * (1.0 - f0);
 #if OOSTD_SPECULAR
 	totalColor += specularColor * specularLight;
 #endif

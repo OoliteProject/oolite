@@ -57,6 +57,9 @@ SOFTWARE.
 - (float) oo_parallaxScale;
 - (float) oo_parallaxBias;
 
+- (float) oo_ior;
+- (float) oo_gloss;
+
 - (int) oo_specularExponent;
 
 @end
