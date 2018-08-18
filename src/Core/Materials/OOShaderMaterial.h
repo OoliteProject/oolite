@@ -77,6 +77,8 @@ typedef uint16_t OOUniformConvertOptions;
 							dictionaries containing:
 			type			"int", "texture" or "float"
 			value			number
+		gloss			gloss value of material, float between 0.0 and 1.0, defaults to 0.5
+		ior				index of refraction of material, positive float, defaults to 1.0
 	
 	Macros is a dictionary which is converted to macro definitions and
 	prepended to shader source code. It should be used to specify the

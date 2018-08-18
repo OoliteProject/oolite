@@ -257,6 +257,18 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[self addTexturesFromArray:textureArray unitCount:textureUnits];
 	}
 	
+	if (OK)
+	{
+		// write gloss and index of refraction to the uniforms dictionary
+
+		float gloss = OOClamp_0_1_f([configuration oo_floatForKey:@"gloss"  defaultValue:0.5f]);
+		[self setUniform:@"uGloss" floatValue:gloss];
+		
+		float ior = [configuration oo_floatForKey:@"ior"  defaultValue:1.0f];
+		if (ior <= 0.0f)  ior = 0.001f;
+		[self setUniform:@"uIOR" floatValue:ior];
+	}
+	
 	if (!OK)
 	{
 		[self release];
