@@ -336,17 +336,17 @@ void main(void)
 	#define APPLY_MAPPED_EXPONENT exponent += 0.001
 #endif
 	
+	float f0 = 0.0f;
 	// Calculate specular light
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
 	float exponent = gl_FrontMaterial.shininess;
 	APPLY_MAPPED_EXPONENT;
 	#if !OOSPECULAR_NEW_MODEL
-		float f0 = 0.0f;
 		specularLight += CalcSpecularLight(lightVector, eyeVector, exponent, normal, gl_LightSource[1].specular);
 	#else
 		float f0SqRt = ((1 - uIOR) / (1 + uIOR));
-		float f0 = f0SqRt * f0SqRt;
+		f0 = f0SqRt * f0SqRt;
 		#if OOSPECULAR_NEW_MODEL_GGX
 			float gloss = uGloss;
 			#if OOSTD_SPECULAR_MAP
