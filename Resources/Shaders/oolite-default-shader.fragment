@@ -207,11 +207,11 @@ vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float glo
 
 	float alphaPrime = roughness + 1.0f;
 	float k = alphaPrime * alphaPrime / 8.0f;
-	float g1vNL = 1.0f / (NdotL * (1.0f - k) + k);
-	float g1vNV = 1.0f / (NdotV * (1.0f - k) + k);
+	float g1vNL = NdotL/ (NdotL * (1.0f - k) + k);
+	float g1vNV = NdotV / (NdotV * (1.0f - k) + k);
 	float visibility = g1vNL * g1vNV;
 
-	return distribution * fresnel * visibility * NdotL;
+	return distribution * fresnel * visibility * NdotL / max(4.0 * NdotL * NdotV, 0.001f);
 }
 
 
@@ -382,6 +382,9 @@ void main(void)
 #endif
 	
 	// light energy conservation here
+	// normally we would want to use the full fresnel term here, i.e.:
+	// float fresnelTerm = f0 + (1.0 - f0) * pow(1.0 - clamp(dot(lightVector, halfVector), 0.0, 1.0), 5.0);
+	// but f0 is already available and is close enough
 	totalColor += (ambientColor * ambientLight + diffuseColor * diffuseLight) * (1.0 - f0);
 #if OOSTD_SPECULAR
 	totalColor += specularColor * specularLight;
