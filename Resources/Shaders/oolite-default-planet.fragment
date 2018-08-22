@@ -221,11 +221,11 @@ vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float glo
 
 	float alphaPrime = roughness + 1.0;
 	float k = alphaPrime * alphaPrime / 8.0;
-	float g1vNL = 1.0 / (NdotL * (1.0 - k) + k);
-	float g1vNV = 1.0 / (NdotV * (1.0 - k) + k);
+	float g1vNL = NdotL / (NdotL * (1.0 - k) + k);
+	float g1vNV = NdotV / (NdotV * (1.0 - k) + k);
 	float visibility = g1vNL * g1vNV;
 
-	return distribution * fresnel * visibility * NdotL;
+	return distribution * fresnel * visibility * NdotL / max(4.0 * NdotV * NdotL, 0.001f);
 }
 
 
@@ -288,7 +288,14 @@ void main()
 	vec4 diffuseMapSample = texture2D(uDiffuseMap, texCoords);
 #endif
 	vec3 diffuseColor = diffuseMapSample.rgb;
-	totalColor += diffuseColor * diffuseLight;
+	
+	float f0 = 0.0;
+#if OOSPECULAR_NEW_MODEL
+	// conservation of energy: f0 = 0.0204 = (((1.0 - 1.3333) / (1.0 + 1.3333))^2, where 1.3333 is the ior of water
+	f0 = 0.0204;
+#endif
+
+	totalColor += diffuseColor * diffuseLight * (1.0 - f0);
 	
 	// Ambient light, biased towards blue.
 	vec3 ambientColor = diffuseColor;
@@ -301,16 +308,19 @@ void main()
 #if USE_SPECULAR
 	float specularFactor = SPECULAR_FACTOR;
 	#if !OOSPECULAR_NEW_MODEL
+		// f0 is 0.0204 
 		vec3 specularLight = CalcSpecularLight(light1Vector, eyeVector, 30.0 * specularFactor, normal, SPECULAR_LIGHT);
-		totalColor += specularLight * 0.6 * specularFactor;
+		totalColor += specularLight * 0.6;
 	#else
 		#if OOSPECULAR_NEW_MODEL_GGX
-			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, specularFactor / 2.0, 1.0, gl_LightSource[1].specular.rgb);
+			specularFactor *= 0.475;
+			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, specularFactor, f0, SPECULAR_LIGHT);
 		#else
 			// New Blinn-Phong
-			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 30.0 * specularFactor, 1.0, gl_LightSource[1].specular.rgb);
+			specularFactor *= 0.09;
+			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 500.0 * specularFactor, f0, SPECULAR_LIGHT);
 		#endif
-		totalColor += specularLight * 0.1;
+		totalColor += specularLight * specularFactor;
 	#endif
 #endif
 	
