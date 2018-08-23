@@ -330,7 +330,6 @@ void main(void)
 #if OOSTD_SPECULAR_MAP
 	vec4 specularMapColor = texture2D(uSpecularMap, texCoord);
 	float specularExponentLevel = pow(specularMapColor.a, 2.0) + 0.001;
-	specularMapColor.a = 1.0;
 	#define APPLY_MAPPED_EXPONENT exponent = (exponent - 1.0) * specularExponentLevel + 1.0
 #else
 	#define APPLY_MAPPED_EXPONENT exponent += 0.001
@@ -367,7 +366,7 @@ void main(void)
 	vec4 specularColor = gl_FrontMaterial.specular;
 #endif
 #if OOSTD_SPECULAR_MAP
-	specularColor *= specularMapColor;
+	specularColor *= vec4(specularMapColor.rgb, 1.0);
 #endif
 
 #if OOSTD_DIFFUSE_MAP
