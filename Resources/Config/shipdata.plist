@@ -130,7 +130,7 @@
 				diffuse_map = "oolite_adder_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -305,7 +305,7 @@
 				diffuse_map = "oolite_anaconda_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -318,7 +318,7 @@
 				diffuse_map = "oolite_anaconda_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 ); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 				emission_map = 
 				{
@@ -331,7 +331,7 @@
 				diffuse_map = "oolite_anaconda_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 ); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 			};		
 		};		
@@ -471,7 +471,7 @@
 				diffuse_map = "oolite_asp_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -484,7 +484,7 @@
 				diffuse_map = "oolite_asp_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 ); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 			};	
 		};
@@ -616,7 +616,7 @@
 				diffuse_map = "oolite_barrel_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 60;
 			};
 		};
@@ -728,7 +728,7 @@
 					diffuse_map = "oolite_boa_diffuse.png"; 
 					gloss = 0.5;
 					ior = 2.95;
-					specular_color = ( 0.2, 0.2, 0.2 );
+					specular_color = (0.4, 0.4, 0.4);
 					shininess = 42; 
 					emission_map = { name = "oolite_boa_diffuse.png"; extract_channel = "a"; }; 
 					emission_modulate_color = (0.9926, 0.9686, 0.7325); 
@@ -738,7 +738,7 @@
 					diffuse_map = "oolite_boa_subents.png"; 
 					gloss = 0.5;
 					ior = 2.95;
-					specular_color = ( 0.2, 0.2, 0.2 );
+					specular_color = (0.4, 0.4, 0.4);
 					shininess = 42; 
 					emission_map = 
 					{
@@ -887,7 +887,7 @@
 				diffuse_map = "oolite_boa-mk2_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -898,7 +898,7 @@
 			"Engine" = 
 			{ 
 				diffuse_map = "oolite_boa-mk2_subents.png"; 
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				gloss = 0.5;
 				ior = 2.95;
 				shininess = 42;
@@ -1031,10 +1031,10 @@
 		{
 			"target_metal.png" =
 			{
-				gloss = 0.5;
+				gloss = 0.6;
 				ior = 2.95;
 				shininess = 60;
-				specular_color = (0.8, 0.83, 0.85, 1.0);
+				specular_color = (0.4, 0.415, 0.425, 1.0);
 				diffuse_color = (0.8, 0.8, 0.8);
 				ambient_color = (0.75, 0.75, 0.75);
 			};
@@ -1145,7 +1145,7 @@
 				diffuse_map = "oolite_barrel2_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -1249,7 +1249,7 @@
 			"Hull" = 
 			{ 
 				diffuse_map = "oolite_cobra3_diffuse.png"; 
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = ( 0.4, 0.4, 0.4 );
 				gloss = 0.5;
 				ior = 2.95;
 				shininess = 42; 
@@ -1261,7 +1261,7 @@
 				gloss = 0.5;
 				ior = 2.95;
 				diffuse_map = "oolite_cobra3_subents.png"; 
-				specular_color = ( 0.2, 0.2, 0.2 ); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 			};			
 		};
@@ -1309,7 +1309,7 @@
 				diffuse_map = "oolite_cobra3_diffuse_alt.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -1322,7 +1322,7 @@
 				diffuse_map = "oolite_cobra3_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 ); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 			};			
 		};
@@ -1346,7 +1346,7 @@
 				diffuse_map = "oolite_cobra3_diffuse_pirate.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -1359,7 +1359,7 @@
 				diffuse_map = "oolite_cobra3_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 ); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 			};			
 		};
@@ -1463,7 +1463,7 @@
 				diffuse_map = "oolite_cobramk1_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -1512,7 +1512,7 @@
 				diffuse_map = "oolite_cobramk1_diffuse_alt.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -1538,7 +1538,7 @@
 				diffuse_map = "oolite_cobramk1_diffuse_miner.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -1582,7 +1582,7 @@
 					diffuse_map = "oolite_constrictor_diffuse.png"; 
 					gloss = 0.5;
 					ior = 2.95;
-					specular_color = ( 0.2, 0.2, 0.2 ); 
+					specular_color = (0.4, 0.4, 0.4); 
 					shininess = 42; 
 					emission_map = { name = "oolite_constrictor_diffuse.png"; extract_channel = "a"; }; 
 					emission_modulate_color = (1.0, 0.1, 0.0); 				
@@ -1592,7 +1592,7 @@
 					diffuse_map = "oolite_constrictor_subents.png"; 
 					gloss = 0.5;
 					ior = 2.95;
-					specular_color = ( 0.2, 0.2, 0.2 ); 
+					specular_color = (0.4, 0.4, 0.4); 
 					shininess = 42;
 					emission_map = { name = "oolite_constrictor_subents.png"; extract_channel = "a"; }; 
 					emission_modulate_color = (0.7325, 0.9686, 0.9926, 1.0); 	
@@ -1637,8 +1637,8 @@
 		{ 
 			"oolite_coriolis_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 );
-				gloss = 0.5;
+				specular_color = ( 0.4, 0.4, 0.4 );
+				gloss = 0.55;
 				ior = 2.95;
 				shininess = 42; 
 				emission_map = 
@@ -1817,9 +1817,9 @@
 		{ 
 			"oolite_dodo_diffuse.png" = 
 			{ 
-				gloss = 0.5;
+				gloss = 0.55;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
 				shininess = 42; 
 				emission_map = 
 				{
@@ -1981,9 +1981,9 @@
 				"Hull" = 
 				{ 
 					diffuse_map = "oolite_missile_hardhead_diffuse.png"; 
-					gloss = 0.65;
+					gloss = 0.62;
 					ior = 2.16;
-					specular_color = ( 0.2, 0.2, 0.2 );
+					specular_color = (0.4, 0.4, 0.4);
 					shininess = 65; 
 					emission_map = { name = "oolite_missile_hardhead_diffuse.png"; extract_channel = "a"; }; 
 					emission_modulate_color = (0.2, 0.8, 1.0);				
@@ -2024,7 +2024,7 @@
 				diffuse_map = "oolite_escape_capsule_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2139,7 +2139,7 @@
 				diffuse_map = "oolite_ferdelance_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2213,7 +2213,7 @@
 				diffuse_map = "oolite_gecko_diffuse.png"; 		
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2269,9 +2269,9 @@
 		{ 
 			"oolite_ico_diffuse.png" = 
 			{ 
-				gloss = 0.5;
+				gloss = 0.55;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
 				shininess = 42; 
 				emission_map = 
 				{
@@ -2450,7 +2450,7 @@
 				diffuse_map = "oolite_krait_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2521,7 +2521,7 @@
 				diffuse_map = "oolite_mamba_diffuse.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2568,7 +2568,7 @@
 				diffuse_map = "oolite_mamba_diffuse_escort.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2604,7 +2604,7 @@
 				diffuse_map = "oolite_missile_diffuse.png"; 
 				gloss = 0.62;
 				ior = 2.16;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 60; 
 				emission_map = { name = "oolite_missile_diffuse.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (1.0, 0.1, 0.0); 				
@@ -2717,7 +2717,7 @@
 				diffuse_map = "oolite_moray_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2730,7 +2730,7 @@
 				diffuse_map = "oolite_moray_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 				emission_map = 
 				{
@@ -2782,7 +2782,7 @@
 				diffuse_map = "oolite_moray_diffuse_med.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2795,7 +2795,7 @@
 				diffuse_map = "oolite_moray_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 				emission_map = 
 				{
@@ -2819,7 +2819,7 @@
 				diffuse_map = "oolite_moray_diffuse_med.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -2832,7 +2832,7 @@
 				diffuse_map = "oolite_moray_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2); 
+				specular_color = (0.4, 0.4, 0.4); 
 				shininess = 42; 
 				emission_map = 
 				{
@@ -2937,7 +2937,7 @@
 				diffuse_map = "oolite_python_diffuse.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = { name = "oolite_python_diffuse.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);				
@@ -2947,7 +2947,7 @@
 				diffuse_map = "oolite_python_subents.png";  
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -2960,7 +2960,7 @@
 				diffuse_map = "oolite_python_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 			};			
 		};
@@ -3006,7 +3006,7 @@
 				diffuse_map = "oolite_python_diffuse_blackdog.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -3019,7 +3019,7 @@
 				diffuse_map = "oolite_python_subents.png";  
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -3032,7 +3032,7 @@
 				diffuse_map = "oolite_python_subents.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 			};	
 		};
@@ -3056,7 +3056,7 @@
 				diffuse_map = "oolite_python_diffuse_trader.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (0.95, 0.90, 0.80);
@@ -3066,7 +3066,7 @@
 				diffuse_map = "oolite_python_subents_trader.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -3101,7 +3101,7 @@
 					diffuse_map = "oolite_python_diffuse_trader.png"; 
 					gloss = 0.5;
 					ior = 2.95;
-					specular_color = ( 0.2, 0.2, 0.2 );
+					specular_color = (0.4, 0.4, 0.4);
 					shininess = 42; 
 					emission_map = { name = "oolite_python_diffuse_trader.png"; extract_channel = "a"; }; 
 					emission_modulate_color = (0.95, 0.90, 0.80);
@@ -3111,7 +3111,7 @@
 					diffuse_map = "oolite_python_subents_trader.png"; 
 					gloss = 0.5;
 					ior = 2.95;
-					specular_color = ( 0.2, 0.2, 0.2 ); 
+					specular_color = (0.4, 0.4, 0.4); 
 					shininess = 42; 
 					emission_map = 
 					{
@@ -3209,7 +3209,7 @@
 			{ 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -3389,7 +3389,7 @@
 			"oolite_alloy_diffuse.png" =
 			{
 				diffuse_map = "oolite_alloy_diffuse_scarred.png";
-				gloss = 0.5;
+				gloss = 0.4;
 				ior = 2.95;
 				specular_color = (0.3, 0.4, 0.4);
 				shininess = 52;
@@ -3421,7 +3421,7 @@
 				diffuse_map = "oolite_shuttle_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -3477,7 +3477,7 @@
 				diffuse_map = "oolite_sidewinder_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42;
 				emission_map = 
 				{
@@ -3516,7 +3516,7 @@
 				diffuse_map = "oolite_sidewinder_diffuse_escort.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 40;
 				emission_map = 
 				{
@@ -3585,9 +3585,9 @@
 			"Hull" = 
 			{
 				diffuse_map = "oolite_thargon_diffuse.png";
-				gloss = 0.58;
+				gloss = 0.65;
 				ior = 2.95;
-				specular_color = (0.5, 0.9, 0.3);
+				specular_color = (0.375, 0.675, 0.225);
 				shininess = 49;
 				emission_map = 
 				{
@@ -3632,7 +3632,7 @@
 			"Hull" = 
 			{ 
 				diffuse_map = "oolite_thargoid_diffuse.png"; 
-				gloss = 0.58;
+				gloss = 0.6;
 				ior = 2.95;
 				specular_color = (0.2, 0.3, 0.2);
 				shininess = 49; 
@@ -3678,7 +3678,7 @@
 				diffuse_map = "oolite_transporter_diffuse.png"; 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = { name = "oolite_transporter_diffuse.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
@@ -3716,7 +3716,7 @@
 				diffuse_map = "oolite_transporter_diffuse_miner.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = { name = "oolite_transporter_diffuse_miner.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0); 				
@@ -3750,7 +3750,7 @@
 				diffuse_map = "oolite_viper_diffuse.png";
 				gloss = 0.55;
 				ior = 2.95;
-				specular_color = (0.3, 0.3, 0.3 );
+				specular_color = (0.5, 0.5, 0.5 );
 				shininess = 45; 
 				emission_map = 
 				{
@@ -3891,7 +3891,7 @@
 				diffuse_map = "oolite_viper_interceptor_diffuse.png"; 
 				gloss = 0.55;
 				ior = 2.95;
-				specular_color = (0.3, 0.3, 0.3);
+				specular_color = (0.5, 0.5, 0.5);
 				shininess = 45; 
 				emission_map = 
 				{
@@ -3904,7 +3904,7 @@
 				diffuse_map = "oolite_viper_interceptor_diffuse.png"; 
 				gloss = 0.55;
 				ior = 2.95;
-				specular_color = ( 0.3, 0.3, 0.3 );
+				specular_color = ( 0.5, 0.5, 0.5 );
 				shininess = 45; 
 				emission_map = 
 				{
@@ -4017,7 +4017,7 @@
 				diffuse_map = "oolite_viper_diffuse_pursuit.png";
 				gloss = 0.55;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.5, 0.5, 0.5);
 				shininess = 45; 
 				emission_map = 
 				{
@@ -4066,7 +4066,7 @@
 				diffuse_map = "oolite_worm_diffuse.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -4110,7 +4110,7 @@
 				diffuse_map = "oolite_worm_diffuse_miner.png";
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = (0.2, 0.2, 0.2);
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -4611,7 +4611,7 @@
 			{ 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
 				shininess = 42; 
 				emission_map = 
 				{
@@ -4631,8 +4631,8 @@
 		{ 
 			"oolite_coriolis_tris_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
-				gloss = 0.5;
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
+				gloss = 0.55;
 				ior = 2.95;
 				shininess = 42; 
 				emission_map = 
@@ -4653,8 +4653,8 @@
 		{ 
 			"oolite_coriolis_dock_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
-				gloss = 0.5;
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
+				gloss = 0.55;
 				ior = 2.95;
 				shininess = 42; 
 				emission_map = 
@@ -4676,8 +4676,8 @@
 		{ 
 			"oolite_dodo_faceplate_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
-				gloss = 0.5;
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
+				gloss = 0.55;
 				ior = 2.95;
 				shininess = 42; 
 				emission_map = 
@@ -4698,8 +4698,8 @@
 		{ 
 			"oolite_dodo_dock_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
-				gloss = 0.5;
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
+				gloss = 0.55;
 				ior = 2.95;
 				shininess = 42; 
 				emission_map = 
@@ -4723,8 +4723,8 @@
 		{ 
 			"oolite_ico_hull_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
-				gloss = 0.5;
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
+				gloss = 0.55;
 				ior = 2.95;
 				shininess = 42; 
 				emission_map = 
@@ -4745,8 +4745,8 @@
 		{ 
 			"oolite_ico_dock_diffuse.png" = 
 			{ 
-				specular_color = ( 0.2, 0.2, 0.2 );  // Applies when specular map is not used (no shaders) 
-				gloss = 0.5;
+				specular_color = (0.4, 0.4, 0.4);  // Applies when specular map is not used (no shaders) 
+				gloss = 0.55;
 				ior = 2.95;
 				shininess = 42; 
 				emission_map = 
@@ -4768,7 +4768,7 @@
 			{ 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 			}; 
 		};	
@@ -4784,7 +4784,7 @@
 			{ 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -4806,7 +4806,7 @@
 			{ 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
@@ -4828,7 +4828,7 @@
 			{ 
 				gloss = 0.5;
 				ior = 2.95;
-				specular_color = ( 0.2, 0.2, 0.2 );
+				specular_color = (0.4, 0.4, 0.4);
 				shininess = 42; 
 				emission_map = 
 				{
