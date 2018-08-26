@@ -343,6 +343,7 @@ void main(void)
 #endif
 	
 	float f0 = 0.0f;
+	vec3 fresnel = vec3(0.0);
 	// Calculate specular light
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
@@ -353,7 +354,7 @@ void main(void)
 	#else
 		float f0SqRt = ((1 - uIOR) / (1 + uIOR));
 		f0 = f0SqRt * f0SqRt;
-		vec3 fresnel = FresnelSchlick(specularColor.rgb, lightVector, halfVector);
+		fresnel = FresnelSchlick(specularColor.rgb, lightVector, halfVector);
 		#if OOSPECULAR_NEW_MODEL_GGX
 			float gloss = uGloss;
 			#if OOSTD_SPECULAR_MAP
