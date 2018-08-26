@@ -25,6 +25,7 @@
  
  */
 
+"use strict";
 
 
 this.name			= "oolite-constrictor-pilot";
