@@ -133,7 +133,6 @@ uniform float			uParallaxScale;
 uniform float			uParallaxBias;
 #endif
 
-uniform float			uIOR;
 uniform float			uGloss;
 
 #ifndef OOSPECULAR_NEW_MODEL
@@ -191,27 +190,27 @@ vec3 CalcSpecularBlinnPhong(vec3 light, vec3 normal, vec3 halfVec, float specPow
 
 vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float gloss, vec3 fresnel)
 {
-	float NdotL = clamp(dot(normal, light), 0.0f, 1.0f);
-	float roughness = clamp(1.0f - gloss, 0.0f, 1.0f);
+	float NdotL = clamp(dot(normal, light), 0.0, 1.0);
+	float roughness = clamp(1.0 - gloss, 0.0, 1.0);
 	float alpha = roughness * roughness;
 
-	float NdotH = clamp(dot(normal, halfVec), 0.0f, 1.0f);
-	float NdotV = clamp(dot(normal, view), 0.0f, 1.0f);
+	float NdotH = clamp(dot(normal, halfVec), 0.0, 1.0);
+	float NdotV = clamp(dot(normal, view), 0.0, 1.0);
 
 	float alphaSqr = alpha * alpha;
-	float pi = 3.14159f;
-	float denom = NdotH * NdotH * (alphaSqr - 1.0f) + 1.0f;
+	float pi = 3.14159;
+	float denom = NdotH * NdotH * (alphaSqr - 1.0) + 1.0;
 	float distribution = alphaSqr / (pi * denom * denom);
 
 	// fresnel comes in pre-calculated
 
-	float alphaPrime = roughness + 1.0f;
-	float k = alphaPrime * alphaPrime / 8.0f;
-	float g1vNL = NdotL/ (NdotL * (1.0f - k) + k);
-	float g1vNV = NdotV / (NdotV * (1.0f - k) + k);
+	float alphaPrime = roughness + 1.0;
+	float k = alphaPrime * alphaPrime / 8.0;
+	float g1vNL = NdotL/ (NdotL * (1.0 - k) + k);
+	float g1vNV = NdotV / (NdotV * (1.0 - k) + k);
 	float visibility = g1vNL * g1vNV;
 
-	return distribution * fresnel * visibility * NdotL / max(4.0 * NdotL * NdotV, 0.001f);
+	return distribution * fresnel * visibility * NdotL / max(4.0 * NdotL * NdotV, 0.001);
 }
 
 
@@ -342,7 +341,6 @@ void main(void)
 	specularColor *= vec4(specularMapColor.rgb, 1.0);
 #endif
 	
-	float f0 = 0.0f;
 	vec3 fresnel = vec3(0.0);
 	// Calculate specular light
 #if OOSTD_SPECULAR
@@ -352,8 +350,6 @@ void main(void)
 	#if !OOSPECULAR_NEW_MODEL
 		specularLight += CalcSpecularLight(lightVector, eyeVector, exponent, normal, gl_LightSource[1].specular);
 	#else
-		float f0SqRt = ((1 - uIOR) / (1 + uIOR));
-		f0 = f0SqRt * f0SqRt;
 		fresnel = FresnelSchlick(specularColor.rgb, lightVector, halfVector);
 		#if OOSPECULAR_NEW_MODEL_GGX
 			float gloss = uGloss;

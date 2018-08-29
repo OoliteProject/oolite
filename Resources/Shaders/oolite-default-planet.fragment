@@ -225,7 +225,7 @@ vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float glo
 	float g1vNV = NdotV / (NdotV * (1.0 - k) + k);
 	float visibility = g1vNL * g1vNV;
 
-	return distribution * fresnel * visibility * NdotL / max(4.0 * NdotV * NdotL, 0.001f);
+	return distribution * fresnel * visibility * NdotL / max(4.0 * NdotV * NdotL, 0.001);
 }
 
 
@@ -291,7 +291,7 @@ void main()
 	
 	float f0 = 0.0;
 #if OOSPECULAR_NEW_MODEL
-	// conservation of energy: f0 = 0.0204 = (((1.0 - 1.3333) / (1.0 + 1.3333))^2, where 1.3333 is the ior of water
+	// conservation of energy: f0 = 0.0204 = (((1.0 - 1.333) / (1.0 + 1.333))^2, where 1.333 is the ior of water
 	f0 = 0.0204;
 #endif
 
