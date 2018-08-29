@@ -553,9 +553,6 @@ static void SynthSpecular(OOMaterialSynthContext *context)
 	GLint shininess = [context->inConfig oo_specularExponent];
 	if (shininess <= 0)  return;
 	
-	GLfloat ior = [context->inConfig oo_ior];
-	if (ior < 0.0f)  return;
-	
 	GLfloat gloss = [context->inConfig oo_gloss];
 	if (gloss < 0.0f || gloss > 1.0f)  return;
 	
@@ -571,7 +568,6 @@ static void SynthSpecular(OOMaterialSynthContext *context)
 	else  specularColor = [context->inConfig oo_specularColor];
 	if ([specularColor isBlack])  return;
 	
-	SetUniformFloat(context, @"uIOR", [context->inConfig oo_ior]);
 	SetUniformFloat(context, @"uGloss", [context->inConfig oo_gloss]);
 	
 	[context->outConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:kOOMaterialSpecularExponentLegacyName];

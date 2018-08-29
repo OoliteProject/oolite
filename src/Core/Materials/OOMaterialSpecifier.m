@@ -59,7 +59,6 @@ NSString * const kOOMaterialEmissionAndIlluminationMapName	= @"emission_and_illu
 NSString * const kOOMaterialParallaxScaleName				= @"parallax_scale";
 NSString * const kOOMaterialParallaxBiasName				= @"parallax_bias";
 
-NSString * const kOOMaterialIORName						= @"ior";
 NSString * const kOOMaterialGlossName					= @"gloss";
 
 NSString * const kOOMaterialSpecularExponentName			= @"specular_exponent";
@@ -232,12 +231,6 @@ NSString * const kOOMaterialLightMapsName					= @"light_map";
 - (float) oo_parallaxBias
 {
 	return [self oo_floatForKey:kOOMaterialParallaxBiasName];
-}
-
-
-- (float) oo_ior
-{
-	return [self oo_floatForKey:kOOMaterialIORName defaultValue:1.0f];
 }
 
 

@@ -57,7 +57,6 @@ SOFTWARE.
 - (float) oo_parallaxScale;
 - (float) oo_parallaxBias;
 
-- (float) oo_ior;
 - (float) oo_gloss;
 
 - (int) oo_specularExponent;
@@ -91,7 +90,6 @@ extern NSString * const kOOMaterialEmissionAndIlluminationMapName;
 extern NSString * const kOOMaterialParallaxScaleName;
 extern NSString * const kOOMaterialParallaxBiasName;
 
-extern NSString * const kOOMaterialIORName;
 extern NSString * const kOOMaterialGlossName;
 
 extern NSString * const kOOMaterialSpecularExponentName;
