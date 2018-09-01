@@ -291,7 +291,7 @@ void main()
 	
 	float f0 = 0.0;
 #if OOSPECULAR_NEW_MODEL
-	// conservation of energy: f0 = 0.0204 = (((1.0 - 1.333) / (1.0 + 1.333))^2, where 1.333 is the ior of water
+	// conservation of energy: f0 = 0.0204 = ((1.0 - 1.333) / (1.0 + 1.333)0)^2, where 1.333 is the ior of water
 	f0 = 0.0204;
 #endif
 
@@ -308,10 +308,10 @@ void main()
 #if USE_SPECULAR
 	float specularFactor = SPECULAR_FACTOR;
 	#if !OOSPECULAR_NEW_MODEL
-		// f0 is 0.0204 
 		vec3 specularLight = CalcSpecularLight(light1Vector, eyeVector, 30.0 * specularFactor, normal, SPECULAR_LIGHT);
-		totalColor += specularLight * 0.6;
+		totalColor += specularLight * 0.6 * specularFactor;
 	#else
+		// f0 is 0.0204 
 		#if OOSPECULAR_NEW_MODEL_GGX
 			specularFactor *= 0.475;
 			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, specularFactor, f0, SPECULAR_LIGHT);
