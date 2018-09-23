@@ -142,6 +142,14 @@ uniform float			uGloss;
 #endif
 #endif
 
+#ifndef OOSRGB_TO_LINEAR
+#define OOSRGB_TO_LINEAR			2.2
+#endif
+
+#ifndef OOLINEAR_TO_SRGB
+#define OOLINEAR_TO_SRGB			(1.0 / 2.2)
+#endif
+
 vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
 {
 #if OOSTD_NORMAL_MAP
@@ -302,16 +310,18 @@ void main(void)
 	vec4 emissionMapColor = texture2D(uEmissionMap, texCoord);
 	emissionColor *= emissionMapColor;
 #endif
+	emissionColor = pow(emissionColor, vec4(OOSRGB_TO_LINEAR));
 	emissionColor.a = 1.0;
 	totalColor += emissionColor;
 #endif
 	
 	// Get illumination colour
 #if OOSTD_EMISSION_AND_ILLUMINATION_MAP
-	// Use alpha channel of emission map as white illumination
+	// Use alpha channel of emission map as white illumination - no sRGB to linear conversion here
 	vec4 illuminationMapLight = vec4(emissionMapColor.aaa, 1.0);
 #elif OOSTD_ILLUMINATION_MAP
-	vec4 illuminationMapLight = texture2D(uIlluminationMap, texCoord);
+	// fully colored illumination map - convert to linear colorspace
+	vec4 illuminationMapLight = pow(texture2D(uIlluminationMap, texCoord), vec4(OOSRGB_TO_LINEAR));
 #endif
 #ifdef OOSTD_ILLUMINATION_COLOR
 	// OOSTD_ILLUMINATION_COLOR, if defined, is a vec4() declaration.
@@ -328,8 +338,11 @@ void main(void)
 	// Get specular parameters
 #if OOSTD_SPECULAR_MAP
 	vec4 specularMapColor = texture2D(uSpecularMap, texCoord);
-	float specularExponentLevel = pow(specularMapColor.a, 2.0) + 0.001;
-	#define APPLY_MAPPED_EXPONENT exponent = (exponent - 1.0) * specularExponentLevel + 1.0
+	specularMapColor.rgb = pow(specularMapColor.rgb, vec3(OOSRGB_TO_LINEAR));
+	#if !OOSPECULAR_NEW_MODEL_GGX
+		float specularExponentLevel = pow(specularMapColor.a, 2.0) + 0.001;
+		#define APPLY_MAPPED_EXPONENT exponent = (exponent - 1.0) * specularExponentLevel + 1.0
+	#endif
 #else
 	#define APPLY_MAPPED_EXPONENT exponent += 0.001
 #endif
@@ -345,8 +358,10 @@ void main(void)
 	// Calculate specular light
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
-	float exponent = gl_FrontMaterial.shininess;
-	APPLY_MAPPED_EXPONENT;
+	#if !OOSPECULAR_NEW_MODEL_GGX
+		float exponent = gl_FrontMaterial.shininess;
+		APPLY_MAPPED_EXPONENT;
+	#endif
 	#if !OOSPECULAR_NEW_MODEL
 		specularLight += CalcSpecularLight(lightVector, eyeVector, exponent, normal, gl_LightSource[1].specular);
 	#else
@@ -375,6 +390,7 @@ void main(void)
 #else
 	vec4 diffuseMapColor = textureCube(uDiffuseMap, vCubeTexCoords);
 #endif
+	diffuseMapColor = pow(diffuseMapColor, vec4(OOSRGB_TO_LINEAR));
 	diffuseMapColor.a = 1.0;
 	diffuseColor *= diffuseMapColor;
 	ambientColor *= diffuseMapColor;
@@ -393,6 +409,10 @@ void main(void)
 	totalColor += mix(specularColor, gl_LightSource[1].specular, 1.0 - clamp(length(magSpec), 0.0, 1.0)) * specularLight;
 #endif
 
+	// tone mapping and gamma correction
+	totalColor = totalColor / (totalColor + vec4(1.0));
+	totalColor = pow(totalColor, vec4(vec3(OOLINEAR_TO_SRGB), 1.0)); 
+	
 	
 	// Heat glow
 	float hullHeat = max(uHullHeatLevel - 0.5, 0.0) * 2.0;
