@@ -307,10 +307,9 @@ void main(void)
 	emissionColor *= gl_FrontMaterial.emission;
 #endif
 #if OOSTD_EMISSION_MAP
-	vec4 emissionMapColor = texture2D(uEmissionMap, texCoord);
+	vec4 emissionMapColor = pow(texture2D(uEmissionMap, texCoord), vec4(OOSRGB_TO_LINEAR));
 	emissionColor *= emissionMapColor;
 #endif
-	emissionColor = pow(emissionColor, vec4(OOSRGB_TO_LINEAR));
 	emissionColor.a = 1.0;
 	totalColor += emissionColor;
 #endif
