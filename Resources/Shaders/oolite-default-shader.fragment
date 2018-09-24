@@ -408,8 +408,7 @@ void main(void)
 	totalColor += mix(specularColor, gl_LightSource[1].specular, 1.0 - clamp(length(magSpec), 0.0, 1.0)) * specularLight;
 #endif
 
-	// tone mapping and gamma correction
-	totalColor = totalColor / (totalColor + vec4(1.0));
+	// gamma correction
 	totalColor = pow(totalColor, vec4(vec3(OOLINEAR_TO_SRGB), 1.0)); 
 	
 	
