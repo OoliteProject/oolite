@@ -272,8 +272,9 @@ void main(void)
 	vec4 totalColor = vec4(0);
 	
 	// Get eye vector
+	vec3 eyeVector = vec3(0.0);
 #if NEED_EYE_VECTOR
-	vec3 eyeVector = normalize(vEyeVector);
+	eyeVector = normalize(vEyeVector);
 #endif
 	
 	// Get texture coords, using parallax mapping if appropriate
