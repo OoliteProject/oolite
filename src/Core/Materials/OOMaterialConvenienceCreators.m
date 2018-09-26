@@ -568,7 +568,7 @@ static void SynthSpecular(OOMaterialSynthContext *context)
 	else  specularColor = [context->inConfig oo_specularColor];
 	if ([specularColor isBlack])  return;
 	
-	SetUniformFloat(context, @"uGloss", [context->inConfig oo_gloss]);
+	SetUniformFloat(context, @"uGloss", gloss);
 	
 	[context->outConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:kOOMaterialSpecularExponentLegacyName];
 	

@@ -236,7 +236,7 @@ NSString * const kOOMaterialLightMapsName					= @"light_map";
 
 - (float) oo_gloss
 {
-	return [self oo_floatForKey:kOOMaterialGlossName defaultValue:0.375f];
+	return OOClamp_0_1_f([self oo_floatForKey:kOOMaterialGlossName defaultValue:0.375f]);
 }
 
 
