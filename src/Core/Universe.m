@@ -4474,6 +4474,11 @@ static const OOMatrix	starboard_matrix =
 						{
 							[self setMainLightPosition:[cachedSun cameraRelativePosition]];
 						}
+						else
+						{
+							// in witchspace
+							[self setMainLightPosition:HPVectorToVector(HPvector_flip([PLAYER viewpointPosition]))];
+						}
 						OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));					
 					}
 					else
