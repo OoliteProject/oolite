@@ -272,9 +272,8 @@ void main(void)
 	vec4 totalColor = vec4(0);
 	
 	// Get eye vector
-	vec3 eyeVector = vec3(0.0);
 #if NEED_EYE_VECTOR
-	eyeVector = normalize(vEyeVector);
+	vec3 eyeVector = normalize(vEyeVector);
 #endif
 	
 	// Get texture coords, using parallax mapping if appropriate
@@ -296,8 +295,9 @@ void main(void)
 	// Get light vectors
 	vec3 lightVector = normalize(vLight1Vector);
 	
+#if NEED_EYE_VECTOR
 	vec3 halfVector = normalize(lightVector + eyeVector);
-	
+#endif	
 	// Get ambient colour
 	vec4 ambientLight = gl_LightModel.ambient;
 	
