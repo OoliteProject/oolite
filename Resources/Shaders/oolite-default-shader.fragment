@@ -135,6 +135,8 @@ uniform float			uParallaxBias;
 
 uniform float			uGloss;
 
+uniform bool			uGammaCorrect;
+
 #ifndef OOSPECULAR_NEW_MODEL
 #define OOSPECULAR_NEW_MODEL		1
 #ifndef OOSPECULAR_NEW_MODEL_GGX
@@ -308,7 +310,8 @@ void main(void)
 	emissionColor *= gl_FrontMaterial.emission;
 #endif
 #if OOSTD_EMISSION_MAP
-	vec4 emissionMapColor = pow(texture2D(uEmissionMap, texCoord), vec4(OOSRGB_TO_LINEAR));
+	vec4 emissionMapColor = texture2D(uEmissionMap, texCoord);
+	if (uGammaCorrect)  emissionMapColor = pow(emissionMapColor, vec4(OOSRGB_TO_LINEAR));
 	emissionColor *= emissionMapColor;
 #endif
 	emissionColor.a = 1.0;
@@ -321,7 +324,8 @@ void main(void)
 	vec4 illuminationMapLight = vec4(emissionMapColor.aaa, 1.0);
 #elif OOSTD_ILLUMINATION_MAP
 	// fully colored illumination map - convert to linear colorspace
-	vec4 illuminationMapLight = pow(texture2D(uIlluminationMap, texCoord), vec4(OOSRGB_TO_LINEAR));
+	vec4 illuminationMapLight = texture2D(uIlluminationMap, texCoord);
+	if (uGammaCorrect)  illuminationMapLight = pow(illuminationMapLight, vec4(OOSRGB_TO_LINEAR));
 #endif
 #ifdef OOSTD_ILLUMINATION_COLOR
 	// OOSTD_ILLUMINATION_COLOR, if defined, is a vec4() declaration.
@@ -338,7 +342,7 @@ void main(void)
 	// Get specular parameters
 #if OOSTD_SPECULAR_MAP
 	vec4 specularMapColor = texture2D(uSpecularMap, texCoord);
-	specularMapColor.rgb = pow(specularMapColor.rgb, vec3(OOSRGB_TO_LINEAR));
+	if (uGammaCorrect)  specularMapColor.rgb = pow(specularMapColor.rgb, vec3(OOSRGB_TO_LINEAR));
 	#if !OOSPECULAR_NEW_MODEL_GGX
 		float specularExponentLevel = pow(specularMapColor.a, 2.0) + 0.001;
 		#define APPLY_MAPPED_EXPONENT exponent = (exponent - 1.0) * specularExponentLevel + 1.0
@@ -390,7 +394,7 @@ void main(void)
 #else
 	vec4 diffuseMapColor = textureCube(uDiffuseMap, vCubeTexCoords);
 #endif
-	diffuseMapColor = pow(diffuseMapColor, vec4(OOSRGB_TO_LINEAR));
+	if (uGammaCorrect)  diffuseMapColor = pow(diffuseMapColor, vec4(OOSRGB_TO_LINEAR));
 	diffuseMapColor.a = 1.0;
 	diffuseColor *= diffuseMapColor;
 	ambientColor *= diffuseMapColor;
@@ -410,7 +414,7 @@ void main(void)
 #endif
 
 	// gamma correction
-	totalColor = pow(totalColor, vec4(vec3(OOLINEAR_TO_SRGB), 1.0)); 
+	if (uGammaCorrect)  totalColor = pow(totalColor, vec4(OOLINEAR_TO_SRGB));
 	
 	
 	// Heat glow
