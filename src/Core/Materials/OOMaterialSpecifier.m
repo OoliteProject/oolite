@@ -59,6 +59,8 @@ NSString * const kOOMaterialEmissionAndIlluminationMapName	= @"emission_and_illu
 NSString * const kOOMaterialParallaxScaleName				= @"parallax_scale";
 NSString * const kOOMaterialParallaxBiasName				= @"parallax_bias";
 
+NSString * const kOOMaterialGammaCorrectName				= @"gamma_correct";
+
 NSString * const kOOMaterialGlossName					= @"gloss";
 
 NSString * const kOOMaterialSpecularExponentName			= @"specular_exponent";
@@ -231,6 +233,12 @@ NSString * const kOOMaterialLightMapsName					= @"light_map";
 - (float) oo_parallaxBias
 {
 	return [self oo_floatForKey:kOOMaterialParallaxBiasName];
+}
+
+
+- (BOOL) oo_gammaCorrect
+{
+	return [self oo_boolForKey:kOOMaterialGammaCorrectName defaultValue:![[NSUserDefaults standardUserDefaults] boolForKey:@"no-gamma-correct"]];
 }
 
 

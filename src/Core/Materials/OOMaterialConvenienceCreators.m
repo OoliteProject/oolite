@@ -556,6 +556,8 @@ static void SynthSpecular(OOMaterialSynthContext *context)
 	GLfloat gloss = [context->inConfig oo_gloss];
 	if (gloss < 0.0f || gloss > 1.0f)  return;
 	
+	BOOL gammaCorrect = [context->inConfig oo_gammaCorrect];
+	
 	NSDictionary *specularMapSpec = nil;
 	OOColor *specularColor = nil;
 	
@@ -586,6 +588,12 @@ static void SynthSpecular(OOMaterialSynthContext *context)
 		[context->outConfig setObject:[specularColor normalizedArray] forKey:kOOMaterialSpecularColorName];
 	}
 	[context->macros setObject:@"1" forKey:@"OOSTD_SPECULAR"];
+	
+	// setting a bool as a float uniform, to be used in the shader as a bool again
+	// this is how hackish I can get... maybe a better way exists, but this is quick
+	// and can be used also for the shader materials in a not too different way
+	// - Nikos 20181001
+	SetUniformFloat(context, @"uGammaCorrect", (float)gammaCorrect);
 }
 
 #endif
