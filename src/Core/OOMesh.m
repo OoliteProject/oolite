@@ -386,10 +386,21 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	OO_ENTER_OPENGL();
 	
+	BOOL meshBelongsToVisualEffect = [_shaderBindingTarget isVisualEffect];
+	
 	OOSetOpenGLState(OPENGL_STATE_OPAQUE);
 	
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
 	OOGL(glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray));
+	
+	// for visual effects enable blending. This will allow use of alpha
+	// channel in shaders - note, this is a bit of cheating the system,
+	// which expects blending to be disabled at this point
+	if (meshBelongsToVisualEffect)
+	{
+		OOGL(glEnable(GL_BLEND));
+		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	}
 	
 #if OO_SHADERS
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
@@ -545,6 +556,9 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 	if (gDebugFlags & DEBUG_OCTREE_DRAW)  [[self octree] drawOctree];
 #endif
+	
+	// visual effect - disable previously enabled blending
+	if (meshBelongsToVisualEffect)  OOGL(glDisable(GL_BLEND));
 	
 	OOVerifyOpenGLState();
 }
