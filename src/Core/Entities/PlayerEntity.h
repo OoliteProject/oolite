@@ -303,10 +303,10 @@ typedef enum
 
 #if OO_VARIABLE_TORUS_SPEED
 #define HYPERSPEED_FACTOR				[PLAYER hyperspeedFactor]
-#define MIN_HYPERSPEED_FACTOR			32.0
-#define MAX_HYPERSPEED_FACTOR			1024.0
+#define MIN_HYPERSPEED_FACTOR			128.0	// Easy to be slowed by nearby entities therefore higher base value needed
+#define MAX_HYPERSPEED_FACTOR			8192.0	// Doesn't quite compensate for greater distances but adds to sense of distance without slowing the game significantly
 #else
-#define HYPERSPEED_FACTOR				32.0
+#define HYPERSPEED_FACTOR			128.0	// As above
 #endif
 
 #define PLAYER_SHIP_DESC				@"cobra3-player"

@@ -147,6 +147,7 @@
 		missile_launch_position = "0.0 -5.1 19.2374";
 		missiles = 1;
 		model = "oolite_adder.dat";
+		model_scale_factor = 0.66;
 		name = "Adder";
 		roles = "trader(0.25) trader-courier(0.5) trader-smuggler pirate-light-fighter(0.25) pirate(0.2) scavenger shuttle hermit-ship";
 		scoop_position = "0.0 -5.1 22.724";
@@ -198,6 +199,7 @@
 		max_flight_speed = 50;
 		missiles = 0;
 		model = "oolite_alloy.dat";
+		model_scale_factor = 0.66;
 		name = "Metal fragment";
 		roles = "alloy";
 		scan_class = "CLASS_CARGO";
@@ -344,6 +346,7 @@
 		missile_launch_position = "0.0 -11.2 71.0";
 		missiles = 7;
 		model = "oolite_anaconda.dat";
+		model_scale_factor = 2.0;
 		name = "Anaconda";
 		roles = "trader(0.5) trader-courier(0.1)";
 		scoop_position = "0.0 -30.0 -60";
@@ -490,6 +493,7 @@
 		missile_launch_position = "0.0 -5.9 17.5";
 		missiles = 1;
 		model = "oolite_asp.dat";
+		model_scale_factor = 0.66;
 		name = "Asp Mark II";
 		roles = "trader-courier hunter-medium(0.75) hunter-heavy(0.75) pirate-medium-fighter(0.5) pirate-heavy-fighter(0.5) pirate-interceptor pirate-aegis-raider escort-heavy assassin-heavy asp-pirate";
 		scoop_position = "0.0 -6.22 17.48";
@@ -590,6 +594,150 @@
 		name = "Training Asteroid";
 		roles = "tutorial-asteroid";
 	};
+	"oolite_template_asteroid_small" = 
+	{
+		like_ship = "oolite_template_asteroid";
+		bounty = 5;
+		is_template = 1;
+		likely_cargo = 2;
+		materials =
+		{
+			"oolite_alt_asteroid_diffuse.png" =
+			{
+				shininess = 7;
+				specular_color = (0.3, 0.3, 0.3, 1.0);
+			};
+		};
+		model = "oolite_asteroid.dat";
+		model_scale_factor = 0.66;
+		name = "Small Asteroid";
+		roles = "asteroid";
+	};
+	"oolite_template_asteroid_small_alt" = 
+	{
+		like_ship = "oolite_template_asteroid";
+		bounty = 5;
+		is_template = 1;
+		likely_cargo = 2;
+		materials =
+		{
+			"oolite_alt_asteroid_diffuse.png" =
+			{
+				shininess = 7;
+				specular_color = (0.3, 0.3, 0.3, 1.0);
+			};
+		};
+		model = "oolite_alt_asteroid.dat";
+		model_scale_factor = 0.66;
+		name = "Small Asteroid";
+		roles = "asteroid";
+	};
+	"oolite_template_asteroid_large" = 
+	{
+		like_ship = "oolite_template_asteroid";
+		bounty = 30;
+		is_template = 1;
+		likely_cargo = 12;
+		materials =
+		{
+			"oolite_alt_asteroid_diffuse.png" =
+			{
+				shininess = 7;
+				specular_color = (0.3, 0.3, 0.3, 1.0);
+			};
+		};
+		max_energy = 100;
+		energy_recharge_rate = 500;
+		model = "oolite_asteroid.dat";
+		model_scale_factor = 3.3;
+		name = "Large Asteroid";
+		roles = "asteroid(0.25)";
+	};
+	"oolite_template_asteroid_large_alt" = 
+	{
+		like_ship = "oolite_template_asteroid";
+		bounty = 30;
+		is_template = 1;
+		likely_cargo = 12;
+		materials =
+		{
+			"oolite_alt_asteroid_diffuse.png" =
+			{
+				shininess = 7;
+				specular_color = (0.3, 0.3, 0.3, 1.0);
+			};
+		};
+		max_energy = 100;
+		energy_recharge_rate = 500;
+		model = "oolite_alt_asteroid.dat";
+		model_scale_factor = 3.3;
+		name = "Large Asteroid";
+		roles = "asteroid(0.25)";
+	};
+	"oolite_template_asteroid_huge" = 
+	{
+		like_ship = "oolite_template_asteroid";
+		bounty = 100;
+		is_template = 1;
+		materials =
+		{
+			"oolite_alt_asteroid_diffuse.png" =
+			{
+				shininess = 7;
+				specular_color = (0.3, 0.3, 0.3, 1.0);
+			};
+		};
+		max_energy = 25000;
+		energy_recharge_rate = 500;
+		model = "oolite_asteroid.dat";
+		model_scale_factor = 9.9;
+		name = "Huge Asteroid";
+		roles = "asteroid(0.05)";
+	};
+	"oolite_template_asteroid_huge_alt" = 
+	{
+		like_ship = "oolite_template_asteroid";
+		bounty = 100;
+		is_template = 1;
+		materials =
+		{
+			"oolite_alt_asteroid_diffuse.png" =
+			{
+				shininess = 7;
+				specular_color = (0.3, 0.3, 0.3, 1.0);
+			};
+		};
+		max_energy = 25000;
+		energy_recharge_rate = 500;
+		model = "oolite_alt_asteroid.dat";
+		model_scale_factor = 9.9;
+		name = "Huge Asteroid";
+		roles = "asteroid(0.05)";
+	};
+	"asteroid-small" = 
+	{
+		like_ship = "oolite_template_asteroid_small";
+	};
+	"asteroid-alternative-small" =
+	{
+		like_ship = "oolite_template_asteroid_small_alt";
+	};
+	"asteroid-large" = 
+	{
+		like_ship = "oolite_template_asteroid_large";
+	};
+	"asteroid-alternative-large" =
+	{
+		like_ship = "oolite_template_asteroid_large_alt";
+	};
+	"asteroid-huge" = 
+	{
+		like_ship = "oolite_template_asteroid_huge";
+	};
+	"asteroid-alternative-huge" =
+	{
+		like_ship = "oolite_template_asteroid_huge_alt";
+	};
 	"oolite_template_barrel" =
 	{
 		ai_type = "dumbAI.plist";
@@ -616,6 +764,7 @@
 		max_flight_speed = 50;
 		missiles = 0;
 		model = "oolite_barrel.dat";
+		model_scale_factor = 0.66;
 		name = "Cargo container";
 		roles = "cargopod 1t-cargopod";
 		scan_class = "CLASS_CARGO";
@@ -744,6 +893,7 @@
 		missile_launch_position = "0.0 2.322665 56.223506";
 		missiles = 4;
 		model = "oolite_boa.dat";
+		model_scale_factor = 2.0;
 		name = "Boa";
 		roles = "trader";
 		scoop_position = "0.0 3.029881 49.396415";
@@ -904,6 +1054,7 @@
 		missile_launch_position = "0.0 -4.888735 48.6764";
 		missiles = 5;
 		model = "oolite_boa-mk2.dat";
+		model_scale_factor = 2.0;
 		name = "Boa Class Cruiser";
 		roles = "trader(0.25) trader-courier(0.05)";
 		scoop_position = "0.0 -6.100643 44.2919";
@@ -1137,6 +1288,7 @@
 		};
 		max_energy = 5;
 		model = "oolite_barrel2.dat";
+		model_scale_factor = 0.66;
 		name = "Unusual cargo container";
 		roles = "cloaking-device";
 		script = "oolite-cloaking-device-pod.js";
@@ -1624,6 +1776,7 @@
 		max_flight_speed = 0;
 		missiles = 0;
 		model = "oolite_coriolis.dat";
+		model_scale_factor = 2.0;
 		name = "Coriolis Station";
 		roles = "coriolis station";
 		rotating = yes;
@@ -1803,6 +1956,7 @@
 		max_flight_speed = 0;
 		missiles = 0;
 		model = "oolite_dodo.dat";
+		model_scale_factor = 2.0;
 		name = "Dodecahedron Station";
 		roles = "dodo dodec dodecahedron station";
 		rotating = yes;
@@ -1957,6 +2111,7 @@
 				}; 
 			};
 		model = "oolite_missile_hardhead.dat";	
+		model_scale_factor = 0.66;
 		name = "ECM Hardened Missile";
 		script_info = 
 		{
@@ -2006,6 +2161,7 @@
 		missile_launch_position = "0.0 0.0 4.5";
 		missiles = 0;
 		model = "oolite_escape_capsule.dat";
+		model_scale_factor = 0.66;
 		name = "Escape capsule";
 		roles = "escape-capsule";
 		scan_class = "CLASS_CARGO";
@@ -2200,6 +2356,7 @@
 		missile_launch_position = "0.0 -8.08 19.14";
 		missiles = 1;
 		model = "oolite_gecko.dat";
+		model_scale_factor = 0.66;
 		name = "Gecko";
 		roles = "hunter(0.75) pirate-light-fighter(0.5) pirate-medium-fighter(0.75) pirate(0.5) escort(0.25) escort-medium(0.5) escort-heavy";
 		scoop_position = "0.0 -6.6 8.4";
@@ -2248,6 +2405,7 @@
 		max_flight_speed = 0;
 		missiles = 0;
 		model = "oolite_ico.dat";
+		model_scale_factor = 2.0;
 		name = "Icosahedron Station";
 		roles = "ico icosa icosahedron station";
 		rotating = yes;
@@ -2427,6 +2585,7 @@
 		missile_launch_position = "0.0 -7.65 33.34";
 		missiles = 0;
 		model = "oolite_krait.dat";
+		model_scale_factor = 0.66;
 		name = "Krait";
 		roles = "pirate pirate-light-fighter(0.75) hunter(0.5) escort(0.25) assassin-light";
 		scoop_position = "0.0 -7.284 4.628";
@@ -2504,6 +2663,7 @@
 		missile_launch_position = "0.0 -4.5 21.7";
 		missiles = 0;
 		model = "oolite_mamba.dat";
+		model_scale_factor = 0.66;
 		name = "Mamba";
 		roles = "pirate pirate-light-fighter(0.5) hunter";
 		scoop_position = "0.0 -2.0 -3";
@@ -2571,6 +2731,7 @@
 		max_flight_speed = 750;
 		missiles = 0;
 		model = "oolite_missile.dat";
+		model_scale_factor = 0.66;
 		name = "Missile";
 		roles = "missile EQ_MISSILE";
 		scan_class = "CLASS_MISSILE";
@@ -2919,6 +3080,7 @@
 		missile_launch_position = "0.0 -2.2 63.5";
 		missiles = 2;
 		model = "oolite_python.dat";
+		model_scale_factor = 2.0;
 		name = "Python";
 		roles = "trader(0.5) trader-smuggler(0.2) pirate(0.2) pirate-light-freighter(0.2)";
 		scoop_position = "0.0 -15.0 -21.5";
@@ -3017,6 +3179,7 @@
 			}; 			
 		};
 		model = "oolite_python_trader.dat";
+		model_scale_factor = 2.0;
 		roles = "player";
 		weapon_position_forward = "0.0 -2.18304 62.0972";
 	};
@@ -3060,6 +3223,7 @@
 					}; 			
 			};
 		model = "oolite_python_trader.dat";
+		model_scale_factor = 2.0;
 		roles = "trader";
 		weapon_position_forward = "0.0 -2.18304 62.0972";
 	};
@@ -3074,6 +3238,7 @@
 		max_flight_roll = 2;
 		max_flight_speed = 1000;
 		model = "qbomb.dat";
+		model_scale_factor = 0.66;
 		name = "Quirium Cascade Mine";
 		scan_class = "CLASS_MINE";
 		roles = "energy-bomb EQ_QC_MINE";
@@ -3165,6 +3330,7 @@
 		"max_scavengers" = 1;
 		missiles = 0;
 		model = "oolite_rock_hermit.dat";
+		model_scale_factor = 2.0;
 		name = "Rock Hermit";
 		roles = "rockhermit station";
 		rotating = yes;
@@ -3374,6 +3540,7 @@
 		missile_launch_position = "0.0 -7.25 15.0";
 		missiles = 0;
 		model = "oolite_shuttle.dat";
+		model_scale_factor = 1.5;
 		name = "Orbital Shuttle";
 		roles = "shuttle";
 		thrust = 16;
@@ -3428,6 +3595,7 @@
 		missile_launch_position = "0.0 -8.0 13.17";
 		missiles = 0;
 		model = "oolite_sidewinder.dat";
+		model_scale_factor = 0.66;
 		name = "Sidewinder Scout Ship";
 		roles = "pirate(0.75) pirate-light-fighter(0.25) hunter";
 		thrust = 37;
@@ -3460,6 +3628,7 @@
 			};
 		};
 		model = "oolite_sidewinder_escort.dat"; 
+		model_scale_factor = 0.66;
 		roles = "escort escort-medium(0.5)";
 	};
 	"oolite_template_splinter" = 
@@ -3489,6 +3658,7 @@
 		max_flight_speed = 20;
 		missiles = 0;
 		model = "oolite_splinter.dat";
+		model_scale_factor = 0.66;
 		name = "Splinter";
 		roles = "splinter";
 		scan_class = "CLASS_CARGO";
@@ -3502,6 +3672,7 @@
 		like_ship = "oolite_template_splinter";
 		is_template = 1;
 		model = "oolite_alt_splinter.dat";
+		model_scale_factor = 0.66;
 	};
 	"oolite_template_tharglet" = 
 	{
@@ -3534,6 +3705,7 @@
 		max_flight_speed = 450;
 		missiles = 0;
 		model = "oolite_thargon.dat";
+		model_scale_factor = 0.66;
 		name = "Thargoid Robot Fighter";
 		roles = "tharglet thargon EQ_THARGON";
 		scan_class = "CLASS_THARGOID";
@@ -3580,6 +3752,7 @@
 		missile_load_time = 1.5;
 		missiles = 5;
 		model = "oolite_thargoid.dat";
+		model_scale_factor = 1.5;
 		name = "Thargoid Warship";
 		roles = "thargoid thargoid-mothership";
 		scan_class = "CLASS_THARGOID";
@@ -3622,6 +3795,7 @@
 		missile_launch_position = "0.0 -6.79 21.0";
 		missiles = 0;
 		model = "oolite_transporter.dat";
+		model_scale_factor = 1.25;
 		name = "Transporter";
 		roles = "shuttle";
 		scoop_position = "0.0 -6.0 -10.5";
@@ -3706,6 +3880,7 @@
 		missile_launch_position = "0.0 -8.5 -11.0";
 		missiles = 1;
 		model = "oolite_viper.dat";
+		model_scale_factor = 0.66;
 		name = "GalCop Viper";
 		roles = "police";
 		scan_class = "CLASS_POLICE";
@@ -3845,6 +4020,7 @@
 		missile_launch_position = "0.0 -10.5 -9.0";
 		missiles = 3;
 		model = "oolite_viper_interceptor.dat";
+		model_scale_factor = 0.82;
 		name = "GalCop Viper Interceptor";
 		roles = "interceptor wingman";
 		scan_class = "CLASS_POLICE";
@@ -4005,6 +4181,7 @@
 		missile_launch_position = "0.0 -11.01 14.76";
 		missiles = 0;
 		model = "oolite_worm.dat";
+		model_scale_factor = 0.66;
 		name = "Worm";
 		roles = "shuttle";
 		thrust = 12;
@@ -4057,6 +4234,7 @@
 		max_flight_roll = 0.2;
 		max_flight_speed = 500;
 		model = "wreck1.dat";
+		model_scale_factor = 0.82;
 		name = "Wreckage";
 		roles = "wreckage";
 		scan_class = "CLASS_NO_DRAW";
@@ -4382,24 +4560,28 @@
 		like_ship = "oolite_template_wreckage-component";
 		explosion_type = ("oolite-wreckage-explosion","oolite-fragment-explosion-b");
 		model = "wreck2.dat";
+		model_scale_factor = 0.82;
 	};
 	"more-wreckage3" =
 	{
 		like_ship = "oolite_template_wreckage-component";
 		explosion_type = ("oolite-wreckage-explosion");
 		model = "wreck3.dat";
+		model_scale_factor = 0.82;
 	};
 	"more-wreckage4" =
 	{
 		like_ship = "oolite_template_wreckage-component";
 		explosion_type = ("oolite-fragment-explosion");
 		model = "wreck4.dat";
+		model_scale_factor = 0.82;
 	};
 	"more-wreckage5" =
 	{
 		like_ship = "oolite_template_wreckage-component";
 		explosion_type = ("oolite-fragment-explosion-b");
 		model = "wreck5.dat";
+		model_scale_factor = 0.82;
 	};
 	"wreckage-chunk" = 
 	{

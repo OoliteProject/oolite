@@ -3011,7 +3011,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			if (travelling_at_hyperspeed)
 			{
 				// decrease speed to maximum normal speed
-				float deceleration = (speed_delta * delta_t * HYPERSPEED_FACTOR);
+				float deceleration = (speed_delta * delta_t * HYPERSPEED_FACTOR * 8);	// * 8 to compensate for increased speeds
 				if (alertFlags & ALERT_FLAG_MASS_LOCK)
 				{
 					// decelerate much quicker in masslocks
@@ -3292,7 +3292,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			double dist = stellar->zero_distance;
 			double rad = stellar->collision_radius;
-			double factor = ([stellar isSun]) ? 2.0 : 4.0;
+			double factor = ([stellar isSun]) ? 1.8 : 1.3;	// Adjusted for bigger suns and relatively lower station orbits
 			// plus ensure mass lock when 25 km or less from the surface of small stellar bodies
 			// dist is a square distance so it needs to be compared to (rad+25000) * (rad+25000)!
 			if (dist < rad*rad*factor || dist < rad*rad + 50000*rad + 625000000 ) 
