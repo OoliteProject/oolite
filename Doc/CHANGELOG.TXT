@@ -2,14 +2,38 @@ Changes between Oolite 1.86 and Oolite 1.88:
 
 General:
 ========
-* Improved planet lighting to make planets look more like spheres.
+* New lighting shaders for physically accurate specular reflections
+  and light energy conservation.
+* Improved planet lighting to make use of the new lighting system.
+* Enabled blending when rendering visual effects for increased
+  effects flexibility.
+* Specular maps alpha channel can now be used for storing material
+  gloss information.
+* Updates to the base and shader materials system.
+* Number of supported joysticks increased to 4.
+* Improved flee AI.
+* Energy damage is no longer applied to player occupied escape pods.
+* Linux port: Added the command line argument --systemwide-directory
+  to chose an installation directory other than the default /opt.
+* Improved mousewheel handling. When mouse control is active,
+  speed change rate corresponds to mousewheel roll rate.
+* Optimization: When an entity explodes outside of its visibility
+  range, it is no longer rendered.
+* Added multi-page ability to primeable equipment manager.
 * Windows DPI awareness applied to all monitors.
+* Windows port: Ensure that, in the case of both an integrated and a
+  high-performance GPU being available, the high-performance one is
+  selected.
 
 Expansion pack development:
 ===========================
 
 Modified Plists:
 ----------------
+* Introduced the gamma_correct and gloss base and shader materials keys.
+* scanner_minimalistic boolean shipdata key introduced, defines a scanner
+  without gridlines.
+
 Scripting:
 ----------
 * player.ship.chartHighlightMode property.
@@ -27,11 +51,32 @@ Scripting:
   "CUSTOM_CHART", "CUSTOM_CHART_SHORTEST", "CUSTOM_CHART_QUICKEST" displays a 
   custom chart, based on the customChartZoom and customChartCentre 
   properties. ANA equipment required for "SHORTEST" and "QUICKEST" options.
+* New player ship scannerMinimalistic property.
+* Introduced the %G###### string expander, which works like %J###, but allows
+  one to specify both the planet ID and the galaxy number.
 
 Bug fixes:
 ==========
 * Fixed issue with the primable equipment manager not being able to handle
   more than 21 items.
+* Fixed temperature due to air friction not rising when more than one planets
+  were present in the system.
+* Fixed mouse control disabling keyboard speed shortcuts.
+* Fixed oddities with mouse control when Caps Lock was active on view
+  directions other than front.
+* Fixed memory leak when setting screen texture descriptors.
+* Fixed erroneous behaviour when NaN was passed via script for pitch, yaw
+  and roll.
+* playerCancelledJumpCountdown JS event now firing when starting autopilot,
+* Fixed occasionally 'stuck' lighting when in witchspace.
+* Fixed keyconfig.plist not being reloaded when using in-game Expansion Pack
+  Manager.
+* Restored orange planet terminator tint, which was accidentally removed
+  when the atmosphere shaders were introduced.
+* Player comms messages are now fully expanded before shown, just like any
+  other ship's messages.
+* Windows port: On Windows versions newer than Windows 8, the correct version
+  is now reported in the log.
 
 -------------------------------------------------------------------------------
 
