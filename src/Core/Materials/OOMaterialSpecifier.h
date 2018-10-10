@@ -92,7 +92,7 @@ extern NSString * const kOOMaterialEmissionAndIlluminationMapName;
 extern NSString * const kOOMaterialParallaxScaleName;
 extern NSString * const kOOMaterialParallaxBiasName;
 
-extern NSString * const kOOMaterialGammaCorrName;
+extern NSString * const kOOMaterialGammaCorrectName;
 
 extern NSString * const kOOMaterialGlossName;
 
