@@ -292,7 +292,7 @@ void main()
 	diffuseColor.rgb = pow(diffuseColor.rgb, vec3(2.2));
 	
 	vec3 fresnel = vec3(0.0);
-#if OOSPECULAR_NEW_MODEL
+#if USE_SPECULAR && OOSPECULAR_NEW_MODEL
 	fresnel = FresnelSchlick(mix(gl_FrontMaterial.specular.rgb, SPECULAR_LIGHT, SPECULAR_FACTOR), light1Vector, halfVector);
 #endif
 
