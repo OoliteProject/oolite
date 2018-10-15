@@ -3792,14 +3792,19 @@ PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function()
 	}
 	if (this.ship.target && this.isAggressive(this.ship.target))
 	{
-		this.ship.alertCondition = 3;
+		if (this.ship.alertCondition < 3) 
+		{
+			do {
+				this.ship.increaseAlertLevel();
+			} while (this.ship.alertCondition < 3);
+		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_launchDefenseShips",this.ship.target,3);
 		this.ship.requestHelpFromGroup();
 	}
 	else if (this.ship.alertCondition > 1)
 	{
-		this.ship.alertCondition--;
+		this.ship.decreaseAlertLevel();
 	}
 	var handlers = {};
 	this.responsesAddStation(handlers);
@@ -3815,7 +3820,7 @@ PriorityAIController.prototype.behaviourStationLaunchMiner = function()
 	}
 	if (this.ship.alertCondition > 1)
 	{
-		this.ship.alertCondition--;
+		this.ship.decreaseAlertLevel();
 	}
 	var handlers = {};
 	this.responsesAddStation(handlers);
@@ -3844,7 +3849,7 @@ PriorityAIController.prototype.behaviourStationLaunchPatrol = function()
 	}
 	if (this.ship.alertCondition > 1)
 	{
-		this.ship.alertCondition--;
+		this.ship.decreaseAlertLevel();
 	}
 	var handlers = {};
 	this.responsesAddStation(handlers);
@@ -3874,7 +3879,7 @@ PriorityAIController.prototype.behaviourStationLaunchSalvager = function()
 	}
 	if (this.ship.alertCondition > 1)
 	{
-		this.ship.alertCondition--;
+		this.ship.decreaseAlertLevel();
 	}
 	this.communicate("oolite_launchSalvager",this.ship.target,3);
 	this.ship.launchScavenger();
@@ -3911,7 +3916,12 @@ PriorityAIController.prototype.behaviourStationRespondToDistressCall = function(
 	if (this.distance(aggressor) < this.scannerRange)
 	{
 		this.ship.target = aggressor;
-		this.ship.alertCondition = 3;
+		if (this.ship.alertCondition < 3) 
+		{
+			do {
+				this.ship.increaseAlertLevel();
+			} while (this.ship.alertCondition < 3);
+		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_distressResponseAggressor",aggressor,2);
 		this.ship.requestHelpFromGroup();
@@ -4845,7 +4855,7 @@ PriorityAIController.prototype.configurationStationReduceAlertLevel = function()
 {
 	if (this.ship.alertCondition > 1)
 	{
-		this.ship.alertCondition--;
+		this.ship.decreaseAlertLevel();
 	}
 }
 
@@ -5764,14 +5774,24 @@ PriorityAIController.prototype.responseComponent_station_commsMessageReceived = 
 
 PriorityAIController.prototype.responseComponent_station_cascadeWeaponDetected = function(weapon)
 {
-	this.ship.alertCondition = 3;
+	if (this.ship.alertCondition < 3) 
+	{
+		do {
+			this.ship.increaseAlertLevel();
+		} while (this.ship.alertCondition < 3);
+	}
 	this.reconsiderNow();
 };
 
 
 PriorityAIController.prototype.responseComponent_station_shipAttackedWithMissile = function(missile,whom)
 {
-	this.ship.alertCondition = 3;
+	if (this.ship.alertCondition < 3) 
+	{
+		do {
+			this.ship.increaseAlertLevel();
+		} while (this.ship.alertCondition < 3);
+	}
 	if (this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
 		this.fireECM();
@@ -5830,7 +5850,12 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 			return;
 		}
 	}
-	this.ship.alertCondition = 3;
+	if (this.ship.alertCondition < 3) 
+	{
+		do {
+			this.ship.increaseAlertLevel();
+		} while (this.ship.alertCondition < 3);
+	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
 	{
 		this.ship.addDefenseTarget(whom);
@@ -6006,7 +6031,9 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 		this.ship.addDefenseTarget(attacker);
 		if (this.ship.alertCondition < 3)
 		{
-			this.ship.alertCondition = 3;
+			do {
+				this.ship.increaseAlertLevel();
+			} while (this.ship.alertCondition < 3);
 			this.ship.target = attacker;
 		}
 		this.reconsiderNow();
