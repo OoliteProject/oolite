@@ -27,25 +27,6 @@
 #define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb)
 #define AMBIENT_LIGHT		(gl_LightModel.ambient.rgb)
 
-#ifndef OOSTD_HARSH_MISTRESS
-#define OOSTD_HARSH_MISTRESS 0
-#endif
-
-/*	"Harsh shadow factor": degree to which normal map affects global diffuse light
-	with terminator and full shadow, as opposed to "local light" which is a normal
-	Lambertian light.
-
-	Terminator threshold: defines the width and colour of the terminator. The
-	numbers are cosines of the angle where it transitions to full light.
-
-	Both of these factors are ignored in simple shader mode.
-*/
-#if OOSTD_HARSH_MISTRESS
-const vec3				kTerminatorThreshold = vec3(0.08);
-#else
-const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
-#endif
-
 uniform vec4			atmPosition;
 uniform float			atmRadius;
 
@@ -53,14 +34,10 @@ uniform float			atmRadius;
 varying vec3			vEyeVector;
 varying vec3			vLight1Vector;
 
-vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
-{
-	float LdotN = lightVector.z;
-	float globalTerm = LdotN;
-	// Hard terminator with slight redish-orange tinge. Note: threshold values are cosines.
-	vec3 baseLight = smoothstep(vec3(0.0), kTerminatorThreshold, vec3(globalTerm));
-	return baseLight;
-}
+
+const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
+const float				kFresnelMixFactor = 0.25;
+
 
 void main()
 {
@@ -69,29 +46,36 @@ void main()
 
 	// Diffuse light
 	vec3 light1Vector = normalize(vLight1Vector);
-	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
-	vec3 diffuseLight = diffuseIntensity * DIFFUSE_LIGHT;
+	vec3 eyeVector = normalize(vEyeVector);
 	vec3 diffuseColor = DIFFUSE_LIGHT;
 	// mix in some light blue color
-	totalColor += diffuseColor * diffuseLight * vec3(0.8, 0.8, 1.0);
-
-	// Ambient light, biased towards blue.
-	vec3 ambientColor = diffuseColor;
-#if !OOSTD_HARSH_MISTRESS
-	ambientColor *= vec3(0.8, 0.8, 1.0);
-#endif
-	totalColor += AMBIENT_LIGHT * ambientColor;
-
+	totalColor += diffuseColor * vec3(0.85, 0.85, 1.0);
+	
+	// add ambient light
+	totalColor += AMBIENT_LIGHT;
+	
+	//totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, vec3(light1Vector.z));
+	
+	// create a fresnel torus around the planet
+	vec3 fresnel = vec3(pow((1.0 - clamp(dot(normal, eyeVector), 0.0, 1.0)), 5.0));
+	
+	// get the fresnel lit up from the correct direction
+	vec3 invLight = vec3(dot(light1Vector, normal));
+	totalColor *= dot(normalize(fresnel), invLight);
+	
+	// calculate when the atmosphere should fade in / out
 	float atmDistance = length(atmPosition.xyz);
 	float minDistance = atmRadius + 3500.0;
 	float fadeDist = atmRadius * 12.0;
 	float fadeRate = 140000.0;
 	float fadeStart = fadeDist - fadeRate;
 	float quant = ( atmDistance > fadeStart ? ( fadeRate - (atmDistance - fadeStart) ) / fadeRate : ( atmDistance < (minDistance + 2000.0 ) ? ( atmDistance - minDistance ) / 2000.0 : 1.0) );
+	float magFresnel = length(fresnel);
 	float dp = abs(dot(normalize(vEyeVector), vec3(0.0,0.0,1.0)));
-	float gta = step(minDistance, atmDistance) * max(sign(fadeDist - atmDistance), 0.0);
-	float newOpacity = (dp > 0.16) ? min(1.0, pow(0.16 / dp, 2.0)) : pow(dp / 0.16, 5.0);
-	newOpacity *= gta*quant;
-
-	gl_FragColor = vec4(totalColor, newOpacity);
+	
+	// calculate final opacity, special handling for angles > 83.4 deg (cos(83.4deg) = 0.115)
+	// to fade atmosphere out at its edge
+	float newOpacity = dp > 0.115 ? magFresnel * quant : pow(dp / 0.115, 3.0) * quant;
+	
+	gl_FragColor = vec4(mix(totalColor, fresnel, kFresnelMixFactor), newOpacity);
 }
