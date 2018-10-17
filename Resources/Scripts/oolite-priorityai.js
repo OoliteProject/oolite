@@ -6034,8 +6034,8 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 			do {
 				this.ship.increaseAlertLevel();
 			} while (this.ship.alertCondition < 3);
-			this.ship.target = attacker;
 		}
+		this.ship.target = attacker;
 		this.reconsiderNow();
 	}
 }
