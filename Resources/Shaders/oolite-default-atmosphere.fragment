@@ -66,9 +66,6 @@ void main()
 	// calculate when the atmosphere should fade in / out
 	float atmDistance = length(atmPosition.xyz);
 	float minDistance = atmRadius + 3500.0;
-	float fadeDist = atmRadius * 12.0;
-	float fadeRate = 140000.0;
-	float fadeStart = fadeDist - fadeRate;
 	float quant = atmDistance < (minDistance + 2000.0 ) ?
 					( atmDistance - minDistance ) / 2000.0 : 
 					1.0;
