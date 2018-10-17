@@ -69,7 +69,9 @@ void main()
 	float fadeDist = atmRadius * 12.0;
 	float fadeRate = 140000.0;
 	float fadeStart = fadeDist - fadeRate;
-	float quant = ( atmDistance > fadeStart ? ( fadeRate - (atmDistance - fadeStart) ) / fadeRate : ( atmDistance < (minDistance + 2000.0 ) ? ( atmDistance - minDistance ) / 2000.0 : 1.0) );
+	float quant = atmDistance < (minDistance + 2000.0 ) ?
+					( atmDistance - minDistance ) / 2000.0 : 
+					1.0;
 	float magFresnel = length(fresnel);
 	float dp = abs(dot(normalize(vEyeVector), vec3(0.0,0.0,1.0)));
 	
