@@ -45,6 +45,8 @@ static JSBool StationAbortAllDockings(JSContext *context, uintN argc, jsval *vp)
 static JSBool StationAbortDockingForShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationCanDockShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationIncreaseAlertLevel(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationDecreaseAlertLevel(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchDefenseShip(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationLaunchEscort(JSContext *context, uintN argc, jsval *vp);
@@ -129,6 +131,8 @@ static JSFunctionSpec sStationMethods[] =
 	{ "abortDockingForShip",	StationAbortDockingForShip,		1 },
 	{ "canDockShip",            StationCanDockShip,				1 },	
 	{ "dockPlayer",				StationDockPlayer,				0 },
+	{ "increaseAlertLevel",     StationIncreaseAlertLevel,      0 },
+	{ "decreaseAlertLevel",     StationDecreaseAlertLevel,      0 },
 	{ "launchDefenseShip",		StationLaunchDefenseShip,		0 },
 	{ "launchEscort",			StationLaunchEscort,			0 },
 	{ "launchMiner",			StationLaunchMiner,				0 },
@@ -522,6 +526,40 @@ static JSBool StationDockPlayer(JSContext *context, uintN argc, jsval *vp)
 	OOJS_NATIVE_EXIT
 }
 
+
+static JSBool StationIncreaseAlertLevel(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	StationEntity	*station = nil;
+
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
+
+	OOJS_BEGIN_FULL_NATIVE(context)
+	if ([station alertCondition] < 3)
+	{
+		[station increaseAlertLevel];
+	}
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_VOID;
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool StationDecreaseAlertLevel(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	StationEntity	*station = nil;
+
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
+
+	OOJS_BEGIN_FULL_NATIVE(context)
+	if ([station alertCondition] > 1)
+	{
+		[station decreaseAlertLevel];
+	}
+	OOJS_END_FULL_NATIVE
+	OOJS_RETURN_VOID;
+	OOJS_NATIVE_EXIT
+}
 
 // launchShipWithRole(role : String [, abortAllDockings : boolean]) : shipEntity
 static JSBool StationLaunchShipWithRole(JSContext *context, uintN argc, jsval *vp)
