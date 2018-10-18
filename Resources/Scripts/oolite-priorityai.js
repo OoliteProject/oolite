@@ -3794,9 +3794,8 @@ PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function()
 	{
 		if (this.ship.alertCondition < 3) 
 		{
-			do {
-				this.ship.increaseAlertLevel();
-			} while (this.ship.alertCondition < 3);
+			if (this.ship.alertCondition == 1) this.ship.increaseAlertLevel();
+			this.ship.increaseAlertLevel();
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_launchDefenseShips",this.ship.target,3);
@@ -3918,9 +3917,8 @@ PriorityAIController.prototype.behaviourStationRespondToDistressCall = function(
 		this.ship.target = aggressor;
 		if (this.ship.alertCondition < 3) 
 		{
-			do {
-				this.ship.increaseAlertLevel();
-			} while (this.ship.alertCondition < 3);
+			if (this.ship.alertCondition == 1) this.ship.increaseAlertLevel();
+			this.ship.increaseAlertLevel();
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_distressResponseAggressor",aggressor,2);
@@ -5776,9 +5774,8 @@ PriorityAIController.prototype.responseComponent_station_cascadeWeaponDetected =
 {
 	if (this.ship.alertCondition < 3) 
 	{
-		do {
-			this.ship.increaseAlertLevel();
-		} while (this.ship.alertCondition < 3);
+		if (this.ship.alertCondition == 1) this.ship.increaseAlertLevel();
+		this.ship.increaseAlertLevel();
 	}
 	this.reconsiderNow();
 };
@@ -5788,9 +5785,8 @@ PriorityAIController.prototype.responseComponent_station_shipAttackedWithMissile
 {
 	if (this.ship.alertCondition < 3) 
 	{
-		do {
-			this.ship.increaseAlertLevel();
-		} while (this.ship.alertCondition < 3);
+		if (this.ship.alertCondition == 1) this.ship.increaseAlertLevel();
+		this.ship.increaseAlertLevel();
 	}
 	if (this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
@@ -5852,9 +5848,8 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 	}
 	if (this.ship.alertCondition < 3) 
 	{
-		do {
-			this.ship.increaseAlertLevel();
-		} while (this.ship.alertCondition < 3);
+		if (this.ship.alertCondition == 1) this.ship.increaseAlertLevel();
+		this.ship.increaseAlertLevel();
 	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
 	{
@@ -6031,9 +6026,8 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 		this.ship.addDefenseTarget(attacker);
 		if (this.ship.alertCondition < 3)
 		{
-			do {
-				this.ship.increaseAlertLevel();
-			} while (this.ship.alertCondition < 3);
+			if (this.ship.alertCondition == 1) this.ship.increaseAlertLevel();
+			this.ship.increaseAlertLevel();
 		}
 		this.ship.target = attacker;
 		this.reconsiderNow();
