@@ -378,6 +378,7 @@ static JSBool PlayerCommsMessage(JSContext *context, uintN argc, jsval *vp)
 	}
 	
 	[UNIVERSE addCommsMessage:message forCount:time];
+	[PLAYER doScriptEvent:OOJSID("commsMessageReceived") withArgument:message andArgument:nil];
 	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
