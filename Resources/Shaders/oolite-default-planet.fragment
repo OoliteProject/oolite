@@ -100,7 +100,7 @@ const float 			kHarshShadowFactor	= 0.3;
 const vec3				kTerminatorThreshold = vec3(0.08);
 #else
 const float 			kHarshShadowFactor	= 0.05;
-const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
+const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
 #endif
 
 

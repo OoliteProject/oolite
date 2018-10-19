@@ -35,8 +35,8 @@ varying vec3			vEyeVector;
 varying vec3			vLight1Vector;
 
 
-const vec3				kTerminatorThreshold = vec3(0.1, 0.105, 0.12);
-const float				kFresnelMixFactor = 0.25;
+const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
+const float				kFresnelMixFactor = 0.1;
 
 
 void main()
@@ -54,6 +54,7 @@ void main()
 	// add ambient light
 	totalColor += AMBIENT_LIGHT;
 	
+	// magic herebelow - painting the orange-reddish tinted terminator
 	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
 	
 	// create a fresnel torus around the planet
@@ -74,7 +75,7 @@ void main()
 	
 	// calculate final opacity, special handling for angles > 83.4 deg (cos(83.4deg) = 0.115)
 	// to fade atmosphere out at its edge
-	float newOpacity = dp > 0.115 ? magFresnel * quant : pow(dp / 0.115, 3.0) * quant;
+	float newOpacity = dp > 0.115 ? max(0.01, magFresnel * quant) : pow(dp / 0.115, 3.0) * quant;
 	
 	gl_FragColor = vec4(mix(totalColor, fresnel, kFresnelMixFactor), newOpacity);
 }
