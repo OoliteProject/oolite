@@ -75,7 +75,7 @@ void main()
 	
 	// calculate final opacity, special handling for angles > 83.4 deg (cos(83.4deg) = 0.115)
 	// to fade atmosphere out at its edge
-	float newOpacity = dp > 0.115 ? max(0.01, magFresnel * quant) : pow(dp / 0.115, 3.0) * quant;
+	float newOpacity = dp > 0.115 ? magFresnel * quant : pow(dp / 0.115, 3.0) * quant;
 	
 	gl_FragColor = vec4(mix(totalColor, fresnel, kFresnelMixFactor), newOpacity);
 }
