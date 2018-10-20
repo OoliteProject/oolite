@@ -362,7 +362,7 @@ void main(void)
 	// Calculate specular light
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
-	#if !OOSPECULAR_NEW_MODEL_GGX
+	#if !OOSPECULAR_NEW_MODEL || !OOSPECULAR_NEW_MODEL_GGX
 		float exponent = gl_FrontMaterial.shininess;
 		APPLY_MAPPED_EXPONENT;
 	#endif
