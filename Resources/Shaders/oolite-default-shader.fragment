@@ -406,7 +406,7 @@ void main(void)
 	#else
 		vec4 kD = vec4(1.0);
 	#endif
-	totalColor += (ambientColor * ambientLight + diffuseColor * diffuseLight) * kD;
+	totalColor += (diffuseColor * diffuseLight * kD) + (ambientColor * ambientLight);
 	
 #if OOSTD_SPECULAR
 	vec3 magSpec = specularColor.rgb;
