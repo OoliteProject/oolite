@@ -5,6 +5,7 @@ General:
 * New lighting shaders for physically accurate specular reflections
   and light energy conservation.
 * Improved planet lighting to make use of the new lighting system.
+* New and improved shader for rendering planets' atmospheres.
 * Enabled blending when rendering visual effects for increased
   effects flexibility.
 * Specular maps alpha channel can now be used for storing material
@@ -57,6 +58,8 @@ Scripting:
 
 Bug fixes:
 ==========
+* Fixed issue where Station JS AI was not triggering an alertConditionChanged
+  event.
 * Fixed issue with the primable equipment manager not being able to handle
   more than 21 items.
 * Fixed temperature due to air friction not rising when more than one planets
