@@ -78,6 +78,8 @@ Bug fixes:
   when the atmosphere shaders were introduced.
 * Player comms messages are now fully expanded before shown, just like any
   other ship's messages.
+* Fixed inconsistency between script and configuration files setting of sun
+  color.
 * Windows port: On Windows versions newer than Windows 8, the correct version
   is now reported in the log.
 
