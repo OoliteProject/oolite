@@ -67,6 +67,9 @@ MA 02110-1301, USA.
 	float		hue, sat, bri, alf;
 	OOColor		*color = nil;
 	
+	// blend some white into the sun color to brighten it up
+	sun_color = [sun_color blendedColorWithFraction:0.3 ofColor:[OOColor whiteColor]];
+	
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
 	hue /= 360;
 	

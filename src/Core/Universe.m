@@ -7743,7 +7743,7 @@ static void VerifyDesc(NSString *key, id desc)
 				
 				if ([key isEqualToString:@"sun_color"])
 				{
-					OOColor *color=[[the_sky skyColor] blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
+					OOColor *color = [the_sky skyColor];
 					if (the_sun != nil)
 					{
 						[the_sun setSunColor:color];
