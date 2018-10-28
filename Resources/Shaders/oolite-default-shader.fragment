@@ -414,8 +414,15 @@ void main(void)
 #endif
 
 	// gamma correction
-	if (uGammaCorrect)  totalColor = pow(totalColor, vec4(OOLINEAR_TO_SRGB));
-	
+	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
+	// Normally this would require HDR, but I think it works extremely well in Oolite.
+	// Formula taken from https://www.gdcvault.com/play/1012351/Uncharted-2-HDR
+	// jump to 27:40 in the video. Note the pow 1.0/2.2 is baked into these numbers
+	if (uGammaCorrect)
+	{
+		vec4 x = max(vec4(0.0), totalColor - 0.004);
+		totalColor = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
+	}
 	
 	// Heat glow
 	float hullHeat = max(uHullHeatLevel - 0.5, 0.0) * 2.0;
