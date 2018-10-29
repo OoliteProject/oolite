@@ -6028,8 +6028,8 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 		{
 			if (this.ship.alertCondition == 1) this.ship.increaseAlertLevel();
 			this.ship.increaseAlertLevel();
+			this.ship.target = attacker;
 		}
-		this.ship.target = attacker;
 		this.reconsiderNow();
 	}
 }
