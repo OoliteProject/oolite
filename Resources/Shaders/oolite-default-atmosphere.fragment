@@ -37,6 +37,7 @@ varying vec3			vLight1Vector;
 
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
 const float				kFresnelMixFactor = 0.1;
+const float				kFresnelExponent = 5.0;
 
 
 void main()
@@ -48,6 +49,9 @@ void main()
 	vec3 light1Vector = normalize(vLight1Vector);
 	vec3 eyeVector = normalize(vEyeVector);
 	vec3 diffuseColor = DIFFUSE_LIGHT;
+	
+	float NdotV = clamp(dot(normal, eyeVector), 0.0, 1.0);
+	
 	// mix in some light blue color
 	totalColor += diffuseColor * vec3(0.85, 0.85, 1.0);
 	
@@ -58,7 +62,7 @@ void main()
 	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
 	
 	// create a fresnel torus around the planet
-	vec3 fresnel = vec3(pow((1.0 - clamp(dot(normal, eyeVector), 0.0, 1.0)), 5.0));
+	vec3 fresnel = vec3(pow(1.0 - NdotV, kFresnelExponent));
 	
 	// get the fresnel lit up from the correct direction
 	vec3 invLight = vec3(dot(light1Vector, normal));
@@ -71,11 +75,10 @@ void main()
 					( atmDistance - minDistance ) / 2000.0 : 
 					1.0;
 	float magFresnel = length(fresnel);
-	float dp = abs(dot(normalize(vEyeVector), vec3(0.0,0.0,1.0)));
 	
 	// calculate final opacity, special handling for angles > 83.4 deg (cos(83.4deg) = 0.115)
 	// to fade atmosphere out at its edge
-	float newOpacity = dp > 0.115 ? magFresnel * quant : pow(dp / 0.115, 3.0) * quant;
+	float newOpacity = NdotV > 0.115 ? magFresnel * quant : pow(NdotV / 0.115, 3.0) * quant;
 	
 	gl_FragColor = vec4(mix(totalColor, fresnel, kFresnelMixFactor), newOpacity);
 }
