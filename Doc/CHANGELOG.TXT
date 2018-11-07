@@ -1,3 +1,26 @@
+Changes between Oolite 1.88 and Oolite 1.90:
+
+General:
+========
+
+Expansion pack development:
+===========================
+
+Modified Plists:
+----------------
+
+Scripting:
+----------
+* World event "commsMessageReceived" will now be triggered when the
+  "player.commsMessage" function is called. The "sender" argument will
+  be null in this case. Scripts that implement "commsMessageReceived"
+  will need to check for a null value, otherwise an error will occur.
+
+Bug fixes:
+==========
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.86 and Oolite 1.88:
 
 General:
