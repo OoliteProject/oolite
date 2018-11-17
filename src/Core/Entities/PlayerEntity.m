@@ -10152,6 +10152,26 @@ static NSString *last_outfitting_key=nil;
 	
 	if (price > credits)
 	{
+		// not enough money - ensure that weapon
+		// type is reset to what it was before
+		// the attempt to buy took place
+		switch (chosen_weapon_facing)
+		{
+			case WEAPON_FACING_FORWARD:
+				forward_weapon_type = current_weapon;
+				break;
+			case WEAPON_FACING_AFT:
+				aft_weapon_type = current_weapon;
+				break;
+			case WEAPON_FACING_PORT:
+				port_weapon_type = current_weapon;
+				break;
+			case WEAPON_FACING_STARBOARD:
+				starboard_weapon_type = current_weapon;
+				break;
+			case WEAPON_FACING_NONE:
+				break;
+		}
 		return NO;
 	}
 	
