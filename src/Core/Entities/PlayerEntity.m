@@ -10127,7 +10127,8 @@ static NSString *last_outfitting_key=nil;
 	double					priceFactor		= 1.0;
 	OOCreditsQuantity		tradeIn			= 0;
 	BOOL	isRepair = NO;
-	
+	NSUInteger				multiplier 		= 1;
+
 	// repairs cost 50%
 	if ([self hasEquipmentItem:eqKeyDamaged])
 	{
@@ -10142,6 +10143,45 @@ static NSString *last_outfitting_key=nil;
 	
 	price = [self adjustPriceByScriptForEqKey:eqKey withCurrent:price];
 
+	// apply the multiple laser multiplier
+	if ([eqType isPrimaryWeapon])
+	{
+		switch (chosen_weapon_facing)
+		{
+			case WEAPON_FACING_FORWARD:
+				if (_multiplyWeapons)
+				{
+					multiplier = [forwardWeaponOffset count];
+				}
+				break;
+				
+			case WEAPON_FACING_AFT:
+				if (_multiplyWeapons)
+				{
+					multiplier = [aftWeaponOffset count];
+				}
+				break;
+				
+			case WEAPON_FACING_PORT:
+				if (_multiplyWeapons)
+				{
+					multiplier = [portWeaponOffset count];
+				}
+				break;
+				
+			case WEAPON_FACING_STARBOARD:
+				if (_multiplyWeapons)
+				{
+					multiplier = [starboardWeaponOffset count];
+				}
+				break;
+				
+			case WEAPON_FACING_NONE:
+				break;
+		}
+		price *= multiplier;
+	}
+
 	StationEntity *dockedStation = [self dockedStation];
 	if (dockedStation)
 	{
@@ -10152,26 +10192,7 @@ static NSString *last_outfitting_key=nil;
 	
 	if (price > credits)
 	{
-		// not enough money - ensure that weapon
-		// type is reset to what it was before
-		// the attempt to buy took place
-		switch (chosen_weapon_facing)
-		{
-			case WEAPON_FACING_FORWARD:
-				forward_weapon_type = current_weapon;
-				break;
-			case WEAPON_FACING_AFT:
-				aft_weapon_type = current_weapon;
-				break;
-			case WEAPON_FACING_PORT:
-				port_weapon_type = current_weapon;
-				break;
-			case WEAPON_FACING_STARBOARD:
-				starboard_weapon_type = current_weapon;
-				break;
-			case WEAPON_FACING_NONE:
-				break;
-		}
+		// not enough money
 		return NO;
 	}
 	
@@ -10185,57 +10206,34 @@ static NSString *last_outfitting_key=nil;
 		
 		OOWeaponType chosen_weapon = OOWeaponTypeFromEquipmentIdentifierStrict(eqKey);
 		OOWeaponType current_weapon = nil;
-
-		NSUInteger multiplier = 1;
-		
+				
 		switch (chosen_weapon_facing)
 		{
 			case WEAPON_FACING_FORWARD:
 				current_weapon = forward_weapon_type;
 				forward_weapon_type = chosen_weapon;
-				if (_multiplyWeapons)
-				{
-					multiplier = [forwardWeaponOffset count];
-				}
 				break;
 				
 			case WEAPON_FACING_AFT:
 				current_weapon = aft_weapon_type;
 				aft_weapon_type = chosen_weapon;
-				if (_multiplyWeapons)
-				{
-					multiplier = [aftWeaponOffset count];
-				}
 				break;
 				
 			case WEAPON_FACING_PORT:
 				current_weapon = port_weapon_type;
 				port_weapon_type = chosen_weapon;
-				if (_multiplyWeapons)
-				{
-					multiplier = [portWeaponOffset count];
-				}
 				break;
 				
 			case WEAPON_FACING_STARBOARD:
 				current_weapon = starboard_weapon_type;
 				starboard_weapon_type = chosen_weapon;
-				if (_multiplyWeapons)
-				{
-					multiplier = [starboardWeaponOffset count];
-				}
 				break;
 				
 			case WEAPON_FACING_NONE:
 				break;
 		}
 
-		price *= multiplier;
-		
-		if (price > credits)
-		{
-			return NO;
-		}
+		// we've already checked for price being less than available credits, so we're good to go here
 		credits -= price;
 		
 		// Refund current_weapon
