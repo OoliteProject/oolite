@@ -299,9 +299,6 @@ void main()
 	// conservation of energy
 	totalColor += diffuseColor * diffuseLight * (vec3(1.0) - fresnel);
 	
-	// paint the orange-reddish terminator
-	totalColor *= diffuseIntensity;
-	
 	// Ambient light, biased towards blue.
 	vec3 ambientColor = diffuseColor;
 #if !OOSTD_HARSH_MISTRESS
@@ -332,6 +329,9 @@ void main()
 	vec3 illuminationColor = ILLUMINATION_COLOR;
 	totalColor += (1.0 - diffuseIntensity.r) * illuminationColor;
 #endif
+
+	// paint the orange-reddish terminator
+	totalColor *= diffuseIntensity;
 	
 	// re-apply gamma correction
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 

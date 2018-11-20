@@ -58,15 +58,15 @@ void main()
 	// add ambient light
 	totalColor += AMBIENT_LIGHT;
 	
-	// magic herebelow - painting the orange-reddish tinted terminator
-	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
-	
 	// create a fresnel torus around the planet
 	vec3 fresnel = vec3(pow(1.0 - NdotV, kFresnelExponent));
 	
 	// get the fresnel lit up from the correct direction
 	vec3 invLight = vec3(dot(light1Vector, normal));
 	totalColor *= dot(normalize(fresnel), invLight);
+	
+	// magic herebelow - painting the orange-reddish tinted terminator
+	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
 	
 	// calculate when the atmosphere should fade in / out
 	float atmDistance = length(atmPosition.xyz);
