@@ -299,13 +299,6 @@ void main()
 	// conservation of energy
 	totalColor += diffuseColor * diffuseLight * (vec3(1.0) - fresnel);
 	
-	// Ambient light, biased towards blue.
-	vec3 ambientColor = diffuseColor;
-#if !OOSTD_HARSH_MISTRESS
-	ambientColor *= vec3(0.8, 0.8, 1.0);
-#endif
-	totalColor += AMBIENT_LIGHT * ambientColor;
-	
 	// Specular light.
 #if USE_SPECULAR
 	float specularFactor = SPECULAR_FACTOR;
@@ -332,6 +325,13 @@ void main()
 
 	// paint the orange-reddish terminator
 	totalColor *= diffuseIntensity;
+	
+	// Ambient light, biased towards blue.
+	vec3 ambientColor = diffuseColor;
+#if !OOSTD_HARSH_MISTRESS
+	ambientColor *= vec3(0.8, 0.8, 1.0);
+#endif
+	totalColor += AMBIENT_LIGHT * ambientColor;
 	
 	// re-apply gamma correction
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
