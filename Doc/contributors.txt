@@ -13,6 +13,7 @@ Andrey Belov (timer)
 Job Bolle (hoqllnq)
 Nicolas Boulenguez
 CaptSolo
+cbr
 Eugene Chernyakov (seventh)
 colinh
 Commander_X
