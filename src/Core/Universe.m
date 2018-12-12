@@ -5187,7 +5187,15 @@ static BOOL MaintainLinkedLists(Universe *uni)
 		Entity* ent = [entities objectAtIndex:1];
 		if (ent->isStation)  // clear out queues
 			[(StationEntity *)ent clear];
-		[self removeEntity:ent];
+		if (EXPECT(![ent isVisualEffect]))
+		{
+			[self removeEntity:ent];
+		}
+		else
+		{
+			// this will ensure the effectRemoved script event will run
+			[(OOVisualEffectEntity *)ent remove];
+		}
 	}
 	
 	[activeWormholes release];
