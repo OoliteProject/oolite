@@ -42,8 +42,8 @@ const float				kFresnelExponent = 5.0;
 
 void main()
 {
-	vec3 totalColor = vec3(0);
-	vec3 normal = vec3(0, 0, 1);
+	vec3 totalColor = vec3(0.0);
+	vec3 normal = vec3(0.0, 0.0, 1.0);
 
 	// Diffuse light
 	vec3 light1Vector = normalize(vLight1Vector);
@@ -60,7 +60,7 @@ void main()
 	
 	// get the fresnel lit up from the correct direction
 	vec3 invLight = vec3(dot(light1Vector, normal));
-	totalColor *= dot(normalize(fresnel), invLight);
+	totalColor *= dot(normalize(fresnel), invLight) * vec3(0.55, 0.55, 1.0);
 	
 	// magic herebelow - painting the orange-reddish tinted terminator
 	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
@@ -76,9 +76,11 @@ void main()
 					1.0;
 	float magFresnel = length(fresnel);
 	
-	// calculate final opacity, special handling for angles > 83.4 deg (cos(83.4deg) = 0.115)
+	// calculate final opacity, special handling for angles > 80.8 deg (cos(80.8deg) = 0.16)
 	// to fade atmosphere out at its edge
-	float newOpacity = NdotV > 0.115 ? magFresnel * quant : pow(NdotV / 0.115, 3.0) * quant;
+	float newOpacity = NdotV > 0.16 ? magFresnel * quant : pow(NdotV / 0.16, 5.0) * quant;
 	
-	gl_FragColor = vec4(mix(totalColor, fresnel, kFresnelMixFactor), newOpacity);
+	totalColor = mix(totalColor, fresnel, kFresnelMixFactor);
+	
+	gl_FragColor = vec4(totalColor, newOpacity);
 }
