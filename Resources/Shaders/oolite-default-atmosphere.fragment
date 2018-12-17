@@ -35,9 +35,11 @@ varying vec3			vEyeVector;
 varying vec3			vLight1Vector;
 
 
+const vec3				biasColor = vec3(0.0, 0.0, 1.0);
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
 const float				kFresnelMixFactor = 0.1;
 const float				kFresnelExponent = 5.0;
+const float				biasColorMixRatio = 0.35;
 
 
 void main()
@@ -60,7 +62,7 @@ void main()
 	
 	// get the fresnel lit up from the correct direction
 	vec3 invLight = vec3(dot(light1Vector, normal));
-	totalColor *= dot(normalize(fresnel), invLight) * vec3(0.55, 0.55, 1.0);
+	totalColor *= dot(normalize(fresnel), invLight) * mix(diffuseColor, biasColor, biasColorMixRatio);
 	
 	// magic herebelow - painting the orange-reddish tinted terminator
 	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
