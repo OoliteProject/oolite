@@ -230,7 +230,8 @@ SOFTWARE.
 	ALuint error;
 	if ((error = alGetError()) != AL_NO_ERROR)
 	{
-		OOLog(@"ov.debug",@"Error %d queueing buffers",error);
+		OOLog(@"ov.debug", @"Error %u queueing buffers (_source: %u (%p), _buffer: %u (%p))",
+							error, _source, &_source, _buffer, &_buffer);
 		return NO;
 	}
 	ALint playing = 0;
