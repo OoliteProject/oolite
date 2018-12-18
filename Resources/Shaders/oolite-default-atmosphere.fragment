@@ -37,8 +37,7 @@ varying vec3			vLight1Vector;
 
 const vec3				biasColor = vec3(0.0, 0.0, 1.0);
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
-const float				kFresnelMixFactor = 0.1;
-const float				kFresnelExponent = 5.0;
+const float				kFresnelMixFactor = 0.15;
 const float				biasColorMixRatio = 0.35;
 
 
@@ -54,11 +53,16 @@ void main()
 	
 	float NdotV = clamp(dot(normal, eyeVector), 0.0, 1.0);
 	
+	float atmDistance = length(atmPosition.xyz);
+	float minDistance = atmRadius + 3500.0;
+	float magicDistance = atmDistance - minDistance;
+	float fresnelExponent = clamp(magicDistance / minDistance, 5.0, 8.0);
+	
 	// mix in some light blue color
 	totalColor += diffuseColor * vec3(0.85, 0.85, 1.0);
 	
 	// create a fresnel torus around the planet
-	vec3 fresnel = vec3(pow(1.0 - NdotV, kFresnelExponent));
+	vec3 fresnel = vec3(pow(1.0 - NdotV, fresnelExponent));
 	
 	// get the fresnel lit up from the correct direction
 	vec3 invLight = vec3(dot(light1Vector, normal));
@@ -71,11 +75,8 @@ void main()
 	totalColor += AMBIENT_LIGHT;
 	
 	// calculate when the atmosphere should fade in / out
-	float atmDistance = length(atmPosition.xyz);
-	float minDistance = atmRadius + 3500.0;
 	float quant = atmDistance < (minDistance + 2000.0 ) ?
-					( atmDistance - minDistance ) / 2000.0 : 
-					1.0;
+					magicDistance / 2000.0 : 1.0;
 	float magFresnel = length(fresnel);
 	
 	// calculate final opacity, special handling for angles > 80.8 deg (cos(80.8deg) = 0.16)
