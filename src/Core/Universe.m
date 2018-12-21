@@ -7760,7 +7760,7 @@ static void VerifyDesc(NSString *key, id desc)
 					}
 					for (i = n_entities - 1; i > 0; i--)
 						if ((sortedEntities[i]) && ([sortedEntities[i] isKindOfClass:[DustEntity class]]))
-							[(DustEntity*)sortedEntities[i] setDustColor:color];
+							[(DustEntity*)sortedEntities[i] setDustColor:[color blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]]];
 				}
 			}
 		}
