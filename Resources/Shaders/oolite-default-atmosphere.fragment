@@ -38,7 +38,6 @@ const vec3				biasColor = vec3(0.0, 0.0, 1.0);
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
 const float				kFresnelExponent = 5.0;
 const float				biasColorMixRatio = 0.35;
-const float				cosThreshold = 0.14;	// 81.95 deg
 
 
 void main()
@@ -56,6 +55,17 @@ void main()
 	float atmDistance = length(atmPosition.xyz);
 	float minDistance = atmRadius + 3500.0;
 	float magicDistance = atmDistance - minDistance;
+	float cosThreshold = 0.14; // 81.95 deg
+	float newOpacityExponent = 3.0;
+	
+	// the outer atmosphere rim does not follow exactly the curvature of the planet for small radii
+	// adjust thresholds and exponents to cope for when planet radius <= 4km - note: radius is fed
+	// into the shader with a scale factor of 10
+	if (atmRadius <= 40000.0)
+	{
+		cosThreshold = 0.16; // 80.8 deg
+		newOpacityExponent = 5.0;
+	}
 	
 	// mix in some light blue color
 	totalColor += diffuseColor * vec3(0.85, 0.85, 1.0);
@@ -83,7 +93,7 @@ void main()
 	
 	// calculate final opacity, special handling for angles > arccos(cosThreshold)
 	// to fade atmosphere out at its edge
-	float newOpacity = NdotV > cosThreshold ? magFresnel * quant : pow(NdotV / cosThreshold, 3.0) * quant;
+	float newOpacity = NdotV > cosThreshold ? magFresnel * quant : pow(NdotV / cosThreshold, newOpacityExponent) * quant;
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
 }
