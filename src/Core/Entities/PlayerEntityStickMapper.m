@@ -3,7 +3,7 @@
 PlayerEntityStickMapper.m
 
 Oolite
-Copyright (C) 2004-2013 Giles C Williams and contributors
+Copyright (C) 2004-2019 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -660,6 +660,21 @@ MA 02110-1301, USA.
 					 axisfn:AXIS_FIELD_OF_VIEW
 					  butfn:BUTTON_DEC_FIELD_OF_VIEW]];
 #endif
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-dockcpu")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_DOCKCPU]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-dockcpufast")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_DOCKCPUFAST]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-compass-mode-next")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_COMPASSMODE]];
 	return funcList;
 }
 

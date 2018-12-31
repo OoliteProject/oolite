@@ -3,7 +3,7 @@
 PlayerEntityControls.m
 
 Oolite
-Copyright (C) 2004-2013 Giles C Williams and contributors
+Copyright (C) 2004-2019 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -3656,7 +3656,7 @@ static NSTimeInterval	time_last_frame;
 			prev_compass_mode_pressed = NO;
 		}
 		// Compass mode '\'
-		if ([gameView isDown:key_next_compass_mode]) // look for the '\' key
+		if ([gameView isDown:key_next_compass_mode] || joyButtonState[BUTTON_COMPASSMODE]) // look for the '\' key
 		{
 			if ((!next_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
 				[self setNextCompassMode];
