@@ -675,6 +675,11 @@ MA 02110-1301, USA.
 				  allowable:HW_BUTTON
 					 axisfn:STICK_NOFUNCTION
 					  butfn:BUTTON_COMPASSMODE]];
+	[funcList addObject:
+	 [self makeStickGuiDict:DESC(@"stickmapper-docking-clearance")
+				  allowable:HW_BUTTON
+					 axisfn:STICK_NOFUNCTION
+					  butfn:BUTTON_DOCKINGCLEARANCE]];
 	return funcList;
 }
 

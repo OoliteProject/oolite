@@ -1659,6 +1659,7 @@
 	"stickmapper-dockcpu"			= "Autopilot (standard)";
 	"stickmapper-dockcpufast"		= "Autopilot (fast)";
 	"stickmapper-compass-mode-next"	= "Next compass target";
+	"stickmapper-docking-clearance" = "Docking clearance";
 	
 	"oolite-stickprofile-title"			= "Joystick Profile";
 	"oolite-stickprofile-back"			= "Back";

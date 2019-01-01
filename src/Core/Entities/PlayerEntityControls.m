@@ -1321,7 +1321,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"docking clearance request";
 
-				if ([gameView isDown:key_docking_clearance_request])
+				if ([gameView isDown:key_docking_clearance_request] || joyButtonState[BUTTON_DOCKINGCLEARANCE])
 				{
 					if (!docking_clearance_request_key_pressed)
 					{
