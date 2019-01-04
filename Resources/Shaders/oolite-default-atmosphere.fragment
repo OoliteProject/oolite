@@ -36,7 +36,7 @@ varying vec3			vLight1Vector;
 
 const vec3				biasColor = vec3(0.0, 0.0, 1.0);
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
-const float				kFresnelExponent = 5.0;
+const float				kFresnelExponent = 2.0;
 const float				biasColorMixRatio = 0.35;
 
 
@@ -89,11 +89,12 @@ void main()
 	// calculate when the atmosphere should fade in / out
 	float quant = atmDistance < (minDistance + 2000.0) ?
 					magicDistance / 2000.0 : 1.0;
-	float magFresnel = length(fresnel);
-	
-	// calculate final opacity, special handling for angles > arccos(cosThreshold)
-	// to fade atmosphere out at its edge
-	float newOpacity = NdotV > cosThreshold ? magFresnel * quant : pow(NdotV / cosThreshold, newOpacityExponent) * quant;
+					
+	// calculate the final opacity, special handling for
+	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
+	float newOpacity = quant * (NdotV > cosThreshold ?
+								length(fresnel) * cosThreshold / NdotV :
+								pow(NdotV / cosThreshold, newOpacityExponent));
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
 }
