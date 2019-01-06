@@ -36,8 +36,8 @@ varying vec3			vLight1Vector;
 
 const vec3				biasColor = vec3(0.0, 0.0, 1.0);
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
-const float				kFresnelExponent = 2.0;
-const float				biasColorMixRatio = 0.35;
+const float				kFresnelExponent = 4.0;
+const float				biasColorMixRatio = 0.1;
 
 
 void main()
@@ -63,7 +63,7 @@ void main()
 	// into the shader with a scale factor of 10
 	if (atmRadius <= 40000.0)
 	{
-		cosThreshold = 0.16; // 80.8 deg
+		cosThreshold = 0.17; // 80.21 deg
 		newOpacityExponent = 5.0;
 	}
 	
@@ -75,7 +75,9 @@ void main()
 	
 	// get the fresnel lit up from the correct direction
 	vec3 invLight = vec3(dot(light1Vector, normal));
-	totalColor *= dot(normalize(fresnel), invLight) * mix(diffuseColor, biasColor, biasColorMixRatio);
+	totalColor *=	dot(normalize(fresnel), invLight) *
+					mix(totalColor, biasColor, biasColorMixRatio) *
+					clamp(totalColor, vec3(0.0), diffuseColor);
 	
 	// magic herebelow - painting the orange-reddish tinted terminator
 	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
@@ -93,7 +95,7 @@ void main()
 	// calculate the final opacity, special handling for
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
 	float newOpacity = quant * (NdotV > cosThreshold ?
-								length(fresnel) * cosThreshold / NdotV :
+								length(fresnel) * cosThreshold * 0.8 / NdotV :
 								pow(NdotV / cosThreshold, newOpacityExponent));
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
