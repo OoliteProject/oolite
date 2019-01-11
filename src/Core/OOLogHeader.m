@@ -347,6 +347,8 @@ static unsigned long long GetSysCtlInt(const char *name)
 static NSString *AdditionalLogHeaderInfo(void)
 {
 	unsigned cpuCount = OOCPUCount();
-	return [NSString stringWithFormat:@"%u processor%@ detected.", cpuCount, cpuCount != 1 ? @"s" : @""];
+	NSString *cpuDescription = OOCPUDescription();
+	
+	return [NSString stringWithFormat:@"%@ %u processor%@ detected.", cpuDescription, cpuCount, cpuCount != 1 ? @"s" : @""];
 }
 #endif

@@ -36,6 +36,13 @@ void OOCPUInfoInit(void);
 */
 NSUInteger OOCPUCount(void);
 
+
+/*
+	Returns the CPU identifier string. Currently Windows only.
+*/
+NSString* OOCPUDescription(void);
+
+
 #if OOLITE_WINDOWS
 typedef BOOL (WINAPI *IW64PFP)(HANDLE, BOOL *);	// for checking for 64/32 bit system
 BOOL is64BitSystem(void);
