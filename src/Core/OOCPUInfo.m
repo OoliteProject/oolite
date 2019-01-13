@@ -128,7 +128,7 @@ NSString* OOCPUDescription(void)
 	}
 	return [NSString stringWithCString:CPUBrandString];
 #else
-	return [NSString stringWithString:@""];
+	return @"";
 #endif
 }
 
