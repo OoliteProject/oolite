@@ -47,6 +47,7 @@ NSString* OOCPUDescription(void);
 typedef BOOL (WINAPI *IW64PFP)(HANDLE, BOOL *);	// for checking for 64/32 bit system
 BOOL is64BitSystem(void);
 NSString*	operatingSystemFullVersion(void);
+void OOCPUID(int CPUInfo[4], int InfoType);
 #endif
 
 /*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one must

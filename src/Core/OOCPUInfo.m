@@ -113,11 +113,11 @@ NSString* OOCPUDescription(void)
 	unsigned   nExIds, i =  0;
 	char CPUBrandString[0x40];
 	// Get the information associated with each extended ID.
-	__cpuid(CPUInfo, 0x80000000);
+	OOCPUID(CPUInfo, 0x80000000);
 	nExIds = CPUInfo[0];
 	for (i=0x80000000; i<=nExIds; ++i)
 	{
-		__cpuid(CPUInfo, i);
+		OOCPUID(CPUInfo, i);
 		// Interpret CPU brand string
 		if  (i == 0x80000002)
 			memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
@@ -181,5 +181,17 @@ BOOL is64BitSystem(void)
 	
 		return is64Bit;
 	#endif
+}
+
+
+/*
+Taken straight out of the x64 gcc's __cpuid because our 32-bit compiler does not define it
+*/
+inline void OOCPUID(int CPUInfo[4], int InfoType)
+{
+	__asm__ __volatile__ (
+          "cpuid"
+          : "=a" (CPUInfo [0]), "=b" (CPUInfo [1]), "=c" (CPUInfo [2]), "=d" (CPUInfo [3])
+          : "a" (InfoType));
 }
 #endif	// OOLITE_WINDOWS
