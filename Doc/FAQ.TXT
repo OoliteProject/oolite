@@ -14,8 +14,9 @@ the rank of ELITE.
 1.1. I'm still confused, how do I play?
 Have a look at Ian Bell's Flight Training Manual for the original BBC Elite, 
 some of Oolite's control keys are different from the original, so be sure 
-to read it alongside the Oolite PLAYING.TXT file..
+to read it alongside the Oolite Controls Wiki section.
 ( http://www.iancgbell.clara.net/elite/ )
+( http://wiki.alioth.net/index.php/Oolite_Keyboard_Controls )
 
 1.2. What do the various colors represent on the radar?
 White - unpowered items that can't mass-lock the in-system drive.
