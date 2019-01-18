@@ -780,7 +780,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 		// HUD toggle
-		if ([gameView isDown:key_hud_toggle] && [gameController isGamePaused])	// 'o' key while paused
+		if ([gameView isDown:key_hud_toggle])
 		{
 			exceptionContext = @"toggle HUD";
 			if (!hide_hud_pressed)
