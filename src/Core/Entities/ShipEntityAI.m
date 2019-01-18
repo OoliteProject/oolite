@@ -1510,6 +1510,11 @@
 
 - (void) checkEnergy
 {
+    if (maxEnergy < energy < 0)
+    {
+		NSLog(@"Energy level reported has taken on an invalid value.");
+		return;
+    }
 	if (energy == maxEnergy)
 	{
 		[shipAI message:@"ENERGY_FULL"];
@@ -1520,12 +1525,21 @@
 		[shipAI message:@"ENERGY_HIGH"];
 		return;
 	}
-	if (energy <= maxEnergy * 0.25)
+	if (energy >= maxEnergy * 0.25)
+	{
+		[shipAI message:@"ENERGY_MEDIUM"];
+		return;
+	}
+	if (energy > 0)
 	{
 		[shipAI message:@"ENERGY_LOW"];
 		return;
 	}
-	[shipAI message:@"ENERGY_MEDIUM"];
+	if (energy == 0)
+	{
+		[shipAI message:@"ENERGY_GONE"];
+		return;
+	}
 }
 
 - (void) checkHeatInsulation
