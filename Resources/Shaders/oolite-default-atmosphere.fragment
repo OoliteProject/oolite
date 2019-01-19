@@ -95,7 +95,7 @@ void main()
 	// calculate the final opacity, special handling for
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
 	float newOpacity = quant * (NdotV > cosThreshold ?
-								length(fresnel) * cosThreshold * 0.8 / NdotV :
+								((length(fresnel) * cosThreshold * 0.8 / NdotV) * 0.5) + (min(1.0, pow(cosThreshold / NdotV, 2.0)) * 0.5) :
 								pow(NdotV / cosThreshold, newOpacityExponent));
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
