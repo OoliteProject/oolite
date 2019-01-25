@@ -295,9 +295,6 @@ void main()
 #if USE_SPECULAR && OOSPECULAR_NEW_MODEL
 	fresnel = FresnelSchlick(mix(gl_FrontMaterial.specular.rgb, SPECULAR_LIGHT, SPECULAR_FACTOR), light1Vector, halfVector);
 #endif
-
-	// conservation of energy
-	totalColor += diffuseColor * diffuseLight * (vec3(1.0) - fresnel);
 	
 	// Specular light.
 #if USE_SPECULAR
@@ -317,6 +314,9 @@ void main()
 		totalColor += specularLight * specularFactor;
 	#endif
 #endif
+
+	// conservation of energy
+	totalColor += diffuseColor * diffuseLight * (vec3(1.0) - fresnel);
 	
 #if USE_ILLUMINATION
 	vec3 illuminationColor = ILLUMINATION_COLOR;

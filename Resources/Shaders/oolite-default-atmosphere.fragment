@@ -71,7 +71,7 @@ void main()
 	totalColor += diffuseColor * vec3(0.85, 0.85, 1.0);
 	
 	// create a fresnel torus around the planet
-	vec3 fresnel = vec3(pow(1.0 - NdotV, kFresnelExponent));
+	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.3), kFresnelExponent));
 	
 	// get the fresnel lit up from the correct direction
 	vec3 invLight = vec3(dot(light1Vector, normal));
@@ -95,7 +95,7 @@ void main()
 	// calculate the final opacity, special handling for
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
 	float newOpacity = quant * (NdotV > cosThreshold ?
-								((length(fresnel) * cosThreshold * 0.8 / NdotV) * 0.5) + (min(1.0, pow(cosThreshold / NdotV, 2.0)) * 0.5) :
+								fresnel.r * cosThreshold  / NdotV :
 								pow(NdotV / cosThreshold, newOpacityExponent));
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
