@@ -194,7 +194,6 @@ static const GLfloat redplus_color[4] =		{1.0, 0.0, 0.5, 1.0};
 static const GLfloat yellow_color[4] =  	{1.0, 1.0, 0.0, 1.0};
 static const GLfloat green_color[4] =		{0.0, 1.0, 0.0, 1.0};
 static const GLfloat darkgreen_color[4] =	{0.0, 0.75, 0.0, 1.0};
-static const GLfloat cyan_color[4] =		{0.0, 1.0, 1.0, 1.0};
 static const GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
 static const GLfloat black_color[4] =		{0.0, 0.0, 0.0, 1.0};
 static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};

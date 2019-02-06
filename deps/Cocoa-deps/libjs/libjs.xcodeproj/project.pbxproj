@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 50;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -1763,10 +1763,10 @@
 		08FB7793FE84155DC02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 1010;
 			};
 			buildConfigurationList = 1DEB91EF08733DB70010E9CD /* Build configuration list for PBXProject "libjs" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -2076,6 +2076,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_CW_ASM_SYNTAX = YES;
@@ -2095,7 +2096,11 @@
 				PRODUCT_NAME = js_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(JS_SRC_PATH)",
+					"$(MOZILLA_PATH)/nsprpub/pr/include/",
+				);
 			};
 			name = TestRelease;
 		};
@@ -2103,6 +2108,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -2121,7 +2127,11 @@
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = nspr4_for_oolite;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(MOZILLA_PATH)/nsprpub/pr/src $(MOZILLA_PATH)/nsprpub/pr/include/private/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(MOZILLA_PATH)/nsprpub/pr/src",
+					"$(MOZILLA_PATH)/nsprpub/pr/include/private/",
+				);
 			};
 			name = Debug;
 		};
@@ -2129,6 +2139,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2145,7 +2156,11 @@
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = nspr4_for_oolite;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(MOZILLA_PATH)/nsprpub/pr/src $(MOZILLA_PATH)/nsprpub/pr/include/private/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(MOZILLA_PATH)/nsprpub/pr/src",
+					"$(MOZILLA_PATH)/nsprpub/pr/include/private/",
+				);
 			};
 			name = Deployment;
 		};
@@ -2153,6 +2168,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2168,7 +2184,11 @@
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = nspr4_for_oolite;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(MOZILLA_PATH)/nsprpub/pr/src $(MOZILLA_PATH)/nsprpub/pr/include/private/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(MOZILLA_PATH)/nsprpub/pr/src",
+					"$(MOZILLA_PATH)/nsprpub/pr/include/private/",
+				);
 			};
 			name = TestRelease;
 		};
@@ -2176,6 +2196,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
@@ -2190,6 +2211,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
@@ -2204,6 +2226,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = jsoplengen;
@@ -2215,6 +2238,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
@@ -2229,6 +2253,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
@@ -2243,6 +2268,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				GCC_MODEL_TUNING = G5;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = jskwgen;
@@ -2254,6 +2280,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2278,6 +2305,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -2299,6 +2327,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_MODEL_TUNING = G5;
 				GCC_PREPROCESSOR_DEFINITIONS = "MDCPUCFG=\"\\\"md/_darwin.cfg\\\"\"";
@@ -2317,6 +2346,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_CW_ASM_SYNTAX = YES;
@@ -2341,7 +2371,11 @@
 				PRODUCT_NAME = js_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(JS_SRC_PATH)",
+					"$(MOZILLA_PATH)/nsprpub/pr/include/",
+				);
 			};
 			name = Debug;
 		};
@@ -2349,6 +2383,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_CW_ASM_SYNTAX = YES;
@@ -2369,7 +2404,11 @@
 				PRODUCT_NAME = js_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/js/;
 				SYMROOT = ../../../build;
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT) $(JS_SRC_PATH) $(MOZILLA_PATH)/nsprpub/pr/include/";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(JS_SRC_PATH)",
+					"$(MOZILLA_PATH)/nsprpub/pr/include/",
+				);
 			};
 			name = Deployment;
 		};

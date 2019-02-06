@@ -19,6 +19,13 @@ Scripting:
 Bug fixes:
 ==========
 
+System requirements:
+====================
+
+Mac-specific
+------------
+* Oolite now requires Mac OS X 10.7 or later.
+
 -------------------------------------------------------------------------------
 
 Changes between Oolite 1.86 and Oolite 1.88:

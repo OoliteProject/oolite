@@ -48,7 +48,11 @@ OO_WARNING_EXCEPTIONS					= -Wno-unused-parameter -Wno-missing-field-initializer
 //     are incompatible with most real code. Including the C standard library.
 // -Wdouble-promotion: warns about implicit casts from float to double. We
 //     have loads. Someone should fix them.
-OO_EXTRA_WARNING_EXCEPTIONS				= -Wno-pedantic -Wno-gnu -Wno-undef -Wno-objc-interface-ivars -Wno-direct-ivar-access -Wno-receiver-forward-class -Wno-padded -Wno-float-equal -Wno-switch-enum -Wno-cast-align -Wno-unused-exception-parameter -Wno-missing-noreturn -Wno-unreachable-code -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-conditional-uninitialized -Wno-bad-function-cast -Wno-assign-enum -Wno-vla -Wno-auto-import -Rno-module-build -Wno-cstring-format-directive -Wno-reserved-id-macro -Wno-nullable-to-nonnull-conversion -Wno-cast-qual -Wno-double-promotion $(OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_$(XCODE_VERSION_MINOR))
+// -Wobjc-messaging-id: Warning when the target of a message is of type 'id'.
+//     Avoiding this in idiomatic Objective-C is unrealistic.
+// -Wstrict-prototypes: Not very relevant to Objective-C, and several
+//     violations in SpiderMonkey headers
+OO_EXTRA_WARNING_EXCEPTIONS				= -Wno-pedantic -Wno-gnu -Wno-undef -Wno-objc-interface-ivars -Wno-direct-ivar-access -Wno-receiver-forward-class -Wno-padded -Wno-float-equal -Wno-switch-enum -Wno-cast-align -Wno-unused-exception-parameter -Wno-missing-noreturn -Wno-unreachable-code -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-conditional-uninitialized -Wno-bad-function-cast -Wno-assign-enum -Wno-vla -Wno-auto-import -Rno-module-build -Wno-cstring-format-directive -Wno-reserved-id-macro -Wno-nullable-to-nonnull-conversion -Wno-cast-qual -Wno-double-promotion -Wno-objc-messaging-id -Wno-strict-prototypes $(OO_VERSION_SPECIFIC_WARNING_EXCEPTIONS_$(XCODE_VERSION_MINOR))
 
 // Things we don't want to break the build when they're introduced by devs on other platforms.
 OO_WARNING_NO_ERROR						= -Wno-error=deprecated-declarations -Wno-error=semicolon-before-method-body

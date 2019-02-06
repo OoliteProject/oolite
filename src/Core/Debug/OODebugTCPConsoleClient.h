@@ -64,9 +64,9 @@ typedef enum
 #if OOLITE_MAC_OS_X
 
 /*
-	Declare conformance to NSStreamDelegate, which is a formal protocol starting
-	in the Mac OS X 10.6 SDK. At the time of writing, it's still an informal
-	protocol in GNUstep trunk. -- Ahruman 2012-01-07
+	Declare conformance to NSStreamDelegate, which is a formal protocol in the
+	Mac OS X SDK. At the time of writing, it's still an informal protocol in
+ 	GNUstep trunk. -- Ahruman 2012-01-07
 */
 @interface OODebugTCPConsoleClient (NSStreamDelegate) <NSStreamDelegate>
 @end

@@ -2,7 +2,7 @@
 
 OOMacSnowLeopardFullScreenController.h
 
-Full-screen controller used in 64-bit Mac builds under Mac OS X 10.6.
+Full-screen controller used in Mac OS X 10.7 with multiple screens.
 
 
 Oolite
