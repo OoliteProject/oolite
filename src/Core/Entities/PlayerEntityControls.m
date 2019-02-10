@@ -65,6 +65,7 @@ MA 02110-1301, USA.
 
 #define CUSTOM_VIEW_ROTATE_SPEED	1.0
 #define CUSTOM_VIEW_ZOOM_SPEED		5.0
+#define CUSTOM_VIEW_SPEED_REDUCTION_FACTOR	0.3
 
 static BOOL				jump_pressed;
 static BOOL				hyperspace_pressed;
@@ -3450,68 +3451,72 @@ static NSTimeInterval	time_last_frame;
 	NSTimeInterval this_time = [NSDate timeIntervalSinceReferenceDate];
 	if ([UNIVERSE viewDirection] > VIEW_STARBOARD && [gameView isCapsLockOn])
 	{
+		BOOL ctrl_down = [gameView isCtrlDown];
+		float customViewZoomSpeed = ctrl_down ? CUSTOM_VIEW_ZOOM_SPEED * CUSTOM_VIEW_SPEED_REDUCTION_FACTOR: CUSTOM_VIEW_ZOOM_SPEED;
+		float customViewRotateSpeed = ctrl_down ? CUSTOM_VIEW_ROTATE_SPEED * CUSTOM_VIEW_SPEED_REDUCTION_FACTOR: CUSTOM_VIEW_ROTATE_SPEED;
+		
 		if (!caps_on)  caps_on = YES;
 		
 		OOTimeDelta delta_t = this_time - last_time;
 		if (([gameView isDown:gvPageDownKey] && ![gameView isDown:gvPageUpKey]) || [gameView mouseWheelState] == gvMouseWheelDown)
 		{
-			[self customViewZoomOut: pow(CUSTOM_VIEW_ZOOM_SPEED, delta_t)];
+			[self customViewZoomOut: pow(customViewZoomSpeed, delta_t)];
 		}
 		if (([gameView isDown:gvPageUpKey] && ![gameView isDown:gvPageDownKey]) || [gameView mouseWheelState] == gvMouseWheelUp)
 		{
-			[self customViewZoomIn: pow(CUSTOM_VIEW_ZOOM_SPEED, delta_t)];
+			[self customViewZoomIn: pow(customViewZoomSpeed, delta_t)];
 		}
 		if ([gameView isDown:key_roll_left] && ![gameView isDown:key_roll_right])
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanLeft:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewPanLeft:customViewRotateSpeed * delta_t];
 			}
 			else
 			{
-				[self customViewRollLeft:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewRollLeft:customViewRotateSpeed * delta_t];
 			}
 		}
 		if ([gameView isDown:key_roll_right] && ![gameView isDown:key_roll_left])
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanRight:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewPanRight:customViewRotateSpeed * delta_t];
 			}
 			else
 			{
-				[self customViewRollRight:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewRollRight:customViewRotateSpeed * delta_t];
 			}
 		}
 		if ([gameView isDown:key_pitch_back] && ![gameView isDown:key_pitch_forward])
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanDown:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewPanDown:customViewRotateSpeed * delta_t];
 			}
 			else
 			{
-				[self customViewRotateUp:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewRotateUp:customViewRotateSpeed * delta_t];
 			}
 		}
 		if ([gameView isDown:key_pitch_forward] && ![gameView isDown:key_pitch_back])
 		{
 			if ([gameView isShiftDown])
 			{
-				[self customViewPanUp:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewPanUp:customViewRotateSpeed * delta_t];
 			}
 			else
 			{
-				[self customViewRotateDown:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+				[self customViewRotateDown:customViewRotateSpeed * delta_t];
 			}
 		}
 		if ([gameView isDown:key_yaw_left] && ![gameView isDown:key_yaw_right])
 		{
-			[self customViewRotateLeft:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			[self customViewRotateLeft:customViewRotateSpeed * delta_t];
 		}
 		if ([gameView isDown:key_yaw_right] && ![gameView isDown:key_yaw_left])
 		{
-			[self customViewRotateRight:CUSTOM_VIEW_ROTATE_SPEED * delta_t];
+			[self customViewRotateRight:customViewRotateSpeed * delta_t];
 		}
 		if ([gameView isDown:gvMouseLeftButton])
 		{
