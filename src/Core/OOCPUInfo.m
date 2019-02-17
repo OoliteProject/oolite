@@ -117,8 +117,17 @@ Taken straight out of the x64 gcc's __cpuid because our 32-bit compiler does not
 inline OO_GNU_INLINE void OOCPUID(int CPUInfo[4], int InfoType)
 {
 	__asm__ __volatile__ (
+/* Fixes building on 32-bit systems where %EBX is used for the GOT pointer */
+#if (OOLITE_LINUX && !defined __LP64__)
+          "  pushl  %%ebx\n"
+          "  cpuid\n"
+          "  mov    %%ebx, %1\n"
+          "  popl   %%ebx"
+          : "=a" (CPUInfo [0]), "=r" (CPUInfo [1]), "=c" (CPUInfo [2]), "=d" (CPUInfo [3])
+#else
           "cpuid"
           : "=a" (CPUInfo [0]), "=b" (CPUInfo [1]), "=c" (CPUInfo [2]), "=d" (CPUInfo [3])
+#endif
           : "a" (InfoType));
 }
 
