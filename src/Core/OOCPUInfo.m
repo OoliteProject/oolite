@@ -105,9 +105,26 @@ NSUInteger OOCPUCount(void)
 }
 
 
+#if (OOLITE_WINDOWS || OOLITE_LINUX)
+	#if OOLITE_LINUX
+		#define OO_GNU_INLINE	__attribute__((gnu_inline))
+	#else
+		#define OO_GNU_INLINE
+	#endif
+/*
+Taken straight out of the x64 gcc's __cpuid because our 32-bit compiler does not define it
+*/
+inline OO_GNU_INLINE void OOCPUID(int CPUInfo[4], int InfoType)
+{
+	__asm__ __volatile__ (
+          "cpuid"
+          : "=a" (CPUInfo [0]), "=b" (CPUInfo [1]), "=c" (CPUInfo [2]), "=d" (CPUInfo [3])
+          : "a" (InfoType));
+}
+
+
 NSString* OOCPUDescription(void)
 {
-#if OOLITE_WINDOWS
 	// This code taken from https://stackoverflow.com/questions/850774
 	int CPUInfo[4] = {-1};
 	unsigned   nExIds, i =  0;
@@ -127,10 +144,8 @@ NSString* OOCPUDescription(void)
 			memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
 	}
 	return [NSString stringWithCString:CPUBrandString];
-#else
-	return [NSString stringWithString:@""];
-#endif
 }
+#endif //(OOLITE_WINDOWS || OOLITE_LINUX)
 
 
 #if OOLITE_WINDOWS
@@ -181,17 +196,5 @@ BOOL is64BitSystem(void)
 	
 		return is64Bit;
 	#endif
-}
-
-
-/*
-Taken straight out of the x64 gcc's __cpuid because our 32-bit compiler does not define it
-*/
-inline void OOCPUID(int CPUInfo[4], int InfoType)
-{
-	__asm__ __volatile__ (
-          "cpuid"
-          : "=a" (CPUInfo [0]), "=b" (CPUInfo [1]), "=c" (CPUInfo [2]), "=d" (CPUInfo [3])
-          : "a" (InfoType));
 }
 #endif	// OOLITE_WINDOWS

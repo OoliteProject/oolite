@@ -38,16 +38,18 @@ NSUInteger OOCPUCount(void);
 
 
 /*
-	Returns the CPU identifier string. Currently Windows only.
+	Returns the CPU identifier string. Currently Windows and Linux only.
 */
+#if (OOLITE_WINDOWS || OOLITE_LINUX)
 NSString* OOCPUDescription(void);
+void OOCPUID(int CPUInfo[4], int InfoType);
+#endif
 
 
 #if OOLITE_WINDOWS
 typedef BOOL (WINAPI *IW64PFP)(HANDLE, BOOL *);	// for checking for 64/32 bit system
 BOOL is64BitSystem(void);
 NSString*	operatingSystemFullVersion(void);
-void OOCPUID(int CPUInfo[4], int InfoType);
 #endif
 
 /*	Set up OOLITE_BIG_ENDIAN and OOLITE_LITTLE_ENDIAN macros. Exactly one must
