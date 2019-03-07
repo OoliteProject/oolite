@@ -71,6 +71,8 @@ void main()
 	// mix in some light blue color
 	totalColor += diffuseColor * vec3(0.85, 0.85, 1.0);
 	
+	// create a fresnel torus around the planet - opacity is proportional to it
+	// multiply NdotV by a constant less than 1.0 to create haze
 	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.3), kFresnelExponent));
 	
 	// mix the bias color now
@@ -91,10 +93,6 @@ void main()
 	// calculate when the atmosphere should fade in / out
 	float quant = atmDistance < (minDistance + 2000.0) ?
 					magicDistance / 2000.0 : 1.0;
-					
-	// create a fresnel torus around the planet - opacity is proportional to it
-	// multiply NdotV by a constant less than 1.0 to create haze
-	//vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.3), kFresnelExponent));
 					
 	// calculate the final opacity, special handling for
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
