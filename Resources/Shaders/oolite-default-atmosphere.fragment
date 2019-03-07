@@ -37,7 +37,7 @@ varying vec3			vLight1Vector;
 const vec3				biasColor = vec3(0.0, 0.0, 1.0);
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
 const float				kFresnelExponent = 4.0;
-const float				biasColorMixRatio = 0.1;
+const float				biasColorMixRatio = 0.35;
 
 
 void main()
@@ -51,11 +51,12 @@ void main()
 	vec3 diffuseColor = DIFFUSE_LIGHT;
 	
 	float NdotV = clamp(dot(normal, eyeVector), 0.0, 1.0);
-	
+	float NdotL = max(0.0, dot(light1Vector, normal));
+		
 	float atmDistance = length(atmPosition.xyz);
 	float minDistance = atmRadius + 3500.0;
 	float magicDistance = atmDistance - minDistance;
-	float cosThreshold = 0.14; // 81.95 deg
+	float cosThreshold = 0.15; // 81.37 deg
 	float newOpacityExponent = 3.0;
 	
 	// the outer atmosphere rim does not follow exactly the curvature of the planet for small radii
@@ -70,13 +71,12 @@ void main()
 	// mix in some light blue color
 	totalColor += diffuseColor * vec3(0.85, 0.85, 1.0);
 	
-	// create a fresnel torus around the planet
 	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.3), kFresnelExponent));
 	
-	// get the fresnel lit up from the correct direction
-	vec3 invLight = vec3(dot(light1Vector, normal));
-	totalColor *=	dot(normalize(fresnel), invLight) *
-					mix(totalColor, biasColor, biasColorMixRatio) *
+	// mix the bias color now
+	totalColor *=	mix(totalColor, biasColor, biasColorMixRatio) *
+					// uncomment below for fresnel to affect atmosphere color
+					//dot(normalize(fresnel), vec3(NdotL)) *
 					clamp(totalColor, vec3(0.0), diffuseColor);
 	
 	// magic herebelow - painting the orange-reddish tinted terminator
@@ -92,11 +92,23 @@ void main()
 	float quant = atmDistance < (minDistance + 2000.0) ?
 					magicDistance / 2000.0 : 1.0;
 					
+	// create a fresnel torus around the planet - opacity is proportional to it
+	// multiply NdotV by a constant less than 1.0 to create haze
+	//vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.3), kFresnelExponent));
+					
 	// calculate the final opacity, special handling for
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
-	float newOpacity = quant * (NdotV > cosThreshold ?
+	float newOpacity = quant * max(0.01, NdotL) * (NdotV > cosThreshold ?
 								fresnel.r * cosThreshold  / NdotV :
 								pow(NdotV / cosThreshold, newOpacityExponent));
+	
+	// all above calculations were done in linear space - tonemap & go to sRGB for display
+	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
+	// Normally this would require HDR, but I think it works extremely well in Oolite.
+	// Formula taken from https://www.gdcvault.com/play/1012351/Uncharted-2-HDR
+	// jump to 27:40 in the video. Note the pow 1.0/2.2 is baked into these numbers
+	vec3 x = max(vec3(0.0), totalColor - 0.004);
+	totalColor = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
 }
