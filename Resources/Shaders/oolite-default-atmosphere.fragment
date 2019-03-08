@@ -82,7 +82,7 @@ void main()
 					clamp(totalColor, vec3(0.0), diffuseColor);
 	
 	// magic herebelow - painting the orange-reddish tinted terminator
-	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, abs(vec3(light1Vector.z)));
+	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, vec3(light1Vector.z));
 	
 	// add ambient light
 	totalColor += AMBIENT_LIGHT;
@@ -98,7 +98,7 @@ void main()
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
 	float newOpacity = quant * max(0.01, NdotL) * (NdotV > cosThreshold ?
 								fresnel.r * cosThreshold  / NdotV :
-								pow(NdotV / cosThreshold, newOpacityExponent));
+								1.125 * pow(NdotV  / cosThreshold, newOpacityExponent));
 	
 	// all above calculations were done in linear space - tonemap & go to sRGB for display
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
