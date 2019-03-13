@@ -106,10 +106,10 @@ MA 02110-1301, USA.
 #else
 		// Changing the flags can trigger texture bugs.
 		surface = SDL_SetVideoMode(8, 8, 32, videoModeFlags);
+#endif
 		if (!surface) {
 			return;
 		}
-#endif
 	}
 	else
 	{
@@ -237,9 +237,10 @@ MA 02110-1301, USA.
 	}
 	SDL_FreeSurface(icon);
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
@@ -273,19 +274,25 @@ MA 02110-1301, USA.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
-	OOLog(@"display.initGL", @"%@", @"Trying 32-bit depth buffer");
+	OOLog(@"display.initGL", @"%@", @"Trying 16-bpcc, 32-bit depth buffer");
 	[self createSurface];
+	
 	if (surface == NULL)
 	{
 		// Retry with a 24-bit depth buffer
-		OOLog(@"display.initGL", @"%@", @"Trying 24-bit depth buffer");
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 		[self createSurface];
+		
 		if (surface == NULL)
 		{
 			// Still not working? One last go...
 			// Retry, allowing 16-bit contexts.
-			OOLog(@"display.initGL", @"%@", @"Trying 16-bit depth buffer");
+			OOLog(@"display.initGL", @"%@", @"Trying 5-bpcc, 16-bit depth buffer");
 			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -312,6 +319,19 @@ MA 02110-1301, USA.
 			}
 		}
 	}
+	
+	int testAttrib = -1;
+	OOLog(@"display.initGL", @"Achieved color / depth buffer sizes (bits):");
+	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Red: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Green: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Blue: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Alpha: %d", testAttrib);
+	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &testAttrib);
+	OOLog(@"display.initGL", @"Depth Buffer: %d", testAttrib);
 	
 	// Verify V-sync successfully set - report it if not
 	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
