@@ -150,6 +150,7 @@ MA 02110-1301, USA.
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
 	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
+	int bitsPerColorComponent = [prefs oo_intForKey:@"bpcc" defaultValue:8];
 	int		vSyncValue;
 
 	NSArray				*arguments = nil;
@@ -175,6 +176,8 @@ MA 02110-1301, USA.
 		
 		// if V-sync is disabled at the command line, override the defaults file
 		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
+		
+		if ([arg isEqual: @"-bpcc16"])  bitsPerColorComponent = 16;
 	}
 	
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
@@ -237,10 +240,10 @@ MA 02110-1301, USA.
 	}
 	SDL_FreeSurface(icon);
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 16);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 16);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 16);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
@@ -274,12 +277,12 @@ MA 02110-1301, USA.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
-	OOLog(@"display.initGL", @"%@", @"Trying 16-bpcc, 32-bit depth buffer");
+	OOLog(@"display.initGL", @"Trying %d-bpcc, 32-bit depth buffer", bitsPerColorComponent);
 	[self createSurface];
 	
 	if (surface == NULL)
 	{
-		// Retry with a 24-bit depth buffer
+		// Retry with hardcoded 8 bits per color component
 		OOLog(@"display.initGL", @"%@", @"Trying 8-bpcc, 32-bit depth buffer");
 		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
