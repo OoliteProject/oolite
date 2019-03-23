@@ -811,7 +811,7 @@ FAIL:
 
 - (void) rightMouseUp:(NSEvent *)theEvent
 {
-	[self recenterVirtualJoystick];
+	[self resetMouse];
 }
 
 
