@@ -805,13 +805,13 @@ FAIL:
 
 - (void) rightMouseDown:(NSEvent *)theEvent
 {
-	[self recenterVirtualJoystick];
+	[self resetMouse];
 }
 
 
 - (void) rightMouseUp:(NSEvent *)theEvent
 {
-	[self resetMouse];
+	[self recenterVirtualJoystick];
 }
 
 
