@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 #import "ShipEntityAI.h"
 #import "StationEntity.h"
+#import "DockEntity.h"
 #import "Universe.h"
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
@@ -4896,6 +4897,19 @@ static BOOL autopilot_pause;
 	// If we're fast-docking, perform the docking logic
 	else if (fastDocking && [ts allowsFastDocking])
 	{
+		// check whether there are docks that do not accept docking - even one such dock will result in rejection
+		NSEnumerator	*subEnum = nil;
+		DockEntity* sub = nil;
+		for (subEnum = [ts dockSubEntityEnumerator]; (sub = [subEnum nextObject]); )
+		{
+			// TOO_BIG_TO_DOCK issued when docks are scripted to reject docking
+			if([[sub canAcceptShipForDocking:self] isEqualToString:@"TOO_BIG_TO_DOCK"]) 
+			{
+				message = OOExpandKey((ts == [UNIVERSE station]) ? @"autopilot-denied" : @"autopilot-target-docking-instructions-denied", stationName);
+				goto abort;
+			}
+		}
+	
 		if (legalStatus > 0)
 		{
 			// there's a slight chance you'll be fined for your past offences when autodocking
@@ -4908,6 +4922,7 @@ static BOOL autopilot_pause;
 				[self markForFines];
 			}
 		}
+		
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 		
 		[UNIVERSE forceWitchspaceEntries];
