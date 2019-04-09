@@ -835,8 +835,10 @@ typedef enum
 - (NSString *) multiFunctionText:(NSUInteger) index;
 - (void) setMultiFunctionText:(NSString *)text forKey:(NSString *)key;
 - (BOOL) setMultiFunctionDisplay:(NSUInteger) index toKey:(NSString *)key;
-- (void) cycleMultiFunctionDisplay:(NSUInteger) index;
+- (void) cycleNextMultiFunctionDisplay:(NSUInteger) index;
+- (void) cyclePreviousMultiFunctionDisplay:(NSUInteger) index;
 - (void) selectNextMultiFunctionDisplay;
+- (void) selectPreviousMultiFunctionDisplay;
 - (NSUInteger) activeMFD;
 
 - (void) setShowDemoShips:(BOOL) value;

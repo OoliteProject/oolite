@@ -5434,7 +5434,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (void) cycleMultiFunctionDisplay:(NSUInteger) index
+- (void) cycleNextMultiFunctionDisplay:(NSUInteger) index
 {
 	NSArray *keys = [multiFunctionDisplayText allKeys];
 	NSString *key = nil;
@@ -5470,9 +5470,63 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (void) cyclePreviousMultiFunctionDisplay:(NSUInteger) index
+{
+	NSArray *keys = [multiFunctionDisplayText allKeys];
+	NSString *key = nil;
+	if ([keys count] == 0)
+	{
+		[self setMultiFunctionDisplay:index toKey:nil];
+		return;
+	}
+	id current = [multiFunctionDisplaySettings objectAtIndex:index];
+	if (current == [NSNull null])
+	{
+		key = [keys objectAtIndex:([keys count]-1)];
+		[self setMultiFunctionDisplay:index toKey:key];
+	}
+	else
+	{
+		NSUInteger cIndex = [keys indexOfObject:current];
+		if (cIndex == NSNotFound || cIndex == 0)
+		{
+			key = nil;
+			[self setMultiFunctionDisplay:index toKey:nil];
+		}
+		else 
+		{
+			key = [keys objectAtIndex:(cIndex-1)];
+			[self setMultiFunctionDisplay:index toKey:key];
+		}
+	}
+	JSContext *context = OOJSAcquireContext();
+	jsval keyVal = OOJSValueFromNativeObject(context,key);
+	ShipScriptEvent(context, self, "mfdKeyChanged", INT_TO_JSVAL(activeMFD), keyVal);
+	OOJSRelinquishContext(context);
+}
+
+
 - (void) selectNextMultiFunctionDisplay
 {
 	activeMFD = (activeMFD + 1) % [[self hud] mfdCount];
+	NSUInteger mfdID = activeMFD + 1;
+	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
+	JSContext *context = OOJSAcquireContext();
+	ShipScriptEvent(context, self, "selectedMFDChanged", INT_TO_JSVAL(activeMFD));
+	OOJSRelinquishContext(context);
+}
+
+
+- (void) selectPreviousMultiFunctionDisplay
+{
+	if (activeMFD == 0) 
+	{
+		activeMFD = ([[self hud] mfdCount] - 1);
+	}
+	else
+	{
+		activeMFD = (activeMFD - 1);
+	}
 	NSUInteger mfdID = activeMFD + 1;
 	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
 	JSContext *context = OOJSAcquireContext();
