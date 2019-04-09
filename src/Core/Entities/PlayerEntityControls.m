@@ -3679,7 +3679,14 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (!cycleMFD_pressed)
 		{
-			[self cycleMultiFunctionDisplay:activeMFD];
+			if (![gameView isCtrlDown]) 
+			{
+				[self cycleNextMultiFunctionDisplay:activeMFD];
+			}
+			else
+			{
+				[self cyclePreviousMultiFunctionDisplay:activeMFD];
+			}
 		}
 		cycleMFD_pressed = YES;
 	}
@@ -3695,7 +3702,14 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!switchMFD_pressed)
 			{
-				[self selectNextMultiFunctionDisplay];
+				if (![gameView isCtrlDown])
+				{
+					[self selectNextMultiFunctionDisplay];
+				}
+				else
+				{
+					[self selectPreviousMultiFunctionDisplay];
+				}
 			}
 		}
 		switchMFD_pressed = YES;
