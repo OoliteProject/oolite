@@ -670,6 +670,7 @@ enum
 
 - (NSArray *) equipmentData;
 - (OOCommodityMarket *) commodityMarket;
+- (Random_Seed) marketSeed;
 
 - (NSString *) timeDescription:(OOTimeDelta) interval;
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;
