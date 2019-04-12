@@ -1563,6 +1563,8 @@ static NSMutableDictionary *currentShipyard = nil;
 			}
 
 			[gui setSelectableRange:NSMakeRange( GUI_ROW_SHIPYARD_START, i + startRow - GUI_ROW_SHIPYARD_START)];
+			// ensure that at least one row is selected at all times
+			if(shipCount == 1)  [gui setFirstSelectableRow];
 			[self showShipyardInfoForSelection];
 		}
 		else
