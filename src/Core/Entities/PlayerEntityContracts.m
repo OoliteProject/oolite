@@ -1591,29 +1591,6 @@ static NSMutableDictionary *currentShipyard = nil;
 }
 
 
-/*- (void) generateShipyard:(StationEntity *)station stationTechLevel:(OOTechLevelID)stationTechLevel
-{
-	unsigned		i;
-
-	if ([station localShipyard] == nil)
-	{
-		[station setLocalShipyard:[UNIVERSE shipsForSaleForSystem:system_id withTL:stationTechLevel atTime:ship_clock]];
-	}
-		
-	NSMutableArray *shipyard = [station localShipyard];
-		
-	// remove ships that the player has already bought
-	for (i = 0; i < [shipyard count]; i++)
-	{
-		NSString *shipID = [[shipyard oo_dictionaryAtIndex:i] oo_stringForKey:SHIPYARD_KEY_ID];
-		if ([shipyard_record objectForKey:shipID])
-		{
-			[shipyard removeObjectAtIndex:i--];
-		}
-	}
-}*/
-
-
 - (void) showShipyardInfoForSelection
 {
 	NSUInteger		i;
