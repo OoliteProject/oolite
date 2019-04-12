@@ -131,6 +131,8 @@ typedef enum
 - (void) setLocalContracts:(NSArray *)market; */
 - (NSMutableArray *) localShipyard;
 - (void) setLocalShipyard:(NSArray *)market;
+- (void) generateShipyard;
+- (void) generateShipyard:(OOTechLevelID)stationTechLevel;
 - (NSMutableDictionary *) localInterfaces;
 - (void) setInterfaceDefinition:(OOJSInterfaceDefinition *)definition forKey:(NSString *)key;
 

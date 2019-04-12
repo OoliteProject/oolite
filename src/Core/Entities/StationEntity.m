@@ -2372,6 +2372,35 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 }
 
 
+- (void) generateShipyard
+{
+	[self generateShipyard:[self equivalentTechLevel]];
+}
+
+
+- (void) generateShipyard:(OOTechLevelID)stationTechLevel
+{
+	unsigned		i;
+
+	if ([self localShipyard] == nil)
+	{
+		[self setLocalShipyard:[UNIVERSE shipsForSaleForSystem:[UNIVERSE currentSystemID] withTL:stationTechLevel atTime:[PLAYER clockTime]]];
+	}
+
+	NSMutableArray *shipyard = [self localShipyard];
+		
+	// remove ships that the player has already bought
+	for (i = 0; i < [shipyard count]; i++)
+	{
+		NSString *shipID = [[shipyard oo_dictionaryAtIndex:i] oo_stringForKey:SHIPYARD_KEY_ID];
+		if ([[PLAYER shipyardRecord] objectForKey:shipID])
+		{
+			[shipyard removeObjectAtIndex:i--];
+		}
+	}
+}
+
+
 - (BOOL) suppressArrivalReports
 {
 	return suppress_arrival_reports;

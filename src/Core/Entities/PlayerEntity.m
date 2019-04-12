@@ -13099,6 +13099,12 @@ else _dockTarget = NO_TARGET;
 }
 
 
+- (NSMutableDictionary*) shipyardRecord
+{
+	return shipyard_record;
+}
+
+
 - (void) setLastShot:(NSArray *)shot
 {
 	lastShot = [shot retain]; 
