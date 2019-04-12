@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
 #import "OOJSPlayer.h"
+#import "PlayerEntityContracts.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJSInterfaceDefinition.h"
 
@@ -985,6 +986,11 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"shipdata_key not suitable for player role.");
 		return NO;
 	}
+	if (shipyardInfo == nil) 
+	{
+		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"No shipyard information found for shipdata_key.");
+		return NO;
+	}
 	// ok, feel pretty safe to include this ship now
 	[shipyardDefinition setObject:shipInfo forKey:@"ship"];
 
@@ -1028,7 +1034,13 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	}
 
 	[shipyard addObject:shipyardDefinition];
-	
+
+	// refresh the screen if the shipyard is currently being displayed
+	if(station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_SHIPYARD)
+	{
+		[PLAYER setGuiToShipyardScreen:0];
+	}	
+
 	OOJS_RETURN_BOOL(YES);
 
 	OOJS_NATIVE_EXIT
@@ -1057,6 +1069,12 @@ static JSBool StationRemoveShipFromShipyard(JSContext *context, uintN argc, jsva
 	}
 
 	[shipyard removeObjectAtIndex:shipIndex];
+
+	// refresh the screen if the shipyard is currently being displayed
+	if(station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_SHIPYARD)
+	{
+		[PLAYER setGuiToShipyardScreen:0];
+	}
 
 	OOJS_RETURN_BOOL(YES);
 
