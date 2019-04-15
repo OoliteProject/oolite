@@ -1006,7 +1006,7 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	Random_Seed ship_seed = [UNIVERSE marketSeed];
 	int superRand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
 	uint32_t superRand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
-	ranrot_srand(superRand2);
+	superRand2 &= Ranrot();
 	NSString *shipID = [NSString stringWithFormat:@"%06x-%06x", superRand1, superRand2];
 	[result setObject:shipID forKey:SHIPYARD_KEY_ID];
 
