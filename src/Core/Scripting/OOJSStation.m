@@ -948,12 +948,12 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	}
 
 	// make sure the station has a shipyard
-	if ([station hasShipyard] == false) {
+	if (![station hasShipyard]) {
 		OOJSReportWarningForCaller(context, @"Station", @"removeShipFromShipyard", @"Station does not have shipyard.");
 		return NO;
 	}
 	// make sure the shipyard has been generated
-	if ([station localShipyard] == nil) [station generateShipyard];
+	if (![station localShipyard]) [station generateShipyard];
 	NSMutableArray *shipyard = [station localShipyard];
 
 	if (JSVAL_IS_NULL(OOJS_ARGV[0]))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
@@ -961,18 +961,18 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
 	NSDictionary *shipyardDefinition = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]));
 	// validate each element of the dictionary
-	if (shipyardDefinition == nil) 
+	if (!shipyardDefinition) 
 	{
 		OOJSReportBadArguments(context, @"Station", @"addShipToShipyard", MIN(argc, 1U), OOJS_ARGV, nil, @"valid dictionary object");
 		return NO;
 	}
-	if ([shipyardDefinition objectForKey:KEY_SHORT_DESCRIPTION] == nil) 
+	if (![shipyardDefinition objectForKey:KEY_SHORT_DESCRIPTION]) 
 	{
 		OOJSReportBadArguments(context, @"Station", @"addShipToShipyard", MIN(argc, 1U), OOJS_ARGV, nil, @"'short_description' in dictionary");
 		return NO;
 	}
 	[result setObject:[shipyardDefinition oo_stringForKey:@"short_description"] forKey:KEY_SHORT_DESCRIPTION];
-	if ([shipyardDefinition objectForKey:SHIPYARD_KEY_SHIPDATA_KEY] == nil) 
+	if (![shipyardDefinition objectForKey:SHIPYARD_KEY_SHIPDATA_KEY]) 
 	{
 		OOJSReportBadArguments(context, @"Station", @"addShipToShipyard", MIN(argc, 1U), OOJS_ARGV, nil, @"'shipdata_key' in dictionary");
 		return NO;
@@ -982,7 +982,7 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary	*shipInfo = [registry shipInfoForKey:shipKey];
 	NSDictionary	*shipyardInfo = [registry shipyardInfoForKey:shipKey];
-	if (shipInfo == nil) 
+	if (!shipInfo) 
 	{
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"Invalid shipdata_key provided.");
 		return NO;
@@ -993,7 +993,7 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"shipdata_key not suitable for player role.");
 		return NO;
 	}
-	if (shipyardInfo == nil) 
+	if (!shipyardInfo) 
 	{
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"No shipyard information found for shipdata_key.");
 		return NO;
@@ -1010,7 +1010,7 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	NSString *shipID = [NSString stringWithFormat:@"%06x-%06x", superRand1, superRand2];
 	[result setObject:shipID forKey:SHIPYARD_KEY_ID];
 
-	if ([shipyardDefinition objectForKey:SHIPYARD_KEY_PRICE] == nil) 
+	if (![shipyardDefinition objectForKey:SHIPYARD_KEY_PRICE]) 
 	{
 		// if not provided, get the price from the registry
 		OOCreditsQuantity price = [shipyardInfo oo_unsignedIntForKey:KEY_PRICE];
@@ -1030,7 +1030,7 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 		}
 	}
 
-	if ([shipyardDefinition objectForKey:SHIPYARD_KEY_PERSONALITY] == nil) 
+	if (![shipyardDefinition objectForKey:SHIPYARD_KEY_PERSONALITY]) 
 	{
 		// default to 0 if not supplied
 		[result setObject:0 forKey:SHIPYARD_KEY_PERSONALITY];
@@ -1039,7 +1039,7 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	{
 		[result setObject:[NSNumber numberWithUnsignedLongLong:[shipyardDefinition oo_unsignedIntForKey:SHIPYARD_KEY_PERSONALITY]] forKey:SHIPYARD_KEY_PERSONALITY];
 	}
-	if ([shipyardDefinition objectForKey:KEY_EQUIPMENT_EXTRAS] == nil) 
+	if (![shipyardDefinition objectForKey:KEY_EQUIPMENT_EXTRAS]) 
 	{
 		// pick up defaults if extras not supplied
 		NSMutableArray	*extras = [NSMutableArray arrayWithArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
@@ -1072,12 +1072,12 @@ static JSBool StationRemoveShipFromShipyard(JSContext *context, uintN argc, jsva
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 
 	// make sure the station has a shipyard
-	if ([station hasShipyard] == false) {
+	if (![station hasShipyard]) {
 		OOJSReportWarningForCaller(context, @"Station", @"removeShipFromShipyard", @"Station does not have shipyard.");
 		return NO;
 	}
 	// make sure the shipyard has been generated
-	if ([station localShipyard] == nil) [station generateShipyard];
+	if (![station localShipyard]) [station generateShipyard];
 	NSMutableArray *shipyard = [station localShipyard];
 	
 	int32 shipIndex = -1;
