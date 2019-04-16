@@ -947,35 +947,42 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 		return NO;
 	}
 
+	// make sure the station has a shipyard
+	if (![station hasShipyard]) {
+		OOJSReportWarningForCaller(context, @"Station", @"removeShipFromShipyard", @"Station does not have shipyard.");
+		return NO;
+	}
 	// make sure the shipyard has been generated
-	if ([station localShipyard] == nil) [station generateShipyard];
+	if (![station localShipyard]) [station generateShipyard];
 	NSMutableArray *shipyard = [station localShipyard];
 
 	if (JSVAL_IS_NULL(OOJS_ARGV[0]))  OOJS_RETURN_VOID;	// OK, do nothing for null ship.
 
-	NSMutableDictionary *shipyardDefinition = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]));
+	NSMutableDictionary *result = [NSMutableDictionary dictionary];
+	NSDictionary *shipyardDefinition = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[0]));
 	// validate each element of the dictionary
-	if (shipyardDefinition == nil) 
+	if (!shipyardDefinition) 
 	{
 		OOJSReportBadArguments(context, @"Station", @"addShipToShipyard", MIN(argc, 1U), OOJS_ARGV, nil, @"valid dictionary object");
 		return NO;
 	}
-	if ([shipyardDefinition objectForKey:@"short_description"] == nil) 
+	if (![shipyardDefinition objectForKey:KEY_SHORT_DESCRIPTION]) 
 	{
-		OOJSReportBadArguments(context, @"Station", @"short_description", MIN(argc, 1U), OOJS_ARGV, nil, @"'short_description' in dictionary");
+		OOJSReportBadArguments(context, @"Station", @"addShipToShipyard", MIN(argc, 1U), OOJS_ARGV, nil, @"'short_description' in dictionary");
 		return NO;
 	}
-	if ([shipyardDefinition objectForKey:@"shipdata_key"] == nil) 
+	[result setObject:[shipyardDefinition oo_stringForKey:@"short_description"] forKey:KEY_SHORT_DESCRIPTION];
+	if (![shipyardDefinition objectForKey:SHIPYARD_KEY_SHIPDATA_KEY]) 
 	{
 		OOJSReportBadArguments(context, @"Station", @"addShipToShipyard", MIN(argc, 1U), OOJS_ARGV, nil, @"'shipdata_key' in dictionary");
 		return NO;
 	}
 	// get the shipInfo and shipyardInfo for this key
-	NSString 		*shipKey = [shipyardDefinition oo_stringForKey:@"shipdata_key" defaultValue:nil];
+	NSString 		*shipKey = [shipyardDefinition oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY defaultValue:nil];
 	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary	*shipInfo = [registry shipInfoForKey:shipKey];
 	NSDictionary	*shipyardInfo = [registry shipyardInfoForKey:shipKey];
-	if (shipInfo == nil) 
+	if (!shipInfo) 
 	{
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"Invalid shipdata_key provided.");
 		return NO;
@@ -986,34 +993,35 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"shipdata_key not suitable for player role.");
 		return NO;
 	}
-	if (shipyardInfo == nil) 
+	if (!shipyardInfo) 
 	{
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"No shipyard information found for shipdata_key.");
 		return NO;
 	}
 	// ok, feel pretty safe to include this ship now
-	[shipyardDefinition setObject:shipInfo forKey:@"ship"];
+	[result setObject:shipKey forKey:SHIPYARD_KEY_SHIPDATA_KEY];
+	[result setObject:shipInfo forKey:SHIPYARD_KEY_SHIP];
 
 	// add an ID
 	Random_Seed ship_seed = [UNIVERSE marketSeed];
 	int superRand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
 	uint32_t superRand2 = ship_seed.b * 0x10000 + ship_seed.d * 0x100 + ship_seed.f;
-	ranrot_srand(superRand2);
+	superRand2 &= Ranrot();
 	NSString *shipID = [NSString stringWithFormat:@"%06x-%06x", superRand1, superRand2];
-	[shipyardDefinition setObject:shipID forKey:@"id"];
+	[result setObject:shipID forKey:SHIPYARD_KEY_ID];
 
-	if ([shipyardDefinition objectForKey:@"price"] == nil) 
+	if (![shipyardDefinition objectForKey:SHIPYARD_KEY_PRICE]) 
 	{
 		// if not provided, get the price from the registry
 		OOCreditsQuantity price = [shipyardInfo oo_unsignedIntForKey:KEY_PRICE];
-		[shipyardDefinition setObject:[NSNumber numberWithUnsignedLongLong:price] forKey:@"price"];
+		[result setObject:[NSNumber numberWithUnsignedLongLong:price] forKey:SHIPYARD_KEY_PRICE];
 	}
 	else 
 	{
-		OOCreditsQuantity price = [shipyardDefinition oo_unsignedIntForKey:@"price"];
+		OOCreditsQuantity price = [shipyardDefinition oo_unsignedIntForKey:SHIPYARD_KEY_PRICE];
 		if (price > 0)
 		{
-			[shipyardDefinition setObject:[NSNumber numberWithUnsignedLongLong:price] forKey:@"price"];
+			[result setObject:[NSNumber numberWithUnsignedLongLong:price] forKey:SHIPYARD_KEY_PRICE];
 		}
 		else
 		{
@@ -1021,19 +1029,28 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 			return NO;
 		}
 	}
-	if ([shipyardDefinition objectForKey:@"personality"] == nil) 
+
+	if (![shipyardDefinition objectForKey:SHIPYARD_KEY_PERSONALITY]) 
 	{
 		// default to 0 if not supplied
-		[shipyardDefinition setObject:0 forKey:@"personality"];
+		[result setObject:0 forKey:SHIPYARD_KEY_PERSONALITY];
+	} 
+	else
+	{
+		[result setObject:[NSNumber numberWithUnsignedLongLong:[shipyardDefinition oo_unsignedIntForKey:SHIPYARD_KEY_PERSONALITY]] forKey:SHIPYARD_KEY_PERSONALITY];
 	}
-	if ([shipyardDefinition objectForKey:@"extras"] == nil) 
+	if (![shipyardDefinition objectForKey:KEY_EQUIPMENT_EXTRAS]) 
 	{
 		// pick up defaults if extras not supplied
 		NSMutableArray	*extras = [NSMutableArray arrayWithArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-		[shipyardDefinition setObject:extras forKey:@"extras"];
+		[result setObject:extras forKey:KEY_EQUIPMENT_EXTRAS];
+	}
+	else
+	{
+		[result setObject:[shipyardDefinition objectForKey:KEY_EQUIPMENT_EXTRAS] forKey:KEY_EQUIPMENT_EXTRAS];
 	}
 
-	[shipyard addObject:shipyardDefinition];
+	[shipyard addObject:result];
 
 	// refresh the screen if the shipyard is currently being displayed
 	if(station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_SHIPYARD)
@@ -1054,8 +1071,13 @@ static JSBool StationRemoveShipFromShipyard(JSContext *context, uintN argc, jsva
 	StationEntity *station = nil;
 	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_VOID; // stale reference, no-op
 
+	// make sure the station has a shipyard
+	if (![station hasShipyard]) {
+		OOJSReportWarningForCaller(context, @"Station", @"removeShipFromShipyard", @"Station does not have shipyard.");
+		return NO;
+	}
 	// make sure the shipyard has been generated
-	if ([station localShipyard] == nil) [station generateShipyard];
+	if (![station localShipyard]) [station generateShipyard];
 	NSMutableArray *shipyard = [station localShipyard];
 	
 	int32 shipIndex = -1;
