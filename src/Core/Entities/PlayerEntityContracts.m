@@ -1771,7 +1771,6 @@ static NSMutableDictionary *currentShipyard = nil;
 	OOCreditsQuantity price = [shipInfo oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 	OOCreditsQuantity tradeIn = [self tradeInValue];
 
-
 	if (credits + tradeIn < price * 10)
 		return NO;	// you can't afford it!
 	

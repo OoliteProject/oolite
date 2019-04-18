@@ -2666,10 +2666,9 @@ static NSTimeInterval	time_last_frame;
 						shipprice = [self priceForShipKey:key];
 					}
 
-					OOCreditsQuantity money = credits;
 					if ([self buySelectedShip])
 					{
-						if (money != credits)	// money == credits means we skipped to another page, don't do anything
+						if (![key hasPrefix:@"More:"]) // don't do anything if we clicked/selected a "More:" line
 						{
 							[UNIVERSE removeDemoShips];
 							[self setGuiToStatusScreen];

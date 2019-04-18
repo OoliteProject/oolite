@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOJSInterfaceDefinition.h"
 
 #import "OOCollectionExtractors.h"
+#import "OOEquipmentType.h"
 #import "OOShipRegistry.h"
 #import "OOConstToString.h"
 #import "StationEntity.h"
@@ -978,10 +979,10 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 		return NO;
 	}
 	// get the shipInfo and shipyardInfo for this key
-	NSString 		*shipKey = [shipyardDefinition oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY defaultValue:nil];
-	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
-	NSDictionary	*shipInfo = [registry shipInfoForKey:shipKey];
-	NSDictionary	*shipyardInfo = [registry shipyardInfoForKey:shipKey];
+	NSString 			*shipKey = [shipyardDefinition oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY defaultValue:nil];
+	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
+	NSMutableDictionary	*shipInfo = [NSMutableDictionary dictionaryWithDictionary:[registry shipInfoForKey:shipKey]];
+	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:shipKey];
 	if (!shipInfo) 
 	{
 		OOJSReportWarningForCaller(context, @"Station", @"addShipToShipyard", @"Invalid shipdata_key provided.");
@@ -1000,7 +1001,6 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	}
 	// ok, feel pretty safe to include this ship now
 	[result setObject:shipKey forKey:SHIPYARD_KEY_SHIPDATA_KEY];
-	[result setObject:shipInfo forKey:SHIPYARD_KEY_SHIP];
 
 	// add an ID
 	Random_Seed ship_seed = [UNIVERSE marketSeed];
@@ -1039,17 +1039,55 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	{
 		[result setObject:[NSNumber numberWithUnsignedLongLong:[shipyardDefinition oo_unsignedIntForKey:SHIPYARD_KEY_PERSONALITY]] forKey:SHIPYARD_KEY_PERSONALITY];
 	}
-	if (![shipyardDefinition objectForKey:KEY_EQUIPMENT_EXTRAS]) 
+
+	NSArray	*extras = [shipyardDefinition oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
+	if (!extras) 
 	{
 		// pick up defaults if extras not supplied
-		NSMutableArray	*extras = [NSMutableArray arrayWithArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-		[result setObject:extras forKey:KEY_EQUIPMENT_EXTRAS];
+		extras = [NSArray arrayWithArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 	}
-	else
-	{
-		[result setObject:[shipyardDefinition objectForKey:KEY_EQUIPMENT_EXTRAS] forKey:KEY_EQUIPMENT_EXTRAS];
-	}
+	if ([extras count] > 0) {
+		// go looking for lasers and add them directly to our shipInfo
+		NSString* fwdWeaponString = [[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+		NSString* aftWeaponString = [[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
+		OOWeaponFacingSet availableFacings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:VALID_WEAPON_FACINGS] & VALID_WEAPON_FACINGS;
 
+		OOWeaponType fwdWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwdWeaponString);
+		OOWeaponType aftWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aftWeaponString);
+
+		unsigned int i;
+		NSString *equipmentKey = nil;
+		for (i = 0; i < [extras count]; i++) {
+			equipmentKey = [extras oo_stringAtIndex:i];
+			if ([equipmentKey hasPrefix:@"EQ_WEAPON"])
+			{
+				OOWeaponType new_weapon = OOWeaponTypeFromEquipmentIdentifierSloppy(equipmentKey);
+				//fit best weapon forward
+				if (availableFacings & WEAPON_FACING_FORWARD && [new_weapon weaponThreatAssessment] > [fwdWeapon weaponThreatAssessment])
+				{
+					//again remember to divide price by 10 to get credits from tenths of credit
+					fwdWeaponString = equipmentKey;
+					fwdWeapon = new_weapon;
+					[shipInfo setObject:fwdWeaponString forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+				}
+				else 
+				{
+					//if less good than current forward, try fitting is to rear
+					if (availableFacings & WEAPON_FACING_AFT && (isWeaponNone(aftWeapon) || [new_weapon weaponThreatAssessment] > [aftWeapon weaponThreatAssessment]))
+					{
+						aftWeaponString = equipmentKey;
+						aftWeapon = new_weapon;
+						[shipInfo setObject:aftWeaponString forKey:KEY_EQUIPMENT_AFT_WEAPON];
+					}
+				}
+			}
+		}
+	}
+	// add the extras
+	[result setObject:extras forKey:KEY_EQUIPMENT_EXTRAS];
+	// add the ship spec
+	[result setObject:shipInfo forKey:SHIPYARD_KEY_SHIP];
+	// add it to the station's shipyard
 	[shipyard addObject:result];
 
 	// refresh the screen if the shipyard is currently being displayed
