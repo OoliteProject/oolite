@@ -1087,12 +1087,8 @@ static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp
 	[result setObject:extras forKey:KEY_EQUIPMENT_EXTRAS];
 	// add the ship spec
 	[result setObject:shipInfo forKey:SHIPYARD_KEY_SHIP];
-	
-	NSMutableDictionary	*resultDictionary = [NSMutableDictionary dictionary];
-	[resultDictionary setObject:result forKey:shipID];	// should order them fairly randomly
-
 	// add it to the station's shipyard
-	[shipyard addObject:resultDictionary];
+	[shipyard addObject:result];
 
 	// refresh the screen if the shipyard is currently being displayed
 	if(station == [PLAYER dockedStation] && [PLAYER guiScreen] == GUI_SCREEN_SHIPYARD)
