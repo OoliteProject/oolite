@@ -308,9 +308,17 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsid propID
 
 		case kStation_shipyard:
 		{
-			if ([entity localShipyard] == nil) [entity generateShipyard];
-			NSMutableArray *shipyard = [entity localShipyard];
-			*value = OOJSValueFromNativeObject(context, shipyard);
+			if (![entity hasShipyard]) 
+			{
+				// return null if station has no shipyard
+				*value = OOJSValueFromNativeObject(context, nil);
+			} 
+			else 
+			{
+				if ([entity localShipyard] == nil) [entity generateShipyard];
+				NSMutableArray *shipyard = [entity localShipyard];
+				*value = OOJSValueFromNativeObject(context, shipyard);
+			}
 			return YES;
 		}
 
