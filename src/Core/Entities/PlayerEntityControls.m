@@ -165,6 +165,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightArrowKeyControls:(double) delta_t;
 - (void) pollGuiArrowKeyControls:(double) delta_t;
 - (void) handleGameOptionsScreenKeys;
+- (void) handleStickMapperScreenKeys;
 - (void) pollApplicationControls;
 - (void) pollCustomViewControls;
 - (void) pollViewControls;
@@ -2152,38 +2153,7 @@ static NSTimeInterval	time_last_frame;
 #endif
 			
 		case GUI_SCREEN_STICKMAPPER:
-			[self stickMapperInputHandler: gui view: gameView];
-
-			leftRightKeyPressed = [gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left] || [gameView isDown:gvPageUpKey] || [gameView isDown:gvPageDownKey];
-			if (leftRightKeyPressed)
-			{
-				NSString *key = [gui keyForRow: [gui selectedRow]];
-				if ([gameView isDown:key_gui_arrow_right] || [gameView isDown:gvPageDownKey])
-				{
-					key = [gui keyForRow:GUI_ROW_FUNCEND];
-				}
-				if ([gameView isDown:key_gui_arrow_left] || [gameView isDown:gvPageUpKey])
-				{
-					key = [gui keyForRow:GUI_ROW_FUNCSTART];
-				}
-				int from_function = 0;
-				NSArray *keyComponents = [key componentsSeparatedByString:@":"];
-				if ([keyComponents count] > 1)
-				{
-					from_function = [keyComponents oo_intAtIndex:1];
-					if (from_function < 0)  from_function = 0;
-					
-					[self setGuiToStickMapperScreen:from_function resetCurrentRow: YES];
-					if ([[UNIVERSE gui] selectedRow] < GUI_ROW_FUNCSTART)
-					{
-						[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART];
-					}
-					if (from_function == 0)
-					{
-						[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1];
-					}
-				}
-			}
+			[self handleStickMapperScreenKeys];
 			break;
 		
 		case GUI_SCREEN_STICKPROFILE:
@@ -3422,6 +3392,46 @@ static NSTimeInterval	time_last_frame;
 }
 
 
+- (void) handleStickMapperScreenKeys
+{
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	
+	[self stickMapperInputHandler: gui view: gameView];
+	leftRightKeyPressed = [gameView isDown:key_gui_arrow_right] || [gameView isDown:key_gui_arrow_left] || [gameView isDown:gvPageUpKey] || [gameView isDown:gvPageDownKey];
+	if (leftRightKeyPressed)
+	{
+		NSString *key = [gui keyForRow: [gui selectedRow]];
+		if ([gameView isDown:key_gui_arrow_right] || [gameView isDown:gvPageDownKey])
+		{
+			key = [gui keyForRow:GUI_ROW_FUNCEND];
+		}
+		if ([gameView isDown:key_gui_arrow_left] || [gameView isDown:gvPageUpKey])
+		{
+			key = [gui keyForRow:GUI_ROW_FUNCSTART];
+		}
+		int from_function = 0;
+		NSArray *keyComponents = [key componentsSeparatedByString:@":"];
+		if ([keyComponents count] > 1)
+		{
+			from_function = [keyComponents oo_intAtIndex:1];
+			if (from_function < 0)  from_function = 0;
+			
+			[self setGuiToStickMapperScreen:from_function resetCurrentRow: YES];
+			if ([[UNIVERSE gui] selectedRow] < GUI_ROW_FUNCSTART)
+			{
+				[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART];
+			}
+			if (from_function == 0)
+			{
+				[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1];
+			}
+		}
+	}
+	if([gameView isDown:' '])  [self setGuiToGameOptionsScreen];
+}
+
+
 - (void) pollCustomViewControls
 {
 	static Quaternion viewQuaternion;
@@ -4368,7 +4378,7 @@ static BOOL autopilot_pause;
 				}
 				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 4+row_zero)
 				{
-					[self setGuiToKeySettingsScreen];
+					[self setGuiToGameOptionsScreen];
 				}
 				else if (([gameView isDown:gvMouseDoubleClick] || [gameView isDown:13]) && [gui selectedRow] == 5+row_zero)
 				{
@@ -4390,11 +4400,23 @@ static BOOL autopilot_pause;
 			}
 			break;
 			
+		case GUI_SCREEN_GAMEOPTIONS:
+			[self handleGameOptionsScreenKeys];
+			break;
+			
 		case GUI_SCREEN_KEYBOARD:
 			if ([gameView isDown:' '])	//  '<space>'
 			{
 				[self setGuiToIntroFirstGo:YES];
 			}
+			break;
+			
+		case GUI_SCREEN_STICKMAPPER:
+			[self handleStickMapperScreenKeys];
+			break;
+			
+		case GUI_SCREEN_STICKPROFILE:
+			[self stickProfileInputHandler: gui view: gameView];
 			break;
 
 		case GUI_SCREEN_SHIPLIBRARY:

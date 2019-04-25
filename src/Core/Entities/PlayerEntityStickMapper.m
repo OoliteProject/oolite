@@ -107,6 +107,8 @@ MA 02110-1301, USA.
 	
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
 		   forRow:GUI_ROW_INSTRUCT];
+		   
+	[gui setText:@"Space to return to previous screen." forRow:GUI_ROW_INSTRUCT+1 align:GUI_ALIGN_CENTER];
 	
 	if (resetCurrentRow)
 	{

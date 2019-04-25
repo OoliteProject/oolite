@@ -2608,6 +2608,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (EXPECT_NOT(status == STATUS_START_GAME && 
 				   gui_screen != GUI_SCREEN_INTRO1 && 
 				   gui_screen != GUI_SCREEN_SHIPLIBRARY && 
+				   gui_screen != GUI_SCREEN_GAMEOPTIONS && 
+				   gui_screen != GUI_SCREEN_STICKMAPPER && 
+				   gui_screen != GUI_SCREEN_STICKPROFILE && 
 				   gui_screen != GUI_SCREEN_NEWGAME && 
 				   gui_screen != GUI_SCREEN_OXZMANAGER && 
 				   gui_screen != GUI_SCREEN_LOAD && 
@@ -8691,6 +8694,18 @@ static NSString *SliderString(NSInteger amountIn20ths)
 	
 	// GUI stuff
 	{
+		#define OO_SETACCESSCONDITIONFORROW(condition, row)				\
+		do {													\
+			if ((condition))									\
+			{												\
+				[gui setKey:GUI_KEY_OK forRow:(row)];			\
+			}												\
+			else												\
+			{												\
+				[gui setColor:[OOColor grayColor] forRow:(row)];	\
+			}												\
+		} while(0)
+		BOOL startingGame = [self status] == STATUS_START_GAME;
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		GUI_ROW_INIT(gui);
 
@@ -8798,18 +8813,18 @@ static NSString *SliderString(NSInteger amountIn20ths)
 			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW(GAME,SPEECH) align:GUI_ALIGN_CENTER];
 			break;
 		}
-
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SPEECH)];
+		OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME,SPEECH));
+		
 #if OOLITE_ESPEAK
 		{
 			NSString *voiceName = [UNIVERSE voiceName:voice_no];
 			NSString *message = OOExpandKey(@"gameoptions-voice-name", voiceName);
 			[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SPEECH_LANGUAGE)];
+			OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME,SPEECH_LANGUAGE));
 
 			message = [NSString stringWithFormat:DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
 			[gui setText:message forRow:GUI_ROW(GAME,SPEECH_GENDER) align:GUI_ALIGN_CENTER];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SPEECH_GENDER)];
+			OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME,SPEECH_GENDER));
 		}
 #endif
 #endif
@@ -8827,14 +8842,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 #endif
 		
 		[gui setText:DESC(@"gameoptions-joystick-configuration") forRow: GUI_ROW(GAME,STICKMAPPER) align: GUI_ALIGN_CENTER];
-		if ([[OOJoystickManager sharedStickHandler] joystickCount])
-		{
-			[gui setKey: GUI_KEY_OK forRow: GUI_ROW(GAME,STICKMAPPER)];
-		}
-		else
-		{
-			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,STICKMAPPER)];
-		}
+		OO_SETACCESSCONDITIONFORROW([[OOJoystickManager sharedStickHandler] joystickCount], GUI_ROW(GAME,STICKMAPPER));
 
 		[gui setText:DESC(@"gameoptions-keyboard-configuration") forRow: GUI_ROW(GAME,KEYMAPPER) align: GUI_ALIGN_CENTER];
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW(GAME,KEYMAPPER)];
@@ -8872,7 +8880,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		{
 			[gui setText:DESC(@"gameoptions-docking-clearance-no") forRow:GUI_ROW(GAME,DOCKINGCLEARANCE) align:GUI_ALIGN_CENTER];
 		}
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,DOCKINGCLEARANCE)];
+		OO_SETACCESSCONDITIONFORROW(!startingGame, GUI_ROW(GAME,DOCKINGCLEARANCE));
 		
 		// Back menu option
 		[gui setText:DESC(@"gui-back") forRow:GUI_ROW(GAME,BACK) align:GUI_ALIGN_CENTER];
@@ -9677,7 +9685,8 @@ static NSString *last_outfitting_key=nil;
 	[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor grayColor] forRow:17];
 		
-	int row = 22;
+	int initialRow = 22;
+	int row = initialRow;
 
 	text = DESC(@"oolite-start-option-1");
 	[gui setText:text forRow:row align:GUI_ALIGN_CENTER];
@@ -9720,8 +9729,8 @@ static NSString *last_outfitting_key=nil;
 	[gui setKey:[NSString stringWithFormat:@"Start:%d", row] forRow:row];
 
 
-	[gui setSelectableRange:NSMakeRange(22,6)];
-	[gui setSelectedRow:22];
+	[gui setSelectableRange:NSMakeRange(initialRow, row - initialRow + 1)];
+	[gui setSelectedRow:initialRow];
 
 	[gui setBackgroundTextureKey:@"intro"];
 
