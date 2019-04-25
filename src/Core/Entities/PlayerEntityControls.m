@@ -789,6 +789,11 @@ static NSTimeInterval	time_last_frame;
 			{
 				HeadUpDisplay *theHUD = [self hud];
 				[theHUD setHidden:![theHUD isHidden]];
+				if (gui_screen == GUI_SCREEN_STATUS)
+				{
+					// ensure refresh of status page screen if looking at it
+					[self setGuiToStatusScreen];
+				}
 			}
 			hide_hud_pressed = YES;
 		}

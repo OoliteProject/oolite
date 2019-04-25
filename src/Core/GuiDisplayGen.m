@@ -1306,7 +1306,7 @@ static OOTextureSprite *NewTextureSpriteWithDescriptor(NSDictionary *descriptor)
 	}
 	if (statusPage > 1 && statusPage < pageCount)
 	{
-		[self setSelectableRange:NSMakeRange(firstRow, firstRow + maxRows)];
+		self setSelectableRange:NSMakeRange(firstRow, min(firstRow + maxRows, GUI_DEFAULT_ROWS - firstRow))];
 		// default selected row to 'More -->' if we are looking at one of the middle pages
 		if ([self selectedRow] == -1)  [self setSelectedRow:firstRow + maxRows];
 	}
