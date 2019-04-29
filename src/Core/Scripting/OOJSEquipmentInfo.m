@@ -45,6 +45,7 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, uintN argc, jsva
 enum
 {
 	// Property IDs
+	kEquipmentInfo_calculatedPrice,
 	kEquipmentInfo_canBeDamaged,
 	kEquipmentInfo_canCarryMultiple,
 	kEquipmentInfo_damageProbability,
@@ -83,6 +84,7 @@ enum
 static JSPropertySpec sEquipmentInfoProperties[] =
 {
 	// JS name							ID											flags
+	{ "calculatedPrice",				kEquipmentInfo_calculatedPrice,				OOJS_PROP_READONLY_CB },
 	{ "canBeDamaged",					kEquipmentInfo_canBeDamaged,				OOJS_PROP_READONLY_CB },
 	{ "canCarryMultiple",				kEquipmentInfo_canCarryMultiple,			OOJS_PROP_READONLY_CB },
 	{ "damageProbability",				kEquipmentInfo_damageProbability,			OOJS_PROP_READONLY_CB },
@@ -254,7 +256,20 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 		case kEquipmentInfo_name:
 			result = [eqType name];
 			break;
-			
+
+		case kEquipmentInfo_calculatedPrice:
+			if ([[eqType identifier] isEqual:@"EQ_FUEL"]) 
+			{
+				return JS_NewNumberValue(context, (PLAYER_MAX_FUEL - [OOPlayerForScripting() fuel]) * [eqType price] * [OOPlayerForScripting() fuelChargeRate], value);
+			}
+			else if ([[eqType identifier] isEqual:@"EQ_RENOVATION"]) 
+			{
+				return JS_NewNumberValue(context, [OOPlayerForScripting() renovationCosts], value);
+			}
+			else 
+			{
+				return JS_NewNumberValue(context, [OOPlayerForScripting() adjustPriceByScriptForEqKey:[eqType identifier] withCurrent:[eqType price]], value);
+			}
 		case kEquipmentInfo_canCarryMultiple:
 			*value = OOJSValueFromBOOL([eqType canCarryMultiple]);
 			return YES;

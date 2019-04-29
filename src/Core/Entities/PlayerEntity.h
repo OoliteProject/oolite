@@ -1000,6 +1000,8 @@ typedef enum
 - (void) setFastEquipmentA:(NSString *)eqKey;
 - (void) setFastEquipmentB:(NSString *)eqKey;
 
+- (OOCreditsQuantity) adjustPriceByScriptForEqKey:(NSString *)eqKey withCurrent:(OOCreditsQuantity)price;
+
 - (NSArray *) cargoList;
 //- (NSArray *) cargoListForScripting; // now in ShipEntity
 - (unsigned) legalStatusOfCargoList;
