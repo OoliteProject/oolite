@@ -1774,6 +1774,13 @@ static NSMutableDictionary *currentShipyard = nil;
 	if (credits + tradeIn < price * 10)
 		return NO;	// you can't afford it!
 	
+	// from this point, the player is committed to buying - raise a pre-buy script event
+	[self doScriptEvent:OOJSID("playerWillBuyNewShip") 
+		withArguments:[NSArray arrayWithObjects:[shipInfo oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY], 
+			[[[self dockedStation] localShipyard] objectAtIndex:selectedRow - GUI_ROW_SHIPYARD_START], 
+			[NSNumber numberWithUnsignedLongLong:price], 
+			[NSNumber numberWithUnsignedLongLong:(tradeIn / 10)], nil]];
+
 	// sell all the commodities carried
 	NSString *good = nil;
 	foreach (good, [shipCommodityData goods])
@@ -1842,7 +1849,10 @@ static NSMutableDictionary *currentShipyard = nil;
 	if (ship_info == nil || ship_base_dict == nil) {
 		return NO;
 	}
-	
+
+	// from this point, the player is committed to buying - raise a pre-buy script event
+	[self doScriptEvent:OOJSID("playerWillBuyNewShip") withArgument:shipKey];
+
 	[self newShipCommonSetup:shipKey yardInfo:ship_info baseInfo:ship_base_dict];
 
 	// perform the transformation
