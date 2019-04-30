@@ -141,7 +141,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) showMarketCashAndLoadLine;
 
 
-- (OOCreditsQuantity) adjustPriceByScriptForEqKey:(NSString *)eqKey withCurrent:(OOCreditsQuantity)price;
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
 // Cargo & passenger contracts
@@ -10123,7 +10122,7 @@ static NSString *last_outfitting_key=nil;
 				ship_clock_adjust += (double)adjust;
 			}
 			
-			[self doScriptEvent:OOJSID("playerBoughtEquipment") withArgument:key];
+			[self doScriptEvent:OOJSID("playerBoughtEquipment") withArguments:[NSArray arrayWithObjects:key, [NSNumber numberWithLongLong:(old_credits - credits)], nil]];
 			if (gui_screen == GUI_SCREEN_EQUIP_SHIP) //if we haven't changed gui screen inside playerBoughtEquipment
 			{ 
 				// show any change due to playerBoughtEquipment
