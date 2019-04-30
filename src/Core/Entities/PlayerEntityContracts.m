@@ -1839,7 +1839,7 @@ static NSMutableDictionary *currentShipyard = nil;
 	return YES;
 }
 
-- (BOOL) buyNamedShip:(NSString *)shipKey
+- (BOOL) replaceShipWithNamedShip:(NSString *)shipKey
 {
 
 	NSDictionary *ship_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:shipKey];
@@ -1850,8 +1850,8 @@ static NSMutableDictionary *currentShipyard = nil;
 		return NO;
 	}
 
-	// from this point, the player is committed to buying - raise a pre-buy script event
-	[self doScriptEvent:OOJSID("playerWillBuyNewShip") withArgument:shipKey];
+	// from this point, the player is committed to replacing - raise a pre-replace script event
+	[self doScriptEvent:OOJSID("playerWillReplaceShip") withArgument:shipKey];
 
 	[self newShipCommonSetup:shipKey yardInfo:ship_info baseInfo:ship_base_dict];
 
