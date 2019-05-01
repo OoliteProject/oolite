@@ -566,7 +566,7 @@ static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
 		return NO;
 	}
 	
-	success = [player buyNamedShip:shipKey];
+	success = [player replaceShipWithNamedShip:shipKey];
 	if (argc > 1)
 	{
 		JS_ValueToInt32(context,OOJS_ARGV[1],&personality);
@@ -577,7 +577,9 @@ static JSBool PlayerReplaceShip(JSContext *context, uintN argc, jsval *vp)
 	}
 
 	if (success) 
-	{ // slightly misnamed world event now
+	{ 
+		[player doScriptEvent:OOJSID("playerReplacedShip") withArgument:player];
+		// slightly misnamed world event now - to be deprecated
 		[player doScriptEvent:OOJSID("playerBoughtNewShip") withArgument:player andArgument:[NSNumber numberWithInt:0]];
 	}
 

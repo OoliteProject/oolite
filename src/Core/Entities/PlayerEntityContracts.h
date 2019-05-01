@@ -116,7 +116,7 @@ MA 02110-1301, USA.
 
 - (OOCreditsQuantity) priceForShipKey:(NSString *)key;
 - (BOOL) buySelectedShip;
-- (BOOL) buyNamedShip:(NSString *)shipName;
+- (BOOL) replaceShipWithNamedShip:(NSString *)shipName;
 - (void) newShipCommonSetup:(NSString *)shipKey yardInfo:(NSDictionary *)ship_info baseInfo:(NSDictionary *)ship_base_dict; 
 
 @end
