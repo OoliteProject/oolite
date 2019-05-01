@@ -40,7 +40,9 @@ SOFTWARE.
 	unsigned				_count;
 	OOTexture				**_textures;
 	float					*_prob;
+	int	                    *_galaxy;
 	float					_probMax;
+	float					*_probMaxGal;
 	RANROTSeed				_seed;
 }
 

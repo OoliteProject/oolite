@@ -1398,9 +1398,16 @@ static NSMutableDictionary *sStringCache;
 			array = [[OOArrayFromFile(arrayPath) mutableCopy] autorelease];
 			if (array != nil) [results addObject:array];
 	
-			// Special handling for arrays merging. Currently, equipment.plist only gets its objects merged.
-			// A lookup index is required. For the equipment.plist items, this is the index corresponging to the
+			// Special handling for arrays merging. Currently, only equipment.plist, nebulatextures.plist and 
+			// startextures.plist gets their objects merged.
+			// A lookup index is required. For the equipment.plist items, this is the index corresponding to the
 			// EQ_* string, which describes the role of an equipment item and is unique.
+			// For nebula and star textures, this is the texture filename, although it can be overridden with a 
+			// "key" property
+			if ([array count] != 0 && ([[fileName lowercaseString] isEqualToString:@"nebulatextures.plist"] || 
+				[[fileName lowercaseString] isEqualToString:@"startextures.plist"]))
+				[self handleStarNebulaListMerging:results];
+
 			if ([array count] != 0 && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
 			{
 				if ([[fileName lowercaseString] isEqualToString:@"equipment.plist"])
@@ -1411,7 +1418,11 @@ static NSMutableDictionary *sStringCache;
 				arrayPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 				array = [[OOArrayFromFile(arrayPath) mutableCopy] autorelease];
 				if (array != nil)  [results addObject:array];
-				
+
+				if ([array count] != 0 && ([[fileName lowercaseString] isEqualToString:@"nebulatextures.plist"] || 
+					[[fileName lowercaseString] isEqualToString:@"startextures.plist"]))
+					[self handleStarNebulaListMerging:results];
+
 				if ([array count] != 0 && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
 				{
 					if ([[fileName lowercaseString] isEqualToString:@"equipment.plist"])
@@ -1446,7 +1457,7 @@ static NSMutableDictionary *sStringCache;
 	NSUInteger i,j,k;
 	NSMutableArray *refArray = [arrayToProcess objectAtIndex:[arrayToProcess count] - 1];
 	
-	// Any change to arrayRef will directly modify arrayToProcess.
+	// Any change to refArray will directly modify arrayToProcess.
 	
 	for (i = 0; i < [refArray count]; i++)
 	{
@@ -1465,6 +1476,75 @@ static NSMutableDictionary *sStringCache;
 					[[arrayToProcess objectAtIndex:j] replaceObjectAtIndex:k withObject:[refArray objectAtIndex:i]];
 					[refArray removeObjectAtIndex:i];
 				}
+			}
+		}
+	}
+	// arrayToProcess has been processed at this point. Any necessary merging has been done.
+}
+
+
+// A method for handling merging of arrays. Currently used with the nebulatextures.plist and startextures.plist entries.
+// uses the "texture" filename as the key value, or "key" if found
++ (void) handleStarNebulaListMerging: (NSMutableArray *)arrayToProcess
+{
+	NSUInteger i,j,k;
+	NSMutableArray *refArray = [arrayToProcess objectAtIndex:[arrayToProcess count] - 1];
+
+	// Any change to refArray will directly modify arrayToProcess.	
+	for (i = 0; i < [refArray count]; i++)
+	{
+		for (j = 0; j < [arrayToProcess count] - 1; j++)
+		{
+			NSUInteger count = [[arrayToProcess oo_arrayAtIndex:j] count];
+			if (count == 0)  continue;
+
+			for (k = 0; k < count; k++) 
+			{
+				id processValue = [[arrayToProcess oo_arrayAtIndex:j] oo_objectAtIndex:k defaultValue:nil];
+				id refValue = [refArray oo_objectAtIndex:i defaultValue:nil];
+				NSString *key1 = nil;
+				NSString *key2 = nil;
+
+				if ([processValue isKindOfClass:[NSString class]]) 
+				{
+					key1 = processValue;
+				}
+				else if ([processValue isKindOfClass:[NSDictionary class]])
+				{
+					if (![processValue objectForKey:@"key"]) 
+					{
+						key1 = [processValue objectForKey:@"texture"];
+					}
+					else
+					{
+						key1 = [processValue objectForKey:@"key"];
+					}
+				}
+				if (!key1) continue;
+
+				if ([refValue isKindOfClass:[NSString class]]) 
+				{
+					key2 = refValue;
+				}
+				else if ([refValue isKindOfClass:[NSDictionary class]])
+				{
+					if (![refValue objectForKey:@"key"])
+					{
+						key2 = [refValue objectForKey:@"texture"];
+					}
+					else
+					{
+						key2 = [refValue objectForKey:@"key"];
+					}
+				}
+				if (!key2) continue;
+
+				if ([key1 isEqual:key2])
+				{
+					[[arrayToProcess objectAtIndex:j] replaceObjectAtIndex:k withObject:[refArray objectAtIndex:i]];
+					[refArray removeObjectAtIndex:i];
+				}
+
 			}
 		}
 	}
