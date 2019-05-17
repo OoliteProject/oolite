@@ -22,3 +22,4 @@ OO_LOCALIZATION_TOOLS          = yes
 DEBUG_GRAPHVIZ                 = yes
 OO_JAVASCRIPT_TRACE            = yes
 OO_FOV_INFLIGHT_CONTROL_ENABLED = no
+OO_SDL2_ENABLED = no

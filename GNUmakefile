@@ -1,9 +1,21 @@
 include $(GNUSTEP_MAKEFILES)/common.make
 include config.make
 
-vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
-vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug:src/Core/MiniZip
-vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug:src/Core/MiniZip
+ifeq ($(OO_SDL2_ENABLED),yes)
+	OO_SDL_DIR               = src/SDL2
+        SDL_CFLAGS               = `sdl2-config --cflags` -DOO_ENABLE_SDL2
+        SDL_OBJCFLAGS            = `sdl2-config --cflags` -DOO_ENABLE_SDL2
+        SDL_OBJC_LIBS     = -lSDL2main -lSDL2
+else
+	OO_SDL_DIR               = src/SDL
+        SDL_CFLAGS               = `sdl-config --cflags`
+        SDL_OBJCFLAGS            = `sdl-config --cflags`
+        SDL_OBJC_LIBS     = -lSDLmain -lSDL
+endif
+
+vpath %.m $(OO_SDL_DIR):src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
+vpath %.h $(OO_SDL_DIR):src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug:src/Core/MiniZip
+vpath %.c $(OO_SDL_DIR):src/Core:src/BSDCompat:src/Core/Debug:src/Core/MiniZip
 GNUSTEP_INSTALLATION_DIR         = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
     GNUSTEP_OBJ_DIR_NAME         := $(GNUSTEP_OBJ_DIR_NAME).win
@@ -24,11 +36,11 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     else
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
-    ADDITIONAL_INCLUDE_DIRS      = -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lopenal32.dll -lpng14.dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
-    ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic
+    ADDITIONAL_INCLUDE_DIRS      = -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) -I$(OO_SDL_DIR) -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
+    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lopenal32.dll -lpng14.dll -lmingw32 $(SDL_OBJC_LIBS) -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lwinmm -mwindows
+    ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY $(SDL_CFLAGS) -mtune=generic
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-    ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic
+    ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 $(SDL_OBJCFLAGS) -mtune=generic
     ifneq ($(GNUSTEP_HOST_CPU),x86_64)
         ADDITIONAL_LDFLAGS           += -Wl,--large-address-aware
     else
@@ -50,10 +62,10 @@ else
     LIBJS_LIB_DIR                = $(LIBJS_ROOT)/dist/lib
     LIBJS = js_static
 
-    ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
-    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++ -lopenal -lz -lvorbisfile
-    ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
-    ADDITIONAL_OBJCFLAGS         = -Wall -std=gnu99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
+    ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -I$(OO_SDL_DIR) -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
+    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 $(SDL_OBJC_LIBS) -lgnustep-base -l$(LIBJS) `nspr-config --libs` -lstdc++ -lopenal -lz -lvorbisfile
+    ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY $(SDL_CFLAGS) `nspr-config --cflags`
+    ADDITIONAL_OBJCFLAGS         = -Wall -std=gnu99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import $(SDL_OBJCFLAGS) `nspr-config --cflags`
     oolite_LIB_DIRS              += -L$(LIBJS_LIB_DIR) -L/usr/X11R6/lib/
 
     ifeq ($(use_deps),yes)
