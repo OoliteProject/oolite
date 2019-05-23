@@ -79,14 +79,14 @@ SOFTWARE.
 		_textures = malloc(sizeof *_textures * count);
 		_prob = malloc(sizeof *_prob * count);
 		_galaxy = malloc(sizeof *_galaxy * count);
-		_probMaxGal = malloc(sizeof *_probMaxGal * 8);
+		_probMaxGal = malloc(sizeof *_probMaxGal * kOOMaximumGalaxyID);
 
 		if (_textures == NULL || _prob == NULL || _galaxy == NULL)  OK = NO;
 	}
 	
 	if (OK)
 	{
-		for (i = 0; i <= 7; i++) _probMaxGal[i] = 0;
+		for (i = 0; i <= kOOMaximumGalaxyID; i++) _probMaxGal[i] = 0;
 
 		//  Go through list and load textures.
 		for (i = 0; i != count; ++i)
@@ -134,7 +134,7 @@ SOFTWARE.
 					}
 					else
 					{
-						for (j = 0; j <= 7; j++) _probMaxGal[j] += probability;
+						for (j = 0; j <= kOOMaximumGalaxyID; j++) _probMaxGal[j] += probability;
 						_probMax += probability;
 					}
 					++_count;
