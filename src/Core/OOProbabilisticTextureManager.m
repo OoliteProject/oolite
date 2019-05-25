@@ -79,7 +79,7 @@ SOFTWARE.
 		_textures = malloc(sizeof *_textures * count);
 		_prob = malloc(sizeof *_prob * count);
 		_galaxy = malloc(sizeof *_galaxy * count);
-		_probMaxGal = malloc(sizeof *_probMaxGal * kOOMaximumGalaxyID);
+		_probMaxGal = malloc(sizeof *_probMaxGal * (kOOMaximumGalaxyID + 1));
 
 		if (_textures == NULL || _prob == NULL || _galaxy == NULL)  OK = NO;
 	}
