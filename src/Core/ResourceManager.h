@@ -82,8 +82,9 @@ typedef enum
 
 
 + (void)handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex;
++ (void)handleStarNebulaListMerging: (NSMutableArray *)arrayToProcess;
 
-+ (NSString *)errors;			// Errors which occured during path scanning - essentially a list of OXPs whose requires.plist is bad.
++ (NSString *)errors;			// Errors which occurred during path scanning - essentially a list of OXPs whose requires.plist is bad.
 
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache;
