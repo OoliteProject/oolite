@@ -1440,6 +1440,11 @@ static NSMutableDictionary *sStringCache;
 		{
 			[result addObjectsFromArray:array];
 		}
+		// if we're doing equipment.plist, do equipment overrides now, while the array is still mutable
+		if ([[fileName lowercaseString] isEqualToString:@"equipment.plist"]) 
+		{
+			[self handleEquipmentOverrides:result];
+		}
 		result = [[result copy] autorelease];	// Make immutable
 	}
 	
@@ -1480,6 +1485,103 @@ static NSMutableDictionary *sStringCache;
 		}
 	}
 	// arrayToProcess has been processed at this point. Any necessary merging has been done.
+}
+
+
+// handles processing of equipment-overrides.plist files, updating the source array with values found.
+// format of file is slightly different to the standard equipment.plist file, in that it is a 
+// dictionary of dictionary objects (rather than an array of arrays). this allows properties like
+// techlevel, price, short_description and long_description to be updated via the overrides file.
++ (void) handleEquipmentOverrides: (NSMutableArray *)arrayToProcess
+{
+	NSEnumerator			*equipKeyEnum = nil;
+	NSString				*equipKey = nil;
+	NSDictionary			*overrides = nil;
+	NSDictionary			*overridesEntry = nil;
+	int 					i;
+
+	overrides = [ResourceManager dictionaryFromFilesNamed:@"equipment-overrides.plist"
+												 inFolder:@"Config"
+												mergeMode:MERGE_SMART
+													cache:NO];
+
+	// cycle through all the equipment keys found in override files
+	for (equipKeyEnum = [overrides keyEnumerator]; (equipKey = [equipKeyEnum nextObject]); )
+	{
+		overridesEntry = [overrides objectForKey:equipKey];
+		// loop through our data array to find a match
+		for (i = 0; i < [arrayToProcess count]; i++)
+		{
+			NSMutableArray	*equipArray = [[[arrayToProcess objectAtIndex:i] mutableCopy] autorelease];
+			id refValue = [equipArray oo_objectAtIndex:EQUIPMENT_KEY_INDEX defaultValue:nil];
+			// does the overridden equipment item exist in the equipment array? if so, get working
+			if ([equipKey isEqual:refValue])
+			{
+				NSEnumerator 			*infoKeyEnum = nil;
+				NSString				*infoKey;
+				// cycle through all the properties found for this equipment key in the overrides file
+				for (infoKeyEnum = [overridesEntry keyEnumerator]; (infoKey = [infoKeyEnum nextObject]); )
+				{
+					// special cases for the array items that don't have a direct keyname
+					if ([infoKey isEqualToString:@"techlevel"]) 
+						[equipArray replaceObjectAtIndex:EQUIPMENT_TECH_LEVEL_INDEX withObject:[overridesEntry objectForKey:infoKey]];
+					else if ([infoKey isEqualToString:@"price"]) 
+						[equipArray replaceObjectAtIndex:EQUIPMENT_PRICE_INDEX withObject:[overridesEntry objectForKey:infoKey]];
+					else if ([infoKey isEqualToString:@"short_description"]) 
+						[equipArray replaceObjectAtIndex:EQUIPMENT_SHORT_DESC_INDEX withObject:[overridesEntry objectForKey:infoKey]];
+					else if ([infoKey isEqualToString:@"long_description"]) 
+						[equipArray replaceObjectAtIndex:EQUIPMENT_LONG_DESC_INDEX withObject:[overridesEntry objectForKey:infoKey]];
+					else 
+					{
+						NSMutableDictionary		*extra = nil;
+						// for everything else
+						// do we actually have an extras dictionary?
+						if (![equipArray oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX]) 
+						{
+							// if not, create a blank one we can add to
+							extra = [NSMutableDictionary dictionary];
+						}
+						else
+						{
+							extra = [[equipArray oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] mutableCopy];
+						}
+						// special case for weapon_info && script_info, which are child dictionaries
+						if ([infoKey isEqualToString:@"weapon_info"] || [infoKey isEqualToString:@"script_info"])
+						{
+							NSEnumerator			*subEnum = nil;
+							NSString				*subKey;
+							NSMutableDictionary		*subInfo = nil;
+							NSDictionary			*subOverrides = nil;
+							// do we actually have a weapon_info/script_info dictionary?
+							if (![extra oo_dictionaryForKey:infoKey]) 
+							{
+								// if not, create a blank dictionary we can add to
+								subInfo = [NSMutableDictionary dictionary];
+							} 
+							else 
+							{
+								subInfo = [[extra oo_dictionaryForKey:infoKey] mutableCopy];
+							}
+							subOverrides = [overridesEntry oo_dictionaryForKey:infoKey];
+							// cycle through all the sub keys found in the overrides file for this equipment key item
+							for (subEnum = [subOverrides keyEnumerator]; (subKey = [subEnum nextObject]); )
+							{
+								[subInfo setObject:[subOverrides objectForKey:subKey] forKey:subKey];
+							}
+							[extra setObject:[[subInfo copy] autorelease] forKey:infoKey];
+						}
+						else
+						{
+							// for all other keys in the extras dictionary
+							[extra setObject:[overridesEntry objectForKey:infoKey] forKey:infoKey];
+						}
+						[equipArray replaceObjectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX withObject:[[extra copy] autorelease]];
+					}
+				}
+				[arrayToProcess replaceObjectAtIndex:i withObject:equipArray];
+			}
+		}
+	}
 }
 
 
