@@ -32,28 +32,38 @@ DEB_REV     := $(shell cat debian/revision)
 pkg-debtest: DEB_REV             := $(shell echo "0~test${DEB_REV}")
 pkg-debsnapshot: DEB_REV         := $(shell echo "0~trunk${DEB_REV}")
 
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    ifeq ($(GNUSTEP_HOST_CPU),x86_64)
-        LIBJS                        = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
-        LIBJS_DBG                    = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
-	else
-        LIBJS                        = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
-        LIBJS_DBG                    = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
-	endif
-    DEPS                         = $(LIBJS)
-    DEPS_DBG                     = $(LIBJS_DBG)
-else
-    # define autopackage .apspec file according to the CPU architecture
+	DEPS                         =
+	DEPS_DBG                     =
+ifneq ($(GNUSTEP_HOST_OS),mingw32) 
     HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
-    ifeq ($(HOST_ARCH),x86_64)
-       APSPEC_FILE               = installers/autopackage/default.x86_64.apspec
-    else
-        APSPEC_FILE              = installers/autopackage/default.x86.apspec
-    endif
-
-    DEPS                         = LIBJS
-    DEPS_DBG                     = LIBJS_DBG
+    APSPEC_FILE                  = installers/autopackage/default.$(HOST_ARCH).apspec
+# Uncomment the following two variables, if you want to build JS from source. Ensure the relevant changes are performed in GNUmakefile too
+#     DEPS                         = LIBJS
+#     DEPS_DBG                     = LIBJS_DBG
 endif
+
+# ifeq ($(GNUSTEP_HOST_OS),mingw32)
+# #     ifeq ($(GNUSTEP_HOST_CPU),x86_64)
+# #         LIBJS                    = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
+# #         LIBJS_DBG                = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
+# #     else
+# #         LIBJS                    = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
+# #         LIBJS_DBG                = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
+# #     endif
+# #     LIBJS                        = deps/Windows-deps/$(GNUSTEP_HOST_CPU)/DLLs/js32ECMAv5.dll
+# #     LIBJS_DBG                    = deps/Windows-deps/$(GNUSTEP_HOST_CPU)/DLLs/js32ECMAv5.dll
+# #     DEPS                         = $(LIBJS)
+# #     DEPS_DBG                     = $(LIBJS_DBG)
+#     DEPS                         = 
+#     DEPS_DBG                     = 
+# else
+#     HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
+#     APSPEC_FILE                  = installers/autopackage/default.$(HOST_ARCH).apspec
+# #     DEPS                         = LIBJS
+# #     DEPS_DBG                     = LIBJS_DBG
+#     DEPS                         = 
+#     DEPS_DBG                     = 
+# endif
 
 
 # Here are our default targets
@@ -80,21 +90,25 @@ release-snapshot: $(DEPS)
 # Here are targets using the provided dependencies
 .PHONY: deps-debug
 deps-debug: $(DEPS_DBG)
+	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
 	$(MAKE) -f GNUmakefile debug=yes use_deps=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-release
 deps-release: $(DEPS)
+	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
 	$(MAKE) -f GNUmakefile debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
+	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
 	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes strip=yes
 
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
+	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
@@ -107,14 +121,14 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 	$(MAKE) -f libjs.make debug=yes
 
-.PHONY: LIBJS
-LIBJS:
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	@echo "ERROR - this Makefile can't (yet) build the Javascript DLL"
-	@echo "        Please build it yourself and copy it to $(LIBJS)."
-	false
-endif
-	$(MAKE) -f libjs.make debug=no
+# .PHONY: LIBJS
+# LIBJS:
+# ifeq ($(GNUSTEP_HOST_OS),mingw32)
+# 	@echo "ERROR - this Makefile can't (yet) build the Javascript DLL"
+# 	@echo "        Please build it yourself and copy it to $(LIBJS)."
+# 	false
+# endif
+# 	$(MAKE) -f libjs.make debug=no
 
 .PHONY: clean
 clean:
