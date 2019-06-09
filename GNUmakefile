@@ -48,7 +48,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     endif
 else
     LIBJS_DIR                    = deps/Linux-deps/$(HOST_ARCH)/mozilla
-    LIBJS_INC_DIR                = deps/Linux-deps/include/mozilla
+    LIBJS_INC_DIR                = deps/Linux-deps/$(HOST_ARCH)/mozilla/include
 # Uncomment the following lines if you want to build JS from source. Ensure the relevant changes are performed in Makefile too
 #     ifeq ($(debug),yes)
 #         LIBJS_DIR                    = deps/mozilla/js/src/build-debug
