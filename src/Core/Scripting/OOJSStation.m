@@ -1148,3 +1148,4 @@ static JSBool StationRemoveShipFromShipyard(JSContext *context, uintN argc, jsva
 
 	OOJS_NATIVE_EXIT
 }
+
