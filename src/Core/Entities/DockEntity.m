@@ -1276,13 +1276,13 @@ MA 02110-1301, USA.
 }
 
 
-- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other weaponIdentifier:(NSString *)weaponIdentifier
 {
 	if (virtual_dock) // can't be damaged
 	{
 		return;
 	}
-	[super takeEnergyDamage:amount from:ent becauseOf:other];
+	[super takeEnergyDamage:amount from:ent becauseOf:other weaponIdentifier:weaponIdentifier];
 }
 
 

@@ -617,7 +617,6 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
-
 // weapon properties follow
 - (BOOL) isTurretLaser
 {
@@ -670,6 +669,36 @@ static NSDictionary		*sMissilesRegistry = nil;
 - (OOColor *) weaponColor
 {
 	return [OOColor brightColorWithDescription:[_weaponInfo objectForKey:@"color"]];
+}
+
+
+- (NSString *) fxShotMissName
+{
+	return [_weaponInfo oo_stringForKey:@"fx_shot_miss_name" defaultValue:@"[player-laser-miss]"];
+}
+
+
+- (NSString *) fxShotHitName
+{
+	return [_weaponInfo oo_stringForKey:@"fx_shot_hit_name" defaultValue:@"[player-laser-hit]"];
+}
+
+
+- (NSString *) fxShieldHitName
+{
+	return [_weaponInfo oo_stringForKey:@"fx_hitplayer_shielded_name" defaultValue:@"[player-hit-by-weapon]"];
+}
+
+
+- (NSString *) fxUnshieldedHitName
+{
+	return [_weaponInfo oo_stringForKey:@"fx_hitplayer_unshielded_name" defaultValue:@"[player-direct-hit]"];
+}
+
+
+- (NSString *) fxWeaponLaunchedName
+{
+	return [_weaponInfo oo_stringForKey:@"fx_weapon_launch_name" defaultValue:([[self identifier] hasSuffix:@"_MINE"] ? @"[mine-launched]" : @"[missile-launched]")];
 }
 
 

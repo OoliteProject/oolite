@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOSoundSourcePool.h"
 #import "OOMaths.h"
+#import "OOEquipmentType.h"
 
 
 // Sizes of sound source pools
@@ -51,6 +52,12 @@ static OOSoundSource		*sEcmSource;
 static OOSoundSource		*sBreakPatternSource;
 static OOSoundSourcePool	*sBuySellSourcePool;
 static OOSoundSource		*sAfterburnerSources[2];
+
+static NSDictionary			*weaponShotMiss;
+static NSDictionary			*weaponShotHit;
+static NSDictionary			*weaponShieldHit;
+static NSDictionary			*weaponUnshieldedHit;
+static NSDictionary			*weaponLaunched;
 
 static const Vector	 kInterfaceBeepPosition		= { 0.0f, -0.2f, 0.5f };
 static const Vector	 kInterfaceWarningPosition	= { 0.0f, -0.2f, 0.4f };
@@ -94,6 +101,54 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 }
 
 
+// sets up the sound key dictionaries for all the available weapons/missiles/mines defined.
+- (void) setUpWeaponSounds
+{
+	NSArray				*eqTypes = [OOEquipmentType allEquipmentTypes];
+	NSMutableDictionary *shotMissSounds = [NSMutableDictionary dictionary];
+	NSMutableDictionary *shotHitSounds = [NSMutableDictionary dictionary];
+	NSMutableDictionary *shieldHitSounds = [NSMutableDictionary dictionary];
+	NSMutableDictionary *unshieldedHitSounds = [NSMutableDictionary dictionary];
+	NSMutableDictionary *weaponLaunchedSounds = [NSMutableDictionary dictionary];
+	NSEnumerator		*eqTypeEnum = nil;
+	OOEquipmentType		*eqType = nil;
+
+	// special case: turrets aren't defined with a "EQ_WEAPON" prefix, and plasma shots don't have a matching equipment item, 
+	// so add a unique entry here. this could be overridden if an OXP creates an equipment item with this key.
+	// plasma shots don't make a sound when fired, so we only need to provide for the hit player sound keys.
+	[shieldHitSounds setObject:@"[player-hit-by-weapon]" forKey:@"EQ_WEAPON_PLASMA_SHOT"];
+	[unshieldedHitSounds setObject:@"[player-direct-hit]" forKey:@"EQ_WEAPON_PLASMA_SHOT"];
+	// grab a local copy of the sound identifiers for weapons to make the process of looking up a sound ref as fast as possible
+	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	{
+		if ([[eqType identifier] hasPrefix:@"EQ_WEAPON"]) 
+		{
+			[shotMissSounds setObject:[eqType fxShotMissName] forKey:[eqType identifier]];
+			[shotHitSounds setObject:[eqType fxShotHitName] forKey:[eqType identifier]];
+			[shieldHitSounds setObject:[eqType fxShieldHitName] forKey:[eqType identifier]];
+			[unshieldedHitSounds setObject:[eqType fxUnshieldedHitName] forKey:[eqType identifier]];
+		}
+		if ([eqType isMissileOrMine]) 
+		{
+			[weaponLaunchedSounds setObject:[eqType fxWeaponLaunchedName] forKey:[eqType identifier]];
+			[shieldHitSounds setObject:[eqType fxShieldHitName] forKey:[eqType identifier]];
+			[unshieldedHitSounds setObject:[eqType fxUnshieldedHitName] forKey:[eqType identifier]];
+		}
+	}
+
+	DESTROY(weaponShotMiss);
+	DESTROY(weaponShotHit);
+	DESTROY(weaponShieldHit);
+	DESTROY(weaponUnshieldedHit);
+	DESTROY(weaponLaunched);
+
+	weaponShotMiss = [[NSDictionary alloc] initWithDictionary:shotMissSounds];
+	weaponShotHit = [[NSDictionary alloc] initWithDictionary:shotHitSounds];
+	weaponShieldHit = [[NSDictionary alloc] initWithDictionary:shieldHitSounds];
+	weaponUnshieldedHit = [[NSDictionary alloc] initWithDictionary:unshieldedHitSounds];
+	weaponLaunched = [[NSDictionary alloc] initWithDictionary:weaponLaunchedSounds];
+}
+
 - (void) destroySound
 {
 	DESTROY(sInterfaceBeepSource);
@@ -109,6 +164,12 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 	DESTROY(sWeaponSoundPool);
 	DESTROY(sDamageSoundPool);
 	DESTROY(sMiscSoundPool);
+
+	DESTROY(weaponShotMiss);
+	DESTROY(weaponShotHit);
+	DESTROY(weaponShieldHit);
+	DESTROY(weaponUnshieldedHit);
+	DESTROY(weaponLaunched);
 }
 
 
@@ -575,15 +636,15 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 }
 
 
-- (void) playShieldHit:(Vector)attackVector
+- (void) playShieldHit:(Vector)attackVector weaponIdentifier:(NSString *)weaponIdentifier
 {
-	[sDamageSoundPool playSoundWithKey:@"[player-hit-by-weapon]" position:attackVector];
+	[sDamageSoundPool playSoundWithKey:[weaponShieldHit objectForKey:weaponIdentifier] position:attackVector];
 }
 
 
-- (void) playDirectHit:(Vector)attackVector
+- (void) playDirectHit:(Vector)attackVector weaponIdentifier:(NSString *) weaponIdentifier
 {
-	[sDamageSoundPool playSoundWithKey:@"[player-direct-hit]" position:attackVector];
+	[sDamageSoundPool playSoundWithKey:[weaponUnshieldedHit objectForKey:weaponIdentifier] position:attackVector];
 }
 
 
@@ -593,15 +654,16 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 }
 
 
-- (void) playLaserHit:(BOOL)hit offset:(Vector)weaponOffset
+- (void) playLaserHit:(BOOL)hit offset:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier
 {
 	if (hit)
 	{
-		[sWeaponSoundPool playSoundWithKey:@"[player-laser-hit]" priority:1.0 expiryTime:0.05 overlap:YES position:weaponOffset];
+		[sWeaponSoundPool playSoundWithKey:[weaponShotHit objectForKey:weaponIdentifier] priority:1.0 expiryTime:0.05 overlap:YES position:weaponOffset];
 	}
 	else
 	{
-		[sWeaponSoundPool playSoundWithKey:@"[player-laser-miss]" priority:1.0 expiryTime:0.05 overlap:YES position:weaponOffset];
+		[sWeaponSoundPool playSoundWithKey:[weaponShotMiss objectForKey:weaponIdentifier] priority:1.0 expiryTime:0.05 overlap:YES position:weaponOffset];
+
 	}
 }
 
@@ -612,15 +674,15 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 }
 
 
-- (void) playMissileLaunched:(Vector)weaponOffset
+- (void) playMissileLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier
 {
-	[sWeaponSoundPool playSoundWithKey:@"[missile-launched]" position:weaponOffset];
+	[sWeaponSoundPool playSoundWithKey:[weaponLaunched objectForKey:weaponIdentifier] position:weaponOffset];
 }
 
 
-- (void) playMineLaunched:(Vector)weaponOffset
+- (void) playMineLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier
 {
-	[sWeaponSoundPool playSoundWithKey:@"[mine-launched]" position:weaponOffset];
+	[sWeaponSoundPool playSoundWithKey:[weaponLaunched objectForKey:weaponIdentifier] position:weaponOffset];
 }
 
 

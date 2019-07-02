@@ -981,7 +981,7 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 }
 
 
-- (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other
+- (void) takeEnergyDamage:(double) amount from:(Entity *) ent becauseOf:(Entity *) other weaponIdentifier:(NSString *)weaponIdentifier
 {
 	
 }

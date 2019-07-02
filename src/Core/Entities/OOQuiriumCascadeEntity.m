@@ -99,13 +99,15 @@ MA 02110-1301, USA.
 		_color[0] = 0.25f * tf * randf();
 		_color[1] = 0.0f;
 	}
-	
+
 	// manage collisions
 	Entity *owner = [self owner];
 	Entity *e = nil;
 	foreach (e, collidingEntities)
 	{
-		[e takeEnergyDamage:energy from:self becauseOf:owner];
+		// we're going to force the weapon id to be the qbomb key here, because at this point the cascade entity isn't a ship any more
+		// and there's no link back to the original.
+		[e takeEnergyDamage:energy from:self becauseOf:owner weaponIdentifier:@"EQ_QC_MINE"];
 	}
 	
 	// expire after ttl

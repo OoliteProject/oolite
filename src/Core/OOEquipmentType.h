@@ -149,6 +149,11 @@ SOFTWARE.
 - (GLfloat) weaponShotTemperature;
 - (GLfloat) weaponThreatAssessment;
 - (OOColor *) weaponColor;
+- (NSString *) fxShotMissName;
+- (NSString *) fxShotHitName;
+- (NSString *) fxShieldHitName;
+- (NSString *) fxUnshieldedHitName;
+- (NSString *) fxWeaponLaunchedName;
 
 @end
 
