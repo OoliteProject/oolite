@@ -64,22 +64,19 @@ void main()
 	
 	// create a fresnel torus around the planet - opacity is proportional to it
 	// multiply NdotV by a constant less than 1.0 to create haze
-	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.3), kFresnelExponent));
+	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.31831), kFresnelExponent));
 	
 	// mix the bias color now
 	totalColor *=	mix(totalColor, biasColor, biasColorMixRatio) *
-					// uncomment below for fresnel to affect atmosphere color
-					//dot(normalize(fresnel), vec3(NdotL)) *
+					// comment below for fresnel to not affect atmosphere color
+					dot(normalize(fresnel), vec3(NdotL)) *
 					clamp(totalColor, vec3(0.0), diffuseColor);
 	
 	// magic herebelow - painting the orange-reddish tinted terminator
 	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, vec3(light1Vector.z));
 	
 	// add ambient light
-	totalColor += AMBIENT_LIGHT;
-	
-	// slightly more lightsource color at the very edge
-	if (NdotV < cosThreshold)  totalColor = mix(totalColor, diffuseColor, 0.04);
+	totalColor += AMBIENT_LIGHT * NdotL;
 	
 	// calculate when the atmosphere should fade in / out
 	float quant = atmDistance < (minDistance + 2000.0) ?
@@ -87,9 +84,9 @@ void main()
 					
 	// calculate the final opacity, special handling for
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
-	float newOpacity = quant * max(0.01, NdotL) * (NdotV > cosThreshold ?
-								fresnel.r * cosThreshold  / NdotV :
-								1.125 * pow(NdotV  / cosThreshold, newOpacityExponent));
+	float newOpacity = quant * pow(max(0.01, NdotL), 0.3333) * (NdotV > cosThreshold ?
+								pow(fresnel.r * cosThreshold  / NdotV, 0.8) :
+								pow(NdotV  / cosThreshold, newOpacityExponent));
 	
 	// all above calculations were done in linear space - tonemap & go to sRGB for display
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
