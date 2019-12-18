@@ -1429,7 +1429,6 @@
 		1A89CC3B1825340000A4E455 /* oolite_asp_subents.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_asp_subents.png; sourceTree = "<group>"; };
 		1A89CC3C1825340000A4E455 /* oolite_buoy_diffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_diffuse.png; sourceTree = "<group>"; };
 		1A89CC3D1825340000A4E455 /* oolite_buoy_illumination.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_illumination.png; sourceTree = "<group>"; };
-		1A89CC3E1825340000A4E455 /* oolite_buoy_normal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_normal.png; sourceTree = "<group>"; };
 		1A89CC3F1825340000A4E455 /* oolite_buoy_specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_specular.png; sourceTree = "<group>"; };
 		1A89CC401825340000A4E455 /* oolite_buoy_subents.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_subents.png; sourceTree = "<group>"; };
 		1A89CC7F1825349A00A4E455 /* oolite-cloaking-device-equipment.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device-equipment.js"; sourceTree = "<group>"; };
@@ -2654,7 +2653,6 @@
 				1A89CC3B1825340000A4E455 /* oolite_asp_subents.png */,
 				1A89CC3C1825340000A4E455 /* oolite_buoy_diffuse.png */,
 				1A89CC3D1825340000A4E455 /* oolite_buoy_illumination.png */,
-				1A89CC3E1825340000A4E455 /* oolite_buoy_normal.png */,
 				1A89CC3F1825340000A4E455 /* oolite_buoy_specular.png */,
 				1A89CC401825340000A4E455 /* oolite_buoy_subents.png */,
 			);
