@@ -1009,6 +1009,7 @@
         materials = {
             "oolite_buoy_diffuse.png" = {
                 shininess = 20;
+				gloss = 0.65;
                 specular_color = (0.8, 0.83, 0.85, 1.0);
                 diffuse_map = "oolite_buoy_diffuse.png";
                 emission_map = "oolite_buoy_illumination.png";
