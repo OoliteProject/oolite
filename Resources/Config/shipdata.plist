@@ -988,41 +988,82 @@
 		};
 		model = "oolite_alt_boulder.dat";
 	};
-	"oolite_template_buoy" = 
+    "oolite_template_buoy" = 
 	{
-		ai_type = "buoyAI.plist";
-		beacon = "N0100 Navigation Buoy";
-/* Beacon label for now set in populator, not shipdata, for compatibility
- * with old OXP like_ship entries */
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 2;
-		forward_weapon_type = "WEAPON_NONE";
-		is_template = 1;
-		max_energy = 250;
-		max_flight_pitch = 2;
-		max_flight_roll = 2;
-		max_flight_speed = 0;
-		missiles = 0;
-		model = "buoy.dat";
-		name = "Navigation Buoy";
-		roles = "buoy";
-		thrust = 100;
-		unpiloted = yes;
-		smooth = yes;
-		scan_class = "CLASS_BUOY";
-		weapon_energy = 0;
-		materials =
-		{
-			"target_metal.png" =
-			{
-				gloss = 0.6;
-				shininess = 60;
-				specular_color = (0.4, 0.415, 0.425, 1.0);
-				diffuse_color = (0.8, 0.8, 0.8);
-				ambient_color = (0.75, 0.75, 0.75);
-			};
-		};
-	};
+        ai_type = "buoyAI.plist";
+        beacon = "N0100 Navigation Buoy";
+        /* Beacon label for now set in populator, not shipdata, for compatibility
+         * with old OXP like_ship entries */
+        cargo_type = "CARGO_NOT_CARGO";
+        energy_recharge_rate = 2;
+        forward_weapon_type = "WEAPON_NONE";
+        is_template = 1;
+        max_energy = 250;
+        max_flight_pitch = 2;
+        max_flight_roll = 2;
+        max_flight_speed = 0;
+        missiles = 0;
+        model = "oolite_buoy.dat";
+        name = "Navigation Buoy";
+        roles = "buoy";
+        materials = {
+            "oolite_buoy_diffuse.png" = {
+                shininess = 20;
+				gloss = 0.65;
+                specular_color = (0.8, 0.83, 0.85, 1.0);
+                diffuse_map = "oolite_buoy_diffuse.png";
+                emission_map = "oolite_buoy_illumination.png";
+                specular_map = "oolite_buoy_specular.png";
+            };
+        };
+        subentities = ({
+            subentity_key = "oolite_buoy_subentity";
+            orientation = (1, 0, 0, 0);
+            position = (0, 0, 0);
+            is_dock = false;
+        }, {
+            type = "flasher";
+            position = (-0.75, 23.85, 0.92);
+            size = 30;
+            frequency = 0.15;
+            phase = -1;
+            color = {
+                hue = 236;
+            };
+        }, {
+            type = "flasher";
+            position = (-16.87, -3.88, -9.55);
+            size = 30;
+            frequency = 0.15;
+            phase = 1;
+            color = {
+                hue = 236;
+            };
+        }, {
+            type = "flasher";
+            position = (16.87, -3.88, -9.55);
+            size = 30;
+            frequency = 0.15;
+            phase = -3;
+            color = {
+                hue = 236;
+            };
+        }, {
+            type = "flasher";
+            position = (0.40, -4.53, 20.25);
+            size = 30;
+            frequency = 0.15;
+            phase = 3;
+            color = {
+                hue = 236;
+            };
+        });
+        thrust = 100;
+        unpiloted = yes;
+        smooth = yes;
+        scan_class = "CLASS_BUOY";
+        weapon_energy = 0;
+    };
 	"oolite_template_tutorial-buoy" = 
 	{
 		like_ship = "oolite_template_buoy";
@@ -4751,6 +4792,28 @@
 		smooth = "no";
 	};
 
+	// new style buoy subentity
+    "oolite_buoy_subentity" = 
+	{
+        ai_type = "nullAI.plist";
+        cargo_type = "CARGO_NOT_CARGO";
+        forward_weapon_type = "WEAPON_NONE";
+        model = "oolite_buoy_subents.dat";
+        name = "Navigation Buoy";
+        roles = "oolite_buoy_subent";
+        smooth = yes;
+        materials = {
+            "oolite_buoy_subents.png" = {
+                shininess = 20;
+                specular_color = (0.8, 0.83, 0.85, 1.0);
+                diffuse_map = "oolite_buoy_subents.png";
+                emission_map = {
+                    name = "oolite_buoy_subents.png";extract_channel = "a";
+                };
+                emission_modulate_color = (0.0, 0.0, 1.0);
+            };
+        };
+    };
 
 		/* Special entity definitions required by Oolite. There should be
 		 * no need to override these by OXP. */

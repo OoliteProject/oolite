@@ -1359,6 +1359,8 @@
 		1A89CBCA182533BE00A4E455 /* oolite_viper_interceptor.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = oolite_viper_interceptor.dat; sourceTree = "<group>"; };
 		1A89CBCB182533BE00A4E455 /* oolite_viper.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = oolite_viper.dat; sourceTree = "<group>"; };
 		1A89CBCC182533BE00A4E455 /* oolite_worm.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = oolite_worm.dat; sourceTree = "<group>"; };
+		1A89CBCD182533BE00A4E455 /* oolite_buoy.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = oolite_buoy.dat; sourceTree = "<group>"; };
+		1A89CBCE182533BE00A4E455 /* oolite_buoy_subents.dat */ = {isa = PBXFileReference; lastKnownFileType = text; path = oolite_buoy_subents.dat; sourceTree = "<group>"; };
 		1A89CBFA1825340000A4E455 /* oolite_barrel_diffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_barrel_diffuse.png; sourceTree = "<group>"; };
 		1A89CBFB1825340000A4E455 /* oolite_barrel2_diffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_barrel2_diffuse.png; sourceTree = "<group>"; };
 		1A89CBFC1825340000A4E455 /* oolite_boa_diffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_boa_diffuse.png; sourceTree = "<group>"; };
@@ -1425,6 +1427,10 @@
 		1A89CC391825340000A4E455 /* oolite_anaconda_subents.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_anaconda_subents.png; sourceTree = "<group>"; };
 		1A89CC3A1825340000A4E455 /* oolite_asp_diffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_asp_diffuse.png; sourceTree = "<group>"; };
 		1A89CC3B1825340000A4E455 /* oolite_asp_subents.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_asp_subents.png; sourceTree = "<group>"; };
+		1A89CC3C1825340000A4E455 /* oolite_buoy_diffuse.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_diffuse.png; sourceTree = "<group>"; };
+		1A89CC3D1825340000A4E455 /* oolite_buoy_illumination.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_illumination.png; sourceTree = "<group>"; };
+		1A89CC3F1825340000A4E455 /* oolite_buoy_specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_specular.png; sourceTree = "<group>"; };
+		1A89CC401825340000A4E455 /* oolite_buoy_subents.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oolite_buoy_subents.png; sourceTree = "<group>"; };
 		1A89CC7F1825349A00A4E455 /* oolite-cloaking-device-equipment.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device-equipment.js"; sourceTree = "<group>"; };
 		1A89CC81182534B400A4E455 /* oolite-primable-equipment-manager.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "oolite-primable-equipment-manager.js"; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
@@ -2570,6 +2576,8 @@
 				1A89CBCA182533BE00A4E455 /* oolite_viper_interceptor.dat */,
 				1A89CBCB182533BE00A4E455 /* oolite_viper.dat */,
 				1A89CBCC182533BE00A4E455 /* oolite_worm.dat */,
+				1A89CBCD182533BE00A4E455 /* oolite_buoy.dat */,
+				1A89CBCE182533BE00A4E455 /* oolite_buoy_subents.dat */,
 			);
 			name = Griffified;
 			sourceTree = "<group>";
@@ -2643,6 +2651,10 @@
 				1A89CC391825340000A4E455 /* oolite_anaconda_subents.png */,
 				1A89CC3A1825340000A4E455 /* oolite_asp_diffuse.png */,
 				1A89CC3B1825340000A4E455 /* oolite_asp_subents.png */,
+				1A89CC3C1825340000A4E455 /* oolite_buoy_diffuse.png */,
+				1A89CC3D1825340000A4E455 /* oolite_buoy_illumination.png */,
+				1A89CC3F1825340000A4E455 /* oolite_buoy_specular.png */,
+				1A89CC401825340000A4E455 /* oolite_buoy_subents.png */,
 			);
 			name = Griffified;
 			sourceTree = "<group>";
