@@ -66,18 +66,6 @@ void main()
 	// multiply NdotV by a constant less than 1.0 to create haze
 	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.31831), kFresnelExponent));
 	
-	// mix the bias color now
-	totalColor *=	mix(totalColor, biasColor, biasColorMixRatio) *
-					// comment below for fresnel to not affect atmosphere color
-					dot(normalize(fresnel), vec3(NdotL)) *
-					clamp(totalColor, vec3(0.0), diffuseColor);
-	
-	// magic herebelow - painting the orange-reddish tinted terminator
-	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, vec3(light1Vector.z));
-	
-	// add ambient light
-	totalColor += AMBIENT_LIGHT * NdotL;
-	
 	// calculate when the atmosphere should fade in / out
 	float quant = atmDistance < (minDistance + 2000.0) ?
 					magicDistance / 2000.0 : 1.0;
@@ -86,7 +74,25 @@ void main()
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
 	float newOpacity = quant * pow(max(0.01, NdotL), 0.3333) * (NdotV > cosThreshold ?
 								pow(fresnel.r * cosThreshold  / NdotV, 0.8) :
-								pow(NdotV  / cosThreshold, newOpacityExponent));
+								pow(NdotV / cosThreshold, newOpacityExponent));
+	
+	// mix the bias color now
+	totalColor *=	mix(totalColor, biasColor, biasColorMixRatio) *
+					// comment below for fresnel to not affect atmosphere color
+					dot(normalize(fresnel), vec3(NdotL)) *
+					clamp(totalColor, vec3(0.0), diffuseColor);
+	
+	// at the very edge, mix in some serious bias color
+	if (NdotV < cosThreshold)
+	{
+		totalColor = mix(biasColor * NdotL, totalColor, newOpacity);
+	}
+	
+	// magic herebelow - painting the orange-reddish tinted terminator
+	totalColor *= smoothstep(vec3(0.0), kTerminatorThreshold, vec3(light1Vector.z));
+	
+	// add ambient light
+	totalColor += AMBIENT_LIGHT * NdotL;
 	
 	// all above calculations were done in linear space - tonemap & go to sRGB for display
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
@@ -95,6 +101,8 @@ void main()
 	// jump to 27:40 in the video. Note the pow 1.0/2.2 is baked into these numbers
 	vec3 x = max(vec3(0.0), totalColor - 0.004);
 	totalColor = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
+	
+	//totalColor = vec4(1.0) - exp(-totalColor * 5.5); // exposure tonemapping, if we ever need it
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
 }
