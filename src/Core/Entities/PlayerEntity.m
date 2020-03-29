@@ -384,6 +384,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			if (quantity > 0)
 			{
 				podsRequiredForQuantity = 1 + (quantity/amountToLoadInCargopod);
+				// this check is needed so that initial quantities like 1499kg or 1499999g
+				// do not result in generation of an empty cargopod
+				if (quantity % amountToLoadInCargopod == 0)  podsRequiredForQuantity--;
 				
 				// put each ton or part-ton beyond that in a separate container
 				for (j = 0; j < podsRequiredForQuantity; j++)
