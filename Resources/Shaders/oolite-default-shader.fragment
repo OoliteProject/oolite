@@ -420,8 +420,8 @@ void main(void)
 	// jump to 27:40 in the video. Note the pow 1.0/2.2 is baked into these numbers
 	if (uGammaCorrect)
 	{
-		vec4 x = max(vec4(0.0), totalColor - 0.004);
-		totalColor = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
+		vec3 x = max(vec3(0.0), totalColor.rgb - 0.004);
+		totalColor.rgb = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
 	}
 	
 	// Heat glow
