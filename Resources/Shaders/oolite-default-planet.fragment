@@ -293,7 +293,7 @@ void main()
 	
 	vec3 fresnel = vec3(0.0);
 #if USE_SPECULAR && OOSPECULAR_NEW_MODEL
-	fresnel = FresnelSchlick(mix(gl_FrontMaterial.specular.rgb, SPECULAR_LIGHT, SPECULAR_FACTOR), light1Vector, halfVector);
+	fresnel = FresnelSchlick(vec3(SPECULAR_FACTOR), light1Vector, halfVector);
 #endif
 	
 	// Specular light.
@@ -304,14 +304,15 @@ void main()
 		totalColor += specularLight * 0.6 * specularFactor;
 	#else
 		#if OOSPECULAR_NEW_MODEL_GGX
-			specularFactor *= 0.475;
-			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, specularFactor, fresnel);
+			// specularFactor multiplied by a constant is used as gloss here
+			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, specularFactor * 0.6, fresnel);
 		#else
 			// New Blinn-Phong
-			specularFactor *= 0.09;
-			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 500.0 * specularFactor, fresnel, SPECULAR_LIGHT);
+			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 45.0 * specularFactor, fresnel, SPECULAR_LIGHT);
 		#endif
-		totalColor += specularLight * specularFactor;
+		vec3 specularColor = vec3(SPECULAR_FACTOR * 0.05);
+		float specMag = length(specularColor);
+		totalColor += mix(specularColor, SPECULAR_LIGHT, clamp(specMag, 0.0, 1.0)) * specularLight;
 	#endif
 #endif
 
