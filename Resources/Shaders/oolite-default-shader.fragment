@@ -216,7 +216,7 @@ vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float glo
 
 	float alphaPrime = roughness + 1.0;
 	float k = alphaPrime * alphaPrime / 8.0;
-	float g1vNL = NdotL/ (NdotL * (1.0 - k) + k);
+	float g1vNL = NdotL / (NdotL * (1.0 - k) + k);
 	float g1vNV = NdotV / (NdotV * (1.0 - k) + k);
 	float visibility = g1vNL * g1vNV;
 
@@ -409,8 +409,9 @@ void main(void)
 	totalColor += (diffuseColor * diffuseLight * kD) + (ambientColor * ambientLight);
 	
 #if OOSTD_SPECULAR
-	vec3 magSpec = specularColor.rgb;
-	totalColor += mix(specularColor, gl_LightSource[1].specular, 1.0 - clamp(length(magSpec), 0.0, 1.0)) * specularLight;
+	// we should not multiply by specularColor here; we already took that into account
+	// when calculating the Fresnel-Schlick term
+	totalColor += specularLight * gl_LightSource[1].specular;
 #endif
 
 	// gamma correction

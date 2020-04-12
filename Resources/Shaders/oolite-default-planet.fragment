@@ -293,7 +293,9 @@ void main()
 	
 	vec3 fresnel = vec3(0.0);
 #if USE_SPECULAR && OOSPECULAR_NEW_MODEL
-	fresnel = FresnelSchlick(vec3(SPECULAR_FACTOR), light1Vector, halfVector);
+	// water has a reflectivity of 0.05 and the spec map represents water as values close to 1.0
+	// don't let reflectivity drop below 0.02
+	fresnel = FresnelSchlick(vec3(max(SPECULAR_FACTOR * 0.05, 0.02)), light1Vector, halfVector);
 #endif
 	
 	// Specular light.
@@ -305,14 +307,13 @@ void main()
 	#else
 		#if OOSPECULAR_NEW_MODEL_GGX
 			// specularFactor multiplied by a constant is used as gloss here
-			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, specularFactor * 0.6, fresnel);
+			// sea will have a gloss of 0.6, ice caps 0.3 and land 0.2
+			vec3 specularLight = CalcSpecularGGX(light1Vector, normal, halfVector, eyeVector, max(specularFactor * 0.62, 0.2), fresnel);
 		#else
 			// New Blinn-Phong
-			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 45.0 * specularFactor, fresnel, SPECULAR_LIGHT);
+			vec3 specularLight = CalcSpecularBlinnPhong(light1Vector, normal, halfVector, 30.0 * specularFactor, fresnel, SPECULAR_LIGHT);
 		#endif
-		vec3 specularColor = vec3(SPECULAR_FACTOR * 0.05);
-		float specMag = length(specularColor);
-		totalColor += mix(specularColor, SPECULAR_LIGHT, clamp(specMag, 0.0, 1.0)) * specularLight;
+		totalColor += SPECULAR_LIGHT * specularLight;
 	#endif
 #endif
 
