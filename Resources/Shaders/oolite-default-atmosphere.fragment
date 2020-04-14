@@ -64,7 +64,7 @@ void main()
 	
 	// create a fresnel torus around the planet - opacity is proportional to it
 	// multiply NdotV by a constant less than 1.0 to create haze
-	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.4031831), kFresnelExponent));
+	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.31831), kFresnelExponent));
 	
 	// calculate when the atmosphere should fade in / out
 	float quant = atmDistance < (minDistance + 2000.0) ?
