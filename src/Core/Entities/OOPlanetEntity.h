@@ -58,6 +58,7 @@ MA 02110-1301, USA.
 	
 	NSDictionary			*_materialParameters;
 	NSString				*_textureName;
+	NSString				*_normSpecMapName;
 
 	NSString				*_name;
 }

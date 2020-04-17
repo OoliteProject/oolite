@@ -181,9 +181,11 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	_mesopause2 = (atmosphere) ? (kMesosphere + collision_radius) * (kMesosphere + collision_radius) : 0.0;
 	
+	_normSpecMapName = [[dict oo_stringForKey:@"texture_normspec"] retain]; // must be set up before _textureName
+	
 	_textureName = [[dict oo_stringForKey:@"texture"] retain];
 	[self setUpPlanetFromTexture:_textureName];
-	[_planetDrawable setRadius:collision_radius];	
+	[_planetDrawable setRadius:collision_radius];
 		
 	// Orientation should be handled by the code that calls this planetEntity. Starting with a default value anyway.
 	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };
@@ -450,6 +452,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	//DESTROY(_airColor);	// this CTDs on loading savegames.. :(
 	DESTROY(_materialParameters);
 	DESTROY(_textureName);
+	DESTROY(_normSpecMapName);
 	
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 
@@ -841,7 +844,28 @@ static OOColor *ColorWithHSBColor(Vector c)
 			}
 		}
 		else textureName = @"dynamic";
-
+		
+		 // let's try giving some love to normalMap too
+		if (_normSpecMapName)
+		{
+			NSDictionary *nspec = [NSDictionary dictionaryWithObjectsAndKeys:_normSpecMapName, @"name", @"yes", @"repeat_s", @"linear", @"min_filter", @"yes", @"cube_map", nil];
+			normalMap = [OOTexture textureWithConfiguration:nspec];
+			if (normalMap != nil) // OOTexture will have logged a file-not-found warning.
+			{
+				if (shadersOn)  
+				{
+					[normalMap ensureFinishedLoading]; // only know if it is a cube map if it's loaded
+					if ([normalMap isCubeMap])
+					{
+						macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-cubemap-normspec-macros" : @"planet-customized-cubemap-normspec-macros"];
+					}
+					else
+					{
+						macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-normspec-macros" : @"planet-customized-normspec-macros"];
+					}
+				}
+			}
+		}
 	}
 	else
 	{
