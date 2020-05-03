@@ -24,7 +24,7 @@ For end-user documentation, see [oolite.org](http://www.oolite.org/) and
    - **Cocoa-deps**:  Dependencies for Mac OS X
    - **Cross-platform-deps**:  Dependencies for platforms other than Mac OS X
    - **Linux-deps**:  Dependencies for Linux on x86 and x86_64 processors
-   - **URLs**:  URLs used for binary dependecies on Mac OS X
+   - **URLs**:  URLs used for binary dependencies on Mac OS X
    - **Windows-deps**:  Dependencies for Windows on x86 and x86_64 processors
 - **Doc**:  Documentation (including user guides)
 - **installers**:  Files used to create various installers
