@@ -164,7 +164,7 @@ static id sSharedStickHandler = nil;
 	return precisionMode ? STICK_PRECISIONFAC : 1.0;
 }
 
-- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis: (int) axis
+- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis: (NSUInteger) axis
 {
 	switch (axis)
 	{
@@ -186,7 +186,7 @@ static id sSharedStickHandler = nil;
 	return;
 }
 
-- (OOJoystickAxisProfile *) getProfileForAxis: (int) axis
+- (OOJoystickAxisProfile *) getProfileForAxis: (NSUInteger) axis
 {
 	switch (axis)
 	{
@@ -201,7 +201,7 @@ static id sSharedStickHandler = nil;
 }
 
 
-- (void) saveProfileForAxis: (int) axis
+- (void) saveProfileForAxis: (NSUInteger) axis
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
@@ -260,7 +260,7 @@ static id sSharedStickHandler = nil;
 
 
 
-- (void) loadProfileForAxis: (int) axis
+- (void) loadProfileForAxis: (NSUInteger) axis
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSDictionary *dict;

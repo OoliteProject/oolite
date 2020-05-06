@@ -286,10 +286,10 @@ typedef struct
 - (double) getSensitivity;
 
 // Axis profile handling
-- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis:(int) axis;
-- (OOJoystickAxisProfile *) getProfileForAxis: (int) axis;
-- (void) saveProfileForAxis: (int) axis;
-- (void) loadProfileForAxis: (int) axis;
+- (void) setProfile: (OOJoystickAxisProfile *) profile forAxis:(NSUInteger) axis;
+- (OOJoystickAxisProfile *) getProfileForAxis: (NSUInteger) axis;
+- (void) saveProfileForAxis: (NSUInteger) axis;
+- (void) loadProfileForAxis: (NSUInteger) axis;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg

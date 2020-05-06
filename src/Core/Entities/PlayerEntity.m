@@ -5470,7 +5470,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	JSContext *context = OOJSAcquireContext();
 	jsval keyVal = OOJSValueFromNativeObject(context,key);
-	ShipScriptEvent(context, self, "mfdKeyChanged", INT_TO_JSVAL(activeMFD), keyVal);
+	ShipScriptEvent(context, self, "mfdKeyChanged", INT_TO_JSVAL((int32)activeMFD), keyVal);
 	OOJSRelinquishContext(context);
 }
 
@@ -5517,7 +5517,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSUInteger mfdID = activeMFD + 1;
 	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
 	JSContext *context = OOJSAcquireContext();
-	ShipScriptEvent(context, self, "selectedMFDChanged", INT_TO_JSVAL(activeMFD));
+	ShipScriptEvent(context, self, "selectedMFDChanged", INT_TO_JSVAL((int32)activeMFD));
 	OOJSRelinquishContext(context);
 }
 
@@ -6679,20 +6679,20 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (void) markAsOffender:(int)offence_value
+- (void) markAsOffender:(OOCreditsQuantity)offence_value
 {
 	[self markAsOffender:offence_value withReason:kOOLegalStatusReasonUnknown];
 }
 
 
-- (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason
+- (void) markAsOffender:(OOCreditsQuantity)offence_value withReason:(OOLegalStatusReason)reason
 {
 	if (![self isCloaked])
 	{
 		JSContext *context = OOJSAcquireContext();
 	
 		jsval amountVal = JSVAL_VOID;
-		int amountVal2 = (legalStatus | offence_value) - legalStatus;
+		OOCreditsQuantity amountVal2 = (legalStatus | offence_value) - legalStatus;
 		JS_NewNumberValue(context, amountVal2, &amountVal);
 
 		legalStatus |= offence_value; // can't set the new bounty until the size of the change is known

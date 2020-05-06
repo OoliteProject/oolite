@@ -1185,8 +1185,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 	
 	BOOL			emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
-		
-	BOOL			isHostile = NO;
 	
 	if (emptyDial)
 	{
@@ -1347,11 +1345,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				y1 = z_factor * relativePosition.z;
 				y2 = y1 + y_factor * relativePosition.y;
 				
-				isHostile = NO;
 				if ([scannedEntity isShip])
 				{
 					ShipEntity *ship = (ShipEntity *)scannedEntity;
-					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
+					BOOL isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == PLAYER));
 					GLfloat *base_col = [ship scannerDisplayColorForShip:PLAYER :isHostile :flash
 																		:[ship scannerDisplayColor1] :[ship scannerDisplayColor2]
 																		:[ship scannerDisplayColorHostile1] :[ship scannerDisplayColorHostile2]
@@ -3046,7 +3043,6 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	{
 		int					x, y;
 		NSSize				siz;
-		GLfloat				alpha = overallAlpha;
 		struct CachedInfo	cached;
 	
 		[(NSValue *)[sCurrentDrawItem objectAtIndex:WIDGET_CACHE] getValue:&cached];
@@ -3055,8 +3051,8 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		y = useDefined(cached.y, WEAPONSOFFLINETEXT_DISPLAY_Y) + [[UNIVERSE gameView] y_offset] * cached.y0;
 		siz.width = useDefined(cached.width, WEAPONSOFFLINETEXT_WIDTH);
 		siz.height = useDefined(cached.height, WEAPONSOFFLINETEXT_HEIGHT);
-		alpha *= cached.alpha;
 		
+		textColor[3] = cached.alpha;
 		GetRGBAArrayFromInfo(info, textColor);
 		textColor[3] *= overallAlpha;
 		

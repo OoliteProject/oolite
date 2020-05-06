@@ -52,7 +52,7 @@ MA 02110-1301, USA.
 	Quaternion				_atmosphereOrientation;
 	float					_atmosphereRotationalVelocity;
 	
-	unsigned				_shuttlesOnGround;
+	NSUInteger				_shuttlesOnGround;
 	OOTimeDelta				_lastLaunchTime;
 	OOTimeDelta				_shuttleLaunchInterval;
 	

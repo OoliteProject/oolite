@@ -13569,13 +13569,13 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (void) markAsOffender:(int)offence_value
+- (void) markAsOffender:(OOCreditsQuantity)offence_value
 {
 	[self markAsOffender:offence_value withReason:kOOLegalStatusReasonUnknown];
 }
 
 
-- (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason
+- (void) markAsOffender:(OOCreditsQuantity)offence_value withReason:(OOLegalStatusReason)reason
 {
 	if (![self isPolice] && ![self isCloaked] && self != [UNIVERSE station])
 	{

@@ -1163,8 +1163,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
  Mark this ship as an offender, this is different to setBounty as some ships such as police 
  are not markable.  The final bounty may not be equal to existing bounty plus offence_value.
  */
-- (void) markAsOffender:(int)offence_value;
-- (void) markAsOffender:(int)offence_value withReason:(OOLegalStatusReason)reason;
+- (void) markAsOffender:(OOCreditsQuantity)offence_value;
+- (void) markAsOffender:(OOCreditsQuantity)offence_value withReason:(OOLegalStatusReason)reason;
 
 - (void) switchLightsOn;
 - (void) switchLightsOff;
