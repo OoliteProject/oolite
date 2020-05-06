@@ -6,10 +6,11 @@ General:
   supported on the diffuse map's alpha channel.
 * Custom planets now support normal maps, with specular on their alpha
   channel.
+* Visual improvements made on atmospheres.
 * New nav and witchspace beacons deployed, replacing the previous ones.
 * Added the ability to limit star and nebula textures to particular
   galaxies, providing the opportunity to make galaxies more visually 
-  nique.
+  unique.
 * View Keyboard Settings item from start menu has been replaced with
   Game Options, which are now accessible from the get-go rather than
   after starting a game first.
