@@ -414,6 +414,9 @@ void main(void)
 	totalColor += specularLight * gl_LightSource[1].specular;
 #endif
 
+	// apparently some drivers fail to clamp alpha properly, so let's do it for them
+	totalColor.a = clamp(totalColor.a, 0.0, 1.0);
+
 	// gamma correction
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
 	// Normally this would require HDR, but I think it works extremely well in Oolite.
