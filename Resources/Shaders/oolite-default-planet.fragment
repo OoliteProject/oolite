@@ -29,10 +29,13 @@
 #endif
 
 #if IS_OOLITE
-#define SPECULAR_LIGHT		(gl_LightSource[1].specular.rgb)
-#define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb)
+#define MULTIPLIER_LIGHTSRCRADIANCE	1.0
+#define NULTIPLIER_EXPOSURE			1.0
+#define SPECULAR_LIGHT		(gl_LightSource[1].specular.rgb * MULTIPLIER_LIGHTSRCRADIANCE)
+#define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb * MULTIPLIER_LIGHTSRCRADIANCE)
 #define AMBIENT_LIGHT		(gl_LightModel.ambient.rgb)
 #else
+#define MULTIPLIER_LIGHTSRCRADIANCE			1.0
 #define SPECULAR_LIGHT 						vec3(0.8)
 #define DIFFUSE_LIGHT 						vec3(0.8)
 #define AMBIENT_LIGHT						vec3(0.2)
@@ -336,6 +339,9 @@ void main()
 	ambientColor *= vec3(0.8, 0.8, 1.0);
 #endif
 	totalColor += AMBIENT_LIGHT * ambientColor;
+	
+	// exposure
+	totalColor *= NULTIPLIER_EXPOSURE;
 	
 	// re-apply gamma correction
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 

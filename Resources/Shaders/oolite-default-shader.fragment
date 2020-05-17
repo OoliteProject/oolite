@@ -30,6 +30,12 @@
 */
 
 
+#define MULTIPLIER_LIGHTSRCRADIANCE	1.0
+#define MULITPLIER_EXPOSURE			1.0
+#define LIGHTSRC_RADIANCE_DIFFUSE	(gl_LightSource[1].diffuse * MULTIPLIER_LIGHTSRCRADIANCE)
+#define LIGHTSRC_RADIANCE_SPECULAR	(gl_LightSource[1].specular * MULTIPLIER_LIGHTSRCRADIANCE)
+#define LIGHTSRC_AMBIENT			(gl_LightModel.ambient)
+
 #ifndef OOSTD_DIFFUSE_MAP
 #define OOSTD_DIFFUSE_MAP 0
 #endif
@@ -301,7 +307,7 @@ void main(void)
 	vec3 halfVector = normalize(lightVector + eyeVector);
 #endif	
 	// Get ambient colour
-	vec4 ambientLight = gl_LightModel.ambient;
+	vec4 ambientLight = LIGHTSRC_AMBIENT;
 	
 	// Get emission colour
 #if OOSTD_EMISSION || OOSTD_EMISSION_MAP
@@ -333,7 +339,7 @@ void main(void)
 #endif
 	
 	vec4 diffuseLight = vec4(0);
-	diffuseLight += CalcDiffuseLight(lightVector, normal, gl_LightSource[1].diffuse);
+	diffuseLight += CalcDiffuseLight(lightVector, normal, LIGHTSRC_RADIANCE_DIFFUSE);
 	
 #if HAVE_ILLUMINATION
 	diffuseLight += illuminationMapLight;
@@ -411,11 +417,14 @@ void main(void)
 #if OOSTD_SPECULAR
 	// we should not multiply by specularColor here; we already took that into account
 	// when calculating the Fresnel-Schlick term
-	totalColor += specularLight * gl_LightSource[1].specular;
+	totalColor += specularLight * LIGHTSRC_RADIANCE_SPECULAR;
 #endif
 
 	// apparently some drivers fail to clamp alpha properly, so let's do it for them
 	totalColor.a = clamp(totalColor.a, 0.0, 1.0);
+	
+	// exposure
+	totalColor.rgb *= MULITPLIER_EXPOSURE;
 
 	// gamma correction
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
