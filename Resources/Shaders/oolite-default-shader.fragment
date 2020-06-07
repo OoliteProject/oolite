@@ -143,6 +143,9 @@ uniform float			uGloss;
 
 uniform bool			uGammaCorrect;
 
+// Diffuse model selection - if 0, then Lambert is selected
+#define OODIFFUSE_ORENNAYAR			0
+
 #ifndef OOSPECULAR_NEW_MODEL
 #define OOSPECULAR_NEW_MODEL		1
 #ifndef OOSPECULAR_NEW_MODEL_GGX
@@ -158,7 +161,25 @@ uniform bool			uGammaCorrect;
 #define OOLINEAR_TO_SRGB			(1.0 / 2.2)
 #endif
 
-vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
+
+#if OODIFFUSE_ORENNAYAR
+// based on https://www.shadertoy.com/view/ltfyD8
+float diffuseOrenNayar(vec3 lightVector, vec3 eyeVector, vec3 normal, float gloss, float albedoFactor)
+{
+	float NdotL = dot(lightVector, normal);
+	float NdotV = dot(normal, eyeVector);
+	float roughness = 1.0 - gloss;
+	float sigma2 = roughness * roughness;
+	float A = 1.0 - 0.5 * (sigma2 / (((sigma2 + 0.33) + 0.000001)));
+	float B = 0.45 * sigma2 / ((sigma2 + 0.09) + 0.00001);
+	float ga = dot(eyeVector - normal * NdotV, normal - normal * NdotL);
+	
+	return albedoFactor * max(0.0, NdotL) * (A + B * max(0.0, ga) * sqrt(max((1.0 - NdotV * NdotV) * (1.0 - NdotL * NdotL), 0.0)) / max(NdotL, NdotV));
+}
+#endif
+
+
+vec3 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec3 lightColor)
 {
 #if OOSTD_NORMAL_MAP
 	float intensity = dot(normal, lightVector);
@@ -339,7 +360,6 @@ void main(void)
 #endif
 	
 	vec4 diffuseLight = vec4(0);
-	diffuseLight += CalcDiffuseLight(lightVector, normal, LIGHTSRC_RADIANCE_DIFFUSE);
 	
 #if HAVE_ILLUMINATION
 	diffuseLight += illuminationMapLight;
@@ -365,6 +385,7 @@ void main(void)
 #endif
 	
 	vec3 fresnel = vec3(0.0);
+	float gloss = uGloss;
 	// Calculate specular light
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
@@ -377,7 +398,6 @@ void main(void)
 	#else
 		fresnel = FresnelSchlick(specularColor.rgb, lightVector, halfVector);
 		#if OOSPECULAR_NEW_MODEL_GGX
-			float gloss = uGloss;
 			#if OOSTD_SPECULAR_MAP
 				gloss *= specularMapColor.a;
 			#endif
@@ -404,6 +424,12 @@ void main(void)
 	diffuseMapColor.a = 1.0;
 	diffuseColor *= diffuseMapColor;
 	ambientColor *= diffuseMapColor;
+#endif
+
+#if OODIFFUSE_ORENNAYAR
+	diffuseLight.rgb += diffuseOrenNayar(lightVector, eyeVector, normal, gloss, 1.0) * LIGHTSRC_RADIANCE_DIFFUSE.rgb;
+#else
+	diffuseLight.rgb += CalcDiffuseLight(lightVector, normal, LIGHTSRC_RADIANCE_DIFFUSE.rgb);
 #endif
 	
 	// light energy conservation here
