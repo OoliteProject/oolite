@@ -155,7 +155,7 @@ float diffuseOrenNayar(vec3 lightVector, vec3 eyeVector, vec3 normal, float glos
 	float sigma2 = roughness * roughness;
 	float A = 1.0 - 0.5 * (sigma2 / (((sigma2 + 0.33) + 0.000001)));
 	float B = 0.45 * sigma2 / ((sigma2 + 0.09) + 0.00001);
-	float ga = dot(eyeVector - normal * NdotV, normal - normal * NdotL);
+	float ga = dot(eyeVector - normal * NdotV, lightVector - normal * NdotL);
 	
 	return albedoFactor * max(0.0, NdotL) * (A + B * max(0.0, ga) * sqrt(max((1.0 - NdotV * NdotV) * (1.0 - NdotL * NdotL), 0.0)) / max(NdotL, NdotV));
 }
