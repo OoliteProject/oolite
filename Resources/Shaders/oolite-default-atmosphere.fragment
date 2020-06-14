@@ -25,7 +25,7 @@
 */
 
 #define MULTIPLIER_LIGHTSRCRADIANCE	1.0
-#define NULTIPLIER_EXPOSURE			1.0
+#define MULTIPLIER_EXPOSURE			1.0
 
 #define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb * MULTIPLIER_LIGHTSRCRADIANCE)
 #define AMBIENT_LIGHT		(gl_LightModel.ambient.rgb)
@@ -98,7 +98,7 @@ void main()
 	totalColor += AMBIENT_LIGHT * NdotL;
 	
 	// exposure
-	totalColor *= NULTIPLIER_EXPOSURE;
+	totalColor *= MULTIPLIER_EXPOSURE;
 	
 	// all above calculations were done in linear space - tonemap & go to sRGB for display
 	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
@@ -108,7 +108,7 @@ void main()
 	vec3 x = max(vec3(0.0), totalColor - 0.004);
 	totalColor = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
 	
-	//totalColor = vec3(1.0) - exp(-totalColor * NULTIPLIER_EXPOSURE); // exposure tonemapping, if we ever need it
+	//totalColor = vec3(1.0) - exp(-totalColor * MULTIPLIER_EXPOSURE); // exposure tonemapping, if we ever need it
 	
 	gl_FragColor = vec4(totalColor, newOpacity);
 }
