@@ -2829,7 +2829,7 @@
 		}
 	}
 	float dist = [[sDests oo_dictionaryAtIndex:i] oo_floatForKey:@"distance"];
-	if (dist > [self maxHyperspaceDistance] || dist > fuel/10) 
+	if (dist > [self maxHyperspaceDistance] || dist > fuel/10.0f) 
 	{
 		OOLogWARN(@"script.debug", @"DEBUG: %@ Jumping %f which is further than allowed.  I have %d fuel", self, dist, fuel);
 	}
