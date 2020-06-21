@@ -12797,7 +12797,7 @@ static NSString *last_outfitting_key=nil;
 - (void) setScoopOverride:(BOOL)newValue
 {
 	scoopOverride = !!newValue;
-	[self setScoopsActive];
+	if (scoopOverride)  [self setScoopsActive];
 }
 
 
