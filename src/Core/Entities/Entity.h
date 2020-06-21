@@ -168,6 +168,7 @@ enum OOScanClass
 - (BOOL) isPlayer;
 - (BOOL) isPlanet;
 - (BOOL) isSun;
+- (BOOL) isSunlit;
 - (BOOL) isStellarObject;
 - (BOOL) isSky;
 - (BOOL) isWormhole;
