@@ -170,6 +170,12 @@ static NSString * const kOOLogEntityVerificationError		= @"entity.linkedList.ver
 }
 
 
+- (BOOL) isSunlit
+{
+	return isSunlit;
+}
+
+
 - (BOOL) isStellarObject
 {
 	return [self isPlanet] || [self isSun];
