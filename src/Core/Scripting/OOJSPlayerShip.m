@@ -103,6 +103,7 @@ static JSClass sPlayerShipClass =
 enum
 {
 	// Property IDs
+	kPlayerShip_activeMissile,                  // index in 'missiles' array of current active missile
 	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_chartHightlightMode,            // what type of information is being shown on the chart
@@ -136,7 +137,7 @@ enum
 	kPlayerShip_messageGuiTextCommsColor,		// message gui incoming comms text color, array, read/write
 	kPlayerShip_multiFunctionDisplays,			// mfd count, positive int, read-only
 	kPlayerShip_multiFunctionDisplayList,		// active mfd list, array, read-only
-	kPlayerShip_missilesOnline,      // bool (false for ident mode, true for missile mode)
+	kPlayerShip_missilesOnline,                 // bool (false for ident mode, true for missile mode)
 	kPlayerShip_pitch,							// pitch (overrules Ship)
 	kPlayerShip_price,							// idealised trade-in value decicredits, positive int, read-only
 	kPlayerShip_primedEquipment,                // currently primed equipment, string, read/write
@@ -171,6 +172,7 @@ enum
 static JSPropertySpec sPlayerShipProperties[] =
 {
 	// JS name							ID											flags
+	{ "activeMissile",                  kPlayerShip_activeMissile,                  OOJS_PROP_READONLY_CB },
 	{ "aftShield",						kPlayerShip_aftShield,						OOJS_PROP_READWRITE_CB },
 	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			OOJS_PROP_READWRITE_CB },
 	{ "chartHighlightMode",             kPlayerShip_chartHightlightMode,            OOJS_PROP_READWRITE_CB },
@@ -357,6 +359,8 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kPlayerShip_activeMissile:
+			return JS_NewNumberValue(context, [player activeMissile], value);
                       
 		case kPlayerShip_fuelLeakRate:
 			return JS_NewNumberValue(context, [player fuelLeakRate], value);
