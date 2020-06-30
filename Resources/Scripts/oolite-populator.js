@@ -2303,7 +2303,7 @@ this._setMissiles = function(ship,bias)
 		var chance = Math.pow(0.5,Math.abs(bias));
 		for (var i = ship.missiles.length -1 ; i >= 0 ; i--)
 		{
-			if (ship.missiles[i].primaryRole == "EQ_MISSILE" && chance < Math.random())
+			if (ship.missiles[i].equipmentKey == "EQ_MISSILE" && chance < Math.random())
 			{
 				ship.removeEquipment("EQ_MISSILE");
 				if (bias > 0)
