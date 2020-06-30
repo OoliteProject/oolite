@@ -1155,7 +1155,7 @@ this.systemWillRepopulate = function()
 		this._debugR("Incoming thargoid scout");
 		this._addThargoidScout(system.locationFromCode("TRIANGLE"));
 	}
-	if (Math.random() < this.$repopulatorFrequencyIncoming.thargoidStrike)
+	if (Math.random() < this.$repopulatorFrequencyIncoming.thargoidStrikes)
 	{
 		this._debugR("Incoming thargoid strike force");
 		this._addThargoidStrike(system.locationFromCode("TRIANGLE"));
