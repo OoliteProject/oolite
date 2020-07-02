@@ -88,6 +88,7 @@ MA 02110-1301, USA.
 
 
 #define OOJS_STACK_SIZE				8192
+#define OOJS_RUNTIME_SIZE_MB			32
 
 
 static OOJavaScriptEngine	*sSharedEngine = nil;
@@ -278,12 +279,13 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	assert(sizeof(jschar) == sizeof(unichar));
 	
 	// initialize the JS run time, and return result in runtime.
-	_runtime = JS_NewRuntime(32L * 1024L * 1024L);
+	uint32_t jsRuntimeInMB = [defaults oo_intForKey:@"JSRunTime_size_mb" defaultValue:OOJS_RUNTIME_SIZE_MB];
+	_runtime = JS_NewRuntime(jsRuntimeInMB * 1024L * 1024L);
 	
 	// if runtime creation failed, end the program here.
 	if (_runtime == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript runtime.");
+		OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript runtime with size %uMB.", jsRuntimeInMB);
 		exit(1);
 	}
 	
