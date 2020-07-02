@@ -285,7 +285,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// if runtime creation failed, end the program here.
 	if (_runtime == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"%@", @"***** FATAL ERROR: failed to create JavaScript runtime with size %uMB.", jsRuntimeInMB);
+		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript runtime with size %uMB.", jsRuntimeInMB);
 		exit(1);
 	}
 	
