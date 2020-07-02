@@ -279,7 +279,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	assert(sizeof(jschar) == sizeof(unichar));
 	
 	// initialize the JS run time, and return result in runtime.
-	uint32_t jsRuntimeInMiB = [defaults oo_intForKey:@"JSRunTime_size_mib" defaultValue:OOJS_RUNTIME_SIZE_MiB];
+	uint32_t jsRuntimeInMiB = [defaults oo_intForKey:@"jsruntime-size-mib" defaultValue:OOJS_RUNTIME_SIZE_MiB];
 	_runtime = JS_NewRuntime(jsRuntimeInMiB * 1024L * 1024L);
 	
 	// if runtime creation failed, end the program here.
