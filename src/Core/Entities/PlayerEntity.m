@@ -3170,7 +3170,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (EXPECT_NOT(needHyperspeedNearest))
 		{
 			// not visual effects, waypoints, ships, etc.
-			if (scannedEntity != self && [scannedEntity canCollide])
+			if (scannedEntity != self && [scannedEntity canCollide] && (![scannedEntity isShip] || ![self collisionExceptedFor:(ShipEntity *) scannedEntity]))
 			{
 				hsnDistance = sqrt(scannedEntity->zero_distance)-[scannedEntity collisionRadius];
 				needHyperspeedNearest = NO;
