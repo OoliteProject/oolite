@@ -30,8 +30,8 @@
 */
 
 
-#define MULTIPLIER_LIGHTSRCRADIANCE	1.0
-#define MULITPLIER_EXPOSURE			1.0
+#define MULTIPLIER_LIGHTSRCRADIANCE	5.0
+#define MULITPLIER_EXPOSURE			2.0
 #define LIGHTSRC_RADIANCE_DIFFUSE	(gl_LightSource[1].diffuse * MULTIPLIER_LIGHTSRCRADIANCE)
 #define LIGHTSRC_RADIANCE_SPECULAR	(gl_LightSource[1].specular * MULTIPLIER_LIGHTSRCRADIANCE)
 #define LIGHTSRC_AMBIENT			(gl_LightModel.ambient)
@@ -144,7 +144,7 @@ uniform float			uGloss;
 uniform bool			uGammaCorrect;
 
 // Diffuse model selection - if 0, then Lambert is selected
-#define OODIFFUSE_ORENNAYAR			0
+#define OODIFFUSE_ORENNAYAR			1
 
 #ifndef OOSPECULAR_NEW_MODEL
 #define OOSPECULAR_NEW_MODEL		1
