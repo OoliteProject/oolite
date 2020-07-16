@@ -1142,6 +1142,9 @@
 	"oolite-ship-library-weapons-custom"	= "Weapons: %@";
 	"oolite-ship-library-weapons-none"		= "Weapons: None";
 	"oolite-ship-library-weapons-u-u"		= "Weapons: %u fixed, %u pylons";
+	
+	"oolite-ship-library-turrets-custom"	= "Turrets: %@";
+	"oolite-ship-library-turrets-u"			= "Turrets: %u";
 
 	"oolite-ship-library-size-custom"	= "Size: %@";
 	"oolite-ship-library-size-u-u-u"	= "Size: %um x %um x %um";

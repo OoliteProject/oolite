@@ -39,6 +39,7 @@ static NSString * const kOODemoShipGenerator	= @"generator";
 static NSString * const kOODemoShipShields		= @"shields";
 static NSString * const kOODemoShipWitchspace	= @"witchspace";
 static NSString * const kOODemoShipWeapons		= @"weapons";
+static NSString * const kOODemoShipTurrets		= @"turrets";
 static NSString * const kOODemoShipSize			= @"size";
 static NSString * const kOODemoShipConditions	= @"condition_script";
 
@@ -52,4 +53,5 @@ NSString *OOShipLibraryGenerator (ShipEntity *demo_ship);
 NSString *OOShipLibraryShields (ShipEntity *demo_ship);
 NSString *OOShipLibraryWitchspace (ShipEntity *demo_ship);
 NSString *OOShipLibraryWeapons (ShipEntity *demo_ship);
+NSString *OOShipLibraryTurrets (ShipEntity *demo_ship);
 NSString *OOShipLibrarySize (ShipEntity *demo_ship);

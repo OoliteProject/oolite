@@ -4153,18 +4153,10 @@ static JSBool ShipThreatAssessment(JSContext *context, uintN argc, jsval *vp)
 	}
 
 	/* Turret count is public knowledge */
-	NSEnumerator	*subEnum = [thisEnt shipSubEntityEnumerator];
-	ShipEntity		*se = nil;
-	while ((se = [subEnum nextObject]))
-	{
-		if ([se isTurret])
-		{
-			/* TODO: consider making ship combat behaviour try to
-			 * stay at long range from enemies with turrets. Then
-			 * we could perhaps reduce this bonus a bit. */
-			assessment += 1; 
-		}
-	}
+	/* TODO: consider making ship combat behaviour try to
+	 * stay at long range from enemies with turrets. Then
+	 * we could perhaps reduce this bonus a bit. */
+	assessment += [thisEnt turretCount];
 
 	if (fullCheck)
 	{

@@ -3019,7 +3019,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		[gui setArray:[NSArray arrayWithObjects:field1,field2,field3,nil] forRow:4];
 
 
-		/* Row 4: weapons, size */
+		/* Row 4: weapons, turrets, size */
 		override = [librarySettings oo_stringForKey:kOODemoShipWeapons defaultValue:nil];
 		if (override != nil)
 		{
@@ -3037,7 +3037,22 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 			field1 = OOShipLibraryWeapons(demo_ship);
 		}
 
-		field2 = @"";
+		override = [librarySettings oo_stringForKey:kOODemoShipTurrets defaultValue:nil];
+		if (override != nil)
+		{
+			if ([override length] == 0)
+			{
+				field2 = @"";
+			}
+			else
+			{
+				field2 = [NSString stringWithFormat:DESC(@"oolite-ship-library-turrets-custom"),OOExpand(override)];
+			}
+		}
+		else
+		{
+			field2 = OOShipLibraryTurrets(demo_ship);
+		}
 
 		override = [librarySettings oo_stringForKey:kOODemoShipSize defaultValue:nil];
 		if (override != nil)

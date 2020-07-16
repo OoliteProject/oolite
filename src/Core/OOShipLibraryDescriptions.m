@@ -189,6 +189,13 @@ NSString *OOShipLibraryWeapons (ShipEntity *demo_ship)
 }
 
 
+NSString *OOShipLibraryTurrets (ShipEntity *demo_ship)
+{
+	NSUInteger turretCount = [demo_ship turretCount];
+	return turretCount > 0 ? [NSString stringWithFormat:DESC(@"oolite-ship-library-turrets-u"), turretCount] : @"";
+}
+
+
 NSString *OOShipLibrarySize (ShipEntity *demo_ship)
 {
 	BoundingBox bb = [demo_ship totalBoundingBox];

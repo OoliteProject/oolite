@@ -7024,6 +7024,22 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (NSUInteger) turretCount
+{
+	NSUInteger count = 0;
+	NSEnumerator *subEnum = [self shipSubEntityEnumerator];
+	ShipEntity *se = nil;
+	while ((se = [subEnum nextObject]))
+	{
+		if ([se isTurret])
+		{
+			count ++; 
+		}
+	}
+	return count;
+}
+
+
 - (Entity*) proximityAlert
 {
 	Entity* prox = [_proximityAlert weakRefUnderlyingObject];

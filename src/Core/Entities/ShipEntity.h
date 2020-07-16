@@ -769,6 +769,8 @@ typedef enum
 - (uint8_t) maxEscortCount;
 - (void) setMaxEscortCount:(uint8_t)newCount;
 
+- (NSUInteger) turretCount;
+
 - (NSString *) name;
 - (NSString *) shipUniqueName;
 - (NSString *) shipClassName;
