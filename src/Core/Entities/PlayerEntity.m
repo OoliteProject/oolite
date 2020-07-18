@@ -3289,6 +3289,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (BOOL) checkEntityForMassLock:(Entity *)ent withScanClass:(int)theirClass
 {
 	BOOL massLocked = NO;
+	BOOL entIsCloakedShip = [ent isShip] && [(ShipEntity *)ent isCloaked];
 	
 	if (EXPECT_NOT([ent isStellarObject]))
 	{
@@ -3308,8 +3309,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	else if (theirClass != CLASS_NO_DRAW)
 	{
-		// cloaked ships do not mass lock!
-		if (EXPECT_NOT ([ent isShip] && [(ShipEntity *)ent isCloaked]))
+		if (EXPECT_NOT (entIsCloakedShip)
 		{
 			theirClass = CLASS_NO_DRAW;
 		}
@@ -3320,6 +3320,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		switch (theirClass)
 		{
 			case CLASS_NO_DRAW:
+				// cloaked ships do mass lock! - Nikos 20200718
+				if (entIsCloakedShip && ![ent isPlayer])
+				{
+					massLocked = YES;
+				}
+				break;
 			case CLASS_PLAYER:
 			case CLASS_BUOY:
 			case CLASS_ROCK:
