@@ -3309,7 +3309,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 	else if (theirClass != CLASS_NO_DRAW)
 	{
-		if (EXPECT_NOT (entIsCloakedShip)
+		if (EXPECT_NOT (entIsCloakedShip))
 		{
 			theirClass = CLASS_NO_DRAW;
 		}
