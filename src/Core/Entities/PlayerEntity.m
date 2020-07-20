@@ -1099,6 +1099,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	//custom view no.
 	[result oo_setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
 
+	// escape pod rescue time
+	[result oo_setFloat:[self escapePodRescueTime] forKey:@"escape_pod_rescue_time"];
+
 	//local market for main station
 	if ([[UNIVERSE station] localMarket])  [result setObject:[[[UNIVERSE station] localMarket] saveStationAmounts] forKey:@"localMarket"];
 
@@ -1591,6 +1594,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	ship_clock = [dict oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START];
 	fps_check_time = ship_clock;
 	
+	escape_pod_rescue_time = [dict oo_doubleForKey:@"escape_pod_rescue_time" defaultValue:0.0];
+	
 	// role weights
 	[roleWeights release];
 	roleWeights = [[dict oo_arrayForKey:@"role_weights"] mutableCopy];
@@ -2058,7 +2063,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	ship_clock += [nowDate secondOfMinute];
 	fps_check_time = ship_clock;
 	ship_clock_adjust = 0.0;
-	
+	escape_pod_rescue_time = 0.0;
+
 	isSpeechOn = OOSPEECHSETTINGS_OFF;
 #if OOLITE_ESPEAK
 	voice_gender_m = YES;
@@ -4788,6 +4794,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (double) escapePodRescueTime
+{
+	return escape_pod_rescue_time;
+}
+
+
+- (void) setEscapePodRescueTime:(double)seconds
+{
+	escape_pod_rescue_time = seconds;
+}
+
 - (NSString *) dial_clock
 {
 	return ClockToString(ship_clock, ship_clock_adjust > 0);
@@ -6473,7 +6490,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	*/
 	
 	[UNIVERSE setBlockJSPlayerShipProps:YES]; 	// no player.ship properties while inside the pod!
-	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
+	// if a specific amount of time has been provided for the rescue, use it now
+	if (escape_pod_rescue_time > 0) 
+	{
+		ship_clock_adjust += escape_pod_rescue_time;
+		escape_pod_rescue_time = 0; // reset value
+	} 
+	else 
+	{
+		// otherwise, use the default time calc
+		ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
+	}
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
 	flightSpeed = fmin(flightSpeed, maxFlightSpeed);
 	

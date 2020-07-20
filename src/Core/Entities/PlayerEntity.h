@@ -416,6 +416,8 @@ typedef enum
 	double					ship_clock;
 	double					ship_clock_adjust;
 	
+	double					escape_pod_rescue_time;
+
 	double					fps_check_time;
 	int						fps_counter;
 	double					last_fps_check_time;
@@ -901,6 +903,9 @@ typedef enum
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute
 - (BOOL) clockAdjusting;
 - (void) addToAdjustTime:(double) seconds ;
+
+- (double) escapePodRescueTime;
+- (void) setEscapePodRescueTime:(double) seconds;
 
 - (NSString *) dial_clock;
 - (NSString *) dial_clock_adjusted;
