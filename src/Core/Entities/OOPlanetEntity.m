@@ -384,7 +384,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[targetInfo setObject:[NSNumber numberWithFloat:cloudAlpha] forKey:@"cloud_alpha"];
 		
 		// planetinfo overrides
-		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"atmosphere_color"]];
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"air_color"]];
 		if (color != nil) seaHSB = HSBColorWithColor(color);
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"cloud_color"]];
 	if (color != nil) landHSB = HSBColorWithColor(color);
