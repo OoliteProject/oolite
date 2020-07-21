@@ -95,6 +95,7 @@ enum
 	kPlayer_contractReputationPrecise,	// reputation for cargo contracts, float, read only
 	kPlayer_credits,				// credit balance, float, read/write
 	kPlayer_dockingClearanceStatus,	// docking clearance status, string, read only
+	kPlayer_escapePodRescueTime,    // override for the amount of time an escape pod rescue takes, read/write
 	kPlayer_legalStatus,			// legalStatus, string, read-only
 	kPlayer_name,					// Player name, string, read/write
 	kPlayer_parcelReputation,	// reputation for parcel contracts, integer, read-only
@@ -122,6 +123,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "contractReputationPrecise",		kPlayer_contractReputationPrecise,	OOJS_PROP_READONLY_CB },
 	{ "credits",				kPlayer_credits,			OOJS_PROP_READWRITE_CB },
 	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	OOJS_PROP_READONLY_CB },
+	{ "escapePodRescueTime",    kPlayer_escapePodRescueTime, OOJS_PROP_READWRITE_CB },
 	{ "legalStatus",			kPlayer_legalStatus,		OOJS_PROP_READONLY_CB },
 	{ "name",					kPlayer_name,				OOJS_PROP_READWRITE_CB },
 	{ "parcelReputation",		kPlayer_parcelReputation,	OOJS_PROP_READONLY_CB },
@@ -249,6 +251,9 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsid propID,
 			*value = OOJSValueFromBOOL([player alertFlags] & ALERT_FLAG_HOSTILES);
 			return YES;
 			
+		case kPlayer_escapePodRescueTime:
+			return JS_NewNumberValue(context, [player escapePodRescueTime], value);
+			
 		case kPlayer_trumbleCount:
 			return JS_NewNumberValue(context, [player trumbleCount], value);
 			
@@ -345,7 +350,15 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsid propID,
 				return YES;
 			}
 			break;
-		
+
+		case kPlayer_escapePodRescueTime:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[player setEscapePodRescueTime:fValue];
+				return YES;
+			}
+			break;
+
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlayerProperties);
 			return NO;
