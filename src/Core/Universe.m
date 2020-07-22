@@ -7861,7 +7861,7 @@ static void VerifyDesc(NSString *key, id desc)
 	}
 	else
 	{
-		return [systemManager getProperty:KEY_INHABITANT forSystem:sys inGalaxy:galaxyID];
+		return [systemManager getProperty:KEY_INHABITANTS forSystem:sys inGalaxy:galaxyID];
 	}
 }
 
