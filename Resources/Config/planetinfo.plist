@@ -298,7 +298,7 @@
 	};
 
 	"0 7" = {
-		air_color = "0.49792 0.996398 0.910277 1";
+		air_color = "0.0 0.0 1.0 1";
 		ambient_level = 0.1;
 		cloud_alpha = 0.75;
 		cloud_color = "0.8 0.8 0.8 1";
