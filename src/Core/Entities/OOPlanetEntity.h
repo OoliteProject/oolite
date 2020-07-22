@@ -90,6 +90,9 @@ MA 02110-1301, USA.
 
 - (BOOL) isFinishedLoading;
 
+- (Vector) airColor; // visible to shader bindings
+- (void) setAirColor:(OOColor *) newColor;
+
 @end
 
 #endif	// NEW_PLANETS

@@ -7791,6 +7791,10 @@ static void VerifyDesc(NSString *key, id desc)
 		{
 			[[self planet] setUpPlanetFromTexture: [[self planet] textureFileName]];
 		}
+		else if ([key isEqualToString:@"air_color"])
+		{
+			[[self planet] setAirColor:[OOColor brightColorWithDescription:object]];
+		}
 	}
 	
 	sysdataLocked = YES;

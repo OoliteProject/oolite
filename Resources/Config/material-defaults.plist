@@ -123,6 +123,7 @@
 		{
 			atmPosition = "relativePosition";
 			atmRadius = "collisionRadius";
+			atmColor = "airColor";
 		};
 	};
 	"atmosphere-dynamic-macros" =

@@ -159,7 +159,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"cloud_fraction"];
 		[self setUpAtmosphereParametersWithSourceInfo:dict targetInfo:planetInfo];
 		// planetInfo now contains a valid air_color
-		_airColor = [planetInfo objectForKey:@"air_color"];
+		_airColor = [[planetInfo objectForKey:@"air_color"] retain];
 		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
 		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", nil]];
@@ -449,7 +449,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	DESTROY(_planetDrawable);
 	DESTROY(_atmosphereDrawable);
 	DESTROY(_atmosphereShaderDrawable);
-	//DESTROY(_airColor);	// this CTDs on loading savegames.. :(
+	DESTROY(_airColor);
 	DESTROY(_materialParameters);
 	DESTROY(_textureName);
 	DESTROY(_normSpecMapName);
@@ -787,6 +787,25 @@ static OOColor *ColorWithHSBColor(Vector c)
 		// FIXME: change atmosphere rotation speed proportionally
 	}
 	_rotationalVelocity = v;
+}
+
+
+// this method is visible to shader bindings, hence it returns vector
+- (Vector) airColor
+{
+	float r, g, b, a;
+	[_airColor getRed:&r green:&g blue:&b alpha:&a];
+	return make_vector(r, g, b); // don't care about a
+}
+
+
+- (void) setAirColor:(OOColor *) newColor
+{
+	if (newColor)
+	{
+		[_airColor release];
+		_airColor = [newColor retain];
+	}
 }
 
 

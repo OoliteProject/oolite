@@ -24,7 +24,7 @@
 	SOFTWARE.
 */
 
-#define MULTIPLIER_LIGHTSRCRADIANCE	1.35
+#define MULTIPLIER_LIGHTSRCRADIANCE	1.035
 #define MULTIPLIER_EXPOSURE			1.35
 
 #define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb * MULTIPLIER_LIGHTSRCRADIANCE)
@@ -32,15 +32,15 @@
 
 uniform vec4			atmPosition;
 uniform float			atmRadius;
+uniform vec4			atmColor;
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
 varying vec3			vLight1Vector;
 
-const vec3				biasColor = vec3(0.0, 0.0, 1.0);
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
 const float				kFresnelExponent = 4.0;
-const float				biasColorMixRatio = 0.4;
+const float				atmColorMixRatio = 0.5;
 
 
 void main()
@@ -80,7 +80,7 @@ void main()
 								pow(NdotV / cosThreshold, newOpacityExponent));
 	
 	// mix the bias color now
-	totalColor *=	mix(totalColor, biasColor, biasColorMixRatio) *
+	totalColor *=	mix(totalColor, atmColor.rgb, atmColorMixRatio) *
 					// comment below for fresnel to not affect atmosphere color
 					dot(normalize(fresnel), vec3(NdotL)) *
 					clamp(totalColor, vec3(0.0), diffuseColor);
@@ -88,7 +88,7 @@ void main()
 	// at the very edge, mix in some serious bias color
 	if (NdotV < cosThreshold)
 	{
-		totalColor = mix(biasColor * NdotL, totalColor, newOpacity);
+		totalColor = mix(atmColor.rgb * NdotL, totalColor, newOpacity);
 	}
 	
 	// magic herebelow - painting the orange-reddish tinted terminator
