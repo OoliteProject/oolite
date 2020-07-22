@@ -387,7 +387,7 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc,
 	
 	if (argc > 0 && !JS_ValueToBoolean(context, OOJS_ARGV[0], &isPlural))
 	{
-		OOJSReportBadArguments(context, nil, @"displayNameForCommodity", 1, OOJS_ARGV, nil, @"boolean");
+		OOJSReportBadArguments(context, nil, @"randomInhabitantDescription", 1, OOJS_ARGV, nil, @"boolean");
 		return NO;
 	}
 	
