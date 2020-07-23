@@ -2363,7 +2363,9 @@ this._addShips = function(role,num,pos,spread)
 		{
 			let ship = pos.launchShipWithRole(role);
 			if( ship )
+			{
 				result.push(ship);	
+			}
 		}
 		return result;
 	}
