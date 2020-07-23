@@ -366,7 +366,7 @@
 		"timeElapsedSinceSpawn",
 		"throwingSparks",
 		"fogUniform",
-		"airColor",
+		"airColorAsVector",
 		"airColorMixRatio",
 		
 		// Renamed, previously player-only properties for 1.74

@@ -390,7 +390,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"air_color"]];
 		if (color != nil) seaHSB = HSBColorWithColor(color);
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"cloud_color"]];
-	if (color != nil) landHSB = HSBColorWithColor(color);
+		if (color != nil) landHSB = HSBColorWithColor(color);
 		
 		// polar areas: brighter, less saturation
 		landPolarHSB = vector_add(landHSB,LighterHSBColor(landHSB));
@@ -795,11 +795,17 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 
 // this method is visible to shader bindings, hence it returns vector
-- (Vector) airColor
+- (Vector) airColorAsVector
 {
 	float r, g, b, a;
 	[_airColor getRed:&r green:&g blue:&b alpha:&a];
 	return make_vector(r, g, b); // don't care about a
+}
+
+
+- (OOColor *) airColor
+{
+	return _airColor;
 }
 
 

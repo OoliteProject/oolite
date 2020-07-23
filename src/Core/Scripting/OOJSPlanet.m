@@ -58,6 +58,8 @@ static JSClass sPlanetClass =
 enum
 {
 	// Property IDs
+	kPlanet_airColor,			// air color, read/write
+	kPlanet_airColorMixRatio,	// air color mix ratio, float, read/write
 	kPlanet_isMainPlanet,		// Is [UNIVERSE planet], boolean, read-only
 	kPlanet_hasAtmosphere,
 	kPlanet_name,				// Name of planet, string, read/write
@@ -71,6 +73,8 @@ enum
 static JSPropertySpec sPlanetProperties[] =
 {
 	// JS name					ID							flags
+	{ "airColor",				kPlanet_airColor,				OOJS_PROP_READWRITE_CB },
+	{ "airColorMixRatio",			kPlanet_airColorMixRatio,		OOJS_PROP_READWRITE_CB },
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		OOJS_PROP_READONLY_CB },
 	{ "isMainPlanet",			kPlanet_isMainPlanet,		OOJS_PROP_READONLY_CB },
 	{ "name",					kPlanet_name,				OOJS_PROP_READWRITE_CB },
@@ -136,6 +140,13 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kPlanet_airColor:
+			*value = OOJSValueFromNativeObject(context, [[planet airColor] normalizedArray]);
+			return YES;
+			
+		case kPlanet_airColorMixRatio:
+			return JS_NewNumberValue(context, [planet airColorMixRatio], value);
+
 		case kPlanet_isMainPlanet:
 			*value = OOJSValueFromBOOL(planet == (id)[UNIVERSE planet]);
 			return YES;
@@ -180,11 +191,28 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 	NSString				*sValue = nil;
 	Quaternion				qValue;
 	jsdouble				dValue;
+	OOColor				*colorForScript = nil;
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &planet))  return NO;
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kPlanet_airColor:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[planet setAirColor:colorForScript];
+				return YES;
+			}
+			break;
+			
+		case kPlanet_airColorMixRatio:
+			if (JS_ValueToNumber(context, *value, &dValue))
+			{
+				[planet setAirColorMixRatio:dValue];
+				return YES;
+			}
+			break;
 
 		case kPlanet_name:
 			sValue = OOStringFromJSValue(context, *value);

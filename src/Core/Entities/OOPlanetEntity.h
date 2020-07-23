@@ -91,7 +91,8 @@ MA 02110-1301, USA.
 
 - (BOOL) isFinishedLoading;
 
-- (Vector) airColor; // visible to shader bindings
+- (Vector) airColorAsVector; // visible to shader bindings
+- (OOColor *) airColor;
 - (void) setAirColor:(OOColor *) newColor;
 - (float) airColorMixRatio; // visible to shader bindings
 - (void) setAirColorMixRatio:(float) newRatio;
