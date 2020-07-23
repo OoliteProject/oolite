@@ -1635,7 +1635,10 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				break;
 			
 			case COMPASS_MODE_BASIC:
-				[self drawCompassPlanetBlipAt:relativePosition Size:siz Alpha:alpha];
+				if ([reference isStation]) // validateCompassTarget in PlayerEntity.m changes COMPASS_BASIC_MODE target to the main station when inside the planetary aegis or in docking range of the main station
+					[self drawCompassStationBlipAt:relativePosition Size:siz Alpha:alpha];
+				else
+					[self drawCompassPlanetBlipAt:relativePosition Size:siz Alpha:alpha];
 				break;
 				
 			case COMPASS_MODE_PLANET:
