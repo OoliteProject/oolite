@@ -143,6 +143,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	[self setUpLandParametersWithSourceInfo:dict targetInfo:planetInfo];
 	
 	_airColor = nil;	// default to no air
+	_airColorMixRatio = 0.5f;
 	
 #if NEW_ATMOSPHERE
 	if (atmosphere)
@@ -160,9 +161,10 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		[self setUpAtmosphereParametersWithSourceInfo:dict targetInfo:planetInfo];
 		// planetInfo now contains a valid air_color
 		_airColor = [[planetInfo objectForKey:@"air_color"] retain];
+		_airColorMixRatio = [planetInfo oo_floatForKey:@"air_color_mix_ratio"];
 		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color",  @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"air_color_mix_ratio", @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", nil]];
 	}
 	else
 #else
@@ -221,6 +223,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 #define CPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %@;",[(OOColor *)[planetInfo objectForKey:@#PROP] descriptionComponents]);
 #define FPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %f;",[planetInfo oo_floatForKey:@"" #PROP]);
 	CPROP(air_color);
+	FPROP(air_color_mix_ratio);
 	FPROP(cloud_alpha);
 	CPROP(cloud_color);
 	FPROP(cloud_fraction);
@@ -399,6 +402,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"air_color"];
 		[targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"cloud_color"];
 		[targetInfo setObject:ColorWithHSBColor(landPolarHSB) forKey:@"polar_cloud_color"];
+		[targetInfo setObject:[NSNumber numberWithFloat:[sourceInfo oo_floatForKey:@"air_color_mix_ratio"]] forKey:@"air_color_mix_ratio"];
 	}
 }
 
@@ -806,6 +810,19 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_airColor release];
 		_airColor = [newColor retain];
 	}
+}
+
+
+// visible to shader bindings
+- (float) airColorMixRatio
+{
+	return _airColorMixRatio;
+}
+
+
+- (void) setAirColorMixRatio:(float) newRatio
+{
+	_airColorMixRatio = OOClamp_0_1_f(newRatio);
 }
 
 

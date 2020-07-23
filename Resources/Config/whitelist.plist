@@ -367,6 +367,7 @@
 		"throwingSparks",
 		"fogUniform",
 		"airColor",
+		"airColorMixRatio",
 		
 		// Renamed, previously player-only properties for 1.74
 		"clock",				// Was clock_number or clock_secs_number; supersedes clock_mins_number, clock_hours_number, clock_days_number

@@ -33,6 +33,7 @@
 uniform vec4			atmPosition;
 uniform float			atmRadius;
 uniform vec4			atmColor;
+uniform float			atmColorMixRatio;
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
@@ -40,7 +41,6 @@ varying vec3			vLight1Vector;
 
 const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
 const float				kFresnelExponent = 4.0;
-const float				atmColorMixRatio = 0.5;
 
 
 void main()
