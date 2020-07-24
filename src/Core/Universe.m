@@ -7797,7 +7797,7 @@ static void VerifyDesc(NSString *key, id desc)
 		}
 		else if ([key isEqualToString:@"air_color_mix_ratio"])
 		{
-			[[self planet] setAirColorMixRatio:[sysInfo oo_floatForKey:@"air_color_mix_ratio"]];
+			[[self planet] setAirColorMixRatio:[sysInfo oo_floatForKey:key]];
 		}
 	}
 	
