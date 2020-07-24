@@ -400,26 +400,25 @@ MA 02110-1301, USA.
 {
 	float maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
 	float minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	if (maxrgb == minrgb)
-	{
-		return 0.0f;
-	}
 	float delta = maxrgb - minrgb;
+	float fRed = rgba[0], fGreen = rgba[1], fBlue = rgba[2];
 	float hue = 0.0f;
-	if (rgba[0] == maxrgb)
+	if (maxrgb == fRed && fGreen >= fBlue)
 	{
-		hue = (rgba[1] - rgba[2]) / delta;
+		hue = 60.0f * (fGreen - fBlue) / delta;
 	}
-	else if (rgba[1] == maxrgb)
+	else if (maxrgb == fRed && fGreen < fBlue)
 	{
-		hue = 2.0f + (rgba[2] - rgba[0]) / delta;
+		hue = 60.0f * (fGreen - fBlue) / delta + 360.0f;
 	}
-	else if (rgba[2] == maxrgb)
+	else if (maxrgb == fGreen)
 	{
-		hue = 4.0f + (rgba[0] - rgba[1]) / delta;
+		hue = 60.0f * (fBlue - fRed) / delta + 120.0f;
 	}
-	hue *= 60.0f;
-	while (hue < 0.0f) hue += 360.0f;
+	else if (maxrgb == fBlue)
+	{
+		hue = 60.0f * (fRed - fGreen) / delta + 240.0f;
+	}
 	return hue;
 }
 
@@ -427,17 +426,13 @@ MA 02110-1301, USA.
 {
 	float maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
 	float minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	float brightness = 0.5f * (maxrgb + minrgb);
-	if (maxrgb == minrgb)  return 0.0f;
-	float delta = maxrgb - minrgb;
-	return (brightness <= 0.5f) ? (delta / (maxrgb + minrgb)) : (delta / (2.0f - (maxrgb + minrgb)));
+	return maxrgb == 0.0f ? 0.0f : (1.0f - (minrgb / maxrgb));
 }
 
 - (float) brightnessComponent
 {
 	float maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	float minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	return 0.5f * (maxrgb + minrgb);
+	return maxrgb;
 }
 
 - (void) getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha
@@ -446,32 +441,33 @@ MA 02110-1301, USA.
 	
 	*alpha = rgba[3];
 	
-	int maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? 0:2):((rgba[1] > rgba[2])? 1:2);
-	int minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? 0:2):((rgba[1] < rgba[2])? 1:2);
-	*brightness = 0.5f * (rgba[maxrgb] + rgba[minrgb]);
-	if (rgba[maxrgb] == rgba[minrgb])
+	float fRed = rgba[0], fGreen = rgba[1], fBlue = rgba[2];
+	float maxrgb = fmax(fRed, fmax(fGreen, fBlue));
+	float minrgb = fmin(fRed, fmin(fGreen, fBlue));
+	float delta = maxrgb - minrgb;
+	float h = 0.0f;
+	if (maxrgb == fRed && fGreen >= fBlue)
 	{
-		*saturation = 0.0f;
-		*hue = 0.0f;
-		return;
+		h = 60.0f * (fGreen - fBlue) / delta;
 	}
-	float delta = rgba[maxrgb] - rgba[minrgb];
-	*saturation = (*brightness <= 0.5f) ? (delta / (rgba[maxrgb] + rgba[minrgb])) : (delta / (2.0f - (rgba[maxrgb] + rgba[minrgb])));
-
-	if (maxrgb == 0)
+	else if (maxrgb == fRed && fGreen < fBlue)
 	{
-		*hue = (rgba[1] - rgba[2]) / delta;
+		h = 60.0f * (fGreen - fBlue) / delta + 360.0f;
 	}
-	else if (maxrgb == 1)
+	else if (maxrgb == fGreen)
 	{
-		*hue = 2.0f + (rgba[2] - rgba[0]) / delta;
+		h = 60.0f * (fBlue - fRed) / delta + 120.0f;
 	}
-	else if (maxrgb == 2)
+	else if (maxrgb == fBlue)
 	{
-		*hue = 4.0f + (rgba[0] - rgba[1]) / delta;
+		h = 60.0f * (fRed - fGreen) / delta + 240.0f;
 	}
-	*hue *= 60.0f;
-	while (*hue < 0.0f)  *hue += 360.0f;
+	
+	float s = (maxrgb == 0.0f) ? 0.0f : (1.0f - (minrgb / maxrgb));
+	
+	*hue = h;
+	*saturation = s;
+	*brightness = maxrgb;
 }
 
 
