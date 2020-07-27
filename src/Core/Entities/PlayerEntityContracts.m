@@ -1882,13 +1882,9 @@ static NSMutableDictionary *currentShipyard = nil;
 
 - (void) newShipCommonSetup:(NSString *)shipKey yardInfo:(NSDictionary *)ship_info baseInfo:(NSDictionary *)ship_base_dict 
 {
-
-	if (current_cargo)
-	{
-		// Zero out our manifest.
-		[shipCommodityData removeAllGoods];
-		current_cargo = 0;
-	}
+	// Zero out our manifest.
+	[shipCommodityData removeAllGoods];
+	current_cargo = 0;
 	
 	// drop all passengers
 	[passengers removeAllObjects];
