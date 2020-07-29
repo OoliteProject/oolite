@@ -93,7 +93,11 @@
 #endif
 
 
-#define NEED_EYE_VECTOR (OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP)
+// Diffuse model selection - if 0, then Lambert is selected
+#define OODIFFUSE_ORENNAYAR			1
+
+
+#define NEED_EYE_VECTOR (OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP || OODIFFUSE_ORENNAYAR)
 
 #define HAVE_ILLUMINATION (OOSTD_EMISSION_AND_ILLUMINATION_MAP || OOSTD_ILLUMINATION_MAP)
 
@@ -142,9 +146,6 @@ uniform float			uParallaxBias;
 uniform float			uGloss;
 
 uniform bool			uGammaCorrect;
-
-// Diffuse model selection - if 0, then Lambert is selected
-#define OODIFFUSE_ORENNAYAR			1
 
 #ifndef OOSPECULAR_NEW_MODEL
 #define OOSPECULAR_NEW_MODEL		1
