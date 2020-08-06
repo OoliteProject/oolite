@@ -52,6 +52,10 @@ MA 02110-1301, USA.
 #import "OOStringExpander.h"
 #import "OOOpenGLMatrixManager.h"
 
+
+#define OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT	(make_vector(0.105, 0.18, 0.28))	// used to be (0.1, 0.105, 0.12);
+
+
 @interface OOPlanetEntity (Private) <OOGraphicsResetClient>
 
 - (void) setUpTerrainParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
@@ -137,6 +141,8 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	_planetDrawable = [[OOPlanetDrawable alloc] init];
 	
+	_terminatorThresholdVector = [planetInfo oo_vectorForKey:@"terminator_threshold_vector" defaultValue:OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT];
+	
 	// Load material parameters, including atmosphere.
 	RANROTSeed planetNoiseSeed = RANROTGetFullSeed();
 	[planetInfo setObject:[NSValue valueWithBytes:&planetNoiseSeed objCType:@encode(RANROTSeed)] forKey:@"noise_map_seed"];
@@ -164,7 +170,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		_airColorMixRatio = [planetInfo oo_floatForKey:@"air_color_mix_ratio"];
 		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"air_color_mix_ratio", @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"air_color_mix_ratio", @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", nil]];
 	}
 	else
 #else
@@ -177,7 +183,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
 	{
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction",  @"isMiniature", @"perlin_3d", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction",  @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", nil]];
 	}
 	[_materialParameters retain];
 	
@@ -323,6 +329,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	
 	Vector	landHSB, seaHSB, landPolarHSB, seaPolarHSB;
+	Vector	terminatorThreshold;
 	OOColor	*color;
 	
 	landHSB = RandomHSBColor();
@@ -404,6 +411,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[targetInfo setObject:ColorWithHSBColor(landPolarHSB) forKey:@"polar_cloud_color"];
 		[targetInfo setObject:[NSNumber numberWithFloat:[sourceInfo oo_floatForKey:@"air_color_mix_ratio"]] forKey:@"air_color_mix_ratio"];
 	}
+	terminatorThreshold = [sourceInfo oo_vectorForKey:@"terminator_threshold_vector" defaultValue:OO_TERMINATOR_THRESHOLD_VECTOR_DEFAULT];
+	[targetInfo setObject:[NSString stringWithFormat:@"%f %f %f", terminatorThreshold.x, terminatorThreshold.y, terminatorThreshold.z] forKey:@"terminator_threshold_vector"];
 }
 
 
@@ -427,6 +436,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	_rotationAxis = planet->_rotationAxis;
 	_atmosphereOrientation = planet->_atmosphereOrientation;
 	_rotationalVelocity = 0.04;
+	
+	_terminatorThresholdVector = planet->_terminatorThresholdVector;
 	
 	_miniature = YES;
 	
@@ -829,6 +840,20 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (void) setAirColorMixRatio:(float) newRatio
 {
 	_airColorMixRatio = OOClamp_0_1_f(newRatio);
+}
+
+
+- (void) setTerminatorThresholdVector:(Vector) newTerminatorThresholdVector
+{
+	_terminatorThresholdVector.x = newTerminatorThresholdVector.x;
+	_terminatorThresholdVector.y = newTerminatorThresholdVector.y;
+	_terminatorThresholdVector.z = newTerminatorThresholdVector.z;
+}
+
+
+- (Vector) terminatorThresholdVector
+{
+	return _terminatorThresholdVector;
 }
 
 

@@ -104,10 +104,10 @@ uniform sampler2D		uSpecularMap;
 */
 #if OOSTD_HARSH_MISTRESS
 const float 			kHarshShadowFactor	= 0.3;
-const vec3				kTerminatorThreshold = vec3(0.08);
+const vec3				terminatorThreshold = vec3(0.08);
 #else
 const float 			kHarshShadowFactor	= 0.05;
-const vec3				kTerminatorThreshold = vec3(0.105, 0.18, 0.28); // old: vec3(0.1, 0.105, 0.12);
+uniform vec4			terminatorThreshold;
 #endif
 
 
@@ -173,7 +173,7 @@ vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
 #endif
 	
 	// Hard terminator with slight redish-orange tinge. Note: threshold values are cosines.
-	vec3 baseLight = smoothstep(vec3(0.0), kTerminatorThreshold, vec3(globalTerm));
+	vec3 baseLight = smoothstep(vec3(0.0), terminatorThreshold.xyz, vec3(globalTerm));
 	
 #if USE_NORMAL_MAP
 	// Modulate with normal-mapped "local" illumination.

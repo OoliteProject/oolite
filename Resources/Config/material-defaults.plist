@@ -34,6 +34,7 @@
 		{
 			uDiffuseMap = { type = texture; value = 0; };
 			uNormalMap = { type = texture; value = 1; };
+			terminatorThreshold = "terminatorThresholdVector";
 		};
 	};
 	"planet-dynamic-macros" =
@@ -117,14 +118,15 @@
 	};
 	"atmosphere-material" =
 	{
-	vertex_shader = "oolite-default-atmosphere.vertex";
-	fragment_shader = "oolite-default-atmosphere.fragment";
+		vertex_shader = "oolite-default-atmosphere.vertex";
+		fragment_shader = "oolite-default-atmosphere.fragment";
 		uniforms =
 		{
 			atmPosition = "relativePosition";
 			atmRadius = "collisionRadius";
 			atmColor = "airColorAsVector";
 			atmColorMixRatio = "airColorMixRatio";
+			terminatorThreshold = "terminatorThresholdVector";
 		};
 	};
 	"atmosphere-dynamic-macros" =

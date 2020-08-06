@@ -53,6 +53,8 @@ MA 02110-1301, USA.
 	Quaternion				_atmosphereOrientation;
 	float					_atmosphereRotationalVelocity;
 	
+	Vector					_terminatorThresholdVector;
+	
 	unsigned				_shuttlesOnGround;
 	OOTimeDelta				_lastLaunchTime;
 	OOTimeDelta				_shuttleLaunchInterval;
@@ -96,6 +98,9 @@ MA 02110-1301, USA.
 - (void) setAirColor:(OOColor *) newColor;
 - (float) airColorMixRatio; // visible to shader bindings
 - (void) setAirColorMixRatio:(float) newRatio;
+
+- (void) setTerminatorThresholdVector:(Vector) newTerminatorThresholdVector;
+- (Vector) terminatorThresholdVector; // visible to shader bindings
 
 @end
 

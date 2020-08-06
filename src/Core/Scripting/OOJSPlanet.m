@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJSQuaternion.h"
+#import "OOJSVector.h"
 
 #import "OOPlanetEntity.h"
 
@@ -67,21 +68,23 @@ enum
 	kPlanet_texture,			// Planet texture read / write
 	kPlanet_orientation,		// orientation, quaternion, read/write
 	kPlanet_rotationalVelocity,	// read/write
+	kPlanet_terminatorThresholdVector,
 };
 
 
 static JSPropertySpec sPlanetProperties[] =
 {
 	// JS name					ID							flags
-	{ "airColor",				kPlanet_airColor,				OOJS_PROP_READWRITE_CB },
-	{ "airColorMixRatio",			kPlanet_airColorMixRatio,		OOJS_PROP_READWRITE_CB },
-	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		OOJS_PROP_READONLY_CB },
-	{ "isMainPlanet",			kPlanet_isMainPlanet,		OOJS_PROP_READONLY_CB },
-	{ "name",					kPlanet_name,				OOJS_PROP_READWRITE_CB },
-	{ "radius",					kPlanet_radius,				OOJS_PROP_READONLY_CB },
-	{ "rotationalVelocity",		kPlanet_rotationalVelocity,	OOJS_PROP_READWRITE_CB },
-	{ "texture",				kPlanet_texture,			OOJS_PROP_READWRITE_CB },
-	{ "orientation",			kPlanet_orientation,		OOJS_PROP_READWRITE_CB },	// Not documented since it's inherited from Entity
+	{ "airColor",				kPlanet_airColor,					OOJS_PROP_READWRITE_CB },
+	{ "airColorMixRatio",			kPlanet_airColorMixRatio,			OOJS_PROP_READWRITE_CB },
+	{ "hasAtmosphere",			kPlanet_hasAtmosphere,			OOJS_PROP_READONLY_CB },
+	{ "isMainPlanet",				kPlanet_isMainPlanet,				OOJS_PROP_READONLY_CB },
+	{ "name",					kPlanet_name,						OOJS_PROP_READWRITE_CB },
+	{ "radius",					kPlanet_radius,					OOJS_PROP_READONLY_CB },
+	{ "rotationalVelocity",		kPlanet_rotationalVelocity,		OOJS_PROP_READWRITE_CB },
+	{ "texture",					kPlanet_texture,					OOJS_PROP_READWRITE_CB },
+	{ "orientation",				kPlanet_orientation,				OOJS_PROP_READWRITE_CB },	// Not documented since it's inherited from Entity
+	{ "terminatorThresholdVector",	kPlanet_terminatorThresholdVector,	OOJS_PROP_READWRITE_CB },
 	{ 0 }
 };
 
@@ -171,6 +174,9 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 		
 		case kPlanet_rotationalVelocity:
 			return JS_NewNumberValue(context, [planet rotationalVelocity], value);
+			
+		case kPlanet_terminatorThresholdVector:
+			return VectorToJSValue(context, [planet terminatorThresholdVector], value);
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sPlanetProperties);
@@ -190,6 +196,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOPlanetEntity			*planet = nil;
 	NSString				*sValue = nil;
 	Quaternion				qValue;
+	Vector					vValue;
 	jsdouble				dValue;
 	OOColor				*colorForScript = nil;
 	
@@ -262,6 +269,14 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (JS_ValueToNumber(context, *value, &dValue))
 			{
 				[planet setRotationalVelocity:dValue];
+				return YES;
+			}
+			break;
+			
+		case kPlanet_terminatorThresholdVector:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				[planet setTerminatorThresholdVector:vValue];
 				return YES;
 			}
 			break;
