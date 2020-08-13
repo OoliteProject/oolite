@@ -157,10 +157,10 @@ this.equipmentAdded = function(equip)
 		}
 	}
 	var eq_dict = this.$equipmentEnabled;
-	var eqIncompatible;
-	for (eqKey in eq_dict) {
-		eqIncompatible = EquipmentInfo.infoForKey(eqKey).incompatibleEquipment;
-		if (eqIncompatible && eqIncompatible.indexOf(equip) >= 0) {
+	var eqInfo;
+	for (var eqKey in eq_dict) {
+		eqInfo = EquipmentInfo.infoForKey(eqKey);
+		if (eqInfo && eqInfo.incompatibleEquipment && eqInfo.incompatibleEquipment.indexOf(equip) >= 0) {
 			player.ship.removeEquipment(eqKey);
 		}
 	}
