@@ -324,9 +324,10 @@ void main()
 	
 	vec3 fresnel = vec3(0.0);
 #if USE_SPECULAR && OOSPECULAR_NEW_MODEL
-	// water has a reflectivity of 0.05 and the spec map represents water as values close to 1.0
-	// don't let reflectivity drop below 0.02
-	fresnel = FresnelSchlick(vec3(max(SPECULAR_FACTOR * 0.05, 0.02)), light1Vector, halfVector);
+	// water has a reflectivity of 0.02 and the spec map represents water as values close to 1.0
+	// land masses have standard dielectric material reflectivity (approx. 0.04). So we scale
+	// our 0.0 ... 1.0 input to 0.04 ... 0.02
+	fresnel = FresnelSchlick(vec3(0.04 - 0.02 * SPECULAR_FACTOR), light1Vector, halfVector);
 #endif
 	
 	// Specular light.
