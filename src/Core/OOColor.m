@@ -400,7 +400,7 @@ MA 02110-1301, USA.
 {
 	float maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
 	float minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	float delta = maxrgb - minrgb;
+	float delta = maxrgb - minrgb + 0.0001f;
 	float fRed = rgba[0], fGreen = rgba[1], fBlue = rgba[2];
 	float hue = 0.0f;
 	if (maxrgb == fRed && fGreen >= fBlue)
@@ -444,7 +444,7 @@ MA 02110-1301, USA.
 	float fRed = rgba[0], fGreen = rgba[1], fBlue = rgba[2];
 	float maxrgb = fmax(fRed, fmax(fGreen, fBlue));
 	float minrgb = fmin(fRed, fmin(fGreen, fBlue));
-	float delta = maxrgb - minrgb;
+	float delta = maxrgb - minrgb + 0.0001f;
 	float h = 0.0f;
 	if (maxrgb == fRed && fGreen >= fBlue)
 	{
