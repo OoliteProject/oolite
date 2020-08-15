@@ -265,13 +265,13 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	JS_SetCStringsAreUTF8();
 	
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 #ifndef NDEBUG
 	/*	Set stack trace preferences from preferences. These will be overriden
 		by the debug OXP script if installed, but being able to enable traces
 		without setting up the debug console could be useful for debugging
 		users' problems.
 	*/
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[self setDumpStackForErrors:[defaults boolForKey:@"dump-stack-for-errors"]];
 	[self setDumpStackForWarnings:[defaults boolForKey:@"dump-stack-for-warnings"]];
 #endif
