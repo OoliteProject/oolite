@@ -2211,6 +2211,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[UNIVERSE setGalaxyTo:galaxy_number];
 	[UNIVERSE setSystemTo:system_id];
 
+	[self setUpWeaponSounds];
 	
 	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE globalSettings] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
 	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE globalSettings] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
@@ -5858,7 +5859,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		firedMissile = [self launchMine:missile];
 		if (!replacingMissile) [self removeFromPylon:activeMissile];
-		if (firedMissile != nil) [self playMineLaunched:[self missileLaunchPosition]];
+		if (firedMissile != nil) [self playMineLaunched:[self missileLaunchPosition] weaponIdentifier:identifier];
 	}
 	else
 	{
@@ -5869,7 +5870,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (firedMissile != nil)
 		{
 			if (!replacingMissile) [self removeFromPylon:activeMissile];
-			[self playMissileLaunched:[self missileLaunchPosition]];
+			[self playMissileLaunched:[self missileLaunchPosition] weaponIdentifier:identifier];
 		}
 	}
 	
@@ -6135,7 +6136,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		if (![weapon_to_be_fired isTurretLaser])
 		{
-			[self fireLaserShotInDirection:currentWeaponFacing];
+			[self fireLaserShotInDirection:currentWeaponFacing weaponIdentifier:[[self currentWeapon] identifier]];
 			weaponFired = YES;
 		}
 		else
@@ -6233,7 +6234,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 
 
-- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other weaponIdentifier:(NSString *)weaponIdentifier
 {
 	HPVector		rel_pos;
 	OOScalar		d_forward, d_right, d_up;
@@ -6269,7 +6270,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	d_up = dot_product(HPVectorToVector(rel_pos), v_up);
 	Vector relative = make_vector(d_right,d_up,d_forward);
 
-	[self playShieldHit:relative];
+	[self playShieldHit:relative weaponIdentifier:weaponIdentifier];
 
 	// firing on an innocent ship is an offence
 	if ([other isShip])
@@ -6309,7 +6310,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (amount > 0.0)
 	{
 		energy -= amount;
-		[self playDirectHit:relative];
+		[self playDirectHit:relative weaponIdentifier:weaponIdentifier];
 		if (ship_temperature < SHIP_MAX_CABIN_TEMP)
 		{
 			/* Heat increase from energy impacts will never directly cause

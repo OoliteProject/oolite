@@ -3370,7 +3370,7 @@ static BOOL RemoveOrExplodeShip(JSContext *context, uintN argc, jsval *vp, BOOL 
 	{
 		[thisEnt setSuppressExplosion:!explode];
 		[thisEnt setEnergy:1];
-		[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
+		[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil weaponIdentifier:@""];
 	}
 	
 	OOJS_RETURN_VOID;

@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 @interface PlayerEntity (Sound)
 
 - (void) setUpSound;
+- (void) setUpWeaponSounds;
 - (void) destroySound;
 
 // Interface sounds; only one at a time
@@ -117,15 +118,15 @@ MA 02110-1301, USA.
 - (void) playFuelLeak;
 
 // Damage sounds
-- (void) playShieldHit:(Vector)attackVector;
-- (void) playDirectHit:(Vector)attackVector;
+- (void) playShieldHit:(Vector)attackVector weaponIdentifier:(NSString *)weaponIdentifier;
+- (void) playDirectHit:(Vector)attackVector weaponIdentifier:(NSString *)weaponIdentifier;
 - (void) playScrapeDamage:(Vector)attackVector;
 
 // Weapon sounds
-- (void) playLaserHit:(BOOL)hit offset:(Vector)weaponOffset;
+- (void) playLaserHit:(BOOL)hit offset:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier;
 - (void) playWeaponOverheated:(Vector)weaponOffset;
-- (void) playMissileLaunched:(Vector)weaponOffset;
-- (void) playMineLaunched:(Vector)weaponOffset;
+- (void) playMissileLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier;
+- (void) playMineLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier;
 
 // Miscellaneous sounds
 - (void) playEscapePodScooped;

@@ -96,9 +96,12 @@ MA 02110-1301, USA.
 		Entity *e = (Entity *)[collidingEntities objectAtIndex:i];
 		if ([e rootShipEntity] != [self owner])
 		{
+			// we're going to force the weapon id to be a phantom equipment key so there is something for 
+			// the PlayerEntitySound to reference. it allow allows for the sound effects to be overridden by OXP.
 			[e takeEnergyDamage:[self energy] * attenuation
 						   from:self
-					  becauseOf:[self owner]];
+					  becauseOf:[self owner]
+			   weaponIdentifier:@"EQ_WEAPON_PLASMA_SHOT"];
 			[UNIVERSE removeEntity:self];
 			
 			// Spawn a plasma burst.

@@ -1115,7 +1115,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BOOL) fireDirectLaserDefensiveShot;
 - (BOOL) fireDirectLaserShotAt:(Entity *)my_target;
 - (NSArray *) laserPortOffset:(OOWeaponFacing)direction;
-- (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction;
+- (BOOL) fireLaserShotInDirection:(OOWeaponFacing)direction weaponIdentifier:(NSString *)weaponIdentifier;
 - (void) adjustMissedShots:(int)delta;
 - (int) missedShots;
 - (void) considerFiringMissile:(double)delta_t;

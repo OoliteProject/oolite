@@ -1296,7 +1296,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	return [super hasHostileTarget] || ([self primaryTarget] != nil && ((alertLevel == STATION_ALERT_LEVEL_YELLOW) || (alertLevel == STATION_ALERT_LEVEL_RED)));
 }
 
-- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other weaponIdentifier:(NSString *)weaponIdentifier
 {
 	// stations must ignore friendly fire, otherwise the defenders' AI gets stuck.
 	BOOL			isFriend = NO;
@@ -1339,7 +1339,7 @@ NSDictionary *OOMakeDockingInstructions(StationEntity *station, HPVector coords,
 	if (!isFriend && (self != [UNIVERSE station] || amount < energy) )
 	{
 		// Handle damage like a ship.
-		[super takeEnergyDamage:amount from:ent becauseOf:other];
+		[super takeEnergyDamage:amount from:ent becauseOf:other weaponIdentifier:weaponIdentifier];
 	}
 }
 

@@ -270,7 +270,7 @@ enum OOScanClass
 - (void) applyVelocity:(OOTimeDelta)delta_t;
 - (BOOL) checkCloseCollisionWith:(Entity *)other;
 
-- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other;
+- (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other weaponIdentifier:(NSString *)weaponIdentifier;
 
 - (void) dumpState;		// General "describe situtation verbosely in log" command.
 - (void) dumpSelfState;	// Subclasses should override this, not -dumpState, and call throught to super first.
