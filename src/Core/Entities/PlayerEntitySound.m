@@ -639,7 +639,7 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 - (void) playShieldHit:(Vector)attackVector weaponIdentifier:(NSString *)weaponIdentifier
 {
 	NSString *identifier = [weaponShieldHit objectForKey:weaponIdentifier];
-	if (!identifier)  identifier = [NSString stringWithString:@"[player-hit-by-weapon]"];
+	if (!identifier)  identifier = @"[player-hit-by-weapon]";
 	[sDamageSoundPool playSoundWithKey:identifier position:attackVector];
 }
 
@@ -647,7 +647,7 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 - (void) playDirectHit:(Vector)attackVector weaponIdentifier:(NSString *) weaponIdentifier
 {
 	NSString *identifier = [weaponUnshieldedHit objectForKey:weaponIdentifier];
-	if (!identifier)  identifier = [NSString stringWithString:@"[player-direct-hit]"];
+	if (!identifier)  identifier = @"[player-direct-hit]";
 	[sDamageSoundPool playSoundWithKey:identifier position:attackVector];
 }
 
@@ -664,13 +664,13 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 	if (hit)
 	{
 		identifier = [weaponShotHit objectForKey:weaponIdentifier];
-		if (!identifier)  identifier = [NSString stringWithString:@"[player-laser-hit]"];
+		if (!identifier)  identifier = @"[player-laser-hit]";
 		[sWeaponSoundPool playSoundWithKey:identifier priority:1.0 expiryTime:0.05 overlap:YES position:weaponOffset];
 	}
 	else
 	{
 		identifier = [weaponShotMiss objectForKey:weaponIdentifier];
-		if (!identifier)  identifier = [NSString stringWithString:@"[player-laser-miss]"];
+		if (!identifier)  identifier = @"[player-laser-miss]";
 		[sWeaponSoundPool playSoundWithKey:identifier priority:1.0 expiryTime:0.05 overlap:YES position:weaponOffset];
 
 	}
@@ -686,7 +686,7 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 - (void) playMissileLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier
 {
 	NSString *identifier = [weaponLaunched objectForKey:weaponIdentifier];
-	if (!identifier)  identifier = [NSString stringWithString:@"[missile_launched]"];
+	if (!identifier)  identifier = @"[missile_launched]";
 	[sWeaponSoundPool playSoundWithKey:identifier position:weaponOffset];
 }
 
@@ -694,7 +694,7 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 - (void) playMineLaunched:(Vector)weaponOffset weaponIdentifier:(NSString *)weaponIdentifier
 {
 	NSString *identifier = [weaponLaunched objectForKey:weaponIdentifier];
-	if (!identifier)  identifier = [NSString stringWithString:@"[mine_launched]"];
+	if (!identifier)  identifier = @"[mine_launched]";
 	[sWeaponSoundPool playSoundWithKey:identifier position:weaponOffset];
 }
 
