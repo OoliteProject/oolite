@@ -630,6 +630,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
+- (NSDictionary *) weaponInfo
+{
+	return _weaponInfo;
+}
+
+
 - (GLfloat) weaponRange
 {
 	return [_weaponInfo oo_floatForKey:@"range" defaultValue:12500.0];
