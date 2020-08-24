@@ -2,8 +2,8 @@ Changes between Oolite 1.88 and Oolite 1.90:
 
 General:
 ========
-* Custom sounds for specific lasers and specific hit types can
-  now be defined.
+* Custom sounds for specific lasers and specific hit types are
+  now defined.
 * Increasing opacity of GUI cursor for increased visibility.
 * Basic compass now changes shape when switching from planet to
   station and vice versa.
