@@ -62,6 +62,12 @@ Modified Plists:
 * equipment.plist: Added the fx_shot_miss_name, fx_shot_hit_name and
   fx_weapon_launch_name keys for controlling weapon sounds for individual
   weapons.
+* customsounds.plist: Added the following keys to point to the new
+  individual weapon and ecm-proof missile launch sounds:
+  [mil-laser-player-laser-miss], [mil-laser-player-laser-hit],
+  [mining-laser-player-laser-miss], [mining-laser-player-laser-hit],
+  [beam-laser-player-laser-miss], [beam-laser-player-laser-hit],
+  [ecm-missile-launch].
 * shipdata.plist: Added the escape_pod_rescue_time key.
 * Added support for equipment-overrides.plist.
 
