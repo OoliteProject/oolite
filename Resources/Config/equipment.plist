@@ -154,8 +154,9 @@
 				shot_temperature = 3.2;
 				color = "yellowColor";
 				threat_assessment = 0.5;
+				fx_shot_miss_name = "[beam-laser-player-laser-miss]";
+				fx_shot_hit_name = "[beam-laser-player-laser-hit]";
 			};
-
 		}
 	),
 	(
@@ -174,6 +175,8 @@
 				color = "blueColor";
 				is_mining_laser = 1;
 				threat_assessment = -0.5;
+				fx_shot_miss_name = "[mining-laser-player-laser-miss]";
+				fx_shot_hit_name = "[mining-laser-player-laser-hit]";
 			};
 		}
 	),
@@ -192,6 +195,8 @@
 				shot_temperature = 4.25;
 				color = "magentaColor";
 				threat_assessment = 1.0;
+				fx_shot_miss_name = "[mil-laser-player-laser-miss]";
+				fx_shot_hit_name = "[mil-laser-player-laser-hit]";
 			};
 		}
 	),
@@ -279,6 +284,9 @@
 			requires_empty_pylon = true;
 			/* NOTE: this is always zero for pylon-mounted equipment */
 			damage_probability = 0;
+			weapon_info = {
+				fx_weapon_launch_name = "[ecm-missile-launch]";
+			};
 		}
 	),
 	(
