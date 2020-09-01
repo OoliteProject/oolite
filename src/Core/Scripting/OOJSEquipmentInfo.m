@@ -77,7 +77,8 @@ enum
 	kEquipmentInfo_requiresNonFullFuel,
 	kEquipmentInfo_scriptInfo,					// arbitrary data for scripts, dictionary, read-only
 	kEquipmentInfo_scriptName,
-	kEquipmentInfo_techLevel
+	kEquipmentInfo_techLevel,
+	kEquipmentInfo_weaponInfo
 };
 
 
@@ -117,6 +118,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "scriptInfo",						kEquipmentInfo_scriptInfo,					OOJS_PROP_READONLY_CB },
 	{ "scriptName",						kEquipmentInfo_scriptName,					OOJS_PROP_READONLY_CB },
 	{ "techLevel",						kEquipmentInfo_techLevel,					OOJS_PROP_READONLY_CB },
+	{ "weaponInfo",						kEquipmentInfo_weaponInfo,					OOJS_PROP_READONLY_CB },
 	{ 0 }
 };
 
@@ -388,6 +390,11 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 		case kEquipmentInfo_scriptName:
 			result = [eqType scriptName];
 			if (result == nil) result = @"";
+			break;
+			
+		case kEquipmentInfo_weaponInfo:
+			result = [eqType weaponInfo];
+			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than null
 			break;
 			
 		default:

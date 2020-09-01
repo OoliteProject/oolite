@@ -142,6 +142,7 @@ SOFTWARE.
 // weapon properties
 - (BOOL) isTurretLaser;
 - (BOOL) isMiningLaser;
+- (NSDictionary *) weaponInfo;
 - (GLfloat) weaponRange;
 - (GLfloat) weaponEnergyUse;
 - (GLfloat) weaponDamage;
