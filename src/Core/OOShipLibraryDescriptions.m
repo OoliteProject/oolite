@@ -192,7 +192,14 @@ NSString *OOShipLibraryWeapons (ShipEntity *demo_ship)
 NSString *OOShipLibraryTurrets (ShipEntity *demo_ship)
 {
 	NSUInteger turretCount = [demo_ship turretCount];
-	return turretCount > 0 ? [NSString stringWithFormat:DESC(@"oolite-ship-library-turrets-u"), turretCount] : @"";
+	if (turretCount > 0) 
+	{
+		return [NSString stringWithFormat:DESC(@"oolite-ship-library-turrets-u"), turretCount];
+	}
+	else 
+	{
+		return @"";
+	}
 }
 
 
