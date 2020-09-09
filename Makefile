@@ -66,13 +66,50 @@ endif
 # endif
 
 
+.PHONY: help
+help:
+	@echo "This is a helper-Makefile to make compiling Oolite easier."
+	@echo "Below you will find a list of available build targets."
+	@echo "Syntax: make -f Makefile [build target]"
+	@echo "Usage example: make -f Makefile release"
+	@echo
+	@echo "NOTE (Linux only!): To build linking to the precompiled dependency libraries,"
+	@echo "            delivered with Oolite source, use 'deps-' prefix with debug,"
+	@echo "            release, release-snapshot and release-deployment build targets."
+	@echo "            Usage example: make -f Makefile deps-release"
+	@echo
+	@echo "Development Targets:"
+	@echo "  release             - builds a test release executable in oolite.app/oolite"
+	@echo "  release-deployment  - builds a release executable in oolite.app/oolite"
+	@echo "  release-snapshot    - builds a snapshot release in oolite.app/oolite"
+	@echo "  debug               - builds a debug executable in oolite.app/oolite.dbg"
+	@echo "  all                 - builds the above targets"
+	@echo "  clean               - removes all generated files"
+	@echo
+	@echo "Packaging Targets:"
+	@echo " Linux (debian):"
+	@echo "  pkg-deb             - builds a release Debian package"
+	@echo "  pkg-debtest         - builds a test release Debian package"
+	@echo "  pkg-debsnapshot     - builds a snapshot release Debian package"
+	@echo "  pkg-debclean        - cleans up after a Debian package build"
+	@echo
+	@echo " POSIX Installer (e.g. Linux, FreeBSD etc.):"
+	@echo "  pkg-autopackage     - builds an autopackage (http://autopackage.org) package"
+	@echo
+	@echo "  pkg-posix           - builds a release self-extracting package"
+	@echo "  pkg-posix-test      - builds a test release self-extracting package"
+	@echo "  pkg-posix-snapshot  - builds a snapshot release self-extracting package"
+	@echo "  pkg-posix-nightly   - builds a snapshot release self-extracting package for "
+	@echo "                        the nightly build"
+	@echo
+	@echo " Windows Installer:"
+	@echo "  pkg-win             - builds a test-release version"
+	@echo "  pkg-win-deployment  - builds a release version"
+	@echo "  pkg-win-snapshot    - builds a snapshot version"
+
+
 # Here are our default targets
 #
-.PHONY: debug
-debug: $(DEPS_DBG)
-	$(MAKE) -f GNUmakefile debug=yes strip=no
-	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
-
 .PHONY: release
 release: $(DEPS)
 	$(MAKE) -f GNUmakefile debug=no strip=yes
@@ -87,19 +124,17 @@ release-snapshot: $(DEPS)
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
-# Here are targets using the provided dependencies
-.PHONY: deps-debug
-deps-debug: $(DEPS_DBG)
-	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
-	$(MAKE) -f GNUmakefile debug=yes use_deps=yes strip=no
+.PHONY: debug
+debug: $(DEPS_DBG)
+	$(MAKE) -f GNUmakefile debug=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
+# Here are targets using the provided dependencies
 .PHONY: deps-release
 deps-release: $(DEPS)
 	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
 	$(MAKE) -f GNUmakefile debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
-
 
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
@@ -110,6 +145,12 @@ deps-release-deployment: $(DEPS)
 deps-release-snapshot: $(DEPS)
 	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes strip=yes
+	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
+
+.PHONY: deps-debug
+deps-debug: $(DEPS_DBG)
+	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
+	$(MAKE) -f GNUmakefile debug=yes use_deps=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: LIBJS_DBG
@@ -240,38 +281,4 @@ pkg-win-snapshot: release-snapshot ${NSISVERSIONS}
 	@echo "!define SNAPSHOT 1" >> ${NSISVERSIONS}
 	$(NSIS) installers/win32/OOlite.nsi
 
-.PHONY: help
-help:
-	@echo "This is a helper-Makefile to make compiling Oolite easier."
-	@echo
-	@echo "NOTE (Linux): To build with the dependency libraries provided with Oolite"
-	@echo "              source, use 'deps-' prefix with debug, release, release-snapshot"
-	@echo "              and release-deployment build options."
-	@echo
-	@echo "Development Targets:"
-	@echo "  debug               - builds a debug executable in oolite.app/oolite.dbg"
-	@echo "  release             - builds a test release executable in oolite.app/oolite"
-	@echo "  release-deployment  - builds a release executable in oolite.app/oolite"
-	@echo "  release-snapshot    - builds a snapshot release in oolite.app/oolite"
-	@echo "  all                 - builds the above targets"
-	@echo "  clean               - removes all generated files"
-	@echo
-	@echo "Packaging Targets:"
-	@echo " Linux (debian):"
-	@echo "  pkg-deb             - builds a release Debian package"
-	@echo "  pkg-debtest         - builds a test release Debian package"
-	@echo "  pkg-debsnapshot     - builds a snapshot release Debian package"
-	@echo "  pkg-debclean        - cleans up after a Debian package build"
-	@echo
-	@echo " POSIX (e.g. FreeBSD, Linux etc.):"
-	@echo "  pkg-autopackage     - builds an autopackage (http://autopackage.org) package"
-	@echo
-	@echo "  pkg-posix           - builds a release self-extracting package"
-	@echo "  pkg-posix-test      - builds a test release self-extracting package"
-	@echo "  pkg-posix-snapshot  - builds a snapshot release self-extracting package"
-	@echo "  pkg-posix-nightly   - builds a snapshot release self-extracting package for the nightly build"
-	@echo
-	@echo " Windows Installer:"
-	@echo "  pkg-win             - builds a test-release version"
-	@echo "  pkg-win-deployment  - builds a release version"
-	@echo "  pkg-win-snapshot    - builds a snapshot version"
+
