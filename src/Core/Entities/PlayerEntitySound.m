@@ -119,20 +119,28 @@ static const Vector	 kAfterburner2Position		= { 0.1f, 0.0f, -1.0f };
 	[shieldHitSounds setObject:@"[player-hit-by-weapon]" forKey:@"EQ_WEAPON_PLASMA_SHOT"];
 	[unshieldedHitSounds setObject:@"[player-direct-hit]" forKey:@"EQ_WEAPON_PLASMA_SHOT"];
 	// grab a local copy of the sound identifiers for weapons to make the process of looking up a sound ref as fast as possible
+	// but we must ensure that no nil values are used for setObject
+	#define OO_ASSIGN_SOUNDSTR_TO_SOUNDS(soundStr, sounds) do { \
+		fxString = [eqType soundStr]; \
+		if (!fxString)  fxString = @""; \
+		[sounds setObject:fxString forKey:[eqType identifier]]; \
+	} while(0)
+		
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
+		NSString *fxString = nil;
 		if ([[eqType identifier] hasPrefix:@"EQ_WEAPON"]) 
 		{
-			[shotMissSounds setObject:[eqType fxShotMissName] forKey:[eqType identifier]];
-			[shotHitSounds setObject:[eqType fxShotHitName] forKey:[eqType identifier]];
-			[shieldHitSounds setObject:[eqType fxShieldHitName] forKey:[eqType identifier]];
-			[unshieldedHitSounds setObject:[eqType fxUnshieldedHitName] forKey:[eqType identifier]];
+			OO_ASSIGN_SOUNDSTR_TO_SOUNDS(fxShotMissName, shotMissSounds);
+			OO_ASSIGN_SOUNDSTR_TO_SOUNDS(fxShotHitName, shotHitSounds);
+			OO_ASSIGN_SOUNDSTR_TO_SOUNDS(fxShieldHitName, shieldHitSounds);
+			OO_ASSIGN_SOUNDSTR_TO_SOUNDS(fxUnshieldedHitName, unshieldedHitSounds);
 		}
 		if ([eqType isMissileOrMine]) 
 		{
-			[weaponLaunchedSounds setObject:[eqType fxWeaponLaunchedName] forKey:[eqType identifier]];
-			[shieldHitSounds setObject:[eqType fxShieldHitName] forKey:[eqType identifier]];
-			[unshieldedHitSounds setObject:[eqType fxUnshieldedHitName] forKey:[eqType identifier]];
+			OO_ASSIGN_SOUNDSTR_TO_SOUNDS(fxWeaponLaunchedName, weaponLaunchedSounds);
+			OO_ASSIGN_SOUNDSTR_TO_SOUNDS(fxShieldHitName, shieldHitSounds);
+			OO_ASSIGN_SOUNDSTR_TO_SOUNDS(fxUnshieldedHitName, unshieldedHitSounds);
 		}
 	}
 
