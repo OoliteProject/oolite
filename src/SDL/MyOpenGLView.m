@@ -324,7 +324,7 @@ MA 02110-1301, USA.
 	}
 	
 	int testAttrib = -1;
-	OOLog(@"display.initGL", @"Achieved color / depth buffer sizes (bits):");
+	OOLog(@"display.initGL", @"%@", @"Achieved color / depth buffer sizes (bits):");
 	SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &testAttrib);
 	OOLog(@"display.initGL", @"Red: %d", testAttrib);
 	SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &testAttrib);
