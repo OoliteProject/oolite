@@ -211,8 +211,29 @@ mv ${INSTALLER_REPOS}/release.txt .
 
 # Generate startup scripts
 cd ${STARTUP_SCRIPTS_PATH}
-echo "#!/bin/sh" > oolite${TRUNK}
-echo "${OOLITEAPP_PATH}/oolite-wrapper \$@" >> oolite${TRUNK}
+echo '#!/bin/sh' > oolite${TRUNK}
+echo 'logdir=$HOME/.Oolite/Logs' >> oolite${TRUNK}
+echo 'if [ -n "$OOLITE_LOGS_TO_KEEP" ] && [ $OOLITE_LOGS_TO_KEEP -eq $OOLITE_LOGS_TO_KEEP ] 2>/dev/null; then' >> oolite${TRUNK}
+echo '    logs_to_keep=$OOLITE_LOGS_TO_KEEP' >> oolite${TRUNK}
+echo 'else' >> oolite${TRUNK}
+echo '    logs_to_keep=10' >> oolite${TRUNK}
+echo 'fi' >> oolite${TRUNK}
+echo 'number_of_logs=`ls $logdir/Log-*.log | wc -l`' >> oolite${TRUNK}
+echo 'number_to_remove=$(($number_of_logs - $logs_to_keep))' >> oolite${TRUNK}
+echo 'echo "Number of logs $number_of_logs, keeping $logs_to_keep and removing $number_to_remove"' >> oolite${TRUNK}
+echo 'if [ $number_to_remove -gt 0 ]; then' >> oolite${TRUNK}
+echo '   for a in `ls $logdir/Log*.log | head -n $number_to_remove`; do' >> oolite${TRUNK}
+echo '       echo "Removing log $a"' >> oolite${TRUNK}
+echo '       rm $a' >> oolite${TRUNK}
+echo '   done' >> oolite${TRUNK}
+echo 'fi' >> oolite${TRUNK}
+echo 'if [ -f $logdir/Latest.log ]; then' >> oolite${TRUNK}
+echo '   name=`stat --format="%x" $logdir/Latest.log | sed "s/\..*//"| sed "s/ /_/" | sed "s/:/-/g"`' >> oolite${TRUNK}
+echo '   mv $logdir/Latest.log $logdir/Log-$name.log' >> oolite${TRUNK}
+echo 'fi' >> oolite${TRUNK}
+echo 'dir=`dirname $0`' >>  oolite${TRUNK}
+#echo "${OOLITEAPP_PATH}/oolite-wrapper \$@" >> oolite${TRUNK}
+echo '$dir/oolite.app/oolite-wrapper \$@' >> oolite${TRUNK}
 echo "exit \$?" >> oolite${TRUNK}
 chmod +x oolite${TRUNK}
 echo "#!/bin/sh" > oolite${TRUNK}-update
