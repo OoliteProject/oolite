@@ -8758,6 +8758,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (void) setMaxFlightSpeed:(GLfloat)new
 {
 	maxFlightSpeed = new;
+	cruiseSpeed = 0.8 * maxFlightSpeed;
 }
 
 
