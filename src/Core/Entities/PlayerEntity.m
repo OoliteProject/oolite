@@ -9013,11 +9013,6 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		}
 		
 		[gui setShowTextCursor:NO];
-		
-		if ([gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"] && [UNIVERSE pauseMessageVisible])
-					[[UNIVERSE messageGUI] clear];
-		// Graphically, this screen is analogous to the various settings screens
-		[gui setBackgroundTextureKey:@"settings"];
 	}
 	/* ends */
 	
@@ -9027,8 +9022,24 @@ static NSString *SliderString(NSInteger amountIn20ths)
 	gui_screen = GUI_SCREEN_OPTIONS;
 
 	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];	
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen]; 
+		
+	if ([[UNIVERSE gui] setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"] && [UNIVERSE pauseMessageVisible])
+	{
+		[[UNIVERSE messageGUI] clear];
+	}
+	else
+	{
+		if ([UNIVERSE pauseMessageVisible])
+		{
+			NSString *pauseKey = [PLAYER keyBindingDescription:@"key_pausebutton"];
+			[[UNIVERSE messageGUI] clear];
+			[UNIVERSE addMessage:OOExpandKey(@"game-paused-docked", pauseKey) forCount:1.0 forceDisplay:YES];
+		}
+	}
+	// Graphically, this screen is analogous to the various settings screens
+	[[UNIVERSE gui] setBackgroundTextureKey:@"settings"];
 }
 
 
