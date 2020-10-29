@@ -112,45 +112,45 @@ help:
 #
 .PHONY: release
 release: $(DEPS)
-	$(MAKE) -f GNUmakefile debug=no strip=yes
+	$(MAKE) -j8 -f GNUmakefile debug=no strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no strip=yes
+	$(MAKE) -j8 -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no strip=yes
 
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no strip=yes
+	$(MAKE) -j8 -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: debug
 debug: $(DEPS_DBG)
-	$(MAKE) -f GNUmakefile debug=yes strip=no
+	$(MAKE) -j8 -f GNUmakefile debug=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 # Here are targets using the provided dependencies
 .PHONY: deps-release
 deps-release: $(DEPS)
 	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
-	$(MAKE) -f GNUmakefile debug=no use_deps=yes strip=yes
+	$(MAKE) -j8 -f GNUmakefile debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
 	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
-	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes strip=yes
+	$(MAKE) -j8 -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes strip=yes
 
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
 	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes strip=yes
+	$(MAKE) -j8 -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-debug
 deps-debug: $(DEPS_DBG)
 	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
-	$(MAKE) -f GNUmakefile debug=yes use_deps=yes strip=no
+	$(MAKE) -j8 -f GNUmakefile debug=yes use_deps=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: LIBJS_DBG
@@ -160,7 +160,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "        Please build it yourself and copy it to $(LIBJS_DBG)."
 	false
 endif
-	$(MAKE) -f libjs.make debug=yes
+	$(MAKE) -j8 -f libjs.make debug=yes
 
 # .PHONY: LIBJS
 # LIBJS:
