@@ -4288,7 +4288,30 @@ static BOOL autopilot_pause;
 			pause_pressed = NO;
 		}
 		
-		if ([gameController isGamePaused]) return;
+		if ([gameController isGamePaused])
+		{
+			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD)
+			{
+				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE messageGUI] leaveLastLine];
+				else [[UNIVERSE messageGUI] clear];
+				NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
+				OOTimeDelta		time_delta;
+				if (![[GameController sharedController] isGamePaused])
+				{
+					time_delta = time_this_frame - time_last_frame;
+					time_last_frame = time_this_frame;
+					time_delta = OOClamp_0_max_d(time_delta, MINIMUM_GAME_TICK);
+				}
+				else
+				{
+					time_delta = 0.0;
+				}
+				
+				script_time += time_delta;
+				[self pollGuiArrowKeyControls:time_delta];
+			}
+			return;
+		}
 		
 		if(pollControls)
 		{
