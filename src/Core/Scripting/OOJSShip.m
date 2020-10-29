@@ -3405,7 +3405,9 @@ static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"Ship", @"addDefenseTarget", 1U, OOJS_ARGV, nil, @"target");
 		return NO;
 	}
-	
+	if (PLAYER == target) {
+		OOLog(@"dybal.trace", @"OOJSShip.ShipAddDefenseTarget, adding player ship to %@ defense targets", [thisEnt displayName]);
+	}
 	[thisEnt addDefenseTarget:target];
 
 	OOJS_RETURN_VOID;

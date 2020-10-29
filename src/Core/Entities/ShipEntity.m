@@ -11188,7 +11188,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// Allocate lazily for the benefit of the ships that never get in fights.
 		_defenseTargets = [[OOWeakSet alloc] init];
 	}
-	
+	if (target == PLAYER) {
+		OOLog(@"dybal.trace", @"addDefenseTarget: %@ (%@) added player as defense target", [self displayName], [self primaryRole]);
+	}
 	[_defenseTargets addObject:target];
 	return YES;
 }
