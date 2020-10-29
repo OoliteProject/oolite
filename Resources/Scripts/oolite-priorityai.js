@@ -5425,7 +5425,7 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',respo
 		{
 			this.communicate("oolite_attackLowEnergy",whom,2);
 			// but at low energy still reconsider
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_1: "+this.ship.displayName+" asks for help against player");
+if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_1: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 	}
