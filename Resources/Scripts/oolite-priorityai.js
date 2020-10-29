@@ -2920,6 +2920,7 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 		{
 			// entering attack mode
 			this.broadcastAttackMessage(this.ship.target,"beginning",3);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourDestroyCurrentTarget: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 		else 
@@ -3516,6 +3517,7 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 		{
 			// entering attack mode
 			this.broadcastAttackMessage(this.ship.target,"beginning",3);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourRepelCurrentTarget: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 		else if (this.ship.target)
@@ -3787,6 +3789,7 @@ PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function()
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_launchDefenseShips",this.ship.target,3);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourStationLaunchDefenseShips: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	else if (this.ship.alertCondition > 1)
@@ -3910,6 +3913,7 @@ PriorityAIController.prototype.behaviourStationRespondToDistressCall = function(
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_distressResponseAggressor",aggressor,2);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', :behaviourStationRespondToDistressCall "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	else
@@ -5421,6 +5425,7 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',respo
 		{
 			this.communicate("oolite_attackLowEnergy",whom,2);
 			// but at low energy still reconsider
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_1: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 	}
@@ -5473,6 +5478,7 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',respo
 
 	if (this.ship.escortGroup != null)
 	{
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_2: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	if (!this.ship.hasHostileTarget && this.distance(whom) > this.scannerRange)
@@ -5506,6 +5512,7 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',respo
 	{
 		this.ship.target = whom;
 		this.ship.performAttack();
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttackedUnsuccessfully: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 }
@@ -5855,6 +5862,7 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', resp
 		{
 			// but at low energy still reconsider
 			this.reconsiderNow();
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', station_shipBeingAttacked: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 	}
