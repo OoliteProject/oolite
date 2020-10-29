@@ -87,13 +87,17 @@ this.PriorityAIController = function(ship)
 	function _reconsiderList(priorities) {
 		var logging = this.getParameter("oolite_flag_behaviourLogging");
 		var pl = priorities.length;
+        if (this.ship.AIScript.name.indexOf("Police") >=0 && this.ship.postion.distanceTo(player.ship) <= 25600) 
+            logging = true;
+        else
+            logging = this.getParameter("oolite_flag_behaviourLogging");
 		if (pl == 0)
 		{
-			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had a branch with no entries. This may be caused by a template function not being executed during priority set up.");
+			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship.displayName+" had a branch with no entries. This may be caused by a template function not being executed during priority set up.");
 		}
 		if (logging)
 		{
-			log(this.ship.name,"Considering branch with "+pl+" entries");
+			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering branch with "+pl+" entries");
 		}
 		for (var i = 0; i < pl; i++)
 		{
@@ -101,11 +105,11 @@ this.PriorityAIController = function(ship)
 			{
 				if (priorities[i].label) 
 				{
-					log(this.ship.name,"Considering: "+priorities[i].label);
+					log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering: "+priorities[i].label);
 				}
 				else
 				{
-					log(this.ship.name,"Considering: entry "+i);
+					log(this.name,"_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering: entry "+i);
 				}
 			}
 			// always call the preconfiguration function at this point
@@ -129,7 +133,7 @@ this.PriorityAIController = function(ship)
 			{
 				if (logging)
 				{
-					log(this.ship.name,"Conditions met");
+					log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Conditions met");
 				}
 
 				// always call the configuration function at this point
@@ -142,7 +146,7 @@ this.PriorityAIController = function(ship)
 				{
 					if (logging)
 					{
-						log(this.ship.name,"Executing behaviour");
+						log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Executing behaviour");
 					}
 
 					if (priorities[i].reconsider) 
@@ -156,7 +160,7 @@ this.PriorityAIController = function(ship)
 				{
 					if (logging)
 					{
-						log(this.ship.name,"Entering truebranch");
+						log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Entering truebranch");
 					}
 
 					var branch = _reconsiderList.call(this,priorities[i].truebranch);
@@ -173,7 +177,7 @@ this.PriorityAIController = function(ship)
 				{
 					if (logging)
 					{
-						log(this.ship.name,"Entering falsebranch");
+						log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Entering falsebranch");
 					}
 
 					var branch = _reconsiderList.call(this,priorities[i].falsebranch);
@@ -187,7 +191,7 @@ this.PriorityAIController = function(ship)
 		}
 		if (this.getParameter(logging))
 		{
-			log(this.ship.name,"Exiting branch");
+			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Exiting branch");
 		}
 
 		return null; // nothing in the list is usable, so return
