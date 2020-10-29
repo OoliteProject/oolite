@@ -106,34 +106,44 @@ static unsigned RepForRisk(unsigned risk);
 		{
 			float reward = (5.0 + government) * [rescuee legalStatus];
 			float insurance = 10 * [rescuee insuranceCredits];
-			if (government > (Ranrot() & 7) || reward >= insurance)
+			float tax = 0.05 * government * insurance;
+			insurance -= tax;
+
+			if (tax)
 			{
-				// claim bounty for capture, ignore insurance
-				[result appendFormat:DESC(@"capture-reward-for-@@-@-credits-@-alt"),
+				[result appendFormat:DESC(@"rescue-capture-reward-for-@@-@-credits"),
 				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO),
-				 OOStringFromDeciCredits(insurance, YES, NO)];
-				[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"bounty",[rescuee infoForScripting],nil]];
+				 OOStringFromDeciCredits(insurance, YES, NO), OOStringFromDeciCredits(tax, YES, NO)];
 			}
 			else
 			{
-				// claim insurance reward with reduction of bounty
-				[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits-@-alt"),
-				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(insurance - reward, YES, NO),
-				 OOStringFromDeciCredits(reward, YES, NO)];
-				reward = insurance - reward;
-				[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"insurance",[rescuee infoForScripting],nil]];
+				[result appendFormat:DESC(@"rescue-capture-reward-for-@@-@-credits-notax"),
+				 [rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO),
+				 OOStringFromDeciCredits(insurance, YES, NO)];
 			}
-			credits += reward;
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:reward],@"bounty",[rescuee infoForScripting],nil]];
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:insurance],@"insurance",[rescuee infoForScripting],nil]];
+			credits += reward + insurance;
 			added_entry = YES;
 		}
 		else if ([rescuee insuranceCredits])
 		{
-			// claim insurance reward
-			[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits"),
-				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO)];
-			credits += 10 * [rescuee insuranceCredits];
-			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:(10 * [rescuee insuranceCredits])],@"insurance",[rescuee infoForScripting],nil]];
-				
+			float insurance = 10 * [rescuee insuranceCredits];
+			float tax = 0.05 * government * insurance;
+			insurance -= tax;
+
+			if (tax)
+			{
+				[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits"),
+					[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(insurance, YES, NO), OOStringFromDeciCredits(tax, YES, NO)];
+			}
+			else
+			{
+				[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits-notax"),
+					[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(insurance, YES, NO)];
+			}
+			credits += insurance;
+			[self doScriptEvent:OOJSID("playerRescuedEscapePod") withArguments:[NSArray arrayWithObjects:[NSNumber numberWithUnsignedInteger:insurance],@"insurance",[rescuee infoForScripting],nil]];
 			added_entry = YES;
 		}
 		else if ([rescuee legalStatus])

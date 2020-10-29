@@ -1970,17 +1970,12 @@
 	"character-thargoid-name"		= "a thargoid";
 	
 	// rewards and bounties from escapepods
-	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ ₢.\n";
+	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ ₢ (%@ ₢ went into paying governmental taxes).\n";
+	"rescue-reward-for-@@-@-credits-notax" = "For rescuing %@, %@, their insurance pays %@ ₢ (no governmental taxes apply).\n";
 	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@ ₢.\n";
-	"rescue-reward-for-@@-@-credits-@-alt" = (
-							"For rescuing %@, %@, their insurance pays %@ ₢. This includes a %@ ₢ bribe for clearing the offender status.\n",
-							"Police officers are waiting for %@, %@, but after a hasty discussion and an exchange of credits they depart. Insurance pays you %@ ₢. (%@ ₢ went into the bribe.)\n"
-							);
-	"capture-reward-for-@@-@-credits-@-alt" = (
-							"For capturing %@, %@, you’re paid a bounty of %@ ₢. The insurance fee of %@ goes to governmental taxes.\n",
-							"Police officers escort the loudly protesting %@, %@, away. You receive a bounty chit worth %@ ₢ instead of an insurance payment of %@ ₢.\n"
-							);
-	
+	"rescue-capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@ ₢, their insurance pays %@ ₢ (%@ ₢ went into paying governmental taxes).\n";
+	"rescue-capture-reward-for-@@-@-credits-notax" = "For capturing %@, %@, you’re paid a bounty of %@ ₢, their insurance pays %@ ₢ (no governmental taxes apply).\n";
+
 	// Commodity names
 	"oolite-unknown-commodity-name" = "Unknown Commodity";
 	"commodity-name food"			= "Food";
