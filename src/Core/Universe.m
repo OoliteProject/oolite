@@ -4725,7 +4725,7 @@ static const OOMatrix	starboard_matrix =
 			[self drawMessage];
 			
 #if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
-			[self drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
+//			[self drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
 #endif
 			
 			OOCheckOpenGLErrors(@"Universe after drawing HUD");
