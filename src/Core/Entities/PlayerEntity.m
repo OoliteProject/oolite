@@ -7648,7 +7648,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (2 * market_rnd < ship_trade_in_factor)
 	{
 		// every eight jumps or so drop the price down towards 75%
-		[self adjustTradeInFactorBy:-(1 + (market_rnd & 3))];
+//		[self adjustTradeInFactorBy:-(1 + (market_rnd & 3))];
+		[self adjustTradeInFactorBy:-(1)];
 	}
 	
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
