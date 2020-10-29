@@ -5478,7 +5478,7 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', stan
 
 	if (this.ship.escortGroup != null)
 	{
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_2: "+this.ship.displayName+" asks for help against player");
+if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_2: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	if (!this.ship.hasHostileTarget && this.distance(whom) > this.scannerRange)
