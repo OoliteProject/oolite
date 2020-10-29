@@ -16,6 +16,7 @@ Nicolas Boulenguez
 CaptSolo
 cbr
 Eugene Chernyakov (seventh)
+Bertrand Coconnier
 colinh
 Commander_X
 Commander McLane
