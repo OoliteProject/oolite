@@ -3941,7 +3941,7 @@ if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.n
 
 PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 {
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+" already have player ship as target");
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+" already have player ship as target");
 	var target = this.ship.target;
 	if (target && this.allied(this.ship,target))
 	{
