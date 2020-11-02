@@ -87,7 +87,7 @@ this.PriorityAIController = function(ship)
 	function _reconsiderList(priorities) {
 		var logging = this.getParameter("oolite_flag_behaviourLogging");
 		var pl = priorities.length;
-        if (this.ship.AIScript.name.indexOf("Police") >=0 && this.ship.postion.distanceTo(player.ship) <= 25600) 
+        if (this.ship.AIScript.name.indexOf("Police") >=0 && this.ship.position.distanceTo(player.ship) <= 25600) 
             logging = true;
         else
             logging = this.getParameter("oolite_flag_behaviourLogging");
