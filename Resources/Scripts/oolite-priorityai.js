@@ -97,7 +97,7 @@ this.PriorityAIController = function(ship)
 		}
 		if (logging)
 		{
-			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering branch with "+pl+" entries");
+			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering branch with "+pl+" entries, target:"+(this.ship.target ? this.ship.target.displayName : "None"));
 		}
 		for (var i = 0; i < pl; i++)
 		{
