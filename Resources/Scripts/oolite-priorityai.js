@@ -3981,7 +3981,7 @@ if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+
 			if (!dts[i].isCloaked)
 			{
 				this.ship.target = dts[i];
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship choosen from defense targets");
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship choosen from defense targets");
 				return;
 			}
 		}
@@ -4000,7 +4000,7 @@ if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.n
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from "+gs.displayName+" target");
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from "+gs.displayName+" target");
 					return;
 				}
 			}
@@ -4016,7 +4016,7 @@ if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.n
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from "+gs.displayName+" target");
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from "+gs.displayName+" target");
 					return;
 				}
 			}
