@@ -447,14 +447,14 @@
 	),
 	/* next two items are very old experimental items and are unsupported */
 	/* next item is blocked from purchase by condition script */
-	(
-		0, 1500000, "Military Anti-Scanner Countermeasures (MASC'M)",
-		"EQ_MILITARY_JAMMER",
-		"Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft.",
-		{
-			condition_script = "oolite-conditions.js";
-		}
-	),
+//	(
+//		0, 1500000, "Military Anti-Scanner Countermeasures (MASC'M)",
+//		"EQ_MILITARY_JAMMER",
+//		"Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft.",
+//		{
+//			condition_script = "oolite-conditions.js";
+//		}
+//	),
 	/* next item is blocked from purchase by condition script */
 	(
 		0, 250000, "Military Scanner Filtering",
