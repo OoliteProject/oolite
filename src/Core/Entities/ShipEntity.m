@@ -2999,6 +2999,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					//evict them from our group
 					[group removeShip:hunter];
 				
+					if (PLAYER == other) {
+OOLog(@"dybal.trace", @"ShipEntity.respondToAttackFrom: @% target set to player", [self displayName]);
+					}
 					[groupLeader setFoundTarget:other];
 					[groupLeader setPrimaryAggressor:hunter];
 					[groupLeader respondToAttackFrom:from becauseOf:other];
@@ -11798,6 +11801,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				{
 					[PLAYER addRoleForAggression:victim];
 				}
+				if (PLAYER == parent) {
+OOLog(@"dybal.trace", @"ShipEntity.fireSubentityLaserShot: @% target set to player", [victim displayName]);
+				}
 				[victim setPrimaryAggressor:parent];
 				[victim setFoundTarget:parent];
 				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
@@ -12040,6 +12046,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 						if ([self isPlayer])
 						{
 							[PLAYER addRoleForAggression:victim];
+						}
+						if (PLAYER == self) {
+OOLog(@"dybal.trace", @"ShipEntity.fireLaserShotInDirection: @% target set to player", [victim displayName]);
 						}
 						[victim setPrimaryAggressor:self];
 						[victim setFoundTarget:self];
@@ -13185,6 +13194,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		
 		DESTROY(_lastEscortTarget);	// we're being attacked, escorts can scramble!
 		
+		if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: @% target set to player", [self displayName]);
+		}
 		[self setPrimaryAggressor:hunter];
 		[self setFoundTarget:hunter];
 
@@ -13209,6 +13221,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					ShipEntity *groupLeader = [group leader];
 					if (groupLeader != self)
 					{
+						if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: groupLeader @% target set to player", [groupLeader displayName]);
+						}
 						[groupLeader setFoundTarget:hunter];
 						[groupLeader setPrimaryAggressor:hunter];
 						[groupLeader respondToAttackFrom:ent becauseOf:hunter];
@@ -13224,6 +13239,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					{
 						if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
 						{
+		if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPirate @% target set to player", [otherPirate displayName]);
+		}
 							[otherPirate setFoundTarget:hunter];
 							[otherPirate setPrimaryAggressor:hunter];
 							[otherPirate respondToAttackFrom:ent becauseOf:hunter];
@@ -13239,6 +13257,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					{
 						if (otherPolice != self)
 						{
+		if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice @% target set to player", [otherPolice displayName]);
+		}
 							[otherPolice setFoundTarget:hunter];
 							[otherPolice setPrimaryAggressor:hunter];
 							[otherPolice respondToAttackFrom:ent becauseOf:hunter];
@@ -14117,6 +14138,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		authEnum = [authorities objectEnumerator];
 		while ((auth = [authEnum nextObject]))
 		{
+		if (PLAYER == aggressor_ship) {
+OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: @% target set to player", [auth displayName]);
+		}
 			[auth setFoundTarget:aggressor_ship];
 			[auth doScriptEvent:OOJSID("offenceCommittedNearby") withArgument:aggressor_ship andArgument:self];
 			[auth reactToAIMessage:@"OFFENCE_COMMITTED" context:@"combat update"];
