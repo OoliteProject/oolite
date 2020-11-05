@@ -1425,7 +1425,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			else if (JSValueToEntity(context, *value, &target) && [target isKindOfClass:[ShipEntity class]])
 			{
 				if (PLAYER == target) {
-OOLog(@"dybal.trace",@"OOJSShip, %@ target set to player", [entity displayname]);
+OOLog(@"dybal.trace",@"OOJSShip, %@ target set to player", [entity displayName]);
 				}
 				[entity setTargetForScript:target];
 				return YES;
