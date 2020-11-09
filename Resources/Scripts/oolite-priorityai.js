@@ -192,7 +192,7 @@ this.PriorityAIController = function(ship)
 		}
 		if (this.getParameter(logging))
 		{
-			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Exiting branch");
+			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Exiting branch, target:"+(this.ship.target ? this.ship.target.displayName : "None"));
 		}
 
 		return null; // nothing in the list is usable, so return

@@ -3000,7 +3000,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[group removeShip:hunter];
 				
 					if (PLAYER == other) {
-OOLog(@"dybal.trace", @"ShipEntity.respondToAttackFrom: @% target set to player", [self displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.respondToAttackFrom: %@ target set to player", [self displayName]);
 					}
 					[groupLeader setFoundTarget:other];
 					[groupLeader setPrimaryAggressor:hunter];
@@ -11802,7 +11802,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					[PLAYER addRoleForAggression:victim];
 				}
 				if (PLAYER == parent) {
-OOLog(@"dybal.trace", @"ShipEntity.fireSubentityLaserShot: @% target set to player", [victim displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.fireSubentityLaserShot: %@ target set to player", [victim displayName]);
 				}
 				[victim setPrimaryAggressor:parent];
 				[victim setFoundTarget:parent];
@@ -12048,7 +12048,7 @@ OOLog(@"dybal.trace", @"ShipEntity.fireSubentityLaserShot: @% target set to play
 							[PLAYER addRoleForAggression:victim];
 						}
 						if (PLAYER == self) {
-OOLog(@"dybal.trace", @"ShipEntity.fireLaserShotInDirection: @% target set to player", [victim displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.fireLaserShotInDirection: %@ target set to player", [victim displayName]);
 						}
 						[victim setPrimaryAggressor:self];
 						[victim setFoundTarget:self];
@@ -13195,7 +13195,7 @@ OOLog(@"dybal.trace", @"ShipEntity.fireLaserShotInDirection: @% target set to pl
 		DESTROY(_lastEscortTarget);	// we're being attacked, escorts can scramble!
 		
 		if (PLAYER == hunter) {
-OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: @% target set to player", [self displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: %@ target set to player", [self displayName]);
 		}
 		[self setPrimaryAggressor:hunter];
 		[self setFoundTarget:hunter];
@@ -13222,7 +13222,7 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: @% target set to player", [
 					if (groupLeader != self)
 					{
 						if (PLAYER == hunter) {
-OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: groupLeader @% target set to player", [groupLeader displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: groupLeader %@ target set to player", [groupLeader displayName]);
 						}
 						[groupLeader setFoundTarget:hunter];
 						[groupLeader setPrimaryAggressor:hunter];
@@ -13240,7 +13240,7 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: groupLeader @% target set t
 						if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
 						{
 		if (PLAYER == hunter) {
-OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPirate @% target set to player", [otherPirate displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPirate %@ target set to player", [otherPirate displayName]);
 		}
 							[otherPirate setFoundTarget:hunter];
 							[otherPirate setPrimaryAggressor:hunter];
@@ -13258,7 +13258,7 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPirate @% target set t
 						if (otherPolice != self)
 						{
 		if (PLAYER == hunter) {
-OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice @% target set to player", [otherPolice displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice %@ target set to player", [otherPolice displayName]);
 		}
 							[otherPolice setFoundTarget:hunter];
 							[otherPolice setPrimaryAggressor:hunter];
@@ -13320,7 +13320,11 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice @% target set t
 		}
 		if ((energy < maxEnergy *0.125 || (energy < 64 && energy < amount*2)) && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
-			[self abandonShip];
+			if ([self abandonShip]) {
+				if (other == PLAYER) {
+					[PLAYER setScore:([PLAYER score]+1)];
+				}
+			}
 		}
 	}
 }
@@ -14139,7 +14143,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		while ((auth = [authEnum nextObject]))
 		{
 		if (PLAYER == aggressor_ship) {
-OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: @% target set to player", [auth displayName]);
+OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to player", [auth displayName]);
 		}
 			[auth setFoundTarget:aggressor_ship];
 			[auth doScriptEvent:OOJSID("offenceCommittedNearby") withArgument:aggressor_ship andArgument:self];
