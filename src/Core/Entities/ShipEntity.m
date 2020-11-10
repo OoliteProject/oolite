@@ -13321,9 +13321,10 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice %@ target set t
 		if ((energy < maxEnergy *0.125 || (energy < 64 && energy < amount*2)) && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
 			if ([self abandonShip]) {
-				if (other == PLAYER) {
-OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ abandoning ship", [PLAYER score], ([PLAYER score]+1), [self displayName]);
-					[PLAYER setScore:([PLAYER score]+1)];
+				if ([other isPlayer]) {
+					NSUInteger kills = [(PlayerEntity *)other score];
+OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ abandoning ship", kills, (kills+1), [self displayName]);
+					[(PlayerEntity *)other setScore:(kills+1)];
 				}
 			}
 		}
