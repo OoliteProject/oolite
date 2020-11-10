@@ -7429,9 +7429,9 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_ATTACK_BROADSIDE:
 		case BEHAVIOUR_ATTACK_BROADSIDE_LEFT:
 		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT:
- 	  case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
+	    case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
 		case BEHAVIOUR_CLOSE_WITH_TARGET:
- 	  case BEHAVIOUR_ATTACK_SNIPER:
+	    case BEHAVIOUR_ATTACK_SNIPER:
 		case BEHAVIOUR_SCRIPTED_ATTACK_AI:
 			return YES;
 			
@@ -14793,6 +14793,9 @@ OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to pla
 	}
 	if ([self hasHostileTarget])
 	{
+if ([self primaryTargetWithoutValidityCheck] == PLAYER) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, hasHostileTarget=true, behaviour %d", [self displayName], behaviour);
+}
 		return ALERT_CONDITION_RED;
 	}
 	else
@@ -14806,6 +14809,9 @@ OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to pla
 			{
 				if (HPdistance2([ship position],position) < scanrange2)
 				{
+if ([ship isPlayer]) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, player is defense target in scanrange2 with weapon online", [self displayName]);
+}
 					return ALERT_CONDITION_RED;
 				}
 			}
@@ -14821,6 +14827,9 @@ OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to pla
 				{
 					if (HPdistance2([ship position],position) < scanrange2 * 1.5625)
 					{
+if ([ship isPlayer]) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, hasHostileTarget an player in 1.5*scanrange2 with weapon online", [self displayName]);
+}
 						return ALERT_CONDITION_RED;
 					}
 				}
@@ -14835,6 +14844,9 @@ OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to pla
 				{
 					if (HPdistance2([ship position],position) < scanrange2)
 					{
+if ([self primaryTargetWithoutValidityCheck] == PLAYER) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, group member %@ has hostiletarget ", [self displayName], [ship displayName]);
+}
 						return ALERT_CONDITION_RED;
 					}
 				}
@@ -14849,6 +14861,9 @@ OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to pla
 				{
 					if (HPdistance2([ship position],position) < scanrange2)
 					{
+if ([self primaryTargetWithoutValidityCheck] == PLAYER) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, escortgroup member %@ has hostiletarget ", [self displayName], [ship displayName]);
+}
 						return ALERT_CONDITION_RED;
 					}
 				}
