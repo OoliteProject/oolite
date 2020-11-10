@@ -13322,6 +13322,7 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice %@ target set t
 		{
 			if ([self abandonShip]) {
 				if (other == PLAYER) {
+OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ abandoning ship", [PLAYER score], ([PLAYER score]+1), [self displayName]);
 					[PLAYER setScore:([PLAYER score]+1)];
 				}
 			}

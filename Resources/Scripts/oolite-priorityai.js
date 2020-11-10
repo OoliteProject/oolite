@@ -1506,9 +1506,13 @@ PriorityAIController.prototype.conditionInCombat = function()
 
 	if (this.__cache.oolite_conditionInCombat !== undefined)
 	{
+if (this.ship.target && this.ship.target == player.ship)
+    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+"has player ship as target and  __cache.oolite_conditionInCombat:"+this.__cache.oolite_conditionInCombat);
 		return this.__cache.oolite_conditionInCombat;
 	}
-	this.__cache.oolite_conditionInCombat = (this.ship.alertCondition==3);
+if (this.ship.target && this.ship.target == player.ship)
+    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+" has palyer ship as target and alertCondition:"+this.ship.alertCondition);
+	this.__cache.oolite_conditionInCombat = (this.ship.alertCondition==3) ;
 	if (!this.__cache.oolite_conditionInCombat)
 	{
 		delete this.ship.AIScript.oolite_intership.cargodemandpaid;
