@@ -1424,8 +1424,8 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			else if (JSValueToEntity(context, *value, &target) && [target isKindOfClass:[ShipEntity class]])
 			{
-				if (PLAYER == target) {
-OOLog(@"dybal.trace",@"OOJSShip, %@ target set to player", [entity displayName]);
+				if ([target isPlayer]) {
+OOLog(@"dybal.trace",@"OOJSShip, %@ target set to player at %f", [entity displayName], HPdistance2([entity position],[(ShipEntity *)PLAYER position]));
 				}
 				[entity setTargetForScript:target];
 				return YES;
