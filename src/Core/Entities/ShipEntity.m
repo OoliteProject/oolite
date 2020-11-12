@@ -13320,6 +13320,7 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice %@ target set t
 		}
 		if ((energy < maxEnergy *0.125 || (energy < 64 && energy < amount*2)) && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
+OOLog(@"dybal.trace", @"Will make %@ derelict, done by %@ as hunter %@", self, other, hunter);
 			if ([self abandonShip]) {
 OOLog(@"dybal.trace", @"%@ is now derelict", self);
 				if (hunter == PLAYER) {
@@ -13353,7 +13354,7 @@ OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ abandonin
 	{
 		if (![self isPlayer])
 		{
-		OOLog(@"dybal.trace", @"ShipEntity, abandonShip: %@ abandoned", self);
+OOLog(@"dybal.trace", @"ShipEntity, abandonShip: %@ abandoned", self);
 			OK = YES;
 			// if multiple items providing escape pod, remove all of them (NPC process)
 			while ([self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"])
@@ -13386,6 +13387,7 @@ OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ abandonin
 				[_escortGroup release];
 				_escortGroup = nil;
 			}
+OOLog(@"dybal.trace", @"ShipEntity, abandonShip: end of branch reached");
 		}
 	}
 	else if (EXPECT([self isSubEntity]))
