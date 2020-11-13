@@ -359,7 +359,7 @@ typedef enum
 	float					occlusion_dial;
 	
 	OOSystemID				found_system_id;
-	int						ship_trade_in_factor;
+	float						ship_trade_in_factor;
 	
 	NSDictionary			*worldScripts;
 	NSDictionary			*worldScriptsRequiringTickle;
@@ -1066,7 +1066,7 @@ typedef enum
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
  
 - (void) getFined;
-- (void) adjustTradeInFactorBy:(int)value;
+- (void) adjustTradeInFactorBy:(float)value;
 - (int) tradeInFactor;
 - (double) renovationCosts;
 - (double) renovationFactor;
