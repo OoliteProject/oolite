@@ -1223,7 +1223,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	OOLog(@"fuelPrices", @"Got \"%@\", fuel charge rate: %.2f", [self shipDataKey],[self fuelChargeRate]);
 	
 	// ship depreciation
-	ship_trade_in_factor = [dict oo_FloatForKey:@"ship_trade_in_factor" defaultValue:95];
+	ship_trade_in_factor = [dict oo_floatForKey:@"ship_trade_in_factor" defaultValue:95];
 	
 	// newer savegames use galaxy_id
 	if ([dict oo_stringForKey:@"galaxy_id"] != nil)
