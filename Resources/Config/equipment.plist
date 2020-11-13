@@ -452,7 +452,9 @@
 		"EQ_MILITARY_JAMMER",
 		"Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft.",
 		{
-			condition_script = "oolite-conditions.js";
+            available_to_all = no;
+            available_to_NPCs = no;
+            available_to_player = no;
 		}
 	),
 	/* next item is blocked from purchase by condition script */
