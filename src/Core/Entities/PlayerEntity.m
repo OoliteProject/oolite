@@ -1004,7 +1004,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[result oo_setInteger:ship_kills forKey:@"ship_kills"];
 
 	// ship depreciation
-	[result oo_setInteger:ship_trade_in_factor forKey:@"ship_trade_in_factor"];
+	[result oo_setFloat:ship_trade_in_factor forKey:@"ship_trade_in_factor"];
 
 	// mission variables
 	if (mission_variables != nil)
@@ -1223,8 +1223,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	OOLog(@"fuelPrices", @"Got \"%@\", fuel charge rate: %.2f", [self shipDataKey],[self fuelChargeRate]);
 	
 	// ship depreciation
-	ship_trade_in_factor = [dict oo_intForKey:@"ship_trade_in_factor" defaultValue:95];
-	
+	ship_trade_in_factor = [dict oo_floatForKey:@"ship_trade_in_factor" defaultValue:95];
+OOLog(@"dybal.trace", @"setCommanderDataFromDictionary: trade in %f", ship_trade_in_factor);
 	// newer savegames use galaxy_id
 	if ([dict oo_stringForKey:@"galaxy_id"] != nil)
 	{
@@ -7551,9 +7551,9 @@ OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ destructi
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
 	{
-		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
+		malfunc_chance -= (1 + ranrot_rand() % (int)roundf(81.0-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
 	}
-	else if (ship_trade_in_factor >= 100)
+	else if (ship_trade_in_factor >= 99)
 	{
 		malfunc_chance = 256; // force no misjumps on first jump
 	}
@@ -7649,18 +7649,17 @@ OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ destructi
 	{
 		[self setInfoSystemID: sTo moveChart: YES];
 	}
-	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
-	if (2 * market_rnd < ship_trade_in_factor)
-	{
-		// every eight jumps or so drop the price down towards 75%
-//		[self adjustTradeInFactorBy:-(1 + (market_rnd & 3))];
-		[self adjustTradeInFactorBy:-(1)];
-	}
 	
-	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
 	NSPoint destCoords = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:sTo inGalaxy:galaxy_number]);
 	double distance = distanceBetweenPlanetPositions(destCoords.x,destCoords.y,galaxy_coordinates.x,galaxy_coordinates.y);
 	
+	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
+	float wear = 1 / (0.5 + pow(ship_trade_in_factor - 74, 3/5)) - 0.135;
+	float adjust = - wear * distance;
+	OOLog(@"dybal.trace", @"Taking %f from Service Level %f", adjust, ship_trade_in_factor);
+	[self adjustTradeInFactorBy:adjust];
+
+	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	if (!misjump)
 	{
@@ -11718,7 +11717,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) adjustTradeInFactorBy:(int)value
+- (void) adjustTradeInFactorBy:(float)value
 {
 	ship_trade_in_factor += value;
 	if (ship_trade_in_factor < 75)  ship_trade_in_factor = 75;
@@ -11728,7 +11727,7 @@ static NSString *last_outfitting_key=nil;
 
 - (int) tradeInFactor
 {
-	return ship_trade_in_factor;
+	return (int) ship_trade_in_factor;
 }
 
 

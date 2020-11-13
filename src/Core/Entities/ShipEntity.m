@@ -13320,14 +13320,11 @@ OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice %@ target set t
 		}
 		if ((energy < maxEnergy *0.125 || (energy < 64 && energy < amount*2)) && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
-OOLog(@"dybal.trace", @"Will make %@ derelict, done by %@ as hunter %@", self, other, hunter);
 			if ([self abandonShip]) {
-OOLog(@"dybal.trace", @"%@ is now derelict", self);
-				if (hunter == PLAYER) {
-OOLog(@"dybal.trace", "Trying to increase player kills due to %@ abandoning ship", self);
-					NSUInteger kills = [(PlayerEntity *)hunter score];
-OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ abandoning ship", kills, (kills+1), self);
-					[(PlayerEntity *)hunter setScore:(kills+1)];
+				if (hunter == PLAYER  || [(ShipEntity *)hunter isPlayer]) {
+					NSUInteger kills = [hunter score];
+					OOLog(@"dybal.trace", @"Increasing player kills from %d to %d due to %@ abandoning ship", kills, (kills+1), self);
+					[hunter setScore:(kills+1)];
 				}
 			}
 		}
@@ -13354,7 +13351,6 @@ OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ abandonin
 	{
 		if (![self isPlayer])
 		{
-OOLog(@"dybal.trace", @"ShipEntity, abandonShip: %@ abandoned", self);
 			OK = YES;
 			// if multiple items providing escape pod, remove all of them (NPC process)
 			while ([self hasEquipmentItemProviding:@"EQ_ESCAPE_POD"])
@@ -13387,7 +13383,6 @@ OOLog(@"dybal.trace", @"ShipEntity, abandonShip: %@ abandoned", self);
 				[_escortGroup release];
 				_escortGroup = nil;
 			}
-OOLog(@"dybal.trace", @"ShipEntity, abandonShip: end of branch reached");
 		}
 	}
 	else if (EXPECT([self isSubEntity]))
@@ -13405,7 +13400,6 @@ OOLog(@"dybal.trace", @"ShipEntity, abandonShip: end of branch reached");
 		// this shouldn't happen any more!
 		OOLog(@"ShipEntity.abandonShip.notPossible", @"Ship %@ cannot be abandoned at this time.", self);
 	}
-OOLog(@"dybal.trace", @"ShipEntity, abandonShip: %@ abandoned, exiting", self);
 	return OK;
 }
 
