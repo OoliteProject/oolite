@@ -8941,6 +8941,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 
 - (void) setGuiToLoadSaveScreen
 {
+	BOOL			gamePaused = [[UNIVERSE gameController] isGamePaused];
 	BOOL			canLoadOrSave = NO;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	OOGUIScreenID	oldScreen = gui_screen;
@@ -9003,7 +9004,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		
 		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_OPTIONS_END_OF_LIST)];
 
-		if ([[UNIVERSE gameController] isGamePaused] || (!canLoadOrSave && [self status] == STATUS_DOCKED))
+		if (gamePaused || (!canLoadOrSave && [self status] == STATUS_DOCKED))
 		{
 			[gui setSelectedRow: GUI_ROW(,GAMEOPTIONS)];
 		}
@@ -9013,33 +9014,29 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		}
 		
 		[gui setShowTextCursor:NO];
+		
+		if ([gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"] && [UNIVERSE pauseMessageVisible])
+					[[UNIVERSE messageGUI] clear];
+		// Graphically, this screen is analogous to the various settings screens
+		[gui setBackgroundTextureKey:@"settings"];
 	}
 	/* ends */
 	
 	[[UNIVERSE gameView] clearMouse];
-
+	
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_OPTIONS;
-
-	[self setShowDemoShips:NO];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];	
-	[self noteGUIDidChangeFrom:oldScreen to:gui_screen]; 
-		
-	if ([[UNIVERSE gui] setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"] && [UNIVERSE pauseMessageVisible])
+	
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+	
+	if (gamePaused)
 	{
-		[[UNIVERSE messageGUI] clear];
+		[[UNIVERSE messageGUI] clear]; 
+		NSString *pauseKey = [PLAYER keyBindingDescription:@"key_pausebutton"];
+		[UNIVERSE addMessage:OOExpandKey(@"game-paused-docked", pauseKey) forCount:1.0 forceDisplay:YES];
 	}
-	else
-	{
-		if ([UNIVERSE pauseMessageVisible])
-		{
-			NSString *pauseKey = [PLAYER keyBindingDescription:@"key_pausebutton"];
-			[[UNIVERSE messageGUI] clear];
-			[UNIVERSE addMessage:OOExpandKey(@"game-paused-docked", pauseKey) forCount:1.0 forceDisplay:YES];
-		}
-	}
-	// Graphically, this screen is analogous to the various settings screens
-	[[UNIVERSE gui] setBackgroundTextureKey:@"settings"];
+	
+	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
 
