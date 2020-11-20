@@ -6795,7 +6795,7 @@ OOLog(@"dybal.trace", @"setCommanderDataFromDictionary: trade in %f", ship_trade
 
 	if (killAward)
 	{
-OOLog(@"dybal.trace", "Increasing player kills from %d to %d due to %@ destruction", ship_kills, ship_kills+1, [other displayName]);
+OOLog(@"dybal.trace", @"Increasing player kills from %d to %d due to %@ destruction", ship_kills, ship_kills+1, [other displayName]);
 		ship_kills++;
 		if ((ship_kills % 256) == 0)
 		{
