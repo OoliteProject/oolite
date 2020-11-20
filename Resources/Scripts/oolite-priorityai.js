@@ -1511,7 +1511,7 @@ if (this.ship.target && this.ship.target == player.ship)
 		return this.__cache.oolite_conditionInCombat;
 	}
 if (this.ship.target && this.ship.target == player.ship)
-    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+" has palyer ship as target and alertCondition:"+this.ship.alertCondition);
+    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+" has player ship as target and alertCondition:"+this.ship.alertCondition);
 	this.__cache.oolite_conditionInCombat = (this.ship.alertCondition==3) ;
 	if (!this.__cache.oolite_conditionInCombat)
 	{
