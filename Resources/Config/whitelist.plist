@@ -368,6 +368,7 @@
 		"fogUniform",
 		"airColorAsVector",
 		"airColorMixRatio",
+		"airDensity",
 		"terminatorThresholdVector",
 		
 		// Renamed, previously player-only properties for 1.74

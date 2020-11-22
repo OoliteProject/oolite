@@ -126,6 +126,7 @@
 			atmRadius = "collisionRadius";
 			atmColor = "airColorAsVector";
 			atmColorMixRatio = "airColorMixRatio";
+			atmDensity = "airDensity";
 			terminatorThreshold = "terminatorThresholdVector";
 		};
 	};
