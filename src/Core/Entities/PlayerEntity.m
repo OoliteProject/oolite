@@ -7656,9 +7656,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// wear and tear on all jumps (inc misjumps, failures, and wormholes)
 	// wear factor increases non-linearly as ship_trad_in_factor get closer to minimun of 75
-	float wear_factor = 1 / (0.5 + pow(ship_trade_in_factor - 74, 3/5)) - 0.135;
+	float wear_factor = 1 / (0.5 + pow(ship_trade_in_factor - 74, 0.6)) - 0.135;
+//	float a = ship_trade_in_factor - 74;
+//	float e = 0.6;
+//	float p = pow(a, e);
+//	float d = 0.5 + p;
+//	float i = 1 / d;
+//	float wear_factor = i - 0.135;
 	// jump wear is linearly proportional to jump distance (penalizes fast routes)
 	float jump_wear = - wear_factor * distance;
+//	OOLog(@"dybal.trace", @"a:%f, e:%f, p:%f, d:%f, i:%f, wf:%f, distance:%f, jump_wear:%f", a, e, p, d, i, wear_factor, distance, jump_wear);
 	OOLog(@"dybal.trace", @"Taking %f from Service Level %f", -jump_wear, ship_trade_in_factor);
 	[self adjustTradeInFactorBy:jump_wear];
 
