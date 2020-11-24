@@ -4005,7 +4005,7 @@ if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
-if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from "+gs.displayName+" target");
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from group member "+gs[i].displayName+" target");
 					return;
 				}
 			}
@@ -4021,7 +4021,7 @@ if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
-if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from "+gs.displayName+" target");
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from escort group "+gs[i].displayName+" target");
 					return;
 				}
 			}
