@@ -1862,7 +1862,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 					facing = [entity currentWeaponFacing];
 					break;
 			}
-			[entity setWeaponMount:facing toWeapon:sValue];
+			if (entity == PLAYER) {
+				[entity setWeaponMount:facing toWeapon:sValue inContext:@"scripted"];
+			} else {
+				[entity setWeaponMount:facing toWeapon:sValue];
+			}
 			return YES;
 
 		case kShip_maxEscorts:
