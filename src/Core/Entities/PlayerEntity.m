@@ -7654,7 +7654,7 @@ OOLog(@"dybal.trace", @"Increasing player kills from %d to %d due to %@ destruct
 	double distance = distanceBetweenPlanetPositions(destCoords.x,destCoords.y,galaxy_coordinates.x,galaxy_coordinates.y);
 	
 	//wear and tear on all jumps (inc misjumps, failures, and wormholes)
-	float wear = 1 / (0.5 + pow(ship_trade_in_factor - 74, 3/5)) - 0.135;
+	float wear = 1 / (0.5 + pow(ship_trade_in_factor - 74, 0.6)) - 0.135;
 	float adjust = - wear * distance;
 	OOLog(@"dybal.trace", @"Taking %f from Service Level %f", adjust, ship_trade_in_factor);
 	[self adjustTradeInFactorBy:adjust];
