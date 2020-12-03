@@ -1865,7 +1865,11 @@ OOLog(@"dybal.trace",@"OOJSShip, %@ target set to player at %f", [entity display
 					facing = [entity currentWeaponFacing];
 					break;
 			}
-			[entity setWeaponMount:facing toWeapon:sValue];
+			if (entity == PLAYER) {
+				[entity setWeaponMount:facing toWeapon:sValue inContext:@"scripted"];
+			} else {
+				[entity setWeaponMount:facing toWeapon:sValue];
+			}
 			return YES;
 
 		case kShip_maxEscorts:
