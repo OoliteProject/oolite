@@ -12729,6 +12729,10 @@ static NSString *last_outfitting_key=nil;
 
 - (void) doScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
+	NSString *message_string = OOStringFromJSString(context, JSID_TO_STRING(message));
+	if (message_string != nil && [message_string hasPrefix:@"equipment"]) {
+		OOLog(@"dybal.trace", @"PlayerEntity: calling event %@", message_string);
+	}
 	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
 	[self doWorldScriptEvent:message inContext:context withArguments:argv count:argc timeLimit:0.0];
 }

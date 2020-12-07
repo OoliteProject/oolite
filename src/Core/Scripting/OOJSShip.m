@@ -2741,8 +2741,12 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 				else OK = NO;
 			}
 		}
-		else
+		else {
+			if ([key hasPrefix:@"EQ_FUEL_INJECTION"] && [thisEnt isPlayer]) {
+				OOLog(@"dybal.trace", @"OOJSShip: Removing %@ from %@", key, [thisEnt displayName]);
+			}
 			[thisEnt removeEquipmentItem:key];
+		}
 	}
 	
 	OOJS_RETURN_BOOL(OK);

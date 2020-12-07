@@ -14669,6 +14669,12 @@ OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to pla
 - (void) doScriptEvent:(jsid)message withArgument:(id)argument
 {
 	JSContext *context = OOJSAcquireContext();
+
+NSString *message_string = OOStringFromJSString(context, JSID_TO_STRING(message));
+if (message_string != nil && [message_string hasPrefix:@"equipment"] && self == PLAYER) {
+    OOLog(@"dybal.trace", @"ShipEntity: calling event %@ with %@", message_string, argument);
+}
+
 	
 	jsval value = OOJSValueFromNativeObject(context, argument);
 	[self doScriptEvent:message inContext:context withArguments:&value count:1];
