@@ -5071,7 +5071,7 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 	{
 		return;
 	}
-if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_standard_helpRequestReceived: "+this.ship.displayName+" adds player ship to defense targets due to help request from "+ally.displayName+(this.ship.group && this.ship.group.cointinsShip(ally) ? " (group member)" : " (not group member)"));
+if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_standard_helpRequestReceived: "+this.ship.displayName+" adds player ship to defense targets due to help request from "+ally.displayName+(this.ship.group && this.ship.group.containsShip(ally) ? " (group member)" : " (not group member)"));
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
