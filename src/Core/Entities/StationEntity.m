@@ -268,6 +268,13 @@
 	return localMarket;
 }
 
+- (BOOL) resetLocalMarket
+{
+	OOCommodityMarket *market = [ self initialiseLocalMarket ];
+	if (market)
+		return YES;
+	return NO;
+}
 
 - (void) setPlanet:(OOPlanetEntity *)planet_entity
 {
