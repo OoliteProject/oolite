@@ -63,6 +63,7 @@ static JSBool StationLaunchPolice(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationSetInterface(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationSetMarketPrice(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp);
+static JSBool StationResetMarket(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp);
 static JSBool StationRemoveShipFromShipyard(JSContext *context, uintN argc, jsval *vp);
 
@@ -153,6 +154,7 @@ static JSFunctionSpec sStationMethods[] =
 	{ "setInterface",			StationSetInterface,			0 },
 	{ "setMarketPrice",			StationSetMarketPrice,			2 },
 	{ "setMarketQuantity",		StationSetMarketQuantity,		2 },
+	{ "resetMarket",			StationResetMarket,				0 },
 	{ "addShipToShipyard",      StationAddShipToShipyard,       1 },
 	{ "removeShipFromShipyard", StationRemoveShipFromShipyard,  1 },
 	{ 0 }
@@ -941,6 +943,16 @@ static JSBool StationSetMarketQuantity(JSContext *context, uintN argc, jsval *vp
 	OOJS_NATIVE_EXIT
 }
 
+static JSBool StationResetMarket(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	StationEntity *station = nil;
+	if (!JSStationGetStationEntity(context, OOJS_THIS, &station))  OOJS_RETURN_BOOL(NO); // stale reference, no-op
+	OOJS_RETURN_BOOL([ station resetLocalMarket ]);
+
+	OOJS_NATIVE_EXIT
+}
 
 static JSBool StationAddShipToShipyard(JSContext *context, uintN argc, jsval *vp)
 {
