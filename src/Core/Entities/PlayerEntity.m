@@ -6788,6 +6788,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		NSString *bonusMessage = OOExpandKey(@"bounty-awarded", score, credits);
 		[UNIVERSE addDelayedMessage:bonusMessage forCount:6 afterDelay:0.15];
 	}
+
+	if ([other isUnpiloted]) {
+		killAward = NO;
+	}
 	
 	if (killAward)
 	{
