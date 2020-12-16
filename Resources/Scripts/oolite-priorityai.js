@@ -87,13 +87,18 @@ this.PriorityAIController = function(ship)
 	function _reconsiderList(priorities) {
 		var logging = this.getParameter("oolite_flag_behaviourLogging");
 		var pl = priorities.length;
+        var ps = player.ship;
+        if (!ps.docked && this.ship.AIScript.name.indexOf("Police") >=0 && (this.ship.position.distanceTo(player.ship) <= 3*25600 || this.ship.target == ps)) 
+            logging = true;
+        else
+            logging = this.getParameter("oolite_flag_behaviourLogging");
 		if (pl == 0)
 		{
-			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship+" had a branch with no entries. This may be caused by a template function not being executed during priority set up.");
+			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship.displayName+" had a branch with no entries. This may be caused by a template function not being executed during priority set up.");
 		}
 		if (logging)
 		{
-			log(this.ship.name,"Considering branch with "+pl+" entries");
+			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering branch with "+pl+" entries, target:"+(this.ship.target ? this.ship.target.displayName+" at "+(this.ship.position.distanceTo(ps)/1000).toFixed(1)+"km" : "None"));
 		}
 		for (var i = 0; i < pl; i++)
 		{
@@ -101,11 +106,11 @@ this.PriorityAIController = function(ship)
 			{
 				if (priorities[i].label) 
 				{
-					log(this.ship.name,"Considering: "+priorities[i].label);
+					log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering: "+priorities[i].label);
 				}
 				else
 				{
-					log(this.ship.name,"Considering: entry "+i);
+					log(this.name,"_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Considering: entry "+i);
 				}
 			}
 			// always call the preconfiguration function at this point
@@ -129,7 +134,7 @@ this.PriorityAIController = function(ship)
 			{
 				if (logging)
 				{
-					log(this.ship.name,"Conditions met");
+					log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Conditions met");
 				}
 
 				// always call the configuration function at this point
@@ -142,7 +147,7 @@ this.PriorityAIController = function(ship)
 				{
 					if (logging)
 					{
-						log(this.ship.name,"Executing behaviour");
+						log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Executing behaviour");
 					}
 
 					if (priorities[i].reconsider) 
@@ -156,7 +161,7 @@ this.PriorityAIController = function(ship)
 				{
 					if (logging)
 					{
-						log(this.ship.name,"Entering truebranch");
+						log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Entering truebranch");
 					}
 
 					var branch = _reconsiderList.call(this,priorities[i].truebranch);
@@ -173,7 +178,7 @@ this.PriorityAIController = function(ship)
 				{
 					if (logging)
 					{
-						log(this.ship.name,"Entering falsebranch");
+						log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Entering falsebranch");
 					}
 
 					var branch = _reconsiderList.call(this,priorities[i].falsebranch);
@@ -187,7 +192,7 @@ this.PriorityAIController = function(ship)
 		}
 		if (this.getParameter(logging))
 		{
-			log(this.ship.name,"Exiting branch");
+			log(this.name, "_reconsiderList: AI '"+this.ship.AIScript.name+"', "+this.ship.displayName+": Exiting branch, target:"+(this.ship.target ? this.ship.target.displayName : "None"));
 		}
 
 		return null; // nothing in the list is usable, so return
@@ -725,7 +730,6 @@ PriorityAIController.prototype.checkScannerWithPredicate = function(predicate)
 	return false;
 }
 
-
 PriorityAIController.prototype.cruiseSpeed = function()
 {
 	if (this.__ltcache.oolite_cruiseSpeed)
@@ -846,7 +850,6 @@ PriorityAIController.prototype.fineThreshold = function()
 	}
 	return this.__ltcache.oolite_fineThreshold;
 }
-
 
 // May need to move this and hostileStation to native code for efficiency
 PriorityAIController.prototype.friendlyStation = function(station)
@@ -1023,7 +1026,6 @@ PriorityAIController.prototype.ignorePlayerFriendlyFire = function()
 	return false;
 }
 
-
 PriorityAIController.prototype.isAggressive = function(ship)
 {
 	if (ship && ship.isPlayer)
@@ -1054,8 +1056,8 @@ PriorityAIController.prototype.isFighting = function(ship)
 }
 
 
-/* Call just before switching target to a more serious threat, whom is
- * the more serious threat */
+// Call just before switching target to a more serious threat, whom is
+// the more serious threat 
 PriorityAIController.prototype.noteDistraction = function(whom)
 {
 	if (this.ship.target)
@@ -1100,7 +1102,9 @@ PriorityAIController.prototype.oddsAssessment = function()
 				us += this.threatAssessment(ship,true);
 			}
 		}
-		if (group.leader && group.leader.group  && group.leader.group != group)
+
+		if (group.leader && group.leader.group && group.leader.group != group)
+
 		{
 			gs = group.leader.group.ships;
 			// don't want escorts running off early
@@ -1166,10 +1170,10 @@ PriorityAIController.prototype.oddsAssessment = function()
 
 PriorityAIController.prototype.playerRoleAssessment = function()
 {
-	/* For the player, we pick one entry of their role array at
-	 * random when first asked, then preserve it. Group members
-	 * will take the role their group leader has set, and keep it
-	 * until they get a group leader with different opinions. */
+//	 * For the player, we pick one entry of their role array at
+//	 * random when first asked, then preserve it. Group members
+//	 * will take the role their group leader has set, and keep it
+//	 * until they get a group leader with different opinions. *
 	var role = null;
 	// grab role assessment from current group leader
 	var leader = null;
@@ -1201,8 +1205,7 @@ PriorityAIController.prototype.playerRoleAssessment = function()
 	this.playerRole = role;
 }
 
-
-/* Be very careful with 'passon' parameter to avoid infinite loops */
+// Be very careful with 'passon' parameter to avoid infinite loops 
 PriorityAIController.prototype.respondToThargoids = function(whom,passon)
 {
 	if (this.getParameter("oolite_flag_noSpecialThargoidReaction") != null)
@@ -1306,7 +1309,7 @@ PriorityAIController.prototype.shipHasRiskyContracts = function(ship)
 
 
 
-/* Check role category membership allowing for player role assessment */
+// Check role category membership allowing for player role assessment 
 PriorityAIController.prototype.shipInRoleCategory = function(ship,category) 
 {
 	if (ship.isPlayer)
@@ -1374,7 +1377,6 @@ PriorityAIController.prototype.stationAllegiance = function(station)
 	}
 }
 
-
 PriorityAIController.prototype.threatAssessment = function(ship,full)
 {
 	if (ship.isStation && this.getParameter("oolite_flag_fightsNearHostileStations"))
@@ -1391,14 +1393,14 @@ PriorityAIController.prototype.threatAssessment = function(ship,full)
 	return ta;
 }
 
-/* ****************** Condition functions ************** */
+//* ****************** Condition functions ************** *
 
-/* Conditions. Any function which returns true or false can be used as
- * a condition. They do not have to be part of the AI library, but
- * several common conditions are provided here. */
+//* Conditions. Any function which returns true or false can be used as
+// * a condition. They do not have to be part of the AI library, but
+// * several common conditions are provided here. *
 
 
-/*** Combat-related conditions ***/
+//*** Combat-related conditions ***
 
 
 PriorityAIController.prototype.conditionCascadeDetected = function()
@@ -1476,7 +1478,6 @@ PriorityAIController.prototype.conditionGroupAttritionReached = function()
 	return group.count < cgp*0.75;
 }
 
-
 PriorityAIController.prototype.conditionGroupSuppliesLow = function()
 {
 	var group;
@@ -1493,13 +1494,12 @@ PriorityAIController.prototype.conditionGroupSuppliesLow = function()
 	return (assessment > gs.length / 2); // over half ships have low supplies
 }
 
-
 PriorityAIController.prototype.conditionInCombat = function()
 {
-	/* Overrides normal considerations - if fleeing, make the ship
-	 * flee faster to the wormhole. Taking a further hit may change
-	 * the target anyway, but this should prevent trying to actually
-	 * attack a wormhole */
+//	 * Overrides normal considerations - if fleeing, make the ship
+//	 * flee faster to the wormhole. Taking a further hit may change
+//	 * the target anyway, but this should prevent trying to actually
+//	 * attack a wormhole 
 	if (this.ship.target && this.ship.target.isWormhole)
 	{
 		// but don't cache in case target changes later in evaluation
@@ -1508,9 +1508,13 @@ PriorityAIController.prototype.conditionInCombat = function()
 
 	if (this.__cache.oolite_conditionInCombat !== undefined)
 	{
+if (this.ship.target && this.ship.target == player.ship)
+    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+"has player ship as target and  __cache.oolite_conditionInCombat:"+this.__cache.oolite_conditionInCombat);
 		return this.__cache.oolite_conditionInCombat;
 	}
-	this.__cache.oolite_conditionInCombat = (this.ship.alertCondition==3);
+if (this.ship.target && this.ship.target == player.ship)
+    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+" has player ship as target and alertCondition:"+this.ship.alertCondition);
+	this.__cache.oolite_conditionInCombat = (this.ship.alertCondition==3) ;
 	if (!this.__cache.oolite_conditionInCombat)
 	{
 		delete this.ship.AIScript.oolite_intership.cargodemandpaid;
@@ -1518,7 +1522,7 @@ PriorityAIController.prototype.conditionInCombat = function()
 	return this.__cache.oolite_conditionInCombat;
 }
 
-/* Ships being attacked are firing back */
+// Ships being attacked are firing back 
 PriorityAIController.prototype.conditionInCombatWithHostiles = function()
 {
 	if (this.isFighting(this.ship) && this.isAggressive(this.ship.target))
@@ -1565,7 +1569,6 @@ PriorityAIController.prototype.conditionInCombatWithHostiles = function()
 	delete this.ship.AIScript.oolite_intership.cargodemandpaid;
 	return false;
 }
-
 
 PriorityAIController.prototype.conditionLosingCombat = function()
 {
@@ -1774,7 +1777,7 @@ PriorityAIController.prototype.conditionSuppliesLow = function()
 }
 
 
-/*** Navigation-related conditions ***/
+//*** Navigation-related conditions ***
 
 
 PriorityAIController.prototype.conditionCanWitchspaceOnRoute = function()
@@ -2019,8 +2022,7 @@ PriorityAIController.prototype.conditionWormholeNearby = function()
 }
 
 
-/*** Pirate conditions ***/
-
+//*** Pirate conditions ***
 
 PriorityAIController.prototype.conditionCargoDemandsMet = function()
 {
@@ -2144,7 +2146,7 @@ PriorityAIController.prototype.conditionPiratesCanBePaidOff = function()
 }
 
 
-/*** Scanner conditions ***/
+//*** Scanner conditions ***
 
 
 PriorityAIController.prototype.conditionScannerContainsAssassinationTarget = function()
@@ -2443,7 +2445,7 @@ PriorityAIController.prototype.conditionScannerContainsUnspreadMissile = functio
 }
 
 
-/*** State conditions ***/
+//*** State conditions ***
 
 
 PriorityAIController.prototype.conditionAllEscortsInFlight = function()
@@ -2492,7 +2494,6 @@ PriorityAIController.prototype.conditionCanScoopCargo = function()
 	this.__cache.oolite_conditionCanScoopCargo = true;
 	return true;
 }
-
 
 PriorityAIController.prototype.conditionCargoIsProfitableHere = function()
 {
@@ -2689,9 +2690,9 @@ PriorityAIController.prototype.conditionMissileOutOfFuel = function()
 
 PriorityAIController.prototype.conditionPatrolIsOver = function()
 {
-	/* patrol is over after 200km, or if supplies are low after 20km
-	 * 20km to prevent patrol being over on launch if a ship is set up
-	 * to always have low supplies on creation */
+//	 * patrol is over after 200km, or if supplies are low after 20km
+//	 * 20km to prevent patrol being over on launch if a ship is set up
+//	 * to always have low supplies on creation *
 	var plength = this.getParameter("oolite_patrolLength");
 	var pdist = plength ? plength : 200000;
 
@@ -2707,12 +2708,12 @@ PriorityAIController.prototype.conditionWitchspaceEntryRequested = function()
 
 
 
-/* ****************** Behaviour functions ************** */
+//* ****************** Behaviour functions ************** 
 
-/* Behaviours. Behaviours are effectively a state definition,
- * defining a set of events and responses. They are aided in this
- * by the 'responses', which mean that the event handlers for the
- * behaviour within the definition can itself be templated.  */
+//* Behaviours. Behaviours are effectively a state definition,
+// * defining a set of events and responses. They are aided in this
+// * by the 'responses', which mean that the event handlers for the
+// * behaviour within the definition can itself be templated.  
 
 
 
@@ -2907,22 +2908,22 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 	}
 
 	
-	/* This doesn't work: ships which are removed from the list
-	 * because they're unreachable then just end up being reselected the
-	 * next time the ship scans for targets. */
-	/*
-	if (this.getParameter("oolite_flag_continueUnlikelyPursuits") == null)
-	{
-		if (this.ship.target)
-		{
-			if (this.isEscaping(this.ship.target))
-			{
-				this.ship.removeDefenseTarget(this.ship.target);
-				this.ship.target = null;
-			}
-		}
-	}
-	*/
+//	* This doesn't work: ships which are removed from the list
+//	 * because they're unreachable then just end up being reselected the
+//	 * next time the ship scans for targets. 
+//	
+//	if (this.getParameter("oolite_flag_continueUnlikelyPursuits") == null)
+//	{
+//		if (this.ship.target)
+//		{
+//			if (this.isEscaping(this.ship.target))
+//			{
+//				this.ship.removeDefenseTarget(this.ship.target);
+//				this.ship.target = null;
+//			}
+//		}
+//	}
+//	*
 
 	if (this.ship.target)
 	{
@@ -2930,6 +2931,7 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 		{
 			// entering attack mode
 			this.broadcastAttackMessage(this.ship.target,"beginning",3);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourDestroyCurrentTarget: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 		else 
@@ -3003,7 +3005,6 @@ PriorityAIController.prototype.behaviourDockWithStation = function()
 	}
 	this.applyHandlers(handlers);
 }
-
 
 PriorityAIController.prototype.behaviourEnterWitchspace = function()
 {
@@ -3277,7 +3278,7 @@ PriorityAIController.prototype.behaviourFleeCombat = function()
 }
 
 
-/* Follow a ship, including to witchspace */
+// Follow a ship, including to witchspace 
 PriorityAIController.prototype.behaviourFollowCurrentTarget = function()
 {
 	if (this.ship.target)
@@ -3329,7 +3330,7 @@ PriorityAIController.prototype.behaviourFollowCurrentTarget = function()
 }
 
 
-/* Follow the group leader in a less organised way than escorting them */
+//* Follow the group leader in a less organised way than escorting them 
 PriorityAIController.prototype.behaviourFollowGroupLeader = function()
 {
 	if (!this.ship.group || !this.ship.group.leader)
@@ -3527,6 +3528,7 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 		{
 			// entering attack mode
 			this.broadcastAttackMessage(this.ship.target,"beginning",3);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourRepelCurrentTarget: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 		else if (this.ship.target)
@@ -3544,10 +3546,9 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 	}
 }
 
-
-/* Standard "help the innocent" distress call response. Perhaps
- * there should be a 'blood in the water' response available
- * too... */
+//* Standard "help the innocent" distress call response. Perhaps
+// * there should be a 'blood in the water' response available
+// * too... 
 PriorityAIController.prototype.behaviourRespondToDistressCall = function()
 {
 	var aggressor = this.getParameter("oolite_distressAggressor");
@@ -3658,7 +3659,7 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 			demand = 2;
 		}
 
-		/* Record our demand with the group leader */
+		//* Record our demand with the group leader 
 		if (this.ship.group && this.ship.group.leader)
 		{
 			this.ship.group.leader.AIScript.oolite_intership.cargodemanded = demand;
@@ -3667,7 +3668,7 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 		{
 			this.ship.AIScript.oolite_intership.cargodemanded = demand;
 		}
-		/* Inform the victim of the demand, if possible */
+		//* Inform the victim of the demand, if possible 
 		if (target.AIScript && target.AIScript.oolite_intership)
 		{
 			target.AIScript.oolite_intership.cargodemand = demand;
@@ -3681,10 +3682,10 @@ PriorityAIController.prototype.behaviourRobTarget = function()
 		// either it beat us, or we just robbed it
 		this.setParameter("oolite_lastPirateVictim",target);
 
-		/*				}
-						else
-						{
-						log(this.ship.displayName,"Already asked for "+demand); */
+//						}
+//						else
+//						{
+//						log(this.ship.displayName,"Already asked for "+demand); 
 	}
 	var handlers = {};
 	this.responsesAddStandard(handlers);
@@ -3720,7 +3721,7 @@ PriorityAIController.prototype.behaviourWaitHere = function()
 }
 
 
-/* Missile behaviours: have different standard handler sets */
+//* Missile behaviours: have different standard handler sets 
 
 PriorityAIController.prototype.behaviourMissileInterceptTarget = function()
 {
@@ -3782,7 +3783,7 @@ PriorityAIController.prototype.behaviourMissileSelfDestruct = function() {
 
 
 
-/* Station behaviours: have different standard handler sets */
+//* Station behaviours: have different standard handler sets 
 
 PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function() 
 {
@@ -3799,6 +3800,7 @@ PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function()
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_launchDefenseShips",this.ship.target,3);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourStationLaunchDefenseShips: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	else if (this.ship.alertCondition > 1)
@@ -3922,6 +3924,7 @@ PriorityAIController.prototype.behaviourStationRespondToDistressCall = function(
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_distressResponseAggressor",aggressor,2);
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', :behaviourStationRespondToDistressCall "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	else
@@ -3935,16 +3938,17 @@ PriorityAIController.prototype.behaviourStationRespondToDistressCall = function(
 }
 
 
-/* ****************** Configuration functions ************** */
+//* ****************** Configuration functions ************** 
 
-/* Configurations. Configurations are set up actions for a behaviour
- * or behaviours. They can also be used on a fall-through conditional
- * to set parameters for later tests */
+//* Configurations. Configurations are set up actions for a behaviour
+// * or behaviours. They can also be used on a fall-through conditional
+//* to set parameters for later tests 
 
-/*** Target acquisition configuration ***/
+//*** Target acquisition configuration ***
 
 PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 {
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+" already have player ship as target");
 	var target = this.ship.target;
 	if (target && this.allied(this.ship,target))
 	{
@@ -3960,8 +3964,8 @@ PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 		}
 		this.ship.target = null;
 	}
-	/* Iff the ship does not currently have a target, select a new one
-	 * from the defense target list. */
+//	 * Iff the ship does not currently have a target, select a new one
+//	 * from the defense target list. 
 	if (target)
 	{
 		if (target.isInSpace)
@@ -3984,6 +3988,7 @@ PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 			if (!dts[i].isCloaked)
 			{
 				this.ship.target = dts[i];
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship choosen from defense targets");
 				return;
 			}
 		}
@@ -4002,6 +4007,7 @@ PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from group member "+gs[i].displayName+" target");
 					return;
 				}
 			}
@@ -4017,13 +4023,13 @@ PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
+if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from escort group "+gs[i].displayName+" target");
 					return;
 				}
 			}
 		}
 	}
 }
-
 
 PriorityAIController.prototype.configurationAcquireDefensiveEscortTarget = function()
 {
@@ -4033,8 +4039,8 @@ PriorityAIController.prototype.configurationAcquireDefensiveEscortTarget = funct
 		this.ship.removeDefenseTarget(this.ship.target);
 		this.ship.target = null;
 	}
-	/* Preserve current target if still fighting (leader can send help
-	 * request if needed) */
+//	 * Preserve current target if still fighting (leader can send help
+//	 * request if needed) 
 	if (this.ship.target)
 	{
 		if (this.ship.target.isInSpace && this.isAggressive(this.ship.target))
@@ -4082,8 +4088,8 @@ PriorityAIController.prototype.configurationAcquireHostileCombatTarget = functio
 		this.ship.removeDefenseTarget(this.ship.target);
 		this.ship.target = null;
 	}
-	/* Iff the ship does not currently have a target, select a new one
-	 * from the defense target list. */
+//	 * Iff the ship does not currently have a target, select a new one
+//	 * from the defense target list. 
 	if (this.ship.target)
 	{
 		if (this.ship.target.isInSpace && this.isAggressive(this.ship.target))
@@ -4149,7 +4155,7 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 		this.ship.removeDefenseTarget(this.ship.target);
 		this.ship.target = null;
 	}
-	/* Preserve current target if still fighting */
+//	/* Preserve current target if still fighting 
 	if (this.ship.target)
 	{
 		if (this.ship.target.isInSpace && this.isAggressive(this.ship.target))
@@ -4173,6 +4179,7 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 				if (!lt.isCloaked && lt.isShip)
 				{
 					this.ship.target = lt;
+if (lt.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireOffensiveEscortTarget: "+this.ship.displayName+" adds player ship to defense target from leader "+leader.displayName);
 					this.ship.addDefenseTarget(lt);
 				}
 			}
@@ -4206,7 +4213,7 @@ PriorityAIController.prototype.configurationCheckScanner = function()
 }
 
 
-/*** Navigation configuration ***/
+//*** Navigation configuration ***
 
 
 PriorityAIController.prototype.configurationSelectPlanet = function()
@@ -4256,7 +4263,6 @@ PriorityAIController.prototype.configurationSelectRandomTradeStation = function(
 	this.setParameter("oolite_selectedStation",chosenStation);
 	this.communicate("oolite_selectedStation",chosenStation,4);
 }
-
 
 PriorityAIController.prototype.configurationSelectShuttleDestination = function()
 {
@@ -4345,7 +4351,6 @@ PriorityAIController.prototype.configurationSelectWitchspaceDestinationInbound =
 	this.setWitchspaceRouteTo(this.ship.homeSystem);
 }
 
-
 PriorityAIController.prototype.configurationSelectWitchspaceDestinationOutbound = function()
 {
 	if (this.ship.homeSystem == this.ship.destinationSystem)
@@ -4356,7 +4361,7 @@ PriorityAIController.prototype.configurationSelectWitchspaceDestinationOutbound 
 }
 
 
-/*** Destination configuration ***/
+//*** Destination configuration ***
 
 
 PriorityAIController.prototype.configurationMissileAdjustLaunch = function()
@@ -4364,8 +4369,8 @@ PriorityAIController.prototype.configurationMissileAdjustLaunch = function()
 	// clear flag
 	this.setParameter("oolite_flag_launchAdjustMissile",null);
 
-	/* tilt down and accelerate - assumes missile is co-aligned to
-	 * ship on launch, and launched from below the ship */
+//	 * tilt down and accelerate - assumes missile is co-aligned to
+//	 * ship on launch, and launched from below the ship 
 	this.ship.destination = this.ship.position.add(this.ship.vectorUp);
 	this.ship.desiredRange = 100000;
 	this.ship.desiredSpeed = this.ship.maxSpeed;
@@ -4695,7 +4700,7 @@ PriorityAIController.prototype.configurationSetWaypoint = function()
 
 
 
-/*** Docking configurations ***/
+//*** Docking configurations ***
 
 
 
@@ -4733,7 +4738,7 @@ PriorityAIController.prototype.configurationSetSelectedStationForDocking = funct
 }
 
 
-/*** Miscellaneous configuration ***/
+//*** Miscellaneous configuration ***
 
 
 PriorityAIController.prototype.configurationAppointGroupLeader = function()
@@ -4785,10 +4790,10 @@ PriorityAIController.prototype.configurationEscortGroupLeader = function()
 
 PriorityAIController.prototype.configurationForgetCargoDemand = function()
 {
-	/*				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership.cargodemanded)
-					{
-					delete this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
-					} */ // not sure about this, maybe not needed
+//	/*				if (this.ship.group && this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership.cargodemanded)
+//					{
+//					delete this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
+//					}  // not sure about this, maybe not needed
 
 	if (this.ship.AIScript.oolite_intership.cargodemanded)
 	{
@@ -4847,7 +4852,7 @@ PriorityAIController.prototype.configurationSetRemoteControl = function()
 }
 
 
-/*** Station configuration ***/
+//*** Station configuration ***
 
 PriorityAIController.prototype.configurationStationReduceAlertLevel = function() 
 {
@@ -4869,13 +4874,13 @@ PriorityAIController.prototype.configurationStationValidateTarget = function()
 	}
 }
 
-/* ****************** Response definition functions ************** */
+//* ****************** Response definition functions ************** 
 
-/* Standard state-machine responses. These set up a set of standard
- * state machine responses where incoming events will cause reasonable
- * default behaviour and often force a reconsideration of
- * priorities. Many behaviours will need to supplement the standard
- * responses with additional definitions. */
+// * Standard state-machine responses. These set up a set of standard
+// * state machine responses where incoming events will cause reasonable
+// * default behaviour and often force a reconsideration of
+// * priorities. Many behaviours will need to supplement the standard
+// * responses with additional definitions. 
 
 PriorityAIController.prototype.responsesAddStandard = function(handlers) 
 {
@@ -4915,7 +4920,7 @@ PriorityAIController.prototype.responsesAddStandard = function(handlers)
 	// TODO: more event handlers
 }
 
-/* Additional handlers for use while docking */
+//* Additional handlers for use while docking 
 PriorityAIController.prototype.responsesAddDocking = function(handlers) 
 {
 	handlers.stationWithdrewDockingClearance = this.responseComponent_docking_stationWithdrewDockingClearance;
@@ -4923,14 +4928,14 @@ PriorityAIController.prototype.responsesAddDocking = function(handlers)
 	handlers.shipAIFrustrated = this.responseComponent_docking_shipAIFrustrated;
 }
 
-/* Override of standard handlers for use while escorting */
+//* Override of standard handlers for use while escorting 
 PriorityAIController.prototype.responsesAddEscort = function(handlers) 
 {
 	handlers.helpRequestReceived = this.responseComponent_escort_helpRequestReceived;
 	handlers.escortDock = this.responseComponent_escort_escortDock;
 }
 
-/* Additional handlers for scooping */
+//* Additional handlers for scooping 
 PriorityAIController.prototype.responsesAddScooping = function(handlers)
 {
 	handlers.shipAchievedDesiredRange = this.responseComponent_scooping_shipAchievedDesiredRange
@@ -4963,11 +4968,11 @@ PriorityAIController.prototype.responsesAddMissile = function(handlers) {
 }
 
 
-/* ******************* Response components *********************** */
+//* ******************* Response components *********************** 
 
-/* Response components. These are standard response component
- * functions which can be passed by reference to save on variable
- * destruction/creation */
+// * Response components. These are standard response component
+// * functions which can be passed by reference to save on variable
+// * destruction/creation 
 
 
 PriorityAIController.prototype.responseComponent_standard_approachingPlanetSurface = function()
@@ -5015,8 +5020,8 @@ PriorityAIController.prototype.responseComponent_standard_cascadeWeaponDetected 
 
 PriorityAIController.prototype.responseComponent_standard_commsMessageReceived = function(message,sender)
 {
-	/* If the sender is hostile to us, and we're not obviously in
-	 * combat, attack the sender: deals with pirate demand case */
+//	 * If the sender is hostile to us, and we're not obviously in
+//	 * combat, attack the sender: deals with pirate demand case 
 	if (sender.target == this.ship && !this.ship.hasHostileTarget && sender.hasHostileTarget)
 	{
 		this.ship.target = sender;
@@ -5068,6 +5073,7 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 	{
 		return;
 	}
+if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_standard_helpRequestReceived: "+this.ship.displayName+" adds player ship to defense targets due to help request from "+ally.displayName+(this.ship.group && this.ship.group.containsShip(ally) ? " (group member)" : " (not group member)"));
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
@@ -5126,6 +5132,7 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 			{
 				if (victim.hasHostileTarget)
 				{
+if (victim.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_standard_offenceCommittedNearby: "+this.ship.displayName+" switching victiim/attacker, player becomes attacker, "+attacker.displayName+" becomes victim");
 					// they're both fighting; it's likely that the
 					// attacker is fighting in self-defence; so swap them
 					var tmp = victim;
@@ -5146,10 +5153,11 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 		}
 		else if (attacker.isPlayer && this.ignorePlayerFriendlyFire())
 		{
+log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_offenceCommittedNearby: "+this.ship.displayName+" ignoring as friendly fire");
 			this.communicate("oolite_friendlyFire",attacker,3);
 			return;
 		}
-
+if (attacker.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_offenceCommittedNearby: "+this.ship.displayName+" player bounty was "+attacker.bounty+" being set to 7 and added to defense targets");
 		if (attacker.bounty & 7 != 7)
 		{
 			this.communicate("oolite_offenceDetected",attacker,3);
@@ -5175,7 +5183,7 @@ PriorityAIController.prototype.responseComponent_standard_playerWillEnterWitchsp
 	{
 		this.ship.enterWormhole(wormhole);
 	} 
-	/* Given a chance to leave interstellar space, take it */
+//	* Given a chance to leave interstellar space, take it *
 	else if (system.isInterstellarSpace && !this.getParameter("oolite_flag_likesInterstellarSpace") && this.distance(player.ship) < this.scannerRange)
 	{
 		this.ship.enterWormhole();
@@ -5352,6 +5360,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 			return;
 		}
 	}
+if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_shipBeingAttacked: "+this.ship.displayName+" sets player bounty and adds it to defense targets");
 	if (this.getParameter("oolite_flag_markOffenders"))
 	{
 		if (this.ship.scanClass == "CLASS_POLICE")
@@ -5377,9 +5386,9 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 		this.communicate("oolite_surrender",{},3);
 		if (whom.isPlayer && this.ship.AIScript.oolite_intership.cargodemandpaid && this.ship.energy < 16)
 		{
-			/* Firing on surrendered traders means you're probably
-			 * trying to kill them rather than rob them. Prefer
-			 * replacing pirate roles. */
+//			/* Firing on surrendered traders means you're probably
+//			 * trying to kill them rather than rob them. Prefer
+//			 * replacing pirate roles. 
 			if (!this.__ltcache.oolite_assassinPlayer)
 			{
 				this.__ltcache.oolite_assassinPlayer = true;
@@ -5431,6 +5440,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 		{
 			this.communicate("oolite_attackLowEnergy",whom,2);
 			// but at low energy still reconsider
+if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_1: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 	}
@@ -5483,6 +5493,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 
 	if (this.ship.escortGroup != null)
 	{
+if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_2: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	if (!this.ship.hasHostileTarget && this.distance(whom) > this.scannerRange)
@@ -5503,6 +5514,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttackedUnsuc
 	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
 	{
+if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_shipBeingAttackedUnsuccessfully: "+this.ship.displayName+" adds player to defense targets");
 		this.ship.addDefenseTarget(whom);
 		this.reconsiderNow();
 	}
@@ -5515,6 +5527,7 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttackedUnsuc
 	{
 		this.ship.target = whom;
 		this.ship.performAttack();
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttackedUnsuccessfully: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 }
@@ -5650,7 +5663,7 @@ PriorityAIController.prototype.responseComponent_standard_wormholeSuggested = fu
 	// don't reconsider
 }
 
-/* Missile response components */
+//* Missile response components *
 
 PriorityAIController.prototype.responseComponent_missile_commsMessageReceived = function(message)
 {
@@ -5677,14 +5690,14 @@ PriorityAIController.prototype.responseComponent_missile_shipHitByECM = function
 		}
 	}
 
-	/* This section for the hardheads should be an ECM
-	 * response function, and that is used in the default
-	 * shipdata.plist, but for compatibility with older OXPs
-	 * it's also hardcoded here for now.
-	 *
-	 * OXPs wanting to overrule this for hardheads can set a
-	 * response function to do so.
-	 */
+//	/* This section for the hardheads should be an ECM
+//	 * response function, and that is used in the default
+//	 * shipdata.plist, but for compatibility with older OXPs
+//	 * it's also hardcoded here for now.
+//	 *
+//	 * OXPs wanting to overrule this for hardheads can set a
+//	 * response function to do so.
+	
 	if (this.ship.primaryRole == "EQ_HARDENED_MISSILE")
 	{
 		if (Math.random() < 0.1) //10% chance per pulse
@@ -5740,8 +5753,8 @@ PriorityAIController.prototype.responseComponent_missile_shipAchievedDesiredRang
 			return;
 		}
 	}
-	/* Defaults to standard missile settings, in case they're
-	 * not specified in scriptInfo */
+//	/* Defaults to standard missile settings, in case they're
+//	 * not specified in scriptInfo 
 	var blastpower = 170;
 	var blastradius = 32.5;
 	var blastshaping = 0.25;
@@ -5762,7 +5775,7 @@ PriorityAIController.prototype.responseComponent_missile_shipAchievedDesiredRang
 }
 
 
-/* Station response components */
+//* Station response components *
 
 PriorityAIController.prototype.responseComponent_station_commsMessageReceived = function(message)
 {
@@ -5853,6 +5866,7 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
 	{
+if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_station_shipBeingAttacked: "+this.ship.displayName+" adds player to defense targets");
 		this.ship.addDefenseTarget(whom);
 		this.reconsiderNow();
 	}
@@ -5863,6 +5877,7 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 		{
 			// but at low energy still reconsider
 			this.reconsiderNow();
+if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', station_shipBeingAttacked: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 	}
@@ -5946,6 +5961,7 @@ PriorityAIController.prototype.responseComponent_station_shipTargetLost = functi
 
 PriorityAIController.prototype.responseComponent_station_helpRequestReceived = function(ally, enemy)
 {
+if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_station_helpRequestReceived: "+this.ship.displayName+" adds player to defense targets");
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
@@ -5999,6 +6015,7 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 			{
 				if (victim.hasHostileTarget)
 				{
+if (victim.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"' responseComponent_station_offenceCommittedNearby: "+this.ship.displayName+" swicthes victim/attacker, player becomes the attacker");
 					// they're both fighting; it's likely that the
 					// attacker is fighting in self-defence; so swap them
 					var tmp = victim;
@@ -6022,6 +6039,7 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 			this.communicate("oolite_friendlyFire",attacker,3);
 			return;
 		}
+if (attacker.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_station_offenceCommittedNearby: "+this.ship.displayName+" sets player bounty and adds to defense targets");
 		attacker.setBounty(attacker.bounty | 7,"seen by police");
 		this.ship.addDefenseTarget(attacker);
 		if (this.ship.alertCondition < 3)
@@ -6035,7 +6053,7 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 }
 
 
-/* Non-standard response components */
+//* Non-standard response components *
 
 PriorityAIController.prototype.responseComponent_docking_shipAchievedDesiredRange = function()
 {
@@ -6106,6 +6124,7 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 			return;
 		}
 	}
+if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_escort_helpRequestReceived: "+this.ship.displayName+" adds player to defense targest in response to request from "+ally.displayName);
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
@@ -6185,12 +6204,12 @@ PriorityAIController.prototype.responseComponent_trackPlayer_playerWillEnterWitc
 
 
 
-/* ******************* Templates *************************** */
+//* ******************* Templates *************************** 
 
-/* Templates. Common AI priority list fragments which may be useful to
- * multiple AIs. These functions take no parameters and return a
- * list. This can either be used straightforwardly as a truebranch or
- * falsebranch value, or appended to a list using Array.concat() */
+// * Templates. Common AI priority list fragments which may be useful to
+// * multiple AIs. These functions take no parameters and return a
+// * list. This can either be used straightforwardly as a truebranch or
+// * falsebranch value, or appended to a list using Array.concat() 
 
 PriorityAIController.prototype.templateLeadHuntingMission = function()
 {
@@ -6243,7 +6262,7 @@ PriorityAIController.prototype.templateLeadHuntingMission = function()
 				}
 			]
 		},
-		/* No patrol route set up. Make one */
+//		/* No patrol route set up. Make one 
 		{
 			configuration: this.configurationSetWaypoint,
 			behaviour: this.behaviourApproachDestination,
@@ -6278,7 +6297,7 @@ PriorityAIController.prototype.templateLeadPirateMission = function()
 			truebranch: this.templateWitchspaceJumpAnywhere()
 		},
 		{
-			/* move to a position on one of the space lanes, preferring lane 1 */
+//			/* move to a position on one of the space lanes, preferring lane 1 
 			label: "Lurk",
 			configuration: this.configurationSetDestinationToPirateLurk,
 			behaviour: this.behaviourApproachDestination,
@@ -6388,7 +6407,7 @@ PriorityAIController.prototype.templateWitchspaceJumpAnywhere = function()
 			behaviour: this.behaviourApproachDestination,
 			reconsider: 30
 		},
-		/* Short reconsiders on next two so wormholes aren't missed */
+//		/* Short reconsiders on next two so wormholes aren't missed 
 		{
 			label: "No wormholes nearby",
 			condition: this.conditionCanWitchspaceOut,
@@ -6458,13 +6477,13 @@ PriorityAIController.prototype.templateWitchspaceJumpOutbound = function()
 }
 
 
-/* ******************* Waypoint generators *********************** */
+//* ******************* Waypoint generators *********************** 
 
-/* Waypoint generators. When these are called, they should set up
- * the next waypoint for the ship. Ideally ships should either
- * reach that waypoint or formally give up on it before asking for
- * the next one, but the generator shouldn't assume that unless
- * it's one written specifically for a particular AI . */
+// * Waypoint generators. When these are called, they should set up
+// * the next waypoint for the ship. Ideally ships should either
+// * reach that waypoint or formally give up on it before asking for
+// * the next one, but the generator shouldn't assume that unless
+// * it's one written specifically for a particular AI . 
 
 PriorityAIController.prototype.waypointsSpacelanePatrol = function()
 {
@@ -6658,11 +6677,11 @@ PriorityAIController.prototype.waypointsWitchpointPatrol = function()
 }
 
 
-/* ********** Communications data ****************/
+//* ********** Communications data ****************
 
-/* Warning: OXPs should only interact with this through the provided
- * API functions. The internals of data storage may be changed at any
- * time. This data is global. */
+// * Warning: OXPs should only interact with this through the provided
+// * API functions. The internals of data storage may be changed at any
+// * time. This data is global. *
 
 this.startUp = function()
 {
@@ -6712,8 +6731,8 @@ this.startUp = function()
 
 
 
-/* Event handler pair to prevent comms from being received while in
- * witchspace tunnel */
+//* Event handler pair to prevent comms from being received while in
+//* witchspace tunnel 
 this.shipWillEnterWitchspace = function()
 {
 	this.$commsAllowed = false;
@@ -6726,15 +6745,15 @@ this.shipExitedWitchspace = function()
 
 
 
-/* Search through communications from most specific to least specific.
- * role+personality
- * "generic"+personality
- * role+"generic"
- * "generic"+"generic"
- * A return value of "" means no communication is set.
- *
- * Roles or personalities starting with _ do not fall back to generic
- */
+// * Search through communications from most specific to least specific.
+// * role+personality
+// * "generic"+personality
+// * role+"generic"
+// * "generic"+"generic"
+// * A return value of "" means no communication is set.
+// *
+// * Roles or personalities starting with _ do not fall back to generic
+ 
 this._getCommunication = function(role, personality, key)
 {
 	if (this.$commsSettings[role] && this.$commsSettings[role][personality] && this.$commsSettings[role][personality][key] && this.$commsSettings[role][personality][key] != "")
@@ -6766,7 +6785,7 @@ this._getCommunication = function(role, personality, key)
 }
 
 
-/* Returns the available personalities for a particular role */
+//* Returns the available personalities for a particular role 
 this._getCommunicationPersonalities = function(role)
 {
 	if (!this.$commsSettings || !this.$commsSettings[role])
@@ -6780,8 +6799,8 @@ this._getCommunicationPersonalities = function(role)
 }
 
 
-/* Set a communication for the specified role, personality and comms
- * key. "generic" is used as a fallback role and personality. */
+// * Set a communication for the specified role, personality and comms
+// * key. "generic" is used as a fallback role and personality. 
 this._setCommunication = function(role, personality, key, value)
 {
 	if (!this.$commsSettings[role])
@@ -6796,7 +6815,7 @@ this._setCommunication = function(role, personality, key, value)
 }
 
 
-/* Bulk setting of communications */
+//* Bulk setting of communications 
 this._setCommunications = function(obj)
 {
 	var roles = Object.keys(obj);
@@ -6816,7 +6835,7 @@ this._setCommunications = function(obj)
 
 }
 
-/* Intentionally not documented */
+//* Intentionally not documented 
 this._threatAssessment = function(ship,full)
 {
 	// experimenting without this one for a while

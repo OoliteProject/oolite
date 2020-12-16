@@ -447,6 +447,7 @@
 	),
 	/* next two items are very old experimental items and are unsupported */
 	/* next item is blocked from purchase by condition script */
+
 	(
 		0, 1500000, "Military Anti-Scanner Countermeasures (MASC'M)",
 		"EQ_MILITARY_JAMMER",
@@ -457,6 +458,7 @@
             available_to_player = no;
 		}
 	),
+  
 	/* next item is blocked from purchase by condition script */
 	(
 		0, 250000, "Military Scanner Filtering",

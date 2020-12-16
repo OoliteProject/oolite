@@ -2999,6 +2999,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					//evict them from our group
 					[group removeShip:hunter];
 				
+					if (PLAYER == other) {
+OOLog(@"dybal.trace", @"ShipEntity.respondToAttackFrom: %@ target set to player", [self displayName]);
+					}
 					[groupLeader setFoundTarget:other];
 					[groupLeader setPrimaryAggressor:hunter];
 					[groupLeader respondToAttackFrom:from becauseOf:other];
@@ -7426,9 +7429,9 @@ static BOOL IsBehaviourHostile(OOBehaviour behaviour)
 		case BEHAVIOUR_ATTACK_BROADSIDE:
 		case BEHAVIOUR_ATTACK_BROADSIDE_LEFT:
 		case BEHAVIOUR_ATTACK_BROADSIDE_RIGHT:
- 	  case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
+	    case BEHAVIOUR_CLOSE_TO_BROADSIDE_RANGE:
 		case BEHAVIOUR_CLOSE_WITH_TARGET:
- 	  case BEHAVIOUR_ATTACK_SNIPER:
+	    case BEHAVIOUR_ATTACK_SNIPER:
 		case BEHAVIOUR_SCRIPTED_ATTACK_AI:
 			return YES;
 			
@@ -11188,7 +11191,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		// Allocate lazily for the benefit of the ships that never get in fights.
 		_defenseTargets = [[OOWeakSet alloc] init];
 	}
-	
+	if (target == PLAYER) {
+		OOLog(@"dybal.trace", @"addDefenseTarget: %@ (%@) added player as defense target", [self displayName], [self primaryRole]);
+	}
 	[_defenseTargets addObject:target];
 	return YES;
 }
@@ -11796,6 +11801,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				{
 					[PLAYER addRoleForAggression:victim];
 				}
+				if (PLAYER == parent) {
+OOLog(@"dybal.trace", @"ShipEntity.fireSubentityLaserShot: %@ target set to player", [victim displayName]);
+				}
 				[victim setPrimaryAggressor:parent];
 				[victim setFoundTarget:parent];
 				[victim reactToAIMessage:@"ATTACKER_MISSED" context:@"attacker narrowly misses"];
@@ -12038,6 +12046,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 						if ([self isPlayer])
 						{
 							[PLAYER addRoleForAggression:victim];
+						}
+						if (PLAYER == self) {
+OOLog(@"dybal.trace", @"ShipEntity.fireLaserShotInDirection: %@ target set to player", [victim displayName]);
 						}
 						[victim setPrimaryAggressor:self];
 						[victim setFoundTarget:self];
@@ -13183,6 +13194,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		
 		DESTROY(_lastEscortTarget);	// we're being attacked, escorts can scramble!
 		
+		if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: %@ target set to player", [self displayName]);
+		}
 		[self setPrimaryAggressor:hunter];
 		[self setFoundTarget:hunter];
 
@@ -13207,6 +13221,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					ShipEntity *groupLeader = [group leader];
 					if (groupLeader != self)
 					{
+						if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: groupLeader %@ target set to player", [groupLeader displayName]);
+						}
 						[groupLeader setFoundTarget:hunter];
 						[groupLeader setPrimaryAggressor:hunter];
 						[groupLeader respondToAttackFrom:ent becauseOf:hunter];
@@ -13222,6 +13239,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					{
 						if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
 						{
+		if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPirate %@ target set to player", [otherPirate displayName]);
+		}
 							[otherPirate setFoundTarget:hunter];
 							[otherPirate setPrimaryAggressor:hunter];
 							[otherPirate respondToAttackFrom:ent becauseOf:hunter];
@@ -13237,6 +13257,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 					{
 						if (otherPolice != self)
 						{
+		if (PLAYER == hunter) {
+OOLog(@"dybal.trace", @"ShipEntity.takeEnergyDamage: otherPolice %@ target set to player", [otherPolice displayName]);
+		}
 							[otherPolice setFoundTarget:hunter];
 							[otherPolice setPrimaryAggressor:hunter];
 							[otherPolice respondToAttackFrom:ent becauseOf:hunter];
@@ -13301,6 +13324,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 				if (hunter == PLAYER) {
 					NSUInteger kills = [hunter score];
 					OOLog(@"dybal.trace", @"Increasing player kills from %d to %d due to %@ abandoning ship", kills, kills+1, [self displayName]);
+
 					[hunter setScore:(kills+1)];
 				}
 			}
@@ -14121,6 +14145,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		authEnum = [authorities objectEnumerator];
 		while ((auth = [authEnum nextObject]))
 		{
+		if (PLAYER == aggressor_ship) {
+OOLog(@"dybal.trace", @"ShipEntity.broadcastHitByLaserFrom: %@ target set to player", [auth displayName]);
+		}
 			[auth setFoundTarget:aggressor_ship];
 			[auth doScriptEvent:OOJSID("offenceCommittedNearby") withArgument:aggressor_ship andArgument:self];
 			[auth reactToAIMessage:@"OFFENCE_COMMITTED" context:@"combat update"];
@@ -14643,6 +14670,12 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) doScriptEvent:(jsid)message withArgument:(id)argument
 {
 	JSContext *context = OOJSAcquireContext();
+
+NSString *message_string = OOStringFromJSString(context, JSID_TO_STRING(message));
+if (message_string != nil && [message_string hasPrefix:@"equipment"] && self == PLAYER) {
+    OOLog(@"dybal.trace", @"ShipEntity: calling event %@ with %@", message_string, argument);
+}
+
 	
 	jsval value = OOJSValueFromNativeObject(context, argument);
 	[self doScriptEvent:message inContext:context withArguments:&value count:1];
@@ -14768,6 +14801,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	}
 	if ([self hasHostileTarget])
 	{
+if ([self primaryTargetWithoutValidityCheck] == PLAYER) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, hasHostileTarget=true, behaviour %d", [self displayName], behaviour);
+}
 		return ALERT_CONDITION_RED;
 	}
 	else
@@ -14781,6 +14817,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			{
 				if (HPdistance2([ship position],position) < scanrange2)
 				{
+if ([ship isPlayer]) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, player is defense target in scanrange2 with weapon online", [self displayName]);
+}
 					return ALERT_CONDITION_RED;
 				}
 			}
@@ -14796,6 +14835,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 				{
 					if (HPdistance2([ship position],position) < scanrange2 * 1.5625)
 					{
+if ([ship isPlayer]) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, hasHostileTarget an player in 1.5*scanrange2 with weapon online", [self displayName]);
+}
 						return ALERT_CONDITION_RED;
 					}
 				}
@@ -14810,6 +14852,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 				{
 					if (HPdistance2([ship position],position) < scanrange2)
 					{
+if ([self primaryTargetWithoutValidityCheck] == PLAYER) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, group member %@ has hostiletarget ", [self displayName], [ship displayName]);
+}
 						return ALERT_CONDITION_RED;
 					}
 				}
@@ -14824,6 +14869,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 				{
 					if (HPdistance2([ship position],position) < scanrange2)
 					{
+if ([self primaryTargetWithoutValidityCheck] == PLAYER) {
+OOLog(@"dybal.trace", @"ShipEntity, realAlertCondition: %@, escortgroup member %@ has hostiletarget ", [self displayName], [ship displayName]);
+}
 						return ALERT_CONDITION_RED;
 					}
 				}

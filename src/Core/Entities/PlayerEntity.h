@@ -359,7 +359,9 @@ typedef enum
 	float					occlusion_dial;
 	
 	OOSystemID				found_system_id;
+
 	float						ship_trade_in_factor;
+
 	
 	NSDictionary			*worldScripts;
 	NSDictionary			*worldScriptsRequiringTickle;

@@ -64,39 +64,39 @@ this.aiStarted = function() {
 
 	ai.setPriorities([
 		/* Fight */
-		{
+		{ // 0
 			preconfiguration: ai.configurationLightsOn,
 			condition: ai.conditionLosingCombat,
 			behaviour: ai.behaviourFleeCombat,
 			reconsider: 5
 		},
-		{
+		{ // 1
 			condition: ai.conditionInCombat,
 			configuration: ai.configurationAcquireCombatTarget,
 			behaviour: ai.behaviourDestroyCurrentTarget,
 			reconsider: 5
 		},
 		/* Check for distress calls */
-		{
+		{ // 2
 			condition: ai.conditionHasReceivedDistressCall,
 			behaviour: ai.behaviourRespondToDistressCall,
 			reconsider: 20
 		},
 		/* Check for offenders */
-		{
+		{ // 3
 			preconfiguration: ai.configurationCheckScanner,
 			condition: ai.conditionScannerContainsFugitive,
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
-		{
+		{ // 4
 			condition: ai.conditionScannerContainsSeriousOffender,
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourCommenceAttackOnCurrentTarget,
 			reconsider: 1
 		},
-		{
+		{ // 5
 			preconfiguration: ai.configurationLightsOff,
 			condition: ai.conditionScannerContainsFineableOffender,
 			configuration: ai.configurationAcquireScannedTarget,
@@ -104,37 +104,37 @@ this.aiStarted = function() {
 			reconsider: 10
 		},
 		/* What about escape pods? */
-		{
+		{ // 6
 			condition: ai.conditionScannerContainsEscapePods,
 			configuration: ai.configurationAcquireScannedTarget,
 			behaviour: ai.behaviourCollectSalvage,
 			reconsider: 20
 		},
 		/* Regroup if necessary */
-		{
+		{ // 7
 			preconfiguration: ai.configurationAppointGroupLeader,
 			condition: ai.conditionGroupIsSeparated,
 			configuration: ai.configurationSetDestinationToGroupLeader,
 			behaviour: ai.behaviourApproachDestination,
 			reconsider: 15
 		},
-		{
+		{ // 8
 			condition: ai.conditionGroupLeaderIsStation,
 			/* Group leader is the station: a short-range patrol or
 			 * defense ship */
 			truebranch: [
-				{
+				{ // 8-T-0
 					condition: ai.conditionHasWaypoint,
 					configuration: ai.configurationSetDestinationToWaypoint,
 					behaviour: ai.behaviourApproachDestination,
 					reconsider: 30
 				},
-				{
+				{ // 8-T-1
 					condition: ai.conditionPatrolIsOver,
 					truebranch: ai.templateReturnToBase()
 				},
 				/* No patrol route set up. Make one */
-				{
+				{ // *-T-2
 					configuration: ai.configurationSetWaypoint,
 					behaviour: ai.behaviourApproachDestination,
 					reconsider: 30
@@ -143,17 +143,17 @@ this.aiStarted = function() {
 			/* Group leader is not station: i.e. this is a long-range
 			 * patrol unit */
 			falsebranch: [
-				{
+				{ // 8-F-0
 					/* The group leader leads the patrol */
 					condition: ai.conditionIsGroupLeader,
 					truebranch: [
-						{
+						{ // 8-F-T-0
 							/* Sometimes follow, sometimes not */
 							label: "Consider following suspicious?",
 							condition: ai.conditionCoinFlip,
 							truebranch: [
 								/* Suspicious characters */
-								{
+								{ // 8-F-T-0-T-0
 									condition: ai.conditionScannerContainsSuspiciousShip,
 									configuration: ai.configurationSetDestinationToScannedTarget,
 									behaviour: ai.behaviourApproachDestination,
@@ -162,13 +162,13 @@ this.aiStarted = function() {
 							]
 						},
 						/* Nothing interesting here. Patrol for a bit */
-						{
+						{ // 8-F-T-1
 							condition: ai.conditionHasWaypoint,
 							configuration: ai.configurationSetDestinationToWaypoint,
 							behaviour: ai.behaviourApproachDestination,
 							reconsider: 30
 						},
-						{
+						{ // 8-F-T-2
 							condition: ai.conditionPatrolIsOver,
 							truebranch: [
 								{
@@ -178,7 +178,7 @@ this.aiStarted = function() {
 							]
 						},
 						/* No patrol route set up. Make one */
-						{
+						{ // 8-F-T-3
 							configuration: ai.configurationSetWaypoint,
 							behaviour: ai.behaviourApproachDestination,
 							reconsider: 30
@@ -188,14 +188,14 @@ this.aiStarted = function() {
 					 * as escorts if possible, or looser followers if
 					 * not */
 					falsebranch: [
-						{
+						{ // 8-F-F-0
 							preconfiguration: ai.configurationEscortGroupLeader,
 							condition: ai.conditionIsEscorting,
 							behaviour: ai.behaviourEscortMothership,
 							reconsider: 30
 						},
 						/* if we can't set up as an escort */
-						{
+						{ // 8-F-F-1
 							behaviour: ai.behaviourFollowGroupLeader,
 							reconsider: 15
 						}

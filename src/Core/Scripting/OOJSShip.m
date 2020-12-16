@@ -1424,6 +1424,9 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 			}
 			else if (JSValueToEntity(context, *value, &target) && [target isKindOfClass:[ShipEntity class]])
 			{
+				if ([target isPlayer]) {
+OOLog(@"dybal.trace",@"OOJSShip, %@ target set to player at %f", [entity displayName], HPdistance([entity position],[(ShipEntity *)PLAYER position]));
+				}
 				[entity setTargetForScript:target];
 				return YES;
 			}
@@ -2738,8 +2741,12 @@ static JSBool ShipRemoveEquipment(JSContext *context, uintN argc, jsval *vp)
 				else OK = NO;
 			}
 		}
-		else
+		else {
+			if ([key hasPrefix:@"EQ_FUEL_INJECTION"] && [thisEnt isPlayer]) {
+				OOLog(@"dybal.trace", @"OOJSShip: Removing %@ from %@", key, [thisEnt displayName]);
+			}
 			[thisEnt removeEquipmentItem:key];
+		}
 	}
 	
 	OOJS_RETURN_BOOL(OK);
@@ -3409,7 +3416,9 @@ static JSBool ShipAddDefenseTarget(JSContext *context, uintN argc, jsval *vp)
 		OOJSReportBadArguments(context, @"Ship", @"addDefenseTarget", 1U, OOJS_ARGV, nil, @"target");
 		return NO;
 	}
-	
+	if (PLAYER == target) {
+		OOLog(@"dybal.trace", @"OOJSShip.ShipAddDefenseTarget, adding player ship to %@ defense targets", [thisEnt displayName]);
+	}
 	[thisEnt addDefenseTarget:target];
 
 	OOJS_RETURN_VOID;

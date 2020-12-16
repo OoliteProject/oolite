@@ -1224,7 +1224,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	// ship depreciation
 	ship_trade_in_factor = [dict oo_floatForKey:@"ship_trade_in_factor" defaultValue:95];
-	
+
 	// newer savegames use galaxy_id
 	if ([dict oo_stringForKey:@"galaxy_id"] != nil)
 	{
@@ -6795,8 +6795,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	if (killAward)
 	{
+
 		OOLog(@"dybal.trace", @"Increasing player kills from %d to %d due to destruction of %@", ship_kills, ship_kills+1, [other displayName]);
 		ship_kills++;
+
 		ship_kills++;
 		if ((ship_kills % 256) == 0)
 		{
@@ -7552,7 +7554,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
 	{
+
 		malfunc_chance -= (1 + ranrot_rand() % (int)ceil(81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
+
 	}
 	else if (ship_trade_in_factor >= 99)
 	{
@@ -7654,6 +7658,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSPoint destCoords = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:sTo inGalaxy:galaxy_number]);
 	double distance = distanceBetweenPlanetPositions(destCoords.x,destCoords.y,galaxy_coordinates.x,galaxy_coordinates.y);
 	
+
 	// wear and tear on all jumps (inc misjumps, failures, and wormholes)
 	// wear factor increases non-linearly as ship_trad_in_factor get closer to minimun of 75
 	float wear_factor = 1 / (0.5 + pow(ship_trade_in_factor - 74, 0.6)) - 0.135;
@@ -7668,6 +7673,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 //	OOLog(@"dybal.trace", @"a:%f, e:%f, p:%f, d:%f, i:%f, wf:%f, distance:%f, jump_wear:%f", a, e, p, d, i, wear_factor, distance, jump_wear);
 	OOLog(@"dybal.trace", @"Taking %f from Service Level %f", -jump_wear, ship_trade_in_factor);
 	[self adjustTradeInFactorBy:jump_wear];
+
 
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
 	[UNIVERSE removeAllEntitiesExceptPlayer];
@@ -11737,7 +11743,9 @@ static NSString *last_outfitting_key=nil;
 
 - (int) tradeInFactor
 {
-	return (int)ship_trade_in_factor;
+
+	return (int) ship_trade_in_factor;
+
 }
 
 
@@ -12739,6 +12747,10 @@ static NSString *last_outfitting_key=nil;
 
 - (void) doScriptEvent:(jsid)message inContext:(JSContext *)context withArguments:(jsval *)argv count:(uintN)argc
 {
+	NSString *message_string = OOStringFromJSString(context, JSID_TO_STRING(message));
+	if (message_string != nil && [message_string hasPrefix:@"equipment"]) {
+		OOLog(@"dybal.trace", @"PlayerEntity: calling event %@", message_string);
+	}
 	[super doScriptEvent:message inContext:context withArguments:argv count:argc];
 	[self doWorldScriptEvent:message inContext:context withArguments:argv count:argc timeLimit:0.0];
 }
