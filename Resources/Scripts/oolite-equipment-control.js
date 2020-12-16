@@ -91,6 +91,9 @@ this.startUp = function()
 
 };
 
+this.playerWIllReplaceShip = function() {
+	this.$started = false;
+}
 
 this.playerBoughtNewShip = function()
 {
