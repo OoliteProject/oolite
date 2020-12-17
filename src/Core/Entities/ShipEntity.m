@@ -3479,9 +3479,11 @@ OOLog(@"dybal.trace", @"ShipEntity.respondToAttackFrom: %@ target set to player"
 			// find options that agree with this ship. Only player ships have these options.
 			OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 			NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
-			NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
-			[options addObjectsFromArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-			if (![options containsObject:equipmentKey])  return NO;
+			if (shipyardInfo != nil) {
+				NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
+				[options addObjectsFromArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
+				if (![options containsObject:equipmentKey])  return NO;
+			}
 		}
 	}
 	else
@@ -3547,7 +3549,10 @@ OOLog(@"dybal.trace", @"ShipEntity.respondToAttackFrom: %@ target set to player"
 	if([lcEquipmentKey isEqualToString:@"thargon"]) equipmentKey = @"EQ_THARGON";
 	
 	// canAddEquipment always checks if the undamaged version is equipped.
-	if (validateAddition == YES && ![self canAddEquipment:equipmentKey inContext:context])  return NO;
+	if (validateAddition == YES && ![self canAddEquipment:equipmentKey inContext:context]) {
+		OOLog(@"dybal.trace", @"ShipEntity, addEquipmentItem: %@ in context %@ negated by canAddEquipment", equipmentKey, context);
+		return NO;
+	}
 	
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
