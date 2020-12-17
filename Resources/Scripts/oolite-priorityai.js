@@ -87,11 +87,7 @@ this.PriorityAIController = function(ship)
 	function _reconsiderList(priorities) {
 		var logging = this.getParameter("oolite_flag_behaviourLogging");
 		var pl = priorities.length;
-        var ps = player.ship;
-        if (!ps.docked && this.ship.AIScript.name.indexOf("Police") >=0 && (this.ship.position.distanceTo(player.ship) <= 3*25600 || this.ship.target == ps)) 
-            logging = true;
-        else
-            logging = this.getParameter("oolite_flag_behaviourLogging");
+		var ps = player.ship;
 		if (pl == 0)
 		{
 			log(this.name,"AI '"+this.ship.AIScript.name+"' for ship "+this.ship.displayName+" had a branch with no entries. This may be caused by a template function not being executed during priority set up.");
@@ -1508,12 +1504,8 @@ PriorityAIController.prototype.conditionInCombat = function()
 
 	if (this.__cache.oolite_conditionInCombat !== undefined)
 	{
-if (this.ship.target && this.ship.target == player.ship)
-    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+"has player ship as target and  __cache.oolite_conditionInCombat:"+this.__cache.oolite_conditionInCombat);
 		return this.__cache.oolite_conditionInCombat;
 	}
-if (this.ship.target && this.ship.target == player.ship)
-    log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', conditionInCombat: "+this.ship.displayName+" has player ship as target and alertCondition:"+this.ship.alertCondition);
 	this.__cache.oolite_conditionInCombat = (this.ship.alertCondition==3) ;
 	if (!this.__cache.oolite_conditionInCombat)
 	{
@@ -2931,7 +2923,6 @@ PriorityAIController.prototype.behaviourDestroyCurrentTarget = function()
 		{
 			// entering attack mode
 			this.broadcastAttackMessage(this.ship.target,"beginning",3);
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourDestroyCurrentTarget: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 		else 
@@ -3528,7 +3519,6 @@ PriorityAIController.prototype.behaviourRepelCurrentTarget = function()
 		{
 			// entering attack mode
 			this.broadcastAttackMessage(this.ship.target,"beginning",3);
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourRepelCurrentTarget: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 		else if (this.ship.target)
@@ -3800,7 +3790,6 @@ PriorityAIController.prototype.behaviourStationLaunchDefenseShips = function()
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_launchDefenseShips",this.ship.target,3);
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', behaviourStationLaunchDefenseShips: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	else if (this.ship.alertCondition > 1)
@@ -3924,7 +3913,6 @@ PriorityAIController.prototype.behaviourStationRespondToDistressCall = function(
 		}
 		this.ship.launchDefenseShip();
 		this.communicate("oolite_distressResponseAggressor",aggressor,2);
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', :behaviourStationRespondToDistressCall "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	else
@@ -3948,7 +3936,6 @@ if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.n
 
 PriorityAIController.prototype.configurationAcquireCombatTarget = function()
 {
-if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+" already have player ship as target");
 	var target = this.ship.target;
 	if (target && this.allied(this.ship,target))
 	{
@@ -3988,7 +3975,6 @@ if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+
 			if (!dts[i].isCloaked)
 			{
 				this.ship.target = dts[i];
-if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship choosen from defense targets");
 				return;
 			}
 		}
@@ -4007,7 +3993,6 @@ if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
-if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from group member "+gs[i].displayName+" target");
 					return;
 				}
 			}
@@ -4023,7 +4008,6 @@ if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+
 				if (this.isFighting(gs[i]) && this.distance(gs[i].target) < scan && gs[i].target.isShip)
 				{
 					this.ship.target = gs[i].target;
-if (this.ship.target && this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireCombatTarget: "+this.ship.displayName+": player ship picked from escort group "+gs[i].displayName+" target");
 					return;
 				}
 			}
@@ -4179,7 +4163,6 @@ PriorityAIController.prototype.configurationAcquireOffensiveEscortTarget = funct
 				if (!lt.isCloaked && lt.isShip)
 				{
 					this.ship.target = lt;
-if (lt.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', configurationAcquireOffensiveEscortTarget: "+this.ship.displayName+" adds player ship to defense target from leader "+leader.displayName);
 					this.ship.addDefenseTarget(lt);
 				}
 			}
@@ -5073,7 +5056,6 @@ PriorityAIController.prototype.responseComponent_standard_helpRequestReceived = 
 	{
 		return;
 	}
-if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_standard_helpRequestReceived: "+this.ship.displayName+" adds player ship to defense targets due to help request from "+ally.displayName+(this.ship.group && this.ship.group.containsShip(ally) ? " (group member)" : " (not group member)"));
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
@@ -5132,7 +5114,6 @@ PriorityAIController.prototype.responseComponent_standard_offenceCommittedNearby
 			{
 				if (victim.hasHostileTarget)
 				{
-if (victim.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_standard_offenceCommittedNearby: "+this.ship.displayName+" switching victiim/attacker, player becomes attacker, "+attacker.displayName+" becomes victim");
 					// they're both fighting; it's likely that the
 					// attacker is fighting in self-defence; so swap them
 					var tmp = victim;
@@ -5153,11 +5134,9 @@ if (victim.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', re
 		}
 		else if (attacker.isPlayer && this.ignorePlayerFriendlyFire())
 		{
-log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_offenceCommittedNearby: "+this.ship.displayName+" ignoring as friendly fire");
 			this.communicate("oolite_friendlyFire",attacker,3);
 			return;
 		}
-if (attacker.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_offenceCommittedNearby: "+this.ship.displayName+" player bounty was "+attacker.bounty+" being set to 7 and added to defense targets");
 		if (attacker.bounty & 7 != 7)
 		{
 			this.communicate("oolite_offenceDetected",attacker,3);
@@ -5360,7 +5339,6 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttacked = fu
 			return;
 		}
 	}
-if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_shipBeingAttacked: "+this.ship.displayName+" sets player bounty and adds it to defense targets");
 	if (this.getParameter("oolite_flag_markOffenders"))
 	{
 		if (this.ship.scanClass == "CLASS_POLICE")
@@ -5440,7 +5418,6 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',respo
 		{
 			this.communicate("oolite_attackLowEnergy",whom,2);
 			// but at low energy still reconsider
-if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_1: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 	}
@@ -5493,7 +5470,6 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', stan
 
 	if (this.ship.escortGroup != null)
 	{
-if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttacked_2: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 	if (!this.ship.hasHostileTarget && this.distance(whom) > this.scannerRange)
@@ -5514,7 +5490,6 @@ PriorityAIController.prototype.responseComponent_standard_shipBeingAttackedUnsuc
 	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
 	{
-if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_standard_shipBeingAttackedUnsuccessfully: "+this.ship.displayName+" adds player to defense targets");
 		this.ship.addDefenseTarget(whom);
 		this.reconsiderNow();
 	}
@@ -5527,7 +5502,6 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',respo
 	{
 		this.ship.target = whom;
 		this.ship.performAttack();
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', standard_shipBeingAttackedUnsuccessfully: "+this.ship.displayName+" asks for help against player");
 		this.ship.requestHelpFromGroup();
 	}
 }
@@ -5866,7 +5840,6 @@ PriorityAIController.prototype.responseComponent_station_shipBeingAttacked = fun
 	}
 	if (this.ship.defenseTargets.indexOf(whom) < 0)
 	{
-if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_station_shipBeingAttacked: "+this.ship.displayName+" adds player to defense targets");
 		this.ship.addDefenseTarget(whom);
 		this.reconsiderNow();
 	}
@@ -5877,7 +5850,6 @@ if (whom.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', resp
 		{
 			// but at low energy still reconsider
 			this.reconsiderNow();
-if (this.ship.target.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', station_shipBeingAttacked: "+this.ship.displayName+" asks for help against player");
 			this.ship.requestHelpFromGroup();
 		}
 	}
@@ -5961,7 +5933,6 @@ PriorityAIController.prototype.responseComponent_station_shipTargetLost = functi
 
 PriorityAIController.prototype.responseComponent_station_helpRequestReceived = function(ally, enemy)
 {
-if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_station_helpRequestReceived: "+this.ship.displayName+" adds player to defense targets");
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
@@ -6015,7 +5986,6 @@ PriorityAIController.prototype.responseComponent_station_offenceCommittedNearby 
 			{
 				if (victim.hasHostileTarget)
 				{
-if (victim.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"' responseComponent_station_offenceCommittedNearby: "+this.ship.displayName+" swicthes victim/attacker, player becomes the attacker");
 					// they're both fighting; it's likely that the
 					// attacker is fighting in self-defence; so swap them
 					var tmp = victim;
@@ -6039,7 +6009,6 @@ if (victim.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"' res
 			this.communicate("oolite_friendlyFire",attacker,3);
 			return;
 		}
-if (attacker.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"',responseComponent_station_offenceCommittedNearby: "+this.ship.displayName+" sets player bounty and adds to defense targets");
 		attacker.setBounty(attacker.bounty | 7,"seen by police");
 		this.ship.addDefenseTarget(attacker);
 		if (this.ship.alertCondition < 3)
@@ -6124,7 +6093,6 @@ PriorityAIController.prototype.responseComponent_escort_helpRequestReceived = fu
 			return;
 		}
 	}
-if (enemy.isPlayer) log(this.name, "dybal: AI '"+this.ship.AIScript.name+"', responseComponent_escort_helpRequestReceived: "+this.ship.displayName+" adds player to defense targest in response to request from "+ally.displayName);
 	this.ship.addDefenseTarget(enemy);
 	if (enemy.scanClass == "CLASS_MISSILE" && this.distance(enemy) < this.scannerRange && this.ship.hasEquipmentProviding("EQ_ECM"))
 	{
