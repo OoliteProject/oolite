@@ -1856,7 +1856,9 @@ static NSMutableDictionary *currentShipyard = nil;
 	
 	NSDictionary *ship_base_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 
-	if (ship_info == nil || ship_base_dict == nil) {
+////	if (ship_info == nil || ship_base_dict == nil) {
+	if (ship_base_dict == nil) {
+		OOLog(@"dybal.trace", @"no base data for datakey %@ found", shipKey);
 		return NO;
 	}
 
@@ -1870,22 +1872,24 @@ static NSMutableDictionary *currentShipyard = nil;
 	if (![self setCommanderDataFromDictionary:cmdr_dict])  return NO;
 
 	// refill from ship_info
-	NSArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-	for (unsigned i = 0; i < [extras count]; i++)
-	{
-		NSString* eq_key = [extras oo_stringAtIndex:i];
-		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
+	if (ship_info != nil) {
+		NSArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
+		for (unsigned i = 0; i < [extras count]; i++)
 		{
-			max_passengers++;
-			max_cargo -= PASSENGER_BERTH_SPACE;
+			NSString* eq_key = [extras oo_stringAtIndex:i];
+			if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
+			{
+				max_passengers++;
+				max_cargo -= PASSENGER_BERTH_SPACE;
+			}
+			else
+			{
+				[self addEquipmentItem:eq_key withValidation:YES inContext:@"newShip"]; 
+			}
 		}
-		else
-		{
-			[self addEquipmentItem:eq_key withValidation:YES inContext:@"newShip"]; 
-		}
+		[self setEntityPersonalityInt:[ship_info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
 	}
 
-	[self setEntityPersonalityInt:[ship_info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
 	
 	return YES;
 }
@@ -1916,7 +1920,12 @@ static NSMutableDictionary *currentShipyard = nil;
 	
 	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
 	int base_facings = [shipDict oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:15];
-	int available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:base_facings];
+	int available_facings;
+	if (ship_info == nil) {
+		available_facings = base_facings;
+	} else {
+		available_facings = [ship_info oo_unsignedIntForKey:KEY_WEAPON_FACINGS defaultValue:base_facings];
+	}
 
 	// not retained - weapon types are references to the objects in OOEquipmentType's cache
 	if (available_facings & WEAPON_FACING_AFT)
