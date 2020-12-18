@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 	BOOL					_miniature;
 	OOColor					*_airColor;
 	float					_airColorMixRatio;
+	float					_airDensity;
 	double					_mesopause2;
 	
 	Vector					_rotationAxis;
@@ -98,6 +99,8 @@ MA 02110-1301, USA.
 - (void) setAirColor:(OOColor *) newColor;
 - (float) airColorMixRatio; // visible to shader bindings
 - (void) setAirColorMixRatio:(float) newRatio;
+- (float) airDensity; // visible to shafer bindings
+- (void) setAirDensity: (float) newDensity;
 
 - (void) setTerminatorThresholdVector:(Vector) newTerminatorThresholdVector;
 - (Vector) terminatorThresholdVector; // visible to shader bindings
