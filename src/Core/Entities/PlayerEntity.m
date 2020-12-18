@@ -6789,7 +6789,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[UNIVERSE addDelayedMessage:bonusMessage forCount:6 afterDelay:0.15];
 	}
 
-	if ([other isUnpiloted]) {
+	if ([other isHulk]) {
 		killAward = NO;
 	}
 
