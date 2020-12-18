@@ -34,13 +34,14 @@ uniform vec4			atmPosition;
 uniform float			atmRadius;
 uniform vec4			atmColor;
 uniform float			atmColorMixRatio;
+uniform float			atmDensity;
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
 varying vec3			vLight1Vector;
 
 uniform vec4			terminatorThreshold;
-const float				kFresnelExponent = 4.0;
+const float				kFresnelExponent = 5.0;
 
 
 void main()
@@ -67,7 +68,7 @@ void main()
 	
 	// create a fresnel torus around the planet - opacity is proportional to it
 	// multiply NdotV by a constant less than 1.0 to create haze
-	vec3 fresnel = vec3(pow(1.0 - (NdotV * 0.31831), kFresnelExponent));
+	vec3 fresnel = vec3(pow(1.0 - (NdotV * (1.0 - atmDensity)), kFresnelExponent));
 	
 	// calculate when the atmosphere should fade in / out
 	float quant = atmDistance < (minDistance + 2000.0) ?
@@ -76,14 +77,13 @@ void main()
 	// calculate the final opacity, special handling for
 	// angles > arccos(cosThreshold) to fade atmosphere out at its edge
 	float newOpacity = quant * pow(max(0.01, NdotL), 0.203333) * (NdotV > cosThreshold ?
-								pow(fresnel.r * cosThreshold  / NdotV, 0.8) :
-								pow(NdotV / cosThreshold, newOpacityExponent));
+								pow(fresnel.r * cosThreshold / NdotV, 0.8) :
+								min(1.0, atmDensity * 2.0) * pow(NdotV / cosThreshold, newOpacityExponent));
 	
 	// mix the bias color now
 	totalColor *=	mix(totalColor, atmColor.rgb, atmColorMixRatio) *
 					// comment below for fresnel to not affect atmosphere color
-					dot(normalize(fresnel), vec3(NdotL)) *
-					clamp(totalColor, vec3(0.0), diffuseColor);
+					dot(normalize(fresnel), vec3(NdotL));
 	
 	// at the very edge, mix in some serious bias color
 	if (NdotV < cosThreshold)

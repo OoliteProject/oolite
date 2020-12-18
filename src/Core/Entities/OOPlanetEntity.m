@@ -150,6 +150,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	
 	_airColor = nil;	// default to no air
 	_airColorMixRatio = 0.5f;
+	_airDensity = 0.75f;
 	
 #if NEW_ATMOSPHERE
 	if (atmosphere)
@@ -168,9 +169,11 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		// planetInfo now contains a valid air_color
 		_airColor = [[planetInfo objectForKey:@"air_color"] retain];
 		_airColorMixRatio = [planetInfo oo_floatForKey:@"air_color_mix_ratio"];
+		
+		_airDensity = OOClamp_0_1_f([planetInfo oo_floatForKey:@"air_density"]);
 		// OOLog (@"planet.debug",@" translated air colour:%@ cloud colour:%@ polar cloud color:%@", [_airColor rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"cloud_color"] rgbaDescription],[(OOColor *)[planetInfo objectForKey:@"polar_cloud_color"] rgbaDescription]);
 
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"air_color_mix_ratio", @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"cloud_fraction", @"air_color", @"air_color_mix_ratio", @"air_density", @"cloud_color", @"polar_cloud_color", @"cloud_alpha", @"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction", @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", nil]];
 	}
 	else
 #else
@@ -840,6 +843,19 @@ static OOColor *ColorWithHSBColor(Vector c)
 - (void) setAirColorMixRatio:(float) newRatio
 {
 	_airColorMixRatio = OOClamp_0_1_f(newRatio);
+}
+
+
+// visible to shader bindings
+- (float) airDensity
+{
+	return _airDensity;
+}
+
+
+- (void) setAirDensity: (float)newDensity
+{
+	_airDensity = OOClamp_0_1_f(newDensity);
 }
 
 
