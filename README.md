@@ -10,6 +10,7 @@
 | | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
 | | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
 
+![Oolite](http://oolite.org/images/gallery/large/another_commander-210210_LeavingCoriolisAgain.png)
 
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
