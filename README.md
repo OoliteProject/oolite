@@ -47,15 +47,19 @@ For end-user documentation, see [oolite.org](http://www.oolite.org/) and
 - **tools**:  Various tools for preparing files, builds, releases etc.
 
 ## Building
-On Mac OS X, you will need the latest version of Xcode from the App Store.
+### Mac OS X
+You will need the latest version of Xcode from the App Store.
 Then double click on the Xcode project in the Finder, select one of the Oolite
 targets from the Scheme pop-up, and hit Build and Run (the play button in the
 toolbar).
 
-For Windows, see the Oolite wiki:
+### Windows
+See the Oolite wiki:
 http://wiki.alioth.net/index.php/Running_Oolite-Windows
 
-On Linux, if you have the Debian package tools (installed by default with
+### Linux
+
+If you have the Debian package tools (installed by default with
 Debian and Ubuntu), use dpkg-buildpackage.
 
 On Linux, BSD and other Unix platforms without dpkg tools, you will need to
@@ -66,7 +70,8 @@ distros, GNUstep and SDL development libraries come prepackaged - just
 apt-get/yum install the relevant files. You may also need to install Mozilla
 Spidermonkey (libmozjs). On others you may need to build them from source. In
 particular, you need the SDL_Mixer library, which doesn't always come with the
-base SDL development kit.  
+base SDL development kit.
+
 Then just type `make`, or, if you're using GNU make,
 `make -f Makefile`. On some systems, such as Gentoo, you may need to run
 `make -f Makefile OBJCFLAGS=-fobjc-exceptions`.  
@@ -77,8 +82,8 @@ Also remember to first fetch the various submodules, see [Git](#Git).
 
 ## Running
 On OS X, you can run from Xcode by clicking on the appropriate icon
-(or choosing 'Run' from the 'Product' menu).
-On Linux/BSD/Unix, in a terminal, type `openapp oolite`
+(or choosing 'Run' from the 'Product' menu).  
+On Linux/BSD/Unix, in a terminal, type `openapp oolite`, or if you compiled it yourself you can run it with `./oolite.app/oolite`.
 
 ## Git
 The Oolite source is available from github.
