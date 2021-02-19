@@ -151,6 +151,7 @@ static JSBool ShipStaticKeys(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipStaticRoles(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipStaticRoleIsInCategory(JSContext *context, uintN argc, jsval *vp);
 static JSBool ShipStaticShipDataForKey(JSContext *context, uintN argc, jsval *vp);
+static JSBool ShipStaticSetShipDataForKey(JSContext *context, uintN argc, jsval *vp);
 
 static JSClass sShipClass =
 {
@@ -575,6 +576,7 @@ static JSFunctionSpec sShipStaticMethods[] =
 	{ "roleIsInCategory",	ShipStaticRoleIsInCategory,		2 },
 	{ "roles",				ShipStaticRoles,				0 },
 	{ "shipDataForKey",		ShipStaticShipDataForKey,		1 },
+	{ "setShipDataForKey",  ShipStaticSetShipDataForKey,    2 },
 	{ 0 }
 };
 
@@ -4353,6 +4355,26 @@ static JSBool ShipStaticShipDataForKey(JSContext *context, uintN argc, jsval *vp
 	else
 	{
 		OOJSReportBadArguments(context, @"Ship", @"shipDataForKey", MIN(argc, 1U), OOJS_ARGV, nil, @"ship role");
+		return NO;
+	}
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool ShipStaticSetShipDataForKey(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context);
+	OOShipRegistry                  *registry = [OOShipRegistry sharedRegistry];
+
+	if (argc >= 2)
+	{
+		NSString *key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+		NSDictionary *newShipData = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
+		[registry setShipInfoForKey:key with:newShipData];
+		OOJS_RETURN_BOOL(YES);
+	}
+	else
+	{
+		OOJSReportBadArguments(context, @"Ship", @"setShipInfoForKey", MIN(argc, 2U), OOJS_ARGV, nil, @"ship role");
 		return NO;
 	}
 	OOJS_NATIVE_EXIT
