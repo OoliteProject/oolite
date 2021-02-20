@@ -58,6 +58,7 @@ stardotstar
 Konstantinos Sykas (Getafix)
 David Taylor (dajt)
 Tichy
+Jost Triller (tsoj)
 Eric Walch
 Michael Werle (Micha)
 Gary Wong (Y A J)

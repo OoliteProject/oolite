@@ -4360,6 +4360,7 @@ static JSBool ShipStaticShipDataForKey(JSContext *context, uintN argc, jsval *vp
 	OOJS_NATIVE_EXIT
 }
 
+
 static JSBool ShipStaticSetShipDataForKey(JSContext *context, uintN argc, jsval *vp)
 {
 	OOJS_NATIVE_ENTER(context);
