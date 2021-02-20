@@ -213,7 +213,8 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 {
 	NSMutableDictionary *mutableDict = [NSMutableDictionary dictionaryWithDictionary:_shipData];
 	[mutableDict setObject:OODeepCopy(newShipData) forKey:key];
-	_shipData = [mutableDict mutableCopy];
+	DESTROY(_shipData);
+	_shipData = [[NSDictionary dictionaryWithDictionary:mutableDict] retain];
 }
 
 - (NSDictionary *) effectInfoForKey:(NSString *)key

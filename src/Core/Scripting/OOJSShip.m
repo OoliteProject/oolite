@@ -4354,7 +4354,7 @@ static JSBool ShipStaticShipDataForKey(JSContext *context, uintN argc, jsval *vp
 	}
 	else
 	{
-		OOJSReportBadArguments(context, @"Ship", @"shipDataForKey", MIN(argc, 1U), OOJS_ARGV, nil, @"ship role");
+		OOJSReportBadArguments(context, @"Ship", @"shipDataForKey", MIN(argc, 1U), OOJS_ARGV, nil, @"key");
 		return NO;
 	}
 	OOJS_NATIVE_EXIT
@@ -4374,7 +4374,7 @@ static JSBool ShipStaticSetShipDataForKey(JSContext *context, uintN argc, jsval 
 	}
 	else
 	{
-		OOJSReportBadArguments(context, @"Ship", @"setShipInfoForKey", MIN(argc, 2U), OOJS_ARGV, nil, @"ship role");
+		OOJSReportBadArguments(context, @"Ship", @"setShipInfoForKey", MIN(argc, 2U), OOJS_ARGV, nil, @"key shipdata");
 		return NO;
 	}
 	OOJS_NATIVE_EXIT
