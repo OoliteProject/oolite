@@ -999,25 +999,27 @@ static OOOXZManager *sSingleton = nil;
 	{
 		return OXZ_INSTALLABLE_CONFLICTS;
 	}
-	if ([ResourceManager manifestHasMissingDependencies:manifest logErrors:NO]) 
+	if (installed != nil)
+	{
+		NSString *availableVersion = [manifest oo_stringForKey:kOOManifestAvailableVersion];
+		if (availableVersion == nil)
+		{
+			availableVersion = [manifest oo_stringForKey:kOOManifestVersion];
+		}
+		NSString *installedVersion = [installed oo_stringForKey:kOOManifestVersion];
+		OOLog(@"version.debug",@"%@ mv:%@ mav:%@",identifier,installedVersion,availableVersion);
+		if (CompareVersions(ComponentsFromVersionString(installedVersion),ComponentsFromVersionString(availableVersion)) == NSOrderedDescending)
+		{
+			// the installed copy is more recent than the server copy
+			return OXZ_UNINSTALLABLE_NOREMOTE;
+		}
+		return OXZ_INSTALLABLE_UPDATE;
+	}
+	if ([ResourceManager manifestHasMissingDependencies:manifest logErrors:NO])
 	{
 		return OXZ_INSTALLABLE_DEPENDENCIES;
-	} 
-	else
-	{
-		if (installed != nil) 
-		{
-			OOLog(@"version.debug",@"%@ mv:%@ mav:%@",identifier,[installed oo_stringForKey:kOOManifestVersion],[manifest oo_stringForKey:kOOManifestVersion]);
-//			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([installed oo_stringForKey:kOOManifestAvailableVersion])) == NSOrderedDescending)
-			if (CompareVersions(ComponentsFromVersionString([installed oo_stringForKey:kOOManifestVersion]),ComponentsFromVersionString([manifest oo_stringForKey:kOOManifestVersion])) == NSOrderedDescending)
-			{
-				// the installed copy is more recent than the server copy
-				return OXZ_UNINSTALLABLE_NOREMOTE;
-			}
-			return OXZ_INSTALLABLE_UPDATE;
-		}
-		return OXZ_INSTALLABLE_OKAY;
 	}
+	return OXZ_INSTALLABLE_OKAY;
 }
 
 
@@ -1647,13 +1649,13 @@ static OOOXZManager *sSingleton = nil;
 	[_dependencyStack removeAllObjects];
 	_downloadAllDependencies = YES;
 	[self setFilteredList:_oxzList];
-
 	NSDictionary *manifest = nil;
+
 	foreach (manifest,_oxzList)
 	{
 		if ([self installableState:manifest] == OXZ_INSTALLABLE_UPDATE)
 		{
-			OOLog(kOOOXZDebugLog, @"Queueing in for update: %@", manifest);
+			OOLog(kOOOXZDebugLog, @"Queuing in for update: %@", manifest);
 			[_dependencyStack addObject:manifest];
 		}
 	}
