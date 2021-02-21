@@ -93,13 +93,14 @@ enum {
 	OXZ_GUI_ROW_LISTSTART	= 2,
 	OXZ_GUI_NUM_LISTROWS	= 10,
 	OXZ_GUI_ROW_LISTNEXT	= 12,
-	OXZ_GUI_ROW_LISTFILTER	= 22,
 	OXZ_GUI_ROW_LISTSTATUS	= 14,
 	OXZ_GUI_ROW_LISTDESC	= 16,
-	OXZ_GUI_ROW_LISTINFO1	= 20,
-	OXZ_GUI_ROW_LISTINFO2	= 21,
-	OXZ_GUI_ROW_INSTALL		= 23,
-	OXZ_GUI_ROW_INSTALLED	= 24,
+	OXZ_GUI_ROW_LISTINFO1	= 19,
+	OXZ_GUI_ROW_LISTINFO2	= 20,
+	OXZ_GUI_ROW_LISTFILTER	= 21,
+	OXZ_GUI_ROW_INSTALL		= 22,
+	OXZ_GUI_ROW_INSTALLED	= 23,
+	OXZ_GUI_ROW_UPDATE_ALL	= 24,
 	OXZ_GUI_ROW_REMOVE		= 25,
 	OXZ_GUI_ROW_PROCEED		= 25,
 	OXZ_GUI_ROW_UPDATE		= 26,
@@ -147,6 +148,7 @@ static OOOXZManager *sSingleton = nil;
 - (void) setProgressStatus:(NSString *)newStatus;
 
 - (BOOL) installOXZ:(NSUInteger)item;
+- (BOOL) updateAllOXZ;
 - (BOOL) removeOXZ:(NSUInteger)item;
 - (NSArray *) installOptions;
 - (NSArray *) removeOptions;
@@ -799,10 +801,11 @@ static OOOXZManager *sSingleton = nil;
 		foreach (requirement, tempStack)
 		{
 			OOLog(kOOOXZDebugLog,@"Dependency stack: checking %@",[requirement oo_stringForKey:kOOManifestRelationIdentifier]);
-			if (![ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO])
+			if (![ResourceManager manifest:downloadedManifest HasUnmetDependency:requirement logErrors:NO]
+			    && requires != nil && [requires containsObject:requirement])
 			{
+				// it was unmet, but now it's met					
 				[progress appendFormat:DESC(@"oolite-oxzmanager-progress-now-has-@"),[requirement oo_stringForKey:kOOManifestRelationDescription defaultValue:[requirement oo_stringForKey:kOOManifestRelationIdentifier]]];
-				// it was unmet, but now it's met
 				[_dependencyStack removeObject:requirement];
 				OOLog(kOOOXZDebugLog, @"%@", @"Dependency stack: requirement met");
 			} else if ([[requirement oo_stringForKey:kOOManifestRelationIdentifier] isEqualToString:[downloadedManifest oo_stringForKey:kOOManifestIdentifier]]) {
@@ -1140,6 +1143,8 @@ static OOOXZManager *sSingleton = nil;
 		[gui setKey:@"_REMOVE" forRow:OXZ_GUI_ROW_REMOVE];
 		[gui setText:DESC(@"oolite-oxzmanager-update-list") forRow:OXZ_GUI_ROW_UPDATE align:GUI_ALIGN_CENTER];
 		[gui setKey:@"_UPDATE" forRow:OXZ_GUI_ROW_UPDATE];
+		[gui setText:DESC(@"oolite-oxzmanager-update-all") forRow:OXZ_GUI_ROW_UPDATE_ALL align:GUI_ALIGN_CENTER];
+		[gui setKey:@"_UPDATE_ALL" forRow:OXZ_GUI_ROW_UPDATE_ALL];
 
 		startRow = OXZ_GUI_ROW_INSTALL;
 		break;
@@ -1408,6 +1413,11 @@ static OOOXZManager *sSingleton = nil;
 			_interfaceState = OXZ_STATE_PICK_REMOVE;
 		}
 	}
+	else if (selection == OXZ_GUI_ROW_UPDATE_ALL)
+	{
+		OOLog(kOOOXZDebugLog, @"Trying to update all managed OXPs");
+		[self updateAllOXZ];
+	}
 	else if (selection == OXZ_GUI_ROW_LISTPREV)
 	{
 		[self processOptionsPrev];
@@ -1631,6 +1641,35 @@ static OOOXZManager *sSingleton = nil;
 	return [self beginDownload:request];
 }
 
+- (BOOL) updateAllOXZ
+{
+	[_dependencyStack removeAllObjects];
+	_downloadAllDependencies = YES;
+	[self setFilteredList:_oxzList];
+
+	NSDictionary *manifest = nil;
+	foreach (manifest,_oxzList)
+	{
+		if ([self installableState:manifest] == OXZ_INSTALLABLE_UPDATE)
+		{
+			OOLog(kOOOXZDebugLog, @"Queueing in for update: %@", manifest);
+			[_dependencyStack addObject:manifest];
+		}
+	}
+	NSDictionary *first = [_dependencyStack anyObject];
+	NSString* identifier = [first oo_stringForKey:kOOManifestRelationIdentifier];
+	NSUInteger item = -1;
+	NSDictionary *availableDownload = nil;
+	foreach (availableDownload, _oxzList)
+	{
+		if ([[availableDownload oo_stringForKey:kOOManifestIdentifier] isEqualToString:identifier])
+		{
+			item = [_oxzList indexOfObject:availableDownload];
+			break;
+		}
+	}
+	return [self installOXZ:item];
+}
 
 - (NSArray *) installOptions
 {
