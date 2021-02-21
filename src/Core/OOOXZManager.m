@@ -1641,6 +1641,7 @@ static OOOXZManager *sSingleton = nil;
 	return [self beginDownload:request];
 }
 
+
 - (BOOL) updateAllOXZ
 {
 	[_dependencyStack removeAllObjects];
@@ -1658,7 +1659,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	NSDictionary *first = [_dependencyStack anyObject];
 	NSString* identifier = [first oo_stringForKey:kOOManifestRelationIdentifier];
-	NSUInteger item = -1;
+	NSUInteger item = NSUIntegerMax;
 	NSDictionary *availableDownload = nil;
 	foreach (availableDownload, _oxzList)
 	{
@@ -1670,6 +1671,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	return [self installOXZ:item];
 }
+
 
 - (NSArray *) installOptions
 {
