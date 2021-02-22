@@ -73,8 +73,8 @@ particular, you need the SDL_Mixer library, which doesn't always come with the
 base SDL development kit.
 
 Then just type `make`, or, if you're using GNU make,
-`make -f Makefile`. On some systems, such as Gentoo, you may need to run
-`make -f Makefile OBJCFLAGS=-fobjc-exceptions`.  
+`make -f Makefile release`. On some systems, such as Gentoo, you may need to run
+`make -f Makefile release OBJCFLAGS=-fobjc-exceptions`.  
 If you get errors like `make[1]: *** No rule to make target '/objc.make'.  Stop.` it might help if you run `source /usr/share/GNUstep/Makefiles/GNUstep.sh` (the exact path to `GNUstep.sh` might differ).  
 If you have problems with missing textures you can try to delete `deps/Linux-deps/include/png.h` and `deps/Linux-deps/include/pngconf.h` before compiling.
 
