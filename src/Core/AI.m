@@ -81,17 +81,17 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 {
 @private
 	NSDictionary		*_stateMachine;
-	NSString			*_name;
-	NSString			*_state;
+	NSString		*_name;
+	NSString		*_state;
 	NSMutableSet		*_pendingMessages;
-	NSString      *_jsScript;
+	NSString      		*_jsScript;
 }
 
 - (id) initWithStateMachine:(NSDictionary *)stateMachine
-					   name:(NSString *)name
-					  state:(NSString *)state
-			pendingMessages:(NSSet *)pendingMessages
-									 jsScript:(NSString *)script;
+					   	name:(NSString *)name
+					  	state:(NSString *)state
+						pendingMessages:(NSSet *)pendingMessages
+						jsScript:(NSString *)script;
 
 - (NSDictionary *) stateMachine;
 - (NSString *) name;
@@ -246,10 +246,10 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	}
 	
 	OOPreservedAIStateMachine *preservedMachine = [[OOPreservedAIStateMachine alloc]
-												   initWithStateMachine:stateMachine
-																   name:stateMachineName
-																  state:currentState
-														pendingMessages:pendingMessages
+												initWithStateMachine:stateMachine
+												name:stateMachineName
+												state:currentState
+												pendingMessages:pendingMessages
 																									jsScript:[stateMachine objectForKey:@"jsScript"]];
 	
 #ifndef NDEBUG
@@ -389,7 +389,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 typedef struct AIStackElement AIStackElement;
 struct AIStackElement
 {
-	AIStackElement			*back;
+	AIStackElement				*back;
 	ShipEntity				*owner;
 	NSString				*aiName;
 	NSString				*state;
@@ -719,7 +719,7 @@ static AIStackElement *sStack = NULL;
 - (void)performDeferredCall:(SEL)selector withObject:(id)object afterDelay:(NSTimeInterval)delay
 {
 	OOAIDeferredCallTrampolineInfo	infoStruct;
-	NSValue							*info = nil;
+	NSValue						*info = nil;
 	
 	if (selector != NULL)
 	{
@@ -804,7 +804,7 @@ static AIStackElement *sStack = NULL;
 	NSMutableDictionary		*cleanSM = nil;
 	OOCacheManager			*cacheMgr = [OOCacheManager sharedCache];
 	NSEnumerator			*stateEnum = nil;
-	NSString				*stateKey = nil;
+	NSString			*stateKey = nil;
 	NSDictionary			*stateHandlers = nil;
 	NSAutoreleasePool		*pool = nil;
 	
@@ -888,8 +888,8 @@ static AIStackElement *sStack = NULL;
 - (NSDictionary *) cleanHandlers:(NSDictionary *)handlers forState:(NSString *)stateKey stateMachine:(NSString *)smName
 {
 	NSEnumerator			*handlerEnum = nil;
-	NSString				*handlerKey = nil;
-	NSArray					*handlerActions = nil;
+	NSString			*handlerKey = nil;
+	NSArray				*handlerActions = nil;
 	NSMutableDictionary		*result = nil;
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:[handlers count]];
@@ -914,15 +914,15 @@ static AIStackElement *sStack = NULL;
 - (NSArray *) cleanActions:(NSArray *)actions forHandler:(NSString *)handlerKey state:(NSString *)stateKey stateMachine:(NSString *)smName
 {
 	NSEnumerator			*actionEnum = nil;
-	NSString				*action = nil;
-	NSRange					spaceRange;
-	NSString				*selector = nil;
-	id						aliasedSelector = nil;
+	NSString			*action = nil;
+	NSRange				spaceRange;
+	NSString			*selector = nil;
+	id				*aliasedSelector = nil;
 	NSMutableArray			*result = nil;
 	static NSSet			*whitelist = nil;
 	static NSDictionary		*aliases = nil;
-	NSArray					*whitelistArray1 = nil;
-	NSArray					*whitelistArray2 = nil;
+	NSArray				*whitelistArray1 = nil;
+	NSArray				*whitelistArray2 = nil;
 	
 	if (whitelist == nil)
 	{
@@ -991,10 +991,10 @@ static AIStackElement *sStack = NULL;
 @implementation OOPreservedAIStateMachine
 
 - (id) initWithStateMachine:(NSDictionary *)stateMachine
-					   name:(NSString *)name
-					  state:(NSString *)state
-			pendingMessages:(NSSet *)pendingMessages
-									 jsScript:(NSString *)script
+					   	name:(NSString *)name
+					  	state:(NSString *)state
+						pendingMessages:(NSSet *)pendingMessages
+						jsScript:(NSString *)script
 {
 	if ((self = [super init]))
 	{
