@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "OOTypes.h"
 
-#define AI_THINK_INTERVAL					0.125
+#define AI_THINK_INTERVAL		0.125
 
 
 @class ShipEntity;
@@ -37,20 +37,20 @@ MA 02110-1301, USA.
 @interface AI: OOWeakRefObject
 {
 @private
-	id					_owner;						// OOWeakReference to the ShipEntity this is the AI for
-	NSString			*ownerDesc;					// describes the object this is the AI for
+	id			_owner;						// OOWeakReference to the ShipEntity this is the AI for
+	NSString		*ownerDesc;					// describes the object this is the AI for
 	
 	NSDictionary		*stateMachine;
-	NSString			*stateMachineName;
-	NSString			*currentState;
+	NSString		*stateMachineName;
+	NSString		*currentState;
 	NSMutableSet		*pendingMessages;
 	
 	NSMutableArray		*aiStack;
 	
 	OOTimeAbsolute		nextThinkTime;
-	OOTimeDelta			thinkTimeInterval;
+	OOTimeDelta		thinkTimeInterval;
 	
-	NSString      *jsScript;
+	NSString      		*jsScript;
 }
 
 + (AI *) currentlyRunningAI;
