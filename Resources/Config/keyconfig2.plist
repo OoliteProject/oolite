@@ -1,0 +1,478 @@
+{
+    key_roll_left = ({
+        key = "arrowLeft";
+    });
+    key_roll_right = ({
+        key = "arrowRight";
+    });
+    key_pitch_forward = ({
+        key = "arrowUp";
+    });
+    key_pitch_back = ({
+        key = "arrowDown";
+    });
+    key_yaw_left = ({
+        key = ",";
+    });
+    key_yaw_right = ({
+        key = ".";
+    });
+
+    key_view_forward = ({
+        key = "1";
+    }, {
+        key = "f1";
+    });
+    key_view_aft = ({
+        key = "2";
+    }, {
+        key = "f2";
+    });
+    key_view_port = ({
+        key = "3";
+    }, {
+        key = "f3";
+    });
+    key_view_starboard = ({
+        key = "4";
+    }, {
+        key = "f4";
+    });
+
+    // new
+    key_launch_ship = ({
+        key = "1";
+    }, {
+        key = "f1";
+    });
+    // new
+    key_gui_screen_options = ({
+        key = "2";
+    }, {
+        key = "f2";
+    });
+    // new
+    key_gui_screen_equipship = ({
+        key = "3";
+    }, {
+        key = "f3";
+    });
+    // new
+    key_gui_screen_interfaces = ({
+        key = "4";
+    }, {
+        key = "f4";
+    });
+    key_gui_screen_status = ({
+        key = "5";
+    }, {
+        key = "f5";
+    });
+    key_gui_chart_screens = ({
+        key = "6";
+    }, {
+        key = "f6";
+    });
+    key_gui_system_data = ({
+        key = "7";
+    }, {
+        key = "f7";
+    });
+    key_gui_market = ({
+        key = "8";
+    }, {
+        key = "f8";
+    });
+
+    key_gui_arrow_left = ({
+        key = "arrowLeft";
+    });
+    key_gui_arrow_right = ({
+        key = "arrowRight";
+    });
+    key_gui_arrow_up = ({
+        key = "arrowUp";
+    });
+    key_gui_arrow_down = ({
+        key = "arrowDown";
+    });
+    /* 
+        // alternative settings to use numpad instead
+    	key_gui_arrow_left = ({
+            key = "numpad4";
+        });
+    	key_gui_arrow_right = ({
+            key = "numpad6";
+        });
+    	key_gui_arrow_up = ({
+            key = "numpad8";
+        });
+    	key_gui_arrow_down = ({
+            key = "numpad2";
+        });
+    */
+    // new
+    key_gui_page_up = ({
+        key = "pageUp";
+    });
+    // new
+    key_gui_page_down = ({
+        key = "pageDown";
+    });
+    // new
+    key_gui_select = ({
+        key = "enter";
+    });
+
+    key_increase_speed = ({
+        key = "w";
+    });
+    key_decrease_speed = ({
+        key = "s";
+    });
+    key_inject_fuel = ({
+        key = "i";
+    });
+
+    key_fire_lasers = ({
+        key = "a";
+    });
+    key_weapons_online_toggle = ({
+        key = "_";
+    });
+    key_launch_missile = ({
+        key = "m";
+    });
+    key_next_missile = ({
+        key = "y";
+    });
+    key_ecm = ({
+        key = "e";
+    });
+
+    // changed
+    key_prime_next_equipment = ({
+        key = "N";
+    });
+    // new 
+    key_prime_previous_equipment = ({
+        key = "N";
+        mod1 = true;
+    });
+    key_activate_equipment = ({
+        key = "n";
+    });
+    key_mode_equipment = ({
+        key = "b";
+    });
+    key_fastactivate_equipment_a = ({
+        key = "0";
+    });
+    key_fastactivate_equipment_b = ({
+        key = "tab";
+    });
+
+    key_target_incoming_missile = ({
+        key = "T";
+    });
+    key_target_missile = ({
+        key = "t";
+    });
+    key_untarget_missile = ({
+        key = "u";
+    });
+    key_ident_system = ({
+        key = "r";
+    });
+
+    key_scanner_zoom = ({
+        key = "z";
+    });
+    key_scanner_unzoom = ({
+        key = "Z";
+    });
+
+    key_launch_escapepod = ({
+        key = "esc";
+    });
+
+    key_galactic_hyperspace = ({
+        key = "g";
+    });
+    key_hyperspace = ({
+        key = "h";
+    });
+    key_jumpdrive = ({
+        key = "j";
+    });
+
+    key_dump_cargo = ({
+        key = "D";
+    });
+    key_rotate_cargo = ({
+        key = "R";
+    });
+
+    key_autopilot = ({
+        key = "c";
+    });
+    key_autodock = ({
+        key = "C";
+    });
+    key_docking_clearance_request = ({
+        key = "L";
+    });
+
+    key_snapshot = ({
+        key = "*";
+    });
+    key_docking_music = ({
+        key = "s";
+    });
+
+    // changed
+    key_advanced_nav_array_next = ({
+        key = "^";
+    });
+    // new
+    key_advanced_nav_array_previous = ({
+        key = "^";
+        mod1 = true;
+    });
+    key_map_home = ({
+        key = "home";
+    });
+    // new
+    key_map_end = ({
+        key = "end";
+    });
+    key_map_info = ({
+        key = "i";
+    });
+    // new
+    key_map_zoom_in = ({
+        key = "pageDown";
+    });
+    // new
+    key_map_zoom_out = ({
+        key = "pageUp";
+    });
+    // new
+    key_map_next_system = ({
+        key = "arrowRight";
+    }, {
+        key = "arrowDown";
+    });
+    // new
+    key_map_previous_system = ({
+        key = "arrowLeft";
+    }, {
+        key = "arrowUp";
+    });
+
+    // new
+    key_system_home = ({
+        key = "home";
+    });
+    // new
+    key_system_end = ({
+        key = "end";
+    });
+    // new
+    key_system_next_system = ({
+        key = "arrowRight";
+    });
+    // new
+    key_system_previous_system = ({
+        key = "arrowLeft";
+    });
+
+    key_pausebutton = ({
+        key = "p";
+    });
+    key_show_fps = ({
+        key = "F";
+    });
+    // changed
+    key_mouse_control_roll = ({
+        key = "M";
+    });
+    // new
+    key_mouse_control_yaw = ({
+        key = "M";
+        mod1 = true;
+    });
+    key_hud_toggle = ({
+        key = "o";
+    });
+
+    key_comms_log = ({
+        key = "`";
+    });
+    key_prev_compass_mode = ({
+        key = "|";
+    });
+    key_next_compass_mode = ({
+        key = "\\";
+    });
+
+    key_chart_highlight = ({
+        key = "?";
+    });
+
+    key_market_filter_cycle = ({
+        key = "?";
+    });
+    key_market_sorter_cycle = ({
+        key = "/";
+    });
+    // new
+    key_market_buy_one = ({
+        key = "arrowRight";
+    });
+    // new
+    key_market_sell_one = ({
+        key = "arrowLeft";
+    });
+    // new
+    key_market_buy_max = ({
+        key = "arrowRight";
+        shift = true;
+    });
+    // new
+    key_market_sell_max = ({
+        key = "arrowLeft";
+        shift = true;
+    });
+
+    // changed
+    key_cycle_next_mfd = ({
+        key = ";";
+    });
+    // new
+    key_cycle_previous_mfd = ({
+        key = ";";
+        mod1 = true;
+    });
+    // changed
+    key_switch_next_mfd = ({
+        key = ":";
+    });
+    // new
+    key_switch_previous_mfd = ({
+        key = ":";
+        mod1 = true;
+    });
+
+    key_next_target = ({
+        key = "+";
+    });
+    key_previous_target = ({
+        key = "-";
+    });
+
+    key_custom_view = ({
+        key = "v";
+    });
+    // new
+    key_custom_view_zoom_out = ({
+        key = "pageDown";
+    });
+    // new
+    key_custom_view_zoom_in = ({
+        key = "pageUp";
+    });
+    // new
+    key_custom_view_roll_left = ({
+        key = "arrowLeft";
+    });
+    // new
+    key_custom_view_pan_left = ({
+        key = "arrowLeft";
+        shift = true;
+    });
+    // new
+    key_custom_view_roll_right = ({
+        key = "arrowRight";
+    });
+    // new
+    key_custom_view_pan_right = ({
+        key = "arrowRight";
+        shift = true;
+    });
+    // new
+    key_custom_view_rotate_up = ({
+        key = "arrowUp";
+    });
+    // new
+    key_custom_view_pan_up = ({
+        key = "arrowUp";
+        shift = true;
+    });
+    // new
+    key_custom_view_rotate_down = ({
+        key = "arrowDown";
+    });
+    // new
+    key_custom_view_pan_down = ({
+        key = "arrowDown";
+        shift = true;
+    });
+    // new
+    key_custom_view_rotate_left = ({
+        key = ",";
+    });
+    // new
+    key_custom_view_rotate_right = ({
+        key = ".";
+    });
+
+    key_dump_target_state = ({
+        key = "H";
+    });
+    // new
+    key_dump_entity_list = ({
+        key = "0";
+    });
+    // new
+    key_debug_full = ({
+        key = "d";
+    });
+    // new
+    key_debug_collision = ({
+        key = "b";
+    });
+    // new
+    key_debug_console_connect = ({
+        key = "c";
+    });
+    // new
+    key_debug_bounding_boxes = ({
+        key = "x";
+    });
+    // new
+    key_debug_shaders = ({
+        key = "s";
+    });
+    // new
+    key_debug_off = ({
+        key = "n";
+    });
+
+    key_oxzmanager_setfilter = ({
+        key = "f";
+    });
+    key_oxzmanager_showinfo = ({
+        key = "i";
+    });
+    key_oxzmanager_extract = ({
+        key = "x";
+    });
+
+    key_inc_field_of_view = ({
+        key = "l";
+    });
+    key_dec_field_of_view = ({
+        key = "k";
+    });
+}
