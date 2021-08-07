@@ -591,7 +591,8 @@ typedef enum
 	NSArray					*n_key_snapshot;
 	NSArray					*n_key_docking_music;
 	
-	NSArray					*n_key_advanced_nav_array;
+	NSArray					*n_key_advanced_nav_array_next;
+	NSArray					*n_key_advanced_nav_array_previous;
 	NSArray					*n_key_info_next_system;
 	NSArray					*n_key_info_previous_system;
 	NSArray					*n_key_map_home;
