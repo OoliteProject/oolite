@@ -1862,8 +1862,9 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsid propID, J
 					facing = [entity currentWeaponFacing];
 					break;
 			}
-			if (entity == PLAYER) {
-				[entity setWeaponMount:facing toWeapon:sValue inContext:@"scripted"];
+			if ([entity isPlayer]) {
+				PlayerEntity *pent = (PlayerEntity*) entity;
+				[pent setWeaponMount:facing toWeapon:sValue inContext:@"scripted"];
 			} else {
 				[entity setWeaponMount:facing toWeapon:sValue];
 			}
