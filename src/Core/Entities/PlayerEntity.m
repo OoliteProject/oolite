@@ -82,6 +82,7 @@ MA 02110-1301, USA.
 #import "OOJoystickManager.h"
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityStickProfile.h"
+#import "PlayerEntityKeyMapper.h"
 #import "OOSystemDescriptionManager.h"
 
 
@@ -2364,6 +2365,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	DESTROY(commLog);
 	DESTROY(keyconfig_settings);
+	DESTROY(keyconfig2_settings);
 	DESTROY(target_memory);
 	
 	DESTROY(_fastEquipmentA);
@@ -13300,6 +13302,7 @@ else _dockTarget = NO_TARGET;
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&
+	keyFunctions &&
 	showingLongRangeChart &&
 	_missionAllowInterrupt &&
 	_missionScreenID &&

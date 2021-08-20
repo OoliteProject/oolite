@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLoadSave.h"
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityStickProfile.h"
+#import "PlayerEntityKeyMapper.h"
 
 #import "ShipEntityAI.h"
 #import "StationEntity.h"
@@ -165,6 +166,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightArrowKeyControls:(double) delta_t;
 - (void) pollGuiArrowKeyControls:(double) delta_t;
 - (void) handleGameOptionsScreenKeys;
+- (void) handleKeyMapperScreenKeys;
 - (void) handleStickMapperScreenKeys;
 - (void) pollApplicationControls;
 - (void) pollCustomViewControls;
@@ -637,6 +639,8 @@ static NSTimeInterval	time_last_frame;
 	// other keys are SET and cannot be varied
 	[keyconfig_settings release];
 	keyconfig_settings = [[NSDictionary alloc] initWithDictionary:kdic];
+	[keyconfig2_settings release];
+	keyconfig2_settings = [[NSDictionary alloc] initWithDictionary:kdic2];
 	
 	// Enable polling
 	pollControls=YES;
@@ -2571,10 +2575,11 @@ static NSTimeInterval	time_last_frame;
 			break;
 
 		case GUI_SCREEN_KEYBOARD:
-			if ([gameView isDown:' '])
-			{
-				[self setGuiToGameOptionsScreen];
-			}
+			[self handleKeyMapperScreenKeys];
+			//if ([gameView isDown:' '])
+			//{
+			//	[self setGuiToGameOptionsScreen];
+			//}
 			break;
 
 		case GUI_SCREEN_SHIPLIBRARY:
@@ -3438,7 +3443,8 @@ static NSTimeInterval	time_last_frame;
 	if ((guiSelectedRow == GUI_ROW(GAME,KEYMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
-		[self setGuiToKeySettingsScreen];
+		//[self setGuiToKeySettingsScreen];
+		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
 	
 #if OO_RESOLUTION_OPTION
@@ -3868,6 +3874,48 @@ static NSTimeInterval	time_last_frame;
 		[gameView clearKeys];
 		[self setGuiToLoadSaveScreen];
 	}
+}
+
+
+- (void) handleKeyMapperScreenKeys
+{
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	
+	[self keyMapperInputHandler: gui view: gameView];
+	leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
+	if (leftRightKeyPressed)
+	{
+		NSString *key = [gui keyForRow: [gui selectedRow]];
+		//if ([gameView isDown:key_gui_arrow_right] || [gameView isDown:gvPageDownKey])
+		if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down])
+		{
+			key = [gui keyForRow:GUI_ROW_KC_FUNCEND];
+		}
+		//if ([gameView isDown:key_gui_arrow_left] || [gameView isDown:gvPageUpKey])
+		if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up])
+		{
+			key = [gui keyForRow:GUI_ROW_KC_FUNCSTART];
+		}
+		int from_function = 0;
+		NSArray *keyComponents = [key componentsSeparatedByString:@":"];
+		if ([keyComponents count] > 1)
+		{
+			from_function = [keyComponents oo_intAtIndex:1];
+			if (from_function < 0)  from_function = 0;
+			
+			[self setGuiToKeyMapperScreen:from_function resetCurrentRow: YES];
+			if ([[UNIVERSE gui] selectedRow] < GUI_ROW_KC_FUNCSTART)
+			{
+				[[UNIVERSE gui] setSelectedRow: GUI_ROW_KC_FUNCSTART];
+			}
+			if (from_function == 0)
+			{
+				[[UNIVERSE gui] setSelectedRow: GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1];
+			}
+		}
+	}
+	if([gameView isDown:' '])  [self setGuiToGameOptionsScreen];
 }
 
 
@@ -4967,10 +5015,11 @@ static BOOL autopilot_pause;
 			break;
 			
 		case GUI_SCREEN_KEYBOARD:
-			if ([gameView isDown:' '])	//  '<space>'
-			{
-				[self setGuiToIntroFirstGo:YES];
-			}
+			//if ([gameView isDown:' '])	//  '<space>'
+			//{
+			//	[self setGuiToIntroFirstGo:YES];
+			//}
+			[self handleKeyMapperScreenKeys];
 			break;
 			
 		case GUI_SCREEN_STICKMAPPER:

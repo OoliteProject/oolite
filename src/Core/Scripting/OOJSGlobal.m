@@ -63,6 +63,7 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalKeyBindingDescription(JSContext *context, uintN argc, jsval *vp); // for testing purposes only - remove from final
 static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp);
@@ -142,6 +143,8 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
 	{ "getGuiColorSettingForKey",       GlobalGetGuiColorSettingForKey,     1 },
 	{ "setGuiColorSettingForKey",       GlobalSetGuiColorSettingForKey,     2 },
+	{ "keyBindingDescription",       	GlobalKeyBindingDescription,     1 },
+
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
 #endif
@@ -299,6 +302,29 @@ static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_BEGIN_FULL_NATIVE(context)
 	string = OOExpandDescriptionString(kNilRandomSeed, string, overrides, nil, nil, kOOExpandForJavaScript | kOOExpandGoodRNG);
+	OOJS_END_FULL_NATIVE
+	
+	OOJS_RETURN_OBJECT(string);
+	
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool GlobalKeyBindingDescription(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	NSString			*string = nil;
+	PlayerEntity				*player = OOPlayerForScripting();
+	
+	if (argc > 0)  string = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (string == nil)
+	{
+		OOJSReportBadArguments(context, nil, @"keyBindingDescription", MIN(argc, 1U), OOJS_ARGV, nil, @"string");
+		return NO;
+	}
+	
+	OOJS_BEGIN_FULL_NATIVE(context)
+	string = [player keyBindingDescription2:string];
 	OOJS_END_FULL_NATIVE
 	
 	OOJS_RETURN_OBJECT(string);

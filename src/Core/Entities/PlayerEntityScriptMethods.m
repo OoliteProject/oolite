@@ -371,6 +371,35 @@ MA 02110-1301, USA.
 	return [self keyCodeDescription:key];
 }
 
+// utilising new keyconfig2.plist data
+- (NSString *) keyBindingDescription2:(NSString *)binding
+{
+	if ([keyconfig2_settings objectForKey:binding] == nil)
+	{
+		// no such setting
+		return nil;
+	}
+	NSMutableString *final = [NSMutableString string];
+	NSArray *keyList = (NSArray*)[keyconfig2_settings objectForKey:binding];
+	int i = 0;
+
+	for (i = 0; i < [keyList count]; i++) {
+		if (i != 0) final = [NSMutableString stringWithFormat:@"%@ / ", final];
+		NSDictionary *def = [keyList objectAtIndex:i];
+		NSString *key = [def objectForKey:@"key"];
+		OOKeyCode k_int = (OOKeyCode)[key integerValue];
+		NSString *desc = [self keyCodeDescription:k_int];
+		// 0 = key not set
+		if (k_int != 0) {
+			if ([[def objectForKey:@"mod2"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@Alt+", final];
+			if ([[def objectForKey:@"mod1"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@Ctrl+", final];
+			if ([[def objectForKey:@"shift"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@Shift+", final];
+			final = [NSMutableString stringWithFormat:@"%@%@", final, desc];
+		}
+	}
+	return final;
+}
+
 
 - (NSString *) keyCodeDescription:(OOKeyCode)code
 {
@@ -380,6 +409,8 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-unset");
 	case 9:
 		return DESC(@"oolite-keycode-tab");
+	case 13:
+		return DESC(@"oolite-keycode-enter");
 	case 27:
 		return DESC(@"oolite-keycode-esc");
 	case 32:

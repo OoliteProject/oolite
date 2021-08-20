@@ -1224,6 +1224,11 @@
 	"oolite-keydesc-key_view_port"				= "Port view";
 	"oolite-keydesc-key_view_starboard"			= "Starboard view";
 
+	"oolite-keydesc-key_launch_ship"			= "Launch ship";
+	"oolite-keydesc-key_gui_screen_options"		= "Options screen";
+	"oolite-keydesc-key_gui_screen_equipship"	= "Equip ship screens";
+	"oolite-keydesc-key_gui_screen_interfaces"	= "Ship interface screens";
+
 	"oolite-keydesc-key_gui_screen_status"		= "Status screens";
 	"oolite-keydesc-key_gui_chart_screens"		= "Chart screens";
 	"oolite-keydesc-key_gui_system_data"		= "System screens";
@@ -1233,26 +1238,31 @@
 	"oolite-keydesc-key_gui_arrow_right"		= "GUI Right";
 	"oolite-keydesc-key_gui_arrow_up"			= "GUI Up";
 	"oolite-keydesc-key_gui_arrow_down"			= "GUI Down";
+	"oolite-keydesc-key_gui_page_down"			= "GUI Page Down";
+	"oolite-keydesc-key_gui_page_up"			= "GUI Page Up";
+	"oolite-keydesc-key_gui_select"				= "GUI Select";
 
-	"oolite-keydesc-key_increase_speed"			= "Accelerate";
-	"oolite-keydesc-key_decrease_speed"			= "Decelerate";
+	"oolite-keydesc-key_increase_speed"			= "Increase thrust";
+	"oolite-keydesc-key_decrease_speed"			= "Decrease thrust";
 	"oolite-keydesc-key_inject_fuel"			= "Fuel Injectors";
 
 	"oolite-keydesc-key_fire_lasers"			= "Fire laser";
 	"oolite-keydesc-key_weapons_online_toggle"	= "Weapons toggle";
-	"oolite-keydesc-key_launch_missile"			= "Launch missile";
-	"oolite-keydesc-key_next_missile"			= "Next missile";
+	"oolite-keydesc-key_launch_missile"			= "File missile/bomb";
+	"oolite-keydesc-key_next_missile"			= "Select next missile/bomb";
 	"oolite-keydesc-key_ecm"					= "ECM";
 
-	"oolite-keydesc-key_prime_equipment"		= "Select item";
-	"oolite-keydesc-key_activate_equipment"		= "Item button 1";
-	"oolite-keydesc-key_mode_equipment"			= "Item button 2";
-	"oolite-keydesc-key_fastactivate_equipment_a" = "Item shortcut 1";
-	"oolite-keydesc-key_fastactivate_equipment_b" = "Item shortcut 2";
+	"oolite-keydesc-key_prime_equipment"		= "Prime equipment";
+	"oolite-keydesc-key_prime_next_equipment"	= "Prime next equipment";
+	"oolite-keydesc-key_prime_previous_equipment"	= "Prime previous equipment";
+	"oolite-keydesc-key_activate_equipment"		= "Activate equipment";
+	"oolite-keydesc-key_mode_equipment"			= "Set equipment mode";
+	"oolite-keydesc-key_fastactivate_equipment_a" = "Fast-activate equipment A";
+	"oolite-keydesc-key_fastactivate_equipment_b" = "Fast-activate equipment B";
 
-	"oolite-keydesc-key_target_incoming_missile"	= "Target incoming";
-	"oolite-keydesc-key_target_missile"			= "Target missile";
-	"oolite-keydesc-key_untarget_missile"		= "Untarget missile";
+	"oolite-keydesc-key_target_incoming_missile"	= "Target incoming missile";
+	"oolite-keydesc-key_target_missile"			= "Arm missile/bomb";
+	"oolite-keydesc-key_untarget_missile"		= "Disarm missile/bomb";
 	"oolite-keydesc-key_ident_system"			= "Ident system";
 
 	"oolite-keydesc-key_scanner_zoom"			= "Zoom scanner";
@@ -1269,38 +1279,86 @@
 
 	"oolite-keydesc-key_autopilot"				= "Docking computer";
 	"oolite-keydesc-key_autodock"				= "Fast docking";
-	"oolite-keydesc-key_docking_clearance_request"	= "Request clearance";
+	"oolite-keydesc-key_docking_clearance_request"	= "Request docking clearance";
 
 	"oolite-keydesc-key_snapshot"				= "Take snapshot";
-	"oolite-keydesc-key_docking_music"			= "Docking music";
+	"oolite-keydesc-key_docking_music"			= "Toggle docking music on/off";
 
-	"oolite-keydesc-key_advanced_nav_array"		= "Route planner";
-	"oolite-keydesc-key_next_info_system"		= "Next Planet Info";
-	"oolite-keydesc-key_previous_info_system"	= "Previous Planet Info";
-	"oolite-keydesc-key_map_home"				= "Home map";
-	"oolite-keydesc-key_map_info"				= "Show chart icons";
+	"oolite-keydesc-key_advanced_nav_array"		= "Route planner mode";
+	"oolite-keydesc-key_advanced_nav_array_next"	= "System map: Next route mode";
+	"oolite-keydesc-key_advanced_nav_array_previous"	= "System map: Previous route mode";
+	"oolite-keydesc-key_map_home"				= "System map: Select current system";
+	"oolite-keydesc-key_map_end"				= "System map: Select destination system";
+	"oolite-keydesc-key_map_info"				= "System map: Show chart icons";
+	"oolite-keydesc-key_map_zoom_in"			= "System map: Zoom in";
+	"oolite-keydesc-key_map_zoom_out"			= "System map: Zoom out";
+	"oolite-keydesc-key_map_next_system"		= "System map: Select next system";
+	"oolite-keydesc-key_map_previous_system"	= "System map: Select previous system";
+
+	"oolite-keydesc-key_system_home"			= "System info: Select current system";
+	"oolite-keydesc-key_system_end"				= "System info: Select destination system";
+	"oolite-keydesc-key_system_next_system"		= "System info: Select next system";
+	"oolite-keydesc-key_system_previous_system"	= "System info: Select previous system";
 
 	"oolite-keydesc-key_pausebutton"			= "Pause";
 	"oolite-keydesc-key_show_fps"				= "Show FPS";
 	"oolite-keydesc-key_mouse_control"			= "Mouse control";
+	"oolite-keydesc-key_mouse_control_roll"		= "Mouse control (roll)";
+	"oolite-keydesc-key_mouse_control_yaw"		= "Mouse control (yaw)";
 	"oolite-keydesc-key_hud_toggle"				= "Toggle HUD";
 	
 	"oolite-keydesc-key_inc_field_of_view"		= "Increase FOV";
 	"oolite-keydesc-key_dec_field_of_view"		= "Decrease FOV";
 
 	"oolite-keydesc-key_comms_log"				= "Comms log";
-	"oolite-keydesc-key_prev_compass_mode"		= "ASC back";
-	"oolite-keydesc-key_next_compass_mode"		= "ASC forward";
+	"oolite-keydesc-key_prev_compass_mode"		= "Next compass target";
+	"oolite-keydesc-key_next_compass_mode"		= "Previous compass target";
 
-	"oolite-keydesc-key_chart_highlight"			= "Chart highlight";
+	"oolite-keydesc-key_chart_highlight"		= "System map: Chart highlight";
+
+	"oolite-keydesc-key_market_filter_cycle"	= "Market screen: Cycle market filter";
+	"oolite-keydesc-key_market_sorter_cycle"	= "Market screen: Cycle market sort";
+	"oolite-keydesc-key_market_buy_one"			= "Market screen: Buy one unit";
+	"oolite-keydesc-key_market_sell_one"		= "Market screen: Sell one unit";
+	"oolite-keydesc-key_market_buy_max"			= "Market screen: Buy maximum amount";
+	"oolite-keydesc-key_market_sell_max"		= "Market screen: Sell maximum amount";
 
 	"oolite-keydesc-key_cycle_mfd"				= "Cycle MFD";
+	"oolite-keydesc-key_cycle_next_mfd"			= "Cycle next MFD";
+	"oolite-keydesc-key_cycle_previous_mfd"		= "Cycle previous MFD";
 	"oolite-keydesc-key_switch_mfd"				= "Select MFD";
+	"oolite-keydesc-key_switch_next_mfd"		= "Select next MFD";
+	"oolite-keydesc-key_switch_previous_mfd"	= "Select previous MFD";
 
-	"oolite-keydesc-key_next_target"				= "Next target";
-	"oolite-keydesc-key_previous_target"			= "Previous target";
+	"oolite-keydesc-key_next_target"			= "Next target";
+	"oolite-keydesc-key_previous_target"		= "Previous target";
 
-	"oolite-keydesc-key_custom_view"				= "External view";
+	"oolite-keydesc-key_custom_view"			= "External view";
+	"oolite-keydesc-key_custom_view_zoom_out"	= "External view: Zoom out";
+	"oolite-keydesc-key_custom_view_zoom_in"	= "External view: Zoom in";
+	"oolite-keydesc-key_custom_view_roll_left"	= "External view: Roll left";
+	"oolite-keydesc-key_custom_view_pan_left"	= "External view: Pan left";
+	"oolite-keydesc-key_custom_view_roll_right"	= "External view: Roll right";
+	"oolite-keydesc-key_custom_view_pan_right"	= "External view: Pan right";
+	"oolite-keydesc-key_custom_view_rotate_up"	= "External view: Rotate up";
+	"oolite-keydesc-key_custom_view_pan_up"		= "External view: Pan up";
+	"oolite-keydesc-key_custom_view_rotate_down"= "External view: Rotate down";
+	"oolite-keydesc-key_custom_view_pan_down"	= "External view: Pan down";
+	"oolite-keydesc-key_custom_view_rotate_left"= "External view: Rotate left";
+	"oolite-keydesc-key_custom_view_rotate_right"= "External view: Rotate right";
+
+	"oolite-keydesc-key_oxzmanager_setfilter"	= "OXZ Manager: Set filter";
+	"oolite-keydesc-key_oxzmanager_showinfo"	= "OXZ Manager: Show info";
+	"oolite-keydesc-key_oxzmanager_extract"		= "OXZ Manager: Extract content";
+	
+	"oolite-keydesc-key_dump_target_state" 		= "Debug: Dump target state";
+	"oolite-keydesc-key_dump_entity_list" 		= "Debug: Dump entity list";
+	"oolite-keydesc-key_debug_full"				= "Debug: Full debug output";
+	"oolite-keydesc-key_debug_collision"		= "Debug: Collisions";
+	"oolite-keydesc-key_debug_console_connect"	= "Debug: Connect console";
+	"oolite-keydesc-key_debug_bounding_boxes"	= "Debug: Bounding boxes";
+	"oolite-keydesc-key_debug_shaders"			= "Debug: Shaders";
+	"oolite-keydesc-key_debug_off"				= "Debug: Turn off debug messages";
 
 	"oolite-loadsave-exit"			= "Return to Menu";
 	"oolite-scenario-exit"			= "Return to Menu";
@@ -1603,7 +1661,7 @@
 	"gameoptions-play-in-window"			= " Play in Window ";
 	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
-	"gameoptions-keyboard-configuration"	= " View Keyboard Configuration ";
+	"gameoptions-keyboard-configuration"	= " Keyboard Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
@@ -2036,6 +2094,7 @@
 	"oolite-keycode-tab"	= "Tab";
 	"oolite-keycode-esc"	= "Esc";
 	"oolite-keycode-space"	= "Space";
+	"oolite-keycode-enter"	= "Enter";
 	"oolite-keycode-f1"		= "F1";
 	"oolite-keycode-f2"		= "F2";
 	"oolite-keycode-f3"		= "F3";

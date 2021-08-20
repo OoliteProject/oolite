@@ -522,6 +522,7 @@ typedef enum
 
 	// keys!
 	NSDictionary   *keyconfig_settings;
+	NSDictionary   *keyconfig2_settings;
 
 	NSArray					*n_key_roll_left;
 	NSArray					*n_key_roll_right;
@@ -852,6 +853,7 @@ typedef enum
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
+	NSArray					*keyFunctions;
 	
 	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
