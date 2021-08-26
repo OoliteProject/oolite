@@ -198,19 +198,75 @@ static NSTimeInterval	time_last_frame;
 
 - (void) initControls
 {
+	[keyCodeLookups release];
+	keyCodeLookups = [[NSDictionary alloc] initWithObjectsAndKeys:
+		[NSNumber numberWithUnsignedShort:gvArrowKeyLeft], @"arrowleft", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyLeft], @"leftarrow", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyLeft], @"left", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyRight], @"arrowright", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyRight], @"rightarrow", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyRight], @"right", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyUp], @"arrowup", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyUp], @"uparrow", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyUp], @"up", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyDown], @"arrowdown", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyDown], @"downarrow", 
+		[NSNumber numberWithUnsignedShort:gvArrowKeyDown], @"down", 
+		[NSNumber numberWithUnsignedShort:gvPageUpKey], @"pageup", 
+		[NSNumber numberWithUnsignedShort:gvPageDownKey], @"pagedown", 
+		[NSNumber numberWithUnsignedShort:13], @"enter", 
+		[NSNumber numberWithUnsignedShort:13], @"return", 
+		[NSNumber numberWithUnsignedShort:27], @"escape", 
+		[NSNumber numberWithUnsignedShort:27], @"esc", 
+		[NSNumber numberWithUnsignedShort:9], @"tab", 
+		[NSNumber numberWithUnsignedShort:32], @"space", 
+		[NSNumber numberWithUnsignedShort:32], @"spc", 
+		[NSNumber numberWithUnsignedShort:gvHomeKey], @"home", 
+		[NSNumber numberWithUnsignedShort:gvEndKey], @"end", 
+		[NSNumber numberWithUnsignedShort:gvDeleteKey], @"delete", 
+		[NSNumber numberWithUnsignedShort:gvDeleteKey], @"del", 
+		[NSNumber numberWithUnsignedShort:gvInsertKey], @"insert", 
+		[NSNumber numberWithUnsignedShort:gvInsertKey], @"ins", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey1], @"f1", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey2], @"f2", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey3], @"f3", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey4], @"f4", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey5], @"f5", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey6], @"f6", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey7], @"f7", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey8], @"f8", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey9], @"f9", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey10], @"f10", 
+		[NSNumber numberWithUnsignedShort:gvFunctionKey11], @"f11", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey0], @"numpad0", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey1], @"numpad1", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey2], @"numpad2", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey3], @"numpad3", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey4], @"numpad4", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey5], @"numpad5", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey6], @"numpad6", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey7], @"numpad7", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey8], @"numpad8", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey9], @"numpad9", nil];
+
+	keyShiftText = DESC(@"oolite-keyconfig-shift");
+	keyMod1Text = DESC(@"oolite-keyconfig-mod1");
+#if OOLITE_MAC_OS_X
+	keyMod2Text = DESC(@"oolite-keyconfig-mod2-mac");
+#else
+	keyMod2Text = DESC(@"oolite-keyconfig-mod2-pc");
+#endif
+	
+	// *** FLAGGED for deletion below ***
 	NSMutableDictionary	*kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
 
-	//OOLogWARN(@"testing", @"checking value %@.", [NSString stringWithFormat:@"%i",check]);
 	// pre-process kdic - replace any strings with an integer representing the ASCII value of the first character
-	
-	unsigned		i, j;
+	unsigned		i;
 	NSArray			*keys = nil;
 	id				key = nil, value = nil;
 	int				iValue;
 	unsigned char	keychar;
 	NSString		*keystring = nil;
-	NSArray  		*defList = nil;
-	NSDictionary	*def = nil;
 
 #if OOLITE_WINDOWS
 	// override windows keyboard autoselect
@@ -240,127 +296,6 @@ static NSTimeInterval	time_last_frame;
 			[kdic setObject:[NSNumber numberWithUnsignedShort:keychar] forKey:key];
 		}
 	}
-
-	NSMutableDictionary	*kdic2 = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
-
-	NSDictionary *keyCodeLookups = [[NSDictionary alloc] initWithObjectsAndKeys:
-		[NSNumber numberWithUnsignedShort:gvArrowKeyLeft], @"arrowLeft", 
-		[NSNumber numberWithUnsignedShort:gvArrowKeyRight], @"arrowRight", 
-		[NSNumber numberWithUnsignedShort:gvArrowKeyUp], @"arrowUp", 
-		[NSNumber numberWithUnsignedShort:gvArrowKeyDown], @"arrowDown", 
-		[NSNumber numberWithUnsignedShort:gvPageUpKey], @"pageUp", 
-		[NSNumber numberWithUnsignedShort:gvPageDownKey], @"pageDown", 
-		[NSNumber numberWithUnsignedShort:13], @"enter", 
-		[NSNumber numberWithUnsignedShort:27], @"esc", 
-		[NSNumber numberWithUnsignedShort:9], @"tab", 
-		[NSNumber numberWithUnsignedShort:32], @"space", 
-		[NSNumber numberWithUnsignedShort:gvHomeKey], @"home", 
-		[NSNumber numberWithUnsignedShort:gvEndKey], @"end", 
-		[NSNumber numberWithUnsignedShort:gvDeleteKey], @"delete", 
-		[NSNumber numberWithUnsignedShort:gvInsertKey], @"insert", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey1], @"f1", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey2], @"f2", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey3], @"f3", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey4], @"f4", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey5], @"f5", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey6], @"f6", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey7], @"f7", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey8], @"f8", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey9], @"f9", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey10], @"f10", 
-		[NSNumber numberWithUnsignedShort:gvFunctionKey11], @"f11", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey0], @"numpad0", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey1], @"numpad1", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey2], @"numpad2", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey3], @"numpad3", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey4], @"numpad4", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey5], @"numpad5", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey6], @"numpad6", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey7], @"numpad7", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey8], @"numpad8", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey9], @"numpad9", nil];
-
-	keys = [kdic2 allKeys];
-	for (i = 0; i < [keys count]; i++)
-	{
-		key = [keys objectAtIndex:i];
-		//OOLogWARN(@"testing", @"checking key %@.", key);
-
-		if ([[kdic2 objectForKey: key] isKindOfClass:[NSArray class]])
-		{
-			NSMutableArray *newList = [[NSMutableArray alloc] init];
-			defList = (NSArray*)[kdic2 objectForKey: key];
-			for (j = 0; j < [defList count]; j++) 
-			{
-				def = [defList objectAtIndex:j];
-				value = [def objectForKey:@"key"];
-				iValue = [value intValue];
-				//OOLogWARN(@"testing", @"checking value %@ - %@.", value, [NSString stringWithFormat:@"%i",iValue]);
-
-				// we're going to fully expand all the shift/mod1/mod2 properties for all the key setting with defaults
-				// to avoid the need to check for the presence of a property during game loops
-				NSMutableDictionary *defNew = [[NSMutableDictionary alloc] init];
-				if ([def objectForKey:@"shift"]) [defNew setObject:[def objectForKey:@"shift"] forKey:@"shift"]; else [defNew setObject:[NSNumber numberWithBool:NO] forKey:@"shift"];
-				if ([def objectForKey:@"mod1"]) [defNew setObject:[def objectForKey:@"mod1"] forKey:@"mod1"]; else [defNew setObject:[NSNumber numberWithBool:NO] forKey:@"mod1"];
-				if ([def objectForKey:@"mod2"]) [defNew setObject:[def objectForKey:@"mod2"] forKey:@"mod2"]; else [defNew setObject:[NSNumber numberWithBool:NO] forKey:@"mod2"];
-
-				//	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those as strings - not numbers
-				//	alphabetical characters and symbols will return an intValue of 0.
-				
-				if ([value isKindOfClass:[NSString class]] && (iValue < 10))
-				{
-					keystring = value;
-
-					// check for a named lookup
-					if ([keystring length] != 0)
-					{
-						//OOLogWARN(@"testing", @"lookup keystring.");
-						int checkVal;
-						checkVal = [[keyCodeLookups objectForKey:keystring] intValue];
-						if (checkVal > 0) {
-							iValue = checkVal;
-							//OOLogWARN(@"testing", @"checking lookup %@.", [NSString stringWithFormat:@"%i",iValue]);
-
-							[defNew setObject:[NSNumber numberWithUnsignedShort:iValue] forKey:@"key"];
-							[newList addObject:defNew];
-							[defNew release];
-							continue;
-						}
-					}
-
-					if ([keystring length] == 1 || (iValue == 0 && [keystring length] != 0))
-					{
-						keychar = [keystring characterAtIndex: 0] & 0x00ff; // uses lower byte of unichar
-					}
-					else if (iValue <= 0xFF) keychar = iValue;
-					else {
-						OOLogWARN(@"testing", @"continue hit for key %@.", key);
-						[defNew setObject:[def objectForKey:@"key"] forKey:@"key"];
-						[newList addObject:defNew];
-						[defNew release];
-						continue;
-					}
-				
-					[defNew setObject:[NSNumber numberWithUnsignedShort:keychar] forKey:@"key"];
-					[newList addObject:defNew];
-					[defNew release];
-				} 
-				else 
-				{
-					[defNew setObject:[def objectForKey:@"key"] forKey:@"key"];
-					[newList addObject:defNew];
-					[defNew release];
-				}
-			}
-			[kdic2 setObject:newList forKey:key];
-			[newList release];
-		}
-	}
-	//OOLogWARN(@"testing", @"original def. %@", kdic);
-
-	//OOLogWARN(@"testing", @"new def. %@", kdic2);
-
-	[keyCodeLookups release];
 
 	// set default keys.
 #define LOAD_KEY_SETTING(name, default) name = [kdic oo_unsignedShortForKey:@#name defaultValue:default]; [kdic setObject:[NSNumber numberWithUnsignedShort:name] forKey:@#name];
@@ -468,6 +403,48 @@ static NSTimeInterval	time_last_frame;
 	if (key_yaw_left == key_roll_left && key_yaw_left == ',')  key_yaw_left = 0;
 	if (key_yaw_right == key_roll_right && key_yaw_right == '.')  key_yaw_right = 0;
 
+	// other keys are SET and cannot be varied
+	[keyconfig_settings release];
+	keyconfig_settings = [[NSDictionary alloc] initWithDictionary:kdic];
+	// *** FLAGGED for deletion above ***
+
+	[self initKeyConfigSettings];
+
+	// Enable polling
+	pollControls=YES;
+}
+
+- (void) initKeyConfigSettings
+{
+	NSMutableDictionary	*kdic2 = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+
+	unsigned		i;
+	NSArray			*keys = nil;
+	id				key = nil;
+	NSArray  		*def_list = nil;
+
+#if OOLITE_WINDOWS
+	// override windows keyboard autoselect
+	[[UNIVERSE gameView] setKeyboardTo:[kdic2 oo_stringForKey:@"windows_keymap" defaultValue:@"auto"]];
+#endif
+
+	//OOLogWARN(@"testing", @"checking value %@.", [NSString stringWithFormat:@"%i",check]);
+
+	keys = [kdic2 allKeys];
+	for (i = 0; i < [keys count]; i++)
+	{
+		key = [keys objectAtIndex:i];
+		//OOLogWARN(@"testing", @"checking key %@.", key);
+
+		if ([[kdic2 objectForKey:key] isKindOfClass:[NSArray class]])
+		{
+			def_list = (NSArray*)[kdic2 objectForKey: key];
+			//NSArray *newList = [self processKeyCode:def_list];
+			[kdic2 setObject:[self processKeyCode:def_list] forKey:key];
+			//[newList release];
+		}
+	}
+
 	NSMutableArray *keyDef = nil;
 	NSString *lookup = nil;
 	NSArray *curr = nil;
@@ -488,7 +465,7 @@ static NSTimeInterval	time_last_frame;
 	} \
 	name = curr?:keyDef; \
 	[kdic2 setObject:curr?:keyDef forKey:lookup]; \
-	[keyDef release]
+	[keyDef release];
 
 	LOAD_KEY_SETTING2(n_key_roll_left, gvArrowKeyLeft, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_roll_right,	gvArrowKeyRight, NO, NO, 0, NO, NO);
@@ -632,18 +609,100 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_debug_off, 'n', NO, NO, 0, NO, NO);
 #endif
 
+	// update with overrides from defaults file
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSDictionary *dict = [defaults objectForKey:KEYCONFIG_OVERRIDES];
+	keys = [dict allKeys];
+	for (i = 0; i < [keys count]; i++)
+	{
+		key = [keys objectAtIndex:i];
+		[kdic2 setObject:[dict objectForKey:key] forKey:key];
+	}
+
 	//if ([[[n_key_market_buy_max objectAtIndex:0] objectForKey:@"shift"] boolValue] == YES) {
 	//	OOLogWARN(@"testing", @"new def check %@", n_key_advanced_nav_array);
 	//}
-
-	// other keys are SET and cannot be varied
-	[keyconfig_settings release];
-	keyconfig_settings = [[NSDictionary alloc] initWithDictionary:kdic];
 	[keyconfig2_settings release];
 	keyconfig2_settings = [[NSDictionary alloc] initWithDictionary:kdic2];
-	
-	// Enable polling
-	pollControls=YES;
+
+}
+
+
+- (NSArray*) processKeyCode:(NSArray*)key_def
+{
+	int i;
+	id				key = nil, value = nil;
+	int				iValue;
+	unsigned char	keychar;
+	NSString		*keystring = nil;
+	NSDictionary	*def = nil;
+	NSMutableArray	*newList = [[NSMutableArray alloc] init];
+
+	for (i = 0; i < [key_def count]; i++) 
+	{
+		def = [key_def objectAtIndex:i];
+		value = [def objectForKey:@"key"];
+		iValue = [value intValue];
+		//OOLogWARN(@"testing", @"checking value %@ - %@.", value, [NSString stringWithFormat:@"%i",iValue]);
+
+		// we're going to fully expand all the shift/mod1/mod2 properties for all the key setting with defaults
+		// to avoid the need to check for the presence of a property during game loops
+		NSMutableDictionary *defNew = [[NSMutableDictionary alloc] init];
+		if ([def objectForKey:@"shift"]) [defNew setObject:[def objectForKey:@"shift"] forKey:@"shift"]; else [defNew setObject:[NSNumber numberWithBool:NO] forKey:@"shift"];
+		if ([def objectForKey:@"mod1"]) [defNew setObject:[def objectForKey:@"mod1"] forKey:@"mod1"]; else [defNew setObject:[NSNumber numberWithBool:NO] forKey:@"mod1"];
+		if ([def objectForKey:@"mod2"]) [defNew setObject:[def objectForKey:@"mod2"] forKey:@"mod2"]; else [defNew setObject:[NSNumber numberWithBool:NO] forKey:@"mod2"];
+
+		//	for '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' - we want to interpret those as strings - not numbers
+		//	alphabetical characters and symbols will return an intValue of 0.
+		
+		if ([value isKindOfClass:[NSString class]] && (iValue < 10))
+		{
+			keystring = value;
+
+			// check for a named lookup
+			if ([keystring length] != 0)
+			{
+				//OOLogWARN(@"testing", @"lookup keystring.");
+				int checkVal;
+				checkVal = [[keyCodeLookups objectForKey:[keystring lowercaseString]] intValue];
+				if (checkVal > 0) {
+					iValue = checkVal;
+					//OOLogWARN(@"testing", @"checking lookup %@.", [NSString stringWithFormat:@"%i",iValue]);
+
+					[defNew setObject:[NSNumber numberWithUnsignedShort:iValue] forKey:@"key"];
+					[newList addObject:defNew];
+					[defNew release];
+					continue;
+				}
+			}
+
+			if ([keystring length] == 1 || (iValue == 0 && [keystring length] != 0))
+			{
+				keychar = [keystring characterAtIndex:0] & 0x00ff; // uses lower byte of unichar
+				//OOLogWARN(@"testing", @"checking key %d.", keychar);
+			}
+			else if (iValue <= 0xFF) keychar = iValue;
+			else {
+				OOLogWARN(@"testing", @"continue hit for key %@.", key);
+				[defNew setObject:[def objectForKey:@"key"] forKey:@"key"];
+				[newList addObject:defNew];
+				[defNew release];
+				continue;
+			}
+		
+			[defNew setObject:[NSNumber numberWithUnsignedShort:keychar] forKey:@"key"];
+			[newList addObject:defNew];
+			[defNew release];
+		} 
+		else 
+		{
+			[defNew setObject:[def objectForKey:@"key"] forKey:@"key"];
+			[newList addObject:defNew];
+			[defNew release];
+		}
+	}
+
+	return newList;
 }
 
 
@@ -956,7 +1015,8 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	GameController *gameController = [UNIVERSE gameController];
 	
-	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || (gui_screen == GUI_SCREEN_SAVE) || (gui_screen == GUI_SCREEN_OXZMANAGER);
+	BOOL onTextEntryScreen = (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) || (gui_screen == GUI_SCREEN_MISSION) || 
+		(gui_screen == GUI_SCREEN_SAVE) || (gui_screen == GUI_SCREEN_OXZMANAGER || (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY));
 
 	@try
 	{
@@ -1870,7 +1930,9 @@ static NSTimeInterval	time_last_frame;
 			[self pollCustomViewControls];	// allow custom views during pause
 			#endif
 			
-			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD)
+			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || 
+				gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR ||
+				gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY)
 			{
 				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE messageGUI] leaveLastLine];
 				else [[UNIVERSE messageGUI] clear];
@@ -2580,6 +2642,18 @@ static NSTimeInterval	time_last_frame;
 			//{
 			//	[self setGuiToGameOptionsScreen];
 			//}
+			break;
+
+		case GUI_SCREEN_KEYBOARD_CONFIRMCLEAR:
+			[self handleKeyMapperConfirmClearKeys:gui view:gameView];
+			break;
+
+		case GUI_SCREEN_KEYBOARD_CONFIG:
+			[self handleKeyConfigKeys:gui view:gameView];
+			break;
+
+		case GUI_SCREEN_KEYBOARD_ENTRY:
+			[self handleKeyConfigEntryKeys:gui view:gameView];
 			break;
 
 		case GUI_SCREEN_SHIPLIBRARY:
@@ -3443,7 +3517,7 @@ static NSTimeInterval	time_last_frame;
 	if ((guiSelectedRow == GUI_ROW(GAME,KEYMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
-		//[self setGuiToKeySettingsScreen];
+		[self initCheckingDictionary];
 		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
 	
@@ -5021,13 +5095,25 @@ static BOOL autopilot_pause;
 			//}
 			[self handleKeyMapperScreenKeys];
 			break;
+
+		case GUI_SCREEN_KEYBOARD_CONFIRMCLEAR:
+			[self handleKeyMapperConfirmClearKeys:gui view:gameView];
+			break;
+
+		case GUI_SCREEN_KEYBOARD_CONFIG:
+			[self handleKeyConfigKeys:gui view:gameView];
+			break;
+
+		case GUI_SCREEN_KEYBOARD_ENTRY:
+			[self handleKeyConfigEntryKeys:gui view:gameView];
+			break;
 			
 		case GUI_SCREEN_STICKMAPPER:
 			[self handleStickMapperScreenKeys];
 			break;
 			
 		case GUI_SCREEN_STICKPROFILE:
-			[self stickProfileInputHandler: gui view: gameView];
+			[self stickProfileInputHandler:gui view:gameView];
 			break;
 
 		case GUI_SCREEN_SHIPLIBRARY:

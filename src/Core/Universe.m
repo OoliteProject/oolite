@@ -568,7 +568,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	PlayerEntity 	*player = PLAYER;
 	
 	[self setPauseMessageVisible:NO];
-	NSString *pauseKey = [PLAYER keyBindingDescription:@"key_pausebutton"];
+	NSString *pauseKey = [PLAYER keyBindingDescription2:@"key_pausebutton"];
 	
 	if ([player status] == STATUS_DOCKED)
 	{
@@ -4712,9 +4712,9 @@ static const OOMatrix	starboard_matrix =
 			default:
 				switch ([player guiScreen])
 				{
-				case GUI_SCREEN_KEYBOARD:
+				//case GUI_SCREEN_KEYBOARD:
 					// no HUD rendering on this screen
-					break;
+					//break;
 				default:
 					[theHUD setLineWidth:lineWidth];
 					[theHUD renderHUD];

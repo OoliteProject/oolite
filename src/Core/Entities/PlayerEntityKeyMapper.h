@@ -29,24 +29,58 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
-#define MAX_ROWS_KC_FUNCTIONS		15
+#define MAX_ROWS_KC_FUNCTIONS		   15
 
-#define GUI_ROW_KC_HEADING			1
-#define GUI_ROW_KC_FUNCSTART		2
-#define GUI_ROW_KC_FUNCEND			(GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1)
-#define GUI_ROW_KC_INSTRUCT		18
+#define GUI_ROW_KC_HEADING			   1
+#define GUI_ROW_KC_FUNCSTART		   2
+#define GUI_ROW_KC_FUNCEND			   (GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1)
+#define GUI_ROW_KC_INSTRUCT		   18
+#define GUI_ROW_KC_CONFIRMCLEAR     5
+#define GUI_ROW_KC_CONFIRMCLEAR_YES	8
+#define GUI_ROW_KC_CONFIRMCLEAR_NO  9
+
+#define GUI_ROW_KC_UPDATE_FUNCNAME  1
+#define GUI_ROW_KC_KEY              3
+#define GUI_ROW_KC_SHIFT            4
+#define GUI_ROW_KC_MOD1             5
+#define GUI_ROW_KC_MOD2             6
+#define GUI_ROW_KC_UPDATE_INFO      13
+#define GUI_ROW_KC_VALIDATION       16
+#define GUI_ROW_KC_SAVE             17
+#define GUI_ROW_KC_CANCEL           18
+
+#define GUI_ROW_KC_ENTRY_INFO       2
 
 // Dictionary keys
 #define KEY_KC_GUIDESC  @"guiDesc"
-#define KEY_KC_DEFINITION @"keyDefinition"
+#define KEY_KC_DEFINITION @"keyDef"
+
+// Dictionary keys - used in the defaults file
+#define KEYCONFIG_OVERRIDES @"KeyConfigOverrides"  // NSUserDefaults
 
 @interface PlayerEntity (KeyMapper)
+   - (void) initCheckingDictionary;
 
    - (void) setGuiToKeyMapperScreen: (unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow;
    - (void) setGuiToKeyMapperScreen: (unsigned)skip;
    - (void) keyMapperInputHandler: (GuiDisplayGen *)gui
 							   view: (MyOpenGLView *)gameView;
 
+   - (void) setGuiToKeyConfigScreen;
+   - (void) setGuiToKeyConfigScreen:(BOOL) resetSelectedRow;
+   - (void) handleKeyConfigKeys: (GuiDisplayGen *)gui
+							   view: (MyOpenGLView *)gameView;
+   - (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(int)skiprows;
+
+   - (void) setGuiToKeyConfigEntryScreen;
+   - (void) handleKeyConfigEntryKeys: (GuiDisplayGen *)gui
+                        view: (MyOpenGLView *)gameView;
+
+   - (void) setGuiToConfirmClearScreen;
+   - (void) handleKeyMapperConfirmClearKeys: (GuiDisplayGen *)gui
+							   view: (MyOpenGLView *)gameView;
+
+   - (void) reloadKeyConfig;
    - (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString *)keyDef;
 
 @end

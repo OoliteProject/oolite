@@ -544,7 +544,7 @@ FAIL:
 	*/
 	if ([stringValue length] < 1)  return;
 	
-	supressKeys = NO;
+	suppressKeys = NO;
 	
 	keycode = [theEvent keyCode] & 255;
 	key = keycodetrans[keycode];	// retrieve the character we got for pressing the hardware at key location 'keycode'
@@ -977,11 +977,11 @@ FAIL:
 // key down that brought you into the submenu is still registered
 // as down when we're in. This makes isDown return NO until a key up
 // event has been received from SDL.
-- (void) supressKeysUntilKeyUp
+- (void) suppressKeysUntilKeyUp
 {
 	if (keys[gvMouseDoubleClick] == NO)
 	{
-		supressKeys = YES;
+		suppressKeys = YES;
 		[self clearKeys];
 	}
 	else
@@ -993,7 +993,7 @@ FAIL:
 
 - (BOOL) isDown: (int) key
 {
-	if( supressKeys )
+	if( suppressKeys )
 		return NO;
 	if ( key < 0 )
 		return NO;

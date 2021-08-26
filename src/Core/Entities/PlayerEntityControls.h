@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 @interface PlayerEntity (Controls)
 
 - (void) initControls;
+- (void) initKeyConfigSettings;
 
 - (void) pollControls:(double)delta_t;
 - (BOOL) handleGUIUpDownArrowKeys;
@@ -40,6 +41,7 @@ MA 02110-1301, USA.
 - (void) beginWitchspaceCountdown:(int)spin_time;
 - (void) beginWitchspaceCountdown;
 - (void) cancelWitchspaceCountdown;
+- (NSArray*) processKeyCode:(NSArray*)key_def;
 - (BOOL) checkKeyPress:(NSArray*)key_def;
 - (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only;
 - (int) getFirstKeyCode:(NSArray*)key_def;

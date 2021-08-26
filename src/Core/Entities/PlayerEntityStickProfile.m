@@ -668,7 +668,7 @@ static BOOL stickProfileArrow_pressed;
 	[gui setText: DESC(@"gui-back") forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[PLAYER status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey: @"settings"];
 	return;

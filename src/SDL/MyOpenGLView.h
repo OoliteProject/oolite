@@ -129,7 +129,7 @@ extern int debug;
 {
 	GameController		*gameController;
 	BOOL				keys[NUM_KEYS];
-	BOOL				supressKeys;    // DJS
+	BOOL				suppressKeys;    // DJS
 
 	BOOL				opt, ctrl, command, shift;
 	BOOL				allowingStringInput;
@@ -271,7 +271,7 @@ extern int debug;
 - (void) clearKey: (int)theKey;
 - (void) resetMouse;
 - (BOOL) isAlphabetKeyDown;
-- (void) supressKeysUntilKeyUp; // DJS
+- (void) suppressKeysUntilKeyUp; // DJS
 - (BOOL) isDown: (int) key;
 - (BOOL) isOptDown; // opt == alt key
 - (BOOL) isCtrlDown;

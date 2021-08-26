@@ -359,6 +359,7 @@ MA 02110-1301, USA.
 }
 
 
+// *** FLAGGED FOR DELETION ***
 - (NSString *) keyBindingDescription:(NSString *)binding
 {
 	if ([keyconfig_settings objectForKey:binding] == nil)
@@ -391,9 +392,9 @@ MA 02110-1301, USA.
 		NSString *desc = [self keyCodeDescription:k_int];
 		// 0 = key not set
 		if (k_int != 0) {
-			if ([[def objectForKey:@"mod2"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@Alt+", final];
-			if ([[def objectForKey:@"mod1"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@Ctrl+", final];
-			if ([[def objectForKey:@"shift"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@Shift+", final];
+			if ([[def objectForKey:@"mod2"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@%@+", final, keyMod2Text];
+			if ([[def objectForKey:@"mod1"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@%@+", final, keyMod1Text];
+			if ([[def objectForKey:@"shift"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@%@+", final, keyShiftText];
 			final = [NSMutableString stringWithFormat:@"%@%@", final, desc];
 		}
 	}

@@ -28,18 +28,55 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
 #import "HeadUpDisplay.h"
+#import "ResourceManager.h"
+
+int key_index;
+int current_row;
+NSDictionary *selected_entry = nil;
+NSMutableArray *key_list = nil;
+NSDictionary *kdic_check = nil;
 
 @interface PlayerEntity (KeyMapperInternal)
 
-- (void)displayKeyFunctionList:(GuiDisplayGen *)gui
-					   skip:(NSUInteger) skip;
+- (void)updateKeyDefinition:(NSString *)keystring index:(int)index;
+- (void)updateShiftKeyDefinition:(NSString *)key index:(int)index;
+- (void)displayKeyFunctionList:(GuiDisplayGen *)gui skip:(NSUInteger) skip;
 - (NSArray *)keyFunctionList;
-- (void)saveKeySettings;
-- (void)loadKeySettings;
+- (BOOL)entryIsEqualToDefault:(NSString *)key;
+- (void)saveKeySetting:(NSString *)key;
+- (void)deleteKeySetting:(NSString *)key;
+- (void)deleteAllKeySettings;
+- (NSDictionary *)loadKeySettings;
+- (void) reloadPage;
 
 @end
 
 @implementation PlayerEntity (KeyMapper)
+
+- (void) initCheckingDictionary
+{
+	NSMutableDictionary *kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+
+	unsigned		i;
+	NSArray			*keys = nil;
+	id				key = nil;
+	NSArray  		*def_list = nil;
+
+	keys = [kdic allKeys];
+	for (i = 0; i < [keys count]; i++)
+	{
+		key = [keys objectAtIndex:i];
+
+		if ([[kdic objectForKey: key] isKindOfClass:[NSArray class]])
+		{
+			def_list = (NSArray*)[kdic objectForKey: key];
+			[kdic setObject:[self processKeyCode:def_list] forKey:key];
+		}
+	}
+	[kdic_check release];
+	kdic_check = [[NSDictionary alloc] initWithDictionary:kdic];
+}
+
 
 - (void) setGuiToKeyMapperScreen:(unsigned)skip
 {
@@ -48,12 +85,15 @@ MA 02110-1301, USA.
 
 - (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow
 {
-	GuiDisplayGen	*gui = [UNIVERSE gui];
-	OOGUITabStop	tabStop[GUI_MAX_COLUMNS];
+	GuiDisplayGen *gui = [UNIVERSE gui];
+	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
 	tabStop[0] = 10;
 	tabStop[1] = 290;
-	tabStop[2] = 390;
+	tabStop[2] = 400;
 	[gui setTabStops:tabStop];
+
+	// Don't poll controls
+	pollControls=NO;
 
 	gui_screen = GUI_SCREEN_KEYBOARD;
 	[gui clear];
@@ -61,47 +101,422 @@ MA 02110-1301, USA.
 
 	[self displayKeyFunctionList:gui skip:skip];
 
-	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'r' to reset to default."]
-		   forRow:GUI_ROW_KC_INSTRUCT];
-	[gui setText:@"Press Ctrl+'r' to reset all functions back to default." forRow:GUI_ROW_KC_INSTRUCT+1 align:GUI_ALIGN_CENTER];
-	[gui setText:@"Space to return to previous screen." forRow:GUI_ROW_KC_INSTRUCT+2 align:GUI_ALIGN_CENTER];
+	[gui setArray:[NSArray arrayWithObject:DESC(@"oolite-keyconfig-initial-info-1")] forRow:GUI_ROW_KC_INSTRUCT];
+	[gui setText:DESC(@"oolite-keyconfig-initial-info-2") forRow:GUI_ROW_KC_INSTRUCT+1 align:GUI_ALIGN_CENTER];
+	[gui setText:DESC(@"oolite-keyconfig-initial-info-3") forRow:GUI_ROW_KC_INSTRUCT+2 align:GUI_ALIGN_CENTER];
 
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	if (resetCurrentRow)
+	{
+		[gui setSelectedRow: GUI_ROW_KC_FUNCSTART];
+	}
+	else 
+	{
+		[gui setSelectedRow: current_row];
+	}
+
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
-	[gui setBackgroundTextureKey:@"settings"];
-
+	[gui setBackgroundTextureKey:@"keyboardsettings"];
 }
+
 
 - (void) keyMapperInputHandler:(GuiDisplayGen *)gui
 							view:(MyOpenGLView *)gameView
 {
-
 	[self handleGUIUpDownArrowKeys];
 
-	NSString* key = [gui keyForRow: [gui selectedRow]];
+	NSString *key = [gui keyForRow: [gui selectedRow]];
 	if ([key hasPrefix:@"Index:"])
-		selFunctionIdx=[[[key componentsSeparatedByString:@":"] objectAtIndex: 1] intValue];
+		selFunctionIdx=[[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
 	else
 		selFunctionIdx=-1;
 
-	if([gameView isDown: 13])
+	if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick])
 	{
 		if ([key hasPrefix:@"More:"])
 		{
-			int from_function = [[[key componentsSeparatedByString:@":"] objectAtIndex: 1] intValue];
+			int from_function = [[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
 			if (from_function < 0)  from_function = 0;
-			
+
+			current_row = GUI_ROW_KC_FUNCSTART;
+			if (from_function == 0) current_row = GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1;
 			[self setGuiToKeyMapperScreen:from_function];
-			if ([[UNIVERSE gui] selectedRow] < 0)
-				[[UNIVERSE gui] setSelectedRow: GUI_ROW_KC_FUNCSTART];
-			if (from_function == 0)
-				[[UNIVERSE gui] setSelectedRow: GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1];
 			return;
 		}
+		current_row = [gui selectedRow];
+		selected_entry = [keyFunctions objectAtIndex: selFunctionIdx];
+		[key_list release];
+		key_list = [[NSMutableArray alloc] initWithArray:(NSArray *)[keyconfig2_settings objectForKey:[selected_entry objectForKey: KEY_KC_DEFINITION]] copyItems:YES];
+		[gameView clearKeys];	// try to stop key bounces
+		[self setGuiToKeyConfigScreen:YES];
+		//OOLogWARN(@"testing", @"checking lookup %@.", entry);
+	}
 
+	if ([gameView isDown:'r'])
+	{
+		// reset single entry or all
+		if (![gameView isCtrlDown]) 
+		{
+			// pressed 'r' on an "more" line
+			if ([key hasPrefix:@"More:"]) return;
 
+			[self deleteKeySetting:[[keyFunctions objectAtIndex: selFunctionIdx] objectForKey:KEY_KC_DEFINITION]];
+			[self reloadPage];
+		}
+		else
+		{
+			[self setGuiToConfirmClearScreen];
+		}
 	}
 }
+
+
+- (void) setGuiToKeyConfigScreen
+{
+	[self setGuiToKeyConfigScreen:NO];
+}
+
+
+- (void) setGuiToKeyConfigScreen:(BOOL) resetSelectedRow
+{
+	int	i = 0;
+	GuiDisplayGen *gui=[UNIVERSE gui];
+	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
+	tabStop[0] = 10;
+	tabStop[1] = 290;
+	[gui setTabStops:tabStop];
+	
+	// Don't poll controls
+	pollControls=YES;
+	
+	gui_screen = GUI_SCREEN_KEYBOARD_CONFIG;
+	[gui clear];
+	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-title")]];
+
+	[gui setArray: [NSArray arrayWithObjects: 
+								DESC(@"oolite-keyconfig-update-function"), [selected_entry objectForKey: KEY_KC_GUIDESC], nil]
+					forRow: GUI_ROW_KC_UPDATE_FUNCNAME];
+	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_UPDATE_FUNCNAME];
+
+	NSString *keystring = nil;
+	NSString *keyshift = nil;
+	NSString *keymod1 = nil;
+	NSString *keymod2 = nil;
+
+	NSDictionary *def = nil;
+	NSString *key = nil;
+	OOKeyCode k_int;
+
+	// get each key for the first two item in the selected entry
+	for (i = 0; i <= 1; i++)
+	{
+		keystring = DESC(@"oolite-keycode-unset");
+		keyshift = DESC(@"oolite-keyconfig-modkey-off");
+		keymod1 = DESC(@"oolite-keyconfig-modkey-off");
+		keymod2 = DESC(@"oolite-keyconfig-modkey-off");
+
+		if ([key_list count] > i)
+		{
+			def = [key_list objectAtIndex:i];
+			key = [def objectForKey:@"key"];
+			k_int = (OOKeyCode)[key integerValue];
+			if (k_int > 0)
+			{
+				keystring = [self keyCodeDescription:k_int];
+				if ([[def objectForKey:@"shift"] boolValue] == YES) keyshift = DESC(@"oolite-keyconfig-modkey-on");
+				if ([[def objectForKey:@"mod1"] boolValue] == YES) keymod1 = DESC(@"oolite-keyconfig-modkey-on");
+				if ([[def objectForKey:@"mod2"] boolValue] == YES) keymod2 = DESC(@"oolite-keyconfig-modkey-on");
+			}
+		}
+
+		[self outputKeyDefinition:keystring shift:keyshift mod1:keymod1 mod2:keymod2 skiprows:(i * 5)];
+	}
+
+	[gui addLongText:DESC(@"oolite-keyconfig-update-helper") startingAtRow:GUI_ROW_KC_UPDATE_INFO align:GUI_ALIGN_LEFT];
+
+	[gui setText:@"" forRow:GUI_ROW_KC_VALIDATION];
+
+	[gui setText:DESC(@"oolite-keyconfig-update-save") forRow: GUI_ROW_KC_SAVE align: GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_SAVE];
+	
+	[gui setText:DESC(@"oolite-keyconfig-update-cancel") forRow: GUI_ROW_KC_CANCEL align: GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_CANCEL];
+
+	[gui setSelectableRange: NSMakeRange(GUI_ROW_KC_KEY, (GUI_ROW_KC_CANCEL - GUI_ROW_KC_KEY) + 1)];
+
+	if (resetSelectedRow)
+	{
+		[gui setSelectedRow: GUI_ROW_KC_KEY];
+	}
+
+	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
+	[gui setBackgroundTextureKey:@"keyboardsettings"];
+}
+
+
+- (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(int)skiprows
+{
+	GuiDisplayGen *gui=[UNIVERSE gui];
+
+	[gui setArray: [NSArray arrayWithObjects: 
+								(skiprows == 0 ? DESC(@"oolite-keyconfig-update-key") : DESC(@"oolite-keyconfig-update-alternate")), key, nil]
+					forRow: GUI_ROW_KC_KEY + skiprows];
+	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_KEY + skiprows];
+
+	if (![key isEqualToString:DESC(@"oolite-keycode-unset")])
+	{
+		[gui setArray: [NSArray arrayWithObjects: 
+									DESC(@"oolite-keyconfig-update-shift"), shift, nil]
+						forRow: GUI_ROW_KC_SHIFT + skiprows];
+		[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_SHIFT + skiprows];
+
+		[gui setArray: [NSArray arrayWithObjects: 
+									DESC(@"oolite-keyconfig-update-mod1"), mod1, nil]
+						forRow: GUI_ROW_KC_MOD1 + skiprows];
+		[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_MOD1 + skiprows];
+	
+#if OOLITE_MAC_OS_X
+		[gui setArray: [NSArray arrayWithObjects: 
+									DESC(@"oolite-keyconfig-update-mod2-mac"), mod2, nil]
+						forRow: GUI_ROW_KC_MOD2 + skiprows];
+#else
+		[gui setArray: [NSArray arrayWithObjects: 
+									DESC(@"oolite-keyconfig-update-mod2-pc"), mod2, nil]
+						forRow: GUI_ROW_KC_MOD2 + skiprows];
+#endif
+		[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_MOD2 + skiprows];
+	}
+}
+
+
+- (void) handleKeyConfigKeys:(GuiDisplayGen *)gui
+							view:(MyOpenGLView *)gameView
+{
+	[self handleGUIUpDownArrowKeys];
+
+	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_KEY || [gui selectedRow] == (GUI_ROW_KC_KEY + 5)))
+	{
+		[gameView suppressKeysUntilKeyUp];
+		key_index = ([gui selectedRow] == GUI_ROW_KC_KEY ? 0 : 1);
+		[self setGuiToKeyConfigEntryScreen];
+	}
+
+	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_SHIFT || [gui selectedRow] == (GUI_ROW_KC_SHIFT + 5)))
+	{
+		[gameView suppressKeysUntilKeyUp];
+		[self updateShiftKeyDefinition:@"shift" index:([gui selectedRow] == GUI_ROW_KC_SHIFT ? 0 : 1)];
+		[self setGuiToKeyConfigScreen];
+	}
+	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_MOD1 || [gui selectedRow] == (GUI_ROW_KC_MOD1 + 5)))
+	{
+		[gameView suppressKeysUntilKeyUp];
+		[self updateShiftKeyDefinition:@"mod1" index:([gui selectedRow] == GUI_ROW_KC_MOD1 ? 0 : 1)];
+		[self setGuiToKeyConfigScreen];
+	}
+	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_MOD2 || [gui selectedRow] == (GUI_ROW_KC_MOD2 + 5)))
+	{
+		[gameView suppressKeysUntilKeyUp];
+		[self updateShiftKeyDefinition:@"mod2" index:([gui selectedRow] == GUI_ROW_KC_MOD2 ? 0 : 1)];
+		[self setGuiToKeyConfigScreen];
+	}
+
+	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && [gui selectedRow] == GUI_ROW_KC_SAVE)
+	{
+		pollControls=YES;
+		[gameView suppressKeysUntilKeyUp];
+		[self saveKeySetting:[selected_entry objectForKey: KEY_KC_DEFINITION]];
+		//[selected_entry release];
+		[self reloadPage];
+	}
+
+	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CANCEL)) || [gameView isDown:27])
+	{
+		// esc or Cancel was pressed - get out of here
+		pollControls=YES;
+		[gameView suppressKeysUntilKeyUp];
+		//[selected_entry release];
+		[self reloadPage];
+	}
+
+}
+
+
+- (void) setGuiToKeyConfigEntryScreen
+{
+	GuiDisplayGen *gui = [UNIVERSE gui];
+	MyOpenGLView *gameView = [UNIVERSE gameView];
+	
+	gui_screen = GUI_SCREEN_KEYBOARD_ENTRY;
+
+	// make sure the index we're looking for exists
+	if ([key_list count] < (key_index + 1))
+	{
+		// add the missing element to the array
+		NSMutableDictionary *key1 = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"", @"key", [NSNumber numberWithBool:NO], @"shift", [NSNumber numberWithBool:NO], @"mod1", [NSNumber numberWithBool:NO], @"mod2", nil];
+		[key_list addObject:key1];
+	}
+	NSDictionary *def = [key_list objectAtIndex:key_index];
+	NSString *key = [def objectForKey:@"key"];
+	//if ([key isEqualToString:@"(not set)"]) key = @"";
+	OOKeyCode k_int = (OOKeyCode)[key integerValue];
+	[gameView resetTypedString];
+	[gameView setTypedString: (k_int != 0 ? [self keyCodeDescription:k_int] : @"")];
+	[gameView setStringInput: gvStringInputAll];
+
+	[gui clear];
+	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-entry-title")]];
+	
+	NSUInteger end_row = 21;
+	if ([[self hud] allowBigGui]) 
+	{
+		end_row = 27;
+	}
+
+	[gui addLongText:DESC(@"oolite-keyconfig-update-entry-info") startingAtRow:GUI_ROW_KC_ENTRY_INFO align:GUI_ALIGN_LEFT];
+
+	[gui setText:[NSString stringWithFormat:DESC(@"Key: %@"), [gameView typedString]] forRow:end_row align:GUI_ALIGN_LEFT];
+	[gui setColor:[OOColor cyanColor] forRow:end_row];
+	
+	[gui setShowTextCursor:YES];
+	[gui setCurrentRow:end_row];
+
+	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
+	[gui setBackgroundTextureKey:@"keyboardsettings"];
+}
+
+
+- (void) handleKeyConfigEntryKeys:(GuiDisplayGen *)gui
+							view:(MyOpenGLView *)gameView
+{
+	NSUInteger end_row = 21;
+	if ([[self hud] allowBigGui]) 
+	{
+		end_row = 27;
+	}
+
+	[self handleGUIUpDownArrowKeys];
+
+	[gui setText:
+		[NSString stringWithFormat:DESC(@"Key: %@"), [gameView typedString]]
+		  forRow: end_row];
+	[gui setColor:[OOColor cyanColor] forRow:end_row];
+
+	if ([self checkKeyPress:n_key_gui_select]) 
+	{
+		[gameView suppressKeysUntilKeyUp];
+		// update function key
+		[self updateKeyDefinition:[gameView typedString] index:key_index];
+		[gameView clearKeys];	// try to stop key bounces
+		[self setGuiToKeyConfigScreen:YES];
+	}
+	if ([gameView isDown:27]) 
+	{
+		[gameView suppressKeysUntilKeyUp];
+		// don't update function key
+		[self setGuiToKeyConfigScreen:YES];
+	}
+}
+
+- (void) updateKeyDefinition:(NSString *)keystring index:(int)index
+{
+	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
+	[key_def setObject:keystring forKey:@"key"];
+	if (index > [key_list count] - 1)
+	{
+		[key_list insertObject:key_def atIndex:index];
+	}
+	else 
+	{
+		[key_list replaceObjectAtIndex:index withObject:key_def];
+	}
+	NSArray *new_array = [self processKeyCode:key_list];
+	[key_list release];
+	key_list = [[NSMutableArray alloc] initWithArray:new_array copyItems:YES];
+	[new_array release];
+	[key_def release];
+	//OOLogWARN(@"testing", @"checking lookup %@.", key_list);
+}
+
+
+- (void) updateShiftKeyDefinition:(NSString *)key index:(int)index
+{
+	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
+	BOOL current = [[key_def objectForKey:key] boolValue];
+	current = !current;
+	[key_def setObject:[NSNumber numberWithBool:current] forKey:key];
+	if (index > [key_list count] - 1)
+	{
+		[key_list insertObject:key_def atIndex:index];
+	}
+	else 
+	{
+		[key_list replaceObjectAtIndex:index withObject:key_def];
+	}
+	[key_def release];
+	//OOLogWARN(@"testing", @"checking lookup %@.", key_list);
+}
+
+
+- (void) setGuiToConfirmClearScreen
+{
+	GuiDisplayGen *gui=[UNIVERSE gui];
+	
+	// Don't poll controls
+	pollControls=NO;
+	
+	gui_screen = GUI_SCREEN_KEYBOARD_CONFIRMCLEAR;
+	
+	[gui clear];
+	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-clear-overrides-title")]];
+	
+	[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-keyconfig-clear-overrides")]
+								startingAtRow:GUI_ROW_KC_CONFIRMCLEAR align: GUI_ALIGN_LEFT];
+	
+	[gui setText:DESC(@"oolite-keyconfig-clear-yes") forRow: GUI_ROW_KC_CONFIRMCLEAR_YES align: GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_CONFIRMCLEAR_YES];
+	
+	[gui setText:DESC(@"oolite-keyconfig-clear-no") forRow: GUI_ROW_KC_CONFIRMCLEAR_NO align: GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_CONFIRMCLEAR_NO];
+	
+	[gui setSelectableRange: NSMakeRange(GUI_ROW_KC_CONFIRMCLEAR_YES, 2)];
+	[gui setSelectedRow: GUI_ROW_KC_CONFIRMCLEAR_NO];
+
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
+	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
+	[gui setBackgroundTextureKey:@"keyboardsettings"];
+}
+
+
+- (void) handleKeyMapperConfirmClearKeys:(GuiDisplayGen *)gui
+							view:(MyOpenGLView *)gameView
+{
+	[self handleGUIUpDownArrowKeys];
+	
+	// Translation issue: we can't confidently use raw Y and N ascii as shortcuts. It's better to use the load-previous-commander keys.
+	id valueYes = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"] lowercaseString];
+	id valueNo = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"] lowercaseString];
+	unsigned char cYes, cNo;
+	
+	cYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+	cNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+	
+	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_YES))||[gameView isDown:cYes]||[gameView isDown:cYes - 32])
+	{
+		[self deleteAllKeySettings];
+		pollControls=YES;
+		[gameView suppressKeysUntilKeyUp];
+		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
+	}
+	
+	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_NO))||[gameView isDown:27]||[gameView isDown:cNo]||[gameView isDown:cNo - 32])
+	{
+		// esc or NO was pressed - get out of here
+		pollControls=YES;
+		[gameView suppressKeysUntilKeyUp];
+		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
+	}
+}
+
 
 - (void) displayKeyFunctionList:(GuiDisplayGen *)gui
 						skip:(NSUInteger)skip
@@ -110,6 +525,8 @@ MA 02110-1301, USA.
 	[gui setArray:[NSArray arrayWithObjects:
 				   @"Function", @"Assigned to", @"Overrides", nil]
 		   forRow:GUI_ROW_KC_HEADING];
+
+	NSDictionary *overrides = [self loadKeySettings];
 
 	if(!keyFunctions)
 	{
@@ -157,7 +574,7 @@ MA 02110-1301, USA.
 		{
 			NSDictionary *entry = [keyFunctions objectAtIndex: i + skip];
 			NSString *assignment = [PLAYER keyBindingDescription2:[entry objectForKey:KEY_KC_DEFINITION]];
-			NSString *override = @""; // work out whether this assignment is overriding the setting in keyconfig2.plist
+			NSString *override = ([overrides objectForKey:[entry objectForKey:KEY_KC_DEFINITION]] ? @"Yes" : @""); // work out whether this assignment is overriding the setting in keyconfig2.plist
 
 			// Find out what's assigned for this function currently.
 			if (assignment == nil)
@@ -181,8 +598,8 @@ MA 02110-1301, USA.
 		
 		[gui setSelectableRange: NSMakeRange(GUI_ROW_KC_FUNCSTART, i + start_row - GUI_ROW_KC_FUNCSTART)];
 	}
-
 }
+
 
 - (NSArray *)keyFunctionList
 {
@@ -196,14 +613,6 @@ MA 02110-1301, USA.
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_chart_screens") keyDef:@"key_gui_chart_screens"]];
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_system_data") keyDef:@"key_gui_system_data"]];
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_market") keyDef:@"key_gui_market"]];
-
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_left") keyDef:@"key_gui_arrow_left"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_right") keyDef:@"key_gui_arrow_right"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_up") keyDef:@"key_gui_arrow_up"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_down") keyDef:@"key_gui_arrow_down"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_down") keyDef:@"key_gui_page_down"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_up") keyDef:@"key_gui_page_up"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_select") keyDef:@"key_gui_select"]];
 
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_left") keyDef:@"key_roll_left"]];
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_right") keyDef:@"key_roll_right"]];
@@ -308,6 +717,14 @@ MA 02110-1301, USA.
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_up") keyDef:@"key_custom_view_rotate_up"]];
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_down") keyDef:@"key_custom_view_rotate_down"]];
 
+	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_left") keyDef:@"key_gui_arrow_left"]];
+	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_right") keyDef:@"key_gui_arrow_right"]];
+	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_up") keyDef:@"key_gui_arrow_up"]];
+	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_down") keyDef:@"key_gui_arrow_down"]];
+	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_down") keyDef:@"key_gui_page_down"]];
+	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_up") keyDef:@"key_gui_page_up"]];
+	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_select") keyDef:@"key_gui_select"]];
+
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_setfilter") keyDef:@"key_oxzmanager_setfilter"]];
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_showinfo") keyDef:@"key_oxzmanager_showinfo"]];
 	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_extract") keyDef:@"key_oxzmanager_extract"]];
@@ -324,23 +741,132 @@ MA 02110-1301, USA.
 	return funcList;
 }
 
-- (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString*) keyDef
+
+- (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString*) key_def
 {
 	NSMutableDictionary *guiDict = [NSMutableDictionary dictionary];
-	if ([what length] > 50)  what = [[what substringToIndex:48] stringByAppendingString:@"..."];
-	[guiDict setObject: what  forKey: KEY_KC_GUIDESC];
-	[guiDict setObject: keyDef forKey: KEY_KC_DEFINITION];
+	if ([what length] > 50) what = [[what substringToIndex:48] stringByAppendingString:@"..."];
+	[guiDict setObject:what forKey:KEY_KC_GUIDESC];
+	[guiDict setObject:key_def forKey:KEY_KC_DEFINITION];
 	return guiDict;
 }
 
-- (void) saveKeySettings
+
+- (BOOL) validateKey:(NSString *)key
 {
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	// need to group keys into validation groups
 }
 
-- (void) loadKeySettings
+
+- (BOOL) entryIsEqualToDefault:(NSString*)key
+{
+	NSArray *def = (NSArray *)[kdic_check objectForKey:key];
+	int i;
+
+	if ([def count] != [key_list count]) return NO;
+	for (i = 0; i < [key_list count]; i++)
+	{
+		NSDictionary *orig = (NSDictionary *)[def objectAtIndex:i];
+		NSDictionary *entrd = (NSDictionary *)[key_list objectAtIndex:i];
+		if ([(NSString *)[orig objectForKey:@"key"] integerValue] == [(NSString *)[entrd objectForKey:@"key"] integerValue])
+		{
+			if ([[orig objectForKey:@"shift"] boolValue] != [[entrd objectForKey:@"shift"] boolValue] ||
+				[[orig objectForKey:@"mod1"] boolValue] != [[entrd objectForKey:@"mod1"] boolValue] ||
+				[[orig objectForKey:@"mod2"] boolValue] != [[entrd objectForKey:@"mod2"] boolValue]) 
+				return NO;
+		}
+		else
+			return NO;
+	}
+	return YES;
+}
+
+
+- (void) saveKeySetting:(NSString*)key
+{
+	// see if we've set the key settings to blank - in which case, delete the override
+	if ([[(NSDictionary*)[key_list objectAtIndex:0] objectForKey:@"key"] integerValue] == 0)
+	{
+		if ([key_list count] == 1 || ([key_list count] > 1 && [[(NSDictionary*)[key_list objectAtIndex:1] objectForKey:@"key"] isEqualToString:@""]))
+		{
+			[self deleteKeySetting:key];
+			// reload settings
+			[self initKeyConfigSettings];
+			[self reloadPage];
+			return;
+		}
+	}
+	// if we've ot the same settings as the default, revert to the default
+	if ([self entryIsEqualToDefault:key])
+	{
+		[self deleteKeySetting:key];
+		// reload settings
+		[self initKeyConfigSettings];
+		[self reloadPage];
+		return;
+	}
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
+	// check for a blank entry
+	if ([key_list count] > 1 && [[(NSDictionary*)[key_list objectAtIndex:1] objectForKey:@"key"] integerValue] == 0) 
+	{
+		[key_list removeObjectAtIndex:1];
+	}
+	[keyconf setObject:key_list forKey:key];
+	[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+	// reload settings
+	[self initKeyConfigSettings];
+	[self reloadPage];
+}
+
+
+- (void) deleteKeySetting:(NSString*)key
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
+	[keyconf removeObjectForKey:key];
+	[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+	// reload settings
+	[self initKeyConfigSettings];
+}
+
+
+- (void) deleteAllKeySettings
+{
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	[defaults removeObjectForKey:KEYCONFIG_OVERRIDES];
+	// reload settings
+	[self initKeyConfigSettings];
+}
+
+
+- (NSDictionary *) loadKeySettings
+{
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	return [defaults objectForKey: KEYCONFIG_OVERRIDES];
+}
+
+
+- (void) reloadKeyConfig
+{
+	[PLAYER initKeyConfigSettings];
+}
+
+
+- (void) reloadPage
+{
+	// Update the GUI (this will refresh the function list).
+	unsigned skip;
+	if (selFunctionIdx < MAX_ROWS_KC_FUNCTIONS - 1)
+	{
+		skip = 0;
+	}
+	else
+	{
+		skip = ((selFunctionIdx - 1) / (MAX_ROWS_KC_FUNCTIONS - 2)) * (MAX_ROWS_KC_FUNCTIONS - 2) + 1;
+	}
+	
+	[self setGuiToKeyMapperScreen:skip];
 }
 
 @end

@@ -1226,13 +1226,13 @@
 
 	"oolite-keydesc-key_launch_ship"			= "Launch ship";
 	"oolite-keydesc-key_gui_screen_options"		= "Options screen";
-	"oolite-keydesc-key_gui_screen_equipship"	= "Equip ship screens";
-	"oolite-keydesc-key_gui_screen_interfaces"	= "Ship interface screens";
+	"oolite-keydesc-key_gui_screen_equipship"	= "Equip ship screen";
+	"oolite-keydesc-key_gui_screen_interfaces"	= "Ship interfaces screen";
 
-	"oolite-keydesc-key_gui_screen_status"		= "Status screens";
-	"oolite-keydesc-key_gui_chart_screens"		= "Chart screens";
-	"oolite-keydesc-key_gui_system_data"		= "System screens";
-	"oolite-keydesc-key_gui_market"				= "Market screens";
+	"oolite-keydesc-key_gui_screen_status"		= "Status screen";
+	"oolite-keydesc-key_gui_chart_screens"		= "Galactic chart screen";
+	"oolite-keydesc-key_gui_system_data"		= "Planet info screen";
+	"oolite-keydesc-key_gui_market"				= "Market screen";
 
 	"oolite-keydesc-key_gui_arrow_left"			= "GUI Left";
 	"oolite-keydesc-key_gui_arrow_right"		= "GUI Right";
@@ -1285,20 +1285,20 @@
 	"oolite-keydesc-key_docking_music"			= "Toggle docking music on/off";
 
 	"oolite-keydesc-key_advanced_nav_array"		= "Route planner mode";
-	"oolite-keydesc-key_advanced_nav_array_next"	= "System map: Next route mode";
-	"oolite-keydesc-key_advanced_nav_array_previous"	= "System map: Previous route mode";
-	"oolite-keydesc-key_map_home"				= "System map: Select current system";
-	"oolite-keydesc-key_map_end"				= "System map: Select destination system";
-	"oolite-keydesc-key_map_info"				= "System map: Show chart icons";
-	"oolite-keydesc-key_map_zoom_in"			= "System map: Zoom in";
-	"oolite-keydesc-key_map_zoom_out"			= "System map: Zoom out";
-	"oolite-keydesc-key_map_next_system"		= "System map: Select next system";
-	"oolite-keydesc-key_map_previous_system"	= "System map: Select previous system";
+	"oolite-keydesc-key_advanced_nav_array_next"	= "Chart: Next route mode";
+	"oolite-keydesc-key_advanced_nav_array_previous"	= "Chart: Previous route mode";
+	"oolite-keydesc-key_map_home"				= "Chart: Select current system";
+	"oolite-keydesc-key_map_end"				= "Chart: Select destination system";
+	"oolite-keydesc-key_map_info"				= "Chart: Show chart icons";
+	"oolite-keydesc-key_map_zoom_in"			= "Chart: Zoom in";
+	"oolite-keydesc-key_map_zoom_out"			= "Chart: Zoom out";
+	"oolite-keydesc-key_map_next_system"		= "Chart: Select next system";
+	"oolite-keydesc-key_map_previous_system"	= "Chart: Select previous system";
 
-	"oolite-keydesc-key_system_home"			= "System info: Select current system";
-	"oolite-keydesc-key_system_end"				= "System info: Select destination system";
-	"oolite-keydesc-key_system_next_system"		= "System info: Select next system";
-	"oolite-keydesc-key_system_previous_system"	= "System info: Select previous system";
+	"oolite-keydesc-key_system_home"			= "Planet info: Select current system";
+	"oolite-keydesc-key_system_end"				= "Planet info: Select destination system";
+	"oolite-keydesc-key_system_next_system"		= "Planet info: Select next system";
+	"oolite-keydesc-key_system_previous_system"	= "Planet info: Select previous system";
 
 	"oolite-keydesc-key_pausebutton"			= "Pause";
 	"oolite-keydesc-key_show_fps"				= "Show FPS";
@@ -1316,12 +1316,12 @@
 
 	"oolite-keydesc-key_chart_highlight"		= "System map: Chart highlight";
 
-	"oolite-keydesc-key_market_filter_cycle"	= "Market screen: Cycle market filter";
-	"oolite-keydesc-key_market_sorter_cycle"	= "Market screen: Cycle market sort";
-	"oolite-keydesc-key_market_buy_one"			= "Market screen: Buy one unit";
-	"oolite-keydesc-key_market_sell_one"		= "Market screen: Sell one unit";
-	"oolite-keydesc-key_market_buy_max"			= "Market screen: Buy maximum amount";
-	"oolite-keydesc-key_market_sell_max"		= "Market screen: Sell maximum amount";
+	"oolite-keydesc-key_market_filter_cycle"	= "Market: Cycle market filter";
+	"oolite-keydesc-key_market_sorter_cycle"	= "Market: Cycle market sort";
+	"oolite-keydesc-key_market_buy_one"			= "Market: Buy one unit";
+	"oolite-keydesc-key_market_sell_one"		= "Market: Sell one unit";
+	"oolite-keydesc-key_market_buy_max"			= "Market: Buy maximum amount";
+	"oolite-keydesc-key_market_sell_max"		= "Market: Sell maximum amount";
 
 	"oolite-keydesc-key_cycle_mfd"				= "Cycle MFD";
 	"oolite-keydesc-key_cycle_next_mfd"			= "Cycle next MFD";
@@ -1333,7 +1333,7 @@
 	"oolite-keydesc-key_next_target"			= "Next target";
 	"oolite-keydesc-key_previous_target"		= "Previous target";
 
-	"oolite-keydesc-key_custom_view"			= "External view";
+	"oolite-keydesc-key_custom_view"			= "Cycle external views";
 	"oolite-keydesc-key_custom_view_zoom_out"	= "External view: Zoom out";
 	"oolite-keydesc-key_custom_view_zoom_in"	= "External view: Zoom in";
 	"oolite-keydesc-key_custom_view_roll_left"	= "External view: Roll left";
@@ -1360,6 +1360,39 @@
 	"oolite-keydesc-key_debug_shaders"			= "Debug: Shaders";
 	"oolite-keydesc-key_debug_off"				= "Debug: Turn off debug messages";
 
+	"oolite-keyconfig-initial-info-1"			= "Select a function and press Enter to modify or 'r' to reset to default.";
+	"oolite-keyconfig-initial-info-2"			= "Press Ctrl+'r' to reset all functions back to default.";
+	"oolite-keyconfig-initial-info-3"			= "Space to return to previous screen.";
+
+	"oolite-keyconfig-clear-overrides-title"	= "Clear All Keyboard Overrides";
+	"oolite-keyconfig-clear-overrides" 			= "Are you sure you want to clear any overrides and return all functions to their default settings?";
+	"oolite-keyconfig-clear-yes"				= " Clear all overrides ";
+	"oolite-keyconfig-clear-no"					= " Cancel ";
+
+	"oolite-keyconfig-update-title"				= "Update Keyboard Setting";
+	"oolite-keyconfig-update-function"			= "Function to update";
+	"oolite-keyconfig-update-helper"	 		= "Select a key and press enter to modify. Press enter on modifiers to change the flag setting.";
+	"oolite-keyconfig-update-key"				= "Key";
+	"oolite-keyconfig-update-shift"				= "Shift";
+	"oolite-keyconfig-update-mod1"				= "Control";
+	"oolite-keyconfig-update-mod2-pc"			= "Alt";
+	"oolite-keyconfig-update-mod2-mac"			= "Command";
+	"oolite-keyconfig-update-alternate"			= "Alternate key";
+	"oolite-keyconfig-update-save"				= " Save config ";
+	"oolite-keyconfig-update-cancel"			= " Cancel ";
+
+	"oolite-keyconfig-update-entry-title"		= "Keyboard Command Entry";
+
+	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, |, @)\n2: A 3 digit keycode for that key (eg 212, 253, 303)\n3: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, escape, enter, numpad0-9";
+
+	"oolite-keyconfig-shift"					= "Shift";
+	"oolite-keyconfig-mod1"						= "Ctrl";
+	"oolite-keyconfig-mod2-pc"					= "Alt";
+	"oolite-keyconfig-mod2-mac"					= "Cmd";
+	"oolite-keyconfig-modkey-off"	 			= "No";
+	"oolite-keyconfig-modkey-on"				= "Yes";
+
+	
 	"oolite-loadsave-exit"			= "Return to Menu";
 	"oolite-scenario-exit"			= "Return to Menu";
 	"oolite-scenario-standard-name" = "Normal Start";

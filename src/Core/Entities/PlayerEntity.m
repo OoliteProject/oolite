@@ -2364,7 +2364,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	DESTROY(customDialSettings);
 
 	DESTROY(commLog);
-	DESTROY(keyconfig_settings);
+	DESTROY(keyconfig_settings); // *** FLAGGED FOR DELETION ***
 	DESTROY(keyconfig2_settings);
 	DESTROY(target_memory);
 	
@@ -2625,7 +2625,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				   gui_screen != GUI_SCREEN_NEWGAME && 
 				   gui_screen != GUI_SCREEN_OXZMANAGER && 
 				   gui_screen != GUI_SCREEN_LOAD && 
-				   gui_screen != GUI_SCREEN_KEYBOARD))
+				   gui_screen != GUI_SCREEN_KEYBOARD && 
+				   gui_screen != GUI_SCREEN_KEYBOARD_CONFIRMCLEAR &&
+				   gui_screen != GUI_SCREEN_KEYBOARD_CONFIG &&
+				   gui_screen != GUI_SCREEN_KEYBOARD_ENTRY))
 	{
 		// and if not, do a restart of the GUI
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
@@ -3505,6 +3508,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			case GUI_SCREEN_STICKPROFILE:
 			case GUI_SCREEN_MISSION:
 			case GUI_SCREEN_REPORT:
+			case GUI_SCREEN_KEYBOARD_CONFIRMCLEAR:
+			case GUI_SCREEN_KEYBOARD_CONFIG:
+			case GUI_SCREEN_KEYBOARD_ENTRY:
 				return;
 			
 			// Screens from which it's safe to jump to the mission screen
@@ -4609,7 +4615,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (NSDictionary *) keyConfig
 {
-	return keyconfig_settings;
+	//return keyconfig_settings;
+	return keyconfig2_settings;
 }
 
 
@@ -7007,7 +7014,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
 	[self safeAllMissiles];
-	DESTROY(_primaryTarget); // must happen before showing break_pattern to supress active reticule.
+	DESTROY(_primaryTarget); // must happen before showing break_pattern to suppress active reticule.
 	[self clearTargetMemory];
 	
 	scanner_zoom_rate = 0.0f;
@@ -9034,7 +9041,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 	if (gamePaused)
 	{
 		[[UNIVERSE messageGUI] clear]; 
-		NSString *pauseKey = [PLAYER keyBindingDescription:@"key_pausebutton"];
+		NSString *pauseKey = [PLAYER keyBindingDescription2:@"key_pausebutton"];
 		[UNIVERSE addMessage:OOExpandKey(@"game-paused-docked", pauseKey) forCount:1.0 forceDisplay:YES];
 	}
 	
@@ -9905,6 +9912,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+// *** FLAGGED FOR DELETION ***
 - (void) setGuiToKeySettingsScreen
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -13299,6 +13307,124 @@ else _dockTarget = NO_TARGET;
 	key_docking_clearance_request &&
 	key_dump_target_state &&
 	key_weapons_online_toggle &&
+	n_key_roll_left &&
+	n_key_roll_right &&
+	n_key_pitch_forward &&
+	n_key_pitch_back &&
+	n_key_yaw_left &&
+	n_key_yaw_right &&
+	n_key_view_forward &&
+	n_key_view_aft &&
+	n_key_view_port &&
+	n_key_view_starboard &&
+	n_key_launch_ship &&
+	n_key_gui_screen_options &&
+	n_key_gui_screen_equipship &&
+	n_key_gui_screen_interfaces &&
+	n_key_gui_screen_status &&
+	n_key_gui_chart_screens &&
+	n_key_gui_system_data &&
+	n_key_gui_market &&
+	n_key_gui_arrow_left &&
+	n_key_gui_arrow_right &&
+	n_key_gui_arrow_up &&
+	n_key_gui_arrow_down &&
+	n_key_gui_page_up &&
+	n_key_gui_page_down &&
+	n_key_gui_select &&
+	n_key_increase_speed &&
+	n_key_decrease_speed &&
+	n_key_inject_fuel &&
+	n_key_fire_lasers &&
+	n_key_launch_missile &&
+	n_key_next_missile &&
+	n_key_ecm &&
+	n_key_prime_next_equipment &&
+	n_key_prime_previous_equipment &&
+	n_key_activate_equipment &&
+	n_key_mode_equipment &&
+	n_key_fastactivate_equipment_a &&
+	n_key_fastactivate_equipment_b &&
+	n_key_target_missile &&
+	n_key_untarget_missile &&
+	n_key_target_incoming_missile &&
+	n_key_ident_system &&
+	n_key_scanner_zoom &&
+	n_key_scanner_unzoom &&
+	n_key_launch_escapepod &&
+	n_key_galactic_hyperspace &&
+	n_key_hyperspace &&
+	n_key_jumpdrive &&
+	n_key_dump_cargo &&
+	n_key_rotate_cargo &&
+	n_key_autopilot &&
+	n_key_autodock &&
+	n_key_snapshot &&
+	n_key_docking_music &&
+	n_key_advanced_nav_array_next &&
+	n_key_advanced_nav_array_previous &&
+	n_key_info_next_system &&
+	n_key_info_previous_system &&
+	n_key_map_home &&
+	n_key_map_end &&
+	n_key_map_next_system &&
+	n_key_map_previous_system &&
+	n_key_map_info &&
+	n_key_map_zoom_in &&
+	n_key_map_zoom_out &&
+	n_key_system_home &&
+	n_key_system_end &&
+	n_key_system_next_system &&
+	n_key_system_previous_system &&
+	n_key_pausebutton &&
+	n_key_show_fps &&
+	n_key_mouse_control_roll &&
+	n_key_mouse_control_yaw &&
+	n_key_hud_toggle &&
+	n_key_comms_log &&
+	n_key_prev_compass_mode &&
+	n_key_next_compass_mode &&
+	n_key_chart_highlight &&
+	n_key_market_filter_cycle &&
+	n_key_market_sorter_cycle &&
+	n_key_market_buy_one &&
+	n_key_market_sell_one &&
+	n_key_market_buy_max &&
+	n_key_market_sell_max &&
+	n_key_next_target &&
+	n_key_previous_target &&
+	n_key_custom_view &&
+	n_key_custom_view_zoom_out &&
+	n_key_custom_view_zoom_in &&
+	n_key_custom_view_roll_left &&
+	n_key_custom_view_pan_left &&
+	n_key_custom_view_roll_right &&
+	n_key_custom_view_pan_right &&
+	n_key_custom_view_rotate_up &&
+	n_key_custom_view_pan_up &&
+	n_key_custom_view_rotate_down &&
+	n_key_custom_view_pan_down &&
+	n_key_custom_view_rotate_left &&
+	n_key_custom_view_rotate_right &&
+	n_key_docking_clearance_request &&
+	n_key_weapons_online_toggle &&
+	n_key_cycle_next_mfd &&
+	n_key_cycle_previous_mfd &&
+	n_key_switch_next_mfd &&
+	n_key_switch_previous_mfd &&
+	n_key_oxzmanager_setfilter &&
+	n_key_oxzmanager_showinfo &&
+	n_key_oxzmanager_extract &&
+	n_key_inc_field_of_view &&
+	n_key_dec_field_of_view &&
+	n_key_dump_target_state &&
+	n_key_dump_entity_list &&
+	n_key_debug_full &&
+	n_key_debug_collision &&
+	n_key_debug_console_connect &&
+	n_key_debug_bounding_boxes &&
+	n_key_debug_shaders &&
+	n_key_debug_off &&
 	_sysInfoLight.x &&
 	selFunctionIdx &&
 	stickFunctions &&

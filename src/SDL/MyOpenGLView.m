@@ -1529,11 +1529,11 @@ MA 02110-1301, USA.
 // key down that brought you into the submenu is still registered
 // as down when we're in. This makes isDown return NO until a key up
 // event has been received from SDL.
-- (void) supressKeysUntilKeyUp
+- (void) suppressKeysUntilKeyUp
 {
 	if (keys[gvMouseDoubleClick] == NO)
    	{
-   		supressKeys = YES;
+   		suppressKeys = YES;
    		[self clearKeys];
    	}
    	else
@@ -1546,7 +1546,7 @@ MA 02110-1301, USA.
 
 - (BOOL) isDown: (int) key
 {
-	if ( supressKeys )
+	if ( suppressKeys )
 		return NO;
 	if ( key < 0 )
 		return NO;
@@ -2025,7 +2025,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 				break;
 
 			case SDL_KEYUP:
-				supressKeys = NO;    // DJS
+				suppressKeys = NO;    // DJS
 				kbd_event = (SDL_KeyboardEvent*)&event;
 
 #define KEYCODE_UP_BOTH(a,b)	do { \

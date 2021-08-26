@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
-#define SUPRESS_BLANKING_WINDOWS		( 1 && OO_DEBUG)
+#define SUPPRESS_BLANKING_WINDOWS		( 1 && OO_DEBUG)
 
 
 @interface OOMacSnowLeopardFullScreenController ()
@@ -227,7 +227,7 @@ MA 02110-1301, USA.
 
 - (void) setUpBlankingWindowsForScreensOtherThan:(NSScreen *)gameScreen
 {
-#if SUPRESS_BLANKING_WINDOWS
+#if SUPPRESS_BLANKING_WINDOWS
 	// Skip blanking windows while debugging.
 	return;
 #endif

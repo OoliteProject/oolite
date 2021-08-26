@@ -521,9 +521,10 @@ typedef enum
 #endif
 
 	// keys!
-	NSDictionary   *keyconfig_settings;
+	NSDictionary   *keyconfig_settings; // *** FLAGGED FOR DELETION ***
 	NSDictionary   *keyconfig2_settings;
-
+	NSDictionary   *keyCodeLookups;
+	
 	NSArray					*n_key_roll_left;
 	NSArray					*n_key_roll_right;
 	NSArray					*n_key_pitch_forward;
@@ -659,6 +660,7 @@ typedef enum
 	NSArray					*n_key_inc_field_of_view;
 	NSArray					*n_key_dec_field_of_view;
 
+	// *** OOKeyCodes FLAGGED FOR REMOVAL BELOW ***
 	OOKeyCode				key_roll_left;
 	OOKeyCode				key_roll_right;
 	OOKeyCode				key_pitch_forward;
@@ -854,6 +856,9 @@ typedef enum
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
 	NSArray					*keyFunctions;
+	NSString				*keyShiftText;
+	NSString				*keyMod1Text;
+	NSString				*keyMod2Text;
 	
 	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
