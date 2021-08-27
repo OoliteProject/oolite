@@ -484,6 +484,87 @@ MA 02110-1301, USA.
 	}
 }
 
+- (NSString *) keyCodeDescriptionShort:(OOKeyCode)code
+{
+	switch (code)
+	{
+	case 0:
+		return DESC(@"oolite-keycode-short-unset");
+	case 9:
+		return DESC(@"oolite-keycode-short-tab");
+	case 13:
+		return DESC(@"oolite-keycode-short-enter");
+	case 27:
+		return DESC(@"oolite-keycode-short-esc");
+	case 32:
+		return DESC(@"oolite-keycode-short-space");
+	case gvFunctionKey1:
+		return DESC(@"oolite-keycode-short-f1");
+	case gvFunctionKey2:
+		return DESC(@"oolite-keycode-short-f2");
+	case gvFunctionKey3:
+		return DESC(@"oolite-keycode-short-f3");
+	case gvFunctionKey4:
+		return DESC(@"oolite-keycode-short-f4");
+	case gvFunctionKey5:
+		return DESC(@"oolite-keycode-short-f5");
+	case gvFunctionKey6:
+		return DESC(@"oolite-keycode-short-f6");
+	case gvFunctionKey7:
+		return DESC(@"oolite-keycode-short-f7");
+	case gvFunctionKey8:
+		return DESC(@"oolite-keycode-short-f8");
+	case gvFunctionKey9:
+		return DESC(@"oolite-keycode-short-f9");
+	case gvFunctionKey10:
+		return DESC(@"oolite-keycode-short-f10");
+	case gvFunctionKey11:
+		return DESC(@"oolite-keycode-short-f11");
+	case gvArrowKeyRight:
+		return DESC(@"oolite-keycode-short-right");
+	case gvArrowKeyLeft:
+		return DESC(@"oolite-keycode-short-left");
+	case gvArrowKeyDown:
+		return DESC(@"oolite-keycode-short-down");
+	case gvArrowKeyUp:
+		return DESC(@"oolite-keycode-short-up");
+	case gvHomeKey:
+		return DESC(@"oolite-keycode-short-home");
+	case gvEndKey:
+		return DESC(@"oolite-keycode-short-end");
+	case gvInsertKey:
+		return DESC(@"oolite-keycode-short-insert");
+	case gvDeleteKey:
+		return DESC(@"oolite-keycode-short-delete");
+	case gvPageUpKey:
+		return DESC(@"oolite-keycode-short-pageup");
+	case gvPageDownKey:
+		return DESC(@"oolite-keycode-short-pagedown");
+	case gvNumberPadKey0:
+		return DESC(@"oolite-keycode-short-numpad0");
+	case gvNumberPadKey1:
+		return DESC(@"oolite-keycode-short-numpad1");
+	case gvNumberPadKey2:
+		return DESC(@"oolite-keycode-short-numpad2");
+	case gvNumberPadKey3:
+		return DESC(@"oolite-keycode-short-numpad3");
+	case gvNumberPadKey4:
+		return DESC(@"oolite-keycode-short-numpad4");
+	case gvNumberPadKey5:
+		return DESC(@"oolite-keycode-short-numpad5");
+	case gvNumberPadKey6:
+		return DESC(@"oolite-keycode-short-numpad6");
+	case gvNumberPadKey7:
+		return DESC(@"oolite-keycode-short-numpad7");
+	case gvNumberPadKey8:
+		return DESC(@"oolite-keycode-short-numpad8");
+	case gvNumberPadKey9:
+		return DESC(@"oolite-keycode-short-numpad9");
+
+	default:
+		return [NSString stringWithFormat:@"%C",code];
+	}
+}
 
 @end
 

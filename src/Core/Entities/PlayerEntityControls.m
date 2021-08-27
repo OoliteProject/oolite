@@ -3517,7 +3517,6 @@ static NSTimeInterval	time_last_frame;
 	if ((guiSelectedRow == GUI_ROW(GAME,KEYMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
-		[self initCheckingDictionary];
 		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
 	

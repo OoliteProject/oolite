@@ -1380,10 +1380,10 @@
 	"oolite-keyconfig-update-alternate"			= "Alternate key";
 	"oolite-keyconfig-update-save"				= " Save config ";
 	"oolite-keyconfig-update-cancel"			= " Cancel ";
-
+	"oolite-keyconfig-update-validation-@"		= "Conflict detected with function \"%@\"";
 	"oolite-keyconfig-update-entry-title"		= "Keyboard Command Entry";
 
-	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, |, @)\n2: A 3 digit keycode for that key (eg 212, 253, 303)\n3: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, escape, enter, numpad0-9";
+	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, 0, #, @)\n2: A 3 digit keycode for that key (eg 212, 253, 303)\n3: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, escape, enter, numpad0-9";
 
 	"oolite-keyconfig-shift"					= "Shift";
 	"oolite-keyconfig-mod1"						= "Ctrl";
@@ -1391,7 +1391,6 @@
 	"oolite-keyconfig-mod2-mac"					= "Cmd";
 	"oolite-keyconfig-modkey-off"	 			= "No";
 	"oolite-keyconfig-modkey-on"				= "Yes";
-
 	
 	"oolite-loadsave-exit"			= "Return to Menu";
 	"oolite-scenario-exit"			= "Return to Menu";
@@ -2159,7 +2158,43 @@
 	"oolite-keycode-numpad7" = "Numpad 7";
 	"oolite-keycode-numpad8" = "Numpad 8";
 	"oolite-keycode-numpad9" = "Numpad 9";
-	
+
+	// translations of special keys to a shorter version equivalent to what a user needs to enter on the keyboard config screen
+	"oolite-keycode-short-tab"		= "tab";
+	"oolite-keycode-short-esc"		= "esc";
+	"oolite-keycode-short-space"	= "space";
+	"oolite-keycode-short-enter"	= "enter";
+	"oolite-keycode-short-f1"		= "f1";
+	"oolite-keycode-short-f2"		= "f2";
+	"oolite-keycode-short-f3"		= "f3";
+	"oolite-keycode-short-f4"		= "f4";
+	"oolite-keycode-short-f5"		= "f5";
+	"oolite-keycode-short-f6"		= "f6";
+	"oolite-keycode-short-f7"		= "f7";
+	"oolite-keycode-short-f8"		= "f8";
+	"oolite-keycode-short-f9"		= "f9";
+	"oolite-keycode-short-f10"		= "f10";
+	"oolite-keycode-short-f11"		= "f11";
+	"oolite-keycode-short-right"	= "right";
+	"oolite-keycode-short-left"		= "left";
+	"oolite-keycode-short-down"		= "down";
+	"oolite-keycode-short-up"		= "up";
+	"oolite-keycode-short-home"		= "home";
+	"oolite-keycode-short-end"		= "end";
+	"oolite-keycode-short-insert"	= "insert";
+	"oolite-keycode-short-delete"	= "delete";
+	"oolite-keycode-short-pageup"	= "pageUp";
+	"oolite-keycode-short-pagedown" = "pageDown";
+	"oolite-keycode-short-numpad0" 	= "numpad0";
+	"oolite-keycode-short-numpad1" 	= "numpad1";
+	"oolite-keycode-short-numpad2" 	= "numpad2";
+	"oolite-keycode-short-numpad3" 	= "numpad3";
+	"oolite-keycode-short-numpad4" 	= "numpad4";
+	"oolite-keycode-short-numpad5" 	= "numpad5";
+	"oolite-keycode-short-numpad6" 	= "numpad6";
+	"oolite-keycode-short-numpad7" 	= "numpad7";
+	"oolite-keycode-short-numpad8" 	= "numpad8";
+	"oolite-keycode-short-numpad9" 	= "numpad9";
 
 	// Mac multi-screen handling
 	"oolite-mac-bad-display" = "The display configuration has changed in a way that may impact Oolite’s performance.";

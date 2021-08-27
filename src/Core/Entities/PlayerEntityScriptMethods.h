@@ -66,6 +66,7 @@ MA 02110-1301, USA.
 - (NSString *) keyBindingDescription:(NSString *)binding;
 - (NSString *) keyBindingDescription2:(NSString *)binding;
 - (NSString *) keyCodeDescription:(OOKeyCode)code;
+- (NSString *) keyCodeDescriptionShort:(OOKeyCode)code;
 
 - (NSString *) commanderKillsAsString;
 - (NSString *) commanderBountyAsString;

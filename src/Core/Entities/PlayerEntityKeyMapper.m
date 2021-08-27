@@ -42,7 +42,11 @@ NSDictionary *kdic_check = nil;
 - (void)updateShiftKeyDefinition:(NSString *)key index:(int)index;
 - (void)displayKeyFunctionList:(GuiDisplayGen *)gui skip:(NSUInteger) skip;
 - (NSArray *)keyFunctionList;
+- (NSArray *)validateAllKeys;
+- (NSString *)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
+- (NSString *)searchArrayForMatch:(NSArray *)search_list key:(NSString *)key checkKeys:(NSArray *)check_keys;
 - (BOOL)entryIsEqualToDefault:(NSString *)key;
+- (BOOL)compareKeyEntries:(NSDictionary *)first second:(NSDictionary *)second;
 - (void)saveKeySetting:(NSString *)key;
 - (void)deleteKeySetting:(NSString *)key;
 - (void)deleteAllKeySettings;
@@ -53,6 +57,7 @@ NSDictionary *kdic_check = nil;
 
 @implementation PlayerEntity (KeyMapper)
 
+// sets up a copy of the raw keyconfig.plist file so we can run checks against it to tell if a key is set to default
 - (void) initCheckingDictionary
 {
 	NSMutableDictionary *kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
@@ -80,10 +85,10 @@ NSDictionary *kdic_check = nil;
 
 - (void) setGuiToKeyMapperScreen:(unsigned)skip
 {
-	[self setGuiToKeyMapperScreen: skip resetCurrentRow: NO];
+	[self setGuiToKeyMapperScreen:skip resetCurrentRow:NO];
 }
 
-- (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow
+- (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
@@ -92,8 +97,7 @@ NSDictionary *kdic_check = nil;
 	tabStop[2] = 400;
 	[gui setTabStops:tabStop];
 
-	// Don't poll controls
-	pollControls=NO;
+	if (!kdic_check) [self initCheckingDictionary];
 
 	gui_screen = GUI_SCREEN_KEYBOARD;
 	[gui clear];
@@ -177,7 +181,7 @@ NSDictionary *kdic_check = nil;
 }
 
 
-- (void) setGuiToKeyConfigScreen:(BOOL) resetSelectedRow
+- (void) setGuiToKeyConfigScreen:(BOOL)resetSelectedRow
 {
 	int	i = 0;
 	GuiDisplayGen *gui=[UNIVERSE gui];
@@ -185,9 +189,6 @@ NSDictionary *kdic_check = nil;
 	tabStop[0] = 10;
 	tabStop[1] = 290;
 	[gui setTabStops:tabStop];
-	
-	// Don't poll controls
-	pollControls=YES;
 	
 	gui_screen = GUI_SCREEN_KEYBOARD_CONFIG;
 	[gui clear];
@@ -243,6 +244,21 @@ NSDictionary *kdic_check = nil;
 	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_CANCEL];
 
 	[gui setSelectableRange: NSMakeRange(GUI_ROW_KC_KEY, (GUI_ROW_KC_CANCEL - GUI_ROW_KC_KEY) + 1)];
+
+	NSString *validate = [self validateKey:[selected_entry objectForKey: KEY_KC_DEFINITION] checkKeys:key_list];
+	if (validate)
+	{
+		for (i = 0; i < [keyFunctions count]; i++)
+		{
+			if ([[[keyFunctions objectAtIndex:i] objectForKey:KEY_KC_DEFINITION] isEqualToString:validate])
+			{
+				[gui setText:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-validation-@"), (NSString *)[[keyFunctions objectAtIndex:i] objectForKey:KEY_KC_GUIDESC]] 
+					forRow: GUI_ROW_KC_VALIDATION align: GUI_ALIGN_CENTER];
+				[gui setColor:[OOColor orangeColor] forRow:GUI_ROW_KC_VALIDATION];
+				break;
+			}
+		}
+	}
 
 	if (resetSelectedRow)
 	{
@@ -322,7 +338,6 @@ NSDictionary *kdic_check = nil;
 
 	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && [gui selectedRow] == GUI_ROW_KC_SAVE)
 	{
-		pollControls=YES;
 		[gameView suppressKeysUntilKeyUp];
 		[self saveKeySetting:[selected_entry objectForKey: KEY_KC_DEFINITION]];
 		//[selected_entry release];
@@ -332,7 +347,6 @@ NSDictionary *kdic_check = nil;
 	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CANCEL)) || [gameView isDown:27])
 	{
 		// esc or Cancel was pressed - get out of here
-		pollControls=YES;
 		[gameView suppressKeysUntilKeyUp];
 		//[selected_entry release];
 		[self reloadPage];
@@ -360,7 +374,7 @@ NSDictionary *kdic_check = nil;
 	//if ([key isEqualToString:@"(not set)"]) key = @"";
 	OOKeyCode k_int = (OOKeyCode)[key integerValue];
 	[gameView resetTypedString];
-	[gameView setTypedString: (k_int != 0 ? [self keyCodeDescription:k_int] : @"")];
+	[gameView setTypedString: (k_int != 0 ? [self keyCodeDescriptionShort:k_int] : @"")];
 	[gameView setStringInput: gvStringInputAll];
 
 	[gui clear];
@@ -417,6 +431,7 @@ NSDictionary *kdic_check = nil;
 	}
 }
 
+// updates the overridden definition of a key to a new keycode value
 - (void) updateKeyDefinition:(NSString *)keystring index:(int)index
 {
 	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
@@ -434,10 +449,10 @@ NSDictionary *kdic_check = nil;
 	key_list = [[NSMutableArray alloc] initWithArray:new_array copyItems:YES];
 	[new_array release];
 	[key_def release];
-	//OOLogWARN(@"testing", @"checking lookup %@.", key_list);
 }
 
 
+// changes the shift/ctrl/alt state of an overridden definition
 - (void) updateShiftKeyDefinition:(NSString *)key index:(int)index
 {
 	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
@@ -453,16 +468,12 @@ NSDictionary *kdic_check = nil;
 		[key_list replaceObjectAtIndex:index withObject:key_def];
 	}
 	[key_def release];
-	//OOLogWARN(@"testing", @"checking lookup %@.", key_list);
 }
 
 
 - (void) setGuiToConfirmClearScreen
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
-	
-	// Don't poll controls
-	pollControls=NO;
 	
 	gui_screen = GUI_SCREEN_KEYBOARD_CONFIRMCLEAR;
 	
@@ -503,7 +514,6 @@ NSDictionary *kdic_check = nil;
 	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_YES))||[gameView isDown:cYes]||[gameView isDown:cYes - 32])
 	{
 		[self deleteAllKeySettings];
-		pollControls=YES;
 		[gameView suppressKeysUntilKeyUp];
 		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
@@ -511,7 +521,6 @@ NSDictionary *kdic_check = nil;
 	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_NO))||[gameView isDown:27]||[gameView isDown:cNo]||[gameView isDown:cNo - 32])
 	{
 		// esc or NO was pressed - get out of here
-		pollControls=YES;
 		[gameView suppressKeysUntilKeyUp];
 		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
@@ -535,7 +544,8 @@ NSDictionary *kdic_check = nil;
 
 	NSUInteger i, n_functions = [keyFunctions count];
 	NSInteger n_rows, start_row, previous = 0;
-	
+	NSString *validate = nil;
+
 	if (skip >= n_functions)
 		skip = n_functions - 1;
 	
@@ -572,31 +582,35 @@ NSDictionary *kdic_check = nil;
 		
 		for(i=0; i < (n_functions - skip) && (int)i < n_rows; i++)
 		{
-			NSDictionary *entry = [keyFunctions objectAtIndex: i + skip];
+			NSDictionary *entry = [keyFunctions objectAtIndex:i + skip];
 			NSString *assignment = [PLAYER keyBindingDescription2:[entry objectForKey:KEY_KC_DEFINITION]];
 			NSString *override = ([overrides objectForKey:[entry objectForKey:KEY_KC_DEFINITION]] ? @"Yes" : @""); // work out whether this assignment is overriding the setting in keyconfig2.plist
-
+			validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[keyconfig2_settings objectForKey:[entry objectForKey:KEY_KC_DEFINITION]]];
 			// Find out what's assigned for this function currently.
 			if (assignment == nil)
 			{
 				assignment = @"   -   ";
 			}
 			
-			[gui setArray: [NSArray arrayWithObjects: 
+			[gui setArray:[NSArray arrayWithObjects: 
 							[entry objectForKey: KEY_KC_GUIDESC], assignment, override, nil]
 				   forRow: i + start_row];
 			//[gui setKey: GUI_KEY_OK forRow: i + start_row];
-			[gui setKey: [NSString stringWithFormat: @"Index:%ld", i + skip] forRow: i + start_row];
+			[gui setKey:[NSString stringWithFormat:@"Index:%ld", i + skip] forRow:i + start_row];
+			if (validate) 
+			{
+				[gui setColor:[OOColor orangeColor] forRow:i + start_row];
+			}
 		}
 		if (i < n_functions - skip)
 		{
-			[gui setColor: [OOColor greenColor] forRow: start_row + i];
-			[gui setArray: [NSArray arrayWithObjects: DESC(@"gui-more"), @" --> ", nil] forRow: start_row + i];
-			[gui setKey: [NSString stringWithFormat: @"More:%ld", n_rows + skip] forRow: start_row + i];
+			[gui setColor:[OOColor greenColor] forRow:start_row + i];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:start_row + i];
+			[gui setKey:[NSString stringWithFormat:@"More:%ld", n_rows + skip] forRow:start_row + i];
 			i++;
 		}
 		
-		[gui setSelectableRange: NSMakeRange(GUI_ROW_KC_FUNCSTART, i + start_row - GUI_ROW_KC_FUNCSTART)];
+		[gui setSelectableRange:NSMakeRange(GUI_ROW_KC_FUNCSTART, i + start_row - GUI_ROW_KC_FUNCSTART)];
 	}
 }
 
@@ -742,7 +756,7 @@ NSDictionary *kdic_check = nil;
 }
 
 
-- (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString*) key_def
+- (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString*)key_def
 {
 	NSMutableDictionary *guiDict = [NSMutableDictionary dictionary];
 	if ([what length] > 50) what = [[what substringToIndex:48] stringByAppendingString:@"..."];
@@ -751,13 +765,179 @@ NSDictionary *kdic_check = nil;
 	return guiDict;
 }
 
-
-- (BOOL) validateKey:(NSString *)key
+// return an array of all functions currently in conflict
+- (NSArray *) validateAllKeys
 {
-	// need to group keys into validation groups
+	NSMutableArray *failed = [[NSMutableArray alloc] init];
+	NSString *validate = nil;
+	int i;
+
+	for (i = 0; i < [keyFunctions count]; i++)
+	{
+		NSDictionary *entry = [keyFunctions objectAtIndex:i];
+		validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[keyconfig2_settings objectForKey:[entry objectForKey:KEY_KC_DEFINITION]]];
+		if (validate) 
+		{
+			[failed addObject:validate];
+		}
+	}
+	return [failed copy];
 }
 
 
+// validate a single key against any other key that might apply to it
+- (NSString *) validateKey:(NSString *)key checkKeys:(NSArray *)check_keys
+{
+	NSString *result = nil;
+
+	// need to group keys into validation groups
+	NSArray *gui_keys = [NSArray arrayWithObjects:@"key_gui_arrow_left", @"key_gui_arrow_right", @"key_gui_arrow_up", @"key_gui_arrow_down", @"key_gui_page_up", 
+		@"key_gui_page_down", @"key_gui_select", nil];
+
+	if ([gui_keys containsObject:key]) 
+	{
+		result = [self searchArrayForMatch:gui_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *debug_keys = [NSArray arrayWithObjects:
+		@"key_dump_target_state", @"key_dump_entity_list", @"key_debug_full", @"key_debug_collision", @"key_debug_console_connect", @"key_debug_bounding_boxes", 
+		@"key_debug_shaders", @"key_debug_off", nil];
+
+	if ([debug_keys containsObject:key]) 
+	{
+		result = [self searchArrayForMatch:debug_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *customview_keys = [NSArray arrayWithObjects:
+		@"key_custom_view", @"key_custom_view_zoom_out", @"key_custom_view_zoom_in", @"key_custom_view_roll_left", @"key_custom_view_pan_left", 
+		@"key_custom_view_roll_right", @"key_custom_view_pan_right", @"key_custom_view_rotate_up", @"key_custom_view_pan_up", @"key_custom_view_rotate_down", 
+		@"key_custom_view_pan_down", @"key_custom_view_rotate_left", @"key_custom_view_rotate_right", nil];
+
+	if ([customview_keys containsObject:key]) 
+	{
+		result = [self searchArrayForMatch:customview_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *inflight_keys = [NSArray arrayWithObjects:
+		@"key_roll_left", @"key_roll_right", @"key_pitch_forward", @"key_pitch_back", @"key_yaw_left", @"key_yaw_right", @"key_view_forward", @"key_view_aft", 
+		@"key_view_port", @"key_view_starboard", @"key_increase_speed", @"key_decrease_speed", @"key_inject_fuel", @"key_fire_lasers", @"key_weapons_online_toggle", 
+		@"key_launch_missile", @"key_next_missile", @"key_ecm", @"key_prime_next_equipment", @"key_prime_previous_equipment", @"key_activate_equipment", 
+		@"key_mode_equipment", @"key_fastactivate_equipment_a", @"key_fastactivate_equipment_b", @"key_target_incoming_missile", @"key_target_missile", 
+		@"key_untarget_missile", @"key_ident_system", @"key_scanner_zoom", @"key_scanner_unzoom", @"key_launch_escapepod", @"key_galactic_hyperspace", 
+		@"key_hyperspace", @"key_jumpdrive", @"key_dump_cargo", @"key_rotate_cargo", @"key_autopilot", @"key_autodock", @"key_docking_clearance_request", 
+		@"key_snapshot", @"key_cycle_next_mfd", @"key_cycle_previous_mfd", @"key_switch_next_mfd", @"key_switch_previous_mfd", 
+		@"key_next_target", @"key_previous_target", @"key_comms_log", @"key_prev_compass_mode", @"key_next_compass_mode", @"key_custom_view", 
+		@"key_inc_field_of_view", @"key_dec_field_of_view", @"key_pausebutton", @"key_dump_target_state", nil];
+
+	if ([inflight_keys containsObject:key]) 
+	{
+		result = [self searchArrayForMatch:inflight_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *docking_keys = [NSArray arrayWithObjects:
+		@"key_docking_music", @"key_autopilot", @"key_pausebutton", nil];
+
+	if ([docking_keys containsObject:key]) 
+	{
+		result = [self searchArrayForMatch:docking_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *docked_keys = [
+		[NSArray arrayWithObjects:@"key_launch_ship", @"key_gui_screen_options", @"key_gui_screen_equipship", @"key_gui_screen_interfaces", @"key_gui_screen_status", 
+		@"key_gui_chart_screens", @"key_gui_system_data", @"key_gui_market", nil]
+		arrayByAddingObjectsFromArray:gui_keys];
+
+	if ([docked_keys containsObject:key])
+	{
+		result = [self searchArrayForMatch:docked_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *paused_keys = [[
+		[NSArray arrayWithObjects:@"key_pausebutton", @"key_gui_screen_options", @"key_hud_toggle", @"key_show_fps", @"key_mouse_control_roll", 
+		@"key_mouse_control_yaw", nil] 
+		arrayByAddingObjectsFromArray:debug_keys]
+		arrayByAddingObjectsFromArray:customview_keys];
+
+	if ([paused_keys containsObject:key])
+	{
+		result = [self searchArrayForMatch:paused_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *chart_keys = [NSArray arrayWithObjects:
+		@"key_advanced_nav_array_next", @"key_advanced_nav_array_previous", @"key_map_home", @"key_map_end", @"key_map_info", 
+		@"key_map_zoom_in", @"key_map_zoom_out", @"key_map_next_system", @"key_map_previous_system", @"key_chart_highlight", 
+		@"key_launch_ship", @"key_gui_screen_options", @"key_gui_screen_equipship", @"key_gui_screen_interfaces", @"key_gui_screen_status", 
+		@"key_gui_chart_screens", @"key_gui_system_data", @"key_gui_market", nil];
+
+	if ([chart_keys containsObject:key])
+	{
+		result = [self searchArrayForMatch:chart_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *sysinfo_keys = [NSArray arrayWithObjects:
+		@"key_system_home", @"key_system_end", @"key_system_next_system", @"key_system_previous_system", 
+		@"key_launch_ship", @"key_gui_screen_options", @"key_gui_screen_equipship", @"key_gui_screen_interfaces", @"key_gui_screen_status", 
+		@"key_gui_chart_screens", @"key_gui_system_data", @"key_gui_market", nil];
+
+	if ([sysinfo_keys containsObject:key])
+	{
+		result = [self searchArrayForMatch:sysinfo_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	NSArray *market_keys = [NSArray arrayWithObjects:
+		@"key_market_filter_cycle", @"key_market_sorter_cycle", @"key_market_buy_one", @"key_market_sell_one", @"key_market_buy_max", 
+		@"key_market_sell_max", @"key_launch_ship", @"key_gui_screen_options", @"key_gui_screen_equipship", @"key_gui_screen_interfaces", @"key_gui_screen_status", 
+		@"key_gui_chart_screens", @"key_gui_system_data", @"key_gui_market", nil];
+		
+	if ([market_keys containsObject:key])
+	{
+		result = [self searchArrayForMatch:market_keys key:key checkKeys:check_keys];
+		if (result) return result;
+	}
+
+	// if we get here, we should be good
+	return nil;
+}
+
+
+// performs a search of all keys in the search_list, and for any key that isn't the one we've passed, check the 
+// keys against the values we're passing in. if there's a hit, return the key found
+- (NSString *) searchArrayForMatch:(NSArray *)search_list key:(NSString *)key checkKeys:(NSArray *)check_keys
+{
+	NSString *search = nil;
+	int i, j, k;
+	for (i = 0; i < [search_list count]; i++)
+	{
+		search = (NSString*)[search_list objectAtIndex:i];
+		// only check other key settings, not the one we've been passed
+		if (![search isEqualToString:key])
+		{
+			// get the array from keyconfig2_settings
+			// we need to compare all entries to each other to look for any match, as any match would indicate a conflict
+			NSArray *current = (NSArray *)[keyconfig2_settings objectForKey:search];
+			for (j = 0; j < [current count]; j++) 
+			{
+				for (k = 0; k < [check_keys count]; k++)
+				{
+					if ([self compareKeyEntries:[current objectAtIndex:j] second:[check_keys objectAtIndex:k]]) return search;
+				}
+			}
+		}
+	}
+	return nil;
+}
+
+
+// compares the currently stored key_list against the base default from keyconfig2.plist
 - (BOOL) entryIsEqualToDefault:(NSString*)key
 {
 	NSArray *def = (NSArray *)[kdic_check objectForKey:key];
@@ -768,20 +948,27 @@ NSDictionary *kdic_check = nil;
 	{
 		NSDictionary *orig = (NSDictionary *)[def objectAtIndex:i];
 		NSDictionary *entrd = (NSDictionary *)[key_list objectAtIndex:i];
-		if ([(NSString *)[orig objectForKey:@"key"] integerValue] == [(NSString *)[entrd objectForKey:@"key"] integerValue])
-		{
-			if ([[orig objectForKey:@"shift"] boolValue] != [[entrd objectForKey:@"shift"] boolValue] ||
-				[[orig objectForKey:@"mod1"] boolValue] != [[entrd objectForKey:@"mod1"] boolValue] ||
-				[[orig objectForKey:@"mod2"] boolValue] != [[entrd objectForKey:@"mod2"] boolValue]) 
-				return NO;
-		}
-		else
-			return NO;
+		if (![self compareKeyEntries:orig second:entrd]) return NO;
 	}
 	return YES;
 }
 
 
+// compares two key dictionaries to see if they have the same settings
+- (BOOL) compareKeyEntries:(NSDictionary*)first second:(NSDictionary*)second
+{
+	if ([(NSString *)[first objectForKey:@"key"] integerValue] == [(NSString *)[second objectForKey:@"key"] integerValue])
+	{
+		if ([[first objectForKey:@"shift"] boolValue] == [[second objectForKey:@"shift"] boolValue] &&
+			[[first objectForKey:@"mod1"] boolValue] == [[second objectForKey:@"mod1"] boolValue] &&
+			[[first objectForKey:@"mod2"] boolValue] == [[second objectForKey:@"mod2"] boolValue]) 
+			return YES;
+	}
+	return NO;
+}
+
+
+// saves the currently store key_list to the defaults file and updates the global definition
 - (void) saveKeySetting:(NSString*)key
 {
 	// see if we've set the key settings to blank - in which case, delete the override
@@ -820,6 +1007,7 @@ NSDictionary *kdic_check = nil;
 }
 
 
+// removes the key setting from the overrides, and updates the global definition
 - (void) deleteKeySetting:(NSString*)key
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -831,6 +1019,7 @@ NSDictionary *kdic_check = nil;
 }
 
 
+// removes all key settings from the overrides, and updates the global definition
 - (void) deleteAllKeySettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -840,6 +1029,7 @@ NSDictionary *kdic_check = nil;
 }
 
 
+// returns all key settings from the overrides
 - (NSDictionary *) loadKeySettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -847,12 +1037,7 @@ NSDictionary *kdic_check = nil;
 }
 
 
-- (void) reloadKeyConfig
-{
-	[PLAYER initKeyConfigSettings];
-}
-
-
+// reloads the main page at the appropriate page
 - (void) reloadPage
 {
 	// Update the GUI (this will refresh the function list).

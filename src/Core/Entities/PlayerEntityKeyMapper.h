@@ -80,7 +80,6 @@ MA 02110-1301, USA.
    - (void) handleKeyMapperConfirmClearKeys: (GuiDisplayGen *)gui
 							   view: (MyOpenGLView *)gameView;
 
-   - (void) reloadKeyConfig;
    - (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString *)keyDef;
 
 @end
