@@ -20,7 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
-*/
+*/ 
 
 #import "PlayerEntityKeyMapper.h"
 #import "PlayerEntityControls.h"
@@ -29,9 +29,11 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "HeadUpDisplay.h"
 #import "ResourceManager.h"
+#import "GameController.h"
 
 int key_index;
 int current_row;
+BOOL has_error = NO;
 NSDictionary *selected_entry = nil;
 NSMutableArray *key_list = nil;
 NSDictionary *kdic_check = nil;
@@ -91,6 +93,7 @@ NSDictionary *kdic_check = nil;
 - (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
+	MyOpenGLView *gameView = [UNIVERSE gameView];
 	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
 	tabStop[0] = 10;
 	tabStop[1] = 290;
@@ -100,27 +103,49 @@ NSDictionary *kdic_check = nil;
 	if (!kdic_check) [self initCheckingDictionary];
 
 	gui_screen = GUI_SCREEN_KEYBOARD;
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:@"Configure Keyboard"]];
 
 	[self displayKeyFunctionList:gui skip:skip];
 
+	has_error = NO;
+	if ([[self validateAllKeys] count] > 0)
+	{
+		has_error = YES;
+		[gui setText:DESC(@"oolite-keyconfig-validation-error") forRow:GUI_ROW_KC_ERROR align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor redColor] forRow:GUI_ROW_KC_ERROR];
+
+	}
 	[gui setArray:[NSArray arrayWithObject:DESC(@"oolite-keyconfig-initial-info-1")] forRow:GUI_ROW_KC_INSTRUCT];
 	[gui setText:DESC(@"oolite-keyconfig-initial-info-2") forRow:GUI_ROW_KC_INSTRUCT+1 align:GUI_ALIGN_CENTER];
-	[gui setText:DESC(@"oolite-keyconfig-initial-info-3") forRow:GUI_ROW_KC_INSTRUCT+2 align:GUI_ALIGN_CENTER];
+	if (has_error)
+	{
+		[gui setText:DESC(@"oolite-keyconfig-initial-error") forRow:GUI_ROW_KC_INSTRUCT+2 align:GUI_ALIGN_CENTER];
+	}
+	else
+	{
+		[gui setText:DESC(@"oolite-keyconfig-initial-info-3") forRow:GUI_ROW_KC_INSTRUCT+2 align:GUI_ALIGN_CENTER];
+	}
 
 	if (resetCurrentRow)
 	{
-		[gui setSelectedRow: GUI_ROW_KC_FUNCSTART];
+		int offset = 0;
+		if ([[keyFunctions objectAtIndex:skip] objectForKey:KEY_KC_HEADER]) offset = 1;
+		[gui setSelectedRow:GUI_ROW_KC_FUNCSTART + offset];
 	}
 	else 
 	{
-		[gui setSelectedRow: current_row];
+		[gui setSelectedRow:current_row];
 	}
 
-	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
+
+	[gameView clearMouse];
+	[gameView clearKeys];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
 
@@ -128,6 +153,8 @@ NSDictionary *kdic_check = nil;
 							view:(MyOpenGLView *)gameView
 {
 	[self handleGUIUpDownArrowKeys];
+	BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+	if ([gameView isDown:gvMouseDoubleClick])  [gameView clearMouse];
 
 	NSString *key = [gui keyForRow: [gui selectedRow]];
 	if ([key hasPrefix:@"Index:"])
@@ -135,7 +162,7 @@ NSDictionary *kdic_check = nil;
 	else
 		selFunctionIdx=-1;
 
-	if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick])
+	if (selectKeyPress)
 	{
 		if ([key hasPrefix:@"More:"])
 		{
@@ -145,12 +172,13 @@ NSDictionary *kdic_check = nil;
 			current_row = GUI_ROW_KC_FUNCSTART;
 			if (from_function == 0) current_row = GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1;
 			[self setGuiToKeyMapperScreen:from_function];
+			if ([gameView isDown:gvMouseDoubleClick]) [gameView clearMouse];
 			return;
 		}
 		current_row = [gui selectedRow];
-		selected_entry = [keyFunctions objectAtIndex: selFunctionIdx];
+		selected_entry = [keyFunctions objectAtIndex:selFunctionIdx];
 		[key_list release];
-		key_list = [[NSMutableArray alloc] initWithArray:(NSArray *)[keyconfig2_settings objectForKey:[selected_entry objectForKey: KEY_KC_DEFINITION]] copyItems:YES];
+		key_list = [[NSMutableArray alloc] initWithArray:(NSArray *)[keyconfig2_settings objectForKey:[selected_entry objectForKey:KEY_KC_DEFINITION]] copyItems:YES];
 		[gameView clearKeys];	// try to stop key bounces
 		[self setGuiToKeyConfigScreen:YES];
 		//OOLogWARN(@"testing", @"checking lookup %@.", entry);
@@ -164,7 +192,8 @@ NSDictionary *kdic_check = nil;
 			// pressed 'r' on an "more" line
 			if ([key hasPrefix:@"More:"]) return;
 
-			[self deleteKeySetting:[[keyFunctions objectAtIndex: selFunctionIdx] objectForKey:KEY_KC_DEFINITION]];
+			current_row = [gui selectedRow];
+			[self deleteKeySetting:[[keyFunctions objectAtIndex:selFunctionIdx] objectForKey:KEY_KC_DEFINITION]];
 			[self reloadPage];
 		}
 		else
@@ -172,6 +201,7 @@ NSDictionary *kdic_check = nil;
 			[self setGuiToConfirmClearScreen];
 		}
 	}
+	if([gameView isDown:' '] && !has_error)  [self setGuiToGameOptionsScreen];
 }
 
 
@@ -189,7 +219,7 @@ NSDictionary *kdic_check = nil;
 	tabStop[0] = 10;
 	tabStop[1] = 290;
 	[gui setTabStops:tabStop];
-	
+
 	gui_screen = GUI_SCREEN_KEYBOARD_CONFIG;
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-title")]];
@@ -237,15 +267,15 @@ NSDictionary *kdic_check = nil;
 
 	[gui setText:@"" forRow:GUI_ROW_KC_VALIDATION];
 
-	[gui setText:DESC(@"oolite-keyconfig-update-save") forRow: GUI_ROW_KC_SAVE align: GUI_ALIGN_CENTER];
-	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_SAVE];
+	[gui setText:DESC(@"oolite-keyconfig-update-save") forRow:GUI_ROW_KC_SAVE align:GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_SAVE];
 	
-	[gui setText:DESC(@"oolite-keyconfig-update-cancel") forRow: GUI_ROW_KC_CANCEL align: GUI_ALIGN_CENTER];
-	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_CANCEL];
+	[gui setText:DESC(@"oolite-keyconfig-update-cancel") forRow:GUI_ROW_KC_CANCEL align:GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_CANCEL];
 
 	[gui setSelectableRange: NSMakeRange(GUI_ROW_KC_KEY, (GUI_ROW_KC_CANCEL - GUI_ROW_KC_KEY) + 1)];
 
-	NSString *validate = [self validateKey:[selected_entry objectForKey: KEY_KC_DEFINITION] checkKeys:key_list];
+	NSString *validate = [self validateKey:[selected_entry objectForKey:KEY_KC_DEFINITION] checkKeys:key_list];
 	if (validate)
 	{
 		for (i = 0; i < [keyFunctions count]; i++)
@@ -253,7 +283,7 @@ NSDictionary *kdic_check = nil;
 			if ([[[keyFunctions objectAtIndex:i] objectForKey:KEY_KC_DEFINITION] isEqualToString:validate])
 			{
 				[gui setText:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-validation-@"), (NSString *)[[keyFunctions objectAtIndex:i] objectForKey:KEY_KC_GUIDESC]] 
-					forRow: GUI_ROW_KC_VALIDATION align: GUI_ALIGN_CENTER];
+					forRow:GUI_ROW_KC_VALIDATION align:GUI_ALIGN_CENTER];
 				[gui setColor:[OOColor orangeColor] forRow:GUI_ROW_KC_VALIDATION];
 				break;
 			}
@@ -267,6 +297,8 @@ NSDictionary *kdic_check = nil;
 
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
+	[[UNIVERSE gameView] clearMouse];
+	[[UNIVERSE gameView] clearKeys];
 }
 
 
@@ -274,33 +306,33 @@ NSDictionary *kdic_check = nil;
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
 
-	[gui setArray: [NSArray arrayWithObjects: 
+	[gui setArray:[NSArray arrayWithObjects: 
 								(skiprows == 0 ? DESC(@"oolite-keyconfig-update-key") : DESC(@"oolite-keyconfig-update-alternate")), key, nil]
-					forRow: GUI_ROW_KC_KEY + skiprows];
-	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_KEY + skiprows];
+					forRow:GUI_ROW_KC_KEY + skiprows];
+	[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_KEY + skiprows];
 
 	if (![key isEqualToString:DESC(@"oolite-keycode-unset")])
 	{
-		[gui setArray: [NSArray arrayWithObjects: 
+		[gui setArray:[NSArray arrayWithObjects: 
 									DESC(@"oolite-keyconfig-update-shift"), shift, nil]
-						forRow: GUI_ROW_KC_SHIFT + skiprows];
-		[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_SHIFT + skiprows];
+						forRow:GUI_ROW_KC_SHIFT + skiprows];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_SHIFT + skiprows];
 
-		[gui setArray: [NSArray arrayWithObjects: 
+		[gui setArray:[NSArray arrayWithObjects: 
 									DESC(@"oolite-keyconfig-update-mod1"), mod1, nil]
-						forRow: GUI_ROW_KC_MOD1 + skiprows];
-		[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_MOD1 + skiprows];
+						forRow:GUI_ROW_KC_MOD1 + skiprows];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD1 + skiprows];
 	
 #if OOLITE_MAC_OS_X
-		[gui setArray: [NSArray arrayWithObjects: 
+		[gui setArray:[NSArray arrayWithObjects: 
 									DESC(@"oolite-keyconfig-update-mod2-mac"), mod2, nil]
-						forRow: GUI_ROW_KC_MOD2 + skiprows];
+						forRow:GUI_ROW_KC_MOD2 + skiprows];
 #else
-		[gui setArray: [NSArray arrayWithObjects: 
+		[gui setArray:[NSArray arrayWithObjects: 
 									DESC(@"oolite-keyconfig-update-mod2-pc"), mod2, nil]
 						forRow: GUI_ROW_KC_MOD2 + skiprows];
 #endif
-		[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_MOD2 + skiprows];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD2 + skiprows];
 	}
 }
 
@@ -309,49 +341,42 @@ NSDictionary *kdic_check = nil;
 							view:(MyOpenGLView *)gameView
 {
 	[self handleGUIUpDownArrowKeys];
+	BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]);
+	if ([gameView isDown:gvMouseDoubleClick])  [gameView clearMouse];
 
-	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_KEY || [gui selectedRow] == (GUI_ROW_KC_KEY + 5)))
+	if (selectKeyPress && ([gui selectedRow] == GUI_ROW_KC_KEY || [gui selectedRow] == (GUI_ROW_KC_KEY + 5)))
 	{
-		[gameView suppressKeysUntilKeyUp];
 		key_index = ([gui selectedRow] == GUI_ROW_KC_KEY ? 0 : 1);
 		[self setGuiToKeyConfigEntryScreen];
 	}
 
-	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_SHIFT || [gui selectedRow] == (GUI_ROW_KC_SHIFT + 5)))
+	if (selectKeyPress && ([gui selectedRow] == GUI_ROW_KC_SHIFT || [gui selectedRow] == (GUI_ROW_KC_SHIFT + 5)))
 	{
-		[gameView suppressKeysUntilKeyUp];
 		[self updateShiftKeyDefinition:@"shift" index:([gui selectedRow] == GUI_ROW_KC_SHIFT ? 0 : 1)];
 		[self setGuiToKeyConfigScreen];
 	}
-	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_MOD1 || [gui selectedRow] == (GUI_ROW_KC_MOD1 + 5)))
+	if (selectKeyPress && ([gui selectedRow] == GUI_ROW_KC_MOD1 || [gui selectedRow] == (GUI_ROW_KC_MOD1 + 5)))
 	{
-		[gameView suppressKeysUntilKeyUp];
 		[self updateShiftKeyDefinition:@"mod1" index:([gui selectedRow] == GUI_ROW_KC_MOD1 ? 0 : 1)];
 		[self setGuiToKeyConfigScreen];
 	}
-	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_MOD2 || [gui selectedRow] == (GUI_ROW_KC_MOD2 + 5)))
+	if (selectKeyPress && ([gui selectedRow] == GUI_ROW_KC_MOD2 || [gui selectedRow] == (GUI_ROW_KC_MOD2 + 5)))
 	{
-		[gameView suppressKeysUntilKeyUp];
 		[self updateShiftKeyDefinition:@"mod2" index:([gui selectedRow] == GUI_ROW_KC_MOD2 ? 0 : 1)];
 		[self setGuiToKeyConfigScreen];
 	}
 
-	if (([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && [gui selectedRow] == GUI_ROW_KC_SAVE)
+	if (selectKeyPress && [gui selectedRow] == GUI_ROW_KC_SAVE)
 	{
-		[gameView suppressKeysUntilKeyUp];
 		[self saveKeySetting:[selected_entry objectForKey: KEY_KC_DEFINITION]];
-		//[selected_entry release];
 		[self reloadPage];
 	}
 
-	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CANCEL)) || [gameView isDown:27])
+	if ((selectKeyPress && [gui selectedRow] == GUI_ROW_KC_CANCEL) || [gameView isDown:27])
 	{
 		// esc or Cancel was pressed - get out of here
-		[gameView suppressKeysUntilKeyUp];
-		//[selected_entry release];
 		[self reloadPage];
 	}
-
 }
 
 
@@ -374,8 +399,8 @@ NSDictionary *kdic_check = nil;
 	//if ([key isEqualToString:@"(not set)"]) key = @"";
 	OOKeyCode k_int = (OOKeyCode)[key integerValue];
 	[gameView resetTypedString];
-	[gameView setTypedString: (k_int != 0 ? [self keyCodeDescriptionShort:k_int] : @"")];
-	[gameView setStringInput: gvStringInputAll];
+	[gameView setTypedString:(k_int != 0 ? [self keyCodeDescriptionShort:k_int] : @"")];
+	[gameView setStringInput:gvStringInputAll];
 
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-entry-title")]];
@@ -396,6 +421,8 @@ NSDictionary *kdic_check = nil;
 
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
+	[gameView clearMouse];
+	[gameView clearKeys];
 }
 
 
@@ -481,20 +508,22 @@ NSDictionary *kdic_check = nil;
 	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-clear-overrides-title")]];
 	
 	[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-keyconfig-clear-overrides")]
-								startingAtRow:GUI_ROW_KC_CONFIRMCLEAR align: GUI_ALIGN_LEFT];
+								startingAtRow:GUI_ROW_KC_CONFIRMCLEAR align:GUI_ALIGN_LEFT];
 	
-	[gui setText:DESC(@"oolite-keyconfig-clear-yes") forRow: GUI_ROW_KC_CONFIRMCLEAR_YES align: GUI_ALIGN_CENTER];
-	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_CONFIRMCLEAR_YES];
+	[gui setText:DESC(@"oolite-keyconfig-clear-yes") forRow: GUI_ROW_KC_CONFIRMCLEAR_YES align:GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_CONFIRMCLEAR_YES];
 	
-	[gui setText:DESC(@"oolite-keyconfig-clear-no") forRow: GUI_ROW_KC_CONFIRMCLEAR_NO align: GUI_ALIGN_CENTER];
-	[gui setKey:GUI_KEY_OK forRow: GUI_ROW_KC_CONFIRMCLEAR_NO];
+	[gui setText:DESC(@"oolite-keyconfig-clear-no") forRow:GUI_ROW_KC_CONFIRMCLEAR_NO align:GUI_ALIGN_CENTER];
+	[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_CONFIRMCLEAR_NO];
 	
-	[gui setSelectableRange: NSMakeRange(GUI_ROW_KC_CONFIRMCLEAR_YES, 2)];
-	[gui setSelectedRow: GUI_ROW_KC_CONFIRMCLEAR_NO];
+	[gui setSelectableRange:NSMakeRange(GUI_ROW_KC_CONFIRMCLEAR_YES, 2)];
+	[gui setSelectedRow:GUI_ROW_KC_CONFIRMCLEAR_NO];
 
-	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
+
+	[[UNIVERSE gameView] clearMouse];
+	[[UNIVERSE gameView] clearKeys];
 }
 
 
@@ -502,7 +531,10 @@ NSDictionary *kdic_check = nil;
 							view:(MyOpenGLView *)gameView
 {
 	[self handleGUIUpDownArrowKeys];
-	
+
+	BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]);
+	if ([gameView isDown:gvMouseDoubleClick]) [gameView clearMouse];
+
 	// Translation issue: we can't confidently use raw Y and N ascii as shortcuts. It's better to use the load-previous-commander keys.
 	id valueYes = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"] lowercaseString];
 	id valueNo = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"] lowercaseString];
@@ -511,18 +543,18 @@ NSDictionary *kdic_check = nil;
 	cYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
 	cNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
 	
-	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_YES))||[gameView isDown:cYes]||[gameView isDown:cYes - 32])
+	if ((selectKeyPress && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_YES))||[gameView isDown:cYes]||[gameView isDown:cYes - 32])
 	{
 		[self deleteAllKeySettings];
 		[gameView suppressKeysUntilKeyUp];
-		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
+		[self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
 	}
 	
-	if ((([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]) && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_NO))||[gameView isDown:27]||[gameView isDown:cNo]||[gameView isDown:cNo - 32])
+	if ((selectKeyPress && ([gui selectedRow] == GUI_ROW_KC_CONFIRMCLEAR_NO))||[gameView isDown:27]||[gameView isDown:cNo]||[gameView isDown:cNo - 32])
 	{
 		// esc or NO was pressed - get out of here
 		[gameView suppressKeysUntilKeyUp];
-		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
+		[self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
 	}
 }
 
@@ -530,7 +562,7 @@ NSDictionary *kdic_check = nil;
 - (void) displayKeyFunctionList:(GuiDisplayGen *)gui
 						skip:(NSUInteger)skip
 {
-	[gui setColor:[OOColor greenColor] forRow: GUI_ROW_KC_HEADING];
+	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
 	[gui setArray:[NSArray arrayWithObjects:
 				   @"Function", @"Assigned to", @"Overrides", nil]
 		   forRow:GUI_ROW_KC_HEADING];
@@ -583,23 +615,30 @@ NSDictionary *kdic_check = nil;
 		for(i=0; i < (n_functions - skip) && (int)i < n_rows; i++)
 		{
 			NSDictionary *entry = [keyFunctions objectAtIndex:i + skip];
-			NSString *assignment = [PLAYER keyBindingDescription2:[entry objectForKey:KEY_KC_DEFINITION]];
-			NSString *override = ([overrides objectForKey:[entry objectForKey:KEY_KC_DEFINITION]] ? @"Yes" : @""); // work out whether this assignment is overriding the setting in keyconfig2.plist
-			validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[keyconfig2_settings objectForKey:[entry objectForKey:KEY_KC_DEFINITION]]];
-			// Find out what's assigned for this function currently.
-			if (assignment == nil)
-			{
-				assignment = @"   -   ";
+			if ([entry objectForKey:KEY_KC_HEADER]) {
+				NSString *header = [entry objectForKey:KEY_KC_HEADER];
+				[gui setArray:[NSArray arrayWithObjects:header, @"", @"", nil] forRow:i + start_row];
+				[gui setColor:[OOColor cyanColor] forRow:i + start_row];
 			}
-			
-			[gui setArray:[NSArray arrayWithObjects: 
-							[entry objectForKey: KEY_KC_GUIDESC], assignment, override, nil]
-				   forRow: i + start_row];
-			//[gui setKey: GUI_KEY_OK forRow: i + start_row];
-			[gui setKey:[NSString stringWithFormat:@"Index:%ld", i + skip] forRow:i + start_row];
-			if (validate) 
+			else
 			{
-				[gui setColor:[OOColor orangeColor] forRow:i + start_row];
+				NSString *assignment = [PLAYER keyBindingDescription2:[entry objectForKey:KEY_KC_DEFINITION]];
+				NSString *override = ([overrides objectForKey:[entry objectForKey:KEY_KC_DEFINITION]] ? @"Yes" : @""); // work out whether this assignment is overriding the setting in keyconfig2.plist
+				validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[keyconfig2_settings objectForKey:[entry objectForKey:KEY_KC_DEFINITION]]];
+				// Find out what's assigned for this function currently.
+				if (assignment == nil)
+				{
+					assignment = @"   -   ";
+				}
+				
+				[gui setArray:[NSArray arrayWithObjects: 
+								[entry objectForKey:KEY_KC_GUIDESC], assignment, override, nil]
+					forRow:i + start_row];
+				[gui setKey:[NSString stringWithFormat:@"Index:%ld", i + skip] forRow:i + start_row];
+				if (validate) 
+				{
+					[gui setColor:[OOColor orangeColor] forRow:i + start_row];
+				}
 			}
 		}
 		if (i < n_functions - skip)
@@ -619,138 +658,152 @@ NSDictionary *kdic_check = nil;
 {
 	NSMutableArray *funcList = [NSMutableArray array];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_ship") keyDef:@"key_launch_ship"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_options") keyDef:@"key_gui_screen_options"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_equipship") keyDef:@"key_gui_screen_equipship"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_interfaces") keyDef:@"key_gui_screen_interfaces"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_status") keyDef:@"key_gui_screen_status"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_chart_screens") keyDef:@"key_gui_chart_screens"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_system_data") keyDef:@"key_gui_system_data"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_market") keyDef:@"key_gui_market"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Screen access"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_ship") keyDef:@"key_launch_ship"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_options") keyDef:@"key_gui_screen_options"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_equipship") keyDef:@"key_gui_screen_equipship"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_interfaces") keyDef:@"key_gui_screen_interfaces"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_status") keyDef:@"key_gui_screen_status"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_chart_screens") keyDef:@"key_gui_chart_screens"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_system_data") keyDef:@"key_gui_system_data"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_market") keyDef:@"key_gui_market"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_left") keyDef:@"key_roll_left"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_right") keyDef:@"key_roll_right"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pitch_forward") keyDef:@"key_pitch_forward"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pitch_back") keyDef:@"key_pitch_back"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_yaw_left") keyDef:@"key_yaw_left"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_yaw_right") keyDef:@"key_yaw_right"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Propulsion"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_left") keyDef:@"key_roll_left"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_right") keyDef:@"key_roll_right"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pitch_forward") keyDef:@"key_pitch_forward"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pitch_back") keyDef:@"key_pitch_back"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_yaw_left") keyDef:@"key_yaw_left"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_yaw_right") keyDef:@"key_yaw_right"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_increase_speed") keyDef:@"key_increase_speed"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_decrease_speed") keyDef:@"key_decrease_speed"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_inject_fuel") keyDef:@"key_inject_fuel"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_jumpdrive") keyDef:@"key_jumpdrive"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hyperspace") keyDef:@"key_hyperspace"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_galactic_hyperspace") keyDef:@"key_galactic_hyperspace"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_increase_speed") keyDef:@"key_increase_speed"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_decrease_speed") keyDef:@"key_decrease_speed"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_inject_fuel") keyDef:@"key_inject_fuel"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_jumpdrive") keyDef:@"key_jumpdrive"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hyperspace") keyDef:@"key_hyperspace"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_galactic_hyperspace") keyDef:@"key_galactic_hyperspace"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prev_compass_mode") keyDef:@"key_prev_compass_mode"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_compass_mode") keyDef:@"key_next_compass_mode"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_scanner_zoom") keyDef:@"key_scanner_zoom"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_scanner_unzoom") keyDef:@"key_scanner_unzoom"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_forward") keyDef:@"key_view_forward"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_aft") keyDef:@"key_view_aft"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_port") keyDef:@"key_view_port"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_starboard") keyDef:@"key_view_starboard"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_ident_system") keyDef:@"key_ident_system"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Astrogation"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prev_compass_mode") keyDef:@"key_prev_compass_mode"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_compass_mode") keyDef:@"key_next_compass_mode"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_scanner_zoom") keyDef:@"key_scanner_zoom"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_scanner_unzoom") keyDef:@"key_scanner_unzoom"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_forward") keyDef:@"key_view_forward"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_aft") keyDef:@"key_view_aft"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_port") keyDef:@"key_view_port"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_starboard") keyDef:@"key_view_starboard"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_ident_system") keyDef:@"key_ident_system"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_docking_clearance_request") keyDef:@"key_docking_clearance_request"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_autopilot") keyDef:@"key_autopilot"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_autodock") keyDef:@"key_autodock"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_docking_music") keyDef:@"key_docking_music"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_docking_clearance_request") keyDef:@"key_docking_clearance_request"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_autopilot") keyDef:@"key_autopilot"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_autodock") keyDef:@"key_autodock"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_docking_music") keyDef:@"key_docking_music"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_weapons_online_toggle") keyDef:@"key_weapons_online_toggle"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fire_lasers") keyDef:@"key_fire_lasers"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_missile") keyDef:@"key_launch_missile"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_target_missile") keyDef:@"key_target_missile"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_untarget_missile") keyDef:@"key_untarget_missile"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_target_incoming_missile") keyDef:@"key_target_incoming_missile"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_missile") keyDef:@"key_next_missile"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_target") keyDef:@"key_next_target"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_previous_target") keyDef:@"key_previous_target"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Offensive"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_weapons_online_toggle") keyDef:@"key_weapons_online_toggle"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fire_lasers") keyDef:@"key_fire_lasers"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_missile") keyDef:@"key_launch_missile"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_target_missile") keyDef:@"key_target_missile"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_untarget_missile") keyDef:@"key_untarget_missile"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_target_incoming_missile") keyDef:@"key_target_incoming_missile"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_missile") keyDef:@"key_next_missile"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_target") keyDef:@"key_next_target"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_previous_target") keyDef:@"key_previous_target"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_ecm") keyDef:@"key_ecm"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_cargo") keyDef:@"key_dump_cargo"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_rotate_cargo") keyDef:@"key_rotate_cargo"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_escapepod") keyDef:@"key_launch_escapepod"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Defensive"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_ecm") keyDef:@"key_ecm"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_cargo") keyDef:@"key_dump_cargo"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_rotate_cargo") keyDef:@"key_rotate_cargo"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_escapepod") keyDef:@"key_launch_escapepod"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_cycle_next_mfd") keyDef:@"key_cycle_next_mfd"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_cycle_previous_mfd") keyDef:@"key_cycle_previous_mfd"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_switch_next_mfd") keyDef:@"key_switch_next_mfd"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_switch_previous_mfd") keyDef:@"key_switch_previous_mfd"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Special equipment"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_cycle_next_mfd") keyDef:@"key_cycle_next_mfd"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_cycle_previous_mfd") keyDef:@"key_cycle_previous_mfd"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_switch_next_mfd") keyDef:@"key_switch_next_mfd"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_switch_previous_mfd") keyDef:@"key_switch_previous_mfd"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prime_next_equipment") keyDef:@"key_prime_next_equipment"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prime_previous_equipment") keyDef:@"key_prime_previous_equipment"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_activate_equipment") keyDef:@"key_activate_equipment"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mode_equipment") keyDef:@"key_mode_equipment"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_a") keyDef:@"key_fastactivate_equipment_a"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_b") keyDef:@"key_fastactivate_equipment_b"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prime_next_equipment") keyDef:@"key_prime_next_equipment"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prime_previous_equipment") keyDef:@"key_prime_previous_equipment"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_activate_equipment") keyDef:@"key_activate_equipment"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mode_equipment") keyDef:@"key_mode_equipment"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_a") keyDef:@"key_fastactivate_equipment_a"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_b") keyDef:@"key_fastactivate_equipment_b"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_snapshot") keyDef:@"key_snapshot"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pausebutton") keyDef:@"key_pausebutton"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_show_fps") keyDef:@"key_show_fps"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_roll") keyDef:@"key_mouse_control_roll"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_yaw") keyDef:@"key_mouse_control_yaw"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hud_toggle") keyDef:@"key_hud_toggle"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_inc_field_of_view") keyDef:@"key_inc_field_of_view"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dec_field_of_view") keyDef:@"key_dec_field_of_view"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_comms_log") keyDef:@"key_comms_log"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Miscellaneous"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_snapshot") keyDef:@"key_snapshot"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pausebutton") keyDef:@"key_pausebutton"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_show_fps") keyDef:@"key_show_fps"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_roll") keyDef:@"key_mouse_control_roll"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_yaw") keyDef:@"key_mouse_control_yaw"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hud_toggle") keyDef:@"key_hud_toggle"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_inc_field_of_view") keyDef:@"key_inc_field_of_view"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dec_field_of_view") keyDef:@"key_dec_field_of_view"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_comms_log") keyDef:@"key_comms_log"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_next") keyDef:@"key_advanced_nav_array_next"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_previous") keyDef:@"key_advanced_nav_array_previous"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_home") keyDef:@"key_map_home"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_end") keyDef:@"key_map_end"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_info") keyDef:@"key_map_info"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_zoom_in") keyDef:@"key_map_zoom_in"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_zoom_out") keyDef:@"key_map_zoom_out"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_next_system") keyDef:@"key_map_next_system"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_previous_system") keyDef:@"key_map_previous_system"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_chart_highlight") keyDef:@"key_chart_highlight"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Chart screen"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_next") keyDef:@"key_advanced_nav_array_next"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_previous") keyDef:@"key_advanced_nav_array_previous"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_home") keyDef:@"key_map_home"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_end") keyDef:@"key_map_end"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_info") keyDef:@"key_map_info"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_zoom_in") keyDef:@"key_map_zoom_in"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_zoom_out") keyDef:@"key_map_zoom_out"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_next_system") keyDef:@"key_map_next_system"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_previous_system") keyDef:@"key_map_previous_system"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_chart_highlight") keyDef:@"key_chart_highlight"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_home") keyDef:@"key_system_home"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_end") keyDef:@"key_system_end"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_next_system") keyDef:@"key_system_next_system"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_previous_system") keyDef:@"key_system_previous_system"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Planet info screen"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_home") keyDef:@"key_system_home"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_end") keyDef:@"key_system_end"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_next_system") keyDef:@"key_system_next_system"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_previous_system") keyDef:@"key_system_previous_system"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_filter_cycle") keyDef:@"key_market_filter_cycle"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sorter_cycle") keyDef:@"key_market_sorter_cycle"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_buy_one") keyDef:@"key_market_buy_one"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sell_one") keyDef:@"key_market_sell_one"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_buy_max") keyDef:@"key_market_buy_max"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sell_max") keyDef:@"key_market_sell_max"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Market screen"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_filter_cycle") keyDef:@"key_market_filter_cycle"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sorter_cycle") keyDef:@"key_market_sorter_cycle"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_buy_one") keyDef:@"key_market_buy_one"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sell_one") keyDef:@"key_market_sell_one"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_buy_max") keyDef:@"key_market_buy_max"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sell_max") keyDef:@"key_market_sell_max"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view") keyDef:@"key_custom_view"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_zoom_in") keyDef:@"key_custom_view_zoom_in"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_zoom_out") keyDef:@"key_custom_view_zoom_out"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_roll_left") keyDef:@"key_custom_view_roll_left"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_roll_right") keyDef:@"key_custom_view_roll_right"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_left") keyDef:@"key_custom_view_pan_left"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_right") keyDef:@"key_custom_view_pan_right"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_up") keyDef:@"key_custom_view_pan_up"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_down") keyDef:@"key_custom_view_pan_down"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_left") keyDef:@"key_custom_view_rotate_left"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_right") keyDef:@"key_custom_view_rotate_right"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_up") keyDef:@"key_custom_view_rotate_up"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_down") keyDef:@"key_custom_view_rotate_down"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Custom view controls"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view") keyDef:@"key_custom_view"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_zoom_in") keyDef:@"key_custom_view_zoom_in"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_zoom_out") keyDef:@"key_custom_view_zoom_out"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_roll_left") keyDef:@"key_custom_view_roll_left"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_roll_right") keyDef:@"key_custom_view_roll_right"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_left") keyDef:@"key_custom_view_pan_left"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_right") keyDef:@"key_custom_view_pan_right"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_up") keyDef:@"key_custom_view_pan_up"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_pan_down") keyDef:@"key_custom_view_pan_down"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_left") keyDef:@"key_custom_view_rotate_left"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_right") keyDef:@"key_custom_view_rotate_right"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_up") keyDef:@"key_custom_view_rotate_up"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_down") keyDef:@"key_custom_view_rotate_down"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_left") keyDef:@"key_gui_arrow_left"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_right") keyDef:@"key_gui_arrow_right"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_up") keyDef:@"key_gui_arrow_up"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_down") keyDef:@"key_gui_arrow_down"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_down") keyDef:@"key_gui_page_down"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_up") keyDef:@"key_gui_page_up"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_select") keyDef:@"key_gui_select"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"OXZ manager controls"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_setfilter") keyDef:@"key_oxzmanager_setfilter"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_showinfo") keyDef:@"key_oxzmanager_showinfo"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_extract") keyDef:@"key_oxzmanager_extract"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_setfilter") keyDef:@"key_oxzmanager_setfilter"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_showinfo") keyDef:@"key_oxzmanager_showinfo"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_extract") keyDef:@"key_oxzmanager_extract"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"GUI controls"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_left") keyDef:@"key_gui_arrow_left"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_right") keyDef:@"key_gui_arrow_right"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_up") keyDef:@"key_gui_arrow_up"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_down") keyDef:@"key_gui_arrow_down"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_down") keyDef:@"key_gui_page_down"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_up") keyDef:@"key_gui_page_up"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_select") keyDef:@"key_gui_select"]];
 
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_target_state") keyDef:@"key_dump_target_state"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_entity_list") keyDef:@"key_dump_entity_list"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_full") keyDef:@"key_debug_full"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_collision") keyDef:@"key_debug_collision"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_console_connect") keyDef:@"key_debug_console_connect"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_bounding_boxes") keyDef:@"key_debug_bounding_boxes"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_shaders") keyDef:@"key_debug_shaders"]];
-	[funcList addObject: [self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_off") keyDef:@"key_debug_off"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Debug functions"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_target_state") keyDef:@"key_dump_target_state"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_entity_list") keyDef:@"key_dump_entity_list"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_full") keyDef:@"key_debug_full"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_collision") keyDef:@"key_debug_collision"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_console_connect") keyDef:@"key_debug_console_connect"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_bounding_boxes") keyDef:@"key_debug_bounding_boxes"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_shaders") keyDef:@"key_debug_shaders"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_off") keyDef:@"key_debug_off"]];
 
 	return funcList;
 }
@@ -764,6 +817,17 @@ NSDictionary *kdic_check = nil;
 	[guiDict setObject:key_def forKey:KEY_KC_DEFINITION];
 	return guiDict;
 }
+
+
+- (NSDictionary *)makeKeyGuiDictHeader:(NSString *)header
+{
+	NSMutableDictionary *guiDict = [NSMutableDictionary dictionary];
+	[guiDict setObject:header forKey:KEY_KC_HEADER];
+	[guiDict setObject:@"" forKey:KEY_KC_GUIDESC];
+	[guiDict setObject:@"" forKey:KEY_KC_DEFINITION];
+	return guiDict;
+}
+
 
 // return an array of all functions currently in conflict
 - (NSArray *) validateAllKeys
@@ -896,7 +960,8 @@ NSDictionary *kdic_check = nil;
 	NSArray *market_keys = [NSArray arrayWithObjects:
 		@"key_market_filter_cycle", @"key_market_sorter_cycle", @"key_market_buy_one", @"key_market_sell_one", @"key_market_buy_max", 
 		@"key_market_sell_max", @"key_launch_ship", @"key_gui_screen_options", @"key_gui_screen_equipship", @"key_gui_screen_interfaces", @"key_gui_screen_status", 
-		@"key_gui_chart_screens", @"key_gui_system_data", @"key_gui_market", nil];
+		@"key_gui_chart_screens", @"key_gui_system_data", @"key_gui_market", @"key_gui_arrow_up", @"key_gui_arrow_down", @"key_gui_page_up", 
+		@"key_gui_page_down", @"key_gui_select", nil];
 		
 	if ([market_keys containsObject:key])
 	{
@@ -1033,7 +1098,7 @@ NSDictionary *kdic_check = nil;
 - (NSDictionary *) loadKeySettings
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	return [defaults objectForKey: KEYCONFIG_OVERRIDES];
+	return [defaults objectForKey:KEYCONFIG_OVERRIDES];
 }
 
 

@@ -385,7 +385,7 @@ MA 02110-1301, USA.
 	int i = 0;
 
 	for (i = 0; i < [keyList count]; i++) {
-		if (i != 0) final = [NSMutableString stringWithFormat:@"%@ / ", final];
+		if (i != 0) final = [NSMutableString stringWithFormat:@"%@ or ", final];
 		NSDictionary *def = [keyList objectAtIndex:i];
 		NSString *key = [def objectForKey:@"key"];
 		OOKeyCode k_int = (OOKeyCode)[key integerValue];

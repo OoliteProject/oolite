@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #define GUI_ROW_KC_HEADING			   1
 #define GUI_ROW_KC_FUNCSTART		   2
 #define GUI_ROW_KC_FUNCEND			   (GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1)
+#define GUI_ROW_KC_ERROR            17
 #define GUI_ROW_KC_INSTRUCT		   18
 #define GUI_ROW_KC_CONFIRMCLEAR     5
 #define GUI_ROW_KC_CONFIRMCLEAR_YES	8
@@ -54,6 +55,7 @@ MA 02110-1301, USA.
 // Dictionary keys
 #define KEY_KC_GUIDESC  @"guiDesc"
 #define KEY_KC_DEFINITION @"keyDef"
+#define KEY_KC_HEADER @"header"
 
 // Dictionary keys - used in the defaults file
 #define KEYCONFIG_OVERRIDES @"KeyConfigOverrides"  // NSUserDefaults
@@ -81,5 +83,6 @@ MA 02110-1301, USA.
 							   view: (MyOpenGLView *)gameView;
 
    - (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString *)keyDef;
+   - (NSDictionary *)makeKeyGuiDictHeader:(NSString *)header;
 
 @end

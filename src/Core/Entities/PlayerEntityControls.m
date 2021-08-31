@@ -3988,7 +3988,7 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 	}
-	if([gameView isDown:' '])  [self setGuiToGameOptionsScreen];
+	
 }
 
 
