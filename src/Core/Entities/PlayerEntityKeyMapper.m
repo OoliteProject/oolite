@@ -415,12 +415,15 @@ NSDictionary *kdic_check = nil;
 
 	[gui setText:[NSString stringWithFormat:DESC(@"Key: %@"), [gameView typedString]] forRow:end_row align:GUI_ALIGN_LEFT];
 	[gui setColor:[OOColor cyanColor] forRow:end_row];
-	
+	[gui setSelectableRange:NSMakeRange(0,0)];
+
 	[gui setShowTextCursor:YES];
 	[gui setCurrentRow:end_row];
 
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
+
 	[gameView clearMouse];
 	[gameView clearKeys];
 }

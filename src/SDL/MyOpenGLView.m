@@ -1831,6 +1831,7 @@ MA 02110-1301, USA.
 			}
 			case SDL_KEYDOWN:
 				kbd_event = (SDL_KeyboardEvent*)&event;
+				//OOLog(@"testing", @"Key down: keyCode = %d, key = %@", kbd_event->keysym.scancode, kbd_event->keysym.sym);
 
 				if(allowingStringInput)
 				{
@@ -1983,6 +1984,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_F8: keys[gvFunctionKey8] = YES; break;
 					case SDLK_F9: keys[gvFunctionKey9] = YES; break;
 					case SDLK_F10: keys[gvFunctionKey10] = YES; break;
+					case SDLK_F11: keys[gvFunctionKey11] = YES; break;
 
 					case SDLK_BACKSPACE:
 					case SDLK_DELETE:
@@ -2173,6 +2175,7 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_F8: keys[gvFunctionKey8] = NO; break;
 					case SDLK_F9: keys[gvFunctionKey9] = NO; break;
 					case SDLK_F10: keys[gvFunctionKey10] = NO; break;
+					case SDLK_F11: keys[gvFunctionKey11] = NO; break;
 
 					case SDLK_BACKSPACE:
 					case SDLK_DELETE:

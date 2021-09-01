@@ -434,14 +434,10 @@ static NSTimeInterval	time_last_frame;
 	for (i = 0; i < [keys count]; i++)
 	{
 		key = [keys objectAtIndex:i];
-		//OOLogWARN(@"testing", @"checking key %@.", key);
-
 		if ([[kdic2 objectForKey:key] isKindOfClass:[NSArray class]])
 		{
 			def_list = (NSArray*)[kdic2 objectForKey: key];
-			//NSArray *newList = [self processKeyCode:def_list];
 			[kdic2 setObject:[self processKeyCode:def_list] forKey:key];
-			//[newList release];
 		}
 	}
 
@@ -450,6 +446,17 @@ static NSTimeInterval	time_last_frame;
 	NSArray *curr = nil;
 	NSDictionary *key1 = nil;
 	NSDictionary *key2 = nil;
+
+	// update with overrides from defaults file
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSDictionary *dict = [defaults objectForKey:KEYCONFIG_OVERRIDES];
+
+	keys = [dict allKeys];
+	for (i = 0; i < [keys count]; i++)
+	{
+		key = [keys objectAtIndex:i];
+		[kdic2 setObject:[dict objectForKey:key] forKey:key];
+	}
 
 // by default none of the standard key functions require more than 2 entries, so our macro will limit itself to 2
 // also, none of the standard key functions utilise "Alt" (mod2), so we're defaulting that setting
@@ -609,22 +616,12 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_debug_off, 'n', NO, NO, 0, NO, NO);
 #endif
 
-	// update with overrides from defaults file
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSDictionary *dict = [defaults objectForKey:KEYCONFIG_OVERRIDES];
-	keys = [dict allKeys];
-	for (i = 0; i < [keys count]; i++)
-	{
-		key = [keys objectAtIndex:i];
-		[kdic2 setObject:[dict objectForKey:key] forKey:key];
-	}
-
 	//if ([[[n_key_market_buy_max objectAtIndex:0] objectForKey:@"shift"] boolValue] == YES) {
 	//	OOLogWARN(@"testing", @"new def check %@", n_key_advanced_nav_array);
 	//}
 	[keyconfig2_settings release];
-	keyconfig2_settings = [[NSDictionary alloc] initWithDictionary:kdic2];
-
+	keyconfig2_settings = [[NSDictionary alloc] initWithDictionary:kdic2 copyItems:YES];
+	//OOLogWARN(@"testing", @"new def check %@", n_key_gui_screen_equipship);
 }
 
 
@@ -2051,7 +2048,7 @@ static NSTimeInterval	time_last_frame;
 		exceptionContext = @"pause";
 		// Pause game 'p'
 		//if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)// look for the 'p' key
-		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)// look for the 'p' key
+		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)// look for the 'p' key
 		{
 			if (!pause_pressed)
 			{
@@ -2145,6 +2142,10 @@ static NSTimeInterval	time_last_frame;
 		[gameView setStringInput: gvStringInputLoadSave];
 	}
 	else if (gui_screen == GUI_SCREEN_MISSION && _missionTextEntry)
+	{
+		[gameView setStringInput: gvStringInputAll];
+	}
+	else if (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY)
 	{
 		[gameView setStringInput: gvStringInputAll];
 	}
@@ -4881,7 +4882,7 @@ static BOOL autopilot_pause;
 		}
 		// look for the pause game, 'p' key
 		//if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_SHORT_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)
-		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_SHORT_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION)
+		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_SHORT_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)
 		{
 			if (!autopilot_pause)
 			{
@@ -4933,7 +4934,7 @@ static BOOL autopilot_pause;
 		//if ([gameView isDown:key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
 		if ([self checkKeyPress:n_key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
 				gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_REPORT &&
-				gui_screen != GUI_SCREEN_SAVE) )
+				gui_screen != GUI_SCREEN_SAVE && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY) )
 		{
 			if (!pause_pressed)
 			{
@@ -4981,7 +4982,7 @@ static BOOL autopilot_pause;
 		//  text displays
 		// mission screens
 		exceptionContext = @"GUI keys";
-		if (gui_screen == GUI_SCREEN_MISSION)
+		if (gui_screen == GUI_SCREEN_MISSION || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY)
 		{
 			[self pollDemoControls: delta_t];	// don't switch away from mission screens
 		}

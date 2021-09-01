@@ -707,6 +707,7 @@ static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp)
 		if 	(guiScreen != GUI_SCREEN_LONG_RANGE_CHART &&
 			 guiScreen != GUI_SCREEN_MISSION &&
 			 guiScreen != GUI_SCREEN_REPORT &&
+			 guiScreen != GUI_SCREEN_KEYBOARD_ENTRY &&
 			 guiScreen != GUI_SCREEN_SAVE)
 		{
 			[UNIVERSE pauseGame];
