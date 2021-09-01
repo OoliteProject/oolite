@@ -4972,7 +4972,7 @@ static BOOL autopilot_pause;
 			//if ([gameView isDown:gvFunctionKey1] || [gameView isDown:key_view_forward])   // look for the f1 key
 			if ([self checkKeyPress:n_key_launch_ship])
 			{
-				if (EXPECT(gui_screen != GUI_SCREEN_MISSION || _missionAllowInterrupt))
+				if (EXPECT((gui_screen != GUI_SCREEN_MISSION || _missionAllowInterrupt) && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY))
 				{
 					[self handleUndockControl];
 				}
