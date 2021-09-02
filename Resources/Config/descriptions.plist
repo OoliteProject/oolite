@@ -2160,6 +2160,8 @@
 	"oolite-keycode-numpad7" = "Numpad 7";
 	"oolite-keycode-numpad8" = "Numpad 8";
 	"oolite-keycode-numpad9" = "Numpad 9";
+	"oolite-keycode-printscreen" = "Print Screen";
+	"oolite-keycode-pause" = "Pause";
 
 	// translations of special keys to a shorter version equivalent to what a user needs to enter on the keyboard config screen
 	"oolite-keycode-short-tab"		= "tab";
@@ -2197,7 +2199,9 @@
 	"oolite-keycode-short-numpad7" 	= "numpad7";
 	"oolite-keycode-short-numpad8" 	= "numpad8";
 	"oolite-keycode-short-numpad9" 	= "numpad9";
-
+	"oolite-keycode-short-printscreen" = "printScreen";
+	"oolite-keycode-short-pause"	= "pause";
+	
 	// Mac multi-screen handling
 	"oolite-mac-bad-display" = "The display configuration has changed in a way that may impact Oolite’s performance.";
 	"oolite-mac-bad-display-2" = "Oolite’s main window is now on a screen which is not connected to a graphics processor compatible with Oolite. Oolite should continue to work, but performance may be degraded.";

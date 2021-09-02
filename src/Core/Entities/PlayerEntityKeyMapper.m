@@ -94,6 +94,7 @@ NSDictionary *kdic_check = nil;
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	MyOpenGLView *gameView = [UNIVERSE gameView];
+	OOGUIScreenID oldScreen = gui_screen;
 	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
 	tabStop[0] = 10;
 	tabStop[1] = 290;
@@ -103,6 +104,7 @@ NSDictionary *kdic_check = nil;
 	if (!kdic_check) [self initCheckingDictionary];
 
 	gui_screen = GUI_SCREEN_KEYBOARD;
+	BOOL guiChanged = (oldScreen != gui_screen);
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 
 	[gui clear];
@@ -146,6 +148,8 @@ NSDictionary *kdic_check = nil;
 	[gameView clearMouse];
 	[gameView clearKeys];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+
+	if (guiChanged) [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -215,12 +219,14 @@ NSDictionary *kdic_check = nil;
 {
 	int	i = 0;
 	GuiDisplayGen *gui=[UNIVERSE gui];
+	OOGUIScreenID oldScreen = gui_screen;
 	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
 	tabStop[0] = 10;
 	tabStop[1] = 290;
 	[gui setTabStops:tabStop];
 
 	gui_screen = GUI_SCREEN_KEYBOARD_CONFIG;
+	BOOL guiChanged = (oldScreen != gui_screen);
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-title")]];
 
@@ -299,6 +305,7 @@ NSDictionary *kdic_check = nil;
 	[gui setBackgroundTextureKey:@"keyboardsettings"];
 	[[UNIVERSE gameView] clearMouse];
 	[[UNIVERSE gameView] clearKeys];
+	if (guiChanged) [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -384,8 +391,10 @@ NSDictionary *kdic_check = nil;
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	MyOpenGLView *gameView = [UNIVERSE gameView];
+	OOGUIScreenID oldScreen = gui_screen;
 	
 	gui_screen = GUI_SCREEN_KEYBOARD_ENTRY;
+	BOOL guiChanged = (oldScreen != gui_screen);
 
 	// make sure the index we're looking for exists
 	if ([key_list count] < (key_index + 1))
@@ -426,6 +435,7 @@ NSDictionary *kdic_check = nil;
 
 	[gameView clearMouse];
 	[gameView clearKeys];
+	if (guiChanged) [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -504,8 +514,10 @@ NSDictionary *kdic_check = nil;
 - (void) setGuiToConfirmClearScreen
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
+	OOGUIScreenID oldScreen = gui_screen;
 	
 	gui_screen = GUI_SCREEN_KEYBOARD_CONFIRMCLEAR;
+	BOOL guiChanged = (oldScreen != gui_screen);
 	
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-clear-overrides-title")]];
@@ -527,6 +539,7 @@ NSDictionary *kdic_check = nil;
 
 	[[UNIVERSE gameView] clearMouse];
 	[[UNIVERSE gameView] clearKeys];
+	if (guiChanged) [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -1039,6 +1052,13 @@ NSDictionary *kdic_check = nil;
 // saves the currently store key_list to the defaults file and updates the global definition
 - (void) saveKeySetting:(NSString*)key
 {
+	// make sure the primary and alternate keys are different
+	if ([key_list count] > 1) {
+		if ([self compareKeyEntries:[key_list objectAtIndex:0] second:[key_list objectAtIndex:1]])
+		{
+			[key_list removeObjectAtIndex:1];
+		}
+	}
 	// see if we've set the key settings to blank - in which case, delete the override
 	if ([[(NSDictionary*)[key_list objectAtIndex:0] objectForKey:@"key"] integerValue] == 0)
 	{
@@ -1051,7 +1071,7 @@ NSDictionary *kdic_check = nil;
 			return;
 		}
 	}
-	// if we've ot the same settings as the default, revert to the default
+	// if we've got the same settings as the default, revert to the default
 	if ([self entryIsEqualToDefault:key])
 	{
 		[self deleteKeySetting:key];

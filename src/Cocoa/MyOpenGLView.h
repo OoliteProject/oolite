@@ -48,7 +48,7 @@ MA 02110-1301, USA.
 enum GameViewKeys
 {
 
-	gvFunctionKey1 = 241,
+	gvFunctionKey1 = 256, //241,
 	gvFunctionKey2,
 	gvFunctionKey3,
 	gvFunctionKey4,
@@ -63,6 +63,8 @@ enum GameViewKeys
 	gvArrowKeyLeft,
 	gvArrowKeyDown,
 	gvArrowKeyUp,
+	gvPauseKey,
+	gvPrintScreenKey,
 	gvMouseLeftButton = 301,
 	gvMouseDoubleClick,
 	gvHomeKey,

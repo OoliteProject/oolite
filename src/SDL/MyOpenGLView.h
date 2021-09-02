@@ -56,7 +56,7 @@ MA 02110-1301, USA.
 
 enum GameViewKeys
 {
-	gvFunctionKey1 = 241,
+	gvFunctionKey1 = 256, //241,
 	gvFunctionKey2,
 	gvFunctionKey3,
 	gvFunctionKey4,
@@ -70,7 +70,9 @@ enum GameViewKeys
 	gvArrowKeyRight,
 	gvArrowKeyLeft,
 	gvArrowKeyDown,
-	gvArrowKeyUp, // 255
+	gvArrowKeyUp, // 270 //255
+	gvPauseKey,
+	gvPrintScreenKey,
 	gvMouseLeftButton = 301,
 	gvMouseDoubleClick,
 	gvHomeKey,
@@ -129,6 +131,7 @@ extern int debug;
 {
 	GameController		*gameController;
 	BOOL				keys[NUM_KEYS];
+	int					scancode2Unicode[NUM_KEYS];
 	BOOL				suppressKeys;    // DJS
 
 	BOOL				opt, ctrl, command, shift;

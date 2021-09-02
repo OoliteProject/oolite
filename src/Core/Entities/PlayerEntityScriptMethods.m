@@ -478,7 +478,11 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-numpad8");
 	case gvNumberPadKey9:
 		return DESC(@"oolite-keycode-numpad9");
-
+	case gvPrintScreenKey:
+		return DESC(@"oolite-keycode-printscreen");
+	case gvPauseKey:
+		return DESC(@"oolite-keycode-pause");
+		
 	default:
 		return [NSString stringWithFormat:@"%C",code];
 	}
@@ -560,6 +564,10 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-short-numpad8");
 	case gvNumberPadKey9:
 		return DESC(@"oolite-keycode-short-numpad9");
+	case gvPrintScreenKey:
+		return DESC(@"oolite-keycode-short-printscreen");
+	case gvPauseKey:
+		return DESC(@"oolite-keycode-short-pause");
 
 	default:
 		return [NSString stringWithFormat:@"%C",code];

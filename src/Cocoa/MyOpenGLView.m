@@ -920,7 +920,15 @@ FAIL:
 		case NSPageDownFunctionKey:
 			key = gvPageDownKey;
 			break;
-			
+		
+		case NSPrintScreenFunctionKey:
+			key = gvPrintScreenKey;
+			break;
+		
+		case NSPauseFunctionKey:
+			key = gvPauseKey;
+			break;
+
 		default:
 			break;
 	}

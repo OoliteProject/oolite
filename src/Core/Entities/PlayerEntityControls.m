@@ -238,6 +238,11 @@ static NSTimeInterval	time_last_frame;
 		[NSNumber numberWithUnsignedShort:gvFunctionKey9], @"f9", 
 		[NSNumber numberWithUnsignedShort:gvFunctionKey10], @"f10", 
 		[NSNumber numberWithUnsignedShort:gvFunctionKey11], @"f11", 
+		[NSNumber numberWithUnsignedShort:gvPauseKey], @"pause",
+		[NSNumber numberWithUnsignedShort:gvPrintScreenKey], @"printscreen",
+		[NSNumber numberWithUnsignedShort:gvPrintScreenKey], @"prtscrn",
+		[NSNumber numberWithUnsignedShort:gvPrintScreenKey], @"prntscrn",
+		[NSNumber numberWithUnsignedShort:gvPrintScreenKey], @"prtscn",
 		[NSNumber numberWithUnsignedShort:gvNumberPadKey0], @"numpad0", 
 		[NSNumber numberWithUnsignedShort:gvNumberPadKey1], @"numpad1", 
 		[NSNumber numberWithUnsignedShort:gvNumberPadKey2], @"numpad2", 
@@ -622,6 +627,7 @@ static NSTimeInterval	time_last_frame;
 	[keyconfig2_settings release];
 	keyconfig2_settings = [[NSDictionary alloc] initWithDictionary:kdic2 copyItems:YES];
 	//OOLogWARN(@"testing", @"new def check %@", n_key_gui_screen_equipship);
+	//OOLog(@"keys.test", @"full def %@", keyconfig2_settings);
 }
 
 
