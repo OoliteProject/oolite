@@ -1672,6 +1672,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	float					mouseVirtualStickSensitivityY = viewSize.height * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
 	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
 	Uint16 					key_id;
+	int						scan_code;
 
 	while (SDL_PollEvent(&event))
 	{
@@ -1843,80 +1844,99 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					[self handleStringInput: kbd_event];
 				}
 
+				// deal with modifiers first
+				switch (kbd_event->keysym.sym)
+				{
+					case SDLK_LSHIFT:
+					case SDLK_RSHIFT:
+						shift = YES;
+						break;
+
+					case SDLK_LCTRL:
+					case SDLK_RCTRL:
+						ctrl = YES;
+						break;
+						
+					case SDLK_LALT:
+					case SDLK_RALT:
+						opt = YES;
+						break;
+					default:
+						;
+				}
+
 				key_id = (Uint16)kbd_event->keysym.unicode;
+				scan_code = kbd_event->keysym.scancode;
+				OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, key_id, shift, ctrl, opt);
+
 				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
 				if (key_id > 0) 
 				{
-					OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i, character = %c", kbd_event->keysym.scancode, key_id, key_id);
-					scancode2Unicode[kbd_event->keysym.scancode] = key_id;
-				}
-				else
-				{
-					OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
-					// translate scancode to unicode equiv
-					switch (kbd_event->keysym.sym) 
+					// ctrl changes alpha characters to control codes (1-26)
+					if (ctrl && key_id >=1 && key_id <= 26) 
 					{
-						case SDLK_HOME: key_id = gvHomeKey; break;
-						case SDLK_END: key_id = gvEndKey; break;
-						case SDLK_INSERT: key_id = gvInsertKey; break;
-						case SDLK_PAGEUP: key_id = gvPageUpKey; break;
-						case SDLK_PAGEDOWN: key_id = gvPageDownKey; break;
-						case SDLK_SPACE: key_id = 32; break;
-						case SDLK_RETURN: key_id = 13; break;
-						case SDLK_TAB: key_id = 9; break;
-						case SDLK_UP: key_id = gvArrowKeyUp; break;
-						case SDLK_DOWN: key_id = gvArrowKeyDown; break;
-						case SDLK_LEFT: key_id = gvArrowKeyLeft; break;
-						case SDLK_RIGHT: key_id = gvArrowKeyRight; break;
-						case SDLK_PAUSE: key_id = gvPauseKey; break;
-						case SDLK_F1: key_id = gvFunctionKey1; break;
-						case SDLK_F2: key_id = gvFunctionKey2; break;
-						case SDLK_F3: key_id = gvFunctionKey3; break;
-						case SDLK_F4: key_id = gvFunctionKey4; break;
-						case SDLK_F5: key_id = gvFunctionKey5; break;
-						case SDLK_F6: key_id = gvFunctionKey6; break;
-						case SDLK_F7: key_id = gvFunctionKey7; break;
-						case SDLK_F8: key_id = gvFunctionKey8; break;
-						case SDLK_F9: key_id = gvFunctionKey9; break;
-						case SDLK_F10: key_id = gvFunctionKey10; break;
-						case SDLK_F11: key_id = gvFunctionKey11; break;
-						case SDLK_F12:
-							[self toggleScreenMode];
-							break;
+						if (shift) 
+							key_id += 64;
+						else
+							key_id += 96;
+					}	
+					scancode2Unicode[scan_code] = key_id;
+				}
+				// ctrl changes numbers and unicode is lost
+				if (ctrl && key_id == 0 && scan_code >= 2 && scan_code <= 11)
+				{
+					key_id = (scan_code + 47); // 1 = 49, 0 = 58, offset by 2 for the scancode start point
+				}
 
-						case SDLK_BACKSPACE:
-						case SDLK_DELETE:
-							key_id = gvDeleteKey;
-							break;
+				//OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
+				// translate scancode to unicode equiv
+				switch (kbd_event->keysym.sym) 
+				{
+					case SDLK_HOME: key_id = gvHomeKey; break;
+					case SDLK_END: key_id = gvEndKey; break;
+					case SDLK_INSERT: key_id = gvInsertKey; break;
+					case SDLK_PAGEUP: key_id = gvPageUpKey; break;
+					case SDLK_PAGEDOWN: key_id = gvPageDownKey; break;
+					case SDLK_SPACE: key_id = 32; break;
+					case SDLK_RETURN: key_id = 13; break;
+					case SDLK_TAB: key_id = 9; break;
+					case SDLK_UP: key_id = gvArrowKeyUp; break;
+					case SDLK_DOWN: key_id = gvArrowKeyDown; break;
+					case SDLK_LEFT: key_id = gvArrowKeyLeft; break;
+					case SDLK_RIGHT: key_id = gvArrowKeyRight; break;
+					case SDLK_PAUSE: key_id = gvPauseKey; break;
+					case SDLK_F1: key_id = gvFunctionKey1; break;
+					case SDLK_F2: key_id = gvFunctionKey2; break;
+					case SDLK_F3: key_id = gvFunctionKey3; break;
+					case SDLK_F4: key_id = gvFunctionKey4; break;
+					case SDLK_F5: key_id = gvFunctionKey5; break;
+					case SDLK_F6: key_id = gvFunctionKey6; break;
+					case SDLK_F7: key_id = gvFunctionKey7; break;
+					case SDLK_F8: key_id = gvFunctionKey8; break;
+					case SDLK_F9: key_id = gvFunctionKey9; break;
+					case SDLK_F10: key_id = gvFunctionKey10; break;
+					case SDLK_F11: key_id = gvFunctionKey11; break;
+					case SDLK_F12:
+						[self toggleScreenMode];
+						break;
 
-						case SDLK_LSHIFT:
-						case SDLK_RSHIFT:
-							shift = YES;
-							break;
+					case SDLK_BACKSPACE:
+					case SDLK_DELETE:
+						key_id = gvDeleteKey;
+						break;
 
-						case SDLK_LCTRL:
-						case SDLK_RCTRL:
-							ctrl = YES;
-							break;
-							
-						case SDLK_LALT:
-						case SDLK_RALT:
-							opt = YES;
-							break;
-
-						case SDLK_ESCAPE:
-							if (shift)
-							{
-								SDL_FreeSurface(surface);
-								[gameController exitAppWithContext:@"Shift-escape pressed"];
-							}
-							else
-								key_id = 27;
-							break;
-						default:
-							//OOLog(@"keys.test", @"Unhandled Keydown scancode with 0 unicode: %d", kbd_event->keysym.scancode);
-							;
-					}
+					case SDLK_ESCAPE:
+						if (shift)
+						{
+							SDL_FreeSurface(surface);
+							[gameController exitAppWithContext:@"Shift-escape pressed"];
+						}
+						else
+							key_id = 27;
+						break;
+					default:
+						//OOLog(@"keys.test", @"Unhandled Keydown scancode with 0 unicode: %d", kbd_event->keysym.scancode);
+						;
 				}
 
 				if (key_id > 0 && key_id <= [self numKeys]) 
@@ -2123,65 +2143,86 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 			case SDL_KEYUP:
 				suppressKeys = NO;    // DJS
 				kbd_event = (SDL_KeyboardEvent*)&event;
-				OOLog(kOOLogKeyUp, @"Keyup scancode = %d", kbd_event->keysym.scancode);
+				scan_code = kbd_event->keysym.scancode;
+				OOLog(kOOLogKeyUp, @"Keyup scancode = %d", scan_code);
 
-				key_id = scancode2Unicode[kbd_event->keysym.scancode];
+				key_id = scancode2Unicode[scan_code];
 
-				if (key_id == 0) 
+				// ctrl changes alpha characters to control codes (1-26)
+				if (ctrl)
 				{
-					// translate scancode to unicode equiv
-					switch (kbd_event->keysym.sym) 
+				 	if (key_id >=1 && key_id <= 26) 
 					{
-						case SDLK_HOME: key_id = gvHomeKey; break;
-						case SDLK_END: key_id = gvEndKey; break;
-						case SDLK_INSERT: key_id = gvInsertKey; break;
-						case SDLK_PAGEUP: key_id = gvPageUpKey; break;
-						case SDLK_PAGEDOWN: key_id = gvPageDownKey; break;
-						case SDLK_SPACE: key_id = 32; break;
-						case SDLK_RETURN: key_id = 13; break;
-						case SDLK_TAB: key_id = 9; break;
-						case SDLK_ESCAPE: key_id = 27; break;
-						case SDLK_UP: key_id = gvArrowKeyUp; break;
-						case SDLK_DOWN: key_id = gvArrowKeyDown; break;
-						case SDLK_LEFT: key_id = gvArrowKeyLeft; break;
-						case SDLK_RIGHT: key_id = gvArrowKeyRight; break;
-						case SDLK_PAUSE: key_id = gvPauseKey; break;
-						case SDLK_F1: key_id = gvFunctionKey1; break;
-						case SDLK_F2: key_id = gvFunctionKey2; break;
-						case SDLK_F3: key_id = gvFunctionKey3; break;
-						case SDLK_F4: key_id = gvFunctionKey4; break;
-						case SDLK_F5: key_id = gvFunctionKey5; break;
-						case SDLK_F6: key_id = gvFunctionKey6; break;
-						case SDLK_F7: key_id = gvFunctionKey7; break;
-						case SDLK_F8: key_id = gvFunctionKey8; break;
-						case SDLK_F9: key_id = gvFunctionKey9; break;
-						case SDLK_F10: key_id = gvFunctionKey10; break;
-						case SDLK_F11: key_id = gvFunctionKey11; break;
-
-						case SDLK_BACKSPACE:
-						case SDLK_DELETE:
-							key_id = gvDeleteKey;
-							break;
-
-						case SDLK_LSHIFT:
-						case SDLK_RSHIFT:
-							shift = NO;
-							break;
-
-						case SDLK_LCTRL:
-						case SDLK_RCTRL:
-							ctrl = NO;
-							break;
-							
-						case SDLK_LALT:
-						case SDLK_RALT:
-							opt = NO;
-							break;
-
-						default:
-							//OOLog(@"keys.test", @"Unhandled Keyup scancode with 0 unicode: %d", kbd_event->keysym.scancode);
-							;
+						if (shift) 
+							key_id += 64;
+						else
+							key_id += 96;
 					}
+					// ctrl changes numbers and unicode is lost
+					if (key_id == 0 && scan_code >= 2 && scan_code <= 11)
+					{
+						key_id = (scan_code + 47); // 1 = 49, 0 = 58, offset by 2 for the scancode start point
+					}
+				}
+
+				// deal with modifiers first
+				switch (kbd_event->keysym.sym)
+				{
+					case SDLK_LSHIFT:
+					case SDLK_RSHIFT:
+						shift = NO;
+						break;
+
+					case SDLK_LCTRL:
+					case SDLK_RCTRL:
+						ctrl = NO;
+						break;
+						
+					case SDLK_LALT:
+					case SDLK_RALT:
+						opt = NO;
+						break;
+					default:
+						;
+				}
+				
+				// translate scancode to unicode equiv
+				switch (kbd_event->keysym.sym) 
+				{
+					case SDLK_HOME: key_id = gvHomeKey; break;
+					case SDLK_END: key_id = gvEndKey; break;
+					case SDLK_INSERT: key_id = gvInsertKey; break;
+					case SDLK_PAGEUP: key_id = gvPageUpKey; break;
+					case SDLK_PAGEDOWN: key_id = gvPageDownKey; break;
+					case SDLK_SPACE: key_id = 32; break;
+					case SDLK_RETURN: key_id = 13; break;
+					case SDLK_TAB: key_id = 9; break;
+					case SDLK_ESCAPE: key_id = 27; break;
+					case SDLK_UP: key_id = gvArrowKeyUp; break;
+					case SDLK_DOWN: key_id = gvArrowKeyDown; break;
+					case SDLK_LEFT: key_id = gvArrowKeyLeft; break;
+					case SDLK_RIGHT: key_id = gvArrowKeyRight; break;
+					case SDLK_PAUSE: key_id = gvPauseKey; break;
+					case SDLK_F1: key_id = gvFunctionKey1; break;
+					case SDLK_F2: key_id = gvFunctionKey2; break;
+					case SDLK_F3: key_id = gvFunctionKey3; break;
+					case SDLK_F4: key_id = gvFunctionKey4; break;
+					case SDLK_F5: key_id = gvFunctionKey5; break;
+					case SDLK_F6: key_id = gvFunctionKey6; break;
+					case SDLK_F7: key_id = gvFunctionKey7; break;
+					case SDLK_F8: key_id = gvFunctionKey8; break;
+					case SDLK_F9: key_id = gvFunctionKey9; break;
+					case SDLK_F10: key_id = gvFunctionKey10; break;
+					case SDLK_F11: key_id = gvFunctionKey11; break;
+
+					case SDLK_BACKSPACE:
+					case SDLK_DELETE:
+						key_id = gvDeleteKey;
+						break;
+
+					default:
+						//OOLog(@"keys.test", @"Unhandled Keyup scancode with 0 unicode: %d", kbd_event->keysym.scancode);
+						;
 				}
 
 				if (key_id > 0 && key_id <= [self numKeys]) 
