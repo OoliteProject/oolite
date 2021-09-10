@@ -73,6 +73,7 @@ enum GameViewKeys
 	gvDeleteKey,
 	gvPageUpKey,
 	gvPageDownKey,
+	gvBackspaceKey,
 	gvNumberKey0 = 48,
 	gvNumberKey1,
 	gvNumberKey2,

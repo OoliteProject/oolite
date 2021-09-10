@@ -524,7 +524,8 @@ typedef enum
 	NSDictionary   *keyconfig_settings; // *** FLAGGED FOR DELETION ***
 	NSDictionary   *keyconfig2_settings;
 	NSDictionary   *keyCodeLookups;
-	
+	//NSDictionary   *keyMappings;
+
 	NSArray					*n_key_roll_left;
 	NSArray					*n_key_roll_right;
 	NSArray					*n_key_pitch_forward;

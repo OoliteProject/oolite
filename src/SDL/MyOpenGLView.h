@@ -72,7 +72,7 @@ enum GameViewKeys
 	gvArrowKeyDown,
 	gvArrowKeyUp, // 270 //255
 	gvPauseKey,
-	gvPrintScreenKey,
+	gvPrintScreenKey, // 272
 	gvMouseLeftButton = 301,
 	gvMouseDoubleClick,
 	gvHomeKey,
@@ -81,6 +81,7 @@ enum GameViewKeys
 	gvDeleteKey,
 	gvPageUpKey,
 	gvPageDownKey, // 308
+	gvBackspaceKey, // 309
 	gvNumberKey0 = 48,
 	gvNumberKey1,
 	gvNumberKey2,
@@ -132,9 +133,12 @@ extern int debug;
 	GameController		*gameController;
 	BOOL				keys[NUM_KEYS];
 	int					scancode2Unicode[NUM_KEYS];
+	NSDictionary 		*keyMappings_normal;
+	NSDictionary		*keyMappings_shifted;
+
 	BOOL				suppressKeys;    // DJS
 
-	BOOL				opt, ctrl, command, shift;
+	BOOL				opt, ctrl, command, shift, lastKeyShifted;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 
@@ -281,6 +285,7 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (BOOL) isCapsLockOn;
+- (BOOL) lastKeyWasShifted;
 - (int) numKeys;
 - (int) mouseWheelState;
 - (float) mouseWheelDelta;

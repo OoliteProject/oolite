@@ -225,6 +225,10 @@ static NSTimeInterval	time_last_frame;
 		[NSNumber numberWithUnsignedShort:gvEndKey], @"end", 
 		[NSNumber numberWithUnsignedShort:gvDeleteKey], @"delete", 
 		[NSNumber numberWithUnsignedShort:gvDeleteKey], @"del", 
+		[NSNumber numberWithUnsignedShort:gvBackspaceKey], @"backspace", 
+		[NSNumber numberWithUnsignedShort:gvBackspaceKey], @"backspc", 
+		[NSNumber numberWithUnsignedShort:gvBackspaceKey], @"bkspace", 
+		[NSNumber numberWithUnsignedShort:gvBackspaceKey], @"bkspc", 
 		[NSNumber numberWithUnsignedShort:gvInsertKey], @"insert", 
 		[NSNumber numberWithUnsignedShort:gvInsertKey], @"ins", 
 		[NSNumber numberWithUnsignedShort:gvFunctionKey1], @"f1", 
@@ -421,7 +425,10 @@ static NSTimeInterval	time_last_frame;
 
 - (void) initKeyConfigSettings
 {
-	NSMutableDictionary	*kdic2 = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	NSMutableDictionary	*kdicmaster = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSString *kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+	NSMutableDictionary *kdic2 = [NSMutableDictionary dictionaryWithDictionary:[kdicmaster objectForKey:kbd]];
 
 	unsigned		i;
 	NSArray			*keys = nil;
@@ -453,7 +460,6 @@ static NSTimeInterval	time_last_frame;
 	NSDictionary *key2 = nil;
 
 	// update with overrides from defaults file
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	NSDictionary *dict = [defaults objectForKey:KEYCONFIG_OVERRIDES];
 
 	keys = [dict allKeys];
@@ -628,6 +634,7 @@ static NSTimeInterval	time_last_frame;
 	keyconfig2_settings = [[NSDictionary alloc] initWithDictionary:kdic2 copyItems:YES];
 	//OOLogWARN(@"testing", @"new def check %@", n_key_gui_screen_equipship);
 	//OOLog(@"keys.test", @"full def %@", keyconfig2_settings);
+
 }
 
 
@@ -709,21 +716,25 @@ static NSTimeInterval	time_last_frame;
 }
 
 
-- (BOOL) checkKeyPress:(NSArray*)key_def
+// special case for navigation keys - these keys cannot use mod keys, so they can't be impacted by multiple keypresses
+- (BOOL) checkNavKeyPress:(NSArray*)key_def
 {
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	int i;
 	for (i = 0; i < [key_def count]; i++) 
 	{
 		NSDictionary *def = [key_def objectAtIndex:i];
-		if ([gameView isDown:[[def objectForKey:@"key"] intValue]] 
-			&& ([[def objectForKey:@"shift"] boolValue] == NO || [gameView isShiftDown])
-			&& ([[def objectForKey:@"mod1"] boolValue] == NO || [gameView isCtrlDown])
-			&& ([[def objectForKey:@"mod2"] boolValue] == NO || [gameView isOptDown])
-		) return YES;
+		if ([gameView isDown:[[def objectForKey:@"key"] intValue]]) return YES;
 	}
 	return NO;
 }
+
+
+- (BOOL) checkKeyPress:(NSArray*)key_def
+{
+	return [self checkKeyPress:key_def fKey_only:NO];
+}
+
 
 - (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only
 {
@@ -736,11 +747,14 @@ static NSTimeInterval	time_last_frame;
 		// skip normal keys if the fKey_only flag is set
 		// note: if the player has remapped the gui screen keys to not include function keys, they will not be able to 
 		// switch screens directly (they would need to finish the task - ie press enter, or use the escape key to cancel the function)
+		// note: the logic below now means that the state of the modifiers must match the requirements for the key binding, including 
+		// when all settings are off. This means, if the player presses two functions at once, one that requires a modifier and
+		// one that doesn't, the one that doesn't will not be triggered.
 		if (fKey_only == YES && (keycode < gvFunctionKey1 || keycode > gvFunctionKey11)) continue;
 		if ([gameView isDown:keycode] 
-			&& ([[def objectForKey:@"shift"] boolValue] == NO || [gameView isShiftDown])
-			&& ([[def objectForKey:@"mod1"] boolValue] == NO || [gameView isCtrlDown])
-			&& ([[def objectForKey:@"mod2"] boolValue] == NO || [gameView isOptDown])
+			&& ([[def objectForKey:@"shift"] boolValue] == [gameView isShiftDown])
+			&& ([[def objectForKey:@"mod1"] boolValue] == [gameView isCtrlDown])
+			&& ([[def objectForKey:@"mod2"] boolValue] == [gameView isOptDown])
 		) return YES;
 	}
 	return NO;
@@ -752,6 +766,7 @@ static NSTimeInterval	time_last_frame;
 	NSDictionary *def = [key_def objectAtIndex:0];
 	return [[def objectForKey:@"key"] intValue];
 }
+
 
 - (void) pollControls:(double)delta_t
 {
@@ -4412,7 +4427,7 @@ static NSTimeInterval	time_last_frame;
 	double				reqYaw = 0.0;
 	
 	/*	DJS: Handle inputs on the joy roll/pitch axis.
-	 Mouse control on takes precidence over joysticks.
+	 Mouse control on takes precedence over joysticks.
 	 We have to assume the player has a reason for switching mouse
 	 control on if they have a joystick - let them do it. */
 	if (mouse_control_on)
@@ -4478,13 +4493,13 @@ static NSTimeInterval	time_last_frame;
 	if (!mouse_control_on || (mouse_control_on && mouse_x_axis_map_to_yaw))
 	{
 		//if ([gameView isDown:key_roll_left] && [gameView isDown:key_roll_right])
-		if ([self checkKeyPress:n_key_roll_left] && [self checkKeyPress:n_key_roll_right])
+		if ([self checkNavKeyPress:n_key_roll_left] && [self checkNavKeyPress:n_key_roll_right])
 		{
 			keyboardRollOverride = YES;
 			flightRoll = 0.0;
 		}
 		//else if ([gameView isDown:key_roll_left] && !capsLockCustomView)
-		else if ([self checkKeyPress:n_key_roll_left] && !capsLockCustomView)
+		else if ([self checkNavKeyPress:n_key_roll_left] && !capsLockCustomView)
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll > 0.0)  flightRoll = 0.0;
@@ -4492,7 +4507,7 @@ static NSTimeInterval	time_last_frame;
 			rolling = YES;
 		}
 		//else if ([gameView isDown:key_roll_right] && !capsLockCustomView)
-		else if ([self checkKeyPress:n_key_roll_right] && !capsLockCustomView)
+		else if ([self checkNavKeyPress:n_key_roll_right] && !capsLockCustomView)
 		{
 			keyboardRollOverride=YES;
 			if (flightRoll < 0.0)  flightRoll = 0.0;
@@ -4536,13 +4551,13 @@ static NSTimeInterval	time_last_frame;
 	if (!mouse_control_on)
 	{
 		//if ([gameView isDown:key_pitch_back] && [gameView isDown:key_pitch_forward])
-		if ([self checkKeyPress:n_key_pitch_back] && [self checkKeyPress:n_key_pitch_forward])
+		if ([self checkNavKeyPress:n_key_pitch_back] && [self checkNavKeyPress:n_key_pitch_forward])
 		{
 			keyboardPitchOverride=YES;
 			flightPitch = 0.0;
 		}
 		//else if ([gameView isDown:key_pitch_back] && !capsLockCustomView)
-		else if ([self checkKeyPress:n_key_pitch_back] && !capsLockCustomView)
+		else if ([self checkNavKeyPress:n_key_pitch_back] && !capsLockCustomView)
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch < 0.0)  flightPitch = 0.0;
@@ -4550,7 +4565,7 @@ static NSTimeInterval	time_last_frame;
 			pitching = YES;
 		}
 		//else if ([gameView isDown:key_pitch_forward] && !capsLockCustomView)
-		else if ([self checkKeyPress:n_key_pitch_forward] && !capsLockCustomView)
+		else if ([self checkNavKeyPress:n_key_pitch_forward] && !capsLockCustomView)
 		{
 			keyboardPitchOverride=YES;
 			if (flightPitch > 0.0)  flightPitch = 0.0;
@@ -4594,13 +4609,13 @@ static NSTimeInterval	time_last_frame;
 	if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw))
 	{
 		//if ([gameView isDown:key_yaw_left] && [gameView isDown:key_yaw_right])
-		if ([self checkKeyPress:n_key_yaw_left] && [self checkKeyPress:n_key_yaw_right])
+		if ([self checkNavKeyPress:n_key_yaw_left] && [self checkNavKeyPress:n_key_yaw_right])
 		{
 			keyboardYawOverride=YES;
 			flightYaw = 0.0;
 		}
 		//else if ([gameView isDown:key_yaw_left] && !capsLockCustomView)
-		else if ([self checkKeyPress:n_key_yaw_left] && !capsLockCustomView)
+		else if ([self checkNavKeyPress:n_key_yaw_left] && !capsLockCustomView)
 		{
 			keyboardYawOverride=YES;
 			if (flightYaw < 0.0)  flightYaw = 0.0;
@@ -4608,7 +4623,7 @@ static NSTimeInterval	time_last_frame;
 			yawing = YES;
 		}
 		//else if ([gameView isDown:key_yaw_right] && !capsLockCustomView)
-		else if ([self checkKeyPress:n_key_yaw_right] && !capsLockCustomView)
+		else if ([self checkNavKeyPress:n_key_yaw_right] && !capsLockCustomView)
 		{
 			keyboardYawOverride=YES;
 			if (flightYaw > 0.0)  flightYaw = 0.0;

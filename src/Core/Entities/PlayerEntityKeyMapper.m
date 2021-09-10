@@ -34,9 +34,11 @@ MA 02110-1301, USA.
 int key_index;
 int current_row;
 BOOL has_error = NO;
+BOOL last_shift = NO;
 NSDictionary *selected_entry = nil;
 NSMutableArray *key_list = nil;
 NSDictionary *kdic_check = nil;
+NSArray *nav_keys = nil;
 
 @interface PlayerEntity (KeyMapperInternal)
 
@@ -62,7 +64,10 @@ NSDictionary *kdic_check = nil;
 // sets up a copy of the raw keyconfig.plist file so we can run checks against it to tell if a key is set to default
 - (void) initCheckingDictionary
 {
-	NSMutableDictionary *kdic = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	NSMutableDictionary *kdicmaster = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSString *kbd = [defaults oo_stringForKey:@"keyboard_code" defaultValue:@"default"];
+	NSMutableDictionary *kdic = [NSMutableDictionary dictionaryWithDictionary:[kdicmaster objectForKey:kbd]];
 
 	unsigned		i;
 	NSArray			*keys = nil;
@@ -82,6 +87,10 @@ NSDictionary *kdic_check = nil;
 	}
 	[kdic_check release];
 	kdic_check = [[NSDictionary alloc] initWithDictionary:kdic];
+
+	// these keys can't be used with mod keys
+	[nav_keys release];
+	nav_keys = [[NSArray alloc] initWithObjects:@"key_roll_left", @"key_roll_right", @"key_pitch_forward", @"key_pitch_back", @"key_yaw_left", @"key_yaw_right", nil];
 }
 
 
@@ -318,28 +327,30 @@ NSDictionary *kdic_check = nil;
 					forRow:GUI_ROW_KC_KEY + skiprows];
 	[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_KEY + skiprows];
 
-	if (![key isEqualToString:DESC(@"oolite-keycode-unset")])
-	{
-		[gui setArray:[NSArray arrayWithObjects: 
-									DESC(@"oolite-keyconfig-update-shift"), shift, nil]
-						forRow:GUI_ROW_KC_SHIFT + skiprows];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_SHIFT + skiprows];
+	if (![nav_keys containsObject:key]) {
+		if (![key isEqualToString:DESC(@"oolite-keycode-unset")])
+		{
+			[gui setArray:[NSArray arrayWithObjects: 
+										DESC(@"oolite-keyconfig-update-shift"), shift, nil]
+							forRow:GUI_ROW_KC_SHIFT + skiprows];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_SHIFT + skiprows];
 
-		[gui setArray:[NSArray arrayWithObjects: 
-									DESC(@"oolite-keyconfig-update-mod1"), mod1, nil]
-						forRow:GUI_ROW_KC_MOD1 + skiprows];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD1 + skiprows];
-	
+			[gui setArray:[NSArray arrayWithObjects: 
+										DESC(@"oolite-keyconfig-update-mod1"), mod1, nil]
+							forRow:GUI_ROW_KC_MOD1 + skiprows];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD1 + skiprows];
+		
 #if OOLITE_MAC_OS_X
-		[gui setArray:[NSArray arrayWithObjects: 
-									DESC(@"oolite-keyconfig-update-mod2-mac"), mod2, nil]
-						forRow:GUI_ROW_KC_MOD2 + skiprows];
+			[gui setArray:[NSArray arrayWithObjects: 
+										DESC(@"oolite-keyconfig-update-mod2-mac"), mod2, nil]
+							forRow:GUI_ROW_KC_MOD2 + skiprows];
 #else
-		[gui setArray:[NSArray arrayWithObjects: 
-									DESC(@"oolite-keyconfig-update-mod2-pc"), mod2, nil]
-						forRow: GUI_ROW_KC_MOD2 + skiprows];
+			[gui setArray:[NSArray arrayWithObjects: 
+										DESC(@"oolite-keyconfig-update-mod2-pc"), mod2, nil]
+							forRow: GUI_ROW_KC_MOD2 + skiprows];
 #endif
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD2 + skiprows];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD2 + skiprows];
+		}
 	}
 }
 
@@ -395,7 +406,7 @@ NSDictionary *kdic_check = nil;
 	
 	gui_screen = GUI_SCREEN_KEYBOARD_ENTRY;
 	BOOL guiChanged = (oldScreen != gui_screen);
-
+	
 	// make sure the index we're looking for exists
 	if ([key_list count] < (key_index + 1))
 	{
@@ -449,6 +460,7 @@ NSDictionary *kdic_check = nil;
 	}
 
 	[self handleGUIUpDownArrowKeys];
+	if ([gameView lastKeyWasShifted]) last_shift = YES;
 
 	[gui setText:
 		[NSString stringWithFormat:DESC(@"Key: %@"), [gameView typedString]]
@@ -476,6 +488,12 @@ NSDictionary *kdic_check = nil;
 {
 	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
 	[key_def setObject:keystring forKey:@"key"];
+	// auto=turn on shift if the entered key was shifted
+	if (last_shift) 
+	{
+		[key_def setObject:[NSNumber numberWithBool:YES] forKey:@"shift"];
+		last_shift = NO;
+	}
 	if (index > [key_list count] - 1)
 	{
 		[key_list insertObject:key_def atIndex:index];

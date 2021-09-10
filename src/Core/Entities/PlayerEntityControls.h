@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 - (void) beginWitchspaceCountdown;
 - (void) cancelWitchspaceCountdown;
 - (NSArray*) processKeyCode:(NSArray*)key_def;
+- (BOOL) checkNavKeyPress:(NSArray*)key_def;
 - (BOOL) checkKeyPress:(NSArray*)key_def;
 - (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only;
 - (int) getFirstKeyCode:(NSArray*)key_def;

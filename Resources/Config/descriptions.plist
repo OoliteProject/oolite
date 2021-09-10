@@ -1385,7 +1385,7 @@
 	"oolite-keyconfig-update-validation-@"		= "Conflict detected with function \"%@\"";
 	"oolite-keyconfig-update-entry-title"		= "Keyboard Command Entry";
 
-	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, 0, #, @)\n2: A 3 digit keycode for that key (eg 212, 253, 303)\n3: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, escape, enter, numpad0-9, printScreen, pause";
+	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, 0, #, @)\n2: A 3 digit keycode for that key (eg 212, 253, 303)\n3: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, backspace, escape, enter, numpad0-9, printScreen, pause";
 
 	"oolite-keyconfig-shift"					= "Shift";
 	"oolite-keyconfig-mod1"						= "Ctrl";
@@ -2162,6 +2162,7 @@
 	"oolite-keycode-numpad9" = "Numpad 9";
 	"oolite-keycode-printscreen" = "Print Screen";
 	"oolite-keycode-pause" = "Pause";
+	"oolite-keycode-backspace" = "Backspace";
 
 	// translations of special keys to a shorter version equivalent to what a user needs to enter on the keyboard config screen
 	"oolite-keycode-short-tab"		= "tab";
@@ -2201,7 +2202,8 @@
 	"oolite-keycode-short-numpad9" 	= "numpad9";
 	"oolite-keycode-short-printscreen" = "printScreen";
 	"oolite-keycode-short-pause"	= "pause";
-	
+	"oolite-keycode-short-backspace" = "backspace";
+
 	// Mac multi-screen handling
 	"oolite-mac-bad-display" = "The display configuration has changed in a way that may impact Oolite’s performance.";
 	"oolite-mac-bad-display-2" = "Oolite’s main window is now on a screen which is not connected to a graphics processor compatible with Oolite. Oolite should continue to work, but performance may be degraded.";

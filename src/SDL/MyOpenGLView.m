@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OOCollectionExtractors.h" // for splash screen settings
 #import "OOFullScreenController.h"
+#import "ResourceManager.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
@@ -49,7 +50,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) resetSDLKeyModifiers;
 - (void) setWindowBorderless:(BOOL)borderless;
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id; // DJS
 @end
 
 @implementation MyOpenGLView
@@ -153,13 +154,27 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
 	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
-	int bitsPerColorComponent = [prefs oo_intForKey:@"bpcc" defaultValue:8];
+	int 	bitsPerColorComponent = [prefs oo_intForKey:@"bpcc" defaultValue:8];
 	int		vSyncValue;
 
 	NSArray				*arguments = nil;
 	NSEnumerator		*argEnum = nil;
 	NSString			*arg = nil;
 	BOOL				noSplashArgFound = NO;
+
+	// load in our keyboard scancode mappings
+#if OOLITE_WINDOWS	
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_windows.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+#else
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_linux.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+#endif
+	NSString *kbd = [prefs oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+	NSDictionary *subset = [kmap objectForKey:kbd];
+
+	[keyMappings_normal release];
+	keyMappings_normal = [[subset objectForKey:@"mapping_normal"] copy];
+	[keyMappings_shifted release];
+	keyMappings_shifted = [[subset objectForKey:@"mapping_shifted"] copy];
 
 	// preload the printscreen key into our translation array because SDLK_PRINTSCREEN isn't available
 	scancode2Unicode[55] = gvPrintScreenKey;
@@ -229,7 +244,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
 	}
-	
+
 	atDesktopResolution = YES;
 #endif
 
@@ -1598,6 +1613,11 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (BOOL) lastKeyWasShifted
+{
+	return lastKeyShifted;
+}
+
 - (int) numKeys
 {
 	return NUM_KEYS;
@@ -1838,60 +1858,42 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			}
 			case SDL_KEYDOWN:
 				kbd_event = (SDL_KeyboardEvent*)&event;
-
-				if(allowingStringInput)
-				{
-					[self handleStringInput: kbd_event];
-				}
-
+				key_id = (Uint16)kbd_event->keysym.unicode;
+				scan_code = kbd_event->keysym.scancode;
+				//char *keychar = SDL_GetKeyName(kbd_event->keysym.sym);
 				// deal with modifiers first
-				switch (kbd_event->keysym.sym)
+				BOOL modifier_pressed = NO;
+				/*switch (kbd_event->keysym.sym)
+				{
+					default:
+						;
+				}*/
+
+				/*if (scan_code != 42 && scan_code != 29 && scan_code != 56 && scan_code != 54) 
+				{
+					OOLog(@"testing", @"\n\t\t\t\"%d\" = %d; // %c key\n", scan_code, key_id, key_id);
+				}*/
+				// translate scancode to unicode equiv
+				switch (kbd_event->keysym.sym) 
 				{
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
 						shift = YES;
+						modifier_pressed = YES;
 						break;
 
 					case SDLK_LCTRL:
 					case SDLK_RCTRL:
 						ctrl = YES;
+						modifier_pressed = YES;
 						break;
 						
 					case SDLK_LALT:
 					case SDLK_RALT:
 						opt = YES;
+						modifier_pressed = YES;
 						break;
-					default:
-						;
-				}
 
-				key_id = (Uint16)kbd_event->keysym.unicode;
-				scan_code = kbd_event->keysym.scancode;
-				OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, key_id, shift, ctrl, opt);
-
-				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
-				if (key_id > 0) 
-				{
-					// ctrl changes alpha characters to control codes (1-26)
-					if (ctrl && key_id >=1 && key_id <= 26) 
-					{
-						if (shift) 
-							key_id += 64;
-						else
-							key_id += 96;
-					}	
-					scancode2Unicode[scan_code] = key_id;
-				}
-				// ctrl changes numbers and unicode is lost
-				if (ctrl && key_id == 0 && scan_code >= 2 && scan_code <= 11)
-				{
-					key_id = (scan_code + 47); // 1 = 49, 0 = 58, offset by 2 for the scancode start point
-				}
-
-				//OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
-				// translate scancode to unicode equiv
-				switch (kbd_event->keysym.sym) 
-				{
 					case SDLK_HOME: key_id = gvHomeKey; break;
 					case SDLK_END: key_id = gvEndKey; break;
 					case SDLK_INSERT: key_id = gvInsertKey; break;
@@ -1905,6 +1907,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					case SDLK_LEFT: key_id = gvArrowKeyLeft; break;
 					case SDLK_RIGHT: key_id = gvArrowKeyRight; break;
 					case SDLK_PAUSE: key_id = gvPauseKey; break;
+					case SDLK_BACKSPACE: key_id = gvBackspaceKey; break;
+					case SDLK_DELETE: key_id = gvDeleteKey; break;
 					case SDLK_F1: key_id = gvFunctionKey1; break;
 					case SDLK_F2: key_id = gvFunctionKey2; break;
 					case SDLK_F3: key_id = gvFunctionKey3; break;
@@ -1917,12 +1921,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					case SDLK_F10: key_id = gvFunctionKey10; break;
 					case SDLK_F11: key_id = gvFunctionKey11; break;
 					case SDLK_F12:
+						key_id = 320;
 						[self toggleScreenMode];
-						break;
-
-					case SDLK_BACKSPACE:
-					case SDLK_DELETE:
-						key_id = gvDeleteKey;
 						break;
 
 					case SDLK_ESCAPE:
@@ -1935,9 +1935,54 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 							key_id = 27;
 						break;
 					default:
-						//OOLog(@"keys.test", @"Unhandled Keydown scancode with 0 unicode: %d", kbd_event->keysym.scancode);
+						//OOLog(@"keys.test", @"Unhandled Keydown scancode with unicode = 0: %d", scan_code);
 						;
 				}
+
+				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
+				// the ctrl key tends to mix up the unicode values, so deal with some special cases
+				if ((ctrl || key_id == 0) && !modifier_pressed) 
+				{
+					// ctrl changes alpha characters to control codes (1-26)
+					if (key_id >=1 && key_id <= 26) 
+					{
+						if (shift) 
+							key_id += 64; // A-Z is from 65, offset by -1 for the scancode start point
+						else
+							key_id += 96; // a-z is from 97, offset by -1 for the scancode start point
+					} 
+					else 
+					{
+						key_id = 0; // reset the value here to force a lookup from the keymappings data
+					}
+	
+					// if we get here and we still don't have a key id, grab the unicode value from our keymappings dict
+					if (key_id == 0) 
+					{
+						// get unicode value for keycode from keymappings files
+						// this handles all the non-functional keys. the function keys are handled in the switch below
+						if (!shift)
+						{
+							NSString *keyNormal = [keyMappings_normal objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
+							if (keyNormal) key_id = [keyNormal integerValue];
+						}
+						else
+						{
+							NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
+							if (keyShifted) key_id = [keyShifted integerValue];
+						}
+					}
+				}
+				// if we've got the unicode value, we can store it in our array now
+				if (key_id > 0) scancode2Unicode[scan_code] = key_id;
+
+				if(allowingStringInput)
+				{
+					[self handleStringInput:kbd_event keyID:key_id];
+				}
+
+				OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i, sym = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->keysym.sym, key_id, shift, ctrl, opt);
+				//OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
 
 				if (key_id > 0 && key_id <= [self numKeys]) 
 				{
@@ -1945,7 +1990,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				}
 				else 
 				{
-					//OOLog(@"keys.test", @"Unhandled Keydown scancode/unicode: %d %i", kbd_event->keysym.scancode, (Uint16)kbd_event->keysym.unicode);
+					//OOLog(@"keys.test", @"Unhandled Keydown scancode/unicode: %d %i", scan_code, key_id);
 				}
 				break;
 
@@ -2144,26 +2189,9 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 				suppressKeys = NO;    // DJS
 				kbd_event = (SDL_KeyboardEvent*)&event;
 				scan_code = kbd_event->keysym.scancode;
-				OOLog(kOOLogKeyUp, @"Keyup scancode = %d", scan_code);
 
+				// all the work should have been down on the keydown event, so all we need to do is get the unicode value from the array
 				key_id = scancode2Unicode[scan_code];
-
-				// ctrl changes alpha characters to control codes (1-26)
-				if (ctrl)
-				{
-				 	if (key_id >=1 && key_id <= 26) 
-					{
-						if (shift) 
-							key_id += 64;
-						else
-							key_id += 96;
-					}
-					// ctrl changes numbers and unicode is lost
-					if (key_id == 0 && scan_code >= 2 && scan_code <= 11)
-					{
-						key_id = (scan_code + 47); // 1 = 49, 0 = 58, offset by 2 for the scancode start point
-					}
-				}
 
 				// deal with modifiers first
 				switch (kbd_event->keysym.sym)
@@ -2185,6 +2213,8 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					default:
 						;
 				}
+				OOLog(kOOLogKeyUp, @"Keyup scancode = %d, unicode = %i, sym = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->keysym.sym, key_id, shift, ctrl, opt);
+				//OOLog(kOOLogKeyUp, @"Keyup scancode = %d, shift = %d, ctrl = %d, alt = %d", scan_code, shift, ctrl, opt);
 				
 				// translate scancode to unicode equiv
 				switch (kbd_event->keysym.sym) 
@@ -2214,14 +2244,11 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_F9: key_id = gvFunctionKey9; break;
 					case SDLK_F10: key_id = gvFunctionKey10; break;
 					case SDLK_F11: key_id = gvFunctionKey11; break;
-
-					case SDLK_BACKSPACE:
-					case SDLK_DELETE:
-						key_id = gvDeleteKey;
-						break;
+					case SDLK_BACKSPACE: key_id = gvBackspaceKey; break;
+					case SDLK_DELETE: key_id = gvDeleteKey; break;
 
 					default:
-						//OOLog(@"keys.test", @"Unhandled Keyup scancode with 0 unicode: %d", kbd_event->keysym.scancode);
+						//OOLog(@"keys.test", @"Unhandled Keyup scancode with unicode = 0: %d", kbd_event->keysym.scancode);
 						;
 				}
 
@@ -2587,7 +2614,7 @@ keys[a] = NO; keys[b] = NO; \
 // DJS: String input handler. Since for SDL versions we're also handling
 // freeform typing this has necessarily got more complex than the non-SDL
 // versions.
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event;
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id;
 {
 	SDLKey key=kbd_event->keysym.sym;
 
@@ -2603,9 +2630,10 @@ keys[a] = NO; keys[b] = NO; \
 	// TODO: a more flexible mechanism  for max. string length ?
 	if([typedString length] < 40)
 	{
+		lastKeyShifted = shift;
 		if (allowingStringInput == gvStringInputAlpha)
 		{
-		// inputAlpha - limited input for planet find screen
+			// inputAlpha - limited input for planet find screen
 			if(key >= SDLK_a && key <= SDLK_z)
 			{
 				isAlphabetKeyDown=YES;
@@ -2615,14 +2643,14 @@ keys[a] = NO; keys[b] = NO; \
 		}
 		else
 		{
-			Uint16 unicode = kbd_event->keysym.unicode;
+			//Uint16 unicode = kbd_event->keysym.unicode;
 			// printable range
-			if (unicode >= 32 && unicode <= 255) // 126
+			if (key_id >= 32 && key_id <= 255) // 126
 			{
-				if ((char)unicode != '/' || allowingStringInput == gvStringInputAll)
+				if ((char)key_id != '/' || allowingStringInput == gvStringInputAll)
 				{
 					isAlphabetKeyDown=YES;
-					[typedString appendFormat:@"%c", unicode];
+					[typedString appendFormat:@"%c", key_id];
 				}
 			}
 		}
