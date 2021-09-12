@@ -1,5 +1,5 @@
 {
-	// this file contains Windows keyboard scancode with the equivalent unicode key value for various keyboard layouts
+	// this file contains Windows keyboard scancodes with the equivalent unicode key value for various keyboard layouts
 	// each section in this file must match to a section in the keyconfig2.plist file
 	// to switch to a different keyboard layout, edit the .GNUstepDefaults file and add/change 
 	// 		"keyboard-code" = "{preferredCode}";

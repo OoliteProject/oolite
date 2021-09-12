@@ -327,7 +327,7 @@ NSArray *nav_keys = nil;
 					forRow:GUI_ROW_KC_KEY + skiprows];
 	[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_KEY + skiprows];
 
-	if (![nav_keys containsObject:key]) {
+	if (![nav_keys containsObject:[selected_entry objectForKey: KEY_KC_DEFINITION]]) {
 		if (![key isEqualToString:DESC(@"oolite-keycode-unset")])
 		{
 			[gui setArray:[NSArray arrayWithObjects: 

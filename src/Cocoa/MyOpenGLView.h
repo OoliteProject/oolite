@@ -119,9 +119,13 @@ extern int debug;
 	GameController		*gameController;
 
 	BOOL				keys[NUM_KEYS];
+	int					scancode2Unicode[NUM_KEYS];
+	NSDictionary 		*keyMappings_normal;
+	NSDictionary		*keyMappings_shifted;
+
 	BOOL				suppressKeys;	// DJS
 
-	BOOL				opt, ctrl, command, shift, capsLockOn;
+	BOOL				opt, ctrl, command, shift, capsLockOn, lastKeyShifted;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 	BOOL				commandQ;
@@ -156,6 +160,7 @@ extern int debug;
 }
 
 
+- (void) initKeyMappingData;
 - (void) setStringInput: (enum StringInput) value;
 - (void) allowStringInput: (BOOL) value;
 - (enum StringInput) allowingStringInput;
@@ -204,6 +209,7 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (BOOL) isCapsLockOn;
+- (BOOL) lastKeyWasShifted;
 - (int) numKeys;
 - (int) mouseWheelState;
 - (float) mouseWheelDelta;

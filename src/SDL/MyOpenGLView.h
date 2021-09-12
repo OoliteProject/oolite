@@ -207,6 +207,8 @@ extern int debug;
 - (void) endSplashScreen;
 - (void) autoShowMouse;
 
+- (void) initKeyMappingData;
+
 - (void) setStringInput: (enum StringInput) value;
 - (void) allowStringInput: (BOOL) value;
 - (enum StringInput) allowingStringInput;

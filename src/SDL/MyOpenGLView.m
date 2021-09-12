@@ -162,19 +162,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	NSString			*arg = nil;
 	BOOL				noSplashArgFound = NO;
 
-	// load in our keyboard scancode mappings
-#if OOLITE_WINDOWS	
-	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_windows.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
-#else
-	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_linux.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
-#endif
-	NSString *kbd = [prefs oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
-	NSDictionary *subset = [kmap objectForKey:kbd];
-
-	[keyMappings_normal release];
-	keyMappings_normal = [[subset objectForKey:@"mapping_normal"] copy];
-	[keyMappings_shifted release];
-	keyMappings_shifted = [[subset objectForKey:@"mapping_shifted"] copy];
+	[self initKeyMappingData];
 
 	// preload the printscreen key into our translation array because SDLK_PRINTSCREEN isn't available
 	scancode2Unicode[55] = gvPrintScreenKey;
@@ -436,6 +424,26 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	[self autoShowMouse];
 }
 
+
+- (void) initKeyMappingData
+{
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	// load in our keyboard scancode mappings
+#if OOLITE_WINDOWS	
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_windows.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+#else
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_linux.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+#endif
+	NSString *kbd = [prefs oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+	NSDictionary *subset = [kmap objectForKey:kbd];
+
+	[keyMappings_normal release];
+	keyMappings_normal = [[subset objectForKey:@"mapping_normal"] copy];
+	[keyMappings_shifted release];
+	keyMappings_shifted = [[subset objectForKey:@"mapping_shifted"] copy];
+}
+
+
 - (void) dealloc
 {
 	if (typedString)
@@ -449,6 +457,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		SDL_FreeSurface(surface);
 		surface = 0;
 	}
+
+	if (keyMappings_normal)
+		[keyMappings_normal release];
+	
+	if (keyMappings_shifted)
+		[keyMappings_shifted release];
 
 	SDL_Quit();
 
