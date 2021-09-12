@@ -1345,7 +1345,7 @@
         });
         key_next_compass_mode = ({
             key = "\\";
-            mod2 = true
+            mod2 = true;
         });
 
         key_chart_highlight = ({
