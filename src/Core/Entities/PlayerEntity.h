@@ -857,6 +857,7 @@ typedef enum
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
 	NSArray					*keyFunctions;
+	NSArray					*kbdLayouts;
 	NSString				*keyShiftText;
 	NSString				*keyMod1Text;
 	NSString				*keyMod2Text;

@@ -1920,7 +1920,7 @@
 		};
 	};
 	"por" = {
-		description = "Portugese keyboard";
+		description = "Portuguese keyboard";
 		mapping_normal = {
 			"50" = 92; // \ key
 			"18" = 49; // 1 key

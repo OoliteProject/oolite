@@ -1360,6 +1360,8 @@
 	"oolite-keydesc-key_debug_shaders"			= "Shaders";
 	"oolite-keydesc-key_debug_off"				= "Turn off debug messages";
 
+	"oolite-keyconfig-keyboard"					= "Current keyboard layout";
+	"oolite-keyconfig-keyboard-info"			= "Select your current keyboard layout from the available options.";
 	"oolite-keyconfig-validation-error"			= "Key conflicts have been detected!";
 	"oolite-keyconfig-initial-info-1"			= "Select a function and press Enter to modify or 'r' to reset to default.";
 	"oolite-keyconfig-initial-info-2"			= "Press Ctrl+'r' to reset all functions back to default.";

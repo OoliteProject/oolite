@@ -2628,7 +2628,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 				   gui_screen != GUI_SCREEN_KEYBOARD && 
 				   gui_screen != GUI_SCREEN_KEYBOARD_CONFIRMCLEAR &&
 				   gui_screen != GUI_SCREEN_KEYBOARD_CONFIG &&
-				   gui_screen != GUI_SCREEN_KEYBOARD_ENTRY))
+				   gui_screen != GUI_SCREEN_KEYBOARD_ENTRY &&
+				   gui_screen != GUI_SCREEN_KEYBOARD_LAYOUT))
 	{
 		// and if not, do a restart of the GUI
 		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
@@ -3511,6 +3512,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			case GUI_SCREEN_KEYBOARD_CONFIRMCLEAR:
 			case GUI_SCREEN_KEYBOARD_CONFIG:
 			case GUI_SCREEN_KEYBOARD_ENTRY:
+			case GUI_SCREEN_KEYBOARD_LAYOUT:
 				return;
 			
 			// Screens from which it's safe to jump to the mission screen
@@ -13429,6 +13431,7 @@ else _dockTarget = NO_TARGET;
 	selFunctionIdx &&
 	stickFunctions &&
 	keyFunctions &&
+	kbdLayouts &&
 	showingLongRangeChart &&
 	_missionAllowInterrupt &&
 	_missionScreenID &&

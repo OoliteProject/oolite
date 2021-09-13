@@ -167,6 +167,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollGuiArrowKeyControls:(double) delta_t;
 - (void) handleGameOptionsScreenKeys;
 - (void) handleKeyMapperScreenKeys;
+- (void) handleKeyboardLayoutKeys;
 - (void) handleStickMapperScreenKeys;
 - (void) pollApplicationControls;
 - (void) pollCustomViewControls;
@@ -1950,7 +1951,7 @@ static NSTimeInterval	time_last_frame;
 			
 			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER || 
 				gui_screen == GUI_SCREEN_STICKPROFILE || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR ||
-				gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY)
+				gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT)
 			{
 				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE messageGUI] leaveLastLine];
 				else [[UNIVERSE messageGUI] clear];
@@ -2676,6 +2677,10 @@ static NSTimeInterval	time_last_frame;
 
 		case GUI_SCREEN_KEYBOARD_ENTRY:
 			[self handleKeyConfigEntryKeys:gui view:gameView];
+			break;
+
+		case GUI_SCREEN_KEYBOARD_LAYOUT:
+			[self handleKeyboardLayoutKeys];
 			break;
 
 		case GUI_SCREEN_SHIPLIBRARY:
@@ -4010,7 +4015,45 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 	}
+}
+
+
+- (void) handleKeyboardLayoutKeys
+{
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
 	
+	[self handleKeyboardLayoutEntryKeys: gui view: gameView];
+	leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
+	if (leftRightKeyPressed)
+	{
+		NSString *key = [gui keyForRow: [gui selectedRow]];
+		if ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down])
+		{
+			key = [gui keyForRow:GUI_ROW_KC_FUNCEND];
+		}
+		if ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up])
+		{
+			key = [gui keyForRow:GUI_ROW_KC_FUNCSTART];
+		}
+		int from_function = 0;
+		NSArray *keyComponents = [key componentsSeparatedByString:@":"];
+		if ([keyComponents count] > 1)
+		{
+			from_function = [keyComponents oo_intAtIndex:1];
+			if (from_function < 0)  from_function = 0;
+			
+			[self setGuiToKeyboardLayoutScreen:from_function resetCurrentRow:YES];
+			if ([[UNIVERSE gui] selectedRow] < GUI_ROW_KC_FUNCSTART)
+			{
+				[[UNIVERSE gui] setSelectedRow: GUI_ROW_KC_FUNCSTART];
+			}
+			if (from_function == 0)
+			{
+				[[UNIVERSE gui] setSelectedRow: GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1];
+			}
+		}
+	}
 }
 
 
@@ -5128,7 +5171,11 @@ static BOOL autopilot_pause;
 		case GUI_SCREEN_KEYBOARD_ENTRY:
 			[self handleKeyConfigEntryKeys:gui view:gameView];
 			break;
-			
+
+		case GUI_SCREEN_KEYBOARD_LAYOUT:
+			[self handleKeyboardLayoutKeys];
+			break;
+
 		case GUI_SCREEN_STICKMAPPER:
 			[self handleStickMapperScreenKeys];
 			break;

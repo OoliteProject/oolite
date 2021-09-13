@@ -31,20 +31,23 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "GameController.h"
 
-int key_index;
-int current_row;
-BOOL has_error = NO;
-BOOL last_shift = NO;
-NSDictionary *selected_entry = nil;
-NSMutableArray *key_list = nil;
-NSDictionary *kdic_check = nil;
-NSArray *nav_keys = nil;
+static NSUInteger key_index;
+static long current_row;
+static long kbd_row = GUI_ROW_KC_FUNCSTART;
+static BOOL has_error = NO;
+static BOOL last_shift = NO;
+static NSDictionary *selected_entry = nil;
+static NSMutableArray *key_list = nil;
+static NSDictionary *kdic_check = nil;
+static NSArray *nav_keys = nil;
 
 @interface PlayerEntity (KeyMapperInternal)
 
-- (void)updateKeyDefinition:(NSString *)keystring index:(int)index;
-- (void)updateShiftKeyDefinition:(NSString *)key index:(int)index;
-- (void)displayKeyFunctionList:(GuiDisplayGen *)gui skip:(NSUInteger) skip;
+- (void)updateKeyDefinition:(NSString *)keystring index:(NSUInteger)index;
+- (void)updateShiftKeyDefinition:(NSString *)key index:(NSUInteger)index;
+- (void)displayKeyFunctionList:(GuiDisplayGen *)gui skip:(NSUInteger)skip;
+- (NSString *)keyboardDescription:(NSString *)kbd;
+- (void)displayKeyboardLayoutList:(GuiDisplayGen *)gui skip:(NSUInteger)skip;
 - (NSArray *)keyFunctionList;
 - (NSArray *)validateAllKeys;
 - (NSString *)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
@@ -66,13 +69,13 @@ NSArray *nav_keys = nil;
 {
 	NSMutableDictionary *kdicmaster = [NSMutableDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keyconfig2.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSString *kbd = [defaults oo_stringForKey:@"keyboard_code" defaultValue:@"default"];
+	NSString *kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
 	NSMutableDictionary *kdic = [NSMutableDictionary dictionaryWithDictionary:[kdicmaster objectForKey:kbd]];
 
-	unsigned		i;
-	NSArray			*keys = nil;
-	id				key = nil;
-	NSArray  		*def_list = nil;
+	NSUInteger i;
+	NSArray *keys = nil;
+	id key = nil;
+	NSArray *def_list = nil;
 
 	keys = [kdic allKeys];
 	for (i = 0; i < [keys count]; i++)
@@ -101,6 +104,9 @@ NSArray *nav_keys = nil;
 
 - (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow
 {
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSString *kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	OOGUIScreenID oldScreen = gui_screen;
@@ -118,6 +124,11 @@ NSArray *nav_keys = nil;
 
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:@"Configure Keyboard"]];
+
+	// show keyboard layout
+	[gui setArray:[NSArray arrayWithObjects:DESC(@"oolite-keyconfig-keyboard"), [self keyboardDescription:kbd], nil] forRow:GUI_ROW_KC_SELECTKBD];
+	[gui setKey:[NSString stringWithFormat:@"kbd:%@", kbd] forRow:GUI_ROW_KC_SELECTKBD];
+	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_KC_SELECTKBD];
 
 	[self displayKeyFunctionList:gui skip:skip];
 
@@ -162,8 +173,7 @@ NSArray *nav_keys = nil;
 }
 
 
-- (void) keyMapperInputHandler:(GuiDisplayGen *)gui
-							view:(MyOpenGLView *)gameView
+- (void) keyMapperInputHandler:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView
 {
 	[self handleGUIUpDownArrowKeys];
 	BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
@@ -185,6 +195,12 @@ NSArray *nav_keys = nil;
 			current_row = GUI_ROW_KC_FUNCSTART;
 			if (from_function == 0) current_row = GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1;
 			[self setGuiToKeyMapperScreen:from_function];
+			if ([gameView isDown:gvMouseDoubleClick]) [gameView clearMouse];
+			return;
+		}
+		if ([key hasPrefix:@"kbd:"])
+		{
+			[self setGuiToKeyboardLayoutScreen:0];
 			if ([gameView isDown:gvMouseDoubleClick]) [gameView clearMouse];
 			return;
 		}
@@ -226,7 +242,7 @@ NSArray *nav_keys = nil;
 
 - (void) setGuiToKeyConfigScreen:(BOOL)resetSelectedRow
 {
-	int	i = 0;
+	NSUInteger i = 0;
 	GuiDisplayGen *gui=[UNIVERSE gui];
 	OOGUIScreenID oldScreen = gui_screen;
 	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
@@ -237,7 +253,7 @@ NSArray *nav_keys = nil;
 	gui_screen = GUI_SCREEN_KEYBOARD_CONFIG;
 	BOOL guiChanged = (oldScreen != gui_screen);
 	[gui clear];
-	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-title")]];
+	[gui setTitle:[NSString stringWithFormat:@"%@", DESC(@"oolite-keyconfig-update-title")]];
 
 	[gui setArray: [NSArray arrayWithObjects: 
 								DESC(@"oolite-keyconfig-update-function"), [selected_entry objectForKey: KEY_KC_GUIDESC], nil]
@@ -318,7 +334,7 @@ NSArray *nav_keys = nil;
 }
 
 
-- (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(int)skiprows
+- (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(NSUInteger)skiprows
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
 
@@ -355,8 +371,7 @@ NSArray *nav_keys = nil;
 }
 
 
-- (void) handleKeyConfigKeys:(GuiDisplayGen *)gui
-							view:(MyOpenGLView *)gameView
+- (void) handleKeyConfigKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView
 {
 	[self handleGUIUpDownArrowKeys];
 	BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]);
@@ -423,7 +438,7 @@ NSArray *nav_keys = nil;
 	[gameView setStringInput:gvStringInputAll];
 
 	[gui clear];
-	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-update-entry-title")]];
+	[gui setTitle:[NSString stringWithFormat:@"%@", DESC(@"oolite-keyconfig-update-entry-title")]];
 	
 	NSUInteger end_row = 21;
 	if ([[self hud] allowBigGui]) 
@@ -450,8 +465,7 @@ NSArray *nav_keys = nil;
 }
 
 
-- (void) handleKeyConfigEntryKeys:(GuiDisplayGen *)gui
-							view:(MyOpenGLView *)gameView
+- (void) handleKeyConfigEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView
 {
 	NSUInteger end_row = 21;
 	if ([[self hud] allowBigGui]) 
@@ -475,7 +489,7 @@ NSArray *nav_keys = nil;
 		[gameView clearKeys];	// try to stop key bounces
 		[self setGuiToKeyConfigScreen:YES];
 	}
-	if ([gameView isDown:27]) 
+	if ([gameView isDown:27]) // escape
 	{
 		[gameView suppressKeysUntilKeyUp];
 		// don't update function key
@@ -484,7 +498,7 @@ NSArray *nav_keys = nil;
 }
 
 // updates the overridden definition of a key to a new keycode value
-- (void) updateKeyDefinition:(NSString *)keystring index:(int)index
+- (void) updateKeyDefinition:(NSString *)keystring index:(NSUInteger)index
 {
 	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
 	[key_def setObject:keystring forKey:@"key"];
@@ -511,7 +525,7 @@ NSArray *nav_keys = nil;
 
 
 // changes the shift/ctrl/alt state of an overridden definition
-- (void) updateShiftKeyDefinition:(NSString *)key index:(int)index
+- (void) updateShiftKeyDefinition:(NSString *)key index:(NSUInteger)index
 {
 	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
 	BOOL current = [[key_def objectForKey:key] boolValue];
@@ -538,9 +552,9 @@ NSArray *nav_keys = nil;
 	BOOL guiChanged = (oldScreen != gui_screen);
 	
 	[gui clear];
-	[gui setTitle:[NSString stringWithFormat:DESC(@"oolite-keyconfig-clear-overrides-title")]];
+	[gui setTitle:[NSString stringWithFormat:@"%@", DESC(@"oolite-keyconfig-clear-overrides-title")]];
 	
-	[gui addLongText:[NSString stringWithFormat:DESC(@"oolite-keyconfig-clear-overrides")]
+	[gui addLongText:[NSString stringWithFormat:@"%@", DESC(@"oolite-keyconfig-clear-overrides")]
 								startingAtRow:GUI_ROW_KC_CONFIRMCLEAR align:GUI_ALIGN_LEFT];
 	
 	[gui setText:DESC(@"oolite-keyconfig-clear-yes") forRow: GUI_ROW_KC_CONFIRMCLEAR_YES align:GUI_ALIGN_CENTER];
@@ -561,8 +575,7 @@ NSArray *nav_keys = nil;
 }
 
 
-- (void) handleKeyMapperConfirmClearKeys:(GuiDisplayGen *)gui
-							view:(MyOpenGLView *)gameView
+- (void) handleKeyMapperConfirmClearKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView
 {
 	[self handleGUIUpDownArrowKeys];
 
@@ -593,8 +606,7 @@ NSArray *nav_keys = nil;
 }
 
 
-- (void) displayKeyFunctionList:(GuiDisplayGen *)gui
-						skip:(NSUInteger)skip
+- (void) displayKeyFunctionList:(GuiDisplayGen *)gui skip:(NSUInteger)skip
 {
 	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
 	[gui setArray:[NSArray arrayWithObjects:
@@ -646,7 +658,7 @@ NSArray *nav_keys = nil;
 			[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_KC_FUNCSTART];
 		}
 		
-		for(i=0; i < (n_functions - skip) && (int)i < n_rows; i++)
+		for(i = 0; i < (n_functions - skip) && (int)i < n_rows; i++)
 		{
 			NSDictionary *entry = [keyFunctions objectAtIndex:i + skip];
 			if ([entry objectForKey:KEY_KC_HEADER]) {
@@ -683,7 +695,7 @@ NSArray *nav_keys = nil;
 			i++;
 		}
 		
-		[gui setSelectableRange:NSMakeRange(GUI_ROW_KC_FUNCSTART, i + start_row - GUI_ROW_KC_FUNCSTART)];
+		[gui setSelectableRange:NSMakeRange(GUI_ROW_KC_SELECTKBD, (i + start_row - GUI_ROW_KC_FUNCSTART) + (GUI_ROW_KC_FUNCSTART - GUI_ROW_KC_SELECTKBD))];
 	}
 }
 
@@ -863,12 +875,230 @@ NSArray *nav_keys = nil;
 }
 
 
+- (void) setGuiToKeyboardLayoutScreen:(unsigned)skip
+{
+	[self setGuiToKeyboardLayoutScreen:skip resetCurrentRow:NO];
+}
+
+
+- (void) setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow
+{
+	GuiDisplayGen *gui = [UNIVERSE gui];
+	MyOpenGLView *gameView = [UNIVERSE gameView];
+	OOGUIScreenID oldScreen = gui_screen;
+	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
+	tabStop[0] = 10;
+	tabStop[1] = 290;
+	[gui setTabStops:tabStop];
+
+	gui_screen = GUI_SCREEN_KEYBOARD_LAYOUT;
+	BOOL guiChanged = (oldScreen != gui_screen);
+
+	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+
+	[gui clear];
+	[gui setTitle:[NSString stringWithFormat:@"Select Keyboard Layout"]];
+
+	[self displayKeyboardLayoutList:gui skip:skip];
+
+	[gui setArray:[NSArray arrayWithObject:DESC(@"oolite-keyconfig-keyboard-info")] forRow:GUI_ROW_KC_INSTRUCT];
+
+	[gui setSelectedRow:kbd_row];
+
+	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
+	[gui setBackgroundTextureKey:@"keyboardsettings"];
+
+	[gameView clearMouse];
+	[gameView clearKeys];
+	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
+
+	if (guiChanged) [self noteGUIDidChangeFrom:oldScreen to:gui_screen];
+}
+
+
+- (void) handleKeyboardLayoutEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView
+{
+	[self handleGUIUpDownArrowKeys];
+	BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick]);
+	if ([gameView isDown:gvMouseDoubleClick])  [gameView clearMouse];
+
+	NSString *key = [gui keyForRow: [gui selectedRow]];
+	if (selectKeyPress)
+	{
+		if ([key hasPrefix:@"More:"])
+		{
+			int from_function = [[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
+			if (from_function < 0)  from_function = 0;
+
+			current_row = GUI_ROW_KC_FUNCSTART;
+			if (from_function == 0) current_row = GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1;
+			[self setGuiToKeyboardLayoutScreen:from_function];
+			if ([gameView isDown:gvMouseDoubleClick]) [gameView clearMouse];
+			return;
+		}
+
+		// update the keyboard code
+		NSUInteger idx =[[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
+		NSString *kbd = [[kbdLayouts objectAtIndex:idx] objectForKey:@"key"];
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setObject:kbd forKey:@"keyboard-code"];
+		//OOLog(@"testing", @"key = %@", kbd);
+		[self initKeyConfigSettings];
+		[self initCheckingDictionary];
+
+		[gameView clearKeys];	// try to stop key bounces
+		[self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
+		//OOLogWARN(@"testing", @"checking lookup %@.", entry);
+	}
+	if ([gameView isDown:27]) // escape - return without change
+	{
+		[gameView clearKeys];	// try to stop key bounces
+		[self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
+	}	
+}
+
+
+- (NSString *)keyboardDescription:(NSString *)kbd
+{
+	NSString *map = @"";
+#if OOLITE_WINDOWS	
+	map = @"keymappings_windows.plist";
+#endif
+#if OOLITE_LINUX
+	map = @"keymappings_linux.plist";
+#endif
+#if OOLITE_MAC_OS_X
+	map = @"keymappings_mac.plist";
+#endif
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:map inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	NSDictionary *sect = [kmap objectForKey:kbd];
+	return [sect objectForKey:@"description"];
+}
+
+
+- (NSArray *)keyboardLayoutList
+{
+	NSString *map = @"";
+#if OOLITE_WINDOWS	
+	map = @"keymappings_windows.plist";
+#endif
+#if OOLITE_LINUX
+	map = @"keymappings_linux.plist";
+#endif
+#if OOLITE_MAC_OS_X
+	map = @"keymappings_mac.plist";
+#endif
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSString *kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:map inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	NSMutableArray *kbdList = [NSMutableArray array];
+	NSArray *keys = [kmap allKeys];
+	NSUInteger i;
+	NSDictionary *def = nil;
+
+	for (i = 0; i < [keys count]; i++)
+	{
+		if (![[keys objectAtIndex:i] isEqualToString:@"default"])
+		{
+			[kbdList addObject:[[NSDictionary alloc] initWithObjectsAndKeys:[keys objectAtIndex:i], @"key", 
+				[self keyboardDescription:[keys objectAtIndex:i]], @"description", 
+				([[keys objectAtIndex:i] isEqualToString:kbd] ? @"Current" : @""), @"selected",
+				nil]];
+		}
+		else 
+		{
+			// key the "default" item separate, so we can add it at the top of the list, rather than getting it sorted
+			def = [[NSDictionary alloc] initWithObjectsAndKeys:[keys objectAtIndex:i], @"key", 
+				[self keyboardDescription:[keys objectAtIndex:i]], @"description", 
+				([[keys objectAtIndex:i] isEqualToString:kbd] ? @"Current" : @""), @"selected",
+				nil];
+		}
+	}
+
+	NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
+	NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
+	NSMutableArray *sorted = [[NSMutableArray alloc] initWithArray:[kbdList sortedArrayUsingDescriptors:sortDescriptors]];
+	[sorted insertObject:def atIndex:0];
+	return sorted;
+}
+
+
+- (void) displayKeyboardLayoutList:(GuiDisplayGen *)gui skip:(NSUInteger)skip
+{
+	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
+	[gui setArray:[NSArray arrayWithObjects:@"Keyboard layout", nil] forRow:GUI_ROW_KC_HEADING];
+
+	if(!kbdLayouts)
+	{
+		kbdLayouts = [[self keyboardLayoutList] retain];
+	}
+
+	NSUInteger i, n_functions = [kbdLayouts count];
+	NSInteger n_rows, start_row, previous = 0;
+
+	if (skip >= n_functions)
+		skip = n_functions - 1;
+	
+	if (n_functions < MAX_ROWS_KC_FUNCTIONS)
+	{
+		skip = 0;
+		previous = 0;
+		n_rows = MAX_ROWS_KC_FUNCTIONS;
+		start_row = GUI_ROW_KC_FUNCSTART;
+	}
+	else
+	{
+		n_rows = MAX_ROWS_KC_FUNCTIONS  - 1;
+		start_row = GUI_ROW_KC_FUNCSTART;
+		if (skip > 0)
+		{
+			n_rows -= 1;
+			start_row += 1;
+			if (skip > MAX_ROWS_KC_FUNCTIONS)
+				previous = skip - (MAX_ROWS_KC_FUNCTIONS - 2);
+			else
+				previous = 0;
+		}
+	}
+	
+	if (n_functions > 0)
+	{
+		if (skip > 0)
+		{
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_FUNCSTART];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_KC_FUNCSTART];
+			[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_KC_FUNCSTART];
+		}
+		
+		for(i = 0; i < (n_functions - skip) && (int)i < n_rows; i++)
+		{
+			NSDictionary *entry = [kbdLayouts objectAtIndex:i + skip];
+			NSString *desc = [entry objectForKey:@"description"];
+			NSString *selected = [entry objectForKey:@"selected"];
+			[gui setArray:[NSArray arrayWithObjects:desc, selected, nil] forRow:i + start_row];
+			[gui setKey:[NSString stringWithFormat:@"Index:%ld", i + skip] forRow:i + start_row];
+		}
+		if (i < n_functions - skip)
+		{
+			[gui setColor:[OOColor greenColor] forRow:start_row + i];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:start_row + i];
+			[gui setKey:[NSString stringWithFormat:@"More:%ld", n_rows + skip] forRow:start_row + i];
+			i++;
+		}
+		
+		[gui setSelectableRange:NSMakeRange(GUI_ROW_KC_FUNCSTART, i + start_row - GUI_ROW_KC_FUNCSTART)];
+	}
+}
+
+
+
 // return an array of all functions currently in conflict
 - (NSArray *) validateAllKeys
 {
 	NSMutableArray *failed = [[NSMutableArray alloc] init];
 	NSString *validate = nil;
-	int i;
+	NSUInteger i;
 
 	for (i = 0; i < [keyFunctions count]; i++)
 	{
@@ -1013,7 +1243,7 @@ NSArray *nav_keys = nil;
 - (NSString *) searchArrayForMatch:(NSArray *)search_list key:(NSString *)key checkKeys:(NSArray *)check_keys
 {
 	NSString *search = nil;
-	int i, j, k;
+	NSUInteger i, j, k;
 	for (i = 0; i < [search_list count]; i++)
 	{
 		search = (NSString*)[search_list objectAtIndex:i];
@@ -1040,7 +1270,7 @@ NSArray *nav_keys = nil;
 - (BOOL) entryIsEqualToDefault:(NSString*)key
 {
 	NSArray *def = (NSArray *)[kdic_check objectForKey:key];
-	int i;
+	NSUInteger i;
 
 	if ([def count] != [key_list count]) return NO;
 	for (i = 0; i < [key_list count]; i++)

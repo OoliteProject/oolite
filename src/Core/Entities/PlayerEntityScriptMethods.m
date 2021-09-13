@@ -382,7 +382,7 @@ MA 02110-1301, USA.
 	}
 	NSMutableString *final = [NSMutableString string];
 	NSArray *keyList = (NSArray*)[keyconfig2_settings objectForKey:binding];
-	int i = 0;
+	NSUInteger i = 0;
 
 	for (i = 0; i < [keyList count]; i++) {
 		if (i != 0) final = [NSMutableString stringWithFormat:@"%@ or ", final];

@@ -29,13 +29,16 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
-#define MAX_ROWS_KC_FUNCTIONS		   15
+#define MAX_ROWS_KC_FUNCTIONS		   12
 
-#define GUI_ROW_KC_HEADING			   1
-#define GUI_ROW_KC_FUNCSTART		   2
+#define GUI_ROW_KC_SELECTKBD        1
+#define GUI_ROW_KC_HEADING			   4
+#define GUI_ROW_KC_FUNCSTART		   5
 #define GUI_ROW_KC_FUNCEND			   (GUI_ROW_KC_FUNCSTART + MAX_ROWS_KC_FUNCTIONS - 1)
 #define GUI_ROW_KC_ERROR            17
 #define GUI_ROW_KC_INSTRUCT		   18
+
+
 #define GUI_ROW_KC_CONFIRMCLEAR     5
 #define GUI_ROW_KC_CONFIRMCLEAR_YES	8
 #define GUI_ROW_KC_CONFIRMCLEAR_NO  9
@@ -63,24 +66,24 @@ MA 02110-1301, USA.
 @interface PlayerEntity (KeyMapper)
    - (void) initCheckingDictionary;
 
-   - (void) setGuiToKeyMapperScreen: (unsigned)skip resetCurrentRow: (BOOL) resetCurrentRow;
-   - (void) setGuiToKeyMapperScreen: (unsigned)skip;
-   - (void) keyMapperInputHandler: (GuiDisplayGen *)gui
-							   view: (MyOpenGLView *)gameView;
+   - (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
+   - (void) setGuiToKeyMapperScreen:(unsigned)skip;
+   - (void) keyMapperInputHandler:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
 
    - (void) setGuiToKeyConfigScreen;
    - (void) setGuiToKeyConfigScreen:(BOOL) resetSelectedRow;
-   - (void) handleKeyConfigKeys: (GuiDisplayGen *)gui
-							   view: (MyOpenGLView *)gameView;
-   - (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(int)skiprows;
+   - (void) handleKeyConfigKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
+   - (void) outputKeyDefinition:(NSString *)key shift:(NSString *)shift mod1:(NSString *)mod1 mod2:(NSString *)mod2 skiprows:(NSUInteger)skiprows;
 
    - (void) setGuiToKeyConfigEntryScreen;
-   - (void) handleKeyConfigEntryKeys: (GuiDisplayGen *)gui
-                        view: (MyOpenGLView *)gameView;
+   - (void) handleKeyConfigEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
 
    - (void) setGuiToConfirmClearScreen;
-   - (void) handleKeyMapperConfirmClearKeys: (GuiDisplayGen *)gui
-							   view: (MyOpenGLView *)gameView;
+   - (void) handleKeyMapperConfirmClearKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
+
+   - (void) setGuiToKeyboardLayoutScreen:(unsigned)skip;
+   - (void) setGuiToKeyboardLayoutScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
+   - (void) handleKeyboardLayoutEntryKeys:(GuiDisplayGen *)gui view:(MyOpenGLView *)gameView;
 
    - (NSDictionary *)makeKeyGuiDict:(NSString *)what keyDef:(NSString *)keyDef;
    - (NSDictionary *)makeKeyGuiDictHeader:(NSString *)header;
