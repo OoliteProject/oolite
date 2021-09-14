@@ -268,11 +268,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -773,11 +773,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -1277,11 +1277,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -1785,11 +1785,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -2291,11 +2291,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -2806,11 +2806,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -3312,11 +3312,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -3817,11 +3817,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -4322,11 +4322,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -4826,11 +4826,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -5332,11 +5332,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -5838,11 +5838,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -6345,11 +6345,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -6853,11 +6853,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -7361,11 +7361,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({
@@ -7866,11 +7866,11 @@
         });
         // new
         key_map_zoom_in = ({
-            key = "pageDown";
+            key = "pageUp";
         });
         // new
         key_map_zoom_out = ({
-            key = "pageUp";
+            key = "pageDown";
         });
         // new
         key_map_next_system = ({

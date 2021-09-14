@@ -1311,8 +1311,8 @@
 	"oolite-keydesc-key_dec_field_of_view"		= "Decrease FOV";
 
 	"oolite-keydesc-key_comms_log"				= "Comms log";
-	"oolite-keydesc-key_prev_compass_mode"		= "Next compass target";
-	"oolite-keydesc-key_next_compass_mode"		= "Previous compass target";
+	"oolite-keydesc-key_prev_compass_mode"		= "Previous compass target";
+	"oolite-keydesc-key_next_compass_mode"		= "Next compass target";
 
 	"oolite-keydesc-key_chart_highlight"		= "Chart highlight";
 
