@@ -775,17 +775,6 @@ static NSArray *nav_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_a") keyDef:@"key_fastactivate_equipment_a"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_b") keyDef:@"key_fastactivate_equipment_b"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Miscellaneous"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_snapshot") keyDef:@"key_snapshot"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pausebutton") keyDef:@"key_pausebutton"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_show_fps") keyDef:@"key_show_fps"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_roll") keyDef:@"key_mouse_control_roll"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_yaw") keyDef:@"key_mouse_control_yaw"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hud_toggle") keyDef:@"key_hud_toggle"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_inc_field_of_view") keyDef:@"key_inc_field_of_view"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dec_field_of_view") keyDef:@"key_dec_field_of_view"]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_comms_log") keyDef:@"key_comms_log"]];
-
 	[funcList addObject:[self makeKeyGuiDictHeader:@"Chart screen"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_next") keyDef:@"key_advanced_nav_array_next"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_previous") keyDef:@"key_advanced_nav_array_previous"]];
@@ -811,6 +800,19 @@ static NSArray *nav_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sell_one") keyDef:@"key_market_sell_one"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_buy_max") keyDef:@"key_market_buy_max"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sell_max") keyDef:@"key_market_sell_max"]];
+
+	[funcList addObject:[self makeKeyGuiDictHeader:@"Miscellaneous"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_snapshot") keyDef:@"key_snapshot"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pausebutton") keyDef:@"key_pausebutton"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_show_fps") keyDef:@"key_show_fps"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_roll") keyDef:@"key_mouse_control_roll"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_yaw") keyDef:@"key_mouse_control_yaw"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hud_toggle") keyDef:@"key_hud_toggle"]];
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_inc_field_of_view") keyDef:@"key_inc_field_of_view"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dec_field_of_view") keyDef:@"key_dec_field_of_view"]];
+#endif
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_comms_log") keyDef:@"key_comms_log"]];
 
 	[funcList addObject:[self makeKeyGuiDictHeader:@"Custom view controls"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view") keyDef:@"key_custom_view"]];

@@ -834,7 +834,7 @@ static NSTimeInterval	time_last_frame;
 	BOOL			arrow_down = [self checkKeyPress:n_key_gui_arrow_down]; //[gameView isDown:key_gui_arrow_down];
 	BOOL			mouse_click = [gameView isDown:gvMouseLeftButton];
 	BOOL			mouse_dbl_click = [gameView isDown:gvMouseDoubleClick];
-	
+
 	if (arrow_down)
 	{
 		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
@@ -2046,7 +2046,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!leftRightKeyPressed)
 				{
-					float newTimeAccelerationFactor = [gameView isDown:key_gui_arrow_left] ?
+					float newTimeAccelerationFactor = [self checkKeyPress:n_key_gui_arrow_left] ?
 							fmax([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) :
 							fmin([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
 					[UNIVERSE setTimeAccelerationFactor:newTimeAccelerationFactor];
@@ -4895,8 +4895,6 @@ static BOOL autopilot_pause;
 {
 	// controls polled while the autopilot is active
 	
-	MyOpenGLView  *gameView = [UNIVERSE gameView];
-	
 	if (![[UNIVERSE gameController] isGamePaused])
 	{
 		//  view keys
@@ -4920,7 +4918,7 @@ static BOOL autopilot_pause;
 				[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
 			}
 			autopilot_key_pressed = YES;
-			if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])
+			if ([self checkKeyPress:n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])
 			{
 				fast_autopilot_key_pressed = YES;
 			}
