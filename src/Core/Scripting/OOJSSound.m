@@ -42,6 +42,7 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsid propID, 
 static JSBool SoundStaticLoad(JSContext *context, uintN argc, jsval *vp);
 static JSBool SoundStaticMusicSoundSource(JSContext *context, uintN argc, jsval *vp);
 static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp);
+static JSBool SoundStaticSetVolume(JSContext *context, uintN argc, jsval *vp);
 static JSBool SoundStaticStopMusic(JSContext *context, uintN argc, jsval *vp);
 
 
@@ -91,6 +92,7 @@ static JSFunctionSpec sSoundStaticMethods[] =
 	{ "load",					SoundStaticLoad,			1, },
 	{ "musicSoundSource",		SoundStaticMusicSoundSource,0, },
 	{ "playMusic",				SoundStaticPlayMusic,		1, },
+	{ "setVolume",				SoundStaticSetVolume,		1, },
 	{ "stopMusic",				SoundStaticStopMusic,		0, },
 	{ 0 }
 };
@@ -249,6 +251,37 @@ static JSBool SoundStaticPlayMusic(JSContext *context, uintN argc, jsval *vp)
 	
 	OOJS_RETURN_VOID;
 	
+	OOJS_NATIVE_EXIT
+}
+
+
+// setVolume(gain : float)
+static JSBool SoundStaticSetVolume(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	double gain = OO_DEFAULT_SOUNDSOURCE_GAIN;
+
+	if (argc > 0)
+	{
+		if (!OOJSArgumentListGetNumber(context, @"Sound", @"setVolume", 2, OOJS_ARGV, &gain, NULL))
+		{
+			OOJSReportBadArguments(context, @"Sound", @"setVolume", 1, OOJS_ARGV, nil, @"float");
+			return NO;
+		}
+	}
+	else
+	{
+		OOJSReportBadArguments(context, @"Sound", @"setVolume", MIN(argc, 1U), OOJS_ARGV, nil, @"float");
+		return NO;
+	}
+
+	OOJS_BEGIN_FULL_NATIVE(context)
+	[[OOMusicController sharedController] setMusicGain:(float)gain];
+	OOJS_END_FULL_NATIVE
+
+	OOJS_RETURN_VOID;
+
 	OOJS_NATIVE_EXIT
 }
 

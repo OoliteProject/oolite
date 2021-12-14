@@ -69,6 +69,8 @@ typedef enum
 - (void) setMissionMusic:(NSString *)missionMusicName;
 - (void) playMissionMusic;
 
+- (void) setMusicGain:(float)gain;
+
 - (void) justStop;
 - (void) stop;
 - (void) stopMusicNamed:(NSString *)name;	// Stop only if name == playingMusic

@@ -166,6 +166,12 @@ enum
 }
 
 
+- (void) setMusicGain:(float)gain
+{
+	[_current setMusicGain:OOClamp_0_1_f(gain)];;
+}
+
+
 // Stop without switching iTunes to in-flight music.
 - (void) justStop
 {
