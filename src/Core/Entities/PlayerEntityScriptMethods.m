@@ -359,19 +359,6 @@ MA 02110-1301, USA.
 }
 
 
-// *** FLAGGED FOR DELETION ***
-- (NSString *) keyBindingDescription:(NSString *)binding
-{
-	if ([keyconfig_settings objectForKey:binding] == nil)
-	{
-		// no such setting
-		return nil;
-	}
-	OOKeyCode key = (OOKeyCode)[keyconfig_settings oo_unsignedShortForKey:binding];
-	// 0 = key not set
-	return [self keyCodeDescription:key];
-}
-
 // utilising new keyconfig2.plist data
 - (NSString *) keyBindingDescription2:(NSString *)binding
 {

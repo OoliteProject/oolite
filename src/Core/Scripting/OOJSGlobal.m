@@ -63,7 +63,7 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID,
 
 static JSBool GlobalLog(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalExpandDescription(JSContext *context, uintN argc, jsval *vp);
-static JSBool GlobalKeyBindingDescription(JSContext *context, uintN argc, jsval *vp); // for testing purposes only - remove from final
+static JSBool GlobalKeyBindingDescription(JSContext *context, uintN argc, jsval *vp); 
 static JSBool GlobalExpandMissionText(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalRandomName(JSContext *context, uintN argc, jsval *vp);

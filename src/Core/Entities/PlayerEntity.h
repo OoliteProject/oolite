@@ -521,10 +521,8 @@ typedef enum
 #endif
 
 	// keys!
-	NSDictionary   *keyconfig_settings; // *** FLAGGED FOR DELETION ***
 	NSDictionary   *keyconfig2_settings;
 	NSDictionary   *keyCodeLookups;
-	//NSDictionary   *keyMappings;
 
 	NSArray					*n_key_roll_left;
 	NSArray					*n_key_roll_right;
@@ -660,93 +658,6 @@ typedef enum
 	
 	NSArray					*n_key_inc_field_of_view;
 	NSArray					*n_key_dec_field_of_view;
-
-	// *** OOKeyCodes FLAGGED FOR REMOVAL BELOW ***
-	OOKeyCode				key_roll_left;
-	OOKeyCode				key_roll_right;
-	OOKeyCode				key_pitch_forward;
-	OOKeyCode				key_pitch_back;
-	OOKeyCode				key_yaw_left;
-	OOKeyCode				key_yaw_right;
-
-	OOKeyCode				key_view_forward; 		// && undock
-	OOKeyCode				key_view_aft;			// && options menu
-	OOKeyCode				key_view_port;			// && equipment screen
-	OOKeyCode				key_view_starboard;		// && interfaces screen
-
-	OOKeyCode				key_gui_screen_status;
-	OOKeyCode				key_gui_chart_screens;
-	OOKeyCode				key_gui_system_data;
-	OOKeyCode				key_gui_market;
-
-	OOKeyCode				key_gui_arrow_left;
-	OOKeyCode				key_gui_arrow_right;
-	OOKeyCode				key_gui_arrow_up;
-	OOKeyCode				key_gui_arrow_down;
-	
-	OOKeyCode				key_increase_speed;
-	OOKeyCode				key_decrease_speed;
-	OOKeyCode				key_inject_fuel;
-	
-	OOKeyCode				key_fire_lasers;
-	OOKeyCode				key_launch_missile;
-	OOKeyCode				key_next_missile;
-	OOKeyCode				key_ecm;
-	
-	OOKeyCode				key_prime_equipment;
-	OOKeyCode				key_activate_equipment;
-	OOKeyCode				key_mode_equipment;
-	OOKeyCode				key_fastactivate_equipment_a;
-	OOKeyCode				key_fastactivate_equipment_b;
-	
-	OOKeyCode				key_target_missile;
-	OOKeyCode				key_untarget_missile;
-	OOKeyCode				key_target_incoming_missile;
-	OOKeyCode				key_ident_system;
-	
-	OOKeyCode				key_scanner_zoom;
-	OOKeyCode				key_scanner_unzoom;
-	
-	OOKeyCode				key_launch_escapepod;
-	
-	OOKeyCode				key_galactic_hyperspace;
-	OOKeyCode				key_hyperspace;
-	OOKeyCode				key_jumpdrive;
-	
-	OOKeyCode				key_dump_cargo;
-	OOKeyCode				key_rotate_cargo;
-	
-	OOKeyCode				key_autopilot;
-	OOKeyCode				key_autodock;
-	
-	OOKeyCode				key_snapshot;
-	OOKeyCode				key_docking_music;
-	
-	OOKeyCode				key_advanced_nav_array;
-	OOKeyCode				key_info_next_system;
-	OOKeyCode				key_info_previous_system;
-	OOKeyCode				key_map_home;
-	OOKeyCode				key_map_info;
-	
-	OOKeyCode				key_pausebutton;
-	OOKeyCode				key_show_fps;
-	OOKeyCode				key_mouse_control;
-	OOKeyCode				key_hud_toggle;
-	
-	OOKeyCode				key_comms_log;
-	OOKeyCode				key_prev_compass_mode;
-	OOKeyCode				key_next_compass_mode;
-	
-	OOKeyCode				key_chart_highlight;
-	OOKeyCode				key_market_filter_cycle;
-	OOKeyCode				key_market_sorter_cycle;
-	
-	OOKeyCode				key_next_target;
-	OOKeyCode				key_previous_target;
-	
-	OOKeyCode				key_custom_view;
-	
-	OOKeyCode				key_docking_clearance_request;
 	
 #ifndef NDEBUG
 	NSArray					*n_key_dump_target_state;
@@ -757,20 +668,7 @@ typedef enum
 	NSArray					*n_key_debug_bounding_boxes;
 	NSArray					*n_key_debug_shaders;
 	NSArray					*n_key_debug_off;
-	OOKeyCode				key_dump_target_state;
 #endif
-
-	OOKeyCode				key_weapons_online_toggle;
-
-	OOKeyCode				key_cycle_mfd;
-	OOKeyCode				key_switch_mfd;
-
-	OOKeyCode				key_oxzmanager_setfilter;
-	OOKeyCode				key_oxzmanager_showinfo;
-	OOKeyCode				key_oxzmanager_extract;
-	
-	OOKeyCode				key_inc_field_of_view;
-	OOKeyCode				key_dec_field_of_view;
 
 	// save-file
 	NSString				*save_path;
@@ -1198,7 +1096,6 @@ typedef enum
 
 - (void) setupStartScreenGui;
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
-- (void) setGuiToKeySettingsScreen;
 - (void) setGuiToOXZManager;
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen;

@@ -2364,7 +2364,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	DESTROY(customDialSettings);
 
 	DESTROY(commLog);
-	DESTROY(keyconfig_settings); // *** FLAGGED FOR DELETION ***
 	DESTROY(keyconfig2_settings);
 	DESTROY(target_memory);
 	
@@ -9914,109 +9913,6 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-// *** FLAGGED FOR DELETION ***
-- (void) setGuiToKeySettingsScreen
-{
-	GuiDisplayGen	*gui = [UNIVERSE gui];
-	NSUInteger i,j,ct;
-	
-	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:NO];
-	[[UNIVERSE gameView] clearMouse];
-	[UNIVERSE removeDemoShips];
-
-	[gui setTitle:DESC(@"oolite-keysetting-screen")];
-
-	gui_screen = GUI_SCREEN_KEYBOARD;
-	OOGUITabSettings tab_stops;
-	tab_stops[0] = 0;
-	tab_stops[1] = 115;
-	tab_stops[2] = 170;
-	tab_stops[3] = 285;
-	tab_stops[4] = 340;
-	tab_stops[5] = 455;
-	[gui setTabStops:tab_stops];
-
-	[gui setSelectableRange:NSMakeRange(0,0)];
-	[gui setNoSelectedRow];
-
-	NSArray *keys = [NSArray arrayWithObjects:
-		 @"key_roll_left",@"key_pitch_forward",@"key_yaw_left",
-		 @"key_roll_right",@"key_pitch_back",@"key_yaw_right",
-		 @"key_increase_speed",@"key_decrease_speed",@"key_inject_fuel",
-		 @"key_mouse_control",@"",@"",
-		 @"key_view_forward",@"key_gui_screen_status",@"key_gui_arrow_left", //
-		 @"key_view_aft",@"key_gui_chart_screens",@"key_gui_arrow_right",
-		 @"key_view_port",@"key_gui_system_data",@"key_gui_arrow_up", 
-		 @"key_view_starboard",@"key_gui_market",@"key_gui_arrow_down",
-		 @"key_custom_view",@"key_map_info",@"key_map_home",
-		 @"key_snapshot",@"key_advanced_nav_array",@"key_chart_highlight", //
-		 @"",@"",@"",
-		 @"key_fire_lasers",@"key_launch_missile",@"key_ecm",
-		 @"key_ident_system",@"key_target_missile",@"key_untarget_missile",
-		 @"key_weapons_online_toggle",@"key_next_missile",@"key_target_incoming_missile",
-		 @"key_next_target",@"key_previous_target",@"key_launch_escapepod", //
-		 @"",@"",@"",
-		 @"key_jumpdrive",@"key_hyperspace",@"key_galactic_hyperspace",
-		 @"key_autopilot",@"key_autodock",@"key_docking_clearance_request",
-		 @"key_docking_music",@"",@"",
-		 @"key_scanner_zoom",@"key_dump_cargo",@"key_prev_compass_mode", //
-		 @"key_scanner_unzoom",@"key_rotate_cargo",@"key_next_compass_mode", 
-		 @"key_comms_log",@"key_cycle_mfd",@"key_switch_mfd",
-		 @"",@"",@"",
-		 @"key_prime_equipment",@"key_activate_equipment",@"key_mode_equipment",
-		 @"key_fastactivate_equipment_a",@"key_fastactivate_equipment_b",@"", //
-#if OO_FOV_INFLIGHT_CONTROL_ENABLED
-		@"key_inc_field_of_view",@"key_dec_field_of_view",@"",
-#else
-		 @"",@"",@"",
-#endif
-		 @"key_pausebutton",@"key_show_fps",@"key_hud_toggle",
-		nil];
-
-	OOGUIRow row = 0;
-	ct = [keys count];
-	for (i=0; i<ct; i+=3)
-	{
-		NSMutableArray *keydefs = [NSMutableArray arrayWithCapacity:6];
-		for (j=0;j<=2;j++)
-		{
-			NSString *key = [keys oo_stringAtIndex:i+j];
-			if ([key length] == 0)
-			{
-				[keydefs addObject:@""];
-				[keydefs addObject:@""];
-			}
-			else
-			{
-				[keydefs addObject:OOExpandKey(OOExpand(@"oolite-keydesc-[key]", key))];
-				NSString *token = nil;
-				if ([key isEqualToString:@"key_launch_escapepod"])
-				{
-					token = [NSString stringWithFormat:@"[oolite_%@]+[oolite_%@]", key, key];
-				}
-				else
-				{
-					token = [NSString stringWithFormat:@"[oolite_%@]", key];
-				}
-				[keydefs addObject:OOExpand(token)];
-			}
-		}
-		[gui setArray:keydefs forRow:row];
-		[gui setColor:[OOColor yellowColor] forRow:row];
-		row++;
-	}
-
-	[gui setText:DESC(@"oolite-keysetting-text") forRow:27 align:GUI_ALIGN_CENTER];
-	[gui setColor:[OOColor whiteColor] forRow:27];
-		 
-	if ([self status] == STATUS_START_GAME)
-	{
-		[[OOMusicController sharedController] playThemeMusic];
-	}
-	[gui setBackgroundTextureKey:@"keyboardsettings"];
-	[UNIVERSE enterGUIViewModeWithMouseInteraction:NO];
-}
-
 
 - (void) setGuiToOXZManager
 {
@@ -13242,73 +13138,6 @@ else _dockTarget = NO_TARGET;
 	commanderNameString &&
 	cdrDetailArray &&
 	currentPage &&
-	key_roll_left &&
-	key_roll_right &&
-	key_pitch_forward &&
-	key_pitch_back &&
-	key_yaw_left &&
-	key_yaw_right &&
-	key_view_forward &&
-	key_view_aft &&
-	key_view_port &&
-	key_view_starboard &&
-	key_gui_screen_status &&
-	key_gui_chart_screens &&
-	key_gui_system_data &&
-	key_gui_market &&
-	key_gui_arrow_left &&
-	key_gui_arrow_right &&
-	key_gui_arrow_up &&
-	key_gui_arrow_down &&
-	key_increase_speed &&
-	key_decrease_speed &&
-	key_inc_field_of_view &&
-	key_dec_field_of_view &&
-	key_inject_fuel &&
-	key_fire_lasers &&
-	key_launch_missile &&
-	key_next_missile &&
-	key_ecm &&
-	key_prime_equipment &&
-	key_activate_equipment &&
-	key_mode_equipment &&
-	key_fastactivate_equipment_a &&
-	key_fastactivate_equipment_b &&
-	key_target_missile &&
-	key_untarget_missile &&
-	key_target_incoming_missile &&
-	key_ident_system &&
-	key_scanner_zoom &&
-	key_scanner_unzoom &&
-	key_launch_escapepod &&
-	key_galactic_hyperspace &&
-	key_hyperspace &&
-	key_jumpdrive &&
-	key_dump_cargo &&
-	key_rotate_cargo &&
-	key_autopilot &&
-	key_autodock &&
-	key_snapshot &&
-	key_docking_music &&
-	key_advanced_nav_array &&
-	key_map_home &&
-	key_map_info &&
-	key_pausebutton &&
-	key_show_fps &&
-	key_mouse_control &&
-	key_hud_toggle &&
-	key_comms_log &&
-	key_prev_compass_mode &&
-	key_next_compass_mode &&
-	key_chart_highlight &&
-	key_next_target &&
-	key_previous_target &&
-	key_custom_view &&
-	key_cycle_mfd &&
-	key_switch_mfd &&
-	key_docking_clearance_request &&
-	key_dump_target_state &&
-	key_weapons_online_toggle &&
 	n_key_roll_left &&
 	n_key_roll_right &&
 	n_key_pitch_forward &&

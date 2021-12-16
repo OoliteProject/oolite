@@ -159,6 +159,7 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 {
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_mac.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	// get the stored keyboard code from preferences
 	NSString *kbd = [prefs oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
 	NSDictionary *subset = [kmap objectForKey:kbd];
 

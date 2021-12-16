@@ -210,7 +210,6 @@ static NSArray *nav_keys = nil;
 		key_list = [[NSMutableArray alloc] initWithArray:(NSArray *)[keyconfig2_settings objectForKey:[selected_entry objectForKey:KEY_KC_DEFINITION]] copyItems:YES];
 		[gameView clearKeys];	// try to stop key bounces
 		[self setGuiToKeyConfigScreen:YES];
-		//OOLogWARN(@"testing", @"checking lookup %@.", entry);
 	}
 
 	if ([gameView isDown:'r'])
@@ -944,13 +943,11 @@ static NSArray *nav_keys = nil;
 		NSString *kbd = [[kbdLayouts objectAtIndex:idx] objectForKey:@"key"];
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 		[defaults setObject:kbd forKey:@"keyboard-code"];
-		//OOLog(@"testing", @"key = %@", kbd);
 		[self initKeyConfigSettings];
 		[self initCheckingDictionary];
 
 		[gameView clearKeys];	// try to stop key bounces
 		[self setGuiToKeyMapperScreen:0 resetCurrentRow:YES];
-		//OOLogWARN(@"testing", @"checking lookup %@.", entry);
 	}
 	if ([gameView isDown:27]) // escape - return without change
 	{

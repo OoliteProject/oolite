@@ -184,7 +184,7 @@ extern int debug;
 	BOOL				updateContext;
 	BOOL				saveSize;
 	BOOL				atDesktopResolution;
-	unsigned			keyboardMap;
+	unsigned			keyboardMap; // *** FLAGGED for deletion 
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
@@ -298,7 +298,6 @@ extern int debug;
 - (BOOL) isCommandFDown;
 - (void) clearCommandF;
 
-- (void) setKeyboardTo: (NSString *) value;
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
 
 - (void) setGammaValue: (float) value;
