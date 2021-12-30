@@ -6,3 +6,4 @@ Icon=oolite-icon
 Terminal=false
 Type=Application
 Categories=Game;Simulation;
+StartupWMClass=oolite
