@@ -5,8 +5,8 @@ on:
 
 jobs:
   build:
-  runs-on: macos-latest
-  steps:
-    - name: Xcode build
-      run: |
-        xcode-select --print-path
+    runs-on: macos-latest
+    steps:
+      - name: Xcode build
+        run: |
+          xcode-select --print-path
