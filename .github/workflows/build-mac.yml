@@ -8,12 +8,17 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      - name: run build
+
+      - name: check environment
         run: |
           xcodebuild -list -workspace Oolite.xcodeproj/project.xcworkspace
+          xcodebuild -list -project Oolite.xcodeproj
           find .
-          swift build
+
+      - name: run build
+        run: |
+          xcodebuild -scheme 'Oolite - Test Release' build
+
       - name: run tests
         run: |
-          find .
-          swift text
+          xcodebuild test -scheme 'Oolite - Test Release' -destination target/tests
