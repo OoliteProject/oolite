@@ -7,6 +7,12 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Xcode build
+      - uses: actions/checkout@v2
+      - name: run build
         run: |
-          xcode-select --print-path
+          find
+          swwift build
+      - name: run tests
+        run: |
+          find
+          swift text
