@@ -2,6 +2,7 @@ name: build-mac
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build:
