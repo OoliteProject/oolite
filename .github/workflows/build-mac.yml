@@ -11,7 +11,7 @@ jobs:
       - name: run build
         run: |
           find .
-          swwift build
+          swift build
       - name: run tests
         run: |
           find .
