@@ -1,0 +1,12 @@
+name: build-mac
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+  runs-on: macos-latest
+  steps:
+    - name: Xcode build
+      run: |
+        xcode-select --print-path
