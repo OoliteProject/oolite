@@ -1,0 +1,16 @@
+name: build-windows
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: check environment
+        run: |
+          dir
+
