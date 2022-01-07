@@ -16,6 +16,7 @@ jobs:
 
       - name: install mingw
         run: |
+          dir
           .\mingw-get-setup.exe
 
       - uses: actions/checkout@v2
