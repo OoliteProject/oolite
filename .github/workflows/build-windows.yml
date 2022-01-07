@@ -14,6 +14,6 @@ jobs:
       - name: check environment
         run: |
           dir
-          curl.exe --output index.html --url https://superuser.com
-          type index.html
+          curl.exe --output mingw-get-setup.exe --url https://osdn.net/frs/redir.php?m=rwthaachen&f=mingw%2F68260%2Fmingw-get-setup.exe
+          mingw-get-setup.exe
 
