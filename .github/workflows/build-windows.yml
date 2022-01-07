@@ -17,6 +17,7 @@ jobs:
       - name: install mingw
         run: |
           dir
+          dir mingw-get-0.6.3-mingw32-pre-20170905-1-bin
           .\mingw-get-setup.exe
 
       - uses: actions/checkout@v2
