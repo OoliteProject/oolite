@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: prepare environment
         run: |
-          curl.exe --output mingw-get-setup.exe --url "https://osdn.net/frs/redir.php?m=rwthaachen&f=mingw%2F68260%2Fmingw-get-setup.exe"
+          curl.exe --output mingw-get-setup.exe --url "https://ftp.halifax.rwth-aachen.de/osdn/mingw/68260/mingw-get-setup.exe"
           dir
           .\mingw-get-setup.exe
 
