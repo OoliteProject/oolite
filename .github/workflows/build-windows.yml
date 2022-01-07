@@ -17,6 +17,7 @@ jobs:
       - name: install mingw
         run: |
           Get-ChildItem -Path . –Recurse
+          .\mingw-get-0.6.3-mingw32-pre-20170905-1-bin\bin\mingw-get.exe
 
       - uses: actions/checkout@v2
 
