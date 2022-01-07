@@ -10,7 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       - name: check environment
         run: |
           dir
+          curl.exe --output index.html --url https://superuser.com
+          type index.html
 
