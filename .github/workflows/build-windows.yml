@@ -11,6 +11,7 @@ jobs:
       - name: prepare environment
         run: |
           curl.exe --output mingw-get-setup.exe --url "https://osdn.net/frs/redir.php?m=rwthaachen&f=mingw%2F68260%2Fmingw-get-setup.exe"
+          dir
 
       - uses: actions/checkout@v2
 
