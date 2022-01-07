@@ -8,12 +8,15 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      - name: prepare environment
+        run: |
+          curl.exe --output mingw-get-setup.exe --url "https://osdn.net/frs/redir.php?m=rwthaachen&f=mingw%2F68260%2Fmingw-get-setup.exe"
+
       - uses: actions/checkout@v2
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       - name: check environment
         run: |
           dir
-          curl.exe --output mingw-get-setup.exe --url "https://osdn.net/frs/redir.php?m=rwthaachen&f=mingw%2F68260%2Fmingw-get-setup.exe"
-          mingw-get-setup.exe
+
 
