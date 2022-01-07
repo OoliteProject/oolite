@@ -13,17 +13,24 @@ jobs:
           #curl.exe --output mingw-get-setup.exe --url "https://ftp.halifax.rwth-aachen.de/osdn/mingw/68260/mingw-get-setup.exe"
           curl.exe --output mingw-get-0.6.3-mingw32-pre-20170905-1-bin.zip --url "https://ftp.halifax.rwth-aachen.de/osdn/mingw/68260/mingw-get-0.6.3-mingw32-pre-20170905-1-bin.zip"
           Expand-Archive -LiteralPath mingw-get-0.6.3-mingw32-pre-20170905-1-bin.zip
+          Get-ChildItem -Path . –Recurse
 
       - name: install mingw
         run: |
-          Get-ChildItem -Path . –Recurse
           .\mingw-get-0.6.3-mingw32-pre-20170905-1-bin\bin\mingw-get.exe
+          Get-ChildItem -Path . –Recurse
 
       - uses: actions/checkout@v2
+        with:
+          path: oolite
+
+      - name: compile
+        run: |
+          echo "Don't know how to make Oolite"
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       - name: check environment
         run: |
-          dir
+          Get-ChildItem -Path . –Recurse
 
 
