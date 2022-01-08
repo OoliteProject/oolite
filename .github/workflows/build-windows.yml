@@ -25,7 +25,8 @@ jobs:
 
       - name: compile
         run: |
-          Invoke-Command -FilePath "$(env:GITHUB_WORKSPACE)\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat"
+          workspace = $(env:GITHUB_WORKSPACE)
+          Invoke-Command -FilePath "$workspace\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat"
           
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
