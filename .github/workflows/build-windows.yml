@@ -25,7 +25,7 @@ jobs:
 
       - name: compile
         run: |
-          workspace = env:GITHUB_WORKSPACE
+          $workspace = env:GITHUB_WORKSPACE
           Invoke-Command -FilePath "$workspace\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat"
           
 
