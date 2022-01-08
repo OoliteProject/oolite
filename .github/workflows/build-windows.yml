@@ -8,12 +8,14 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout DevelopmentEnvironment
+        uses: actions/checkout@v2
         with:
           repository:  HiranChaudhuri/oolite-windows-build-env
           path: DevelopmentEnvironment
 
-      - uses: actions/checkout@v2
+      - name: Checkout Oolite
+        uses: actions/checkout@v2
         with:
           path: oolite
 
@@ -23,7 +25,8 @@ jobs:
 
       - name: compile
         run: |
-          $env:GITHUB_WORKSPACE\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat
+          $(env:GITHUB_WORKSPACE)\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat'
+          
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       - name: check environment
