@@ -8,6 +8,10 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      - name: Environment Variables
+        run: |
+          Get-ChildItem Env: | Sort Name
+
       - name: Checkout DevelopmentEnvironment
         uses: actions/checkout@v2
         with:
@@ -19,13 +23,9 @@ jobs:
         with:
           path: oolite
 
-      - name: Environment Variables
-        run: |
-          Get-ChildItem Env: | Sort Name
-
       - name: compile
         run: |
-          Invoke-Command -FilePath '$(env:GITHUB_WORKSPACE)\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat'
+          Invoke-Command -FilePath "$(env:GITHUB_WORKSPACE)\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat"
           
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
