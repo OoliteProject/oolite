@@ -26,7 +26,8 @@ jobs:
       - name: Checkout submodules using a PAT
         shell: bash
         run: |
-          cd $env:GITHUB_WORKSPACE\oolite
+          env | sort
+          cd $GITHUB_WORKSPACE/oolite
           git config --file .gitmodules --get-regexp url | while read url; do
           git config --file=.gitmodules $(echo "$url" | sed -E "s/git@github.com:|https:\/\/github.com\//https:\/\/${{ secrets.GHACTIONS_PAT }}:${{ secrets.GHACTIONS_PAT }}@github.com\//")
           done
