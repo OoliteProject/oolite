@@ -25,6 +25,7 @@ jobs:
           submodules: true
 
       - name: compile
+        shell: cmd
         run: |
           %GITHUB_WORKSPACE%\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat
           
