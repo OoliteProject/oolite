@@ -26,8 +26,7 @@ jobs:
 
       - name: compile
         shell: cmd
-        run: |
-          D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat
+        run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
           
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
