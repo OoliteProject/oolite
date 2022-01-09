@@ -41,6 +41,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: true
-          title: "Oolite Nightly"
+          title: "Oolite Windows Nightly"
           files: |
-            D:\a\oolite\oolite\oolite\installers\win32\OoliteInstall-*-dev.exe
+            oolite/installers/win32/*
