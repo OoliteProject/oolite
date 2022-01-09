@@ -35,4 +35,13 @@ jobs:
         run: |
           Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
-
+      - name: Create Release
+        id: create_release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Oolite Nightly"
+          files: |
+            D:\a\oolite\oolite\oolite\installers\win32\OoliteInstall-*-dev.exe
