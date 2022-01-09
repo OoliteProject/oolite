@@ -43,4 +43,4 @@ jobs:
           prerelease: true
           title: "Oolite Windows Nightly"
           files: |
-            oolite/installers/win32/*
+            oolite/installers/win32/O*e
