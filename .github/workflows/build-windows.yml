@@ -25,6 +25,7 @@ jobs:
 
       - name: Fetch submodules
         run: |
+          cd $env:GITHUB_WORKSPACE\oolite
           git submodule init
           git submodule update
 
