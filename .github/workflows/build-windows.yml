@@ -23,14 +23,19 @@ jobs:
         with:
           path: oolite
 
+      - name: Fetch submodules
+        run: |
+          git submodule init
+          git submodule update
+
       - name: compile
         run: |
           & "$env:GITHUB_WORKSPACE\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.bat"
           
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
-      - name: check environment
+      - name: check filesystem
         run: |
-          Get-ChildItem -Path . –Recurse
+          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
 
