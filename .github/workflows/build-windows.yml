@@ -22,17 +22,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: oolite
-
-      - name: Checkout submodules using a PAT
-        shell: bash
-        run: |
-          env | sort
-          cd $GITHUB_WORKSPACE/oolite
-          git config --file .gitmodules --get-regexp url | while read url; do
-          git config --file=.gitmodules $(echo "$url" | sed -E "s/git@github.com:|https:\/\/github.com\//https:\/\/${{ secrets.GHACTIONS_PAT }}:${{ secrets.GHACTIONS_PAT }}@github.com\//")
-          done
-          git submodule sync
-          git submodule update --init --recursive
+          submodules: true
 
       - name: compile
         run: |
