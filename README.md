@@ -1,4 +1,4 @@
-[![Build Status (Mac)](https://api.travis-ci.org/OoliteProject/oolite.svg)](https://travis-ci.org/OoliteProject/oolite)
+[![build-windows](https://github.com/OoliteProject/oolite/actions/workflows/build-windows.yml/badge.svg)](https://github.com/OoliteProject/oolite/actions/workflows/build-windows.yml)
 
 [![GitHub release](https://img.shields.io/github/release/OoliteProject/Oolite.svg)](https://github.com/OoliteProject/Oolite/releases/latest)
      
