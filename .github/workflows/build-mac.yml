@@ -13,7 +13,7 @@ jobs:
         with:
           submodules: true
 
-- name: Checkout libpng
+      - name: Checkout libpng
         uses: actions/checkout@v2
         with:
           repository: https://github.com/glennrp/libpng
