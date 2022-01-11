@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: glennrp/libpng
-          path: libpng
+          path: deps/libpng
           submodules: true
 
       - name: check environment
