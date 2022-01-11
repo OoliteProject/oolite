@@ -8,14 +8,27 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Oolite
+        uses: actions/checkout@v2
         with:
+          submodules: true
+
+- name: Checkout libpng
+        uses: actions/checkout@v2
+        with:
+          repository: https://github.com/glennrp/libpng
+          path: libpng
           submodules: true
 
       - name: check environment
         run: |
           xcodebuild -list -workspace Oolite.xcodeproj/project.xcworkspace
           xcodebuild -list -project Oolite.xcodeproj
+          echo "Variables:"
+          env | sort
+          echo "Current directory:"
+          pwd
+          echo "Filesystem:"
           find .
 
       - name: run build
