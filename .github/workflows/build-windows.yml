@@ -34,12 +34,8 @@ jobs:
       #  run: |
       #    Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
-  # deploy:
-  #  runs-on: windows-latest
-  #  needs: build
-  #  if: github.ref == 'refs/heads/master'
-  #  steps:
       - name: Create Release
+        if: github.ref == 'refs/heads/master'
         id: create_release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
