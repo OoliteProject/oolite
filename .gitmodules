@@ -16,6 +16,7 @@
 [submodule "deps/mozilla"]
 	path = deps/mozilla
 	url = https://github.com/HiranChaudhuri/spidermonkey-ff4.git
+	branch = noMeaninglessVolatile
 [submodule "deps/libogg"]
 	path = deps/libogg
 	url = https://github.com/OoliteProject/libogg-1.3.0.git
