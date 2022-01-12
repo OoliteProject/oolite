@@ -43,13 +43,7 @@ MA 02110-1301, USA.
 
 + (BOOL) shouldUseSystemStandardFullScreenController
 {
-	if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_6)
-	{
-		// Never on 10.6 or earlier; the necessary API doesn't exist.
-		return NO;
-	}
-	
-	// If safe to use, allow override for debugging.
+	// Allow override for debugging.
 	NSString *override = [[NSUserDefaults standardUserDefaults] stringForKey:@"full-screen-mode-override"];
 	if (override != nil)
 	{
