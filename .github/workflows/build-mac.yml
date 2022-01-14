@@ -40,11 +40,11 @@ jobs:
 #        run: |
 #          xcodebuild test -scheme 'Oolite - Test Release' -destination target/tests
 
-      - name: where is the release?
-        run: |
-          find .
-
       - name: Create Release
+        run: |
+          cd build; zip TestRelease.zip TestRelease
+
+      - name: Publish Release
         id: create_release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -53,4 +53,4 @@ jobs:
           prerelease: true
           title: "Oolite MacOS Nightly"
           files: |
-            build/TestRelease
+            build/TestRelease.zip
