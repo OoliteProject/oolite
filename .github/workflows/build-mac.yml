@@ -36,6 +36,10 @@ jobs:
           xcodebuild -configuration "TestRelease" MACOSX_DEPLOYMENT_TARGET=10.9 OTHER_CFLAGS="-Wno-deprecated-declarations"
 #          xcodebuild -scheme 'Oolite - Test Release' build
 
-      - name: run tests
+#      - name: run tests
+#        run: |
+#          xcodebuild test -scheme 'Oolite - Test Release' -destination target/tests
+
+      - name: where is the release?
         run: |
-          xcodebuild test -scheme 'Oolite - Test Release' -destination target/tests
+          find .
