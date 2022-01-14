@@ -42,7 +42,18 @@ jobs:
 
       - name: Create Release
         run: |
-          cd build; zip --recurse-paths TestRelease.zip TestRelease
+          mkdir -p release/TestRelease
+          cp -r build/TestRelease/Oolite.app release/TestRelease
+          mkdir -p release/TestRelease/Documentation
+          cp Doc/AdviceForNewCommanders.doc release/TestRelease/Documentation
+          cp Doc/contributors.txt release/TestRelease/Documentation
+          cp Doc/GPL.TXT release/TestRelease/Documentation
+          cp Doc/LICENSE.TXT release/TestRelease/Documentation
+          cp Doc/OoliteReadMe.pdf release/TestRelease/Documentation
+          cp Doc/OoliteRS.pdf release/TestRelease/Documentation
+          mkdir -p release/TestRelease/Extras
+          cp -r tools/BBC\ keys release/TestRelease/Extras
+          cd release; zip --recurse-paths TestRelease.zip TestRelease
 
       - name: Publish Release
         id: create_release
@@ -53,4 +64,4 @@ jobs:
           prerelease: true
           title: "Oolite MacOS Nightly"
           files: |
-            build/TestRelease.zip
+            release/TestRelease.zip
