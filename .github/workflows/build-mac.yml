@@ -42,7 +42,7 @@ jobs:
 
       - name: Create Release
         run: |
-          cd build; zip TestRelease.zip TestRelease
+          cd build; zip --recurse-paths TestRelease.zip TestRelease
 
       - name: Publish Release
         id: create_release
