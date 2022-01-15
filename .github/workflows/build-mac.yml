@@ -42,6 +42,7 @@ jobs:
 
       - name: Create Release
         run: |
+          #!/bin/bash -x
           mkdir -p release/TestRelease
           cp -r build/TestRelease/Oolite.app release/TestRelease
           mkdir -p release/TestRelease/Documentation
