@@ -43,17 +43,24 @@ jobs:
       - name: Create Release
         run: |
           #!/bin/bash -x
+          echo "create dest folder"
           mkdir -p release/TestRelease
-          cp -r build/TestRelease/Oolite.app release/TestRelease
+          echo "copy Oolite.app"
+          cp -rv build/TestRelease/Oolite.app release/TestRelease || echo "cp Oolite.app failed with $?"
+          mkdir "create Documentation folder"
           mkdir -p release/TestRelease/Documentation
-          cp Doc/AdviceForNewCommanders.doc release/TestRelease/Documentation
-          cp Doc/contributors.txt release/TestRelease/Documentation
-          cp Doc/GPL.TXT release/TestRelease/Documentation
-          cp Doc/LICENSE.TXT release/TestRelease/Documentation
-          cp Doc/OoliteReadMe.pdf release/TestRelease/Documentation
-          cp Doc/OoliteRS.pdf release/TestRelease/Documentation
+          echo "copy documents..."
+          cp -v Doc/AdviceForNewCommanders.doc release/TestRelease/Documentation
+          cp -v Doc/contributors.txt release/TestRelease/Documentation
+          cp -v Doc/GPL.TXT release/TestRelease/Documentation
+          cp -v Doc/LICENSE.TXT release/TestRelease/Documentation
+          cp -v Doc/OoliteReadMe.pdf release/TestRelease/Documentation
+          cp -v Doc/OoliteRS.pdf release/TestRelease/Documentation
+          echo "create Extras folder"
           mkdir -p release/TestRelease/Extras
-          cp -r tools/BBC\ keys release/TestRelease/Extras
+          echo "copy extras"
+          cp -v -r tools/BBC\ keys release/TestRelease/Extras
+          echo "building ZIP archive"
           cd release; zip --recurse-paths TestRelease.zip TestRelease
 
       - name: Publish Release
