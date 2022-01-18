@@ -33,8 +33,8 @@ jobs:
 
       - name: run build
         run: |
-          xcodebuild -configuration "TestRelease" MACOSX_DEPLOYMENT_TARGET=10.9 OTHER_CFLAGS="-Wno-deprecated-declarations"
-#          xcodebuild -scheme 'Oolite - Test Release' build
+#          xcodebuild -configuration "TestRelease" MACOSX_DEPLOYMENT_TARGET=10.9 OTHER_CFLAGS="-Wno-deprecated-declarations"
+          xcodebuild -scheme 'Oolite - Test Release' build
 
 #      - name: run tests
 #        run: |
