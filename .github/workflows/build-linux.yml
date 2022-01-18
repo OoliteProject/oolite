@@ -16,3 +16,31 @@ jobs:
         run: |
           find .
 
+#      - name: build
+
+#      - name: test
+
+#      - name: Package deb
+#        uses: jiro4989/build-deb-action@v2
+#        with:
+#          package: samplescript
+#          package_root: .debpkg
+#          maintainer: your_name
+#          version: ${{ github.ref }} # refs/tags/v*.*.*
+#          arch: 'amd64'
+#          depends: 'libc6 (>= 2.2.1), git'
+#          desc: 'this is sample package.'
+
+#      - name: Package rpm
+#        uses: naveenrajm7/rpmbuild@master
+#        with:
+#          spec_file: "cello.spec"
+        
+#     - name: Package appimage
+#       uses: AppImageCrafters/build-appimage@master
+#       with:
+#         recipe: "./appimage-demo-qt5/AppImageBuilder.yml"
+#       env:
+#         UPDATE_INFO: gh-releases-zsync|AppImageCrafters|appimage-demo-qt5|latest|*x86_64.AppImage.zsync
+
+# Publish via https://github.com/marketplace/actions/publish-a-release
