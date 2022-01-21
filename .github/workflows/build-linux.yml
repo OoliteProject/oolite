@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          path: oolite
           submodules: true
 
       - name: check environment before build
@@ -26,7 +27,9 @@ jobs:
           sudo apt install libespeak-dev
           sudo apt install libnspr4-dev
           sudo apt install g++
-          
+
+          cd oolite
+
           # remove png headers
           rm deps/Linux-deps/include/png*
 
@@ -42,11 +45,15 @@ jobs:
 
 #      - name: test
 #        run: |
-#          openapp ./oolite.app
+#          openapp oolite/oolite.app
 
       - name: Package tar ball
         run: |
-          tar cvfz Oolite.tgz *
+          mkdir -p release/Doc
+          cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
+          cp -r oolite/Addons release
+          cp -r oolite/oolite.app release
+          tar cvfz Oolite.tgz release
 
 #      - name: Package deb
 #        uses: jiro4989/build-deb-action@v2
