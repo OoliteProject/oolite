@@ -78,7 +78,7 @@ jobs:
 
       - name: Package tar ball
         run: |
-          mkdir -p release/Doc
+          mkdir -p release/Doc release/Addons
           cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
           cp -r oolite/Addons release
           cp -r oolite/oolite.app release
@@ -141,7 +141,7 @@ jobs:
           find .
       - name: run build
         run: |
-#          xcodebuild -scheme 'Oolite - Test Release' build
+          #xcodebuild -scheme 'Oolite - Test Release' build
           xcodebuild -configuration "TestRelease" MACOSX_DEPLOYMENT_TARGET=10.9 OTHER_CFLAGS="-Wno-deprecated-declarations"
 
 #      - name: run tests
