@@ -160,27 +160,25 @@ jobs:
 #          xcodebuild test -scheme 'Oolite - Test Release' -destination target/tests
 
       - name: Create Release
-        run: |
-          #!/bin/bash -x
-          echo "create dest folder"
-          mkdir -p release/TestRelease
-          echo "copy Oolite.app"
-          cp -rv build/TestRelease/Oolite.app release/TestRelease || echo "cp Oolite.app failed with $?"
-          mkdir "create Documentation folder"
-          mkdir -p release/TestRelease/Documentation
-          echo "copy documents..."
-          cp -v Doc/AdviceForNewCommanders.doc release/TestRelease/Documentation
-          cp -v Doc/contributors.txt release/TestRelease/Documentation
-          cp -v Doc/GPL.TXT release/TestRelease/Documentation
-          cp -v Doc/LICENSE.TXT release/TestRelease/Documentation
-          cp -v Doc/OoliteReadMe.pdf release/TestRelease/Documentation
-          cp -v Doc/OoliteRS.pdf release/TestRelease/Documentation
-          echo "create Extras folder"
-          mkdir -p release/TestRelease/Extras
-          echo "copy extras"
-          cp -v -r tools/BBC\ keys release/TestRelease/Extras
-          echo "building ZIP archive"
-          cd release; zip --recurse-paths TestRelease.zip TestRelease
+      - run: echo "create dest folder"
+      - run: mkdir -p release/TestRelease
+      - run: echo "copy Oolite.app"
+      - run: cp -rv build/TestRelease/Oolite.app release/TestRelease || echo "cp Oolite.app failed with $?"
+      - run: mkdir "create Documentation folder"
+      - run: mkdir -p release/TestRelease/Documentation
+      - run: echo "copy documents..."
+      - run: cp -v Doc/AdviceForNewCommanders.doc release/TestRelease/Documentation
+      - run: cp -v Doc/contributors.txt release/TestRelease/Documentation
+      - run: cp -v Doc/GPL.TXT release/TestRelease/Documentation
+      - run: cp -v Doc/LICENSE.TXT release/TestRelease/Documentation
+      - run: cp -v Doc/OoliteReadMe.pdf release/TestRelease/Documentation
+      - run: cp -v Doc/OoliteRS.pdf release/TestRelease/Documentation
+      - run: echo "create Extras folder"
+      - run: mkdir -p release/TestRelease/Extras
+      - run: echo "copy extras"
+      - run: cp -v -r tools/BBC\ keys release/TestRelease/Extras
+      - run: echo "building ZIP archive"
+      - run: cd release; zip --recurse-paths TestRelease.zip TestRelease
 
       - name: Upload build result
         uses: actions/upload-artifact@v2
@@ -202,8 +200,7 @@ jobs:
         uses: actions/download-artifact@v2
 
       - name: check environment after download
-        run: |
-          find .
+        run: find .
 
       - name: Publish Release
         id: publish_release
