@@ -18,14 +18,14 @@ jobs:
 
       - name: build
         run: |
-          ## install required subsystems
-          #sudo apt install libgnustep-base-dev
-          #sudo apt install libsdl1.2-dev
-          #sudo apt install libvorbis-dev
-          #sudo apt install libopenal-dev
-          #sudo apt install libespeak-dev
-          #sudo apt install libnspr4-dev
-          #sudo apt install g++
+          # install required subsystems
+          sudo apt install libgnustep-base-dev
+          sudo apt install libsdl1.2-dev
+          sudo apt install libvorbis-dev
+          sudo apt install libopenal-dev
+          sudo apt install libespeak-dev
+          sudo apt install libnspr4-dev
+          sudo apt install g++
           
           # remove png headers
           rm deps/Linux-deps/include/png*
