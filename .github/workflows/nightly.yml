@@ -78,9 +78,9 @@ jobs:
 
       - name: Package tar ball
         run: |
-          mkdir -p release/Doc release/Addons
+          mkdir -p release/Doc
           cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
-          cp -r oolite/Addons release
+          cp -r oolite/AddOns release
           cp -r oolite/oolite.app release
           tar cvfz Oolite-Linux-Nightly.tgz release
 
