@@ -30,8 +30,9 @@ jobs:
 
           cd oolite
 
-          # remove png headers
-          rm deps/Linux-deps/include/png*
+          # it seems without this we bind to the OS-provided libpng
+          ## remove png headers
+          #rm deps/Linux-deps/include/png*
 
           # make sure the GNUSTEP_MAKEFILES property is set
           export GNUSTEP_MAKEFILES=/usr/lib/GNUstep/Makefiles
