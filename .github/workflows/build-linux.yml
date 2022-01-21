@@ -12,7 +12,7 @@ jobs:
         with:
           submodules: true
 
-      - name: check environment
+      - name: check environment before build
         run: |
           find .
 
@@ -36,9 +36,17 @@ jobs:
           # build the release
           make -f Makefile release
 
-      - name: test
+      - name: check environment after build
         run: |
-          openapp ./oolite.app
+          find .
+
+#      - name: test
+#        run: |
+#          openapp ./oolite.app
+
+      - name: Package tar ball
+        run: |
+          tar cvfz Oolite.tgz *
 
 #      - name: Package deb
 #        uses: jiro4989/build-deb-action@v2
@@ -64,3 +72,13 @@ jobs:
 #         UPDATE_INFO: gh-releases-zsync|AppImageCrafters|appimage-demo-qt5|latest|*x86_64.AppImage.zsync
 
 # Publish via https://github.com/marketplace/actions/publish-a-release
+      - name: Publish Release
+        id: create_release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Oolite Linux Nightly"
+          files: |
+            Oolite.tgz
