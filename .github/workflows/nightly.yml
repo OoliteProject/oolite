@@ -185,21 +185,13 @@ jobs:
       - build-mac
     runs-on: ubuntu-latest
     steps:
-      - name: Download windows build
+      - name: Download all artifacts
         uses: actions/download-artifact@v2
-        with:
-          name: Oolite-Windows-Nightly.exe
-          
-      - name: Download linux build
-        uses: actions/download-artifact@v2
-        with:
-          name: Oolite-Linux-Nightly.tgz
-          
-      - name: Download macos build
-        uses: actions/download-artifact@v2
-        with:
-          name: Oolite-MacOS-Nightly.tgz
-          
+
+      - name: check environment after download
+        run: |
+          find .
+
       - name: Publish Release
         id: publish_release
         uses: "marvinpinto/action-automatic-releases@latest"
