@@ -182,6 +182,7 @@ jobs:
 
   # Publish via https://github.com/marketplace/actions/publish-a-release
   release:
+    if: ${{ always() }}
     needs: 
       - build-windows
       - build-linux
