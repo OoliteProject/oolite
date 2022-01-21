@@ -178,7 +178,7 @@ jobs:
           path: release/TestRelease.zip
 
   # Publish via https://github.com/marketplace/actions/publish-a-release
-  build-windows:
+  release:
     needs: 
       - build-windows
       - build-linux
