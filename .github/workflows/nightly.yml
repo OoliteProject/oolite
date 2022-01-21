@@ -206,7 +206,7 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ github.ref }}"
+          automatic_release_tag: "nightly"
           prerelease: false
           title: "Oolite Nightly - any platform"
           files: |
