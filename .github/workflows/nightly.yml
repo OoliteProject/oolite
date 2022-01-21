@@ -64,10 +64,6 @@ jobs:
           sudo apt install g++
           cd oolite
           
-          # it seems without this we bind to the OS-provided libpng
-          ## remove png headers
-          #rm deps/Linux-deps/include/png*
-          
           # make sure the GNUSTEP_MAKEFILES property is set
           export GNUSTEP_MAKEFILES=/usr/lib/GNUstep/Makefiles
           
@@ -87,7 +83,8 @@ jobs:
           cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
           cp -r oolite/AddOns release
           cp -r oolite/oolite.app release
-          cp -r oolite/deps/Linux-deps/x86_64/lib release
+          cp -r oolite/deps/Linux-deps/x86_64/lib release/oolite.app
+          patchelf --set-rpath $ORIGIN/lib release/oolite.app/oolite
           tar cvfz Oolite-Linux-Nightly.tgz release
 
       - name: Upload build result
