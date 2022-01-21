@@ -159,8 +159,7 @@ jobs:
 #        run: |
 #          xcodebuild test -scheme 'Oolite - Test Release' -destination target/tests
 
-      - name: Create Release
-      - run: echo "create dest folder"
+      - run: echo "create Release's dest folder"
       - run: mkdir -p release/TestRelease
       - run: echo "copy Oolite.app"
       - run: cp -rv build/TestRelease/Oolite.app release/TestRelease || echo "cp Oolite.app failed with $?"
