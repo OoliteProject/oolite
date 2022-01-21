@@ -77,14 +77,21 @@ jobs:
 #        run: |
 #          openapp oolite/oolite.app
 
-      - name: Package tar ball
+      - name: Prepare AppDir
         run: |
           mkdir -p release/Doc
           cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
           cp -r oolite/AddOns release
           cp -r oolite/oolite.app release
           cp -r oolite/deps/Linux-deps/x86_64/lib release/oolite.app
-          patchelf --set-rpath $ORIGIN/lib release/oolite.app/oolite
+
+      - name: fix library path
+        run: |
+          patchelf --set-rpath '$ORIGIN/lib' release/oolite.app/oolite
+          ldd release/oolite.app/oolite | grep "=> /"
+
+      - name: Package tar ball
+        run: |
           tar cvfz Oolite-Linux-Nightly.tgz release
 
       - name: Upload build result
