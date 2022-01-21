@@ -1,0 +1,213 @@
+name: nightly
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Environment Variables
+        run: |
+          Get-ChildItem Env: | Sort Name
+
+      - name: Checkout DevelopmentEnvironment
+        uses: actions/checkout@v2
+        with:
+          repository:  HiranChaudhuri/oolite-windows-build-env
+          path: DevelopmentEnvironment
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v2
+        with:
+          path: oolite
+          submodules: true
+
+      - name: compile
+        shell: cmd
+        run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
+          
+
+      # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
+      - name: check filesystem
+        run: |
+          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+          
+      - name: Upload build result
+        uses: actions/upload-artifact@v2
+        with:
+          name: Oolite-Windows-Nightly.exe
+          path: oolite/installers/win32/O*e
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: oolite
+          submodules: true
+
+      - name: check environment before build
+        run: |
+          find .
+      - name: build
+        run: |
+          # install required subsystems
+          sudo apt install libgnustep-base-dev
+          sudo apt install libsdl1.2-dev
+          sudo apt install libvorbis-dev
+          sudo apt install libopenal-dev
+          sudo apt install libespeak-dev
+          sudo apt install libnspr4-dev
+          sudo apt install g++
+          cd oolite
+          # it seems without this we bind to the OS-provided libpng
+          ## remove png headers
+          #rm deps/Linux-deps/include/png*
+          # make sure the GNUSTEP_MAKEFILES property is set
+          export GNUSTEP_MAKEFILES=/usr/lib/GNUstep/Makefiles
+          # build the release
+          make -f Makefile release
+      - name: check environment after build
+        run: |
+          find .
+#      - name: test
+#        run: |
+#          openapp oolite/oolite.app
+
+      - name: Package tar ball
+        run: |
+          mkdir -p release/Doc
+          cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
+          cp -r oolite/Addons release
+          cp -r oolite/oolite.app release
+          tar cvfz Oolite-Linux-Nightly.tgz release
+
+      - name: Upload build result
+        uses: actions/upload-artifact@v2
+        with:
+          name: Oolite-Linux-Nightly.tgz
+          path: Oolite-Linux-Nightly.tgz
+          
+#      - name: Package deb
+#        uses: jiro4989/build-deb-action@v2
+#        with:
+#          package: samplescript
+#          package_root: .debpkg
+#          maintainer: your_name
+#          version: ${{ github.ref }} # refs/tags/v*.*.*
+#          arch: 'amd64'
+#          depends: 'libc6 (>= 2.2.1), git'
+#          desc: 'this is sample package.'
+
+#      - name: Package rpm
+#        uses: naveenrajm7/rpmbuild@master
+#        with:
+#          spec_file: "cello.spec"
+        
+#     - name: Package appimage
+#       uses: AppImageCrafters/build-appimage@master
+#       with:
+#         recipe: "./appimage-demo-qt5/AppImageBuilder.yml"
+#       env:
+#         UPDATE_INFO: gh-releases-zsync|AppImageCrafters|appimage-demo-qt5|latest|*x86_64.AppImage.zsync
+
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Checkout libpng
+        uses: actions/checkout@v2
+        with:
+          repository: glennrp/libpng
+          path: deps/libpng
+          submodules: true
+
+      - name: check environment
+        run: |
+          xcodebuild -list -workspace Oolite.xcodeproj/project.xcworkspace
+          xcodebuild -list -project Oolite.xcodeproj
+          echo "Variables:"
+          env | sort
+          echo "Current directory:"
+          pwd
+          echo "Filesystem:"
+          find .
+      - name: run build
+        run: |
+          xcodebuild -scheme 'Oolite - Test Release' build
+#          xcodebuild -configuration "TestRelease" MACOSX_DEPLOYMENT_TARGET=10.9 OTHER_CFLAGS="-Wno-deprecated-declarations"
+
+#      - name: run tests
+#        run: |
+#          xcodebuild test -scheme 'Oolite - Test Release' -destination target/tests
+
+      - name: Create Release
+        run: |
+          #!/bin/bash -x
+          echo "create dest folder"
+          mkdir -p release/TestRelease
+          echo "copy Oolite.app"
+          cp -rv build/TestRelease/Oolite.app release/TestRelease || echo "cp Oolite.app failed with $?"
+          mkdir "create Documentation folder"
+          mkdir -p release/TestRelease/Documentation
+          echo "copy documents..."
+          cp -v Doc/AdviceForNewCommanders.doc release/TestRelease/Documentation
+          cp -v Doc/contributors.txt release/TestRelease/Documentation
+          cp -v Doc/GPL.TXT release/TestRelease/Documentation
+          cp -v Doc/LICENSE.TXT release/TestRelease/Documentation
+          cp -v Doc/OoliteReadMe.pdf release/TestRelease/Documentation
+          cp -v Doc/OoliteRS.pdf release/TestRelease/Documentation
+          echo "create Extras folder"
+          mkdir -p release/TestRelease/Extras
+          echo "copy extras"
+          cp -v -r tools/BBC\ keys release/TestRelease/Extras
+          echo "building ZIP archive"
+          cd release; zip --recurse-paths TestRelease.zip TestRelease
+
+      - name: Upload build result
+        uses: actions/upload-artifact@v2
+        with:
+          name: Oolite-MacOS-Nightly.tgz
+          path: release/TestRelease.zip
+
+  # Publish via https://github.com/marketplace/actions/publish-a-release
+  release:
+    needs: 
+      - build-windows
+      - build-linux
+      - build-mac
+    steps:
+      - name: Download windows build
+        uses: actions/download-artifact@v2
+        with:
+          name: Oolite-Windows-Nightly.exe
+          
+      - name: Download linux build
+        uses: actions/download-artifact@v2
+        with:
+          name: Oolite-Linux-Nightly.tgz
+          
+      - name: Download macos build
+        uses: actions/download-artifact@v2
+        with:
+          name: Oolite-MacOS-Nightly.tgz
+          
+      - name: Publish Release
+        id: publish_release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Oolite Linux Nightly"
+          files: |
+            Oolite-Windows-Nightly.exe
+            Oolite-Linux-Nightly.tgz
+            Oolite-MacOS-Nightly.tgz
