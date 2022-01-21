@@ -63,13 +63,17 @@ jobs:
           sudo apt install libnspr4-dev
           sudo apt install g++
           cd oolite
+          
           # it seems without this we bind to the OS-provided libpng
           ## remove png headers
           #rm deps/Linux-deps/include/png*
+          
           # make sure the GNUSTEP_MAKEFILES property is set
           export GNUSTEP_MAKEFILES=/usr/lib/GNUstep/Makefiles
+          
           # build the release
-          make -f Makefile release
+          deps/Linux-deps/x86_64/lib_linker/make_so_links.sh
+          make -f Makefile release use_deps=yes
       - name: check environment after build
         run: |
           find .
@@ -83,6 +87,7 @@ jobs:
           cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
           cp -r oolite/AddOns release
           cp -r oolite/oolite.app release
+          cp -r oolite/deps/Linux-deps/x86_64/lib release
           tar cvfz Oolite-Linux-Nightly.tgz release
 
       - name: Upload build result
