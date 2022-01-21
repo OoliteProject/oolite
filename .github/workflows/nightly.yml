@@ -39,6 +39,7 @@ jobs:
         with:
           name: Oolite-Windows-Nightly.exe
           path: oolite/installers/win32/O*e
+          if-no-files-found: error
 
   build-linux:
     runs-on: ubuntu-latest
@@ -89,6 +90,7 @@ jobs:
         with:
           name: Oolite-Linux-Nightly.tgz
           path: Oolite-Linux-Nightly.tgz
+          if-no-files-found: error
           
 #      - name: Package deb
 #        uses: jiro4989/build-deb-action@v2
@@ -176,6 +178,7 @@ jobs:
         with:
           name: Oolite-MacOS-Nightly.tgz
           path: release/TestRelease.zip
+          if-no-files-found: error
 
   # Publish via https://github.com/marketplace/actions/publish-a-release
   release:
