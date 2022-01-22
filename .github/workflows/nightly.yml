@@ -27,13 +27,12 @@ jobs:
       - name: compile
         shell: cmd
         run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
-          
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       - name: check filesystem
         run: |
           Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
-          
+
       - name: Upload build result
         uses: actions/upload-artifact@v2
         with:
