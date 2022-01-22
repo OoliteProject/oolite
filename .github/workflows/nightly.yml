@@ -9,7 +9,12 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - name: Environment Variables
+      - name: Environment Variables[Desktop Entry]
+Name=Oolite Nexus
+Exec=Nexus
+Icon=nexus
+Type=Application
+Categories=Game;
         run: |
           Get-ChildItem Env: | Sort Name
 
@@ -236,4 +241,4 @@ jobs:
           files: |
             Oolite-Windows-Nightly.exe
             Oolite-Linux-Nightly.tgz
-            Oolite-MacOS-Nightly.tgz
+            Oolite-MacOS-Nightly.zip
