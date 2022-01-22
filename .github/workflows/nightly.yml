@@ -129,6 +129,7 @@ jobs:
 
       - name: Package appimage
         run: |
+          cp "$GITHUB_WORKSPACE/oolite/installers/FreeDesktop/oolite-icon.png" "$GITHUB_WORKSPACE/release/oolite.png"
           cat << EOF > "$GITHUB_WORKSPACE/release/oolite.desktop"
           [Desktop Entry]
           Name=Oolite
