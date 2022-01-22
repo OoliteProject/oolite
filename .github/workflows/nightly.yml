@@ -104,13 +104,6 @@ jobs:
         run: |
           tar cvfz Oolite-Linux-Nightly.tgz release
 
-      - name: Upload build result
-        uses: actions/upload-artifact@v2
-        with:
-          name: Oolite-Linux-Nightly.tgz
-          path: Oolite-Linux-Nightly.tgz
-          if-no-files-found: error
-
 #      - name: Package deb
 #        uses: jiro4989/build-deb-action@v2
 #        with:
@@ -145,8 +138,8 @@ jobs:
       - name: Upload build result
         uses: actions/upload-artifact@v2
         with:
-          name: Oolite-Linux-Nightly.AppImage
-          path: Oolite-Linux-Nightly.AppImage
+          name: Oolite-Linux-Nightly
+          path: Oolite-Linux-Nightly.*
           if-no-files-found: error
 
   build-mac:
