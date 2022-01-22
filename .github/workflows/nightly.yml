@@ -91,7 +91,7 @@ jobs:
           cp -r oolite/AddOns release
           cp -r oolite/oolite.app release
           cp -r oolite/deps/Linux-deps/x86_64/lib release/oolite.app
-          echo "#!/bin/bash" >release/oolite
+          echo "#!/bin/bash -x" >release/oolite
           echo "ESPEAK_DATA_PATH=oolite.app/Resources openapp ./oolite.app" >>release/oolite
           chmod +x release/oolite
 
@@ -124,9 +124,10 @@ jobs:
         run: |
           cp "$GITHUB_WORKSPACE/oolite/installers/FreeDesktop/oolite-icon.png" "$GITHUB_WORKSPACE/release/oolite.png"
           cat << EOF_APPRUN > "$GITHUB_WORKSPACE/release/AppRun"
-          #!/bin/bash
+          #!/bin/bash -x
           OOLITE_ROOT=$(dirname $0)
-          oolite
+          echo *
+          ./oolite
           EOF_APPRUN
           chmod +x "$GITHUB_WORKSPACE/release/AppRun"
           cat << EOF_DESKTOP > "$GITHUB_WORKSPACE/release/oolite.desktop"
