@@ -69,7 +69,7 @@ jobs:
           
           # build the release
           pushd .
-          cd deps/Linux-deps/x86_64/lib_linker; make_so_links.sh
+          cd deps/Linux-deps/x86_64/lib_linker; ./make_so_links.sh
           popd
           make -f Makefile release use_deps=yes
       - name: check environment after build
