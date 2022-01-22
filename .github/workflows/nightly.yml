@@ -228,6 +228,6 @@ jobs:
           title: "Oolite Nightly - any platform"
           files: |
             Oolite-Windows-Nightly.exe
-            Oolite-Linux-Nightly.tgz/Oolite-Linux-Nightly.tgz
-            Oolite-Linux-Nightly.tgz/Oolite-Linux-Nightly.AppImage
+            Oolite-Linux-Nightly/Oolite-Linux-Nightly.tgz
+            Oolite-Linux-Nightly/Oolite-Linux-Nightly.AppImage
             Oolite-MacOS-Nightly.zip
