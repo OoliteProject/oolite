@@ -192,13 +192,13 @@ jobs:
       - run: echo "copy extras"
       - run: cp -v -r tools/BBC\ keys release/TestRelease/Extras
       - run: echo "building ZIP archive"
-      - run: cd release; zip --recurse-paths TestRelease.zip TestRelease
+      - run: cd release; zip --recurse-paths Oolite-MacOS-Nightly.zip TestRelease
 
       - name: Upload build result
         uses: actions/upload-artifact@v2
         with:
-          name: Oolite-MacOS-Nightly.tgz
-          path: release/TestRelease.zip
+          name: Oolite-MacOS-Nightly.zip
+          path: release/Oolite-MacOS-Nightly.zip
           if-no-files-found: error
 
   # Publish via https://github.com/marketplace/actions/publish-a-release
