@@ -126,7 +126,7 @@ jobs:
           cat << EOF_APPRUN > "$GITHUB_WORKSPACE/release/AppRun"
           #!/bin/bash
           OOLITE_ROOT=$(dirname $0)
-          $OOLITE_ROOT/oolite
+          oolite
           EOF_APPRUN
           chmod +x "$GITHUB_WORKSPACE/release/AppRun"
           cat << EOF_DESKTOP > "$GITHUB_WORKSPACE/release/oolite.desktop"
