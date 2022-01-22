@@ -9,12 +9,7 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - name: Environment Variables[Desktop Entry]
-Name=Oolite Nexus
-Exec=Nexus
-Icon=nexus
-Type=Application
-Categories=Game;
+      - name: Environment Variables
         run: |
           Get-ChildItem Env: | Sort Name
 
