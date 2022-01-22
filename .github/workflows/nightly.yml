@@ -123,11 +123,12 @@ jobs:
       - name: Package appimage
         run: |
           cp "$GITHUB_WORKSPACE/oolite/installers/FreeDesktop/oolite-icon.png" "$GITHUB_WORKSPACE/release/oolite.png"
-          cat << EOF_APPRUN > "$GITHUB_WORKSPACE/release/APPRUN"
+          cat << EOF_APPRUN > "$GITHUB_WORKSPACE/release/AppRun"
           #!/bin/bash
           OOLITE_ROOT=$(dirname $0)
           $OOLITE_ROOT/oolite
           EOF_APPRUN
+          chmod +x "$GITHUB_WORKSPACE/release/AppRun"
           cat << EOF_DESKTOP > "$GITHUB_WORKSPACE/release/oolite.desktop"
           [Desktop Entry]
           Name=Oolite
