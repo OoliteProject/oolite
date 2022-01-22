@@ -51,6 +51,8 @@ jobs:
 
       - name: check environment before build
         run: |
+          env | sort
+          cd "$WORKSPACE"
           find .
       - name: build
         run: |
@@ -74,13 +76,17 @@ jobs:
           make -f Makefile release use_deps=yes
       - name: check environment after build
         run: |
+          env | sort
+          cd "$WORKSPACE"
           find .
+
 #      - name: test
 #        run: |
 #          openapp oolite/oolite.app
 
       - name: Prepare AppDir
         run: |
+          cd "$WORKSPACE"
           mkdir -p release/Doc
           cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
           cp -r oolite/AddOns release
@@ -122,13 +128,18 @@ jobs:
 #        with:
 #          spec_file: "cello.spec"
         
-#     - name: Package appimage
-#       uses: AppImageCrafters/build-appimage@master
-#       with:
-#         recipe: "./appimage-demo-qt5/AppImageBuilder.yml"
-#       env:
-#         UPDATE_INFO: gh-releases-zsync|AppImageCrafters|appimage-demo-qt5|latest|*x86_64.AppImage.zsync
+     - name: Package appimage
+       run: |
+         wget -O  "$WORKSPACE/appimagetool-x86_64.AppImage" "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+         chmod +x "$WORKSPACE/appimagetool-x86_64.AppImage"
+         "$WORKSPACE/appimagetool-x86_64.AppImage" ARCH x86_64 "$WORKSPACE/release" "$WORKSPACE/Oolite-Linux-Nightly.AppImage"
 
+      - name: Upload build result
+        uses: actions/upload-artifact@v2
+        with:
+          name: Oolite-Linux-Nightly.AppImage
+          path: Oolite-Linux-Nightly.AppImage
+          if-no-files-found: error
 
   build-mac:
     runs-on: macos-latest
