@@ -52,7 +52,7 @@ jobs:
       - name: check environment before build
         run: |
           env | sort
-          cd "$WORKSPACE"
+          cd "$GITHUB_WORKSPACE"
           find .
       - name: build
         run: |
@@ -72,10 +72,11 @@ jobs:
           cd deps/Linux-deps/x86_64/lib_linker; ./make_so_links.sh
           popd
           make -f Makefile release use_deps=yes
+
       - name: check environment after build
         run: |
           env | sort
-          cd "$WORKSPACE"
+          cd "$GITHUB_WORKSPACE"
           find .
 
 #      - name: test
@@ -84,7 +85,7 @@ jobs:
 
       - name: Prepare AppDir
         run: |
-          cd "$WORKSPACE"
+          cd "$GITHUB_WORKSPACE"
           mkdir -p release/Doc
           cp -r oolite/Doc/AdviceForNewCommanders.pdf release/Doc
           cp -r oolite/AddOns release
@@ -128,9 +129,9 @@ jobs:
 
       - name: Package appimage
         run: |
-          wget -O  "$WORKSPACE/appimagetool-x86_64.AppImage" "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
-          chmod +x "$WORKSPACE/appimagetool-x86_64.AppImage"
-          "$WORKSPACE/appimagetool-x86_64.AppImage" ARCH x86_64 "$WORKSPACE/release" "$WORKSPACE/Oolite-Linux-Nightly.AppImage"
+          wget -O  "$GITHUB_WORKSPACE/appimagetool-x86_64.AppImage" "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x "$GITHUB_WORKSPACE/appimagetool-x86_64.AppImage"
+          "$GITHUB_WORKSPACE/appimagetool-x86_64.AppImage" ARCH x86_64 "$GITHUB_WORKSPACE/release" "$GITHUB_WORKSPACE/Oolite-Linux-Nightly.AppImage"
 
       - name: Upload build result
         uses: actions/upload-artifact@v2
