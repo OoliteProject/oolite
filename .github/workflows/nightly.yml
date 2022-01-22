@@ -86,6 +86,9 @@ jobs:
           cp -r oolite/AddOns release
           cp -r oolite/oolite.app release
           cp -r oolite/deps/Linux-deps/x86_64/lib release/oolite.app
+          echo "#!/bin/bash" >release/oolite
+          echo "ESPEAK_DATA_PATH=oolite.app/Resources openapp ./oolite.app" >>release/oolite
+          chmod +x release/oolite
 
       - name: fix library path
         run: |
