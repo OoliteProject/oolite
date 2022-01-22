@@ -131,7 +131,7 @@ jobs:
         run: |
           wget -O  "$GITHUB_WORKSPACE/appimagetool-x86_64.AppImage" "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
           chmod +x "$GITHUB_WORKSPACE/appimagetool-x86_64.AppImage"
-          "$GITHUB_WORKSPACE/appimagetool-x86_64.AppImage" ARCH x86_64 "$GITHUB_WORKSPACE/release" "$GITHUB_WORKSPACE/Oolite-Linux-Nightly.AppImage"
+          ARCH=x86_64 "$GITHUB_WORKSPACE/appimagetool-x86_64.AppImage" "$GITHUB_WORKSPACE/release" "$GITHUB_WORKSPACE/Oolite-Linux-Nightly.AppImage"
 
       - name: Upload build result
         uses: actions/upload-artifact@v2
