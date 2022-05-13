@@ -553,6 +553,7 @@ static OOColor *DebugColor(Vector orientation)
 	GLfloat					r, g, b;
 	size_t					posSize, tcSize, colSize;
 	unsigned				count = 0;
+	BOOL					skyColorGammaCorrect = [[NSUserDefaults standardUserDefaults] boolForKey:@"skycolor-gamma-correct"];
 	
 	self = [super init];
 	if (self == nil)  OK = NO;
@@ -605,9 +606,18 @@ static OOColor *DebugColor(Vector orientation)
 					*pos++ = array[i].corners[j].z;
 					
 					// Colour is the same for each vertex
-					*col++ = r;
-					*col++ = g;
-					*col++ = b;
+					if (!skyColorGammaCorrect)
+					{
+						*col++ = r;
+						*col++ = g;
+						*col++ = b;
+					}
+					else
+					{
+						*col++ = pow(r, 1.0/2.2);
+						*col++ = pow(g, 1.0/2.2);
+						*col++ = pow(b, 1.0/2.2);
+					}
 					*col++ = 1.0f;	// Alpha is unused but needs to be there
 				}
 				
