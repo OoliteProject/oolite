@@ -543,7 +543,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 		scanClass = OOScanClassFromString([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 	}
 
-	scan_description = [shipDict oo_stringForKey:@"scan_description" defaultValue:nil];
+	[scan_description autorelease];
+	scan_description = [[shipDict oo_stringForKey:@"scan_description" defaultValue:nil] copy];
 
 	// FIXME: give NPCs shields instead.
 	
