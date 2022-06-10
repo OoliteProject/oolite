@@ -7,6 +7,7 @@
 [submodule "deps/Linux-deps"]
 	path = deps/Linux-deps
 	url = ../oolite-linux-dependencies.git
+	ignore = all
 [submodule "tests"]
 	path = tests
 	url = ../oolite-tests.git
