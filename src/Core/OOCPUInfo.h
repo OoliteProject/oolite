@@ -27,6 +27,10 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #include <stdint.h>
 
+#if OOLITE_LINUX
+#include <sys/sysinfo.h>
+#endif
+
 
 void OOCPUInfoInit(void);
 
@@ -43,6 +47,13 @@ NSUInteger OOCPUCount(void);
 #if (OOLITE_WINDOWS || OOLITE_LINUX)
 NSString* OOCPUDescription(void);
 void OOCPUID(int CPUInfo[4], int InfoType);
+
+typedef struct
+{
+	unsigned long long ooPhysicalMemory;
+	unsigned long long ooAvailableMemory;
+} OOMemoryStatus;
+OOMemoryStatus OOSystemMemoryStatus(void);
 #endif
 
 
