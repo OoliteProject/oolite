@@ -348,7 +348,8 @@ static NSString *AdditionalLogHeaderInfo(void)
 {
 	unsigned cpuCount = OOCPUCount();
 	NSString *cpuDescription = OOCPUDescription();
+	OOMemoryStatus systemMemoryStatus = OOSystemMemoryStatus();
 	
-	return [NSString stringWithFormat:@"%@ %u processor%@ detected.", cpuDescription, cpuCount, cpuCount != 1 ? @"s" : @""];
+	return [NSString stringWithFormat:@"%@ %u processor%@ detected. System RAM: %llu MB (free: %llu MB).", cpuDescription, cpuCount, cpuCount != 1 ? @"s" : @"", systemMemoryStatus.ooPhysicalMemory, systemMemoryStatus.ooAvailableMemory];
 }
 #endif

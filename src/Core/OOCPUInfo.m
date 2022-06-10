@@ -154,6 +154,33 @@ NSString* OOCPUDescription(void)
 	}
 	return [NSString stringWithCString:CPUBrandString];
 }
+
+
+OOMemoryStatus OOSystemMemoryStatus(void)
+{
+	const unsigned int toMegabyte = 1024 * 1024;
+	
+	OOMemoryStatus systemMemoryStatus;
+	memset(&systemMemoryStatus, 0, sizeof(systemMemoryStatus));
+
+#if OOLITE_WINDOWS
+	MEMORYSTATUSEX memStatus;
+	memStatus.dwLength = sizeof(memStatus);
+	if(GlobalMemoryStatusEx(&memStatus))
+	{
+		// return memory size in MB
+		systemMemoryStatus.ooPhysicalMemory = memStatus.ullTotalPhys / toMegabyte;
+		systemMemoryStatus.ooAvailableMemory = memStatus.ullAvailPhys / toMegabyte;
+	}
+#else
+	struct sysinfo si;
+	sysinfo(&si);
+	systemMemoryStatus.ooPhysicalMemory = (unsigned long long)(si.totalram / toMegabyte);
+	systemMemoryStatus.ooAvailableMemory = (unsigned long long)(si.freeram / toMegabyte);
+#endif
+	
+	return systemMemoryStatus;
+}
 #endif //(OOLITE_WINDOWS || OOLITE_LINUX)
 
 

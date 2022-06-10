@@ -47,6 +47,7 @@ SOFTWARE.
 + (void) reload;
 
 - (NSDictionary *) shipInfoForKey:(NSString *)key;
+- (void) setShipInfoForKey:(NSString *)key with:(NSDictionary *)newShipData;
 - (NSDictionary *) effectInfoForKey:(NSString *)key;
 - (NSDictionary *) shipyardInfoForKey:(NSString *)key;
 - (OOProbabilitySet *) probabilitySetForRole:(NSString *)role;
