@@ -3547,7 +3547,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// canAddEquipment always checks if the undamaged version is equipped.
 	if (validateAddition == YES && ![self canAddEquipment:equipmentKey inContext:context]) {
-		OOLog(@"dybal.trace", @"ShipEntity, addEquipmentItem: %@ in context %@ negated by canAddEquipment", equipmentKey, context);
+//		OOLog(@"dybal.trace", @"ShipEntity, addEquipmentItem: %@ in context %@ negated by canAddEquipment", equipmentKey, context);
 		return NO;
 	}
 	
