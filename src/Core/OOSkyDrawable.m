@@ -560,7 +560,7 @@ static OOColor *DebugColor(Vector orientation)
 // this algorithm has gamma correction already embedded	
 #define SKYCOLOR_TONEMAP_COMPONENT(skyColorComponent) \
 do { \
-	x = max(0.0, skyColorComponent - 0.004); \
+	x = fmax(0.0, skyColorComponent - 0.004); \
 	*col++ = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06); \
 } while (0) 
 
