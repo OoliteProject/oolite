@@ -6795,11 +6795,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	if (killAward)
 	{
-
 		OOLog(@"dybal.trace", @"Increasing player kills from %d to %d due to destruction of %@", ship_kills, ship_kills+1, [other displayName]);
 		ship_kills++;
 
-		ship_kills++;
 		if ((ship_kills % 256) == 0)
 		{
 			// congratulations method needs to be delayed a fraction of a second
