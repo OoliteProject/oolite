@@ -40,6 +40,7 @@ static NSDictionary *selected_entry = nil;
 static NSMutableArray *key_list = nil;
 static NSDictionary *kdic_check = nil;
 static NSArray *nav_keys = nil;
+static NSArray *camera_keys = nil;
 
 @interface PlayerEntity (KeyMapperInternal)
 
@@ -94,6 +95,11 @@ static NSArray *nav_keys = nil;
 	// these keys can't be used with mod keys
 	[nav_keys release];
 	nav_keys = [[NSArray alloc] initWithObjects:@"key_roll_left", @"key_roll_right", @"key_pitch_forward", @"key_pitch_back", @"key_yaw_left", @"key_yaw_right", nil];
+	// these keys can't be used with ctrl
+	[camera_keys release];
+	camera_keys = [[NSArray alloc] initWithObjects:@"key_custom_view_zoom_out", @"key_custom_view_zoom_in", @"key_custom_view_roll_left", @"key_custom_view_roll_right",
+		@"key_custom_view_pan_left", @"key_custom_view_pan_right", @"key_custom_view_rotate_up", @"key_custom_view_rotate_down", @"key_custom_view_pan_down",
+		@"key_custom_view_pan_up", @"key_custom_view_rotate_left", @"key_custom_view_rotate_right", nil];
 }
 
 
@@ -350,11 +356,20 @@ static NSArray *nav_keys = nil;
 							forRow:GUI_ROW_KC_SHIFT + skiprows];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_SHIFT + skiprows];
 
-			[gui setArray:[NSArray arrayWithObjects: 
-										DESC(@"oolite-keyconfig-update-mod1"), mod1, nil]
-							forRow:GUI_ROW_KC_MOD1 + skiprows];
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD1 + skiprows];
-		
+			// camera movement keys can't use ctrl
+			if (![camera_keys containsObject:[selected_entry objectForKey: KEY_KC_DEFINITION]]) {
+				[gui setArray:[NSArray arrayWithObjects: 
+											DESC(@"oolite-keyconfig-update-mod1"), mod1, nil]
+								forRow:GUI_ROW_KC_MOD1 + skiprows];
+				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_KC_MOD1 + skiprows];
+			} 
+			else 
+			{
+				[gui setArray:[NSArray arrayWithObjects: 
+											DESC(@"oolite-keyconfig-update-mod1"), DESC(@"not-applicable"), nil]
+								forRow:GUI_ROW_KC_MOD1 + skiprows];
+			}
+					
 #if OOLITE_MAC_OS_X
 			[gui setArray:[NSArray arrayWithObjects: 
 										DESC(@"oolite-keyconfig-update-mod2-mac"), mod2, nil]

@@ -45,6 +45,8 @@ MA 02110-1301, USA.
 - (BOOL) checkNavKeyPress:(NSArray*)key_def;
 - (BOOL) checkKeyPress:(NSArray*)key_def;
 - (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only;
+- (BOOL) checkKeyPress:(NSArray*)key_def ignore_ctrl:(BOOL)ignore_ctrl;
+- (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only ignore_ctrl:(BOOL)ignore_ctrl;
 - (int) getFirstKeyCode:(NSArray*)key_def;
 
 @end

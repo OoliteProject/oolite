@@ -940,10 +940,14 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	} while(0)
 	if (GetKeyboardState(keyboardStatus))
 	{
+		// A bug noted here https://github.com/libsdl-org/SDL-1.2/issues/449
+		// was patched in SDL here https://github.com/libsdl-org/SDL-1.2/commit/09980c67290f11c3d088a6a039c550be83536c81
+		// This was replicated in our SDL binary, so we no longer need to check the state of Alt when returning to the app
+		// SDL change researched and implemented by Nikos 20220622.
 		// Alt key
-		OO_RESET_SDLKEY_MODIFIER(VK_LMENU, KMOD_LALT, SDLK_LALT);
-		OO_RESET_SDLKEY_MODIFIER(VK_RMENU, KMOD_RALT, SDLK_RALT);
-		opt =  (modState & KMOD_LALT || modState & KMOD_RALT);
+		//OO_RESET_SDLKEY_MODIFIER(VK_LMENU, KMOD_LALT, SDLK_LALT);
+		//OO_RESET_SDLKEY_MODIFIER(VK_RMENU, KMOD_RALT, SDLK_RALT);
+		//opt =  (modState & KMOD_LALT || modState & KMOD_RALT);
 		
 		//Ctrl key
 		OO_RESET_SDLKEY_MODIFIER(VK_LCONTROL, KMOD_LCTRL, SDLK_LCTRL);
@@ -1859,9 +1863,11 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				kbd_event = (SDL_KeyboardEvent*)&event;
 				key_id = (Uint16)kbd_event->keysym.unicode;
 				scan_code = kbd_event->keysym.scancode;
+				
 				//char *keychar = SDL_GetKeyName(kbd_event->keysym.sym);
 				// deal with modifiers first
 				BOOL modifier_pressed = NO;
+				BOOL special_key = NO;
 
 				// translate scancode to unicode equiv
 				switch (kbd_event->keysym.sym) 
@@ -1884,35 +1890,36 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 						modifier_pressed = YES;
 						break;
 
-					case SDLK_HOME: key_id = gvHomeKey; break;
-					case SDLK_END: key_id = gvEndKey; break;
-					case SDLK_INSERT: key_id = gvInsertKey; break;
-					case SDLK_PAGEUP: key_id = gvPageUpKey; break;
-					case SDLK_PAGEDOWN: key_id = gvPageDownKey; break;
-					case SDLK_SPACE: key_id = 32; break;
-					case SDLK_RETURN: key_id = 13; break;
-					case SDLK_TAB: key_id = 9; break;
-					case SDLK_UP: key_id = gvArrowKeyUp; break;
-					case SDLK_DOWN: key_id = gvArrowKeyDown; break;
-					case SDLK_LEFT: key_id = gvArrowKeyLeft; break;
-					case SDLK_RIGHT: key_id = gvArrowKeyRight; break;
-					case SDLK_PAUSE: key_id = gvPauseKey; break;
-					case SDLK_BACKSPACE: key_id = gvBackspaceKey; break;
-					case SDLK_DELETE: key_id = gvDeleteKey; break;
-					case SDLK_F1: key_id = gvFunctionKey1; break;
-					case SDLK_F2: key_id = gvFunctionKey2; break;
-					case SDLK_F3: key_id = gvFunctionKey3; break;
-					case SDLK_F4: key_id = gvFunctionKey4; break;
-					case SDLK_F5: key_id = gvFunctionKey5; break;
-					case SDLK_F6: key_id = gvFunctionKey6; break;
-					case SDLK_F7: key_id = gvFunctionKey7; break;
-					case SDLK_F8: key_id = gvFunctionKey8; break;
-					case SDLK_F9: key_id = gvFunctionKey9; break;
-					case SDLK_F10: key_id = gvFunctionKey10; break;
-					case SDLK_F11: key_id = gvFunctionKey11; break;
+					case SDLK_HOME: key_id = gvHomeKey; special_key = YES; break;
+					case SDLK_END: key_id = gvEndKey; special_key = YES; break;
+					case SDLK_INSERT: key_id = gvInsertKey; special_key = YES; break;
+					case SDLK_PAGEUP: key_id = gvPageUpKey; special_key = YES; break;
+					case SDLK_PAGEDOWN: key_id = gvPageDownKey; special_key = YES; break;
+					case SDLK_SPACE: key_id = 32; special_key = YES; break;
+					case SDLK_RETURN: key_id = 13; special_key = YES; break;
+					case SDLK_TAB: key_id = 9; special_key = YES; break;
+					case SDLK_UP: key_id = gvArrowKeyUp; special_key = YES; break;
+					case SDLK_DOWN: key_id = gvArrowKeyDown; special_key = YES; break;
+					case SDLK_LEFT: key_id = gvArrowKeyLeft; special_key = YES; break;
+					case SDLK_RIGHT: key_id = gvArrowKeyRight; special_key = YES; break;
+					case SDLK_PAUSE: key_id = gvPauseKey; special_key = YES; break;
+					case SDLK_BACKSPACE: key_id = gvBackspaceKey; special_key = YES; break;
+					case SDLK_DELETE: key_id = gvDeleteKey; special_key = YES; break;
+					case SDLK_F1: key_id = gvFunctionKey1; special_key = YES; break;
+					case SDLK_F2: key_id = gvFunctionKey2; special_key = YES; break;
+					case SDLK_F3: key_id = gvFunctionKey3; special_key = YES; break;
+					case SDLK_F4: key_id = gvFunctionKey4; special_key = YES; break;
+					case SDLK_F5: key_id = gvFunctionKey5; special_key = YES; break;
+					case SDLK_F6: key_id = gvFunctionKey6; special_key = YES; break;
+					case SDLK_F7: key_id = gvFunctionKey7; special_key = YES; break;
+					case SDLK_F8: key_id = gvFunctionKey8; special_key = YES; break;
+					case SDLK_F9: key_id = gvFunctionKey9; special_key = YES; break;
+					case SDLK_F10: key_id = gvFunctionKey10; special_key = YES; break;
+					case SDLK_F11: key_id = gvFunctionKey11; special_key = YES; break;
 					case SDLK_F12:
 						key_id = 320;
 						[self toggleScreenMode];
+						special_key = YES; 
 						break;
 
 					case SDLK_ESCAPE:
@@ -1923,6 +1930,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 						}
 						else
 							key_id = 27;
+							special_key = YES; 
 						break;
 					default:
 						//OOLog(@"keys.test", @"Unhandled Keydown scancode with unicode = 0: %d", scan_code);
@@ -1931,10 +1939,11 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
 				// the ctrl key tends to mix up the unicode values, so deal with some special cases
-				if ((ctrl || key_id == 0) && !modifier_pressed) 
+				// we also need (in most cases) to get the character without the impact of caps lock. 
+				if ((ctrl || key_id == 0 || ([self isCapsLockOn] && (!special_key || !allowingStringInput))) && !modifier_pressed) 
 				{
 					// ctrl changes alpha characters to control codes (1-26)
-					if (key_id >=1 && key_id <= 26) 
+					if (ctrl && key_id >=1 && key_id <= 26) 
 					{
 						if (shift) 
 							key_id += 64; // A-Z is from 65, offset by -1 for the scancode start point

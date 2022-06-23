@@ -565,11 +565,23 @@ static NSTimeInterval	time_last_frame;
 
 - (BOOL) checkKeyPress:(NSArray*)key_def
 {
-	return [self checkKeyPress:key_def fKey_only:NO];
+	return [self checkKeyPress:key_def fKey_only:NO ignore_ctrl:NO];
 }
 
 
 - (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only
+{
+	return [self checkKeyPress:key_def fKey_only:fKey_only ignore_ctrl:NO];
+}
+
+
+- (BOOL) checkKeyPress:(NSArray*)key_def ignore_ctrl:(BOOL)ignore_ctrl
+{
+	return [self checkKeyPress:key_def fKey_only:NO ignore_ctrl:ignore_ctrl];
+}
+
+
+- (BOOL) checkKeyPress:(NSArray*)key_def fKey_only:(BOOL)fKey_only ignore_ctrl:(BOOL)ignore_ctrl
 {
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	int i;
@@ -586,7 +598,7 @@ static NSTimeInterval	time_last_frame;
 		if (fKey_only == YES && (keycode < gvFunctionKey1 || keycode > gvFunctionKey11)) continue;
 		if ([gameView isDown:keycode] 
 			&& ([[def objectForKey:@"shift"] boolValue] == [gameView isShiftDown])
-			&& ([[def objectForKey:@"mod1"] boolValue] == [gameView isCtrlDown])
+			&& (ignore_ctrl || ([[def objectForKey:@"mod1"] boolValue] == [gameView isCtrlDown]))
 			&& ([[def objectForKey:@"mod2"] boolValue] == [gameView isOptDown])
 		) return YES;
 	}
@@ -3823,51 +3835,51 @@ static NSTimeInterval	time_last_frame;
 		if (!caps_on)  caps_on = YES;
 		
 		OOTimeDelta delta_t = this_time - last_time;
-		if (([self checkKeyPress:n_key_custom_view_zoom_out] && ![self checkKeyPress:n_key_custom_view_zoom_in]) || [gameView mouseWheelState] == gvMouseWheelDown)
+		if (([self checkKeyPress:n_key_custom_view_zoom_out ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_zoom_in ignore_ctrl:YES]) || [gameView mouseWheelState] == gvMouseWheelDown)
 		{
 			[self customViewZoomOut: pow(customViewZoomSpeed, delta_t)];
 		}
-		if (([self checkKeyPress:n_key_custom_view_zoom_in] && ![self checkKeyPress:n_key_custom_view_zoom_out]) || [gameView mouseWheelState] == gvMouseWheelUp)
+		if (([self checkKeyPress:n_key_custom_view_zoom_in ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_zoom_out ignore_ctrl:YES]) || [gameView mouseWheelState] == gvMouseWheelUp)
 		{
 			[self customViewZoomIn: pow(customViewZoomSpeed, delta_t)];
 		}
-		if ([self checkKeyPress:n_key_custom_view_roll_left] && ![self checkKeyPress:n_key_custom_view_roll_right])
+		if ([self checkKeyPress:n_key_custom_view_roll_left ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_roll_right ignore_ctrl:YES])
 		{
 			[self customViewRollLeft:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_pan_left] && ![self checkKeyPress:n_key_custom_view_pan_right])
+		if ([self checkKeyPress:n_key_custom_view_pan_left ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_right ignore_ctrl:YES])
 		{
 			[self customViewPanLeft:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_roll_right] && ![self checkKeyPress:n_key_custom_view_roll_left])
+		if ([self checkKeyPress:n_key_custom_view_roll_right ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_roll_left ignore_ctrl:YES])
 		{
 			[self customViewRollRight:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_pan_right] && ![self checkKeyPress:n_key_custom_view_pan_left])
+		if ([self checkKeyPress:n_key_custom_view_pan_right ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_left ignore_ctrl:YES])
 		{
 			[self customViewPanRight:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_rotate_up] && ![self checkKeyPress:n_key_custom_view_rotate_down])
+		if ([self checkKeyPress:n_key_custom_view_rotate_up ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_down ignore_ctrl:YES])
 		{
 			[self customViewRotateUp:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_pan_down] && ![self checkKeyPress:n_key_custom_view_pan_up])
+		if ([self checkKeyPress:n_key_custom_view_pan_down ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_up ignore_ctrl:YES])
 		{
 			[self customViewPanDown:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_rotate_down] && ![self checkKeyPress:n_key_custom_view_rotate_up])
+		if ([self checkKeyPress:n_key_custom_view_rotate_down ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_up ignore_ctrl:YES])
 		{
 			[self customViewRotateDown:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_pan_up] && ![self checkKeyPress:n_key_custom_view_pan_down])
+		if ([self checkKeyPress:n_key_custom_view_pan_up ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_pan_down ignore_ctrl:YES])
 		{
 			[self customViewPanUp:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_rotate_left] && ![self checkKeyPress:n_key_custom_view_rotate_right])
+		if ([self checkKeyPress:n_key_custom_view_rotate_left ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_right ignore_ctrl:YES])
 		{
 			[self customViewRotateLeft:customViewRotateSpeed * delta_t];
 		}
-		if ([self checkKeyPress:n_key_custom_view_rotate_right] && ![self checkKeyPress:n_key_custom_view_rotate_left])
+		if ([self checkKeyPress:n_key_custom_view_rotate_right ignore_ctrl:YES] && ![self checkKeyPress:n_key_custom_view_rotate_left ignore_ctrl:YES])
 		{
 			[self customViewRotateRight:customViewRotateSpeed * delta_t];
 		}
