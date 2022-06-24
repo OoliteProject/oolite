@@ -1940,7 +1940,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
 				// the ctrl key tends to mix up the unicode values, so deal with some special cases
 				// we also need (in most cases) to get the character without the impact of caps lock. 
-				if ((ctrl || key_id == 0 || ([self isCapsLockOn] && (!special_key || !allowingStringInput))) && !modifier_pressed) 
+				if ((ctrl || key_id == 0 || ([self isCapsLockOn] && (!special_key && !allowingStringInput))) && !modifier_pressed) 
 				{
 					// ctrl changes alpha characters to control codes (1-26)
 					if (ctrl && key_id >=1 && key_id <= 26) 
