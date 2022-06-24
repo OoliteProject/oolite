@@ -943,7 +943,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		// A bug noted here https://github.com/libsdl-org/SDL-1.2/issues/449
 		// was patched in SDL here https://github.com/libsdl-org/SDL-1.2/commit/09980c67290f11c3d088a6a039c550be83536c81
 		// This was replicated in our SDL binary (Windows-deps rev. 36fd5e6),
-		// so we no longer need to check the state of Alt when returning to the app
+		// so we no longer need to check the state of Alt when returning to the app.
 		// SDL change researched and implemented by Nikos 20220622.
 		// Alt key
 		//OO_RESET_SDLKEY_MODIFIER(VK_LMENU, KMOD_LALT, SDLK_LALT);
