@@ -718,7 +718,7 @@ static NSArray *camera_keys = nil;
 {
 	NSMutableArray *funcList = [NSMutableArray array];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Screen access"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-screen-access")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_ship") keyDef:@"key_launch_ship"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_options") keyDef:@"key_gui_screen_options"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_screen_equipship") keyDef:@"key_gui_screen_equipship"]];
@@ -728,7 +728,7 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_system_data") keyDef:@"key_gui_system_data"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_market") keyDef:@"key_gui_market"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Propulsion"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-propulsion")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_left") keyDef:@"key_roll_left"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_roll_right") keyDef:@"key_roll_right"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pitch_forward") keyDef:@"key_pitch_forward"]];
@@ -743,7 +743,7 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hyperspace") keyDef:@"key_hyperspace"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_galactic_hyperspace") keyDef:@"key_galactic_hyperspace"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Astrogation"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-navigation")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prev_compass_mode") keyDef:@"key_prev_compass_mode"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_compass_mode") keyDef:@"key_next_compass_mode"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_scanner_zoom") keyDef:@"key_scanner_zoom"]];
@@ -759,7 +759,7 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_autodock") keyDef:@"key_autodock"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_docking_music") keyDef:@"key_docking_music"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Offensive"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-offensive")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_weapons_online_toggle") keyDef:@"key_weapons_online_toggle"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fire_lasers") keyDef:@"key_fire_lasers"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_missile") keyDef:@"key_launch_missile"]];
@@ -770,13 +770,13 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_target") keyDef:@"key_next_target"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_previous_target") keyDef:@"key_previous_target"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Defensive"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-defensive")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_ecm") keyDef:@"key_ecm"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_cargo") keyDef:@"key_dump_cargo"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_rotate_cargo") keyDef:@"key_rotate_cargo"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_launch_escapepod") keyDef:@"key_launch_escapepod"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Special equipment"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-special-equip")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_cycle_next_mfd") keyDef:@"key_cycle_next_mfd"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_cycle_previous_mfd") keyDef:@"key_cycle_previous_mfd"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_switch_next_mfd") keyDef:@"key_switch_next_mfd"]];
@@ -789,7 +789,7 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_a") keyDef:@"key_fastactivate_equipment_a"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_fastactivate_equipment_b") keyDef:@"key_fastactivate_equipment_b"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Chart screen"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-chart-screen")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_next") keyDef:@"key_advanced_nav_array_next"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_advanced_nav_array_previous") keyDef:@"key_advanced_nav_array_previous"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_home") keyDef:@"key_map_home"]];
@@ -801,13 +801,13 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_map_previous_system") keyDef:@"key_map_previous_system"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_chart_highlight") keyDef:@"key_chart_highlight"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Planet info screen"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-planet-info-screen")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_home") keyDef:@"key_system_home"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_end") keyDef:@"key_system_end"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_next_system") keyDef:@"key_system_next_system"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_system_previous_system") keyDef:@"key_system_previous_system"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Market screen"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-market-screen")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_filter_cycle") keyDef:@"key_market_filter_cycle"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sorter_cycle") keyDef:@"key_market_sorter_cycle"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_buy_one") keyDef:@"key_market_buy_one"]];
@@ -815,7 +815,7 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_buy_max") keyDef:@"key_market_buy_max"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_market_sell_max") keyDef:@"key_market_sell_max"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Miscellaneous"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-misc")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_snapshot") keyDef:@"key_snapshot"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pausebutton") keyDef:@"key_pausebutton"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_show_fps") keyDef:@"key_show_fps"]];
@@ -828,7 +828,7 @@ static NSArray *camera_keys = nil;
 #endif
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_comms_log") keyDef:@"key_comms_log"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Custom view controls"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-custom-view")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view") keyDef:@"key_custom_view"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_zoom_in") keyDef:@"key_custom_view_zoom_in"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_zoom_out") keyDef:@"key_custom_view_zoom_out"]];
@@ -843,12 +843,12 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_up") keyDef:@"key_custom_view_rotate_up"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_custom_view_rotate_down") keyDef:@"key_custom_view_rotate_down"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"OXZ manager controls"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-oxz-manager")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_setfilter") keyDef:@"key_oxzmanager_setfilter"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_showinfo") keyDef:@"key_oxzmanager_showinfo"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_oxzmanager_extract") keyDef:@"key_oxzmanager_extract"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"GUI controls"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-gui")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_left") keyDef:@"key_gui_arrow_left"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_right") keyDef:@"key_gui_arrow_right"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_arrow_up") keyDef:@"key_gui_arrow_up"]];
@@ -857,7 +857,7 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_page_up") keyDef:@"key_gui_page_up"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_gui_select") keyDef:@"key_gui_select"]];
 
-	[funcList addObject:[self makeKeyGuiDictHeader:@"Debug functions"]];
+	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-debug")]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_target_state") keyDef:@"key_dump_target_state"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_dump_entity_list") keyDef:@"key_dump_entity_list"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_full") keyDef:@"key_debug_full"]];

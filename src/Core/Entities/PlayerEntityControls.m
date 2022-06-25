@@ -2196,7 +2196,7 @@ static NSTimeInterval	time_last_frame;
 				BOOL nextSystem = [gameView isShiftDown];
 				BOOL nextSystemOnRoute = [gameView isOptDown];
 				
-				if ([self checkKeyPress:n_key_gui_arrow_left])
+				if ([self checkKeyPress:n_key_gui_arrow_left ignore_ctrl:YES])
 				{
 					if ((nextSystem || nextSystemOnRoute) && pressedArrow != 1)
 					{
@@ -2225,7 +2225,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					pressedArrow =  pressedArrow == 1 ? 0 : pressedArrow;
 				
-				if ([self checkKeyPress:n_key_gui_arrow_right])
+				if ([self checkKeyPress:n_key_gui_arrow_right ignore_ctrl:YES])
 				{
 					if ((nextSystem || nextSystemOnRoute) && pressedArrow != 2)
 					{
@@ -2254,7 +2254,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					pressedArrow =  pressedArrow == 2 ? 0 : pressedArrow;
 				
-				if ([self checkKeyPress:n_key_gui_arrow_down])
+				if ([self checkKeyPress:n_key_gui_arrow_down ignore_ctrl:YES])
 				{
 					if (nextSystem && pressedArrow != 3)
 					{
@@ -2273,7 +2273,7 @@ static NSTimeInterval	time_last_frame;
 				else
 					pressedArrow =  pressedArrow == 3 ? 0 : pressedArrow;
 				
-				if ([self checkKeyPress:n_key_gui_arrow_up])
+				if ([self checkKeyPress:n_key_gui_arrow_up ignore_ctrl:YES])
 				{
 					if (nextSystem && pressedArrow != 4)
 					{

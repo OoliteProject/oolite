@@ -1212,6 +1212,21 @@
 	"oolite-keysetting-screen" 		= "Keyboard Settings";
 	"oolite-keysetting-text" 		= "See documentation for more information. Press space to return to the menu";
 
+	"oolite-keydesc-header-screen-access"		= "Screen access";
+	"oolite-keydesc-header-propulsion"			= "Propulsion";
+	"oolite-keydesc-header-navigation"			= "Navigation";
+	"oolite-keydesc-header-offensive"			= "Offensive";
+	"oolite-keydesc-header-defensive"			= "Defensive";
+	"oolite-keydesc-header-special-equip"		= "Special equipment";
+	"oolite-keydesc-header-chart-screen"		= "Chart screen";
+	"oolite-keydesc-header-planet-info-screen"	= "Planet info screen";
+	"oolite-keydesc-header-market-screen"		= "Market screen";
+	"oolite-keydesc-header-misc"				= "Miscellaneous";
+	"oolite-keydesc-header-custom-view"			= "Custom view controls";
+	"oolite-keydesc-header-oxz-manager"			= "OXZ manager controls";
+	"oolite-keydesc-header-gui"					= "GUI controls";
+	"oolite-keydesc-header-debug"				= "Debug functions";
+
 	"oolite-keydesc-key_roll_left"				= "Roll left";
 	"oolite-keydesc-key_roll_right"				= "Roll right";
 	"oolite-keydesc-key_pitch_forward"			= "Pitch down";

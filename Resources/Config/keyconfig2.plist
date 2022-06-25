@@ -248,13 +248,13 @@
         // changed
         key_advanced_nav_array_next = ({
             key = "^";
-            mod2 = true;
+            shift = true;
         });
         // new
         key_advanced_nav_array_previous = ({
             key = "^";
+            shift = true;
             mod1 = true;
-            mod2 = true;
         });
         key_map_home = ({
             key = "home";
