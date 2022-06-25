@@ -30,8 +30,8 @@
 */
 
 
-#define MULTIPLIER_LIGHTSRCRADIANCE	5.0
-#define MULITPLIER_EXPOSURE			2.0
+#define MULTIPLIER_LIGHTSRCRADIANCE	3.75
+#define MULITPLIER_EXPOSURE			1.38
 #define LIGHTSRC_RADIANCE_DIFFUSE	(gl_LightSource[1].diffuse * MULTIPLIER_LIGHTSRCRADIANCE)
 #define LIGHTSRC_RADIANCE_SPECULAR	(gl_LightSource[1].specular * MULTIPLIER_LIGHTSRCRADIANCE)
 #define LIGHTSRC_AMBIENT			(gl_LightModel.ambient)
@@ -297,6 +297,40 @@ vec4 TemperatureGlow(in float level)
 }
 
 
+vec3 ACESFilm(vec3 color)
+{
+	// This tonemapper taken from https://gist.github.com/SpineyPete/ebf9619f009318536c6da48209894fed
+	// ACES filmic tonemapper with highlight desaturation ("crosstalk").
+	// Based on the curve fit by Krzysztof Narkowicz.
+	// https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+
+	const float slope = 12.0f; // higher values = slower rise.
+
+	// Store grayscale as an extra channel.
+	vec4 x = max(vec4(0.0), vec4(
+		// RGB
+		color.r, color.g, color.b,
+		// Luminosity
+		(color.r * 0.299) + (color.g * 0.587) + (color.b * 0.114)
+	));
+	
+	// ACES Tonemapper
+	const float a = 2.51f;
+	const float b = 0.03f;
+	const float c = 2.43f;
+	const float d = 0.59f;
+	const float e = 0.14f;
+
+	vec4 tonemap = clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+	float t = x.a;
+	
+	t = t * t / (slope + t);
+
+	// Return after desaturation step.
+	return mix(tonemap.rgb, tonemap.aaa, t);
+}
+
+
 void main(void)
 {
 	vec4 totalColor = vec4(0);
@@ -450,24 +484,18 @@ void main(void)
 	// apparently some drivers fail to clamp alpha properly, so let's do it for them
 	totalColor.a = clamp(totalColor.a, 0.0, 1.0);
 	
-	// exposure
-	totalColor.rgb *= MULITPLIER_EXPOSURE;
-
-	// gamma correction
-	// using Jim Hejl's filmic tonemapping and gamma correction approximation. 
-	// Normally this would require HDR, but I think it works extremely well in Oolite.
-	// Formula taken from https://www.gdcvault.com/play/1012351/Uncharted-2-HDR
-	// jump to 27:40 in the video. Note the pow 1.0/2.2 is baked into these numbers
-	if (uGammaCorrect)
-	{
-		vec3 x = max(vec3(0.0), totalColor.rgb - 0.004);
-		totalColor.rgb = (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
-	}
-	
 	// Heat glow
 	float hullHeat = max(uHullHeatLevel - 0.5, 0.0) * 2.0;
 	hullHeat = Pulse(hullHeat * hullHeat, 0.1);
 	totalColor += TemperatureGlow(hullHeat);
+	
+	// exposure
+	totalColor.rgb *= MULITPLIER_EXPOSURE;
+
+	// ACES filmic tone mapping
+	totalColor.rgb = ACESFilm(totalColor.rgb);
+	// gamma correction
+	if (uGammaCorrect)  totalColor.rgb = pow(totalColor.rgb, vec3(1.0/2.2));
 	
 	gl_FragColor = mix(totalColor, vec4(uFogColor.xyz, 1.0), uFogColor.w);
 }
