@@ -2241,7 +2241,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self setLastAegisLock:[UNIVERSE planet]];
 		
 	JSContext *context = OOJSAcquireContext();
-	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:kOOJSLongTimeLimit];
+	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:MAX(0.0, [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"start-script-limit-value" defaultValue:kOOJSLongTimeLimit])];
 	OOJSRelinquishContext(context);
 }
 
