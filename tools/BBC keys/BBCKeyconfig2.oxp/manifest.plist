@@ -1,0 +1,10 @@
+{
+	identifier = "oolite.oxp.phkb.BBCKeyConfig2";
+	version = "1.0";
+	title = "BBC keyboard layout";
+	required_oolite_version = "1.91";
+	description = "Remaps the keyboard layout to be similar to the original BBC layout.";
+	category = "Miscellaneous";
+	author = "Nick Rogers";
+	license = "GPL-3.0";
+}
