@@ -3110,9 +3110,9 @@ static NSTimeInterval	time_last_frame;
 
 	BOOL isdocked = [self isDocked];
 
-	if (([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])||([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]))
+	if (([self checkNavKeyPress:n_key_gui_arrow_right])||([self checkNavKeyPress:n_key_gui_arrow_left])||([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]))
 	{
-		if ([self checkKeyPress:n_key_gui_arrow_right])   // -->
+		if ([self checkNavKeyPress:n_key_gui_arrow_right])   // -->
 		{
 			if (!wait_for_key_up)
 			{
@@ -3148,7 +3148,7 @@ static NSTimeInterval	time_last_frame;
 				wait_for_key_up = YES;
 			}
 		}
-		if ([self checkKeyPress:n_key_gui_arrow_left])   // <--
+		if ([self checkNavKeyPress:n_key_gui_arrow_left])   // <--
 		{
 			if (!wait_for_key_up)
 			{
