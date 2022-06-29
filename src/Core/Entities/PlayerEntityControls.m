@@ -958,6 +958,7 @@ static NSTimeInterval	time_last_frame;
 		// snapshot
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		if (([self checkKeyPress:n_key_snapshot] || joyButtonState[BUTTON_SNAPSHOT]) &&
+			![gameView allowingStringInput] && // not while entering text on the keyboard config screens
 			![[OOOXZManager sharedManager] isAcceptingTextInput])   //  '*' key but not while filtering inside OXZ Manager
 		{
 			exceptionContext = @"snapshot";
@@ -1057,7 +1058,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 		// HUD toggle
-		if ([self checkKeyPress:n_key_hud_toggle] && [gameController isGamePaused])	// 'o' key while paused
+		if ([self checkKeyPress:n_key_hud_toggle] && [gameController isGamePaused] && !onTextEntryScreen)	// 'o' key while paused
 		{
 			exceptionContext = @"toggle HUD";
 			if (!hide_hud_pressed)
@@ -1089,7 +1090,7 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView		*gameView = [UNIVERSE gameView];
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	NSString			*exceptionContext = @"setup";
-	
+
 	@try
 	{
 		exceptionContext = @"joystick handling";
@@ -1751,10 +1752,9 @@ static NSTimeInterval	time_last_frame;
 		else
 		{
 			// game is paused
-			
 			// check options menu request
 			exceptionContext = @"options menu";
-			if (([self checkKeyPress:n_key_gui_screen_options]) && (gui_screen != GUI_SCREEN_OPTIONS))
+			if (([self checkKeyPress:n_key_gui_screen_options]) && (gui_screen != GUI_SCREEN_OPTIONS) && ![gameView allowingStringInput])
 			{
 				[gameView clearKeys];
 				[self setGuiToLoadSaveScreen];
@@ -1790,7 +1790,7 @@ static NSTimeInterval	time_last_frame;
 			exceptionContext = @"debug keys";
 	#ifndef NDEBUG
 			// look for debugging keys
-			if ([self checkKeyPress:n_key_dump_entity_list])// look for the '0' key
+			if ([self checkKeyPress:n_key_dump_entity_list] && ![gameView allowingStringInput])// look for the '0' key
 			{
 				if (!dump_entity_list_pressed)
 				{
@@ -1804,19 +1804,19 @@ static NSTimeInterval	time_last_frame;
 				dump_entity_list_pressed = NO;
 			
 			// look for debugging keys
-			if ([self checkKeyPress:n_key_debug_full])// look for the 'd' key
+			if ([self checkKeyPress:n_key_debug_full] && ![gameView allowingStringInput])// look for the 'd' key
 			{
 				gDebugFlags = DEBUG_ALL;
 				[UNIVERSE addMessage:@"Full debug ON" forCount:3];
 			}
 			
-			if ([self checkKeyPress:n_key_debug_collision])// look for the 'b' key
+			if ([self checkKeyPress:n_key_debug_collision] && ![gameView allowingStringInput])// look for the 'b' key
 			{
 				gDebugFlags |= DEBUG_COLLISIONS;
 				[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
 			}
 			
-			if ([self checkKeyPress:n_key_debug_console_connect] && ![[OODebugMonitor sharedDebugMonitor] usingPlugInController]) // look for the 'c' key
+			if ([self checkKeyPress:n_key_debug_console_connect] && ![[OODebugMonitor sharedDebugMonitor] usingPlugInController] && ![gameView allowingStringInput]) // look for the 'c' key
 			{
 				// This code is executed only if we're not using the integrated plugin controller
 				if (!autopilot_key_pressed)
@@ -1838,19 +1838,19 @@ static NSTimeInterval	time_last_frame;
 			else
 				autopilot_key_pressed = NO;
 			
-			if ([self checkKeyPress:n_key_debug_bounding_boxes])// look for the 'x' key
+			if ([self checkKeyPress:n_key_debug_bounding_boxes] && ![gameView allowingStringInput])// look for the 'x' key
 			{
 				gDebugFlags |= DEBUG_BOUNDING_BOXES;
 				[UNIVERSE addMessage:@"Bounding box debug ON" forCount:3];
 			}
 			
-			if ([self checkKeyPress:n_key_debug_shaders])// look for the 's' key
+			if ([self checkKeyPress:n_key_debug_shaders] && ![gameView allowingStringInput])// look for the 's' key
 			{
 				OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", YES);
 				[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
 			}
 
-			if (([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_arrow_right]) && gui_screen != GUI_SCREEN_GAMEOPTIONS && [UNIVERSE displayFPS])
+			if (([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_arrow_right]) && gui_screen != GUI_SCREEN_GAMEOPTIONS && [UNIVERSE displayFPS] && ![gameView allowingStringInput])
 			{
 				if (!leftRightKeyPressed)
 				{
@@ -1865,7 +1865,7 @@ static NSTimeInterval	time_last_frame;
 				leftRightKeyPressed = NO;
 					
 			
-			if ([self checkKeyPress:n_key_debug_off])// look for the 'n' key
+			if ([self checkKeyPress:n_key_debug_off] && ![gameView allowingStringInput])// look for the 'n' key
 			{
 				gDebugFlags = 0;
 				[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
@@ -1876,7 +1876,7 @@ static NSTimeInterval	time_last_frame;
 		
 		exceptionContext = @"pause";
 		// Pause game 'p'
-		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)// look for the 'p' key
+		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && ![gameView allowingStringInput])// look for the 'p' key
 		{
 			if (!pause_pressed)
 			{
@@ -3823,7 +3823,7 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	if ([self checkKeyPress:n_key_custom_view])
 	{
-		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)
+		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && ![gameView allowingStringInput])
 		{
 			if ([UNIVERSE viewDirection] == VIEW_CUSTOM)	// already in custom view mode
 			{
@@ -4525,8 +4525,10 @@ static BOOL autopilot_pause;
 
 - (void) pollAutopilotControls:(double)delta_t
 {
+	// don't do anything if we're configuring the keyboard
+	if (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR) return;
+
 	// controls polled while the autopilot is active
-	
 	if (![[UNIVERSE gameController] isGamePaused])
 	{
 		//  view keys

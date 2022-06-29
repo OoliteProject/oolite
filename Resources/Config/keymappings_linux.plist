@@ -4,7 +4,7 @@
 	// to switch to a different keyboard layout, edit the .GNUstepDefaults file and add/change 
 	// 		"keyboard-code" = "{preferredCode}";
 	"default" = {
-		description = "Default (US) keyboard";
+		description = "Default (US)";
 		mapping_normal = {
 			"49" = 96; // ` key
 			"10" = 49; // 1 key
@@ -141,7 +141,7 @@
 		};
 	};
 	"gbr" = {
-		description = "UK keyboard";
+		description = "UK";
 		mapping_normal = {
 			"49" = 96; // ` key
 			"10" = 49; // 1 key
@@ -280,7 +280,7 @@
 		};
 	};
 	"deu" = {
-		description = "German keyboard";
+		description = "German";
 		mapping_normal = {
 			"49" = 94; // ^ key
 			"10" = 49; // 1 key
@@ -420,7 +420,7 @@
 		};
 	};
 	"ita" = {
-		description = "Italian keyboard";
+		description = "Italian";
 		mapping_normal = {
 			"49" = 92; // \ key
 			"10" = 49; // 1 key
@@ -560,7 +560,7 @@
 		};
 	};
 	"nor" = {
-		description = "Norwegian keyboard";
+		description = "Norwegian";
 		mapping_normal = {
 			"49" = 124; // | key
 			"10" = 49; // 1 key
@@ -700,7 +700,7 @@
 		};
 	};
 	"fra" = {
-		description = "French (AZERTY) keyboard";
+		description = "French (AZERTY)";
 		mapping_normal = {
 			"49" = 178; // ² key
 			"10" = 38; // & key
@@ -837,7 +837,7 @@
 		};
 	};
 	"dnk" = {
-		description = "Danish keyboard";
+		description = "Danish";
 		mapping_normal = {
 			"49" = 189; // ½ key
 			"10" = 49; // 1 key
@@ -976,7 +976,7 @@
 		};
 	};
 	"nld" = {
-		description = "Dutch keyboard";
+		description = "Dutch";
 		mapping_normal = {
 			"49" = 64; // @ key
 			"10" = 49; // 1 key
@@ -1115,7 +1115,7 @@
 		};
 	};
 	"grc_220" = {
-		description = "Greek (220) Latin keyboard";
+		description = "Greek (220) Latin";
 		mapping_normal = {
 			"49" = 92; // \ key
 			"10" = 49; // 1 key
@@ -1254,7 +1254,7 @@
 		};
 	};
 	"grc_319" = {
-		description = "Greek (319) Latin keyboard";
+		description = "Greek (319) Latin";
 		mapping_normal = {
 			"49" = 92; // \ key
 			"10" = 49; // 1 key
@@ -1393,7 +1393,7 @@
 		};
 	};
 	"esp" = {
-		description = "Spanish keyboard";
+		description = "Spanish";
 		mapping_normal = {
 			"49" = 186; // º key
 			"10" = 49; // 1 key
@@ -1532,7 +1532,7 @@
 		};
 	};
 	"esp_latin" = {
-		description = "Spanish (Latin American) keyboard";
+		description = "Spanish (Latin American)";
 		mapping_normal = {
 			"49" = 124; // | key
 			"10" = 49; // 1 key
@@ -1670,7 +1670,7 @@
 		};
 	};
 	"swe" = {
-		description = "Swedish keyboard";
+		description = "Swedish";
 		mapping_normal = {
 			"49" = 167; // § key
 			"10" = 49; // 1 key
@@ -1809,7 +1809,7 @@
 		};
 	};
 	"cafr" = {
-		description = "Canadian (French) keyboard";
+		description = "Canadian (French)";
 		mapping_normal = {
 			"49" = 35; // # key
 			"10" = 49; // 1 key
@@ -1948,7 +1948,7 @@
 		};
 	};
 	"por" = {
-		description = "Portuguese keyboard";
+		description = "Portuguese";
 		mapping_normal = {
 			"49" = 92; // \ key
 			"10" = 49; // 1 key
@@ -2087,7 +2087,7 @@
 		};
 	};
 	"por_bra" = {
-		description = "Portuguese (Brazil) keyboard";
+		description = "Portuguese (Brazil)";
 		mapping_normal = {
 			"49" = 39; // ' key
 			"10" = 49; // 1 key
