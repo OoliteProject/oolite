@@ -200,6 +200,7 @@ static NSTimeInterval	time_last_frame;
 - (void) initControls
 {
 	[keyCodeLookups release];
+	// all entries in this dict must be in lowercase
 	keyCodeLookups = [[NSDictionary alloc] initWithObjectsAndKeys:
 		[NSNumber numberWithUnsignedShort:gvArrowKeyLeft], @"arrowleft", 
 		[NSNumber numberWithUnsignedShort:gvArrowKeyLeft], @"leftarrow", 
@@ -257,7 +258,20 @@ static NSTimeInterval	time_last_frame;
 		[NSNumber numberWithUnsignedShort:gvNumberPadKey6], @"numpad6", 
 		[NSNumber numberWithUnsignedShort:gvNumberPadKey7], @"numpad7", 
 		[NSNumber numberWithUnsignedShort:gvNumberPadKey8], @"numpad8", 
-		[NSNumber numberWithUnsignedShort:gvNumberPadKey9], @"numpad9", nil];
+		[NSNumber numberWithUnsignedShort:gvNumberPadKey9], @"numpad9", 
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyDivide], @"numpad/",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyDivide], @"numpaddivide",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyMultiply], @"numpad*",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyMultiply], @"numpadmultiply",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyMinus], @"numpad-",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyMinus], @"numpadminus",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyPlus], @"numpad+",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyPlus], @"numpadplus",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyPeriod], @"numpad.",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyPeriod], @"numpadperiod",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyEquals], @"numpad=",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyEquals], @"numpadequals",
+		[NSNumber numberWithUnsignedShort:gvNumberPadKeyEnter], @"numpadenter", nil];
 
 	keyShiftText = DESC(@"oolite-keyconfig-shift");
 	keyMod1Text = DESC(@"oolite-keyconfig-mod1");
@@ -355,20 +369,20 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_gui_arrow_down, gvArrowKeyDown, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_gui_page_up, gvPageUpKey, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_gui_page_down, gvPageDownKey, NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_gui_select, 13, NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_gui_select, 13, NO, NO, gvNumberPadKeyEnter, NO, NO);
 	
 	LOAD_KEY_SETTING2(n_key_increase_speed, 'w', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_decrease_speed, 's', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_inject_fuel, 'i', NO, NO, 0, NO, NO);
 	
 	LOAD_KEY_SETTING2(n_key_fire_lasers, 'a', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_weapons_online_toggle, '_', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_weapons_online_toggle, '_', YES, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_launch_missile, 'm', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_next_missile, 'y', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_ecm, 'e', NO, NO, 0, NO, NO);
 	
-	LOAD_KEY_SETTING2(n_key_prime_next_equipment, 'N', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_prime_previous_equipment, 'N', NO, YES, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_prime_next_equipment, 'N', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_prime_previous_equipment, 'N', YES, YES, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_activate_equipment, 'n', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_mode_equipment, 'b', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_fastactivate_equipment_a, '0', NO, NO, 0, NO, NO);
@@ -376,11 +390,11 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING2(n_key_target_missile, 't', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_untarget_missile, 'u', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_target_incoming_missile, 'T', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_target_incoming_missile, 'T', YES, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_ident_system, 'r', NO, NO, 0, NO, NO);
 	
 	LOAD_KEY_SETTING2(n_key_scanner_zoom, 'z', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_scanner_unzoom, 'Z', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_scanner_unzoom, 'Z', YES, NO, 0, NO, NO);
 	
 	LOAD_KEY_SETTING2(n_key_launch_escapepod, 27, NO, NO, 0, NO, NO);
 	
@@ -388,18 +402,18 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_hyperspace, 'h', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_jumpdrive, 'j', NO, NO, 0, NO, NO);
 	
-	LOAD_KEY_SETTING2(n_key_dump_cargo, 'd', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_rotate_cargo, 'R', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_dump_cargo, 'D', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_rotate_cargo, 'R', YES, NO, 0, NO, NO);
 	
 	LOAD_KEY_SETTING2(n_key_autopilot, 'c', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_autodock, 'C', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_docking_clearance_request, 'L', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_autodock, 'C', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_docking_clearance_request, 'L', YES, NO, 0, NO, NO);
 	
-	LOAD_KEY_SETTING2(n_key_snapshot, '*', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_snapshot, '*', YES, NO, gvNumberPadKeyMultiply, NO, NO);
 	LOAD_KEY_SETTING2(n_key_docking_music, 's', NO, NO, 0, NO, NO);
 	
-	LOAD_KEY_SETTING2(n_key_advanced_nav_array_next, '^', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_advanced_nav_array_previous, '^', NO, YES, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_advanced_nav_array_next, '^', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_advanced_nav_array_previous, '^', YES, YES, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_map_home, gvHomeKey, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_map_end, gvEndKey, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_map_next_system, gvArrowKeyRight, NO, NO, gvArrowKeyDown, NO, NO);
@@ -407,7 +421,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_map_zoom_in, gvPageDownKey, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_map_zoom_out, gvPageUpKey, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_map_info, 'i', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_chart_highlight, '?', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_chart_highlight, '?', YES, NO, 0, NO, NO);
 
 	LOAD_KEY_SETTING2(n_key_system_home, gvHomeKey, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_system_end, gvEndKey, NO, NO, 0, NO, NO);
@@ -415,17 +429,17 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_system_previous_system, gvArrowKeyLeft, NO, NO, gvArrowKeyUp, NO, NO);
 
 	LOAD_KEY_SETTING2(n_key_pausebutton, 'p', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_show_fps, 'F', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_mouse_control_roll, 'M', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_mouse_control_yaw, 'M', NO, YES, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_show_fps, 'F', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_mouse_control_roll, 'M', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_mouse_control_yaw, 'M', YES, YES, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_hud_toggle, 'o', NO, NO, 0, NO, NO);
 	
-	LOAD_KEY_SETTING2(n_key_comms_log, '`', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_prev_compass_mode, '|', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_comms_log, '`', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_prev_compass_mode, '|', YES, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_next_compass_mode, '\\', NO, NO, 0, NO, NO);
 	
-	LOAD_KEY_SETTING2(n_key_market_filter_cycle, '?', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_market_sorter_cycle, '/', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_market_filter_cycle, '?', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_market_sorter_cycle, '/', NO, NO, gvNumberPadKeyDivide, NO, NO);
 	LOAD_KEY_SETTING2(n_key_market_buy_one, gvArrowKeyRight, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_market_sell_one, gvArrowKeyLeft, NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_market_buy_max, gvArrowKeyRight, YES, NO, 0, NO, NO);
@@ -433,11 +447,11 @@ static NSTimeInterval	time_last_frame;
 
 	LOAD_KEY_SETTING2(n_key_cycle_next_mfd, ';', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_cycle_previous_mfd, ';', NO, YES, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_switch_next_mfd, ':', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_switch_previous_mfd, ':', NO, YES, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_switch_next_mfd, ':', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_switch_previous_mfd, ':', YES, YES, 0, NO, NO);
 
-	LOAD_KEY_SETTING2(n_key_next_target, '+', NO, NO, 0, NO, NO);
-	LOAD_KEY_SETTING2(n_key_previous_target, '-', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_next_target, '+', YES, NO, gvNumberPadKeyPlus, NO, NO);
+	LOAD_KEY_SETTING2(n_key_previous_target, '-', NO, NO, gvNumberPadKeyMinus, NO, NO);
 	
 	LOAD_KEY_SETTING2(n_key_custom_view, 'v', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_custom_view_zoom_out, gvPageDownKey, NO, NO, 0, NO, NO);
@@ -460,7 +474,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_inc_field_of_view, 'l', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_dec_field_of_view, 'k', NO, NO, 0, NO, NO);
 #ifndef NDEBUG
-	LOAD_KEY_SETTING2(n_key_dump_target_state, 'H', NO, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_dump_target_state, 'H', YES, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_dump_entity_list, '0', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_debug_full, 'd', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_debug_collision, 'b', NO, NO, 0, NO, NO);
@@ -1248,7 +1262,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"shoot";
 				//  shoot 'a'
-				if ((([self checkKeyPress:n_key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
+				if ((([self checkNavKeyPress:n_key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]) && ([UNIVERSE viewDirection] <= VIEW_STARBOARD || ![gameView isCapsLockOn]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_recharge_rate))
 				{
 					if ([self fireMainWeapon])
 					{

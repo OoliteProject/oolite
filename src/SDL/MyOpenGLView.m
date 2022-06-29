@@ -1864,7 +1864,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				kbd_event = (SDL_KeyboardEvent*)&event;
 				key_id = (Uint16)kbd_event->keysym.unicode;
 				scan_code = kbd_event->keysym.scancode;
-				
+
 				//char *keychar = SDL_GetKeyName(kbd_event->keysym.sym);
 				// deal with modifiers first
 				BOOL modifier_pressed = NO;
@@ -1891,6 +1891,23 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 						modifier_pressed = YES;
 						break;
 
+					case SDLK_KP0: key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0); special_key = YES; break;
+					case SDLK_KP1: key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1); special_key = YES; break;
+					case SDLK_KP2: key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2); special_key = YES; break;
+					case SDLK_KP3: key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3); special_key = YES; break;
+					case SDLK_KP4: key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4); special_key = YES; break;
+					case SDLK_KP5: key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5); special_key = YES; break;
+					case SDLK_KP6: key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6); special_key = YES; break;
+					case SDLK_KP7: key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7); special_key = YES; break;
+					case SDLK_KP8: key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8); special_key = YES; break;
+					case SDLK_KP9: key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9); special_key = YES; break;
+					case SDLK_KP_PERIOD: key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46); special_key = YES; break;
+					case SDLK_KP_DIVIDE: key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47); special_key = YES; break;
+					case SDLK_KP_MULTIPLY: key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42); special_key = YES; break;
+					case SDLK_KP_MINUS: key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45); special_key = YES; break;
+					case SDLK_KP_PLUS: key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43); special_key = YES; break;
+					case SDLK_KP_EQUALS: key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61); special_key = YES; break;
+					case SDLK_KP_ENTER: key_id = gvNumberPadKeyEnter; special_key = YES; break;
 					case SDLK_HOME: key_id = gvHomeKey; special_key = YES; break;
 					case SDLK_END: key_id = gvEndKey; special_key = YES; break;
 					case SDLK_INSERT: key_id = gvInsertKey; special_key = YES; break;
@@ -1918,7 +1935,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					case SDLK_F10: key_id = gvFunctionKey10; special_key = YES; break;
 					case SDLK_F11: key_id = gvFunctionKey11; special_key = YES; break;
 					case SDLK_F12:
-						key_id = 320;
+						key_id = 327;
 						[self toggleScreenMode];
 						special_key = YES; 
 						break;
@@ -1941,7 +1958,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
 				// the ctrl key tends to mix up the unicode values, so deal with some special cases
 				// we also need (in most cases) to get the character without the impact of caps lock. 
-				if ((ctrl || key_id == 0 || ([self isCapsLockOn] && (!special_key && !allowingStringInput))) && !modifier_pressed) 
+				if (((!special_key && (ctrl || key_id == 0)) || ([self isCapsLockOn] && (!special_key && !allowingStringInput))) && !modifier_pressed) //  
 				{
 					// ctrl changes alpha characters to control codes (1-26)
 					if (ctrl && key_id >=1 && key_id <= 26) 
@@ -1955,24 +1972,25 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					{
 						key_id = 0; // reset the value here to force a lookup from the keymappings data
 					}
-	
-					// if we get here and we still don't have a key id, grab the unicode value from our keymappings dict
-					if (key_id == 0) 
+				}
+
+				// if we get here and we still don't have a key id, grab the unicode value from our keymappings dict
+				if (key_id == 0) 
+				{
+					// get unicode value for keycode from keymappings files
+					// this handles all the non-functional keys. the function keys are handled in the switch above
+					if (!shift)
 					{
-						// get unicode value for keycode from keymappings files
-						// this handles all the non-functional keys. the function keys are handled in the switch below
-						if (!shift)
-						{
-							NSString *keyNormal = [keyMappings_normal objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
-							if (keyNormal) key_id = [keyNormal integerValue];
-						}
-						else
-						{
-							NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
-							if (keyShifted) key_id = [keyShifted integerValue];
-						}
+						NSString *keyNormal = [keyMappings_normal objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
+						if (keyNormal) key_id = [keyNormal integerValue];
+					}
+					else
+					{
+						NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
+						if (keyShifted) key_id = [keyShifted integerValue];
 					}
 				}
+
 				// if we've got the unicode value, we can store it in our array now
 				if (key_id > 0) scancode2Unicode[scan_code] = key_id;
 
@@ -2028,6 +2046,23 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				// translate scancode to unicode equiv
 				switch (kbd_event->keysym.sym) 
 				{
+					case SDLK_KP0: key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0); break;
+					case SDLK_KP1: key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1); break;
+					case SDLK_KP2: key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2); break;
+					case SDLK_KP3: key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3); break;
+					case SDLK_KP4: key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4); break;
+					case SDLK_KP5: key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5); break;
+					case SDLK_KP6: key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6); break;
+					case SDLK_KP7: key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7); break;
+					case SDLK_KP8: key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8); break;
+					case SDLK_KP9: key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9); break;
+					case SDLK_KP_PERIOD: key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46); break;
+					case SDLK_KP_DIVIDE: key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47); break;
+					case SDLK_KP_MULTIPLY: key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42); break;
+					case SDLK_KP_MINUS: key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45); break;
+					case SDLK_KP_PLUS: key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43); break;
+					case SDLK_KP_EQUALS: key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61); break;
+					case SDLK_KP_ENTER: key_id = gvNumberPadKeyEnter; break;
 					case SDLK_HOME: key_id = gvHomeKey; break;
 					case SDLK_END: key_id = gvEndKey; break;
 					case SDLK_INSERT: key_id = gvInsertKey; break;
@@ -2053,6 +2088,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 					case SDLK_F9: key_id = gvFunctionKey9; break;
 					case SDLK_F10: key_id = gvFunctionKey10; break;
 					case SDLK_F11: key_id = gvFunctionKey11; break;
+					case SDLK_F12: key_id = 327; break;
 					case SDLK_BACKSPACE: key_id = gvBackspaceKey; break;
 					case SDLK_DELETE: key_id = gvDeleteKey; break;
 

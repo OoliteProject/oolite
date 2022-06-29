@@ -95,7 +95,7 @@ static NSArray *camera_keys = nil;
 	// these keys can't be used with mod keys
 	[nav_keys release];
 	nav_keys = [[NSArray alloc] initWithObjects:@"key_roll_left", @"key_roll_right", @"key_pitch_forward", @"key_pitch_back", @"key_yaw_left", @"key_yaw_right", 
-		@"key_gui_arrow_up", @"key_gui_arrow_down", @"key_gui_arrow_right", @"key_gui_arrow_left", nil];
+		@"key_fire_lasers", @"key_gui_arrow_up", @"key_gui_arrow_down", @"key_gui_arrow_right", @"key_gui_arrow_left", nil];
 	// these keys can't be used with ctrl
 	[camera_keys release];
 	camera_keys = [[NSArray alloc] initWithObjects:@"key_custom_view_zoom_out", @"key_custom_view_zoom_in", @"key_custom_view_roll_left", @"key_custom_view_roll_right",

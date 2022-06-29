@@ -1402,7 +1402,7 @@
 	"oolite-keyconfig-update-validation-@"		= "Conflict detected with function \"%@\"";
 	"oolite-keyconfig-update-entry-title"		= "Keyboard Command Entry";
 
-	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, 0, #, @)\n2: A 3 digit keycode for that key (eg 212, 253, 303)\n3: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, backspace, escape, enter, numpad0-9, printScreen, pause";
+	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, 0, #, @)\n2: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, backspace, escape, enter, numpad0-9, numpad/, numpad*, numpad-, numpad+, numpad., numpad=, numpadEnter, printScreen, pause";
 
 	"oolite-keyconfig-shift"					= "Shift";
 	"oolite-keyconfig-mod1"						= "Ctrl";
@@ -2177,6 +2177,19 @@
 	"oolite-keycode-numpad7" = "Numpad 7";
 	"oolite-keycode-numpad8" = "Numpad 8";
 	"oolite-keycode-numpad9" = "Numpad 9";
+	"oolite-keycode-numpad/" = "Numpad /";
+	"oolite-keycode-numpaddivide" = "Numpad /";
+	"oolite-keycode-numpad*" = "Numpad *";
+	"oolite-keycode-numpadmultiply" = "Numpad *";
+	"oolite-keycode-numpad+" = "Numpad +";
+	"oolite-keycode-numpadplus" = "Numpad +";
+	"oolite-keycode-numpad-" = "Numpad -";
+	"oolite-keycode-numpadminus" = "Numpad -";
+	"oolite-keycode-numpad." = "Numpad .";
+	"oolite-keycode-numpadperiod" = "Numpad .";
+	"oolite-keycode-numpad=" = "Numpad =";
+	"oolite-keycode-numpadequals" = "Numpad =";
+	"oolite-keycode-numpadenter" = "Numpad Enter";
 	"oolite-keycode-printscreen" = "Print Screen";
 	"oolite-keycode-pause" = "Pause";
 	"oolite-keycode-backspace" = "Backspace";
@@ -2217,6 +2230,19 @@
 	"oolite-keycode-short-numpad7" 	= "numpad7";
 	"oolite-keycode-short-numpad8" 	= "numpad8";
 	"oolite-keycode-short-numpad9" 	= "numpad9";
+	"oolite-keycode-short-numpad/" = "numpad/";
+	"oolite-keycode-short-numpaddivide" = "numpad/";
+	"oolite-keycode-short-numpad*" = "numpad*";
+	"oolite-keycode-short-numpadmultiply" = "numpad*";
+	"oolite-keycode-short-numpad+" = "numpad+";
+	"oolite-keycode-short-numpadplus" = "numpad+";
+	"oolite-keycode-short-numpad-" = "numpad-";
+	"oolite-keycode-short-numpadminus" = "numpad-";
+	"oolite-keycode-short-numpad." = "numpad.";
+	"oolite-keycode-short-numpadperiod" = "numpad.";
+	"oolite-keycode-short-numpad=" = "numpad=";
+	"oolite-keycode-short-numpadequals" = "numpad=";
+	"oolite-keycode-short-numpadenter" = "numpadEnter";
 	"oolite-keycode-short-printscreen" = "printScreen";
 	"oolite-keycode-short-pause"	= "pause";
 	"oolite-keycode-short-backspace" = "backspace";

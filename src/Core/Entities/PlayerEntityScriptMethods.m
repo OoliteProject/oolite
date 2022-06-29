@@ -469,6 +469,20 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-printscreen");
 	case gvPauseKey:
 		return DESC(@"oolite-keycode-pause");
+	case gvNumberPadKeyDivide:
+		return DESC(@"oolite-keycode-numpad/");
+	case gvNumberPadKeyEquals:
+		return DESC(@"oolite-keycode-numpad=");
+	case gvNumberPadKeyMinus:
+		return DESC(@"oolite-keycode-numpad-");
+	case gvNumberPadKeyMultiply:
+		return DESC(@"oolite-keycode-numpad*");
+	case gvNumberPadKeyPeriod:
+		return DESC(@"oolite-keycode-numpad.");
+	case gvNumberPadKeyPlus:
+		return DESC(@"oolite-keycode-numpad+");
+	case gvNumberPadKeyEnter:
+		return DESC(@"oolite-keycode-numpadenter");
 		
 	default:
 		return [NSString stringWithFormat:@"%C",code];
@@ -555,7 +569,20 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-short-printscreen");
 	case gvPauseKey:
 		return DESC(@"oolite-keycode-short-pause");
-
+	case gvNumberPadKeyDivide:
+		return DESC(@"oolite-keycode-short-numpad/");
+	case gvNumberPadKeyEquals:
+		return DESC(@"oolite-keycode-short-numpad=");
+	case gvNumberPadKeyMinus:
+		return DESC(@"oolite-keycode-short-numpad-");
+	case gvNumberPadKeyMultiply:
+		return DESC(@"oolite-keycode-short-numpad*");
+	case gvNumberPadKeyPeriod:
+		return DESC(@"oolite-keycode-short-numpad.");
+	case gvNumberPadKeyPlus:
+		return DESC(@"oolite-keycode-short-numpad+");
+	case gvNumberPadKeyEnter:
+		return DESC(@"oolite-keycode-short-numpadenter");
 	default:
 		return [NSString stringWithFormat:@"%C",code];
 	}
