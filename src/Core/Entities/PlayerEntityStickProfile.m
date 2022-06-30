@@ -93,7 +93,7 @@ static BOOL stickProfileArrow_pressed;
 	}
 	[self handleGUIUpDownArrowKeys];
 	
-	if ([gameView isDown:13] && [gui selectedRow] == GUI_ROW_STICKPROFILE_BACK)
+	if ([self checkKeyPress:n_key_gui_select] && [gui selectedRow] == GUI_ROW_STICKPROFILE_BACK)
 	{
 		[stickProfileScreen saveSettings];
 		[self setGuiToStickMapperScreen: 0 resetCurrentRow: YES];
@@ -101,17 +101,17 @@ static BOOL stickProfileArrow_pressed;
 	switch ([gui selectedRow])
 	{
 	case GUI_ROW_STICKPROFILE_AXIS:
-		if ([gameView isDown:key_gui_arrow_left])
+		if ([self checkKeyPress:n_key_gui_arrow_left])
 		{
-			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
+			if (!stickProfileArrow_pressed && ![self checkKeyPress:n_key_gui_arrow_right])
 			{
 				[stickProfileScreen previousAxis];
 				stickProfileArrow_pressed = YES;
 			}
 		}
-		else if ([gameView isDown: key_gui_arrow_right])
+		else if ([self checkKeyPress: n_key_gui_arrow_right])
 		{
-			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
+			if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_left])
 			{
 				[stickProfileScreen nextAxis];
 				stickProfileArrow_pressed = YES;
@@ -124,17 +124,17 @@ static BOOL stickProfileArrow_pressed;
 		break;
 
 	case GUI_ROW_STICKPROFILE_DEADZONE:
-		if ([gameView isDown:key_gui_arrow_left])
+		if ([self checkKeyPress:n_key_gui_arrow_left])
 		{
-			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
+			if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_right])
 			{
 				[stickProfileScreen decreaseDeadzone];
 				stickProfileArrow_pressed = YES;
 			}
 		}
-		else if ([gameView isDown: key_gui_arrow_right])
+		else if ([self checkKeyPress: n_key_gui_arrow_right])
 		{
-			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
+			if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_left])
 			{
 				[stickProfileScreen increaseDeadzone];
 				stickProfileArrow_pressed = YES;
@@ -147,17 +147,17 @@ static BOOL stickProfileArrow_pressed;
 		break;
 
 	case GUI_ROW_STICKPROFILE_PROFILE_TYPE:
-		if ([gameView isDown:key_gui_arrow_left])
+		if ([self checkKeyPress:n_key_gui_arrow_left])
 		{
-			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
+			if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_right])
 			{
 				[stickProfileScreen previousProfileType];
 				stickProfileArrow_pressed = YES;
 			}
 		}
-		else if ([gameView isDown: key_gui_arrow_right])
+		else if ([self checkKeyPress: n_key_gui_arrow_right])
 		{
-			if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
+			if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_left])
 			{
 				[stickProfileScreen nextProfileType];
 				stickProfileArrow_pressed = YES;
@@ -174,17 +174,17 @@ static BOOL stickProfileArrow_pressed;
 	{
 		if ([gui selectedRow] == GUI_ROW_STICKPROFILE_POWER)
 		{
-			if ([gameView isDown:key_gui_arrow_left])
+			if ([self checkKeyPress:n_key_gui_arrow_left])
 			{
-				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
+				if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_right])
 				{
 					[stickProfileScreen DecreasePower];
 					stickProfileArrow_pressed = YES;
 				}
 			}
-			else if ([gameView isDown: key_gui_arrow_right])
+			else if ([self checkKeyPress: n_key_gui_arrow_right])
 			{
-				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
+				if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_left])
 				{
 					[stickProfileScreen IncreasePower];
 					stickProfileArrow_pressed = YES;
@@ -197,17 +197,17 @@ static BOOL stickProfileArrow_pressed;
 		}
 		else if ([gui selectedRow] == GUI_ROW_STICKPROFILE_PARAM)
 		{
-			if ([gameView isDown:key_gui_arrow_left])
+			if ([self checkKeyPress:n_key_gui_arrow_left])
 			{
-				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_right])
+				if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_right])
 				{
 					[stickProfileScreen DecreaseParam];
 					stickProfileArrow_pressed = YES;
 				}
 			}
-			else if ([gameView isDown: key_gui_arrow_right])
+			else if ([self checkKeyPress: n_key_gui_arrow_right])
 			{
-				if (!stickProfileArrow_pressed && ![gameView isDown: key_gui_arrow_left])
+				if (!stickProfileArrow_pressed && ![self checkKeyPress: n_key_gui_arrow_left])
 				{
 					[stickProfileScreen IncreaseParam];
 					stickProfileArrow_pressed = YES;
@@ -647,7 +647,7 @@ static BOOL stickProfileArrow_pressed;
 	[gui setText: DESC(@"gui-back") forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setKey: GUI_KEY_OK forRow: GUI_ROW_STICKPROFILE_BACK];
 	[gui setSelectableRange: NSMakeRange(1, GUI_ROW_STICKPROFILE_BACK)];
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[PLAYER status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey: @"settings"];
 	return;

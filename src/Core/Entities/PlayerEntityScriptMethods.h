@@ -63,8 +63,9 @@ MA 02110-1301, USA.
 - (NSDictionary *) defaultMarker:(OOSystemID)system;
 - (NSDictionary *) validatedMarker:(NSDictionary *)marker;
 
-- (NSString *) keyBindingDescription:(NSString *)binding;
+- (NSString *) keyBindingDescription2:(NSString *)binding;
 - (NSString *) keyCodeDescription:(OOKeyCode)code;
+- (NSString *) keyCodeDescriptionShort:(OOKeyCode)code;
 
 - (NSString *) commanderKillsAsString;
 - (NSString *) commanderBountyAsString;

@@ -199,7 +199,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	ShipScriptEventNoCx(self, "playerWillSaveGame", OOJSSTR("QUICK_SAVE"));
 	
 	[self writePlayerToPath:path];
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 }
 
@@ -389,24 +389,23 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	
 	// handle page <-- and page --> keys
-	if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvPageUpKey]) && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
+	if (([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]) && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage--;
 		[self playMenuPagePrevious];
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
+		[gameView suppressKeysUntilKeyUp];
 	}
-	//
-	if (([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvPageDownKey]) && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
+	if (([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]) && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage++;
 		[self playMenuPageNext];
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
+		[gameView suppressKeysUntilKeyUp];
 	}
 	
 	// Enter pressed - find the commander name underneath.
-	if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])
+	if ([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick])
 	{
 		NSDictionary *cdr;
 		switch ([gui selectedRow])
@@ -421,12 +420,12 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			case BACKROW:
 				currentPage--;
 				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-				[gameView supressKeysUntilKeyUp];
+				[gameView suppressKeysUntilKeyUp];
 				break;
 			case MOREROW:
 				currentPage++;
 				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-				[gameView supressKeysUntilKeyUp];
+				[gameView suppressKeysUntilKeyUp];
 				break;
 			default:
 				cdr=[cdrDetailArray objectAtIndex: idx];
@@ -442,7 +441,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 						dir = newDir;
 						currentPage = 0;
 						[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-						[gameView supressKeysUntilKeyUp];
+						[gameView suppressKeysUntilKeyUp];
 					}
 				}
 		}
@@ -495,23 +494,23 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	
 	// handle page <-- and page --> keys, and on-screen buttons
-	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == BACKROW) || ([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvPageUpKey]))
+	if (((([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == BACKROW) || ([self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up]))
 					&& [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage--;
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
+		[gameView suppressKeysUntilKeyUp];
 	}
 	//
-	if (((([gameView isDown:gvMouseDoubleClick] || [gameView isDown: 13]) && [gui selectedRow] == MOREROW) || ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvPageDownKey]))
+	if (((([gameView isDown:gvMouseDoubleClick] || [self checkKeyPress:n_key_gui_select]) && [gui selectedRow] == MOREROW) || ([self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_page_down]))
 					&& [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage++;
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-		[gameView supressKeysUntilKeyUp];
+		[gameView suppressKeysUntilKeyUp];
 	}
 	
-	if(([gameView isDown: 13]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
+	if(([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
 	{
 		if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
 		{
@@ -527,7 +526,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 				dir = newDir;
 				currentPage = 0;
 				[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
-				[gameView supressKeysUntilKeyUp];
+				[gameView suppressKeysUntilKeyUp];
 			}
 		}
 		else
@@ -535,13 +534,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			pollControls = YES;
 			if ([self existingNativeSave: commanderNameString])
 			{
-				[gameView supressKeysUntilKeyUp];
+				[gameView suppressKeysUntilKeyUp];
 				[self setGuiToOverwriteScreen: commanderNameString];
 			}
 			else
 			{
 				[self nativeSavePlayer: commanderNameString];
-				[[UNIVERSE gameView] supressKeysUntilKeyUp];
+				[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 				[self setGuiToStatusScreen];
 			}
 		}
@@ -572,16 +571,16 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	cYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
 	cNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
 	
-	if (([gameView isDown:13] && ([gui selectedRow] == SAVE_OVERWRITE_YES_ROW))||[gameView isDown:cYes]||[gameView isDown:cYes - 32])
+	if (([self checkKeyPress:n_key_gui_select] && ([gui selectedRow] == SAVE_OVERWRITE_YES_ROW))||[gameView isDown:cYes]||[gameView isDown:cYes - 32])
 	{
 		pollControls=YES;
 		[self nativeSavePlayer: commanderNameString];
 		[self playSaveOverwriteYes];
-		[[UNIVERSE gameView] supressKeysUntilKeyUp];
+		[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 		[self setGuiToStatusScreen];
 	}
 	
-	if (([gameView isDown:13] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown:27]||[gameView isDown:cNo]||[gameView isDown:cNo - 32])
+	if (([self checkKeyPress:n_key_gui_select] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown:27]||[gameView isDown:cNo]||[gameView isDown:cNo - 32])
 	{
 		// esc or NO was pressed - get out of here
 		pollControls=YES;
@@ -795,7 +794,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	OOLog(@"load.progress", @"%@", @"Completing JS startup");
 	[self startUpComplete];
 
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	gui_screen = GUI_SCREEN_LOAD; // force evaluation of new gui screen on startup
 	[self setGuiToStatusScreen];
 	if (loadedOK) [self doWorldEventUntilMissionScreen:OOJSID("missionScreenOpportunity")];  // trigger missionScreenOpportunity immediately after loading
@@ -890,7 +889,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[NSException raise:@"OoliteException"
 					format:@"Attempt to save game to file '%@' failed: %@", path, errDesc];
 	}
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 }
 
@@ -926,7 +925,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setForegroundTextureKey:@"docked_overlay"];
 	[gui setBackgroundTextureKey:@"load_save"];
 	
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	
 	[self setShowDemoShips:YES];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
@@ -957,7 +956,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setBackgroundTextureKey:@"load_save"];
 	
 	[gameView setTypedString:cdrName];
-	[gameView supressKeysUntilKeyUp];
+	[gameView suppressKeysUntilKeyUp];
 	
 	[self setShowDemoShips:YES];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];

@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 // 100 m.
 
 
-#define NUM_KEYS			320
+#define NUM_KEYS			327
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 #define OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL	0.05
 #define OOMOUSEWHEEL_DELTA	120 // Same as Windows WHEEL_DELTA
@@ -56,11 +56,11 @@ MA 02110-1301, USA.
 
 enum GameViewKeys
 {
-	gvFunctionKey1 = 241,
+	gvFunctionKey1 = 256,
 	gvFunctionKey2,
 	gvFunctionKey3,
 	gvFunctionKey4,
-	gvFunctionKey5,
+	gvFunctionKey5, // 260
 	gvFunctionKey6,
 	gvFunctionKey7,
 	gvFunctionKey8,
@@ -70,7 +70,9 @@ enum GameViewKeys
 	gvArrowKeyRight,
 	gvArrowKeyLeft,
 	gvArrowKeyDown,
-	gvArrowKeyUp, // 255
+	gvArrowKeyUp, // 270
+	gvPauseKey,
+	gvPrintScreenKey, // 272
 	gvMouseLeftButton = 301,
 	gvMouseDoubleClick,
 	gvHomeKey,
@@ -79,6 +81,7 @@ enum GameViewKeys
 	gvDeleteKey,
 	gvPageUpKey,
 	gvPageDownKey, // 308
+	gvBackspaceKey, // 309
 	gvNumberKey0 = 48,
 	gvNumberKey1,
 	gvNumberKey2,
@@ -98,7 +101,14 @@ enum GameViewKeys
 	gvNumberPadKey6,
 	gvNumberPadKey7,
 	gvNumberPadKey8,
-	gvNumberPadKey9 //319
+	gvNumberPadKey9,
+	gvNumberPadKeyDivide, // 320
+	gvNumberPadKeyMultiply,
+	gvNumberPadKeyMinus,
+	gvNumberPadKeyPlus,
+	gvNumberPadKeyPeriod,
+	gvNumberPadKeyEquals,
+	gvNumberPadKeyEnter // 326
 };
 
 enum MouseWheelStatus
@@ -129,9 +139,13 @@ extern int debug;
 {
 	GameController		*gameController;
 	BOOL				keys[NUM_KEYS];
-	BOOL				supressKeys;    // DJS
+	int					scancode2Unicode[NUM_KEYS];
+	NSDictionary 		*keyMappings_normal;
+	NSDictionary		*keyMappings_shifted;
 
-	BOOL				opt, ctrl, command, shift;
+	BOOL				suppressKeys;    // DJS
+
+	BOOL				opt, ctrl, command, shift, lastKeyShifted;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
 
@@ -177,7 +191,7 @@ extern int debug;
 	BOOL				updateContext;
 	BOOL				saveSize;
 	BOOL				atDesktopResolution;
-	unsigned			keyboardMap;
+	unsigned			keyboardMap; // *** FLAGGED for deletion 
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
@@ -199,6 +213,8 @@ extern int debug;
 - (void) initSplashScreen;
 - (void) endSplashScreen;
 - (void) autoShowMouse;
+
+- (void) initKeyMappingData;
 
 - (void) setStringInput: (enum StringInput) value;
 - (void) allowStringInput: (BOOL) value;
@@ -271,13 +287,14 @@ extern int debug;
 - (void) clearKey: (int)theKey;
 - (void) resetMouse;
 - (BOOL) isAlphabetKeyDown;
-- (void) supressKeysUntilKeyUp; // DJS
+- (void) suppressKeysUntilKeyUp; // DJS
 - (BOOL) isDown: (int) key;
 - (BOOL) isOptDown; // opt == alt key
 - (BOOL) isCtrlDown;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (BOOL) isCapsLockOn;
+- (BOOL) lastKeyWasShifted;
 - (int) numKeys;
 - (int) mouseWheelState;
 - (float) mouseWheelDelta;
@@ -288,7 +305,6 @@ extern int debug;
 - (BOOL) isCommandFDown;
 - (void) clearCommandF;
 
-- (void) setKeyboardTo: (NSString *) value;
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
 
 - (void) setGammaValue: (float) value;

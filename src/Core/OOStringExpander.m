@@ -713,7 +713,7 @@ static NSString *ExpandStringKeyKeyboardBinding(OOStringExpansionContext *contex
 	if ([key hasPrefix:@"oolite_key_"])
 	{
 		NSString *binding = [key substringFromIndex:7];
-		return [PLAYER keyBindingDescription:binding];
+		return [PLAYER keyBindingDescription2:binding];
 	}
 	return nil;
 }

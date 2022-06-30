@@ -359,16 +359,33 @@ MA 02110-1301, USA.
 }
 
 
-- (NSString *) keyBindingDescription:(NSString *)binding
+// utilising new keyconfig2.plist data
+- (NSString *) keyBindingDescription2:(NSString *)binding
 {
-	if ([keyconfig_settings objectForKey:binding] == nil)
+	if ([keyconfig2_settings objectForKey:binding] == nil)
 	{
 		// no such setting
 		return nil;
 	}
-	OOKeyCode key = (OOKeyCode)[keyconfig_settings oo_unsignedShortForKey:binding];
-	// 0 = key not set
-	return [self keyCodeDescription:key];
+	NSMutableString *final = [NSMutableString string];
+	NSArray *keyList = (NSArray*)[keyconfig2_settings objectForKey:binding];
+	NSUInteger i = 0;
+
+	for (i = 0; i < [keyList count]; i++) {
+		if (i != 0) final = [NSMutableString stringWithFormat:@"%@ or ", final];
+		NSDictionary *def = [keyList objectAtIndex:i];
+		NSString *key = [def objectForKey:@"key"];
+		OOKeyCode k_int = (OOKeyCode)[key integerValue];
+		NSString *desc = [self keyCodeDescription:k_int];
+		// 0 = key not set
+		if (k_int != 0) {
+			if ([[def objectForKey:@"mod2"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@%@+", final, keyMod2Text];
+			if ([[def objectForKey:@"mod1"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@%@+", final, keyMod1Text];
+			if ([[def objectForKey:@"shift"] boolValue] == YES) final = [NSMutableString stringWithFormat:@"%@%@+", final, keyShiftText];
+			final = [NSMutableString stringWithFormat:@"%@%@", final, desc];
+		}
+	}
+	return final;
 }
 
 
@@ -380,6 +397,8 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-unset");
 	case 9:
 		return DESC(@"oolite-keycode-tab");
+	case 13:
+		return DESC(@"oolite-keycode-enter");
 	case 27:
 		return DESC(@"oolite-keycode-esc");
 	case 32:
@@ -446,12 +465,128 @@ MA 02110-1301, USA.
 		return DESC(@"oolite-keycode-numpad8");
 	case gvNumberPadKey9:
 		return DESC(@"oolite-keycode-numpad9");
-
+	case gvPrintScreenKey:
+		return DESC(@"oolite-keycode-printscreen");
+	case gvPauseKey:
+		return DESC(@"oolite-keycode-pause");
+	case gvNumberPadKeyDivide:
+		return DESC(@"oolite-keycode-numpad/");
+	case gvNumberPadKeyEquals:
+		return DESC(@"oolite-keycode-numpad=");
+	case gvNumberPadKeyMinus:
+		return DESC(@"oolite-keycode-numpad-");
+	case gvNumberPadKeyMultiply:
+		return DESC(@"oolite-keycode-numpad*");
+	case gvNumberPadKeyPeriod:
+		return DESC(@"oolite-keycode-numpad.");
+	case gvNumberPadKeyPlus:
+		return DESC(@"oolite-keycode-numpad+");
+	case gvNumberPadKeyEnter:
+		return DESC(@"oolite-keycode-numpadenter");
+		
 	default:
 		return [NSString stringWithFormat:@"%C",code];
 	}
 }
 
+- (NSString *) keyCodeDescriptionShort:(OOKeyCode)code
+{
+	switch (code)
+	{
+	case 0:
+		return DESC(@"oolite-keycode-short-unset");
+	case 9:
+		return DESC(@"oolite-keycode-short-tab");
+	case 13:
+		return DESC(@"oolite-keycode-short-enter");
+	case 27:
+		return DESC(@"oolite-keycode-short-esc");
+	case 32:
+		return DESC(@"oolite-keycode-short-space");
+	case gvFunctionKey1:
+		return DESC(@"oolite-keycode-short-f1");
+	case gvFunctionKey2:
+		return DESC(@"oolite-keycode-short-f2");
+	case gvFunctionKey3:
+		return DESC(@"oolite-keycode-short-f3");
+	case gvFunctionKey4:
+		return DESC(@"oolite-keycode-short-f4");
+	case gvFunctionKey5:
+		return DESC(@"oolite-keycode-short-f5");
+	case gvFunctionKey6:
+		return DESC(@"oolite-keycode-short-f6");
+	case gvFunctionKey7:
+		return DESC(@"oolite-keycode-short-f7");
+	case gvFunctionKey8:
+		return DESC(@"oolite-keycode-short-f8");
+	case gvFunctionKey9:
+		return DESC(@"oolite-keycode-short-f9");
+	case gvFunctionKey10:
+		return DESC(@"oolite-keycode-short-f10");
+	case gvFunctionKey11:
+		return DESC(@"oolite-keycode-short-f11");
+	case gvArrowKeyRight:
+		return DESC(@"oolite-keycode-short-right");
+	case gvArrowKeyLeft:
+		return DESC(@"oolite-keycode-short-left");
+	case gvArrowKeyDown:
+		return DESC(@"oolite-keycode-short-down");
+	case gvArrowKeyUp:
+		return DESC(@"oolite-keycode-short-up");
+	case gvHomeKey:
+		return DESC(@"oolite-keycode-short-home");
+	case gvEndKey:
+		return DESC(@"oolite-keycode-short-end");
+	case gvInsertKey:
+		return DESC(@"oolite-keycode-short-insert");
+	case gvDeleteKey:
+		return DESC(@"oolite-keycode-short-delete");
+	case gvPageUpKey:
+		return DESC(@"oolite-keycode-short-pageup");
+	case gvPageDownKey:
+		return DESC(@"oolite-keycode-short-pagedown");
+	case gvNumberPadKey0:
+		return DESC(@"oolite-keycode-short-numpad0");
+	case gvNumberPadKey1:
+		return DESC(@"oolite-keycode-short-numpad1");
+	case gvNumberPadKey2:
+		return DESC(@"oolite-keycode-short-numpad2");
+	case gvNumberPadKey3:
+		return DESC(@"oolite-keycode-short-numpad3");
+	case gvNumberPadKey4:
+		return DESC(@"oolite-keycode-short-numpad4");
+	case gvNumberPadKey5:
+		return DESC(@"oolite-keycode-short-numpad5");
+	case gvNumberPadKey6:
+		return DESC(@"oolite-keycode-short-numpad6");
+	case gvNumberPadKey7:
+		return DESC(@"oolite-keycode-short-numpad7");
+	case gvNumberPadKey8:
+		return DESC(@"oolite-keycode-short-numpad8");
+	case gvNumberPadKey9:
+		return DESC(@"oolite-keycode-short-numpad9");
+	case gvPrintScreenKey:
+		return DESC(@"oolite-keycode-short-printscreen");
+	case gvPauseKey:
+		return DESC(@"oolite-keycode-short-pause");
+	case gvNumberPadKeyDivide:
+		return DESC(@"oolite-keycode-short-numpad/");
+	case gvNumberPadKeyEquals:
+		return DESC(@"oolite-keycode-short-numpad=");
+	case gvNumberPadKeyMinus:
+		return DESC(@"oolite-keycode-short-numpad-");
+	case gvNumberPadKeyMultiply:
+		return DESC(@"oolite-keycode-short-numpad*");
+	case gvNumberPadKeyPeriod:
+		return DESC(@"oolite-keycode-short-numpad.");
+	case gvNumberPadKeyPlus:
+		return DESC(@"oolite-keycode-short-numpad+");
+	case gvNumberPadKeyEnter:
+		return DESC(@"oolite-keycode-short-numpadenter");
+	default:
+		return [NSString stringWithFormat:@"%C",code];
+	}
+}
 
 @end
 

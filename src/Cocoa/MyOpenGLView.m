@@ -148,7 +148,25 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		_virtualScreen = [[self openGLContext] currentVirtualScreen];
 	}
 	
+	// preload the printscreen key into our translation array because SDLK_PRINTSCREEN isn't available
+	scancode2Unicode[55] = gvPrintScreenKey;
+	[self initKeyMappingData];
+
 	return self;
+}
+
+- (void) initKeyMappingData
+{
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_mac.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+	// get the stored keyboard code from preferences
+	NSString *kbd = [prefs oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+	NSDictionary *subset = [kmap objectForKey:kbd];
+
+	[keyMappings_normal release];
+	keyMappings_normal = [[subset objectForKey:@"mapping_normal"] copy];
+	[keyMappings_shifted release];
+	keyMappings_shifted = [[subset objectForKey:@"mapping_shifted"] copy];
 }
 
 
@@ -158,6 +176,11 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	DESTROY(_pixelFormatAttributes);
 	DESTROY(matrixManager);
 	
+	if (keyMappings_normal)
+		[keyMappings_normal release];
+	if (keyMappings_shifted)
+		[keyMappings_shifted release];
+
 	[super dealloc];
 }
 
@@ -544,7 +567,7 @@ FAIL:
 	*/
 	if ([stringValue length] < 1)  return;
 	
-	supressKeys = NO;
+	suppressKeys = NO;
 	
 	keycode = [theEvent keyCode] & 255;
 	key = keycodetrans[keycode];	// retrieve the character we got for pressing the hardware at key location 'keycode'
@@ -605,11 +628,27 @@ FAIL:
 		string would be if you pressed the key and then space.
 		-- Ahruman 20070714
 	*/
-	if ([stringValue length] < 1)  return;
+	//if ([stringValue length] < 1)  return;
 	
-	key = [stringValue characterAtIndex:0];
 	keycode = [theEvent keyCode] & 255;
 	
+	if ([stringValue length] < 1)
+	{
+		if (!shift)
+		{
+			NSString *keyNormal = [keyMappings_normal objectForKey:[NSString stringWithFormat:@"%d", keycode]];
+			if (keyNormal) stringValue = [NSString stringWithFormat:@"%c", [keyNormal integerValue]];
+		}
+		else
+		{
+			NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", keycode]];
+			if (keyShifted) stringValue = [NSString stringWithFormat:@"%c", [keyShifted integerValue]];
+		}		
+		// if we still have a zero-length string, return at this point
+		if ([stringValue length] < 1) return;
+	}
+
+	key = [stringValue characterAtIndex:0];
 	key = [self translateKeyCode:key];
 	
 	OOLog(kOOLogKeyDown, @"Key down: stringValue = \"%@\", keyCode = %d, key = %u", stringValue, keycode, key);
@@ -631,7 +670,7 @@ FAIL:
 		return;
 	}
 	
-	keycodetrans[keycode] = key;	// record the chracter we got for pressing the hardware at key location 'keycode'
+	keycodetrans[keycode] = key;	// record the character we got for pressing the hardware at key location 'keycode'
 	
 	/*	HACK: treat f12 as alias to cmd-F for compatibility with helpful forum
 		advice etc.
@@ -653,13 +692,14 @@ FAIL:
 		
 		if (allowingStringInput)
 		{
-			if ((key == gvDeleteKey) && [typedString length] > 0)
+			if ((key == gvDeleteKey || key == gvBackspaceKey) && [typedString length] > 0)
 			{
 				// delete
 				[typedString deleteCharactersInRange:NSMakeRange([typedString length] - 1, 1)];
 			}
 
 			isAlphabetKeyDown = NO;
+			lastKeyShifted = shift;
 
 			// limited input for planet find screen
 			if (allowingStringInput == gvStringInputAlpha)
@@ -900,7 +940,11 @@ FAIL:
 		case NSHomeFunctionKey:
 			key = gvHomeKey;
 			break;
-			
+		
+		case NSBackspaceCharacter:
+			key = gvBackspaceKey;
+			break;
+
 		case NSDeleteCharacter:
 			key = gvDeleteKey;
 			break;
@@ -920,7 +964,15 @@ FAIL:
 		case NSPageDownFunctionKey:
 			key = gvPageDownKey;
 			break;
-			
+		
+		case NSPrintScreenFunctionKey:
+			key = gvPrintScreenKey;
+			break;
+		
+		case NSPauseFunctionKey:
+			key = gvPauseKey;
+			break;
+
 		default:
 			break;
 	}
@@ -977,11 +1029,11 @@ FAIL:
 // key down that brought you into the submenu is still registered
 // as down when we're in. This makes isDown return NO until a key up
 // event has been received from SDL.
-- (void) supressKeysUntilKeyUp
+- (void) suppressKeysUntilKeyUp
 {
 	if (keys[gvMouseDoubleClick] == NO)
 	{
-		supressKeys = YES;
+		suppressKeys = YES;
 		[self clearKeys];
 	}
 	else
@@ -993,7 +1045,7 @@ FAIL:
 
 - (BOOL) isDown: (int) key
 {
-	if( supressKeys )
+	if( suppressKeys )
 		return NO;
 	if ( key < 0 )
 		return NO;
@@ -1030,6 +1082,12 @@ FAIL:
 - (BOOL) isCapsLockOn
 {
 	return capsLockOn;
+}
+
+
+- (BOOL) lastKeyWasShifted
+{
+	return lastKeyShifted;
 }
 
 

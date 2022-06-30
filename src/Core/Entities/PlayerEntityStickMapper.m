@@ -114,7 +114,7 @@ MA 02110-1301, USA.
 	{
 		[gui setSelectedRow: GUI_ROW_STICKPROFILE];
 	}
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] suppressKeysUntilKeyUp];
 	[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setBackgroundTextureKey:@"settings"];
 }

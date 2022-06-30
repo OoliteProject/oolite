@@ -60,6 +60,8 @@
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
 		1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0942C812D7C011003B6273 /* OOJSFrameCallbacks.m */; };
 		1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */; };
+		1A09EF4512BD0BCA00BF7F48 /* PlayerEntityKeyMapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F20BCF9CF70073F257 /* PlayerEntityKeyMapper.h */; };
+		1A09EF4612BD0BCA00BF7F48 /* PlayerEntityKeyMapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0F10BCF9CF70073F257 /* PlayerEntityKeyMapper.m */; };
 		1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */; };
 		1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */; };
 		1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */; };
@@ -1025,6 +1027,8 @@
 		1A26D09D0BCF9CF70073F257 /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Entity.h; sourceTree = "<group>"; };
 		1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityStickMapper.m; sourceTree = "<group>"; };
 		1A26D09F0BCF9CF70073F257 /* PlayerEntityStickMapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityStickMapper.h; sourceTree = "<group>"; };
+		1A26D0F10BCF9CF70073F257 /* PlayerEntityKeyMapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityKeyMapper.m; sourceTree = "<group>"; };
+		1A26D0F20BCF9CF70073F257 /* PlayerEntityKeyMapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityKeyMapper.h; sourceTree = "<group>"; };
 		1A26D0A00BCF9CF70073F257 /* WormholeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WormholeEntity.m; sourceTree = "<group>"; };
 		1A26D0A10BCF9CF70073F257 /* WormholeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WormholeEntity.h; sourceTree = "<group>"; };
 		1A26D0A20BCF9CF70073F257 /* StationEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StationEntity.m; sourceTree = "<group>"; };
@@ -2039,6 +2043,8 @@
 				1A26D0A50BCF9CF70073F257 /* PlayerEntitySound.m */,
 				1A26D09F0BCF9CF70073F257 /* PlayerEntityStickMapper.h */,
 				1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */,
+				1A26D0F20BCF9CF70073F257 /* PlayerEntityKeyMapper.h */,
+				1A26D0F10BCF9CF70073F257 /* PlayerEntityKeyMapper.m */,
 				1A69FFEC18A64C320062EAC8 /* PlayerEntityStickProfile.h */,
 				1A69FFED18A64C320062EAC8 /* PlayerEntityStickProfile.m */,
 			);
@@ -3417,6 +3423,7 @@
 				1A69FFF718A64CF70062EAC8 /* OOJoystickProfile.h in Headers */,
 				1A143A4811EF22C5001BAB8D /* JAPersistentFileReference.h in Headers */,
 				1A69FFEE18A64C320062EAC8 /* PlayerEntityStickProfile.h in Headers */,
+				1A09EF4512BD0BCA00BF7F48 /* PlayerEntityKeyMapper.h in Headers */,
 				1AA08606182578AF007CCAEB /* OOALSoundChannel.h in Headers */,
 				1AA085FE182578AF007CCAEB /* OOALBufferedSound.h in Headers */,
 				1AB5E1EF12BD628500C334DD /* OOJoystickManager.h in Headers */,
@@ -3948,6 +3955,7 @@
 				1A143A4911EF22C5001BAB8D /* JAPersistentFileReference.m in Sources */,
 				1A7038A212BB9F5A0015CCDC /* dummy.cpp in Sources */,
 				1A09EF4412BD0BCA00BF7F48 /* PlayerEntityStickMapper.m in Sources */,
+				1A09EF4612BD0BCA00BF7F48 /* PlayerEntityKeyMapper.m in Sources */,
 				1AB5E1F012BD628500C334DD /* OOJoystickManager.m in Sources */,
 				1A05AFCE1879C2B800AFA7D1 /* OOOXZManager.m in Sources */,
 				1A0942CE12D7D5B9003B6273 /* OOJSFrameCallbacks.m in Sources */,

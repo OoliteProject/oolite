@@ -1212,6 +1212,21 @@
 	"oolite-keysetting-screen" 		= "Keyboard Settings";
 	"oolite-keysetting-text" 		= "See documentation for more information. Press space to return to the menu";
 
+	"oolite-keydesc-header-screen-access"		= "Screen access";
+	"oolite-keydesc-header-propulsion"			= "Propulsion";
+	"oolite-keydesc-header-navigation"			= "Navigation";
+	"oolite-keydesc-header-offensive"			= "Offensive";
+	"oolite-keydesc-header-defensive"			= "Defensive";
+	"oolite-keydesc-header-special-equip"		= "Special equipment";
+	"oolite-keydesc-header-chart-screen"		= "Chart screen";
+	"oolite-keydesc-header-planet-info-screen"	= "Planet info screen";
+	"oolite-keydesc-header-market-screen"		= "Market screen";
+	"oolite-keydesc-header-misc"				= "Miscellaneous";
+	"oolite-keydesc-header-custom-view"			= "Custom view controls";
+	"oolite-keydesc-header-oxz-manager"			= "OXZ manager controls";
+	"oolite-keydesc-header-gui"					= "GUI controls";
+	"oolite-keydesc-header-debug"				= "Debug functions";
+
 	"oolite-keydesc-key_roll_left"				= "Roll left";
 	"oolite-keydesc-key_roll_right"				= "Roll right";
 	"oolite-keydesc-key_pitch_forward"			= "Pitch down";
@@ -1224,35 +1239,45 @@
 	"oolite-keydesc-key_view_port"				= "Port view";
 	"oolite-keydesc-key_view_starboard"			= "Starboard view";
 
-	"oolite-keydesc-key_gui_screen_status"		= "Status screens";
-	"oolite-keydesc-key_gui_chart_screens"		= "Chart screens";
-	"oolite-keydesc-key_gui_system_data"		= "System screens";
-	"oolite-keydesc-key_gui_market"				= "Market screens";
+	"oolite-keydesc-key_launch_ship"			= "Launch ship";
+	"oolite-keydesc-key_gui_screen_options"		= "Options screen";
+	"oolite-keydesc-key_gui_screen_equipship"	= "Equip ship screen";
+	"oolite-keydesc-key_gui_screen_interfaces"	= "Ship interfaces screen";
+
+	"oolite-keydesc-key_gui_screen_status"		= "Status screen";
+	"oolite-keydesc-key_gui_chart_screens"		= "Galactic chart screen";
+	"oolite-keydesc-key_gui_system_data"		= "Planet info screen";
+	"oolite-keydesc-key_gui_market"				= "Market screen";
 
 	"oolite-keydesc-key_gui_arrow_left"			= "GUI Left";
 	"oolite-keydesc-key_gui_arrow_right"		= "GUI Right";
 	"oolite-keydesc-key_gui_arrow_up"			= "GUI Up";
 	"oolite-keydesc-key_gui_arrow_down"			= "GUI Down";
+	"oolite-keydesc-key_gui_page_down"			= "GUI Page Down";
+	"oolite-keydesc-key_gui_page_up"			= "GUI Page Up";
+	"oolite-keydesc-key_gui_select"				= "GUI Select";
 
-	"oolite-keydesc-key_increase_speed"			= "Accelerate";
-	"oolite-keydesc-key_decrease_speed"			= "Decelerate";
+	"oolite-keydesc-key_increase_speed"			= "Increase thrust";
+	"oolite-keydesc-key_decrease_speed"			= "Decrease thrust";
 	"oolite-keydesc-key_inject_fuel"			= "Fuel Injectors";
 
 	"oolite-keydesc-key_fire_lasers"			= "Fire laser";
 	"oolite-keydesc-key_weapons_online_toggle"	= "Weapons toggle";
-	"oolite-keydesc-key_launch_missile"			= "Launch missile";
-	"oolite-keydesc-key_next_missile"			= "Next missile";
+	"oolite-keydesc-key_launch_missile"			= "File missile/bomb";
+	"oolite-keydesc-key_next_missile"			= "Select next missile/bomb";
 	"oolite-keydesc-key_ecm"					= "ECM";
 
-	"oolite-keydesc-key_prime_equipment"		= "Select item";
-	"oolite-keydesc-key_activate_equipment"		= "Item button 1";
-	"oolite-keydesc-key_mode_equipment"			= "Item button 2";
-	"oolite-keydesc-key_fastactivate_equipment_a" = "Item shortcut 1";
-	"oolite-keydesc-key_fastactivate_equipment_b" = "Item shortcut 2";
+	"oolite-keydesc-key_prime_equipment"		= "Prime equipment";
+	"oolite-keydesc-key_prime_next_equipment"	= "Prime next equipment";
+	"oolite-keydesc-key_prime_previous_equipment"	= "Prime previous equipment";
+	"oolite-keydesc-key_activate_equipment"		= "Activate equipment";
+	"oolite-keydesc-key_mode_equipment"			= "Set equipment mode";
+	"oolite-keydesc-key_fastactivate_equipment_a" = "Fast-activate equipment A";
+	"oolite-keydesc-key_fastactivate_equipment_b" = "Fast-activate equipment B";
 
-	"oolite-keydesc-key_target_incoming_missile"	= "Target incoming";
-	"oolite-keydesc-key_target_missile"			= "Target missile";
-	"oolite-keydesc-key_untarget_missile"		= "Untarget missile";
+	"oolite-keydesc-key_target_incoming_missile"	= "Target incoming missile";
+	"oolite-keydesc-key_target_missile"			= "Arm missile/bomb";
+	"oolite-keydesc-key_untarget_missile"		= "Disarm missile/bomb";
 	"oolite-keydesc-key_ident_system"			= "Ident system";
 
 	"oolite-keydesc-key_scanner_zoom"			= "Zoom scanner";
@@ -1269,39 +1294,123 @@
 
 	"oolite-keydesc-key_autopilot"				= "Docking computer";
 	"oolite-keydesc-key_autodock"				= "Fast docking";
-	"oolite-keydesc-key_docking_clearance_request"	= "Request clearance";
+	"oolite-keydesc-key_docking_clearance_request"	= "Request docking clearance";
 
 	"oolite-keydesc-key_snapshot"				= "Take snapshot";
-	"oolite-keydesc-key_docking_music"			= "Docking music";
+	"oolite-keydesc-key_docking_music"			= "Toggle docking music on/off";
 
-	"oolite-keydesc-key_advanced_nav_array"		= "Route planner";
-	"oolite-keydesc-key_next_info_system"		= "Next Planet Info";
-	"oolite-keydesc-key_previous_info_system"	= "Previous Planet Info";
-	"oolite-keydesc-key_map_home"				= "Home map";
+	"oolite-keydesc-key_advanced_nav_array"		= "Route planner mode";
+	"oolite-keydesc-key_advanced_nav_array_next"	= "Next route mode";
+	"oolite-keydesc-key_advanced_nav_array_previous"	= "Previous route mode";
+	"oolite-keydesc-key_map_home"				= "Select current system";
+	"oolite-keydesc-key_map_end"				= "Select destination system";
 	"oolite-keydesc-key_map_info"				= "Show chart icons";
+	"oolite-keydesc-key_map_zoom_in"			= "Zoom in";
+	"oolite-keydesc-key_map_zoom_out"			= "Zoom out";
+	"oolite-keydesc-key_map_next_system"		= "Select next system";
+	"oolite-keydesc-key_map_previous_system"	= "Select previous system";
+
+	"oolite-keydesc-key_system_home"			= "Select current system";
+	"oolite-keydesc-key_system_end"				= "Select destination system";
+	"oolite-keydesc-key_system_next_system"		= "Select next system";
+	"oolite-keydesc-key_system_previous_system"	= "Select previous system";
 
 	"oolite-keydesc-key_pausebutton"			= "Pause";
 	"oolite-keydesc-key_show_fps"				= "Show FPS";
 	"oolite-keydesc-key_mouse_control"			= "Mouse control";
+	"oolite-keydesc-key_mouse_control_roll"		= "Mouse control (roll)";
+	"oolite-keydesc-key_mouse_control_yaw"		= "Mouse control (yaw)";
 	"oolite-keydesc-key_hud_toggle"				= "Toggle HUD";
 	
 	"oolite-keydesc-key_inc_field_of_view"		= "Increase FOV";
 	"oolite-keydesc-key_dec_field_of_view"		= "Decrease FOV";
 
 	"oolite-keydesc-key_comms_log"				= "Comms log";
-	"oolite-keydesc-key_prev_compass_mode"		= "ASC back";
-	"oolite-keydesc-key_next_compass_mode"		= "ASC forward";
+	"oolite-keydesc-key_prev_compass_mode"		= "Previous compass target";
+	"oolite-keydesc-key_next_compass_mode"		= "Next compass target";
 
-	"oolite-keydesc-key_chart_highlight"			= "Chart highlight";
+	"oolite-keydesc-key_chart_highlight"		= "Chart highlight";
+
+	"oolite-keydesc-key_market_filter_cycle"	= "Cycle market filter";
+	"oolite-keydesc-key_market_sorter_cycle"	= "Cycle market sort";
+	"oolite-keydesc-key_market_buy_one"			= "Buy one unit";
+	"oolite-keydesc-key_market_sell_one"		= "Sell one unit";
+	"oolite-keydesc-key_market_buy_max"			= "Buy maximum amount";
+	"oolite-keydesc-key_market_sell_max"		= "Sell maximum amount";
 
 	"oolite-keydesc-key_cycle_mfd"				= "Cycle MFD";
+	"oolite-keydesc-key_cycle_next_mfd"			= "Cycle next MFD";
+	"oolite-keydesc-key_cycle_previous_mfd"		= "Cycle previous MFD";
 	"oolite-keydesc-key_switch_mfd"				= "Select MFD";
+	"oolite-keydesc-key_switch_next_mfd"		= "Select next MFD";
+	"oolite-keydesc-key_switch_previous_mfd"	= "Select previous MFD";
 
-	"oolite-keydesc-key_next_target"				= "Next target";
-	"oolite-keydesc-key_previous_target"			= "Previous target";
+	"oolite-keydesc-key_next_target"			= "Next target";
+	"oolite-keydesc-key_previous_target"		= "Previous target";
 
-	"oolite-keydesc-key_custom_view"				= "External view";
+	"oolite-keydesc-key_custom_view"			= "Cycle external views";
+	"oolite-keydesc-key_custom_view_zoom_out"	= "Zoom out";
+	"oolite-keydesc-key_custom_view_zoom_in"	= "Zoom in";
+	"oolite-keydesc-key_custom_view_roll_left"	= "Roll left";
+	"oolite-keydesc-key_custom_view_pan_left"	= "Pan left";
+	"oolite-keydesc-key_custom_view_roll_right"	= "Roll right";
+	"oolite-keydesc-key_custom_view_pan_right"	= "Pan right";
+	"oolite-keydesc-key_custom_view_rotate_up"	= "Rotate up";
+	"oolite-keydesc-key_custom_view_pan_up"		= "Pan up";
+	"oolite-keydesc-key_custom_view_rotate_down"= "Rotate down";
+	"oolite-keydesc-key_custom_view_pan_down"	= "Pan down";
+	"oolite-keydesc-key_custom_view_rotate_left"= "Rotate left";
+	"oolite-keydesc-key_custom_view_rotate_right"= "Rotate right";
 
+	"oolite-keydesc-key_oxzmanager_setfilter"	= "Set filter";
+	"oolite-keydesc-key_oxzmanager_showinfo"	= "Show info";
+	"oolite-keydesc-key_oxzmanager_extract"		= "Extract content";
+	
+	"oolite-keydesc-key_dump_target_state" 		= "Dump target state";
+	"oolite-keydesc-key_dump_entity_list" 		= "Dump entity list";
+	"oolite-keydesc-key_debug_full"				= "Full debug output";
+	"oolite-keydesc-key_debug_collision"		= "Collisions";
+	"oolite-keydesc-key_debug_console_connect"	= "Connect console";
+	"oolite-keydesc-key_debug_bounding_boxes"	= "Bounding boxes";
+	"oolite-keydesc-key_debug_shaders"			= "Shaders";
+	"oolite-keydesc-key_debug_off"				= "Turn off debug messages";
+
+	"oolite-keyconfig-keyboard"					= "Current keyboard layout";
+	"oolite-keyconfig-keyboard-info"			= "Select your current keyboard layout from the available options.";
+	"oolite-keyconfig-validation-error"			= "Key conflicts have been detected!";
+	"oolite-keyconfig-initial-info-1"			= "Select a function and press Enter to modify or 'r' to reset to default.";
+	"oolite-keyconfig-initial-info-2"			= "Press Ctrl+'r' to reset all functions back to default.";
+	"oolite-keyconfig-initial-info-3"			= "Space to return to previous screen.";
+	"oolite-keyconfig-initial-error" 			= "Resolved all conflicts before continuing";
+
+	"oolite-keyconfig-clear-overrides-title"	= "Clear All Keyboard Overrides";
+	"oolite-keyconfig-clear-overrides" 			= "Are you sure you want to clear any overrides and return all functions to their default settings?";
+	"oolite-keyconfig-clear-yes"				= " Clear all overrides ";
+	"oolite-keyconfig-clear-no"					= " Cancel ";
+
+	"oolite-keyconfig-update-title"				= "Update Keyboard Setting";
+	"oolite-keyconfig-update-function"			= "Function to update";
+	"oolite-keyconfig-update-helper"	 		= "Select a key and press Enter to modify. Press Enter on modifiers to change the flag setting.";
+	"oolite-keyconfig-update-key"				= "Key";
+	"oolite-keyconfig-update-shift"				= "Shift";
+	"oolite-keyconfig-update-mod1"				= "Control";
+	"oolite-keyconfig-update-mod2-pc"			= "Alt";
+	"oolite-keyconfig-update-mod2-mac"			= "Command";
+	"oolite-keyconfig-update-alternate"			= "Alternate key";
+	"oolite-keyconfig-update-save"				= " Save config ";
+	"oolite-keyconfig-update-cancel"			= " Cancel ";
+	"oolite-keyconfig-update-validation-@"		= "Conflict detected with function \"%@\"";
+	"oolite-keyconfig-update-entry-title"		= "Keyboard Command Entry";
+
+	"oolite-keyconfig-update-entry-info" 		= "Enter either:\n\n1: The key you want to use for this function (eg M, m, 0, #, @)\n2: A special function key name. The available special function names are:\n\npageUp, pageDown, arrowLeft, arrowRight, arrowUp, arrowDown, f1-f11, tab, space, home, end, insert, delete, backspace, escape, enter, numpad0-9, numpad/, numpad*, numpad-, numpad+, numpad., numpad=, numpadEnter, printScreen, pause";
+
+	"oolite-keyconfig-shift"					= "Shift";
+	"oolite-keyconfig-mod1"						= "Ctrl";
+	"oolite-keyconfig-mod2-pc"					= "Alt";
+	"oolite-keyconfig-mod2-mac"					= "Cmd";
+	"oolite-keyconfig-modkey-off"	 			= "No";
+	"oolite-keyconfig-modkey-on"				= "Yes";
+	
 	"oolite-loadsave-exit"			= "Return to Menu";
 	"oolite-scenario-exit"			= "Return to Menu";
 	"oolite-scenario-standard-name" = "Normal Start";
@@ -1603,7 +1712,7 @@
 	"gameoptions-play-in-window"			= " Play in Window ";
 	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
-	"gameoptions-keyboard-configuration"	= " View Keyboard Configuration ";
+	"gameoptions-keyboard-configuration"	= " Keyboard Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
@@ -1701,8 +1810,8 @@
 	"starboard-facing-string"		= " Starboard ";
 	"@-select-where-to-install"		= "%@\nPlease select where to install this weapon.";
 	"weapon-installed-@"			= "Weapon installed: %@.";
-	"weapon-@-enter-to-replace"		= "Weapon installed: %@.  Press enter to replace it.";
-	"no-weapon-enter-to-install"	= "No weapon installed.  Press enter to install this weapon here.";
+	"weapon-@-enter-to-replace"		= "Weapon installed: %@.  Press Enter to replace it.";
+	"no-weapon-enter-to-install"	= "No weapon installed.  Press Enter to install this weapon here.";
 	
 	// Interfaces screen
 	"interfaces-title"								= "Ship and System Interfaces";
@@ -2036,6 +2145,7 @@
 	"oolite-keycode-tab"	= "Tab";
 	"oolite-keycode-esc"	= "Esc";
 	"oolite-keycode-space"	= "Space";
+	"oolite-keycode-enter"	= "Enter";
 	"oolite-keycode-f1"		= "F1";
 	"oolite-keycode-f2"		= "F2";
 	"oolite-keycode-f3"		= "F3";
@@ -2067,7 +2177,75 @@
 	"oolite-keycode-numpad7" = "Numpad 7";
 	"oolite-keycode-numpad8" = "Numpad 8";
 	"oolite-keycode-numpad9" = "Numpad 9";
-	
+	"oolite-keycode-numpad/" = "Numpad /";
+	"oolite-keycode-numpaddivide" = "Numpad /";
+	"oolite-keycode-numpad*" = "Numpad *";
+	"oolite-keycode-numpadmultiply" = "Numpad *";
+	"oolite-keycode-numpad+" = "Numpad +";
+	"oolite-keycode-numpadplus" = "Numpad +";
+	"oolite-keycode-numpad-" = "Numpad -";
+	"oolite-keycode-numpadminus" = "Numpad -";
+	"oolite-keycode-numpad." = "Numpad .";
+	"oolite-keycode-numpadperiod" = "Numpad .";
+	"oolite-keycode-numpad=" = "Numpad =";
+	"oolite-keycode-numpadequals" = "Numpad =";
+	"oolite-keycode-numpadenter" = "Numpad Enter";
+	"oolite-keycode-printscreen" = "Print Screen";
+	"oolite-keycode-pause" = "Pause";
+	"oolite-keycode-backspace" = "Backspace";
+
+	// translations of special keys to a shorter version equivalent to what a user needs to enter on the keyboard config screen
+	"oolite-keycode-short-tab"		= "tab";
+	"oolite-keycode-short-esc"		= "esc";
+	"oolite-keycode-short-space"	= "space";
+	"oolite-keycode-short-enter"	= "enter";
+	"oolite-keycode-short-f1"		= "f1";
+	"oolite-keycode-short-f2"		= "f2";
+	"oolite-keycode-short-f3"		= "f3";
+	"oolite-keycode-short-f4"		= "f4";
+	"oolite-keycode-short-f5"		= "f5";
+	"oolite-keycode-short-f6"		= "f6";
+	"oolite-keycode-short-f7"		= "f7";
+	"oolite-keycode-short-f8"		= "f8";
+	"oolite-keycode-short-f9"		= "f9";
+	"oolite-keycode-short-f10"		= "f10";
+	"oolite-keycode-short-f11"		= "f11";
+	"oolite-keycode-short-right"	= "right";
+	"oolite-keycode-short-left"		= "left";
+	"oolite-keycode-short-down"		= "down";
+	"oolite-keycode-short-up"		= "up";
+	"oolite-keycode-short-home"		= "home";
+	"oolite-keycode-short-end"		= "end";
+	"oolite-keycode-short-insert"	= "insert";
+	"oolite-keycode-short-delete"	= "delete";
+	"oolite-keycode-short-pageup"	= "pageUp";
+	"oolite-keycode-short-pagedown" = "pageDown";
+	"oolite-keycode-short-numpad0" 	= "numpad0";
+	"oolite-keycode-short-numpad1" 	= "numpad1";
+	"oolite-keycode-short-numpad2" 	= "numpad2";
+	"oolite-keycode-short-numpad3" 	= "numpad3";
+	"oolite-keycode-short-numpad4" 	= "numpad4";
+	"oolite-keycode-short-numpad5" 	= "numpad5";
+	"oolite-keycode-short-numpad6" 	= "numpad6";
+	"oolite-keycode-short-numpad7" 	= "numpad7";
+	"oolite-keycode-short-numpad8" 	= "numpad8";
+	"oolite-keycode-short-numpad9" 	= "numpad9";
+	"oolite-keycode-short-numpad/" = "numpad/";
+	"oolite-keycode-short-numpaddivide" = "numpad/";
+	"oolite-keycode-short-numpad*" = "numpad*";
+	"oolite-keycode-short-numpadmultiply" = "numpad*";
+	"oolite-keycode-short-numpad+" = "numpad+";
+	"oolite-keycode-short-numpadplus" = "numpad+";
+	"oolite-keycode-short-numpad-" = "numpad-";
+	"oolite-keycode-short-numpadminus" = "numpad-";
+	"oolite-keycode-short-numpad." = "numpad.";
+	"oolite-keycode-short-numpadperiod" = "numpad.";
+	"oolite-keycode-short-numpad=" = "numpad=";
+	"oolite-keycode-short-numpadequals" = "numpad=";
+	"oolite-keycode-short-numpadenter" = "numpadEnter";
+	"oolite-keycode-short-printscreen" = "printScreen";
+	"oolite-keycode-short-pause"	= "pause";
+	"oolite-keycode-short-backspace" = "backspace";
 
 	// Mac multi-screen handling
 	"oolite-mac-bad-display" = "The display configuration has changed in a way that may impact Oolite’s performance.";

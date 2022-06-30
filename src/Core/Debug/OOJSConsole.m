@@ -491,7 +491,7 @@ static BOOL DoWeDefineAllDebugFlags(enum OODebugFlags flags)
 		(Enumeration value 'DEBUG_FOO' not handled in switch) if a debug flag
 		is added without updating it. The point is that if you get such a
 		warning, you should first add a JS symbolic constant for the flag,
-		then add it to the switch to supress the warning.
+		then add it to the switch to suppress the warning.
 		NOTE: don't add a default: to this switch, or I will have to hurt you.
 		-- Ahruman 2010-04-11
 	*/

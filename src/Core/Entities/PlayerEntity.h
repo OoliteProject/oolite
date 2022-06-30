@@ -521,109 +521,154 @@ typedef enum
 #endif
 
 	// keys!
-	NSDictionary   *keyconfig_settings;
+	NSDictionary   *keyconfig2_settings;
+	NSDictionary   *keyCodeLookups;
 
-	OOKeyCode				key_roll_left;
-	OOKeyCode				key_roll_right;
-	OOKeyCode				key_pitch_forward;
-	OOKeyCode				key_pitch_back;
-	OOKeyCode				key_yaw_left;
-	OOKeyCode				key_yaw_right;
+	NSArray					*n_key_roll_left;
+	NSArray					*n_key_roll_right;
+	NSArray					*n_key_pitch_forward;
+	NSArray					*n_key_pitch_back;
+	NSArray					*n_key_yaw_left;
+	NSArray					*n_key_yaw_right;
 
-	OOKeyCode				key_view_forward; 		// && undock
-	OOKeyCode				key_view_aft;			// && options menu
-	OOKeyCode				key_view_port;			// && equipment screen
-	OOKeyCode				key_view_starboard;		// && interfaces screen
+	NSArray					*n_key_view_forward; 		// && undock
+	NSArray					*n_key_view_aft;			// && options menu
+	NSArray					*n_key_view_port;			// && equipment screen
+	NSArray					*n_key_view_starboard;		// && interfaces screen
 
-	OOKeyCode				key_gui_screen_status;
-	OOKeyCode				key_gui_chart_screens;
-	OOKeyCode				key_gui_system_data;
-	OOKeyCode				key_gui_market;
+	NSArray					*n_key_launch_ship;
+	NSArray					*n_key_gui_screen_options;
+	NSArray					*n_key_gui_screen_equipship;
+	NSArray					*n_key_gui_screen_interfaces;
+	NSArray					*n_key_gui_screen_status;
+	NSArray					*n_key_gui_chart_screens;
+	NSArray					*n_key_gui_system_data;
+	NSArray					*n_key_gui_market;
 
-	OOKeyCode				key_gui_arrow_left;
-	OOKeyCode				key_gui_arrow_right;
-	OOKeyCode				key_gui_arrow_up;
-	OOKeyCode				key_gui_arrow_down;
+	NSArray					*n_key_gui_arrow_left;
+	NSArray					*n_key_gui_arrow_right;
+	NSArray					*n_key_gui_arrow_up;
+	NSArray					*n_key_gui_arrow_down;
+	NSArray					*n_key_gui_page_up;
+	NSArray					*n_key_gui_page_down;
+	NSArray					*n_key_gui_select;
 	
-	OOKeyCode				key_increase_speed;
-	OOKeyCode				key_decrease_speed;
-	OOKeyCode				key_inject_fuel;
+	NSArray					*n_key_increase_speed;
+	NSArray					*n_key_decrease_speed;
+	NSArray					*n_key_inject_fuel;
 	
-	OOKeyCode				key_fire_lasers;
-	OOKeyCode				key_launch_missile;
-	OOKeyCode				key_next_missile;
-	OOKeyCode				key_ecm;
+	NSArray					*n_key_fire_lasers;
+	NSArray					*n_key_launch_missile;
+	NSArray					*n_key_next_missile;
+	NSArray					*n_key_ecm;
 	
-	OOKeyCode				key_prime_equipment;
-	OOKeyCode				key_activate_equipment;
-	OOKeyCode				key_mode_equipment;
-	OOKeyCode				key_fastactivate_equipment_a;
-	OOKeyCode				key_fastactivate_equipment_b;
+	NSArray					*n_key_prime_next_equipment;
+	NSArray					*n_key_prime_previous_equipment;
+	NSArray					*n_key_activate_equipment;
+	NSArray					*n_key_mode_equipment;
+	NSArray					*n_key_fastactivate_equipment_a;
+	NSArray					*n_key_fastactivate_equipment_b;
 	
-	OOKeyCode				key_target_missile;
-	OOKeyCode				key_untarget_missile;
-	OOKeyCode				key_target_incoming_missile;
-	OOKeyCode				key_ident_system;
+	NSArray					*n_key_target_missile;
+	NSArray					*n_key_untarget_missile;
+	NSArray					*n_key_target_incoming_missile;
+	NSArray					*n_key_ident_system;
 	
-	OOKeyCode				key_scanner_zoom;
-	OOKeyCode				key_scanner_unzoom;
+	NSArray					*n_key_scanner_zoom;
+	NSArray					*n_key_scanner_unzoom;
 	
-	OOKeyCode				key_launch_escapepod;
+	NSArray					*n_key_launch_escapepod;
 	
-	OOKeyCode				key_galactic_hyperspace;
-	OOKeyCode				key_hyperspace;
-	OOKeyCode				key_jumpdrive;
+	NSArray					*n_key_galactic_hyperspace;
+	NSArray					*n_key_hyperspace;
+	NSArray					*n_key_jumpdrive;
 	
-	OOKeyCode				key_dump_cargo;
-	OOKeyCode				key_rotate_cargo;
+	NSArray					*n_key_dump_cargo;
+	NSArray					*n_key_rotate_cargo;
 	
-	OOKeyCode				key_autopilot;
-	OOKeyCode				key_autodock;
+	NSArray					*n_key_autopilot;
+	NSArray					*n_key_autodock;
 	
-	OOKeyCode				key_snapshot;
-	OOKeyCode				key_docking_music;
+	NSArray					*n_key_snapshot;
+	NSArray					*n_key_docking_music;
 	
-	OOKeyCode				key_advanced_nav_array;
-	OOKeyCode				key_info_next_system;
-	OOKeyCode				key_info_previous_system;
-	OOKeyCode				key_map_home;
-	OOKeyCode				key_map_info;
+	NSArray					*n_key_advanced_nav_array_next;
+	NSArray					*n_key_advanced_nav_array_previous;
+	NSArray					*n_key_info_next_system;
+	NSArray					*n_key_info_previous_system;
+	NSArray					*n_key_map_home;
+	NSArray					*n_key_map_end;
+	NSArray					*n_key_map_next_system;
+	NSArray					*n_key_map_previous_system;
+	NSArray					*n_key_map_info;
+	NSArray					*n_key_map_zoom_in;
+	NSArray					*n_key_map_zoom_out;
+
+	NSArray					*n_key_system_home;
+	NSArray					*n_key_system_end;
+	NSArray					*n_key_system_next_system;
+	NSArray					*n_key_system_previous_system;
+
+	NSArray					*n_key_pausebutton;
+	NSArray					*n_key_show_fps;
+	NSArray					*n_key_mouse_control_roll;
+	NSArray					*n_key_mouse_control_yaw;
+	NSArray					*n_key_hud_toggle;
 	
-	OOKeyCode				key_pausebutton;
-	OOKeyCode				key_show_fps;
-	OOKeyCode				key_mouse_control;
-	OOKeyCode				key_hud_toggle;
+	NSArray					*n_key_comms_log;
+	NSArray					*n_key_prev_compass_mode;
+	NSArray					*n_key_next_compass_mode;
 	
-	OOKeyCode				key_comms_log;
-	OOKeyCode				key_prev_compass_mode;
-	OOKeyCode				key_next_compass_mode;
+	NSArray					*n_key_chart_highlight;
+	NSArray					*n_key_market_filter_cycle;
+	NSArray					*n_key_market_sorter_cycle;
+	NSArray					*n_key_market_buy_one;
+	NSArray					*n_key_market_sell_one;
+	NSArray					*n_key_market_buy_max;
+	NSArray					*n_key_market_sell_max;
+
+	NSArray					*n_key_next_target;
+	NSArray					*n_key_previous_target;
 	
-	OOKeyCode				key_chart_highlight;
-	OOKeyCode				key_market_filter_cycle;
-	OOKeyCode				key_market_sorter_cycle;
+	NSArray					*n_key_custom_view;
+	NSArray					*n_key_custom_view_zoom_out;
+	NSArray					*n_key_custom_view_zoom_in;
+	NSArray					*n_key_custom_view_roll_left;
+	NSArray					*n_key_custom_view_pan_left;
+	NSArray					*n_key_custom_view_roll_right;
+	NSArray					*n_key_custom_view_pan_right;
+	NSArray					*n_key_custom_view_rotate_up;
+	NSArray					*n_key_custom_view_pan_up;
+	NSArray					*n_key_custom_view_rotate_down;
+	NSArray					*n_key_custom_view_pan_down;
+	NSArray					*n_key_custom_view_rotate_left;
+	NSArray					*n_key_custom_view_rotate_right;
 	
-	OOKeyCode				key_next_target;
-	OOKeyCode				key_previous_target;
+	NSArray					*n_key_docking_clearance_request;
+	NSArray					*n_key_weapons_online_toggle;
+
+	NSArray					*n_key_cycle_next_mfd;
+	NSArray					*n_key_cycle_previous_mfd;
+	NSArray					*n_key_switch_next_mfd;
+	NSArray					*n_key_switch_previous_mfd;
+
+	NSArray					*n_key_oxzmanager_setfilter;
+	NSArray					*n_key_oxzmanager_showinfo;
+	NSArray					*n_key_oxzmanager_extract;
 	
-	OOKeyCode				key_custom_view;
-	
-	OOKeyCode				key_docking_clearance_request;
+	NSArray					*n_key_inc_field_of_view;
+	NSArray					*n_key_dec_field_of_view;
 	
 #ifndef NDEBUG
-	OOKeyCode				key_dump_target_state;
+	NSArray					*n_key_dump_target_state;
+	NSArray					*n_key_dump_entity_list;
+	NSArray					*n_key_debug_full;
+	NSArray					*n_key_debug_collision;
+	NSArray					*n_key_debug_console_connect;
+	NSArray					*n_key_debug_bounding_boxes;
+	NSArray					*n_key_debug_shaders;
+	NSArray					*n_key_debug_off;
 #endif
-
-	OOKeyCode				key_weapons_online_toggle;
-
-	OOKeyCode				key_cycle_mfd;
-	OOKeyCode				key_switch_mfd;
-
-	OOKeyCode				key_oxzmanager_setfilter;
-	OOKeyCode				key_oxzmanager_showinfo;
-	OOKeyCode				key_oxzmanager_extract;
-	
-	OOKeyCode				key_inc_field_of_view;
-	OOKeyCode				key_dec_field_of_view;
 
 	// save-file
 	NSString				*save_path;
@@ -709,6 +754,11 @@ typedef enum
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
+	NSArray					*keyFunctions;
+	NSArray					*kbdLayouts;
+	NSString				*keyShiftText;
+	NSString				*keyMod1Text;
+	NSString				*keyMod2Text;
 	
 	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
@@ -1046,7 +1096,6 @@ typedef enum
 
 - (void) setupStartScreenGui;
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra;
-- (void) setGuiToKeySettingsScreen;
 - (void) setGuiToOXZManager;
 
 - (void) noteGUIWillChangeTo:(OOGUIScreenID)toScreen;

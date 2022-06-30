@@ -37,8 +37,12 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OOCollectionExtractors.h" // for splash screen settings
 #import "OOFullScreenController.h"
+#import "ResourceManager.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
+
+static NSString * kOOLogKeyUp				= @"input.keyMapping.keyPress.keyUp";
+static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 #include <ctype.h>
 
@@ -46,7 +50,7 @@ MA 02110-1301, USA.
 
 - (void) resetSDLKeyModifiers;
 - (void) setWindowBorderless:(BOOL)borderless;
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id; // DJS
 @end
 
 @implementation MyOpenGLView
@@ -150,13 +154,18 @@ MA 02110-1301, USA.
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
 	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
-	int bitsPerColorComponent = [prefs oo_intForKey:@"bpcc" defaultValue:8];
+	int 	bitsPerColorComponent = [prefs oo_intForKey:@"bpcc" defaultValue:8];
 	int		vSyncValue;
 
 	NSArray				*arguments = nil;
 	NSEnumerator		*argEnum = nil;
 	NSString			*arg = nil;
 	BOOL				noSplashArgFound = NO;
+
+	[self initKeyMappingData];
+
+	// preload the printscreen key into our translation array because SDLK_PRINTSCREEN isn't available
+	scancode2Unicode[55] = gvPrintScreenKey;
 
 	arguments = [[NSProcessInfo processInfo] arguments];
 
@@ -223,7 +232,7 @@ MA 02110-1301, USA.
 	{
 		OOLogWARN(@"display.initGL.monitorInfoWarning", @"Could not get current monitor information.");
 	}
-	
+
 	atDesktopResolution = YES;
 #endif
 
@@ -415,6 +424,27 @@ MA 02110-1301, USA.
 	[self autoShowMouse];
 }
 
+
+- (void) initKeyMappingData
+{
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	// load in our keyboard scancode mappings
+#if OOLITE_WINDOWS	
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_windows.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+#else
+	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:@"keymappings_linux.plist" inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
+#endif
+	// get the stored keyboard code from preferences
+	NSString *kbd = [prefs oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+	NSDictionary *subset = [kmap objectForKey:kbd];
+
+	[keyMappings_normal release];
+	keyMappings_normal = [[subset objectForKey:@"mapping_normal"] copy];
+	[keyMappings_shifted release];
+	keyMappings_shifted = [[subset objectForKey:@"mapping_shifted"] copy];
+}
+
+
 - (void) dealloc
 {
 	if (typedString)
@@ -428,6 +458,12 @@ MA 02110-1301, USA.
 		SDL_FreeSurface(surface);
 		surface = 0;
 	}
+
+	if (keyMappings_normal)
+		[keyMappings_normal release];
+	
+	if (keyMappings_shifted)
+		[keyMappings_shifted release];
 
 	SDL_Quit();
 
@@ -1534,11 +1570,11 @@ MA 02110-1301, USA.
 // key down that brought you into the submenu is still registered
 // as down when we're in. This makes isDown return NO until a key up
 // event has been received from SDL.
-- (void) supressKeysUntilKeyUp
+- (void) suppressKeysUntilKeyUp
 {
 	if (keys[gvMouseDoubleClick] == NO)
    	{
-   		supressKeys = YES;
+   		suppressKeys = YES;
    		[self clearKeys];
    	}
    	else
@@ -1551,7 +1587,7 @@ MA 02110-1301, USA.
 
 - (BOOL) isDown: (int) key
 {
-	if ( supressKeys )
+	if ( suppressKeys )
 		return NO;
 	if ( key < 0 )
 		return NO;
@@ -1596,6 +1632,11 @@ MA 02110-1301, USA.
 	return (SDL_GetModState() & KMOD_CAPS) == KMOD_CAPS;
 }
 
+
+- (BOOL) lastKeyWasShifted
+{
+	return lastKeyShifted;
+}
 
 - (int) numKeys
 {
@@ -1644,22 +1685,6 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setKeyboardTo: (NSString *) value
-{
-#if OOLITE_WINDOWS
-	keyboardMap=gvKeyboardAuto;
-
-	if ([value isEqual: @"UK"])
-	{
-		keyboardMap=gvKeyboardUK;
-	}
-	else if ([value isEqual: @"US"])
-	{
-		keyboardMap=gvKeyboardUS;
-	}
-#endif
-}
-
 - (void)pollControls
 {
 	SDL_Event				event;
@@ -1670,7 +1695,8 @@ MA 02110-1301, USA.
 	float					mouseVirtualStickSensitivityX = viewSize.width * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
 	float					mouseVirtualStickSensitivityY = viewSize.height * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
 	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
-
+	Uint16 					key_id;
+	int						scan_code;
 
 	while (SDL_PollEvent(&event))
 	{
@@ -1836,181 +1862,82 @@ MA 02110-1301, USA.
 			}
 			case SDL_KEYDOWN:
 				kbd_event = (SDL_KeyboardEvent*)&event;
+				key_id = (Uint16)kbd_event->keysym.unicode;
+				scan_code = kbd_event->keysym.scancode;
 
-				if(allowingStringInput)
+				//char *keychar = SDL_GetKeyName(kbd_event->keysym.sym);
+				// deal with modifiers first
+				BOOL modifier_pressed = NO;
+				BOOL special_key = NO;
+
+				// translate scancode to unicode equiv
+				switch (kbd_event->keysym.sym) 
 				{
-					[self handleStringInput: kbd_event];
-				}
-
-				// Macro KEYCODE_DOWN_EITHER. Detect the keypress state (with shift or without) and assign appropriate values to the
-				// keys array. This way Oolite can use more keys, since now key '3', for example is a different keypress to '#'.
-#define KEYCODE_DOWN_EITHER(a,b)	do { \
-if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; } \
-} while (0)
-
-#if OOLITE_WINDOWS
-				/*
-					Windows locale patch - Enable backslash in win/UK
-				*/
-				if (EXPECT_NOT(kbd_event->keysym.scancode==86 && (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)))
-				{
-					//non-US scancode. If in autodetect, we'll assume UK keyboard.
-					KEYCODE_DOWN_EITHER (124, 92);								//	| or \.
-				}
-				else switch (kbd_event->keysym.sym) {
-
-					case SDLK_BACKSLASH:
-						if (keyboardMap==gvKeyboardUK )
-						{
-							KEYCODE_DOWN_EITHER (126, 35);						// ~ or #
-						}
-						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
-						{
-							KEYCODE_DOWN_EITHER (124, 92); 						// | or \.
-						}
-						break;
-#else
-				switch (kbd_event->keysym.sym) {
-
-					case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (124, 92); break;	// | or \.
-#endif
-					case SDLK_1: KEYCODE_DOWN_EITHER (33, gvNumberKey1); break;	// ! or 1
-#if OOLITE_WINDOWS
-					/*
-						Windows locale patch - fix shift-2 & shift-3
-					*/
-					case SDLK_2:
-						if (keyboardMap==gvKeyboardUK)
-						{
-							KEYCODE_DOWN_EITHER (34, gvNumberKey2);				// " or 2
-						}
-						else
-						{
-							KEYCODE_DOWN_EITHER (64, gvNumberKey2);             // @ or 2
-						}
-						break;
-					case SDLK_3:
-						if (keyboardMap==gvKeyboardUK)
-						{
-							KEYCODE_DOWN_EITHER (156, gvNumberKey3);            // � or 3
-						}
-						else
-						{
-							KEYCODE_DOWN_EITHER (35, gvNumberKey3);             // # or 3
-						}
-						break;
-#else
-					case SDLK_2: KEYCODE_DOWN_EITHER (64, gvNumberKey2); break;	// @ or 2
-					case SDLK_3: KEYCODE_DOWN_EITHER (35, gvNumberKey3); break;	// # or 3
-#endif
-					case SDLK_4: KEYCODE_DOWN_EITHER (36, gvNumberKey4); break;	// $ or 4
-					case SDLK_5: KEYCODE_DOWN_EITHER (37, gvNumberKey5); break;	// % or 5
-					case SDLK_6: KEYCODE_DOWN_EITHER (94, gvNumberKey6); break;	// ^ or 6
-					case SDLK_7: KEYCODE_DOWN_EITHER (38, gvNumberKey7); break;	// & or 7
-					case SDLK_8: KEYCODE_DOWN_EITHER (42, gvNumberKey8); break;	// * or 8
-					case SDLK_9: KEYCODE_DOWN_EITHER (40, gvNumberKey9); break;	// ( or 9
-					case SDLK_0: KEYCODE_DOWN_EITHER (41, gvNumberKey0); break;	// ) or 0
-					case SDLK_MINUS: KEYCODE_DOWN_EITHER (95, 45); break;		// _ or -
-					case SDLK_COMMA: KEYCODE_DOWN_EITHER (60, 44); break;		// < or ,
-					case SDLK_EQUALS: KEYCODE_DOWN_EITHER (43, 61); break;		// + or =
-					case SDLK_PERIOD: KEYCODE_DOWN_EITHER (62, 46); break;		// > or .
-					case SDLK_SLASH: KEYCODE_DOWN_EITHER (63, 47); break;		// ? or /
-					case SDLK_a: KEYCODE_DOWN_EITHER (65, 97); break;		// A or a
-					case SDLK_b: KEYCODE_DOWN_EITHER (66, 98); break;		// B or b
-					case SDLK_c: KEYCODE_DOWN_EITHER (67, 99); break;		// C or c
-					case SDLK_d: KEYCODE_DOWN_EITHER (68, 100); break;		// D or d
-					case SDLK_e: KEYCODE_DOWN_EITHER (69, 101); break;		// E or e
-					case SDLK_f: KEYCODE_DOWN_EITHER (70, 102); break;		// F or f
-					case SDLK_g: KEYCODE_DOWN_EITHER (71, 103); break;		// G or g
-					case SDLK_h: KEYCODE_DOWN_EITHER (72, 104); break;		// H or h
-					case SDLK_i: KEYCODE_DOWN_EITHER (73, 105); break;		// I or i
-					case SDLK_j: KEYCODE_DOWN_EITHER (74, 106); break;		// J or j
-					case SDLK_k: KEYCODE_DOWN_EITHER (75, 107); break;		// K or k
-					case SDLK_l: KEYCODE_DOWN_EITHER (76, 108); break;		// L or l
-					case SDLK_m: KEYCODE_DOWN_EITHER (77, 109); break;		// M or m
-					case SDLK_n: KEYCODE_DOWN_EITHER (78, 110); break;		// N or n
-					case SDLK_o: KEYCODE_DOWN_EITHER (79, 111); break;		// O or o
-					case SDLK_p: KEYCODE_DOWN_EITHER (80, 112); break;		// P or p
-					case SDLK_q: KEYCODE_DOWN_EITHER (81, 113); break;		// Q or q
-					case SDLK_r: KEYCODE_DOWN_EITHER (82, 114); break;		// R or r
-					case SDLK_s: KEYCODE_DOWN_EITHER (83, 115); break;		// S or s
-					case SDLK_t: KEYCODE_DOWN_EITHER (84, 116); break;		// T or t
-					case SDLK_u: KEYCODE_DOWN_EITHER (85, 117); break;		// U or u
-					case SDLK_v: KEYCODE_DOWN_EITHER (86, 118); break;		// V or v
-					case SDLK_w: KEYCODE_DOWN_EITHER (87, 119); break;		// W or w
-					case SDLK_x: KEYCODE_DOWN_EITHER (88, 120); break;		// X or x
-					case SDLK_y: KEYCODE_DOWN_EITHER (89, 121); break;		// Y or y
-					case SDLK_z: KEYCODE_DOWN_EITHER (90, 122); break;		// Z or z
-					case SDLK_SEMICOLON: KEYCODE_DOWN_EITHER(58, 59); break; // : or ;
-						//SDLK_BACKQUOTE and SDLK_HASH are special cases. No SDLK_ with code 126 exists.
-					case SDLK_HASH: if (!shift) keys[126] = YES; break;		// ~ (really #)
-					case SDLK_BACKQUOTE: if (!shift) keys[96] = YES; break;		// `
-					case SDLK_QUOTE: keys[39] = YES; break;				// '
-					case SDLK_LEFTBRACKET: keys[91] = YES; break;			// [
-					case SDLK_RIGHTBRACKET: keys[93] = YES; break;			// ]
-					case SDLK_HOME: keys[gvHomeKey] = YES; break;
-					case SDLK_END: keys[gvEndKey] = YES; break;
-					case SDLK_INSERT: keys[gvInsertKey] = YES; break;
-					case SDLK_PAGEUP: keys[gvPageUpKey] = YES; break;
-					case SDLK_PAGEDOWN: keys[gvPageDownKey] = YES; break;
-					case SDLK_SPACE: keys[32] = YES; break;
-					case SDLK_RETURN: keys[13] = YES; break;
-					case SDLK_TAB: keys[9] = YES; break;
-					case SDLK_UP: keys[gvArrowKeyUp] = YES; break;
-					case SDLK_DOWN: keys[gvArrowKeyDown] = YES; break;
-					case SDLK_LEFT: keys[gvArrowKeyLeft] = YES; break;
-					case SDLK_RIGHT: keys[gvArrowKeyRight] = YES; break;
-
-					case SDLK_KP_MINUS: keys[45] = YES; break; // numeric keypad - key
-					case SDLK_KP_PLUS: keys[43] = YES; break; // numeric keypad + key
-					case SDLK_KP_ENTER: keys[13] = YES; break;
-
-					case SDLK_KP_MULTIPLY: keys[42] = YES; break;	// *
-
-					case SDLK_KP1: keys[gvNumberPadKey1] = YES; break;
-					case SDLK_KP2: keys[gvNumberPadKey2] = YES; break;
-					case SDLK_KP3: keys[gvNumberPadKey3] = YES; break;
-					case SDLK_KP4: keys[gvNumberPadKey4] = YES; break;
-					case SDLK_KP5: keys[gvNumberPadKey5] = YES; break;
-					case SDLK_KP6: keys[gvNumberPadKey6] = YES; break;
-					case SDLK_KP7: keys[gvNumberPadKey7] = YES; break;
-					case SDLK_KP8: keys[gvNumberPadKey8] = YES; break;
-					case SDLK_KP9: keys[gvNumberPadKey9] = YES; break;
-					case SDLK_KP0: keys[gvNumberPadKey0] = YES; break;
-
-					case SDLK_F1: keys[gvFunctionKey1] = YES; break;
-					case SDLK_F2: keys[gvFunctionKey2] = YES; break;
-					case SDLK_F3: keys[gvFunctionKey3] = YES; break;
-					case SDLK_F4: keys[gvFunctionKey4] = YES; break;
-					case SDLK_F5: keys[gvFunctionKey5] = YES; break;
-					case SDLK_F6: keys[gvFunctionKey6] = YES; break;
-					case SDLK_F7: keys[gvFunctionKey7] = YES; break;
-					case SDLK_F8: keys[gvFunctionKey8] = YES; break;
-					case SDLK_F9: keys[gvFunctionKey9] = YES; break;
-					case SDLK_F10: keys[gvFunctionKey10] = YES; break;
-
-					case SDLK_BACKSPACE:
-					case SDLK_DELETE:
-						keys[gvDeleteKey] = YES;
-						break;
-
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
 						shift = YES;
+						modifier_pressed = YES;
 						break;
 
 					case SDLK_LCTRL:
 					case SDLK_RCTRL:
 						ctrl = YES;
+						modifier_pressed = YES;
 						break;
 						
 					case SDLK_LALT:
 					case SDLK_RALT:
 						opt = YES;
+						modifier_pressed = YES;
 						break;
 
+					case SDLK_KP0: key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0); special_key = YES; break;
+					case SDLK_KP1: key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1); special_key = YES; break;
+					case SDLK_KP2: key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2); special_key = YES; break;
+					case SDLK_KP3: key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3); special_key = YES; break;
+					case SDLK_KP4: key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4); special_key = YES; break;
+					case SDLK_KP5: key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5); special_key = YES; break;
+					case SDLK_KP6: key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6); special_key = YES; break;
+					case SDLK_KP7: key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7); special_key = YES; break;
+					case SDLK_KP8: key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8); special_key = YES; break;
+					case SDLK_KP9: key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9); special_key = YES; break;
+					case SDLK_KP_PERIOD: key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46); special_key = YES; break;
+					case SDLK_KP_DIVIDE: key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47); special_key = YES; break;
+					case SDLK_KP_MULTIPLY: key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42); special_key = YES; break;
+					case SDLK_KP_MINUS: key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45); special_key = YES; break;
+					case SDLK_KP_PLUS: key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43); special_key = YES; break;
+					case SDLK_KP_EQUALS: key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61); special_key = YES; break;
+					case SDLK_KP_ENTER: key_id = gvNumberPadKeyEnter; special_key = YES; break;
+					case SDLK_HOME: key_id = gvHomeKey; special_key = YES; break;
+					case SDLK_END: key_id = gvEndKey; special_key = YES; break;
+					case SDLK_INSERT: key_id = gvInsertKey; special_key = YES; break;
+					case SDLK_PAGEUP: key_id = gvPageUpKey; special_key = YES; break;
+					case SDLK_PAGEDOWN: key_id = gvPageDownKey; special_key = YES; break;
+					case SDLK_SPACE: key_id = 32; special_key = YES; break;
+					case SDLK_RETURN: key_id = 13; special_key = YES; break;
+					case SDLK_TAB: key_id = 9; special_key = YES; break;
+					case SDLK_UP: key_id = gvArrowKeyUp; special_key = YES; break;
+					case SDLK_DOWN: key_id = gvArrowKeyDown; special_key = YES; break;
+					case SDLK_LEFT: key_id = gvArrowKeyLeft; special_key = YES; break;
+					case SDLK_RIGHT: key_id = gvArrowKeyRight; special_key = YES; break;
+					case SDLK_PAUSE: key_id = gvPauseKey; special_key = YES; break;
+					case SDLK_BACKSPACE: key_id = gvBackspaceKey; special_key = YES; break;
+					case SDLK_DELETE: key_id = gvDeleteKey; special_key = YES; break;
+					case SDLK_F1: key_id = gvFunctionKey1; special_key = YES; break;
+					case SDLK_F2: key_id = gvFunctionKey2; special_key = YES; break;
+					case SDLK_F3: key_id = gvFunctionKey3; special_key = YES; break;
+					case SDLK_F4: key_id = gvFunctionKey4; special_key = YES; break;
+					case SDLK_F5: key_id = gvFunctionKey5; special_key = YES; break;
+					case SDLK_F6: key_id = gvFunctionKey6; special_key = YES; break;
+					case SDLK_F7: key_id = gvFunctionKey7; special_key = YES; break;
+					case SDLK_F8: key_id = gvFunctionKey8; special_key = YES; break;
+					case SDLK_F9: key_id = gvFunctionKey9; special_key = YES; break;
+					case SDLK_F10: key_id = gvFunctionKey10; special_key = YES; break;
+					case SDLK_F11: key_id = gvFunctionKey11; special_key = YES; break;
 					case SDLK_F12:
+						key_id = 327;
 						[self toggleScreenMode];
+						special_key = YES; 
 						break;
 
 					case SDLK_ESCAPE:
@@ -2020,170 +1947,82 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 							[gameController exitAppWithContext:@"Shift-escape pressed"];
 						}
 						else
-							keys[27] = YES;
+							key_id = 27;
+							special_key = YES; 
 						break;
 					default:
-						// Numerous cases not handled.
-						//OOLog(@"keys.test", @"Keydown scancode: %d", kbd_event->keysym.scancode);
+						//OOLog(@"keys.test", @"Unhandled Keydown scancode with unicode = 0: %d", scan_code);
 						;
+				}
+
+				// the keyup event doesn't give us the unicode value, so store it here so it can be retrieved on keyup
+				// the ctrl key tends to mix up the unicode values, so deal with some special cases
+				// we also need (in most cases) to get the character without the impact of caps lock. 
+				if (((!special_key && (ctrl || key_id == 0)) || ([self isCapsLockOn] && (!special_key && !allowingStringInput))) && !modifier_pressed) //  
+				{
+					// ctrl changes alpha characters to control codes (1-26)
+					if (ctrl && key_id >=1 && key_id <= 26) 
+					{
+						if (shift) 
+							key_id += 64; // A-Z is from 65, offset by -1 for the scancode start point
+						else
+							key_id += 96; // a-z is from 97, offset by -1 for the scancode start point
+					} 
+					else 
+					{
+						key_id = 0; // reset the value here to force a lookup from the keymappings data
+					}
+				}
+
+				// if we get here and we still don't have a key id, grab the unicode value from our keymappings dict
+				if (key_id == 0) 
+				{
+					// get unicode value for keycode from keymappings files
+					// this handles all the non-functional keys. the function keys are handled in the switch above
+					if (!shift)
+					{
+						NSString *keyNormal = [keyMappings_normal objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
+						if (keyNormal) key_id = [keyNormal integerValue];
+					}
+					else
+					{
+						NSString *keyShifted = [keyMappings_shifted objectForKey:[NSString stringWithFormat:@"%d", scan_code]];
+						if (keyShifted) key_id = [keyShifted integerValue];
+					}
+				}
+
+				// if we've got the unicode value, we can store it in our array now
+				if (key_id > 0) scancode2Unicode[scan_code] = key_id;
+
+				if(allowingStringInput)
+				{
+					[self handleStringInput:kbd_event keyID:key_id];
+				}
+
+				OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i, sym = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->keysym.sym, key_id, shift, ctrl, opt);
+				//OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", kbd_event->keysym.scancode, key_id);
+
+				if (key_id > 0 && key_id <= [self numKeys]) 
+				{
+					keys[key_id] = YES;
+				}
+				else 
+				{
+					//OOLog(@"keys.test", @"Unhandled Keydown scancode/unicode: %d %i", scan_code, key_id);
 				}
 				break;
 
 			case SDL_KEYUP:
-				supressKeys = NO;    // DJS
+				suppressKeys = NO;    // DJS
 				kbd_event = (SDL_KeyboardEvent*)&event;
+				scan_code = kbd_event->keysym.scancode;
 
-#define KEYCODE_UP_BOTH(a,b)	do { \
-keys[a] = NO; keys[b] = NO; \
-} while (0)
+				// all the work should have been down on the keydown event, so all we need to do is get the unicode value from the array
+				key_id = scancode2Unicode[scan_code];
 
-#if OOLITE_WINDOWS
-				/*
-					Windows locale patch - Enable backslash in win/UK
-				*/
-				if (EXPECT_NOT(kbd_event->keysym.scancode==86 && (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)))
+				// deal with modifiers first
+				switch (kbd_event->keysym.sym)
 				{
-					//non-US scancode. If in autodetect, we'll assume UK keyboard.
-					KEYCODE_UP_BOTH (124, 92); 									// 	| or \.
-				}
-				else switch (kbd_event->keysym.sym) {
-
-					case SDLK_BACKSLASH:
-						if (keyboardMap==gvKeyboardUK )
-						{
-							KEYCODE_UP_BOTH (126, 35);							// ~ or #
-						}
-						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
-						{
-							KEYCODE_UP_BOTH (124, 92); 							// | or \.
-						}
-						break;
-#else
-				switch (kbd_event->keysym.sym) {
-
-					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (124, 92); break;		// | or \.
-#endif
-
-					case SDLK_1: KEYCODE_UP_BOTH (33, gvNumberKey1); break;		// ! and 1
-#if OOLITE_WINDOWS
-					/*
-						Windows locale patch - fix shift-2 & shift-3
-					*/
-					case SDLK_2:
-                        if (keyboardMap==gvKeyboardUK)
-                        {
-							KEYCODE_UP_BOTH (34, gvNumberKey2);				// " or 2
-                        }
-                        else
-                        {
-							KEYCODE_UP_BOTH (64, gvNumberKey2);				// @ or 2
-                        }
-                        break;
-                    case SDLK_3:
-                        if (keyboardMap==gvKeyboardUK)
-                        {
-							KEYCODE_UP_BOTH (156, gvNumberKey3);			// � or 3
-                        }
-                        else
-                        {
-							KEYCODE_UP_BOTH (35, gvNumberKey3);				// # or 3
-                        }
-                        break;
-#else
-					case SDLK_2: KEYCODE_UP_BOTH (64, gvNumberKey2); break;	// @ or 2
-					case SDLK_3: KEYCODE_UP_BOTH (35, gvNumberKey3); break;	// # or 3
-#endif
-					case SDLK_4: KEYCODE_UP_BOTH (36, gvNumberKey4); break;	// $ or 4
-					case SDLK_5: KEYCODE_UP_BOTH (37, gvNumberKey5); break;	// % or 5
-					case SDLK_6: KEYCODE_UP_BOTH (94, gvNumberKey6); break;	// ^ or 6
-					case SDLK_7: KEYCODE_UP_BOTH (38, gvNumberKey7); break;	// & or 7
-					case SDLK_8: KEYCODE_UP_BOTH (42, gvNumberKey8); break;	// * or 8
-					case SDLK_9: KEYCODE_UP_BOTH (40, gvNumberKey9); break;	// ( or 9
-					case SDLK_0: KEYCODE_UP_BOTH (41, gvNumberKey0); break;	// ) or 0
-					case SDLK_MINUS: KEYCODE_UP_BOTH (95, 45); break;		// _ and -
-					case SDLK_COMMA: KEYCODE_UP_BOTH (60, 44); break;		// < and ,
-					case SDLK_EQUALS: KEYCODE_UP_BOTH (43, 61); break;		// + and =
-					case SDLK_PERIOD: KEYCODE_UP_BOTH (62, 46); break;		// > and .
-					case SDLK_SLASH: KEYCODE_UP_BOTH (63, 47); break;		// ? and /
-					case SDLK_a: KEYCODE_UP_BOTH (65, 97); break;			// A and a
-					case SDLK_b: KEYCODE_UP_BOTH (66, 98); break;			// B and b
-					case SDLK_c: KEYCODE_UP_BOTH (67, 99); break;			// C and c
-					case SDLK_d: KEYCODE_UP_BOTH (68, 100); break;			// D and d
-					case SDLK_e: KEYCODE_UP_BOTH (69, 101); break;			// E and e
-					case SDLK_f: KEYCODE_UP_BOTH (70, 102); break;			// F and f
-					case SDLK_g: KEYCODE_UP_BOTH (71, 103); break;			// G and g
-					case SDLK_h: KEYCODE_UP_BOTH (72, 104); break;			// H and h
-					case SDLK_i: KEYCODE_UP_BOTH (73, 105); break;			// I and i
-					case SDLK_j: KEYCODE_UP_BOTH (74, 106); break;			// J and j
-					case SDLK_k: KEYCODE_UP_BOTH (75, 107); break;			// K and k
-					case SDLK_l: KEYCODE_UP_BOTH (76, 108); break;			// L and l
-					case SDLK_m: KEYCODE_UP_BOTH (77, 109); break;			// M and m
-					case SDLK_n: KEYCODE_UP_BOTH (78, 110); break;			// N and n
-					case SDLK_o: KEYCODE_UP_BOTH (79, 111); break;			// O and o
-					case SDLK_p: KEYCODE_UP_BOTH (80, 112); break;			// P and p
-					case SDLK_q: KEYCODE_UP_BOTH (81, 113); break;			// Q and q
-					case SDLK_r: KEYCODE_UP_BOTH (82, 114); break;			// R and r
-					case SDLK_s: KEYCODE_UP_BOTH (83, 115); break;			// S and s
-					case SDLK_t: KEYCODE_UP_BOTH (84, 116); break;			// T and t
-					case SDLK_u: KEYCODE_UP_BOTH (85, 117); break;			// U and u
-					case SDLK_v: KEYCODE_UP_BOTH (86, 118); break;			// V and v
-					case SDLK_w: KEYCODE_UP_BOTH (87, 119); break;			// W and w
-					case SDLK_x: KEYCODE_UP_BOTH (88, 120); break;			// X and x
-					case SDLK_y: KEYCODE_UP_BOTH (89, 121); break;			// Y and y
-					case SDLK_z: KEYCODE_UP_BOTH (90, 122); break;			// Z and z
-					case SDLK_SEMICOLON: KEYCODE_UP_BOTH(58, 59); break; // : and ;
-						//SDLK_BACKQUOTE and SDLK_HASH are special cases. No SDLK_ with code 126 exists.
-					case SDLK_HASH: if (!shift) keys[126] = NO; break;		// ~ (really #)
-					case SDLK_BACKQUOTE: keys[96] = NO; break;			// `
-					case SDLK_QUOTE: keys[39] = NO; break;				// '
-					case SDLK_LEFTBRACKET: keys[91] = NO; break;			// [
-					case SDLK_RIGHTBRACKET: keys[93] = NO; break;			// ]
-					case SDLK_HOME: keys[gvHomeKey] = NO; break;
-					case SDLK_END: keys[gvEndKey] = NO; break;
-					case SDLK_INSERT: keys[gvInsertKey] = NO; break;
-					case SDLK_PAGEUP: keys[gvPageUpKey] = NO; break;
-					case SDLK_PAGEDOWN: keys[gvPageDownKey] = NO; break;
-					case SDLK_SPACE: keys[32] = NO; break;
-					case SDLK_RETURN: keys[13] = NO; break;
-					case SDLK_TAB: keys[9] = NO; break;
-					case SDLK_UP: keys[gvArrowKeyUp] = NO; break;
-					case SDLK_DOWN: keys[gvArrowKeyDown] = NO; break;
-					case SDLK_LEFT: keys[gvArrowKeyLeft] = NO; break;
-					case SDLK_RIGHT: keys[gvArrowKeyRight] = NO; break;
-
-					case SDLK_KP_MINUS: keys[45] = NO; break; // numeric keypad - key
-					case SDLK_KP_PLUS: keys[43] = NO; break; // numeric keypad + key
-					case SDLK_KP_ENTER: keys[13] = NO; break;
-
-					case SDLK_KP_MULTIPLY: keys[42] = NO; break;	// *
-
-					case SDLK_KP1: keys[gvNumberPadKey1] = NO; break;
-					case SDLK_KP2: keys[gvNumberPadKey2] = NO; break;
-					case SDLK_KP3: keys[gvNumberPadKey3] = NO; break;
-					case SDLK_KP4: keys[gvNumberPadKey4] = NO; break;
-					case SDLK_KP5: keys[gvNumberPadKey5] = NO; break;
-					case SDLK_KP6: keys[gvNumberPadKey6] = NO; break;
-					case SDLK_KP7: keys[gvNumberPadKey7] = NO; break;
-					case SDLK_KP8: keys[gvNumberPadKey8] = NO; break;
-					case SDLK_KP9: keys[gvNumberPadKey9] = NO; break;
-					case SDLK_KP0: keys[gvNumberPadKey0] = NO; break;
-
-					case SDLK_F1: keys[gvFunctionKey1] = NO; break;
-					case SDLK_F2: keys[gvFunctionKey2] = NO; break;
-					case SDLK_F3: keys[gvFunctionKey3] = NO; break;
-					case SDLK_F4: keys[gvFunctionKey4] = NO; break;
-					case SDLK_F5: keys[gvFunctionKey5] = NO; break;
-					case SDLK_F6: keys[gvFunctionKey6] = NO; break;
-					case SDLK_F7: keys[gvFunctionKey7] = NO; break;
-					case SDLK_F8: keys[gvFunctionKey8] = NO; break;
-					case SDLK_F9: keys[gvFunctionKey9] = NO; break;
-					case SDLK_F10: keys[gvFunctionKey10] = NO; break;
-
-					case SDLK_BACKSPACE:
-					case SDLK_DELETE:
-						keys[gvDeleteKey] = NO;
-						break;
-
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
 						shift = NO;
@@ -2198,15 +2037,73 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_RALT:
 						opt = NO;
 						break;
-
-					case SDLK_ESCAPE:
-						keys[27] = NO;
-						break;
+					default:
+						;
+				}
+				OOLog(kOOLogKeyUp, @"Keyup scancode = %d, unicode = %i, sym = %i, character = %c, shift = %d, ctrl = %d, alt = %d", scan_code, key_id, kbd_event->keysym.sym, key_id, shift, ctrl, opt);
+				//OOLog(kOOLogKeyUp, @"Keyup scancode = %d, shift = %d, ctrl = %d, alt = %d", scan_code, shift, ctrl, opt);
+				
+				// translate scancode to unicode equiv
+				switch (kbd_event->keysym.sym) 
+				{
+					case SDLK_KP0: key_id = (!allowingStringInput ? gvNumberPadKey0 : gvNumberKey0); break;
+					case SDLK_KP1: key_id = (!allowingStringInput ? gvNumberPadKey1 : gvNumberKey1); break;
+					case SDLK_KP2: key_id = (!allowingStringInput ? gvNumberPadKey2 : gvNumberKey2); break;
+					case SDLK_KP3: key_id = (!allowingStringInput ? gvNumberPadKey3 : gvNumberKey3); break;
+					case SDLK_KP4: key_id = (!allowingStringInput ? gvNumberPadKey4 : gvNumberKey4); break;
+					case SDLK_KP5: key_id = (!allowingStringInput ? gvNumberPadKey5 : gvNumberKey5); break;
+					case SDLK_KP6: key_id = (!allowingStringInput ? gvNumberPadKey6 : gvNumberKey6); break;
+					case SDLK_KP7: key_id = (!allowingStringInput ? gvNumberPadKey7 : gvNumberKey7); break;
+					case SDLK_KP8: key_id = (!allowingStringInput ? gvNumberPadKey8 : gvNumberKey8); break;
+					case SDLK_KP9: key_id = (!allowingStringInput ? gvNumberPadKey9 : gvNumberKey9); break;
+					case SDLK_KP_PERIOD: key_id = (!allowingStringInput ? gvNumberPadKeyPeriod : 46); break;
+					case SDLK_KP_DIVIDE: key_id = (!allowingStringInput ? gvNumberPadKeyDivide : 47); break;
+					case SDLK_KP_MULTIPLY: key_id = (!allowingStringInput ? gvNumberPadKeyMultiply : 42); break;
+					case SDLK_KP_MINUS: key_id = (!allowingStringInput ? gvNumberPadKeyMinus : 45); break;
+					case SDLK_KP_PLUS: key_id = (!allowingStringInput ? gvNumberPadKeyPlus : 43); break;
+					case SDLK_KP_EQUALS: key_id = (!allowingStringInput ? gvNumberPadKeyEquals : 61); break;
+					case SDLK_KP_ENTER: key_id = gvNumberPadKeyEnter; break;
+					case SDLK_HOME: key_id = gvHomeKey; break;
+					case SDLK_END: key_id = gvEndKey; break;
+					case SDLK_INSERT: key_id = gvInsertKey; break;
+					case SDLK_PAGEUP: key_id = gvPageUpKey; break;
+					case SDLK_PAGEDOWN: key_id = gvPageDownKey; break;
+					case SDLK_SPACE: key_id = 32; break;
+					case SDLK_RETURN: key_id = 13; break;
+					case SDLK_TAB: key_id = 9; break;
+					case SDLK_ESCAPE: key_id = 27; break;
+					case SDLK_UP: key_id = gvArrowKeyUp; break;
+					case SDLK_DOWN: key_id = gvArrowKeyDown; break;
+					case SDLK_LEFT: key_id = gvArrowKeyLeft; break;
+					case SDLK_RIGHT: key_id = gvArrowKeyRight; break;
+					case SDLK_PAUSE: key_id = gvPauseKey; break;
+					case SDLK_F1: key_id = gvFunctionKey1; break;
+					case SDLK_F2: key_id = gvFunctionKey2; break;
+					case SDLK_F3: key_id = gvFunctionKey3; break;
+					case SDLK_F4: key_id = gvFunctionKey4; break;
+					case SDLK_F5: key_id = gvFunctionKey5; break;
+					case SDLK_F6: key_id = gvFunctionKey6; break;
+					case SDLK_F7: key_id = gvFunctionKey7; break;
+					case SDLK_F8: key_id = gvFunctionKey8; break;
+					case SDLK_F9: key_id = gvFunctionKey9; break;
+					case SDLK_F10: key_id = gvFunctionKey10; break;
+					case SDLK_F11: key_id = gvFunctionKey11; break;
+					case SDLK_F12: key_id = 327; break;
+					case SDLK_BACKSPACE: key_id = gvBackspaceKey; break;
+					case SDLK_DELETE: key_id = gvDeleteKey; break;
 
 					default:
-						// Numerous cases not handled.
-						//OOLog(@"keys.test", @"Keyup scancode: %d", kbd_event->keysym.scancode);
+						//OOLog(@"keys.test", @"Unhandled Keyup scancode with unicode = 0: %d", kbd_event->keysym.scancode);
 						;
+				}
+
+				if (key_id > 0 && key_id <= [self numKeys]) 
+				{
+					keys[key_id] = NO;
+				}
+				else 
+				{
+					//OOLog(@"keys.test", @"Unhandled Keyup scancode: %d", kbd_event->keysym.scancode);
 				}
 				break;
 
@@ -2374,7 +2271,7 @@ keys[a] = NO; keys[b] = NO; \
 // DJS: String input handler. Since for SDL versions we're also handling
 // freeform typing this has necessarily got more complex than the non-SDL
 // versions.
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event;
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event keyID:(Uint16)key_id;
 {
 	SDLKey key=kbd_event->keysym.sym;
 
@@ -2390,9 +2287,10 @@ keys[a] = NO; keys[b] = NO; \
 	// TODO: a more flexible mechanism  for max. string length ?
 	if([typedString length] < 40)
 	{
+		lastKeyShifted = shift;
 		if (allowingStringInput == gvStringInputAlpha)
 		{
-		// inputAlpha - limited input for planet find screen
+			// inputAlpha - limited input for planet find screen
 			if(key >= SDLK_a && key <= SDLK_z)
 			{
 				isAlphabetKeyDown=YES;
@@ -2402,14 +2300,14 @@ keys[a] = NO; keys[b] = NO; \
 		}
 		else
 		{
-			Uint16 unicode = kbd_event->keysym.unicode;
+			//Uint16 unicode = kbd_event->keysym.unicode;
 			// printable range
-			if (unicode >= 32 && unicode <= 126)
+			if (key_id >= 32 && key_id <= 255) // 126
 			{
-				if ((char)unicode != '/' || allowingStringInput == gvStringInputAll)
+				if ((char)key_id != '/' || allowingStringInput == gvStringInputAll)
 				{
 					isAlphabetKeyDown=YES;
-					[typedString appendFormat:@"%c", unicode];
+					[typedString appendFormat:@"%c", key_id];
 				}
 			}
 		}
