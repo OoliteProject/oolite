@@ -149,6 +149,8 @@
         // new
         key_gui_select = ({
             key = "enter";
+        },{
+            key = "numpadEnter";
         });
 
         key_increase_speed = ({
@@ -263,7 +265,7 @@
             key = "*";
             shift = true;
         },{
-            key = "*";
+            key = "numpad*";
         });
         key_docking_music = ({
             key = "s";
@@ -372,6 +374,8 @@
         });
         key_market_sorter_cycle = ({
             key = "/";
+        },{
+            key = "numpad/";
         });
         // new
         key_market_buy_one = ({
@@ -417,10 +421,12 @@
             key = "+";
             shift = true;
         },{
-            key = "+";
+            key = "numpad+";
         });
         key_previous_target = ({
             key = "-";
+        },{
+            key = "numpad-";
         });
 
         key_custom_view = ({
