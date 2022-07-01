@@ -40,7 +40,6 @@ uniform float			atmDensity;
 varying vec3			vEyeVector;
 varying vec3			vLight1Vector;
 
-uniform vec4			terminatorThreshold;
 const float				kFresnelExponent = 5.0;
 
 
@@ -119,9 +118,6 @@ void main()
 	{
 		totalColor = mix(atmColor.rgb * NdotL, totalColor, newOpacity);
 	}
-	
-	// magic herebelow - painting the orange-reddish tinted terminator
-	totalColor *= smoothstep(vec3(0.0), terminatorThreshold.xyz, vec3(light1Vector.z));
 	
 	// add ambient light
 	totalColor += AMBIENT_LIGHT * NdotL;

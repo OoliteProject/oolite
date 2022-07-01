@@ -127,7 +127,6 @@
 			atmColor = "airColorAsVector";
 			atmColorMixRatio = "airColorMixRatio";
 			atmDensity = "airDensity";
-			terminatorThreshold = "terminatorThresholdVector";
 		};
 	};
 	"atmosphere-dynamic-macros" =
