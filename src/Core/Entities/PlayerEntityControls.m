@@ -714,6 +714,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
+			OOLog(@"testing", @"arrow up");
 			if ([gui setNextRow: -1])
 			{
 				result = YES;
@@ -1058,7 +1059,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 		// HUD toggle
-		if ([self checkKeyPress:n_key_hud_toggle] && [gameController isGamePaused] && !onTextEntryScreen)	// 'o' key while paused
+		if (([self checkKeyPress:n_key_hud_toggle] || joyButtonState[BUTTON_TOGGLEHUD]) && [gameController isGamePaused] && !onTextEntryScreen)	// 'o' key while paused
 		{
 			exceptionContext = @"toggle HUD";
 			if (!hide_hud_pressed)
@@ -1361,7 +1362,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"prime equipment";
 				// prime equipment 'N' - selects equipment to use with keypress
-				if ([self checkKeyPress:n_key_prime_next_equipment] || [self checkKeyPress:n_key_prime_previous_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT])
+				if ([self checkKeyPress:n_key_prime_next_equipment] || [self checkKeyPress:n_key_prime_previous_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT] || joyButtonState[BUTTON_PRIMEEQUIPMENT_PREV])
 				{
 
 					if (!prime_equipment_pressed)
@@ -1373,7 +1374,7 @@ static NSTimeInterval	time_last_frame;
 						// if Ctrl is held down at the same time as the prime equipment key,
 						// cycle relevant equipment in reverse
 						//if (![gameView isCtrlDown])
-						if (![self checkKeyPress:n_key_prime_previous_equipment])
+						if (![self checkKeyPress:n_key_prime_previous_equipment] || joyButtonState[BUTTON_PRIMEEQUIPMENT_PREV])
 						{
 							primedEquipment++;
 							if (primedEquipment > c) primedEquipment = 0;
@@ -1567,7 +1568,7 @@ static NSTimeInterval	time_last_frame;
 				
 				exceptionContext = @"rotate cargo";
 				//  shoot 'R'   // Rotate Cargo
-				if ([self checkKeyPress:n_key_rotate_cargo])
+				if ([self checkKeyPress:n_key_rotate_cargo] || joyButtonState[BUTTON_ROTATECARGO])
 				{
 					if ((!rotateCargo_pressed)&&([cargo count] > 0))
 						[self rotateCargo];
@@ -1876,7 +1877,7 @@ static NSTimeInterval	time_last_frame;
 		
 		exceptionContext = @"pause";
 		// Pause game 'p'
-		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && ![gameView allowingStringInput])// look for the 'p' key
+		if (([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && ![gameView allowingStringInput])// look for the 'p' key
 		{
 			if (!pause_pressed)
 			{
@@ -3821,7 +3822,9 @@ static NSTimeInterval	time_last_frame;
 	static BOOL caps_on = NO;
 	static NSTimeInterval last_time = 0.0;
 	MyOpenGLView *gameView = [UNIVERSE gameView];
-	if ([self checkKeyPress:n_key_custom_view])
+	const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+
+	if ([self checkKeyPress:n_key_custom_view] || joyButtonState[BUTTON_EXTVIEWCYCLE])
 	{
 		if (!customView_pressed && [_customViews count] != 0 && gui_screen != GUI_SCREEN_LONG_RANGE_CHART && ![gameView allowingStringInput])
 		{
@@ -4029,7 +4032,7 @@ static NSTimeInterval	time_last_frame;
 	if (EXPECT([[self hud] isCompassActive]))	// only switch compass modes if there is a compass
 	{
 		// Compass mode '|'
-		if ([self checkKeyPress:n_key_prev_compass_mode]) // look for the '|' key
+		if ([self checkKeyPress:n_key_prev_compass_mode] || joyButtonState[BUTTON_COMPASSMODE_PREV]) // look for the '|' key
 		{
 			if ((!prev_compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
 				[self setPrevCompassMode];
@@ -4053,12 +4056,12 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	// ';' // Cycle active MFD
-	if ([self checkKeyPress:n_key_cycle_next_mfd] || [self checkKeyPress:n_key_cycle_previous_mfd])
+	if ([self checkKeyPress:n_key_cycle_next_mfd] || [self checkKeyPress:n_key_cycle_previous_mfd] || joyButtonState[BUTTON_MFDCYCLENEXT] || joyButtonState[BUTTON_MFDCYCLEPREV])
 	{
 		if (!cycleMFD_pressed)
 		{
 			//if (![gameView isCtrlDown]) 
-			if (![self checkKeyPress:n_key_cycle_previous_mfd]) 
+			if (![self checkKeyPress:n_key_cycle_previous_mfd] || joyButtonState[BUTTON_MFDCYCLEPREV]) 
 			{
 				[self cycleNextMultiFunctionDisplay:activeMFD];
 			}
@@ -4075,14 +4078,14 @@ static NSTimeInterval	time_last_frame;
 	}
 
 	//  ':' // Select next MFD
-	if ([self checkKeyPress:n_key_switch_next_mfd] || [self checkKeyPress:n_key_switch_previous_mfd])
+	if ([self checkKeyPress:n_key_switch_next_mfd] || [self checkKeyPress:n_key_switch_previous_mfd] || joyButtonState[BUTTON_MFDSELECTNEXT] || joyButtonState[BUTTON_MFDSELECTPREV])
 	{
 		if ([[self hud] mfdCount] > 1)
 		{
 			if (!switchMFD_pressed)
 			{
 				//if (![gameView isCtrlDown])
-				if (![self checkKeyPress:n_key_switch_previous_mfd])
+				if (![self checkKeyPress:n_key_switch_previous_mfd] || joyButtonState[BUTTON_MFDSELECTPREV])
 				{
 					[self selectNextMultiFunctionDisplay];
 				}
@@ -4528,6 +4531,8 @@ static BOOL autopilot_pause;
 	// don't do anything if we're configuring the keyboard
 	if (gui_screen == GUI_SCREEN_KEYBOARD_ENTRY || gui_screen == GUI_SCREEN_KEYBOARD_CONFIG || gui_screen == GUI_SCREEN_KEYBOARD_LAYOUT || gui_screen == GUI_SCREEN_KEYBOARD || gui_screen == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR) return;
 
+	const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+
 	// controls polled while the autopilot is active
 	if (![[UNIVERSE gameController] isGamePaused])
 	{
@@ -4540,7 +4545,6 @@ static BOOL autopilot_pause;
 		if ([UNIVERSE displayGUI])
 			[self pollGuiArrowKeyControls:delta_t];
 		
-		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 		if ([self checkKeyPress:n_key_autopilot] || joyButtonState[BUTTON_DOCKCPU]
 			|| [self checkKeyPress:n_key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'c' and 'C' key
 		{
@@ -4561,7 +4565,7 @@ static BOOL autopilot_pause;
 			fast_autopilot_key_pressed = NO;
 		}
 		
-		if (([self checkKeyPress:n_key_docking_music]))   // look for the 's' key
+		if (([self checkKeyPress:n_key_docking_music] || joyButtonState[BUTTON_DOCKINGMUSIC]))   // look for the 's' key
 		{
 			if (!toggling_music)
 			{
@@ -4574,7 +4578,7 @@ static BOOL autopilot_pause;
 			toggling_music = NO;
 		}
 		// look for the pause game, 'p' key
-		if ([self checkKeyPress:n_key_pausebutton] && gui_screen != GUI_SCREEN_SHORT_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)
+		if (([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && gui_screen != GUI_SCREEN_SHORT_RANGE_CHART && gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY)
 		{
 			if (!autopilot_pause)
 			{
@@ -4594,7 +4598,7 @@ static BOOL autopilot_pause;
 	else
 	{
 		// paused
-		if ([self checkKeyPress:n_key_pausebutton])
+		if ([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE])
 		{
 			if (!autopilot_pause)
 			{
@@ -4616,13 +4620,14 @@ static BOOL autopilot_pause;
 {
 	MyOpenGLView			*gameView = [UNIVERSE gameView];
 	GameController			*gameController = [UNIVERSE gameController];
+	const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
 	NSString				*exceptionContext = @"setup";
 	
 	@try
 	{
 		// Pause game, 'p' key
 		exceptionContext = @"pause key";
-		if ([self checkKeyPress:n_key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
+		if (([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
 				gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_REPORT &&
 				gui_screen != GUI_SCREEN_SAVE && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY) )
 		{

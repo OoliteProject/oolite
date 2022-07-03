@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #define GUI_ROW_INSTRUCT		18
 
 // Dictionary keys
+#define KEY_HEADER @"header"
 #define KEY_GUIDESC  @"guiDesc"
 #define KEY_ALLOWABLE @"allowable"
 #define KEY_AXISFN @"axisfunc"
@@ -58,6 +59,7 @@ MA 02110-1301, USA.
    - (void) updateFunction: (NSDictionary *)hwDict;
 
    // Future: populate via plist
+   - (NSDictionary *)makeStickGuiDictHeader:(NSString *)header;
    - (NSDictionary *)makeStickGuiDict: (NSString *)what 
 							allowable: (int)allowable
 							   axisfn: (int)axisfn
