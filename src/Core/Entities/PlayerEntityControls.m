@@ -714,7 +714,6 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
-			OOLog(@"testing", @"arrow up");
 			if ([gui setNextRow: -1])
 			{
 				result = YES;
