@@ -745,8 +745,8 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_galactic_hyperspace") keyDef:@"key_galactic_hyperspace"]];
 
 	[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-navigation")]];
-	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prev_compass_mode") keyDef:@"key_prev_compass_mode"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_next_compass_mode") keyDef:@"key_next_compass_mode"]];
+	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_prev_compass_mode") keyDef:@"key_prev_compass_mode"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_scanner_zoom") keyDef:@"key_scanner_zoom"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_scanner_unzoom") keyDef:@"key_scanner_unzoom"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_view_forward") keyDef:@"key_view_forward"]];
