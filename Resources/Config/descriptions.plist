@@ -544,9 +544,9 @@
 	"equipment-primed-none-available"	= "No equipment can be primed.";
 	
 	"oolite-primablemanager-notify-setup" = "Adjust settings on interface screen if necessary";
-	"oolite-primablemanager-notify-assign" = "Assigned [oolite-primable-equipment] to [oolite-primable-slot] fast activation control";
-	"oolite-primablemanager-slot-defensive" = "defensive";
-	"oolite-primablemanager-slot-offensive" = "offensive";
+	"oolite-primablemanager-notify-assign" = "Assigned [oolite-primable-equipment] to [oolite-primable-slot] fast activation control key";
+	"oolite-primablemanager-slot-defensive" = "key [oolite_key_fastactivate_equipment_a]";
+	"oolite-primablemanager-slot-offensive" = "key [oolite_key_fastactivate_equipment_b]";
 
 
 	"mfd-N-selected"				= "Multi-function display [mfdID] selected.";
@@ -1272,8 +1272,8 @@
 	"oolite-keydesc-key_prime_previous_equipment"	= "Prime previous equipment";
 	"oolite-keydesc-key_activate_equipment"		= "Activate equipment";
 	"oolite-keydesc-key_mode_equipment"			= "Set equipment mode";
-	"oolite-keydesc-key_fastactivate_equipment_a" = "Fast-activate equipment A";
-	"oolite-keydesc-key_fastactivate_equipment_b" = "Fast-activate equipment B";
+	"oolite-keydesc-key_fastactivate_equipment_a" = "Fast-activate first equipment item";
+	"oolite-keydesc-key_fastactivate_equipment_b" = "Fast-activate second equipment item";
 
 	"oolite-keydesc-key_target_incoming_missile"	= "Target incoming missile";
 	"oolite-keydesc-key_target_missile"			= "Arm missile/bomb";
