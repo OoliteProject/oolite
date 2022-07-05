@@ -502,6 +502,7 @@ static NSTimeInterval	time_last_frame;
 	for (i = 0; i < [key_def count]; i++) 
 	{
 		def = [key_def objectAtIndex:i];
+		if ([def count] == 0) continue; // skip this if the definition is empty
 		value = [def objectForKey:@"key"];
 		iValue = [value intValue];
 
