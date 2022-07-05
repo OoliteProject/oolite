@@ -1376,6 +1376,7 @@ static NSArray *camera_keys = nil;
 	NSMutableArray *empty = [[NSMutableArray alloc] init];
 	[keyconf setObject:empty forKey:key];
 	[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+	[empty release];
 	// reload settings
 	[self initKeyConfigSettings];
 }
