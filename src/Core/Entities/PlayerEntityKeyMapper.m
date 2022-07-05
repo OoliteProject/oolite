@@ -56,6 +56,7 @@ static NSArray *camera_keys = nil;
 - (BOOL)entryIsEqualToDefault:(NSString *)key;
 - (BOOL)compareKeyEntries:(NSDictionary *)first second:(NSDictionary *)second;
 - (void)saveKeySetting:(NSString *)key;
+- (void)unsetKeySetting:(NSString *)key;
 - (void)deleteKeySetting:(NSString *)key;
 - (void)deleteAllKeySettings;
 - (NSDictionary *)loadKeySettings;
@@ -219,6 +220,16 @@ static NSArray *camera_keys = nil;
 		[self setGuiToKeyConfigScreen:YES];
 	}
 
+	if ([gameView isDown:'u'])
+	{
+		// pressed 'u' on an "more" line
+		if ([key hasPrefix:@"More:"]) return;
+
+		current_row = [gui selectedRow];
+		[self unsetKeySetting:[[keyFunctions objectAtIndex:selFunctionIdx] objectForKey:KEY_KC_DEFINITION]];
+		[self reloadPage];
+	}
+
 	if ([gameView isDown:'r'])
 	{
 		// reset single entry or all
@@ -236,7 +247,7 @@ static NSArray *camera_keys = nil;
 			[self setGuiToConfirmClearScreen];
 		}
 	}
-	if([gameView isDown:' '] && !has_error)  [self setGuiToGameOptionsScreen];
+	if ([gameView isDown:' '] && !has_error) [self setGuiToGameOptionsScreen];
 }
 
 
@@ -1355,6 +1366,18 @@ static NSArray *camera_keys = nil;
 	// reload settings
 	[self initKeyConfigSettings];
 	[self reloadPage];
+}
+
+// unsets the key setting in the overrides, and updates the global definition
+- (void) unsetKeySetting:(NSString*)key
+{
+	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+	NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
+	NSMutableArray *empty = [[NSMutableArray alloc] init];
+	[keyconf setObject:empty forKey:key];
+	[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+	// reload settings
+	[self initKeyConfigSettings];
 }
 
 
