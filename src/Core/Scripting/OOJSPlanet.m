@@ -62,8 +62,9 @@ enum
 	kPlanet_airColor,			// air color, read/write
 	kPlanet_airColorMixRatio,	// air color mix ratio, float, read/write
 	kPlanet_airDensity,		// air density, float, read/write
-	kPlanet_isMainPlanet,		// Is [UNIVERSE planet], boolean, read-only
 	kPlanet_hasAtmosphere,
+	kPlanet_illuminationColor,	// illumination color, read/write
+	kPlanet_isMainPlanet,		// Is [UNIVERSE planet], boolean, read-only
 	kPlanet_name,				// Name of planet, string, read/write
 	kPlanet_radius,				// Radius of planet in metres, read-only
 	kPlanet_texture,			// Planet texture read / write
@@ -80,6 +81,7 @@ static JSPropertySpec sPlanetProperties[] =
 	{ "airColorMixRatio",			kPlanet_airColorMixRatio,			OOJS_PROP_READWRITE_CB },
 	{ "airDensity",				kPlanet_airDensity,				OOJS_PROP_READWRITE_CB },
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,			OOJS_PROP_READONLY_CB },
+	{ "illuminationColor",		kPlanet_illuminationColor,			OOJS_PROP_READWRITE_CB },
 	{ "isMainPlanet",				kPlanet_isMainPlanet,				OOJS_PROP_READONLY_CB },
 	{ "name",					kPlanet_name,						OOJS_PROP_READWRITE_CB },
 	{ "radius",					kPlanet_radius,					OOJS_PROP_READONLY_CB },
@@ -154,6 +156,10 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsid propID,
 			
 		case kPlanet_airDensity:
 			return JS_NewNumberValue(context, [planet airDensity], value);
+			
+		case kPlanet_illuminationColor:
+			*value = OOJSValueFromNativeObject(context, [[planet illuminationColor] normalizedArray]);
+			return YES;
 
 		case kPlanet_isMainPlanet:
 			*value = OOJSValueFromBOOL(planet == (id)[UNIVERSE planet]);
@@ -230,6 +236,15 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (JS_ValueToNumber(context, *value, &dValue))
 			{
 				[planet setAirDensity:dValue];
+				return YES;
+			}
+			break;
+			
+		case kPlanet_illuminationColor:
+			colorForScript = [OOColor colorWithDescription:OOJSNativeObjectFromJSValue(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[planet setIlluminationColor:colorForScript];
 				return YES;
 			}
 			break;

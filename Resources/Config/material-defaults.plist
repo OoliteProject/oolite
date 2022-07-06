@@ -35,6 +35,7 @@
 			uDiffuseMap = { type = texture; value = 0; };
 			uNormalMap = { type = texture; value = 1; };
 			terminatorThreshold = "terminatorThresholdVector";
+			uIlluminationColor = "illuminationColorAsVector";
 		};
 	};
 	"planet-dynamic-macros" =

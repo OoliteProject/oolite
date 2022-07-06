@@ -152,6 +152,8 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	_airColorMixRatio = 0.5f;
 	_airDensity = 0.75f;
 	
+	_illuminationColor = [[planetInfo objectForKey:@"illumination_color"] retain];
+	
 #if NEW_ATMOSPHERE
 	if (atmosphere)
 	{
@@ -186,7 +188,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 	if (YES) // create _materialParameters when NEW_ATMOSPHERE is set to 0
 #endif
 	{
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction",  @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", nil]];
+		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", @"polar_fraction",  @"isMiniature", @"perlin_3d", @"terminator_threshold_vector", @"illumination_color", nil]];
 	}
 	[_materialParameters retain];
 	
@@ -232,6 +234,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 #define CPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %@;",[(OOColor *)[planetInfo objectForKey:@#PROP] descriptionComponents]);
 #define FPROP(PROP)	OOLog(@"planetinfo.record",@#PROP " = %f;",[planetInfo oo_floatForKey:@"" #PROP]);
 	CPROP(air_color);
+	CPROP(illumination_color);
 	FPROP(air_color_mix_ratio);
 	FPROP(cloud_alpha);
 	CPROP(cloud_color);
@@ -331,7 +334,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		gen_rnd_number();
 	}
 	
-	Vector	landHSB, seaHSB, landPolarHSB, seaPolarHSB;
+	Vector	landHSB, seaHSB, landPolarHSB, seaPolarHSB, illumHSB;
 	Vector	terminatorThreshold;
 	OOColor	*color;
 	
@@ -359,6 +362,15 @@ static OOColor *ColorWithHSBColor(Vector c)
 		if (color != nil) seaHSB = HSBColorWithColor(color);
 		else ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
 		
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"illumination_color"]];
+		if (color != nil) illumHSB = HSBColorWithColor(color);
+		else
+		{
+			NSString *illumHSBColorString = [sourceInfo oo_stringForKey:@"illumination_hsb_color"];
+			if (illumHSBColorString)  ScanVectorFromString(illumHSBColorString, &illumHSB);
+			else illumHSB = HSBColorWithColor([OOColor colorWithRed:0.8f green:0.8f blue:0.4f alpha:1.0f]);	
+		}
+		
 		// polar areas are brighter but have less colour (closer to white)
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_land_color"]];
 		if (color != nil)
@@ -384,6 +396,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"sea_color"];
 		[targetInfo setObject:ColorWithHSBColor(landPolarHSB) forKey:@"polar_land_color"];
 		[targetInfo setObject:ColorWithHSBColor(seaPolarHSB) forKey:@"polar_sea_color"];
+		[targetInfo setObject:ColorWithHSBColor(illumHSB) forKey:@"illumination_color"];
 	}
 	else
 	{
@@ -399,6 +412,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		// planetinfo overrides
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"air_color"]];
 		if (color != nil) seaHSB = HSBColorWithColor(color);
+		
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"cloud_color"]];
 		if (color != nil) landHSB = HSBColorWithColor(color);
 		
@@ -468,6 +482,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	DESTROY(_atmosphereDrawable);
 	DESTROY(_atmosphereShaderDrawable);
 	DESTROY(_airColor);
+	DESTROY(_illuminationColor);
 	DESTROY(_materialParameters);
 	DESTROY(_textureName);
 	DESTROY(_normSpecMapName);
@@ -829,6 +844,31 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		[_airColor release];
 		_airColor = [newColor retain];
+	}
+}
+
+
+// this method is visible to shader bindings, hence it returns vector
+- (Vector) illuminationColorAsVector
+{
+	float r, g, b, a;
+	[_illuminationColor getRed:&r green:&g blue:&b alpha:&a];
+	return make_vector(r, g, b); // don't care about a
+}
+
+
+- (OOColor *) illuminationColor
+{
+	return _illuminationColor;
+}
+
+
+- (void) setIlluminationColor:(OOColor *) newColor
+{
+	if (newColor)
+	{
+		[_illuminationColor release];
+		_illuminationColor = [newColor retain];
 	}
 }
 

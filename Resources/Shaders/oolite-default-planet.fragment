@@ -71,9 +71,10 @@
 uniform sampler2D		uIlluminationMap;
 #define ILLUMINATION_COLOR texture2D(uIlluminationMap, texCoords).rgb
 #elif OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
+uniform	vec4			uIlluminationColor;
 // low alpha values correspond to high illumination, so that textures with unused alpha channel
 // (i.e. alpha == 1.0 for all pixels) display correctly without any illumination
-#define ILLUMINATION_COLOR ((1.0 - diffuseMapSample.a) * vec3(0.8, 0.8, 0.4))
+#define ILLUMINATION_COLOR ((1.0 - diffuseMapSample.a) * uIlluminationColor.rgb)
 #endif
 
 

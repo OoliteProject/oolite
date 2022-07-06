@@ -44,21 +44,22 @@ MA 02110-1301, USA.
 	OOPlanetDrawable		*_atmosphereShaderDrawable;
 	
 	BOOL					_miniature;
-	OOColor					*_airColor;
-	float					_airColorMixRatio;
-	float					_airDensity;
-	double					_mesopause2;
+	OOColor				*_airColor;
+	OOColor				*_illuminationColor;
+	float				_airColorMixRatio;
+	float				_airDensity;
+	double				_mesopause2;
 	
-	Vector					_rotationAxis;
-	float					_rotationalVelocity;
-	Quaternion				_atmosphereOrientation;
-	float					_atmosphereRotationalVelocity;
+	Vector				_rotationAxis;
+	float				_rotationalVelocity;
+	Quaternion			_atmosphereOrientation;
+	float				_atmosphereRotationalVelocity;
 	
-	Vector					_terminatorThresholdVector;
+	Vector				_terminatorThresholdVector;
 	
 	unsigned				_shuttlesOnGround;
-	OOTimeDelta				_lastLaunchTime;
-	OOTimeDelta				_shuttleLaunchInterval;
+	OOTimeDelta			_lastLaunchTime;
+	OOTimeDelta			_shuttleLaunchInterval;
 	
 	NSDictionary			*_materialParameters;
 	NSString				*_textureName;
@@ -97,6 +98,9 @@ MA 02110-1301, USA.
 - (Vector) airColorAsVector; // visible to shader bindings
 - (OOColor *) airColor;
 - (void) setAirColor:(OOColor *) newColor;
+- (Vector) illuminationColorAsVector; // visible to shader bindings
+- (OOColor *) illuminationColor;
+- (void) setIlluminationColor:(OOColor *) newColor;
 - (float) airColorMixRatio; // visible to shader bindings
 - (void) setAirColorMixRatio:(float) newRatio;
 - (float) airDensity; // visible to shafer bindings

@@ -367,6 +367,7 @@
 		"throwingSparks",
 		"fogUniform",
 		"airColorAsVector",
+		"illuminationColorAsVector",
 		"airColorMixRatio",
 		"airDensity",
 		"terminatorThresholdVector",

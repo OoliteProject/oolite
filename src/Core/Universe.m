@@ -7795,6 +7795,10 @@ static void VerifyDesc(NSString *key, id desc)
 		{
 			[[self planet] setAirColor:[OOColor brightColorWithDescription:object]];
 		}
+		else if ([key isEqualToString:@"illumination_color"])
+		{
+			[[self planet] setIlluminationColor:[OOColor colorWithDescription:object]];
+		}
 		else if ([key isEqualToString:@"air_color_mix_ratio"])
 		{
 			[[self planet] setAirColorMixRatio:[sysInfo oo_floatForKey:key]];
