@@ -8632,6 +8632,9 @@ static void VerifyDesc(NSString *key, id desc)
 			OOWeaponType fwdWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(fwdWeaponString);
 			OOWeaponType aftWeapon = OOWeaponTypeFromEquipmentIdentifierSloppy(aftWeaponString);
 			//port and starboard weapons are not modified in the shipyard
+			// apply fwd and aft weapons to the ship
+			if (fwdWeapon && fwdWeaponString) [shipDict setObject:fwdWeaponString forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+			if (aftWeapon && aftWeaponString) [shipDict setObject:aftWeaponString forKey:KEY_EQUIPMENT_AFT_WEAPON];
 			
 			int passengerBerthCount = 0;
 			BOOL customised = NO;
