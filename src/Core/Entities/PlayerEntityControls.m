@@ -103,6 +103,7 @@ static BOOL				m_key_pressed;
 static BOOL				pling_pressed;
 static BOOL				cursor_moving;
 static BOOL				disc_operation_in_progress;
+static BOOL				f9_key_pressed;
 #if OO_RESOLUTION_OPTION
 static BOOL				switching_resolution;
 #endif
@@ -430,6 +431,7 @@ static NSTimeInterval	time_last_frame;
 
 	LOAD_KEY_SETTING2(n_key_pausebutton, 'p', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_show_fps, 'F', YES, NO, 0, NO, NO);
+	LOAD_KEY_SETTING2(n_key_bloom_toggle, gvFunctionKey9, YES, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_mouse_control_roll, 'M', YES, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_mouse_control_yaw, 'M', YES, YES, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_hud_toggle, 'o', NO, NO, 0, NO, NO);
@@ -974,7 +976,6 @@ static NSTimeInterval	time_last_frame;
 			taking_snapshot = NO;
 		}
 		
-		
 		// FPS display
 		if (!onTextEntryScreen && [self checkKeyPress:n_key_show_fps])   //  'F' key
 		{
@@ -985,6 +986,21 @@ static NSTimeInterval	time_last_frame;
 		else
 		{
 			f_key_pressed = NO;
+		}
+		
+		// bloom toggle
+		if ([self checkKeyPress:n_key_bloom_toggle])
+		{
+			if (!f9_key_pressed)
+			{
+				BOOL oldBloom = [UNIVERSE bloom];
+				[UNIVERSE setBloom:!oldBloom];
+			}
+			f9_key_pressed = YES;
+		}
+		else
+		{
+			f9_key_pressed = NO;
 		}
 		
 		// Mouse control

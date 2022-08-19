@@ -1,0 +1,55 @@
+out vec4 FragColor;
+  
+in vec2 TexCoords;
+
+uniform sampler2D imageIn;
+uniform bool horizontal;
+
+// 5x5 std dev 1.73
+//uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+
+// 5x5 std dev 3.0
+//uniform float weight[5] = float[] (0.1527814864031109, 0.14459916754370944, 0.12258885125644112, 0.09309454217065882, 0.06332669582763516);
+
+// 7x7 std dev 1.73
+//uniform float weight[7] = float[] (0.22747085244225348, 0.1933606396808386, 0.11876031155562881, 0.052695618523727256, 0.016887608092075596, 0.003907714991571493, 0.0006526809350315506);
+
+// 7x7 std dev 3.0
+uniform float weight[7] = float[] (0.13649812722755, 0.12918787500405662, 0.10952340502389683, 0.08317258170844949, 0.05657737457255749, 0.03447396964662017, 0.018815730430644367);
+
+const float radius = 1.2;
+
+void main()
+{             
+	vec2 tex_offset = 1.0 / textureSize(imageIn, 0); // gets size of single texel
+	vec3 result = texture(imageIn, TexCoords).rgb * weight[0]; // current fragment's contribution
+	if(horizontal)
+	{
+		for(int i = 1; i < 7; ++i)
+		{
+			result += texture(imageIn, TexCoords + vec2(tex_offset.x * i * radius, 0.0)).rgb * weight[i];
+			result += texture(imageIn, TexCoords - vec2(tex_offset.x * i * radius, 0.0)).rgb * weight[i];
+		}
+	}
+	else
+	{
+		for(int i = 1; i < 7; ++i)
+		{
+			result += texture(imageIn, TexCoords + vec2(0.0, tex_offset.y * i * radius)).rgb * weight[i];
+			result += texture(imageIn, TexCoords - vec2(0.0, tex_offset.y * i * radius)).rgb * weight[i];
+		}
+	}
+	
+	// at least one known OXP, DH nav buoy,  has an NaN issue resulting in black squares appearing on a
+	// specific location on its main model during the blurring passes, so make sure to always check
+	// against NaNs
+	if(isnan(result.x) || isnan(result.y) || isnan(result.z))
+	{
+		// mark offending pixel in red
+		FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	}
+	else
+	{
+		FragColor = vec4(result, 1.0);
+	}
+}

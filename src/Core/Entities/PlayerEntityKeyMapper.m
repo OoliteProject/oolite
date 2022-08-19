@@ -831,6 +831,7 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_snapshot") keyDef:@"key_snapshot"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_pausebutton") keyDef:@"key_pausebutton"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_show_fps") keyDef:@"key_show_fps"]];
+	//[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_bloom_toggle") keyDef:@"key_bloom_toggle"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_roll") keyDef:@"key_mouse_control_roll"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_mouse_control_yaw") keyDef:@"key_mouse_control_yaw"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_hud_toggle") keyDef:@"key_hud_toggle"]];

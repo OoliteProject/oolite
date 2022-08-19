@@ -31,7 +31,7 @@
 
 
 #define MULTIPLIER_LIGHTSRCRADIANCE	3.75
-#define MULITPLIER_EXPOSURE			2.484
+#define MULITPLIER_PREEXPOSURE		2.484
 #define LIGHTSRC_RADIANCE_DIFFUSE	(gl_LightSource[1].diffuse * MULTIPLIER_LIGHTSRCRADIANCE)
 #define LIGHTSRC_RADIANCE_SPECULAR	(gl_LightSource[1].specular * MULTIPLIER_LIGHTSRCRADIANCE)
 #define LIGHTSRC_AMBIENT			(gl_LightModel.ambient)
@@ -297,35 +297,6 @@ vec4 TemperatureGlow(in float level)
 }
 
 
-vec3 ACESFilm(vec3 color)
-{
-	// taken from https://www.shadertoy.com/view/XsGfWV This is based on the actual
-	// ACES sources and is effectively the glsl translation of Stephen Hill's fit
-	// (https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl)
-	mat3 m1 = mat3(
-        0.59719, 0.07600, 0.02840,
-        0.35458, 0.90834, 0.13383,
-        0.04823, 0.01566, 0.83777
-	);
-	mat3 m2 = mat3(
-        1.60475, -0.10208, -0.00327,
-        -0.53108,  1.10813, -0.07276,
-        -0.07367, -0.00605,  1.07602
-	);
-	// prevents some ACES artifacts, especially bright blues shifting towards purple
-	// see https://community.acescentral.com/t/colour-artefacts-or-breakup-using-aces/520/48
-	mat3 highlightsFixLMT = mat3(
-	0.9404372683, -0.0183068787, 0.0778696104,
-	0.0083786969, 0.8286599939, 0.1629613092,
-	0.0005471261, -0.0008833746, 1.0003362486
-	);
-	vec3 v = m1 * color * highlightsFixLMT;    
-	vec3 a = v * (v + 0.0245786) - 0.000090537;
-	vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
-	return clamp(m2 * (a / b), 0.0, 1.0);
-}
-
-
 void main(void)
 {
 	vec4 totalColor = vec4(0);
@@ -485,12 +456,7 @@ void main(void)
 	totalColor += TemperatureGlow(hullHeat);
 	
 	// exposure
-	totalColor.rgb *= MULITPLIER_EXPOSURE;
-
-	// ACES filmic tone mapping
-	totalColor.rgb = ACESFilm(totalColor.rgb);
-	// gamma correction
-	if (uGammaCorrect)  totalColor.rgb = pow(totalColor.rgb, vec3(1.0/2.2));
+	totalColor.rgb *= MULITPLIER_PREEXPOSURE;
 	
 	gl_FragColor = mix(totalColor, vec4(uFogColor.xyz, 1.0), uFogColor.w);
 }

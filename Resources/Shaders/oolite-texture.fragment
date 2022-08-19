@@ -1,0 +1,23 @@
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 bright_color;
+
+in VsOut
+{
+    vec2 texture_coordinate;
+} vs_out;
+
+uniform sampler2D image;
+
+
+void main()
+{
+	const float bloomThreshold = 1.0;
+	const float bloomStrength = 0.05;
+	out_color = texture(image, vs_out.texture_coordinate);
+	
+	float brightness = dot(out_color.rgb, vec3(0.2126, 0.7152, 0.0722));	
+	if(brightness > bloomThreshold)
+		bright_color = vec4(out_color.rgb * bloomStrength, 1.0);
+	else
+		bright_color = vec4(0.0, 0.0, 0.0, 1.0);
+}

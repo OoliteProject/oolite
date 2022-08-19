@@ -1,0 +1,194 @@
+out vec4 FragColor;
+
+in vec2 TexCoords;
+
+uniform sampler2D	scene;
+uniform sampler2D	bloomBlur;
+uniform bool		bloom;
+uniform int			uPostFX;
+uniform float		uTime;
+uniform vec2		uResolution;
+
+vec3 ACESFilm(vec3 color)
+{
+	// taken from https://www.shadertoy.com/view/XsGfWV This is based on the actual
+	// ACES sources and is effectively the glsl translation of Stephen Hill's fit
+	// (https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl)
+	mat3 m1 = mat3(
+        0.59719, 0.07600, 0.02840,
+        0.35458, 0.90834, 0.13383,
+        0.04823, 0.01566, 0.83777
+	);
+	mat3 m2 = mat3(
+        1.60475, -0.10208, -0.00327,
+        -0.53108,  1.10813, -0.07276,
+        -0.07367, -0.00605,  1.07602
+	);
+	// prevents some ACES artifacts, especially bright blues shifting towards purple
+	// see https://community.acescentral.com/t/colour-artefacts-or-breakup-using-aces/520/48
+	mat3 highlightsFixLMT = mat3(
+	0.9404372683, -0.0183068787, 0.0778696104,
+	0.0083786969, 0.8286599939, 0.1629613092,
+	0.0005471261, -0.0008833746, 1.0003362486
+	);
+	vec3 v = m1 * color * highlightsFixLMT;    
+	vec3 a = v * (v + 0.0245786) - 0.000090537;
+	vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+	return clamp(m2 * (a / b), 0.0, 1.0);
+}
+
+// ==========================================================================================
+// grayscale
+// ==========================================================================================
+vec3 grayscale(vec3 col)
+{
+	vec3 luma = vec3(0.2126, 0.7152, 0.0722);
+	col = vec3(dot(col, luma));
+	
+	return col;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// cloak vision - original code by Nikos Papadopoulos, https://www.shadertoy.com/view/Xsl3zf
+// ==========================================================================================
+float hash(float n)
+{
+	return fract(sin(n)*43758.5453123);
+}
+
+vec3 cloakVision(vec3 c)
+{
+	vec2 p = TexCoords;
+	vec2 u = p * 2. - 1.;
+	vec2 n = u;
+	float time = uTime;
+    
+    
+	// flicker, grain, vignette, fade in
+	c += sin(hash(uTime)) * 0.01;
+	c += hash((hash(n.x) + n.y) * uTime) * 0.25;
+	c *= smoothstep(length(n * n * n * vec2(0.075, 0.4)), 1.0, 0.4);
+    c *= smoothstep(0.001, 3.5, uTime) * 1.5;
+	 
+	c = grayscale(c) * vec3(0.2, 0.4, 1.5 - hash(uTime) * 0.3);
+	
+	return c;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// color blindness correction - see https://terra-howard.com/thesis/
+// ==========================================================================================
+const mat3 RGBtoOpponentMat = mat3(0.2814, -0.0971, -0.0930, 0.6938, 0.1458,-0.2529, 0.0638, -0.0250, 0.4665);
+const mat3 OpponentToRGBMat = mat3(1.1677, 0.9014, 0.7214, -6.4315, 2.5970, 0.1257, -0.5044, 0.0159, 2.0517);
+
+//const int NONE = 0;
+const int PROTANOPIA = 2;
+const int DEUTERANOPIA = 3;
+const int TRITANOPIA = 4;
+
+int blindnessType = uPostFX;
+//const int blindnessType = PROTANOPIA;
+//const int blindnessType = DEUTERANOPIA;
+//const int blindnessType = TRITANOPIA;
+
+void blindnessFilter( out vec3 myoutput, in vec3 myinput )
+{
+	if (blindnessType == PROTANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = rgbColor;
+	} else if (blindnessType == DEUTERANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = rgbColor;
+	} else if (blindnessType == TRITANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= ((3.0 * opponentColor.z) - opponentColor.y) * 0.25;
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = rgbColor;
+    } else {
+			myoutput = myinput;
+	}	
+}
+
+void blindnessVision( out vec3 myoutput, in vec3 myinput )
+{
+	vec4 blindVisionR;
+	vec4 blindVisionG;
+	vec4 blindVisionB;
+	if (blindnessType == PROTANOPIA) {
+			blindVisionR = vec4( 0.20,  0.99, -0.19, 0.0);
+			blindVisionG = vec4( 0.16,  0.79,  0.04, 0.0);
+			blindVisionB = vec4( 0.01, -0.01,  1.00, 0.0);
+	} else if (blindnessType == DEUTERANOPIA) {
+			blindVisionR = vec4( 0.43,  0.72, -0.15, 0.0 );
+			blindVisionG = vec4( 0.34,  0.57,  0.09, 0.0 );
+			blindVisionB = vec4(-0.02,  0.03,  1.00, 0.0 );		
+	} else if (blindnessType == TRITANOPIA) {
+			blindVisionR = vec4( 0.97,  0.11, -0.08, 0.0 );
+			blindVisionG = vec4( 0.02,  0.82,  0.16, 0.0 );
+			blindVisionB = vec4(-0.06,  0.88,  0.18, 0.0 );
+	} else {
+        	blindVisionR = vec4(1.0,  0.0,  0.0, 0.0 );
+        	blindVisionG = vec4(0.0,  1.0,  0.0, 0.0 );
+        	blindVisionB = vec4(0.0,  0.0,  1.0, 0.0 );			
+	}
+	myoutput = vec3(dot(myinput, blindVisionR.rgb), dot(myinput, blindVisionG.rgb), dot(myinput, blindVisionB.rgb));	
+}
+
+vec3 colorBlindness(vec3 inColor)
+{
+	vec3 texColor = inColor;
+	vec3 tmp;
+	vec3 colorBlindColor = inColor;
+    blindnessFilter(tmp, texColor);    
+    blindnessVision(colorBlindColor, tmp);
+	//blindnessVision(colorBlindColor, texColor);
+	
+	return colorBlindColor;
+}
+// ------------------------------------------------------------------------------------------
+
+void main()
+{    
+	float exposure = 1.0;
+	vec3 hdrColor = texture(scene, TexCoords).rgb;      
+	vec3 bloomColor = texture(bloomBlur, TexCoords).rgb;
+	
+	if(bloom)
+	{
+		hdrColor += bloomColor;
+	}
+	
+	hdrColor *= exposure;
+	
+	// post processing effects here
+	switch(uPostFX)
+	{
+		case 1:
+			hdrColor = cloakVision(hdrColor);
+			break;
+		case 2:
+		case 3:
+		case 4:
+			hdrColor = colorBlindness(hdrColor);
+			break;
+		case 5:
+			hdrColor = grayscale(hdrColor);
+			break;
+		default:
+			break;
+	}
+	
+	// tone mapping
+	vec3 result = ACESFilm(hdrColor);
+	// gamma correction       
+	result = pow(result, vec3(1.0 / 2.2));
+	
+	//FragColor = vec4(bloomColor, 1.0);
+	FragColor = vec4(result, 1.0);
+}

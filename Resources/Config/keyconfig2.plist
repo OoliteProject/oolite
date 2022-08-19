@@ -313,6 +313,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -823,6 +826,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -1332,6 +1338,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({
@@ -1847,6 +1856,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -2358,6 +2370,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({
@@ -2882,6 +2897,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -3391,6 +3409,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({
@@ -3905,6 +3926,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -4418,6 +4442,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -4927,6 +4954,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({
@@ -5440,6 +5470,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -5951,6 +5984,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({
@@ -6464,6 +6500,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({
@@ -6979,6 +7018,9 @@
             key = "F";
             shift = true;
         });
+		key_bloom_toggle = ({
+            key = "f9";
+        });
         // changed
         key_mouse_control_roll = ({
             key = "M";
@@ -7490,6 +7532,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({
@@ -8003,6 +8048,9 @@
         key_show_fps = ({
             key = "F";
             shift = true;
+        });
+		key_bloom_toggle = ({
+            key = "f9";
         });
         // changed
         key_mouse_control_roll = ({

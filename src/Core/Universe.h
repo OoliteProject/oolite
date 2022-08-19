@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
+#import "OOShaderProgram.h"
 #import "legacy_random.h"
 #import "OOMaths.h"
 #import "OOColor.h"
@@ -60,11 +61,11 @@ typedef enum OOScanClass OOScanClass;
 
 enum
 {
-	MARKET_NAME								= 0,
-	MARKET_QUANTITY							= 1,
+	MARKET_NAME							= 0,
+	MARKET_QUANTITY						= 1,
 	MARKET_PRICE							= 2,
 	MARKET_BASE_PRICE						= 3,
-	MARKET_ECO_ADJUST_PRICE					= 4,
+	MARKET_ECO_ADJUST_PRICE				= 4,
 	MARKET_ECO_ADJUST_QUANTITY  			= 5,
 	MARKET_BASE_QUANTITY					= 6,
 	MARKET_MASK_PRICE						= 7,
@@ -78,9 +79,21 @@ enum
 	EQUIPMENT_TECH_LEVEL_INDEX				= 0,
 	EQUIPMENT_PRICE_INDEX					= 1,
 	EQUIPMENT_SHORT_DESC_INDEX				= 2,
-	EQUIPMENT_KEY_INDEX						= 3,
+	EQUIPMENT_KEY_INDEX					= 3,
 	EQUIPMENT_LONG_DESC_INDEX				= 4,
 	EQUIPMENT_EXTRA_INFO_INDEX				= 5
+};
+
+
+enum
+{
+	OO_POSTFX_NONE						= 0,
+	OO_POSTFX_CLOAK,
+	OO_POSTFX_COLORBLINDNESS_PROTAN,
+	OO_POSTFX_COLORBLINDNESS_DEUTER,
+	OO_POSTFX_COLORBLINDNESS_TRITAN,
+	OO_POSTFX_GRAYSCALE,
+	OO_POSTFX_ENDOFLIST	// keep this for last
 };
 
 
@@ -337,7 +350,29 @@ enum
 	BOOL					_witchspaceBreakPattern;
 	BOOL					_dockingClearanceProtocolActive;
 	BOOL					_doingStartUp;
+
+	GLuint					targetTextureID;
+	GLuint					passthroughTextureID[2];
+	NSSize					targetFramebufferSize;
+	GLuint					targetDepthBufferID;
+	GLuint					targetFramebufferID;
+	GLuint					passthroughFramebufferID;
+	OOShaderProgram			*textureProgram;
+	OOShaderProgram			*blurProgram;
+	OOShaderProgram			*finalProgram;
+	GLuint 					quadTextureVBO, quadTextureVAO, quadTextureEBO;
+	GLint 					defaultDrawFBO;
+	GLuint					pingpongFBO[2];
+    GLuint					pingpongColorbuffers[2];
+	BOOL					_bloom;
+	int					_currentPostFX;
 }
+
+- (BOOL) bloom;
+- (void) setBloom: (BOOL)newBloom;
+
+- (int) currentPostFX;
+- (void) setCurrentPostFX: (int) newCurrentPostFX;
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
 

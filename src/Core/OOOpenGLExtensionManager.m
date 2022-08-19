@@ -41,11 +41,13 @@ SOFTWARE.
 	glBindTexture(), glDrawArrays()). We probably have implicit requirements
 	for later versions, but I don't feel like auditing.
 	-- Ahruman
+	We need at least 3.3 for the MRT operations in relation to bloom.
+	-- Nikos 20220817
 */
 enum
 {
-	kMinMajorVersion				= 1,
-	kMinMinorVersion				= 1
+	kMinMajorVersion				= 3,
+	kMinMinorVersion				= 3
 };
 
 
@@ -107,7 +109,35 @@ PFNGLFRAMEBUFFERTEXTURE2DEXTPROC		glFramebufferTexture2DEXT		= (PFNGLFRAMEBUFFER
 PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC		glCheckFramebufferStatusEXT		= (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)&OOBadOpenGLExtensionUsed;
 PFNGLDELETEFRAMEBUFFERSEXTPROC			glDeleteFramebuffersEXT			= (PFNGLDELETEFRAMEBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
 PFNGLDELETERENDERBUFFERSEXTPROC			glDeleteRenderbuffersEXT		= (PFNGLDELETERENDERBUFFERSEXTPROC)&OOBadOpenGLExtensionUsed;
-#endif
+PFNGLGENRENDERBUFFERSPROC				glGenRenderbuffers				= (PFNGLGENRENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDRENDERBUFFERPROC				glBindRenderbuffer				= (PFNGLBINDRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;		 
+PFNGLRENDERBUFFERSTORAGEPROC			glRenderbufferStorage			= (PFNGLRENDERBUFFERSTORAGEPROC)&OOBadOpenGLExtensionUsed;	  
+PFNGLGENFRAMEBUFFERSPROC				glGenFramebuffers				= (PFNGLGENFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;		  
+PFNGLBINDFRAMEBUFFERPROC				glBindFramebuffer				= (PFNGLBINDFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;		  
+PFNGLFRAMEBUFFERRENDERBUFFERPROC		glFramebufferRenderbuffer		= (PFNGLFRAMEBUFFERRENDERBUFFERPROC)&OOBadOpenGLExtensionUsed;  
+PFNGLFRAMEBUFFERTEXTURE2DPROC			glFramebufferTexture2D			= (PFNGLFRAMEBUFFERTEXTURE2DPROC)&OOBadOpenGLExtensionUsed;	  
+PFNGLGENVERTEXARRAYSPROC				glGenVertexArrays				= (PFNGLGENVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;		  
+PFNGLGENBUFFERSPROC						glGenBuffers					= (PFNGLGENBUFFERSPROC)&OOBadOpenGLExtensionUsed;				  
+PFNGLBINDVERTEXARRAYPROC				glBindVertexArray				= (PFNGLBINDVERTEXARRAYPROC)&OOBadOpenGLExtensionUsed;		  
+PFNGLBINDBUFFERPROC						glBindBuffer					= (PFNGLBINDBUFFERPROC)&OOBadOpenGLExtensionUsed;				  
+PFNGLBUFFERDATAPROC						glBufferData					= (PFNGLBUFFERDATAPROC)&OOBadOpenGLExtensionUsed;				  
+PFNGLVERTEXATTRIBPOINTERPROC			glVertexAttribPointer			= (PFNGLVERTEXATTRIBPOINTERPROC)&OOBadOpenGLExtensionUsed;	  
+PFNGLENABLEVERTEXATTRIBARRAYPROC		glEnableVertexAttribArray		= (PFNGLENABLEVERTEXATTRIBARRAYPROC)&OOBadOpenGLExtensionUsed;  
+PFNGLUSEPROGRAMPROC						glUseProgram					= (PFNGLUSEPROGRAMPROC)&OOBadOpenGLExtensionUsed;				  
+PFNGLGETUNIFORMLOCATIONPROC				glGetUniformLocation			= (PFNGLGETUNIFORMLOCATIONPROC)&OOBadOpenGLExtensionUsed;		  
+PFNGLUNIFORM1IPROC						glUniform1i						= (PFNGLUNIFORM1IPROC)&OOBadOpenGLExtensionUsed;				  
+PFNGLACTIVETEXTUREPROC					glActiveTexture					= (PFNGLACTIVETEXTUREPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBLENDFUNCSEPARATEPROC				glBlendFuncSeparate				= (PFNGLBLENDFUNCSEPARATEPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM1FPROC						glUniform1f						= (PFNGLUNIFORM1FPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUNIFORM2FVPROC						glUniform2fv					= (PFNGLUNIFORM2FVPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETERENDERBUFFERSPROC			glDeleteRenderbuffers			= (PFNGLDELETERENDERBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEFRAMEBUFFERSPROC				glDeleteFramebuffers			= (PFNGLDELETEFRAMEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEVERTEXARRAYSPROC				glDeleteVertexArrays			= (PFNGLDELETEVERTEXARRAYSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEBUFFERSPROC					glDeleteBuffers					= (PFNGLDELETEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDRAWBUFFERSPROC						glDrawBuffers					= (PFNGLDRAWBUFFERSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCHECKFRAMEBUFFERSTATUSPROC			glCheckFramebufferStatus			= (PFNGLCHECKFRAMEBUFFERSTATUSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBLITFRAMEBUFFERPROC					glBlitFramebuffer					= (PFNGLBLITFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
+#endif                                                                    
 #endif
 
 
@@ -625,6 +655,34 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 		glCheckFramebufferStatusEXT = (PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC)wglGetProcAddress("glCheckFramebufferStatusEXT");
 		glDeleteFramebuffersEXT = (PFNGLDELETEFRAMEBUFFERSEXTPROC)wglGetProcAddress("glDeleteFramebuffersEXT");
 		glDeleteRenderbuffersEXT = (PFNGLDELETERENDERBUFFERSEXTPROC)wglGetProcAddress("glDeleteRenderbuffersEXT");
+		glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)wglGetProcAddress("glGenRenderbuffers");
+		glBindRenderbuffer			= (PFNGLBINDRENDERBUFFERPROC)wglGetProcAddress			("glBindRenderbuffer"			);
+		glRenderbufferStorage		= (PFNGLRENDERBUFFERSTORAGEPROC)wglGetProcAddress		("glRenderbufferStorage"		);
+		glGenFramebuffers			= (PFNGLGENFRAMEBUFFERSPROC)wglGetProcAddress			("glGenFramebuffers"			);
+		glBindFramebuffer			= (PFNGLBINDFRAMEBUFFERPROC)wglGetProcAddress			("glBindFramebuffer"			);
+		glFramebufferRenderbuffer	= (PFNGLFRAMEBUFFERRENDERBUFFERPROC)wglGetProcAddress	("glFramebufferRenderbuffer"	);
+		glFramebufferTexture2D		= (PFNGLFRAMEBUFFERTEXTURE2DPROC)wglGetProcAddress		("glFramebufferTexture2D"		);
+		glGenVertexArrays			= (PFNGLGENVERTEXARRAYSPROC)wglGetProcAddress			("glGenVertexArrays"			);
+		glGenBuffers				= (PFNGLGENBUFFERSPROC)wglGetProcAddress				("glGenBuffers"					);
+		glBindVertexArray			= (PFNGLBINDVERTEXARRAYPROC)wglGetProcAddress			("glBindVertexArray"			);
+		glBindBuffer				= (PFNGLBINDBUFFERPROC)wglGetProcAddress				("glBindBuffer"					);
+		glBufferData				= (PFNGLBUFFERDATAPROC)wglGetProcAddress				("glBufferData"					);
+		glVertexAttribPointer		= (PFNGLVERTEXATTRIBPOINTERPROC)wglGetProcAddress		("glVertexAttribPointer"		);
+		glEnableVertexAttribArray	= (PFNGLENABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress	("glEnableVertexAttribArray"	);
+		glUseProgram				= (PFNGLUSEPROGRAMPROC)	wglGetProcAddress				("glUseProgram"					);
+		glGetUniformLocation		= (PFNGLGETUNIFORMLOCATIONPROC)wglGetProcAddress		("glGetUniformLocation"			);
+		glUniform1i					= (PFNGLUNIFORM1IPROC)wglGetProcAddress					("glUniform1i"					);
+		glActiveTexture				= (PFNGLACTIVETEXTUREPROC)wglGetProcAddress				("glActiveTexture"				);
+		glBlendFuncSeparate			= (PFNGLBLENDFUNCSEPARATEPROC)wglGetProcAddress			("glBlendFuncSeparate"			);
+		glUniform1f					= (PFNGLUNIFORM1FPROC)wglGetProcAddress					("glUniform1f"					);
+		glUniform2fv				= (PFNGLUNIFORM2FVPROC)wglGetProcAddress				("glUniform2fv"					);
+		glDeleteRenderbuffers		= (PFNGLDELETERENDERBUFFERSPROC)wglGetProcAddress		("glDeleteRenderbuffer"			);
+		glDeleteFramebuffers		= (PFNGLDELETEFRAMEBUFFERSPROC)wglGetProcAddress		("glDeleteFramebuffers"			);
+		glDeleteVertexArrays		= (PFNGLDELETEVERTEXARRAYSPROC)wglGetProcAddress		("glDeleteVertexArrays"			);
+		glDeleteBuffers				= (PFNGLDELETEBUFFERSPROC)wglGetProcAddress				("glDeleteBuffers"				);
+		glDrawBuffers				= (PFNGLDRAWBUFFERSPROC)wglGetProcAddress				("glDrawBuffers"				);
+		glCheckFramebufferStatus		= (PFNGLCHECKFRAMEBUFFERSTATUSPROC)wglGetProcAddress		("glCheckFramebufferStatus"				);
+		glBlitFramebuffer				= (PFNGLBLITFRAMEBUFFERPROC)wglGetProcAddress			("glBlitFramebuffer"			);
 	}
 #endif
 }
