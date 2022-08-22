@@ -2514,6 +2514,18 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (BOOL) msaa
+{
+	return _msaa;
+}
+
+
+- (void) setMsaa:(BOOL)newMsaa
+{
+	_msaa = !!newMsaa;
+}
+
+
 - (OOOpenGLMatrixManager *) getOpenGLMatrixManager
 {
 	return matrixManager;

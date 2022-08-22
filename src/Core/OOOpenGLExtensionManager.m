@@ -136,6 +136,8 @@ PFNGLDELETEVERTEXARRAYSPROC				glDeleteVertexArrays			= (PFNGLDELETEVERTEXARRAYS
 PFNGLDELETEBUFFERSPROC					glDeleteBuffers					= (PFNGLDELETEBUFFERSPROC)&OOBadOpenGLExtensionUsed;
 PFNGLDRAWBUFFERSPROC						glDrawBuffers					= (PFNGLDRAWBUFFERSPROC)&OOBadOpenGLExtensionUsed;
 PFNGLCHECKFRAMEBUFFERSTATUSPROC			glCheckFramebufferStatus			= (PFNGLCHECKFRAMEBUFFERSTATUSPROC)&OOBadOpenGLExtensionUsed;
+PFNGLTEXIMAGE2DMULTISAMPLEPROC				glTexImage2DMultisample			= (PFNGLTEXIMAGE2DMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
+PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC		glRenderbufferStorageMultisample	= (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
 PFNGLBLITFRAMEBUFFERPROC					glBlitFramebuffer					= (PFNGLBLITFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
 #endif                                                                    
 #endif
@@ -682,6 +684,8 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 		glDeleteBuffers				= (PFNGLDELETEBUFFERSPROC)wglGetProcAddress				("glDeleteBuffers"				);
 		glDrawBuffers				= (PFNGLDRAWBUFFERSPROC)wglGetProcAddress				("glDrawBuffers"				);
 		glCheckFramebufferStatus		= (PFNGLCHECKFRAMEBUFFERSTATUSPROC)wglGetProcAddress		("glCheckFramebufferStatus"				);
+		glTexImage2DMultisample		= (PFNGLTEXIMAGE2DMULTISAMPLEPROC)wglGetProcAddress		("glTexImage2DMultisample"					);
+		glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)wglGetProcAddress ("glRenderbufferStorageMultisample"	);
 		glBlitFramebuffer				= (PFNGLBLITFRAMEBUFFERPROC)wglGetProcAddress			("glBlitFramebuffer"			);
 	}
 #endif

@@ -351,9 +351,12 @@ enum
 	BOOL					_dockingClearanceProtocolActive;
 	BOOL					_doingStartUp;
 
+	GLuint					msaaTextureID;
 	GLuint					targetTextureID;
 	GLuint					passthroughTextureID[2];
 	NSSize					targetFramebufferSize;
+	GLuint					msaaFramebufferID;
+	GLuint					msaaDepthBufferID;
 	GLuint					targetDepthBufferID;
 	GLuint					targetFramebufferID;
 	GLuint					passthroughFramebufferID;
