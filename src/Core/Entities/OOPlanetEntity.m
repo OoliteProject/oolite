@@ -160,7 +160,7 @@ static const double kMesosphere = 10.0 * ATMOSPHERE_DEPTH;	// atmosphere effect 
 		// shader atmosphere always has a radius of collision_radius + ATMOSPHERE_DEPTH. For texture atmosphere, we need to check
 		// if a shader atmosphere is also used. If yes, set its radius to just cover the planet so that it doesn't conflict with 
 		// the shader atmosphere at the planet edges. If no shader atmosphere is used, then set it to the standard radius
-		double atmosphereRadius = [UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS ? collision_radius : collision_radius + ATMOSPHERE_DEPTH;
+		double atmosphereRadius = [UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS ? collision_radius : collision_radius + ATMOSPHERE_DEPTH;
 		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:atmosphereRadius] retain];
 		_atmosphereShaderDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
 		
@@ -532,7 +532,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	if (EXPECT(!_miniature))
 	{
-		BOOL canDrawShaderAtmosphere = _atmosphereShaderDrawable && [UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS;
+		BOOL canDrawShaderAtmosphere = _atmosphereShaderDrawable && [UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS;
 		if (EXPECT_NOT(_atmosphereDrawable && cam_zero_distance < _mesopause2))
 		{
 			NSAssert(_airColor != nil, @"Expected a non-nil air colour for normal planet. Exiting.");
@@ -637,7 +637,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) drawImmediate:(bool)immediate translucent:(bool)translucent
 {
-	BOOL canDrawShaderAtmosphere = _atmosphereShaderDrawable && [UNIVERSE detailLevel] >= DETAIL_LEVEL_EXTRAS;
+	BOOL canDrawShaderAtmosphere = _atmosphereShaderDrawable && [UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS;
 	
 	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	if (_miniature && ![self isFinishedLoading])  return; // For responsiveness, don't block to draw as miniature.
@@ -944,7 +944,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 #if OO_SHADERS
 	OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
-	BOOL shadersOn = detailLevel >= DETAIL_LEVEL_EXTRAS;
+	BOOL shadersOn = detailLevel >= DETAIL_LEVEL_SHADERS;
 #else
 	const BOOL shadersOn = NO;
 #endif
@@ -993,7 +993,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	else
 	{
 		[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
-									   secondaryTexture:(detailLevel >= DETAIL_LEVEL_EXTRAS) ? &normalMap : NULL
+									   secondaryTexture:(detailLevel >= DETAIL_LEVEL_SHADERS) ? &normalMap : NULL
 											   withInfo:_materialParameters];
 
 		if (shadersOn)

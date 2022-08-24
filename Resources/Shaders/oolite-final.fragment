@@ -9,6 +9,7 @@ uniform int			uPostFX;
 uniform float		uTime;
 uniform vec2		uResolution;
 
+
 vec3 ACESFilm(vec3 color)
 {
 	// taken from https://www.shadertoy.com/view/XsGfWV This is based on the actual
@@ -153,6 +154,272 @@ vec3 colorBlindness(vec3 inColor)
 }
 // ------------------------------------------------------------------------------------------
 
+
+// ==========================================================================================
+// old movie - based on https://www.shadertoy.com/view/Xdl3D8
+// ==========================================================================================
+#define BLACK_AND_WHITE
+#define LINES_AND_FLICKER
+#define BLOTCHES
+#define GRAIN
+//#define ROLLING_FILM
+
+#define FREQUENCY 15.0
+#define sepia mat3(0.393, 0.769, 0.189, 0.349, 0.686, 0.168, 0.272, 0.534, 0.131)
+
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float rand(float c){
+	return rand(vec2(c,1.0));
+}
+
+float randomLine(float seed, vec2 uv)
+{
+	float b = 0.01 * rand(seed);
+	float a = rand(seed+1.0);
+	float c = rand(seed+2.0) - 0.5;
+	float mu = rand(seed+3.0);
+	
+	float l = 1.0;
+	
+	if ( mu > 0.2)
+		l = pow(  abs(a * uv.x + b * uv.y + c ), 1.0/8.0 );
+	else
+		l = 2.0 - pow( abs(a * uv.x + b * uv.y + c), 1.0/8.0 );				
+	
+	return mix(0.5, 1.0, l);
+}
+
+// Generate some blotches.
+float randomBlotch(float seed, vec2 uv)
+{
+	float x = rand(seed);
+	float y = rand(seed+1.0);
+	float s = 0.01 * rand(seed+2.0);
+	
+	vec2 p = vec2(x,y) - uv;
+	p.x *= uResolution.x / uResolution.y;
+	float a = atan(p.y,p.x);
+	float v = 1.0;
+	float ss = s*s * (sin(6.2831*a*x)*0.1 + 1.0);
+	
+	if ( dot(p,p) < ss ) v = 0.2;
+	else
+		v = pow(dot(p,p) - ss, 1.0/16.0);
+	
+	return mix(0.3 + 0.2 * (1.0 - (s / 0.02)), 1.0, v);
+}
+
+vec3 oldMovie(sampler2D inImage, vec2 fragCoord) 
+{
+    vec3 fragColor = vec3(0.0);
+	vec2 uv = fragCoord;		
+	// Set frequency of global effect to 15 variations per second
+	float t = float(int(uTime * FREQUENCY));
+	
+	// Get some image movement
+	vec2 suv = uv + 0.002 * vec2( rand(t), rand(t + 23.0));
+	
+	// Get the image
+	vec3 image = texture( inImage, vec2(suv.x, suv.y) ).xyz;
+	
+	#ifdef BLACK_AND_WHITE
+	// Convert it to B/W
+	//float luma = dot( vec3(0.2126, 0.7152, 0.0722), image );
+	//vec3 oldImage = luma * vec3(0.7, 0.7, 0.7);
+	vec3 oldImage = image * sepia;
+	#else
+	vec3 oldImage = image;
+	#endif
+	
+	#ifdef ROLLING_FILM
+	// rolling film effect
+	vec2 nos_pos = fragCoord - 0.5 + vec2(min(fract(uTime) - 0.02, 0.0), 0.0);
+    vec2 abs_n_p = vec2(abs(nos_pos));
+	if(abs_n_p.x > 0.40)
+    {
+        if(abs_n_p.x > 0.42 && abs_n_p.x < 0.48)
+        	oldImage = vec3(0.7) * step(mod(10.0 * (nos_pos.y + fract(uTime)), 1.0), 0.8);
+    	else
+            oldImage = vec3(0.0);
+    }
+	#endif
+	
+	// Create a time-varying vignetting effect
+	float vI = 16.0 * (uv.x * (1.0-uv.x) * uv.y * (1.0-uv.y));
+	vI *= mix( 0.7, 1.0, rand(t + 0.5));
+	
+	// Add additive flicker
+	vI += 1.0 + 0.4 * rand(t+8.);
+	
+	// Add a fixed vignetting (independent of the flicker)
+	vI *= pow(16.0 * uv.x * (1.0-uv.x) * uv.y * (1.0-uv.y), 0.4);
+	
+	// Add some random lines and some multiplicative flicker
+	#ifdef LINES_AND_FLICKER
+	int l = int(8.0 * rand(t+7.0));
+	
+	if ( 0 < l ) vI *= randomLine( t+6.0+17.* float(0), uv);
+	if ( 1 < l ) vI *= randomLine( t+6.0+17.* float(1), uv);
+	if ( 2 < l ) vI *= randomLine( t+6.0+17.* float(2), uv);		
+	if ( 3 < l ) vI *= randomLine( t+6.0+17.* float(3), uv);
+	if ( 4 < l ) vI *= randomLine( t+6.0+17.* float(4), uv);
+	if ( 5 < l ) vI *= randomLine( t+6.0+17.* float(5), uv);
+	if ( 6 < l ) vI *= randomLine( t+6.0+17.* float(6), uv);
+	if ( 7 < l ) vI *= randomLine( t+6.0+17.* float(7), uv);
+	
+	#endif
+	
+	// Add some random blotches.
+	#ifdef BLOTCHES
+	int s = int( max(8.0 * rand(t+18.0) -2.0, 0.0 ));
+    
+	if ( 0 < s ) vI *= randomBlotch( t+6.0+19.* float(0), uv);
+	if ( 1 < s ) vI *= randomBlotch( t+6.0+19.* float(1), uv);
+	if ( 2 < s ) vI *= randomBlotch( t+6.0+19.* float(2), uv);
+	if ( 3 < s ) vI *= randomBlotch( t+6.0+19.* float(3), uv);
+	if ( 4 < s ) vI *= randomBlotch( t+6.0+19.* float(4), uv);
+	if ( 5 < s ) vI *= randomBlotch( t+6.0+19.* float(5), uv);
+	
+	#endif
+	
+	// Show the image modulated by the defects
+    fragColor = oldImage * vI;
+	
+	// Add some grain
+	#ifdef GRAIN
+    fragColor *= (1.0+(rand(uv+t*.01)-.2)*.15);		
+    #endif
+	
+	return fragColor;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// gravitational lensing - based on https://www.shadertoy.com/view/llyyRm
+// ==========================================================================================
+#define S_RADIUS 0.1
+#define HALO_BRIGHTNESS .25
+
+#define PI 3.14159265358979
+
+vec3 hsv2rgb(vec3 c) {
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 gravLens( sampler2D inImage, vec2 fragCoord )
+{
+	vec3 fragColor = vec3(0.0);
+	// Normalized pixel coordinates (from 0 to 1)
+	vec2 uv = fragCoord;
+	float aspectRatio = uResolution.x/uResolution.y;
+	
+	vec2 blackHolePos = vec2(
+		sin(uTime) + aspectRatio,
+		(cos(uTime * 1.22) + sin(uTime * .57))
+		) * .2 + .5;
+	vec2 coord = uv - blackHolePos;
+    
+	//really cheap gravitational lensing approximation follows
+	float len = 1. + (length(coord) - S_RADIUS) / S_RADIUS;
+    
+	if (len < S_RADIUS)
+	{
+		fragColor = vec3(0.0);
+		return fragColor;
+	}
+	
+	vec2 k = (coord / (len * len));
+	vec2 sCoord = uv - k;
+	
+	// compute halo
+	float haloBrightness = 0.2;
+	haloBrightness = pow(haloBrightness, 4.);
+	vec3 hsv = vec3(sCoord.x * .3, .6, haloBrightness);
+	vec3 haloColor = hsv2rgb(hsv);
+	haloBrightness = (haloColor.r + haloColor.g + haloColor.b) * HALO_BRIGHTNESS;
+	haloColor = haloColor * HALO_BRIGHTNESS + vec3(haloBrightness);
+	
+	fragColor = (texture(inImage, sCoord).rgb + haloColor);
+	return fragColor;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// CRT - based on https://www.shadertoy.com/view/Xtccz4
+// ==========================================================================================
+vec2 crt_coords(vec2 uv, float bend)
+{
+	uv -= 0.5;
+    uv *= 2.;
+    uv.x *= 1. + pow(abs(uv.y)/bend, 2.);
+    uv.y *= 1. + pow(abs(uv.x)/bend, 2.);
+    
+    uv /= 2.02;
+    return uv + .5;
+}
+
+float vignette(vec2 uv, float size, float smoothness, float edgeRounding)
+{
+ 	uv -= .5;
+    uv *= size;
+    float amount = sqrt(pow(abs(uv.x), edgeRounding) + pow(abs(uv.y), edgeRounding));
+    amount = 1. - amount;
+    return smoothstep(0., smoothness, amount);
+}
+
+float scanline(vec2 uv, float lines, float speed)
+{
+    return sin(uv.y * lines + uTime * speed);
+}
+
+float random(vec2 uv)
+{
+ 	return fract(sin(dot(uv, vec2(15.5151, 42.2561))) * 12341.14122 * sin(uTime * 0.03));   
+}
+
+float noise(vec2 uv)
+{
+ 	vec2 i = floor(uv);
+    vec2 f = fract(uv);
+    
+    float a = random(i);
+    float b = random(i + vec2(1.,0.));
+	float c = random(i + vec2(0., 1.));
+    float d = random(i + vec2(1.));
+    
+    vec2 u = smoothstep(0., 1., f);
+    
+    return mix(a,b, u.x) + (c - a) * u.y * (1. - u.x) + (d - b) * u.x * u.y; 
+                     
+}
+
+vec3 CRT(sampler2D inImage, vec2 inCoords)
+{
+	vec2 uv = inCoords;
+	vec2 crt_uv = crt_coords(uv, 8.);
+    
+    float s1 = scanline(uv, 1500., -10.);
+    float s2 = scanline(uv, 10., -3.);
+    
+    vec3 col = texture(inImage, crt_uv).rgb;
+    col.r = texture(inImage, crt_uv + vec2(0., 0.0025)).r;
+    col.g = texture(inImage, crt_uv).g;
+    col.b = texture(inImage, crt_uv + vec2(0., -0.0025)).b;
+    
+    col = mix(col, vec3(s1 + s2), 0.05);
+	col = mix(col, vec3(noise(uv * 500.)), 0.05) * vignette(uv, 1.9, .6, 8.);
+	
+	return col;
+}
+// ------------------------------------------------------------------------------------------
+
+
 void main()
 {    
 	float exposure = 1.0;
@@ -179,6 +446,22 @@ void main()
 			break;
 		case 5:
 			hdrColor = grayscale(hdrColor);
+			break;
+		case 6:
+			hdrColor = oldMovie(scene, TexCoords);
+			bloomColor = oldMovie(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
+			break;
+		case 7:
+			hdrColor = CRT(scene, TexCoords);
+			bloomColor = CRT(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			break;
+		case 8:
+			hdrColor = gravLens(scene, TexCoords);
+			bloomColor = gravLens(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
 			break;
 		default:
 			break;

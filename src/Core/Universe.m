@@ -274,7 +274,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (BOOL) bloom
 {
-	return _bloom;
+	return _bloom && [self detailLevel] >= DETAIL_LEVEL_EXTRAS;
 }
 
 - (void) setBloom: (BOOL)newBloom
@@ -420,7 +420,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
     }
 	OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 	
-	_bloom = YES;
+	_bloom = [self detailLevel] >= DETAIL_LEVEL_EXTRAS;
 	_currentPostFX = OO_POSTFX_NONE;
 
 	/* TODO: in OOEnvironmentCubeMap.m call these bind functions not with 0 but with "previousXxxID"s:
@@ -661,9 +661,10 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
 	[OOOpenGLExtensionManager sharedManager];
-	[self initTargetFramebufferWithViewSize:[gameView viewSize]];
 	[self setDetailLevelDirectly:[prefs oo_intForKey:@"detailLevel"
 								defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultDetailLevel]]];
+								
+	[self initTargetFramebufferWithViewSize:[gameView viewSize]];
 	
 	[OOMaterial setUp];
 	
