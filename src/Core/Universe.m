@@ -202,6 +202,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) initTargetFramebufferWithViewSize:(NSSize)viewSize;
 - (void) deleteOpenGLObjects;
 - (void) resizeTargetFramebufferWithViewSize:(NSSize)viewSize;
+- (void) prepareToRenderIntoDefaultFramebuffer;
 - (void) drawTargetTextureIntoDefaultFramebuffer;
 
 - (BOOL) doRemoveEntity:(Entity *)entity;
@@ -4732,28 +4733,29 @@ static const OOMatrix	starboard_matrix =
 
 - (void) drawUniverse
 {
+	int currentPostFX = [self currentPostFX];
+	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || currentPostFX == OO_POSTFX_CLOAK);
 	NSSize  viewSize = [gameView viewSize];
 	OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
-
-	if ((int)targetFramebufferSize.width != (int)viewSize.width || (int)targetFramebufferSize.height != (int)viewSize.height)
-	{
-		[self resizeTargetFramebufferWithViewSize:viewSize];
-	}
-	
-	if([self useShaders])
-	{
-		if ([gameView msaa])
-		{
-			OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
-		}
-		else
-		{
-			OOGL(glBindFramebuffer(GL_FRAMEBUFFER, targetFramebufferID));
-		}
-	}
 	
 	if (!no_update)
 	{
+		if ((int)targetFramebufferSize.width != (int)viewSize.width || (int)targetFramebufferSize.height != (int)viewSize.height)
+		{
+			[self resizeTargetFramebufferWithViewSize:viewSize];
+		}
+	
+		if([self useShaders])
+		{
+			if ([gameView msaa])
+			{
+				OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
+			}
+			else
+			{
+				OOGL(glBindFramebuffer(GL_FRAMEBUFFER, targetFramebufferID));
+			}
+		}
 		@try
 		{
 			no_update = YES;	// block other attempts to draw
@@ -5053,7 +5055,23 @@ static const OOMatrix	starboard_matrix =
 
 			}
 			
-
+			// actions when the HUD should be rendered separately from the 3d universe
+			if (hudSeparateRenderPass)
+			{
+				OOCheckOpenGLErrors(@"Universe after drawing entities");
+				OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
+				
+				[self prepareToRenderIntoDefaultFramebuffer];	
+				OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
+				
+				OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
+				[self drawTargetTextureIntoDefaultFramebuffer];
+				OOCheckOpenGLErrors(@"Universe after drawing from custom framebuffer to screen framebuffer");
+				OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
+	
+				OOLog(@"universe.profile.drawHUD", @"%@", @"Begin HUD drawing");
+			}
+			
 			/* Reset for HUD drawing */
 			OOGLResetProjection();
 			OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
@@ -5128,6 +5146,7 @@ static const OOMatrix	starboard_matrix =
 			[self drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
 #endif
 			
+			OOLog(@"universe.profile.drawHUD", @"%@", @"End HUD drawing");
 			OOCheckOpenGLErrors(@"Universe after drawing HUD");
 			
 			OOGL(glFlush());	// don't wait around for drawing to complete
@@ -5159,21 +5178,34 @@ static const OOMatrix	starboard_matrix =
 	
 	OOLog(@"universe.profile.draw", @"%@", @"End drawing");
 	
+	// actions when the HUD should be rendered together with the 3d universe
+	if(!hudSeparateRenderPass)
+	{
+		if([self useShaders])
+		{
+			[self prepareToRenderIntoDefaultFramebuffer];
+			OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
+			
+			OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
+			[self drawTargetTextureIntoDefaultFramebuffer];
+			OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
+		}
+	}
+}
+
+
+- (void) prepareToRenderIntoDefaultFramebuffer
+{
+	NSSize viewSize = [gameView viewSize];
 	if([self useShaders])
 	{
 		if ([gameView msaa])
 		{
 			// resolve MSAA framebuffer to target framebuffer
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFramebufferID);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebufferID);
-			glBlitFramebuffer(0, 0, (GLint)viewSize.width, (GLint)viewSize.height, 0, 0, (GLint)viewSize.width, (GLint)viewSize.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			OOGL(glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFramebufferID));
+			OOGL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFramebufferID));
+			OOGL(glBlitFramebuffer(0, 0, (GLint)viewSize.width, (GLint)viewSize.height, 0, 0, (GLint)viewSize.width, (GLint)viewSize.height, GL_COLOR_BUFFER_BIT, GL_NEAREST));
 		}
-		
-		OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
-		
-		OOLog(@"universe.profile.secondPassDraw", @"%@", @"Begin second pass draw");
-		[self drawTargetTextureIntoDefaultFramebuffer];
-		OOLog(@"universe.profile.secondPassDraw", @"%@", @"End second pass drawing");
 	}
 }
 
