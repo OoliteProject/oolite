@@ -5967,6 +5967,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	if ([super activateCloakingDevice])
 	{
+		[UNIVERSE setCurrentPostFX:OO_POSTFX_CLOAK];
 		[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
 		[self playCloakingDeviceOn];
 		return YES;
@@ -5985,6 +5986,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (![self hasCloakingDevice])  return;
 
 	[super deactivateCloakingDevice];
+	[UNIVERSE setCurrentPostFX:OO_POSTFX_NONE];
 	[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
 	[self playCloakingDeviceOff];
 }
@@ -13209,6 +13211,7 @@ else _dockTarget = NO_TARGET;
 	n_key_system_previous_system &&
 	n_key_pausebutton &&
 	n_key_show_fps &&
+	n_key_bloom_toggle &&
 	n_key_mouse_control_roll &&
 	n_key_mouse_control_yaw &&
 	n_key_hud_toggle &&

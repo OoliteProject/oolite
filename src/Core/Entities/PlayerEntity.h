@@ -611,6 +611,7 @@ typedef enum
 
 	NSArray					*n_key_pausebutton;
 	NSArray					*n_key_show_fps;
+	NSArray					*n_key_bloom_toggle;
 	NSArray					*n_key_mouse_control_roll;
 	NSArray					*n_key_mouse_control_yaw;
 	NSArray					*n_key_hud_toggle;

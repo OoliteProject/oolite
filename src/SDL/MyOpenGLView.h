@@ -173,6 +173,7 @@ extern int debug;
 
 	float				_gamma;
 	float				_fov;
+	float				_msaa;
 
    // Full screen sizes
 	NSMutableArray		*screenSizes;
@@ -312,6 +313,9 @@ extern int debug;
 
 - (void) setFov:(float)value fromFraction:(BOOL)fromFraction;
 - (float) fov:(BOOL)inFraction;
+
+- (void) setMsaa:(BOOL)newMsaa;
+- (BOOL) msaa;
 
 // Check current state of shift key rather than relying on last event.
 + (BOOL)pollShiftKey;

@@ -109,6 +109,7 @@ enum
 	kGlobal_galaxyNumber,		// galaxy number, integer, read-only
 	kGlobal_global,				// global.global.global.global, integer, read-only
 	kGlobal_guiScreen,			// current GUI screen, string, read-only
+	kGlobal_postFX,				// current post processing effect, integer, read/write
 #ifndef NDEBUG
 	kGlobal_timeAccelerationFactor	// time acceleration, float, read/write
 #endif
@@ -120,6 +121,7 @@ static JSPropertySpec sGlobalProperties[] =
 	// JS name					ID							flags
 	{ "galaxyNumber",			kGlobal_galaxyNumber,		OOJS_PROP_READONLY_CB },
 	{ "guiScreen",				kGlobal_guiScreen,			OOJS_PROP_READONLY_CB },
+	{ "postFX",				kGlobal_postFX,			OOJS_PROP_READWRITE_CB },
 #ifndef NDEBUG
 	{ "timeAccelerationFactor",	kGlobal_timeAccelerationFactor,	OOJS_PROP_READWRITE_CB },
 #endif
@@ -189,6 +191,10 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID,
 			*value = OOJSValueFromGUIScreenID(context, [player guiScreen]);
 			return YES;
 			
+		case kGlobal_postFX:
+			*value = INT_TO_JSVAL([UNIVERSE currentPostFX]);
+			return YES;
+			
 #ifndef NDEBUG
 		case kGlobal_timeAccelerationFactor:
 			return JS_NewNumberValue(context, [UNIVERSE timeAccelerationFactor], value);
@@ -211,9 +217,19 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOJS_NATIVE_ENTER(context)
 	
 	jsdouble					fValue;
+	int32					iValue;
 	
 	switch (JSID_TO_INT(propID))
 	{
+		case kGlobal_postFX:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				iValue = MAX(iValue, 0);
+				[UNIVERSE setCurrentPostFX:iValue];
+				return YES;
+			}
+			break;
+			
 		case kGlobal_timeAccelerationFactor:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{

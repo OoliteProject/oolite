@@ -1204,6 +1204,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	// Reset bounds and viewSize to current values
 	bounds.size.width = viewSize.width = wDC.right - wDC.left;
 	bounds.size.height = viewSize.height = wDC.bottom - wDC.top;
+	
 	if (fullScreen) // bounds on fullscreen coincide with client area, since we are borderless
 	{
 		bounds.origin.x = monitorInfo.rcMonitor.left;
@@ -2510,6 +2511,18 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 - (float) fov:(BOOL)inFraction
 {
 	return inFraction ? _fov : 2 * atan(_fov) * 180 / M_PI;
+}
+
+
+- (BOOL) msaa
+{
+	return _msaa;
+}
+
+
+- (void) setMsaa:(BOOL)newMsaa
+{
+	_msaa = !!newMsaa;
 }
 
 
