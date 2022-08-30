@@ -9,6 +9,10 @@ uniform int			uPostFX;
 uniform float		uTime;
 uniform vec2		uResolution;
 
+#ifndef OO_DITHER
+#define OO_DITHER	1
+#endif
+
 
 vec3 ACESFilm(vec3 color)
 {
@@ -471,6 +475,10 @@ void main()
 	vec3 result = ACESFilm(hdrColor);
 	// gamma correction       
 	result = pow(result, vec3(1.0 / 2.2));
+	
+#if OO_DITHER	
+	result += random(TexCoords + uTime) / 255.0;
+#endif
 	
 	//FragColor = vec4(bloomColor, 1.0);
 	FragColor = vec4(result, 1.0);
