@@ -89,14 +89,11 @@ const mat3 RGBtoOpponentMat = mat3(0.2814, -0.0971, -0.0930, 0.6938, 0.1458,-0.2
 const mat3 OpponentToRGBMat = mat3(1.1677, 0.9014, 0.7214, -6.4315, 2.5970, 0.1257, -0.5044, 0.0159, 2.0517);
 
 //const int NONE = 0;
-const int PROTANOPIA = 2;
-const int DEUTERANOPIA = 3;
-const int TRITANOPIA = 4;
+const int PROTANOPIA = 1;
+const int DEUTERANOPIA = 2;
+const int TRITANOPIA = 3;
 
 int blindnessType = uPostFX;
-//const int blindnessType = PROTANOPIA;
-//const int blindnessType = DEUTERANOPIA;
-//const int blindnessType = TRITANOPIA;
 
 void blindnessFilter( out vec3 myoutput, in vec3 myinput )
 {
@@ -441,12 +438,12 @@ void main()
 	switch(uPostFX)
 	{
 		case 1:
-			hdrColor = cloakVision(hdrColor);
-			break;
 		case 2:
 		case 3:
-		case 4:
 			hdrColor = colorBlindness(hdrColor);
+			break;
+		case 4:
+			hdrColor = cloakVision(hdrColor);
 			break;
 		case 5:
 			hdrColor = grayscale(hdrColor);
@@ -476,7 +473,7 @@ void main()
 	// gamma correction       
 	result = pow(result, vec3(1.0 / 2.2));
 	
-#if OO_DITHER	
+#if OO_DITHER
 	result += random(TexCoords + uTime) / 255.0;
 #endif
 	

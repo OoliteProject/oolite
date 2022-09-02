@@ -295,7 +295,33 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		newCurrentPostFX = OO_POSTFX_NONE;
 	}
 	
+	if	(OO_POSTFX_NONE <= newCurrentPostFX && newCurrentPostFX <= OO_POSTFX_COLORBLINDNESS_TRITAN)
+	{
+		_colorblindMode = newCurrentPostFX;
+	}		
+	
 	_currentPostFX = newCurrentPostFX;
+}
+
+- (int) nextColorblindMode:(int) index
+{
+	if (++index > OO_POSTFX_COLORBLINDNESS_TRITAN)
+		index = OO_POSTFX_NONE;
+	
+	return index;
+}
+
+- (int) prevColorblindMode:(int) index
+{
+	if (--index < OO_POSTFX_NONE)
+		index = OO_POSTFX_COLORBLINDNESS_TRITAN;
+	
+	return index;
+}
+
+- (int) colorblindMode
+{
+	return _colorblindMode;
 }
 
 - (void) initTargetFramebufferWithViewSize:(NSSize)viewSize
@@ -422,7 +448,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 	
 	_bloom = [self detailLevel] >= DETAIL_LEVEL_EXTRAS;
-	_currentPostFX = OO_POSTFX_NONE;
+	_currentPostFX = _colorblindMode = OO_POSTFX_NONE;
 
 	/* TODO: in OOEnvironmentCubeMap.m call these bind functions not with 0 but with "previousXxxID"s:
 	  - OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
@@ -4734,7 +4760,7 @@ static const OOMatrix	starboard_matrix =
 - (void) drawUniverse
 {
 	int currentPostFX = [self currentPostFX];
-	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || currentPostFX == OO_POSTFX_CLOAK);
+	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || (currentPostFX == OO_POSTFX_CLOAK && [self colorblindMode] == OO_POSTFX_NONE));
 	NSSize  viewSize = [gameView viewSize];
 	OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
 	

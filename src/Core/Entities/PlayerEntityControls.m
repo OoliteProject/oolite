@@ -124,6 +124,7 @@ static BOOL				volumeControlPressed;
 static BOOL				gammaControlPressed;
 #endif
 static BOOL				fovControlPressed;
+static BOOL				colorblindModeControlPressed;
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
 static BOOL				queryPressed;
@@ -3606,7 +3607,32 @@ static NSTimeInterval	time_last_frame;
 	else
 		fovControlPressed = NO;
 
-		
+	
+	// color blind mode
+	if ((guiSelectedRow == GUI_ROW(GAME,COLORBLINDMODE))&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))
+	{
+		if (!colorblindModeControlPressed)
+		{
+			int colorblindMode = [UNIVERSE colorblindMode];
+			if ([self checkKeyPress:n_key_gui_arrow_right])
+			{
+				[UNIVERSE setCurrentPostFX:[UNIVERSE nextColorblindMode:colorblindMode]];
+			}
+			else
+			{
+				[UNIVERSE setCurrentPostFX:[UNIVERSE prevColorblindMode:colorblindMode]];
+			}
+			colorblindMode = [UNIVERSE colorblindMode]; // get the updated value
+			NSString *colorblindModeDesc = [[[UNIVERSE descriptions] oo_arrayForKey: @"colorblind_mode"] oo_stringAtIndex:[UNIVERSE useShaders] ? colorblindMode : 0];
+			NSString *colorblindModeMsg = OOExpandKey(@"gameoptions-colorblind-mode", colorblindModeDesc);
+			[gui setText:colorblindModeMsg forRow:GUI_ROW(GAME,COLORBLINDMODE) align:GUI_ALIGN_CENTER];
+		}
+		colorblindModeControlPressed = YES;
+	}
+	else
+		colorblindModeControlPressed = NO;
+	
+	
 	if ((guiSelectedRow == GUI_ROW(GAME,WIREFRAMEGRAPHICS))&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))
 	{
 		if ([self checkKeyPress:n_key_gui_arrow_right] != [UNIVERSE wireframeGraphics])
@@ -3674,6 +3700,11 @@ static NSTimeInterval	time_last_frame;
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
 
 			timeLastKeyPress = script_time;
+			
+			// changing detail level may result in changes to other settings too
+			// (e.g. colorblind mode status), so refresh the page
+			[self setGuiToGameOptionsScreen];
+			[gui setSelectedRow:GUI_ROW(GAME,SHADEREFFECTS)];
 		}
 		shaderSelectKeyPressed = YES;
 	}

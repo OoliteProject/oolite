@@ -446,6 +446,14 @@
 		)
 	);
 	
+	colorblind_mode = 
+	(
+		"None", 
+		"Protanopia",
+		"Deuteranopia",
+		"Tritanopia"
+	);
+	
 	// *** Planet names and other random names ***
 	// this string must always be the same length (98 characters). Digrams (pairs of letters) are selected from it to build names.
 	digrams = "ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA’ERATENBERALAVETIEDORQUANTEISRION";
@@ -1317,6 +1325,7 @@
 
 	"oolite-keydesc-key_pausebutton"			= "Pause";
 	"oolite-keydesc-key_show_fps"				= "Show FPS";
+	"oolite-keydesc-key_bloom_toggle"			= "Toggle bloom on/off";
 	"oolite-keydesc-key_mouse_control"			= "Mouse control";
 	"oolite-keydesc-key_mouse_control_roll"		= "Mouse control (roll)";
 	"oolite-keydesc-key_mouse_control_yaw"		= "Mouse control (yaw)";
@@ -1697,6 +1706,7 @@
 	"gameoptions-autosave-no"				= " Autosave: Off ";
 	"gameoptions-gamma-value"				= " Gamma: ";
 	"gameoptions-fov-value"					= " Field Of View: ";
+	"gameoptions-colorblind-mode"			= " Colorblind Mode: [colorblindModeDesc] ";
 	"gameoptions-sound-volume"				= " Sound Volume: ";
 	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";

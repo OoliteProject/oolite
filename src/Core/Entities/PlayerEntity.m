@@ -5986,7 +5986,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (![self hasCloakingDevice])  return;
 
 	[super deactivateCloakingDevice];
-	[UNIVERSE setCurrentPostFX:OO_POSTFX_NONE];
+	[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
 	[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
 	[self playCloakingDeviceOff];
 }
@@ -8846,6 +8846,20 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		NSString* fovWordDesc = DESC(@"gameoptions-fov-value");
 		[gui setText:[NSString stringWithFormat:@"%@%@ (%d%c) ", fovWordDesc, SliderString(fovTicks), (int)fov, 176 /*176 is the degrees symbol Unicode code point*/] forRow:GUI_ROW(GAME,FOV) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,FOV)];
+		
+		// color blind mode
+		int colorblindMode = [UNIVERSE colorblindMode];
+		NSString *colorblindModeDesc = [[[UNIVERSE descriptions] oo_arrayForKey: @"colorblind_mode"] oo_stringAtIndex:[UNIVERSE useShaders] ? colorblindMode : 0];
+		NSString *colorblindModeMsg = OOExpandKey(@"gameoptions-colorblind-mode", colorblindModeDesc);
+		[gui setText:colorblindModeMsg forRow:GUI_ROW(GAME,COLORBLINDMODE) align:GUI_ALIGN_CENTER];
+		if ([UNIVERSE useShaders])
+		{
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,COLORBLINDMODE)];
+		}
+		else
+		{
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,COLORBLINDMODE)];
+		}
 		
 #if OOLITE_SPEECH_SYNTH
 		// Speech control

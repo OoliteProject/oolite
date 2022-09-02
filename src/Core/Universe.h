@@ -88,10 +88,10 @@ enum
 enum
 {
 	OO_POSTFX_NONE						= 0,
-	OO_POSTFX_CLOAK,
 	OO_POSTFX_COLORBLINDNESS_PROTAN,
 	OO_POSTFX_COLORBLINDNESS_DEUTER,
 	OO_POSTFX_COLORBLINDNESS_TRITAN,
+	OO_POSTFX_CLOAK,
 	OO_POSTFX_GRAYSCALE,
 	OO_POSTFX_OLDMOVIE,
 	OO_POSTFX_CRT,
@@ -371,6 +371,7 @@ enum
     GLuint					pingpongColorbuffers[2];
 	BOOL					_bloom;
 	int					_currentPostFX;
+	int					_colorblindMode;
 }
 
 - (BOOL) bloom;
@@ -782,6 +783,9 @@ enum
 - (unsigned int) prevVoice:(unsigned int) index;
 - (unsigned int) setVoice:(unsigned int) index withGenderM:(BOOL) isMale;
 #endif
+- (int) nextColorblindMode:(int) index;
+- (int) prevColorblindMode:(int) index;
+- (int) colorblindMode;
 //
 ////
 
