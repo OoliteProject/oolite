@@ -275,12 +275,12 @@ static NSTimeInterval	time_last_frame;
 		[NSNumber numberWithUnsignedShort:gvNumberPadKeyEquals], @"numpadequals",
 		[NSNumber numberWithUnsignedShort:gvNumberPadKeyEnter], @"numpadenter", nil];
 
-	keyShiftText = DESC(@"oolite-keyconfig-shift");
-	keyMod1Text = DESC(@"oolite-keyconfig-mod1");
+	keyShiftText = [DESC(@"oolite-keyconfig-shift") retain];
+	keyMod1Text = [DESC(@"oolite-keyconfig-mod1") retain];
 #if OOLITE_MAC_OS_X
-	keyMod2Text = DESC(@"oolite-keyconfig-mod2-mac");
+	keyMod2Text = [DESC(@"oolite-keyconfig-mod2-mac") retain];
 #else
-	keyMod2Text = DESC(@"oolite-keyconfig-mod2-pc");
+	keyMod2Text = [DESC(@"oolite-keyconfig-mod2-pc") retain];
 #endif
 
 	[self initKeyConfigSettings];

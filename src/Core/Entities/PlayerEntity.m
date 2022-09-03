@@ -2421,6 +2421,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)  DESTROY(missile_entity[i]);
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)  DESTROY(trumble[i]);
 	
+	DESTROY(keyShiftText);
+	DESTROY(keyMod1Text);
+	DESTROY(keyMod2Text);
+	DESTROY(stickFunctions);
+	DESTROY(keyFunctions);
+	DESTROY(kbdLayouts);
+	
 	[super dealloc];
 }
 
