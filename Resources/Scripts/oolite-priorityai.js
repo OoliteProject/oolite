@@ -424,7 +424,7 @@ this.PriorityAIController = function(ship)
 		// hit before it can use ECM
 		var delay = (12-this.ship.accuracy)/4; // 0.5 - 4.25
 		var etimer = new Timer(this,function() { 
-			if (this.ship) 
+			if (this.ship && this.ship.equipmentStatus("EQ_ECM") == "EQUIPMENT_OK") 
 			{
 				this.ship.fireECM()
 				this.setParameter("oolite_internal_ecmtimer",null);
