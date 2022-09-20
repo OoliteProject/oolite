@@ -405,7 +405,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	
 	// Enter pressed - find the commander name underneath.
-	if ([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick])
+	// ignore Ctrl for the moment - we check for it explicitly later
+	if ([self checkKeyPress:n_key_gui_select ignore_ctrl:YES]||[gameView isDown:gvMouseDoubleClick])
 	{
 		NSDictionary *cdr;
 		switch ([gui selectedRow])
@@ -510,7 +511,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 		[gameView suppressKeysUntilKeyUp];
 	}
 	
-	if(([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
+	// ignore Ctrl if pressed together with Enter for the moment - we check for it explicitly immediately after
+	if(([self checkKeyPress:n_key_gui_select ignore_ctrl:YES]||[gameView isDown:gvMouseDoubleClick]) && [commanderNameString length])
 	{
 		if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
 		{
