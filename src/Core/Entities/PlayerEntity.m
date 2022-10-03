@@ -1675,6 +1675,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[missile_entity[i] release];
 		missile_entity[i] = nil;
 	}
+	missiles = 0; // dybal: for when the shipdata specified missiles (i.e., a NPC ship that is being used by the player via EscortDeck+HyperspaeHangar)
 	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
@@ -5812,7 +5813,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (BOOL) mountMissile:(ShipEntity *)missile
 {
 	if (missile == nil)  return NO;
-	
+
 	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
