@@ -196,6 +196,7 @@ extern int debug;
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
+	BOOL				_hdrOutput;
 
 #endif
 
@@ -242,6 +243,7 @@ extern int debug;
 - (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
 - (MONITORINFOEX) currentMonitorInfo;
 - (BOOL) atDesktopResolution;
+- (BOOL) hdrOutput;
 #endif
 
 - (void) grabMouseInsideGameWindow:(BOOL) value;
