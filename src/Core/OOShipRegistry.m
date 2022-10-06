@@ -287,10 +287,11 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	
 	Load the data for all ships. This consists of five stages:
 		* Load merges shipdata.plist dictionary.
-		* Apply all like_ship entries.
+//		* Apply all like_ship entries. // dybal
 		* Load shipdata-overrides.plist and apply patches.
 		* Load shipyard.plist, add shipyard data into ship dictionaries, and
 		  create _playerShips array.
+		* Apply all like_ship entries. //dybal
 		* Build role->ship type probability sets.
 */
 - (void) loadShipData
@@ -323,6 +324,10 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	if (![self stripPrivateKeys:result])  return;
 	OOLog(@"shipData.load.progress", @"%@", @"Finished stripping private keys...");
 	
+	// Add shipyard entries into shipdata entries.	// dybal
+	if (![self loadAndMergeShipyard:result])  return;	// dybal
+	OOLog(@"shipData.load.progress", @"%@", @"Finished adding shipyard entries..."); // dybal
+	
 	// Resolve like_ship entries.
 	if (![self applyLikeShips:result withKey:@"like_ship"])  return;
 	OOLog(@"shipData.load.progress", @"%@", @"Finished resolving like_ships...");
@@ -335,9 +340,9 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	if (![self removeUnusableEntries:result shipMode:YES])  return;
 	OOLog(@"shipData.load.progress", @"%@", @"Finished removing invalid entries...");
 	
-	// Add shipyard entries into shipdata entries.
-	if (![self loadAndMergeShipyard:result])  return;
-	OOLog(@"shipData.load.progress", @"%@", @"Finished adding shipyard entries...");
+//	// Add shipyard entries into shipdata entries.	// dybal
+//	if (![self loadAndMergeShipyard:result])  return;	// dybal
+//	OOLog(@"shipData.load.progress", @"%@", @"Finished adding shipyard entries..."); // dybal
 	
 	// Sanitize conditions.
 	if (![self sanitizeConditions:result])  return;
@@ -646,6 +651,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			{
 				// If parent is fully resolved, we can resolve this child.
 				parentEntry = [ioData objectForKey:parentKey];
+				OOLog(@"dybal.trace", @"applyLikeShips: merging '%@' (parent) and '%@' (child)", parentKey, key);
 				shipEntry = [self mergeShip:shipEntry withParent:parentEntry];
 				if (shipEntry != nil)
 				{
@@ -739,7 +745,20 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			[result removeObjectForKey:@"has_shipyard"];
 		else
 			[result removeObjectForKey:@"hasShipyard"];
-	}	
+	}
+	// dybal: TODO: if both parent and child have '_oo_shipyard' keys, merge them into result
+	if ([parent objectForKey:@"_oo_shipyard"] != nil) {
+		OOLog(@"dybal.trace", @"mergeShip: parent has shipyard: %@", [parent objectForKey:@"_oo_shipyard"]);
+		if ([child objectForKey:@"_oo_shipyard"] != nil) {
+			NSMutableDictionary *shipyard = [[[parent objectForKey:@"_oo_shipyard"] mutableCopy] autorelease];
+			OOLog(@"dybal.trace", @"mergeShip: merging shipyard: %@", [child objectForKey:@"_oo_shipyard"]);
+			[shipyard addEntriesFromDictionary:[child objectForKey:@"_oo_shipyard"]];
+			[result setObject:shipyard forKey:@"_oo_shipyard"];
+		}
+	}
+	if ([result objectForKey:@"_oo_shipyard"] != nil) {
+		OOLog(@"dybal.trace", @"mergeShip: child now has _oo_shipyard: %@", [result objectForKey:@"_oo_shipyard"]);
+	}
 	return result;
 }
 
@@ -854,6 +873,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 		shipEntry = [ioData objectForKey:shipKey];
 		if ([shipEntry objectForKey:@"_oo_shipyard"] != nil)
 		{
+			OOLog(@"dybal.trace", @"loadAndMergeShipyard: ship %s had _oo_shipyard", shipKey);
 			[shipEntry removeObjectForKey:@"_oo_shipyard"];
 		}
 	}
@@ -880,6 +900,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			shipyardEntry = [shipyardEntry dictionaryByAddingEntriesFromDictionary:shipyardOverridesEntry];
 			
 			[shipEntry setObject:shipyardEntry forKey:@"_oo_shipyard"];
+			OOLog(@"dybal.trace", @"loadAndMergeShipyard: ship '%@' now has __oo_shipyard", shipKey);
 			
 			[playerShips addObject:shipKey];
 		}
