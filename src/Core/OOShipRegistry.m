@@ -748,17 +748,17 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 	}
 	// dybal: TODO: if both parent and child have '_oo_shipyard' keys, merge them into result
 	if ([parent objectForKey:@"_oo_shipyard"] != nil) {
-		OOLog(@"dybal.trace", @"mergeShip: parent has shipyard: %@", [parent objectForKey:@"_oo_shipyard"]);
+//		OOLog(@"dybal.trace", @"mergeShip: parent has shipyard: %@", [parent objectForKey:@"_oo_shipyard"]);
 		if ([child objectForKey:@"_oo_shipyard"] != nil) {
 			NSMutableDictionary *shipyard = [[[parent objectForKey:@"_oo_shipyard"] mutableCopy] autorelease];
-			OOLog(@"dybal.trace", @"mergeShip: merging shipyard: %@", [child objectForKey:@"_oo_shipyard"]);
+//			OOLog(@"dybal.trace", @"mergeShip: merging shipyard: %@", [child objectForKey:@"_oo_shipyard"]);
 			[shipyard addEntriesFromDictionary:[child objectForKey:@"_oo_shipyard"]];
 			[result setObject:shipyard forKey:@"_oo_shipyard"];
 		}
 	}
-	if ([result objectForKey:@"_oo_shipyard"] != nil) {
-		OOLog(@"dybal.trace", @"mergeShip: child now has _oo_shipyard: %@", [result objectForKey:@"_oo_shipyard"]);
-	}
+//	if ([result objectForKey:@"_oo_shipyard"] != nil) {
+//		OOLog(@"dybal.trace", @"mergeShip: child now has _oo_shipyard: %@", [result objectForKey:@"_oo_shipyard"]);
+//	}
 	return result;
 }
 
@@ -873,7 +873,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 		shipEntry = [ioData objectForKey:shipKey];
 		if ([shipEntry objectForKey:@"_oo_shipyard"] != nil)
 		{
-			OOLog(@"dybal.trace", @"loadAndMergeShipyard: ship %s had _oo_shipyard", shipKey);
+//			OOLog(@"dybal.trace", @"loadAndMergeShipyard: ship %s had _oo_shipyard", shipKey);
 			[shipEntry removeObjectForKey:@"_oo_shipyard"];
 		}
 	}
@@ -900,7 +900,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			shipyardEntry = [shipyardEntry dictionaryByAddingEntriesFromDictionary:shipyardOverridesEntry];
 			
 			[shipEntry setObject:shipyardEntry forKey:@"_oo_shipyard"];
-			OOLog(@"dybal.trace", @"loadAndMergeShipyard: ship '%@' now has __oo_shipyard", shipKey);
+//			OOLog(@"dybal.trace", @"loadAndMergeShipyard: ship '%@' now has __oo_shipyard", shipKey);
 			
 			[playerShips addObject:shipKey];
 		}
