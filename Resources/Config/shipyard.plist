@@ -277,7 +277,7 @@
 		weapon_facings = 15;
 	};
 
-	oolite-template-gecko = {   
+	oolite_template_gecko = {   
 		chance = 0.375;
 		optional_equipment = (   
 			"EQ_ECM",
@@ -309,7 +309,7 @@
 		weapon_facings = 3;
 	};
 
-	oolite-template-krait = {
+	oolite_template_krait = {
 		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
@@ -341,7 +341,7 @@
 		weapon_facings = 3;
 	};
 
-	oolite-template-mamba = {
+	oolite_template_mamba = {
 		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
@@ -373,7 +373,7 @@
 		weapon_facings = 15;
 	};
 
-	oolite-template-mamba-escort = {
+	oolite_template_mamba-escort = {
 		chance = 0.275;
 		optional_equipment = (
 			"EQ_ECM",
@@ -567,7 +567,7 @@
 		weapon_facings = 1;
 	};
 
-	oolite-template-sidewinder-escort = {
+	oolite_template_sidewinder-escort = {
 		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
@@ -627,7 +627,7 @@
 		weapon_facings = 1;
 	};
 
-	oolite-template-transporter-miner = {
+	oolite_template_transporter-miner = {
 		chance = 0.175;
 		optional_equipment = (
 			"EQ_ECM",
@@ -718,7 +718,7 @@
 		weapon_facings = 3;
 	};
 
-	oolite-template-viper-pursuit = {
+	oolite_template_viper-pursuit = {
 		chance = 0.012;
 		optional_equipment = (
 			"EQ_PASSENGER_BERTH",
@@ -779,7 +779,7 @@
 		weapon_facings = 1;
 	};
 
-	oolite-template-worm-miner = {
+	oolite_template_worm-miner = {
 		chance = 0.175;
 		optional_equipment = (
 			"EQ_ECM",
