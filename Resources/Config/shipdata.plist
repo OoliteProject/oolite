@@ -44,6 +44,7 @@
 		 * independent of any graphical replacement OXPs which are
 		 * installed. */
 	oolite_template_generic_ship = {
+		is_template = yes;
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		custom_views = (
