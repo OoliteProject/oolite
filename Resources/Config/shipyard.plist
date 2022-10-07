@@ -12,7 +12,6 @@
 	};
 
 	oolite_template_adder = {
-		chance = 0.25;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -43,7 +42,6 @@
 	};
 
 	oolite_template_anaconda = {
-		chance = 0.125;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -76,7 +74,6 @@
 	};
 
 	oolite_template_asp = {
-		chance = 0.5;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -109,7 +106,6 @@
 	};
 
 	oolite_template_boa = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -142,7 +138,6 @@
 	};
 
 	oolite_template_boa-mk2 = {
-		chance = 0.325;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -176,7 +171,6 @@
 	};
 
 	oolite_template_cobra3 = {
-		chance = 0.5;
 		optional_equipment = (
 			"EQ_CARGO_BAY",
 			"EQ_ECM",
@@ -211,7 +205,6 @@
 	};
 
 	oolite_template_cobramk1 = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -242,7 +235,6 @@
 	};
 
 	oolite_template_ferdelance = {
-		chance = 0.25;
 		optional_equipment = (
 			"EQ_ENERGY_BOMB",
 			"EQ_ENERGY_UNIT",
@@ -278,7 +270,6 @@
 	};
 
 	oolite_template_gecko = {   
-		chance = 0.375;
 		optional_equipment = (   
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -306,11 +297,10 @@
 			missiles = 1;
 		};
 		techlevel = 5;
-		weapon_facings = 3;
+		weapon_facings = 1;
 	};
 
 	oolite_template_krait = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -338,11 +328,10 @@
 			missiles = 1;
 		};
 		techlevel = 5;
-		weapon_facings = 3;
+		weapon_facings = 1;
 	};
 
 	oolite_template_mamba = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -370,11 +359,10 @@
 			missiles = 0;
 		};
 		techlevel = 6;
-		weapon_facings = 15;
+		weapon_facings = 1;
 	};
 
 	oolite_template_mamba-escort = {
-		chance = 0.275;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -406,7 +394,6 @@
 	};
 
 	oolite_template_moray = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -441,7 +428,6 @@
 	};
 
 	oolite_template_morayMED = {
-		chance = 0.275;
 		optional_equipment = (
 			"EQ_CARGO_BAY",
 			"EQ_ECM",
@@ -476,7 +462,6 @@
 	};
 
 	oolite_template_python = {
-		chance = 0.5;
 		optional_equipment = (
 			"EQ_CARGO_BAY",
 			"EQ_ECM",
@@ -509,7 +494,6 @@
 	};
 
 	oolite_template_shuttle = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -539,7 +523,6 @@
 	};
 
 	oolite_template_sidewinder = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -568,7 +551,6 @@
 	};
 
 	oolite_template_sidewinder-escort = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_FUEL_SCOOPS",
@@ -597,7 +579,6 @@
 	};
 
 	oolite_template_transporter = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -628,7 +609,6 @@
 	};
 
 	oolite_template_transporter-miner = {
-		chance = 0.175;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -659,7 +639,6 @@
 	};
 
 	oolite_template_viper = {
-		chance = 0.012;
 		optional_equipment = (
 			"EQ_FUEL_SCOOPS",
 			"EQ_PASSENGER_BERTH",
@@ -689,7 +668,6 @@
 	};
 
 	oolite_template_viper-interceptor = {
-		chance = 0.012;
 		optional_equipment = (
 			"EQ_PASSENGER_BERTH",
 			"EQ_ESCAPE_POD",
@@ -719,7 +697,6 @@
 	};
 
 	oolite_template_viper-pursuit = {
-		chance = 0.012;
 		optional_equipment = (
 			"EQ_PASSENGER_BERTH",
 			"EQ_ESCAPE_POD",
@@ -749,7 +726,6 @@
 	};
 
 	oolite_template_worm = {
-		chance = 0.375;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -780,7 +756,6 @@
 	};
 
 	oolite_template_worm-miner = {
-		chance = 0.175;
 		optional_equipment = (
 			"EQ_ECM",
 			"EQ_ESCAPE_POD",
@@ -809,4 +784,104 @@
 		techlevel = 3;
 		weapon_facings = 1;
 	};
+
+    adder-player = {
+		chance = 0.25;
+    };
+
+    anaconda-player = {
+		chance = 0.125;
+    };
+
+    asp-player = {
+		chance = 0.5;
+    };
+
+    boa-player = {
+		chance = 0.375;
+    };
+
+    boa-mk2-player = {
+		chance = 0.325;
+    };
+
+    cobra3-player = {
+		chance = 0.5;
+    };
+
+    cobramk1-player = {
+		chance = 0.375;
+    };
+
+    ferdelance-player = {
+		chance = 0.25;
+    };
+
+    gecko-player = {
+		chance = 0.375;
+    };
+
+    krait-player = {
+		chance = 0.375;
+    };
+
+    mamba-player = {
+		chance = 0.375;
+    };
+
+    mamba-escort-player = {
+		chance = 0.275;
+    };
+
+    moray-player = {
+		chance = 0.375;
+    }
+
+    morayMED-player = {
+		chance = 0.275;
+    }
+
+    python-player = {
+		chance = 0.5;
+    };
+
+    shuttle-player = {
+		chance = 0.375;
+    };
+
+    sidewinder-player = {
+		chance = 0.375;
+    };
+
+    sidewinder-escort-player = {
+		chance = 0.375;
+    };
+
+    transporter-player = {
+		chance = 0.375;
+    };
+
+    transporter-miner-player = {
+		chance = 0.175;
+    };
+
+    viper-player = {
+		chance = 0.012;
+    };
+
+    viper-interceptor-player = {
+		chance = 0.012;
+    };
+
+    viper-pursuit-player = {
+		chance = 0.012;
+    };
+
+    worm-player = {
+		chance = 0.375;
+    };
+
+    worm-miner-player = {
+		chance = 0.175;
+    };
 }
