@@ -326,6 +326,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) initTargetFramebufferWithViewSize:(NSSize)viewSize
 {
+	// liberate us from the 0.0 to 1.0 rgb range!
+	OOGL(glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE));
+	OOGL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
+	OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
+
 	// have to do this because on my machine the default framebuffer is not zero
 	OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &defaultDrawFBO));
 

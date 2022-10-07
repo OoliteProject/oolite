@@ -67,6 +67,9 @@ MA 02110-1301, USA.
 	float		hue, sat, bri, alf;
 	OOColor		*color = nil;
 	
+	// sun brightness factor
+	float sbf = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"sbf" defaultValue:50.0f];
+	
 	// blend some white into the sun color to brighten it up
 	sun_color = [sun_color blendedColorWithFraction:0.3 ofColor:[OOColor whiteColor]];
 	
@@ -101,8 +104,11 @@ MA 02110-1301, USA.
 	OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
 	OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 	
-	// main disc less saturation more brightness
-	color = [OOColor colorWithHue:hue saturation:sat * 0.333f brightness:1.0f alpha:1.0f];
+	// main disc less saturation (taken care of by the ACES tonemapper) more brightness
+	color = [OOColor colorWithHue:hue saturation:sat /** 0.333f*/ brightness:1.0f alpha:1.0f];
+	// our OpenGL color values are unclamped, so we can multiply the color components by
+	// any value we want, in order to make the sun a truly bright object in the sky
+	color = [OOColor colorWithRed:[color redComponent] * sbf green:[color greenComponent] * sbf blue:[color blueComponent] * sbf alpha:[color alphaComponent]];
 	[color getRed:&discColor[0] green:&discColor[1] blue:&discColor[2] alpha:&discColor[3]];
 	
 	/*	Two inner corona layers with low alpha and saturation are additively
