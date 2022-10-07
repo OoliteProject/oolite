@@ -2069,6 +2069,7 @@
 		};
 		name = "Mamba Escort";
 		roles = "pirate-light-fighter(0.5) escort escort-medium(0.25)";
+		weapon_facings = 15;
 	};
 
 	oolite_template_mamba-escort-player = {
@@ -3157,7 +3158,7 @@
 		view_position_forward = "0.0 3.5 25.4";
 		view_position_port = "-12.0 1.5 3.0";
 		view_position_starboard = "12.0 1.5 3.0";
-		weapon_facings = 1;
+		weapon_facings = 3;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 -0.15 35.0344";
 		weapon_position_port = "-12.5 0.0 0.0";
@@ -3300,7 +3301,7 @@
 		view_position_forward = "0.0 3.5 25.4";
 		view_position_port = "-12.0 1.5 3.0";
 		view_position_starboard = "12.0 1.5 3.0";
-		weapon_facings = 1;
+		weapon_facings = 3;
 		weapon_position_aft = "0.0 -8.0 -32.0";
 		weapon_position_forward = "0.0 -0.15 35.034";
 		weapon_position_port = "-23.75 0.0 -1.75";
@@ -3474,7 +3475,8 @@
 	};
 
 	adder-player = {
-	  like_ship = "oolite_template_adder-player";
+	    like_ship = "oolite_template_adder-player";
+        roles = "player";
 	};
 
 	alloy = {
@@ -3491,6 +3493,7 @@
 
 	anaconda-player = {
 		like_ship = "oolite_template_anaconda-player";
+        roles = "player";
 	};
 
 	asp = {
@@ -3503,6 +3506,7 @@
 
 	asp-player = {
 		like_ship = "oolite_template_asp-player";
+        roles = "player";
 	};
 
 	asteroid = {
@@ -3543,6 +3547,7 @@
 
 	boa-player = {
 		like_ship = "oolite_template_boa-player";
+        roles = "player";
 	};
 
 	boa-mk2 = {
@@ -3555,6 +3560,7 @@
 
 	boa-mk2-player = {
 		like_ship = "oolite_template_boa-mk2-player";
+        roles = "player";
 	};
 
 	boulder = {
@@ -3591,6 +3597,7 @@
 
 	cobra3-player = {
 		like_ship = "oolite_template_cobra3-player";
+        roles = "player";
 	};
 
 	cobramk1 = {
@@ -3607,6 +3614,7 @@
 
 	cobramk1-player = {
 		like_ship = "oolite_template_cobramk1-player";
+        roles = "player";
 	};
 
 	constrictor = {
@@ -3635,10 +3643,16 @@
 
 	ferdelance-player = {
 		like_ship = "oolite_template_ferdelance-player";
+        roles = "player";
 	};
 
 	gecko = {
 		like_ship = "oolite_template_gecko";
+	};
+
+	gecko-player = {
+		like_ship = "oolite_template_gecko";
+        roles = "player";
 	};
 
 	icosahedron-station = {
@@ -3649,12 +3663,27 @@
 		like_ship = "oolite_template_krait";
 	};
 
+	krait-player = {
+		like_ship = "oolite_template_krait";
+        roles = "player";
+	};
+
 	mamba = {
 		like_ship = "oolite_template_mamba";
 	};
 
+	mamba-player = {
+		like_ship = "oolite_template_mamba";
+        roles = "player";
+	};
+
 	mamba-escort = {
 		like_ship = "oolite_template_mamba-escort";
+	};
+
+	mamba-escort-player = {
+		like_ship = "oolite_template_mamba-escort";
+        roles = "player";
 	};
 
 	missile = {
@@ -3667,6 +3696,7 @@
 
 	moray-player = {
 		like_ship = "oolite_template_moray-player";
+        roles = "player";
 	};
 
 	morayMED = {
@@ -3675,6 +3705,7 @@
 
 	morayMED-player = {
 		like_ship = "oolite_template_morayMED-player";
+        roles = "player";
 	};
 
 	python = {
@@ -3687,6 +3718,7 @@
 
 	python-player = {
 		like_ship = "oolite_template_python-player";
+        roles = "player";
 	};
 
 	python-trader = {
@@ -3717,12 +3749,27 @@
 		like_ship = "oolite_template_shuttle";
 	};
 
+	shuttle-player = {
+		like_ship = "oolite_template_shuttle";
+        roles = "player";
+	};
+
 	sidewinder = {
 		like_ship = "oolite_template_sidewinder";
 	};
 
+	sidewinder-player = {
+		like_ship = "oolite_template_sidewinder";
+        roles = "player";
+	};
+
 	sidewinder-escort = {
 		like_ship = "oolite_template_sidewinder-escort";
+	};
+
+	sidewinder-escort-player = {
+		like_ship = "oolite_template_sidewinder-escort";
+        roles = "player";
 	};
 
 	splinter = {
@@ -3745,28 +3792,63 @@
 		like_ship = "oolite_template_transporter";
 	};
 
+	transporter-player = {
+		like_ship = "oolite_template_transporter";
+        roles = "player";
+	};
+
 	transporter-miner = {
 		like_ship = "oolite_template_transporter-miner";
+	};
+
+	transporter-miner-player = {
+		like_ship = "oolite_template_transporter-miner";
+        roles = "player";
 	};
 
 	viper = {
 		like_ship = "oolite_template_viper";
 	};
 
+	viper-player = {
+		like_ship = "oolite_template_viper";
+        roles = "player";
+	};
+
 	viper-interceptor = {
 		like_ship = "oolite_template_viper-interceptor";
+	};
+
+	viper-interceptor-player = {
+		like_ship = "oolite_template_viper-interceptor";
+        roles = "player";
 	};
 
 	viper-pursuit = {
 		like_ship = "oolite_template_viper-pursuit";
 	};
 
+	viper-pursuit-player = {
+		like_ship = "oolite_template_viper-pursuit";
+        roles = "player";
+	};
+
 	worm = {
 		like_ship = "oolite_template_worm";
 	};
 
+	worm-player = {
+		like_ship = "oolite_template_worm";
+        roles = "player";
+	};
+
 	worm-miner = {
 		like_ship = "oolite_template_worm-miner";
+	};
+
+	worm-miner-player = {
+		like_ship = "oolite_template_worm-miner";
+        roles = "player";
 	};
 
 	wreckage-component = {
