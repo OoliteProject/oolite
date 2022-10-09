@@ -835,11 +835,11 @@
 
     moray-player = {
 		chance = 0.375;
-    }
+    };
 
     morayMED-player = {
 		chance = 0.275;
-    }
+    };
 
     python-player = {
 		chance = 0.5;
