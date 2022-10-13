@@ -651,7 +651,7 @@ static NSString * const	kVisualEffectDataCacheKey = @"visual effect data";
 			{
 				// If parent is fully resolved, we can resolve this child.
 				parentEntry = [ioData objectForKey:parentKey];
-				OOLog(@"dybal.trace", @"applyLikeShips: merging '%@' (parent) and '%@' (child)", parentKey, key);
+//				OOLog(@"dybal.trace", @"applyLikeShips: merging '%@' (parent) and '%@' (child)", parentKey, key);
 				shipEntry = [self mergeShip:shipEntry withParent:parentEntry];
 				if (shipEntry != nil)
 				{
