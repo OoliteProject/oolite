@@ -474,8 +474,11 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING2(n_key_oxzmanager_showinfo, 'i', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_oxzmanager_extract, 'x', NO, NO, 0, NO, NO);
 	
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	LOAD_KEY_SETTING2(n_key_inc_field_of_view, 'l', NO, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_dec_field_of_view, 'k', NO, NO, 0, NO, NO);
+#endif
+
 #ifndef NDEBUG
 	LOAD_KEY_SETTING2(n_key_dump_target_state, 'H', YES, NO, 0, NO, NO);
 	LOAD_KEY_SETTING2(n_key_dump_entity_list, '0', NO, NO, 0, NO, NO);

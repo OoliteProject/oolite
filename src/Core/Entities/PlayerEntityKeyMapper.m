@@ -1185,7 +1185,10 @@ static NSArray *camera_keys = nil;
 		@"key_hyperspace", @"key_jumpdrive", @"key_dump_cargo", @"key_rotate_cargo", @"key_autopilot", @"key_autodock", @"key_docking_clearance_request", 
 		@"key_snapshot", @"key_cycle_next_mfd", @"key_cycle_previous_mfd", @"key_switch_next_mfd", @"key_switch_previous_mfd", 
 		@"key_next_target", @"key_previous_target", @"key_comms_log", @"key_prev_compass_mode", @"key_next_compass_mode", @"key_custom_view", 
-		@"key_inc_field_of_view", @"key_dec_field_of_view", @"key_pausebutton", @"key_dump_target_state", nil];
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
+		@"key_inc_field_of_view", @"key_dec_field_of_view", 
+#endif
+		@"key_pausebutton", @"key_dump_target_state", nil];
 
 	if ([inflight_keys containsObject:key]) 
 	{

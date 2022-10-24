@@ -658,8 +658,10 @@ typedef enum
 	NSArray					*n_key_oxzmanager_showinfo;
 	NSArray					*n_key_oxzmanager_extract;
 	
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	NSArray					*n_key_inc_field_of_view;
 	NSArray					*n_key_dec_field_of_view;
+#endif
 	
 #ifndef NDEBUG
 	NSArray					*n_key_dump_target_state;

@@ -13270,8 +13270,10 @@ else _dockTarget = NO_TARGET;
 	n_key_oxzmanager_setfilter &&
 	n_key_oxzmanager_showinfo &&
 	n_key_oxzmanager_extract &&
+#if OO_FOV_INFLIGHT_CONTROL_ENABLED
 	n_key_inc_field_of_view &&
 	n_key_dec_field_of_view &&
+#endif
 	n_key_dump_target_state &&
 	n_key_dump_entity_list &&
 	n_key_debug_full &&
