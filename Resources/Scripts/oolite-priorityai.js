@@ -2258,7 +2258,7 @@ PriorityAIController.prototype.conditionScannerContainsMiningOpportunity = funct
 		return false;
 	}
 	// need a mining laser, and for now a forward one
-	if (!this.ship.forwardWeapon == "EQ_WEAPON_MINING_LASER")
+	if (this.ship.forwardWeapon != "EQ_WEAPON_MINING_LASER")
 	{
 		return false;
 	}
