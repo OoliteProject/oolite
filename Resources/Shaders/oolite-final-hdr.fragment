@@ -570,6 +570,10 @@ void main()
 	
 	// tone mapping
 	vec3 result = ACESFilmRec2020(hdrColor * (0.0125 * PAPERWHITENITS / MAXBRIGHTNESSNITS)) * MAXBRIGHTNESSNITS;
+	// alternative ways to tone map the result - testing is required to decide which of the available options could become official
+	//vec3 result = ACESFilmRec2020(hdrColor); // looks great but cannot be calibrated
+	//vec3 result = ACESFilmRec2020(hdrColor * PAPERWHITENITS / MAXBRIGHTNESSNITS) * MAXBRIGHTNESSNITS * 0.0125;
+	//vec3 result = ACESFilmRec2020(hdrColor * PAPERWHITENITS * MAXBRIGHTNESSNITS / SMPTE_ST2084MAXNITS);
 	
 	// perceptual quantizer
 	//result = ApplySMPTE_ST2084Curve(result / SMPTE_ST2084MAXNITS);
