@@ -124,6 +124,7 @@ static BOOL				volumeControlPressed;
 static BOOL				gammaControlPressed;
 #endif
 static BOOL				fovControlPressed;
+static BOOL				hdrPaperWhiteControlPressed;
 static BOOL				colorblindModeControlPressed;
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
@@ -3633,16 +3634,48 @@ static NSTimeInterval	time_last_frame;
 		colorblindModeControlPressed = NO;
 	
 	
-	if ((guiSelectedRow == GUI_ROW(GAME,WIREFRAMEGRAPHICS))&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))
-	{
-		if ([self checkKeyPress:n_key_gui_arrow_right] != [UNIVERSE wireframeGraphics])
-			[self playChangedOption];
-		[UNIVERSE setWireframeGraphics:[self checkKeyPress:n_key_gui_arrow_right]];
-		if ([UNIVERSE wireframeGraphics])
-			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
+	if (![gameView hdrOutput])
+ 	{
+		if ((guiSelectedRow == GUI_ROW(GAME,WIREFRAMEGRAPHICS))&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))
+		{
+			if ([self checkKeyPress:n_key_gui_arrow_right] != [UNIVERSE wireframeGraphics])
+				[self playChangedOption];
+			[UNIVERSE setWireframeGraphics:[self checkKeyPress:n_key_gui_arrow_right]];
+			if ([UNIVERSE wireframeGraphics])
+				[gui setText:DESC(@"gameoptions-wireframe-graphics-yes")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
+			else
+				[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
+		}
 	}
+#if OOLITE_WINDOWS
+	else
+	{
+		if ((guiSelectedRow == GUI_ROW(GAME,HDRPAPERWHITE))
+		&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))
+		{
+			if (!hdrPaperWhiteControlPressed)
+			{
+				BOOL rightKeyDown = [self checkKeyPress:n_key_gui_arrow_right];
+				BOOL leftKeyDown = [self checkKeyPress:n_key_gui_arrow_left];
+				float paperWhite = [gameView hdrPaperWhiteBrightness];
+				paperWhite += (((rightKeyDown && (paperWhite < MAX_HDR_PAPERWHITE)) ? 10.0f : 0.0f) - ((leftKeyDown && (paperWhite > MIN_HDR_PAPERWHITE)) ? 10.0f : 0.0f));
+				if (paperWhite > MAX_HDR_PAPERWHITE) paperWhite = MAX_HDR_PAPERWHITE;
+				if (paperWhite < MIN_HDR_PAPERWHITE) paperWhite = MIN_HDR_PAPERWHITE;
+				[gameView setHDRPaperWhiteBrightness:paperWhite];
+				int paperWhiteNorm = (int)((paperWhite - MIN_HDR_PAPERWHITE) * 20 / (MAX_HDR_PAPERWHITE - MIN_HDR_PAPERWHITE));
+				NSString* paperWhiteWordDesc = DESC(@"gameoptions-hdr-paperwhite");
+				NSString* v1_string = @"|||||||||||||||||||||||||";
+				NSString* v0_string = @".........................";
+				v1_string = [v1_string substringToIndex:paperWhiteNorm];
+				v0_string = [v0_string substringToIndex:20 - paperWhiteNorm];
+				[gui setText:[NSString stringWithFormat:@"%@%@%@ (%d) ", paperWhiteWordDesc, v1_string, v0_string, (int)paperWhite]	forRow:GUI_ROW(GAME,HDRPAPERWHITE)  align:GUI_ALIGN_CENTER];
+			}
+			hdrPaperWhiteControlPressed = YES;
+		}
+		else
+			hdrPaperWhiteControlPressed = NO;
+	}
+#endif
 	
 #if !NEW_PLANETS
 	if ((guiSelectedRow == GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS))&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))

@@ -8,9 +8,10 @@ uniform bool		bloom;
 uniform int			uPostFX;
 uniform float		uTime;
 uniform vec2		uResolution;
+uniform float		uMaxBrightness;
+uniform float		uPaperWhiteBrightness;
 
-#define PAPERWHITENITS		140.0
-#define MAXBRIGHTNESSNITS	500.0
+
 #define SMPTE_ST2084MAXNITS	10000.0
 
 
@@ -569,13 +570,9 @@ void main()
 	}
 	
 	// tone mapping
-	//vec3 result = ACESFilmRec2020(hdrColor * (0.0125 * PAPERWHITENITS / MAXBRIGHTNESSNITS)) * MAXBRIGHTNESSNITS;
-	// alternative ways to tone map the result - testing is required to decide which of the available options could become official
-	//vec3 result = ACESFilmRec2020(hdrColor * PAPERWHITENITS / MAXBRIGHTNESSNITS) * MAXBRIGHTNESSNITS * 0.0125;
-	//vec3 result = ACESFilmRec2020(hdrColor * PAPERWHITENITS * MAXBRIGHTNESSNITS / SMPTE_ST2084MAXNITS);
 	// at 1000 nits max brighness and 80 nits paper white we get the pure tone mapping result
 	vec3 result = ACESFilmRec2020(hdrColor);
-	result *= PAPERWHITENITS * 0.001 * MAXBRIGHTNESSNITS * 0.0125;
+	result *= uPaperWhiteBrightness * 0.001 * uMaxBrightness * 0.0125;
 	
 	// perceptual quantizer
 	//result = ApplySMPTE_ST2084Curve(result / SMPTE_ST2084MAXNITS);

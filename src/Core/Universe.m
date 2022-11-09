@@ -642,6 +642,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOGL(glUniform1f(glGetUniformLocation(final, "uTime"), [self getTime]));
 	OOGL(glUniform2fv(glGetUniformLocation(final, "uResolution"), 1, fboResolution));
 	OOGL(glUniform1i(glGetUniformLocation(final, "uPostFX"), [self currentPostFX]));
+	if([gameView hdrOutput])
+	{
+		OOGL(glUniform1f(glGetUniformLocation(final, "uMaxBrightness"), [gameView hdrMaxBrightness]));
+		OOGL(glUniform1f(glGetUniformLocation(final, "uPaperWhiteBrightness"), [gameView hdrPaperWhiteBrightness]));
+	}
 	
 	OOGL(glActiveTexture(GL_TEXTURE1));
 	OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
@@ -4477,6 +4482,13 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 #endif
 
 	[result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
+
+#if OOLITE_WINDOWS
+	if ([gameView hdrOutput])
+	{
+		[result oo_setFloat:[gameView hdrPaperWhiteBrightness] forKey:@"hdr-paperwhite-brightness"];
+	}
+#endif
 	
 	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	

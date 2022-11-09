@@ -256,8 +256,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
-#if OOLITE_WINDOWS
 	_hdrOutput = NO;
+#if OOLITE_WINDOWS
+	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
+	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:80.0f];
 	if (bitsPerColorComponent == 16)
 	{
 		// SDL.dll built specifically for Oolite required
@@ -1024,6 +1026,28 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (float) hdrMaxBrightness
+{
+	return _hdrMaxBrightness;
+}
+
+
+- (float) hdrPaperWhiteBrightness
+{
+	return _hdrPaperWhiteBrightness;
+}
+
+
+- (void) setHDRPaperWhiteBrightness: (float)newPaperWhiteBrightness
+{
+	if (newPaperWhiteBrightness < MIN_HDR_PAPERWHITE)  newPaperWhiteBrightness = MIN_HDR_PAPERWHITE;
+	if (newPaperWhiteBrightness > MAX_HDR_PAPERWHITE)  newPaperWhiteBrightness = MAX_HDR_PAPERWHITE;
+	_hdrPaperWhiteBrightness = newPaperWhiteBrightness;
+	
+	[[NSUserDefaults standardUserDefaults] setFloat:_hdrPaperWhiteBrightness forKey:@"hdr-paperwhite-brightness"];
+}
+
+
 #else	// Linus stub methods
 
 // for Linux we assume we are always on the primary monitor for now
@@ -1054,6 +1078,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 - (void) setWindowBorderless:(BOOL)borderless
 {
 	// do nothing on Linux
+}
+
+
+- (BOOL) hdrOutput
+{
+	return NO;
 }
 
 #endif //OOLITE_WINDOWS

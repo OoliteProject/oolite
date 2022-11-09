@@ -1725,6 +1725,8 @@
 	"gameoptions-keyboard-configuration"	= " Keyboard Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
+	"gameoptions-hdr-paperwhite"			= " HDR Paper White Brightness (nits): ";
+	"gameoptions-hdr-max-brightness"		= " HDR Max Brightness (nits): [maxBrightness] ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
 	"gameoptions-procedurally-textured-planets-no"	= " Detailed Planets: Off ";
 	"gameoptions-detaillevel-0"				= " Graphics Detail: Minimum Detail ";
