@@ -4486,6 +4486,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 #if OOLITE_WINDOWS
 	if ([gameView hdrOutput])
 	{
+		[result oo_setFloat:[gameView hdrMaxBrightness] forKey:@"hdr-max-brightness"];
 		[result oo_setFloat:[gameView hdrPaperWhiteBrightness] forKey:@"hdr-paperwhite-brightness"];
 	}
 #endif

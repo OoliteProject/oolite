@@ -649,6 +649,11 @@ MA 02110-1301, USA.
 
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
+	if ([[UNIVERSE gameView] hdrOutput])
+	{
+		return;
+	}
+	
 	float sqrt_zero_distance = sqrtf(cam_zero_distance);
 	float alt = sqrt_zero_distance - collision_radius;
 	if (EXPECT_NOT(alt < 0))

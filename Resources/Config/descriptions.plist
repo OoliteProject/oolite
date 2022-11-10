@@ -446,6 +446,11 @@
 		)
 	);
 	
+	hdr_maxBrightness_array =
+	(
+		400, 500, 600, 800, 1000
+	);
+	
 	colorblind_mode = 
 	(
 		"None", 
@@ -1725,8 +1730,8 @@
 	"gameoptions-keyboard-configuration"	= " Keyboard Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
+	"gameoptions-hdr-maxbrightness"			= " HDR Max Brightness (nits): [brightnessValue] ";
 	"gameoptions-hdr-paperwhite"			= " HDR Paper White Brightness (nits): ";
-	"gameoptions-hdr-max-brightness"		= " HDR Max Brightness (nits): [maxBrightness] ";
 	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
 	"gameoptions-procedurally-textured-planets-no"	= " Detailed Planets: Off ";
 	"gameoptions-detaillevel-0"				= " Graphics Detail: Minimum Detail ";

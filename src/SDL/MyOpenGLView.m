@@ -1032,6 +1032,16 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (void) setHDRMaxBrightness: (float)newMaxBrightness
+{
+	if (newMaxBrightness < MIN_HDR_MAXBRIGHTNESS)  newMaxBrightness = MIN_HDR_MAXBRIGHTNESS;
+	if (newMaxBrightness > MAX_HDR_MAXBRIGHTNESS)  newMaxBrightness = MAX_HDR_MAXBRIGHTNESS;
+	_hdrMaxBrightness = newMaxBrightness;
+	
+	[[NSUserDefaults standardUserDefaults] setFloat:_hdrMaxBrightness forKey:@"hdr-max-brightness"];
+}
+
+
 - (float) hdrPaperWhiteBrightness
 {
 	return _hdrPaperWhiteBrightness;

@@ -124,6 +124,7 @@ static BOOL				volumeControlPressed;
 static BOOL				gammaControlPressed;
 #endif
 static BOOL				fovControlPressed;
+static BOOL				hdrMaxBrightnessControlPressed;
 static BOOL				hdrPaperWhiteControlPressed;
 static BOOL				colorblindModeControlPressed;
 static BOOL				shaderSelectKeyPressed;
@@ -3314,6 +3315,47 @@ static NSTimeInterval	time_last_frame;
 		selFunctionIdx = 0;
 		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
+	
+	
+#if OOLITE_WINDOWS
+	if ([gameView hdrOutput])
+	{
+		if ((guiSelectedRow == GUI_ROW(GAME,HDRMAXBRIGHTNESS))&&(([self checkKeyPress:n_key_gui_arrow_right])||([self checkKeyPress:n_key_gui_arrow_left])))
+		{
+			if (!hdrMaxBrightnessControlPressed)
+			{
+				int			direction = ([self checkKeyPress:n_key_gui_arrow_right]) ? 1 : -1;
+				NSArray		*brightnesses = [[UNIVERSE descriptions] oo_arrayForKey: @"hdr_maxBrightness_array"];
+				int			brightnessIdx = [brightnesses indexOfObject:[NSString stringWithFormat:@"%d", (int)[gameView hdrMaxBrightness]]];
+				
+				if (brightnessIdx == NSNotFound)
+				{
+					OOLogWARN(@"hdr.maxBrightness.notFound", @"%@", @"couldn't find current max brightness setting, switching to 400 nits.");
+					brightnessIdx = 0;
+				}
+				else
+				{
+					brightnessIdx += direction;
+					int count = [brightnesses count];
+					if (brightnessIdx < 0)
+						brightnessIdx = count - 1;
+					if (brightnessIdx >= count)
+						brightnessIdx = 0;
+					
+					int brightnessValue = [brightnesses oo_intAtIndex:brightnessIdx];
+					[gameView setHDRMaxBrightness:(float)brightnessValue];
+					NSString *maxBrightnessString = OOExpandKey(@"gameoptions-hdr-maxbrightness", brightnessValue);
+																					
+					[gui setText:maxBrightnessString forRow:GUI_ROW(GAME,HDRMAXBRIGHTNESS)  align:GUI_ALIGN_CENTER];
+				}
+				hdrMaxBrightnessControlPressed = YES;
+			}
+		}
+		else
+			hdrMaxBrightnessControlPressed = NO;
+	}
+#endif
+	
 	
 #if OO_RESOLUTION_OPTION
 	if (!switching_resolution &&

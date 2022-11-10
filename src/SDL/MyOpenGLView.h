@@ -35,6 +35,9 @@ MA 02110-1301, USA.
 #define MIN_FOV			(tan((MIN_FOV_DEG / 2) * M_PI / 180.0f))
 #define MAX_FOV			(tan((MAX_FOV_DEG / 2) * M_PI / 180.0f))
 
+#define MIN_HDR_MAXBRIGHTNESS	400.0
+#define MAX_HDR_MAXBRIGHTNESS	1000.0
+
 #define MIN_HDR_PAPERWHITE		80.0f
 #define MAX_HDR_PAPERWHITE		280.0f
 
@@ -250,6 +253,7 @@ extern int debug;
 - (MONITORINFOEX) currentMonitorInfo;
 - (BOOL) atDesktopResolution;
 - (float) hdrMaxBrightness;
+- (void) setHDRMaxBrightness:(float)newMaxBrightness;
 - (float) hdrPaperWhiteBrightness;
 - (void) setHDRPaperWhiteBrightness:(float)newPaperWhiteBrightness;
 #endif

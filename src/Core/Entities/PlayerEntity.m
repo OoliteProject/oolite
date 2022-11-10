@@ -8814,6 +8814,28 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		}
 #endif	// OO_RESOLUTIOM_OPTION
 
+
+#if OOLITE_WINDOWS
+		if ([gameView hdrOutput])
+		{
+			NSArray		*brightnesses = [[UNIVERSE descriptions] oo_arrayForKey: @"hdr_maxBrightness_array"];
+			int			brightnessIdx = [brightnesses indexOfObject:[NSString stringWithFormat:@"%d", (int)[gameView hdrMaxBrightness]]];
+			
+			if (brightnessIdx == NSNotFound)
+			{
+				OOLogWARN(@"hdr.maxBrightness.notFound", @"%@", @"couldn't find current max brightness setting, switching to 400 nits.");
+				brightnessIdx = 0;
+			}
+				
+			int brightnessValue = [brightnesses oo_intAtIndex:brightnessIdx];
+			NSString *maxBrightnessString = OOExpandKey(@"gameoptions-hdr-maxbrightness", brightnessValue);
+																				
+			[gui setText:maxBrightnessString forRow:GUI_ROW(GAME,HDRMAXBRIGHTNESS)  align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,HDRMAXBRIGHTNESS)];
+		}
+#endif
+
+
 		if ([UNIVERSE autoSave])
 			[gui setText:DESC(@"gameoptions-autosave-yes") forRow:GUI_ROW(GAME,AUTOSAVE) align:GUI_ALIGN_CENTER];
 		else
