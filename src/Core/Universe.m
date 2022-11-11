@@ -642,11 +642,13 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOGL(glUniform1f(glGetUniformLocation(final, "uTime"), [self getTime]));
 	OOGL(glUniform2fv(glGetUniformLocation(final, "uResolution"), 1, fboResolution));
 	OOGL(glUniform1i(glGetUniformLocation(final, "uPostFX"), [self currentPostFX]));
+#if OOLITE_WINDOWS
 	if([gameView hdrOutput])
 	{
 		OOGL(glUniform1f(glGetUniformLocation(final, "uMaxBrightness"), [gameView hdrMaxBrightness]));
 		OOGL(glUniform1f(glGetUniformLocation(final, "uPaperWhiteBrightness"), [gameView hdrPaperWhiteBrightness]));
 	}
+#endif
 	
 	OOGL(glActiveTexture(GL_TEXTURE1));
 	OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
