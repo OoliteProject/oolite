@@ -459,4 +459,5 @@ void main(void)
 	totalColor.rgb *= MULITPLIER_PREEXPOSURE;
 	
 	gl_FragColor = mix(totalColor, vec4(uFogColor.xyz, 1.0), uFogColor.w);
+	gl_FragColor.a = clamp(gl_FragColor.a, 0.0, 1.0);
 }
