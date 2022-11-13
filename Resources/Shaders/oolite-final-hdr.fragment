@@ -1,0 +1,581 @@
+out vec4 FragColor;
+
+in vec2 TexCoords;
+
+uniform sampler2D	scene;
+uniform sampler2D	bloomBlur;
+uniform bool		bloom;
+uniform int			uPostFX;
+uniform float		uTime;
+uniform vec2		uResolution;
+uniform float		uMaxBrightness;
+uniform float		uPaperWhiteBrightness;
+
+
+#define SMPTE_ST2084MAXNITS	10000.0
+
+
+vec3 ACESFilmRec2020( vec3 x )
+{
+	//x *= 0.6;
+	float a = 15.8f;
+	float b = 2.12f;
+	float c = 1.2f;
+	float d = 5.92f;
+	float e = 1.9f;
+	return ( x * ( a * x + b ) ) / ( x * ( c * x + d ) + e );
+}
+
+
+vec3 ACESFilmRec2020Alt( vec3 x )
+{
+	//x *= 0.6;
+	const float ACESLuminancePercentage = 100.0;
+	float a = 0.98;
+	float b = 0.3;
+	float c = 0.22;
+	float d = 0.0;
+	float e = 0.025;
+	x = x * ACESLuminancePercentage * 0.006f;
+	return ( x * ( a * x + b ) ) / ( x * ( c * x + d ) + e );
+}
+
+
+vec3 ApplySMPTE_ST2084Curve(vec3 L)
+{
+    float m1 = 2610.0 / 4096.0 / 4.0;
+    float m2 = 2523.0 / 4096.0 * 128.0;
+    float c1 = 3424.0 / 4096.0;
+    float c2 = 2413.0 / 4096.0 * 32.0;
+    float c3 = 2392.0 / 4096.0 * 32.0;
+    vec3 Lp = pow(L, vec3(m1));
+    return pow((c1 + c2 * Lp) / (1.0 + c3 * Lp), vec3(m2));
+}
+
+
+vec3 RemoveSMPTE_ST2084Curve(vec3 N)
+{
+    float m1 = 2610.0 / 4096.0 / 4.0;
+    float m2 = 2523.0 / 4096.0 * 128.0;
+    float c1 = 3424.0 / 4096.0;
+    float c2 = 2413.0 / 4096.0 * 32.0;
+    float c3 = 2392.0 / 4096.0 * 32.0;
+    vec3 Np = pow(N, vec3(1.0 / m2));
+    return pow(max(Np - c1, 0) / (c2 - c3 * Np), vec3(1.0 / m1));
+}
+
+
+vec3 Rec709toRec2020(vec3 rgb709)
+{
+	const mat3 convMat = mat3(
+		0.627402, 0.069095, 0.016394,
+		0.329292, 0.919544, 0.088028,
+		0.043306, 0.011360, 0.895578
+	);
+	return convMat * rgb709;
+}
+
+
+vec3 Rec2020toRec709(vec3 rgb2020)
+{
+	const mat3 convMat = mat3(
+		1.660496, -0.124547, -0.018154,
+		-0.587656, 1.132895, -0.100597,
+		-0.072840, -0.008348, 1.118751
+	);
+	return convMat * rgb2020;
+}
+
+
+/*
+float3 REC709toREC2020( float3 RGB709 )
+{
+    static const float3x3 ConvMat =
+    {
+        0.627402, 0.329292, 0.043306,
+        0.069095, 0.919544, 0.011360,
+        0.016394, 0.088028, 0.895578
+    };
+    return mul(ConvMat, RGB709);
+}
+
+
+float3 REC2020toREC709(float3 RGB2020)
+{
+    static const float3x3 ConvMat =
+    {
+        1.660496, -0.587656, -0.072840,
+        -0.124547, 1.132895, -0.008348,
+        -0.018154, -0.100597, 1.118751
+    };
+    return mul(ConvMat, RGB2020);
+}
+*/
+
+
+// ==========================================================================================
+// grayscale
+// ==========================================================================================
+vec3 grayscale(vec3 col)
+{
+	vec3 luma = vec3(0.2126, 0.7152, 0.0722);
+	col = vec3(dot(col, luma));
+	
+	return col;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// cloak vision - original code by Nikos Papadopoulos, https://www.shadertoy.com/view/Xsl3zf
+// ==========================================================================================
+float hash(float n)
+{
+	return fract(sin(n)*43758.5453123);
+}
+
+vec3 cloakVision(vec3 c)
+{
+	vec2 p = TexCoords;
+	vec2 u = p * 2. - 1.;
+	vec2 n = u;
+	float time = uTime;
+    
+    
+	// flicker, grain, vignette, fade in
+	c += sin(hash(uTime)) * 0.01;
+	c += hash((hash(n.x) + n.y) * uTime) * 0.25;
+	c *= smoothstep(length(n * n * n * vec2(0.075, 0.4)), 1.0, 0.4);
+    c *= smoothstep(0.001, 3.5, uTime) * 1.5;
+	 
+	c = grayscale(c) * vec3(0.2, 0.4, 1.5 - hash(uTime) * 0.3);
+	
+	return c;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// color blindness correction - see https://terra-howard.com/thesis/
+// ==========================================================================================
+const mat3 RGBtoOpponentMat = mat3(0.2814, -0.0971, -0.0930, 0.6938, 0.1458,-0.2529, 0.0638, -0.0250, 0.4665);
+const mat3 OpponentToRGBMat = mat3(1.1677, 0.9014, 0.7214, -6.4315, 2.5970, 0.1257, -0.5044, 0.0159, 2.0517);
+
+//const int NONE = 0;
+const int PROTANOPIA = 1;
+const int DEUTERANOPIA = 2;
+const int TRITANOPIA = 3;
+
+int blindnessType = uPostFX;
+
+void blindnessFilter( out vec3 myoutput, in vec3 myinput )
+{
+	if (blindnessType == PROTANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = rgbColor;
+	} else if (blindnessType == DEUTERANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = rgbColor;
+	} else if (blindnessType == TRITANOPIA) {
+			vec3 opponentColor = RGBtoOpponentMat * myinput;
+			opponentColor.x -= ((3.0 * opponentColor.z) - opponentColor.y) * 0.25;
+			vec3 rgbColor = OpponentToRGBMat * opponentColor;
+			myoutput = rgbColor;
+    } else {
+			myoutput = myinput;
+	}	
+}
+
+void blindnessVision( out vec3 myoutput, in vec3 myinput )
+{
+	vec4 blindVisionR;
+	vec4 blindVisionG;
+	vec4 blindVisionB;
+	if (blindnessType == PROTANOPIA) {
+			blindVisionR = vec4( 0.20,  0.99, -0.19, 0.0);
+			blindVisionG = vec4( 0.16,  0.79,  0.04, 0.0);
+			blindVisionB = vec4( 0.01, -0.01,  1.00, 0.0);
+	} else if (blindnessType == DEUTERANOPIA) {
+			blindVisionR = vec4( 0.43,  0.72, -0.15, 0.0 );
+			blindVisionG = vec4( 0.34,  0.57,  0.09, 0.0 );
+			blindVisionB = vec4(-0.02,  0.03,  1.00, 0.0 );		
+	} else if (blindnessType == TRITANOPIA) {
+			blindVisionR = vec4( 0.97,  0.11, -0.08, 0.0 );
+			blindVisionG = vec4( 0.02,  0.82,  0.16, 0.0 );
+			blindVisionB = vec4(-0.06,  0.88,  0.18, 0.0 );
+	} else {
+        	blindVisionR = vec4(1.0,  0.0,  0.0, 0.0 );
+        	blindVisionG = vec4(0.0,  1.0,  0.0, 0.0 );
+        	blindVisionB = vec4(0.0,  0.0,  1.0, 0.0 );			
+	}
+	myoutput = vec3(dot(myinput, blindVisionR.rgb), dot(myinput, blindVisionG.rgb), dot(myinput, blindVisionB.rgb));	
+}
+
+vec3 colorBlindness(vec3 inColor)
+{
+	vec3 texColor = inColor;
+	vec3 tmp;
+	vec3 colorBlindColor = inColor;
+    blindnessFilter(tmp, texColor);    
+    blindnessVision(colorBlindColor, tmp);
+	//blindnessVision(colorBlindColor, texColor);
+	
+	return colorBlindColor;
+}
+// ------------------------------------------------------------------------------------------
+
+
+// ==========================================================================================
+// old movie - based on https://www.shadertoy.com/view/Xdl3D8
+// ==========================================================================================
+#define BLACK_AND_WHITE
+#define LINES_AND_FLICKER
+#define BLOTCHES
+#define GRAIN
+//#define ROLLING_FILM
+
+#define FREQUENCY 15.0
+#define sepia mat3(0.393, 0.769, 0.189, 0.349, 0.686, 0.168, 0.272, 0.534, 0.131)
+
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float rand(float c){
+	return rand(vec2(c,1.0));
+}
+
+float randomLine(float seed, vec2 uv)
+{
+	float b = 0.01 * rand(seed);
+	float a = rand(seed+1.0);
+	float c = rand(seed+2.0) - 0.5;
+	float mu = rand(seed+3.0);
+	
+	float l = 1.0;
+	
+	if ( mu > 0.2)
+		l = pow(  abs(a * uv.x + b * uv.y + c ), 1.0/8.0 );
+	else
+		l = 2.0 - pow( abs(a * uv.x + b * uv.y + c), 1.0/8.0 );				
+	
+	return mix(0.5, 1.0, l);
+}
+
+// Generate some blotches.
+float randomBlotch(float seed, vec2 uv)
+{
+	float x = rand(seed);
+	float y = rand(seed+1.0);
+	float s = 0.01 * rand(seed+2.0);
+	
+	vec2 p = vec2(x,y) - uv;
+	p.x *= uResolution.x / uResolution.y;
+	float a = atan(p.y,p.x);
+	float v = 1.0;
+	float ss = s*s * (sin(6.2831*a*x)*0.1 + 1.0);
+	
+	if ( dot(p,p) < ss ) v = 0.2;
+	else
+		v = pow(dot(p,p) - ss, 1.0/16.0);
+	
+	return mix(0.3 + 0.2 * (1.0 - (s / 0.02)), 1.0, v);
+}
+
+vec3 oldMovie(sampler2D inImage, vec2 fragCoord) 
+{
+    vec3 fragColor = vec3(0.0);
+	vec2 uv = fragCoord;		
+	// Set frequency of global effect to 15 variations per second
+	float t = float(int(uTime * FREQUENCY));
+	
+	// Get some image movement
+	vec2 suv = uv + 0.002 * vec2( rand(t), rand(t + 23.0));
+	
+	// Get the image
+	vec3 image = texture( inImage, vec2(suv.x, suv.y) ).xyz;
+	
+	#ifdef BLACK_AND_WHITE
+	// Convert it to B/W
+	//float luma = dot( vec3(0.2126, 0.7152, 0.0722), image );
+	//vec3 oldImage = luma * vec3(0.7, 0.7, 0.7);
+	vec3 oldImage = image * sepia;
+	#else
+	vec3 oldImage = image;
+	#endif
+	
+	#ifdef ROLLING_FILM
+	// rolling film effect
+	vec2 nos_pos = fragCoord - 0.5 + vec2(min(fract(uTime) - 0.02, 0.0), 0.0);
+    vec2 abs_n_p = vec2(abs(nos_pos));
+	if(abs_n_p.x > 0.40)
+    {
+        if(abs_n_p.x > 0.42 && abs_n_p.x < 0.48)
+        	oldImage = vec3(0.7) * step(mod(10.0 * (nos_pos.y + fract(uTime)), 1.0), 0.8);
+    	else
+            oldImage = vec3(0.0);
+    }
+	#endif
+	
+	// Create a time-varying vignetting effect
+	float vI = 16.0 * (uv.x * (1.0-uv.x) * uv.y * (1.0-uv.y));
+	vI *= mix( 0.7, 1.0, rand(t + 0.5));
+	
+	// Add additive flicker
+	vI += 1.0 + 0.4 * rand(t+8.);
+	
+	// Add a fixed vignetting (independent of the flicker)
+	vI *= pow(16.0 * uv.x * (1.0-uv.x) * uv.y * (1.0-uv.y), 0.4);
+	
+	// Add some random lines and some multiplicative flicker
+	#ifdef LINES_AND_FLICKER
+	int l = int(8.0 * rand(t+7.0));
+	
+	if ( 0 < l ) vI *= randomLine( t+6.0+17.* float(0), uv);
+	if ( 1 < l ) vI *= randomLine( t+6.0+17.* float(1), uv);
+	if ( 2 < l ) vI *= randomLine( t+6.0+17.* float(2), uv);		
+	if ( 3 < l ) vI *= randomLine( t+6.0+17.* float(3), uv);
+	if ( 4 < l ) vI *= randomLine( t+6.0+17.* float(4), uv);
+	if ( 5 < l ) vI *= randomLine( t+6.0+17.* float(5), uv);
+	if ( 6 < l ) vI *= randomLine( t+6.0+17.* float(6), uv);
+	if ( 7 < l ) vI *= randomLine( t+6.0+17.* float(7), uv);
+	
+	#endif
+	
+	// Add some random blotches.
+	#ifdef BLOTCHES
+	int s = int( max(8.0 * rand(t+18.0) -2.0, 0.0 ));
+    
+	if ( 0 < s ) vI *= randomBlotch( t+6.0+19.* float(0), uv);
+	if ( 1 < s ) vI *= randomBlotch( t+6.0+19.* float(1), uv);
+	if ( 2 < s ) vI *= randomBlotch( t+6.0+19.* float(2), uv);
+	if ( 3 < s ) vI *= randomBlotch( t+6.0+19.* float(3), uv);
+	if ( 4 < s ) vI *= randomBlotch( t+6.0+19.* float(4), uv);
+	if ( 5 < s ) vI *= randomBlotch( t+6.0+19.* float(5), uv);
+	
+	#endif
+	
+	// Show the image modulated by the defects
+    fragColor = oldImage * vI;
+	
+	// Add some grain
+	#ifdef GRAIN
+    fragColor *= (1.0+(rand(uv+t*.01)-.2)*.15);		
+    #endif
+	
+	return fragColor;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// gravitational lensing - based on https://www.shadertoy.com/view/llyyRm
+// ==========================================================================================
+#define S_RADIUS 0.1
+#define HALO_BRIGHTNESS .25
+
+#define PI 3.14159265358979
+
+vec3 hsv2rgb(vec3 c) {
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 gravLens( sampler2D inImage, vec2 fragCoord )
+{
+	vec3 fragColor = vec3(0.0);
+	// Normalized pixel coordinates (from 0 to 1)
+	vec2 uv = fragCoord;
+	float aspectRatio = uResolution.x/uResolution.y;
+	
+	vec2 blackHolePos = vec2(
+		sin(uTime) + aspectRatio,
+		(cos(uTime * 1.22) + sin(uTime * .57))
+		) * .2 + .5;
+	vec2 coord = uv - blackHolePos;
+    
+	//really cheap gravitational lensing approximation follows
+	float len = 1. + (length(coord) - S_RADIUS) / S_RADIUS;
+    
+	if (len < S_RADIUS)
+	{
+		fragColor = vec3(0.0);
+		return fragColor;
+	}
+	
+	vec2 k = (coord / (len * len));
+	vec2 sCoord = uv - k;
+	
+	// compute halo
+	float haloBrightness = 0.2;
+	haloBrightness = pow(haloBrightness, 4.);
+	vec3 hsv = vec3(sCoord.x * .3, .6, haloBrightness);
+	vec3 haloColor = hsv2rgb(hsv);
+	haloBrightness = (haloColor.r + haloColor.g + haloColor.b) * HALO_BRIGHTNESS;
+	haloColor = haloColor * HALO_BRIGHTNESS + vec3(haloBrightness);
+	
+	fragColor = (texture(inImage, sCoord).rgb + haloColor);
+	return fragColor;
+}
+// ------------------------------------------------------------------------------------------
+
+// ==========================================================================================
+// CRT - based on https://www.shadertoy.com/view/Xtccz4
+// ==========================================================================================
+vec2 crt_coords(vec2 uv, float bend)
+{
+	uv -= 0.5;
+    uv *= 2.;
+    uv.x *= 1. + pow(abs(uv.y)/bend, 2.);
+    uv.y *= 1. + pow(abs(uv.x)/bend, 2.);
+    
+    uv /= 2.02;
+    return uv + .5;
+}
+
+float vignette(vec2 uv, float size, float smoothness, float edgeRounding)
+{
+ 	uv -= .5;
+    uv *= size;
+    float amount = sqrt(pow(abs(uv.x), edgeRounding) + pow(abs(uv.y), edgeRounding));
+    amount = 1. - amount;
+    return smoothstep(0., smoothness, amount);
+}
+
+float scanline(vec2 uv, float lines, float speed)
+{
+    return sin(uv.y * lines + uTime * speed);
+}
+
+float random(vec2 uv)
+{
+ 	return fract(sin(dot(uv, vec2(15.5151, 42.2561))) * 12341.14122 * sin(uTime * 0.03));   
+}
+
+float noise(vec2 uv)
+{
+ 	vec2 i = floor(uv);
+    vec2 f = fract(uv);
+    
+    float a = random(i);
+    float b = random(i + vec2(1.,0.));
+	float c = random(i + vec2(0., 1.));
+    float d = random(i + vec2(1.));
+    
+    vec2 u = smoothstep(0., 1., f);
+    
+    return mix(a,b, u.x) + (c - a) * u.y * (1. - u.x) + (d - b) * u.x * u.y; 
+                     
+}
+
+vec3 CRT(sampler2D inImage, vec2 inCoords)
+{
+	vec2 uv = inCoords;
+	vec2 crt_uv = crt_coords(uv, 8.);
+    
+    float s1 = scanline(uv, 1500., -10.);
+    float s2 = scanline(uv, 10., -3.);
+    
+    vec3 col = texture(inImage, crt_uv).rgb;
+    col.r = texture(inImage, crt_uv + vec2(0., 0.0025)).r;
+    col.g = texture(inImage, crt_uv).g;
+    col.b = texture(inImage, crt_uv + vec2(0., -0.0025)).b;
+    
+    col = mix(col, vec3(s1 + s2), 0.05);
+	col = mix(col, vec3(noise(uv * 500.)), 0.05) * vignette(uv, 1.9, .6, 8.);
+	
+	return col;
+}
+// ------------------------------------------------------------------------------------------
+
+
+vec3 ACESFilm(vec3 color)
+{
+	// taken from https://www.shadertoy.com/view/XsGfWV This is based on the actual
+	// ACES sources and is effectively the glsl translation of Stephen Hill's fit
+	// (https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl)
+	mat3 m1 = mat3(
+        0.59719, 0.07600, 0.02840,
+        0.35458, 0.90834, 0.13383,
+        0.04823, 0.01566, 0.83777
+	);
+	mat3 m2 = mat3(
+        1.60475, -0.10208, -0.00327,
+        -0.53108,  1.10813, -0.07276,
+        -0.07367, -0.00605,  1.07602
+	);
+	// prevents some ACES artifacts, especially bright blues shifting towards purple
+	// see https://community.acescentral.com/t/colour-artefacts-or-breakup-using-aces/520/48
+	mat3 highlightsFixLMT = mat3(
+	0.9404372683, -0.0183068787, 0.0778696104,
+	0.0083786969, 0.8286599939, 0.1629613092,
+	0.0005471261, -0.0008833746, 1.0003362486
+	);
+	vec3 v = m1 * color * highlightsFixLMT;    
+	vec3 a = v * (v + 0.0245786) - 0.000090537;
+	vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+	return clamp(m2 * (a / b), 0.0, 1.0);
+}
+
+
+
+void main()
+{    
+	float exposure = 1.0;
+	vec3 hdrColor = texture(scene, TexCoords).rgb;      
+	vec3 bloomColor = texture(bloomBlur, TexCoords).rgb;
+	
+	if(bloom)
+	{
+		hdrColor += bloomColor;
+	}
+	
+	hdrColor *= exposure;
+	
+	// post processing effects here
+	switch(uPostFX)
+	{
+		case 1:
+		case 2:
+		case 3:
+			hdrColor = colorBlindness(hdrColor);
+			break;
+		case 4:
+			hdrColor = cloakVision(hdrColor);
+			break;
+		case 5:
+			hdrColor = grayscale(hdrColor);
+			break;
+		case 6:
+			hdrColor = oldMovie(scene, TexCoords);
+			bloomColor = oldMovie(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
+			break;
+		case 7:
+			hdrColor = CRT(scene, TexCoords);
+			bloomColor = CRT(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			break;
+		case 8:
+			hdrColor = gravLens(scene, TexCoords);
+			bloomColor = gravLens(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			break;
+		default:
+			break;
+	}
+	
+	// tone mapping
+	// at 1000 nits max brighness and 80 nits paper white we get the pure tone mapping result
+	vec3 result = ACESFilmRec2020(hdrColor);
+	result *= uPaperWhiteBrightness * 0.001 * uMaxBrightness * 0.0125;
+	
+	// perceptual quantizer
+	//result = ApplySMPTE_ST2084Curve(result / SMPTE_ST2084MAXNITS);
+	
+	FragColor = vec4(result, 1.0);
+}

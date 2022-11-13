@@ -326,6 +326,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) initTargetFramebufferWithViewSize:(NSSize)viewSize
 {
+	// liberate us from the 0.0 to 1.0 rgb range!
+	OOGL(glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE));
+	OOGL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
+	OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
+
 	// have to do this because on my machine the default framebuffer is not zero
 	OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &defaultDrawFBO));
 
@@ -468,7 +473,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 													attributeBindings:[NSDictionary dictionary]] retain];
 	// shader for applying bloom and any necessary post-proc fx, tonemapping and gamma correction
 	finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-final.vertex"
+#if OOLITE_WINDOWS
+													fragmentShaderName:[[UNIVERSE gameView] hdrOutput] ? @"oolite-final-hdr.fragment" : @"oolite-final.fragment"
+#else
 													fragmentShaderName:@"oolite-final.fragment"
+#endif
 													prefix:@"#version 330\n"
 													attributeBindings:[NSDictionary dictionary]] retain];
 	
@@ -633,6 +642,13 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOGL(glUniform1f(glGetUniformLocation(final, "uTime"), [self getTime]));
 	OOGL(glUniform2fv(glGetUniformLocation(final, "uResolution"), 1, fboResolution));
 	OOGL(glUniform1i(glGetUniformLocation(final, "uPostFX"), [self currentPostFX]));
+#if OOLITE_WINDOWS
+	if([gameView hdrOutput])
+	{
+		OOGL(glUniform1f(glGetUniformLocation(final, "uMaxBrightness"), [gameView hdrMaxBrightness]));
+		OOGL(glUniform1f(glGetUniformLocation(final, "uPaperWhiteBrightness"), [gameView hdrPaperWhiteBrightness]));
+	}
+#endif
 	
 	OOGL(glActiveTexture(GL_TEXTURE1));
 	OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
@@ -4468,6 +4484,14 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 #endif
 
 	[result oo_setFloat:[gameView fov:NO] forKey:@"fovValue"];
+
+#if OOLITE_WINDOWS
+	if ([gameView hdrOutput])
+	{
+		[result oo_setFloat:[gameView hdrMaxBrightness] forKey:@"hdr-max-brightness"];
+		[result oo_setFloat:[gameView hdrPaperWhiteBrightness] forKey:@"hdr-paperwhite-brightness"];
+	}
+#endif
 	
 	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	

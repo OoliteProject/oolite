@@ -154,7 +154,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
 	BOOL	vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
-	int 	bitsPerColorComponent = [prefs oo_intForKey:@"bpcc" defaultValue:8];
+	int 	bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
 	int		vSyncValue;
 
 	NSArray				*arguments = nil;
@@ -186,7 +186,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		// if V-sync is disabled at the command line, override the defaults file
 		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
 		
-		if ([arg isEqual: @"-bpcc16"])  bitsPerColorComponent = 16;
+		if ([arg isEqual: @"-hdr"])  bitsPerColorComponent = 16;
 	}
 	
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
@@ -253,8 +253,20 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, bitsPerColorComponent);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bitsPerColorComponent);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, bitsPerColorComponent);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	
+	_hdrOutput = NO;
+#if OOLITE_WINDOWS
+	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
+	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:80.0f];
+	if (bitsPerColorComponent == 16)
+	{
+		// SDL.dll built specifically for Oolite required
+		SDL_GL_SetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, 1);
+		_hdrOutput = YES;
+	}
+#endif
 	
 	// V-sync settings - we set here, but can only verify after SDL_SetVideoMode has been called.
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vSyncPreference);	// V-sync on by default.
@@ -286,7 +298,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
-	OOLog(@"display.initGL", @"Trying %d-bpcc, 32-bit depth buffer", bitsPerColorComponent);
+	OOLog(@"display.initGL", @"Trying %d-bpcc, 24-bit depth buffer", bitsPerColorComponent);
 	[self createSurface];
 	
 	if (surface == NULL)
@@ -344,6 +356,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	OOLog(@"display.initGL", @"Alpha: %d", testAttrib);
 	SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &testAttrib);
 	OOLog(@"display.initGL", @"Depth Buffer: %d", testAttrib);
+#if OOLITE_WINDOWS
+	SDL_GL_GetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, &testAttrib);
+	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
+#endif
 	
 	// Verify V-sync successfully set - report it if not
 	if (vSyncPreference && SDL_GL_GetAttribute(SDL_GL_SWAP_CONTROL, &vSyncValue) == -1)
@@ -1004,6 +1020,44 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (BOOL) hdrOutput
+{
+	return _hdrOutput;
+}
+
+
+- (float) hdrMaxBrightness
+{
+	return _hdrMaxBrightness;
+}
+
+
+- (void) setHDRMaxBrightness: (float)newMaxBrightness
+{
+	if (newMaxBrightness < MIN_HDR_MAXBRIGHTNESS)  newMaxBrightness = MIN_HDR_MAXBRIGHTNESS;
+	if (newMaxBrightness > MAX_HDR_MAXBRIGHTNESS)  newMaxBrightness = MAX_HDR_MAXBRIGHTNESS;
+	_hdrMaxBrightness = newMaxBrightness;
+	
+	[[NSUserDefaults standardUserDefaults] setFloat:_hdrMaxBrightness forKey:@"hdr-max-brightness"];
+}
+
+
+- (float) hdrPaperWhiteBrightness
+{
+	return _hdrPaperWhiteBrightness;
+}
+
+
+- (void) setHDRPaperWhiteBrightness: (float)newPaperWhiteBrightness
+{
+	if (newPaperWhiteBrightness < MIN_HDR_PAPERWHITE)  newPaperWhiteBrightness = MIN_HDR_PAPERWHITE;
+	if (newPaperWhiteBrightness > MAX_HDR_PAPERWHITE)  newPaperWhiteBrightness = MAX_HDR_PAPERWHITE;
+	_hdrPaperWhiteBrightness = newPaperWhiteBrightness;
+	
+	[[NSUserDefaults standardUserDefaults] setFloat:_hdrPaperWhiteBrightness forKey:@"hdr-paperwhite-brightness"];
+}
+
+
 #else	// Linus stub methods
 
 // for Linux we assume we are always on the primary monitor for now
@@ -1034,6 +1088,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 - (void) setWindowBorderless:(BOOL)borderless
 {
 	// do nothing on Linux
+}
+
+
+- (BOOL) hdrOutput
+{
+	return NO;
 }
 
 #endif //OOLITE_WINDOWS

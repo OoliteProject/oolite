@@ -8814,6 +8814,28 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		}
 #endif	// OO_RESOLUTIOM_OPTION
 
+
+#if OOLITE_WINDOWS
+		if ([gameView hdrOutput])
+		{
+			NSArray		*brightnesses = [[UNIVERSE descriptions] oo_arrayForKey: @"hdr_maxBrightness_array"];
+			int			brightnessIdx = [brightnesses indexOfObject:[NSString stringWithFormat:@"%d", (int)[gameView hdrMaxBrightness]]];
+			
+			if (brightnessIdx == NSNotFound)
+			{
+				OOLogWARN(@"hdr.maxBrightness.notFound", @"%@", @"couldn't find current max brightness setting, switching to 400 nits.");
+				brightnessIdx = 0;
+			}
+				
+			int brightnessValue = [brightnesses oo_intAtIndex:brightnessIdx];
+			NSString *maxBrightnessString = OOExpandKey(@"gameoptions-hdr-maxbrightness", brightnessValue);
+																				
+			[gui setText:maxBrightnessString forRow:GUI_ROW(GAME,HDRMAXBRIGHTNESS)  align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,HDRMAXBRIGHTNESS)];
+		}
+#endif
+
+
 		if ([UNIVERSE autoSave])
 			[gui setText:DESC(@"gameoptions-autosave-yes") forRow:GUI_ROW(GAME,AUTOSAVE) align:GUI_ALIGN_CENTER];
 		else
@@ -8922,11 +8944,24 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		[gui setText:message forRow:GUI_ROW(GAME,MUSIC) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,MUSIC)];
 
-		if ([UNIVERSE wireframeGraphics])
-			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
+		if (![gameView hdrOutput])
+		{
+			if ([UNIVERSE wireframeGraphics])
+				[gui setText:DESC(@"gameoptions-wireframe-graphics-yes") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
+			else
+				[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)];
+		}
+#if OOLITE_WINDOWS
 		else
-			[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)];
+		{
+			float paperWhite = [gameView hdrPaperWhiteBrightness];
+			int paperWhiteTicks = (int)((paperWhite - MIN_HDR_PAPERWHITE) * 20 / (MAX_HDR_PAPERWHITE - MIN_HDR_PAPERWHITE));
+			NSString* paperWhiteWordDesc = DESC(@"gameoptions-hdr-paperwhite");
+			[gui setText:[NSString stringWithFormat:@"%@%@ (%d) ", paperWhiteWordDesc, SliderString(paperWhiteTicks), (int)paperWhite] forRow:GUI_ROW(GAME,HDRPAPERWHITE) align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,HDRPAPERWHITE)];
+		}
+#endif
 		
 #if !NEW_PLANETS
 		if ([UNIVERSE doProcedurallyTexturedPlanets])

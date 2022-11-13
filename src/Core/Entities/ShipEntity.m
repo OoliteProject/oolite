@@ -499,8 +499,8 @@ static ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 	
 
 	
-	// sun glare filter - default is no filter
-	[self setSunGlareFilter:[shipDict oo_floatForKey:@"sun_glare_filter" defaultValue:0.0f]];
+	// sun glare filter - default is no filter for SDR, almost full filter for HDR
+	[self setSunGlareFilter:[shipDict oo_floatForKey:@"sun_glare_filter" defaultValue:[[UNIVERSE gameView] hdrOutput] ? 0.99f : 0.0f]];
 	
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];

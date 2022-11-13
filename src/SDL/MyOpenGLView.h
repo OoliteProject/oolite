@@ -35,6 +35,12 @@ MA 02110-1301, USA.
 #define MIN_FOV			(tan((MIN_FOV_DEG / 2) * M_PI / 180.0f))
 #define MAX_FOV			(tan((MAX_FOV_DEG / 2) * M_PI / 180.0f))
 
+#define MIN_HDR_MAXBRIGHTNESS	400.0
+#define MAX_HDR_MAXBRIGHTNESS	1000.0
+
+#define MIN_HDR_PAPERWHITE		80.0f
+#define MAX_HDR_PAPERWHITE		280.0f
+
 #define MOUSEVIRTUALSTICKSENSITIVITYFACTOR	0.95f
 #define MOUSEX_MAXIMUM 0.6
 #define MOUSEY_MAXIMUM 0.6
@@ -196,8 +202,12 @@ extern int debug;
 	HWND 				SDL_Window;
 	MONITORINFOEX		monitorInfo;
 	RECT				lastGoodRect;
+	float				_hdrMaxBrightness;
+	float				_hdrPaperWhiteBrightness;
 
 #endif
+
+	BOOL				_hdrOutput;
 
 	BOOL				grabMouseStatus;
 
@@ -242,7 +252,12 @@ extern int debug;
 - (BOOL) getCurrentMonitorInfo:(MONITORINFOEX *)mInfo;
 - (MONITORINFOEX) currentMonitorInfo;
 - (BOOL) atDesktopResolution;
+- (float) hdrMaxBrightness;
+- (void) setHDRMaxBrightness:(float)newMaxBrightness;
+- (float) hdrPaperWhiteBrightness;
+- (void) setHDRPaperWhiteBrightness:(float)newPaperWhiteBrightness;
 #endif
+- (BOOL) hdrOutput;
 
 - (void) grabMouseInsideGameWindow:(BOOL) value;
 

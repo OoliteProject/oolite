@@ -139,6 +139,7 @@ PFNGLCHECKFRAMEBUFFERSTATUSPROC			glCheckFramebufferStatus			= (PFNGLCHECKFRAMEB
 PFNGLTEXIMAGE2DMULTISAMPLEPROC				glTexImage2DMultisample			= (PFNGLTEXIMAGE2DMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
 PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC		glRenderbufferStorageMultisample	= (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)&OOBadOpenGLExtensionUsed;
 PFNGLBLITFRAMEBUFFERPROC					glBlitFramebuffer					= (PFNGLBLITFRAMEBUFFERPROC)&OOBadOpenGLExtensionUsed;
+PFNGLCLAMPCOLORPROC						glClampColor					= (PFNGLCLAMPCOLORPROC)&OOBadOpenGLExtensionUsed;
 #endif                                                                    
 #endif
 
@@ -686,7 +687,8 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 		glCheckFramebufferStatus		= (PFNGLCHECKFRAMEBUFFERSTATUSPROC)wglGetProcAddress		("glCheckFramebufferStatus"				);
 		glTexImage2DMultisample		= (PFNGLTEXIMAGE2DMULTISAMPLEPROC)wglGetProcAddress		("glTexImage2DMultisample"					);
 		glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)wglGetProcAddress ("glRenderbufferStorageMultisample"	);
-		glBlitFramebuffer				= (PFNGLBLITFRAMEBUFFERPROC)wglGetProcAddress			("glBlitFramebuffer"			);
+		glBlitFramebuffer			= (PFNGLBLITFRAMEBUFFERPROC)wglGetProcAddress			("glBlitFramebuffer"			);
+		glClampColor				= (PFNGLCLAMPCOLORPROC)wglGetProcAddress				("glClampColor"					);
 	}
 #endif
 }
