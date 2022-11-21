@@ -57,10 +57,14 @@ toolbar).
 See the Oolite wiki:
 http://wiki.alioth.net/index.php/Running_Oolite-Windows
 
-### Linux
+### Debian/dpkg
 
 If you have the Debian package tools (installed by default with
 Debian and Ubuntu), use dpkg-buildpackage.
+
+### Other Unix platforms
+
+#### Install the necessary dependencies
 
 On Linux, BSD and other Unix platforms without dpkg tools, you will need to
 get GNUstep and SDL development libraries in addition to what is usually
@@ -72,13 +76,46 @@ Spidermonkey (libmozjs). On others you may need to build them from source. In
 particular, you need the SDL_Mixer library, which doesn't always come with the
 base SDL development kit.
 
-Then just type `make`, or, if you're using GNU make,
-`make -f Makefile release`. On some systems, such as Gentoo, you may need to run
-`make -f Makefile release OBJCFLAGS=-fobjc-exceptions`.  
-If you get errors like `make[1]: *** No rule to make target '/objc.make'.  Stop.` it might help if you run `source /usr/share/GNUstep/Makefiles/GNUstep.sh` (the exact path to `GNUstep.sh` might differ).  
-If you have problems with missing textures you can try to delete `deps/Linux-deps/include/png.h` and `deps/Linux-deps/include/pngconf.h` before compiling.
+- Fedora Linux:
+```bash
+dnf install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc nspr-devel SDL_mixer sdl12-compat-devel SDL2-devel gnustep-base-devel gnustep-make
+```
+- Other distros will likely have similar packages available in their repositories. If you find out which packages to install on another Linux distribution, it would be really nice if you could add them here.
 
-Also remember to first fetch the various submodules, see [Git](#Git).
+#### First fetch all the git submodules
+```bash
+cp .absolute_gitmodules .gitmodules
+git submodule update --init
+git checkout -- .gitmodules
+```
+
+#### Compile
+```bash
+source /usr/lib64/GNUstep/Makefiles/GNUstep.sh
+# might also be somewhere else like "/usr/share/GNUstep/Makefiles/GNUstep.sh"
+
+make -f Makefile release -j$(nproc)
+```
+
+#### Troubleshooting
+
+- If you can't see any textures, try deleting the following files, and compile again.
+```bash
+rm deps/Linux-deps/include/png.h
+rm deps/Linux-deps/include/pngconf.h
+```
+- On Fedora: If you get errors like `gcc: fatal error: environment variable ‘RPM_ARCH’ not defined`, try the following workaround before compiling:
+```bash
+export RPM_ARCH=bla
+export RPM_PACKAGE_RELEASE=bla
+export RPM_PACKAGE_VERSION=bla
+export RPM_PACKAGE_NAME=bla
+```
+
+- If you get compiler errors, you can try compiling with:
+```bash
+make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(nproc)
+```
 
 ## Running
 On OS X, you can run from Xcode by clicking on the appropriate icon
