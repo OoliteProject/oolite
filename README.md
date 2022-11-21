@@ -72,13 +72,11 @@ installed by default if you choose to install the development
 headers/libraries etc. when initially installing the OS. For most Linux
 distros, GNUstep and SDL development libraries come prepackaged - just
 apt-get/yum install the relevant files. You may also need to install Mozilla
-Spidermonkey (libmozjs). On others you may need to build them from source. In
-particular, you need the SDL_Mixer library, which doesn't always come with the
-base SDL development kit.
+Spidermonkey (libmozjs). On others you may need to build them from source.
 
 - Fedora Linux:
 ```bash
-dnf install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc nspr-devel SDL_mixer sdl12-compat-devel SDL2-devel gnustep-base-devel gnustep-make
+dnf install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc nspr-devel sdl12-compat-devel SDL2-devel gnustep-base-devel gnustep-make
 ```
 - Other distros will likely have similar packages available in their repositories. If you find out which packages to install on another Linux distribution, it would be really nice if you could add them here.
 
