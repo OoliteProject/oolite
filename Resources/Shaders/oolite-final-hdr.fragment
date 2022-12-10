@@ -13,16 +13,23 @@ uniform float		uPaperWhiteBrightness;
 
 
 #define SMPTE_ST2084MAXNITS	10000.0
+#define HDR_HEATMAP			0
 
 
 vec3 ACESFilmRec2020( vec3 x )
 {
-	//x *= 0.6;
-	float a = 15.8f;
-	float b = 2.12f;
-	float c = 1.2f;
-	float d = 5.92f;
-	float e = 1.9f;
+	x *= 0.6;
+	float use400 = 1.0 - abs(sign(uMaxBrightness - 400.0));
+	float use500 = 1.0 - abs(sign(uMaxBrightness - 500.0));
+	float use600 = 1.0 - abs(sign(uMaxBrightness - 600.0));
+	float use800 = 1.0 - abs(sign(uMaxBrightness - 800.0));
+	float use1000 = 1.0 - abs(sign(uMaxBrightness - 1000.0));
+	// only one column of coefficients will be used, based on current max brightness
+	float a = 15.8f	* use1000	+	15.8f * use800	+	15.8f * use600	+	27.7f * use500	+	19.2f * use400;
+	float b = 2.12f	* use1000	+	2.12f * use800	+	2.12f * use600	+	1.22f * use500	+	1.22f * use400;
+	float c = 1.20f	* use1000	+	1.58f * use800	+	2.08f * use600	+	4.80f * use500	+	4.80f * use400;
+	float d = 5.92f	* use1000	+	5.92f * use800	+	5.92f * use600	+	9.80f * use500	+	15.0f * use400;
+	float e = 1.90f	* use1000	+	1.90f *	use800	+	1.90f * use600	+	1.23f * use500	+	1.23f * use400;
 	return ( x * ( a * x + b ) ) / ( x * ( c * x + d ) + e );
 }
 
@@ -85,32 +92,6 @@ vec3 Rec2020toRec709(vec3 rgb2020)
 	);
 	return convMat * rgb2020;
 }
-
-
-/*
-float3 REC709toREC2020( float3 RGB709 )
-{
-    static const float3x3 ConvMat =
-    {
-        0.627402, 0.329292, 0.043306,
-        0.069095, 0.919544, 0.011360,
-        0.016394, 0.088028, 0.895578
-    };
-    return mul(ConvMat, RGB709);
-}
-
-
-float3 REC2020toREC709(float3 RGB2020)
-{
-    static const float3x3 ConvMat =
-    {
-        1.660496, -0.587656, -0.072840,
-        -0.124547, 1.132895, -0.008348,
-        -0.018154, -0.100597, 1.118751
-    };
-    return mul(ConvMat, RGB2020);
-}
-*/
 
 
 // ==========================================================================================
@@ -571,8 +552,67 @@ void main()
 	
 	// tone mapping
 	// at 1000 nits max brighness and 80 nits paper white we get the pure tone mapping result
-	vec3 result = ACESFilmRec2020(hdrColor);
-	result *= uPaperWhiteBrightness * 0.001 * uMaxBrightness * 0.0125;
+	vec3 result = ACESFilmRec2020(hdrColor * uPaperWhiteBrightness * 0.0125);
+	
+#if HDR_HEATMAP	
+	// This code is based on the luminance heatmap effect from https://github.com/13thsymphony/HDRImageViewer
+	// Define constants: 9 "stops" for a piecewise linear gradient in scRGB space.
+	#define STOP0_NITS 0.00f
+	#define STOP1_NITS 3.16f
+	#define STOP2_NITS 10.0f
+	#define STOP3_NITS 31.6f
+	#define STOP4_NITS 100.f
+	#define STOP5_NITS 316.f
+	#define STOP6_NITS 1000.f
+	#define STOP7_NITS 3160.f
+	#define STOP8_NITS 10000.f
+	
+	#define STOP0_COLOR vec3(0.0f, 0.0f, 0.0f) // Black
+	#define STOP1_COLOR vec3(0.0f, 0.0f, 1.0f) // Blue
+	#define STOP2_COLOR vec3(0.0f, 1.0f, 1.0f) // Cyan
+	#define STOP3_COLOR vec3(0.0f, 1.0f, 0.0f) // Green
+	#define STOP4_COLOR vec3(1.0f, 1.0f, 0.0f) // Yellow
+	#define STOP5_COLOR vec3(1.0f, 0.2f, 0.0f) // Orange
+	#define STOP6_COLOR vec3(1.0f, 0.0f, 0.0f) // Red
+	#define STOP7_COLOR vec3(1.0f, 0.0f, 1.0f) // Magenta
+	#define STOP8_COLOR vec3(1.0f, 1.0f, 1.0f) // White
+	
+	float nits = grayscale(result).r * 80.0;
+	
+	// Determine which gradient segment will be used.
+	// Only one of useSegmentN will be 1 (true) for a given nits value.
+	float useSegment0 = sign(nits - STOP0_NITS) - sign(nits - STOP1_NITS);
+	float useSegment1 = sign(nits - STOP1_NITS) - sign(nits - STOP2_NITS);
+	float useSegment2 = sign(nits - STOP2_NITS) - sign(nits - STOP3_NITS);
+	float useSegment3 = sign(nits - STOP3_NITS) - sign(nits - STOP4_NITS);
+	float useSegment4 = sign(nits - STOP4_NITS) - sign(nits - STOP5_NITS);
+	float useSegment5 = sign(nits - STOP5_NITS) - sign(nits - STOP6_NITS);
+	float useSegment6 = sign(nits - STOP6_NITS) - sign(nits - STOP7_NITS);
+	float useSegment7 = sign(nits - STOP7_NITS) - sign(nits - STOP8_NITS);
+	
+	// Calculate the interpolated color.
+	float lerpSegment0 = (nits - STOP0_NITS) / (STOP1_NITS - STOP0_NITS);
+	float lerpSegment1 = (nits - STOP1_NITS) / (STOP2_NITS - STOP1_NITS);
+	float lerpSegment2 = (nits - STOP2_NITS) / (STOP3_NITS - STOP2_NITS);
+	float lerpSegment3 = (nits - STOP3_NITS) / (STOP4_NITS - STOP3_NITS);
+	float lerpSegment4 = (nits - STOP4_NITS) / (STOP5_NITS - STOP4_NITS);
+	float lerpSegment5 = (nits - STOP5_NITS) / (STOP6_NITS - STOP5_NITS);
+	float lerpSegment6 = (nits - STOP6_NITS) / (STOP7_NITS - STOP6_NITS);
+	float lerpSegment7 = (nits - STOP7_NITS) / (STOP8_NITS - STOP7_NITS);
+	
+	//  Only the "active" gradient segment contributes to the output color.
+	vec3 output =
+		mix(STOP0_COLOR, STOP1_COLOR, lerpSegment0) * useSegment0 +
+		mix(STOP1_COLOR, STOP2_COLOR, lerpSegment1) * useSegment1 +
+		mix(STOP2_COLOR, STOP3_COLOR, lerpSegment2) * useSegment2 +
+		mix(STOP3_COLOR, STOP4_COLOR, lerpSegment3) * useSegment3 +
+		mix(STOP4_COLOR, STOP5_COLOR, lerpSegment4) * useSegment4 +
+		mix(STOP5_COLOR, STOP6_COLOR, lerpSegment5) * useSegment5 +
+		mix(STOP6_COLOR, STOP7_COLOR, lerpSegment6) * useSegment6 +
+		mix(STOP7_COLOR, STOP8_COLOR, lerpSegment7) * useSegment7;
+		
+	result = output;
+#endif
 	
 	// perceptual quantizer
 	//result = ApplySMPTE_ST2084Curve(result / SMPTE_ST2084MAXNITS);
