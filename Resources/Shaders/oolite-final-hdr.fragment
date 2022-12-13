@@ -29,7 +29,7 @@ vec3 ACESFilmRec2020( vec3 x )
 	float b = 2.12f	* use1000	+	2.12f * use800	+	2.12f * use600	+	1.22f * use500	+	1.22f * use400;
 	float c = 1.20f	* use1000	+	1.58f * use800	+	2.08f * use600	+	4.80f * use500	+	4.80f * use400;
 	float d = 5.92f	* use1000	+	5.92f * use800	+	5.92f * use600	+	9.80f * use500	+	15.0f * use400;
-	float e = 1.90f	* use1000	+	1.90f *	use800	+	1.90f * use600	+	1.23f * use500	+	1.23f * use400;
+	float e = 1.90f	* use1000	+	1.90f *	use800	+	1.90f * use600	+	3.90f * use500	+	3.90f * use400;
 	return ( x * ( a * x + b ) ) / ( x * ( c * x + d ) + e );
 }
 
@@ -552,7 +552,11 @@ void main()
 	
 	// tone mapping
 	// at 1000 nits max brighness and 80 nits paper white we get the pure tone mapping result
-	vec3 result = ACESFilmRec2020(hdrColor * uPaperWhiteBrightness * 0.0125);
+	// also, we desaturate colors as they become brighter
+	vec3 luma = grayscale(hdrColor);
+	float t = luma.r;
+	t = t * t / (12.0 + t);
+	vec3 result = ACESFilmRec2020(mix(hdrColor, luma, clamp(t * 80 / uMaxBrightness, 0.0, 1.0)) * uPaperWhiteBrightness * 0.0125);
 	
 #if HDR_HEATMAP	
 	// This code is based on the luminance heatmap effect from https://github.com/13thsymphony/HDRImageViewer
