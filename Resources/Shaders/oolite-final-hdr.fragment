@@ -153,17 +153,17 @@ void blindnessFilter( out vec3 myoutput, in vec3 myinput )
 			vec3 opponentColor = RGBtoOpponentMat * myinput;
 			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
 			vec3 rgbColor = OpponentToRGBMat * opponentColor;
-			myoutput = rgbColor;
+			myoutput = max(vec3(0.0),rgbColor);
 	} else if (blindnessType == DEUTERANOPIA) {
 			vec3 opponentColor = RGBtoOpponentMat * myinput;
 			opponentColor.x -= opponentColor.y * 1.5; // reds (y <= 0) become lighter, greens (y >= 0) become darker
 			vec3 rgbColor = OpponentToRGBMat * opponentColor;
-			myoutput = rgbColor;
+			myoutput = max(vec3(0.0),rgbColor);
 	} else if (blindnessType == TRITANOPIA) {
 			vec3 opponentColor = RGBtoOpponentMat * myinput;
 			opponentColor.x -= ((3.0 * opponentColor.z) - opponentColor.y) * 0.25;
 			vec3 rgbColor = OpponentToRGBMat * opponentColor;
-			myoutput = rgbColor;
+			myoutput = max(vec3(0.0),rgbColor);
     } else {
 			myoutput = myinput;
 	}	
@@ -191,7 +191,7 @@ void blindnessVision( out vec3 myoutput, in vec3 myinput )
         	blindVisionG = vec4(0.0,  1.0,  0.0, 0.0 );
         	blindVisionB = vec4(0.0,  0.0,  1.0, 0.0 );			
 	}
-	myoutput = vec3(dot(myinput, blindVisionR.rgb), dot(myinput, blindVisionG.rgb), dot(myinput, blindVisionB.rgb));	
+	myoutput = max(vec3(0.0), vec3(dot(myinput, blindVisionR.rgb), dot(myinput, blindVisionG.rgb), dot(myinput, blindVisionB.rgb)));	
 }
 
 vec3 colorBlindness(vec3 inColor)
@@ -465,7 +465,7 @@ vec3 CRT(sampler2D inImage, vec2 inCoords)
     col.g = texture(inImage, crt_uv).g;
     col.b = texture(inImage, crt_uv + vec2(0., -0.0025)).b;
     
-    col = mix(col, vec3(s1 + s2), 0.05);
+    col = mix(col, max(vec3(s1 + s2), vec3(0.0)), 0.05);
 	col = mix(col, vec3(noise(uv * 500.)), 0.05) * vignette(uv, 1.9, .6, 8.);
 	
 	return col;
