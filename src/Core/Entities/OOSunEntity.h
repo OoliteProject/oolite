@@ -74,6 +74,8 @@ MA 02110-1301, USA.
 	OOTimeDelta				_novaCountdown;
 	OOTimeDelta				_novaExpansionTimer;
 	float					_novaExpansionRate;
+	
+	float					_sunBrightnessFactor;
 
 	NSString				*_name;
 }
@@ -95,5 +97,6 @@ MA 02110-1301, USA.
 
 - (void) drawStarGlare;
 - (void) drawDirectVisionSunGlare;
+- (void) resetNova;
 
 @end

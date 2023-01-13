@@ -67,9 +67,6 @@ MA 02110-1301, USA.
 	float		hue, sat, bri, alf;
 	OOColor		*color = nil;
 	
-	// sun brightness factor
-	float sbf = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"sbf" defaultValue:50.0f];
-	
 	// blend some white into the sun color to brighten it up
 	sun_color = [sun_color blendedColorWithFraction:0.3 ofColor:[OOColor whiteColor]];
 	
@@ -108,7 +105,7 @@ MA 02110-1301, USA.
 	color = [OOColor colorWithHue:hue saturation:sat /** 0.333f*/ brightness:1.0f alpha:1.0f];
 	// our OpenGL color values are unclamped, so we can multiply the color components by
 	// any value we want, in order to make the sun a truly bright object in the sky
-	color = [OOColor colorWithRed:[color redComponent] * sbf green:[color greenComponent] * sbf blue:[color blueComponent] * sbf alpha:[color alphaComponent]];
+	color = [OOColor colorWithRed:[color redComponent] * _sunBrightnessFactor green:[color greenComponent] * _sunBrightnessFactor blue:[color blueComponent] * _sunBrightnessFactor alpha:[color alphaComponent]];
 	[color getRed:&discColor[0] green:&discColor[1] blue:&discColor[2] alpha:&discColor[3]];
 	
 	/*	Two inner corona layers with low alpha and saturation are additively
@@ -134,12 +131,12 @@ MA 02110-1301, USA.
 	
 	scanClass = CLASS_NO_DRAW;
 	
+	_sunBrightnessFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"sbf" defaultValue:50.0f];
+	
 	[self setSunColor:sun_color];
 
 	[self setName:OOExpand([dict oo_stringForKey:KEY_SUNNAME defaultValue:@"[oolite-default-star-name]"])];
-
-
-		
+	
 	corona_blending=OOClamp_0_1_f([dict oo_floatForKey:@"corona_hues" defaultValue:1.0f]);
 	corona_speed_factor=[dict oo_floatForKey:@"corona_shimmer" defaultValue:-1.0];
 	if(corona_speed_factor<0)
@@ -259,7 +256,7 @@ MA 02110-1301, USA.
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player viewpointPosition]);
 	
-	if (throw_sparks && _novaExpansionRate > 0)	// going NOVA!
+	if (throw_sparks && _novaExpansionRate > 0.0f)	// going NOVA!
 	{
 		if (_novaCountdown >= 0.0)	// countdown
 		{
@@ -299,7 +296,7 @@ MA 02110-1301, USA.
 					// is fine.
 					OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
 				}
-				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
+				discColor[0] = 1.0 * _sunBrightnessFactor;	discColor[1] = 1.0 * _sunBrightnessFactor;	discColor[2] = 1.0 * _sunBrightnessFactor;
 				_novaExpansionTimer += delta_t;
 				[UNIVERSE setSystemDataKey:@"sun_radius" value:[NSNumber numberWithFloat:collision_radius + delta_t * _novaExpansionRate] fromManifest:@"org.oolite.oolite"];
 			}
@@ -308,10 +305,7 @@ MA 02110-1301, USA.
 				OOLog(@"sun.nova.end", @"DEBUG: NOVA final radius %.1f", collision_radius);
 				
 				// reset at the new size
-				_novaCountdown = 0.0;
-				_novaExpansionTimer = 0.0;
-				_novaExpansionRate = 0.0f;
-				
+				[self resetNova];
 				throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
 			}
 		}
@@ -488,6 +482,7 @@ MA 02110-1301, USA.
 {
 //	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
 	
+	const float alphaMult = 0.005f;
 	GLfloat activity[8] = {0.84, 0.74, 0.64, 0.54, 
 												 0.3 , 0.4 , 0.7 , 0.8};
 	
@@ -548,7 +543,7 @@ MA 02110-1301, USA.
 	sunColors[k++] = discColor[0];
 	sunColors[k++] = discColor[1];
 	sunColors[k++] = discColor[2];
-	sunColors[k++] = discColor[3];
+	sunColors[k++] = discColor[3] * alphaMult;
 	for (j = 0 ; j <= 4 ; j++)
 	{
 		switch (j) {
@@ -566,7 +561,7 @@ MA 02110-1301, USA.
 			break;
 		case 1:
 			color = discColor;
-			alpha = 0.95;
+			alpha = 0.8;
 			break;
 		case 0:
 			color = discColor;
@@ -580,7 +575,7 @@ MA 02110-1301, USA.
 				sunColors[k++] = color[0];
 				sunColors[k++] = color[1];
 				sunColors[k++] = color[2];
-				sunColors[k++] = 1.0;
+				sunColors[k++] = alphaMult;
 			}
 			else
 			{
@@ -598,7 +593,7 @@ MA 02110-1301, USA.
 				sunColors[k++] = c0;
 				sunColors[k++] = c1;
 				sunColors[k++] = c2;
-				sunColors[k++] = alpha;
+				sunColors[k++] = alpha * alphaMult;
 			}	
 		}
 	}
@@ -802,6 +797,14 @@ MA 02110-1301, USA.
 	
 	_novaExpansionTimer = 0;
 	_novaExpansionRate = 10000;
+}
+
+
+- (void) resetNova
+{
+	_novaExpansionTimer = 0.0;
+	_novaExpansionRate = 0.0f;
+	_novaCountdown = 0.0;
 }
 
 

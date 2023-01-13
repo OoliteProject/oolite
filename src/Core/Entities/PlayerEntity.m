@@ -7674,6 +7674,13 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSPoint destCoords = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:sTo inGalaxy:galaxy_number]);
 	double distance = distanceBetweenPlanetPositions(destCoords.x,destCoords.y,galaxy_coordinates.x,galaxy_coordinates.y);
 	
+	// if we just escaped a system gone nova, make sure all nova parameters are reset
+	OOSunEntity *theSun = [UNIVERSE sun];
+	if (theSun && [theSun goneNova])
+	{
+		[theSun resetNova];
+	}
+	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
 	if (!misjump)
 	{
