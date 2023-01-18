@@ -76,6 +76,7 @@ MA 02110-1301, USA.
 	float					_novaExpansionRate;
 	
 	float					_sunBrightnessFactor;
+	float					_sunCoronaAlphaFactor;
 
 	NSString				*_name;
 }

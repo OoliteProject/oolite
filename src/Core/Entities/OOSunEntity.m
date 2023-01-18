@@ -132,6 +132,7 @@ MA 02110-1301, USA.
 	scanClass = CLASS_NO_DRAW;
 	
 	_sunBrightnessFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"sbf" defaultValue:50.0f];
+	_sunCoronaAlphaFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"scaf" defaultValue:0.005f];
 	
 	[self setSunColor:sun_color];
 
@@ -482,7 +483,6 @@ MA 02110-1301, USA.
 {
 //	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
 	
-	const float alphaMult = 0.005f;
 	GLfloat activity[8] = {0.84, 0.74, 0.64, 0.54, 
 												 0.3 , 0.4 , 0.7 , 0.8};
 	
@@ -511,7 +511,7 @@ MA 02110-1301, USA.
 			r += width/1.5f;
 			break;
 		case 2:
-			r += width/3.0f;
+			r += 2.0f * width/3.0f;
 			break;
 		case 1:
 				r += width/15.0f;
@@ -543,7 +543,13 @@ MA 02110-1301, USA.
 	sunColors[k++] = discColor[0];
 	sunColors[k++] = discColor[1];
 	sunColors[k++] = discColor[2];
-	sunColors[k++] = discColor[3] * alphaMult;
+	sunColors[k++] = discColor[3] * _sunCoronaAlphaFactor;
+	// the corona glow slowly fades away as we approach the sun and -drawStarGlare
+	// starts taking control of the overall glare on the screen
+	float sqrt_zero_distance = sqrtf(cam_zero_distance);
+	float alt = sqrt_zero_distance - collision_radius;
+	float corona = cor16k/SUN_GLARE_CORONA_FACTOR;
+	float glowAlpha = corona <= alt ? 1.0f : (alt/corona);
 	for (j = 0 ; j <= 4 ; j++)
 	{
 		switch (j) {
@@ -553,19 +559,19 @@ MA 02110-1301, USA.
 			break;
 		case 3:
 			color = outerCoronaColor;
-			alpha = 0.1;
+			alpha = 0.1 * glowAlpha;
 			break;
 		case 2:
 			color = outerCoronaColor;
-			alpha = 0.6;
+			alpha = 0.6 * glowAlpha;
 			break;
 		case 1:
 			color = discColor;
-			alpha = 0.8;
+			alpha = 0.8 * glowAlpha;
 			break;
 		case 0:
 			color = discColor;
-			alpha = 1.0;
+			alpha = 1.0 * glowAlpha;
 			break;
 		}
 		for (i = 0 ; i < 360 ; i++)
@@ -575,7 +581,7 @@ MA 02110-1301, USA.
 				sunColors[k++] = color[0];
 				sunColors[k++] = color[1];
 				sunColors[k++] = color[2];
-				sunColors[k++] = alphaMult;
+				sunColors[k++] = alpha * _sunCoronaAlphaFactor;
 			}
 			else
 			{
@@ -593,7 +599,7 @@ MA 02110-1301, USA.
 				sunColors[k++] = c0;
 				sunColors[k++] = c1;
 				sunColors[k++] = c2;
-				sunColors[k++] = alpha * alphaMult;
+				sunColors[k++] = alpha * _sunCoronaAlphaFactor;
 			}	
 		}
 	}
@@ -644,11 +650,6 @@ MA 02110-1301, USA.
 
 	OOSetOpenGLState(OPENGL_STATE_OVERLAY);
 	
-	if ([[UNIVERSE gameView] hdrOutput])
-	{
-		return;
-	}
-	
 	float sqrt_zero_distance = sqrtf(cam_zero_distance);
 	float alt = sqrt_zero_distance - collision_radius;
 	if (EXPECT_NOT(alt < 0))
@@ -658,7 +659,7 @@ MA 02110-1301, USA.
 	float corona = cor16k/SUN_GLARE_CORONA_FACTOR;
 	if (corona > alt)
 	{
-		float alpha = 1-(alt/corona);
+		float alpha = (1-(alt/corona)) * ([[UNIVERSE gameView] hdrOutput] ? _sunCoronaAlphaFactor : 1.0f);
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
 		MyOpenGLView *gameView = [UNIVERSE gameView];
