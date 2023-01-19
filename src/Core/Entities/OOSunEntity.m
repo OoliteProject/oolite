@@ -659,7 +659,9 @@ MA 02110-1301, USA.
 	float corona = cor16k/SUN_GLARE_CORONA_FACTOR;
 	if (corona > alt)
 	{
-		float alpha = (1-(alt/corona)) * ([[UNIVERSE gameView] hdrOutput] ? _sunCoronaAlphaFactor : 1.0f);
+		float alpha = (1-(alt/corona));
+		float alphaMult = [[UNIVERSE gameView] hdrOutput] ? _sunCoronaAlphaFactor : 0.25f * alpha;
+		alpha *= alphaMult;
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
 		MyOpenGLView *gameView = [UNIVERSE gameView];
