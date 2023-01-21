@@ -258,6 +258,7 @@ extern int debug;
 - (void) setHDRPaperWhiteBrightness:(float)newPaperWhiteBrightness;
 #endif
 - (BOOL) hdrOutput;
+- (BOOL) isOutputDisplayHDREnabled;
 
 - (void) grabMouseInsideGameWindow:(BOOL) value;
 
