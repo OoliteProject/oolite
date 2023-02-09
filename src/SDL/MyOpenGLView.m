@@ -392,6 +392,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) endSplashScreen
 {
+#if OOLITE_WINDOWS
 	if ([self hdrOutput] && ![self isOutputDisplayHDREnabled])
 	{
 		if (MessageBox(NULL,	"No primary display in HDR mode was detected.\n\n"
@@ -402,6 +403,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			exit (1);
 		}
 	}
+#endif // OOLITE_WINDOWS
 	
 	if (!showSplashScreen) return;
 
