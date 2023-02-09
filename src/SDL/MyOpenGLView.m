@@ -335,6 +335,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				if (showSplashScreen)
 				{
 					[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"splash-screen"];
+					[[NSUserDefaults standardUserDefaults] synchronize];
 					OOLogWARN(@"display.mode.conflict",@"Possible incompatibility between the splash screen and video drivers detected.");
 					OOLogWARN(@"display.mode.conflict",@"Oolite will start without showing the splash screen from now on. Override with 'oolite.exe -splash'");
 				}
@@ -391,6 +392,17 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) endSplashScreen
 {
+	if ([self hdrOutput] && ![self isOutputDisplayHDREnabled])
+	{
+		if (MessageBox(NULL,	"No primary display in HDR mode was detected.\n\n"
+							"If you continue, graphics will not be rendered as intended.\n"
+							"Click OK to launch anyway, or Cancel to exit.", "oolite.exe - HDR requested",
+							MB_OKCANCEL | MB_ICONWARNING) == IDCANCEL)
+		{
+			exit (1);
+		}
+	}
+	
 	if (!showSplashScreen) return;
 
 #if OOLITE_WINDOWS
@@ -1026,6 +1038,141 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (BOOL) isOutputDisplayHDREnabled
+{
+	UINT32 pathCount, modeCount;
+	DISPLAYCONFIG_PATH_INFO *pPathInfoArray;
+	DISPLAYCONFIG_MODE_INFO *pModeInfoArray;
+	UINT32 flags = QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE;
+	LONG tempResult = ERROR_SUCCESS;
+	BOOL result = NO;
+	
+	do
+	{
+		// determine how many path and mode structures to allocate
+		tempResult = GetDisplayConfigBufferSizes(flags, &pathCount, &modeCount);
+		
+		if (tempResult != ERROR_SUCCESS)
+		{
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			return NO;
+		}
+		
+		// allocate the path and mode arrays
+		pPathInfoArray = (DISPLAYCONFIG_PATH_INFO *)malloc(pathCount * sizeof(DISPLAYCONFIG_PATH_INFO));
+		if (!pPathInfoArray)
+		{
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: -1");
+			return NO;
+		}
+		
+		pModeInfoArray = (DISPLAYCONFIG_MODE_INFO *)malloc(modeCount * sizeof(DISPLAYCONFIG_MODE_INFO));
+		if (!pModeInfoArray)
+		{
+			if (pPathInfoArray)
+				free(pPathInfoArray);
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: -1");
+			return NO;
+		}
+		
+		// get all active paths and their modes
+		tempResult = QueryDisplayConfig(flags, &pathCount, pPathInfoArray, &modeCount, pModeInfoArray, NULL);
+		
+		if (tempResult != ERROR_SUCCESS)
+		{
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			return NO;
+		}
+	
+		// the function may have returned fewer paths/modes than estimated
+		pPathInfoArray = realloc(pPathInfoArray, pathCount * sizeof(DISPLAYCONFIG_PATH_INFO));
+		if (!pPathInfoArray)
+		{
+			OOLogERR(@"gameView.isOutputDisplayHDREnabled", @"Failed ro reallocate pPathInfoArray");
+			exit (1);
+		}
+		pModeInfoArray = realloc(pModeInfoArray, modeCount * sizeof(DISPLAYCONFIG_MODE_INFO));
+		if (!pModeInfoArray)
+		{
+			OOLogERR(@"gameView.isOutputDisplayHDREnabled", @"Failed to reallocate pModeInfoArray");
+			exit (1);
+		}
+	
+		// it's possible that between the call to GetDisplayConfigBufferSizes and QueryDisplayConfig
+		// that the display state changed, so loop on the case of ERROR_INSUFFICIENT_BUFFER.
+	} while (tempResult == ERROR_INSUFFICIENT_BUFFER);
+	
+	if (tempResult != ERROR_SUCCESS)
+	{
+		OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+		return NO;
+	}
+
+    // for each active path
+	int i;
+	for (i = 0; i < pathCount; i++)
+	{
+		DISPLAYCONFIG_PATH_INFO *path = &pPathInfoArray[i];
+		// find the target (monitor) friendly name
+		DISPLAYCONFIG_TARGET_DEVICE_NAME targetName = {};
+		targetName.header.adapterId = path->targetInfo.adapterId;
+		targetName.header.id = path->targetInfo.id;
+		targetName.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+		targetName.header.size = sizeof(targetName);
+		tempResult = DisplayConfigGetDeviceInfo(&targetName.header);
+		
+		if (tempResult != ERROR_SUCCESS)
+		{
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			return NO;
+		}
+		
+		// find the advanced color information
+		DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO advColorInfo = {};
+		advColorInfo.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
+		advColorInfo.header.adapterId = path->targetInfo.adapterId;
+		advColorInfo.header.id = path->targetInfo.id;
+		advColorInfo.header.size = sizeof(advColorInfo);
+		
+		tempResult = DisplayConfigGetDeviceInfo(&advColorInfo.header);
+		
+		if (tempResult != ERROR_SUCCESS)
+		{
+			OOLog(@"gameView.isOutputDisplayHDREnabled", @"Error! Code: %d", HRESULT_FROM_WIN32(tempResult));
+			return NO;
+		}
+		
+		char saveDeviceName[64];
+		wchar_t wcsDeviceID[256];
+		DISPLAY_DEVICE dd;
+		ZeroMemory(&dd, sizeof(dd));
+		dd.cb = sizeof(dd);
+		EnumDisplayDevices(NULL, i, &dd, 0);
+		BOOL isPrimaryDisplayDevice = dd.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE;
+		// second call to EnumDisplayDevices gets us the monitor device ID
+		strncpy(saveDeviceName, dd.DeviceName, 33);
+		EnumDisplayDevices(saveDeviceName, 0, &dd, 0x00000001);
+		mbstowcs(wcsDeviceID, dd.DeviceID, 129);
+		
+		// we are starting om the primary device, so check that one for advanced color support
+		// just to be safe, ensure that the monitor device from QDC being checked is the same as the one from EnumDisplayDevices
+		if (isPrimaryDisplayDevice && !wcscmp(targetName.monitorDevicePath, wcsDeviceID) && 
+			advColorInfo.advancedColorSupported && advColorInfo.advancedColorEnabled)
+		{
+			result = YES;
+			break;
+		}
+	}
+	
+	OOLog(@"gameView.isOutputDisplayHDREnabled", @"HDR display output requested - checking availability: %@", result ? @"YES" : @"NO");
+	
+	free (pModeInfoArray);
+	free (pPathInfoArray);
+
+	return result;
+}
+
+
 - (float) hdrMaxBrightness
 {
 	return _hdrMaxBrightness;
@@ -1092,6 +1239,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 
 - (BOOL) hdrOutput
+{
+	return NO;
+}
+
+
+- (BOOL) isOutputDisplayHDREnabled
 {
 	return NO;
 }
@@ -2222,6 +2375,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			// Nikos - 20140920
 			case SDL_SYSWMEVENT:
 			{
+				DWORD dwLastError = 0;
 				switch (event.syswm.msg->msg)
 				{
 					case WM_WINDOWPOSCHANGING:
@@ -2303,6 +2457,19 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 						application
 	`					*/
 						[self resetSDLKeyModifiers];
+						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
+						{
+							dwLastError = GetLastError();
+							OOLog(@"wm_setfocus.message", @"Setting thread priority to time critical failed! (error code: %d)", dwLastError);
+						}
+						break;
+						
+					case WM_KILLFOCUS:
+						if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL))
+						{
+							dwLastError = GetLastError();
+							OOLog(@"wm_killfocus.message", @"Setting thread priority to normal failed! (error code: %d)", dwLastError);
+						}
 						break;
 						
 					default:
