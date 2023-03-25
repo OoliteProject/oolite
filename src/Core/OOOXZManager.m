@@ -1417,7 +1417,7 @@ static OOOXZManager *sSingleton = nil;
 	}
 	else if (selection == OXZ_GUI_ROW_UPDATE_ALL)
 	{
-		OOLog(kOOOXZDebugLog, @"Trying to update all managed OXPs");
+		OOLog(kOOOXZDebugLog, @"%@", @"Trying to update all managed OXPs");
 		[self updateAllOXZ];
 	}
 	else if (selection == OXZ_GUI_ROW_LISTPREV)
