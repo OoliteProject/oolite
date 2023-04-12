@@ -78,6 +78,10 @@ Spidermonkey (libmozjs). On others you may need to build them from source.
 ```bash
 dnf install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc nspr-devel sdl12-compat-devel SDL2-devel gnustep-base-devel gnustep-make
 ```
+- Ubuntu 22.04:
+```bash
+apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
+```
 - Other distros will likely have similar packages available in their repositories. If you find out which packages to install on another Linux distribution, it would be really nice if you could add them here.
 
 #### First fetch all the git submodules
@@ -102,6 +106,7 @@ make -f Makefile release -j$(nproc)
 rm deps/Linux-deps/include/png.h
 rm deps/Linux-deps/include/pngconf.h
 ```
+
 - On Fedora: If you get errors like `gcc: fatal error: environment variable ‘RPM_ARCH’ not defined`, try the following workaround before compiling:
 ```bash
 export RPM_ARCH=bla
@@ -109,6 +114,8 @@ export RPM_PACKAGE_RELEASE=bla
 export RPM_PACKAGE_VERSION=bla
 export RPM_PACKAGE_NAME=bla
 ```
+
+- If you get errors like `fatal error: jsapi.h: No such file or directory`, you probably forgot to [first fetch all the git submodules](#first-fetch-all-the-git-submodules)
 
 - If you get compiler errors, you can try compiling with:
 ```bash
