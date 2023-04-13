@@ -98,6 +98,10 @@ source /usr/lib64/GNUstep/Makefiles/GNUstep.sh
 
 make -f Makefile release -j$(nproc)
 ```
+#### Collect results
+
+The buid output resides in path ...
+
 
 #### Troubleshooting
 
