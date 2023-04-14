@@ -1,0 +1,161 @@
+name: build-all
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Environment Variables
+        run: |
+          printenv | sort
+
+      - name: install all the necessary packages
+        run: |
+          sudo apt update
+          sudo apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v3
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: show filesystem before build
+        run: |
+          find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+          
+#      - name: this is necessary, as otherwise textures aren't loaded correctly
+#        run: |
+#          rm oolite/deps/Linux-deps/include/png.h
+#          rm oolite/deps/Linux-deps/include/pngconf.h
+
+      - name: compiling
+        run: |
+          cd oolite
+          source /usr/share/GNUstep/Makefiles/GNUstep.sh
+          #make -f Makefile release -j$(nproc)
+          make -f Makefile pkg-posix-nightly HOST_ARCH=$(uname -m)
+          
+      - name: show filesystem after build
+        run: |
+          find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
+
+#      - name: run installer
+#        run: |
+#          cd oolite
+#          COMMIT_ID=$(git log -1 --format="%H")
+#          #bash -x ./installers/posix/make_installer.sh $(uname -m) maj.min.rev.svnrevision release-deployment nightly
+#          bash -x ./installers/posix/make_installer.sh $(uname -m) ${COMMIT_ID} release-deployment nightly
+          
+      - name: assemble release files
+        run: |
+          mkdir oolite-nightly
+          #echo  > oolite-nightly/release.txt
+          #tar cvzf oolite-nightly/addons.tar.gz oolite/AddOns/
+          #tar cvzf oolite-nightly/freedesktop.tar.gz oolite/installers/FreeDesktop/
+          #tar cvzf oolite-nightly/oolite.deps.tar.gz oolite/deps/Linux-deps/$(uname -m)/lib/
+          #tar cvzf oolite-nightly/oolite.doc.tar oolite/Doc/AdviceForNewCommanders.pdf oolite/Doc/OoliteReadMe.pdf oolite/Doc/OoliteRS.pdf oolite/Doc/CHANGELOG.TXT
+          ##tar cvzf oolite-nightly/oolite.wrap.tar.gz oolite.src oolite-update.src
+          #tar cvzf oolite-nightly/oolite.dtd.tar.gz oolite/deps/Cross-platform-deps/DTDs
+          #tar cvzf oolite-nightly/oolite.app.gz oolite/oolite.app
+          cp oolite/installers/posix/oolite-*.run oolite-nightly
+
+      - name: create tar ball
+        run: |
+          tar cvfz oolite-linux-nightly.tgz oolite-nightly
+      
+      
+      - name: show filesystem after installer
+        run: |
+          find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
+          
+      - name: Archive build tar ball
+        uses: actions/upload-artifact@v3
+        with:
+          name: oolite-linux-nightly
+          path: |
+            oolite-linux-nightly.tgz
+          retention-days: 5
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Environment Variables
+        run: |
+          Get-ChildItem Env: | Sort Name
+
+      - name: Checkout DevelopmentEnvironment
+        uses: actions/checkout@v3
+        with:
+          repository:  OoliteProject/oolite-windows-build-env
+          path: DevelopmentEnvironment
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v3
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: Compile
+        shell: cmd
+        run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
+          
+      # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
+      # this is for debug only; it creates huge logs and takes a long time to execute
+      # - name: check filesystem
+      #  run: |
+      #    Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+
+      - name: Archive build
+        uses: actions/upload-artifact@v3
+        with:
+          name: oolite-windows-nightly
+          path: |
+            oolite/installers/win32/OoliteInstall*.exe
+          retention-days: 5
+
+  release-marvinpinto:
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: show filesystem after download
+        run: |
+          find .
+
+      - name: get date
+        run: |
+          echo "TODAY=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/master'
+        id: create_release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ env.TODAY }}"
+          prerelease: false
+          title: "Oolite"
+          files: |
+            oolite-windows-nightly/OoliteInstall*.exe
+            oolite-linux-nightly/oolite-linux-nightly.tgz
+
+      - name: Create Prerelease
+        if: github.ref != 'refs/heads/master'
+        id: create_prerelease
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ env.GITHUB_REF_NAME }}-${{ env.TODAY }}}}"
+          prerelease: true
+          title: "Oolite Prerelease ${{ env.GITHUB_REF_NAME }}-${{ env.TODAY }}}}"
+          files: |
+            oolite-windows-nightly/OoliteInstall*.exe
+            oolite-linux-nightly/oolite-linux-nightly.tgz
