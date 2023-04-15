@@ -8,6 +8,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
+      # This is for debugging only and helps developing the workflow.
       - name: Environment Variables
         run: |
           printenv | sort
@@ -24,51 +25,33 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      # This is for debugging only and helps developing the workflow.
       - name: show filesystem before build
         run: |
           find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
           
-#      - name: this is necessary, as otherwise textures aren't loaded correctly
-#        run: |
-#          rm oolite/deps/Linux-deps/include/png.h
-#          rm oolite/deps/Linux-deps/include/pngconf.h
-
       - name: compiling
         run: |
           cd oolite
           source /usr/share/GNUstep/Makefiles/GNUstep.sh
-          #make -f Makefile release -j$(nproc)
           make -f Makefile pkg-posix-nightly HOST_ARCH=$(uname -m)
           
+      # This is for debugging only and helps developing the workflow.
       - name: show filesystem after build
         run: |
           find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
 
-#      - name: run installer
-#        run: |
-#          cd oolite
-#          COMMIT_ID=$(git log -1 --format="%H")
-#          #bash -x ./installers/posix/make_installer.sh $(uname -m) maj.min.rev.svnrevision release-deployment nightly
-#          bash -x ./installers/posix/make_installer.sh $(uname -m) ${COMMIT_ID} release-deployment nightly
-          
       - name: assemble release files
         run: |
           mkdir oolite-nightly
-          #echo  > oolite-nightly/release.txt
-          #tar cvzf oolite-nightly/addons.tar.gz oolite/AddOns/
-          #tar cvzf oolite-nightly/freedesktop.tar.gz oolite/installers/FreeDesktop/
-          #tar cvzf oolite-nightly/oolite.deps.tar.gz oolite/deps/Linux-deps/$(uname -m)/lib/
-          #tar cvzf oolite-nightly/oolite.doc.tar oolite/Doc/AdviceForNewCommanders.pdf oolite/Doc/OoliteReadMe.pdf oolite/Doc/OoliteRS.pdf oolite/Doc/CHANGELOG.TXT
-          ##tar cvzf oolite-nightly/oolite.wrap.tar.gz oolite.src oolite-update.src
-          #tar cvzf oolite-nightly/oolite.dtd.tar.gz oolite/deps/Cross-platform-deps/DTDs
-          #tar cvzf oolite-nightly/oolite.app.gz oolite/oolite.app
           cp oolite/installers/posix/oolite-*.run oolite-nightly
 
       - name: create tar ball
         run: |
-          tar cvfz oolite-linux-nightly.tgz oolite-nightly
+          NAME=$(basename oolite-nightly/oolite-*.run .run)
+          tar cvfz ${NAME}.tgz oolite-nightly
       
-      
+      # This is for debugging only and helps developing the workflow.
       - name: show filesystem after installer
         run: |
           find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
@@ -78,12 +61,14 @@ jobs:
         with:
           name: oolite-linux-nightly
           path: |
-            oolite-linux-nightly.tgz
+            oolite-*.tgz
           retention-days: 5
+          
 
   build-windows:
     runs-on: windows-latest
     steps:
+      # This is for debugging only and helps developing the workflow.
       - name: Environment Variables
         run: |
           Get-ChildItem Env: | Sort Name
@@ -123,39 +108,60 @@ jobs:
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Oolite (to have the version number)
+        uses: actions/checkout@v3
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: preserve build number
+        run: |
+          cat oolite/src/Cocoa/oolite-version.xcconfig >> $GITHUB_ENV
+
+      # This is for debugging only and helps developing the workflow.
+      - name: Environment Variables
+        run: |
+          printenv | sort
+
       - name: Download artifacts
         uses: actions/download-artifact@v3
+        with:
+          path: artifacts
 
+      # This is for debugging only and helps developing the workflow.
       - name: show filesystem after download
         run: |
           find .
 
-      - name: get date
-        run: |
-          echo "TODAY=$(date +'%Y%m%d')" >> $GITHUB_ENV
-
+      # For changes on master branch, create a new release.
+      # It should move the 'latest' tag automatically.
       - name: Create Release
         if: github.ref == 'refs/heads/master'
         id: create_release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ env.TODAY }}"
+          automatic_release_tag: "${{ env.OOLITE_VERSION }}-${{ github.run_number }}"
           prerelease: false
-          title: "Oolite"
+          title: "Oolite ${{ env.OOLITE_VERSION }}-${{ github.run_number }}"
           files: |
-            oolite-windows-nightly/OoliteInstall*.exe
-            oolite-linux-nightly/oolite-linux-nightly.tgz
+            artifacts/oolite-windows-nightly/OoliteInstall*.exe
+            artifacts/oolite-linux-nightly/oolite-*.tgz
 
+      # For changes on master branch, create a new release.
+      # According to the docs the 'latest' tag should not move
+      # see https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
+      # for description of make_latest
       - name: Create Prerelease
         if: github.ref != 'refs/heads/master'
         id: create_prerelease
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ env.GITHUB_REF_NAME }}-${{ env.TODAY }}}}"
+          automatic_release_tag: "${{ env.OOLITE_VERSION }}-${{ github.ref_name }}-${{ github.run_number }}"
           prerelease: true
-          title: "Oolite Prerelease ${{ env.GITHUB_REF_NAME }}-${{ env.TODAY }}}}"
+          title: "Oolite ${{ env.OOLITE_VERSION }}-${{ github.ref_name }}-${{ github.run_number }}"
           files: |
-            oolite-windows-nightly/OoliteInstall*.exe
-            oolite-linux-nightly/oolite-linux-nightly.tgz
+            artifacts/oolite-windows-nightly/OoliteInstall*.exe
+            artifacts/oolite-linux-nightly/oolite-*.tgz
