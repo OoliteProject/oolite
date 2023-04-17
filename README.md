@@ -92,15 +92,28 @@ git checkout -- .gitmodules
 ```
 
 #### Compile
+
+This will just compile the project:
+
 ```bash
 source /usr/lib64/GNUstep/Makefiles/GNUstep.sh
 # might also be somewhere else like "/usr/share/GNUstep/Makefiles/GNUstep.sh"
 
 make -f Makefile release -j$(nproc)
 ```
+
+This will just compile the project and package an installer:
+
+```bash
+source /usr/lib64/GNUstep/Makefiles/GNUstep.sh
+# might also be somewhere else like "/usr/share/GNUstep/Makefiles/GNUstep.sh"
+
+make -f Makefile pkg-posix-nightly HOST_ARCH=$(uname -m)
+```
+
 #### Collect results
 
-The buid output resides in path ...
+In case you built the installer, it is located in the "installers/posix/" folder named something like "oolite-trunk-1.91.0.d87b089-dev.linux-x86_64.run"
 
 
 #### Troubleshooting
