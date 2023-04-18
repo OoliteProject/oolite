@@ -39,6 +39,9 @@ MA 02110-1301, USA.
 #import "OOFullScreenController.h"
 #import "ResourceManager.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#import "stb_image_write.h"
+
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
 static NSString * kOOLogKeyUp				= @"input.keyMapping.keyPress.keyUp";
@@ -1543,6 +1546,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 	int pitch = surface->w * 3;
 	unsigned char *pixls = malloc(pitch * surface->h);
+	GLfloat *pixlsf = (GLfloat *)malloc(pitch * surface->h * sizeof(GLfloat));
 	int y;
 	int off;
 
@@ -1551,6 +1555,14 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
 	{
 		glReadPixels(0, y, surface->w, 1, GL_RGB, GL_UNSIGNED_BYTE, pixls + off);
+	}
+	
+	if ([self hdrOutput])
+	{
+		for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
+		{
+			glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
+		}
 	}
 
 	tmpSurface=SDL_CreateRGBSurfaceFrom(pixls,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
@@ -1569,6 +1581,20 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 #endif
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
+	
+	// if outputting HDR signal, save also a Radiance .hdr snapshot
+	if ([self hdrOutput])
+	{
+		NSString *pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:@".hdr"];
+		OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
+		if (!stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf))
+		{
+			OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
+			snapShotOK = NO;
+		}
+	}
+	
+	free(pixlsf);
 
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
