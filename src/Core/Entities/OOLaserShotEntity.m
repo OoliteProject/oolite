@@ -41,8 +41,11 @@ MA 02110-1301, USA.
 #define kLaserGreen			(0.0f)
 #define kLaserBlue			(0.0f)
 
+// Brightness - set to 1.0 for legacy laser appearance
+#define kLaserBrightness	(5.0f)
+
 // Constant alpha
-#define kLaserAlpha			(0.45f)
+#define kLaserAlpha			(0.45f / kLaserBrightness)
 
 #define kLaserCoreWidth		(0.4f)
 #define kLaserFlareWidth		(1.8f)
@@ -138,9 +141,9 @@ static OOTexture *sShotTexture2 = nil;
 
 - (void) setColor:(OOColor *)color
 {
-	_color[0] = [color redComponent]/3.0;
-	_color[1] = [color greenComponent]/3.0;
-	_color[2] = [color blueComponent]/3.0;
+	_color[0] = kLaserBrightness * [color redComponent]/3.0;
+	_color[1] = kLaserBrightness * [color greenComponent]/3.0;
+	_color[2] = kLaserBrightness * [color blueComponent]/3.0;
 	// Ignore alpha; _color[3] is constant.
 }
 
@@ -233,7 +236,7 @@ static const GLfloat kLaserVertices[] =
 	glDrawArrays(GL_QUADS, 0, 8);
 	
 	OOGLScaleModelView(make_vector(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0));
-	OOGL(glColor4f(1.0,1.0,1.0,0.9));
+	OOGL(glColor4f(kLaserBrightness,kLaserBrightness,kLaserBrightness,0.9));
 	glDrawArrays(GL_QUADS, 0, 8);
 
 	[[self texture2] apply];
