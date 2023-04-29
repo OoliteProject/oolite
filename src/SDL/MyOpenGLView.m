@@ -259,6 +259,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
+	_colorSaturation = 1.0f;
+	
 	_hdrOutput = NO;
 #if OOLITE_WINDOWS
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
@@ -1487,6 +1489,19 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	squareX = 0.0f;
 
 	m_glContextInitialized = YES;
+}
+
+
+- (float) colorSaturation
+{
+	return _colorSaturation;
+}
+
+
+- (void) adjustColorSaturation:(float)colorSaturationAdjustment;
+{
+	_colorSaturation += colorSaturationAdjustment;
+	_colorSaturation = OOClamp_0_max_f(_colorSaturation, MAX_COLOR_SATURATION);
 }
 
 

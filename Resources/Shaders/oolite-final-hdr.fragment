@@ -10,6 +10,7 @@ uniform float		uTime;
 uniform vec2		uResolution;
 uniform float		uMaxBrightness;
 uniform float		uPaperWhiteBrightness;
+uniform float		uSaturation;
 
 
 #define SMPTE_ST2084MAXNITS	10000.0
@@ -552,7 +553,6 @@ vec3 ACESFilm(vec3 color)
 void main()
 {    
 	float exposure = 1.0;
-	float saturation = 1.0;
 	vec3 hdrColor = texture(scene, TexCoords).rgb;      
 	vec3 bloomColor = texture(bloomBlur, TexCoords).rgb;
 	
@@ -587,11 +587,13 @@ void main()
 			hdrColor = CRT(scene, TexCoords);
 			bloomColor = CRT(bloomBlur, TexCoords);
 			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
 			break;
 		case 8:
 			hdrColor = gravLens(scene, TexCoords);
 			bloomColor = gravLens(bloomBlur, TexCoords);
 			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
 			break;
 		default:
 			break;
@@ -603,7 +605,7 @@ void main()
 	t = t * t / (12.0 + t);
 	
 	// apply saturation
-	hdrColor = max(saturationMatrix(saturation) * hdrColor, vec3(0.0));
+	hdrColor = max(saturationMatrix(uSaturation) * hdrColor, vec3(0.0));
 	
 	// mastering to 1000 nits max luminance
 	hdrColor = min(hdrColor, vec3(MAXCLLNITS * 0.0125));

@@ -8,6 +8,7 @@ uniform bool		bloom;
 uniform int			uPostFX;
 uniform float		uTime;
 uniform vec2		uResolution;
+uniform float		uSaturation;
 
 #ifndef OO_DITHER
 #define OO_DITHER	1
@@ -446,7 +447,6 @@ vec3 CRT(sampler2D inImage, vec2 inCoords)
 void main()
 {    
 	float exposure = 1.0;
-	float saturation = 1.0;
 	vec3 hdrColor = texture(scene, TexCoords).rgb;      
 	vec3 bloomColor = texture(bloomBlur, TexCoords).rgb;
 	
@@ -481,18 +481,20 @@ void main()
 			hdrColor = CRT(scene, TexCoords);
 			bloomColor = CRT(bloomBlur, TexCoords);
 			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
 			break;
 		case 8:
 			hdrColor = gravLens(scene, TexCoords);
 			bloomColor = gravLens(bloomBlur, TexCoords);
 			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
 			break;
 		default:
 			break;
 	}
 	
 	// apply saturation
-	hdrColor = max(saturationMatrix(saturation) * hdrColor, vec3(0.0));
+	hdrColor = max(saturationMatrix(uSaturation) * hdrColor, vec3(0.0));
 	
 	// tone mapping
 	vec3 result = ACESFilm(hdrColor);

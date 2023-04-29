@@ -41,6 +41,8 @@ MA 02110-1301, USA.
 #define MIN_HDR_PAPERWHITE		80.0f
 #define MAX_HDR_PAPERWHITE		280.0f
 
+#define MAX_COLOR_SATURATION	5.0f
+
 #define MOUSEVIRTUALSTICKSENSITIVITYFACTOR	0.95f
 #define MOUSEX_MAXIMUM 0.6
 #define MOUSEY_MAXIMUM 0.6
@@ -207,6 +209,8 @@ extern int debug;
 
 #endif
 
+	float				_colorSaturation;
+	
 	BOOL				_hdrOutput;
 
 	BOOL				grabMouseStatus;
@@ -257,6 +261,8 @@ extern int debug;
 - (float) hdrPaperWhiteBrightness;
 - (void) setHDRPaperWhiteBrightness:(float)newPaperWhiteBrightness;
 #endif
+- (float) colorSaturation;
+- (void) adjustColorSaturation:(float)colorSaturationAdjustment;
 - (BOOL) hdrOutput;
 - (BOOL) isOutputDisplayHDREnabled;
 

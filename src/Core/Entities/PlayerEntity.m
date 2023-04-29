@@ -128,6 +128,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (void) performLaunchingUpdates:(OOTimeDelta)delta_t;
 - (void) performDockingUpdates:(OOTimeDelta)delta_t;
 - (void) performDeadUpdates:(OOTimeDelta)delta_t;
+- (void) gameOverFadeToBW;
 - (void) updateTargeting;
 - (void) showGameOver;
 - (void) updateWormholes;
@@ -3909,11 +3910,40 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) performDeadUpdates:(OOTimeDelta)delta_t
 {
+	[self gameOverFadeToBW];
+	
 	if ([self shotTime] > kDeadResetTime)
 	{
 		BOOL was_mouse_control_on = mouse_control_on;
 		[UNIVERSE handleGameOver];				//  we restart the UNIVERSE
 		mouse_control_on = was_mouse_control_on;
+	}
+}
+
+
+- (void) gameOverFadeToBW
+{
+	float secondsToBWFadeOut = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"gameover-seconds-to-bw-fadeout" defaultValue:5.0f];
+	if ([UNIVERSE detailLevel] >= DETAIL_LEVEL_SHADERS && secondsToBWFadeOut > 0.0f)
+	{
+		MyOpenGLView *gameView = [UNIVERSE gameView];
+		static float originalColorSaturation = -1.0f;
+		if (originalColorSaturation == -1.0f)  originalColorSaturation = [gameView colorSaturation];
+		if ([self shotTime] < secondsToBWFadeOut)
+		{
+			// fade to black & white within secondsToBWFadeOut, independently of
+			// frame rate and original color saturation
+			if (fps_counter != 0)
+			{
+				[gameView adjustColorSaturation:-(originalColorSaturation * (1.0f / secondsToBWFadeOut) / fps_counter)];
+			}
+		}
+		
+		if ([self shotTime] > kDeadResetTime)
+		{
+			[gameView adjustColorSaturation:originalColorSaturation];
+			originalColorSaturation = -1.0f;
+		}
 	}
 }
 
