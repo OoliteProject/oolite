@@ -3941,7 +3941,10 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		
 		if ([self shotTime] > kDeadResetTime)
 		{
-			[gameView adjustColorSaturation:originalColorSaturation];
+			// make sure to subtract the current saturation because if the user presses space to skip
+			// the game over screen before the transition to b/w has been completed, whatever is left
+			// will be added to the original saturation, resulting in an oversaturated image
+			[gameView adjustColorSaturation:originalColorSaturation - [gameView colorSaturation]];
 			originalColorSaturation = -1.0f;
 		}
 	}
