@@ -1663,6 +1663,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	}
 
 	png_set_IHDR(pngPtr, infoPtr, surf->w, surf->h, 8, colorType,	PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+	
+	// if we are outputting HDR, our backbuffer is linear, so gamma is 1.0. Make sure our png has this info
+	// note: some image viewers seem to ignore the gAMA chunk; still, this is better than not having it at all
+	if ([self hdrOutput])  png_set_gAMA(pngPtr, infoPtr, 1.0f);
 
 	// write the image
 	png_write_info(pngPtr, infoPtr);
