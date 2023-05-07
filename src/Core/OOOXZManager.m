@@ -45,7 +45,9 @@ MA 02110-1301, USA.
 #import "OOManifestProperties.h"
 
 /* The URL for the manifest.plist array. */
-static NSString * const kOOOXZDataURL = @"http://addons.oolite.org/api/1.0/overview";
+/* switching (temporarily maybe) to oolite.space - Nikos 20230507 */
+/*static NSString * const kOOOXZDataURL = @"http://addons.oolite.org/api/1.0/overview";*/
+static NSString * const kOOOXZDataURL = @"http://addons.oolite.space/api/1.0/overview";
 /* The config parameter to use a non-default URL at runtime */
 static NSString * const kOOOXZDataConfig = @"oxz-index-url";
 /* The filename to store the downloaded manifest.plist array */
