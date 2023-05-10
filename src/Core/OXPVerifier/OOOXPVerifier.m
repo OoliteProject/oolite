@@ -43,7 +43,7 @@ SOFTWARE.
 
 static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
-static void OpenLogFile(NSString *name);
+static bool OpenLogFile(NSString *name);
 
 @interface OOOXPVerifier (OOPrivate)
 
@@ -717,29 +717,23 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage)
 }
 
 
-static void OpenLogFile(NSString *name)
+static bool OpenLogFile(NSString *name)
 {
 	//	Open log file in appropriate application / provide feedback.
 	
 	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
 	{
 #if OOLITE_MAC_OS_X
-		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
+		return [[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
 #elif OOLITE_WINDOWS
 		// start wordpad (for historical reasons wordpad is called write from the command prompt)
-		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] UTF8String]);
+		return system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] UTF8String]);
 #elif  OOLITE_LINUX
-		// MKW - needed to suppress 'ignoring return value' warning for system() call
-		//		int ret;
-		// CIM - and now the compiler complains about that too... casting return
-		// value to void seems to keep it quiet for now
-		// Nothing to do here, since we dump to stdout instead of to a file.
 		//OOLogOutputHandlerStopLoggingToStdout();
-		(void) system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] UTF8String]);
-#else 
-		do {} while (0);
+		return system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] UTF8String]);
 #endif
 	}
+	return true;
 }
 
 
