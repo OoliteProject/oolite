@@ -308,8 +308,6 @@ static void GetCurrentOpenGLState(OOOpenGLState *state)
 
 static bool StatesEqual(const OOOpenGLState *a, const OOOpenGLState *b)
 {
-	NSCParameterAssert(a != NULL && b != NULL);
-	
 	#define ITEM_STATEFLAG(NAME)		do { if (a->NAME != b->NAME && a->NAME != kStateMaybe && b->NAME != kStateMaybe)  return false; } while (0)
 	#define ITEM_CLIENTSTATEFLAG(NAME)	do { if (a->NAME != b->NAME)  return false; } while (0)
 	#define ITEM_SPECIAL(NAME, _, __)	do { if (a->NAME != b->NAME)  return false; } while (0)
@@ -403,7 +401,6 @@ void OOSetOpenGLState(OOOpenGLStateID state)
 
 static void SwitchOpenGLStateInternal(const OOOpenGLState *sourceState, const OOOpenGLState *targetState)
 {
-	NSCParameterAssert(sourceState != NULL && targetState != NULL);
 	OO_ENTER_OPENGL();
 	
 	#define ITEM_STATEFLAG(NAME) \
