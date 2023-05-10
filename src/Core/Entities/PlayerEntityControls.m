@@ -124,8 +124,10 @@ static BOOL				volumeControlPressed;
 static BOOL				gammaControlPressed;
 #endif
 static BOOL				fovControlPressed;
+#if OOLITE_WINDOWS
 static BOOL				hdrMaxBrightnessControlPressed;
 static BOOL				hdrPaperWhiteControlPressed;
+#endif
 static BOOL				colorblindModeControlPressed;
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
