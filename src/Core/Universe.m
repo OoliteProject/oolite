@@ -365,7 +365,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		OOLogERR(@"initTargetFramebufferWithViewSize.result", @"***** Error: Multisample framebuffer not complete");
+		OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Multisample framebuffer not complete");
 	}
 	
 	// create framebuffer and attach texture and depth buffer to framebuffer
@@ -393,7 +393,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		OOLogERR(@"initTargetFramebufferWithViewSize.result", @"***** Error: Framebuffer not complete");
+		OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Framebuffer not complete");
 	}
 	
 	OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
@@ -427,7 +427,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		OOLogERR(@"initTargetFramebufferWithViewSize.result", @"***** Error: Passthrough framebuffer not complete");
+		OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Passthrough framebuffer not complete");
 	}
 	OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
 	
@@ -447,7 +447,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
         // check if framebuffers are complete (no need for depth buffer)
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		{
-            OOLogERR(@"initTargetFramebufferWithViewSize.result", @"***** Error: Pingpong framebuffers not complete");
+            OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Pingpong framebuffers not complete");
 		}
     }
 	OOGL(glBindFramebuffer(GL_FRAMEBUFFER, defaultDrawFBO));
