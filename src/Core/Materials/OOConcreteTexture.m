@@ -676,7 +676,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 	{
 		case kOOTextureDataRGBA:
 			*outFormat = GL_RGBA;
-			*outInternalFormat = GL_RGBA;
+			*outInternalFormat = options & kOOTextureSRGBA ? GL_SRGB_ALPHA : GL_RGBA;
 			*outType = RGBA_IMAGE_TYPE;
 			return YES;
 			

@@ -987,9 +987,20 @@ static BOOL _refreshStarChart = NO;
 
 static OOTexture *TextureForGUITexture(NSDictionary *descriptor)
 {
+	/*
+		GUI textures like backgrounds, foregrounds etc. are not processed in any way after loading. However, they are
+		subject to tone nmapping and gamma correction at the end of the render pass. So we need to declare them as
+		SRGBA textures here so that OpenGL will automatically convert them to linear space upon loading and the
+		subsequent tone mapping and gamma correction shader operations will not result in heavy distortion of their
+		colors.
+		
+		Also, remember that if no shaders are in use (as in lower detail levels), then we don't need to declare anything.
+	*/
+	uint32_t srgbaOption = 0UL;
+	if ([UNIVERSE useShaders])  srgbaOption = kOOTextureSRGBA;
 	return [OOTexture textureWithName:[descriptor oo_stringForKey:@"name"]
 							 inFolder:@"Images"
-							  options:kOOTextureDefaultOptions | kOOTextureNoShrink
+							  options:kOOTextureDefaultOptions | kOOTextureNoShrink | srgbaOption
 						   anisotropy:kOOTextureDefaultAnisotropy
 							  lodBias:kOOTextureDefaultLODBias];
 }
