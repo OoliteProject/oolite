@@ -60,6 +60,8 @@ enum
 	kOOTextureAlphaMask				= 0x000800UL,	// Single-channel texture should be GL_ALPHA, not GL_LUMINANCE. No effect for multi-channel textures.
 	kOOTextureAllowCubeMap			= 0x001000UL,
 	
+	kOOTextureSRGBA					= 0x002000UL,
+	
 	kOOTextureExtractChannelMask	= 0x700000UL,
 	kOOTextureExtractChannelNone	= 0x000000UL,
 	kOOTextureExtractChannelR		= 0x100000UL,	// 001
@@ -83,6 +85,7 @@ enum
 									| kOOTextureNoFNFMessage
 									| kOOTextureNeverScale
 									| kOOTextureAlphaMask
+									| kOOTextureSRGBA
 									| kOOTextureExtractChannelMask,
 	
 	kOOTextureFlagsAllowedForRectangleTexture =
