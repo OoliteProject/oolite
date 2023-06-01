@@ -81,7 +81,7 @@ MA 02110-1301, USA.
 */
 	
 	// anything more than a minimal hue drift will wipe out the original colour.
-	float hue_drift = 0.038f * fabsf(randf() - randf());
+	float hue_drift = 0.0038f * fabsf(randf() - randf());
 	
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
@@ -101,8 +101,8 @@ MA 02110-1301, USA.
 	OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
 	OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 	
-	// main disc less saturation (taken care of by the ACES tonemapper) more brightness
-	color = [OOColor colorWithHue:hue saturation:sat /** 0.333f*/ brightness:1.0f alpha:1.0f];
+	// main disc less saturation (partially taken care of by the ACES tonemapper) more brightness
+	color = [OOColor colorWithHue:hue saturation:sat * 0.75f brightness:1.0f alpha:1.0f];
 	// our OpenGL color values are unclamped, so we can multiply the color components by
 	// any value we want, in order to make the sun a truly bright object in the sky
 	color = [OOColor colorWithRed:[color redComponent] * _sunBrightnessFactor green:[color greenComponent] * _sunBrightnessFactor blue:[color blueComponent] * _sunBrightnessFactor alpha:[color alphaComponent]];
@@ -115,6 +115,7 @@ MA 02110-1301, USA.
 	hue += hue_drift * 3;
 	// saturation = 1 would shift white to red
 	color = [OOColor colorWithHue:hue saturation:OOClamp_0_1_f(sat*1.0f) brightness:bri * 0.75f alpha:0.45f];
+	color = [OOColor colorWithRed:[color redComponent] * _sunBrightnessFactor green:[color greenComponent] * _sunBrightnessFactor blue:[color blueComponent] * _sunBrightnessFactor alpha:[color alphaComponent]];
 	[color getRed:&outerCoronaColor[0] green:&outerCoronaColor[1] blue:&outerCoronaColor[2] alpha:&outerCoronaColor[3]];
 	
 	return YES;
@@ -131,7 +132,7 @@ MA 02110-1301, USA.
 	
 	scanClass = CLASS_NO_DRAW;
 	
-	_sunBrightnessFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"sbf" defaultValue:50.0f];
+	_sunBrightnessFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"sbf" defaultValue:80.0f];
 	_sunCoronaAlphaFactor = [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"scaf" defaultValue:0.005f];
 	
 	[self setSunColor:sun_color];
@@ -511,7 +512,7 @@ MA 02110-1301, USA.
 			r += width/1.5f;
 			break;
 		case 2:
-			r += 2.0f * width/3.0f;
+			r += width/3.0f;
 			break;
 		case 1:
 				r += width/15.0f;
@@ -567,7 +568,7 @@ MA 02110-1301, USA.
 			break;
 		case 1:
 			color = discColor;
-			alpha = 0.8 * glowAlpha;
+			alpha = 0.95 * glowAlpha;
 			break;
 		case 0:
 			color = discColor;
