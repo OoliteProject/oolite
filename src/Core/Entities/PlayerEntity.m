@@ -3935,7 +3935,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 			// frame rate and original color saturation
 			if (fps_counter != 0)
 			{
-				[gameView adjustColorSaturation:-(originalColorSaturation * (1.0f / secondsToBWFadeOut) / fps_counter)];
+				[gameView adjustColorSaturation:-(originalColorSaturation * (1.0f / secondsToBWFadeOut) * [UNIVERSE timeAccelerationFactor] / fps_counter)];
 			}
 		}
 		
