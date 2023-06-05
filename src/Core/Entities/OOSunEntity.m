@@ -545,12 +545,7 @@ MA 02110-1301, USA.
 	sunColors[k++] = discColor[1];
 	sunColors[k++] = discColor[2];
 	sunColors[k++] = discColor[3] * _sunCoronaAlphaFactor;
-	// the corona glow slowly fades away as we approach the sun and -drawStarGlare
-	// starts taking control of the overall glare on the screen
-	float sqrt_zero_distance = sqrtf(cam_zero_distance);
-	float alt = sqrt_zero_distance - collision_radius;
-	float corona = cor16k/SUN_GLARE_CORONA_FACTOR;
-	float glowAlpha = corona <= alt ? 1.0f : (alt/corona);
+	
 	for (j = 0 ; j <= 4 ; j++)
 	{
 		switch (j) {
@@ -560,19 +555,19 @@ MA 02110-1301, USA.
 			break;
 		case 3:
 			color = outerCoronaColor;
-			alpha = 0.1 * glowAlpha;
+			alpha = 0.1;
 			break;
 		case 2:
 			color = outerCoronaColor;
-			alpha = 0.6 * glowAlpha;
+			alpha = 0.6;
 			break;
 		case 1:
 			color = discColor;
-			alpha = 0.95 * glowAlpha;
+			alpha = 0.95;
 			break;
 		case 0:
 			color = discColor;
-			alpha = 1.0 * glowAlpha;
+			alpha = 1.0;
 			break;
 		}
 		for (i = 0 ; i < 360 ; i++)
@@ -661,7 +656,7 @@ MA 02110-1301, USA.
 	if (corona > alt)
 	{
 		float alpha = (1-(alt/corona));
-		float alphaMult = [[UNIVERSE gameView] hdrOutput] ? _sunCoronaAlphaFactor : 0.25f * alpha;
+		float alphaMult = [[UNIVERSE gameView] hdrOutput] ? _sunCoronaAlphaFactor : 0.85f * alpha;
 		alpha *= alphaMult;
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
