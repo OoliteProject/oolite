@@ -231,4 +231,3 @@ jobs:
             artifacts/oolite-documentation-nightly/oolite-*.tgz
             artifacts/oolite-linux-nightly/oolite-*.tgz
             artifacts/oolite-windows-nightly/OoliteInstall*.exe
-            artifacts/oolite-doc.zip
