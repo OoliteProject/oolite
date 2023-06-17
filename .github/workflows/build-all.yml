@@ -63,7 +63,7 @@ jobs:
           
       - name: Extract PDFs
         run: |
-          unzip artifacts/oolite-doc.zip
+          unzip -u artifacts/oolite-doc.zip
 
       # This is for debugging only and helps developing the workflow.
       - name: show filesystem before build
