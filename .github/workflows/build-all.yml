@@ -107,6 +107,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    needs: [common-steps]
     steps:
       ## This is for debugging only and helps developing the workflow.
       #- name: Environment Variables
@@ -126,6 +127,22 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: oolite-doc
+          path: artifacts
+          
+      - name: Extract PDFs
+        run: |
+          unzip -u artifacts/oolite-doc.zip
+
+      # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
+      # this is for debug only; it creates huge logs and takes a long time to execute
+      - name: check filesystem
+        run: |
+          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+
       - name: Compile
         shell: cmd
         run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
@@ -133,8 +150,8 @@ jobs:
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       # this is for debug only; it creates huge logs and takes a long time to execute
       # - name: check filesystem
-      #  run: |
-      #    Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+      #   run: |
+      #     Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
       - name: Archive build
         uses: actions/upload-artifact@v3
