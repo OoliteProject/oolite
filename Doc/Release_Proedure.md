@@ -3,6 +3,7 @@
 ## Here are the things that should still be improved
 
 - Automatic handling of version numbers
+- distribute version number into other documents (see Version-bump.txt)
 - LibreOffice documents shall be automatically converted into PDF to ensure the PDF version is current
 - Prepare changelog and announcement messages for website and forum
 - Prepare new downloads page for website

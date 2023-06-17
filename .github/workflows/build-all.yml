@@ -6,6 +6,34 @@ on:
   push:
 
 jobs:
+  common-steps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Oolite
+        uses: actions/checkout@v3
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: generate PDFs
+        uses: jmservera/libreoffice-action@latest
+        with:
+          command: libreoffice --headless --invisible --convert-to pdf --outdir 'oolite/Doc' oolite/Doc/*.pdf
+            
+      - name: generate PDFs
+        run: |
+          find oolite/Doc -name "*.odt" -exec soffice --headless --convert-to "pdf:writer_pdf-Export" --outdir oolite/Doc {} \;
+          zip oolite-doc.zip oolite/Doc/*.pdf
+
+      - name: Archive generated documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: oolite-doc
+          path: |
+            oolite-doc.zip
+          retention-days: 5
+
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +58,7 @@ jobs:
       #- name: show filesystem before build
       #  run: |
       #    find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
-          
+      
       - name: compiling up to installer script (.run file)
         run: |
           cd oolite
@@ -142,7 +170,7 @@ jobs:
           retention-days: 5
 
   release-marvinpinto:
-    needs: [build-linux, build-windows, build-doxygen]
+    needs: [common-steps, build-linux, build-windows, build-doxygen]
     runs-on: ubuntu-latest
     steps:
       ## This is for debugging only and helps developing the workflow.
@@ -159,6 +187,7 @@ jobs:
       - name: show filesystem after download
         run: |
           find .
+          
       # For changes on master branch, create a new release.
       # It should move the 'latest' tag automatically.
       - name: Create Release
@@ -174,3 +203,4 @@ jobs:
             artifacts/oolite-documentation-nightly/oolite-*.tgz
             artifacts/oolite-linux-nightly/oolite-*.tgz
             artifacts/oolite-windows-nightly/OoliteInstall*.exe
+            artifacts/oolite-doc.zip
