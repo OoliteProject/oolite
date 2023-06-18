@@ -6,8 +6,38 @@ on:
   push:
 
 jobs:
+  common-steps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install all the necessary packages
+        run: |
+          sudo apt update
+          echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+          sudo apt -y install libreoffice ttf-mscorefonts-installer
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v3
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: generate PDFs
+        run: |
+          find oolite/Doc -name "*.odt" -exec soffice --headless --convert-to pdf:"writer_pdf_Export" --outdir oolite/Doc {} \;
+          zip oolite-doc.zip oolite/Doc/*.pdf
+          
+      - name: Archive generated documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: oolite-doc
+          path: |
+            oolite-doc.zip
+          retention-days: 5
+
   build-linux:
     runs-on: ubuntu-latest
+    needs: [common-steps]
     steps:
       ## This is for debugging only and helps developing the workflow.
       #- name: Environment Variables
@@ -26,11 +56,21 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      ## This is for debugging only and helps developing the workflow.
-      #- name: show filesystem before build
-      #  run: |
-      #    find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: oolite-doc
+          path: artifacts
           
+      - name: Extract PDFs
+        run: |
+          unzip -u artifacts/oolite-doc.zip
+
+      # This is for debugging only and helps developing the workflow.
+      - name: show filesystem before build
+        run: |
+          find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+      
       - name: compiling up to installer script (.run file)
         run: |
           cd oolite
@@ -68,6 +108,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
+    needs: [common-steps]
     steps:
       ## This is for debugging only and helps developing the workflow.
       #- name: Environment Variables
@@ -87,6 +128,22 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: oolite-doc
+          path: artifacts
+          
+      - name: Extract PDFs
+        run: |
+          unzip -u artifacts/oolite-doc.zip
+
+      # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
+      # this is for debug only; it creates huge logs and takes a long time to execute
+      - name: check filesystem
+        run: |
+          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+
       - name: Compile
         shell: cmd
         run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
@@ -94,8 +151,8 @@ jobs:
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       # this is for debug only; it creates huge logs and takes a long time to execute
       # - name: check filesystem
-      #  run: |
-      #    Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+      #   run: |
+      #     Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
       - name: Archive build
         uses: actions/upload-artifact@v3
@@ -159,6 +216,7 @@ jobs:
       - name: show filesystem after download
         run: |
           find .
+          
       # For changes on master branch, create a new release.
       # It should move the 'latest' tag automatically.
       - name: Create Release
