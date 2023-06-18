@@ -12,7 +12,8 @@ jobs:
       - name: install all the necessary packages
         run: |
           sudo apt update
-          sudo apt -y install libreoffice
+          echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+          sudo apt -y install libreoffice ttf-mscorefonts-installer
 
       - name: Checkout Oolite
         uses: actions/checkout@v3
