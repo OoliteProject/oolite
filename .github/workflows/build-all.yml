@@ -8,32 +8,84 @@ on:
 jobs:
   common-steps:
     runs-on: ubuntu-latest
+    outputs:
+        semver_Major: ${{ steps.gitversion.outputs.Major }}
+        semver_Minor: ${{ steps.gitversion.outputs.Minor }}
     steps:
-      - name: install all the necessary packages
-        run: |
-          sudo apt update
-          echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
-          sudo apt -y install libreoffice ttf-mscorefonts-installer
+    - name: install all the necessary packages
+      run: |
+        sudo apt update
+        echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+        sudo apt -y install libreoffice ttf-mscorefonts-installer xmlstarlet
 
-      - name: Checkout Oolite
-        uses: actions/checkout@v3
-        with:
-          path: oolite
-          fetch-depth: 0
-          submodules: true
+    - name: Checkout Oolite
+      uses: actions/checkout@v3
+      with:
+        path: oolite
+        fetch-depth: 0
+        submodules: true
 
-      - name: generate PDFs
-        run: |
-          find oolite/Doc -name "*.odt" -exec soffice --headless --convert-to pdf:"writer_pdf_Export" --outdir oolite/Doc {} \;
-          zip oolite-doc.zip oolite/Doc/*.pdf
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0
+      with:
+        versionSpec: '5.x'
           
-      - name: Archive generated documentation
-        uses: actions/upload-artifact@v3
-        with:
-          name: oolite-doc
-          path: |
-            oolite-doc.zip
-          retention-days: 5
+    - name: configure semver from oolite-version.xcconfig
+      run: |
+        set -x
+        OOLITE_VERSION=`cat oolite/src/Cocoa/oolite-version.xcconfig | cut -d= -f2`
+        sed -i "s/next-version:.*/next-version: ${OOLITE_VERSION}/g" oolite/GitVersion.yml
+        cat oolite/GitVersion.yml
+
+    - name: Determine Version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0
+      with:
+        targetPath: oolite
+        useConfigFile: true
+        configFilePath: oolite/GitVersion.yml
+        
+    - name: version-bump other documents
+      run: |
+        set -x
+        OOLITE_VERSION="${{ steps.gitversion.outputs.Major }}.${{ steps.gitversion.outputs.Minor }}"
+        echo "semver: ${OOLITE_VERSION}"
+        ls -l oolite/installers/autopackage/
+        sed -i "s/SoftwareVersion:.*/SoftwareVersion: ${OOLITE_VERSION}/g" oolite/installers/autopackage/default.x86.apspec
+        cat oolite/installers/autopackage/default.x86.apspec
+        sed -i "s/SoftwareVersion:.*/SoftwareVersion: ${OOLITE_VERSION}/g" oolite/installers/autopackage/default.x86_64.apspec
+        cat oolite/installers/autopackage/default.x86_64.apspec
+        xmlstarlet ed --inplace -u "/plist/dict/key[.='CFBundleVersion']/following-sibling::string[1]" -v "${OOLITE_VERSION}" oolite/src/Cocoa/Info-Oolite.plist
+        cat oolite/src/Cocoa/Info-Oolite.plist
+        sed -i "s/version\s*=.*/version = \"${OOLITE_VERSION}\";/g" oolite/DebugOXP/Debug.oxp/manifest.plist
+        cat oolite/DebugOXP/Debug.oxp/manifest.plist
+        sed -i "s/this.version\s*=.*/this.version = \"${OOLITE_VERSION}\";/g" oolite/DebugOXP/Debug.oxp/Scripts/oolite-debug-console.js
+        cat oolite/DebugOXP/Debug.oxp/Scripts/oolite-debug-console.js
+        
+        # this document shall be UTF16 but we need to edit UTF8
+        iconv -f utf16 -t utf8 <oolite/Resources/InfoPlist.strings  >oolite/Resources/InfoPlist.strings.utf8
+        sed -i "s/CFBundleShortVersionString\s*=\s*\"Oolite version [^\"]*\";/CFBundleShortVersionString\s*=\s*\"Oolite version ${OOLITE_VERSION}\";/g" oolite/Resources/InfoPlist.strings.utf8
+        iconv -f utf8 -t utf16 <oolite/Resources/InfoPlist.strings.utf8  >oolite/Resources/InfoPlist.strings
+
+    - name: generate PDFs
+      run: |
+        find oolite/Doc -name "*.odt" -exec soffice --headless --convert-to pdf:"writer_pdf_Export" --outdir oolite/Doc {} \;
+        zip oolite-doc.zip \
+            oolite/installers/autopackage/default.x86.apspec \
+            oolite/installers/autopackage/default.x86_64.apspec \
+            oolite/src/Cocoa/Info-Oolite.plist \
+            oolite/DebugOXP/Debug.oxp/manifest.plist \
+            oolite/Doc/*.pdf \
+            oolite/Resources/InfoPlist.strings \
+            oolite/DebugOXP/Debug.oxp/Scripts/oolite-debug-console.js
+          
+    - name: Archive generated documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: oolite-doc
+        path: |
+          oolite-doc.zip
+        retention-days: 5
 
   build-linux:
     runs-on: ubuntu-latest
@@ -64,7 +116,7 @@ jobs:
           
       - name: Extract PDFs
         run: |
-          unzip -u artifacts/oolite-doc.zip
+          unzip -o artifacts/oolite-doc.zip
 
       # This is for debugging only and helps developing the workflow.
       - name: show filesystem before build
@@ -136,7 +188,7 @@ jobs:
           
       - name: Extract PDFs
         run: |
-          unzip -u artifacts/oolite-doc.zip
+          unzip -o artifacts/oolite-doc.zip
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       # this is for debug only; it creates huge logs and takes a long time to execute
@@ -164,39 +216,49 @@ jobs:
 
   build-doxygen:
     runs-on: ubuntu-latest
+    needs: [common-steps]
     steps:
-      - name: Checkout Oolite
-        uses: actions/checkout@v3
-        with:
-          path: oolite
-          fetch-depth: 0
-          submodules: true
+    - name: Checkout Oolite
+      uses: actions/checkout@v3
+      with:
+        path: oolite
+        fetch-depth: 0
+        submodules: true
+          
+    - name: configure doxygen
+      run: |
+        set -x
+        OOLITE_VERSION="${{ needs.common-steps.outputs.semver_Major }}.${{ needs.common-steps.outputs.semver_Minor }}"
+        sed -i "s/PROJECT_NUMBER\s*=.*/PROJECT_NUMBER=${OOLITE_VERSION}/g" oolite/Doxyfile
+        cat oolite/Doxyfile
 
-      - name: Run doxygen
-        uses: mattnotmitt/doxygen-action@v1.9.5
-        with:
-          working-directory: oolite
+    - name: Run doxygen
+      uses: mattnotmitt/doxygen-action@v1.9.5
+      with:
+        working-directory: oolite
 
-      ## This is for debugging only and helps developing the workflow.
-      #- name: Environment Variables 1
-      #  run: |
-      #    printenv | sort
-      #    find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+    ## This is for debugging only and helps developing the workflow.
+    #- name: Environment Variables 1
+    #  run: |
+    #    printenv | sort
+    #    find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
-      - name: create tar ball
-        run: |
-          tar cvfz oolite-apidoc.tgz -C oolite doxygen
-      # This is for debugging only and helps developing the workflow.
-      - name: Environment Variables 2
-        run: |
-          find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
-      - name: Archive build tar ball
-        uses: actions/upload-artifact@v3
-        with:
-          name: oolite-documentation-nightly
-          path: |
-            oolite-*.tgz
-          retention-days: 5
+    - name: create tar ball
+      run: |
+        tar cvfz oolite-apidoc-${{ needs.common-steps.outputs.semver_Major }}.${{ needs.common-steps.outputs.semver_Minor }}.tgz -C oolite doxygen
+
+    # This is for debugging only and helps developing the workflow.
+    - name: Environment Variables 2
+      run: |
+        find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+
+    - name: Archive build tar ball
+      uses: actions/upload-artifact@v3
+      with:
+        name: oolite-documentation-nightly
+        path: |
+          oolite-*.tgz
+        retention-days: 5
 
   release-marvinpinto:
     needs: [build-linux, build-windows, build-doxygen]
@@ -207,28 +269,28 @@ jobs:
       #  run: |
       #    printenv | sort
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: artifacts
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
 
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem after download
-        run: |
-          find .
+    # This is for debugging only and helps developing the workflow.
+    - name: show filesystem after download
+      run: |
+        find .
           
-      # For changes on master branch, create a new release.
-      # It should move the 'latest' tag automatically.
-      - name: Create Release
-        if: github.ref == 'refs/heads/master'
-        id: create_release
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "Oolite Nightly"
-          files: |
-            artifacts/oolite-documentation-nightly/oolite-*.tgz
-            artifacts/oolite-linux-nightly/oolite-*.tgz
-            artifacts/oolite-windows-nightly/OoliteInstall*.exe
+    # For changes on master branch, create a new release.
+    # It should move the 'latest' tag automatically.
+    - name: Create Release
+      if: github.ref == 'refs/heads/master'
+      id: create_release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Oolite Nightly"
+        files: |
+          artifacts/oolite-documentation-nightly/oolite-*.tgz
+          artifacts/oolite-linux-nightly/oolite-*.tgz
+          artifacts/oolite-windows-nightly/OoliteInstall*.exe
