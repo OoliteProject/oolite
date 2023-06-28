@@ -65,7 +65,19 @@ int main(int argc, char *argv[])
 	#define MAX_PATH_LEN 256
 	char currentWorkingDir[MAX_PATH_LEN];
 	char envVarString[2 * MAX_PATH_LEN];
-	GetCurrentDirectory(MAX_PATH_LEN - 1, currentWorkingDir);
+	DWORD bufferSize = MAX_PATH_LEN;
+	
+	QueryFullProcessImageName(GetCurrentProcess(), 0, currentWorkingDir, &bufferSize);
+	// Strip the exe filenameb (from last backslash onwards), leave just the path
+	char *probeString = strrchr(currentWorkingDir, '\\');
+	if (probeString)  *probeString = '\0'; // currentWorkingDir now contains the path we need
+	
+	// Prepend system PATH env variable with our own executable's path
+	char finalPath[16 * MAX_PATH_LEN];
+	char *systemPath = SDL_getenv("PATH");
+	strcpy(finalPath, currentWorkingDir);
+	strcat(finalPath, ";");
+	strcat(finalPath, systemPath);
 
 	#define SETENVVAR(var, value) do {\
 			sprintf(envVarString, "%s=%s", (var), (value));\
@@ -73,11 +85,14 @@ int main(int argc, char *argv[])
 			} while (0);
 	
 	SETENVVAR("GNUSTEP_PATH_HANDLING", "windows");
+	SETENVVAR("PATH", finalPath);
 	SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
 	SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
 	SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
 	SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
 	SETENVVAR("HOMEPATH", currentWorkingDir);
+	
+	SetCurrentDirectory(currentWorkingDir);
 
 	/*	Windows amibtiously starts apps with the C library locale set to the
 		system locale rather than the "C" locale as per spec. Fixing here so
