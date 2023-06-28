@@ -279,7 +279,7 @@
 				"EQ_SHIELD_BOOSTER"
 			);
 			"forward_weapon_type" = "EQ_WEAPON_BEAM_LASER";
-			missiles = 3;
+			missiles = 2;
 		};
 		techlevel = 8;
 		"weapon_facings" = 15;
