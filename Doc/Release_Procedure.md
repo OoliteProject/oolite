@@ -2,17 +2,21 @@
 
 ## Here are the things that should still be improved
 
-- Automatic handling of version numbers
+- (done) Automatic handling of version numbers (semver based on manually controlled
+  major/minor numbers)
 - distribute version number into other documents (see Version-bump.txt)
 - LibreOffice documents shall be automatically converted into PDF to ensure the PDF version is current
 - Prepare changelog and announcement messages for website and forum
 - Prepare new downloads page for website
 - Publish downloads and news pages to the website
 - Publish announcement on the forum
+- further check http://aegidian.org/bb/viewtopic.php?p=289774#p289774
 
 ## Here are the steps that need to be executed
 
-- Tag the version to be released on the master branch, which shall automatically trigger the full release cycle
+- Edit /src/Cocoa/oolite-version.xcconfig to contain the correct major/minor
+  version numbers and push to Github. That shall automatically trigger the full
+ (pre)release cycle
 
 ## Source
 The procedure is based on based on http://aegidian.org/bb/viewtopic.php?p=289632#p289632:
