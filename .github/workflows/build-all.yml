@@ -139,7 +139,7 @@ jobs:
           unzip -u artifacts/oolite-doc.zip
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
-      # this is for debug only; it creates huge logs and takes a long time to execute
+      # this is for debug only; it creates huge logs and takes a long time to execute, yet you never know when you need it
       - name: check filesystem
         run: |
           Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
@@ -149,10 +149,10 @@ jobs:
         run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
           
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
-      # this is for debug only; it creates huge logs and takes a long time to execute
-      # - name: check filesystem
-      #   run: |
-      #     Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+      # this is for debug only; it creates huge logs and takes a long time to execute, yet you never know when you need it
+      - name: check filesystem
+        run: |
+          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
       - name: Archive build
         uses: actions/upload-artifact@v3
