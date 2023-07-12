@@ -10,6 +10,7 @@
 #             the "which <filename>" command uses stderr to report a file not found or other warnings
 # 2018-07-02: Add command line arguments support. 
 #			  First argument added is "--systemwide-path Directory"
+# 2023-07-10: Add interactive parts from oolite.src to startup script based on FreeDesktop tools
 # 
 
 
@@ -211,9 +212,32 @@ mv ${INSTALLER_REPOS}/release.txt .
 
 # Generate startup scripts
 cd ${STARTUP_SCRIPTS_PATH}
-echo "#!/bin/sh" > oolite${TRUNK}
-echo "${OOLITEAPP_PATH}/oolite-wrapper \$@" >> oolite${TRUNK}
-echo "exit \$?" >> oolite${TRUNK}
+
+cat << EOF_STARTUP_SCRIPT > oolite${TRUNK}
+#!/bin/sh
+
+# show readme on first launch
+if [ ! -f \$HOME/.Oolite/.oolite${TRUNK}-run ]
+then
+   mkdir -p $HOME/.Oolite/
+   touch \$HOME/.Oolite/.oolite${TRUNK}-run
+   xdg-open file://${OOLITE_ROOT}/doc/README-PREAMBLE.TXT
+   xdg-open file://${OOLITE_ROOT}/doc/README.TXT
+fi
+
+# launch oolite
+${OOLITEAPP_PATH}/oolite-wrapper $@
+RC=\$?
+
+# show message in case of error
+if [ "\${RC}" != "0" ]
+then
+        notify-send --urgency=critical --icon ${OOLITE_ROOT}/oolite.app/Resources/Textures/oolite-logo1.png "Oolite" "Oolite died in a singularity with exit code \${RC}. For troubleshooting check console and log output."
+fi
+
+exit \${RC}
+EOF_STARTUP_SCRIPT
+
 chmod +x oolite${TRUNK}
 echo "#!/bin/sh" > oolite${TRUNK}-update
 echo "${OOLITEAPP_PATH}/oolite-update \$@" >> oolite${TRUNK}-update
