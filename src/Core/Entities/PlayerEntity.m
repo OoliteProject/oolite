@@ -5515,6 +5515,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) cycleNextMultiFunctionDisplay:(NSUInteger) index
 {
+	if ([[self hud] mfdCount] == 0) return;
 	NSArray *keys = [multiFunctionDisplayText allKeys];
 	NSString *key = nil;
 	if ([keys count] == 0)
@@ -5551,6 +5552,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) cyclePreviousMultiFunctionDisplay:(NSUInteger) index
 {
+	if ([[self hud] mfdCount] == 0) return;
 	NSArray *keys = [multiFunctionDisplayText allKeys];
 	NSString *key = nil;
 	if ([keys count] == 0)
@@ -5587,6 +5589,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) selectNextMultiFunctionDisplay
 {
+	if ([[self hud] mfdCount] == 0) return;
 	activeMFD = (activeMFD + 1) % [[self hud] mfdCount];
 	NSUInteger mfdID = activeMFD + 1;
 	[UNIVERSE addMessage:OOExpandKey(@"mfd-N-selected", mfdID) forCount:3.0 ];
@@ -5598,6 +5601,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 - (void) selectPreviousMultiFunctionDisplay
 {
+	if ([[self hud] mfdCount] == 0) return;
 	if (activeMFD == 0) 
 	{
 		activeMFD = ([[self hud] mfdCount] - 1);
