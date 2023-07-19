@@ -680,6 +680,11 @@ typedef enum
 	NSArray					*n_key_debug_off;
 #endif
 
+	// dict to hold custom key config for OXP equipment with activate/mode functions
+	NSMutableArray			*customEquipActivation;
+	NSMutableArray			*customActivatePressed;
+	NSMutableArray			*customModePressed;
+
 	// save-file
 	NSString				*save_path;
 	NSString				*scenarioKey;

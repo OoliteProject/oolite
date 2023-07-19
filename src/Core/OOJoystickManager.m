@@ -117,6 +117,10 @@ static id sSharedStickHandler = nil;
 	return butstate;
 }
 
+- (BOOL) isButtonDown:(int)button stick:(int)stickNum
+{
+	return true_butstate[stickNum][button];
+}
 
 - (double) getAxisState: (int)function
 {
@@ -649,7 +653,7 @@ static id sSharedStickHandler = nil;
 		if(function == BUTTON_PRECISION)
 			precisionMode = !precisionMode;
 	}
-	
+	true_butstate[evt->which][evt->button] = bs;
 	if (function >= 0)
 	{
 		butstate[function]=bs;

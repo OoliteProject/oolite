@@ -250,6 +250,7 @@ typedef struct
 	// Axis/button mapping arrays
 	int8_t		axismap[MAX_STICKS][MAX_AXES];
 	int8_t		buttonmap[MAX_STICKS][MAX_BUTTONS];
+	BOOL		true_butstate[MAX_STICKS][MAX_BUTTONS];
 	double		axstate[AXIS_end];
 	BOOL		butstate[BUTTON_end];
 	uint8_t		hatstate[MAX_STICKS][MAX_HATS];
@@ -292,6 +293,7 @@ typedef struct
 // These work directly on the internal lookup table so to be fast
 // since they are likely to be called by the game loop.
 - (NSUInteger) joystickCount;
+- (BOOL) isButtonDown:(int)button stick:(int)stickNum;
 - (BOOL) getButtonState:(int)function;
 - (double) getAxisState:(int)function;
 - (double) getSensitivity;

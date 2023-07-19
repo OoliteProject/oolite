@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 
 // Dictionary keys - used in the defaults file
 #define KEYCONFIG_OVERRIDES @"KeyConfigOverrides"  // NSUserDefaults
+#define KEYCONFIG_CUSTOMEQUIP @"CustomEquipActivation"  // NSUserDefaults
 
 @interface PlayerEntity (KeyMapper)
    - (void) initCheckingDictionary;
