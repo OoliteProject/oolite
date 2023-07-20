@@ -861,6 +861,8 @@ typedef enum
 - (NSDictionary *) commanderDataDictionary;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;
 
+- (void) addEquipmentWithScriptToCustomKeyArray:(NSString *)equipmentKey;
+
 - (void) doBookkeeping:(double) delta_t;
 - (BOOL) isValidTarget:(Entity*)target;
 

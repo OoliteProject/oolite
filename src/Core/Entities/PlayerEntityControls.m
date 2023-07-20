@@ -316,7 +316,15 @@ static NSTimeInterval	time_last_frame;
 
 	// load custom equipment keys/buttons
 	[customEquipActivation release];
-	customEquipActivation = (NSMutableArray*)[defaults objectForKey: KEYCONFIG_CUSTOMEQUIP];
+	if ([defaults objectForKey:KEYCONFIG_CUSTOMEQUIP]) 
+	{
+		NSArray *temp = [defaults arrayForKey:KEYCONFIG_CUSTOMEQUIP];
+		customEquipActivation = [[NSMutableArray arrayWithArray:temp] retain];
+	}
+	else 
+	{
+		customEquipActivation = [[NSMutableArray alloc] init];
+	}
 	[customActivatePressed release];
 	[customModePressed release];
 	customActivatePressed = [[NSMutableArray alloc] init];
@@ -1499,12 +1507,12 @@ static NSTimeInterval	time_last_frame;
 				{
 					item = [customEquipActivation objectAtIndex:i];
 					// check if the player has the equip item installed
-					if ([self hasOneEquipmentItem:[item oo_stringForKey:@"equipmentKey"] includeWeapons:NO whileLoading:NO])
+					if ([self hasOneEquipmentItem:[item oo_stringForKey:CUSTOMKEY_EQUIPKEY] includeWeapons:NO whileLoading:NO])
 					{
-						NSArray *key_act = [item oo_arrayForKey:@"keyActivate"];
-						NSArray *key_mod = [item oo_arrayForKey:@"keyMode"];
-						NSDictionary *but_act = [item oo_dictionaryForKey:@"buttonActivate"];
-						NSDictionary *but_mod = [item oo_dictionaryForKey:@"buttonMode"];
+						NSArray *key_act = [item oo_arrayForKey:CUSTOMKEY_KEYACTIVATE];
+						NSArray *key_mod = [item oo_arrayForKey:CUSTOMKEY_KEYMODE];
+						NSDictionary *but_act = [item oo_dictionaryForKey:CUSTOMKEY_BUTTONACTIVATE];
+						NSDictionary *but_mod = [item oo_dictionaryForKey:CUSTOMKEY_BUTTONMODE];
 						// if so, 
 						// check to see if the key or button was pressed for activate
 						if ((key_act && [self checkKeyPress:key_act]) || (but_act && [[OOJoystickManager sharedStickHandler] isButtonDown:[but_act oo_intForKey:STICK_AXBUT] stick:[but_act oo_intForKey:STICK_NUMBER]]))
@@ -1512,7 +1520,7 @@ static NSTimeInterval	time_last_frame;
 							if (![[customActivatePressed objectAtIndex:i] boolValue])
 							{
 								// initate the activate JS code
-								[self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:@"equipmentKey"]] withMode:OOPRIMEDEQUIP_ACTIVATED];
+								[self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:CUSTOMKEY_EQUIPKEY]] withMode:OOPRIMEDEQUIP_ACTIVATED];
 							}
 							[customActivatePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:YES]];
 						}
@@ -1524,7 +1532,7 @@ static NSTimeInterval	time_last_frame;
 							if (![[customModePressed objectAtIndex:i] boolValue])
 							{
 								// initiate the activate JS code
-								[self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:@"equipmentKey"]] withMode:OOPRIMEDEQUIP_MODE];
+								[self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:CUSTOMKEY_EQUIPKEY]] withMode:OOPRIMEDEQUIP_MODE];
 							}
 							[customModePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:YES]];
 						}

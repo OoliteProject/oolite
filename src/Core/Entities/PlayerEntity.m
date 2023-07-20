@@ -2355,7 +2355,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	return YES;
 }
 
-
 - (void) dealloc
 {
 	DESTROY(compassTarget);
@@ -2428,7 +2427,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	DESTROY(stickFunctions);
 	DESTROY(keyFunctions);
 	DESTROY(kbdLayouts);
-	
+	OOLog(@"testing", @"got here for destroy");
+	DESTROY(customEquipActivation);
+	DESTROY(customActivatePressed);
+	DESTROY(customModePressed);
+
 	[super dealloc];
 }
 
@@ -8787,7 +8790,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 - (void) setGuiToGameOptionsScreen
 {
 	MyOpenGLView *gameView = [UNIVERSE gameView];
-	
+
 	[[UNIVERSE gameView] clearMouse];
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
@@ -11478,6 +11481,36 @@ static NSString *last_outfitting_key=nil;
 	return OK;
 }
 
+- (void) addEquipmentWithScriptToCustomKeyArray:(NSString *)equipmentKey
+{
+	NSDictionary *item;
+	int i, j;
+	for (i = 0; i < [eqScripts count]; i++) 
+	{
+		if ([[[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0] isEqualToString:equipmentKey]) 
+		{
+			//check if this equipment item is already in the array
+			for (j = 0; j < [customEquipActivation count]; j++) {
+				item = [customEquipActivation objectAtIndex:j];
+				if ([[item oo_stringForKey:CUSTOMKEY_EQUIPKEY] isEqualToString:equipmentKey]) return;
+			}
+			// if we get here, this item is new
+			// add the basic info at this point (equipkey and name only)
+			OOEquipmentType *eq = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+			NSMutableDictionary *customKey = [[NSMutableDictionary alloc] initWithObjectsAndKeys:equipmentKey, CUSTOMKEY_EQUIPKEY, [eq name], CUSTOMKEY_EQUIPNAME, nil];
+			[customKey setObject:[[NSMutableArray alloc] init] forKey:CUSTOMKEY_KEYACTIVATE];
+			[customKey setObject:[[NSMutableArray alloc] init] forKey:CUSTOMKEY_KEYMODE];
+			[customKey setObject:[[NSMutableDictionary alloc] init] forKey:CUSTOMKEY_BUTTONACTIVATE];
+			[customKey setObject:[[NSMutableDictionary alloc] init] forKey:CUSTOMKEY_BUTTONMODE];
+			[customEquipActivation addObject:customKey];
+
+			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+			[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+			return;
+		}
+	}
+}
+
 
 - (void) removeEquipmentItem:(NSString *)equipmentKey
 {
@@ -11571,6 +11604,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			[self removeEquipmentItem:eqDesc];
 		}
+		[self addEquipmentWithScriptToCustomKeyArray:eqDesc];
 	}
 }
 
@@ -13365,6 +13399,9 @@ else _dockTarget = NO_TARGET;
 	selFunctionIdx &&
 	stickFunctions &&
 	keyFunctions &&
+	customEquipActivation &&
+	customActivatePressed &&
+	customModePressed &&
 	kbdLayouts &&
 	showingLongRangeChart &&
 	_missionAllowInterrupt &&

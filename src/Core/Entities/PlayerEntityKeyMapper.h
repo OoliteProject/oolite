@@ -60,6 +60,14 @@ MA 02110-1301, USA.
 #define KEY_KC_DEFINITION @"keyDef"
 #define KEY_KC_HEADER @"header"
 
+// dictionary keys - used in the custom key config for oxp equipment
+#define CUSTOMKEY_EQUIPKEY @"equipmentKey"
+#define CUSTOMKEY_EQUIPNAME @"equipmentName"
+#define CUSTOMKEY_KEYACTIVATE @"keyActivate"
+#define CUSTOMKEY_KEYMODE @"keyMode"
+#define CUSTOMKEY_BUTTONACTIVATE @"buttonActivate"
+#define CUSTOMKEY_BUTTONMODE @"buttonMode"
+
 // Dictionary keys - used in the defaults file
 #define KEYCONFIG_OVERRIDES @"KeyConfigOverrides"  // NSUserDefaults
 #define KEYCONFIG_CUSTOMEQUIP @"CustomEquipActivation"  // NSUserDefaults
