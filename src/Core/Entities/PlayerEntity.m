@@ -2427,7 +2427,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	DESTROY(stickFunctions);
 	DESTROY(keyFunctions);
 	DESTROY(kbdLayouts);
-	OOLog(@"testing", @"got here for destroy");
+
 	DESTROY(customEquipActivation);
 	DESTROY(customActivatePressed);
 	DESTROY(customModePressed);
