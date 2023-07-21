@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (StickMapperInternal)
 
+- (void) checkCustomEquipButtons:(NSDictionary *)stickFn ignore:(int)idx;
 - (void) removeFunction:(int)selFunctionIdx;
 - (NSArray *)stickFunctionList;
 - (void)displayFunctionList:(GuiDisplayGen *)gui
@@ -266,8 +267,28 @@ MA 02110-1301, USA.
 			[stickHandler unsetAxisFunction:AXIS_VIEWY];
 		}
 	}
-	[stickHandler setFunction:function withDict:hwDict];
-	[stickHandler saveStickSettings];
+	// special case for OXP equipment buttons
+	if (function >= 10000) 
+	{
+		NSString *key = CUSTOMEQUIP_BUTTONACTIVATE;
+		function -= 10000;
+		if (function >= 10000) 
+		{
+			function -= 10000;
+			key = CUSTOMEQUIP_BUTTONMODE;
+		}
+		[[customEquipActivation objectAtIndex:function] setObject:hwDict forKey:key];
+		[self checkCustomEquipButtons:hwDict ignore:function];
+
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+	}
+	else 
+	{
+		[stickHandler setFunction:function withDict:hwDict];
+		[self checkCustomEquipButtons:hwDict ignore:-1];
+		[stickHandler saveStickSettings];
+	}
 	
 	// Update the GUI (this will refresh the function list).
 	unsigned skip;
@@ -284,25 +305,74 @@ MA 02110-1301, USA.
 }
 
 
+- (void) checkCustomEquipButtons:(NSDictionary *)stickFn ignore:(int)idx
+{
+	int i;
+	for (i = 0; i < [customEquipActivation count]; i++)
+	{
+		if (i != idx) {
+			NSDictionary *bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
+			if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] && 
+				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT])
+			{
+				[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_BUTTONACTIVATE];
+			}
+			bf = [[customEquipActivation objectAtIndex:i] objectForKey:CUSTOMEQUIP_BUTTONMODE];
+			if ([bf oo_integerForKey:STICK_NUMBER] == [stickFn oo_integerForKey:STICK_NUMBER] && 
+				[bf oo_integerForKey:STICK_AXBUT] == [stickFn oo_integerForKey:STICK_AXBUT])
+			{
+				[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_BUTTONMODE];
+			}
+		}
+	}
+}
+
+
 - (void) removeFunction:(int)idx
 {
 	OOJoystickManager	*stickHandler = [OOJoystickManager sharedStickHandler];
 	NSDictionary		*entry = [stickFunctions objectAtIndex:idx];
 	NSNumber			*butfunc = [entry objectForKey:KEY_BUTTONFN];
 	NSNumber			*axfunc = [entry objectForKey:KEY_AXISFN];
+	BOOL				custom = NO;
 	selFunctionIdx = idx;
 	
 	// Some things can have either axis or buttons - make sure we clear
 	// both!
 	if(butfunc)
 	{
-		[stickHandler unsetButtonFunction:[butfunc intValue]];
+		// special case for OXP equipment buttons
+		if ([butfunc intValue] >= 10000) 
+		{
+			int bf = [butfunc intValue];
+			custom = YES;
+			NSString *key = CUSTOMEQUIP_BUTTONACTIVATE;
+			bf -= 10000;
+			if (bf >= 10000) 
+			{
+				bf -= 10000;
+				key = CUSTOMEQUIP_BUTTONMODE;
+			}
+			[[customEquipActivation objectAtIndex:bf] removeObjectForKey:key];
+		}
+		else 
+		{
+			[stickHandler unsetButtonFunction:[butfunc intValue]];
+		}
 	}
 	if(axfunc)
 	{
 		[stickHandler unsetAxisFunction:[axfunc intValue]];
 	}
-	[stickHandler saveStickSettings];
+	if (!custom) 
+	{
+		[stickHandler saveStickSettings];
+	}
+	else 
+	{
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+	}
 	
 	unsigned skip;
 	if (selFunctionIdx < MAX_ROWS_FUNCTIONS - 1)
@@ -391,8 +461,24 @@ MA 02110-1301, USA.
 						break;
 					case HW_BUTTON:
 						allowedThings=@"Button";
-						assignment=[self describeStickDict:
-									[assignedButs objectForKey: butFuncKey]];
+						int bf = [butFuncKey integerValue];
+						if (bf < 10000) 
+						{
+							assignment=[self describeStickDict:
+										[assignedButs objectForKey: butFuncKey]];
+						} 
+						else 
+						{
+							NSString *key = CUSTOMEQUIP_BUTTONACTIVATE;
+							bf -= 10000;
+							if (bf >= 10000) 
+							{
+								bf -= 10000;
+								key = CUSTOMEQUIP_BUTTONMODE;
+							}
+							assignment=[self describeStickDict:
+											[[customEquipActivation objectAtIndex:bf] objectForKey:key]];
+						}
 						break;
 					default:
 						allowedThings=@"Axis/Button";
@@ -773,8 +859,27 @@ MA 02110-1301, USA.
 					 axisfn:AXIS_FIELD_OF_VIEW
 					  butfn:BUTTON_DEC_FIELD_OF_VIEW]];
 #endif
+	if ([customEquipActivation count] > 0) {
+		[funcList addObject:[self makeStickGuiDictHeader:DESC(@"stickmapper-header-oxp-equip")]];
+		int i;
+		for (i = 0; i < [customEquipActivation count]; i++)
+		{
+			[funcList addObject:
+			[self makeStickGuiDict:[NSString stringWithFormat: @"Activate '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]]
+						allowable:HW_BUTTON
+							axisfn:STICK_NOFUNCTION
+							butfn:(i+10000)]];
+			[funcList addObject:
+			[self makeStickGuiDict:[NSString stringWithFormat: @"Mode '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]]
+						allowable:HW_BUTTON
+							axisfn:STICK_NOFUNCTION
+							butfn:(i+20000)]];
+		}
+
+	}
 	return funcList;
 }
+
 
 
 - (NSDictionary *)makeStickGuiDict:(NSString *)what

@@ -2241,7 +2241,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	[self setDockedStation:[UNIVERSE station]];
 	[self setLastAegisLock:[UNIVERSE planet]];
-		
+	[self validateCustomEquipActivationArray];
+
 	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:MAX(0.0, [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"start-script-limit-value" defaultValue:kOOJSLongTimeLimit])];
 	OOJSRelinquishContext(context);
@@ -11484,7 +11485,7 @@ static NSString *last_outfitting_key=nil;
 - (void) addEquipmentWithScriptToCustomKeyArray:(NSString *)equipmentKey
 {
 	NSDictionary *item;
-	int i, j;
+	NSUInteger i, j;
 	for (i = 0; i < [eqScripts count]; i++) 
 	{
 		if ([[[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0] isEqualToString:equipmentKey]) 
@@ -11492,22 +11493,46 @@ static NSString *last_outfitting_key=nil;
 			//check if this equipment item is already in the array
 			for (j = 0; j < [customEquipActivation count]; j++) {
 				item = [customEquipActivation objectAtIndex:j];
-				if ([[item oo_stringForKey:CUSTOMKEY_EQUIPKEY] isEqualToString:equipmentKey]) return;
+				if ([[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:equipmentKey]) return;
 			}
 			// if we get here, this item is new
 			// add the basic info at this point (equipkey and name only)
 			OOEquipmentType *eq = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
-			NSMutableDictionary *customKey = [[NSMutableDictionary alloc] initWithObjectsAndKeys:equipmentKey, CUSTOMKEY_EQUIPKEY, [eq name], CUSTOMKEY_EQUIPNAME, nil];
-			[customKey setObject:[[NSMutableArray alloc] init] forKey:CUSTOMKEY_KEYACTIVATE];
-			[customKey setObject:[[NSMutableArray alloc] init] forKey:CUSTOMKEY_KEYMODE];
-			[customKey setObject:[[NSMutableDictionary alloc] init] forKey:CUSTOMKEY_BUTTONACTIVATE];
-			[customKey setObject:[[NSMutableDictionary alloc] init] forKey:CUSTOMKEY_BUTTONMODE];
+			NSMutableDictionary *customKey = [[NSMutableDictionary alloc] initWithObjectsAndKeys:equipmentKey, CUSTOMEQUIP_EQUIPKEY, [eq name], CUSTOMEQUIP_EQUIPNAME, nil];
 			[customEquipActivation addObject:customKey];
+			[customKey release];
+			// keep the keypress arrays in sync
+			[customActivatePressed addObject:[NSNumber numberWithBool:NO]];
+			[customModePressed addObject:[NSNumber numberWithBool:NO]];			
 
 			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 			[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
 			return;
 		}
+	}
+}
+
+
+- (void) validateCustomEquipActivationArray
+{
+	int i;
+	bool update = NO;
+	NSString *equipmentKey;
+	if ([customEquipActivation count] == 0) return;
+	for (i = [customEquipActivation count] - 1; i >= 0; i--) {
+		equipmentKey = [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY];
+		OOEquipmentType *eq = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+		if (!eq) {
+			//OOLog(@"testing", @"not found! %@", equipmentKey);
+			[customEquipActivation removeObjectAtIndex:i];
+			[customActivatePressed removeObjectAtIndex:i];
+			[customModePressed removeObjectAtIndex:i];
+			update = YES;
+		}
+	}
+	if (update) {
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
 	}
 }
 

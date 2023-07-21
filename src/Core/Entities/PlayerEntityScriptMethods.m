@@ -367,10 +367,15 @@ MA 02110-1301, USA.
 		// no such setting
 		return nil;
 	}
-	NSMutableString *final = [NSMutableString string];
 	NSArray *keyList = (NSArray*)[keyconfig2_settings objectForKey:binding];
-	NSUInteger i = 0;
+	return [self getKeyBindingDescription:keyList];
+}
 
+
+- (NSString *) getKeyBindingDescription:(NSArray *) keyList
+{
+	NSUInteger i = 0;
+	NSMutableString *final = [NSMutableString string];
 	for (i = 0; i < [keyList count]; i++) {
 		if (i != 0) final = [NSMutableString stringWithFormat:@"%@ or ", final];
 		NSDictionary *def = [keyList objectAtIndex:i];
