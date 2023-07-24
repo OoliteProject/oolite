@@ -148,7 +148,6 @@ static BOOL				next_planet_info_pressed;
 static BOOL				previous_planet_info_pressed;
 static BOOL				home_info_pressed;
 static BOOL				target_info_pressed;
-static BOOL				extra_key_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -3884,7 +3883,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-
+	
 	[self keyMapperInputHandler: gui view: gameView];
 	leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
 	if (leftRightKeyPressed)
@@ -5179,7 +5178,7 @@ static BOOL autopilot_pause;
 				[self refreshMissionScreenTextEntry];
 				if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
 				{
-					[self setMissionChoice:[gameView typedString] keyPress:@"enter"];
+					[self setMissionChoice:[gameView typedString]];
 					[[OOMusicController sharedController] stopMissionMusic];
 					[self playDismissedMissionScreen];
 					
@@ -5215,24 +5214,7 @@ static BOOL autopilot_pause;
 			else
 			{
 				[self handleGUIUpDownArrowKeys];
-				NSString *extraKey = @"";
-				if (extraMissionKeys)
-				{
-					NSString *key = nil;
-					foreach (key, [extraMissionKeys allKeys])
-					{
-						if ([self checkKeyPress:[extraMissionKeys oo_arrayForKey:key]]) {
-							if (!extra_key_pressed)
-							{
-								extraKey = [key copy];
-							}
-							extra_key_pressed = YES;
-						}
-						else
-						extra_key_pressed = NO;
-					}
-				}
-				if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || [extraKey length] > 0)	//  '<enter/return>' or double click
+				if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
 				{
 					if ([gameView isDown:gvMouseDoubleClick])
 					{
@@ -5241,8 +5223,7 @@ static BOOL autopilot_pause;
 					}
 					if (!selectPressed)
 					{
-						if ([extraKey length] == 0) extraKey = @"enter";
-						[self setMissionChoice:[gui selectedRowKey] keyPress:extraKey];
+						[self setMissionChoice:[gui selectedRowKey]];
 						[[OOMusicController sharedController] stopMissionMusic];
 						[self playDismissedMissionScreen];
 						
