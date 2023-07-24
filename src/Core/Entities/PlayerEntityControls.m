@@ -148,6 +148,7 @@ static BOOL				next_planet_info_pressed;
 static BOOL				previous_planet_info_pressed;
 static BOOL				home_info_pressed;
 static BOOL				target_info_pressed;
+static BOOL				extra_key_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -3372,11 +3373,13 @@ static NSTimeInterval	time_last_frame;
 	if ((guiSelectedRow == GUI_ROW(GAME,STICKMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
+		[self resetStickFunctions]; // reset the list of stick functions, so changes in oxp equipment are reflected
 		[self setGuiToStickMapperScreen: 0 resetCurrentRow: YES];
 	}
 	if ((guiSelectedRow == GUI_ROW(GAME,KEYMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
+		[self resetKeyFunctions]; // reset the list of key functions, so changes in oxp equipment are reflected
 		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
 	
@@ -3881,7 +3884,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	
+
 	[self keyMapperInputHandler: gui view: gameView];
 	leftRightKeyPressed = [self checkKeyPress:n_key_gui_arrow_right] || [self checkKeyPress:n_key_gui_arrow_left] || [self checkKeyPress:n_key_gui_page_up] || [self checkKeyPress:n_key_gui_page_down];
 	if (leftRightKeyPressed)
@@ -5176,7 +5179,7 @@ static BOOL autopilot_pause;
 				[self refreshMissionScreenTextEntry];
 				if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
 				{
-					[self setMissionChoice:[gameView typedString]];
+					[self setMissionChoice:[gameView typedString] keyPress:@"enter"];
 					[[OOMusicController sharedController] stopMissionMusic];
 					[self playDismissedMissionScreen];
 					
@@ -5212,7 +5215,24 @@ static BOOL autopilot_pause;
 			else
 			{
 				[self handleGUIUpDownArrowKeys];
-				if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick])	//  '<enter/return>' or double click
+				NSString *extraKey = @"";
+				if (extraMissionKeys)
+				{
+					NSString *key = nil;
+					foreach (key, [extraMissionKeys allKeys])
+					{
+						if ([self checkKeyPress:[extraMissionKeys oo_arrayForKey:key]]) {
+							if (!extra_key_pressed)
+							{
+								extraKey = [key copy];
+							}
+							extra_key_pressed = YES;
+						}
+						else
+						extra_key_pressed = NO;
+					}
+				}
+				if ([self checkKeyPress:n_key_gui_select] || [gameView isDown:gvMouseDoubleClick] || [extraKey length] > 0)	//  '<enter/return>' or double click
 				{
 					if ([gameView isDown:gvMouseDoubleClick])
 					{
@@ -5221,7 +5241,8 @@ static BOOL autopilot_pause;
 					}
 					if (!selectPressed)
 					{
-						[self setMissionChoice:[gui selectedRowKey]];
+						if ([extraKey length] == 0) extraKey = @"enter";
+						[self setMissionChoice:[gui selectedRowKey] keyPress:extraKey];
 						[[OOMusicController sharedController] stopMissionMusic];
 						[self playDismissedMissionScreen];
 						

@@ -44,6 +44,7 @@ static NSArray *camera_keys = nil;
 
 @interface PlayerEntity (KeyMapperInternal)
 
+- (void)resetKeyFunctions;
 - (void)updateKeyDefinition:(NSString *)keystring index:(NSUInteger)index;
 - (void)updateShiftKeyDefinition:(NSString *)key index:(NSUInteger)index;
 - (void)displayKeyFunctionList:(GuiDisplayGen *)gui skip:(NSUInteger)skip;
@@ -108,6 +109,13 @@ static NSArray *camera_keys = nil;
 	camera_keys = [[NSArray alloc] initWithObjects:@"key_custom_view_zoom_out", @"key_custom_view_zoom_in", @"key_custom_view_roll_left", @"key_custom_view_roll_right",
 		@"key_custom_view_pan_left", @"key_custom_view_pan_right", @"key_custom_view_rotate_up", @"key_custom_view_rotate_down", @"key_custom_view_pan_down",
 		@"key_custom_view_pan_up", @"key_custom_view_rotate_left", @"key_custom_view_rotate_right", nil];
+}
+
+
+- (void) resetKeyFunctions
+{
+	[keyFunctions release];
+	keyFunctions = nil;
 }
 
 
@@ -996,12 +1004,14 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_shaders") keyDef:@"key_debug_shaders"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_off") keyDef:@"key_debug_off"]];
 
+	OOLog(@"testing", @"checking count %d", [customEquipActivation count]);
 	if ([customEquipActivation count] > 0) 
 	{
 		[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-oxp-equip")]];
 		int i;
 		for (i = 0; i < [customEquipActivation count]; i++)
 		{
+			OOLog(@"testing", @"got here for item %d %@", i, [customEquipActivation objectAtIndex:i]);
 			[funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat: @"Activate '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]] 
 				keyDef:[NSString stringWithFormat:@"activate_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]]];
 			[funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat: @"Mode '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]] 

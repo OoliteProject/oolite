@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (StickMapperInternal)
 
+- (void) resetStickFunctions;
 - (void) checkCustomEquipButtons:(NSDictionary *)stickFn ignore:(int)idx;
 - (void) removeFunction:(int)selFunctionIdx;
 - (NSArray *)stickFunctionList;
@@ -44,6 +45,13 @@ MA 02110-1301, USA.
 
 
 @implementation PlayerEntity (StickMapper)
+
+- (void) resetStickFunctions
+{
+	[stickFunctions release];
+	stickFunctions = nil;
+}
+
 
 - (void) setGuiToStickMapperScreen:(unsigned)skip
 {

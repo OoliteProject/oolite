@@ -64,6 +64,7 @@ MA 02110-1301, USA.
 #define KEYCONFIG_OVERRIDES @"KeyConfigOverrides"  // NSUserDefaults
 
 @interface PlayerEntity (KeyMapper)
+   - (void) resetKeyFunctions;
    - (void) initCheckingDictionary;
 
    - (void) setGuiToKeyMapperScreen:(unsigned)skip resetCurrentRow:(BOOL)resetCurrentRow;
