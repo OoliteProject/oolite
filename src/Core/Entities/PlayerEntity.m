@@ -11523,7 +11523,6 @@ static NSString *last_outfitting_key=nil;
 		equipmentKey = [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY];
 		OOEquipmentType *eq = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 		if (!eq) {
-			//OOLog(@"testing", @"not found! %@", equipmentKey);
 			[customEquipActivation removeObjectAtIndex:i];
 			[customActivatePressed removeObjectAtIndex:i];
 			[customModePressed removeObjectAtIndex:i];

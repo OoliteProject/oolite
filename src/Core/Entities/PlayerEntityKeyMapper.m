@@ -1004,14 +1004,12 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_shaders") keyDef:@"key_debug_shaders"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_off") keyDef:@"key_debug_off"]];
 
-	OOLog(@"testing", @"checking count %d", [customEquipActivation count]);
 	if ([customEquipActivation count] > 0) 
 	{
 		[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-oxp-equip")]];
 		int i;
 		for (i = 0; i < [customEquipActivation count]; i++)
 		{
-			OOLog(@"testing", @"got here for item %d %@", i, [customEquipActivation objectAtIndex:i]);
 			[funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat: @"Activate '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]] 
 				keyDef:[NSString stringWithFormat:@"activate_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]]];
 			[funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat: @"Mode '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]] 
