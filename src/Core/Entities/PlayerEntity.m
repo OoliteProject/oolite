@@ -11478,6 +11478,7 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		[self addEqScriptForKey:equipmentKey];
+		[self addEquipmentWithScriptToCustomKeyArray:equipmentKey];
 	}
 	return OK;
 }
@@ -11628,7 +11629,6 @@ static NSString *last_outfitting_key=nil;
 		{
 			[self removeEquipmentItem:eqDesc];
 		}
-		[self addEquipmentWithScriptToCustomKeyArray:eqDesc];
 	}
 }
 
@@ -13230,6 +13230,27 @@ else _dockTarget = NO_TARGET;
 {
 	lastShot = [shot retain]; 
 }
+
+
+- (void) clearExtraMissionKeys
+{
+	[extraMissionKeys release];
+	extraMissionKeys = nil;
+}
+
+
+- (void) setExtraMissionKeys:(NSDictionary *)keys
+{
+	NSString *key = nil;
+	NSMutableDictionary *final = [[NSMutableDictionary alloc] init];
+	foreach (key, [keys allKeys])
+	{
+		[final setObject:[self processKeyCode:[keys oo_arrayForKey:key]] forKey:key];
+	}
+	extraMissionKeys = [final copy];
+	[final release];
+}
+
 
 #ifndef NDEBUG
 - (void)dumpSelfState
