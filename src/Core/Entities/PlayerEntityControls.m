@@ -314,6 +314,27 @@ static NSTimeInterval	time_last_frame;
 		}
 	}
 
+	// load custom equipment keys/buttons
+	[customEquipActivation release];
+	if ([defaults objectForKey:KEYCONFIG_CUSTOMEQUIP]) 
+	{
+		NSArray *temp = [defaults arrayForKey:KEYCONFIG_CUSTOMEQUIP];
+		customEquipActivation = [[NSMutableArray arrayWithArray:temp] retain];
+	}
+	else 
+	{
+		customEquipActivation = [[NSMutableArray alloc] init];
+	}
+	[customActivatePressed release];
+	[customModePressed release];
+	customActivatePressed = [[NSMutableArray alloc] init];
+	customModePressed = [[NSMutableArray alloc] init];
+	for (i = 0; i < [customEquipActivation count]; i++)
+	{
+		[customActivatePressed addObject:[NSNumber numberWithBool:NO]];
+		[customModePressed addObject:[NSNumber numberWithBool:NO]];
+	}
+
 	NSMutableArray *keyDef = nil;
 	NSString *lookup = nil;
 	NSArray *curr = nil;
@@ -1478,6 +1499,46 @@ static NSTimeInterval	time_last_frame;
 				}
 				else fastactivate_b_pressed = NO;
 
+				exceptionContext = @"custom equipment";
+				// loop through all the objects in the customEquipActivation array
+				NSDictionary *item;
+				NSUInteger i;
+				for (i = 0; i < [customEquipActivation count]; i++)
+				{
+					item = [customEquipActivation objectAtIndex:i];
+					// check if the player has the equip item installed
+					if ([self hasOneEquipmentItem:[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] includeWeapons:NO whileLoading:NO])
+					{
+						NSArray *key_act = [item oo_arrayForKey:CUSTOMEQUIP_KEYACTIVATE];
+						NSArray *key_mod = [item oo_arrayForKey:CUSTOMEQUIP_KEYMODE];
+						NSDictionary *but_act = [item oo_dictionaryForKey:CUSTOMEQUIP_BUTTONACTIVATE];
+						NSDictionary *but_mod = [item oo_dictionaryForKey:CUSTOMEQUIP_BUTTONMODE];
+						// if so, 
+						// check to see if the key or button was pressed for activate
+						if ((key_act && [self checkKeyPress:key_act]) || (but_act && [[OOJoystickManager sharedStickHandler] isButtonDown:[but_act oo_intForKey:STICK_AXBUT] stick:[but_act oo_intForKey:STICK_NUMBER]]))
+						{
+							if (![[customActivatePressed objectAtIndex:i] boolValue])
+							{
+								// initate the activate JS code
+								[self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]] withMode:OOPRIMEDEQUIP_ACTIVATED];
+							}
+							[customActivatePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:YES]];
+						}
+						else [customActivatePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:NO]];
+
+						// check to see if the key or button was pressed for mode
+						if ((key_mod && [self checkKeyPress:key_mod]) || (but_mod && [[OOJoystickManager sharedStickHandler] isButtonDown:[but_mod oo_intForKey:STICK_AXBUT] stick:[but_mod oo_intForKey:STICK_NUMBER]]))
+						{
+							if (![[customModePressed objectAtIndex:i] boolValue])
+							{
+								// initiate the activate JS code
+								[self activatePrimableEquipment:[self eqScriptIndexForKey:[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]] withMode:OOPRIMEDEQUIP_MODE];
+							}
+							[customModePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:YES]];
+						}
+						else [customModePressed replaceObjectAtIndex:i withObject:[NSNumber numberWithBool:NO]];
+					}
+				}
 
 				exceptionContext = @"incoming missile T";
 				// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
@@ -3311,11 +3372,13 @@ static NSTimeInterval	time_last_frame;
 	if ((guiSelectedRow == GUI_ROW(GAME,STICKMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
+		[self resetStickFunctions]; // reset the list of stick functions, so changes in oxp equipment are reflected
 		[self setGuiToStickMapperScreen: 0 resetCurrentRow: YES];
 	}
 	if ((guiSelectedRow == GUI_ROW(GAME,KEYMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
+		[self resetKeyFunctions]; // reset the list of key functions, so changes in oxp equipment are reflected
 		[self setGuiToKeyMapperScreen: 0 resetCurrentRow: YES];
 	}
 	

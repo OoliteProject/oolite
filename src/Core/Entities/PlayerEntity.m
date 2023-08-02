@@ -2241,7 +2241,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	[self setDockedStation:[UNIVERSE station]];
 	[self setLastAegisLock:[UNIVERSE planet]];
-		
+	[self validateCustomEquipActivationArray];
+
 	JSContext *context = OOJSAcquireContext();
 	[self doWorldScriptEvent:OOJSID("startUp") inContext:context withArguments:NULL count:0 timeLimit:MAX(0.0, [[NSUserDefaults standardUserDefaults] oo_floatForKey:@"start-script-limit-value" defaultValue:kOOJSLongTimeLimit])];
 	OOJSRelinquishContext(context);
@@ -2355,7 +2356,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	return YES;
 }
 
-
 - (void) dealloc
 {
 	DESTROY(compassTarget);
@@ -2428,7 +2428,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	DESTROY(stickFunctions);
 	DESTROY(keyFunctions);
 	DESTROY(kbdLayouts);
-	
+
+	DESTROY(customEquipActivation);
+	DESTROY(customActivatePressed);
+	DESTROY(customModePressed);
+
 	[super dealloc];
 }
 
@@ -8787,7 +8791,7 @@ static NSString *SliderString(NSInteger amountIn20ths)
 - (void) setGuiToGameOptionsScreen
 {
 	MyOpenGLView *gameView = [UNIVERSE gameView];
-	
+
 	[[UNIVERSE gameView] clearMouse];
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
 	
@@ -11474,8 +11478,62 @@ static NSString *last_outfitting_key=nil;
 		}
 		
 		[self addEqScriptForKey:equipmentKey];
+		[self addEquipmentWithScriptToCustomKeyArray:equipmentKey];
 	}
 	return OK;
+}
+
+- (void) addEquipmentWithScriptToCustomKeyArray:(NSString *)equipmentKey
+{
+	NSDictionary *item;
+	NSUInteger i, j;
+	for (i = 0; i < [eqScripts count]; i++) 
+	{
+		if ([[[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0] isEqualToString:equipmentKey]) 
+		{
+			//check if this equipment item is already in the array
+			for (j = 0; j < [customEquipActivation count]; j++) {
+				item = [customEquipActivation objectAtIndex:j];
+				if ([[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:equipmentKey]) return;
+			}
+			// if we get here, this item is new
+			// add the basic info at this point (equipkey and name only)
+			OOEquipmentType *eq = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+			NSMutableDictionary *customKey = [[NSMutableDictionary alloc] initWithObjectsAndKeys:equipmentKey, CUSTOMEQUIP_EQUIPKEY, [eq name], CUSTOMEQUIP_EQUIPNAME, nil];
+			[customEquipActivation addObject:customKey];
+			[customKey release];
+			// keep the keypress arrays in sync
+			[customActivatePressed addObject:[NSNumber numberWithBool:NO]];
+			[customModePressed addObject:[NSNumber numberWithBool:NO]];			
+
+			NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+			[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+			return;
+		}
+	}
+}
+
+
+- (void) validateCustomEquipActivationArray
+{
+	int i;
+	bool update = NO;
+	NSString *equipmentKey;
+	if ([customEquipActivation count] == 0) return;
+	for (i = [customEquipActivation count] - 1; i >= 0; i--) {
+		equipmentKey = [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY];
+		OOEquipmentType *eq = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+		if (!eq) {
+			[customEquipActivation removeObjectAtIndex:i];
+			[customActivatePressed removeObjectAtIndex:i];
+			[customModePressed removeObjectAtIndex:i];
+			update = YES;
+		}
+	}
+	if (update) {
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+	}
 }
 
 
@@ -13173,6 +13231,7 @@ else _dockTarget = NO_TARGET;
 	lastShot = [shot retain]; 
 }
 
+
 #ifndef NDEBUG
 - (void)dumpSelfState
 {
@@ -13365,6 +13424,9 @@ else _dockTarget = NO_TARGET;
 	selFunctionIdx &&
 	stickFunctions &&
 	keyFunctions &&
+	customEquipActivation &&
+	customActivatePressed &&
+	customModePressed &&
 	kbdLayouts &&
 	showingLongRangeChart &&
 	_missionAllowInterrupt &&

@@ -117,6 +117,10 @@ static id sSharedStickHandler = nil;
 	return butstate;
 }
 
+- (BOOL) isButtonDown:(int)button stick:(int)stickNum
+{
+	return true_butstate[stickNum][button];
+}
 
 - (double) getAxisState: (int)function
 {
@@ -506,15 +510,22 @@ static id sSharedStickHandler = nil;
 
 - (void) clearStickStates
 {
-   int i;
-   for (i = 0; i < AXIS_end; i++)
-   {
-      axstate[i] = STICK_AXISUNASSIGNED;
-   }
-   for (i = 0; i < BUTTON_end; i++)
-   {
-      butstate[i] = 0;
-   }
+	int i, j;
+	for (i = 0; i < AXIS_end; i++)
+	{
+		axstate[i] = STICK_AXISUNASSIGNED;
+	}
+	for (i = 0; i < BUTTON_end; i++)
+	{
+		butstate[i] = 0;
+	}
+	for (i = 0; i < MAX_BUTTONS; i++)
+	{
+		for (j = 0; j < MAX_STICKS; j++)
+		{
+			true_butstate[j][i] = NO;
+		}
+	}
 }
 
 
@@ -649,7 +660,7 @@ static id sSharedStickHandler = nil;
 		if(function == BUTTON_PRECISION)
 			precisionMode = !precisionMode;
 	}
-	
+	true_butstate[evt->which][evt->button] = bs;
 	if (function >= 0)
 	{
 		butstate[function]=bs;

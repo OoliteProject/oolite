@@ -44,11 +44,18 @@ static NSArray *camera_keys = nil;
 
 @interface PlayerEntity (KeyMapperInternal)
 
+- (void)resetKeyFunctions;
 - (void)updateKeyDefinition:(NSString *)keystring index:(NSUInteger)index;
 - (void)updateShiftKeyDefinition:(NSString *)key index:(NSUInteger)index;
 - (void)displayKeyFunctionList:(GuiDisplayGen *)gui skip:(NSUInteger)skip;
 - (NSString *)keyboardDescription:(NSString *)kbd;
 - (void)displayKeyboardLayoutList:(GuiDisplayGen *)gui skip:(NSUInteger)skip;
+- (BOOL)entryIsIndexCustomEquip:(NSUInteger)idx;
+- (BOOL)entryIsDictCustomEquip:(NSDictionary *)dict;
+- (BOOL)entryIsCustomEquip:(NSString *)entry;
+- (NSArray *)getCustomEquipArray:(NSString *)key_def;
+- (NSString *)getCustomEquipKeyDefType:(NSString *)key_def;
+- (NSUInteger)getCustomEquipIndex:(NSString *)key_def;
 - (NSArray *)keyFunctionList;
 - (NSArray *)validateAllKeys;
 - (NSString *)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
@@ -102,6 +109,13 @@ static NSArray *camera_keys = nil;
 	camera_keys = [[NSArray alloc] initWithObjects:@"key_custom_view_zoom_out", @"key_custom_view_zoom_in", @"key_custom_view_roll_left", @"key_custom_view_roll_right",
 		@"key_custom_view_pan_left", @"key_custom_view_pan_right", @"key_custom_view_rotate_up", @"key_custom_view_rotate_down", @"key_custom_view_pan_down",
 		@"key_custom_view_pan_up", @"key_custom_view_rotate_left", @"key_custom_view_rotate_right", nil];
+}
+
+
+- (void) resetKeyFunctions
+{
+	[keyFunctions release];
+	keyFunctions = nil;
 }
 
 
@@ -215,7 +229,14 @@ static NSArray *camera_keys = nil;
 		current_row = [gui selectedRow];
 		selected_entry = [keyFunctions objectAtIndex:selFunctionIdx];
 		[key_list release];
-		key_list = [[NSMutableArray alloc] initWithArray:(NSArray *)[keyconfig2_settings objectForKey:[selected_entry objectForKey:KEY_KC_DEFINITION]] copyItems:YES];
+		if (![self entryIsDictCustomEquip:selected_entry]) 
+		{
+			key_list = [[NSMutableArray alloc] initWithArray:(NSArray *)[keyconfig2_settings objectForKey:[selected_entry objectForKey:KEY_KC_DEFINITION]] copyItems:YES];
+		}
+		else 
+		{
+			key_list = [[NSMutableArray alloc] initWithArray:[self getCustomEquipArray:[selected_entry oo_stringForKey:KEY_KC_DEFINITION]]];
+		}
 		[gameView clearKeys];	// try to stop key bounces
 		[self setGuiToKeyConfigScreen:YES];
 	}
@@ -248,6 +269,90 @@ static NSArray *camera_keys = nil;
 		}
 	}
 	if ([gameView isDown:' '] && !has_error) [self setGuiToGameOptionsScreen];
+}
+
+
+- (BOOL) entryIsIndexCustomEquip:(NSUInteger)idx
+{
+	return [self entryIsCustomEquip:[[keyFunctions objectAtIndex:idx] oo_stringForKey:KEY_KC_DEFINITION]];
+}
+
+
+- (BOOL) entryIsDictCustomEquip:(NSDictionary *)dict
+{
+	return [self entryIsCustomEquip:[dict oo_stringForKey:KEY_KC_DEFINITION]];
+}
+
+- (BOOL) entryIsCustomEquip:(NSString *)entry
+{
+	BOOL result = NO;
+	if ([entry hasPrefix:@"activate_"] || [entry hasPrefix:@"mode_"])
+		result = YES;
+	return result;
+}
+
+- (NSArray *) getCustomEquipArray:(NSString *)key_def
+{
+	NSString *eq = nil;
+	NSUInteger i;
+	NSString *key;
+	if ([key_def hasPrefix:@"activate_"]) 
+	{
+		eq = [key_def stringByReplacingOccurrencesOfString:@"activate_" withString:@""];
+		key = CUSTOMEQUIP_KEYACTIVATE;
+	}
+	if ([key_def hasPrefix:@"mode_"]) 
+	{
+		eq = [key_def stringByReplacingOccurrencesOfString:@"mode_" withString:@""];
+		key = CUSTOMEQUIP_KEYMODE;
+	}
+	if (eq == nil) return nil;
+	for (i = 0; i < [customEquipActivation count]; i++)
+	{
+		if ([[[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:eq])
+		{
+			return [[customEquipActivation objectAtIndex:i] oo_arrayForKey:key];
+		}
+	}
+	return nil;
+}
+
+
+- (NSUInteger) getCustomEquipIndex:(NSString *)key_def
+{
+	NSString *eq = nil;
+	NSUInteger i;
+	if ([key_def hasPrefix:@"activate_"]) 
+	{
+		eq = [key_def stringByReplacingOccurrencesOfString:@"activate_" withString:@""];
+	}
+	if ([key_def hasPrefix:@"mode_"]) 
+	{
+		eq = [key_def stringByReplacingOccurrencesOfString:@"mode_" withString:@""];
+	}
+	if (eq == nil) return -1;
+	for (i = 0; i < [customEquipActivation count]; i++)
+	{
+		if ([[[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:eq])
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+- (NSString *) getCustomEquipKeyDefType:(NSString *)key_def
+{
+	if ([key_def hasPrefix:@"activate_"]) 
+	{
+		return CUSTOMEQUIP_KEYACTIVATE;
+	}
+	if ([key_def hasPrefix:@"mode_"]) 
+	{
+		return CUSTOMEQUIP_KEYMODE;
+	}
+	return @"";
 }
 
 
@@ -311,7 +416,12 @@ static NSArray *camera_keys = nil;
 		[self outputKeyDefinition:keystring shift:keyshift mod1:keymod1 mod2:keymod2 skiprows:(i * 5)];
 	}
 
-	[gui addLongText:DESC(@"oolite-keyconfig-update-helper") startingAtRow:GUI_ROW_KC_UPDATE_INFO align:GUI_ALIGN_LEFT];
+	NSString *helper = DESC(@"oolite-keyconfig-update-helper");
+	if ([nav_keys containsObject:[selected_entry objectForKey: KEY_KC_DEFINITION]])
+		helper = [NSString stringWithFormat:@"%@ %@", helper, DESC(@"oolite-keyconfig-update-navkeys")];
+	if ([camera_keys containsObject:[selected_entry objectForKey: KEY_KC_DEFINITION]])
+		helper = [NSString stringWithFormat:@"%@ %@", helper, DESC(@"oolite-keyconfig-update-camkeys")];
+	[gui addLongText:helper startingAtRow:GUI_ROW_KC_UPDATE_INFO align:GUI_ALIGN_LEFT];
 
 	[gui setText:@"" forRow:GUI_ROW_KC_VALIDATION];
 
@@ -402,7 +512,7 @@ static NSArray *camera_keys = nil;
 	[self handleGUIUpDownArrowKeys];
 	BOOL selectKeyPress = ([self checkKeyPress:n_key_gui_select]||[gameView isDown:gvMouseDoubleClick]);
 	if ([gameView isDown:gvMouseDoubleClick])  [gameView clearMouse];
-
+	
 	if (selectKeyPress && ([gui selectedRow] == GUI_ROW_KC_KEY || [gui selectedRow] == (GUI_ROW_KC_KEY + 5)))
 	{
 		key_index = ([gui selectedRow] == GUI_ROW_KC_KEY ? 0 : 1);
@@ -444,7 +554,6 @@ static NSArray *camera_keys = nil;
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	OOGUIScreenID oldScreen = gui_screen;
-	
 	gui_screen = GUI_SCREEN_KEYBOARD_ENTRY;
 	BOOL guiChanged = (oldScreen != gui_screen);
 	
@@ -454,6 +563,7 @@ static NSArray *camera_keys = nil;
 		// add the missing element to the array
 		NSMutableDictionary *key1 = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"", @"key", [NSNumber numberWithBool:NO], @"shift", [NSNumber numberWithBool:NO], @"mod1", [NSNumber numberWithBool:NO], @"mod2", nil];
 		[key_list addObject:key1];
+		[key1 release];
 	}
 	NSDictionary *def = [key_list objectAtIndex:key_index];
 	NSString *key = [def objectForKey:@"key"];
@@ -529,11 +639,12 @@ static NSArray *camera_keys = nil;
 	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
 	[key_def setObject:keystring forKey:@"key"];
 	// auto=turn on shift if the entered key was shifted
-	if (last_shift) 
+
+	if (last_shift && ![nav_keys containsObject:[selected_entry objectForKey: KEY_KC_DEFINITION]]) 
 	{
 		[key_def setObject:[NSNumber numberWithBool:YES] forKey:@"shift"];
-		last_shift = NO;
 	}
+	last_shift = NO;
 	if (index > [key_list count] - 1)
 	{
 		[key_list insertObject:key_def atIndex:index];
@@ -542,11 +653,11 @@ static NSArray *camera_keys = nil;
 	{
 		[key_list replaceObjectAtIndex:index withObject:key_def];
 	}
+	[key_def release];
 	NSArray *new_array = [self processKeyCode:key_list];
 	[key_list release];
 	key_list = [[NSMutableArray alloc] initWithArray:new_array copyItems:YES];
 	[new_array release];
-	[key_def release];
 }
 
 
@@ -694,10 +805,23 @@ static NSArray *camera_keys = nil;
 			}
 			else
 			{
-				NSString *assignment = [PLAYER keyBindingDescription2:[entry objectForKey:KEY_KC_DEFINITION]];
-				NSString *override = ([overrides objectForKey:[entry objectForKey:KEY_KC_DEFINITION]] ? @"Yes" : @""); // work out whether this assignment is overriding the setting in keyconfig2.plist
-				validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[keyconfig2_settings objectForKey:[entry objectForKey:KEY_KC_DEFINITION]]];
-				// Find out what's assigned for this function currently.
+				NSString *assignment = nil;
+				NSString *override = nil;
+				if (![self entryIsDictCustomEquip:entry])
+				{
+					// Find out what's assigned for this function currently.
+					assignment = [PLAYER keyBindingDescription2:[entry objectForKey:KEY_KC_DEFINITION]];
+					override = ([overrides objectForKey:[entry objectForKey:KEY_KC_DEFINITION]] ? @"Yes" : @""); // work out whether this assignment is overriding the setting in keyconfig2.plist
+					validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[keyconfig2_settings objectForKey:[entry objectForKey:KEY_KC_DEFINITION]]];
+				}
+				else 
+				{
+					NSString *custom_keytype = [self getCustomEquipKeyDefType:[entry oo_stringForKey:KEY_KC_DEFINITION]];
+					NSUInteger idx = [self getCustomEquipIndex:[entry oo_stringForKey:KEY_KC_DEFINITION]];
+					assignment = [PLAYER getKeyBindingDescription:[[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype]];
+					override = @"";
+					validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype]];
+				}
 				if (assignment == nil)
 				{
 					assignment = @"   -   ";
@@ -880,6 +1004,18 @@ static NSArray *camera_keys = nil;
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_shaders") keyDef:@"key_debug_shaders"]];
 	[funcList addObject:[self makeKeyGuiDict:DESC(@"oolite-keydesc-key_debug_off") keyDef:@"key_debug_off"]];
 
+	if ([customEquipActivation count] > 0) 
+	{
+		[funcList addObject:[self makeKeyGuiDictHeader:DESC(@"oolite-keydesc-header-oxp-equip")]];
+		int i;
+		for (i = 0; i < [customEquipActivation count]; i++)
+		{
+			[funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat: @"Activate '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]] 
+				keyDef:[NSString stringWithFormat:@"activate_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]]];
+			[funcList addObject:[self makeKeyGuiDict:[NSString stringWithFormat: @"Mode '%@'", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPNAME]] 
+				keyDef:[NSString stringWithFormat:@"mode_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]]];
+		}
+	}
 	return funcList;
 }
 
@@ -1047,6 +1183,12 @@ static NSArray *camera_keys = nil;
 	NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
 	NSMutableArray *sorted = [[NSMutableArray alloc] initWithArray:[kbdList sortedArrayUsingDescriptors:sortDescriptors]];
 	[sorted insertObject:def atIndex:0];
+	[kmap release];
+	[kbdList release];
+	[keys release];
+	[sortDescriptor release];
+	[sortDescriptors release];
+	if (def) [def release];
 	return sorted;
 }
 
@@ -1144,7 +1286,7 @@ static NSArray *camera_keys = nil;
 - (NSString *) validateKey:(NSString *)key checkKeys:(NSArray *)check_keys
 {
 	NSString *result = nil;
-
+	
 	// need to group keys into validation groups
 	NSArray *gui_keys = [NSArray arrayWithObjects:@"key_gui_arrow_left", @"key_gui_arrow_right", @"key_gui_arrow_up", @"key_gui_arrow_down", @"key_gui_page_up", 
 		@"key_gui_page_down", @"key_gui_select", nil];
@@ -1176,7 +1318,7 @@ static NSArray *camera_keys = nil;
 		if (result) return result;
 	}
 
-	NSArray *inflight_keys = [NSArray arrayWithObjects:
+	NSMutableArray *inflight_keys = [NSMutableArray arrayWithObjects:
 		@"key_roll_left", @"key_roll_right", @"key_pitch_forward", @"key_pitch_back", @"key_yaw_left", @"key_yaw_right", @"key_view_forward", @"key_view_aft", 
 		@"key_view_port", @"key_view_starboard", @"key_increase_speed", @"key_decrease_speed", @"key_inject_fuel", @"key_fire_lasers", @"key_weapons_online_toggle", 
 		@"key_launch_missile", @"key_next_missile", @"key_ecm", @"key_prime_next_equipment", @"key_prime_previous_equipment", @"key_activate_equipment", 
@@ -1189,6 +1331,15 @@ static NSArray *camera_keys = nil;
 		@"key_inc_field_of_view", @"key_dec_field_of_view", 
 #endif
 		@"key_pausebutton", @"key_dump_target_state", nil];
+	
+	if ([self entryIsCustomEquip:key]) {
+		NSUInteger i;
+		for (i = 0; i < [customEquipActivation count]; i++)
+		{
+			[inflight_keys addObject:[NSString stringWithFormat:@"activate_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]];
+			[inflight_keys addObject:[NSString stringWithFormat:@"mode_%@", [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]]];
+		}
+	}
 
 	if ([inflight_keys containsObject:key]) 
 	{
@@ -1282,7 +1433,17 @@ static NSArray *camera_keys = nil;
 		{
 			// get the array from keyconfig2_settings
 			// we need to compare all entries to each other to look for any match, as any match would indicate a conflict
-			NSArray *current = (NSArray *)[keyconfig2_settings objectForKey:search];
+			NSArray *current = nil;
+			if (![self entryIsCustomEquip:search])
+			{
+				current = (NSArray *)[keyconfig2_settings objectForKey:search];
+			}
+			else 
+			{
+				NSUInteger idx = [self getCustomEquipIndex:search];
+				NSString *keytype = [self getCustomEquipKeyDefType:search];
+				current = (NSArray *)[[customEquipActivation objectAtIndex:idx] objectForKey:keytype];
+			}
 			for (j = 0; j < [current count]; j++) 
 			{
 				for (k = 0; k < [check_keys count]; k++)
@@ -1330,6 +1491,11 @@ static NSArray *camera_keys = nil;
 // saves the currently store key_list to the defaults file and updates the global definition
 - (void) saveKeySetting:(NSString*)key
 {
+	// check for a blank entry
+	if ([key_list count] > 1 && [[(NSDictionary*)[key_list objectAtIndex:1] objectForKey:@"key"] integerValue] == 0) 
+	{
+		[key_list removeObjectAtIndex:1];
+	}
 	// make sure the primary and alternate keys are different
 	if ([key_list count] > 1) {
 		if ([self compareKeyEntries:[key_list objectAtIndex:0] second:[key_list objectAtIndex:1]])
@@ -1349,24 +1515,31 @@ static NSArray *camera_keys = nil;
 			return;
 		}
 	}
-	// if we've got the same settings as the default, revert to the default
-	if ([self entryIsEqualToDefault:key])
-	{
-		[self deleteKeySetting:key];
-		// reload settings
-		[self initKeyConfigSettings];
-		[self reloadPage];
-		return;
-	}
+
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
-	// check for a blank entry
-	if ([key_list count] > 1 && [[(NSDictionary*)[key_list objectAtIndex:1] objectForKey:@"key"] integerValue] == 0) 
+
+	if (![self entryIsCustomEquip:key])
 	{
-		[key_list removeObjectAtIndex:1];
+		// if we've got the same settings as the default, revert to the default
+		if ([self entryIsEqualToDefault:key])
+		{
+			[self deleteKeySetting:key];
+			// reload settings
+			[self initKeyConfigSettings];
+			[self reloadPage];
+			return;
+		}
+		NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
+		[keyconf setObject:key_list forKey:key];
+		[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
 	}
-	[keyconf setObject:key_list forKey:key];
-	[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+	else 
+	{
+		NSUInteger idx = [self getCustomEquipIndex:key];
+		NSString *custkey = [self getCustomEquipKeyDefType:key];
+		[[customEquipActivation objectAtIndex:idx] setObject:key_list forKey:custkey];
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+	}
 	// reload settings
 	[self initKeyConfigSettings];
 	[self reloadPage];
@@ -1376,11 +1549,20 @@ static NSArray *camera_keys = nil;
 - (void) unsetKeySetting:(NSString*)key
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
-	NSMutableArray *empty = [[NSMutableArray alloc] init];
-	[keyconf setObject:empty forKey:key];
-	[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
-	[empty release];
+	if (![self entryIsCustomEquip:key])
+	{
+		NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
+		NSMutableArray *empty = [[NSMutableArray alloc] init];
+		[keyconf setObject:empty forKey:key];
+		[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+		[empty release];
+	}
+	else 
+	{
+		NSString *custkey = [self getCustomEquipKeyDefType:key];
+		[[customEquipActivation objectAtIndex:[self getCustomEquipIndex:key]] removeObjectForKey:custkey];
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+	}
 	// reload settings
 	[self initKeyConfigSettings];
 }
@@ -1390,9 +1572,18 @@ static NSArray *camera_keys = nil;
 - (void) deleteKeySetting:(NSString*)key
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
-	[keyconf removeObjectForKey:key];
-	[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+	if (![self entryIsCustomEquip:key])
+	{
+		NSMutableDictionary *keyconf = [NSMutableDictionary dictionaryWithDictionary:[defaults objectForKey:KEYCONFIG_OVERRIDES]];
+		[keyconf removeObjectForKey:key];
+		[defaults setObject:keyconf forKey:KEYCONFIG_OVERRIDES];
+	}
+	else 
+	{
+		NSString *custkey = [self getCustomEquipKeyDefType:key];
+		[[customEquipActivation objectAtIndex:[self getCustomEquipIndex:key]] removeObjectForKey:custkey];
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+	}
 	// reload settings
 	[self initKeyConfigSettings];
 }
@@ -1403,6 +1594,16 @@ static NSArray *camera_keys = nil;
 {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[defaults removeObjectForKey:KEYCONFIG_OVERRIDES];
+	if ([customEquipActivation count] > 0)
+	{
+		NSUInteger i;
+		for (i = 0; i < [customEquipActivation count]; i++)
+		{
+			[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_KEYACTIVATE];
+			[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_KEYMODE];
+		}
+		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+	}
 	// reload settings
 	[self initKeyConfigSettings];
 }

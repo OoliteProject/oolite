@@ -117,6 +117,14 @@ typedef enum
 #define OO_RESOLUTION_OPTION		1
 #endif
 
+// dictionary keys - used in the custom key config for oxp equipment
+#define CUSTOMEQUIP_EQUIPKEY @"equipmentKey"
+#define CUSTOMEQUIP_EQUIPNAME @"equipmentName"
+#define CUSTOMEQUIP_KEYACTIVATE @"keyActivate"
+#define CUSTOMEQUIP_KEYMODE @"keyMode"
+#define CUSTOMEQUIP_BUTTONACTIVATE @"buttonActivate"
+#define CUSTOMEQUIP_BUTTONMODE @"buttonMode"
+#define KEYCONFIG_CUSTOMEQUIP @"CustomEquipActivation"  // NSUserDefaults
 
 enum
 {
@@ -680,6 +688,11 @@ typedef enum
 	NSArray					*n_key_debug_off;
 #endif
 
+	// dict to hold custom key config for OXP equipment with activate/mode functions
+	NSMutableArray			*customEquipActivation;
+	NSMutableArray			*customActivatePressed;
+	NSMutableArray			*customModePressed;
+
 	// save-file
 	NSString				*save_path;
 	NSString				*scenarioKey;
@@ -855,6 +868,9 @@ typedef enum
 
 - (NSDictionary *) commanderDataDictionary;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;
+
+- (void) addEquipmentWithScriptToCustomKeyArray:(NSString *)equipmentKey;
+- (void) validateCustomEquipActivationArray;
 
 - (void) doBookkeeping:(double) delta_t;
 - (BOOL) isValidTarget:(Entity*)target;

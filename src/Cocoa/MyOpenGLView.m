@@ -998,6 +998,7 @@ FAIL:
 - (void) clearKeys
 {
 	int i;
+	lastKeyShifted = NO;
 	for (i = 0; i < [self numKeys]; i++)
 		keys[i] = NO;
 }

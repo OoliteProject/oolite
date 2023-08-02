@@ -1239,6 +1239,7 @@
 	"oolite-keydesc-header-oxz-manager"			= "OXZ manager controls";
 	"oolite-keydesc-header-gui"					= "GUI controls";
 	"oolite-keydesc-header-debug"				= "Debug functions";
+	"oolite-keydesc-header-oxp-equip"			= "OXP equipment activation";
 
 	"oolite-keydesc-key_roll_left"				= "Roll left";
 	"oolite-keydesc-key_roll_right"				= "Roll right";
@@ -1405,6 +1406,8 @@
 	"oolite-keyconfig-update-title"				= "Update Keyboard Setting";
 	"oolite-keyconfig-update-function"			= "Function to update";
 	"oolite-keyconfig-update-helper"	 		= "Select a key and press Enter to modify. Press Enter on modifiers to change the flag setting.";
+	"oolite-keyconfig-update-navkeys"			= "Note: navigation keys cannot use modifiers.";
+	"oolite-keyconfig-update-camkeys"			= "Note: camera keys cannot use Control modifier.";
 	"oolite-keyconfig-update-key"				= "Key";
 	"oolite-keyconfig-update-shift"				= "Shift";
 	"oolite-keyconfig-update-mod1"				= "Control";
@@ -1810,8 +1813,9 @@
 	"stickmapper-header-offensive"	= "Offensive";
 	"stickmapper-header-defensive"	= "Defensive";
 	"stickmapper-header-special-equip"	= "Special equipment";
-	"stickmapper-header-misc"	= "Miscellaneous";
-	
+	"stickmapper-header-misc"		= "Miscellaneous";
+	"stickmapper-header-oxp-equip"	=	"OXP equipment activation";
+
 	"oolite-stickprofile-title"			= "Joystick Profile";
 	"oolite-stickprofile-back"			= "Back";
 	"oolite-stickprofile-axis"			= "Axis:";
