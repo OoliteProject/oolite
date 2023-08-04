@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityScriptMethods.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "PlayerEntitySound.h"
 #import "HeadUpDisplay.h"
 #import "StationEntity.h"
 
@@ -74,6 +75,7 @@ static JSBool PlayerShipResetScannerZoom(JSContext *context, uintN argc, jsval *
 static JSBool PlayerShipTakeInternalDamage(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipBeginHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
+static JSBool PlayerShipBeginGalacticHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetMultiFunctionDisplay(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipSetMultiFunctionText(JSContext *context, uintN argc, jsval *vp);
 static JSBool PlayerShipHideHUDSelector(JSContext *context, uintN argc, jsval *vp);
@@ -250,6 +252,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "beginHyperspaceCountdown",       PlayerShipBeginHyperspaceCountdown,         0 },
 	{ "cancelDockingRequest",			PlayerShipCancelDockingRequest,             1 },
 	{ "cancelHyperspaceCountdown",      PlayerShipCancelHyperspaceCountdown,        0 },
+	{ "beginGalacticHyperspaceCountdown", PlayerShipBeginGalacticHyperspaceCountdown, 1 },
 	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
 	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
 	{ "hideHUDSelector",				PlayerShipHideHUDSelector,					1 },
@@ -1613,6 +1616,46 @@ static JSBool PlayerShipCancelHyperspaceCountdown(JSContext *context, uintN argc
 	OOJS_RETURN_BOOL(cancelled);
 	OOJS_NATIVE_EXIT
 		
+}
+
+
+static JSBool PlayerShipBeginGalacticHyperspaceCountdown(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	PlayerEntity		*player = OOPlayerForScripting();
+	int32				spin_time;
+	int32				witchspaceSpinUpTime = 5;
+	BOOL begun = NO;
+	if (argc == 1) 
+	{
+
+		if (!JS_ValueToInt32(context, OOJS_ARGV[0], &spin_time) || spin_time < 5 || spin_time > 60)
+		{
+			OOJSReportBadArguments(context, @"PlayerShip", @"beginGalacticHyperspaceCountdown", 1, &OOJS_ARGV[0], nil, @"between 5 and 60 seconds");
+			return NO;
+		}
+		if (spin_time < 5) 
+		{
+			witchspaceSpinUpTime = 5;
+		}
+		else
+		{
+			witchspaceSpinUpTime = spin_time;
+		}
+	}
+	if ([player hasEquipmentItemProviding:@"EQ_GAL_DRIVE"] && [player status] == STATUS_IN_FLIGHT && [player witchJumpChecklist:true])
+	{
+		[player setJumpType:YES];
+		[player setWitchspaceCountdown:witchspaceSpinUpTime];
+		[player setStatus:STATUS_WITCHSPACE_COUNTDOWN];
+		[player playGalacticHyperspace];
+		// say it!
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceSpinUpTime] forCount:1.0];
+		begun = YES;
+	}
+	OOJS_RETURN_BOOL(begun);
+	OOJS_NATIVE_EXIT
 }
 
 
