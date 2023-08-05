@@ -49,6 +49,11 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 #include <ctype.h>
 
+#if OOLITE_WINDOWS
+#define DWMWA_USE_IMMERSIVE_DARK_MODE	20
+HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+#endif
+
 @interface MyOpenGLView (OOPrivate)
 
 - (void) resetSDLKeyModifiers;
@@ -1028,8 +1033,37 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		SetWindowLong(SDL_Window, GWL_STYLE, currentWindowStyle |
 						WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
+		[self refreshDarKOrLightMode];
 	}
 	SetWindowPos(SDL_Window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+}
+
+
+- (void) refreshDarKOrLightMode
+{
+	int shouldSetDarkMode = [self isDarkModeOn];
+	DwmSetWindowAttribute (SDL_Window, DWMWA_USE_IMMERSIVE_DARK_MODE, &shouldSetDarkMode, sizeof(shouldSetDarkMode));
+}
+
+
+- (BOOL) isDarkModeOn
+{
+	char buffer[4];
+	DWORD bufferSize = sizeof(buffer);
+	
+	// reading a REG_DWORD value from the Registry
+	HRESULT resultRegGetValue = RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+									L"AppsUseLightTheme", RRF_RT_REG_DWORD, NULL, buffer, &bufferSize);
+	if (resultRegGetValue != ERROR_SUCCESS)
+	{
+		return NO;
+	}
+	
+	// get our 4 obtained bytes into integer little endian format
+	int i = (int)(buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0]);
+	
+	// dark mode is 0, light mode is 1
+	return i == 0;
 }
 
 
@@ -2489,6 +2523,19 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 						
 					case WM_ACTIVATEAPP:
 						if(grabMouseStatus)  [self grabMouseInsideGameWindow:YES];
+						break;
+						
+					case WM_SETTINGCHANGE:
+						// TODO: we really should be checking the status of event.syswm.msg->lParam here and run our
+						// dark / light mode refresh check only if the lParam LPCTSTR matches "ImmersiveColorSet".
+						// However, for some reason I cannot get an actual string on lParam. This means that the
+						// mode refresh check runs every time something changes the Windows Registry while the game
+						// is running. Still, should be OK because our refreshDarKOrLightMode will be transparent in
+						// such cases, plus we would not practically expect too many events doing things to the Registry
+						// while we are running. If in the future we need to respond to a different event which changes 
+						// system settings in real time, then yes, we will have to find a way to decode lParam properly.
+						// Nikos, 20230805
+						[self refreshDarKOrLightMode];
 						break;
 						
 					case WM_SETFOCUS:
