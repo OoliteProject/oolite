@@ -7437,11 +7437,6 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
-- (BOOL) galacticJumpType
-{
-	return galactic_witchjump;
-}
-
 
 - (double) hyperspaceJumpDistance
 {

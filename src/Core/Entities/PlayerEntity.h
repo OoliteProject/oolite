@@ -1051,7 +1051,6 @@ typedef enum
 - (BOOL) witchJumpChecklist:(BOOL)isGalacticJump;
 - (void) enterGalacticWitchspace;
 - (void) setJumpType:(BOOL)isGalacticJump;
-- (BOOL) galacticJumpType;
 
 - (BOOL) takeInternalDamage;
 
