@@ -125,6 +125,7 @@ void MissionRunCallback()
 	if (JSVAL_IS_NULL(sCallbackFunction) || JSVAL_IS_VOID(sCallbackFunction))  return;
 	
 	jsval				argval = JSVAL_VOID;
+	jsval				argval2 = JSVAL_VOID;
 	jsval				rval = JSVAL_VOID;
 	PlayerEntity		*player = OOPlayerForScripting();
 	OOJavaScriptEngine	*engine  = [OOJavaScriptEngine sharedEngine];
@@ -148,9 +149,14 @@ void MissionRunCallback()
 	sCallbackFunction = JSVAL_NULL;
 	sCallbackThis = JSVAL_NULL;
 	
+	jsval args[2];
 	argval = OOJSValueFromNativeObject(context, [player missionChoice_string]);
+	argval2 = OOJSValueFromNativeObject(context, [player missionKeyPress_string]);
+	args[0] = argval;
+	args[1] = argval2;
+
 	// now reset the mission choice silently, before calling the callback script.
-	[player setMissionChoice:nil withEvent:NO];
+	[player setMissionChoice:nil keyPress:@"" withEvent:NO];
 	
 	// Call the callback.
 	@try
@@ -158,8 +164,8 @@ void MissionRunCallback()
 		[OOJSScript pushScript:cbScript];
 		[engine callJSFunction:cbFunction
 					 forObject:cbThis
-						  argc:1
-						  argv:&argval
+						  argc:2
+						  argv:args
 						result:&rval];
 	}
 	@catch (NSException *exception)
@@ -688,6 +694,12 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	else
 	{
 		[player clearMissionScreenID];
+	}
+
+	[player clearExtraMissionKeys];
+	if (JS_GetProperty(context, params, "registerKeys", &value) && !JSVAL_IS_VOID(value))
+	{
+		[player setExtraMissionKeys:GetParameterDictionary(context, params, "registerKeys")];
 	}
 
 	JSBool textEntry = NO;

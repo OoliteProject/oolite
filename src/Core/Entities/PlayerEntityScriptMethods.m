@@ -190,11 +190,23 @@ MA 02110-1301, USA.
 
 - (void) setMissionChoice:(NSString *)newChoice
 {
-	[self setMissionChoice:newChoice withEvent:YES];
+	[self setMissionChoice:newChoice keyPress:@"" withEvent:YES];
 }
 
 
 - (void) setMissionChoice:(NSString *)newChoice withEvent:(BOOL)withEvent
+{
+	[self setMissionChoice:newChoice keyPress:@"" withEvent:withEvent];
+}
+
+
+- (void) setMissionChoice:(NSString *)newChoice keyPress:(NSString *)keyPress
+{
+	[self setMissionChoice:newChoice keyPress:keyPress withEvent:YES];
+}
+
+
+- (void) setMissionChoice:(NSString *)newChoice keyPress:(NSString *)keyPress withEvent:(BOOL)withEvent
 {
 	BOOL equal = [newChoice isEqualToString:missionChoice] || (newChoice == missionChoice);	// Catch both being nil as well
 	if (!equal)
@@ -211,6 +223,12 @@ MA 02110-1301, USA.
 			[missionChoice autorelease];
 			missionChoice = [newChoice copy];
 		}
+	}
+	equal = [keyPress isEqualToString:missionKeyPress] || (keyPress == missionKeyPress);
+	if (!equal) 
+	{
+		[missionKeyPress autorelease];
+		missionKeyPress = [keyPress copy];
 	}
 }
 

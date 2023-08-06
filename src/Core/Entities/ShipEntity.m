@@ -3619,7 +3619,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			maxEnergy += 256.0f;
 			energy_recharge_rate *= 1.5;
 		}
-	}
+	} 
 	// add the equipment
 	[_equipment addObject:equipmentKey];
 	[self doScriptEvent:OOJSID("equipmentAdded") withArgument:equipmentKey];

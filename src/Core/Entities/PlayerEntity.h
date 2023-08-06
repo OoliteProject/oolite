@@ -384,7 +384,7 @@ typedef enum
 	NSString				*_missionTitle;
 	NSInteger /*OOGUIRow*/	missionTextRow;
 	NSString				*missionChoice;
-	
+	NSString				*missionKeyPress;
 	BOOL					_missionWithCallback;
 	BOOL					_missionAllowInterrupt;
 	BOOL					_missionTextEntry;
@@ -693,6 +693,9 @@ typedef enum
 	NSMutableArray			*customEquipActivation;
 	NSMutableArray			*customActivatePressed;
 	NSMutableArray			*customModePressed;
+
+	// dict to hold extra keys for missions screen.
+	NSDictionary			*extraMissionKeys;
 
 	// save-file
 	NSString				*save_path;
@@ -1229,6 +1232,8 @@ typedef enum
 - (void) setMissionBackgroundSpecial:(NSString *)special;
 - (void) setMissionExitScreen:(OOGUIScreenID)screen;
 - (OOGUIScreenID) missionExitScreen;
+- (void) clearExtraMissionKeys;
+- (void) setExtraMissionKeys:(NSDictionary *)keys;
 
 // Nasty hack to keep background textures around while on equip screens.
 - (NSDictionary *) equipScreenBackgroundDescriptor;
