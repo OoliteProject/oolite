@@ -384,6 +384,7 @@ typedef enum
 	NSString				*_missionTitle;
 	NSInteger /*OOGUIRow*/	missionTextRow;
 	NSString				*missionChoice;
+	
 	BOOL					_missionWithCallback;
 	BOOL					_missionAllowInterrupt;
 	BOOL					_missionTextEntry;
@@ -1252,6 +1253,7 @@ typedef enum
 - (void) setGalacticHyperspaceFixedCoords:(NSPoint)point;
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
+- (void) setWitchspaceCountdown:(int)spin_time;
 
 - (OOLongRangeChartMode) longRangeChartMode;
 - (void) setLongRangeChartMode:(OOLongRangeChartMode) mode;

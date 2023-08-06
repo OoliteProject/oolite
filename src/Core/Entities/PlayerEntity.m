@@ -7436,6 +7436,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 }
 
+
+
 - (double) hyperspaceJumpDistance
 {
 	NSPoint targetCoordinates = PointFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:[self nextHopTargetSystemID] inGalaxy:galaxy_number]);
@@ -12885,6 +12887,11 @@ static NSString *last_outfitting_key=nil;
 	return galacticHyperspaceFixedCoords;
 }
 
+
+- (void) setWitchspaceCountdown:(int)spin_time
+{
+	witchspaceCountdown = spin_time;
+}
 
 - (OOLongRangeChartMode) longRangeChartMode
 {
