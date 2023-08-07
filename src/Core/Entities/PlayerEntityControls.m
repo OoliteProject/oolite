@@ -5257,6 +5257,7 @@ static BOOL autopilot_pause;
 					selectPressed = NO;
 					[self pollMissionInterruptControls];
 				}
+				[extraKey release];
 			}
 			break;
 			
