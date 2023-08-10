@@ -640,9 +640,13 @@ static NSArray *camera_keys = nil;
 	[key_def setObject:keystring forKey:@"key"];
 	// auto=turn on shift if the entered key was shifted
 
-	if (last_shift && ![nav_keys containsObject:[selected_entry objectForKey: KEY_KC_DEFINITION]]) 
+	if (last_shift && [keystring length] == 1 && ![nav_keys containsObject:[selected_entry objectForKey: KEY_KC_DEFINITION]]) 
 	{
 		[key_def setObject:[NSNumber numberWithBool:YES] forKey:@"shift"];
+	}
+	if (!last_shift && [keystring length] == 1)
+	{
+		[key_def setObject:[NSNumber numberWithBool:NO] forKey:@"shift"];
 	}
 	last_shift = NO;
 	if (index > [key_list count] - 1)
