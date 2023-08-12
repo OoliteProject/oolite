@@ -1187,12 +1187,7 @@ static NSArray *camera_keys = nil;
 	NSArray *sortDescriptors = [NSArray arrayWithObject:sortDescriptor];
 	NSMutableArray *sorted = [[NSMutableArray alloc] initWithArray:[kbdList sortedArrayUsingDescriptors:sortDescriptors]];
 	[sorted insertObject:def atIndex:0];
-	[kmap release];
-	[kbdList release];
-	[keys release];
-	[sortDescriptor release];
-	[sortDescriptors release];
-	if (def) [def release];
+
 	return sorted;
 }
 
