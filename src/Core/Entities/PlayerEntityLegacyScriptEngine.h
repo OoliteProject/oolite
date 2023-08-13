@@ -108,6 +108,7 @@ typedef enum
 - (NSString *) sunGoneNova_bool;		// returns whether the sun has gone nova
 
 - (NSString *) missionChoice_string;	// returns nil or the key for the chosen option
+- (NSString *) missionKeyPress_string;
 
 - (NSNumber *) dockedTechLevel_number;
 - (NSString *) dockedStationName_string;	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise

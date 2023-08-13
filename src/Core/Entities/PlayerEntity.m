@@ -13239,6 +13239,26 @@ else _dockTarget = NO_TARGET;
 }
 
 
+- (void) clearExtraMissionKeys
+{
+	[extraMissionKeys release];
+	extraMissionKeys = nil;
+}
+
+
+- (void) setExtraMissionKeys:(NSDictionary *)keys
+{
+	NSString *key = nil;
+	NSMutableDictionary *final = [[NSMutableDictionary alloc] init];
+	foreach (key, [keys allKeys])
+	{
+		[final setObject:[self processKeyCode:[keys oo_arrayForKey:key]] forKey:key];
+	}
+	extraMissionKeys = [final copy];
+	[final release];
+}
+
+
 #ifndef NDEBUG
 - (void)dumpSelfState
 {

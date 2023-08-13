@@ -1070,6 +1070,12 @@ static int shipsFound;
 }
 
 
+- (NSString *) missionKeyPress_string
+{
+	return missionKeyPress;
+}
+
+
 - (NSNumber *) dockedTechLevel_number
 {
 	StationEntity *dockedStation = [self dockedStation];
