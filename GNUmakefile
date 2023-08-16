@@ -322,6 +322,7 @@ OOLITE_SCRIPTING_FILES = \
     OOJSExhaustPlume.m \
     OOJSFlasher.m \
     OOJSFunction.m \
+    OOJSGuiScreenKeyDefinition.m \
     OOJSGlobal.m \
     OOJSInterfaceDefinition.m \
     OOJSManifest.m \

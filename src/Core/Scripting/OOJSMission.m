@@ -626,15 +626,6 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 
 	[UNIVERSE removeDemoShips];	// remove any demoship or miniature planet that may be remaining from previous screens
 	
-	if ([player status] == STATUS_IN_FLIGHT)
-	{
-		OOStandardsError(@"Mission screens should not be used while in flight");
-		if (OOEnforceStandards())
-		{
-			return NO;
-		}
-	}
-
 	ShipEntity *demoShip = nil;
 	if (JS_GetProperty(context, params, "model", &value) && !JSVAL_IS_VOID(value))
 	{
@@ -673,9 +664,17 @@ static JSBool MissionRunScreen(JSContext *context, uintN argc, jsval *vp)
 	}
 
 	JSBool allowInterrupt = NO;
-	if (JS_GetProperty(context, params, "allowInterrupt", &value) && !JSVAL_IS_VOID(value))
+	// force the allowInterrupt to be YES while in flight
+	if ([player status] == STATUS_IN_FLIGHT) 
 	{
-		JS_ValueToBoolean(context, value, &allowInterrupt);
+		allowInterrupt = YES;
+	} 
+	else
+	{
+		if (JS_GetProperty(context, params, "allowInterrupt", &value) && !JSVAL_IS_VOID(value))
+		{
+			JS_ValueToBoolean(context, value, &allowInterrupt);
+		}
 	}
 
 	if (JS_GetProperty(context, params, "exitScreen", &value) && !JSVAL_IS_VOID(value))
