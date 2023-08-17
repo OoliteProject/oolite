@@ -13260,7 +13260,7 @@ else _dockTarget = NO_TARGET;
 }
 
 
-- (void) clearExtraGuiScreenKeys:(OOGUIScreenID)gui name:(NSString *)defname
+- (void) clearExtraGuiScreenKeys:(OOGUIScreenID)gui key:(NSString *)key
 {
 	NSMutableArray *keydefs = [extraGuiScreenKeys objectForKey:[NSString stringWithFormat:@"%d",gui]];
 	NSInteger i = [keydefs count];
@@ -13268,7 +13268,7 @@ else _dockTarget = NO_TARGET;
 	while (i--) 
 	{
 		def = [keydefs objectAtIndex:i];
-		if (def && [[def oo_stringForKey:@"name"] isEqualToString:defname]) 
+		if (def && [[def oo_stringForKey:@"name"] isEqualToString:key]) 
 		{
 			[keydefs removeObjectAtIndex:i];
 			break;
@@ -13311,22 +13311,21 @@ else _dockTarget = NO_TARGET;
 	else 
 	{
 		newarray = [[extraGuiScreenKeys objectForKey:[NSString stringWithFormat:@"%d",gui]] mutableCopy];
-		// look for the name in the array of items and remove it, because we're going to replace it
 		NSInteger i = [newarray count];
 		NSInteger j = 0;
-		OOJSGuiScreenKeyDefinition *def = nil;
+		OOJSGuiScreenKeyDefinition *def_existing = nil;
 		while (i--) 
 		{
-			def = [newarray objectAtIndex:i]; 
+			def_existing = [newarray objectAtIndex:i]; 
 			// if we find this name already in the array, remove it
-			if (def && [[def name] isEqualToString:[definition name]])
+			if (def_existing && [[def_existing name] isEqualToString:[definition name]])
 			{
 				[newarray removeObjectAtIndex:i];
 			}
 			else 
 			{
 				// check whether any of those keycodes is already in use on this screen
-				NSDictionary *keydefs = [def registerKeys];
+				NSDictionary *keydefs = [def_existing registerKeys];
 				j = [checklist count];
 				foreach (key, [keydefs allKeys])
 				{
