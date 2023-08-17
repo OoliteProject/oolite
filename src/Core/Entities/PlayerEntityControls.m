@@ -3070,14 +3070,15 @@ static NSTimeInterval	time_last_frame;
 			break;
 	}
 
+	// check for any extra keys added by scripting
 	NSArray *keys = [extraGuiScreenKeys objectForKey:[NSString stringWithFormat:@"%d", gui_screen]];
 	if (keys) {
-		NSInteger kl = [keys count];
+		NSInteger kc = [keys count];
 		OOJSGuiScreenKeyDefinition *definition = nil;
 		NSDictionary *keydefs = nil;
 		NSString *key = nil;
-		while (kl--) {
-			definition = [keys objectAtIndex:kl];
+		while (kc--) {
+			definition = [keys objectAtIndex:kc];
 			keydefs = [definition registerKeys];
 			foreach (key, [keydefs allKeys])
 			{

@@ -1237,7 +1237,7 @@ typedef enum
 - (void) clearExtraMissionKeys;
 - (void) setExtraMissionKeys:(NSDictionary *)keys;
 
-- (void) clearExtraGuiScreenKeys:(OOGUIScreenID)gui name:(NSString *)name;
+- (void) clearExtraGuiScreenKeys:(OOGUIScreenID)gui key:(NSString *)key;
 - (BOOL) setExtraGuiScreenKeys:(OOGUIScreenID)gui definition:(OOJSGuiScreenKeyDefinition *)definition;
 
 
