@@ -76,6 +76,8 @@ static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalGetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalGetColorSaturation(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalSetColorSaturation(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
 static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp);
@@ -145,7 +147,9 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
 	{ "getGuiColorSettingForKey",       GlobalGetGuiColorSettingForKey,     1 },
 	{ "setGuiColorSettingForKey",       GlobalSetGuiColorSettingForKey,     2 },
-	{ "keyBindingDescription",       	GlobalKeyBindingDescription,     1 },
+	{ "keyBindingDescription",       	GlobalKeyBindingDescription,		1 },
+ 	{ "getColorSaturation",				GlobalGetColorSaturation,			0 },
+	{ "setColorSaturation",				GlobalSetColorSaturation,			1 },
 
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
@@ -635,6 +639,36 @@ static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsv
 	result = YES;
 	
 	OOJS_RETURN_BOOL(result);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// getColorSaturation()
+static JSBool GlobalGetColorSaturation(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	OOJS_RETURN_OBJECT([NSNumber numberWithFloat:[[UNIVERSE gameView] colorSaturation]]);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+// setColorSaturation([desiredSaturation : Number])
+static JSBool GlobalSetColorSaturation(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+	
+	jsdouble	desiredColorSaturation = 0;
+	
+	if (argc < 1 || EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &desiredColorSaturation)))  return NO;
+	
+	MyOpenGLView *gameView = [UNIVERSE gameView];
+	float currentColorSaturation = [gameView colorSaturation];
+	[gameView adjustColorSaturation:desiredColorSaturation - currentColorSaturation];
+	
+	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }
