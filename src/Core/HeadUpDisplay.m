@@ -2371,16 +2371,19 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.width = useDefined(cached.width, WITCHDEST_WIDTH);
 	siz.height = useDefined(cached.height, WITCHDEST_HEIGHT);
 	alpha *= cached.alpha;
+	NSString *dest = [UNIVERSE getSystemName:[PLAYER targetSystemID]];
+	NSInteger concealment = [[[UNIVERSE systemManager] getPropertiesForSystem:[PLAYER targetSystemID] inGalaxy:[PLAYER galaxyNumber]] oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+	if (concealment >= 200) dest = DESC(@"status-unknown-system");
 
 	SET_COLOR(green_color);
 	
 	if ([info oo_intForKey:@"align"] == 1)
 	{
-		OODrawStringAligned([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz, YES);
+		OODrawStringAligned(dest, x, y, z1, siz, YES);
 	}
 	else
 	{
-		OODrawStringAligned([UNIVERSE getSystemName:[PLAYER targetSystemID]], x, y, z1, siz, NO);
+		OODrawStringAligned(dest, x, y, z1, siz, NO);
 	}
 
 }
