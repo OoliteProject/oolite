@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOSystemDescriptionManager.h"
 #import "NSFileManagerOOExtensions.h"
-#import "OOJSGuiScreenKeyDefinition.h"
+#import "OOJSGuiScreenKeyDefinition.h"#import "OOJSGuiScreenKeyDefinition.h"
 
 #if OOJSENGINE_MONITOR_SUPPORT
 
