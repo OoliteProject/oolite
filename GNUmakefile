@@ -324,6 +324,7 @@ OOLITE_SCRIPTING_FILES = \
     OOJSFunction.m \
     OOJSGlobal.m \
     OOJSInterfaceDefinition.m \
+    OOJSGuiScreenKeyDefinition.m \
     OOJSManifest.m \
     OOJSMission.m \
     OOJSMissionVariables.m \

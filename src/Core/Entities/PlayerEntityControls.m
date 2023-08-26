@@ -61,6 +61,7 @@ MA 02110-1301, USA.
 
 #import "OOJSScript.h"
 #import "OOEquipmentType.h"
+#import "OOJSGuiScreenKeyDefinition.h"
 
 #import "OODebugSupport.h"
 #import "OODebugMonitor.h"
@@ -149,6 +150,7 @@ static BOOL				previous_planet_info_pressed;
 static BOOL				home_info_pressed;
 static BOOL				target_info_pressed;
 static BOOL				extra_key_pressed;
+static BOOL				extra_gui_key_pressed;
 static NSPoint				mouse_click_position;
 static NSPoint				centre_at_mouse_click;
 
@@ -3067,7 +3069,42 @@ static NSTimeInterval	time_last_frame;
 		default:
 			break;
 	}
-	
+
+	// check for any extra keys added by scripting
+	NSArray *keys = [extraGuiScreenKeys objectForKey:[NSString stringWithFormat:@"%d", gui_screen]];
+	if (keys) {
+		NSInteger kc = [keys count];
+		OOJSGuiScreenKeyDefinition *definition = nil;
+		NSDictionary *keydefs = nil;
+		NSString *key = nil;
+		while (kc--) {
+			definition = [keys objectAtIndex:kc];
+			keydefs = [definition registerKeys];
+			foreach (key, [keydefs allKeys])
+			{
+				if ([self checkKeyPress:[keydefs objectForKey:key]]) 
+				{
+					if (!extra_gui_key_pressed) 
+					{
+						// do callback
+						if (definition)
+						{
+							[[UNIVERSE gameView] clearKeys];
+							[definition runCallback:key];
+						}
+						else
+						{
+							OOLog(@"interface.missingCallback", @"Unable to find callback definition for %@ using key %@", [definition name], key);
+						}
+					}
+					extra_gui_key_pressed = YES;
+				}
+				else
+					extra_gui_key_pressed = NO;
+			}
+		}
+	}
+
 	// damp any rotations we entered with
 	if (flightRoll > 0.0)
 	{
