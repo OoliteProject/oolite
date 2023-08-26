@@ -77,6 +77,7 @@ MA 02110-1301, USA.
 #import "OOScriptTimer.h"
 #import "OOJSEngineTimeManagement.h"
 #import "OOJSInterfaceDefinition.h"
+#import "OOJSGuiScreenKeyDefinition.h"
 #import "OOConstToJSString.h"
 
 #import "OOJoystickManager.h"
@@ -2432,6 +2433,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	DESTROY(customEquipActivation);
 	DESTROY(customActivatePressed);
 	DESTROY(customModePressed);
+
+	DESTROY(extraGuiScreenKeys);
 
 	[super dealloc];
 }
@@ -13256,6 +13259,95 @@ else _dockTarget = NO_TARGET;
 	}
 	extraMissionKeys = [final copy];
 	[final release];
+}
+
+
+- (void) clearExtraGuiScreenKeys:(OOGUIScreenID)gui key:(NSString *)key
+{
+	NSMutableArray *keydefs = [extraGuiScreenKeys objectForKey:[NSString stringWithFormat:@"%d",gui]];
+	NSInteger i = [keydefs count];
+	NSDictionary *def = nil;
+	while (i--) 
+	{
+		def = [keydefs objectAtIndex:i];
+		if (def && [[def oo_stringForKey:@"name"] isEqualToString:key]) 
+		{
+			[keydefs removeObjectAtIndex:i];
+			break;
+		}
+	}
+	// do we have to put the array back, or does the reference update the source?
+}
+
+
+- (BOOL) setExtraGuiScreenKeys:(OOGUIScreenID)gui definition:(OOJSGuiScreenKeyDefinition *)definition
+{
+	// process all the keys in the definition
+	BOOL result = YES;
+	NSMutableArray *newarray = nil;
+	NSString *key = nil;	
+	NSMutableDictionary *final = [[NSMutableDictionary alloc] init];
+	NSDictionary *keys = [definition registerKeys];
+	NSMutableArray *checklist = [[NSMutableArray alloc] init];
+
+	foreach (key, [keys allKeys])
+	{
+		NSArray *item = [self processKeyCode:[keys oo_arrayForKey:key]];
+		[checklist addObject:item];
+		[final setObject:item forKey:key];
+	}
+	[definition setRegisterKeys:[final copy]];
+	[final release];
+
+	/// create the dictionary, if it doesn't already exist
+	if (!extraGuiScreenKeys) 
+	{
+		extraGuiScreenKeys = [[NSMutableDictionary alloc] init];
+	}
+
+	if (![extraGuiScreenKeys objectForKey:[NSString stringWithFormat:@"%d",gui]]) 
+	{
+		// brand new - just add
+		newarray = [[NSMutableArray alloc] init];
+	}
+	else 
+	{
+		newarray = [[extraGuiScreenKeys objectForKey:[NSString stringWithFormat:@"%d",gui]] mutableCopy];
+		NSInteger i = [newarray count];
+		NSInteger j = 0;
+		OOJSGuiScreenKeyDefinition *def_existing = nil;
+		while (i--) 
+		{
+			def_existing = [newarray objectAtIndex:i]; 
+			// if we find this name already in the array, remove it
+			if (def_existing && [[def_existing name] isEqualToString:[definition name]])
+			{
+				[newarray removeObjectAtIndex:i];
+			}
+			else 
+			{
+				// check whether any of those keycodes is already in use on this screen
+				NSDictionary *keydefs = [def_existing registerKeys];
+				j = [checklist count];
+				foreach (key, [keydefs allKeys])
+				{
+					while (j--) 
+					{
+						if ([[NSString stringWithFormat:@"%@",[keydefs objectForKey:key]] isEqualToString:[NSString stringWithFormat:@"%@",[checklist objectAtIndex:j]]]) 
+						{
+							result = NO;
+							OOLog(kOOLogException, @"***** Exception in setExtraGuiScreenKeys: %@ : %@ (%@)", @"invalid key settings", @"key already in use", key);
+						}
+					}
+				}
+			}
+		}
+	}
+	[newarray addObject:definition];
+	// only add the item if there were no errors
+	if (result) [extraGuiScreenKeys setObject:[newarray mutableCopy] forKey:[NSString stringWithFormat:@"%d",gui]];
+	[newarray release];
+	return result;
 }
 
 

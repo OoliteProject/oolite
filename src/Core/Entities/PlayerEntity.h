@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
 @class OOJoystickManager, OOTexture, OOLaserShotEntity;
-@class StickProfileScreen;
+@class StickProfileScreen, OOJSGuiScreenKeyDefinition;
 
 #define ALLOW_CUSTOM_VIEWS_WHILE_PAUSED	1
 #define SCRIPT_TIMER_INTERVAL			10.0
@@ -697,6 +697,8 @@ typedef enum
 	// dict to hold extra keys for missions screen.
 	NSDictionary			*extraMissionKeys;
 
+	NSMutableDictionary		*extraGuiScreenKeys;
+
 	// save-file
 	NSString				*save_path;
 	NSString				*scenarioKey;
@@ -1234,6 +1236,10 @@ typedef enum
 - (OOGUIScreenID) missionExitScreen;
 - (void) clearExtraMissionKeys;
 - (void) setExtraMissionKeys:(NSDictionary *)keys;
+
+- (void) clearExtraGuiScreenKeys:(OOGUIScreenID)gui key:(NSString *)key;
+- (BOOL) setExtraGuiScreenKeys:(OOGUIScreenID)gui definition:(OOJSGuiScreenKeyDefinition *)definition;
+
 
 // Nasty hack to keep background textures around while on equip screens.
 - (NSDictionary *) equipScreenBackgroundDescriptor;

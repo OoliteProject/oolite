@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOSystemDescriptionManager.h"
 #import "NSFileManagerOOExtensions.h"
-
+#import "OOJSGuiScreenKeyDefinition.h"
 
 #if OOJSENGINE_MONITOR_SUPPORT
 
@@ -76,6 +76,8 @@ static JSBool GlobalAutoAIForRole(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalPauseGame(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalGetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalSetExtraGuiScreenKeys(JSContext *context, uintN argc, jsval *vp);
+static JSBool GlobalClearExtraGuiScreenKeys(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalGetColorSaturation(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetColorSaturation(JSContext *context, uintN argc, jsval *vp);
 
@@ -149,7 +151,9 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "setGuiColorSettingForKey",       GlobalSetGuiColorSettingForKey,     2 },
 	{ "keyBindingDescription",       	GlobalKeyBindingDescription,		1 },
  	{ "getColorSaturation",				GlobalGetColorSaturation,			0 },
-	{ "setColorSaturation",				GlobalSetColorSaturation,			1 },
+	{ "setColorSaturation",				GlobalSetColorSaturation,				1 },
+	{ "setExtraGuiScreenKeys",			GlobalSetExtraGuiScreenKeys,		2 },
+	{ "clearExtraGuiScreenKeys",		GlobalClearExtraGuiScreenKeys,		2 },
 
 #ifndef NDEBUG
 	{ "takeSnapShot",					GlobalTakeSnapShot,					1 },
@@ -440,6 +444,136 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, uintN argc,
 	make_pseudo_random_seed(&aSeed);
 	string = [UNIVERSE getSystemInhabitants:Ranrot()%OO_SYSTEMS_PER_GALAXY plural:isPlural];
 	OOJS_RETURN_OBJECT(string);
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool GlobalClearExtraGuiScreenKeys(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	BOOL				result = NO;
+	PlayerEntity		*player = OOPlayerForScripting();
+
+	if (EXPECT_NOT(argc < 2))
+	{
+		OOJSReportBadArguments(context, nil, @"setExtraGuiScreenKeys", 0, OOJS_ARGV, nil, @"missing arguments");
+		return NO;
+	}
+
+	NSString *key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+	if (EXPECT_NOT(key == nil || [key isEqualToString:@""]))
+	{
+		OOJSReportBadArguments(context, nil, @"clearExtraGuiScreenKeys", 1, OOJS_ARGV, nil, @"key");
+		return NO;
+	}
+
+	OOGUIScreenID gui = OOGUIScreenIDFromJSValue(context, OOJS_ARGV[1]);
+	if (!gui)
+	{
+		OOJSReportBadArguments(context, nil, @"clearExtraGuiScreenKeys", 0, OOJS_ARGV, nil, @"guiScreen invalid entry");
+		return NO;
+	}
+
+	[player clearExtraGuiScreenKeys:gui key:key];
+
+	result = YES;
+	OOJS_RETURN_BOOL(result);
+	
+	OOJS_NATIVE_EXIT
+}
+
+static JSBool GlobalSetExtraGuiScreenKeys(JSContext *context, uintN argc, jsval *vp)
+{
+	OOJS_NATIVE_ENTER(context)
+
+	BOOL				result = NO;
+	jsval				callback = JSVAL_NULL;
+	JSObject			*callbackThis = NULL;
+	jsval				value = JSVAL_NULL;
+	NSString			*key = nil;
+	OOGUIScreenID 		gui;
+	NSDictionary		*keydefs = NULL;
+	JSObject			*params = NULL;
+	PlayerEntity		*player = OOPlayerForScripting();
+
+	if (EXPECT_NOT(argc < 1))
+	{
+		OOJSReportBadArguments(context, nil, @"setExtraGuiScreenKeys", 0, OOJS_ARGV, nil, @"key, definition");
+		return NO;
+	}
+	key = OOStringFromJSValue(context, OOJS_ARGV[0]);
+
+	// Validate arguments.
+	if (argc < 2 || !JS_ValueToObject(context, OOJS_ARGV[1], &params))
+	{
+		OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], nil, @"key, definition: definition is not a valid dictionary.");
+		return NO;
+	}
+
+	if (JS_GetProperty(context, params, "guiScreen", &value) == JS_FALSE || JSVAL_IS_VOID(value))
+	{
+		OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], nil, @"key, definition: must have a 'guiScreen' property.");
+		return NO;
+	}
+
+	gui = OOGUIScreenIDFromJSValue(context, value);
+	// gui will be 0 for invalid screen id's as well as GUI_SCREEN_MAIN
+	if (gui == 0 || gui == GUI_SCREEN_LOAD || gui == GUI_SCREEN_SAVE || gui == GUI_SCREEN_STICKMAPPER || gui == GUI_SCREEN_OXZMANAGER || 
+		gui == GUI_SCREEN_NEWGAME || gui == GUI_SCREEN_SAVE_OVERWRITE || gui == GUI_SCREEN_KEYBOARD || gui == GUI_SCREEN_STICKPROFILE || gui == GUI_SCREEN_KEYBOARD_CONFIRMCLEAR ||
+		gui == GUI_SCREEN_KEYBOARD_CONFIG || gui == GUI_SCREEN_KEYBOARD_ENTRY || gui == GUI_SCREEN_KEYBOARD_LAYOUT)
+	{
+		OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], nil, @"key, definition: 'guiScreen' property must be a permitted and valid GUI_SCREEN idenfifier.");
+		return NO;
+	}
+
+	if (JS_GetProperty(context, params, "registerKeys", &value) == JS_FALSE || JSVAL_IS_VOID(value))
+	{
+		OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], nil, @"key, definition: must have a 'registerKeys' property.");
+		return NO;
+	}
+	if (value)
+	{
+		if (JSVAL_IS_OBJECT(value))
+		{
+			keydefs = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(value));
+		}
+		else 
+		{
+			OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], nil, @"key, definition: registerKeys is not a valid dictionary.");
+			return NO;
+		}
+	}
+
+	if (JS_GetProperty(context, params, "callback", &callback) == JS_FALSE || JSVAL_IS_VOID(callback))
+	{
+		OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], NULL, @"key, definition; must have a 'callback' property.");
+		return NO;
+	}
+	if (!OOJSValueIsFunction(context,callback))
+	{
+		OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], NULL, @"key, definition; 'callback' property must be a function.");
+		return NO;
+	}
+
+	OOJSGuiScreenKeyDefinition* definition = [[OOJSGuiScreenKeyDefinition alloc] init];
+	[definition setName:key];
+	[definition setRegisterKeys:keydefs];
+	[definition setCallback:callback];
+
+	// get callback 'this'
+	if (JS_GetProperty(context, params, "cbThis", &value) == JS_TRUE && !JSVAL_IS_VOID(value))
+	{
+		JS_ValueToObject(context, value, &callbackThis);
+		[definition setCallbackThis:callbackThis];
+		// can do .bind(this) for callback instead
+	}
+
+	result = [player setExtraGuiScreenKeys:gui definition:definition];
+	[definition release];
+
+	OOJS_RETURN_BOOL(result);
 	
 	OOJS_NATIVE_EXIT
 }
