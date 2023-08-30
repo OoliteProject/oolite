@@ -1572,6 +1572,7 @@
 	"status-legal-status"			= "Legal Status:";
 	"status-rating"					= "Rating:";
 	"status-equipment"				= "Equipment:";
+	"status-unknown-system"			= "(Unknown)";
 	"equipment-fwd-weapon-@"		= "Forward %@";
 	"equipment-aft-weapon-@"		= "Aft %@";
 	"equipment-stb-weapon-@"		= "Starboard %@";
@@ -1655,7 +1656,7 @@
 	"oolite-commodity-no-comment"	= "No additional information available";
 	"oolite-commodity-no-short-comment"	= "";
 //	"oolite-commodity-no-short-comment"	= "—"; // blank for column is for OXPs
-	"oolite-commodity-info-return"	= "Press '[oolite_key_market_info]' to return to commodity list";
+	"oolite-commodity-info-return"	= "Press '[oolite_key_gui_market]' to return to commodity list";
 	"oolite-commodity-information-@"	= "Commodity: %@";
 	"oolite-commodity-contracted-d-@"	= "Total cargo contracts: %d %@";
 	"oolite-commodity-illegal"		 = "It is illegal to export this good from Cooperative stations.";

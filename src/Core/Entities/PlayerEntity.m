@@ -7888,9 +7888,16 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 
 	targetSystemName =	[UNIVERSE getSystemName:target_system_id];
+	NSDictionary *systemInfo = [[UNIVERSE systemManager] getPropertiesForSystem:target_system_id inGalaxy:galaxy_number];
+	NSInteger concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+	if (concealment >= 200) targetSystemName = DESC(@"status-unknown-system");
+
 	OOSystemID nextHop = [self nextHopTargetSystemID];
 	if (nextHop != target_system_id) {
 		NSString *nextHopSystemName = [UNIVERSE getSystemName:nextHop];
+		systemInfo = [[UNIVERSE systemManager] getPropertiesForSystem:nextHop inGalaxy:galaxy_number];
+		concealment = [systemInfo oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
+		if (concealment >= 200) nextHopSystemName = DESC(@"status-unknown-system");
 		targetSystemName = OOExpandKey(@"status-hyperspace-system-multi", targetSystemName, nextHopSystemName);
 	}
 
