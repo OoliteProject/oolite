@@ -900,7 +900,7 @@ PriorityAIController.prototype.friendlyStation = function(station)
 
 PriorityAIController.prototype.homeStation = function() 
 {
-	if (this.__ltcache.oolite_homeStation === null)
+	if (!this.__ltcache.oolite_homeStation || this.__ltcache.oolite_homeStation === null)
 	{
 		return null;
 	}
@@ -2036,7 +2036,7 @@ PriorityAIController.prototype.conditionCargoDemandsMet = function()
 		var demand = 0;
 		if (this.ship.group)
 		{
-			if (this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership && this.ship.group.leader.AIScript.oolite_intership.cargodemanded > 0)
+			if (this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership && this.ship.group.leader.AIScript.oolite_intership.cargodemanded && this.ship.group.leader.AIScript.oolite_intership.cargodemanded > 0)
 			{
 				if (this.ship.group.leader.AIScript.oolite_intership.cargodemandmet)
 				{
@@ -2045,7 +2045,7 @@ PriorityAIController.prototype.conditionCargoDemandsMet = function()
 				recorder = this.ship.group.leader;
 				demand = this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
 			}
-			else if (this.ship.group.ships[0].AIScript.oolite_intership && this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded > 0)
+			else if (this.ship.group.ships[0].AIScript.oolite_intership && this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded && this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded > 0)
 
 			{
 				demand = this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded;							
