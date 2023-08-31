@@ -2534,13 +2534,18 @@ PriorityAIController.prototype.conditionCargoIsProfitableHere = function()
 		{
 			var cargo = this.ship.cargoList;
 			var profit = 0;
-			var multiplier = (system.info.economy <= 3)?-1:1;
 			var market = system.mainStation.market;
 			for (var i = cargo.length-1 ; i >= 0 ; i--)
 			{
 				var commodity = cargo[i].commodity;
 				var quantity = cargo[i].quantity;
-				var adjust = market[commodity].marketEcoAdjustPrice * multiplier * quantity / market[commodity].marketMaskPrice;
+
+				var exDiff = Math.abs(system.info.economy - market[commodity].peak_export) * 2;
+				var imDiff = Math.abs(system.info.economy - market[commodity].peak_import) * 2;
+
+				// if closer to the importer, the commodity is probably profitable here
+				var multiplier = exDiff > imDiff ? 1 : -1;
+				var adjust = market[commodity].price_economic * multiplier * quantity;
 				profit += adjust;
 			}
 			
