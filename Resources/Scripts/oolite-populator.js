@@ -389,6 +389,9 @@ this.systemWillPopulate = function()
 	this.$repopulatorFrequencyIncoming.pirateLightPacks = 0;
 	this.$repopulatorFrequencyIncoming.pirateMediumPacks = 0;
 	this.$repopulatorFrequencyIncoming.pirateHeavyPacks = 0;
+	this.$repopulatorFrequencyIncoming.pirateLightPacksReturn = 0;
+	this.$repopulatorFrequencyIncoming.pirateMediumPacksReturn = 0;
+	this.$repopulatorFrequencyIncoming.pirateHeavyPacksReturn = 0;
 	if (verylocals.length > 0)
 	{
 		var found = false;
@@ -463,12 +466,6 @@ this.systemWillPopulate = function()
 				this.$repopulatorFrequencyIncoming.pirateHeavyPacks += rheavy;
 			}
 		}
-	}
-	else
-	{
-		this.$repopulatorFrequencyIncoming.pirateLightPacksReturn = 0;
-		this.$repopulatorFrequencyIncoming.pirateMediumPacksReturn = 0;
-		this.$repopulatorFrequencyIncoming.pirateHeavyPacksReturn = 0;
 	}
 	
 	var pirates = pindependents + pflight + pfmedium + pfheavy;

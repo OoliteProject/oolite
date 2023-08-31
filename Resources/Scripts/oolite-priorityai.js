@@ -900,7 +900,7 @@ PriorityAIController.prototype.friendlyStation = function(station)
 
 PriorityAIController.prototype.homeStation = function() 
 {
-	if (this.__ltcache.oolite_homeStation === null)
+	if (!this.__ltcache.oolite_homeStation || this.__ltcache.oolite_homeStation === null)
 	{
 		return null;
 	}
@@ -2036,7 +2036,7 @@ PriorityAIController.prototype.conditionCargoDemandsMet = function()
 		var demand = 0;
 		if (this.ship.group)
 		{
-			if (this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership && this.ship.group.leader.AIScript.oolite_intership.cargodemanded > 0)
+			if (this.ship.group.leader && this.ship.group.leader.AIScript.oolite_intership && this.ship.group.leader.AIScript.oolite_intership.cargodemanded && this.ship.group.leader.AIScript.oolite_intership.cargodemanded > 0)
 			{
 				if (this.ship.group.leader.AIScript.oolite_intership.cargodemandmet)
 				{
@@ -2045,7 +2045,7 @@ PriorityAIController.prototype.conditionCargoDemandsMet = function()
 				recorder = this.ship.group.leader;
 				demand = this.ship.group.leader.AIScript.oolite_intership.cargodemanded;
 			}
-			else if (this.ship.group.ships[0].AIScript.oolite_intership && this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded > 0)
+			else if (this.ship.group.ships[0].AIScript.oolite_intership && this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded && this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded > 0)
 
 			{
 				demand = this.ship.group.ships[0].AIScript.oolite_intership.cargodemanded;							
@@ -2534,13 +2534,18 @@ PriorityAIController.prototype.conditionCargoIsProfitableHere = function()
 		{
 			var cargo = this.ship.cargoList;
 			var profit = 0;
-			var multiplier = (system.info.economy <= 3)?-1:1;
 			var market = system.mainStation.market;
 			for (var i = cargo.length-1 ; i >= 0 ; i--)
 			{
 				var commodity = cargo[i].commodity;
 				var quantity = cargo[i].quantity;
-				var adjust = market[commodity].marketEcoAdjustPrice * multiplier * quantity / market[commodity].marketMaskPrice;
+
+				var exDiff = Math.abs(system.info.economy - market[commodity].peak_export) * 2;
+				var imDiff = Math.abs(system.info.economy - market[commodity].peak_import) * 2;
+
+				// if closer to the importer, the commodity is probably profitable here
+				var multiplier = exDiff > imDiff ? 1 : -1;
+				var adjust = market[commodity].price_economic * multiplier * quantity;
 				profit += adjust;
 			}
 			
