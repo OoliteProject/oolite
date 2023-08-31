@@ -184,7 +184,7 @@ SOFTWARE.
 	if (_sound != nil)
 	{
 		OOAL(alSourceStop(_source));
-
+		OOAL(alSourcei(_source, AL_BUFFER, AL_NONE));
 		[self hasStopped];
 	}
 }
