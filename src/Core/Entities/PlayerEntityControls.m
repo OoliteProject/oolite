@@ -5224,9 +5224,11 @@ static BOOL autopilot_pause;
 					
 					[self checkScript];
 					selectPressed = YES;
+					pollControls = YES;
 				}
 				else
 				{
+					pollControls = NO;
 					selectPressed = NO;
 					[self pollMissionInterruptControls];
 				}
