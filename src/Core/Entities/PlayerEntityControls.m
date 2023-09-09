@@ -5224,9 +5224,11 @@ static BOOL autopilot_pause;
 					
 					[self checkScript];
 					selectPressed = YES;
+					pollControls = YES;
 				}
 				else
 				{
+					pollControls = NO;
 					selectPressed = NO;
 					[self pollMissionInterruptControls];
 				}
@@ -5325,7 +5327,13 @@ static BOOL autopilot_pause;
 {
 	if (_missionAllowInterrupt)
 	{
-		[self pollGuiScreenControls];
+		if (gui_screen == GUI_SCREEN_MISSION && _missionTextEntry) 
+		{
+			[self pollGuiScreenControlsWithFKeyAlias:NO];
+		}
+		else {
+			[self pollGuiScreenControls];
+		}
 		if (gui_screen != GUI_SCREEN_MISSION)
 		{
 			if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
