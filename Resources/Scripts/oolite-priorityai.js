@@ -900,13 +900,16 @@ PriorityAIController.prototype.friendlyStation = function(station)
 
 PriorityAIController.prototype.homeStation = function() 
 {
-	if (!this.__ltcache.oolite_homeStation || this.__ltcache.oolite_homeStation === null)
+	if (this.__ltcache.oolite_homeStation !== undefined) 
 	{
-		return null;
-	}
-	if (this.__ltcache.oolite_homeStation !== undefined && this.__ltcache.oolite_homeStation.isValid)
-	{
-		return this.__ltcache.oolite_homeStation;
+		if (this.__ltcache.oolite_homeStation === null)
+		{
+			return null;
+		}
+		if (this.__ltcache.oolite_homeStation.isValid)
+		{
+			return this.__ltcache.oolite_homeStation;
+		}
 	}
 	// home station might be the owner of the ship, or might just
 	// be a group member
