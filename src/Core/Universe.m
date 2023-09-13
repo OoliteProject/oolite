@@ -1033,7 +1033,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		[player setWormhole:wormhole];
 		[player addScannedWormhole:wormhole];
 
-		ShipScriptEventNoCx(player, "shipWillEnterWitchspace", OOJSSTR("carried"));
+		ShipScriptEventNoCx(player, "shipWillEnterWitchspace", OOJSSTR("carried"), INT_TO_JSVAL(dest));
 		
 		[self allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
 
