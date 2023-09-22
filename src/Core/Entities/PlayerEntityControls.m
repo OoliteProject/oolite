@@ -3434,24 +3434,23 @@ static NSTimeInterval	time_last_frame;
 				
 				if (brightnessIdx == NSNotFound)
 				{
-					OOLogWARN(@"hdr.maxBrightness.notFound", @"%@", @"couldn't find current max brightness setting, switching to 400 nits.");
+					OOLogWARN(@"hdr.maxBrightness.notFound", @"%@", @"couldn't find current max brightness setting, switching to lowest.");
 					brightnessIdx = 0;
 				}
-				else
-				{
-					brightnessIdx += direction;
-					int count = [brightnesses count];
-					if (brightnessIdx < 0)
-						brightnessIdx = count - 1;
-					if (brightnessIdx >= count)
-						brightnessIdx = 0;
-					
-					int brightnessValue = [brightnesses oo_intAtIndex:brightnessIdx];
-					[gameView setHDRMaxBrightness:(float)brightnessValue];
-					NSString *maxBrightnessString = OOExpandKey(@"gameoptions-hdr-maxbrightness", brightnessValue);
-																					
-					[gui setText:maxBrightnessString forRow:GUI_ROW(GAME,HDRMAXBRIGHTNESS)  align:GUI_ALIGN_CENTER];
-				}
+				
+				brightnessIdx += direction;
+				int count = [brightnesses count];
+				if (brightnessIdx < 0)
+					brightnessIdx = count - 1;
+				if (brightnessIdx >= count)
+					brightnessIdx = 0;
+				
+				int brightnessValue = [brightnesses oo_intAtIndex:brightnessIdx];
+				[gameView setHDRMaxBrightness:(float)brightnessValue];
+				NSString *maxBrightnessString = OOExpandKey(@"gameoptions-hdr-maxbrightness", brightnessValue);
+																				
+				[gui setText:maxBrightnessString forRow:GUI_ROW(GAME,HDRMAXBRIGHTNESS)  align:GUI_ALIGN_CENTER];
+				
 				hdrMaxBrightnessControlPressed = YES;
 			}
 		}
@@ -3476,15 +3475,14 @@ static NSTimeInterval	time_last_frame;
 			OOLogWARN(@"graphics.mode.notFound", @"%@", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
 		}
-		else
-		{
-			displayModeIndex = displayModeIndex + direction;
-			int count = [modes count];
-			if (displayModeIndex < 0)
-				displayModeIndex = count - 1;
-			if (displayModeIndex >= count)
-				displayModeIndex = 0;
-		}
+		
+		displayModeIndex = displayModeIndex + direction;
+		int count = [modes count];
+		if (displayModeIndex < 0)
+			displayModeIndex = count - 1;
+		if (displayModeIndex >= count)
+			displayModeIndex = 0;
+		
 		NSDictionary	*mode = [modes objectAtIndex:displayModeIndex];
 		int modeWidth = [mode oo_intForKey:kOODisplayWidth];
 		int modeHeight = [mode oo_intForKey:kOODisplayHeight];
