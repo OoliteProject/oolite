@@ -160,6 +160,7 @@ enum
 	kPlayerShip_targetSystem,					// target system id, int, read-write
 	kPlayerShip_nextSystem,						// next hop system id, read-only
 	kPlayerShip_infoSystem,						// info (F7 screen) system id, int, read-write
+	kPlayerShip_previousSystem,					// previous system id, read-only
 	kPlayerShip_torusEngaged,					// torus in use, boolean, read-only
 	kPlayerShip_viewDirection,					// view direction identifier, string, read-only
 	kPlayerShip_viewPositionAft,					// view position offset, vector, read-only
@@ -230,6 +231,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
 	{ "nextSystem",                     kPlayerShip_nextSystem,                     OOJS_PROP_READONLY_CB },
 	{ "infoSystem",						kPlayerShip_infoSystem,						OOJS_PROP_READWRITE_CB },
+	{ "previousSystem",					kPlayerShip_previousSystem,					OOJS_PROP_READONLY_CB },
 	{ "torusEngaged",					kPlayerShip_torusEngaged,					OOJS_PROP_READONLY_CB },
 	{ "viewDirection",					kPlayerShip_viewDirection,					OOJS_PROP_READONLY_CB },
 	{ "viewPositionAft",				kPlayerShip_viewPositionAft,				OOJS_PROP_READONLY_CB },
@@ -477,6 +479,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 			*value = INT_TO_JSVAL([player infoSystemID]);
 			return YES;
 
+		case kPlayerShip_previousSystem:
+			*value = INT_TO_JSVAL([player previousSystemID]);
+			return YES;
+			
 		case kPlayerShip_routeMode:
 		{
 			OORouteType route = [player ANAMode];

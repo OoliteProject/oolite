@@ -696,6 +696,18 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 }
 
 
+- (OOSystemID) previousSystemID
+{
+	return previous_system_id;
+}
+
+
+- (void) setPreviousSystemID:(OOSystemID) sid
+{
+	previous_system_id = sid;
+}
+
+
 - (OOSystemID) targetSystemID
 {
 	return target_system_id;
@@ -909,6 +921,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	NSString	*gal_id = [NSString stringWithFormat:@"%u", galaxy_number];
 	NSString	*sys_id = [NSString stringWithFormat:@"%d", system_id];
 	NSString	*tgt_id = [NSString stringWithFormat:@"%d", target_system_id];
+	NSString	*prv_id = [NSString stringWithFormat:@"%d", previous_system_id];
+
 	// Variable requiredCargoSpace not suitable for Oolite as it currently stands: it retroactively changes a savegame cargo space.
 	//unsigned 	passenger_space = [[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"] requiredCargoSpace];
 	//if (passenger_space == 0) passenger_space = PASSENGER_BERTH_SPACE;
@@ -916,6 +930,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[result setObject:gal_id		forKey:@"galaxy_id"];
 	[result setObject:sys_id	forKey:@"system_id"];
 	[result setObject:tgt_id	forKey:@"target_id"];
+	[result setObject:prv_id	forKey:@"previous_system_id"];
 	[result setObject:[NSNumber numberWithFloat:saved_chart_zoom] forKey:@"chart_zoom"];
 	[result setObject:[NSNumber numberWithInt:ANA_mode] forKey:@"chart_ana_mode"];
 	[result setObject:[NSNumber numberWithInt:longRangeChartMode] forKey:@"chart_colour_mode"];
@@ -1260,6 +1275,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		if (longRangeChartMode == OOLRC_MODE_UNKNOWN) longRangeChartMode = OOLRC_MODE_SUNCOLOR;
 
 		target_system_id = [dict oo_intForKey:@"target_id" defaultValue:system_id];
+		previous_system_id = [dict oo_intForKey:@"previous_system_id" defaultValue:system_id];
 		info_system_id = target_system_id;
 		coord_vals = ScanTokensFromString([[UNIVERSE systemManager] getProperty:@"coordinates" forSystem:target_system_id inGalaxy:galaxy_number]);		
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
@@ -2414,6 +2430,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	DESTROY(dockingReport);
 	
+	DESTROY(_jumpCause);
+
 	[self destroySound];
 	
 	DESTROY(scannedWormholes);
@@ -3874,7 +3892,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		// similarly reset the misjump range to the traditional 0.5
 		[self setScriptedMisjumpRange:0.5];
 
-		[self doScriptEvent:OOJSID("shipExitedWitchspace")];
+		[self doScriptEvent:OOJSID("shipExitedWitchspace") withArgument:[self jumpCause]];
 
 		[self doBookkeeping:delta_t]; // arrival frame updates
 
@@ -7489,9 +7507,14 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("galactic jump"), INT_TO_JSVAL(destGalaxy));
+	JSContext *context = OOJSAcquireContext();
+	[self setJumpCause:@"galactic jump"];
+	[self setPreviousSystemID:[self currentSystemID]];
+	ShipScriptEvent(context, self, "shipWillEnterWitchspace", STRING_TO_JSVAL(JS_InternString(context, [[self jumpCause] UTF8String])), INT_TO_JSVAL(destGalaxy));
+	OOJSRelinquishContext(context);
+
 	[self noteCompassLostTarget];
-	
+
 	[self witchStart];
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer];
@@ -7585,7 +7608,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	wormhole = [w_hole retain];
 	[self addScannedWormhole:wormhole];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("wormhole"), INT_TO_JSVAL([w_hole destination]));
+	JSContext *context = OOJSAcquireContext();
+	[self setJumpCause:@"wormhole"];
+	[self setPreviousSystemID:[self currentSystemID]];
+	ShipScriptEvent(context, self, "shipWillEnterWitchspace", STRING_TO_JSVAL(JS_InternString(context, [[self jumpCause] UTF8String])), INT_TO_JSVAL([w_hole destination]));
+	OOJSRelinquishContext(context);
 	if ([self scriptedMisjump]) 
 	{
 		misjump = YES; // a script could just have changed this to true;
@@ -7653,7 +7680,11 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	[self addScannedWormhole:wormhole];
 	
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
-	ShipScriptEventNoCx(self, "shipWillEnterWitchspace", OOJSSTR("standard jump"), INT_TO_JSVAL(jumpTarget));
+	JSContext *context = OOJSAcquireContext();
+	[self setJumpCause:@"standard jump"];
+	[self setPreviousSystemID:[self currentSystemID]];
+	ShipScriptEvent(context, self, "shipWillEnterWitchspace", STRING_TO_JSVAL(JS_InternString(context, [[self jumpCause] UTF8String])), INT_TO_JSVAL(jumpTarget));
+	OOJSRelinquishContext(context);
 
 	[self updateSystemMemory];
 	NSUInteger legality = [self legalStatusOfCargoList];
@@ -7854,7 +7885,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[self doScriptEvent:OOJSID("playerEnteredNewGalaxy") withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
 	}
 	
-	[self doScriptEvent:OOJSID("shipWillExitWitchspace")];
+	[self doScriptEvent:OOJSID("shipWillExitWitchspace") withArgument:[self jumpCause]];
 	[UNIVERSE setUpBreakPattern:[self breakPatternPosition] orientation:orientation forDocking:NO];
 }
 
@@ -12952,6 +12983,20 @@ static NSString *last_outfitting_key=nil;
 if ([entity isStation]) _dockTarget = [entity universalID];
 else _dockTarget = NO_TARGET;
 	//_dockTarget = [entity isStation] ? [entity universalID]: NO_TARGET;
+}
+
+
+- (NSString *) jumpCause
+{ 
+	return _jumpCause;
+}
+
+
+- (void) setJumpCause:(NSString *)value
+{
+	NSParameterAssert(value != nil);
+	[_jumpCause autorelease];
+	_jumpCause = [value copy];
 }
 
 

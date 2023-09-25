@@ -1032,9 +1032,12 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 		[player setWormhole:wormhole];
 		[player addScannedWormhole:wormhole];
-
-		ShipScriptEventNoCx(player, "shipWillEnterWitchspace", OOJSSTR("carried"), INT_TO_JSVAL(dest));
-		
+		JSContext *context = OOJSAcquireContext();
+		[player setJumpCause:@"carried"];
+		[player setPreviousSystemID:[player systemID]];
+		ShipScriptEvent(context, player, "shipWillEnterWitchspace", STRING_TO_JSVAL(JS_InternString(context, [[player jumpCause] UTF8String])), INT_TO_JSVAL(dest));
+		OOJSRelinquishContext(context);
+	
 		[self allShipsDoScriptEvent:OOJSID("playerWillEnterWitchspace") andReactToAIMessage:@"PLAYER WITCHSPACE"];
 
 		[player setRandom_factor:(ranrot_rand() & 255)];						// random factor for market values is reset
@@ -1076,8 +1079,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 											 alpha:0.0f];
 
 		[self setWitchspaceBreakPattern:YES];
-		[player doScriptEvent:OOJSID("shipWillExitWitchspace")];
-		[player doScriptEvent:OOJSID("shipExitedWitchspace")];
+		[player doScriptEvent:OOJSID("shipWillExitWitchspace") withArgument:[player jumpCause]];
+		[player doScriptEvent:OOJSID("shipExitedWitchspace") withArgument:[player jumpCause]];
 		[player setWormhole:nil];
 
 }
@@ -1095,7 +1098,8 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		// check the nearest system
 		OOSystemID sys = [self findSystemNumberAtCoords:coords withGalaxy:[player galaxyNumber] includingHidden:YES];
 		BOOL interstel =[dockedStation interstellarUndockingAllowed];// && (s_seed.d != coords.x || s_seed.b != coords.y); - Nikos 20110623: Do we really need the commented out check?
-		
+		[player setPreviousSystemID:[player currentSystemID]];
+
 		// remove everything except the player and the docked station
 		if (dockedStation && !interstel)
 		{	// jump to the nearest system
@@ -1148,8 +1152,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 					[dockedStation setPosition: pos];
 				}
 				[self setWitchspaceBreakPattern:YES];
-				[player doScriptEvent:OOJSID("shipWillExitWitchspace")];
-				[player doScriptEvent:OOJSID("shipExitedWitchspace")];
+				[player setJumpCause:@"carried"];
+				[player doScriptEvent:OOJSID("shipWillExitWitchspace") withArgument:[player jumpCause]];
+				[player doScriptEvent:OOJSID("shipExitedWitchspace") withArgument:[player jumpCause]];
 			}
 		}
 	}

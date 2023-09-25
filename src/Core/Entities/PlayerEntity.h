@@ -370,7 +370,8 @@ typedef enum
 	OOSystemID				system_id;
 	OOSystemID				target_system_id;
 	OOSystemID				info_system_id;
-
+	OOSystemID				previous_system_id;
+	
 	float					occlusion_dial;
 	
 	OOSystemID				found_system_id;
@@ -510,6 +511,9 @@ typedef enum
 	OORouteType				ANA_mode;
 	OOTimeDelta				witchspaceCountdown;
 	
+	NSString				*_jumpCause;
+	OOSystemID				previousSystem;
+
 	// player commander data
 	NSString				*_commanderName;
 	NSString				*_lastsaveName;
@@ -857,11 +861,15 @@ typedef enum
 - (NSPoint) adjusted_chart_centre;
 - (OORouteType) ANAMode;
 
+- (NSString *) jumpCause;
+- (void) setJumpCause:(NSString *)value;
 
 - (OOSystemID) systemID;
 - (void) setSystemID:(OOSystemID) sid;
 - (OOSystemID) targetSystemID;
 - (void) setTargetSystemID:(OOSystemID) sid;
+- (OOSystemID) previousSystemID;
+- (void) setPreviousSystemID:(OOSystemID) sid;
 - (OOSystemID) nextHopTargetSystemID;
 - (OOSystemID) infoSystemID;
 - (void) setInfoSystemID: (OOSystemID) sid moveChart:(BOOL) moveChart;
