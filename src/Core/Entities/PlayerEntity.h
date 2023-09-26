@@ -512,7 +512,6 @@ typedef enum
 	OOTimeDelta				witchspaceCountdown;
 	
 	NSString				*_jumpCause;
-	OOSystemID				previousSystem;
 
 	// player commander data
 	NSString				*_commanderName;
