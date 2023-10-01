@@ -51,11 +51,11 @@ vec3 ACESFilmRec2020OrReinhardHDR(vec3 x)
 	float use1000 = 1.0 - abs(sign(uMaxBrightness - 1000.0));
 	float useACES = use400 + use500 + use600 + use800 + use1000;
 	// only one column of coefficients will be used, based on current max brightness
-	float a = 15.8f	* use1000	+	15.8f * use800	+	15.8f * use600	+	27.7f * use500	+	19.2f * use400;
-	float b = 2.12f	* use1000	+	2.12f * use800	+	2.12f * use600	+	1.22f * use500	+	1.22f * use400;
-	float c = 1.20f	* use1000	+	1.58f * use800	+	2.08f * use600	+	4.80f * use500	+	4.80f * use400;
-	float d = 5.92f	* use1000	+	5.92f * use800	+	5.92f * use600	+	9.80f * use500	+	15.0f * use400;
-	float e = 1.90f	* use1000	+	1.90f *	use800	+	1.90f * use600	+	3.90f * use500	+	3.90f * use400;
+	float a = 15.8f	* use1000	+	15.8f * use800	+	27.7f * use600	+	27.7f * use500	+	19.2f * use400;
+	float b = 2.12f	* use1000	+	2.12f * use800	+	1.22f * use600	+	1.22f * use500	+	1.22f * use400;
+	float c = 1.20f	* use1000	+	1.58f * use800	+	3.70f * use600	+	4.80f * use500	+	4.80f * use400;
+	float d = 5.92f	* use1000	+	5.92f * use800	+	9.80f * use600	+	9.80f * use500	+	15.0f * use400;
+	float e = 1.90f	* use1000	+	1.90f *	use800	+	3.90f * use600	+	3.90f * use500	+	3.90f * use400;
 	return useACES == 1.0 ? ACESFilmRec2020(x, a, b, c, d, e) : reinhardHDR(x);
 }
 

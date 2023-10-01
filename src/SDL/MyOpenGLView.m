@@ -269,7 +269,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	_hdrOutput = NO;
 #if OOLITE_WINDOWS
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
-	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:80.0f];
+	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
 	if (bitsPerColorComponent == 16)
 	{
 		// SDL.dll built specifically for Oolite required
