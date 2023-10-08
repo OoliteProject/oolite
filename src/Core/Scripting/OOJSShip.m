@@ -2569,6 +2569,7 @@ static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 	
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
+	NSString					*ctx = @"scripted";
 	BOOL						result;
 	BOOL						exists;
 	
@@ -2583,12 +2584,21 @@ static JSBool ShipCanAwardEquipment(JSContext *context, uintN argc, jsval *vp)
 	
 	if (exists)
 	{
+		if (argc > 1)
+		{
+			ctx = OOStringFromJSValue(context, OOJS_ARGV[1]);
+			if (![ctx isEqualToString:@"scripted"] && ![ctx isEqualToString:@"purchase"] && ![ctx isEqualToString:@"newShip"] && ![ctx isEqualToString:@"npc"])
+			{
+				OOJSReportBadArguments(context, @"Ship", @"canAwardEquipment", MIN(argc, 2U), OOJS_ARGV, nil, @"context");
+				return NO;
+			}
+		}
 		result = YES;
 		
 		// can't add fuel as equipment.
 		if ([key isEqualToString:@"EQ_FUEL"])  result = NO;
 		
-		if (result)  result = [thisEnt canAddEquipment:key inContext:@"scripted"];
+		if (result)  result = [thisEnt canAddEquipment:key inContext:ctx];
 	}
 	else
 	{
