@@ -260,7 +260,7 @@ CreateShortCut "$SMPROGRAMS\Oolite\Oolite ReadMe.lnk" "$INSTDIR\OoliteReadMe.pdf
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Reference Sheet.lnk" "$INSTDIR\OoliteRS.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite - Advice for New Commanders.lnk" "$INSTDIR\AdviceForNewCommanders.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Uninstall.lnk" "$INSTDIR\UninstOolite.exe"
-CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://oolite.org/" "" "$INSTDIR\Oolite.ico"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "https://oolite.space/" "" "$INSTDIR\Oolite.ico"
 
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Logs.lnk" "$INSTDIR\oolite.app\Logs"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Screenshots.lnk" "$INSTDIR\oolite.app\oolite-saves\snapshots"

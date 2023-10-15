@@ -8,9 +8,9 @@ Build-Depends: debhelper (>= 5),
 	libgnustep-base-dev, gnustep-core-devel,
 	libpng-dev, mesa-common-dev, libnspr4-dev,
 	curl, zip, python
-Homepage: http://oolite.org/
-Vcs-Svn: svn://svn.berlios.de/oolite-linux
-Vcs-Browser: http://svn.berlios.de/wsvn/oolite-linux
+Homepage: https://oolite.space/
+Vcs-Svn: https://github.com/OoliteProject/oolite.git
+Vcs-Browser: https://github.com/OoliteProject/oolite
 
 Package: oolite
 Architecture: any

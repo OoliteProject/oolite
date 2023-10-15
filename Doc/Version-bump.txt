@@ -18,8 +18,8 @@ DebugOXP/Resources/oolite-debug-console.js
 
 On release:
 
-http://www.oolite.org/download (current version six times, previous version for Windows updater once)
+https://oolite.space/download (current version six times, previous version for Windows updater once)
 Topic of #oolite
-latest news at http://www.oolite.org/
+latest news at https://oolite.space/
 update changelog link on freshmeat.net project page
 Submit A Release, freshmeat

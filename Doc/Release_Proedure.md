@@ -30,7 +30,7 @@ OK, here is the proposed release plan, as promised a few posts earlier:
 19/07: Expected date of release. We should aim to do it as early as we can. Some coordination will be needed. We will have to do the following on that day:
 - Ensure that the draft release page has all the binaries uploaded and virus-scanned.
 - Have an announcement prepared already for the forum. I will make sure to have that done and reviewed well before 17/07.
-- Have a new Downloads page on oolite.org ready to go, with links already pointing to the github binaries and stating that 1.84 is now the latest and recommended release, with the actual date of release.
+- Have a new Downloads page on oolite.space ready to go, with links already pointing to the github binaries and stating that 1.84 is now the latest and recommended release, with the actual date of release.
 - When ready to launch, I will make the draft release public, generating the 1.84 tag at the time of release creation. The tag should hopefully be the same as the revision used for generating our binaries, which is why we should not commit anything to master after the 17th of July.
 - Getafix will have to publish the new Downloads page immediately after the github release becomes public.
 - As soon as this is done, I will post the release announcement on the forum.
@@ -40,7 +40,7 @@ And then we sit back and start counting seconds until the first critical bug rep
 
 You will have to change version numbers before any of this, of course.  Instructions for version bumping are in the Doc folder of the source: https://github.com/OoliteProject/oolite/blob/master/Doc/Version-bump.txt
 
-Oh, and the Oolite Reference Sheet will probably have to be updated as well to have any references to oolite.org replaced by oolite,space and include any new keyboard settings that might have been added between 1.90 and now.
+Oh, and the Oolite Reference Sheet will probably have to be updated as well to have any references to oolite.space replaced by oolite,space and include any new keyboard settings that might have been added between 1.90 and now.
 [/quote]
 
 
