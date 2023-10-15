@@ -285,7 +285,7 @@ awk -v var="Exec=${STARTUP_SCRIPTS_PATH}/oolite${TRUNK}" '{ gsub(/Exec=oolite/,v
 mv oolite.desktop.tmp oolite.desktop
 awk -v var="Icon=oolite${TRUNK}.org-icon" '{  gsub(/Icon=oolite-icon/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
 mv oolite.desktop.tmp oolite.desktop
-awk -v var="Name=Oolite${TRUNK} (oolite.org)" '{  gsub(/Name=Oolite/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
+awk -v var="Name=Oolite${TRUNK} (oolite.space)" '{  gsub(/Name=Oolite/,var,$0); print  }' oolite.desktop > oolite.desktop.tmp
 mv oolite.desktop.tmp oolite${TRUNK}.org.desktop
 rm oolite.desktop
 mv oolite-icon.png oolite${TRUNK}.org-icon.png
@@ -365,7 +365,7 @@ echo "Finished!"
 echo
 if [ $desktop_rc -eq 0 ]
 then
-  echo "A desktop menu entry \"Oolite${TRUNK} (oolite.org)\" has been added under Games."
+  echo "A desktop menu entry \"Oolite${TRUNK} (oolite.space)\" has been added under Games."
 fi
 echo -n "To start Oolite${TRUNK} from a shell, "
 # check PATH
