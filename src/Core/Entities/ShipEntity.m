@@ -9334,7 +9334,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 								{
 									[rock setScanClass: CLASS_CARGO];
 									[rock setBounty: 0 withReason:kOOLegalStatusReasonSetup];
-									[rock setCommodity:@"minerals" andAmount: 1];
+									// only make the rock have minerals if something isn't already defined for the rock
+									if ([[rock shipInfoDictionary] oo_stringForKey:@"cargo_carried"] == nil)
+										[rock setCommodity:@"minerals" andAmount: 1];
 								}
 								else
 								{
