@@ -272,7 +272,7 @@ jobs:
           echo "OOLITE_VERSION=${OOLITE_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Remove old prereleases
-        if: github.ref != 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         uses: s00d/delete-older-releases@0.2.1
         with:
           # repo: <owner>/<repoName> # defaults to current repo
