@@ -244,7 +244,7 @@ jobs:
       - name: Upload github pages artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          path: oolite/doxygen
+          path: oolite/doxygen/html
 
   release-marvinpinto:
     needs: [build-linux, build-windows, build-doxygen]
