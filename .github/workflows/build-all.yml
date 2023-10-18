@@ -241,6 +241,11 @@ jobs:
             oolite-*.tgz
           retention-days: 5
 
+      - name: Upload github pages artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: oolite/doxygen
+
   release-marvinpinto:
     needs: [build-linux, build-windows, build-doxygen]
     runs-on: ubuntu-latest
