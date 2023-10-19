@@ -22,7 +22,18 @@
  * sections that can be expanded. Here you find inheritance and collaboration
  * diagrams that can help navigate around quickly.
  *
- * \section Enriching the code
+ * \section Oolite Structure
+ *
+ * At the time of writing this, the code structure is not clear too much.
+ * It seems there are two entry points:
+ * <ul>
+ *   <li><a href="https://github.com/OoliteProject/oolite/blob/master/src/Cocoa/main.m">int main(int argc, const char *argv[])</a></li>
+ *   <li><a href="https://github.com/OoliteProject/oolite/blob/master/src/Cocoa/main.m">int main(int argc, char *argv[])</a></li>
+ * </ul>
+ *
+ * \section Maintaining this documentation
+ *
+ * \subsection Enriching the code
  *
  * As mentioned above, this documentation contains all the information from
  * the source code. Of course you can enrich the source with more information
