@@ -7,8 +7,6 @@
  * extracted and shaped into an easy to browse hypermedia documentation. Links
  * to related information make getting along much easier.
  *
- * \section This documentation's features
- *
  * In the top of the page you can find the project and version this documentation
  * was created for. In the menu bar below you see three entries.
  *
@@ -22,7 +20,21 @@
  * sections that can be expanded. Here you find inheritance and collaboration
  * diagrams that can help navigate around quickly.
  *
- * \section Enriching the code
+ * \section structure Oolite Code Structure
+ *
+ * There are two entry points:
+ * <ul>
+ *   <li><a href="https://github.com/OoliteProject/oolite/blob/master/src/Cocoa/main.m#L11">int main(int argc, const char *argv[])</a><br/>
+ *     for MacOS
+ *   </li>
+ *   <li><a href="https://github.com/OoliteProject/oolite/blob/master/src/SDL/main.m#L53">int main(int argc, char *argv[])</a><br/>
+ *     for Linux and Windows
+ *   </li>
+ * </ul>
+ *
+ * \section maintenance Maintaining this documentation
+ *
+ * \subsection comments Enriching the code
  *
  * As mentioned above, this documentation contains all the information from
  * the source code. Of course you can enrich the source with more information
@@ -30,10 +42,12 @@
  * favourite editing tool. Just add comments in a way that doxygen can
  * recognize - and this is a small change only.
  *
+ * This entry page can be found under Doc/ApiDocIntro.dox.
+ *
  * See more at 
  * <a href="https://www.doxygen.nl/manual/docblocks.html">Documenting the code</a>
  *
- * \subsection Generating this documentation
+ * \subsection processing Generating this documentation
  *
  * To generate the most up to date documentation, just invoke Doxygen from the
  * project's main directory. All the necessary settings are in the Doxyfile
