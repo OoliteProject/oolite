@@ -49,7 +49,13 @@ GameController* controller;
 uint32_t gDebugFlags = 0;
 #endif
 
-
+/**
+ * Entry point for Linux and Windows systems.
+ * If -load is passed, the argument after that is loaded as savegame.
+ *
+ * @param argc the number of command line arguments
+ * @param argv the string array values of the command line arguments
+ */
 int main(int argc, char *argv[])
 {
 #ifdef GNUSTEP
