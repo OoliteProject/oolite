@@ -149,6 +149,10 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 }
 
 
+/**
+ * \ingroup cli
+ * Scans the command line for -nosplash, --nosplash, -splash, --splash- -novsync and --novsync arguments.
+ */
 - (id) init
 {
 	self = [super init];

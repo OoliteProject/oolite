@@ -8,10 +8,12 @@ NSUInteger gDebugFlags = 0;
 #endif
 
 /**
- * Entry point for MacOS.
+ * \ingroup cli
+ * Entry point for MacOS. Initializes logging and runs NSApplicationMain.
  *
  * @param argc the number of command line arguments
  * @param argv the string array values of the command line arguments
+ * @return whatever NSApplicationMain returns
  */
 int main(int argc, const char *argv[])
 {

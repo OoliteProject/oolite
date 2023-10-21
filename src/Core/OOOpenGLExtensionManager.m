@@ -537,6 +537,10 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 
 #if OO_SHADERS
 
+/**
+ * \ingroup cli
+ * Scans the command line for -noshaders or --noshaders arguments.
+ */
 - (void)checkShadersSupported
 {
 	shadersAvailable = NO;

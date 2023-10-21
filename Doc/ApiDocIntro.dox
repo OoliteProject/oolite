@@ -60,3 +60,10 @@
  * documentation on every change on the master branch.
  *
  */
+ 
+ /**
+  * \defgroup cli Command Line Interface
+  * The command line is parsed and interpreted at various locations in the code.
+  * Here are the known functions that participate on cli arguments.
+  * 
+  */

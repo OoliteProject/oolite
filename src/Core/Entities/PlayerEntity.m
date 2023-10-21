@@ -9939,7 +9939,10 @@ static NSString *last_outfitting_key=nil;
 
 }
 
-
+/**
+ * \ingroup cli
+ * Scans the command line for -message or -showversion arguments.
+ */
 - (void) setGuiToIntroFirstGo:(BOOL)justCobra
 {
 	NSString 		*text = nil;

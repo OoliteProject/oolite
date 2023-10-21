@@ -69,6 +69,13 @@ static void OpenLogFile(NSString *name);
 
 @implementation OOOXPVerifier
 
+/**
+ * \ingroup cli
+ * Scans the command line for -verify-oxp or --verify-oxp, followed by a
+ * path to the oxp to verify.
+ *
+ * @return YES or NO
+ */
 + (BOOL)runVerificationIfRequested
 {
 	NSArray				*arguments = nil;

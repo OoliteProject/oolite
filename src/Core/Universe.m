@@ -10924,7 +10924,10 @@ static void PreloadOneSound(NSString *soundName)
 	}
 }
 
-
+/**
+ * \ingroup cli
+ * Scans the command line for --complie-sysdesc, --export-sysdec, --xml and --penstep arguments.
+ */
 - (void) runLocalizationTools
 {
 	// Handle command line options to transform system_description array for easier localization
