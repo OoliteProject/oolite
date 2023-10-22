@@ -10,6 +10,9 @@ Icon?
 xcuserdata/
 *.xcscmblueprint
 
+# kdevelop cruft
+.kdev4/
+*.kdev4
 
 # Used for downloaded code
 deps/Cocoa-deps/sparkle
