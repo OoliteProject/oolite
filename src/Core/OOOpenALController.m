@@ -42,13 +42,6 @@ static id sSingleton = nil;
 }
 
 
-/**
- * \ingroup cli
- * Scans the command line for -nosound or --nosound arguments.
- *
- * @return returns the instance to OOOpenALController if sound
- *         shall be played and can be played, otherwise null
- */
 - (id) init
 {
 	self = [super init];

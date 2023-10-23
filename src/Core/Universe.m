@@ -220,6 +220,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) dumpSystemDescriptionGraphViz;
 #endif
 - (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(NSUInteger)nodeCount;
+
+/**
+ * \ingroup cli
+ * Scans the command line for --complie-sysdesc, --export-sysdec, --xml and --penstep arguments.
+ */
 - (void) runLocalizationTools;
 #endif
 
@@ -10924,10 +10929,6 @@ static void PreloadOneSound(NSString *soundName)
 	}
 }
 
-/**
- * \ingroup cli
- * Scans the command line for --complie-sysdesc, --export-sysdec, --xml and --penstep arguments.
- */
 - (void) runLocalizationTools
 {
 	// Handle command line options to transform system_description array for easier localization

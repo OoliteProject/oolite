@@ -225,6 +225,12 @@ extern int debug;
    float				_mouseWheelDelta;
 }
 
+/**
+ * \ingroup cli
+ * Scans the command line for -nosplash, --nosplash, -splash, --splash- -novsync and --novsync arguments.
+ */
+- (id) init;
+
 - (void) initSplashScreen;
 - (void) endSplashScreen;
 - (void) autoShowMouse;
