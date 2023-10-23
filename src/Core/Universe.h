@@ -843,7 +843,6 @@ NSComparisonResult equipmentSort(id a, id b, void *context);
 NSString *OOLookUpDescriptionPRIV(NSString *key);
 NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count);
 
-
 @interface OOSound (OOCustomSounds)
 
 + (id) soundWithCustomSoundKey:(NSString *)key;
