@@ -20,6 +20,9 @@
  * sections that can be expanded. Here you find inheritance and collaboration
  * diagrams that can help navigate around quickly.
  *
+ * Also note that there is a growing amount of information in the
+ * Developer's Corner at https://wiki.alioth.net/index.php/Developer%27s_Corner.
+ *
  * \section structure Oolite Code Structure
  *
  * There are two entry points:
