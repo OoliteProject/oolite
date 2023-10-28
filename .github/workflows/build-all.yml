@@ -317,6 +317,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build-doxygen
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
 
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
