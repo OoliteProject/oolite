@@ -533,7 +533,7 @@ static JSBool GlobalSetExtraGuiScreenKeys(JSContext *context, uintN argc, jsval 
 		OOJSReportBadArguments(context, @"global", @"setExtraGuiScreenKeys", 2, &OOJS_ARGV[1], nil, @"key, definition: must have a 'registerKeys' property.");
 		return NO;
 	}
-	if (value)
+	if (!JSVAL_IS_NULL(value))
 	{
 		if (JSVAL_IS_OBJECT(value))
 		{
