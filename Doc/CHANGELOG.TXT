@@ -2,7 +2,7 @@ Changes between Oolite 1.90 and Oolite 1.92:
 
 General:
 ========
-* Default shipset updated to include normal and specular maps.
+* Default shipset updated to include normal, specular and gloss maps.
 * (Windows build) Oolite now has HDR Support, including the ability to take
   HDR screenshots.
 * (Windows build) New shortcut included with installation for starting 
