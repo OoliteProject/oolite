@@ -1,3 +1,102 @@
+Changes between Oolite 1.90 and Oolite 1.92:
+
+General:
+========
+* Default shipset updated to include normal and specular maps.
+* (Windows build) Oolite now has HDR Support, including the ability to take
+  HDR screenshots.
+* (Windows build) New shortcut included with installation for starting 
+  game in HDR mode.
+* (Windows build) Added bloom effect, which can be toggled on/off with F9 key.
+* Oolite now renders to a framebuffer, which enables post-processing effects, 
+  as well as ACES tonemapping and gamma correction, before sending screen to 
+  be displayed.
+* Added new visual effect when cloaked.
+* Added colourblind support, available in game options screen.
+* Full keyboard configuration now available in game.
+* In-game handling of non-US keyboard layouts.
+* Added ability to assign any key or joystick button to the "activate" or 
+  "mode" functions of primable equipment.
+* Added ability to define any key combination for use on a mission screen.
+* Added ability to check for any key combination on any standard GUI screen.
+* Updated icon and splash screen.
+* Default game window size now 1024x576 (16:9).
+* (Windows build) Windows light/dark modes now honoured by the game window.
+* Updated Joystick mapping screens to have a more logical arrangement, and
+  added some sub-titles to differentiate sections.
+* Switched to a new domain for the Expansion Pack Manager.
+* Added a "fade to black and white" effect on game over.
+* Added "sky-color-correction" to GNUstepdefaults file to all for filmic tone 
+  mapping to be applied to stars and nebula. 0 = no color correction, 1 = gamma
+  correction only, any other value = gamma correction + filmic tone mapping.
+* Change descriptions of the "fast activate" keys to be easier to understand.
+* Added "start-script-limit-value" option to GNUstepdefaults file for control
+  over startUp script time limit.
+* Brightened up lasers.
+* Improved sun rendering.
+* Implemented user-defined planet dark-side illumination color, when an
+  illumination map is in use.
+* Added an "update all" option to the Expansion Pack Manager.
+* Updated atmosphere density rendering.
+* Added game paused message to game options when in flight.
+* (Windows/Linux) Physical and available system memory now reported in log header.
+* (Windows) Required minimum OS is now Windows 7.
+* Minimum OpenGL version is now 3.3.
+
+Expansion Pack Development:
+===========================
+
+Modified Plists:
+---------------
+* keyconfig2.plist is the new keyboard configuration plist. keyconfig.plist
+  has been deprecated.
+* planetinfo.plist: illumination_color added (used with illumination map in planet
+  texture).
+* planetinfo.plist: added air_density (default value 0.75).
+
+Scripting:
+----------
+* ship.canAwardEquipment now accepts optional additional parameter of "context", 
+  enabling checking of any context for the equipment item.
+* Added player.ship.previousSystem property, which contains the system ID of where
+  the player as jumped from.
+* shipWillExitWitchspace and shipExitedWitchspace world events now include the 
+  jump cause parameter.
+* Added beginGalacticHyperspaceCountdown world event.
+* Added planet.illuminationColor property.
+* Added planet.airDensity property.
+* Added Ship.setShipInfoForKey to allow for shipdata updates during the game.
+* Added equipment.weaponInfo dictionary.
+
+Bug Fixes:
+==========
+* Splinters that have a defined cargo will now spawn with that, instead of 
+  defaulting to minerals.
+* Fixed issue where destination ID was not being passed to shipWillEnterWitchspace
+  when the player is docked with another vessel.
+* (Mac build) Fixed possible memory leak.
+* Fixed some JS errors in oolite-populator.js and priorityAI.js.
+* Fixed issue where hyperspace destination on the status screen and the witchspace
+  destination HUD element were not honouring the system concealment property.
+* Added guard against NaNs in the atmosphere shader with large planets.
+* Fixed "index out of range" error that can occur if a HUD did not define MFD'S
+  and player tried to select one.
+* Fixed inability to launch Oolite properly from within the Windows command console.
+* Fixed missiles for Fer-de-lance in shipyard.plist to match shipdata.plist.
+* Fixed transition to black and white on death when TAF not zero.
+* Fixed some gcc format errors.
+* Fixed issue where escaping a nova would result in the destination system's sun 
+  having the same size of the nova system's sun.
+* Fixed issue with ships that have forward mining laser refusing mining opportunities.
+* Fixed crash tutorial cause by non-retained objects.
+* Fixed issue where weapon spec in shipyard.plist not being applied to new ships.
+* Fixed crash when scan_description was defined in shipdata.plist.
+* Fixed issue where context was not being considered when adding weapons to player.ship.
+* Fixed exception when nil would be passed as an object for a weapon sound when that 
+  weapon doesn't exist in equipment.plist.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.88 and Oolite 1.90:
 
 General:
