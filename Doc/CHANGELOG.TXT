@@ -7,7 +7,7 @@ General:
   HDR screenshots.
 * (Windows build) New shortcut included with installation for starting 
   game in HDR mode.
-* (Windows build) Added bloom effect, which can be toggled on/off with F9 key.
+* Added bloom effect, which can be toggled on/off with F9 key.
 * Oolite now renders to a framebuffer, which enables post-processing effects, 
   as well as ACES tonemapping and gamma correction, before sending screen to 
   be displayed.
