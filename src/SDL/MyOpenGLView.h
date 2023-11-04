@@ -30,6 +30,9 @@ MA 02110-1301, USA.
 
 #include <SDL.h>
 
+#define WINDOW_SIZE_DEFAULT_WIDTH	1280
+#define WINDOW_SIZE_DEFAULT_HEIGHT	720
+
 #define	MIN_FOV_DEG		30.0f
 #define	MAX_FOV_DEG		80.0f
 #define MIN_FOV			(tan((MIN_FOV_DEG / 2) * M_PI / 180.0f))

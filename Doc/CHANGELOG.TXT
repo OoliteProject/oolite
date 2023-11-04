@@ -9,8 +9,8 @@ General:
   game in HDR mode.
 * Added bloom effect, which can be toggled on/off with F9 key.
 * Oolite now renders to a framebuffer, which enables post-processing effects, 
-  as well as ACES tonemapping and gamma correction, before sending screen to 
-  be displayed.
+  as well as full scene ACES tonemapping and gamma correction, before sending 
+  screen to be displayed.
 * Added new visual effect when cloaked.
 * Added colourblind support, available in game options screen.
 * Full keyboard configuration now available in game.

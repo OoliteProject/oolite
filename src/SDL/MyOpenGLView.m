@@ -2711,7 +2711,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	}
 	else
 	{
-		windowSize=NSMakeSize(1024, 576);
+		windowSize=NSMakeSize(WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT);
 	}
 	currentWindowSize=windowSize;
 	return windowSize;
@@ -2791,7 +2791,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 				[[mode objectForKey: kOODisplayHeight] intValue]);
 	}
 	OOLog(@"display.mode.unknown", @"%@", @"Screen size unknown!");
-	return NSMakeSize(1024, 576);
+	return NSMakeSize(WINDOW_SIZE_DEFAULT_WIDTH, WINDOW_SIZE_DEFAULT_HEIGHT);
 }
 
 
