@@ -20,7 +20,7 @@ General:
 * Added ability to define any key combination for use on a mission screen.
 * Added ability to check for any key combination on any standard GUI screen.
 * Updated icon and splash screen.
-* Default game window size now 1024x576 (16:9).
+* Default game window size now 1280x720 (16:9).
 * (Windows build) Windows light/dark modes now honoured by the game window.
 * Updated Joystick mapping screens to have a more logical arrangement, and
   added some sub-titles to differentiate sections.
