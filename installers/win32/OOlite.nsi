@@ -244,7 +244,12 @@ File "..\..\Doc\OoliteReadMe.pdf"
 ${If} ${ADDCHANGELOG} == "1"
   File "..\..\Doc\CHANGELOG.TXT"
 ${EndIf}
-File /r /x .svn /x *~ "${DST}"
+File /r /x .git /x .svn /x *~ "${DST}"
+
+; Generate version info
+FileOpen $9 release.txt w ;Opens a Empty File and fills it
+FileWrite $9 "${VER}$\r$\n"
+FileClose $9 ;Closes the filled file
 
 WriteUninstaller "$INSTDIR\UninstOolite.exe"
 
