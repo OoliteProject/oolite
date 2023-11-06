@@ -53,11 +53,6 @@ PROJECT_BRIEF          =
 
 PROJECT_LOGO           = ./installers/FreeDesktop/oolite-icon.png
 
-# With the PROJECT_ICON tag one can specify an icon that is included in the tabs
-# when the HTML document is shown. Doxygen will copy the logo to the output directory.
-
-PROJECT_ICON           = 
-
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is
 # entered, it will be relative to the location where doxygen was started. If
@@ -1385,17 +1380,6 @@ EXT_LINKS_IN_WINDOW    = NO
 
 FORMULA_FONTSIZE       = 10
 
-# Use the FORMULA_TRANPARENT tag to determine whether or not the images
-# generated for formulas are transparent PNGs. Transparent PNGs are not
-# supported properly for IE 6.0, but are supported on all modern browsers.
-#
-# Note that when changing this option you need to delete any form_*.png files in
-# the HTML output directory before the changes have effect.
-# The default value is: YES.
-# This tag requires that the tag GENERATE_HTML is set to YES.
-
-FORMULA_TRANSPARENT    = YES
-
 # Enable the USE_MATHJAX option to render LaTeX formulas using MathJax (see
 # http://www.mathjax.org) which uses client side Javascript for the rendering
 # instead of using prerendered bitmaps. Use this if you do not have LaTeX
@@ -1414,8 +1398,8 @@ USE_MATHJAX            = NO
 # compatibility), NativeMML (i.e. MathML) and SVG.
 # The default value is: HTML-CSS.
 # This tag requires that the tag USE_MATHJAX is set to YES.
-
-MATHJAX_FORMAT         = HTML-CSS
+#
+# MATHJAX_FORMAT         = HTML-CSS
 
 # When MathJax is enabled you need to specify the location relative to the HTML
 # output directory using the MATHJAX_RELPATH option. The destination directory
@@ -1427,23 +1411,23 @@ MATHJAX_FORMAT         = HTML-CSS
 # MathJax from http://www.mathjax.org before deployment.
 # The default value is: http://cdn.mathjax.org/mathjax/latest.
 # This tag requires that the tag USE_MATHJAX is set to YES.
-
-MATHJAX_RELPATH        = http://cdn.mathjax.org/mathjax/latest
+#
+# MATHJAX_RELPATH        = http://cdn.mathjax.org/mathjax/latest
 
 # The MATHJAX_EXTENSIONS tag can be used to specify one or more MathJax
 # extension names that should be enabled during MathJax rendering. For example
 # MATHJAX_EXTENSIONS = TeX/AMSmath TeX/AMSsymbols
 # This tag requires that the tag USE_MATHJAX is set to YES.
-
-MATHJAX_EXTENSIONS     =
+#
+# MATHJAX_EXTENSIONS     =
 
 # The MATHJAX_CODEFILE tag can be used to specify a file with javascript pieces
 # of code that will be used on startup of the MathJax code. See the MathJax site
 # (see: http://docs.mathjax.org/en/latest/output.html) for more details. For an
 # example see the documentation.
 # This tag requires that the tag USE_MATHJAX is set to YES.
-
-MATHJAX_CODEFILE       =
+#
+# MATHJAX_CODEFILE       =
 
 # When the SEARCHENGINE tag is enabled doxygen will generate a search box for
 # the HTML output. The underlying search engine uses javascript and DHTML and
@@ -1657,16 +1641,6 @@ LATEX_BATCHMODE        = NO
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
 LATEX_HIDE_INDICES     = NO
-
-# If the LATEX_SOURCE_CODE tag is set to YES then doxygen will include source
-# code with syntax highlighting in the LaTeX output.
-#
-# Note that which sources are shown also depends on other settings such as
-# SOURCE_BROWSER.
-# The default value is: NO.
-# This tag requires that the tag GENERATE_LATEX is set to YES.
-
-LATEX_SOURCE_CODE      = NO
 
 # The LATEX_BIB_STYLE tag can be used to specify the style to use for the
 # bibliography, e.g. plainnat, or ieeetr. See
@@ -1990,15 +1964,6 @@ EXTERNAL_PAGES         = YES
 #---------------------------------------------------------------------------
 # Configuration options related to the dot tool
 #---------------------------------------------------------------------------
-
-# If the CLASS_DIAGRAMS tag is set to YES doxygen will generate a class diagram
-# (in HTML and LaTeX) for classes with base or super classes. Setting the tag to
-# NO turns the diagrams off. Note that this option also works with HAVE_DOT
-# disabled, but it is recommended to install and use dot, since it yields more
-# powerful graphs.
-# The default value is: YES.
-
-CLASS_DIAGRAMS         = YES
 
 # You can include diagrams made with dia in doxygen documentation. Doxygen will
 # then run dia to produce the diagram and insert it in the documentation. The
