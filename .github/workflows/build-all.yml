@@ -276,21 +276,12 @@ jobs:
           OOLITE_VERSION=$(cat oolite/Doc/OOLITE_VERSION.txt | cut -d= -f2)
           echo "OOLITE_VERSION=${OOLITE_VERSION}" >> "$GITHUB_OUTPUT"
 
-      # watch out:
-      # Despite the delete_type 'prerelease' in job 152 releases were removed.
-      # https://github.com/OoliteProject/oolite/actions/runs/6551579003
-      #
-      # Do not activate without prior testing!
-      #
       - name: Remove old prereleases
-        if: github.ref == 'refs/heads/master-donotrun'
+        if: github.ref == 'refs/heads/master'
         uses: s00d/delete-older-releases@0.2.1
         with:
-          # repo: <owner>/<repoName> # defaults to current repo
           keep_latest: 7
-          # delete_tag_pattern: v\d+\.\d+\.\d+-.*
           delete_type: 'prerelease'
-          # delete_branch: '${{ github.ref_name }}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
