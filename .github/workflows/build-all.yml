@@ -96,7 +96,7 @@ jobs:
         run: |
           cd oolite
           source /usr/share/GNUstep/Makefiles/GNUstep.sh
-          make -f Makefile pkg-posix-nightly HOST_ARCH=$(uname -m)
+          make -f Makefile pkg-posix HOST_ARCH=$(uname -m)
 
       ## This is for debugging only and helps developing the workflow.
       # - name: show filesystem after build
@@ -216,7 +216,6 @@ jobs:
         uses: mattnotmitt/doxygen-action@v1.9.5
         with:
           working-directory: oolite
-          #  OOLITE_VERSION: ${{ steps.version.outputs.OOLITE_VERSION }}
 
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables 1
@@ -246,7 +245,7 @@ jobs:
         with:
           path: oolite/doxygen/html
 
-  release-marvinpinto:
+  release:
     needs: [build-linux, build-windows, build-doxygen]
     runs-on: ubuntu-latest
     steps:
@@ -302,7 +301,7 @@ jobs:
             artifacts/oolite-linux-nightly/oolite-*.tgz
             artifacts/oolite-windows-nightly/OoliteInstall*.exe
 
-  deploy:
+  deploySite:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
