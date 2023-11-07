@@ -306,6 +306,7 @@ EndOfOXZFolderCheck:
 RMDir /r "$INSTDIR\oolite.app\oolite.app"
 RMDir /r "$INSTDIR\oolite.app\Resources"
 RMDir /r "$INSTDIR\oolite.app\Logs"
+Delete "$INSTDIR\release.txt"
 Delete "$INSTDIR\Oolite.ico"
 Delete "$INSTDIR\Oolite-HDR.ico"
 Delete "$INSTDIR\Oolite_Readme.txt"

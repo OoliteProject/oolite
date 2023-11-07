@@ -56,7 +56,134 @@ jobs:
             oolite-doc.zip
           retention-days: 5
 
-  build-linux:
+  build-pkg-posix-nightly:
+    runs-on: ubuntu-latest
+    needs: [common-steps]
+    steps:
+      ## This is for debugging only and helps developing the workflow.
+      # - name: Environment Variables
+      #  run: |
+      #    printenv | sort
+
+      - name: install all the necessary packages
+        run: |
+          sudo apt update
+          sudo apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v3
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: oolite-doc
+          path: artifacts
+
+      - name: Extract PDFs
+        run: |
+          unzip -u artifacts/oolite-doc.zip
+
+      # This is for debugging only and helps developing the workflow.
+      - name: show filesystem before build
+        run: |
+          find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+
+      - name: compiling up to installer script (.run file)
+        run: |
+          cd oolite
+          source /usr/share/GNUstep/Makefiles/GNUstep.sh
+          make -f Makefile pkg-posix-nightly HOST_ARCH=$(uname -m)
+
+      ## This is for debugging only and helps developing the workflow.
+      # - name: show filesystem after build
+      #  run: |
+      #    find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
+
+      - name: assemble release files
+        run: |
+          mkdir oolite-nightly
+          cp -v oolite/installers/posix/oolite-*.run oolite-nightly
+
+      # This is for debugging only and helps developing the workflow.
+      - name: show filesystem after installer
+        run: |
+          find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
+
+      - name: Archive build tar ball
+        uses: actions/upload-artifact@v3
+        with:
+          name: pkg-posix-nightly
+          path: |
+            oolite/installers/posix/oolite-*.run
+          retention-days: 5
+
+
+  build-pkg-posix-test:
+    runs-on: ubuntu-latest
+    needs: [common-steps]
+    steps:
+      ## This is for debugging only and helps developing the workflow.
+      # - name: Environment Variables
+      #  run: |
+      #    printenv | sort
+
+      - name: install all the necessary packages
+        run: |
+          sudo apt update
+          sudo apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
+
+      - name: Checkout Oolite
+        uses: actions/checkout@v3
+        with:
+          path: oolite
+          fetch-depth: 0
+          submodules: true
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: oolite-doc
+          path: artifacts
+
+      - name: Extract PDFs
+        run: |
+          unzip -u artifacts/oolite-doc.zip
+
+      # This is for debugging only and helps developing the workflow.
+      - name: show filesystem before build
+        run: |
+          find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+
+      - name: compiling up to installer script (.run file)
+        run: |
+          cd oolite
+          source /usr/share/GNUstep/Makefiles/GNUstep.sh
+          make -f Makefile pkg-posix-test HOST_ARCH=$(uname -m)
+
+      ## This is for debugging only and helps developing the workflow.
+      # - name: show filesystem after build
+      #  run: |
+      #    find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
+
+      # This is for debugging only and helps developing the workflow.
+      - name: show filesystem after installer
+        run: |
+          find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
+
+      - name: Archive build tar ball
+        uses: actions/upload-artifact@v3
+        with:
+          name: pkg-posix-test
+          path: |
+            oolite/installers/posix/oolite-*.run
+          retention-days: 5
+
+
+  build-pkg-posix:
     runs-on: ubuntu-latest
     needs: [common-steps]
     steps:
@@ -103,16 +230,6 @@ jobs:
       #  run: |
       #    find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
 
-      - name: assemble release files
-        run: |
-          mkdir oolite-nightly
-          cp -v oolite/installers/posix/oolite-*.run oolite-nightly
-
-      - name: create tar ball
-        run: |
-          NAME=$(basename oolite-nightly/oolite-*.run .run)
-          tar cvfz ${NAME}.tgz -C oolite-nightly .
-
       # This is for debugging only and helps developing the workflow.
       - name: show filesystem after installer
         run: |
@@ -121,9 +238,9 @@ jobs:
       - name: Archive build tar ball
         uses: actions/upload-artifact@v3
         with:
-          name: oolite-linux-nightly
+          name: pkg-posix
           path: |
-            oolite-*.tgz
+            oolite/installers/posix/oolite-*.run
           retention-days: 5
 
 
@@ -246,7 +363,7 @@ jobs:
           path: oolite/doxygen/html
 
   release:
-    needs: [build-linux, build-windows, build-doxygen]
+    needs: [build-pkg-posix, build-pkg-posix-test, build-pkg-posix-nightly, build-windows, build-doxygen]
     runs-on: ubuntu-latest
     steps:
       ## This is for debugging only and helps developing the workflow.
@@ -297,9 +414,13 @@ jobs:
           prerelease: true
           title: "Oolite ${{ steps.version.outputs.OOLITE_VERSION }}"
           files: |
-            artifacts/oolite-documentation-nightly/oolite-*.tgz
-            artifacts/oolite-linux-nightly/oolite-*.tgz
+            artifacts/pkg-posix-nightly/oolite*.run
+            artifacts/oolite-doc/oolite*.zip
+            artifacts/oolite-documentation-nightly/oolite*.tgz
+            artifacts/pkg-posix/oolite*.run
+            artifacts/pkg-posix-test/oolite*.run
             artifacts/oolite-windows-nightly/OoliteInstall*.exe
+
 
   deploySite:
     environment:
