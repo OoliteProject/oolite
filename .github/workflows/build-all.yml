@@ -304,6 +304,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [common-steps]
     steps:
+      - name: install all the necessary packages
+        run: |
+          sudo apt update
+          sudo apt -y install graphviz
+
       - name: Checkout Oolite
         uses: actions/checkout@v3
         with:
@@ -327,12 +332,63 @@ jobs:
           OOLITE_VERSION=$(cat oolite/Doc/OOLITE_VERSION.txt | cut -d= -f2)
           echo "OOLITE_VERSION=${OOLITE_VERSION}" >> "$GITHUB_OUTPUT"
           sed -i -e "/PROJECT_NUMBER\s*=/ s/=.*/=${OOLITE_VERSION}/" oolite/Doxyfile
-          cat oolite/Doxyfile
 
-      - name: Run doxygen
-        uses: mattnotmitt/doxygen-action@v1.9.5
+      - name: Download latest Doxygen
+        id: download-doxygen
+        uses: robinraju/release-downloader@v1.8
         with:
-          working-directory: oolite
+          repository: "doxygen/doxygen"
+
+          # A flag to set the download target as latest release
+          # The default value is 'false'
+          latest: true
+
+          # The github tag. e.g: v1.0.1
+          # Download assets from a specific tag/version
+          # tag: "v1.0.68"
+
+          # The release id to download files from
+          # releaseId: ""
+
+          # The name of the file to download.
+          # Use this field only to specify filenames other than tarball or
+          # zipball, if any.
+          # Supports wildcard pattern (eg: '*', '*.deb', '*.zip' etc..)
+          fileName: "doxygen-*.linux.bin.tar.gz"
+
+          # Download the attached tarball (*.tar.gz)
+          tarBall: false
+
+          # Download the attached zipball (*.zip)
+          zipBall: false
+
+          # Relative path under $GITHUB_WORKSPACE to place the downloaded
+          # file(s). It will create the target directory automatically if
+          # not present eg:
+          # out-file-path: "my-downloads"
+          #   => It will create directory $GITHUB_WORKSPACE/my-downloads
+          out-file-path: "doxygen"
+
+          # A flag to set if the downloaded assets are archives and should
+          # be extracted. Checks all downloaded files if they end with zip,
+          # tar or tar.gz and extracts them, if true. Prints a warning if
+          # enabled but file is not an archive - but does not fail.
+          extract: true
+
+      - name: Check filesytem before Doxygen run
+        run: |
+          find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+
+      #- name: Run doxygen
+      #  uses: mattnotmitt/doxygen-action@v1.9.5
+      #  with:
+      #    working-directory: oolite
+      
+      - name: Run Doxygen
+        run: |
+          echo Downloaded: ${{ fromJson(steps.download-doxygen.outputs.downloaded_files)[0] }}
+          cd oolite
+          ../doxygen/doxygen-*/bin/doxygen
 
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables 1
