@@ -471,7 +471,6 @@ jobs:
           title: "Oolite ${{ steps.version.outputs.OOLITE_VERSION }}"
           files: |
             artifacts/pkg-posix-nightly/oolite*.run
-            artifacts/oolite-doc/oolite*.zip
             artifacts/oolite-documentation-nightly/oolite*.tgz
             artifacts/pkg-posix/oolite*.run
             artifacts/pkg-posix-test/oolite*.run
