@@ -56,9 +56,12 @@ jobs:
             oolite-doc.zip
           retention-days: 5
 
-  build-pkg-posix-nightly:
+  build-linux:
     runs-on: ubuntu-latest
     needs: [common-steps]
+    strategy:
+      matrix:
+        flavour: [pkg-posix-nightly, pkg-posix-test, pkg-posix]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -96,73 +99,7 @@ jobs:
         run: |
           cd oolite
           source /usr/share/GNUstep/Makefiles/GNUstep.sh
-          make -f Makefile pkg-posix-nightly HOST_ARCH=$(uname -m)
-
-      ## This is for debugging only and helps developing the workflow.
-      # - name: show filesystem after build
-      #  run: |
-      #    find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
-
-      - name: assemble release files
-        run: |
-          mkdir oolite-nightly
-          cp -v oolite/installers/posix/oolite-*.run oolite-nightly
-
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem after installer
-        run: |
-          find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
-
-      - name: Archive build tar ball
-        uses: actions/upload-artifact@v3
-        with:
-          name: pkg-posix-nightly
-          path: |
-            oolite/installers/posix/oolite-*.run
-          retention-days: 5
-
-
-  build-pkg-posix-test:
-    runs-on: ubuntu-latest
-    needs: [common-steps]
-    steps:
-      ## This is for debugging only and helps developing the workflow.
-      # - name: Environment Variables
-      #  run: |
-      #    printenv | sort
-
-      - name: install all the necessary packages
-        run: |
-          sudo apt update
-          sudo apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
-
-      - name: Checkout Oolite
-        uses: actions/checkout@v3
-        with:
-          path: oolite
-          fetch-depth: 0
-          submodules: true
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: oolite-doc
-          path: artifacts
-
-      - name: Extract PDFs
-        run: |
-          unzip -u artifacts/oolite-doc.zip
-
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem before build
-        run: |
-          find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
-
-      - name: compiling up to installer script (.run file)
-        run: |
-          cd oolite
-          source /usr/share/GNUstep/Makefiles/GNUstep.sh
-          make -f Makefile pkg-posix-test HOST_ARCH=$(uname -m)
+          make -f Makefile ${{matrix.flavour}} HOST_ARCH=$(uname -m)
 
       ## This is for debugging only and helps developing the workflow.
       # - name: show filesystem after build
@@ -177,68 +114,7 @@ jobs:
       - name: Archive build tar ball
         uses: actions/upload-artifact@v3
         with:
-          name: pkg-posix-test
-          path: |
-            oolite/installers/posix/oolite-*.run
-          retention-days: 5
-
-
-  build-pkg-posix:
-    runs-on: ubuntu-latest
-    needs: [common-steps]
-    steps:
-      ## This is for debugging only and helps developing the workflow.
-      # - name: Environment Variables
-      #  run: |
-      #    printenv | sort
-
-      - name: install all the necessary packages
-        run: |
-          sudo apt update
-          sudo apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
-
-      - name: Checkout Oolite
-        uses: actions/checkout@v3
-        with:
-          path: oolite
-          fetch-depth: 0
-          submodules: true
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: oolite-doc
-          path: artifacts
-
-      - name: Extract PDFs
-        run: |
-          unzip -u artifacts/oolite-doc.zip
-
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem before build
-        run: |
-          find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
-
-      - name: compiling up to installer script (.run file)
-        run: |
-          cd oolite
-          source /usr/share/GNUstep/Makefiles/GNUstep.sh
-          make -f Makefile pkg-posix HOST_ARCH=$(uname -m)
-
-      ## This is for debugging only and helps developing the workflow.
-      # - name: show filesystem after build
-      #  run: |
-      #    find . -not -path "./oolite/Mac-specific/*"  -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*" -not -path "./oolite/deps/mozilla/*"
-
-      # This is for debugging only and helps developing the workflow.
-      - name: show filesystem after installer
-        run: |
-          find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
-
-      - name: Archive build tar ball
-        uses: actions/upload-artifact@v3
-        with:
-          name: pkg-posix
+          name: ${{matrix.flavour}}
           path: |
             oolite/installers/posix/oolite-*.run
           retention-days: 5
@@ -247,6 +123,9 @@ jobs:
   build-windows:
     runs-on: windows-latest
     needs: [common-steps]
+    strategy:
+      matrix:
+        flavour: [pkg-win-snapshot,pkg-win-deployment,pkg-win]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -282,9 +161,22 @@ jobs:
         run: |
           Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
+      - name: Prepare compile script with flavour
+        shell: cmd
+        run: |
+          echo Want to build flavour ${{matrix.flavour}}
+          mkdir D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\etc\profile.d
+          echo export FLAVOUR="${{matrix.flavour}}" > D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\etc\profile.d\flavour.sh
+          cat D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\etc\profile.d\flavour.sh
+
+      - name: check filesystem after preparation
+        run: |
+          Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
+
       - name: Compile
         shell: cmd
-        run: D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
+        run: |
+          D:\a\oolite\oolite\DevelopmentEnvironment\gcc\Msys_x2\1.0\msys.cmd
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       # this is for debug only; it creates huge logs and takes a long time to execute, yet you never know when you need it
@@ -295,7 +187,7 @@ jobs:
       - name: Archive build
         uses: actions/upload-artifact@v3
         with:
-          name: oolite-windows-nightly
+          name: oolite-windows-${{matrix.flavour}}
           path: |
             oolite/installers/win32/OoliteInstall*.exe
           retention-days: 5
@@ -419,7 +311,7 @@ jobs:
           path: oolite/doxygen/html
 
   release:
-    needs: [build-pkg-posix, build-pkg-posix-test, build-pkg-posix-nightly, build-windows, build-doxygen]
+    needs: [build-linux, build-windows, build-doxygen]
     runs-on: ubuntu-latest
     steps:
       ## This is for debugging only and helps developing the workflow.
@@ -470,12 +362,21 @@ jobs:
           prerelease: true
           title: "Oolite ${{ steps.version.outputs.OOLITE_VERSION }}"
           files: |
-            artifacts/pkg-posix-nightly/oolite*.run
-            artifacts/oolite-documentation-nightly/oolite*.tgz
-            artifacts/pkg-posix/oolite*.run
-            artifacts/pkg-posix-test/oolite*.run
-            artifacts/oolite-windows-nightly/OoliteInstall*.exe
+            artifacts/oolite-documentation-nightly/oolite-apidoc-*.tgz
+            artifacts/oolite-windows-pkg-win-snapshot/OoliteInstall-*-dev.exe
+            artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
+            artifacts/oolite-windows-pkg-win/OoliteInstall-*.exe
+            artifacts/pkg-posix-nightly/oolite-trunk-*-dev.linux-x86_64.run
+            artifacts/pkg-posix/oolite-*.linux-x86_64.run
+            artifacts/pkg-posix-test/oolite-*-test.linux-x86_64.run
 
+      - name: Remove old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 30
+          keep_minimum_runs: 8
 
   deploySite:
     environment:
