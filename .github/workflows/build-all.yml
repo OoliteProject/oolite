@@ -362,11 +362,13 @@ jobs:
           prerelease: true
           title: "Oolite ${{ steps.version.outputs.OOLITE_VERSION }}"
           files: |
-            artifacts/pkg-posix-nightly/oolite*.run
-            artifacts/oolite-documentation-nightly/oolite*.tgz
-            artifacts/pkg-posix/oolite*.run
-            artifacts/pkg-posix-test/oolite*.run
-            artifacts/oolite-windows-nightly/OoliteInstall*.exe
+            artifacts/oolite-documentation-nightly/oolite-apidoc-*.tgz
+            artifacts/oolite-windows-pkg-win-snapshot/OoliteInstall-*-dev.exe
+            artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
+            artifacts/oolite-windows-pkg-win/OoliteInstall-*.exe
+            artifacts/pkg-posix-nightly/oolite-trunk-*-dev.linux-x86_64.run
+            artifacts/pkg-posix/oolite-*.linux-x86_64.run
+            artifacts/pkg-posix-test/oolite-*-test.linux-x86_64.run
 
       - name: Remove old workflow runs
         uses: Mattraks/delete-workflow-runs@v2
