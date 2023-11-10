@@ -371,6 +371,7 @@ jobs:
             artifacts/pkg-posix-test/oolite-*-test.linux-x86_64.run
 
       - name: Remove old workflow runs
+        if: github.ref == 'refs/heads/master'
         uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ github.token }}
