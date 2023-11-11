@@ -327,7 +327,7 @@ jobs:
       # This is for debugging only and helps developing the workflow.
       - name: show filesystem after download
         run: |
-          find .
+          find . -type f | sort
 
       - name: Extract artifacts
         run: |

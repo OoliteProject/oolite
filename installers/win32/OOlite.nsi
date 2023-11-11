@@ -33,8 +33,13 @@
 !endif
 
 !ifndef SNAPSHOT
+!ifndef DEPLOYMENT
+!define EXTVER "-test"  ; Official distribution with OXP developer tools
+!define ADDCHANGELOG 1	; Official distributions go with a changelog file
+!else
 !define EXTVER ""
 !define ADDCHANGELOG 1	; Official distributions go with a changelog file
+!endif
 !else
 !define EXTVER "-dev"
 !define ADDCHANGELOG 0	; Snapshot distributions do not need changelog
