@@ -111,12 +111,12 @@ jobs:
         run: |
           find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
 
-      - name: Archive build tar ball
+      - name: Archive installer
         uses: actions/upload-artifact@v3
         with:
           name: ${{matrix.flavour}}
           path: |
-            oolite/installers/posix/oolite-*.run
+            oolite/installers/posix/OoliteInstall-*.run
           retention-days: 5
 
 
@@ -328,6 +328,8 @@ jobs:
       - name: show filesystem after download
         run: |
           find . -type f | sort
+          echo
+          find . -type f -exec basename {} \; | sort
 
       - name: Extract artifacts
         run: |
@@ -366,9 +368,9 @@ jobs:
             artifacts/oolite-windows-pkg-win-snapshot/OoliteInstall-*-dev.exe
             artifacts/oolite-windows-pkg-win-deployment/OoliteInstall-*.exe
             artifacts/oolite-windows-pkg-win/OoliteInstall-*.exe
-            artifacts/pkg-posix-nightly/oolite-trunk-*-dev.linux-x86_64.run
-            artifacts/pkg-posix/oolite-*.linux-x86_64.run
-            artifacts/pkg-posix-test/oolite-*-test.linux-x86_64.run
+            artifacts/pkg-posix-nightly/*.run
+            artifacts/pkg-posix/*.run
+            artifacts/pkg-posix-test/*.run
 
       - name: Remove old workflow runs
         if: github.ref == 'refs/heads/master'

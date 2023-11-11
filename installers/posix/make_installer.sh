@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -x
 
 
 # 
@@ -6,7 +6,7 @@
 #
 #        Type: shell script
 #  Parameters: $1 - architecture (i.e. x86 or x86_64)
-#              $2 - version with format maj.min.rev.svnrevision (e.g. 1.75.2.4492)
+#              $2 - version with format maj.min.rev.githash (e.g. 1.91.0.7549-231111-cf99a82)
 #              $3 - build mode (e.g. release, release-snapshot etc.)
 #              $4 - (optional) defines a nightly build. All optional parameters 
 #                   must follow after the mandatory parameters
@@ -15,6 +15,7 @@
 #              packaged by "makeself.sh".
 # 
 
+echo ${0} was called with ${*}
 
 release_mode=""   # Leave this empty. In the code you should define conditions for values like "-dev", "-test", "-beta", "-rc1", etc.
 make_rc=0
@@ -42,17 +43,13 @@ then
   oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2"."$3"."}'`$githash
   if [ "$4" = "nightly" ]
   then
-    trunk="-trunk"
+    # trunk="-trunk"
     release_mode="-dev"   # This is the only case to define release_mode as "-dev"
     noxterm="--nox11"   # If nightly, do NOT spawn an x11 terminal when installer is started from desktop
   fi    
 else
-  oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2}'`
+  oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2"."$3"."}'`$githash
   ver_rev=`echo $oolite_version_extended | cut -d '.' -f 3`
-  if [ $ver_rev -ne 0 ]
-  then
-    oolite_version=${oolite_version}"."${ver_rev}
-  fi
   
   if [ "$build_submode" = "test" ]
   then
@@ -64,7 +61,7 @@ setup_root=${oolite_app}/oolite.installer.tmp
 
 
 echo
-echo "Starting \"makeself\" packager..."
+echo "Starting \"makeself\" packager... with" "$@"
 mkdir -p ${setup_root}
 
 echo "Generating version info..."
@@ -73,16 +70,16 @@ echo ${oolite_version_extended} > ${setup_root}/release.txt
 if [ "$build_mode" != "release-deployment" ]
 then
   echo "Packing AddOns..."
-  tar zcf ${setup_root}/addons.tar.gz AddOns/ --exclude .svn
+  tar zcf ${setup_root}/addons.tar.gz --exclude .git AddOns/
 fi
 
 echo "Packing desktop menu files..."
 cd installers/
-tar zcf ../${setup_root}/freedesktop.tar.gz FreeDesktop/ --exclude .svn
+tar zcf ../${setup_root}/freedesktop.tar.gz --exclude .git FreeDesktop/
 
 echo "Packing $cpu_architecture architecture library dependencies..."
 cd ../deps/Linux-deps/${cpu_architecture}/
-tar zcf ../../../${setup_root}/oolite.deps.tar.gz lib/ --exclude .svn
+tar zcf ../../../${setup_root}/oolite.deps.tar.gz --exclude .git lib/
 
 echo "Packing documentation..."
 cd ../../../Doc/
@@ -96,7 +93,7 @@ tar zcf ../../${setup_root}/oolite.wrap.tar.gz oolite.src oolite-update.src
 
 echo "Packing GNUstep DTDs..."
 cd ../Cross-platform-deps/
-tar zcf ../../${setup_root}/oolite.dtd.tar.gz DTDs --exclude .svn
+tar zcf ../../${setup_root}/oolite.dtd.tar.gz --exclude .git DTDs
 
 echo "Copying setup script..."
 cd ../../installers/posix/
@@ -112,7 +109,7 @@ cp -p uninstall.source ../../${oolite_app}/.
 
 
 echo
-./makeself.sh ${noxterm} ../../${oolite_app} oolite${trunk}-${oolite_version}${release_mode}.linux-${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
+./makeself.sh ${noxterm} ../../${oolite_app} OoliteInstall-${oolite_version}-linux${release_mode}${trunk}-${cpu_architecture}.run "Oolite${trunk} ${oolite_version} " ./setup $oolite_version
 ms_rc=$?
 if [ $ms_rc -eq 0 ] 
 then 
