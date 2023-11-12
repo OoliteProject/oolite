@@ -58,7 +58,7 @@ SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "${OUTDIR}\OoliteInstall-${VER_MAJ}.${VER_MIN}.${VER_REV}.${VER_GITHASH}-win${EXTVER}.exe"
+OutFile "${OUTDIR}\OoliteInstall-${VER}-win${EXTVER}.exe"
 BrandingText "(C) 2003-2022 Giles Williams, Jens Ayton and contributors"
 Name "Oolite"
 Caption "Oolite ${VER}${EXTVER} Setup"

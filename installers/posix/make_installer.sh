@@ -40,7 +40,7 @@ oolite_version_extended=$2
 githash=`echo $oolite_version_extended | cut -d '-' -f 3`
 if [ "$build_submode" = "snapshot" ]
 then
-  oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2"."$3"."}'`$githash
+  oolite_version=$oolite_version_extended
   if [ "$4" = "nightly" ]
   then
     # trunk="-trunk"
@@ -48,7 +48,7 @@ then
     noxterm="--nox11"   # If nightly, do NOT spawn an x11 terminal when installer is started from desktop
   fi    
 else
-  oolite_version=`echo $oolite_version_extended | awk -F"\." '{print $1"."$2"."$3"."}'`$githash
+  oolite_version=$oolite_version_extended
   ver_rev=`echo $oolite_version_extended | cut -d '.' -f 3`
   
   if [ "$build_submode" = "test" ]
