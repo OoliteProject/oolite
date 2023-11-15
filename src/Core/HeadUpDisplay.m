@@ -1186,6 +1186,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	BOOL			emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
 		
 	BOOL			isHostile = NO;
+
+ 	BOOL			inColorBlindMode = [UNIVERSE colorblindMode] != OO_POSTFX_NONE;
 	
 	if (emptyDial)
 	{
