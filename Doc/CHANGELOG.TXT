@@ -79,7 +79,7 @@ Bug Fixes:
 * Fixed issue where hyperspace destination on the status screen and the witchspace
   destination HUD element were not honouring the system concealment property.
 * Added guard against NaNs in the atmosphere shader with large planets.
-* Fixed "index out of range" error that can occur if a HUD did not define MFD'S
+* Fixed "index out of range" error that can occur if a HUD did not define MFD's
   and player tried to select one.
 * Fixed inability to launch Oolite properly from within the Windows command console.
 * Fixed missiles for Fer-de-lance in shipyard.plist to match shipdata.plist.
@@ -88,7 +88,7 @@ Bug Fixes:
 * Fixed issue where escaping a nova would result in the destination system's sun 
   having the same size of the nova system's sun.
 * Fixed issue with ships that have forward mining laser refusing mining opportunities.
-* Fixed crash tutorial cause by non-retained objects.
+* Fixed crash in the tutorial caused by non-retained objects.
 * Fixed issue where weapon spec in shipyard.plist not being applied to new ships.
 * Fixed crash when scan_description was defined in shipdata.plist.
 * Fixed issue where context was not being considered when adding weapons to player.ship.
