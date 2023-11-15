@@ -13,6 +13,9 @@ General:
   screen to be displayed.
 * Added new visual effect when cloaked.
 * Added colourblind support, available in game options screen.
+* In colorblind mode, scanner blips of hostile ships are now drawn as X
+  shapes instead of squares, to ensure easier recognition and enhance
+  accessibility.
 * Full keyboard configuration now available in game.
 * In-game handling of non-US keyboard layouts.
 * Added ability to assign any key or joystick button to the "activate" or 
