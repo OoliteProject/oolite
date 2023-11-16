@@ -3615,7 +3615,7 @@
 					name = "oolite_sidewinder_diffuse_escort.png"; extract_channel = "a";
 				};
 				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
-				normal_map = "oolite_sidewinder_normal.png";
+				normal_map = "oolite_sidewinder_normal_escort.png";
 				specular_map = "oolite_sidewinder_specular_escort.png";
 			};
 		};
