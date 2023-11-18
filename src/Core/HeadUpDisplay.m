@@ -1186,6 +1186,8 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	BOOL			emptyDial = ([info oo_floatForKey:ALPHA_KEY] == 0.0f);
 		
 	BOOL			isHostile = NO;
+
+ 	BOOL			inColorBlindMode = [UNIVERSE colorblindMode] != OO_POSTFX_NONE;
 	
 	if (emptyDial)
 	{
@@ -1449,9 +1451,21 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 						OODrawString([(ShipEntity *)scannedEntity displayName], x1 + 2, y2 + 2, z1, NSMakeSize(8, 8));
 					}
 #endif
-					OOGLBEGIN(GL_QUADS);
-						glColor4fv(col);
+					glColor4fv(col);
+					if (inColorBlindMode && isHostile)
+					{
+						// in colorblind mode turn hostile blips into X shapes for easier recognition
+						OOGLBEGIN(GL_LINES);
+						glVertex3f(x1+2, y2+3, z1);	glVertex3f(x1-3, y2, z1);	glVertex3f(x1+2, y2, z1);	glVertex3f(x1-3, y2+3, z1);
+						OOGLEND();
+					}
+					else
+					{
+						OOGLBEGIN(GL_QUADS);
 						glVertex3f(x1-3, y2, z1);	glVertex3f(x1+2, y2, z1);	glVertex3f(x1+2, y2+3, z1);	glVertex3f(x1-3, y2+3, z1);	
+						OOGLEND();
+					}
+					OOGLBEGIN(GL_QUADS); // lollipop tail
 						col[3] *= 0.3333; // one third the alpha
 						glColor4fv(col);
 						glVertex3f(x1, y1, z1);	glVertex3f(x1+2, y1, z1);	glVertex3f(x1+2, y2, z1);	glVertex3f(x1, y2, z1);
