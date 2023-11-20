@@ -670,8 +670,32 @@ static NSArray *camera_keys = nil;
 {
 	NSMutableDictionary *key_def = [[NSMutableDictionary alloc] initWithDictionary:(NSDictionary *)[key_list objectAtIndex:index] copyItems:YES];
 	BOOL current = [[key_def objectForKey:key] boolValue];
+	BOOL keycode_changed = NO;
 	current = !current;
 	[key_def setObject:[NSNumber numberWithBool:current] forKey:key];
+	if ([key isEqualToString:@"shift"]) {
+		// force the key into upper or lower case, to limit invalid key combos as much as possible
+		NSString* keycode = [key_def objectForKey:@"key"];
+		NSInteger k_int = (OOKeyCode)[keycode integerValue];
+		if (k_int > 0)
+		{
+			NSString* keystring = [self keyCodeDescription:k_int];
+			NSString* newstring;
+			// try switching the case. for characters that can't be switched (eg 1,2,3,etc), this should do nothing
+			if (current) {
+				newstring = [keystring uppercaseString];
+			} 
+			else 
+			{
+				newstring = [keystring lowercaseString];
+			}
+			if (![newstring isEqualToString:keystring]) 
+			{
+				[key_def setObject:newstring forKey:@"key"];
+				keycode_changed = YES;
+			}
+		}
+	}
 	if (index > [key_list count] - 1)
 	{
 		[key_list insertObject:key_def atIndex:index];
@@ -681,6 +705,13 @@ static NSArray *camera_keys = nil;
 		[key_list replaceObjectAtIndex:index withObject:key_def];
 	}
 	[key_def release];
+	if (keycode_changed) 
+	{
+		NSArray *new_array = [self processKeyCode:key_list];
+		[key_list release];
+		key_list = [[NSMutableArray alloc] initWithArray:new_array copyItems:YES];
+		[new_array release];
+	}
 }
 
 
