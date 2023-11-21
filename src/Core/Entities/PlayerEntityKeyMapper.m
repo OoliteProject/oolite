@@ -673,7 +673,8 @@ static NSArray *camera_keys = nil;
 	BOOL keycode_changed = NO;
 	current = !current;
 	[key_def setObject:[NSNumber numberWithBool:current] forKey:key];
-	if ([key isEqualToString:@"shift"]) {
+	if ([key isEqualToString:@"shift"]) 
+	{
 		// force the key into upper or lower case, to limit invalid key combos as much as possible
 		NSString* keycode = [key_def objectForKey:@"key"];
 		NSInteger k_int = (OOKeyCode)[keycode integerValue];
@@ -681,18 +682,22 @@ static NSArray *camera_keys = nil;
 		{
 			NSString* keystring = [self keyCodeDescription:k_int];
 			NSString* newstring;
-			// try switching the case. for characters that can't be switched (eg 1,2,3,etc), this should do nothing
-			if (current) {
-				newstring = [keystring uppercaseString];
-			} 
-			else 
+			if ([keystring length] == 1) 
 			{
-				newstring = [keystring lowercaseString];
-			}
-			if (![newstring isEqualToString:keystring]) 
-			{
-				[key_def setObject:newstring forKey:@"key"];
-				keycode_changed = YES;
+				// try switching the case. for characters that can't be switched (eg 1,2,3,etc), this should do nothing
+				if (current) 
+				{
+					newstring = [keystring uppercaseString];
+				} 
+				else 
+				{
+					newstring = [keystring lowercaseString];
+				}
+				if (![newstring isEqualToString:keystring]) 
+				{
+					[key_def setObject:newstring forKey:@"key"];
+					keycode_changed = YES;
+				}
 			}
 		}
 	}
