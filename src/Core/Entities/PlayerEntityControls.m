@@ -990,8 +990,9 @@ static NSTimeInterval	time_last_frame;
 		
 		// snapshot
 		const BOOL *joyButtonState = [[OOJoystickManager sharedStickHandler] getAllButtonStates];
+
 		if (([self checkKeyPress:n_key_snapshot] || joyButtonState[BUTTON_SNAPSHOT]) &&
-			(![gameView allowingStringInput] || gui_screen == GUI_SCREEN_LONG_RANGE_CHART) && // not while entering text on the keyboard config screens
+			([gameView allowingStringInput] <= gvStringInputAlpha) && // not while entering text on the keyboard config screens
 			![[OOOXZManager sharedManager] isAcceptingTextInput])   //  '*' key but not while filtering inside OXZ Manager
 		{
 			exceptionContext = @"snapshot";
