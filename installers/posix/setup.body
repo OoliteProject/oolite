@@ -226,7 +226,7 @@ then
 fi
 
 # launch oolite
-${OOLITEAPP_PATH}/oolite-wrapper $@
+${OOLITEAPP_PATH}/oolite-wrapper \$@
 RC=\$?
 
 # show message in case of error
