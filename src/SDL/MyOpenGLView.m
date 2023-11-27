@@ -156,6 +156,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	Uint32          colorkey;
 	SDL_Surface     *icon=NULL;
 	NSString		*imagesDir;
+ 	NSString		*cmdLineArgsStr = @"Startup command: ";
 
 	// SDL splash screen  settings
 
@@ -195,7 +196,12 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 		if ([arg isEqual:@"-novsync"] || [arg isEqual:@"--novsync"])  vSyncPreference = NO;
 		
 		if ([arg isEqual: @"-hdr"])  bitsPerColorComponent = 16;
+
+  		// build the startup command string so that we can log it
+		cmdLineArgsStr = [cmdLineArgsStr stringByAppendingFormat:@"%@ ", arg];
 	}
+
+ 	OOLog(@"process.args", @"%@", cmdLineArgsStr);
 	
 	matrixManager = [[OOOpenGLMatrixManager alloc] init];
 
