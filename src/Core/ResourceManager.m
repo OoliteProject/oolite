@@ -1491,7 +1491,7 @@ static NSMutableDictionary *sStringCache;
 // handles processing of equipment-overrides.plist files, updating the source array with values found.
 // format of file is slightly different to the standard equipment.plist file, in that it is a 
 // dictionary of dictionary objects (rather than an array of arrays). this allows properties like
-// techlevel, price, short_description and long_description to be updated via the overrides file.
+// techlevel, price, name/short_description and description/long_description to be updated via the overrides file.
 + (void) handleEquipmentOverrides: (NSMutableArray *)arrayToProcess
 {
 	NSEnumerator			*equipKeyEnum = nil;
@@ -1529,7 +1529,11 @@ static NSMutableDictionary *sStringCache;
 						[equipArray replaceObjectAtIndex:EQUIPMENT_PRICE_INDEX withObject:[overridesEntry objectForKey:infoKey]];
 					else if ([infoKey isEqualToString:@"short_description"]) 
 						[equipArray replaceObjectAtIndex:EQUIPMENT_SHORT_DESC_INDEX withObject:[overridesEntry objectForKey:infoKey]];
+					else if ([infoKey isEqualToString:@"name"]) 
+						[equipArray replaceObjectAtIndex:EQUIPMENT_SHORT_DESC_INDEX withObject:[overridesEntry objectForKey:infoKey]];
 					else if ([infoKey isEqualToString:@"long_description"]) 
+						[equipArray replaceObjectAtIndex:EQUIPMENT_LONG_DESC_INDEX withObject:[overridesEntry objectForKey:infoKey]];
+					else if ([infoKey isEqualToString:@"description"]) 
 						[equipArray replaceObjectAtIndex:EQUIPMENT_LONG_DESC_INDEX withObject:[overridesEntry objectForKey:infoKey]];
 					else 
 					{
