@@ -709,6 +709,7 @@ static NSTimeInterval	time_last_frame;
 	@catch (NSException *exception)
 	{
 		OOLog(kOOLogException, @"***** Exception checking controls [%@]: %@ : %@", exceptionContext, [exception name], [exception reason]);
+                OOLog(kOOLogException, @"%@", NSThread.callStackSymbols);
 	}
 }
 
