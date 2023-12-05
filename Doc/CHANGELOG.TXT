@@ -56,6 +56,9 @@ Modified Plists:
 * planetinfo.plist: illumination_color added (used with illumination map in planet
   texture).
 * planetinfo.plist: added air_density (default value 0.75).
+* "name" and "description" properties are now available for use in 
+  equipment-overrides.plist, as optional replacements for "short_description" and
+  "long_description" respectively, so as to match EquipmentInfo specification.
 
 Scripting:
 ----------
