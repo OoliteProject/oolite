@@ -45,6 +45,7 @@ General:
 * (Windows/Linux) Physical and available system memory now reported in log header.
 * (Windows) Required minimum OS is now Windows 7.
 * Minimum OpenGL version is now 3.3.
+* Application startup command is now written to the log file.
 
 Expansion Pack Development:
 ===========================
