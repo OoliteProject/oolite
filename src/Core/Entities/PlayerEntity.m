@@ -9566,7 +9566,16 @@ static NSString *last_outfitting_key=nil;
 				{
 					// Normal equipment list.
 					[gui setKey:eqKey forRow:row];
-					[gui setArray:[NSArray arrayWithObjects:desc, priceString, timeString, nil] forRow:row];
+					// check if the hidevalues property has been set
+					if (![eqInfo hideValues])
+					{
+						[gui setArray:[NSArray arrayWithObjects:desc, priceString, timeString, nil] forRow:row];
+					}
+					else
+					{
+						// if so, only output the description
+						[gui setArray:[NSArray arrayWithObjects:desc, nil] forRow:row];
+					}
 					row++;
 				}
 			}
