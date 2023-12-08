@@ -202,6 +202,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 		_isAvailableToPlayer = YES;
 		_isAvailableToNPCs = YES;
 		_damageProbability = 1.0;
+		_hideValues = NO;
 	}
 	
 	if (OK && [info count] > EQUIPMENT_EXTRA_INFO_INDEX)
@@ -226,7 +227,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_requiresNonFullFuel = [extra oo_boolForKey:@"requires_non_full_fuel" defaultValue:_requiresNonFullFuel];
 			_isVisible = [extra oo_boolForKey:@"visible" defaultValue:_isVisible];
 			_canCarryMultiple = [extra oo_boolForKey:@"can_carry_multiple" defaultValue:NO];
-			
+			_hideValues = [extra oo_boolForKey:@"hide_values" defaultValue:NO];
+
 			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
 
 			_installTime = [extra oo_unsignedIntForKey:@"installation_time" defaultValue:0];
@@ -498,6 +500,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 - (BOOL) isVisible
 {
 	return _isVisible;
+}
+
+
+- (BOOL) hideValues
+{
+	return _hideValues;
 }
 
 

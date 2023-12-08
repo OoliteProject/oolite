@@ -57,7 +57,8 @@ SOFTWARE.
 							_isAvailableToNPCs: 1,
 							_fastAffinityA: 1,
 							_fastAffinityB: 1,
-							_canCarryMultiple: 1;
+							_canCarryMultiple: 1,
+							_hideValues: 1;
 	OOColor					*_displayColor;
 	NSUInteger				_installTime;
 	NSUInteger				_repairTime;
@@ -111,6 +112,7 @@ SOFTWARE.
 - (GLfloat) damageProbability;
 - (BOOL) canBeDamaged;
 - (BOOL) isVisible;				// Visible in UI?
+- (BOOL) hideValues;
 - (OOColor *) displayColor;
 - (void) setDisplayColor:(OOColor *)newColor;
 
