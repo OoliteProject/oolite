@@ -1,0 +1,45 @@
+{
+    "env": {
+        "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+    },
+    "globals": {
+        "clock": "readonly",
+        "defaultFont": "readonly",
+        "galaxyNumber": "readonly",
+        "global": "readonly",
+        "guiScreen": "readonly",
+        "manifest": "readonly",
+        "mission": "readonly",
+        "missionVariables": "readonly",
+        "oolite": "readonly",
+        "player": "readonly",
+        "system": "readonly",
+        "timeAccelerationFactor": "readonly",
+        "worldScriptNames": "readonly",
+        "worldScripts": "readonly",
+
+        "addFrameCallback": "readonly",
+        "displazNameForCommodity": "readonly",
+        "expandDescription": "readonly",
+        "expandMissionText": "readonly",
+        "formatCredits": "readonly",
+        "formatInteger": "readonly",
+        "getGuiColorSettingForKey": "readonly",
+        "getScreenBackgroundForKey": "readonly",
+        "isValidFrameCallback": "readonly",
+        "pauseGame": "readonly",
+        "randomInhabitantsDescription": "readonly",
+        "randomName": "readonly",
+        "removeFrameCallback": "readonly",
+        "setGuiColorSettingForKey": "readonly",
+        "setScreenBackground": "readonly",
+        "setScreenOverlay": "readonly",
+        "takeSnapShot": "readonly"
+    }
+}

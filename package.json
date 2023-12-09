@@ -1,0 +1,25 @@
+{
+  "name": "oolite",
+  "version": "1.0.0",
+  "description": "[![build-all](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yml/badge.svg)](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yml)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OoliteProject/oolite.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OoliteProject/oolite/issues"
+  },
+  "homepage": "https://github.com/OoliteProject/oolite#readme",
+  "devDependencies": {
+    "eslint": "^8.55.0"
+  }
+}
