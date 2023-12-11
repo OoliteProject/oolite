@@ -39,6 +39,8 @@ General:
 * Improved sun rendering.
 * Implemented user-defined planet dark-side illumination color, when an
   illumination map is in use.
+* Added "statusScreenEquipmentSortMode" to switch the ordering of equipment
+  between the default reverse order and ascending order.
 * Added an "update all" option to the Expansion Pack Manager.
 * Updated atmosphere density rendering.
 * Added game paused message to game options when in flight.
@@ -76,6 +78,8 @@ Scripting:
 * Added planet.airDensity property.
 * Added Ship.setShipInfoForKey to allow for shipdata updates during the game.
 * Added equipment.weaponInfo dictionary.
+* Added player.ship.statusScreenEquipmentSortMode read/write property. 0 = default,
+  (reverse), 1 = ascending.
 
 Bug Fixes:
 ==========

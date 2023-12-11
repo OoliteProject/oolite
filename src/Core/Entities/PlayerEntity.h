@@ -292,6 +292,13 @@ typedef enum
 } OOMarketSorterMode;
 
 
+typedef enum
+{
+	STATUS_EQUIP_SORT_DEFAULT = 0,
+	STATUS_EQUIP_SORT_ASC = 1
+} OOStatusEquipSorterMode;
+
+
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
 #define ECM_DURATION					2.5f
 
@@ -459,6 +466,8 @@ typedef enum
 
 	OOWeakReference			*_dockedStation;
 	
+	OOStatusEquipSorterMode	statusEquipSorterMode;
+
 /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
  * stations. Could possibly overload use of 'dockedStation' instead
  * but that needs futher investigation to ensure it doesn't break anything. */
@@ -1084,6 +1093,8 @@ typedef enum
 
 - (void) setGuiToStatusScreen;
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged), then a color (or nil for default color).
+- (OOStatusEquipSorterMode) statusScreenEquipmentSortMode;
+- (void) setStatusScreenEquipmentSortMode:(NSInteger)mode;
 - (BOOL) setPrimedEquipment:(NSString *)eqKey showMessage:(BOOL)showMsg;
 - (NSString *) primedEquipmentName:(NSInteger)offset;
 - (NSString *) currentPrimedEquipment;

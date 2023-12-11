@@ -2126,7 +2126,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	
 	max_cargo				= 20; // will be reset later
 	marketFilterMode		= MARKET_FILTER_MODE_OFF;
-	
+	statusEquipSorterMode	= STATUS_EQUIP_SORT_DEFAULT;
+
 	DESTROY(shipCommodityData);
 	shipCommodityData = [[[UNIVERSE commodities] generateManifestForPlayer] retain];
 	
@@ -8046,7 +8047,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 
 	BOOL prioritiseDamaged = [[gui userSettings] oo_boolForKey:kGuiStatusPrioritiseDamaged defaultValue:YES];
 
-	for (eqTypeEnum = [OOEquipmentType reverseEquipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	/*
+		The default sort method (reverse) is intended to get the most important equipment on the first page of the F5 Status screen.
+		The assumption is, higher TL and higher Price, must be more more important. Anything with a sort_order is prioritised over
+		and above the TL+price sort. 
+		However, once a sort_order has been applied to a lot of equipment items, reverse sort starts to become a problem, as any 
+		ordering that is incorporated into the sort_order is reversed as well. 
+		To work around this, a normal (forward) sorting method can now be specified.
+	*/
+	BOOL sort = (statusEquipSorterMode != STATUS_EQUIP_SORT_DEFAULT);
+
+	for (eqTypeEnum = (sort ? [OOEquipmentType equipmentEnumerator] : [OOEquipmentType reverseEquipmentEnumerator]); (eqType = [eqTypeEnum nextObject]); )
 	{
 		if ([eqType isVisible])
 		{
@@ -8159,6 +8170,25 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	// list damaged first, then working
 	[quip1 addObjectsFromArray:quip2];
 	return quip1;
+}
+
+
+- (OOStatusEquipSorterMode) statusScreenEquipmentSortMode
+{
+	return statusEquipSorterMode;
+}
+
+- (void) setStatusScreenEquipmentSortMode:(NSInteger)mode
+{
+	switch (mode)
+	{
+		case 0:
+			statusEquipSorterMode = STATUS_EQUIP_SORT_DEFAULT;
+			break;
+		case 1:
+			statusEquipSorterMode = STATUS_EQUIP_SORT_ASC;
+			break;
+	}
 }
 
 

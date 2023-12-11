@@ -157,6 +157,7 @@ enum
 	kPlayerShip_scoopOverride,					// Scooping
 	kPlayerShip_serviceLevel,					// servicing level, positive int 75-100, read-only
 	kPlayerShip_specialCargo,					// special cargo, string, read-only
+	kPlayerShip_statusScreenEquipmentSort,		// status screen equipment sort direction, read-write
 	kPlayerShip_targetSystem,					// target system id, int, read-write
 	kPlayerShip_nextSystem,						// next hop system id, read-only
 	kPlayerShip_infoSystem,						// info (F7 screen) system id, int, read-write
@@ -228,6 +229,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "scoopOverride",					kPlayerShip_scoopOverride,					OOJS_PROP_READWRITE_CB },
 	{ "serviceLevel",					kPlayerShip_serviceLevel,					OOJS_PROP_READWRITE_CB },
 	{ "specialCargo",					kPlayerShip_specialCargo,					OOJS_PROP_READONLY_CB },
+	{ "statusScreenEquipmentSort",		kPlayerShip_statusScreenEquipmentSort,		OOJS_PROP_READWRITE_CB },
 	{ "targetSystem",					kPlayerShip_targetSystem,					OOJS_PROP_READWRITE_CB },
 	{ "nextSystem",                     kPlayerShip_nextSystem,                     OOJS_PROP_READONLY_CB },
 	{ "infoSystem",						kPlayerShip_infoSystem,						OOJS_PROP_READWRITE_CB },
@@ -581,7 +583,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsid pro
 		case kPlayerShip_currentWeapon:
 			result = [player weaponTypeForFacing:[player currentWeaponFacing] strict:NO];
 			break;
-		
+
+		case kPlayerShip_statusScreenEquipmentSort:
+			*value = INT_TO_JSVAL([player statusScreenEquipmentSortMode]);
+			return YES;
+
 	  case kPlayerShip_price:
 			return JS_NewNumberValue(context, [UNIVERSE tradeInValueForCommanderDictionary:[player commanderDataDictionary]], value);
 
@@ -778,7 +784,22 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsid pro
 				return YES;
 			}
 			break;
-			
+
+		case kPlayerShip_statusScreenEquipmentSort:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue >= 0 && iValue <= 1)
+				{ 
+					[player setStatusScreenEquipmentSortMode:iValue];
+					return YES;
+				}
+				else
+				{
+					return NO;
+				}
+			}
+			break;
+
 		case kPlayerShip_fastEquipmentA:
 			sValue = OOStringFromJSValue(context, *value);
 			if (sValue != nil)
