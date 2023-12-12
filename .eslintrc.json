@@ -40,6 +40,9 @@
         "setGuiColorSettingForKey": "readonly",
         "setScreenBackground": "readonly",
         "setScreenOverlay": "readonly",
-        "takeSnapShot": "readonly"
+        "takeSnapShot": "readonly",
+
+        "Quaternion": "readonly",
+        "Vector3D": "readonly"
     }
 }
