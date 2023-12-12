@@ -63,6 +63,8 @@ Modified Plists:
   EquipmentInfo specification.
 * equipment.plist: hide_values allows an equipment item to hide the cost and 
   install time values on the F3 Ship Outfitting screen.
+* equipment.plist: purchase_sort_order allows the sorting of the F3 Ship Outfitting
+  screen to be sorted independently of the F5 Status screen.
 
 Scripting:
 ----------
