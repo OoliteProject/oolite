@@ -1,4 +1,10 @@
 {
+    "ignorePatterns": ["deps/**/*.js"],
+    "overrides": [
+      {
+        "files": ["DebugOXP", "Resources"]
+      }
+    ],
     "env": {
         "es2021": true
     },
