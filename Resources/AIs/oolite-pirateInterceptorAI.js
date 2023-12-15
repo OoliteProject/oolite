@@ -31,6 +31,7 @@ this.name = "Oolite Pirate Interceptor AI";
 
 this.aiStarted = function() {
 	this.ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
+        var ai = this.ai;
 
 	ai.setParameter("oolite_flag_surrendersLate",true);
 	ai.setParameter("oolite_flag_fightsNearHostileStations",true);
