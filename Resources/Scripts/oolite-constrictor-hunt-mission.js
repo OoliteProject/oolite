@@ -26,11 +26,6 @@ MA 02110-1301, USA.
 */
 
 
-// jslint bug: the "laxbreak" setting doesn't reliably work, which causes complaints about case indentation.
-/*jslint white: true, laxbreak: true, undef: true, eqeqeq: true, bitwise: true, newcap: true, immed: true */
-/*global galaxyNumber, guiScreen, mission, missionVariables, player, system*/
-
-
 "use strict";
 
 

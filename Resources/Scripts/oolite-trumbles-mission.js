@@ -26,10 +26,6 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
-/*global guiScreen, mission, missionVariables, player*/
-
-
 "use strict";
 
 
