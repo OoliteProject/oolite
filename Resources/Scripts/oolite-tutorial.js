@@ -207,7 +207,7 @@ this.startUp = function()
 	}
 
 	
-	this.shipTakingDamage = function(amount, whom, type)
+	this.shipTakingDamage = function(amount, _whom, _type)
 	{
 		if (amount >= player.ship.energy)
 		{
@@ -243,7 +243,7 @@ this.startUp = function()
 		}
 	}
 
-	this.shipEnteredStationAegis = function(station)
+	this.shipEnteredStationAegis = function(_station)
 	{
 		if (this.$tutorialStage < 9)
 		{
@@ -272,7 +272,7 @@ this.startUp = function()
 
 	this.$blockTorus = true;
 	this.$blockTorusObj = null;
-	this.$blockTorusFCB = addFrameCallback(function(delta)
+	this.$blockTorusFCB = addFrameCallback(function(_delta)
 	{
 		if ($blockTorus)
 		{
@@ -490,7 +490,7 @@ this.startUp = function()
 		this._setFrameCallback(null);
 		player.ship.hideHUDSelector("drawPrimedEquipment:");
 		player.ship.hudHidden = false;
-		var fc = addFrameCallback(function(delta)
+		var fc = addFrameCallback(function(_delta)
 								  {
 									  player.ship.velocity = player.ship.thrustVector;
 									  removeFrameCallback(fc);
@@ -857,7 +857,7 @@ this.startUp = function()
 		var time = 0;
 		var nexttime = 5;
 		var atonce = 1;
-		buoy.script.shipTakingDamage = function(amount,whom,type)
+		buoy.script.shipTakingDamage = function(amount,whom,_type)
 		{
 			buoy.energy = 100000;
 			if (!whom.isPlayer)
@@ -1496,7 +1496,7 @@ this.startUp = function()
 	this.__stage9sub3 = function()
 	{
 		this._setInstructions("oolite-tutorial-9-3");
-		this._setFrameCallback(function(delta) 
+		this._setFrameCallback(function(_delta) 
 		{
 			if (player.ship.speed > player.ship.maxSpeed * 10)
 			{
@@ -1610,7 +1610,7 @@ this.startUp = function()
 
 
 /* Define this outside the tutorial - it might be useful! */
-this._dockingMonitor = function(delta)
+this._dockingMonitor = function(_delta)
 {
 	var report = "";
 	if (!player.ship.target || !player.ship.target.isStation)

@@ -62,12 +62,12 @@ this.startUp = function()
 	 * correct approach). Checks here should only be necessary as a
 	 * failsafe.
 	 */
-	this.$equipmentEnable["EQ_CARGO_BAY"] = function(item)
+	this.$equipmentEnable["EQ_CARGO_BAY"] = function(_item)
 	{
 		player.ship.cargoSpaceCapacity += player.ship.extraCargo;
 	};
 
-	this.$equipmentDisable["EQ_CARGO_BAY"] = function(item)
+	this.$equipmentDisable["EQ_CARGO_BAY"] = function(_item)
 	{
 		if (player.ship.cargoSpaceAvailable < player.ship.extraCargo)
 		{
@@ -237,14 +237,14 @@ this.$equipmentDisable["EQ_HEAT_SHIELD"] = function(info)
 };
 
 
-this.$equipmentEnable["EQ_ADVANCED_COMPASS"] = function(info)
+this.$equipmentEnable["EQ_ADVANCED_COMPASS"] = function(_info)
 {
 	// do not enable if we are loading a game that has it already damaged
 	if (!this.$started)  player.ship.compassType = "OO_COMPASSTYPE_ADVANCED";
 };
 
 
-this.$equipmentDisable["EQ_ADVANCED_COMPASS"] = function(info)
+this.$equipmentDisable["EQ_ADVANCED_COMPASS"] = function(_info)
 {
 	player.ship.compassType = "OO_COMPASSTYPE_BASIC";
 };

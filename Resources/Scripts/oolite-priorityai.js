@@ -4995,7 +4995,7 @@ PriorityAIController.prototype.responseComponent_standard_approachingPlanetSurfa
 }
 
 
-PriorityAIController.prototype.responseComponent_standard_cargoDumpedNearby = function(cargo,ship)
+PriorityAIController.prototype.responseComponent_standard_cargoDumpedNearby = function(_cargo, _ship)
 {
 	if (this.getParameter("oolite_flag_watchForCargo"))
 	{
@@ -5610,7 +5610,7 @@ PriorityAIController.prototype.responseComponent_standard_shipScoopedOther = fun
 }
 
 
-PriorityAIController.prototype.responseComponent_standard_shipTargetLost = function(target)
+PriorityAIController.prototype.responseComponent_standard_shipTargetLost = function(_target)
 {
 	this.reconsiderNow();
 }
@@ -5660,7 +5660,7 @@ PriorityAIController.prototype.responseComponent_standard_wormholeSuggested = fu
 
 /* Missile response components */
 
-PriorityAIController.prototype.responseComponent_missile_commsMessageReceived = function(message)
+PriorityAIController.prototype.responseComponent_missile_commsMessageReceived = function(_message)
 {
 	this.noteCommsHeard();
 }
@@ -5772,13 +5772,13 @@ PriorityAIController.prototype.responseComponent_missile_shipAchievedDesiredRang
 
 /* Station response components */
 
-PriorityAIController.prototype.responseComponent_station_commsMessageReceived = function(message)
+PriorityAIController.prototype.responseComponent_station_commsMessageReceived = function(_message)
 {
 	this.noteCommsHeard();
 }
 
 
-PriorityAIController.prototype.responseComponent_station_cascadeWeaponDetected = function(weapon)
+PriorityAIController.prototype.responseComponent_station_cascadeWeaponDetected = function(_weapon)
 {
 	if (this.ship.alertCondition < 3) 
 	{
@@ -5946,7 +5946,7 @@ PriorityAIController.prototype.responseComponent_station_shipKilledOther = funct
 }
 
 
-PriorityAIController.prototype.responseComponent_station_shipTargetLost = function(target)
+PriorityAIController.prototype.responseComponent_station_shipTargetLost = function(_target)
 {
 	this.reconsiderNow();
 };

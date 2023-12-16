@@ -186,13 +186,13 @@ this.shipWillLaunchFromStation = function()
 }
 
 
-this.guiScreenWillChange = function(to, from)
+this.guiScreenWillChange = function(_to, _from)
 {
 		this._resetViews();
 }
 
 
-this.guiScreenChanged = function(to, from)
+this.guiScreenChanged = function(to, _from)
 {
 		if (to != "GUI_SCREEN_MISSION")
 		{
@@ -416,7 +416,7 @@ this._updateMainStationInterfacesList = function()
 
 
 // if the interface is activated, this function is run.
-this._cargoContractsScreens = function(interfaceKey)
+this._cargoContractsScreens = function(_interfaceKey)
 {
 		// the interfaceKey parameter is not used here, but would be useful if
 		// this callback managed more than one interface entry

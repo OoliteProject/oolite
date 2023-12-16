@@ -13,6 +13,8 @@
         "ecmaVersion": 5
     },
     "rules": {
+        "no-mixed-spaces-and-tabs": "warn",
+        "no-unused-vars": ["error", { "argsIgnorePattern": "^_"}]
     },
     "globals": {
         "clock": "readonly",
