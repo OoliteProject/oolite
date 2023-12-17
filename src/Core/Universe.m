@@ -6976,6 +6976,8 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		}
 		
 		[self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
+
+		[PLAYER doScriptEvent:OOJSID("consoleMessageReceived") withArgument:text];
 				
 		[currentMessage release];
 		currentMessage = [text retain];
