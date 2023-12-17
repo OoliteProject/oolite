@@ -34,6 +34,7 @@ SOFTWARE.
 
 
 static NSArray			*sEquipmentTypes = nil;
+static NSArray			*sEquipmentTypesOutfitting = nil;
 static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 static NSDictionary		*sMissilesRegistry = nil;
 
@@ -88,23 +89,47 @@ static NSDictionary		*sMissilesRegistry = nil;
 
 	sEquipmentTypes = [equipmentTypes copy];
 	sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
+
+	// same for the outfitting dataset
+	equipmentData = [UNIVERSE equipmentDataOutfitting];
+
+	[sEquipmentTypesOutfitting release];
+	sEquipmentTypesOutfitting = nil;
+
+	equipmentTypes = [NSMutableArray arrayWithCapacity:[equipmentData count]];
+	for (itemEnum = [equipmentData objectEnumerator]; (itemInfo = [itemEnum nextObject]); )
+	{
+		item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
+		if (item != nil)
+		{
+			[equipmentTypes addObject:item];
+			[equipmentTypesByIdentifier setObject:item forKey:[item identifier]];
+		}
+	}
+	sEquipmentTypesOutfitting = [equipmentTypes copy];
+
 }
 
 
 + (void) addEquipmentWithInfo:(NSArray *)itemInfo
 {
 	NSMutableArray		*equipmentTypes = [NSMutableArray arrayWithArray:sEquipmentTypes];
+	NSMutableArray		*equipmentTypesOutfitting = [NSMutableArray arrayWithArray:sEquipmentTypesOutfitting];
 	NSMutableDictionary	*equipmentTypesByIdentifier = [[NSMutableDictionary alloc] initWithDictionary:sEquipmentTypesByIdentifier];
 	OOEquipmentType		*item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
 	if (item != nil)
 	{
 		[equipmentTypes addObject:item];
+		[equipmentTypesOutfitting addObject:item];
 		[equipmentTypesByIdentifier setObject:item forKey:[item identifier]];
 		
 		[sEquipmentTypes release];
 		sEquipmentTypes = nil;
+		[sEquipmentTypesOutfitting release];
+		sEquipmentTypesOutfitting = nil;	
 		DESTROY(sEquipmentTypesByIdentifier);
 		sEquipmentTypes = [equipmentTypes copy];
+		sEquipmentTypesOutfitting = [equipmentTypesOutfitting copy];
 		sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
 	}
 	DESTROY(equipmentTypesByIdentifier);
@@ -145,6 +170,12 @@ static NSDictionary		*sMissilesRegistry = nil;
 + (NSEnumerator *) reverseEquipmentEnumerator
 {
 	return [sEquipmentTypes reverseObjectEnumerator];
+}
+
+
++ (NSEnumerator *) equipmentEnumeratorOutfitting
+{
+	return [sEquipmentTypesOutfitting objectEnumerator];
 }
 
 

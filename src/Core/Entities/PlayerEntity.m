@@ -9320,7 +9320,7 @@ static NSString *last_outfitting_key=nil;
 		[equipmentAllowed addObject:eqKeyForSelectFacing];
 		[equipmentAllowed addObject:eqKeyForSelectFacing];
 	}
-	else for (eqEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqEnum nextObject]); i++)
+	else for (eqEnum = [OOEquipmentType equipmentEnumeratorOutfitting]; (eqType = [eqEnum nextObject]); i++)
 	{
 		NSString			*eqKey = [eqType identifier];
 		OOTechLevelID		minTechLevel = [eqType effectiveTechLevel];

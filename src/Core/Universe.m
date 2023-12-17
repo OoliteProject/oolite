@@ -863,6 +863,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	[systemManager release];
 	[missiontext release];
 	[equipmentData release];
+	[equipmentDataOutfitting release];
 	[demo_ships release];
 	[autoAIMap release];
 	[screenBackgrounds release];
@@ -6975,7 +6976,7 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 		}
 		
 		[self showGUIMessage:text withScroll:YES andColor:[message_gui textColor] overDuration:count];
-		
+				
 		[currentMessage release];
 		currentMessage = [text retain];
 		messageRepeatTime=universal_time + 6.0;
@@ -8854,6 +8855,12 @@ static void VerifyDesc(NSString *key, id desc)
 }
 
 
+- (NSArray *) equipmentDataOutfitting
+{
+	return equipmentDataOutfitting;
+}
+
+
 - (OOCommodityMarket *) commodityMarket
 {
 	return commodityMarket;
@@ -10326,8 +10333,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void *context)
 	autoAIMap = [[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[equipmentData autorelease];
+	[equipmentDataOutfitting autorelease];
 	NSArray *equipmentTemp = [ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES];
 	equipmentData = [[equipmentTemp sortedArrayUsingFunction:equipmentSort context:NULL] retain];
+	equipmentDataOutfitting = [[equipmentTemp sortedArrayUsingFunction:equipmentSortOutfitting context:NULL] retain];
 	
 	[OOEquipmentType loadEquipment];
 
@@ -11083,6 +11092,32 @@ NSComparisonResult equipmentSort(id a, id b, void *context)
 
 	OOCreditsQuantity comp1 = [[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
 	OOCreditsQuantity comp2 = [[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
+	comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+	comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
+	comp1 = [one oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	comp2 = [two oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	if (comp1 < comp2) return NSOrderedAscending;
+	if (comp1 > comp2) return NSOrderedDescending;
+
+	return NSOrderedSame;
+}
+
+
+NSComparisonResult equipmentSortOutfitting(id a, id b, void *context)
+{
+	NSArray *one = (NSArray *)a;
+	NSArray *two = (NSArray *)b;
+
+	/* Sort by explicit sort_order, then tech level, then price */
+
+	OOCreditsQuantity comp1 = [[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"purchase_sort_order" defaultValue:[[one oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000]];
+	OOCreditsQuantity comp2 = [[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"purchase_sort_order" defaultValue:[[two oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] oo_unsignedLongLongForKey:@"sort_order" defaultValue:1000]];
 	if (comp1 < comp2) return NSOrderedAscending;
 	if (comp1 > comp2) return NSOrderedDescending;
 

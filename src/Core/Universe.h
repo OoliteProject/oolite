@@ -271,6 +271,7 @@ enum
 	OOSystemDescriptionManager	*systemManager; // planetinfo data manager
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentData;			// holds data on available equipment, loaded at initialisation
+	NSArray					*equipmentDataOutfitting;
 //	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
 	NSDictionary			*roleCategories;		// Categories for roles from role-categories.plist, extending the old pirate-victim-roles.plist
 	NSDictionary			*autoAIMap;				// Default AIs for roles from autoAImap.plist.
@@ -710,6 +711,7 @@ enum
 - (NSDictionary *) globalSettings;
 
 - (NSArray *) equipmentData;
+- (NSArray *) equipmentDataOutfitting;
 - (OOCommodityMarket *) commodityMarket;
 - (Random_Seed) marketSeed;
 
@@ -840,6 +842,7 @@ OOINLINE Universe *OOGetUniverse(void)
 // Not for direct use.
 NSComparisonResult populatorPrioritySort(id a, id b, void *context);
 NSComparisonResult equipmentSort(id a, id b, void *context);
+NSComparisonResult equipmentSortOutfitting(id a, id b, void *context);
 NSString *OOLookUpDescriptionPRIV(NSString *key);
 NSString *OOLookUpPluralDescriptionPRIV(NSString *key, NSInteger count);
 
