@@ -65,16 +65,20 @@ Modified Plists:
   install time values on the F3 Ship Outfitting screen.
 * equipment.plist: purchase_sort_order allows the sorting of the F3 Ship Outfitting
   screen to be sorted independently of the F5 Status screen.
-
+  
 Scripting:
 ----------
+* Added world event consoleMessageReceived.
 * ship.canAwardEquipment now accepts optional additional parameter of "context", 
   enabling checking of any context for the equipment item.
-* Added player.ship.previousSystem property, which contains the system ID of where
-  the player as jumped from.
+* Added player.ship.previousSystem property, which contains the system ID of 
+  where the player as jumped from.
 * shipWillExitWitchspace and shipExitedWitchspace world events now include the 
   jump cause parameter.
 * Added beginGalacticHyperspaceCountdown world event.
+* Added global functions setExtraGuiScreenKeys and clearExtraGuiScreenKeys.
+* Added registerKeys property to mission screen object, allowing additional key
+  presses to be defined.
 * Added planet.illuminationColor property.
 * Added planet.airDensity property.
 * Added Ship.setShipInfoForKey to allow for shipdata updates during the game.
