@@ -64,7 +64,7 @@ this.startUp = function()
 		8, // stage 4: targeting + lasers
 		12, // stage 5: missiles + avoidance
 		11, // stage 6: combat
-		15, // stage 7: docking
+		16, // stage 7: docking
 		25, // stage 8: status screens
 		15 // stage 9: system navigation
 	];
@@ -152,21 +152,21 @@ this.startUp = function()
 					this._nextItem();
 				});
 		}
-		else if (this.$tutorialStage == 7 && this.$tutorialSubstage <= 13)
+		else if (this.$tutorialStage == 7 && this.$tutorialSubstage <= 14)
 		{
 			this._setFrameCallback("");
 			mission.runScreen(
 				{
-					titleKey: "oolite-tutorial-7-13-title",
-					messageKey: "oolite-tutorial-7-13-message",
-					choicesKey: "oolite-tutorial-7-13-choices",
-					screenID: "oolite-tutorial-7-13"
+					titleKey: "oolite-tutorial-7-14-title",
+					messageKey: "oolite-tutorial-7-14-message",
+					choicesKey: "oolite-tutorial-7-14-choices",
+					screenID: "oolite-tutorial-7-14"
 				},function(choice)
 				{
 					this.$advanceByEquipment = true;
 					player.ship.launch();
 					// in case the player docked early
-					this.$tutorialSubstage = 13;
+					this.$tutorialSubstage = 14;
 					if (choice != "01_AGAIN")
 					{
 						this._nextItem();
@@ -199,7 +199,7 @@ this.startUp = function()
 		{
 			station.position = station.position.add([0,0,1E7]);
 			station.remove(true);
-			if (this.$tutorialSubstage != 14)
+			if (this.$tutorialSubstage != 15)
 			{
 				this._restartSection();
 			}
@@ -1339,6 +1339,11 @@ this.startUp = function()
 	}
 
 	this.__stage7sub13 = function()
+	{
+		this._setInstructions("oolite-tutorial-7-13");
+	}
+
+	this.__stage7sub14 = function()
 	{
 		this.$advanceByEquipment = false;
 		this._setFrameCallback(this._dockingMonitor.bind(this));
