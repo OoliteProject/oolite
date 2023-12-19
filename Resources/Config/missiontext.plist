@@ -384,19 +384,21 @@
 
 	"oolite-tutorial-7-7" = "Okay, now it's time to dock. You need to do two things to dock safely - come in straight down the line extending from the docking bay, and keep the bay horizontal. If you get into trouble, just turn around, back off to the buoy, and start over. Press '[oolite_key_activate_equipment]' for a few more tips before you start.";
 
-	"oolite-tutorial-7-8" = "Docking Tips: 1/5\nOn your first few attempts, clearance might expire. The station will warn you - press '[oolite_key_docking_clearance_request]' to request an extension, which is almost always granted.";
+	"oolite-tutorial-7-8" = "Docking Tips: 1/6\nOn your first few attempts, clearance might expire. The station will warn you - press '[oolite_key_docking_clearance_request]' to request an extension, which is almost always granted.";
 
-	"oolite-tutorial-7-9" = "Docking Tips: 2/5\nIf you're coming in on course, you'll be able to see all five interior walls of the bay at once. If you can't see a wall, temporarily point your nose well past the walls you can see.";
+	"oolite-tutorial-7-9" = "Docking Tips: 2/6\nIf you're coming in on course, you'll be able to see all five interior walls of the bay at once. If you can't see a wall, temporarily point your nose well past the walls you can see.";
 
-	"oolite-tutorial-7-10" = "Docking Tips: 3/5\nIf you try to match the rotation before you're on course, you might get disoriented. Don't worry about the rotation until you're a kilometre or so out.";
+	"oolite-tutorial-7-10" = "Docking Tips: 3/6\nIf you try to match the rotation before you're on course, you might get disoriented. Don't worry about the rotation until you're a kilometre or so out.";
 
-	"oolite-tutorial-7-11" = "Docking Tips: 4/5\nNormally if it's going wrong you should just stop, turn round, and try again. If you're too close, though, concentrate on getting the rotation right - your shields will bounce you in if you're reasonably close, but you just won't fit in sideways.";
+	"oolite-tutorial-7-11" = "Docking Tips: 4/6\nNormally if it's going wrong you should just stop, turn round, and try again. If you're too close, though, concentrate on getting the rotation right - your shields will bounce you in if you're reasonably close, but you just won't fit in sideways.";
 
-	"oolite-tutorial-7-12" = "Docking Tips: 5/5\nFinally, keep practicing! It will get easier.\n\nPress '[oolite_key_activate_equipment]' again to bring up a summary of your docking status.";
+	"oolite-tutorial-7-12" = "Docking Tips: 5/6\nRemember to keep moving forwards, towards the rear of the docking bay, until the automated docking process engages.";
 
-	"oolite-tutorial-7-13-title" = "Lesson 7: Docking";
-	"oolite-tutorial-7-13-message" = "Well done - you've docked with some degree of success.\n\nYou can try again for some more practice, especially if this attempt didn't go particularly well, or you scraped the shields. Alternatively, if when feel ready, you can move on to the next lesson.";
-	"oolite-tutorial-7-13-choices" = { "01_AGAIN" = "Try again"; "02_CONTINUE" = "Continue to next lesson"; };
+	"oolite-tutorial-7-13" = "Docking Tips: 6/6\nFinally, keep practicing! It will get easier.\n\nPress '[oolite_key_activate_equipment]' again to bring up a summary of your docking status.";
+
+	"oolite-tutorial-7-14-title" = "Lesson 7: Docking";
+	"oolite-tutorial-7-14-message" = "Well done - you've docked with some degree of success.\n\nYou can try again for some more practice, especially if this attempt didn't go particularly well, or you scraped the shields. Alternatively, if when feel ready, you can move on to the next lesson.";
+	"oolite-tutorial-7-14-choices" = { "01_AGAIN" = "Try again"; "02_CONTINUE" = "Continue to next lesson"; };
 
 	"oolite-tutorial-8-0" = "Lesson 8: Information screens\nThis lesson covers various screens which are used to examine ship status and other information. After the docking lesson we thought you might need a short break from flying.";
 

@@ -110,6 +110,8 @@ Bug Fixes:
 * Fixed issue where context was not being considered when adding weapons to player.ship.
 * Fixed exception when nil would be passed as an object for a weapon sound when that 
   weapon doesn't exist in equipment.plist.
+* Added extra docking tip in the tutorial, reminding pilots to keep moving towards the
+  rear of the docking back, until the auto-dock takes over.
 
 -------------------------------------------------------------------------------
 
