@@ -28,7 +28,7 @@
         "es-x/no-arrow-functions": "error",
         "es-x/no-binary-numeric-literals": "error",
         "es-x/no-block-scoped-functions": "error",
-        "es-x/no-block-scoped-variables": "error",
+        "es-x/no-block-scoped-variables": "off",
         "es-x/no-classes": "error",
         "es-x/no-computed-properties": "error",
         "es-x/no-default-parameters": "error",
