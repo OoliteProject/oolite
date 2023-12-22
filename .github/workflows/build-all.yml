@@ -59,6 +59,7 @@ jobs:
       - name: Check Javascript with linter
         run: |
            npm install eslint
+           npm install --save-dev eslint eslint-plugin-es-x
            npx eslint . || echo Ignore problems and continue
 
   build-linux:
