@@ -68,6 +68,7 @@ jobs:
     strategy:
       matrix:
         flavour: [pkg-posix-nightly, pkg-posix-test, pkg-posix]
+        use_deps: [no,yes]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -105,7 +106,7 @@ jobs:
         run: |
           cd oolite
           source /usr/share/GNUstep/Makefiles/GNUstep.sh
-          make -f Makefile ${{matrix.flavour}} HOST_ARCH=$(uname -m)
+          make -f Makefile ${{matrix.flavour}} use_deps=${{matrix.use_deps}} HOST_ARCH=$(uname -m)
 
       ## This is for debugging only and helps developing the workflow.
       # - name: show filesystem after build
@@ -120,7 +121,7 @@ jobs:
       - name: Archive installer
         uses: actions/upload-artifact@v3
         with:
-          name: ${{matrix.flavour}}
+          name: ${{matrix.flavour}}-${{matrix.use_deps}}
           path: |
             oolite/installers/posix/OoliteInstall-*.run
           retention-days: 5
