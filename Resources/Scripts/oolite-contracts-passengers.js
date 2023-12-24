@@ -26,10 +26,6 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
-/*global galaxyNumber, missionVariables, system*/
-
-
 "use strict";
 
 
@@ -187,13 +183,13 @@ this.shipWillLaunchFromStation = function()
 }
 
 
-this.guiScreenWillChange = function(to, from)
+this.guiScreenWillChange = function(_to, _from)
 {
 		this._resetViews();
 }
 
 
-this.guiScreenChanged = function(to, from)
+this.guiScreenChanged = function(to, _from)
 {
 		if (to != "GUI_SCREEN_MISSION")
 		{
@@ -409,7 +405,7 @@ this._updateMainStationInterfacesList = function()
 
 
 // if the interface is activated, this function is run.
-this._passengerContractsScreens = function(interfaceKey)
+this._passengerContractsScreens = function(_interfaceKey)
 {
 		// the interfaceKey parameter is not used here, but would be useful if
 		// this callback managed more than one interface entry

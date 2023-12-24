@@ -26,10 +26,6 @@
  */
 
 
-/*jslint white: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, newcap: true, immed: true */
-/*global player*/
-
-
 "use strict";
 
 

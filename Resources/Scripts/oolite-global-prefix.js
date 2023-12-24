@@ -36,10 +36,6 @@ MA 02110-1301, USA.
 */
 
 
-/*jslint white: true, undef: true, eqeqeq: true, bitwise: false, regexp: true, newcap: true, immed: true */
-/*global Entity, global, mission, player, Quaternion, Ship, special, system, Vector3D, SystemInfo, expandMissionText*/
-
-
 "use strict";
 
 

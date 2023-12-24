@@ -56,6 +56,12 @@ jobs:
             oolite-doc.zip
           retention-days: 5
 
+      - name: Check Javascript with linter
+        run: |
+           npm install eslint
+           npm install --save-dev eslint eslint-plugin-es-x
+           npx eslint . || echo Ignore problems and continue
+
   build-linux:
     runs-on: ubuntu-latest
     needs: [common-steps]

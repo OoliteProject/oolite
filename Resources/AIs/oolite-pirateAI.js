@@ -30,6 +30,7 @@ this.name = "Oolite Pirate AI";
 
 this.aiStarted = function() {
 	this.ai = new worldScripts["oolite-libPriorityAI"].PriorityAIController(this.ship);
+	var ai = this.ai;
 
 	ai.setParameter("oolite_flag_watchForCargo",true);
 
