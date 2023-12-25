@@ -49,7 +49,7 @@ jobs:
           zip oolite-doc.zip oolite/Doc/*.pdf oolite/Doc/OOLITE_VERSION.txt
 
       - name: Archive generated documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: oolite-doc
           path: |
@@ -87,7 +87,7 @@ jobs:
           submodules: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: oolite-doc
           path: artifacts
@@ -118,7 +118,7 @@ jobs:
           find . -not -path "./oolite/Mac-specific/*" -not -path "./oolite/deps/*" -not -path "./oolite/tests/*" -not -path "./oolite/.git/*"
 
       - name: Archive installer
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.flavour}}
           path: |
@@ -152,7 +152,7 @@ jobs:
           submodules: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: oolite-doc
           path: artifacts
@@ -191,7 +191,7 @@ jobs:
           Get-ChildItem -Path "$env:GITHUB_WORKSPACE" –Recurse
 
       - name: Archive build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: oolite-windows-${{matrix.flavour}}
           path: |
@@ -215,7 +215,7 @@ jobs:
           submodules: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: oolite-doc
           path: artifacts
@@ -304,7 +304,7 @@ jobs:
           find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
       - name: Archive build tar ball
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: oolite-documentation-nightly
           path: |
@@ -326,7 +326,7 @@ jobs:
       #    printenv | sort
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
