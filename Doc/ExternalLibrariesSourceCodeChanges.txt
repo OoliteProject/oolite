@@ -4,7 +4,7 @@ Modifications to external libraries' source code for running Oolite
 The various ports of Oolite are using a number of external libraries for graphics, sound, input and event handling. Throughout development, certain changes to the source code of these libraries have been deemed necessary, either to enable Oolite to run in a more efficient and independent manner, or simply to fix issues that occurred as a result of these external libraries themselves. Of these libraries, the ones that have to be rebuilt specifically for Oolite, together with the main reasons/areas changed for this reason are:
 
 1. gnustep-base v1.20.1 (Windows) - bug in NSInteger definition, change to dictionary format of NSUserDefaults, fix for integer truncation of integers to 32-bit when parsing XML plists (bug #32495 on the gnustep.org bugtracker) and changes to facilitate native Obj-C exceptions support. Also, fix bug in the stack grabbing code at NSDebug.m so that correct stack traces can be obtained also on Windows XP and later.
-2. SDL v1.2.13 (Windows) – window resizing issues, backported fix for setting gamma crash, haptic devices support, mousewheel delta support.
+2. SDL v1.2.13 (Windows) – window resizing issues, backported fix for setting gamma crash, haptic devices support, mousewheel delta support, fix for Alt key state when returning from Alt-Tab, support for OpenGL float pixel format types.
 3. SpiderMonkey v1.85 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
 4. eSpeak v1.43.03 (Windows) - Special build of the Windows speech synthesis libespeak.dll to enable asynchronous playback. Also, defaults the eSpeak data directory to Resources/espeak-data.
 
@@ -85,14 +85,14 @@ ftp://ftp.gnustep.org/pub/gnustep/core/gnustep-base-1.20.1.tar.gz
 
 2. SDL v1.2.13 (Windows)
 
-The files OOSDLdll_x64.patch and OOSDLdll_x86.patch contain all the changes required for re-creating the SDL.dll used by Oolite on Windows. To apply the patches, you will need to have OoliteDevelopmentEnvironment - Light Edition installed, downloadable from https://drive.google.com/file/d/12xoD3sT1D9yDmOBPp0DKJ0HXWD4-dJjd/view?usp=sharing. Instructions for setting it up can be found at http://www.aegidian.org/bb/viewtopic.php?t=5943. Then, download the SDL-1.2.13 source code from https://sourceforge.net/projects/libsdl/files/SDL/1.2.13/SDL-1.2.13.tar.gz/download, extract the folder SDL-1.2.13 to an empty directory, then copy the appropriate patch file to that same directory. Finally, from the Oolite Development Environment console, cd to that folder and execute 'patch -s -d SDL-1.2.13 -p1 < OOSDLdll_x64.patch' or 'patch -s -d SDL-1.2.13 -p1 < OOSDLdll_x86.patch' and you are ready to cd to the updated SDL-1.2.13 folder and run 'make' inside it in order to bvuild SDL.dll.
+The files OOSDLdll_x64.patch and OOSDLdll_x86.patch contain all the changes required for re-creating the SDL.dll used by Oolite on Windows. To apply the patches, you will need to have OoliteDevelopmentEnvironment - Light Edition installed, downloadable from https://drive.google.com/file/d/12xoD3sT1D9yDmOBPp0DKJ0HXWD4-dJjd/view?usp=sharing. Instructions for setting it up can be found at http://www.aegidian.org/bb/viewtopic.php?t=5943. Then, download the SDL-1.2.13 source code from https://sourceforge.net/projects/libsdl/files/SDL/1.2.13/SDL-1.2.13.tar.gz/download, extract the folder SDL-1.2.13 to an empty directory, then copy the appropriate patch file to that same directory. Finally, from the Oolite Development Environment console, cd to that folder and execute 'patch -s -d SDL-1.2.13 -p1 < OOSDLdll_x64.patch' or 'patch -s -d SDL-1.2.13 -p1 < OOSDLdll_x86.patch' and you are ready to cd to the updated SDL-1.2.13 folder and run 'make' inside it in order to build SDL.dll.
 The changes in brief:
 - Enabled window resizing without side effects like texture corruption in the Windows port of Oolite. 
 - Fixed crash occurring when attempting to set the screen gamma value. This fix occurred in a later version of SDL and was backported to the version used with the Windows port of Oolite.
 - Backported haptic devices support from later SDL version. This allows force feedback joysticks to work in the game.
 - Added mousewheel delta support in the Windows port of Oolite for smoother mousewheel end-user experience.
 - Fixed Alt key state not being recognized correctly when returning to the app via Alt-Tab. This is a fix backported from SDL 1.2.15.
-- Added capability to accept float pixel types when creating OpenGL window.
+- Added capability to accept float pixel types when creating OpenGL window. This is required for HDR output.
 
 
 
