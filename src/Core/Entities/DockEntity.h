@@ -56,6 +56,46 @@ MA 02110-1301, USA.
 - (BOOL) disallowedDockingCollides; 
 - (void) setDisallowedDockingCollides:(BOOL)ddc;
 - (NSUInteger) countOfShipsInDockingQueue;
+/**
+ * Guides a ship into the dock. 
+ * <h3>Possible results:</h3>
+ * <ul>
+ * <li>null<br/>
+ *     if no result can be computed or the last control point is reached
+ * <li>Move to station (APPROACH)<br/>
+ *     if ship is too far away
+ * <li>Move away from station (BACKOFF)<br/>
+ *     if ship is too close
+ * <li>Move perpendicular to station/dock direction (APPROACH)<br/>
+ *     if ship is approaching from wrong side of station
+ * <li>Abort (TRY AGAIN LATER)<br/>
+ *     if something went wrong until here
+ * <li>Hold position (HOLD_POSITION)<br/>
+ *     if coordinatesStack is empty or approach is not clear
+ * <li>Move to next control point (APPROACH_COORDINATES)<br/>
+ *     if control point not within collision radius
+ * </ul>
+ *
+ * <h3>Algorithm:</h3>
+ * <ol>
+ * <li>If ship is not on approach list and beyond scanner range, approach the station
+ * <li>Add ship to approach list
+ * <li>If ship is within distance of 1000 between station's and ship's collision radius, move away from station
+ * <li>If ship is approaching from behind, move to the side of the station (perpendicular on direction to station and launch vector)
+ * <li>If ship is far away, approach the station
+ * </ol>
+ * <p>Now the ship is in the vicinity of the station in the correct hemispere. Let's guide them in.</p>
+ * <ol>
+ * <li>Get the coordinatesStack for this ship (the approach path?). If there is a problem, Ship shall hold position
+ * <li>If next coordinates (control point) not yet within collision radius, move towards that position
+ * <li>Remove control point from stack; get next control point
+ * <li>If next 3 stages of approach are clear, move to next position
+ * <li>otherwise hold position
+ * </ol>
+ * 
+ * <p>TODO: Where is the detection that the ship has docked?</p>
+ * <p>TODO: What are the magic number's units? Is it km (kilometers)?</p>
+ */
 - (NSDictionary *) dockingInstructionsForShip:(ShipEntity *)ship;
 - (NSString *) canAcceptShipForDocking:(ShipEntity *)ship;
 - (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship;

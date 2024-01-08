@@ -28,7 +28,7 @@ obj.spk.dbg
 obj.win.spk.dbg
 AddOns/
 tools/icosmesh/obj
-doxygen/html
+doxygen/
 
 # Debug output
 /core
