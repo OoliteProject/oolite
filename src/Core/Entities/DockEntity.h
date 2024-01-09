@@ -78,11 +78,11 @@ MA 02110-1301, USA.
  *
  * <h3>Algorithm:</h3>
  * <ol>
- * <li>If ship is not on approach list and beyond scanner range, approach the station
+ * <li>If ship is not on approach list and beyond scanner range (25 km?), approach the station
  * <li>Add ship to approach list
- * <li>If ship is within distance of 1000 between station's and ship's collision radius, move away from station
+ * <li>If ship is within distance of 1000 km between station's and ship's collision radius, move away from station
  * <li>If ship is approaching from behind, move to the side of the station (perpendicular on direction to station and launch vector)
- * <li>If ship is far away, approach the station
+ * <li>If ship is further away than 12000 km, approach the station
  * </ol>
  * <p>Now the ship is in the vicinity of the station in the correct hemispere. Let's guide them in.</p>
  * <ol>
