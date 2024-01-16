@@ -10,13 +10,12 @@
 | | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86_64.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
 | | [![Github release](https://img.shields.io/github/downloads/OoliteProject/Oolite/latest/oolite-1.90-test.linux-x86.tgz.svg)](https://github.com/OoliteProject/oolite/releases/latest) | |
 
-Vanilla Game:
 
 ![Oolite Screenshot](https://addons.oolite.space/i/gallery/oxp/large/another_commander-210210_LeavingCoriolisAgain.png)
 
 Oolite can be heavily customized via expansions. These modify the gameplay, add ships, improve graphics - the possibilities are almost endless:
 
-![Oolite Customized](https://i.postimg.cc/RShRJVvC/image.png?dl=1)
+![Oolite Customized](https://addons.oolite.space/i/gallery/oxp/large/another_commander_ViperNew02.png)
 
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
