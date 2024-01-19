@@ -34,10 +34,12 @@ MA 02110-1301, USA.
 #define kExplosionCloudDuration		0.9
 #define kGrowthRateFactor			1.5f
 #define kExplosionCloudAlpha		0.85f
+#define	kExplosionBrightnessMult	1.0f
 #define kExplosionDefaultSize		2.5f
 
 // keys for plist file
 static NSString * const kExplosionAlpha			= @"alpha";
+static NSString * const kExplosionBrightness	= @"brightness";
 static NSString * const kExplosionColors		= @"color_order";
 static NSString * const kExplosionCount			= @"count";
 static NSString * const kExplosionDuration		= @"duration";
@@ -77,6 +79,8 @@ static NSString * const kExplosionTexture		= @"texture";
 
 	_growthRate = [_settings oo_floatForKey:kExplosionGrowth defaultValue:kGrowthRateFactor] * size;
 	_alpha = [_settings oo_floatForKey:kExplosionAlpha defaultValue:kExplosionCloudAlpha];
+	_brightnessMult = [_settings oo_floatForKey:kExplosionBrightness defaultValue:kExplosionBrightnessMult];
+	if (_brightnessMult < 1.0f)  _brightnessMult = 1.0f;
 	_cloudDuration = [_settings oo_doubleForKey:kExplosionDuration defaultValue:kExplosionCloudDuration];
 
 	GLfloat spread = [_settings oo_floatForKey:kExplosionSpread defaultValue:1.0];
@@ -159,7 +163,10 @@ static NSString * const kExplosionTexture		= @"texture";
 				}
 
 			}
-
+			
+			_particleColor[i][0] *= _brightnessMult;
+			_particleColor[i][1] *= _brightnessMult;
+			_particleColor[i][2] *= _brightnessMult;
 			_particleColor[i][3] = _alpha;
 		}
 	}
@@ -192,7 +199,7 @@ static NSString * const kExplosionTexture		= @"texture";
 	[super update:delta_t];
 	
 	// Fade out.
-	GLfloat		fadeRate = _count / 25.0;
+	GLfloat		fadeRate = _count * _brightnessMult / 25.0;
 	unsigned	i, count = _count;
 	GLfloat		(*particleColor)[4] = _particleColor;
 	
