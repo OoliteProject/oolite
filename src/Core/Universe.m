@@ -1234,6 +1234,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	}
 	
 	[self setUpWitchspace];
+	// ensure that if we got here from a jump within a planet's atmosphere,
+	// we don't get any residual air friction
+	[self setAirResistanceFactor:0.0f];
 	
 	[player leaveWitchspace];
 	[player release];											// released here
