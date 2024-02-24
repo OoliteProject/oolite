@@ -625,7 +625,7 @@ MA 02110-1301, USA.
 		GLfloat	sunGlareFilterMultiplierLocal = [PLAYER sunGlareFilter];
 		GLfloat directVisionSunGlareColor[4] = {discColor[0], discColor[1], discColor[2], directVisionSunGlare *
 													atmosphericReductionFactor * distanceReductionFactor * 
-													(1.0f - sunGlareFilterMultiplierLocal) * 0.85f};
+													(1.0f - sunGlareFilterMultiplierLocal) * 0.0085f};
 													
 		OOGL(glColor4fv(directVisionSunGlareColor));
 		
@@ -656,7 +656,7 @@ MA 02110-1301, USA.
 	if (corona > alt)
 	{
 		float alpha = (1-(alt/corona));
-		float alphaMult = _sunCoronaAlphaFactor;
+		float alphaMult = _sunCoronaAlphaFactor * alpha;
 		alpha *= alphaMult;
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
