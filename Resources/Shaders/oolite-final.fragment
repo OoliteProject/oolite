@@ -444,6 +444,52 @@ vec3 CRT(sampler2D inImage, vec2 inCoords)
 // ------------------------------------------------------------------------------------------
 
 
+// =======================================================================================
+// FXAA - original at https://www.shadertoy.com/view/MdyyRt
+// =======================================================================================
+#define FXAA_STRENGTH 10.
+vec3 FXAA(sampler2D _Tex, vec2 uv)
+{
+	vec3 e = vec3(1./uResolution.xy,0.);
+	float reducemul = 0.125;// 1. / 8.;
+	float reducemin = 0.0078125;// 1. / 128.;
+	
+	vec4 Or = texture(_Tex,uv);
+	vec4 LD = texture(_Tex,uv - e.xy);
+	vec4 RD = texture(_Tex,uv + vec2( e.x,-e.y));
+	vec4 LT = texture(_Tex,uv + vec2(-e.x, e.y));
+	vec4 RT = texture(_Tex,uv + e.xy);
+	float Or_Lum = grayscale(Or.rgb).x;
+	float LD_Lum = grayscale(LD.rgb).x;
+	float RD_Lum = grayscale(RD.rgb).x;
+	float LT_Lum = grayscale(LT.rgb).x;
+	float RT_Lum = grayscale(RT.rgb).x;
+	
+	float min_Lum = min(Or_Lum,min(min(LD_Lum,RD_Lum),min(LT_Lum,RT_Lum)));
+	float max_Lum = max(Or_Lum,max(max(LD_Lum,RD_Lum),max(LT_Lum,RT_Lum)));
+	
+	//x direction,-y direction
+	vec2 dir = vec2((LT_Lum+RT_Lum)-(LD_Lum+RD_Lum),(LD_Lum+LT_Lum)-(RD_Lum+RT_Lum));
+	float dir_reduce = max((LD_Lum+RD_Lum+LT_Lum+RT_Lum)*reducemul*0.25,reducemin);
+	float dir_min = 1./(min(abs(dir.x),abs(dir.y))+dir_reduce);
+	dir = min(vec2(FXAA_STRENGTH),max(-vec2(FXAA_STRENGTH),dir*dir_min)) * e.xy;
+	
+	vec4 resultA = 0.5*(texture(_Tex,uv-0.166667*dir)+texture(_Tex,uv+0.166667*dir));
+	vec4 resultB = resultA*0.5+0.25*(texture(_Tex,uv-0.5*dir)+texture(_Tex,uv+0.5*dir));
+	float B_Lum = grayscale(resultB.rgb).x;
+	
+	if(B_Lum < min_Lum || B_Lum > max_Lum)
+	{
+		return resultA.rgb;
+	}
+	else
+	{
+		return resultB.rgb;
+	}
+}
+//------------------------------------------------------------------------------------------
+
+
 void main()
 {    
 	float exposure = 1.0;
@@ -469,7 +515,10 @@ void main()
 			hdrColor = cloakVision(hdrColor);
 			break;
 		case 5:
-			hdrColor = grayscale(hdrColor);
+			hdrColor = FXAA(scene, TexCoords);
+			bloomColor = FXAA(bloomBlur, TexCoords);
+			if(bloom)  hdrColor += bloomColor;
+			hdrColor *= exposure;
 			break;
 		case 6:
 			hdrColor = oldMovie(scene, TexCoords);
