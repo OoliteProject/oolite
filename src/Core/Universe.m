@@ -5116,8 +5116,19 @@ static const OOMatrix	starboard_matrix =
 				}
 
 				OOGLPopModelView();
-
-
+			}
+			
+			// glare effects covering the entire game window
+			OOGLResetProjection();
+			OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
+			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
+			if (EXPECT(!displayGUI))
+			{
+				if (!bpHide && cachedSun)
+				{
+					[cachedSun drawDirectVisionSunGlare];
+					[cachedSun drawStarGlare];
+				}
 			}
 			
 			// actions when the HUD should be rendered separately from the 3d universe
@@ -5138,21 +5149,9 @@ static const OOMatrix	starboard_matrix =
 			}
 			
 			/* Reset for HUD drawing */
-			OOGLResetProjection();
-			OOGLFrustum(-0.5, 0.5, -aspect*0.5, aspect*0.5, 1.0, MAX_CLEAR_DEPTH);
-
 			OOCheckOpenGLErrors(@"Universe after drawing entities");
 			OOLog(@"universe.profile.draw", @"%@", @"Begin HUD");
-			OOSetOpenGLState(OPENGL_STATE_OVERLAY);  // FIXME: should be redundant.
-			if (EXPECT(!displayGUI))
-			{
-				if (!bpHide && cachedSun)
-				{
-					[cachedSun drawDirectVisionSunGlare];
-					[cachedSun drawStarGlare];
-				}
-			}
-
+			
 			GLfloat	lineWidth = [gameView viewSize].width / 1024.0; // restore line size
 			if (lineWidth < 1.0)  lineWidth = 1.0;
 			if (lineWidth > 1.5)  lineWidth = 1.5; // don't overscale; think of ultra-wide screen setups

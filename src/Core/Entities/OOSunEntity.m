@@ -656,7 +656,7 @@ MA 02110-1301, USA.
 	if (corona > alt)
 	{
 		float alpha = (1-(alt/corona));
-		float alphaMult = [[UNIVERSE gameView] hdrOutput] ? _sunCoronaAlphaFactor : 0.85f * alpha;
+		float alphaMult = _sunCoronaAlphaFactor;
 		alpha *= alphaMult;
 		GLfloat glareColor[4] = {discColor[0], discColor[1], discColor[2], alpha};
 		NSSize		siz =	[[UNIVERSE gui]	size];
