@@ -55,6 +55,8 @@ enum
 	kEquipmentInfo_equipmentKey,
 	kEquipmentInfo_fastAffinityDefensive,
 	kEquipmentInfo_fastAffinityOffensive,
+	kEquipmentInfo_defaultActivateKey,
+	kEquipmentInfo_defaultModeKey,
 	kEquipmentInfo_incompatibleEquipment,
 	kEquipmentInfo_isAvailableToAll,
 	kEquipmentInfo_isAvailableToNPCs,
@@ -95,6 +97,8 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				OOJS_PROP_READONLY_CB },
 	{ "fastAffinityDefensive",			kEquipmentInfo_fastAffinityDefensive,		OOJS_PROP_READONLY_CB },
 	{ "fastAffinityOffensive",			kEquipmentInfo_fastAffinityOffensive,		OOJS_PROP_READONLY_CB },
+	{ "defaultActivateKey",				kEquipmentInfo_defaultActivateKey,			OOJS_PROP_READONLY_CB },
+	{ "defaultModeKey",					kEquipmentInfo_defaultModeKey,				OOJS_PROP_READONLY_CB },
 	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		OOJS_PROP_READONLY_CB },
 	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			OOJS_PROP_READONLY_CB },
 	{ "isAvailableToNPCs",				kEquipmentInfo_isAvailableToNPCs,			OOJS_PROP_READONLY_CB },
@@ -298,6 +302,14 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 		case kEquipmentInfo_fastAffinityOffensive:
 			*value = OOJSValueFromBOOL([eqType fastAffinityOffensive]);
 			return YES;
+
+		case kEquipmentInfo_defaultActivateKey:
+			result = [eqType defaultActivateKey];
+			break;		
+
+		case kEquipmentInfo_defaultModeKey:
+			result = [eqType defaultModeKey];
+			break;		
 
 		case kEquipmentInfo_techLevel:
 			*value = INT_TO_JSVAL((int32_t)[eqType techLevel]);

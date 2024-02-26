@@ -31,14 +31,15 @@ SOFTWARE.
 #import "OOLegacyScriptWhitelist.h"
 #import "OOCacheManager.h"
 #import "OODebugStandards.h"
-
+#import "PlayerEntityControls.h"
+#import "PlayerEntityKeyMapper.h"
 
 static NSArray			*sEquipmentTypes = nil;
 static NSArray			*sEquipmentTypesOutfitting = nil;
 static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 static NSDictionary		*sMissilesRegistry = nil;
 
-
+ 
 @interface OOEquipmentType (Private)
 
 - (id) initWithInfo:(NSArray *)info;
@@ -47,7 +48,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 
 
 @implementation OOEquipmentType
-
+ 
 + (void) loadEquipment
 {
 	NSArray				*equipmentData = nil;
@@ -190,8 +191,10 @@ static NSDictionary		*sMissilesRegistry = nil;
 	BOOL				OK = YES;
 	NSDictionary		*extra = nil;
 	NSArray				*conditions = nil;
-	NSString      *condition_script = nil;
-	
+	NSString			*condition_script = nil;
+	NSArray				*keydef = nil;
+	int					i;
+
 	self = [super init];
 	if (self == nil)  OK = NO;
 	
@@ -342,6 +345,97 @@ static NSDictionary		*sMissilesRegistry = nil;
 			{
 				_fastAffinityA = !![extra oo_boolForKey:@"fast_affinity_defensive"];
 				_fastAffinityB = !![extra oo_boolForKey:@"fast_affinity_offensive"];
+
+				// look for default activate and mode key settings
+				// note: the customEquipmentActivation array is only populated when starting a game
+				// so the application of any default key settings on equipment will only happen then
+				NSDictionary *item;
+				NSString *checking;
+				BOOL do_update = false;
+
+				object = [extra objectForKey:@"default_activate_key"];
+				if ([object isKindOfClass:[NSArray class]]) keydef = object;
+				else if (object != nil)
+				{
+					OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not an array.", @"default_activate_key", _identifier);
+					object = nil;
+				}
+
+				if (object != nil) 
+				{
+					// do processing for key
+					_defaultActivateKey = [PLAYER processKeyCode:keydef];
+					checking = [PLAYER validateKey:[NSString stringWithFormat:@"activate_%@", _identifier] checkKeys:_defaultActivateKey];
+					
+					if (checking != nil) {
+						OOLog(@"equipment.load", @"***** Error: %@ for equipment item %@ is already in use for %@. Default not applied", @"default_activate_key", _identifier, checking);
+						_defaultActivateKey = nil;
+					} else {
+						// has key for equip already been defined/overridden?
+						// find the custom key definition for this equipment key (_identifier) in the array
+						for (i = 0; i < [[PLAYER customEquipmentActivation] count]; i++) 
+						{
+							item = [[PLAYER customEquipmentActivation] objectAtIndex:i];
+							if ([[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:_identifier]) 
+							{
+								object = [item oo_arrayForKey:CUSTOMEQUIP_KEYACTIVATE];
+								// only update if the item's activate key is empty
+								if (object == nil || [object count] == 0)
+								{
+									do_update = true;
+									[[[PLAYER customEquipmentActivation] objectAtIndex:i] setObject:_defaultActivateKey forKey:CUSTOMEQUIP_KEYACTIVATE];
+								}
+								break;
+							}
+						}
+					}
+				}
+
+				object = [extra objectForKey:@"default_mode_key"];
+				if ([object isKindOfClass:[NSArray class]]) keydef = object;
+				else if (object != nil)
+				{
+					OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not an array.", @"default_mode_key", _identifier);
+					object = nil;
+				}
+
+				if (object != nil) 
+				{
+					// do processing for key
+					_defaultModeKey = [PLAYER processKeyCode:keydef];
+					checking = [PLAYER validateKey:[NSString stringWithFormat:@"mode_%@", _identifier] checkKeys:_defaultModeKey];
+					
+					if (checking != nil) {
+						OOLog(@"equipment.load", @"***** Error: %@ for equipment item %@ is already in use for %@. Default not applied.", @"default_mode_key", _identifier, checking);
+						_defaultModeKey = nil;
+					} else {
+						// has key for equip already been defined/overridden?
+						// find the custom key definition for this equipment key (_identifier) in the array
+						for (i = 0; i < [[PLAYER customEquipmentActivation] count]; i++) 
+						{
+							item = [[PLAYER customEquipmentActivation] objectAtIndex:i];
+							if ([[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:_identifier]) 
+							{
+								object = [item oo_arrayForKey:CUSTOMEQUIP_KEYMODE];
+								// only update if the item's mode key is empty
+								if (object == nil || [object count] == 0)
+								{
+									do_update = true;
+									[[[PLAYER customEquipmentActivation] objectAtIndex:i] setObject:_defaultModeKey forKey:CUSTOMEQUIP_KEYMODE];
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				// do we need to update the defaults?
+				if (do_update) 
+				{
+					NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+					[defaults setObject:[PLAYER customEquipmentActivation] forKey:KEYCONFIG_CUSTOMEQUIP];
+				}
+
 			}
 		}
 	}
@@ -370,6 +464,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 	DESTROY(_weaponInfo);
 	DESTROY(_scriptInfo);
 	DESTROY(_script);
+	DESTROY(_defaultActivateKey);
+	DESTROY(_defaultModeKey);
 	
 	[super dealloc];
 }
@@ -622,6 +718,18 @@ static NSDictionary		*sMissilesRegistry = nil;
 - (BOOL) fastAffinityOffensive
 {
 	return _fastAffinityB;
+}
+
+
+- (NSArray *) defaultActivateKey
+{
+	return _defaultActivateKey;
+}
+
+
+- (NSArray *) defaultModeKey
+{
+	return _defaultModeKey;
 }
 
 

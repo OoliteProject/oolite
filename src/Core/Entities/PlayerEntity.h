@@ -987,6 +987,8 @@ typedef enum
 - (BOOL) injectorsEngaged;
 - (BOOL) hyperspeedEngaged;
 
+- (NSMutableArray *) customEquipmentActivation;
+
 
 - (double) clockTime;			// Note that this is not an OOTimeAbsolute
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute
