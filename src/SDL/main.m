@@ -46,7 +46,7 @@ GameController* controller;
 
 
 #ifndef NDEBUG
-uint32_t gDebugFlags = 0;
+NSUInteger gDebugFlags = 0;
 #endif
 
 /**
