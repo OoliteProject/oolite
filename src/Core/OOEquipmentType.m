@@ -193,7 +193,6 @@ static NSDictionary		*sMissilesRegistry = nil;
 	NSArray				*conditions = nil;
 	NSString			*condition_script = nil;
 	NSArray				*keydef = nil;
-	int					i;
 
 	self = [super init];
 	if (self == nil)  OK = NO;
@@ -349,9 +348,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 				// look for default activate and mode key settings
 				// note: the customEquipmentActivation array is only populated when starting a game
 				// so the application of any default key settings on equipment will only happen then
-				NSDictionary *item;
 				NSString *checking;
-				BOOL do_update = false;
 
 				object = [extra objectForKey:@"default_activate_key"];
 				if ([object isKindOfClass:[NSArray class]]) keydef = object;
@@ -370,25 +367,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 					if (checking != nil) {
 						OOLog(@"equipment.load", @"***** Error: %@ for equipment item %@ is already in use for %@. Default not applied", @"default_activate_key", _identifier, checking);
 						_defaultActivateKey = nil;
-					} else {
-						// has key for equip already been defined/overridden?
-						// find the custom key definition for this equipment key (_identifier) in the array
-						for (i = 0; i < [[PLAYER customEquipmentActivation] count]; i++) 
-						{
-							item = [[PLAYER customEquipmentActivation] objectAtIndex:i];
-							if ([[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:_identifier]) 
-							{
-								object = [item oo_arrayForKey:CUSTOMEQUIP_KEYACTIVATE];
-								// only update if the item's activate key is empty
-								if (object == nil || [object count] == 0)
-								{
-									do_update = true;
-									[[[PLAYER customEquipmentActivation] objectAtIndex:i] setObject:_defaultActivateKey forKey:CUSTOMEQUIP_KEYACTIVATE];
-								}
-								break;
-							}
-						}
-					}
+					} 
 				}
 
 				object = [extra objectForKey:@"default_mode_key"];
@@ -408,34 +387,8 @@ static NSDictionary		*sMissilesRegistry = nil;
 					if (checking != nil) {
 						OOLog(@"equipment.load", @"***** Error: %@ for equipment item %@ is already in use for %@. Default not applied.", @"default_mode_key", _identifier, checking);
 						_defaultModeKey = nil;
-					} else {
-						// has key for equip already been defined/overridden?
-						// find the custom key definition for this equipment key (_identifier) in the array
-						for (i = 0; i < [[PLAYER customEquipmentActivation] count]; i++) 
-						{
-							item = [[PLAYER customEquipmentActivation] objectAtIndex:i];
-							if ([[item oo_stringForKey:CUSTOMEQUIP_EQUIPKEY] isEqualToString:_identifier]) 
-							{
-								object = [item oo_arrayForKey:CUSTOMEQUIP_KEYMODE];
-								// only update if the item's mode key is empty
-								if (object == nil || [object count] == 0)
-								{
-									do_update = true;
-									[[[PLAYER customEquipmentActivation] objectAtIndex:i] setObject:_defaultModeKey forKey:CUSTOMEQUIP_KEYMODE];
-									break;
-								}
-							}
-						}
-					}
+					} 
 				}
-
-				// do we need to update the defaults?
-				if (do_update) 
-				{
-					NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-					[defaults setObject:[PLAYER customEquipmentActivation] forKey:KEYCONFIG_CUSTOMEQUIP];
-				}
-
 			}
 		}
 	}
