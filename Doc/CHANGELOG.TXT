@@ -65,7 +65,10 @@ Modified Plists:
   install time values on the F3 Ship Outfitting screen.
 * equipment.plist: purchase_sort_order allows the sorting of the F3 Ship Outfitting
   screen to be sorted independently of the F5 Status screen.
-  
+* equipment.plist: default_activate_key and default_mode_key allows a default key
+  setting for the activate and mode keys. If, when loading, a conflict with another
+  key is encountered, the setting will be ignored.
+
 Scripting:
 ----------
 * Added world event consoleMessageReceived.
@@ -83,6 +86,9 @@ Scripting:
 * Added planet.airDensity property.
 * Added Ship.setShipInfoForKey to allow for shipdata updates during the game.
 * Added equipment.weaponInfo dictionary.
+* Added equipment.defaultActivateKey and equipment.defaultModeKey, each are 
+  read-only arrays of the default key settings for the equipment item. values
+  and null if the values haven't been defined.
 
 Bug Fixes:
 ==========

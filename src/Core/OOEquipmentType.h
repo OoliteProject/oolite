@@ -69,6 +69,8 @@ SOFTWARE.
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
 	NSArray					*_provides;
+	NSArray					*_defaultActivateKey;
+	NSArray					*_defaultModeKey;
 	NSDictionary			*_scriptInfo;
 	NSDictionary			*_weaponInfo;
 	NSString				*_script;
@@ -135,6 +137,9 @@ SOFTWARE.
 
 - (BOOL) fastAffinityDefensive;
 - (BOOL) fastAffinityOffensive;
+
+- (NSArray *) defaultActivateKey;
+- (NSArray *) defaultModeKey;
 
 - (NSUInteger) installTime;
 - (NSUInteger) repairTime;

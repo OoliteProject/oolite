@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "ResourceManager.h"
 #import "GameController.h"
+#import "OOEquipmentType.h"
 
 static NSUInteger key_index;
 static long current_row;
@@ -55,11 +56,10 @@ static NSArray *camera_keys = nil;
 - (BOOL)entryIsCustomEquip:(NSString *)entry;
 - (NSArray *)getCustomEquipArray:(NSString *)key_def;
 - (NSString *)getCustomEquipKeyDefType:(NSString *)key_def;
-- (NSUInteger)getCustomEquipIndex:(NSString *)key_def;
 - (NSArray *)keyFunctionList;
 - (NSArray *)validateAllKeys;
-- (NSString *)validateKey:(NSString*)key checkKeys:(NSArray*)check_keys;
 - (NSString *)searchArrayForMatch:(NSArray *)search_list key:(NSString *)key checkKeys:(NSArray *)check_keys;
+- (NSUInteger)getCustomEquipIndex:(NSString *)key_def;
 - (BOOL)entryIsEqualToDefault:(NSString *)key;
 - (BOOL)compareKeyEntries:(NSDictionary *)first second:(NSDictionary *)second;
 - (void)saveKeySetting:(NSString *)key;
@@ -260,7 +260,48 @@ static NSArray *camera_keys = nil;
 			if ([key hasPrefix:@"More:"]) return;
 
 			current_row = [gui selectedRow];
-			[self deleteKeySetting:[[keyFunctions objectAtIndex:selFunctionIdx] objectForKey:KEY_KC_DEFINITION]];
+			
+			NSString *delkey = [[keyFunctions objectAtIndex:selFunctionIdx] objectForKey:KEY_KC_DEFINITION];
+			[self deleteKeySetting:delkey];
+			// special case - when default activate/mode key set in custom equipment
+			if ([self entryIsCustomEquip:delkey]) 
+			{
+				int idx = [self getCustomEquipIndex:delkey];
+				NSString *eq = nil;
+				NSString *lookupKey = nil;
+				bool update = false;
+
+				if ([delkey hasPrefix:@"activate_"]) 
+				{
+					eq = [delkey stringByReplacingOccurrencesOfString:@"activate_" withString:@""];
+					lookupKey = CUSTOMEQUIP_KEYACTIVATE;
+				}
+				if ([delkey hasPrefix:@"mode_"]) 
+				{
+					eq = [delkey stringByReplacingOccurrencesOfString:@"mode_" withString:@""];
+					lookupKey = CUSTOMEQUIP_KEYMODE;
+				}
+
+				OOEquipmentType	*item = [OOEquipmentType equipmentTypeWithIdentifier:eq];
+				
+				if ([item defaultActivateKey] && [lookupKey isEqualToString:CUSTOMEQUIP_KEYACTIVATE]) 
+				{
+					[[customEquipActivation objectAtIndex:idx] setObject:[item defaultActivateKey] forKey:lookupKey];
+					update = true;
+				}
+				if ([item defaultModeKey] && [lookupKey isEqualToString:CUSTOMEQUIP_KEYMODE]) 
+				{
+					[[customEquipActivation objectAtIndex:idx] setObject:[item defaultModeKey] forKey:lookupKey];
+					update = true;
+				}
+
+				if (update) 
+				{
+					NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+					[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
+				}
+			}
+			
 			[self reloadPage];
 		}
 		else
@@ -859,7 +900,36 @@ static NSArray *camera_keys = nil;
 					NSString *custom_keytype = [self getCustomEquipKeyDefType:[entry oo_stringForKey:KEY_KC_DEFINITION]];
 					NSUInteger idx = [self getCustomEquipIndex:[entry oo_stringForKey:KEY_KC_DEFINITION]];
 					assignment = [PLAYER getKeyBindingDescription:[[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype]];
-					override = @"";
+					OOEquipmentType	*item = [OOEquipmentType equipmentTypeWithIdentifier:[[customEquipActivation objectAtIndex:idx] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY]];
+					bool result = true;
+					int j, k;
+					NSArray *defArray = nil;
+					NSArray *compArray = nil;
+
+					if ([custom_keytype isEqualToString:CUSTOMEQUIP_KEYACTIVATE]) 
+					{
+						defArray = [item defaultActivateKey];
+						compArray = [[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype];
+					}
+					if ([custom_keytype isEqualToString:CUSTOMEQUIP_KEYMODE]) 
+					{
+						defArray = [item defaultModeKey];
+						compArray = [[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype];
+					}
+					for (j = 0; j < [defArray count]; j++) 
+					{
+						for (k = 0; k < [compArray count]; k++)
+						{
+							if (![self compareKeyEntries:[defArray objectAtIndex:j] second:[compArray objectAtIndex:k]])
+							{
+								result = false;
+								break;
+							}
+						}
+						if (result == false) break;
+					}
+
+					override = (!result ? @"Yes" : @"");
 					validate = [self validateKey:[entry objectForKey:KEY_KC_DEFINITION] checkKeys:(NSArray *)[[customEquipActivation objectAtIndex:idx] oo_arrayForKey:custom_keytype]];
 				}
 				if (assignment == nil)
@@ -1636,8 +1706,17 @@ static NSArray *camera_keys = nil;
 		NSUInteger i;
 		for (i = 0; i < [customEquipActivation count]; i++)
 		{
-			[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_KEYACTIVATE];
-			[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_KEYMODE];
+			NSString *eq = [[customEquipActivation objectAtIndex:i] oo_stringForKey:CUSTOMEQUIP_EQUIPKEY];
+			OOEquipmentType *item = [OOEquipmentType equipmentTypeWithIdentifier:eq];
+			if ([item defaultActivateKey]) 
+				[[customEquipActivation objectAtIndex:i] setObject:[item defaultActivateKey] forKey:CUSTOMEQUIP_KEYACTIVATE];
+			else
+				[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_KEYACTIVATE];
+
+			if ([item defaultModeKey])
+				[[customEquipActivation objectAtIndex:i] setObject:[item defaultModeKey] forKey:CUSTOMEQUIP_KEYMODE];
+			else
+				[[customEquipActivation objectAtIndex:i] removeObjectForKey:CUSTOMEQUIP_KEYMODE];
 		}
 		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
 	}

@@ -11538,10 +11538,19 @@ static NSString *last_outfitting_key=nil;
 	return OK;
 }
 
+
+- (NSMutableArray *) customEquipmentActivation
+{
+	return customEquipActivation;
+}
+
+
 - (void) addEquipmentWithScriptToCustomKeyArray:(NSString *)equipmentKey
 {
 	NSDictionary *item;
 	NSUInteger i, j;
+	NSArray *object;
+
 	for (i = 0; i < [eqScripts count]; i++) 
 	{
 		if ([[[eqScripts oo_arrayAtIndex:i] oo_stringAtIndex:0] isEqualToString:equipmentKey]) 
@@ -11555,6 +11564,17 @@ static NSString *last_outfitting_key=nil;
 			// add the basic info at this point (equipkey and name only)
 			OOEquipmentType *eq = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 			NSMutableDictionary *customKey = [[NSMutableDictionary alloc] initWithObjectsAndKeys:equipmentKey, CUSTOMEQUIP_EQUIPKEY, [eq name], CUSTOMEQUIP_EQUIPNAME, nil];
+			
+			// grab any default keys from the equipment item
+			// default activate
+			object = [eq defaultActivateKey];
+			if ((object != nil && [object count] > 0))
+				[customKey setObject:object forKey:CUSTOMEQUIP_KEYACTIVATE];
+			// default mode
+			object = [eq defaultModeKey];
+			if ((object != nil && [object count] > 0))
+				[customKey setObject:object forKey:CUSTOMEQUIP_KEYMODE];
+
 			[customEquipActivation addObject:customKey];
 			[customKey release];
 			// keep the keypress arrays in sync
