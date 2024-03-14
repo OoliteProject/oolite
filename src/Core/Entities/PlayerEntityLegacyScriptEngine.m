@@ -1991,16 +1991,22 @@ static int shipsFound;
 		// only try this if they're all strings
 		choiceKeys = [choiceKeys sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
 	}
-	
+
+	NSInteger keysCount = [choiceKeys count];
+	if ((end_row + 1) < [choiceKeys count]) {
+		OOLogERR(kOOLogException, @"in mission.runScreen choices: number of choices defined (%i) is greater than available lines (%i). Check HUD settings for allowBigGui.",  [choiceKeys count], (end_row + 1));
+		keysCount = end_row + 1;
+	}
+
 	[gui setText:@"" forRow:end_row];				// clears out the 'Press spacebar' message
 	[gui setKey:@"" forRow:end_row];					// clears the key to enable pollDemoControls to check for a selection
 	[gui setSelectableRange:NSMakeRange(0,0)];	// clears the selectable range
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES]; // enables mouse selection of the choices list items
 	
-	OOGUIRow			choicesRow = (end_row+1) - [choiceKeys count];
+	OOGUIRow			choicesRow = (end_row+1) - keysCount;
 	NSEnumerator		*choiceEnum = nil;
 	NSString			*choiceKey = nil;
-	id            choiceValue = nil;
+	id            		choiceValue = nil;
 	NSString			*choiceText = nil;
 	
 	BOOL selectableRowExists = NO;
@@ -2073,6 +2079,7 @@ static int shipsFound;
 			[gui setKey:GUI_KEY_SKIP forRow:choicesRow];
 		}
 		choicesRow++;
+		if (choicesRow > (end_row + 1)) break;
 	}
 	
 	if (!selectableRowExists)
@@ -2083,7 +2090,7 @@ static int shipsFound;
 		[gui setColor:[OOColor yellowColor] forRow:end_row];
 	}
 
-	[gui setSelectableRange:NSMakeRange((end_row+1) - [choiceKeys count], [choiceKeys count])];
+	[gui setSelectableRange:NSMakeRange((end_row+1) - keysCount, keysCount)];
 	[gui setSelectedRow: firstSelectableRow];
 	
 	[self resetMissionChoice];
