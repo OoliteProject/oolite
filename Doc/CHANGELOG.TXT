@@ -92,6 +92,8 @@ Scripting:
 
 Bug Fixes:
 ==========
+* Prevented native code exception when too many choices have been defined for a 
+  mission screen that will fit on the current screen size.
 * Splinters that have a defined cargo will now spawn with that, instead of 
   defaulting to minerals.
 * Fixed issue where destination ID was not being passed to shipWillEnterWitchspace
