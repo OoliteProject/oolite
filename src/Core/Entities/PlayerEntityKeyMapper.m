@@ -1261,9 +1261,6 @@ static NSArray *camera_keys = nil;
 #if OOLITE_MAC_OS_X
 	map = @"keymappings_mac.plist";
 #endif
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSString *kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
-
 	NSDictionary *kmap = [NSDictionary dictionaryWithDictionary:[ResourceManager dictionaryFromFilesNamed:map inFolder:@"Config" mergeMode:MERGE_BASIC cache:NO]];
 	NSMutableArray *kbdList = [NSMutableArray array];
 	NSArray *keys = [kmap allKeys];
@@ -1276,7 +1273,7 @@ static NSArray *camera_keys = nil;
 		{
 			[kbdList addObject:[[NSDictionary alloc] initWithObjectsAndKeys:[keys objectAtIndex:i], @"key", 
 				[self keyboardDescription:[keys objectAtIndex:i]], @"description", 
-				([[keys objectAtIndex:i] isEqualToString:kbd] ? @"Current" : @""), @"selected",
+				//([[keys objectAtIndex:i] isEqualToString:kbd] ? @"Current" : @""), @"selected",
 				nil]];
 		}
 		else 
@@ -1284,7 +1281,7 @@ static NSArray *camera_keys = nil;
 			// key the "default" item separate, so we can add it at the top of the list, rather than getting it sorted
 			def = [[NSDictionary alloc] initWithObjectsAndKeys:[keys objectAtIndex:i], @"key", 
 				[self keyboardDescription:[keys objectAtIndex:i]], @"description", 
-				([[keys objectAtIndex:i] isEqualToString:kbd] ? @"Current" : @""), @"selected",
+				//([[keys objectAtIndex:i] isEqualToString:kbd] ? @"Current" : @""), @"selected",
 				nil];
 		}
 	}
@@ -1305,10 +1302,7 @@ static NSArray *camera_keys = nil;
 	[gui setColor:[OOColor greenColor] forRow:GUI_ROW_KC_HEADING];
 	[gui setArray:[NSArray arrayWithObjects:@"Keyboard layout", nil] forRow:GUI_ROW_KC_HEADING];
 
-	if(!kbdLayouts)
-	{
-		kbdLayouts = [[self keyboardLayoutList] retain];
-	}
+	if (!kbdLayouts) kbdLayouts = [[self keyboardLayoutList] retain];
 
 	NSUInteger i, n_functions = [kbdLayouts count];
 	NSInteger n_rows, start_row, previous = 0;
@@ -1347,11 +1341,15 @@ static NSArray *camera_keys = nil;
 			[gui setKey:[NSString stringWithFormat:@"More:%ld", previous] forRow:GUI_ROW_KC_FUNCSTART];
 		}
 		
+		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+		NSString *kbd = [defaults oo_stringForKey:@"keyboard-code" defaultValue:@"default"];
+
 		for(i = 0; i < (n_functions - skip) && (int)i < n_rows; i++)
 		{
 			NSDictionary *entry = [kbdLayouts objectAtIndex:i + skip];
 			NSString *desc = [entry objectForKey:@"description"];
-			NSString *selected = [entry objectForKey:@"selected"];
+			NSString *selected = @"";
+			if ([[entry objectForKey:@"key"] isEqualToString:kbd]) selected = @"Current";
 			[gui setArray:[NSArray arrayWithObjects:desc, selected, nil] forRow:i + start_row];
 			[gui setKey:[NSString stringWithFormat:@"Index:%ld", i + skip] forRow:i + start_row];
 		}
