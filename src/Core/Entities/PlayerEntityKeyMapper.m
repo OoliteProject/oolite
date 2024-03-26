@@ -1642,7 +1642,9 @@ static NSArray *camera_keys = nil;
 	{
 		NSUInteger idx = [self getCustomEquipIndex:key];
 		NSString *custkey = [self getCustomEquipKeyDefType:key];
-		[[customEquipActivation objectAtIndex:idx] setObject:key_list forKey:custkey];
+		NSMutableDictionary *custEquip = [[customEquipActivation objectAtIndex:idx] mutableCopy];
+		[custEquip setObject:key_list forKey:custkey];
+		[customEquipActivation replaceObjectAtIndex:idx withObject:custEquip];
 		[defaults setObject:customEquipActivation forKey:KEYCONFIG_CUSTOMEQUIP];
 	}
 	// reload settings
