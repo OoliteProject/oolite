@@ -1202,9 +1202,10 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 		mbstowcs(wcsDeviceID, dd.DeviceID, 129);
 		
 		// we are starting om the primary device, so check that one for advanced color support
+		// we also ensure that wide color gamut SDR displays do not get incorrectly detected as supporting HDR 
 		// just to be safe, ensure that the monitor device from QDC being checked is the same as the one from EnumDisplayDevices
 		if (isPrimaryDisplayDevice && !wcscmp(targetName.monitorDevicePath, wcsDeviceID) && 
-			advColorInfo.advancedColorSupported && advColorInfo.advancedColorEnabled)
+			advColorInfo.advancedColorSupported && advColorInfo.advancedColorEnabled && !advColorInfo.wideColorEnforced)
 		{
 			result = YES;
 			break;
