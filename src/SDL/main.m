@@ -70,7 +70,9 @@ int main(int argc, char *argv[])
 	
 #if OOLITE_WINDOWS
 
-	// Detect current working directory and set up GNUstep environment variables
+	#define OO_SHOW_MSG(ooMsg, ooMsgTitle, ooMsgFlags)	MessageBox(NULL, ooMsg, ooMsgTitle, ooMsgFlags)
+ 	
+ 	// Detect current working directory and set up GNUstep environment variables
 	#define MAX_PATH_LEN 256
 	char currentWorkingDir[MAX_PATH_LEN];
 	char envVarString[2 * MAX_PATH_LEN];
@@ -108,6 +110,9 @@ int main(int argc, char *argv[])
 		numbers don't behave strangely.
 	*/
 	setlocale(LC_ALL, "C");
+
+#else // Linux
+	#define OO_SHOW_MSG(ooMsg, ooTitle, ooFlags)	fprintf(stdout, ooMsg)
 #endif
 
 	// Need this because we're not using the default run loop's autorelease
@@ -128,6 +133,30 @@ int main(int argc, char *argv[])
 				i++;
 				if (i < argc)
 					[controller setPlayerFileToLoad: [NSString stringWithCString: argv[i]]];
+			}
+
+   			if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i]))
+			{
+				char const *processName = [[[NSProcessInfo processInfo] processName] UTF8String];
+				char s[1024];
+				sprintf(s,	"Usage: %s [options]\n\n"
+							"Options can be any of the following: \n\n"
+							"--compile-sysdesc\t\t\tCompile system descriptions\n"
+							"--export-sysdesc\t\t\tExport system descriptions\n"
+							"-hdr\t\t\t\tStart up in HDR mode\n"
+							"-load [filepath]:\t\t\tLoad commander from [filepath]\n"
+							"-message [messageString]\t\tDisplay [messageString] at startup\n"
+							"-noshaders\t\t\tStart up with shaders disabled\n"
+							"-nosplash\t\t\t\tForce disable splash screen on startup\n"
+							"-nosound\t\t\t\tStart up with sound disabled\n"
+							"-novsync\t\t\t\tForce disable V-Sync\n"
+							"--openstep\t\t\tWhen compiling or exporting system\n\t\t\t\tdescriptions, use openstep format\n"
+							"-showversion\t\t\tDisplay version at startup screen\n"
+							"-splash\t\t\t\tForce splash screen on startup\n"
+							"-verify-oxp [filepath]\t\t\tVerify OXP at [filepath]\n"
+							"--xml\t\t\t\tWhen compiling or exporting system \n\t\t\t\tdescriptions, use xml format\n", processName);
+				OO_SHOW_MSG(s, processName, MB_OK);
+				return 2;
 			}
 		}
 		
