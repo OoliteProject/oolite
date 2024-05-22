@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 			{
 				char const *processName = [[[NSProcessInfo processInfo] processName] UTF8String];
 				char s[2048];
-				sprintf(s,	"Usage: %s [options]\n\n"
+				snprintf(s, sizeof(s), "Usage: %s [options]\n\n"
 							"Options can be any of the following: \n\n"
 							"--compile-sysdesc\t\t\tCompile system descriptions *\n"
 							"--export-sysdesc\t\t\tExport system descriptions *\n"
