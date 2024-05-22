@@ -138,11 +138,11 @@ int main(int argc, char *argv[])
    			if (!strcmp("-help", argv[i]) || !strcmp("--help", argv[i]))
 			{
 				char const *processName = [[[NSProcessInfo processInfo] processName] UTF8String];
-				char s[1024];
+				char s[2048];
 				sprintf(s,	"Usage: %s [options]\n\n"
 							"Options can be any of the following: \n\n"
-							"--compile-sysdesc\t\t\tCompile system descriptions\n"
-							"--export-sysdesc\t\t\tExport system descriptions\n"
+							"--compile-sysdesc\t\t\tCompile system descriptions *\n"
+							"--export-sysdesc\t\t\tExport system descriptions *\n"
 							"-hdr\t\t\t\tStart up in HDR mode\n"
 							"-load [filepath]:\t\t\tLoad commander from [filepath]\n"
 							"-message [messageString]\t\tDisplay [messageString] at startup\n"
@@ -150,11 +150,13 @@ int main(int argc, char *argv[])
 							"-nosplash\t\t\t\tForce disable splash screen on startup\n"
 							"-nosound\t\t\t\tStart up with sound disabled\n"
 							"-novsync\t\t\t\tForce disable V-Sync\n"
-							"--openstep\t\t\tWhen compiling or exporting system\n\t\t\t\tdescriptions, use openstep format\n"
+							"--openstep\t\t\tWhen compiling or exporting system\n\t\t\t\tdescriptions, use openstep format *\n"
 							"-showversion\t\t\tDisplay version at startup screen\n"
 							"-splash\t\t\t\tForce splash screen on startup\n"
-							"-verify-oxp [filepath]\t\t\tVerify OXP at [filepath]\n"
-							"--xml\t\t\t\tWhen compiling or exporting system \n\t\t\t\tdescriptions, use xml format\n", processName);
+							"-verify-oxp [filepath]\t\t\tVerify OXP at [filepath] *\n"
+							"--xml\t\t\t\tWhen compiling or exporting system \n\t\t\t\tdescriptions, use xml format *\n"
+							"\n"
+							"Options marked with \"*\" are available only in Test Release configuration.", processName);
 				OO_SHOW_MSG(s, processName, MB_OK);
 				return 2;
 			}
