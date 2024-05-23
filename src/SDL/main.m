@@ -158,8 +158,8 @@ int main(int argc, char *argv[])
 							"\n"
 							"Options marked with \"*\" are available only in Test Release configuration.", processName);
 				OO_SHOW_MSG(s, processName, MB_OK);
-    				OOLog(@"process.args", @"%s option detected, exiting with code 2 after help page has been displayed.", argv[i]);
-				return 2;
+    				OOLog(@"process.args", @"%s option detected, exiting after help page has been displayed.", argv[i]);
+				return 0;
 			}
 		}
 		
