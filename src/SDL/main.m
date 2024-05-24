@@ -143,7 +143,9 @@ int main(int argc, char *argv[])
 							"Options can be any of the following: \n\n"
 							"--compile-sysdesc\t\t\tCompile system descriptions *\n"
 							"--export-sysdesc\t\t\tExport system descriptions *\n"
+#if OOLITE_WINDOWS
 							"-hdr\t\t\t\tStart up in HDR mode\n"
+#endif
 							"-load [filepath]:\t\t\tLoad commander from [filepath]\n"
 							"-message [messageString]\t\tDisplay [messageString] at startup\n"
 							"-noshaders\t\t\tStart up with shaders disabled\n"
