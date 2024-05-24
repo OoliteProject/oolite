@@ -131,6 +131,7 @@ SOFTWARE.
 	
 #if OO_SHADERS
 	BOOL					shadersAvailable;
+	BOOL					shadersForceDisabled;
 	OOShaderSetting			defaultShaderSetting;
 	OOShaderSetting			maximumShaderSetting;
 	GLint					textureImageUnitCount;
@@ -154,6 +155,7 @@ SOFTWARE.
 - (BOOL)haveExtension:(NSString *)extension;
 
 - (BOOL)shadersSupported;
+- (BOOL)shadersForceDisabled;
 - (OOGraphicsDetail)defaultDetailLevel;
 - (OOGraphicsDetail)maximumDetailLevel;
 - (GLint)textureImageUnitCount;			// Fragment shader sampler count limit. Does not apply to fixed function multitexturing. (GL_MAX_TEXTURE_IMAGE_UNITS_ARB)

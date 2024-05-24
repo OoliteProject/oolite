@@ -9065,7 +9065,16 @@ static NSString *SliderString(NSInteger amountIn20ths)
 		OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
 		NSString *shaderEffectsOptionsString = OOExpand(@"gameoptions-detaillevel-[detailLevel]", detailLevel);
 		[gui setText:OOExpandKey(shaderEffectsOptionsString) forRow:GUI_ROW(GAME,SHADEREFFECTS) align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
+		if (![[OOOpenGLExtensionManager sharedManager] shadersForceDisabled])
+		{
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,SHADEREFFECTS)];
+		}
+		else
+		{
+			// deactivate this option if shaders have been disabled from the commend line
+			[gui setColor:[OOColor grayColor] forRow:GUI_ROW(GAME,SHADEREFFECTS)];
+		}
+		
 		
 		if ([UNIVERSE dockingClearanceProtocolActive])
 		{

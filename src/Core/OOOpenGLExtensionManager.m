@@ -367,6 +367,16 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 }
 
 
+- (BOOL)shadersForceDisabled
+{
+#if OO_SHADERS
+	return shadersForceDisabled;
+#else
+	return YES;
+#endif
+}
+
+
 - (OOGraphicsDetail)defaultDetailLevel
 {
 #if OO_SHADERS
@@ -544,6 +554,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 - (void)checkShadersSupported
 {
 	shadersAvailable = NO;
+	shadersForceDisabled = NO;
 
 	/* Some cards claim to support shaders but do so extremely
 	 * badly. These are listed in gpu-settings.plist where we know
@@ -558,6 +569,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	{
 		if ([arg isEqual:@"-noshaders"] || [arg isEqual:@"--noshaders"])
 		{
+			shadersForceDisabled = YES;
 			OOLog(kOOLogOpenGLShaderSupport, @"%@", @"Shaders will not be used (disabled on command line).");
 			return;
 		}

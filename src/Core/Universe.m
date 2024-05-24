@@ -467,17 +467,19 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	*/
 	
 	// shader for drawing a textured quad on the passthrough framebuffer and preparing it for bloom using MRT
-	textureProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-texture.vertex"
+	if (![[OOOpenGLExtensionManager sharedManager] shadersForceDisabled])
+	{
+		textureProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-texture.vertex"
 													fragmentShaderName:@"oolite-texture.fragment"
 													prefix:@"#version 330\n"
 													attributeBindings:[NSDictionary dictionary]] retain];
-	// shader for blurring the over-threshold brightness image generated from the previous step using Gaussian filter
-	blurProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-blur.vertex"
+		// shader for blurring the over-threshold brightness image generated from the previous step using Gaussian filter
+		blurProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-blur.vertex"
 													fragmentShaderName:@"oolite-blur.fragment"
 													prefix:@"#version 330\n"
 													attributeBindings:[NSDictionary dictionary]] retain];
-	// shader for applying bloom and any necessary post-proc fx, tonemapping and gamma correction
-	finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-final.vertex"
+		// shader for applying bloom and any necessary post-proc fx, tonemapping and gamma correction
+		finalProgram = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-final.vertex"
 #if OOLITE_WINDOWS
 													fragmentShaderName:[[UNIVERSE gameView] hdrOutput] ? @"oolite-final-hdr.fragment" : @"oolite-final.fragment"
 #else
@@ -485,6 +487,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 #endif
 													prefix:@"#version 330\n"
 													attributeBindings:[NSDictionary dictionary]] retain];
+	}
 	
 	OOGL(glGenVertexArrays(1, &quadTextureVAO));
 	OOGL(glGenBuffers(1, &quadTextureVBO));
