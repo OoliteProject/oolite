@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 							"-verify-oxp [filepath]\t\t\tVerify OXP at [filepath] *\n"
 							"--xml\t\t\t\tWhen compiling or exporting system \n\t\t\t\tdescriptions, use xml format *\n"
 							"\n"
-							"Options marked with \"*\" are available only in Test Release configuration.", processName);
+							"Options marked with \"*\" are available only in Test Release configuration.\n\n", processName);
 				OO_SHOW_MSG(s, processName, MB_OK);
     				OOLog(@"process.args", @"%s option detected, exiting after help page has been displayed.", argv[i]);
 				return 0;
