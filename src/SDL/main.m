@@ -71,6 +71,10 @@ int main(int argc, char *argv[])
 #if OOLITE_WINDOWS
 
 	#define OO_SHOW_MSG(ooMsg, ooMsgTitle, ooMsgFlags)	MessageBox(NULL, ooMsg, ooMsgTitle, ooMsgFlags)
+ 	#define TABS1	"\t"
+	#define TABS2	"\t\t"
+	#define TABS3	"\t\t\t"
+	#define TABS4	""
  	
  	// Detect current working directory and set up GNUstep environment variables
 	#define MAX_PATH_LEN 256
@@ -113,6 +117,10 @@ int main(int argc, char *argv[])
 
 #else // Linux
 	#define OO_SHOW_MSG(ooMsg, ooTitle, ooFlags)	fprintf(stdout, ooMsg)
+ 	#define TABS1	"\t\t"
+	#define TABS2	"\t\t\t"
+	#define TABS3	"\t\t\t\t"
+	#define TABS4	"\t"
 #endif
 
 	// Need this because we're not using the default run loop's autorelease
@@ -141,22 +149,22 @@ int main(int argc, char *argv[])
 				char s[2048];
 				snprintf(s, sizeof(s), "Usage: %s [options]\n\n"
 							"Options can be any of the following: \n\n"
-							"--compile-sysdesc\t\t\tCompile system descriptions *\n"
-							"--export-sysdesc\t\t\tExport system descriptions *\n"
+							"--compile-sysdesc"TABS2"Compile system descriptions *\n"
+							"--export-sysdesc"TABS2"Export system descriptions *\n"
 #if OOLITE_WINDOWS
-							"-hdr\t\t\t\tStart up in HDR mode\n"
+							"-hdr"TABS3"Start up in HDR mode\n"
 #endif
-							"-load [filepath]:\t\t\tLoad commander from [filepath]\n"
-							"-message [messageString]\t\tDisplay [messageString] at startup\n"
-							"-noshaders\t\t\tStart up with shaders disabled\n"
-							"-nosplash    \t\t\tForce disable splash screen on startup\n"
-							"-nosound    \t\t\tStart up with sound disabled\n"
-							"-novsync\t\t\t\tForce disable V-Sync\n"
-							"--openstep\t\t\tWhen compiling or exporting\n\t\t\t\tsystem descriptions, use openstep\n\t\t\t\tformat *\n"
-							"-showversion\t\t\tDisplay version at startup screen\n"
-							"-splash\t\t\t\tForce splash screen on startup\n"
-							"-verify-oxp [filepath]    \t\tVerify OXP at [filepath] *\n"
-							"--xml\t\t\t\tWhen compiling or exporting\n\t\t\t\tsystem descriptions, use xml\n\t\t\t\tformat *\n"
+							"-load [filepath]"TABS2"Load commander from [filepath]\n"
+							"-message [messageString]"TABS1"Display [messageString] at startup\n"
+							"-noshaders"TABS2 TABS4"Start up with shaders disabled\n"
+							"-nosplash    "TABS2 TABS4"Force disable splash screen on startup\n"
+							"-nosound    "TABS2 TABS4"Start up with sound disabled\n"
+							"-novsync"TABS3"Force disable V-Sync\n"
+							"--openstep"TABS2 TABS4"When compiling or exporting\n"TABS3 TABS4"system descriptions, use openstep\n"TABS3 TABS4"format *\n"
+							"-showversion"TABS2 TABS4"Display version at startup screen\n"
+							"-splash"TABS3 TABS4"Force splash screen on startup\n"
+							"-verify-oxp [filepath]    "TABS1"Verify OXP at [filepath] *\n"
+							"--xml"TABS3 TABS4"When compiling or exporting\n"TABS3 TABS4"system descriptions, use xml\n"TABS3 TABS4"format *\n"
 							"\n"
 							"Options marked with \"*\" are available only in Test Release configuration.\n\n", processName);
 				OO_SHOW_MSG(s, processName, MB_OK);
