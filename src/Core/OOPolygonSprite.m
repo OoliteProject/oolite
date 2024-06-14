@@ -283,11 +283,11 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	dataArray = DataArrayToPoints(&polygonData, dataArray);
 	
 	/*** Tesselate polygon fill ***/
-	gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA, TessBeginCallback);
-	gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, TessVertexCallback);
-	gluTessCallback(tesselator, GLU_TESS_END_DATA, TessEndCallback);
-	gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, ErrorCallback);
-	gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, TessCombineCallback);
+	gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA, (_GLUfuncptr) TessBeginCallback);
+	gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, (_GLUfuncptr) TessVertexCallback);
+	gluTessCallback(tesselator, GLU_TESS_END_DATA, (_GLUfuncptr) TessEndCallback);
+	gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, (_GLUfuncptr) ErrorCallback);
+	gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, (_GLUfuncptr) TessCombineCallback);
 	
 	gluTessBeginPolygon(tesselator, &polygonData);
 	SVGDumpBeginGroup(&polygonData, @"Fill");
@@ -351,11 +351,11 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	polygonData.generatingOutline = YES;
 #endif
 	
-	gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA, TessBeginCallback);
-	gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, TessVertexCallback);
-	gluTessCallback(tesselator, GLU_TESS_END_DATA, TessEndCallback);
-	gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, ErrorCallback);
-	gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, TessCombineCallback);
+	gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA, (_GLUfuncptr) TessBeginCallback);
+	gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, (_GLUfuncptr) TessVertexCallback);
+	gluTessCallback(tesselator, GLU_TESS_END_DATA, (_GLUfuncptr) TessEndCallback);
+	gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, (_GLUfuncptr) ErrorCallback);
+	gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, (_GLUfuncptr) TessCombineCallback);
 	gluTessProperty(tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_POSITIVE);
 	
 	gluTessBeginPolygon(tesselator, &polygonData);

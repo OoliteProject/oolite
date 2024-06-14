@@ -966,8 +966,13 @@ static void SetNode_slow(OOOctreeBuilder *self, uint32_t index, int value)
 */
 - (BOOL) suppressClangStuff
 {
-	return &_stateStack && 0;
+/*  This define exists purely to suppress gcc warnings that &_stateStack is
+    always true
+*/
+#define RETVAL &_stateStack && 0
+	return RETVAL;
 }
+#undef RETVAL
 #endif
 
 @end
