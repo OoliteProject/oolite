@@ -184,7 +184,7 @@ extern int debug;
 
 	float				_gamma;
 	float				_fov;
-	float				_msaa;
+	BOOL				_msaa;
 
    // Full screen sizes
 	NSMutableArray		*screenSizes;
