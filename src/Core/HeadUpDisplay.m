@@ -2387,7 +2387,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	alpha *= cached.alpha;
 	NSString *dest = [UNIVERSE getSystemName:[PLAYER targetSystemID]];
 	NSInteger concealment = [[[UNIVERSE systemManager] getPropertiesForSystem:[PLAYER targetSystemID] inGalaxy:[PLAYER galaxyNumber]] oo_intForKey:@"concealment" defaultValue:OO_SYSTEMCONCEALMENT_NONE];
-	if (concealment >= 200) dest = DESC(@"status-unknown-system");
+	if (concealment >= OO_SYSTEMCONCEALMENT_NONAME) dest = DESC(@"status-unknown-system");
 
 	SET_COLOR(green_color);
 	
