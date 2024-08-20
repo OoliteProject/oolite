@@ -68,6 +68,7 @@ static NSString * const kOOOXZFilterUpdates = @"u";
 static NSString * const kOOOXZFilterInstallable = @"i";
 static NSString * const kOOOXZFilterKeyword = @"k:";
 static NSString * const kOOOXZFilterAuthor = @"a:";
+static NSString * const kOOOXZFilterCategory = @"c:";
 static NSString * const kOOOXZFilterDays = @"d:";
 static NSString * const kOOOXZFilterTag = @"t:";
 
@@ -173,6 +174,7 @@ static OOOXZManager *sSingleton = nil;
 - (BOOL) applyFilterByAuthor:(NSDictionary *)manifest author:(NSString *)author;
 - (BOOL) applyFilterByDays:(NSDictionary *)manifest days:(NSString *)days;
 - (BOOL) applyFilterByTag:(NSDictionary *)manifest tag:(NSString *)tag;
+- (BOOL) applyFilterByCategory:(NSDictionary *)manifest category:(NSString *)category;
 
 @end 
 
@@ -396,6 +398,11 @@ static OOOXZManager *sSingleton = nil;
 		filterSelector = @selector(applyFilterByTag:tag:);
 		parameter = [_currentFilter substringFromIndex:[kOOOXZFilterTag length]];
 	}
+ 	else if ([_currentFilter hasPrefix:kOOOXZFilterCategory])
+	{
+		filterSelector = @selector(applyFilterByCategory:category:);
+		parameter = [_currentFilter substringFromIndex:[kOOOXZFilterCategory length]];
+	}
 
 	NSMutableArray *filteredList = [NSMutableArray arrayWithCapacity:[list count]];
 	NSDictionary *manifest       = nil;
@@ -506,6 +513,14 @@ static OOOXZManager *sSingleton = nil;
 	return NO;
 }
 
+
+- (BOOL) applyFilterByCategory:(NSDictionary *)manifest category:(NSString *)category
+{
+	NSString *mCategory = [manifest oo_stringForKey:kOOManifestCategory];
+	return ([mCategory rangeOfString:category options:NSCaseInsensitiveSearch].location != NSNotFound);
+}
+
+
 /*** End filters ***/
 
 - (BOOL) validateFilter:(NSString *)input
@@ -519,6 +534,7 @@ static OOOXZManager *sSingleton = nil;
 		|| ([filter hasPrefix:kOOOXZFilterAuthor] && [filter length] > [kOOOXZFilterAuthor length])
 		|| ([filter hasPrefix:kOOOXZFilterDays] && [[filter substringFromIndex:[kOOOXZFilterDays length]] intValue] > 0)
 		|| ([filter hasPrefix:kOOOXZFilterTag] && [filter length] > [kOOOXZFilterTag length])
+  		|| ([filter hasPrefix:kOOOXZFilterCategory] && [filter length] > [kOOOXZFilterCategory length])
 		)
 	{
 		return YES;
