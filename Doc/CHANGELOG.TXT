@@ -48,6 +48,7 @@ General:
 * Application startup command is now written to the log file.
 * Implemented [-]-help command line option - shows list of available command line
   switches.
+* OXZ Manager: Implemented filter by category.
 
 Expansion Pack Development:
 ===========================
