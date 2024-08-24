@@ -744,7 +744,7 @@ void main()
 	vec3 result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, clamp(t * 80 / uMaxBrightness, 0.0, 1.0)) * uPaperWhiteBrightness * 0.0125);
 
 	// gamut expansion here
-	//result = expandGamut(result, 1.0);
+	result = expandGamut(result, 1.0f / pow(2.0f, uSaturation));
 	
 #if HDR_HEATMAP
 	{

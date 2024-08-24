@@ -645,6 +645,12 @@ static void stbiw__linear_to_rgbe(unsigned char *rgbe, float *linear)
       rgbe[0] = rgbe[1] = rgbe[2] = rgbe[3] = 0;
    } else {
       float normalize = (float) frexp(maxcomp, &exponent) * 256.0f/maxcomp;
+	  
+	  // ensure that any non-Rec709 colors are clamped to Rec709
+	  for (i = 0; i < 3; i++)
+	  {
+		  if (linear[i] < 0.0f)  linear[i] = 0.0f;
+	  }
 
       rgbe[0] = (unsigned char)(linear[0] * normalize);
       rgbe[1] = (unsigned char)(linear[1] * normalize);
