@@ -638,7 +638,7 @@ STBIWDEF int stbi_write_tga(char const *filename, int x, int y, int comp, const 
 
 static void stbiw__linear_to_rgbe(unsigned char *rgbe, float *linear)
 {
-   int exponent;
+   int exponent, i;
    float maxcomp = stbiw__max(linear[0], stbiw__max(linear[1], linear[2]));
 
    if (maxcomp < 1e-32f) {
