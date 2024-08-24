@@ -595,6 +595,81 @@ vec3 ACESFilm(vec3 color)
 }
 
 
+//==========================================================================================
+//Gamut expansion - modified from original code, courtesy of the HDR Den Discord server devs
+//==========================================================================================
+vec3 okLabFromBT709 (vec3 bt709)
+{
+	const mat3 BT709_2_OKLABLMS = mat3(
+		0.4122214708f, 0.5363325363f, 0.0514459929f,
+		0.2119034982f, 0.6806995451f, 0.1073969566f,
+		0.0883024619f, 0.2817188376f, 0.6299787005f);
+	
+	const mat3 OKLABLMS_2_OKLAB = mat3(
+		0.2104542553f,  0.7936177850f, -0.0040720468f,
+		1.9779984951f, -2.4285922050f,  0.4505937099f,
+		0.0259040371f,  0.7827717662f, -0.8086757660f);
+	
+	vec3 lms = bt709 * BT709_2_OKLABLMS;
+	lms = sign(lms) * pow(abs(lms), vec3(1.0f / 3.0f));
+	
+	return lms * OKLABLMS_2_OKLAB;
+}
+
+
+vec3 bt709FromOKLab (vec3 oklab)
+{
+	const mat3 OKLAB_2_OKLABLMS = mat3(
+		1.0f,  0.3963377774f,  0.2158037573f,
+		1.0f, -0.1055613458f, -0.0638541728f,
+		1.0f, -0.0894841775f, -1.2914855480f);
+	
+	const mat3 OKLABLMS_2_BT709 = mat3(
+		4.0767416621f, -3.3077115913f,  0.2309699292f,
+		-1.2684380046f,  2.6097574011f, -0.3413193965f,
+		-0.0041960863f, -0.7034186147f,  1.7076147010f);
+	
+	vec3 lms = oklab * OKLAB_2_OKLABLMS;
+
+	lms = lms * lms * lms;
+
+	return lms * OKLABLMS_2_BT709;
+}
+
+
+vec3 expandGamut(vec3 color, float gamutExpansionAmount)
+{
+	vec3 colorOKLab = okLabFromBT709(color);
+	
+	// Extract L, C, h from OKLab
+	float L = colorOKLab[0];
+	float b = colorOKLab[1];
+	float a = colorOKLab[2];
+	float C = sqrt(a * a + b * b);
+	float h = atan(a, b);
+	
+	// Calculate the exponential weighting factor based on luminance and chroma
+	float chromaWeight = 1.0f - exp(-4.0f * C);
+	float luminanceWeight = 1.0f - exp(-4.0f * L * L);
+	float weight = chromaWeight * luminanceWeight * gamutExpansionAmount;
+	
+	// Apply the expansion factor
+	C *= (1.0f + weight);
+	
+	// Convert back to OKLab with adjusted chroma
+	a = C * cos(h);
+	b = C * sin(h);
+	vec3 adjustedOKLab = vec3(L, a, b);
+	
+	vec3 adjustedColor = bt709FromOKLab(adjustedOKLab);
+	vec3 colorBT2020 = Rec709toRec2020(adjustedColor);
+	colorBT2020 = max(vec3(0.0), colorBT2020); // Clamp to BT2020
+	
+	return Rec2020toRec709(colorBT2020);
+}
+//------------------------------------------------------------------------------------------
+
+
 
 void main()
 {    
@@ -667,6 +742,9 @@ void main()
 	// 3. ACES for the max luminances for which we have sigmoid parameters, Reinhard for everything else
 	// at 1000 nits max brighness and 80 nits paper white we get the originally intended tone mapping result
 	vec3 result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, clamp(t * 80 / uMaxBrightness, 0.0, 1.0)) * uPaperWhiteBrightness * 0.0125);
+
+	// gamut expansion here
+	//result = expandGamut(result, 1.0);
 	
 #if HDR_HEATMAP
 	{
