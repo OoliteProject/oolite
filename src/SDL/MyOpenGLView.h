@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 #define OOMOUSEWHEEL_DELTA	120 // Same as Windows WHEEL_DELTA
 
 #define SNAPSHOTS_PNG_FORMAT		1
+#define OO_HDR_SNAPSHOT_EXR			1
 
 @class Entity, GameController, OpenGLSprite;
 
