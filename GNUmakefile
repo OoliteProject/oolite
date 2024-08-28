@@ -3,7 +3,8 @@ include config.make
 
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug:src/Core/MiniZip
-vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug:src/Core/MiniZip
+vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug:src/Core/MiniZip:src/SDL/EXRSnapshotSupport
+vpath %.cpp src/SDL/EXRSnapshotSupport
 GNUSTEP_INSTALLATION_DIR         = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
     GNUSTEP_OBJ_DIR_NAME         := $(GNUSTEP_OBJ_DIR_NAME).win
@@ -29,7 +30,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
 
-    ADDITIONAL_INCLUDE_DIRS      = -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
+    ADDITIONAL_INCLUDE_DIRS      = -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
     ADDITIONAL_OBJC_LIBS         = -L$(WIN_DEPS_DIR)/lib -lglu32 -lopengl32 -lopenal32.dll -lpng14.dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -ldwmapi -lwinmm -mwindows
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
@@ -169,10 +170,16 @@ oolite_C_FILES = \
     OOPlanetData.c \
 	ioapi.c \
 	unzip.c
+
+oolite_CC_FILES = \
+	OOSaveEXRSnapshot.cpp
 	
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 oolite_WINDRES_FILES = \
 	OOResourcesWin.rc
+
+oolite_C_FILES += \
+	miniz.c
 endif
 
 OOLITE_DEBUG_FILES = \
