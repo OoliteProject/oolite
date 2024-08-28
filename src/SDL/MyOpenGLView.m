@@ -44,6 +44,8 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
+extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
+
 static NSString * kOOLogKeyUp				= @"input.keyMapping.keyPress.keyUp";
 static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
@@ -1632,14 +1634,24 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	// if outputting HDR signal, save also a Radiance .hdr snapshot
 	if ([self hdrOutput])
 	{
-		NSString *pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:@".hdr"];
+		NSString *fileExtension = 
+#if OO_HDR_SNAPSHOT_EXR
+			@".exr";
+#else
+			@".hdr";
+#endif
+		NSString *pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:fileExtension];
 		OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
 		GLfloat *pixlsf = (GLfloat *)malloc(pitch * surface->h * sizeof(GLfloat));
 		for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
 		{
 			glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
 		}
+#if OO_HDR_SNAPSHOT_EXR
+		if (SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) //TINYEXR_SUCCESS
+#else		
 		if (!stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf))
+#endif
 		{
 			OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
 			snapShotOK = NO;
