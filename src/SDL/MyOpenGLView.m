@@ -1600,7 +1600,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 		imageNo = tmpImageNo;
 	}
 
-	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
+	OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
 
 	int pitch = surface->w * 3;
 	unsigned char *pixls = malloc(pitch * surface->h);
@@ -1634,28 +1634,32 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	// if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
 	if ([self hdrOutput])
 	{
-		NSString *fileExtension = 
-#if OO_HDR_SNAPSHOT_EXR
-			@".exr";
-#else
-			@".hdr";
-#endif
+		NSString *fileExtension = [[NSUserDefaults standardUserDefaults] oo_stringForKey:@"hdr-snapshot-format" defaultValue:SNAPSHOTHDR_EXTENSION_DEFAULT];
+		
+		// we accept file extension with or without a leading dot; if it is without, insert it at the beginning now
+		if (![[fileExtension substringToIndex:1] isEqual:@"."])  fileExtension = [@"." stringByAppendingString:fileExtension];
+		
+		if (![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && ![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR])
+		{
+			OOLog(@"screenshotHDR", @"Unrecognized HDR file format requested, defaulting to "SNAPSHOTHDR_EXTENSION_DEFAULT);
+			fileExtension = SNAPSHOTHDR_EXTENSION_DEFAULT;
+		}
+		
 		NSString *pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:fileExtension];
-		OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
+		OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
 		GLfloat *pixlsf = (GLfloat *)malloc(pitch * surface->h * sizeof(GLfloat));
 		for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
 		{
 			glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
 		}
-#if OO_HDR_SNAPSHOT_EXR
-		if (SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) //TINYEXR_SUCCESS
-#else		
-		if (!stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf))
-#endif
+		
+		if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) //TINYEXR_SUCCESS
+			|| ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf)))
 		{
 			OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
 			snapShotOK = NO;
 		}
+		
 		free(pixlsf);
 	}
 	
