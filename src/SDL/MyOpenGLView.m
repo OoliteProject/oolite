@@ -1631,7 +1631,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
 	
-	// if outputting HDR signal, save also a Radiance .hdr snapshot
+	// if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
 	if ([self hdrOutput])
 	{
 		NSString *fileExtension = 
