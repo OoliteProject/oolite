@@ -44,6 +44,8 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
+extern int SaveEXRSnapshot(const char* outfilename, int width, int height, const float* rgb);
+
 static NSString * kOOLogKeyUp				= @"input.keyMapping.keyPress.keyUp";
 static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
@@ -1598,7 +1600,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 		imageNo = tmpImageNo;
 	}
 
-	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
+	OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPic, surface->w, surface->h);
 
 	int pitch = surface->w * 3;
 	unsigned char *pixls = malloc(pitch * surface->h);
@@ -1629,21 +1631,35 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
 	
-	// if outputting HDR signal, save also a Radiance .hdr snapshot
+	// if outputting HDR signal, save also either an .exr or a Radiance .hdr snapshot
 	if ([self hdrOutput])
 	{
-		NSString *pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:@".hdr"];
-		OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
+		NSString *fileExtension = [[NSUserDefaults standardUserDefaults] oo_stringForKey:@"hdr-snapshot-format" defaultValue:SNAPSHOTHDR_EXTENSION_DEFAULT];
+		
+		// we accept file extension with or without a leading dot; if it is without, insert it at the beginning now
+		if (![[fileExtension substringToIndex:1] isEqual:@"."])  fileExtension = [@"." stringByAppendingString:fileExtension];
+		
+		if (![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && ![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR])
+		{
+			OOLog(@"screenshotHDR", @"Unrecognized HDR file format requested, defaulting to "SNAPSHOTHDR_EXTENSION_DEFAULT);
+			fileExtension = SNAPSHOTHDR_EXTENSION_DEFAULT;
+		}
+		
+		NSString *pathToPicHDR = [pathToPic stringByReplacingString:@".png" withString:fileExtension];
+		OOLog(@"screenshot", @"Saving screen shot \"%@\" (%u x %u pixels).", pathToPicHDR, surface->w, surface->h);
 		GLfloat *pixlsf = (GLfloat *)malloc(pitch * surface->h * sizeof(GLfloat));
 		for (y=surface->h-1, off=0; y>=0; y--, off+=pitch)
 		{
 			glReadPixels(0, y, surface->w, 1, GL_RGB, GL_FLOAT, pixlsf + off);
 		}
-		if (!stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf))
+		
+		if (([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && SaveEXRSnapshot([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, pixlsf) != 0) //TINYEXR_SUCCESS
+			|| ([fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR] && !stbi_write_hdr([pathToPicHDR cStringUsingEncoding:NSUTF8StringEncoding], surface->w, surface->h, 3, pixlsf)))
 		{
 			OOLog(@"screenshotHDR", @"Failed to save %@", pathToPicHDR);
 			snapShotOK = NO;
 		}
+		
 		free(pixlsf);
 	}
 	
