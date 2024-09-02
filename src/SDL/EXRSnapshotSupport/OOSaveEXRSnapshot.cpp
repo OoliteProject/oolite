@@ -42,6 +42,7 @@ int SaveEXRSnapshot(const char* outfilename, int width, int height, const float*
 	image.height = height;
 	
 	header.num_channels = 3;
+	header.compression_type = TINYEXR_COMPRESSIONTYPE_ZIP;
 	header.channels = (EXRChannelInfo *)malloc(sizeof(EXRChannelInfo) * header.num_channels); 
 	// Must be BGR(A) order, since most of EXR viewers expect this channel order.
 	strncpy(header.channels[0].name, "B", 255); header.channels[0].name[strlen("B")] = '\0';
