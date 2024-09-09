@@ -3447,6 +3447,12 @@ static NSTimeInterval	time_last_frame;
 					brightnessIdx = 0;
 				
 				int brightnessValue = [brightnesses oo_intAtIndex:brightnessIdx];
+				
+				// warp if the value we got is out of expected limits; can be the case if user has
+				// manually modified the hdr_maxBrightness_array in descriptions.plist
+				if (brightnessValue < MIN_HDR_MAXBRIGHTNESS)  brightnessValue = MAX_HDR_MAXBRIGHTNESS;
+				if (brightnessValue > MAX_HDR_MAXBRIGHTNESS)  brightnessValue = MIN_HDR_MAXBRIGHTNESS;
+    				
 				[gameView setHDRMaxBrightness:(float)brightnessValue];
 				NSString *maxBrightnessString = OOExpandKey(@"gameoptions-hdr-maxbrightness", brightnessValue);
 																				
