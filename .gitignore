@@ -10,12 +10,6 @@ Icon?
 xcuserdata/
 *.xcscmblueprint
 
-
-# Used for downloaded code
-deps/Cocoa-deps/sparkle
-deps/libpng
-
-
 # Build products
 build/
 oolite.app
