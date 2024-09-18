@@ -7,51 +7,54 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1A78B59E12D74BE900D42EE7 /* png.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B58A12D74BE900D42EE7 /* png.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A78B59F12D74BE900D42EE7 /* pngconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B58B12D74BE900D42EE7 /* pngconf.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A78B5A012D74BE900D42EE7 /* pngpriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A78B58C12D74BE900D42EE7 /* pngpriv.h */; };
-		1A78B5A212D74BE900D42EE7 /* png.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B58E12D74BE900D42EE7 /* png.c */; };
-		1A78B5A312D74BE900D42EE7 /* pngerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B58F12D74BE900D42EE7 /* pngerror.c */; };
-		1A78B5A412D74BE900D42EE7 /* pngget.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59012D74BE900D42EE7 /* pngget.c */; };
-		1A78B5A512D74BE900D42EE7 /* pngmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59112D74BE900D42EE7 /* pngmem.c */; };
-		1A78B5A612D74BE900D42EE7 /* pngpread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59212D74BE900D42EE7 /* pngpread.c */; };
-		1A78B5A712D74BE900D42EE7 /* pngread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59312D74BE900D42EE7 /* pngread.c */; };
-		1A78B5A812D74BE900D42EE7 /* pngrio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59412D74BE900D42EE7 /* pngrio.c */; };
-		1A78B5A912D74BE900D42EE7 /* pngrtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59512D74BE900D42EE7 /* pngrtran.c */; };
-		1A78B5AA12D74BE900D42EE7 /* pngrutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59612D74BE900D42EE7 /* pngrutil.c */; };
-		1A78B5AB12D74BE900D42EE7 /* pngset.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59712D74BE900D42EE7 /* pngset.c */; };
-		1A78B5AD12D74BE900D42EE7 /* pngtrans.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59912D74BE900D42EE7 /* pngtrans.c */; };
-		1A78B5AE12D74BE900D42EE7 /* pngwio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59A12D74BE900D42EE7 /* pngwio.c */; };
-		1A78B5AF12D74BE900D42EE7 /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59B12D74BE900D42EE7 /* pngwrite.c */; };
-		1A78B5B012D74BE900D42EE7 /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59C12D74BE900D42EE7 /* pngwtran.c */; };
-		1A78B5B112D74BE900D42EE7 /* pngwutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A78B59D12D74BE900D42EE7 /* pngwutil.c */; };
 		1A96C25214DB3E62007BFBBA /* pnglibconf.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A96C25114DB3E62007BFBBA /* pnglibconf.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D3E5F6BB2C9A9D7300895C77 /* pnginfo.h in Headers */ = {isa = PBXBuildFile; fileRef = D3E5F6A02C9A9D7200895C77 /* pnginfo.h */; };
+		D3E5F6BC2C9A9D7300895C77 /* pngrtran.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6A12C9A9D7200895C77 /* pngrtran.c */; };
+		D3E5F6BD2C9A9D7300895C77 /* pngpriv.h in Headers */ = {isa = PBXBuildFile; fileRef = D3E5F6A22C9A9D7200895C77 /* pngpriv.h */; };
+		D3E5F6BE2C9A9D7300895C77 /* pngerror.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6A32C9A9D7200895C77 /* pngerror.c */; };
+		D3E5F6BF2C9A9D7300895C77 /* pngrio.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6A42C9A9D7200895C77 /* pngrio.c */; };
+		D3E5F6C02C9A9D7300895C77 /* pngconf.h in Headers */ = {isa = PBXBuildFile; fileRef = D3E5F6A52C9A9D7200895C77 /* pngconf.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D3E5F6C12C9A9D7300895C77 /* pngtrans.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6A62C9A9D7200895C77 /* pngtrans.c */; };
+		D3E5F6C22C9A9D7300895C77 /* pngdebug.h in Headers */ = {isa = PBXBuildFile; fileRef = D3E5F6A72C9A9D7200895C77 /* pngdebug.h */; };
+		D3E5F6C32C9A9D7300895C77 /* pngpread.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6A92C9A9D7200895C77 /* pngpread.c */; };
+		D3E5F6C42C9A9D7300895C77 /* png.h in Headers */ = {isa = PBXBuildFile; fileRef = D3E5F6AA2C9A9D7200895C77 /* png.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D3E5F6C52C9A9D7300895C77 /* pngwutil.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6AB2C9A9D7200895C77 /* pngwutil.c */; };
+		D3E5F6C62C9A9D7300895C77 /* pngwio.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6AD2C9A9D7300895C77 /* pngwio.c */; };
+		D3E5F6C72C9A9D7300895C77 /* pngread.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6AF2C9A9D7300895C77 /* pngread.c */; };
+		D3E5F6C82C9A9D7300895C77 /* pngget.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6B02C9A9D7300895C77 /* pngget.c */; };
+		D3E5F6C92C9A9D7300895C77 /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6B12C9A9D7300895C77 /* pngwrite.c */; };
+		D3E5F6CB2C9A9D7300895C77 /* pngset.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6B32C9A9D7300895C77 /* pngset.c */; };
+		D3E5F6CC2C9A9D7300895C77 /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6B42C9A9D7300895C77 /* pngwtran.c */; };
+		D3E5F6CE2C9A9D7300895C77 /* png.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6B62C9A9D7300895C77 /* png.c */; };
+		D3E5F6CF2C9A9D7300895C77 /* pngrutil.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6B72C9A9D7300895C77 /* pngrutil.c */; };
+		D3E5F6D02C9A9D7300895C77 /* pngmem.c in Sources */ = {isa = PBXBuildFile; fileRef = D3E5F6B82C9A9D7300895C77 /* pngmem.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng_for_oolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-targets.xcconfig"; path = "../../../src/Cocoa/oolite-targets.xcconfig"; sourceTree = SOURCE_ROOT; };
-		1A78B58A12D74BE900D42EE7 /* png.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = png.h; sourceTree = "<group>"; };
-		1A78B58B12D74BE900D42EE7 /* pngconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngconf.h; sourceTree = "<group>"; };
-		1A78B58C12D74BE900D42EE7 /* pngpriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngpriv.h; sourceTree = "<group>"; };
-		1A78B58D12D74BE900D42EE7 /* example.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = example.c; sourceTree = "<group>"; };
-		1A78B58E12D74BE900D42EE7 /* png.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = png.c; sourceTree = "<group>"; };
-		1A78B58F12D74BE900D42EE7 /* pngerror.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngerror.c; sourceTree = "<group>"; };
-		1A78B59012D74BE900D42EE7 /* pngget.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngget.c; sourceTree = "<group>"; };
-		1A78B59112D74BE900D42EE7 /* pngmem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngmem.c; sourceTree = "<group>"; };
-		1A78B59212D74BE900D42EE7 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
-		1A78B59312D74BE900D42EE7 /* pngread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngread.c; sourceTree = "<group>"; };
-		1A78B59412D74BE900D42EE7 /* pngrio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrio.c; sourceTree = "<group>"; };
-		1A78B59512D74BE900D42EE7 /* pngrtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrtran.c; sourceTree = "<group>"; };
-		1A78B59612D74BE900D42EE7 /* pngrutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrutil.c; sourceTree = "<group>"; };
-		1A78B59712D74BE900D42EE7 /* pngset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngset.c; sourceTree = "<group>"; };
-		1A78B59812D74BE900D42EE7 /* pngtest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngtest.c; sourceTree = "<group>"; };
-		1A78B59912D74BE900D42EE7 /* pngtrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngtrans.c; sourceTree = "<group>"; };
-		1A78B59A12D74BE900D42EE7 /* pngwio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwio.c; sourceTree = "<group>"; };
-		1A78B59B12D74BE900D42EE7 /* pngwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwrite.c; sourceTree = "<group>"; };
-		1A78B59C12D74BE900D42EE7 /* pngwtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwtran.c; sourceTree = "<group>"; };
-		1A78B59D12D74BE900D42EE7 /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwutil.c; sourceTree = "<group>"; };
 		1A96C25114DB3E62007BFBBA /* pnglibconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pnglibconf.h; sourceTree = SOURCE_ROOT; };
+		D3E5F6A02C9A9D7200895C77 /* pnginfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pnginfo.h; sourceTree = "<group>"; };
+		D3E5F6A12C9A9D7200895C77 /* pngrtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrtran.c; sourceTree = "<group>"; };
+		D3E5F6A22C9A9D7200895C77 /* pngpriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngpriv.h; sourceTree = "<group>"; };
+		D3E5F6A32C9A9D7200895C77 /* pngerror.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngerror.c; sourceTree = "<group>"; };
+		D3E5F6A42C9A9D7200895C77 /* pngrio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrio.c; sourceTree = "<group>"; };
+		D3E5F6A52C9A9D7200895C77 /* pngconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngconf.h; sourceTree = "<group>"; };
+		D3E5F6A62C9A9D7200895C77 /* pngtrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngtrans.c; sourceTree = "<group>"; };
+		D3E5F6A72C9A9D7200895C77 /* pngdebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngdebug.h; sourceTree = "<group>"; };
+		D3E5F6A92C9A9D7200895C77 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
+		D3E5F6AA2C9A9D7200895C77 /* png.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = png.h; sourceTree = "<group>"; };
+		D3E5F6AB2C9A9D7200895C77 /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwutil.c; sourceTree = "<group>"; };
+		D3E5F6AD2C9A9D7300895C77 /* pngwio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwio.c; sourceTree = "<group>"; };
+		D3E5F6AF2C9A9D7300895C77 /* pngread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngread.c; sourceTree = "<group>"; };
+		D3E5F6B02C9A9D7300895C77 /* pngget.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngget.c; sourceTree = "<group>"; };
+		D3E5F6B12C9A9D7300895C77 /* pngwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwrite.c; sourceTree = "<group>"; };
+		D3E5F6B32C9A9D7300895C77 /* pngset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngset.c; sourceTree = "<group>"; };
+		D3E5F6B42C9A9D7300895C77 /* pngwtran.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwtran.c; sourceTree = "<group>"; };
+		D3E5F6B52C9A9D7300895C77 /* pngstruct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngstruct.h; sourceTree = "<group>"; };
+		D3E5F6B62C9A9D7300895C77 /* png.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = png.c; sourceTree = "<group>"; };
+		D3E5F6B72C9A9D7300895C77 /* pngrutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrutil.c; sourceTree = "<group>"; };
+		D3E5F6B82C9A9D7300895C77 /* pngmem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngmem.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,44 +76,44 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1A78B58512D74BAD00D42EE7 /* libpng */ = {
-			isa = PBXGroup;
-			children = (
-				1A78B58A12D74BE900D42EE7 /* png.h */,
-				1A78B58B12D74BE900D42EE7 /* pngconf.h */,
-				1A96C25114DB3E62007BFBBA /* pnglibconf.h */,
-				1A78B58C12D74BE900D42EE7 /* pngpriv.h */,
-				1A78B58D12D74BE900D42EE7 /* example.c */,
-				1A78B58E12D74BE900D42EE7 /* png.c */,
-				1A78B58F12D74BE900D42EE7 /* pngerror.c */,
-				1A78B59012D74BE900D42EE7 /* pngget.c */,
-				1A78B59112D74BE900D42EE7 /* pngmem.c */,
-				1A78B59212D74BE900D42EE7 /* pngpread.c */,
-				1A78B59312D74BE900D42EE7 /* pngread.c */,
-				1A78B59412D74BE900D42EE7 /* pngrio.c */,
-				1A78B59512D74BE900D42EE7 /* pngrtran.c */,
-				1A78B59612D74BE900D42EE7 /* pngrutil.c */,
-				1A78B59712D74BE900D42EE7 /* pngset.c */,
-				1A78B59812D74BE900D42EE7 /* pngtest.c */,
-				1A78B59912D74BE900D42EE7 /* pngtrans.c */,
-				1A78B59A12D74BE900D42EE7 /* pngwio.c */,
-				1A78B59B12D74BE900D42EE7 /* pngwrite.c */,
-				1A78B59C12D74BE900D42EE7 /* pngwtran.c */,
-				1A78B59D12D74BE900D42EE7 /* pngwutil.c */,
-			);
-			name = libpng;
-			path = ../../libpng;
-			sourceTree = "<group>";
-		};
 		29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */ = {
 			isa = PBXGroup;
 			children = (
+				D3E5F69F2C9A9BEC00895C77 /* libpng */,
 				1A78B4F412D74B8100D42EE7 /* oolite-targets.xcconfig */,
-				1A78B58512D74BAD00D42EE7 /* libpng */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
 			name = Oolite_GUSTO;
 			sourceTree = "<group>";
+		};
+		D3E5F69F2C9A9BEC00895C77 /* libpng */ = {
+			isa = PBXGroup;
+			children = (
+				D3E5F6B62C9A9D7300895C77 /* png.c */,
+				D3E5F6AA2C9A9D7200895C77 /* png.h */,
+				D3E5F6A52C9A9D7200895C77 /* pngconf.h */,
+				D3E5F6A72C9A9D7200895C77 /* pngdebug.h */,
+				D3E5F6A32C9A9D7200895C77 /* pngerror.c */,
+				D3E5F6B02C9A9D7300895C77 /* pngget.c */,
+				D3E5F6A02C9A9D7200895C77 /* pnginfo.h */,
+				D3E5F6B82C9A9D7300895C77 /* pngmem.c */,
+				D3E5F6A92C9A9D7200895C77 /* pngpread.c */,
+				D3E5F6A22C9A9D7200895C77 /* pngpriv.h */,
+				D3E5F6AF2C9A9D7300895C77 /* pngread.c */,
+				D3E5F6A42C9A9D7200895C77 /* pngrio.c */,
+				D3E5F6A12C9A9D7200895C77 /* pngrtran.c */,
+				D3E5F6B72C9A9D7300895C77 /* pngrutil.c */,
+				D3E5F6B32C9A9D7300895C77 /* pngset.c */,
+				D3E5F6B52C9A9D7300895C77 /* pngstruct.h */,
+				D3E5F6A62C9A9D7200895C77 /* pngtrans.c */,
+				D3E5F6AD2C9A9D7300895C77 /* pngwio.c */,
+				D3E5F6B12C9A9D7300895C77 /* pngwrite.c */,
+				D3E5F6B42C9A9D7300895C77 /* pngwtran.c */,
+				D3E5F6AB2C9A9D7200895C77 /* pngwutil.c */,
+				1A96C25114DB3E62007BFBBA /* pnglibconf.h */,
+			);
+			name = libpng;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -119,10 +122,12 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A78B59E12D74BE900D42EE7 /* png.h in Headers */,
-				1A78B59F12D74BE900D42EE7 /* pngconf.h in Headers */,
+				D3E5F6C42C9A9D7300895C77 /* png.h in Headers */,
+				D3E5F6C22C9A9D7300895C77 /* pngdebug.h in Headers */,
+				D3E5F6C02C9A9D7300895C77 /* pngconf.h in Headers */,
+				D3E5F6BB2C9A9D7300895C77 /* pnginfo.h in Headers */,
 				1A96C25214DB3E62007BFBBA /* pnglibconf.h in Headers */,
-				1A78B5A012D74BE900D42EE7 /* pngpriv.h in Headers */,
+				D3E5F6BD2C9A9D7300895C77 /* pngpriv.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,7 +138,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1A71E6FC0BCE345800CD5C13 /* Build configuration list for PBXNativeTarget "libpng" */;
 			buildPhases = (
-				1AA0D03212CAB13100BB883D /* Update Code */,
 				1A71E6EF0BCE340C00CD5C13 /* Headers */,
 				1A71E6F00BCE340C00CD5C13 /* Sources */,
 				1A71E6F10BCE340C00CD5C13 /* Frameworks */,
@@ -176,46 +180,26 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		1AA0D03212CAB13100BB883D /* Update Code */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/../../URLs/libpng.url",
-			);
-			name = "Update Code";
-			outputPaths = (
-				"$(SRCROOT)/../../libpng/current.url",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/../scripts\"\n./update-library.sh libpng tgz\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		1A71E6F00BCE340C00CD5C13 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A78B5A212D74BE900D42EE7 /* png.c in Sources */,
-				1A78B5A312D74BE900D42EE7 /* pngerror.c in Sources */,
-				1A78B5A412D74BE900D42EE7 /* pngget.c in Sources */,
-				1A78B5A512D74BE900D42EE7 /* pngmem.c in Sources */,
-				1A78B5A612D74BE900D42EE7 /* pngpread.c in Sources */,
-				1A78B5A712D74BE900D42EE7 /* pngread.c in Sources */,
-				1A78B5A812D74BE900D42EE7 /* pngrio.c in Sources */,
-				1A78B5A912D74BE900D42EE7 /* pngrtran.c in Sources */,
-				1A78B5AA12D74BE900D42EE7 /* pngrutil.c in Sources */,
-				1A78B5AB12D74BE900D42EE7 /* pngset.c in Sources */,
-				1A78B5AD12D74BE900D42EE7 /* pngtrans.c in Sources */,
-				1A78B5AE12D74BE900D42EE7 /* pngwio.c in Sources */,
-				1A78B5AF12D74BE900D42EE7 /* pngwrite.c in Sources */,
-				1A78B5B012D74BE900D42EE7 /* pngwtran.c in Sources */,
-				1A78B5B112D74BE900D42EE7 /* pngwutil.c in Sources */,
+				D3E5F6CE2C9A9D7300895C77 /* png.c in Sources */,
+				D3E5F6BE2C9A9D7300895C77 /* pngerror.c in Sources */,
+				D3E5F6C32C9A9D7300895C77 /* pngpread.c in Sources */,
+				D3E5F6BC2C9A9D7300895C77 /* pngrtran.c in Sources */,
+				D3E5F6C52C9A9D7300895C77 /* pngwutil.c in Sources */,
+				D3E5F6C12C9A9D7300895C77 /* pngtrans.c in Sources */,
+				D3E5F6C82C9A9D7300895C77 /* pngget.c in Sources */,
+				D3E5F6CC2C9A9D7300895C77 /* pngwtran.c in Sources */,
+				D3E5F6C92C9A9D7300895C77 /* pngwrite.c in Sources */,
+				D3E5F6CB2C9A9D7300895C77 /* pngset.c in Sources */,
+				D3E5F6BF2C9A9D7300895C77 /* pngrio.c in Sources */,
+				D3E5F6C72C9A9D7300895C77 /* pngread.c in Sources */,
+				D3E5F6D02C9A9D7300895C77 /* pngmem.c in Sources */,
+				D3E5F6C62C9A9D7300895C77 /* pngwio.c in Sources */,
+				D3E5F6CF2C9A9D7300895C77 /* pngrutil.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +239,7 @@
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = png_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/png/;
 				SYMROOT = ../../../build;
@@ -283,6 +268,7 @@
 				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = png_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/png/;
@@ -299,6 +285,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = png_for_oolite;
 				PUBLIC_HEADERS_FOLDER_PATH = include/png/;
 				SYMROOT = ../../../build;

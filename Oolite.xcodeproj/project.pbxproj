@@ -3460,7 +3460,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 08B31CAC08FE63D70038D42F /* Build configuration list for PBXNativeTarget "Oolite" */;
 			buildPhases = (
-				1AE8836A12EF90540075814F /* Update Sparkle */,
 				0865423606B8447D000CA0AB /* Headers */,
 				0865430306B8447D000CA0AB /* Sources */,
 				0865431B06B8447D000CA0AB /* Frameworks */,
@@ -3717,22 +3716,6 @@
 			shellPath = /bin/sh;
 			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/Schemata\"\n\nif [ $COPY_SCHEMATA ]\nthen\n\techo \"Copying schemata\"\n\t\n\tSRC_DIR=\"$SRCROOT/Schemata/\";\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n#\tfor item in `ls \"$SRC_DIR\"`\n#\tdo\n#\t\tcp \"$SRC_DIR/$item\" \"$TARGET_DIR/\"\n#\tdone\n#\trm \"$TARGET_DIR/README.txt\"\n\tcp \"$SRC_DIR/shipdataEntrySchema.plist\" \"$TARGET_DIR/\"\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
 			showEnvVarsInLog = 0;
-		};
-		1AE8836A12EF90540075814F /* Update Sparkle */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/deps/URLs/Sparkle.url",
-			);
-			name = "Update Sparkle";
-			outputPaths = (
-				"$(SRCROOT)/deps/Cocoa-deps/Sparkle/current.url",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/deps/Cocoa-deps/scripts\"\n./update-sparkle.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -4071,6 +4054,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
@@ -4114,6 +4098,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
@@ -4128,6 +4113,7 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -4154,6 +4140,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 			};
 			name = Debug;
@@ -4163,6 +4150,7 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -4187,6 +4175,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 			};
 			name = Deployment;
 		};
@@ -4219,6 +4208,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
@@ -4233,6 +4223,7 @@
 			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -4257,12 +4248,14 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 			};
 			name = TestRelease;
 		};
 		1AD267690C8305A200B4BFD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				OOLITE_INCUDE_DEBUG_BUNDLE = 1;
 				PRODUCT_NAME = "Build All";
@@ -4272,6 +4265,7 @@
 		1AD2676A0C8305A200B4BFD1 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				OOLITE_INCUDE_DEBUG_BUNDLE = 0;
 				PRODUCT_NAME = "Build All";
@@ -4281,6 +4275,7 @@
 		1AD2676B0C8305A200B4BFD1 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				OOLITE_INCUDE_DEBUG_BUNDLE = 1;
 				PRODUCT_NAME = "Build All";

@@ -2067,7 +2067,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MOZILLA_PATH = "$(SRCROOT)/../../mozilla/";
 			};
 			name = TestRelease;
@@ -2377,9 +2379,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MOZILLA_PATH = "$(SRCROOT)/../../mozilla/";
 				ONLY_ACTIVE_ARCH = YES;
 			};
@@ -2389,7 +2393,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1AB25A6712CA12BA00C67F42 /* oolite-targets.xcconfig */;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libc++";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MOZILLA_PATH = "$(SRCROOT)/../../mozilla/";
 			};
 			name = Deployment;
