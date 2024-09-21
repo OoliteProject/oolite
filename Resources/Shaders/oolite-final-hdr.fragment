@@ -16,6 +16,8 @@ uniform float		uSaturation;
 #define SMPTE_ST2084MAXNITS	10000.0
 #define MAXCLLNITS			1000.0
 #define HDR_HEATMAP			0
+#define SATURATION_ADJUSTMENT	0.825 //adjustment factor to better approach SDR saturation
+#define GAMUT_EXPANSION_AMOUNT	0.2 //0.0f .. 1.0f - best results if this is kept low
 
 
 
@@ -729,7 +731,7 @@ void main()
 	t = t * t / (12.0 + t);
 	
 	// apply saturation
-	hdrColor = max(saturationMatrix(uSaturation) * hdrColor, vec3(0.0));
+	hdrColor = max(saturationMatrix(uSaturation * SATURATION_ADJUSTMENT) * hdrColor, vec3(0.0));
 	
 	// mastering to 1000 nits max luminance
 	hdrColor = min(hdrColor, vec3(MAXCLLNITS * 0.0125));
@@ -744,7 +746,7 @@ void main()
 	vec3 result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, clamp(t * 80 / uMaxBrightness, 0.0, 1.0)) * uPaperWhiteBrightness * 0.0125);
 
 	// gamut expansion here
-	result = expandGamut(result, uSaturation * 0.05f);
+	result = expandGamut(result, GAMUT_EXPANSION_AMOUNT);
 	
 #if HDR_HEATMAP
 	{
