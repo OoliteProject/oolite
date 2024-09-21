@@ -41,7 +41,8 @@ SOFTWARE.
 	glBindTexture(), glDrawArrays()). We probably have implicit requirements
 	for later versions, but I don't feel like auditing.
 	-- Ahruman
-	We need at least 3.3 for the MRT operations in relation to bloom.
+	We need at least 3.0 for the Frame Buffer Objects now in use. Might as
+ 	well go all the way to 3.3.
 	-- Nikos 20220817
 */
 enum
