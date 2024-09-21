@@ -38,6 +38,9 @@ MA 02110-1301, USA.
 #define MINIMUM_GAME_TICK		0.25
 // * reduced from 0.5s for tgape * //
 
+#define MINIMUM_ANIMATION_TICK	0.0041667
+// 1.0 / (desired framerate cap)
+
 
 @class MyOpenGLView, OOFullScreenController;
 

@@ -92,7 +92,7 @@ static GameController *sSharedController = nil;
 	{
 		last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
 		delta_t = 0.01; // one hundredth of a second 
-		_animationTimerInterval = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"animation_timer_interval" defaultValue:0.005];
+		_animationTimerInterval = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"animation_timer_interval" defaultValue:MINIMUM_ANIMATION_TICK];
 		
 		// rather than seeding this with the date repeatedly, seed it
 		// once here at startup
