@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "NSFileManagerOOExtensions.h"
 #import "NSDataOOExtensions.h"
+#import "NSSTringOOExtensions.h"
 #import "OOColor.h"
 #import "OOStringExpander.h"
 #import "MyOpenGLView.h"
