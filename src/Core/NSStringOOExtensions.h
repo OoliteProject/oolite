@@ -59,6 +59,30 @@ MA 02110-1301, USA.
 */
 - (uint32_t) oo_hash;
 
+
+/*	-stringByTrimmingLeadingCharactersInSet:
+	Strips characters belonging to selected character set from start of string. 
+*/
+- (NSString *)stringByTrimmingLeadingCharactersInSet:(NSCharacterSet *)characterSet;
+
+
+/*	-stringByTrimmingLeadingWhitespaceAndNewlineCharacters:
+	Strips leading whtiespaces and newline characters from string.
+*/	
+- (NSString *)stringByTrimmingLeadingWhitespaceAndNewlineCharacters;
+
+
+/*	-stringByTrimmingTrailingCharactersInSet:
+	Strips characters belonging to selected character set from end of string. 
+*/
+- (NSString *)stringByTrimmingTrailingCharactersInSet:(NSCharacterSet *)characterSet;
+ 
+ 
+ /*	-stringByTrimmingTrailingWhitespaceAndNewlineCharacters:
+	Strips trailing whtiespaces and newline characters from string.
+*/	
+- (NSString *)stringByTrimmingTrailingWhitespaceAndNewlineCharacters;
+
 @end
 
 
