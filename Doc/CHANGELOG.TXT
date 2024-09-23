@@ -48,7 +48,10 @@ General:
 * Application startup command is now written to the log file.
 * Implemented [-]-help command line option - shows list of available command line
   switches.
+* Internal framerate cap increased from 200 to 240 fps.
 * OXZ Manager: Implemented filter by category.
+* OXZ Manager: Leading whitespaces in text filters are now ignored for reduced
+  confusion.
 
 Expansion Pack Development:
 ===========================

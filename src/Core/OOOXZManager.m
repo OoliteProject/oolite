@@ -454,6 +454,10 @@ static OOOXZManager *sSingleton = nil;
 {
 	NSString *parameter = nil;
 	NSArray *parameters = [NSArray arrayWithObjects:kOOManifestTitle,kOOManifestDescription,kOOManifestCategory,nil];
+ 	
+  	// trim any eventual leading whitespace from input string
+	keyword = [keyword stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+ 	
 	foreach (parameter,parameters)
 	{
 		if ([[manifest oo_stringForKey:parameter] rangeOfString:keyword options:NSCaseInsensitiveSearch].location != NSNotFound)
@@ -477,6 +481,9 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) applyFilterByAuthor:(NSDictionary *)manifest author:(NSString *)author
 {
+	// trim any eventual leading whitespace from input string
+	author = [author stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+ 	
 	NSString *mAuth = [manifest oo_stringForKey:kOOManifestAuthor];
 	return ([mAuth rangeOfString:author options:NSCaseInsensitiveSearch].location != NSNotFound);
 }
@@ -502,6 +509,10 @@ static OOOXZManager *sSingleton = nil;
 {
 	NSString *parameter = nil;
 	NSArray *parameters = [manifest oo_arrayForKey:kOOManifestTags];
+
+  	// trim any eventual leading whitespace from input string
+	tag = [tag stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+ 	
 	foreach (parameter,parameters)
 	{
 		if ([parameter rangeOfString:tag options:NSCaseInsensitiveSearch].location != NSNotFound)
@@ -516,6 +527,9 @@ static OOOXZManager *sSingleton = nil;
 
 - (BOOL) applyFilterByCategory:(NSDictionary *)manifest category:(NSString *)category
 {
+	// trim any eventual leading whitespace from input string
+	category = [category stringByTrimmingLeadingWhitespaceAndNewlineCharacters];
+ 	
 	NSString *mCategory = [manifest oo_stringForKey:kOOManifestCategory];
 	return ([mCategory rangeOfString:category options:NSCaseInsensitiveSearch].location != NSNotFound);
 }
