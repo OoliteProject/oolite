@@ -41,7 +41,12 @@ MA 02110-1301, USA.
 #define kLaserGreen			(0.0f)
 #define kLaserBlue			(0.0f)
 
+// With this defined we use the ACES tonemapper desaturation
+// at high luminance for the brightest parts of the beam
+#define OO_LASER_ACES_BASED	1
+
 // Brightness - set to 1.0 for legacy laser appearance
+// For legacy appearance also set OO_LASER_ACES_BASED to 0
 #define kLaserBrightness	(5.0f)
 
 // Constant alpha
@@ -236,7 +241,14 @@ static const GLfloat kLaserVertices[] =
 	glDrawArrays(GL_QUADS, 0, 8);
 	
 	OOGLScaleModelView(make_vector(kLaserCoreWidth / kLaserHalfWidth, kLaserCoreWidth / kLaserHalfWidth, 1.0));
+#if OO_LASER_ACES_BASED
+	// 80% core laser color, 20% brightness boost
+	OOGL(glColor4f(_color[0] * 35.0 * 0.8 + kLaserBrightness * 0.2,
+					_color[1] * 35.0 * 0.8 + kLaserBrightness * 0.2,
+					_color[2] * 35.0 * 0.8 + kLaserBrightness * 0.2, 0.9));
+#else
 	OOGL(glColor4f(kLaserBrightness,kLaserBrightness,kLaserBrightness,0.9));
+#endif
 	glDrawArrays(GL_QUADS, 0, 8);
 
 	[[self texture2] apply];
