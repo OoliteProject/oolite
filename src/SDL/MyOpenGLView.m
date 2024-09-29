@@ -1094,6 +1094,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	DISPLAYCONFIG_MODE_INFO *pModeInfoArray;
 	UINT32 flags = QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE;
 	LONG tempResult = ERROR_SUCCESS;
+	BOOL isAdvColorInfo2DetectionSuccess = NO;
 	BOOL result = NO;
 	
 	do
@@ -1176,6 +1177,22 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 			return NO;
 		}
 		
+		// find the advanced color information using the more reliable advanced color info 2 api
+		DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2 advColorInfo2 = {};
+		advColorInfo2.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO_2;
+		advColorInfo2.header.adapterId = path->targetInfo.adapterId;
+		advColorInfo2.header.id = path->targetInfo.id;
+		advColorInfo2.header.size = sizeof(advColorInfo2);
+		
+		tempResult = DisplayConfigGetDeviceInfo(&advColorInfo2.header);
+		
+		if (tempResult == ERROR_SUCCESS)  isAdvColorInfo2DetectionSuccess = YES;
+		else
+		{
+			OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Reeived 0x%08X while attempting to detect HDR mode using Advanced Color Info 2 API. Retrying detection using legacy API.", HRESULT_FROM_WIN32(tempResult));
+			// no return, just fall through and try again using standard advanced color info api
+		}
+		
 		// find the advanced color information
 		DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO advColorInfo = {};
 		advColorInfo.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
@@ -1207,7 +1224,8 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 		// we also ensure that wide color gamut SDR displays do not get incorrectly detected as supporting HDR 
 		// just to be safe, ensure that the monitor device from QDC being checked is the same as the one from EnumDisplayDevices
 		if (isPrimaryDisplayDevice && !wcscmp(targetName.monitorDevicePath, wcsDeviceID) && 
-			advColorInfo.advancedColorSupported && advColorInfo.advancedColorEnabled && !advColorInfo.wideColorEnforced)
+			((isAdvColorInfo2DetectionSuccess && advColorInfo2.highDynamicRangeSupported && advColorInfo2.activeColorMode == DISPLAYCONFIG_ADVANCED_COLOR_MODE_HDR) ||
+			(!isAdvColorInfo2DetectionSuccess && advColorInfo.advancedColorSupported && advColorInfo.advancedColorEnabled && !advColorInfo.wideColorEnforced)))
 		{
 			result = YES;
 			break;
