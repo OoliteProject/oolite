@@ -128,7 +128,7 @@
 	display.mode.list.native.failed			= $error;
 	display.mode.switch.failed				= $error;
 	display.mode.unknown					= $error;
-	display.initGL							= no;
+	display.initGL							= yes;
 	
 	effectData.load.progress				= no;
 	effectData.load.done					= no;
