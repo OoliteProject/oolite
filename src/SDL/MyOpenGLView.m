@@ -378,6 +378,8 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 #if OOLITE_WINDOWS
 	SDL_GL_GetAttribute(SDL_GL_PIXEL_TYPE_FLOAT, &testAttrib);
 	OOLog(@"display.initGL", @"Pixel type is float : %d", testAttrib);
+
+  	OOLog(@"display.initGL", @"Pixel format index: %d", GetPixelFormat(GetDC(SDL_Window)));
 #endif
 	
 	// Verify V-sync successfully set - report it if not
