@@ -331,11 +331,19 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 - (void) initTargetFramebufferWithViewSize:(NSSize)viewSize
 {
+    GLenum errCode;
+    const GLubyte *errString = NULL;
+    
 	// liberate us from the 0.0 to 1.0 rgb range!
-	OOGL(glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE));
+	//OOGL(glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE));
 	OOGL(glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE));
-	OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
-
+	//OOGL(glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE));
+    errCode = glGetError();
+    if (errCode != GL_NO_ERROR)
+    {
+        errString = gluErrorString(errCode);
+        OOLog(@"testing", @"b1. OpenGL Error \"%s\", (%#x)", errString, errCode);
+    }
 	// have to do this because on my machine the default framebuffer is not zero
 	OOGL(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &defaultDrawFBO));
 
@@ -352,25 +360,26 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 
 	// create MSAA framebuffer and attach MSAA texture and depth buffer to framebuffer
 	OOGL(glGenFramebuffers(1, &msaaFramebufferID));
+    errCode = glGetError();
 	OOGL(glBindFramebuffer(GL_FRAMEBUFFER, msaaFramebufferID));
-	
+
 	// creating MSAA texture that should be rendered into
 	OOGL(glGenTextures(1, &msaaTextureID));
 	OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID));
 	OOGL(glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, (GLsizei)viewSize.width, (GLsizei)viewSize.height, GL_TRUE));
 	OOGL(glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0));
 	OOGL(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaaTextureID, 0));
-	
+
 	// create necessary MSAA depth render buffer
 	OOGL(glGenRenderbuffers(1, &msaaDepthBufferID));
 	OOGL(glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthBufferID));
 	OOGL(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT32F, (GLsizei)viewSize.width, (GLsizei)viewSize.height));
 	OOGL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 	OOGL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthBufferID));
-	
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
-		OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@", @"***** Error: Multisample framebuffer not complete");
+        OOLogERR(@"initTargetFramebufferWithViewSize.result", @"%@ %#x", @"***** Error: Multisample framebuffer not complete", glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	}
 	
 	// create framebuffer and attach texture and depth buffer to framebuffer
@@ -661,7 +670,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOGL(glActiveTexture(GL_TEXTURE1));
 	OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
 	OOGL(glUniform1i(glGetUniformLocation(final, "bloomBlur"), 1));
-	OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
+    OOGL(glUniform1f(glGetUniformLocation(final, "uSaturation"), [gameView colorSaturation]));
 	
 	OOGL(glBindVertexArray(quadTextureVAO));
 	OOGL(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0));

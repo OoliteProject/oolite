@@ -28,7 +28,7 @@
 		083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 083325DB09DDBCDE00F5B8E4 /* OOColor.h */; };
 		083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 083325DC09DDBCDE00F5B8E4 /* OOColor.m */; };
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
-		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
+		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
 		1A00C65510663D3700A8737D /* OOProfilingStopwatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */; };
 		1A00C65610663D3700A8737D /* OOProfilingStopwatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */; };
@@ -496,8 +496,6 @@
 		1AE3455812CB77B000FD8C62 /* libvorbis_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE3455612CB77AC00FD8C62 /* libvorbis_for_oolite.a */; };
 		1AE7325012F75D470045513D /* OOLaserShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE7324E12F75D470045513D /* OOLaserShotEntity.h */; };
 		1AE7325112F75D470045513D /* OOLaserShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE7324F12F75D470045513D /* OOLaserShotEntity.m */; };
-		1AE8837412EF91560075814F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; };
-		1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE8837312EF91560075814F /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1AE8838012EF91E80075814F /* SparkleVerificationKey.pem in Resources */ = {isa = PBXBuildFile; fileRef = 1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */; };
 		1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEA229D12CBD18600EC0F43 /* CoreServices.framework */; };
 		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
@@ -544,6 +542,7 @@
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
 		25F46753099695D5009483BF /* OoliteApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F46751099695D5009483BF /* OoliteApp.m */; };
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
+		2B49E2002C323C4B006141B0 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B49E1FF2C323C4B006141B0 /* GLUT.framework */; };
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		4F1F155D1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F1F155C1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m */; };
@@ -732,7 +731,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				1AE8837612EF91810075814F /* Sparkle.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1029,8 +1027,6 @@
 		1A26D09D0BCF9CF70073F257 /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Entity.h; sourceTree = "<group>"; };
 		1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityStickMapper.m; sourceTree = "<group>"; };
 		1A26D09F0BCF9CF70073F257 /* PlayerEntityStickMapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityStickMapper.h; sourceTree = "<group>"; };
-		1A26D0F10BCF9CF70073F257 /* PlayerEntityKeyMapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityKeyMapper.m; sourceTree = "<group>"; };
-		1A26D0F20BCF9CF70073F257 /* PlayerEntityKeyMapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityKeyMapper.h; sourceTree = "<group>"; };
 		1A26D0A00BCF9CF70073F257 /* WormholeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WormholeEntity.m; sourceTree = "<group>"; };
 		1A26D0A10BCF9CF70073F257 /* WormholeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WormholeEntity.h; sourceTree = "<group>"; };
 		1A26D0A20BCF9CF70073F257 /* StationEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StationEntity.m; sourceTree = "<group>"; };
@@ -1057,6 +1053,8 @@
 		1A26D0E30BCF9D3B0073F257 /* OOTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureLoader.h; sourceTree = "<group>"; };
 		1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPNGTextureLoader.h; sourceTree = "<group>"; };
 		1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureLoader.m; sourceTree = "<group>"; };
+		1A26D0F10BCF9CF70073F257 /* PlayerEntityKeyMapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PlayerEntityKeyMapper.m; sourceTree = "<group>"; };
+		1A26D0F20BCF9CF70073F257 /* PlayerEntityKeyMapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityKeyMapper.h; sourceTree = "<group>"; };
 		1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifierStageInternal.h; sourceTree = "<group>"; };
 		1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifierStage.h; sourceTree = "<group>"; };
 		1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifierStage.m; sourceTree = "<group>"; };
@@ -1126,8 +1124,8 @@
 		1A38E9E11603C7A500EE19F1 /* OOJSInterfaceDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSInterfaceDefinition.h; sourceTree = "<group>"; };
 		1A38E9E21603C7A500EE19F1 /* OOJSInterfaceDefinition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSInterfaceDefinition.m; sourceTree = "<group>"; };
 		1A38E9E51603C7A500EE19F1 /* OOJSGuiScreenKeyDefinition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSGuiScreenKeyDefinition.h; sourceTree = "<group>"; };
-		1A38E9E61603C7A500EE19F1 /* OOJSGuiScreenKeyDefinition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSGuiScreenKeyDefinition.m; sourceTree = "<group>"; };
 		1A38E9E51603C7ED00EE19F1 /* oolite-contracts-parcels.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-contracts-parcels.js"; sourceTree = "<group>"; };
+		1A38E9E61603C7A500EE19F1 /* OOJSGuiScreenKeyDefinition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSGuiScreenKeyDefinition.m; sourceTree = "<group>"; };
 		1A3A04610BC547DC00B5E2D9 /* OOTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTypes.h; sourceTree = "<group>"; };
 		1A3ACFE90C5FF33A00EC50A7 /* OOJSShip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSShip.h; sourceTree = "<group>"; };
 		1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSShip.m; sourceTree = "<group>"; };
@@ -1635,7 +1633,6 @@
 		1AE7324E12F75D470045513D /* OOLaserShotEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLaserShotEntity.h; sourceTree = "<group>"; };
 		1AE7324F12F75D470045513D /* OOLaserShotEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLaserShotEntity.m; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
-		1AE8837312EF91560075814F /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = "deps/Cocoa-deps/Sparkle/Sparkle.framework"; sourceTree = "<group>"; };
 		1AE8837F12EF91E80075814F /* SparkleVerificationKey.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = SparkleVerificationKey.pem; path = "Mac-specific/SparkleVerificationKey.pem"; sourceTree = SOURCE_ROOT; };
 		1AEA229D12CBD18600EC0F43 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		1AEB48D1119D51BD007BD514 /* gpu-settings.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "gpu-settings.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
@@ -1697,8 +1694,15 @@
 		2B060ED610E42735001EFB22 /* oolite-short-range-chart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-short-range-chart.png"; sourceTree = "<group>"; };
 		2B060ED710E42735001EFB22 /* oolite-long-range-chart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-long-range-chart.png"; sourceTree = "<group>"; };
 		2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nova-system.png"; sourceTree = "<group>"; };
+		2B49E1F82C323B78006141B0 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		2B49E1FF2C323C4B006141B0 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
+		2B657A0C2C13E0EC00F81AC7 /* Sparkle-1.13.1.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; name = "Sparkle-1.13.1.zip"; path = "../Sparkle-1.13.1.zip"; sourceTree = "<group>"; };
+		2B657A0E2C13E23D00F81AC7 /* Sparkle-1.13.1.tar.bz2 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Sparkle-1.13.1.tar.bz2"; path = "../Sparkle-1.13.1.tar.bz2"; sourceTree = "<group>"; };
+		2B657A102C13E28600F81AC7 /* bin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = bin; path = "../Sparkle-1.13.1/bin"; sourceTree = "<group>"; };
+		2B657A122C13E2A100F81AC7 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = "../Sparkle-1.13.1/Sparkle.framework"; sourceTree = "<group>"; };
+		2B657A152C13E94D00F81AC7 /* Sparkle-1.13.1 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Sparkle-1.13.1"; path = "../Sparkle-1.13.1"; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; explicitFileType = text; fileEncoding = 4; path = "javascript-errors.plist"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		4F1F155C1B0FCB11001C1591 /* OOCheckPListSyntaxVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckPListSyntaxVerifierStage.m; sourceTree = "<group>"; };
 		4F1F155E1B0FCB76001C1591 /* OOCheckPListSyntaxVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckPListSyntaxVerifierStage.h; sourceTree = "<group>"; };
@@ -1721,6 +1725,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B49E2002C323C4B006141B0 /* GLUT.framework in Frameworks */,
 				1AA0861618257A11007CCAEB /* OpenAL.framework in Frameworks */,
 				0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */,
 				0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */,
@@ -1735,7 +1740,6 @@
 				1AEA229E12CBD18600EC0F43 /* CoreServices.framework in Frameworks */,
 				1A27965012CCC09A00C9E94D /* libnspr4_for_oolite.a in Frameworks */,
 				1A78B5DA12D74CFF00D42EE7 /* libpng_for_oolite.a in Frameworks */,
-				1AE8837412EF91560075814F /* Sparkle.framework in Frameworks */,
 				1A033F91132687DC006F9DB7 /* Quartz.framework in Frameworks */,
 				1A54125114B892A200B8A4BE /* IOKit.framework in Frameworks */,
 			);
@@ -1749,7 +1753,6 @@
 			children = (
 				1AEA229D12CBD18600EC0F43 /* CoreServices.framework */,
 				1A033F90132687DC006F9DB7 /* Quartz.framework */,
-				1AE8837312EF91560075814F /* Sparkle.framework */,
 				0878FD2F086EF845004CB752 /* Carbon.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				06AFA01500A58FB77F000001 /* OpenGL.framework */,
@@ -3190,6 +3193,13 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2B49E1FF2C323C4B006141B0 /* GLUT.framework */,
+				2B49E1F82C323B78006141B0 /* GLKit.framework */,
+				2B657A152C13E94D00F81AC7 /* Sparkle-1.13.1 */,
+				2B657A122C13E2A100F81AC7 /* Sparkle.framework */,
+				2B657A102C13E28600F81AC7 /* bin */,
+				2B657A0E2C13E23D00F81AC7 /* Sparkle-1.13.1.tar.bz2 */,
+				2B657A0C2C13E0EC00F81AC7 /* Sparkle-1.13.1.zip */,
 				1AA0861518257A11007CCAEB /* OpenAL.framework */,
 				1A5D58811825241800C779AE /* MiniZip */,
 				1AB775FC12CA2E53001478BB /* libjs.xcodeproj */,
@@ -3474,7 +3484,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 08B31CAC08FE63D70038D42F /* Build configuration list for PBXNativeTarget "Oolite" */;
 			buildPhases = (
-				1AE8836A12EF90540075814F /* Update Sparkle */,
 				0865423606B8447D000CA0AB /* Headers */,
 				0865430306B8447D000CA0AB /* Sources */,
 				0865431B06B8447D000CA0AB /* Frameworks */,
@@ -3731,22 +3740,6 @@
 			shellPath = /bin/sh;
 			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/Schemata\"\n\nif [ $COPY_SCHEMATA ]\nthen\n\techo \"Copying schemata\"\n\t\n\tSRC_DIR=\"$SRCROOT/Schemata/\";\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n#\tfor item in `ls \"$SRC_DIR\"`\n#\tdo\n#\t\tcp \"$SRC_DIR/$item\" \"$TARGET_DIR/\"\n#\tdone\n#\trm \"$TARGET_DIR/README.txt\"\n\tcp \"$SRC_DIR/shipdataEntrySchema.plist\" \"$TARGET_DIR/\"\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
 			showEnvVarsInLog = 0;
-		};
-		1AE8836A12EF90540075814F /* Update Sparkle */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/deps/URLs/Sparkle.url",
-			);
-			name = "Update Sparkle";
-			outputPaths = (
-				"$(SRCROOT)/deps/Cocoa-deps/Sparkle/current.url",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/deps/Cocoa-deps/scripts\"\n./update-sparkle.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -4060,7 +4053,6 @@
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SRCROOT)/deps/Cocoa-deps/",
-					"$(SRCROOT)/deps/Cocoa-deps/Sparkle",
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
@@ -4087,7 +4079,15 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-DOSG_GL1_AVAILABLE::BOOL=0",
+					"-DOSG_GL2_AVAILABLE::BOOL=0",
+					"-DOSG_GL3_AVAILABLE::BOOL=1",
+					"-DOSG_GLES1_AVAILABLE:BOOL=0",
+					"-DOSG_GLES2_AVAILABLE::BOOL=0",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
 				SECTORDER_FLAGS = "";
@@ -4108,7 +4108,6 @@
 				"EXPORTED_SYMBOLS_FILE[arch=x86_64]" = "src/Cocoa/exports-release.exp";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SRCROOT)/deps/Cocoa-deps/",
-					"$(SRCROOT)/deps/Cocoa-deps/Sparkle",
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
@@ -4129,6 +4128,14 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CFLAGS = (
+					"-DOSG_GL1_AVAILABLE::BOOL=0",
+					"-DOSG_GL2_AVAILABLE::BOOL=0",
+					"-DOSG_GL3_AVAILABLE::BOOL=1",
+					"-DOSG_GLES1_AVAILABLE:BOOL=0",
+					"-DOSG_GLES2_AVAILABLE::BOOL=0",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
@@ -4170,6 +4177,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 			};
 			name = Debug;
@@ -4203,6 +4211,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = NO;
 			};
 			name = Deployment;
 		};
@@ -4216,7 +4226,6 @@
 				DEPS_INCLUDE_PATH = "$(SYMROOT)/$(CONFIGURATION)/include";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SRCROOT)/deps/Cocoa-deps/",
-					"$(SRCROOT)/deps/Cocoa-deps/Sparkle",
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 				);
 				GAME_RESOURCES_DIR = $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME/Contents/Resources;
@@ -4234,6 +4243,14 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_CFLAGS = (
+					"-DOSG_GL1_AVAILABLE::BOOL=0",
+					"-DOSG_GL2_AVAILABLE::BOOL=0",
+					"-DOSG_GL3_AVAILABLE::BOOL=1",
+					"-DOSG_GLES1_AVAILABLE:BOOL=0",
+					"-DOSG_GLES2_AVAILABLE::BOOL=0",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.aegidian.oolite;
 				PRODUCT_NAME = Oolite;
@@ -4273,6 +4290,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = NO;
 			};
 			name = TestRelease;
 		};

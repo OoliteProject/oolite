@@ -43,6 +43,13 @@ MA 02110-1301, USA.
 #define OOMOUSEWHEEL_EVENTS_DELAY_INTERVAL	0.05
 #define OOMOUSEWHEEL_DELTA	1.0
 
+#define MAX_COLOR_SATURATION 2.0f
+
+#define GL_CLAMP_VERTEX_COLOR_ARB   0x891A
+#define GL_CLAMP_FRAGMENT_COLOR_ARB 0x891B
+#define GL_CLAMP_VERTEX_COLOR       0x891A
+#define GL_CLAMP_FRAGMENT_COLOR     0x891B
+
 @class Entity, GameController;
 
 enum GameViewKeys
@@ -143,6 +150,7 @@ extern int debug;
 	
 	BOOL				m_glContextInitialized;
 	
+    BOOL                _msaa;
 	NSTimeInterval		timeIntervalAtLastClick;
 	NSTimeInterval		timeIntervalAtLastMouseWheel;
 	BOOL				doubleClick;
@@ -163,7 +171,8 @@ extern int debug;
 	NSData				*_pixelFormatAttributes;
 	
 	OOOpenGLMatrixManager		*matrixManager;
-
+    
+    float               _colorSaturation;
 }
 
 
@@ -180,6 +189,11 @@ extern int debug;
 - (GLfloat) display_z;
 - (GLfloat) x_offset;
 - (GLfloat) y_offset;
+
+- (float) colorSaturation;
+- (void) adjustColorSaturation:(float)colorSaturationAdjustment;
+- (void) setMsaa:(BOOL)newMsaa;
+- (BOOL) msaa;
 
 - (GameController *) gameController;
 - (void) setGameController:(GameController *) controller;

@@ -213,17 +213,32 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 - (void) reset
 {
 	const GLubyte		*versionString = NULL, *curr = NULL;
-	
 	DESTROY(extensions);
 	DESTROY(vendor);
 	DESTROY(renderer);
-	
+
+#if !OOLITE_MAC_OS_X
 	NSString *extensionsStr = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];
-	extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
-	
+    extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
+#else
+    int tot_ext;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &tot_ext);
+    NSMutableArray* exts = [[NSMutableArray alloc] init];
+    NSString *extensionsStr;
+    int i;
+    NSString* extstring;
+    for (i = 0; i < tot_ext; i++)
+    {
+        extstring = [[NSString alloc] initWithUTF8String:(const char *)glGetStringi(GL_EXTENSIONS, i)];
+        [exts addObject:extstring];
+        [extstring autorelease];
+    }
+    extensions = [[NSSet alloc] initWithArray:exts];
+    extensionsStr = [exts componentsJoinedByString:@" "];
+    [exts release];
+#endif
 	vendor = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_VENDOR)];
 	renderer = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_RENDERER)];
-	
 	versionString = glGetString(GL_VERSION);
 	if (versionString != NULL)
 	{
@@ -244,7 +259,6 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 			release = IntegerFromString(&curr);
 		}
 	}
-	
 	/*	For aesthetic reasons, cause the ResourceManager to initialize its
 	 search paths here. If we don't, the search path dump ends up in
 	 the middle of the OpenGL stuff.
@@ -574,7 +588,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 			return;
 		}
 	}	
-
+#if OOLITE_WINDOWS
 	NSString * const requiredExtension[] = 
 						{
 							@"GL_ARB_shading_language_100",
@@ -594,7 +608,8 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 			return;
 		}
 	}
-	
+#endif
+    
 #if OOLITE_WINDOWS
 	glGetObjectParameterivARB	=	(PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
 	glCreateShaderObjectARB		=	(PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");

@@ -92,8 +92,9 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 	{
 		// Specify that we want a windowed OpenGL context.
 		// Must be first or we'll hit an assert in the legacy fullscreen controller.
-		NSOpenGLPFAWindow,
-		
+		//NSOpenGLPFAWindow,
+        NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
+
 		// We may be on a multi-display system (and each screen may be driven by a different renderer), so we need to specify which screen we want to take over.
 		// For this demo, we'll specify the main screen.
 		NSOpenGLPFAScreenMask, CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay),
@@ -104,21 +105,21 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		NSOpenGLPFANoRecovery,
 		
 		// Attributes Common to FullScreen and non-FullScreen
-		NSOpenGLPFACompliant,
-		
+		//NSOpenGLPFACompliant,
 		NSOpenGLPFAColorSize, 32,
 		NSOpenGLPFADepthSize, 32,
 		NSOpenGLPFADoubleBuffer,
-		NSOpenGLPFAAccelerated,
+		//NSOpenGLPFAAccelerated,
 #if FSAA
 		// Need a preference or other sane way to activate this
 		NSOpenGLPFAMultisample,
 		NSOpenGLPFASampleBuffers, 1,
 		NSOpenGLPFASamples,4,
 #endif
-		0
+        0
 	};
-	
+    
+    _colorSaturation = 1.0f;
 	// Create our non-FullScreen pixel format.
 	NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
 	
@@ -147,7 +148,9 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		
 		_virtualScreen = [[self openGLContext] currentVirtualScreen];
 	}
-	
+    const GLubyte        *versionString = NULL;
+    versionString = glGetString(GL_VERSION);
+
 	// preload the printscreen key into our translation array because SDLK_PRINTSCREEN isn't available
 	scancode2Unicode[55] = gvPrintScreenKey;
 	[self initKeyMappingData];
@@ -182,6 +185,31 @@ static void UnapplyCursorState(OOMouseInteractionMode mode);
 		[keyMappings_shifted release];
 
 	[super dealloc];
+}
+
+
+- (float) colorSaturation
+{
+    return _colorSaturation;
+}
+
+
+- (void) adjustColorSaturation:(float)colorSaturationAdjustment
+{
+    _colorSaturation += colorSaturationAdjustment;
+    _colorSaturation = OOClamp_0_max_f(_colorSaturation, MAX_COLOR_SATURATION);
+}
+
+
+- (BOOL) msaa
+{
+    return _msaa;
+}
+
+
+- (void) setMsaa:(BOOL)newMsaa
+{
+    _msaa = !!newMsaa;
 }
 
 

@@ -36,8 +36,10 @@ MA 02110-1301, USA.
 // Apple OpenGL includes...
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
+#include <OpenGl/gl3.h>
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
+#include <OpenGL/gl3ext.h>
 
 #elif OOLITE_SDL
 
