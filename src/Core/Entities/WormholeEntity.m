@@ -40,6 +40,9 @@ MA 02110-1301, USA.
 #import "OOLoggingExtended.h"
 #import "OOSystemDescriptionManager.h"
 
+#define OO_WORMHOLE_COLOR_BOOST	3.0
+#define OO_WORMHOLE_COLOR_FVEC4	{ 0.0, 0.0, 1.0, 0.25 }
+
 // Hidden interface
 @interface WormholeEntity (Private)
 
@@ -712,7 +715,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		// for now, a simple copy of the energy bomb draw routine
 		float srzd = sqrt(cam_zero_distance);
 		
-		GLfloat	color_fv[4] = { 0.0, 0.0, 1.0, 0.25 };
+		GLfloat	color_fv[4] = OO_WORMHOLE_COLOR_FVEC4;
 		
 		OOSetOpenGLState(OPENGL_STATE_TRANSLUCENT_PASS);
 		OOGL(glDisable(GL_CULL_FACE));
@@ -759,8 +762,6 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	OOGLBEGIN(GL_TRIANGLE_STRIP);
 		for (i = 0; i < 360; i += step )
 		{
-			theta += delta;
-			
 			rv0 = randf();
 			rv1 = randf();
 			
@@ -773,9 +774,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 			s1 = r1 * sin(theta - halfStep) * 0.5 * (1.0 + rv1);
 			c1 = r1 * cos(theta - halfStep) * 0.5 * (1.0 + rv1);
-			glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
+			glColor4f(col4v1[0] * OO_WORMHOLE_COLOR_BOOST, col4v1[1] * OO_WORMHOLE_COLOR_BOOST, col4v1[2] * OO_WORMHOLE_COLOR_BOOST, col4v1[3] * rv0);
 			glVertex3f(s1, c1, 0.0);
 			
+			theta += delta;
 		}
 		// repeat last values to close
 		rv0 = randf();
@@ -790,7 +792,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 		s1 = r1 * sin(halfStep) * 0.5 * (1.0 + rv1);
 		c1 = r1 * cos(halfStep) * 0.5 * (1.0 + rv1);
-		glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
+		glColor4f(col4v1[0] * OO_WORMHOLE_COLOR_BOOST, col4v1[1] * OO_WORMHOLE_COLOR_BOOST, col4v1[2] * OO_WORMHOLE_COLOR_BOOST, col4v1[3] * rv0);
 		glVertex3f(s1, c1, 0.0);
 	OOGLEND();
 }

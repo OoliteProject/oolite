@@ -1191,7 +1191,7 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 		if (tempResult == ERROR_SUCCESS)  isAdvColorInfo2DetectionSuccess = YES;
 		else
 		{
-			OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Reeived 0x%08X while attempting to detect HDR mode using Advanced Color Info 2 API. Retrying detection using legacy API.", HRESULT_FROM_WIN32(tempResult));
+			OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Received 0x%08X while attempting to detect HDR mode using Advanced Color Info 2 API. Retrying detection using legacy API.", HRESULT_FROM_WIN32(tempResult));
 			// no return, just fall through and try again using standard advanced color info api
 		}
 		
