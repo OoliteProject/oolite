@@ -40,8 +40,8 @@ MA 02110-1301, USA.
 #import "OOLoggingExtended.h"
 #import "OOSystemDescriptionManager.h"
 
-#define OO_WORMHOLE_COLOR_BOOST	3.0
-#define OO_WORMHOLE_COLOR_FVEC4	{ 0.0, 0.0, 1.0, 0.25 }
+#define OO_WORMHOLE_COLOR_BOOST	25.0
+#define OO_WORMHOLE_COLOR_FVEC4	{ 0.067, 0.067, 1.0, 0.25 }
 
 // Hidden interface
 @interface WormholeEntity (Private)
@@ -723,10 +723,11 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		
 		OOGL(glColor4fv(color_fv));
 		OOGLBEGIN(GL_TRIANGLE_FAN);
-			GLDrawBallBillboard(collision_radius, 4, srzd);
+			GLDrawBallBillboard(0.45 * collision_radius, 4, srzd);
 		OOGLEND();
 				
-		DrawWormholeCorona(0.67 * collision_radius, collision_radius, 4, srzd, color_fv);
+		color_fv[3] = fmin(color_fv[3] * 2.0, 1.0);
+		DrawWormholeCorona(0.45 * collision_radius, collision_radius, 4, srzd, color_fv);
 					
 		OOGL(glEnable(GL_CULL_FACE));
 		OOGL(glDisable(GL_BLEND));
