@@ -52,9 +52,28 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 #include <ctype.h>
 
 #if OOLITE_WINDOWS
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
 #define DWMWA_USE_IMMERSIVE_DARK_MODE	20
-HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
 #endif
+HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
+#define USE_UNDOCUMENTED_DARKMODE_API	1
+
+#if USE_UNDOCUMENTED_DARKMODE_API
+#ifndef LOAD_LIBRARY_SEARCH_SYSTEM32
+#define LOAD_LIBRARY_SEARCH_SYSTEM32	0x00000800
+#endif
+typedef DWORD(WINAPI* pfnSetPreferredAppMode)(DWORD appMode);
+enum PreferredAppMode
+{
+    Default,
+    AllowDark,
+    ForceDark,
+    ForceLight,
+    Max
+};
+#endif
+#endif //OOLITE_WINDOWS
 
 @interface MyOpenGLView (OOPrivate)
 
@@ -250,7 +269,19 @@ HRESULT WINAPI DwmSetWindowAttribute (HWND hwnd, DWORD dwAttribute, LPCVOID pvAt
 	}
 
 	atDesktopResolution = YES;
+	
+#if USE_UNDOCUMENTED_DARKMODE_API
+	// dark mode stuff - this is mainly for the winodw titlebar's context menu
+	HMODULE hUxTheme = LoadLibraryExW(L"uxtheme.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+	if (hUxTheme)
+	{
+		// hack alert! ordinal 135 is undocumented and could change in a future version of Windows
+		pfnSetPreferredAppMode SetPreferredAppMode = (pfnSetPreferredAppMode)GetProcAddress(hUxTheme, MAKEINTRESOURCEA(135));
+		if (SetPreferredAppMode)  SetPreferredAppMode(AllowDark);
+		FreeLibrary(hUxTheme);
+	}
 #endif
+#endif //OOLITE_WINDOWS
 
 	grabMouseStatus = NO;
 
