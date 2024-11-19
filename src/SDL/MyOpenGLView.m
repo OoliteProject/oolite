@@ -427,6 +427,10 @@ enum PreferredAppMode
 
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 	mouseWarped = NO;
+	
+	_mouseVirtualStickSensitivityFactor = OOClamp_0_1_f([prefs oo_floatForKey:@"mouse-flight-sensitivity" defaultValue:0.95f]);
+	// ensure no chance of a divide by zero later on
+	if (_mouseVirtualStickSensitivityFactor < 0.005f)  _mouseVirtualStickSensitivityFactor = 0.005f;
 
 	typedString = [[NSMutableString alloc] initWithString:@""];
 	allowingStringInput = gvStringInputNo;
@@ -2057,8 +2061,8 @@ enum PreferredAppMode
 	SDL_MouseButtonEvent	*mbtn_event;
 	SDL_MouseMotionEvent	*mmove_event;
 	int						mxdelta, mydelta;
-	float					mouseVirtualStickSensitivityX = viewSize.width * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
-	float					mouseVirtualStickSensitivityY = viewSize.height * MOUSEVIRTUALSTICKSENSITIVITYFACTOR;
+	float					mouseVirtualStickSensitivityX = viewSize.width * _mouseVirtualStickSensitivityFactor;
+	float					mouseVirtualStickSensitivityY = viewSize.height * _mouseVirtualStickSensitivityFactor;
 	NSTimeInterval			timeNow = [NSDate timeIntervalSinceReferenceDate];
 	Uint16 					key_id;
 	int						scan_code;
@@ -2163,7 +2167,7 @@ enum PreferredAppMode
 				// annoyingly fatal in battle).
 				if(mouseInDeltaMode)
 				{
-					// possible TODO - make virtual stick sensitivity configurable
+					// note: virtual stick sensitivity is configurable
 					SDL_GetRelativeMouseState(&mxdelta, &mydelta);
 					double mxd=(double)mxdelta / mouseVirtualStickSensitivityX;
 					double myd=(double)mydelta / mouseVirtualStickSensitivityY;

@@ -46,7 +46,6 @@ MA 02110-1301, USA.
 
 #define MAX_COLOR_SATURATION	2.0f
 
-#define MOUSEVIRTUALSTICKSENSITIVITYFACTOR	0.95f
 #define MOUSEX_MAXIMUM 0.6
 #define MOUSEY_MAXIMUM 0.6
 
@@ -177,6 +176,8 @@ extern int debug;
 	NSMutableString		*typedString;
 
 	NSPoint				virtualJoystickPosition;
+	
+	float				_mouseVirtualStickSensitivityFactor;
 
 	NSSize				viewSize;
 	GLfloat				display_z;
