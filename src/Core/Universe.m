@@ -4802,8 +4802,7 @@ static const OOMatrix	starboard_matrix =
 - (void) drawUniverse
 {
 	int currentPostFX = [self currentPostFX];
-	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || (currentPostFX == OO_POSTFX_CLOAK && [self colorblindMode] == OO_POSTFX_NONE));
-	NSSize  viewSize = [gameView viewSize];
+	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || ((currentPostFX == OO_POSTFX_CLOAK || currentPostFX == OO_POSTFX_CRTBADSIGNAL) && [self colorblindMode] == OO_POSTFX_NONE));
 	OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
 	
 	if (!no_update)
