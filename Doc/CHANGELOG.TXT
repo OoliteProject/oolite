@@ -54,6 +54,7 @@ General:
   confusion.
 * Updated the wormhole cloud effect.
 * Mouse flight sensitivity made configurable by editing the preferences file.
+* Implemented new ECM visual effect.
 
 Expansion Pack Development:
 ===========================
