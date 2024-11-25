@@ -745,7 +745,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOLog(@"MSAA.setup", @"Multisample anti-aliasing %@requested.", [inGameView msaa] ? @"" : @"not ");
 	[inGameView setFov:OOClamp_0_max_f([prefs oo_floatForKey:@"fov-value" defaultValue:57.2f], MAX_FOV_DEG) fromFraction:NO];
 	if ([inGameView fov:NO] < MIN_FOV_DEG)  [inGameView setFov:MIN_FOV_DEG fromFraction:NO];
-	
+
+ 	[self setECMVisualFXEnabled:[prefs oo_boolForKey:@"ecm-visual-fx" defaultValue:YES]];
+  	
 	// Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
@@ -7381,6 +7383,18 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 }
 #endif
+
+
+- (BOOL) ECMVisualFXEnabled
+{
+	return ECMVisualFXEnabled;
+}
+
+
+- (void) setECMVisualFXEnabled:(BOOL)isEnabled
+{
+	ECMVisualFXEnabled = isEnabled;
+}
 
 
 - (void) filterSortedLists
