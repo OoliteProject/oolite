@@ -314,6 +314,8 @@ enum
 #ifndef NDEBUG
 	double					timeAccelerationFactor;
 #endif
+
+	BOOL					ECMVisualFXEnabled;
 	
 	NSMutableArray			*activeWormholes;
 	
@@ -644,6 +646,9 @@ enum
 // Time Acelleration Factor. In deployment builds, this is always 1.0 and -setTimeAccelerationFactor: does nothing.
 - (double) timeAccelerationFactor;
 - (void) setTimeAccelerationFactor:(double)newTimeAccelerationFactor;
+
+- (BOOL) ECMVisualFXEnabled;
+- (void) setECMVisualFXEnabled:(BOOL)isEnabled;
 
 - (void) filterSortedLists;
 
