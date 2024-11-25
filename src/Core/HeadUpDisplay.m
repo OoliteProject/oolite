@@ -1323,7 +1323,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				relativePosition = [PLAYER vectorTo:scannedEntity];
 				double fuzz = [PLAYER scannerFuzziness];
-    				if ([UNIVERSE useShaders])
+    				if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled])
 				{
     					// we want to start and stop the effect exactly once, not start it
 	 				// or stop it on every frame
@@ -1499,7 +1499,7 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 		}
 		
 	}
- 	else if ([UNIVERSE useShaders] && gettingInterference)
+ 	else if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled] && gettingInterference)
 	{
 		// no ECM interference fx if we are docking
 		[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
