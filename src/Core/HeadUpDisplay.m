@@ -1188,8 +1188,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 	BOOL			isHostile = NO;
 
  	BOOL			inColorBlindMode = [UNIVERSE colorblindMode] != OO_POSTFX_NONE;
-
-   	static BOOL		gettingInterference = NO;
 	
 	if (emptyDial)
 	{
@@ -1323,28 +1321,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 				
 				relativePosition = [PLAYER vectorTo:scannedEntity];
 				double fuzz = [PLAYER scannerFuzziness];
-    				if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled])
-				{
-    					// we want to start and stop the effect exactly once, not start it
-	 				// or stop it on every frame
-					if (fuzz > 0.0)
-					{
-						if (!gettingInterference)
-						{
-							[UNIVERSE setCurrentPostFX:OO_POSTFX_CRTBADSIGNAL];
-							gettingInterference = YES;
-						}
-					}
-					else
-					{
-						if (gettingInterference)
-						{
-							[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
-							gettingInterference = NO;
-						}
-					}
-				}
-    				
 				if (fuzz > 0 && ![[UNIVERSE gameController] isGamePaused])
 				{
 					relativePosition = vector_add(relativePosition,OOVectorRandomRadial(fuzz));
@@ -1498,11 +1474,6 @@ static void prefetchData(NSDictionary *info, struct CachedInfo *data)
 			}
 		}
 		
-	}
- 	else if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled] && gettingInterference)
-	{
-		// no ECM interference fx if we are docking
-		[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
 	}
 	
 	for (i = 0; i < ent_count; i++)
