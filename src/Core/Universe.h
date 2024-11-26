@@ -383,6 +383,7 @@ enum
 
 - (int) currentPostFX;
 - (void) setCurrentPostFX: (int) newCurrentPostFX;
+- (void) terminatePostFX:(int) postFX;
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
 
