@@ -308,6 +308,15 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	_currentPostFX = newCurrentPostFX;
 }
 
+
+- (void) terminatePostFX:(int)postFX
+{
+	if ([self currentPostFX] == postFX)
+	{
+		[self setCurrentPostFX:[self colorblindMode]];
+	}
+}
+
 - (int) nextColorblindMode:(int) index
 {
 	if (++index > OO_POSTFX_COLORBLINDNESS_TRITAN)
