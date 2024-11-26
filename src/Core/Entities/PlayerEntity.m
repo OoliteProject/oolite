@@ -3955,6 +3955,12 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		[self docked];		// bookkeeping for docking
 	}
+
+  	// if ecm visual effect is playing while docking, terminate it
+	if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled] && [UNIVERSE currentPostFX] == OO_POSTFX_CRTBADSIGNAL)
+	{
+		[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
+	}
 }
 
 
