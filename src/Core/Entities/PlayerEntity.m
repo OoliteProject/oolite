@@ -2839,7 +2839,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			if (gettingInterference)
 			{
-				[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
+				[UNIVERSE terminatePostFX:OO_POSTFX_CRTBADSIGNAL];
 				gettingInterference = NO;
 			}
 		}	
@@ -3956,16 +3956,17 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		[self docked];		// bookkeeping for docking
 	}
 
-  	// if ecm visual effect is playing while docking, terminate it
-	if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled] && [UNIVERSE currentPostFX] == OO_POSTFX_CRTBADSIGNAL)
-	{
-		[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
-	}
+  	// if cloak or ecm visual effects are playing while docking, terminate them
+	[UNIVERSE terminatePostFX:OO_POSTFX_CLOAK];
+	if ([UNIVERSE ECMVisualFXEnabled])  [UNIVERSE terminatePostFX:OO_POSTFX_CRTBADSIGNAL];
 }
 
 
 - (void) performDeadUpdates:(OOTimeDelta)delta_t
 {
+	[UNIVERSE terminatePostFX:OO_POSTFX_CLOAK];
+	if ([UNIVERSE ECMVisualFXEnabled])  [UNIVERSE terminatePostFX:OO_POSTFX_CRTBADSIGNAL];
+ 	
 	[self gameOverFadeToBW];
 	
 	if ([self shotTime] > kDeadResetTime)
@@ -6086,7 +6087,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (![self hasCloakingDevice])  return;
 
 	[super deactivateCloakingDevice];
-	[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
+	[UNIVERSE terminatePostFX:OO_POSTFX_CLOAK];
 	[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
 	[self playCloakingDeviceOff];
 }
