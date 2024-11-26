@@ -2725,6 +2725,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	STAGE_TRACKING_BEGIN
 	
 	double speed_delta = SHIP_THRUST_FACTOR * thrust;
+
+  	static BOOL		gettingInterference = NO;
 	
 	OOSunEntity	*sun = [UNIVERSE sun];
 	double		external_temp = 0;
@@ -2818,6 +2820,29 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			ecm_in_operation = NO;
 		}
+	}
+
+  	// ecm interference visual effect
+	if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled])
+	{
+		// we want to start and stop the effect exactly once, not start it
+		// or stop it on every frame
+		if ([self scannerFuzziness] > 0.0)
+		{
+			if (!gettingInterference)
+			{
+				[UNIVERSE setCurrentPostFX:OO_POSTFX_CRTBADSIGNAL];
+				gettingInterference = YES;
+			}
+		}
+		else
+		{
+			if (gettingInterference)
+			{
+				[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
+				gettingInterference = NO;
+			}
+		}	
 	}
 	
 	// Energy Banks and Shields
