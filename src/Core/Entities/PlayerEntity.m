@@ -2725,6 +2725,8 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	STAGE_TRACKING_BEGIN
 	
 	double speed_delta = SHIP_THRUST_FACTOR * thrust;
+
+  	static BOOL		gettingInterference = NO;
 	
 	OOSunEntity	*sun = [UNIVERSE sun];
 	double		external_temp = 0;
@@ -2818,6 +2820,29 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 		{
 			ecm_in_operation = NO;
 		}
+	}
+
+  	// ecm interference visual effect
+	if ([UNIVERSE useShaders] && [UNIVERSE ECMVisualFXEnabled])
+	{
+		// we want to start and stop the effect exactly once, not start it
+		// or stop it on every frame
+		if ([self scannerFuzziness] > 0.0)
+		{
+			if (!gettingInterference)
+			{
+				[UNIVERSE setCurrentPostFX:OO_POSTFX_CRTBADSIGNAL];
+				gettingInterference = YES;
+			}
+		}
+		else
+		{
+			if (gettingInterference)
+			{
+				[UNIVERSE terminatePostFX:OO_POSTFX_CRTBADSIGNAL];
+				gettingInterference = NO;
+			}
+		}	
 	}
 	
 	// Energy Banks and Shields
@@ -3930,11 +3955,18 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	{
 		[self docked];		// bookkeeping for docking
 	}
+
+  	// if cloak or ecm visual effects are playing while docking, terminate them
+	[UNIVERSE terminatePostFX:OO_POSTFX_CLOAK];
+	if ([UNIVERSE ECMVisualFXEnabled])  [UNIVERSE terminatePostFX:OO_POSTFX_CRTBADSIGNAL];
 }
 
 
 - (void) performDeadUpdates:(OOTimeDelta)delta_t
 {
+	[UNIVERSE terminatePostFX:OO_POSTFX_CLOAK];
+	if ([UNIVERSE ECMVisualFXEnabled])  [UNIVERSE terminatePostFX:OO_POSTFX_CRTBADSIGNAL];
+ 	
 	[self gameOverFadeToBW];
 	
 	if ([self shotTime] > kDeadResetTime)
@@ -6055,7 +6087,7 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	if (![self hasCloakingDevice])  return;
 
 	[super deactivateCloakingDevice];
-	[UNIVERSE setCurrentPostFX:[UNIVERSE colorblindMode]];
+	[UNIVERSE terminatePostFX:OO_POSTFX_CLOAK];
 	[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
 	[self playCloakingDeviceOff];
 }
@@ -6066,11 +6098,15 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 - (double) scannerFuzziness
 {
 	double fuzz = 0.0;
+	
 	/* Fuzziness from ECM bursts */
-	double since = [UNIVERSE getTime] - last_ecm_time;
-	if (since < SCANNER_ECM_FUZZINESS)
+	if (last_ecm_time > 0.0)
 	{
-		fuzz += (SCANNER_ECM_FUZZINESS - since) * (SCANNER_ECM_FUZZINESS - since) * 500.0;
+		double since = [UNIVERSE getTime] - last_ecm_time;
+		if (since < SCANNER_ECM_FUZZINESS)
+		{
+			fuzz += (SCANNER_ECM_FUZZINESS - since) * (SCANNER_ECM_FUZZINESS - since) * 500.0;
+		}
 	}
 	/* Other causes could go here */
 	

@@ -308,6 +308,15 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	_currentPostFX = newCurrentPostFX;
 }
 
+
+- (void) terminatePostFX:(int)postFX
+{
+	if ([self currentPostFX] == postFX)
+	{
+		[self setCurrentPostFX:[self colorblindMode]];
+	}
+}
+
 - (int) nextColorblindMode:(int) index
 {
 	if (++index > OO_POSTFX_COLORBLINDNESS_TRITAN)
@@ -745,7 +754,9 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	OOLog(@"MSAA.setup", @"Multisample anti-aliasing %@requested.", [inGameView msaa] ? @"" : @"not ");
 	[inGameView setFov:OOClamp_0_max_f([prefs oo_floatForKey:@"fov-value" defaultValue:57.2f], MAX_FOV_DEG) fromFraction:NO];
 	if ([inGameView fov:NO] < MIN_FOV_DEG)  [inGameView setFov:MIN_FOV_DEG fromFraction:NO];
-	
+
+ 	[self setECMVisualFXEnabled:[prefs oo_boolForKey:@"ecm-visual-fx" defaultValue:YES]];
+  	
 	// Set up speech synthesizer.
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
@@ -4802,8 +4813,8 @@ static const OOMatrix	starboard_matrix =
 - (void) drawUniverse
 {
 	int currentPostFX = [self currentPostFX];
-	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || (currentPostFX == OO_POSTFX_CLOAK && [self colorblindMode] == OO_POSTFX_NONE));
-	NSSize  viewSize = [gameView viewSize];
+	BOOL hudSeparateRenderPass =  [self useShaders] && (currentPostFX == OO_POSTFX_NONE || ((currentPostFX == OO_POSTFX_CLOAK || currentPostFX == OO_POSTFX_CRTBADSIGNAL) && [self colorblindMode] == OO_POSTFX_NONE));
+ 	NSSize  viewSize = [gameView viewSize];
 	OOLog(@"universe.profile.draw", @"%@", @"Begin draw");
 	
 	if (!no_update)
@@ -7381,6 +7392,18 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 {
 }
 #endif
+
+
+- (BOOL) ECMVisualFXEnabled
+{
+	return ECMVisualFXEnabled;
+}
+
+
+- (void) setECMVisualFXEnabled:(BOOL)isEnabled
+{
+	ECMVisualFXEnabled = isEnabled;
+}
 
 
 - (void) filterSortedLists

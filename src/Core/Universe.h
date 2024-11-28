@@ -95,6 +95,7 @@ enum
 	OO_POSTFX_GRAYSCALE,
 	OO_POSTFX_OLDMOVIE,
 	OO_POSTFX_CRT,
+	OO_POSTFX_CRTBADSIGNAL,
 	OO_POSTFX_ENDOFLIST	// keep this for last
 };
 
@@ -313,6 +314,8 @@ enum
 #ifndef NDEBUG
 	double					timeAccelerationFactor;
 #endif
+
+	BOOL					ECMVisualFXEnabled;
 	
 	NSMutableArray			*activeWormholes;
 	
@@ -380,6 +383,7 @@ enum
 
 - (int) currentPostFX;
 - (void) setCurrentPostFX: (int) newCurrentPostFX;
+- (void) terminatePostFX:(int) postFX;
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
 
@@ -643,6 +647,9 @@ enum
 // Time Acelleration Factor. In deployment builds, this is always 1.0 and -setTimeAccelerationFactor: does nothing.
 - (double) timeAccelerationFactor;
 - (void) setTimeAccelerationFactor:(double)newTimeAccelerationFactor;
+
+- (BOOL) ECMVisualFXEnabled;
+- (void) setECMVisualFXEnabled:(BOOL)isEnabled;
 
 - (void) filterSortedLists;
 
