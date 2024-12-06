@@ -89,6 +89,18 @@ apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopena
 ```
 - Other distros will likely have similar packages available in their repositories. If you find out which packages to install on another Linux distribution, it would be really nice if you could add them here.
 
+- openSUSE Tumbleweed
+
+Dependencies
+```bash
+sudo zypper install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc mozilla-nspr-devel sdl12_compat_devel SDL2-devel gnustep-base-devel gnustep-make
+```
+Build
+```bash
+source /usr/share/GNUstep/Makefiles/GNUstep.sh
+make -f Makefile release -j${nproc}
+```
+
 #### First fetch all the git submodules
 ```bash
 cp .absolute_gitmodules .gitmodules
