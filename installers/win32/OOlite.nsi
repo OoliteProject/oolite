@@ -59,7 +59,7 @@ SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
 OutFile "${OUTDIR}\OoliteInstall-${VER}-win${EXTVER}.exe"
-BrandingText "(C) 2003-2024 Giles Williams, Jens Ayton and contributors"
+BrandingText "(C) 2003-2025 Giles Williams, Jens Ayton and contributors"
 Name "Oolite"
 Caption "Oolite ${VER}${EXTVER} Setup"
 SubCaption 0 " "
@@ -81,7 +81,7 @@ RequestExecutionLevel user
 
 VIAddVersionKey "ProductName" "Oolite"
 VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
-VIAddVersionKey "LegalCopyright" "© 2003-2024 Giles Williams, Jens Ayton and contributors"
+VIAddVersionKey "LegalCopyright" "© 2003-2025 Giles Williams, Jens Ayton and contributors"
 VIAddVersionKey "FileVersion" "${VER}"
 VIAddVersionKey "ProductVersion" "${VER}"
 !ifdef SNAPSHOT

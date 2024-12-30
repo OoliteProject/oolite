@@ -1,4 +1,4 @@
-Copyright © 2004-2024 Giles C Williams and contributors.
+Copyright © 2004-2025 Giles C Williams and contributors.
 
 This work is licensed under the GNU General Public License version 2.
 
