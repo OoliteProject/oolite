@@ -88,7 +88,7 @@ MA 02110-1301, USA.
 
 
 #define OOJS_STACK_SIZE				8192
-#define OOJS_RUNTIME_SIZE_MiB			32
+#define OOJS_RUNTIME_SIZE_MiB			256
 
 
 static OOJavaScriptEngine	*sSharedEngine = nil;
