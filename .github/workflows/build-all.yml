@@ -6,7 +6,7 @@ on:
 
 jobs:
   common-steps:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: install all the necessary packages
         run: |
@@ -63,7 +63,7 @@ jobs:
            npx eslint . || echo Ignore problems and continue
 
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [common-steps]
     strategy:
       matrix:
@@ -199,7 +199,7 @@ jobs:
           retention-days: 5
 
   build-doxygen:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [common-steps]
     steps:
       - name: install all the necessary packages
@@ -318,7 +318,7 @@ jobs:
 
   release:
     needs: [build-linux, build-windows, build-doxygen]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -392,7 +392,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build-doxygen
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/master'
 
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
