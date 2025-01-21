@@ -2782,7 +2782,7 @@ static int shipsFound;
 		
 #if NEW_PLANETS
 		OOPlanetEntity *originalPlanet = nil;
-		if ([i_key isEqualToString:@"local-planet"])
+		if ([i_key isEqualToString:@"local-planet"] && [UNIVERSE sun])
 		{
 			originalPlanet = [UNIVERSE planet];
 		}
