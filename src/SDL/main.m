@@ -156,6 +156,7 @@ int main(int argc, char *argv[])
 #endif
 							"-load [filepath]"TABS2"Load commander from [filepath]\n"
 							"-message [messageString]"TABS1"Display [messageString] at startup\n"
+							"-nodust    "TABS2 TABS4"Do not draw space dust\n"
 							"-noshaders"TABS2 TABS4"Start up with shaders disabled\n"
 							"-nosplash    "TABS2 TABS4"Force disable splash screen on startup\n"
 							"-nosound    "TABS2 TABS4"Start up with sound disabled\n"

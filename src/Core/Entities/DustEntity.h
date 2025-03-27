@@ -41,8 +41,9 @@ MA 02110-1301, USA.
 	Vector				vertices[DUST_N_PARTICLES * 2];
 	GLushort			indices[DUST_N_PARTICLES * 2];
 	GLfloat				color_fv[4];
-	OOTexture     *texture;
-	bool          hasPointSprites;
+	OOTexture			*texture;
+	bool				hasPointSprites;
+	bool				drawDust;
 	
 #if OO_SHADERS
 	GLfloat				warpinessAttr[DUST_N_PARTICLES * 2];
