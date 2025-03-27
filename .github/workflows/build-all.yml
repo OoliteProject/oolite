@@ -312,7 +312,7 @@ jobs:
           retention-days: 5
 
       - name: Upload github pages artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: oolite/doxygen/html
 
