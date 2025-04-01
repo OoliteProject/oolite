@@ -387,21 +387,21 @@ jobs:
           retain_days: 30
           keep_minimum_runs: 8
 
-#  deploySite:
-#    environment:
-#      name: github-pages
-#      url: ${{ steps.deployment.outputs.page_url }}
-#    needs: build-doxygen
-#    runs-on: ubuntu-22.04
-#    if: github.ref == 'refs/heads/master'
+  deploySite:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build-doxygen
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/master'
 
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-#    permissions:
-#      contents: read
-#      pages: write
-#      id-token: write
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
-#    steps:
-#      - name: Deploy to GitHub Pages
-#        id: deployment
-#        uses: actions/deploy-pages@v2
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
