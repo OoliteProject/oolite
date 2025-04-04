@@ -1954,6 +1954,9 @@ NSComparisonResult marketSorterByMassUnit(id a, id b, void *market);
 	}
 #endif
 
+	// make sure extraGuiScreenKeys is clear
+	DESTROY(extraGuiScreenKeys);
+
 	[[GameController sharedController] logProgress:OOExpandKeyRandomized(@"loading-miscellany")];
 	
 	// if there is cargo remaining from previously (e.g. a game restart), remove it
