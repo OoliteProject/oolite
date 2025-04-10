@@ -33,6 +33,11 @@ SOFTWARE.
 
 #if OO_OXP_VERIFIER_ENABLED
 
+#if OOLITE_WINDOWS
+#include <shlwapi.h>
+#include <tchar.h>
+#endif
+
 #import "OOOXPVerifierStageInternal.h"
 #import "OOLoggingExtended.h"
 #import "ResourceManager.h"
@@ -733,8 +738,24 @@ static void OpenLogFile(NSString *name)
 #if OOLITE_MAC_OS_X
 		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
 #elif OOLITE_WINDOWS
-		// start wordpad (for historical reasons wordpad is called write from the command prompt)
-		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] UTF8String]);
+		// identify the application set by the OS as the default app for opening .log files
+		// in case anything goes wrong, fall back to opening the log file in Motepad
+		DWORD dwSize = MAX_PATH;
+		TCHAR applicationPath[MAX_PATH] = TEXT("notepad");
+		HRESULT hr = AssocQueryString (0, //ASSOCF_NONE	
+						ASSOCSTR_EXECUTABLE,
+						_T(".log"),
+						_T("open"),
+						applicationPath,
+						&dwSize);
+						
+		if (FAILED (hr))
+		{
+			OOLog(@"OXP Verifier", @"Could not find application for opening .log files - using Notepad by default.");
+		}
+		
+		// open the log file
+		system([[NSString stringWithFormat:@"start \"\" \"%s\" \"Logs\\%@.log\"", applicationPath, name] UTF8String]);
 #elif  OOLITE_LINUX
 		// MKW - needed to suppress 'ignoring return value' warning for system() call
 		//		int ret;
