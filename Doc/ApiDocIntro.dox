@@ -8,13 +8,15 @@
  * to related information make getting along much easier.
  *
  * In the top of the page you can find the project and version this documentation
- * was created for. In the menu bar below you see three entries.
+ * was created for. In the menu bar below you see four entries.
  *
- * Currently you are reading the main page. The next section 'Classes' allows you
- * to quickly browse the classes used in the project. Alhpabetically, but also
- * graphically through class inheritance diagrams. The 'Files' section allows
- * you to navigate not by class name but by source code location. Use whichever
- * way feels more comfortable for your use case.
+ * Currently you are reading the main page. The next section 'Topics' leads to 
+ * special pages for different topics.
+ * The section 'Classes' allows you to quickly browse the classes used in the 
+ * project. Alhpabetically, but also graphically through class inheritance
+ * diagrams. The 'Files' section allows you to navigate not by class name but by
+ * source code location. Use whichever way feels more comfortable for your use
+ * case.
  *
  * Once you found the class/file of interest, read that page and also look for
  * sections that can be expanded. Here you find inheritance and collaboration
@@ -49,6 +51,7 @@
  * recognize - and this is a small change only.
  *
  * This entry page can be found under Doc/ApiDocIntro.dox.
+ * The current state can be seen in the <a href="coverage/index.html">Documentation Coverage Report</a>.
  *
  * See more at 
  * <a href="https://www.doxygen.nl/manual/docblocks.html">Documenting the code</a>
@@ -69,4 +72,11 @@
   * The command line is parsed and interpreted at various locations in the code.
   * Here are the known functions that participate on cli arguments.
   * 
+  */
+  
+ /**
+  * \defgroup coverage Code Coverage Report
+  * This documentation is created using Doxygen. On top of that
+  * there is a <a href="coverage/index.html">Documentation Coverage Report</a> 
+  * available that was generated using coverxygen.
   */
