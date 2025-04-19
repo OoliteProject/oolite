@@ -3301,6 +3301,8 @@
 			"oolite_rock_hermit_diffuse.png" = 
 			{ 
 				gloss = 0.5;
+				normal_map = "oolite_rock_hermit_normal.png";
+				specular_map = "oolite_rock_hermit_specular.png";
 				specular_color = (0.25, 0.25, 0.25);
 				shininess = 42; 
 				emission_map = 
