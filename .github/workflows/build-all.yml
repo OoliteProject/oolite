@@ -1,3 +1,4 @@
+---
 name: build-all
 
 on:
@@ -131,7 +132,7 @@ jobs:
     needs: [common-steps]
     strategy:
       matrix:
-        flavour: [pkg-win-snapshot,pkg-win-deployment,pkg-win]
+        flavour: [pkg-win-snapshot, pkg-win-deployment, pkg-win]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables
@@ -205,7 +206,8 @@ jobs:
       - name: install all the necessary packages
         run: |
           sudo apt update
-          sudo apt -y install graphviz
+          sudo apt -y install graphviz lcov
+          sudo pip3 install coverxygen
 
       - name: Checkout Oolite
         uses: actions/checkout@v4
@@ -277,22 +279,25 @@ jobs:
         run: |
           find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
-      #- name: Run doxygen
-      #  uses: mattnotmitt/doxygen-action@v1.9.5
-      #  with:
-      #    working-directory: oolite
-      
+      # - name: Run doxygen
+      #   uses: mattnotmitt/doxygen-action@v1.9.5
+      #   with:
+      #     working-directory: oolite
+
       - name: Run Doxygen
         run: |
           echo Downloaded: ${{ fromJson(steps.download-doxygen.outputs.downloaded_files)[0] }}
           cd oolite
           ../doxygen/doxygen-*/bin/doxygen
+          python3 -m coverxygen --verbose --xml-dir doxygen/xml --src-dir . --output doxygen/coverxygen.info
+          mkdir -p doxygen/html/coverage
+          genhtml doxygen/coverxygen.info -o doxygen/html/coverage
 
-      ## This is for debugging only and helps developing the workflow.
-      # - name: Environment Variables 1
-      #  run: |
-      #    printenv | sort
-      #    find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
+      # This is for debugging only and helps developing the workflow.
+      - name: Environment Variables 1
+        run: |
+          printenv | sort
+          find . -not -path "./oolite/deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
       - name: create tar ball
         run: |
