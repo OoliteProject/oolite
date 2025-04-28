@@ -1578,6 +1578,7 @@ this._addSmuggler = function(pos)
 this._addLightHunter = function(pos)
 {
 	var h = this._addGroup("hunter",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+2,pos,2E3);
+	if (!h) return;
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
@@ -1701,6 +1702,7 @@ this._addIndependentPirate = function(pos)
 		size = 1+Math.floor(Math.random()*size);
 	}
 	var pg = this._addGroup("pirate",size,pos,2.5E3);
+	if (!pg) return;
 	for (var i=0;i<size;i++)
 	{
 		pg.ships[i].setBounty(20+system.info.government+size+Math.floor(Math.random()*8),"setup actions");
@@ -1955,6 +1957,7 @@ this._addAegisRaiders = function()
 		return;
 	}
 	var g = this._addGroup("pirate-aegis-raider",3+Math.floor(Math.random()*5),system.mainPlanet,3E3);
+	if (!g) return;
 	var gs = g.ships;
 	for (var i=0; i < gs.length ; i++)
 	{
@@ -2052,6 +2055,7 @@ this._addPolicePatrol = function(pos)
 		role = "interceptor";
 	}
 	var h = this._addGroup(role,Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+2,pos,2E3);
+	if (!h) return;
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
@@ -2095,6 +2099,7 @@ this._addPoliceStationPatrol = function(pos)
 this._addInterceptors = function(pos)
 {
 	var h = this._addGroup("interceptor",Math.floor(Math.random()*2)+Math.floor(Math.random()*2)+1+Math.ceil(system.info.techlevel/6),pos,2E3);
+	if (!h) return;
 	for (var i = 0 ; i < h.ships.length ; i++)
 	{
 		h.ships[i].bounty = 0;
