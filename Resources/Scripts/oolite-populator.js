@@ -2081,7 +2081,9 @@ this._addPoliceStationPatrol = function(pos)
 	{
 		role = "interceptor";
 	}
-	var p = system.addShips(role,1,pos,0)[0];
+	var h = system.addShips(role,1,pos,0);
+	if (!h) return;
+	var p = h[0];
 	p.primaryRole = "police-station-patrol";
 	p.group = system.mainStation.group;
 	p.group.addShip(p);
