@@ -300,6 +300,7 @@
 			"display_name",
 			"roles",
 			"exhaust",
+			"exhaust_emissive_color",
 			"is_hulk",
 			"subentities",
 			"frangible",
