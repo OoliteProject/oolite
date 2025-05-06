@@ -95,7 +95,7 @@ jobs:
 
       - name: Extract PDFs
         run: |
-          unzip -u artifacts/oolite-doc.zip
+          unzip -o artifacts/oolite-doc.zip
 
       # This is for debugging only and helps developing the workflow.
       - name: show filesystem before build
@@ -160,7 +160,7 @@ jobs:
 
       - name: Extract PDFs
         run: |
-          unzip -u artifacts/oolite-doc.zip
+          unzip -o artifacts/oolite-doc.zip
 
       # check http://aegidian.org/bb/viewtopic.php?p=281821#p281821
       # this is for debug only; it creates huge logs and takes a long time to execute, yet you never know when you need it
