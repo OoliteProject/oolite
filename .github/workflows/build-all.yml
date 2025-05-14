@@ -46,7 +46,11 @@ jobs:
 
       - name: generate PDFs
         run: |
-          find oolite/Doc -name "*.odt" -exec soffice --headless --convert-to pdf:"writer_pdf_Export" --outdir oolite/Doc {} \;
+          set
+          set -x
+          export OOLITE_VERSION=$(cat oolite/Doc/OOLITE_VERSION.txt | cut -d= -f2)
+          pip install ooo-dev-tools
+          find oolite/Doc -name "*.odt" -exec sh -c 'python3 oolite/tools/libreoffice.py --load {} --set OOLITE_VERSION=$OOLITE_VERSION --save oolite/Doc/$(basename {} .odt).pdf' \;
           zip oolite-doc.zip oolite/Doc/*.pdf oolite/Doc/OOLITE_VERSION.txt
 
       - name: Archive generated documentation
