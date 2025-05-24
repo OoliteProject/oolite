@@ -54,7 +54,6 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOTexture.h"
 #import "OODebugFlags.h"
-#import "OOStringExpander.h"
 
 #import "OOSystemDescriptionManager.h"
 #import "OOJoystickManager.h"
