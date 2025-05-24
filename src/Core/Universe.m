@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOConstToJSString.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOOpenGLMatrixManager.h"
 #import "OOCPUInfo.h"
@@ -6767,7 +6768,14 @@ OOINLINE BOOL EntityInRange(HPVector p1, Entity *e2, float range)
 
 - (void) enterGUIViewModeWithMouseInteraction:(BOOL)mouseInteraction
 {
+	OOViewID vd = viewDirection;
 	[self setViewDirection:VIEW_GUI_DISPLAY];
+	if (viewDirection != vd) {
+		PlayerEntity	*player = PLAYER;
+		JSContext *context = OOJSAcquireContext();
+		ShipScriptEvent(context, player, "viewDirectionChanged", OOJSValueFromViewID(context, viewDirection), OOJSValueFromViewID(context, vd));
+		OOJSRelinquishContext(context);
+	}
 	[[self gameController] setMouseInteractionModeForUIWithMouseInteraction:mouseInteraction];
 }
 
