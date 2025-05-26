@@ -6,7 +6,7 @@
   <summary>Open-world space opera</summary>
   
   <metadata_license>MIT</metadata_license>
-  <project_license>GPL-2.0-only</project_license>
+  <project_license>GPL-2.0-or-later</project_license>
   <url type="homepage">https://oolite.space</url>
   <url type="bugtracker">https://github.com/OoliteProject/oolite/issues</url>
   <url type="contribute">https://wiki.alioth.net/index.php/Contributing_to_the_project</url>
