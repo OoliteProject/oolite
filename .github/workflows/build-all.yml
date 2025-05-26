@@ -67,6 +67,20 @@ jobs:
            npm install --save-dev eslint eslint-plugin-es-x
            npx eslint . || echo Ignore problems and continue
 
+  build-flatpak:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: space.oolite.oolite.flatpak
+        manifest-path: flatpak/space.oolite.oolite.yml
+
   build-linux:
     runs-on: ubuntu-22.04
     needs: [common-steps]
