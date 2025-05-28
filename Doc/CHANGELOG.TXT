@@ -87,7 +87,7 @@ Scripting:
   where the player as jumped from.
 * shipWillExitWitchspace and shipExitedWitchspace world events now include the 
   jump cause parameter.
-* Added beginGalacticHyperspaceCountdown world event.
+* Added beginGalacticHyperspaceCountdown player.ship method.
 * Added global functions setExtraGuiScreenKeys and clearExtraGuiScreenKeys.
 * Added registerKeys property to mission screen object, allowing additional key
   presses to be defined.
@@ -96,8 +96,8 @@ Scripting:
 * Added Ship.setShipInfoForKey to allow for shipdata updates during the game.
 * Added equipment.weaponInfo dictionary.
 * Added equipment.defaultActivateKey and equipment.defaultModeKey, each are 
-  read-only arrays of the default key settings for the equipment item. values
-  and null if the values haven't been defined.
+  read-only arrays of the default key settings for the equipment item. Set to null 
+  if the values haven't been defined.
 
 Bug Fixes:
 ==========
@@ -127,6 +127,7 @@ Bug Fixes:
 * Fixed issue where context was not being considered when adding weapons to player.ship.
 * Fixed exception when nil would be passed as an object for a weapon sound when that 
   weapon doesn't exist in equipment.plist.
+* Fixed issue where viewDirectionChanged event was not firing for "VIEW_GUI_SCREEN".
 * Added extra docking tip in the tutorial, reminding pilots to keep moving towards the
   rear of the docking back, until the auto-dock takes over.
 
