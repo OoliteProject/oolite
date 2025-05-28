@@ -3031,12 +3031,13 @@
 				shininess = 42; 
 				emission_map = { name = "oolite_python_diffuse.png"; extract_channel = "a"; }; 
 				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
-				normal_map = "oolite_python_normal.png";
+				normal_map = "oolite_python_blackdog_normal.png";
 				specular_map = "oolite_python_specular.png";
 			};
 			"Engine" = 
 			{ 
 				diffuse_map = "oolite_python_subents.png";  
+				normal_map = "oolite_python_subents_normal.png";
 				gloss = 0.622;
 				specular_color = (0.25, 0.25, 0.25);
 				shininess = 42; 
@@ -3049,6 +3050,7 @@
 			"Gun" = 
 			{ 
 				diffuse_map = "oolite_python_subents.png"; 
+				normal_map = "oolite_python_subents_normal.png";
 				gloss = 0.622;
 				specular_color = (0.25, 0.25, 0.25);
 				shininess = 42;
@@ -3102,12 +3104,13 @@
 					name = "oolite_python_diffuse_blackdog.png"; extract_channel = "a";
 				};
 				emission_modulate_color = (0.9926, 0.9686, 0.7325, 1.0);
-				normal_map = "oolite_python_normal.png";
+				normal_map = "oolite_python_blackdog_normal.png";
 				specular_map = "oolite_python_specular.png";
 			};
 			"Engine" = 
 			{ 
-				diffuse_map = "oolite_python_subents.png";  
+				diffuse_map = "oolite_python_subents.png"; 
+				normal_map = "oolite_python_subents_normal.png";
 				gloss = 0.622;
 				specular_color = (0.25, 0.25, 0.25);
 				shininess = 42; 
@@ -3120,6 +3123,7 @@
 			"Gun" = 
 			{ 
 				diffuse_map = "oolite_python_subents.png"; 
+				normal_map = "oolite_python_subents_normal.png";
 				gloss = 0.622;
 				specular_color = (0.25, 0.25, 0.25);
 				shininess = 42; 
