@@ -4858,9 +4858,10 @@ static BOOL autopilot_pause;
 		// Pause game, 'p' key
 		exceptionContext = @"pause key";
 		if (([self checkKeyPress:n_key_pausebutton] || joyButtonState[BUTTON_PAUSE]) && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
-				gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_REPORT &&
+				gui_screen != GUI_SCREEN_REPORT &&
 				gui_screen != GUI_SCREEN_SAVE && gui_screen != GUI_SCREEN_KEYBOARD_ENTRY) )
 		{
+  			BOOL isMissionScreenWithTextEntry = gui_screen == GUI_SCREEN_MISSION && _missionTextEntry;
 			if (!pause_pressed)
 			{
 				if ([gameController isGamePaused])
@@ -4876,13 +4877,19 @@ static BOOL autopilot_pause;
 				}
 				else
 				{
-					saved_script_time = script_time;
-					[[UNIVERSE messageGUI] clear];
-					
-					[UNIVERSE pauseGame];	// 'paused' handler
+    					if (!isMissionScreenWithTextEntry)
+					{
+						saved_script_time = script_time;
+						[[UNIVERSE messageGUI] clear];
+						
+						[UNIVERSE pauseGame];	// 'paused' handler
+      					}
 				}
 			}
-			pause_pressed = YES;
+   			if (!isMissionScreenWithTextEntry)
+      			{
+				pause_pressed = YES;
+    			}
 		}
 		else
 		{
