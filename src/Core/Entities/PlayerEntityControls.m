@@ -4877,19 +4877,19 @@ static BOOL autopilot_pause;
 				}
 				else
 				{
-    					if (!isMissionScreenWithTextEntry)
+    				if (!isMissionScreenWithTextEntry)
 					{
 						saved_script_time = script_time;
 						[[UNIVERSE messageGUI] clear];
 						
 						[UNIVERSE pauseGame];	// 'paused' handler
-      					}
+      				}
 				}
 			}
    			if (!isMissionScreenWithTextEntry)
-      			{
+      		{
 				pause_pressed = YES;
-    			}
+    		}
 		}
 		else
 		{
