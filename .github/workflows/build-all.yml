@@ -87,7 +87,8 @@ jobs:
         unzip -o artifacts/oolite-doc.zip
     - name: Set flatpak version
       run: |
-        sed -i "/<releases>/a <release version=\"$(cat Doc/OOLITE_VERSION.txt)\" date="$(date -I)"></release>" installers/FreeDesktop/space.oolite.oolite.metainfo.xml
+        release_tag="<release version=\"$(cat Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
+        sed -i "/<releases>/a $release_tag" installers/FreeDesktop/space.oolite.oolite.metainfo.xml
     - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
       with:
         bundle: space.oolite.oolite.flatpak
