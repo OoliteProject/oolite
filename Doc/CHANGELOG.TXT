@@ -55,6 +55,7 @@ General:
 * Updated the wormhole cloud effect.
 * Mouse flight sensitivity made configurable by editing the preferences file.
 * Implemented new ECM visual effect.
+* Pause and unpause game is now allowed in mission screens while docked.
 
 Expansion Pack Development:
 ===========================
