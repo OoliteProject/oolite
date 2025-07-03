@@ -1600,7 +1600,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if (!ecm_in_operation)
 					{
-						if ([self fireECM])
+						if ([self weaponsOnline] && [self fireECM])
 						{
 							[self playFiredECMSound];
 							[UNIVERSE addMessage:DESC(@"ecm-on") forCount:3.0];
