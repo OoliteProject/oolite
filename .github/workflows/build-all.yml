@@ -67,6 +67,33 @@ jobs:
            npm install --save-dev eslint eslint-plugin-es-x
            npx eslint . || echo Ignore problems and continue
 
+  build-flatpak:
+    runs-on: ubuntu-latest
+    needs: [common-steps]
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: oolite-doc
+        path: artifacts
+    - name: Extract PDFs
+      run: |
+        unzip -o artifacts/oolite-doc.zip
+    - name: Set flatpak version
+      run: |
+        release_tag="<release version=\"$(cat Doc/OOLITE_VERSION.txt)\" date=\"$(date -I)\"></release>"
+        sed -i "/<releases>/a $release_tag" installers/FreeDesktop/space.oolite.oolite.metainfo.xml
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: space.oolite.oolite.flatpak
+        manifest-path: flatpak/space.oolite.oolite.yml
+
   build-linux:
     runs-on: ubuntu-22.04
     needs: [common-steps]
@@ -326,7 +353,7 @@ jobs:
           path: oolite/doxygen/html
 
   release:
-    needs: [build-linux, build-windows, build-doxygen]
+    needs: [build-linux, build-windows, build-doxygen, build-flatpak]
     runs-on: ubuntu-22.04
     steps:
       ## This is for debugging only and helps developing the workflow.
