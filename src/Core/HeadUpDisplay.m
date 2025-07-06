@@ -838,7 +838,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	OOVerifyOpenGLState();
 	
-	if (_crosshairWidth * lineWidth > 0)
+	if ((_crosshairWidth * lineWidth) > 0)
 	{
 		OOGL(GLScaledLineWidth(_crosshairWidth * lineWidth));
 		[self drawCrosshairs];

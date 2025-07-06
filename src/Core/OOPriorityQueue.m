@@ -535,7 +535,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 	}
 	
 	[object autorelease];
-	if (_count * 2 <= _capacity)  [self shrinkBuffer];
+	if ((_count * 2) <= _capacity)  [self shrinkBuffer];
 }
 
 

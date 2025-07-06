@@ -1,7 +1,7 @@
 [![build-all](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yml/badge.svg)](https://github.com/OoliteProject/oolite/actions/workflows/build-all.yml)
 
 [![GitHub release](https://img.shields.io/github/release/OoliteProject/Oolite.svg)](https://github.com/OoliteProject/Oolite/releases/latest)
-     
+
 
 | Windows             | Linux               | OSX            |
 |---------------------|---------------------|----------------|
@@ -19,7 +19,7 @@ Oolite can be heavily customized via expansions. These modify the gameplay, add 
 
 Oolite for all platforms can be built from this repository. Here is a quick
 guide to the source tree.
- 
+
 For end-user documentation, see [oolite.space](http://www.oolite.space/) and
 [Elite Wiki](http://wiki.alioth.net/index.php/Oolite_Main_Page).
 
@@ -87,19 +87,12 @@ dnf install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc
 ```bash
 apt -y install git gobjc gnustep-devel make libsdl1.2-dev libvorbis-dev libopenal-dev g++ libespeak-dev libnspr4-dev
 ```
-- Other distros will likely have similar packages available in their repositories. If you find out which packages to install on another Linux distribution, it would be really nice if you could add them here.
-
-- openSUSE Tumbleweed
-
+- openSUSE Tumbleweed:
 Dependencies
 ```bash
-sudo zypper install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc mozilla-nspr-devel sdl12_compat_devel SDL2-devel gnustep-base-devel gnustep-make
+zypper install espeak-devel openal-soft-devel libpng-devel SDL_image-devel gcc-objc mozilla-nspr-devel sdl12_compat_devel SDL2-devel gnustep-base-devel gnustep-make
 ```
-Build
-```bash
-source /usr/share/GNUstep/Makefiles/GNUstep.sh
-make -f Makefile release -j${nproc}
-```
+- Other distros will likely have similar packages available in their repositories. If you find out which packages to install on another Linux distribution, it would be really nice if you could add them here.
 
 #### First fetch all the git submodules
 ```bash
@@ -151,6 +144,12 @@ export RPM_PACKAGE_NAME=bla
 
 - If you get errors like `fatal error: jsapi.h: No such file or directory`, you probably forgot to [first fetch all the git submodules](#first-fetch-all-the-git-submodules)
 
+- If you get something like this: `/usr/include/Foundation/Foundation.h:31:9: fatal error: 'objc/objc.h' file not found`, you can try fixing this by running this before compiling:
+```bash
+export CC=gcc
+make clean
+```
+
 - If you get compiler errors, you can try compiling with:
 ```bash
 make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(nproc)
@@ -158,7 +157,7 @@ make -f Makefile release OBJCFLAGS="-fobjc-exceptions -Wno-format-security" -j$(
 
 ## Running
 On OS X, you can run from Xcode by clicking on the appropriate icon
-(or choosing 'Run' from the 'Product' menu).  
+(or choosing 'Run' from the 'Product' menu).
 On Linux/BSD/Unix, in a terminal, type `openapp oolite`, or if you compiled it yourself you can run it with `./oolite.app/oolite`.
 
 ## Git
