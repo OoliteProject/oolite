@@ -17,7 +17,7 @@ uniform float		uSaturation;
 #define MAXCLLNITS			1000.0
 #define HDR_HEATMAP			0
 #define SATURATION_ADJUSTMENT	0.825 //adjustment factor to better approach SDR saturation
-#define GAMUT_EXPANSION_AMOUNT	0.2 //0.0f .. 1.0f - best results if this is kept low
+#define GAMUT_EXPANSION_AMOUNT	0.4 //0.0f .. 1.0f - best results if this is kept low
 
 
 
@@ -751,9 +751,11 @@ void main()
 	}
 	
 	// we desaturate colors as they become brighter
+	// Kd is rate of desaturation - since it is quite strong here, 
+	// we compensate with an increased GAMUT_EXPANSION_AMOUNT
+	const float Kd = 0.175;	
 	vec3 luma = grayscale(hdrColor);
-	float t = luma.r;
-	t = t * t / (12.0 + t);
+	float desaturationFraction = 1.0 - 1.0 / (Kd * max(hdrColor.r, max(hdrColor.g, hdrColor.b)) + 1.0);
 	
 	// apply saturation
 	hdrColor = max(saturationMatrix(uSaturation * SATURATION_ADJUSTMENT) * hdrColor, vec3(0.0));
@@ -765,11 +767,11 @@ void main()
 	// 1. no tone mapping (mainly for testing purposes)
 	// vec3 result = hdrColor;
 	// 2. Reinhard HDR (good for any value of uMaxBrightness, rather than selected values)
-	// vec3 result = reinhardHDR(mix(hdrColor, luma, clamp(t * 80 / uMaxBrightness, 0.0, 1.0)) * uPaperWhiteBrightness * 0.0125);
+	// vec3 result = reinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
 	// 3. ACES for the max luminances for which we have sigmoid parameters, Reinhard for everything else
 	// at 1000 nits max brighness and 80 nits paper white we get the originally intended tone mapping result
-	vec3 result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, clamp(t * 80 / uMaxBrightness, 0.0, 1.0)) * uPaperWhiteBrightness * 0.0125);
-
+	vec3 result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+	
 	// gamut expansion here
 	result = expandGamut(result, GAMUT_EXPANSION_AMOUNT);
 	
