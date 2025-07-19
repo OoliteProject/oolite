@@ -128,8 +128,10 @@ uniform sampler2D		uNormalMap;
 #endif
 #endif
 
-// Diffuse model selection - if 0, then Lambert is selected
+// Diffuse model selection - if Oren-Nayar is 1 then it is preferred
+// regardless of the Burley setting. If both 0, then Lambert is used
 #define OODIFFUSE_ORENNAYAR			1
+#define OODIFUSE_BURLEY				0
 
 // Specular model selection
 #ifndef OOSPECULAR_NEW_MODEL
@@ -159,6 +161,31 @@ float diffuseOrenNayar(vec3 lightVector, vec3 eyeVector, vec3 normal, float glos
 	float ga = dot(eyeVector - normal * NdotV, lightVector - normal * NdotL);
 	
 	return albedoFactor * max(0.0, NdotL) * (A + B * max(0.0, ga) * sqrt(max((1.0 - NdotV * NdotV) * (1.0 - NdotL * NdotL), 0.0)) / max(NdotL, NdotV));
+}
+#endif
+
+
+#if OODIFUSE_BURLEY
+// See the 2012 white paper "Physically Based Shading at Disney" by Brent Burley,
+// https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf
+
+float FresnelSchlick(float f0, float f90, float V1dotV2)
+{
+    return f0 + (f90 - f0) * pow((1.0 - V1dotV2), 5.0);
+}
+
+
+float diffuseBurley(vec3 lightVector, vec3 eyeVector, vec3 normal, vec3 halfVector, float gloss, float albedoFactor)
+{
+	float NdotL = clamp(dot(normal, lightVector), 0.0, 1.0);
+	float NdotV = clamp(dot(normal, eyeVector), 0.0, 1.0);
+	float LdotH = clamp(dot(lightVector, halfVector), 0.0, 1.0);
+	float roughness = 1.0 - gloss;
+	float f90 = 0.5 + 2.0 * roughness * LdotH * LdotH;
+	float lightScatter = FresnelSchlick(1.0, f90, NdotL);
+	float viewScatter  = FresnelSchlick(1.0, f90, NdotV);
+	
+	return albedoFactor * lightScatter * viewScatter * NdotL;
 }
 #endif
 
@@ -311,6 +338,8 @@ void main()
 	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
 #if OODIFFUSE_ORENNAYAR
 	vec3 diffuseLight = DIFFUSE_LIGHT * diffuseOrenNayar(light1Vector, eyeVector, normal, max(SPECULAR_FACTOR * 0.64, 0.2), 1.0);
+#elif OODIFUSE_BURLEY
+	vec3 diffuseLight = DIFFUSE_LIGHT * diffuseBurley(light1Vector, eyeVector, normal, halfVector, max(SPECULAR_FACTOR * 0.64, 0.2), 1.0);
 #else
 	vec3 diffuseLight = DIFFUSE_LIGHT * max(0.0, dot(normal, light1Vector));
 #endif

@@ -93,11 +93,13 @@
 #endif
 
 
-// Diffuse model selection - if 0, then Lambert is selected
+// Diffuse model selection - if Oren-Nayar is 1 then it is preferred
+// regardless of the Burley setting. If both 0, then Lambert is used
 #define OODIFFUSE_ORENNAYAR			1
+#define OODIFUSE_BURLEY				0
 
 
-#define NEED_EYE_VECTOR (OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP || OODIFFUSE_ORENNAYAR)
+#define NEED_EYE_VECTOR (OOSTD_SPECULAR || OOSTD_NORMAL_AND_PARALLAX_MAP || OODIFFUSE_ORENNAYAR || OODIFUSE_BURLEY)
 
 #define HAVE_ILLUMINATION (OOSTD_EMISSION_AND_ILLUMINATION_MAP || OOSTD_ILLUMINATION_MAP)
 
@@ -176,6 +178,31 @@ float diffuseOrenNayar(vec3 lightVector, vec3 eyeVector, vec3 normal, float glos
 	float ga = dot(eyeVector - normal * NdotV, lightVector - normal * NdotL);
 	
 	return albedoFactor * max(0.0, NdotL) * (A + B * max(0.0, ga) * sqrt(max((1.0 - NdotV * NdotV) * (1.0 - NdotL * NdotL), 0.0)) / max(NdotL, NdotV));
+}
+#endif
+
+
+#if OODIFUSE_BURLEY
+// See the 2012 white paper "Physically Based Shading at Disney" by Brent Burley,
+// https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf
+
+float FresnelSchlick(float f0, float f90, float V1dotV2)
+{
+    return f0 + (f90 - f0) * pow((1.0 - V1dotV2), 5.0);
+}
+
+
+float diffuseBurley(vec3 lightVector, vec3 eyeVector, vec3 normal, vec3 halfVector, float gloss, float albedoFactor)
+{
+	float NdotL = clamp(dot(normal, lightVector), 0.0, 1.0);
+	float NdotV = clamp(dot(normal, eyeVector), 0.0, 1.0);
+	float LdotH = clamp(dot(lightVector, halfVector), 0.0, 1.0);
+	float roughness = 1.0 - gloss;
+	float f90 = 0.5 + 2.0 * roughness * LdotH * LdotH;
+	float lightScatter = FresnelSchlick(1.0, f90, NdotL);
+	float viewScatter  = FresnelSchlick(1.0, f90, NdotV);
+	
+	return albedoFactor * lightScatter * viewScatter * NdotL;
 }
 #endif
 
@@ -429,6 +456,8 @@ void main(void)
 
 #if OODIFFUSE_ORENNAYAR
 	diffuseLight.rgb += diffuseOrenNayar(lightVector, eyeVector, normal, gloss, 1.0) * LIGHTSRC_RADIANCE_DIFFUSE.rgb;
+#elif OODIFUSE_BURLEY
+	diffuseLight.rgb += diffuseBurley(lightVector, eyeVector, normal, halfVector, gloss, 1.0) * LIGHTSRC_RADIANCE_DIFFUSE.rgb;
 #else
 	diffuseLight.rgb += CalcDiffuseLight(lightVector, normal, LIGHTSRC_RADIANCE_DIFFUSE.rgb);
 #endif
