@@ -86,7 +86,7 @@ else
     endif
 endif
 
-ifeq '' '$(findstring clang++,$(CXX))'
+ifneq '' '$(findstring clang++,$(CXX))'
     ADDITIONAL_OBJCFLAGS += -fobjc-runtime=gnustep-1.9
 endif
 
