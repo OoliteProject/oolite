@@ -1270,14 +1270,6 @@ enum PreferredAppMode
 		}
 		
 		BOOL isPrimaryDisplayDevice = !wcscmp(targetName.monitorDevicePath, wcsPrimaryDeviceID);
-		
-		
-		if(!isPrimaryDisplayDevice)  NSLog(@"Failed at checkpoint #1. monitorDevicePath: %S, wcsPrimaryDeviceID: %S", targetName.monitorDevicePath, wcsPrimaryDeviceID);
-		if(isPrimaryDisplayDevice && !isAdvColorInfo2DetectionSuccess)  NSLog(@"Failed at checkpoint #2");
-		if(isPrimaryDisplayDevice && !advColorInfo2.highDynamicRangeSupported)  NSLog(@"Failed at checkpoint #3");
-		if(isPrimaryDisplayDevice && advColorInfo2.activeColorMode != DISPLAYCONFIG_ADVANCED_COLOR_MODE_HDR)  NSLog(@"Failed at checkpoint #4, activeColorMode is %d", advColorInfo2.activeColorMode);
-		
-		
 		// we are starting om the primary device, so check that one for advanced color support
 		// we also ensure that wide color gamut SDR displays do not get incorrectly detected as supporting HDR 
 		if (isPrimaryDisplayDevice && 
