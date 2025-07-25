@@ -35,7 +35,7 @@ pkg-debsnapshot: DEB_REV         := $(shell echo "0~trunk${DEB_REV}")
 	DEPS                         =
 	DEPS_DBG                     =
 ifneq ($(GNUSTEP_HOST_OS),mingw32) 
-    HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
+    HOST_ARCH                    := $(shell gnustep-config --variable=GNUSTEP_HOST_CPU)
     APSPEC_FILE                  = installers/autopackage/default.$(HOST_ARCH).apspec
 # Uncomment the following two variables, if you want to build JS from source. Ensure the relevant changes are performed in GNUmakefile too
 #     DEPS                         = LIBJS
