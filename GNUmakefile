@@ -14,6 +14,8 @@ HOST_ARCH                        := $(shell gnustep-config --variable=GNUSTEP_HO
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
+    oolite_WINDRES_FILES = \
+	    OOResourcesWin.rc
 	
 #     ifeq ($(GNUSTEP_HOST_CPU),x86_64)
 #         WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
@@ -21,7 +23,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 #         WIN_DEPS_DIR                 = deps/Windows-deps/x86
 #     endif
 
-	WIN_DEPS_DIR                 = deps/Windows-deps/$(HOST_ARCH)
+    WIN_DEPS_DIR                 = deps/Windows-deps/$(HOST_ARCH)
     JS_INC_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/include
 #     JS_LIB_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/lib
     ifeq ($(debug),yes)

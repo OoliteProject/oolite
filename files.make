@@ -10,9 +10,6 @@ oolite_CC_FILES = \
 	OOSaveEXRSnapshot.cpp
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-oolite_WINDRES_FILES = \
-	OOResourcesWin.rc
-
 oolite_C_FILES += \
 	miniz.c
 endif
