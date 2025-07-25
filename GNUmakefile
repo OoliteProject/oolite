@@ -101,6 +101,11 @@ OBJC_PROGRAM_NAME = oolite
 
 include flags.make
 include files.make
+ifeq ($(GNUSTEP_HOST_OS),mingw32)
+oolite_C_FILES += \
+	miniz.c
+endif
+
 
 include $(GNUSTEP_MAKEFILES)/objc.make
 include GNUmakefile.postamble

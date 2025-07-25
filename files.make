@@ -9,11 +9,6 @@ oolite_C_FILES = \
 oolite_CC_FILES = \
 	OOSaveEXRSnapshot.cpp
 
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-oolite_C_FILES += \
-	miniz.c
-endif
-
 OOLITE_DEBUG_FILES = \
     OODebugMonitor.m \
 	OODebugStandards.m \
