@@ -10,20 +10,13 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     GNUSTEP_OBJ_DIR_NAME         := $(GNUSTEP_OBJ_DIR_NAME).win
 endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
-HOST_ARCH                        := $(shell gnustep-config --variable=GNUSTEP_HOST_CPU)
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
     oolite_WINDRES_FILES = \
 	    OOResourcesWin.rc
 	
-#     ifeq ($(GNUSTEP_HOST_CPU),x86_64)
-#         WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
-#     else
-#         WIN_DEPS_DIR                 = deps/Windows-deps/x86
-#     endif
-
-    WIN_DEPS_DIR                 = deps/Windows-deps/$(HOST_ARCH)
+    WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
     JS_INC_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/include
 #     JS_LIB_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/lib
     ifeq ($(debug),yes)
@@ -37,11 +30,6 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
     ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
-    ifneq ($(HOST_ARCH),x86_64)
-        ADDITIONAL_LDFLAGS       += -Wl,--large-address-aware
-#     else
-#         ADDITIONAL_LDFLAGS       +=
-    endif
 #     oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -L$(WIN_DEPS_DIR)/lib -L$(JS_LIB_DIR)
 
     ifeq ($(ESPEAK),yes)
@@ -50,8 +38,8 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         GNUSTEP_OBJ_DIR_NAME     := $(GNUSTEP_OBJ_DIR_NAME).spk
     endif
 else
-    LIBJS_DIR                    = deps/Linux-deps/$(HOST_ARCH)/mozilla
-    LIBJS_INC_DIR                = deps/Linux-deps/$(HOST_ARCH)/mozilla/include
+    LIBJS_DIR                    = deps/Linux-deps/x86_64/mozilla
+    LIBJS_INC_DIR                = deps/Linux-deps/x86_64/mozilla/include
 # Uncomment the following lines if you want to build JS from source. Ensure the relevant changes are performed in Makefile too
 #     ifeq ($(debug),yes)
 #         LIBJS_DIR                    = deps/mozilla/js/src/build-debug
@@ -68,7 +56,7 @@ else
     endif
 
     ifeq ($(use_deps),yes)
-        OOLITE_SHARED_LIBS       = -Ldeps/Linux-deps/$(HOST_ARCH)/lib_linker
+        OOLITE_SHARED_LIBS       = -Ldeps/Linux-deps/x86_64/lib_linker
     endif
 
     ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Ideps/Linux-deps/include 
@@ -88,8 +76,11 @@ else
     endif
 endif
 
-ifneq '' '$(findstring clang++,$(CXX))'
-    ADDITIONAL_OBJCFLAGS += -fobjc-runtime=gnustep-1.9
+# Add flag if building with GNUStep and Clang
+ifneq '' '$(GNUSTEP_HOST_OS)'
+    ifneq '' '$(findstring clang++,$(CXX))'
+        ADDITIONAL_OBJCFLAGS += -fobjc-runtime=gnustep-1.9
+    endif
 endif
 
 ifeq ($(FEATURE_REQUEST_5496),yes)
@@ -102,7 +93,7 @@ OBJC_PROGRAM_NAME = oolite
 include flags.make
 include files.make
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-oolite_C_FILES += \
+    oolite_C_FILES += \
 	miniz.c
 endif
 

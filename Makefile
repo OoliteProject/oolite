@@ -35,30 +35,21 @@ pkg-debsnapshot: DEB_REV         := $(shell echo "0~trunk${DEB_REV}")
 	DEPS                         =
 	DEPS_DBG                     =
 ifneq ($(GNUSTEP_HOST_OS),mingw32) 
-    HOST_ARCH                    := $(shell gnustep-config --variable=GNUSTEP_HOST_CPU)
-    APSPEC_FILE                  = installers/autopackage/default.$(HOST_ARCH).apspec
+    APSPEC_FILE                  = installers/autopackage/default.x86_64.apspec
 # Uncomment the following two variables, if you want to build JS from source. Ensure the relevant changes are performed in GNUmakefile too
 #     DEPS                         = LIBJS
 #     DEPS_DBG                     = LIBJS_DBG
 endif
 
 # ifeq ($(GNUSTEP_HOST_OS),mingw32)
-# #     ifeq ($(GNUSTEP_HOST_CPU),x86_64)
-# #         LIBJS                    = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
-# #         LIBJS_DBG                = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
-# #     else
-# #         LIBJS                    = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
-# #         LIBJS_DBG                = deps/Windows-deps/x86/DLLs/js32ECMAv5.dll
-# #     endif
-# #     LIBJS                        = deps/Windows-deps/$(GNUSTEP_HOST_CPU)/DLLs/js32ECMAv5.dll
-# #     LIBJS_DBG                    = deps/Windows-deps/$(GNUSTEP_HOST_CPU)/DLLs/js32ECMAv5.dll
+# #     LIBJS                    = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
+# #     LIBJS_DBG                = deps/Windows-deps/x86_64/DLLs/js32ECMAv5.dll
 # #     DEPS                         = $(LIBJS)
 # #     DEPS_DBG                     = $(LIBJS_DBG)
 #     DEPS                         = 
 #     DEPS_DBG                     = 
 # else
-#     HOST_ARCH                    := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
-#     APSPEC_FILE                  = installers/autopackage/default.$(HOST_ARCH).apspec
+#     APSPEC_FILE                  = installers/autopackage/default.x86_64.apspec
 # #     DEPS                         = LIBJS
 # #     DEPS_DBG                     = LIBJS_DBG
 #     DEPS                         = 
@@ -132,24 +123,24 @@ debug: $(DEPS_DBG)
 # Here are targets using the provided dependencies
 .PHONY: deps-release
 deps-release: $(DEPS)
-	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
+	cd deps/Linux-deps/x86_64/lib_linker && ./make_so_links.sh && cd ../../../..
 	$(MAKE) -f GNUmakefile debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
-	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
+	cd deps/Linux-deps/x86_64/lib_linker && ./make_so_links.sh && cd ../../../..
 	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes strip=yes
 
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
-	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
+	cd deps/Linux-deps/x86_64/lib_linker && ./make_so_links.sh && cd ../../../..
 	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes strip=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-debug
 deps-debug: $(DEPS_DBG)
-	cd deps/Linux-deps/$(HOST_ARCH)/lib_linker && ./make_so_links.sh && cd ../../../.. 
+	cd deps/Linux-deps/x86_64/lib_linker && ./make_so_links.sh && cd ../../../..
 	$(MAKE) -f GNUmakefile debug=yes use_deps=yes strip=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
@@ -209,19 +200,19 @@ pkg-autopackage:
 #       update the "oolite.app/oolite-update" script to synchronize accordingly
 #       
 #       pkg-posix-debug:
-#	        installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "debug"
+#	        installers/posix/make_installer.sh x86_64 $(VER) "debug"
 #
 pkg-posix:
-	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release-deployment" ""
+	installers/posix/make_installer.sh x86_64 $(VER) "release-deployment" ""
 
 pkg-posix-test:
-	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release" ""
+	installers/posix/make_installer.sh x86_64 $(VER) "release" ""
 
 pkg-posix-snapshot:
-	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release-snapshot" ""
+	installers/posix/make_installer.sh x86_64 $(VER) "release-snapshot" ""
 
 pkg-posix-nightly:
-	installers/posix/make_installer.sh $(HOST_ARCH) $(VER) "release-snapshot" "nightly"
+	installers/posix/make_installer.sh x86_64 $(VER) "release-snapshot" "nightly"
 
 # Here are our Debian packager targets
 #
@@ -261,11 +252,7 @@ ${NSISVERSIONS}:
 	@echo "!define VER_GITHASH ${VER_GITHASH}" >> $@
 	@echo "!define VERSION ${VER}" >> $@
 	@echo "!define BUILDTIME \"${BUILDTIME}\"" >> $@
-ifeq ($(GNUSTEP_HOST_CPU),x86_64)
 	@echo "!define BUILDHOST_IS64BIT 1" >> $@
-else
-	@echo "!define BUILDHOST_IS64BIT 0" >> $@
-endif
 
 .PHONY: pkg-win
 pkg-win: release ${NSISVERSIONS}
