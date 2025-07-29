@@ -1197,14 +1197,14 @@ enum PreferredAppMode
 
     // for each active path
 	int i;
-	wchar_t wcsPrimaryDeviceID[256];
-	
+	wchar_t wcsPrimaryDeviceID[256] = L"OOUnknownDevice";
 	// get the string device id of the primary display device
 	// we cannot guarantee the enumeration order so we must go
 	// through all diplay device paths here and then do it again
 	// for the DisplayConfig queries
 	for (i = 0; i < pathCount; i++)
 	{
+		int j = 0;
 		char saveDeviceName[64];
 		DISPLAY_DEVICE dd;
 		ZeroMemory(&dd, sizeof(dd));
@@ -1214,12 +1214,26 @@ enum PreferredAppMode
 		{
 			// second call to EnumDisplayDevices gets us the monitor device ID
 			strncpy(saveDeviceName, dd.DeviceName, 33);
-			EnumDisplayDevices(saveDeviceName, 0, &dd, 0x00000001);
-			mbstowcs(wcsPrimaryDeviceID, dd.DeviceID, 129);
-			// got what we wanted, no need to stay in the loop
-			break;
+			while (EnumDisplayDevices(saveDeviceName, j, &dd, 0x00000001))
+			{
+				if (EXPECT(dd.StateFlags & DISPLAY_DEVICE_ACTIVE))
+				{
+					// found it, store its ID
+					mbstowcs(wcsPrimaryDeviceID, dd.DeviceID, 129);
+					// got what we wanted, no need to stay in the loops
+					goto finished;
+				}
+				else
+				{
+					OOLogWARN(@"gameView.isOutputDisplayHDREnabled", @"Primary monitor candidate %s (%s %s) not active.", dd.DeviceName, dd.DeviceString, dd.DeviceID);
+					// continue searching for a primary monitor that is attached
+				}
+				j++;
+			}
 		}
 	}
+	
+finished:
 	
 	for (i = 0; i < pathCount; i++)
 	{
