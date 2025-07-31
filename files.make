@@ -6,6 +6,14 @@ oolite_C_FILES = \
 	ioapi.c \
 	unzip.c
 
+ifeq ($(GNUSTEP_HOST_OS),mingw32)
+    oolite_C_FILES += \
+	miniz.c
+
+	oolite_WINDRES_FILES = \
+	OOResourcesWin.rc
+endif
+
 oolite_CC_FILES = \
 	OOSaveEXRSnapshot.cpp
 

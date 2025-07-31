@@ -13,8 +13,6 @@ GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
-    oolite_WINDRES_FILES = \
-	    OOResourcesWin.rc
 	
     WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
     JS_INC_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/include
@@ -92,10 +90,6 @@ OBJC_PROGRAM_NAME = oolite
 
 include flags.make
 include files.make
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    oolite_C_FILES += \
-	miniz.c
-endif
 
 
 include $(GNUSTEP_MAKEFILES)/objc.make
