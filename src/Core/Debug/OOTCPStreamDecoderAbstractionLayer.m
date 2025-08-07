@@ -6,7 +6,7 @@
 	Foundation implementation.
 */
 
-#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+#ifndef NDEBUG
 
 #import "OOTCPStreamDecoderAbstractionLayer.h"
 #import "OOCocoa.h"
@@ -124,4 +124,4 @@ OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef *e
 	return result;
 }
 
-#endif /* OO_EXCLUDE_DEBUG_SUPPORT */
+#endif /* NDEBUG */

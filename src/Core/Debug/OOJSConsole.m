@@ -26,7 +26,7 @@ SOFTWARE.
 
 */
 
-#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+#ifndef NDEBUG
 
 #import "OOJSConsole.h"
 #import "OODebugMonitor.h"
@@ -1129,4 +1129,4 @@ static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, ui
 
 #endif // OOJS_PROFILE
 
-#endif /* OO_EXCLUDE_DEBUG_SUPPORT */
+#endif /* NDEBUG */

@@ -25,7 +25,7 @@ SOFTWARE.
 
 */
 
-#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+#ifndef NDEBUG
 
 
 #include "OOTCPStreamDecoder.h"
@@ -242,4 +242,4 @@ static void Error(OOTCPStreamDecoderRef decoder, OOALStringRef format, ...)
 	}
 }
 
-#endif /* OO_EXCLUDE_DEBUG_SUPPORT */
+#endif /* NDEBUG */
