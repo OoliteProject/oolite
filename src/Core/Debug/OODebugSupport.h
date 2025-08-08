@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+#ifndef NDEBUG
 
 void OOInitDebugSupport(void);
 

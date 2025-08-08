@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+#ifndef NDEBUG
 
 
 #import "OODebugTCPConsoleClient.h"
@@ -730,4 +730,4 @@ static void LogSendPacket(NSDictionary *packet)
 }
 #endif
 
-#endif /* OO_EXCLUDE_DEBUG_SUPPORT */
+#endif /* NDEBUG */
