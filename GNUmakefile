@@ -81,11 +81,6 @@ ifneq '' '$(GNUSTEP_HOST_OS)'
     endif
 endif
 
-ifeq ($(FEATURE_REQUEST_5496),yes)
-	ADDITIONAL_CFLAGS            += -DFEATURE_REQUEST_5496=1
-	ADDITIONAL_OBJCFLAGS         += -DFEATURE_REQUEST_5496=1
-endif
-
 OBJC_PROGRAM_NAME = oolite
 
 include flags.make

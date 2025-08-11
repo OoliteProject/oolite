@@ -12,7 +12,6 @@ VERBOSE                        = yes
 CP                             = cp
 
 # Setting the build parameters independently. We need everything set as below for the full test release configuration.
-BUILD_WITH_DEBUG_FUNCTIONALITY = yes
 NO_SHADERS                     = no
 ESPEAK                         = yes
 OO_CHECK_GL_HEAVY              = no
