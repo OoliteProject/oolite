@@ -237,6 +237,26 @@ vec4 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 }
 
 
+// Specular anti aliasing filter of mocrofacet Normals Distribution Function, refer to
+// Stable Geometric Specular Antialiasing with Projected-Space NDF Filtering,
+// Yusuke Tokuyoshi & Anton S. Kaplanyan,
+// Journal of Computer Graphics Techniques Vol. 10, No. 2, 2021
+// https://www.jcgt.org/published/0010/02/02/
+// original code returns roughness squared but we need the actual value for our
+// specular calculations, so we return its square root instead
+float isotropicNDFFiltering (vec3 normal, float roughness2)
+{
+	const float sigma2 = 0.15915494;
+	const float kappa = 0.18;
+	vec3 dndu = dFdx(normal);
+	vec3 dndv = dFdy(normal);
+	float kernelRoughness2 = 2.0 * sigma2 * (dot(dndu, dndu) + dot(dndv, dndv));
+	float clampedKernelRoughness2 = min(kernelRoughness2, kappa);
+	float filteredRoughness2 = clamp((roughness2 + clampedKernelRoughness2), 0.0, 1.0);
+	return sqrt(filteredRoughness2);
+}
+
+
 // More physically accurate specular lighting models
 // This is based on the GLSL code from FS2 SCP ( https://github.com/scp-fs2open )
 
@@ -257,6 +277,7 @@ vec3 CalcSpecularGGX(vec3 light, vec3 normal, vec3 halfVec, vec3 view, float glo
 {
 	float NdotL = clamp(dot(normal, light), 0.0, 1.0);
 	float roughness = clamp(1.0 - gloss, 0.0, 1.0);
+	roughness = isotropicNDFFiltering(normal, roughness * roughness); // specular anti aliasing
 	float alpha = roughness * roughness;
 
 	float NdotH = clamp(dot(normal, halfVec), 0.0, 1.0);

@@ -85,6 +85,10 @@ static NSString * const kOOLogNoteAddShips = @"script.debug.note.addShips";
 				[spawned addTarget:[self primaryTarget]];
 				[spawned setIsMissileFlag:YES];
 			}
+   			if ([spawned isMine])
+	  		{
+	 			[spawned setOwner:self];
+	 		}
 			[result addObject:spawned];
 		}
 	}
