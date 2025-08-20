@@ -10,6 +10,7 @@ uniform float		uTime;
 uniform vec2		uResolution;
 uniform float		uMaxBrightness;
 uniform float		uPaperWhiteBrightness;
+uniform int			uHDRToneMapper;
 uniform float		uSaturation;
 
 
@@ -74,6 +75,74 @@ vec3 ACESFilmRec2020Alt( vec3 x )
 	x = x * ACESLuminancePercentage * 0.006f;
 	return ( x * ( a * x + b ) ) / ( x * ( c * x + d ) + e );
 }
+
+
+// ============================================================================================
+// grayscale
+// ============================================================================================
+vec3 grayscale(vec3 col)
+{
+	vec3 luma = vec3(0.2126, 0.7152, 0.0722);
+	col = vec3(dot(col, luma));
+	
+	return col;
+}
+// --------------------------------------------------------------------------------------------
+
+
+//=============================================================================================
+// DICE tone mapper by luminance
+// translation to GLSL from original RenoDX code by Carlos Lopez Jr. (clshortfuse), MIT License
+
+const float FLT_MAX = 3.402823466e+38;
+const float FLT_MIN = 1.175494351e-38;
+
+float RangeCompress(float x, float max_value, float modulation)
+{
+    if (modulation == 1.0 && max_value == FLT_MAX)
+	{
+        return 1.0 - exp(-x);
+    }
+    if (modulation == 1.0 && max_value != FLT_MAX)
+	{
+        float lost_range = exp(-max_value);
+        float restore_range_scale = 1.0 / (1.0 - lost_range);
+        return (1.0 - exp(-x)) * restore_range_scale;
+    }
+    if (modulation != 1.0 && max_value == FLT_MAX)
+	{
+        return 1.0 - pow(exp(-x), modulation);
+    }
+    float lost_range = pow(exp(-max_value), modulation);
+    float restore_range_scale = 1.0 / (1.0 - lost_range);
+    return (1.0 - pow(exp(-x), modulation)) * restore_range_scale;
+}
+
+float LuminanceCompress(float value_in, float value_out_max, float shoulder_start, bool use_value_max,
+						float value_in_max, float modulation_pow)
+{
+    float compressable_value = value_in - shoulder_start;
+    float compressable_range = value_in_max - shoulder_start;
+    float compressed_range = max(value_out_max - shoulder_start, FLT_MIN);
+    float max_val = use_value_max ? (compressable_range / compressed_range) : FLT_MAX;
+    float possible_out_value = shoulder_start + (compressed_range * RangeCompress(compressable_value / compressed_range, max_val, modulation_pow));
+    return (value_in <= shoulder_start) ? value_in : possible_out_value;
+}
+
+// original function was
+// float3 BT709(float3 color, float output_luminance_max, float highlights_shoulder_start = 0.f, float highlights_modulation_pow = 1.f)
+vec3 DICEToneMap(vec3 color, float output_luminance_max, float highlights_shoulder_start, float highlights_modulation_pow)
+{
+    float source_luminance = grayscale(color).x;
+    if (source_luminance > 0.0)
+	{
+        float compressed_luminance = LuminanceCompress(source_luminance, output_luminance_max, highlights_shoulder_start, false, FLT_MAX, highlights_modulation_pow);
+        color *= compressed_luminance / source_luminance;
+    }
+    return color;
+}
+
+//==============================DICE Tone Mapper===============================================
 
 
 vec3 ApplySMPTE_ST2084Curve(vec3 L)
@@ -143,21 +212,9 @@ mat3 saturationMatrix( float saturation )
 }
 
 
-// ==========================================================================================
-// grayscale
-// ==========================================================================================
-vec3 grayscale(vec3 col)
-{
-	vec3 luma = vec3(0.2126, 0.7152, 0.0722);
-	col = vec3(dot(col, luma));
-	
-	return col;
-}
-// ------------------------------------------------------------------------------------------
-
-// ==========================================================================================
+// ============================================================================================
 // cloak vision - original code by Nikos Papadopoulos, https://www.shadertoy.com/view/Xsl3zf
-// ==========================================================================================
+// ============================================================================================
 float hash(float n)
 {
 	return fract(sin(n)*43758.5453123);
@@ -181,11 +238,11 @@ vec3 cloakVision(vec3 c)
 	
 	return c;
 }
-// ------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 
-// ==========================================================================================
+// ============================================================================================
 // color blindness correction - see https://terra-howard.com/thesis/
-// ==========================================================================================
+// ============================================================================================
 const mat3 RGBtoOpponentMat = mat3(0.2814, -0.0971, -0.0930, 0.6938, 0.1458,-0.2529, 0.0638, -0.0250, 0.4665);
 const mat3 OpponentToRGBMat = mat3(1.1677, 0.9014, 0.7214, -6.4315, 2.5970, 0.1257, -0.5044, 0.0159, 2.0517);
 
@@ -254,12 +311,12 @@ vec3 colorBlindness(vec3 inColor)
 	
 	return colorBlindColor;
 }
-// ------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 
 
-// ==========================================================================================
+// ============================================================================================
 // old movie - based on https://www.shadertoy.com/view/Xdl3D8
-// ==========================================================================================
+// ============================================================================================
 #define BLACK_AND_WHITE
 #define LINES_AND_FLICKER
 #define BLOTCHES
@@ -398,11 +455,11 @@ vec3 oldMovie(sampler2D inImage, vec2 fragCoord)
 	
 	return fragColor;
 }
-// ------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 
-// ==========================================================================================
+// ============================================================================================
 // gravitational lensing - based on https://www.shadertoy.com/view/llyyRm
-// ==========================================================================================
+// ============================================================================================
 #define S_RADIUS 0.1
 #define HALO_BRIGHTNESS .25
 
@@ -450,11 +507,11 @@ vec3 gravLens( sampler2D inImage, vec2 fragCoord )
 	fragColor = (texture(inImage, sCoord).rgb + haloColor);
 	return fragColor;
 }
-// ------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 
-// ==========================================================================================
+// ============================================================================================
 // CRT - based on https://www.shadertoy.com/view/Xtccz4
-// ==========================================================================================
+// ============================================================================================
 vec2 crt_coords(vec2 uv, float bend)
 {
 	uv -= 0.5;
@@ -519,11 +576,11 @@ vec3 CRT(sampler2D inImage, vec2 inCoords)
 	
 	return col;
 }
-// ------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 
-// =======================================================================================
+// ============================================================================================
 // CRTBadSignal - original at https://www.shadertoy.com/view/ltV3z1
-// =======================================================================================
+// ============================================================================================
 vec3 CRTBadSignal(sampler2D inImage, vec2 inCoords)
 {
 	vec2 uv = inCoords;
@@ -538,12 +595,12 @@ vec3 CRTBadSignal(sampler2D inImage, vec2 inCoords)
 	
 	return col;
 }
-// ------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------
 
 
-// =======================================================================================
+// ============================================================================================
 // FXAA - original at https://www.shadertoy.com/view/MdyyRt
-// =======================================================================================
+// ============================================================================================
 #define FXAA_STRENGTH 10.
 vec3 FXAA(sampler2D _Tex, vec2 uv)
 {
@@ -584,41 +641,12 @@ vec3 FXAA(sampler2D _Tex, vec2 uv)
 		return resultB.rgb;
 	}
 }
-//------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 
 
-vec3 ACESFilm(vec3 color)
-{
-	// taken from https://www.shadertoy.com/view/XsGfWV This is based on the actual
-	// ACES sources and is effectively the glsl translation of Stephen Hill's fit
-	// (https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl)
-	mat3 m1 = mat3(
-        0.59719, 0.07600, 0.02840,
-        0.35458, 0.90834, 0.13383,
-        0.04823, 0.01566, 0.83777
-	);
-	mat3 m2 = mat3(
-        1.60475, -0.10208, -0.00327,
-        -0.53108,  1.10813, -0.07276,
-        -0.07367, -0.00605,  1.07602
-	);
-	// prevents some ACES artifacts, especially bright blues shifting towards purple
-	// see https://community.acescentral.com/t/colour-artefacts-or-breakup-using-aces/520/48
-	mat3 highlightsFixLMT = mat3(
-	0.9404372683, -0.0183068787, 0.0778696104,
-	0.0083786969, 0.8286599939, 0.1629613092,
-	0.0005471261, -0.0008833746, 1.0003362486
-	);
-	vec3 v = m1 * color * highlightsFixLMT;    
-	vec3 a = v * (v + 0.0245786) - 0.000090537;
-	vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
-	return clamp(m2 * (a / b), 0.0, 1.0);
-}
-
-
-//==========================================================================================
+//=============================================================================================
 //Gamut expansion - modified from original code, courtesy of the HDR Den Discord server devs
-//==========================================================================================
+//=============================================================================================
 vec3 okLabFromBT709 (vec3 bt709)
 {
 	const mat3 BT709_2_OKLABLMS = mat3(
@@ -688,8 +716,7 @@ vec3 expandGamut(vec3 color, float gamutExpansionAmount)
 	
 	return Rec2020toRec709(colorBT2020);
 }
-//------------------------------------------------------------------------------------------
-
+//---------------------------------------------------------------------------------------------
 
 
 void main()
@@ -753,7 +780,7 @@ void main()
 	// we desaturate colors as they become brighter
 	// Kd is rate of desaturation - since it is quite strong here, 
 	// we compensate with an increased GAMUT_EXPANSION_AMOUNT
-	const float Kd = 0.175;	
+	const float Kd = 0.175;
 	vec3 luma = grayscale(hdrColor);
 	float desaturationFraction = 1.0 - 1.0 / (Kd * max(hdrColor.r, max(hdrColor.g, hdrColor.b)) + 1.0);
 	
@@ -763,14 +790,23 @@ void main()
 	// mastering to 1000 nits max luminance
 	hdrColor = min(hdrColor, vec3(MAXCLLNITS * 0.0125));
 	
-	// tone mapping - choose one of the below
-	// 1. no tone mapping (mainly for testing purposes)
-	// vec3 result = hdrColor;
-	// 2. Reinhard HDR (good for any value of uMaxBrightness, rather than selected values)
-	// vec3 result = reinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
-	// 3. ACES for the max luminances for which we have sigmoid parameters, Reinhard for everything else
-	// at 1000 nits max brighness and 80 nits paper white we get the originally intended tone mapping result
-	vec3 result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+	// tone mapper selection
+	vec3 result;
+	switch(uHDRToneMapper)
+	{
+		case 0: // OOHDR_TONEMAPPER_ACES_APPROX - ACES for the max luminances for which we have sigmoid parameters, Reinhard for everything else, based on Krzysztof Narkowicz's approximation
+			result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			break;
+		case 1:	// OOHDR_TONEMAPPER_DICE - Based on the RenoDX HLSL code
+			result = DICEToneMap(hdrColor * uPaperWhiteBrightness * 0.0125, uMaxBrightness * 0.0125, 0.8, 1.6);
+			break;
+		case 2: // OOHDR_TONEMAPPER_REINHARD - good for any value of uMaxBrightness, rather than selected values
+			result = reinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			break;
+		default: // OOHDR_TONEMAPPER_NONE - mainly for testing purposes
+			result = hdrColor;
+			break;
+	}
 	
 	// gamut expansion here
 	result = expandGamut(result, GAMUT_EXPANSION_AMOUNT);
@@ -836,9 +872,6 @@ void main()
 		result = output;
 	}
 #endif
-	
-	// perceptual quantizer
-	//result = ApplySMPTE_ST2084Curve(result / SMPTE_ST2084MAXNITS);
 	
 	FragColor = vec4(result, 1.0);
 }
