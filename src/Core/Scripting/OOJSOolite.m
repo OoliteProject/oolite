@@ -30,9 +30,12 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOJSPlayer.h"
 #import "ResourceManager.h"
+#import "MyOpenGLView.h"
+#import "OOConstToString.h"
 
 
 static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID, jsval *value);
+static JSBool OoliteSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value);
 
 static NSString *VersionString(void);
 static NSArray *VersionComponents(void);
@@ -48,7 +51,8 @@ static JSClass sOoliteClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	OoliteGetProperty,
-	JS_StrictPropertyStub,
+	OoliteSetProperty,
+	//JS_StrictPropertyStub,
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
@@ -65,6 +69,12 @@ enum
 	kOolite_jsVersionString,	// JavaScript version as string, string, read-only
 	kOolite_gameSettings,		// Various game settings, object, read-only
 	kOolite_resourcePaths,		// Paths containing resources, built-in plus oxp/oxz, read-only
+	kOolite_colorSaturation,	// Color saturation, integer, read/write
+	kOolite_postFX,				// current post processing effect, integer, read/write
+	kOolite_hdrToneMapper,		// currently active HDR tone mapper, string, read/write
+#ifndef NDEBUG
+	kOolite_timeAccelerationFactor,	// time acceleration, float, read/write
+#endif
 };
 
 
@@ -77,6 +87,12 @@ static JSPropertySpec sOoliteProperties[] =
 	{ "version",				kOolite_version,			OOJS_PROP_READONLY_CB },
 	{ "versionString",			kOolite_versionString,		OOJS_PROP_READONLY_CB },
 	{ "resourcePaths",			kOolite_resourcePaths,		OOJS_PROP_READONLY_CB },
+	{ "colorSaturation",		kOolite_colorSaturation,	OOJS_PROP_READWRITE_CB },
+	{ "postFX",					kOolite_postFX,				OOJS_PROP_READWRITE_CB },
+	{ "hdrToneMapper",			kOolite_hdrToneMapper, 		OOJS_PROP_READWRITE_CB },
+#ifndef NDEBUG
+	{ "timeAccelerationFactor",	kOolite_timeAccelerationFactor,	OOJS_PROP_READWRITE_CB },
+#endif
 	{ 0 }
 };
 
@@ -103,6 +119,7 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOJS_NATIVE_ENTER(context)
 	
 	id						result = nil;
+	MyOpenGLView			*gameView = [UNIVERSE gameView];
 	
 	switch (JSID_TO_INT(propID))
 	{
@@ -129,6 +146,31 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 		case kOolite_resourcePaths:
 			result = [ResourceManager paths];
 			break;
+			
+		case kOolite_colorSaturation:
+			return JS_NewNumberValue(context, [gameView colorSaturation], value);
+			
+		case kOolite_postFX:
+			*value = INT_TO_JSVAL([UNIVERSE currentPostFX]);
+			return YES;
+			
+		case kOolite_hdrToneMapper:
+		{
+			NSString *toneMapperStr = @"OOHDR_TONEMAPPER_UNDEFINED";
+#if OOLITE_WINDOWS
+			if ([gameView hdrOutput])
+			{
+				toneMapperStr = OOStringFromHDRToneMapper([gameView hdrToneMapper]);
+			}
+#endif
+			result = toneMapperStr;
+			break;
+		}
+			
+#ifndef NDEBUG
+		case kOolite_timeAccelerationFactor:
+			return JS_NewNumberValue(context, [UNIVERSE timeAccelerationFactor], value);
+#endif
 		
 		default:
 			OOJSReportBadPropertySelector(context, this, propID, sOoliteProperties);
@@ -137,6 +179,71 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 	
 	*value = OOJSValueFromNativeObject(context, result);
 	return YES;
+	
+	OOJS_NATIVE_EXIT
+}
+
+
+static JSBool OoliteSetProperty(JSContext *context, JSObject *this, jsid propID, JSBool strict, jsval *value)
+{
+	if (!JSID_IS_INT(propID))  return YES;
+	
+	OOJS_NATIVE_ENTER(context)
+	
+	jsdouble				fValue;
+	int32					iValue;
+	NSString				*sValue = nil;
+	MyOpenGLView 			*gameView = [UNIVERSE gameView];
+	
+	switch (JSID_TO_INT(propID))
+	{
+		case kOolite_colorSaturation:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				float currentColorSaturation = [gameView colorSaturation];
+				[gameView adjustColorSaturation:fValue - currentColorSaturation];
+				return YES;
+			}
+			break;
+			
+		case kOolite_postFX:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				iValue = MAX(iValue, 0);
+				[UNIVERSE setCurrentPostFX:iValue];
+				return YES;
+			}
+			break;
+			
+		case kOolite_hdrToneMapper:
+			if (!JSVAL_IS_STRING(*value))  break; // non-string is not allowed
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+#if OOLITE_WINDOWS
+				[gameView setHDRToneMapper:OOHDRToneMapperFromString(sValue)];
+#endif
+				return YES;
+			}
+			break;
+			
+#ifndef NDEBUG
+		case kOolite_timeAccelerationFactor:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[UNIVERSE setTimeAccelerationFactor:fValue];
+				return YES;
+			}
+			break;
+#endif
+			
+		default:
+			OOJSReportBadPropertySelector(context, this, propID, sOoliteProperties);
+			return NO;
+	}
+	
+	OOJSReportBadPropertyValue(context, this, propID, sOoliteProperties, *value);
+	return NO;
 	
 	OOJS_NATIVE_EXIT
 }

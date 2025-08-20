@@ -146,6 +146,14 @@ enum KeyboardType
 	gvKeyboardUK
 };
 
+typedef enum
+{
+	OOHDR_TONEMAPPER_NONE = -1,
+	OOHDR_TONEMAPPER_ACES_APPROX = 0,
+	OOHDR_TONEMAPPER_DICE,
+	OOHDR_TONEMAPPER_REINHARD
+} OOHDRToneMapper;
+
 extern int debug;
 
 @interface MyOpenGLView : NSObject
@@ -213,6 +221,7 @@ extern int debug;
 	RECT				lastGoodRect;
 	float				_hdrMaxBrightness;
 	float				_hdrPaperWhiteBrightness;
+	int					_hdrToneMapper;
 
 #endif
 
@@ -275,6 +284,8 @@ extern int debug;
 - (void) setHDRMaxBrightness:(float)newMaxBrightness;
 - (float) hdrPaperWhiteBrightness;
 - (void) setHDRPaperWhiteBrightness:(float)newPaperWhiteBrightness;
+- (OOHDRToneMapper) hdrToneMapper;
+- (void) setHDRToneMapper: (OOHDRToneMapper)newToneMapper;
 #endif
 - (float) colorSaturation;
 - (void) adjustColorSaturation:(float)colorSaturationAdjustment;

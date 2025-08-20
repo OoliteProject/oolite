@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h" // for splash screen settings
 #import "OOFullScreenController.h"
 #import "ResourceManager.h"
+#import "OOConstToString.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #import "stb_image_write.h"
@@ -309,6 +310,8 @@ enum PreferredAppMode
 #if OOLITE_WINDOWS
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
 	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
+	_hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
+	NSLog(@"HDRToneMapper: %d", _hdrToneMapper);
 	if (bitsPerColorComponent == 16)
 	{
 		// SDL.dll built specifically for Oolite required
@@ -1333,6 +1336,20 @@ finished:
 	_hdrPaperWhiteBrightness = newPaperWhiteBrightness;
 	
 	[[NSUserDefaults standardUserDefaults] setFloat:_hdrPaperWhiteBrightness forKey:@"hdr-paperwhite-brightness"];
+}
+
+
+- (OOHDRToneMapper) hdrToneMapper
+{
+	return _hdrToneMapper;
+}
+
+
+- (void) setHDRToneMapper: (OOHDRToneMapper)newToneMapper
+{
+	if (newToneMapper > OOHDR_TONEMAPPER_REINHARD)  newToneMapper = OOHDR_TONEMAPPER_REINHARD;
+	if (newToneMapper < OOHDR_TONEMAPPER_NONE)  newToneMapper = OOHDR_TONEMAPPER_NONE;
+	_hdrToneMapper = newToneMapper;
 }
 
 

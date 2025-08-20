@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "OOFunctionAttributes.h"
 #import "OOTypes.h"
+#import "MyOpenGLView.h"
 
 
 enum
@@ -117,3 +118,5 @@ NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearan
 NSString *OOStringFromGraphicsDetail(OOGraphicsDetail detail);
 OOGraphicsDetail OOGraphicsDetailFromString(NSString *string);
 
+NSString *OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper);
+OOHDRToneMapper OOHDRToneMapperFromString( NSString *string);
