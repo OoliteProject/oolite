@@ -78,8 +78,6 @@ static JSBool GlobalGetGuiColorSettingForKey(JSContext *context, uintN argc, jsv
 static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalSetExtraGuiScreenKeys(JSContext *context, uintN argc, jsval *vp);
 static JSBool GlobalClearExtraGuiScreenKeys(JSContext *context, uintN argc, jsval *vp);
-static JSBool GlobalGetColorSaturation(JSContext *context, uintN argc, jsval *vp);
-static JSBool GlobalSetColorSaturation(JSContext *context, uintN argc, jsval *vp);
 
 #ifndef NDEBUG
 static JSBool GlobalTakeSnapShot(JSContext *context, uintN argc, jsval *vp);
@@ -113,7 +111,6 @@ enum
 	kGlobal_galaxyNumber,		// galaxy number, integer, read-only
 	kGlobal_global,				// global.global.global.global, integer, read-only
 	kGlobal_guiScreen,			// current GUI screen, string, read-only
-	kGlobal_postFX,				// current post processing effect, integer, read/write
 #ifndef NDEBUG
 	kGlobal_timeAccelerationFactor	// time acceleration, float, read/write
 #endif
@@ -125,7 +122,6 @@ static JSPropertySpec sGlobalProperties[] =
 	// JS name					ID							flags
 	{ "galaxyNumber",			kGlobal_galaxyNumber,		OOJS_PROP_READONLY_CB },
 	{ "guiScreen",				kGlobal_guiScreen,			OOJS_PROP_READONLY_CB },
-	{ "postFX",				kGlobal_postFX,			OOJS_PROP_READWRITE_CB },
 #ifndef NDEBUG
 	{ "timeAccelerationFactor",	kGlobal_timeAccelerationFactor,	OOJS_PROP_READWRITE_CB },
 #endif
@@ -150,8 +146,6 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "getGuiColorSettingForKey",       GlobalGetGuiColorSettingForKey,     1 },
 	{ "setGuiColorSettingForKey",       GlobalSetGuiColorSettingForKey,     2 },
 	{ "keyBindingDescription",       	GlobalKeyBindingDescription,		1 },
- 	{ "getColorSaturation",				GlobalGetColorSaturation,			0 },
-	{ "setColorSaturation",				GlobalSetColorSaturation,				1 },
 	{ "setExtraGuiScreenKeys",			GlobalSetExtraGuiScreenKeys,		2 },
 	{ "clearExtraGuiScreenKeys",		GlobalClearExtraGuiScreenKeys,		2 },
 
@@ -199,10 +193,6 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsid propID,
 			*value = OOJSValueFromGUIScreenID(context, [player guiScreen]);
 			return YES;
 			
-		case kGlobal_postFX:
-			*value = INT_TO_JSVAL([UNIVERSE currentPostFX]);
-			return YES;
-			
 #ifndef NDEBUG
 		case kGlobal_timeAccelerationFactor:
 			return JS_NewNumberValue(context, [UNIVERSE timeAccelerationFactor], value);
@@ -225,19 +215,9 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsid propID,
 	OOJS_NATIVE_ENTER(context)
 	
 	jsdouble					fValue;
-	int32					iValue;
 	
 	switch (JSID_TO_INT(propID))
 	{
-		case kGlobal_postFX:
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				iValue = MAX(iValue, 0);
-				[UNIVERSE setCurrentPostFX:iValue];
-				return YES;
-			}
-			break;
-			
 		case kGlobal_timeAccelerationFactor:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
@@ -773,36 +753,6 @@ static JSBool GlobalSetGuiColorSettingForKey(JSContext *context, uintN argc, jsv
 	result = YES;
 	
 	OOJS_RETURN_BOOL(result);
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-// getColorSaturation()
-static JSBool GlobalGetColorSaturation(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	OOJS_RETURN_OBJECT([NSNumber numberWithFloat:[[UNIVERSE gameView] colorSaturation]]);
-	
-	OOJS_NATIVE_EXIT
-}
-
-
-// setColorSaturation([desiredSaturation : Number])
-static JSBool GlobalSetColorSaturation(JSContext *context, uintN argc, jsval *vp)
-{
-	OOJS_NATIVE_ENTER(context)
-	
-	jsdouble	desiredColorSaturation = 0;
-	
-	if (argc < 1 || EXPECT_NOT(!JS_ValueToNumber(context, OOJS_ARGV[0], &desiredColorSaturation)))  return NO;
-	
-	MyOpenGLView *gameView = [UNIVERSE gameView];
-	float currentColorSaturation = [gameView colorSaturation];
-	[gameView adjustColorSaturation:desiredColorSaturation - currentColorSaturation];
-	
-	OOJS_RETURN_VOID;
 	
 	OOJS_NATIVE_EXIT
 }

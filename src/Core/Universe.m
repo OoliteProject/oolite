@@ -665,6 +665,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	{
 		OOGL(glUniform1f(glGetUniformLocation(final, "uMaxBrightness"), [gameView hdrMaxBrightness]));
 		OOGL(glUniform1f(glGetUniformLocation(final, "uPaperWhiteBrightness"), [gameView hdrPaperWhiteBrightness]));
+		OOGL(glUniform1i(glGetUniformLocation(final, "uHDRToneMapper"), [gameView hdrToneMapper]));
 	}
 #endif
 	
@@ -4500,7 +4501,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 - (NSDictionary *) gameSettings
 {
 #if OOLITE_SDL
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:11];
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:12];
 #else
  	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:10];
 #endif
@@ -4520,6 +4521,7 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 	{
 		[result oo_setFloat:[gameView hdrMaxBrightness] forKey:@"hdr-max-brightness"];
 		[result oo_setFloat:[gameView hdrPaperWhiteBrightness] forKey:@"hdr-paperwhite-brightness"];
+		[result setObject:OOStringFromHDRToneMapper([gameView hdrToneMapper]) forKey:@"hdr-tone-mapper"];
 	}
 #endif
 	
