@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+#ifndef NDEBUG
 
 
 #import "OODebugMonitor.h"
@@ -1038,4 +1038,4 @@ NOTE: assumes single-threaded access.
 
 @end
 
-#endif /* OO_EXCLUDE_DEBUG_SUPPORT */
+#endif /* NDEBUG */

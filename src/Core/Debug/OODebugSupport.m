@@ -25,7 +25,7 @@ SOFTWARE.
 
 */
 
-#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+#ifndef NDEBUG
 
 
 #import "OODebugSupport.h"
@@ -150,4 +150,4 @@ static id LoadDebugPlugIn()
 
 #endif
 
-#endif	/* OO_EXCLUDE_DEBUG_SUPPORT */
+#endif	/* NDEBUG */
