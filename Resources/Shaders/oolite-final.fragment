@@ -9,17 +9,29 @@ uniform int			uPostFX;
 uniform float		uTime;
 uniform vec2		uResolution;
 uniform float		uSaturation;
+uniform int			uSDRToneMapper;
 
 #ifndef OO_DITHER
 #define OO_DITHER	1
 #endif
 
-#ifndef OO_TONEMAPPER_AgX
-#define OO_TONEMAPPER_AgX	0
-#endif
+
+// ==========================================================================================
+// grayscale
+// ==========================================================================================
+vec3 grayscale(vec3 col)
+{
+	vec3 luma = vec3(0.2126, 0.7152, 0.0722);
+	col = vec3(dot(col, luma));
+	
+	return col;
+}
+// ------------------------------------------------------------------------------------------
 
 
-//============================================================================================================
+// SDR Tone Mappers
+//-----------------
+//
 // AgX code from https://github.com/donmccurdy/three.js/blob/feat/agx-punchy/src/renderers/shaders/ShaderChunk/tonemapping_pars_fragment.glsl.js
 // and https://iolite-engine.com/blog_posts/minimal_agx_implementation
 // MIT License
@@ -169,7 +181,7 @@ vec3 AgX(vec3 color, int look)
 
 	return color;
 }
-//============================================================================================================
+//-----------------
 
 
 vec3 ACESFilm(vec3 color)
@@ -199,6 +211,79 @@ vec3 ACESFilm(vec3 color)
 	vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
 	return clamp(m2 * (a / b), 0.0, 1.0);
 }
+//-----------------
+
+
+vec3 hejlBurgessDawson(vec3 x)
+{
+	// includes gamma correction in the formula
+	x = max(vec3(0.0), x -vec3(0.004));
+	return (x * (6.2 * x + 0.5)) / (x * (6.2 * x + 1.7) + 0.06);
+}
+//-----------------
+
+
+vec3 uc2(vec3 x)
+{
+	const float A = 0.15f;
+	const float B = 0.50f;
+	const float C = 0.10f;
+	const float D = 0.20f;
+	const float E = 0.02f;
+	const float F = 0.30f;
+	const float W = 11.2f;
+	const float exposureBias = 2.0f;
+	x *= exposureBias;
+	x = ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
+	float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
+	return x / max(vec3(0.00001f), white);
+}
+//-----------------
+
+
+// Uchimura 2017, "HDR theory and practice"
+// https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp
+vec3 uchimura(vec3 x, float P, float a, float m, float l, float c, float b)
+{
+  float l0 = ((P - m) * l) / a;
+  float L0 = m - m / a;
+  float L1 = m + (1.0 - m) / a;
+  float S0 = m + l0;
+  float S1 = m + a * l0;
+  float C2 = (a * P) / (P - S1);
+  float CP = -C2 / P;
+
+  vec3 w0 = vec3(1.0 - smoothstep(0.0, m, x));
+  vec3 w2 = vec3(step(m + l0, x));
+  vec3 w1 = vec3(1.0 - w0 - w2);
+
+  vec3 T = vec3(m * pow(x / m, vec3(c)) + b);
+  vec3 S = vec3(P - (P - S1) * exp(CP * (x - S0)));
+  vec3 L = vec3(m + a * (x - m));
+
+  return T * w0 + L * w1 + S * w2;
+}
+
+
+vec3 uchimura(vec3 x)
+{
+  const float P = 1.0;  // max display brightness
+  const float a = 1.0;  // contrast
+  const float m = 0.22; // linear section start
+  const float l = 0.4;  // linear section length
+  const float c = 1.33; // black
+  const float b = 0.0;  // pedestal
+
+  return uchimura(x, P, a, m, l, c, b);
+}
+//-----------------
+
+
+vec3 reinhard(vec3 x)
+{
+	return x / (x + vec3(1.0));
+}
+//-----------------
 
 
 mat3 saturationMatrix( float saturation )
@@ -222,17 +307,18 @@ mat3 saturationMatrix( float saturation )
 }
 
 
-// ==========================================================================================
-// grayscale
-// ==========================================================================================
-vec3 grayscale(vec3 col)
+//==========================================================================================
+// desaturateHighlights -  we desaturate colors as they become brighter
+//==========================================================================================
+vec3 desaturateHighlights(vec3 col)
 {
-	vec3 luma = vec3(0.2126, 0.7152, 0.0722);
-	col = vec3(dot(col, luma));
-	
-	return col;
+	// Kd is rate of desaturation
+	const float Kd = 1.175;
+	vec3 luma = grayscale(col);
+	float desaturationFraction = 1.0 - 1.0 / (Kd * max(col.r, max(col.g, col.b)) + 1.0);
+	return mix(col, luma, desaturationFraction);
 }
-// ------------------------------------------------------------------------------------------
+
 
 // ==========================================================================================
 // cloak vision - original code by Nikos Papadopoulos, https://www.shadertoy.com/view/Xsl3zf
@@ -725,15 +811,47 @@ void main()
 	
 	// apply saturation
 	hdrColor = max(saturationMatrix(uSaturation) * hdrColor, vec3(0.0));
-	
-	// tone mapping
-#if !OO_TONEMAPPER_AgX
-	vec3 result = ACESFilm(hdrColor);
-#else
-	vec3 result = AgX(hdrColor, AGX_LOOK_PUNCHY);
-#endif
+
+	vec3 result;
+	bool gammaCorrectionRequired = true;
+	switch(uSDRToneMapper)
+	{
+		case 0: // ACES
+			result = ACESFilm(hdrColor);
+			break;
+			
+		case 1: //AgX Punchy
+			result = AgX(hdrColor, AGX_LOOK_PUNCHY);
+			break;
+			
+		case 2: // Hejl / Burgess - Dawson filmic
+			result = desaturateHighlights(hdrColor);
+			result = hejlBurgessDawson(result);
+			gammaCorrectionRequired = false;
+			break;
+			
+		case 3: // Uncharted 2
+			result = desaturateHighlights(hdrColor);
+			result = uc2(result);
+			break;
+			
+		case 4: // Uchimura
+			result = desaturateHighlights(hdrColor);
+			result = uchimura(result);
+			break;
+			
+		case 5: // Reinhard
+			result = desaturateHighlights(hdrColor);
+			result = reinhard(result);
+			break;
+		
+		default: // no tone map - mainly for testing
+			result = hdrColor;
+			break;	
+	}
+
 	// gamma correction       
-	result = pow(result, vec3(1.0 / 2.2));
+	if (gammaCorrectionRequired)  result = pow(result, vec3(1.0 / 2.2));
 	
 #if OO_DITHER
 	result += random(TexCoords + uTime) / 255.0;

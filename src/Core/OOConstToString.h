@@ -120,3 +120,6 @@ OOGraphicsDetail OOGraphicsDetailFromString(NSString *string);
 
 NSString *OOStringFromHDRToneMapper(OOHDRToneMapper toneMapper);
 OOHDRToneMapper OOHDRToneMapperFromString( NSString *string);
+
+NSString *OOStringFromSDRToneMapper(OOSDRToneMapper toneMapper);
+OOSDRToneMapper OOSDRToneMapperFromString( NSString *string);

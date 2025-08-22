@@ -668,6 +668,7 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 		OOGL(glUniform1i(glGetUniformLocation(final, "uHDRToneMapper"), [gameView hdrToneMapper]));
 	}
 #endif
+	OOGL(glUniform1i(glGetUniformLocation(final, "uSDRToneMapper"), [gameView sdrToneMapper]));
 	
 	OOGL(glActiveTexture(GL_TEXTURE1));
 	OOGL(glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[!horizontal]));
@@ -4524,6 +4525,8 @@ static BOOL IsFriendlyStationPredicate(Entity *entity, void *parameter)
 		[result setObject:OOStringFromHDRToneMapper([gameView hdrToneMapper]) forKey:@"hdr-tone-mapper"];
 	}
 #endif
+
+	[result setObject:OOStringFromSDRToneMapper([gameView sdrToneMapper]) forKey:@"sdr-tone-mapper"];
 	
 	[result setObject:OOStringFromGraphicsDetail([self detailLevel]) forKey:@"detailLevel"];
 	

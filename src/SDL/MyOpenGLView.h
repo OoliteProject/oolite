@@ -154,6 +154,17 @@ typedef enum
 	OOHDR_TONEMAPPER_REINHARD
 } OOHDRToneMapper;
 
+typedef enum
+{
+	OOSDR_TONEMAPPER_NONE = -1,
+	OOSDR_TONEMAPPER_ACES = 0,
+	OOSDR_TONEMAPPER_AgX,
+	OOSDR_TONEMAPPER_HEJLDAWSON,
+	OOSDR_TONEMAPPER_UC2,
+	OOSDR_TONEMAPPER_UCHIMURA,
+	OOSDR_TONEMAPPER_REINHARD
+} OOSDRToneMapper;
+
 extern int debug;
 
 @interface MyOpenGLView : NSObject
@@ -225,6 +236,8 @@ extern int debug;
 
 #endif
 
+	int					_sdrToneMapper;
+
 	float				_colorSaturation;
 	
 	BOOL				_hdrOutput;
@@ -287,6 +300,8 @@ extern int debug;
 - (OOHDRToneMapper) hdrToneMapper;
 - (void) setHDRToneMapper: (OOHDRToneMapper)newToneMapper;
 #endif
+- (OOSDRToneMapper) sdrToneMapper;
+- (void) setSDRToneMapper: (OOSDRToneMapper)newToneMapper;
 - (float) colorSaturation;
 - (void) adjustColorSaturation:(float)colorSaturationAdjustment;
 - (BOOL) hdrOutput;

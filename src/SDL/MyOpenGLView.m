@@ -311,7 +311,6 @@ enum PreferredAppMode
 	_hdrMaxBrightness = [prefs oo_floatForKey:@"hdr-max-brightness" defaultValue:1000.0f];
 	_hdrPaperWhiteBrightness = [prefs oo_floatForKey:@"hdr-paperwhite-brightness" defaultValue:200.0f];
 	_hdrToneMapper = OOHDRToneMapperFromString([prefs oo_stringForKey:@"hdr-tone-mapper" defaultValue:@"OOHDR_TONEMAPPER_ACES_APPROX"]);
-	NSLog(@"HDRToneMapper: %d", _hdrToneMapper);
 	if (bitsPerColorComponent == 16)
 	{
 		// SDL.dll built specifically for Oolite required
@@ -319,6 +318,8 @@ enum PreferredAppMode
 		_hdrOutput = YES;
 	}
 #endif
+	
+	_sdrToneMapper = OOSDRToneMapperFromString([prefs oo_stringForKey:@"sdr-tone-mapper" defaultValue:@"OOSDR_TONEMAPPER_ACES"]);
 	
 	// V-sync settings - we set here, but can only verify after SDL_SetVideoMode has been called.
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vSyncPreference);	// V-sync on by default.
@@ -1398,6 +1399,20 @@ finished:
 }
 
 #endif //OOLITE_WINDOWS
+
+
+- (OOSDRToneMapper) sdrToneMapper
+{
+	return _sdrToneMapper;
+}
+
+
+- (void) setSDRToneMapper: (OOSDRToneMapper)newToneMapper
+{
+	if (newToneMapper > OOSDR_TONEMAPPER_REINHARD)  newToneMapper = OOSDR_TONEMAPPER_REINHARD;
+	if (newToneMapper < OOSDR_TONEMAPPER_NONE)  newToneMapper = OOSDR_TONEMAPPER_NONE;
+	_sdrToneMapper = newToneMapper;
+}
 
 
 - (void) initialiseGLWithSize:(NSSize) v_size

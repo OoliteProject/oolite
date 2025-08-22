@@ -72,6 +72,7 @@ enum
 	kOolite_colorSaturation,	// Color saturation, integer, read/write
 	kOolite_postFX,				// current post processing effect, integer, read/write
 	kOolite_hdrToneMapper,		// currently active HDR tone mapper, string, read/write
+	kOolite_sdrToneMapper,		// currently active SDR tone mapper, string, read/write
 #ifndef NDEBUG
 	kOolite_timeAccelerationFactor,	// time acceleration, float, read/write
 #endif
@@ -90,6 +91,7 @@ static JSPropertySpec sOoliteProperties[] =
 	{ "colorSaturation",		kOolite_colorSaturation,	OOJS_PROP_READWRITE_CB },
 	{ "postFX",					kOolite_postFX,				OOJS_PROP_READWRITE_CB },
 	{ "hdrToneMapper",			kOolite_hdrToneMapper, 		OOJS_PROP_READWRITE_CB },
+	{ "sdrToneMapper",			kOolite_sdrToneMapper, 		OOJS_PROP_READWRITE_CB },
 #ifndef NDEBUG
 	{ "timeAccelerationFactor",	kOolite_timeAccelerationFactor,	OOJS_PROP_READWRITE_CB },
 #endif
@@ -166,6 +168,17 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsid propID,
 			result = toneMapperStr;
 			break;
 		}
+		
+		case kOolite_sdrToneMapper:
+		{
+			NSString *toneMapperStr = @"OOSDR_TONEMAPPER_UNDEFINED";
+			if (![gameView hdrOutput])
+			{
+				toneMapperStr = OOStringFromSDRToneMapper([gameView sdrToneMapper]);
+			}
+			result = toneMapperStr;
+			break;
+		}
 			
 #ifndef NDEBUG
 		case kOolite_timeAccelerationFactor:
@@ -221,8 +234,20 @@ static JSBool OoliteSetProperty(JSContext *context, JSObject *this, jsid propID,
 			if (sValue != nil)
 			{
 #if OOLITE_WINDOWS
-				[gameView setHDRToneMapper:OOHDRToneMapperFromString(sValue)];
+				if ([gameView hdrOutput])  [gameView setHDRToneMapper:OOHDRToneMapperFromString(sValue)];
+				else  OOJSReportWarning(context, @"hdrToneMapper cannot be set if not running in HDR mode");
 #endif
+				return YES;
+			}
+			break;
+			
+		case kOolite_sdrToneMapper:
+			if (!JSVAL_IS_STRING(*value))  break; // non-string is not allowed
+			sValue = OOStringFromJSValue(context,*value);
+			if (sValue != nil)
+			{
+				if (![gameView hdrOutput])  [gameView setSDRToneMapper:OOSDRToneMapperFromString(sValue)];
+				else  OOJSReportWarning(context, @"sdrToneMapper cannot be set if not running in SDR mode");
 				return YES;
 			}
 			break;
