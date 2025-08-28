@@ -497,13 +497,16 @@ static BOOL _refreshStarChart = NO;
 
 - (BOOL) setSelectedRow:(OOGUIRow)row
 {
-	if ((row == selectedRow)&&RowInRange(row, selectableRange))
+	if ((row == selectedRow) && RowInRange(row, selectableRange))
+	{
 		return YES;
+	}
 	if (RowInRange(row, selectableRange))
 	{
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
 		{
 			selectedRow = row;
+			[self reportSelectedRow:row];
 			return YES;
 		}
 	}
@@ -519,6 +522,7 @@ static BOOL _refreshStarChart = NO;
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
 		{
 			selectedRow = row;
+			[self reportSelectedRow:row];
 			return YES;
 		}
 		row += direction;
@@ -535,6 +539,7 @@ static BOOL _refreshStarChart = NO;
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
 		{
 			selectedRow = row;
+			[self reportSelectedRow:row];
 			return YES;
 		}
 		row++;
@@ -552,12 +557,19 @@ static BOOL _refreshStarChart = NO;
 		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
 		{
 			selectedRow = row;
+			[self reportSelectedRow:row];
 			return YES;
 		}
 		row--;
 	}
 	selectedRow = -1;
 	return NO;
+}
+
+
+- (void) reportSelectedRow:(int) row
+{
+	[PLAYER doScriptEvent:OOJSID("guiSelectedRow") withArguments:[NSArray arrayWithObjects:[self keyForRow:row], [NSNumber numberWithInt:row], [self selectedRowText], nil]];
 }
 
 
