@@ -251,6 +251,17 @@ mat3 saturationMatrix( float saturation )
 }
 
 
+vec3 desaturateHighlights(vec3 hdrColor)
+{
+	// we desaturate colors as they become brighter
+	// Kd is rate of desaturation
+	const float Kd = 0.3;
+	vec3 luma = grayscale(hdrColor);
+	float desaturationFraction = 1.0 - 1.0 / (Kd * max(hdrColor.r, max(hdrColor.g, hdrColor.b)) + 1.0);
+	return mix(hdrColor, luma, desaturationFraction);
+}
+
+
 // ============================================================================================
 // cloak vision - original code by Nikos Papadopoulos, https://www.shadertoy.com/view/Xsl3zf
 // ============================================================================================
@@ -816,13 +827,6 @@ void main()
 			break;
 	}
 	
-	// we desaturate colors as they become brighter
-	// Kd is rate of desaturation - since it is quite strong here, 
-	// we compensate with an increased GAMUT_EXPANSION_AMOUNT
-	const float Kd = 0.175;
-	vec3 luma = grayscale(hdrColor);
-	float desaturationFraction = 1.0 - 1.0 / (Kd * max(hdrColor.r, max(hdrColor.g, hdrColor.b)) + 1.0);
-	
 	// apply saturation
 	hdrColor = max(saturationMatrix(uSaturation * SATURATION_ADJUSTMENT) * hdrColor, vec3(0.0));
 	
@@ -834,16 +838,16 @@ void main()
 	switch(uHDRToneMapper)
 	{
 		case 0: // OOHDR_TONEMAPPER_ACES_APPROX - ACES for the max luminances for which we have sigmoid parameters, Reinhard for everything else, based on Krzysztof Narkowicz's approximation
-			result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			result = ACESFilmRec2020OrReinhardHDR(desaturateHighlights(hdrColor) * uPaperWhiteBrightness * 0.0125);
 			break;
 		case 1:	// OOHDR_TONEMAPPER_DICE - Based on the RenoDX HLSL code
 			result = DICEToneMap(hdrColor * uPaperWhiteBrightness * 0.0125, uMaxBrightness * 0.0125, 0.8, 1.6);
 			break;
 		case 2: // OOHDR_TONEMAPPER_UCHIMURA
-			result = uchimura(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			result = uchimura(desaturateHighlights(hdrColor) * uPaperWhiteBrightness * 0.0125);
 			break;
 		case 3: // OOHDR_TONEMAPPER_REINHARD - good for any value of uMaxBrightness, rather than selected values
-			result = reinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
+			result = reinhardHDR(desaturateHighlights(hdrColor) * uPaperWhiteBrightness * 0.0125);
 			break;
 		default: // OOHDR_TONEMAPPER_NONE - mainly for testing purposes
 			result = hdrColor;

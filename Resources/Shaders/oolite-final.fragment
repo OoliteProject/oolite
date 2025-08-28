@@ -313,7 +313,7 @@ mat3 saturationMatrix( float saturation )
 vec3 desaturateHighlights(vec3 col)
 {
 	// Kd is rate of desaturation
-	const float Kd = 1.175;
+	const float Kd = 0.055;
 	vec3 luma = grayscale(col);
 	float desaturationFraction = 1.0 - 1.0 / (Kd * max(col.r, max(col.g, col.b)) + 1.0);
 	return mix(col, luma, desaturationFraction);
@@ -825,24 +825,20 @@ void main()
 			break;
 			
 		case 2: // Hejl / Burgess - Dawson filmic
-			result = desaturateHighlights(hdrColor);
-			result = hejlBurgessDawson(result);
+			result = hejlBurgessDawson(desaturateHighlights(hdrColor));
 			gammaCorrectionRequired = false;
 			break;
 			
 		case 3: // Uncharted 2
-			result = desaturateHighlights(hdrColor);
-			result = uc2(result);
+			result = uc2(desaturateHighlights(hdrColor));
 			break;
 			
 		case 4: // Uchimura
-			result = desaturateHighlights(hdrColor);
-			result = uchimura(result);
+			result = uchimura(desaturateHighlights(hdrColor));
 			break;
 			
 		case 5: // Reinhard
-			result = desaturateHighlights(hdrColor);
-			result = reinhard(result);
+			result = reinhard(desaturateHighlights(hdrColor));
 			break;
 		
 		default: // no tone map - mainly for testing
