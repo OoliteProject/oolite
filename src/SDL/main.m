@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_ALL, "C");
 
 #else // Linux
-	#define OO_SHOW_MSG(ooMsg, ooTitle, ooFlags)	fprintf(stdout, ooMsg)
+	#define OO_SHOW_MSG(ooMsg, ooTitle, ooFlags)	fprintf(stdout, "%s", ooMsg)
  	#define TABS1	"\t\t"
 	#define TABS2	"\t\t\t"
 	#define TABS3	"\t\t\t\t"

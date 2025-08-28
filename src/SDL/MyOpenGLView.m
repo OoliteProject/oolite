@@ -1754,7 +1754,7 @@ finished:
 		
 		if (![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_EXR] && ![fileExtension isEqual:SNAPSHOTHDR_EXTENSION_HDR])
 		{
-			OOLog(@"screenshotHDR", @"Unrecognized HDR file format requested, defaulting to "SNAPSHOTHDR_EXTENSION_DEFAULT);
+			OOLog(@"screenshotHDR", @"Unrecognized HDR file format requested, defaulting to %@", SNAPSHOTHDR_EXTENSION_DEFAULT);
 			fileExtension = SNAPSHOTHDR_EXTENSION_DEFAULT;
 		}
 		
