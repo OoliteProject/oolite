@@ -569,7 +569,7 @@ static BOOL _refreshStarChart = NO;
 
 - (void) reportSelectedRow:(int) row
 {
-	[PLAYER doScriptEvent:OOJSID("guiSelectedRow") withArguments:[NSArray arrayWithObjects:[self keyForRow:row], [NSNumber numberWithInt:row], [self selectedRowText], nil]];
+	[PLAYER doScriptEvent:OOJSID("guiSelectedRowChanged") withArguments:[NSArray arrayWithObjects:[self keyForRow:row], [NSNumber numberWithInt:row], [self selectedRowText], nil]];
 }
 
 
