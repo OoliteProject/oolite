@@ -77,6 +77,353 @@ vec3 ACESFilmRec2020Alt( vec3 x )
 }
 
 
+//============================================================================================
+// ACES Reference Rendering Transform
+//
+
+const mat3 AP0_2_XYZ_MAT =
+mat3(
+	0.9525523959, 0.3439664498, 0.0000000000,
+	0.0000000000, 0.7281660966, 0.0000000000,
+	0.0000936786, -0.0721325464, 1.0088251844	// xposed
+);
+
+const mat3 XYZ_2_AP0_MAT =
+mat3(
+	1.0498110175, -0.4959030231, 0.0000000000,
+	0.0000000000, 1.3733130458, 0.0000000000,
+	-0.0000974845, 0.0982400361, 0.9912520182	// xposed
+);
+
+const mat3 AP1_2_XYZ_MAT = 
+mat3(
+	0.6624541811, 0.2722287168, -0.0055746495,
+	0.1340042065, 0.6740817658, 0.0040607335,
+	0.1561876870, 0.0536895174, 1.0103391003	// xposed
+);
+
+const mat3 XYZ_2_AP1_MAT =
+mat3(
+	1.6410233797, -0.6636628587, 0.0117218943,
+	-0.3248032942, 1.6153315917, -0.0082844420,
+	-0.2364246952, 0.0167563477, 0.9883948585	// xposed
+);
+
+const mat3 AP0_2_AP1_MAT = mat3(XYZ_2_AP1_MAT * AP0_2_XYZ_MAT);
+const mat3 AP1_2_AP0_MAT = mat3(XYZ_2_AP0_MAT * AP1_2_XYZ_MAT);
+//const mat3 AP0_2_AP1_MAT = mat3(AP0_2_XYZ_MAT * XYZ_2_AP1_MAT);
+//const mat3 AP1_2_AP0_MAT = mat3(AP1_2_XYZ_MAT * XYZ_2_AP0_MAT);
+
+const mat3 BT2020_TO_AP1_MAT = mat3(
+	0.9748949779, 0.0021795628, 0.0047972397,
+	0.0195991086, 0.9955354689, 0.0245320166,
+	0.0055059134, 0.0022849683, 0.9706707437	// xposed
+);
+
+const mat3 AP1_TO_BT2020_MAT = mat3(
+	1.0258247477, -0.0022343695, -0.0050133515,
+	-0.0200531908, 1.0045865019, -0.0252900718,
+	-0.0057715568, -0.0023521324, 1.0303034233	// xposed
+);
+
+const vec3 AP1_RGB2Y = //AP1_TO_XYZ_MAT[1].rgb;
+vec3(
+	0.2722287168, //AP1_2_XYZ_MAT[0][1],
+	0.6740817658, //AP1_2_XYZ_MAT[1][1],
+	0.0536895174 //AP1_2_XYZ_MAT[2][1]
+);
+
+const mat3 sRGB_2_XYZ_MAT =
+mat3(
+	0.4124564, 0.3575761, 0.1804375,
+	0.2126729, 0.7151522, 0.0721750,
+	0.0193339, 0.1191920, 0.9503041				// don't care
+);
+
+// REC 2020 primaries
+const mat3 XYZ_2_Rec2020_MAT =
+mat3(
+	1.7166084, -0.6666829, 0.0176422,
+	-0.3556621, 1.6164776, -0.0427763,
+	-0.2533601, 0.0157685, 0.94222867	// xposed
+);
+
+const mat3 Rec2020_2_XYZ_MAT =
+mat3(
+	0.6369736, 0.2627066, 0.0000000,
+	0.1446172, 0.6779996, 0.0280728,
+	0.1688585, 0.0592938, 1.0608437		 // xposed
+);
+
+// With Bradford (D60 to D65)
+const mat3 AP1_TO_BT709_MAT =
+mat3(
+	1.7050509927, -0.1302564175, -0.0240033568,
+	-0.6217921207, 1.1408047366, -0.1289689761,
+	-0.0832588720, -0.0105483191, 1.1529723329	// xposed
+);
+
+   // with Bradford (D65 to D60)
+const mat3 BT709_TO_AP1_MAT =
+mat3(
+	0.6130974024, 0.0701937225, 0.0206155929,
+	0.3395231462, 0.9163538791, 0.1095697729,
+	0.0473794514, 0.0134523985, 0.8698146342	// xposed
+);
+
+// Bradford chromatic adaptation transforms between ACES white point (D60) and sRGB white point (D65)
+const mat3 D65_2_D60_CAT =
+mat3(
+	1.01303, 0.00769823, -0.00284131,
+	0.00610531, 0.998165, 0.00468516,
+	-0.014971, -0.00503203, 0.924507			// xposed
+);
+
+const mat3 D60_2_D65_CAT =
+mat3(
+	 0.987224, -0.00759836, 0.00307257,
+	-0-0.00611327, 1.00186, -0.00509595,
+	0.0159533, 0.00533002, 1.08168				// xposed
+);
+
+const mat3 sRGB_2_AP0 = (sRGB_2_XYZ_MAT * D65_2_D60_CAT) * XYZ_2_AP0_MAT;	// don't care
+
+const float HALF_MAX = 65504.0;
+
+float rgb_2_saturation( vec3 rgb )
+{
+	float minrgb = min( min(rgb.r, rgb.g ), rgb.b );
+	float maxrgb = max( max(rgb.r, rgb.g ), rgb.b );
+	return ( max( maxrgb, 1e-10 ) - max( minrgb, 1e-10 ) ) / max( maxrgb, 1e-2 );
+}
+
+
+float glow_fwd( float ycIn, float glowGainIn, float glowMid)
+{
+   float glowGainOut;
+
+   if (ycIn <= 2./3. * glowMid) {
+	 glowGainOut = glowGainIn;
+   } else if ( ycIn >= 2 * glowMid) {
+	 glowGainOut = 0;
+   } else {
+	 glowGainOut = glowGainIn * (glowMid / ycIn - 0.5);
+   }
+
+   return glowGainOut;
+}
+
+
+float sigmoid_shaper( float x)
+{
+	// Sigmoid function in the range 0 to 1 spanning -2 to +2.
+
+	float t = max( 1 - abs( 0.5 * x ), 0 );
+	float y = 1 + sign(x) * (1 - t*t);
+	return 0.5 * y;
+}
+
+float cubic_basis_shaper
+( 
+  float x, 
+  float w   // full base width of the shaper function (in degrees)
+)
+{
+	//return Square( smoothstep( 0, 1, 1 - abs( 2 * x/w ) ) );
+
+	float M[16] =
+	float[16](
+		-1.0/6.0,  3.0/6.0, -3.0/6.0,  1.0/6.0,
+		 3.0/6.0, -6.0/6.0,  3.0/6.0,  0.0/6.0,
+		-3.0/6.0,  0.0/6.0,  3.0/6.0,  0.0/6.0,
+		 1.0/6.0,  4.0/6.0,  1.0/6.0,  0.0/6.0
+    );
+  
+	float knots[5] = float[5]( -0.5 * w, -0.25 * w, 0, 0.25 * w, 0.5 * w );
+  
+	float y = 0.0;
+	if ((x > knots[0]) && (x < knots[4]))
+	{  
+		float knot_coord = (x - knots[0]) * 4.0 / w;
+		int j = int(knot_coord);
+		float t = knot_coord - float(j);
+	  
+		float monomials[4] = float[4](t*t*t, t*t, t, 1.0);
+
+		// (if/else structure required for compatibility with CTL < v1.5.)
+		if ( j == 3) {
+			y = monomials[0] * M[0] + monomials[1] * M[1] + 
+				monomials[2] * M[2] + monomials[3] * M[3];
+		} else if ( j == 2) {
+			y = monomials[0] * M[4] + monomials[1] * M[5] + 
+				monomials[2] * M[6] + monomials[3] * M[7];
+		} else if ( j == 1) {
+			y = monomials[0] * M[8] + monomials[1] * M[9] + 
+				monomials[2] * M[10] + monomials[3] * M[11];
+		} else if ( j == 0) {
+			y = monomials[0] * M[12] + monomials[1] * M[13] + 
+				monomials[2] * M[14] + monomials[3] * M[15];
+		} else {
+			y = 0.0;
+		}
+	}
+  
+	return y * 1.5;
+}
+
+
+float center_hue( float hue, float centerH)
+{
+	float hueCentered = hue - centerH;
+	if (hueCentered < -180.)
+		hueCentered += 360;
+	else if (hueCentered > 180.)
+		hueCentered -= 360;
+	return hueCentered;
+}
+
+
+// Textbook monomial to basis-function conversion matrix.
+const mat3 M =
+mat3(
+	0.5, -1.0, 0.5,
+	-1.0,  1.0, 0.5,
+	0.5,  0.0, 0.0
+);
+
+
+float log10(float x)
+{
+	return log(x) / log(10.0); //(1.0 / log(10.0)) * log(x);
+}
+
+
+vec3 log10(vec3 a)
+{
+	float x = log10(a.x);
+	float y = log10(a.y);
+	float z = log10(a.z);
+	return vec3(x, y, z);
+}
+
+
+// Transformations from RGB to other color representations
+float rgb_2_hue( vec3 rgb ) 
+{
+	const float pi = 3.1415926;
+	// Returns a geometric hue angle in degrees (0-360) based on RGB values.
+	// For neutral colors, hue is undefined and the function will return a quiet NaN value.
+	float hue;
+	if (rgb[0] == rgb[1] && rgb[1] == rgb[2])
+	{
+		//hue = FLT_NAN; // RGB triplets where RGB are equal have an undefined hue
+		hue = 0;
+	}
+	else
+	{
+		hue = (180.0 / pi) * atan(2.0 * rgb[0] - rgb[1] - rgb[2], sqrt(3.0) * (rgb[1] - rgb[2]));
+	}
+
+	if (hue < 0.)
+		hue = hue + 360;
+
+	return clamp( hue, 0, 360 );
+}
+
+float rgb_2_yc( vec3 rgb, float ycRadiusWeight)
+{
+	// Converts RGB to a luminance proxy, here called YC
+	// YC is ~ Y + K * Chroma
+	// Constant YC is a cone-shaped surface in RGB space, with the tip on the 
+	// neutral axis, towards white.
+	// YC is normalized: RGB 1 1 1 maps to YC = 1
+	//
+	// ycRadiusWeight defaults to 1.75, although can be overridden in function 
+	// call to rgb_2_yc
+	// ycRadiusWeight = 1 -> YC for pure cyan, magenta, yellow == YC for neutral 
+	// of same value
+	// ycRadiusWeight = 2 -> YC for pure red, green, blue  == YC for  neutral of 
+	// same value.
+
+	float r = rgb[0]; 
+	float g = rgb[1]; 
+	float b = rgb[2];
+  
+	float chroma = sqrt(b*(b-g)+g*(g-r)+r*(r-b));
+
+	return ( b + g + r + ycRadiusWeight * chroma) / 3.;
+}
+
+float rgb_2_yc( vec3 rgb)
+{
+return rgb_2_yc(rgb, 1.75);
+}
+
+// 
+// Reference Rendering Transform (RRT)
+//
+//   Input is ACES
+//   Output is still AP1 in this modification!
+//
+vec3 RRT( vec3 aces )
+{
+	mat3 highlightsFixLMT = mat3(
+	0.9404372683, -0.0183068787, 0.0778696104,
+	0.0083786969, 0.8286599939, 0.1629613092,
+	0.0005471261, -0.0008833746, 1.0003362486
+	);
+	
+	// "Glow" module constants
+	const float RRT_GLOW_GAIN = 0.05;
+	const float RRT_GLOW_MID = 0.8;
+
+	aces = aces * highlightsFixLMT;
+	float saturation = rgb_2_saturation( aces );
+	float ycIn = rgb_2_yc( aces );
+	float s = sigmoid_shaper( (saturation - 0.4) / 0.2);
+	float addedGlow = 1 + glow_fwd( ycIn, RRT_GLOW_GAIN * s, RRT_GLOW_MID);
+	aces *= addedGlow;
+  
+	// --- Red modifier --- //
+	const float RRT_RED_SCALE = 0.82;
+	const float RRT_RED_PIVOT = 0.03;
+	const float RRT_RED_HUE = 0;
+	const float RRT_RED_WIDTH = 135;
+	float hue = rgb_2_hue( aces );
+	float centeredHue = center_hue( hue, RRT_RED_HUE );
+	float hueWeight = cubic_basis_shaper( centeredHue, RRT_RED_WIDTH );
+	//{
+	//	float hueWeight = smoothstep(0.0, 1.0, 1.0 - abs(2.0 * centeredHue / RRT_RED_WIDTH));
+	//	hueWeight *= hueWeight;
+	//}
+		
+	aces.r += hueWeight * saturation * (RRT_RED_PIVOT - aces.r) * (1. - RRT_RED_SCALE);
+
+	// --- ACES to RGB rendering space --- //
+	aces = clamp( aces, 0, 65535 );  // avoids saturated negative colors from becoming positive in the matrix
+
+	vec3 rgbPre = AP0_2_AP1_MAT * aces;
+
+	rgbPre = clamp( rgbPre, 0, 65535 );
+
+	// --- Global desaturation --- //
+	//const float RRT_SAT_FACTOR = 0.96;
+	//rgbPre = mix( vec3(dot( rgbPre, AP1_RGB2Y )), rgbPre, RRT_SAT_FACTOR );
+	
+	return rgbPre;
+}
+
+
+vec3 applyRRTACES(vec3 hdrColor)
+{
+	hdrColor = BT709_TO_AP1_MAT * hdrColor;
+	hdrColor = AP1_2_AP0_MAT * hdrColor;
+	hdrColor = RRT(hdrColor);
+	hdrColor = AP1_TO_BT709_MAT * hdrColor; // RRT returns color in AP1
+	return hdrColor;
+}
+
+
 // ============================================================================================
 // grayscale
 // ============================================================================================
@@ -248,17 +595,6 @@ mat3 saturationMatrix( float saturation )
         red,     
         green,   
         blue);
-}
-
-
-vec3 desaturateHighlights(vec3 hdrColor)
-{
-	// we desaturate colors as they become brighter
-	// Kd is rate of desaturation
-	const float Kd = 0.3;
-	vec3 luma = grayscale(hdrColor);
-	float desaturationFraction = 1.0 - 1.0 / (Kd * max(hdrColor.r, max(hdrColor.g, hdrColor.b)) + 1.0);
-	return mix(hdrColor, luma, desaturationFraction);
 }
 
 
@@ -766,6 +1102,23 @@ vec3 expandGamut(vec3 color, float gamutExpansionAmount)
 	
 	return Rec2020toRec709(colorBT2020);
 }
+
+
+float desaturationFraction(vec3 hdrColor, float Kd)
+{
+	// we desaturate colors as they become brighter
+	// Kd is rate of desaturation
+	return 1.0 - 1.0 / (Kd * max(hdrColor.r, max(hdrColor.g, hdrColor.b)) + 1.0);
+}
+
+
+float desaturationFraction2(vec3 luma, float slope)
+{
+	// lowering slope increases highlights desaturation rate
+	float t = luma.r;
+	t = t * t / (slope + t); 
+	return clamp(t, 0.0, 1.0);
+}
 //---------------------------------------------------------------------------------------------
 
 
@@ -827,6 +1180,11 @@ void main()
 			break;
 	}
 	
+	// calculate highlights desaturation - ACES Approx uses its own method for better visuals
+	vec3 luma = grayscale(hdrColor);
+	float desaturationFraction = uHDRToneMapper == 0 ?	desaturationFraction2(luma, 11.0) :
+														desaturationFraction(hdrColor, 0.175);
+	
 	// apply saturation
 	hdrColor = max(saturationMatrix(uSaturation * SATURATION_ADJUSTMENT) * hdrColor, vec3(0.0));
 	
@@ -838,16 +1196,17 @@ void main()
 	switch(uHDRToneMapper)
 	{
 		case 0: // OOHDR_TONEMAPPER_ACES_APPROX - ACES for the max luminances for which we have sigmoid parameters, Reinhard for everything else, based on Krzysztof Narkowicz's approximation
-			result = ACESFilmRec2020OrReinhardHDR(desaturateHighlights(hdrColor) * uPaperWhiteBrightness * 0.0125);
+			hdrColor = applyRRTACES(hdrColor);
+			result = ACESFilmRec2020OrReinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
 			break;
 		case 1:	// OOHDR_TONEMAPPER_DICE - Based on the RenoDX HLSL code
 			result = DICEToneMap(hdrColor * uPaperWhiteBrightness * 0.0125, uMaxBrightness * 0.0125, 0.8, 1.6);
 			break;
 		case 2: // OOHDR_TONEMAPPER_UCHIMURA
-			result = uchimura(desaturateHighlights(hdrColor) * uPaperWhiteBrightness * 0.0125);
+			result = uchimura(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
 			break;
 		case 3: // OOHDR_TONEMAPPER_REINHARD - good for any value of uMaxBrightness, rather than selected values
-			result = reinhardHDR(desaturateHighlights(hdrColor) * uPaperWhiteBrightness * 0.0125);
+			result = reinhardHDR(mix(hdrColor, luma, desaturationFraction) * uPaperWhiteBrightness * 0.0125);
 			break;
 		default: // OOHDR_TONEMAPPER_NONE - mainly for testing purposes
 			result = hdrColor;
