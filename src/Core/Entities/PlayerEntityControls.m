@@ -136,6 +136,7 @@ static BOOL				switching_chart_screens;
 static BOOL				switching_status_screens;
 //static BOOL				switching_market_screens;
 static BOOL				switching_equipship_screens;
+static BOOL				switching_interface_screens;
 static BOOL				zoom_pressed;
 static BOOL				customView_pressed;
 static BOOL				weaponsOnlineToggle_pressed;
@@ -754,7 +755,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ([gui setLastSelectableRow])  result = YES;
 			}
-			
+
 			if (result && [gui selectableRange].length > 1)  [self playMenuNavigationUp];
 			else  [self playMenuNavigationNot];
 
@@ -4673,12 +4674,14 @@ static NSTimeInterval	time_last_frame;
 		if (gui_screen != GUI_SCREEN_MARKET)
 		{
 			[gameView clearKeys];
+			[gui setNoSelectedRow];
 			[self noteGUIWillChangeTo:GUI_SCREEN_MARKET];
 			[self setGuiToMarketScreen];
 		}
 		else
 		{
 			[gameView clearKeys];
+			[gui setNoSelectedRow];
 			[self noteGUIWillChangeTo:GUI_SCREEN_MARKETINFO];
 			[self setGuiToMarketInfoScreen];
 		}
@@ -4704,6 +4707,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView clearKeys];
 					[self noteGUIWillChangeTo:GUI_SCREEN_SHIPYARD];
+					[gui setNoSelectedRow];
 					[self setGuiToShipyardScreen:0];
 					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 					[self showShipyardInfoForSelection];
@@ -4712,6 +4716,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView clearKeys];
 					[self noteGUIWillChangeTo:GUI_SCREEN_EQUIP_SHIP];
+					[gui setNoSelectedRow];
 					[self setGuiToEquipShipScreen:0];
 					[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
@@ -4727,8 +4732,16 @@ static NSTimeInterval	time_last_frame;
 		
 		if ([self checkKeyPress:n_key_gui_screen_interfaces fKey_only:!fKeyAlias])
 		{
-			[self setGuiToInterfacesScreen:0];
-			[gui setSelectedRow:GUI_ROW_INTERFACES_START];
+			if (!switching_interface_screens) {
+				[gui setNoSelectedRow];
+				[self setGuiToInterfacesScreen:0];
+				[gui setSelectedRow:GUI_ROW_INTERFACES_START];
+			}
+			switching_interface_screens = YES;
+		}
+		else 
+		{
+			switching_interface_screens = NO;
 		}
 
 	}

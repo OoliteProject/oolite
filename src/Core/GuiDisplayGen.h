@@ -286,6 +286,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setNoSelectedRow;
 - (NSString *) selectedRowText;
 - (NSString *) selectedRowKey;
+- (void) reportSelectedRow:(int) row;
 
 - (void) setShowTextCursor:(BOOL) yesno;
 - (void) setCurrentRow:(OOGUIRow) value;

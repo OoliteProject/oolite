@@ -8876,7 +8876,9 @@ static NSString *SliderString(NSInteger amountIn20ths)
 
 	[[UNIVERSE gameView] clearMouse];
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
-	
+
+	gui_screen = GUI_SCREEN_GAMEOPTIONS;
+
 	// GUI stuff
 	{
 		#define OO_SETACCESSCONDITIONFORROW(condition, row)				\
@@ -9139,7 +9141,6 @@ static NSString *SliderString(NSInteger amountIn20ths)
 	/* ends */
 
 	[self setShowDemoShips:NO];
-	gui_screen = GUI_SCREEN_GAMEOPTIONS;
 
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
@@ -9154,6 +9155,8 @@ static NSString *SliderString(NSInteger amountIn20ths)
 	OOGUIScreenID	oldScreen = gui_screen;
 	
 	[[UNIVERSE gameController] setMouseInteractionModeForUIWithMouseInteraction:YES];
+
+	gui_screen = GUI_SCREEN_OPTIONS;
 
 	if ([self status] == STATUS_DOCKED)
 	{
@@ -9232,7 +9235,6 @@ static NSString *SliderString(NSInteger amountIn20ths)
 	[[UNIVERSE gameView] clearMouse];
 	
 	[self setShowDemoShips:NO];
-	gui_screen = GUI_SCREEN_OPTIONS;
 	
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 	
@@ -9438,6 +9440,8 @@ static NSString *last_outfitting_key=nil;
 		BOOL			displayRow = YES;
 		BOOL			weaponMounted = NO;
 		BOOL			guiChanged = (gui_screen != GUI_SCREEN_EQUIP_SHIP);
+
+		gui_screen = GUI_SCREEN_EQUIP_SHIP;
 
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"equip-title")];
@@ -9685,7 +9689,6 @@ static NSString *last_outfitting_key=nil;
 
 	chosen_weapon_facing = WEAPON_FACING_NONE;
 	[self setShowDemoShips:NO];
-	gui_screen = GUI_SCREEN_EQUIP_SHIP;
 
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
@@ -9752,7 +9755,9 @@ static NSString *last_outfitting_key=nil;
 	NSDictionary *interfaces = [[self dockedStation] localInterfaces];
 	NSArray		*interfaceKeys = [interfaces keysSortedByValueUsingSelector:@selector(interfaceCompare:)]; // sorts by category, then title
 	int i;
-	
+
+	OOGUIScreenID	oldScreen = gui_screen;
+
 	// GUI stuff
 	{
 		GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -9763,6 +9768,8 @@ static NSString *last_outfitting_key=nil;
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"interfaces-title")];
 		
+		gui_screen = GUI_SCREEN_INTERFACES;
+
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -9856,8 +9863,6 @@ static NSString *last_outfitting_key=nil;
 
 	[self setShowDemoShips:NO];
 	
-	OOGUIScreenID	oldScreen = gui_screen;
-	gui_screen = GUI_SCREEN_INTERFACES;
 	[self noteGUIDidChangeFrom:oldScreen to:gui_screen];
 	
 	[self setShowDemoShips:NO];

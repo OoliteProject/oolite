@@ -259,11 +259,11 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			++row;
 		}
 		
+		gui_screen = GUI_SCREEN_NEWGAME;
+
 		[gui setSelectableRange:NSMakeRange(start_row - 2,3 + row - start_row)];
 		[gui setSelectedRow:start_row];
 		[self showScenarioDetails];
-
-		gui_screen = GUI_SCREEN_NEWGAME;
 	
 		if (guiChanged)
 		{
