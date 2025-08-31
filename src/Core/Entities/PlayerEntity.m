@@ -9141,8 +9141,6 @@ static NSString *SliderString(NSInteger amountIn20ths)
 	/* ends */
 
 	[self setShowDemoShips:NO];
-
-	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
 }
 
@@ -9688,7 +9686,6 @@ static NSString *last_outfitting_key=nil;
 	/* ends */
 
 	chosen_weapon_facing = WEAPON_FACING_NONE;
-	[self setShowDemoShips:NO];
 
 	[self setShowDemoShips:NO];
 	[UNIVERSE enterGUIViewModeWithMouseInteraction:YES];
@@ -9769,7 +9766,6 @@ static NSString *last_outfitting_key=nil;
 		[gui setTitle:DESC(@"interfaces-title")];
 		
 		gui_screen = GUI_SCREEN_INTERFACES;
-
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -9859,7 +9855,6 @@ static NSString *last_outfitting_key=nil;
 		}
 	}
 	/* ends */
-
 
 	[self setShowDemoShips:NO];
 	
