@@ -58,6 +58,7 @@ enum
 	kEquipmentInfo_defaultActivateKey,
 	kEquipmentInfo_defaultModeKey,
 	kEquipmentInfo_incompatibleEquipment,
+	kEquipmentInfo_installationTime,
 	kEquipmentInfo_isAvailableToAll,
 	kEquipmentInfo_isAvailableToNPCs,
 	kEquipmentInfo_isAvailableToPlayer,
@@ -67,6 +68,7 @@ enum
 	kEquipmentInfo_name,
 	kEquipmentInfo_price,
 	kEquipmentInfo_provides,
+	kEquipmentInfo_repairTime,
 	kEquipmentInfo_requiredCargoSpace,
 	kEquipmentInfo_requiresAnyEquipment,
 	kEquipmentInfo_requiresCleanLegalRecord,
@@ -100,6 +102,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "defaultActivateKey",				kEquipmentInfo_defaultActivateKey,			OOJS_PROP_READONLY_CB },
 	{ "defaultModeKey",					kEquipmentInfo_defaultModeKey,				OOJS_PROP_READONLY_CB },
 	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		OOJS_PROP_READONLY_CB },
+	{ "installationTime",				kEquipmentInfo_installationTime,            OOJS_PROP_READONLY_CB },
 	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			OOJS_PROP_READONLY_CB },
 	{ "isAvailableToNPCs",				kEquipmentInfo_isAvailableToNPCs,			OOJS_PROP_READONLY_CB },
 	{ "isAvailableToPlayer",			kEquipmentInfo_isAvailableToPlayer,			OOJS_PROP_READONLY_CB },
@@ -109,6 +112,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "name",							kEquipmentInfo_name,						OOJS_PROP_READONLY_CB },
 	{ "price",							kEquipmentInfo_price,						OOJS_PROP_READONLY_CB },
 	{ "provides",						kEquipmentInfo_provides,					OOJS_PROP_READONLY_CB },
+	{ "repairTime",                     kEquipmentInfo_repairTime,                  OOJS_PROP_READONLY_CB },
 	{ "requiredCargoSpace",				kEquipmentInfo_requiredCargoSpace,			OOJS_PROP_READONLY_CB },
 	{ "requiresAnyEquipment",			kEquipmentInfo_requiresAnyEquipment,		OOJS_PROP_READONLY_CB },
 	{ "requiresCleanLegalRecord",		kEquipmentInfo_requiresCleanLegalRecord,	OOJS_PROP_READONLY_CB },
@@ -250,6 +254,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 	
 	OOEquipmentType				*eqType = nil;
 	id							result = nil;
+	NSUInteger 					inst_time;
 	
 	if (EXPECT_NOT(!JSEquipmentInfoGetEquipmentType(context, this, &eqType)))  return NO;
 	
@@ -325,7 +330,16 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 		case kEquipmentInfo_provides:
 			result = [eqType providesForScripting];
 			break;
-			
+		
+		case kEquipmentInfo_installationTime:
+			inst_time = [eqType installTime];
+			if (inst_time == 0) 
+			{
+				inst_time = [eqType price] + 600;
+			}
+			*value = INT_TO_JSVAL((int32_t)inst_time);
+			return YES;
+
 		case kEquipmentInfo_isAvailableToAll:
 			*value = OOJSValueFromBOOL([eqType isAvailableToAll]);
 			return YES;
@@ -337,7 +351,11 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsid 
 		case kEquipmentInfo_isAvailableToPlayer:
 			*value = OOJSValueFromBOOL([eqType isAvailableToPlayer]);
 			return YES;
-			
+
+		case kEquipmentInfo_repairTime:
+			*value = INT_TO_JSVAL((int32_t)[eqType repairTime]);
+			return YES;
+
 		case kEquipmentInfo_requiresEmptyPylon:
 			*value = OOJSValueFromBOOL([eqType requiresEmptyPylon]);
 			return YES;

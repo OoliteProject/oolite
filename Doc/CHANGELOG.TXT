@@ -82,6 +82,7 @@ Modified Plists:
 Scripting:
 ----------
 * Added world event consoleMessageReceived.
+* Added world event guiSelectedRowChanged.
 * ship.canAwardEquipment now accepts optional additional parameter of "context", 
   enabling checking of any context for the equipment item.
 * Added player.ship.previousSystem property, which contains the system ID of 
@@ -99,6 +100,7 @@ Scripting:
 * Added equipment.defaultActivateKey and equipment.defaultModeKey, each are 
   read-only arrays of the default key settings for the equipment item. Set to null 
   if the values haven't been defined.
+* Added equipment.installationTime and equipment.repairTime properties.
 
 Bug Fixes:
 ==========
