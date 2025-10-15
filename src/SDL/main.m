@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
  	// Detect current working directory and set up GNUstep environment variables
 	#define MAX_PATH_LEN 256
 	char currentWorkingDir[MAX_PATH_LEN];
-	char envVarString[2 * MAX_PATH_LEN];
 	DWORD bufferSize = MAX_PATH_LEN;
 	
 	QueryFullProcessImageName(GetCurrentProcess(), 0, currentWorkingDir, &bufferSize);
@@ -88,8 +87,17 @@ int main(int argc, char *argv[])
 	if (probeString)  *probeString = '\0'; // currentWorkingDir now contains the path we need
 	
 	// Prepend system PATH env variable with our own executable's path
-	char finalPath[16 * MAX_PATH_LEN];
-	char *systemPath = SDL_getenv("PATH");
+	char pathEnvVar[] = "PATH";
+	char *systemPath = SDL_getenv(pathEnvVar);
+	size_t currentWorkingDirLen = strlen(currentWorkingDir);
+	size_t systemPathLen = strlen(systemPath);
+	// the max possible length of the string below is systemPath plus the path
+	// we have determined for us, plus one char for the ";" and one char for the null terminator
+	char *finalPath = malloc(systemPathLen + currentWorkingDirLen + 2 * sizeof(char));
+	// the max possible length of the string below is systemPath plus the path
+	// we have determined for us, plus the string "PATH", plus one char for the
+	// "=" of the final string that will be passed on to SDL_putenv and one char for the null terminator
+	char *envVarString = malloc(systemPathLen + currentWorkingDirLen + strlen(pathEnvVar) + 2 * sizeof(char));
 	strcpy(finalPath, currentWorkingDir);
 	strcat(finalPath, ";");
 	strcat(finalPath, systemPath);
@@ -100,7 +108,7 @@ int main(int argc, char *argv[])
 			} while (0);
 	
 	SETENVVAR("GNUSTEP_PATH_HANDLING", "windows");
-	SETENVVAR("PATH", finalPath);
+	SETENVVAR(pathEnvVar, finalPath);
 	SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
 	SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
 	SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
@@ -108,6 +116,9 @@ int main(int argc, char *argv[])
 	SETENVVAR("HOMEPATH", currentWorkingDir);
 	
 	SetCurrentDirectory(currentWorkingDir);
+	
+	free(envVarString);
+	free(finalPath);
 
 	/*	Windows amibtiously starts apps with the C library locale set to the
 		system locale rather than the "C" locale as per spec. Fixing here so
