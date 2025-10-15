@@ -94,10 +94,10 @@ int main(int argc, char *argv[])
 	// the max possible length of the string below is systemPath plus the path
 	// we have determined for us, plus one char for the ";" and one char for the null terminator
 	char *finalPath = malloc(systemPathLen + currentWorkingDirLen + 2 * sizeof(char));
-	// the max possible length of the string below is systemPath plus the path
-	// we have determined for us, plus the string "PATH", plus one char for the
+	// the max possible length of the string below is systemPath plus the path we have
+	// determined for us, plus one char for the ";", plus the string "PATH", plus one char for the
 	// "=" of the final string that will be passed on to SDL_putenv and one char for the null terminator
-	char *envVarString = malloc(systemPathLen + currentWorkingDirLen + strlen(pathEnvVar) + 2 * sizeof(char));
+	char *envVarString = malloc(systemPathLen + currentWorkingDirLen + strlen(pathEnvVar) + 3 * sizeof(char));
 	strcpy(finalPath, currentWorkingDir);
 	strcat(finalPath, ";");
 	strcat(finalPath, systemPath);
