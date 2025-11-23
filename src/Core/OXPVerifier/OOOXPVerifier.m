@@ -34,7 +34,19 @@ SOFTWARE.
 #if OO_OXP_VERIFIER_ENABLED
 
 #if OOLITE_WINDOWS
+
+#ifdef __OBJC__
+#pragma push_macro("interface")
+#undef interface
+#define interface struct
+#endif
+
 #include <shlwapi.h>
+
+#ifdef __OBJC__
+#pragma pop_macro("interface")
+#endif
+
 #include <tchar.h>
 #endif
 

@@ -780,7 +780,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	});
 #elif OOLITE_ESPEAK
 	int volume = [OOSound masterVolume] * 100;
+#if OOLITE_MODERN_BUILD
+	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, "Resources/espeak-ng-data", 0);
+#else
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
+#endif
 	espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);
 	espeak_SetParameter(espeakVOLUME, volume, 0);
 	espeak_voices = espeak_ListVoices(NULL);

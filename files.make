@@ -258,6 +258,7 @@ OOLITE_MISC_FILES = \
     AIGraphViz.m \
     GameController.m \
     GameController+SDLFullScreen.m \
+    NSUserDefaults+Override.m \
     OOJoystickManager.m \
     OOJoystickProfile.m \
     OOSDLJoystickManager.m \

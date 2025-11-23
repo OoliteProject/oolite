@@ -646,7 +646,7 @@ static void RemovePreference(NSString *key)
 		NSFileManager *fmgr = [NSFileManager defaultManager];
 		if (![fmgr fileExistsAtPath:path])
 		{
-			[fmgr createDirectoryAtPath:path attributes:nil];
+			[fmgr oo_createDirectoryAtPath:path attributes:nil];
 		}
 	}
 	return url;

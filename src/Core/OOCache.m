@@ -126,6 +126,33 @@ MA 02110-1301, USA.
 typedef struct OOCacheImpl OOCacheImpl;
 typedef struct OOCacheNode OOCacheNode;
 
+struct OOCacheImpl
+{
+	// Splay tree root
+	OOCacheNode				*root;
+
+	// Ends of age list
+	OOCacheNode				*oldest, *youngest;
+
+	unsigned				count;
+	NSString				*name;
+};
+
+
+struct OOCacheNode
+{
+	// Payload
+	id<OOCacheComparable>	key;
+	id						value;
+
+	// Splay tree
+	OOCacheNode				*leftChild, *rightChild;
+
+	// Age list
+	OOCacheNode				*younger, *older;
+};
+
+
 
 enum { kCountUnknown = -1U };
 
@@ -388,32 +415,6 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context);
 
 
 /***** Most of the implementation. In C. Because I'm inconsistent and slightly m. *****/
-
-struct OOCacheImpl
-{
-	// Splay tree root
-	OOCacheNode				*root;
-	
-	// Ends of age list
-	OOCacheNode				*oldest, *youngest;
-	
-	unsigned				count;
-	NSString				*name;
-};
-
-
-struct OOCacheNode
-{
-	// Payload
-	id<OOCacheComparable>	key;
-	id						value;
-	
-	// Splay tree
-	OOCacheNode				*leftChild, *rightChild;
-	
-	// Age list
-	OOCacheNode				*younger, *older;
-};
 
 static OOCacheNode *CacheNodeAllocate(id<OOCacheComparable> key, id value);
 static void CacheNodeFree(OOCacheImpl *cache, OOCacheNode *node);
