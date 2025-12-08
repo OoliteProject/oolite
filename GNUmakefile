@@ -43,8 +43,8 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     endif
 	
     ifeq ($(modern),yes)
-        ADDITIONAL_CFLAGS        += -DOO_MODERN_BUILD=1 
-        ADDITIONAL_OBJCFLAGS     += -DOO_MODERN_BUILD=1 
+        ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 
+        ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
     else
         ADDITIONAL_INCLUDE_DIRS  += -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) 
         ADDITIONAL_OBJC_LIBS     += -L$(WIN_DEPS_DIR)/lib 
