@@ -48,11 +48,14 @@ MA 02110-1301, USA.
 #ifdef GNUSTEP
 	#define OOLITE_GNUSTEP			1
 	
-	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION >= 31) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
-		#define OOLITE_MODERN_BUILD	1
-	#else
-		#define OOLITE_MODERN_BUILD 0
+	#if (((GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION >= 31) || (GNUSTEP_BASE_MAJOR_VERSION > 1)) && !OOLITE_MODERN_BUILD)
+		#error Oolite legacy build cannot be generated using GNUstep 1.31 or higher.
 	#endif
+	
+	#if ((GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION < 31) && OOLITE_MODERN_BUILD)
+		#error Oolite modern build cannot be generated using GNUstep earlier than 1.31.
+	#endif
+	
 	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION >= 20) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
 		#define OOLITE_GNUSTEP_1_20	1
 	#else

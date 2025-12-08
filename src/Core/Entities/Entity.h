@@ -88,7 +88,7 @@ enum OOScanClass
 @public
 	OOUniversalID			universalID;			// used to reference the entity
 	
-	unsigned				isShip,
+	unsigned				isShip: 1,
 							isStation: 1,
 							isPlayer: 1,
 							isWormhole: 1,
