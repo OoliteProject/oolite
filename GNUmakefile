@@ -11,6 +11,17 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 
+# decide whether we are building legacy or modern based on gcc version,
+# which is available to all dev environments
+GCCVERSION                       := $(shell gcc --version | grep ^gcc | sed 's/^.* //g')
+ifeq ($(GCCVERSION),4.7.1)
+    $(info Compiling legacy build)
+    modern = no
+else
+    $(info Compiling modern build)
+    modern = yes
+endif
+
 ifeq ($(modern),yes)
     SPEECH_LIBRARY_NAME          = espeak-ng
 else
@@ -29,8 +40,16 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
 
+    ifeq ($(modern),yes)
+        OPENAL_LIBRARY_NAME          = openal
+        LIBPNG_LIBRARY_NAME          = png
+    else
+        OPENAL_LIBRARY_NAME          = openal32
+        LIBPNG_LIBRARY_NAME          = png14
+    endif
+
     ADDITIONAL_INCLUDE_DIRS      = -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
-    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -lopenal32.dll -lpng14.dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lshlwapi -ldwmapi -lwinmm -mwindows
+    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lshlwapi -ldwmapi -lwinmm -mwindows
     ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
     ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F

@@ -44,7 +44,16 @@ after-all::
 	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
 ifeq ($(ESPEAK),yes)
     ifeq ($(GNUSTEP_HOST_OS),mingw32)
-		$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+        ifeq ($(modern),yes)
+			$(CP) $(CP_FLAGS) $(MINGW_PREFIX)/share/espeak-ng-data $(PROGDIR)/Resources
+			# replace f2 voice and set the default voice as well
+			$(RM) $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
+			# copy required files from the existing cross-platform-deps repo
+			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/!v/f2 $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
+			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/default $(PROGDIR)/Resources/espeak-ng-data/voices/default
+        else
+			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+        endif
     else
         ifeq ($(use_deps),yes)
 			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
@@ -57,10 +66,14 @@ ifeq ($(strip),yes)
 	$(STRIP) $(PROGDIR)/$(DEST_BIN)
 endif
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    ifeq ($(GNUSTEP_HOST_CPU),x86_64)
-		$(CP) $(CP_FLAGS) deps/Windows-deps/x86_64/DLLs/*.dll $(PROGDIR)
+    ifeq ($(modern),yes)
+		ldd $(PROGDIR)/oolite.exe | grep $(MINGW_PREFIX) | awk '{print $$3}' | xargs -I {} $(CP) $(CP_FLAGS) {} $(PROGDIR)
     else
-		$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
+        ifeq ($(GNUSTEP_HOST_CPU),x86_64)
+			$(CP) $(CP_FLAGS) deps/Windows-deps/x86_64/DLLs/*.dll $(PROGDIR)
+        else
+			$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
+        endif
     endif
 ifeq ($(debug),yes)
 	$(RM) $(PROGDIR)/js32ECMAv5.dll

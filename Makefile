@@ -236,7 +236,11 @@ pkg-debclean:
 
 # And here are our Windows packager targets
 #
+ifneq '' '$(MINGW_PREFIX)'
+NSIS=$(MINGW_PREFIX)/bin/makensis
+else
 NSIS=/nsis/makensis.exe
+endif
 NSISVERSIONS=installers/win32/OoliteVersions.nsh
 
 # Passing arguments cause problems with some versions of NSIS.
