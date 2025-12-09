@@ -22,12 +22,6 @@ else
     modern = yes
 endif
 
-ifeq ($(modern),yes)
-    SPEECH_LIBRARY_NAME          = espeak-ng
-else
-    SPEECH_LIBRARY_NAME          = espeak
-endif
-
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
 	
@@ -41,9 +35,11 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
     endif
 
     ifeq ($(modern),yes)
+        SPEECH_LIBRARY_NAME          = espeak-ng
         OPENAL_LIBRARY_NAME          = openal
         LIBPNG_LIBRARY_NAME          = png
     else
+        SPEECH_LIBRARY_NAME          = espeak
         OPENAL_LIBRARY_NAME          = openal32
         LIBPNG_LIBRARY_NAME          = png14
     endif
@@ -96,7 +92,7 @@ else
     ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
 
     ifeq ($(ESPEAK),yes)
-        ADDITIONAL_OBJC_LIBS     += -l$(SPEECH_LIBRARY_NAME)
+        ADDITIONAL_OBJC_LIBS     += -lespeak
         ADDITIONAL_OBJCFLAGS     += -DHAVE_LIBESPEAK=1
         GNUSTEP_OBJ_DIR_NAME     := $(GNUSTEP_OBJ_DIR_NAME).spk
     endif
