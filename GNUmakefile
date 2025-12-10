@@ -57,10 +57,7 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         GNUSTEP_OBJ_DIR_NAME     := $(GNUSTEP_OBJ_DIR_NAME).spk
     endif
 	
-    ifeq ($(modern),yes)
-        ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 
-        ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
-    else
+    ifneq ($(modern),yes)
         ADDITIONAL_INCLUDE_DIRS  += -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) 
         ADDITIONAL_OBJC_LIBS     += -L$(WIN_DEPS_DIR)/lib 
     endif
@@ -103,11 +100,10 @@ else
     endif
 endif
 
-# Add flag if building with GNUStep and Clang
-ifneq '' '$(GNUSTEP_HOST_OS)'
-    ifneq '' '$(findstring clang++,$(CXX))'
-        ADDITIONAL_OBJCFLAGS += -fobjc-runtime=gnustep-2.2
-    endif
+# Add specific flag if building modern
+ifeq ($(modern),yes)
+        ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 
+        ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
 endif
 
 OBJC_PROGRAM_NAME = oolite
