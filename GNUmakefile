@@ -11,20 +11,20 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 
-# decide whether we are building legacy or modern based on gcc version,
-# which is available to all dev environments
-GCCVERSION                       := $(shell gcc --version | grep ^gcc | sed 's/^.* //g')
-ifeq ($(GCCVERSION),4.7.1)
-    $(info Compiling legacy build)
-    modern = no
-else
-    $(info Compiling modern build)
-    modern = yes
-endif
-
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
-	
+
+    # decide whether we are building legacy or modern based on gcc version,
+    # which is available to all dev environments
+    GCCVERSION                       := $(shell gcc --version | grep ^gcc | sed 's/^.* //g')
+    ifeq ($(GCCVERSION),4.7.1)
+        $(info Compiling legacy build)
+        modern = no
+    else
+        $(info Compiling modern build)
+        modern = yes
+    endif
+
     WIN_DEPS_DIR                 = deps/Windows-deps/x86_64
     JS_INC_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/include
 #     JS_LIB_DIR                   = $(WIN_DEPS_DIR)/JS32ECMAv5/lib
@@ -56,54 +56,38 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         ADDITIONAL_OBJCFLAGS     +=-DHAVE_LIBESPEAK=1
         GNUSTEP_OBJ_DIR_NAME     := $(GNUSTEP_OBJ_DIR_NAME).spk
     endif
-	
+
     ifneq ($(modern),yes)
-        ADDITIONAL_INCLUDE_DIRS  += -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) 
-        ADDITIONAL_OBJC_LIBS     += -L$(WIN_DEPS_DIR)/lib 
+        ADDITIONAL_INCLUDE_DIRS  += -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR)
+        ADDITIONAL_OBJC_LIBS     += -L$(WIN_DEPS_DIR)/lib
     endif
-else
+else  # Linux only uses modern build
+    modern = yes
+
     LIBJS_DIR                    = deps/Linux-deps/x86_64/mozilla
     LIBJS_INC_DIR                = deps/Linux-deps/x86_64/mozilla/include
-# Uncomment the following lines if you want to build JS from source. Ensure the relevant changes are performed in Makefile too
-#     ifeq ($(debug),yes)
-#         LIBJS_DIR                    = deps/mozilla/js/src/build-debug
-#     else
-#         LIBJS_DIR                    = deps/mozilla/js/src/build-release
-#     endif
-#     LIBJS_INC_DIR                = $(LIBJS_DIR)/dist/include
     ifeq ($(debug),yes)
-        LIBJS                    = jsdbg_static 
+        LIBJS                    = jsdbg_static
 # By default we don't share the debug version of JS library
-# If you want to debug into JS, ensure a libjsdbg_static.a exists into $(LIBJS_DIR) 
+# If you want to debug into JS, ensure a libjsdbg_static.a exists into $(LIBJS_DIR)
     else
         LIBJS                    = js_static
     endif
 
-    ifeq ($(use_deps),yes)
-        OOLITE_SHARED_LIBS       = -Ldeps/Linux-deps/x86_64/lib_linker
-    endif
-
-    ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Ideps/Linux-deps/include 
-    ADDITIONAL_OBJC_LIBS         = $(OOLITE_SHARED_LIBS) -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++ 
-    ADDITIONAL_OBJCFLAGS         = -Wall -std=gnu99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags`
-    ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags`
+    ADDITIONAL_INCLUDE_DIRS      = -I$(LIBJS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip
+    ADDITIONAL_OBJC_LIBS         = -lGLU -lGL -lX11 -lSDL -lgnustep-base -L$(LIBJS_DIR) -l$(LIBJS) -lopenal -lz -lvorbisfile -lpng `nspr-config --libs` -lstdc++
+    ADDITIONAL_OBJCFLAGS         = -Wall -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags` `nspr-config --cflags` -DOOLITE_MODERN_BUILD=1
+    ADDITIONAL_CFLAGS            = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags` `nspr-config --cflags` -DOOLITE_MODERN_BUILD=1
 
     ifeq ($(ESPEAK),yes)
-        ADDITIONAL_OBJC_LIBS     += -lespeak
+        ADDITIONAL_OBJC_LIBS     += -lespeak-ng
         ADDITIONAL_OBJCFLAGS     += -DHAVE_LIBESPEAK=1
         GNUSTEP_OBJ_DIR_NAME     := $(GNUSTEP_OBJ_DIR_NAME).spk
     endif
-#     oolite_LIB_DIRS              += -L$(LIBJS_LIB_DIR) -L/usr/X11R6/lib/
 
     ifeq ($(OO_JAVASCRIPT_TRACE),yes)
         ADDITIONAL_OBJCFLAGS     += -DMOZ_TRACE_JSCALLS=1
     endif
-endif
-
-# Add specific flag if building modern
-ifeq ($(modern),yes)
-        ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 
-        ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
 endif
 
 OBJC_PROGRAM_NAME = oolite

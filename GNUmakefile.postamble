@@ -8,7 +8,7 @@ CP_FLAGS                         = -rf
 ifeq ($(debug),yes)
     EXT                          =.dbg
 endif
-                                 
+
 ifeq ($(findstring -gnu,$(GNUSTEP_HOST_OS)),-gnu)
     CP_FLAGS                     += -u
 endif
@@ -42,45 +42,52 @@ after-all::
 	$(CP) $(CP_FLAGS) Resources/Binary/Sounds $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Resources/Binary/Textures $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
-ifeq ($(ESPEAK),yes)
-    ifeq ($(GNUSTEP_HOST_OS),mingw32)
+	$(CP) $(CP_FLAGS) src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
+	$(CP) $(CP_FLAGS) $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
+    ifeq ($(strip),yes)
+		$(STRIP) $(PROGDIR)/$(DEST_BIN)
+    endif
+    ifeq ($(ESPEAK),yes)
         ifeq ($(modern),yes)
-			$(CP) $(CP_FLAGS) $(MINGW_PREFIX)/share/espeak-ng-data $(PROGDIR)/Resources
+            ifeq ($(GNUSTEP_HOST_OS),mingw32)
+				$(CP) $(CP_FLAGS) $(MINGW_PREFIX)/share/espeak-ng-data $(PROGDIR)/Resources
+            else
+				libpath=$$(ldd $(PROGDIR)/oolite | grep espeak | awk '{print $$3}' | xargs realpath); \
+				case "$$libpath" in \
+					/usr/local/*) \
+						$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources ;; \
+					*) \
+						$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources ;; \
+				esac
+            endif
 			# replace f2 voice and set the default voice as well
+			$(RM) $(PROGDIR)/Resources/espeak-ng-data/voices/default
 			$(RM) $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
 			# copy required files from the existing cross-platform-deps repo
 			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/!v/f2 $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
 			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/default $(PROGDIR)/Resources/espeak-ng-data/voices/default
         else
-			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
-        endif
-    else
-        ifeq ($(use_deps),yes)
-			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+            ifeq ($(use_deps),yes)
+				$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+            endif
         endif
     endif
-endif
-	$(CP) $(CP_FLAGS) src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
-	$(CP) $(CP_FLAGS) $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
-ifeq ($(strip),yes)
-	$(STRIP) $(PROGDIR)/$(DEST_BIN)
-endif
-ifeq ($(GNUSTEP_HOST_OS),mingw32)
-    ifeq ($(modern),yes)
-		ldd $(PROGDIR)/oolite.exe | grep $(MINGW_PREFIX) | awk '{print $$3}' | xargs -I {} $(CP) $(CP_FLAGS) {} $(PROGDIR)
-    else
-        ifeq ($(GNUSTEP_HOST_CPU),x86_64)
-			$(CP) $(CP_FLAGS) deps/Windows-deps/x86_64/DLLs/*.dll $(PROGDIR)
+    ifeq ($(GNUSTEP_HOST_OS),mingw32)
+        ifeq ($(modern),yes)
+			ldd $(PROGDIR)/oolite.exe | grep $(MINGW_PREFIX) | awk '{print $$3}' | xargs -I {} $(CP) $(CP_FLAGS) {} $(PROGDIR)
         else
-			$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
+            ifeq ($(GNUSTEP_HOST_CPU),x86_64)
+				$(CP) $(CP_FLAGS) deps/Windows-deps/x86_64/DLLs/*.dll $(PROGDIR)
+            else
+				$(CP) $(CP_FLAGS) deps/Windows-deps/x86/DLLs/*.dll $(PROGDIR)
+            endif
         endif
     endif
-ifeq ($(debug),yes)
-	$(RM) $(PROGDIR)/js32ECMAv5.dll
-else
-	$(RM) $(PROGDIR)/js32ECMAv5dbg.dll
-endif
-endif
+    ifeq ($(debug),yes)
+		$(RM) $(PROGDIR)/js32ECMAv5.dll
+    else
+		$(RM) $(PROGDIR)/js32ECMAv5dbg.dll
+    endif
 
 after-clean::
 	$(RM) -rf $(GNUSTEP_OBJ_DIR_BASENAME) $(addprefix $(GNUSTEP_OBJ_DIR_BASENAME), .spk .dbg .spk.dbg)
