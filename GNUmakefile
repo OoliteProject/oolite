@@ -11,6 +11,17 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 GNUSTEP_OBJ_DIR_BASENAME         := $(GNUSTEP_OBJ_DIR_NAME)
 
+# decide whether we are building legacy or modern based on gcc version,
+# which is available to all dev environments
+GCCVERSION                       := $(shell gcc --version | grep ^gcc | sed 's/^.* //g')
+ifeq ($(GCCVERSION),4.7.1)
+    $(info Compiling legacy build)
+    modern = no
+else
+    $(info Compiling modern build)
+    modern = yes
+endif
+
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	vpath %.rc src/SDL/OOResourcesWin
 	
@@ -23,17 +34,32 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
         JS_IMPORT_LIBRARY        = js32ECMAv5
     endif
 
-    ADDITIONAL_INCLUDE_DIRS      = -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
-    ADDITIONAL_OBJC_LIBS         = -L$(WIN_DEPS_DIR)/lib -lglu32 -lopengl32 -lopenal32.dll -lpng14.dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lshlwapi -ldwmapi -lwinmm -mwindows
-    ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
+    ifeq ($(modern),yes)
+        SPEECH_LIBRARY_NAME          = espeak-ng
+        OPENAL_LIBRARY_NAME          = openal
+        LIBPNG_LIBRARY_NAME          = png
+    else
+        SPEECH_LIBRARY_NAME          = espeak
+        OPENAL_LIBRARY_NAME          = openal32
+        LIBPNG_LIBRARY_NAME          = png14
+    endif
+
+    ADDITIONAL_INCLUDE_DIRS      = -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug -Isrc/Core/Tables -Isrc/Core/MiniZip -Isrc/SDL/EXRSnapshotSupport
+    ADDITIONAL_OBJC_LIBS         = -lglu32 -lopengl32 -l$(OPENAL_LIBRARY_NAME).dll -l$(LIBPNG_LIBRARY_NAME).dll -lmingw32 -lSDLmain -lSDL -lvorbisfile.dll -lvorbis.dll -lz -lgnustep-base -l$(JS_IMPORT_LIBRARY) -lshlwapi -ldwmapi -lwinmm -mwindows
+    ADDITIONAL_CFLAGS            = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-    ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
+    ADDITIONAL_OBJCFLAGS         = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import -std=gnu99 `sdl-config --cflags` -mtune=generic -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 -DNTDDI_VERSION=0x0A00000F
 #     oolite_LIB_DIRS              += -L$(GNUSTEP_LOCAL_ROOT)/lib -L$(WIN_DEPS_DIR)/lib -L$(JS_LIB_DIR)
 
     ifeq ($(ESPEAK),yes)
-        ADDITIONAL_OBJC_LIBS     += -lespeak.dll
+        ADDITIONAL_OBJC_LIBS     += -l$(SPEECH_LIBRARY_NAME).dll
         ADDITIONAL_OBJCFLAGS     +=-DHAVE_LIBESPEAK=1
         GNUSTEP_OBJ_DIR_NAME     := $(GNUSTEP_OBJ_DIR_NAME).spk
+    endif
+	
+    ifneq ($(modern),yes)
+        ADDITIONAL_INCLUDE_DIRS  += -I$(WIN_DEPS_DIR)/include -I$(JS_INC_DIR) 
+        ADDITIONAL_OBJC_LIBS     += -L$(WIN_DEPS_DIR)/lib 
     endif
 else
     LIBJS_DIR                    = deps/Linux-deps/x86_64/mozilla
@@ -74,11 +100,10 @@ else
     endif
 endif
 
-# Add flag if building with GNUStep and Clang
-ifneq '' '$(GNUSTEP_HOST_OS)'
-    ifneq '' '$(findstring clang++,$(CXX))'
-        ADDITIONAL_OBJCFLAGS += -fobjc-runtime=gnustep-1.9
-    endif
+# Add specific flag if building modern
+ifeq ($(modern),yes)
+        ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1 
+        ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1 
 endif
 
 OBJC_PROGRAM_NAME = oolite
