@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 {
 	if ([file length] == 0)
 	{
-		NSLog(@"Defaults database filename is empty when writing");
+		OOLog(@"NSUserDefaultsOverride", @"%@", @"Defaults database filename is empty when writing");
 	}
 	else if (nil == dict)
 	{
@@ -56,11 +56,11 @@ MA 02110-1301, USA.
 		errorDescription: &err];
 		if (data == nil)
 		{
-			NSLog(@"Failed to serialize defaults database for writing: %@", err);
+			OOLog(@"NSUserDefaultsOverride", @"Failed to serialize defaults database for writing: %@", err);
 		}
 		else if ([data writeToFile: file atomically: YES] == NO)
 		{
-			NSLog(@"Failed to write defaults database to file: %@", file);
+			OOLog(@"NSUserDefaultsOverride", @"Failed to write defaults database to file: %@", file);
 		}
 		else
 		{
