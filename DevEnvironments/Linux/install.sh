@@ -38,6 +38,12 @@ run_script() {
     if ! install_package espeak-ng-dev; then
         return 1
     fi
+    if [ ! -d /usr/share/espeak-ng-data ]; then
+        if [ ! -d /usr/local/share/espeak-ng-data ]; then
+            echo "❌ Neither /usr/share/espeak-ng-data nor /usr/local/share/espeak-ng-data exist!"
+            return 1
+        fi
+    fi
     if ! install_package vorbis-dev; then
         return 1
     fi
