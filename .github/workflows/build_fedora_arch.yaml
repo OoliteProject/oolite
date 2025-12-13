@@ -6,7 +6,7 @@ on:
 jobs:
   fedora:
     runs-on: ubuntu-latest
-    container: fedora:37
+    container: fedora:latest
     steps:
       - name: Update Fedora
         run: |
