@@ -2,9 +2,10 @@
 
 run_script() {
 #   Takes parameter which is a version with format maj.min.rev.githash (e.g. 1.91.0.7549-231111-cf99a82)
-    pushd "$(dirname "$0")"
-    source ../../DevEnvironments/common/check_rename_fn.sh
+    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$SCRIPT_DIR"
 
+    source ../../DevEnvironments/common/check_rename_fn.sh
     APPDIR="Oolite.AppDir"
     rm -rf $APPDIR
     mkdir -p $APPDIR/usr/bin

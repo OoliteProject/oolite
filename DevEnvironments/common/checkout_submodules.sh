@@ -2,7 +2,7 @@
 
 run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR" &> /dev/null
+    pushd "$SCRIPT_DIR"
 
     source ./checkout_submodules_fn.sh
     cd ../..

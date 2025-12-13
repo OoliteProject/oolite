@@ -5,7 +5,7 @@
 run_script() {
     # First optional parameter is build target. Default target is release.
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    pushd "$SCRIPT_DIR" &> /dev/null
+    pushd "$SCRIPT_DIR"
 
     source ./install_package_fn.sh
     install_package base-devel
