@@ -44,22 +44,20 @@ after-all::
 	$(CP) $(CP_FLAGS) Schemata $(PROGDIR)/Resources
 	$(CP) $(CP_FLAGS) src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
 	$(CP) $(CP_FLAGS) $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
-    ifeq ($(strip),yes)
-		$(STRIP) $(PROGDIR)/$(DEST_BIN)
-    endif
     ifeq ($(ESPEAK),yes)
         ifeq ($(modern),yes)
             ifeq ($(GNUSTEP_HOST_OS),mingw32)
 				$(CP) $(CP_FLAGS) $(MINGW_PREFIX)/share/espeak-ng-data $(PROGDIR)/Resources
             else
-				libpath=$$(ldd $(PROGDIR)/oolite | grep espeak | awk '{print $$3}' | xargs realpath); \
-				case "$$libpath" in \
-					/usr/local/*) \
-						$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources ;; \
-					*) \
-						$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources ;; \
-				esac
+                ifeq (, $(wildcard /usr/local/share/espeak-ng-data))
+                    # If the local path doesn't exist, use the system path
+					$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources
+                else
+                    # If the local path exists, use it
+					$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources
+                endif
             endif
+
 			# replace f2 voice and set the default voice as well
 			$(RM) $(PROGDIR)/Resources/espeak-ng-data/voices/default
 			$(RM) $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
@@ -71,6 +69,9 @@ after-all::
 				$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
             endif
         endif
+    endif
+    ifeq ($(strip),yes)
+		$(STRIP) $(PROGDIR)/$(DEST_BIN)
     endif
     ifeq ($(GNUSTEP_HOST_OS),mingw32)
         ifeq ($(modern),yes)
