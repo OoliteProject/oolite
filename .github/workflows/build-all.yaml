@@ -124,7 +124,7 @@ jobs:
         with:
           name: ${{matrix.flavour}}
           path: |
-            oolite/installers/appimage/Oolite-*.AppImage
+            oolite/installers/appimage/Oolite_*.AppImage
           retention-days: 5
 
 
