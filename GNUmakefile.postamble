@@ -62,13 +62,6 @@ after-all::
                 else
 					$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources
                 endif
-                ifeq (, $(wildcard /usr/local/share/espeak-ng-data))
-                    # If the local path doesn't exist, use the system path
-					$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources
-                else
-                    # If the local path exists, use it
-					$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources
-                endif
             endif
 
 			# replace f2 voice and set the default voice as well

@@ -13,7 +13,9 @@ run_script() {
     PROGDIR="../../oolite.app"
     cp -rf $PROGDIR/Resources $APPDIR/usr/bin
 
-    if ! linuxdeploy \
+    wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+    chmod +x linuxdeploy-x86_64.AppImage
+    if ! linuxdeploy-x86_64.AppImage \
     --appdir $APPDIR \
     --executable $PROGDIR/oolite \
     --desktop-file ../FreeDesktop/oolite.desktop \
