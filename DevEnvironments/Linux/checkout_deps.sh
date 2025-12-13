@@ -1,7 +1,9 @@
 #!/bin/bash
 
 run_script() {
-    pushd "$(dirname "$0")"
+    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    pushd "$SCRIPT_DIR" &> /dev/null
+
     source ./checkout_deps_fn.sh
     checkout_deps
     popd
