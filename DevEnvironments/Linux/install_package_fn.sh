@@ -63,7 +63,7 @@ install_package() {
 
         "espeak-ng-dev")
             case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libespeak-ng-dev" ;;
+                debian) PKG_NAME="libespeak-ng-dev libespeak-ng-libespeak-dev" ;;
                 redhat) PKG_NAME="espeak-ng-devel" ;;
                 arch) PKG_NAME="espeak-ng" ;;
             esac ;;
