@@ -122,7 +122,7 @@ install_package() {
         return 1
     else
         echo "--> Installing $GENERIC_NAME ($PKG_NAME)..."
-        if ! $INSTALL_CMD "$PKG_NAME"; then
+        if ! "${INSTALL_CMD[@]}" $PKG_NAME; then
             echo "❌ Could not install $GENERIC_NAME ($PKG_NAME)!" >&2
             return 1
         fi
@@ -146,20 +146,20 @@ fi
 if [[ "$OS_FAMILY" == *"debian"* ]]; then
     # Debian, Ubuntu, Kali, Mint, Pop!_OS
     CURRENT_DISTRO="debian"
-    INSTALL_CMD="sudo apt-get install -y"
-    UPDATE_CMD="sudo apt-get update"
+    INSTALL_CMD=(sudo apt-get install -y)
+    UPDATE_CMD=(sudo apt-get update)
 
 elif [[ "$OS_FAMILY" == *"arch"* ]]; then
     # Arch, Manjaro, EndeavourOS
     CURRENT_DISTRO="arch"
-    INSTALL_CMD="sudo pacman -S --noconfirm"
-    UPDATE_CMD="sudo pacman -Sy"
+    INSTALL_CMD=(sudo pacman -S --noconfirm)
+    UPDATE_CMD=(sudo pacman -Sy)
 
 elif [[ "$OS_FAMILY" == *"fedora"* || "$OS_FAMILY" == *"rhel"* ]]; then
     # Fedora, CentOS, RHEL, AlmaLinux
     CURRENT_DISTRO="redhat"
-    INSTALL_CMD="sudo dnf install -y"
-    UPDATE_CMD="sudo dnf check-update" # Returns exit code 100 if updates exist, catch that later
+    INSTALL_CMD=(sudo dnf install -y)
+    UPDATE_CMD=(sudo dnf check-update) # Returns exit code 100 if updates exist, catch that later
 
 else
     echo "❌ Unsupported distribution detected." >&2

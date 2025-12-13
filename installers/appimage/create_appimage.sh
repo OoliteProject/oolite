@@ -23,7 +23,9 @@ run_script() {
         return 1
     fi
 
-	read filename fullname <<< "$(check_rename "Oolite" "Oolite-*" $1)"
+	if ! check_rename "Oolite" "Oolite-*" $1; then
+        return 1
+	fi
     popd
 }
 

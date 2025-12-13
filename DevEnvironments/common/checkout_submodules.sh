@@ -6,7 +6,9 @@ run_script() {
 
     source ./checkout_submodules_fn.sh
     cd ../..
-    checkout_submodules
+    if ! checkout_submodules; then
+        return 1
+    fi
     popd
 }
 

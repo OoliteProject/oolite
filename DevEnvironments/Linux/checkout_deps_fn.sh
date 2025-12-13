@@ -3,7 +3,9 @@ checkout_deps() {
     pushd "$SCRIPT_DIR"
 
     source ./install_package_fn.sh
-    install_package git
+    if ! install_package git; then
+        return 1
+    fi
 
     cd ../..
 

@@ -5,7 +5,9 @@ run_script() {
     pushd "$SCRIPT_DIR"
 
     source ./checkout_deps_fn.sh
-    checkout_deps
+    if ! checkout_deps; then
+    return 1
+    fi
     popd
 }
 

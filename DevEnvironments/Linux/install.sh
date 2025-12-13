@@ -8,22 +8,54 @@ run_script() {
     pushd "$SCRIPT_DIR"
 
     source ./install_package_fn.sh
-    install_package base-devel
-    install_package clang
-    install_package lldb
-    install_package cmake
-    install_package xslt-dev
-    install_package gnutls-dev
-    install_package png-dev
-    install_package zlib-dev
-    install_package nspr-dev
-    install_package espeak-ng-dev
-    install_package vorbis-dev
-    install_package openal-dev
-    install_package opengl-dev
-    install_package glu-dev
-    install_package sdl12-compat
-    install_package x11-dev
+    if ! install_package base-devel; then
+        return 1
+    fi
+    if ! install_package clang; then
+        return 1
+    fi
+    if ! install_package lldb; then
+        return 1
+    fi
+    if ! install_package cmake; then
+        return 1
+    fi
+    if ! install_package xslt-dev; then
+        return 1
+    fi
+    if ! install_package gnutls-dev; then
+        return 1
+    fi
+    if ! install_package png-dev; then
+        return 1
+    fi
+    if ! install_package zlib-dev; then
+        return 1
+    fi
+    if ! install_package nspr-dev; then
+        return 1
+    fi
+    if ! install_package espeak-ng-dev; then
+        return 1
+    fi
+    if ! install_package vorbis-dev; then
+        return 1
+    fi
+    if ! install_package openal-dev; then
+        return 1
+    fi
+    if ! install_package opengl-dev; then
+        return 1
+    fi
+    if ! install_package glu-dev; then
+        return 1
+    fi
+    if ! install_package sdl12-compat; then
+        return 1
+    fi
+    if ! install_package x11-dev; then
+        return 1
+    fi
 
     export CC=clang
     export CXX=clang++
