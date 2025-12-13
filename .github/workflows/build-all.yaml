@@ -84,7 +84,7 @@ jobs:
         with:
           path: oolite
           fetch-depth: 0
-          submodules: false
+          submodules: true
 
       - name: Checkout dependencies
         run: |

@@ -1,7 +1,6 @@
 checkout_deps() {
     pushd "$(dirname "$0")"
     source ./install_package.sh
-    source ../common/common_functions.sh
     install_package git
 
     cd ../..
