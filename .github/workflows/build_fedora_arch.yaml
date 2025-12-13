@@ -8,13 +8,16 @@ jobs:
     runs-on: ubuntu-latest
     container: fedora:37
     steps:
+      - name: Update Fedora
+        run: |
+          dnf -y update
+          dnf -y install git
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
       - name: Checkout dependencies
         run: |
-          dnf -y update
           DevEnvironments/Linux/checkout_deps.sh
       - name: Install packages and build Oolite
         run: |
@@ -24,13 +27,16 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
+      - name: Update Arch
+        run: |
+          pacman -Sy --noconfirm
+          pacman -S --noconfirm --needed git
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
       - name: Checkout dependencies
         run: |
-          pacman -Sy --noconfirm
           DevEnvironments/Linux/checkout_deps.sh
       - name: Install packages and build Oolite
         run: |
