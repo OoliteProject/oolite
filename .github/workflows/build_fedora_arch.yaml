@@ -4,40 +4,28 @@ on:
   pull_request:
 
 jobs:
-  test:
+  fedora:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Fedora 36
-            container: fedora:36
-            install: |
-              sudo dnf -y update
-          - name: Arch latest
-            container: archlinux:latest
-            install: |
-              # Arch images often lack sudo; use pacman directly
-              pacman -Sy --noconfirm
-
-    name: ${{ matrix.name }}
-    container:
-      image: ${{ matrix.container }}
-      options: --privileged  # sometimes needed for Docker-in-Docker or low-level ops
+    container: fedora:36
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-
-      - name: Install build deps
-        run: |
-          set -eux
-          ${matrix.install}
-
+      - uses: actions/checkout@v6
       - name: Checkout dependencies
         run: |
+          dnf -y update
           DevEnvironments/Linux/checkout_deps.sh
+      - name: Install packages and build Oolite
+        run: |
+          DevEnvironments/Linux/install.sh release
 
+  arch:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Checkout dependencies
+        run: |
+          pacman -Sy --noconfirm
+          DevEnvironments/Linux/checkout_deps.sh
       - name: Install packages and build Oolite
         run: |
           DevEnvironments/Linux/install.sh release
