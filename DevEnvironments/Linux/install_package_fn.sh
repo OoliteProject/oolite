@@ -152,8 +152,8 @@ if [[ "$OS_FAMILY" == *"debian"* ]]; then
 elif [[ "$OS_FAMILY" == *"arch"* ]]; then
     # Arch, Manjaro, EndeavourOS
     CURRENT_DISTRO="arch"
-    INSTALL_CMD=(sudo pacman -S --noconfirm)
-    UPDATE_CMD=(sudo pacman -Syu)
+    INSTALL_CMD=(pacman -S --noconfirm)
+    UPDATE_CMD=(pacman -Syu)
 
 elif [[ "$OS_FAMILY" == *"fedora"* || "$OS_FAMILY" == *"rhel"* ]]; then
     # Fedora, CentOS, RHEL, AlmaLinux

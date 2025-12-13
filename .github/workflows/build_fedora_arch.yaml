@@ -23,6 +23,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install build deps
+      - name: Checkout dependencies
+        run: |
+          DevEnvironments/Linux/checkout_deps.sh
+
+      - name: Install packages and build Oolite
         run: |
           DevEnvironments/Linux/install.sh release

@@ -105,7 +105,7 @@ jobs:
         run: |
           find . -not -path "./oolite/deps/Windows-deps/*" -not -path "./oolite/Mac-specific/*" -not -path "./oolite/.git/*"
 
-      - name: install packages and build Oolite
+      - name: Install packages and build Oolite
         run: |
           oolite/DevEnvironments/Linux/install.sh ${{matrix.flavour}}
 
