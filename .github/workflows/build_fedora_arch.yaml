@@ -12,8 +12,13 @@ jobs:
         include:
           - name: Fedora 36
             container: fedora:36
+            install: |
+              sudo dnf -y update
           - name: Arch latest
             container: archlinux:latest
+            install: |
+              # Arch images often lack sudo; use pacman directly
+              pacman -Sy --noconfirm
 
     name: ${{ matrix.name }}
     container:
@@ -22,6 +27,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+
+      - name: Install build deps
+        run: |
+          set -eux
+          ${matrix.install}
 
       - name: Checkout dependencies
         run: |
