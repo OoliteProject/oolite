@@ -6,9 +6,12 @@ on:
 jobs:
   fedora:
     runs-on: ubuntu-latest
-    container: fedora:36
+    container: fedora:37
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
       - name: Checkout dependencies
         run: |
           dnf -y update
@@ -22,6 +25,9 @@ jobs:
     container: archlinux:latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
       - name: Checkout dependencies
         run: |
           pacman -Sy --noconfirm
