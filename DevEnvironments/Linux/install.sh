@@ -12,6 +12,8 @@ run_script() {
     install_package clang
     install_package lldb
     install_package cmake
+    install_package xslt-dev
+    install_package gnutls-dev
     install_package png-dev
     install_package zlib-dev
     install_package nspr-dev
