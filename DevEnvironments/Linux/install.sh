@@ -40,8 +40,10 @@ run_script() {
     fi
     if [ ! -d /usr/share/espeak-ng-data ]; then
         if [ ! -d /usr/local/share/espeak-ng-data ]; then
-            echo "❌ Neither /usr/share/espeak-ng-data nor /usr/local/share/espeak-ng-data exist!"
-            return 1
+            if [ ! -d /usr/lib/x86_64-linux-gnu/espeak-ng-data ]; then
+                echo "❌ espeak-ng-data not in /usr/share, /usr/local/share or /usr/lib/x86_64-linux-gnu!"
+                return 1
+            fi
         fi
     fi
     if ! install_package vorbis-dev; then

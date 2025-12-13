@@ -49,6 +49,19 @@ after-all::
             ifeq ($(GNUSTEP_HOST_OS),mingw32)
 				$(CP) $(CP_FLAGS) $(MINGW_PREFIX)/share/espeak-ng-data $(PROGDIR)/Resources
             else
+                ifeq ($(wildcard /usr/local/share/espeak-ng-data),)
+                    ifeq ($(wildcard /usr/share/espeak-ng-data),)
+                        ifeq ($(wildcard /usr/local/share/espeak-ng-data),)
+							$(error espeak-ng-data not found in any known location)
+                        else
+							$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources
+                        endif
+                    else
+						$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources
+                    endif
+                else
+					$(CP) $(CP_FLAGS) /usr/local/share/espeak-ng-data $(PROGDIR)/Resources
+                endif
                 ifeq (, $(wildcard /usr/local/share/espeak-ng-data))
                     # If the local path doesn't exist, use the system path
 					$(CP) $(CP_FLAGS) /usr/share/espeak-ng-data $(PROGDIR)/Resources
