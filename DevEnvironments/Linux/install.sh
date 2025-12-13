@@ -103,7 +103,7 @@ run_script() {
         echo "❌ libs-base configure failed!" >&2
         return 1
     fi
-    if ! make -j16; then
+    if ! make -j$(nproc); then
         echo "❌ libs-base make failed!" >&2
         return 1
     fi
