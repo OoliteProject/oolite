@@ -5,7 +5,7 @@
 run_script() {
     # First optional parameter is build target. Default target is release.
     pushd "$(dirname "$0")"
-    source ./install_package.sh
+    source ./install_package_fn.sh
 
     install_package base-devel
     install_package clang
