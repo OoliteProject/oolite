@@ -18,10 +18,14 @@ xcuserdata/
 deps/Cocoa-deps/sparkle
 deps/libpng
 
+# IDE files
+.idea
 
 # Build products
 build/
 oolite.app
+Oolite.AppDir
+*.AppImage
 obj.spk
 obj.win.spk
 obj.spk.dbg
