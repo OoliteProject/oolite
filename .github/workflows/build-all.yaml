@@ -72,7 +72,7 @@ jobs:
     needs: [common-steps]
     strategy:
       matrix:
-        flavour: [pkg-appimage-test, pkg-appimage]
+        flavour: [pkg-appimage-snapshot, pkg-appimage-deployment, pkg-appimage]
     steps:
       ## This is for debugging only and helps developing the workflow.
       # - name: Environment Variables

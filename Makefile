@@ -196,16 +196,6 @@ deps-remake: clean deps-all
 pkg-autopackage:
 	makepackage -c -m $(APSPEC_FILE)
 
-# AppImage targets
-.PHONY: pkg-appimage
-pkg-appimage: release-deployment
-	installers/appimage/create_appimage.sh $(VER) "release-deployment" ""
-
-.PHONY: pkg-appimage-test
-pkg-appimage-test: release
-	installers/appimage/create_appimage.sh $(VER) "release" ""
-
-
 # Here are our POSIX (e.g. FreeBSD, Linux etc.) self-extracted packager targets
 #
 # TODO: For debug package the "oolite" startup script should point to "oolite.app/oolite.dbg" binary, 
@@ -247,6 +237,21 @@ pkg-debsnapshot: debian/changelog
 .PHONY: pkg-debclean
 pkg-debclean:
 	debuild clean
+
+
+# Here are our AppImage targets
+#
+.PHONY: pkg-appimage
+pkg-appimage: release
+	installers/appimage/create_appimage.sh $(VER) "release"
+
+.PHONY: pkg-appimage-deployment
+pkg-appimage-deployment: release-deployment
+	installers/appimage/create_appimage.sh $(VER) "release-deployment"
+
+.PHONY: pkg-appimage-snapshot
+pkg-appimage: release-snapshot
+	installers/appimage/create_appimage.sh $(VER) "release-snapshot"
 
 # And here are our Windows packager targets
 #
