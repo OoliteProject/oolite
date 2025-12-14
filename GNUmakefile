@@ -108,7 +108,7 @@ ifeq ($(modern),yes)
     ifeq ($(lto),yes)
         ADDITIONAL_CFLAGS        += -flto 
         ADDITIONAL_OBJCFLAGS     += -flto 
-        ADDITIONAL_CFLAGS        += -flto 
+        ADDITIONAL_CCFLAGS       += -flto 
         ADDITIONAL_LDFLAGS       += -flto 
     endif
 endif
