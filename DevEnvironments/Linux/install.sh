@@ -20,10 +20,13 @@ run_script() {
     if ! install_package cmake; then
         return 1
     fi
-    if ! install_package xslt-dev; then
+    if ! install_package gnutls-dev; then
         return 1
     fi
-    if ! install_package gnutls-dev; then
+    if ! install_package ffi-dev; then
+        return 1
+    fi
+    if ! install_package xslt-dev; then
         return 1
     fi
     if ! install_package png-dev; then
@@ -87,8 +90,13 @@ run_script() {
     cd ../..
 
     cd tools-make
-    make distclean
-    if ! ./configure --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2; then
+    make clean
+    if [[ "$CURRENT_DISTRO" == "redhat" ]]; then
+        LIB_PARAM = "--with-libdir=lib64"
+    else
+        LIB_PARAM = ""
+    fi
+    if ! ./configure --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2 $LIB_PARAM; then
         echo "❌ tools-make configure failed!" >&2
         return 1
     fi
@@ -97,7 +105,7 @@ run_script() {
     cd ..
 
     cd libs-base
-    make distclean
+    make clean
     source /usr/local/share/GNUstep/Makefiles/GNUstep.sh
     if ! ./configure; then
         echo "❌ libs-base configure failed!" >&2

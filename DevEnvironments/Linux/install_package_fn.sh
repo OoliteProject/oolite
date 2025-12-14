@@ -26,18 +26,25 @@ install_package() {
 
         "cmake") PKG_NAME="cmake" ;;
 
-        "xslt-dev")
-            case "$CURRENT_DISTRO" in
-                debian) PKG_NAME="libxml2-dev libxslt1-dev" ;;
-                redhat) PKG_NAME="libxml2-devel libxslt-devel" ;;
-                arch) PKG_NAME="libxml2 libxslt" ;;
-            esac ;;
-
         "gnutls-dev")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="libgnutls28-dev" ;;
                 redhat) PKG_NAME="gnutls-devel" ;;
                 arch) PKG_NAME="gnutls" ;;
+            esac ;;
+
+        "ffi-dev")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="libffi-dev" ;;
+                redhat) PKG_NAME="libffi-devel" ;;
+                arch) PKG_NAME="libffi" ;;
+            esac ;;
+
+        "xslt-dev")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="libxml2-dev libxslt1-dev" ;;
+                redhat) PKG_NAME="libxml2-devel libxslt-devel" ;;
+                arch) PKG_NAME="libxml2 libxslt" ;;
             esac ;;
 
         "png-dev")
