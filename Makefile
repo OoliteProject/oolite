@@ -107,16 +107,16 @@ help:
 #
 .PHONY: release
 release: $(DEPS)
-	$(MAKE) -f GNUmakefile debug=no strip=yes
+	$(MAKE) -f GNUmakefile debug=no strip=yes lto=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no strip=yes
+	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no strip=yes lto=yes
 
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no strip=yes
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: debug
@@ -128,18 +128,18 @@ debug: $(DEPS_DBG)
 .PHONY: deps-release
 deps-release: $(DEPS)
 	cd deps/Linux-deps/x86_64/lib_linker && ./make_so_links.sh && cd ../../../..
-	$(MAKE) -f GNUmakefile debug=no use_deps=yes strip=yes
+	$(MAKE) -f GNUmakefile debug=no use_deps=yes strip=yes lto=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-release-deployment
 deps-release-deployment: $(DEPS)
 	cd deps/Linux-deps/x86_64/lib_linker && ./make_so_links.sh && cd ../../../..
-	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes strip=yes
+	$(MAKE) -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes strip=yes lto=yes
 
 .PHONY: deps-release-snapshot
 deps-release-snapshot: $(DEPS)
 	cd deps/Linux-deps/x86_64/lib_linker && ./make_so_links.sh && cd ../../../..
-	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes strip=yes
+	$(MAKE) -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
 	mkdir -p AddOns && rm -rf AddOns/Basic-debug.oxp && cp -rf DebugOXP/Debug.oxp AddOns/Basic-debug.oxp
 
 .PHONY: deps-debug
