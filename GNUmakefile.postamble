@@ -71,7 +71,13 @@ after-all::
 			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/!v/f2 $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
 			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/default $(PROGDIR)/Resources/espeak-ng-data/voices/default
         else
-			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+            ifeq ($(GNUSTEP_HOST_OS),mingw32)
+				$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+            else
+                ifeq ($(use_deps),yes)
+					$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
+                endif
+            endif
         endif
     endif
     ifeq ($(strip),yes)
