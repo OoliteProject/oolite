@@ -33,6 +33,13 @@ install_package() {
                 arch) PKG_NAME="gnutls" ;;
             esac ;;
 
+        "icu-dev")
+            case "$CURRENT_DISTRO" in
+                debian) PKG_NAME="libicu-dev" ;;
+                redhat) PKG_NAME="libicu-devel" ;;
+                arch) PKG_NAME="icu" ;;
+            esac ;;
+
         "ffi-dev")
             case "$CURRENT_DISTRO" in
                 debian) PKG_NAME="libffi-dev" ;;

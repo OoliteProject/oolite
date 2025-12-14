@@ -23,6 +23,9 @@ run_script() {
     if ! install_package gnutls-dev; then
         return 1
     fi
+    if ! install_package icu-dev; then
+        return 1
+    fi
     if ! install_package ffi-dev; then
         return 1
     fi
@@ -91,12 +94,15 @@ run_script() {
 
     cd tools-make
     make clean
-    if [[ "$CURRENT_DISTRO" == "redhat" ]]; then
-        LIB_PARAM = "--with-libdir=lib64"
+
+    # Bash
+    if [[ ${CURRENT_DISTRO,,} == "redhat" ]]; then
+        LIB_PARAM="--with-libdir=lib64"
     else
-        LIB_PARAM = ""
+        LIB_PARAM=""
     fi
-    if ! ./configure --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2 $LIB_PARAM; then
+
+    if ! ./configure --with-library-combo=ng-gnu-gnu --with-runtime-abi=gnustep-2.2 ${LIB_PARAM:+"$LIB_PARAM"}; then
         echo "❌ tools-make configure failed!" >&2
         return 1
     fi
