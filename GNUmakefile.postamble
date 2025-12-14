@@ -71,9 +71,7 @@ after-all::
 			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/!v/f2 $(PROGDIR)/Resources/espeak-ng-data/voices/!v/f2
 			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data/voices/default $(PROGDIR)/Resources/espeak-ng-data/voices/default
         else
-            ifeq ($(use_deps),yes)
-				$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
-            endif
+			$(CP) $(CP_FLAGS) deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
         endif
     endif
     ifeq ($(strip),yes)

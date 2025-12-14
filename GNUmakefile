@@ -91,6 +91,19 @@ else  # Linux only uses modern build
     endif
 endif
 
+# add specific flags if building modern
+ifeq ($(modern),yes)
+    ADDITIONAL_CFLAGS        += -DOOLITE_MODERN_BUILD=1
+    ADDITIONAL_OBJCFLAGS     += -DOOLITE_MODERN_BUILD=1
+#   link time optimizations
+    ifeq ($(lto),yes)
+        ADDITIONAL_CFLAGS        += -flto
+        ADDITIONAL_OBJCFLAGS     += -flto
+        ADDITIONAL_CCFLAGS       += -flto
+        ADDITIONAL_LDFLAGS       += -flto
+    endif
+endif
+
 OBJC_PROGRAM_NAME = oolite
 
 include flags.make

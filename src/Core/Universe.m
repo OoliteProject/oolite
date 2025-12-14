@@ -778,11 +778,11 @@ static GLfloat	docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEV
 	int volume = [OOSound masterVolume] * 100;
 	if (!SDL_getenv("ESPEAK_DATA_PATH"))
 	{
-    	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, [[ResourceManager builtInPath] UTF8String], 0);
+		espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, [[ResourceManager builtInPath] UTF8String], 0);
 	}
 	else
 	{
-    	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
+		espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
 	}
 	espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);
 	espeak_SetParameter(espeakVOLUME, volume, 0);
