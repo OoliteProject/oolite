@@ -158,8 +158,12 @@ MA 02110-1301, USA.
 
 
 // Pseudo-keywords used for AppKit UI bindings.
+#ifndef IBOutlet
 #define IBOutlet /**/
+#endif
+#ifndef IBAction
 #define IBAction void
+#endif
 
 
 #import "Comparison.h"
