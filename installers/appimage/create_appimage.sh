@@ -1,7 +1,8 @@
 #!/bin/bash
 
 run_script() {
-#   Takes parameter which is a version with format maj.min.rev.githash (e.g. 1.91.0.7549-231111-cf99a82)
+    # First parameter which is a version with format maj.min.rev.githash (e.g. 1.91.0.7549-231111-cf99a82)
+    # Second parameter is a suffix for the build type eg. test, dev
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
@@ -28,10 +29,16 @@ run_script() {
 	if ! check_rename "Oolite" "Oolite-*" $1; then
         return 1
 	fi
-    popd
+
+	if (( $# == 2 )); then
+        if ! check_rename "Oolite" "Oolite_*" $2; then
+            return 1
+        fi
+    fi
+	popd
 }
 
-run_script $1
+run_script $1 $2
 status=$?
 
 
