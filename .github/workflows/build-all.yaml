@@ -122,7 +122,7 @@ jobs:
       - name: Archive installer
         uses: actions/upload-artifact@v6
         with:
-          name: ${{matrix.flavour}}
+          name: oolite-linux-${{matrix.flavour}}
           path: |
             oolite/installers/appimage/Oolite_*.AppImage
           retention-days: 5
