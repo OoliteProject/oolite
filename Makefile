@@ -250,7 +250,7 @@ pkg-appimage-deployment: release-deployment
 	installers/appimage/create_appimage.sh "$(VER)"
 
 .PHONY: pkg-appimage-snapshot
-pkg-appimage: release-snapshot
+pkg-appimage-snapshot: release-snapshot
 	installers/appimage/create_appimage.sh "$(VER)" "dev"
 
 # And here are our Windows packager targets

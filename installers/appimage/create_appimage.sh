@@ -26,16 +26,16 @@ run_script() {
         return 1
     fi
 
-	if ! check_rename "Oolite" "Oolite-*" $1; then
-        return 1
-	fi
-
-	if (( $# == 2 )); then
-        if ! check_rename "Oolite" "Oolite_*" $2; then
-            return 1
-        fi
+   	if (( $# == 2 )); then
+        SUFFIX="${2}_${1}"
+    else
+        SUFFIX="$1"
     fi
-	popd
+
+    if ! check_rename "Oolite" "Oolite-*" $SUFFIX; then
+        return 1
+    fi
+    popd
 }
 
 run_script $1 $2
