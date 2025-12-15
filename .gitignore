@@ -33,6 +33,9 @@ obj.win.spk.dbg
 AddOns/
 tools/icosmesh/obj
 doxygen/
+libobjc2/
+libs-base/
+tools-make/
 
 # Debug output
 /core
