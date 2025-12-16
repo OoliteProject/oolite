@@ -142,7 +142,7 @@ run_script() {
 	popd
 }
 
-run_script $1
+run_script "$@"
 status=$?
 
 

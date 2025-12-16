@@ -6,6 +6,7 @@ run_script() {
     SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
     pushd "$SCRIPT_DIR"
 
+    source ../../DevEnvironments/Linux/os_detection.sh
     source ../../DevEnvironments/common/check_rename_fn.sh
     APPDIR="Oolite.AppDir"
     rm -rf $APPDIR
@@ -17,11 +18,19 @@ run_script() {
     rm -f linuxdeploy-x86_64.AppImage
     wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
     chmod +x linuxdeploy-x86_64.AppImage
+
+    case "$CURRENT_DISTRO" in
+        debian) SDL2="--library=/usr/lib/x86_64-linux-gnu/libSDL2.so" ;;
+        redhat) SDL2="--library=/usr/lib64/libSDL2-2.0.so.0 --library=/usr/lib64/libSDL3.so.0" ;;
+        arch) SDL2="--library=usr/lib/libSDL2-2.0.so.0 --library=usr/lib/libSDL3.so.0" ;;
+    esac ;;
+
     if ! ./linuxdeploy-x86_64.AppImage \
     --appdir $APPDIR \
     --executable $PROGDIR/oolite \
     --desktop-file ../FreeDesktop/oolite.desktop \
     --icon-file ../FreeDesktop/oolite-icon.png \
+    $SDL2 \
     --output appimage; then
         echo "❌ AppImage creation failed!" >&2
         return 1
@@ -39,7 +48,7 @@ run_script() {
     popd
 }
 
-run_script $1 $2
+run_script "$@"
 status=$?
 
 
